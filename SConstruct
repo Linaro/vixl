@@ -40,6 +40,7 @@ src/a64/debugger-a64.cc
 src/a64/disasm-a64.cc
 src/a64/cpu-a64.cc
 src/a64/simulator-a64.cc
+src/a64/instrument-a64.cc
 '''.split()
 PROJ_EXAMPLES_DIR = 'examples'
 PROJ_EXAMPLES_SRC_FILES = '''
@@ -69,6 +70,7 @@ TARGET_SRC_FILES = {
     test/test-utils-a64.cc
     test/test-assembler-a64.cc
     test/test-disasm-a64.cc
+    test/test-fuzz-a64.cc
     test/examples/test-examples.cc
     '''.split() + PROJ_EXAMPLES_SRC_FILES,
   'bench_dataop': '''

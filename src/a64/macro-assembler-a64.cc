@@ -338,6 +338,7 @@ void MacroAssembler::ConditionalCompareMacro(const Register& rn,
                                              StatusFlags nzcv,
                                              Condition cond,
                                              ConditionalCompareOp op) {
+  ASSERT((cond != al) && (cond != nv));
   if ((operand.IsShiftedRegister() && (operand.shift_amount() == 0)) ||
       (operand.IsImmediate() && IsImmConditionalCompare(operand.immediate()))) {
     // The immediate can be encoded in the instruction, or the operand is an
@@ -1076,6 +1077,32 @@ void MacroAssembler::Log(TraceParameters parameters) {
   // Emit nothing on real hardware.
   USE(parameters);
 #endif
+}
+
+
+void MacroAssembler::EnableInstrumentation() {
+  ASSERT(!isprint(InstrumentStateEnable));
+  InstructionAccurateScope scope(this, 1);
+  movn(xzr, InstrumentStateEnable);
+}
+
+
+void MacroAssembler::DisableInstrumentation() {
+  ASSERT(!isprint(InstrumentStateDisable));
+  InstructionAccurateScope scope(this, 1);
+  movn(xzr, InstrumentStateDisable);
+}
+
+
+void MacroAssembler::AnnotateInstrumentation(const char* marker_name) {
+  ASSERT(strlen(marker_name) == 2);
+
+  // We allow only printable characters in the marker names. Unprintable
+  // characters are reserved for controlling features of the instrumentation.
+  ASSERT(isprint(marker_name[0]) && isprint(marker_name[1]));
+
+  InstructionAccurateScope scope(this, 1);
+  movn(xzr, (marker_name[1] << 8) | marker_name[0]);
 }
 
 }  // namespace vixl

@@ -140,9 +140,15 @@ void GenerateTestWrapper(MacroAssembler* masm, RegisterDump *regs) {
   Debugger simulator(&decoder);                             \
   simulator.set_coloured_trace(Cctest::coloured_trace());   \
   PrintDisassembler* pdis = NULL;                           \
+  Instrument* inst = NULL;                                  \
   if (Cctest::trace_sim()) {                                \
     pdis = new PrintDisassembler(stdout);                   \
     decoder.PrependVisitor(pdis);                           \
+  }                                                         \
+  if (Cctest::instruction_stats()) {                        \
+    inst = new Instrument("vixl_stats.csv", 10);            \
+    inst->Enable();                                         \
+    decoder.AppendVisitor(inst);                            \
   }                                                         \
   RegisterDump regs;                                        \
                                                             \

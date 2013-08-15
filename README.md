@@ -1,5 +1,5 @@
-VIXL: Runtime Code Generation Library Version 1.0
-=================================================
+VIXL: AArch64 Runtime Code Generation Library Version 1.1
+=========================================================
 
 Contents:
 
@@ -15,7 +15,7 @@ Requirements
 To build VIXL the following software is required:
 
  1. Python 2.7
- 2. Scons 2.0
+ 2. SCons 2.0
  3. GCC 4.4
 
 A 64-bit host machine is required, implementing an LP64 data model. VIXL has
@@ -27,6 +27,7 @@ To run the linter stage of the tests, the following software is also required:
  2. [Google's `cpplint.py`][cpplint]
 
 Refer to the 'Usage' section for details.
+
 
 Overview
 ========
@@ -40,6 +41,9 @@ VIXL is made of three components.
  3. A simulator which can simulate any instruction emitted by the assembler.
     The simulator allows generated code to be run on another architecture
     without the need for a full ISA model.
+
+The VIXL git repository can be found [on GitHub][vixl]. Changes from previous
+versions of VIXL can be found in the [Changelog](doc/changelog.md).
 
 
 Known Limitations
@@ -55,7 +59,8 @@ were deemed unnecessary:
  * A few miscellaneous integer and floating point instructions are missing.
 
 The VIXL simulator supports only those instructions that the VIXL assembler can
-generate.
+generate. The `doc` directory contains a
+[list of supported instructions](doc/supported-instructions.md).
 
 
 Usage
@@ -110,7 +115,7 @@ figure; they should be timed using the `time` command.
 Getting Started
 ---------------
 
-A short introduction to using VIXL can be found at `doc/getting-started.md`.
+A short introduction to using VIXL can be found [here](doc/getting-started.md).
 Example source code is provided in the `examples` directory. Build this using
 `scons target=examples` from the root directory.
 
@@ -118,3 +123,6 @@ Example source code is provided in the `examples` directory. Build this using
 
 [cpplint]: https://google-styleguide.googlecode.com/svn-history/r104/trunk/cpplint/cpplint.py
            "Google's cpplint.py script."
+
+[vixl]: https://github.com/armvixl/vixl
+        "The VIXL repository on GitHub."

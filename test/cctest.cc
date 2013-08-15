@@ -43,6 +43,9 @@ bool vixl::Cctest::trace_reg_ = false;
 // No colour highlight by default.
 bool vixl::Cctest::coloured_trace_ = false;
 
+// No instruction statistics by default.
+bool vixl::Cctest::instruction_stats_ = false;
+
 // Instantiate a Cctest and add append it to the linked list.
 vixl::Cctest::Cctest(const char* name, CctestFunction* callback)
   : name_(name), callback_(callback), next_(NULL) {
@@ -76,33 +79,28 @@ bool IsSpecialArgument(const char* arg) {
          (strcmp(arg, "--debugger") == 0) ||
          (strcmp(arg, "--trace_sim") == 0) ||
          (strcmp(arg, "--trace_reg") == 0) ||
-         (strcmp(arg, "--coloured_trace") == 0);
+         (strcmp(arg, "--coloured_trace") == 0) ||
+         (strcmp(arg, "--instruction_stats") == 0);
 }
 
 
 void PrintHelpMessage() {
   printf("Usage:  ./cctest [options] [test names]\n"
          "Run all tests specified on the command line.\n"
-         "--help            print this help message.\n"
-         "--list            list all available tests.\n"
-         "--run_all         run all available tests.\n"
-         "--debugger        run in the debugger.\n"
-         "--trace_sim       generate a trace of simulated instructions.\n"
-         "--trace_reg       generate a trace of simulated registers. "
+         "--help              print this help message.\n"
+         "--list              list all available tests.\n"
+         "--run_all           run all available tests.\n"
+         "--debugger          run in the debugger.\n"
+         "--trace_sim         generate a trace of simulated instructions.\n"
+         "--trace_reg         generate a trace of simulated registers. "
            "Implies --debugger.\n"
-         "--coloured_trace  generate coloured trace.\n");
+         "--coloured_trace    generate coloured trace.\n"
+         "--instruction_stats log instruction statistics to vixl_stats.csv.\n");
 }
 
 int main(int argc, char* argv[]) {
-  // Parse the arguments, with the following priority:
-  // --help
-  // --list
-  // --run_all
-  // --debugger
-  // --trace_sim
-  // --trace_reg
-  // --coloured_trace
-  // test names
+  // Parse the arguments. Option flags must appear first, followed by an
+  // optional list of tests to run.
 
   if (IsInArgs("--coloured_trace", argc, argv)) {
     vixl::Cctest::set_coloured_trace(true);
@@ -118,6 +116,10 @@ int main(int argc, char* argv[]) {
 
   if (IsInArgs("--trace_sim", argc, argv)) {
     vixl::Cctest::set_trace_sim(true);
+  }
+
+  if (IsInArgs("--instruction_stats", argc, argv)) {
+    vixl::Cctest::set_instruction_stats(true);
   }
 
   if (IsInArgs("--help", argc, argv)) {

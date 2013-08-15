@@ -116,7 +116,7 @@ class CCtest:
   def Command(self):
     command = '%s %s' % (CCtest.cctest, self.name)
     if self.options is not None:
-      command = '%s %s' % (commnad, ' '.join(options))
+      command = '%s %s' % (command, ' '.join(self.options))
 
     return command
 
