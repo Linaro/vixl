@@ -54,7 +54,6 @@ enum CounterType {
 class Counter {
  public:
   Counter(const char* name, CounterType type = Gauge);
-  ~Counter();
 
   void Increment();
   void Enable();

@@ -1,4 +1,4 @@
-VIXL: AArch64 Runtime Code Generation Library Version 1.1
+VIXL: AArch64 Runtime Code Generation Library Version 1.2
 =========================================================
 
 Contents:
@@ -54,7 +54,7 @@ were deemed unnecessary:
 
  * No Advanced SIMD support.
  * Limited rounding mode support for floating point.
- * No support for synchronisation instructions.
+ * Limited support for synchronisation instructions.
  * Limited support for system instructions.
  * A few miscellaneous integer and floating point instructions are missing.
 

@@ -57,22 +57,27 @@ SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
 
 
 Simulator::Simulator(Decoder* decoder, FILE* stream) {
-  // Ensure shift operations act as the simulator expects.
+  // Ensure that shift operations act as the simulator expects.
   ASSERT((static_cast<int32_t>(-1) >> 1) == -1);
   ASSERT((static_cast<uint32_t>(-1) >> 1) == 0x7FFFFFFF);
 
-  // Setup the decoder.
+  // Set up the decoder.
   decoder_ = decoder;
   decoder_->AppendVisitor(this);
 
   ResetState();
 
-  // Allocate and setup the simulator stack.
-  stack_ = reinterpret_cast<byte*>(malloc(stack_size_));
+  // Allocate and set up the simulator stack.
+  stack_ = new byte[stack_size_];
   stack_limit_ = stack_ + stack_protection_size_;
-  byte* tos = stack_ + stack_size_ - stack_protection_size_;
-  // The stack pointer must be 16 bytes aligned.
-  set_sp(reinterpret_cast<int64_t>(tos) & ~0xfUL);
+  // Configure the starting stack pointer.
+  //  - Find the top of the stack.
+  uintptr_t tos = reinterpret_cast<uintptr_t>(stack_) + stack_size_;
+  //  - There's a protection region at both ends of the stack.
+  tos -= stack_protection_size_;
+  //  - The stack pointer must be 16-byte aligned.
+  tos &= ~0xfUL;
+  set_sp(tos);
 
   stream_ = stream;
   print_disasm_ = new PrintDisassembler(stream_);
@@ -100,12 +105,12 @@ void Simulator::ResetState() {
     set_dreg_bits(i, 0x7ff000007f800001UL);
   }
   // Returning to address 0 exits the Simulator.
-  set_lr(reinterpret_cast<int64_t>(kEndOfSimAddress));
+  set_lr(kEndOfSimAddress);
 }
 
 
 Simulator::~Simulator() {
-  free(stack_);
+  delete [] stack_;
   // The decoder may outlive the simulator.
   decoder_->RemoveVisitor(print_disasm_);
   delete print_disasm_;
@@ -116,6 +121,7 @@ Simulator::~Simulator() {
 
 
 void Simulator::Run() {
+  pc_modified_ = false;
   while (pc_ != kEndOfSimAddress) {
     ExecuteInstruction();
   }
@@ -123,8 +129,7 @@ void Simulator::Run() {
 
 
 void Simulator::RunFrom(Instruction* first) {
-  pc_ = first;
-  pc_modified_ = false;
+  set_pc(first);
   Run();
 }
 
@@ -394,17 +399,18 @@ void Simulator::PrintRegisters(bool print_all_regs) {
   char const * const clr_reg_value = (coloured_trace_) ? ("\033[1;36m") : ("");
 
   for (unsigned i = 0; i < kNumberOfRegisters; i++) {
-    if (print_all_regs || first_run || (last_regs[i] != registers_[i].x)) {
+    if (print_all_regs || first_run ||
+        (last_regs[i] != xreg(i, Reg31IsStackPointer))) {
       fprintf(stream_,
               "# %s%4s:%s 0x%016" PRIx64 "%s\n",
               clr_reg_name,
               XRegNameForCode(i, Reg31IsStackPointer),
               clr_reg_value,
-              registers_[i].x,
+              xreg(i, Reg31IsStackPointer),
               clr_normal);
     }
     // Cache the new register value so the next run can detect any changes.
-    last_regs[i] = registers_[i].x;
+    last_regs[i] = xreg(i, Reg31IsStackPointer);
   }
   first_run = false;
 }
@@ -424,27 +430,26 @@ void Simulator::PrintFPRegisters(bool print_all_regs) {
   // register in the same column each time (to make it easy to visually scan
   // for changes).
   for (unsigned i = 0; i < kNumberOfFPRegisters; i++) {
-    if (print_all_regs || first_run ||
-        (last_regs[i] != double_to_rawbits(fpregisters_[i].d))) {
+    if (print_all_regs || first_run || (last_regs[i] != dreg_bits(i))) {
       fprintf(stream_,
               "# %s %4s:%s 0x%016" PRIx64 "%s (%s%s:%s %g%s %s:%s %g%s)\n",
               clr_reg_name,
               VRegNameForCode(i),
               clr_reg_value,
-              double_to_rawbits(fpregisters_[i].d),
+              dreg_bits(i),
               clr_normal,
               clr_reg_name,
               DRegNameForCode(i),
               clr_reg_value,
-              fpregisters_[i].d,
+              dreg(i),
               clr_reg_name,
               SRegNameForCode(i),
               clr_reg_value,
-              fpregisters_[i].s,
+              sreg(i),
               clr_normal);
     }
     // Cache the new register value so the next run can detect any changes.
-    last_regs[i] = double_to_rawbits(fpregisters_[i].d);
+    last_regs[i] = dreg_bits(i);
   }
   first_run = false;
 }
@@ -492,7 +497,7 @@ void Simulator::VisitPCRelAddressing(Instruction* instr) {
 void Simulator::VisitUnconditionalBranch(Instruction* instr) {
   switch (instr->Mask(UnconditionalBranchMask)) {
     case BL:
-      set_lr(reinterpret_cast<int64_t>(instr->NextInstruction()));
+      set_lr(instr->NextInstruction());
       // Fall through.
     case B:
       set_pc(instr->ImmPCOffsetTarget());
@@ -515,7 +520,7 @@ void Simulator::VisitUnconditionalBranchToRegister(Instruction* instr) {
 
   switch (instr->Mask(UnconditionalBranchToRegisterMask)) {
     case BLR:
-      set_lr(reinterpret_cast<int64_t>(instr->NextInstruction()));
+      set_lr(instr->NextInstruction());
       // Fall through.
     case BR:
     case RET: set_pc(target); break;
@@ -1112,18 +1117,52 @@ void Simulator::VisitDataProcessing2Source(Instruction* instr) {
   Shift shift_op = NO_SHIFT;
   int64_t result = 0;
   switch (instr->Mask(DataProcessing2SourceMask)) {
-    case SDIV_w: result = wreg(instr->Rn()) / wreg(instr->Rm()); break;
-    case SDIV_x: result = xreg(instr->Rn()) / xreg(instr->Rm()); break;
+    case SDIV_w: {
+      int32_t rn = wreg(instr->Rn());
+      int32_t rm = wreg(instr->Rm());
+      if ((rn == kWMinInt) && (rm == -1)) {
+        result = kWMinInt;
+      } else if (rm == 0) {
+        // Division by zero can be trapped, but not on A-class processors.
+        result = 0;
+      } else {
+        result = rn / rm;
+      }
+      break;
+    }
+    case SDIV_x: {
+      int64_t rn = xreg(instr->Rn());
+      int64_t rm = xreg(instr->Rm());
+      if ((rn == kXMinInt) && (rm == -1)) {
+        result = kXMinInt;
+      } else if (rm == 0) {
+        // Division by zero can be trapped, but not on A-class processors.
+        result = 0;
+      } else {
+        result = rn / rm;
+      }
+      break;
+    }
     case UDIV_w: {
       uint32_t rn = static_cast<uint32_t>(wreg(instr->Rn()));
       uint32_t rm = static_cast<uint32_t>(wreg(instr->Rm()));
-      result = rn / rm;
+      if (rm == 0) {
+        // Division by zero can be trapped, but not on A-class processors.
+        result = 0;
+      } else {
+        result = rn / rm;
+      }
       break;
     }
     case UDIV_x: {
       uint64_t rn = static_cast<uint64_t>(xreg(instr->Rn()));
       uint64_t rm = static_cast<uint64_t>(xreg(instr->Rm()));
-      result = rn / rm;
+      if (rm == 0) {
+        // Division by zero can be trapped, but not on A-class processors.
+        result = 0;
+      } else {
+        result = rn / rm;
+      }
       break;
     }
     case LSLV_w:
@@ -1176,8 +1215,11 @@ void Simulator::VisitDataProcessing3Source(Instruction* instr) {
   unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
 
   int64_t result = 0;
-  uint64_t rn;
-  uint64_t rm;
+  // Extract and sign- or zero-extend 32-bit arguments for widening operations.
+  uint64_t rn_u32 = reg<uint32_t>(instr->Rn());
+  uint64_t rm_u32 = reg<uint32_t>(instr->Rm());
+  int64_t rn_s32 = reg<int32_t>(instr->Rn());
+  int64_t rm_s32 = reg<int32_t>(instr->Rm());
   switch (instr->Mask(DataProcessing3SourceMask)) {
     case MADD_w:
     case MADD_x:
@@ -1187,22 +1229,10 @@ void Simulator::VisitDataProcessing3Source(Instruction* instr) {
     case MSUB_x:
       result = xreg(instr->Ra()) - (xreg(instr->Rn()) * xreg(instr->Rm()));
       break;
-    case SMADDL_x:
-      result = xreg(instr->Ra()) + (wreg(instr->Rn()) * wreg(instr->Rm()));
-      break;
-    case SMSUBL_x:
-      result = xreg(instr->Ra()) - (wreg(instr->Rn()) * wreg(instr->Rm()));
-      break;
-    case UMADDL_x:
-      rn = static_cast<uint32_t>(wreg(instr->Rn()));
-      rm = static_cast<uint32_t>(wreg(instr->Rm()));
-      result = xreg(instr->Ra()) + (rn * rm);
-      break;
-    case UMSUBL_x:
-      rn = static_cast<uint32_t>(wreg(instr->Rn()));
-      rm = static_cast<uint32_t>(wreg(instr->Rm()));
-      result = xreg(instr->Ra()) - (rn * rm);
-      break;
+    case SMADDL_x: result = xreg(instr->Ra()) + (rn_s32 * rm_s32); break;
+    case SMSUBL_x: result = xreg(instr->Ra()) - (rn_s32 * rm_s32); break;
+    case UMADDL_x: result = xreg(instr->Ra()) + (rn_u32 * rm_u32); break;
+    case UMSUBL_x: result = xreg(instr->Ra()) - (rn_u32 * rm_u32); break;
     case SMULH_x:
       result = MultiplyHighSigned(xreg(instr->Rn()), xreg(instr->Rm()));
       break;
@@ -1297,6 +1327,14 @@ void Simulator::VisitFPIntegerConvert(Instruction* instr) {
   FPRounding round = RMode();
 
   switch (instr->Mask(FPIntegerConvertMask)) {
+    case FCVTAS_ws: set_wreg(dst, FPToInt32(sreg(src), FPTieAway)); break;
+    case FCVTAS_xs: set_xreg(dst, FPToInt64(sreg(src), FPTieAway)); break;
+    case FCVTAS_wd: set_wreg(dst, FPToInt32(dreg(src), FPTieAway)); break;
+    case FCVTAS_xd: set_xreg(dst, FPToInt64(dreg(src), FPTieAway)); break;
+    case FCVTAU_ws: set_wreg(dst, FPToUInt32(sreg(src), FPTieAway)); break;
+    case FCVTAU_xs: set_xreg(dst, FPToUInt64(sreg(src), FPTieAway)); break;
+    case FCVTAU_wd: set_wreg(dst, FPToUInt32(dreg(src), FPTieAway)); break;
+    case FCVTAU_xd: set_xreg(dst, FPToUInt64(dreg(src), FPTieAway)); break;
     case FCVTMS_ws:
       set_wreg(dst, FPToInt32(sreg(src), FPNegativeInfinity));
       break;
@@ -1494,18 +1532,16 @@ void Simulator::VisitFPConditionalCompare(Instruction* instr) {
 void Simulator::VisitFPConditionalSelect(Instruction* instr) {
   AssertSupportedFPCR();
 
-  unsigned reg_size = instr->FPType() == FP32 ? kSRegSize : kDRegSize;
-
-  double selected_val;
+  Instr selected;
   if (ConditionPassed(static_cast<Condition>(instr->Condition()))) {
-    selected_val = fpreg(reg_size, instr->Rn());
+    selected = instr->Rn();
   } else {
-    selected_val = fpreg(reg_size, instr->Rm());
+    selected = instr->Rm();
   }
 
   switch (instr->Mask(FPConditionalSelectMask)) {
-    case FCSEL_s:
-    case FCSEL_d: set_fpreg(reg_size, instr->Rd(), selected_val); break;
+    case FCSEL_s: set_sreg(instr->Rd(), sreg(selected)); break;
+    case FCSEL_d: set_dreg(instr->Rd(), dreg(selected)); break;
     default: UNIMPLEMENTED();
   }
 }
@@ -1526,6 +1562,8 @@ void Simulator::VisitFPDataProcessing1Source(Instruction* instr) {
     case FNEG_d: set_dreg(fd, -dreg(fn)); break;
     case FSQRT_s: set_sreg(fd, sqrt(sreg(fn))); break;
     case FSQRT_d: set_dreg(fd, sqrt(dreg(fn))); break;
+    case FRINTA_s: set_sreg(fd, FPRoundInt(sreg(fn), FPTieAway)); break;
+    case FRINTA_d: set_dreg(fd, FPRoundInt(dreg(fn), FPTieAway)); break;
     case FRINTN_s: set_sreg(fd, FPRoundInt(sreg(fn), FPTieEven)); break;
     case FRINTN_d: set_dreg(fd, FPRoundInt(dreg(fn), FPTieEven)); break;
     case FRINTZ_s: set_sreg(fd, FPRoundInt(sreg(fn), FPZero)); break;
@@ -1789,6 +1827,14 @@ double Simulator::FPRoundInt(double value, FPRounding round_mode) {
   double int_result = floor(value);
   double error = value - int_result;
   switch (round_mode) {
+    case FPTieAway: {
+      // If the error is greater than 0.5, or is equal to 0.5 and the integer
+      // result is positive, round up.
+      if ((error > 0.5) || ((error == 0.5) && (int_result >= 0.0))) {
+        int_result++;
+      }
+      break;
+    }
     case FPTieEven: {
       // If the error is greater than 0.5, or is equal to 0.5 and the integer
       // result is odd, round up.
@@ -1924,6 +1970,10 @@ void Simulator::VisitFPDataProcessing2Source(Instruction* instr) {
     case FMAX_d: set_dreg(fd, FPMax(dreg(fn), dreg(fm))); break;
     case FMIN_s: set_sreg(fd, FPMin(sreg(fn), sreg(fm))); break;
     case FMIN_d: set_dreg(fd, FPMin(dreg(fn), dreg(fm))); break;
+    case FMAXNM_s: set_sreg(fd, FPMaxNM(sreg(fn), sreg(fm))); break;
+    case FMAXNM_d: set_dreg(fd, FPMaxNM(dreg(fn), dreg(fm))); break;
+    case FMINNM_s: set_sreg(fd, FPMinNM(sreg(fn), sreg(fm))); break;
+    case FMINNM_d: set_dreg(fd, FPMinNM(dreg(fn), dreg(fm))); break;
     default: UNIMPLEMENTED();
   }
 }
@@ -1937,25 +1987,34 @@ void Simulator::VisitFPDataProcessing3Source(Instruction* instr) {
   unsigned fm = instr->Rm();
   unsigned fa = instr->Ra();
 
-  // Note: The FMSUB implementation here is not precisely the same as the
-  // instruction definition. In full implementation rounding of results would
-  // occur once at the end, here rounding will occur after the first multiply
-  // and then after the subsequent addition.  A full implementation here would
-  // be possible but would require an effort isn't immediately justified given
-  // the small differences we expect to see in most cases.
-
+  // The C99 (and C++11) fma function performs a fused multiply-accumulate.
   switch (instr->Mask(FPDataProcessing3SourceMask)) {
-    case FMSUB_s: set_sreg(fd, sreg(fa) + (-sreg(fn))*sreg(fm)); break;
-    case FMSUB_d: set_dreg(fd, dreg(fa) + (-dreg(fn))*dreg(fm)); break;
+    // fd = fa +/- (fn * fm)
+    case FMADD_s: set_sreg(fd, fmaf(sreg(fn), sreg(fm), sreg(fa))); break;
+    case FMSUB_s: set_sreg(fd, fmaf(-sreg(fn), sreg(fm), sreg(fa))); break;
+    case FMADD_d: set_dreg(fd, fma(dreg(fn), dreg(fm), dreg(fa))); break;
+    case FMSUB_d: set_dreg(fd, fma(-dreg(fn), dreg(fm), dreg(fa))); break;
+    // Variants of the above where the result is negated.
+    case FNMADD_s: set_sreg(fd, -fmaf(sreg(fn), sreg(fm), sreg(fa))); break;
+    case FNMSUB_s: set_sreg(fd, -fmaf(-sreg(fn), sreg(fm), sreg(fa))); break;
+    case FNMADD_d: set_dreg(fd, -fma(dreg(fn), dreg(fm), dreg(fa))); break;
+    case FNMSUB_d: set_dreg(fd, -fma(-dreg(fn), dreg(fm), dreg(fa))); break;
     default: UNIMPLEMENTED();
   }
 }
 
 
-double Simulator::FPMax(double a, double b) {
-  if (isnan(a)) {
+template <typename T>
+T Simulator::FPMax(T a, T b) {
+  if (IsSignallingNaN(a)) {
+    return a;
+  } else if (IsSignallingNaN(b)) {
+    return b;
+  } else if (isnan(a)) {
+    ASSERT(IsQuietNaN(a));
     return a;
   } else if (isnan(b)) {
+    ASSERT(IsQuietNaN(b));
     return b;
   }
 
@@ -1969,10 +2028,28 @@ double Simulator::FPMax(double a, double b) {
 }
 
 
-double Simulator::FPMin(double a, double b) {
-  if (isnan(a)) {
+template <typename T>
+T Simulator::FPMaxNM(T a, T b) {
+  if (IsQuietNaN(a) && !IsQuietNaN(b)) {
+    a = kFP64NegativeInfinity;
+  } else if (!IsQuietNaN(a) && IsQuietNaN(b)) {
+    b = kFP64NegativeInfinity;
+  }
+  return FPMax(a, b);
+}
+
+
+template <typename T>
+T Simulator::FPMin(T a, T b) {
+  if (IsSignallingNaN(a)) {
+    return a;
+  } else if (IsSignallingNaN(b)) {
+    return b;
+  } else if (isnan(a)) {
+    ASSERT(IsQuietNaN(a));
     return a;
   } else if (isnan(b)) {
+    ASSERT(IsQuietNaN(b));
     return b;
   }
 
@@ -1983,6 +2060,16 @@ double Simulator::FPMin(double a, double b) {
   } else {
     return (a < b) ? a : b;
   }
+}
+
+template <typename T>
+T Simulator::FPMinNM(T a, T b) {
+  if (IsQuietNaN(a) && !IsQuietNaN(b)) {
+    a = kFP64PositiveInfinity;
+  } else if (!IsQuietNaN(a) && IsQuietNaN(b)) {
+    b = kFP64PositiveInfinity;
+  }
+  return FPMin(a, b);
 }
 
 
@@ -2015,6 +2102,8 @@ void Simulator::VisitSystem(Instruction* instr) {
       case NOP: break;
       default: UNIMPLEMENTED();
     }
+  } else if (instr->Mask(MemBarrierFMask) == MemBarrierFixed) {
+    __sync_synchronize();
   } else {
     UNIMPLEMENTED();
   }
@@ -2048,21 +2137,23 @@ void Simulator::DoPrintf(Instruction* instr) {
   ASSERT(sizeof(*instr) == 1);
   memcpy(&type, instr + kPrintfTypeOffset, sizeof(type));
 
-  const char * format = reinterpret_cast<const char *>(x0());
+  const char * format = reg<const char *>(0);
   ASSERT(format != NULL);
 
   // Pass all of the relevant PCS registers onto printf. It doesn't matter
   // if we pass too many as the extra ones won't be read.
   int result = 0;
   if (type == CPURegister::kRegister) {
-    result = printf(format, x1(), x2(), x3(), x4(), x5(), x6(), x7());
+    result = printf(format, xreg(1), xreg(2), xreg(3), xreg(4),
+                            xreg(5), xreg(6), xreg(7));
   } else if (type == CPURegister::kFPRegister) {
-    result = printf(format, d0(), d1(), d2(), d3(), d4(), d5(), d6(), d7());
+    result = printf(format, dreg(0), dreg(1), dreg(2), dreg(3),
+                            dreg(4), dreg(5), dreg(6), dreg(7));
   } else {
     ASSERT(type == CPURegister::kNoRegister);
     result = printf("%s", format);
   }
-  set_x0(result);
+  set_xreg(0, result);
 
   // TODO: Clobber all caller-saved registers here, to ensure no assumptions
   // are made about preserved state.
@@ -2071,7 +2162,7 @@ void Simulator::DoPrintf(Instruction* instr) {
   set_pc(instr->InstructionAtOffset(kPrintfLength));
 
   // Set LR as if we'd just called a native printf function.
-  set_lr(reinterpret_cast<uint64_t>(pc()));
+  set_lr(pc());
 }
 
 }  // namespace vixl

@@ -27,7 +27,7 @@
 #ifndef VIXL_UTILS_H
 #define VIXL_UTILS_H
 
-
+#include <math.h>
 #include <string.h>
 #include "globals.h"
 
@@ -90,11 +90,39 @@ inline int64_t signed_bitextract_64(int msb, int lsb, int64_t x) {
   return (x << (63 - msb)) >> (lsb + 63 - msb);
 }
 
-// floating point representation
+// Floating point representation.
 uint32_t float_to_rawbits(float value);
 uint64_t double_to_rawbits(double value);
 float rawbits_to_float(uint32_t bits);
 double rawbits_to_double(uint64_t bits);
+
+
+// NaN tests.
+inline bool IsSignallingNaN(double num) {
+  const uint64_t kFP64QuietNaNMask = 0x0008000000000000UL;
+  uint64_t raw = double_to_rawbits(num);
+  if (isnan(num) && ((raw & kFP64QuietNaNMask) == 0)) {
+    return true;
+  }
+  return false;
+}
+
+
+inline bool IsSignallingNaN(float num) {
+  const uint64_t kFP32QuietNaNMask = 0x00400000UL;
+  uint32_t raw = float_to_rawbits(num);
+  if (isnan(num) && ((raw & kFP32QuietNaNMask) == 0)) {
+    return true;
+  }
+  return false;
+}
+
+
+template <typename T>
+inline bool IsQuietNaN(T num) {
+  return isnan(num) && !IsSignallingNaN(num);
+}
+
 
 // Bits counting.
 int CountLeadingZeros(uint64_t value, int width);

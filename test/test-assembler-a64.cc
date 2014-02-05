@@ -25,6 +25,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <math.h>
 #include <float.h>
@@ -295,6 +296,100 @@ TEST(mvn) {
 }
 
 
+TEST(mov_imm_w) {
+  SETUP();
+
+  START();
+  __ Mov(w0, 0xffffffffL);
+  __ Mov(w1, 0xffff1234L);
+  __ Mov(w2, 0x1234ffffL);
+  __ Mov(w3, 0x00000000L);
+  __ Mov(w4, 0x00001234L);
+  __ Mov(w5, 0x12340000L);
+  __ Mov(w6, 0x12345678L);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(0xffffffffL, x0);
+  ASSERT_EQUAL_64(0xffff1234L, x1);
+  ASSERT_EQUAL_64(0x1234ffffL, x2);
+  ASSERT_EQUAL_64(0x00000000L, x3);
+  ASSERT_EQUAL_64(0x00001234L, x4);
+  ASSERT_EQUAL_64(0x12340000L, x5);
+  ASSERT_EQUAL_64(0x12345678L, x6);
+
+  TEARDOWN();
+}
+
+
+TEST(mov_imm_x) {
+  SETUP();
+
+  START();
+  __ Mov(x0, 0xffffffffffffffffL);
+  __ Mov(x1, 0xffffffffffff1234L);
+  __ Mov(x2, 0xffffffff12345678L);
+  __ Mov(x3, 0xffff1234ffff5678L);
+  __ Mov(x4, 0x1234ffffffff5678L);
+  __ Mov(x5, 0x1234ffff5678ffffL);
+  __ Mov(x6, 0x12345678ffffffffL);
+  __ Mov(x7, 0x1234ffffffffffffL);
+  __ Mov(x8, 0x123456789abcffffL);
+  __ Mov(x9, 0x12345678ffff9abcL);
+  __ Mov(x10, 0x1234ffff56789abcL);
+  __ Mov(x11, 0xffff123456789abcL);
+  __ Mov(x12, 0x0000000000000000L);
+  __ Mov(x13, 0x0000000000001234L);
+  __ Mov(x14, 0x0000000012345678L);
+  __ Mov(x15, 0x0000123400005678L);
+  __ Mov(x18, 0x1234000000005678L);
+  __ Mov(x19, 0x1234000056780000L);
+  __ Mov(x20, 0x1234567800000000L);
+  __ Mov(x21, 0x1234000000000000L);
+  __ Mov(x22, 0x123456789abc0000L);
+  __ Mov(x23, 0x1234567800009abcL);
+  __ Mov(x24, 0x1234000056789abcL);
+  __ Mov(x25, 0x0000123456789abcL);
+  __ Mov(x26, 0x123456789abcdef0L);
+  __ Mov(x27, 0xffff000000000001L);
+  __ Mov(x28, 0x8000ffff00000000L);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(0xffffffffffff1234L, x1);
+  ASSERT_EQUAL_64(0xffffffff12345678L, x2);
+  ASSERT_EQUAL_64(0xffff1234ffff5678L, x3);
+  ASSERT_EQUAL_64(0x1234ffffffff5678L, x4);
+  ASSERT_EQUAL_64(0x1234ffff5678ffffL, x5);
+  ASSERT_EQUAL_64(0x12345678ffffffffL, x6);
+  ASSERT_EQUAL_64(0x1234ffffffffffffL, x7);
+  ASSERT_EQUAL_64(0x123456789abcffffL, x8);
+  ASSERT_EQUAL_64(0x12345678ffff9abcL, x9);
+  ASSERT_EQUAL_64(0x1234ffff56789abcL, x10);
+  ASSERT_EQUAL_64(0xffff123456789abcL, x11);
+  ASSERT_EQUAL_64(0x0000000000000000L, x12);
+  ASSERT_EQUAL_64(0x0000000000001234L, x13);
+  ASSERT_EQUAL_64(0x0000000012345678L, x14);
+  ASSERT_EQUAL_64(0x0000123400005678L, x15);
+  ASSERT_EQUAL_64(0x1234000000005678L, x18);
+  ASSERT_EQUAL_64(0x1234000056780000L, x19);
+  ASSERT_EQUAL_64(0x1234567800000000L, x20);
+  ASSERT_EQUAL_64(0x1234000000000000L, x21);
+  ASSERT_EQUAL_64(0x123456789abc0000L, x22);
+  ASSERT_EQUAL_64(0x1234567800009abcL, x23);
+  ASSERT_EQUAL_64(0x1234000056789abcL, x24);
+  ASSERT_EQUAL_64(0x0000123456789abcL, x25);
+  ASSERT_EQUAL_64(0x123456789abcdef0L, x26);
+  ASSERT_EQUAL_64(0xffff000000000001L, x27);
+  ASSERT_EQUAL_64(0x8000ffff00000000L, x28);
+
+
+  TEARDOWN();
+}
+
+
 TEST(mov) {
   SETUP();
 
@@ -341,6 +436,9 @@ TEST(mov) {
   __ Mov(w25, Operand(w13, UXTH, 2));
   __ Mov(x26, Operand(x13, SXTH, 3));
   __ Mov(x27, Operand(w13, UXTW, 4));
+
+  __ Mov(x28, 0x0123456789abcdefL);
+  __ Mov(w28, w28, kDiscardForSameWReg);
   END();
 
   RUN();
@@ -370,6 +468,7 @@ TEST(mov) {
   ASSERT_EQUAL_64(0x00007ff8, x25);
   ASSERT_EQUAL_64(0x000000000000fff0UL, x26);
   ASSERT_EQUAL_64(0x000000000001ffe0UL, x27);
+  ASSERT_EQUAL_64(0x0123456789abcdefL, x28);
 
   TEARDOWN();
 }
@@ -603,7 +702,7 @@ TEST(ands) {
 
   START();
   __ Mov(x1, 0xf00000ff);
-  __ And(w0, w1, Operand(w1), SetFlags);
+  __ Ands(w0, w1, Operand(w1));
   END();
 
   RUN();
@@ -614,7 +713,7 @@ TEST(ands) {
   START();
   __ Mov(x0, 0xfff0);
   __ Mov(x1, 0xf00000ff);
-  __ And(w0, w0, Operand(w1, LSR, 4), SetFlags);
+  __ Ands(w0, w0, Operand(w1, LSR, 4));
   END();
 
   RUN();
@@ -625,7 +724,7 @@ TEST(ands) {
   START();
   __ Mov(x0, 0x8000000000000000L);
   __ Mov(x1, 0x00000001);
-  __ And(x0, x0, Operand(x1, ROR, 1), SetFlags);
+  __ Ands(x0, x0, Operand(x1, ROR, 1));
   END();
 
   RUN();
@@ -635,7 +734,7 @@ TEST(ands) {
 
   START();
   __ Mov(x0, 0xfff0);
-  __ And(w0, w0, Operand(0xf), SetFlags);
+  __ Ands(w0, w0, Operand(0xf));
   END();
 
   RUN();
@@ -645,7 +744,7 @@ TEST(ands) {
 
   START();
   __ Mov(x0, 0xff000000);
-  __ And(w0, w0, Operand(0x80000000), SetFlags);
+  __ Ands(w0, w0, Operand(0x80000000));
   END();
 
   RUN();
@@ -741,7 +840,7 @@ TEST(bics) {
 
   START();
   __ Mov(x1, 0xffff);
-  __ Bic(w0, w1, Operand(w1), SetFlags);
+  __ Bics(w0, w1, Operand(w1));
   END();
 
   RUN();
@@ -751,7 +850,7 @@ TEST(bics) {
 
   START();
   __ Mov(x0, 0xffffffff);
-  __ Bic(w0, w0, Operand(w0, LSR, 1), SetFlags);
+  __ Bics(w0, w0, Operand(w0, LSR, 1));
   END();
 
   RUN();
@@ -762,7 +861,7 @@ TEST(bics) {
   START();
   __ Mov(x0, 0x8000000000000000L);
   __ Mov(x1, 0x00000001);
-  __ Bic(x0, x0, Operand(x1, ROR, 1), SetFlags);
+  __ Bics(x0, x0, Operand(x1, ROR, 1));
   END();
 
   RUN();
@@ -772,7 +871,7 @@ TEST(bics) {
 
   START();
   __ Mov(x0, 0xffffffffffffffffL);
-  __ Bic(x0, x0, Operand(0x7fffffffffffffffL), SetFlags);
+  __ Bics(x0, x0, Operand(0x7fffffffffffffffL));
   END();
 
   RUN();
@@ -782,7 +881,7 @@ TEST(bics) {
 
   START();
   __ Mov(w0, 0xffff0000);
-  __ Bic(w0, w0, Operand(0xfffffff0), SetFlags);
+  __ Bics(w0, w0, Operand(0xfffffff0));
   END();
 
   RUN();
@@ -980,6 +1079,29 @@ TEST(mul) {
   ASSERT_EQUAL_64(0xffffffffffffffffUL, x23);
 
   TEARDOWN();
+}
+
+
+static void SmullHelper(int64_t expected, int64_t a, int64_t b) {
+  SETUP();
+  START();
+  __ Mov(w0, a);
+  __ Mov(w1, b);
+  __ Smull(x2, w0, w1);
+  END();
+  RUN();
+  ASSERT_EQUAL_64(expected, x2);
+  TEARDOWN();
+}
+
+
+TEST(smull) {
+  SmullHelper(0, 0, 0);
+  SmullHelper(1, 1, 1);
+  SmullHelper(-1, -1, 1);
+  SmullHelper(1, -1, -1);
+  SmullHelper(0xffffffff80000000, 0x80000000, 1);
+  SmullHelper(0x0000000080000000, 0x00010000, 0x00008000);
 }
 
 
@@ -1268,6 +1390,22 @@ TEST(div) {
   __ Sdiv(x13, x19, x21);
   __ Udiv(x14, x20, x21);
   __ Sdiv(x15, x20, x21);
+
+  __ Udiv(w22, w19, w17);
+  __ Sdiv(w23, w19, w17);
+  __ Udiv(x24, x20, x18);
+  __ Sdiv(x25, x20, x18);
+
+  __ Udiv(x26, x16, x21);
+  __ Sdiv(x27, x16, x21);
+  __ Udiv(x28, x18, x21);
+  __ Sdiv(x29, x18, x21);
+
+  __ Mov(x17, 0);
+  __ Udiv(w18, w16, w17);
+  __ Sdiv(w19, w16, w17);
+  __ Udiv(x20, x16, x17);
+  __ Sdiv(x21, x16, x17);
   END();
 
   RUN();
@@ -1288,6 +1426,18 @@ TEST(div) {
   ASSERT_EQUAL_64(0x40000000, x13);
   ASSERT_EQUAL_64(0x4000000000000000UL, x14);
   ASSERT_EQUAL_64(0xC000000000000000UL, x15);
+  ASSERT_EQUAL_64(0, x22);
+  ASSERT_EQUAL_64(0x80000000, x23);
+  ASSERT_EQUAL_64(0, x24);
+  ASSERT_EQUAL_64(0x8000000000000000UL, x25);
+  ASSERT_EQUAL_64(0, x26);
+  ASSERT_EQUAL_64(0, x27);
+  ASSERT_EQUAL_64(0x7fffffffffffffffUL, x28);
+  ASSERT_EQUAL_64(0, x29);
+  ASSERT_EQUAL_64(0, x18);
+  ASSERT_EQUAL_64(0, x19);
+  ASSERT_EQUAL_64(0, x20);
+  ASSERT_EQUAL_64(0, x21);
 
   TEARDOWN();
 }
@@ -1664,7 +1814,7 @@ TEST(test_branch) {
   __ Mov(x16, 0xaaaaaaaaaaaaaaaaUL);
 
   Label bz, bz_end;
-  __ Tbz(x16, 0, &bz);
+  __ Tbz(w16, 0, &bz);
   __ B(&bz_end);
   __ Bind(&bz);
   __ Mov(x0, 1);
@@ -1685,7 +1835,7 @@ TEST(test_branch) {
   __ Bind(&nbz_end);
 
   Label nbo, nbo_end;
-  __ Tbnz(x16, 2, &nbo);
+  __ Tbnz(w16, 2, &nbo);
   __ B(&nbo_end);
   __ Bind(&nbo);
   __ Mov(x3, 1);
@@ -2868,6 +3018,64 @@ TEST(add_sub_negative) {
 }
 
 
+TEST(add_sub_zero) {
+  SETUP();
+
+  START();
+  __ Mov(x0, 0);
+  __ Mov(x1, 0);
+  __ Mov(x2, 0);
+
+  Label blob1;
+  __ Bind(&blob1);
+  __ Add(x0, x0, 0);
+  __ Sub(x1, x1, 0);
+  __ Sub(x2, x2, xzr);
+  CHECK(__ SizeOfCodeGeneratedSince(&blob1) == 0);
+
+  Label blob2;
+  __ Bind(&blob2);
+  __ Add(w3, w3, 0);
+  CHECK(__ SizeOfCodeGeneratedSince(&blob2) != 0);
+
+  Label blob3;
+  __ Bind(&blob3);
+  __ Sub(w3, w3, wzr);
+  CHECK(__ SizeOfCodeGeneratedSince(&blob3) != 0);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(0, x0);
+  ASSERT_EQUAL_64(0, x1);
+  ASSERT_EQUAL_64(0, x2);
+
+  TEARDOWN();
+}
+
+
+TEST(claim_drop_zero) {
+  SETUP();
+
+  START();
+
+  Label start;
+  __ Bind(&start);
+  __ Claim(Operand(0));
+  __ Drop(Operand(0));
+  __ Claim(Operand(xzr));
+  __ Drop(Operand(xzr));
+  CHECK(__ SizeOfCodeGeneratedSince(&start) == 0);
+
+  END();
+
+  RUN();
+
+  TEARDOWN();
+}
+
+
 TEST(neg) {
   SETUP();
 
@@ -2927,7 +3135,7 @@ TEST(adc_sbc_shift) {
   __ Mov(x4, 0xffffffffffffffffL);
 
   // Clear the C flag.
-  __ Add(x0, x0, Operand(0), SetFlags);
+  __ Adds(x0, x0, Operand(0));
 
   __ Adc(x5, x2, Operand(x3));
   __ Adc(x6, x0, Operand(x1, LSL, 60));
@@ -2988,37 +3196,126 @@ TEST(adc_sbc_shift) {
   __ Mov(x0, 1);
   __ Mov(x1, 0xffffffffffffffffL);
   // Clear the C flag.
-  __ Add(x0, x0, Operand(0), SetFlags);
-  __ Adc(x10, x0, Operand(x1), SetFlags);
+  __ Adds(x0, x0, Operand(0));
+  __ Adcs(x10, x0, Operand(x1));
   END();
 
   RUN();
 
   ASSERT_EQUAL_NZCV(ZCFlag);
+  ASSERT_EQUAL_64(0, x10);
 
   START();
   __ Mov(x0, 1);
   __ Mov(x1, 0x8000000000000000L);
   // Clear the C flag.
-  __ Add(x0, x0, Operand(0), SetFlags);
-  __ Adc(x10, x0, Operand(x1, ASR, 63), SetFlags);
+  __ Adds(x0, x0, Operand(0));
+  __ Adcs(x10, x0, Operand(x1, ASR, 63));
   END();
 
   RUN();
 
   ASSERT_EQUAL_NZCV(ZCFlag);
+  ASSERT_EQUAL_64(0, x10);
 
   START();
   __ Mov(x0, 0x10);
   __ Mov(x1, 0x07ffffffffffffffL);
   // Clear the C flag.
-  __ Add(x0, x0, Operand(0), SetFlags);
-  __ Adc(x10, x0, Operand(x1, LSL, 4), SetFlags);
+  __ Adds(x0, x0, Operand(0));
+  __ Adcs(x10, x0, Operand(x1, LSL, 4));
   END();
 
   RUN();
 
   ASSERT_EQUAL_NZCV(NVFlag);
+  ASSERT_EQUAL_64(0x8000000000000000L, x10);
+
+  // Check that sbc correctly sets the condition flags.
+  START();
+  __ Mov(x0, 0);
+  __ Mov(x1, 0xffffffffffffffffL);
+  // Clear the C flag.
+  __ Adds(x0, x0, Operand(0));
+  __ Sbcs(x10, x0, Operand(x1));
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_NZCV(ZFlag);
+  ASSERT_EQUAL_64(0, x10);
+
+  START();
+  __ Mov(x0, 1);
+  __ Mov(x1, 0xffffffffffffffffL);
+  // Clear the C flag.
+  __ Adds(x0, x0, Operand(0));
+  __ Sbcs(x10, x0, Operand(x1, LSR, 1));
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_NZCV(NFlag);
+  ASSERT_EQUAL_64(0x8000000000000001L, x10);
+
+  START();
+  __ Mov(x0, 0);
+  // Clear the C flag.
+  __ Adds(x0, x0, Operand(0));
+  __ Sbcs(x10, x0, Operand(0xffffffffffffffffL));
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_NZCV(ZFlag);
+  ASSERT_EQUAL_64(0, x10);
+
+  START()
+  __ Mov(w0, 0x7fffffff);
+  // Clear the C flag.
+  __ Adds(x0, x0, Operand(0));
+  __ Ngcs(w10, w0);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_NZCV(NFlag);
+  ASSERT_EQUAL_64(0x80000000, x10);
+
+  START();
+  // Clear the C flag.
+  __ Adds(x0, x0, Operand(0));
+  __ Ngcs(x10, 0x7fffffffffffffffL);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_NZCV(NFlag);
+  ASSERT_EQUAL_64(0x8000000000000000L, x10);
+
+  START()
+  __ Mov(x0, 0);
+  // Set the C flag.
+  __ Cmp(x0, Operand(x0));
+  __ Sbcs(x10, x0, Operand(1));
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_NZCV(NFlag);
+  ASSERT_EQUAL_64(0xffffffffffffffffL, x10);
+
+  START()
+  __ Mov(x0, 0);
+  // Set the C flag.
+  __ Cmp(x0, Operand(x0));
+  __ Ngcs(x10, 0x7fffffffffffffffL);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_NZCV(NFlag);
+  ASSERT_EQUAL_64(0x8000000000000001L, x10);
 
   TEARDOWN();
 }
@@ -3029,7 +3326,7 @@ TEST(adc_sbc_extend) {
 
   START();
   // Clear the C flag.
-  __ Add(x0, x0, Operand(0), SetFlags);
+  __ Adds(x0, x0, Operand(0));
 
   __ Mov(x0, 0);
   __ Mov(x1, 1);
@@ -3082,8 +3379,8 @@ TEST(adc_sbc_extend) {
   __ Mov(x0, 0xff);
   __ Mov(x1, 0xffffffffffffffffL);
   // Clear the C flag.
-  __ Add(x0, x0, Operand(0), SetFlags);
-  __ Adc(x10, x0, Operand(x1, SXTX, 1), SetFlags);
+  __ Adds(x0, x0, Operand(0));
+  __ Adcs(x10, x0, Operand(x1, SXTX, 1));
   END();
 
   RUN();
@@ -3094,8 +3391,8 @@ TEST(adc_sbc_extend) {
   __ Mov(x0, 0x7fffffffffffffffL);
   __ Mov(x1, 1);
   // Clear the C flag.
-  __ Add(x0, x0, Operand(0), SetFlags);
-  __ Adc(x10, x0, Operand(x1, UXTB, 2), SetFlags);
+  __ Adds(x0, x0, Operand(0));
+  __ Adcs(x10, x0, Operand(x1, UXTB, 2));
   END();
 
   RUN();
@@ -3105,8 +3402,8 @@ TEST(adc_sbc_extend) {
   START();
   __ Mov(x0, 0x7fffffffffffffffL);
   // Clear the C flag.
-  __ Add(x0, x0, Operand(0), SetFlags);
-  __ Adc(x10, x0, Operand(1), SetFlags);
+  __ Adds(x0, x0, Operand(0));
+  __ Adcs(x10, x0, Operand(1));
   END();
 
   RUN();
@@ -3124,24 +3421,41 @@ TEST(adc_sbc_wide_imm) {
   __ Mov(x0, 0);
 
   // Clear the C flag.
-  __ Add(x0, x0, Operand(0), SetFlags);
+  __ Adds(x0, x0, Operand(0));
 
   __ Adc(x7, x0, Operand(0x1234567890abcdefUL));
   __ Adc(w8, w0, Operand(0xffffffff));
+  __ Sbc(x9, x0, Operand(0x1234567890abcdefUL));
+  __ Sbc(w10, w0, Operand(0xffffffff));
+  __ Ngc(x11, Operand(0xffffffff00000000UL));
+  __ Ngc(w12, Operand(0xffff0000));
 
   // Set the C flag.
   __ Cmp(w0, Operand(w0));
 
-  __ Adc(x27, x0, Operand(0x1234567890abcdefUL));
-  __ Adc(w28, w0, Operand(0xffffffff));
+  __ Adc(x18, x0, Operand(0x1234567890abcdefUL));
+  __ Adc(w19, w0, Operand(0xffffffff));
+  __ Sbc(x20, x0, Operand(0x1234567890abcdefUL));
+  __ Sbc(w21, w0, Operand(0xffffffff));
+  __ Ngc(x22, Operand(0xffffffff00000000UL));
+  __ Ngc(w23, Operand(0xffff0000));
   END();
 
   RUN();
 
   ASSERT_EQUAL_64(0x1234567890abcdefUL, x7);
   ASSERT_EQUAL_64(0xffffffff, x8);
-  ASSERT_EQUAL_64(0x1234567890abcdefUL + 1, x27);
-  ASSERT_EQUAL_64(0, x28);
+  ASSERT_EQUAL_64(0xedcba9876f543210UL, x9);
+  ASSERT_EQUAL_64(0, x10);
+  ASSERT_EQUAL_64(0xffffffff, x11);
+  ASSERT_EQUAL_64(0xffff, x12);
+
+  ASSERT_EQUAL_64(0x1234567890abcdefUL + 1, x18);
+  ASSERT_EQUAL_64(0, x19);
+  ASSERT_EQUAL_64(0xedcba9876f543211UL, x20);
+  ASSERT_EQUAL_64(1, x21);
+  ASSERT_EQUAL_64(0x100000000UL, x22);
+  ASSERT_EQUAL_64(0x10000, x23);
 
   TEARDOWN();
 }
@@ -3156,7 +3470,7 @@ TEST(flags) {
   __ Neg(x11, Operand(x1));
   __ Neg(w12, Operand(w1));
   // Clear the C flag.
-  __ Add(x0, x0, Operand(0), SetFlags);
+  __ Adds(x0, x0, Operand(0));
   __ Ngc(x13, Operand(x0));
   // Set the C flag.
   __ Cmp(x0, Operand(x0));
@@ -3271,8 +3585,8 @@ TEST(flags) {
   __ Mov(w0, 0);
   __ Mov(w1, 1);
   // Clear the C flag.
-  __ Add(w0, w0, Operand(0), SetFlags);
-  __ Ngc(w0, Operand(w1), SetFlags);
+  __ Adds(w0, w0, Operand(0));
+  __ Ngcs(w0, Operand(w1));
   END();
 
   RUN();
@@ -3284,7 +3598,7 @@ TEST(flags) {
   __ Mov(w1, 0);
   // Set the C flag.
   __ Cmp(w0, Operand(w0));
-  __ Ngc(w0, Operand(w1), SetFlags);
+  __ Ngcs(w0, Operand(w1));
   END();
 
   RUN();
@@ -3570,6 +3884,59 @@ TEST(csel) {
 }
 
 
+TEST(csel_imm) {
+  SETUP();
+
+  START();
+  __ Mov(x18, 0);
+  __ Mov(x19, 0x80000000);
+  __ Mov(x20, 0x8000000000000000UL);
+
+  __ Cmp(x18, Operand(0));
+  __ Csel(w0, w19, -2, ne);
+  __ Csel(w1, w19, -1, ne);
+  __ Csel(w2, w19, 0, ne);
+  __ Csel(w3, w19, 1, ne);
+  __ Csel(w4, w19, 2, ne);
+  __ Csel(w5, w19, Operand(w19, ASR, 31), ne);
+  __ Csel(w6, w19, Operand(w19, ROR, 1), ne);
+  __ Csel(w7, w19, 3, eq);
+
+  __ Csel(x8, x20, -2, ne);
+  __ Csel(x9, x20, -1, ne);
+  __ Csel(x10, x20, 0, ne);
+  __ Csel(x11, x20, 1, ne);
+  __ Csel(x12, x20, 2, ne);
+  __ Csel(x13, x20, Operand(x20, ASR, 63), ne);
+  __ Csel(x14, x20, Operand(x20, ROR, 1), ne);
+  __ Csel(x15, x20, 3, eq);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(-2, w0);
+  ASSERT_EQUAL_32(-1, w1);
+  ASSERT_EQUAL_32(0, w2);
+  ASSERT_EQUAL_32(1, w3);
+  ASSERT_EQUAL_32(2, w4);
+  ASSERT_EQUAL_32(-1, w5);
+  ASSERT_EQUAL_32(0x40000000, w6);
+  ASSERT_EQUAL_32(0x80000000, w7);
+
+  ASSERT_EQUAL_64(-2, x8);
+  ASSERT_EQUAL_64(-1, x9);
+  ASSERT_EQUAL_64(0, x10);
+  ASSERT_EQUAL_64(1, x11);
+  ASSERT_EQUAL_64(2, x12);
+  ASSERT_EQUAL_64(-1, x13);
+  ASSERT_EQUAL_64(0x4000000000000000UL, x14);
+  ASSERT_EQUAL_64(0x8000000000000000UL, x15);
+
+  TEARDOWN();
+}
+
+
 TEST(lslv) {
   SETUP();
 
@@ -3846,11 +4213,11 @@ TEST(sbfm) {
   __ Sbfiz(x21, x2, 8, 16);
   __ Sbfx(x22, x1, 8, 16);
   __ Sbfx(x23, x2, 8, 16);
-  __ Sxtb(x24, x1);
+  __ Sxtb(x24, w1);
   __ Sxtb(x25, x2);
-  __ Sxth(x26, x1);
+  __ Sxth(x26, w1);
   __ Sxth(x27, x2);
-  __ Sxtw(x28, x1);
+  __ Sxtw(x28, w1);
   __ Sxtw(x29, x2);
   END();
 
@@ -4177,82 +4544,212 @@ TEST(fmul) {
 }
 
 
-TEST(fmsub) {
+static void FmaddFmsubDoubleHelper(double n, double m, double a,
+                                   double fmadd, double fmsub) {
   SETUP();
-
   START();
-  __ Fmov(s16, 3.25);
-  __ Fmov(s17, 2.0);
-  __ Fmov(s18, 0);
-  __ Fmov(s19, -0.5);
-  __ Fmov(s20, kFP32PositiveInfinity);
-  __ Fmov(s21, kFP32NegativeInfinity);
-  __ Fmov(s22, -0);
 
-  __ Fmov(d29, 0);
-  __ Fmov(d30, -2.0);
-  __ Fmov(d31, 2.25);
-  __ Fmov(d28, 4);
-  __ Fmov(d24, kFP64PositiveInfinity);
-  __ Fmov(d25, kFP64NegativeInfinity);
-  __ Fmov(d26, -0);
+  __ Fmov(d0, n);
+  __ Fmov(d1, m);
+  __ Fmov(d2, a);
+  __ Fmadd(d28, d0, d1, d2);
+  __ Fmsub(d29, d0, d1, d2);
+  __ Fnmadd(d30, d0, d1, d2);
+  __ Fnmsub(d31, d0, d1, d2);
 
-     // Normal combinations
-  __ Fmsub(s0, s16, s17, s18);
-  __ Fmsub(s1, s17, s18, s16);
-  __ Fmsub(s2, s17, s16, s19);
-     // Pos/Neg Infinity
-  __ Fmsub(s3, s16, s21, s19);
-  __ Fmsub(s4, s17, s16, s20);
-  __ Fmsub(s5, s20, s16, s19);
-  __ Fmsub(s6, s21, s16, s19);
-     // -0
-  __ Fmsub(s7, s22, s16, s19);
-  __ Fmsub(s8, s19, s16, s22);
-
-     // Normal combinations
-  __ Fmsub(d9, d30, d31, d29);
-  __ Fmsub(d10, d29, d31, d30);
-  __ Fmsub(d11, d30, d31, d28);
-     // Pos/Neg Infinity
-  __ Fmsub(d12, d30, d24, d28);
-  __ Fmsub(d13, d24, d31, d25);
-  __ Fmsub(d14, d24, d31, d28);
-  __ Fmsub(d15, d25, d31, d28);
-     // -0
-  __ Fmsub(d16, d26, d31, d28);
-  __ Fmsub(d17, d30, d26, d28);
   END();
-
   RUN();
 
-  // Normal combinations
-  ASSERT_EQUAL_FP32(-6.5, s0);
-  ASSERT_EQUAL_FP32(3.25, s1);
-  ASSERT_EQUAL_FP32(-7, s2);
-  // Pos/Neg Infinity
-  ASSERT_EQUAL_FP32(kFP32PositiveInfinity, s3);
-  ASSERT_EQUAL_FP32(kFP32PositiveInfinity, s4);
-  ASSERT_EQUAL_FP32(kFP32NegativeInfinity, s5);
-  ASSERT_EQUAL_FP32(kFP32PositiveInfinity, s6);
-  // -0
-  ASSERT_EQUAL_FP32(-0.5, s7);
-  ASSERT_EQUAL_FP32(1.625, s8);
-
-  // Normal combinations
-  ASSERT_EQUAL_FP64(4.5, d9);
-  ASSERT_EQUAL_FP64(-2.0, d10);
-  ASSERT_EQUAL_FP64(8.5, d11);
-  // Pos/Neg Infinity
-  ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d12);
-  ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d13);
-  ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d14);
-  ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d15);
-  // -0
-  ASSERT_EQUAL_FP64(4.0, d16);
-  ASSERT_EQUAL_FP64(4.0, d17);
+  ASSERT_EQUAL_FP64(fmadd, d28);
+  ASSERT_EQUAL_FP64(fmsub, d29);
+  ASSERT_EQUAL_FP64(-fmadd, d30);
+  ASSERT_EQUAL_FP64(-fmsub, d31);
 
   TEARDOWN();
+}
+
+
+TEST(fmadd_fmsub_double) {
+  double inputs[] = {
+    // Normal numbers, including -0.0.
+    DBL_MAX, DBL_MIN, 3.25, 2.0, 0.0,
+    -DBL_MAX, -DBL_MIN, -3.25, -2.0, -0.0,
+    // Infinities.
+    kFP64NegativeInfinity, kFP64PositiveInfinity,
+    // Subnormal numbers.
+    rawbits_to_double(0x000fffffffffffff),
+    rawbits_to_double(0x0000000000000001),
+    rawbits_to_double(0x000123456789abcd),
+    -rawbits_to_double(0x000fffffffffffff),
+    -rawbits_to_double(0x0000000000000001),
+    -rawbits_to_double(0x000123456789abcd),
+    // NaN.
+    kFP64QuietNaN,
+    -kFP64QuietNaN,
+  };
+  const int count = sizeof(inputs) / sizeof(inputs[0]);
+
+  for (int in = 0; in < count; in++) {
+    double n = inputs[in];
+    for (int im = 0; im < count; im++) {
+      double m = inputs[im];
+      for (int ia = 0; ia < count; ia++) {
+        double a = inputs[ia];
+        double fmadd = fma(n, m, a);
+        double fmsub = fma(-n, m, a);
+
+        FmaddFmsubDoubleHelper(n, m, a, fmadd, fmsub);
+      }
+    }
+  }
+}
+
+
+TEST(fmadd_fmsub_double_rounding) {
+  // Make sure we run plenty of tests where an intermediate rounding stage would
+  // produce an incorrect result.
+  const int limit = 1000;
+  int count_fmadd = 0;
+  int count_fmsub = 0;
+
+  uint16_t seed[3] = {42, 43, 44};
+  seed48(seed);
+
+  while ((count_fmadd < limit) || (count_fmsub < limit)) {
+    double n, m, a;
+    uint32_t r[2];
+    ASSERT(sizeof(r) == sizeof(n));
+
+    r[0] = mrand48();
+    r[1] = mrand48();
+    memcpy(&n, r, sizeof(r));
+    r[0] = mrand48();
+    r[1] = mrand48();
+    memcpy(&m, r, sizeof(r));
+    r[0] = mrand48();
+    r[1] = mrand48();
+    memcpy(&a, r, sizeof(r));
+
+    if (!isfinite(a) || !isfinite(n) || !isfinite(m)) {
+      continue;
+    }
+
+    // Calculate the expected results.
+    double fmadd = fma(n, m, a);
+    double fmsub = fma(-n, m, a);
+
+    bool test_fmadd = (fmadd != (a + n * m));
+    bool test_fmsub = (fmsub != (a - n * m));
+
+    // If rounding would produce a different result, increment the test count.
+    count_fmadd += test_fmadd;
+    count_fmsub += test_fmsub;
+
+    if (test_fmadd || test_fmsub) {
+      FmaddFmsubDoubleHelper(n, m, a, fmadd, fmsub);
+    }
+  }
+}
+
+
+static void FmaddFmsubFloatHelper(float n, float m, float a,
+                                  float fmadd, float fmsub) {
+  SETUP();
+  START();
+
+  __ Fmov(s0, n);
+  __ Fmov(s1, m);
+  __ Fmov(s2, a);
+  __ Fmadd(s30, s0, s1, s2);
+  __ Fmsub(s31, s0, s1, s2);
+
+  END();
+  RUN();
+
+  ASSERT_EQUAL_FP32(fmadd, s30);
+  ASSERT_EQUAL_FP32(fmsub, s31);
+
+  TEARDOWN();
+}
+
+
+TEST(fmadd_fmsub_float) {
+  float inputs[] = {
+    // Normal numbers, including -0.0f.
+    FLT_MAX, FLT_MIN, 3.25f, 2.0f, 0.0f,
+    -FLT_MAX, -FLT_MIN, -3.25f, -2.0f, -0.0f,
+    // Infinities.
+    kFP32NegativeInfinity, kFP32PositiveInfinity,
+    // Subnormal numbers.
+    rawbits_to_float(0x07ffffff),
+    rawbits_to_float(0x00000001),
+    rawbits_to_float(0x01234567),
+    -rawbits_to_float(0x07ffffff),
+    -rawbits_to_float(0x00000001),
+    -rawbits_to_float(0x01234567),
+    // NaN.
+    kFP32QuietNaN,
+    -kFP32QuietNaN,
+  };
+  const int count = sizeof(inputs) / sizeof(inputs[0]);
+
+  for (int in = 0; in < count; in++) {
+    float n = inputs[in];
+    for (int im = 0; im < count; im++) {
+      float m = inputs[im];
+      for (int ia = 0; ia < count; ia++) {
+        float a = inputs[ia];
+        float fmadd = fmaf(n, m, a);
+        float fmsub = fmaf(-n, m, a);
+
+        FmaddFmsubFloatHelper(n, m, a, fmadd, fmsub);
+      }
+    }
+  }
+}
+
+
+TEST(fmadd_fmsub_float_rounding) {
+  // Make sure we run plenty of tests where an intermediate rounding stage would
+  // produce an incorrect result.
+  const int limit = 1000;
+  int count_fmadd = 0;
+  int count_fmsub = 0;
+
+  uint16_t seed[3] = {42, 43, 44};
+  seed48(seed);
+
+  while ((count_fmadd < limit) || (count_fmsub < limit)) {
+    float n, m, a;
+    uint32_t r;
+    ASSERT(sizeof(r) == sizeof(n));
+
+    r = mrand48();
+    memcpy(&n, &r, sizeof(r));
+    r = mrand48();
+    memcpy(&m, &r, sizeof(r));
+    r = mrand48();
+    memcpy(&a, &r, sizeof(r));
+
+    if (!isfinite(a) || !isfinite(n) || !isfinite(m)) {
+      continue;
+    }
+
+    // Calculate the expected results.
+    float fmadd = fmaf(n, m, a);
+    float fmsub = fmaf(-n, m, a);
+
+    bool test_fmadd = (fmadd != (a + n * m));
+    bool test_fmsub = (fmsub != (a - n * m));
+
+    // If rounding would produce a different result, increment the test count.
+    count_fmadd += test_fmadd;
+    count_fmsub += test_fmsub;
+
+    if (test_fmadd || test_fmsub) {
+      FmaddFmsubFloatHelper(n, m, a, fmadd, fmsub);
+    }
+  }
 }
 
 
@@ -4304,171 +4801,219 @@ TEST(fdiv) {
 }
 
 
-TEST(fmin_s) {
-  SETUP();
+static float MinMaxHelper(float n,
+                          float m,
+                          bool min,
+                          float quiet_nan_substitute = 0.0) {
+  const uint64_t kFP32QuietNaNMask = 0x00400000UL;
+  uint32_t raw_n = float_to_rawbits(n);
+  uint32_t raw_m = float_to_rawbits(m);
 
-  START();
-  __ Fmov(s25, 0.0);
-  __ Fneg(s26, s25);
-  __ Fmov(s27, kFP32PositiveInfinity);
-  __ Fmov(s28, 1.0);
-  __ Fmin(s0, s25, s26);
-  __ Fmin(s1, s27, s28);
-  __ Fmin(s2, s28, s26);
-  END();
-
-  RUN();
-
-  ASSERT_EQUAL_FP32(-0.0, s0);
-  ASSERT_EQUAL_FP32(1.0, s1);
-  ASSERT_EQUAL_FP32(-0.0, s2);
-
-  TEARDOWN();
-}
-
-
-TEST(fmin_d) {
-  SETUP();
-
-  START();
-  __ Fmov(d25, 0.0);
-  __ Fneg(d26, d25);
-  __ Fmov(d27, kFP32PositiveInfinity);
-  __ Fneg(d28, d27);
-  __ Fmov(d29, 1.0);
-
-  for (unsigned j = 0; j < 5; j++) {
-    for (unsigned i = 0; i < 5; i++) {
-      // Test all combinations, writing results into d0 - d24.
-      __ Fmin(FPRegister::DRegFromCode(i + 5*j),
-              FPRegister::DRegFromCode(i + 25),
-              FPRegister::DRegFromCode(j + 25));
+  if (isnan(n) && ((raw_n & kFP32QuietNaNMask) == 0)) {
+    // n is signalling NaN.
+    return n;
+  } else if (isnan(m) && ((raw_m & kFP32QuietNaNMask) == 0)) {
+    // m is signalling NaN.
+    return m;
+  } else if (quiet_nan_substitute == 0.0) {
+    if (isnan(n)) {
+      // n is quiet NaN.
+      return n;
+    } else if (isnan(m)) {
+      // m is quiet NaN.
+      return m;
+    }
+  } else {
+    // Substitute n or m if one is quiet, but not both.
+    if (isnan(n) && !isnan(m)) {
+      // n is quiet NaN: replace with substitute.
+      n = quiet_nan_substitute;
+    } else if (!isnan(n) && isnan(m)) {
+      // m is quiet NaN: replace with substitute.
+      m = quiet_nan_substitute;
     }
   }
-  END();
 
-  RUN();
+  if ((n == 0.0) && (m == 0.0) &&
+      (copysign(1.0, n) != copysign(1.0, m))) {
+    return min ? -0.0 : 0.0;
+  }
 
-  // Second register is 0.0.
-  ASSERT_EQUAL_FP64(0.0, d0);
-  ASSERT_EQUAL_FP64(-0.0, d1);
-  ASSERT_EQUAL_FP64(0.0, d2);
-  ASSERT_EQUAL_FP64(kFP32NegativeInfinity, d3);
-  ASSERT_EQUAL_FP64(0.0, d4);
-
-  // Second register is -0.0.
-  ASSERT_EQUAL_FP64(-0.0, d5);
-  ASSERT_EQUAL_FP64(-0.0, d6);
-  ASSERT_EQUAL_FP64(-0.0, d7);
-  ASSERT_EQUAL_FP64(kFP32NegativeInfinity, d8);
-  ASSERT_EQUAL_FP64(-0.0, d9);
-
-  // Second register is +Inf.
-  ASSERT_EQUAL_FP64(0.0, d10);
-  ASSERT_EQUAL_FP64(-0.0, d11);
-  ASSERT_EQUAL_FP64(kFP32PositiveInfinity, d12);
-  ASSERT_EQUAL_FP64(kFP32NegativeInfinity, d13);
-  ASSERT_EQUAL_FP64(1.0, d14);
-
-  // Second register is -Inf.
-  ASSERT_EQUAL_FP64(kFP32NegativeInfinity, d15);
-  ASSERT_EQUAL_FP64(kFP32NegativeInfinity, d16);
-  ASSERT_EQUAL_FP64(kFP32NegativeInfinity, d17);
-  ASSERT_EQUAL_FP64(kFP32NegativeInfinity, d18);
-  ASSERT_EQUAL_FP64(kFP32NegativeInfinity, d19);
-
-  // Second register is 1.0.
-  ASSERT_EQUAL_FP64(0.0, d20);
-  ASSERT_EQUAL_FP64(-0.0, d21);
-  ASSERT_EQUAL_FP64(1.0, d22);
-  ASSERT_EQUAL_FP64(kFP32NegativeInfinity, d23);
-  ASSERT_EQUAL_FP64(1.0, d24);
-
-  TEARDOWN();
+  return min ? fminf(n, m) : fmaxf(n, m);
 }
 
 
-TEST(fmax_s) {
-  SETUP();
+static double MinMaxHelper(double n,
+                           double m,
+                           bool min,
+                           double quiet_nan_substitute = 0.0) {
+  const uint64_t kFP64QuietNaNMask = 0x0008000000000000UL;
+  uint64_t raw_n = double_to_rawbits(n);
+  uint64_t raw_m = double_to_rawbits(m);
 
-  START();
-  __ Fmov(s25, 0.0);
-  __ Fneg(s26, s25);
-  __ Fmov(s27, kFP32PositiveInfinity);
-  __ Fmov(s28, 1.0);
-  __ Fmax(s0, s25, s26);
-  __ Fmax(s1, s27, s28);
-  __ Fmax(s2, s28, s26);
-  END();
-
-  RUN();
-
-  ASSERT_EQUAL_FP32(0.0, s0);
-  ASSERT_EQUAL_FP32(kFP32PositiveInfinity, s1);
-  ASSERT_EQUAL_FP32(1.0, s2);
-
-  TEARDOWN();
-}
-
-
-TEST(fmax_d) {
-  SETUP();
-
-  START();
-  __ Fmov(d25, 0.0);
-  __ Fneg(d26, d25);
-  __ Fmov(d27, kFP32PositiveInfinity);
-  __ Fneg(d28, d27);
-  __ Fmov(d29, 1.0);
-
-  for (unsigned j = 0; j < 5; j++) {
-    for (unsigned i = 0; i < 5; i++) {
-      // Test all combinations, writing results into d0 - d24.
-      __ Fmax(FPRegister::DRegFromCode(i + 5*j),
-              FPRegister::DRegFromCode(i + 25),
-              FPRegister::DRegFromCode(j + 25));
+  if (isnan(n) && ((raw_n & kFP64QuietNaNMask) == 0)) {
+    // n is signalling NaN.
+    return n;
+  } else if (isnan(m) && ((raw_m & kFP64QuietNaNMask) == 0)) {
+    // m is signalling NaN.
+    return m;
+  } else if (quiet_nan_substitute == 0.0) {
+    if (isnan(n)) {
+      // n is quiet NaN.
+      return n;
+    } else if (isnan(m)) {
+      // m is quiet NaN.
+      return m;
+    }
+  } else {
+    // Substitute n or m if one is quiet, but not both.
+    if (isnan(n) && !isnan(m)) {
+      // n is quiet NaN: replace with substitute.
+      n = quiet_nan_substitute;
+    } else if (!isnan(n) && isnan(m)) {
+      // m is quiet NaN: replace with substitute.
+      m = quiet_nan_substitute;
     }
   }
+
+  if ((n == 0.0) && (m == 0.0) &&
+      (copysign(1.0, n) != copysign(1.0, m))) {
+    return min ? -0.0 : 0.0;
+  }
+
+  return min ? fmin(n, m) : fmax(n, m);
+}
+
+
+static void FminFmaxDoubleHelper(double n, double m, double min, double max,
+                                 double minnm, double maxnm) {
+  SETUP();
+
+  START();
+  __ Fmov(d0, n);
+  __ Fmov(d1, m);
+  __ Fmin(d28, d0, d1);
+  __ Fmax(d29, d0, d1);
+  __ Fminnm(d30, d0, d1);
+  __ Fmaxnm(d31, d0, d1);
   END();
 
   RUN();
 
-  // Second register is 0.0.
-  ASSERT_EQUAL_FP64(0.0, d0);
-  ASSERT_EQUAL_FP64(0.0, d1);
-  ASSERT_EQUAL_FP64(kFP32PositiveInfinity, d2);
-  ASSERT_EQUAL_FP64(0.0, d3);
-  ASSERT_EQUAL_FP64(1.0, d4);
-
-  // Second register is -0.0.
-  ASSERT_EQUAL_FP64(0.0, d5);
-  ASSERT_EQUAL_FP64(-0.0, d6);
-  ASSERT_EQUAL_FP64(kFP32PositiveInfinity, d7);
-  ASSERT_EQUAL_FP64(-0.0, d8);
-  ASSERT_EQUAL_FP64(1.0, d9);
-
-  // Second register is +Inf.
-  ASSERT_EQUAL_FP64(kFP32PositiveInfinity, d10);
-  ASSERT_EQUAL_FP64(kFP32PositiveInfinity, d11);
-  ASSERT_EQUAL_FP64(kFP32PositiveInfinity, d12);
-  ASSERT_EQUAL_FP64(kFP32PositiveInfinity, d13);
-  ASSERT_EQUAL_FP64(kFP32PositiveInfinity, d14);
-
-  // Second register is -Inf.
-  ASSERT_EQUAL_FP64(0.0, d15);
-  ASSERT_EQUAL_FP64(-0.0, d16);
-  ASSERT_EQUAL_FP64(kFP32PositiveInfinity, d17);
-  ASSERT_EQUAL_FP64(kFP32NegativeInfinity, d18);
-  ASSERT_EQUAL_FP64(1.0, d19);
-
-  // Second register is 1.0.
-  ASSERT_EQUAL_FP64(1.0, d20);
-  ASSERT_EQUAL_FP64(1.0, d21);
-  ASSERT_EQUAL_FP64(kFP32PositiveInfinity, d22);
-  ASSERT_EQUAL_FP64(1.0, d23);
-  ASSERT_EQUAL_FP64(1.0, d24);
+  ASSERT_EQUAL_FP64(min, d28);
+  ASSERT_EQUAL_FP64(max, d29);
+  ASSERT_EQUAL_FP64(minnm, d30);
+  ASSERT_EQUAL_FP64(maxnm, d31);
 
   TEARDOWN();
+}
+
+
+TEST(fmax_fmin_d) {
+  // Bootstrap tests.
+  FminFmaxDoubleHelper(0, 0, 0, 0, 0, 0);
+  FminFmaxDoubleHelper(0, 1, 0, 1, 0, 1);
+  FminFmaxDoubleHelper(kFP64PositiveInfinity, kFP64NegativeInfinity,
+                       kFP64NegativeInfinity, kFP64PositiveInfinity,
+                       kFP64NegativeInfinity, kFP64PositiveInfinity);
+  FminFmaxDoubleHelper(kFP64SignallingNaN, 0,
+                       kFP64SignallingNaN, kFP64SignallingNaN,
+                       kFP64SignallingNaN, kFP64SignallingNaN);
+  FminFmaxDoubleHelper(kFP64QuietNaN, 0,
+                       kFP64QuietNaN, kFP64QuietNaN,
+                       0, 0);
+  FminFmaxDoubleHelper(kFP64QuietNaN, kFP64SignallingNaN,
+                       kFP64SignallingNaN, kFP64SignallingNaN,
+                       kFP64SignallingNaN, kFP64SignallingNaN);
+
+  // Iterate over all combinations of inputs.
+  double inputs[] = { DBL_MAX, DBL_MIN, 1.0, 0.0,
+                      -DBL_MAX, -DBL_MIN, -1.0, -0.0,
+                      kFP64PositiveInfinity, kFP64NegativeInfinity,
+                      kFP64QuietNaN, kFP64SignallingNaN };
+
+  const int count = sizeof(inputs) / sizeof(inputs[0]);
+
+  for (int in = 0; in < count; in++) {
+    double n = inputs[in];
+    for (int im = 0; im < count; im++) {
+      double m = inputs[im];
+      FminFmaxDoubleHelper(n, m,
+                           MinMaxHelper(n, m, true),
+                           MinMaxHelper(n, m, false),
+                           MinMaxHelper(n, m, true, kFP64PositiveInfinity),
+                           MinMaxHelper(n, m, false, kFP64NegativeInfinity));
+    }
+  }
+}
+
+
+static void FminFmaxFloatHelper(float n, float m, float min, float max,
+                                float minnm, float maxnm) {
+  SETUP();
+
+  START();
+  // TODO: Signalling NaNs are sometimes converted by the C compiler to quiet
+  // NaNs on implicit casts from float to double. Here, we move the raw bits
+  // into a W register first, so we get the correct value. Fix Fmov so this
+  // additional step is no longer needed.
+  __ Mov(w0, float_to_rawbits(n));
+  __ Fmov(s0, w0);
+  __ Mov(w0, float_to_rawbits(m));
+  __ Fmov(s1, w0);
+  __ Fmin(s28, s0, s1);
+  __ Fmax(s29, s0, s1);
+  __ Fminnm(s30, s0, s1);
+  __ Fmaxnm(s31, s0, s1);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_FP32(min, s28);
+  ASSERT_EQUAL_FP32(max, s29);
+  ASSERT_EQUAL_FP32(minnm, s30);
+  ASSERT_EQUAL_FP32(maxnm, s31);
+
+  TEARDOWN();
+}
+
+
+TEST(fmax_fmin_s) {
+  // Bootstrap tests.
+  FminFmaxFloatHelper(0, 0, 0, 0, 0, 0);
+  FminFmaxFloatHelper(0, 1, 0, 1, 0, 1);
+  FminFmaxFloatHelper(kFP32PositiveInfinity, kFP32NegativeInfinity,
+                      kFP32NegativeInfinity, kFP32PositiveInfinity,
+                      kFP32NegativeInfinity, kFP32PositiveInfinity);
+  FminFmaxFloatHelper(kFP32SignallingNaN, 0,
+                      kFP32SignallingNaN, kFP32SignallingNaN,
+                      kFP32SignallingNaN, kFP32SignallingNaN);
+  FminFmaxFloatHelper(kFP32QuietNaN, 0,
+                      kFP32QuietNaN, kFP32QuietNaN,
+                      0, 0);
+  FminFmaxFloatHelper(kFP32QuietNaN, kFP32SignallingNaN,
+                      kFP32SignallingNaN, kFP32SignallingNaN,
+                      kFP32SignallingNaN, kFP32SignallingNaN);
+
+  // Iterate over all combinations of inputs.
+  float inputs[] = { FLT_MAX, FLT_MIN, 1.0, 0.0,
+                     -FLT_MAX, -FLT_MIN, -1.0, -0.0,
+                     kFP32PositiveInfinity, kFP32NegativeInfinity,
+                     kFP32QuietNaN, kFP32SignallingNaN };
+
+  const int count = sizeof(inputs) / sizeof(inputs[0]);
+
+  for (int in = 0; in < count; in++) {
+    float n = inputs[in];
+    for (int im = 0; im < count; im++) {
+      float m = inputs[im];
+      FminFmaxFloatHelper(n, m,
+                          MinMaxHelper(n, m, true),
+                          MinMaxHelper(n, m, false),
+                          MinMaxHelper(n, m, true, kFP32PositiveInfinity),
+                          MinMaxHelper(n, m, false, kFP32NegativeInfinity));
+    }
+  }
 }
 
 
@@ -4542,6 +5087,11 @@ TEST(fcmp) {
   SETUP();
 
   START();
+
+  // Some of these tests require a floating-point scratch register assigned to
+  // the macro assembler, but most do not.
+  __ SetFPScratchRegister(NoFPReg);
+
   __ Fmov(s8, 0.0);
   __ Fmov(s9, 0.5);
   __ Mov(w18, 0x7f800001);  // Single precision NaN.
@@ -4559,7 +5109,9 @@ TEST(fcmp) {
   __ Mrs(x4, NZCV);
   __ Fcmp(s8, 0.0);
   __ Mrs(x5, NZCV);
+  __ SetFPScratchRegister(d0);
   __ Fcmp(s8, 255.0);
+  __ SetFPScratchRegister(NoFPReg);
   __ Mrs(x6, NZCV);
 
   __ Fmov(d19, 0.0);
@@ -4579,7 +5131,9 @@ TEST(fcmp) {
   __ Mrs(x14, NZCV);
   __ Fcmp(d19, 0.0);
   __ Mrs(x15, NZCV);
+  __ SetFPScratchRegister(d0);
   __ Fcmp(d19, 12.3456);
+  __ SetFPScratchRegister(NoFPReg);
   __ Mrs(x16, NZCV);
   END();
 
@@ -4761,6 +5315,88 @@ TEST(fsqrt) {
   ASSERT_EQUAL_FP64(65536.0, d9);
   ASSERT_EQUAL_FP64(-0.0, d10);
   ASSERT_EQUAL_FP64(kFP32PositiveInfinity, d11);
+
+  TEARDOWN();
+}
+
+
+TEST(frinta) {
+  SETUP();
+
+  START();
+  __ Fmov(s16, 1.0);
+  __ Fmov(s17, 1.1);
+  __ Fmov(s18, 1.5);
+  __ Fmov(s19, 1.9);
+  __ Fmov(s20, 2.5);
+  __ Fmov(s21, -1.5);
+  __ Fmov(s22, -2.5);
+  __ Fmov(s23, kFP32PositiveInfinity);
+  __ Fmov(s24, kFP32NegativeInfinity);
+  __ Fmov(s25, 0.0);
+  __ Fmov(s26, -0.0);
+
+  __ Frinta(s0, s16);
+  __ Frinta(s1, s17);
+  __ Frinta(s2, s18);
+  __ Frinta(s3, s19);
+  __ Frinta(s4, s20);
+  __ Frinta(s5, s21);
+  __ Frinta(s6, s22);
+  __ Frinta(s7, s23);
+  __ Frinta(s8, s24);
+  __ Frinta(s9, s25);
+  __ Frinta(s10, s26);
+
+  __ Fmov(d16, 1.0);
+  __ Fmov(d17, 1.1);
+  __ Fmov(d18, 1.5);
+  __ Fmov(d19, 1.9);
+  __ Fmov(d20, 2.5);
+  __ Fmov(d21, -1.5);
+  __ Fmov(d22, -2.5);
+  __ Fmov(d23, kFP32PositiveInfinity);
+  __ Fmov(d24, kFP32NegativeInfinity);
+  __ Fmov(d25, 0.0);
+  __ Fmov(d26, -0.0);
+
+  __ Frinta(d11, d16);
+  __ Frinta(d12, d17);
+  __ Frinta(d13, d18);
+  __ Frinta(d14, d19);
+  __ Frinta(d15, d20);
+  __ Frinta(d16, d21);
+  __ Frinta(d17, d22);
+  __ Frinta(d18, d23);
+  __ Frinta(d19, d24);
+  __ Frinta(d20, d25);
+  __ Frinta(d21, d26);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_FP32(1.0, s0);
+  ASSERT_EQUAL_FP32(1.0, s1);
+  ASSERT_EQUAL_FP32(2.0, s2);
+  ASSERT_EQUAL_FP32(2.0, s3);
+  ASSERT_EQUAL_FP32(3.0, s4);
+  ASSERT_EQUAL_FP32(-2.0, s5);
+  ASSERT_EQUAL_FP32(-3.0, s6);
+  ASSERT_EQUAL_FP32(kFP32PositiveInfinity, s7);
+  ASSERT_EQUAL_FP32(kFP32NegativeInfinity, s8);
+  ASSERT_EQUAL_FP32(0.0, s9);
+  ASSERT_EQUAL_FP32(-0.0, s10);
+  ASSERT_EQUAL_FP64(1.0, d11);
+  ASSERT_EQUAL_FP64(1.0, d12);
+  ASSERT_EQUAL_FP64(2.0, d13);
+  ASSERT_EQUAL_FP64(2.0, d14);
+  ASSERT_EQUAL_FP64(3.0, d15);
+  ASSERT_EQUAL_FP64(-2.0, d16);
+  ASSERT_EQUAL_FP64(-3.0, d17);
+  ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d18);
+  ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d19);
+  ASSERT_EQUAL_FP64(0.0, d20);
+  ASSERT_EQUAL_FP64(-0.0, d21);
 
   TEARDOWN();
 }
@@ -5011,7 +5647,7 @@ TEST(fcvt_sd) {
     {2.0, 2.0f},
     {FLT_MAX, FLT_MAX},
     //  - The smallest normalized float.
-    {pow(2, -126), pow(2, -126)},
+    {pow(2, -126), powf(2, -126)},
     //  - Normal floats that need (ties-to-even) rounding.
     //    For normalized numbers:
     //         bit 29 (0x0000000020000000) is the lowest-order bit which will
@@ -5106,6 +5742,209 @@ TEST(fcvt_sd) {
     ASSERT_EQUAL_FP32(-expected, s21);
     TEARDOWN();
   }
+}
+
+
+TEST(fcvtas) {
+  SETUP();
+
+  START();
+  __ Fmov(s0, 1.0);
+  __ Fmov(s1, 1.1);
+  __ Fmov(s2, 2.5);
+  __ Fmov(s3, -2.5);
+  __ Fmov(s4, kFP32PositiveInfinity);
+  __ Fmov(s5, kFP32NegativeInfinity);
+  __ Fmov(s6, 0x7fffff80);  // Largest float < INT32_MAX.
+  __ Fneg(s7, s6);          // Smallest float > INT32_MIN.
+  __ Fmov(d8, 1.0);
+  __ Fmov(d9, 1.1);
+  __ Fmov(d10, 2.5);
+  __ Fmov(d11, -2.5);
+  __ Fmov(d12, kFP64PositiveInfinity);
+  __ Fmov(d13, kFP64NegativeInfinity);
+  __ Fmov(d14, kWMaxInt - 1);
+  __ Fmov(d15, kWMinInt + 1);
+  __ Fmov(s17, 1.1);
+  __ Fmov(s18, 2.5);
+  __ Fmov(s19, -2.5);
+  __ Fmov(s20, kFP32PositiveInfinity);
+  __ Fmov(s21, kFP32NegativeInfinity);
+  __ Fmov(s22, 0x7fffff8000000000UL);   // Largest float < INT64_MAX.
+  __ Fneg(s23, s22);                    // Smallest float > INT64_MIN.
+  __ Fmov(d24, 1.1);
+  __ Fmov(d25, 2.5);
+  __ Fmov(d26, -2.5);
+  __ Fmov(d27, kFP64PositiveInfinity);
+  __ Fmov(d28, kFP64NegativeInfinity);
+  __ Fmov(d29, 0x7ffffffffffffc00UL);   // Largest double < INT64_MAX.
+  __ Fneg(d30, d29);                    // Smallest double > INT64_MIN.
+
+  __ Fcvtas(w0, s0);
+  __ Fcvtas(w1, s1);
+  __ Fcvtas(w2, s2);
+  __ Fcvtas(w3, s3);
+  __ Fcvtas(w4, s4);
+  __ Fcvtas(w5, s5);
+  __ Fcvtas(w6, s6);
+  __ Fcvtas(w7, s7);
+  __ Fcvtas(w8, d8);
+  __ Fcvtas(w9, d9);
+  __ Fcvtas(w10, d10);
+  __ Fcvtas(w11, d11);
+  __ Fcvtas(w12, d12);
+  __ Fcvtas(w13, d13);
+  __ Fcvtas(w14, d14);
+  __ Fcvtas(w15, d15);
+  __ Fcvtas(x17, s17);
+  __ Fcvtas(x18, s18);
+  __ Fcvtas(x19, s19);
+  __ Fcvtas(x20, s20);
+  __ Fcvtas(x21, s21);
+  __ Fcvtas(x22, s22);
+  __ Fcvtas(x23, s23);
+  __ Fcvtas(x24, d24);
+  __ Fcvtas(x25, d25);
+  __ Fcvtas(x26, d26);
+  __ Fcvtas(x27, d27);
+  __ Fcvtas(x28, d28);
+  __ Fcvtas(x29, d29);
+  __ Fcvtas(x30, d30);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(1, x0);
+  ASSERT_EQUAL_64(1, x1);
+  ASSERT_EQUAL_64(3, x2);
+  ASSERT_EQUAL_64(0xfffffffd, x3);
+  ASSERT_EQUAL_64(0x7fffffff, x4);
+  ASSERT_EQUAL_64(0x80000000, x5);
+  ASSERT_EQUAL_64(0x7fffff80, x6);
+  ASSERT_EQUAL_64(0x80000080, x7);
+  ASSERT_EQUAL_64(1, x8);
+  ASSERT_EQUAL_64(1, x9);
+  ASSERT_EQUAL_64(3, x10);
+  ASSERT_EQUAL_64(0xfffffffd, x11);
+  ASSERT_EQUAL_64(0x7fffffff, x12);
+  ASSERT_EQUAL_64(0x80000000, x13);
+  ASSERT_EQUAL_64(0x7ffffffe, x14);
+  ASSERT_EQUAL_64(0x80000001, x15);
+  ASSERT_EQUAL_64(1, x17);
+  ASSERT_EQUAL_64(3, x18);
+  ASSERT_EQUAL_64(0xfffffffffffffffdUL, x19);
+  ASSERT_EQUAL_64(0x7fffffffffffffffUL, x20);
+  ASSERT_EQUAL_64(0x8000000000000000UL, x21);
+  ASSERT_EQUAL_64(0x7fffff8000000000UL, x22);
+  ASSERT_EQUAL_64(0x8000008000000000UL, x23);
+  ASSERT_EQUAL_64(1, x24);
+  ASSERT_EQUAL_64(3, x25);
+  ASSERT_EQUAL_64(0xfffffffffffffffdUL, x26);
+  ASSERT_EQUAL_64(0x7fffffffffffffffUL, x27);
+  ASSERT_EQUAL_64(0x8000000000000000UL, x28);
+  ASSERT_EQUAL_64(0x7ffffffffffffc00UL, x29);
+  ASSERT_EQUAL_64(0x8000000000000400UL, x30);
+
+  TEARDOWN();
+}
+
+
+TEST(fcvtau) {
+  SETUP();
+
+  START();
+  __ Fmov(s0, 1.0);
+  __ Fmov(s1, 1.1);
+  __ Fmov(s2, 2.5);
+  __ Fmov(s3, -2.5);
+  __ Fmov(s4, kFP32PositiveInfinity);
+  __ Fmov(s5, kFP32NegativeInfinity);
+  __ Fmov(s6, 0xffffff00);  // Largest float < UINT32_MAX.
+  __ Fmov(d8, 1.0);
+  __ Fmov(d9, 1.1);
+  __ Fmov(d10, 2.5);
+  __ Fmov(d11, -2.5);
+  __ Fmov(d12, kFP64PositiveInfinity);
+  __ Fmov(d13, kFP64NegativeInfinity);
+  __ Fmov(d14, 0xfffffffe);
+  __ Fmov(s16, 1.0);
+  __ Fmov(s17, 1.1);
+  __ Fmov(s18, 2.5);
+  __ Fmov(s19, -2.5);
+  __ Fmov(s20, kFP32PositiveInfinity);
+  __ Fmov(s21, kFP32NegativeInfinity);
+  __ Fmov(s22, 0xffffff0000000000UL);  // Largest float < UINT64_MAX.
+  __ Fmov(d24, 1.1);
+  __ Fmov(d25, 2.5);
+  __ Fmov(d26, -2.5);
+  __ Fmov(d27, kFP64PositiveInfinity);
+  __ Fmov(d28, kFP64NegativeInfinity);
+  __ Fmov(d29, 0xfffffffffffff800UL);  // Largest double < UINT64_MAX.
+  __ Fmov(s30, 0x100000000UL);
+
+  __ Fcvtau(w0, s0);
+  __ Fcvtau(w1, s1);
+  __ Fcvtau(w2, s2);
+  __ Fcvtau(w3, s3);
+  __ Fcvtau(w4, s4);
+  __ Fcvtau(w5, s5);
+  __ Fcvtau(w6, s6);
+  __ Fcvtau(w8, d8);
+  __ Fcvtau(w9, d9);
+  __ Fcvtau(w10, d10);
+  __ Fcvtau(w11, d11);
+  __ Fcvtau(w12, d12);
+  __ Fcvtau(w13, d13);
+  __ Fcvtau(w14, d14);
+  __ Fcvtau(w15, d15);
+  __ Fcvtau(x16, s16);
+  __ Fcvtau(x17, s17);
+  __ Fcvtau(x18, s18);
+  __ Fcvtau(x19, s19);
+  __ Fcvtau(x20, s20);
+  __ Fcvtau(x21, s21);
+  __ Fcvtau(x22, s22);
+  __ Fcvtau(x24, d24);
+  __ Fcvtau(x25, d25);
+  __ Fcvtau(x26, d26);
+  __ Fcvtau(x27, d27);
+  __ Fcvtau(x28, d28);
+  __ Fcvtau(x29, d29);
+  __ Fcvtau(w30, s30);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(1, x0);
+  ASSERT_EQUAL_64(1, x1);
+  ASSERT_EQUAL_64(3, x2);
+  ASSERT_EQUAL_64(0, x3);
+  ASSERT_EQUAL_64(0xffffffff, x4);
+  ASSERT_EQUAL_64(0, x5);
+  ASSERT_EQUAL_64(0xffffff00, x6);
+  ASSERT_EQUAL_64(1, x8);
+  ASSERT_EQUAL_64(1, x9);
+  ASSERT_EQUAL_64(3, x10);
+  ASSERT_EQUAL_64(0, x11);
+  ASSERT_EQUAL_64(0xffffffff, x12);
+  ASSERT_EQUAL_64(0, x13);
+  ASSERT_EQUAL_64(0xfffffffe, x14);
+  ASSERT_EQUAL_64(1, x16);
+  ASSERT_EQUAL_64(1, x17);
+  ASSERT_EQUAL_64(3, x18);
+  ASSERT_EQUAL_64(0, x19);
+  ASSERT_EQUAL_64(0xffffffffffffffffUL, x20);
+  ASSERT_EQUAL_64(0, x21);
+  ASSERT_EQUAL_64(0xffffff0000000000UL, x22);
+  ASSERT_EQUAL_64(1, x24);
+  ASSERT_EQUAL_64(3, x25);
+  ASSERT_EQUAL_64(0, x26);
+  ASSERT_EQUAL_64(0xffffffffffffffffUL, x27);
+  ASSERT_EQUAL_64(0, x28);
+  ASSERT_EQUAL_64(0xfffffffffffff800UL, x29);
+  ASSERT_EQUAL_64(0xffffffff, x30);
+
+  TEARDOWN();
 }
 
 
@@ -5957,8 +6796,8 @@ static void TestUScvtf32Helper(uint64_t in,
   float expected_ucvtf_base = rawbits_to_float(expected_ucvtf_bits);
 
   for (int fbits = 0; fbits <= 32; fbits++) {
-    float expected_scvtf = expected_scvtf_base / pow(2, fbits);
-    float expected_ucvtf = expected_ucvtf_base / pow(2, fbits);
+    float expected_scvtf = expected_scvtf_base / powf(2, fbits);
+    float expected_ucvtf = expected_ucvtf_base / powf(2, fbits);
     ASSERT_EQUAL_FP32(expected_scvtf, results_scvtf_x[fbits]);
     ASSERT_EQUAL_FP32(expected_ucvtf, results_ucvtf_x[fbits]);
     if (cvtf_s32) ASSERT_EQUAL_FP32(expected_scvtf, results_scvtf_w[fbits]);
@@ -5967,8 +6806,8 @@ static void TestUScvtf32Helper(uint64_t in,
   }
   for (int fbits = 33; fbits <= 64; fbits++) {
     break;
-    float expected_scvtf = expected_scvtf_base / pow(2, fbits);
-    float expected_ucvtf = expected_ucvtf_base / pow(2, fbits);
+    float expected_scvtf = expected_scvtf_base / powf(2, fbits);
+    float expected_ucvtf = expected_ucvtf_base / powf(2, fbits);
     ASSERT_EQUAL_FP32(expected_scvtf, results_scvtf_x[fbits]);
     ASSERT_EQUAL_FP32(expected_ucvtf, results_ucvtf_x[fbits]);
   }
@@ -6062,7 +6901,7 @@ TEST(system_mrs) {
   __ Mrs(x4, NZCV);
 
   // Set the Z, C and V flags.
-  __ Add(w0, w2, w2, SetFlags);
+  __ Adds(w0, w2, w2);
   __ Mrs(x5, NZCV);
 
   // Read the default FPCR.
@@ -6257,31 +7096,31 @@ TEST(zero_dest_setflags) {
 
   // All of these instructions should only write to the flags in these forms,
   // but have alternate forms which can write into the stack pointer.
-  __ add(xzr, x0, Operand(x1, UXTX), SetFlags);
-  __ add(xzr, x1, Operand(xzr, UXTX), SetFlags);
-  __ add(xzr, x1, 1234, SetFlags);
-  __ add(xzr, x0, x1, SetFlags);
-  __ add(xzr, x1, xzr, SetFlags);
-  __ add(xzr, xzr, x1, SetFlags);
+  __ adds(xzr, x0, Operand(x1, UXTX));
+  __ adds(xzr, x1, Operand(xzr, UXTX));
+  __ adds(xzr, x1, 1234);
+  __ adds(xzr, x0, x1);
+  __ adds(xzr, x1, xzr);
+  __ adds(xzr, xzr, x1);
 
-  __ and_(xzr, x2, ~0xf, SetFlags);
-  __ and_(xzr, xzr, ~0xf, SetFlags);
-  __ and_(xzr, x0, x2, SetFlags);
-  __ and_(xzr, x2, xzr, SetFlags);
-  __ and_(xzr, xzr, x2, SetFlags);
+  __ ands(xzr, x2, ~0xf);
+  __ ands(xzr, xzr, ~0xf);
+  __ ands(xzr, x0, x2);
+  __ ands(xzr, x2, xzr);
+  __ ands(xzr, xzr, x2);
 
-  __ bic(xzr, x3, ~0xf, SetFlags);
-  __ bic(xzr, xzr, ~0xf, SetFlags);
-  __ bic(xzr, x0, x3, SetFlags);
-  __ bic(xzr, x3, xzr, SetFlags);
-  __ bic(xzr, xzr, x3, SetFlags);
+  __ bics(xzr, x3, ~0xf);
+  __ bics(xzr, xzr, ~0xf);
+  __ bics(xzr, x0, x3);
+  __ bics(xzr, x3, xzr);
+  __ bics(xzr, xzr, x3);
 
-  __ sub(xzr, x0, Operand(x3, UXTX), SetFlags);
-  __ sub(xzr, x3, Operand(xzr, UXTX), SetFlags);
-  __ sub(xzr, x3, 1234, SetFlags);
-  __ sub(xzr, x0, x3, SetFlags);
-  __ sub(xzr, x3, xzr, SetFlags);
-  __ sub(xzr, xzr, x3, SetFlags);
+  __ subs(xzr, x0, Operand(x3, UXTX));
+  __ subs(xzr, x3, Operand(xzr, UXTX));
+  __ subs(xzr, x3, 1234);
+  __ subs(xzr, x0, x3);
+  __ subs(xzr, x3, xzr);
+  __ subs(xzr, xzr, x3);
 
   // Swap the saved stack pointer with the real one. If sp was written
   // during the test, it will show up in x30. This is done because the test
@@ -7759,6 +8598,65 @@ TEST(blr_lr) {
   RUN();
 
   ASSERT_EQUAL_64(0xc001c0de, x0);
+
+  TEARDOWN();
+}
+
+
+TEST(barriers) {
+  // Generate all supported barriers, this is just a smoke test
+  SETUP();
+
+  START();
+
+  // DMB
+  __ Dmb(FullSystem, BarrierAll);
+  __ Dmb(FullSystem, BarrierReads);
+  __ Dmb(FullSystem, BarrierWrites);
+  __ Dmb(FullSystem, BarrierOther);
+
+  __ Dmb(InnerShareable, BarrierAll);
+  __ Dmb(InnerShareable, BarrierReads);
+  __ Dmb(InnerShareable, BarrierWrites);
+  __ Dmb(InnerShareable, BarrierOther);
+
+  __ Dmb(NonShareable, BarrierAll);
+  __ Dmb(NonShareable, BarrierReads);
+  __ Dmb(NonShareable, BarrierWrites);
+  __ Dmb(NonShareable, BarrierOther);
+
+  __ Dmb(OuterShareable, BarrierAll);
+  __ Dmb(OuterShareable, BarrierReads);
+  __ Dmb(OuterShareable, BarrierWrites);
+  __ Dmb(OuterShareable, BarrierOther);
+
+  // DSB
+  __ Dsb(FullSystem, BarrierAll);
+  __ Dsb(FullSystem, BarrierReads);
+  __ Dsb(FullSystem, BarrierWrites);
+  __ Dsb(FullSystem, BarrierOther);
+
+  __ Dsb(InnerShareable, BarrierAll);
+  __ Dsb(InnerShareable, BarrierReads);
+  __ Dsb(InnerShareable, BarrierWrites);
+  __ Dsb(InnerShareable, BarrierOther);
+
+  __ Dsb(NonShareable, BarrierAll);
+  __ Dsb(NonShareable, BarrierReads);
+  __ Dsb(NonShareable, BarrierWrites);
+  __ Dsb(NonShareable, BarrierOther);
+
+  __ Dsb(OuterShareable, BarrierAll);
+  __ Dsb(OuterShareable, BarrierReads);
+  __ Dsb(OuterShareable, BarrierWrites);
+  __ Dsb(OuterShareable, BarrierOther);
+
+  // ISB
+  __ Isb();
+
+  END();
+
+  RUN();
 
   TEARDOWN();
 }

@@ -471,6 +471,7 @@ class Operand {
   bool IsImmediate() const;
   bool IsShiftedRegister() const;
   bool IsExtendedRegister() const;
+  bool IsZero() const;
 
   // This returns an LSL shift (<= 4) operand as an equivalent extend operand,
   // which helps in the encoding of instructions that use the stack pointer.
@@ -716,8 +717,12 @@ class Assembler {
   // Add.
   void add(const Register& rd,
            const Register& rn,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+
+  // Add and update status flags.
+  void adds(const Register& rd,
+            const Register& rn,
+            const Operand& operand);
 
   // Compare negative.
   void cmn(const Register& rn, const Operand& operand);
@@ -725,40 +730,62 @@ class Assembler {
   // Subtract.
   void sub(const Register& rd,
            const Register& rn,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+
+  // Subtract and update status flags.
+  void subs(const Register& rd,
+            const Register& rn,
+            const Operand& operand);
 
   // Compare.
   void cmp(const Register& rn, const Operand& operand);
 
   // Negate.
   void neg(const Register& rd,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+
+  // Negate and update status flags.
+  void negs(const Register& rd,
+            const Operand& operand);
 
   // Add with carry bit.
   void adc(const Register& rd,
            const Register& rn,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+
+  // Add with carry bit and update status flags.
+  void adcs(const Register& rd,
+            const Register& rn,
+            const Operand& operand);
 
   // Subtract with carry bit.
   void sbc(const Register& rd,
            const Register& rn,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+
+  // Subtract with carry bit and update status flags.
+  void sbcs(const Register& rd,
+            const Register& rn,
+            const Operand& operand);
 
   // Negate with carry bit.
   void ngc(const Register& rd,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+
+  // Negate with carry bit and update status flags.
+  void ngcs(const Register& rd,
+            const Operand& operand);
 
   // Logical instructions.
   // Bitwise and (A & B).
   void and_(const Register& rd,
             const Register& rn,
-            const Operand& operand,
-            FlagsUpdate S = LeaveFlags);
+            const Operand& operand);
+
+  // Bitwise and (A & B) and update status flags.
+  void ands(const Register& rd,
+            const Register& rn,
+            const Operand& operand);
 
   // Bit test and set flags.
   void tst(const Register& rn, const Operand& operand);
@@ -766,8 +793,12 @@ class Assembler {
   // Bit clear (A & ~B).
   void bic(const Register& rd,
            const Register& rn,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+
+  // Bit clear (A & ~B) and update status flags.
+  void bics(const Register& rd,
+            const Register& rn,
+            const Operand& operand);
 
   // Bitwise or (A | B).
   void orr(const Register& rd, const Register& rn, const Operand& operand);
@@ -1160,6 +1191,15 @@ class Assembler {
   // System hint.
   void hint(SystemHint code);
 
+  // Data memory barrier.
+  void dmb(BarrierDomain domain, BarrierType type);
+
+  // Data synchronization barrier.
+  void dsb(BarrierDomain domain, BarrierType type);
+
+  // Instruction synchronization barrier.
+  void isb();
+
   // Alias for system instructions.
   // No-op.
   void nop() {
@@ -1188,11 +1228,29 @@ class Assembler {
   // FP multiply.
   void fmul(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm);
 
-  // FP multiply and subtract.
+  // FP fused multiply and add.
+  void fmadd(const FPRegister& fd,
+             const FPRegister& fn,
+             const FPRegister& fm,
+             const FPRegister& fa);
+
+  // FP fused multiply and subtract.
   void fmsub(const FPRegister& fd,
              const FPRegister& fn,
              const FPRegister& fm,
              const FPRegister& fa);
+
+  // FP fused multiply, add and negate.
+  void fnmadd(const FPRegister& fd,
+              const FPRegister& fn,
+              const FPRegister& fm,
+              const FPRegister& fa);
+
+  // FP fused multiply, subtract and negate.
+  void fnmsub(const FPRegister& fd,
+              const FPRegister& fn,
+              const FPRegister& fm,
+              const FPRegister& fa);
 
   // FP divide.
   void fdiv(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm);
@@ -1203,6 +1261,12 @@ class Assembler {
   // FP minimum.
   void fmin(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm);
 
+  // FP maximum number.
+  void fmaxnm(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm);
+
+  // FP minimum number.
+  void fminnm(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm);
+
   // FP absolute.
   void fabs(const FPRegister& fd, const FPRegister& fn);
 
@@ -1211,6 +1275,9 @@ class Assembler {
 
   // FP square root.
   void fsqrt(const FPRegister& fd, const FPRegister& fn);
+
+  // FP round to integer (nearest with ties to away).
+  void frinta(const FPRegister& fd, const FPRegister& fn);
 
   // FP round to integer (nearest with ties to even).
   void frintn(const FPRegister& fd, const FPRegister& fn);
@@ -1243,6 +1310,12 @@ class Assembler {
 
   // FP convert between single and double precision.
   void fcvt(const FPRegister& fd, const FPRegister& fn);
+
+  // Convert FP to unsigned integer (nearest with ties to away).
+  void fcvtau(const Register& rd, const FPRegister& fn);
+
+  // Convert FP to signed integer (nearest with ties to away).
+  void fcvtas(const Register& rd, const FPRegister& fn);
 
   // Convert FP to unsigned integer (round towards -infinity).
   void fcvtmu(const Register& rd, const FPRegister& fn);
@@ -1515,6 +1588,16 @@ class Assembler {
   static Instr ImmHint(int imm7) {
     ASSERT(is_uint7(imm7));
     return imm7 << ImmHint_offset;
+  }
+
+  static Instr ImmBarrierDomain(int imm2) {
+    ASSERT(is_uint2(imm2));
+    return imm2 << ImmBarrierDomain_offset;
+  }
+
+  static Instr ImmBarrierType(int imm2) {
+    ASSERT(is_uint2(imm2));
+    return imm2 << ImmBarrierType_offset;
   }
 
   static LSDataSize CalcLSDataSize(LoadStoreOp op) {

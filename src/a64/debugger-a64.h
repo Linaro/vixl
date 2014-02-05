@@ -156,8 +156,13 @@ class Debugger : public Simulator {
 
   void PrintInstructions(void* address, int64_t count = 1);
   void PrintMemory(const uint8_t* address,
-                   int64_t count,
-                   const FormatToken* format);
+                   const FormatToken* format,
+                   int64_t count = 1);
+  void PrintRegister(const Register& target_reg,
+                     const char* name,
+                     const FormatToken* format);
+  void PrintFPRegister(const FPRegister& target_fpreg,
+                       const FormatToken* format);
 
  private:
   void LogSystemRegisters();

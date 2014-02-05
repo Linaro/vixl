@@ -1,11 +1,9 @@
 # ignore python compiled object
 *.pyc
-# ignore vi temporary files
-*.swo
-*.swp
 .sconsign.dblite
 obj/
 cctest*
 bench_*
 libvixl*
 example-*
+vixl_stats.csv

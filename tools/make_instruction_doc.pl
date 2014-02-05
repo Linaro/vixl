@@ -39,7 +39,7 @@ open(IN, "<$hfile") or die("Can't open header file $header.\n");
 while(<IN>)
 {
   # Find a function formatted like an instruction.
-  if(my($t) = /^  ((?:void|inline void) [a-z0-9]{1,6})\(/mgp)
+  if(my($t) = /^  ((?:void|inline void) [a-z0-9]{1,6}_?)\(/mgp)
   {
     my $before = ${^PREMATCH};
     my $after = ${^POSTMATCH};

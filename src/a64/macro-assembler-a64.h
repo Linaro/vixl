@@ -45,6 +45,8 @@
 
 namespace vixl {
 
+enum DiscardMoveMode { kDontDiscardForSameWReg, kDiscardForSameWReg };
+
 class MacroAssembler : public Assembler {
  public:
   MacroAssembler(byte * buffer, unsigned buffer_size)
@@ -57,12 +59,16 @@ class MacroAssembler : public Assembler {
   // Logical macros.
   void And(const Register& rd,
            const Register& rn,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+  void Ands(const Register& rd,
+            const Register& rn,
+            const Operand& operand);
   void Bic(const Register& rd,
            const Register& rn,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+  void Bics(const Register& rd,
+            const Register& rn,
+            const Operand& operand);
   void Orr(const Register& rd,
            const Register& rn,
            const Operand& operand);
@@ -84,17 +90,23 @@ class MacroAssembler : public Assembler {
   // Add and sub macros.
   void Add(const Register& rd,
            const Register& rn,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+  void Adds(const Register& rd,
+            const Register& rn,
+            const Operand& operand);
   void Sub(const Register& rd,
            const Register& rn,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+  void Subs(const Register& rd,
+            const Register& rn,
+            const Operand& operand);
   void Cmn(const Register& rn, const Operand& operand);
   void Cmp(const Register& rn, const Operand& operand);
   void Neg(const Register& rd,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+  void Negs(const Register& rd,
+            const Operand& operand);
+
   void AddSubMacro(const Register& rd,
                    const Register& rn,
                    const Operand& operand,
@@ -104,15 +116,20 @@ class MacroAssembler : public Assembler {
   // Add/sub with carry macros.
   void Adc(const Register& rd,
            const Register& rn,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+  void Adcs(const Register& rd,
+            const Register& rn,
+            const Operand& operand);
   void Sbc(const Register& rd,
            const Register& rn,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+  void Sbcs(const Register& rd,
+            const Register& rn,
+            const Operand& operand);
   void Ngc(const Register& rd,
-           const Operand& operand,
-           FlagsUpdate S = LeaveFlags);
+           const Operand& operand);
+  void Ngcs(const Register& rd,
+            const Operand& operand);
   void AddSubWithCarryMacro(const Register& rd,
                             const Register& rn,
                             const Operand& operand,
@@ -121,15 +138,18 @@ class MacroAssembler : public Assembler {
 
   // Move macros.
   void Mov(const Register& rd, uint64_t imm);
-  void Mov(const Register& rd, const Operand& operand);
+  void Mov(const Register& rd,
+           const Operand& operand,
+           DiscardMoveMode discard_mode = kDontDiscardForSameWReg);
   void Mvn(const Register& rd, uint64_t imm) {
-    Mov(rd, ~imm);
+    Mov(rd, (rd.size() == kXRegSize) ? ~imm : (~imm & kWRegMask));
   };
   void Mvn(const Register& rd, const Operand& operand);
-  bool IsImmMovn(uint64_t imm, unsigned reg_size);
   bool IsImmMovz(uint64_t imm, unsigned reg_size);
+  bool IsImmMovn(uint64_t imm, unsigned reg_size);
+  unsigned CountClearHalfWords(uint64_t imm, unsigned reg_size);
 
-  // Conditional compare macros.
+  // Conditional macros.
   void Ccmp(const Register& rn,
             const Operand& operand,
             StatusFlags nzcv,
@@ -143,6 +163,10 @@ class MacroAssembler : public Assembler {
                                StatusFlags nzcv,
                                Condition cond,
                                ConditionalCompareOp op);
+  void Csel(const Register& rd,
+            const Register& rn,
+            const Operand& operand,
+            Condition cond);
 
   // Load/store macros.
 #define DECLARE_FUNCTION(FN, REGTYPE, REG, OP) \
@@ -384,17 +408,6 @@ class MacroAssembler : public Assembler {
     ASSERT(!rn.IsZero());
     cneg(rd, rn, cond);
   }
-  void Csel(const Register& rd,
-            const Register& rn,
-            const Register& rm,
-            Condition cond) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
-    ASSERT((cond != al) && (cond != nv));
-    csel(rd, rn, rm, cond);
-  }
   void Cset(const Register& rd, Condition cond) {
     ASSERT(allow_macro_instructions_);
     ASSERT(!rd.IsZero());
@@ -437,6 +450,14 @@ class MacroAssembler : public Assembler {
     ASSERT(!rm.IsZero());
     ASSERT((cond != al) && (cond != nv));
     csneg(rd, rn, rm, cond);
+  }
+  void Dmb(BarrierDomain domain, BarrierType type) {
+    ASSERT(allow_macro_instructions_);
+    dmb(domain, type);
+  }
+  void Dsb(BarrierDomain domain, BarrierType type) {
+    ASSERT(allow_macro_instructions_);
+    dsb(domain, type);
   }
   void Extr(const Register& rd,
             const Register& rn,
@@ -490,6 +511,16 @@ class MacroAssembler : public Assembler {
     ASSERT(allow_macro_instructions_);
     fcvt(fd, fn);
   }
+  void Fcvtas(const Register& rd, const FPRegister& fn) {
+    ASSERT(allow_macro_instructions_);
+    ASSERT(!rd.IsZero());
+    fcvtas(rd, fn);
+  }
+  void Fcvtau(const Register& rd, const FPRegister& fn) {
+    ASSERT(allow_macro_instructions_);
+    ASSERT(!rd.IsZero());
+    fcvtau(rd, fn);
+  }
   void Fcvtms(const Register& rd, const FPRegister& fn) {
     ASSERT(allow_macro_instructions_);
     ASSERT(!rd.IsZero());
@@ -528,9 +559,21 @@ class MacroAssembler : public Assembler {
     ASSERT(allow_macro_instructions_);
     fmax(fd, fn, fm);
   }
+  void Fmaxnm(const FPRegister& fd,
+              const FPRegister& fn,
+              const FPRegister& fm) {
+    ASSERT(allow_macro_instructions_);
+    fmaxnm(fd, fn, fm);
+  }
   void Fmin(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm) {
     ASSERT(allow_macro_instructions_);
     fmin(fd, fn, fm);
+  }
+  void Fminnm(const FPRegister& fd,
+              const FPRegister& fn,
+              const FPRegister& fm) {
+    ASSERT(allow_macro_instructions_);
+    fminnm(fd, fn, fm);
   }
   void Fmov(FPRegister fd, FPRegister fn) {
     ASSERT(allow_macro_instructions_);
@@ -560,6 +603,13 @@ class MacroAssembler : public Assembler {
     ASSERT(allow_macro_instructions_);
     fmul(fd, fn, fm);
   }
+  void Fmadd(const FPRegister& fd,
+             const FPRegister& fn,
+             const FPRegister& fm,
+             const FPRegister& fa) {
+    ASSERT(allow_macro_instructions_);
+    fmadd(fd, fn, fm, fa);
+  }
   void Fmsub(const FPRegister& fd,
              const FPRegister& fn,
              const FPRegister& fm,
@@ -567,9 +617,27 @@ class MacroAssembler : public Assembler {
     ASSERT(allow_macro_instructions_);
     fmsub(fd, fn, fm, fa);
   }
+  void Fnmadd(const FPRegister& fd,
+              const FPRegister& fn,
+              const FPRegister& fm,
+              const FPRegister& fa) {
+    ASSERT(allow_macro_instructions_);
+    fnmadd(fd, fn, fm, fa);
+  }
+  void Fnmsub(const FPRegister& fd,
+              const FPRegister& fn,
+              const FPRegister& fm,
+              const FPRegister& fa) {
+    ASSERT(allow_macro_instructions_);
+    fnmsub(fd, fn, fm, fa);
+  }
   void Fneg(const FPRegister& fd, const FPRegister& fn) {
     ASSERT(allow_macro_instructions_);
     fneg(fd, fn);
+  }
+  void Frinta(const FPRegister& fd, const FPRegister& fn) {
+    ASSERT(allow_macro_instructions_);
+    frinta(fd, fn);
   }
   void Frintn(const FPRegister& fd, const FPRegister& fn) {
     ASSERT(allow_macro_instructions_);
@@ -594,6 +662,10 @@ class MacroAssembler : public Assembler {
   void Hlt(int code) {
     ASSERT(allow_macro_instructions_);
     hlt(code);
+  }
+  void Isb() {
+    ASSERT(allow_macro_instructions_);
+    isb();
   }
   void Ldnp(const CPURegister& rt,
             const CPURegister& rt2,
@@ -667,6 +739,11 @@ class MacroAssembler : public Assembler {
   void Mov(const Register& rd, const Register& rn) {
     ASSERT(allow_macro_instructions_);
     mov(rd, rn);
+  }
+  void Movk(const Register& rd, uint64_t imm, int shift = -1) {
+    ASSERT(allow_macro_instructions_);
+    ASSERT(!rd.IsZero());
+    movk(rd, imm, shift);
   }
   void Mrs(const Register& rt, SystemRegister sysreg) {
     ASSERT(allow_macro_instructions_);

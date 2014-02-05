@@ -15,8 +15,16 @@ Add with carry bit.
 
     void adc(const Register& rd,
              const Register& rn,
-             const Operand& operand,
-             FlagsUpdate S = LeaveFlags)
+             const Operand& operand)
+
+
+### adcs ###
+
+Add with carry bit and update status flags.
+
+    void adcs(const Register& rd,
+              const Register& rn,
+              const Operand& operand)
 
 
 ### add ###
@@ -25,8 +33,16 @@ Add.
 
     void add(const Register& rd,
              const Register& rn,
-             const Operand& operand,
-             FlagsUpdate S = LeaveFlags)
+             const Operand& operand)
+
+
+### adds ###
+
+Add and update status flags.
+
+    void adds(const Register& rd,
+              const Register& rn,
+              const Operand& operand)
 
 
 ### adr ###
@@ -41,6 +57,24 @@ Calculate the address of a PC offset.
 Calculate the address of a label.
 
     void adr(const Register& rd, Label* label)
+
+
+### and ###
+
+Bitwise and (A & B).
+
+    void and_(const Register& rd,
+              const Register& rn,
+              const Operand& operand)
+
+
+### ands ###
+
+Bitwise and (A & B) and update status flags.
+
+    void ands(const Register& rd,
+              const Register& rn,
+              const Operand& operand)
 
 
 ### asr ###
@@ -59,16 +93,30 @@ Arithmetic shift right by variable.
 
 ### b ###
 
-Branch to PC offset.
+Conditional branch to PC offset.
 
-    void b(int imm26, Condition cond = al)
+    void b(int imm19, Condition cond)
 
 
 ### b ###
 
-Branch to label.
+Conditional branch to label.
 
-    void b(Label* label, Condition cond = al)
+    void b(Label* label, Condition cond)
+
+
+### b ###
+
+Unconditional branch to PC offset.
+
+    void b(int imm26)
+
+
+### b ###
+
+Unconditional branch to label.
+
+    void b(Label* label)
 
 
 ### bfi ###
@@ -107,8 +155,16 @@ Bit clear (A & ~B).
 
     void bic(const Register& rd,
              const Register& rn,
-             const Operand& operand,
-             FlagsUpdate S = LeaveFlags)
+             const Operand& operand)
+
+
+### bics ###
+
+Bit clear (A & ~B) and update status flags.
+
+    void bics(const Register& rd,
+              const Register& rn,
+              const Operand& operand)
 
 
 ### bl ###
@@ -297,6 +353,20 @@ Conditional select negation: rd = cond ? rn : -rm.
                Condition cond)
 
 
+### dmb ###
+
+Data memory barrier.
+
+    void dmb(BarrierDomain domain, BarrierType type)
+
+
+### dsb ###
+
+Data synchronization barrier.
+
+    void dsb(BarrierDomain domain, BarrierType type)
+
+
 ### eon ###
 
 Bitwise enor/xnor (A ^ ~B).
@@ -333,6 +403,13 @@ System hint.
 Halting debug-mode breakpoint.
 
     void hlt(int code)
+
+
+### isb ###
+
+Instruction synchronization barrier.
+
+    void isb()
 
 
 ### ldnp ###
@@ -530,8 +607,15 @@ Move inverted operand to register.
 Negate.
 
     void neg(const Register& rd,
-             const Operand& operand,
-             FlagsUpdate S = LeaveFlags)
+             const Operand& operand)
+
+
+### negs ###
+
+Negate and update status flags.
+
+    void negs(const Register& rd,
+              const Operand& operand)
 
 
 ### ngc ###
@@ -539,8 +623,15 @@ Negate.
 Negate with carry bit.
 
     void ngc(const Register& rd,
-             const Operand& operand,
-             FlagsUpdate S = LeaveFlags)
+             const Operand& operand)
+
+
+### ngcs ###
+
+Negate with carry bit and update status flags.
+
+    void ngcs(const Register& rd,
+              const Operand& operand)
 
 
 ### nop ###
@@ -619,8 +710,16 @@ Subtract with carry bit.
 
     void sbc(const Register& rd,
              const Register& rn,
-             const Operand& operand,
-             FlagsUpdate S = LeaveFlags)
+             const Operand& operand)
+
+
+### sbcs ###
+
+Subtract with carry bit and update status flags.
+
+    void sbcs(const Register& rd,
+              const Register& rn,
+              const Operand& operand)
 
 
 ### sbfiz ###
@@ -744,8 +843,16 @@ Subtract.
 
     void sub(const Register& rd,
              const Register& rn,
-             const Operand& operand,
-             FlagsUpdate S = LeaveFlags)
+             const Operand& operand)
+
+
+### subs ###
+
+Subtract and update status flags.
+
+    void subs(const Register& rd,
+              const Register& rn,
+              const Operand& operand)
 
 
 ### sxtb ###
@@ -943,9 +1050,23 @@ FP conditional select.
 
 ### fcvt ###
 
-FP convert single to double precision.
+FP convert between single and double precision.
 
     void fcvt(const FPRegister& fd, const FPRegister& fn)
+
+
+### fcvtas ###
+
+Convert FP to signed integer (nearest with ties to away).
+
+    void fcvtas(const Register& rd, const FPRegister& fn)
+
+
+### fcvtau ###
+
+Convert FP to unsigned integer (nearest with ties to away).
+
+    void fcvtau(const Register& rd, const FPRegister& fn)
 
 
 ### fcvtms ###
@@ -997,6 +1118,16 @@ FP divide.
     void fdiv(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm)
 
 
+### fmadd ###
+
+FP fused multiply and add.
+
+    void fmadd(const FPRegister& fd,
+               const FPRegister& fn,
+               const FPRegister& fm,
+               const FPRegister& fa)
+
+
 ### fmax ###
 
 FP maximum.
@@ -1004,11 +1135,25 @@ FP maximum.
     void fmax(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm)
 
 
+### fmaxnm ###
+
+FP maximum number.
+
+    void fmaxnm(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm)
+
+
 ### fmin ###
 
 FP minimum.
 
     void fmin(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm)
+
+
+### fminnm ###
+
+FP minimum number.
+
+    void fminnm(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm)
 
 
 ### fmov ###
@@ -1041,7 +1186,7 @@ Move register to FP register.
 
 ### fmsub ###
 
-FP multiply and subtract.
+FP fused multiply and subtract.
 
     void fmsub(const FPRegister& fd,
                const FPRegister& fn,
@@ -1061,6 +1206,33 @@ FP multiply.
 FP negate.
 
     void fneg(const FPRegister& fd, const FPRegister& fn)
+
+
+### fnmadd ###
+
+FP fused multiply, add and negate.
+
+    void fnmadd(const FPRegister& fd,
+                const FPRegister& fn,
+                const FPRegister& fm,
+                const FPRegister& fa)
+
+
+### fnmsub ###
+
+FP fused multiply, subtract and negate.
+
+    void fnmsub(const FPRegister& fd,
+                const FPRegister& fn,
+                const FPRegister& fm,
+                const FPRegister& fa)
+
+
+### frinta ###
+
+FP round to integer (nearest with ties to away).
+
+    void frinta(const FPRegister& fd, const FPRegister& fn)
 
 
 ### frintn ###
@@ -1121,13 +1293,6 @@ Emit 64 bits of data into the instruction stream.
 Emit raw instructions into the instruction stream.
 
     inline void dci(Instr raw_inst)
-
-
-### debug ###
-
-Debug control pseudo instruction, only supported by the debugger.
-
-    void debug(const char* message, uint32_t code, Instr params = BREAK)
 
 
 

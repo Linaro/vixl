@@ -29,26 +29,40 @@ namespace vixl {
 
 void MacroAssembler::And(const Register& rd,
                          const Register& rn,
-                         const Operand& operand,
-                         FlagsUpdate S) {
+                         const Operand& operand) {
   ASSERT(allow_macro_instructions_);
-  LogicalMacro(rd, rn, operand, (S == SetFlags) ? ANDS : AND);
+  LogicalMacro(rd, rn, operand, AND);
+}
+
+
+void MacroAssembler::Ands(const Register& rd,
+                          const Register& rn,
+                          const Operand& operand) {
+  ASSERT(allow_macro_instructions_);
+  LogicalMacro(rd, rn, operand, ANDS);
 }
 
 
 void MacroAssembler::Tst(const Register& rn,
                          const Operand& operand) {
   ASSERT(allow_macro_instructions_);
-  And(AppropriateZeroRegFor(rn), rn, operand, SetFlags);
+  Ands(AppropriateZeroRegFor(rn), rn, operand);
 }
 
 
 void MacroAssembler::Bic(const Register& rd,
                          const Register& rn,
-                         const Operand& operand,
-                         FlagsUpdate S) {
+                         const Operand& operand) {
   ASSERT(allow_macro_instructions_);
-  LogicalMacro(rd, rn, operand, (S == SetFlags) ? BICS : BIC);
+  LogicalMacro(rd, rn, operand, BIC);
+}
+
+
+void MacroAssembler::Bics(const Register& rd,
+                          const Register& rn,
+                          const Operand& operand) {
+  ASSERT(allow_macro_instructions_);
+  LogicalMacro(rd, rn, operand, BICS);
 }
 
 
@@ -174,7 +188,9 @@ void MacroAssembler::LogicalMacro(const Register& rd,
 }
 
 
-void MacroAssembler::Mov(const Register& rd, const Operand& operand) {
+void MacroAssembler::Mov(const Register& rd,
+                         const Operand& operand,
+                         DiscardMoveMode discard_mode) {
   ASSERT(allow_macro_instructions_);
   if (operand.IsImmediate()) {
     // Call the macro assembler for generic immediates.
@@ -191,10 +207,16 @@ void MacroAssembler::Mov(const Register& rd, const Operand& operand) {
                     operand.shift_amount());
   } else {
     // Otherwise, emit a register move only if the registers are distinct, or
-    // if they are not X registers. Note that mov(w0, w0) is not a no-op
-    // because it clears the top word of x0.
+    // if they are not X registers.
+    //
+    // Note that mov(w0, w0) is not a no-op because it clears the top word of
+    // x0. A flag is provided (kDiscardForSameWReg) if a move between the same W
+    // registers is not required to clear the top word of the X register. In
+    // this case, the instruction is discarded.
+    //
     // If the sp is an operand, add #0 is emitted, otherwise, orr #0.
-    if (!rd.Is(operand.reg()) || !rd.Is64Bits()) {
+    if (!rd.Is(operand.reg()) || (rd.Is32Bits() &&
+                                  (discard_mode == kDontDiscardForSameWReg))) {
       mov(rd, operand.reg());
     }
   }
@@ -230,19 +252,21 @@ void MacroAssembler::Mov(const Register& rd, uint64_t imm) {
   //
   // Initial values can be generated with:
   //  1. 64-bit move zero (movz).
-  //  2. 32-bit move negative (movn).
-  //  3. 64-bit move negative.
+  //  2. 32-bit move inverted (movn).
+  //  3. 64-bit move inverted.
   //  4. 32-bit orr immediate.
   //  5. 64-bit orr immediate.
-  // Move-keep may then be used to modify each of the 16-bit nybbles.
+  // Move-keep may then be used to modify each of the 16-bit half words.
   //
   // The code below supports all five initial value generators, and
-  // applying move-keep operations to move-zero initial values only.
+  // applying move-keep operations to move-zero and move-inverted initial
+  // values.
 
   unsigned reg_size = rd.size();
   unsigned n, imm_s, imm_r;
   if (IsImmMovz(imm, reg_size) && !rd.IsSP()) {
-    // Immediate can be represented in a move zero instruction.
+    // Immediate can be represented in a move zero instruction. Movz can't
+    // write to the stack pointer.
     movz(rd, imm);
   } else if (IsImmMovn(imm, reg_size) && !rd.IsSP()) {
     // Immediate can be represented in a move negative instruction. Movn can't
@@ -255,20 +279,36 @@ void MacroAssembler::Mov(const Register& rd, uint64_t imm) {
   } else {
     // Generic immediate case. Imm will be represented by
     //   [imm3, imm2, imm1, imm0], where each imm is 16 bits.
-    // A move-zero is generated for the first non-zero immX, and a move-keep
-    // for subsequent non-zero immX.
+    // A move-zero or move-inverted is generated for the first non-zero or
+    // non-0xffff immX, and a move-keep for subsequent non-zero immX.
 
-    // Use a temporary register when moving to the stack pointer.
+    uint64_t ignored_halfword = 0;
+    bool invert_move = false;
+    // If the number of 0xffff halfwords is greater than the number of 0x0000
+    // halfwords, it's more efficient to use move-inverted.
+    if (CountClearHalfWords(~imm, reg_size) >
+        CountClearHalfWords(imm, reg_size)) {
+      ignored_halfword = 0xffffL;
+      invert_move = true;
+    }
+
+    // Mov instructions can't move values into the stack pointer, so set up a
+    // temporary register, if needed.
     Register temp = rd.IsSP() ? AppropriateTempFor(rd) : rd;
 
+    // Iterate through the halfwords. Use movn/movz for the first non-ignored
+    // halfword, and movk for subsequent halfwords.
     ASSERT((reg_size % 16) == 0);
     bool first_mov_done = false;
     for (unsigned i = 0; i < (temp.size() / 16); i++) {
       uint64_t imm16 = (imm >> (16 * i)) & 0xffffL;
-      if (imm16 != 0) {
+      if (imm16 != ignored_halfword) {
         if (!first_mov_done) {
-          // Move the first non-zero 16-bit chunk into the destination register.
-          movz(temp, imm16, 16 * i);
+          if (invert_move) {
+            movn(temp, (~imm16) & 0xffffL, 16 * i);
+          } else {
+            movz(temp, imm16, 16 * i);
+          }
           first_mov_done = true;
         } else {
           // Construct a wider constant.
@@ -277,34 +317,35 @@ void MacroAssembler::Mov(const Register& rd, uint64_t imm) {
       }
     }
 
+    ASSERT(first_mov_done);
+
+    // Move the temporary if the original destination register was the stack
+    // pointer.
     if (rd.IsSP()) {
       mov(rd, temp);
     }
-
-    ASSERT(first_mov_done);
   }
 }
 
 
-// The movz instruction can generate immediates containing an arbitrary 16-bit
+unsigned MacroAssembler::CountClearHalfWords(uint64_t imm, unsigned reg_size) {
+  ASSERT((reg_size % 8) == 0);
+  int count = 0;
+  for (unsigned i = 0; i < (reg_size / 16); i++) {
+    if ((imm & 0xffff) == 0) {
+      count++;
+    }
+    imm >>= 16;
+  }
+  return count;
+}
+
+
+// The movn instruction can generate immediates containing an arbitrary 16-bit
 // value, with remaining bits set, eg. 0x00001234, 0x0000123400000000.
 bool MacroAssembler::IsImmMovz(uint64_t imm, unsigned reg_size) {
-  if (reg_size == kXRegSize) {
-    if (((imm & 0xffffffffffff0000UL) == 0UL) ||
-        ((imm & 0xffffffff0000ffffUL) == 0UL) ||
-        ((imm & 0xffff0000ffffffffUL) == 0UL) ||
-        ((imm & 0x0000ffffffffffffUL) == 0UL)) {
-      return true;
-    }
-  } else {
-    ASSERT(reg_size == kWRegSize);
-    imm &= kWRegMask;
-    if (((imm & 0xffff0000) == 0) ||
-        ((imm & 0x0000ffff) == 0)) {
-      return true;
-    }
-  }
-  return false;
+  ASSERT((reg_size == kXRegSize) || (reg_size == kWRegSize));
+  return CountClearHalfWords(imm, reg_size) >= ((reg_size / 16) - 1);
 }
 
 
@@ -320,7 +361,11 @@ void MacroAssembler::Ccmp(const Register& rn,
                           StatusFlags nzcv,
                           Condition cond) {
   ASSERT(allow_macro_instructions_);
-  ConditionalCompareMacro(rn, operand, nzcv, cond, CCMP);
+  if (operand.IsImmediate() && (operand.immediate() < 0)) {
+    ConditionalCompareMacro(rn, -operand.immediate(), nzcv, cond, CCMN);
+  } else {
+    ConditionalCompareMacro(rn, operand, nzcv, cond, CCMP);
+  }
 }
 
 
@@ -329,7 +374,11 @@ void MacroAssembler::Ccmn(const Register& rn,
                           StatusFlags nzcv,
                           Condition cond) {
   ASSERT(allow_macro_instructions_);
-  ConditionalCompareMacro(rn, operand, nzcv, cond, CCMN);
+  if (operand.IsImmediate() && (operand.immediate() < 0)) {
+    ConditionalCompareMacro(rn, -operand.immediate(), nzcv, cond, CCMP);
+  } else {
+    ConditionalCompareMacro(rn, operand, nzcv, cond, CCMN);
+  }
 }
 
 
@@ -347,80 +396,124 @@ void MacroAssembler::ConditionalCompareMacro(const Register& rn,
   } else {
     // The operand isn't directly supported by the instruction: perform the
     // operation on a temporary register.
-    Register temp(NoReg);
-    if (operand.IsImmediate()) {
-      temp = AppropriateTempFor(rn);
-      Mov(temp, operand.immediate());
-    } else if (operand.IsShiftedRegister()) {
-      ASSERT(operand.shift() != ROR);
-      ASSERT(is_uintn(rn.size() == kXRegSize ? kXRegSizeLog2 : kWRegSizeLog2,
-                      operand.shift_amount()));
-      temp = AppropriateTempFor(rn, operand.reg());
-      EmitShift(temp, operand.reg(), operand.shift(), operand.shift_amount());
+    Register temp = AppropriateTempFor(rn);
+    Mov(temp, operand);
+    ConditionalCompare(rn, temp, nzcv, cond, op);
+  }
+}
+
+
+void MacroAssembler::Csel(const Register& rd,
+                          const Register& rn,
+                          const Operand& operand,
+                          Condition cond) {
+  ASSERT(allow_macro_instructions_);
+  ASSERT(!rd.IsZero());
+  ASSERT(!rn.IsZero());
+  ASSERT((cond != al) && (cond != nv));
+  if (operand.IsImmediate()) {
+    // Immediate argument. Handle special cases of 0, 1 and -1 using zero
+    // register.
+    int64_t imm = operand.immediate();
+    Register zr = AppropriateZeroRegFor(rn);
+    if (imm == 0) {
+      csel(rd, rn, zr, cond);
+    } else if (imm == 1) {
+      csinc(rd, rn, zr, cond);
+    } else if (imm == -1) {
+      csinv(rd, rn, zr, cond);
     } else {
-      ASSERT(operand.IsExtendedRegister());
-      ASSERT(operand.reg().size() <= rn.size());
-      // Add/sub extended support a shift <= 4. We want to support exactly the
-      // same modes.
-      ASSERT(operand.shift_amount() <= 4);
-      ASSERT(operand.reg().Is64Bits() ||
-             ((operand.extend() != UXTX) && (operand.extend() != SXTX)));
-      temp = AppropriateTempFor(rn, operand.reg());
-      EmitExtendShift(temp, operand.reg(), operand.extend(),
-                    operand.shift_amount());
+      Register temp = AppropriateTempFor(rn);
+      Mov(temp, operand.immediate());
+      csel(rd, rn, temp, cond);
     }
-    ConditionalCompare(rn, Operand(temp), nzcv, cond, op);
+  } else if (operand.IsShiftedRegister() && (operand.shift_amount() == 0)) {
+    // Unshifted register argument.
+    csel(rd, rn, operand.reg(), cond);
+  } else {
+    // All other arguments.
+    Register temp = AppropriateTempFor(rn);
+    Mov(temp, operand);
+    csel(rd, rn, temp, cond);
   }
 }
 
 
 void MacroAssembler::Add(const Register& rd,
                          const Register& rn,
-                         const Operand& operand,
-                         FlagsUpdate S) {
+                         const Operand& operand) {
   ASSERT(allow_macro_instructions_);
   if (operand.IsImmediate() && (operand.immediate() < 0)) {
-    AddSubMacro(rd, rn, -operand.immediate(), S, SUB);
+    AddSubMacro(rd, rn, -operand.immediate(), LeaveFlags, SUB);
   } else {
-    AddSubMacro(rd, rn, operand, S, ADD);
+    AddSubMacro(rd, rn, operand, LeaveFlags, ADD);
+  }
+}
+
+
+void MacroAssembler::Adds(const Register& rd,
+                          const Register& rn,
+                          const Operand& operand) {
+  ASSERT(allow_macro_instructions_);
+  if (operand.IsImmediate() && (operand.immediate() < 0)) {
+    AddSubMacro(rd, rn, -operand.immediate(), SetFlags, SUB);
+  } else {
+    AddSubMacro(rd, rn, operand, SetFlags, ADD);
   }
 }
 
 
 void MacroAssembler::Sub(const Register& rd,
                          const Register& rn,
-                         const Operand& operand,
-                         FlagsUpdate S) {
+                         const Operand& operand) {
   ASSERT(allow_macro_instructions_);
   if (operand.IsImmediate() && (operand.immediate() < 0)) {
-    AddSubMacro(rd, rn, -operand.immediate(), S, ADD);
+    AddSubMacro(rd, rn, -operand.immediate(), LeaveFlags, ADD);
   } else {
-    AddSubMacro(rd, rn, operand, S, SUB);
+    AddSubMacro(rd, rn, operand, LeaveFlags, SUB);
+  }
+}
+
+
+void MacroAssembler::Subs(const Register& rd,
+                          const Register& rn,
+                          const Operand& operand) {
+  ASSERT(allow_macro_instructions_);
+  if (operand.IsImmediate() && (operand.immediate() < 0)) {
+    AddSubMacro(rd, rn, -operand.immediate(), SetFlags, ADD);
+  } else {
+    AddSubMacro(rd, rn, operand, SetFlags, SUB);
   }
 }
 
 
 void MacroAssembler::Cmn(const Register& rn, const Operand& operand) {
   ASSERT(allow_macro_instructions_);
-  Add(AppropriateZeroRegFor(rn), rn, operand, SetFlags);
+  Adds(AppropriateZeroRegFor(rn), rn, operand);
 }
 
 
 void MacroAssembler::Cmp(const Register& rn, const Operand& operand) {
   ASSERT(allow_macro_instructions_);
-  Sub(AppropriateZeroRegFor(rn), rn, operand, SetFlags);
+  Subs(AppropriateZeroRegFor(rn), rn, operand);
 }
 
 
 void MacroAssembler::Neg(const Register& rd,
-                         const Operand& operand,
-                         FlagsUpdate S) {
+                         const Operand& operand) {
   ASSERT(allow_macro_instructions_);
   if (operand.IsImmediate()) {
     Mov(rd, -operand.immediate());
   } else {
-    Sub(rd, AppropriateZeroRegFor(rd), operand, S);
+    Sub(rd, AppropriateZeroRegFor(rd), operand);
   }
+}
+
+
+void MacroAssembler::Negs(const Register& rd,
+                          const Operand& operand) {
+  ASSERT(allow_macro_instructions_);
+  Subs(rd, AppropriateZeroRegFor(rd), operand);
 }
 
 
@@ -429,6 +522,12 @@ void MacroAssembler::AddSubMacro(const Register& rd,
                                  const Operand& operand,
                                  FlagsUpdate S,
                                  AddSubOp op) {
+  if (operand.IsZero() && rd.Is(rn) && rd.Is64Bits() && rn.Is64Bits() &&
+      (S == LeaveFlags)) {
+    // The instruction would be a nop. Avoid generating useless code.
+    return;
+  }
+
   if ((operand.IsImmediate() && !IsImmAddSub(operand.immediate())) ||
       (rn.IsZero() && !operand.IsShiftedRegister())                ||
       (operand.IsShiftedRegister() && (operand.shift() == ROR))) {
@@ -443,28 +542,49 @@ void MacroAssembler::AddSubMacro(const Register& rd,
 
 void MacroAssembler::Adc(const Register& rd,
                          const Register& rn,
-                         const Operand& operand,
-                         FlagsUpdate S) {
+                         const Operand& operand) {
   ASSERT(allow_macro_instructions_);
-  AddSubWithCarryMacro(rd, rn, operand, S, ADC);
+  AddSubWithCarryMacro(rd, rn, operand, LeaveFlags, ADC);
+}
+
+
+void MacroAssembler::Adcs(const Register& rd,
+                          const Register& rn,
+                          const Operand& operand) {
+  ASSERT(allow_macro_instructions_);
+  AddSubWithCarryMacro(rd, rn, operand, SetFlags, ADC);
 }
 
 
 void MacroAssembler::Sbc(const Register& rd,
                          const Register& rn,
-                         const Operand& operand,
-                         FlagsUpdate S) {
+                         const Operand& operand) {
   ASSERT(allow_macro_instructions_);
-  AddSubWithCarryMacro(rd, rn, operand, S, SBC);
+  AddSubWithCarryMacro(rd, rn, operand, LeaveFlags, SBC);
+}
+
+
+void MacroAssembler::Sbcs(const Register& rd,
+                          const Register& rn,
+                          const Operand& operand) {
+  ASSERT(allow_macro_instructions_);
+  AddSubWithCarryMacro(rd, rn, operand, SetFlags, SBC);
 }
 
 
 void MacroAssembler::Ngc(const Register& rd,
-                         const Operand& operand,
-                         FlagsUpdate S) {
+                         const Operand& operand) {
   ASSERT(allow_macro_instructions_);
   Register zr = AppropriateZeroRegFor(rd);
-  Sbc(rd, zr, operand, S);
+  Sbc(rd, zr, operand);
+}
+
+
+void MacroAssembler::Ngcs(const Register& rd,
+                         const Operand& operand) {
+  ASSERT(allow_macro_instructions_);
+  Register zr = AppropriateZeroRegFor(rd);
+  Sbcs(rd, zr, operand);
 }
 
 
@@ -771,8 +891,13 @@ void MacroAssembler::Peek(const Register& dst, const Operand& offset) {
 
 void MacroAssembler::Claim(const Operand& size) {
   ASSERT(allow_macro_instructions_);
+
+  if (size.IsZero()) {
+    return;
+  }
+
   if (size.IsImmediate()) {
-    ASSERT(size.immediate() >= 0);
+    ASSERT(size.immediate() > 0);
     if (sp.Is(StackPointer())) {
       ASSERT((size.immediate() % 16) == 0);
     }
@@ -788,8 +913,13 @@ void MacroAssembler::Claim(const Operand& size) {
 
 void MacroAssembler::Drop(const Operand& size) {
   ASSERT(allow_macro_instructions_);
+
+  if (size.IsZero()) {
+    return;
+  }
+
   if (size.IsImmediate()) {
-    ASSERT(size.immediate() >= 0);
+    ASSERT(size.immediate() > 0);
     if (sp.Is(StackPointer())) {
       ASSERT((size.immediate() % 16) == 0);
     }

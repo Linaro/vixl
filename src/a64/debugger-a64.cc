@@ -35,7 +35,7 @@ C(ContinueCommand)             \
 C(StepCommand)                 \
 C(DisasmCommand)               \
 C(PrintCommand)                \
-C(MemCommand)
+C(ExamineCommand)
 
 // Debugger command lines are broken up in token of different type to make
 // processing easier later on.
@@ -173,26 +173,22 @@ class IntegerToken : public ValueToken<int64_t> {
 };
 
 // Literal describing how to print a chunk of data (up to 64 bits).
-// Format: %qt
-// where q (qualifier) is one of
+// Format: .ln
+// where l (letter) is one of
+//  * x: hexadecimal
 //  * s: signed integer
 //  * u: unsigned integer
-//  * a: hexadecimal floating point
-// and t (type) is one of
-//  * x: 64-bit integer
-//  * w: 32-bit integer
-//  * h: 16-bit integer
-//  * b: 8-bit integer
-//  * c: character
-//  * d: double
-//  * s: float
-// When no qualifier is given for integers, they are printed in hexadecinal.
+//  * f: floating point
+//  * i: instruction
+// and n (size) is one of 8, 16, 32 and 64. n should be omitted for
+// instructions.
 class FormatToken : public Token {
  public:
   FormatToken() {}
 
   virtual bool IsFormat() const { return true; }
   virtual int SizeOf() const = 0;
+  virtual char type_code() const = 0;
   virtual void PrintData(void* data, FILE* out = stdout) const = 0;
   virtual void Print(FILE* out = stdout) const = 0;
 
@@ -206,9 +202,10 @@ class FormatToken : public Token {
 
 template<typename T> class Format : public FormatToken {
  public:
-  explicit Format(const char* fmt) : fmt_(fmt) {}
+  Format(const char* fmt, char type_code) : fmt_(fmt), type_code_(type_code) {}
 
   virtual int SizeOf() const { return sizeof(T); }
+  virtual char type_code() const { return type_code_; }
   virtual void PrintData(void* data, FILE* out = stdout) const {
     T value;
     memcpy(&value, data, sizeof(value));
@@ -218,6 +215,7 @@ template<typename T> class Format : public FormatToken {
 
  private:
   const char* fmt_;
+  char type_code_;
 };
 
 // Tokens which don't fit any of the above.
@@ -314,65 +312,24 @@ class StepCommand : public DebugCommand {
 
 class DisasmCommand : public DebugCommand {
  public:
-  DisasmCommand(Token* name, Token* target, IntegerToken* count)
-      : DebugCommand(name), target_(target), count_(count) {}
-  virtual ~DisasmCommand() {
-    delete target_;
-    delete count_;
-  }
-
-  Token* target() { return target_; }
-  int64_t count() { return count_->value(); }
-  virtual bool Run(Debugger* debugger);
-  virtual void Print(FILE* out = stdout);
-
   static DebugCommand* Build(std::vector<Token*> args);
 
   static const char* kHelp;
   static const char* kAliases[];
   static const char* kArguments;
-
- private:
-  Token* target_;
-  IntegerToken* count_;
 };
 
 
 class PrintCommand : public DebugCommand {
  public:
-  PrintCommand(Token* name, Token* target)
-      : DebugCommand(name), target_(target) {}
-  virtual ~PrintCommand() { delete target_; }
-
-  Token* target() { return target_; }
-  virtual bool Run(Debugger* debugger);
-  virtual void Print(FILE* out = stdout);
-
-  static DebugCommand* Build(std::vector<Token*> args);
-
-  static const char* kHelp;
-  static const char* kAliases[];
-  static const char* kArguments;
-
- private:
-  Token* target_;
-};
-
-class MemCommand : public DebugCommand {
- public:
-  MemCommand(Token* name,
-             Token* target,
-             IntegerToken* count,
-             FormatToken* format)
-      : DebugCommand(name), target_(target), count_(count), format_(format) {}
-  virtual ~MemCommand() {
+  PrintCommand(Token* name, Token* target, FormatToken* format)
+      : DebugCommand(name), target_(target), format_(format) {}
+  virtual ~PrintCommand() {
     delete target_;
-    delete count_;
     delete format_;
   }
 
   Token* target() { return target_; }
-  int64_t count() { return count_->value(); }
   FormatToken* format() { return format_; }
   virtual bool Run(Debugger* debugger);
   virtual void Print(FILE* out = stdout);
@@ -385,8 +342,38 @@ class MemCommand : public DebugCommand {
 
  private:
   Token* target_;
-  IntegerToken* count_;
   FormatToken* format_;
+};
+
+class ExamineCommand : public DebugCommand {
+ public:
+  ExamineCommand(Token* name,
+                 Token* target,
+                 FormatToken* format,
+                 IntegerToken* count)
+      : DebugCommand(name), target_(target), format_(format), count_(count) {}
+  virtual ~ExamineCommand() {
+    delete target_;
+    delete format_;
+    delete count_;
+  }
+
+  Token* target() { return target_; }
+  FormatToken* format() { return format_; }
+  IntegerToken* count() { return count_; }
+  virtual bool Run(Debugger* debugger);
+  virtual void Print(FILE* out = stdout);
+
+  static DebugCommand* Build(std::vector<Token*> args);
+
+  static const char* kHelp;
+  static const char* kAliases[];
+  static const char* kArguments;
+
+ private:
+  Token* target_;
+  FormatToken* format_;
+  IntegerToken* count_;
 };
 
 // Commands which name does not match any of the known commnand.
@@ -418,40 +405,48 @@ class InvalidCommand : public DebugCommand {
 
 const char* HelpCommand::kAliases[] = { "help", NULL };
 const char* HelpCommand::kArguments = NULL;
-const char* HelpCommand::kHelp = "  print this help";
+const char* HelpCommand::kHelp = "  Print this help.";
 
 const char* ContinueCommand::kAliases[] = { "continue", "c", NULL };
 const char* ContinueCommand::kArguments = NULL;
-const char* ContinueCommand::kHelp = "  resume execution";
+const char* ContinueCommand::kHelp = "  Resume execution.";
 
 const char* StepCommand::kAliases[] = { "stepi", "si", NULL };
 const char* StepCommand::kArguments = "[n = 1]";
-const char* StepCommand::kHelp = "  execute n next instruction(s)";
+const char* StepCommand::kHelp = "  Execute n next instruction(s).";
 
-const char* DisasmCommand::kAliases[] = { "dis", "d", NULL };
-const char* DisasmCommand::kArguments = "[addr = pc] [n = 1]";
+const char* DisasmCommand::kAliases[] = { "disasm", "di", NULL };
+const char* DisasmCommand::kArguments = "[n = 10]";
 const char* DisasmCommand::kHelp =
-  "  disassemble n instruction(s) at address addr.\n"
-  "  addr can be an immediate address, a register or the pc."
+  "  Disassemble n instruction(s) at pc.\n"
+  "  This command is equivalent to x pc.i [n = 10]."
 ;
 
 const char* PrintCommand::kAliases[] = { "print", "p", NULL };
-const char* PrintCommand::kArguments =  "<entity>";
+const char* PrintCommand::kArguments =  "<entity>[.format]";
 const char* PrintCommand::kHelp =
-  "  print the given entity\n"
-  "  entity can be 'regs' for W and X registers, 'fpregs' for S and D\n"
-  "  registers, 'sysregs' for system registers (including NZCV) or 'pc'."
+  "  Print the given entity according to the given format.\n"
+  "  The format parameter only affects individual registers; it is ignored\n"
+  "  for other entities.\n"
+  "  <entity> can be one of the following:\n"
+  "   * A register name (such as x0, s1, ...).\n"
+  "   * 'regs', to print all integer (W and X) registers.\n"
+  "   * 'fpregs' to print all floating-point (S and D) registers.\n"
+  "   * 'sysregs' to print all system registers (including NZCV).\n"
+  "   * 'pc' to print the current program counter.\n"
 ;
 
-const char* MemCommand::kAliases[] = { "mem", "m", NULL };
-const char* MemCommand::kArguments = "<addr> [n = 1] [format = %x]";
-const char* MemCommand::kHelp =
-  "  print n memory item(s) at address addr according to the given format.\n"
-  "  addr can be an immediate address, a register or the pc.\n"
-  "  format is made of a qualifer: 's', 'u', 'a' (signed, unsigned, hexa)\n"
-  "  and a type 'x', 'w', 'h', 'b' (64- to 8-bit integer), 'c' (character),\n"
-  "  's' (float) or 'd' (double). E.g 'mem sp %w' will print a 32-bit word\n"
-  "  from the stack as an hexadecimal number."
+const char* ExamineCommand::kAliases[] = { "m", "mem", "x", NULL };
+const char* ExamineCommand::kArguments = "<addr>[.format] [n = 10]";
+const char* ExamineCommand::kHelp =
+  "  Examine memory. Print n items of memory at address <addr> according to\n"
+  "  the given [.format].\n"
+  "  Addr can be an immediate address, a register name or pc.\n"
+  "  Format is made of a type letter: 'x' (hexadecimal), 's' (signed), 'u'\n"
+  "  (unsigned), 'f' (floating point), i (instruction) and a size in bits\n"
+  "  when appropriate (8, 16, 32, 64)\n"
+  "  E.g 'x sp.x64' will print 10 64-bit words from the stack in\n"
+  "  hexadecimal format."
 ;
 
 const char* RegisterToken::kXAliases[kNumberOfRegisters][kMaxAliasNumber] = {
@@ -539,6 +534,7 @@ Debugger::Debugger(Decoder* decoder, FILE* stream)
 
 
 void Debugger::Run() {
+  pc_modified_ = false;
   while (pc_ != kEndOfSimAddress) {
     if (pending_request()) {
       LogProcessorState();
@@ -571,8 +567,8 @@ void Debugger::PrintInstructions(void* address, int64_t count) {
 
 
 void Debugger::PrintMemory(const uint8_t* address,
-                           int64_t count,
-                           const FormatToken* format) {
+                           const FormatToken* format,
+                           int64_t count) {
   if (count == 0) {
     return;
   }
@@ -586,7 +582,7 @@ void Debugger::PrintMemory(const uint8_t* address,
   const uint8_t* to = from + count * size;
 
   for (const uint8_t* current = from; current < to; current += size) {
-    if (((current - from) % 16) == 0) {
+    if (((current - from) % 8) == 0) {
       printf("\n%p: ", current);
     }
 
@@ -595,6 +591,54 @@ void Debugger::PrintMemory(const uint8_t* address,
     printf(" ");
   }
   printf("\n\n");
+}
+
+
+void Debugger::PrintRegister(const Register& target_reg,
+                             const char* name,
+                             const FormatToken* format) {
+  const uint64_t reg_size = target_reg.SizeInBits();
+  const uint64_t format_size = format->SizeOf() * 8;
+  const uint64_t count = reg_size / format_size;
+  const uint64_t mask = 0xffffffffffffffff >> (64 - format_size);
+  const uint64_t reg_value = reg<uint64_t>(reg_size,
+                                           target_reg.code(),
+                                           Reg31IsStackPointer);
+  ASSERT(count > 0);
+
+  printf("%s = ", name);
+  for (uint64_t i = 1; i <= count; i++) {
+    uint64_t data = reg_value >> (reg_size - (i * format_size));
+    data &= mask;
+    format->PrintData(&data);
+    printf(" ");
+  }
+  printf("\n");
+}
+
+
+void Debugger::PrintFPRegister(const FPRegister& target_fpreg,
+                               const FormatToken* format) {
+  const uint64_t fpreg_size = target_fpreg.SizeInBits();
+  const uint64_t format_size = format->SizeOf() * 8;
+  const uint64_t count = fpreg_size / format_size;
+  const uint64_t mask = 0xffffffffffffffff >> (64 - format_size);
+  const uint64_t fpreg_value = fpreg<uint64_t>(fpreg_size,
+                                               target_fpreg.code());
+  ASSERT(count > 0);
+
+  if (target_fpreg.Is32Bits()) {
+    printf("s%u = ", target_fpreg.code());
+  } else {
+    printf("d%u = ", target_fpreg.code());
+  }
+  for (uint64_t i = 1; i <= count; i++) {
+    uint64_t data = fpreg_value >> (fpreg_size - (i * format_size));
+    data &= mask;
+    format->PrintData(&data);
+    printf(" ");
+  }
+  printf("\n");
 }
 
 
@@ -873,11 +917,6 @@ Token* Token::Tokenize(const char* arg) {
     return token;
   }
 
-  token = FormatToken::Tokenize(arg);
-  if (token != NULL) {
-    return token;
-  }
-
   return new UnknownToken(arg);
 }
 
@@ -1039,61 +1078,79 @@ Token* IntegerToken::Tokenize(const char* arg) {
 
 
 Token* FormatToken::Tokenize(const char* arg) {
-  if (arg[0] != '%') {
-    return NULL;
-  }
-
   int length = strlen(arg);
-  if ((length < 2) || (length > 3)) {
+  switch (arg[0]) {
+    case 'x':
+    case 's':
+    case 'u':
+    case 'f':
+      if (length == 1) return NULL;
+      break;
+    case 'i':
+      if (length == 1) return new Format<uint32_t>("%08" PRIx32, 'i');
+    default: return NULL;
+  }
+
+  char* endptr = NULL;
+  errno = 0;  // Reset errors.
+  uint64_t count = strtoul(arg + 1, &endptr, 10);
+
+  if (errno != 0) {
+    // Overflow, etc.
     return NULL;
   }
 
-  char type = arg[length - 1];
-  if (length == 2) {
-    switch (type) {
-      case 'x': return new Format<uint64_t>("%016" PRIx64);
-      case 'w': return new Format<uint32_t>("%08" PRIx32);
-      case 'h': return new Format<uint16_t>("%04" PRIx16);
-      case 'b': return new Format<uint8_t>("%02" PRIx8);
-      case 'c': return new Format<char>("%c");
-      case 'd': return new Format<double>("%g");
-      case 's': return new Format<float>("%g");
-      default: return NULL;
-    }
+  if (endptr == arg) {
+    // No digits were parsed.
+    return NULL;
   }
 
-  ASSERT(length == 3);
-  switch (arg[1]) {
+  if (*endptr != '\0') {
+    // There are unexpected (non-digit) characters after the number.
+    return NULL;
+  }
+
+  switch (arg[0]) {
+    case 'x':
+      switch (count) {
+        case 8: return new Format<uint8_t>("%02" PRIx8, 'x');
+        case 16: return new Format<uint16_t>("%04" PRIx16, 'x');
+        case 32: return new Format<uint32_t>("%08" PRIx32, 'x');
+        case 64: return new Format<uint64_t>("%016" PRIx64, 'x');
+        default: return NULL;
+      }
     case 's':
-      switch (type) {
-        case 'x': return new Format<int64_t>("%+20" PRId64);
-        case 'w': return new Format<int32_t>("%+11" PRId32);
-        case 'h': return new Format<int16_t>("%+6" PRId16);
-        case 'b': return new Format<int8_t>("%+4" PRId8);
+      switch (count) {
+        case 8: return new Format<int8_t>("%4" PRId8, 's');
+        case 16: return new Format<int16_t>("%6" PRId16, 's');
+        case 32: return new Format<int32_t>("%11" PRId32, 's');
+        case 64: return new Format<int64_t>("%20" PRId64, 's');
         default: return NULL;
       }
     case 'u':
-      switch (type) {
-        case 'x': return new Format<uint64_t>("%20" PRIu64);
-        case 'w': return new Format<uint32_t>("%10" PRIu32);
-        case 'h': return new Format<uint16_t>("%5" PRIu16);
-        case 'b': return new Format<uint8_t>("%3" PRIu8);
+      switch (count) {
+        case 8: return new Format<uint8_t>("%3" PRIu8, 'u');
+        case 16: return new Format<uint16_t>("%5" PRIu16, 'u');
+        case 32: return new Format<uint32_t>("%10" PRIu32, 'u');
+        case 64: return new Format<uint64_t>("%20" PRIu64, 'u');
         default: return NULL;
       }
-    case 'a':
-      switch (type) {
-        case 'd': return new Format<double>("%a");
-        case 's': return new Format<float>("%a");
+    case 'f':
+      switch (count) {
+        case 32: return new Format<float>("%13g", 'f');
+        case 64: return new Format<double>("%13g", 'f');
         default: return NULL;
       }
-    default: return NULL;
+    default:
+      UNREACHABLE();
+      return NULL;
   }
 }
 
 
 template<typename T>
 void Format<T>::Print(FILE* out) const {
-  fprintf(out, "[Format %s - %lu byte(s)]", fmt_, sizeof(T));
+  fprintf(out, "[Format %c%lu - %s]", type_code_, sizeof(T) * 8, fmt_);
 }
 
 
@@ -1121,10 +1178,25 @@ bool DebugCommand::Match(const char* name, const char** aliases) {
 DebugCommand* DebugCommand::Parse(char* line) {
   std::vector<Token*> args;
 
-  for (char* chunk = strtok(line, " ");
+  for (char* chunk = strtok(line, " \t");
        chunk != NULL;
-       chunk = strtok(NULL, " ")) {
-    args.push_back(Token::Tokenize(chunk));
+       chunk = strtok(NULL, " \t")) {
+    char* dot = strchr(chunk, '.');
+    if (dot != NULL) {
+      // 'Token.format'.
+      Token* format = FormatToken::Tokenize(dot + 1);
+      if (format != NULL) {
+        *dot = '\0';
+        args.push_back(Token::Tokenize(chunk));
+        args.push_back(format);
+      } else {
+        // Error while parsing the format, push the UnknownToken so an error
+        // can be accurately reported.
+        args.push_back(Token::Tokenize(chunk));
+      }
+    } else {
+      args.push_back(Token::Tokenize(chunk));
+    }
   }
 
   if (args.size() == 0) {
@@ -1132,7 +1204,7 @@ DebugCommand* DebugCommand::Parse(char* line) {
   }
 
   if (!args[0]->IsIdentifier()) {
-    return new InvalidCommand(args, 0, "command name is not an identifier");
+    return new InvalidCommand(args, 0, "command name is not valid");
   }
 
   const char* name = IdentifierToken::Cast(args[0])->value();
@@ -1249,66 +1321,36 @@ DebugCommand* StepCommand::Build(std::vector<Token*> args) {
 }
 
 
-bool DisasmCommand::Run(Debugger* debugger) {
-  ASSERT(debugger->IsDebuggerRunning());
-
-  uint8_t* from = target()->ToAddress(debugger);
-  debugger->PrintInstructions(from, count());
-
-  return false;
-}
-
-
-void DisasmCommand::Print(FILE* out) {
-  fprintf(out, "%s ", name());
-  target()->Print(out);
-  fprintf(out, " %" PRId64 "", count());
-}
-
-
 DebugCommand* DisasmCommand::Build(std::vector<Token*> args) {
-  Token* address = NULL;
   IntegerToken* count = NULL;
   switch (args.size()) {
-    case 1: {  // disasm [pc] [1]
-      address = new IdentifierToken("pc");
-      count = new IntegerToken(1);
+    case 1: {  // disasm [10]
+      count = new IntegerToken(10);
       break;
     }
-    case 2: {  // disasm [pc] n or disasm address [1]
+    case 2: {  // disasm n
       Token* first = args[1];
-      if (first->IsInteger()) {
-        address = new IdentifierToken("pc");
-        count = IntegerToken::Cast(first);
-      } else if (first->CanAddressMemory()) {
-        address = first;
-        count = new IntegerToken(1);
-      } else {
-        return new InvalidCommand(args, 1, "expects int or addr");
+      if (!first->IsInteger()) {
+        return new InvalidCommand(args, 1, "expects int");
       }
-      break;
-    }
-    case 3: {  // disasm address count
-      Token* first = args[1];
-      Token* second = args[2];
-      if (!first->CanAddressMemory() || !second->IsInteger()) {
-        return new InvalidCommand(args, -1, "disasm addr int");
-      }
-      address = first;
-      count = IntegerToken::Cast(second);
+
+      count = IntegerToken::Cast(first);
       break;
     }
     default:
-      return new InvalidCommand(args, -1, "wrong arguments number");
+      return new InvalidCommand(args, -1, "too many arguments");
   }
 
-  return new DisasmCommand(args[0], address, count);
+  Token* target = new IdentifierToken("pc");
+  FormatToken* format = new Format<uint32_t>("%08" PRIx32, 'i');
+  return new ExamineCommand(args[0], target, format, count);
 }
 
 
 void PrintCommand::Print(FILE* out) {
   fprintf(out, "%s ", name());
   target()->Print(out);
+  if (format() != NULL) format()->Print(out);
 }
 
 
@@ -1333,30 +1375,24 @@ bool PrintCommand::Run(Debugger* debugger) {
     return false;
   }
 
+  FormatToken* format_tok = format();
+  ASSERT(format_tok != NULL);
+  if (format_tok->type_code() == 'i') {
+    // TODO(all): Add support for instruction disassembly.
+    printf(" ** unsupported format: instructions **\n");
+    return false;
+  }
+
   if (tok->IsRegister()) {
     RegisterToken* reg_tok = RegisterToken::Cast(tok);
     Register reg = reg_tok->value();
-    if (reg.Is32Bits()) {
-      printf("%s = %" PRId32 "\n",
-             reg_tok->Name(),
-             debugger->wreg(reg.code(), Reg31IsStackPointer));
-    } else {
-      printf("%s = %" PRId64 "\n",
-             reg_tok->Name(),
-             debugger->xreg(reg.code(), Reg31IsStackPointer));
-    }
-
+    debugger->PrintRegister(reg, reg_tok->Name(), format_tok);
     return false;
   }
 
   if (tok->IsFPRegister()) {
     FPRegister fpreg = FPRegisterToken::Cast(tok)->value();
-    if (fpreg.Is32Bits()) {
-      printf("s%u = %g\n", fpreg.code(), debugger->sreg(fpreg.code()));
-    } else {
-      printf("d%u = %g\n", fpreg.code(), debugger->dreg(fpreg.code()));
-    }
-
+    debugger->PrintFPRegister(fpreg, format_tok);
     return false;
   }
 
@@ -1366,91 +1402,144 @@ bool PrintCommand::Run(Debugger* debugger) {
 
 
 DebugCommand* PrintCommand::Build(std::vector<Token*> args) {
-  Token* target = NULL;
-  switch (args.size()) {
-    case 2: {
-      target = args[1];
-      if (!target->IsRegister()
-          && !target->IsFPRegister()
-          && !target->IsIdentifier()) {
-        return new InvalidCommand(args, 1, "expects reg or identifier");
-      }
-      break;
-    }
-    default:
-      return new InvalidCommand(args, -1, "too many arguments");
-  }
-
-  return new PrintCommand(args[0], target);
-}
-
-
-bool MemCommand::Run(Debugger* debugger) {
-  ASSERT(debugger->IsDebuggerRunning());
-
-  uint8_t* address = target()->ToAddress(debugger);
-  debugger->PrintMemory(address, count(), format());
-
-  return false;
-}
-
-
-void MemCommand::Print(FILE* out) {
-  fprintf(out, "%s ", name());
-  target()->Print(out);
-  fprintf(out, " %" PRId64 " ", count());
-  format()->Print(out);
-}
-
-
-DebugCommand* MemCommand::Build(std::vector<Token*> args) {
   if (args.size() < 2) {
     return new InvalidCommand(args, -1, "too few arguments");
   }
 
   Token* target = args[1];
-  IntegerToken* count = NULL;
-  FormatToken* format = NULL;
-
-  if (!target->CanAddressMemory()) {
-    return new InvalidCommand(args, 1, "expects address");
+  if (!target->IsRegister() &&
+      !target->IsFPRegister() &&
+      !target->IsIdentifier()) {
+    return new InvalidCommand(args, 1, "expects reg or identifier");
   }
 
+  FormatToken* format = NULL;
+  int target_size = 0;
+  if (target->IsRegister()) {
+    Register reg = RegisterToken::Cast(target)->value();
+    target_size = reg.SizeInBytes();
+  } else if (target->IsFPRegister()) {
+    FPRegister fpreg = FPRegisterToken::Cast(target)->value();
+    target_size = fpreg.SizeInBytes();
+  }
+  // If the target is an identifier there must be no format. This is checked
+  // in the switch statement below.
+
   switch (args.size()) {
-    case 2: {  // mem addressable [1] [%x]
-      count = new IntegerToken(1);
-      format = new Format<uint64_t>("%016x");
-      break;
-    }
-    case 3: {  // mem addr n [%x] or mem addr [n] %f
-      Token* second = args[2];
-      if (second->IsInteger()) {
-        count = IntegerToken::Cast(second);
-        format = new Format<uint64_t>("%016x");
-      } else if (second->IsFormat()) {
-        count = new IntegerToken(1);
-        format = FormatToken::Cast(second);
-      } else {
-        return new InvalidCommand(args, 2, "expects int or format");
+    case 2: {
+      if (target->IsRegister()) {
+        switch (target_size) {
+          case 4: format = new Format<uint32_t>("%08" PRIx32, 'x'); break;
+          case 8: format = new Format<uint64_t>("%016" PRIx64, 'x'); break;
+          default: UNREACHABLE();
+        }
+      } else if (target->IsFPRegister()) {
+        switch (target_size) {
+          case 4: format = new Format<float>("%8g", 'f'); break;
+          case 8: format = new Format<double>("%8g", 'f'); break;
+          default: UNREACHABLE();
+        }
       }
       break;
     }
-    case 4: {  // mem addr n %f
-      Token* second = args[2];
-      Token* third = args[3];
-      if (!second->IsInteger() || !third->IsFormat()) {
-        return new InvalidCommand(args, -1, "mem addr >>int<< %F");
+    case 3: {
+      if (target->IsIdentifier()) {
+        return new InvalidCommand(args, 2,
+            "format is only allowed with registers");
       }
 
-      count = IntegerToken::Cast(second);
-      format = FormatToken::Cast(third);
+      Token* second = args[2];
+      if (!second->IsFormat()) {
+        return new InvalidCommand(args, 2, "expects format");
+      }
+      format = FormatToken::Cast(second);
+
+      if (format->SizeOf() > target_size) {
+        return new InvalidCommand(args, 2, "format too wide");
+      }
+
       break;
     }
     default:
       return new InvalidCommand(args, -1, "too many arguments");
   }
 
-  return new MemCommand(args[0], target, count, format);
+  return new PrintCommand(args[0], target, format);
+}
+
+
+bool ExamineCommand::Run(Debugger* debugger) {
+  ASSERT(debugger->IsDebuggerRunning());
+
+  uint8_t* address = target()->ToAddress(debugger);
+  int64_t  amount = count()->value();
+  if (format()->type_code() == 'i') {
+    debugger->PrintInstructions(address, amount);
+  } else {
+    debugger->PrintMemory(address, format(), amount);
+  }
+
+  return false;
+}
+
+
+void ExamineCommand::Print(FILE* out) {
+  fprintf(out, "%s ", name());
+  format()->Print(out);
+  target()->Print(out);
+}
+
+
+DebugCommand* ExamineCommand::Build(std::vector<Token*> args) {
+  if (args.size() < 2) {
+    return new InvalidCommand(args, -1, "too few arguments");
+  }
+
+  Token* target = args[1];
+  if (!target->CanAddressMemory()) {
+    return new InvalidCommand(args, 1, "expects address");
+  }
+
+  FormatToken* format = NULL;
+  IntegerToken* count = NULL;
+
+  switch (args.size()) {
+    case 2: {  // mem addr[.x64] [10]
+      format = new Format<uint64_t>("%016" PRIx64, 'x');
+      count = new IntegerToken(10);
+      break;
+    }
+    case 3: {  // mem addr.format [10]
+               // mem addr[.x64] n
+      Token* second = args[2];
+      if (second->IsFormat()) {
+        format = FormatToken::Cast(second);
+        count = new IntegerToken(10);
+        break;
+      } else if (second->IsInteger()) {
+        format = new Format<uint64_t>("%016" PRIx64, 'x');
+        count = IntegerToken::Cast(second);
+      } else {
+        return new InvalidCommand(args, 2, "expects format or integer");
+      }
+      UNREACHABLE();
+      break;
+    }
+    case 4: {  // mem addr.format n
+      Token* second = args[2];
+      Token* third = args[3];
+      if (!second->IsFormat() || !third->IsInteger()) {
+        return new InvalidCommand(args, -1, "expects addr[.format] [n]");
+      }
+      format = FormatToken::Cast(second);
+      count = IntegerToken::Cast(third);
+      break;
+    }
+    default:
+      return new InvalidCommand(args, -1, "too many arguments");
+  }
+
+  return new ExamineCommand(args[0], target, format, count);
 }
 
 

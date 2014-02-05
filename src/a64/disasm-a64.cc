@@ -1082,6 +1082,14 @@ void Disassembler::VisitFPIntegerConvert(Instruction* instr) {
     case FMOV_xd: mnemonic = "fmov"; form = form_rf; break;
     case FMOV_sw:
     case FMOV_dx: mnemonic = "fmov"; form = form_fr; break;
+    case FCVTAS_ws:
+    case FCVTAS_xs:
+    case FCVTAS_wd:
+    case FCVTAS_xd: mnemonic = "fcvtas"; form = form_rf; break;
+    case FCVTAU_ws:
+    case FCVTAU_xs:
+    case FCVTAU_wd:
+    case FCVTAU_xd: mnemonic = "fcvtau"; form = form_rf; break;
     case FCVTMS_ws:
     case FCVTMS_xs:
     case FCVTMS_wd:
@@ -1184,6 +1192,24 @@ void Disassembler::VisitSystem(Instruction* instr) {
         break;
       }
     }
+  } else if (instr->Mask(MemBarrierFMask) == MemBarrierFixed) {
+    switch (instr->Mask(MemBarrierMask)) {
+      case DMB: {
+        mnemonic = "dmb";
+        form = "'M";
+        break;
+      }
+      case DSB: {
+        mnemonic = "dsb";
+        form = "'M";
+        break;
+      }
+      case ISB: {
+        mnemonic = "isb";
+        form = NULL;
+        break;
+      }
+    }
   }
 
   Format(instr, mnemonic, form);
@@ -1268,6 +1294,7 @@ int Disassembler::SubstituteField(Instruction* instr, const char* format) {
     case 'A': return SubstitutePCRelAddressField(instr, format);
     case 'B': return SubstituteBranchTargetField(instr, format);
     case 'O': return SubstituteLSRegOffsetField(instr, format);
+    case 'M': return SubstituteBarrierField(instr, format);
     default: {
       UNREACHABLE();
       return 1;
@@ -1654,6 +1681,23 @@ int Disassembler::SubstitutePrefetchField(Instruction* instr,
   return 6;
 }
 
+int Disassembler::SubstituteBarrierField(Instruction* instr,
+                                         const char* format) {
+  ASSERT(format[0] == 'M');
+  USE(format);
+
+  static const char* options[4][4] = {
+    { "sy (0b0000)", "oshld", "oshst", "osh" },
+    { "sy (0b0100)", "nshld", "nshst", "nsh" },
+    { "sy (0b1000)", "ishld", "ishst", "ish" },
+    { "sy (0b1100)", "ld", "st", "sy" }
+  };
+  int domain = instr->ImmBarrierDomain();
+  int type = instr->ImmBarrierType();
+
+  AppendToOutput("%s", options[domain][type]);
+  return 1;
+}
 
 void Disassembler::ResetOutput() {
   buffer_pos_ = 0;

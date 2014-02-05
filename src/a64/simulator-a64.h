@@ -115,25 +115,44 @@ class SimSystemRegister {
 };
 
 
+// Represent a register (r0-r31, v0-v31).
+template<int kSizeInBytes>
+class SimRegisterBase {
+ public:
+  template<typename T>
+  void Set(T new_value, unsigned size = sizeof(T)) {
+    ASSERT(size <= kSizeInBytes);
+    ASSERT(size <= sizeof(new_value));
+    // All AArch64 registers are zero-extending; Writing a W register clears the
+    // top bits of the corresponding X register.
+    memset(value_, 0, kSizeInBytes);
+    memcpy(value_, &new_value, size);
+  }
+
+  // Copy 'size' bytes of the register to the result, and zero-extend to fill
+  // the result.
+  template<typename T>
+  T Get(unsigned size = sizeof(T)) const {
+    ASSERT(size <= kSizeInBytes);
+    T result;
+    memset(&result, 0, sizeof(result));
+    memcpy(&result, value_, size);
+    return result;
+  }
+
+ protected:
+  uint8_t value_[kSizeInBytes];
+};
+typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;      // r0-r31
+typedef SimRegisterBase<kDRegSizeInBytes> SimFPRegister;    // v0-v31
+
+
 class Simulator : public DecoderVisitor {
  public:
   explicit Simulator(Decoder* decoder, FILE* stream = stdout);
   ~Simulator();
 
   void ResetState();
-
-  // TODO: We assume little endianness, and the way in which the members of this
-  // union overlay. Add tests to ensure this, or fix accessors to no longer
-  // require this assumption.
-  union SimRegister {
-    int64_t x;
-    int32_t w;
-  };
-
-  union SimFPRegister {
-    double d;
-    float s;
-  };
 
   // Run the simulator.
   virtual void Run();
@@ -167,171 +186,168 @@ class Simulator : public DecoderVisitor {
   #undef DECLARE
 
   // Register accessors.
+
+  // Return 'size' bits of the value of an integer register, as the specified
+  // type. The value is zero-extended to fill the result.
+  //
+  // The only supported values of 'size' are kXRegSize and kWRegSize.
+  template<typename T>
+  inline T reg(unsigned size, unsigned code,
+               Reg31Mode r31mode = Reg31IsZeroRegister) const {
+    unsigned size_in_bytes = size / 8;
+    ASSERT(size_in_bytes <= sizeof(T));
+    ASSERT((size == kXRegSize) || (size == kWRegSize));
+    ASSERT(code < kNumberOfRegisters);
+
+    if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
+      T result;
+      memset(&result, 0, sizeof(result));
+      return result;
+    }
+    return registers_[code].Get<T>(size_in_bytes);
+  }
+
+  // Like reg(), but infer the access size from the template type.
+  template<typename T>
+  inline T reg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
+    return reg<T>(sizeof(T) * 8, code, r31mode);
+  }
+
+  // Common specialized accessors for the reg() template.
   inline int32_t wreg(unsigned code,
                       Reg31Mode r31mode = Reg31IsZeroRegister) const {
-    ASSERT(code < kNumberOfRegisters);
-    if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
-      return 0;
-    }
-    return registers_[code].w;
+    return reg<int32_t>(code, r31mode);
   }
 
   inline int64_t xreg(unsigned code,
                       Reg31Mode r31mode = Reg31IsZeroRegister) const {
-    ASSERT(code < kNumberOfRegisters);
-    if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
-      return 0;
-    }
-    return registers_[code].x;
+    return reg<int64_t>(code, r31mode);
   }
 
-  inline int64_t reg(unsigned size,
-                     unsigned code,
+  inline int64_t reg(unsigned size, unsigned code,
                      Reg31Mode r31mode = Reg31IsZeroRegister) const {
-    switch (size) {
-      case kWRegSize: return wreg(code, r31mode) & kWRegMask;
-      case kXRegSize: return xreg(code, r31mode);
-      default:
-        UNREACHABLE();
-        return 0;
-    }
+    return reg<int64_t>(size, code, r31mode);
   }
 
-  inline void set_wreg(unsigned code, int32_t value,
-                       Reg31Mode r31mode = Reg31IsZeroRegister) {
+  // Write 'size' bits of 'value' into an integer register. The value is
+  // zero-extended. This behaviour matches AArch64 register writes.
+  //
+  // The only supported values of 'size' are kXRegSize and kWRegSize.
+  template<typename T>
+  inline void set_reg(unsigned size, unsigned code, T value,
+                      Reg31Mode r31mode = Reg31IsZeroRegister) {
+    unsigned size_in_bytes = size / 8;
+    ASSERT(size_in_bytes <= sizeof(T));
+    ASSERT((size == kXRegSize) || (size == kWRegSize));
     ASSERT(code < kNumberOfRegisters);
-    if ((code == kZeroRegCode) && (r31mode == Reg31IsZeroRegister)) {
+
+    if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
       return;
     }
-    registers_[code].x = 0;  // First clear the register top bits.
-    registers_[code].w = value;
+    return registers_[code].Set(value, size_in_bytes);
+  }
+
+  // Like set_reg(), but infer the access size from the template type.
+  template<typename T>
+  inline void set_reg(unsigned code, T value,
+                      Reg31Mode r31mode = Reg31IsZeroRegister) {
+    set_reg(sizeof(value) * 8, code, value, r31mode);
+  }
+
+  // Common specialized accessors for the set_reg() template.
+  inline void set_wreg(unsigned code, int32_t value,
+                       Reg31Mode r31mode = Reg31IsZeroRegister) {
+    set_reg(kWRegSize, code, value, r31mode);
   }
 
   inline void set_xreg(unsigned code, int64_t value,
                        Reg31Mode r31mode = Reg31IsZeroRegister) {
-    ASSERT(code < kNumberOfRegisters);
-    if ((code == kZeroRegCode) && (r31mode == Reg31IsZeroRegister)) {
-      return;
-    }
-    registers_[code].x = value;
+    set_reg(kXRegSize, code, value, r31mode);
   }
 
-  inline void set_reg(unsigned size, unsigned code, int64_t value,
-                      Reg31Mode r31mode = Reg31IsZeroRegister) {
-    switch (size) {
-      case kWRegSize:
-        return set_wreg(code, static_cast<int32_t>(value & 0xffffffff),
-                        r31mode);
-      case kXRegSize:
-        return set_xreg(code, value, r31mode);
-      default:
-        UNREACHABLE();
-        break;
-    }
+  // Commonly-used special cases.
+  template<typename T>
+  inline void set_lr(T value) {
+    set_reg(kLinkRegCode, value);
   }
 
-  #define REG_ACCESSORS(N)                                 \
-  inline int32_t w##N() { return wreg(N); }                \
-  inline int64_t x##N() { return xreg(N); }                \
-  inline void set_w##N(int32_t val) { set_wreg(N, val); }  \
-  inline void set_x##N(int64_t val) { set_xreg(N, val); }
-  REGISTER_CODE_LIST(REG_ACCESSORS)
-  #undef REG_ACCESSORS
-
-  // Aliases.
-  #define REG_ALIAS_ACCESSORS(N, wname, xname)                \
-  inline int32_t wname() { return wreg(N); }                  \
-  inline int64_t xname() { return xreg(N); }                  \
-  inline void set_##wname(int32_t val) { set_wreg(N, val); }  \
-  inline void set_##xname(int64_t val) { set_xreg(N, val); }
-  REG_ALIAS_ACCESSORS(30, wlr, lr);
-  #undef REG_ALIAS_ACCESSORS
-
-  // The stack is a special case in aarch64.
-  inline int32_t wsp() { return wreg(31, Reg31IsStackPointer); }
-  inline int64_t sp() { return xreg(31, Reg31IsStackPointer); }
-  inline void set_wsp(int32_t val) {
-    set_wreg(31, val, Reg31IsStackPointer);
-  }
-  inline void set_sp(int64_t val) {
-    set_xreg(31, val, Reg31IsStackPointer);
+  template<typename T>
+  inline void set_sp(T value) {
+    set_reg(31, value, Reg31IsStackPointer);
   }
 
-  // FPRegister accessors.
-  inline float sreg(unsigned code) const {
+  // Return 'size' bits of the value of a floating-point register, as the
+  // specified type. The value is zero-extended to fill the result.
+  //
+  // The only supported values of 'size' are kDRegSize and kSRegSize.
+  template<typename T>
+  inline T fpreg(unsigned size, unsigned code) const {
+    unsigned size_in_bytes = size / 8;
+    ASSERT(size_in_bytes <= sizeof(T));
+    ASSERT((size == kDRegSize) || (size == kSRegSize));
     ASSERT(code < kNumberOfFPRegisters);
-    return fpregisters_[code].s;
+    return fpregisters_[code].Get<T>(size_in_bytes);
+  }
+
+  // Like fpreg(), but infer the access size from the template type.
+  template<typename T>
+  inline T fpreg(unsigned code) const {
+    return fpreg<T>(sizeof(T) * 8, code);
+  }
+
+  // Common specialized accessors for the fpreg() template.
+  inline float sreg(unsigned code) const {
+    return fpreg<float>(code);
   }
 
   inline uint32_t sreg_bits(unsigned code) const {
-    return float_to_rawbits(sreg(code));
+    return fpreg<uint32_t>(code);
   }
 
   inline double dreg(unsigned code) const {
-    ASSERT(code < kNumberOfFPRegisters);
-    return fpregisters_[code].d;
+    return fpreg<double>(code);
   }
 
   inline uint64_t dreg_bits(unsigned code) const {
-    return double_to_rawbits(dreg(code));
+    return fpreg<uint64_t>(code);
   }
 
   inline double fpreg(unsigned size, unsigned code) const {
     switch (size) {
       case kSRegSize: return sreg(code);
       case kDRegSize: return dreg(code);
-      default: {
-        UNREACHABLE();
-        return 0.0;
-      }
-    }
-  }
-
-  inline void set_sreg(unsigned code, float val) {
-    ASSERT(code < kNumberOfFPRegisters);
-    // Ensure that the upper word is set to 0.
-    set_dreg_bits(code, 0);
-
-    fpregisters_[code].s = val;
-  }
-
-  inline void set_sreg_bits(unsigned code, uint32_t rawbits) {
-    ASSERT(code < kNumberOfFPRegisters);
-    // Ensure that the upper word is set to 0.
-    set_dreg_bits(code, 0);
-
-    set_sreg(code, rawbits_to_float(rawbits));
-  }
-
-  inline void set_dreg(unsigned code, double val) {
-    ASSERT(code < kNumberOfFPRegisters);
-    fpregisters_[code].d = val;
-  }
-
-  inline void set_dreg_bits(unsigned code, uint64_t rawbits) {
-    ASSERT(code < kNumberOfFPRegisters);
-    set_dreg(code, rawbits_to_double(rawbits));
-  }
-
-  inline void set_fpreg(unsigned size, unsigned code, double value) {
-    switch (size) {
-      case kSRegSize:
-        return set_sreg(code, value);
-      case kDRegSize:
-        return set_dreg(code, value);
       default:
         UNREACHABLE();
-        break;
+        return 0.0;
     }
   }
 
-  #define FPREG_ACCESSORS(N)                             \
-  inline float s##N() { return sreg(N); }                \
-  inline double d##N() { return dreg(N); }               \
-  inline void set_s##N(float val) { set_sreg(N, val); }  \
-  inline void set_d##N(double val) { set_dreg(N, val); }
-  REGISTER_CODE_LIST(FPREG_ACCESSORS)
-  #undef FPREG_ACCESSORS
+  // Write 'value' into a floating-point register. The value is zero-extended.
+  // This behaviour matches AArch64 register writes.
+  template<typename T>
+  inline void set_fpreg(unsigned code, T value) {
+    ASSERT((sizeof(value) == kDRegSizeInBytes) ||
+           (sizeof(value) == kSRegSizeInBytes));
+    ASSERT(code < kNumberOfFPRegisters);
+    fpregisters_[code].Set(value, sizeof(value));
+  }
+
+  // Common specialized accessors for the set_fpreg() template.
+  inline void set_sreg(unsigned code, float value) {
+    set_fpreg(code, value);
+  }
+
+  inline void set_sreg_bits(unsigned code, uint32_t value) {
+    set_fpreg(code, value);
+  }
+
+  inline void set_dreg(unsigned code, double value) {
+    set_fpreg(code, value);
+  }
+
+  inline void set_dreg_bits(unsigned code, uint64_t value) {
+    set_fpreg(code, value);
+  }
 
   bool N() { return nzcv_.N() != 0; }
   bool Z() { return nzcv_.Z() != 0; }
@@ -486,8 +502,18 @@ class Simulator : public DecoderVisitor {
   int64_t FPToInt64(double value, FPRounding rmode);
   uint32_t FPToUInt32(double value, FPRounding rmode);
   uint64_t FPToUInt64(double value, FPRounding rmode);
-  double FPMax(double a, double b);
-  double FPMin(double a, double b);
+
+  template <typename T>
+  T FPMax(T a, T b);
+
+  template <typename T>
+  T FPMin(T a, T b);
+
+  template <typename T>
+  T FPMaxNM(T a, T b);
+
+  template <typename T>
+  T FPMinNM(T a, T b);
 
   // Pseudo Printf instruction
   void DoPrintf(Instruction* instr);

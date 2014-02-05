@@ -176,28 +176,24 @@ const FPRegister& FPRegister::DRegFromCode(unsigned code) {
 
 const Register& CPURegister::W() const {
   ASSERT(IsValidRegister());
-  ASSERT(Is64Bits());
   return Register::WRegFromCode(code_);
 }
 
 
 const Register& CPURegister::X() const {
   ASSERT(IsValidRegister());
-  ASSERT(Is32Bits());
   return Register::XRegFromCode(code_);
 }
 
 
 const FPRegister& CPURegister::S() const {
   ASSERT(IsValidFPRegister());
-  ASSERT(Is64Bits());
   return FPRegister::SRegFromCode(code_);
 }
 
 
 const FPRegister& CPURegister::D() const {
   ASSERT(IsValidFPRegister());
-  ASSERT(Is32Bits());
   return FPRegister::DRegFromCode(code_);
 }
 
@@ -230,6 +226,9 @@ Operand::Operand(Register reg, Extend extend, unsigned shift_amount)
   ASSERT(reg.IsValid());
   ASSERT(shift_amount <= 4);
   ASSERT(!reg.IsSP());
+
+  // Extend modes SXTX and UXTX require a 64-bit register.
+  ASSERT(reg.Is64Bits() || ((extend != SXTX) && (extend != UXTX)));
 }
 
 
@@ -245,6 +244,15 @@ bool Operand::IsShiftedRegister() const {
 
 bool Operand::IsExtendedRegister() const {
   return reg_.IsValid() && (extend_ != NO_EXTEND);
+}
+
+
+bool Operand::IsZero() const {
+  if (IsImmediate()) {
+    return immediate() == 0;
+  } else {
+    return reg().IsZero();
+  }
 }
 
 
@@ -271,6 +279,9 @@ MemOperand::MemOperand(Register base,
   ASSERT(base.Is64Bits() && !base.IsZero());
   ASSERT(!regoffset.IsSP());
   ASSERT((extend == UXTW) || (extend == SXTW) || (extend == SXTX));
+
+  // SXTX extend mode requires a 64-bit offset register.
+  ASSERT(regoffset.Is64Bits() || (extend != SXTX));
 }
 
 
@@ -281,7 +292,7 @@ MemOperand::MemOperand(Register base,
   : base_(base), regoffset_(regoffset), offset_(0), addrmode_(Offset),
     shift_(shift), extend_(NO_EXTEND), shift_amount_(shift_amount) {
   ASSERT(base.Is64Bits() && !base.IsZero());
-  ASSERT(!regoffset.IsSP());
+  ASSERT(regoffset.Is64Bits() && !regoffset.IsSP());
   ASSERT(shift == LSL);
 }
 
@@ -303,7 +314,7 @@ MemOperand::MemOperand(Register base, const Operand& offset, AddrMode addrmode)
     offset_ = 0;
 
     // These assertions match those in the shifted-register constructor.
-    ASSERT(!regoffset_.IsSP());
+    ASSERT(regoffset_.Is64Bits() && !regoffset_.IsSP());
     ASSERT(shift_ == LSL);
   } else {
     ASSERT(offset.IsExtendedRegister());
@@ -319,6 +330,7 @@ MemOperand::MemOperand(Register base, const Operand& offset, AddrMode addrmode)
     // These assertions match those in the extended-register constructor.
     ASSERT(!regoffset_.IsSP());
     ASSERT((extend_ == UXTW) || (extend_ == SXTW) || (extend_ == SXTX));
+    ASSERT((regoffset_.Is64Bits() || (extend_ != SXTX)));
   }
 }
 
@@ -493,7 +505,7 @@ void Assembler::cbnz(const Register& rt,
 void Assembler::tbz(const Register& rt,
                     unsigned bit_pos,
                     int imm14) {
-  ASSERT(rt.Is64Bits());
+  ASSERT(rt.Is64Bits() || (rt.Is32Bits() && (bit_pos < kWRegSize)));
   Emit(TBZ | ImmTestBranchBit(bit_pos) | ImmTestBranch(imm14) | Rt(rt));
 }
 
@@ -508,7 +520,7 @@ void Assembler::tbz(const Register& rt,
 void Assembler::tbnz(const Register& rt,
                      unsigned bit_pos,
                      int imm14) {
-  ASSERT(rt.Is64Bits());
+  ASSERT(rt.Is64Bits() || (rt.Is32Bits() && (bit_pos < kWRegSize)));
   Emit(TBNZ | ImmTestBranchBit(bit_pos) | ImmTestBranch(imm14) | Rt(rt));
 }
 
@@ -533,81 +545,129 @@ void Assembler::adr(const Register& rd, Label* label) {
 
 void Assembler::add(const Register& rd,
                     const Register& rn,
-                    const Operand& operand,
-                    FlagsUpdate S) {
-  AddSub(rd, rn, operand, S, ADD);
+                    const Operand& operand) {
+  AddSub(rd, rn, operand, LeaveFlags, ADD);
+}
+
+
+void Assembler::adds(const Register& rd,
+                     const Register& rn,
+                     const Operand& operand) {
+  AddSub(rd, rn, operand, SetFlags, ADD);
 }
 
 
 void Assembler::cmn(const Register& rn,
                     const Operand& operand) {
   Register zr = AppropriateZeroRegFor(rn);
-  add(zr, rn, operand, SetFlags);
+  adds(zr, rn, operand);
 }
 
 
 void Assembler::sub(const Register& rd,
                     const Register& rn,
-                    const Operand& operand,
-                    FlagsUpdate S) {
-  AddSub(rd, rn, operand, S, SUB);
+                    const Operand& operand) {
+  AddSub(rd, rn, operand, LeaveFlags, SUB);
+}
+
+
+void Assembler::subs(const Register& rd,
+                     const Register& rn,
+                     const Operand& operand) {
+  AddSub(rd, rn, operand, SetFlags, SUB);
 }
 
 
 void Assembler::cmp(const Register& rn, const Operand& operand) {
   Register zr = AppropriateZeroRegFor(rn);
-  sub(zr, rn, operand, SetFlags);
+  subs(zr, rn, operand);
 }
 
 
-void Assembler::neg(const Register& rd, const Operand& operand, FlagsUpdate S) {
+void Assembler::neg(const Register& rd, const Operand& operand) {
   Register zr = AppropriateZeroRegFor(rd);
-  sub(rd, zr, operand, S);
+  sub(rd, zr, operand);
+}
+
+
+void Assembler::negs(const Register& rd, const Operand& operand) {
+  Register zr = AppropriateZeroRegFor(rd);
+  subs(rd, zr, operand);
 }
 
 
 void Assembler::adc(const Register& rd,
                     const Register& rn,
-                    const Operand& operand,
-                    FlagsUpdate S) {
-  AddSubWithCarry(rd, rn, operand, S, ADC);
+                    const Operand& operand) {
+  AddSubWithCarry(rd, rn, operand, LeaveFlags, ADC);
+}
+
+
+void Assembler::adcs(const Register& rd,
+                     const Register& rn,
+                     const Operand& operand) {
+  AddSubWithCarry(rd, rn, operand, SetFlags, ADC);
 }
 
 
 void Assembler::sbc(const Register& rd,
                     const Register& rn,
-                    const Operand& operand,
-                    FlagsUpdate S) {
-  AddSubWithCarry(rd, rn, operand, S, SBC);
+                    const Operand& operand) {
+  AddSubWithCarry(rd, rn, operand, LeaveFlags, SBC);
 }
 
 
-void Assembler::ngc(const Register& rd, const Operand& operand, FlagsUpdate S) {
+void Assembler::sbcs(const Register& rd,
+                     const Register& rn,
+                     const Operand& operand) {
+  AddSubWithCarry(rd, rn, operand, SetFlags, SBC);
+}
+
+
+void Assembler::ngc(const Register& rd, const Operand& operand) {
   Register zr = AppropriateZeroRegFor(rd);
-  sbc(rd, zr, operand, S);
+  sbc(rd, zr, operand);
+}
+
+
+void Assembler::ngcs(const Register& rd, const Operand& operand) {
+  Register zr = AppropriateZeroRegFor(rd);
+  sbcs(rd, zr, operand);
 }
 
 
 // Logical instructions.
 void Assembler::and_(const Register& rd,
                      const Register& rn,
-                     const Operand& operand,
-                     FlagsUpdate S) {
-  Logical(rd, rn, operand, (S == SetFlags) ? ANDS : AND);
+                     const Operand& operand) {
+  Logical(rd, rn, operand, AND);
+}
+
+
+void Assembler::ands(const Register& rd,
+                     const Register& rn,
+                     const Operand& operand) {
+  Logical(rd, rn, operand, ANDS);
 }
 
 
 void Assembler::tst(const Register& rn,
                     const Operand& operand) {
-  and_(AppropriateZeroRegFor(rn), rn, operand, SetFlags);
+  ands(AppropriateZeroRegFor(rn), rn, operand);
 }
 
 
 void Assembler::bic(const Register& rd,
                     const Register& rn,
-                    const Operand& operand,
-                    FlagsUpdate S) {
-  Logical(rd, rn, operand, (S == SetFlags) ? BICS : BIC);
+                    const Operand& operand) {
+  Logical(rd, rn, operand, BIC);
+}
+
+
+void Assembler::bics(const Register& rd,
+                     const Register& rn,
+                     const Operand& operand) {
+  Logical(rd, rn, operand, BICS);
 }
 
 
@@ -683,7 +743,7 @@ void Assembler::bfm(const Register& rd,
   ASSERT(rd.size() == rn.size());
   Instr N = SF(rd) >> (kSFOffset - kBitfieldNOffset);
   Emit(SF(rd) | BFM | N |
-       ImmR(immr, rd.size()) | ImmS(imms, rd.size()) | Rn(rn) | Rd(rd));
+       ImmR(immr, rd.size()) | ImmS(imms, rn.size()) | Rn(rn) | Rd(rd));
 }
 
 
@@ -691,10 +751,10 @@ void Assembler::sbfm(const Register& rd,
                      const Register& rn,
                      unsigned immr,
                      unsigned imms) {
-  ASSERT(rd.size() == rn.size());
+  ASSERT(rd.Is64Bits() || rn.Is32Bits());
   Instr N = SF(rd) >> (kSFOffset - kBitfieldNOffset);
   Emit(SF(rd) | SBFM | N |
-       ImmR(immr, rd.size()) | ImmS(imms, rd.size()) | Rn(rn) | Rd(rd));
+       ImmR(immr, rd.size()) | ImmS(imms, rn.size()) | Rn(rn) | Rd(rd));
 }
 
 
@@ -705,7 +765,7 @@ void Assembler::ubfm(const Register& rd,
   ASSERT(rd.size() == rn.size());
   Instr N = SF(rd) >> (kSFOffset - kBitfieldNOffset);
   Emit(SF(rd) | UBFM | N |
-       ImmR(immr, rd.size()) | ImmS(imms, rd.size()) | Rn(rn) | Rd(rd));
+       ImmR(immr, rd.size()) | ImmS(imms, rn.size()) | Rn(rn) | Rd(rd));
 }
 
 
@@ -716,7 +776,7 @@ void Assembler::extr(const Register& rd,
   ASSERT(rd.size() == rn.size());
   ASSERT(rd.size() == rm.size());
   Instr N = SF(rd) >> (kSFOffset - kBitfieldNOffset);
-  Emit(SF(rd) | EXTR | N | Rm(rm) | ImmS(lsb, rd.size()) | Rn(rn) | Rd(rd));
+  Emit(SF(rd) | EXTR | N | Rm(rm) | ImmS(lsb, rn.size()) | Rn(rn) | Rd(rd));
 }
 
 
@@ -1146,6 +1206,17 @@ void Assembler::hint(SystemHint code) {
   Emit(HINT | ImmHint(code) | Rt(xzr));
 }
 
+void Assembler::dmb(BarrierDomain domain, BarrierType type) {
+  Emit(DMB | ImmBarrierDomain(domain) | ImmBarrierType(type));
+}
+
+void Assembler::dsb(BarrierDomain domain, BarrierType type) {
+  Emit(DSB | ImmBarrierDomain(domain) | ImmBarrierType(type));
+}
+
+void Assembler::isb() {
+  Emit(ISB | ImmBarrierDomain(FullSystem) | ImmBarrierType(BarrierAll));
+}
 
 void Assembler::fmov(FPRegister fd, double imm) {
   if (fd.Is64Bits() && IsImmFP64(imm)) {
@@ -1202,11 +1273,35 @@ void Assembler::fmul(const FPRegister& fd,
 }
 
 
+void Assembler::fmadd(const FPRegister& fd,
+                      const FPRegister& fn,
+                      const FPRegister& fm,
+                      const FPRegister& fa) {
+  FPDataProcessing3Source(fd, fn, fm, fa, fd.Is32Bits() ? FMADD_s : FMADD_d);
+}
+
+
 void Assembler::fmsub(const FPRegister& fd,
                       const FPRegister& fn,
                       const FPRegister& fm,
                       const FPRegister& fa) {
   FPDataProcessing3Source(fd, fn, fm, fa, fd.Is32Bits() ? FMSUB_s : FMSUB_d);
+}
+
+
+void Assembler::fnmadd(const FPRegister& fd,
+                       const FPRegister& fn,
+                       const FPRegister& fm,
+                       const FPRegister& fa) {
+  FPDataProcessing3Source(fd, fn, fm, fa, fd.Is32Bits() ? FNMADD_s : FNMADD_d);
+}
+
+
+void Assembler::fnmsub(const FPRegister& fd,
+                       const FPRegister& fn,
+                       const FPRegister& fm,
+                       const FPRegister& fa) {
+  FPDataProcessing3Source(fd, fn, fm, fa, fd.Is32Bits() ? FNMSUB_s : FNMSUB_d);
 }
 
 
@@ -1224,10 +1319,24 @@ void Assembler::fmax(const FPRegister& fd,
 }
 
 
+void Assembler::fmaxnm(const FPRegister& fd,
+                       const FPRegister& fn,
+                       const FPRegister& fm) {
+  FPDataProcessing2Source(fd, fn, fm, FMAXNM);
+}
+
+
 void Assembler::fmin(const FPRegister& fd,
                      const FPRegister& fn,
                      const FPRegister& fm) {
   FPDataProcessing2Source(fd, fn, fm, FMIN);
+}
+
+
+void Assembler::fminnm(const FPRegister& fd,
+                       const FPRegister& fn,
+                       const FPRegister& fm) {
+  FPDataProcessing2Source(fd, fn, fm, FMINNM);
 }
 
 
@@ -1249,6 +1358,13 @@ void Assembler::fsqrt(const FPRegister& fd,
                       const FPRegister& fn) {
   ASSERT(fd.SizeInBits() == fn.SizeInBits());
   FPDataProcessing1Source(fd, fn, FSQRT);
+}
+
+
+void Assembler::frinta(const FPRegister& fd,
+                       const FPRegister& fn) {
+  ASSERT(fd.SizeInBits() == fn.SizeInBits());
+  FPDataProcessing1Source(fd, fn, FRINTA);
 }
 
 
@@ -1324,6 +1440,16 @@ void Assembler::fcvt(const FPRegister& fd,
 }
 
 
+void Assembler::fcvtau(const Register& rd, const FPRegister& fn) {
+  FPConvertToInt(rd, fn, FCVTAU);
+}
+
+
+void Assembler::fcvtas(const Register& rd, const FPRegister& fn) {
+  FPConvertToInt(rd, fn, FCVTAS);
+}
+
+
 void Assembler::fcvtmu(const Register& rd, const FPRegister& fn) {
   FPConvertToInt(rd, fn, FCVTMU);
 }
@@ -1334,26 +1460,22 @@ void Assembler::fcvtms(const Register& rd, const FPRegister& fn) {
 }
 
 
-void Assembler::fcvtnu(const Register& rd,
-                       const FPRegister& fn) {
+void Assembler::fcvtnu(const Register& rd, const FPRegister& fn) {
   FPConvertToInt(rd, fn, FCVTNU);
 }
 
 
-void Assembler::fcvtns(const Register& rd,
-                       const FPRegister& fn) {
+void Assembler::fcvtns(const Register& rd, const FPRegister& fn) {
   FPConvertToInt(rd, fn, FCVTNS);
 }
 
 
-void Assembler::fcvtzu(const Register& rd,
-                       const FPRegister& fn) {
+void Assembler::fcvtzu(const Register& rd, const FPRegister& fn) {
   FPConvertToInt(rd, fn, FCVTZU);
 }
 
 
-void Assembler::fcvtzs(const Register& rd,
-                       const FPRegister& fn) {
+void Assembler::fcvtzs(const Register& rd, const FPRegister& fn) {
   FPConvertToInt(rd, fn, FCVTZS);
 }
 

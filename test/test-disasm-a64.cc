@@ -119,8 +119,8 @@ TEST(mov_mvn) {
   COMPARE(Mov(w14, Operand(w15, SXTH, 2)), "sbfiz w14, w15, #2, #16");
   COMPARE(Mov(x16, Operand(x17, SXTW, 3)), "sbfiz x16, x17, #3, #32");
 
-  COMPARE(Mvn(w0, Operand(0x1)), "movn w0, #0x1");
-  COMPARE(Mvn(x1, Operand(0xfff)), "movn x1, #0xfff");
+  COMPARE(Mvn(w0, Operand(0x101)), "movn w0, #0x101");
+  COMPARE(Mvn(x1, Operand(0xfff1)), "movn x1, #0xfff1");
   COMPARE(Mvn(w2, Operand(w3)), "mvn w2, w3");
   COMPARE(Mvn(x4, Operand(x5)), "mvn x4, x5");
   COMPARE(Mvn(w6, Operand(w7, LSL, 12)), "mvn w6, w7, lsl #12");
@@ -165,6 +165,61 @@ TEST(move_immediate) {
   CLEANUP();
 }
 
+TEST(move_immediate_2) {
+  SETUP_CLASS(MacroAssembler);
+
+  // Move instructions expected for certain immediates. This is really a macro
+  // assembler test, to ensure it generates immediates efficiently.
+  COMPARE(Mov(w0, 0), "movz w0, #0x0");
+  COMPARE(Mov(w0, 0x0000ffff), "movz w0, #0xffff");
+  COMPARE(Mov(w0, 0x00010000), "movz w0, #0x10000");
+  COMPARE(Mov(w0, 0xffff0000), "movz w0, #0xffff0000");
+  COMPARE(Mov(w0, 0x0001ffff), "movn w0, #0xfffe0000");
+  COMPARE(Mov(w0, 0xffff8000), "movn w0, #0x7fff");
+  COMPARE(Mov(w0, 0xfffffffe), "movn w0, #0x1");
+  COMPARE(Mov(w0, 0xffffffff), "movn w0, #0x0");
+  COMPARE(Mov(w0, 0x00ffff00), "mov w0, #0xffff00");
+  COMPARE(Mov(w0, 0xfffe7fff), "mov w0, #0xfffe7fff");
+  COMPARE(Mov(w0, 0xfffeffff), "movn w0, #0x10000");
+  COMPARE(Mov(w0, 0xffff7fff), "movn w0, #0x8000");
+
+  COMPARE(Mov(x0, 0), "movz x0, #0x0");
+  COMPARE(Mov(x0, 0x0000ffff), "movz x0, #0xffff");
+  COMPARE(Mov(x0, 0x00010000), "movz x0, #0x10000");
+  COMPARE(Mov(x0, 0xffff0000), "movz x0, #0xffff0000");
+  COMPARE(Mov(x0, 0x0001ffff), "mov x0, #0x1ffff");
+  COMPARE(Mov(x0, 0xffff8000), "mov x0, #0xffff8000");
+  COMPARE(Mov(x0, 0xfffffffe), "mov x0, #0xfffffffe");
+  COMPARE(Mov(x0, 0xffffffff), "mov x0, #0xffffffff");
+  COMPARE(Mov(x0, 0x00ffff00), "mov x0, #0xffff00");
+  COMPARE(Mov(x0, 0xffff000000000000), "movz x0, #0xffff000000000000");
+  COMPARE(Mov(x0, 0x0000ffff00000000), "movz x0, #0xffff00000000");
+  COMPARE(Mov(x0, 0x00000000ffff0000), "movz x0, #0xffff0000");
+  COMPARE(Mov(x0, 0xffffffffffff0000), "movn x0, #0xffff");
+  COMPARE(Mov(x0, 0xffffffff0000ffff), "movn x0, #0xffff0000");
+  COMPARE(Mov(x0, 0xffff0000ffffffff), "movn x0, #0xffff00000000");
+  COMPARE(Mov(x0, 0x0000ffffffffffff), "movn x0, #0xffff000000000000");
+  COMPARE(Mov(x0, 0xfffe7fffffffffff), "mov x0, #0xfffe7fffffffffff");
+  COMPARE(Mov(x0, 0xfffeffffffffffff), "movn x0, #0x1000000000000");
+  COMPARE(Mov(x0, 0xffff7fffffffffff), "movn x0, #0x800000000000");
+  COMPARE(Mov(x0, 0xfffffffe7fffffff), "mov x0, #0xfffffffe7fffffff");
+  COMPARE(Mov(x0, 0xfffffffeffffffff), "movn x0, #0x100000000");
+  COMPARE(Mov(x0, 0xffffffff7fffffff), "movn x0, #0x80000000");
+  COMPARE(Mov(x0, 0xfffffffffffe7fff), "mov x0, #0xfffffffffffe7fff");
+  COMPARE(Mov(x0, 0xfffffffffffeffff), "movn x0, #0x10000");
+  COMPARE(Mov(x0, 0xffffffffffff7fff), "movn x0, #0x8000");
+  COMPARE(Mov(x0, 0xffffffffffffffff), "movn x0, #0x0");
+
+  COMPARE(Movk(w0, 0x1234, 0), "movk w0, #0x1234");
+  COMPARE(Movk(x1, 0x2345, 0), "movk x1, #0x2345");
+  COMPARE(Movk(w2, 0x3456, 16), "movk w2, #0x3456, lsl #16");
+  COMPARE(Movk(x3, 0x4567, 16), "movk x3, #0x4567, lsl #16");
+  COMPARE(Movk(x4, 0x5678, 32), "movk x4, #0x5678, lsl #32");
+  COMPARE(Movk(x5, 0x6789, 48), "movk x5, #0x6789, lsl #48");
+
+  CLEANUP();
+}
+
 TEST(add_immediate) {
   SETUP();
 
@@ -177,9 +232,9 @@ TEST(add_immediate) {
           "add x10, x11, #0x3ff000 (4190208)");
   COMPARE(add(w12, w13, Operand(0xfff000)),
           "add w12, w13, #0xfff000 (16773120)");
-  COMPARE(add(w14, w15, Operand(0xff), SetFlags), "adds w14, w15, #0xff (255)");
-  COMPARE(add(x16, x17, Operand(0xaa000), SetFlags),
-          "adds x16, x17, #0xaa000 (696320)");
+  COMPARE(adds(w14, w15, Operand(0xff)), "adds w14, w15, #0xff (255)");
+  COMPARE(adds(x16, x17, Operand(0xaa000)), "adds x16, x17, #0xaa000 (696320)");
+
   COMPARE(cmn(w18, Operand(0xff)), "cmn w18, #0xff (255)");
   COMPARE(cmn(x19, Operand(0xff000)), "cmn x19, #0xff000 (1044480)");
   COMPARE(add(w0, wsp, Operand(0)), "mov w0, wsp");
@@ -189,7 +244,7 @@ TEST(add_immediate) {
   COMPARE(add(x2, sp, Operand(16)), "add x2, sp, #0x10 (16)");
   COMPARE(add(wsp, wsp, Operand(42)), "add wsp, wsp, #0x2a (42)");
   COMPARE(cmn(sp, Operand(24)), "cmn sp, #0x18 (24)");
-  COMPARE(add(wzr, wsp, Operand(9), SetFlags), "cmn wsp, #0x9 (9)");
+  COMPARE(adds(wzr, wsp, Operand(9)), "cmn wsp, #0x9 (9)");
 
   CLEANUP();
 }
@@ -206,9 +261,8 @@ TEST(sub_immediate) {
           "sub x10, x11, #0x3ff000 (4190208)");
   COMPARE(sub(w12, w13, Operand(0xfff000)),
           "sub w12, w13, #0xfff000 (16773120)");
-  COMPARE(sub(w14, w15, Operand(0xff), SetFlags), "subs w14, w15, #0xff (255)");
-  COMPARE(sub(x16, x17, Operand(0xaa000), SetFlags),
-          "subs x16, x17, #0xaa000 (696320)");
+  COMPARE(subs(w14, w15, Operand(0xff)), "subs w14, w15, #0xff (255)");
+  COMPARE(subs(x16, x17, Operand(0xaa000)), "subs x16, x17, #0xaa000 (696320)");
   COMPARE(cmp(w18, Operand(0xff)), "cmp w18, #0xff (255)");
   COMPARE(cmp(x19, Operand(0xff000)), "cmp x19, #0xff000 (1044480)");
 
@@ -216,7 +270,7 @@ TEST(sub_immediate) {
   COMPARE(sub(x2, sp, Operand(16)), "sub x2, sp, #0x10 (16)");
   COMPARE(sub(wsp, wsp, Operand(42)), "sub wsp, wsp, #0x2a (42)");
   COMPARE(cmp(sp, Operand(24)), "cmp sp, #0x18 (24)");
-  COMPARE(sub(wzr, wsp, Operand(9), SetFlags), "cmp wsp, #0x9 (9)");
+  COMPARE(subs(wzr, wsp, Operand(9)), "cmp wsp, #0x9 (9)");
 
   CLEANUP();
 }
@@ -241,8 +295,8 @@ TEST(add_shifted) {
   COMPARE(add(x4, sp, Operand(x5, LSL, 1)), "add x4, sp, x5, lsl #1");
   COMPARE(add(x4, xzr, Operand(x5, LSL, 1)), "add x4, xzr, x5, lsl #1");
   COMPARE(add(w6, wsp, Operand(w7, LSL, 3)), "add w6, wsp, w7, lsl #3");
-  COMPARE(add(xzr, sp, Operand(x8, LSL, 4), SetFlags), "cmn sp, x8, lsl #4");
-  COMPARE(add(xzr, xzr, Operand(x8, LSL, 5), SetFlags), "cmn xzr, x8, lsl #5");
+  COMPARE(adds(xzr, sp, Operand(x8, LSL, 4)), "cmn sp, x8, lsl #4");
+  COMPARE(adds(xzr, xzr, Operand(x8, LSL, 5)), "cmn xzr, x8, lsl #5");
 
   CLEANUP();
 }
@@ -263,16 +317,16 @@ TEST(sub_shifted) {
   COMPARE(cmp(x26, Operand(x27, LSL, 63)), "cmp x26, x27, lsl #63");
   COMPARE(neg(w28, Operand(w29)), "neg w28, w29");
   COMPARE(neg(x30, Operand(x0, LSR, 62)), "neg x30, x0, lsr #62");
-  COMPARE(neg(w1, Operand(w2), SetFlags), "negs w1, w2");
-  COMPARE(neg(x3, Operand(x4, ASR, 61), SetFlags), "negs x3, x4, asr #61");
+  COMPARE(negs(w1, Operand(w2)), "negs w1, w2");
+  COMPARE(negs(x3, Operand(x4, ASR, 61)), "negs x3, x4, asr #61");
 
   COMPARE(sub(x0, sp, Operand(x1)), "sub x0, sp, x1");
   COMPARE(sub(w2, wsp, Operand(w3)), "sub w2, wsp, w3");
   COMPARE(sub(x4, sp, Operand(x5, LSL, 1)), "sub x4, sp, x5, lsl #1");
   COMPARE(sub(x4, xzr, Operand(x5, LSL, 1)), "neg x4, x5, lsl #1");
   COMPARE(sub(w6, wsp, Operand(w7, LSL, 3)), "sub w6, wsp, w7, lsl #3");
-  COMPARE(sub(xzr, sp, Operand(x8, LSL, 4), SetFlags), "cmp sp, x8, lsl #4");
-  COMPARE(sub(xzr, xzr, Operand(x8, LSL, 5), SetFlags), "cmp xzr, x8, lsl #5");
+  COMPARE(subs(xzr, sp, Operand(x8, LSL, 4)), "cmp sp, x8, lsl #4");
+  COMPARE(subs(xzr, xzr, Operand(x8, LSL, 5)), "cmp xzr, x8, lsl #5");
 
   CLEANUP();
 }
@@ -282,20 +336,15 @@ TEST(add_extended) {
   SETUP();
 
   COMPARE(add(w0, w1, Operand(w2, UXTB)), "add w0, w1, w2, uxtb");
-  COMPARE(add(x3, x4, Operand(w5, UXTB, 1), SetFlags),
-          "adds x3, x4, w5, uxtb #1");
+  COMPARE(adds(x3, x4, Operand(w5, UXTB, 1)), "adds x3, x4, w5, uxtb #1");
   COMPARE(add(w6, w7, Operand(w8, UXTH, 2)), "add w6, w7, w8, uxth #2");
-  COMPARE(add(x9, x10, Operand(x11, UXTW, 3), SetFlags),
-          "adds x9, x10, w11, uxtw #3");
+  COMPARE(adds(x9, x10, Operand(x11, UXTW, 3)), "adds x9, x10, w11, uxtw #3");
   COMPARE(add(x12, x13, Operand(x14, UXTX, 4)), "add x12, x13, x14, uxtx #4");
-  COMPARE(add(w15, w16, Operand(w17, SXTB, 4), SetFlags),
-          "adds w15, w16, w17, sxtb #4");
+  COMPARE(adds(w15, w16, Operand(w17, SXTB, 4)), "adds w15, w16, w17, sxtb #4");
   COMPARE(add(x18, x19, Operand(x20, SXTB, 3)), "add x18, x19, w20, sxtb #3");
-  COMPARE(add(w21, w22, Operand(w23, SXTH, 2), SetFlags),
-          "adds w21, w22, w23, sxth #2");
+  COMPARE(adds(w21, w22, Operand(w23, SXTH, 2)), "adds w21, w22, w23, sxth #2");
   COMPARE(add(x24, x25, Operand(x26, SXTW, 1)), "add x24, x25, w26, sxtw #1");
-  COMPARE(add(x27, x28, Operand(x29, SXTX), SetFlags),
-          "adds x27, x28, x29, sxtx");
+  COMPARE(adds(x27, x28, Operand(x29, SXTX)), "adds x27, x28, x29, sxtx");
   COMPARE(cmn(w0, Operand(w1, UXTB, 2)), "cmn w0, w1, uxtb #2");
   COMPARE(cmn(x2, Operand(x3, SXTH, 4)), "cmn x2, w3, sxth #4");
 
@@ -313,20 +362,15 @@ TEST(sub_extended) {
   SETUP();
 
   COMPARE(sub(w0, w1, Operand(w2, UXTB)), "sub w0, w1, w2, uxtb");
-  COMPARE(sub(x3, x4, Operand(w5, UXTB, 1), SetFlags),
-          "subs x3, x4, w5, uxtb #1");
+  COMPARE(subs(x3, x4, Operand(w5, UXTB, 1)), "subs x3, x4, w5, uxtb #1");
   COMPARE(sub(w6, w7, Operand(w8, UXTH, 2)), "sub w6, w7, w8, uxth #2");
-  COMPARE(sub(x9, x10, Operand(x11, UXTW, 3), SetFlags),
-          "subs x9, x10, w11, uxtw #3");
+  COMPARE(subs(x9, x10, Operand(x11, UXTW, 3)), "subs x9, x10, w11, uxtw #3");
   COMPARE(sub(x12, x13, Operand(x14, UXTX, 4)), "sub x12, x13, x14, uxtx #4");
-  COMPARE(sub(w15, w16, Operand(w17, SXTB, 4), SetFlags),
-          "subs w15, w16, w17, sxtb #4");
+  COMPARE(subs(w15, w16, Operand(w17, SXTB, 4)), "subs w15, w16, w17, sxtb #4");
   COMPARE(sub(x18, x19, Operand(x20, SXTB, 3)), "sub x18, x19, w20, sxtb #3");
-  COMPARE(sub(w21, w22, Operand(w23, SXTH, 2), SetFlags),
-          "subs w21, w22, w23, sxth #2");
+  COMPARE(subs(w21, w22, Operand(w23, SXTH, 2)), "subs w21, w22, w23, sxth #2");
   COMPARE(sub(x24, x25, Operand(x26, SXTW, 1)), "sub x24, x25, w26, sxtw #1");
-  COMPARE(sub(x27, x28, Operand(x29, SXTX), SetFlags),
-          "subs x27, x28, x29, sxtx");
+  COMPARE(subs(x27, x28, Operand(x29, SXTX)), "subs x27, x28, x29, sxtx");
   COMPARE(cmp(w0, Operand(w1, SXTB, 1)), "cmp w0, w1, sxtb #1");
   COMPARE(cmp(x2, Operand(x3, UXTH, 3)), "cmp x2, w3, uxth #3");
 
@@ -345,16 +389,16 @@ TEST(adc_subc_ngc) {
 
   COMPARE(adc(w0, w1, Operand(w2)), "adc w0, w1, w2");
   COMPARE(adc(x3, x4, Operand(x5)), "adc x3, x4, x5");
-  COMPARE(adc(w6, w7, Operand(w8), SetFlags), "adcs w6, w7, w8");
-  COMPARE(adc(x9, x10, Operand(x11), SetFlags), "adcs x9, x10, x11");
+  COMPARE(adcs(w6, w7, Operand(w8)), "adcs w6, w7, w8");
+  COMPARE(adcs(x9, x10, Operand(x11)), "adcs x9, x10, x11");
   COMPARE(sbc(w12, w13, Operand(w14)), "sbc w12, w13, w14");
   COMPARE(sbc(x15, x16, Operand(x17)), "sbc x15, x16, x17");
-  COMPARE(sbc(w18, w19, Operand(w20), SetFlags), "sbcs w18, w19, w20");
-  COMPARE(sbc(x21, x22, Operand(x23), SetFlags), "sbcs x21, x22, x23");
+  COMPARE(sbcs(w18, w19, Operand(w20)), "sbcs w18, w19, w20");
+  COMPARE(sbcs(x21, x22, Operand(x23)), "sbcs x21, x22, x23");
   COMPARE(ngc(w24, Operand(w25)), "ngc w24, w25");
   COMPARE(ngc(x26, Operand(x27)), "ngc x26, x27");
-  COMPARE(ngc(w28, Operand(w29), SetFlags), "ngcs w28, w29");
-  COMPARE(ngc(x30, Operand(x0), SetFlags), "ngcs x30, x0");
+  COMPARE(ngcs(w28, Operand(w29)), "ngcs w28, w29");
+  COMPARE(ngcs(x30, Operand(x0)), "ngcs x30, x0");
 
   CLEANUP();
 }
@@ -445,6 +489,10 @@ TEST(bitfield) {
   COMPARE(sxth(w4, w5), "sxth w4, w5");
   COMPARE(sxth(x6, x7), "sxth x6, w7");
   COMPARE(sxtw(x8, x9), "sxtw x8, w9");
+  COMPARE(sxtb(x0, w1), "sxtb x0, w1");
+  COMPARE(sxth(x2, w3), "sxth x2, w3");
+  COMPARE(sxtw(x4, w5), "sxtw x4, w5");
+
   COMPARE(uxtb(w10, w11), "uxtb w10, w11");
   COMPARE(uxtb(x12, x13), "uxtb x12, w13");
   COMPARE(uxth(w14, w15), "uxth w14, w15");
@@ -567,9 +615,8 @@ TEST(logical_immediate) {
           "eor w15, w16, #0x1");
   COMPARE(eor(x17, x18, Operand(0x0000000000000003L)),
           "eor x17, x18, #0x3");
-  COMPARE(and_(w23, w24, Operand(0x0000000f), SetFlags),
-          "ands w23, w24, #0xf");
-  COMPARE(and_(x25, x26, Operand(0x800000000000000fL), SetFlags),
+  COMPARE(ands(w23, w24, Operand(0x0000000f)), "ands w23, w24, #0xf");
+  COMPARE(ands(x25, x26, Operand(0x800000000000000fL)),
           "ands x25, x26, #0x800000000000000f");
 
   // Test inverse.
@@ -585,14 +632,13 @@ TEST(logical_immediate) {
           "eor w19, w20, #0x7ffffffe");
   COMPARE(eon(x21, x22, Operand(0xc000000000000003L)),
           "eor x21, x22, #0x3ffffffffffffffc");
-  COMPARE(bic(w27, w28, Operand(0xfffffff7), SetFlags),
-          "ands w27, w28, #0x8");
-  COMPARE(bic(x29, x0, Operand(0xfffffffeffffffffL), SetFlags),
+  COMPARE(bics(w27, w28, Operand(0xfffffff7)), "ands w27, w28, #0x8");
+  COMPARE(bics(x29, x0, Operand(0xfffffffeffffffffL)),
           "ands x29, x0, #0x100000000");
 
   // Test stack pointer.
   COMPARE(and_(wsp, wzr, Operand(7)), "and wsp, wzr, #0x7");
-  COMPARE(and_(xzr, xzr, Operand(7), SetFlags), "tst xzr, #0x7");
+  COMPARE(ands(xzr, xzr, Operand(7)), "tst xzr, #0x7");
   COMPARE(orr(sp, xzr, Operand(15)), "orr sp, xzr, #0xf");
   COMPARE(eor(wsp, w0, Operand(31)), "eor wsp, w0, #0x1f");
 
@@ -656,25 +702,17 @@ TEST(logical_shifted) {
   COMPARE(eon(x24, x25, Operand(x26, ASR, 23)), "eon x24, x25, x26, asr #23");
   COMPARE(eon(w27, w28, Operand(w29, ROR, 24)), "eon w27, w28, w29, ror #24");
 
-  COMPARE(and_(w0, w1, Operand(w2), SetFlags), "ands w0, w1, w2");
-  COMPARE(and_(x3, x4, Operand(x5, LSL, 1), SetFlags),
-          "ands x3, x4, x5, lsl #1");
-  COMPARE(and_(w6, w7, Operand(w8, LSR, 2), SetFlags),
-          "ands w6, w7, w8, lsr #2");
-  COMPARE(and_(x9, x10, Operand(x11, ASR, 3), SetFlags),
-          "ands x9, x10, x11, asr #3");
-  COMPARE(and_(w12, w13, Operand(w14, ROR, 4), SetFlags),
-          "ands w12, w13, w14, ror #4");
+  COMPARE(ands(w0, w1, Operand(w2)), "ands w0, w1, w2");
+  COMPARE(ands(x3, x4, Operand(x5, LSL, 1)), "ands x3, x4, x5, lsl #1");
+  COMPARE(ands(w6, w7, Operand(w8, LSR, 2)), "ands w6, w7, w8, lsr #2");
+  COMPARE(ands(x9, x10, Operand(x11, ASR, 3)), "ands x9, x10, x11, asr #3");
+  COMPARE(ands(w12, w13, Operand(w14, ROR, 4)), "ands w12, w13, w14, ror #4");
 
-  COMPARE(bic(w15, w16, Operand(w17), SetFlags), "bics w15, w16, w17");
-  COMPARE(bic(x18, x19, Operand(x20, LSL, 5), SetFlags),
-          "bics x18, x19, x20, lsl #5");
-  COMPARE(bic(w21, w22, Operand(w23, LSR, 6), SetFlags),
-          "bics w21, w22, w23, lsr #6");
-  COMPARE(bic(x24, x25, Operand(x26, ASR, 7), SetFlags),
-          "bics x24, x25, x26, asr #7");
-  COMPARE(bic(w27, w28, Operand(w29, ROR, 8), SetFlags),
-          "bics w27, w28, w29, ror #8");
+  COMPARE(bics(w15, w16, Operand(w17)), "bics w15, w16, w17");
+  COMPARE(bics(x18, x19, Operand(x20, LSL, 5)), "bics x18, x19, x20, lsl #5");
+  COMPARE(bics(w21, w22, Operand(w23, LSR, 6)), "bics w21, w22, w23, lsr #6");
+  COMPARE(bics(x24, x25, Operand(x26, ASR, 7)), "bics x24, x25, x26, asr #7");
+  COMPARE(bics(w27, w28, Operand(w29, ROR, 8)), "bics w27, w28, w29, ror #8");
 
   COMPARE(tst(w0, Operand(w1)), "tst w0, w1");
   COMPARE(tst(w2, Operand(w3, ROR, 10)), "tst w2, w3, ror #10");
@@ -745,11 +783,16 @@ TEST(branch) {
   COMPARE(cbz(x1, INST_OFF(-0x100000)), "cbz x1, #-0x100000");
   COMPARE(cbnz(w2, INST_OFF(0xffffc)), "cbnz w2, #+0xffffc");
   COMPARE(cbnz(x3, INST_OFF(-0x100000)), "cbnz x3, #-0x100000");
-  COMPARE(tbz(x4, 0, INST_OFF(0x7ffc)), "tbz w4, #0, #+0x7ffc");
+  COMPARE(tbz(w4, 0, INST_OFF(0x7ffc)), "tbz w4, #0, #+0x7ffc");
   COMPARE(tbz(x5, 63, INST_OFF(-0x8000)), "tbz x5, #63, #-0x8000");
-  COMPARE(tbnz(x6, 0, INST_OFF(0x7ffc)), "tbnz w6, #0, #+0x7ffc");
-  COMPARE(tbnz(x7, 63, INST_OFF(-0x8000)), "tbnz x7, #63, #-0x8000");
-
+  COMPARE(tbz(w6, 31, INST_OFF(0)), "tbz w6, #31, #+0x0");
+  COMPARE(tbz(x7, 31, INST_OFF(0x4)), "tbz w7, #31, #+0x4");
+  COMPARE(tbz(x8, 32, INST_OFF(0x8)), "tbz x8, #32, #+0x8");
+  COMPARE(tbnz(w8, 0, INST_OFF(0x7ffc)), "tbnz w8, #0, #+0x7ffc");
+  COMPARE(tbnz(x9, 63, INST_OFF(-0x8000)), "tbnz x9, #63, #-0x8000");
+  COMPARE(tbnz(w10, 31, INST_OFF(0)), "tbnz w10, #31, #+0x0");
+  COMPARE(tbnz(x11, 31, INST_OFF(0x4)), "tbnz w11, #31, #+0x4");
+  COMPARE(tbnz(x12, 32, INST_OFF(0x8)), "tbnz x12, #32, #+0x8");
   COMPARE(br(x0), "br x0");
   COMPARE(blr(x1), "blr x1");
   COMPARE(ret(x2), "ret x2");
@@ -1229,6 +1272,19 @@ TEST(cond_select) {
   CLEANUP();
 }
 
+TEST(cond_select_macro) {
+  SETUP_CLASS(MacroAssembler);
+
+  COMPARE(Csel(w0, w1, -1, eq), "csinv w0, w1, wzr, eq");
+  COMPARE(Csel(w2, w3, 0, ne), "csel w2, w3, wzr, ne");
+  COMPARE(Csel(w4, w5, 1, hs), "csinc w4, w5, wzr, hs");
+  COMPARE(Csel(x6, x7, -1, lo), "csinv x6, x7, xzr, lo");
+  COMPARE(Csel(x8, x9, 0, mi), "csel x8, x9, xzr, mi");
+  COMPARE(Csel(x10, x11, 1, pl), "csinc x10, x11, xzr, pl");
+
+  CLEANUP();
+}
+
 TEST(cond_cmp) {
   SETUP();
 
@@ -1242,6 +1298,17 @@ TEST(cond_cmp) {
   COMPARE(ccmp(x11, 28, NFlag, vc), "ccmp x11, #28, #Nzcv, vc");
   COMPARE(ccmn(w12, w13, NoFlag, al), "ccmn w12, w13, #nzcv, al");
   COMPARE(ccmp(x14, 27, ZVFlag, nv), "ccmp x14, #27, #nZcV, nv");
+
+  CLEANUP();
+}
+
+TEST(cond_cmp_macro) {
+  SETUP_CLASS(MacroAssembler);
+
+  COMPARE(Ccmp(w0, -1, VFlag, hi), "ccmn w0, #1, #nzcV, hi");
+  COMPARE(Ccmp(x1, -31, CFlag, ge), "ccmn x1, #31, #nzCv, ge");
+  COMPARE(Ccmn(w2, -1, CVFlag, gt), "ccmp w2, #1, #nzCV, gt");
+  COMPARE(Ccmn(x3, -31, ZCVFlag, ls), "ccmp x3, #31, #nZCV, ls");
 
   CLEANUP();
 }
@@ -1286,6 +1353,10 @@ TEST(fp_dp1) {
   COMPARE(fsqrt(s31, s30), "fsqrt s31, s30");
   COMPARE(fsqrt(d10, d11), "fsqrt d10, d11");
   COMPARE(fsqrt(d31, d30), "fsqrt d31, d30");
+  COMPARE(frinta(s10, s11), "frinta s10, s11");
+  COMPARE(frinta(s31, s30), "frinta s31, s30");
+  COMPARE(frinta(d12, d13), "frinta d12, d13");
+  COMPARE(frinta(d31, d30), "frinta d31, d30");
   COMPARE(frintn(s10, s11), "frintn s10, s11");
   COMPARE(frintn(s31, s30), "frintn s31, s30");
   COMPARE(frintn(d12, d13), "frintn d12, d13");
@@ -1316,6 +1387,10 @@ TEST(fp_dp2) {
   COMPARE(fmax(d22, d23, d24), "fmax d22, d23, d24");
   COMPARE(fmin(s25, s26, s27), "fmin s25, s26, s27");
   COMPARE(fmin(d28, d29, d30), "fmin d28, d29, d30");
+  COMPARE(fmaxnm(s31, s0, s1), "fmaxnm s31, s0, s1");
+  COMPARE(fmaxnm(d2, d3, d4), "fmaxnm d2, d3, d4");
+  COMPARE(fminnm(s5, s6, s7), "fminnm s5, s6, s7");
+  COMPARE(fminnm(d8, d9, d10), "fminnm d8, d9, d10");
 
   CLEANUP();
 }
@@ -1324,8 +1399,15 @@ TEST(fp_dp2) {
 TEST(fp_dp3) {
   SETUP();
 
+  COMPARE(fmadd(s7, s8, s9, s10), "fmadd s7, s8, s9, s10");
+  COMPARE(fmadd(d10, d11, d12, d10), "fmadd d10, d11, d12, d10");
   COMPARE(fmsub(s7, s8, s9, s10), "fmsub s7, s8, s9, s10");
   COMPARE(fmsub(d10, d11, d12, d10), "fmsub d10, d11, d12, d10");
+
+  COMPARE(fnmadd(s7, s8, s9, s10), "fnmadd s7, s8, s9, s10");
+  COMPARE(fnmadd(d10, d11, d12, d10), "fnmadd d10, d11, d12, d10");
+  COMPARE(fnmsub(s7, s8, s9, s10), "fnmsub s7, s8, s9, s10");
+  COMPARE(fnmsub(d10, d11, d12, d10), "fnmsub d10, d11, d12, d10");
 
   CLEANUP();
 }
@@ -1380,6 +1462,14 @@ TEST(fp_select) {
 TEST(fcvt_scvtf_ucvtf) {
   SETUP();
 
+  COMPARE(fcvtas(w0, s1), "fcvtas w0, s1");
+  COMPARE(fcvtas(x2, s3), "fcvtas x2, s3");
+  COMPARE(fcvtas(w4, d5), "fcvtas w4, d5");
+  COMPARE(fcvtas(x6, d7), "fcvtas x6, d7");
+  COMPARE(fcvtau(w8, s9), "fcvtau w8, s9");
+  COMPARE(fcvtau(x10, s11), "fcvtau x10, s11");
+  COMPARE(fcvtau(w12, d13), "fcvtau w12, d13");
+  COMPARE(fcvtau(x14, d15), "fcvtau x14, d15");
   COMPARE(fcvtns(w0, s1), "fcvtns w0, s1");
   COMPARE(fcvtns(x2, s3), "fcvtns x2, s3");
   COMPARE(fcvtns(w4, d5), "fcvtns w4, d5");
@@ -1545,6 +1635,16 @@ TEST(add_sub_negative) {
   COMPARE(Sub(w21, w3, -0xbc), "add w21, w3, #0xbc (188)");
   COMPARE(Sub(w22, w4, -2000), "add w22, w4, #0x7d0 (2000)");
 
+  COMPARE(Cmp(w0, -1), "cmn w0, #0x1 (1)");
+  COMPARE(Cmp(x1, -1), "cmn x1, #0x1 (1)");
+  COMPARE(Cmp(w2, -4095), "cmn w2, #0xfff (4095)");
+  COMPARE(Cmp(x3, -4095), "cmn x3, #0xfff (4095)");
+
+  COMPARE(Cmn(w0, -1), "cmp w0, #0x1 (1)");
+  COMPARE(Cmn(x1, -1), "cmp x1, #0x1 (1)");
+  COMPARE(Cmn(w2, -4095), "cmp w2, #0xfff (4095)");
+  COMPARE(Cmn(x3, -4095), "cmp x3, #0xfff (4095)");
+
   CLEANUP();
 }
 
@@ -1583,6 +1683,59 @@ TEST(logical_immediate_move) {
   COMPARE(Eon(w22, w23, 0xffffffff), "mov w22, w23");
   COMPARE(Eon(x22, x23, 0xffffffff), "eor x22, x23, #0xffffffff00000000");
   COMPARE(Eon(x22, x23, 0xffffffffffffffff), "mov x22, x23");
+
+  CLEANUP();
+}
+
+TEST(barriers) {
+  SETUP_CLASS(MacroAssembler);
+
+  // DMB
+  COMPARE(Dmb(FullSystem, BarrierAll), "dmb sy");
+  COMPARE(Dmb(FullSystem, BarrierReads), "dmb ld");
+  COMPARE(Dmb(FullSystem, BarrierWrites), "dmb st");
+
+  COMPARE(Dmb(InnerShareable, BarrierAll), "dmb ish");
+  COMPARE(Dmb(InnerShareable, BarrierReads), "dmb ishld");
+  COMPARE(Dmb(InnerShareable, BarrierWrites), "dmb ishst");
+
+  COMPARE(Dmb(NonShareable, BarrierAll), "dmb nsh");
+  COMPARE(Dmb(NonShareable, BarrierReads), "dmb nshld");
+  COMPARE(Dmb(NonShareable, BarrierWrites), "dmb nshst");
+
+  COMPARE(Dmb(OuterShareable, BarrierAll), "dmb osh");
+  COMPARE(Dmb(OuterShareable, BarrierReads), "dmb oshld");
+  COMPARE(Dmb(OuterShareable, BarrierWrites), "dmb oshst");
+
+  COMPARE(Dmb(FullSystem, BarrierOther), "dmb sy (0b1100)");
+  COMPARE(Dmb(InnerShareable, BarrierOther), "dmb sy (0b1000)");
+  COMPARE(Dmb(NonShareable, BarrierOther), "dmb sy (0b0100)");
+  COMPARE(Dmb(OuterShareable, BarrierOther), "dmb sy (0b0000)");
+
+  // DSB
+  COMPARE(Dsb(FullSystem, BarrierAll), "dsb sy");
+  COMPARE(Dsb(FullSystem, BarrierReads), "dsb ld");
+  COMPARE(Dsb(FullSystem, BarrierWrites), "dsb st");
+
+  COMPARE(Dsb(InnerShareable, BarrierAll), "dsb ish");
+  COMPARE(Dsb(InnerShareable, BarrierReads), "dsb ishld");
+  COMPARE(Dsb(InnerShareable, BarrierWrites), "dsb ishst");
+
+  COMPARE(Dsb(NonShareable, BarrierAll), "dsb nsh");
+  COMPARE(Dsb(NonShareable, BarrierReads), "dsb nshld");
+  COMPARE(Dsb(NonShareable, BarrierWrites), "dsb nshst");
+
+  COMPARE(Dsb(OuterShareable, BarrierAll), "dsb osh");
+  COMPARE(Dsb(OuterShareable, BarrierReads), "dsb oshld");
+  COMPARE(Dsb(OuterShareable, BarrierWrites), "dsb oshst");
+
+  COMPARE(Dsb(FullSystem, BarrierOther), "dsb sy (0b1100)");
+  COMPARE(Dsb(InnerShareable, BarrierOther), "dsb sy (0b1000)");
+  COMPARE(Dsb(NonShareable, BarrierOther), "dsb sy (0b0100)");
+  COMPARE(Dsb(OuterShareable, BarrierOther), "dsb sy (0b0000)");
+
+  // ISB
+  COMPARE(Isb(), "isb");
 
   CLEANUP();
 }

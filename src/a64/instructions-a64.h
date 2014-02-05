@@ -93,6 +93,7 @@ static const float kFP32SignallingNaN = rawbits_to_float(0x7f800001);
 static const double kFP64QuietNaN = rawbits_to_double(0x7ff800007fc00001);
 static const float kFP32QuietNaN = rawbits_to_float(0x7fc00001);
 
+
 enum LSDataSize {
   LSByte        = 0,
   LSHalfword    = 1,
