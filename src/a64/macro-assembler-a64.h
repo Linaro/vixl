@@ -45,6 +45,45 @@
 
 namespace vixl {
 
+enum BranchType {
+  // Copies of architectural conditions.
+  // The associated conditions can be used in place of those, the code will
+  // take care of reinterpreting them with the correct type.
+  integer_eq = eq,
+  integer_ne = ne,
+  integer_hs = hs,
+  integer_lo = lo,
+  integer_mi = mi,
+  integer_pl = pl,
+  integer_vs = vs,
+  integer_vc = vc,
+  integer_hi = hi,
+  integer_ls = ls,
+  integer_ge = ge,
+  integer_lt = lt,
+  integer_gt = gt,
+  integer_le = le,
+  integer_al = al,
+  integer_nv = nv,
+
+  // These two are *different* from the architectural codes al and nv.
+  // 'always' is used to generate unconditional branches.
+  // 'never' is used to not generate a branch (generally as the inverse
+  // branch type of 'always).
+  always, never,
+  // cbz and cbnz
+  reg_zero, reg_not_zero,
+  // tbz and tbnz
+  reg_bit_clear, reg_bit_set,
+
+  // Aliases.
+  kBranchTypeFirstCondition = eq,
+  kBranchTypeLastCondition = nv,
+  kBranchTypeFirstUsingReg = reg_zero,
+  kBranchTypeFirstUsingBit = reg_bit_clear
+};
+
+
 enum DiscardMoveMode { kDontDiscardForSameWReg, kDiscardForSameWReg };
 
 class MacroAssembler : public Assembler {
@@ -54,7 +93,7 @@ class MacroAssembler : public Assembler {
 #ifdef DEBUG
         allow_macro_instructions_(true),
 #endif
-        sp_(sp), tmp0_(ip0), tmp1_(ip1), fptmp0_(d31) {}
+        sp_(sp), tmp_list_(ip0, ip1), fptmp_list_(d31) {}
 
   // Logical macros.
   void And(const Register& rd,
@@ -204,7 +243,6 @@ class MacroAssembler : public Assembler {
   //
   // Other than the registers passed into Pop, the stack pointer and (possibly)
   // the system stack pointer, these methods do not modify any other registers.
-  // Scratch registers such as Tmp0() and Tmp1() are preserved.
   void Push(const CPURegister& src0, const CPURegister& src1 = NoReg,
             const CPURegister& src2 = NoReg, const CPURegister& src3 = NoReg);
   void Pop(const CPURegister& dst0, const CPURegister& dst1 = NoReg,
@@ -303,280 +341,291 @@ class MacroAssembler : public Assembler {
 
   // Remaining instructions are simple pass-through calls to the assembler.
   void Adr(const Register& rd, Label* label) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
     adr(rd, label);
   }
   void Asr(const Register& rd, const Register& rn, unsigned shift) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     asr(rd, rn, shift);
   }
   void Asr(const Register& rd, const Register& rn, const Register& rm) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
     asrv(rd, rn, rm);
   }
+
+  // Branch type inversion relies on these relations.
+  VIXL_STATIC_ASSERT((reg_zero      == (reg_not_zero ^ 1)) &&
+                     (reg_bit_clear == (reg_bit_set ^ 1)) &&
+                     (always        == (never ^ 1)));
+
+  BranchType InvertBranchType(BranchType type) {
+    if (kBranchTypeFirstCondition <= type && type <= kBranchTypeLastCondition) {
+      return static_cast<BranchType>(
+          InvertCondition(static_cast<Condition>(type)));
+    } else {
+      return static_cast<BranchType>(type ^ 1);
+    }
+  }
+
+  void B(Label* label, BranchType type, Register reg = NoReg, int bit = -1);
+
   void B(Label* label) {
     b(label);
   }
   void B(Label* label, Condition cond) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT((cond != al) && (cond != nv));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT((cond != al) && (cond != nv));
     b(label, cond);
+  }
+  void B(Condition cond, Label* label) {
+    B(label, cond);
   }
   void Bfi(const Register& rd,
            const Register& rn,
            unsigned lsb,
            unsigned width) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     bfi(rd, rn, lsb, width);
   }
   void Bfxil(const Register& rd,
              const Register& rn,
              unsigned lsb,
              unsigned width) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     bfxil(rd, rn, lsb, width);
   }
   void Bind(Label* label) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     bind(label);
   }
   void Bl(Label* label) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     bl(label);
   }
   void Blr(const Register& xn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!xn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!xn.IsZero());
     blr(xn);
   }
   void Br(const Register& xn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!xn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!xn.IsZero());
     br(xn);
   }
   void Brk(int code = 0) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     brk(code);
   }
   void Cbnz(const Register& rt, Label* label) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rt.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rt.IsZero());
     cbnz(rt, label);
   }
   void Cbz(const Register& rt, Label* label) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rt.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rt.IsZero());
     cbz(rt, label);
   }
   void Cinc(const Register& rd, const Register& rn, Condition cond) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     cinc(rd, rn, cond);
   }
   void Cinv(const Register& rd, const Register& rn, Condition cond) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     cinv(rd, rn, cond);
   }
   void Cls(const Register& rd, const Register& rn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     cls(rd, rn);
   }
   void Clz(const Register& rd, const Register& rn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     clz(rd, rn);
   }
   void Cneg(const Register& rd, const Register& rn, Condition cond) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     cneg(rd, rn, cond);
   }
   void Cset(const Register& rd, Condition cond) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
     cset(rd, cond);
   }
   void Csetm(const Register& rd, Condition cond) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
     csetm(rd, cond);
   }
   void Csinc(const Register& rd,
              const Register& rn,
              const Register& rm,
              Condition cond) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
-    ASSERT((cond != al) && (cond != nv));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
+    VIXL_ASSERT((cond != al) && (cond != nv));
     csinc(rd, rn, rm, cond);
   }
   void Csinv(const Register& rd,
              const Register& rn,
              const Register& rm,
              Condition cond) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
-    ASSERT((cond != al) && (cond != nv));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
+    VIXL_ASSERT((cond != al) && (cond != nv));
     csinv(rd, rn, rm, cond);
   }
   void Csneg(const Register& rd,
              const Register& rn,
              const Register& rm,
              Condition cond) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
-    ASSERT((cond != al) && (cond != nv));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
+    VIXL_ASSERT((cond != al) && (cond != nv));
     csneg(rd, rn, rm, cond);
   }
   void Dmb(BarrierDomain domain, BarrierType type) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     dmb(domain, type);
   }
   void Dsb(BarrierDomain domain, BarrierType type) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     dsb(domain, type);
   }
   void Extr(const Register& rd,
             const Register& rn,
             const Register& rm,
             unsigned lsb) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
     extr(rd, rn, rm, lsb);
   }
   void Fabs(const FPRegister& fd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fabs(fd, fn);
   }
   void Fadd(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fadd(fd, fn, fm);
   }
   void Fccmp(const FPRegister& fn,
              const FPRegister& fm,
              StatusFlags nzcv,
              Condition cond) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT((cond != al) && (cond != nv));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT((cond != al) && (cond != nv));
     fccmp(fn, fm, nzcv, cond);
   }
   void Fcmp(const FPRegister& fn, const FPRegister& fm) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fcmp(fn, fm);
   }
-  void Fcmp(const FPRegister& fn, double value) {
-    ASSERT(allow_macro_instructions_);
-    if (value != 0.0) {
-      FPRegister tmp = AppropriateTempFor(fn);
-      Fmov(tmp, value);
-      fcmp(fn, tmp);
-    } else {
-      fcmp(fn, value);
-    }
-  }
+  void Fcmp(const FPRegister& fn, double value);
   void Fcsel(const FPRegister& fd,
              const FPRegister& fn,
              const FPRegister& fm,
              Condition cond) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT((cond != al) && (cond != nv));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT((cond != al) && (cond != nv));
     fcsel(fd, fn, fm, cond);
   }
   void Fcvt(const FPRegister& fd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fcvt(fd, fn);
   }
   void Fcvtas(const Register& rd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
     fcvtas(rd, fn);
   }
   void Fcvtau(const Register& rd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
     fcvtau(rd, fn);
   }
   void Fcvtms(const Register& rd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
     fcvtms(rd, fn);
   }
   void Fcvtmu(const Register& rd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
     fcvtmu(rd, fn);
   }
   void Fcvtns(const Register& rd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
     fcvtns(rd, fn);
   }
   void Fcvtnu(const Register& rd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
     fcvtnu(rd, fn);
   }
   void Fcvtzs(const Register& rd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
     fcvtzs(rd, fn);
   }
   void Fcvtzu(const Register& rd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
     fcvtzu(rd, fn);
   }
   void Fdiv(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fdiv(fd, fn, fm);
   }
   void Fmax(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fmax(fd, fn, fm);
   }
   void Fmaxnm(const FPRegister& fd,
               const FPRegister& fn,
               const FPRegister& fm) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fmaxnm(fd, fn, fm);
   }
   void Fmin(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fmin(fd, fn, fm);
   }
   void Fminnm(const FPRegister& fd,
               const FPRegister& fn,
               const FPRegister& fm) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fminnm(fd, fn, fm);
   }
   void Fmov(FPRegister fd, FPRegister fn) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     // Only emit an instruction if fd and fn are different, and they are both D
     // registers. fmov(s0, s0) is not a no-op because it clears the top word of
     // d0. Technically, fmov(d0, d0) is not a no-op either because it clears
@@ -586,399 +635,423 @@ class MacroAssembler : public Assembler {
     }
   }
   void Fmov(FPRegister fd, Register rn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rn.IsZero());
     fmov(fd, rn);
   }
-  void Fmov(FPRegister fd, double imm) {
-    ASSERT(allow_macro_instructions_);
-    fmov(fd, imm);
+  // Provide explicit double and float interfaces for FP immediate moves, rather
+  // than relying on implicit C++ casts. This allows signalling NaNs to be
+  // preserved when the immediate matches the format of fd. Most systems convert
+  // signalling NaNs to quiet NaNs when converting between float and double.
+  void Fmov(FPRegister fd, double imm);
+  void Fmov(FPRegister fd, float imm);
+  // Provide a template to allow other types to be converted automatically.
+  template<typename T>
+  void Fmov(FPRegister fd, T imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    Fmov(fd, static_cast<double>(imm));
   }
   void Fmov(Register rd, FPRegister fn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
     fmov(rd, fn);
   }
   void Fmul(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fmul(fd, fn, fm);
   }
   void Fmadd(const FPRegister& fd,
              const FPRegister& fn,
              const FPRegister& fm,
              const FPRegister& fa) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fmadd(fd, fn, fm, fa);
   }
   void Fmsub(const FPRegister& fd,
              const FPRegister& fn,
              const FPRegister& fm,
              const FPRegister& fa) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fmsub(fd, fn, fm, fa);
   }
   void Fnmadd(const FPRegister& fd,
               const FPRegister& fn,
               const FPRegister& fm,
               const FPRegister& fa) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fnmadd(fd, fn, fm, fa);
   }
   void Fnmsub(const FPRegister& fd,
               const FPRegister& fn,
               const FPRegister& fm,
               const FPRegister& fa) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fnmsub(fd, fn, fm, fa);
   }
   void Fneg(const FPRegister& fd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fneg(fd, fn);
   }
   void Frinta(const FPRegister& fd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     frinta(fd, fn);
   }
   void Frintn(const FPRegister& fd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     frintn(fd, fn);
   }
   void Frintz(const FPRegister& fd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     frintz(fd, fn);
   }
   void Fsqrt(const FPRegister& fd, const FPRegister& fn) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fsqrt(fd, fn);
   }
   void Fsub(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     fsub(fd, fn, fm);
   }
   void Hint(SystemHint code) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     hint(code);
   }
   void Hlt(int code) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     hlt(code);
   }
   void Isb() {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     isb();
   }
   void Ldnp(const CPURegister& rt,
             const CPURegister& rt2,
             const MemOperand& src) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     ldnp(rt, rt2, src);
   }
   void Ldp(const CPURegister& rt,
            const CPURegister& rt2,
            const MemOperand& src) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     ldp(rt, rt2, src);
   }
   void Ldpsw(const Register& rt, const Register& rt2, const MemOperand& src) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     ldpsw(rt, rt2, src);
   }
+  // Provide both double and float interfaces for FP immediate loads, rather
+  // than relying on implicit C++ casts. This allows signalling NaNs to be
+  // preserved when the immediate matches the format of fd. Most systems convert
+  // signalling NaNs to quiet NaNs when converting between float and double.
   void Ldr(const FPRegister& ft, double imm) {
-    ASSERT(allow_macro_instructions_);
-    ldr(ft, imm);
+    VIXL_ASSERT(allow_macro_instructions_);
+    if (ft.Is64Bits()) {
+      ldr(ft, imm);
+    } else {
+      ldr(ft, static_cast<float>(imm));
+    }
+  }
+  void Ldr(const FPRegister& ft, float imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    if (ft.Is32Bits()) {
+      ldr(ft, imm);
+    } else {
+      ldr(ft, static_cast<double>(imm));
+    }
   }
   void Ldr(const Register& rt, uint64_t imm) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rt.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rt.IsZero());
     ldr(rt, imm);
   }
   void Lsl(const Register& rd, const Register& rn, unsigned shift) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     lsl(rd, rn, shift);
   }
   void Lsl(const Register& rd, const Register& rn, const Register& rm) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
     lslv(rd, rn, rm);
   }
   void Lsr(const Register& rd, const Register& rn, unsigned shift) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     lsr(rd, rn, shift);
   }
   void Lsr(const Register& rd, const Register& rn, const Register& rm) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
     lsrv(rd, rn, rm);
   }
   void Madd(const Register& rd,
             const Register& rn,
             const Register& rm,
             const Register& ra) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
-    ASSERT(!ra.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
+    VIXL_ASSERT(!ra.IsZero());
     madd(rd, rn, rm, ra);
   }
   void Mneg(const Register& rd, const Register& rn, const Register& rm) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
     mneg(rd, rn, rm);
   }
   void Mov(const Register& rd, const Register& rn) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     mov(rd, rn);
   }
   void Movk(const Register& rd, uint64_t imm, int shift = -1) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
     movk(rd, imm, shift);
   }
   void Mrs(const Register& rt, SystemRegister sysreg) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rt.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rt.IsZero());
     mrs(rt, sysreg);
   }
   void Msr(SystemRegister sysreg, const Register& rt) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rt.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rt.IsZero());
     msr(sysreg, rt);
   }
   void Msub(const Register& rd,
             const Register& rn,
             const Register& rm,
             const Register& ra) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
-    ASSERT(!ra.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
+    VIXL_ASSERT(!ra.IsZero());
     msub(rd, rn, rm, ra);
   }
   void Mul(const Register& rd, const Register& rn, const Register& rm) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
     mul(rd, rn, rm);
   }
   void Nop() {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     nop();
   }
   void Rbit(const Register& rd, const Register& rn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     rbit(rd, rn);
   }
   void Ret(const Register& xn = lr) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!xn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!xn.IsZero());
     ret(xn);
   }
   void Rev(const Register& rd, const Register& rn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     rev(rd, rn);
   }
   void Rev16(const Register& rd, const Register& rn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     rev16(rd, rn);
   }
   void Rev32(const Register& rd, const Register& rn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     rev32(rd, rn);
   }
   void Ror(const Register& rd, const Register& rs, unsigned shift) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rs.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rs.IsZero());
     ror(rd, rs, shift);
   }
   void Ror(const Register& rd, const Register& rn, const Register& rm) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
     rorv(rd, rn, rm);
   }
   void Sbfiz(const Register& rd,
              const Register& rn,
              unsigned lsb,
              unsigned width) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     sbfiz(rd, rn, lsb, width);
   }
   void Sbfx(const Register& rd,
             const Register& rn,
             unsigned lsb,
             unsigned width) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     sbfx(rd, rn, lsb, width);
   }
   void Scvtf(const FPRegister& fd, const Register& rn, unsigned fbits = 0) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rn.IsZero());
     scvtf(fd, rn, fbits);
   }
   void Sdiv(const Register& rd, const Register& rn, const Register& rm) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
     sdiv(rd, rn, rm);
   }
   void Smaddl(const Register& rd,
               const Register& rn,
               const Register& rm,
               const Register& ra) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
-    ASSERT(!ra.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
+    VIXL_ASSERT(!ra.IsZero());
     smaddl(rd, rn, rm, ra);
   }
   void Smsubl(const Register& rd,
               const Register& rn,
               const Register& rm,
               const Register& ra) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
-    ASSERT(!ra.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
+    VIXL_ASSERT(!ra.IsZero());
     smsubl(rd, rn, rm, ra);
   }
   void Smull(const Register& rd, const Register& rn, const Register& rm) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
     smull(rd, rn, rm);
   }
   void Smulh(const Register& xd, const Register& xn, const Register& xm) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!xd.IsZero());
-    ASSERT(!xn.IsZero());
-    ASSERT(!xm.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!xd.IsZero());
+    VIXL_ASSERT(!xn.IsZero());
+    VIXL_ASSERT(!xm.IsZero());
     smulh(xd, xn, xm);
   }
   void Stnp(const CPURegister& rt,
             const CPURegister& rt2,
             const MemOperand& dst) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     stnp(rt, rt2, dst);
   }
   void Stp(const CPURegister& rt,
            const CPURegister& rt2,
            const MemOperand& dst) {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
     stp(rt, rt2, dst);
   }
   void Sxtb(const Register& rd, const Register& rn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     sxtb(rd, rn);
   }
   void Sxth(const Register& rd, const Register& rn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     sxth(rd, rn);
   }
   void Sxtw(const Register& rd, const Register& rn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     sxtw(rd, rn);
   }
   void Tbnz(const Register& rt, unsigned bit_pos, Label* label) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rt.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rt.IsZero());
     tbnz(rt, bit_pos, label);
   }
   void Tbz(const Register& rt, unsigned bit_pos, Label* label) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rt.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rt.IsZero());
     tbz(rt, bit_pos, label);
   }
   void Ubfiz(const Register& rd,
              const Register& rn,
              unsigned lsb,
              unsigned width) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     ubfiz(rd, rn, lsb, width);
   }
   void Ubfx(const Register& rd,
             const Register& rn,
             unsigned lsb,
             unsigned width) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     ubfx(rd, rn, lsb, width);
   }
   void Ucvtf(const FPRegister& fd, const Register& rn, unsigned fbits = 0) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rn.IsZero());
     ucvtf(fd, rn, fbits);
   }
   void Udiv(const Register& rd, const Register& rn, const Register& rm) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
     udiv(rd, rn, rm);
   }
   void Umaddl(const Register& rd,
               const Register& rn,
               const Register& rm,
               const Register& ra) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
-    ASSERT(!ra.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
+    VIXL_ASSERT(!ra.IsZero());
     umaddl(rd, rn, rm, ra);
   }
   void Umsubl(const Register& rd,
               const Register& rn,
               const Register& rm,
               const Register& ra) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
-    ASSERT(!rm.IsZero());
-    ASSERT(!ra.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
+    VIXL_ASSERT(!ra.IsZero());
     umsubl(rd, rn, rm, ra);
   }
   void Unreachable() {
-    ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(allow_macro_instructions_);
 #ifdef USE_SIMULATOR
     hlt(kUnreachableOpcode);
 #else
@@ -988,21 +1061,21 @@ class MacroAssembler : public Assembler {
 #endif
   }
   void Uxtb(const Register& rd, const Register& rn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     uxtb(rd, rn);
   }
   void Uxth(const Register& rd, const Register& rn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     uxth(rd, rn);
   }
   void Uxtw(const Register& rd, const Register& rn) {
-    ASSERT(allow_macro_instructions_);
-    ASSERT(!rd.IsZero());
-    ASSERT(!rn.IsZero());
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
     uxtw(rd, rn);
   }
 
@@ -1032,9 +1105,8 @@ class MacroAssembler : public Assembler {
 #endif
 
   // Set the current stack pointer, but don't generate any code.
-  // Note that this does not directly affect LastStackPointer().
   void SetStackPointer(const Register& stack_pointer) {
-    ASSERT(!AreAliased(stack_pointer, Tmp0(), Tmp1()));
+    VIXL_ASSERT(!TmpList()->IncludesAliasOf(stack_pointer));
     sp_ = stack_pointer;
   }
 
@@ -1043,59 +1115,8 @@ class MacroAssembler : public Assembler {
     return sp_;
   }
 
-  // Set the registers used internally by the MacroAssembler as scratch
-  // registers. These registers are used to implement behaviours which are not
-  // directly supported by A64, and where an intermediate result is required.
-  //
-  // Both tmp0 and tmp1 may be set to any X register except for xzr, sp,
-  // and StackPointer(). Also, they must not be the same register (though they
-  // may both be NoReg).
-  //
-  // It is valid to set either or both of these registers to NoReg if you don't
-  // want the MacroAssembler to use any scratch registers. In a debug build, the
-  // Assembler will assert that any registers it uses are valid. Be aware that
-  // this check is not present in release builds. If this is a problem, use the
-  // Assembler directly.
-  void SetScratchRegisters(const Register& tmp0, const Register& tmp1) {
-    ASSERT(!AreAliased(xzr, sp, tmp0, tmp1));
-    ASSERT(!AreAliased(StackPointer(), tmp0, tmp1));
-    tmp0_ = tmp0;
-    tmp1_ = tmp1;
-  }
-
-  const Register& Tmp0() const {
-    return tmp0_;
-  }
-
-  const Register& Tmp1() const {
-    return tmp1_;
-  }
-
-  void SetFPScratchRegister(const FPRegister& fptmp0) {
-    fptmp0_ = fptmp0;
-  }
-
-  const FPRegister& FPTmp0() const {
-    return fptmp0_;
-  }
-
-  const Register AppropriateTempFor(
-      const Register& target,
-      const CPURegister& forbidden = NoCPUReg) const {
-    Register candidate = forbidden.Is(Tmp0()) ? Tmp1() : Tmp0();
-    ASSERT(!candidate.Is(target));
-    return Register(candidate.code(), target.size());
-  }
-
-  const FPRegister AppropriateTempFor(
-      const FPRegister& target,
-      const CPURegister& forbidden = NoCPUReg) const {
-    USE(forbidden);
-    FPRegister candidate = FPTmp0();
-    ASSERT(!candidate.Is(forbidden));
-    ASSERT(!candidate.Is(target));
-    return FPRegister(candidate.code(), target.size());
-  }
+  CPURegList* TmpList() { return &tmp_list_; }
+  CPURegList* FPTmpList() { return &fptmp_list_; }
 
   // Like printf, but print at run-time from generated code.
   //
@@ -1108,7 +1129,10 @@ class MacroAssembler : public Assembler {
   // size.
   //
   // The following registers cannot be printed:
-  //    Tmp0(), Tmp1(), StackPointer(), sp.
+  //    StackPointer(), sp.
+  //
+  // In addition, Printf requires scratch registers, so TmpList() must not be
+  // empty.
   //
   // This function automatically preserves caller-saved registers so that
   // calling code can use Printf at any point without having to worry about
@@ -1195,10 +1219,9 @@ class MacroAssembler : public Assembler {
   // The register to use as a stack pointer for stack operations.
   Register sp_;
 
-  // Scratch registers used internally by the MacroAssembler.
-  Register tmp0_;
-  Register tmp1_;
-  FPRegister fptmp0_;
+  // Scratch registers available for use by the MacroAssembler.
+  CPURegList tmp_list_;
+  CPURegList fptmp_list_;
 };
 
 
@@ -1231,7 +1254,7 @@ class InstructionAccurateScope {
     masm_->ReleaseLiteralPool();
 #ifdef DEBUG
     if (start_.IsBound()) {
-      ASSERT(masm_->SizeOfCodeGeneratedSince(&start_) == size_);
+      VIXL_ASSERT(masm_->SizeOfCodeGeneratedSince(&start_) == size_);
     }
     masm_->SetAllowMacroInstructions(old_allow_macro_instructions_);
 #endif
@@ -1244,6 +1267,102 @@ class InstructionAccurateScope {
   Label start_;
   bool old_allow_macro_instructions_;
 #endif
+};
+
+
+// This scope utility allows scratch registers to be managed safely. The
+// MacroAssembler's TmpList() (and FPTmpList()) is used as a pool of scratch
+// registers. These registers can be allocated on demand, and will be returned
+// at the end of the scope.
+//
+// When the scope ends, the MacroAssembler's lists will be restored to their
+// original state, even if the lists were modified by some other means.
+class UseScratchRegisterScope {
+ public:
+  explicit UseScratchRegisterScope(MacroAssembler* masm)
+      : available_(masm->TmpList()),
+        availablefp_(masm->FPTmpList()),
+        old_available_(available_->list()),
+        old_availablefp_(availablefp_->list()) {
+    VIXL_ASSERT(available_->type() == CPURegister::kRegister);
+    VIXL_ASSERT(availablefp_->type() == CPURegister::kFPRegister);
+  }
+
+
+  ~UseScratchRegisterScope();
+
+
+  // Take a register from the appropriate temps list. It will be returned
+  // automatically when the scope ends.
+  Register AcquireW() { return AcquireNextAvailable(available_).W(); }
+  Register AcquireX() { return AcquireNextAvailable(available_).X(); }
+  FPRegister AcquireS() { return AcquireNextAvailable(availablefp_).S(); }
+  FPRegister AcquireD() { return AcquireNextAvailable(availablefp_).D(); }
+
+
+  Register AcquireSameSizeAs(const Register& reg);
+  FPRegister AcquireSameSizeAs(const FPRegister& reg);
+
+
+  // Explicitly release an acquired (or excluded) register, putting it back in
+  // the appropriate temps list.
+  void Release(const CPURegister& reg);
+
+
+  // Make the specified registers available as scratch registers for the
+  // duration of this scope.
+  void Include(const Register& reg1,
+               const Register& reg2 = NoReg,
+               const Register& reg3 = NoReg,
+               const Register& reg4 = NoReg);
+  void Include(const FPRegister& reg1,
+               const FPRegister& reg2 = NoFPReg,
+               const FPRegister& reg3 = NoFPReg,
+               const FPRegister& reg4 = NoFPReg);
+
+
+  // Make sure that the specified registers are not available in this scope.
+  // This can be used to prevent helper functions from using sensitive
+  // registers, for example.
+  void Exclude(const Register& reg1,
+               const Register& reg2 = NoReg,
+               const Register& reg3 = NoReg,
+               const Register& reg4 = NoReg);
+  void Exclude(const FPRegister& reg1,
+               const FPRegister& reg2 = NoFPReg,
+               const FPRegister& reg3 = NoFPReg,
+               const FPRegister& reg4 = NoFPReg);
+  void Exclude(const CPURegister& reg1,
+               const CPURegister& reg2 = NoCPUReg,
+               const CPURegister& reg3 = NoCPUReg,
+               const CPURegister& reg4 = NoCPUReg);
+
+
+  // Prevent any scratch registers from being used in this scope.
+  void ExcludeAll();
+
+
+ private:
+  static CPURegister AcquireNextAvailable(CPURegList* available);
+
+  static void ReleaseByCode(CPURegList* available, int code);
+
+  static void ReleaseByRegList(CPURegList* available,
+                               RegList regs);
+
+  static void IncludeByRegList(CPURegList* available,
+                               RegList exclude);
+
+  static void ExcludeByRegList(CPURegList* available,
+                               RegList exclude);
+
+  // Available scratch registers.
+  CPURegList* available_;     // kRegister
+  CPURegList* availablefp_;   // kFPRegister
+
+  // The state of the available lists at the start of this scope.
+  RegList old_available_;     // kRegister
+  RegList old_availablefp_;   // kFPRegister
 };
 
 

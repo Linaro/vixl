@@ -1,6 +1,14 @@
 VIXL Change Log
 ===============
 
+* 1.3
+    + Address inaccuracies in the simulated floating point instructions.
+    + Implement Default-NaN floating point mode.
+    + Introduce `UseScratchRegisterScope` for controlling the use of temporary
+      registers.
+    + Enable building VIXL on 32-bit hosts.
+    + Other small bug fixes and improvements.
+
 * 1.2
     + Added support for `fmadd`, `fnmadd`, `fnmsub`, `fminnm`, `fmaxnm`,
       `frinta`, `fcvtau` and `fcvtas`.

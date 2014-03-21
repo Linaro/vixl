@@ -121,8 +121,8 @@ class SimRegisterBase {
  public:
   template<typename T>
   void Set(T new_value, unsigned size = sizeof(T)) {
-    ASSERT(size <= kSizeInBytes);
-    ASSERT(size <= sizeof(new_value));
+    VIXL_ASSERT(size <= kSizeInBytes);
+    VIXL_ASSERT(size <= sizeof(new_value));
     // All AArch64 registers are zero-extending; Writing a W register clears the
     // top bits of the corresponding X register.
     memset(value_, 0, kSizeInBytes);
@@ -133,7 +133,7 @@ class SimRegisterBase {
   // the result.
   template<typename T>
   T Get(unsigned size = sizeof(T)) const {
-    ASSERT(size <= kSizeInBytes);
+    VIXL_ASSERT(size <= kSizeInBytes);
     T result;
     memset(&result, 0, sizeof(result));
     memcpy(&result, value_, size);
@@ -175,7 +175,7 @@ class Simulator : public DecoderVisitor {
 
   inline void ExecuteInstruction() {
     // The program counter should always be aligned.
-    ASSERT(IsWordAligned(pc_));
+    VIXL_ASSERT(IsWordAligned(pc_));
     decoder_->Decode(pc_);
     increment_pc();
   }
@@ -195,9 +195,9 @@ class Simulator : public DecoderVisitor {
   inline T reg(unsigned size, unsigned code,
                Reg31Mode r31mode = Reg31IsZeroRegister) const {
     unsigned size_in_bytes = size / 8;
-    ASSERT(size_in_bytes <= sizeof(T));
-    ASSERT((size == kXRegSize) || (size == kWRegSize));
-    ASSERT(code < kNumberOfRegisters);
+    VIXL_ASSERT(size_in_bytes <= sizeof(T));
+    VIXL_ASSERT((size == kXRegSize) || (size == kWRegSize));
+    VIXL_ASSERT(code < kNumberOfRegisters);
 
     if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
       T result;
@@ -237,9 +237,9 @@ class Simulator : public DecoderVisitor {
   inline void set_reg(unsigned size, unsigned code, T value,
                       Reg31Mode r31mode = Reg31IsZeroRegister) {
     unsigned size_in_bytes = size / 8;
-    ASSERT(size_in_bytes <= sizeof(T));
-    ASSERT((size == kXRegSize) || (size == kWRegSize));
-    ASSERT(code < kNumberOfRegisters);
+    VIXL_ASSERT(size_in_bytes <= sizeof(T));
+    VIXL_ASSERT((size == kXRegSize) || (size == kWRegSize));
+    VIXL_ASSERT(code < kNumberOfRegisters);
 
     if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
       return;
@@ -283,9 +283,9 @@ class Simulator : public DecoderVisitor {
   template<typename T>
   inline T fpreg(unsigned size, unsigned code) const {
     unsigned size_in_bytes = size / 8;
-    ASSERT(size_in_bytes <= sizeof(T));
-    ASSERT((size == kDRegSize) || (size == kSRegSize));
-    ASSERT(code < kNumberOfFPRegisters);
+    VIXL_ASSERT(size_in_bytes <= sizeof(T));
+    VIXL_ASSERT((size == kDRegSize) || (size == kSRegSize));
+    VIXL_ASSERT(code < kNumberOfFPRegisters);
     return fpregisters_[code].Get<T>(size_in_bytes);
   }
 
@@ -317,7 +317,7 @@ class Simulator : public DecoderVisitor {
       case kSRegSize: return sreg(code);
       case kDRegSize: return dreg(code);
       default:
-        UNREACHABLE();
+        VIXL_UNREACHABLE();
         return 0.0;
     }
   }
@@ -326,9 +326,9 @@ class Simulator : public DecoderVisitor {
   // This behaviour matches AArch64 register writes.
   template<typename T>
   inline void set_fpreg(unsigned code, T value) {
-    ASSERT((sizeof(value) == kDRegSizeInBytes) ||
+    VIXL_ASSERT((sizeof(value) == kDRegSizeInBytes) ||
            (sizeof(value) == kSRegSizeInBytes));
-    ASSERT(code < kNumberOfFPRegisters);
+    VIXL_ASSERT(code < kNumberOfFPRegisters);
     fpregisters_[code].Set(value, sizeof(value));
   }
 
@@ -356,8 +356,9 @@ class Simulator : public DecoderVisitor {
   SimSystemRegister& nzcv() { return nzcv_; }
 
   // TODO(jbramley): Find a way to make the fpcr_ members return the proper
-  // types, so this accessor is not necessary.
+  // types, so these accessors are not necessary.
   FPRounding RMode() { return static_cast<FPRounding>(fpcr_.RMode()); }
+  bool DN() { return fpcr_.DN() != 0; }
   SimSystemRegister& fpcr() { return fpcr_; }
 
   // Debug helpers
@@ -375,7 +376,7 @@ class Simulator : public DecoderVisitor {
   static const char* VRegNameForCode(unsigned code);
 
   inline bool coloured_trace() { return coloured_trace_; }
-  inline void set_coloured_trace(bool value) { coloured_trace_ = value; }
+  void set_coloured_trace(bool value);
 
   inline bool disasm_trace() { return disasm_trace_; }
   inline void set_disasm_trace(bool value) {
@@ -400,6 +401,19 @@ class Simulator : public DecoderVisitor {
   }
 
  protected:
+  const char* clr_normal;
+  const char* clr_flag_name;
+  const char* clr_flag_value;
+  const char* clr_reg_name;
+  const char* clr_reg_value;
+  const char* clr_fpreg_name;
+  const char* clr_fpreg_value;
+  const char* clr_memory_value;
+  const char* clr_memory_address;
+  const char* clr_debug_number;
+  const char* clr_debug_message;
+  const char* clr_printf;
+
   // Simulation helpers ------------------------------------
   bool ConditionPassed(Condition cond) {
     switch (cond) {
@@ -435,7 +449,7 @@ class Simulator : public DecoderVisitor {
       case al:
         return true;
       default:
-        UNREACHABLE();
+        VIXL_UNREACHABLE();
         return false;
     }
   }
@@ -490,6 +504,9 @@ class Simulator : public DecoderVisitor {
   uint64_t ReverseBits(uint64_t value, unsigned num_bits);
   uint64_t ReverseBytes(uint64_t value, ReverseByteMode mode);
 
+  template <typename T>
+  T FPDefaultNaN() const;
+
   void FPCompare(double val0, double val1);
   double FPRoundInt(double value, FPRounding round_mode);
   double FPToDouble(float value);
@@ -504,16 +521,50 @@ class Simulator : public DecoderVisitor {
   uint64_t FPToUInt64(double value, FPRounding rmode);
 
   template <typename T>
-  T FPMax(T a, T b);
+  T FPAdd(T op1, T op2);
 
   template <typename T>
-  T FPMin(T a, T b);
+  T FPDiv(T op1, T op2);
+
+  template <typename T>
+  T FPMax(T a, T b);
 
   template <typename T>
   T FPMaxNM(T a, T b);
 
   template <typename T>
+  T FPMin(T a, T b);
+
+  template <typename T>
   T FPMinNM(T a, T b);
+
+  template <typename T>
+  T FPMul(T op1, T op2);
+
+  template <typename T>
+  T FPMulAdd(T a, T op1, T op2);
+
+  template <typename T>
+  T FPSqrt(T op);
+
+  template <typename T>
+  T FPSub(T op1, T op2);
+
+  // This doesn't do anything at the moment. We'll need it if we want support
+  // for cumulative exception bits or floating-point exceptions.
+  void FPProcessException() { }
+
+  // Standard NaN processing.
+  template <typename T>
+  T FPProcessNaN(T op);
+
+  bool FPProcessNaNs(Instruction* instr);
+
+  template <typename T>
+  T FPProcessNaNs(T op1, T op2);
+
+  template <typename T>
+  T FPProcessNaNs3(T op1, T op2, T op3);
 
   // Pseudo Printf instruction
   void DoPrintf(Instruction* instr);
@@ -549,9 +600,8 @@ class Simulator : public DecoderVisitor {
   // functions, or to save and restore it when entering and leaving generated
   // code.
   void AssertSupportedFPCR() {
-    ASSERT(fpcr().DN() == 0);             // No default-NaN support.
-    ASSERT(fpcr().FZ() == 0);             // No flush-to-zero support.
-    ASSERT(fpcr().RMode() == FPTieEven);  // Ties-to-even rounding only.
+    VIXL_ASSERT(fpcr().FZ() == 0);             // No flush-to-zero support.
+    VIXL_ASSERT(fpcr().RMode() == FPTieEven);  // Ties-to-even rounding only.
 
     // The simulator does not support half-precision operations so fpcr().AHP()
     // is irrelevant, and is not checked here.

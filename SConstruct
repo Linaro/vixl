@@ -69,6 +69,7 @@ TARGET_SRC_FILES = {
     test/cctest.cc
     test/test-utils-a64.cc
     test/test-assembler-a64.cc
+    test/test-simulator-a64.cc
     test/test-disasm-a64.cc
     test/test-fuzz-a64.cc
     test/examples/test-examples.cc
@@ -136,7 +137,10 @@ env['RANLIB'] = os.environ.get('RANLIB', env.get('RANLIB'))
 env['CC'] = os.environ.get('CC', env.get('CC'))
 env['LD'] = os.environ.get('LD', env.get('LD'))
 
-env.Append(CPPFLAGS = os.environ.get('CPPFLAGS'))
+if os.environ.get('CPPFLAGS'):
+  env.Append(CPPFLAGS = os.environ.get('CPPFLAGS').split())
+if os.environ.get('LINKFLAGS'):
+  env.Append(LINKFLAGS = os.environ.get('LINKFLAGS').split())
 
 # Always look in 'src' for include files.
 env.Append(CPPPATH = [PROJ_SRC_DIR])

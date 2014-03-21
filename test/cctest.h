@@ -54,6 +54,8 @@ class Cctest {
   static void set_coloured_trace(bool value) { coloured_trace_ = value; }
   static bool instruction_stats() { return instruction_stats_; }
   static void set_instruction_stats(bool value) { instruction_stats_ = value; }
+  static bool sim_test_trace() { return sim_test_trace_; }
+  static void set_sim_test_trace(bool value) { sim_test_trace_ = value; }
 
   // The debugger is needed to trace register values.
   static bool run_debugger() { return debug_ || trace_reg_; }
@@ -70,6 +72,7 @@ class Cctest {
   static bool trace_reg_;
   static bool coloured_trace_;
   static bool instruction_stats_;
+  static bool sim_test_trace_;
 };
 
 // Define helper macros for cctest files.

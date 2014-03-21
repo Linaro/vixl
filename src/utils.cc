@@ -58,9 +58,9 @@ double rawbits_to_double(uint64_t bits) {
 
 
 int CountLeadingZeros(uint64_t value, int width) {
-  ASSERT((width == 32) || (width == 64));
+  VIXL_ASSERT((width == 32) || (width == 64));
   int count = 0;
-  uint64_t bit_test = 1UL << (width - 1);
+  uint64_t bit_test = UINT64_C(1) << (width - 1);
   while ((count < width) && ((bit_test & value) == 0)) {
     count++;
     bit_test >>= 1;
@@ -70,7 +70,7 @@ int CountLeadingZeros(uint64_t value, int width) {
 
 
 int CountLeadingSignBits(int64_t value, int width) {
-  ASSERT((width == 32) || (width == 64));
+  VIXL_ASSERT((width == 32) || (width == 64));
   if (value >= 0) {
     return CountLeadingZeros(value, width) - 1;
   } else {
@@ -80,7 +80,7 @@ int CountLeadingSignBits(int64_t value, int width) {
 
 
 int CountTrailingZeros(uint64_t value, int width) {
-  ASSERT((width == 32) || (width == 64));
+  VIXL_ASSERT((width == 32) || (width == 64));
   int count = 0;
   while ((count < width) && (((value >> count) & 1) == 0)) {
     count++;
@@ -92,10 +92,10 @@ int CountTrailingZeros(uint64_t value, int width) {
 int CountSetBits(uint64_t value, int width) {
   // TODO: Other widths could be added here, as the implementation already
   // supports them.
-  ASSERT((width == 32) || (width == 64));
+  VIXL_ASSERT((width == 32) || (width == 64));
 
   // Mask out unused bits to ensure that they are not counted.
-  value &= (0xffffffffffffffffUL >> (64-width));
+  value &= (0xffffffffffffffff >> (64-width));
 
   // Add up the set bits.
   // The algorithm works by adding pairs of bit fields together iteratively,

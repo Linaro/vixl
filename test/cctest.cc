@@ -46,12 +46,15 @@ bool vixl::Cctest::coloured_trace_ = false;
 // No instruction statistics by default.
 bool vixl::Cctest::instruction_stats_ = false;
 
-// Instantiate a Cctest and add append it to the linked list.
+// Don't generate simulator test traces by default.
+bool vixl::Cctest::sim_test_trace_ = false;
+
+// Instantiate a Cctest and append it to the linked list.
 vixl::Cctest::Cctest(const char* name, CctestFunction* callback)
   : name_(name), callback_(callback), next_(NULL) {
   // Append this cctest to the linked list.
   if (first_ == NULL) {
-    ASSERT(last_ == NULL);
+    VIXL_ASSERT(last_ == NULL);
     first_ = this;
   } else {
     last_->next_ = this;
@@ -80,7 +83,8 @@ bool IsSpecialArgument(const char* arg) {
          (strcmp(arg, "--trace_sim") == 0) ||
          (strcmp(arg, "--trace_reg") == 0) ||
          (strcmp(arg, "--coloured_trace") == 0) ||
-         (strcmp(arg, "--instruction_stats") == 0);
+         (strcmp(arg, "--instruction_stats") == 0) ||
+         (strcmp(arg, "--sim_test_trace") == 0);
 }
 
 
@@ -93,9 +97,10 @@ void PrintHelpMessage() {
          "--debugger          run in the debugger.\n"
          "--trace_sim         generate a trace of simulated instructions.\n"
          "--trace_reg         generate a trace of simulated registers. "
-           "Implies --debugger.\n"
+                             "Implies --debugger.\n"
          "--coloured_trace    generate coloured trace.\n"
-         "--instruction_stats log instruction statistics to vixl_stats.csv.\n");
+         "--instruction_stats log instruction statistics to vixl_stats.csv.\n"
+         "--sim_test_trace    Print result traces for SIM_* tests.\n");
 }
 
 int main(int argc, char* argv[]) {
@@ -120,6 +125,10 @@ int main(int argc, char* argv[]) {
 
   if (IsInArgs("--instruction_stats", argc, argv)) {
     vixl::Cctest::set_instruction_stats(true);
+  }
+
+  if (IsInArgs("--sim_test_trace", argc, argv)) {
+    vixl::Cctest::set_sim_test_trace(true);
   }
 
   if (IsInArgs("--help", argc, argv)) {

@@ -1,4 +1,4 @@
-VIXL: AArch64 Runtime Code Generation Library Version 1.2
+VIXL: AArch64 Runtime Code Generation Library Version 1.3
 =========================================================
 
 Contents:
@@ -16,7 +16,7 @@ To build VIXL the following software is required:
 
  1. Python 2.7
  2. SCons 2.0
- 3. GCC 4.4
+ 3. GCC 4.4+
 
 A 64-bit host machine is required, implementing an LP64 data model. VIXL has
 only been tested using GCC on Ubuntu systems.
@@ -62,6 +62,10 @@ The VIXL simulator supports only those instructions that the VIXL assembler can
 generate. The `doc` directory contains a
 [list of supported instructions](doc/supported-instructions.md).
 
+The VIXL simulator was developed to run on 64-bit amd64 platforms. Whilst it
+builds and mostly works for 32-bit x86 platforms, there are a number of
+floating-point operations which do not work correctly, and a number of tests
+fail as a result.
 
 Usage
 =====

@@ -553,7 +553,7 @@ TEST(logical_immediate) {
   }
 
   // 32-bit patterns.
-  value = 0x00003fff00003fffL;
+  value = 0x00003fff00003fff;
   for (int i = 0; i < 32; i++) {
     snprintf(result, RESULT_SIZE, "and x0, x0, #0x%" PRIx64, value);
     COMPARE(and_(x0, x0, Operand(value)), result);
@@ -561,7 +561,7 @@ TEST(logical_immediate) {
   }
 
   // 16-bit patterns.
-  value = 0x001f001f001f001fL;
+  value = 0x001f001f001f001f;
   for (int i = 0; i < 16; i++) {
     snprintf(result, RESULT_SIZE, "and x0, x0, #0x%" PRIx64, value);
     COMPARE(and_(x0, x0, Operand(value)), result);
@@ -569,7 +569,7 @@ TEST(logical_immediate) {
   }
 
   // 8-bit patterns.
-  value = 0x0e0e0e0e0e0e0e0eL;
+  value = 0x0e0e0e0e0e0e0e0e;
   for (int i = 0; i < 8; i++) {
     snprintf(result, RESULT_SIZE, "and x0, x0, #0x%" PRIx64, value);
     COMPARE(and_(x0, x0, Operand(value)), result);
@@ -577,7 +577,7 @@ TEST(logical_immediate) {
   }
 
   // 4-bit patterns.
-  value = 0x6666666666666666L;
+  value = 0x6666666666666666;
   for (int i = 0; i < 4; i++) {
     snprintf(result, RESULT_SIZE, "and x0, x0, #0x%" PRIx64, value);
     COMPARE(and_(x0, x0, Operand(value)), result);
@@ -585,9 +585,9 @@ TEST(logical_immediate) {
   }
 
   // 2-bit patterns.
-  COMPARE(and_(x0, x0, Operand(0x5555555555555555L)),
+  COMPARE(and_(x0, x0, Operand(0x5555555555555555)),
           "and x0, x0, #0x5555555555555555");
-  COMPARE(and_(x0, x0, Operand(0xaaaaaaaaaaaaaaaaL)),
+  COMPARE(and_(x0, x0, Operand(0xaaaaaaaaaaaaaaaa)),
           "and x0, x0, #0xaaaaaaaaaaaaaaaa");
 
   // Test immediate encoding - 32-bit destination.
@@ -605,35 +605,35 @@ TEST(logical_immediate) {
   // Test other instructions.
   COMPARE(tst(w1, Operand(0x11111111)),
           "tst w1, #0x11111111");
-  COMPARE(tst(x2, Operand(0x8888888888888888L)),
+  COMPARE(tst(x2, Operand(0x8888888888888888)),
           "tst x2, #0x8888888888888888");
   COMPARE(orr(w7, w8, Operand(0xaaaaaaaa)),
           "orr w7, w8, #0xaaaaaaaa");
-  COMPARE(orr(x9, x10, Operand(0x5555555555555555L)),
+  COMPARE(orr(x9, x10, Operand(0x5555555555555555)),
           "orr x9, x10, #0x5555555555555555");
   COMPARE(eor(w15, w16, Operand(0x00000001)),
           "eor w15, w16, #0x1");
-  COMPARE(eor(x17, x18, Operand(0x0000000000000003L)),
+  COMPARE(eor(x17, x18, Operand(0x0000000000000003)),
           "eor x17, x18, #0x3");
   COMPARE(ands(w23, w24, Operand(0x0000000f)), "ands w23, w24, #0xf");
-  COMPARE(ands(x25, x26, Operand(0x800000000000000fL)),
+  COMPARE(ands(x25, x26, Operand(0x800000000000000f)),
           "ands x25, x26, #0x800000000000000f");
 
   // Test inverse.
   COMPARE(bic(w3, w4, Operand(0x20202020)),
           "and w3, w4, #0xdfdfdfdf");
-  COMPARE(bic(x5, x6, Operand(0x4040404040404040L)),
+  COMPARE(bic(x5, x6, Operand(0x4040404040404040)),
           "and x5, x6, #0xbfbfbfbfbfbfbfbf");
   COMPARE(orn(w11, w12, Operand(0x40004000)),
           "orr w11, w12, #0xbfffbfff");
-  COMPARE(orn(x13, x14, Operand(0x8181818181818181L)),
+  COMPARE(orn(x13, x14, Operand(0x8181818181818181)),
           "orr x13, x14, #0x7e7e7e7e7e7e7e7e");
   COMPARE(eon(w19, w20, Operand(0x80000001)),
           "eor w19, w20, #0x7ffffffe");
-  COMPARE(eon(x21, x22, Operand(0xc000000000000003L)),
+  COMPARE(eon(x21, x22, Operand(0xc000000000000003)),
           "eor x21, x22, #0x3ffffffffffffffc");
   COMPARE(bics(w27, w28, Operand(0xfffffff7)), "ands w27, w28, #0x8");
-  COMPARE(bics(x29, x0, Operand(0xfffffffeffffffffL)),
+  COMPARE(bics(x29, x0, Operand(0xfffffffeffffffff)),
           "ands x29, x0, #0x100000000");
 
   // Test stack pointer.
@@ -648,15 +648,15 @@ TEST(logical_immediate) {
   COMPARE(orr(w2, wzr, Operand(0x00078000)), "mov w2, #0x78000");
   COMPARE(orr(w3, wzr, Operand(0x00780000)), "orr w3, wzr, #0x780000");
   COMPARE(orr(w4, wzr, Operand(0x07800000)), "orr w4, wzr, #0x7800000");
-  COMPARE(orr(x5, xzr, Operand(0xffffffffffffc001UL)),
+  COMPARE(orr(x5, xzr, Operand(0xffffffffffffc001)),
           "orr x5, xzr, #0xffffffffffffc001");
-  COMPARE(orr(x6, xzr, Operand(0xfffffffffffc001fUL)),
+  COMPARE(orr(x6, xzr, Operand(0xfffffffffffc001f)),
           "mov x6, #0xfffffffffffc001f");
-  COMPARE(orr(x7, xzr, Operand(0xffffffffffc001ffUL)),
+  COMPARE(orr(x7, xzr, Operand(0xffffffffffc001ff)),
           "mov x7, #0xffffffffffc001ff");
-  COMPARE(orr(x8, xzr, Operand(0xfffffffffc001fffUL)),
+  COMPARE(orr(x8, xzr, Operand(0xfffffffffc001fff)),
           "mov x8, #0xfffffffffc001fff");
-  COMPARE(orr(x9, xzr, Operand(0xffffffffc001ffffUL)),
+  COMPARE(orr(x9, xzr, Operand(0xffffffffc001ffff)),
           "orr x9, xzr, #0xffffffffc001ffff");
 
   CLEANUP();
@@ -751,14 +751,14 @@ TEST(dp_2_source) {
 TEST(adr) {
   SETUP();
 
-  COMPARE(adr(x0, 0), "adr x0, #+0x0");
-  COMPARE(adr(x1, 1), "adr x1, #+0x1");
-  COMPARE(adr(x2, -1), "adr x2, #-0x1");
-  COMPARE(adr(x3, 4), "adr x3, #+0x4");
-  COMPARE(adr(x4, -4), "adr x4, #-0x4");
-  COMPARE(adr(x5, 0x000fffff), "adr x5, #+0xfffff");
-  COMPARE(adr(x6, -0x00100000), "adr x6, #-0x100000");
-  COMPARE(adr(xzr, 0), "adr xzr, #+0x0");
+  COMPARE_PREFIX(adr(x0, 0), "adr x0, #+0x0");
+  COMPARE_PREFIX(adr(x1, 1), "adr x1, #+0x1");
+  COMPARE_PREFIX(adr(x2, -1), "adr x2, #-0x1");
+  COMPARE_PREFIX(adr(x3, 4), "adr x3, #+0x4");
+  COMPARE_PREFIX(adr(x4, -4), "adr x4, #-0x4");
+  COMPARE_PREFIX(adr(x5, 0x000fffff), "adr x5, #+0xfffff");
+  COMPARE_PREFIX(adr(x6, -0x00100000), "adr x6, #-0x100000");
+  COMPARE_PREFIX(adr(xzr, 0), "adr xzr, #+0x0");
 
   CLEANUP();
 }
@@ -767,32 +767,32 @@ TEST(branch) {
   SETUP();
 
   #define INST_OFF(x) ((x) >> kInstructionSizeLog2)
-  COMPARE(b(INST_OFF(0x4)), "b #+0x4");
-  COMPARE(b(INST_OFF(-0x4)), "b #-0x4");
-  COMPARE(b(INST_OFF(0x7fffffc)), "b #+0x7fffffc");
-  COMPARE(b(INST_OFF(-0x8000000)), "b #-0x8000000");
-  COMPARE(b(INST_OFF(0xffffc), eq), "b.eq #+0xffffc");
-  COMPARE(b(INST_OFF(-0x100000), mi), "b.mi #-0x100000");
-  COMPARE(b(INST_OFF(0xffffc), al), "b.al #+0xffffc");
-  COMPARE(b(INST_OFF(-0x100000), nv), "b.nv #-0x100000");
-  COMPARE(bl(INST_OFF(0x4)), "bl #+0x4");
-  COMPARE(bl(INST_OFF(-0x4)), "bl #-0x4");
-  COMPARE(bl(INST_OFF(0xffffc)), "bl #+0xffffc");
-  COMPARE(bl(INST_OFF(-0x100000)), "bl #-0x100000");
-  COMPARE(cbz(w0, INST_OFF(0xffffc)), "cbz w0, #+0xffffc");
-  COMPARE(cbz(x1, INST_OFF(-0x100000)), "cbz x1, #-0x100000");
-  COMPARE(cbnz(w2, INST_OFF(0xffffc)), "cbnz w2, #+0xffffc");
-  COMPARE(cbnz(x3, INST_OFF(-0x100000)), "cbnz x3, #-0x100000");
-  COMPARE(tbz(w4, 0, INST_OFF(0x7ffc)), "tbz w4, #0, #+0x7ffc");
-  COMPARE(tbz(x5, 63, INST_OFF(-0x8000)), "tbz x5, #63, #-0x8000");
-  COMPARE(tbz(w6, 31, INST_OFF(0)), "tbz w6, #31, #+0x0");
-  COMPARE(tbz(x7, 31, INST_OFF(0x4)), "tbz w7, #31, #+0x4");
-  COMPARE(tbz(x8, 32, INST_OFF(0x8)), "tbz x8, #32, #+0x8");
-  COMPARE(tbnz(w8, 0, INST_OFF(0x7ffc)), "tbnz w8, #0, #+0x7ffc");
-  COMPARE(tbnz(x9, 63, INST_OFF(-0x8000)), "tbnz x9, #63, #-0x8000");
-  COMPARE(tbnz(w10, 31, INST_OFF(0)), "tbnz w10, #31, #+0x0");
-  COMPARE(tbnz(x11, 31, INST_OFF(0x4)), "tbnz w11, #31, #+0x4");
-  COMPARE(tbnz(x12, 32, INST_OFF(0x8)), "tbnz x12, #32, #+0x8");
+  COMPARE_PREFIX(b(INST_OFF(0x4)), "b #+0x4");
+  COMPARE_PREFIX(b(INST_OFF(-0x4)), "b #-0x4");
+  COMPARE_PREFIX(b(INST_OFF(0x7fffffc)), "b #+0x7fffffc");
+  COMPARE_PREFIX(b(INST_OFF(-0x8000000)), "b #-0x8000000");
+  COMPARE_PREFIX(b(INST_OFF(0xffffc), eq), "b.eq #+0xffffc");
+  COMPARE_PREFIX(b(INST_OFF(-0x100000), mi), "b.mi #-0x100000");
+  COMPARE_PREFIX(b(INST_OFF(0xffffc), al), "b.al #+0xffffc");
+  COMPARE_PREFIX(b(INST_OFF(-0x100000), nv), "b.nv #-0x100000");
+  COMPARE_PREFIX(bl(INST_OFF(0x4)), "bl #+0x4");
+  COMPARE_PREFIX(bl(INST_OFF(-0x4)), "bl #-0x4");
+  COMPARE_PREFIX(bl(INST_OFF(0xffffc)), "bl #+0xffffc");
+  COMPARE_PREFIX(bl(INST_OFF(-0x100000)), "bl #-0x100000");
+  COMPARE_PREFIX(cbz(w0, INST_OFF(0xffffc)), "cbz w0, #+0xffffc");
+  COMPARE_PREFIX(cbz(x1, INST_OFF(-0x100000)), "cbz x1, #-0x100000");
+  COMPARE_PREFIX(cbnz(w2, INST_OFF(0xffffc)), "cbnz w2, #+0xffffc");
+  COMPARE_PREFIX(cbnz(x3, INST_OFF(-0x100000)), "cbnz x3, #-0x100000");
+  COMPARE_PREFIX(tbz(w4, 0, INST_OFF(0x7ffc)), "tbz w4, #0, #+0x7ffc");
+  COMPARE_PREFIX(tbz(x5, 63, INST_OFF(-0x8000)), "tbz x5, #63, #-0x8000");
+  COMPARE_PREFIX(tbz(w6, 31, INST_OFF(0)), "tbz w6, #31, #+0x0");
+  COMPARE_PREFIX(tbz(x7, 31, INST_OFF(0x4)), "tbz w7, #31, #+0x4");
+  COMPARE_PREFIX(tbz(x8, 32, INST_OFF(0x8)), "tbz x8, #32, #+0x8");
+  COMPARE_PREFIX(tbnz(w8, 0, INST_OFF(0x7ffc)), "tbnz w8, #0, #+0x7ffc");
+  COMPARE_PREFIX(tbnz(x9, 63, INST_OFF(-0x8000)), "tbnz x9, #63, #-0x8000");
+  COMPARE_PREFIX(tbnz(w10, 31, INST_OFF(0)), "tbnz w10, #31, #+0x0");
+  COMPARE_PREFIX(tbnz(x11, 31, INST_OFF(0x4)), "tbnz w11, #31, #+0x4");
+  COMPARE_PREFIX(tbnz(x12, 32, INST_OFF(0x8)), "tbnz x12, #32, #+0x8");
   COMPARE(br(x0), "br x0");
   COMPARE(blr(x1), "blr x1");
   COMPARE(ret(x2), "ret x2");
@@ -1230,10 +1230,10 @@ TEST(load_store_pair_nontemp) {
 TEST(load_literal) {
   SETUP();
 
-  COMPARE_PREFIX(ldr(x10, 0x1234567890abcdefUL),  "ldr x10, pc+8");
+  COMPARE_PREFIX(ldr(x10, 0x1234567890abcdef),  "ldr x10, pc+8");
   COMPARE_PREFIX(ldr(w20, 0xfedcba09),  "ldr w20, pc+8");
   COMPARE_PREFIX(ldr(d11, 1.234),  "ldr d11, pc+8");
-  COMPARE_PREFIX(ldr(s22, 2.5),  "ldr s22, pc+8");
+  COMPARE_PREFIX(ldr(s22, 2.5f),  "ldr s22, pc+8");
 
   CLEANUP();
 }
@@ -1316,8 +1316,8 @@ TEST(cond_cmp_macro) {
 TEST(fmov_imm) {
   SETUP();
 
-  COMPARE(fmov(s0, 1.0), "fmov s0, #0x70 (1.0000)");
-  COMPARE(fmov(s31, -13.0), "fmov s31, #0xaa (-13.0000)");
+  COMPARE(fmov(s0, 1.0f), "fmov s0, #0x70 (1.0000)");
+  COMPARE(fmov(s31, -13.0f), "fmov s31, #0xaa (-13.0000)");
   COMPARE(fmov(d1, 1.0), "fmov d1, #0x70 (1.0000)");
   COMPARE(fmov(d29, -13.0), "fmov d29, #0xaa (-13.0000)");
 
@@ -1556,7 +1556,7 @@ TEST(unreachable) {
   SETUP_CLASS(MacroAssembler);
 
 #ifdef USE_SIMULATOR
-  ASSERT(kUnreachableOpcode == 0xdeb0);
+  VIXL_ASSERT(kUnreachableOpcode == 0xdeb0);
   COMPARE(Unreachable(), "hlt #0xdeb0");
 #else
   COMPARE(Unreachable(), "blr xzr");
@@ -1570,7 +1570,7 @@ TEST(unreachable) {
 TEST(trace) {
   SETUP_CLASS(MacroAssembler);
 
-  ASSERT(kTraceOpcode == 0xdeb2);
+  VIXL_ASSERT(kTraceOpcode == 0xdeb2);
 
   // All Trace calls should produce the same instruction.
   COMPARE(Trace(LOG_ALL, TRACE_ENABLE), "hlt #0xdeb2");
@@ -1585,7 +1585,7 @@ TEST(trace) {
 TEST(log) {
   SETUP_CLASS(MacroAssembler);
 
-  ASSERT(kLogOpcode == 0xdeb3);
+  VIXL_ASSERT(kLogOpcode == 0xdeb3);
 
   // All Log calls should produce the same instruction.
   COMPARE(Log(LOG_ALL), "hlt #0xdeb3");

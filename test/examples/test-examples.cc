@@ -24,6 +24,9 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// The examples only work with the simulator.
+#ifdef USE_SIMULATOR
+
 #include "a64/macro-assembler-a64.h"
 #include "a64/debugger-a64.h"
 #include "a64/simulator-a64.h"
@@ -412,3 +415,5 @@ TEST(getting_started) {
   GETTING_STARTED_DOTEST(0xffffffffffffffff);
   GETTING_STARTED_DOTEST(0x5a5a5a5a5a5a5a5a);
 }
+
+#endif  // USE_SIMULATOR

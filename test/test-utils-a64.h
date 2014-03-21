@@ -40,12 +40,12 @@ namespace vixl {
 class RegisterDump {
  public:
   RegisterDump() : completed_(false) {
-    ASSERT(sizeof(dump_.d_[0]) == kDRegSizeInBytes);
-    ASSERT(sizeof(dump_.s_[0]) == kSRegSizeInBytes);
-    ASSERT(sizeof(dump_.d_[0]) == kXRegSizeInBytes);
-    ASSERT(sizeof(dump_.s_[0]) == kWRegSizeInBytes);
-    ASSERT(sizeof(dump_.x_[0]) == kXRegSizeInBytes);
-    ASSERT(sizeof(dump_.w_[0]) == kWRegSizeInBytes);
+    VIXL_ASSERT(sizeof(dump_.d_[0]) == kDRegSizeInBytes);
+    VIXL_ASSERT(sizeof(dump_.s_[0]) == kSRegSizeInBytes);
+    VIXL_ASSERT(sizeof(dump_.d_[0]) == kXRegSizeInBytes);
+    VIXL_ASSERT(sizeof(dump_.s_[0]) == kWRegSizeInBytes);
+    VIXL_ASSERT(sizeof(dump_.x_[0]) == kXRegSizeInBytes);
+    VIXL_ASSERT(sizeof(dump_.w_[0]) == kWRegSizeInBytes);
   }
 
   // The Dump method generates code to store a snapshot of the register values.
@@ -62,7 +62,7 @@ class RegisterDump {
     if (code == kSPRegInternalCode) {
       return wspreg();
     }
-    ASSERT(RegAliasesMatch(code));
+    VIXL_ASSERT(RegAliasesMatch(code));
     return dump_.w_[code];
   }
 
@@ -70,13 +70,13 @@ class RegisterDump {
     if (code == kSPRegInternalCode) {
       return spreg();
     }
-    ASSERT(RegAliasesMatch(code));
+    VIXL_ASSERT(RegAliasesMatch(code));
     return dump_.x_[code];
   }
 
   // FPRegister accessors.
   inline uint32_t sreg_bits(unsigned code) const {
-    ASSERT(FPRegAliasesMatch(code));
+    VIXL_ASSERT(FPRegAliasesMatch(code));
     return dump_.s_[code];
   }
 
@@ -85,7 +85,7 @@ class RegisterDump {
   }
 
   inline uint64_t dreg_bits(unsigned code) const {
-    ASSERT(FPRegAliasesMatch(code));
+    VIXL_ASSERT(FPRegAliasesMatch(code));
     return dump_.d_[code];
   }
 
@@ -95,19 +95,19 @@ class RegisterDump {
 
   // Stack pointer accessors.
   inline int64_t spreg() const {
-    ASSERT(SPRegAliasesMatch());
+    VIXL_ASSERT(SPRegAliasesMatch());
     return dump_.sp_;
   }
 
   inline int64_t wspreg() const {
-    ASSERT(SPRegAliasesMatch());
+    VIXL_ASSERT(SPRegAliasesMatch());
     return dump_.wsp_;
   }
 
   // Flags accessors.
   inline uint64_t flags_nzcv() const {
-    ASSERT(IsComplete());
-    ASSERT((dump_.flags_ & ~Flags_mask) == 0);
+    VIXL_ASSERT(IsComplete());
+    VIXL_ASSERT((dump_.flags_ & ~Flags_mask) == 0);
     return dump_.flags_ & Flags_mask;
   }
 
@@ -123,21 +123,21 @@ class RegisterDump {
   // w<code>. A failure of this test most likely represents a failure in the
   // ::Dump method, or a failure in the simulator.
   bool RegAliasesMatch(unsigned code) const {
-    ASSERT(IsComplete());
-    ASSERT(code < kNumberOfRegisters);
+    VIXL_ASSERT(IsComplete());
+    VIXL_ASSERT(code < kNumberOfRegisters);
     return ((dump_.x_[code] & kWRegMask) == dump_.w_[code]);
   }
 
   // As RegAliasesMatch, but for the stack pointer.
   bool SPRegAliasesMatch() const {
-    ASSERT(IsComplete());
+    VIXL_ASSERT(IsComplete());
     return ((dump_.sp_ & kWRegMask) == dump_.wsp_);
   }
 
   // As RegAliasesMatch, but for floating-point registers.
   bool FPRegAliasesMatch(unsigned code) const {
-    ASSERT(IsComplete());
-    ASSERT(code < kNumberOfFPRegisters);
+    VIXL_ASSERT(IsComplete());
+    VIXL_ASSERT(code < kNumberOfFPRegisters);
     return (dump_.d_[code] & kSRegMask) == dump_.s_[code];
   }
 
@@ -214,7 +214,7 @@ RegList PopulateFPRegisterArray(FPRegister* s, FPRegister* d, FPRegister* v,
 // top word anyway, so clobbering the full X registers should make tests more
 // rigorous.
 void Clobber(MacroAssembler* masm, RegList reg_list,
-             uint64_t const value = 0xfedcba9876543210UL);
+             uint64_t const value = 0xfedcba9876543210);
 
 // As Clobber, but for FP registers.
 void ClobberFP(MacroAssembler* masm, RegList reg_list,

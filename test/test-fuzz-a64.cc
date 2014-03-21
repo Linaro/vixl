@@ -89,7 +89,7 @@ TEST(decoder_pedantic) {
   Decoder decoder;
   Instruction buffer[kInstructionSize];
 
-  for (uint64_t i = 0; i < (1UL << 32); i++) {
+  for (uint64_t i = 0; i < (UINT64_C(1) << 32); i++) {
     if ((i & 0xffffff) == 0) {
       fprintf(stderr, "0x%08" PRIx32 "\n", static_cast<uint32_t>(i));
     }
@@ -106,7 +106,7 @@ TEST(disasm_pedantic) {
   Instruction buffer[kInstructionSize];
 
   decoder.AppendVisitor(&disasm);
-  for (uint64_t i = 0; i < (1UL << 32); i++) {
+  for (uint64_t i = 0; i < (UINT64_C(1) << 32); i++) {
     if ((i & 0xffff) == 0) {
       fprintf(stderr, "0x%08" PRIx32 "\n", static_cast<uint32_t>(i));
     }
