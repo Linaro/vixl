@@ -269,19 +269,19 @@ bool Disassembler::IsMovzMovnImm(unsigned reg_size, uint64_t value) {
               ((reg_size == kWRegSize) && (value <= 0xffffffff)));
 
   // Test for movz: 16 bits set at positions 0, 16, 32 or 48.
-  if (((value & 0xffffffffffff0000) == 0) ||
-      ((value & 0xffffffff0000ffff) == 0) ||
-      ((value & 0xffff0000ffffffff) == 0) ||
-      ((value & 0x0000ffffffffffff) == 0)) {
+  if (((value & UINT64_C(0xffffffffffff0000)) == 0) ||
+      ((value & UINT64_C(0xffffffff0000ffff)) == 0) ||
+      ((value & UINT64_C(0xffff0000ffffffff)) == 0) ||
+      ((value & UINT64_C(0x0000ffffffffffff)) == 0)) {
     return true;
   }
 
   // Test for movn: NOT(16 bits set at positions 0, 16, 32 or 48).
   if ((reg_size == kXRegSize) &&
-      (((value & 0xffffffffffff0000) == 0xffffffffffff0000) ||
-       ((value & 0xffffffff0000ffff) == 0xffffffff0000ffff) ||
-       ((value & 0xffff0000ffffffff) == 0xffff0000ffffffff) ||
-       ((value & 0x0000ffffffffffff) == 0x0000ffffffffffff))) {
+      (((~value & UINT64_C(0xffffffffffff0000)) == 0) ||
+       ((~value & UINT64_C(0xffffffff0000ffff)) == 0) ||
+       ((~value & UINT64_C(0xffff0000ffffffff)) == 0) ||
+       ((~value & UINT64_C(0x0000ffffffffffff)) == 0))) {
     return true;
   }
   if ((reg_size == kWRegSize) &&

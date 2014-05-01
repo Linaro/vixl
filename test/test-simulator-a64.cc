@@ -136,6 +136,17 @@ namespace vixl {
 static const unsigned kErrorReportLimit = 8;
 
 
+// Overloaded versions of rawbits_to_double and rawbits_to_float for use in the
+// templated test functions.
+static float rawbits_to_fp(uint32_t bits) {
+  return rawbits_to_float(bits);
+}
+
+static double rawbits_to_fp(uint64_t bits) {
+  return rawbits_to_double(bits);
+}
+
+
 // MacroAssembler member function pointers to pass to the test dispatchers.
 typedef void (MacroAssembler::*Test1OpFPHelper_t)(const FPRegister& fd,
                                                   const FPRegister& fn);
@@ -146,8 +157,119 @@ typedef void (MacroAssembler::*Test3OpFPHelper_t)(const FPRegister& fd,
                                                   const FPRegister& fn,
                                                   const FPRegister& fm,
                                                   const FPRegister& fa);
+typedef void (MacroAssembler::*TestFPCmpHelper_t)(const FPRegister& fn,
+                                                  const FPRegister& fm);
+typedef void (MacroAssembler::*TestFPCmpZeroHelper_t)(const FPRegister& fn,
+                                                      double value);
+typedef void (MacroAssembler::*TestFPToIntHelper_t)(const Register& rd,
+                                                    const FPRegister& fn);
+typedef void (MacroAssembler::*TestFixedToFPHelper_t)(const FPRegister& fd,
+                                                      const Register& rn,
+                                                      unsigned fbits);
 
 // Standard test dispatchers.
+
+
+static void Test1Op_Helper(Test1OpFPHelper_t helper, uintptr_t inputs,
+                           unsigned inputs_length, uintptr_t results,
+                           unsigned d_size, unsigned n_size) {
+  VIXL_ASSERT((d_size == kDRegSize) || (d_size == kSRegSize));
+  VIXL_ASSERT((n_size == kDRegSize) || (n_size == kSRegSize));
+
+  SETUP();
+  START();
+
+  // Roll up the loop to keep the code size down.
+  Label loop_n;
+
+  Register out = x0;
+  Register inputs_base = x1;
+  Register length = w2;
+  Register index_n = w3;
+
+  const int n_index_shift =
+      (n_size == kDRegSize) ? kDRegSizeInBytesLog2 : kSRegSizeInBytesLog2;
+
+  FPRegister fd = (d_size == kDRegSize) ? d0 : s0;
+  FPRegister fn = (n_size == kDRegSize) ? d1 : s1;
+
+  __ Mov(out, results);
+  __ Mov(inputs_base, inputs);
+  __ Mov(length, inputs_length);
+
+  __ Mov(index_n, 0);
+  __ Bind(&loop_n);
+  __ Ldr(fn, MemOperand(inputs_base, index_n, UXTW, n_index_shift));
+
+  (masm.*helper)(fd, fn);
+  __ Str(fd, MemOperand(out, fd.SizeInBytes(), PostIndex));
+
+  __ Add(index_n, index_n, 1);
+  __ Cmp(index_n, inputs_length);
+  __ B(lo, &loop_n);
+
+  END();
+  RUN();
+  TEARDOWN();
+}
+
+
+// Test FP instructions. The inputs[] and expected[] arrays should be arrays of
+// rawbits representations of doubles or floats. This ensures that exact bit
+// comparisons can be performed.
+template <typename Tn, typename Td>
+static void Test1Op(const char * name, Test1OpFPHelper_t helper,
+                    const Tn inputs[], unsigned inputs_length,
+                    const Td expected[], unsigned expected_length) {
+  VIXL_ASSERT(inputs_length > 0);
+
+  const unsigned results_length = inputs_length;
+  Td * results = new Td[results_length];
+
+  const unsigned d_bits = sizeof(Td) * 8;
+  const unsigned n_bits = sizeof(Tn) * 8;
+
+  Test1Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
+                 reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
+
+  if (Cctest::sim_test_trace()) {
+    // Print the results.
+    printf("const uint%u_t kExpected_%s[] = {\n", d_bits, name);
+    for (unsigned d = 0; d < results_length; d++) {
+      printf("  0x%0*" PRIx64 ",\n",
+             d_bits / 4, static_cast<uint64_t>(results[d]));
+    }
+    printf("};\n");
+    printf("const unsigned kExpectedCount_%s = %u;\n", name, results_length);
+  } else {
+    // Check the results.
+    VIXL_CHECK(expected_length == results_length);
+    unsigned error_count = 0;
+    unsigned d = 0;
+    for (unsigned n = 0; n < inputs_length; n++, d++) {
+      if (results[d] != expected[d]) {
+        if (++error_count > kErrorReportLimit) continue;
+
+        printf("%s 0x%0*" PRIx64 " (%s %g):\n",
+               name, n_bits / 4, static_cast<uint64_t>(inputs[n]),
+               name, rawbits_to_fp(inputs[n]));
+        printf("  Expected: 0x%0*" PRIx64 " (%g)\n",
+               d_bits / 4, static_cast<uint64_t>(expected[d]),
+               rawbits_to_fp(expected[d]));
+        printf("  Found:    0x%0*" PRIx64 " (%g)\n",
+               d_bits / 4, static_cast<uint64_t>(results[d]),
+               rawbits_to_fp(results[d]));
+        printf("\n");
+      }
+    }
+    VIXL_ASSERT(d == expected_length);
+    if (error_count > kErrorReportLimit) {
+      printf("%u other errors follow.\n", error_count - kErrorReportLimit);
+    }
+    VIXL_CHECK(error_count == 0);
+  }
+  delete[] results;
+}
 
 
 static void Test2Op_Helper(Test2OpFPHelper_t helper,
@@ -159,7 +281,7 @@ static void Test2Op_Helper(Test2OpFPHelper_t helper,
   START();
 
   // Roll up the loop to keep the code size down.
-  Label loop_n, loop_m, loop_a;
+  Label loop_n, loop_m;
 
   Register out = x0;
   Register inputs_base = x1;
@@ -204,30 +326,32 @@ static void Test2Op_Helper(Test2OpFPHelper_t helper,
 }
 
 
-// Test FP instructions using doubles. The inputs[] and expected[] arrays should
-// be arrays of rawbits representations of doubles. This ensures that exact bit
+// Test FP instructions. The inputs[] and expected[] arrays should be arrays of
+// rawbits representations of doubles or floats. This ensures that exact bit
 // comparisons can be performed.
+template <typename T>
 static void Test2Op(const char * name, Test2OpFPHelper_t helper,
-                    const uint64_t inputs[], unsigned inputs_length,
-                    const uint64_t expected[], unsigned expected_length) {
+                    const T inputs[], unsigned inputs_length,
+                    const T expected[], unsigned expected_length) {
   VIXL_ASSERT(inputs_length > 0);
 
-  static unsigned results_length = inputs_length * inputs_length;
-  uint64_t * results = new uint64_t[results_length];
+  const unsigned results_length = inputs_length * inputs_length;
+  T * results = new T[results_length];
+
+  const unsigned bits = sizeof(T) * 8;
 
   Test2Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
-                 reinterpret_cast<uintptr_t>(results), kDRegSize);
+                 reinterpret_cast<uintptr_t>(results), bits);
 
   if (Cctest::sim_test_trace()) {
     // Print the results.
-    printf("const uint64_t kExpected_%s[] = {\n", name);
+    printf("const uint%u_t kExpected_%s[] = {\n", bits, name);
     for (unsigned d = 0; d < results_length; d++) {
-      printf("  0x%016" PRIx64 ",\n", results[d]);
+      printf("  0x%0*" PRIx64 ",\n",
+             bits / 4, static_cast<uint64_t>(results[d]));
     }
     printf("};\n");
-    printf("const unsigned kExpectedCount_%s =\n"
-           "    sizeof(kExpected_%s) / sizeof(kExpected_%s[0]);\n",
-           name, name, name);
+    printf("const unsigned kExpectedCount_%s = %u;\n", name, results_length);
   } else {
     // Check the results.
     VIXL_CHECK(expected_length == results_length);
@@ -238,72 +362,19 @@ static void Test2Op(const char * name, Test2OpFPHelper_t helper,
         if (results[d] != expected[d]) {
           if (++error_count > kErrorReportLimit) continue;
 
-          printf("%s 0x%016" PRIx64 ", 0x%016" PRIx64 " (%s %g, %g):\n",
-                 name, inputs[n], inputs[m],
+          printf("%s 0x%0*" PRIx64 ", 0x%0*" PRIx64 " (%s %g %g):\n",
                  name,
-                 rawbits_to_double(inputs[n]),
-                 rawbits_to_double(inputs[m]));
-          printf("  Expected: 0x%016" PRIx64 " (%g)\n",
-                 expected[d], rawbits_to_double(expected[d]));
-          printf("  Found:    0x%016" PRIx64 " (%g)\n",
-                 results[d], rawbits_to_double(results[d]));
-          printf("\n");
-        }
-      }
-    }
-    VIXL_ASSERT(d == expected_length);
-    if (error_count > kErrorReportLimit) {
-      printf("%u other errors follow.\n", error_count - kErrorReportLimit);
-    }
-    VIXL_CHECK(error_count == 0);
-  }
-  delete[] results;
-}
-
-
-// Test FP instructions using floats. The inputs[] and expected[] arrays should
-// be arrays of rawbits representations of floats. This ensures that exact bit
-// comparisons can be performed.
-static void Test2Op(const char * name, Test2OpFPHelper_t helper,
-                    const uint32_t inputs[], unsigned inputs_length,
-                    const uint32_t expected[], unsigned expected_length) {
-  VIXL_ASSERT(inputs_length > 0);
-
-  static unsigned results_length = inputs_length * inputs_length;
-  uint32_t * results = new uint32_t[results_length];
-
-  Test2Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
-                 reinterpret_cast<uintptr_t>(results), kSRegSize);
-
-  if (Cctest::sim_test_trace()) {
-    // Print the results.
-    printf("const uint32_t kExpected_%s[] = {\n", name);
-    for (unsigned d = 0; d < results_length; d++) {
-      printf("  0x%08" PRIx32 ",\n", results[d]);
-    }
-    printf("};\n");
-    printf("const unsigned kExpectedCount_%s =\n"
-           "    sizeof(kExpected_%s) / sizeof(kExpected_%s[0]);\n",
-           name, name, name);
-  } else {
-    // Check the results.
-    VIXL_CHECK(expected_length == results_length);
-    unsigned error_count = 0;
-    unsigned d = 0;
-    for (unsigned n = 0; n < inputs_length; n++) {
-      for (unsigned m = 0; m < inputs_length; m++, d++) {
-        if (results[d] != expected[d]) {
-          if (++error_count > kErrorReportLimit) continue;
-
-          printf("%s 0x%08" PRIx32 ", 0x%08" PRIx32 " (%s %g, %g):\n",
-                 name, inputs[n], inputs[m],
+                 bits / 4, static_cast<uint64_t>(inputs[n]),
+                 bits / 4, static_cast<uint64_t>(inputs[m]),
                  name,
-                 rawbits_to_float(inputs[n]),
-                 rawbits_to_float(inputs[m]));
-          printf("  Expected: 0x%08" PRIx32 " (%g)\n",
-                 expected[d], rawbits_to_float(expected[d]));
-          printf("  Found:    0x%08" PRIx32 " (%g)\n",
-                 results[d], rawbits_to_float(results[d]));
+                 rawbits_to_fp(inputs[n]),
+                 rawbits_to_fp(inputs[m]));
+          printf("  Expected: 0x%0*" PRIx64 " (%g)\n",
+                 bits / 4, static_cast<uint64_t>(expected[d]),
+                 rawbits_to_fp(expected[d]));
+          printf("  Found:    0x%0*" PRIx64 " (%g)\n",
+                 bits / 4, static_cast<uint64_t>(results[d]),
+                 rawbits_to_fp(results[d]));
           printf("\n");
         }
       }
@@ -382,31 +453,32 @@ static void Test3Op_Helper(Test3OpFPHelper_t helper,
 }
 
 
-// Test FP instructions using doubles. The inputs[] and expected[] arrays should
-// be arrays of rawbits representations of doubles. This ensures that exact bit
+// Test FP instructions. The inputs[] and expected[] arrays should be arrays of
+// rawbits representations of doubles or floats. This ensures that exact bit
 // comparisons can be performed.
+template <typename T>
 static void Test3Op(const char * name, Test3OpFPHelper_t helper,
-                    const uint64_t inputs[], unsigned inputs_length,
-                    const uint64_t expected[], unsigned expected_length) {
+                    const T inputs[], unsigned inputs_length,
+                    const T expected[], unsigned expected_length) {
   VIXL_ASSERT(inputs_length > 0);
 
-  static unsigned results_length =
-      inputs_length * inputs_length * inputs_length;
-  uint64_t * results = new uint64_t[results_length];
+  const unsigned results_length = inputs_length * inputs_length * inputs_length;
+  T * results = new T[results_length];
+
+  const unsigned bits = sizeof(T) * 8;
 
   Test3Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
-                 reinterpret_cast<uintptr_t>(results), kDRegSize);
+                 reinterpret_cast<uintptr_t>(results), bits);
 
   if (Cctest::sim_test_trace()) {
     // Print the results.
-    printf("const uint64_t kExpected_%s[] = {\n", name);
+    printf("const uint%u_t kExpected_%s[] = {\n", bits, name);
     for (unsigned d = 0; d < results_length; d++) {
-      printf("  0x%016" PRIx64 ",\n", results[d]);
+      printf("  0x%0*" PRIx64 ",\n",
+             bits / 4, static_cast<uint64_t>(results[d]));
     }
     printf("};\n");
-    printf("const unsigned kExpectedCount_%s =\n"
-           "    sizeof(kExpected_%s) / sizeof(kExpected_%s[0]);\n",
-           name, name, name);
+    printf("const unsigned kExpectedCount_%s = %u;\n", name, results_length);
   } else {
     // Check the results.
     VIXL_CHECK(expected_length == results_length);
@@ -418,17 +490,22 @@ static void Test3Op(const char * name, Test3OpFPHelper_t helper,
           if (results[d] != expected[d]) {
             if (++error_count > kErrorReportLimit) continue;
 
-            printf("%s 0x%016" PRIx64 ", 0x%016" PRIx64 ", 0x%016" PRIx64 " "
-                   "(%s %g, %g, %g):\n",
-                   name, inputs[n], inputs[m], inputs[a],
+            printf("%s 0x%0*" PRIx64 ", 0x%0*" PRIx64 ", 0x%0*" PRIx64
+                   " (%s %g %g %g):\n",
                    name,
-                   rawbits_to_double(inputs[n]),
-                   rawbits_to_double(inputs[m]),
-                   rawbits_to_double(inputs[a]));
-            printf("  Expected: 0x%016" PRIx64 " (%g)\n",
-                   expected[d], rawbits_to_double(expected[d]));
-            printf("  Found:    0x%016" PRIx64 " (%g)\n",
-                   results[d], rawbits_to_double(results[d]));
+                   bits / 4, static_cast<uint64_t>(inputs[n]),
+                   bits / 4, static_cast<uint64_t>(inputs[m]),
+                   bits / 4, static_cast<uint64_t>(inputs[a]),
+                   name,
+                   rawbits_to_fp(inputs[n]),
+                   rawbits_to_fp(inputs[m]),
+                   rawbits_to_fp(inputs[a]));
+            printf("  Expected: 0x%0*" PRIx64 " (%g)\n",
+                   bits / 4, static_cast<uint64_t>(expected[d]),
+                   rawbits_to_fp(expected[d]));
+            printf("  Found:    0x%0*" PRIx64 " (%g)\n",
+                   bits / 4, static_cast<uint64_t>(results[d]),
+                   rawbits_to_fp(results[d]));
             printf("\n");
           }
         }
@@ -444,56 +521,405 @@ static void Test3Op(const char * name, Test3OpFPHelper_t helper,
 }
 
 
-// Test FP instructions using floats. The inputs[] and expected[] arrays should
-// be arrays of rawbits representations of floats. This ensures that exact bit
+static void TestCmp_Helper(TestFPCmpHelper_t helper,
+                           uintptr_t inputs, unsigned inputs_length,
+                           uintptr_t results, unsigned reg_size) {
+  VIXL_ASSERT((reg_size == kDRegSize) || (reg_size == kSRegSize));
+
+  SETUP();
+  START();
+
+  // Roll up the loop to keep the code size down.
+  Label loop_n, loop_m;
+
+  Register out = x0;
+  Register inputs_base = x1;
+  Register length = w2;
+  Register index_n = w3;
+  Register index_m = w4;
+  Register flags = x5;
+
+  bool double_op = reg_size == kDRegSize;
+  const int index_shift =
+      double_op ? kDRegSizeInBytesLog2 : kSRegSizeInBytesLog2;
+
+  FPRegister fn = double_op ? d1 : s1;
+  FPRegister fm = double_op ? d2 : s2;
+
+  __ Mov(out, results);
+  __ Mov(inputs_base, inputs);
+  __ Mov(length, inputs_length);
+
+  __ Mov(index_n, 0);
+  __ Bind(&loop_n);
+  __ Ldr(fn, MemOperand(inputs_base, index_n, UXTW, index_shift));
+
+  __ Mov(index_m, 0);
+  __ Bind(&loop_m);
+  __ Ldr(fm, MemOperand(inputs_base, index_m, UXTW, index_shift));
+
+  (masm.*helper)(fn, fm);
+  __ Mrs(flags, NZCV);
+  __ Ubfx(flags, flags, 28, 4);
+  __ Strb(flags, MemOperand(out, 1, PostIndex));
+
+  __ Add(index_m, index_m, 1);
+  __ Cmp(index_m, inputs_length);
+  __ B(lo, &loop_m);
+
+  __ Add(index_n, index_n, 1);
+  __ Cmp(index_n, inputs_length);
+  __ B(lo, &loop_n);
+
+  END();
+  RUN();
+  TEARDOWN();
+}
+
+
+// Test FP instructions. The inputs[] and expected[] arrays should be arrays of
+// rawbits representations of doubles or floats. This ensures that exact bit
 // comparisons can be performed.
-static void Test3Op(const char * name, Test3OpFPHelper_t helper,
-                    const uint32_t inputs[], unsigned inputs_length,
-                    const uint32_t expected[], unsigned expected_length) {
+template <typename T>
+static void TestCmp(const char * name, TestFPCmpHelper_t helper,
+                    const T inputs[], unsigned inputs_length,
+                    const uint8_t expected[], unsigned expected_length) {
   VIXL_ASSERT(inputs_length > 0);
 
-  static unsigned results_length =
-      inputs_length * inputs_length * inputs_length;
-  uint32_t * results = new uint32_t[results_length];
+  const unsigned results_length = inputs_length * inputs_length;
+  uint8_t * results = new uint8_t[results_length];
 
-  Test3Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
-                 reinterpret_cast<uintptr_t>(results), kSRegSize);
+  const unsigned bits = sizeof(T) * 8;
+
+  TestCmp_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
+                 reinterpret_cast<uintptr_t>(results), bits);
 
   if (Cctest::sim_test_trace()) {
     // Print the results.
-    printf("const uint32_t kExpected_%s[] = {\n", name);
+    printf("const uint8_t kExpected_%s[] = {\n", name);
     for (unsigned d = 0; d < results_length; d++) {
-      printf("  0x%08" PRIx32 ",\n", results[d]);
+      // Each NZCV result only requires 4 bits.
+      VIXL_ASSERT((results[d] & 0xf) == results[d]);
+      printf("  0x%" PRIx8 ",\n", results[d]);
     }
     printf("};\n");
-    printf("const unsigned kExpectedCount_%s =\n"
-           "    sizeof(kExpected_%s) / sizeof(kExpected_%s[0]);\n",
-           name, name, name);
+    printf("const unsigned kExpectedCount_%s = %u;\n", name, results_length);
   } else {
     // Check the results.
     VIXL_CHECK(expected_length == results_length);
     unsigned error_count = 0;
     unsigned d = 0;
     for (unsigned n = 0; n < inputs_length; n++) {
-      for (unsigned m = 0; m < inputs_length; m++) {
-        for (unsigned a = 0; a < inputs_length; a++, d++) {
-          if (results[d] != expected[d]) {
-            if (++error_count > kErrorReportLimit) continue;
+      for (unsigned m = 0; m < inputs_length; m++, d++) {
+        if (results[d] != expected[d]) {
+          if (++error_count > kErrorReportLimit) continue;
 
-            printf("%s 0x%08" PRIx32 ", 0x%08" PRIx32 ", 0x%08" PRIx32 " "
-                   "(%s %g, %g, %g):\n",
-                   name, inputs[n], inputs[m], inputs[a],
-                   name,
-                   rawbits_to_float(inputs[n]),
-                   rawbits_to_float(inputs[m]),
-                   rawbits_to_float(inputs[a]));
-            printf("  Expected: 0x%08" PRIx32 " (%g)\n",
-                   expected[d], rawbits_to_float(expected[d]));
-            printf("  Found:    0x%08" PRIx32 " (%g)\n",
-                   results[d], rawbits_to_float(results[d]));
-            printf("\n");
-          }
+          printf("%s 0x%0*" PRIx64 ", 0x%0*" PRIx64 " (%s %g %g):\n",
+                 name,
+                 bits / 4, static_cast<uint64_t>(inputs[n]),
+                 bits / 4, static_cast<uint64_t>(inputs[m]),
+                 name,
+                 rawbits_to_fp(inputs[n]),
+                 rawbits_to_fp(inputs[m]));
+          printf("  Expected: %c%c%c%c (0x%" PRIx8 ")\n",
+                 (expected[d] & 0x8) ? 'N' : 'n',
+                 (expected[d] & 0x4) ? 'Z' : 'z',
+                 (expected[d] & 0x2) ? 'C' : 'c',
+                 (expected[d] & 0x1) ? 'V' : 'v',
+                 expected[d]);
+          printf("  Found:    %c%c%c%c (0x%" PRIx8 ")\n",
+                 (results[d] & 0x8) ? 'N' : 'n',
+                 (results[d] & 0x4) ? 'Z' : 'z',
+                 (results[d] & 0x2) ? 'C' : 'c',
+                 (results[d] & 0x1) ? 'V' : 'v',
+                 results[d]);
+          printf("\n");
         }
+      }
+    }
+    VIXL_ASSERT(d == expected_length);
+    if (error_count > kErrorReportLimit) {
+      printf("%u other errors follow.\n", error_count - kErrorReportLimit);
+    }
+    VIXL_CHECK(error_count == 0);
+  }
+  delete[] results;
+}
+
+
+static void TestCmpZero_Helper(TestFPCmpZeroHelper_t helper,
+                               uintptr_t inputs, unsigned inputs_length,
+                               uintptr_t results, unsigned reg_size) {
+  VIXL_ASSERT((reg_size == kDRegSize) || (reg_size == kSRegSize));
+
+  SETUP();
+  START();
+
+  // Roll up the loop to keep the code size down.
+  Label loop_n, loop_m;
+
+  Register out = x0;
+  Register inputs_base = x1;
+  Register length = w2;
+  Register index_n = w3;
+  Register flags = x4;
+
+  bool double_op = reg_size == kDRegSize;
+  const int index_shift =
+      double_op ? kDRegSizeInBytesLog2 : kSRegSizeInBytesLog2;
+
+  FPRegister fn = double_op ? d1 : s1;
+
+  __ Mov(out, results);
+  __ Mov(inputs_base, inputs);
+  __ Mov(length, inputs_length);
+
+  __ Mov(index_n, 0);
+  __ Bind(&loop_n);
+  __ Ldr(fn, MemOperand(inputs_base, index_n, UXTW, index_shift));
+
+  (masm.*helper)(fn, 0.0);
+  __ Mrs(flags, NZCV);
+  __ Ubfx(flags, flags, 28, 4);
+  __ Strb(flags, MemOperand(out, 1, PostIndex));
+
+  __ Add(index_n, index_n, 1);
+  __ Cmp(index_n, inputs_length);
+  __ B(lo, &loop_n);
+
+  END();
+  RUN();
+  TEARDOWN();
+}
+
+
+// Test FP instructions. The inputs[] and expected[] arrays should be arrays of
+// rawbits representations of doubles or floats. This ensures that exact bit
+// comparisons can be performed.
+template <typename T>
+static void TestCmpZero(const char * name, TestFPCmpZeroHelper_t helper,
+                        const T inputs[], unsigned inputs_length,
+                        const uint8_t expected[], unsigned expected_length) {
+  VIXL_ASSERT(inputs_length > 0);
+
+  const unsigned results_length = inputs_length;
+  uint8_t * results = new uint8_t[results_length];
+
+  const unsigned bits = sizeof(T) * 8;
+
+  TestCmpZero_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
+                     reinterpret_cast<uintptr_t>(results), bits);
+
+  if (Cctest::sim_test_trace()) {
+    // Print the results.
+    printf("const uint8_t kExpected_%s[] = {\n", name);
+    for (unsigned d = 0; d < results_length; d++) {
+      // Each NZCV result only requires 4 bits.
+      VIXL_ASSERT((results[d] & 0xf) == results[d]);
+      printf("  0x%" PRIx8 ",\n", results[d]);
+    }
+    printf("};\n");
+    printf("const unsigned kExpectedCount_%s = %u;\n", name, results_length);
+  } else {
+    // Check the results.
+    VIXL_CHECK(expected_length == results_length);
+    unsigned error_count = 0;
+    unsigned d = 0;
+    for (unsigned n = 0; n < inputs_length; n++, d++) {
+      if (results[d] != expected[d]) {
+        if (++error_count > kErrorReportLimit) continue;
+
+        printf("%s 0x%0*" PRIx64 ", 0x%0*u (%s %g #0.0):\n",
+               name,
+               bits / 4, static_cast<uint64_t>(inputs[n]),
+               bits / 4, 0,
+               name,
+               rawbits_to_fp(inputs[n]));
+        printf("  Expected: %c%c%c%c (0x%" PRIx8 ")\n",
+               (expected[d] & 0x8) ? 'N' : 'n',
+               (expected[d] & 0x4) ? 'Z' : 'z',
+               (expected[d] & 0x2) ? 'C' : 'c',
+               (expected[d] & 0x1) ? 'V' : 'v',
+               expected[d]);
+        printf("  Found:    %c%c%c%c (0x%" PRIx8 ")\n",
+               (results[d] & 0x8) ? 'N' : 'n',
+               (results[d] & 0x4) ? 'Z' : 'z',
+               (results[d] & 0x2) ? 'C' : 'c',
+               (results[d] & 0x1) ? 'V' : 'v',
+               results[d]);
+        printf("\n");
+      }
+    }
+    VIXL_ASSERT(d == expected_length);
+    if (error_count > kErrorReportLimit) {
+      printf("%u other errors follow.\n", error_count - kErrorReportLimit);
+    }
+    VIXL_CHECK(error_count == 0);
+  }
+  delete[] results;
+}
+
+
+static void TestFPToInt_Helper(TestFPToIntHelper_t helper, uintptr_t inputs,
+                               unsigned inputs_length, uintptr_t results,
+                               unsigned d_size, unsigned n_size) {
+  VIXL_ASSERT((d_size == kXRegSize) || (d_size == kWRegSize));
+  VIXL_ASSERT((n_size == kDRegSize) || (n_size == kSRegSize));
+
+  SETUP();
+  START();
+
+  // Roll up the loop to keep the code size down.
+  Label loop_n;
+
+  Register out = x0;
+  Register inputs_base = x1;
+  Register length = w2;
+  Register index_n = w3;
+
+  const int n_index_shift =
+      (n_size == kDRegSize) ? kDRegSizeInBytesLog2 : kSRegSizeInBytesLog2;
+
+  Register rd = (d_size == kXRegSize) ? x10 : w10;
+  FPRegister fn = (n_size == kDRegSize) ? d1 : s1;
+
+  __ Mov(out, results);
+  __ Mov(inputs_base, inputs);
+  __ Mov(length, inputs_length);
+
+  __ Mov(index_n, 0);
+  __ Bind(&loop_n);
+  __ Ldr(fn, MemOperand(inputs_base, index_n, UXTW, n_index_shift));
+
+  (masm.*helper)(rd, fn);
+  __ Str(rd, MemOperand(out, rd.SizeInBytes(), PostIndex));
+
+  __ Add(index_n, index_n, 1);
+  __ Cmp(index_n, inputs_length);
+  __ B(lo, &loop_n);
+
+  END();
+  RUN();
+  TEARDOWN();
+}
+
+
+// Test FP instructions.
+//  - The inputs[] array should be an array of rawbits representations of
+//    doubles or floats. This ensures that exact bit comparisons can be
+//    performed.
+//  - The expected[] array should be an array of signed integers.
+template <typename Tn, typename Td>
+static void TestFPToS(const char * name, TestFPToIntHelper_t helper,
+                      const Tn inputs[], unsigned inputs_length,
+                      const Td expected[], unsigned expected_length) {
+  VIXL_ASSERT(inputs_length > 0);
+
+  const unsigned results_length = inputs_length;
+  Td * results = new Td[results_length];
+
+  const unsigned d_bits = sizeof(Td) * 8;
+  const unsigned n_bits = sizeof(Tn) * 8;
+
+  TestFPToInt_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
+                     reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
+
+  if (Cctest::sim_test_trace()) {
+    // Print the results.
+    printf("const int%u_t kExpected_%s[] = {\n", d_bits, name);
+    // There is no simple C++ literal for INT*_MIN that doesn't produce
+    // warnings, so we use an appropriate constant in that case instead.
+    // Deriving int_d_min in this way (rather than just checking INT64_MIN and
+    // the like) avoids warnings about comparing values with differing ranges.
+    const int64_t int_d_max = (UINT64_C(1) << (d_bits - 1)) - 1;
+    const int64_t int_d_min = -(int_d_max) - 1;
+    for (unsigned d = 0; d < results_length; d++) {
+      if (results[d] == int_d_min) {
+        printf("  -INT%u_C(%" PRId64 ") - 1,\n", d_bits, int_d_max);
+      } else {
+        printf("  %" PRId64 ",\n", static_cast<int64_t>(results[d]));
+      }
+    }
+    printf("};\n");
+    printf("const unsigned kExpectedCount_%s = %u;\n", name, results_length);
+  } else {
+    // Check the results.
+    VIXL_CHECK(expected_length == results_length);
+    unsigned error_count = 0;
+    unsigned d = 0;
+    for (unsigned n = 0; n < inputs_length; n++, d++) {
+      if (results[d] != expected[d]) {
+        if (++error_count > kErrorReportLimit) continue;
+
+        printf("%s 0x%0*" PRIx64 " (%s %g):\n",
+               name, n_bits / 4, static_cast<uint64_t>(inputs[n]),
+               name, rawbits_to_fp(inputs[n]));
+        printf("  Expected: 0x%0*" PRIx64 " (%" PRId64 ")\n",
+               d_bits / 4, static_cast<uint64_t>(expected[d]),
+               static_cast<int64_t>(expected[d]));
+        printf("  Found:    0x%0*" PRIx64 " (%" PRId64 ")\n",
+               d_bits / 4, static_cast<uint64_t>(results[d]),
+               static_cast<int64_t>(results[d]));
+        printf("\n");
+      }
+    }
+    VIXL_ASSERT(d == expected_length);
+    if (error_count > kErrorReportLimit) {
+      printf("%u other errors follow.\n", error_count - kErrorReportLimit);
+    }
+    VIXL_CHECK(error_count == 0);
+  }
+  delete[] results;
+}
+
+
+// Test FP instructions.
+//  - The inputs[] array should be an array of rawbits representations of
+//    doubles or floats. This ensures that exact bit comparisons can be
+//    performed.
+//  - The expected[] array should be an array of unsigned integers.
+template <typename Tn, typename Td>
+static void TestFPToU(const char * name, TestFPToIntHelper_t helper,
+                      const Tn inputs[], unsigned inputs_length,
+                      const Td expected[], unsigned expected_length) {
+  VIXL_ASSERT(inputs_length > 0);
+
+  const unsigned results_length = inputs_length;
+  Td * results = new Td[results_length];
+
+  const unsigned d_bits = sizeof(Td) * 8;
+  const unsigned n_bits = sizeof(Tn) * 8;
+
+  TestFPToInt_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
+                     reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
+
+  if (Cctest::sim_test_trace()) {
+    // Print the results.
+    printf("const uint%u_t kExpected_%s[] = {\n", d_bits, name);
+    for (unsigned d = 0; d < results_length; d++) {
+      printf("  %" PRIu64 "u,\n", static_cast<uint64_t>(results[d]));
+    }
+    printf("};\n");
+    printf("const unsigned kExpectedCount_%s = %u;\n", name, results_length);
+  } else {
+    // Check the results.
+    VIXL_CHECK(expected_length == results_length);
+    unsigned error_count = 0;
+    unsigned d = 0;
+    for (unsigned n = 0; n < inputs_length; n++, d++) {
+      if (results[d] != expected[d]) {
+        if (++error_count > kErrorReportLimit) continue;
+
+        printf("%s 0x%0*" PRIx64 " (%s %g):\n",
+               name, n_bits / 4, static_cast<uint64_t>(inputs[n]),
+               name, rawbits_to_fp(inputs[n]));
+        printf("  Expected: 0x%0*" PRIx64 " (%" PRIu64 ")\n",
+               d_bits / 4, static_cast<uint64_t>(expected[d]),
+               static_cast<uint64_t>(expected[d]));
+        printf("  Found:    0x%0*" PRIx64 " (%" PRIu64 ")\n",
+               d_bits / 4, static_cast<uint64_t>(results[d]),
+               static_cast<uint64_t>(results[d]));
+        printf("\n");
       }
     }
     VIXL_ASSERT(d == expected_length);
@@ -512,61 +938,81 @@ static void Test3Op(const char * name, Test3OpFPHelper_t helper,
 // Standard floating-point test expansion for both double- and single-precision
 // operations.
 #define STRINGIFY(s) #s
-#define DEFINE_TEST_FP(mnemonic, type)                  \
-    TEST(mnemonic##_d) {                                \
-      Test##type(STRINGIFY(mnemonic) "_d",              \
-                 &MacroAssembler::mnemonic,             \
-                 kInputDouble, kInputDoubleCount,       \
-                 kExpected_##mnemonic##_d,              \
-                 kExpectedCount_##mnemonic##_d);        \
-    }                                                   \
-                                                        \
-    TEST(mnemonic##_s) {                                \
-      Test##type(STRINGIFY(mnemonic) "_s",              \
-                 &MacroAssembler::mnemonic,             \
-                 kInputFloat, kInputFloatCount,         \
-                 kExpected_##mnemonic##_s,              \
-                 kExpectedCount_##mnemonic##_s);        \
+
+#define CALL_TEST_FP_HELPER(mnemonic, variant, type, input)         \
+    Test##type(STRINGIFY(mnemonic) "_" STRINGIFY(variant),          \
+               &MacroAssembler::mnemonic,                           \
+               input, sizeof(input) / sizeof(input[0]),             \
+               kExpected_##mnemonic##_##variant,                    \
+               kExpectedCount_##mnemonic##_##variant)
+
+#define DEFINE_TEST_FP(mnemonic, type, input)                       \
+    TEST(mnemonic##_d) {                                            \
+      CALL_TEST_FP_HELPER(mnemonic, d, type, kInputDouble##input);  \
+    }                                                               \
+    TEST(mnemonic##_s) {                                            \
+      CALL_TEST_FP_HELPER(mnemonic, s, type, kInputFloat##input);   \
     }
 
+DEFINE_TEST_FP(fmadd, 3Op, Basic)
+DEFINE_TEST_FP(fmsub, 3Op, Basic)
+DEFINE_TEST_FP(fnmadd, 3Op, Basic)
+DEFINE_TEST_FP(fnmsub, 3Op, Basic)
 
-// TODO(jbramley): Fabs
+DEFINE_TEST_FP(fadd, 2Op, Basic)
+DEFINE_TEST_FP(fdiv, 2Op, Basic)
+DEFINE_TEST_FP(fmax, 2Op, Basic)
+DEFINE_TEST_FP(fmaxnm, 2Op, Basic)
+DEFINE_TEST_FP(fmin, 2Op, Basic)
+DEFINE_TEST_FP(fminnm, 2Op, Basic)
+DEFINE_TEST_FP(fmul, 2Op, Basic)
+DEFINE_TEST_FP(fsub, 2Op, Basic)
 
-DEFINE_TEST_FP(fadd, 2Op)
+DEFINE_TEST_FP(fabs, 1Op, Basic)
+DEFINE_TEST_FP(fmov, 1Op, Basic)
+DEFINE_TEST_FP(fneg, 1Op, Basic)
+DEFINE_TEST_FP(fsqrt, 1Op, Basic)
+DEFINE_TEST_FP(frinta, 1Op, Conversions)
+DEFINE_TEST_FP(frintn, 1Op, Conversions)
+DEFINE_TEST_FP(frintz, 1Op, Conversions)
 
-// TODO(jbramley): Fccmp
-// TODO(jbramley): Fcmp
-// TODO(jbramley): Fcsel
-// TODO(jbramley): Fcvt
-// TODO(jbramley): Fcvt-to-integer
-// TODO(jbramley): Fcvt-to-fixed-point
+TEST(fcmp_d) { CALL_TEST_FP_HELPER(fcmp, d, Cmp, kInputDoubleBasic); }
+TEST(fcmp_s) { CALL_TEST_FP_HELPER(fcmp, s, Cmp, kInputFloatBasic); }
+TEST(fcmp_dz) { CALL_TEST_FP_HELPER(fcmp, dz, CmpZero, kInputDoubleBasic); }
+TEST(fcmp_sz) { CALL_TEST_FP_HELPER(fcmp, sz, CmpZero, kInputFloatBasic); }
 
-DEFINE_TEST_FP(fdiv, 2Op)
-DEFINE_TEST_FP(fmadd, 3Op)
-DEFINE_TEST_FP(fmax, 2Op)
-DEFINE_TEST_FP(fmaxnm, 2Op)
-DEFINE_TEST_FP(fmin, 2Op)
-DEFINE_TEST_FP(fminnm, 2Op)
+TEST(fcvt_sd) { CALL_TEST_FP_HELPER(fcvt, sd, 1Op, kInputDoubleConversions); }
+TEST(fcvt_ds) { CALL_TEST_FP_HELPER(fcvt, ds, 1Op, kInputFloatConversions); }
 
-// TODO(jbramley): Fmov
+#define DEFINE_TEST_FP_TO_INT(mnemonic, type, input)                \
+    TEST(mnemonic##_xd) {                                           \
+      CALL_TEST_FP_HELPER(mnemonic, xd, type, kInputDouble##input); \
+    }                                                               \
+    TEST(mnemonic##_xs) {                                           \
+      CALL_TEST_FP_HELPER(mnemonic, xs, type, kInputFloat##input);  \
+    }                                                               \
+    TEST(mnemonic##_wd) {                                           \
+      CALL_TEST_FP_HELPER(mnemonic, wd, type, kInputDouble##input); \
+    }                                                               \
+    TEST(mnemonic##_ws) {                                           \
+      CALL_TEST_FP_HELPER(mnemonic, ws, type, kInputFloat##input);  \
+    }
 
-DEFINE_TEST_FP(fmsub, 3Op)
-DEFINE_TEST_FP(fmul, 2Op)
-
-// TODO(jbramley): Fneg
-
-DEFINE_TEST_FP(fnmadd, 3Op)
-DEFINE_TEST_FP(fnmsub, 3Op)
-
-// TODO(jbramley): Frint-to-integer
-// TODO(jbramley): Fsqrt
-
-DEFINE_TEST_FP(fsub, 2Op)
+DEFINE_TEST_FP_TO_INT(fcvtas, FPToS, Conversions)
+DEFINE_TEST_FP_TO_INT(fcvtau, FPToU, Conversions)
+DEFINE_TEST_FP_TO_INT(fcvtms, FPToS, Conversions)
+DEFINE_TEST_FP_TO_INT(fcvtmu, FPToU, Conversions)
+DEFINE_TEST_FP_TO_INT(fcvtns, FPToS, Conversions)
+DEFINE_TEST_FP_TO_INT(fcvtnu, FPToU, Conversions)
+DEFINE_TEST_FP_TO_INT(fcvtzs, FPToS, Conversions)
+DEFINE_TEST_FP_TO_INT(fcvtzu, FPToU, Conversions)
 
 // TODO(jbramley): Scvtf-fixed-point
 // TODO(jbramley): Scvtf-integer
 // TODO(jbramley): Ucvtf-fixed-point
 // TODO(jbramley): Ucvtf-integer
 
+// TODO(jbramley): Fccmp
+// TODO(jbramley): Fcsel
 
 }  // namespace vixl

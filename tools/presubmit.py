@@ -30,6 +30,7 @@ import os
 import sys
 import argparse
 import re
+import platform
 
 import util
 import git
@@ -99,36 +100,65 @@ def BuildOptions():
                       help='Do not clean before build.')
   result.add_argument('--jobs', '-j', metavar='N', type=int, default=1,
                       help='Allow N jobs at once.')
+  sim_default = 'off' if platform.machine() == 'aarch64' else 'on'
+  result.add_argument('--simulator', action='store', choices=['on', 'off'],
+                      default=sim_default,
+                      help='''Explicitly enable or disable the simulator. On
+                      this system, the default is "''' + sim_default + '".')
   return result.parse_args()
 
 
 def CleanBuildSystem():
-  status, output = util.getstatusoutput('scons mode=release --clean')
-  if status != 0: util.abort('Failed to clean in release mode.')
-  status, output = util.getstatusoutput('scons mode=debug --clean')
-  if status != 0: util.abort('Failed to clean in debug mode.')
+  def clean(mode):
+    if args.verbose: print('Cleaning ' + mode + ' mode cctest...')
+    command = 'scons mode=%s simulator=%s target=cctest --clean' % \
+              (mode, args.simulator)
+    status, output = util.getstatusoutput(command)
+    if status != 0:
+      print(output)
+      util.abort('Failed cleaning cctest: ' + command)
+  clean('debug')
+  clean('release')
+
+
+def BuildRequiredObjects():
+  def build(mode):
+    if args.verbose: print('Building ' + mode + ' mode cctest...')
+    command = 'scons mode=%s simulator=%s target=cctest -j%u' % \
+              (mode, args.simulator, args.jobs)
+    status, output = util.getstatusoutput(command)
+    if status != 0:
+      print(output)
+      util.abort('Failed building cctest: ' + command)
+  build('debug')
+  build('release')
+
+
+NOT_RUN = 'NOT RUN'
+PASSED = 'PASSED'
+FAILED = 'FAILED'
 
 
 class Test:
-  def __init__(self, name, command, get_summary):
+  def __init__(self, name, command, get_summary = util.last_line):
     self.name = name
     self.command = command
     self.get_summary = get_summary
-    self.output = 'NOT RUN'
-    self.status = 'NOT RUN'
-    self.summary = 'NOT RUN'
+    self.output = NOT_RUN
+    self.status = NOT_RUN
+    self.summary = NOT_RUN
 
   def Run(self):
+    if args.verbose: print('Running ' + self.name + '...')
     retcode, self.output = util.getstatusoutput(self.command)
-    self.status = 'PASS' if retcode == 0 else 'FAILED'
+    self.status = PASSED if retcode == 0 else FAILED
     self.summary = self.get_summary(self.output)
 
   def PrintOutcome(self):
-    print(('%s :'.ljust(20 - len(self.name)) + '%s\n' + ' ' * 18 + '%s')
-          %(self.name, self.status, self.summary))
+    print(('%-26s : %s') % (self.name, self.summary))
 
   def PrintOutput(self):
-    print('\n\n### OUTPUT of ' + self.name)
+    print('\n\n=== OUTPUT of: ' + self.command + '\n')
     print(self.output)
 
 
@@ -139,14 +169,18 @@ class Tester:
   def AddTest(self, test):
     self.tests.append(test)
 
-  def RunAll(self, verbose):
+  def RunAll(self):
+    result = PASSED
     for test in self.tests:
       test.Run()
+      if test.status != PASSED: result = FAILED
       test.PrintOutcome()
+    print('Presubmit tests ' + result + '.')
 
-    if verbose:
-      for test in self.tests:
-        test.PrintOutput()
+  def PrintFailedTestOutput(self):
+    for test in self.tests:
+      if test.status == FAILED:
+        test.PrintOutput();
 
 
 if __name__ == '__main__':
@@ -162,34 +196,50 @@ if __name__ == '__main__':
 
   tester = Tester()
   if not args.nolint:
+    CPP_EXT_REGEXP = re.compile('\.(cc|h)$')
+    SIM_TRACES_REGEXP = re.compile('test-simulator-traces-a64\.h$')
+    def is_linter_input(filename):
+      # Don't lint the simulator traces file; it takes a very long time to check
+      # and it's (mostly) generated automatically anyway.
+      if SIM_TRACES_REGEXP.search(filename): return False
+      # Otherwise, lint all C++ files.
+      return CPP_EXT_REGEXP.search(filename) != None
+
     lint_args = '--filter=-,+' + ',+'.join(CPP_LINTER_RULES) + ' '
     tracked_files = git.get_tracked_files().split()
-    tracked_files = filter(util.is_cpp_filename, tracked_files)
+    tracked_files = filter(is_linter_input, tracked_files)
     tracked_files = ' '.join(tracked_files)
-    lint = Test('cpp lint',
-                'cpplint.py ' + lint_args + tracked_files,
-                util.last_line)
+    lint = Test('cpp lint', 'cpplint.py ' + lint_args + tracked_files)
     tester.AddTest(lint)
+
   if not args.notest:
-    release = Test('cctest release',
-                   './tools/test.py --mode=release --jobs=%d' % args.jobs,
-                   util.last_line)
-    debug = Test('cctest debug',
-                 './tools/test.py --mode=debug --jobs=%d' % args.jobs,
-                 util.last_line)
-    tester.AddTest(release)
-    tester.AddTest(debug)
+    if not args.noclean:
+      CleanBuildSystem()
+    BuildRequiredObjects()
 
-  if not args.noclean:
-    CleanBuildSystem()
+    def command(*test_args):
+      if args.verbose:
+        return 'tools/test.py --verbose ' + ' '.join(test_args)
+      else:
+        return 'tools/test.py ' + ' '.join(test_args)
 
-  tester.RunAll(args.verbose)
+    if args.simulator == 'on':
+      tester.AddTest(Test('cctest release (debugger)',
+                          command('--cctest=cctest_sim', '--debugger')))
+      tester.AddTest(Test('cctest debug (debugger)',
+                          command('--cctest=cctest_sim_g', '--debugger')))
+      tester.AddTest(Test('cctest release (simulator)',
+                          command('--cctest=cctest_sim')))
+      tester.AddTest(Test('cctest debug (simulator)',
+                          command('--cctest=cctest_sim_g')))
+    else:
+      tester.AddTest(Test('cctest release', command('--cctest=cctest')))
+      tester.AddTest(Test('cctest debug', command('--cctest=cctest_g')))
 
-  # If the linter failed, print its output. We don't do the same for the debug
-  # or release tests because they're easy to run by themselves. In verbose mode,
-  # the output is printed automatically in tester.RunAll().
-  if not args.nolint and lint.status == 'FAILED' and not args.verbose:
-    lint.PrintOutput()
+  tester.RunAll()
+
+  # If tests failed, print their output.
+  tester.PrintFailedTestOutput()
 
   if git.is_git_repository_root():
     untracked_files = git.get_untracked_files()
@@ -197,6 +247,3 @@ if __name__ == '__main__':
       print '\nWARNING: The following files are untracked:'
       for f in untracked_files:
         print f.lstrip('?')
-
-  # Restore original directory.
-  os.chdir(original_dir)

@@ -437,6 +437,13 @@ Load word pair with sign extension.
 
 ### ldr ###
 
+Load double precision floating point literal to FP register.
+
+    void ldr(const FPRegister& ft, double imm)
+
+
+### ldr ###
+
 Load integer or FP register.
 
     void ldr(const CPURegister& rt, const MemOperand& src)
@@ -444,16 +451,16 @@ Load integer or FP register.
 
 ### ldr ###
 
-Load literal to FP register.
+Load literal to register.
 
-    void ldr(const FPRegister& ft, double imm)
+    void ldr(const Register& rt, uint64_t imm)
 
 
 ### ldr ###
 
-Load literal to register.
+Load single precision floating point literal to FP register.
 
-    void ldr(const Register& rt, uint64_t imm)
+    void ldr(const FPRegister& ft, float imm)
 
 
 ### ldrb ###
@@ -1160,28 +1167,35 @@ FP minimum number.
 
 Move FP register to FP register.
 
-    void fmov(FPRegister fd, FPRegister fn)
+    void fmov(const FPRegister& fd, const FPRegister& fn)
 
 
 ### fmov ###
 
 Move FP register to register.
 
-    void fmov(Register rd, FPRegister fn)
+    void fmov(const Register& rd, const FPRegister& fn)
 
 
 ### fmov ###
 
-Move immediate to FP register.
+Move double precision immediate to FP register.
 
-    void fmov(FPRegister fd, double imm)
+    void fmov(const FPRegister& fd, double imm)
 
 
 ### fmov ###
 
 Move register to FP register.
 
-    void fmov(FPRegister fd, Register rn)
+    void fmov(const FPRegister& fd, const Register& rn)
+
+
+### fmov ###
+
+Move single precision immediate to FP register.
+
+    void fmov(const FPRegister& fd, float imm)
 
 
 ### fmsub ###
@@ -1233,6 +1247,13 @@ FP fused multiply, subtract and negate.
 FP round to integer (nearest with ties to away).
 
     void frinta(const FPRegister& fd, const FPRegister& fn)
+
+
+### frintm ###
+
+FP round to integer (toward minus infinity).
+
+    void frintm(const FPRegister& fd, const FPRegister& fn)
 
 
 ### frintn ###

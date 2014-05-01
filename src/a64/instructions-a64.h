@@ -57,23 +57,23 @@ const unsigned kDRegSize = 64;
 const unsigned kDRegSizeLog2 = 6;
 const unsigned kDRegSizeInBytes = kDRegSize / 8;
 const unsigned kDRegSizeInBytesLog2 = kDRegSizeLog2 - 3;
-const uint64_t kWRegMask = 0xffffffff;
-const uint64_t kXRegMask = 0xffffffffffffffff;
-const uint64_t kSRegMask = 0xffffffff;
-const uint64_t kDRegMask = 0xffffffffffffffff;
-const uint64_t kSSignMask = 0x80000000;
-const uint64_t kDSignMask = 0x8000000000000000;
-const uint64_t kWSignMask = 0x80000000;
-const uint64_t kXSignMask = 0x8000000000000000;
-const uint64_t kByteMask = 0xff;
-const uint64_t kHalfWordMask = 0xffff;
-const uint64_t kWordMask = 0xffffffff;
-const uint64_t kXMaxUInt = 0xffffffffffffffff;
-const uint64_t kWMaxUInt = 0xffffffff;
-const int64_t kXMaxInt = 0x7fffffffffffffff;
-const int64_t kXMinInt = 0x8000000000000000;
-const int32_t kWMaxInt = 0x7fffffff;
-const int32_t kWMinInt = 0x80000000;
+const uint64_t kWRegMask = UINT64_C(0xffffffff);
+const uint64_t kXRegMask = UINT64_C(0xffffffffffffffff);
+const uint64_t kSRegMask = UINT64_C(0xffffffff);
+const uint64_t kDRegMask = UINT64_C(0xffffffffffffffff);
+const uint64_t kSSignMask = UINT64_C(0x80000000);
+const uint64_t kDSignMask = UINT64_C(0x8000000000000000);
+const uint64_t kWSignMask = UINT64_C(0x80000000);
+const uint64_t kXSignMask = UINT64_C(0x8000000000000000);
+const uint64_t kByteMask = UINT64_C(0xff);
+const uint64_t kHalfWordMask = UINT64_C(0xffff);
+const uint64_t kWordMask = UINT64_C(0xffffffff);
+const uint64_t kXMaxUInt = UINT64_C(0xffffffffffffffff);
+const uint64_t kWMaxUInt = UINT64_C(0xffffffff);
+const int64_t kXMaxInt = INT64_C(0x7fffffffffffffff);
+const int64_t kXMinInt = INT64_C(0x8000000000000000);
+const int32_t kWMaxInt = INT32_C(0x7fffffff);
+const int32_t kWMinInt = INT32_C(0x80000000);
 const unsigned kLinkRegCode = 30;
 const unsigned kZeroRegCode = 31;
 const unsigned kSPRegInternalCode = 63;
@@ -87,20 +87,25 @@ const unsigned kFloatExponentBits = 8;
 
 const float kFP32PositiveInfinity = rawbits_to_float(0x7f800000);
 const float kFP32NegativeInfinity = rawbits_to_float(0xff800000);
-const double kFP64PositiveInfinity = rawbits_to_double(0x7ff0000000000000);
-const double kFP64NegativeInfinity = rawbits_to_double(0xfff0000000000000);
+const double kFP64PositiveInfinity =
+    rawbits_to_double(UINT64_C(0x7ff0000000000000));
+const double kFP64NegativeInfinity =
+    rawbits_to_double(UINT64_C(0xfff0000000000000));
 
 // This value is a signalling NaN as both a double and as a float (taking the
 // least-significant word).
-static const double kFP64SignallingNaN = rawbits_to_double(0x7ff000007f800001);
+static const double kFP64SignallingNaN =
+    rawbits_to_double(UINT64_C(0x7ff000007f800001));
 static const float kFP32SignallingNaN = rawbits_to_float(0x7f800001);
 
 // A similar value, but as a quiet NaN.
-static const double kFP64QuietNaN = rawbits_to_double(0x7ff800007fc00001);
+static const double kFP64QuietNaN =
+    rawbits_to_double(UINT64_C(0x7ff800007fc00001));
 static const float kFP32QuietNaN = rawbits_to_float(0x7fc00001);
 
 // The default NaN values (for FPCR.DN=1).
-static const double kFP64DefaultNaN = rawbits_to_double(0x7ff8000000000000);
+static const double kFP64DefaultNaN =
+    rawbits_to_double(UINT64_C(0x7ff8000000000000));
 static const float kFP32DefaultNaN = rawbits_to_float(0x7fc00000);
 
 

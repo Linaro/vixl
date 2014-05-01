@@ -26,6 +26,7 @@
 
 #ifdef USE_SIMULATOR
 
+#include <string.h>
 #include <math.h>
 #include "a64/simulator-a64.h"
 
@@ -83,7 +84,7 @@ Simulator::Simulator(Decoder* decoder, FILE* stream) {
 
   stream_ = stream;
   print_disasm_ = new PrintDisassembler(stream_);
-  coloured_trace_ = false;
+  set_coloured_trace(false);
   disasm_trace_ = false;
 
   // Set the sample period to 10, as the VIXL examples and tests are short.
@@ -218,21 +219,20 @@ const char* Simulator::VRegNameForCode(unsigned code) {
 #define INDIGO "36"
 #define WHITE  "37"
 void Simulator::set_coloured_trace(bool value) {
-  if (value != coloured_trace_) {
-    clr_normal         = value ? COLOUR(NORMAL)       : "";
-    clr_flag_name      = value ? COLOUR(BOLD(GREY))   : "";
-    clr_flag_value     = value ? COLOUR(BOLD(WHITE))  : "";
-    clr_reg_name       = value ? COLOUR(BOLD(BLUE))   : "";
-    clr_reg_value      = value ? COLOUR(BOLD(INDIGO)) : "";
-    clr_fpreg_name     = value ? COLOUR(BOLD(ORANGE)) : "";
-    clr_fpreg_value    = value ? COLOUR(BOLD(PURPLE)) : "";
-    clr_memory_value   = value ? COLOUR(BOLD(GREEN))  : "";
-    clr_memory_address = value ? COLOUR(GREEN)        : "";
-    clr_debug_number   = value ? COLOUR(BOLD(ORANGE)) : "";
-    clr_debug_message  = value ? COLOUR(ORANGE)       : "";
-    clr_printf         = value ? COLOUR(GREEN)        : "";
-  }
   coloured_trace_ = value;
+
+  clr_normal         = value ? COLOUR(NORMAL)       : "";
+  clr_flag_name      = value ? COLOUR(BOLD(GREY))   : "";
+  clr_flag_value     = value ? COLOUR(BOLD(WHITE))  : "";
+  clr_reg_name       = value ? COLOUR(BOLD(BLUE))   : "";
+  clr_reg_value      = value ? COLOUR(BOLD(INDIGO)) : "";
+  clr_fpreg_name     = value ? COLOUR(BOLD(ORANGE)) : "";
+  clr_fpreg_value    = value ? COLOUR(BOLD(PURPLE)) : "";
+  clr_memory_value   = value ? COLOUR(BOLD(GREEN))  : "";
+  clr_memory_address = value ? COLOUR(GREEN)        : "";
+  clr_debug_number   = value ? COLOUR(BOLD(ORANGE)) : "";
+  clr_debug_message  = value ? COLOUR(ORANGE)       : "";
+  clr_printf         = value ? COLOUR(GREEN)        : "";
 }
 
 
@@ -456,7 +456,7 @@ void Simulator::PrintFPRegisters(bool print_all_regs) {
   for (unsigned i = 0; i < kNumberOfFPRegisters; i++) {
     if (print_all_regs || first_run || (last_regs[i] != dreg_bits(i))) {
       fprintf(stream_,
-              "# %s %4s:%s 0x%016" PRIx64 "%s (%s%s:%s %g%s %s:%s %g%s)\n",
+              "# %s%4s:%s 0x%016" PRIx64 "%s (%s%s:%s %g%s %s:%s %g%s)\n",
               clr_fpreg_name,
               VRegNameForCode(i),
               clr_fpreg_value,
@@ -1593,6 +1593,10 @@ void Simulator::VisitFPDataProcessing1Source(Instruction* instr) {
     case FSQRT_d: set_dreg(fd, FPSqrt(dreg(fn))); break;
     case FRINTA_s: set_sreg(fd, FPRoundInt(sreg(fn), FPTieAway)); break;
     case FRINTA_d: set_dreg(fd, FPRoundInt(dreg(fn), FPTieAway)); break;
+    case FRINTM_s:
+        set_sreg(fd, FPRoundInt(sreg(fn), FPNegativeInfinity)); break;
+    case FRINTM_d:
+        set_dreg(fd, FPRoundInt(dreg(fn), FPNegativeInfinity)); break;
     case FRINTN_s: set_sreg(fd, FPRoundInt(sreg(fn), FPTieEven)); break;
     case FRINTN_d: set_dreg(fd, FPRoundInt(dreg(fn), FPTieEven)); break;
     case FRINTZ_s: set_sreg(fd, FPRoundInt(sreg(fn), FPZero)); break;
@@ -1859,17 +1863,27 @@ double Simulator::FPRoundInt(double value, FPRounding round_mode) {
   double error = value - int_result;
   switch (round_mode) {
     case FPTieAway: {
-      // If the error is greater than 0.5, or is equal to 0.5 and the integer
-      // result is positive, round up.
-      if ((error > 0.5) || ((error == 0.5) && (int_result >= 0.0))) {
+      // Take care of correctly handling the range ]-0.5, -0.0], which must
+      // yield -0.0.
+      if ((-0.5 < value) && (value < 0.0)) {
+        int_result = -0.0;
+
+      } else if ((error > 0.5) || ((error == 0.5) && (int_result >= 0.0))) {
+        // If the error is greater than 0.5, or is equal to 0.5 and the integer
+        // result is positive, round up.
         int_result++;
       }
       break;
     }
     case FPTieEven: {
+      // Take care of correctly handling the range [-0.5, -0.0], which must
+      // yield -0.0.
+      if ((-0.5 <= value) && (value < 0.0)) {
+        int_result = -0.0;
+
       // If the error is greater than 0.5, or is equal to 0.5 and the integer
       // result is odd, round up.
-      if ((error > 0.5) ||
+      } else if ((error > 0.5) ||
           ((error == 0.5) && (fmod(int_result, 2) != 0))) {
         int_result++;
       }
@@ -2034,7 +2048,6 @@ void Simulator::VisitFPDataProcessing3Source(Instruction* instr) {
   unsigned fm = instr->Rm();
   unsigned fa = instr->Ra();
 
-  // The C99 (and C++11) fma function performs a fused multiply-accumulate.
   switch (instr->Mask(FPDataProcessing3SourceMask)) {
     // fd = fa +/- (fn * fm)
     case FMADD_s: set_sreg(fd, FPMulAdd(sreg(fa), sreg(fn), sreg(fm))); break;
@@ -2373,39 +2386,111 @@ void Simulator::VisitException(Instruction* instr) {
 
 void Simulator::DoPrintf(Instruction* instr) {
   VIXL_ASSERT((instr->Mask(ExceptionMask) == HLT) &&
-         (instr->ImmException() == kPrintfOpcode));
+              (instr->ImmException() == kPrintfOpcode));
 
-  // Read the argument encoded inline in the instruction stream.
-  uint32_t type;
+  // Read the arguments encoded inline in the instruction stream.
+  uint32_t arg_count;
+  uint32_t arg_pattern_list;
   VIXL_STATIC_ASSERT(sizeof(*instr) == 1);
-  memcpy(&type, instr + kPrintfTypeOffset, sizeof(type));
+  memcpy(&arg_count,
+         instr + kPrintfArgCountOffset,
+         sizeof(arg_count));
+  memcpy(&arg_pattern_list,
+         instr + kPrintfArgPatternListOffset,
+         sizeof(arg_pattern_list));
 
-  const char * format = reg<const char *>(0);
-  VIXL_ASSERT(format != NULL);
+  VIXL_ASSERT(arg_count <= kPrintfMaxArgCount);
+  VIXL_ASSERT((arg_pattern_list >> (kPrintfArgPatternBits * arg_count)) == 0);
 
-  // Pass all of the relevant PCS registers onto printf. It doesn't matter
-  // if we pass too many as the extra ones won't be read.
-  int result = 0;
-  if (type == CPURegister::kRegister) {
-    result = printf(format, xreg(1), xreg(2), xreg(3), xreg(4),
-                            xreg(5), xreg(6), xreg(7));
-  } else if (type == CPURegister::kFPRegister) {
-    result = printf(format, dreg(0), dreg(1), dreg(2), dreg(3),
-                            dreg(4), dreg(5), dreg(6), dreg(7));
-  } else {
-    VIXL_ASSERT(type == CPURegister::kNoRegister);
-    result = printf("%s", format);
+  // We need to call the host printf function with a set of arguments defined by
+  // arg_pattern_list. Because we don't know the types and sizes of the
+  // arguments, this is very difficult to do in a robust and portable way. To
+  // work around the problem, we pick apart the format string, and print one
+  // format placeholder at a time.
+
+  // Allocate space for the format string. We take a copy, so we can modify it.
+  // Leave enough space for one extra character per expected argument (plus the
+  // '\0' termination).
+  const char * format_base = reg<const char *>(0);
+  VIXL_ASSERT(format_base != NULL);
+  size_t length = strlen(format_base) + 1;
+  char * const format = new char[length + arg_count];
+
+  // A list of chunks, each with exactly one format placeholder.
+  const char * chunks[kPrintfMaxArgCount];
+
+  // Copy the format string and search for format placeholders.
+  uint32_t placeholder_count = 0;
+  char * format_scratch = format;
+  for (size_t i = 0; i < length; i++) {
+    if (format_base[i] != '%') {
+      *format_scratch++ = format_base[i];
+    } else {
+      if (format_base[i + 1] == '%') {
+        // Ignore explicit "%%" sequences.
+        *format_scratch++ = format_base[i];
+        i++;
+        // Chunks after the first are passed as format strings to printf, so we
+        // need to escape '%' characters in those chunks.
+        if (placeholder_count > 0) *format_scratch++ = format_base[i];
+      } else {
+        VIXL_CHECK(placeholder_count < arg_count);
+        // Insert '\0' before placeholders, and store their locations.
+        *format_scratch++ = '\0';
+        chunks[placeholder_count++] = format_scratch;
+        *format_scratch++ = format_base[i];
+      }
+    }
   }
-  set_xreg(0, result);
+  VIXL_CHECK(placeholder_count == arg_count);
 
-  // TODO: Clobber all caller-saved registers here, to ensure no assumptions
-  // are made about preserved state.
+  // Finally, call printf with each chunk, passing the appropriate register
+  // argument. Normally, printf returns the number of bytes transmitted, so we
+  // can emulate a single printf call by adding the result from each chunk. If
+  // any call returns a negative (error) value, though, just return that value.
+
+  printf("%s", clr_printf);
+
+  // Because '\0' is inserted before each placeholder, the first string in
+  // 'format' contains no format placeholders and should be printed literally.
+  int result = printf("%s", format);
+  int pcs_r = 1;      // Start at x1. x0 holds the format string.
+  int pcs_f = 0;      // Start at d0.
+  if (result >= 0) {
+    for (uint32_t i = 0; i < placeholder_count; i++) {
+      int part_result = -1;
+
+      uint32_t arg_pattern = arg_pattern_list >> (i * kPrintfArgPatternBits);
+      arg_pattern &= (1 << kPrintfArgPatternBits) - 1;
+      switch (arg_pattern) {
+        case kPrintfArgW: part_result = printf(chunks[i], wreg(pcs_r++)); break;
+        case kPrintfArgX: part_result = printf(chunks[i], xreg(pcs_r++)); break;
+        case kPrintfArgD: part_result = printf(chunks[i], dreg(pcs_f++)); break;
+        default: VIXL_UNREACHABLE();
+      }
+
+      if (part_result < 0) {
+        // Handle error values.
+        result = part_result;
+        break;
+      }
+
+      result += part_result;
+    }
+  }
+
+  printf("%s", clr_normal);
+
+  // Printf returns its result in x0 (just like the C library's printf).
+  set_xreg(0, result);
 
   // The printf parameters are inlined in the code, so skip them.
   set_pc(instr->InstructionAtOffset(kPrintfLength));
 
   // Set LR as if we'd just called a native printf function.
   set_lr(pc());
+
+  delete[] format;
 }
 
 }  // namespace vixl

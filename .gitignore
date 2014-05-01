@@ -7,3 +7,4 @@ bench_*
 libvixl*
 example-*
 vixl_stats.csv
+log/

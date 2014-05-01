@@ -42,24 +42,40 @@ enum ReverseByteMode {
   Reverse64 = 2
 };
 
-// Printf. See debugger-a64.h for more informations on pseudo instructions.
-//  - type: CPURegister::RegisterType stored as a uint32_t.
+// Printf. See debugger-a64.h for more information on pseudo instructions.
+//  - arg_count: The number of arguments.
+//  - arg_pattern: A set of PrintfArgPattern values, packed into two-bit fields.
 //
 // Simulate a call to printf.
 //
-// Floating-point and integer arguments are passed in separate sets of
-// registers in AAPCS64 (even for varargs functions), so it is not possible to
-// determine the type of location of each argument without some information
-// about the values that were passed in. This information could be retrieved
-// from the printf format string, but the format string is not trivial to
-// parse so we encode the relevant information with the HLT instruction under
-// the type argument. Therefore the interface is:
+// Floating-point and integer arguments are passed in separate sets of registers
+// in AAPCS64 (even for varargs functions), so it is not possible to determine
+// the type of each argument without some information about the values that were
+// passed in. This information could be retrieved from the printf format string,
+// but the format string is not trivial to parse so we encode the relevant
+// information with the HLT instruction.
+//
+// The interface is as follows:
 //    x0: The format string
 // x1-x7: Optional arguments, if type == CPURegister::kRegister
 // d0-d7: Optional arguments, if type == CPURegister::kFPRegister
 const Instr kPrintfOpcode = 0xdeb1;
-const unsigned kPrintfTypeOffset = 1 * kInstructionSize;
-const unsigned kPrintfLength = 2 * kInstructionSize;
+const unsigned kPrintfArgCountOffset = 1 * kInstructionSize;
+const unsigned kPrintfArgPatternListOffset = 2 * kInstructionSize;
+const unsigned kPrintfLength = 3 * kInstructionSize;
+
+const unsigned kPrintfMaxArgCount = 4;
+
+// The argument pattern is a set of two-bit-fields, each with one of the
+// following values:
+enum PrintfArgPattern {
+  kPrintfArgW = 1,
+  kPrintfArgX = 2,
+  // There is no kPrintfArgS because floats are always converted to doubles in C
+  // varargs calls.
+  kPrintfArgD = 3
+};
+static const unsigned kPrintfArgPatternBits = 2;
 
 
 // The proper way to initialize a simulated system register (such as NZCV) is as

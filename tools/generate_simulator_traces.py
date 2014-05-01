@@ -84,6 +84,7 @@ if __name__ == '__main__':
   status, output = util.getstatusoutput(args.cctest + ' --list')
   if status != 0: util.abort('Failed to list all tests')
   tests = filter(lambda t: 'SIM_' in t, output.split())
+  tests.sort()
 
   # Run each test.
   for test in tests:

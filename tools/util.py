@@ -49,8 +49,3 @@ def last_line(text):
   lines = text.split('\n')
   last = lines[-1].split('\r')
   return last[-1]
-
-
-CPP_EXT_REGEXP = re.compile('\.cc$|\.h$')
-def is_cpp_filename(filename):
-  return CPP_EXT_REGEXP.search(filename) != None

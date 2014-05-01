@@ -139,10 +139,14 @@ class CPURegister {
     return type_ == kNoRegister;
   }
 
+  bool Aliases(const CPURegister& other) const {
+    VIXL_ASSERT(IsValidOrNone() && other.IsValidOrNone());
+    return (code_ == other.code_) && (type_ == other.type_);
+  }
+
   bool Is(const CPURegister& other) const {
     VIXL_ASSERT(IsValidOrNone() && other.IsValidOrNone());
-    return (code_ == other.code_) && (size_ == other.size_) &&
-           (type_ == other.type_);
+    return Aliases(other) && (size_ == other.size_);
   }
 
   inline bool IsZero() const {
@@ -435,6 +439,11 @@ class CPURegList {
     int size_in_bits = RegisterSizeInBits();
     VIXL_ASSERT((size_in_bits % 8) == 0);
     return size_in_bits / 8;
+  }
+
+  inline unsigned TotalSizeInBytes() const {
+    VIXL_ASSERT(IsValid());
+    return RegisterSizeInBytes() * Count();
   }
 
  private:
@@ -1151,8 +1160,10 @@ class Assembler {
   // Load literal to register.
   void ldr(const Register& rt, uint64_t imm);
 
-  // Load literal to FP register.
+  // Load double precision floating point literal to FP register.
   void ldr(const FPRegister& ft, double imm);
+
+  // Load single precision floating point literal to FP register.
   void ldr(const FPRegister& ft, float imm);
 
   // Move instructions. The default shift of -1 indicates that the move
@@ -1219,18 +1230,20 @@ class Assembler {
   }
 
   // FP instructions.
-  // Move immediate to FP register.
-  void fmov(FPRegister fd, double imm);
-  void fmov(FPRegister fd, float imm);
+  // Move double precision immediate to FP register.
+  void fmov(const FPRegister& fd, double imm);
+
+  // Move single precision immediate to FP register.
+  void fmov(const FPRegister& fd, float imm);
 
   // Move FP register to register.
-  void fmov(Register rd, FPRegister fn);
+  void fmov(const Register& rd, const FPRegister& fn);
 
   // Move register to FP register.
-  void fmov(FPRegister fd, Register rn);
+  void fmov(const FPRegister& fd, const Register& rn);
 
   // Move FP register to FP register.
-  void fmov(FPRegister fd, FPRegister fn);
+  void fmov(const FPRegister& fd, const FPRegister& fn);
 
   // FP add.
   void fadd(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm);
@@ -1292,6 +1305,9 @@ class Assembler {
   // FP round to integer (nearest with ties to away).
   void frinta(const FPRegister& fd, const FPRegister& fn);
 
+  // FP round to integer (toward minus infinity).
+  void frintm(const FPRegister& fd, const FPRegister& fn);
+
   // FP round to integer (nearest with ties to even).
   void frintn(const FPRegister& fd, const FPRegister& fn);
 
@@ -1324,29 +1340,29 @@ class Assembler {
   // FP convert between single and double precision.
   void fcvt(const FPRegister& fd, const FPRegister& fn);
 
-  // Convert FP to unsigned integer (nearest with ties to away).
-  void fcvtau(const Register& rd, const FPRegister& fn);
-
   // Convert FP to signed integer (nearest with ties to away).
   void fcvtas(const Register& rd, const FPRegister& fn);
 
-  // Convert FP to unsigned integer (round towards -infinity).
-  void fcvtmu(const Register& rd, const FPRegister& fn);
+  // Convert FP to unsigned integer (nearest with ties to away).
+  void fcvtau(const Register& rd, const FPRegister& fn);
 
   // Convert FP to signed integer (round towards -infinity).
   void fcvtms(const Register& rd, const FPRegister& fn);
 
-  // Convert FP to unsigned integer (nearest with ties to even).
-  void fcvtnu(const Register& rd, const FPRegister& fn);
+  // Convert FP to unsigned integer (round towards -infinity).
+  void fcvtmu(const Register& rd, const FPRegister& fn);
 
   // Convert FP to signed integer (nearest with ties to even).
   void fcvtns(const Register& rd, const FPRegister& fn);
 
-  // Convert FP to unsigned integer (round towards zero).
-  void fcvtzu(const Register& rd, const FPRegister& fn);
+  // Convert FP to unsigned integer (nearest with ties to even).
+  void fcvtnu(const Register& rd, const FPRegister& fn);
 
   // Convert FP to signed integer (round towards zero).
   void fcvtzs(const Register& rd, const FPRegister& fn);
+
+  // Convert FP to unsigned integer (round towards zero).
+  void fcvtzu(const Register& rd, const FPRegister& fn);
 
   // Convert signed integer or fixed point to FP.
   void scvtf(const FPRegister& fd, const Register& rn, unsigned fbits = 0);

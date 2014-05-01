@@ -696,6 +696,10 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     frinta(fd, fn);
   }
+  void Frintm(const FPRegister& fd, const FPRegister& fn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    frintm(fd, fn);
+  }
   void Frintn(const FPRegister& fd, const FPRegister& fn) {
     VIXL_ASSERT(allow_macro_instructions_);
     frintn(fd, fn);
@@ -1124,15 +1128,13 @@ class MacroAssembler : public Assembler {
   // (such as %e, %f or %g) are FPRegisters, and that arguments for integer
   // placeholders are Registers.
   //
-  // A maximum of four arguments may be given to any single Printf call. The
-  // arguments must be of the same type, but they do not need to have the same
-  // size.
+  // At the moment it is only possible to print the value of sp if it is the
+  // current stack pointer. Otherwise, the MacroAssembler will automatically
+  // update sp on every push (using BumpSystemStackPointer), so determining its
+  // value is difficult.
   //
-  // The following registers cannot be printed:
-  //    StackPointer(), sp.
-  //
-  // In addition, Printf requires scratch registers, so TmpList() must not be
-  // empty.
+  // Format placeholders that refer to more than one argument, or to a specific
+  // argument, are not supported. This includes formats like "%1$d" or "%.*d".
   //
   // This function automatically preserves caller-saved registers so that
   // calling code can use Printf at any point without having to worry about
@@ -1140,15 +1142,11 @@ class MacroAssembler : public Assembler {
   // a problem, preserve the important registers manually and then call
   // PrintfNoPreserve. Callee-saved registers are not used by Printf, and are
   // implicitly preserved.
-  //
-  // This function assumes (and asserts) that the current stack pointer is
-  // callee-saved, not caller-saved. This is most likely the case anyway, as a
-  // caller-saved stack pointer doesn't make a lot of sense.
   void Printf(const char * format,
-              const CPURegister& arg0 = NoCPUReg,
-              const CPURegister& arg1 = NoCPUReg,
-              const CPURegister& arg2 = NoCPUReg,
-              const CPURegister& arg3 = NoCPUReg);
+              CPURegister arg0 = NoCPUReg,
+              CPURegister arg1 = NoCPUReg,
+              CPURegister arg2 = NoCPUReg,
+              CPURegister arg3 = NoCPUReg);
 
   // Like Printf, but don't preserve any caller-saved registers, not even 'lr'.
   //
@@ -1292,6 +1290,9 @@ class UseScratchRegisterScope {
   ~UseScratchRegisterScope();
 
 
+  bool IsAvailable(const CPURegister& reg) const;
+
+
   // Take a register from the appropriate temps list. It will be returned
   // automatically when the scope ends.
   Register AcquireW() { return AcquireNextAvailable(available_).W(); }
@@ -1311,6 +1312,7 @@ class UseScratchRegisterScope {
 
   // Make the specified registers available as scratch registers for the
   // duration of this scope.
+  void Include(const CPURegList& list);
   void Include(const Register& reg1,
                const Register& reg2 = NoReg,
                const Register& reg3 = NoReg,
@@ -1324,6 +1326,7 @@ class UseScratchRegisterScope {
   // Make sure that the specified registers are not available in this scope.
   // This can be used to prevent helper functions from using sensitive
   // registers, for example.
+  void Exclude(const CPURegList& list);
   void Exclude(const Register& reg1,
                const Register& reg2 = NoReg,
                const Register& reg3 = NoReg,

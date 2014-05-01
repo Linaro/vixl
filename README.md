@@ -1,4 +1,4 @@
-VIXL: AArch64 Runtime Code Generation Library Version 1.3
+VIXL: AArch64 Runtime Code Generation Library Version 1.4
 =========================================================
 
 Contents:
@@ -92,15 +92,6 @@ developers. The linter has the following dependencies:
 It is possible to tell `tools/presubmit.py` to skip the linter stage by passing
 `--nolint`. This removes the dependency on `cpplint.py` and Git. The `--nolint`
 option is implied if the VIXL project is a snapshot (with no `.git` directory).
-
-
-Building and Running Specific Tests
------------------------------------
-
-The helper script `tools/test.py` will build and run all the tests for the
-assembler and disassembler in release mode. Add `--mode=debug` to build and run
-in debug mode. The tests can be built separately using SCons: `scons
-target=cctest`.
 
 
 Building and Running the Benchmarks

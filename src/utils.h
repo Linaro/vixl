@@ -99,7 +99,7 @@ double rawbits_to_double(uint64_t bits);
 
 // NaN tests.
 inline bool IsSignallingNaN(double num) {
-  const uint64_t kFP64QuietNaNMask = 0x0008000000000000;
+  const uint64_t kFP64QuietNaNMask = UINT64_C(0x0008000000000000);
   uint64_t raw = double_to_rawbits(num);
   if (isnan(num) && ((raw & kFP64QuietNaNMask) == 0)) {
     return true;
@@ -126,7 +126,7 @@ inline bool IsQuietNaN(T num) {
 
 // Convert the NaN in 'num' to a quiet NaN.
 inline double ToQuietNaN(double num) {
-  const uint64_t kFP64QuietNaNMask = 0x0008000000000000;
+  const uint64_t kFP64QuietNaNMask = UINT64_C(0x0008000000000000);
   VIXL_ASSERT(isnan(num));
   return rawbits_to_double(double_to_rawbits(num) | kFP64QuietNaNMask);
 }

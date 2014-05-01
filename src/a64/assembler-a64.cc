@@ -147,18 +147,22 @@ REGISTER_CODE_LIST(DREG)
 
 
 const Register& Register::WRegFromCode(unsigned code) {
-  // This function returns the zero register when code = 31. The stack pointer
-  // can not be returned.
-  VIXL_ASSERT(code < kNumberOfRegisters);
-  return wregisters[code];
+  if (code == kSPRegInternalCode) {
+    return wsp;
+  } else {
+    VIXL_ASSERT(code < kNumberOfRegisters);
+    return wregisters[code];
+  }
 }
 
 
 const Register& Register::XRegFromCode(unsigned code) {
-  // This function returns the zero register when code = 31. The stack pointer
-  // can not be returned.
-  VIXL_ASSERT(code < kNumberOfRegisters);
-  return xregisters[code];
+  if (code == kSPRegInternalCode) {
+    return sp;
+  } else {
+    VIXL_ASSERT(code < kNumberOfRegisters);
+    return xregisters[code];
+  }
 }
 
 
@@ -1210,35 +1214,35 @@ void Assembler::isb() {
 }
 
 
-void Assembler::fmov(FPRegister fd, double imm) {
+void Assembler::fmov(const FPRegister& fd, double imm) {
   VIXL_ASSERT(fd.Is64Bits());
   VIXL_ASSERT(IsImmFP64(imm));
   Emit(FMOV_d_imm | Rd(fd) | ImmFP64(imm));
 }
 
 
-void Assembler::fmov(FPRegister fd, float imm) {
+void Assembler::fmov(const FPRegister& fd, float imm) {
   VIXL_ASSERT(fd.Is32Bits());
   VIXL_ASSERT(IsImmFP32(imm));
   Emit(FMOV_s_imm | Rd(fd) | ImmFP32(imm));
 }
 
 
-void Assembler::fmov(Register rd, FPRegister fn) {
+void Assembler::fmov(const Register& rd, const FPRegister& fn) {
   VIXL_ASSERT(rd.size() == fn.size());
   FPIntegerConvertOp op = rd.Is32Bits() ? FMOV_ws : FMOV_xd;
   Emit(op | Rd(rd) | Rn(fn));
 }
 
 
-void Assembler::fmov(FPRegister fd, Register rn) {
+void Assembler::fmov(const FPRegister& fd, const Register& rn) {
   VIXL_ASSERT(fd.size() == rn.size());
   FPIntegerConvertOp op = fd.Is32Bits() ? FMOV_sw : FMOV_dx;
   Emit(op | Rd(fd) | Rn(rn));
 }
 
 
-void Assembler::fmov(FPRegister fd, FPRegister fn) {
+void Assembler::fmov(const FPRegister& fd, const FPRegister& fn) {
   VIXL_ASSERT(fd.size() == fn.size());
   Emit(FPType(fd) | FMOV | Rd(fd) | Rn(fn));
 }
@@ -1357,6 +1361,13 @@ void Assembler::frinta(const FPRegister& fd,
                        const FPRegister& fn) {
   VIXL_ASSERT(fd.SizeInBits() == fn.SizeInBits());
   FPDataProcessing1Source(fd, fn, FRINTA);
+}
+
+
+void Assembler::frintm(const FPRegister& fd,
+                       const FPRegister& fn) {
+  VIXL_ASSERT(fd.SizeInBits() == fn.SizeInBits());
+  FPDataProcessing1Source(fd, fn, FRINTM);
 }
 
 

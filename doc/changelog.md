@@ -1,6 +1,15 @@
 VIXL Change Log
 ===============
 
+* 1.4
+    + Added support for `frintm`.
+    + Fixed simulation of `frintn` and `frinta` for corner cases.
+    + Added more tests for floating point instruction simulation.
+    + Modified `CalleeSave()` and `CalleeRestore()` to push general purpose
+      registers before floating point registers on the stack.
+    + Fixed Printf for mixed argument types, and use on real hardware.
+    + Improved compatibility with some 32-bit compilers.
+
 * 1.3
     + Address inaccuracies in the simulated floating point instructions.
     + Implement Default-NaN floating point mode.

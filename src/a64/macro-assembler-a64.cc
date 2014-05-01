@@ -1023,17 +1023,17 @@ void MacroAssembler::PushCalleeSavedRegisters() {
 
   MemOperand tos(sp, -2 * kXRegSizeInBytes, PreIndex);
 
-  stp(d14, d15, tos);
-  stp(d12, d13, tos);
-  stp(d10, d11, tos);
-  stp(d8, d9, tos);
-
   stp(x29, x30, tos);
   stp(x27, x28, tos);
   stp(x25, x26, tos);
   stp(x23, x24, tos);
   stp(x21, x22, tos);
   stp(x19, x20, tos);
+
+  stp(d14, d15, tos);
+  stp(d12, d13, tos);
+  stp(d10, d11, tos);
+  stp(d8, d9, tos);
 }
 
 
@@ -1046,17 +1046,17 @@ void MacroAssembler::PopCalleeSavedRegisters() {
 
   MemOperand tos(sp, 2 * kXRegSizeInBytes, PostIndex);
 
+  ldp(d8, d9, tos);
+  ldp(d10, d11, tos);
+  ldp(d12, d13, tos);
+  ldp(d14, d15, tos);
+
   ldp(x19, x20, tos);
   ldp(x21, x22, tos);
   ldp(x23, x24, tos);
   ldp(x25, x26, tos);
   ldp(x27, x28, tos);
   ldp(x29, x30, tos);
-
-  ldp(d8, d9, tos);
-  ldp(d10, d11, tos);
-  ldp(d12, d13, tos);
-  ldp(d14, d15, tos);
 }
 
 void MacroAssembler::BumpSystemStackPointer(const Operand& space) {
@@ -1080,108 +1080,87 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
   // in most cases anyway, so this restriction shouldn't be too serious.
   VIXL_ASSERT(!kCallerSaved.IncludesAliasOf(StackPointer()));
 
-  // Make sure that the macro assembler doesn't try to use any of our arguments
-  // as scratch registers.
+  // The provided arguments, and their proper PCS registers.
+  CPURegister args[kPrintfMaxArgCount] = {arg0, arg1, arg2, arg3};
+  CPURegister pcs[kPrintfMaxArgCount];
+
+  int arg_count = kPrintfMaxArgCount;
+
+  // The PCS varargs registers for printf. Note that x0 is used for the printf
+  // format string.
+  static const CPURegList kPCSVarargs =
+      CPURegList(CPURegister::kRegister, kXRegSize, 1, arg_count);
+  static const CPURegList kPCSVarargsFP =
+      CPURegList(CPURegister::kFPRegister, kDRegSize, 0, arg_count - 1);
+
+  // We can use caller-saved registers as scratch values, except for the
+  // arguments and the PCS registers where they might need to go.
   UseScratchRegisterScope temps(this);
+  temps.Include(kCallerSaved);
+  temps.Include(kCallerSavedFP);
+  temps.Exclude(kPCSVarargs);
+  temps.Exclude(kPCSVarargsFP);
   temps.Exclude(arg0, arg1, arg2, arg3);
 
-  // We cannot print the stack pointer because it is typically used to preserve
-  // caller-saved registers (using other Printf variants which depend on this
-  // helper).
-  VIXL_ASSERT(!AreAliased(arg0, StackPointer()));
-  VIXL_ASSERT(!AreAliased(arg1, StackPointer()));
-  VIXL_ASSERT(!AreAliased(arg2, StackPointer()));
-  VIXL_ASSERT(!AreAliased(arg3, StackPointer()));
+  // Copies of the arg lists that we can iterate through.
+  CPURegList pcs_varargs = kPCSVarargs;
+  CPURegList pcs_varargs_fp = kPCSVarargsFP;
 
-  static const int kMaxArgCount = 4;
-  // Assume that we have the maximum number of arguments until we know
-  // otherwise.
-  int arg_count = kMaxArgCount;
-
-  // The provided arguments.
-  CPURegister args[kMaxArgCount] = {arg0, arg1, arg2, arg3};
-
-  // The PCS registers where the arguments need to end up.
-  CPURegister pcs[kMaxArgCount];
-
-  // Promote FP arguments to doubles, and integer arguments to X registers.
-  // Note that FP and integer arguments cannot be mixed, but we'll check
-  // AreSameSizeAndType once we've processed these promotions.
-  for (int i = 0; i < kMaxArgCount; i++) {
+  // Place the arguments. There are lots of clever tricks and optimizations we
+  // could use here, but Printf is a debug tool so instead we just try to keep
+  // it simple: Move each input that isn't already in the right place to a
+  // scratch register, then move everything back.
+  for (unsigned i = 0; i < kPrintfMaxArgCount; i++) {
+    // Work out the proper PCS register for this argument.
     if (args[i].IsRegister()) {
-      // Note that we use x1 onwards, because x0 will hold the format string.
-      pcs[i] = Register::XRegFromCode(i + 1);
-      // For simplicity, we handle all integer arguments as X registers. An X
-      // register argument takes the same space as a W register argument in the
-      // PCS anyway. The only limitation is that we must explicitly clear the
-      // top word for W register arguments as the callee will expect it to be
-      // clear.
-      if (!args[i].Is64Bits()) {
-        const Register& as_x = args[i].X();
-        And(as_x, as_x, 0x00000000ffffffff);
-        args[i] = as_x;
-      }
+      pcs[i] = pcs_varargs.PopLowestIndex().X();
+      // We might only need a W register here. We need to know the size of the
+      // argument so we can properly encode it for the simulator call.
+      if (args[i].Is32Bits()) pcs[i] = pcs[i].W();
     } else if (args[i].IsFPRegister()) {
-      pcs[i] = FPRegister::DRegFromCode(i);
-      // C and C++ varargs functions (such as printf) implicitly promote float
-      // arguments to doubles.
-      if (!args[i].Is64Bits()) {
-        FPRegister s(args[i]);
-        const FPRegister& as_d = args[i].D();
-        Fcvt(as_d, s);
-        args[i] = as_d;
-      }
+      // In C, floats are always cast to doubles for varargs calls.
+      pcs[i] = pcs_varargs_fp.PopLowestIndex().D();
     } else {
-      // This is the first empty (NoCPUReg) argument, so use it to set the
-      // argument count and bail out.
+      VIXL_ASSERT(args[i].IsNone());
       arg_count = i;
       break;
     }
-  }
-  VIXL_ASSERT((arg_count >= 0) && (arg_count <= kMaxArgCount));
-  // Check that every remaining argument is NoCPUReg.
-  for (int i = arg_count; i < kMaxArgCount; i++) {
-    VIXL_ASSERT(args[i].IsNone());
-  }
-  VIXL_ASSERT((arg_count == 0) || AreSameSizeAndType(args[0], args[1],
-                                                args[2], args[3],
-                                                pcs[0], pcs[1],
-                                                pcs[2], pcs[3]));
 
-  // Move the arguments into the appropriate PCS registers.
-  //
-  // Arranging an arbitrary list of registers into x1-x4 (or d0-d3) is
-  // surprisingly complicated.
-  //
-  //  * For even numbers of registers, we push the arguments and then pop them
-  //    into their final registers. This maintains 16-byte stack alignment in
-  //    case sp is the stack pointer, since we're only handling X or D registers
-  //    at this point.
-  //
-  //  * For odd numbers of registers, we push and pop all but one register in
-  //    the same way, but the left-over register is moved directly, since we
-  //    can always safely move one register without clobbering any source.
-  if (arg_count >= 4) {
-    Push(args[3], args[2], args[1], args[0]);
-  } else if (arg_count >= 2) {
-    Push(args[1], args[0]);
-  }
+    // If the argument is already in the right place, leave it where it is.
+    if (args[i].Aliases(pcs[i])) continue;
 
-  if ((arg_count % 2) != 0) {
-    // Move the left-over register directly.
-    const CPURegister& leftover_arg = args[arg_count - 1];
-    const CPURegister& leftover_pcs = pcs[arg_count - 1];
-    if (leftover_arg.IsRegister()) {
-      Mov(Register(leftover_pcs), Register(leftover_arg));
-    } else {
-      Fmov(FPRegister(leftover_pcs), FPRegister(leftover_arg));
+    // Otherwise, if the argument is in a PCS argument register, allocate an
+    // appropriate scratch register and then move it out of the way.
+    if (kPCSVarargs.IncludesAliasOf(args[i]) ||
+        kPCSVarargsFP.IncludesAliasOf(args[i])) {
+      if (args[i].IsRegister()) {
+        Register old_arg = Register(args[i]);
+        Register new_arg = temps.AcquireSameSizeAs(old_arg);
+        Mov(new_arg, old_arg);
+        args[i] = new_arg;
+      } else {
+        FPRegister old_arg = FPRegister(args[i]);
+        FPRegister new_arg = temps.AcquireSameSizeAs(old_arg);
+        Fmov(new_arg, old_arg);
+        args[i] = new_arg;
+      }
     }
   }
 
-  if (arg_count >= 4) {
-    Pop(pcs[0], pcs[1], pcs[2], pcs[3]);
-  } else if (arg_count >= 2) {
-    Pop(pcs[0], pcs[1]);
+  // Do a second pass to move values into their final positions and perform any
+  // conversions that may be required.
+  for (int i = 0; i < arg_count; i++) {
+    VIXL_ASSERT(pcs[i].type() == args[i].type());
+    if (pcs[i].IsRegister()) {
+      Mov(Register(pcs[i]), Register(args[i]), kDiscardForSameWReg);
+    } else {
+      VIXL_ASSERT(pcs[i].IsFPRegister());
+      if (pcs[i].size() == args[i].size()) {
+        Fmov(FPRegister(pcs[i]), FPRegister(args[i]));
+      } else {
+        Fcvt(FPRegister(pcs[i]), FPRegister(args[i]));
+      }
+    }
   }
 
   // Load the format string into x0, as per the procedure-call standard.
@@ -1190,6 +1169,7 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
   // directly in the instruction stream. It might be cleaner to encode it in a
   // literal pool, but since Printf is usually used for debugging, it is
   // beneficial for it to be minimally dependent on other features.
+  temps.Exclude(x0);
   Label format_address;
   Adr(x0, &format_address);
 
@@ -1215,7 +1195,22 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
 #ifdef USE_SIMULATOR
   { InstructionAccurateScope scope(this, kPrintfLength / kInstructionSize);
     hlt(kPrintfOpcode);
-    dc32(pcs[0].type());
+    dc32(arg_count);          // kPrintfArgCountOffset
+
+    // Determine the argument pattern.
+    uint32_t arg_pattern_list = 0;
+    for (int i = 0; i < arg_count; i++) {
+      uint32_t arg_pattern;
+      if (pcs[i].IsRegister()) {
+        arg_pattern = pcs[i].Is32Bits() ? kPrintfArgW : kPrintfArgX;
+      } else {
+        VIXL_ASSERT(pcs[i].Is64Bits());
+        arg_pattern = kPrintfArgD;
+      }
+      VIXL_ASSERT(arg_pattern < (1 << kPrintfArgPatternBits));
+      arg_pattern_list |= (arg_pattern << (kPrintfArgPatternBits * i));
+    }
+    dc32(arg_pattern_list);   // kPrintfArgPatternListOffset
   }
 #else
   Register tmp = temps.AcquireX();
@@ -1226,10 +1221,18 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
 
 
 void MacroAssembler::Printf(const char * format,
-                            const CPURegister& arg0,
-                            const CPURegister& arg1,
-                            const CPURegister& arg2,
-                            const CPURegister& arg3) {
+                            CPURegister arg0,
+                            CPURegister arg1,
+                            CPURegister arg2,
+                            CPURegister arg3) {
+  // We can only print sp if it is the current stack pointer.
+  if (!sp.Is(StackPointer())) {
+    VIXL_ASSERT(!sp.Aliases(arg0));
+    VIXL_ASSERT(!sp.Aliases(arg1));
+    VIXL_ASSERT(!sp.Aliases(arg2));
+    VIXL_ASSERT(!sp.Aliases(arg3));
+  }
+
   // Make sure that the macro assembler doesn't try to use any of our arguments
   // as scratch registers.
   UseScratchRegisterScope exclude_all(this);
@@ -1243,19 +1246,42 @@ void MacroAssembler::Printf(const char * format,
 
   { UseScratchRegisterScope temps(this);
     // We can use caller-saved registers as scratch values (except for argN).
-    TmpList()->Combine(kCallerSaved);
-    FPTmpList()->Combine(kCallerSavedFP);
+    temps.Include(kCallerSaved);
+    temps.Include(kCallerSavedFP);
     temps.Exclude(arg0, arg1, arg2, arg3);
+
+    // If any of the arguments are the current stack pointer, allocate a new
+    // register for them, and adjust the value to compensate for pushing the
+    // caller-saved registers.
+    bool arg0_sp = StackPointer().Aliases(arg0);
+    bool arg1_sp = StackPointer().Aliases(arg1);
+    bool arg2_sp = StackPointer().Aliases(arg2);
+    bool arg3_sp = StackPointer().Aliases(arg3);
+    if (arg0_sp || arg1_sp || arg2_sp || arg3_sp) {
+      // Allocate a register to hold the original stack pointer value, to pass
+      // to PrintfNoPreserve as an argument.
+      Register arg_sp = temps.AcquireX();
+      Add(arg_sp, StackPointer(),
+          kCallerSaved.TotalSizeInBytes() + kCallerSavedFP.TotalSizeInBytes());
+      if (arg0_sp) arg0 = Register(arg_sp.code(), arg0.size());
+      if (arg1_sp) arg1 = Register(arg_sp.code(), arg1.size());
+      if (arg2_sp) arg2 = Register(arg_sp.code(), arg2.size());
+      if (arg3_sp) arg3 = Register(arg_sp.code(), arg3.size());
+    }
 
     // Preserve NZCV.
     Register tmp = temps.AcquireX();
     Mrs(tmp, NZCV);
     Push(tmp, xzr);
+    temps.Release(tmp);
 
     PrintfNoPreserve(format, arg0, arg1, arg2, arg3);
 
+    // Restore NZCV.
+    tmp = temps.AcquireX();
     Pop(xzr, tmp);
     Msr(NZCV, tmp);
+    temps.Release(tmp);
   }
 
   PopCPURegList(kCallerSavedFP);
@@ -1346,6 +1372,11 @@ UseScratchRegisterScope::~UseScratchRegisterScope() {
 }
 
 
+bool UseScratchRegisterScope::IsAvailable(const CPURegister& reg) const {
+  return available_->IncludesAliasOf(reg) || availablefp_->IncludesAliasOf(reg);
+}
+
+
 Register UseScratchRegisterScope::AcquireSameSizeAs(const Register& reg) {
   int code = AcquireNextAvailable(available_).code();
   return Register(code, reg.SizeInBits());
@@ -1369,6 +1400,17 @@ void UseScratchRegisterScope::Release(const CPURegister& reg) {
 }
 
 
+void UseScratchRegisterScope::Include(const CPURegList& list) {
+  if (list.type() == CPURegister::kRegister) {
+    // Make sure that neither sp nor xzr are included the list.
+    IncludeByRegList(available_, list.list() & ~(xzr.Bit() | sp.Bit()));
+  } else {
+    VIXL_ASSERT(list.type() == CPURegister::kFPRegister);
+    IncludeByRegList(availablefp_, list.list());
+  }
+}
+
+
 void UseScratchRegisterScope::Include(const Register& reg1,
                                       const Register& reg2,
                                       const Register& reg3,
@@ -1387,6 +1429,16 @@ void UseScratchRegisterScope::Include(const FPRegister& reg1,
                                       const FPRegister& reg4) {
   RegList include = reg1.Bit() | reg2.Bit() | reg3.Bit() | reg4.Bit();
   IncludeByRegList(availablefp_, include);
+}
+
+
+void UseScratchRegisterScope::Exclude(const CPURegList& list) {
+  if (list.type() == CPURegister::kRegister) {
+    ExcludeByRegList(available_, list.list());
+  } else {
+    VIXL_ASSERT(list.type() == CPURegister::kFPRegister);
+    ExcludeByRegList(availablefp_, list.list());
+  }
 }
 
 

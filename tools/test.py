@@ -31,217 +31,164 @@ import sys
 import argparse
 import re
 import subprocess
-import threading
 import time
 import util
 
 
+from printer import EnsureNewLine, Print, UpdateProgress
+
+
 def BuildOptions():
-  result = argparse.ArgumentParser(description = 'Unit test tool')
-  result.add_argument('name_filters', metavar='name filters', nargs='*',
-                      help='Tests matching any of the regexp filters will be run.')
-  result.add_argument('--mode', action='store', choices=['release', 'debug', 'coverage'],
-                      default='release', help='Build mode')
-  result.add_argument('--simulator', action='store', choices=['on', 'off'],
-                      default='on', help='Use the builtin a64 simulator')
-  result.add_argument('--timeout', action='store', type=int, default=5,
-                      help='Timeout (in seconds) for each cctest (5sec default).')
-  result.add_argument('--nobuild', action='store_true',
-                      help='Do not (re)build the tests')
-  result.add_argument('--jobs', '-j', metavar='N', type=int, default=1,
-                      help='Allow N jobs at once.')
+  result = argparse.ArgumentParser(description =
+      '''This tool runs each test reported by $CCTEST --list (and filtered as
+         specified). A summary will be printed, and detailed test output will be
+         stored in log/$CCTEST.''')
+  result.add_argument('filters', metavar='filter', nargs='*',
+                      help='Run tests matching all of the (regexp) filters.')
+  result.add_argument('--cctest', action='store', required=True,
+                      help='The cctest executable to run.')
+  result.add_argument('--coloured_trace', action='store_true',
+                      help='''Pass --coloured_trace to cctest. This will put
+                              colour codes in the log files. The coloured output
+                              can be viewed by "less -R", for example.''')
+  result.add_argument('--coverage', action='store_true',
+                      help='Run coverage tests.')
+  result.add_argument('--debugger', action='store_true',
+                      help='''Pass --debugger to cctest, so that the debugger is
+                              used instead of the simulator. This has no effect
+                              when running natively.''')
+  result.add_argument('--verbose', action='store_true',
+                      help='Print verbose output.')
   return result.parse_args()
 
 
-def BuildRequiredObjects(arguments):
-  status, output = util.getstatusoutput('scons ' +
-                                        'mode=' + arguments.mode + ' ' +
-                                        'simulator=' + arguments.simulator + ' ' +
-                                        'target=cctest ' +
-                                        '--jobs=' + str(arguments.jobs))
-
-  if status != 0:
-    print(output)
-    util.abort('Failed bulding cctest')
+def VerbosePrint(string):
+  if args.verbose:
+    Print(string)
 
 
-# Display the run progress:
-# [time| progress|+ passed|- failed]
-def UpdateProgress(start_time, passed, failed, card):
-  minutes, seconds = divmod(time.time() - start_time, 60)
-  progress = float(passed + failed) / card * 100
-  passed_colour = '\x1b[32m' if passed != 0 else ''
-  failed_colour = '\x1b[31m' if failed != 0 else ''
-  indicator = '\r[%02d:%02d| %3d%%|' + passed_colour + '+ %d\x1b[0m|' + failed_colour + '- %d\x1b[0m]'
-  sys.stdout.write(indicator % (minutes, seconds, progress, passed, failed))
-
-
-def PrintError(s):
-  # Print the error on a new line.
-  sys.stdout.write('\n')
-  print(s)
-  sys.stdout.flush()
-
-
-# List all tests matching any of the provided filters.
-def ListTests(cctest, filters):
-  status, output = util.getstatusoutput(cctest +  ' --list')
-  if status != 0: util.abort('Failed to list all tests')
-
-  available_tests = output.split()
-  if filters:
-    filters = map(re.compile, filters)
-    def is_selected(test_name):
-      for e in filters:
-        if e.search(test_name):
-          return True
-      return False
-
-    return filter(is_selected, available_tests)
-  else:
-    return available_tests
-
-
-# A class representing a cctest.
-class CCtest:
-  cctest = None
-
-  def __init__(self, name, options = None):
+# A class representing an individual test.
+class Test:
+  def __init__(self, name):
     self.name = name
-    self.options = options
-    self.process = None
-    self.stdout = None
-    self.stderr = None
-
-  def Command(self):
-    command = '%s %s' % (CCtest.cctest, self.name)
-    if self.options is not None:
-      command = '%s %s' % (command, ' '.join(self.options))
-
-    return command
+    self.logpath = os.path.join('log', os.path.basename(args.cctest))
+    if args.debugger:
+      basename = name + '_debugger'
+    else:
+      basename = name
+    self.logout = os.path.join(self.logpath, basename + '.stdout')
+    self.logerr = os.path.join(self.logpath, basename + '.stderr')
 
   # Run the test.
   # Use a thread to be able to control the test.
-  def Run(self, arguments):
-    command = [CCtest.cctest, self.name]
-    if self.options is not None:
-      command += self.options
+  def Run(self):
+    command = [args.cctest, '--trace_sim', '--trace_reg', self.name]
+    if args.coloured_trace:
+      command.append('--coloured_trace')
 
-    def execute():
-      self.process = subprocess.Popen(command,
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE)
-      self.stdout, self.stderr = self.process.communicate()
-
-    thread = threading.Thread(target=execute)
-    retcode = -1
-    # Append spaces to hide the previous test name if longer.
-    sys.stdout.write('  ' + self.name + ' ' * 20)
+    VerbosePrint('==== Running ' + self.name + '... ====')
     sys.stdout.flush()
-    # Start the test with a timeout.
-    thread.start()
-    thread.join(arguments.timeout)
-    if thread.is_alive():
-      # Too slow! Terminate.
-      PrintError('### TIMEOUT %s\nCOMMAND:\n%s' % (self.name, self.Command()))
-      # If timeout was too small the thread may not have run and self.process
-      # is still None. Therefore check.
-      if (self.process):
-        self.process.terminate()
-      # Allow 1 second to terminate. Else, exterminate!
-      thread.join(1)
-      if thread.is_alive():
-        thread.kill()
-        thread.join()
-      # retcode is already set for failure.
+
+    process = subprocess.Popen(command,
+                               stdout=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+    # Get the output and return status of the test.
+    stdout, stderr = process.communicate()
+    retcode = process.poll()
+
+    # Write stdout and stderr to the log.
+    if not os.path.exists(self.logpath): os.makedirs(self.logpath)
+    with open(self.logout, 'w') as f: f.write(stdout)
+    with open(self.logerr, 'w') as f: f.write(stderr)
+
+    if retcode == 0:
+      # Success.
+      # We normally only print the command on failure, but with --verbose we
+      # should also print it on success.
+      VerbosePrint('COMMAND: ' + ' '.join(command))
+      VerbosePrint('LOG (stdout): ' + self.logout)
+      VerbosePrint('LOG (stderr): ' + self.logerr + '\n')
     else:
-      # Check the return status of the test.
-      retcode = self.process.poll()
-      if retcode != 0:
-        PrintError('### FAILED %s\nSTDERR:\n%s\nSTDOUT:\n%s\nCOMMAND:\n%s'
-                   % (self.name, self.stderr.decode(), self.stdout.decode(),
-                      self.Command()))
+      # Failure.
+      Print('--- FAILED ' + self.name + ' ---')
+      Print('COMMAND: ' + ' '.join(command))
+      Print('LOG (stdout): ' + self.logout)
+      Print('LOG (stderr): ' + self.logerr + '\n')
 
     return retcode
 
 
-# Run all tests in the list 'tests'.
-def RunTests(cctest, tests, arguments):
-  CCtest.cctest = cctest
-  card = len(tests)
+# Scan matching tests and return a test manifest.
+def ReadManifest(filters):
+  status, output = util.getstatusoutput(args.cctest +  ' --list')
+  if status != 0: util.abort('Failed to list all tests')
+
+  names = output.split()
+  for f in filters:
+    names = filter(re.compile(f).search, names)
+
+  return map(Test, names)
+
+
+# Run all tests in the manifest.
+def RunTests(manifest):
+  count = len(manifest)
   passed = 0
   failed = 0
 
-  if card == 0:
-    print('No test to run')
+  if count == 0:
+    Print('No tests to run.')
     return 0
 
-  # When the simulator is on the tests are ran twice: with and without the
-  # debugger.
-  if arguments.simulator:
-    card *= 2
-
-  print('Running %d tests... (timeout = %ds)' % (card, arguments.timeout))
+  Print('Running %d tests...' % (count))
   start_time = time.time()
 
-  # Initialize the progress indicator.
-  UpdateProgress(start_time, 0, 0, card)
-  for e in tests:
-    variants = [CCtest(e)]
-    if arguments.simulator: variants.append(CCtest(e, ['--debugger']))
-    for v in variants:
-      retcode = v.Run(arguments)
-      # Update the counters and progress indicator.
-      if retcode == 0:
-        passed += 1
-      else:
-        failed += 1
-    UpdateProgress(start_time, passed, failed, card)
+  for test in manifest:
+    # Update the progress counter with the name of the test we're about to run.
+    UpdateProgress(start_time, passed, failed, count, args.verbose, test.name)
+    retcode = test.Run()
+    # Update the counters and progress indicator.
+    if retcode == 0:
+      passed += 1
+    else:
+      failed += 1
+  UpdateProgress(start_time, passed, failed, count, args.verbose, '== Done ==')
 
-  return failed
+  return failed     # 0 indicates success.
 
 
 if __name__ == '__main__':
-  original_dir = os.path.abspath('.')
   # $ROOT/tools/test.py
   root_dir = os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0])))
-  os.chdir(root_dir)
 
-  # Parse the arguments and build the executable.
+  # Parse the arguments.
   args = BuildOptions()
-  if not args.nobuild:
-    BuildRequiredObjects(args)
 
-  # The test binary.
-  cctest = os.path.join(root_dir, 'cctest')
-  if args.simulator == 'on':
-    cctest += '_sim'
-  if args.mode == 'debug':
-    cctest += '_g'
-  elif args.mode == 'coverage':
-    cctest += '_gcov'
+  # Find a valid path to args.cctest (in case it doesn't begin with './').
+  args.cctest = os.path.join('.', args.cctest)
 
-  # List available tests.
-  tests = ListTests(cctest, args.name_filters)
+  if not os.access(args.cctest, os.X_OK):
+    print "'" + args.cctest + "' is not executable or does not exist."
+    sys.exit(1)
+
+  # List all matching tests.
+  manifest = ReadManifest(args.filters)
 
   # Delete coverage data files.
-  if args.mode == 'coverage':
+  if args.coverage:
     status, output = util.getstatusoutput('find obj/coverage -name "*.gcda" -exec rm {} \;')
 
   # Run the tests.
-  status = RunTests(cctest, tests, args)
-  sys.stdout.write('\n')
+  status = RunTests(manifest)
+  EnsureNewLine()
 
   # Print coverage information.
-  if args.mode == 'coverage':
-    cmd = 'tggcov -R summary_all,untested_functions_per_file obj/coverage/src/aarch64'
+  if args.coverage:
+    cmd = 'tggcov -R summary_all,untested_functions_per_file obj/coverage/src/a64'
     p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
     stdout, stderr = p.communicate()
     print(stdout)
-
-  # Restore original directory.
-  os.chdir(original_dir)
 
   sys.exit(status)
 
