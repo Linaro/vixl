@@ -26,7 +26,12 @@
 
 import os
 import os.path
+import subprocess
 import sys
+
+root_dir = os.path.dirname(File('SConstruct').rfile().abspath)
+sys.path.insert(0, os.path.join(root_dir, 'tools'))
+import util
 
 # Global configuration.
 PROJ_SRC_DIR   = 'src'
@@ -60,8 +65,9 @@ examples/getting-started.cc
 # Target names are used as dictionary entries.
 TARGET_SRC_DIR = {
   'cctest': 'test',
-  'bench_dataop': 'benchmarks',
-  'bench_branch': 'benchmarks',
+  'bench-dataop': 'benchmarks',
+  'bench-branch': 'benchmarks',
+  'bench-branch-link': 'benchmarks',
   'examples': 'examples'
 }
 TARGET_SRC_FILES = {
@@ -73,17 +79,19 @@ TARGET_SRC_FILES = {
     test/test-disasm-a64.cc
     test/test-fuzz-a64.cc
     test/examples/test-examples.cc
-    '''.split() + PROJ_EXAMPLES_SRC_FILES,
-  'bench_dataop': '''
+    '''.split(),
+  'bench-dataop': '''
     benchmarks/bench-dataop.cc
     '''.split(),
-  'bench_branch': '''
+  'bench-branch': '''
     benchmarks/bench-branch.cc
+    '''.split(),
+  'bench-branch-link': '''
+    benchmarks/bench-branch-link.cc
     '''.split()
 }
 RELEASE_OBJ_DIR  = 'obj/release'
 DEBUG_OBJ_DIR    = 'obj/debug'
-COVERAGE_OBJ_DIR = 'obj/coverage'
 
 
 # Helper functions.
@@ -105,19 +113,14 @@ def create_variant(obj_dir, targets_dir):
 # Build arguments.
 args = Variables()
 args.Add(EnumVariable('mode', 'Build mode', 'release',
-                      allowed_values = ['release', 'debug', 'coverage']))
-args.Add(EnumVariable('target', 'Target to build', 'cctest',
-                      allowed_values = ['cctest',
-                                        'bench_dataop',
-                                        'bench_branch',
-                                        'examples']))
+                      allowed_values = ['release', 'debug']))
 args.Add(EnumVariable('simulator', 'build for the simulator', 'on',
                       allowed_values = ['on', 'off']))
+args.Add(BoolVariable('list_targets', 'List top level targets available.', 0))
 
 # Configure the environment.
 create_variant(RELEASE_OBJ_DIR, TARGET_SRC_DIR)
 create_variant(DEBUG_OBJ_DIR, TARGET_SRC_DIR)
-create_variant(COVERAGE_OBJ_DIR, TARGET_SRC_DIR)
 env = Environment(variables=args)
 
 # Commandline help.
@@ -153,8 +156,8 @@ env.Append(CPPFLAGS = ['-Wall',
                        # const correctly when handling string constants.
                        '-Wwrite-strings'])
 
-target_program = env['target']
 build_suffix = ''
+
 
 if env['simulator'] == 'on':
   env.Append(CPPFLAGS = ['-DUSE_SIMULATOR'])
@@ -165,37 +168,79 @@ if env['mode'] == 'debug':
   # Append the debug mode suffix to the executable name.
   build_suffix += '_g'
   build_dir = DEBUG_OBJ_DIR
-elif env['mode'] == 'coverage':
-  env.Append(CPPFLAGS = ['-g', '-DDEBUG', '-fprofile-arcs', '-ftest-coverage'])
-  env.Append(LINKFLAGS = ['-fprofile-arcs'])
-  # Append the coverage mode suffix to the executable name.
-  build_suffix += '_gcov'
-  build_dir = COVERAGE_OBJ_DIR
 else:
   # Release mode.
   env.Append(CPPFLAGS = ['-O3'])
   build_dir = RELEASE_OBJ_DIR
-  # GCC 4.8 has a bug which produces a warning saying that an anonymous Operand
-  # object might be used uninitialized:
-  #   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57045
-  # The bug does not seem to appear in GCC 4.7, or in debug builds with GCC 4.8.
-  env.Append(CPPFLAGS = ['-Wno-maybe-uninitialized'])
+  process = subprocess.Popen(env['CXX'] + ' --version | grep "gnu.*4\.8"',
+                             shell = True,
+                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+  stdout, stderr = process.communicate()
+  using_gcc48 = stdout != ''
+  if using_gcc48:
+    # GCC 4.8 has a bug which produces a warning saying that an anonymous
+    # Operand object might be used uninitialized:
+    #   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57045
+    # The bug does not seem to appear in GCC 4.7, or in debug builds with
+    # GCC 4.8.
+    env.Append(CPPFLAGS = ['-Wno-maybe-uninitialized'])
 
 
-if target_program == 'cctest':
-  env.Append(CPPPATH = [PROJ_EXAMPLES_DIR])
-  env.Append(CPPFLAGS = ['-DTEST_EXAMPLES'])
+# The lists of available targets and target names.
+targets = []
+target_alias_names = []
+# Helper to create aliases.
+def create_alias(name, target):
+  env.Alias(name, target)
+  targets.append(target)
+  target_alias_names.append(name)
 
-# Build the library.
-proj_library = env.Library('vixl' + build_suffix, list_target(build_dir, PROJ_SRC_FILES))
 
-if target_program == 'examples':
-  # Build the examples.
-  env.Append(CPPPATH = [PROJ_EXAMPLES_DIR])
-  for example in PROJ_EXAMPLES_SRC_FILES:
-    example_name = "example-" + os.path.splitext(os.path.basename(example))[0]
-    env.Program(example_name, list_target(build_dir, [example]) + proj_library)
-else:
-  # Build the target program.
-  program_target_files = list_target(build_dir, TARGET_SRC_FILES[env['target']])
-  env.Program(target_program + build_suffix, program_target_files + proj_library)
+# The vixl library.
+libvixl = env.Library('vixl' + build_suffix,
+                      list_target(build_dir, PROJ_SRC_FILES))
+create_alias('libvixl', libvixl)
+
+
+# The cctest executable.
+# The cctest requires building the example files with specific options, so we
+# create a separate variant dir for the example objects built this way.
+cctest_ex_vdir = os.path.join(build_dir, 'cctest_examples')
+VariantDir(cctest_ex_vdir, '.')
+cctest_ex_obj = env.Object(list_target(cctest_ex_vdir, PROJ_EXAMPLES_SRC_FILES),
+                           CPPFLAGS = env['CPPFLAGS'] + ['-DTEST_EXAMPLES'])
+cctest = env.Program('cctest' + build_suffix,
+                     list_target(build_dir, TARGET_SRC_FILES['cctest']) +
+                     cctest_ex_obj + libvixl,
+                     CPPPATH = env['CPPPATH'] + [PROJ_EXAMPLES_DIR])
+create_alias('cctest', cctest)
+
+# The benchmarks.
+for bench in ['bench-dataop', 'bench-branch', 'bench-branch-link']:
+  prog = env.Program(bench + build_suffix,
+                     list_target(build_dir, TARGET_SRC_FILES[bench]) + libvixl)
+  create_alias(bench, prog)
+
+# The examples.
+examples = []
+for example in PROJ_EXAMPLES_SRC_FILES:
+  example_name = "example-" + os.path.splitext(os.path.basename(example))[0]
+  prog = env.Program(example_name,
+                     [os.path.join(build_dir, example)] + libvixl,
+                     CPPPATH = env['CPPPATH'] + [PROJ_EXAMPLES_DIR])
+  create_alias(example_name, prog)
+  examples.append(prog)
+# Alias to build all examples.
+create_alias('examples', examples)
+
+
+# Create a simple alias to build everything with the current options.
+create_alias('all', targets)
+
+if env['list_targets']:
+  print 'Available targets:'
+  print '\t' + '\n\t'.join(target_alias_names)
+  sys.exit(0);
+
+# By default, only build the cctests.
+Default(libvixl, cctest)

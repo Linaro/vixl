@@ -105,6 +105,7 @@ TEST(bootstrap) {
   CLEANUP();
 }
 
+
 TEST(mov_mvn) {
   SETUP_CLASS(MacroAssembler);
 
@@ -128,6 +129,7 @@ TEST(mov_mvn) {
 
   CLEANUP();
 }
+
 
 TEST(move_immediate) {
   SETUP();
@@ -164,6 +166,7 @@ TEST(move_immediate) {
 
   CLEANUP();
 }
+
 
 TEST(move_immediate_2) {
   SETUP_CLASS(MacroAssembler);
@@ -220,6 +223,7 @@ TEST(move_immediate_2) {
   CLEANUP();
 }
 
+
 TEST(add_immediate) {
   SETUP();
 
@@ -248,6 +252,7 @@ TEST(add_immediate) {
 
   CLEANUP();
 }
+
 
 TEST(sub_immediate) {
   SETUP();
@@ -748,6 +753,7 @@ TEST(dp_2_source) {
   CLEANUP();
 }
 
+
 TEST(adr) {
   SETUP();
 
@@ -762,6 +768,23 @@ TEST(adr) {
 
   CLEANUP();
 }
+
+
+TEST(adrp) {
+  SETUP();
+
+  COMPARE_PREFIX(adrp(x0, 0), "adrp x0, #+0x0");
+  COMPARE_PREFIX(adrp(x1, 1), "adrp x1, #+0x1");
+  COMPARE_PREFIX(adrp(x2, -1), "adrp x2, #-0x1");
+  COMPARE_PREFIX(adrp(x3, 4), "adrp x3, #+0x4");
+  COMPARE_PREFIX(adrp(x4, -4), "adrp x4, #-0x4");
+  COMPARE_PREFIX(adrp(x5, 0x000fffff), "adrp x5, #+0xfffff");
+  COMPARE_PREFIX(adrp(x6, -0x00100000), "adrp x6, #-0x100000");
+  COMPARE_PREFIX(adrp(xzr, 0), "adrp xzr, #+0x0");
+
+  CLEANUP();
+}
+
 
 TEST(branch) {
   SETUP();
@@ -800,6 +823,7 @@ TEST(branch) {
 
   CLEANUP();
 }
+
 
 TEST(load_store) {
   SETUP();
@@ -1061,6 +1085,47 @@ TEST(load_store_fp) {
 TEST(load_store_unscaled) {
   SETUP();
 
+  // If an unscaled-offset instruction is requested, it is used, even if the
+  // offset could be encoded in a scaled-offset instruction.
+  COMPARE(ldurb(w0, MemOperand(x1)), "ldurb w0, [x1]");
+  COMPARE(ldurb(x2, MemOperand(x3, 1)), "ldurb w2, [x3, #1]");
+  COMPARE(ldurb(w4, MemOperand(x5, 255)), "ldurb w4, [x5, #255]");
+  COMPARE(sturb(w14, MemOperand(x15)), "sturb w14, [x15]");
+  COMPARE(sturb(x16, MemOperand(x17, 1)), "sturb w16, [x17, #1]");
+  COMPARE(sturb(w18, MemOperand(x19, 255)), "sturb w18, [x19, #255]");
+  COMPARE(ldursb(w0, MemOperand(x1)), "ldursb w0, [x1]");
+  COMPARE(ldursb(w2, MemOperand(x3, 1)), "ldursb w2, [x3, #1]");
+  COMPARE(ldursb(x2, MemOperand(x3, 255)), "ldursb x2, [x3, #255]");
+
+  COMPARE(ldurh(w0, MemOperand(x1)), "ldurh w0, [x1]");
+  COMPARE(ldurh(x2, MemOperand(x3, 2)), "ldurh w2, [x3, #2]");
+  COMPARE(ldurh(w4, MemOperand(x5, 254)), "ldurh w4, [x5, #254]");
+  COMPARE(sturh(w14, MemOperand(x15)), "sturh w14, [x15]");
+  COMPARE(sturh(x16, MemOperand(x17, 2)), "sturh w16, [x17, #2]");
+  COMPARE(sturh(w18, MemOperand(x19, 254)), "sturh w18, [x19, #254]");
+  COMPARE(ldursh(w0, MemOperand(x1)), "ldursh w0, [x1]");
+  COMPARE(ldursh(w2, MemOperand(x3, 2)), "ldursh w2, [x3, #2]");
+  COMPARE(ldursh(x4, MemOperand(x5, 254)), "ldursh x4, [x5, #254]");
+
+  COMPARE(ldur(w0, MemOperand(x1)), "ldur w0, [x1]");
+  COMPARE(ldur(w2, MemOperand(x3, 4)), "ldur w2, [x3, #4]");
+  COMPARE(ldur(w4, MemOperand(x5, 248)), "ldur w4, [x5, #248]");
+  COMPARE(stur(w12, MemOperand(x13)), "stur w12, [x13]");
+  COMPARE(stur(w14, MemOperand(x15, 4)), "stur w14, [x15, #4]");
+  COMPARE(stur(w16, MemOperand(x17, 248)), "stur w16, [x17, #248]");
+  COMPARE(ldursw(x0, MemOperand(x1)), "ldursw x0, [x1]");
+  COMPARE(ldursw(x2, MemOperand(x3, 4)), "ldursw x2, [x3, #4]");
+  COMPARE(ldursw(x4, MemOperand(x5, 248)), "ldursw x4, [x5, #248]");
+
+  COMPARE(ldur(x6, MemOperand(x7)), "ldur x6, [x7]");
+  COMPARE(ldur(x8, MemOperand(x9, 8)), "ldur x8, [x9, #8]");
+  COMPARE(ldur(x10, MemOperand(x11, 248)), "ldur x10, [x11, #248]");
+  COMPARE(stur(x18, MemOperand(x19)), "stur x18, [x19]");
+  COMPARE(stur(x20, MemOperand(x21, 8)), "stur x20, [x21, #8]");
+  COMPARE(stur(x22, MemOperand(x23, 248)), "stur x22, [x23, #248]");
+
+  // Normal loads and stores are converted to unscaled loads and stores if the
+  // offset requires it.
   COMPARE(ldr(w0, MemOperand(x1, 1)), "ldur w0, [x1, #1]");
   COMPARE(ldr(w2, MemOperand(x3, -1)), "ldur w2, [x3, #-1]");
   COMPARE(ldr(w4, MemOperand(x5, 255)), "ldur w4, [x5, #255]");
@@ -1089,6 +1154,93 @@ TEST(load_store_unscaled) {
 
   CLEANUP();
 }
+
+
+TEST(load_store_unscaled_option) {
+  SETUP();
+
+  // Just like load_store_unscaled, but specify the scaling option explicitly.
+  LoadStoreScalingOption options[] = {
+    PreferUnscaledOffset,
+    RequireUnscaledOffset
+  };
+
+  for (size_t i = 0; i < sizeof(options)/sizeof(options[0]); i++) {
+    LoadStoreScalingOption option = options[i];
+
+    // If an unscaled-offset instruction is requested, it is used, even if the
+    // offset could be encoded in a scaled-offset instruction.
+    COMPARE(ldurb(w0, MemOperand(x1), option), "ldurb w0, [x1]");
+    COMPARE(ldurb(x2, MemOperand(x3, 1), option), "ldurb w2, [x3, #1]");
+    COMPARE(ldurb(w4, MemOperand(x5, 255), option), "ldurb w4, [x5, #255]");
+    COMPARE(sturb(w14, MemOperand(x15), option), "sturb w14, [x15]");
+    COMPARE(sturb(x16, MemOperand(x17, 1), option), "sturb w16, [x17, #1]");
+    COMPARE(sturb(w18, MemOperand(x19, 255), option), "sturb w18, [x19, #255]");
+    COMPARE(ldursb(w0, MemOperand(x1), option), "ldursb w0, [x1]");
+    COMPARE(ldursb(w2, MemOperand(x3, 1), option), "ldursb w2, [x3, #1]");
+    COMPARE(ldursb(x2, MemOperand(x3, 255), option), "ldursb x2, [x3, #255]");
+
+    COMPARE(ldurh(w0, MemOperand(x1), option), "ldurh w0, [x1]");
+    COMPARE(ldurh(x2, MemOperand(x3, 2), option), "ldurh w2, [x3, #2]");
+    COMPARE(ldurh(w4, MemOperand(x5, 254), option), "ldurh w4, [x5, #254]");
+    COMPARE(sturh(w14, MemOperand(x15), option), "sturh w14, [x15]");
+    COMPARE(sturh(x16, MemOperand(x17, 2), option), "sturh w16, [x17, #2]");
+    COMPARE(sturh(w18, MemOperand(x19, 254), option), "sturh w18, [x19, #254]");
+    COMPARE(ldursh(w0, MemOperand(x1), option), "ldursh w0, [x1]");
+    COMPARE(ldursh(w2, MemOperand(x3, 2), option), "ldursh w2, [x3, #2]");
+    COMPARE(ldursh(x4, MemOperand(x5, 254), option), "ldursh x4, [x5, #254]");
+
+    COMPARE(ldur(w0, MemOperand(x1), option), "ldur w0, [x1]");
+    COMPARE(ldur(w2, MemOperand(x3, 4), option), "ldur w2, [x3, #4]");
+    COMPARE(ldur(w4, MemOperand(x5, 248), option), "ldur w4, [x5, #248]");
+    COMPARE(stur(w12, MemOperand(x13), option), "stur w12, [x13]");
+    COMPARE(stur(w14, MemOperand(x15, 4), option), "stur w14, [x15, #4]");
+    COMPARE(stur(w16, MemOperand(x17, 248), option), "stur w16, [x17, #248]");
+    COMPARE(ldursw(x0, MemOperand(x1), option), "ldursw x0, [x1]");
+    COMPARE(ldursw(x2, MemOperand(x3, 4), option), "ldursw x2, [x3, #4]");
+    COMPARE(ldursw(x4, MemOperand(x5, 248), option), "ldursw x4, [x5, #248]");
+
+    COMPARE(ldur(x6, MemOperand(x7), option), "ldur x6, [x7]");
+    COMPARE(ldur(x8, MemOperand(x9, 8), option), "ldur x8, [x9, #8]");
+    COMPARE(ldur(x10, MemOperand(x11, 248), option), "ldur x10, [x11, #248]");
+    COMPARE(stur(x18, MemOperand(x19), option), "stur x18, [x19]");
+    COMPARE(stur(x20, MemOperand(x21, 8), option), "stur x20, [x21, #8]");
+    COMPARE(stur(x22, MemOperand(x23, 248), option), "stur x22, [x23, #248]");
+  }
+
+  // Normal loads and stores are converted to unscaled loads and stores if the
+  // offset requires it. PreferScaledOffset is the default for these cases, so
+  // the behaviour here is the same when no option is specified.
+  LoadStoreScalingOption option = PreferScaledOffset;
+  COMPARE(ldr(w0, MemOperand(x1, 1), option), "ldur w0, [x1, #1]");
+  COMPARE(ldr(w2, MemOperand(x3, -1), option), "ldur w2, [x3, #-1]");
+  COMPARE(ldr(w4, MemOperand(x5, 255), option), "ldur w4, [x5, #255]");
+  COMPARE(ldr(w6, MemOperand(x7, -256), option), "ldur w6, [x7, #-256]");
+  COMPARE(ldr(x8, MemOperand(x9, 1), option), "ldur x8, [x9, #1]");
+  COMPARE(ldr(x10, MemOperand(x11, -1), option), "ldur x10, [x11, #-1]");
+  COMPARE(ldr(x12, MemOperand(x13, 255), option), "ldur x12, [x13, #255]");
+  COMPARE(ldr(x14, MemOperand(x15, -256), option), "ldur x14, [x15, #-256]");
+  COMPARE(str(w16, MemOperand(x17, 1), option), "stur w16, [x17, #1]");
+  COMPARE(str(w18, MemOperand(x19, -1), option), "stur w18, [x19, #-1]");
+  COMPARE(str(w20, MemOperand(x21, 255), option), "stur w20, [x21, #255]");
+  COMPARE(str(w22, MemOperand(x23, -256), option), "stur w22, [x23, #-256]");
+  COMPARE(str(x24, MemOperand(x25, 1), option), "stur x24, [x25, #1]");
+  COMPARE(str(x26, MemOperand(x27, -1), option), "stur x26, [x27, #-1]");
+  COMPARE(str(x28, MemOperand(x29, 255), option), "stur x28, [x29, #255]");
+  COMPARE(str(x30, MemOperand(x0, -256), option), "stur x30, [x0, #-256]");
+  COMPARE(ldr(w0, MemOperand(sp, 1), option), "ldur w0, [sp, #1]");
+  COMPARE(str(x1, MemOperand(sp, -1), option), "stur x1, [sp, #-1]");
+  COMPARE(ldrb(w2, MemOperand(x3, -2), option), "ldurb w2, [x3, #-2]");
+  COMPARE(ldrsb(w4, MemOperand(x5, -3), option), "ldursb w4, [x5, #-3]");
+  COMPARE(ldrsb(x6, MemOperand(x7, -4), option), "ldursb x6, [x7, #-4]");
+  COMPARE(ldrh(w8, MemOperand(x9, -5), option), "ldurh w8, [x9, #-5]");
+  COMPARE(ldrsh(w10, MemOperand(x11, -6), option), "ldursh w10, [x11, #-6]");
+  COMPARE(ldrsh(x12, MemOperand(x13, -7), option), "ldursh x12, [x13, #-7]");
+  COMPARE(ldrsw(x14, MemOperand(x15, -8), option), "ldursw x14, [x15, #-8]");
+
+  CLEANUP();
+}
+
 
 TEST(load_store_pair) {
   SETUP();
@@ -1208,6 +1360,103 @@ TEST(load_store_pair) {
   CLEANUP();
 }
 
+
+TEST(load_store_exclusive) {
+  SETUP();
+
+  COMPARE(stxrb(w0, w1, MemOperand(x2)), "stxrb w0, w1, [x2]");
+  COMPARE(stxrb(x3, w4, MemOperand(sp)), "stxrb w3, w4, [sp]");
+  COMPARE(stxrb(w5, x6, MemOperand(x7)), "stxrb w5, w6, [x7]");
+  COMPARE(stxrb(x8, x9, MemOperand(sp)), "stxrb w8, w9, [sp]");
+  COMPARE(stxrh(w10, w11, MemOperand(x12)), "stxrh w10, w11, [x12]");
+  COMPARE(stxrh(x13, w14, MemOperand(sp)), "stxrh w13, w14, [sp]");
+  COMPARE(stxrh(w15, x16, MemOperand(x17)), "stxrh w15, w16, [x17]");
+  COMPARE(stxrh(x18, x19, MemOperand(sp)), "stxrh w18, w19, [sp]");
+  COMPARE(stxr(w20, w21, MemOperand(x22)), "stxr w20, w21, [x22]");
+  COMPARE(stxr(x23, w24, MemOperand(sp)), "stxr w23, w24, [sp]");
+  COMPARE(stxr(w25, x26, MemOperand(x27)), "stxr w25, x26, [x27]");
+  COMPARE(stxr(x28, x29, MemOperand(sp)), "stxr w28, x29, [sp]");
+  COMPARE(ldxrb(w30, MemOperand(x0)), "ldxrb w30, [x0]");
+  COMPARE(ldxrb(w1, MemOperand(sp)), "ldxrb w1, [sp]");
+  COMPARE(ldxrb(x2, MemOperand(x3)), "ldxrb w2, [x3]");
+  COMPARE(ldxrb(x4, MemOperand(sp)), "ldxrb w4, [sp]");
+  COMPARE(ldxrh(w5, MemOperand(x6)), "ldxrh w5, [x6]");
+  COMPARE(ldxrh(w7, MemOperand(sp)), "ldxrh w7, [sp]");
+  COMPARE(ldxrh(x8, MemOperand(x9)), "ldxrh w8, [x9]");
+  COMPARE(ldxrh(x10, MemOperand(sp)), "ldxrh w10, [sp]");
+  COMPARE(ldxr(w11, MemOperand(x12)), "ldxr w11, [x12]");
+  COMPARE(ldxr(w13, MemOperand(sp)), "ldxr w13, [sp]");
+  COMPARE(ldxr(x14, MemOperand(x15)), "ldxr x14, [x15]");
+  COMPARE(ldxr(x16, MemOperand(sp)), "ldxr x16, [sp]");
+  COMPARE(stxp(w17, w18, w19, MemOperand(x20)), "stxp w17, w18, w19, [x20]");
+  COMPARE(stxp(x21, w22, w23, MemOperand(sp)), "stxp w21, w22, w23, [sp]");
+  COMPARE(stxp(w24, x25, x26, MemOperand(x27)), "stxp w24, x25, x26, [x27]");
+  COMPARE(stxp(x28, x29, x30, MemOperand(sp)), "stxp w28, x29, x30, [sp]");
+  COMPARE(ldxp(w0, w1, MemOperand(x2)), "ldxp w0, w1, [x2]");
+  COMPARE(ldxp(w3, w4, MemOperand(sp)), "ldxp w3, w4, [sp]");
+  COMPARE(ldxp(x5, x6, MemOperand(x7)), "ldxp x5, x6, [x7]");
+  COMPARE(ldxp(x8, x9, MemOperand(sp)), "ldxp x8, x9, [sp]");
+  COMPARE(stlxrb(w10, w11, MemOperand(x12)), "stlxrb w10, w11, [x12]");
+  COMPARE(stlxrb(x13, w14, MemOperand(sp)), "stlxrb w13, w14, [sp]");
+  COMPARE(stlxrb(w15, x16, MemOperand(x17)), "stlxrb w15, w16, [x17]");
+  COMPARE(stlxrb(x18, x19, MemOperand(sp)), "stlxrb w18, w19, [sp]");
+  COMPARE(stlxrh(w20, w21, MemOperand(x22)), "stlxrh w20, w21, [x22]");
+  COMPARE(stlxrh(x23, w24, MemOperand(sp)), "stlxrh w23, w24, [sp]");
+  COMPARE(stlxrh(w25, x26, MemOperand(x27)), "stlxrh w25, w26, [x27]");
+  COMPARE(stlxrh(x28, x29, MemOperand(sp)), "stlxrh w28, w29, [sp]");
+  COMPARE(stlxr(w30, w0, MemOperand(x1)), "stlxr w30, w0, [x1]");
+  COMPARE(stlxr(x2, w3, MemOperand(sp)), "stlxr w2, w3, [sp]");
+  COMPARE(stlxr(w4, x5, MemOperand(x6)), "stlxr w4, x5, [x6]");
+  COMPARE(stlxr(x7, x8, MemOperand(sp)), "stlxr w7, x8, [sp]");
+  COMPARE(ldaxrb(w9, MemOperand(x10)), "ldaxrb w9, [x10]");
+  COMPARE(ldaxrb(w11, MemOperand(sp)), "ldaxrb w11, [sp]");
+  COMPARE(ldaxrb(x12, MemOperand(x13)), "ldaxrb w12, [x13]");
+  COMPARE(ldaxrb(x14, MemOperand(sp)), "ldaxrb w14, [sp]");
+  COMPARE(ldaxrh(w15, MemOperand(x16)), "ldaxrh w15, [x16]");
+  COMPARE(ldaxrh(w17, MemOperand(sp)), "ldaxrh w17, [sp]");
+  COMPARE(ldaxrh(x18, MemOperand(x19)), "ldaxrh w18, [x19]");
+  COMPARE(ldaxrh(x20, MemOperand(sp)), "ldaxrh w20, [sp]");
+  COMPARE(ldaxr(w21, MemOperand(x22)), "ldaxr w21, [x22]");
+  COMPARE(ldaxr(w23, MemOperand(sp)), "ldaxr w23, [sp]");
+  COMPARE(ldaxr(x24, MemOperand(x25)), "ldaxr x24, [x25]");
+  COMPARE(ldaxr(x26, MemOperand(sp)), "ldaxr x26, [sp]");
+  COMPARE(stlxp(w27, w28, w29, MemOperand(x30)), "stlxp w27, w28, w29, [x30]");
+  COMPARE(stlxp(x0, w1, w2, MemOperand(sp)), "stlxp w0, w1, w2, [sp]");
+  COMPARE(stlxp(w3, x4, x5, MemOperand(x6)), "stlxp w3, x4, x5, [x6]");
+  COMPARE(stlxp(x7, x8, x9, MemOperand(sp)), "stlxp w7, x8, x9, [sp]");
+  COMPARE(ldaxp(w10, w11, MemOperand(x12)), "ldaxp w10, w11, [x12]");
+  COMPARE(ldaxp(w13, w14, MemOperand(sp)), "ldaxp w13, w14, [sp]");
+  COMPARE(ldaxp(x15, x16, MemOperand(x17)), "ldaxp x15, x16, [x17]");
+  COMPARE(ldaxp(x18, x19, MemOperand(sp)), "ldaxp x18, x19, [sp]");
+  COMPARE(stlrb(w20, MemOperand(x21)), "stlrb w20, [x21]");
+  COMPARE(stlrb(w22, MemOperand(sp)), "stlrb w22, [sp]");
+  COMPARE(stlrb(x23, MemOperand(x24)), "stlrb w23, [x24]");
+  COMPARE(stlrb(x25, MemOperand(sp)), "stlrb w25, [sp]");
+  COMPARE(stlrh(w26, MemOperand(x27)), "stlrh w26, [x27]");
+  COMPARE(stlrh(w28, MemOperand(sp)), "stlrh w28, [sp]");
+  COMPARE(stlrh(x29, MemOperand(x30)), "stlrh w29, [x30]");
+  COMPARE(stlrh(x0, MemOperand(sp)), "stlrh w0, [sp]");
+  COMPARE(stlr(w1, MemOperand(x2)), "stlr w1, [x2]");
+  COMPARE(stlr(w3, MemOperand(sp)), "stlr w3, [sp]");
+  COMPARE(stlr(x4, MemOperand(x5)), "stlr x4, [x5]");
+  COMPARE(stlr(x6, MemOperand(sp)), "stlr x6, [sp]");
+  COMPARE(ldarb(w7, MemOperand(x8)), "ldarb w7, [x8]");
+  COMPARE(ldarb(w9, MemOperand(sp)), "ldarb w9, [sp]");
+  COMPARE(ldarb(x10, MemOperand(x11)), "ldarb w10, [x11]");
+  COMPARE(ldarb(x12, MemOperand(sp)), "ldarb w12, [sp]");
+  COMPARE(ldarh(w13, MemOperand(x14)), "ldarh w13, [x14]");
+  COMPARE(ldarh(w15, MemOperand(sp)), "ldarh w15, [sp]");
+  COMPARE(ldarh(x16, MemOperand(x17)), "ldarh w16, [x17]");
+  COMPARE(ldarh(x18, MemOperand(sp)), "ldarh w18, [sp]");
+  COMPARE(ldar(w19, MemOperand(x20)), "ldar w19, [x20]");
+  COMPARE(ldar(w21, MemOperand(sp)), "ldar w21, [sp]");
+  COMPARE(ldar(x22, MemOperand(x23)), "ldar x22, [x23]");
+  COMPARE(ldar(x24, MemOperand(sp)), "ldar x24, [sp]");
+
+  CLEANUP();
+}
+
+
 TEST(load_store_pair_nontemp) {
   SETUP();
 
@@ -1227,6 +1476,7 @@ TEST(load_store_pair_nontemp) {
   CLEANUP();
 }
 
+
 TEST(load_literal) {
   SETUP();
 
@@ -1237,6 +1487,7 @@ TEST(load_literal) {
 
   CLEANUP();
 }
+
 
 TEST(cond_select) {
   SETUP();
@@ -1272,6 +1523,7 @@ TEST(cond_select) {
   CLEANUP();
 }
 
+
 TEST(cond_select_macro) {
   SETUP_CLASS(MacroAssembler);
 
@@ -1284,6 +1536,7 @@ TEST(cond_select_macro) {
 
   CLEANUP();
 }
+
 
 TEST(cond_cmp) {
   SETUP();
@@ -1302,6 +1555,7 @@ TEST(cond_cmp) {
   CLEANUP();
 }
 
+
 TEST(cond_cmp_macro) {
   SETUP_CLASS(MacroAssembler);
 
@@ -1313,6 +1567,7 @@ TEST(cond_cmp_macro) {
   CLEANUP();
 }
 
+
 TEST(fmov_imm) {
   SETUP();
 
@@ -1323,6 +1578,7 @@ TEST(fmov_imm) {
 
   CLEANUP();
 }
+
 
 TEST(fmov_reg) {
   SETUP();
@@ -1521,6 +1777,18 @@ TEST(fcvt_scvtf_ucvtf) {
 }
 
 
+TEST(system_clrex) {
+  SETUP();
+
+  COMPARE(clrex(0), "clrex #0x0");
+  COMPARE(clrex(14), "clrex #0xe");
+  COMPARE(clrex(15), "clrex");
+  COMPARE(clrex(), "clrex");
+
+  CLEANUP();
+}
+
+
 TEST(system_mrs) {
   SETUP();
 
@@ -1686,6 +1954,7 @@ TEST(logical_immediate_move) {
 
   CLEANUP();
 }
+
 
 TEST(barriers) {
   SETUP_CLASS(MacroAssembler);

@@ -74,7 +74,7 @@ int main(void) {
          simulator.xreg(0), simulator.xreg(1),
          simulator.xreg(2), simulator.xreg(3));
 
-  simulator.RunFrom(swap4.target());
+  simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&swap4));
 
   printf("After swap4:\n"
          "x0 = 0x%" PRIx64 "\n"

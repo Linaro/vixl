@@ -75,6 +75,7 @@ int main(int argc, char* argv[]) {
     __ bind(&target);
   }
 
+  masm->FinalizeCode();
   delete masm;
   delete assm_buffer;
 

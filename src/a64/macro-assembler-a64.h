@@ -88,8 +88,9 @@ enum DiscardMoveMode { kDontDiscardForSameWReg, kDiscardForSameWReg };
 
 class MacroAssembler : public Assembler {
  public:
-  MacroAssembler(byte * buffer, unsigned buffer_size)
-      : Assembler(buffer, buffer_size),
+  MacroAssembler(byte * buffer, unsigned buffer_size,
+                 PositionIndependentCodeOption pic = PositionIndependentCode)
+      : Assembler(buffer, buffer_size, pic),
 #ifdef DEBUG
         allow_macro_instructions_(true),
 #endif
@@ -182,11 +183,23 @@ class MacroAssembler : public Assembler {
            DiscardMoveMode discard_mode = kDontDiscardForSameWReg);
   void Mvn(const Register& rd, uint64_t imm) {
     Mov(rd, (rd.size() == kXRegSize) ? ~imm : (~imm & kWRegMask));
-  };
+  }
   void Mvn(const Register& rd, const Operand& operand);
   bool IsImmMovz(uint64_t imm, unsigned reg_size);
   bool IsImmMovn(uint64_t imm, unsigned reg_size);
   unsigned CountClearHalfWords(uint64_t imm, unsigned reg_size);
+
+  // Try to move an immediate into the destination register in a single
+  // instruction. Returns true for success, and updates the contents of dst.
+  // Returns false, otherwise.
+  bool TryOneInstrMoveImmediate(const Register& dst, int64_t imm);
+
+  // Move an immediate into register dst, and return an Operand object for
+  // use with a subsequent instruction that accepts a shift. The value moved
+  // into dst is not necessarily equal to imm; it may have had a shifting
+  // operation applied to it that will be subsequently undone by the shift
+  // applied in the Operand.
+  Operand MoveImmediateForShiftedOp(const Register& dst, int64_t imm);
 
   // Conditional macros.
   void Ccmp(const Register& rn,
@@ -345,6 +358,11 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(!rd.IsZero());
     adr(rd, label);
   }
+  void Adrp(const Register& rd, Label* label) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    adrp(rd, label);
+  }
   void Asr(const Register& rd, const Register& rn, unsigned shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rd.IsZero());
@@ -447,6 +465,10 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(!rd.IsZero());
     VIXL_ASSERT(!rn.IsZero());
     cinv(rd, rn, cond);
+  }
+  void Clrex() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    clrex();
   }
   void Cls(const Register& rd, const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -728,6 +750,35 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     isb();
   }
+  void Ldar(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    ldar(rt, src);
+  }
+  void Ldarb(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    ldarb(rt, src);
+  }
+  void Ldarh(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    ldarh(rt, src);
+  }
+  void Ldaxp(const Register& rt, const Register& rt2, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rt.Aliases(rt2));
+    ldaxp(rt, rt2, src);
+  }
+  void Ldaxr(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    ldaxr(rt, src);
+  }
+  void Ldaxrb(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    ldaxrb(rt, src);
+  }
+  void Ldaxrh(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    ldaxrh(rt, src);
+  }
   void Ldnp(const CPURegister& rt,
             const CPURegister& rt2,
             const MemOperand& src) {
@@ -768,6 +819,23 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rt.IsZero());
     ldr(rt, imm);
+  }
+  void Ldxp(const Register& rt, const Register& rt2, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rt.Aliases(rt2));
+    ldxp(rt, rt2, src);
+  }
+  void Ldxr(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    ldxr(rt, src);
+  }
+  void Ldxrb(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    ldxrb(rt, src);
+  }
+  void Ldxrh(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    ldxrh(rt, src);
   }
   void Lsl(const Register& rd, const Register& rn, unsigned shift) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -962,6 +1030,46 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(!xm.IsZero());
     smulh(xd, xn, xm);
   }
+  void Stlr(const Register& rt, const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    stlr(rt, dst);
+  }
+  void Stlrb(const Register& rt, const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    stlrb(rt, dst);
+  }
+  void Stlrh(const Register& rt, const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    stlrh(rt, dst);
+  }
+  void Stlxp(const Register& rs,
+             const Register& rt,
+             const Register& rt2,
+             const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(rt));
+    VIXL_ASSERT(!rs.Aliases(rt2));
+    stlxp(rs, rt, rt2, dst);
+  }
+  void Stlxr(const Register& rs, const Register& rt, const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(rt));
+    stlxr(rs, rt, dst);
+  }
+  void Stlxrb(const Register& rs, const Register& rt, const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(rt));
+    stlxrb(rs, rt, dst);
+  }
+  void Stlxrh(const Register& rs, const Register& rt, const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(rt));
+    stlxrh(rs, rt, dst);
+  }
   void Stnp(const CPURegister& rt,
             const CPURegister& rt2,
             const MemOperand& dst) {
@@ -973,6 +1081,34 @@ class MacroAssembler : public Assembler {
            const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
     stp(rt, rt2, dst);
+  }
+  void Stxp(const Register& rs,
+            const Register& rt,
+            const Register& rt2,
+            const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(rt));
+    VIXL_ASSERT(!rs.Aliases(rt2));
+    stxp(rs, rt, rt2, dst);
+  }
+  void Stxr(const Register& rs, const Register& rt, const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(rt));
+    stxr(rs, rt, dst);
+  }
+  void Stxrb(const Register& rs, const Register& rt, const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(rt));
+    stxrb(rs, rt, dst);
+  }
+  void Stxrh(const Register& rs, const Register& rt, const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(rt));
+    stxrh(rs, rt, dst);
   }
   void Sxtb(const Register& rd, const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1229,24 +1365,24 @@ class MacroAssembler : public Assembler {
 // emitted is what you specified when creating the scope.
 class InstructionAccurateScope {
  public:
-  explicit InstructionAccurateScope(MacroAssembler* masm)
-      : masm_(masm), size_(0) {
-    masm_->BlockLiteralPool();
 #ifdef DEBUG
-    old_allow_macro_instructions_ = masm_->AllowMacroInstructions();
-    masm_->SetAllowMacroInstructions(false);
-#endif
-  }
-
-  InstructionAccurateScope(MacroAssembler* masm, int count)
+  explicit InstructionAccurateScope(MacroAssembler* masm, int count = 0)
       : masm_(masm), size_(count * kInstructionSize) {
     masm_->BlockLiteralPool();
-#ifdef DEBUG
-    masm_->bind(&start_);
+    if (size_ != 0) {
+      masm_->bind(&start_);
+    }
     old_allow_macro_instructions_ = masm_->AllowMacroInstructions();
     masm_->SetAllowMacroInstructions(false);
-#endif
   }
+#else
+  explicit InstructionAccurateScope(MacroAssembler* masm,
+                                    int count = 0)
+      : masm_(masm) {
+    USE(count);
+    masm_->BlockLiteralPool();
+  }
+#endif
 
   ~InstructionAccurateScope() {
     masm_->ReleaseLiteralPool();
@@ -1260,8 +1396,8 @@ class InstructionAccurateScope {
 
  private:
   MacroAssembler* masm_;
-  uint64_t size_;
 #ifdef DEBUG
+  uint64_t size_;
   Label start_;
   bool old_allow_macro_instructions_;
 #endif

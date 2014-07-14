@@ -45,15 +45,15 @@ void CPU::SetUp() {
   static const uint32_t kDCacheLineSizeMask = 0xf << kDCacheLineSizeShift;
   static const uint32_t kICacheLineSizeMask = 0xf << kICacheLineSizeShift;
 
-  // The cache type register holds the size of the I and D caches as a power of
-  // two.
+  // The cache type register holds the size of the I and D caches in words as
+  // a power of two.
   uint32_t dcache_line_size_power_of_two =
       (cache_type_register & kDCacheLineSizeMask) >> kDCacheLineSizeShift;
   uint32_t icache_line_size_power_of_two =
       (cache_type_register & kICacheLineSizeMask) >> kICacheLineSizeShift;
 
-  dcache_line_size_ = 1 << dcache_line_size_power_of_two;
-  icache_line_size_ = 1 << icache_line_size_power_of_two;
+  dcache_line_size_ = 4 << dcache_line_size_power_of_two;
+  icache_line_size_ = 4 << icache_line_size_power_of_two;
 }
 
 
@@ -76,72 +76,86 @@ void CPU::EnsureIAndDCacheCoherency(void *address, size_t length) {
 #ifdef USE_SIMULATOR
   USE(address);
   USE(length);
-  // TODO: consider adding cache simulation to ensure every address run has been
-  // synchronised.
 #else
+  if (length == 0) {
+    return;
+  }
+
   // The code below assumes user space cache operations are allowed.
 
+  // Work out the line sizes for each cache, and use them to determine the
+  // start addresses.
   uintptr_t start = reinterpret_cast<uintptr_t>(address);
-  // Sizes will be used to generate a mask big enough to cover a pointer.
   uintptr_t dsize = static_cast<uintptr_t>(dcache_line_size_);
   uintptr_t isize = static_cast<uintptr_t>(icache_line_size_);
+  uintptr_t dline = start & ~(dsize - 1);
+  uintptr_t iline = start & ~(isize - 1);
+
   // Cache line sizes are always a power of 2.
-  VIXL_ASSERT(CountSetBits(dsize, 64) == 1);
-  VIXL_ASSERT(CountSetBits(isize, 64) == 1);
-  uintptr_t dstart = start & ~(dsize - 1);
-  uintptr_t istart = start & ~(isize - 1);
+  VIXL_ASSERT(IsPowerOf2(dsize));
+  VIXL_ASSERT(IsPowerOf2(isize));
   uintptr_t end = start + length;
 
-  __asm__ __volatile__ (  // NOLINT
-    // Clean every line of the D cache containing the target data.
-    "0:                                \n\t"
-    // dc      : Data Cache maintenance
-    //    c    : Clean
-    //     va  : by (Virtual) Address
-    //       u : to the point of Unification
-    // The point of unification for a processor is the point by which the
-    // instruction and data caches are guaranteed to see the same copy of a
-    // memory location. See ARM DDI 0406B page B2-12 for more information.
-    "dc   cvau, %[dline]                \n\t"
-    "add  %[dline], %[dline], %[dsize]  \n\t"
-    "cmp  %[dline], %[end]              \n\t"
-    "b.lt 0b                            \n\t"
-    // Barrier to make sure the effect of the code above is visible to the rest
-    // of the world.
-    // dsb    : Data Synchronisation Barrier
-    //    ish : Inner SHareable domain
+  do {
+    __asm__ __volatile__ (
+      // Clean each line of the D cache containing the target data.
+      //
+      // dc       : Data Cache maintenance
+      //     c    : Clean
+      //      va  : by (Virtual) Address
+      //        u : to the point of Unification
+      // The point of unification for a processor is the point by which the
+      // instruction and data caches are guaranteed to see the same copy of a
+      // memory location. See ARM DDI 0406B page B2-12 for more information.
+      "   dc    cvau, %[dline]\n"
+      :
+      : [dline] "r" (dline)
+      // This code does not write to memory, but the "memory" dependency
+      // prevents GCC from reordering the code.
+      : "memory");
+    dline += dsize;
+  } while (dline < end);
+
+  __asm__ __volatile__ (
+    // Make sure that the data cache operations (above) complete before the
+    // instruction cache operations (below).
+    //
+    // dsb      : Data Synchronisation Barrier
+    //      ish : Inner SHareable domain
+    //
     // The point of unification for an Inner Shareable shareability domain is
     // the point by which the instruction and data caches of all the processors
     // in that Inner Shareable shareability domain are guaranteed to see the
     // same copy of a memory location.  See ARM DDI 0406B page B2-12 for more
     // information.
-    "dsb  ish                           \n\t"
-    // Invalidate every line of the I cache containing the target data.
-    "1:                                 \n\t"
-    // ic      : instruction cache maintenance
-    //    i    : invalidate
-    //     va  : by address
-    //       u : to the point of unification
-    "ic   ivau, %[iline]                \n\t"
-    "add  %[iline], %[iline], %[isize]  \n\t"
-    "cmp  %[iline], %[end]              \n\t"
-    "b.lt 1b                            \n\t"
-    // Barrier to make sure the effect of the code above is visible to the rest
-    // of the world.
-    "dsb  ish                           \n\t"
-    // Barrier to ensure any prefetching which happened before this code is
-    // discarded.
+    "   dsb   ish\n"
+    : : : "memory");
+
+  do {
+    __asm__ __volatile__ (
+      // Invalidate each line of the I cache containing the target data.
+      //
+      // ic      : Instruction Cache maintenance
+      //    i    : Invalidate
+      //     va  : by Address
+      //       u : to the point of Unification
+      "   ic   ivau, %[iline]\n"
+      :
+      : [iline] "r" (iline)
+      : "memory");
+    iline += isize;
+  } while (iline < end);
+
+  __asm__ __volatile__ (
+    // Make sure that the instruction cache operations (above) take effect
+    // before the isb (below).
+    "   dsb  ish\n"
+
+    // Ensure that any instructions already in the pipeline are discarded and
+    // reloaded from the new data.
     // isb : Instruction Synchronisation Barrier
-    "isb                                \n\t"
-    : [dline] "+r" (dstart),
-      [iline] "+r" (istart)
-    : [dsize] "r"  (dsize),
-      [isize] "r"  (isize),
-      [end]   "r"  (end)
-    // This code does not write to memory but without the dependency gcc might
-    // move this code before the code is generated.
-    : "cc", "memory"
-  );  // NOLINT
+    "   isb\n"
+    : : : "memory");
 #endif
 }
 

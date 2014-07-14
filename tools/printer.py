@@ -29,37 +29,63 @@
 
 import sys
 import time
+import multiprocessing
 
 
-__need_newline__ = False
-__last_name_length__ = 0
+__need_newline__ = multiprocessing.Value('i', 0)
+__last_overwritable_line_length__ = multiprocessing.Value('i', 0)
+__print_lock__ = multiprocessing.Lock()
 
 
 # If the last printed character was not a newline, print one.
 def EnsureNewLine():
   global __need_newline__
 
-  if __need_newline__:
-    __need_newline__ = False
+  if __need_newline__.value:
+    __need_newline__.value = 0
     sys.stdout.write('\n')
 
 
 # Like print, but insert a newline if necessary to avoid corrupting the status
 # display (provided by UpdateProgress).
 def Print(string):
-  global __last_name_length__
+  global __last_overwritable_line_length__
 
   EnsureNewLine()
   print string
-  __last_name_length__ = 0
+  __last_overwritable_line_length__.value = 0
+
+
+def PrintOverwritableLine(string, verbose = False):
+  global __need_newline__
+  global __last_overwritable_line_length__
+
+  with __print_lock__:
+    if verbose:
+      # In verbose mode we do not overwrite previous lines.
+      EnsureNewLine()
+    else:
+      # Otherwise, overwrite the previous line.
+      sys.stdout.write('\r')
+
+    sys.stdout.write(string)
+
+    # Append spaces to hide the previous line.
+    new_len = len(string)
+    spaces = __last_overwritable_line_length__.value - new_len
+    if spaces > 0:
+      sys.stdout.write(' ' * spaces)
+    __last_overwritable_line_length__.value = new_len
+
+    # We haven't printed a newline, so any subsequent print output (with verbose
+    # logs or error reports) will need to print one.
+    __need_newline__.value = 1
 
 
 # Display the run progress:
 # [time| progress|+ passed|- failed]  Name
-def UpdateProgress(start_time, passed, failed, count, verbose, name):
-  global __need_newline__
-  global __last_name_length__
-
+def UpdateProgress(start_time, passed, failed, count, verbose, name,
+                   prefix = ''):
   minutes, seconds = divmod(time.time() - start_time, 60)
   progress = float(passed + failed) / count * 100
   passed_colour = '\x1b[32m' if passed != 0 else ''
@@ -68,26 +94,8 @@ def UpdateProgress(start_time, passed, failed, count, verbose, name):
   indicator += passed_colour + '+ %d\x1b[0m|'
   indicator += failed_colour + '- %d\x1b[0m]'
 
-  if verbose:
-    # In verbose mode, put every status display on its own line.
-    EnsureNewLine()
-  else:
-    # Otherwise, overwrite the old progress display.
-    sys.stdout.write('\r')
-  sys.stdout.write(indicator % (minutes, seconds, progress, passed, failed))
+  progress_string = prefix
+  progress_string += indicator % (minutes, seconds, progress, passed, failed)
+  progress_string += '  ' + name
 
-  # Write the test name after the progress indicator.
-  sys.stdout.write('  ' + name)
-  name_length = len(name)
-
-  # Append spaces to hide the previous test name.
-  spaces = __last_name_length__ - name_length
-  if spaces > 0:
-    sys.stdout.write(' ' * spaces)
-  __last_name_length__ = name_length
-
-  # We haven't printed a newline, so any subsequent print output (with verbose
-  # logs or error reports) will need to print one.
-  __need_newline__ = True
-
-
+  PrintOverwritableLine(progress_string, verbose)

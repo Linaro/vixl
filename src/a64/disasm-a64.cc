@@ -24,6 +24,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <cstdlib>
 #include "a64/disasm-a64.h"
 
 namespace vixl {
@@ -529,7 +530,7 @@ void Disassembler::VisitExtract(Instruction* instr) {
 void Disassembler::VisitPCRelAddressing(Instruction* instr) {
   switch (instr->Mask(PCRelAddressingMask)) {
     case ADR: Format(instr, "adr", "'Xd, 'AddrPCRelByte"); break;
-    // ADRP is not implemented.
+    case ADRP: Format(instr, "adrp", "'Xd, 'AddrPCRelPage"); break;
     default: Format(instr, "unimplemented", "(PCRelAddressing)");
   }
 }
@@ -943,6 +944,49 @@ void Disassembler::VisitLoadStorePairNonTemporal(Instruction* instr) {
 }
 
 
+void Disassembler::VisitLoadStoreExclusive(Instruction* instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form;
+
+  switch (instr->Mask(LoadStoreExclusiveMask)) {
+    case STXRB_w: mnemonic = "stxrb"; form = "'Ws, 'Wt, ['Xns]"; break;
+    case STXRH_w: mnemonic = "stxrh"; form = "'Ws, 'Wt, ['Xns]"; break;
+    case STXR_w: mnemonic = "stxr"; form = "'Ws, 'Wt, ['Xns]"; break;
+    case STXR_x: mnemonic = "stxr"; form = "'Ws, 'Xt, ['Xns]"; break;
+    case LDXRB_w: mnemonic = "ldxrb"; form = "'Wt, ['Xns]"; break;
+    case LDXRH_w: mnemonic = "ldxrh"; form = "'Wt, ['Xns]"; break;
+    case LDXR_w: mnemonic = "ldxr"; form = "'Wt, ['Xns]"; break;
+    case LDXR_x: mnemonic = "ldxr"; form = "'Xt, ['Xns]"; break;
+    case STXP_w: mnemonic = "stxp"; form = "'Ws, 'Wt, 'Wt2, ['Xns]"; break;
+    case STXP_x: mnemonic = "stxp"; form = "'Ws, 'Xt, 'Xt2, ['Xns]"; break;
+    case LDXP_w: mnemonic = "ldxp"; form = "'Wt, 'Wt2, ['Xns]"; break;
+    case LDXP_x: mnemonic = "ldxp"; form = "'Xt, 'Xt2, ['Xns]"; break;
+    case STLXRB_w: mnemonic = "stlxrb"; form = "'Ws, 'Wt, ['Xns]"; break;
+    case STLXRH_w: mnemonic = "stlxrh"; form = "'Ws, 'Wt, ['Xns]"; break;
+    case STLXR_w: mnemonic = "stlxr"; form = "'Ws, 'Wt, ['Xns]"; break;
+    case STLXR_x: mnemonic = "stlxr"; form = "'Ws, 'Xt, ['Xns]"; break;
+    case LDAXRB_w: mnemonic = "ldaxrb"; form = "'Wt, ['Xns]"; break;
+    case LDAXRH_w: mnemonic = "ldaxrh"; form = "'Wt, ['Xns]"; break;
+    case LDAXR_w: mnemonic = "ldaxr"; form = "'Wt, ['Xns]"; break;
+    case LDAXR_x: mnemonic = "ldaxr"; form = "'Xt, ['Xns]"; break;
+    case STLXP_w: mnemonic = "stlxp"; form = "'Ws, 'Wt, 'Wt2, ['Xns]"; break;
+    case STLXP_x: mnemonic = "stlxp"; form = "'Ws, 'Xt, 'Xt2, ['Xns]"; break;
+    case LDAXP_w: mnemonic = "ldaxp"; form = "'Wt, 'Wt2, ['Xns]"; break;
+    case LDAXP_x: mnemonic = "ldaxp"; form = "'Xt, 'Xt2, ['Xns]"; break;
+    case STLRB_w: mnemonic = "stlrb"; form = "'Wt, ['Xns]"; break;
+    case STLRH_w: mnemonic = "stlrh"; form = "'Wt, ['Xns]"; break;
+    case STLR_w: mnemonic = "stlr"; form = "'Wt, ['Xns]"; break;
+    case STLR_x: mnemonic = "stlr"; form = "'Xt, ['Xns]"; break;
+    case LDARB_w: mnemonic = "ldarb"; form = "'Wt, ['Xns]"; break;
+    case LDARH_w: mnemonic = "ldarh"; form = "'Wt, ['Xns]"; break;
+    case LDAR_w: mnemonic = "ldar"; form = "'Wt, ['Xns]"; break;
+    case LDAR_x: mnemonic = "ldar"; form = "'Xt, ['Xns]"; break;
+    default: form = "(LoadStoreExclusive)";
+  }
+  Format(instr, mnemonic, form);
+}
+
+
 void Disassembler::VisitFPCompare(Instruction* instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'Fn, 'Fm";
@@ -1162,7 +1206,15 @@ void Disassembler::VisitSystem(Instruction* instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(System)";
 
-  if (instr->Mask(SystemSysRegFMask) == SystemSysRegFixed) {
+  if (instr->Mask(SystemExclusiveMonitorFMask) == SystemExclusiveMonitorFixed) {
+    switch (instr->Mask(SystemExclusiveMonitorMask)) {
+      case CLREX: {
+        mnemonic = "clrex";
+        form = (instr->CRm() == 0xf) ? NULL : "'IX";
+        break;
+      }
+    }
+  } else if (instr->Mask(SystemSysRegFMask) == SystemSysRegFixed) {
     switch (instr->Mask(SystemSysRegMask)) {
       case MRS: {
         mnemonic = "mrs";
@@ -1184,7 +1236,6 @@ void Disassembler::VisitSystem(Instruction* instr) {
       }
     }
   } else if (instr->Mask(SystemHintFMask) == SystemHintFixed) {
-    VIXL_ASSERT(instr->Mask(SystemHintMask) == HINT);
     switch (instr->ImmHint()) {
       case NOP: {
         mnemonic = "nop";
@@ -1312,6 +1363,7 @@ int Disassembler::SubstituteRegisterField(Instruction* instr,
     case 'n': reg_num = instr->Rn(); break;
     case 'm': reg_num = instr->Rm(); break;
     case 'a': reg_num = instr->Ra(); break;
+    case 's': reg_num = instr->Rs(); break;
     case 't': {
       if (format[2] == '2') {
         reg_num = instr->Rt2();
@@ -1369,7 +1421,7 @@ int Disassembler::SubstituteImmediateField(Instruction* instr,
         VIXL_ASSERT(format[5] == 'L');
         AppendToOutput("#0x%" PRIx64, instr->ImmMoveWide());
         if (instr->ShiftMoveWide() > 0) {
-          AppendToOutput(", lsl #%d", 16 * instr->ShiftMoveWide());
+          AppendToOutput(", lsl #%" PRId64, 16 * instr->ShiftMoveWide());
         }
       }
       return 8;
@@ -1418,7 +1470,7 @@ int Disassembler::SubstituteImmediateField(Instruction* instr,
     }
     case 'F': {  // IFPSingle, IFPDouble or IFPFBits.
       if (format[3] == 'F') {  // IFPFbits.
-        AppendToOutput("#%d", 64 - instr->FPScale());
+        AppendToOutput("#%" PRId64, 64 - instr->FPScale());
         return 8;
       } else {
         AppendToOutput("#0x%" PRIx64 " (%.4f)", instr->ImmFP(),
@@ -1439,24 +1491,28 @@ int Disassembler::SubstituteImmediateField(Instruction* instr,
       return 5;
     }
     case 'P': {  // IP - Conditional compare.
-      AppendToOutput("#%d", instr->ImmCondCmp());
+      AppendToOutput("#%" PRId64, instr->ImmCondCmp());
       return 2;
     }
     case 'B': {  // Bitfields.
       return SubstituteBitfieldImmediateField(instr, format);
     }
     case 'E': {  // IExtract.
-      AppendToOutput("#%d", instr->ImmS());
+      AppendToOutput("#%" PRId64, instr->ImmS());
       return 8;
     }
     case 'S': {  // IS - Test and branch bit.
-      AppendToOutput("#%d", (instr->ImmTestBranchBit5() << 5) |
-                            instr->ImmTestBranchBit40());
+      AppendToOutput("#%" PRId64, (instr->ImmTestBranchBit5() << 5) |
+                                  instr->ImmTestBranchBit40());
       return 2;
     }
     case 'D': {  // IDebug - HLT and BRK instructions.
-      AppendToOutput("#0x%x", instr->ImmException());
+      AppendToOutput("#0x%" PRIx64, instr->ImmException());
       return 6;
+    }
+    case 'X': {  // IX - CLREX instruction.
+      AppendToOutput("#0x%" PRIx64, instr->CRm());
+      return 2;
     }
     default: {
       VIXL_UNIMPLEMENTED();
@@ -1564,21 +1620,20 @@ int Disassembler::SubstituteConditionField(Instruction* instr,
 
 int Disassembler::SubstitutePCRelAddressField(Instruction* instr,
                                               const char* format) {
-  USE(format);
-  VIXL_ASSERT(strncmp(format, "AddrPCRel", 9) == 0);
+  VIXL_ASSERT((strcmp(format, "AddrPCRelByte") == 0) ||   // Used by `adr`.
+              (strcmp(format, "AddrPCRelPage") == 0));    // Used by `adrp`.
 
-  int offset = instr->ImmPCRel();
+  int64_t offset = instr->ImmPCRel();
+  Instruction * base = instr;
 
-  // Only ADR (AddrPCRelByte) is supported.
-  VIXL_ASSERT(strcmp(format, "AddrPCRelByte") == 0);
-
-  char sign = '+';
-  if (offset < 0) {
-    offset = -offset;
-    sign = '-';
+  if (format[9] == 'P') {
+    offset *= kPageSize;
+    base = AlignDown(base, kPageSize);
   }
-  VIXL_STATIC_ASSERT(sizeof(*instr) == 1);
-  AppendToOutput("#%c0x%x (addr %p)", sign, offset, instr + offset);
+
+  char sign = (offset < 0) ? '-' : '+';
+  void * target = reinterpret_cast<void *>(base + offset);
+  AppendToOutput("#%c0x%" PRIx64 " (addr %p)", sign, std::abs(offset), target);
   return 13;
 }
 
@@ -1606,7 +1661,8 @@ int Disassembler::SubstituteBranchTargetField(Instruction* instr,
     sign = '-';
   }
   VIXL_STATIC_ASSERT(sizeof(*instr) == 1);
-  AppendToOutput("#%c0x%" PRIx64 " (addr %p)", sign, offset, instr + offset);
+  void * address = reinterpret_cast<void *>(instr + offset);
+  AppendToOutput("#%c0x%" PRIx64 " (addr %p)", sign, offset, address);
   return 8;
 }
 
@@ -1626,12 +1682,12 @@ int Disassembler::SubstituteExtendField(Instruction* instr,
       (((instr->ExtendMode() == UXTW) && (instr->SixtyFourBits() == 0)) ||
        (instr->ExtendMode() == UXTX))) {
     if (instr->ImmExtendShift() > 0) {
-      AppendToOutput(", lsl #%d", instr->ImmExtendShift());
+      AppendToOutput(", lsl #%" PRId64, instr->ImmExtendShift());
     }
   } else {
     AppendToOutput(", %s", extend_mode[instr->ExtendMode()]);
     if (instr->ImmExtendShift() > 0) {
-      AppendToOutput(" #%d", instr->ImmExtendShift());
+      AppendToOutput(" #%" PRId64, instr->ImmExtendShift());
     }
   }
   return 3;
@@ -1660,7 +1716,7 @@ int Disassembler::SubstituteLSRegOffsetField(Instruction* instr,
   if (!((ext == UXTX) && (shift == 0))) {
     AppendToOutput(", %s", extend_mode[ext]);
     if (shift != 0) {
-      AppendToOutput(" #%d", instr->SizeLS());
+      AppendToOutput(" #%" PRId64, instr->SizeLS());
     }
   }
   return 9;

@@ -62,7 +62,7 @@ int main(void) {
   masm.FinalizeCode();
 
   // Run the example function.
-  debugger.RunFrom(start.target());
+  debugger.RunFrom(masm.GetLabelAddress<Instruction*>(&start));
   printf("Debugger example run\n");
 
   return 0;

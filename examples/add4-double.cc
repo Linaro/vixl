@@ -74,7 +74,7 @@ int main(void) {
   simulator.set_dreg(0, b);
   simulator.set_xreg(1, c);
   simulator.set_dreg(1, d);
-  simulator.RunFrom(add4_double.target());
+  simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&add4_double));
   printf("%ld + %f + %ld + %f = %f\n", a, b, c, d, simulator.dreg(0));
 
   return 0;

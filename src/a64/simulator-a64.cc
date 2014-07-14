@@ -89,6 +89,11 @@ Simulator::Simulator(Decoder* decoder, FILE* stream) {
 
   // Set the sample period to 10, as the VIXL examples and tests are short.
   instrumentation_ = new Instrument("vixl_stats.csv", 10);
+
+  // Print a warning about exclusive-access instructions, but only the first
+  // time they are encountered. This warning can be silenced using
+  // SilenceExclusiveAccessWarning().
+  print_exclusive_access_warning_ = true;
 }
 
 
@@ -208,31 +213,34 @@ const char* Simulator::VRegNameForCode(unsigned code) {
 }
 
 
-#define COLOUR(colour_code)  "\033[" colour_code "m"
-#define BOLD(colour_code)    "1;" colour_code
-#define NORMAL ""
-#define GREY   "30"
-#define GREEN  "32"
-#define ORANGE "33"
-#define BLUE   "34"
-#define PURPLE "35"
-#define INDIGO "36"
-#define WHITE  "37"
+#define COLOUR(colour_code)  "\033[0;" colour_code "m"
+#define COLOUR_BOLD(colour_code)  "\033[1;" colour_code "m"
+#define NORMAL  ""
+#define GREY    "30"
+#define RED     "31"
+#define GREEN   "32"
+#define YELLOW  "33"
+#define BLUE    "34"
+#define MAGENTA "35"
+#define CYAN    "36"
+#define WHITE   "37"
 void Simulator::set_coloured_trace(bool value) {
   coloured_trace_ = value;
 
-  clr_normal         = value ? COLOUR(NORMAL)       : "";
-  clr_flag_name      = value ? COLOUR(BOLD(GREY))   : "";
-  clr_flag_value     = value ? COLOUR(BOLD(WHITE))  : "";
-  clr_reg_name       = value ? COLOUR(BOLD(BLUE))   : "";
-  clr_reg_value      = value ? COLOUR(BOLD(INDIGO)) : "";
-  clr_fpreg_name     = value ? COLOUR(BOLD(ORANGE)) : "";
-  clr_fpreg_value    = value ? COLOUR(BOLD(PURPLE)) : "";
-  clr_memory_value   = value ? COLOUR(BOLD(GREEN))  : "";
-  clr_memory_address = value ? COLOUR(GREEN)        : "";
-  clr_debug_number   = value ? COLOUR(BOLD(ORANGE)) : "";
-  clr_debug_message  = value ? COLOUR(ORANGE)       : "";
-  clr_printf         = value ? COLOUR(GREEN)        : "";
+  clr_normal          = value ? COLOUR(NORMAL)        : "";
+  clr_flag_name       = value ? COLOUR_BOLD(GREY)     : "";
+  clr_flag_value      = value ? COLOUR_BOLD(WHITE)    : "";
+  clr_reg_name        = value ? COLOUR_BOLD(BLUE)     : "";
+  clr_reg_value       = value ? COLOUR_BOLD(CYAN)     : "";
+  clr_fpreg_name      = value ? COLOUR_BOLD(YELLOW)   : "";
+  clr_fpreg_value     = value ? COLOUR_BOLD(MAGENTA)  : "";
+  clr_memory_value    = value ? COLOUR_BOLD(GREEN)    : "";
+  clr_memory_address  = value ? COLOUR(GREEN)         : "";
+  clr_debug_number    = value ? COLOUR_BOLD(YELLOW)   : "";
+  clr_debug_message   = value ? COLOUR(YELLOW)        : "";
+  clr_warning         = value ? COLOUR_BOLD(RED)      : "";
+  clr_warning_message = value ? COLOUR(RED)           : "";
+  clr_printf          = value ? COLOUR(GREEN)         : "";
 }
 
 
@@ -489,32 +497,24 @@ void Simulator::PrintProcessorState() {
 // Visitors---------------------------------------------------------------------
 
 void Simulator::VisitUnimplemented(Instruction* instr) {
-  printf("Unimplemented instruction at 0x%p: 0x%08" PRIx32 "\n",
+  printf("Unimplemented instruction at %p: 0x%08" PRIx32 "\n",
          reinterpret_cast<void*>(instr), instr->InstructionBits());
   VIXL_UNIMPLEMENTED();
 }
 
 
 void Simulator::VisitUnallocated(Instruction* instr) {
-  printf("Unallocated instruction at 0x%p: 0x%08" PRIx32 "\n",
+  printf("Unallocated instruction at %p: 0x%08" PRIx32 "\n",
          reinterpret_cast<void*>(instr), instr->InstructionBits());
   VIXL_UNIMPLEMENTED();
 }
 
 
 void Simulator::VisitPCRelAddressing(Instruction* instr) {
-  switch (instr->Mask(PCRelAddressingMask)) {
-    case ADR:
-      set_reg(kXRegSize,
-              instr->Rd(),
-              reinterpret_cast<int64_t>(instr->ImmPCOffsetTarget()));
-      break;
-    case ADRP:  // Not implemented in the assembler.
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNREACHABLE();
-  }
+  VIXL_ASSERT((instr->Mask(PCRelAddressingMask) == ADR) ||
+              (instr->Mask(PCRelAddressingMask) == ADRP));
+
+  set_reg(instr->Rd(), instr->ImmPCOffsetTarget());
 }
 
 
@@ -533,7 +533,7 @@ void Simulator::VisitUnconditionalBranch(Instruction* instr) {
 
 void Simulator::VisitConditionalBranch(Instruction* instr) {
   VIXL_ASSERT(instr->Mask(ConditionalBranchMask) == B_cond);
-  if (ConditionPassed(static_cast<Condition>(instr->ConditionBranch()))) {
+  if (ConditionPassed(instr->ConditionBranch())) {
     set_pc(instr->ImmPCOffsetTarget());
   }
 }
@@ -722,7 +722,7 @@ void Simulator::ConditionalCompareHelper(Instruction* instr, int64_t op2) {
   unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
   int64_t op1 = reg(reg_size, instr->Rn());
 
-  if (ConditionPassed(static_cast<Condition>(instr->Condition()))) {
+  if (ConditionPassed(instr->Condition())) {
     // If the condition passes, set the status flags to the result of comparing
     // the operands.
     if (instr->Mask(ConditionalCompareMask) == CCMP) {
@@ -775,44 +775,32 @@ void Simulator::LoadStoreHelper(Instruction* instr,
                                 AddrMode addrmode) {
   unsigned srcdst = instr->Rt();
   uint8_t* address = AddressModeHelper(instr->Rn(), offset, addrmode);
-  int num_bytes = 1 << instr->SizeLS();
 
   LoadStoreOp op = static_cast<LoadStoreOp>(instr->Mask(LoadStoreOpMask));
   switch (op) {
-    case LDRB_w:
-    case LDRH_w:
-    case LDR_w:
-    case LDR_x: set_xreg(srcdst, MemoryRead(address, num_bytes)); break;
-    case STRB_w:
-    case STRH_w:
-    case STR_w:
-    case STR_x: MemoryWrite(address, xreg(srcdst), num_bytes); break;
-    case LDRSB_w: {
-      set_wreg(srcdst, ExtendValue(kWRegSize, MemoryRead8(address), SXTB));
-      break;
-    }
-    case LDRSB_x: {
-      set_xreg(srcdst, ExtendValue(kXRegSize, MemoryRead8(address), SXTB));
-      break;
-    }
-    case LDRSH_w: {
-      set_wreg(srcdst, ExtendValue(kWRegSize, MemoryRead16(address), SXTH));
-      break;
-    }
-    case LDRSH_x: {
-      set_xreg(srcdst, ExtendValue(kXRegSize, MemoryRead16(address), SXTH));
-      break;
-    }
-    case LDRSW_x: {
-      set_xreg(srcdst, ExtendValue(kXRegSize, MemoryRead32(address), SXTW));
-      break;
-    }
-    case LDR_s: set_sreg(srcdst, MemoryReadFP32(address)); break;
-    case LDR_d: set_dreg(srcdst, MemoryReadFP64(address)); break;
-    case STR_s: MemoryWriteFP32(address, sreg(srcdst)); break;
-    case STR_d: MemoryWriteFP64(address, dreg(srcdst)); break;
+    case LDRB_w:  set_wreg(srcdst, MemoryRead<uint8_t>(address)); break;
+    case LDRH_w:  set_wreg(srcdst, MemoryRead<uint16_t>(address)); break;
+    case LDR_w:   set_wreg(srcdst, MemoryRead<uint32_t>(address)); break;
+    case LDR_x:   set_xreg(srcdst, MemoryRead<uint64_t>(address)); break;
+    case LDRSB_w: set_wreg(srcdst, MemoryRead<int8_t>(address)); break;
+    case LDRSH_w: set_wreg(srcdst, MemoryRead<int16_t>(address)); break;
+    case LDRSB_x: set_xreg(srcdst, MemoryRead<int8_t>(address)); break;
+    case LDRSH_x: set_xreg(srcdst, MemoryRead<int16_t>(address)); break;
+    case LDRSW_x: set_xreg(srcdst, MemoryRead<int32_t>(address)); break;
+    case LDR_s:   set_sreg(srcdst, MemoryRead<float>(address)); break;
+    case LDR_d:   set_dreg(srcdst, MemoryRead<double>(address)); break;
+
+    case STRB_w:  MemoryWrite<uint8_t>(address, wreg(srcdst)); break;
+    case STRH_w:  MemoryWrite<uint16_t>(address, wreg(srcdst)); break;
+    case STR_w:   MemoryWrite<uint32_t>(address, wreg(srcdst)); break;
+    case STR_x:   MemoryWrite<uint64_t>(address, xreg(srcdst)); break;
+    case STR_s:   MemoryWrite<float>(address, sreg(srcdst)); break;
+    case STR_d:   MemoryWrite<double>(address, dreg(srcdst)); break;
+
     default: VIXL_UNIMPLEMENTED();
   }
+
+  local_monitor_.MaybeClear();
 }
 
 
@@ -851,52 +839,202 @@ void Simulator::LoadStorePairHelper(Instruction* instr,
 
   switch (op) {
     case LDP_w: {
-      set_wreg(rt, MemoryRead32(address));
-      set_wreg(rt2, MemoryRead32(address + kWRegSizeInBytes));
+      set_wreg(rt, MemoryRead<uint32_t>(address));
+      set_wreg(rt2, MemoryRead<uint32_t>(address + kWRegSizeInBytes));
       break;
     }
     case LDP_s: {
-      set_sreg(rt, MemoryReadFP32(address));
-      set_sreg(rt2, MemoryReadFP32(address + kSRegSizeInBytes));
+      set_sreg(rt, MemoryRead<float>(address));
+      set_sreg(rt2, MemoryRead<float>(address + kSRegSizeInBytes));
       break;
     }
     case LDP_x: {
-      set_xreg(rt, MemoryRead64(address));
-      set_xreg(rt2, MemoryRead64(address + kXRegSizeInBytes));
+      set_xreg(rt, MemoryRead<uint64_t>(address));
+      set_xreg(rt2, MemoryRead<uint64_t>(address + kXRegSizeInBytes));
       break;
     }
     case LDP_d: {
-      set_dreg(rt, MemoryReadFP64(address));
-      set_dreg(rt2, MemoryReadFP64(address + kDRegSizeInBytes));
+      set_dreg(rt, MemoryRead<double>(address));
+      set_dreg(rt2, MemoryRead<double>(address + kDRegSizeInBytes));
       break;
     }
     case LDPSW_x: {
-      set_xreg(rt, ExtendValue(kXRegSize, MemoryRead32(address), SXTW));
-      set_xreg(rt2, ExtendValue(kXRegSize,
-               MemoryRead32(address + kWRegSizeInBytes), SXTW));
+      set_xreg(rt, MemoryRead<int32_t>(address));
+      set_xreg(rt2, MemoryRead<int32_t>(address + kWRegSizeInBytes));
       break;
     }
     case STP_w: {
-      MemoryWrite32(address, wreg(rt));
-      MemoryWrite32(address + kWRegSizeInBytes, wreg(rt2));
+      MemoryWrite<uint32_t>(address, wreg(rt));
+      MemoryWrite<uint32_t>(address + kWRegSizeInBytes, wreg(rt2));
       break;
     }
     case STP_s: {
-      MemoryWriteFP32(address, sreg(rt));
-      MemoryWriteFP32(address + kSRegSizeInBytes, sreg(rt2));
+      MemoryWrite<float>(address, sreg(rt));
+      MemoryWrite<float>(address + kSRegSizeInBytes, sreg(rt2));
       break;
     }
     case STP_x: {
-      MemoryWrite64(address, xreg(rt));
-      MemoryWrite64(address + kXRegSizeInBytes, xreg(rt2));
+      MemoryWrite<uint64_t>(address, xreg(rt));
+      MemoryWrite<uint64_t>(address + kXRegSizeInBytes, xreg(rt2));
       break;
     }
     case STP_d: {
-      MemoryWriteFP64(address, dreg(rt));
-      MemoryWriteFP64(address + kDRegSizeInBytes, dreg(rt2));
+      MemoryWrite<double>(address, dreg(rt));
+      MemoryWrite<double>(address + kDRegSizeInBytes, dreg(rt2));
       break;
     }
     default: VIXL_UNREACHABLE();
+  }
+
+  local_monitor_.MaybeClear();
+}
+
+
+void Simulator::PrintExclusiveAccessWarning() {
+  if (print_exclusive_access_warning_) {
+    fprintf(
+        stderr,
+        "%sWARNING:%s VIXL simulator support for load-/store-/clear-exclusive "
+        "instructions is limited. Refer to the README for details.%s\n",
+        clr_warning, clr_warning_message, clr_normal);
+    print_exclusive_access_warning_ = false;
+  }
+}
+
+
+void Simulator::VisitLoadStoreExclusive(Instruction* instr) {
+  PrintExclusiveAccessWarning();
+
+  unsigned rs = instr->Rs();
+  unsigned rt = instr->Rt();
+  unsigned rt2 = instr->Rt2();
+  unsigned rn = instr->Rn();
+
+  LoadStoreExclusive op =
+      static_cast<LoadStoreExclusive>(instr->Mask(LoadStoreExclusiveMask));
+
+  bool is_acquire_release = instr->LdStXAcquireRelease();
+  bool is_exclusive = !instr->LdStXNotExclusive();
+  bool is_load = instr->LdStXLoad();
+  bool is_pair = instr->LdStXPair();
+
+  uint8_t * address = reg<uint8_t *>(rn, Reg31IsStackPointer);
+  size_t element_size = 1 << instr->LdStXSizeLog2();
+  size_t access_size = is_pair ? element_size * 2 : element_size;
+
+  // Check the alignment of `address`.
+  if (AlignDown(address, access_size) != address) {
+    VIXL_ALIGNMENT_EXCEPTION();
+  }
+
+  // The sp must be aligned to 16 bytes when it is accessed.
+  if ((rn == 31) && (AlignDown(address, 16) != address)) {
+    VIXL_ALIGNMENT_EXCEPTION();
+  }
+
+  if (is_load) {
+    if (is_exclusive) {
+      local_monitor_.MarkExclusive(address, access_size);
+    } else {
+      // Any non-exclusive load can clear the local monitor as a side effect. We
+      // don't need to do this, but it is useful to stress the simulated code.
+      local_monitor_.Clear();
+    }
+
+    switch (op) {
+      case LDXRB_w:
+      case LDAXRB_w:
+      case LDARB_w:
+        set_wreg(rt, MemoryRead<uint8_t>(address));
+        break;
+      case LDXRH_w:
+      case LDAXRH_w:
+      case LDARH_w:
+        set_wreg(rt, MemoryRead<uint16_t>(address));
+        break;
+      case LDXR_w:
+      case LDAXR_w:
+      case LDAR_w:
+        set_wreg(rt, MemoryRead<uint32_t>(address));
+        break;
+      case LDXR_x:
+      case LDAXR_x:
+      case LDAR_x:
+        set_xreg(rt, MemoryRead<uint64_t>(address));
+        break;
+      case LDXP_w:
+      case LDAXP_w:
+        set_wreg(rt, MemoryRead<uint32_t>(address));
+        set_wreg(rt2, MemoryRead<uint32_t>(address + element_size));
+        break;
+      case LDXP_x:
+      case LDAXP_x:
+        set_xreg(rt, MemoryRead<uint64_t>(address));
+        set_xreg(rt2, MemoryRead<uint64_t>(address + element_size));
+        break;
+      default:
+        VIXL_UNREACHABLE();
+    }
+
+    if (is_acquire_release) {
+      // Approximate load-acquire by issuing a full barrier after the load.
+      __sync_synchronize();
+    }
+  } else {
+    if (is_acquire_release) {
+      // Approximate store-release by issuing a full barrier before the store.
+      __sync_synchronize();
+    }
+
+    bool do_store = true;
+    if (is_exclusive) {
+      do_store = local_monitor_.IsExclusive(address, access_size) &&
+                 global_monitor_.IsExclusive(address, access_size);
+      set_wreg(rs, do_store ? 0 : 1);
+
+      //  - All exclusive stores explicitly clear the local monitor.
+      local_monitor_.Clear();
+    } else {
+      //  - Any other store can clear the local monitor as a side effect.
+      local_monitor_.MaybeClear();
+    }
+
+    if (do_store) {
+      switch (op) {
+        case STXRB_w:
+        case STLXRB_w:
+        case STLRB_w:
+          MemoryWrite<uint8_t>(address, wreg(rt));
+          break;
+        case STXRH_w:
+        case STLXRH_w:
+        case STLRH_w:
+          MemoryWrite<uint16_t>(address, wreg(rt));
+          break;
+        case STXR_w:
+        case STLXR_w:
+        case STLR_w:
+          MemoryWrite<uint32_t>(address, wreg(rt));
+          break;
+        case STXR_x:
+        case STLXR_x:
+        case STLR_x:
+          MemoryWrite<uint64_t>(address, xreg(rt));
+          break;
+        case STXP_w:
+        case STLXP_w:
+          MemoryWrite<uint32_t>(address, wreg(rt));
+          MemoryWrite<uint32_t>(address + element_size, wreg(rt2));
+          break;
+        case STXP_x:
+        case STLXP_x:
+          MemoryWrite<uint64_t>(address, xreg(rt));
+          MemoryWrite<uint64_t>(address + element_size, xreg(rt2));
+          break;
+        default:
+          VIXL_UNREACHABLE();
+      }
+    }
   }
 }
 
@@ -906,12 +1044,14 @@ void Simulator::VisitLoadLiteral(Instruction* instr) {
   unsigned rt = instr->Rt();
 
   switch (instr->Mask(LoadLiteralMask)) {
-    case LDR_w_lit: set_wreg(rt, MemoryRead32(address));  break;
-    case LDR_x_lit: set_xreg(rt, MemoryRead64(address));  break;
-    case LDR_s_lit: set_sreg(rt, MemoryReadFP32(address));  break;
-    case LDR_d_lit: set_dreg(rt, MemoryReadFP64(address));  break;
+    case LDR_w_lit: set_wreg(rt, MemoryRead<uint32_t>(address)); break;
+    case LDR_x_lit: set_xreg(rt, MemoryRead<uint64_t>(address)); break;
+    case LDR_s_lit: set_sreg(rt, MemoryRead<float>(address)); break;
+    case LDR_d_lit: set_dreg(rt, MemoryRead<double>(address)); break;
     default: VIXL_UNREACHABLE();
   }
+
+  local_monitor_.MaybeClear();
 }
 
 
@@ -940,74 +1080,6 @@ uint8_t* Simulator::AddressModeHelper(unsigned addr_reg,
   VIXL_ASSERT(address == static_cast<uintptr_t>(address));
 
   return reinterpret_cast<uint8_t*>(address);
-}
-
-
-uint64_t Simulator::MemoryRead(const uint8_t* address, unsigned num_bytes) {
-  VIXL_ASSERT(address != NULL);
-  VIXL_ASSERT((num_bytes > 0) && (num_bytes <= sizeof(uint64_t)));
-  uint64_t read = 0;
-  memcpy(&read, address, num_bytes);
-  return read;
-}
-
-
-uint8_t Simulator::MemoryRead8(uint8_t* address) {
-  return MemoryRead(address, sizeof(uint8_t));
-}
-
-
-uint16_t Simulator::MemoryRead16(uint8_t* address) {
-  return MemoryRead(address, sizeof(uint16_t));
-}
-
-
-uint32_t Simulator::MemoryRead32(uint8_t* address) {
-  return MemoryRead(address, sizeof(uint32_t));
-}
-
-
-float Simulator::MemoryReadFP32(uint8_t* address) {
-  return rawbits_to_float(MemoryRead32(address));
-}
-
-
-uint64_t Simulator::MemoryRead64(uint8_t* address) {
-  return MemoryRead(address, sizeof(uint64_t));
-}
-
-
-double Simulator::MemoryReadFP64(uint8_t* address) {
-  return rawbits_to_double(MemoryRead64(address));
-}
-
-
-void Simulator::MemoryWrite(uint8_t* address,
-                            uint64_t value,
-                            unsigned num_bytes) {
-  VIXL_ASSERT(address != NULL);
-  VIXL_ASSERT((num_bytes > 0) && (num_bytes <= sizeof(uint64_t)));
-  memcpy(address, &value, num_bytes);
-}
-
-
-void Simulator::MemoryWrite32(uint8_t* address, uint32_t value) {
-  MemoryWrite(address, value, sizeof(uint32_t));
-}
-
-
-void Simulator::MemoryWriteFP32(uint8_t* address, float value) {
-  MemoryWrite32(address, float_to_rawbits(value));
-}
-
-
-void Simulator::MemoryWrite64(uint8_t* address, uint64_t value) {
-  MemoryWrite(address, value, sizeof(uint64_t));
-}
-
-
-void Simulator::MemoryWriteFP64(uint8_t* address, double value) {
-  MemoryWrite64(address, double_to_rawbits(value));
 }
 
 
@@ -1328,10 +1400,10 @@ void Simulator::VisitExtract(Instruction* instr) {
   unsigned lsb = instr->ImmS();
   unsigned reg_size = (instr->SixtyFourBits() == 1) ? kXRegSize
                                                     : kWRegSize;
-  set_reg(reg_size,
-          instr->Rd(),
-          (static_cast<uint64_t>(reg(reg_size, instr->Rm())) >> lsb) |
-          (reg(reg_size, instr->Rn()) << (reg_size - lsb)));
+  uint64_t low_res = static_cast<uint64_t>(reg(reg_size, instr->Rm())) >> lsb;
+  uint64_t high_res =
+      (lsb == 0) ? 0 : reg(reg_size, instr->Rn()) << (reg_size - lsb);
+  set_reg(reg_size, instr->Rd(), low_res | high_res);
 }
 
 
@@ -1523,14 +1595,11 @@ uint64_t Simulator::FPToUInt64(double value, FPRounding rmode) {
 void Simulator::VisitFPCompare(Instruction* instr) {
   AssertSupportedFPCR();
 
-  unsigned reg_size = (instr->Mask(FP64) == FP64) ? kDRegSize : kSRegSize;
-  double fn_val = fpreg(reg_size, instr->Rn());
-
   switch (instr->Mask(FPCompareMask)) {
-    case FCMP_s:
-    case FCMP_d: FPCompare(fn_val, fpreg(reg_size, instr->Rm())); break;
-    case FCMP_s_zero:
-    case FCMP_d_zero: FPCompare(fn_val, 0.0); break;
+    case FCMP_s: FPCompare(sreg(instr->Rn()), sreg(instr->Rm())); break;
+    case FCMP_d: FPCompare(dreg(instr->Rn()), dreg(instr->Rm())); break;
+    case FCMP_s_zero: FPCompare(sreg(instr->Rn()), 0.0f); break;
+    case FCMP_d_zero: FPCompare(dreg(instr->Rn()), 0.0); break;
     default: VIXL_UNIMPLEMENTED();
   }
 }
@@ -1541,18 +1610,19 @@ void Simulator::VisitFPConditionalCompare(Instruction* instr) {
 
   switch (instr->Mask(FPConditionalCompareMask)) {
     case FCCMP_s:
-    case FCCMP_d: {
-      if (ConditionPassed(static_cast<Condition>(instr->Condition()))) {
-        // If the condition passes, set the status flags to the result of
-        // comparing the operands.
-        unsigned reg_size = (instr->Mask(FP64) == FP64) ? kDRegSize : kSRegSize;
-        FPCompare(fpreg(reg_size, instr->Rn()), fpreg(reg_size, instr->Rm()));
+      if (ConditionPassed(instr->Condition())) {
+        FPCompare(sreg(instr->Rn()), sreg(instr->Rm()));
       } else {
-        // If the condition fails, set the status flags to the nzcv immediate.
         nzcv().SetFlags(instr->Nzcv());
       }
       break;
-    }
+    case FCCMP_d:
+      if (ConditionPassed(instr->Condition())) {
+        FPCompare(dreg(instr->Rn()), dreg(instr->Rm()));
+      } else {
+        nzcv().SetFlags(instr->Nzcv());
+      }
+      break;
     default: VIXL_UNIMPLEMENTED();
   }
 }
@@ -1562,7 +1632,7 @@ void Simulator::VisitFPConditionalSelect(Instruction* instr) {
   AssertSupportedFPCR();
 
   Instr selected;
-  if (ConditionPassed(static_cast<Condition>(instr->Condition()))) {
+  if (ConditionPassed(instr->Condition())) {
     selected = instr->Rn();
   } else {
     selected = instr->Rm();
@@ -2333,7 +2403,16 @@ void Simulator::VisitSystem(Instruction* instr) {
   // Some system instructions hijack their Op and Cp fields to represent a
   // range of immediates instead of indicating a different instruction. This
   // makes the decoding tricky.
-  if (instr->Mask(SystemSysRegFMask) == SystemSysRegFixed) {
+  if (instr->Mask(SystemExclusiveMonitorFMask) == SystemExclusiveMonitorFixed) {
+    VIXL_ASSERT(instr->Mask(SystemExclusiveMonitorMask) == CLREX);
+    switch (instr->Mask(SystemExclusiveMonitorMask)) {
+      case CLREX: {
+        PrintExclusiveAccessWarning();
+        ClearLocalMonitor();
+        break;
+      }
+    }
+  } else if (instr->Mask(SystemSysRegFMask) == SystemSysRegFixed) {
     switch (instr->Mask(SystemSysRegMask)) {
       case MRS: {
         switch (instr->ImmSystemRegister()) {

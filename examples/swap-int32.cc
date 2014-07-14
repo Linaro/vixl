@@ -83,7 +83,7 @@ int main(void) {
          "x1 = 0x%" PRIx32 "\n",
          simulator.wreg(0), simulator.wreg(1));
 
-  simulator.RunFrom(swap_int32.target());
+  simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&swap_int32));
 
   printf("After swap_int32:\n"
          "x0 = 0x%" PRIx32 "\n"

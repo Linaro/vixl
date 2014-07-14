@@ -77,7 +77,7 @@ int main(void) {
   uintptr_t data_addr = reinterpret_cast<uintptr_t>(data);
   simulator.set_xreg(0, data_addr);
   simulator.set_xreg(1, ARRAY_SIZE(data));
-  simulator.RunFrom(sum_array.target());
+  simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&sum_array));
 
   unsigned int i;
   for (i = 0; i < ARRAY_SIZE(data) - 1; ++i) {

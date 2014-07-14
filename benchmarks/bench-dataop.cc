@@ -70,6 +70,7 @@ int main(int argc, char* argv[]) {
     __ add(x0, x1, Operand(x2));
   }
 
+  masm->FinalizeCode();
   delete masm;
   delete assm_buffer;
 

@@ -69,7 +69,7 @@ int main(void) {
   // Run the example function.
   uint64_t input_val = 16;
   simulator.set_xreg(0, input_val);
-  simulator.RunFrom(factorial.target());
+  simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&factorial));
   printf("factorial(%ld) = %ld\n", input_val, simulator.xreg(0));
 
   return 0;

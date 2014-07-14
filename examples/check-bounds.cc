@@ -58,13 +58,13 @@ void GenerateCheckBounds(MacroAssembler* masm) {
 
 
 #ifndef TEST_EXAMPLES
-void run_function(Simulator *simulator, Label *function,
+void run_function(Simulator *simulator, Instruction * function,
                   uint64_t value, uint64_t low, uint64_t high) {
   simulator->set_xreg(0, value);
   simulator->set_xreg(1, low);
   simulator->set_xreg(2, high);
 
-  simulator->RunFrom(function->target());
+  simulator->RunFrom(function);
   printf("%ld %s between %ld and %ld\n", value,
          simulator->xreg(0) ? "is" : "is not",
          low, high);
@@ -86,9 +86,10 @@ int main(void) {
   masm.FinalizeCode();
 
   // Run the example function.
-  run_function(&simulator, &check_bounds, 546, 50, 1000);
-  run_function(&simulator, &check_bounds, 62, 100, 200);
-  run_function(&simulator, &check_bounds, 200, 100, 200);
+  Instruction * function = masm.GetLabelAddress<Instruction*>(&check_bounds);
+  run_function(&simulator, function, 546, 50, 1000);
+  run_function(&simulator, function, 62, 100, 200);
+  run_function(&simulator, function, 200, 100, 200);
 
   return 0;
 }

@@ -360,8 +360,9 @@ bool MemOperand::IsPostIndex() const {
 
 
 // Assembler
-Assembler::Assembler(byte* buffer, unsigned buffer_size)
-    : buffer_size_(buffer_size), literal_pool_monitor_(0) {
+Assembler::Assembler(byte* buffer, unsigned buffer_size,
+                     PositionIndependentCodeOption pic)
+    : buffer_size_(buffer_size), literal_pool_monitor_(0), pic_(pic) {
 
   buffer_ = reinterpret_cast<Instruction*>(buffer);
   pc_ = buffer_;
@@ -397,33 +398,46 @@ void Assembler::FinalizeCode() {
 
 
 void Assembler::bind(Label* label) {
-  label->is_bound_ = true;
-  label->target_ = pc_;
+  label->Bind(pc_ - buffer_);
+  VIXL_ASSERT(GetLabelAddress<Instruction*>(label) == pc_);
+
   while (label->IsLinked()) {
-    // Get the address of the following instruction in the chain.
-    Instruction* next_link = label->link_->ImmPCOffsetTarget();
-    // Update the instruction target.
-    label->link_->SetImmPCOffsetTarget(label->target_);
-    // Update the label's link.
-    // If the offset of the branch we just updated was 0 (kEndOfChain) we are
-    // done.
-    label->link_ = (label->link_ != next_link) ? next_link : NULL;
+    Instruction * link = buffer_ + label->GetAndRemoveNextLink();
+    link->SetImmPCOffsetTarget(buffer_ + label->location());
   }
 }
 
 
-int Assembler::UpdateAndGetByteOffsetTo(Label* label) {
-  int offset;
-  VIXL_STATIC_ASSERT(sizeof(*pc_) == 1);
+// A common implementation for the LinkAndGet<Type>OffsetTo helpers.
+//
+// The offset is calculated by aligning the PC and label addresses down to a
+// multiple of element_size, then calculating the (scaled) offset between them.
+// This matches the semantics of adrp, for example.
+template <int element_size>
+ptrdiff_t Assembler::LinkAndGetOffsetTo(Label* label) {
   if (label->IsBound()) {
-    offset = label->target() - pc_;
-  } else if (label->IsLinked()) {
-    offset = label->link() - pc_;
+    uintptr_t pc_offset = reinterpret_cast<uintptr_t>(pc_) / element_size;
+    uintptr_t label_offset = GetLabelAddress<uintptr_t>(label) / element_size;
+    return label_offset - pc_offset;
   } else {
-    offset = Label::kEndOfChain;
+    label->AddLink(pc_ - buffer_);
+    return 0;
   }
-  label->set_link(pc_);
-  return offset;
+}
+
+
+ptrdiff_t Assembler::LinkAndGetByteOffsetTo(Label* label) {
+  return LinkAndGetOffsetTo<1>(label);
+}
+
+
+ptrdiff_t Assembler::LinkAndGetInstructionOffsetTo(Label* label) {
+  return LinkAndGetOffsetTo<kInstructionSize>(label);
+}
+
+
+ptrdiff_t Assembler::LinkAndGetPageOffsetTo(Label* label) {
+  return LinkAndGetOffsetTo<kPageSize>(label);
 }
 
 
@@ -457,12 +471,12 @@ void Assembler::b(int imm19, Condition cond) {
 
 
 void Assembler::b(Label* label) {
-  b(UpdateAndGetInstructionOffsetTo(label));
+  b(LinkAndGetInstructionOffsetTo(label));
 }
 
 
 void Assembler::b(Label* label, Condition cond) {
-  b(UpdateAndGetInstructionOffsetTo(label), cond);
+  b(LinkAndGetInstructionOffsetTo(label), cond);
 }
 
 
@@ -472,7 +486,7 @@ void Assembler::bl(int imm26) {
 
 
 void Assembler::bl(Label* label) {
-  bl(UpdateAndGetInstructionOffsetTo(label));
+  bl(LinkAndGetInstructionOffsetTo(label));
 }
 
 
@@ -484,7 +498,7 @@ void Assembler::cbz(const Register& rt,
 
 void Assembler::cbz(const Register& rt,
                     Label* label) {
-  cbz(rt, UpdateAndGetInstructionOffsetTo(label));
+  cbz(rt, LinkAndGetInstructionOffsetTo(label));
 }
 
 
@@ -496,7 +510,7 @@ void Assembler::cbnz(const Register& rt,
 
 void Assembler::cbnz(const Register& rt,
                      Label* label) {
-  cbnz(rt, UpdateAndGetInstructionOffsetTo(label));
+  cbnz(rt, LinkAndGetInstructionOffsetTo(label));
 }
 
 
@@ -511,7 +525,7 @@ void Assembler::tbz(const Register& rt,
 void Assembler::tbz(const Register& rt,
                     unsigned bit_pos,
                     Label* label) {
-  tbz(rt, bit_pos, UpdateAndGetInstructionOffsetTo(label));
+  tbz(rt, bit_pos, LinkAndGetInstructionOffsetTo(label));
 }
 
 
@@ -526,7 +540,7 @@ void Assembler::tbnz(const Register& rt,
 void Assembler::tbnz(const Register& rt,
                      unsigned bit_pos,
                      Label* label) {
-  tbnz(rt, bit_pos, UpdateAndGetInstructionOffsetTo(label));
+  tbnz(rt, bit_pos, LinkAndGetInstructionOffsetTo(label));
 }
 
 
@@ -537,7 +551,19 @@ void Assembler::adr(const Register& rd, int imm21) {
 
 
 void Assembler::adr(const Register& rd, Label* label) {
-  adr(rd, UpdateAndGetByteOffsetTo(label));
+  adr(rd, LinkAndGetByteOffsetTo(label));
+}
+
+
+void Assembler::adrp(const Register& rd, int imm21) {
+  VIXL_ASSERT(rd.Is64Bits());
+  Emit(ADRP | ImmPCRelAddress(imm21) | Rd(rd));
+}
+
+
+void Assembler::adrp(const Register& rd, Label* label) {
+  VIXL_ASSERT(AllowPageOffsetDependentCode());
+  adrp(rd, LinkAndGetPageOffsetTo(label));
 }
 
 
@@ -1102,49 +1128,149 @@ void Assembler::LoadStorePairNonTemporal(const CPURegister& rt,
 
 
 // Memory instructions.
-void Assembler::ldrb(const Register& rt, const MemOperand& src) {
-  LoadStore(rt, src, LDRB_w);
+void Assembler::ldrb(const Register& rt, const MemOperand& src,
+                     LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireUnscaledOffset);
+  VIXL_ASSERT(option != PreferUnscaledOffset);
+  LoadStore(rt, src, LDRB_w, option);
 }
 
 
-void Assembler::strb(const Register& rt, const MemOperand& dst) {
-  LoadStore(rt, dst, STRB_w);
+void Assembler::strb(const Register& rt, const MemOperand& dst,
+                     LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireUnscaledOffset);
+  VIXL_ASSERT(option != PreferUnscaledOffset);
+  LoadStore(rt, dst, STRB_w, option);
 }
 
 
-void Assembler::ldrsb(const Register& rt, const MemOperand& src) {
-  LoadStore(rt, src, rt.Is64Bits() ? LDRSB_x : LDRSB_w);
+void Assembler::ldrsb(const Register& rt, const MemOperand& src,
+                      LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireUnscaledOffset);
+  VIXL_ASSERT(option != PreferUnscaledOffset);
+  LoadStore(rt, src, rt.Is64Bits() ? LDRSB_x : LDRSB_w, option);
 }
 
 
-void Assembler::ldrh(const Register& rt, const MemOperand& src) {
-  LoadStore(rt, src, LDRH_w);
+void Assembler::ldrh(const Register& rt, const MemOperand& src,
+                     LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireUnscaledOffset);
+  VIXL_ASSERT(option != PreferUnscaledOffset);
+  LoadStore(rt, src, LDRH_w, option);
 }
 
 
-void Assembler::strh(const Register& rt, const MemOperand& dst) {
-  LoadStore(rt, dst, STRH_w);
+void Assembler::strh(const Register& rt, const MemOperand& dst,
+                     LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireUnscaledOffset);
+  VIXL_ASSERT(option != PreferUnscaledOffset);
+  LoadStore(rt, dst, STRH_w, option);
 }
 
 
-void Assembler::ldrsh(const Register& rt, const MemOperand& src) {
-  LoadStore(rt, src, rt.Is64Bits() ? LDRSH_x : LDRSH_w);
+void Assembler::ldrsh(const Register& rt, const MemOperand& src,
+                      LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireUnscaledOffset);
+  VIXL_ASSERT(option != PreferUnscaledOffset);
+  LoadStore(rt, src, rt.Is64Bits() ? LDRSH_x : LDRSH_w, option);
 }
 
 
-void Assembler::ldr(const CPURegister& rt, const MemOperand& src) {
-  LoadStore(rt, src, LoadOpFor(rt));
+void Assembler::ldr(const CPURegister& rt, const MemOperand& src,
+                    LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireUnscaledOffset);
+  VIXL_ASSERT(option != PreferUnscaledOffset);
+  LoadStore(rt, src, LoadOpFor(rt), option);
 }
 
 
-void Assembler::str(const CPURegister& rt, const MemOperand& src) {
-  LoadStore(rt, src, StoreOpFor(rt));
+void Assembler::str(const CPURegister& rt, const MemOperand& dst,
+                    LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireUnscaledOffset);
+  VIXL_ASSERT(option != PreferUnscaledOffset);
+  LoadStore(rt, dst, StoreOpFor(rt), option);
 }
 
 
-void Assembler::ldrsw(const Register& rt, const MemOperand& src) {
+void Assembler::ldrsw(const Register& rt, const MemOperand& src,
+                      LoadStoreScalingOption option) {
   VIXL_ASSERT(rt.Is64Bits());
-  LoadStore(rt, src, LDRSW_x);
+  VIXL_ASSERT(option != RequireUnscaledOffset);
+  VIXL_ASSERT(option != PreferUnscaledOffset);
+  LoadStore(rt, src, LDRSW_x, option);
+}
+
+
+void Assembler::ldurb(const Register& rt, const MemOperand& src,
+                      LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireScaledOffset);
+  VIXL_ASSERT(option != PreferScaledOffset);
+  LoadStore(rt, src, LDRB_w, option);
+}
+
+
+void Assembler::sturb(const Register& rt, const MemOperand& dst,
+                      LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireScaledOffset);
+  VIXL_ASSERT(option != PreferScaledOffset);
+  LoadStore(rt, dst, STRB_w, option);
+}
+
+
+void Assembler::ldursb(const Register& rt, const MemOperand& src,
+                       LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireScaledOffset);
+  VIXL_ASSERT(option != PreferScaledOffset);
+  LoadStore(rt, src, rt.Is64Bits() ? LDRSB_x : LDRSB_w, option);
+}
+
+
+void Assembler::ldurh(const Register& rt, const MemOperand& src,
+                      LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireScaledOffset);
+  VIXL_ASSERT(option != PreferScaledOffset);
+  LoadStore(rt, src, LDRH_w, option);
+}
+
+
+void Assembler::sturh(const Register& rt, const MemOperand& dst,
+                      LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireScaledOffset);
+  VIXL_ASSERT(option != PreferScaledOffset);
+  LoadStore(rt, dst, STRH_w, option);
+}
+
+
+void Assembler::ldursh(const Register& rt, const MemOperand& src,
+                       LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireScaledOffset);
+  VIXL_ASSERT(option != PreferScaledOffset);
+  LoadStore(rt, src, rt.Is64Bits() ? LDRSH_x : LDRSH_w, option);
+}
+
+
+void Assembler::ldur(const CPURegister& rt, const MemOperand& src,
+                     LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireScaledOffset);
+  VIXL_ASSERT(option != PreferScaledOffset);
+  LoadStore(rt, src, LoadOpFor(rt), option);
+}
+
+
+void Assembler::stur(const CPURegister& rt, const MemOperand& dst,
+                     LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireScaledOffset);
+  VIXL_ASSERT(option != PreferScaledOffset);
+  LoadStore(rt, dst, StoreOpFor(rt), option);
+}
+
+
+void Assembler::ldursw(const Register& rt, const MemOperand& src,
+                       LoadStoreScalingOption option) {
+  VIXL_ASSERT(rt.Is64Bits());
+  VIXL_ASSERT(option != RequireScaledOffset);
+  VIXL_ASSERT(option != PreferScaledOffset);
+  LoadStore(rt, src, LDRSW_x, option);
 }
 
 
@@ -1162,6 +1288,187 @@ void Assembler::ldr(const FPRegister& ft, double imm) {
 void Assembler::ldr(const FPRegister& ft, float imm) {
   VIXL_ASSERT(ft.Is32Bits());
   LoadLiteral(ft, float_to_rawbits(imm), LDR_s_lit);
+}
+
+
+// Exclusive-access instructions.
+void Assembler::stxrb(const Register& rs,
+                      const Register& rt,
+                      const MemOperand& dst) {
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.offset() == 0));
+  Emit(STXRB_w | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(dst.base()));
+}
+
+
+void Assembler::stxrh(const Register& rs,
+                      const Register& rt,
+                      const MemOperand& dst) {
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.offset() == 0));
+  Emit(STXRH_w | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(dst.base()));
+}
+
+
+void Assembler::stxr(const Register& rs,
+                     const Register& rt,
+                     const MemOperand& dst) {
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.offset() == 0));
+  LoadStoreExclusive op = rt.Is64Bits() ? STXR_x : STXR_w;
+  Emit(op | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(dst.base()));
+}
+
+
+void Assembler::ldxrb(const Register& rt,
+                      const MemOperand& src) {
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.offset() == 0));
+  Emit(LDXRB_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.base()));
+}
+
+
+void Assembler::ldxrh(const Register& rt,
+                      const MemOperand& src) {
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.offset() == 0));
+  Emit(LDXRH_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.base()));
+}
+
+
+void Assembler::ldxr(const Register& rt,
+                     const MemOperand& src) {
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.offset() == 0));
+  LoadStoreExclusive op = rt.Is64Bits() ? LDXR_x : LDXR_w;
+  Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.base()));
+}
+
+
+void Assembler::stxp(const Register& rs,
+                     const Register& rt,
+                     const Register& rt2,
+                     const MemOperand& dst) {
+  VIXL_ASSERT(rt.size() == rt2.size());
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.offset() == 0));
+  LoadStoreExclusive op = rt.Is64Bits() ? STXP_x : STXP_w;
+  Emit(op | Rs(rs) | Rt(rt) | Rt2(rt2) | RnSP(dst.base()));
+}
+
+
+void Assembler::ldxp(const Register& rt,
+                     const Register& rt2,
+                     const MemOperand& src) {
+  VIXL_ASSERT(rt.size() == rt2.size());
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.offset() == 0));
+  LoadStoreExclusive op = rt.Is64Bits() ? LDXP_x : LDXP_w;
+  Emit(op | Rs_mask | Rt(rt) | Rt2(rt2) | RnSP(src.base()));
+}
+
+
+void Assembler::stlxrb(const Register& rs,
+                       const Register& rt,
+                       const MemOperand& dst) {
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.offset() == 0));
+  Emit(STLXRB_w | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(dst.base()));
+}
+
+
+void Assembler::stlxrh(const Register& rs,
+                       const Register& rt,
+                       const MemOperand& dst) {
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.offset() == 0));
+  Emit(STLXRH_w | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(dst.base()));
+}
+
+
+void Assembler::stlxr(const Register& rs,
+                      const Register& rt,
+                      const MemOperand& dst) {
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.offset() == 0));
+  LoadStoreExclusive op = rt.Is64Bits() ? STLXR_x : STLXR_w;
+  Emit(op | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(dst.base()));
+}
+
+
+void Assembler::ldaxrb(const Register& rt,
+                       const MemOperand& src) {
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.offset() == 0));
+  Emit(LDAXRB_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.base()));
+}
+
+
+void Assembler::ldaxrh(const Register& rt,
+                       const MemOperand& src) {
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.offset() == 0));
+  Emit(LDAXRH_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.base()));
+}
+
+
+void Assembler::ldaxr(const Register& rt,
+                      const MemOperand& src) {
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.offset() == 0));
+  LoadStoreExclusive op = rt.Is64Bits() ? LDAXR_x : LDAXR_w;
+  Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.base()));
+}
+
+
+void Assembler::stlxp(const Register& rs,
+                      const Register& rt,
+                      const Register& rt2,
+                      const MemOperand& dst) {
+  VIXL_ASSERT(rt.size() == rt2.size());
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.offset() == 0));
+  LoadStoreExclusive op = rt.Is64Bits() ? STLXP_x : STLXP_w;
+  Emit(op | Rs(rs) | Rt(rt) | Rt2(rt2) | RnSP(dst.base()));
+}
+
+
+void Assembler::ldaxp(const Register& rt,
+                      const Register& rt2,
+                      const MemOperand& src) {
+  VIXL_ASSERT(rt.size() == rt2.size());
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.offset() == 0));
+  LoadStoreExclusive op = rt.Is64Bits() ? LDAXP_x : LDAXP_w;
+  Emit(op | Rs_mask | Rt(rt) | Rt2(rt2) | RnSP(src.base()));
+}
+
+
+void Assembler::stlrb(const Register& rt,
+                      const MemOperand& dst) {
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.offset() == 0));
+  Emit(STLRB_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.base()));
+}
+
+
+void Assembler::stlrh(const Register& rt,
+                      const MemOperand& dst) {
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.offset() == 0));
+  Emit(STLRH_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.base()));
+}
+
+
+void Assembler::stlr(const Register& rt,
+                     const MemOperand& dst) {
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.offset() == 0));
+  LoadStoreExclusive op = rt.Is64Bits() ? STLR_x : STLR_w;
+  Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.base()));
+}
+
+
+void Assembler::ldarb(const Register& rt,
+                      const MemOperand& src) {
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.offset() == 0));
+  Emit(LDARB_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.base()));
+}
+
+
+void Assembler::ldarh(const Register& rt,
+                      const MemOperand& src) {
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.offset() == 0));
+  Emit(LDARH_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.base()));
+}
+
+
+void Assembler::ldar(const Register& rt,
+                     const MemOperand& src) {
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.offset() == 0));
+  LoadStoreExclusive op = rt.Is64Bits() ? LDAR_x : LDAR_w;
+  Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.base()));
 }
 
 
@@ -1196,6 +1503,11 @@ void Assembler::msr(SystemRegister sysreg, const Register& rt) {
 
 void Assembler::hint(SystemHint code) {
   Emit(HINT | ImmHint(code) | Rt(xzr));
+}
+
+
+void Assembler::clrex(int imm4) {
+  Emit(CLREX | CRm(imm4));
 }
 
 
@@ -1338,49 +1650,49 @@ void Assembler::fminnm(const FPRegister& fd,
 
 void Assembler::fabs(const FPRegister& fd,
                      const FPRegister& fn) {
-  VIXL_ASSERT(fd.SizeInBits() == fn.SizeInBits());
+  VIXL_ASSERT(fd.size() == fn.size());
   FPDataProcessing1Source(fd, fn, FABS);
 }
 
 
 void Assembler::fneg(const FPRegister& fd,
                      const FPRegister& fn) {
-  VIXL_ASSERT(fd.SizeInBits() == fn.SizeInBits());
+  VIXL_ASSERT(fd.size() == fn.size());
   FPDataProcessing1Source(fd, fn, FNEG);
 }
 
 
 void Assembler::fsqrt(const FPRegister& fd,
                       const FPRegister& fn) {
-  VIXL_ASSERT(fd.SizeInBits() == fn.SizeInBits());
+  VIXL_ASSERT(fd.size() == fn.size());
   FPDataProcessing1Source(fd, fn, FSQRT);
 }
 
 
 void Assembler::frinta(const FPRegister& fd,
                        const FPRegister& fn) {
-  VIXL_ASSERT(fd.SizeInBits() == fn.SizeInBits());
+  VIXL_ASSERT(fd.size() == fn.size());
   FPDataProcessing1Source(fd, fn, FRINTA);
 }
 
 
 void Assembler::frintm(const FPRegister& fd,
                        const FPRegister& fn) {
-  VIXL_ASSERT(fd.SizeInBits() == fn.SizeInBits());
+  VIXL_ASSERT(fd.size() == fn.size());
   FPDataProcessing1Source(fd, fn, FRINTM);
 }
 
 
 void Assembler::frintn(const FPRegister& fd,
                        const FPRegister& fn) {
-  VIXL_ASSERT(fd.SizeInBits() == fn.SizeInBits());
+  VIXL_ASSERT(fd.size() == fn.size());
   FPDataProcessing1Source(fd, fn, FRINTN);
 }
 
 
 void Assembler::frintz(const FPRegister& fd,
                        const FPRegister& fn) {
-  VIXL_ASSERT(fd.SizeInBits() == fn.SizeInBits());
+  VIXL_ASSERT(fd.size() == fn.size());
   FPDataProcessing1Source(fd, fn, FRINTZ);
 }
 
@@ -1547,6 +1859,15 @@ void Assembler::MoveWide(const Register& rd,
                          uint64_t imm,
                          int shift,
                          MoveWideImmediateOp mov_op) {
+  // Ignore the top 32 bits of an immediate if we're moving to a W register.
+  if (rd.Is32Bits()) {
+    // Check that the top 32 bits are zero (a positive 32-bit number) or top
+    // 33 bits are one (a negative 32-bit number, sign extended to 64 bits).
+    VIXL_ASSERT(((imm >> kWRegSize) == 0) ||
+                ((imm >> (kWRegSize - 1)) == 0x1ffffffff));
+    imm &= kWRegMask;
+  }
+
   if (shift >= 0) {
     // Explicit shift specified.
     VIXL_ASSERT((shift == 0) || (shift == 16) ||
@@ -1837,24 +2158,41 @@ bool Assembler::IsImmAddSub(int64_t immediate) {
 
 void Assembler::LoadStore(const CPURegister& rt,
                           const MemOperand& addr,
-                          LoadStoreOp op) {
+                          LoadStoreOp op,
+                          LoadStoreScalingOption option) {
   Instr memop = op | Rt(rt) | RnSP(addr.base());
   ptrdiff_t offset = addr.offset();
+  LSDataSize size = CalcLSDataSize(op);
 
   if (addr.IsImmediateOffset()) {
-    LSDataSize size = CalcLSDataSize(op);
-    if (IsImmLSScaled(offset, size)) {
+    bool prefer_unscaled = (option == PreferUnscaledOffset) ||
+                           (option == RequireUnscaledOffset);
+    if (prefer_unscaled && IsImmLSUnscaled(offset)) {
+      // Use the unscaled addressing mode.
+      Emit(LoadStoreUnscaledOffsetFixed | memop | ImmLS(offset));
+      return;
+    }
+
+    if ((option != RequireUnscaledOffset) && IsImmLSScaled(offset, size)) {
       // Use the scaled addressing mode.
       Emit(LoadStoreUnsignedOffsetFixed | memop |
            ImmLSUnsigned(offset >> size));
-    } else if (IsImmLSUnscaled(offset)) {
+      return;
+    }
+
+    if ((option != RequireScaledOffset) && IsImmLSUnscaled(offset)) {
       // Use the unscaled addressing mode.
       Emit(LoadStoreUnscaledOffsetFixed | memop | ImmLS(offset));
-    } else {
-      // This case is handled in the macro assembler.
-      VIXL_UNREACHABLE();
+      return;
     }
-  } else if (addr.IsRegisterOffset()) {
+  }
+
+  // All remaining addressing modes are register-offset, pre-indexed or
+  // post-indexed modes.
+  VIXL_ASSERT((option != RequireUnscaledOffset) &&
+              (option != RequireScaledOffset));
+
+  if (addr.IsRegisterOffset()) {
     Extend ext = addr.extend();
     Shift shift = addr.shift();
     unsigned shift_amount = addr.shift_amount();
@@ -1867,22 +2205,24 @@ void Assembler::LoadStore(const CPURegister& rt,
     // Shifts are encoded in one bit, indicating a left shift by the memory
     // access size.
     VIXL_ASSERT((shift_amount == 0) ||
-           (shift_amount == static_cast<unsigned>(CalcLSDataSize(op))));
+                (shift_amount == static_cast<unsigned>(CalcLSDataSize(op))));
     Emit(LoadStoreRegisterOffsetFixed | memop | Rm(addr.regoffset()) |
          ExtendMode(ext) | ImmShiftLS((shift_amount > 0) ? 1 : 0));
-  } else {
-    if (IsImmLSUnscaled(offset)) {
-      if (addr.IsPreIndex()) {
-        Emit(LoadStorePreIndexFixed | memop | ImmLS(offset));
-      } else {
-        VIXL_ASSERT(addr.IsPostIndex());
-        Emit(LoadStorePostIndexFixed | memop | ImmLS(offset));
-      }
-    } else {
-      // This case is handled in the macro assembler.
-      VIXL_UNREACHABLE();
-    }
+    return;
   }
+
+  if (addr.IsPreIndex() && IsImmLSUnscaled(offset)) {
+    Emit(LoadStorePreIndexFixed | memop | ImmLS(offset));
+    return;
+  }
+
+  if (addr.IsPostIndex() && IsImmLSUnscaled(offset)) {
+    Emit(LoadStorePostIndexFixed | memop | ImmLS(offset));
+    return;
+  }
+
+  // If this point is reached, the MemOperand (addr) cannot be encoded.
+  VIXL_UNREACHABLE();
 }
 
 
@@ -1920,95 +2260,199 @@ bool Assembler::IsImmLogical(uint64_t value,
                              unsigned* n,
                              unsigned* imm_s,
                              unsigned* imm_r) {
-  VIXL_ASSERT((n != NULL) && (imm_s != NULL) && (imm_r != NULL));
   VIXL_ASSERT((width == kWRegSize) || (width == kXRegSize));
+
+  bool negate = false;
 
   // Logical immediates are encoded using parameters n, imm_s and imm_r using
   // the following table:
   //
-  //  N   imms    immr    size        S             R
-  //  1  ssssss  rrrrrr    64    UInt(ssssss)  UInt(rrrrrr)
-  //  0  0sssss  xrrrrr    32    UInt(sssss)   UInt(rrrrr)
-  //  0  10ssss  xxrrrr    16    UInt(ssss)    UInt(rrrr)
-  //  0  110sss  xxxrrr     8    UInt(sss)     UInt(rrr)
-  //  0  1110ss  xxxxrr     4    UInt(ss)      UInt(rr)
-  //  0  11110s  xxxxxr     2    UInt(s)       UInt(r)
+  //    N   imms    immr    size        S             R
+  //    1  ssssss  rrrrrr    64    UInt(ssssss)  UInt(rrrrrr)
+  //    0  0sssss  xrrrrr    32    UInt(sssss)   UInt(rrrrr)
+  //    0  10ssss  xxrrrr    16    UInt(ssss)    UInt(rrrr)
+  //    0  110sss  xxxrrr     8    UInt(sss)     UInt(rrr)
+  //    0  1110ss  xxxxrr     4    UInt(ss)      UInt(rr)
+  //    0  11110s  xxxxxr     2    UInt(s)       UInt(r)
   // (s bits must not be all set)
   //
-  // A pattern is constructed of size bits, where the least significant S+1
-  // bits are set. The pattern is rotated right by R, and repeated across a
-  // 32 or 64-bit value, depending on destination register width.
+  // A pattern is constructed of size bits, where the least significant S+1 bits
+  // are set. The pattern is rotated right by R, and repeated across a 32 or
+  // 64-bit value, depending on destination register width.
   //
-  // To test if an arbitrary immediate can be encoded using this scheme, an
-  // iterative algorithm is used.
+  // Put another way: the basic format of a logical immediate is a single
+  // contiguous stretch of 1 bits, repeated across the whole word at intervals
+  // given by a power of 2. To identify them quickly, we first locate the
+  // lowest stretch of 1 bits, then the next 1 bit above that; that combination
+  // is different for every logical immediate, so it gives us all the
+  // information we need to identify the only logical immediate that our input
+  // could be, and then we simply check if that's the value we actually have.
   //
-  // TODO: This code does not consider using X/W register overlap to support
-  // 64-bit immediates where the top 32-bits are zero, and the bottom 32-bits
-  // are an encodable logical immediate.
+  // (The rotation parameter does give the possibility of the stretch of 1 bits
+  // going 'round the end' of the word. To deal with that, we observe that in
+  // any situation where that happens the bitwise NOT of the value is also a
+  // valid logical immediate. So we simply invert the input whenever its low bit
+  // is set, and then we know that the rotated case can't arise.)
 
-  // 1. If the value has all set or all clear bits, it can't be encoded.
-  if ((value == 0) || (value == kXRegMask) ||
-      ((width == kWRegSize) && (value == kWRegMask))) {
-    return false;
+  if (value & 1) {
+    // If the low bit is 1, negate the value, and set a flag to remember that we
+    // did (so that we can adjust the return values appropriately).
+    negate = true;
+    value = ~value;
   }
 
-  unsigned lead_zero = CountLeadingZeros(value, width);
-  unsigned lead_one = CountLeadingZeros(~value, width);
-  unsigned trail_zero = CountTrailingZeros(value, width);
-  unsigned trail_one = CountTrailingZeros(~value, width);
-  unsigned set_bits = CountSetBits(value, width);
+  if (width == kWRegSize) {
+    // To handle 32-bit logical immediates, the very easiest thing is to repeat
+    // the input value twice to make a 64-bit word. The correct encoding of that
+    // as a logical immediate will also be the correct encoding of the 32-bit
+    // value.
 
-  // The fixed bits in the immediate s field.
-  // If width == 64 (X reg), start at 0xFFFFFF80.
-  // If width == 32 (W reg), start at 0xFFFFFFC0, as the iteration for 64-bit
-  // widths won't be executed.
-  int imm_s_fixed = (width == kXRegSize) ? -128 : -64;
-  int imm_s_mask = 0x3F;
+    // Avoid making the assumption that the most-significant 32 bits are zero by
+    // shifting the value left and duplicating it.
+    value <<= kWRegSize;
+    value |= value >> kWRegSize;
+  }
 
-  for (;;) {
-    // 2. If the value is two bits wide, it can be encoded.
-    if (width == 2) {
-      *n = 0;
-      *imm_s = 0x3C;
-      *imm_r = (value & 3) - 1;
-      return true;
-    }
+  // The basic analysis idea: imagine our input word looks like this.
+  //
+  //    0011111000111110001111100011111000111110001111100011111000111110
+  //                                                          c  b    a
+  //                                                          |<--d-->|
+  //
+  // We find the lowest set bit (as an actual power-of-2 value, not its index)
+  // and call it a. Then we add a to our original number, which wipes out the
+  // bottommost stretch of set bits and replaces it with a 1 carried into the
+  // next zero bit. Then we look for the new lowest set bit, which is in
+  // position b, and subtract it, so now our number is just like the original
+  // but with the lowest stretch of set bits completely gone. Now we find the
+  // lowest set bit again, which is position c in the diagram above. Then we'll
+  // measure the distance d between bit positions a and c (using CLZ), and that
+  // tells us that the only valid logical immediate that could possibly be equal
+  // to this number is the one in which a stretch of bits running from a to just
+  // below b is replicated every d bits.
+  uint64_t a = LowestSetBit(value);
+  uint64_t value_plus_a = value + a;
+  uint64_t b = LowestSetBit(value_plus_a);
+  uint64_t value_plus_a_minus_b = value_plus_a - b;
+  uint64_t c = LowestSetBit(value_plus_a_minus_b);
 
-    *n = (width == 64) ? 1 : 0;
-    *imm_s = ((imm_s_fixed | (set_bits - 1)) & imm_s_mask);
-    if ((lead_zero + set_bits) == width) {
-      *imm_r = 0;
+  int d, clz_a, out_n;
+  uint64_t mask;
+
+  if (c != 0) {
+    // The general case, in which there is more than one stretch of set bits.
+    // Compute the repeat distance d, and set up a bitmask covering the basic
+    // unit of repetition (i.e. a word with the bottom d bits set). Also, in all
+    // of these cases the N bit of the output will be zero.
+    clz_a = CountLeadingZeros(a, kXRegSize);
+    int clz_c = CountLeadingZeros(c, kXRegSize);
+    d = clz_a - clz_c;
+    mask = ((UINT64_C(1) << d) - 1);
+    out_n = 0;
+  } else {
+    // Handle degenerate cases.
+    //
+    // If any of those 'find lowest set bit' operations didn't find a set bit at
+    // all, then the word will have been zero thereafter, so in particular the
+    // last lowest_set_bit operation will have returned zero. So we can test for
+    // all the special case conditions in one go by seeing if c is zero.
+    if (a == 0) {
+      // The input was zero (or all 1 bits, which will come to here too after we
+      // inverted it at the start of the function), for which we just return
+      // false.
+      return false;
     } else {
-      *imm_r = (lead_zero > 0) ? (width - trail_zero) : lead_one;
+      // Otherwise, if c was zero but a was not, then there's just one stretch
+      // of set bits in our word, meaning that we have the trivial case of
+      // d == 64 and only one 'repetition'. Set up all the same variables as in
+      // the general case above, and set the N bit in the output.
+      clz_a = CountLeadingZeros(a, kXRegSize);
+      d = 64;
+      mask = ~UINT64_C(0);
+      out_n = 1;
     }
+  }
 
-    // 3. If the sum of leading zeros, trailing zeros and set bits is equal to
-    //    the bit width of the value, it can be encoded.
-    if (lead_zero + trail_zero + set_bits == width) {
-      return true;
-    }
-
-    // 4. If the sum of leading ones, trailing ones and unset bits in the
-    //    value is equal to the bit width of the value, it can be encoded.
-    if (lead_one + trail_one + (width - set_bits) == width) {
-      return true;
-    }
-
-    // 5. If the most-significant half of the bitwise value is equal to the
-    //    least-significant half, return to step 2 using the least-significant
-    //    half of the value.
-    uint64_t mask = (UINT64_C(1) << (width >> 1)) - 1;
-    if ((value & mask) == ((value >> (width >> 1)) & mask)) {
-      width >>= 1;
-      set_bits >>= 1;
-      imm_s_fixed >>= 1;
-      continue;
-    }
-
-    // 6. Otherwise, the value can't be encoded.
+  // If the repeat period d is not a power of two, it can't be encoded.
+  if (!IsPowerOf2(d)) {
     return false;
   }
+
+  if (((b - a) & ~mask) != 0) {
+    // If the bit stretch (b - a) does not fit within the mask derived from the
+    // repeat period, then fail.
+    return false;
+  }
+
+  // The only possible option is b - a repeated every d bits. Now we're going to
+  // actually construct the valid logical immediate derived from that
+  // specification, and see if it equals our original input.
+  //
+  // To repeat a value every d bits, we multiply it by a number of the form
+  // (1 + 2^d + 2^(2d) + ...), i.e. 0x0001000100010001 or similar. These can
+  // be derived using a table lookup on CLZ(d).
+  static const uint64_t multipliers[] = {
+    0x0000000000000001UL,
+    0x0000000100000001UL,
+    0x0001000100010001UL,
+    0x0101010101010101UL,
+    0x1111111111111111UL,
+    0x5555555555555555UL,
+  };
+  uint64_t multiplier = multipliers[CountLeadingZeros(d, kXRegSize) - 57];
+  uint64_t candidate = (b - a) * multiplier;
+
+  if (value != candidate) {
+    // The candidate pattern doesn't match our input value, so fail.
+    return false;
+  }
+
+  // We have a match! This is a valid logical immediate, so now we have to
+  // construct the bits and pieces of the instruction encoding that generates
+  // it.
+
+  // Count the set bits in our basic stretch. The special case of clz(0) == -1
+  // makes the answer come out right for stretches that reach the very top of
+  // the word (e.g. numbers like 0xffffc00000000000).
+  int clz_b = (b == 0) ? -1 : CountLeadingZeros(b, kXRegSize);
+  int s = clz_a - clz_b;
+
+  // Decide how many bits to rotate right by, to put the low bit of that basic
+  // stretch in position a.
+  int r;
+  if (negate) {
+    // If we inverted the input right at the start of this function, here's
+    // where we compensate: the number of set bits becomes the number of clear
+    // bits, and the rotation count is based on position b rather than position
+    // a (since b is the location of the 'lowest' 1 bit after inversion).
+    s = d - s;
+    r = (clz_b + 1) & (d - 1);
+  } else {
+    r = (clz_a + 1) & (d - 1);
+  }
+
+  // Now we're done, except for having to encode the S output in such a way that
+  // it gives both the number of set bits and the length of the repeated
+  // segment. The s field is encoded like this:
+  //
+  //     imms    size        S
+  //    ssssss    64    UInt(ssssss)
+  //    0sssss    32    UInt(sssss)
+  //    10ssss    16    UInt(ssss)
+  //    110sss     8    UInt(sss)
+  //    1110ss     4    UInt(ss)
+  //    11110s     2    UInt(s)
+  //
+  // So we 'or' (-d << 1) with our computed s to form imms.
+  if ((n != NULL) || (imm_s != NULL) || (imm_r != NULL)) {
+    *n = out_n;
+    *imm_s = ((-d << 1) | (s - 1)) & 0x3f;
+    *imm_r = r;
+  }
+
+  return true;
 }
+
 
 bool Assembler::IsImmConditionalCompare(int64_t immediate) {
   return is_uint5(immediate);
@@ -2177,6 +2621,9 @@ void Assembler::CheckLiteralPool(LiteralPoolEmitOption option) {
 
 
 void Assembler::EmitLiteralPool(LiteralPoolEmitOption option) {
+  // Exit early if there are no literals to emit.
+  if (literals_.empty()) return;
+
   // Prevent recursive calls while emitting the literal pool.
   BlockLiteralPoolScope scope(this);
 
@@ -2222,7 +2669,9 @@ void Assembler::EmitLiteralPool(LiteralPoolEmitOption option) {
   // size in words. This instruction can encode a large enough offset to span
   // the entire pool at its maximum size.
   Instr marker_instruction = LDR_x_lit | ImmLLiteral(pool_size) | Rt(xzr);
-  memcpy(marker.target(), &marker_instruction, kInstructionSize);
+  memcpy(GetLabelAddress<void*>(&marker),
+         &marker_instruction,
+         kInstructionSize);
 
   next_literal_pool_check_ = pc_ + kLiteralPoolCheckInterval;
 }

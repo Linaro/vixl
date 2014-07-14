@@ -59,6 +59,20 @@ Calculate the address of a label.
     void adr(const Register& rd, Label* label)
 
 
+### adrp ###
+
+Calculate the page address of a PC offset.
+
+    void adrp(const Register& rd, int imm21)
+
+
+### adrp ###
+
+Calculate the page address of a label.
+
+    void adrp(const Register& rd, Label* label)
+
+
 ### and ###
 
 Bitwise and (A & B).
@@ -264,6 +278,13 @@ Conditional invert: rd = cond ? ~rn : rn.
     void cinv(const Register& rd, const Register& rn, Condition cond)
 
 
+### clrex ###
+
+Clear exclusive monitor.
+
+    void clrex(int imm4 = 0xf)
+
+
 ### cls ###
 
 Count leading sign bits.
@@ -412,6 +433,55 @@ Instruction synchronization barrier.
     void isb()
 
 
+### ldar ###
+
+Load-acquire register.
+
+    void ldar(const Register& rt, const MemOperand& src)
+
+
+### ldarb ###
+
+Load-acquire byte.
+
+    void ldarb(const Register& rt, const MemOperand& src)
+
+
+### ldarh ###
+
+Load-acquire half-word.
+
+    void ldarh(const Register& rt, const MemOperand& src)
+
+
+### ldaxp ###
+
+Load-acquire exclusive register pair.
+
+    void ldaxp(const Register& rt, const Register& rt2, const MemOperand& src)
+
+
+### ldaxr ###
+
+Load-acquire exclusive register.
+
+    void ldaxr(const Register& rt, const MemOperand& src)
+
+
+### ldaxrb ###
+
+Load-acquire exclusive byte.
+
+    void ldaxrb(const Register& rt, const MemOperand& src)
+
+
+### ldaxrh ###
+
+Load-acquire exclusive half-word.
+
+    void ldaxrh(const Register& rt, const MemOperand& src)
+
+
 ### ldnp ###
 
 Load integer or FP register pair, non-temporal.
@@ -446,7 +516,8 @@ Load double precision floating point literal to FP register.
 
 Load integer or FP register.
 
-    void ldr(const CPURegister& rt, const MemOperand& src)
+    void ldr(const CPURegister& rt, const MemOperand& src,
+             LoadStoreScalingOption option = PreferScaledOffset)
 
 
 ### ldr ###
@@ -467,35 +538,116 @@ Load single precision floating point literal to FP register.
 
 Load byte.
 
-    void ldrb(const Register& rt, const MemOperand& src)
+    void ldrb(const Register& rt, const MemOperand& src,
+              LoadStoreScalingOption option = PreferScaledOffset)
 
 
 ### ldrh ###
 
 Load half-word.
 
-    void ldrh(const Register& rt, const MemOperand& src)
+    void ldrh(const Register& rt, const MemOperand& src,
+              LoadStoreScalingOption option = PreferScaledOffset)
 
 
 ### ldrsb ###
 
 Load byte with sign extension.
 
-    void ldrsb(const Register& rt, const MemOperand& src)
+    void ldrsb(const Register& rt, const MemOperand& src,
+               LoadStoreScalingOption option = PreferScaledOffset)
 
 
 ### ldrsh ###
 
 Load half-word with sign extension.
 
-    void ldrsh(const Register& rt, const MemOperand& src)
+    void ldrsh(const Register& rt, const MemOperand& src,
+               LoadStoreScalingOption option = PreferScaledOffset)
 
 
 ### ldrsw ###
 
 Load word with sign extension.
 
-    void ldrsw(const Register& rt, const MemOperand& src)
+    void ldrsw(const Register& rt, const MemOperand& src,
+               LoadStoreScalingOption option = PreferScaledOffset)
+
+
+### ldur ###
+
+Load integer or FP register (with unscaled offset).
+
+    void ldur(const CPURegister& rt, const MemOperand& src,
+              LoadStoreScalingOption option = PreferUnscaledOffset)
+
+
+### ldurb ###
+
+Load byte (with unscaled offset).
+
+    void ldurb(const Register& rt, const MemOperand& src,
+               LoadStoreScalingOption option = PreferUnscaledOffset)
+
+
+### ldurh ###
+
+Load half-word (with unscaled offset).
+
+    void ldurh(const Register& rt, const MemOperand& src,
+               LoadStoreScalingOption option = PreferUnscaledOffset)
+
+
+### ldursb ###
+
+Load byte with sign extension (and unscaled offset).
+
+    void ldursb(const Register& rt, const MemOperand& src,
+                LoadStoreScalingOption option = PreferUnscaledOffset)
+
+
+### ldursh ###
+
+Load half-word with sign extension (and unscaled offset).
+
+    void ldursh(const Register& rt, const MemOperand& src,
+                LoadStoreScalingOption option = PreferUnscaledOffset)
+
+
+### ldursw ###
+
+Load word with sign extension.
+
+    void ldursw(const Register& rt, const MemOperand& src,
+                LoadStoreScalingOption option = PreferUnscaledOffset)
+
+
+### ldxp ###
+
+Load exclusive register pair.
+
+    void ldxp(const Register& rt, const Register& rt2, const MemOperand& src)
+
+
+### ldxr ###
+
+Load exclusive register.
+
+    void ldxr(const Register& rt, const MemOperand& src)
+
+
+### ldxrb ###
+
+Load exclusive byte.
+
+    void ldxrb(const Register& rt, const MemOperand& src)
+
+
+### ldxrh ###
+
+Load exclusive half-word.
+
+    void ldxrh(const Register& rt, const MemOperand& src)
 
 
 ### lsl ###
@@ -807,6 +959,58 @@ Signed long multiply: 32 x 32 -> 64-bit.
     void smull(const Register& rd, const Register& rn, const Register& rm)
 
 
+### stlr ###
+
+Store-release register.
+
+    void stlr(const Register& rt, const MemOperand& dst)
+
+
+### stlrb ###
+
+Store-release byte.
+
+    void stlrb(const Register& rt, const MemOperand& dst)
+
+
+### stlrh ###
+
+Store-release half-word.
+
+    void stlrh(const Register& rt, const MemOperand& dst)
+
+
+### stlxp ###
+
+Store-release exclusive register pair.
+
+    void stlxp(const Register& rs,
+               const Register& rt,
+               const Register& rt2,
+               const MemOperand& dst)
+
+
+### stlxr ###
+
+Store-release exclusive register.
+
+    void stlxr(const Register& rs, const Register& rt, const MemOperand& dst)
+
+
+### stlxrb ###
+
+Store-release exclusive byte.
+
+    void stlxrb(const Register& rs, const Register& rt, const MemOperand& dst)
+
+
+### stlxrh ###
+
+Store-release exclusive half-word.
+
+    void stlxrh(const Register& rs, const Register& rt, const MemOperand& dst)
+
+
 ### stnp ###
 
 Store integer or FP register pair, non-temporal.
@@ -827,21 +1031,79 @@ Store integer or FP register pair.
 
 Store integer or FP register.
 
-    void str(const CPURegister& rt, const MemOperand& dst)
+    void str(const CPURegister& rt, const MemOperand& dst,
+             LoadStoreScalingOption option = PreferScaledOffset)
 
 
 ### strb ###
 
 Store byte.
 
-    void strb(const Register& rt, const MemOperand& dst)
+    void strb(const Register& rt, const MemOperand& dst,
+              LoadStoreScalingOption option = PreferScaledOffset)
 
 
 ### strh ###
 
 Store half-word.
 
-    void strh(const Register& rt, const MemOperand& dst)
+    void strh(const Register& rt, const MemOperand& dst,
+              LoadStoreScalingOption option = PreferScaledOffset)
+
+
+### stur ###
+
+Store integer or FP register (with unscaled offset).
+
+    void stur(const CPURegister& rt, const MemOperand& src,
+              LoadStoreScalingOption option = PreferUnscaledOffset)
+
+
+### sturb ###
+
+Store byte (with unscaled offset).
+
+    void sturb(const Register& rt, const MemOperand& dst,
+               LoadStoreScalingOption option = PreferUnscaledOffset)
+
+
+### sturh ###
+
+Store half-word (with unscaled offset).
+
+    void sturh(const Register& rt, const MemOperand& dst,
+               LoadStoreScalingOption option = PreferUnscaledOffset)
+
+
+### stxp ###
+
+Store exclusive register pair.
+
+    void stxp(const Register& rs,
+              const Register& rt,
+              const Register& rt2,
+              const MemOperand& dst)
+
+
+### stxr ###
+
+Store exclusive register.
+
+    void stxr(const Register& rs, const Register& rt, const MemOperand& dst)
+
+
+### stxrb ###
+
+Store exclusive byte.
+
+    void stxrb(const Register& rs, const Register& rt, const MemOperand& dst)
+
+
+### stxrh ###
+
+Store exclusive half-word.
+
+    void stxrh(const Register& rs, const Register& rt, const MemOperand& dst)
 
 
 ### sub ###

@@ -837,7 +837,15 @@ static void TestFPToS(const char * name, TestFPToIntHelper_t helper,
       if (results[d] == int_d_min) {
         printf("  -INT%u_C(%" PRId64 ") - 1,\n", d_bits, int_d_max);
       } else {
-        printf("  %" PRId64 ",\n", static_cast<int64_t>(results[d]));
+        // Some constants (such as those between INT32_MAX and UINT32_MAX)
+        // trigger compiler warnings. To avoid these warnings, use an
+        // appropriate macro to make the type explicit.
+        int64_t result_int64 = static_cast<int64_t>(results[d]);
+        if (result_int64 >= 0) {
+          printf("  INT%u_C(%" PRId64 "),\n", d_bits, result_int64);
+        } else {
+          printf("  -INT%u_C(%" PRId64 "),\n", d_bits, -result_int64);
+        }
       }
     }
     printf("};\n");

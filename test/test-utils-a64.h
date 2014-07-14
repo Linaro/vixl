@@ -226,6 +226,19 @@ void ClobberFP(MacroAssembler* masm, RegList reg_list,
 void Clobber(MacroAssembler* masm, CPURegList reg_list);
 
 
+template <typename T>
+T GetPCAddress(MacroAssembler* masm, byte * buffer) {
+  VIXL_STATIC_ASSERT(sizeof(T) == sizeof(uintptr_t));
+
+  uintptr_t address =
+      reinterpret_cast<uintptr_t>(buffer) + masm->SizeOfCodeGenerated();
+
+  // Use a C-style cast to get static_cast behaviour for integral types (T), and
+  // reinterpret_cast behaviour for other types.
+  return (T)address;
+}
+
+
 }  // namespace vixl
 
 #endif  // VIXL_A64_TEST_UTILS_A64_H_

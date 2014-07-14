@@ -373,30 +373,34 @@ void Instrument::InstrumentLoadStorePair(Instruction* instr) {
 
 
 void Instrument::VisitLoadStorePairPostIndex(Instruction* instr) {
-  USE(instr);
   Update();
   InstrumentLoadStorePair(instr);
 }
 
 
 void Instrument::VisitLoadStorePairOffset(Instruction* instr) {
-  USE(instr);
   Update();
   InstrumentLoadStorePair(instr);
 }
 
 
 void Instrument::VisitLoadStorePairPreIndex(Instruction* instr) {
-  USE(instr);
   Update();
   InstrumentLoadStorePair(instr);
 }
 
 
 void Instrument::VisitLoadStorePairNonTemporal(Instruction* instr) {
-  USE(instr);
   Update();
   InstrumentLoadStorePair(instr);
+}
+
+
+void Instrument::VisitLoadStoreExclusive(Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("Other");
+  counter->Increment();
 }
 
 

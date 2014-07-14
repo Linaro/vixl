@@ -135,24 +135,23 @@ class SimSystemRegister {
 template<int kSizeInBytes>
 class SimRegisterBase {
  public:
+  // Write the specified value. The value is zero-extended if necessary.
   template<typename T>
-  void Set(T new_value, unsigned size = sizeof(T)) {
-    VIXL_ASSERT(size <= kSizeInBytes);
-    VIXL_ASSERT(size <= sizeof(new_value));
-    // All AArch64 registers are zero-extending; Writing a W register clears the
-    // top bits of the corresponding X register.
-    memset(value_, 0, kSizeInBytes);
-    memcpy(value_, &new_value, size);
+  void Set(T new_value) {
+    VIXL_STATIC_ASSERT(sizeof(new_value) <= kSizeInBytes);
+    if (sizeof(new_value) < kSizeInBytes) {
+      // All AArch64 registers are zero-extending.
+      memset(value_ + sizeof(new_value), 0, kSizeInBytes - sizeof(new_value));
+    }
+    memcpy(value_, &new_value, sizeof(new_value));
   }
 
-  // Copy 'size' bytes of the register to the result, and zero-extend to fill
-  // the result.
+  // Read the value as the specified type. The value is truncated if necessary.
   template<typename T>
-  T Get(unsigned size = sizeof(T)) const {
-    VIXL_ASSERT(size <= kSizeInBytes);
+  T Get() const {
     T result;
-    memset(&result, 0, sizeof(result));
-    memcpy(&result, value_, size);
+    VIXL_STATIC_ASSERT(sizeof(result) <= kSizeInBytes);
+    memcpy(&result, value_, sizeof(T));
     return result;
   }
 
@@ -161,6 +160,80 @@ class SimRegisterBase {
 };
 typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;      // r0-r31
 typedef SimRegisterBase<kDRegSizeInBytes> SimFPRegister;    // v0-v31
+
+
+class SimExclusiveLocalMonitor {
+ public:
+  SimExclusiveLocalMonitor() : kSkipClearProbability(8), seed_(0x87654321) {
+    Clear();
+  }
+
+  // Clear the exclusive monitor (like clrex).
+  void Clear() {
+    address_ = 0;
+    size_ = 0;
+  }
+
+  // Clear the exclusive monitor most of the time.
+  void MaybeClear() {
+    if ((seed_ % kSkipClearProbability) != 0) {
+      Clear();
+    }
+
+    // Advance seed_ using a simple linear congruential generator.
+    seed_ = (seed_ * 48271) % 2147483647;
+  }
+
+  // Mark the address range for exclusive access (like load-exclusive).
+  template <typename T>
+  void MarkExclusive(T address, size_t size) {
+    VIXL_STATIC_ASSERT(sizeof(address) == sizeof(address_));
+    address_ = reinterpret_cast<uintptr_t>(address);
+    size_ = size;
+  }
+
+  // Return true if the address range is marked (like store-exclusive).
+  // This helper doesn't implicitly clear the monitor.
+  template <typename T>
+  bool IsExclusive(T address, size_t size) {
+    VIXL_STATIC_ASSERT(sizeof(address) == sizeof(address_));
+    VIXL_ASSERT(size > 0);
+    // Be pedantic: Require both the address and the size to match.
+    return (size == size_) &&
+           (reinterpret_cast<uintptr_t>(address) == address_);
+  }
+
+ private:
+  uintptr_t address_;
+  size_t size_;
+
+  const int kSkipClearProbability;
+  uint32_t seed_;
+};
+
+
+// We can't accurate simulate the global monitor since it depends on external
+// influences. Instead, this implementation occasionally causes accesses to
+// fail, according to kPassProbability.
+class SimExclusiveGlobalMonitor {
+ public:
+  SimExclusiveGlobalMonitor() : kPassProbability(8), seed_(0x87654321) {}
+
+  template <typename T>
+  bool IsExclusive(T address, size_t size) {
+    USE(address);
+    USE(size);
+
+    bool pass = (seed_ % kPassProbability) != 0;
+    // Advance seed_ using a simple linear congruential generator.
+    seed_ = (seed_ * 48271) % 2147483647;
+    return pass;
+  }
+
+ private:
+  const int kPassProbability;
+  uint32_t seed_;
+};
 
 
 class Simulator : public DecoderVisitor {
@@ -201,18 +274,13 @@ class Simulator : public DecoderVisitor {
   VISITOR_LIST(DECLARE)
   #undef DECLARE
 
-  // Register accessors.
+  // Integer register accessors.
 
-  // Return 'size' bits of the value of an integer register, as the specified
-  // type. The value is zero-extended to fill the result.
-  //
-  // The only supported values of 'size' are kXRegSize and kWRegSize.
+  // Basic accessor: Read the register as the specified type.
   template<typename T>
-  inline T reg(unsigned size, unsigned code,
-               Reg31Mode r31mode = Reg31IsZeroRegister) const {
-    unsigned size_in_bytes = size / 8;
-    VIXL_ASSERT(size_in_bytes <= sizeof(T));
-    VIXL_ASSERT((size == kXRegSize) || (size == kWRegSize));
+  inline T reg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
+    VIXL_STATIC_ASSERT((sizeof(T) == kWRegSizeInBytes) ||
+                       (sizeof(T) == kXRegSizeInBytes));
     VIXL_ASSERT(code < kNumberOfRegisters);
 
     if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
@@ -220,13 +288,8 @@ class Simulator : public DecoderVisitor {
       memset(&result, 0, sizeof(result));
       return result;
     }
-    return registers_[code].Get<T>(size_in_bytes);
-  }
 
-  // Like reg(), but infer the access size from the template type.
-  template<typename T>
-  inline T reg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
-    return reg<T>(sizeof(T) * 8, code, r31mode);
+    return registers_[code].Get<T>();
   }
 
   // Common specialized accessors for the reg() template.
@@ -240,46 +303,80 @@ class Simulator : public DecoderVisitor {
     return reg<int64_t>(code, r31mode);
   }
 
+  // As above, with parameterized size and return type. The value is
+  // either zero-extended or truncated to fit, as required.
+  template<typename T>
+  inline T reg(unsigned size, unsigned code,
+               Reg31Mode r31mode = Reg31IsZeroRegister) const {
+    uint64_t raw;
+    switch (size) {
+      case kWRegSize: raw = reg<uint32_t>(code, r31mode); break;
+      case kXRegSize: raw = reg<uint64_t>(code, r31mode); break;
+      default:
+        VIXL_UNREACHABLE();
+        return 0;
+    }
+
+    T result;
+    VIXL_STATIC_ASSERT(sizeof(result) <= sizeof(raw));
+    // Copy the result and truncate to fit. This assumes a little-endian host.
+    memcpy(&result, &raw, sizeof(result));
+    return result;
+  }
+
+  // Use int64_t by default if T is not specified.
   inline int64_t reg(unsigned size, unsigned code,
                      Reg31Mode r31mode = Reg31IsZeroRegister) const {
     return reg<int64_t>(size, code, r31mode);
   }
 
-  // Write 'size' bits of 'value' into an integer register. The value is
-  // zero-extended. This behaviour matches AArch64 register writes.
-  //
-  // The only supported values of 'size' are kXRegSize and kWRegSize.
+  // Basic accessor: Write the specified value.
   template<typename T>
-  inline void set_reg(unsigned size, unsigned code, T value,
+  inline void set_reg(unsigned code, T value,
                       Reg31Mode r31mode = Reg31IsZeroRegister) {
-    unsigned size_in_bytes = size / 8;
-    VIXL_ASSERT(size_in_bytes <= sizeof(T));
-    VIXL_ASSERT((size == kXRegSize) || (size == kWRegSize));
+    VIXL_STATIC_ASSERT((sizeof(T) == kWRegSizeInBytes) ||
+                       (sizeof(T) == kXRegSizeInBytes));
     VIXL_ASSERT(code < kNumberOfRegisters);
 
     if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
       return;
     }
-    return registers_[code].Set(value, size_in_bytes);
-  }
 
-  // Like set_reg(), but infer the access size from the template type.
-  template<typename T>
-  inline void set_reg(unsigned code, T value,
-                      Reg31Mode r31mode = Reg31IsZeroRegister) {
-    set_reg(sizeof(value) * 8, code, value, r31mode);
+    registers_[code].Set(value);
   }
 
   // Common specialized accessors for the set_reg() template.
   inline void set_wreg(unsigned code, int32_t value,
                        Reg31Mode r31mode = Reg31IsZeroRegister) {
-    set_reg(kWRegSize, code, value, r31mode);
+    set_reg(code, value, r31mode);
   }
 
   inline void set_xreg(unsigned code, int64_t value,
                        Reg31Mode r31mode = Reg31IsZeroRegister) {
-    set_reg(kXRegSize, code, value, r31mode);
+    set_reg(code, value, r31mode);
   }
+
+  // As above, with parameterized size and type. The value is either
+  // zero-extended or truncated to fit, as required.
+  template<typename T>
+  inline void set_reg(unsigned size, unsigned code, T value,
+                      Reg31Mode r31mode = Reg31IsZeroRegister) {
+    // Zero-extend the input.
+    uint64_t raw = 0;
+    VIXL_STATIC_ASSERT(sizeof(value) <= sizeof(raw));
+    memcpy(&raw, &value, sizeof(value));
+
+    // Write (and possibly truncate) the value.
+    switch (size) {
+      case kWRegSize: set_reg<uint32_t>(code, raw, r31mode); break;
+      case kXRegSize: set_reg<uint64_t>(code, raw, r31mode); break;
+      default:
+        VIXL_UNREACHABLE();
+        return;
+    }
+  }
+
+  // Common specialized accessors for the set_reg() template.
 
   // Commonly-used special cases.
   template<typename T>
@@ -292,23 +389,18 @@ class Simulator : public DecoderVisitor {
     set_reg(31, value, Reg31IsStackPointer);
   }
 
-  // Return 'size' bits of the value of a floating-point register, as the
-  // specified type. The value is zero-extended to fill the result.
-  //
-  // The only supported values of 'size' are kDRegSize and kSRegSize.
-  template<typename T>
-  inline T fpreg(unsigned size, unsigned code) const {
-    unsigned size_in_bytes = size / 8;
-    VIXL_ASSERT(size_in_bytes <= sizeof(T));
-    VIXL_ASSERT((size == kDRegSize) || (size == kSRegSize));
-    VIXL_ASSERT(code < kNumberOfFPRegisters);
-    return fpregisters_[code].Get<T>(size_in_bytes);
-  }
+  // FP register accessors.
+  // These are equivalent to the integer register accessors, but for FP
+  // registers.
 
-  // Like fpreg(), but infer the access size from the template type.
+  // Basic accessor: Read the register as the specified type.
   template<typename T>
   inline T fpreg(unsigned code) const {
-    return fpreg<T>(sizeof(T) * 8, code);
+    VIXL_STATIC_ASSERT((sizeof(T) == kSRegSizeInBytes) ||
+                       (sizeof(T) == kDRegSizeInBytes));
+    VIXL_ASSERT(code < kNumberOfFPRegisters);
+
+    return fpregisters_[code].Get<T>();
   }
 
   // Common specialized accessors for the fpreg() template.
@@ -328,24 +420,34 @@ class Simulator : public DecoderVisitor {
     return fpreg<uint64_t>(code);
   }
 
-  inline double fpreg(unsigned size, unsigned code) const {
+  // As above, with parameterized size and return type. The value is
+  // either zero-extended or truncated to fit, as required.
+  template<typename T>
+  inline T fpreg(unsigned size, unsigned code) const {
+    uint64_t raw;
     switch (size) {
-      case kSRegSize: return sreg(code);
-      case kDRegSize: return dreg(code);
+      case kSRegSize: raw = fpreg<uint32_t>(code); break;
+      case kDRegSize: raw = fpreg<uint64_t>(code); break;
       default:
         VIXL_UNREACHABLE();
-        return 0.0;
+        raw = 0;
+        break;
     }
+
+    T result;
+    VIXL_STATIC_ASSERT(sizeof(result) <= sizeof(raw));
+    // Copy the result and truncate to fit. This assumes a little-endian host.
+    memcpy(&result, &raw, sizeof(result));
+    return result;
   }
 
-  // Write 'value' into a floating-point register. The value is zero-extended.
-  // This behaviour matches AArch64 register writes.
+  // Basic accessor: Write the specified value.
   template<typename T>
   inline void set_fpreg(unsigned code, T value) {
-    VIXL_ASSERT((sizeof(value) == kDRegSizeInBytes) ||
-           (sizeof(value) == kSRegSizeInBytes));
+    VIXL_STATIC_ASSERT((sizeof(value) == kSRegSizeInBytes) ||
+                       (sizeof(value) == kDRegSizeInBytes));
     VIXL_ASSERT(code < kNumberOfFPRegisters);
-    fpregisters_[code].Set(value, sizeof(value));
+    fpregisters_[code].Set(value);
   }
 
   // Common specialized accessors for the set_fpreg() template.
@@ -416,6 +518,16 @@ class Simulator : public DecoderVisitor {
     }
   }
 
+  // Clear the simulated local monitor to force the next store-exclusive
+  // instruction to fail.
+  inline void ClearLocalMonitor() {
+    local_monitor_.Clear();
+  }
+
+  inline void SilenceExclusiveAccessWarning() {
+    print_exclusive_access_warning_ = false;
+  }
+
  protected:
   const char* clr_normal;
   const char* clr_flag_name;
@@ -428,6 +540,8 @@ class Simulator : public DecoderVisitor {
   const char* clr_memory_address;
   const char* clr_debug_number;
   const char* clr_debug_message;
+  const char* clr_warning;
+  const char* clr_warning_message;
   const char* clr_printf;
 
   // Simulation helpers ------------------------------------
@@ -470,6 +584,10 @@ class Simulator : public DecoderVisitor {
     }
   }
 
+  bool ConditionPassed(Instr cond) {
+    return ConditionPassed(static_cast<Condition>(cond));
+  }
+
   bool ConditionFailed(Condition cond) {
     return !ConditionPassed(cond);
   }
@@ -490,19 +608,29 @@ class Simulator : public DecoderVisitor {
                              int64_t offset,
                              AddrMode addrmode);
 
-  uint64_t MemoryRead(const uint8_t* address, unsigned num_bytes);
-  uint8_t MemoryRead8(uint8_t* address);
-  uint16_t MemoryRead16(uint8_t* address);
-  uint32_t MemoryRead32(uint8_t* address);
-  float MemoryReadFP32(uint8_t* address);
-  uint64_t MemoryRead64(uint8_t* address);
-  double MemoryReadFP64(uint8_t* address);
+  template <typename T>
+  T AddressUntag(T address) {
+    uint64_t bits = reinterpret_cast<uint64_t>(address);
+    return reinterpret_cast<T>(bits & ~kAddressTagMask);
+  }
 
-  void MemoryWrite(uint8_t* address, uint64_t value, unsigned num_bytes);
-  void MemoryWrite32(uint8_t* address, uint32_t value);
-  void MemoryWriteFP32(uint8_t* address, float value);
-  void MemoryWrite64(uint8_t* address, uint64_t value);
-  void MemoryWriteFP64(uint8_t* address, double value);
+  template <typename T, typename A>
+  T MemoryRead(A address) {
+    T value;
+    address = AddressUntag(address);
+    VIXL_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
+                (sizeof(value) == 4) || (sizeof(value) == 8));
+    memcpy(&value, reinterpret_cast<const char *>(address), sizeof(value));
+    return value;
+  }
+
+  template <typename T, typename A>
+  void MemoryWrite(A address, T value) {
+    address = AddressUntag(address);
+    VIXL_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
+                (sizeof(value) == 4) || (sizeof(value) == 8));
+    memcpy(reinterpret_cast<char *>(address), &value, sizeof(value));
+  }
 
   int64_t ShiftOperand(unsigned reg_size,
                        int64_t value,
@@ -587,6 +715,10 @@ class Simulator : public DecoderVisitor {
 
   // Processor state ---------------------------------------
 
+  // Simulated monitors for exclusive access instructions.
+  SimExclusiveLocalMonitor local_monitor_;
+  SimExclusiveGlobalMonitor global_monitor_;
+
   // Output stream.
   FILE* stream_;
   PrintDisassembler* print_disasm_;
@@ -662,6 +794,10 @@ class Simulator : public DecoderVisitor {
 
   // Indicates whether the instruction instrumentation is active.
   bool instruction_stats_;
+
+  // Indicates whether the exclusive-access warning has been printed.
+  bool print_exclusive_access_warning_;
+  void PrintExclusiveAccessWarning();
 };
 }  // namespace vixl
 

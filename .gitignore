@@ -3,7 +3,7 @@
 .sconsign.dblite
 obj/
 cctest*
-bench_*
+bench-*
 libvixl*
 example-*
 vixl_stats.csv

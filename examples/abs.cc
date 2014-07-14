@@ -59,7 +59,7 @@ int main(void) {
   // Run the example function.
   int64_t input_value = -42;
   simulator.set_xreg(0, input_value);
-  simulator.RunFrom(abs.target());
+  simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&abs));
   printf("abs(%ld) = %ld\n", input_value, simulator.xreg(0));
 
   return 0;

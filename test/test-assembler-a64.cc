@@ -94,14 +94,14 @@ namespace vixl {
 
 #define BUF_SIZE (4096)
 
-#define SETUP() SETUP_SIZE(BUF_SIZE)
+#define SETUP() SETUP_CUSTOM(BUF_SIZE, PositionIndependentCode)
 
 #ifdef USE_SIMULATOR
 
 // Run tests with the simulator.
-#define SETUP_SIZE(buf_size)                                                   \
+#define SETUP_CUSTOM(buf_size, pic)                                            \
   byte* buf = new byte[buf_size];                                              \
-  MacroAssembler masm(buf, buf_size);                                          \
+  MacroAssembler masm(buf, buf_size, pic);                                     \
   Decoder decoder;                                                             \
   Simulator* simulator = NULL;                                                 \
   if (Cctest::run_debugger()) {                                                \
@@ -151,10 +151,9 @@ namespace vixl {
 
 #else  // ifdef USE_SIMULATOR.
 // Run the test on real hardware or models.
-#define SETUP_SIZE(size)                                                       \
-  size_t buf_size = size;                                                      \
+#define SETUP_CUSTOM(buf_size, pic)                                            \
   byte* buf = new byte[buf_size];                                              \
-  MacroAssembler masm(buf, buf_size);                                          \
+  MacroAssembler masm(buf, buf_size, pic);                                     \
   RegisterDump core;                                                           \
   CPU::SetUp()
 
@@ -169,7 +168,7 @@ namespace vixl {
   masm.FinalizeCode()
 
 #define RUN()                                                                  \
-  CPU::EnsureIAndDCacheCoherency(buf, buf_size);                               \
+  CPU::EnsureIAndDCacheCoherency(buf, masm.SizeOfCodeGenerated());             \
   {                                                                            \
     void (*test_function)(void);                                               \
     VIXL_ASSERT(sizeof(buf) == sizeof(test_function));                         \
@@ -309,6 +308,9 @@ TEST(mov_imm_w) {
   __ Mov(w4, 0x00001234);
   __ Mov(w5, 0x12340000);
   __ Mov(w6, 0x12345678);
+  __ Mov(w7, (int32_t)0x80000000);
+  __ Mov(w8, (int32_t)0xffff0000);
+  __ Mov(w9, kWMinInt);
   END();
 
   RUN();
@@ -320,6 +322,9 @@ TEST(mov_imm_w) {
   ASSERT_EQUAL_64(0x00001234, x4);
   ASSERT_EQUAL_64(0x12340000, x5);
   ASSERT_EQUAL_64(0x12345678, x6);
+  ASSERT_EQUAL_64(0x80000000, x7);
+  ASSERT_EQUAL_64(0xffff0000, x8);
+  ASSERT_EQUAL_32(kWMinInt, w9);
 
   TEARDOWN();
 }
@@ -552,6 +557,9 @@ TEST(bitwise_wide_imm) {
 
   __ Orr(x10, x0, 0x1234567890abcdef);
   __ Orr(w11, w1, 0x90abcdef);
+
+  __ Orr(w12, w0, kWMinInt);
+  __ Eor(w13, w0, kWMinInt);
   END();
 
   RUN();
@@ -560,6 +568,8 @@ TEST(bitwise_wide_imm) {
   ASSERT_EQUAL_64(0xf0f0f0f0f0f0f0f0, x1);
   ASSERT_EQUAL_64(0x1234567890abcdef, x10);
   ASSERT_EQUAL_64(0x00000000f0fbfdff, x11);
+  ASSERT_EQUAL_32(kWMinInt, w12);
+  ASSERT_EQUAL_32(kWMinInt, w13);
 
   TEARDOWN();
 }
@@ -1593,6 +1603,210 @@ TEST(adr) {
   ASSERT_EQUAL_64(0x0, x1);
 
   TEARDOWN();
+}
+
+
+// Simple adrp tests: check that labels are linked and handled properly.
+// This is similar to the adr test, but all the adrp instructions are put on the
+// same page so that they return the same value.
+TEST(adrp) {
+  Label start;
+  Label label_1, label_2, label_3;
+
+  SETUP_CUSTOM(2 * kPageSize, PageOffsetDependentCode);
+  START();
+
+  // Waste space until the start of a page.
+  { InstructionAccurateScope scope(&masm);
+    const uintptr_t kPageOffsetMask = kPageSize - 1;
+    while ((GetPCAddress<uintptr_t>(&masm, buf) & kPageOffsetMask) != 0) {
+      __ b(&start);
+    }
+    __ bind(&start);
+  }
+
+  // Simple forward reference.
+  __ Adrp(x0, &label_2);
+
+  __ Bind(&label_1);
+
+  // Multiple forward references to the same label.
+  __ Adrp(x1, &label_3);
+  __ Adrp(x2, &label_3);
+  __ Adrp(x3, &label_3);
+
+  __ Bind(&label_2);
+
+  // Self-reference (offset 0).
+  __ Adrp(x4, &label_2);
+
+  __ Bind(&label_3);
+
+  // Simple reverse reference.
+  __ Adrp(x5, &label_1);
+
+  // Multiple reverse references to the same label.
+  __ Adrp(x6, &label_2);
+  __ Adrp(x7, &label_2);
+  __ Adrp(x8, &label_2);
+
+  VIXL_ASSERT(masm.SizeOfCodeGeneratedSince(&start) < kPageSize);
+  END();
+  RUN();
+
+  uint64_t expected = reinterpret_cast<uint64_t>(
+      AlignDown(masm.GetLabelAddress<uint64_t*>(&start), kPageSize));
+  ASSERT_EQUAL_64(expected, x0);
+  ASSERT_EQUAL_64(expected, x1);
+  ASSERT_EQUAL_64(expected, x2);
+  ASSERT_EQUAL_64(expected, x3);
+  ASSERT_EQUAL_64(expected, x4);
+  ASSERT_EQUAL_64(expected, x5);
+  ASSERT_EQUAL_64(expected, x6);
+  ASSERT_EQUAL_64(expected, x7);
+  ASSERT_EQUAL_64(expected, x8);
+
+  TEARDOWN();
+}
+
+
+static void AdrpPageBoundaryHelper(unsigned offset_into_page) {
+  VIXL_ASSERT(offset_into_page < kPageSize);
+  VIXL_ASSERT((offset_into_page % kInstructionSize) == 0);
+
+  const uintptr_t kPageOffsetMask = kPageSize - 1;
+
+  // The test label is always bound on page 0. Adrp instructions are generated
+  // on pages from kStartPage to kEndPage (inclusive).
+  const int kStartPage = -16;
+  const int kEndPage = 16;
+
+  SETUP_CUSTOM((kEndPage - kStartPage + 3) * kPageSize,
+               PageOffsetDependentCode);
+  START();
+
+  // Initialize NZCV with `eq` flags.
+  __ Cmp(wzr, wzr);
+
+  Label test;
+  { InstructionAccurateScope scope(&masm);
+    Label start;
+
+    // Waste space until the start of a page.
+    while ((GetPCAddress<uintptr_t>(&masm, buf) & kPageOffsetMask) != 0) {
+      __ b(&start);
+    }
+
+    // The first page.
+    VIXL_STATIC_ASSERT(kStartPage < 0);
+    { InstructionAccurateScope scope_page(&masm, kPageSize / kInstructionSize);
+      __ bind(&start);
+      __ adrp(x0, &test);
+      __ adrp(x1, &test);
+      for (size_t i = 2; i < (kPageSize / kInstructionSize); i += 2) {
+        __ ccmp(x0, x1, NoFlag, eq);
+        __ adrp(x1, &test);
+      }
+    }
+
+    // Subsequent pages.
+    VIXL_STATIC_ASSERT(kEndPage >= 0);
+    for (int page = (kStartPage + 1); page <= kEndPage; page++) {
+      InstructionAccurateScope scope_page(&masm, kPageSize / kInstructionSize);
+      if (page == 0) {
+        for (size_t i = 0; i < (kPageSize / kInstructionSize);) {
+          if (i++ == (offset_into_page / kInstructionSize)) __ bind(&test);
+          __ ccmp(x0, x1, NoFlag, eq);
+          if (i++ == (offset_into_page / kInstructionSize)) __ bind(&test);
+          __ adrp(x1, &test);
+        }
+      } else {
+        for (size_t i = 0; i < (kPageSize / kInstructionSize); i += 2) {
+          __ ccmp(x0, x1, NoFlag, eq);
+          __ adrp(x1, &test);
+        }
+      }
+    }
+
+    // Every adrp instruction pointed to the same label (`test`), so they should
+    // all have produced the same result.
+  }
+
+  END();
+  RUN();
+
+  uintptr_t expected =
+      AlignDown(masm.GetLabelAddress<uintptr_t>(&test), kPageSize);
+  ASSERT_EQUAL_64(expected, x0);
+  ASSERT_EQUAL_64(expected, x1);
+  ASSERT_EQUAL_NZCV(ZCFlag);
+
+  TEARDOWN();
+}
+
+
+// Test that labels are correctly referenced by adrp across page boundaries.
+TEST(adrp_page_boundaries) {
+  VIXL_STATIC_ASSERT(kPageSize == 4096);
+  AdrpPageBoundaryHelper(kInstructionSize * 0);
+  AdrpPageBoundaryHelper(kInstructionSize * 1);
+  AdrpPageBoundaryHelper(kInstructionSize * 512);
+  AdrpPageBoundaryHelper(kInstructionSize * 1022);
+  AdrpPageBoundaryHelper(kInstructionSize * 1023);
+}
+
+
+static void AdrpOffsetHelper(int64_t imm21) {
+  const size_t kPageOffsetMask = kPageSize - 1;
+
+  SETUP_CUSTOM(kPageSize * 4, PageOffsetDependentCode);
+  START();
+
+  // Initialize NZCV with `eq` flags.
+  __ Cmp(wzr, wzr);
+
+  Label page;
+  { InstructionAccurateScope scope(&masm);
+    // Waste space until the start of a page.
+    while ((GetPCAddress<uintptr_t>(&masm, buf) & kPageOffsetMask) != 0) {
+      __ b(&page);
+    }
+    __ bind(&page);
+
+    { InstructionAccurateScope scope_page(&masm, kPageSize / kInstructionSize);
+      // Every adrp instruction on this page should return the same value.
+      __ adrp(x0, imm21);
+      __ adrp(x1, imm21);
+      for (size_t i = 2; i < kPageSize / kInstructionSize; i += 2) {
+        __ ccmp(x0, x1, NoFlag, eq);
+        __ adrp(x1, imm21);
+      }
+    }
+  }
+
+  END();
+  RUN();
+
+  uintptr_t expected =
+      masm.GetLabelAddress<uintptr_t>(&page) + (kPageSize * imm21);
+  ASSERT_EQUAL_64(expected, x0);
+  ASSERT_EQUAL_64(expected, x1);
+  ASSERT_EQUAL_NZCV(ZCFlag);
+
+  TEARDOWN();
+}
+
+
+// Check that adrp produces the correct result for a specific offset.
+TEST(adrp_offset) {
+  AdrpOffsetHelper(0);
+  AdrpOffsetHelper(1);
+  AdrpOffsetHelper(-1);
+  AdrpOffsetHelper(4);
+  AdrpOffsetHelper(-4);
+  AdrpOffsetHelper(0x000fffff);
+  AdrpOffsetHelper(-0x000fffff);
+  AdrpOffsetHelper(-0x00100000);
 }
 
 
@@ -2692,7 +2906,7 @@ static void LdrLiteralRangeHelper(ptrdiff_t range_,
                                   LiteralPoolEmitOption option,
                                   bool expect_dump) {
   VIXL_ASSERT(range_ > 0);
-  SETUP_SIZE(range_ + 1024);
+  SETUP_CUSTOM(range_ + 1024, PositionIndependentCode);
 
   Label label_1, label_2;
 
@@ -2887,9 +3101,12 @@ TEST(add_sub_wide_imm) {
   __ Add(w12, w0, Operand(0x12345678));
   __ Add(w13, w1, Operand(0xffffffff));
 
-  __ Sub(x20, x0, Operand(0x1234567890abcdef));
+  __ Add(w18, w0, Operand(kWMinInt));
+  __ Sub(w19, w0, Operand(kWMinInt));
 
+  __ Sub(x20, x0, Operand(0x1234567890abcdef));
   __ Sub(w21, w0, Operand(0x12345678));
+
   END();
 
   RUN();
@@ -2900,8 +3117,10 @@ TEST(add_sub_wide_imm) {
   ASSERT_EQUAL_32(0x12345678, w12);
   ASSERT_EQUAL_64(0x0, x13);
 
-  ASSERT_EQUAL_64(-0x1234567890abcdef, x20);
+  ASSERT_EQUAL_32(kWMinInt, w18);
+  ASSERT_EQUAL_32(kWMinInt, w19);
 
+  ASSERT_EQUAL_64(-0x1234567890abcdef, x20);
   ASSERT_EQUAL_32(-0x12345678, w21);
 
   TEARDOWN();
@@ -4378,8 +4597,9 @@ TEST(extr) {
   __ Ror(w13, w1, 0);
   __ Ror(w14, w2, 17);
   __ Ror(w15, w1, 31);
-  __ Ror(x18, x2, 1);
-  __ Ror(x19, x1, 63);
+  __ Ror(x18, x2, 0);
+  __ Ror(x19, x2, 1);
+  __ Ror(x20, x1, 63);
   END();
 
   RUN();
@@ -4390,8 +4610,9 @@ TEST(extr) {
   ASSERT_EQUAL_64(0x89abcdef, x13);
   ASSERT_EQUAL_64(0x19083b2a, x14);
   ASSERT_EQUAL_64(0x13579bdf, x15);
-  ASSERT_EQUAL_64(0x7f6e5d4c3b2a1908, x18);
-  ASSERT_EQUAL_64(0x02468acf13579bde, x19);
+  ASSERT_EQUAL_64(0xfedcba9876543210, x18);
+  ASSERT_EQUAL_64(0x7f6e5d4c3b2a1908, x19);
+  ASSERT_EQUAL_64(0x02468acf13579bde, x20);
 
   TEARDOWN();
 }
@@ -8583,7 +8804,7 @@ TEST(isvalid) {
 
 
 TEST(printf) {
-  SETUP_SIZE(BUF_SIZE * 2);
+  SETUP_CUSTOM(BUF_SIZE * 2, PositionIndependentCode);
   START();
 
   char const * test_plain_string = "Printf with no arguments.\n";
@@ -9497,6 +9718,1007 @@ TEST(default_nan_double) {
   DefaultNaNHelper(sn, qm, qa);
   DefaultNaNHelper(qn, sm, qa);
   DefaultNaNHelper(qn, qm, qa);
+}
+
+
+TEST(ldar_stlr) {
+  // The middle value is read, modified, and written. The padding exists only to
+  // check for over-write.
+  uint8_t b[] = {0, 0x12, 0};
+  uint16_t h[] = {0, 0x1234, 0};
+  uint32_t w[] = {0, 0x12345678, 0};
+  uint64_t x[] = {0, 0x123456789abcdef0, 0};
+
+  SETUP();
+  START();
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&b[1]));
+  __ Ldarb(w0, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Stlrb(w0, MemOperand(x10));
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&h[1]));
+  __ Ldarh(w0, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Stlrh(w0, MemOperand(x10));
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&w[1]));
+  __ Ldar(w0, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Stlr(w0, MemOperand(x10));
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&x[1]));
+  __ Ldar(x0, MemOperand(x10));
+  __ Add(x0, x0, 1);
+  __ Stlr(x0, MemOperand(x10));
+
+  END();
+  RUN();
+
+  ASSERT_EQUAL_32(0x13, b[1]);
+  ASSERT_EQUAL_32(0x1235, h[1]);
+  ASSERT_EQUAL_32(0x12345679, w[1]);
+  ASSERT_EQUAL_64(0x123456789abcdef1, x[1]);
+
+  // Check for over-write.
+  ASSERT_EQUAL_32(0, b[0]);
+  ASSERT_EQUAL_32(0, b[2]);
+  ASSERT_EQUAL_32(0, h[0]);
+  ASSERT_EQUAL_32(0, h[2]);
+  ASSERT_EQUAL_32(0, w[0]);
+  ASSERT_EQUAL_32(0, w[2]);
+  ASSERT_EQUAL_32(0, x[0]);
+  ASSERT_EQUAL_32(0, x[2]);
+
+  TEARDOWN();
+}
+
+
+TEST(ldxr_stxr) {
+  // The middle value is read, modified, and written. The padding exists only to
+  // check for over-write.
+  uint8_t b[] = {0, 0x12, 0};
+  uint16_t h[] = {0, 0x1234, 0};
+  uint32_t w[] = {0, 0x12345678, 0};
+  uint64_t x[] = {0, 0x123456789abcdef0, 0};
+
+  // As above, but get suitably-aligned values for ldxp and stxp.
+  uint32_t wp_data[] = {0, 0, 0, 0, 0};
+  uint32_t * wp = AlignUp(wp_data + 1, kWRegSizeInBytes * 2) - 1;
+  wp[1] = 0x12345678;           // wp[1] is 64-bit-aligned.
+  wp[2] = 0x87654321;
+  uint64_t xp_data[] = {0, 0, 0, 0, 0};
+  uint64_t * xp = AlignUp(xp_data + 1, kXRegSizeInBytes * 2) - 1;
+  xp[1] = 0x123456789abcdef0;   // xp[1] is 128-bit-aligned.
+  xp[2] = 0x0fedcba987654321;
+
+  SETUP();
+  START();
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&b[1]));
+  Label try_b;
+  __ Bind(&try_b);
+  __ Ldxrb(w0, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Stxrb(w5, w0, MemOperand(x10));
+  __ Cbnz(w5, &try_b);
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&h[1]));
+  Label try_h;
+  __ Bind(&try_h);
+  __ Ldxrh(w0, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Stxrh(w5, w0, MemOperand(x10));
+  __ Cbnz(w5, &try_h);
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&w[1]));
+  Label try_w;
+  __ Bind(&try_w);
+  __ Ldxr(w0, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Stxr(w5, w0, MemOperand(x10));
+  __ Cbnz(w5, &try_w);
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&x[1]));
+  Label try_x;
+  __ Bind(&try_x);
+  __ Ldxr(x0, MemOperand(x10));
+  __ Add(x0, x0, 1);
+  __ Stxr(w5, x0, MemOperand(x10));
+  __ Cbnz(w5, &try_x);
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&wp[1]));
+  Label try_wp;
+  __ Bind(&try_wp);
+  __ Ldxp(w0, w1, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Add(w1, w1, 1);
+  __ Stxp(w5, w0, w1, MemOperand(x10));
+  __ Cbnz(w5, &try_wp);
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&xp[1]));
+  Label try_xp;
+  __ Bind(&try_xp);
+  __ Ldxp(x0, x1, MemOperand(x10));
+  __ Add(x0, x0, 1);
+  __ Add(x1, x1, 1);
+  __ Stxp(w5, x0, x1, MemOperand(x10));
+  __ Cbnz(w5, &try_xp);
+
+  END();
+  RUN();
+
+  ASSERT_EQUAL_32(0x13, b[1]);
+  ASSERT_EQUAL_32(0x1235, h[1]);
+  ASSERT_EQUAL_32(0x12345679, w[1]);
+  ASSERT_EQUAL_64(0x123456789abcdef1, x[1]);
+  ASSERT_EQUAL_32(0x12345679, wp[1]);
+  ASSERT_EQUAL_32(0x87654322, wp[2]);
+  ASSERT_EQUAL_64(0x123456789abcdef1, xp[1]);
+  ASSERT_EQUAL_64(0x0fedcba987654322, xp[2]);
+
+  // Check for over-write.
+  ASSERT_EQUAL_32(0, b[0]);
+  ASSERT_EQUAL_32(0, b[2]);
+  ASSERT_EQUAL_32(0, h[0]);
+  ASSERT_EQUAL_32(0, h[2]);
+  ASSERT_EQUAL_32(0, w[0]);
+  ASSERT_EQUAL_32(0, w[2]);
+  ASSERT_EQUAL_64(0, x[0]);
+  ASSERT_EQUAL_64(0, x[2]);
+  ASSERT_EQUAL_32(0, wp[0]);
+  ASSERT_EQUAL_32(0, wp[3]);
+  ASSERT_EQUAL_64(0, xp[0]);
+  ASSERT_EQUAL_64(0, xp[3]);
+
+  TEARDOWN();
+}
+
+
+TEST(ldaxr_stlxr) {
+  // The middle value is read, modified, and written. The padding exists only to
+  // check for over-write.
+  uint8_t b[] = {0, 0x12, 0};
+  uint16_t h[] = {0, 0x1234, 0};
+  uint32_t w[] = {0, 0x12345678, 0};
+  uint64_t x[] = {0, 0x123456789abcdef0, 0};
+
+  // As above, but get suitably-aligned values for ldxp and stxp.
+  uint32_t wp_data[] = {0, 0, 0, 0, 0};
+  uint32_t * wp = AlignUp(wp_data + 1, kWRegSizeInBytes * 2) - 1;
+  wp[1] = 0x12345678;           // wp[1] is 64-bit-aligned.
+  wp[2] = 0x87654321;
+  uint64_t xp_data[] = {0, 0, 0, 0, 0};
+  uint64_t * xp = AlignUp(xp_data + 1, kXRegSizeInBytes * 2) - 1;
+  xp[1] = 0x123456789abcdef0;   // xp[1] is 128-bit-aligned.
+  xp[2] = 0x0fedcba987654321;
+
+  SETUP();
+  START();
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&b[1]));
+  Label try_b;
+  __ Bind(&try_b);
+  __ Ldaxrb(w0, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Stlxrb(w5, w0, MemOperand(x10));
+  __ Cbnz(w5, &try_b);
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&h[1]));
+  Label try_h;
+  __ Bind(&try_h);
+  __ Ldaxrh(w0, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Stlxrh(w5, w0, MemOperand(x10));
+  __ Cbnz(w5, &try_h);
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&w[1]));
+  Label try_w;
+  __ Bind(&try_w);
+  __ Ldaxr(w0, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Stlxr(w5, w0, MemOperand(x10));
+  __ Cbnz(w5, &try_w);
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&x[1]));
+  Label try_x;
+  __ Bind(&try_x);
+  __ Ldaxr(x0, MemOperand(x10));
+  __ Add(x0, x0, 1);
+  __ Stlxr(w5, x0, MemOperand(x10));
+  __ Cbnz(w5, &try_x);
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&wp[1]));
+  Label try_wp;
+  __ Bind(&try_wp);
+  __ Ldaxp(w0, w1, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Add(w1, w1, 1);
+  __ Stlxp(w5, w0, w1, MemOperand(x10));
+  __ Cbnz(w5, &try_wp);
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&xp[1]));
+  Label try_xp;
+  __ Bind(&try_xp);
+  __ Ldaxp(x0, x1, MemOperand(x10));
+  __ Add(x0, x0, 1);
+  __ Add(x1, x1, 1);
+  __ Stlxp(w5, x0, x1, MemOperand(x10));
+  __ Cbnz(w5, &try_xp);
+
+  END();
+  RUN();
+
+  ASSERT_EQUAL_32(0x13, b[1]);
+  ASSERT_EQUAL_32(0x1235, h[1]);
+  ASSERT_EQUAL_32(0x12345679, w[1]);
+  ASSERT_EQUAL_64(0x123456789abcdef1, x[1]);
+  ASSERT_EQUAL_32(0x12345679, wp[1]);
+  ASSERT_EQUAL_32(0x87654322, wp[2]);
+  ASSERT_EQUAL_64(0x123456789abcdef1, xp[1]);
+  ASSERT_EQUAL_64(0x0fedcba987654322, xp[2]);
+
+  // Check for over-write.
+  ASSERT_EQUAL_32(0, b[0]);
+  ASSERT_EQUAL_32(0, b[2]);
+  ASSERT_EQUAL_32(0, h[0]);
+  ASSERT_EQUAL_32(0, h[2]);
+  ASSERT_EQUAL_32(0, w[0]);
+  ASSERT_EQUAL_32(0, w[2]);
+  ASSERT_EQUAL_64(0, x[0]);
+  ASSERT_EQUAL_64(0, x[2]);
+  ASSERT_EQUAL_32(0, wp[0]);
+  ASSERT_EQUAL_32(0, wp[3]);
+  ASSERT_EQUAL_64(0, xp[0]);
+  ASSERT_EQUAL_64(0, xp[3]);
+
+  TEARDOWN();
+}
+
+
+TEST(clrex) {
+  // This data should never be written.
+  uint64_t data[] = {0, 0, 0};
+  uint64_t * data_aligned = AlignUp(data, kXRegSizeInBytes * 2);
+
+  SETUP();
+  START();
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(data_aligned));
+  __ Mov(w6, 0);
+
+  __ Ldxrb(w0, MemOperand(x10));
+  __ Clrex();
+  __ Add(w0, w0, 1);
+  __ Stxrb(w5, w0, MemOperand(x10));
+  __ Add(w6, w6, w5);
+
+  __ Ldxrh(w0, MemOperand(x10));
+  __ Clrex();
+  __ Add(w0, w0, 1);
+  __ Stxrh(w5, w0, MemOperand(x10));
+  __ Add(w6, w6, w5);
+
+  __ Ldxr(w0, MemOperand(x10));
+  __ Clrex();
+  __ Add(w0, w0, 1);
+  __ Stxr(w5, w0, MemOperand(x10));
+  __ Add(w6, w6, w5);
+
+  __ Ldxr(x0, MemOperand(x10));
+  __ Clrex();
+  __ Add(x0, x0, 1);
+  __ Stxr(w5, x0, MemOperand(x10));
+  __ Add(w6, w6, w5);
+
+  __ Ldxp(w0, w1, MemOperand(x10));
+  __ Clrex();
+  __ Add(w0, w0, 1);
+  __ Add(w1, w1, 1);
+  __ Stxp(w5, w0, w1, MemOperand(x10));
+  __ Add(w6, w6, w5);
+
+  __ Ldxp(x0, x1, MemOperand(x10));
+  __ Clrex();
+  __ Add(x0, x0, 1);
+  __ Add(x1, x1, 1);
+  __ Stxp(w5, x0, x1, MemOperand(x10));
+  __ Add(w6, w6, w5);
+
+  // Acquire-release variants.
+
+  __ Ldaxrb(w0, MemOperand(x10));
+  __ Clrex();
+  __ Add(w0, w0, 1);
+  __ Stlxrb(w5, w0, MemOperand(x10));
+  __ Add(w6, w6, w5);
+
+  __ Ldaxrh(w0, MemOperand(x10));
+  __ Clrex();
+  __ Add(w0, w0, 1);
+  __ Stlxrh(w5, w0, MemOperand(x10));
+  __ Add(w6, w6, w5);
+
+  __ Ldaxr(w0, MemOperand(x10));
+  __ Clrex();
+  __ Add(w0, w0, 1);
+  __ Stlxr(w5, w0, MemOperand(x10));
+  __ Add(w6, w6, w5);
+
+  __ Ldaxr(x0, MemOperand(x10));
+  __ Clrex();
+  __ Add(x0, x0, 1);
+  __ Stlxr(w5, x0, MemOperand(x10));
+  __ Add(w6, w6, w5);
+
+  __ Ldaxp(w0, w1, MemOperand(x10));
+  __ Clrex();
+  __ Add(w0, w0, 1);
+  __ Add(w1, w1, 1);
+  __ Stlxp(w5, w0, w1, MemOperand(x10));
+  __ Add(w6, w6, w5);
+
+  __ Ldaxp(x0, x1, MemOperand(x10));
+  __ Clrex();
+  __ Add(x0, x0, 1);
+  __ Add(x1, x1, 1);
+  __ Stlxp(w5, x0, x1, MemOperand(x10));
+  __ Add(w6, w6, w5);
+
+  END();
+  RUN();
+
+  // None of the 12 store-exclusives should have succeeded.
+  ASSERT_EQUAL_32(12, w6);
+
+  ASSERT_EQUAL_64(0, data[0]);
+  ASSERT_EQUAL_64(0, data[1]);
+  ASSERT_EQUAL_64(0, data[2]);
+}
+
+
+#ifdef USE_SIMULATOR
+// Check that the simulator occasionally makes store-exclusive fail.
+TEST(ldxr_stxr_fail) {
+  uint64_t data[] = {0, 0, 0};
+  uint64_t * data_aligned = AlignUp(data, kXRegSizeInBytes * 2);
+
+  // Impose a hard limit on the number of attempts, so the test cannot hang.
+  static const uint64_t kWatchdog = 10000;
+  Label done;
+
+  SETUP();
+  START();
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(data_aligned));
+  __ Mov(x11, kWatchdog);
+
+  // This loop is the opposite of what we normally do with ldxr and stxr; we
+  // keep trying until we fail (or the watchdog counter runs out).
+  Label try_b;
+  __ Bind(&try_b);
+  __ Ldxrb(w0, MemOperand(x10));
+  __ Stxrb(w5, w0, MemOperand(x10));
+  // Check the watchdog counter.
+  __ Sub(x11, x11, 1);
+  __ Cbz(x11, &done);
+  // Check the exclusive-store result.
+  __ Cbz(w5, &try_b);
+
+  Label try_h;
+  __ Bind(&try_h);
+  __ Ldxrh(w0, MemOperand(x10));
+  __ Stxrh(w5, w0, MemOperand(x10));
+  __ Sub(x11, x11, 1);
+  __ Cbz(x11, &done);
+  __ Cbz(w5, &try_h);
+
+  Label try_w;
+  __ Bind(&try_w);
+  __ Ldxr(w0, MemOperand(x10));
+  __ Stxr(w5, w0, MemOperand(x10));
+  __ Sub(x11, x11, 1);
+  __ Cbz(x11, &done);
+  __ Cbz(w5, &try_w);
+
+  Label try_x;
+  __ Bind(&try_x);
+  __ Ldxr(x0, MemOperand(x10));
+  __ Stxr(w5, x0, MemOperand(x10));
+  __ Sub(x11, x11, 1);
+  __ Cbz(x11, &done);
+  __ Cbz(w5, &try_x);
+
+  Label try_wp;
+  __ Bind(&try_wp);
+  __ Ldxp(w0, w1, MemOperand(x10));
+  __ Stxp(w5, w0, w1, MemOperand(x10));
+  __ Sub(x11, x11, 1);
+  __ Cbz(x11, &done);
+  __ Cbz(w5, &try_wp);
+
+  Label try_xp;
+  __ Bind(&try_xp);
+  __ Ldxp(x0, x1, MemOperand(x10));
+  __ Stxp(w5, x0, x1, MemOperand(x10));
+  __ Sub(x11, x11, 1);
+  __ Cbz(x11, &done);
+  __ Cbz(w5, &try_xp);
+
+  __ Bind(&done);
+  // Trigger an error if x11 (watchdog) is zero.
+  __ Cmp(x11, 0);
+  __ Cset(x12, eq);
+
+  END();
+  RUN();
+
+  // Check that the watchdog counter didn't run out.
+  ASSERT_EQUAL_64(0, x12);
+}
+#endif
+
+
+#ifdef USE_SIMULATOR
+// Check that the simulator occasionally makes store-exclusive fail.
+TEST(ldaxr_stlxr_fail) {
+  uint64_t data[] = {0, 0, 0};
+  uint64_t * data_aligned = AlignUp(data, kXRegSizeInBytes * 2);
+
+  // Impose a hard limit on the number of attempts, so the test cannot hang.
+  static const uint64_t kWatchdog = 10000;
+  Label done;
+
+  SETUP();
+  START();
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(data_aligned));
+  __ Mov(x11, kWatchdog);
+
+  // This loop is the opposite of what we normally do with ldxr and stxr; we
+  // keep trying until we fail (or the watchdog counter runs out).
+  Label try_b;
+  __ Bind(&try_b);
+  __ Ldxrb(w0, MemOperand(x10));
+  __ Stxrb(w5, w0, MemOperand(x10));
+  // Check the watchdog counter.
+  __ Sub(x11, x11, 1);
+  __ Cbz(x11, &done);
+  // Check the exclusive-store result.
+  __ Cbz(w5, &try_b);
+
+  Label try_h;
+  __ Bind(&try_h);
+  __ Ldaxrh(w0, MemOperand(x10));
+  __ Stlxrh(w5, w0, MemOperand(x10));
+  __ Sub(x11, x11, 1);
+  __ Cbz(x11, &done);
+  __ Cbz(w5, &try_h);
+
+  Label try_w;
+  __ Bind(&try_w);
+  __ Ldaxr(w0, MemOperand(x10));
+  __ Stlxr(w5, w0, MemOperand(x10));
+  __ Sub(x11, x11, 1);
+  __ Cbz(x11, &done);
+  __ Cbz(w5, &try_w);
+
+  Label try_x;
+  __ Bind(&try_x);
+  __ Ldaxr(x0, MemOperand(x10));
+  __ Stlxr(w5, x0, MemOperand(x10));
+  __ Sub(x11, x11, 1);
+  __ Cbz(x11, &done);
+  __ Cbz(w5, &try_x);
+
+  Label try_wp;
+  __ Bind(&try_wp);
+  __ Ldaxp(w0, w1, MemOperand(x10));
+  __ Stlxp(w5, w0, w1, MemOperand(x10));
+  __ Sub(x11, x11, 1);
+  __ Cbz(x11, &done);
+  __ Cbz(w5, &try_wp);
+
+  Label try_xp;
+  __ Bind(&try_xp);
+  __ Ldaxp(x0, x1, MemOperand(x10));
+  __ Stlxp(w5, x0, x1, MemOperand(x10));
+  __ Sub(x11, x11, 1);
+  __ Cbz(x11, &done);
+  __ Cbz(w5, &try_xp);
+
+  __ Bind(&done);
+  // Trigger an error if x11 (watchdog) is zero.
+  __ Cmp(x11, 0);
+  __ Cset(x12, eq);
+
+  END();
+  RUN();
+
+  // Check that the watchdog counter didn't run out.
+  ASSERT_EQUAL_64(0, x12);
+}
+#endif
+
+
+TEST(load_store_tagged_immediate_offset) {
+  uint64_t tags[] = { 0x00, 0x1, 0x55, 0xff };
+  int tag_count = sizeof(tags) / sizeof(tags[0]);
+
+  const int kMaxDataLength = 128;
+
+  for (int i = 0; i < tag_count; i++) {
+    unsigned char src[kMaxDataLength];
+    uint64_t src_raw = reinterpret_cast<uint64_t>(src);
+    uint64_t src_tag = tags[i];
+    uint64_t src_tagged = CPU::SetPointerTag(src_raw, src_tag);
+
+    for (int k = 0; k < kMaxDataLength; k++) {
+      src[k] = k + 1;
+    }
+
+    for (int j = 0; j < tag_count; j++) {
+      unsigned char dst[kMaxDataLength];
+      uint64_t dst_raw = reinterpret_cast<uint64_t>(dst);
+      uint64_t dst_tag = tags[j];
+      uint64_t dst_tagged = CPU::SetPointerTag(dst_raw, dst_tag);
+
+      memset(dst, 0, kMaxDataLength);
+
+      SETUP();
+      START();
+
+      __ Mov(x0, src_tagged);
+      __ Mov(x1, dst_tagged);
+
+      int offset = 0;
+
+      // Scaled-immediate offsets.
+
+      __ ldp(x2, x3, MemOperand(x0, offset));
+      __ stp(x2, x3, MemOperand(x1, offset));
+      offset += 2 * kXRegSizeInBytes;
+
+      __ ldpsw(x2, x3, MemOperand(x0, offset));
+      __ stp(w2, w3, MemOperand(x1, offset));
+      offset += 2 * kWRegSizeInBytes;
+
+      __ ldp(d0, d1, MemOperand(x0, offset));
+      __ stp(d0, d1, MemOperand(x1, offset));
+      offset += 2 * kDRegSizeInBytes;
+
+      __ ldp(w2, w3, MemOperand(x0, offset));
+      __ stp(w2, w3, MemOperand(x1, offset));
+      offset += 2 * kWRegSizeInBytes;
+
+      __ ldp(s0, s1, MemOperand(x0, offset));
+      __ stp(s0, s1, MemOperand(x1, offset));
+      offset += 2 * kSRegSizeInBytes;
+
+      __ ldr(x2, MemOperand(x0, offset), RequireScaledOffset);
+      __ str(x2, MemOperand(x1, offset), RequireScaledOffset);
+      offset += kXRegSizeInBytes;
+
+      __ ldr(d0, MemOperand(x0, offset), RequireScaledOffset);
+      __ str(d0, MemOperand(x1, offset), RequireScaledOffset);
+      offset += kDRegSizeInBytes;
+
+      __ ldr(w2, MemOperand(x0, offset), RequireScaledOffset);
+      __ str(w2, MemOperand(x1, offset), RequireScaledOffset);
+      offset += kWRegSizeInBytes;
+
+      __ ldr(s0, MemOperand(x0, offset), RequireScaledOffset);
+      __ str(s0, MemOperand(x1, offset), RequireScaledOffset);
+      offset += kSRegSizeInBytes;
+
+      __ ldrh(w2, MemOperand(x0, offset), RequireScaledOffset);
+      __ strh(w2, MemOperand(x1, offset), RequireScaledOffset);
+      offset += 2;
+
+      __ ldrsh(w2, MemOperand(x0, offset), RequireScaledOffset);
+      __ strh(w2, MemOperand(x1, offset), RequireScaledOffset);
+      offset += 2;
+
+      __ ldrb(w2, MemOperand(x0, offset), RequireScaledOffset);
+      __ strb(w2, MemOperand(x1, offset), RequireScaledOffset);
+      offset += 1;
+
+      __ ldrsb(w2, MemOperand(x0, offset), RequireScaledOffset);
+      __ strb(w2, MemOperand(x1, offset), RequireScaledOffset);
+      offset += 1;
+
+      // Unscaled-immediate offsets.
+
+      __ ldur(x2, MemOperand(x0, offset), RequireUnscaledOffset);
+      __ stur(x2, MemOperand(x1, offset), RequireUnscaledOffset);
+      offset += kXRegSizeInBytes;
+
+      __ ldur(d0, MemOperand(x0, offset), RequireUnscaledOffset);
+      __ stur(d0, MemOperand(x1, offset), RequireUnscaledOffset);
+      offset += kDRegSizeInBytes;
+
+      __ ldur(w2, MemOperand(x0, offset), RequireUnscaledOffset);
+      __ stur(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      offset += kWRegSizeInBytes;
+
+      __ ldur(s0, MemOperand(x0, offset), RequireUnscaledOffset);
+      __ stur(s0, MemOperand(x1, offset), RequireUnscaledOffset);
+      offset += kSRegSizeInBytes;
+
+      __ ldurh(w2, MemOperand(x0, offset), RequireUnscaledOffset);
+      __ sturh(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      offset += 2;
+
+      __ ldursh(w2, MemOperand(x0, offset), RequireUnscaledOffset);
+      __ sturh(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      offset += 2;
+
+      __ ldurb(w2, MemOperand(x0, offset), RequireUnscaledOffset);
+      __ sturb(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      offset += 1;
+
+      __ ldursb(w2, MemOperand(x0, offset), RequireUnscaledOffset);
+      __ sturb(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      offset += 1;
+
+      // Extract the tag (so we can test that it was preserved correctly).
+      __ Ubfx(x0, x0, kAddressTagOffset, kAddressTagWidth);
+      __ Ubfx(x1, x1, kAddressTagOffset, kAddressTagWidth);
+
+      VIXL_ASSERT(kMaxDataLength >= offset);
+
+      END();
+      RUN();
+
+      ASSERT_EQUAL_64(src_tag, x0);
+      ASSERT_EQUAL_64(dst_tag, x1);
+
+      for (int k = 0; k < offset; k++) {
+        VIXL_CHECK(src[k] == dst[k]);
+      }
+
+      TEARDOWN();
+    }
+  }
+}
+
+
+TEST(load_store_tagged_immediate_preindex) {
+  uint64_t tags[] = { 0x00, 0x1, 0x55, 0xff };
+  int tag_count = sizeof(tags) / sizeof(tags[0]);
+
+  const int kMaxDataLength = 128;
+
+  for (int i = 0; i < tag_count; i++) {
+    unsigned char src[kMaxDataLength];
+    uint64_t src_raw = reinterpret_cast<uint64_t>(src);
+    uint64_t src_tag = tags[i];
+    uint64_t src_tagged = CPU::SetPointerTag(src_raw, src_tag);
+
+    for (int k = 0; k < kMaxDataLength; k++) {
+      src[k] = k + 1;
+    }
+
+    for (int j = 0; j < tag_count; j++) {
+      unsigned char dst[kMaxDataLength];
+      uint64_t dst_raw = reinterpret_cast<uint64_t>(dst);
+      uint64_t dst_tag = tags[j];
+      uint64_t dst_tagged = CPU::SetPointerTag(dst_raw, dst_tag);
+
+      for (int k = 0; k < kMaxDataLength; k++) {
+        dst[k] = 0;
+      }
+
+      SETUP();
+      START();
+
+      // Each MemOperand must apply a pre-index equal to the size of the
+      // previous access.
+
+      // Start with a non-zero preindex.
+      int preindex = 63 * kXRegSizeInBytes;
+
+      __ Mov(x0, src_tagged - preindex);
+      __ Mov(x1, dst_tagged - preindex);
+
+      __ ldp(x2, x3, MemOperand(x0, preindex, PreIndex));
+      __ stp(x2, x3, MemOperand(x1, preindex, PreIndex));
+      preindex = 2 * kXRegSizeInBytes;
+      int data_length = preindex;
+
+      __ ldpsw(x2, x3, MemOperand(x0, preindex, PreIndex));
+      __ stp(w2, w3, MemOperand(x1, preindex, PreIndex));
+      preindex = 2 * kWRegSizeInBytes;
+      data_length += preindex;
+
+      __ ldp(d0, d1, MemOperand(x0, preindex, PreIndex));
+      __ stp(d0, d1, MemOperand(x1, preindex, PreIndex));
+      preindex = 2 * kDRegSizeInBytes;
+      data_length += preindex;
+
+      __ ldp(w2, w3, MemOperand(x0, preindex, PreIndex));
+      __ stp(w2, w3, MemOperand(x1, preindex, PreIndex));
+      preindex = 2 * kWRegSizeInBytes;
+      data_length += preindex;
+
+      __ ldp(s0, s1, MemOperand(x0, preindex, PreIndex));
+      __ stp(s0, s1, MemOperand(x1, preindex, PreIndex));
+      preindex = 2 * kSRegSizeInBytes;
+      data_length += preindex;
+
+      __ ldr(x2, MemOperand(x0, preindex, PreIndex));
+      __ str(x2, MemOperand(x1, preindex, PreIndex));
+      preindex = kXRegSizeInBytes;
+      data_length += preindex;
+
+      __ ldr(d0, MemOperand(x0, preindex, PreIndex));
+      __ str(d0, MemOperand(x1, preindex, PreIndex));
+      preindex = kDRegSizeInBytes;
+      data_length += preindex;
+
+      __ ldr(w2, MemOperand(x0, preindex, PreIndex));
+      __ str(w2, MemOperand(x1, preindex, PreIndex));
+      preindex = kWRegSizeInBytes;
+      data_length += preindex;
+
+      __ ldr(s0, MemOperand(x0, preindex, PreIndex));
+      __ str(s0, MemOperand(x1, preindex, PreIndex));
+      preindex = kSRegSizeInBytes;
+      data_length += preindex;
+
+      __ ldrh(w2, MemOperand(x0, preindex, PreIndex));
+      __ strh(w2, MemOperand(x1, preindex, PreIndex));
+      preindex = 2;
+      data_length += preindex;
+
+      __ ldrsh(w2, MemOperand(x0, preindex, PreIndex));
+      __ strh(w2, MemOperand(x1, preindex, PreIndex));
+      preindex = 2;
+      data_length += preindex;
+
+      __ ldrb(w2, MemOperand(x0, preindex, PreIndex));
+      __ strb(w2, MemOperand(x1, preindex, PreIndex));
+      preindex = 1;
+      data_length += preindex;
+
+      __ ldrsb(w2, MemOperand(x0, preindex, PreIndex));
+      __ strb(w2, MemOperand(x1, preindex, PreIndex));
+      preindex = 1;
+      data_length += preindex;
+
+      VIXL_ASSERT(kMaxDataLength >= data_length);
+
+      END();
+      RUN();
+
+      // Check that the preindex was correctly applied in each operation, and
+      // that the tag was preserved.
+      ASSERT_EQUAL_64(src_tagged + data_length - preindex, x0);
+      ASSERT_EQUAL_64(dst_tagged + data_length - preindex, x1);
+
+      for (int k = 0; k < data_length; k++) {
+        VIXL_CHECK(src[k] == dst[k]);
+      }
+
+      TEARDOWN();
+    }
+  }
+}
+
+
+TEST(load_store_tagged_immediate_postindex) {
+  uint64_t tags[] = { 0x00, 0x1, 0x55, 0xff };
+  int tag_count = sizeof(tags) / sizeof(tags[0]);
+
+  const int kMaxDataLength = 128;
+
+  for (int i = 0; i < tag_count; i++) {
+    unsigned char src[kMaxDataLength];
+    uint64_t src_raw = reinterpret_cast<uint64_t>(src);
+    uint64_t src_tag = tags[i];
+    uint64_t src_tagged = CPU::SetPointerTag(src_raw, src_tag);
+
+    for (int k = 0; k < kMaxDataLength; k++) {
+      src[k] = k + 1;
+    }
+
+    for (int j = 0; j < tag_count; j++) {
+      unsigned char dst[kMaxDataLength];
+      uint64_t dst_raw = reinterpret_cast<uint64_t>(dst);
+      uint64_t dst_tag = tags[j];
+      uint64_t dst_tagged = CPU::SetPointerTag(dst_raw, dst_tag);
+
+      for (int k = 0; k < kMaxDataLength; k++) {
+        dst[k] = 0;
+      }
+
+      SETUP();
+      START();
+
+      __ Mov(x0, src_tagged);
+      __ Mov(x1, dst_tagged);
+
+      int postindex = 2 * kXRegSizeInBytes;
+      __ ldp(x2, x3, MemOperand(x0, postindex, PostIndex));
+      __ stp(x2, x3, MemOperand(x1, postindex, PostIndex));
+      int data_length = postindex;
+
+      postindex = 2 * kWRegSizeInBytes;
+      __ ldpsw(x2, x3, MemOperand(x0, postindex, PostIndex));
+      __ stp(w2, w3, MemOperand(x1, postindex, PostIndex));
+      data_length += postindex;
+
+      postindex = 2 * kDRegSizeInBytes;
+      __ ldp(d0, d1, MemOperand(x0, postindex, PostIndex));
+      __ stp(d0, d1, MemOperand(x1, postindex, PostIndex));
+      data_length += postindex;
+
+      postindex = 2 * kWRegSizeInBytes;
+      __ ldp(w2, w3, MemOperand(x0, postindex, PostIndex));
+      __ stp(w2, w3, MemOperand(x1, postindex, PostIndex));
+      data_length += postindex;
+
+      postindex = 2 * kSRegSizeInBytes;
+      __ ldp(s0, s1, MemOperand(x0, postindex, PostIndex));
+      __ stp(s0, s1, MemOperand(x1, postindex, PostIndex));
+      data_length += postindex;
+
+      postindex = kXRegSizeInBytes;
+      __ ldr(x2, MemOperand(x0, postindex, PostIndex));
+      __ str(x2, MemOperand(x1, postindex, PostIndex));
+      data_length += postindex;
+
+      postindex = kDRegSizeInBytes;
+      __ ldr(d0, MemOperand(x0, postindex, PostIndex));
+      __ str(d0, MemOperand(x1, postindex, PostIndex));
+      data_length += postindex;
+
+      postindex = kWRegSizeInBytes;
+      __ ldr(w2, MemOperand(x0, postindex, PostIndex));
+      __ str(w2, MemOperand(x1, postindex, PostIndex));
+      data_length += postindex;
+
+      postindex = kSRegSizeInBytes;
+      __ ldr(s0, MemOperand(x0, postindex, PostIndex));
+      __ str(s0, MemOperand(x1, postindex, PostIndex));
+      data_length += postindex;
+
+      postindex = 2;
+      __ ldrh(w2, MemOperand(x0, postindex, PostIndex));
+      __ strh(w2, MemOperand(x1, postindex, PostIndex));
+      data_length += postindex;
+
+      postindex = 2;
+      __ ldrsh(w2, MemOperand(x0, postindex, PostIndex));
+      __ strh(w2, MemOperand(x1, postindex, PostIndex));
+      data_length += postindex;
+
+      postindex = 1;
+      __ ldrb(w2, MemOperand(x0, postindex, PostIndex));
+      __ strb(w2, MemOperand(x1, postindex, PostIndex));
+      data_length += postindex;
+
+      postindex = 1;
+      __ ldrsb(w2, MemOperand(x0, postindex, PostIndex));
+      __ strb(w2, MemOperand(x1, postindex, PostIndex));
+      data_length += postindex;
+
+      VIXL_ASSERT(kMaxDataLength >= data_length);
+
+      END();
+      RUN();
+
+      // Check that the postindex was correctly applied in each operation, and
+      // that the tag was preserved.
+      ASSERT_EQUAL_64(src_tagged + data_length, x0);
+      ASSERT_EQUAL_64(dst_tagged + data_length, x1);
+
+      for (int k = 0; k < data_length; k++) {
+        VIXL_CHECK(src[k] == dst[k]);
+      }
+
+      TEARDOWN();
+    }
+  }
+}
+
+
+TEST(load_store_tagged_register_offset) {
+  uint64_t tags[] = { 0x00, 0x1, 0x55, 0xff };
+  int tag_count = sizeof(tags) / sizeof(tags[0]);
+
+  const int kMaxDataLength = 128;
+
+  for (int i = 0; i < tag_count; i++) {
+    unsigned char src[kMaxDataLength];
+    uint64_t src_raw = reinterpret_cast<uint64_t>(src);
+    uint64_t src_tag = tags[i];
+    uint64_t src_tagged = CPU::SetPointerTag(src_raw, src_tag);
+
+    for (int k = 0; k < kMaxDataLength; k++) {
+      src[k] = k + 1;
+    }
+
+    for (int j = 0; j < tag_count; j++) {
+      unsigned char dst[kMaxDataLength];
+      uint64_t dst_raw = reinterpret_cast<uint64_t>(dst);
+      uint64_t dst_tag = tags[j];
+      uint64_t dst_tagged = CPU::SetPointerTag(dst_raw, dst_tag);
+
+      // Also tag the offset register; the operation should still succeed.
+      for (int o = 0; o < tag_count; o++) {
+        uint64_t offset_base = CPU::SetPointerTag(UINT64_C(0), tags[o]);
+        int data_length = 0;
+
+        for (int k = 0; k < kMaxDataLength; k++) {
+          dst[k] = 0;
+        }
+
+        SETUP();
+        START();
+
+        __ Mov(x0, src_tagged);
+        __ Mov(x1, dst_tagged);
+
+        __ Mov(x10, offset_base + data_length);
+        __ ldr(x2, MemOperand(x0, x10));
+        __ str(x2, MemOperand(x1, x10));
+        data_length += kXRegSizeInBytes;
+
+        __ Mov(x10, offset_base + data_length);
+        __ ldr(d0, MemOperand(x0, x10));
+        __ str(d0, MemOperand(x1, x10));
+        data_length += kDRegSizeInBytes;
+
+        __ Mov(x10, offset_base + data_length);
+        __ ldr(w2, MemOperand(x0, x10));
+        __ str(w2, MemOperand(x1, x10));
+        data_length += kWRegSizeInBytes;
+
+        __ Mov(x10, offset_base + data_length);
+        __ ldr(s0, MemOperand(x0, x10));
+        __ str(s0, MemOperand(x1, x10));
+        data_length += kSRegSizeInBytes;
+
+        __ Mov(x10, offset_base + data_length);
+        __ ldrh(w2, MemOperand(x0, x10));
+        __ strh(w2, MemOperand(x1, x10));
+        data_length += 2;
+
+        __ Mov(x10, offset_base + data_length);
+        __ ldrsh(w2, MemOperand(x0, x10));
+        __ strh(w2, MemOperand(x1, x10));
+        data_length += 2;
+
+        __ Mov(x10, offset_base + data_length);
+        __ ldrb(w2, MemOperand(x0, x10));
+        __ strb(w2, MemOperand(x1, x10));
+        data_length += 1;
+
+        __ Mov(x10, offset_base + data_length);
+        __ ldrsb(w2, MemOperand(x0, x10));
+        __ strb(w2, MemOperand(x1, x10));
+        data_length += 1;
+
+        VIXL_ASSERT(kMaxDataLength >= data_length);
+
+        END();
+        RUN();
+
+        // Check that the postindex was correctly applied in each operation, and
+        // that the tag was preserved.
+        ASSERT_EQUAL_64(src_tagged, x0);
+        ASSERT_EQUAL_64(dst_tagged, x1);
+        ASSERT_EQUAL_64(offset_base + data_length - 1, x10);
+
+        for (int k = 0; k < data_length; k++) {
+          VIXL_CHECK(src[k] == dst[k]);
+        }
+
+        TEARDOWN();
+      }
+    }
+  }
 }
 
 

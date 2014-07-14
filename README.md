@@ -1,4 +1,4 @@
-VIXL: AArch64 Runtime Code Generation Library Version 1.4
+VIXL: AArch64 Runtime Code Generation Library Version 1.5
 =========================================================
 
 Contents:
@@ -16,10 +16,10 @@ To build VIXL the following software is required:
 
  1. Python 2.7
  2. SCons 2.0
- 3. GCC 4.4+
+ 3. GCC 4.6+
 
 A 64-bit host machine is required, implementing an LP64 data model. VIXL has
-only been tested using GCC on Ubuntu systems.
+only been tested using GCC on AArch64 Debian and amd64 Ubuntu systems.
 
 To run the linter stage of the tests, the following software is also required:
 
@@ -35,15 +35,17 @@ Overview
 VIXL is made of three components.
 
  1. A programmatic assembler to generate A64 code at runtime. The assembler
-    abstracts some of the constraints of the A64 ISA, for example most
+    abstracts some of the constraints of the A64 ISA; for example, most
     instructions support any immediate.
  2. A disassembler which can print any instruction emitted by the assembler.
  3. A simulator which can simulate any instruction emitted by the assembler.
     The simulator allows generated code to be run on another architecture
     without the need for a full ISA model.
 
-The VIXL git repository can be found [on GitHub][vixl]. Changes from previous
-versions of VIXL can be found in the [Changelog](doc/changelog.md).
+The VIXL git repository can be found [on GitHub][vixl].
+
+Changes from previous versions of VIXL can be found in the
+[Changelog](doc/changelog.md).
 
 
 Known Limitations
@@ -67,9 +69,36 @@ builds and mostly works for 32-bit x86 platforms, there are a number of
 floating-point operations which do not work correctly, and a number of tests
 fail as a result.
 
+Exclusive-Access Instructions
+-----------------------------
+
+All exclusive-access instructions are supported, but the simulator cannot
+accurately simulate their behaviour as described in the ARMv8 ARM.
+ * A local monitor is simulated, so simulated exclusive loads and stores execute
+   as expected in a single-threaded environment.
+ * The global monitor is simulated by occasionally causing exclusive-access
+   instructions to fail regardless of the local monitor state.
+ * Load-acquire, store-release semantics are approximated by issuing a host
+   memory barrier after loads or before stores. The built-in
+   `__sync_synchronize()` is used for this purpose.
+
+The simulator tries to be strict, and implements the following restrictions that
+the ARMv8 ARM allows:
+ * A pair of load-/store-exclusive instructions will only succeed if they have
+   the same address and access size.
+ * Most of the time, cache-maintenance operations or explicit memory accesses
+   will clear the exclusive monitor.
+    * To ensure that simulated code does not depend on this behaviour, the
+      exclusive monitor will sometimes be left intact after these instructions.
+
+Instructions affected by these limitations:
+  stxrb, stxrh, stxr, ldxrb, ldxrh, ldxr, stxp, ldxp, stlxrb, stlxrh, stlxr,
+  ldaxrb, ldaxrh, ldaxr, stlxp, ldaxp, stlrb, stlrh, stlr, ldarb, ldarh, ldar,
+  clrex.
+
+
 Usage
 =====
-
 
 Running all Tests
 -----------------
@@ -97,22 +126,31 @@ option is implied if the VIXL project is a snapshot (with no `.git` directory).
 Building and Running the Benchmarks
 -----------------------------------
 
-There are two very basic benchmarks provided with VIXL:
+There are three very basic benchmarks provided with VIXL:
 
- 1. bench\_dataop, emitting adds
- 2. bench\_branch, emitting branches
+ 1. bench-dataop, emitting adds
+ 2. bench-branch, emitting branches
+ 3. bench-branch-link, emitting branch-links
 
-To build one benchmark: `scons target=bench_xxx`, then run it as
-`./bench_xxx_sim <number of iterations>`. The benchmarks do not report a
-figure; they should be timed using the `time` command.
+Build these benchmarks using `scons bench-dataop`, `scons bench-branch` and
+`scons bench-branch-link`. This will produce binaries called
+`bench-dataop_sim`, `bench-branch_sim` and `bench-branch-link_sim`. Run these
+with an iteration count argument, for example `./bench-dataop_sim 10000000`. The
+benchmarks do not report a result; time them using the UNIX `time` command.
+
+Build the benchmarks natively for execution on an AArch64 target using `scons
+<benchmark name> simulator=off`. This will produce binaries called
+`bench-dataop`, `bench-branch` and `bench-branch-link`. Run and time these in
+the same way as the simulator versions.
 
 
 Getting Started
 ---------------
 
 A short introduction to using VIXL can be found [here](doc/getting-started.md).
-Example source code is provided in the `examples` directory. Build this using
-`scons target=examples` from the root directory.
+Example source code is provided in the `examples` directory. You can build all
+the examples with `scons examples` from the root directory, or use
+`scons list_targets=yes` to get a detailed list of available build targets.
 
 
 

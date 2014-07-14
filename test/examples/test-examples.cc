@@ -108,8 +108,8 @@ void GenerateTestWrapper(MacroAssembler* masm, RegisterDump *regs) {
     saved_dregs[6] = simulator.dreg_bits(14);                           \
     saved_dregs[7] = simulator.dreg_bits(15);                           \
                                                                         \
-    simulator.set_xreg(15, reinterpret_cast<uint64_t>((Func).target()));\
-    simulator.RunFrom(test.target());                                   \
+    simulator.set_xreg(15, masm.GetLabelAddress<uint64_t>(&Func));      \
+    simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&test));       \
                                                                         \
     assert(saved_xregs[0] == simulator.xreg(19));                       \
     assert(saved_xregs[1] == simulator.xreg(20));                       \

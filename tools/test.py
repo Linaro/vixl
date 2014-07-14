@@ -31,6 +31,7 @@ import sys
 import argparse
 import re
 import subprocess
+import multiprocessing
 import time
 import util
 
@@ -39,10 +40,13 @@ from printer import EnsureNewLine, Print, UpdateProgress
 
 
 def BuildOptions():
-  result = argparse.ArgumentParser(description =
+  result = argparse.ArgumentParser(
+      description =
       '''This tool runs each test reported by $CCTEST --list (and filtered as
          specified). A summary will be printed, and detailed test output will be
-         stored in log/$CCTEST.''')
+         stored in log/$CCTEST.''',
+      # Print default values.
+      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
   result.add_argument('filters', metavar='filter', nargs='*',
                       help='Run tests matching all of the (regexp) filters.')
   result.add_argument('--cctest', action='store', required=True,
@@ -51,28 +55,35 @@ def BuildOptions():
                       help='''Pass --coloured_trace to cctest. This will put
                               colour codes in the log files. The coloured output
                               can be viewed by "less -R", for example.''')
-  result.add_argument('--coverage', action='store_true',
-                      help='Run coverage tests.')
   result.add_argument('--debugger', action='store_true',
                       help='''Pass --debugger to cctest, so that the debugger is
                               used instead of the simulator. This has no effect
                               when running natively.''')
   result.add_argument('--verbose', action='store_true',
                       help='Print verbose output.')
+  result.add_argument('--jobs', '-j', metavar='N', type=int, nargs='?',
+                      default=1, const=multiprocessing.cpu_count(),
+                      help='''Runs the tests using N jobs. If the option is set
+                      but no value is provided, the script will use as many jobs
+                      as it thinks useful.''')
   return result.parse_args()
 
 
-def VerbosePrint(string):
-  if args.verbose:
+def VerbosePrint(verbose, string):
+  if verbose:
     Print(string)
 
 
 # A class representing an individual test.
 class Test:
-  def __init__(self, name):
+  def __init__(self, name, cctest, debugger, coloured_trace, verbose):
     self.name = name
-    self.logpath = os.path.join('log', os.path.basename(args.cctest))
-    if args.debugger:
+    self.cctest = cctest
+    self.debugger = debugger
+    self.coloured_trace = coloured_trace
+    self.verbose = verbose
+    self.logpath = os.path.join('log', os.path.basename(self.cctest))
+    if self.debugger:
       basename = name + '_debugger'
     else:
       basename = name
@@ -82,11 +93,13 @@ class Test:
   # Run the test.
   # Use a thread to be able to control the test.
   def Run(self):
-    command = [args.cctest, '--trace_sim', '--trace_reg', self.name]
-    if args.coloured_trace:
+    command = [self.cctest, '--trace_sim', '--trace_reg', self.name]
+    if self.coloured_trace:
       command.append('--coloured_trace')
+    if self.debugger:
+      command.append('--debugger')
 
-    VerbosePrint('==== Running ' + self.name + '... ====')
+    VerbosePrint(self.verbose, '==== Running ' + self.name + '... ====')
     sys.stdout.flush()
 
     process = subprocess.Popen(command,
@@ -105,9 +118,9 @@ class Test:
       # Success.
       # We normally only print the command on failure, but with --verbose we
       # should also print it on success.
-      VerbosePrint('COMMAND: ' + ' '.join(command))
-      VerbosePrint('LOG (stdout): ' + self.logout)
-      VerbosePrint('LOG (stderr): ' + self.logerr + '\n')
+      VerbosePrint(self.verbose, 'COMMAND: ' + ' '.join(command))
+      VerbosePrint(self.verbose, 'LOG (stdout): ' + self.logout)
+      VerbosePrint(self.verbose, 'LOG (stderr): ' + self.logerr + '\n')
     else:
       # Failure.
       Print('--- FAILED ' + self.name + ' ---')
@@ -119,42 +132,83 @@ class Test:
 
 
 # Scan matching tests and return a test manifest.
-def ReadManifest(filters):
-  status, output = util.getstatusoutput(args.cctest +  ' --list')
+def ReadManifest(cctest, filters = [],
+                 debugger = False, coloured_trace = False, verbose = False):
+  status, output = util.getstatusoutput(cctest +  ' --list')
   if status != 0: util.abort('Failed to list all tests')
 
   names = output.split()
   for f in filters:
     names = filter(re.compile(f).search, names)
 
-  return map(Test, names)
+  return map(lambda x: Test(x, cctest, debugger, coloured_trace, verbose), names)
+
+
+# Shared state for multiprocessing. Ideally the context should be passed with
+# arguments, but constraints from the multiprocessing module prevent us from
+# doing so: the shared variables (multiprocessing.Value) must be global, or no
+# work is started. So we abstract some additional state into global variables to
+# simplify the implementation.
+# Read-write variables for the workers.
+n_tests_passed = multiprocessing.Value('i', 0)
+n_tests_failed = multiprocessing.Value('i', 0)
+# Read-only for workers.
+n_tests = None
+start_time = None
+verbose_test_run = None
+test_suite_name = ''
+
+def RunTest(test):
+  UpdateProgress(start_time, n_tests_passed.value, n_tests_failed.value,
+                 n_tests, verbose_test_run, test.name, test_suite_name)
+  # Run the test and update the statistics.
+  retcode = test.Run()
+  if retcode == 0:
+    with n_tests_passed.get_lock(): n_tests_passed.value += 1
+  else:
+    with n_tests_failed.get_lock(): n_tests_failed.value += 1
 
 
 # Run all tests in the manifest.
-def RunTests(manifest):
-  count = len(manifest)
-  passed = 0
-  failed = 0
+# This function won't run in parallel due to constraints from the
+# multiprocessing module.
+__run_tests_lock__ = multiprocessing.Lock()
+def RunTests(manifest, jobs = 1, verbose = False, debugger = False,
+             progress_prefix = ''):
+  global n_tests
+  global start_time
+  global verbose_test_run
+  global test_suite_name
 
-  if count == 0:
-    Print('No tests to run.')
-    return 0
+  with __run_tests_lock__:
 
-  Print('Running %d tests...' % (count))
-  start_time = time.time()
+    # Reset the counters.
+    n_tests_passed.value = 0
+    n_tests_failed.value = 0
 
-  for test in manifest:
-    # Update the progress counter with the name of the test we're about to run.
-    UpdateProgress(start_time, passed, failed, count, args.verbose, test.name)
-    retcode = test.Run()
-    # Update the counters and progress indicator.
-    if retcode == 0:
-      passed += 1
-    else:
-      failed += 1
-  UpdateProgress(start_time, passed, failed, count, args.verbose, '== Done ==')
+    verbose_test_run = verbose
+    test_suite_name = progress_prefix
 
-  return failed     # 0 indicates success.
+    n_tests = len(manifest)
+
+    if n_tests == 0:
+      Print('No tests to run.')
+      return 0
+
+    VerbosePrint(verbose, 'Running %d tests...' % (n_tests))
+    start_time = time.time()
+
+    pool = multiprocessing.Pool(jobs)
+    # The '.get(9999999)' is workaround to allow killing the test script with
+    # ctrl+C from the shell. This bug is documented at
+    # http://bugs.python.org/issue8296.
+    work = pool.map_async(RunTest, manifest).get(9999999)
+
+    done_message = '== Done =='
+    UpdateProgress(start_time, n_tests_passed.value, n_tests_failed.value,
+                   n_tests, verbose, done_message, progress_prefix)
+
+    return n_tests_failed.value # 0 indicates success
 
 
 if __name__ == '__main__':
@@ -172,23 +226,13 @@ if __name__ == '__main__':
     sys.exit(1)
 
   # List all matching tests.
-  manifest = ReadManifest(args.filters)
-
-  # Delete coverage data files.
-  if args.coverage:
-    status, output = util.getstatusoutput('find obj/coverage -name "*.gcda" -exec rm {} \;')
+  manifest = ReadManifest(args.cctest, args.filters,
+                          args.debugger, args.coloured_trace, args.verbose)
 
   # Run the tests.
-  status = RunTests(manifest)
+  status = RunTests(manifest, jobs=args.jobs,
+                    verbose=args.verbose, debugger=args.debugger)
   EnsureNewLine()
-
-  # Print coverage information.
-  if args.coverage:
-    cmd = 'tggcov -R summary_all,untested_functions_per_file obj/coverage/src/a64'
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    stdout, stderr = p.communicate()
-    print(stdout)
 
   sys.exit(status)
 

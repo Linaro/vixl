@@ -126,16 +126,22 @@ void MacroAssembler::LogicalMacro(const Register& rd,
   if (operand.IsImmediate()) {
     int64_t immediate = operand.immediate();
     unsigned reg_size = rd.size();
-    VIXL_ASSERT(rd.Is64Bits() || is_uint32(immediate));
 
     // If the operation is NOT, invert the operation and immediate.
     if ((op & NOT) == NOT) {
       op = static_cast<LogicalOp>(op & ~NOT);
       immediate = ~immediate;
-      if (rd.Is32Bits()) {
-        immediate &= kWRegMask;
-      }
     }
+
+    // Ignore the top 32 bits of an immediate if we're moving to a W register.
+    if (rd.Is32Bits()) {
+      // Check that the top 32 bits are consistent.
+      VIXL_ASSERT(((immediate >> kWRegSize) == 0) ||
+                  ((immediate >> kWRegSize) == -1));
+      immediate &= kWRegMask;
+    }
+
+    VIXL_ASSERT(rd.Is64Bits() || is_uint32(immediate));
 
     // Special cases for all set or all clear immediates.
     if (immediate == 0) {
@@ -180,14 +186,15 @@ void MacroAssembler::LogicalMacro(const Register& rd,
     } else {
       // Immediate can't be encoded: synthesize using move immediate.
       Register temp = temps.AcquireSameSizeAs(rn);
-      Mov(temp, immediate);
+      Operand imm_operand = MoveImmediateForShiftedOp(temp, immediate);
+
       if (rd.Is(sp)) {
         // If rd is the stack pointer we cannot use it as the destination
         // register so we use the temp register as an intermediate again.
-        Logical(temp, rn, Operand(temp), op);
+        Logical(temp, rn, imm_operand, op);
         Mov(sp, temp);
       } else {
-        Logical(rd, rn, Operand(temp), op);
+        Logical(rd, rn, imm_operand, op);
       }
     }
   } else if (operand.IsExtendedRegister()) {
@@ -288,21 +295,11 @@ void MacroAssembler::Mov(const Register& rd, uint64_t imm) {
   // applying move-keep operations to move-zero and move-inverted initial
   // values.
 
-  unsigned reg_size = rd.size();
-  unsigned n, imm_s, imm_r;
-  if (IsImmMovz(imm, reg_size) && !rd.IsSP()) {
-    // Immediate can be represented in a move zero instruction. Movz can't
-    // write to the stack pointer.
-    movz(rd, imm);
-  } else if (IsImmMovn(imm, reg_size) && !rd.IsSP()) {
-    // Immediate can be represented in a move negative instruction. Movn can't
-    // write to the stack pointer.
-    movn(rd, rd.Is64Bits() ? ~imm : (~imm & kWRegMask));
-  } else if (IsImmLogical(imm, reg_size, &n, &imm_s, &imm_r)) {
-    // Immediate can be represented in a logical orr instruction.
-    VIXL_ASSERT(!rd.IsZero());
-    LogicalImmediate(rd, AppropriateZeroRegFor(rd), n, imm_s, imm_r, ORR);
-  } else {
+  // Try to move the immediate in one instruction, and if that fails, switch to
+  // using multiple instructions.
+  if (!TryOneInstrMoveImmediate(rd, imm)) {
+    unsigned reg_size = rd.size();
+
     // Generic immediate case. Imm will be represented by
     //   [imm3, imm2, imm1, imm0], where each imm is 16 bits.
     // A move-zero or move-inverted is generated for the first non-zero or
@@ -368,8 +365,8 @@ unsigned MacroAssembler::CountClearHalfWords(uint64_t imm, unsigned reg_size) {
 }
 
 
-// The movn instruction can generate immediates containing an arbitrary 16-bit
-// value, with remaining bits set, eg. 0x00001234, 0x0000123400000000.
+// The movz instruction can generate immediates containing an arbitrary 16-bit
+// value, with remaining bits clear, eg. 0x00001234, 0x0000123400000000.
 bool MacroAssembler::IsImmMovz(uint64_t imm, unsigned reg_size) {
   VIXL_ASSERT((reg_size == kXRegSize) || (reg_size == kWRegSize));
   return CountClearHalfWords(imm, reg_size) >= ((reg_size / 16) - 1);
@@ -473,7 +470,8 @@ void MacroAssembler::Add(const Register& rd,
                          const Register& rn,
                          const Operand& operand) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate() && (operand.immediate() < 0)) {
+  if (operand.IsImmediate() && (operand.immediate() < 0) &&
+      IsImmAddSub(-operand.immediate())) {
     AddSubMacro(rd, rn, -operand.immediate(), LeaveFlags, SUB);
   } else {
     AddSubMacro(rd, rn, operand, LeaveFlags, ADD);
@@ -485,7 +483,8 @@ void MacroAssembler::Adds(const Register& rd,
                           const Register& rn,
                           const Operand& operand) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate() && (operand.immediate() < 0)) {
+  if (operand.IsImmediate() && (operand.immediate() < 0) &&
+      IsImmAddSub(-operand.immediate())) {
     AddSubMacro(rd, rn, -operand.immediate(), SetFlags, SUB);
   } else {
     AddSubMacro(rd, rn, operand, SetFlags, ADD);
@@ -497,7 +496,8 @@ void MacroAssembler::Sub(const Register& rd,
                          const Register& rn,
                          const Operand& operand) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate() && (operand.immediate() < 0)) {
+  if (operand.IsImmediate() && (operand.immediate() < 0) &&
+      IsImmAddSub(-operand.immediate())) {
     AddSubMacro(rd, rn, -operand.immediate(), LeaveFlags, ADD);
   } else {
     AddSubMacro(rd, rn, operand, LeaveFlags, SUB);
@@ -509,7 +509,8 @@ void MacroAssembler::Subs(const Register& rd,
                           const Register& rn,
                           const Operand& operand) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate() && (operand.immediate() < 0)) {
+  if (operand.IsImmediate() && (operand.immediate() < 0) &&
+      IsImmAddSub(-operand.immediate())) {
     AddSubMacro(rd, rn, -operand.immediate(), SetFlags, ADD);
   } else {
     AddSubMacro(rd, rn, operand, SetFlags, SUB);
@@ -597,6 +598,64 @@ void MacroAssembler::Negs(const Register& rd,
 }
 
 
+bool MacroAssembler::TryOneInstrMoveImmediate(const Register& dst,
+                                              int64_t imm) {
+  unsigned n, imm_s, imm_r;
+  int reg_size = dst.size();
+
+  if (IsImmMovz(imm, reg_size) && !dst.IsSP()) {
+    // Immediate can be represented in a move zero instruction. Movz can't write
+    // to the stack pointer.
+    movz(dst, imm);
+    return true;
+  } else if (IsImmMovn(imm, reg_size) && !dst.IsSP()) {
+    // Immediate can be represented in a move negative instruction. Movn can't
+    // write to the stack pointer.
+    movn(dst, dst.Is64Bits() ? ~imm : (~imm & kWRegMask));
+    return true;
+  } else if (IsImmLogical(imm, reg_size, &n, &imm_s, &imm_r)) {
+    // Immediate can be represented in a logical orr instruction.
+    VIXL_ASSERT(!dst.IsZero());
+    LogicalImmediate(dst, AppropriateZeroRegFor(dst), n, imm_s, imm_r, ORR);
+    return true;
+  }
+  return false;
+}
+
+
+Operand MacroAssembler::MoveImmediateForShiftedOp(const Register& dst,
+                                                  int64_t imm) {
+  int reg_size = dst.size();
+
+  // Encode the immediate in a single move instruction, if possible.
+  if (TryOneInstrMoveImmediate(dst, imm)) {
+    // The move was successful; nothing to do here.
+  } else {
+    // Pre-shift the immediate to the least-significant bits of the register.
+    int shift_low = CountTrailingZeros(imm, reg_size);
+    int64_t imm_low = imm >> shift_low;
+
+    // Pre-shift the immediate to the most-significant bits of the register,
+    // inserting set bits in the least-significant bits.
+    int shift_high = CountLeadingZeros(imm, reg_size);
+    int64_t imm_high = (imm << shift_high) | ((1 << shift_high) - 1);
+
+    if (TryOneInstrMoveImmediate(dst, imm_low)) {
+      // The new immediate has been moved into the destination's low bits:
+      // return a new leftward-shifting operand.
+      return Operand(dst, LSL, shift_low);
+    } else if (TryOneInstrMoveImmediate(dst, imm_high)) {
+      // The new immediate has been moved into the destination's high bits:
+      // return a new rightward-shifting operand.
+      return Operand(dst, LSR, shift_high);
+    } else {
+      Mov(dst, imm);
+    }
+  }
+  return Operand(dst);
+}
+
+
 void MacroAssembler::AddSubMacro(const Register& rd,
                                  const Register& rn,
                                  const Operand& operand,
@@ -613,8 +672,14 @@ void MacroAssembler::AddSubMacro(const Register& rd,
       (operand.IsShiftedRegister() && (operand.shift() == ROR))) {
     UseScratchRegisterScope temps(this);
     Register temp = temps.AcquireSameSizeAs(rn);
-    Mov(temp, operand);
-    AddSub(rd, rn, temp, S, op);
+    if (operand.IsImmediate()) {
+      Operand imm_operand =
+          MoveImmediateForShiftedOp(temp, operand.immediate());
+      AddSub(rd, rn, imm_operand, S, op);
+    } else {
+      Mov(temp, operand);
+      AddSub(rd, rn, temp, S, op);
+    }
   } else {
     AddSub(rd, rn, operand, S, op);
   }
@@ -1379,13 +1444,13 @@ bool UseScratchRegisterScope::IsAvailable(const CPURegister& reg) const {
 
 Register UseScratchRegisterScope::AcquireSameSizeAs(const Register& reg) {
   int code = AcquireNextAvailable(available_).code();
-  return Register(code, reg.SizeInBits());
+  return Register(code, reg.size());
 }
 
 
 FPRegister UseScratchRegisterScope::AcquireSameSizeAs(const FPRegister& reg) {
   int code = AcquireNextAvailable(availablefp_).code();
-  return FPRegister(code, reg.SizeInBits());
+  return FPRegister(code, reg.size());
 }
 
 

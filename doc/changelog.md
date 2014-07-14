@@ -1,6 +1,19 @@
 VIXL Change Log
 ===============
 
+* 1.5
+    + Tagged pointer support.
+    + Implement support for exclusive access instructions.
+    + Implement support for `adrp` instruction.
+    + Faster code for logical immediate identification.
+    + Generate better code for immediates passed to shift-capable instructions.
+    + Allow explicit use of unscaled-offset loads and stores.
+    + Build and test infrastructure improvements.
+    + Corrected computation of cache line size.
+    + Fix simulation of `extr` instruction.
+    + Fixed a bug when moving kWMinInt to a register.
+    + Other small bug fixes.
+
 * 1.4
     + Added support for `frintm`.
     + Fixed simulation of `frintn` and `frinta` for corner cases.
