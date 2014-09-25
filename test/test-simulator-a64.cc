@@ -54,8 +54,7 @@ namespace vixl {
 #ifdef USE_SIMULATOR
 
 #define SETUP()                                                               \
-  byte* buf = new byte[BUF_SIZE];                                             \
-  MacroAssembler masm(buf, BUF_SIZE);                                         \
+  MacroAssembler masm(BUF_SIZE);                                              \
   Decoder decoder;                                                            \
   Simulator* simulator = NULL;                                                \
   if (Cctest::run_debugger()) {                                               \
@@ -95,17 +94,15 @@ namespace vixl {
   masm.FinalizeCode()
 
 #define RUN()                                                                 \
-  simulator->RunFrom(reinterpret_cast<Instruction*>(buf))
+  simulator->RunFrom(masm.GetStartAddress<Instruction*>())
 
 #define TEARDOWN()                                                            \
-  delete simulator;                                                           \
-  delete[] buf;
+  delete simulator;
 
 #else     // USE_SIMULATOR
 
 #define SETUP()                                                               \
-  byte* buf = new byte[BUF_SIZE];                                             \
-  MacroAssembler masm(buf, BUF_SIZE);                                         \
+  MacroAssembler masm(BUF_SIZE);                                              \
   CPU::SetUp()
 
 #define START()                                                               \
@@ -117,17 +114,19 @@ namespace vixl {
   __ Ret();                                                                   \
   masm.FinalizeCode()
 
-#define RUN()                                                                 \
-  CPU::EnsureIAndDCacheCoherency(buf, BUF_SIZE);                              \
-  {                                                                           \
-    void (*test_function)(void);                                              \
-    VIXL_ASSERT(sizeof(buf) == sizeof(test_function));                        \
-    memcpy(&test_function, &buf, sizeof(buf));                                \
-    test_function();                                                          \
+#define RUN()                                                                  \
+  {                                                                            \
+    byte* buffer_start = masm.GetStartAddress<byte*>();                        \
+    size_t buffer_length = masm.CursorOffset();                                \
+    void (*test_function)(void);                                               \
+                                                                               \
+    CPU::EnsureIAndDCacheCoherency(buffer_start, buffer_length);               \
+    VIXL_STATIC_ASSERT(sizeof(buffer_start) == sizeof(test_function));         \
+    memcpy(&test_function, &buffer_start, sizeof(buffer_start));               \
+    test_function();                                                           \
   }
 
-#define TEARDOWN()                                                            \
-  delete[] buf;
+#define TEARDOWN()
 
 #endif    // USE_SIMULATOR
 
@@ -201,7 +200,10 @@ static void Test1Op_Helper(Test1OpFPHelper_t helper, uintptr_t inputs,
   __ Bind(&loop_n);
   __ Ldr(fn, MemOperand(inputs_base, index_n, UXTW, n_index_shift));
 
-  (masm.*helper)(fd, fn);
+  {
+    CodeBufferCheckScope guard(&masm, kInstructionSize);
+    (masm.*helper)(fd, fn);
+  }
   __ Str(fd, MemOperand(out, fd.SizeInBytes(), PostIndex));
 
   __ Add(index_n, index_n, 1);
@@ -309,8 +311,11 @@ static void Test2Op_Helper(Test2OpFPHelper_t helper,
   __ Bind(&loop_m);
   __ Ldr(fm, MemOperand(inputs_base, index_m, UXTW, index_shift));
 
-  (masm.*helper)(fd, fn, fm);
-  __ Str(fd, MemOperand(out, fd.SizeInBytes(), PostIndex));
+  {
+    CodeBufferCheckScope guard(&masm, kInstructionSize);
+    (masm.*helper)(fd, fn, fm);
+  }
+    __ Str(fd, MemOperand(out, fd.SizeInBytes(), PostIndex));
 
   __ Add(index_m, index_m, 1);
   __ Cmp(index_m, inputs_length);
@@ -432,7 +437,10 @@ static void Test3Op_Helper(Test3OpFPHelper_t helper,
   __ Bind(&loop_a);
   __ Ldr(fa, MemOperand(inputs_base, index_a, UXTW, index_shift));
 
-  (masm.*helper)(fd, fn, fm, fa);
+  {
+    CodeBufferCheckScope guard(&masm, kInstructionSize);
+    (masm.*helper)(fd, fn, fm, fa);
+  }
   __ Str(fd, MemOperand(out, fd.SizeInBytes(), PostIndex));
 
   __ Add(index_a, index_a, 1);
@@ -558,7 +566,10 @@ static void TestCmp_Helper(TestFPCmpHelper_t helper,
   __ Bind(&loop_m);
   __ Ldr(fm, MemOperand(inputs_base, index_m, UXTW, index_shift));
 
-  (masm.*helper)(fn, fm);
+  {
+    CodeBufferCheckScope guard(&masm, kInstructionSize);
+    (masm.*helper)(fn, fm);
+  }
   __ Mrs(flags, NZCV);
   __ Ubfx(flags, flags, 28, 4);
   __ Strb(flags, MemOperand(out, 1, PostIndex));
@@ -678,7 +689,10 @@ static void TestCmpZero_Helper(TestFPCmpZeroHelper_t helper,
   __ Bind(&loop_n);
   __ Ldr(fn, MemOperand(inputs_base, index_n, UXTW, index_shift));
 
-  (masm.*helper)(fn, 0.0);
+  {
+    CodeBufferCheckScope guard(&masm, kInstructionSize);
+    (masm.*helper)(fn, 0.0);
+  }
   __ Mrs(flags, NZCV);
   __ Ubfx(flags, flags, 28, 4);
   __ Strb(flags, MemOperand(out, 1, PostIndex));
@@ -791,7 +805,10 @@ static void TestFPToInt_Helper(TestFPToIntHelper_t helper, uintptr_t inputs,
   __ Bind(&loop_n);
   __ Ldr(fn, MemOperand(inputs_base, index_n, UXTW, n_index_shift));
 
-  (masm.*helper)(rd, fn);
+  {
+    CodeBufferCheckScope guard(&masm, kInstructionSize);
+    (masm.*helper)(rd, fn);
+  }
   __ Str(rd, MemOperand(out, rd.SizeInBytes(), PostIndex));
 
   __ Add(index_n, index_n, 1);

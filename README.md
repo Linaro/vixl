@@ -1,4 +1,4 @@
-VIXL: AArch64 Runtime Code Generation Library Version 1.5
+VIXL: AArch64 Runtime Code Generation Library Version 1.6
 =========================================================
 
 Contents:
@@ -150,7 +150,17 @@ Getting Started
 A short introduction to using VIXL can be found [here](doc/getting-started.md).
 Example source code is provided in the `examples` directory. You can build all
 the examples with `scons examples` from the root directory, or use
-`scons list_targets=yes` to get a detailed list of available build targets.
+`scons --help` to get a detailed list of available build targets.
+
+
+Using VIXL
+----------
+
+On top of the [here](doc/getting-started) page and the examples, you can find
+documentation and guides on various topics that may be of help
+[here](doc/topics/index.md).
+
+
 
 
 

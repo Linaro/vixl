@@ -36,7 +36,7 @@
 #define EXP_SIZE   (256)
 #define INSTR_SIZE (1024)
 #define SETUP_CLASS(ASMCLASS)                                                  \
-  byte* buf = static_cast<byte*>(malloc(INSTR_SIZE));                          \
+  byte* buf = new byte[INSTR_SIZE];                                            \
   uint32_t encoding = 0;                                                       \
   ASMCLASS* masm = new ASMCLASS(buf, INSTR_SIZE);                              \
   Decoder* decoder = new Decoder();                                            \
@@ -45,9 +45,14 @@
 
 #define SETUP() SETUP_CLASS(Assembler)
 
+#define SETUP_MACRO() SETUP_CLASS(MacroAssembler)
+
 #define COMPARE(ASM, EXP)                                                      \
   masm->Reset();                                                               \
-  masm->ASM;                                                                   \
+  {                                                                            \
+    CodeBufferCheckScope blind(masm);                                          \
+    masm->ASM;                                                                 \
+  }                                                                            \
   masm->FinalizeCode();                                                        \
   decoder->Decode(reinterpret_cast<Instruction*>(buf));                        \
   encoding = *reinterpret_cast<uint32_t*>(buf);                                \
@@ -58,6 +63,21 @@
   }
 
 #define COMPARE_PREFIX(ASM, EXP)                                               \
+  masm->Reset();                                                               \
+  {                                                                            \
+    CodeBufferCheckScope blind(masm);                                          \
+    masm->ASM;                                                                 \
+  }                                                                            \
+  masm->FinalizeCode();                                                        \
+  decoder->Decode(reinterpret_cast<Instruction*>(buf));                        \
+  encoding = *reinterpret_cast<uint32_t*>(buf);                                \
+  if (strncmp(disasm->GetOutput(), EXP, strlen(EXP)) != 0) {                   \
+    printf("Encoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",            \
+           encoding, EXP, disasm->GetOutput());                                \
+    abort();                                                                   \
+  }
+
+#define COMPARE_MACRO(ASM, EXP)                                                \
   masm->Reset();                                                               \
   masm->ASM;                                                                   \
   masm->FinalizeCode();                                                        \
@@ -72,7 +92,8 @@
 #define CLEANUP()                                                              \
   delete disasm;                                                               \
   delete decoder;                                                              \
-  delete masm
+  delete masm;                                                                 \
+  delete buf
 
 namespace vixl {
 
@@ -1478,12 +1499,13 @@ TEST(load_store_pair_nontemp) {
 
 
 TEST(load_literal) {
-  SETUP();
+  SETUP_CLASS(MacroAssembler);
 
-  COMPARE_PREFIX(ldr(x10, 0x1234567890abcdef),  "ldr x10, pc+8");
-  COMPARE_PREFIX(ldr(w20, 0xfedcba09),  "ldr w20, pc+8");
-  COMPARE_PREFIX(ldr(d11, 1.234),  "ldr d11, pc+8");
-  COMPARE_PREFIX(ldr(s22, 2.5f),  "ldr s22, pc+8");
+  COMPARE_PREFIX(Ldr(x10, 0x1234567890abcdef),  "ldr x10, pc+0");
+  COMPARE_PREFIX(Ldr(w20, 0xfedcba09),  "ldr w20, pc+0");
+  COMPARE_PREFIX(Ldr(d11, 1.234),  "ldr d11, pc+0");
+  COMPARE_PREFIX(Ldr(s22, 2.5f),  "ldr s22, pc+0");
+  COMPARE_PREFIX(Ldrsw(x21, 0x80000000), "ldrsw x21, pc+0");
 
   CLEANUP();
 }
@@ -1841,8 +1863,8 @@ TEST(trace) {
   VIXL_ASSERT(kTraceOpcode == 0xdeb2);
 
   // All Trace calls should produce the same instruction.
-  COMPARE(Trace(LOG_ALL, TRACE_ENABLE), "hlt #0xdeb2");
-  COMPARE(Trace(LOG_REGS, TRACE_DISABLE), "hlt #0xdeb2");
+  COMPARE_MACRO(Trace(LOG_ALL, TRACE_ENABLE), "hlt #0xdeb2");
+  COMPARE_MACRO(Trace(LOG_REGS, TRACE_DISABLE), "hlt #0xdeb2");
 
   CLEANUP();
 }
@@ -1856,8 +1878,8 @@ TEST(log) {
   VIXL_ASSERT(kLogOpcode == 0xdeb3);
 
   // All Log calls should produce the same instruction.
-  COMPARE(Log(LOG_ALL), "hlt #0xdeb3");
-  COMPARE(Log(LOG_SYS_REGS), "hlt #0xdeb3");
+  COMPARE_MACRO(Log(LOG_ALL), "hlt #0xdeb3");
+  COMPARE_MACRO(Log(LOG_SYS_REGS), "hlt #0xdeb3");
 
   CLEANUP();
 }

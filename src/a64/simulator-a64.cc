@@ -136,7 +136,7 @@ void Simulator::Run() {
 }
 
 
-void Simulator::RunFrom(Instruction* first) {
+void Simulator::RunFrom(const Instruction* first) {
   set_pc(first);
   Run();
 }
@@ -419,7 +419,7 @@ void Simulator::PrintSystemRegisters(bool print_all) {
       "0b10 (Round towards Minus Infinity)",
       "0b11 (Round towards Zero)"
     };
-    VIXL_ASSERT(fpcr().RMode() <= (sizeof(rmode) / sizeof(rmode[0])));
+    VIXL_ASSERT(fpcr().RMode() < (sizeof(rmode) / sizeof(rmode[0])));
     fprintf(stream_, "# %sFPCR: %sAHP:%d DN:%d FZ:%d RMode:%s%s\n",
             clr_flag_name,
             clr_flag_value,
@@ -496,21 +496,21 @@ void Simulator::PrintProcessorState() {
 
 // Visitors---------------------------------------------------------------------
 
-void Simulator::VisitUnimplemented(Instruction* instr) {
+void Simulator::VisitUnimplemented(const Instruction* instr) {
   printf("Unimplemented instruction at %p: 0x%08" PRIx32 "\n",
-         reinterpret_cast<void*>(instr), instr->InstructionBits());
+         reinterpret_cast<const void*>(instr), instr->InstructionBits());
   VIXL_UNIMPLEMENTED();
 }
 
 
-void Simulator::VisitUnallocated(Instruction* instr) {
+void Simulator::VisitUnallocated(const Instruction* instr) {
   printf("Unallocated instruction at %p: 0x%08" PRIx32 "\n",
-         reinterpret_cast<void*>(instr), instr->InstructionBits());
+         reinterpret_cast<const void*>(instr), instr->InstructionBits());
   VIXL_UNIMPLEMENTED();
 }
 
 
-void Simulator::VisitPCRelAddressing(Instruction* instr) {
+void Simulator::VisitPCRelAddressing(const Instruction* instr) {
   VIXL_ASSERT((instr->Mask(PCRelAddressingMask) == ADR) ||
               (instr->Mask(PCRelAddressingMask) == ADRP));
 
@@ -518,7 +518,7 @@ void Simulator::VisitPCRelAddressing(Instruction* instr) {
 }
 
 
-void Simulator::VisitUnconditionalBranch(Instruction* instr) {
+void Simulator::VisitUnconditionalBranch(const Instruction* instr) {
   switch (instr->Mask(UnconditionalBranchMask)) {
     case BL:
       set_lr(instr->NextInstruction());
@@ -531,7 +531,7 @@ void Simulator::VisitUnconditionalBranch(Instruction* instr) {
 }
 
 
-void Simulator::VisitConditionalBranch(Instruction* instr) {
+void Simulator::VisitConditionalBranch(const Instruction* instr) {
   VIXL_ASSERT(instr->Mask(ConditionalBranchMask) == B_cond);
   if (ConditionPassed(instr->ConditionBranch())) {
     set_pc(instr->ImmPCOffsetTarget());
@@ -539,8 +539,8 @@ void Simulator::VisitConditionalBranch(Instruction* instr) {
 }
 
 
-void Simulator::VisitUnconditionalBranchToRegister(Instruction* instr) {
-  Instruction* target = Instruction::Cast(xreg(instr->Rn()));
+void Simulator::VisitUnconditionalBranchToRegister(const Instruction* instr) {
+  const Instruction* target = Instruction::Cast(xreg(instr->Rn()));
 
   switch (instr->Mask(UnconditionalBranchToRegisterMask)) {
     case BLR:
@@ -553,7 +553,7 @@ void Simulator::VisitUnconditionalBranchToRegister(Instruction* instr) {
 }
 
 
-void Simulator::VisitTestBranch(Instruction* instr) {
+void Simulator::VisitTestBranch(const Instruction* instr) {
   unsigned bit_pos = (instr->ImmTestBranchBit5() << 5) |
                      instr->ImmTestBranchBit40();
   bool bit_zero = ((xreg(instr->Rt()) >> bit_pos) & 1) == 0;
@@ -569,7 +569,7 @@ void Simulator::VisitTestBranch(Instruction* instr) {
 }
 
 
-void Simulator::VisitCompareBranch(Instruction* instr) {
+void Simulator::VisitCompareBranch(const Instruction* instr) {
   unsigned rt = instr->Rt();
   bool take_branch = false;
   switch (instr->Mask(CompareBranchMask)) {
@@ -585,7 +585,7 @@ void Simulator::VisitCompareBranch(Instruction* instr) {
 }
 
 
-void Simulator::AddSubHelper(Instruction* instr, int64_t op2) {
+void Simulator::AddSubHelper(const Instruction* instr, int64_t op2) {
   unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
   bool set_flags = instr->FlagsUpdate();
   int64_t new_val = 0;
@@ -616,7 +616,7 @@ void Simulator::AddSubHelper(Instruction* instr, int64_t op2) {
 }
 
 
-void Simulator::VisitAddSubShifted(Instruction* instr) {
+void Simulator::VisitAddSubShifted(const Instruction* instr) {
   unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
   int64_t op2 = ShiftOperand(reg_size,
                              reg(reg_size, instr->Rm()),
@@ -626,13 +626,13 @@ void Simulator::VisitAddSubShifted(Instruction* instr) {
 }
 
 
-void Simulator::VisitAddSubImmediate(Instruction* instr) {
+void Simulator::VisitAddSubImmediate(const Instruction* instr) {
   int64_t op2 = instr->ImmAddSub() << ((instr->ShiftAddSub() == 1) ? 12 : 0);
   AddSubHelper(instr, op2);
 }
 
 
-void Simulator::VisitAddSubExtended(Instruction* instr) {
+void Simulator::VisitAddSubExtended(const Instruction* instr) {
   unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
   int64_t op2 = ExtendValue(reg_size,
                             reg(reg_size, instr->Rm()),
@@ -642,7 +642,7 @@ void Simulator::VisitAddSubExtended(Instruction* instr) {
 }
 
 
-void Simulator::VisitAddSubWithCarry(Instruction* instr) {
+void Simulator::VisitAddSubWithCarry(const Instruction* instr) {
   unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
   int64_t op2 = reg(reg_size, instr->Rm());
   int64_t new_val;
@@ -661,7 +661,7 @@ void Simulator::VisitAddSubWithCarry(Instruction* instr) {
 }
 
 
-void Simulator::VisitLogicalShifted(Instruction* instr) {
+void Simulator::VisitLogicalShifted(const Instruction* instr) {
   unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
   Shift shift_type = static_cast<Shift>(instr->ShiftDP());
   unsigned shift_amount = instr->ImmDPShift();
@@ -674,12 +674,12 @@ void Simulator::VisitLogicalShifted(Instruction* instr) {
 }
 
 
-void Simulator::VisitLogicalImmediate(Instruction* instr) {
+void Simulator::VisitLogicalImmediate(const Instruction* instr) {
   LogicalHelper(instr, instr->ImmLogical());
 }
 
 
-void Simulator::LogicalHelper(Instruction* instr, int64_t op2) {
+void Simulator::LogicalHelper(const Instruction* instr, int64_t op2) {
   unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
   int64_t op1 = reg(reg_size, instr->Rn());
   int64_t result = 0;
@@ -707,18 +707,19 @@ void Simulator::LogicalHelper(Instruction* instr, int64_t op2) {
 }
 
 
-void Simulator::VisitConditionalCompareRegister(Instruction* instr) {
+void Simulator::VisitConditionalCompareRegister(const Instruction* instr) {
   unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
   ConditionalCompareHelper(instr, reg(reg_size, instr->Rm()));
 }
 
 
-void Simulator::VisitConditionalCompareImmediate(Instruction* instr) {
+void Simulator::VisitConditionalCompareImmediate(const Instruction* instr) {
   ConditionalCompareHelper(instr, instr->ImmCondCmp());
 }
 
 
-void Simulator::ConditionalCompareHelper(Instruction* instr, int64_t op2) {
+void Simulator::ConditionalCompareHelper(const Instruction* instr,
+                                         int64_t op2) {
   unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
   int64_t op1 = reg(reg_size, instr->Rn());
 
@@ -738,28 +739,28 @@ void Simulator::ConditionalCompareHelper(Instruction* instr, int64_t op2) {
 }
 
 
-void Simulator::VisitLoadStoreUnsignedOffset(Instruction* instr) {
+void Simulator::VisitLoadStoreUnsignedOffset(const Instruction* instr) {
   int offset = instr->ImmLSUnsigned() << instr->SizeLS();
   LoadStoreHelper(instr, offset, Offset);
 }
 
 
-void Simulator::VisitLoadStoreUnscaledOffset(Instruction* instr) {
+void Simulator::VisitLoadStoreUnscaledOffset(const Instruction* instr) {
   LoadStoreHelper(instr, instr->ImmLS(), Offset);
 }
 
 
-void Simulator::VisitLoadStorePreIndex(Instruction* instr) {
+void Simulator::VisitLoadStorePreIndex(const Instruction* instr) {
   LoadStoreHelper(instr, instr->ImmLS(), PreIndex);
 }
 
 
-void Simulator::VisitLoadStorePostIndex(Instruction* instr) {
+void Simulator::VisitLoadStorePostIndex(const Instruction* instr) {
   LoadStoreHelper(instr, instr->ImmLS(), PostIndex);
 }
 
 
-void Simulator::VisitLoadStoreRegisterOffset(Instruction* instr) {
+void Simulator::VisitLoadStoreRegisterOffset(const Instruction* instr) {
   Extend ext = static_cast<Extend>(instr->ExtendMode());
   VIXL_ASSERT((ext == UXTW) || (ext == UXTX) || (ext == SXTW) || (ext == SXTX));
   unsigned shift_amount = instr->ImmShiftLS() * instr->SizeLS();
@@ -770,7 +771,7 @@ void Simulator::VisitLoadStoreRegisterOffset(Instruction* instr) {
 }
 
 
-void Simulator::LoadStoreHelper(Instruction* instr,
+void Simulator::LoadStoreHelper(const Instruction* instr,
                                 int64_t offset,
                                 AddrMode addrmode) {
   unsigned srcdst = instr->Rt();
@@ -804,27 +805,27 @@ void Simulator::LoadStoreHelper(Instruction* instr,
 }
 
 
-void Simulator::VisitLoadStorePairOffset(Instruction* instr) {
+void Simulator::VisitLoadStorePairOffset(const Instruction* instr) {
   LoadStorePairHelper(instr, Offset);
 }
 
 
-void Simulator::VisitLoadStorePairPreIndex(Instruction* instr) {
+void Simulator::VisitLoadStorePairPreIndex(const Instruction* instr) {
   LoadStorePairHelper(instr, PreIndex);
 }
 
 
-void Simulator::VisitLoadStorePairPostIndex(Instruction* instr) {
+void Simulator::VisitLoadStorePairPostIndex(const Instruction* instr) {
   LoadStorePairHelper(instr, PostIndex);
 }
 
 
-void Simulator::VisitLoadStorePairNonTemporal(Instruction* instr) {
+void Simulator::VisitLoadStorePairNonTemporal(const Instruction* instr) {
   LoadStorePairHelper(instr, Offset);
 }
 
 
-void Simulator::LoadStorePairHelper(Instruction* instr,
+void Simulator::LoadStorePairHelper(const Instruction* instr,
                                     AddrMode addrmode) {
   unsigned rt = instr->Rt();
   unsigned rt2 = instr->Rt2();
@@ -902,7 +903,7 @@ void Simulator::PrintExclusiveAccessWarning() {
 }
 
 
-void Simulator::VisitLoadStoreExclusive(Instruction* instr) {
+void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
   PrintExclusiveAccessWarning();
 
   unsigned rs = instr->Rs();
@@ -1039,7 +1040,7 @@ void Simulator::VisitLoadStoreExclusive(Instruction* instr) {
 }
 
 
-void Simulator::VisitLoadLiteral(Instruction* instr) {
+void Simulator::VisitLoadLiteral(const Instruction* instr) {
   uint8_t* address = instr->LiteralAddress();
   unsigned rt = instr->Rt();
 
@@ -1048,6 +1049,7 @@ void Simulator::VisitLoadLiteral(Instruction* instr) {
     case LDR_x_lit: set_xreg(rt, MemoryRead<uint64_t>(address)); break;
     case LDR_s_lit: set_sreg(rt, MemoryRead<float>(address)); break;
     case LDR_d_lit: set_dreg(rt, MemoryRead<double>(address)); break;
+    case LDRSW_x_lit: set_xreg(rt, MemoryRead<int32_t>(address)); break;
     default: VIXL_UNREACHABLE();
   }
 
@@ -1083,7 +1085,7 @@ uint8_t* Simulator::AddressModeHelper(unsigned addr_reg,
 }
 
 
-void Simulator::VisitMoveWideImmediate(Instruction* instr) {
+void Simulator::VisitMoveWideImmediate(const Instruction* instr) {
   MoveWideImmediateOp mov_op =
     static_cast<MoveWideImmediateOp>(instr->Mask(MoveWideImmediateMask));
   int64_t new_xn_val = 0;
@@ -1127,7 +1129,7 @@ void Simulator::VisitMoveWideImmediate(Instruction* instr) {
 }
 
 
-void Simulator::VisitConditionalSelect(Instruction* instr) {
+void Simulator::VisitConditionalSelect(const Instruction* instr) {
   uint64_t new_val = xreg(instr->Rn());
 
   if (ConditionFailed(static_cast<Condition>(instr->Condition()))) {
@@ -1149,7 +1151,7 @@ void Simulator::VisitConditionalSelect(Instruction* instr) {
 }
 
 
-void Simulator::VisitDataProcessing1Source(Instruction* instr) {
+void Simulator::VisitDataProcessing1Source(const Instruction* instr) {
   unsigned dst = instr->Rd();
   unsigned src = instr->Rn();
 
@@ -1214,7 +1216,7 @@ uint64_t Simulator::ReverseBytes(uint64_t value, ReverseByteMode mode) {
 }
 
 
-void Simulator::VisitDataProcessing2Source(Instruction* instr) {
+void Simulator::VisitDataProcessing2Source(const Instruction* instr) {
   Shift shift_op = NO_SHIFT;
   int64_t result = 0;
   switch (instr->Mask(DataProcessing2SourceMask)) {
@@ -1312,7 +1314,7 @@ static int64_t MultiplyHighSigned(int64_t u, int64_t v) {
 }
 
 
-void Simulator::VisitDataProcessing3Source(Instruction* instr) {
+void Simulator::VisitDataProcessing3Source(const Instruction* instr) {
   unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
 
   int64_t result = 0;
@@ -1343,7 +1345,7 @@ void Simulator::VisitDataProcessing3Source(Instruction* instr) {
 }
 
 
-void Simulator::VisitBitfield(Instruction* instr) {
+void Simulator::VisitBitfield(const Instruction* instr) {
   unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
   int64_t reg_mask = instr->SixtyFourBits() ? kXRegMask : kWRegMask;
   int64_t R = instr->ImmR();
@@ -1396,7 +1398,7 @@ void Simulator::VisitBitfield(Instruction* instr) {
 }
 
 
-void Simulator::VisitExtract(Instruction* instr) {
+void Simulator::VisitExtract(const Instruction* instr) {
   unsigned lsb = instr->ImmS();
   unsigned reg_size = (instr->SixtyFourBits() == 1) ? kXRegSize
                                                     : kWRegSize;
@@ -1407,7 +1409,7 @@ void Simulator::VisitExtract(Instruction* instr) {
 }
 
 
-void Simulator::VisitFPImmediate(Instruction* instr) {
+void Simulator::VisitFPImmediate(const Instruction* instr) {
   AssertSupportedFPCR();
 
   unsigned dest = instr->Rd();
@@ -1419,7 +1421,7 @@ void Simulator::VisitFPImmediate(Instruction* instr) {
 }
 
 
-void Simulator::VisitFPIntegerConvert(Instruction* instr) {
+void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
   AssertSupportedFPCR();
 
   unsigned dst = instr->Rd();
@@ -1503,7 +1505,7 @@ void Simulator::VisitFPIntegerConvert(Instruction* instr) {
 }
 
 
-void Simulator::VisitFPFixedPointConvert(Instruction* instr) {
+void Simulator::VisitFPFixedPointConvert(const Instruction* instr) {
   AssertSupportedFPCR();
 
   unsigned dst = instr->Rd();
@@ -1592,7 +1594,7 @@ uint64_t Simulator::FPToUInt64(double value, FPRounding rmode) {
 }
 
 
-void Simulator::VisitFPCompare(Instruction* instr) {
+void Simulator::VisitFPCompare(const Instruction* instr) {
   AssertSupportedFPCR();
 
   switch (instr->Mask(FPCompareMask)) {
@@ -1605,7 +1607,7 @@ void Simulator::VisitFPCompare(Instruction* instr) {
 }
 
 
-void Simulator::VisitFPConditionalCompare(Instruction* instr) {
+void Simulator::VisitFPConditionalCompare(const Instruction* instr) {
   AssertSupportedFPCR();
 
   switch (instr->Mask(FPConditionalCompareMask)) {
@@ -1628,7 +1630,7 @@ void Simulator::VisitFPConditionalCompare(Instruction* instr) {
 }
 
 
-void Simulator::VisitFPConditionalSelect(Instruction* instr) {
+void Simulator::VisitFPConditionalSelect(const Instruction* instr) {
   AssertSupportedFPCR();
 
   Instr selected;
@@ -1646,7 +1648,7 @@ void Simulator::VisitFPConditionalSelect(Instruction* instr) {
 }
 
 
-void Simulator::VisitFPDataProcessing1Source(Instruction* instr) {
+void Simulator::VisitFPDataProcessing1Source(const Instruction* instr) {
   AssertSupportedFPCR();
 
   unsigned fd = instr->Rd();
@@ -2067,7 +2069,7 @@ float Simulator::FPToFloat(double value, FPRounding round_mode) {
 }
 
 
-void Simulator::VisitFPDataProcessing2Source(Instruction* instr) {
+void Simulator::VisitFPDataProcessing2Source(const Instruction* instr) {
   AssertSupportedFPCR();
 
   unsigned fd = instr->Rd();
@@ -2110,7 +2112,7 @@ void Simulator::VisitFPDataProcessing2Source(Instruction* instr) {
 }
 
 
-void Simulator::VisitFPDataProcessing3Source(Instruction* instr) {
+void Simulator::VisitFPDataProcessing3Source(const Instruction* instr) {
   AssertSupportedFPCR();
 
   unsigned fd = instr->Rd();
@@ -2375,7 +2377,7 @@ T Simulator::FPProcessNaNs3(T op1, T op2, T op3) {
 }
 
 
-bool Simulator::FPProcessNaNs(Instruction* instr) {
+bool Simulator::FPProcessNaNs(const Instruction* instr) {
   unsigned fd = instr->Rd();
   unsigned fn = instr->Rn();
   unsigned fm = instr->Rm();
@@ -2399,7 +2401,7 @@ bool Simulator::FPProcessNaNs(Instruction* instr) {
 }
 
 
-void Simulator::VisitSystem(Instruction* instr) {
+void Simulator::VisitSystem(const Instruction* instr) {
   // Some system instructions hijack their Op and Cp fields to represent a
   // range of immediates instead of indicating a different instruction. This
   // makes the decoding tricky.
@@ -2445,7 +2447,7 @@ void Simulator::VisitSystem(Instruction* instr) {
 }
 
 
-void Simulator::VisitException(Instruction* instr) {
+void Simulator::VisitException(const Instruction* instr) {
   switch (instr->Mask(ExceptionMask)) {
     case BRK: HostBreakpoint(); break;
     case HLT:
@@ -2463,7 +2465,7 @@ void Simulator::VisitException(Instruction* instr) {
 }
 
 
-void Simulator::DoPrintf(Instruction* instr) {
+void Simulator::DoPrintf(const Instruction* instr) {
   VIXL_ASSERT((instr->Mask(ExceptionMask) == HLT) &&
               (instr->ImmException() == kPrintfOpcode));
 

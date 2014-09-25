@@ -94,14 +94,19 @@ namespace vixl {
 
 #define BUF_SIZE (4096)
 
-#define SETUP() SETUP_CUSTOM(BUF_SIZE, PositionIndependentCode)
-
 #ifdef USE_SIMULATOR
-
 // Run tests with the simulator.
-#define SETUP_CUSTOM(buf_size, pic)                                            \
-  byte* buf = new byte[buf_size];                                              \
-  MacroAssembler masm(buf, buf_size, pic);                                     \
+
+#define SETUP()                                                                \
+  MacroAssembler masm(BUF_SIZE);                                               \
+  SETUP_COMMON()
+
+#define SETUP_CUSTOM(size, pic)                                                \
+  byte* buf = new byte[size + BUF_SIZE];                                       \
+  MacroAssembler masm(buf, size + BUF_SIZE, pic);                              \
+  SETUP_COMMON()
+
+#define SETUP_COMMON()                                                         \
   Decoder decoder;                                                             \
   Simulator* simulator = NULL;                                                 \
   if (Cctest::run_debugger()) {                                                \
@@ -113,6 +118,11 @@ namespace vixl {
   simulator->set_coloured_trace(Cctest::coloured_trace());                     \
   simulator->set_instruction_stats(Cctest::instruction_stats());               \
   RegisterDump core
+
+// This is a convenience macro to avoid creating a scope for every assembler
+// function called. It will still assert the buffer hasn't been exceeded.
+#define ALLOW_ASM()                                                            \
+  CodeBufferCheckScope guard(&masm, masm.BufferCapacity())
 
 #define START()                                                                \
   masm.Reset();                                                                \
@@ -143,19 +153,36 @@ namespace vixl {
   masm.FinalizeCode()
 
 #define RUN()                                                                  \
-  simulator->RunFrom(reinterpret_cast<Instruction*>(buf))
+  simulator->RunFrom(masm.GetStartAddress<Instruction*>())
 
-#define TEARDOWN()                                                             \
-  delete simulator;                                                            \
-  delete[] buf;
+#define TEARDOWN() TEARDOWN_COMMON()
+
+#define TEARDOWN_CUSTOM()                                                      \
+  delete[] buf;                                                                \
+  TEARDOWN_COMMON()
+
+#define TEARDOWN_COMMON()                                                      \
+  delete simulator;
 
 #else  // ifdef USE_SIMULATOR.
 // Run the test on real hardware or models.
-#define SETUP_CUSTOM(buf_size, pic)                                            \
-  byte* buf = new byte[buf_size];                                              \
-  MacroAssembler masm(buf, buf_size, pic);                                     \
+#define SETUP()                                                                \
+  MacroAssembler masm(BUF_SIZE);                                               \
+  SETUP_COMMON()
+
+#define SETUP_CUSTOM(size, pic)                                                \
+  byte* buf = new byte[size + BUF_SIZE];                                       \
+  MacroAssembler masm(buf, size + BUF_SIZE, pic);                              \
+  SETUP_COMMON()
+
+#define SETUP_COMMON()                                                         \
   RegisterDump core;                                                           \
   CPU::SetUp()
+
+// This is a convenience macro to avoid creating a scope for every assembler
+// function called. It will still assert the buffer hasn't been exceeded.
+#define ALLOW_ASM()                                                            \
+  CodeBufferCheckScope guard(&masm, masm.BufferCapacity())
 
 #define START()                                                                \
   masm.Reset();                                                                \
@@ -168,16 +195,21 @@ namespace vixl {
   masm.FinalizeCode()
 
 #define RUN()                                                                  \
-  CPU::EnsureIAndDCacheCoherency(buf, masm.SizeOfCodeGenerated());             \
   {                                                                            \
+    byte* buffer_start = masm.GetStartAddress<byte*>();                        \
+    size_t buffer_length = masm.CursorOffset();                                \
     void (*test_function)(void);                                               \
-    VIXL_ASSERT(sizeof(buf) == sizeof(test_function));                         \
-    memcpy(&test_function, &buf, sizeof(buf));                                 \
+                                                                               \
+    CPU::EnsureIAndDCacheCoherency(buffer_start, buffer_length);               \
+    VIXL_STATIC_ASSERT(sizeof(buffer_start) == sizeof(test_function));         \
+    memcpy(&test_function, &buffer_start, sizeof(buffer_start));               \
     test_function();                                                           \
   }
 
-#define TEARDOWN()                                                             \
-  delete[] buf;
+#define TEARDOWN()
+
+#define TEARDOWN_CUSTOM()                                                      \
+  delete[] buf;                                                                \
 
 #endif  // ifdef USE_SIMULATOR.
 
@@ -399,6 +431,7 @@ TEST(mov_imm_x) {
 
 TEST(mov) {
   SETUP();
+  ALLOW_ASM();
 
   START();
   __ Mov(x0, 0xffffffffffffffff);
@@ -1561,6 +1594,46 @@ TEST(label) {
 }
 
 
+TEST(label_2) {
+  SETUP();
+
+  Label label_1, label_2, label_3;
+  Label first_jump_to_3;
+
+  START();
+  __ Mov(x0, 0x0);
+
+  __ B(&label_1);
+  ptrdiff_t offset_2 = masm.CursorOffset();
+  __ Orr(x0, x0, 1 << 1);
+  __ B(&label_3);
+  ptrdiff_t offset_1 = masm.CursorOffset();
+  __ Orr(x0, x0, 1 << 0);
+  __ B(&label_2);
+  ptrdiff_t offset_3 = masm.CursorOffset();
+  __ Tbz(x0, 2, &first_jump_to_3);
+  __ Orr(x0, x0, 1 << 3);
+  __ Bind(&first_jump_to_3);
+  __ Orr(x0, x0, 1 << 2);
+  __ Tbz(x0, 3, &label_3);
+
+  // Labels 1, 2, and 3 are bound before the current buffer offset. Branches to
+  // label_1 and label_2 branch respectively forward and backward. Branches to
+  // label 3 include both forward and backward branches.
+  masm.BindToOffset(&label_1, offset_1);
+  masm.BindToOffset(&label_2, offset_2);
+  masm.BindToOffset(&label_3, offset_3);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(0xf, x0);
+
+  TEARDOWN();
+}
+
+
 TEST(adr) {
   SETUP();
 
@@ -1617,9 +1690,12 @@ TEST(adrp) {
   START();
 
   // Waste space until the start of a page.
-  { InstructionAccurateScope scope(&masm);
+  {
+    InstructionAccurateScope scope(&masm,
+                                   kPageSize / kInstructionSize,
+                                   InstructionAccurateScope::kMaximumSize);
     const uintptr_t kPageOffsetMask = kPageSize - 1;
-    while ((GetPCAddress<uintptr_t>(&masm, buf) & kPageOffsetMask) != 0) {
+    while ((masm.GetCursorAddress<uintptr_t>() & kPageOffsetMask) != 0) {
       __ b(&start);
     }
     __ bind(&start);
@@ -1666,7 +1742,7 @@ TEST(adrp) {
   ASSERT_EQUAL_64(expected, x7);
   ASSERT_EQUAL_64(expected, x8);
 
-  TEARDOWN();
+  TEARDOWN_CUSTOM();
 }
 
 
@@ -1680,26 +1756,29 @@ static void AdrpPageBoundaryHelper(unsigned offset_into_page) {
   // on pages from kStartPage to kEndPage (inclusive).
   const int kStartPage = -16;
   const int kEndPage = 16;
+  const int kMaxCodeSize = (kEndPage - kStartPage + 2) * kPageSize;
 
-  SETUP_CUSTOM((kEndPage - kStartPage + 3) * kPageSize,
-               PageOffsetDependentCode);
+  SETUP_CUSTOM(kMaxCodeSize, PageOffsetDependentCode);
   START();
 
-  // Initialize NZCV with `eq` flags.
-  __ Cmp(wzr, wzr);
-
   Label test;
-  { InstructionAccurateScope scope(&masm);
-    Label start;
+  Label start;
 
+  {
+    InstructionAccurateScope scope(&masm,
+                                   kMaxCodeSize / kInstructionSize,
+                                   InstructionAccurateScope::kMaximumSize);
+    // Initialize NZCV with `eq` flags.
+    __ cmp(wzr, wzr);
     // Waste space until the start of a page.
-    while ((GetPCAddress<uintptr_t>(&masm, buf) & kPageOffsetMask) != 0) {
+    while ((masm.GetCursorAddress<uintptr_t>() & kPageOffsetMask) != 0) {
       __ b(&start);
     }
 
     // The first page.
     VIXL_STATIC_ASSERT(kStartPage < 0);
-    { InstructionAccurateScope scope_page(&masm, kPageSize / kInstructionSize);
+    {
+      InstructionAccurateScope scope_page(&masm, kPageSize / kInstructionSize);
       __ bind(&start);
       __ adrp(x0, &test);
       __ adrp(x1, &test);
@@ -1727,10 +1806,10 @@ static void AdrpPageBoundaryHelper(unsigned offset_into_page) {
         }
       }
     }
-
-    // Every adrp instruction pointed to the same label (`test`), so they should
-    // all have produced the same result.
   }
+
+  // Every adrp instruction pointed to the same label (`test`), so they should
+  // all have produced the same result.
 
   END();
   RUN();
@@ -1741,7 +1820,7 @@ static void AdrpPageBoundaryHelper(unsigned offset_into_page) {
   ASSERT_EQUAL_64(expected, x1);
   ASSERT_EQUAL_NZCV(ZCFlag);
 
-  TEARDOWN();
+  TEARDOWN_CUSTOM();
 }
 
 
@@ -1758,22 +1837,27 @@ TEST(adrp_page_boundaries) {
 
 static void AdrpOffsetHelper(int64_t imm21) {
   const size_t kPageOffsetMask = kPageSize - 1;
+  const int kMaxCodeSize = 2 * kPageSize;
 
-  SETUP_CUSTOM(kPageSize * 4, PageOffsetDependentCode);
+  SETUP_CUSTOM(kMaxCodeSize, PageOffsetDependentCode);
   START();
 
-  // Initialize NZCV with `eq` flags.
-  __ Cmp(wzr, wzr);
-
   Label page;
-  { InstructionAccurateScope scope(&masm);
+
+  {
+    InstructionAccurateScope scope(&masm,
+                                   kMaxCodeSize / kInstructionSize,
+                                   InstructionAccurateScope::kMaximumSize);
+    // Initialize NZCV with `eq` flags.
+    __ cmp(wzr, wzr);
     // Waste space until the start of a page.
-    while ((GetPCAddress<uintptr_t>(&masm, buf) & kPageOffsetMask) != 0) {
+    while ((masm.GetCursorAddress<uintptr_t>() & kPageOffsetMask) != 0) {
       __ b(&page);
     }
     __ bind(&page);
 
-    { InstructionAccurateScope scope_page(&masm, kPageSize / kInstructionSize);
+    {
+      InstructionAccurateScope scope_page(&masm, kPageSize / kInstructionSize);
       // Every adrp instruction on this page should return the same value.
       __ adrp(x0, imm21);
       __ adrp(x1, imm21);
@@ -1793,7 +1877,7 @@ static void AdrpOffsetHelper(int64_t imm21) {
   ASSERT_EQUAL_64(expected, x1);
   ASSERT_EQUAL_NZCV(ZCFlag);
 
-  TEARDOWN();
+  TEARDOWN_CUSTOM();
 }
 
 
@@ -1812,6 +1896,7 @@ TEST(adrp_offset) {
 
 TEST(branch_cond) {
   SETUP();
+  ALLOW_ASM();
 
   Label wrong;
 
@@ -1875,11 +1960,13 @@ TEST(branch_cond) {
   __ Mov(x0, 0x0);
   __ Bind(&ok_4);
 
+  // The MacroAssembler does not allow al as a branch condition.
   Label ok_5;
   __ b(&ok_5, al);
   __ Mov(x0, 0x0);
   __ Bind(&ok_5);
 
+  // The MacroAssembler does not allow nv as a branch condition.
   Label ok_6;
   __ b(&ok_6, nv);
   __ Mov(x0, 0x0);
@@ -2655,6 +2742,63 @@ TEST(ldp_stp_offset) {
 }
 
 
+TEST(ldp_stp_offset_wide) {
+  SETUP();
+
+  uint64_t src[3] = {0x0011223344556677, 0x8899aabbccddeeff,
+                     0xffeeddccbbaa9988};
+  uint64_t dst[7] = {0, 0, 0, 0, 0, 0, 0};
+  uintptr_t src_base = reinterpret_cast<uintptr_t>(src);
+  uintptr_t dst_base = reinterpret_cast<uintptr_t>(dst);
+  // Move base too far from the array to force multiple instructions
+  // to be emitted.
+  const int64_t base_offset = 1024;
+
+  START();
+  __ Mov(x20, src_base - base_offset);
+  __ Mov(x21, dst_base - base_offset);
+  __ Mov(x18, src_base + base_offset + 24);
+  __ Mov(x19, dst_base + base_offset + 56);
+  __ Ldp(w0, w1, MemOperand(x20, base_offset));
+  __ Ldp(w2, w3, MemOperand(x20, base_offset + 4));
+  __ Ldp(x4, x5, MemOperand(x20, base_offset + 8));
+  __ Ldp(w6, w7, MemOperand(x18, -12 - base_offset));
+  __ Ldp(x8, x9, MemOperand(x18, -16 - base_offset));
+  __ Stp(w0, w1, MemOperand(x21, base_offset));
+  __ Stp(w2, w3, MemOperand(x21, base_offset + 8));
+  __ Stp(x4, x5, MemOperand(x21, base_offset + 16));
+  __ Stp(w6, w7, MemOperand(x19, -24 - base_offset));
+  __ Stp(x8, x9, MemOperand(x19, -16 - base_offset));
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(0x44556677, x0);
+  ASSERT_EQUAL_64(0x00112233, x1);
+  ASSERT_EQUAL_64(0x0011223344556677, dst[0]);
+  ASSERT_EQUAL_64(0x00112233, x2);
+  ASSERT_EQUAL_64(0xccddeeff, x3);
+  ASSERT_EQUAL_64(0xccddeeff00112233, dst[1]);
+  ASSERT_EQUAL_64(0x8899aabbccddeeff, x4);
+  ASSERT_EQUAL_64(0x8899aabbccddeeff, dst[2]);
+  ASSERT_EQUAL_64(0xffeeddccbbaa9988, x5);
+  ASSERT_EQUAL_64(0xffeeddccbbaa9988, dst[3]);
+  ASSERT_EQUAL_64(0x8899aabb, x6);
+  ASSERT_EQUAL_64(0xbbaa9988, x7);
+  ASSERT_EQUAL_64(0xbbaa99888899aabb, dst[4]);
+  ASSERT_EQUAL_64(0x8899aabbccddeeff, x8);
+  ASSERT_EQUAL_64(0x8899aabbccddeeff, dst[5]);
+  ASSERT_EQUAL_64(0xffeeddccbbaa9988, x9);
+  ASSERT_EQUAL_64(0xffeeddccbbaa9988, dst[6]);
+  ASSERT_EQUAL_64(src_base - base_offset, x20);
+  ASSERT_EQUAL_64(dst_base - base_offset, x21);
+  ASSERT_EQUAL_64(src_base + base_offset + 24, x18);
+  ASSERT_EQUAL_64(dst_base + base_offset + 56, x19);
+
+  TEARDOWN();
+}
+
+
 TEST(ldnp_stnp_offset) {
   SETUP();
 
@@ -2763,6 +2907,68 @@ TEST(ldp_stp_preindex) {
 }
 
 
+TEST(ldp_stp_preindex_wide) {
+  SETUP();
+
+  uint64_t src[3] = {0x0011223344556677, 0x8899aabbccddeeff,
+                     0xffeeddccbbaa9988};
+  uint64_t dst[5] = {0, 0, 0, 0, 0};
+  uintptr_t src_base = reinterpret_cast<uintptr_t>(src);
+  uintptr_t dst_base = reinterpret_cast<uintptr_t>(dst);
+  // Move base too far from the array to force multiple instructions
+  // to be emitted.
+  const int64_t base_offset = 1024;
+
+  START();
+  __ Mov(x24, src_base - base_offset);
+  __ Mov(x25, dst_base + base_offset);
+  __ Mov(x18, dst_base + base_offset + 16);
+  __ Ldp(w0, w1, MemOperand(x24, base_offset + 4, PreIndex));
+  __ Mov(x19, x24);
+  __ Mov(x24, src_base - base_offset + 4);
+  __ Ldp(w2, w3, MemOperand(x24, base_offset - 4, PreIndex));
+  __ Stp(w2, w3, MemOperand(x25, 4 - base_offset , PreIndex));
+  __ Mov(x20, x25);
+  __ Mov(x25, dst_base + base_offset + 4);
+  __ Mov(x24, src_base - base_offset);
+  __ Stp(w0, w1, MemOperand(x25, -4 - base_offset, PreIndex));
+  __ Ldp(x4, x5, MemOperand(x24, base_offset + 8, PreIndex));
+  __ Mov(x21, x24);
+  __ Mov(x24, src_base - base_offset + 8);
+  __ Ldp(x6, x7, MemOperand(x24, base_offset - 8, PreIndex));
+  __ Stp(x7, x6, MemOperand(x18, 8 - base_offset, PreIndex));
+  __ Mov(x22, x18);
+  __ Mov(x18, dst_base + base_offset + 16 + 8);
+  __ Stp(x5, x4, MemOperand(x18, -8 - base_offset, PreIndex));
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(0x00112233, x0);
+  ASSERT_EQUAL_64(0xccddeeff, x1);
+  ASSERT_EQUAL_64(0x44556677, x2);
+  ASSERT_EQUAL_64(0x00112233, x3);
+  ASSERT_EQUAL_64(0xccddeeff00112233, dst[0]);
+  ASSERT_EQUAL_64(0x0000000000112233, dst[1]);
+  ASSERT_EQUAL_64(0x8899aabbccddeeff, x4);
+  ASSERT_EQUAL_64(0xffeeddccbbaa9988, x5);
+  ASSERT_EQUAL_64(0x0011223344556677, x6);
+  ASSERT_EQUAL_64(0x8899aabbccddeeff, x7);
+  ASSERT_EQUAL_64(0xffeeddccbbaa9988, dst[2]);
+  ASSERT_EQUAL_64(0x8899aabbccddeeff, dst[3]);
+  ASSERT_EQUAL_64(0x0011223344556677, dst[4]);
+  ASSERT_EQUAL_64(src_base, x24);
+  ASSERT_EQUAL_64(dst_base, x25);
+  ASSERT_EQUAL_64(dst_base + 16, x18);
+  ASSERT_EQUAL_64(src_base + 4, x19);
+  ASSERT_EQUAL_64(dst_base + 4, x20);
+  ASSERT_EQUAL_64(src_base + 8, x21);
+  ASSERT_EQUAL_64(dst_base + 24, x22);
+
+  TEARDOWN();
+}
+
+
 TEST(ldp_stp_postindex) {
   SETUP();
 
@@ -2812,6 +3018,68 @@ TEST(ldp_stp_postindex) {
   ASSERT_EQUAL_64(dst_base + 4, x20);
   ASSERT_EQUAL_64(src_base + 8, x21);
   ASSERT_EQUAL_64(dst_base + 24, x22);
+
+  TEARDOWN();
+}
+
+
+TEST(ldp_stp_postindex_wide) {
+  SETUP();
+
+  uint64_t src[4] = {0x0011223344556677, 0x8899aabbccddeeff,
+                     0xffeeddccbbaa9988, 0x7766554433221100};
+  uint64_t dst[5] = {0, 0, 0, 0, 0};
+  uintptr_t src_base = reinterpret_cast<uintptr_t>(src);
+  uintptr_t dst_base = reinterpret_cast<uintptr_t>(dst);
+  // Move base too far from the array to force multiple instructions
+  // to be emitted.
+  const int64_t base_offset = 1024;
+
+  START();
+  __ Mov(x24, src_base);
+  __ Mov(x25, dst_base);
+  __ Mov(x18, dst_base + 16);
+  __ Ldp(w0, w1, MemOperand(x24, base_offset + 4, PostIndex));
+  __ Mov(x19, x24);
+  __ Sub(x24, x24, base_offset);
+  __ Ldp(w2, w3, MemOperand(x24, base_offset - 4, PostIndex));
+  __ Stp(w2, w3, MemOperand(x25, 4 - base_offset, PostIndex));
+  __ Mov(x20, x25);
+  __ Sub(x24, x24, base_offset);
+  __ Add(x25, x25, base_offset);
+  __ Stp(w0, w1, MemOperand(x25, -4 - base_offset, PostIndex));
+  __ Ldp(x4, x5, MemOperand(x24, base_offset + 8, PostIndex));
+  __ Mov(x21, x24);
+  __ Sub(x24, x24, base_offset);
+  __ Ldp(x6, x7, MemOperand(x24, base_offset - 8, PostIndex));
+  __ Stp(x7, x6, MemOperand(x18, 8 - base_offset, PostIndex));
+  __ Mov(x22, x18);
+  __ Add(x18, x18, base_offset);
+  __ Stp(x5, x4, MemOperand(x18, -8 - base_offset, PostIndex));
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(0x44556677, x0);
+  ASSERT_EQUAL_64(0x00112233, x1);
+  ASSERT_EQUAL_64(0x00112233, x2);
+  ASSERT_EQUAL_64(0xccddeeff, x3);
+  ASSERT_EQUAL_64(0x4455667700112233, dst[0]);
+  ASSERT_EQUAL_64(0x0000000000112233, dst[1]);
+  ASSERT_EQUAL_64(0x0011223344556677, x4);
+  ASSERT_EQUAL_64(0x8899aabbccddeeff, x5);
+  ASSERT_EQUAL_64(0x8899aabbccddeeff, x6);
+  ASSERT_EQUAL_64(0xffeeddccbbaa9988, x7);
+  ASSERT_EQUAL_64(0xffeeddccbbaa9988, dst[2]);
+  ASSERT_EQUAL_64(0x8899aabbccddeeff, dst[3]);
+  ASSERT_EQUAL_64(0x0011223344556677, dst[4]);
+  ASSERT_EQUAL_64(src_base + base_offset, x24);
+  ASSERT_EQUAL_64(dst_base - base_offset, x25);
+  ASSERT_EQUAL_64(dst_base - base_offset + 16, x18);
+  ASSERT_EQUAL_64(src_base + base_offset + 4, x19);
+  ASSERT_EQUAL_64(dst_base - base_offset + 4, x20);
+  ASSERT_EQUAL_64(src_base + base_offset + 8, x21);
+  ASSERT_EQUAL_64(dst_base - base_offset + 24, x22);
 
   TEARDOWN();
 }
@@ -2887,6 +3155,8 @@ TEST(ldr_literal) {
   START();
   __ Ldr(x2, 0x1234567890abcdef);
   __ Ldr(w3, 0xfedcba09);
+  __ Ldrsw(x4, 0x7fffffff);
+  __ Ldrsw(x5, 0x80000000);
   __ Ldr(d13, 1.234);
   __ Ldr(s25, 2.5);
   END();
@@ -2895,6 +3165,8 @@ TEST(ldr_literal) {
 
   ASSERT_EQUAL_64(0x1234567890abcdef, x2);
   ASSERT_EQUAL_64(0xfedcba09, x3);
+  ASSERT_EQUAL_64(0x7fffffff, x4);
+  ASSERT_EQUAL_64(0xffffffff80000000, x5);
   ASSERT_EQUAL_FP64(1.234, d13);
   ASSERT_EQUAL_FP32(2.5, s25);
 
@@ -2902,76 +3174,41 @@ TEST(ldr_literal) {
 }
 
 
-static void LdrLiteralRangeHelper(ptrdiff_t range_,
-                                  LiteralPoolEmitOption option,
-                                  bool expect_dump) {
-  VIXL_ASSERT(range_ > 0);
-  SETUP_CUSTOM(range_ + 1024, PositionIndependentCode);
-
-  Label label_1, label_2;
-
-  size_t range = static_cast<size_t>(range_);
-  size_t code_size = 0;
-  size_t pool_guard_size;
-
-  if (option == NoJumpRequired) {
-    // Space for an explicit branch.
-    pool_guard_size = sizeof(Instr);
-  } else {
-    pool_guard_size = 0;
-  }
+TEST(ldr_literal_range) {
+  SETUP();
 
   START();
-  // Force a pool dump so the pool starts off empty.
-  __ EmitLiteralPool(JumpRequired);
+  // Make sure the pool is empty;
+  masm.EmitLiteralPool(LiteralPool::kBranchRequired);
   ASSERT_LITERAL_POOL_SIZE(0);
 
+  // Create some literal pool entries.
   __ Ldr(x0, 0x1234567890abcdef);
   __ Ldr(w1, 0xfedcba09);
+  __ Ldrsw(x2, 0x7fffffff);
+  __ Ldrsw(x3, 0x80000000);
   __ Ldr(d0, 1.234);
   __ Ldr(s1, 2.5);
-  ASSERT_LITERAL_POOL_SIZE(24);
+  ASSERT_LITERAL_POOL_SIZE(32);
 
-  code_size += 4 * sizeof(Instr);
-
-  // Check that the requested range (allowing space for a branch over the pool)
-  // can be handled by this test.
-  VIXL_ASSERT((code_size + pool_guard_size) <= range);
-
-  // Emit NOPs up to 'range', leaving space for the pool guard.
-  while ((code_size + pool_guard_size) < range) {
+  // Emit more code than the maximum literal load range to ensure the pool
+  // should be emitted.
+  const ptrdiff_t offset = masm.CursorOffset();
+  while ((masm.CursorOffset() - offset) < (2 * kMaxLoadLiteralRange)) {
     __ Nop();
-    code_size += sizeof(Instr);
   }
 
-  // Emit the guard sequence before the literal pool.
-  if (option == NoJumpRequired) {
-    __ B(&label_1);
-    code_size += sizeof(Instr);
-  }
-
-  VIXL_ASSERT(code_size == range);
-  ASSERT_LITERAL_POOL_SIZE(24);
-
-  // Possibly generate a literal pool.
-  __ CheckLiteralPool(option);
-  __ Bind(&label_1);
-  if (expect_dump) {
-    ASSERT_LITERAL_POOL_SIZE(0);
-  } else {
-    ASSERT_LITERAL_POOL_SIZE(24);
-  }
-
-  // Force a pool flush to check that a second pool functions correctly.
-  __ EmitLiteralPool(JumpRequired);
+  // The pool should have been emitted.
   ASSERT_LITERAL_POOL_SIZE(0);
 
   // These loads should be after the pool (and will require a new one).
   __ Ldr(x4, 0x34567890abcdef12);
   __ Ldr(w5, 0xdcba09fe);
+  __ Ldrsw(x6, 0x7fffffff);
+  __ Ldrsw(x7, 0x80000000);
   __ Ldr(d4, 123.4);
   __ Ldr(s5, 250.0);
-  ASSERT_LITERAL_POOL_SIZE(24);
+  ASSERT_LITERAL_POOL_SIZE(32);
   END();
 
   RUN();
@@ -2979,10 +3216,14 @@ static void LdrLiteralRangeHelper(ptrdiff_t range_,
   // Check that the literals loaded correctly.
   ASSERT_EQUAL_64(0x1234567890abcdef, x0);
   ASSERT_EQUAL_64(0xfedcba09, x1);
+  ASSERT_EQUAL_64(0x7fffffff, x2);
+  ASSERT_EQUAL_64(0xffffffff80000000, x3);
   ASSERT_EQUAL_FP64(1.234, d0);
   ASSERT_EQUAL_FP32(2.5, s1);
   ASSERT_EQUAL_64(0x34567890abcdef12, x4);
   ASSERT_EQUAL_64(0xdcba09fe, x5);
+  ASSERT_EQUAL_64(0x7fffffff, x6);
+  ASSERT_EQUAL_64(0xffffffff80000000, x7);
   ASSERT_EQUAL_FP64(123.4, d4);
   ASSERT_EQUAL_FP32(250.0, s5);
 
@@ -2990,45 +3231,144 @@ static void LdrLiteralRangeHelper(ptrdiff_t range_,
 }
 
 
-TEST(ldr_literal_range_1) {
-  LdrLiteralRangeHelper(kRecommendedLiteralPoolRange,
-                        NoJumpRequired,
-                        true);
+template <typename T>
+void LoadIntValueHelper(T values[], int card) {
+  SETUP();
+
+  const bool is_32bits = (sizeof(T) == 4);
+  const Register& tgt1 = is_32bits ? w1 : x1;
+  const Register& tgt2 = is_32bits ? w2 : x2;
+
+  START();
+  __ Mov(x0, 0);
+
+  // If one of the values differ then x0 will be one.
+  for (int i = 0; i < card; ++i) {
+    __ Mov(tgt1, values[i]);
+    __ Ldr(tgt2, values[i]);
+    __ Cmp(tgt1, tgt2);
+    __ Cset(x0, ne);
+  }
+  END();
+
+  RUN();
+
+  // If one of the values differs, the trace can be used to identify which one.
+  ASSERT_EQUAL_64(0, x0);
+
+  TEARDOWN();
 }
 
 
-TEST(ldr_literal_range_2) {
-  LdrLiteralRangeHelper(kRecommendedLiteralPoolRange-sizeof(Instr),
-                        NoJumpRequired,
-                        false);
+TEST(ldr_literal_values_x) {
+  static const uint64_t kValues[] = {
+    0x8000000000000000, 0x7fffffffffffffff, 0x0000000000000000,
+    0xffffffffffffffff, 0x00ff00ff00ff00ff, 0x1234567890abcdef
+  };
+
+  LoadIntValueHelper(kValues, sizeof(kValues) / sizeof(kValues[0]));
 }
 
 
-TEST(ldr_literal_range_3) {
-  LdrLiteralRangeHelper(2 * kRecommendedLiteralPoolRange,
-                        JumpRequired,
-                        true);
+TEST(ldr_literal_values_w) {
+  static const uint32_t kValues[] = {
+    0x80000000, 0x7fffffff, 0x00000000, 0xffffffff, 0x00ff00ff, 0x12345678,
+    0x90abcdef
+  };
+
+  LoadIntValueHelper(kValues, sizeof(kValues) / sizeof(kValues[0]));
 }
 
 
-TEST(ldr_literal_range_4) {
-  LdrLiteralRangeHelper(2 * kRecommendedLiteralPoolRange-sizeof(Instr),
-                        JumpRequired,
-                        false);
+template <typename T>
+void LoadFPValueHelper(T values[], int card) {
+  SETUP();
+
+  const bool is_32bits = (sizeof(T) == 4);
+  const FPRegister& fp_tgt = is_32bits ? s2 : d2;
+  const Register& tgt1 = is_32bits ? w1 : x1;
+  const Register& tgt2 = is_32bits ? w2 : x2;
+
+  START();
+  __ Mov(x0, 0);
+
+  // If one of the values differ then x0 will be one.
+  for (int i = 0; i < card; ++i) {
+    __ Mov(tgt1, is_32bits ? float_to_rawbits(values[i])
+                           : double_to_rawbits(values[i]));
+    __ Ldr(fp_tgt, values[i]);
+    __ Fmov(tgt2, fp_tgt);
+    __ Cmp(tgt1, tgt2);
+    __ Cset(x0, ne);
+  }
+  END();
+
+  RUN();
+
+  // If one of the values differs, the trace can be used to identify which one.
+  ASSERT_EQUAL_64(0, x0);
+
+  TEARDOWN();
+}
+
+TEST(ldr_literal_values_d) {
+  static const double kValues[] = {
+    -0.0, 0.0, -1.0, 1.0, -1e10, 1e10
+  };
+
+  LoadFPValueHelper(kValues, sizeof(kValues) / sizeof(kValues[0]));
 }
 
 
-TEST(ldr_literal_range_5) {
-  LdrLiteralRangeHelper(kLiteralPoolCheckInterval,
-                        JumpRequired,
-                        false);
+TEST(ldr_literal_values_s) {
+  static const float kValues[] = {
+    -0.0, 0.0, -1.0, 1.0, -1e10, 1e10
+  };
+
+  LoadFPValueHelper(kValues, sizeof(kValues) / sizeof(kValues[0]));
 }
 
 
-TEST(ldr_literal_range_6) {
-  LdrLiteralRangeHelper(kLiteralPoolCheckInterval-sizeof(Instr),
-                        JumpRequired,
-                        false);
+TEST(ldr_literal_custom) {
+  // The macro assembler always emit pools after the instruction using them,
+  // this test emit a pool then use it.
+  SETUP();
+  ALLOW_ASM();
+
+  Label end_of_pool;
+  Literal<uint64_t> literal_x(0x1234567890abcdef);
+  Literal<uint32_t> literal_w(0xfedcba09);
+  Literal<uint32_t> literal_sx(0x80000000);
+  Literal<double> literal_d(1.234);
+  Literal<float> literal_s(2.5);
+
+  START();
+  // "Manually generate a pool.
+  __ B(&end_of_pool);
+  __ place(&literal_x);
+  __ place(&literal_w);
+  __ place(&literal_sx);
+  __ place(&literal_d);
+  __ place(&literal_s);
+  __ Bind(&end_of_pool);
+
+  // now load the entries.
+  __ ldr(x2, &literal_x);
+  __ ldr(w3, &literal_w);
+  __ ldrsw(x5, &literal_sx);
+  __ ldr(d13, &literal_d);
+  __ ldr(s25, &literal_s);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(0x1234567890abcdef, x2);
+  ASSERT_EQUAL_64(0xfedcba09, x3);
+  ASSERT_EQUAL_64(0xffffffff80000000, x5);
+  ASSERT_EQUAL_FP64(1.234, d13);
+  ASSERT_EQUAL_FP32(2.5, s25);
+
+  TEARDOWN();
 }
 
 
@@ -3994,6 +4334,7 @@ TEST(cmp_extend) {
 
 TEST(ccmp) {
   SETUP();
+  ALLOW_ASM();
 
   START();
   __ Mov(w16, 0);
@@ -4014,9 +4355,11 @@ TEST(ccmp) {
   __ Ccmn(x16, 2, NZCVFlag, ne);
   __ Mrs(x3, NZCV);
 
+  // The MacroAssembler does not allow al as a condition.
   __ ccmp(x16, x16, NZCVFlag, al);
   __ Mrs(x4, NZCV);
 
+  // The MacroAssembler does not allow nv as a condition.
   __ ccmp(x16, x16, NZCVFlag, nv);
   __ Mrs(x5, NZCV);
 
@@ -4104,6 +4447,7 @@ TEST(ccmp_shift_extend) {
 
 TEST(csel) {
   SETUP();
+  ALLOW_ASM();
 
   START();
   __ Mov(x16, 0);
@@ -4116,6 +4460,7 @@ TEST(csel) {
   __ Csinc(w2, w24, w25, mi);
   __ Csinc(w3, w24, w25, pl);
 
+  // The MacroAssembler does not allow al or nv as a condition.
   __ csel(w13, w24, w25, al);
   __ csel(x14, x24, x25, nv);
 
@@ -4131,6 +4476,7 @@ TEST(csel) {
   __ Cinv(x11, x24, ne);
   __ Cneg(x12, x24, ne);
 
+  // The MacroAssembler does not allow al or nv as a condition.
   __ csel(w15, w24, w25, al);
   __ csel(x17, x24, x25, nv);
 
@@ -4215,6 +4561,7 @@ TEST(csel_imm) {
 
 TEST(lslv) {
   SETUP();
+  ALLOW_ASM();
 
   uint64_t value = 0x0123456789abcdef;
   int shift[] = {1, 3, 5, 9, 17, 33};
@@ -4228,6 +4575,7 @@ TEST(lslv) {
   __ Mov(w5, shift[4]);
   __ Mov(w6, shift[5]);
 
+  // The MacroAssembler does not allow zr as an argument.
   __ lslv(x0, x0, xzr);
 
   __ Lsl(x16, x0, x1);
@@ -4267,6 +4615,7 @@ TEST(lslv) {
 
 TEST(lsrv) {
   SETUP();
+  ALLOW_ASM();
 
   uint64_t value = 0x0123456789abcdef;
   int shift[] = {1, 3, 5, 9, 17, 33};
@@ -4280,6 +4629,7 @@ TEST(lsrv) {
   __ Mov(w5, shift[4]);
   __ Mov(w6, shift[5]);
 
+  // The MacroAssembler does not allow zr as an argument.
   __ lsrv(x0, x0, xzr);
 
   __ Lsr(x16, x0, x1);
@@ -4321,6 +4671,7 @@ TEST(lsrv) {
 
 TEST(asrv) {
   SETUP();
+  ALLOW_ASM();
 
   int64_t value = 0xfedcba98fedcba98;
   int shift[] = {1, 3, 5, 9, 17, 33};
@@ -4334,6 +4685,7 @@ TEST(asrv) {
   __ Mov(w5, shift[4]);
   __ Mov(w6, shift[5]);
 
+  // The MacroAssembler does not allow zr as an argument.
   __ asrv(x0, x0, xzr);
 
   __ Asr(x16, x0, x1);
@@ -4375,6 +4727,7 @@ TEST(asrv) {
 
 TEST(rorv) {
   SETUP();
+  ALLOW_ASM();
 
   uint64_t value = 0x0123456789abcdef;
   int shift[] = {4, 8, 12, 16, 24, 36};
@@ -4388,6 +4741,7 @@ TEST(rorv) {
   __ Mov(w5, shift[4]);
   __ Mov(w6, shift[5]);
 
+  // The MacroAssembler does not allow zr as an argument.
   __ rorv(x0, x0, xzr);
 
   __ Ror(x16, x0, x1);
@@ -4427,6 +4781,7 @@ TEST(rorv) {
 
 TEST(bfm) {
   SETUP();
+  ALLOW_ASM();
 
   START();
   __ Mov(x1, 0x0123456789abcdef);
@@ -4438,6 +4793,7 @@ TEST(bfm) {
   __ Mov(w20, 0x88888888);
   __ Mov(w21, 0x88888888);
 
+  // There are no macro instruction for bfm.
   __ bfm(x10, x1, 16, 31);
   __ bfm(x11, x1, 32, 15);
 
@@ -4467,11 +4823,13 @@ TEST(bfm) {
 
 TEST(sbfm) {
   SETUP();
+  ALLOW_ASM();
 
   START();
   __ Mov(x1, 0x0123456789abcdef);
   __ Mov(x2, 0xfedcba9876543210);
 
+  // There are no macro instruction for sbfm.
   __ sbfm(x10, x1, 16, 31);
   __ sbfm(x11, x1, 32, 15);
   __ sbfm(x12, x1, 32, 47);
@@ -4529,6 +4887,7 @@ TEST(sbfm) {
 
 TEST(ubfm) {
   SETUP();
+  ALLOW_ASM();
 
   START();
   __ Mov(x1, 0x0123456789abcdef);
@@ -4537,6 +4896,7 @@ TEST(ubfm) {
   __ Mov(x10, 0x8888888888888888);
   __ Mov(x11, 0x8888888888888888);
 
+  // There are no macro instruction for ubfm.
   __ ubfm(x10, x1, 16, 31);
   __ ubfm(x11, x1, 32, 15);
   __ ubfm(x12, x1, 32, 47);
@@ -5453,6 +5813,7 @@ TEST(fmax_fmin_s) {
 
 TEST(fccmp) {
   SETUP();
+  ALLOW_ASM();
 
   START();
   __ Fmov(s16, 0.0);
@@ -5493,6 +5854,7 @@ TEST(fccmp) {
   __ Fccmp(d18, d19, NFlag, hi);
   __ Mrs(x7, NZCV);
 
+  // The Macro Assembler does not allow al or nv as condition.
   __ fccmp(s16, s16, NFlag, al);
   __ Mrs(x8, NZCV);
 
@@ -5599,6 +5961,7 @@ TEST(fcmp) {
 
 TEST(fcsel) {
   SETUP();
+  ALLOW_ASM();
 
   START();
   __ Mov(x16, 0);
@@ -5612,6 +5975,7 @@ TEST(fcsel) {
   __ Fcsel(s1, s16, s17, ne);
   __ Fcsel(d2, d18, d19, eq);
   __ Fcsel(d3, d18, d19, ne);
+  // The Macro Assembler does not allow al or nv as condition.
   __ fcsel(s4, s16, s17, al);
   __ fcsel(d5, d18, d19, nv);
   END();
@@ -7513,6 +7877,7 @@ TEST(system_nop) {
 
 TEST(zero_dest) {
   SETUP();
+  ALLOW_ASM();
   RegisterDump before;
 
   START();
@@ -7579,6 +7944,7 @@ TEST(zero_dest) {
 
 TEST(zero_dest_setflags) {
   SETUP();
+  ALLOW_ASM();
   RegisterDump before;
 
   START();
@@ -7948,6 +8314,92 @@ TEST(peek_poke_mixed) {
   ASSERT_EQUAL_64(x3_expected, x3);
   ASSERT_EQUAL_64(x6_expected, x6);
   ASSERT_EQUAL_64(x7_expected, x7);
+
+  TEARDOWN();
+}
+
+
+TEST(peek_poke_reglist) {
+  SETUP();
+  START();
+
+  // The literal base is chosen to have two useful properties:
+  //  * When multiplied by small values (such as a register index), this value
+  //    is clearly readable in the result.
+  //  * The value is not formed from repeating fixed-size smaller values, so it
+  //    can be used to detect endianness-related errors.
+  uint64_t base = 0x0100001000100101;
+
+  // Initialize the registers.
+  __ Mov(x1, base);
+  __ Add(x2, x1, x1);
+  __ Add(x3, x2, x1);
+  __ Add(x4, x3, x1);
+
+  CPURegList list_1(x1, x2, x3, x4);
+  CPURegList list_2(x11, x12, x13, x14);
+  int list_1_size = list_1.TotalSizeInBytes();
+
+  __ Claim(2 * list_1_size);
+
+  __ PokeCPURegList(list_1, 0);
+  __ PokeXRegList(list_1.list(), list_1_size);
+  __ PeekCPURegList(list_2, 2 * kXRegSizeInBytes);
+  __ PeekXRegList(x15.Bit(), kWRegSizeInBytes);
+  __ PeekWRegList(w16.Bit() | w17.Bit(), 3 * kXRegSizeInBytes);
+
+  __ Drop(2 * list_1_size);
+
+
+  uint64_t base_d = 0x1010010001000010;
+
+  // Initialize the registers.
+  __ Mov(x1, base_d);
+  __ Add(x2, x1, x1);
+  __ Add(x3, x2, x1);
+  __ Add(x4, x3, x1);
+  __ Fmov(d1, x1);
+  __ Fmov(d2, x2);
+  __ Fmov(d3, x3);
+  __ Fmov(d4, x4);
+
+  CPURegList list_d_1(d1, d2, d3, d4);
+  CPURegList list_d_2(d11, d12, d13, d14);
+  int list_d_1_size = list_d_1.TotalSizeInBytes();
+
+  __ Claim(2 * list_d_1_size);
+
+  __ PokeCPURegList(list_d_1, 0);
+  __ PokeDRegList(list_d_1.list(), list_d_1_size);
+  __ PeekCPURegList(list_d_2, 2 * kDRegSizeInBytes);
+  __ PeekDRegList(d15.Bit(), kSRegSizeInBytes);
+  __ PeekSRegList(s16.Bit() | s17.Bit(), 3 * kDRegSizeInBytes);
+
+  __ Drop(2 * list_d_1_size);
+
+
+  END();
+  RUN();
+
+  ASSERT_EQUAL_64(3 * base, x11);
+  ASSERT_EQUAL_64(4 * base, x12);
+  ASSERT_EQUAL_64(1 * base, x13);
+  ASSERT_EQUAL_64(2 * base, x14);
+  ASSERT_EQUAL_64(((1 * base) >> kWRegSize) | ((2 * base) << kWRegSize), x15);
+  ASSERT_EQUAL_64(2 * base, x14);
+  ASSERT_EQUAL_32((4 * base) & kWRegMask, w16);
+  ASSERT_EQUAL_32((4 * base) >> kWRegSize, w17);
+
+  ASSERT_EQUAL_FP64(rawbits_to_double(3 * base_d), d11);
+  ASSERT_EQUAL_FP64(rawbits_to_double(4 * base_d), d12);
+  ASSERT_EQUAL_FP64(rawbits_to_double(1 * base_d), d13);
+  ASSERT_EQUAL_FP64(rawbits_to_double(2 * base_d), d14);
+  ASSERT_EQUAL_FP64(
+      rawbits_to_double((base_d >> kSRegSize) | ((2 * base_d) << kSRegSize)),
+      d15);
+  ASSERT_EQUAL_FP64(rawbits_to_double(2 * base_d), d14);
+  ASSERT_EQUAL_FP32(rawbits_to_float((4 * base_d) & kSRegMask), s16);
+  ASSERT_EQUAL_FP32(rawbits_to_float((4 * base_d) >> kSRegSize), s17);
 
   TEARDOWN();
 }
@@ -8804,7 +9256,7 @@ TEST(isvalid) {
 
 
 TEST(printf) {
-  SETUP_CUSTOM(BUF_SIZE * 2, PositionIndependentCode);
+  SETUP();
   START();
 
   char const * test_plain_string = "Printf with no arguments.\n";
@@ -9065,11 +9517,13 @@ TEST(instruction_accurate_scope) {
   // By default macro instructions are allowed.
   VIXL_ASSERT(masm.AllowMacroInstructions());
   {
-    InstructionAccurateScope scope1(&masm);
+    InstructionAccurateScope scope1(&masm, 2);
     VIXL_ASSERT(!masm.AllowMacroInstructions());
+    __ nop();
     {
-      InstructionAccurateScope scope2(&masm);
+      InstructionAccurateScope scope2(&masm, 1);
       VIXL_ASSERT(!masm.AllowMacroInstructions());
+      __ nop();
     }
     VIXL_ASSERT(!masm.AllowMacroInstructions());
   }
@@ -10266,6 +10720,7 @@ TEST(load_store_tagged_immediate_offset) {
       memset(dst, 0, kMaxDataLength);
 
       SETUP();
+      ALLOW_ASM();
       START();
 
       __ Mov(x0, src_tagged);
@@ -10410,6 +10865,7 @@ TEST(load_store_tagged_immediate_preindex) {
       }
 
       SETUP();
+      ALLOW_ASM();
       START();
 
       // Each MemOperand must apply a pre-index equal to the size of the
@@ -10417,6 +10873,7 @@ TEST(load_store_tagged_immediate_preindex) {
 
       // Start with a non-zero preindex.
       int preindex = 63 * kXRegSizeInBytes;
+      int data_length = 0;
 
       __ Mov(x0, src_tagged - preindex);
       __ Mov(x1, dst_tagged - preindex);
@@ -10424,7 +10881,7 @@ TEST(load_store_tagged_immediate_preindex) {
       __ ldp(x2, x3, MemOperand(x0, preindex, PreIndex));
       __ stp(x2, x3, MemOperand(x1, preindex, PreIndex));
       preindex = 2 * kXRegSizeInBytes;
-      int data_length = preindex;
+      data_length = preindex;
 
       __ ldpsw(x2, x3, MemOperand(x0, preindex, PreIndex));
       __ stp(w2, w3, MemOperand(x1, preindex, PreIndex));
@@ -10533,15 +10990,18 @@ TEST(load_store_tagged_immediate_postindex) {
       }
 
       SETUP();
+      ALLOW_ASM();
       START();
+
+      int postindex = 2 * kXRegSizeInBytes;
+      int data_length = 0;
 
       __ Mov(x0, src_tagged);
       __ Mov(x1, dst_tagged);
 
-      int postindex = 2 * kXRegSizeInBytes;
       __ ldp(x2, x3, MemOperand(x0, postindex, PostIndex));
       __ stp(x2, x3, MemOperand(x1, postindex, PostIndex));
-      int data_length = postindex;
+      data_length = postindex;
 
       postindex = 2 * kWRegSizeInBytes;
       __ ldpsw(x2, x3, MemOperand(x0, postindex, PostIndex));
@@ -10655,6 +11115,7 @@ TEST(load_store_tagged_register_offset) {
         }
 
         SETUP();
+        ALLOW_ASM();
         START();
 
         __ Mov(x0, src_tagged);
@@ -10719,6 +11180,115 @@ TEST(load_store_tagged_register_offset) {
       }
     }
   }
+}
+
+
+TEST(branch_tagged) {
+  SETUP();
+  START();
+
+  Label loop, loop_entry, done;
+  __ Adr(x0, &loop);
+  __ Mov(x1, 0);
+  __ B(&loop_entry);
+
+  __ Bind(&loop);
+  __ Add(x1, x1, 1);  // Count successful jumps.
+
+  // Advance to the next tag, then bail out if we've come back around to tag 0.
+  __ Add(x0, x0, UINT64_C(1) << kAddressTagOffset);
+  __ Tst(x0, kAddressTagMask);
+  __ B(eq, &done);
+
+  __ Bind(&loop_entry);
+  __ Br(x0);
+
+  __ Bind(&done);
+
+  END();
+  RUN();
+
+  ASSERT_EQUAL_64(1 << kAddressTagWidth, x1);
+
+  TEARDOWN();
+}
+
+
+TEST(branch_and_link_tagged) {
+  SETUP();
+  START();
+
+  Label loop, loop_entry, done;
+  __ Adr(x0, &loop);
+  __ Mov(x1, 0);
+  __ B(&loop_entry);
+
+  __ Bind(&loop);
+
+  // Bail out (before counting a successful jump) if lr appears to be tagged.
+  __ Tst(lr, kAddressTagMask);
+  __ B(ne, &done);
+
+  __ Add(x1, x1, 1);  // Count successful jumps.
+
+  // Advance to the next tag, then bail out if we've come back around to tag 0.
+  __ Add(x0, x0, UINT64_C(1) << kAddressTagOffset);
+  __ Tst(x0, kAddressTagMask);
+  __ B(eq, &done);
+
+  __ Bind(&loop_entry);
+  __ Blr(x0);
+
+  __ Bind(&done);
+
+  END();
+  RUN();
+
+  ASSERT_EQUAL_64(1 << kAddressTagWidth, x1);
+
+  TEARDOWN();
+}
+
+
+TEST(branch_tagged_and_adr_adrp) {
+  SETUP_CUSTOM(BUF_SIZE, PageOffsetDependentCode);
+  START();
+
+  Label loop, loop_entry, done;
+  __ Adr(x0, &loop);
+  __ Mov(x1, 0);
+  __ B(&loop_entry);
+
+  __ Bind(&loop);
+
+  // Bail out (before counting a successful jump) if `adr x10, ...` is tagged.
+  __ Adr(x10, &done);
+  __ Tst(x10, kAddressTagMask);
+  __ B(ne, &done);
+
+  // Bail out (before counting a successful jump) if `adrp x11, ...` is tagged.
+  __ Adrp(x11, &done);
+  __ Tst(x11, kAddressTagMask);
+  __ B(ne, &done);
+
+  __ Add(x1, x1, 1);  // Count successful iterations.
+
+  // Advance to the next tag, then bail out if we've come back around to tag 0.
+  __ Add(x0, x0, UINT64_C(1) << kAddressTagOffset);
+  __ Tst(x0, kAddressTagMask);
+  __ B(eq, &done);
+
+  __ Bind(&loop_entry);
+  __ Br(x0);
+
+  __ Bind(&done);
+
+  END();
+  RUN();
+
+  ASSERT_EQUAL_64(1 << kAddressTagWidth, x1);
+
+  TEARDOWN();
 }
 
 

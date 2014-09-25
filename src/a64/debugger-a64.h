@@ -106,10 +106,10 @@ class FormatToken;
 
 class Debugger : public Simulator {
  public:
-  Debugger(Decoder* decoder, FILE* stream = stdout);
+  explicit Debugger(Decoder* decoder, FILE* stream = stdout);
 
   virtual void Run();
-  void VisitException(Instruction* instr);
+  void VisitException(const Instruction* instr);
 
   inline int log_parameters() {
     // The simulator can control disassembly, so make sure that the Debugger's
@@ -154,7 +154,7 @@ class Debugger : public Simulator {
     pending_request_ = logging || debugging;
   }
 
-  void PrintInstructions(void* address, int64_t count = 1);
+  void PrintInstructions(const void* address, int64_t count = 1);
   void PrintMemory(const uint8_t* address,
                    const FormatToken* format,
                    int64_t count = 1);
@@ -171,10 +171,10 @@ class Debugger : public Simulator {
   void LogProcessorState();
   char* ReadCommandLine(const char* prompt, char* buffer, int length);
   void RunDebuggerShell();
-  void DoBreakpoint(Instruction* instr);
-  void DoUnreachable(Instruction* instr);
-  void DoTrace(Instruction* instr);
-  void DoLog(Instruction* instr);
+  void DoBreakpoint(const Instruction* instr);
+  void DoUnreachable(const Instruction* instr);
+  void DoTrace(const Instruction* instr);
+  void DoLog(const Instruction* instr);
 
   int  log_parameters_;
   int  debug_parameters_;

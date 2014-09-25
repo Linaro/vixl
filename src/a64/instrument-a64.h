@@ -53,7 +53,7 @@ enum CounterType {
 
 class Counter {
  public:
-  Counter(const char* name, CounterType type = Gauge);
+  explicit Counter(const char* name, CounterType type = Gauge);
 
   void Increment();
   void Enable();
@@ -81,7 +81,7 @@ class Instrument: public DecoderVisitor {
   void Disable();
 
   // Declare all Visitor functions.
-  #define DECLARE(A) void Visit##A(Instruction* instr);
+  #define DECLARE(A) void Visit##A(const Instruction* instr);
   VISITOR_LIST(DECLARE)
   #undef DECLARE
 
@@ -93,8 +93,8 @@ class Instrument: public DecoderVisitor {
   void HandleInstrumentationEvent(unsigned event);
   Counter* GetCounter(const char* name);
 
-  void InstrumentLoadStore(Instruction* instr);
-  void InstrumentLoadStorePair(Instruction* instr);
+  void InstrumentLoadStore(const Instruction* instr);
+  void InstrumentLoadStorePair(const Instruction* instr);
 
   std::list<Counter*> counters_;
 

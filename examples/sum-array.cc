@@ -59,6 +59,7 @@ void GenerateSumArray(MacroAssembler* masm) {
 
 
 #ifndef TEST_EXAMPLES
+#ifdef USE_SIMULATOR
 int main(void) {
   // Create and initialize the assembler and the simulator.
   byte assm_buf[BUF_SIZE];
@@ -87,4 +88,8 @@ int main(void) {
 
   return 0;
 }
-#endif
+#else
+// Without the simulator there is nothing to test.
+int main(void) { return 0; }
+#endif  // USE_SIMULATOR
+#endif  // TEST_EXAMPLES

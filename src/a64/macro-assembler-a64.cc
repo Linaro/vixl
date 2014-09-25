@@ -27,6 +27,176 @@
 #include "a64/macro-assembler-a64.h"
 namespace vixl {
 
+
+LiteralPool::LiteralPool(Assembler* assm)
+    : assm_(assm), first_use_(-1), monitor_(0) {
+}
+
+
+LiteralPool::~LiteralPool() {
+  VIXL_ASSERT(IsEmpty());
+  VIXL_ASSERT(!IsBlocked());
+}
+
+
+void LiteralPool::Reset() {
+  std::vector<RawLiteral*>::iterator it, end;
+  for (it = entries_.begin(), end = entries_.end(); it != end; ++it) {
+    delete *it;
+  }
+  entries_.clear();
+  first_use_ = -1;
+  monitor_ = 0;
+}
+
+
+size_t LiteralPool::Size() const {
+  size_t size = 0;
+  std::vector<RawLiteral*>::const_iterator it, end;
+  for (it = entries_.begin(), end = entries_.end(); it != end; ++it) {
+    size += (*it)->size();
+  }
+
+  // account for the pool header.
+  return size + kInstructionSize;
+}
+
+
+void LiteralPool::Release() {
+  if (--monitor_ == 0) {
+    // Has the literal pool been blocked for too long?
+    VIXL_ASSERT(assm_->CursorOffset() < MaxCursorOffset());
+  }
+}
+
+
+void LiteralPool::CheckEmitFor(size_t amount, EmitOption option) {
+  if (IsEmpty() || IsBlocked()) return;
+
+  ptrdiff_t distance = assm_->CursorOffset() + amount - first_use_;
+  if (distance >= kRecommendedLiteralPoolRange) {
+    Emit(option);
+  }
+}
+
+
+void LiteralPool::Emit(EmitOption option) {
+  // There is an issue if we are asked to emit a blocked or empty pool.
+  VIXL_ASSERT(!IsBlocked());
+  VIXL_ASSERT(!IsEmpty());
+
+  size_t pool_size = Size();
+  size_t emit_size = pool_size;
+  if (option == kBranchRequired) emit_size += kInstructionSize;
+  Label end_of_pool;
+
+  CodeBufferCheckScope guard(assm_,
+                             emit_size,
+                             CodeBufferCheckScope::kCheck,
+                             CodeBufferCheckScope::kExactSize);
+  if (option == kBranchRequired) assm_->b(&end_of_pool);
+
+  // Marker indicating the size of the literal pool in 32-bit words.
+  VIXL_ASSERT((pool_size % kWRegSizeInBytes) == 0);
+  assm_->ldr(xzr, pool_size / kWRegSizeInBytes);
+
+  // Now populate the literal pool.
+  std::vector<RawLiteral*>::iterator it, end;
+  for (it = entries_.begin(), end = entries_.end(); it != end; ++it) {
+    VIXL_ASSERT((*it)->IsUsed());
+    assm_->place(*it);
+    delete *it;
+  }
+
+  if (option == kBranchRequired) assm_->bind(&end_of_pool);
+
+  entries_.clear();
+  first_use_ = -1;
+}
+
+
+ptrdiff_t LiteralPool::NextCheckOffset() {
+  if (IsEmpty()) {
+    return assm_->CursorOffset() + kRecommendedLiteralPoolRange;
+  }
+
+  VIXL_ASSERT(
+      ((assm_->CursorOffset() - first_use_) < kRecommendedLiteralPoolRange) ||
+       IsBlocked());
+
+  return first_use_ + kRecommendedLiteralPoolRange;
+}
+
+
+EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm, size_t size) {
+  masm->EnsureEmitFor(size);
+#ifdef DEBUG
+  masm_ = masm;
+  masm->Bind(&start_);
+  size_ = size;
+  masm->AcquireBuffer();
+#endif
+}
+
+
+EmissionCheckScope::~EmissionCheckScope() {
+#ifdef DEBUG
+  masm_->ReleaseBuffer();
+  VIXL_ASSERT(masm_->SizeOfCodeGeneratedSince(&start_) <= size_);
+#endif
+}
+
+
+MacroAssembler::MacroAssembler(size_t capacity,
+                               PositionIndependentCodeOption pic)
+    : Assembler(capacity, pic),
+#ifdef DEBUG
+      allow_macro_instructions_(true),
+#endif
+      sp_(sp),
+      tmp_list_(ip0, ip1),
+      fptmp_list_(d31),
+      literal_pool_(this) {
+  checkpoint_ = NextCheckOffset();
+}
+
+
+MacroAssembler::MacroAssembler(byte * buffer,
+                               size_t capacity,
+                               PositionIndependentCodeOption pic)
+    : Assembler(buffer, capacity, pic),
+#ifdef DEBUG
+      allow_macro_instructions_(true),
+#endif
+      sp_(sp),
+      tmp_list_(ip0, ip1),
+      fptmp_list_(d31),
+      literal_pool_(this) {
+  checkpoint_ = NextCheckOffset();
+}
+
+
+MacroAssembler::~MacroAssembler() {
+}
+
+
+void MacroAssembler::Reset() {
+  Assembler::Reset();
+
+  VIXL_ASSERT(!literal_pool_.IsBlocked());
+  literal_pool_.Reset();
+
+  checkpoint_ = NextCheckOffset();
+}
+
+
+void MacroAssembler::FinalizeCode() {
+  if (!literal_pool_.IsEmpty()) literal_pool_.Emit();
+
+  Assembler::FinalizeCode();
+}
+
+
 void MacroAssembler::B(Label* label, BranchType type, Register reg, int bit) {
   VIXL_ASSERT((reg.Is(NoReg) || (type >= kBranchTypeFirstUsingReg)) &&
               ((bit == -1) || (type >= kBranchTypeFirstUsingBit)));
@@ -121,6 +291,11 @@ void MacroAssembler::LogicalMacro(const Register& rd,
                                   const Register& rn,
                                   const Operand& operand,
                                   LogicalOp op) {
+  // The worst case for size is logical immediate to sp:
+  //  * up to 4 instructions to materialise the constant
+  //  * 1 instruction to do the operation
+  //  * 1 instruction to move to sp
+  MacroEmissionCheckScope guard(this);
   UseScratchRegisterScope temps(this);
 
   if (operand.IsImmediate()) {
@@ -222,6 +397,9 @@ void MacroAssembler::Mov(const Register& rd,
                          const Operand& operand,
                          DiscardMoveMode discard_mode) {
   VIXL_ASSERT(allow_macro_instructions_);
+  // The worst case for size is mov immediate with up to 4 instructions.
+  MacroEmissionCheckScope guard(this);
+
   if (operand.IsImmediate()) {
     // Call the macro assembler for generic immediates.
     Mov(rd, operand.immediate());
@@ -255,6 +433,9 @@ void MacroAssembler::Mov(const Register& rd,
 
 void MacroAssembler::Mvn(const Register& rd, const Operand& operand) {
   VIXL_ASSERT(allow_macro_instructions_);
+  // The worst case for size is mvn immediate with up to 4 instructions.
+  MacroEmissionCheckScope guard(this);
+
   if (operand.IsImmediate()) {
     // Call the macro assembler for generic immediates.
     Mvn(rd, operand.immediate());
@@ -279,6 +460,10 @@ void MacroAssembler::Mvn(const Register& rd, const Operand& operand) {
 void MacroAssembler::Mov(const Register& rd, uint64_t imm) {
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(is_uint32(imm) || is_int32(imm) || rd.Is64Bits());
+  // The worst case for size is mov 64-bit immediate to sp:
+  //  * up to 4 instructions to materialise the constant
+  //  * 1 instruction to move to sp
+  MacroEmissionCheckScope guard(this);
 
   // Immediates on Aarch64 can be produced using an initial value, and zero to
   // three move keep operations.
@@ -412,6 +597,11 @@ void MacroAssembler::ConditionalCompareMacro(const Register& rn,
                                              Condition cond,
                                              ConditionalCompareOp op) {
   VIXL_ASSERT((cond != al) && (cond != nv));
+  // The worst case for size is ccmp immediate:
+  //  * up to 4 instructions to materialise the constant
+  //  * 1 instruction for ccmp
+  MacroEmissionCheckScope guard(this);
+
   if ((operand.IsShiftedRegister() && (operand.shift_amount() == 0)) ||
       (operand.IsImmediate() && IsImmConditionalCompare(operand.immediate()))) {
     // The immediate can be encoded in the instruction, or the operand is an
@@ -436,6 +626,11 @@ void MacroAssembler::Csel(const Register& rd,
   VIXL_ASSERT(!rd.IsZero());
   VIXL_ASSERT(!rn.IsZero());
   VIXL_ASSERT((cond != al) && (cond != nv));
+  // The worst case for size is csel immediate:
+  //  * up to 4 instructions to materialise the constant
+  //  * 1 instruction for csel
+  MacroEmissionCheckScope guard(this);
+
   if (operand.IsImmediate()) {
     // Immediate argument. Handle special cases of 0, 1 and -1 using zero
     // register.
@@ -532,6 +727,10 @@ void MacroAssembler::Cmp(const Register& rn, const Operand& operand) {
 
 void MacroAssembler::Fcmp(const FPRegister& fn, double value) {
   VIXL_ASSERT(allow_macro_instructions_);
+  // The worst case for size is:
+  //  * 1 to materialise the constant, using literal pool if necessary
+  //  * 1 instruction for fcmp
+  MacroEmissionCheckScope guard(this);
   if (value != 0.0) {
     UseScratchRegisterScope temps(this);
     FPRegister tmp = temps.AcquireSameSizeAs(fn);
@@ -545,6 +744,9 @@ void MacroAssembler::Fcmp(const FPRegister& fn, double value) {
 
 void MacroAssembler::Fmov(FPRegister fd, double imm) {
   VIXL_ASSERT(allow_macro_instructions_);
+  // Floating point immediates are loaded through the literal pool.
+  MacroEmissionCheckScope guard(this);
+
   if (fd.Is32Bits()) {
     Fmov(fd, static_cast<float>(imm));
     return;
@@ -556,13 +758,17 @@ void MacroAssembler::Fmov(FPRegister fd, double imm) {
   } else if ((imm == 0.0) && (copysign(1.0, imm) == 1.0)) {
     fmov(fd, xzr);
   } else {
-    ldr(fd, imm);
+    RawLiteral* literal = literal_pool_.Add(imm);
+    ldr(fd, literal);
   }
 }
 
 
 void MacroAssembler::Fmov(FPRegister fd, float imm) {
   VIXL_ASSERT(allow_macro_instructions_);
+  // Floating point immediates are loaded through the literal pool.
+  MacroEmissionCheckScope guard(this);
+
   if (fd.Is64Bits()) {
     Fmov(fd, static_cast<double>(imm));
     return;
@@ -574,7 +780,8 @@ void MacroAssembler::Fmov(FPRegister fd, float imm) {
   } else if ((imm == 0.0) && (copysign(1.0, imm) == 1.0)) {
     fmov(fd, wzr);
   } else {
-    ldr(fd, imm);
+    RawLiteral* literal = literal_pool_.Add(imm);
+    ldr(fd, literal);
   }
 }
 
@@ -661,6 +868,11 @@ void MacroAssembler::AddSubMacro(const Register& rd,
                                  const Operand& operand,
                                  FlagsUpdate S,
                                  AddSubOp op) {
+  // Worst case is add/sub immediate:
+  //  * up to 4 instructions to materialise the constant
+  //  * 1 instruction for add/sub
+  MacroEmissionCheckScope guard(this);
+
   if (operand.IsZero() && rd.Is(rn) && rd.Is64Bits() && rn.Is64Bits() &&
       (S == LeaveFlags)) {
     // The instruction would be a nop. Avoid generating useless code.
@@ -740,6 +952,10 @@ void MacroAssembler::AddSubWithCarryMacro(const Register& rd,
                                           FlagsUpdate S,
                                           AddSubWithCarryOp op) {
   VIXL_ASSERT(rd.size() == rn.size());
+  // Worst case is addc/subc immediate:
+  //  * up to 4 instructions to materialise the constant
+  //  * 1 instruction for add/sub
+  MacroEmissionCheckScope guard(this);
   UseScratchRegisterScope temps(this);
 
   if (operand.IsImmediate() ||
@@ -780,6 +996,7 @@ void MacroAssembler::AddSubWithCarryMacro(const Register& rd,
 
 #define DEFINE_FUNCTION(FN, REGTYPE, REG, OP)                         \
 void MacroAssembler::FN(const REGTYPE REG, const MemOperand& addr) {  \
+  VIXL_ASSERT(allow_macro_instructions_);                             \
   LoadStoreMacro(REG, addr, OP);                                      \
 }
 LS_MACRO_LIST(DEFINE_FUNCTION)
@@ -788,6 +1005,12 @@ LS_MACRO_LIST(DEFINE_FUNCTION)
 void MacroAssembler::LoadStoreMacro(const CPURegister& rt,
                                     const MemOperand& addr,
                                     LoadStoreOp op) {
+  // Worst case is ldr/str pre/post index:
+  //  * 1 instruction for ldr/str
+  //  * up to 4 instructions to materialise the constant
+  //  * 1 instruction to update the base
+  MacroEmissionCheckScope guard(this);
+
   int64_t offset = addr.offset();
   LSDataSize size = CalcLSDataSize(op);
 
@@ -816,6 +1039,54 @@ void MacroAssembler::LoadStoreMacro(const CPURegister& rt,
   }
 }
 
+
+#define DEFINE_FUNCTION(FN, REGTYPE, REG, REG2, OP)  \
+void MacroAssembler::FN(const REGTYPE REG,           \
+                        const REGTYPE REG2,          \
+                        const MemOperand& addr) {    \
+  VIXL_ASSERT(allow_macro_instructions_);            \
+  LoadStorePairMacro(REG, REG2, addr, OP);           \
+}
+LSPAIR_MACRO_LIST(DEFINE_FUNCTION)
+#undef DEFINE_FUNCTION
+
+void MacroAssembler::LoadStorePairMacro(const CPURegister& rt,
+                                        const CPURegister& rt2,
+                                        const MemOperand& addr,
+                                        LoadStorePairOp op) {
+  // TODO(all): Should we support register offset for load-store-pair?
+  VIXL_ASSERT(!addr.IsRegisterOffset());
+  // Worst case is ldp/stp immediate:
+  //  * 1 instruction for ldp/stp
+  //  * up to 4 instructions to materialise the constant
+  //  * 1 instruction to update the base
+  MacroEmissionCheckScope guard(this);
+
+  int64_t offset = addr.offset();
+  LSDataSize size = CalcLSPairDataSize(op);
+
+  // Check if the offset fits in the immediate field of the appropriate
+  // instruction. If not, emit two instructions to perform the operation.
+  if (IsImmLSPair(offset, size)) {
+    // Encodable in one load/store pair instruction.
+    LoadStorePair(rt, rt2, addr, op);
+  } else {
+    Register base = addr.base();
+    if (addr.IsImmediateOffset()) {
+      UseScratchRegisterScope temps(this);
+      Register temp = temps.AcquireSameSizeAs(base);
+      Add(temp, base, offset);
+      LoadStorePair(rt, rt2, MemOperand(temp), op);
+    } else if (addr.IsPostIndex()) {
+      LoadStorePair(rt, rt2, MemOperand(base), op);
+      Add(base, base, offset);
+    } else {
+      VIXL_ASSERT(addr.IsPreIndex());
+      Add(base, base, offset);
+      LoadStorePair(rt, rt2, MemOperand(base), op);
+    }
+  }
+}
 
 void MacroAssembler::Push(const CPURegister& src0, const CPURegister& src1,
                           const CPURegister& src2, const CPURegister& src3) {
@@ -918,7 +1189,9 @@ void MacroAssembler::PushHelper(int count, int size,
                                 const CPURegister& src2,
                                 const CPURegister& src3) {
   // Ensure that we don't unintentionally modify scratch or debug registers.
-  InstructionAccurateScope scope(this);
+  // Worst case for size is 2 stp.
+  InstructionAccurateScope scope(this, 2,
+                                 InstructionAccurateScope::kMaximumSize);
 
   VIXL_ASSERT(AreSameSizeAndType(src0, src1, src2, src3));
   VIXL_ASSERT(size == src0.SizeInBytes());
@@ -958,7 +1231,9 @@ void MacroAssembler::PopHelper(int count, int size,
                                const CPURegister& dst2,
                                const CPURegister& dst3) {
   // Ensure that we don't unintentionally modify scratch or debug registers.
-  InstructionAccurateScope scope(this);
+  // Worst case for size is 2 ldp.
+  InstructionAccurateScope scope(this, 2,
+                                 InstructionAccurateScope::kMaximumSize);
 
   VIXL_ASSERT(AreSameSizeAndType(dst0, dst1, dst2, dst3));
   VIXL_ASSERT(size == dst0.SizeInBytes());
@@ -1039,6 +1314,42 @@ void MacroAssembler::Peek(const Register& dst, const Operand& offset) {
 }
 
 
+void MacroAssembler::PeekCPURegList(CPURegList registers, int offset) {
+  VIXL_ASSERT(!registers.IncludesAliasOf(StackPointer()));
+  VIXL_ASSERT(offset >= 0);
+  int size = registers.RegisterSizeInBytes();
+
+  while (registers.Count() >= 2) {
+    const CPURegister& dst0 = registers.PopLowestIndex();
+    const CPURegister& dst1 = registers.PopLowestIndex();
+    Ldp(dst0, dst1, MemOperand(StackPointer(), offset));
+    offset += 2 * size;
+  }
+  if (!registers.IsEmpty()) {
+    Ldr(registers.PopLowestIndex(),
+        MemOperand(StackPointer(), offset));
+  }
+}
+
+
+void MacroAssembler::PokeCPURegList(CPURegList registers, int offset) {
+  VIXL_ASSERT(!registers.IncludesAliasOf(StackPointer()));
+  VIXL_ASSERT(offset >= 0);
+  int size = registers.RegisterSizeInBytes();
+
+  while (registers.Count() >= 2) {
+    const CPURegister& dst0 = registers.PopLowestIndex();
+    const CPURegister& dst1 = registers.PopLowestIndex();
+    Stp(dst0, dst1, MemOperand(StackPointer(), offset));
+    offset += 2 * size;
+  }
+  if (!registers.IsEmpty()) {
+    Str(registers.PopLowestIndex(),
+        MemOperand(StackPointer(), offset));
+  }
+}
+
+
 void MacroAssembler::Claim(const Operand& size) {
   VIXL_ASSERT(allow_macro_instructions_);
 
@@ -1081,7 +1392,9 @@ void MacroAssembler::Drop(const Operand& size) {
 
 void MacroAssembler::PushCalleeSavedRegisters() {
   // Ensure that the macro-assembler doesn't use any scratch registers.
-  InstructionAccurateScope scope(this);
+  // 10 stp will be emitted.
+  // TODO(all): Should we use GetCalleeSaved and SavedFP.
+  InstructionAccurateScope scope(this, 10);
 
   // This method must not be called unless the current stack pointer is sp.
   VIXL_ASSERT(sp.Is(StackPointer()));
@@ -1104,7 +1417,9 @@ void MacroAssembler::PushCalleeSavedRegisters() {
 
 void MacroAssembler::PopCalleeSavedRegisters() {
   // Ensure that the macro-assembler doesn't use any scratch registers.
-  InstructionAccurateScope scope(this);
+  // 10 ldp will be emitted.
+  // TODO(all): Should we use GetCalleeSaved and SavedFP.
+  InstructionAccurateScope scope(this, 10);
 
   // This method must not be called unless the current stack pointer is sp.
   VIXL_ASSERT(sp.Is(StackPointer()));
@@ -1129,7 +1444,7 @@ void MacroAssembler::BumpSystemStackPointer(const Operand& space) {
   // TODO: Several callers rely on this not using scratch registers, so we use
   // the assembler directly here. However, this means that large immediate
   // values of 'space' cannot be handled.
-  InstructionAccurateScope scope(this);
+  InstructionAccurateScope scope(this, 1);
   sub(sp, StackPointer(), space);
 }
 
@@ -1239,11 +1554,20 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
   Adr(x0, &format_address);
 
   // Emit the format string directly in the instruction stream.
-  { BlockLiteralPoolScope scope(this);
+  {
+    BlockLiteralPoolScope scope(this);
+    // Data emitted:
+    //   branch
+    //   strlen(format) + 1 (includes null termination)
+    //   padding to next instruction
+    //   unreachable
+    EmissionCheckScope guard(
+        this,
+        AlignUp(strlen(format) + 1, kInstructionSize) + 2 * kInstructionSize);
     Label after_data;
     B(&after_data);
     Bind(&format_address);
-    EmitStringData(format);
+    EmitString(format);
     Unreachable();
     Bind(&after_data);
   }
@@ -1258,7 +1582,8 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
   // since the system printf function will use a different instruction set and
   // the procedure-call standard will not be compatible.
 #ifdef USE_SIMULATOR
-  { InstructionAccurateScope scope(this, kPrintfLength / kInstructionSize);
+  {
+    InstructionAccurateScope scope(this, kPrintfLength / kInstructionSize);
     hlt(kPrintfOpcode);
     dc32(arg_count);          // kPrintfArgCountOffset
 

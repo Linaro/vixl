@@ -1,4 +1,4 @@
-// Copyright 2013, ARM Limited
+// Copyright 2014, ARM Limited
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -24,49 +24,31 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "examples.h"
+#ifndef VIXL_EXAMPLES_CUSTOM_DISASSEMBLER_H_
+#define VIXL_EXAMPLES_CUSTOM_DISASSEMBLER_H_
 
-#define BUF_SIZE (4096)
-#define __ masm->
+#include "a64/disasm-a64.h"
 
-void GenerateAbs(MacroAssembler* masm) {
-  // int64_t abs(int64_t x)
-  // Argument location:
-  //   x -> x0
+using namespace vixl;
 
-  // This example uses a conditional instruction (cneg) to compute the
-  // absolute value of an integer.
-  __ Cmp(x0, 0);
-  __ Cneg(x0, x0, mi);
-  __ Ret();
-}
+void TestCustomDisassembler();
+
+class CustomDisassembler: public Disassembler {
+ public:
+  CustomDisassembler() : Disassembler() { }
+  virtual ~CustomDisassembler() { }
+
+  virtual void VisitAddSubShifted(const Instruction* instr);
+
+ protected:
+  // We print custom register names.
+  virtual void AppendRegisterNameToOutput(const Instruction* instr,
+                                          const CPURegister& reg);
+
+  // We fake looking up addresses in a table and printing useful names.
+  virtual void AppendCodeAddressToOutput(const Instruction* instr,
+                                         const void* addr);
+};
 
 
-#ifndef TEST_EXAMPLES
-#ifdef USE_SIMULATOR
-int main(void) {
-  // Create and initialize the assembler and the simulator.
-  byte assm_buf[BUF_SIZE];
-  MacroAssembler masm(assm_buf, BUF_SIZE);
-  Decoder decoder;
-  Simulator simulator(&decoder);
-
-  // Generate the code for the example function.
-  Label abs;
-  masm.Bind(&abs);
-  GenerateAbs(&masm);
-  masm.FinalizeCode();
-
-  // Run the example function.
-  int64_t input_value = -42;
-  simulator.set_xreg(0, input_value);
-  simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&abs));
-  printf("abs(%ld) = %ld\n", input_value, simulator.xreg(0));
-
-  return 0;
-}
-#else
-// Without the simulator there is nothing to test.
-int main(void) { return 0; }
-#endif  // USE_SIMULATOR
-#endif  // TEST_EXAMPLES
+#endif

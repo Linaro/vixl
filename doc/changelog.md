@@ -1,6 +1,20 @@
 VIXL Change Log
 ===============
 
+* 1.6
+    + Make literal pool management the responsibility of the macro assembler.
+    + Move code buffer management out of the Assembler.
+    + Support `ldrsw` for literals.
+    + Support binding a label to a specific offset.
+    + Add macro assembler support for load/store pair with arbitrary offset.
+    + Support Peek and Poke for CPURegLists.
+    + Fix disassembly of branch targets.
+    + Fix Decoder visitor insertion order.
+    + Separate Decoder visitors into const and non-const variants.
+    + Fix simulator for branches to tagged addresses.
+    + Add a VIM YouCompleteMe configuration file.
+    + Other small bug fixes and build system improvements.
+
 * 1.5
     + Tagged pointer support.
     + Implement support for exclusive access instructions.

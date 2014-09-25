@@ -30,6 +30,7 @@ import os
 import sys
 import argparse
 import re
+import platform
 import subprocess
 import multiprocessing
 import time
@@ -66,6 +67,10 @@ def BuildOptions():
                       help='''Runs the tests using N jobs. If the option is set
                       but no value is provided, the script will use as many jobs
                       as it thinks useful.''')
+  sim_default = 'off' if platform.machine() == 'aarch64' else 'on'
+  result.add_argument('--simulator', action='store', choices=['on', 'off'],
+                      default=sim_default,
+                      help='Explicitly enable or disable the simulator.')
   return result.parse_args()
 
 

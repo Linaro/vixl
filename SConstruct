@@ -26,6 +26,7 @@
 
 import os
 import os.path
+import platform
 import subprocess
 import sys
 
@@ -33,10 +34,24 @@ root_dir = os.path.dirname(File('SConstruct').rfile().abspath)
 sys.path.insert(0, os.path.join(root_dir, 'tools'))
 import util
 
+
+Help('''
+Build system for the VIXL project.
+See README.md for documentation and details about the build system.
+Some common build targets are:
+    scons            # Build the VIXL library and test utility.
+    scons examples   # Build all the examples.
+    scons benchmarks # Build all the benchmarks.
+    scons all        # Build everything.
+
+''')
+
+
 # Global configuration.
 PROJ_SRC_DIR   = 'src'
 PROJ_SRC_FILES = '''
 src/utils.cc
+src/code-buffer.cc
 src/a64/assembler-a64.cc
 src/a64/macro-assembler-a64.cc
 src/a64/instructions-a64.cc
@@ -60,6 +75,8 @@ examples/swap4.cc
 examples/swap-int32.cc
 examples/check-bounds.cc
 examples/getting-started.cc
+examples/non-const-visitor.cc
+examples/custom-disassembler.cc
 '''.split()
 # List target specific files.
 # Target names are used as dictionary entries.
@@ -114,9 +131,9 @@ def create_variant(obj_dir, targets_dir):
 args = Variables()
 args.Add(EnumVariable('mode', 'Build mode', 'release',
                       allowed_values = ['release', 'debug']))
-args.Add(EnumVariable('simulator', 'build for the simulator', 'on',
+sim_default = 'off' if platform.machine() == 'aarch64' else 'on'
+args.Add(EnumVariable('simulator', 'build for the simulator', sim_default,
                       allowed_values = ['on', 'off']))
-args.Add(BoolVariable('list_targets', 'List top level targets available.', 0))
 
 # Configure the environment.
 create_variant(RELEASE_OBJ_DIR, TARGET_SRC_DIR)
@@ -124,7 +141,7 @@ create_variant(DEBUG_OBJ_DIR, TARGET_SRC_DIR)
 env = Environment(variables=args)
 
 # Commandline help.
-Help(args.GenerateHelpText(env))
+Help(args.GenerateHelpText(env) + '\n')
 
 # Abort if any invalid argument was passed.
 # This check must happened after an environment is created.
@@ -237,10 +254,7 @@ create_alias('examples', examples)
 # Create a simple alias to build everything with the current options.
 create_alias('all', targets)
 
-if env['list_targets']:
-  print 'Available targets:'
-  print '\t' + '\n\t'.join(target_alias_names)
-  sys.exit(0);
+Help('Available top level targets:\n' + '\t' + '\n\t'.join(target_alias_names) + '\n')
 
 # By default, only build the cctests.
 Default(libvixl, cctest)

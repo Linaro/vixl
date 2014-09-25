@@ -245,12 +245,12 @@ class Simulator : public DecoderVisitor {
 
   // Run the simulator.
   virtual void Run();
-  void RunFrom(Instruction* first);
+  void RunFrom(const Instruction* first);
 
   // Simulation helpers.
-  inline Instruction* pc() { return pc_; }
-  inline void set_pc(Instruction* new_pc) {
-    pc_ = new_pc;
+  inline const Instruction* pc() const { return pc_; }
+  inline void set_pc(const Instruction* new_pc) {
+    pc_ = AddressUntag(new_pc);
     pc_modified_ = true;
   }
 
@@ -270,7 +270,7 @@ class Simulator : public DecoderVisitor {
   }
 
   // Declare all Visitor functions.
-  #define DECLARE(A)  void Visit##A(Instruction* instr);
+  #define DECLARE(A)  void Visit##A(const Instruction* instr);
   VISITOR_LIST(DECLARE)
   #undef DECLARE
 
@@ -592,18 +592,18 @@ class Simulator : public DecoderVisitor {
     return !ConditionPassed(cond);
   }
 
-  void AddSubHelper(Instruction* instr, int64_t op2);
+  void AddSubHelper(const Instruction* instr, int64_t op2);
   int64_t AddWithCarry(unsigned reg_size,
                        bool set_flags,
                        int64_t src1,
                        int64_t src2,
                        int64_t carry_in = 0);
-  void LogicalHelper(Instruction* instr, int64_t op2);
-  void ConditionalCompareHelper(Instruction* instr, int64_t op2);
-  void LoadStoreHelper(Instruction* instr,
+  void LogicalHelper(const Instruction* instr, int64_t op2);
+  void ConditionalCompareHelper(const Instruction* instr, int64_t op2);
+  void LoadStoreHelper(const Instruction* instr,
                        int64_t offset,
                        AddrMode addrmode);
-  void LoadStorePairHelper(Instruction* instr, AddrMode addrmode);
+  void LoadStorePairHelper(const Instruction* instr, AddrMode addrmode);
   uint8_t* AddressModeHelper(unsigned addr_reg,
                              int64_t offset,
                              AddrMode addrmode);
@@ -702,7 +702,7 @@ class Simulator : public DecoderVisitor {
   template <typename T>
   T FPProcessNaN(T op);
 
-  bool FPProcessNaNs(Instruction* instr);
+  bool FPProcessNaNs(const Instruction* instr);
 
   template <typename T>
   T FPProcessNaNs(T op1, T op2);
@@ -711,7 +711,7 @@ class Simulator : public DecoderVisitor {
   T FPProcessNaNs3(T op1, T op2, T op3);
 
   // Pseudo Printf instruction
-  void DoPrintf(Instruction* instr);
+  void DoPrintf(const Instruction* instr);
 
   // Processor state ---------------------------------------
 
@@ -776,7 +776,7 @@ class Simulator : public DecoderVisitor {
   // Indicates if the pc has been modified by the instruction and should not be
   // automatically incremented.
   bool pc_modified_;
-  Instruction* pc_;
+  const Instruction* pc_;
 
   static const char* xreg_names[];
   static const char* wreg_names[];

@@ -251,7 +251,7 @@ void Instrument::Disable() {
 }
 
 
-void Instrument::VisitPCRelAddressing(Instruction* instr) {
+void Instrument::VisitPCRelAddressing(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("PC Addressing");
@@ -259,7 +259,7 @@ void Instrument::VisitPCRelAddressing(Instruction* instr) {
 }
 
 
-void Instrument::VisitAddSubImmediate(Instruction* instr) {
+void Instrument::VisitAddSubImmediate(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Add/Sub DP");
@@ -267,7 +267,7 @@ void Instrument::VisitAddSubImmediate(Instruction* instr) {
 }
 
 
-void Instrument::VisitLogicalImmediate(Instruction* instr) {
+void Instrument::VisitLogicalImmediate(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Logical DP");
@@ -275,7 +275,7 @@ void Instrument::VisitLogicalImmediate(Instruction* instr) {
 }
 
 
-void Instrument::VisitMoveWideImmediate(Instruction* instr) {
+void Instrument::VisitMoveWideImmediate(const Instruction* instr) {
   Update();
   static Counter* counter = GetCounter("Move Immediate");
 
@@ -288,7 +288,7 @@ void Instrument::VisitMoveWideImmediate(Instruction* instr) {
 }
 
 
-void Instrument::VisitBitfield(Instruction* instr) {
+void Instrument::VisitBitfield(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Other Int DP");
@@ -296,7 +296,7 @@ void Instrument::VisitBitfield(Instruction* instr) {
 }
 
 
-void Instrument::VisitExtract(Instruction* instr) {
+void Instrument::VisitExtract(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Other Int DP");
@@ -304,7 +304,7 @@ void Instrument::VisitExtract(Instruction* instr) {
 }
 
 
-void Instrument::VisitUnconditionalBranch(Instruction* instr) {
+void Instrument::VisitUnconditionalBranch(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Unconditional Branch");
@@ -312,7 +312,7 @@ void Instrument::VisitUnconditionalBranch(Instruction* instr) {
 }
 
 
-void Instrument::VisitUnconditionalBranchToRegister(Instruction* instr) {
+void Instrument::VisitUnconditionalBranchToRegister(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Unconditional Branch");
@@ -320,7 +320,7 @@ void Instrument::VisitUnconditionalBranchToRegister(Instruction* instr) {
 }
 
 
-void Instrument::VisitCompareBranch(Instruction* instr) {
+void Instrument::VisitCompareBranch(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Compare and Branch");
@@ -328,7 +328,7 @@ void Instrument::VisitCompareBranch(Instruction* instr) {
 }
 
 
-void Instrument::VisitTestBranch(Instruction* instr) {
+void Instrument::VisitTestBranch(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Test and Branch");
@@ -336,7 +336,7 @@ void Instrument::VisitTestBranch(Instruction* instr) {
 }
 
 
-void Instrument::VisitConditionalBranch(Instruction* instr) {
+void Instrument::VisitConditionalBranch(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Conditional Branch");
@@ -344,7 +344,7 @@ void Instrument::VisitConditionalBranch(Instruction* instr) {
 }
 
 
-void Instrument::VisitSystem(Instruction* instr) {
+void Instrument::VisitSystem(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Other");
@@ -352,7 +352,7 @@ void Instrument::VisitSystem(Instruction* instr) {
 }
 
 
-void Instrument::VisitException(Instruction* instr) {
+void Instrument::VisitException(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Other");
@@ -360,7 +360,7 @@ void Instrument::VisitException(Instruction* instr) {
 }
 
 
-void Instrument::InstrumentLoadStorePair(Instruction* instr) {
+void Instrument::InstrumentLoadStorePair(const Instruction* instr) {
   static Counter* load_pair_counter = GetCounter("Load Pair");
   static Counter* store_pair_counter = GetCounter("Store Pair");
 
@@ -372,31 +372,31 @@ void Instrument::InstrumentLoadStorePair(Instruction* instr) {
 }
 
 
-void Instrument::VisitLoadStorePairPostIndex(Instruction* instr) {
+void Instrument::VisitLoadStorePairPostIndex(const Instruction* instr) {
   Update();
   InstrumentLoadStorePair(instr);
 }
 
 
-void Instrument::VisitLoadStorePairOffset(Instruction* instr) {
+void Instrument::VisitLoadStorePairOffset(const Instruction* instr) {
   Update();
   InstrumentLoadStorePair(instr);
 }
 
 
-void Instrument::VisitLoadStorePairPreIndex(Instruction* instr) {
+void Instrument::VisitLoadStorePairPreIndex(const Instruction* instr) {
   Update();
   InstrumentLoadStorePair(instr);
 }
 
 
-void Instrument::VisitLoadStorePairNonTemporal(Instruction* instr) {
+void Instrument::VisitLoadStorePairNonTemporal(const Instruction* instr) {
   Update();
   InstrumentLoadStorePair(instr);
 }
 
 
-void Instrument::VisitLoadStoreExclusive(Instruction* instr) {
+void Instrument::VisitLoadStoreExclusive(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Other");
@@ -404,7 +404,7 @@ void Instrument::VisitLoadStoreExclusive(Instruction* instr) {
 }
 
 
-void Instrument::VisitLoadLiteral(Instruction* instr) {
+void Instrument::VisitLoadLiteral(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Load Literal");
@@ -412,7 +412,7 @@ void Instrument::VisitLoadLiteral(Instruction* instr) {
 }
 
 
-void Instrument::InstrumentLoadStore(Instruction* instr) {
+void Instrument::InstrumentLoadStore(const Instruction* instr) {
   static Counter* load_int_counter = GetCounter("Load Integer");
   static Counter* store_int_counter = GetCounter("Store Integer");
   static Counter* load_fp_counter = GetCounter("Load FP");
@@ -440,38 +440,38 @@ void Instrument::InstrumentLoadStore(Instruction* instr) {
 }
 
 
-void Instrument::VisitLoadStoreUnscaledOffset(Instruction* instr) {
+void Instrument::VisitLoadStoreUnscaledOffset(const Instruction* instr) {
   Update();
   InstrumentLoadStore(instr);
 }
 
 
-void Instrument::VisitLoadStorePostIndex(Instruction* instr) {
+void Instrument::VisitLoadStorePostIndex(const Instruction* instr) {
   USE(instr);
   Update();
   InstrumentLoadStore(instr);
 }
 
 
-void Instrument::VisitLoadStorePreIndex(Instruction* instr) {
+void Instrument::VisitLoadStorePreIndex(const Instruction* instr) {
   Update();
   InstrumentLoadStore(instr);
 }
 
 
-void Instrument::VisitLoadStoreRegisterOffset(Instruction* instr) {
+void Instrument::VisitLoadStoreRegisterOffset(const Instruction* instr) {
   Update();
   InstrumentLoadStore(instr);
 }
 
 
-void Instrument::VisitLoadStoreUnsignedOffset(Instruction* instr) {
+void Instrument::VisitLoadStoreUnsignedOffset(const Instruction* instr) {
   Update();
   InstrumentLoadStore(instr);
 }
 
 
-void Instrument::VisitLogicalShifted(Instruction* instr) {
+void Instrument::VisitLogicalShifted(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Logical DP");
@@ -479,7 +479,7 @@ void Instrument::VisitLogicalShifted(Instruction* instr) {
 }
 
 
-void Instrument::VisitAddSubShifted(Instruction* instr) {
+void Instrument::VisitAddSubShifted(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Add/Sub DP");
@@ -487,7 +487,7 @@ void Instrument::VisitAddSubShifted(Instruction* instr) {
 }
 
 
-void Instrument::VisitAddSubExtended(Instruction* instr) {
+void Instrument::VisitAddSubExtended(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Add/Sub DP");
@@ -495,7 +495,7 @@ void Instrument::VisitAddSubExtended(Instruction* instr) {
 }
 
 
-void Instrument::VisitAddSubWithCarry(Instruction* instr) {
+void Instrument::VisitAddSubWithCarry(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Add/Sub DP");
@@ -503,7 +503,7 @@ void Instrument::VisitAddSubWithCarry(Instruction* instr) {
 }
 
 
-void Instrument::VisitConditionalCompareRegister(Instruction* instr) {
+void Instrument::VisitConditionalCompareRegister(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Conditional Compare");
@@ -511,7 +511,7 @@ void Instrument::VisitConditionalCompareRegister(Instruction* instr) {
 }
 
 
-void Instrument::VisitConditionalCompareImmediate(Instruction* instr) {
+void Instrument::VisitConditionalCompareImmediate(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Conditional Compare");
@@ -519,7 +519,7 @@ void Instrument::VisitConditionalCompareImmediate(Instruction* instr) {
 }
 
 
-void Instrument::VisitConditionalSelect(Instruction* instr) {
+void Instrument::VisitConditionalSelect(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Conditional Select");
@@ -527,7 +527,7 @@ void Instrument::VisitConditionalSelect(Instruction* instr) {
 }
 
 
-void Instrument::VisitDataProcessing1Source(Instruction* instr) {
+void Instrument::VisitDataProcessing1Source(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Other Int DP");
@@ -535,7 +535,7 @@ void Instrument::VisitDataProcessing1Source(Instruction* instr) {
 }
 
 
-void Instrument::VisitDataProcessing2Source(Instruction* instr) {
+void Instrument::VisitDataProcessing2Source(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Other Int DP");
@@ -543,7 +543,7 @@ void Instrument::VisitDataProcessing2Source(Instruction* instr) {
 }
 
 
-void Instrument::VisitDataProcessing3Source(Instruction* instr) {
+void Instrument::VisitDataProcessing3Source(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Other Int DP");
@@ -551,7 +551,7 @@ void Instrument::VisitDataProcessing3Source(Instruction* instr) {
 }
 
 
-void Instrument::VisitFPCompare(Instruction* instr) {
+void Instrument::VisitFPCompare(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("FP DP");
@@ -559,7 +559,7 @@ void Instrument::VisitFPCompare(Instruction* instr) {
 }
 
 
-void Instrument::VisitFPConditionalCompare(Instruction* instr) {
+void Instrument::VisitFPConditionalCompare(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Conditional Compare");
@@ -567,7 +567,7 @@ void Instrument::VisitFPConditionalCompare(Instruction* instr) {
 }
 
 
-void Instrument::VisitFPConditionalSelect(Instruction* instr) {
+void Instrument::VisitFPConditionalSelect(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Conditional Select");
@@ -575,7 +575,7 @@ void Instrument::VisitFPConditionalSelect(Instruction* instr) {
 }
 
 
-void Instrument::VisitFPImmediate(Instruction* instr) {
+void Instrument::VisitFPImmediate(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("FP DP");
@@ -583,7 +583,7 @@ void Instrument::VisitFPImmediate(Instruction* instr) {
 }
 
 
-void Instrument::VisitFPDataProcessing1Source(Instruction* instr) {
+void Instrument::VisitFPDataProcessing1Source(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("FP DP");
@@ -591,7 +591,7 @@ void Instrument::VisitFPDataProcessing1Source(Instruction* instr) {
 }
 
 
-void Instrument::VisitFPDataProcessing2Source(Instruction* instr) {
+void Instrument::VisitFPDataProcessing2Source(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("FP DP");
@@ -599,7 +599,7 @@ void Instrument::VisitFPDataProcessing2Source(Instruction* instr) {
 }
 
 
-void Instrument::VisitFPDataProcessing3Source(Instruction* instr) {
+void Instrument::VisitFPDataProcessing3Source(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("FP DP");
@@ -607,7 +607,7 @@ void Instrument::VisitFPDataProcessing3Source(Instruction* instr) {
 }
 
 
-void Instrument::VisitFPIntegerConvert(Instruction* instr) {
+void Instrument::VisitFPIntegerConvert(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("FP DP");
@@ -615,7 +615,7 @@ void Instrument::VisitFPIntegerConvert(Instruction* instr) {
 }
 
 
-void Instrument::VisitFPFixedPointConvert(Instruction* instr) {
+void Instrument::VisitFPFixedPointConvert(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("FP DP");
@@ -623,7 +623,7 @@ void Instrument::VisitFPFixedPointConvert(Instruction* instr) {
 }
 
 
-void Instrument::VisitUnallocated(Instruction* instr) {
+void Instrument::VisitUnallocated(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Other");
@@ -631,7 +631,7 @@ void Instrument::VisitUnallocated(Instruction* instr) {
 }
 
 
-void Instrument::VisitUnimplemented(Instruction* instr) {
+void Instrument::VisitUnimplemented(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("Other");

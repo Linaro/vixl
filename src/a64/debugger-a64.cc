@@ -548,19 +548,19 @@ void Debugger::Run() {
 }
 
 
-void Debugger::PrintInstructions(void* address, int64_t count) {
+void Debugger::PrintInstructions(const void* address, int64_t count) {
   if (count == 0) {
     return;
   }
 
-  Instruction* from = Instruction::Cast(address);
+  const Instruction* from = Instruction::CastConst(address);
   if (count < 0) {
     count = -count;
     from -= (count - 1) * kInstructionSize;
   }
-  Instruction* to = from + count * kInstructionSize;
+  const Instruction* to = from + count * kInstructionSize;
 
-  for (Instruction* current = from;
+  for (const Instruction* current = from;
        current < to;
        current = current->NextInstruction()) {
     printer_->Decode(current);
@@ -644,7 +644,7 @@ void Debugger::PrintFPRegister(const FPRegister& target_fpreg,
 }
 
 
-void Debugger::VisitException(Instruction* instr) {
+void Debugger::VisitException(const Instruction* instr) {
   switch (instr->Mask(ExceptionMask)) {
     case BRK:
       DoBreakpoint(instr);
@@ -761,27 +761,27 @@ void Debugger::RunDebuggerShell() {
 }
 
 
-void Debugger::DoBreakpoint(Instruction* instr) {
+void Debugger::DoBreakpoint(const Instruction* instr) {
   VIXL_ASSERT(instr->Mask(ExceptionMask) == BRK);
 
-  printf("Hit breakpoint at pc=%p.\n", reinterpret_cast<void*>(instr));
+  printf("Hit breakpoint at pc=%p.\n", reinterpret_cast<const void*>(instr));
   set_debug_parameters(debug_parameters() | DBG_BREAK | DBG_ACTIVE);
   // Make the shell point to the brk instruction.
   set_pc(instr);
 }
 
 
-void Debugger::DoUnreachable(Instruction* instr) {
+void Debugger::DoUnreachable(const Instruction* instr) {
   VIXL_ASSERT((instr->Mask(ExceptionMask) == HLT) &&
               (instr->ImmException() == kUnreachableOpcode));
 
   fprintf(stream_, "Hit UNREACHABLE marker at pc=%p.\n",
-          reinterpret_cast<void*>(instr));
+          reinterpret_cast<const void*>(instr));
   abort();
 }
 
 
-void Debugger::DoTrace(Instruction* instr) {
+void Debugger::DoTrace(const Instruction* instr) {
   VIXL_ASSERT((instr->Mask(ExceptionMask) == HLT) &&
               (instr->ImmException() == kTraceOpcode));
 
@@ -808,7 +808,7 @@ void Debugger::DoTrace(Instruction* instr) {
 }
 
 
-void Debugger::DoLog(Instruction* instr) {
+void Debugger::DoLog(const Instruction* instr) {
   VIXL_ASSERT((instr->Mask(ExceptionMask) == HLT) &&
               (instr->ImmException() == kLogOpcode));
 
@@ -1009,7 +1009,7 @@ Token* FPRegisterToken::Tokenize(const char* arg) {
 
 uint8_t* IdentifierToken::ToAddress(Debugger* debugger) const {
   VIXL_ASSERT(CanAddressMemory());
-  Instruction* pc_value = debugger->pc();
+  const Instruction* pc_value = debugger->pc();
   uint8_t* address = NULL;
   memcpy(&address, &pc_value, sizeof(address));
   return address;
@@ -1370,7 +1370,7 @@ bool PrintCommand::Run(Debugger* debugger) {
     } else if (strcmp(identifier, "sysregs") == 0) {
       debugger->PrintSystemRegisters(true);
     } else if (strcmp(identifier, "pc") == 0) {
-      printf("pc = %16p\n", reinterpret_cast<void*>(debugger->pc()));
+      printf("pc = %16p\n", reinterpret_cast<const void*>(debugger->pc()));
     } else {
       printf(" ** Unknown identifier to print: %s **\n", identifier);
     }

@@ -268,7 +268,7 @@ Operand Operand::ToExtendedRegister() const {
 
 
 // MemOperand
-MemOperand::MemOperand(Register base, ptrdiff_t offset, AddrMode addrmode)
+MemOperand::MemOperand(Register base, int64_t offset, AddrMode addrmode)
   : base_(base), regoffset_(NoReg), offset_(offset), addrmode_(addrmode) {
   VIXL_ASSERT(base.Is64Bits() && !base.IsZero());
 }
@@ -360,50 +360,55 @@ bool MemOperand::IsPostIndex() const {
 
 
 // Assembler
-Assembler::Assembler(byte* buffer, unsigned buffer_size,
+Assembler::Assembler(byte* buffer, size_t capacity,
                      PositionIndependentCodeOption pic)
-    : buffer_size_(buffer_size), literal_pool_monitor_(0), pic_(pic) {
-
-  buffer_ = reinterpret_cast<Instruction*>(buffer);
-  pc_ = buffer_;
-  Reset();
+    : pic_(pic) {
+#ifdef DEBUG
+  buffer_monitor_ = 0;
+#endif
+  buffer_ = new CodeBuffer(buffer, capacity);
 }
 
 
+Assembler::Assembler(size_t capacity, PositionIndependentCodeOption pic)
+    : pic_(pic) {
+#ifdef DEBUG
+  buffer_monitor_ = 0;
+#endif
+  buffer_ = new CodeBuffer(capacity);
+}
+
 Assembler::~Assembler() {
-  VIXL_ASSERT(finalized_ || (pc_ == buffer_));
-  VIXL_ASSERT(literals_.empty());
+  VIXL_ASSERT(buffer_monitor_ == 0);
+  delete buffer_;
 }
 
 
 void Assembler::Reset() {
-#ifdef DEBUG
-  VIXL_ASSERT((pc_ >= buffer_) && (pc_ < buffer_ + buffer_size_));
-  VIXL_ASSERT(literal_pool_monitor_ == 0);
-  memset(buffer_, 0, pc_ - buffer_);
-  finalized_ = false;
-#endif
-  pc_ = buffer_;
-  literals_.clear();
-  next_literal_pool_check_ = pc_ + kLiteralPoolCheckInterval;
+  buffer_->Reset();
 }
 
 
 void Assembler::FinalizeCode() {
-  EmitLiteralPool();
-#ifdef DEBUG
-  finalized_ = true;
-#endif
+  buffer_->SetClean();
 }
 
 
 void Assembler::bind(Label* label) {
-  label->Bind(pc_ - buffer_);
-  VIXL_ASSERT(GetLabelAddress<Instruction*>(label) == pc_);
+  BindToOffset(label, buffer_->CursorOffset());
+}
+
+
+void Assembler::BindToOffset(Label* label, ptrdiff_t offset) {
+  VIXL_ASSERT((offset >= 0) && (offset <= buffer_->CursorOffset()));
+  VIXL_ASSERT(offset % kInstructionSize == 0);
+
+  label->Bind(offset);
 
   while (label->IsLinked()) {
-    Instruction * link = buffer_ + label->GetAndRemoveNextLink();
-    link->SetImmPCOffsetTarget(buffer_ + label->location());
+    Instruction* link =
+        GetOffsetAddress<Instruction*>(label->GetAndRemoveNextLink());
+    link->SetImmPCOffsetTarget(GetLabelAddress<Instruction*>(label));
   }
 }
 
@@ -411,33 +416,83 @@ void Assembler::bind(Label* label) {
 // A common implementation for the LinkAndGet<Type>OffsetTo helpers.
 //
 // The offset is calculated by aligning the PC and label addresses down to a
-// multiple of element_size, then calculating the (scaled) offset between them.
-// This matches the semantics of adrp, for example.
-template <int element_size>
+// multiple of 1 << element_shift, then calculating the (scaled) offset between
+// them. This matches the semantics of adrp, for example.
+template <int element_shift>
 ptrdiff_t Assembler::LinkAndGetOffsetTo(Label* label) {
+  VIXL_STATIC_ASSERT(element_shift < (sizeof(ptrdiff_t) * 8));
+
   if (label->IsBound()) {
-    uintptr_t pc_offset = reinterpret_cast<uintptr_t>(pc_) / element_size;
-    uintptr_t label_offset = GetLabelAddress<uintptr_t>(label) / element_size;
+    uintptr_t pc_offset = GetCursorAddress<uintptr_t>() >> element_shift;
+    uintptr_t label_offset =
+        GetLabelAddress<uintptr_t>(label) >> element_shift;
     return label_offset - pc_offset;
   } else {
-    label->AddLink(pc_ - buffer_);
+    label->AddLink(buffer_->CursorOffset());
     return 0;
   }
 }
 
 
 ptrdiff_t Assembler::LinkAndGetByteOffsetTo(Label* label) {
-  return LinkAndGetOffsetTo<1>(label);
+  return LinkAndGetOffsetTo<0>(label);
 }
 
 
 ptrdiff_t Assembler::LinkAndGetInstructionOffsetTo(Label* label) {
-  return LinkAndGetOffsetTo<kInstructionSize>(label);
+  return LinkAndGetOffsetTo<kInstructionSizeLog2>(label);
 }
 
 
 ptrdiff_t Assembler::LinkAndGetPageOffsetTo(Label* label) {
-  return LinkAndGetOffsetTo<kPageSize>(label);
+  return LinkAndGetOffsetTo<kPageSizeLog2>(label);
+}
+
+
+void Assembler::place(RawLiteral* literal) {
+  VIXL_ASSERT(!literal->IsPlaced());
+
+  // Patch instructions using this literal.
+  if (literal->IsUsed()) {
+    Instruction* target = GetCursorAddress<Instruction*>();
+    ptrdiff_t offset = literal->last_use();
+
+    while (offset != 0) {
+      Instruction* ldr = GetOffsetAddress<Instruction*>(offset);
+      offset = ldr->ImmLLiteral();
+      ldr->SetImmLLiteral(target);
+    }
+  }
+
+  // "bind" the literal.
+  literal->set_offset(CursorOffset());
+  // Copy the data into the pool.
+  if (literal->size() == kXRegSizeInBytes) {
+    dc64(literal->raw_value64());
+  } else {
+    VIXL_ASSERT(literal->size() == kWRegSizeInBytes);
+    dc32(literal->raw_value32());
+  }
+}
+
+
+ptrdiff_t Assembler::LinkAndGetWordOffsetTo(RawLiteral* literal) {
+  VIXL_ASSERT(IsWordAligned(CursorOffset()));
+
+  if (literal->IsPlaced()) {
+    // The literal is "behind", the offset will be negative.
+    VIXL_ASSERT((literal->offset() - CursorOffset()) <= 0);
+    return (literal->offset() - CursorOffset()) >> kLiteralEntrySizeLog2;
+  }
+
+  ptrdiff_t offset = 0;
+  // Link all uses together.
+  if (literal->IsUsed()) {
+    offset = (literal->last_use() - CursorOffset()) >> kLiteralEntrySizeLog2;
+  }
+  literal->set_last_use(CursorOffset());
+
+  return offset;
 }
 
 
@@ -1274,20 +1329,27 @@ void Assembler::ldursw(const Register& rt, const MemOperand& src,
 }
 
 
-void Assembler::ldr(const Register& rt, uint64_t imm) {
-  LoadLiteral(rt, imm, rt.Is64Bits() ? LDR_x_lit : LDR_w_lit);
+void Assembler::ldrsw(const Register& rt, RawLiteral* literal) {
+  VIXL_ASSERT(rt.Is64Bits());
+  VIXL_ASSERT(literal->size() == kWRegSizeInBytes);
+  ldrsw(rt, LinkAndGetWordOffsetTo(literal));
 }
 
 
-void Assembler::ldr(const FPRegister& ft, double imm) {
-  VIXL_ASSERT(ft.Is64Bits());
-  LoadLiteral(ft, double_to_rawbits(imm), LDR_d_lit);
+void Assembler::ldr(const CPURegister& rt, RawLiteral* literal) {
+  VIXL_ASSERT(literal->size() == static_cast<size_t>(rt.SizeInBytes()));
+  ldr(rt, LinkAndGetWordOffsetTo(literal));
 }
 
 
-void Assembler::ldr(const FPRegister& ft, float imm) {
-  VIXL_ASSERT(ft.Is32Bits());
-  LoadLiteral(ft, float_to_rawbits(imm), LDR_s_lit);
+void Assembler::ldrsw(const Register& rt, int imm19) {
+  Emit(LDRSW_x_lit | ImmLLiteral(imm19) | Rt(rt));
+}
+
+
+void Assembler::ldr(const CPURegister& rt, int imm19) {
+  LoadLiteralOp op = LoadLiteralOpFor(rt);
+  Emit(op | ImmLLiteral(imm19) | Rt(rt));
 }
 
 
@@ -1961,10 +2023,11 @@ void Assembler::brk(int code) {
   Emit(BRK | ImmException(code));
 }
 
-
+// TODO(all): The third parameter should be passed by reference but gcc 4.8.2
+// reports a bogus uninitialised warning then.
 void Assembler::Logical(const Register& rd,
                         const Register& rn,
-                        const Operand& operand,
+                        const Operand operand,
                         LogicalOp op) {
   VIXL_ASSERT(rd.size() == rn.size());
   if (operand.IsImmediate()) {
@@ -2161,7 +2224,7 @@ void Assembler::LoadStore(const CPURegister& rt,
                           LoadStoreOp op,
                           LoadStoreScalingOption option) {
   Instr memop = op | Rt(rt) | RnSP(addr.base());
-  ptrdiff_t offset = addr.offset();
+  int64_t offset = addr.offset();
   LSDataSize size = CalcLSDataSize(op);
 
   if (addr.IsImmediateOffset()) {
@@ -2226,25 +2289,20 @@ void Assembler::LoadStore(const CPURegister& rt,
 }
 
 
-bool Assembler::IsImmLSUnscaled(ptrdiff_t offset) {
+bool Assembler::IsImmLSUnscaled(int64_t offset) {
   return is_int9(offset);
 }
 
 
-bool Assembler::IsImmLSScaled(ptrdiff_t offset, LSDataSize size) {
+bool Assembler::IsImmLSScaled(int64_t offset, LSDataSize size) {
   bool offset_is_size_multiple = (((offset >> size) << size) == offset);
   return offset_is_size_multiple && is_uint12(offset >> size);
 }
 
 
-void Assembler::LoadLiteral(const CPURegister& rt,
-                            uint64_t imm,
-                            LoadLiteralOp op) {
-  VIXL_ASSERT(is_int32(imm) || is_uint32(imm) || (rt.Is64Bits()));
-
-  BlockLiteralPoolScope scope(this);
-  RecordLiteral(imm, rt.SizeInBytes());
-  Emit(op | ImmLLiteral(0) | Rt(rt));
+bool Assembler::IsImmLSPair(int64_t offset, LSDataSize size) {
+  bool offset_is_size_multiple = (((offset >> size) << size) == offset);
+  return offset_is_size_multiple && is_int7(offset >> size);
 }
 
 
@@ -2582,112 +2640,13 @@ LoadStorePairNonTemporalOp Assembler::StorePairNonTemporalOpFor(
 }
 
 
-void Assembler::RecordLiteral(int64_t imm, unsigned size) {
-  literals_.push_front(new Literal(pc_, imm, size));
-}
-
-
-// Check if a literal pool should be emitted. Currently a literal is emitted
-// when:
-//  * the distance to the first literal load handled by this pool is greater
-//    than the recommended distance and the literal pool can be emitted without
-//    generating a jump over it.
-//  * the distance to the first literal load handled by this pool is greater
-//    than twice the recommended distance.
-// TODO: refine this heuristic using real world data.
-void Assembler::CheckLiteralPool(LiteralPoolEmitOption option) {
-  if (IsLiteralPoolBlocked()) {
-    // Literal pool emission is forbidden, no point in doing further checks.
-    return;
+LoadLiteralOp Assembler::LoadLiteralOpFor(const CPURegister& rt) {
+  if (rt.IsRegister()) {
+    return rt.Is64Bits() ? LDR_x_lit : LDR_w_lit;
+  } else {
+    VIXL_ASSERT(rt.IsFPRegister());
+    return rt.Is64Bits() ? LDR_d_lit : LDR_s_lit;
   }
-
-  if (literals_.empty()) {
-    // No literal pool to emit.
-    next_literal_pool_check_ += kLiteralPoolCheckInterval;
-    return;
-  }
-
-  intptr_t distance = pc_ - literals_.back()->pc_;
-  if ((distance < kRecommendedLiteralPoolRange) ||
-      ((option == JumpRequired) &&
-       (distance < (2 * kRecommendedLiteralPoolRange)))) {
-    // We prefer not to have to jump over the literal pool.
-    next_literal_pool_check_ += kLiteralPoolCheckInterval;
-    return;
-  }
-
-  EmitLiteralPool(option);
-}
-
-
-void Assembler::EmitLiteralPool(LiteralPoolEmitOption option) {
-  // Exit early if there are no literals to emit.
-  if (literals_.empty()) return;
-
-  // Prevent recursive calls while emitting the literal pool.
-  BlockLiteralPoolScope scope(this);
-
-  Label marker;
-  Label start_of_pool;
-  Label end_of_pool;
-
-  if (option == JumpRequired) {
-    b(&end_of_pool);
-  }
-
-  // Leave space for a literal pool marker. This is populated later, once the
-  // size of the pool is known.
-  bind(&marker);
-  nop();
-
-  // Now populate the literal pool.
-  bind(&start_of_pool);
-  std::list<Literal*>::iterator it;
-  for (it = literals_.begin(); it != literals_.end(); it++) {
-    // Update the load-literal instruction to point to this pool entry.
-    Instruction* load_literal = (*it)->pc_;
-    load_literal->SetImmLLiteral(pc_);
-    // Copy the data into the pool.
-    uint64_t value= (*it)->value_;
-    unsigned size = (*it)->size_;
-    VIXL_ASSERT((size == kXRegSizeInBytes) || (size == kWRegSizeInBytes));
-    VIXL_ASSERT((pc_ + size) <= (buffer_ + buffer_size_));
-    memcpy(pc_, &value, size);
-    pc_ += size;
-    delete *it;
-  }
-  literals_.clear();
-  bind(&end_of_pool);
-
-  // The pool size should always be a multiple of four bytes because that is the
-  // scaling applied by the LDR(literal) instruction, even for X-register loads.
-  VIXL_ASSERT((SizeOfCodeGeneratedSince(&start_of_pool) % 4) == 0);
-  uint64_t pool_size = SizeOfCodeGeneratedSince(&start_of_pool) / 4;
-
-  // Literal pool marker indicating the size in words of the literal pool.
-  // We use a literal load to the zero register, the offset indicating the
-  // size in words. This instruction can encode a large enough offset to span
-  // the entire pool at its maximum size.
-  Instr marker_instruction = LDR_x_lit | ImmLLiteral(pool_size) | Rt(xzr);
-  memcpy(GetLabelAddress<void*>(&marker),
-         &marker_instruction,
-         kInstructionSize);
-
-  next_literal_pool_check_ = pc_ + kLiteralPoolCheckInterval;
-}
-
-
-// Return the size in bytes, required by the literal pool entries. This does
-// not include any marker or branch over the literal pool itself.
-size_t Assembler::LiteralPoolSize() {
-  size_t size = 0;
-
-  std::list<Literal*>::iterator it;
-  for (it = literals_.begin(); it != literals_.end(); it++) {
-    size += (*it)->size_;
-  }
-
-  return size;
 }
 
 

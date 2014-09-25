@@ -30,7 +30,7 @@
 my $hfile = "src/a64/assembler-a64.h";
 
 # Extra pseudo instructions added to AArch64.
-my @extras = qw/bind debug dci dc32 dc64/;
+my @extras = qw/bind debug dci dc32 dc64 place/;
 
 my %inst = ();  # Global hash of instructions.
 

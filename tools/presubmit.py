@@ -61,8 +61,7 @@ def BuildOptions():
   sim_default = 'off' if platform.machine() == 'aarch64' else 'on'
   result.add_argument('--simulator', action='store', choices=['on', 'off'],
                       default=sim_default,
-                      help='''Explicitly enable or disable the simulator. On
-                      this system, the default is "''' + sim_default + '".')
+                      help='Explicitly enable or disable the simulator.')
   return result.parse_args()
 
 
@@ -135,7 +134,9 @@ class Cctest(Test):
       name += ' (%s)' % ('debugger' if debugger else 'simulator')
     Test.__init__(self, name)
 
-    self.cctest = './cctest_sim'
+    self.cctest = './cctest'
+    if simulator:
+        self.cctest += '_sim'
     if mode == 'debug':
       self.cctest += '_g'
 

@@ -24,23 +24,32 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// The examples only work with the simulator.
-#ifdef USE_SIMULATOR
-
 #include "a64/macro-assembler-a64.h"
 #include "a64/debugger-a64.h"
 #include "a64/simulator-a64.h"
 #include "examples.h"
+#include "non-const-visitor.h"
+#include "custom-disassembler.h"
 #include "../test-utils-a64.h"
 
 #include "../cctest.h"
 
-#define ARRAY_SIZE(Array) (sizeof(Array) / sizeof((Array)[0]))
-#define BUF_SIZE (4096)
-#define __ masm->
+#define TEST(name) TEST_(EXAMPLE_##name)
 
 using namespace vixl;
 
+
+TEST(custom_disassembler) {
+  TestCustomDisassembler();
+}
+
+
+// The tests below only work with the simulator.
+#ifdef USE_SIMULATOR
+
+#define ARRAY_SIZE(Array) (sizeof(Array) / sizeof((Array)[0]))
+#define BUF_SIZE (4096)
+#define __ masm->
 
 uint64_t FactorialC(uint64_t n) {
   uint64_t result = 1;
@@ -137,8 +146,7 @@ void GenerateTestWrapper(MacroAssembler* masm, RegisterDump *regs) {
   } while (0)
 
 #define START()                                             \
-  byte assm_buf[BUF_SIZE];                                  \
-  MacroAssembler masm(assm_buf, BUF_SIZE);                  \
+  MacroAssembler masm(BUF_SIZE);                            \
   Decoder decoder;                                          \
   Debugger simulator(&decoder);                             \
   simulator.set_coloured_trace(Cctest::coloured_trace());   \
@@ -160,8 +168,6 @@ void GenerateTestWrapper(MacroAssembler* masm, RegisterDump *regs) {
   GenerateTestWrapper(&masm, &regs);                        \
   masm.FinalizeCode()
 
-
-#define TEST(name) TEST_(EXAMPLE_##name)
 
 
 #define FACTORIAL_DOTEST(N)                                             \
@@ -414,6 +420,27 @@ TEST(getting_started) {
   GETTING_STARTED_DOTEST(0x0000000000000000);
   GETTING_STARTED_DOTEST(0xffffffffffffffff);
   GETTING_STARTED_DOTEST(0x5a5a5a5a5a5a5a5a);
+}
+
+
+TEST(non_const_visitor) {
+  byte assm_buf[BUF_SIZE];
+  MacroAssembler masm(assm_buf, BUF_SIZE);
+
+  Label code_start, code_end;
+  masm.Bind(&code_start);
+  GenerateNonConstVisitorTestCode(&masm);
+  masm.Bind(&code_end);
+  masm.FinalizeCode();
+  Instruction* instr_start = masm.GetLabelAddress<Instruction*>(&code_start);
+  Instruction* instr_end = masm.GetLabelAddress<Instruction*>(&code_end);
+
+  int64_t res_orig = RunNonConstVisitorTestGeneratedCode(instr_start);
+
+  ModifyNonConstVisitorTestGeneratedCode(instr_start, instr_end);
+
+  int64_t res_mod = RunNonConstVisitorTestGeneratedCode(instr_start);
+  assert(res_orig == -res_mod);
 }
 
 #endif  // USE_SIMULATOR

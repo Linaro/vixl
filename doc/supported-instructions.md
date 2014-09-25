@@ -507,9 +507,16 @@ Load word pair with sign extension.
 
 ### ldr ###
 
-Load double precision floating point literal to FP register.
+Load integer or FP register from literal pool.
 
-    void ldr(const FPRegister& ft, double imm)
+    void ldr(const CPURegister& rt, RawLiteral* literal)
+
+
+### ldr ###
+
+Load integer or FP register from pc + imm19 << 2.
+
+    void ldr(const CPURegister& rt, int imm19)
 
 
 ### ldr ###
@@ -518,20 +525,6 @@ Load integer or FP register.
 
     void ldr(const CPURegister& rt, const MemOperand& src,
              LoadStoreScalingOption option = PreferScaledOffset)
-
-
-### ldr ###
-
-Load literal to register.
-
-    void ldr(const Register& rt, uint64_t imm)
-
-
-### ldr ###
-
-Load single precision floating point literal to FP register.
-
-    void ldr(const FPRegister& ft, float imm)
 
 
 ### ldrb ###
@@ -564,6 +557,20 @@ Load half-word with sign extension.
 
     void ldrsh(const Register& rt, const MemOperand& src,
                LoadStoreScalingOption option = PreferScaledOffset)
+
+
+### ldrsw ###
+
+Load word with sign extension from literal pool.
+
+    void ldrsw(const Register& rt, RawLiteral* literal)
+
+
+### ldrsw ###
+
+Load word with sign extension from pc + imm19 << 2.
+
+    void ldrsw(const Register& rt, int imm19)
 
 
 ### ldrsw ###
@@ -1576,6 +1583,13 @@ Emit 64 bits of data into the instruction stream.
 Emit raw instructions into the instruction stream.
 
     inline void dci(Instr raw_inst)
+
+
+### place ###
+
+Place a literal at the current PC.
+
+    void place(RawLiteral* literal)
 
 
 
