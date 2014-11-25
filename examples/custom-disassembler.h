@@ -33,6 +33,10 @@ using namespace vixl;
 
 void TestCustomDisassembler();
 
+// We want to change three things in the disassembly:
+// - Add comments to some add/sub instructions.
+// - Use aliases for register names.
+// - Add descriptions for code addresses.
 class CustomDisassembler: public Disassembler {
  public:
   CustomDisassembler() : Disassembler() { }
@@ -41,13 +45,11 @@ class CustomDisassembler: public Disassembler {
   virtual void VisitAddSubShifted(const Instruction* instr);
 
  protected:
-  // We print custom register names.
   virtual void AppendRegisterNameToOutput(const Instruction* instr,
                                           const CPURegister& reg);
 
-  // We fake looking up addresses in a table and printing useful names.
-  virtual void AppendCodeAddressToOutput(const Instruction* instr,
-                                         const void* addr);
+  virtual void AppendCodeRelativeCodeAddressToOutput(const Instruction* instr,
+                                                     const void* addr);
 };
 
 

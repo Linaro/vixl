@@ -30,7 +30,7 @@
 #include <math.h>
 #include <float.h>
 
-#include "cctest.h"
+#include "test-runner.h"
 #include "test-utils-a64.h"
 #include "a64/macro-assembler-a64.h"
 #include "a64/simulator-a64.h"
@@ -108,15 +108,10 @@ namespace vixl {
 
 #define SETUP_COMMON()                                                         \
   Decoder decoder;                                                             \
-  Simulator* simulator = NULL;                                                 \
-  if (Cctest::run_debugger()) {                                                \
-    simulator = new Debugger(&decoder);                                        \
-  } else {                                                                     \
-    simulator = new Simulator(&decoder);                                       \
-    simulator->set_disasm_trace(Cctest::trace_sim());                          \
-  }                                                                            \
-  simulator->set_coloured_trace(Cctest::coloured_trace());                     \
-  simulator->set_instruction_stats(Cctest::instruction_stats());               \
+  Simulator* simulator = Test::run_debugger() ? new Debugger(&decoder)         \
+                                              : new Simulator(&decoder);       \
+  simulator->set_coloured_trace(Test::coloured_trace());                       \
+  simulator->set_instruction_stats(Test::instruction_stats());                 \
   RegisterDump core
 
 // This is a convenience macro to avoid creating a scope for every assembler
@@ -128,25 +123,24 @@ namespace vixl {
   masm.Reset();                                                                \
   simulator->ResetState();                                                     \
   __ PushCalleeSavedRegisters();                                               \
-  if (Cctest::run_debugger()) {                                                \
-    if (Cctest::trace_reg()) {                                                 \
-      __ Trace(LOG_STATE, TRACE_ENABLE);                                       \
-    }                                                                          \
-    if (Cctest::trace_sim()) {                                                 \
-      __ Trace(LOG_DISASM, TRACE_ENABLE);                                      \
-    }                                                                          \
+  if (Test::trace_reg()) {                                                     \
+    __ Trace(LOG_STATE, TRACE_ENABLE);                                         \
   }                                                                            \
-  if (Cctest::instruction_stats()) {                                           \
+  if (Test::trace_write()) {                                                   \
+    __ Trace(LOG_WRITE, TRACE_ENABLE);                                         \
+  }                                                                            \
+  if (Test::trace_sim()) {                                                     \
+    __ Trace(LOG_DISASM, TRACE_ENABLE);                                        \
+  }                                                                            \
+  if (Test::instruction_stats()) {                                             \
     __ EnableInstrumentation();                                                \
   }
 
 #define END()                                                                  \
-  if (Cctest::instruction_stats()) {                                           \
+  if (Test::instruction_stats()) {                                             \
     __ DisableInstrumentation();                                               \
   }                                                                            \
-  if (Cctest::run_debugger()) {                                                \
-    __ Trace(LOG_ALL, TRACE_DISABLE);                                          \
-  }                                                                            \
+  __ Trace(LOG_ALL, TRACE_DISABLE);                                            \
   core.Dump(&masm);                                                            \
   __ PopCalleeSavedRegisters();                                                \
   __ Ret();                                                                    \
@@ -3193,8 +3187,8 @@ TEST(ldr_literal_range) {
 
   // Emit more code than the maximum literal load range to ensure the pool
   // should be emitted.
-  const ptrdiff_t offset = masm.CursorOffset();
-  while ((masm.CursorOffset() - offset) < (2 * kMaxLoadLiteralRange)) {
+  const ptrdiff_t end = masm.CursorOffset() + 2 * kMaxLoadLiteralRange;
+  while (masm.CursorOffset() < end) {
     __ Nop();
   }
 
@@ -3330,34 +3324,54 @@ TEST(ldr_literal_values_s) {
 
 
 TEST(ldr_literal_custom) {
-  // The macro assembler always emit pools after the instruction using them,
-  // this test emit a pool then use it.
   SETUP();
   ALLOW_ASM();
 
-  Label end_of_pool;
-  Literal<uint64_t> literal_x(0x1234567890abcdef);
-  Literal<uint32_t> literal_w(0xfedcba09);
-  Literal<uint32_t> literal_sx(0x80000000);
-  Literal<double> literal_d(1.234);
-  Literal<float> literal_s(2.5);
+  Label end_of_pool_before;
+  Label end_of_pool_after;
+  Literal<uint64_t> before_x(0x1234567890abcdef);
+  Literal<uint32_t> before_w(0xfedcba09);
+  Literal<uint32_t> before_sx(0x80000000);
+  Literal<double> before_d(1.234);
+  Literal<float> before_s(2.5);
+  Literal<uint64_t> after_x(0x1234567890abcdef);
+  Literal<uint32_t> after_w(0xfedcba09);
+  Literal<uint32_t> after_sx(0x80000000);
+  Literal<double> after_d(1.234);
+  Literal<float> after_s(2.5);
 
   START();
-  // "Manually generate a pool.
-  __ B(&end_of_pool);
-  __ place(&literal_x);
-  __ place(&literal_w);
-  __ place(&literal_sx);
-  __ place(&literal_d);
-  __ place(&literal_s);
-  __ Bind(&end_of_pool);
 
-  // now load the entries.
-  __ ldr(x2, &literal_x);
-  __ ldr(w3, &literal_w);
-  __ ldrsw(x5, &literal_sx);
-  __ ldr(d13, &literal_d);
-  __ ldr(s25, &literal_s);
+  // Manually generate a pool.
+  __ B(&end_of_pool_before);
+  __ place(&before_x);
+  __ place(&before_w);
+  __ place(&before_sx);
+  __ place(&before_d);
+  __ place(&before_s);
+  __ Bind(&end_of_pool_before);
+
+  __ ldr(x2, &before_x);
+  __ ldr(w3, &before_w);
+  __ ldrsw(x5, &before_sx);
+  __ ldr(d13, &before_d);
+  __ ldr(s25, &before_s);
+
+  __ ldr(x6, &after_x);
+  __ ldr(w7, &after_w);
+  __ ldrsw(x8, &after_sx);
+  __ ldr(d14, &after_d);
+  __ ldr(s26, &after_s);
+
+  // Manually generate a pool.
+  __ B(&end_of_pool_after);
+  __ place(&after_x);
+  __ place(&after_w);
+  __ place(&after_sx);
+  __ place(&after_d);
+  __ place(&after_s);
+  __ Bind(&end_of_pool_after);
+
   END();
 
   RUN();
@@ -3367,6 +3381,328 @@ TEST(ldr_literal_custom) {
   ASSERT_EQUAL_64(0xffffffff80000000, x5);
   ASSERT_EQUAL_FP64(1.234, d13);
   ASSERT_EQUAL_FP32(2.5, s25);
+
+  ASSERT_EQUAL_64(0x1234567890abcdef, x6);
+  ASSERT_EQUAL_64(0xfedcba09, x7);
+  ASSERT_EQUAL_64(0xffffffff80000000, x8);
+  ASSERT_EQUAL_FP64(1.234, d14);
+  ASSERT_EQUAL_FP32(2.5, s26);
+
+  TEARDOWN();
+}
+
+
+TEST(ldr_literal_custom_shared) {
+  SETUP();
+  ALLOW_ASM();
+
+  Label end_of_pool_before;
+  Label end_of_pool_after;
+  Literal<uint64_t> before_x(0x1234567890abcdef);
+  Literal<uint32_t> before_w(0xfedcba09);
+  Literal<double> before_d(1.234);
+  Literal<float> before_s(2.5);
+  Literal<uint64_t> after_x(0x1234567890abcdef);
+  Literal<uint32_t> after_w(0xfedcba09);
+  Literal<double> after_d(1.234);
+  Literal<float> after_s(2.5);
+
+  START();
+
+  // Manually generate a pool.
+  __ B(&end_of_pool_before);
+  __ place(&before_x);
+  __ place(&before_w);
+  __ place(&before_d);
+  __ place(&before_s);
+  __ Bind(&end_of_pool_before);
+
+  // Load the entries several times to test that literals can be shared.
+  for (int i = 0; i < 50; i++) {
+    __ ldr(x2, &before_x);
+    __ ldr(w3, &before_w);
+    __ ldrsw(x5, &before_w);    // Re-use before_w.
+    __ ldr(d13, &before_d);
+    __ ldr(s25, &before_s);
+
+    __ ldr(x6, &after_x);
+    __ ldr(w7, &after_w);
+    __ ldrsw(x8, &after_w);     // Re-use after_w.
+    __ ldr(d14, &after_d);
+    __ ldr(s26, &after_s);
+  }
+
+  // Manually generate a pool.
+  __ B(&end_of_pool_after);
+  __ place(&after_x);
+  __ place(&after_w);
+  __ place(&after_d);
+  __ place(&after_s);
+  __ Bind(&end_of_pool_after);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(0x1234567890abcdef, x2);
+  ASSERT_EQUAL_64(0xfedcba09, x3);
+  ASSERT_EQUAL_64(0xfffffffffedcba09, x5);
+  ASSERT_EQUAL_FP64(1.234, d13);
+  ASSERT_EQUAL_FP32(2.5, s25);
+
+  ASSERT_EQUAL_64(0x1234567890abcdef, x6);
+  ASSERT_EQUAL_64(0xfedcba09, x7);
+  ASSERT_EQUAL_64(0xfffffffffedcba09, x8);
+  ASSERT_EQUAL_FP64(1.234, d14);
+  ASSERT_EQUAL_FP32(2.5, s26);
+
+  TEARDOWN();
+}
+
+
+TEST(prfm_offset) {
+  SETUP();
+
+  START();
+  // The address used in prfm doesn't have to be valid.
+  __ Mov(x0, 0x0123456789abcdef);
+
+  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
+    // Unallocated prefetch operations are ignored, so test all of them.
+    PrefetchOperation op = static_cast<PrefetchOperation>(i);
+
+    __ Prfm(op, MemOperand(x0));
+    __ Prfm(op, MemOperand(x0, 8));
+    __ Prfm(op, MemOperand(x0, 32760));
+    __ Prfm(op, MemOperand(x0, 32768));
+
+    __ Prfm(op, MemOperand(x0, 1));
+    __ Prfm(op, MemOperand(x0, 9));
+    __ Prfm(op, MemOperand(x0, 255));
+    __ Prfm(op, MemOperand(x0, 257));
+    __ Prfm(op, MemOperand(x0, -1));
+    __ Prfm(op, MemOperand(x0, -9));
+    __ Prfm(op, MemOperand(x0, -255));
+    __ Prfm(op, MemOperand(x0, -257));
+
+    __ Prfm(op, MemOperand(x0, 0xfedcba9876543210));
+  }
+
+  END();
+  RUN();
+  TEARDOWN();
+}
+
+
+TEST(prfm_regoffset) {
+  SETUP();
+
+  START();
+  // The address used in prfm doesn't have to be valid.
+  __ Mov(x0, 0x0123456789abcdef);
+
+  CPURegList inputs(CPURegister::kRegister, kXRegSize, 10, 18);
+  __ Mov(x10, 0);
+  __ Mov(x11, 1);
+  __ Mov(x12, 8);
+  __ Mov(x13, 255);
+  __ Mov(x14, -0);
+  __ Mov(x15, -1);
+  __ Mov(x16, -8);
+  __ Mov(x17, -255);
+  __ Mov(x18, 0xfedcba9876543210);
+
+  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
+    // Unallocated prefetch operations are ignored, so test all of them.
+    PrefetchOperation op = static_cast<PrefetchOperation>(i);
+
+    CPURegList loop = inputs;
+    while (!loop.IsEmpty()) {
+      Register input(loop.PopLowestIndex());
+      __ Prfm(op, MemOperand(x0, input));
+      __ Prfm(op, MemOperand(x0, input, UXTW));
+      __ Prfm(op, MemOperand(x0, input, UXTW, 3));
+      __ Prfm(op, MemOperand(x0, input, LSL));
+      __ Prfm(op, MemOperand(x0, input, LSL, 3));
+      __ Prfm(op, MemOperand(x0, input, SXTW));
+      __ Prfm(op, MemOperand(x0, input, SXTW, 3));
+      __ Prfm(op, MemOperand(x0, input, SXTX));
+      __ Prfm(op, MemOperand(x0, input, SXTX, 3));
+    }
+  }
+
+  END();
+  RUN();
+  TEARDOWN();
+}
+
+
+TEST(prfm_literal_imm19) {
+  SETUP();
+  ALLOW_ASM();
+  START();
+
+  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
+    // Unallocated prefetch operations are ignored, so test all of them.
+    PrefetchOperation op = static_cast<PrefetchOperation>(i);
+
+    // The address used in prfm doesn't have to be valid.
+    __ prfm(op, 0);
+    __ prfm(op, 1);
+    __ prfm(op, -1);
+    __ prfm(op, 1000);
+    __ prfm(op, -1000);
+    __ prfm(op, 0x3ffff);
+    __ prfm(op, -0x40000);
+  }
+
+  END();
+  RUN();
+  TEARDOWN();
+}
+
+
+TEST(prfm_literal) {
+  SETUP();
+  ALLOW_ASM();
+
+  Label end_of_pool_before;
+  Label end_of_pool_after;
+  Literal<uint64_t> before(0);
+  Literal<uint64_t> after(0);
+
+  START();
+
+  // Manually generate a pool.
+  __ B(&end_of_pool_before);
+  __ place(&before);
+  __ Bind(&end_of_pool_before);
+
+  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
+    // Unallocated prefetch operations are ignored, so test all of them.
+    PrefetchOperation op = static_cast<PrefetchOperation>(i);
+
+    CodeBufferCheckScope guard(&masm, 2 * kInstructionSize);
+    __ prfm(op, &before);
+    __ prfm(op, &after);
+  }
+
+  // Manually generate a pool.
+  __ B(&end_of_pool_after);
+  __ place(&after);
+  __ Bind(&end_of_pool_after);
+
+  END();
+  RUN();
+  TEARDOWN();
+}
+
+
+TEST(prfm_wide) {
+  SETUP();
+
+  START();
+  // The address used in prfm doesn't have to be valid.
+  __ Mov(x0, 0x0123456789abcdef);
+
+  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
+    // Unallocated prefetch operations are ignored, so test all of them.
+    PrefetchOperation op = static_cast<PrefetchOperation>(i);
+
+    __ Prfm(op, MemOperand(x0, 0x40000));
+    __ Prfm(op, MemOperand(x0, -0x40001));
+    __ Prfm(op, MemOperand(x0, UINT64_C(0x5555555555555555)));
+    __ Prfm(op, MemOperand(x0, UINT64_C(0xfedcba9876543210)));
+  }
+
+  END();
+  RUN();
+  TEARDOWN();
+}
+
+
+TEST(load_prfm_literal) {
+  // Test literals shared between both prfm and ldr.
+  SETUP();
+  ALLOW_ASM();
+
+  Label end_of_pool_before;
+  Label end_of_pool_after;
+  Literal<uint64_t> before_x(0x1234567890abcdef);
+  Literal<uint32_t> before_w(0xfedcba09);
+  Literal<uint32_t> before_sx(0x80000000);
+  Literal<double> before_d(1.234);
+  Literal<float> before_s(2.5);
+  Literal<uint64_t> after_x(0x1234567890abcdef);
+  Literal<uint32_t> after_w(0xfedcba09);
+  Literal<uint32_t> after_sx(0x80000000);
+  Literal<double> after_d(1.234);
+  Literal<float> after_s(2.5);
+
+  START();
+
+  // Manually generate a pool.
+  __ B(&end_of_pool_before);
+  __ place(&before_x);
+  __ place(&before_w);
+  __ place(&before_sx);
+  __ place(&before_d);
+  __ place(&before_s);
+  __ Bind(&end_of_pool_before);
+
+  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
+    // Unallocated prefetch operations are ignored, so test all of them.
+    PrefetchOperation op = static_cast<PrefetchOperation>(i);
+
+    __ prfm(op, &before_x);
+    __ prfm(op, &before_w);
+    __ prfm(op, &before_sx);
+    __ prfm(op, &before_d);
+    __ prfm(op, &before_s);
+
+    __ prfm(op, &after_x);
+    __ prfm(op, &after_w);
+    __ prfm(op, &after_sx);
+    __ prfm(op, &after_d);
+    __ prfm(op, &after_s);
+  }
+
+  __ ldr(x2, &before_x);
+  __ ldr(w3, &before_w);
+  __ ldrsw(x5, &before_sx);
+  __ ldr(d13, &before_d);
+  __ ldr(s25, &before_s);
+
+  __ ldr(x6, &after_x);
+  __ ldr(w7, &after_w);
+  __ ldrsw(x8, &after_sx);
+  __ ldr(d14, &after_d);
+  __ ldr(s26, &after_s);
+
+  // Manually generate a pool.
+  __ B(&end_of_pool_after);
+  __ place(&after_x);
+  __ place(&after_w);
+  __ place(&after_sx);
+  __ place(&after_d);
+  __ place(&after_s);
+  __ Bind(&end_of_pool_after);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(0x1234567890abcdef, x2);
+  ASSERT_EQUAL_64(0xfedcba09, x3);
+  ASSERT_EQUAL_64(0xffffffff80000000, x5);
+  ASSERT_EQUAL_FP64(1.234, d13);
+  ASSERT_EQUAL_FP32(2.5, s25);
+
+  ASSERT_EQUAL_64(0x1234567890abcdef, x6);
+  ASSERT_EQUAL_64(0xfedcba09, x7);
+  ASSERT_EQUAL_64(0xffffffff80000000, x8);
+  ASSERT_EQUAL_FP64(1.234, d14);
+  ASSERT_EQUAL_FP32(2.5, s26);
 
   TEARDOWN();
 }
@@ -6217,6 +6553,96 @@ TEST(frinta) {
 }
 
 
+TEST(frinti) {
+  // VIXL only supports the round-to-nearest FPCR mode, so this test has the
+  // same results as frintn.
+  SETUP();
+
+  START();
+  __ Fmov(s16, 1.0);
+  __ Fmov(s17, 1.1);
+  __ Fmov(s18, 1.5);
+  __ Fmov(s19, 1.9);
+  __ Fmov(s20, 2.5);
+  __ Fmov(s21, -1.5);
+  __ Fmov(s22, -2.5);
+  __ Fmov(s23, kFP32PositiveInfinity);
+  __ Fmov(s24, kFP32NegativeInfinity);
+  __ Fmov(s25, 0.0);
+  __ Fmov(s26, -0.0);
+  __ Fmov(s27, -0.2);
+
+  __ Frinti(s0, s16);
+  __ Frinti(s1, s17);
+  __ Frinti(s2, s18);
+  __ Frinti(s3, s19);
+  __ Frinti(s4, s20);
+  __ Frinti(s5, s21);
+  __ Frinti(s6, s22);
+  __ Frinti(s7, s23);
+  __ Frinti(s8, s24);
+  __ Frinti(s9, s25);
+  __ Frinti(s10, s26);
+  __ Frinti(s11, s27);
+
+  __ Fmov(d16, 1.0);
+  __ Fmov(d17, 1.1);
+  __ Fmov(d18, 1.5);
+  __ Fmov(d19, 1.9);
+  __ Fmov(d20, 2.5);
+  __ Fmov(d21, -1.5);
+  __ Fmov(d22, -2.5);
+  __ Fmov(d23, kFP32PositiveInfinity);
+  __ Fmov(d24, kFP32NegativeInfinity);
+  __ Fmov(d25, 0.0);
+  __ Fmov(d26, -0.0);
+  __ Fmov(d27, -0.2);
+
+  __ Frinti(d12, d16);
+  __ Frinti(d13, d17);
+  __ Frinti(d14, d18);
+  __ Frinti(d15, d19);
+  __ Frinti(d16, d20);
+  __ Frinti(d17, d21);
+  __ Frinti(d18, d22);
+  __ Frinti(d19, d23);
+  __ Frinti(d20, d24);
+  __ Frinti(d21, d25);
+  __ Frinti(d22, d26);
+  __ Frinti(d23, d27);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_FP32(1.0, s0);
+  ASSERT_EQUAL_FP32(1.0, s1);
+  ASSERT_EQUAL_FP32(2.0, s2);
+  ASSERT_EQUAL_FP32(2.0, s3);
+  ASSERT_EQUAL_FP32(2.0, s4);
+  ASSERT_EQUAL_FP32(-2.0, s5);
+  ASSERT_EQUAL_FP32(-2.0, s6);
+  ASSERT_EQUAL_FP32(kFP32PositiveInfinity, s7);
+  ASSERT_EQUAL_FP32(kFP32NegativeInfinity, s8);
+  ASSERT_EQUAL_FP32(0.0, s9);
+  ASSERT_EQUAL_FP32(-0.0, s10);
+  ASSERT_EQUAL_FP32(-0.0, s11);
+  ASSERT_EQUAL_FP64(1.0, d12);
+  ASSERT_EQUAL_FP64(1.0, d13);
+  ASSERT_EQUAL_FP64(2.0, d14);
+  ASSERT_EQUAL_FP64(2.0, d15);
+  ASSERT_EQUAL_FP64(2.0, d16);
+  ASSERT_EQUAL_FP64(-2.0, d17);
+  ASSERT_EQUAL_FP64(-2.0, d18);
+  ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d19);
+  ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d20);
+  ASSERT_EQUAL_FP64(0.0, d21);
+  ASSERT_EQUAL_FP64(-0.0, d22);
+  ASSERT_EQUAL_FP64(-0.0, d23);
+
+  TEARDOWN();
+}
+
+
 TEST(frintm) {
   SETUP();
 
@@ -6360,6 +6786,184 @@ TEST(frintn) {
   __ Frintn(d21, d25);
   __ Frintn(d22, d26);
   __ Frintn(d23, d27);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_FP32(1.0, s0);
+  ASSERT_EQUAL_FP32(1.0, s1);
+  ASSERT_EQUAL_FP32(2.0, s2);
+  ASSERT_EQUAL_FP32(2.0, s3);
+  ASSERT_EQUAL_FP32(2.0, s4);
+  ASSERT_EQUAL_FP32(-2.0, s5);
+  ASSERT_EQUAL_FP32(-2.0, s6);
+  ASSERT_EQUAL_FP32(kFP32PositiveInfinity, s7);
+  ASSERT_EQUAL_FP32(kFP32NegativeInfinity, s8);
+  ASSERT_EQUAL_FP32(0.0, s9);
+  ASSERT_EQUAL_FP32(-0.0, s10);
+  ASSERT_EQUAL_FP32(-0.0, s11);
+  ASSERT_EQUAL_FP64(1.0, d12);
+  ASSERT_EQUAL_FP64(1.0, d13);
+  ASSERT_EQUAL_FP64(2.0, d14);
+  ASSERT_EQUAL_FP64(2.0, d15);
+  ASSERT_EQUAL_FP64(2.0, d16);
+  ASSERT_EQUAL_FP64(-2.0, d17);
+  ASSERT_EQUAL_FP64(-2.0, d18);
+  ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d19);
+  ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d20);
+  ASSERT_EQUAL_FP64(0.0, d21);
+  ASSERT_EQUAL_FP64(-0.0, d22);
+  ASSERT_EQUAL_FP64(-0.0, d23);
+
+  TEARDOWN();
+}
+
+
+TEST(frintp) {
+  SETUP();
+
+  START();
+  __ Fmov(s16, 1.0);
+  __ Fmov(s17, 1.1);
+  __ Fmov(s18, 1.5);
+  __ Fmov(s19, 1.9);
+  __ Fmov(s20, 2.5);
+  __ Fmov(s21, -1.5);
+  __ Fmov(s22, -2.5);
+  __ Fmov(s23, kFP32PositiveInfinity);
+  __ Fmov(s24, kFP32NegativeInfinity);
+  __ Fmov(s25, 0.0);
+  __ Fmov(s26, -0.0);
+  __ Fmov(s27, -0.2);
+
+  __ Frintp(s0, s16);
+  __ Frintp(s1, s17);
+  __ Frintp(s2, s18);
+  __ Frintp(s3, s19);
+  __ Frintp(s4, s20);
+  __ Frintp(s5, s21);
+  __ Frintp(s6, s22);
+  __ Frintp(s7, s23);
+  __ Frintp(s8, s24);
+  __ Frintp(s9, s25);
+  __ Frintp(s10, s26);
+  __ Frintp(s11, s27);
+
+  __ Fmov(d16, 1.0);
+  __ Fmov(d17, 1.1);
+  __ Fmov(d18, 1.5);
+  __ Fmov(d19, 1.9);
+  __ Fmov(d20, 2.5);
+  __ Fmov(d21, -1.5);
+  __ Fmov(d22, -2.5);
+  __ Fmov(d23, kFP32PositiveInfinity);
+  __ Fmov(d24, kFP32NegativeInfinity);
+  __ Fmov(d25, 0.0);
+  __ Fmov(d26, -0.0);
+  __ Fmov(d27, -0.2);
+
+  __ Frintp(d12, d16);
+  __ Frintp(d13, d17);
+  __ Frintp(d14, d18);
+  __ Frintp(d15, d19);
+  __ Frintp(d16, d20);
+  __ Frintp(d17, d21);
+  __ Frintp(d18, d22);
+  __ Frintp(d19, d23);
+  __ Frintp(d20, d24);
+  __ Frintp(d21, d25);
+  __ Frintp(d22, d26);
+  __ Frintp(d23, d27);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_FP32(1.0, s0);
+  ASSERT_EQUAL_FP32(2.0, s1);
+  ASSERT_EQUAL_FP32(2.0, s2);
+  ASSERT_EQUAL_FP32(2.0, s3);
+  ASSERT_EQUAL_FP32(3.0, s4);
+  ASSERT_EQUAL_FP32(-1.0, s5);
+  ASSERT_EQUAL_FP32(-2.0, s6);
+  ASSERT_EQUAL_FP32(kFP32PositiveInfinity, s7);
+  ASSERT_EQUAL_FP32(kFP32NegativeInfinity, s8);
+  ASSERT_EQUAL_FP32(0.0, s9);
+  ASSERT_EQUAL_FP32(-0.0, s10);
+  ASSERT_EQUAL_FP32(-0.0, s11);
+  ASSERT_EQUAL_FP64(1.0, d12);
+  ASSERT_EQUAL_FP64(2.0, d13);
+  ASSERT_EQUAL_FP64(2.0, d14);
+  ASSERT_EQUAL_FP64(2.0, d15);
+  ASSERT_EQUAL_FP64(3.0, d16);
+  ASSERT_EQUAL_FP64(-1.0, d17);
+  ASSERT_EQUAL_FP64(-2.0, d18);
+  ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d19);
+  ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d20);
+  ASSERT_EQUAL_FP64(0.0, d21);
+  ASSERT_EQUAL_FP64(-0.0, d22);
+  ASSERT_EQUAL_FP64(-0.0, d23);
+
+  TEARDOWN();
+}
+
+
+TEST(frintx) {
+  // VIXL only supports the round-to-nearest FPCR mode, and it doesn't support
+  // FP exceptions, so this test has the same results as frintn (and frinti).
+  SETUP();
+
+  START();
+  __ Fmov(s16, 1.0);
+  __ Fmov(s17, 1.1);
+  __ Fmov(s18, 1.5);
+  __ Fmov(s19, 1.9);
+  __ Fmov(s20, 2.5);
+  __ Fmov(s21, -1.5);
+  __ Fmov(s22, -2.5);
+  __ Fmov(s23, kFP32PositiveInfinity);
+  __ Fmov(s24, kFP32NegativeInfinity);
+  __ Fmov(s25, 0.0);
+  __ Fmov(s26, -0.0);
+  __ Fmov(s27, -0.2);
+
+  __ Frintx(s0, s16);
+  __ Frintx(s1, s17);
+  __ Frintx(s2, s18);
+  __ Frintx(s3, s19);
+  __ Frintx(s4, s20);
+  __ Frintx(s5, s21);
+  __ Frintx(s6, s22);
+  __ Frintx(s7, s23);
+  __ Frintx(s8, s24);
+  __ Frintx(s9, s25);
+  __ Frintx(s10, s26);
+  __ Frintx(s11, s27);
+
+  __ Fmov(d16, 1.0);
+  __ Fmov(d17, 1.1);
+  __ Fmov(d18, 1.5);
+  __ Fmov(d19, 1.9);
+  __ Fmov(d20, 2.5);
+  __ Fmov(d21, -1.5);
+  __ Fmov(d22, -2.5);
+  __ Fmov(d23, kFP32PositiveInfinity);
+  __ Fmov(d24, kFP32NegativeInfinity);
+  __ Fmov(d25, 0.0);
+  __ Fmov(d26, -0.0);
+  __ Fmov(d27, -0.2);
+
+  __ Frintx(d12, d16);
+  __ Frintx(d13, d17);
+  __ Frintx(d14, d18);
+  __ Frintx(d15, d19);
+  __ Frintx(d16, d20);
+  __ Frintx(d17, d21);
+  __ Frintx(d18, d22);
+  __ Frintx(d19, d23);
+  __ Frintx(d20, d24);
+  __ Frintx(d21, d25);
+  __ Frintx(d22, d26);
+  __ Frintx(d23, d27);
   END();
 
   RUN();

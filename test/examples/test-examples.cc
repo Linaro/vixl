@@ -32,7 +32,7 @@
 #include "custom-disassembler.h"
 #include "../test-utils-a64.h"
 
-#include "../cctest.h"
+#include "../test-runner.h"
 
 #define TEST(name) TEST_(EXAMPLE_##name)
 
@@ -149,14 +149,14 @@ void GenerateTestWrapper(MacroAssembler* masm, RegisterDump *regs) {
   MacroAssembler masm(BUF_SIZE);                            \
   Decoder decoder;                                          \
   Debugger simulator(&decoder);                             \
-  simulator.set_coloured_trace(Cctest::coloured_trace());   \
+  simulator.set_coloured_trace(Test::coloured_trace());   \
   PrintDisassembler* pdis = NULL;                           \
   Instrument* inst = NULL;                                  \
-  if (Cctest::trace_sim()) {                                \
+  if (Test::trace_sim()) {                                \
     pdis = new PrintDisassembler(stdout);                   \
     decoder.PrependVisitor(pdis);                           \
   }                                                         \
-  if (Cctest::instruction_stats()) {                        \
+  if (Test::instruction_stats()) {                        \
     inst = new Instrument("vixl_stats.csv", 10);            \
     inst->Enable();                                         \
     decoder.AppendVisitor(inst);                            \

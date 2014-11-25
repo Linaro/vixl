@@ -84,7 +84,7 @@ void CodeBuffer::Align() {
 
 
 void CodeBuffer::Reset() {
-#ifdef DEBUG
+#ifdef VIXL_DEBUG
   if (managed_) {
     // TODO(all): Consider allowing for custom default values, e.g. HLT.
     memset(buffer_, 0, capacity_);

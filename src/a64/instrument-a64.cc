@@ -639,4 +639,4 @@ void Instrument::VisitUnimplemented(const Instruction* instr) {
 }
 
 
-}  // namespace v8::internal
+}  // namespace vixl

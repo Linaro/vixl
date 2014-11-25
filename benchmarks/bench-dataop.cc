@@ -49,30 +49,31 @@ int main(int argc, char* argv[]) {
   }
 
   const unsigned buffer_size = 256 * KBytes;
-  // Emitting on the last word of the buffer will trigger an assert.
-  const unsigned buffer_instruction_count = buffer_size / kInstructionSize - 1;
+  const unsigned buffer_instruction_count = buffer_size / kInstructionSize;
+  MacroAssembler masm(buffer_size);
 
-  byte* assm_buffer = new byte[buffer_size];
-  MacroAssembler* masm = new MacroAssembler(assm_buffer, buffer_size);
-
-  #define __ masm->
+  #define __ masm.
 
   unsigned rounds = instructions / buffer_instruction_count;
   for (unsigned i = 0; i < rounds; ++i) {
-    for (unsigned j = 0; j < buffer_instruction_count; ++j) {
-      __ add(x0, x1, Operand(x2));
+    {
+      InstructionAccurateScope scope(&masm, buffer_instruction_count);
+      for (unsigned j = 0; j < buffer_instruction_count; ++j) {
+        __ add(x0, x1, Operand(x2));
+      }
     }
-    masm->Reset();
+    masm.Reset();
   }
 
   unsigned remaining = instructions % buffer_instruction_count;
-  for (unsigned i = 0; i < remaining; ++i) {
-    __ add(x0, x1, Operand(x2));
+  {
+    InstructionAccurateScope scope(&masm, remaining);
+    for (unsigned i = 0; i < remaining; ++i) {
+      __ add(x0, x1, Operand(x2));
+    }
   }
 
-  masm->FinalizeCode();
-  delete masm;
-  delete assm_buffer;
+  masm.FinalizeCode();
 
   return 0;
 }

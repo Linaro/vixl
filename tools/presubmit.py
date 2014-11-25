@@ -67,26 +67,26 @@ def BuildOptions():
 
 def CleanBuildSystem():
   def clean(mode):
-    if args.verbose: print('Cleaning ' + mode + ' mode cctest...')
+    if args.verbose: print('Cleaning ' + mode + ' mode test...')
     command = 'scons mode=%s simulator=%s all --clean' % \
               (mode, args.simulator)
     status, output = util.getstatusoutput(command)
     if status != 0:
       print(output)
-      util.abort('Failed cleaning cctest: ' + command)
+      util.abort('Failed cleaning test: ' + command)
   clean('debug')
   clean('release')
 
 
 def BuildEverything():
   def build(mode):
-    if args.verbose: print('Building ' + mode + ' mode cctest...')
+    if args.verbose: print('Building ' + mode + ' mode test...')
     command = 'scons mode=%s simulator=%s all -j%u' % \
               (mode, args.simulator, args.jobs)
     status, output = util.getstatusoutput(command)
     if status != 0:
       print(output)
-      util.abort('Failed building cctest: ' + command)
+      util.abort('Failed building test: ' + command)
   build('debug')
   build('release')
 
@@ -120,7 +120,7 @@ class Tester:
     print('Presubmit tests ' + result + '.')
 
 
-class Cctest(Test):
+class VIXLTest(Test):
   def __init__(self, mode, simulator, debugger = False, verbose = False):
     if not mode in ['release', 'debug']:
       print 'Invalid mode.'
@@ -129,19 +129,19 @@ class Cctest(Test):
     self.debugger = debugger
     self.verbose = verbose
 
-    name = 'cctest ' + mode
+    name = 'test ' + mode
     if simulator:
       name += ' (%s)' % ('debugger' if debugger else 'simulator')
     Test.__init__(self, name)
 
-    self.cctest = './cctest'
+    self.exe = './test-runner'
     if simulator:
-        self.cctest += '_sim'
+        self.exe += '_sim'
     if mode == 'debug':
-      self.cctest += '_g'
+      self.exe += '_g'
 
   def Run(self):
-    manifest = test.ReadManifest(self.cctest, [], self.debugger,
+    manifest = test.ReadManifest(self.exe, [], self.debugger,
                                  False, self.verbose)
     retcode = test.RunTests(manifest, jobs = args.jobs,
                             verbose = self.verbose, debugger = self.debugger,
@@ -171,6 +171,28 @@ details.'''
     self.status = PASSED if n_errors == 0 else FAILED
 
 
+class BenchTest(Test):
+  def __init__(self, mode, simulator):
+    name = 'benchmarks ' + mode
+    Test.__init__(self, name)
+    self.exe_suffix = ''
+    if simulator:
+      self.exe_suffix += '_sim'
+    if mode == 'debug':
+      self.exe_suffix += '_g'
+
+  def Run(self):
+    benchmarks = ['bench-dataop', 'bench-branch', 'bench-branch-link']
+    self.status = PASSED
+    for bench in benchmarks:
+      command = './' + bench + self.exe_suffix
+      (rc, out) = util.getstatusoutput(command)
+      if rc != 0:
+        self.status = FAILED
+        print self.name_prefix() + 'Failed to run `' + command + '`'
+    print self.name_prefix() + self.status
+
+
 
 if __name__ == '__main__':
   original_dir = os.path.abspath('.')
@@ -194,14 +216,18 @@ if __name__ == '__main__':
     BuildEverything()
 
     if args.simulator == 'on':
-      #                      mode,     sim,   debugger, verbose
-      tester.AddTest(Cctest('release', True,  True,     args.verbose))
-      tester.AddTest(Cctest('debug',   True,  True,     args.verbose))
-      tester.AddTest(Cctest('release', True,  False,    args.verbose))
-      tester.AddTest(Cctest('debug',   True,  False,    args.verbose))
+      #                        mode,      sim,   debugger, verbose
+      tester.AddTest(VIXLTest('release',  True,  True,     args.verbose))
+      tester.AddTest(VIXLTest('debug',    True,  True,     args.verbose))
+      tester.AddTest(VIXLTest('release',  True,  False,    args.verbose))
+      tester.AddTest(VIXLTest('debug',    True,  False,    args.verbose))
+      tester.AddTest(BenchTest('release', True))
+      tester.AddTest(BenchTest('debug',   True))
     else:
-      tester.AddTest(Cctest('release', False, False,    args.verbose))
-      tester.AddTest(Cctest('debug',   False, False,    args.verbose))
+      tester.AddTest(VIXLTest('release',  False, False,    args.verbose))
+      tester.AddTest(VIXLTest('debug',    False, False,    args.verbose))
+      tester.AddTest(BenchTest('release', False))
+      tester.AddTest(BenchTest('debug',   False))
 
   tester.RunAll()
 

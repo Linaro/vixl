@@ -524,8 +524,7 @@ const char* RegisterToken::kWAliases[kNumberOfRegisters][kMaxAliasNumber] = {
 
 Debugger::Debugger(Decoder* decoder, FILE* stream)
     : Simulator(decoder, stream),
-      log_parameters_(0),
-      debug_parameters_(0),
+      debug_parameters_(DBG_INACTIVE),
       pending_request_(false),
       steps_(0),
       last_command_(NULL) {
@@ -538,11 +537,7 @@ Debugger::Debugger(Decoder* decoder, FILE* stream)
 void Debugger::Run() {
   pc_modified_ = false;
   while (pc_ != kEndOfSimAddress) {
-    if (pending_request()) {
-      LogProcessorState();
-      RunDebuggerShell();
-    }
-
+    if (pending_request()) RunDebuggerShell();
     ExecuteInstruction();
   }
 }
@@ -603,8 +598,7 @@ void Debugger::PrintRegister(const Register& target_reg,
   const uint64_t format_size = format->SizeOf() * 8;
   const uint64_t count = reg_size / format_size;
   const uint64_t mask = 0xffffffffffffffff >> (64 - format_size);
-  const uint64_t reg_value = reg<uint64_t>(reg_size,
-                                           target_reg.code(),
+  const uint64_t reg_value = reg<uint64_t>(target_reg.code(),
                                            Reg31IsStackPointer);
   VIXL_ASSERT(count > 0);
 
@@ -649,43 +643,9 @@ void Debugger::VisitException(const Instruction* instr) {
     case BRK:
       DoBreakpoint(instr);
       return;
-    case HLT:
-      switch (instr->ImmException()) {
-        case kUnreachableOpcode:
-          DoUnreachable(instr);
-          return;
-        case kTraceOpcode:
-          DoTrace(instr);
-          return;
-        case kLogOpcode:
-          DoLog(instr);
-          return;
-      }
-      // Fall through
+    case HLT:   // Fall through.
     default: Simulator::VisitException(instr);
   }
-}
-
-
-void Debugger::LogSystemRegisters() {
-  if (log_parameters_ & LOG_SYS_REGS) PrintSystemRegisters();
-}
-
-
-void Debugger::LogRegisters() {
-  if (log_parameters_ & LOG_REGS) PrintRegisters();
-}
-
-
-void Debugger::LogFPRegisters() {
-  if (log_parameters_ & LOG_FP_REGS) PrintFPRegisters();
-}
-
-
-void Debugger::LogProcessorState() {
-  LogSystemRegisters();
-  LogRegisters();
-  LogFPRegisters();
 }
 
 
@@ -768,64 +728,6 @@ void Debugger::DoBreakpoint(const Instruction* instr) {
   set_debug_parameters(debug_parameters() | DBG_BREAK | DBG_ACTIVE);
   // Make the shell point to the brk instruction.
   set_pc(instr);
-}
-
-
-void Debugger::DoUnreachable(const Instruction* instr) {
-  VIXL_ASSERT((instr->Mask(ExceptionMask) == HLT) &&
-              (instr->ImmException() == kUnreachableOpcode));
-
-  fprintf(stream_, "Hit UNREACHABLE marker at pc=%p.\n",
-          reinterpret_cast<const void*>(instr));
-  abort();
-}
-
-
-void Debugger::DoTrace(const Instruction* instr) {
-  VIXL_ASSERT((instr->Mask(ExceptionMask) == HLT) &&
-              (instr->ImmException() == kTraceOpcode));
-
-  // Read the arguments encoded inline in the instruction stream.
-  uint32_t parameters;
-  uint32_t command;
-
-  VIXL_STATIC_ASSERT(sizeof(*instr) == 1);
-  memcpy(&parameters, instr + kTraceParamsOffset, sizeof(parameters));
-  memcpy(&command, instr + kTraceCommandOffset, sizeof(command));
-
-  switch (command) {
-    case TRACE_ENABLE:
-      set_log_parameters(log_parameters() | parameters);
-      break;
-    case TRACE_DISABLE:
-      set_log_parameters(log_parameters() & ~parameters);
-      break;
-    default:
-      VIXL_UNREACHABLE();
-  }
-
-  set_pc(instr->InstructionAtOffset(kTraceLength));
-}
-
-
-void Debugger::DoLog(const Instruction* instr) {
-  VIXL_ASSERT((instr->Mask(ExceptionMask) == HLT) &&
-              (instr->ImmException() == kLogOpcode));
-
-  // Read the arguments encoded inline in the instruction stream.
-  uint32_t parameters;
-
-  VIXL_STATIC_ASSERT(sizeof(*instr) == 1);
-  memcpy(&parameters, instr + kTraceParamsOffset, sizeof(parameters));
-
-  // We don't support a one-shot LOG_DISASM.
-  VIXL_ASSERT((parameters & LOG_DISASM) == 0);
-  // Print the requested information.
-  if (parameters & LOG_SYS_REGS) PrintSystemRegisters(true);
-  if (parameters & LOG_REGS) PrintRegisters(true);
-  if (parameters & LOG_FP_REGS) PrintFPRegisters(true);
-
-  set_pc(instr->InstructionAtOffset(kLogLength));
 }
 
 
@@ -1364,11 +1266,11 @@ bool PrintCommand::Run(Debugger* debugger) {
   if (tok->IsIdentifier()) {
     char* identifier = IdentifierToken::Cast(tok)->value();
     if (strcmp(identifier, "regs") == 0) {
-      debugger->PrintRegisters(true);
+      debugger->PrintRegisters();
     } else if (strcmp(identifier, "fpregs") == 0) {
-      debugger->PrintFPRegisters(true);
+      debugger->PrintFPRegisters();
     } else if (strcmp(identifier, "sysregs") == 0) {
-      debugger->PrintSystemRegisters(true);
+      debugger->PrintSystemRegisters();
     } else if (strcmp(identifier, "pc") == 0) {
       printf("pc = %16p\n", reinterpret_cast<const void*>(debugger->pc()));
     } else {

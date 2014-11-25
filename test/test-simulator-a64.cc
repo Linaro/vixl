@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <float.h>
 
-#include "cctest.h"
+#include "test-runner.h"
 #include "test-utils-a64.h"
 #include "test-simulator-inputs-a64.h"
 #include "test-simulator-traces-a64.h"
@@ -56,39 +56,33 @@ namespace vixl {
 #define SETUP()                                                               \
   MacroAssembler masm(BUF_SIZE);                                              \
   Decoder decoder;                                                            \
-  Simulator* simulator = NULL;                                                \
-  if (Cctest::run_debugger()) {                                               \
-    simulator = new Debugger(&decoder);                                       \
-  } else {                                                                    \
-    simulator = new Simulator(&decoder);                                      \
-    simulator->set_disasm_trace(Cctest::trace_sim());                         \
-  }                                                                           \
-  simulator->set_coloured_trace(Cctest::coloured_trace());                    \
-  simulator->set_instruction_stats(Cctest::instruction_stats());
+  Simulator* simulator = Test::run_debugger() ? new Debugger(&decoder)        \
+                                              : new Simulator(&decoder);      \
+  simulator->set_coloured_trace(Test::coloured_trace());                      \
+  simulator->set_instruction_stats(Test::instruction_stats());                \
 
 #define START()                                                               \
   masm.Reset();                                                               \
   simulator->ResetState();                                                    \
   __ PushCalleeSavedRegisters();                                              \
-  if (Cctest::run_debugger()) {                                               \
-    if (Cctest::trace_reg()) {                                                \
-      __ Trace(LOG_STATE, TRACE_ENABLE);                                      \
-    }                                                                         \
-    if (Cctest::trace_sim()) {                                                \
-      __ Trace(LOG_DISASM, TRACE_ENABLE);                                     \
-    }                                                                         \
+  if (Test::trace_reg()) {                                                    \
+    __ Trace(LOG_STATE, TRACE_ENABLE);                                        \
   }                                                                           \
-  if (Cctest::instruction_stats()) {                                          \
+  if (Test::trace_write()) {                                                  \
+    __ Trace(LOG_WRITE, TRACE_ENABLE);                                        \
+  }                                                                           \
+  if (Test::trace_sim()) {                                                    \
+    __ Trace(LOG_DISASM, TRACE_ENABLE);                                       \
+  }                                                                           \
+  if (Test::instruction_stats()) {                                            \
     __ EnableInstrumentation();                                               \
   }
 
 #define END()                                                                 \
-  if (Cctest::instruction_stats()) {                                          \
+  if (Test::instruction_stats()) {                                            \
     __ DisableInstrumentation();                                              \
   }                                                                           \
-  if (Cctest::run_debugger()) {                                               \
-    __ Trace(LOG_ALL, TRACE_DISABLE);                                         \
-  }                                                                           \
+  __ Trace(LOG_ALL, TRACE_DISABLE);                                           \
   __ PopCalleeSavedRegisters();                                               \
   __ Ret();                                                                   \
   masm.FinalizeCode()
@@ -201,7 +195,7 @@ static void Test1Op_Helper(Test1OpFPHelper_t helper, uintptr_t inputs,
   __ Ldr(fn, MemOperand(inputs_base, index_n, UXTW, n_index_shift));
 
   {
-    CodeBufferCheckScope guard(&masm, kInstructionSize);
+    SingleEmissionCheckScope guard(&masm);
     (masm.*helper)(fd, fn);
   }
   __ Str(fd, MemOperand(out, fd.SizeInBytes(), PostIndex));
@@ -234,7 +228,7 @@ static void Test1Op(const char * name, Test1OpFPHelper_t helper,
   Test1Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
                  reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
 
-  if (Cctest::sim_test_trace()) {
+  if (Test::sim_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_%s[] = {\n", d_bits, name);
     for (unsigned d = 0; d < results_length; d++) {
@@ -312,7 +306,7 @@ static void Test2Op_Helper(Test2OpFPHelper_t helper,
   __ Ldr(fm, MemOperand(inputs_base, index_m, UXTW, index_shift));
 
   {
-    CodeBufferCheckScope guard(&masm, kInstructionSize);
+    SingleEmissionCheckScope guard(&masm);
     (masm.*helper)(fd, fn, fm);
   }
     __ Str(fd, MemOperand(out, fd.SizeInBytes(), PostIndex));
@@ -348,7 +342,7 @@ static void Test2Op(const char * name, Test2OpFPHelper_t helper,
   Test2Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
                  reinterpret_cast<uintptr_t>(results), bits);
 
-  if (Cctest::sim_test_trace()) {
+  if (Test::sim_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_%s[] = {\n", bits, name);
     for (unsigned d = 0; d < results_length; d++) {
@@ -438,7 +432,7 @@ static void Test3Op_Helper(Test3OpFPHelper_t helper,
   __ Ldr(fa, MemOperand(inputs_base, index_a, UXTW, index_shift));
 
   {
-    CodeBufferCheckScope guard(&masm, kInstructionSize);
+    SingleEmissionCheckScope guard(&masm);
     (masm.*helper)(fd, fn, fm, fa);
   }
   __ Str(fd, MemOperand(out, fd.SizeInBytes(), PostIndex));
@@ -478,7 +472,7 @@ static void Test3Op(const char * name, Test3OpFPHelper_t helper,
   Test3Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
                  reinterpret_cast<uintptr_t>(results), bits);
 
-  if (Cctest::sim_test_trace()) {
+  if (Test::sim_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_%s[] = {\n", bits, name);
     for (unsigned d = 0; d < results_length; d++) {
@@ -567,7 +561,7 @@ static void TestCmp_Helper(TestFPCmpHelper_t helper,
   __ Ldr(fm, MemOperand(inputs_base, index_m, UXTW, index_shift));
 
   {
-    CodeBufferCheckScope guard(&masm, kInstructionSize);
+    SingleEmissionCheckScope guard(&masm);
     (masm.*helper)(fn, fm);
   }
   __ Mrs(flags, NZCV);
@@ -605,7 +599,7 @@ static void TestCmp(const char * name, TestFPCmpHelper_t helper,
   TestCmp_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
                  reinterpret_cast<uintptr_t>(results), bits);
 
-  if (Cctest::sim_test_trace()) {
+  if (Test::sim_test_trace()) {
     // Print the results.
     printf("const uint8_t kExpected_%s[] = {\n", name);
     for (unsigned d = 0; d < results_length; d++) {
@@ -690,7 +684,7 @@ static void TestCmpZero_Helper(TestFPCmpZeroHelper_t helper,
   __ Ldr(fn, MemOperand(inputs_base, index_n, UXTW, index_shift));
 
   {
-    CodeBufferCheckScope guard(&masm, kInstructionSize);
+    SingleEmissionCheckScope guard(&masm);
     (masm.*helper)(fn, 0.0);
   }
   __ Mrs(flags, NZCV);
@@ -724,7 +718,7 @@ static void TestCmpZero(const char * name, TestFPCmpZeroHelper_t helper,
   TestCmpZero_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
                      reinterpret_cast<uintptr_t>(results), bits);
 
-  if (Cctest::sim_test_trace()) {
+  if (Test::sim_test_trace()) {
     // Print the results.
     printf("const uint8_t kExpected_%s[] = {\n", name);
     for (unsigned d = 0; d < results_length; d++) {
@@ -806,7 +800,7 @@ static void TestFPToInt_Helper(TestFPToIntHelper_t helper, uintptr_t inputs,
   __ Ldr(fn, MemOperand(inputs_base, index_n, UXTW, n_index_shift));
 
   {
-    CodeBufferCheckScope guard(&masm, kInstructionSize);
+    SingleEmissionCheckScope guard(&masm);
     (masm.*helper)(rd, fn);
   }
   __ Str(rd, MemOperand(out, rd.SizeInBytes(), PostIndex));
@@ -841,7 +835,7 @@ static void TestFPToS(const char * name, TestFPToIntHelper_t helper,
   TestFPToInt_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
                      reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
 
-  if (Cctest::sim_test_trace()) {
+  if (Test::sim_test_trace()) {
     // Print the results.
     printf("const int%u_t kExpected_%s[] = {\n", d_bits, name);
     // There is no simple C++ literal for INT*_MIN that doesn't produce
@@ -918,7 +912,7 @@ static void TestFPToU(const char * name, TestFPToIntHelper_t helper,
   TestFPToInt_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
                      reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
 
-  if (Cctest::sim_test_trace()) {
+  if (Test::sim_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_%s[] = {\n", d_bits, name);
     for (unsigned d = 0; d < results_length; d++) {
@@ -998,7 +992,11 @@ DEFINE_TEST_FP(fmov, 1Op, Basic)
 DEFINE_TEST_FP(fneg, 1Op, Basic)
 DEFINE_TEST_FP(fsqrt, 1Op, Basic)
 DEFINE_TEST_FP(frinta, 1Op, Conversions)
+DEFINE_TEST_FP(frinti, 1Op, Conversions)
+DEFINE_TEST_FP(frintm, 1Op, Conversions)
 DEFINE_TEST_FP(frintn, 1Op, Conversions)
+DEFINE_TEST_FP(frintp, 1Op, Conversions)
+DEFINE_TEST_FP(frintx, 1Op, Conversions)
 DEFINE_TEST_FP(frintz, 1Op, Conversions)
 
 TEST(fcmp_d) { CALL_TEST_FP_HELPER(fcmp, d, Cmp, kInputDoubleBasic); }

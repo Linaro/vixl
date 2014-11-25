@@ -36,13 +36,34 @@
 
 namespace vixl {
 
-enum ReverseByteMode {
-  Reverse16 = 0,
-  Reverse32 = 1,
-  Reverse64 = 2
-};
+// Debug instructions.
+//
+// VIXL's macro-assembler and simulator support a few pseudo instructions to
+// make debugging easier. These pseudo instructions do not exist on real
+// hardware.
+//
+// TODO: Provide controls to prevent the macro assembler from emitting
+// pseudo-instructions. This is important for ahead-of-time compilers, where the
+// macro assembler is built with USE_SIMULATOR but the code will eventually be
+// run on real hardware.
+//
+// TODO: Also consider allowing these pseudo-instructions to be disabled in the
+// simulator, so that users can check that the input is a valid native code.
+// (This isn't possible in all cases. Printf won't work, for example.)
+//
+// Each debug pseudo instruction is represented by a HLT instruction. The HLT
+// immediate field is used to identify the type of debug pseudo isntruction.
+// Each pseudo instruction uses a custom encoding for additional arguments, as
+// described below.
 
-// Printf. See debugger-a64.h for more information on pseudo instructions.
+// Unreachable
+//
+// Instruction which should never be executed. This is used as a guard in parts
+// of the code that should not be reachable, such as in data encoded inline in
+// the instructions.
+const Instr kUnreachableOpcode = 0xdeb0;
+
+// Printf
 //  - arg_count: The number of arguments.
 //  - arg_pattern: A set of PrintfArgPattern values, packed into two-bit fields.
 //
@@ -55,7 +76,7 @@ enum ReverseByteMode {
 // but the format string is not trivial to parse so we encode the relevant
 // information with the HLT instruction.
 //
-// The interface is as follows:
+// Also, the following registers are populated (as if for a native A64 call):
 //    x0: The format string
 // x1-x7: Optional arguments, if type == CPURegister::kRegister
 // d0-d7: Optional arguments, if type == CPURegister::kFPRegister
@@ -77,6 +98,49 @@ enum PrintfArgPattern {
 };
 static const unsigned kPrintfArgPatternBits = 2;
 
+// Trace
+//  - parameter: TraceParameter stored as a uint32_t
+//  - command: TraceCommand stored as a uint32_t
+//
+// Allow for trace management in the generated code. This enables or disables
+// automatic tracing of the specified information for every simulated
+// instruction.
+const Instr kTraceOpcode = 0xdeb2;
+const unsigned kTraceParamsOffset = 1 * kInstructionSize;
+const unsigned kTraceCommandOffset = 2 * kInstructionSize;
+const unsigned kTraceLength = 3 * kInstructionSize;
+
+// Trace parameters.
+enum TraceParameters {
+  LOG_DISASM     = 1 << 0,  // Log disassembly.
+  LOG_REGS       = 1 << 1,  // Log general purpose registers.
+  LOG_FP_REGS    = 1 << 2,  // Log floating-point registers.
+  LOG_SYS_REGS   = 1 << 3,  // Log the flags and system registers.
+  LOG_WRITE      = 1 << 4,  // Log writes to memory.
+
+  LOG_NONE       = 0,
+  LOG_STATE      = LOG_REGS | LOG_FP_REGS | LOG_SYS_REGS,
+  LOG_ALL        = LOG_DISASM | LOG_STATE | LOG_WRITE
+};
+
+// Trace commands.
+enum TraceCommand {
+  TRACE_ENABLE   = 1,
+  TRACE_DISABLE  = 2
+};
+
+// Log
+//  - parameter: TraceParameter stored as a uint32_t
+//
+// Print the specified information once. This mechanism is separate from Trace.
+// In particular, _all_ of the specified registers are printed, rather than just
+// the registers that the instruction writes.
+//
+// Any combination of the TraceParameters values can be used, except that
+// LOG_DISASM is not supported for Log.
+const Instr kLogOpcode = 0xdeb3;
+const unsigned kLogParamsOffset = 1 * kInstructionSize;
+const unsigned kLogLength = 2 * kInstructionSize;
 
 // The proper way to initialize a simulated system register (such as NZCV) is as
 // follows:
@@ -87,19 +151,19 @@ class SimSystemRegister {
   // It is not possible to set its value to anything other than 0.
   SimSystemRegister() : value_(0), write_ignore_mask_(0xffffffff) { }
 
-  inline uint32_t RawValue() const {
+  uint32_t RawValue() const {
     return value_;
   }
 
-  inline void SetRawValue(uint32_t new_value) {
+  void SetRawValue(uint32_t new_value) {
     value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
   }
 
-  inline uint32_t Bits(int msb, int lsb) const {
+  uint32_t Bits(int msb, int lsb) const {
     return unsigned_bitextract_32(msb, lsb, value_);
   }
 
-  inline int32_t SignedBits(int msb, int lsb) const {
+  int32_t SignedBits(int msb, int lsb) const {
     return signed_bitextract_32(msb, lsb, value_);
   }
 
@@ -109,8 +173,8 @@ class SimSystemRegister {
   static SimSystemRegister DefaultValueFor(SystemRegister id);
 
 #define DEFINE_GETTER(Name, HighBit, LowBit, Func)                            \
-  inline uint32_t Name() const { return Func(HighBit, LowBit); }              \
-  inline void Set##Name(uint32_t bits) { SetBits(HighBit, LowBit, bits); }
+  uint32_t Name() const { return Func(HighBit, LowBit); }              \
+  void Set##Name(uint32_t bits) { SetBits(HighBit, LowBit, bits); }
 #define DEFINE_WRITE_IGNORE_MASK(Name, Mask)                                  \
   static const uint32_t Name##WriteIgnoreMask = ~static_cast<uint32_t>(Mask);
 
@@ -185,26 +249,21 @@ class SimExclusiveLocalMonitor {
   }
 
   // Mark the address range for exclusive access (like load-exclusive).
-  template <typename T>
-  void MarkExclusive(T address, size_t size) {
-    VIXL_STATIC_ASSERT(sizeof(address) == sizeof(address_));
-    address_ = reinterpret_cast<uintptr_t>(address);
+  void MarkExclusive(uint64_t address, size_t size) {
+    address_ = address;
     size_ = size;
   }
 
   // Return true if the address range is marked (like store-exclusive).
   // This helper doesn't implicitly clear the monitor.
-  template <typename T>
-  bool IsExclusive(T address, size_t size) {
-    VIXL_STATIC_ASSERT(sizeof(address) == sizeof(address_));
+  bool IsExclusive(uint64_t address, size_t size) {
     VIXL_ASSERT(size > 0);
     // Be pedantic: Require both the address and the size to match.
-    return (size == size_) &&
-           (reinterpret_cast<uintptr_t>(address) == address_);
+    return (size == size_) && (address == address_);
   }
 
  private:
-  uintptr_t address_;
+  uint64_t address_;
   size_t size_;
 
   const int kSkipClearProbability;
@@ -219,8 +278,7 @@ class SimExclusiveGlobalMonitor {
  public:
   SimExclusiveGlobalMonitor() : kPassProbability(8), seed_(0x87654321) {}
 
-  template <typename T>
-  bool IsExclusive(T address, size_t size) {
+  bool IsExclusive(uint64_t address, size_t size) {
     USE(address);
     USE(size);
 
@@ -248,13 +306,13 @@ class Simulator : public DecoderVisitor {
   void RunFrom(const Instruction* first);
 
   // Simulation helpers.
-  inline const Instruction* pc() const { return pc_; }
-  inline void set_pc(const Instruction* new_pc) {
+  const Instruction* pc() const { return pc_; }
+  void set_pc(const Instruction* new_pc) {
     pc_ = AddressUntag(new_pc);
     pc_modified_ = true;
   }
 
-  inline void increment_pc() {
+  void increment_pc() {
     if (!pc_modified_) {
       pc_ = pc_->NextInstruction();
     }
@@ -262,7 +320,7 @@ class Simulator : public DecoderVisitor {
     pc_modified_ = false;
   }
 
-  inline void ExecuteInstruction() {
+  void ExecuteInstruction() {
     // The program counter should always be aligned.
     VIXL_ASSERT(IsWordAligned(pc_));
     decoder_->Decode(pc_);
@@ -270,7 +328,7 @@ class Simulator : public DecoderVisitor {
   }
 
   // Declare all Visitor functions.
-  #define DECLARE(A)  void Visit##A(const Instruction* instr);
+  #define DECLARE(A) virtual void Visit##A(const Instruction* instr);
   VISITOR_LIST(DECLARE)
   #undef DECLARE
 
@@ -278,36 +336,32 @@ class Simulator : public DecoderVisitor {
 
   // Basic accessor: Read the register as the specified type.
   template<typename T>
-  inline T reg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
-    VIXL_STATIC_ASSERT((sizeof(T) == kWRegSizeInBytes) ||
-                       (sizeof(T) == kXRegSizeInBytes));
+  T reg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
     VIXL_ASSERT(code < kNumberOfRegisters);
-
     if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
       T result;
       memset(&result, 0, sizeof(result));
       return result;
     }
-
     return registers_[code].Get<T>();
   }
 
   // Common specialized accessors for the reg() template.
-  inline int32_t wreg(unsigned code,
-                      Reg31Mode r31mode = Reg31IsZeroRegister) const {
+  int32_t wreg(unsigned code,
+               Reg31Mode r31mode = Reg31IsZeroRegister) const {
     return reg<int32_t>(code, r31mode);
   }
 
-  inline int64_t xreg(unsigned code,
-                      Reg31Mode r31mode = Reg31IsZeroRegister) const {
+  int64_t xreg(unsigned code,
+               Reg31Mode r31mode = Reg31IsZeroRegister) const {
     return reg<int64_t>(code, r31mode);
   }
 
   // As above, with parameterized size and return type. The value is
   // either zero-extended or truncated to fit, as required.
   template<typename T>
-  inline T reg(unsigned size, unsigned code,
-               Reg31Mode r31mode = Reg31IsZeroRegister) const {
+  T reg(unsigned size, unsigned code,
+        Reg31Mode r31mode = Reg31IsZeroRegister) const {
     uint64_t raw;
     switch (size) {
       case kWRegSize: raw = reg<uint32_t>(code, r31mode); break;
@@ -325,15 +379,22 @@ class Simulator : public DecoderVisitor {
   }
 
   // Use int64_t by default if T is not specified.
-  inline int64_t reg(unsigned size, unsigned code,
-                     Reg31Mode r31mode = Reg31IsZeroRegister) const {
+  int64_t reg(unsigned size, unsigned code,
+              Reg31Mode r31mode = Reg31IsZeroRegister) const {
     return reg<int64_t>(size, code, r31mode);
   }
 
-  // Basic accessor: Write the specified value.
+  enum RegLogMode {
+    LogRegWrites,
+    NoRegLog
+  };
+
+  // Write 'value' into an integer register. The value is zero-extended. This
+  // behaviour matches AArch64 register writes.
   template<typename T>
-  inline void set_reg(unsigned code, T value,
-                      Reg31Mode r31mode = Reg31IsZeroRegister) {
+  void set_reg(unsigned code, T value,
+               RegLogMode log_mode = LogRegWrites,
+               Reg31Mode r31mode = Reg31IsZeroRegister) {
     VIXL_STATIC_ASSERT((sizeof(T) == kWRegSizeInBytes) ||
                        (sizeof(T) == kXRegSizeInBytes));
     VIXL_ASSERT(code < kNumberOfRegisters);
@@ -343,24 +404,29 @@ class Simulator : public DecoderVisitor {
     }
 
     registers_[code].Set(value);
+
+    if (log_mode == LogRegWrites) LogRegister(code, r31mode);
   }
 
   // Common specialized accessors for the set_reg() template.
-  inline void set_wreg(unsigned code, int32_t value,
-                       Reg31Mode r31mode = Reg31IsZeroRegister) {
-    set_reg(code, value, r31mode);
+  void set_wreg(unsigned code, int32_t value,
+                RegLogMode log_mode = LogRegWrites,
+                Reg31Mode r31mode = Reg31IsZeroRegister) {
+    set_reg(code, value, log_mode, r31mode);
   }
 
-  inline void set_xreg(unsigned code, int64_t value,
-                       Reg31Mode r31mode = Reg31IsZeroRegister) {
-    set_reg(code, value, r31mode);
+  void set_xreg(unsigned code, int64_t value,
+               RegLogMode log_mode = LogRegWrites,
+                Reg31Mode r31mode = Reg31IsZeroRegister) {
+    set_reg(code, value, log_mode, r31mode);
   }
 
   // As above, with parameterized size and type. The value is either
   // zero-extended or truncated to fit, as required.
   template<typename T>
-  inline void set_reg(unsigned size, unsigned code, T value,
-                      Reg31Mode r31mode = Reg31IsZeroRegister) {
+  void set_reg(unsigned size, unsigned code, T value,
+               RegLogMode log_mode = LogRegWrites,
+               Reg31Mode r31mode = Reg31IsZeroRegister) {
     // Zero-extend the input.
     uint64_t raw = 0;
     VIXL_STATIC_ASSERT(sizeof(value) <= sizeof(raw));
@@ -368,8 +434,8 @@ class Simulator : public DecoderVisitor {
 
     // Write (and possibly truncate) the value.
     switch (size) {
-      case kWRegSize: set_reg<uint32_t>(code, raw, r31mode); break;
-      case kXRegSize: set_reg<uint64_t>(code, raw, r31mode); break;
+      case kWRegSize: set_reg<uint32_t>(code, raw, log_mode, r31mode); break;
+      case kXRegSize: set_reg<uint64_t>(code, raw, log_mode, r31mode); break;
       default:
         VIXL_UNREACHABLE();
         return;
@@ -380,13 +446,13 @@ class Simulator : public DecoderVisitor {
 
   // Commonly-used special cases.
   template<typename T>
-  inline void set_lr(T value) {
+  void set_lr(T value) {
     set_reg(kLinkRegCode, value);
   }
 
   template<typename T>
-  inline void set_sp(T value) {
-    set_reg(31, value, Reg31IsStackPointer);
+  void set_sp(T value) {
+    set_reg(31, value, LogRegWrites, Reg31IsStackPointer);
   }
 
   // FP register accessors.
@@ -395,7 +461,7 @@ class Simulator : public DecoderVisitor {
 
   // Basic accessor: Read the register as the specified type.
   template<typename T>
-  inline T fpreg(unsigned code) const {
+  T fpreg(unsigned code) const {
     VIXL_STATIC_ASSERT((sizeof(T) == kSRegSizeInBytes) ||
                        (sizeof(T) == kDRegSizeInBytes));
     VIXL_ASSERT(code < kNumberOfFPRegisters);
@@ -404,26 +470,26 @@ class Simulator : public DecoderVisitor {
   }
 
   // Common specialized accessors for the fpreg() template.
-  inline float sreg(unsigned code) const {
+  float sreg(unsigned code) const {
     return fpreg<float>(code);
   }
 
-  inline uint32_t sreg_bits(unsigned code) const {
+  uint32_t sreg_bits(unsigned code) const {
     return fpreg<uint32_t>(code);
   }
 
-  inline double dreg(unsigned code) const {
+  double dreg(unsigned code) const {
     return fpreg<double>(code);
   }
 
-  inline uint64_t dreg_bits(unsigned code) const {
+  uint64_t dreg_bits(unsigned code) const {
     return fpreg<uint64_t>(code);
   }
 
   // As above, with parameterized size and return type. The value is
   // either zero-extended or truncated to fit, as required.
   template<typename T>
-  inline T fpreg(unsigned size, unsigned code) const {
+  T fpreg(unsigned size, unsigned code) const {
     uint64_t raw;
     switch (size) {
       case kSRegSize: raw = fpreg<uint32_t>(code); break;
@@ -443,34 +509,47 @@ class Simulator : public DecoderVisitor {
 
   // Basic accessor: Write the specified value.
   template<typename T>
-  inline void set_fpreg(unsigned code, T value) {
+  void set_fpreg(unsigned code, T value,
+                RegLogMode log_mode = LogRegWrites) {
     VIXL_STATIC_ASSERT((sizeof(value) == kSRegSizeInBytes) ||
                        (sizeof(value) == kDRegSizeInBytes));
     VIXL_ASSERT(code < kNumberOfFPRegisters);
     fpregisters_[code].Set(value);
+
+    if (log_mode == LogRegWrites) {
+      if (sizeof(value) <= kSRegSizeInBytes) {
+        LogFPRegister(code, kPrintSRegValue);
+      } else {
+        LogFPRegister(code, kPrintDRegValue);
+      }
+    }
   }
 
   // Common specialized accessors for the set_fpreg() template.
-  inline void set_sreg(unsigned code, float value) {
-    set_fpreg(code, value);
+  void set_sreg(unsigned code, float value,
+                RegLogMode log_mode = LogRegWrites) {
+    set_fpreg(code, value, log_mode);
   }
 
-  inline void set_sreg_bits(unsigned code, uint32_t value) {
-    set_fpreg(code, value);
+  void set_sreg_bits(unsigned code, uint32_t value,
+                     RegLogMode log_mode = LogRegWrites) {
+    set_fpreg(code, value, log_mode);
   }
 
-  inline void set_dreg(unsigned code, double value) {
-    set_fpreg(code, value);
+  void set_dreg(unsigned code, double value,
+                RegLogMode log_mode = LogRegWrites) {
+    set_fpreg(code, value, log_mode);
   }
 
-  inline void set_dreg_bits(unsigned code, uint64_t value) {
-    set_fpreg(code, value);
+  void set_dreg_bits(unsigned code, uint64_t value,
+                     RegLogMode log_mode = LogRegWrites) {
+    set_fpreg(code, value, log_mode);
   }
 
-  bool N() { return nzcv_.N() != 0; }
-  bool Z() { return nzcv_.Z() != 0; }
-  bool C() { return nzcv_.C() != 0; }
-  bool V() { return nzcv_.V() != 0; }
+  bool N() const { return nzcv_.N() != 0; }
+  bool Z() const { return nzcv_.Z() != 0; }
+  bool C() const { return nzcv_.C() != 0; }
+  bool V() const { return nzcv_.V() != 0; }
   SimSystemRegister& nzcv() { return nzcv_; }
 
   // TODO(jbramley): Find a way to make the fpcr_ members return the proper
@@ -479,11 +558,73 @@ class Simulator : public DecoderVisitor {
   bool DN() { return fpcr_.DN() != 0; }
   SimSystemRegister& fpcr() { return fpcr_; }
 
-  // Debug helpers
-  void PrintSystemRegisters(bool print_all = false);
-  void PrintRegisters(bool print_all_regs = false);
-  void PrintFPRegisters(bool print_all_regs = false);
-  void PrintProcessorState();
+  // Print all registers of the specified types.
+  void PrintRegisters();
+  void PrintFPRegisters();
+  void PrintSystemRegisters();
+
+  // Like Print* (above), but respect trace_parameters().
+  void LogSystemRegisters() {
+    if (trace_parameters() & LOG_SYS_REGS) PrintSystemRegisters();
+  }
+  void LogRegisters() {
+    if (trace_parameters() & LOG_REGS) PrintRegisters();
+  }
+  void LogFPRegisters() {
+    if (trace_parameters() & LOG_FP_REGS) PrintFPRegisters();
+  }
+
+  // Specify relevant register sizes, for PrintFPRegister.
+  //
+  // These values are bit masks; they can be combined in case multiple views of
+  // a machine register are interesting.
+  enum PrintFPRegisterSizes {
+    kPrintDRegValue = 1 << kDRegSizeInBytes,
+    kPrintSRegValue = 1 << kSRegSizeInBytes,
+    kPrintAllFPRegValues = kPrintDRegValue | kPrintSRegValue
+  };
+
+  // Print individual register values (after update).
+  void PrintRegister(unsigned code, Reg31Mode r31mode = Reg31IsStackPointer);
+  void PrintFPRegister(unsigned code,
+                       PrintFPRegisterSizes sizes = kPrintAllFPRegValues);
+  void PrintSystemRegister(SystemRegister id);
+
+  // Like Print* (above), but respect trace_parameters().
+  void LogRegister(unsigned code, Reg31Mode r31mode = Reg31IsStackPointer) {
+    if (trace_parameters() & LOG_REGS) PrintRegister(code, r31mode);
+  }
+  void LogFPRegister(unsigned code,
+                     PrintFPRegisterSizes sizes = kPrintAllFPRegValues) {
+    if (trace_parameters() & LOG_FP_REGS) PrintFPRegister(code, sizes);
+  }
+  void LogSystemRegister(SystemRegister id) {
+    if (trace_parameters() & LOG_SYS_REGS) PrintSystemRegister(id);
+  }
+
+  // Print memory accesses.
+  void PrintRead(uintptr_t address, size_t size, unsigned reg_code);
+  void PrintReadFP(uintptr_t address, size_t size, unsigned reg_code);
+  void PrintWrite(uintptr_t address, size_t size, unsigned reg_code);
+  void PrintWriteFP(uintptr_t address, size_t size, unsigned reg_code);
+
+  // Like Print* (above), but respect trace_parameters().
+  void LogRead(uintptr_t address, size_t size, unsigned reg_code) {
+    if (trace_parameters() & LOG_REGS) PrintRead(address, size, reg_code);
+  }
+  void LogReadFP(uintptr_t address, size_t size, unsigned reg_code) {
+    if (trace_parameters() & LOG_FP_REGS) PrintReadFP(address, size, reg_code);
+  }
+  void LogWrite(uintptr_t address, size_t size, unsigned reg_code) {
+    if (trace_parameters() & LOG_WRITE) PrintWrite(address, size, reg_code);
+  }
+  void LogWriteFP(uintptr_t address, size_t size, unsigned reg_code) {
+    if (trace_parameters() & LOG_WRITE) PrintWriteFP(address, size, reg_code);
+  }
+
+  void DoUnreachable(const Instruction* instr);
+  void DoTrace(const Instruction* instr);
+  void DoLog(const Instruction* instr);
 
   static const char* WRegNameForCode(unsigned code,
                                      Reg31Mode mode = Reg31IsZeroRegister);
@@ -493,38 +634,21 @@ class Simulator : public DecoderVisitor {
   static const char* DRegNameForCode(unsigned code);
   static const char* VRegNameForCode(unsigned code);
 
-  inline bool coloured_trace() { return coloured_trace_; }
+  bool coloured_trace() const { return coloured_trace_; }
   void set_coloured_trace(bool value);
 
-  inline bool disasm_trace() { return disasm_trace_; }
-  inline void set_disasm_trace(bool value) {
-    if (value != disasm_trace_) {
-      if (value) {
-        decoder_->InsertVisitorBefore(print_disasm_, this);
-      } else {
-        decoder_->RemoveVisitor(print_disasm_);
-      }
-      disasm_trace_ = value;
-    }
-  }
-  inline void set_instruction_stats(bool value) {
-    if (value != instruction_stats_) {
-      if (value) {
-        decoder_->AppendVisitor(instrumentation_);
-      } else {
-        decoder_->RemoveVisitor(instrumentation_);
-      }
-      instruction_stats_ = value;
-    }
-  }
+  int trace_parameters() const { return trace_parameters_; }
+  void set_trace_parameters(int parameters);
+
+  void set_instruction_stats(bool value);
 
   // Clear the simulated local monitor to force the next store-exclusive
   // instruction to fail.
-  inline void ClearLocalMonitor() {
+  void ClearLocalMonitor() {
     local_monitor_.Clear();
   }
 
-  inline void SilenceExclusiveAccessWarning() {
+  void SilenceExclusiveAccessWarning() {
     print_exclusive_access_warning_ = false;
   }
 
@@ -536,10 +660,7 @@ class Simulator : public DecoderVisitor {
   const char* clr_reg_value;
   const char* clr_fpreg_name;
   const char* clr_fpreg_value;
-  const char* clr_memory_value;
   const char* clr_memory_address;
-  const char* clr_debug_number;
-  const char* clr_debug_message;
   const char* clr_warning;
   const char* clr_warning_message;
   const char* clr_printf;
@@ -604,14 +725,18 @@ class Simulator : public DecoderVisitor {
                        int64_t offset,
                        AddrMode addrmode);
   void LoadStorePairHelper(const Instruction* instr, AddrMode addrmode);
-  uint8_t* AddressModeHelper(unsigned addr_reg,
-                             int64_t offset,
-                             AddrMode addrmode);
+  uintptr_t AddressModeHelper(unsigned addr_reg,
+                              int64_t offset,
+                              AddrMode addrmode);
+
+  uint64_t AddressUntag(uint64_t address) {
+    return address & ~kAddressTagMask;
+  }
 
   template <typename T>
-  T AddressUntag(T address) {
-    uint64_t bits = reinterpret_cast<uint64_t>(address);
-    return reinterpret_cast<T>(bits & ~kAddressTagMask);
+  T* AddressUntag(T* address) {
+    uintptr_t address_raw = reinterpret_cast<uintptr_t>(address);
+    return reinterpret_cast<T*>(AddressUntag(address_raw));
   }
 
   template <typename T, typename A>
@@ -645,8 +770,13 @@ class Simulator : public DecoderVisitor {
                       Extend extend_type,
                       unsigned left_shift = 0);
 
-  uint64_t ReverseBits(uint64_t value, unsigned num_bits);
+  enum ReverseByteMode {
+    Reverse16 = 0,
+    Reverse32 = 1,
+    Reverse64 = 2
+  };
   uint64_t ReverseBytes(uint64_t value, ReverseByteMode mode);
+  uint64_t ReverseBits(uint64_t value, unsigned num_bits);
 
   template <typename T>
   T FPDefaultNaN() const;
@@ -755,11 +885,11 @@ class Simulator : public DecoderVisitor {
     // is irrelevant, and is not checked here.
   }
 
-  static inline int CalcNFlag(uint64_t result, unsigned reg_size) {
+  static int CalcNFlag(uint64_t result, unsigned reg_size) {
     return (result >> (reg_size - 1)) & 1;
   }
 
-  static inline int CalcZFlag(uint64_t result) {
+  static int CalcZFlag(uint64_t result) {
     return result == 0;
   }
 
@@ -789,8 +919,8 @@ class Simulator : public DecoderVisitor {
  private:
   bool coloured_trace_;
 
-  // Indicates whether the disassembly trace is active.
-  bool disasm_trace_;
+  // A set of TraceParameters flags.
+  int trace_parameters_;
 
   // Indicates whether the instruction instrumentation is active.
   bool instruction_stats_;

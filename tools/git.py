@@ -31,33 +31,10 @@ import os.path
 def is_git_repository_root():
   return os.path.isdir('.git')
 
-def get_current_branch():
-  status, branches = util.getstatusoutput('git branch')
-  if status != 0: util.abort('Failed to run git branch.')
-  match = re.search("^\* (.*)$", branches, re.MULTILINE)
-  if not match: util.abort('Failed to find the current branch.')
-
-  branch = match.group(1);
-
-  # If we are not on a named branch, return the hash of the HEAD commit.
-  # This can occur (for example) if a specific revision is checked out by
-  # commit hash, or during a rebase.
-  if branch == '(no branch)':
-    status, commit = util.getstatusoutput('git log -1 --pretty=format:"%H"')
-    if status != 0: util.abort('Failed to run git log.')
-    match = re.search('^[0-9a-fA-F]{40}$', commit, re.MULTILINE)
-    if not match: util.abort('Failed to find the current revision.')
-    branch = match.group(0)
-
-  return branch
-
-
 def get_tracked_files():
-  command = 'git ls-tree '
-  branch = get_current_branch()
-  options = ' -r --full-tree --name-only'
+  command = 'git ls-tree HEAD -r --full-tree --name-only'
 
-  status, tracked = util.getstatusoutput(command + branch + options)
+  status, tracked = util.getstatusoutput(command)
   if status != 0: util.abort('Failed to list tracked files.')
 
   return tracked

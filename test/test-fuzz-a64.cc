@@ -25,7 +25,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdlib.h>
-#include "cctest.h"
+#include "test-runner.h"
 
 #include "a64/decoder-a64.h"
 #include "a64/disasm-a64.h"
@@ -76,13 +76,12 @@ TEST(disasm) {
 
 #if 0
 // These tests are commented out as they take a long time to run, causing the
-// test script to timeout. After enabling them, they are best run individually
-// using cctest:
+// test script to timeout. After enabling them, they are best run manually:
 //
-//     cctest_sim FUZZ_decoder_pedantic
-//     cctest_sim FUZZ_disasm_pedantic
+//     test-runner_sim FUZZ_decoder_pedantic
+//     test-runner_sim FUZZ_disasm_pedantic
 //
-// or cctest_sim_g for debug builds.
+// or test-runner_sim_g for debug builds.
 
 TEST(decoder_pedantic) {
   // Test the entire instruction space.

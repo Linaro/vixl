@@ -1,4 +1,4 @@
-VIXL: AArch64 Runtime Code Generation Library Version 1.6
+VIXL: AArch64 Runtime Code Generation Library Version 1.7
 =========================================================
 
 Contents:
@@ -69,11 +69,24 @@ builds and mostly works for 32-bit x86 platforms, there are a number of
 floating-point operations which do not work correctly, and a number of tests
 fail as a result.
 
+Debug Builds
+------------
+
+Your project's build system must define `VIXL_DEBUG` (eg. `-DVIXL_DEBUG`)
+when using a VIXL library that has been built with debug enabled.
+
+Some classes defined in VIXL header files contain fields that are only present
+in debug builds, so if `VIXL_DEBUG` is defined when the library is built, but
+not defined for the header files included in your project, you will see runtime
+failures.
+
 Exclusive-Access Instructions
 -----------------------------
 
 All exclusive-access instructions are supported, but the simulator cannot
-accurately simulate their behaviour as described in the ARMv8 ARM.
+accurately simulate their behaviour as described in the ARMv8 Architecture
+Reference Manual.
+
  * A local monitor is simulated, so simulated exclusive loads and stores execute
    as expected in a single-threaded environment.
  * The global monitor is simulated by occasionally causing exclusive-access
@@ -84,6 +97,7 @@ accurately simulate their behaviour as described in the ARMv8 ARM.
 
 The simulator tries to be strict, and implements the following restrictions that
 the ARMv8 ARM allows:
+
  * A pair of load-/store-exclusive instructions will only succeed if they have
    the same address and access size.
  * Most of the time, cache-maintenance operations or explicit memory accesses
@@ -92,9 +106,9 @@ the ARMv8 ARM allows:
       exclusive monitor will sometimes be left intact after these instructions.
 
 Instructions affected by these limitations:
-  stxrb, stxrh, stxr, ldxrb, ldxrh, ldxr, stxp, ldxp, stlxrb, stlxrh, stlxr,
-  ldaxrb, ldaxrh, ldaxr, stlxp, ldaxp, stlrb, stlrh, stlr, ldarb, ldarh, ldar,
-  clrex.
+  `stxrb`, `stxrh`, `stxr`, `ldxrb`, `ldxrh`, `ldxr`, `stxp`, `ldxp`, `stlxrb`,
+  `stlxrh`, `stlxr`, `ldaxrb`, `ldaxrh`, `ldaxr`, `stlxp`, `ldaxp`, `stlrb`,
+  `stlrh`, `stlr`, `ldarb`, `ldarh`, `ldar`, `clrex`.
 
 
 Usage
@@ -116,7 +130,7 @@ developers. The linter has the following dependencies:
  1. Git must be installed, and the VIXL project must be in a valid Git
     repository, such as one produced using `git clone`.
  2. `cpplint.py`, [as provided by Google][cpplint], must be available (and
-    executable) on the `PATH`. Only revision 104 has been tested with VIXL.
+    executable) on the `PATH`.
 
 It is possible to tell `tools/presubmit.py` to skip the linter stage by passing
 `--nolint`. This removes the dependency on `cpplint.py` and Git. The `--nolint`
@@ -148,23 +162,23 @@ Getting Started
 ---------------
 
 A short introduction to using VIXL can be found [here](doc/getting-started.md).
-Example source code is provided in the `examples` directory. You can build all
-the examples with `scons examples` from the root directory, or use
+Example source code is provided in the [examples](examples) directory. You can
+build all the examples with `scons examples` from the root directory, or use
 `scons --help` to get a detailed list of available build targets.
 
 
 Using VIXL
 ----------
 
-On top of the [here](doc/getting-started) page and the examples, you can find
-documentation and guides on various topics that may be of help
-[here](doc/topics/index.md).
+In addition to [getting started](doc/getting-started.md) and the
+[examples](examples), you can find documentation and guides on various topics
+that may be helpful [here](doc/topics/index.md).
 
 
 
 
 
-[cpplint]: https://google-styleguide.googlecode.com/svn-history/r104/trunk/cpplint/cpplint.py
+[cpplint]: http://google-styleguide.googlecode.com/svn/trunk/cpplint/cpplint.py
            "Google's cpplint.py script."
 
 [vixl]: https://github.com/armvixl/vixl

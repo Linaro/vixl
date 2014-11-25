@@ -95,7 +95,7 @@ Bitwise and (A & B) and update status flags.
 
 Arithmetic shift right.
 
-    inline void asr(const Register& rd, const Register& rn, unsigned shift)
+    void asr(const Register& rd, const Register& rn, unsigned shift)
 
 
 ### asrv ###
@@ -137,10 +137,10 @@ Unconditional branch to label.
 
 Bitfield insert.
 
-    inline void bfi(const Register& rd,
-                    const Register& rn,
-                    unsigned lsb,
-                    unsigned width)
+    void bfi(const Register& rd,
+             const Register& rn,
+             unsigned lsb,
+             unsigned width)
 
 
 ### bfm ###
@@ -157,10 +157,10 @@ Bitfield move.
 
 Bitfield extract and insert low.
 
-    inline void bfxil(const Register& rd,
-                      const Register& rn,
-                      unsigned lsb,
-                      unsigned width)
+    void bfxil(const Register& rd,
+               const Register& rn,
+               unsigned lsb,
+               unsigned width)
 
 
 ### bic ###
@@ -661,7 +661,7 @@ Load exclusive half-word.
 
 Logical shift left.
 
-    inline void lsl(const Register& rd, const Register& rn, unsigned shift)
+    void lsl(const Register& rd, const Register& rn, unsigned shift)
 
 
 ### lslv ###
@@ -675,7 +675,7 @@ Logical shift left by variable.
 
 Logical shift right.
 
-    inline void lsr(const Register& rd, const Register& rn, unsigned shift)
+    void lsr(const Register& rd, const Register& rn, unsigned shift)
 
 
 ### lsrv ###
@@ -821,6 +821,36 @@ Bitwise or (A | B).
     void orr(const Register& rd, const Register& rn, const Operand& operand)
 
 
+### prfm ###
+
+Prefetch from pc + imm19 << 2.
+
+    void prfm(PrefetchOperation op, int imm19)
+
+
+### prfm ###
+
+Prefetch memory in the literal pool.
+
+    void prfm(PrefetchOperation op, RawLiteral* literal)
+
+
+### prfm ###
+
+Prefetch memory.
+
+    void prfm(PrefetchOperation op, const MemOperand& addr,
+              LoadStoreScalingOption option = PreferScaledOffset)
+
+
+### prfum ###
+
+Prefetch memory (with unscaled offset).
+
+    void prfum(PrefetchOperation op, const MemOperand& addr,
+               LoadStoreScalingOption option = PreferUnscaledOffset)
+
+
 ### rbit ###
 
 Bit reverse.
@@ -860,7 +890,7 @@ Reverse bytes in 32-bit words.
 
 Rotate right.
 
-    inline void ror(const Register& rd, const Register& rs, unsigned shift)
+    void ror(const Register& rd, const Register& rs, unsigned shift)
 
 
 ### rorv ###
@@ -892,10 +922,10 @@ Subtract with carry bit and update status flags.
 
 Signed bitfield insert with zero at right.
 
-    inline void sbfiz(const Register& rd,
-                      const Register& rn,
-                      unsigned lsb,
-                      unsigned width)
+    void sbfiz(const Register& rd,
+               const Register& rn,
+               unsigned lsb,
+               unsigned width)
 
 
 ### sbfm ###
@@ -912,10 +942,10 @@ Signed bitfield move.
 
 Signed bitfield extract.
 
-    inline void sbfx(const Register& rd,
-                     const Register& rn,
-                     unsigned lsb,
-                     unsigned width)
+    void sbfx(const Register& rd,
+              const Register& rn,
+              unsigned lsb,
+              unsigned width)
 
 
 ### scvtf ###
@@ -1135,21 +1165,21 @@ Subtract and update status flags.
 
 Signed extend byte.
 
-    inline void sxtb(const Register& rd, const Register& rn)
+    void sxtb(const Register& rd, const Register& rn)
 
 
 ### sxth ###
 
 Signed extend halfword.
 
-    inline void sxth(const Register& rd, const Register& rn)
+    void sxth(const Register& rd, const Register& rn)
 
 
 ### sxtw ###
 
 Signed extend word.
 
-    inline void sxtw(const Register& rd, const Register& rn)
+    void sxtw(const Register& rd, const Register& rn)
 
 
 ### tbnz ###
@@ -1191,10 +1221,10 @@ Bit test and set flags.
 
 Unsigned bitfield insert with zero at right.
 
-    inline void ubfiz(const Register& rd,
-                      const Register& rn,
-                      unsigned lsb,
-                      unsigned width)
+    void ubfiz(const Register& rd,
+               const Register& rn,
+               unsigned lsb,
+               unsigned width)
 
 
 ### ubfm ###
@@ -1211,10 +1241,10 @@ Unsigned bitfield move.
 
 Unsigned bitfield extract.
 
-    inline void ubfx(const Register& rd,
-                     const Register& rn,
-                     unsigned lsb,
-                     unsigned width)
+    void ubfx(const Register& rd,
+              const Register& rn,
+              unsigned lsb,
+              unsigned width)
 
 
 ### ucvtf ###
@@ -1255,21 +1285,21 @@ Unsigned long multiply and subtract: 64 - (32 x 32) -> 64-bit.
 
 Unsigned extend byte.
 
-    inline void uxtb(const Register& rd, const Register& rn)
+    void uxtb(const Register& rd, const Register& rn)
 
 
 ### uxth ###
 
 Unsigned extend halfword.
 
-    inline void uxth(const Register& rd, const Register& rn)
+    void uxth(const Register& rd, const Register& rn)
 
 
 ### uxtw ###
 
 Unsigned extend word.
 
-    inline void uxtw(const Register& rd, const Register& rn)
+    void uxtw(const Register& rd, const Register& rn)
 
 
 
@@ -1518,6 +1548,13 @@ FP round to integer (nearest with ties to away).
     void frinta(const FPRegister& fd, const FPRegister& fn)
 
 
+### frinti ###
+
+FP round to integer (implicit rounding).
+
+    void frinti(const FPRegister& fd, const FPRegister& fn)
+
+
 ### frintm ###
 
 FP round to integer (toward minus infinity).
@@ -1530,6 +1567,20 @@ FP round to integer (toward minus infinity).
 FP round to integer (nearest with ties to even).
 
     void frintn(const FPRegister& fd, const FPRegister& fn)
+
+
+### frintp ###
+
+FP round to integer (toward plus infinity).
+
+    void frintp(const FPRegister& fd, const FPRegister& fn)
+
+
+### frintx ###
+
+FP round to integer (exact, implicit rounding).
+
+    void frintx(const FPRegister& fd, const FPRegister& fn)
 
 
 ### frintz ###
@@ -1568,21 +1619,21 @@ Bind a label to the current PC.
 
 Emit 32 bits of data into the instruction stream.
 
-    inline void dc32(uint32_t data)
+    void dc32(uint32_t data)
 
 
 ### dc64 ###
 
 Emit 64 bits of data into the instruction stream.
 
-    inline void dc64(uint64_t data)
+    void dc64(uint64_t data)
 
 
 ### dci ###
 
 Emit raw instructions into the instruction stream.
 
-    inline void dci(Instr raw_inst)
+    void dci(Instr raw_inst)
 
 
 ### place ###

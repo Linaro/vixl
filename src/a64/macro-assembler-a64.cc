@@ -129,20 +129,24 @@ ptrdiff_t LiteralPool::NextCheckOffset() {
 
 
 EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm, size_t size) {
-  masm->EnsureEmitFor(size);
-#ifdef DEBUG
-  masm_ = masm;
-  masm->Bind(&start_);
-  size_ = size;
-  masm->AcquireBuffer();
+  if (masm) {
+    masm->EnsureEmitFor(size);
+#ifdef VIXL_DEBUG
+    masm_ = masm;
+    masm->Bind(&start_);
+    size_ = size;
+    masm->AcquireBuffer();
 #endif
+  }
 }
 
 
 EmissionCheckScope::~EmissionCheckScope() {
-#ifdef DEBUG
-  masm_->ReleaseBuffer();
-  VIXL_ASSERT(masm_->SizeOfCodeGeneratedSince(&start_) <= size_);
+#ifdef VIXL_DEBUG
+  if (masm_) {
+    masm_->ReleaseBuffer();
+    VIXL_ASSERT(masm_->SizeOfCodeGeneratedSince(&start_) <= size_);
+  }
 #endif
 }
 
@@ -150,7 +154,7 @@ EmissionCheckScope::~EmissionCheckScope() {
 MacroAssembler::MacroAssembler(size_t capacity,
                                PositionIndependentCodeOption pic)
     : Assembler(capacity, pic),
-#ifdef DEBUG
+#ifdef VIXL_DEBUG
       allow_macro_instructions_(true),
 #endif
       sp_(sp),
@@ -165,7 +169,7 @@ MacroAssembler::MacroAssembler(byte * buffer,
                                size_t capacity,
                                PositionIndependentCodeOption pic)
     : Assembler(buffer, capacity, pic),
-#ifdef DEBUG
+#ifdef VIXL_DEBUG
       allow_macro_instructions_(true),
 #endif
       sp_(sp),
@@ -194,6 +198,134 @@ void MacroAssembler::FinalizeCode() {
   if (!literal_pool_.IsEmpty()) literal_pool_.Emit();
 
   Assembler::FinalizeCode();
+}
+
+
+int MacroAssembler::MoveImmediateHelper(MacroAssembler* masm,
+                                        const Register &rd,
+                                        uint64_t imm) {
+  bool emit_code = (masm != NULL);
+  VIXL_ASSERT(is_uint32(imm) || is_int32(imm) || rd.Is64Bits());
+  // The worst case for size is mov 64-bit immediate to sp:
+  //  * up to 4 instructions to materialise the constant
+  //  * 1 instruction to move to sp
+  MacroEmissionCheckScope guard(masm);
+
+  // Immediates on Aarch64 can be produced using an initial value, and zero to
+  // three move keep operations.
+  //
+  // Initial values can be generated with:
+  //  1. 64-bit move zero (movz).
+  //  2. 32-bit move inverted (movn).
+  //  3. 64-bit move inverted.
+  //  4. 32-bit orr immediate.
+  //  5. 64-bit orr immediate.
+  // Move-keep may then be used to modify each of the 16-bit half words.
+  //
+  // The code below supports all five initial value generators, and
+  // applying move-keep operations to move-zero and move-inverted initial
+  // values.
+
+  // Try to move the immediate in one instruction, and if that fails, switch to
+  // using multiple instructions.
+  if (OneInstrMoveImmediateHelper(masm, rd, imm)) {
+    return 1;
+  } else {
+    int instruction_count = 0;
+    unsigned reg_size = rd.size();
+
+    // Generic immediate case. Imm will be represented by
+    //   [imm3, imm2, imm1, imm0], where each imm is 16 bits.
+    // A move-zero or move-inverted is generated for the first non-zero or
+    // non-0xffff immX, and a move-keep for subsequent non-zero immX.
+
+    uint64_t ignored_halfword = 0;
+    bool invert_move = false;
+    // If the number of 0xffff halfwords is greater than the number of 0x0000
+    // halfwords, it's more efficient to use move-inverted.
+    if (CountClearHalfWords(~imm, reg_size) >
+        CountClearHalfWords(imm, reg_size)) {
+      ignored_halfword = 0xffff;
+      invert_move = true;
+    }
+
+    // Mov instructions can't move values into the stack pointer, so set up a
+    // temporary register, if needed.
+    UseScratchRegisterScope temps;
+    Register temp;
+    if (emit_code) {
+      temps.Open(masm);
+      temp = rd.IsSP() ? temps.AcquireSameSizeAs(rd) : rd;
+    }
+
+    // Iterate through the halfwords. Use movn/movz for the first non-ignored
+    // halfword, and movk for subsequent halfwords.
+    VIXL_ASSERT((reg_size % 16) == 0);
+    bool first_mov_done = false;
+    for (unsigned i = 0; i < (temp.size() / 16); i++) {
+      uint64_t imm16 = (imm >> (16 * i)) & 0xffff;
+      if (imm16 != ignored_halfword) {
+        if (!first_mov_done) {
+          if (invert_move) {
+            if (emit_code) masm->movn(temp, ~imm16 & 0xffff, 16 * i);
+            instruction_count++;
+          } else {
+            if (emit_code) masm->movz(temp, imm16, 16 * i);
+            instruction_count++;
+          }
+          first_mov_done = true;
+        } else {
+          // Construct a wider constant.
+          if (emit_code) masm->movk(temp, imm16, 16 * i);
+          instruction_count++;
+        }
+      }
+    }
+
+    VIXL_ASSERT(first_mov_done);
+
+    // Move the temporary if the original destination register was the stack
+    // pointer.
+    if (rd.IsSP()) {
+      if (emit_code) masm->mov(rd, temp);
+      instruction_count++;
+    }
+    return instruction_count;
+  }
+}
+
+
+bool MacroAssembler::OneInstrMoveImmediateHelper(MacroAssembler* masm,
+                                                 const Register& dst,
+                                                 int64_t imm) {
+  bool emit_code = masm != NULL;
+  unsigned n, imm_s, imm_r;
+  int reg_size = dst.size();
+
+  if (IsImmMovz(imm, reg_size) && !dst.IsSP()) {
+    // Immediate can be represented in a move zero instruction. Movz can't write
+    // to the stack pointer.
+    if (emit_code) {
+      masm->movz(dst, imm);
+    }
+    return true;
+  } else if (IsImmMovn(imm, reg_size) && !dst.IsSP()) {
+    // Immediate can be represented in a move negative instruction. Movn can't
+    // write to the stack pointer.
+    if (emit_code) {
+      masm->movn(dst, dst.Is64Bits() ? ~imm : (~imm & kWRegMask));
+    }
+    return true;
+  } else if (IsImmLogical(imm, reg_size, &n, &imm_s, &imm_r)) {
+    // Immediate can be represented in a logical orr instruction.
+    VIXL_ASSERT(!dst.IsZero());
+    if (emit_code) {
+      masm->LogicalImmediate(
+          dst, AppropriateZeroRegFor(dst), n, imm_s, imm_r, ORR);
+    }
+    return true;
+  }
+  return false;
 }
 
 
@@ -459,109 +591,7 @@ void MacroAssembler::Mvn(const Register& rd, const Operand& operand) {
 
 void MacroAssembler::Mov(const Register& rd, uint64_t imm) {
   VIXL_ASSERT(allow_macro_instructions_);
-  VIXL_ASSERT(is_uint32(imm) || is_int32(imm) || rd.Is64Bits());
-  // The worst case for size is mov 64-bit immediate to sp:
-  //  * up to 4 instructions to materialise the constant
-  //  * 1 instruction to move to sp
-  MacroEmissionCheckScope guard(this);
-
-  // Immediates on Aarch64 can be produced using an initial value, and zero to
-  // three move keep operations.
-  //
-  // Initial values can be generated with:
-  //  1. 64-bit move zero (movz).
-  //  2. 32-bit move inverted (movn).
-  //  3. 64-bit move inverted.
-  //  4. 32-bit orr immediate.
-  //  5. 64-bit orr immediate.
-  // Move-keep may then be used to modify each of the 16-bit half words.
-  //
-  // The code below supports all five initial value generators, and
-  // applying move-keep operations to move-zero and move-inverted initial
-  // values.
-
-  // Try to move the immediate in one instruction, and if that fails, switch to
-  // using multiple instructions.
-  if (!TryOneInstrMoveImmediate(rd, imm)) {
-    unsigned reg_size = rd.size();
-
-    // Generic immediate case. Imm will be represented by
-    //   [imm3, imm2, imm1, imm0], where each imm is 16 bits.
-    // A move-zero or move-inverted is generated for the first non-zero or
-    // non-0xffff immX, and a move-keep for subsequent non-zero immX.
-
-    uint64_t ignored_halfword = 0;
-    bool invert_move = false;
-    // If the number of 0xffff halfwords is greater than the number of 0x0000
-    // halfwords, it's more efficient to use move-inverted.
-    if (CountClearHalfWords(~imm, reg_size) >
-        CountClearHalfWords(imm, reg_size)) {
-      ignored_halfword = 0xffff;
-      invert_move = true;
-    }
-
-    // Mov instructions can't move values into the stack pointer, so set up a
-    // temporary register, if needed.
-    UseScratchRegisterScope temps(this);
-    Register temp = rd.IsSP() ? temps.AcquireSameSizeAs(rd) : rd;
-
-    // Iterate through the halfwords. Use movn/movz for the first non-ignored
-    // halfword, and movk for subsequent halfwords.
-    VIXL_ASSERT((reg_size % 16) == 0);
-    bool first_mov_done = false;
-    for (unsigned i = 0; i < (temp.size() / 16); i++) {
-      uint64_t imm16 = (imm >> (16 * i)) & 0xffff;
-      if (imm16 != ignored_halfword) {
-        if (!first_mov_done) {
-          if (invert_move) {
-            movn(temp, ~imm16 & 0xffff, 16 * i);
-          } else {
-            movz(temp, imm16, 16 * i);
-          }
-          first_mov_done = true;
-        } else {
-          // Construct a wider constant.
-          movk(temp, imm16, 16 * i);
-        }
-      }
-    }
-
-    VIXL_ASSERT(first_mov_done);
-
-    // Move the temporary if the original destination register was the stack
-    // pointer.
-    if (rd.IsSP()) {
-      mov(rd, temp);
-    }
-  }
-}
-
-
-unsigned MacroAssembler::CountClearHalfWords(uint64_t imm, unsigned reg_size) {
-  VIXL_ASSERT((reg_size % 8) == 0);
-  int count = 0;
-  for (unsigned i = 0; i < (reg_size / 16); i++) {
-    if ((imm & 0xffff) == 0) {
-      count++;
-    }
-    imm >>= 16;
-  }
-  return count;
-}
-
-
-// The movz instruction can generate immediates containing an arbitrary 16-bit
-// value, with remaining bits clear, eg. 0x00001234, 0x0000123400000000.
-bool MacroAssembler::IsImmMovz(uint64_t imm, unsigned reg_size) {
-  VIXL_ASSERT((reg_size == kXRegSize) || (reg_size == kWRegSize));
-  return CountClearHalfWords(imm, reg_size) >= ((reg_size / 16) - 1);
-}
-
-
-// The movn instruction can generate immediates containing an arbitrary 16-bit
-// value, with remaining bits set, eg. 0xffff1234, 0xffff1234ffffffff.
-bool MacroAssembler::IsImmMovn(uint64_t imm, unsigned reg_size) {
-  return IsImmMovz(~imm, reg_size);
+  MoveImmediateHelper(this, rd, imm);
 }
 
 
@@ -807,26 +837,7 @@ void MacroAssembler::Negs(const Register& rd,
 
 bool MacroAssembler::TryOneInstrMoveImmediate(const Register& dst,
                                               int64_t imm) {
-  unsigned n, imm_s, imm_r;
-  int reg_size = dst.size();
-
-  if (IsImmMovz(imm, reg_size) && !dst.IsSP()) {
-    // Immediate can be represented in a move zero instruction. Movz can't write
-    // to the stack pointer.
-    movz(dst, imm);
-    return true;
-  } else if (IsImmMovn(imm, reg_size) && !dst.IsSP()) {
-    // Immediate can be represented in a move negative instruction. Movn can't
-    // write to the stack pointer.
-    movn(dst, dst.Is64Bits() ? ~imm : (~imm & kWRegMask));
-    return true;
-  } else if (IsImmLogical(imm, reg_size, &n, &imm_s, &imm_r)) {
-    // Immediate can be represented in a logical orr instruction.
-    VIXL_ASSERT(!dst.IsZero());
-    LogicalImmediate(dst, AppropriateZeroRegFor(dst), n, imm_s, imm_r, ORR);
-    return true;
-  }
-  return false;
+  return OneInstrMoveImmediateHelper(this, dst, imm);
 }
 
 
@@ -1002,6 +1013,7 @@ void MacroAssembler::FN(const REGTYPE REG, const MemOperand& addr) {  \
 LS_MACRO_LIST(DEFINE_FUNCTION)
 #undef DEFINE_FUNCTION
 
+
 void MacroAssembler::LoadStoreMacro(const CPURegister& rt,
                                     const MemOperand& addr,
                                     LoadStoreOp op) {
@@ -1087,6 +1099,34 @@ void MacroAssembler::LoadStorePairMacro(const CPURegister& rt,
     }
   }
 }
+
+
+void MacroAssembler::Prfm(PrefetchOperation op, const MemOperand& addr) {
+  MacroEmissionCheckScope guard(this);
+
+  // There are no pre- or post-index modes for prfm.
+  VIXL_ASSERT(addr.IsImmediateOffset() || addr.IsRegisterOffset());
+
+  // The access size is implicitly 8 bytes for all prefetch operations.
+  LSDataSize size = LSDoubleWord;
+
+  // Check if an immediate offset fits in the immediate field of the
+  // appropriate instruction. If not, emit two instructions to perform
+  // the operation.
+  if (addr.IsImmediateOffset() && !IsImmLSScaled(addr.offset(), size) &&
+      !IsImmLSUnscaled(addr.offset())) {
+    // Immediate offset that can't be encoded using unsigned or unscaled
+    // addressing modes.
+    UseScratchRegisterScope temps(this);
+    Register temp = temps.AcquireSameSizeAs(addr.base());
+    Mov(temp, addr.offset());
+    Prefetch(op, MemOperand(addr.base(), temp));
+  } else {
+    // Simple register-offsets are encodable in one instruction.
+    Prefetch(op, addr);
+  }
+}
+
 
 void MacroAssembler::Push(const CPURegister& src0, const CPURegister& src1,
                           const CPURegister& src2, const CPURegister& src3) {
@@ -1689,7 +1729,7 @@ void MacroAssembler::Trace(TraceParameters parameters, TraceCommand command) {
   Label start;
   bind(&start);
 
-  // Refer to instructions-a64.h for a description of the marker and its
+  // Refer to simulator-a64.h for a description of the marker and its
   // arguments.
   hlt(kTraceOpcode);
 
@@ -1717,7 +1757,7 @@ void MacroAssembler::Log(TraceParameters parameters) {
   Label start;
   bind(&start);
 
-  // Refer to instructions-a64.h for a description of the marker and its
+  // Refer to simulator-a64.h for a description of the marker and its
   // arguments.
   hlt(kLogOpcode);
 
@@ -1756,9 +1796,53 @@ void MacroAssembler::AnnotateInstrumentation(const char* marker_name) {
 }
 
 
+void UseScratchRegisterScope::Open(MacroAssembler* masm) {
+  VIXL_ASSERT(!initialised_);
+  available_ = masm->TmpList();
+  availablefp_ = masm->FPTmpList();
+  old_available_ = available_->list();
+  old_availablefp_ = availablefp_->list();
+  VIXL_ASSERT(available_->type() == CPURegister::kRegister);
+  VIXL_ASSERT(availablefp_->type() == CPURegister::kFPRegister);
+#ifdef VIXL_DEBUG
+  initialised_ = true;
+#endif
+}
+
+
+void UseScratchRegisterScope::Close() {
+  if (available_) {
+    available_->set_list(old_available_);
+    available_ = NULL;
+  }
+  if (availablefp_) {
+    availablefp_->set_list(old_availablefp_);
+    availablefp_ = NULL;
+  }
+#ifdef VIXL_DEBUG
+  initialised_ = false;
+#endif
+}
+
+
+UseScratchRegisterScope::UseScratchRegisterScope(MacroAssembler* masm) {
+#ifdef VIXL_DEBUG
+  initialised_ = false;
+#endif
+  Open(masm);
+}
+
+// This allows deferred (and optional) initialisation of the scope.
+UseScratchRegisterScope::UseScratchRegisterScope()
+    : available_(NULL), availablefp_(NULL),
+      old_available_(0), old_availablefp_(0) {
+#ifdef VIXL_DEBUG
+  initialised_ = false;
+#endif
+}
+
 UseScratchRegisterScope::~UseScratchRegisterScope() {
-  available_->set_list(old_available_);
-  availablefp_->set_list(old_availablefp_);
+  Close();
 }
 
 
@@ -1780,6 +1864,7 @@ FPRegister UseScratchRegisterScope::AcquireSameSizeAs(const FPRegister& reg) {
 
 
 void UseScratchRegisterScope::Release(const CPURegister& reg) {
+  VIXL_ASSERT(initialised_);
   if (reg.IsRegister()) {
     ReleaseByCode(available_, reg.code());
   } else if (reg.IsFPRegister()) {
@@ -1791,6 +1876,7 @@ void UseScratchRegisterScope::Release(const CPURegister& reg) {
 
 
 void UseScratchRegisterScope::Include(const CPURegList& list) {
+  VIXL_ASSERT(initialised_);
   if (list.type() == CPURegister::kRegister) {
     // Make sure that neither sp nor xzr are included the list.
     IncludeByRegList(available_, list.list() & ~(xzr.Bit() | sp.Bit()));
@@ -1805,6 +1891,7 @@ void UseScratchRegisterScope::Include(const Register& reg1,
                                       const Register& reg2,
                                       const Register& reg3,
                                       const Register& reg4) {
+  VIXL_ASSERT(initialised_);
   RegList include = reg1.Bit() | reg2.Bit() | reg3.Bit() | reg4.Bit();
   // Make sure that neither sp nor xzr are included the list.
   include &= ~(xzr.Bit() | sp.Bit());

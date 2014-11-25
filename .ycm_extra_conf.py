@@ -18,6 +18,7 @@ flags = [
   '-Werror',
   '-Wextra',
   '-pedantic',
+  '-Wno-newline-eof',
   '-Wwrite-strings',
   '-std=c++',
   '-x', 'c++'

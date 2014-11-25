@@ -32,6 +32,7 @@
 #define __ masm->
 
 
+// We override this method to specify how register names should be disassembled.
 void CustomDisassembler::AppendRegisterNameToOutput(
     const Instruction* instr,
     const CPURegister& reg) {
@@ -51,7 +52,7 @@ void CustomDisassembler::AppendRegisterNameToOutput(
         AppendToOutput(reg.Is64Bits() ? "x_stack_pointer" : "w_stack_pointer");
         return;
       case 31:
-        AppendToOutput(reg.Is64Bits() ? "x_zero_reg" : "w_zero-reg");
+        AppendToOutput(reg.Is64Bits() ? "x_zero_reg" : "w_zero_reg");
         return;
       default:
         // Fall through.
@@ -63,28 +64,37 @@ void CustomDisassembler::AppendRegisterNameToOutput(
 }
 
 
-static const char* FakeLookupAddressDescription(const void* address) {
+static const char* FakeLookupTargetDescription(const void* address) {
   USE(address);
-  // We fake looking up the address in a table. We behave as if the first and
-  // third address we are asked about were function entries.
+  // We fake looking up the address.
   static int i = 0;
   const char* desc = NULL;
   if (i == 0) {
-    desc = "function: foo";
+    desc = "label: somewhere";
   } else if (i == 2) {
-    desc = "function: bar";
+    desc = "label: somewhere else";
   }
   i++;
   return desc;
 }
 
 
-void CustomDisassembler::AppendCodeAddressToOutput(
+// We override this method to add a description to addresses that we know about.
+// In this example we fake looking up a description, but in practice one could
+// for example use a table mapping addresses to function names.
+void CustomDisassembler::AppendCodeRelativeCodeAddressToOutput(
     const Instruction* instr, const void* addr) {
   USE(instr);
-  const char* address_desc = FakeLookupAddressDescription(addr);
-  // Print the raw address and - if available - its description.
-  AppendToOutput("(addr %p", addr);
+  // Print the address.
+  int64_t rel_addr = CodeRelativeAddress(addr);
+  if (rel_addr >= 0) {
+    AppendToOutput("(addr 0x%" PRIx64, rel_addr);
+  } else {
+    AppendToOutput("(addr -0x%" PRIx64, -rel_addr);
+  }
+
+  // If available, print a description of the address.
+  const char* address_desc = FakeLookupTargetDescription(addr);
   if (address_desc != NULL) {
     Disassembler::AppendToOutput(" ; %s", address_desc);
   }
@@ -92,6 +102,9 @@ void CustomDisassembler::AppendCodeAddressToOutput(
 }
 
 
+// We override this method to add a comment to this type of instruction. Helpers
+// from the vixl::Instruction class can be used to analyse the instruction being
+// disasssembled.
 void CustomDisassembler::VisitAddSubShifted(const Instruction* instr) {
   vixl::Disassembler::VisitAddSubShifted(instr);
   if (instr->Rd() == vixl::x10.code()) {
@@ -143,13 +156,29 @@ void TestCustomDisassembler() {
   decoder.AppendVisitor(&disasm);
   decoder.AppendVisitor(&custom_disasm);
 
+  // In our custom disassembler, disassemble as if the base address was -0x8.
+  // Note that this can also be achieved with
+  //   custom_disasm.MapCodeAddress(0x0, instr_start + 2 * kInstructionSize);
+  // Users may generally want to map the start address to 0x0. Mapping to a
+  // negative offset can be used to focus on the section of the
+  // disassembly at address 0x0.
+  custom_disasm.MapCodeAddress(-0x8, instr_start);
+
   // Iterate through the instructions to show the difference in the disassembly.
   Instruction* instr;
   for (instr = instr_start; instr < instr_end; instr += kInstructionSize) {
     decoder.Decode(instr);
     printf("\n");
-    printf("VIXL disasm:   %s\n", disasm.GetOutput());
-    printf("custom disasm: %s\n", custom_disasm.GetOutput());
+    printf("VIXL disasm\t %p:\t%s\n",
+           reinterpret_cast<void*>(instr), disasm.GetOutput());
+    int64_t rel_addr =
+        custom_disasm.CodeRelativeAddress(reinterpret_cast<void*>(instr));
+    char rel_addr_sign_char = rel_addr < 0 ? '-' : ' ';
+    rel_addr = labs(rel_addr);
+    printf("custom disasm\t%c0x%" PRIx64 ":\t%s\n",
+           rel_addr_sign_char,
+           rel_addr,
+           custom_disasm.GetOutput());
   }
 }
 

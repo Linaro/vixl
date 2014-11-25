@@ -27,13 +27,24 @@
 #ifndef VIXL_A64_TEST_UTILS_A64_H_
 #define VIXL_A64_TEST_UTILS_A64_H_
 
-#include "cctest.h"
+#include "test-runner.h"
 #include "a64/macro-assembler-a64.h"
 #include "a64/simulator-a64.h"
 #include "a64/disasm-a64.h"
 #include "a64/cpu-a64.h"
 
 namespace vixl {
+
+// Signalling and quiet NaNs in double format, constructed such that the bottom
+// 32 bits look like a signalling or quiet NaN (as appropriate) when interpreted
+// as a float. These values are not architecturally significant, but they're
+// useful in tests for initialising registers.
+extern const double kFP64SignallingNaN;
+extern const double kFP64QuietNaN;
+
+// Signalling and quiet NaNs in float format.
+extern const float kFP32SignallingNaN;
+extern const float kFP32QuietNaN;
 
 // RegisterDump: Object allowing integer, floating point and flags registers
 // to be saved to itself for future reference.

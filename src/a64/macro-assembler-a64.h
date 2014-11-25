@@ -118,7 +118,7 @@ class EmissionCheckScope {
   ~EmissionCheckScope();
 
  protected:
-#ifdef DEBUG
+#ifdef VIXL_DEBUG
   MacroAssembler* masm_;
   Label start_;
   size_t size_;
@@ -207,6 +207,25 @@ class MacroAssembler : public Assembler {
   // Finalize a code buffer of generated instructions. This function must be
   // called before executing or copying code from the buffer.
   void FinalizeCode();
+
+
+  // Constant generation helpers.
+  // These functions return the number of instructions required to move the
+  // immediate into the destination register. Also, if the masm pointer is
+  // non-null, it generates the code to do so.
+  // The two features are implemented using one function to avoid duplication of
+  // the logic.
+  // The function can be used to evaluate the cost of synthesizing an
+  // instruction using 'mov immediate' instructions. A user might prefer loading
+  // a constant using the literal pool instead of using multiple 'mov immediate'
+  // instructions.
+  static int MoveImmediateHelper(MacroAssembler* masm,
+                                 const Register &rd,
+                                 uint64_t imm);
+  static bool OneInstrMoveImmediateHelper(MacroAssembler* masm,
+                                          const Register& dst,
+                                          int64_t imm);
+
 
   // Logical macros.
   void And(const Register& rd,
@@ -297,9 +316,6 @@ class MacroAssembler : public Assembler {
     Mov(rd, (rd.size() == kXRegSize) ? ~imm : (~imm & kWRegMask));
   }
   void Mvn(const Register& rd, const Operand& operand);
-  bool IsImmMovz(uint64_t imm, unsigned reg_size);
-  bool IsImmMovn(uint64_t imm, unsigned reg_size);
-  unsigned CountClearHalfWords(uint64_t imm, unsigned reg_size);
 
   // Try to move an immediate into the destination register in a single
   // instruction. Returns true for success, and updates the contents of dst.
@@ -351,6 +367,8 @@ class MacroAssembler : public Assembler {
                           const CPURegister& rt2,
                           const MemOperand& addr,
                           LoadStorePairOp op);
+
+  void Prfm(PrefetchOperation op, const MemOperand& addr);
 
   // Push or pop up to 4 registers of the same width to or from the stack,
   // using the current stack pointer as set by SetStackPointer.
@@ -416,16 +434,16 @@ class MacroAssembler : public Assembler {
   void PopWRegList(RegList regs) {
     PopSizeRegList(regs, kWRegSize);
   }
-  inline void PushDRegList(RegList regs) {
+  void PushDRegList(RegList regs) {
     PushSizeRegList(regs, kDRegSize, CPURegister::kFPRegister);
   }
-  inline void PopDRegList(RegList regs) {
+  void PopDRegList(RegList regs) {
     PopSizeRegList(regs, kDRegSize, CPURegister::kFPRegister);
   }
-  inline void PushSRegList(RegList regs) {
+  void PushSRegList(RegList regs) {
     PushSizeRegList(regs, kSRegSize, CPURegister::kFPRegister);
   }
-  inline void PopSRegList(RegList regs) {
+  void PopSRegList(RegList regs) {
     PopSizeRegList(regs, kSRegSize, CPURegister::kFPRegister);
   }
 
@@ -476,16 +494,16 @@ class MacroAssembler : public Assembler {
   void PokeWRegList(RegList regs, int offset) {
     PokeSizeRegList(regs, offset, kWRegSize);
   }
-  inline void PeekDRegList(RegList regs, int offset) {
+  void PeekDRegList(RegList regs, int offset) {
     PeekSizeRegList(regs, offset, kDRegSize, CPURegister::kFPRegister);
   }
-  inline void PokeDRegList(RegList regs, int offset) {
+  void PokeDRegList(RegList regs, int offset) {
     PokeSizeRegList(regs, offset, kDRegSize, CPURegister::kFPRegister);
   }
-  inline void PeekSRegList(RegList regs, int offset) {
+  void PeekSRegList(RegList regs, int offset) {
     PeekSizeRegList(regs, offset, kSRegSize, CPURegister::kFPRegister);
   }
-  inline void PokeSRegList(RegList regs, int offset) {
+  void PokeSRegList(RegList regs, int offset) {
     PokeSizeRegList(regs, offset, kSRegSize, CPURegister::kFPRegister);
   }
 
@@ -948,6 +966,11 @@ class MacroAssembler : public Assembler {
     SingleEmissionCheckScope guard(this);
     frinta(fd, fn);
   }
+  void Frinti(const FPRegister& fd, const FPRegister& fn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    frinti(fd, fn);
+  }
   void Frintm(const FPRegister& fd, const FPRegister& fn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -957,6 +980,16 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     frintn(fd, fn);
+  }
+  void Frintp(const FPRegister& fd, const FPRegister& fn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    frintp(fd, fn);
+  }
+  void Frintx(const FPRegister& fd, const FPRegister& fn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    frintx(fd, fn);
   }
   void Frintz(const FPRegister& fd, const FPRegister& fn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1545,7 +1578,7 @@ class MacroAssembler : public Assembler {
   // one instruction. Refer to the implementation for details.
   void BumpSystemStackPointer(const Operand& space);
 
-#if DEBUG
+#if VIXL_DEBUG
   void SetAllowMacroInstructions(bool value) {
     allow_macro_instructions_ = value;
   }
@@ -1688,7 +1721,7 @@ class MacroAssembler : public Assembler {
   void PrepareForPush(int count, int size);
   void PrepareForPop(int count, int size);
 
-#if DEBUG
+#if VIXL_DEBUG
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number
   // of instructions is called.
@@ -1721,21 +1754,21 @@ class InstructionAccurateScope : public CodeBufferCheckScope {
                              kCheck,
                              policy) {
     VIXL_ASSERT(policy != kNoAssert);
-#ifdef DEBUG
+#ifdef VIXL_DEBUG
     old_allow_macro_instructions_ = masm->AllowMacroInstructions();
     masm->SetAllowMacroInstructions(false);
 #endif
   }
 
   ~InstructionAccurateScope() {
-#ifdef DEBUG
+#ifdef VIXL_DEBUG
     MacroAssembler* masm = reinterpret_cast<MacroAssembler*>(assm_);
     masm->SetAllowMacroInstructions(old_allow_macro_instructions_);
 #endif
   }
 
  private:
-#ifdef DEBUG
+#ifdef VIXL_DEBUG
   bool old_allow_macro_instructions_;
 #endif
 };
@@ -1765,17 +1798,21 @@ class BlockLiteralPoolScope {
 // original state, even if the lists were modified by some other means.
 class UseScratchRegisterScope {
  public:
-  explicit UseScratchRegisterScope(MacroAssembler* masm)
-      : available_(masm->TmpList()),
-        availablefp_(masm->FPTmpList()),
-        old_available_(available_->list()),
-        old_availablefp_(availablefp_->list()) {
-    VIXL_ASSERT(available_->type() == CPURegister::kRegister);
-    VIXL_ASSERT(availablefp_->type() == CPURegister::kFPRegister);
-  }
+  // This constructor implicitly calls the `Open` function to initialise the
+  // scope, so it is ready to use immediately after it has been constructed.
+  explicit UseScratchRegisterScope(MacroAssembler* masm);
+  // This constructor allows deferred and optional initialisation of the scope.
+  // The user is required to explicitly call the `Open` function before using
+  // the scope.
+  UseScratchRegisterScope();
+  // This function performs the actual initialisation work.
+  void Open(MacroAssembler* masm);
 
-
+  // The destructor always implicitly calls the `Close` function.
   ~UseScratchRegisterScope();
+  // This function performs the cleaning-up work. It must succeed even if the
+  // scope has not been opened. It is safe to call multiple times.
+  void Close();
 
 
   bool IsAvailable(const CPURegister& reg) const;
@@ -1854,6 +1891,17 @@ class UseScratchRegisterScope {
   // The state of the available lists at the start of this scope.
   RegList old_available_;     // kRegister
   RegList old_availablefp_;   // kFPRegister
+#ifdef VIXL_DEBUG
+  bool initialised_;
+#endif
+
+  // Disallow copy constructor and operator=.
+  UseScratchRegisterScope(const UseScratchRegisterScope&) {
+    VIXL_UNREACHABLE();
+  }
+  void operator=(const UseScratchRegisterScope&) {
+    VIXL_UNREACHABLE();
+  }
 };
 
 

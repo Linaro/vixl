@@ -45,13 +45,10 @@ int main(int argc, char* argv[]) {
       exit(1);
   }
 
-  // Emitting on the last word of the buffer will trigger an assert.
-  const unsigned buffer_size = (instructions + 1) * kInstructionSize;
+  MacroAssembler masm(instructions * kInstructionSize);
+  InstructionAccurateScope scope(&masm, instructions);
 
-  byte* assm_buffer = new byte[buffer_size];
-  MacroAssembler* masm = new MacroAssembler(assm_buffer, buffer_size);
-
-  #define __ masm->
+  #define __ masm.
 
   Label target;
   for (unsigned i = 0; i < instructions; i++) {
@@ -59,9 +56,7 @@ int main(int argc, char* argv[]) {
   }
   __ bind(&target);
 
-  masm->FinalizeCode();
-  delete masm;
-  delete assm_buffer;
+  masm.FinalizeCode();
 
   return 0;
 }

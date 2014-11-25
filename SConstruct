@@ -41,7 +41,6 @@ See README.md for documentation and details about the build system.
 Some common build targets are:
     scons            # Build the VIXL library and test utility.
     scons examples   # Build all the examples.
-    scons benchmarks # Build all the benchmarks.
     scons all        # Build everything.
 
 ''')
@@ -50,52 +49,52 @@ Some common build targets are:
 # Global configuration.
 PROJ_SRC_DIR   = 'src'
 PROJ_SRC_FILES = '''
-src/utils.cc
-src/code-buffer.cc
 src/a64/assembler-a64.cc
-src/a64/macro-assembler-a64.cc
-src/a64/instructions-a64.cc
-src/a64/decoder-a64.cc
-src/a64/debugger-a64.cc
-src/a64/disasm-a64.cc
 src/a64/cpu-a64.cc
-src/a64/simulator-a64.cc
+src/a64/debugger-a64.cc
+src/a64/decoder-a64.cc
+src/a64/disasm-a64.cc
+src/a64/instructions-a64.cc
 src/a64/instrument-a64.cc
+src/a64/macro-assembler-a64.cc
+src/a64/simulator-a64.cc
+src/code-buffer.cc
+src/utils.cc
 '''.split()
 PROJ_EXAMPLES_DIR = 'examples'
 PROJ_EXAMPLES_SRC_FILES = '''
-examples/debugger.cc
+examples/abs.cc
 examples/add3-double.cc
 examples/add4-double.cc
+examples/check-bounds.cc
+examples/custom-disassembler.cc
+examples/debugger.cc
 examples/factorial-rec.cc
 examples/factorial.cc
-examples/sum-array.cc
-examples/abs.cc
-examples/swap4.cc
-examples/swap-int32.cc
-examples/check-bounds.cc
 examples/getting-started.cc
 examples/non-const-visitor.cc
-examples/custom-disassembler.cc
+examples/sum-array.cc
+examples/swap-int32.cc
+examples/swap4.cc
 '''.split()
 # List target specific files.
 # Target names are used as dictionary entries.
 TARGET_SRC_DIR = {
-  'cctest': 'test',
+  'test': 'test',
   'bench-dataop': 'benchmarks',
   'bench-branch': 'benchmarks',
   'bench-branch-link': 'benchmarks',
   'examples': 'examples'
 }
 TARGET_SRC_FILES = {
-  'cctest': '''
-    test/cctest.cc
-    test/test-utils-a64.cc
+  'test': '''
+    test/test-runner.cc
+    test/examples/test-examples.cc
     test/test-assembler-a64.cc
-    test/test-simulator-a64.cc
     test/test-disasm-a64.cc
     test/test-fuzz-a64.cc
-    test/examples/test-examples.cc
+    test/test-simulator-a64.cc
+    test/test-utils-a64.cc
     '''.split(),
   'bench-dataop': '''
     benchmarks/bench-dataop.cc
@@ -181,7 +180,7 @@ if env['simulator'] == 'on':
   build_suffix += '_sim'
 
 if env['mode'] == 'debug':
-  env.Append(CPPFLAGS = ['-g', '-DDEBUG'])
+  env.Append(CPPFLAGS = ['-g', '-DVIXL_DEBUG'])
   # Append the debug mode suffix to the executable name.
   build_suffix += '_g'
   build_dir = DEBUG_OBJ_DIR
@@ -219,18 +218,18 @@ libvixl = env.Library('vixl' + build_suffix,
 create_alias('libvixl', libvixl)
 
 
-# The cctest executable.
-# The cctest requires building the example files with specific options, so we
+# The test executable.
+# The test requires building the example files with specific options, so we
 # create a separate variant dir for the example objects built this way.
-cctest_ex_vdir = os.path.join(build_dir, 'cctest_examples')
-VariantDir(cctest_ex_vdir, '.')
-cctest_ex_obj = env.Object(list_target(cctest_ex_vdir, PROJ_EXAMPLES_SRC_FILES),
-                           CPPFLAGS = env['CPPFLAGS'] + ['-DTEST_EXAMPLES'])
-cctest = env.Program('cctest' + build_suffix,
-                     list_target(build_dir, TARGET_SRC_FILES['cctest']) +
-                     cctest_ex_obj + libvixl,
-                     CPPPATH = env['CPPPATH'] + [PROJ_EXAMPLES_DIR])
-create_alias('cctest', cctest)
+test_ex_vdir = os.path.join(build_dir, 'test_examples')
+VariantDir(test_ex_vdir, '.')
+test_ex_obj = env.Object(list_target(test_ex_vdir, PROJ_EXAMPLES_SRC_FILES),
+                         CPPFLAGS = env['CPPFLAGS'] + ['-DTEST_EXAMPLES'])
+test = env.Program('test-runner' + build_suffix,
+                   list_target(build_dir, TARGET_SRC_FILES['test']) +
+                   test_ex_obj + libvixl,
+                   CPPPATH = env['CPPPATH'] + [PROJ_EXAMPLES_DIR])
+create_alias('test', test)
 
 # The benchmarks.
 for bench in ['bench-dataop', 'bench-branch', 'bench-branch-link']:
@@ -256,5 +255,5 @@ create_alias('all', targets)
 
 Help('Available top level targets:\n' + '\t' + '\n\t'.join(target_alias_names) + '\n')
 
-# By default, only build the cctests.
-Default(libvixl, cctest)
+# By default, only build the tests.
+Default(libvixl, test)

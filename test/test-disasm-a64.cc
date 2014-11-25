@@ -26,7 +26,7 @@
 
 #include <stdio.h>
 #include <cstring>
-#include "cctest.h"
+#include "test-runner.h"
 
 #include "a64/macro-assembler-a64.h"
 #include "a64/disasm-a64.h"
@@ -57,9 +57,12 @@
   decoder->Decode(reinterpret_cast<Instruction*>(buf));                        \
   encoding = *reinterpret_cast<uint32_t*>(buf);                                \
   if (strcmp(disasm->GetOutput(), EXP) != 0) {                                 \
-    printf("Encoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",            \
+    printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",          \
            encoding, EXP, disasm->GetOutput());                                \
     abort();                                                                   \
+  }                                                                            \
+  if (Test::trace_sim()) {                                                     \
+    printf("%08" PRIx32 "\t%s\n", encoding, disasm->GetOutput());              \
   }
 
 #define COMPARE_PREFIX(ASM, EXP)                                               \
@@ -72,9 +75,12 @@
   decoder->Decode(reinterpret_cast<Instruction*>(buf));                        \
   encoding = *reinterpret_cast<uint32_t*>(buf);                                \
   if (strncmp(disasm->GetOutput(), EXP, strlen(EXP)) != 0) {                   \
-    printf("Encoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",            \
+    printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",          \
            encoding, EXP, disasm->GetOutput());                                \
     abort();                                                                   \
+  }                                                                            \
+  if (Test::trace_sim()) {                                                     \
+    printf("%08" PRIx32 "\t%s\n", encoding, disasm->GetOutput());              \
   }
 
 #define COMPARE_MACRO(ASM, EXP)                                                \
@@ -84,9 +90,12 @@
   decoder->Decode(reinterpret_cast<Instruction*>(buf));                        \
   encoding = *reinterpret_cast<uint32_t*>(buf);                                \
   if (strncmp(disasm->GetOutput(), EXP, strlen(EXP)) != 0) {                   \
-    printf("Encoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",            \
+    printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",          \
            encoding, EXP, disasm->GetOutput());                                \
     abort();                                                                   \
+  }                                                                            \
+  if (Test::trace_sim()) {                                                     \
+    printf("%08" PRIx32 "\t%s\n", encoding, disasm->GetOutput());              \
   }
 
 #define CLEANUP()                                                              \
@@ -106,7 +115,7 @@ TEST(bootstrap) {
   COMPARE(dci(0x910003fd), "mov x29, sp");
   COMPARE(dci(0x9100e3a0), "add x0, x29, #0x38 (56)");
   COMPARE(dci(0xb900001f), "str wzr, [x0]");
-  COMPARE(dci(0x528000e1), "movz w1, #0x7");
+  COMPARE(dci(0x528000e1), "mov w1, #0x7");
   COMPARE(dci(0xb9001c01), "str w1, [x0, #28]");
   COMPARE(dci(0x390043a0), "strb w0, [x29, #16]");
   COMPARE(dci(0x790027a0), "strh w0, [x29, #18]");
@@ -130,8 +139,8 @@ TEST(bootstrap) {
 TEST(mov_mvn) {
   SETUP_CLASS(MacroAssembler);
 
-  COMPARE(Mov(w0, Operand(0x1234)), "movz w0, #0x1234");
-  COMPARE(Mov(x1, Operand(0x1234)), "movz x1, #0x1234");
+  COMPARE(Mov(w0, Operand(0x1234)), "mov w0, #0x1234");
+  COMPARE(Mov(x1, Operand(0x1234)), "mov x1, #0x1234");
   COMPARE(Mov(w2, Operand(w3)), "mov w2, w3");
   COMPARE(Mov(x4, Operand(x5)), "mov x4, x5");
   COMPARE(Mov(w6, Operand(w7, LSL, 5)), "lsl w6, w7, #5");
@@ -141,8 +150,8 @@ TEST(mov_mvn) {
   COMPARE(Mov(w14, Operand(w15, SXTH, 2)), "sbfiz w14, w15, #2, #16");
   COMPARE(Mov(x16, Operand(x17, SXTW, 3)), "sbfiz x16, x17, #3, #32");
 
-  COMPARE(Mvn(w0, Operand(0x101)), "movn w0, #0x101");
-  COMPARE(Mvn(x1, Operand(0xfff1)), "movn x1, #0xfff1");
+  COMPARE(Mvn(w0, Operand(0x101)), "mov w0, #0xfffffefe");
+  COMPARE(Mvn(x1, Operand(0xfff1)), "mov x1, #0xffffffffffff000e");
   COMPARE(Mvn(w2, Operand(w3)), "mvn w2, w3");
   COMPARE(Mvn(x4, Operand(x5)), "mvn x4, x5");
   COMPARE(Mvn(w6, Operand(w7, LSL, 12)), "mvn w6, w7, lsl #12");
@@ -155,13 +164,13 @@ TEST(mov_mvn) {
 TEST(move_immediate) {
   SETUP();
 
-  COMPARE(movz(w0, 0x1234), "movz w0, #0x1234");
-  COMPARE(movz(x1, 0xabcd0000), "movz x1, #0xabcd0000");
-  COMPARE(movz(x2, 0x555500000000), "movz x2, #0x555500000000");
-  COMPARE(movz(x3, 0xaaaa000000000000), "movz x3, #0xaaaa000000000000");
-  COMPARE(movz(x4, 0xabcd, 16), "movz x4, #0xabcd0000");
-  COMPARE(movz(x5, 0x5555, 32), "movz x5, #0x555500000000");
-  COMPARE(movz(x6, 0xaaaa, 48), "movz x6, #0xaaaa000000000000");
+  COMPARE(movz(w0, 0x1234), "mov w0, #0x1234");
+  COMPARE(movz(x1, 0xabcd0000), "mov x1, #0xabcd0000");
+  COMPARE(movz(x2, 0x555500000000), "mov x2, #0x555500000000");
+  COMPARE(movz(x3, 0xaaaa000000000000), "mov x3, #0xaaaa000000000000");
+  COMPARE(movz(x4, 0xabcd, 16), "mov x4, #0xabcd0000");
+  COMPARE(movz(x5, 0x5555, 32), "mov x5, #0x555500000000");
+  COMPARE(movz(x6, 0xaaaa, 48), "mov x6, #0xaaaa000000000000");
 
   COMPARE(movk(w7, 0x1234), "movk w7, #0x1234");
   COMPARE(movk(x8, 0xabcd0000), "movk x8, #0xabcd, lsl #16");
@@ -171,19 +180,23 @@ TEST(move_immediate) {
   COMPARE(movk(x12, 0x5555, 32), "movk x12, #0x5555, lsl #32");
   COMPARE(movk(x13, 0xaaaa, 48), "movk x13, #0xaaaa, lsl #48");
 
-  COMPARE(movn(w14, 0x1234), "movn w14, #0x1234");
-  COMPARE(movn(x15, 0xabcd0000), "movn x15, #0xabcd0000");
-  COMPARE(movn(x16, 0x555500000000), "movn x16, #0x555500000000");
-  COMPARE(movn(x17, 0xaaaa000000000000), "movn x17, #0xaaaa000000000000");
-  COMPARE(movn(w18, 0xabcd, 16), "movn w18, #0xabcd0000");
-  COMPARE(movn(x19, 0x5555, 32), "movn x19, #0x555500000000");
-  COMPARE(movn(x20, 0xaaaa, 48), "movn x20, #0xaaaa000000000000");
+  COMPARE(movn(w14, 0x1234), "mov w14, #0xffffedcb");
+  COMPARE(movn(x15, 0xabcd0000), "mov x15, #0xffffffff5432ffff");
+  COMPARE(movn(x16, 0x555500000000), "mov x16, #0xffffaaaaffffffff");
+  COMPARE(movn(x17, 0xaaaa000000000000), "mov x17, #0x5555ffffffffffff");
+  COMPARE(movn(w18, 0xabcd, 16), "mov w18, #0x5432ffff");
+  COMPARE(movn(x19, 0x5555, 32), "mov x19, #0xffffaaaaffffffff");
+  COMPARE(movn(x20, 0xaaaa, 48), "mov x20, #0x5555ffffffffffff");
 
   COMPARE(movk(w21, 0), "movk w21, #0x0");
   COMPARE(movk(x22, 0, 0), "movk x22, #0x0");
   COMPARE(movk(w23, 0, 16), "movk w23, #0x0, lsl #16");
   COMPARE(movk(x24, 0, 32), "movk x24, #0x0, lsl #32");
   COMPARE(movk(x25, 0, 48), "movk x25, #0x0, lsl #48");
+
+  COMPARE(movz(x26, 0, 48), "movz x26, #0x0");
+  COMPARE(movn(x27, 0, 48), "movn x27, #0x0");
+  COMPARE(movn(w28, 0xffff), "movn w28, #0xffff");
 
   CLEANUP();
 }
@@ -194,45 +207,45 @@ TEST(move_immediate_2) {
 
   // Move instructions expected for certain immediates. This is really a macro
   // assembler test, to ensure it generates immediates efficiently.
-  COMPARE(Mov(w0, 0), "movz w0, #0x0");
-  COMPARE(Mov(w0, 0x0000ffff), "movz w0, #0xffff");
-  COMPARE(Mov(w0, 0x00010000), "movz w0, #0x10000");
-  COMPARE(Mov(w0, 0xffff0000), "movz w0, #0xffff0000");
-  COMPARE(Mov(w0, 0x0001ffff), "movn w0, #0xfffe0000");
-  COMPARE(Mov(w0, 0xffff8000), "movn w0, #0x7fff");
-  COMPARE(Mov(w0, 0xfffffffe), "movn w0, #0x1");
-  COMPARE(Mov(w0, 0xffffffff), "movn w0, #0x0");
+  COMPARE(Mov(w0, 0), "mov w0, #0x0");
+  COMPARE(Mov(w0, 0x0000ffff), "mov w0, #0xffff");
+  COMPARE(Mov(w0, 0x00010000), "mov w0, #0x10000");
+  COMPARE(Mov(w0, 0xffff0000), "mov w0, #0xffff0000");
+  COMPARE(Mov(w0, 0x0001ffff), "mov w0, #0x1ffff");
+  COMPARE(Mov(w0, 0xffff8000), "mov w0, #0xffff8000");
+  COMPARE(Mov(w0, 0xfffffffe), "mov w0, #0xfffffffe");
+  COMPARE(Mov(w0, 0xffffffff), "mov w0, #0xffffffff");
   COMPARE(Mov(w0, 0x00ffff00), "mov w0, #0xffff00");
   COMPARE(Mov(w0, 0xfffe7fff), "mov w0, #0xfffe7fff");
-  COMPARE(Mov(w0, 0xfffeffff), "movn w0, #0x10000");
-  COMPARE(Mov(w0, 0xffff7fff), "movn w0, #0x8000");
+  COMPARE(Mov(w0, 0xfffeffff), "mov w0, #0xfffeffff");
+  COMPARE(Mov(w0, 0xffff7fff), "mov w0, #0xffff7fff");
 
-  COMPARE(Mov(x0, 0), "movz x0, #0x0");
-  COMPARE(Mov(x0, 0x0000ffff), "movz x0, #0xffff");
-  COMPARE(Mov(x0, 0x00010000), "movz x0, #0x10000");
-  COMPARE(Mov(x0, 0xffff0000), "movz x0, #0xffff0000");
+  COMPARE(Mov(x0, 0), "mov x0, #0x0");
+  COMPARE(Mov(x0, 0x0000ffff), "mov x0, #0xffff");
+  COMPARE(Mov(x0, 0x00010000), "mov x0, #0x10000");
+  COMPARE(Mov(x0, 0xffff0000), "mov x0, #0xffff0000");
   COMPARE(Mov(x0, 0x0001ffff), "mov x0, #0x1ffff");
   COMPARE(Mov(x0, 0xffff8000), "mov x0, #0xffff8000");
   COMPARE(Mov(x0, 0xfffffffe), "mov x0, #0xfffffffe");
   COMPARE(Mov(x0, 0xffffffff), "mov x0, #0xffffffff");
   COMPARE(Mov(x0, 0x00ffff00), "mov x0, #0xffff00");
-  COMPARE(Mov(x0, 0xffff000000000000), "movz x0, #0xffff000000000000");
-  COMPARE(Mov(x0, 0x0000ffff00000000), "movz x0, #0xffff00000000");
-  COMPARE(Mov(x0, 0x00000000ffff0000), "movz x0, #0xffff0000");
-  COMPARE(Mov(x0, 0xffffffffffff0000), "movn x0, #0xffff");
-  COMPARE(Mov(x0, 0xffffffff0000ffff), "movn x0, #0xffff0000");
-  COMPARE(Mov(x0, 0xffff0000ffffffff), "movn x0, #0xffff00000000");
-  COMPARE(Mov(x0, 0x0000ffffffffffff), "movn x0, #0xffff000000000000");
+  COMPARE(Mov(x0, 0xffff000000000000), "mov x0, #0xffff000000000000");
+  COMPARE(Mov(x0, 0x0000ffff00000000), "mov x0, #0xffff00000000");
+  COMPARE(Mov(x0, 0x00000000ffff0000), "mov x0, #0xffff0000");
+  COMPARE(Mov(x0, 0xffffffffffff0000), "mov x0, #0xffffffffffff0000");
+  COMPARE(Mov(x0, 0xffffffff0000ffff), "mov x0, #0xffffffff0000ffff");
+  COMPARE(Mov(x0, 0xffff0000ffffffff), "mov x0, #0xffff0000ffffffff");
+  COMPARE(Mov(x0, 0x0000ffffffffffff), "mov x0, #0xffffffffffff");
   COMPARE(Mov(x0, 0xfffe7fffffffffff), "mov x0, #0xfffe7fffffffffff");
-  COMPARE(Mov(x0, 0xfffeffffffffffff), "movn x0, #0x1000000000000");
-  COMPARE(Mov(x0, 0xffff7fffffffffff), "movn x0, #0x800000000000");
+  COMPARE(Mov(x0, 0xfffeffffffffffff), "mov x0, #0xfffeffffffffffff");
+  COMPARE(Mov(x0, 0xffff7fffffffffff), "mov x0, #0xffff7fffffffffff");
   COMPARE(Mov(x0, 0xfffffffe7fffffff), "mov x0, #0xfffffffe7fffffff");
-  COMPARE(Mov(x0, 0xfffffffeffffffff), "movn x0, #0x100000000");
-  COMPARE(Mov(x0, 0xffffffff7fffffff), "movn x0, #0x80000000");
+  COMPARE(Mov(x0, 0xfffffffeffffffff), "mov x0, #0xfffffffeffffffff");
+  COMPARE(Mov(x0, 0xffffffff7fffffff), "mov x0, #0xffffffff7fffffff");
   COMPARE(Mov(x0, 0xfffffffffffe7fff), "mov x0, #0xfffffffffffe7fff");
-  COMPARE(Mov(x0, 0xfffffffffffeffff), "movn x0, #0x10000");
-  COMPARE(Mov(x0, 0xffffffffffff7fff), "movn x0, #0x8000");
-  COMPARE(Mov(x0, 0xffffffffffffffff), "movn x0, #0x0");
+  COMPARE(Mov(x0, 0xfffffffffffeffff), "mov x0, #0xfffffffffffeffff");
+  COMPARE(Mov(x0, 0xffffffffffff7fff), "mov x0, #0xffffffffffff7fff");
+  COMPARE(Mov(x0, 0xffffffffffffffff), "mov x0, #0xffffffffffffffff");
 
   COMPARE(Movk(w0, 0x1234, 0), "movk w0, #0x1234");
   COMPARE(Movk(x1, 0x2345, 0), "movk x1, #0x2345");
@@ -795,12 +808,12 @@ TEST(adrp) {
   SETUP();
 
   COMPARE_PREFIX(adrp(x0, 0), "adrp x0, #+0x0");
-  COMPARE_PREFIX(adrp(x1, 1), "adrp x1, #+0x1");
-  COMPARE_PREFIX(adrp(x2, -1), "adrp x2, #-0x1");
-  COMPARE_PREFIX(adrp(x3, 4), "adrp x3, #+0x4");
-  COMPARE_PREFIX(adrp(x4, -4), "adrp x4, #-0x4");
-  COMPARE_PREFIX(adrp(x5, 0x000fffff), "adrp x5, #+0xfffff");
-  COMPARE_PREFIX(adrp(x6, -0x00100000), "adrp x6, #-0x100000");
+  COMPARE_PREFIX(adrp(x1, 1), "adrp x1, #+0x1000");
+  COMPARE_PREFIX(adrp(x2, -1), "adrp x2, #-0x1000");
+  COMPARE_PREFIX(adrp(x3, 4), "adrp x3, #+0x4000");
+  COMPARE_PREFIX(adrp(x4, -4), "adrp x4, #-0x4000");
+  COMPARE_PREFIX(adrp(x5, 0x000fffff), "adrp x5, #+0xfffff000");
+  COMPARE_PREFIX(adrp(x6, -0x00100000), "adrp x6, #-0x100000000");
   COMPARE_PREFIX(adrp(xzr, 0), "adrp xzr, #+0x0");
 
   CLEANUP();
@@ -1498,14 +1511,305 @@ TEST(load_store_pair_nontemp) {
 }
 
 
-TEST(load_literal) {
+TEST(load_literal_macro) {
   SETUP_CLASS(MacroAssembler);
 
-  COMPARE_PREFIX(Ldr(x10, 0x1234567890abcdef),  "ldr x10, pc+0");
-  COMPARE_PREFIX(Ldr(w20, 0xfedcba09),  "ldr w20, pc+0");
-  COMPARE_PREFIX(Ldr(d11, 1.234),  "ldr d11, pc+0");
-  COMPARE_PREFIX(Ldr(s22, 2.5f),  "ldr s22, pc+0");
-  COMPARE_PREFIX(Ldrsw(x21, 0x80000000), "ldrsw x21, pc+0");
+  // In each case, the literal will be placed at PC+8:
+  //    ldr   x10, pc+8               // Test instruction.
+  //    ldr   xzr, pc+12              // Pool marker.
+  //    .word64 #0x1234567890abcdef   // Test literal.
+
+  COMPARE_PREFIX(Ldr(x10, 0x1234567890abcdef),  "ldr x10, pc+8");
+  COMPARE_PREFIX(Ldr(w20, 0xfedcba09),  "ldr w20, pc+8");
+  COMPARE_PREFIX(Ldr(d11, 1.234),  "ldr d11, pc+8");
+  COMPARE_PREFIX(Ldr(s22, 2.5f),  "ldr s22, pc+8");
+  COMPARE_PREFIX(Ldrsw(x21, 0x80000000), "ldrsw x21, pc+8");
+
+  CLEANUP();
+}
+
+
+TEST(load_literal) {
+  SETUP();
+
+  COMPARE_PREFIX(ldr(x20, 0), "ldr x20, pc+0");
+  COMPARE_PREFIX(ldr(x20, 1), "ldr x20, pc+4");
+  COMPARE_PREFIX(ldr(x20, -1), "ldr x20, pc-4");
+  COMPARE_PREFIX(ldr(x20, 0x3ffff), "ldr x20, pc+1048572");
+  COMPARE_PREFIX(ldr(x20, -0x40000), "ldr x20, pc-1048576");
+  COMPARE_PREFIX(ldr(w21, 0), "ldr w21, pc+0");
+  COMPARE_PREFIX(ldr(w21, 1), "ldr w21, pc+4");
+  COMPARE_PREFIX(ldr(w21, -1), "ldr w21, pc-4");
+  COMPARE_PREFIX(ldr(w21, 0x3ffff), "ldr w21, pc+1048572");
+  COMPARE_PREFIX(ldr(w21, -0x40000), "ldr w21, pc-1048576");
+  COMPARE_PREFIX(ldr(d22, 0), "ldr d22, pc+0");
+  COMPARE_PREFIX(ldr(d22, 1), "ldr d22, pc+4");
+  COMPARE_PREFIX(ldr(d22, -1), "ldr d22, pc-4");
+  COMPARE_PREFIX(ldr(d22, 0x3ffff), "ldr d22, pc+1048572");
+  COMPARE_PREFIX(ldr(d22, -0x40000), "ldr d22, pc-1048576");
+  COMPARE_PREFIX(ldr(s23, 0), "ldr s23, pc+0");
+  COMPARE_PREFIX(ldr(s23, 1), "ldr s23, pc+4");
+  COMPARE_PREFIX(ldr(s23, -1), "ldr s23, pc-4");
+  COMPARE_PREFIX(ldr(s23, 0x3ffff), "ldr s23, pc+1048572");
+  COMPARE_PREFIX(ldr(s23, -0x40000), "ldr s23, pc-1048576");
+  COMPARE_PREFIX(ldrsw(x24, 0), "ldrsw x24, pc+0");
+  COMPARE_PREFIX(ldrsw(x24, 1), "ldrsw x24, pc+4");
+  COMPARE_PREFIX(ldrsw(x24, -1), "ldrsw x24, pc-4");
+  COMPARE_PREFIX(ldrsw(x24, 0x3ffff), "ldrsw x24, pc+1048572");
+  COMPARE_PREFIX(ldrsw(x24, -0x40000), "ldrsw x24, pc-1048576");
+
+  CLEANUP();
+}
+
+
+TEST(prfm_operations) {
+  SETUP();
+
+  // Test every encodable prefetch operation.
+  const char* expected[] = {
+    "prfm pldl1keep, ",
+    "prfm pldl1strm, ",
+    "prfm pldl2keep, ",
+    "prfm pldl2strm, ",
+    "prfm pldl3keep, ",
+    "prfm pldl3strm, ",
+    "prfm #0b00110, ",
+    "prfm #0b00111, ",
+    "prfm plil1keep, ",
+    "prfm plil1strm, ",
+    "prfm plil2keep, ",
+    "prfm plil2strm, ",
+    "prfm plil3keep, ",
+    "prfm plil3strm, ",
+    "prfm #0b01110, ",
+    "prfm #0b01111, ",
+    "prfm pstl1keep, ",
+    "prfm pstl1strm, ",
+    "prfm pstl2keep, ",
+    "prfm pstl2strm, ",
+    "prfm pstl3keep, ",
+    "prfm pstl3strm, ",
+    "prfm #0b10110, ",
+    "prfm #0b10111, ",
+    "prfm #0b11000, ",
+    "prfm #0b11001, ",
+    "prfm #0b11010, ",
+    "prfm #0b11011, ",
+    "prfm #0b11100, ",
+    "prfm #0b11101, ",
+    "prfm #0b11110, ",
+    "prfm #0b11111, ",
+  };
+  const int expected_count = sizeof(expected) / sizeof(expected[0]);
+  VIXL_STATIC_ASSERT((1 << ImmPrefetchOperation_width) == expected_count);
+
+  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
+    PrefetchOperation op = static_cast<PrefetchOperation>(i);
+    COMPARE_PREFIX(prfm(op, 0), expected[i]);
+    COMPARE_PREFIX(prfm(op, MemOperand(x0, 0)), expected[i]);
+    COMPARE_PREFIX(prfm(op, MemOperand(x0, x1)), expected[i]);
+  }
+
+  CLEANUP();
+}
+
+
+TEST(prfum_operations) {
+  SETUP();
+
+  // Test every encodable prefetch operation.
+  const char* expected[] = {
+    "prfum pldl1keep, ",
+    "prfum pldl1strm, ",
+    "prfum pldl2keep, ",
+    "prfum pldl2strm, ",
+    "prfum pldl3keep, ",
+    "prfum pldl3strm, ",
+    "prfum #0b00110, ",
+    "prfum #0b00111, ",
+    "prfum plil1keep, ",
+    "prfum plil1strm, ",
+    "prfum plil2keep, ",
+    "prfum plil2strm, ",
+    "prfum plil3keep, ",
+    "prfum plil3strm, ",
+    "prfum #0b01110, ",
+    "prfum #0b01111, ",
+    "prfum pstl1keep, ",
+    "prfum pstl1strm, ",
+    "prfum pstl2keep, ",
+    "prfum pstl2strm, ",
+    "prfum pstl3keep, ",
+    "prfum pstl3strm, ",
+    "prfum #0b10110, ",
+    "prfum #0b10111, ",
+    "prfum #0b11000, ",
+    "prfum #0b11001, ",
+    "prfum #0b11010, ",
+    "prfum #0b11011, ",
+    "prfum #0b11100, ",
+    "prfum #0b11101, ",
+    "prfum #0b11110, ",
+    "prfum #0b11111, ",
+  };
+  const int expected_count = sizeof(expected) / sizeof(expected[0]);
+  VIXL_STATIC_ASSERT((1 << ImmPrefetchOperation_width) == expected_count);
+
+  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
+    PrefetchOperation op = static_cast<PrefetchOperation>(i);
+    COMPARE_PREFIX(prfum(op, MemOperand(x0, 0)), expected[i]);
+  }
+
+  CLEANUP();
+}
+
+
+TEST(prfm_offset) {
+  SETUP();
+
+  COMPARE(prfm(PLDL1KEEP, MemOperand(x1)), "prfm pldl1keep, [x1]");
+  COMPARE(prfm(PLDL1STRM, MemOperand(x3, 8)), "prfm pldl1strm, [x3, #8]");
+  COMPARE(prfm(PLDL2KEEP, MemOperand(x5, 32760)),
+          "prfm pldl2keep, [x5, #32760]");
+
+  COMPARE(prfm(PLDL2STRM, MemOperand(sp)), "prfm pldl2strm, [sp]");
+  COMPARE(prfm(PLDL3KEEP, MemOperand(sp, 8)), "prfm pldl3keep, [sp, #8]");
+  COMPARE(prfm(PLDL3STRM, MemOperand(sp, 32760)),
+          "prfm pldl3strm, [sp, #32760]");
+
+  CLEANUP();
+}
+
+
+TEST(prfm_regoffset) {
+  SETUP();
+
+  COMPARE(prfm(PLIL1KEEP, MemOperand(x1, x2)), "prfm plil1keep, [x1, x2]");
+  COMPARE(prfm(PLIL1STRM, MemOperand(x3, w4, SXTW)),
+          "prfm plil1strm, [x3, w4, sxtw]");
+  COMPARE(prfm(PLIL2KEEP, MemOperand(x5, x6, LSL, 3)),
+          "prfm plil2keep, [x5, x6, lsl #3]");
+
+  COMPARE(prfm(PLIL2STRM, MemOperand(sp, xzr)), "prfm plil2strm, [sp, xzr]");
+  COMPARE(prfm(PLIL3KEEP, MemOperand(sp, wzr, SXTW)),
+          "prfm plil3keep, [sp, wzr, sxtw]");
+  COMPARE(prfm(PLIL3STRM, MemOperand(sp, xzr, LSL, 3)),
+          "prfm plil3strm, [sp, xzr, lsl #3]");
+
+  CLEANUP();
+}
+
+
+TEST(prfm_literal) {
+  SETUP();
+
+  COMPARE_PREFIX(prfm(PSTL1KEEP, 0), "prfm pstl1keep, pc+0");
+  COMPARE_PREFIX(prfm(PSTL1STRM, 1), "prfm pstl1strm, pc+4");
+  COMPARE_PREFIX(prfm(PSTL2KEEP, -1), "prfm pstl2keep, pc-4");
+  COMPARE_PREFIX(prfm(PSTL2STRM, 0x3ffff), "prfm pstl2strm, pc+1048572");
+  COMPARE_PREFIX(prfm(PSTL3KEEP, -0x3ffff), "prfm pstl3keep, pc-1048572");
+  COMPARE_PREFIX(prfm(PSTL3STRM, -0x40000), "prfm pstl3strm, pc-1048576");
+
+  CLEANUP();
+}
+
+
+TEST(prfm_unscaled) {
+  SETUP();
+
+  // If an unscaled-offset instruction is requested, it is used, even if the
+  // offset could be encoded in a scaled-offset instruction.
+  COMPARE(prfum(PLDL1KEEP, MemOperand(x1)), "prfum pldl1keep, [x1]");
+  COMPARE(prfum(PLDL1STRM, MemOperand(x1, 8)), "prfum pldl1strm, [x1, #8]");
+  COMPARE(prfum(PLDL2KEEP, MemOperand(x1, 248)), "prfum pldl2keep, [x1, #248]");
+
+  // Normal offsets are converted to unscaled offsets if necssary.
+  COMPARE(prfm(PLDL2STRM, MemOperand(x1, 1)), "prfum pldl2strm, [x1, #1]");
+  COMPARE(prfm(PLDL3KEEP, MemOperand(x1, -1)), "prfum pldl3keep, [x1, #-1]");
+  COMPARE(prfm(PLDL3STRM, MemOperand(x1, 255)), "prfum pldl3strm, [x1, #255]");
+  COMPARE(prfm(PLDL3STRM, MemOperand(x1, -256)),
+          "prfum pldl3strm, [x1, #-256]");
+
+  CLEANUP();
+}
+
+
+TEST(prfm_unscaled_option) {
+  SETUP();
+
+  // Just like prfm_unscaled, but specify the scaling option explicitly.
+
+  // Require unscaled-offset forms.
+  LoadStoreScalingOption option = RequireUnscaledOffset;
+
+  COMPARE(prfum(PLDL1KEEP, MemOperand(x1), option), "prfum pldl1keep, [x1]");
+  COMPARE(prfum(PLDL1STRM, MemOperand(x1, 8), option),
+          "prfum pldl1strm, [x1, #8]");
+  COMPARE(prfum(PLDL2KEEP, MemOperand(x1, 248), option),
+          "prfum pldl2keep, [x1, #248]");
+  COMPARE(prfum(PLDL2STRM, MemOperand(x1, 1), option),
+          "prfum pldl2strm, [x1, #1]");
+  COMPARE(prfum(PLDL3KEEP, MemOperand(x1, -1), option),
+          "prfum pldl3keep, [x1, #-1]");
+  COMPARE(prfum(PLDL3STRM, MemOperand(x1, 255), option),
+          "prfum pldl3strm, [x1, #255]");
+  COMPARE(prfum(PLIL1KEEP, MemOperand(x1, -256), option),
+          "prfum plil1keep, [x1, #-256]");
+
+  // Require scaled-offset forms..
+  option = RequireScaledOffset;
+
+  COMPARE(prfm(PLDL1KEEP, MemOperand(x1), option), "prfm pldl1keep, [x1]");
+  COMPARE(prfm(PLDL1STRM, MemOperand(x1, 8), option),
+          "prfm pldl1strm, [x1, #8]");
+  COMPARE(prfm(PLDL2KEEP, MemOperand(x1, 248), option),
+          "prfm pldl2keep, [x1, #248]");
+  COMPARE(prfm(PLIL2STRM, MemOperand(x1, 256), option),
+          "prfm plil2strm, [x1, #256]");
+  COMPARE(prfm(PLIL3KEEP, MemOperand(x1, 32760), option),
+          "prfm plil3keep, [x1, #32760]");
+
+  // Prefer unscaled-offset forms, but allow scaled-offset forms if necessary.
+  option = PreferUnscaledOffset;
+
+  COMPARE(prfum(PLDL1KEEP, MemOperand(x1), option), "prfum pldl1keep, [x1]");
+  COMPARE(prfum(PLDL1STRM, MemOperand(x1, 8), option),
+          "prfum pldl1strm, [x1, #8]");
+  COMPARE(prfum(PLDL2KEEP, MemOperand(x1, 248), option),
+          "prfum pldl2keep, [x1, #248]");
+  COMPARE(prfum(PLDL2STRM, MemOperand(x1, 1), option),
+          "prfum pldl2strm, [x1, #1]");
+  COMPARE(prfum(PLDL3KEEP, MemOperand(x1, -1), option),
+          "prfum pldl3keep, [x1, #-1]");
+  COMPARE(prfum(PLDL3STRM, MemOperand(x1, 255), option),
+          "prfum pldl3strm, [x1, #255]");
+  COMPARE(prfum(PLIL1KEEP, MemOperand(x1, -256), option),
+          "prfum plil1keep, [x1, #-256]");
+  COMPARE(prfum(PLIL1STRM, MemOperand(x1, 256), option),
+          "prfm plil1strm, [x1, #256]");
+  COMPARE(prfum(PLIL2KEEP, MemOperand(x1, 32760), option),
+          "prfm plil2keep, [x1, #32760]");
+
+  // Prefer scaled-offset forms, but allow unscaled-offset forms if necessary.
+  option = PreferScaledOffset;
+
+  COMPARE(prfm(PLDL1KEEP, MemOperand(x1), option), "prfm pldl1keep, [x1]");
+  COMPARE(prfm(PLDL1STRM, MemOperand(x1, 8), option),
+          "prfm pldl1strm, [x1, #8]");
+  COMPARE(prfm(PLDL2KEEP, MemOperand(x1, 248), option),
+          "prfm pldl2keep, [x1, #248]");
+  COMPARE(prfm(PLDL2STRM, MemOperand(x1, 1), option),
+          "prfum pldl2strm, [x1, #1]");
+  COMPARE(prfm(PLDL3KEEP, MemOperand(x1, -1), option),
+          "prfum pldl3keep, [x1, #-1]");
+  COMPARE(prfm(PLDL3STRM, MemOperand(x1, 255), option),
+          "prfum pldl3strm, [x1, #255]");
+  COMPARE(prfm(PLIL1KEEP, MemOperand(x1, -256), option),
+          "prfum plil1keep, [x1, #-256]");
+  COMPARE(prfm(PLIL1STRM, MemOperand(x1, 256), option),
+          "prfm plil1strm, [x1, #256]");
+  COMPARE(prfm(PLIL2KEEP, MemOperand(x1, 32760), option),
+          "prfm plil2keep, [x1, #32760]");
 
   CLEANUP();
 }
@@ -1635,10 +1939,22 @@ TEST(fp_dp1) {
   COMPARE(frinta(s31, s30), "frinta s31, s30");
   COMPARE(frinta(d12, d13), "frinta d12, d13");
   COMPARE(frinta(d31, d30), "frinta d31, d30");
+  COMPARE(frinti(s10, s11), "frinti s10, s11");
+  COMPARE(frinti(s31, s30), "frinti s31, s30");
+  COMPARE(frinti(d12, d13), "frinti d12, d13");
+  COMPARE(frinti(d31, d30), "frinti d31, d30");
+  COMPARE(frintm(s10, s11), "frintm s10, s11");
+  COMPARE(frintm(s31, s30), "frintm s31, s30");
+  COMPARE(frintm(d12, d13), "frintm d12, d13");
+  COMPARE(frintm(d31, d30), "frintm d31, d30");
   COMPARE(frintn(s10, s11), "frintn s10, s11");
   COMPARE(frintn(s31, s30), "frintn s31, s30");
   COMPARE(frintn(d12, d13), "frintn d12, d13");
   COMPARE(frintn(d31, d30), "frintn d31, d30");
+  COMPARE(frintx(s10, s11), "frintx s10, s11");
+  COMPARE(frintx(s31, s30), "frintx s31, s30");
+  COMPARE(frintx(d12, d13), "frintx d12, d13");
+  COMPARE(frintx(d31, d30), "frintx d31, d30");
   COMPARE(frintz(s10, s11), "frintz s10, s11");
   COMPARE(frintz(s31, s30), "frintz s31, s30");
   COMPARE(frintz(d12, d13), "frintz d12, d13");
@@ -1942,31 +2258,31 @@ TEST(add_sub_negative) {
 TEST(logical_immediate_move) {
   SETUP_CLASS(MacroAssembler);
 
-  COMPARE(And(w0, w1, 0), "movz w0, #0x0");
-  COMPARE(And(x0, x1, 0), "movz x0, #0x0");
+  COMPARE(And(w0, w1, 0), "mov w0, #0x0");
+  COMPARE(And(x0, x1, 0), "mov x0, #0x0");
   COMPARE(Orr(w2, w3, 0), "mov w2, w3");
   COMPARE(Orr(x2, x3, 0), "mov x2, x3");
   COMPARE(Eor(w4, w5, 0), "mov w4, w5");
   COMPARE(Eor(x4, x5, 0), "mov x4, x5");
   COMPARE(Bic(w6, w7, 0), "mov w6, w7");
   COMPARE(Bic(x6, x7, 0), "mov x6, x7");
-  COMPARE(Orn(w8, w9, 0), "movn w8, #0x0");
-  COMPARE(Orn(x8, x9, 0), "movn x8, #0x0");
+  COMPARE(Orn(w8, w9, 0), "mov w8, #0xffffffff");
+  COMPARE(Orn(x8, x9, 0), "mov x8, #0xffffffffffffffff");
   COMPARE(Eon(w10, w11, 0), "mvn w10, w11");
   COMPARE(Eon(x10, x11, 0), "mvn x10, x11");
 
   COMPARE(And(w12, w13, 0xffffffff), "mov w12, w13");
   COMPARE(And(x12, x13, 0xffffffff), "and x12, x13, #0xffffffff");
   COMPARE(And(x12, x13, 0xffffffffffffffff), "mov x12, x13");
-  COMPARE(Orr(w14, w15, 0xffffffff), "movn w14, #0x0");
+  COMPARE(Orr(w14, w15, 0xffffffff), "mov w14, #0xffffffff");
   COMPARE(Orr(x14, x15, 0xffffffff), "orr x14, x15, #0xffffffff");
-  COMPARE(Orr(x14, x15, 0xffffffffffffffff), "movn x14, #0x0");
+  COMPARE(Orr(x14, x15, 0xffffffffffffffff), "mov x14, #0xffffffffffffffff");
   COMPARE(Eor(w16, w17, 0xffffffff), "mvn w16, w17");
   COMPARE(Eor(x16, x17, 0xffffffff), "eor x16, x17, #0xffffffff");
   COMPARE(Eor(x16, x17, 0xffffffffffffffff), "mvn x16, x17");
-  COMPARE(Bic(w18, w19, 0xffffffff), "movz w18, #0x0");
+  COMPARE(Bic(w18, w19, 0xffffffff), "mov w18, #0x0");
   COMPARE(Bic(x18, x19, 0xffffffff), "and x18, x19, #0xffffffff00000000");
-  COMPARE(Bic(x18, x19, 0xffffffffffffffff), "movz x18, #0x0");
+  COMPARE(Bic(x18, x19, 0xffffffffffffffff), "mov x18, #0x0");
   COMPARE(Orn(w20, w21, 0xffffffff), "mov w20, w21");
   COMPARE(Orn(x20, x21, 0xffffffff), "orr x20, x21, #0xffffffff00000000");
   COMPARE(Orn(x20, x21, 0xffffffffffffffff), "mov x20, x21");
@@ -2027,6 +2343,81 @@ TEST(barriers) {
 
   // ISB
   COMPARE(Isb(), "isb");
+
+  CLEANUP();
+}
+
+
+TEST(address_map) {
+  // Check that we can disassemble from a fake base address.
+  SETUP();
+
+  disasm->MapCodeAddress(0, reinterpret_cast<Instruction*>(buf));
+  COMPARE(ldr(x0, 0), "ldr x0, pc+0 (addr 0x0)");
+  COMPARE(ldr(x0, -1), "ldr x0, pc-4 (addr -0x4)");
+  COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x4)");
+  COMPARE(prfm(PLIL1KEEP, 0), "prfm plil1keep, pc+0 (addr 0x0)");
+  COMPARE(prfm(PLIL1KEEP, -1), "prfm plil1keep, pc-4 (addr -0x4)");
+  COMPARE(prfm(PLIL1KEEP, 1), "prfm plil1keep, pc+4 (addr 0x4)");
+  COMPARE(adr(x0, 0), "adr x0, #+0x0 (addr 0x0)");
+  COMPARE(adr(x0, -1), "adr x0, #-0x1 (addr -0x1)");
+  COMPARE(adr(x0, 1), "adr x0, #+0x1 (addr 0x1)");
+  COMPARE(adrp(x0, 0), "adrp x0, #+0x0 (addr 0x0)");
+  COMPARE(adrp(x0, -1), "adrp x0, #-0x1000 (addr -0x1000)");
+  COMPARE(adrp(x0, 1), "adrp x0, #+0x1000 (addr 0x1000)");
+  COMPARE(b(0), "b #+0x0 (addr 0x0)");
+  COMPARE(b(-1), "b #-0x4 (addr -0x4)");
+  COMPARE(b(1), "b #+0x4 (addr 0x4)");
+
+  disasm->MapCodeAddress(0x1234, reinterpret_cast<Instruction*>(buf));
+  COMPARE(ldr(x0, 0), "ldr x0, pc+0 (addr 0x1234)");
+  COMPARE(ldr(x0, -1), "ldr x0, pc-4 (addr 0x1230)");
+  COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x1238)");
+  COMPARE(prfm(PLIL1KEEP, 0), "prfm plil1keep, pc+0 (addr 0x1234)");
+  COMPARE(prfm(PLIL1KEEP, -1), "prfm plil1keep, pc-4 (addr 0x1230)");
+  COMPARE(prfm(PLIL1KEEP, 1), "prfm plil1keep, pc+4 (addr 0x1238)");
+  COMPARE(adr(x0, 0), "adr x0, #+0x0 (addr 0x1234)");
+  COMPARE(adr(x0, -1), "adr x0, #-0x1 (addr 0x1233)");
+  COMPARE(adr(x0, 1), "adr x0, #+0x1 (addr 0x1235)");
+  COMPARE(adrp(x0, 0), "adrp x0, #+0x0 (addr 0x1000)");
+  COMPARE(adrp(x0, -1), "adrp x0, #-0x1000 (addr 0x0)");
+  COMPARE(adrp(x0, 1), "adrp x0, #+0x1000 (addr 0x2000)");
+  COMPARE(b(0), "b #+0x0 (addr 0x1234)");
+  COMPARE(b(-1), "b #-0x4 (addr 0x1230)");
+  COMPARE(b(1), "b #+0x4 (addr 0x1238)");
+
+  // Check that 64-bit addresses work.
+  disasm->MapCodeAddress(UINT64_C(0x100000000),
+                         reinterpret_cast<Instruction*>(buf));
+  COMPARE(ldr(x0, 0), "ldr x0, pc+0 (addr 0x100000000)");
+  COMPARE(ldr(x0, -1), "ldr x0, pc-4 (addr 0xfffffffc)");
+  COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x100000004)");
+  COMPARE(prfm(PLIL1KEEP, 0), "prfm plil1keep, pc+0 (addr 0x100000000)");
+  COMPARE(prfm(PLIL1KEEP, -1), "prfm plil1keep, pc-4 (addr 0xfffffffc)");
+  COMPARE(prfm(PLIL1KEEP, 1), "prfm plil1keep, pc+4 (addr 0x100000004)");
+  COMPARE(adr(x0, 0), "adr x0, #+0x0 (addr 0x100000000)");
+  COMPARE(adr(x0, -1), "adr x0, #-0x1 (addr 0xffffffff)");
+  COMPARE(adr(x0, 1), "adr x0, #+0x1 (addr 0x100000001)");
+  COMPARE(adrp(x0, 0), "adrp x0, #+0x0 (addr 0x100000000)");
+  COMPARE(adrp(x0, -1), "adrp x0, #-0x1000 (addr 0xfffff000)");
+  COMPARE(adrp(x0, 1), "adrp x0, #+0x1000 (addr 0x100001000)");
+  COMPARE(b(0), "b #+0x0 (addr 0x100000000)");
+  COMPARE(b(-1), "b #-0x4 (addr 0xfffffffc)");
+  COMPARE(b(1), "b #+0x4 (addr 0x100000004)");
+
+  disasm->MapCodeAddress(0xfffffffc, reinterpret_cast<Instruction*>(buf));
+  COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x100000000)");
+  COMPARE(prfm(PLIL1KEEP, 1), "prfm plil1keep, pc+4 (addr 0x100000000)");
+  COMPARE(b(1), "b #+0x4 (addr 0x100000000)");
+  COMPARE(adr(x0, 4), "adr x0, #+0x4 (addr 0x100000000)");
+  COMPARE(adrp(x0, 1), "adrp x0, #+0x1000 (addr 0x100000000)");
+
+  // Check that very large offsets are handled properly. This detects misuse of
+  // the host's ptrdiff_t type when run on a 32-bit host. Only adrp is capable
+  // of encoding such offsets.
+  disasm->MapCodeAddress(0, reinterpret_cast<Instruction*>(buf));
+  COMPARE(adrp(x0, 0x000fffff), "adrp x0, #+0xfffff000 (addr 0xfffff000)");
+  COMPARE(adrp(x0, -0x00100000), "adrp x0, #-0x100000000 (addr -0x100000000)");
 
   CLEANUP();
 }

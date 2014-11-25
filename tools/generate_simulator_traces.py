@@ -34,8 +34,8 @@ import util
 
 def BuildOptions(root):
   result = argparse.ArgumentParser(description = 'Simulator test generator.')
-  result.add_argument('--cctest', action='store', default=root+'/cctest',
-                      help='The cctest executable to run.')
+  result.add_argument('--runner', action='store', default=root+'/test-runner',
+                      help='The test executable to run.')
   result.add_argument('--out', action='store',
                       default='test/test-simulator-traces-a64.h')
   return result.parse_args()
@@ -81,14 +81,14 @@ if __name__ == '__main__':
     util.abort('Failed to find output section in ' + args.out + '.')
 
   # Find the simulator tests.
-  status, output = util.getstatusoutput(args.cctest + ' --list')
+  status, output = util.getstatusoutput(args.runner + ' --list')
   if status != 0: util.abort('Failed to list all tests')
   tests = filter(lambda t: 'SIM_' in t, output.split())
   tests.sort()
 
   # Run each test.
   for test in tests:
-    cmd = ' '.join([args.cctest, '--sim_test_trace', test])
+    cmd = ' '.join([args.runner, '--sim_test_trace', test])
     status, output = util.getstatusoutput(cmd)
     if status != 0: util.abort('Failed to run ' + cmd + '.')
 

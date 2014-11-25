@@ -88,6 +88,37 @@ void CPURegList::RemoveCalleeSaved() {
 }
 
 
+CPURegList CPURegList::Union(const CPURegList& list_1,
+                             const CPURegList& list_2,
+                             const CPURegList& list_3) {
+  return Union(list_1, Union(list_2, list_3));
+}
+
+
+CPURegList CPURegList::Union(const CPURegList& list_1,
+                             const CPURegList& list_2,
+                             const CPURegList& list_3,
+                             const CPURegList& list_4) {
+  return Union(Union(list_1, list_2), Union(list_3, list_4));
+}
+
+
+CPURegList CPURegList::Intersection(const CPURegList& list_1,
+                                    const CPURegList& list_2,
+                                    const CPURegList& list_3) {
+  return Intersection(list_1, Intersection(list_2, list_3));
+}
+
+
+CPURegList CPURegList::Intersection(const CPURegList& list_1,
+                                    const CPURegList& list_2,
+                                    const CPURegList& list_3,
+                                    const CPURegList& list_4) {
+  return Intersection(Intersection(list_1, list_2),
+                      Intersection(list_3, list_4));
+}
+
+
 CPURegList CPURegList::GetCalleeSaved(unsigned size) {
   return CPURegList(CPURegister::kRegister, size, 19, 29);
 }
@@ -363,7 +394,7 @@ bool MemOperand::IsPostIndex() const {
 Assembler::Assembler(byte* buffer, size_t capacity,
                      PositionIndependentCodeOption pic)
     : pic_(pic) {
-#ifdef DEBUG
+#ifdef VIXL_DEBUG
   buffer_monitor_ = 0;
 #endif
   buffer_ = new CodeBuffer(buffer, capacity);
@@ -372,7 +403,7 @@ Assembler::Assembler(byte* buffer, size_t capacity,
 
 Assembler::Assembler(size_t capacity, PositionIndependentCodeOption pic)
     : pic_(pic) {
-#ifdef DEBUG
+#ifdef VIXL_DEBUG
   buffer_monitor_ = 0;
 #endif
   buffer_ = new CodeBuffer(capacity);
@@ -456,12 +487,18 @@ void Assembler::place(RawLiteral* literal) {
   if (literal->IsUsed()) {
     Instruction* target = GetCursorAddress<Instruction*>();
     ptrdiff_t offset = literal->last_use();
-
-    while (offset != 0) {
+    bool done;
+    do {
       Instruction* ldr = GetOffsetAddress<Instruction*>(offset);
-      offset = ldr->ImmLLiteral();
+      VIXL_ASSERT(ldr->IsLoadLiteral());
+
+      ptrdiff_t imm19 = ldr->ImmLLiteral();
+      VIXL_ASSERT(imm19 <= 0);
+      done = (imm19 == 0);
+      offset += imm19 * kLiteralEntrySize;
+
       ldr->SetImmLLiteral(target);
-    }
+    } while (!done);
   }
 
   // "bind" the literal.
@@ -1353,6 +1390,11 @@ void Assembler::ldr(const CPURegister& rt, int imm19) {
 }
 
 
+void Assembler::prfm(PrefetchOperation op, int imm19) {
+  Emit(PRFM_lit | ImmPrefetchOperation(op) | ImmLLiteral(imm19));
+}
+
+
 // Exclusive-access instructions.
 void Assembler::stxrb(const Register& rs,
                       const Register& rt,
@@ -1531,6 +1573,26 @@ void Assembler::ldar(const Register& rt,
   VIXL_ASSERT(src.IsImmediateOffset() && (src.offset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? LDAR_x : LDAR_w;
   Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.base()));
+}
+
+void Assembler::prfm(PrefetchOperation op, const MemOperand& address,
+                     LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireUnscaledOffset);
+  VIXL_ASSERT(option != PreferUnscaledOffset);
+  Prefetch(op, address, option);
+}
+
+
+void Assembler::prfum(PrefetchOperation op, const MemOperand& address,
+                      LoadStoreScalingOption option) {
+  VIXL_ASSERT(option != RequireScaledOffset);
+  VIXL_ASSERT(option != PreferScaledOffset);
+  Prefetch(op, address, option);
+}
+
+
+void Assembler::prfm(PrefetchOperation op, RawLiteral* literal) {
+  prfm(op, LinkAndGetWordOffsetTo(literal));
 }
 
 
@@ -1738,6 +1800,13 @@ void Assembler::frinta(const FPRegister& fd,
 }
 
 
+void Assembler::frinti(const FPRegister& fd,
+                       const FPRegister& fn) {
+  VIXL_ASSERT(fd.size() == fn.size());
+  FPDataProcessing1Source(fd, fn, FRINTI);
+}
+
+
 void Assembler::frintm(const FPRegister& fd,
                        const FPRegister& fn) {
   VIXL_ASSERT(fd.size() == fn.size());
@@ -1749,6 +1818,20 @@ void Assembler::frintn(const FPRegister& fd,
                        const FPRegister& fn) {
   VIXL_ASSERT(fd.size() == fn.size());
   FPDataProcessing1Source(fd, fn, FRINTN);
+}
+
+
+void Assembler::frintp(const FPRegister& fd,
+                       const FPRegister& fn) {
+  VIXL_ASSERT(fd.size() == fn.size());
+  FPDataProcessing1Source(fd, fn, FRINTP);
+}
+
+
+void Assembler::frintx(const FPRegister& fd,
+                       const FPRegister& fn) {
+  VIXL_ASSERT(fd.size() == fn.size());
+  FPDataProcessing1Source(fd, fn, FRINTX);
 }
 
 
@@ -2214,39 +2297,29 @@ void Assembler::DataProcExtendedRegister(const Register& rd,
 }
 
 
-bool Assembler::IsImmAddSub(int64_t immediate) {
-  return is_uint12(immediate) ||
-         (is_uint12(immediate >> 12) && ((immediate & 0xfff) == 0));
-}
-
-void Assembler::LoadStore(const CPURegister& rt,
-                          const MemOperand& addr,
-                          LoadStoreOp op,
-                          LoadStoreScalingOption option) {
-  Instr memop = op | Rt(rt) | RnSP(addr.base());
+Instr Assembler::LoadStoreMemOperand(const MemOperand& addr,
+                                     LSDataSize size,
+                                     LoadStoreScalingOption option) {
+  Instr base = RnSP(addr.base());
   int64_t offset = addr.offset();
-  LSDataSize size = CalcLSDataSize(op);
 
   if (addr.IsImmediateOffset()) {
     bool prefer_unscaled = (option == PreferUnscaledOffset) ||
                            (option == RequireUnscaledOffset);
     if (prefer_unscaled && IsImmLSUnscaled(offset)) {
       // Use the unscaled addressing mode.
-      Emit(LoadStoreUnscaledOffsetFixed | memop | ImmLS(offset));
-      return;
+      return base | LoadStoreUnscaledOffsetFixed | ImmLS(offset);
     }
 
     if ((option != RequireUnscaledOffset) && IsImmLSScaled(offset, size)) {
       // Use the scaled addressing mode.
-      Emit(LoadStoreUnsignedOffsetFixed | memop |
-           ImmLSUnsigned(offset >> size));
-      return;
+      return base | LoadStoreUnsignedOffsetFixed |
+          ImmLSUnsigned(offset >> size);
     }
 
     if ((option != RequireScaledOffset) && IsImmLSUnscaled(offset)) {
       // Use the unscaled addressing mode.
-      Emit(LoadStoreUnscaledOffsetFixed | memop | ImmLS(offset));
-      return;
+      return base | LoadStoreUnscaledOffsetFixed | ImmLS(offset);
     }
   }
 
@@ -2268,29 +2341,106 @@ void Assembler::LoadStore(const CPURegister& rt,
     // Shifts are encoded in one bit, indicating a left shift by the memory
     // access size.
     VIXL_ASSERT((shift_amount == 0) ||
-                (shift_amount == static_cast<unsigned>(CalcLSDataSize(op))));
-    Emit(LoadStoreRegisterOffsetFixed | memop | Rm(addr.regoffset()) |
-         ExtendMode(ext) | ImmShiftLS((shift_amount > 0) ? 1 : 0));
-    return;
+                (shift_amount == static_cast<unsigned>(size)));
+    return base | LoadStoreRegisterOffsetFixed | Rm(addr.regoffset()) |
+        ExtendMode(ext) | ImmShiftLS((shift_amount > 0) ? 1 : 0);
   }
 
   if (addr.IsPreIndex() && IsImmLSUnscaled(offset)) {
-    Emit(LoadStorePreIndexFixed | memop | ImmLS(offset));
-    return;
+    return base | LoadStorePreIndexFixed | ImmLS(offset);
   }
 
   if (addr.IsPostIndex() && IsImmLSUnscaled(offset)) {
-    Emit(LoadStorePostIndexFixed | memop | ImmLS(offset));
-    return;
+    return base | LoadStorePostIndexFixed | ImmLS(offset);
   }
 
   // If this point is reached, the MemOperand (addr) cannot be encoded.
   VIXL_UNREACHABLE();
+  return 0;
 }
 
 
-bool Assembler::IsImmLSUnscaled(int64_t offset) {
-  return is_int9(offset);
+void Assembler::LoadStore(const CPURegister& rt,
+                          const MemOperand& addr,
+                          LoadStoreOp op,
+                          LoadStoreScalingOption option) {
+  Emit(op | Rt(rt) | LoadStoreMemOperand(addr, CalcLSDataSize(op), option));
+}
+
+
+void Assembler::Prefetch(PrefetchOperation op,
+                         const MemOperand& addr,
+                         LoadStoreScalingOption option) {
+  VIXL_ASSERT(addr.IsRegisterOffset() || addr.IsImmediateOffset());
+
+  Instr prfop = ImmPrefetchOperation(op);
+  Emit(PRFM | prfop | LoadStoreMemOperand(addr, LSDoubleWord, option));
+}
+
+
+bool Assembler::IsImmAddSub(int64_t immediate) {
+  return is_uint12(immediate) ||
+         (is_uint12(immediate >> 12) && ((immediate & 0xfff) == 0));
+}
+
+
+bool Assembler::IsImmConditionalCompare(int64_t immediate) {
+  return is_uint5(immediate);
+}
+
+
+bool Assembler::IsImmFP32(float imm) {
+  // Valid values will have the form:
+  // aBbb.bbbc.defg.h000.0000.0000.0000.0000
+  uint32_t bits = float_to_rawbits(imm);
+  // bits[19..0] are cleared.
+  if ((bits & 0x7ffff) != 0) {
+    return false;
+  }
+
+  // bits[29..25] are all set or all cleared.
+  uint32_t b_pattern = (bits >> 16) & 0x3e00;
+  if (b_pattern != 0 && b_pattern != 0x3e00) {
+    return false;
+  }
+
+  // bit[30] and bit[29] are opposite.
+  if (((bits ^ (bits << 1)) & 0x40000000) == 0) {
+    return false;
+  }
+
+  return true;
+}
+
+
+bool Assembler::IsImmFP64(double imm) {
+  // Valid values will have the form:
+  // aBbb.bbbb.bbcd.efgh.0000.0000.0000.0000
+  // 0000.0000.0000.0000.0000.0000.0000.0000
+  uint64_t bits = double_to_rawbits(imm);
+  // bits[47..0] are cleared.
+  if ((bits & 0x0000ffffffffffff) != 0) {
+    return false;
+  }
+
+  // bits[61..54] are all set or all cleared.
+  uint32_t b_pattern = (bits >> 48) & 0x3fc0;
+  if ((b_pattern != 0) && (b_pattern != 0x3fc0)) {
+    return false;
+  }
+
+  // bit[62] and bit[61] are opposite.
+  if (((bits ^ (bits << 1)) & (UINT64_C(1) << 62)) == 0) {
+    return false;
+  }
+
+  return true;
+}
+
+
+bool Assembler::IsImmLSPair(int64_t offset, LSDataSize size) {
+  bool offset_is_size_multiple = (((offset >> size) << size) == offset);
+  return offset_is_size_multiple && is_int7(offset >> size);
 }
 
 
@@ -2300,9 +2450,23 @@ bool Assembler::IsImmLSScaled(int64_t offset, LSDataSize size) {
 }
 
 
-bool Assembler::IsImmLSPair(int64_t offset, LSDataSize size) {
-  bool offset_is_size_multiple = (((offset >> size) << size) == offset);
-  return offset_is_size_multiple && is_int7(offset >> size);
+bool Assembler::IsImmLSUnscaled(int64_t offset) {
+  return is_int9(offset);
+}
+
+
+// The movn instruction can generate immediates containing an arbitrary 16-bit
+// value, with remaining bits set, eg. 0xffff1234, 0xffff1234ffffffff.
+bool Assembler::IsImmMovn(uint64_t imm, unsigned reg_size) {
+  return IsImmMovz(~imm, reg_size);
+}
+
+
+// The movz instruction can generate immediates containing an arbitrary 16-bit
+// value, with remaining bits clear, eg. 0x00001234, 0x0000123400000000.
+bool Assembler::IsImmMovz(uint64_t imm, unsigned reg_size) {
+  VIXL_ASSERT((reg_size == kXRegSize) || (reg_size == kWRegSize));
+  return CountClearHalfWords(imm, reg_size) >= ((reg_size / 16) - 1);
 }
 
 
@@ -2506,60 +2670,6 @@ bool Assembler::IsImmLogical(uint64_t value,
     *n = out_n;
     *imm_s = ((-d << 1) | (s - 1)) & 0x3f;
     *imm_r = r;
-  }
-
-  return true;
-}
-
-
-bool Assembler::IsImmConditionalCompare(int64_t immediate) {
-  return is_uint5(immediate);
-}
-
-
-bool Assembler::IsImmFP32(float imm) {
-  // Valid values will have the form:
-  // aBbb.bbbc.defg.h000.0000.0000.0000.0000
-  uint32_t bits = float_to_rawbits(imm);
-  // bits[19..0] are cleared.
-  if ((bits & 0x7ffff) != 0) {
-    return false;
-  }
-
-  // bits[29..25] are all set or all cleared.
-  uint32_t b_pattern = (bits >> 16) & 0x3e00;
-  if (b_pattern != 0 && b_pattern != 0x3e00) {
-    return false;
-  }
-
-  // bit[30] and bit[29] are opposite.
-  if (((bits ^ (bits << 1)) & 0x40000000) == 0) {
-    return false;
-  }
-
-  return true;
-}
-
-
-bool Assembler::IsImmFP64(double imm) {
-  // Valid values will have the form:
-  // aBbb.bbbb.bbcd.efgh.0000.0000.0000.0000
-  // 0000.0000.0000.0000.0000.0000.0000.0000
-  uint64_t bits = double_to_rawbits(imm);
-  // bits[47..0] are cleared.
-  if ((bits & 0x0000ffffffffffff) != 0) {
-    return false;
-  }
-
-  // bits[61..54] are all set or all cleared.
-  uint32_t b_pattern = (bits >> 48) & 0x3fc0;
-  if ((b_pattern != 0) && (b_pattern != 0x3fc0)) {
-    return false;
-  }
-
-  // bit[62] and bit[61] are opposite.
-  if (((bits ^ (bits << 1)) & (UINT64_C(1) << 62)) == 0) {
-    return false;
   }
 
   return true;

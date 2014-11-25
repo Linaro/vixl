@@ -28,7 +28,7 @@
 
 #include <math.h>   // Needed for isnan().
 
-#include "cctest.h"
+#include "test-runner.h"
 #include "a64/macro-assembler-a64.h"
 #include "a64/simulator-a64.h"
 #include "a64/disasm-a64.h"
@@ -37,6 +37,18 @@
 #define __ masm->
 
 namespace vixl {
+
+
+// This value is a signalling NaN as both a double and as a float (taking the
+// least-significant word).
+const double kFP64SignallingNaN =
+    rawbits_to_double(UINT64_C(0x7ff000007f800001));
+const float kFP32SignallingNaN = rawbits_to_float(0x7f800001);
+
+// A similar value, but as a quiet NaN.
+const double kFP64QuietNaN = rawbits_to_double(UINT64_C(0x7ff800007fc00001));
+const float kFP32QuietNaN = rawbits_to_float(0x7fc00001);
+
 
 bool Equal32(uint32_t expected, const RegisterDump*, uint32_t result) {
   if (result != expected) {

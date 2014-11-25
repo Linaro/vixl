@@ -1,6 +1,17 @@
 VIXL Change Log
 ===============
 
+* 1.7
+    + Added support for `prfm` prefetch instructions.
+    + Added support for all `frint` instruction variants.
+    + Add support for disassembling as an offset from a given address.
+    + Fixed the disassembly of `movz` and `movn`.
+    + Provide static helpers for immediate generation.
+    + Provide helpers to create CPURegList from list unions or intersections.
+    + Improved register value tracing.
+    + Multithreading test fixes.
+    + Other small bug fixes and build system improvements.
+
 * 1.6
     + Make literal pool management the responsibility of the macro assembler.
     + Move code buffer management out of the Assembler.
