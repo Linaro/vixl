@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-# Copyright 2014, ARM Limited
+# Copyright 2015, ARM Limited
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -186,7 +186,7 @@ def IsCppLintAvailable():
 
 
 CPP_EXT_REGEXP = re.compile('\.(cc|h)$')
-SIM_TRACES_REGEXP = re.compile('test-simulator-traces-a64\.h$')
+SIM_TRACES_REGEXP = re.compile('trace-a64\.h$')
 def is_linter_input(filename):
   # Don't lint the simulator traces file; it takes a very long time to check
   # and it's (mostly) generated automatically anyway.

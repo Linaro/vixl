@@ -1,4 +1,4 @@
-VIXL: AArch64 Runtime Code Generation Library Version 1.7
+VIXL: AArch64 Runtime Code Generation Library Version 1.8
 =========================================================
 
 Contents:
@@ -54,7 +54,6 @@ Known Limitations
 VIXL was developed to target JavaScript engines so a number of features from A64
 were deemed unnecessary:
 
- * No Advanced SIMD support.
  * Limited rounding mode support for floating point.
  * Limited support for synchronisation instructions.
  * Limited support for system instructions.

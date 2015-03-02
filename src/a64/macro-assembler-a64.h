@@ -1,4 +1,4 @@
-// Copyright 2013, ARM Limited
+// Copyright 2015, ARM Limited
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -54,58 +54,428 @@
 
 namespace vixl {
 
-class LiteralPool {
+// Forward declaration
+class MacroAssembler;
+
+class Pool {
  public:
-  // Recommended not exact since the pool can be blocked for short periods.
-  static const ptrdiff_t kRecommendedLiteralPoolRange = 128 * KBytes;
-  enum EmitOption {
-    kBranchRequired,
-    kNoBranchRequired
-  };
-
-  explicit LiteralPool(Assembler *masm);
-  ~LiteralPool();
-  void Reset();
-
-  template <typename T>
-  RawLiteral* Add(T imm) {
-    if (IsEmpty()) {
-      first_use_ = assm_->CursorOffset();
-    } else {
-      VIXL_ASSERT(assm_->CursorOffset() > first_use_);
-    }
-
-    RawLiteral* literal = new Literal<T>(imm);
-    entries_.push_back(literal);
-
-    return literal;
+  explicit Pool(MacroAssembler* masm) : masm_(masm) {
+    Reset();
   }
-  bool IsEmpty() const { return entries_.empty(); }
-  size_t Size() const ;
+
+  void Reset() {
+    checkpoint_ = kNoCheckpointRequired;
+    monitor_ = 0;
+  }
 
   void Block() { monitor_++; }
   void Release();
   bool IsBlocked() const { return monitor_ != 0; }
 
-  ptrdiff_t MaxCursorOffset() const {
-    if (IsEmpty()) return std::numeric_limits<ptrdiff_t>::max();
-    return first_use_ + kMaxLoadLiteralRange;
-  }
+  static const ptrdiff_t kNoCheckpointRequired = PTRDIFF_MAX;
 
-  void CheckEmitFor(size_t amount, EmitOption option = kBranchRequired);
-  void Emit(EmitOption option = kNoBranchRequired);
-  ptrdiff_t NextCheckOffset();
+  void SetNextCheckpoint(ptrdiff_t checkpoint);
+  ptrdiff_t checkpoint() const { return checkpoint_; }
 
- private:
-  Assembler* assm_;
-  std::vector<RawLiteral*> entries_;
-  ptrdiff_t first_use_;
+  enum EmitOption {
+    kBranchRequired,
+    kNoBranchRequired
+  };
+
+ protected:
+  // Next buffer offset at which a check is required for this pool.
+  ptrdiff_t checkpoint_;
+  // Indicates whether the emission of this pool is blocked.
   int monitor_;
+  // The MacroAssembler using this pool.
+  MacroAssembler* masm_;
 };
 
 
-// Forward declaration
-class MacroAssembler;
+class LiteralPool : public Pool {
+ public:
+  explicit LiteralPool(MacroAssembler* masm);
+  ~LiteralPool();
+  void Reset();
+
+  template <typename T>
+  RawLiteral* Add(T imm) {
+    return AddEntry(new Literal<T>(imm));
+  }
+  template <typename T>
+  RawLiteral* Add(T high64, T low64) {
+    return AddEntry(new Literal<T>(high64, low64));
+  }
+  RawLiteral* AddEntry(RawLiteral* literal);
+  bool IsEmpty() const { return entries_.empty(); }
+  size_t Size() const;
+  size_t MaxSize() const;
+  size_t OtherPoolsMaxSize() const;
+
+  void CheckEmitFor(size_t amount, EmitOption option = kBranchRequired);
+  void Emit(EmitOption option = kNoBranchRequired);
+
+  void SetNextRecommendedCheckpoint(ptrdiff_t offset);
+  ptrdiff_t NextRecommendedCheckpoint();
+
+  // Recommended not exact since the pool can be blocked for short periods.
+  static const ptrdiff_t kRecommendedLiteralPoolRange = 128 * KBytes;
+
+ private:
+  std::vector<RawLiteral*> entries_;
+  size_t size_;
+  ptrdiff_t first_use_;
+  // The parent class `Pool` provides a `checkpoint_`, which is the buffer
+  // offset before which a check *must* occur. This recommended checkpoint
+  // indicates when we would like to start emitting the constant pool. The
+  // MacroAssembler can, but does not have to, check the buffer when the
+  // checkpoint is reached.
+  ptrdiff_t recommended_checkpoint_;
+};
+
+
+inline size_t LiteralPool::Size() const {
+  // Account for the pool header.
+  return size_ + kInstructionSize;
+}
+
+
+inline size_t LiteralPool::MaxSize() const {
+  // Account for the potential branch over the pool.
+  return Size() + kInstructionSize;
+}
+
+
+inline ptrdiff_t LiteralPool::NextRecommendedCheckpoint() {
+  return first_use_ + kRecommendedLiteralPoolRange;
+}
+
+
+class VeneerPool : public Pool {
+ public:
+  explicit VeneerPool(MacroAssembler* masm) : Pool(masm) {}
+
+  void Reset();
+
+  void Block() { monitor_++; }
+  void Release();
+  bool IsBlocked() const { return monitor_ != 0; }
+  bool IsEmpty() const { return unresolved_branches_.empty(); }
+
+  class BranchInfo {
+   public:
+    BranchInfo()
+        : max_reachable_pc_(0), pc_offset_(0),
+          label_(NULL), branch_type_(UnknownBranchType) {}
+    BranchInfo(ptrdiff_t offset, Label* label, ImmBranchType branch_type)
+        : pc_offset_(offset), label_(label), branch_type_(branch_type) {
+      max_reachable_pc_ =
+          pc_offset_ + Instruction::ImmBranchForwardRange(branch_type_);
+    }
+
+    static bool IsValidComparison(const BranchInfo& branch_1,
+                                  const BranchInfo& branch_2) {
+      // BranchInfo are always compared against against other objects with
+      // the same branch type.
+      if (branch_1.branch_type_ != branch_2.branch_type_) {
+        return false;
+      }
+      // Since we should never have two branch infos with the same offsets, it
+      // first looks like we should check that offsets are different. However
+      // the operators may also be used to *search* for a branch info in the
+      // set.
+      bool same_offsets = (branch_1.pc_offset_ == branch_2.pc_offset_);
+      return (!same_offsets ||
+              ((branch_1.label_ == branch_2.label_) &&
+               (branch_1.max_reachable_pc_ == branch_2.max_reachable_pc_)));
+    }
+
+    // We must provide comparison operators to work with InvalSet.
+    bool operator==(const BranchInfo& other) const {
+      VIXL_ASSERT(IsValidComparison(*this, other));
+      return pc_offset_ == other.pc_offset_;
+    }
+    bool operator<(const BranchInfo& other) const {
+      VIXL_ASSERT(IsValidComparison(*this, other));
+      return pc_offset_ < other.pc_offset_;
+    }
+    bool operator<=(const BranchInfo& other) const {
+      VIXL_ASSERT(IsValidComparison(*this, other));
+      return pc_offset_ <= other.pc_offset_;
+    }
+    bool operator>(const BranchInfo& other) const {
+      VIXL_ASSERT(IsValidComparison(*this, other));
+      return pc_offset_ > other.pc_offset_;
+    }
+
+    // Maximum position reachable by the branch using a positive branch offset.
+    ptrdiff_t max_reachable_pc_;
+    // Offset of the branch in the code generation buffer.
+    ptrdiff_t pc_offset_;
+    // The label branched to.
+    Label* label_;
+    ImmBranchType branch_type_;
+  };
+
+  bool BranchTypeUsesVeneers(ImmBranchType type) {
+    return (type != UnknownBranchType) && (type != UncondBranchType);
+  }
+
+  void RegisterUnresolvedBranch(ptrdiff_t branch_pos,
+                                Label* label,
+                                ImmBranchType branch_type);
+  void DeleteUnresolvedBranchInfoForLabel(Label* label);
+
+  bool ShouldEmitVeneer(int max_reachable_pc, size_t amount);
+  bool ShouldEmitVeneers(size_t amount) {
+    return ShouldEmitVeneer(unresolved_branches_.FirstLimit(), amount);
+  }
+
+  void CheckEmitFor(size_t amount, EmitOption option = kBranchRequired);
+  void Emit(EmitOption option, size_t margin);
+
+  // The code size generated for a veneer. Currently one branch instruction.
+  // This is for code size checking purposes, and can be extended in the future
+  // for example if we decide to add nops between the veneers.
+  static const int kVeneerCodeSize = 1 * kInstructionSize;
+  // The maximum size of code other than veneers that can be generated when
+  // emitting a veneer pool. Currently there can be an additional branch to jump
+  // over the pool.
+  static const int kPoolNonVeneerCodeSize = 1 * kInstructionSize;
+
+  void UpdateNextCheckPoint() {
+    SetNextCheckpoint(NextCheckPoint());
+  }
+
+  int NumberOfPotentialVeneers() const {
+    return unresolved_branches_.size();
+  }
+
+  size_t MaxSize() const {
+    return
+        kPoolNonVeneerCodeSize + unresolved_branches_.size() * kVeneerCodeSize;
+  }
+
+  size_t OtherPoolsMaxSize() const;
+
+  static const int kNPreallocatedInfos = 4;
+  static const ptrdiff_t kInvalidOffset = PTRDIFF_MAX;
+  static const size_t kReclaimFrom = 128;
+  static const size_t kReclaimFactor = 16;
+
+ private:
+  typedef InvalSet<BranchInfo,
+                   kNPreallocatedInfos,
+                   ptrdiff_t,
+                   kInvalidOffset,
+                   kReclaimFrom,
+                   kReclaimFactor> BranchInfoTypedSetBase;
+  typedef InvalSetIterator<BranchInfoTypedSetBase> BranchInfoTypedSetIterBase;
+
+  class BranchInfoTypedSet : public BranchInfoTypedSetBase {
+   public:
+    BranchInfoTypedSet() : BranchInfoTypedSetBase() {}
+
+    ptrdiff_t FirstLimit() {
+      if (empty()) {
+        return kInvalidOffset;
+      }
+      return min_element_key();
+    }
+  };
+
+  class BranchInfoTypedSetIterator : public BranchInfoTypedSetIterBase {
+   public:
+    BranchInfoTypedSetIterator() : BranchInfoTypedSetIterBase(NULL) {}
+    explicit BranchInfoTypedSetIterator(BranchInfoTypedSet* typed_set)
+        : BranchInfoTypedSetIterBase(typed_set) {}
+  };
+
+  class BranchInfoSet {
+   public:
+    void insert(BranchInfo branch_info) {
+      ImmBranchType type = branch_info.branch_type_;
+      VIXL_ASSERT(IsValidBranchType(type));
+      typed_set_[BranchIndexFromType(type)].insert(branch_info);
+    }
+
+    void erase(BranchInfo branch_info) {
+      if (IsValidBranchType(branch_info.branch_type_)) {
+        int index =
+            BranchInfoSet::BranchIndexFromType(branch_info.branch_type_);
+        typed_set_[index].erase(branch_info);
+      }
+    }
+
+    size_t size() const {
+      size_t res = 0;
+      for (int i = 0; i < kNumberOfTrackedBranchTypes; i++) {
+        res += typed_set_[i].size();
+      }
+      return res;
+    }
+
+    bool empty() const {
+      for (int i = 0; i < kNumberOfTrackedBranchTypes; i++) {
+        if (!typed_set_[i].empty()) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    ptrdiff_t FirstLimit() {
+      ptrdiff_t res = kInvalidOffset;
+      for (int i = 0; i < kNumberOfTrackedBranchTypes; i++) {
+        res = std::min(res, typed_set_[i].FirstLimit());
+      }
+      return res;
+    }
+
+    void Reset() {
+      for (int i = 0; i < kNumberOfTrackedBranchTypes; i++) {
+        typed_set_[i].clear();
+      }
+    }
+
+    static ImmBranchType BranchTypeFromIndex(int index) {
+      switch (index) {
+        case 0:
+          return CondBranchType;
+        case 1:
+          return CompareBranchType;
+        case 2:
+          return TestBranchType;
+        default:
+          VIXL_UNREACHABLE();
+          return UnknownBranchType;
+      }
+    }
+    static int BranchIndexFromType(ImmBranchType branch_type) {
+      switch (branch_type) {
+        case CondBranchType:
+          return 0;
+        case CompareBranchType:
+          return 1;
+        case TestBranchType:
+          return 2;
+        default:
+          VIXL_UNREACHABLE();
+          return 0;
+      }
+    }
+
+    bool IsValidBranchType(ImmBranchType branch_type) {
+      return (branch_type != UnknownBranchType) &&
+             (branch_type != UncondBranchType);
+    }
+
+   private:
+    static const int kNumberOfTrackedBranchTypes = 3;
+    BranchInfoTypedSet typed_set_[kNumberOfTrackedBranchTypes];
+
+    friend class VeneerPool;
+    friend class BranchInfoSetIterator;
+  };
+
+  class BranchInfoSetIterator {
+   public:
+    explicit BranchInfoSetIterator(BranchInfoSet* set) : set_(set) {
+      for (int i = 0; i < BranchInfoSet::kNumberOfTrackedBranchTypes; i++) {
+        new(&sub_iterator_[i])
+            BranchInfoTypedSetIterator(&(set_->typed_set_[i]));
+      }
+    }
+
+    VeneerPool::BranchInfo* Current() {
+      for (int i = 0; i < BranchInfoSet::kNumberOfTrackedBranchTypes; i++) {
+        if (!sub_iterator_[i].Done()) {
+          return sub_iterator_[i].Current();
+        }
+      }
+      VIXL_UNREACHABLE();
+      return NULL;
+    }
+
+    void Advance() {
+      VIXL_ASSERT(!Done());
+      for (int i = 0; i < BranchInfoSet::kNumberOfTrackedBranchTypes; i++) {
+        if (!sub_iterator_[i].Done()) {
+          sub_iterator_[i].Advance();
+          return;
+        }
+      }
+      VIXL_UNREACHABLE();
+    }
+
+    bool Done() const {
+      for (int i = 0; i < BranchInfoSet::kNumberOfTrackedBranchTypes; i++) {
+        if (!sub_iterator_[i].Done()) return false;
+      }
+      return true;
+    }
+
+    void AdvanceToNextType() {
+      VIXL_ASSERT(!Done());
+      for (int i = 0; i < BranchInfoSet::kNumberOfTrackedBranchTypes; i++) {
+        if (!sub_iterator_[i].Done()) {
+          sub_iterator_[i].Finish();
+          return;
+        }
+      }
+      VIXL_UNREACHABLE();
+    }
+
+    void DeleteCurrentAndAdvance() {
+      for (int i = 0; i < BranchInfoSet::kNumberOfTrackedBranchTypes; i++) {
+        if (!sub_iterator_[i].Done()) {
+          sub_iterator_[i].DeleteCurrentAndAdvance();
+          return;
+        }
+      }
+    }
+
+   private:
+    BranchInfoSet* set_;
+    BranchInfoTypedSetIterator
+        sub_iterator_[BranchInfoSet::kNumberOfTrackedBranchTypes];
+  };
+
+  ptrdiff_t NextCheckPoint() {
+    if (unresolved_branches_.empty()) {
+      return kNoCheckpointRequired;
+    } else {
+      return unresolved_branches_.FirstLimit();
+    }
+  }
+
+  // Information about unresolved (forward) branches.
+  BranchInfoSet unresolved_branches_;
+};
+
+
+// Required InvalSet template specialisations.
+template<>
+inline ptrdiff_t InvalSet<VeneerPool::BranchInfo,
+                          VeneerPool::kNPreallocatedInfos,
+                          ptrdiff_t,
+                          VeneerPool::kInvalidOffset,
+                          VeneerPool::kReclaimFrom,
+                          VeneerPool::kReclaimFactor>::Key(
+                              const VeneerPool::BranchInfo& branch_info) {
+  return branch_info.max_reachable_pc_;
+}
+template<>
+inline void InvalSet<VeneerPool::BranchInfo,
+                     VeneerPool::kNPreallocatedInfos,
+                     ptrdiff_t,
+                     VeneerPool::kInvalidOffset,
+                     VeneerPool::kReclaimFrom,
+                     VeneerPool::kReclaimFactor>::SetKey(
+                         VeneerPool::BranchInfo* branch_info, ptrdiff_t key) {
+  branch_info->max_reachable_pc_ = key;
+}
+
 
 // This scope has the following purposes:
 //  * Acquire/Release the underlying assembler's code buffer.
@@ -329,6 +699,9 @@ class MacroAssembler : public Assembler {
   // applied in the Operand.
   Operand MoveImmediateForShiftedOp(const Register& dst, int64_t imm);
 
+  // Synthesises the address represented by a MemOperand into a register.
+  void ComputeAddress(const Register& dst, const MemOperand& mem_op);
+
   // Conditional macros.
   void Ccmp(const Register& rn,
             const Operand& operand,
@@ -435,16 +808,16 @@ class MacroAssembler : public Assembler {
     PopSizeRegList(regs, kWRegSize);
   }
   void PushDRegList(RegList regs) {
-    PushSizeRegList(regs, kDRegSize, CPURegister::kFPRegister);
+    PushSizeRegList(regs, kDRegSize, CPURegister::kVRegister);
   }
   void PopDRegList(RegList regs) {
-    PopSizeRegList(regs, kDRegSize, CPURegister::kFPRegister);
+    PopSizeRegList(regs, kDRegSize, CPURegister::kVRegister);
   }
   void PushSRegList(RegList regs) {
-    PushSizeRegList(regs, kSRegSize, CPURegister::kFPRegister);
+    PushSizeRegList(regs, kSRegSize, CPURegister::kVRegister);
   }
   void PopSRegList(RegList regs) {
-    PopSizeRegList(regs, kSRegSize, CPURegister::kFPRegister);
+    PopSizeRegList(regs, kSRegSize, CPURegister::kVRegister);
   }
 
   // Push the specified register 'count' times.
@@ -495,16 +868,16 @@ class MacroAssembler : public Assembler {
     PokeSizeRegList(regs, offset, kWRegSize);
   }
   void PeekDRegList(RegList regs, int offset) {
-    PeekSizeRegList(regs, offset, kDRegSize, CPURegister::kFPRegister);
+    PeekSizeRegList(regs, offset, kDRegSize, CPURegister::kVRegister);
   }
   void PokeDRegList(RegList regs, int offset) {
-    PokeSizeRegList(regs, offset, kDRegSize, CPURegister::kFPRegister);
+    PokeSizeRegList(regs, offset, kDRegSize, CPURegister::kVRegister);
   }
   void PeekSRegList(RegList regs, int offset) {
-    PeekSizeRegList(regs, offset, kSRegSize, CPURegister::kFPRegister);
+    PeekSizeRegList(regs, offset, kSRegSize, CPURegister::kVRegister);
   }
   void PokeSRegList(RegList regs, int offset) {
-    PokeSizeRegList(regs, offset, kSRegSize, CPURegister::kFPRegister);
+    PokeSizeRegList(regs, offset, kSRegSize, CPURegister::kVRegister);
   }
 
 
@@ -583,18 +956,20 @@ class MacroAssembler : public Assembler {
 
   void B(Label* label, BranchType type, Register reg = NoReg, int bit = -1);
 
-  void B(Label* label) {
-    SingleEmissionCheckScope guard(this);
-    b(label);
-  }
-  void B(Label* label, Condition cond) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT((cond != al) && (cond != nv));
-    SingleEmissionCheckScope guard(this);
-    b(label, cond);
-  }
+  void B(Label* label);
+  void B(Label* label, Condition cond);
   void B(Condition cond, Label* label) {
     B(label, cond);
+  }
+  void Bfm(const Register& rd,
+           const Register& rn,
+           unsigned immr,
+           unsigned imms) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    SingleEmissionCheckScope guard(this);
+    bfm(rd, rn, immr, imms);
   }
   void Bfi(const Register& rd,
            const Register& rn,
@@ -616,15 +991,9 @@ class MacroAssembler : public Assembler {
     SingleEmissionCheckScope guard(this);
     bfxil(rd, rn, lsb, width);
   }
-  void Bind(Label* label) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    bind(label);
-  }
+  void Bind(Label* label);
   // Bind a label to a specified offset from the start of the buffer.
-  void BindToOffset(Label* label, ptrdiff_t offset) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    Assembler::BindToOffset(label, offset);
-  }
+  void BindToOffset(Label* label, ptrdiff_t offset);
   void Bl(Label* label) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -647,18 +1016,8 @@ class MacroAssembler : public Assembler {
     SingleEmissionCheckScope guard(this);
     brk(code);
   }
-  void Cbnz(const Register& rt, Label* label) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rt.IsZero());
-    SingleEmissionCheckScope guard(this);
-    cbnz(rt, label);
-  }
-  void Cbz(const Register& rt, Label* label) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rt.IsZero());
-    SingleEmissionCheckScope guard(this);
-    cbz(rt, label);
-  }
+  void Cbnz(const Register& rt, Label* label);
+  void Cbz(const Register& rt, Label* label);
   void Cinc(const Register& rd, const Register& rn, Condition cond) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rd.IsZero());
@@ -768,243 +1127,252 @@ class MacroAssembler : public Assembler {
     SingleEmissionCheckScope guard(this);
     extr(rd, rn, rm, lsb);
   }
-  void Fabs(const FPRegister& fd, const FPRegister& fn) {
+  void Fadd(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fabs(fd, fn);
+    fadd(vd, vn, vm);
   }
-  void Fadd(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fadd(fd, fn, fm);
-  }
-  void Fccmp(const FPRegister& fn,
-             const FPRegister& fm,
+  void Fccmp(const VRegister& vn,
+             const VRegister& vm,
              StatusFlags nzcv,
              Condition cond) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT((cond != al) && (cond != nv));
     SingleEmissionCheckScope guard(this);
-    fccmp(fn, fm, nzcv, cond);
+    fccmp(vn, vm, nzcv, cond);
   }
-  void Fcmp(const FPRegister& fn, const FPRegister& fm) {
+  void Fcmp(const VRegister& vn, const VRegister& vm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fcmp(fn, fm);
+    fcmp(vn, vm);
   }
-  void Fcmp(const FPRegister& fn, double value);
-  void Fcsel(const FPRegister& fd,
-             const FPRegister& fn,
-             const FPRegister& fm,
+  void Fcmp(const VRegister& vn, double value);
+  void Fcsel(const VRegister& vd,
+             const VRegister& vn,
+             const VRegister& vm,
              Condition cond) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT((cond != al) && (cond != nv));
     SingleEmissionCheckScope guard(this);
-    fcsel(fd, fn, fm, cond);
+    fcsel(vd, vn, vm, cond);
   }
-  void Fcvt(const FPRegister& fd, const FPRegister& fn) {
+  void Fcvt(const VRegister& vd, const VRegister& vn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fcvt(fd, fn);
+    fcvt(vd, vn);
   }
-  void Fcvtas(const Register& rd, const FPRegister& fn) {
+  void Fcvtl(const VRegister& vd, const VRegister& vn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rd.IsZero());
     SingleEmissionCheckScope guard(this);
-    fcvtas(rd, fn);
+    fcvtl(vd, vn);
   }
-  void Fcvtau(const Register& rd, const FPRegister& fn) {
+  void Fcvtl2(const VRegister& vd, const VRegister& vn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rd.IsZero());
     SingleEmissionCheckScope guard(this);
-    fcvtau(rd, fn);
+    fcvtl2(vd, vn);
   }
-  void Fcvtms(const Register& rd, const FPRegister& fn) {
+  void Fcvtn(const VRegister& vd, const VRegister& vn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rd.IsZero());
     SingleEmissionCheckScope guard(this);
-    fcvtms(rd, fn);
+    fcvtn(vd, vn);
   }
-  void Fcvtmu(const Register& rd, const FPRegister& fn) {
+  void Fcvtn2(const VRegister& vd, const VRegister& vn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rd.IsZero());
     SingleEmissionCheckScope guard(this);
-    fcvtmu(rd, fn);
+    fcvtn2(vd, vn);
   }
-  void Fcvtns(const Register& rd, const FPRegister& fn) {
+  void Fcvtxn(const VRegister& vd, const VRegister& vn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rd.IsZero());
     SingleEmissionCheckScope guard(this);
-    fcvtns(rd, fn);
+    fcvtxn(vd, vn);
   }
-  void Fcvtnu(const Register& rd, const FPRegister& fn) {
+  void Fcvtxn2(const VRegister& vd, const VRegister& vn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rd.IsZero());
     SingleEmissionCheckScope guard(this);
-    fcvtnu(rd, fn);
+    fcvtxn2(vd, vn);
   }
-  void Fcvtzs(const Register& rd, const FPRegister& fn) {
+  void Fcvtas(const Register& rd, const VRegister& vn) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rd.IsZero());
     SingleEmissionCheckScope guard(this);
-    fcvtzs(rd, fn);
+    fcvtas(rd, vn);
   }
-  void Fcvtzu(const Register& rd, const FPRegister& fn) {
+  void Fcvtau(const Register& rd, const VRegister& vn) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rd.IsZero());
     SingleEmissionCheckScope guard(this);
-    fcvtzu(rd, fn);
+    fcvtau(rd, vn);
   }
-  void Fdiv(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm) {
+  void Fcvtms(const Register& rd, const VRegister& vn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    SingleEmissionCheckScope guard(this);
+    fcvtms(rd, vn);
+  }
+  void Fcvtmu(const Register& rd, const VRegister& vn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    SingleEmissionCheckScope guard(this);
+    fcvtmu(rd, vn);
+  }
+  void Fcvtns(const Register& rd, const VRegister& vn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    SingleEmissionCheckScope guard(this);
+    fcvtns(rd, vn);
+  }
+  void Fcvtnu(const Register& rd, const VRegister& vn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    SingleEmissionCheckScope guard(this);
+    fcvtnu(rd, vn);
+  }
+  void Fcvtps(const Register& rd, const VRegister& vn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    SingleEmissionCheckScope guard(this);
+    fcvtps(rd, vn);
+  }
+  void Fcvtpu(const Register& rd, const VRegister& vn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    SingleEmissionCheckScope guard(this);
+    fcvtpu(rd, vn);
+  }
+  void Fcvtzs(const Register& rd, const VRegister& vn, int fbits = 0) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    SingleEmissionCheckScope guard(this);
+    fcvtzs(rd, vn, fbits);
+  }
+  void Fcvtzu(const Register& rd, const VRegister& vn, int fbits = 0) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    SingleEmissionCheckScope guard(this);
+    fcvtzu(rd, vn, fbits);
+  }
+  void Fdiv(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fdiv(fd, fn, fm);
+    fdiv(vd, vn, vm);
   }
-  void Fmax(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm) {
+  void Fmax(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fmax(fd, fn, fm);
+    fmax(vd, vn, vm);
   }
-  void Fmaxnm(const FPRegister& fd,
-              const FPRegister& fn,
-              const FPRegister& fm) {
+  void Fmaxnm(const VRegister& vd,
+              const VRegister& vn,
+              const VRegister& vm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fmaxnm(fd, fn, fm);
+    fmaxnm(vd, vn, vm);
   }
-  void Fmin(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm) {
+  void Fmin(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fmin(fd, fn, fm);
+    fmin(vd, vn, vm);
   }
-  void Fminnm(const FPRegister& fd,
-              const FPRegister& fn,
-              const FPRegister& fm) {
+  void Fminnm(const VRegister& vd,
+              const VRegister& vn,
+              const VRegister& vm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fminnm(fd, fn, fm);
+    fminnm(vd, vn, vm);
   }
-  void Fmov(FPRegister fd, FPRegister fn) {
+  void Fmov(VRegister vd, VRegister vn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    // Only emit an instruction if fd and fn are different, and they are both D
+    // Only emit an instruction if vd and vn are different, and they are both D
     // registers. fmov(s0, s0) is not a no-op because it clears the top word of
     // d0. Technically, fmov(d0, d0) is not a no-op either because it clears
-    // the top of q0, but FPRegister does not currently support Q registers.
-    if (!fd.Is(fn) || !fd.Is64Bits()) {
-      fmov(fd, fn);
+    // the top of q0, but VRegister does not currently support Q registers.
+    if (!vd.Is(vn) || !vd.Is64Bits()) {
+      fmov(vd, vn);
     }
   }
-  void Fmov(FPRegister fd, Register rn) {
+  void Fmov(VRegister vd, Register rn) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rn.IsZero());
     SingleEmissionCheckScope guard(this);
-    fmov(fd, rn);
+    fmov(vd, rn);
   }
+  void Fmov(const VRegister& vd, int index, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    fmov(vd, index, rn);
+  }
+  void Fmov(const Register& rd, const VRegister& vn, int index) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    fmov(rd, vn, index);
+  }
+
   // Provide explicit double and float interfaces for FP immediate moves, rather
   // than relying on implicit C++ casts. This allows signalling NaNs to be
-  // preserved when the immediate matches the format of fd. Most systems convert
+  // preserved when the immediate matches the format of vd. Most systems convert
   // signalling NaNs to quiet NaNs when converting between float and double.
-  void Fmov(FPRegister fd, double imm);
-  void Fmov(FPRegister fd, float imm);
+  void Fmov(VRegister vd, double imm);
+  void Fmov(VRegister vd, float imm);
   // Provide a template to allow other types to be converted automatically.
   template<typename T>
-  void Fmov(FPRegister fd, T imm) {
+  void Fmov(VRegister vd, T imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    Fmov(fd, static_cast<double>(imm));
+    Fmov(vd, static_cast<double>(imm));
   }
-  void Fmov(Register rd, FPRegister fn) {
+  void Fmov(Register rd, VRegister vn) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rd.IsZero());
     SingleEmissionCheckScope guard(this);
-    fmov(rd, fn);
+    fmov(rd, vn);
   }
-  void Fmul(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm) {
+  void Fmul(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fmul(fd, fn, fm);
+    fmul(vd, vn, vm);
   }
-  void Fmadd(const FPRegister& fd,
-             const FPRegister& fn,
-             const FPRegister& fm,
-             const FPRegister& fa) {
+  void Fnmul(const VRegister& vd, const VRegister& vn,
+             const VRegister& vm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fmadd(fd, fn, fm, fa);
+    fnmul(vd, vn, vm);
   }
-  void Fmsub(const FPRegister& fd,
-             const FPRegister& fn,
-             const FPRegister& fm,
-             const FPRegister& fa) {
+  void Fmadd(const VRegister& vd,
+             const VRegister& vn,
+             const VRegister& vm,
+             const VRegister& va) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fmsub(fd, fn, fm, fa);
+    fmadd(vd, vn, vm, va);
   }
-  void Fnmadd(const FPRegister& fd,
-              const FPRegister& fn,
-              const FPRegister& fm,
-              const FPRegister& fa) {
+  void Fmsub(const VRegister& vd,
+             const VRegister& vn,
+             const VRegister& vm,
+             const VRegister& va) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fnmadd(fd, fn, fm, fa);
+    fmsub(vd, vn, vm, va);
   }
-  void Fnmsub(const FPRegister& fd,
-              const FPRegister& fn,
-              const FPRegister& fm,
-              const FPRegister& fa) {
+  void Fnmadd(const VRegister& vd,
+              const VRegister& vn,
+              const VRegister& vm,
+              const VRegister& va) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fnmsub(fd, fn, fm, fa);
+    fnmadd(vd, vn, vm, va);
   }
-  void Fneg(const FPRegister& fd, const FPRegister& fn) {
+  void Fnmsub(const VRegister& vd,
+              const VRegister& vn,
+              const VRegister& vm,
+              const VRegister& va) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fneg(fd, fn);
+    fnmsub(vd, vn, vm, va);
   }
-  void Frinta(const FPRegister& fd, const FPRegister& fn) {
+  void Fsub(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    frinta(fd, fn);
-  }
-  void Frinti(const FPRegister& fd, const FPRegister& fn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    frinti(fd, fn);
-  }
-  void Frintm(const FPRegister& fd, const FPRegister& fn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    frintm(fd, fn);
-  }
-  void Frintn(const FPRegister& fd, const FPRegister& fn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    frintn(fd, fn);
-  }
-  void Frintp(const FPRegister& fd, const FPRegister& fn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    frintp(fd, fn);
-  }
-  void Frintx(const FPRegister& fd, const FPRegister& fn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    frintx(fd, fn);
-  }
-  void Frintz(const FPRegister& fd, const FPRegister& fn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    frintz(fd, fn);
-  }
-  void Fsqrt(const FPRegister& fd, const FPRegister& fn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fsqrt(fd, fn);
-  }
-  void Fsub(const FPRegister& fd, const FPRegister& fn, const FPRegister& fm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fsub(fd, fn, fm);
+    fsub(vd, vn, vm);
   }
   void Hint(SystemHint code) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1068,27 +1436,33 @@ class MacroAssembler : public Assembler {
   // than relying on implicit C++ casts. This allows signalling NaNs to be
   // preserved when the immediate matches the format of fd. Most systems convert
   // signalling NaNs to quiet NaNs when converting between float and double.
-  void Ldr(const FPRegister& ft, double imm) {
+  void Ldr(const VRegister& vt, double imm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     RawLiteral* literal;
-    if (ft.Is64Bits()) {
+    if (vt.IsD()) {
       literal = literal_pool_.Add(imm);
     } else {
       literal = literal_pool_.Add(static_cast<float>(imm));
     }
-    ldr(ft, literal);
+    ldr(vt, literal);
   }
-  void Ldr(const FPRegister& ft, float imm) {
+  void Ldr(const VRegister& vt, float imm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     RawLiteral* literal;
-    if (ft.Is32Bits()) {
+    if (vt.IsS()) {
       literal = literal_pool_.Add(imm);
     } else {
       literal = literal_pool_.Add(static_cast<double>(imm));
     }
-    ldr(ft, literal);
+    ldr(vt, literal);
+  }
+  void Ldr(const VRegister& vt, uint64_t high64, uint64_t low64) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(vt.IsQ());
+    SingleEmissionCheckScope guard(this);
+    ldr(vt, literal_pool_.Add(high64, low64));
   }
   void Ldr(const Register& rt, uint64_t imm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1205,6 +1579,21 @@ class MacroAssembler : public Assembler {
     SingleEmissionCheckScope guard(this);
     msr(sysreg, rt);
   }
+  void Sys(int op1, int crn, int crm, int op2, const Register& rt = xzr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    sys(op1, crn, crm, op2, rt);
+  }
+  void Dc(DataCacheOp op, const Register& rt) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    dc(op, rt);
+  }
+  void Ic(InstructionCacheOp op, const Register& rt) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ic(op, rt);
+  }
   void Msub(const Register& rd,
             const Register& rn,
             const Register& rm,
@@ -1289,6 +1678,16 @@ class MacroAssembler : public Assembler {
     SingleEmissionCheckScope guard(this);
     sbfiz(rd, rn, lsb, width);
   }
+  void Sbfm(const Register& rd,
+            const Register& rn,
+            unsigned immr,
+            unsigned imms) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    SingleEmissionCheckScope guard(this);
+    sbfm(rd, rn, immr, imms);
+  }
   void Sbfx(const Register& rd,
             const Register& rn,
             unsigned lsb,
@@ -1299,11 +1698,11 @@ class MacroAssembler : public Assembler {
     SingleEmissionCheckScope guard(this);
     sbfx(rd, rn, lsb, width);
   }
-  void Scvtf(const FPRegister& fd, const Register& rn, unsigned fbits = 0) {
+  void Scvtf(const VRegister& vd, const Register& rn, int fbits = 0) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rn.IsZero());
     SingleEmissionCheckScope guard(this);
-    scvtf(fd, rn, fbits);
+    scvtf(vd, rn, fbits);
   }
   void Sdiv(const Register& rd, const Register& rn, const Register& rm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1439,6 +1838,11 @@ class MacroAssembler : public Assembler {
     SingleEmissionCheckScope guard(this);
     stxrh(rs, rt, dst);
   }
+  void Svc(int code) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    svc(code);
+  }
   void Sxtb(const Register& rd, const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rd.IsZero());
@@ -1460,18 +1864,76 @@ class MacroAssembler : public Assembler {
     SingleEmissionCheckScope guard(this);
     sxtw(rd, rn);
   }
-  void Tbnz(const Register& rt, unsigned bit_pos, Label* label) {
+  void Tbl(const VRegister& vd,
+           const VRegister& vn,
+           const VRegister& vm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rt.IsZero());
     SingleEmissionCheckScope guard(this);
-    tbnz(rt, bit_pos, label);
+    tbl(vd, vn, vm);
   }
-  void Tbz(const Register& rt, unsigned bit_pos, Label* label) {
+  void Tbl(const VRegister& vd,
+           const VRegister& vn,
+           const VRegister& vn2,
+           const VRegister& vm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rt.IsZero());
     SingleEmissionCheckScope guard(this);
-    tbz(rt, bit_pos, label);
+    tbl(vd, vn, vn2, vm);
   }
+  void Tbl(const VRegister& vd,
+           const VRegister& vn,
+           const VRegister& vn2,
+           const VRegister& vn3,
+           const VRegister& vm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    tbl(vd, vn, vn2, vn3, vm);
+  }
+  void Tbl(const VRegister& vd,
+           const VRegister& vn,
+           const VRegister& vn2,
+           const VRegister& vn3,
+           const VRegister& vn4,
+           const VRegister& vm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    tbl(vd, vn, vn2, vn3, vn4, vm);
+  }
+  void Tbx(const VRegister& vd,
+           const VRegister& vn,
+           const VRegister& vm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    tbx(vd, vn, vm);
+  }
+  void Tbx(const VRegister& vd,
+           const VRegister& vn,
+           const VRegister& vn2,
+           const VRegister& vm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    tbx(vd, vn, vn2, vm);
+  }
+  void Tbx(const VRegister& vd,
+           const VRegister& vn,
+           const VRegister& vn2,
+           const VRegister& vn3,
+           const VRegister& vm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    tbx(vd, vn, vn2, vn3, vm);
+  }
+  void Tbx(const VRegister& vd,
+           const VRegister& vn,
+           const VRegister& vn2,
+           const VRegister& vn3,
+           const VRegister& vn4,
+           const VRegister& vm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    tbx(vd, vn, vn2, vn3, vn4, vm);
+  }
+  void Tbnz(const Register& rt, unsigned bit_pos, Label* label);
+  void Tbz(const Register& rt, unsigned bit_pos, Label* label);
   void Ubfiz(const Register& rd,
              const Register& rn,
              unsigned lsb,
@@ -1481,6 +1943,16 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(!rn.IsZero());
     SingleEmissionCheckScope guard(this);
     ubfiz(rd, rn, lsb, width);
+  }
+  void Ubfm(const Register& rd,
+            const Register& rn,
+            unsigned immr,
+            unsigned imms) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    SingleEmissionCheckScope guard(this);
+    ubfm(rd, rn, immr, imms);
   }
   void Ubfx(const Register& rd,
             const Register& rn,
@@ -1492,11 +1964,11 @@ class MacroAssembler : public Assembler {
     SingleEmissionCheckScope guard(this);
     ubfx(rd, rn, lsb, width);
   }
-  void Ucvtf(const FPRegister& fd, const Register& rn, unsigned fbits = 0) {
+  void Ucvtf(const VRegister& vd, const Register& rn, int fbits = 0) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rn.IsZero());
     SingleEmissionCheckScope guard(this);
-    ucvtf(fd, rn, fbits);
+    ucvtf(vd, rn, fbits);
   }
   void Udiv(const Register& rd, const Register& rn, const Register& rm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1517,6 +1989,16 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(!ra.IsZero());
     SingleEmissionCheckScope guard(this);
     umaddl(rd, rn, rm, ra);
+  }
+  void Umull(const Register& rd,
+             const Register& rn,
+             const Register& rm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(!rm.IsZero());
+    SingleEmissionCheckScope guard(this);
+    umull(rd, rn, rm);
   }
   void Umsubl(const Register& rd,
               const Register& rn,
@@ -1563,6 +2045,774 @@ class MacroAssembler : public Assembler {
     uxtw(rd, rn);
   }
 
+  // NEON 3 vector register instructions.
+  #define NEON_3VREG_MACRO_LIST(V) \
+    V(add, Add)                    \
+    V(addhn, Addhn)                \
+    V(addhn2, Addhn2)              \
+    V(addp, Addp)                  \
+    V(and_, And)                   \
+    V(bic, Bic)                    \
+    V(bif, Bif)                    \
+    V(bit, Bit)                    \
+    V(bsl, Bsl)                    \
+    V(cmeq, Cmeq)                  \
+    V(cmge, Cmge)                  \
+    V(cmgt, Cmgt)                  \
+    V(cmhi, Cmhi)                  \
+    V(cmhs, Cmhs)                  \
+    V(cmtst, Cmtst)                \
+    V(eor, Eor)                    \
+    V(fabd, Fabd)                  \
+    V(facge, Facge)                \
+    V(facgt, Facgt)                \
+    V(faddp, Faddp)                \
+    V(fcmeq, Fcmeq)                \
+    V(fcmge, Fcmge)                \
+    V(fcmgt, Fcmgt)                \
+    V(fmaxnmp, Fmaxnmp)            \
+    V(fmaxp, Fmaxp)                \
+    V(fminnmp, Fminnmp)            \
+    V(fminp, Fminp)                \
+    V(fmla, Fmla)                  \
+    V(fmls, Fmls)                  \
+    V(fmulx, Fmulx)                \
+    V(frecps, Frecps)              \
+    V(frsqrts, Frsqrts)            \
+    V(mla, Mla)                    \
+    V(mls, Mls)                    \
+    V(mul, Mul)                    \
+    V(orn, Orn)                    \
+    V(orr, Orr)                    \
+    V(pmul, Pmul)                  \
+    V(pmull, Pmull)                \
+    V(pmull2, Pmull2)              \
+    V(raddhn, Raddhn)              \
+    V(raddhn2, Raddhn2)            \
+    V(rsubhn, Rsubhn)              \
+    V(rsubhn2, Rsubhn2)            \
+    V(saba, Saba)                  \
+    V(sabal, Sabal)                \
+    V(sabal2, Sabal2)              \
+    V(sabd, Sabd)                  \
+    V(sabdl, Sabdl)                \
+    V(sabdl2, Sabdl2)              \
+    V(saddl, Saddl)                \
+    V(saddl2, Saddl2)              \
+    V(saddw, Saddw)                \
+    V(saddw2, Saddw2)              \
+    V(shadd, Shadd)                \
+    V(shsub, Shsub)                \
+    V(smax, Smax)                  \
+    V(smaxp, Smaxp)                \
+    V(smin, Smin)                  \
+    V(sminp, Sminp)                \
+    V(smlal, Smlal)                \
+    V(smlal2, Smlal2)              \
+    V(smlsl, Smlsl)                \
+    V(smlsl2, Smlsl2)              \
+    V(smull, Smull)                \
+    V(smull2, Smull2)              \
+    V(sqadd, Sqadd)                \
+    V(sqdmlal, Sqdmlal)            \
+    V(sqdmlal2, Sqdmlal2)          \
+    V(sqdmlsl, Sqdmlsl)            \
+    V(sqdmlsl2, Sqdmlsl2)          \
+    V(sqdmulh, Sqdmulh)            \
+    V(sqdmull, Sqdmull)            \
+    V(sqdmull2, Sqdmull2)          \
+    V(sqrdmulh, Sqrdmulh)          \
+    V(sqrshl, Sqrshl)              \
+    V(sqshl, Sqshl)                \
+    V(sqsub, Sqsub)                \
+    V(srhadd, Srhadd)              \
+    V(srshl, Srshl)                \
+    V(sshl, Sshl)                  \
+    V(ssubl, Ssubl)                \
+    V(ssubl2, Ssubl2)              \
+    V(ssubw, Ssubw)                \
+    V(ssubw2, Ssubw2)              \
+    V(sub, Sub)                    \
+    V(subhn, Subhn)                \
+    V(subhn2, Subhn2)              \
+    V(trn1, Trn1)                  \
+    V(trn2, Trn2)                  \
+    V(uaba, Uaba)                  \
+    V(uabal, Uabal)                \
+    V(uabal2, Uabal2)              \
+    V(uabd, Uabd)                  \
+    V(uabdl, Uabdl)                \
+    V(uabdl2, Uabdl2)              \
+    V(uaddl, Uaddl)                \
+    V(uaddl2, Uaddl2)              \
+    V(uaddw, Uaddw)                \
+    V(uaddw2, Uaddw2)              \
+    V(uhadd, Uhadd)                \
+    V(uhsub, Uhsub)                \
+    V(umax, Umax)                  \
+    V(umaxp, Umaxp)                \
+    V(umin, Umin)                  \
+    V(uminp, Uminp)                \
+    V(umlal, Umlal)                \
+    V(umlal2, Umlal2)              \
+    V(umlsl, Umlsl)                \
+    V(umlsl2, Umlsl2)              \
+    V(umull, Umull)                \
+    V(umull2, Umull2)              \
+    V(uqadd, Uqadd)                \
+    V(uqrshl, Uqrshl)              \
+    V(uqshl, Uqshl)                \
+    V(uqsub, Uqsub)                \
+    V(urhadd, Urhadd)              \
+    V(urshl, Urshl)                \
+    V(ushl, Ushl)                  \
+    V(usubl, Usubl)                \
+    V(usubl2, Usubl2)              \
+    V(usubw, Usubw)                \
+    V(usubw2, Usubw2)              \
+    V(uzp1, Uzp1)                  \
+    V(uzp2, Uzp2)                  \
+    V(zip1, Zip1)                  \
+    V(zip2, Zip2)
+
+  #define DEFINE_MACRO_ASM_FUNC(ASM, MASM)   \
+  void MASM(const VRegister& vd,             \
+            const VRegister& vn,             \
+            const VRegister& vm) {           \
+    VIXL_ASSERT(allow_macro_instructions_);  \
+    SingleEmissionCheckScope guard(this);    \
+    ASM(vd, vn, vm);                         \
+  }
+  NEON_3VREG_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
+  #undef DEFINE_MACRO_ASM_FUNC
+
+  // NEON 2 vector register instructions.
+  #define NEON_2VREG_MACRO_LIST(V) \
+    V(abs,     Abs)                \
+    V(addp,    Addp)               \
+    V(addv,    Addv)               \
+    V(cls,     Cls)                \
+    V(clz,     Clz)                \
+    V(cnt,     Cnt)                \
+    V(fabs,    Fabs)               \
+    V(faddp,   Faddp)              \
+    V(fcvtas,  Fcvtas)             \
+    V(fcvtau,  Fcvtau)             \
+    V(fcvtms,  Fcvtms)             \
+    V(fcvtmu,  Fcvtmu)             \
+    V(fcvtns,  Fcvtns)             \
+    V(fcvtnu,  Fcvtnu)             \
+    V(fcvtps,  Fcvtps)             \
+    V(fcvtpu,  Fcvtpu)             \
+    V(fmaxnmp, Fmaxnmp)            \
+    V(fmaxnmv, Fmaxnmv)            \
+    V(fmaxp,   Fmaxp)              \
+    V(fmaxv,   Fmaxv)              \
+    V(fminnmp, Fminnmp)            \
+    V(fminnmv, Fminnmv)            \
+    V(fminp,   Fminp)              \
+    V(fminv,   Fminv)              \
+    V(fneg,    Fneg)               \
+    V(frecpe,  Frecpe)             \
+    V(frecpx,  Frecpx)             \
+    V(frinta,  Frinta)             \
+    V(frinti,  Frinti)             \
+    V(frintm,  Frintm)             \
+    V(frintn,  Frintn)             \
+    V(frintp,  Frintp)             \
+    V(frintx,  Frintx)             \
+    V(frintz,  Frintz)             \
+    V(frsqrte, Frsqrte)            \
+    V(fsqrt,   Fsqrt)              \
+    V(mov,     Mov)                \
+    V(mvn,     Mvn)                \
+    V(neg,     Neg)                \
+    V(not_,    Not)                \
+    V(rbit,    Rbit)               \
+    V(rev16,   Rev16)              \
+    V(rev32,   Rev32)              \
+    V(rev64,   Rev64)              \
+    V(sadalp,  Sadalp)             \
+    V(saddlp,  Saddlp)             \
+    V(saddlv,  Saddlv)             \
+    V(smaxv,   Smaxv)              \
+    V(sminv,   Sminv)              \
+    V(sqabs,   Sqabs)              \
+    V(sqneg,   Sqneg)              \
+    V(sqxtn,   Sqxtn)              \
+    V(sqxtn2,  Sqxtn2)             \
+    V(sqxtun,  Sqxtun)             \
+    V(sqxtun2, Sqxtun2)            \
+    V(suqadd,  Suqadd)             \
+    V(sxtl,    Sxtl)               \
+    V(sxtl2,   Sxtl2)              \
+    V(uadalp,  Uadalp)             \
+    V(uaddlp,  Uaddlp)             \
+    V(uaddlv,  Uaddlv)             \
+    V(umaxv,   Umaxv)              \
+    V(uminv,   Uminv)              \
+    V(uqxtn,   Uqxtn)              \
+    V(uqxtn2,  Uqxtn2)             \
+    V(urecpe,  Urecpe)             \
+    V(ursqrte, Ursqrte)            \
+    V(usqadd,  Usqadd)             \
+    V(uxtl,    Uxtl)               \
+    V(uxtl2,   Uxtl2)              \
+    V(xtn,     Xtn)                \
+    V(xtn2,    Xtn2)
+
+  #define DEFINE_MACRO_ASM_FUNC(ASM, MASM)   \
+  void MASM(const VRegister& vd,             \
+            const VRegister& vn) {           \
+    VIXL_ASSERT(allow_macro_instructions_);  \
+    SingleEmissionCheckScope guard(this);    \
+    ASM(vd, vn);                             \
+  }
+  NEON_2VREG_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
+  #undef DEFINE_MACRO_ASM_FUNC
+
+  // NEON 2 vector register with immediate instructions.
+  #define NEON_2VREG_FPIMM_MACRO_LIST(V) \
+    V(fcmeq, Fcmeq)                      \
+    V(fcmge, Fcmge)                      \
+    V(fcmgt, Fcmgt)                      \
+    V(fcmle, Fcmle)                      \
+    V(fcmlt, Fcmlt)
+
+  #define DEFINE_MACRO_ASM_FUNC(ASM, MASM)   \
+  void MASM(const VRegister& vd,             \
+            const VRegister& vn,             \
+            double imm) {                    \
+    VIXL_ASSERT(allow_macro_instructions_);  \
+    SingleEmissionCheckScope guard(this);    \
+    ASM(vd, vn, imm);                        \
+  }
+  NEON_2VREG_FPIMM_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
+  #undef DEFINE_MACRO_ASM_FUNC
+
+  // NEON by element instructions.
+  #define NEON_BYELEMENT_MACRO_LIST(V) \
+    V(fmul, Fmul)                      \
+    V(fmla, Fmla)                      \
+    V(fmls, Fmls)                      \
+    V(fmulx, Fmulx)                    \
+    V(mul, Mul)                        \
+    V(mla, Mla)                        \
+    V(mls, Mls)                        \
+    V(sqdmulh, Sqdmulh)                \
+    V(sqrdmulh, Sqrdmulh)              \
+    V(sqdmull,  Sqdmull)               \
+    V(sqdmull2, Sqdmull2)              \
+    V(sqdmlal,  Sqdmlal)               \
+    V(sqdmlal2, Sqdmlal2)              \
+    V(sqdmlsl,  Sqdmlsl)               \
+    V(sqdmlsl2, Sqdmlsl2)              \
+    V(smull,  Smull)                   \
+    V(smull2, Smull2)                  \
+    V(smlal,  Smlal)                   \
+    V(smlal2, Smlal2)                  \
+    V(smlsl,  Smlsl)                   \
+    V(smlsl2, Smlsl2)                  \
+    V(umull,  Umull)                   \
+    V(umull2, Umull2)                  \
+    V(umlal,  Umlal)                   \
+    V(umlal2, Umlal2)                  \
+    V(umlsl,  Umlsl)                   \
+    V(umlsl2, Umlsl2)
+
+  #define DEFINE_MACRO_ASM_FUNC(ASM, MASM)   \
+  void MASM(const VRegister& vd,             \
+            const VRegister& vn,             \
+            const VRegister& vm,             \
+            int vm_index                     \
+            ) {                              \
+    VIXL_ASSERT(allow_macro_instructions_);  \
+    SingleEmissionCheckScope guard(this);    \
+    ASM(vd, vn, vm, vm_index);               \
+  }
+  NEON_BYELEMENT_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
+  #undef DEFINE_MACRO_ASM_FUNC
+
+  #define NEON_2VREG_SHIFT_MACRO_LIST(V) \
+    V(rshrn,     Rshrn)                  \
+    V(rshrn2,    Rshrn2)                 \
+    V(shl,       Shl)                    \
+    V(shll,      Shll)                   \
+    V(shll2,     Shll2)                  \
+    V(shrn,      Shrn)                   \
+    V(shrn2,     Shrn2)                  \
+    V(sli,       Sli)                    \
+    V(sqrshrn,   Sqrshrn)                \
+    V(sqrshrn2,  Sqrshrn2)               \
+    V(sqrshrun,  Sqrshrun)               \
+    V(sqrshrun2, Sqrshrun2)              \
+    V(sqshl,     Sqshl)                  \
+    V(sqshlu,    Sqshlu)                 \
+    V(sqshrn,    Sqshrn)                 \
+    V(sqshrn2,   Sqshrn2)                \
+    V(sqshrun,   Sqshrun)                \
+    V(sqshrun2,  Sqshrun2)               \
+    V(sri,       Sri)                    \
+    V(srshr,     Srshr)                  \
+    V(srsra,     Srsra)                  \
+    V(sshll,     Sshll)                  \
+    V(sshll2,    Sshll2)                 \
+    V(sshr,      Sshr)                   \
+    V(ssra,      Ssra)                   \
+    V(uqrshrn,   Uqrshrn)                \
+    V(uqrshrn2,  Uqrshrn2)               \
+    V(uqshl,     Uqshl)                  \
+    V(uqshrn,    Uqshrn)                 \
+    V(uqshrn2,   Uqshrn2)                \
+    V(urshr,     Urshr)                  \
+    V(ursra,     Ursra)                  \
+    V(ushll,     Ushll)                  \
+    V(ushll2,    Ushll2)                 \
+    V(ushr,      Ushr)                   \
+    V(usra,      Usra)                   \
+
+  #define DEFINE_MACRO_ASM_FUNC(ASM, MASM)   \
+  void MASM(const VRegister& vd,             \
+            const VRegister& vn,             \
+            int shift) {                     \
+    VIXL_ASSERT(allow_macro_instructions_);  \
+    SingleEmissionCheckScope guard(this);    \
+    ASM(vd, vn, shift);                      \
+  }
+  NEON_2VREG_SHIFT_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
+  #undef DEFINE_MACRO_ASM_FUNC
+
+  void Bic(const VRegister& vd,
+           const int imm8,
+           const int left_shift = 0) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    bic(vd, imm8, left_shift);
+  }
+  void Cmeq(const VRegister& vd,
+            const VRegister& vn,
+            int imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cmeq(vd, vn, imm);
+  }
+  void Cmge(const VRegister& vd,
+            const VRegister& vn,
+            int imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cmge(vd, vn, imm);
+  }
+  void Cmgt(const VRegister& vd,
+            const VRegister& vn,
+            int imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cmgt(vd, vn, imm);
+  }
+  void Cmle(const VRegister& vd,
+            const VRegister& vn,
+            int imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cmle(vd, vn, imm);
+  }
+  void Cmlt(const VRegister& vd,
+            const VRegister& vn,
+            int imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cmlt(vd, vn, imm);
+  }
+  void Dup(const VRegister& vd,
+           const VRegister& vn,
+           int index) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    dup(vd, vn, index);
+  }
+  void Dup(const VRegister& vd,
+           const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    dup(vd, rn);
+  }
+  void Ext(const VRegister& vd,
+           const VRegister& vn,
+           const VRegister& vm,
+           int index) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ext(vd, vn, vm, index);
+  }
+  void Ins(const VRegister& vd,
+           int vd_index,
+           const VRegister& vn,
+           int vn_index) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ins(vd, vd_index, vn, vn_index);
+  }
+  void Ins(const VRegister& vd,
+           int vd_index,
+           const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ins(vd, vd_index, rn);
+  }
+  void Ld1(const VRegister& vt,
+           const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld1(vt, src);
+  }
+  void Ld1(const VRegister& vt,
+           const VRegister& vt2,
+           const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld1(vt, vt2, src);
+  }
+  void Ld1(const VRegister& vt,
+           const VRegister& vt2,
+           const VRegister& vt3,
+           const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld1(vt, vt2, vt3, src);
+  }
+  void Ld1(const VRegister& vt,
+           const VRegister& vt2,
+           const VRegister& vt3,
+           const VRegister& vt4,
+           const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld1(vt, vt2, vt3, vt4, src);
+  }
+  void Ld1(const VRegister& vt,
+           int lane,
+           const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld1(vt, lane, src);
+  }
+  void Ld1r(const VRegister& vt,
+            const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld1r(vt, src);
+  }
+  void Ld2(const VRegister& vt,
+           const VRegister& vt2,
+           const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld2(vt, vt2, src);
+  }
+  void Ld2(const VRegister& vt,
+           const VRegister& vt2,
+           int lane,
+           const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld2(vt, vt2, lane, src);
+  }
+  void Ld2r(const VRegister& vt,
+            const VRegister& vt2,
+            const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld2r(vt, vt2, src);
+  }
+  void Ld3(const VRegister& vt,
+           const VRegister& vt2,
+           const VRegister& vt3,
+           const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld3(vt, vt2, vt3, src);
+  }
+  void Ld3(const VRegister& vt,
+           const VRegister& vt2,
+           const VRegister& vt3,
+           int lane,
+           const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld3(vt, vt2, vt3, lane, src);
+  }
+  void Ld3r(const VRegister& vt,
+            const VRegister& vt2,
+            const VRegister& vt3,
+           const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld3r(vt, vt2, vt3, src);
+  }
+  void Ld4(const VRegister& vt,
+           const VRegister& vt2,
+           const VRegister& vt3,
+           const VRegister& vt4,
+           const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld4(vt, vt2, vt3, vt4, src);
+  }
+  void Ld4(const VRegister& vt,
+           const VRegister& vt2,
+           const VRegister& vt3,
+           const VRegister& vt4,
+           int lane,
+           const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld4(vt, vt2, vt3, vt4, lane, src);
+  }
+  void Ld4r(const VRegister& vt,
+            const VRegister& vt2,
+            const VRegister& vt3,
+            const VRegister& vt4,
+           const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ld4r(vt, vt2, vt3, vt4, src);
+  }
+  void Mov(const VRegister& vd,
+           int vd_index,
+           const VRegister& vn,
+           int vn_index) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    mov(vd, vd_index, vn, vn_index);
+  }
+  void Mov(const VRegister& vd,
+           const VRegister& vn,
+           int index) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    mov(vd, vn, index);
+  }
+  void Mov(const VRegister& vd,
+           int vd_index,
+           const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    mov(vd, vd_index, rn);
+  }
+  void Mov(const Register& rd,
+           const VRegister& vn,
+           int vn_index) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    mov(rd, vn, vn_index);
+  }
+  void Movi(const VRegister& vd,
+            uint64_t imm,
+            Shift shift = LSL,
+            int shift_amount = 0);
+  void Movi(const VRegister& vd, uint64_t hi, uint64_t lo);
+  void Mvni(const VRegister& vd,
+            const int imm8,
+            Shift shift = LSL,
+            const int shift_amount = 0) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    mvni(vd, imm8, shift, shift_amount);
+  }
+  void Orr(const VRegister& vd,
+           const int imm8,
+           const int left_shift = 0) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    orr(vd, imm8, left_shift);
+  }
+  void Scvtf(const VRegister& vd,
+             const VRegister& vn,
+             int fbits = 0) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    scvtf(vd, vn, fbits);
+  }
+  void Ucvtf(const VRegister& vd,
+             const VRegister& vn,
+             int fbits = 0) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ucvtf(vd, vn, fbits);
+  }
+  void Fcvtzs(const VRegister& vd,
+              const VRegister& vn,
+              int fbits = 0) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    fcvtzs(vd, vn, fbits);
+  }
+  void Fcvtzu(const VRegister& vd,
+              const VRegister& vn,
+              int fbits = 0) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    fcvtzu(vd, vn, fbits);
+  }
+  void St1(const VRegister& vt,
+           const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    st1(vt, dst);
+  }
+  void St1(const VRegister& vt,
+           const VRegister& vt2,
+           const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    st1(vt, vt2, dst);
+  }
+  void St1(const VRegister& vt,
+           const VRegister& vt2,
+           const VRegister& vt3,
+           const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    st1(vt, vt2, vt3, dst);
+  }
+  void St1(const VRegister& vt,
+           const VRegister& vt2,
+           const VRegister& vt3,
+           const VRegister& vt4,
+           const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    st1(vt, vt2, vt3, vt4, dst);
+  }
+  void St1(const VRegister& vt,
+           int lane,
+           const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    st1(vt, lane, dst);
+  }
+  void St2(const VRegister& vt,
+           const VRegister& vt2,
+           const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    st2(vt, vt2, dst);
+  }
+  void St3(const VRegister& vt,
+           const VRegister& vt2,
+           const VRegister& vt3,
+           const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    st3(vt, vt2, vt3, dst);
+  }
+  void St4(const VRegister& vt,
+           const VRegister& vt2,
+           const VRegister& vt3,
+           const VRegister& vt4,
+           const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    st4(vt, vt2, vt3, vt4, dst);
+  }
+  void St2(const VRegister& vt,
+           const VRegister& vt2,
+           int lane,
+           const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    st2(vt, vt2, lane, dst);
+  }
+  void St3(const VRegister& vt,
+           const VRegister& vt2,
+           const VRegister& vt3,
+           int lane,
+           const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    st3(vt, vt2, vt3, lane, dst);
+  }
+  void St4(const VRegister& vt,
+           const VRegister& vt2,
+           const VRegister& vt3,
+           const VRegister& vt4,
+           int lane,
+           const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    st4(vt, vt2, vt3, vt4, lane, dst);
+  }
+  void Smov(const Register& rd,
+            const VRegister& vn,
+            int vn_index) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    smov(rd, vn, vn_index);
+  }
+  void Umov(const Register& rd,
+            const VRegister& vn,
+            int vn_index) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    umov(rd, vn, vn_index);
+  }
+  void Crc32b(const Register& rd,
+              const Register& rn,
+              const Register& rm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    crc32b(rd, rn, rm);
+  }
+  void Crc32h(const Register& rd,
+              const Register& rn,
+              const Register& rm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    crc32h(rd, rn, rm);
+  }
+  void Crc32w(const Register& rd,
+              const Register& rn,
+              const Register& rm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    crc32w(rd, rn, rm);
+  }
+  void Crc32x(const Register& rd,
+              const Register& rn,
+              const Register& rm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    crc32x(rd, rn, rm);
+  }
+  void Crc32cb(const Register& rd,
+               const Register& rn,
+               const Register& rm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    crc32cb(rd, rn, rm);
+  }
+  void Crc32ch(const Register& rd,
+               const Register& rn,
+               const Register& rm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    crc32ch(rd, rn, rm);
+  }
+  void Crc32cw(const Register& rd,
+               const Register& rn,
+               const Register& rm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    crc32cw(rd, rn, rm);
+  }
+  void Crc32cx(const Register& rd,
+               const Register& rn,
+               const Register& rm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    crc32cx(rd, rn, rm);
+  }
   // Push the system stack pointer (sp) down to allow the same to be done to
   // the current stack pointer (according to StackPointer()). This must be
   // called _before_ accessing the memory.
@@ -1591,34 +2841,48 @@ class MacroAssembler : public Assembler {
   void BlockLiteralPool() { literal_pool_.Block(); }
   void ReleaseLiteralPool() { literal_pool_.Release(); }
   bool IsLiteralPoolBlocked() const { return literal_pool_.IsBlocked(); }
+  void BlockVeneerPool() { veneer_pool_.Block(); }
+  void ReleaseVeneerPool() { veneer_pool_.Release(); }
+  bool IsVeneerPoolBlocked() const { return veneer_pool_.IsBlocked(); }
 
   size_t LiteralPoolSize() const {
-    if (literal_pool_.IsEmpty()) return 0;
-    return literal_pool_.Size() - kInstructionSize;
+    return literal_pool_.Size();
+  }
+
+  size_t LiteralPoolMaxSize() const {
+    return literal_pool_.MaxSize();
+  }
+
+  size_t VeneerPoolMaxSize() const {
+    return veneer_pool_.MaxSize();
+  }
+
+  // The number of unresolved branches that may require a veneer.
+  int NumberOfPotentialVeneers() const {
+    return veneer_pool_.NumberOfPotentialVeneers();
+  }
+
+  ptrdiff_t NextCheckPoint() {
+    ptrdiff_t next_checkpoint_for_pools = std::min(literal_pool_.checkpoint(),
+                                                   veneer_pool_.checkpoint());
+    return std::min(next_checkpoint_for_pools, BufferEndOffset());
   }
 
   void EmitLiteralPool(LiteralPool::EmitOption option) {
     if (!literal_pool_.IsEmpty()) literal_pool_.Emit(option);
 
-    checkpoint_ = NextCheckOffset();
+    checkpoint_ = NextCheckPoint();
+    recommended_checkpoint_ = literal_pool_.NextRecommendedCheckpoint();
   }
 
-  ptrdiff_t NextCheckOffset() {
-    return std::min(literal_pool_.NextCheckOffset(), BufferEndOffset());
-  }
-
+  void CheckEmitFor(size_t amount);
   void EnsureEmitFor(size_t amount) {
     ptrdiff_t offset = amount;
-    if ((CursorOffset() + offset) > checkpoint_) {
-      // Check if a pool need to be emitted.
-      literal_pool_.CheckEmitFor(amount);
-      // Ensure there's enough space for the emit, keep in mind the cursor will
-      // have moved if a pool was emitted.
-      if ((CursorOffset() + offset) > BufferEndOffset()) {
-        EnsureSpaceFor(amount);
-      }
-
-      checkpoint_ = NextCheckOffset();
+    ptrdiff_t max_pools_size = literal_pool_.MaxSize() + veneer_pool_.MaxSize();
+    ptrdiff_t cursor = CursorOffset();
+    if ((cursor >= recommended_checkpoint_) ||
+        ((cursor + offset + max_pools_size) >= checkpoint_)) {
+      CheckEmitFor(amount);
     }
   }
 
@@ -1639,8 +2903,8 @@ class MacroAssembler : public Assembler {
   // Like printf, but print at run-time from generated code.
   //
   // The caller must ensure that arguments for floating-point placeholders
-  // (such as %e, %f or %g) are FPRegisters, and that arguments for integer
-  // placeholders are Registers.
+  // (such as %e, %f or %g) are VRegisters in format 1S or 1D, and that
+  // arguments for integer placeholders are Registers.
   //
   // At the moment it is only possible to print the value of sp if it is the
   // current stack pointer. Otherwise, the MacroAssembler will automatically
@@ -1715,11 +2979,20 @@ class MacroAssembler : public Assembler {
                  const CPURegister& dst0, const CPURegister& dst1,
                  const CPURegister& dst2, const CPURegister& dst3);
 
+  void Movi16bitHelper(const VRegister& vd, uint64_t imm);
+  void Movi32bitHelper(const VRegister& vd, uint64_t imm);
+  void Movi64bitHelper(const VRegister& vd, uint64_t imm);
+
   // Perform necessary maintenance operations before a push or pop.
   //
   // Note that size is per register, and is specified in bytes.
   void PrepareForPush(int count, int size);
   void PrepareForPop(int count, int size);
+
+  bool LabelIsOutOfRange(Label* label, ImmBranchType branch_type) {
+    return !Instruction::IsValidImmPCOffset(branch_type,
+                                            label->location() - CursorOffset());
+  }
 
 #if VIXL_DEBUG
   // Tell whether any of the macro instruction can be used. When false the
@@ -1736,9 +3009,31 @@ class MacroAssembler : public Assembler {
   CPURegList fptmp_list_;
 
   LiteralPool literal_pool_;
+  VeneerPool veneer_pool_;
+
   ptrdiff_t checkpoint_;
+  ptrdiff_t recommended_checkpoint_;
+
+  friend class Pool;
+  friend class LiteralPool;
 };
 
+
+inline size_t VeneerPool::OtherPoolsMaxSize() const {
+  return masm_->LiteralPoolMaxSize();
+}
+
+
+inline size_t LiteralPool::OtherPoolsMaxSize() const {
+  return masm_->VeneerPoolMaxSize();
+}
+
+
+inline void LiteralPool::SetNextRecommendedCheckpoint(ptrdiff_t offset) {
+  masm_->recommended_checkpoint_ =
+      std::min(masm_->recommended_checkpoint_, offset);
+  recommended_checkpoint_ = offset;
+}
 
 // Use this scope when you need a one-to-one mapping between methods and
 // instructions. This scope prevents the MacroAssembler from being called and
@@ -1789,6 +3084,38 @@ class BlockLiteralPoolScope {
 };
 
 
+class BlockVeneerPoolScope {
+ public:
+  explicit BlockVeneerPoolScope(MacroAssembler* masm) : masm_(masm) {
+    masm_->BlockVeneerPool();
+  }
+
+  ~BlockVeneerPoolScope() {
+    masm_->ReleaseVeneerPool();
+  }
+
+ private:
+  MacroAssembler* masm_;
+};
+
+
+class BlockPoolsScope {
+ public:
+  explicit BlockPoolsScope(MacroAssembler* masm) : masm_(masm) {
+    masm_->BlockLiteralPool();
+    masm_->BlockVeneerPool();
+  }
+
+  ~BlockPoolsScope() {
+    masm_->ReleaseLiteralPool();
+    masm_->ReleaseVeneerPool();
+  }
+
+ private:
+  MacroAssembler* masm_;
+};
+
+
 // This scope utility allows scratch registers to be managed safely. The
 // MacroAssembler's TmpList() (and FPTmpList()) is used as a pool of scratch
 // registers. These registers can be allocated on demand, and will be returned
@@ -1822,12 +3149,12 @@ class UseScratchRegisterScope {
   // automatically when the scope ends.
   Register AcquireW() { return AcquireNextAvailable(available_).W(); }
   Register AcquireX() { return AcquireNextAvailable(available_).X(); }
-  FPRegister AcquireS() { return AcquireNextAvailable(availablefp_).S(); }
-  FPRegister AcquireD() { return AcquireNextAvailable(availablefp_).D(); }
+  VRegister AcquireS() { return AcquireNextAvailable(availablefp_).S(); }
+  VRegister AcquireD() { return AcquireNextAvailable(availablefp_).D(); }
 
 
   Register AcquireSameSizeAs(const Register& reg);
-  FPRegister AcquireSameSizeAs(const FPRegister& reg);
+  VRegister AcquireSameSizeAs(const VRegister& reg);
 
 
   // Explicitly release an acquired (or excluded) register, putting it back in
@@ -1842,10 +3169,10 @@ class UseScratchRegisterScope {
                const Register& reg2 = NoReg,
                const Register& reg3 = NoReg,
                const Register& reg4 = NoReg);
-  void Include(const FPRegister& reg1,
-               const FPRegister& reg2 = NoFPReg,
-               const FPRegister& reg3 = NoFPReg,
-               const FPRegister& reg4 = NoFPReg);
+  void Include(const VRegister& reg1,
+               const VRegister& reg2 = NoVReg,
+               const VRegister& reg3 = NoVReg,
+               const VRegister& reg4 = NoVReg);
 
 
   // Make sure that the specified registers are not available in this scope.
@@ -1856,10 +3183,10 @@ class UseScratchRegisterScope {
                const Register& reg2 = NoReg,
                const Register& reg3 = NoReg,
                const Register& reg4 = NoReg);
-  void Exclude(const FPRegister& reg1,
-               const FPRegister& reg2 = NoFPReg,
-               const FPRegister& reg3 = NoFPReg,
-               const FPRegister& reg4 = NoFPReg);
+  void Exclude(const VRegister& reg1,
+               const VRegister& reg2 = NoVReg,
+               const VRegister& reg3 = NoVReg,
+               const VRegister& reg4 = NoVReg);
   void Exclude(const CPURegister& reg1,
                const CPURegister& reg2 = NoCPUReg,
                const CPURegister& reg3 = NoCPUReg,
@@ -1886,11 +3213,11 @@ class UseScratchRegisterScope {
 
   // Available scratch registers.
   CPURegList* available_;     // kRegister
-  CPURegList* availablefp_;   // kFPRegister
+  CPURegList* availablefp_;   // kVRegister
 
   // The state of the available lists at the start of this scope.
   RegList old_available_;     // kRegister
-  RegList old_availablefp_;   // kFPRegister
+  RegList old_availablefp_;   // kVRegister
 #ifdef VIXL_DEBUG
   bool initialised_;
 #endif

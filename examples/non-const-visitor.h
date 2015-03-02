@@ -97,6 +97,31 @@ class SwitchAddSubRegisterSources : public DecoderVisitor {
   V(FPDataProcessing3Source)        \
   V(FPIntegerConvert)               \
   V(FPFixedPointConvert)            \
+  V(Crypto2RegSHA)                  \
+  V(Crypto3RegSHA)                  \
+  V(CryptoAES)                      \
+  V(NEON2RegMisc)                   \
+  V(NEON3Different)                 \
+  V(NEON3Same)                      \
+  V(NEONAcrossLanes)                \
+  V(NEONByIndexedElement)           \
+  V(NEONCopy)                       \
+  V(NEONExtract)                    \
+  V(NEONLoadStoreMultiStruct)       \
+  V(NEONLoadStoreMultiStructPostIndex)  \
+  V(NEONLoadStoreSingleStruct)      \
+  V(NEONLoadStoreSingleStructPostIndex) \
+  V(NEONModifiedImmediate)          \
+  V(NEONScalar2RegMisc)             \
+  V(NEONScalar3Diff)                \
+  V(NEONScalar3Same)                \
+  V(NEONScalarByIndexedElement)     \
+  V(NEONScalarCopy)                 \
+  V(NEONScalarPairwise)             \
+  V(NEONScalarShiftImmediate)       \
+  V(NEONShiftImmediate)             \
+  V(NEONTable)                      \
+  V(NEONPerm)                       \
   V(Unallocated)                    \
   V(Unimplemented)
 #define DEFINE_UNUSED_VISITOR(Name)                                  \

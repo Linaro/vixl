@@ -1,4 +1,4 @@
-# Copyright 2013, ARM Limited
+# Copyright 2015, ARM Limited
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,7 @@ src/a64/decoder-a64.cc
 src/a64/disasm-a64.cc
 src/a64/instructions-a64.cc
 src/a64/instrument-a64.cc
+src/a64/logic-a64.cc
 src/a64/macro-assembler-a64.cc
 src/a64/simulator-a64.cc
 src/code-buffer.cc
@@ -64,13 +65,16 @@ src/utils.cc
 PROJ_EXAMPLES_DIR = 'examples'
 PROJ_EXAMPLES_SRC_FILES = '''
 examples/abs.cc
+examples/add2-vectors.cc
 examples/add3-double.cc
 examples/add4-double.cc
 examples/check-bounds.cc
+examples/crc-checksums.cc
 examples/custom-disassembler.cc
 examples/debugger.cc
 examples/factorial-rec.cc
 examples/factorial.cc
+examples/neon-matrix-multiply.cc
 examples/getting-started.cc
 examples/non-const-visitor.cc
 examples/sum-array.cc
@@ -84,6 +88,8 @@ TARGET_SRC_DIR = {
   'bench-dataop': 'benchmarks',
   'bench-branch': 'benchmarks',
   'bench-branch-link': 'benchmarks',
+  'bench-branch-masm': 'benchmarks',
+  'bench-branch-link-masm': 'benchmarks',
   'examples': 'examples'
 }
 TARGET_SRC_FILES = {
@@ -93,6 +99,7 @@ TARGET_SRC_FILES = {
     test/test-assembler-a64.cc
     test/test-disasm-a64.cc
     test/test-fuzz-a64.cc
+    test/test-invalset.cc
     test/test-simulator-a64.cc
     test/test-utils-a64.cc
     '''.split(),
@@ -104,6 +111,12 @@ TARGET_SRC_FILES = {
     '''.split(),
   'bench-branch-link': '''
     benchmarks/bench-branch-link.cc
+    '''.split(),
+  'bench-branch-masm': '''
+    benchmarks/bench-branch-masm.cc
+    '''.split(),
+  'bench-branch-link-masm': '''
+    benchmarks/bench-branch-link-masm.cc
     '''.split()
 }
 RELEASE_OBJ_DIR  = 'obj/release'
@@ -232,10 +245,14 @@ test = env.Program('test-runner' + build_suffix,
 create_alias('test', test)
 
 # The benchmarks.
-for bench in ['bench-dataop', 'bench-branch', 'bench-branch-link']:
+benchmarks = ['bench-dataop', 'bench-branch', 'bench-branch-link',
+              'bench-branch-masm', 'bench-branch-link-masm']
+for bench in benchmarks:
   prog = env.Program(bench + build_suffix,
                      list_target(build_dir, TARGET_SRC_FILES[bench]) + libvixl)
   create_alias(bench, prog)
+# Alias to build all benchmarks.
+create_alias('benchmarks', benchmarks)
 
 # The examples.
 examples = []

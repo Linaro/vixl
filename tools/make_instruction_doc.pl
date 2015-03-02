@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright 2013, ARM Limited
+# Copyright 2015, ARM Limited
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -39,13 +39,13 @@ open(IN, "<$hfile") or die("Can't open header file $header.\n");
 while(<IN>)
 {
   # Find a function formatted like an instruction.
-  if(my($t) = /^  ((?:void|inline void) [a-z0-9]{1,6}_?)\(/mgp)
+  if(my($t) = /^  ((?:void|inline void) [a-z][a-z0-9]{0,8}_?)\(/mgp)
   {
     my $before = ${^PREMATCH};
     my $after = ${^POSTMATCH};
 
     # Extract the instruction.
-    my($i) = $t =~ /(?:void|inline void) ([a-z0-9]{1,6})/;
+    my($i) = $t =~ /(?:void|inline void) ([a-z][a-z0-9]{0,8})/;
 
     # Extract the comment from before the function.
     my($d) = $before =~ /.*  \/\/ ([A-Z].+?\.)$/;
@@ -57,7 +57,7 @@ while(<IN>)
 
     # Establish the type of the instruction.
     my $type = 'integer';
-    ($i =~ /^f/) and $type = 'float';
+    ($p =~ /VRegister/) and $type = 'float';
     ($i ~~ @extras) and $type = 'pseudo';
 
     # Push the results into a hash keyed by prototype string.
@@ -80,7 +80,7 @@ source code for details.
 HEADER
 
 print describe_insts('AArch64 integer instructions', 'integer');
-print describe_insts('AArch64 floating point instructions', 'float');
+print describe_insts('AArch64 floating point and NEON instructions', 'float');
 print describe_insts('Additional or pseudo instructions', 'pseudo');
 
 # Sort instructions by mnemonic and then description.
@@ -102,7 +102,9 @@ sub describe_insts
   foreach my $i (sort inst_sort keys(%inst))
   {
     next if($inst{$i}->{'type'} ne $type);
-    $result .= sprintf("### %s ###\n\n%s\n\n", $inst{$i}->{'mnemonic'}, $inst{$i}->{'description'});
+    $result .= sprintf("### %s ###\n\n%s\n\n",
+                       uc($inst{$i}->{'mnemonic'}),
+                       $inst{$i}->{'description'});
     $result .= "    $i\n\n\n";
   }
   $result .= "\n";

@@ -1,4 +1,4 @@
-// Copyright 2013, ARM Limited
+// Copyright 2014, ARM Limited
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -77,10 +77,10 @@ CounterType Counter::type() {
 }
 
 
-typedef struct {
+struct CounterDescriptor {
   const char* name;
   CounterType type;
-} CounterDescriptor;
+};
 
 
 static const CounterDescriptor kCounterList[] = {
@@ -111,6 +111,8 @@ static const CounterDescriptor kCounterList[] = {
 
   {"PC Addressing", Gauge},
   {"Other", Gauge},
+  {"NEON", Gauge},
+  {"Crypto", Gauge}
 };
 
 
@@ -418,7 +420,7 @@ void Instrument::InstrumentLoadStore(const Instruction* instr) {
   static Counter* load_fp_counter = GetCounter("Load FP");
   static Counter* store_fp_counter = GetCounter("Store FP");
 
-  switch (instr->Mask(LoadStoreOpMask)) {
+  switch (instr->Mask(LoadStoreMask)) {
     case STRB_w:    // Fall through.
     case STRH_w:    // Fall through.
     case STR_w:     // Fall through.
@@ -619,6 +621,208 @@ void Instrument::VisitFPFixedPointConvert(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("FP DP");
+  counter->Increment();
+}
+
+
+void Instrument::VisitCrypto2RegSHA(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("Crypto");
+  counter->Increment();
+}
+
+
+void Instrument::VisitCrypto3RegSHA(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("Crypto");
+  counter->Increment();
+}
+
+
+void Instrument::VisitCryptoAES(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("Crypto");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEON2RegMisc(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEON3Same(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEON3Different(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONAcrossLanes(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONByIndexedElement(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONCopy(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONExtract(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONLoadStoreMultiStruct(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONLoadStoreMultiStructPostIndex(
+    const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONLoadStoreSingleStruct(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONLoadStoreSingleStructPostIndex(
+    const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONModifiedImmediate(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONScalar2RegMisc(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONScalar3Diff(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONScalar3Same(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONScalarByIndexedElement(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONScalarCopy(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONScalarPairwise(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONScalarShiftImmediate(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONShiftImmediate(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONTable(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONPerm(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
   counter->Increment();
 }
 

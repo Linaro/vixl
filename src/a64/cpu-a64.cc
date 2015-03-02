@@ -1,4 +1,4 @@
-// Copyright 2013, ARM Limited
+// Copyright 2015, ARM Limited
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -58,25 +58,29 @@ void CPU::SetUp() {
 
 
 uint32_t CPU::GetCacheType() {
-#ifdef USE_SIMULATOR
-  // This will lead to a cache with 1 byte long lines, which is fine since the
-  // simulator will not need this information.
-  return 0;
-#else
-  uint32_t cache_type_register;
+#ifdef __aarch64__
+  uint64_t cache_type_register;
   // Copy the content of the cache type register to a core register.
   __asm__ __volatile__ ("mrs %[ctr], ctr_el0"  // NOLINT
                         : [ctr] "=r" (cache_type_register));
+  VIXL_ASSERT(is_uint32(cache_type_register));
   return cache_type_register;
+#else
+  // This will lead to a cache with 1 byte long lines, which is fine since
+  // neither EnsureIAndDCacheCoherency nor the simulator will need this
+  // information.
+  return 0;
 #endif
 }
 
 
 void CPU::EnsureIAndDCacheCoherency(void *address, size_t length) {
-#ifdef USE_SIMULATOR
-  USE(address);
-  USE(length);
-#else
+#ifdef __aarch64__
+  // Implement the cache synchronisation for all targets where AArch64 is the
+  // host, even if we're building the simulator for an AAarch64 host. This
+  // allows for cases where the user wants to simulate code as well as run it
+  // natively.
+
   if (length == 0) {
     return;
   }
@@ -156,6 +160,11 @@ void CPU::EnsureIAndDCacheCoherency(void *address, size_t length) {
     // isb : Instruction Synchronisation Barrier
     "   isb\n"
     : : : "memory");
+#else
+  // If the host isn't AArch64, we must be using the simulator, so this function
+  // doesn't have to do anything.
+  USE(address);
+  USE(length);
 #endif
 }
 

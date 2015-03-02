@@ -1,6 +1,16 @@
 VIXL Change Log
 ===============
 
+* 1.8
+    + Complete NEON instruction set support.
+    + Support long branches using veneers.
+    + Improved handling of literal pools.
+    + Support some `ic` and `dc` cache op instructions.
+    + Support CRC32 instructions.
+    + Support half-precision floating point instructions.
+    + MacroAssembler support for `bfm`, `ubfm` and `sbfm`.
+    + Other small bug fixes and improvements.
+
 * 1.7
     + Added support for `prfm` prefetch instructions.
     + Added support for all `frint` instruction variants.

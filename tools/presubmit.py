@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-# Copyright 2013, ARM Limited
+# Copyright 2015, ARM Limited
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -182,7 +182,8 @@ class BenchTest(Test):
       self.exe_suffix += '_g'
 
   def Run(self):
-    benchmarks = ['bench-dataop', 'bench-branch', 'bench-branch-link']
+    benchmarks = ['bench-dataop', 'bench-branch', 'bench-branch-link',
+                  'bench-branch-masm', 'bench-branch-link-masm']
     self.status = PASSED
     for bench in benchmarks:
       command = './' + bench + self.exe_suffix

@@ -1,4 +1,4 @@
-// Copyright 2013 ARM Limited
+// Copyright 2014, ARM Limited
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -539,6 +539,7 @@ void Debugger::Run() {
   while (pc_ != kEndOfSimAddress) {
     if (pending_request()) RunDebuggerShell();
     ExecuteInstruction();
+    LogAllWrittenRegisters();
   }
 }
 
@@ -583,7 +584,7 @@ void Debugger::PrintMemory(const uint8_t* address,
       printf("\n%p: ", current);
     }
 
-    uint64_t data = MemoryRead<uint64_t>(current);
+    uint64_t data = Memory::Read<uint64_t>(current);
     format->PrintData(&data);
     printf(" ");
   }
@@ -613,14 +614,15 @@ void Debugger::PrintRegister(const Register& target_reg,
 }
 
 
+// TODO(all): fix this for vector registers.
 void Debugger::PrintFPRegister(const FPRegister& target_fpreg,
                                const FormatToken* format) {
   const uint64_t fpreg_size = target_fpreg.size();
   const uint64_t format_size = format->SizeOf() * 8;
   const uint64_t count = fpreg_size / format_size;
   const uint64_t mask = 0xffffffffffffffff >> (64 - format_size);
-  const uint64_t fpreg_value = fpreg<uint64_t>(fpreg_size,
-                                               target_fpreg.code());
+  const uint64_t fpreg_value = vreg<uint64_t>(fpreg_size,
+                                              target_fpreg.code());
   VIXL_ASSERT(count > 0);
 
   if (target_fpreg.Is32Bits()) {
@@ -895,10 +897,10 @@ Token* FPRegisterToken::Tokenize(const char* arg) {
         return NULL;
       }
 
-      FPRegister fpreg = NoFPReg;
+      VRegister fpreg = NoVReg;
       switch (*arg) {
-        case 's': fpreg = FPRegister::SRegFromCode(code); break;
-        case 'd': fpreg = FPRegister::DRegFromCode(code); break;
+        case 's': fpreg = VRegister::SRegFromCode(code); break;
+        case 'd': fpreg = VRegister::DRegFromCode(code); break;
         default: VIXL_UNREACHABLE();
       }
 
@@ -1268,7 +1270,7 @@ bool PrintCommand::Run(Debugger* debugger) {
     if (strcmp(identifier, "regs") == 0) {
       debugger->PrintRegisters();
     } else if (strcmp(identifier, "fpregs") == 0) {
-      debugger->PrintFPRegisters();
+      debugger->PrintVRegisters();
     } else if (strcmp(identifier, "sysregs") == 0) {
       debugger->PrintSystemRegisters();
     } else if (strcmp(identifier, "pc") == 0) {

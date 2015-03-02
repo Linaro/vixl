@@ -1,4 +1,4 @@
-// Copyright 2013, ARM Limited
+// Copyright 2015, ARM Limited
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -104,6 +104,18 @@ uint64_t double_to_rawbits(double value);
 float rawbits_to_float(uint32_t bits);
 double rawbits_to_double(uint64_t bits);
 
+uint32_t float_sign(float val);
+uint32_t float_exp(float val);
+uint32_t float_mantissa(float val);
+uint32_t double_sign(double val);
+uint32_t double_exp(double val);
+uint64_t double_mantissa(double val);
+
+float float_pack(uint32_t sign, uint32_t exp, uint32_t mantissa);
+double double_pack(uint64_t sign, uint64_t exp, uint64_t mantissa);
+
+// An fpclassify() function for 16-bit half-precision floats.
+int float16classify(float16 value);
 
 // NaN tests.
 inline bool IsSignallingNaN(double num) {
@@ -123,6 +135,13 @@ inline bool IsSignallingNaN(float num) {
     return true;
   }
   return false;
+}
+
+
+inline bool IsSignallingNaN(float16 num) {
+  const uint16_t kFP16QuietNaNMask = 0x0200;
+  return (float16classify(num) == FP_NAN) &&
+         ((num & kFP16QuietNaNMask) == 0);
 }
 
 
@@ -164,6 +183,7 @@ int CountLeadingSignBits(int64_t value, int width);
 int CountTrailingZeros(uint64_t value, int width);
 int CountSetBits(uint64_t value, int width);
 uint64_t LowestSetBit(uint64_t value);
+int HighestSetBitPosition(uint64_t value);
 bool IsPowerOf2(int64_t value);
 
 unsigned CountClearHalfWords(uint64_t imm, unsigned reg_size);

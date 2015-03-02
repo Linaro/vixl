@@ -1,4 +1,4 @@
-// Copyright 2013, ARM Limited
+// Copyright 2014, ARM Limited
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -79,6 +79,31 @@
   V(FPDataProcessing3Source)        \
   V(FPIntegerConvert)               \
   V(FPFixedPointConvert)            \
+  V(Crypto2RegSHA)                  \
+  V(Crypto3RegSHA)                  \
+  V(CryptoAES)                      \
+  V(NEON2RegMisc)                   \
+  V(NEON3Different)                 \
+  V(NEON3Same)                      \
+  V(NEONAcrossLanes)                \
+  V(NEONByIndexedElement)           \
+  V(NEONCopy)                       \
+  V(NEONExtract)                    \
+  V(NEONLoadStoreMultiStruct)       \
+  V(NEONLoadStoreMultiStructPostIndex)  \
+  V(NEONLoadStoreSingleStruct)      \
+  V(NEONLoadStoreSingleStructPostIndex) \
+  V(NEONModifiedImmediate)          \
+  V(NEONScalar2RegMisc)             \
+  V(NEONScalar3Diff)                \
+  V(NEONScalar3Same)                \
+  V(NEONScalarByIndexedElement)     \
+  V(NEONScalarCopy)                 \
+  V(NEONScalarPairwise)             \
+  V(NEONScalarShiftImmediate)       \
+  V(NEONShiftImmediate)             \
+  V(NEONTable)                      \
+  V(NEONPerm)                       \
   V(Unallocated)                    \
   V(Unimplemented)
 
@@ -222,12 +247,17 @@ class Decoder {
   // Decode the Advanced SIMD (NEON) load/store part of the instruction tree,
   // and call the corresponding visitors.
   // On entry, instruction bits 29:25 = 0x6.
-  void DecodeAdvSIMDLoadStore(const Instruction* instr);
+  void DecodeNEONLoadStore(const Instruction* instr);
 
-  // Decode the Advanced SIMD (NEON) data processing part of the instruction
-  // tree, and call the corresponding visitors.
-  // On entry, instruction bits 27:25 = 0x7.
-  void DecodeAdvSIMDDataProcessing(const Instruction* instr);
+  // Decode the Advanced SIMD (NEON) vector data processing part of the
+  // instruction tree, and call the corresponding visitors.
+  // On entry, instruction bits 28:25 = 0x7.
+  void DecodeNEONVectorDataProcessing(const Instruction* instr);
+
+  // Decode the Advanced SIMD (NEON) scalar data processing part of the
+  // instruction tree, and call the corresponding visitors.
+  // On entry, instruction bits 28:25 = 0xF.
+  void DecodeNEONScalarDataProcessing(const Instruction* instr);
 
  private:
   // Visitors are registered in a list.

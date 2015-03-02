@@ -1,4 +1,4 @@
-// Copyright 2013, ARM Limited
+// Copyright 2015, ARM Limited
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,18 @@ void GenerateFactorial(MacroAssembler* masm);
 void GenerateFactorialRec(MacroAssembler* masm);
 
 // Generate a function with the following prototype:
+//   void neon_matrix_multiply(float* dst, float* mat1, float* mat2)
+//
+// It provides an implementation of a column-major 4x4 matrix multiplication.
+void GenerateNEONMatrixMultiply(MacroAssembler* masm);
+
+// Generate a function with the following prototype:
+//   void add2_vectors(int8_t *vecA, const int8_t *vecB, unsigned size)
+//
+// Demonstrate how to add two vectors using NEON. The result is stored in vecA.
+void GenerateAdd2Vectors(MacroAssembler* masm);
+
+// Generate a function with the following prototype:
 //   double add3_double(double x, double y, double z)
 //
 // This example is intended to show the calling convention with double
@@ -80,6 +92,13 @@ void GenerateAbs(MacroAssembler* masm);
 // contained within the given boundaries. It returns 1 if 'value' is between
 // 'low' and 'high' (ie. low <= value <= high).
 void GenerateCheckBounds(MacroAssembler* masm);
+
+// Generate a function with the following prototype:
+//   uint32_t crc32(const char *msg, size_t msg_length)
+//
+// The generated function computes the CRC-32 checksum on the input msg
+// with specified length, and returns the result.
+void GenerateCrc32(MacroAssembler* masm);
 
 // Generate a function which uses the stack to swap the content of the x0, x1,
 // x2 and x3 registers.

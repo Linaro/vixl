@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-# Copyright 2013, ARM Limited
+# Copyright 2014, ARM Limited
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without

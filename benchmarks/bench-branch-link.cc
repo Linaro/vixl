@@ -1,4 +1,4 @@
-// Copyright 2014, ARM Limited
+// Copyright 2015, ARM Limited
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,12 @@
 
 using namespace vixl;
 
-static const unsigned kDefaultInstructionCount = 100000;
+static const int kDefaultInstructionCount = 100000;
 
 // Bind many branches to the same label, like bench-branch.cc but with a single
 // label. This stresses the label-linking mechanisms.
 int main(int argc, char* argv[]) {
-  unsigned instructions = 0;
+  int instructions = 0;
 
   switch (argc) {
     case 1: instructions = kDefaultInstructionCount; break;
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
   #define __ masm.
 
   Label target;
-  for (unsigned i = 0; i < instructions; i++) {
+  for (int i = 0; i < instructions; i++) {
     __ b(&target);
   }
   __ bind(&target);

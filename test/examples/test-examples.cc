@@ -1,4 +1,4 @@
-// Copyright 2013, ARM Limited
+// Copyright 2015, ARM Limited
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,30 @@ uint64_t FactorialC(uint64_t n) {
   }
 
   return result;
+}
+
+// Multiply two column-major 4x4 matrices of 32 bit floating point values.
+// Return a column-major 4x4 matrix of 32 bit floating point values in 'C'.
+void MatrixMultiplyC(float C[16], float A[16], float B[16]) {
+  C[ 0] = A[ 0]*B[ 0] + A[ 4]*B[ 1] + A[ 8]*B[ 2] + A[12]*B[ 3];
+  C[ 1] = A[ 1]*B[ 0] + A[ 5]*B[ 1] + A[ 9]*B[ 2] + A[13]*B[ 3];
+  C[ 2] = A[ 2]*B[ 0] + A[ 6]*B[ 1] + A[10]*B[ 2] + A[14]*B[ 3];
+  C[ 3] = A[ 3]*B[ 0] + A[ 7]*B[ 1] + A[11]*B[ 2] + A[15]*B[ 3];
+
+  C[ 4] = A[ 0]*B[ 4] + A[ 4]*B[ 5] + A[ 8]*B[ 6] + A[12]*B[ 7];
+  C[ 5] = A[ 1]*B[ 4] + A[ 5]*B[ 5] + A[ 9]*B[ 6] + A[13]*B[ 7];
+  C[ 6] = A[ 2]*B[ 4] + A[ 6]*B[ 5] + A[10]*B[ 6] + A[14]*B[ 7];
+  C[ 7] = A[ 3]*B[ 4] + A[ 7]*B[ 5] + A[11]*B[ 6] + A[15]*B[ 7];
+
+  C[ 8] = A[ 0]*B[ 8] + A[ 4]*B[ 9] + A[ 8]*B[10] + A[12]*B[11];
+  C[ 9] = A[ 1]*B[ 8] + A[ 5]*B[ 9] + A[ 9]*B[10] + A[13]*B[11];
+  C[10] = A[ 2]*B[ 8] + A[ 6]*B[ 9] + A[10]*B[10] + A[14]*B[11];
+  C[11] = A[ 3]*B[ 8] + A[ 7]*B[ 9] + A[11]*B[10] + A[15]*B[11];
+
+  C[12] = A[ 0]*B[12] + A[ 4]*B[13] + A[ 8]*B[14] + A[12]*B[15];
+  C[13] = A[ 1]*B[12] + A[ 5]*B[13] + A[ 9]*B[14] + A[13]*B[15];
+  C[14] = A[ 2]*B[12] + A[ 6]*B[13] + A[10]*B[14] + A[14]*B[15];
+  C[15] = A[ 3]*B[12] + A[ 7]*B[13] + A[11]*B[14] + A[15]*B[15];
 }
 
 double Add3DoubleC(double x, double y, double z) {
@@ -219,6 +243,86 @@ TEST(factorial_rec) {
   FACTORIAL_REC_DOTEST(25);
 }
 
+TEST(neon_matrix_multiply) {
+  START();
+
+  Label neon_matrix_multiply;
+  masm.Bind(&neon_matrix_multiply);
+  GenerateNEONMatrixMultiply(&masm);
+  masm.FinalizeCode();
+
+  {
+    const int kRowSize = 4;
+    const int kColSize = 4;
+    const int kLength = kRowSize * kColSize;
+
+    float mat1[kLength], mat2[kLength], expected[kLength], output[kLength];
+
+    // Fill the two input matrices with some 32 bit floating point values.
+
+    mat1[0] =   1.0f; mat1[4] =   2.0f; mat1[ 8] =   3.0f; mat1[12] =   4.0f;
+    mat1[1] = 52.03f; mat1[5] = 12.24f; mat1[ 9] = 53.56f; mat1[13] = 22.22f;
+    mat1[2] =  4.43f; mat1[6] =  5.00f; mat1[10] =  7.00f; mat1[14] =  3.11f;
+    mat1[3] = 43.47f; mat1[7] = 10.97f; mat1[11] = 37.78f; mat1[15] = 90.91f;
+
+    mat2[0] =   1.0f; mat2[4] = 11.24f; mat2[ 8] = 21.00f; mat2[12] = 21.31f;
+    mat2[1] =   2.0f; mat2[5] =  2.24f; mat2[ 9] =  8.56f; mat2[13] = 52.03f;
+    mat2[2] =   3.0f; mat2[6] = 51.00f; mat2[10] = 21.00f; mat2[14] = 33.11f;
+    mat2[3] =   4.0f; mat2[7] =  0.00f; mat2[11] = 84.00f; mat2[15] =  1.97f;
+
+    MatrixMultiplyC(expected, mat1, mat2);
+
+    simulator.ResetState();
+    simulator.set_xreg(0, reinterpret_cast<uintptr_t>(output));
+    simulator.set_xreg(1, reinterpret_cast<uintptr_t>(mat1));
+    simulator.set_xreg(2, reinterpret_cast<uintptr_t>(mat2));
+    TEST_FUNCTION(neon_matrix_multiply);
+
+    // Check that the results match what is expected.
+    for (int i = 0; i < kLength; i++) {
+      assert(output[i] == expected[i]);
+    }
+  }
+}
+
+TEST(add2_vectors) {
+  START();
+
+  // Create and initialize the assembler and the simulator.
+  Label add2_vectors;
+  masm.Bind(&add2_vectors);
+  GenerateAdd2Vectors(&masm);
+  masm.FinalizeCode();
+
+  // Initialize input data for the example function.
+  uint8_t A[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 200};
+  uint8_t B[] = {16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, \
+                 30, 31, 50};
+  uint8_t D[ARRAY_SIZE(A)];
+  uintptr_t A_addr = reinterpret_cast<uintptr_t>(A);
+  uintptr_t B_addr = reinterpret_cast<uintptr_t>(B);
+
+  // Check whether number of elements in vectors match.
+  VIXL_STATIC_ASSERT(ARRAY_SIZE(A) == ARRAY_SIZE(B));
+  VIXL_STATIC_ASSERT(ARRAY_SIZE(A) == ARRAY_SIZE(D));
+
+  // Compute vector sum for comparison later.
+  for (unsigned i = 0; i < ARRAY_SIZE(A); i++) {
+    D[i] = A[i] + B[i];
+  }
+
+  // Set up simulator and run example function.
+  simulator.ResetState();
+  simulator.set_xreg(0, A_addr);
+  simulator.set_xreg(1, B_addr);
+  simulator.set_xreg(2, ARRAY_SIZE(A));
+  TEST_FUNCTION(add2_vectors);
+
+  // Compare vectors to ensure sums are equal.
+  for (unsigned i = 0; i < ARRAY_SIZE(A); i++) {
+    assert(A[i] == D[i]);
+  }
+}
 
 #define ADD3_DOUBLE_DOTEST(A, B, C)                                     \
   do {                                                                  \
@@ -323,6 +427,25 @@ TEST(abs) {
   ABS_DOTEST(0);
   ABS_DOTEST(545);
   ABS_DOTEST(-428751489);
+}
+
+
+TEST(crc32) {
+  START();
+
+  Label crc32;
+  masm.Bind(&crc32);
+  GenerateCrc32(&masm);
+  masm.FinalizeCode();
+
+  const char *msg = "Hello World!";
+  uintptr_t msg_addr = reinterpret_cast<uintptr_t>(msg);
+  size_t msg_size = strlen(msg);
+  int64_t chksum = INT64_C(0xe3d6e35c);
+  simulator.set_xreg(0, msg_addr);
+  simulator.set_xreg(1, msg_size);
+  TEST_FUNCTION(crc32);
+  assert(regs.xreg(0) == chksum);
 }
 
 

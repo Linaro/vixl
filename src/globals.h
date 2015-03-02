@@ -1,4 +1,4 @@
-// Copyright 2013, ARM Limited
+// Copyright 2015, ARM Limited
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,9 @@
 
 typedef uint8_t byte;
 
+// Type for half-precision (16 bit) floating point numbers.
+typedef uint16_t float16;
+
 const int KBytes = 1024;
 const int MBytes = 1024 * KBytes;
 
@@ -79,6 +82,9 @@ const int MBytes = 1024 * KBytes;
 #define VIXL_STATIC_ASSERT(condition) VIXL_STATIC_ASSERT_LINE(__LINE__, condition) //NOLINT
 
 template <typename T> inline void USE(T) {}
+template <typename T> inline void USE(T, T) {}
+template <typename T> inline void USE(T, T, T) {}
+template <typename T> inline void USE(T, T, T, T) {}
 
 #define VIXL_ALIGNMENT_EXCEPTION() printf("ALIGNMENT EXCEPTION\t"); VIXL_ABORT()
 

@@ -1,4 +1,4 @@
-// Copyright 2013, ARM Limited
+// Copyright 2015, ARM Limited
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -57,8 +57,78 @@ double rawbits_to_double(uint64_t bits) {
 }
 
 
+uint32_t float_sign(float val) {
+  uint32_t rawbits = float_to_rawbits(val);
+  return unsigned_bitextract_32(31, 31, rawbits);
+}
+
+
+uint32_t float_exp(float val) {
+  uint32_t rawbits = float_to_rawbits(val);
+  return unsigned_bitextract_32(30, 23, rawbits);
+}
+
+
+uint32_t float_mantissa(float val) {
+  uint32_t rawbits = float_to_rawbits(val);
+  return unsigned_bitextract_32(22, 0, rawbits);
+}
+
+
+uint32_t double_sign(double val) {
+  uint64_t rawbits = double_to_rawbits(val);
+  return static_cast<uint32_t>(unsigned_bitextract_64(63, 63, rawbits));
+}
+
+
+uint32_t double_exp(double val) {
+  uint64_t rawbits = double_to_rawbits(val);
+  return static_cast<uint32_t>(unsigned_bitextract_64(62, 52, rawbits));
+}
+
+
+uint64_t double_mantissa(double val) {
+  uint64_t rawbits = double_to_rawbits(val);
+  return unsigned_bitextract_64(51, 0, rawbits);
+}
+
+
+float float_pack(uint32_t sign, uint32_t exp, uint32_t mantissa) {
+  uint64_t bits = (sign << 31) | (exp << 23) | mantissa;
+  return rawbits_to_float(bits);
+}
+
+
+double double_pack(uint64_t sign, uint64_t exp, uint64_t mantissa) {
+  uint64_t bits = (sign << 63) | (exp << 52) | mantissa;
+  return rawbits_to_double(bits);
+}
+
+
+int float16classify(float16 value) {
+  uint16_t exponent_max = (1 << 5) - 1;
+  uint16_t exponent_mask = exponent_max << 10;
+  uint16_t mantissa_mask = (1 << 10) - 1;
+
+  uint16_t exponent = (value & exponent_mask) >> 10;
+  uint16_t mantissa = value & mantissa_mask;
+  if (exponent == 0) {
+    if (mantissa == 0) {
+      return FP_ZERO;
+    }
+    return FP_SUBNORMAL;
+  } else if (exponent == exponent_max) {
+    if (mantissa == 0) {
+      return FP_INFINITE;
+    }
+    return FP_NAN;
+  }
+  return FP_NORMAL;
+}
+
+
 int CountLeadingZeros(uint64_t value, int width) {
-  VIXL_ASSERT((width == 32) || (width == 64));
+  VIXL_ASSERT((width == 8) || (width == 16) || (width == 32) || (width == 64));
   int count = 0;
   uint64_t bit_test = UINT64_C(1) << (width - 1);
   while ((count < width) && ((bit_test & value) == 0)) {
@@ -70,7 +140,7 @@ int CountLeadingZeros(uint64_t value, int width) {
 
 
 int CountLeadingSignBits(int64_t value, int width) {
-  VIXL_ASSERT((width == 32) || (width == 64));
+  VIXL_ASSERT((width == 8) || (width == 16) || (width == 32) || (width == 64));
   if (value >= 0) {
     return CountLeadingZeros(value, width) - 1;
   } else {
@@ -128,6 +198,12 @@ int CountSetBits(uint64_t value, int width) {
 
 uint64_t LowestSetBit(uint64_t value) {
   return value & -value;
+}
+
+
+int HighestSetBitPosition(uint64_t number) {
+  VIXL_ASSERT(number != 0);
+  return 63 - CountLeadingZeros(number, 64);
 }
 
 

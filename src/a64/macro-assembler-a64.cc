@@ -1,4 +1,4 @@
-// Copyright 2013, ARM Limited
+// Copyright 2015, ARM Limited
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -25,11 +25,26 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "a64/macro-assembler-a64.h"
+
 namespace vixl {
 
 
-LiteralPool::LiteralPool(Assembler* assm)
-    : assm_(assm), first_use_(-1), monitor_(0) {
+void Pool::Release() {
+  if (--monitor_ == 0) {
+    // Ensure the pool has not been blocked for too long.
+    VIXL_ASSERT(masm_->CursorOffset() < checkpoint_);
+  }
+}
+
+
+void Pool::SetNextCheckpoint(ptrdiff_t checkpoint) {
+  masm_->checkpoint_ = std::min(masm_->checkpoint_, checkpoint);
+  checkpoint_ = checkpoint;
+}
+
+
+LiteralPool::LiteralPool(MacroAssembler* masm) :
+    Pool(masm), size_(0), first_use_(-1) {
 }
 
 
@@ -45,35 +60,17 @@ void LiteralPool::Reset() {
     delete *it;
   }
   entries_.clear();
+  size_ = 0;
   first_use_ = -1;
-  monitor_ = 0;
-}
-
-
-size_t LiteralPool::Size() const {
-  size_t size = 0;
-  std::vector<RawLiteral*>::const_iterator it, end;
-  for (it = entries_.begin(), end = entries_.end(); it != end; ++it) {
-    size += (*it)->size();
-  }
-
-  // account for the pool header.
-  return size + kInstructionSize;
-}
-
-
-void LiteralPool::Release() {
-  if (--monitor_ == 0) {
-    // Has the literal pool been blocked for too long?
-    VIXL_ASSERT(assm_->CursorOffset() < MaxCursorOffset());
-  }
+  Pool::Reset();
+  recommended_checkpoint_ = kNoCheckpointRequired;
 }
 
 
 void LiteralPool::CheckEmitFor(size_t amount, EmitOption option) {
   if (IsEmpty() || IsBlocked()) return;
 
-  ptrdiff_t distance = assm_->CursorOffset() + amount - first_use_;
+  ptrdiff_t distance = masm_->CursorOffset() + amount - first_use_;
   if (distance >= kRecommendedLiteralPoolRange) {
     Emit(option);
   }
@@ -90,41 +87,160 @@ void LiteralPool::Emit(EmitOption option) {
   if (option == kBranchRequired) emit_size += kInstructionSize;
   Label end_of_pool;
 
-  CodeBufferCheckScope guard(assm_,
-                             emit_size,
-                             CodeBufferCheckScope::kCheck,
-                             CodeBufferCheckScope::kExactSize);
-  if (option == kBranchRequired) assm_->b(&end_of_pool);
+  VIXL_ASSERT(emit_size % kInstructionSize == 0);
+  InstructionAccurateScope guard(masm_, emit_size / kInstructionSize);
+  if (option == kBranchRequired) masm_->b(&end_of_pool);
 
   // Marker indicating the size of the literal pool in 32-bit words.
   VIXL_ASSERT((pool_size % kWRegSizeInBytes) == 0);
-  assm_->ldr(xzr, pool_size / kWRegSizeInBytes);
+  masm_->ldr(xzr, pool_size / kWRegSizeInBytes);
 
   // Now populate the literal pool.
   std::vector<RawLiteral*>::iterator it, end;
   for (it = entries_.begin(), end = entries_.end(); it != end; ++it) {
     VIXL_ASSERT((*it)->IsUsed());
-    assm_->place(*it);
+    masm_->place(*it);
     delete *it;
   }
 
-  if (option == kBranchRequired) assm_->bind(&end_of_pool);
+  if (option == kBranchRequired) masm_->bind(&end_of_pool);
 
   entries_.clear();
-  first_use_ = -1;
+  Reset();
 }
 
 
-ptrdiff_t LiteralPool::NextCheckOffset() {
+RawLiteral* LiteralPool::AddEntry(RawLiteral* literal) {
   if (IsEmpty()) {
-    return assm_->CursorOffset() + kRecommendedLiteralPoolRange;
+    first_use_ = masm_->CursorOffset();
+    SetNextRecommendedCheckpoint(NextRecommendedCheckpoint());
+    SetNextCheckpoint(first_use_ + Instruction::kLoadLiteralRange);
+  } else {
+    VIXL_ASSERT(masm_->CursorOffset() > first_use_);
   }
 
-  VIXL_ASSERT(
-      ((assm_->CursorOffset() - first_use_) < kRecommendedLiteralPoolRange) ||
-       IsBlocked());
+  entries_.push_back(literal);
+  size_ += literal->size();
 
-  return first_use_ + kRecommendedLiteralPoolRange;
+  return literal;
+}
+
+
+void VeneerPool::Reset() {
+  Pool::Reset();
+  unresolved_branches_.Reset();
+}
+
+
+void VeneerPool::Release() {
+  if (--monitor_ == 0) {
+    VIXL_ASSERT(IsEmpty() ||
+                masm_->CursorOffset() < unresolved_branches_.FirstLimit());
+  }
+}
+
+
+void VeneerPool::RegisterUnresolvedBranch(ptrdiff_t branch_pos,
+                                          Label* label,
+                                          ImmBranchType branch_type) {
+  VIXL_ASSERT(!label->IsBound());
+  BranchInfo branch_info = BranchInfo(branch_pos, label, branch_type);
+  unresolved_branches_.insert(branch_info);
+  UpdateNextCheckPoint();
+  // TODO: In debug mode register the label with the assembler to make sure it
+  // is bound with masm Bind and not asm bind.
+}
+
+
+void VeneerPool::DeleteUnresolvedBranchInfoForLabel(Label* label) {
+  if (IsEmpty()) {
+    VIXL_ASSERT(checkpoint_ == kNoCheckpointRequired);
+    return;
+  }
+
+  if (label->IsLinked()) {
+    Label::LabelLinksIterator links_it(label);
+    for (; !links_it.Done(); links_it.Advance()) {
+      ptrdiff_t link_offset = *links_it.Current();
+      Instruction* link = masm_->InstructionAt(link_offset);
+
+      // ADR instructions are not handled.
+      if (BranchTypeUsesVeneers(link->BranchType())) {
+        BranchInfo branch_info(link_offset, label, link->BranchType());
+        unresolved_branches_.erase(branch_info);
+      }
+    }
+  }
+
+  UpdateNextCheckPoint();
+}
+
+
+bool VeneerPool::ShouldEmitVeneer(int max_reachable_pc, size_t amount) {
+  ptrdiff_t offset =
+      kPoolNonVeneerCodeSize + amount + MaxSize() + OtherPoolsMaxSize();
+  return (masm_->CursorOffset() + offset) > max_reachable_pc;
+}
+
+
+void VeneerPool::CheckEmitFor(size_t amount, EmitOption option) {
+  if (IsEmpty()) return;
+
+  VIXL_ASSERT(masm_->CursorOffset() < unresolved_branches_.FirstLimit());
+
+  if (IsBlocked()) return;
+
+  if (ShouldEmitVeneers(amount)) {
+    Emit(option, amount);
+  } else {
+    UpdateNextCheckPoint();
+  }
+}
+
+
+void VeneerPool::Emit(EmitOption option, size_t amount) {
+  // There is an issue if we are asked to emit a blocked or empty pool.
+  VIXL_ASSERT(!IsBlocked());
+  VIXL_ASSERT(!IsEmpty());
+
+  Label end;
+  if (option == kBranchRequired) {
+    InstructionAccurateScope scope(masm_, 1);
+    masm_->b(&end);
+  }
+
+  // We want to avoid generating veneer pools too often, so generate veneers for
+  // branches that don't immediately require a veneer but will soon go out of
+  // range.
+  static const size_t kVeneerEmissionMargin = 1 * KBytes;
+
+  for (BranchInfoSetIterator it(&unresolved_branches_); !it.Done();) {
+    BranchInfo* branch_info = it.Current();
+    if (ShouldEmitVeneer(branch_info->max_reachable_pc_,
+                         amount + kVeneerEmissionMargin)) {
+      InstructionAccurateScope scope(masm_, kVeneerCodeSize / kInstructionSize);
+      ptrdiff_t branch_pos = branch_info->pc_offset_;
+      Instruction* branch = masm_->InstructionAt(branch_pos);
+      Label* label = branch_info->label_;
+
+      // Patch the branch to point to the current position, and emit a branch
+      // to the label.
+      Instruction* veneer = masm_->GetCursorAddress<Instruction*>();
+      branch->SetImmPCOffsetTarget(veneer);
+      masm_->b(label);
+
+      // Update the label. The branch patched does not point to it any longer.
+      label->DeleteLink(branch_pos);
+
+      it.DeleteCurrentAndAdvance();
+    } else {
+      it.AdvanceToNextType();
+    }
+  }
+
+  UpdateNextCheckPoint();
+
+  masm_->bind(&end);
 }
 
 
@@ -160,8 +276,9 @@ MacroAssembler::MacroAssembler(size_t capacity,
       sp_(sp),
       tmp_list_(ip0, ip1),
       fptmp_list_(d31),
-      literal_pool_(this) {
-  checkpoint_ = NextCheckOffset();
+      literal_pool_(this),
+      veneer_pool_(this) {
+  checkpoint_ = NextCheckPoint();
 }
 
 
@@ -175,8 +292,9 @@ MacroAssembler::MacroAssembler(byte * buffer,
       sp_(sp),
       tmp_list_(ip0, ip1),
       fptmp_list_(d31),
-      literal_pool_(this) {
-  checkpoint_ = NextCheckOffset();
+      literal_pool_(this),
+      veneer_pool_(this) {
+  checkpoint_ = NextCheckPoint();
 }
 
 
@@ -189,15 +307,32 @@ void MacroAssembler::Reset() {
 
   VIXL_ASSERT(!literal_pool_.IsBlocked());
   literal_pool_.Reset();
+  veneer_pool_.Reset();
 
-  checkpoint_ = NextCheckOffset();
+  checkpoint_ = NextCheckPoint();
 }
 
 
 void MacroAssembler::FinalizeCode() {
   if (!literal_pool_.IsEmpty()) literal_pool_.Emit();
+  VIXL_ASSERT(veneer_pool_.IsEmpty());
 
   Assembler::FinalizeCode();
+}
+
+
+void MacroAssembler::CheckEmitFor(size_t amount) {
+  ptrdiff_t offset = amount;
+
+  literal_pool_.CheckEmitFor(amount);
+  veneer_pool_.CheckEmitFor(amount);
+  // Ensure there's enough space for the emit, keep in mind the cursor will
+  // have moved if a pool was emitted.
+  if ((CursorOffset() + offset) > BufferEndOffset()) {
+    EnsureSpaceFor(amount);
+  }
+
+  checkpoint_ = NextCheckPoint();
 }
 
 
@@ -347,6 +482,133 @@ void MacroAssembler::B(Label* label, BranchType type, Register reg, int bit) {
     }
   }
 }
+
+
+void MacroAssembler::B(Label* label) {
+  SingleEmissionCheckScope guard(this);
+  b(label);
+}
+
+
+void MacroAssembler::B(Label* label, Condition cond) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT((cond != al) && (cond != nv));
+  EmissionCheckScope guard(this, 2 * kInstructionSize);
+
+  if (label->IsBound() && LabelIsOutOfRange(label, CondBranchType)) {
+    Label done;
+    b(&done, InvertCondition(cond));
+    b(label);
+    bind(&done);
+  } else {
+    if (!label->IsBound()) {
+      veneer_pool_.RegisterUnresolvedBranch(CursorOffset(),
+                                            label,
+                                            CondBranchType);
+    }
+    b(label, cond);
+  }
+}
+
+
+void MacroAssembler::Cbnz(const Register& rt, Label* label) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(!rt.IsZero());
+  EmissionCheckScope guard(this, 2 * kInstructionSize);
+
+  if (label->IsBound() && LabelIsOutOfRange(label, CondBranchType)) {
+    Label done;
+    cbz(rt, &done);
+    b(label);
+    bind(&done);
+  } else {
+    if (!label->IsBound()) {
+      veneer_pool_.RegisterUnresolvedBranch(CursorOffset(),
+                                            label,
+                                            CompareBranchType);
+    }
+    cbnz(rt, label);
+  }
+}
+
+
+void MacroAssembler::Cbz(const Register& rt, Label* label) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(!rt.IsZero());
+  EmissionCheckScope guard(this, 2 * kInstructionSize);
+
+  if (label->IsBound() && LabelIsOutOfRange(label, CondBranchType)) {
+    Label done;
+    cbnz(rt, &done);
+    b(label);
+    bind(&done);
+  } else {
+    if (!label->IsBound()) {
+      veneer_pool_.RegisterUnresolvedBranch(CursorOffset(),
+                                            label,
+                                            CompareBranchType);
+    }
+    cbz(rt, label);
+  }
+}
+
+
+void MacroAssembler::Tbnz(const Register& rt, unsigned bit_pos, Label* label) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(!rt.IsZero());
+  EmissionCheckScope guard(this, 2 * kInstructionSize);
+
+  if (label->IsBound() && LabelIsOutOfRange(label, TestBranchType)) {
+    Label done;
+    tbz(rt, bit_pos, &done);
+    b(label);
+    bind(&done);
+  } else {
+    if (!label->IsBound()) {
+      veneer_pool_.RegisterUnresolvedBranch(CursorOffset(),
+                                            label,
+                                            TestBranchType);
+    }
+    tbnz(rt, bit_pos, label);
+  }
+}
+
+
+void MacroAssembler::Tbz(const Register& rt, unsigned bit_pos, Label* label) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(!rt.IsZero());
+  EmissionCheckScope guard(this, 2 * kInstructionSize);
+
+  if (label->IsBound() && LabelIsOutOfRange(label, TestBranchType)) {
+    Label done;
+    tbnz(rt, bit_pos, &done);
+    b(label);
+    bind(&done);
+  } else {
+    if (!label->IsBound()) {
+      veneer_pool_.RegisterUnresolvedBranch(CursorOffset(),
+                                            label,
+                                            TestBranchType);
+    }
+    tbz(rt, bit_pos, label);
+  }
+}
+
+
+void MacroAssembler::Bind(Label* label) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  veneer_pool_.DeleteUnresolvedBranchInfoForLabel(label);
+  bind(label);
+}
+
+
+// Bind a label to a specified offset from the start of the buffer.
+void MacroAssembler::BindToOffset(Label* label, ptrdiff_t offset) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  veneer_pool_.DeleteUnresolvedBranchInfoForLabel(label);
+  Assembler::BindToOffset(label, offset);
+}
+
 
 void MacroAssembler::And(const Register& rd,
                          const Register& rn,
@@ -563,6 +825,182 @@ void MacroAssembler::Mov(const Register& rd,
 }
 
 
+void MacroAssembler::Movi16bitHelper(const VRegister& vd, uint64_t imm) {
+  VIXL_ASSERT(is_uint16(imm));
+  int byte1 = (imm & 0xff);
+  int byte2 = ((imm >> 8) & 0xff);
+  if (byte1 == byte2) {
+    movi(vd.Is64Bits() ? vd.V8B() : vd.V16B(), byte1);
+  } else if (byte1 == 0) {
+    movi(vd, byte2, LSL, 8);
+  } else if (byte2 == 0) {
+    movi(vd, byte1);
+  } else if (byte1 == 0xff) {
+    mvni(vd, ~byte2 & 0xff, LSL, 8);
+  } else if (byte2 == 0xff) {
+    mvni(vd, ~byte1 & 0xff);
+  } else {
+    UseScratchRegisterScope temps(this);
+    Register temp = temps.AcquireW();
+    movz(temp, imm);
+    dup(vd, temp);
+  }
+}
+
+
+void MacroAssembler::Movi32bitHelper(const VRegister& vd, uint64_t imm) {
+  VIXL_ASSERT(is_uint32(imm));
+
+  uint8_t bytes[sizeof(imm)];
+  memcpy(bytes, &imm, sizeof(imm));
+
+  // All bytes are either 0x00 or 0xff.
+  {
+    bool all0orff = true;
+    for (int i = 0; i < 4; ++i) {
+      if ((bytes[i] != 0) && (bytes[i] != 0xff)) {
+        all0orff = false;
+        break;
+      }
+    }
+
+    if (all0orff == true) {
+      movi(vd.Is64Bits() ? vd.V1D() : vd.V2D(), ((imm << 32) | imm));
+      return;
+    }
+  }
+
+  // Of the 4 bytes, only one byte is non-zero.
+  for (int i = 0; i < 4; i++) {
+    if ((imm & (0xff << (i * 8))) == imm) {
+      movi(vd, bytes[i], LSL, i * 8);
+      return;
+    }
+  }
+
+  // Of the 4 bytes, only one byte is not 0xff.
+  for (int i = 0; i < 4; i++) {
+    uint32_t mask = ~(0xff << (i * 8));
+    if ((imm & mask) == mask) {
+      mvni(vd, ~bytes[i] & 0xff, LSL, i * 8);
+      return;
+    }
+  }
+
+  // Immediate is of the form 0x00MMFFFF.
+  if ((imm & 0xff00ffff) == 0x0000ffff) {
+    movi(vd, bytes[2], MSL, 16);
+    return;
+  }
+
+  // Immediate is of the form 0x0000MMFF.
+  if ((imm & 0xffff00ff) == 0x000000ff) {
+    movi(vd, bytes[1], MSL, 8);
+    return;
+  }
+
+  // Immediate is of the form 0xFFMM0000.
+  if ((imm & 0xff00ffff) == 0xff000000) {
+    mvni(vd, ~bytes[2] & 0xff, MSL, 16);
+    return;
+  }
+  // Immediate is of the form 0xFFFFMM00.
+  if ((imm & 0xffff00ff) == 0xffff0000) {
+    mvni(vd, ~bytes[1] & 0xff, MSL, 8);
+    return;
+  }
+
+  // Top and bottom 16-bits are equal.
+  if (((imm >> 16) & 0xffff) == (imm & 0xffff)) {
+    Movi16bitHelper(vd.Is64Bits() ? vd.V4H() : vd.V8H(), imm & 0xffff);
+    return;
+  }
+
+  // Default case.
+  {
+    UseScratchRegisterScope temps(this);
+    Register temp = temps.AcquireW();
+    Mov(temp, imm);
+    dup(vd, temp);
+  }
+}
+
+
+void MacroAssembler::Movi64bitHelper(const VRegister& vd, uint64_t imm) {
+  // All bytes are either 0x00 or 0xff.
+  {
+    bool all0orff = true;
+    for (int i = 0; i < 8; ++i) {
+      int byteval = (imm >> (i * 8)) & 0xff;
+      if (byteval != 0 && byteval != 0xff) {
+        all0orff = false;
+        break;
+      }
+    }
+    if (all0orff == true) {
+      movi(vd, imm);
+      return;
+    }
+  }
+
+  // Top and bottom 32-bits are equal.
+  if (((imm >> 32) & 0xffffffff) == (imm & 0xffffffff)) {
+    Movi32bitHelper(vd.Is64Bits() ? vd.V2S() : vd.V4S(), imm & 0xffffffff);
+    return;
+  }
+
+  // Default case.
+  {
+    UseScratchRegisterScope temps(this);
+    Register temp = temps.AcquireX();
+    Mov(temp, imm);
+    if (vd.Is1D()) {
+      mov(vd.D(), 0, temp);
+    } else {
+      dup(vd.V2D(), temp);
+    }
+  }
+}
+
+
+void MacroAssembler::Movi(const VRegister& vd,
+                          uint64_t imm,
+                          Shift shift,
+                          int shift_amount) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  MacroEmissionCheckScope guard(this);
+  if (shift_amount != 0 || shift != LSL) {
+    movi(vd, imm, shift, shift_amount);
+  } else if (vd.Is8B() || vd.Is16B()) {
+    // 8-bit immediate.
+    VIXL_ASSERT(is_uint8(imm));
+    movi(vd, imm);
+  } else if (vd.Is4H() || vd.Is8H()) {
+    // 16-bit immediate.
+    Movi16bitHelper(vd, imm);
+  } else if (vd.Is2S() || vd.Is4S()) {
+    // 32-bit immediate.
+    Movi32bitHelper(vd, imm);
+  } else {
+    // 64-bit immediate.
+    Movi64bitHelper(vd, imm);
+  }
+}
+
+
+void MacroAssembler::Movi(const VRegister& vd,
+                          uint64_t hi,
+                          uint64_t lo) {
+  // TODO: Move 128-bit values in a more efficient way.
+  VIXL_ASSERT(vd.Is128Bits());
+  UseScratchRegisterScope temps(this);
+  Movi(vd.V2D(), lo);
+  Register temp = temps.AcquireX();
+  Mov(temp, hi);
+  Ins(vd.V2D(), 1, temp);
+}
+
+
 void MacroAssembler::Mvn(const Register& rd, const Operand& operand) {
   VIXL_ASSERT(allow_macro_instructions_);
   // The worst case for size is mvn immediate with up to 4 instructions.
@@ -772,46 +1210,62 @@ void MacroAssembler::Fcmp(const FPRegister& fn, double value) {
 }
 
 
-void MacroAssembler::Fmov(FPRegister fd, double imm) {
+void MacroAssembler::Fmov(VRegister vd, double imm) {
   VIXL_ASSERT(allow_macro_instructions_);
   // Floating point immediates are loaded through the literal pool.
   MacroEmissionCheckScope guard(this);
 
-  if (fd.Is32Bits()) {
-    Fmov(fd, static_cast<float>(imm));
+  if (vd.Is1S() || vd.Is2S() || vd.Is4S()) {
+    Fmov(vd, static_cast<float>(imm));
     return;
   }
 
-  VIXL_ASSERT(fd.Is64Bits());
+  VIXL_ASSERT(vd.Is1D() || vd.Is2D());
   if (IsImmFP64(imm)) {
-    fmov(fd, imm);
-  } else if ((imm == 0.0) && (copysign(1.0, imm) == 1.0)) {
-    fmov(fd, xzr);
+    fmov(vd, imm);
   } else {
-    RawLiteral* literal = literal_pool_.Add(imm);
-    ldr(fd, literal);
+    uint64_t rawbits = double_to_rawbits(imm);
+    if (vd.IsScalar()) {
+      if (rawbits == 0) {
+        fmov(vd, xzr);
+      } else {
+        RawLiteral* literal = literal_pool_.Add(imm);
+        ldr(vd, literal);
+      }
+    } else {
+      // TODO: consider NEON support for load literal.
+      Movi(vd, rawbits);
+    }
   }
 }
 
 
-void MacroAssembler::Fmov(FPRegister fd, float imm) {
+void MacroAssembler::Fmov(VRegister vd, float imm) {
   VIXL_ASSERT(allow_macro_instructions_);
   // Floating point immediates are loaded through the literal pool.
   MacroEmissionCheckScope guard(this);
 
-  if (fd.Is64Bits()) {
-    Fmov(fd, static_cast<double>(imm));
+  if (vd.Is1D() || vd.Is2D()) {
+    Fmov(vd, static_cast<double>(imm));
     return;
   }
 
-  VIXL_ASSERT(fd.Is32Bits());
+  VIXL_ASSERT(vd.Is1S() || vd.Is2S() || vd.Is4S());
   if (IsImmFP32(imm)) {
-    fmov(fd, imm);
-  } else if ((imm == 0.0) && (copysign(1.0, imm) == 1.0)) {
-    fmov(fd, wzr);
+    fmov(vd, imm);
   } else {
-    RawLiteral* literal = literal_pool_.Add(imm);
-    ldr(fd, literal);
+    uint32_t rawbits = float_to_rawbits(imm);
+    if (vd.IsScalar()) {
+      if (rawbits == 0) {
+        fmov(vd, wzr);
+      } else {
+        RawLiteral* literal = literal_pool_.Add(imm);
+        ldr(vd, literal);
+      }
+    } else {
+      // TODO: consider NEON support for load literal.
+      Movi(vd, rawbits);
+    }
   }
 }
 
@@ -856,7 +1310,7 @@ Operand MacroAssembler::MoveImmediateForShiftedOp(const Register& dst,
     // Pre-shift the immediate to the most-significant bits of the register,
     // inserting set bits in the least-significant bits.
     int shift_high = CountLeadingZeros(imm, reg_size);
-    int64_t imm_high = (imm << shift_high) | ((1 << shift_high) - 1);
+    int64_t imm_high = (imm << shift_high) | ((INT64_C(1) << shift_high) - 1);
 
     if (TryOneInstrMoveImmediate(dst, imm_low)) {
       // The new immediate has been moved into the destination's low bits:
@@ -871,6 +1325,29 @@ Operand MacroAssembler::MoveImmediateForShiftedOp(const Register& dst,
     }
   }
   return Operand(dst);
+}
+
+
+void MacroAssembler::ComputeAddress(const Register& dst,
+                                    const MemOperand& mem_op) {
+  // We cannot handle pre-indexing or post-indexing.
+  VIXL_ASSERT(mem_op.addrmode() == Offset);
+  Register base = mem_op.base();
+  if (mem_op.IsImmediateOffset()) {
+    Add(dst, base, mem_op.offset());
+  } else {
+    VIXL_ASSERT(mem_op.IsRegisterOffset());
+    Register reg_offset = mem_op.regoffset();
+    Shift shift = mem_op.shift();
+    Extend extend = mem_op.extend();
+    if (shift == NO_SHIFT) {
+      VIXL_ASSERT(extend != NO_EXTEND);
+      Add(dst, base, Operand(reg_offset, extend, mem_op.shift_amount()));
+    } else {
+      VIXL_ASSERT(extend == NO_EXTEND);
+      Add(dst, base, Operand(reg_offset, shift, mem_op.shift_amount()));
+    }
+  }
 }
 
 
@@ -1024,12 +1501,12 @@ void MacroAssembler::LoadStoreMacro(const CPURegister& rt,
   MacroEmissionCheckScope guard(this);
 
   int64_t offset = addr.offset();
-  LSDataSize size = CalcLSDataSize(op);
+  unsigned access_size = CalcLSDataSize(op);
 
   // Check if an immediate offset fits in the immediate field of the
   // appropriate instruction. If not, emit two instructions to perform
   // the operation.
-  if (addr.IsImmediateOffset() && !IsImmLSScaled(offset, size) &&
+  if (addr.IsImmediateOffset() && !IsImmLSScaled(offset, access_size) &&
       !IsImmLSUnscaled(offset)) {
     // Immediate offset that can't be encoded using unsigned or unscaled
     // addressing modes.
@@ -1075,11 +1552,11 @@ void MacroAssembler::LoadStorePairMacro(const CPURegister& rt,
   MacroEmissionCheckScope guard(this);
 
   int64_t offset = addr.offset();
-  LSDataSize size = CalcLSPairDataSize(op);
+  unsigned access_size = CalcLSPairDataSize(op);
 
   // Check if the offset fits in the immediate field of the appropriate
   // instruction. If not, emit two instructions to perform the operation.
-  if (IsImmLSPair(offset, size)) {
+  if (IsImmLSPair(offset, access_size)) {
     // Encodable in one load/store pair instruction.
     LoadStorePair(rt, rt2, addr, op);
   } else {
@@ -1108,7 +1585,7 @@ void MacroAssembler::Prfm(PrefetchOperation op, const MemOperand& addr) {
   VIXL_ASSERT(addr.IsImmediateOffset() || addr.IsRegisterOffset());
 
   // The access size is implicitly 8 bytes for all prefetch operations.
-  LSDataSize size = LSDoubleWord;
+  unsigned size = kXRegSizeInBytesLog2;
 
   // Check if an immediate offset fits in the immediate field of the
   // appropriate instruction. If not, emit two instructions to perform
@@ -1489,6 +1966,9 @@ void MacroAssembler::BumpSystemStackPointer(const Operand& space) {
 }
 
 
+// TODO(all): Fix printf for NEON registers, and resolve whether we should be
+// using FPRegister or VRegister here.
+
 // This is the main Printf implementation. All callee-saved registers are
 // preserved, but NZCV and the caller-saved registers may be clobbered.
 void MacroAssembler::PrintfNoPreserve(const char * format,
@@ -1511,13 +1991,13 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
   static const CPURegList kPCSVarargs =
       CPURegList(CPURegister::kRegister, kXRegSize, 1, arg_count);
   static const CPURegList kPCSVarargsFP =
-      CPURegList(CPURegister::kFPRegister, kDRegSize, 0, arg_count - 1);
+      CPURegList(CPURegister::kVRegister, kDRegSize, 0, arg_count - 1);
 
   // We can use caller-saved registers as scratch values, except for the
   // arguments and the PCS registers where they might need to go.
   UseScratchRegisterScope temps(this);
   temps.Include(kCallerSaved);
-  temps.Include(kCallerSavedFP);
+  temps.Include(kCallerSavedV);
   temps.Exclude(kPCSVarargs);
   temps.Exclude(kPCSVarargsFP);
   temps.Exclude(arg0, arg1, arg2, arg3);
@@ -1537,7 +2017,7 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
       // We might only need a W register here. We need to know the size of the
       // argument so we can properly encode it for the simulator call.
       if (args[i].Is32Bits()) pcs[i] = pcs[i].W();
-    } else if (args[i].IsFPRegister()) {
+    } else if (args[i].IsVRegister()) {
       // In C, floats are always cast to doubles for varargs calls.
       pcs[i] = pcs_varargs_fp.PopLowestIndex().D();
     } else {
@@ -1574,7 +2054,7 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
     if (pcs[i].IsRegister()) {
       Mov(Register(pcs[i]), Register(args[i]), kDiscardForSameWReg);
     } else {
-      VIXL_ASSERT(pcs[i].IsFPRegister());
+      VIXL_ASSERT(pcs[i].IsVRegister());
       if (pcs[i].size() == args[i].size()) {
         Fmov(FPRegister(pcs[i]), FPRegister(args[i]));
       } else {
@@ -1595,7 +2075,7 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
 
   // Emit the format string directly in the instruction stream.
   {
-    BlockLiteralPoolScope scope(this);
+    BlockPoolsScope scope(this);
     // Data emitted:
     //   branch
     //   strlen(format) + 1 (includes null termination)
@@ -1672,12 +2152,12 @@ void MacroAssembler::Printf(const char * format,
   // If sp is the stack pointer, PushCPURegList asserts that the size of each
   // list is a multiple of 16 bytes.
   PushCPURegList(kCallerSaved);
-  PushCPURegList(kCallerSavedFP);
+  PushCPURegList(kCallerSavedV);
 
   { UseScratchRegisterScope temps(this);
     // We can use caller-saved registers as scratch values (except for argN).
     temps.Include(kCallerSaved);
-    temps.Include(kCallerSavedFP);
+    temps.Include(kCallerSavedV);
     temps.Exclude(arg0, arg1, arg2, arg3);
 
     // If any of the arguments are the current stack pointer, allocate a new
@@ -1692,7 +2172,7 @@ void MacroAssembler::Printf(const char * format,
       // to PrintfNoPreserve as an argument.
       Register arg_sp = temps.AcquireX();
       Add(arg_sp, StackPointer(),
-          kCallerSaved.TotalSizeInBytes() + kCallerSavedFP.TotalSizeInBytes());
+          kCallerSaved.TotalSizeInBytes() + kCallerSavedV.TotalSizeInBytes());
       if (arg0_sp) arg0 = Register(arg_sp.code(), arg0.size());
       if (arg1_sp) arg1 = Register(arg_sp.code(), arg1.size());
       if (arg2_sp) arg2 = Register(arg_sp.code(), arg2.size());
@@ -1714,7 +2194,7 @@ void MacroAssembler::Printf(const char * format,
     temps.Release(tmp);
   }
 
-  PopCPURegList(kCallerSavedFP);
+  PopCPURegList(kCallerSavedV);
   PopCPURegList(kCallerSaved);
 }
 
@@ -1803,7 +2283,7 @@ void UseScratchRegisterScope::Open(MacroAssembler* masm) {
   old_available_ = available_->list();
   old_availablefp_ = availablefp_->list();
   VIXL_ASSERT(available_->type() == CPURegister::kRegister);
-  VIXL_ASSERT(availablefp_->type() == CPURegister::kFPRegister);
+  VIXL_ASSERT(availablefp_->type() == CPURegister::kVRegister);
 #ifdef VIXL_DEBUG
   initialised_ = true;
 #endif
@@ -1881,7 +2361,7 @@ void UseScratchRegisterScope::Include(const CPURegList& list) {
     // Make sure that neither sp nor xzr are included the list.
     IncludeByRegList(available_, list.list() & ~(xzr.Bit() | sp.Bit()));
   } else {
-    VIXL_ASSERT(list.type() == CPURegister::kFPRegister);
+    VIXL_ASSERT(list.type() == CPURegister::kVRegister);
     IncludeByRegList(availablefp_, list.list());
   }
 }
@@ -1913,7 +2393,7 @@ void UseScratchRegisterScope::Exclude(const CPURegList& list) {
   if (list.type() == CPURegister::kRegister) {
     ExcludeByRegList(available_, list.list());
   } else {
-    VIXL_ASSERT(list.type() == CPURegister::kFPRegister);
+    VIXL_ASSERT(list.type() == CPURegister::kVRegister);
     ExcludeByRegList(availablefp_, list.list());
   }
 }
