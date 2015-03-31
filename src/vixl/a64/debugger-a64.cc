@@ -26,7 +26,7 @@
 
 #ifdef USE_SIMULATOR
 
-#include "a64/debugger-a64.h"
+#include "vixl/a64/debugger-a64.h"
 
 namespace vixl {
 
@@ -645,7 +645,8 @@ void Debugger::VisitException(const Instruction* instr) {
     case BRK:
       DoBreakpoint(instr);
       return;
-    case HLT:   // Fall through.
+    case HLT:
+      VIXL_FALLTHROUGH();
     default: Simulator::VisitException(instr);
   }
 }
@@ -994,6 +995,7 @@ Token* FormatToken::Tokenize(const char* arg) {
       break;
     case 'i':
       if (length == 1) return new Format<uint32_t>("%08" PRIx32, 'i');
+      VIXL_FALLTHROUGH();
     default: return NULL;
   }
 

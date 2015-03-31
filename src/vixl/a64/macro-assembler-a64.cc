@@ -24,7 +24,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "a64/macro-assembler-a64.h"
+#include "vixl/a64/macro-assembler-a64.h"
 
 namespace vixl {
 
@@ -43,8 +43,8 @@ void Pool::SetNextCheckpoint(ptrdiff_t checkpoint) {
 }
 
 
-LiteralPool::LiteralPool(MacroAssembler* masm) :
-    Pool(masm), size_(0), first_use_(-1) {
+LiteralPool::LiteralPool(MacroAssembler* masm)
+  : Pool(masm), size_(0), first_use_(-1) {
 }
 
 
@@ -718,11 +718,13 @@ void MacroAssembler::LogicalMacro(const Register& rd,
         case AND:
           Mov(rd, 0);
           return;
-        case ORR:  // Fall through.
+        case ORR:
+          VIXL_FALLTHROUGH();
         case EOR:
           Mov(rd, rn);
           return;
-        case ANDS:  // Fall through.
+        case ANDS:
+          VIXL_FALLTHROUGH();
         case BICS:
           break;
         default:
@@ -740,7 +742,8 @@ void MacroAssembler::LogicalMacro(const Register& rd,
         case EOR:
           Mvn(rd, rn);
           return;
-        case ANDS:  // Fall through.
+        case ANDS:
+          VIXL_FALLTHROUGH();
         case BICS:
           break;
         default:
@@ -1131,13 +1134,14 @@ void MacroAssembler::Csel(const Register& rd,
 
 void MacroAssembler::Add(const Register& rd,
                          const Register& rn,
-                         const Operand& operand) {
+                         const Operand& operand,
+                         FlagsUpdate S) {
   VIXL_ASSERT(allow_macro_instructions_);
   if (operand.IsImmediate() && (operand.immediate() < 0) &&
       IsImmAddSub(-operand.immediate())) {
-    AddSubMacro(rd, rn, -operand.immediate(), LeaveFlags, SUB);
+    AddSubMacro(rd, rn, -operand.immediate(), S, SUB);
   } else {
-    AddSubMacro(rd, rn, operand, LeaveFlags, ADD);
+    AddSubMacro(rd, rn, operand, S, ADD);
   }
 }
 
@@ -1145,25 +1149,20 @@ void MacroAssembler::Add(const Register& rd,
 void MacroAssembler::Adds(const Register& rd,
                           const Register& rn,
                           const Operand& operand) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate() && (operand.immediate() < 0) &&
-      IsImmAddSub(-operand.immediate())) {
-    AddSubMacro(rd, rn, -operand.immediate(), SetFlags, SUB);
-  } else {
-    AddSubMacro(rd, rn, operand, SetFlags, ADD);
-  }
+  Add(rd, rn, operand, SetFlags);
 }
 
 
 void MacroAssembler::Sub(const Register& rd,
                          const Register& rn,
-                         const Operand& operand) {
+                         const Operand& operand,
+                         FlagsUpdate S) {
   VIXL_ASSERT(allow_macro_instructions_);
   if (operand.IsImmediate() && (operand.immediate() < 0) &&
       IsImmAddSub(-operand.immediate())) {
-    AddSubMacro(rd, rn, -operand.immediate(), LeaveFlags, ADD);
+    AddSubMacro(rd, rn, -operand.immediate(), S, ADD);
   } else {
-    AddSubMacro(rd, rn, operand, LeaveFlags, SUB);
+    AddSubMacro(rd, rn, operand, S, SUB);
   }
 }
 
@@ -1171,13 +1170,7 @@ void MacroAssembler::Sub(const Register& rd,
 void MacroAssembler::Subs(const Register& rd,
                           const Register& rn,
                           const Operand& operand) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate() && (operand.immediate() < 0) &&
-      IsImmAddSub(-operand.immediate())) {
-    AddSubMacro(rd, rn, -operand.immediate(), SetFlags, ADD);
-  } else {
-    AddSubMacro(rd, rn, operand, SetFlags, SUB);
-  }
+  Sub(rd, rn, operand, SetFlags);
 }
 
 
@@ -1193,20 +1186,26 @@ void MacroAssembler::Cmp(const Register& rn, const Operand& operand) {
 }
 
 
-void MacroAssembler::Fcmp(const FPRegister& fn, double value) {
+void MacroAssembler::Fcmp(const FPRegister& fn, double value,
+                          FPTrapFlags trap) {
   VIXL_ASSERT(allow_macro_instructions_);
   // The worst case for size is:
   //  * 1 to materialise the constant, using literal pool if necessary
-  //  * 1 instruction for fcmp
+  //  * 1 instruction for fcmp{e}
   MacroEmissionCheckScope guard(this);
   if (value != 0.0) {
     UseScratchRegisterScope temps(this);
     FPRegister tmp = temps.AcquireSameSizeAs(fn);
     Fmov(tmp, value);
-    fcmp(fn, tmp);
+    FPCompareMacro(fn, tmp, trap);
   } else {
-    fcmp(fn, value);
+    FPCompareMacro(fn, value, trap);
   }
+}
+
+
+void MacroAssembler::Fcmpe(const FPRegister& fn, double value) {
+  Fcmp(fn, value, EnableTrap);
 }
 
 
@@ -1637,41 +1636,67 @@ void MacroAssembler::Pop(const CPURegister& dst0, const CPURegister& dst1,
 
 
 void MacroAssembler::PushCPURegList(CPURegList registers) {
-  int size = registers.RegisterSizeInBytes();
-
-  PrepareForPush(registers.Count(), size);
-  // Push up to four registers at a time because if the current stack pointer is
-  // sp and reg_size is 32, registers must be pushed in blocks of four in order
-  // to maintain the 16-byte alignment for sp.
+  VIXL_ASSERT(!registers.Overlaps(*TmpList()));
+  VIXL_ASSERT(!registers.Overlaps(*FPTmpList()));
   VIXL_ASSERT(allow_macro_instructions_);
+
+  int reg_size = registers.RegisterSizeInBytes();
+  PrepareForPush(registers.Count(), reg_size);
+
+  // Bump the stack pointer and store two registers at the bottom.
+  int size = registers.TotalSizeInBytes();
+  const CPURegister& bottom_0 = registers.PopLowestIndex();
+  const CPURegister& bottom_1 = registers.PopLowestIndex();
+  if (bottom_0.IsValid() && bottom_1.IsValid()) {
+    Stp(bottom_0, bottom_1, MemOperand(StackPointer(), -size, PreIndex));
+  } else if (bottom_0.IsValid()) {
+    Str(bottom_0, MemOperand(StackPointer(), -size, PreIndex));
+  }
+
+  int offset = 2 * reg_size;
   while (!registers.IsEmpty()) {
-    int count_before = registers.Count();
-    const CPURegister& src0 = registers.PopHighestIndex();
-    const CPURegister& src1 = registers.PopHighestIndex();
-    const CPURegister& src2 = registers.PopHighestIndex();
-    const CPURegister& src3 = registers.PopHighestIndex();
-    int count = count_before - registers.Count();
-    PushHelper(count, size, src0, src1, src2, src3);
+    const CPURegister& src0 = registers.PopLowestIndex();
+    const CPURegister& src1 = registers.PopLowestIndex();
+    if (src1.IsValid()) {
+      Stp(src0, src1, MemOperand(StackPointer(), offset));
+    } else {
+      Str(src0, MemOperand(StackPointer(), offset));
+    }
+    offset += 2 * reg_size;
   }
 }
 
 
 void MacroAssembler::PopCPURegList(CPURegList registers) {
-  int size = registers.RegisterSizeInBytes();
-
-  PrepareForPop(registers.Count(), size);
-  // Pop up to four registers at a time because if the current stack pointer is
-  // sp and reg_size is 32, registers must be pushed in blocks of four in order
-  // to maintain the 16-byte alignment for sp.
+  VIXL_ASSERT(!registers.Overlaps(*TmpList()));
+  VIXL_ASSERT(!registers.Overlaps(*FPTmpList()));
   VIXL_ASSERT(allow_macro_instructions_);
+
+  int reg_size = registers.RegisterSizeInBytes();
+  PrepareForPop(registers.Count(), reg_size);
+
+
+  int size = registers.TotalSizeInBytes();
+  const CPURegister& bottom_0 = registers.PopLowestIndex();
+  const CPURegister& bottom_1 = registers.PopLowestIndex();
+
+  int offset = 2 * reg_size;
   while (!registers.IsEmpty()) {
-    int count_before = registers.Count();
     const CPURegister& dst0 = registers.PopLowestIndex();
     const CPURegister& dst1 = registers.PopLowestIndex();
-    const CPURegister& dst2 = registers.PopLowestIndex();
-    const CPURegister& dst3 = registers.PopLowestIndex();
-    int count = count_before - registers.Count();
-    PopHelper(count, size, dst0, dst1, dst2, dst3);
+    if (dst1.IsValid()) {
+      Ldp(dst0, dst1, MemOperand(StackPointer(), offset));
+    } else {
+      Ldr(dst0, MemOperand(StackPointer(), offset));
+    }
+    offset += 2 * reg_size;
+  }
+
+  // Load the two registers at the bottom and drop the stack pointer.
+  if (bottom_0.IsValid() && bottom_1.IsValid()) {
+    Ldp(bottom_0, bottom_1, MemOperand(StackPointer(), size, PostIndex));
+  } else if (bottom_0.IsValid()) {
+    Ldr(bottom_0, MemOperand(StackPointer(), size, PostIndex));
   }
 }
 
@@ -1831,42 +1856,6 @@ void MacroAssembler::Peek(const Register& dst, const Operand& offset) {
 }
 
 
-void MacroAssembler::PeekCPURegList(CPURegList registers, int offset) {
-  VIXL_ASSERT(!registers.IncludesAliasOf(StackPointer()));
-  VIXL_ASSERT(offset >= 0);
-  int size = registers.RegisterSizeInBytes();
-
-  while (registers.Count() >= 2) {
-    const CPURegister& dst0 = registers.PopLowestIndex();
-    const CPURegister& dst1 = registers.PopLowestIndex();
-    Ldp(dst0, dst1, MemOperand(StackPointer(), offset));
-    offset += 2 * size;
-  }
-  if (!registers.IsEmpty()) {
-    Ldr(registers.PopLowestIndex(),
-        MemOperand(StackPointer(), offset));
-  }
-}
-
-
-void MacroAssembler::PokeCPURegList(CPURegList registers, int offset) {
-  VIXL_ASSERT(!registers.IncludesAliasOf(StackPointer()));
-  VIXL_ASSERT(offset >= 0);
-  int size = registers.RegisterSizeInBytes();
-
-  while (registers.Count() >= 2) {
-    const CPURegister& dst0 = registers.PopLowestIndex();
-    const CPURegister& dst1 = registers.PopLowestIndex();
-    Stp(dst0, dst1, MemOperand(StackPointer(), offset));
-    offset += 2 * size;
-  }
-  if (!registers.IsEmpty()) {
-    Str(registers.PopLowestIndex(),
-        MemOperand(StackPointer(), offset));
-  }
-}
-
-
 void MacroAssembler::Claim(const Operand& size) {
   VIXL_ASSERT(allow_macro_instructions_);
 
@@ -1954,6 +1943,80 @@ void MacroAssembler::PopCalleeSavedRegisters() {
   ldp(x25, x26, tos);
   ldp(x27, x28, tos);
   ldp(x29, x30, tos);
+}
+
+void MacroAssembler::LoadCPURegList(CPURegList registers,
+                                    const MemOperand& src) {
+  LoadStoreCPURegListHelper(kLoad, registers, src);
+}
+
+void MacroAssembler::StoreCPURegList(CPURegList registers,
+                                     const MemOperand& dst) {
+  LoadStoreCPURegListHelper(kStore, registers, dst);
+}
+
+
+void MacroAssembler::LoadStoreCPURegListHelper(LoadStoreCPURegListAction op,
+                                               CPURegList registers,
+                                               const MemOperand& mem) {
+  // We do not handle pre-indexing or post-indexing.
+  VIXL_ASSERT(!(mem.IsPreIndex() || mem.IsPostIndex()));
+  VIXL_ASSERT(!registers.Overlaps(tmp_list_));
+  VIXL_ASSERT(!registers.Overlaps(fptmp_list_));
+  VIXL_ASSERT(!registers.IncludesAliasOf(sp));
+
+  UseScratchRegisterScope temps(this);
+
+  MemOperand loc = BaseMemOperandForLoadStoreCPURegList(registers,
+                                                        mem,
+                                                        &temps);
+
+  while (registers.Count() >= 2) {
+    const CPURegister& dst0 = registers.PopLowestIndex();
+    const CPURegister& dst1 = registers.PopLowestIndex();
+    if (op == kStore) {
+      Stp(dst0, dst1, loc);
+    } else {
+      VIXL_ASSERT(op == kLoad);
+      Ldp(dst0, dst1, loc);
+    }
+    loc.AddOffset(2 * registers.RegisterSizeInBytes());
+  }
+  if (!registers.IsEmpty()) {
+    if (op == kStore) {
+      Str(registers.PopLowestIndex(), loc);
+    } else {
+      VIXL_ASSERT(op == kLoad);
+      Ldr(registers.PopLowestIndex(), loc);
+    }
+  }
+}
+
+MemOperand MacroAssembler::BaseMemOperandForLoadStoreCPURegList(
+    const CPURegList& registers,
+    const MemOperand& mem,
+    UseScratchRegisterScope* scratch_scope) {
+  // If necessary, pre-compute the base address for the accesses.
+  if (mem.IsRegisterOffset()) {
+    Register reg_base = scratch_scope->AcquireX();
+    ComputeAddress(reg_base, mem);
+    return MemOperand(reg_base);
+
+  } else if (mem.IsImmediateOffset()) {
+    int reg_size = registers.RegisterSizeInBytes();
+    int total_size = registers.TotalSizeInBytes();
+    int64_t min_offset = mem.offset();
+    int64_t max_offset = mem.offset() + std::max(0, total_size - 2 * reg_size);
+    if ((registers.Count() >= 2) &&
+        (!Assembler::IsImmLSPair(min_offset, WhichPowerOf2(reg_size)) ||
+         !Assembler::IsImmLSPair(max_offset, WhichPowerOf2(reg_size)))) {
+      Register reg_base = scratch_scope->AcquireX();
+      ComputeAddress(reg_base, mem);
+      return MemOperand(reg_base);
+    }
+  }
+
+  return mem;
 }
 
 void MacroAssembler::BumpSystemStackPointer(const Operand& space) {

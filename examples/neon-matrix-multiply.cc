@@ -117,7 +117,7 @@ int main(void) {
   float mat1[kLength], mat2[kLength], output[kLength];
 
   // Initialise the output matrix to the zero matrix.
-  memset(output, 0, sizeof(float)*kLength);
+  memset(output, 0, sizeof(output[0]) * kLength);
 
   // Fill the two input matrices with some 32 bit floating point values.
   // Array initialisation using curly brackets is also possible like so:

@@ -32,7 +32,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "globals.h"
+#include "vixl/globals.h"
 
 namespace vixl {
 
@@ -250,7 +250,7 @@ template<class S> class InvalSetIterator {
 
   // Indicates if the iterator is looking at the vector or at the preallocated
   // elements.
-  bool using_vector_;
+  const bool using_vector_;
   // Used when looking at the preallocated elements, or in debug mode when using
   // the vector to track how many times the iterator has advanced.
   size_t index_;
@@ -657,13 +657,14 @@ void InvalSet<TEMPLATE_INVALSET_P_DEF>::ReclaimMemory() {
 
 template<class S>
 InvalSetIterator<S>::InvalSetIterator(S* inval_set)
-    : using_vector_(false), index_(0), inval_set_(inval_set) {
+    : using_vector_((inval_set != NULL) && inval_set->IsUsingVector()),
+      index_(0),
+      inval_set_(inval_set) {
   if (inval_set != NULL) {
     inval_set->Sort(S::kSoftSort);
 #ifdef VIXL_DEBUG
     inval_set->Acquire();
 #endif
-    using_vector_ = inval_set->IsUsingVector();
     if (using_vector_) {
       iterator_ = typename std::vector<ElementType>::iterator(
           inval_set_->vector_->begin());

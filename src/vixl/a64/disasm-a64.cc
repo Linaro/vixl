@@ -25,7 +25,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstdlib>
-#include "a64/disasm-a64.h"
+#include "vixl/a64/disasm-a64.h"
 
 namespace vixl {
 
@@ -890,9 +890,9 @@ void Disassembler::VisitLoadStoreUnscaledOffset(const Instruction* instr) {
     case LDUR_s:   mnemonic = "ldur"; form = form_s; break;
     case LDUR_d:   mnemonic = "ldur"; form = form_d; break;
     case LDUR_q:   mnemonic = "ldur"; form = form_q; break;
-    case LDURSB_x: form = form_x;  // Fall through.
+    case LDURSB_x: form = form_x; VIXL_FALLTHROUGH();
     case LDURSB_w: mnemonic = "ldursb"; break;
-    case LDURSH_x: form = form_x;  // Fall through.
+    case LDURSH_x: form = form_x; VIXL_FALLTHROUGH();
     case LDURSH_w: mnemonic = "ldursh"; break;
     case LDURSW_x: mnemonic = "ldursw"; form = form_x; break;
     case PRFUM:    mnemonic = "prfum"; form = form_prefetch; break;
@@ -1054,9 +1054,13 @@ void Disassembler::VisitFPCompare(const Instruction* instr) {
 
   switch (instr->Mask(FPCompareMask)) {
     case FCMP_s_zero:
-    case FCMP_d_zero: form = form_zero;  // Fall through.
+    case FCMP_d_zero: form = form_zero; VIXL_FALLTHROUGH();
     case FCMP_s:
     case FCMP_d: mnemonic = "fcmp"; break;
+    case FCMPE_s_zero:
+    case FCMPE_d_zero: form = form_zero; VIXL_FALLTHROUGH();
+    case FCMPE_s:
+    case FCMPE_d: mnemonic = "fcmpe"; break;
     default: form = "(FPCompare)";
   }
   Format(instr, mnemonic, form);
@@ -2884,8 +2888,8 @@ int Disassembler::SubstituteRegisterField(const Instruction* instr,
     field_len = 3;
   }
 
-  CPURegister::RegisterType reg_type;
-  unsigned reg_size;
+  CPURegister::RegisterType reg_type = CPURegister::kRegister;
+  unsigned reg_size = kXRegSize;
 
   if (reg_prefix == 'R') {
     reg_prefix = instr->SixtyFourBits() ? 'X' : 'W';
@@ -2913,8 +2917,6 @@ int Disassembler::SubstituteRegisterField(const Instruction* instr,
       return field_len;
     default:
       VIXL_UNREACHABLE();
-      reg_type = CPURegister::kRegister;
-      reg_size = kXRegSize;
   }
 
   if ((reg_type == CPURegister::kRegister) &&
@@ -3087,6 +3089,7 @@ int Disassembler::SubstituteImmediateField(const Instruction* instr,
               return 0;
             }
           }
+          VIXL_FALLTHROUGH();
         }
         case 'L': {  // IVLSLane[0123] - suffix indicates access size shift.
           AppendToOutput("%d", instr->NEONLSIndex(format[8] - '0'));
@@ -3236,7 +3239,8 @@ int Disassembler::SubstituteShiftField(const Instruction* instr,
   switch (format[1]) {
     case 'D': {  // HDP.
       VIXL_ASSERT(instr->ShiftDP() != ROR);
-    }  // Fall through.
+      VIXL_FALLTHROUGH();
+    }
     case 'L': {  // HLo.
       if (instr->ImmDPShift() != 0) {
         const char* shift_type[] = {"lsl", "lsr", "asr", "ror"};

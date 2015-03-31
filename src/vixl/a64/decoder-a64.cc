@@ -24,9 +24,9 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "globals.h"
-#include "utils.h"
-#include "a64/decoder-a64.h"
+#include "vixl/globals.h"
+#include "vixl/utils.h"
+#include "vixl/a64/decoder-a64.h"
 
 namespace vixl {
 
@@ -488,6 +488,7 @@ void Decoder::DecodeDataProcessing(const Instruction* instr) {
         case 6: {
           if (instr->Bit(29) == 0x1) {
             VisitUnallocated(instr);
+            VIXL_FALLTHROUGH();
           } else {
             if (instr->Bit(30) == 0) {
               if ((instr->Bit(15) == 0x1) ||

@@ -1,44 +1,24 @@
-VIXL: AArch64 Runtime Code Generation Library Version 1.8
+VIXL: AArch64 Runtime Code Generation Library Version 1.9
 =========================================================
 
 Contents:
 
- * Requirements
  * Overview
+ * Requirements
  * Known limitations
  * Usage
-
-
-Requirements
-============
-
-To build VIXL the following software is required:
-
- 1. Python 2.7
- 2. SCons 2.0
- 3. GCC 4.6+
-
-A 64-bit host machine is required, implementing an LP64 data model. VIXL has
-only been tested using GCC on AArch64 Debian and amd64 Ubuntu systems.
-
-To run the linter stage of the tests, the following software is also required:
-
- 1. Git
- 2. [Google's `cpplint.py`][cpplint]
-
-Refer to the 'Usage' section for details.
 
 
 Overview
 ========
 
-VIXL is made of three components.
+VIXL contains three components.
 
- 1. A programmatic assembler to generate A64 code at runtime. The assembler
+ 1. A programmatic **assembler** to generate A64 code at runtime. The assembler
     abstracts some of the constraints of the A64 ISA; for example, most
     instructions support any immediate.
- 2. A disassembler which can print any instruction emitted by the assembler.
- 3. A simulator which can simulate any instruction emitted by the assembler.
+ 2. A **disassembler** that can print any instruction emitted by the assembler.
+ 3. A **simulator** that can simulate any instruction emitted by the assembler.
     The simulator allows generated code to be run on another architecture
     without the need for a full ISA model.
 
@@ -48,11 +28,32 @@ Changes from previous versions of VIXL can be found in the
 [Changelog](doc/changelog.md).
 
 
+Requirements
+============
+
+To build VIXL the following software is required:
+
+ 1. Python 2.7
+ 2. SCons 2.0
+ 3. GCC 4.8+ or Clang 3.4+
+
+A 64-bit host machine is required, implementing an LP64 data model. VIXL has
+been tested using GCC on AArch64 Debian, GCC and Clang on amd64 Ubuntu
+systems.
+
+To run the linter stage of the tests, the following software is also required:
+
+ 1. Git
+ 2. [Google's `cpplint.py`][cpplint]
+
+Refer to the 'Usage' section for details.
+
+
 Known Limitations
 =================
 
-VIXL was developed to target JavaScript engines so a number of features from A64
-were deemed unnecessary:
+VIXL was developed for JavaScript engines so a number of features from A64 were
+deemed unnecessary:
 
  * Limited rounding mode support for floating point.
  * Limited support for synchronisation instructions.

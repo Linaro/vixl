@@ -24,9 +24,365 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "a64/simulator-a64.h"
+#include <cmath>
+#include "vixl/a64/simulator-a64.h"
 
 namespace vixl {
+
+template<> double Simulator::FPDefaultNaN<double>() {
+  return kFP64DefaultNaN;
+}
+
+
+template<> float Simulator::FPDefaultNaN<float>() {
+  return kFP32DefaultNaN;
+}
+
+// See FPRound for a description of this function.
+static inline double FPRoundToDouble(int64_t sign, int64_t exponent,
+                                     uint64_t mantissa, FPRounding round_mode) {
+  int64_t bits =
+      FPRound<int64_t, kDoubleExponentBits, kDoubleMantissaBits>(sign,
+                                                                 exponent,
+                                                                 mantissa,
+                                                                 round_mode);
+  return rawbits_to_double(bits);
+}
+
+
+// See FPRound for a description of this function.
+static inline float FPRoundToFloat(int64_t sign, int64_t exponent,
+                                   uint64_t mantissa, FPRounding round_mode) {
+  int32_t bits =
+      FPRound<int32_t, kFloatExponentBits, kFloatMantissaBits>(sign,
+                                                               exponent,
+                                                               mantissa,
+                                                               round_mode);
+  return rawbits_to_float(bits);
+}
+
+
+// See FPRound for a description of this function.
+static inline float16 FPRoundToFloat16(int64_t sign,
+                                       int64_t exponent,
+                                       uint64_t mantissa,
+                                       FPRounding round_mode) {
+  return FPRound<float16, kFloat16ExponentBits, kFloat16MantissaBits>(
+      sign, exponent, mantissa, round_mode);
+}
+
+
+double Simulator::FixedToDouble(int64_t src, int fbits, FPRounding round) {
+  if (src >= 0) {
+    return UFixedToDouble(src, fbits, round);
+  } else {
+    // This works for all negative values, including INT64_MIN.
+    return -UFixedToDouble(-src, fbits, round);
+  }
+}
+
+
+double Simulator::UFixedToDouble(uint64_t src, int fbits, FPRounding round) {
+  // An input of 0 is a special case because the result is effectively
+  // subnormal: The exponent is encoded as 0 and there is no implicit 1 bit.
+  if (src == 0) {
+    return 0.0;
+  }
+
+  // Calculate the exponent. The highest significant bit will have the value
+  // 2^exponent.
+  const int highest_significant_bit = 63 - CountLeadingZeros(src);
+  const int64_t exponent = highest_significant_bit - fbits;
+
+  return FPRoundToDouble(0, exponent, src, round);
+}
+
+
+float Simulator::FixedToFloat(int64_t src, int fbits, FPRounding round) {
+  if (src >= 0) {
+    return UFixedToFloat(src, fbits, round);
+  } else {
+    // This works for all negative values, including INT64_MIN.
+    return -UFixedToFloat(-src, fbits, round);
+  }
+}
+
+
+float Simulator::UFixedToFloat(uint64_t src, int fbits, FPRounding round) {
+  // An input of 0 is a special case because the result is effectively
+  // subnormal: The exponent is encoded as 0 and there is no implicit 1 bit.
+  if (src == 0) {
+    return 0.0f;
+  }
+
+  // Calculate the exponent. The highest significant bit will have the value
+  // 2^exponent.
+  const int highest_significant_bit = 63 - CountLeadingZeros(src);
+  const int32_t exponent = highest_significant_bit - fbits;
+
+  return FPRoundToFloat(0, exponent, src, round);
+}
+
+
+double Simulator::FPToDouble(float value) {
+  switch (std::fpclassify(value)) {
+    case FP_NAN: {
+      if (IsSignallingNaN(value)) {
+        FPProcessException();
+      }
+      if (DN()) return kFP64DefaultNaN;
+
+      // Convert NaNs as the processor would:
+      //  - The sign is propagated.
+      //  - The payload (mantissa) is transferred entirely, except that the top
+      //    bit is forced to '1', making the result a quiet NaN. The unused
+      //    (low-order) payload bits are set to 0.
+      uint32_t raw = float_to_rawbits(value);
+
+      uint64_t sign = raw >> 31;
+      uint64_t exponent = (1 << 11) - 1;
+      uint64_t payload = unsigned_bitextract_64(21, 0, raw);
+      payload <<= (52 - 23);  // The unused low-order bits should be 0.
+      payload |= (UINT64_C(1) << 51);  // Force a quiet NaN.
+
+      return rawbits_to_double((sign << 63) | (exponent << 52) | payload);
+    }
+
+    case FP_ZERO:
+    case FP_NORMAL:
+    case FP_SUBNORMAL:
+    case FP_INFINITE: {
+      // All other inputs are preserved in a standard cast, because every value
+      // representable using an IEEE-754 float is also representable using an
+      // IEEE-754 double.
+      return static_cast<double>(value);
+    }
+  }
+
+  VIXL_UNREACHABLE();
+  return static_cast<double>(value);
+}
+
+
+float Simulator::FPToFloat(float16 value) {
+  uint32_t sign = value >> 15;
+  uint32_t exponent = unsigned_bitextract_32(
+      kFloat16MantissaBits + kFloat16ExponentBits - 1, kFloat16MantissaBits,
+      value);
+  uint32_t mantissa = unsigned_bitextract_32(
+      kFloat16MantissaBits - 1, 0, value);
+
+  switch (float16classify(value)) {
+    case FP_ZERO:
+      return (sign == 0) ? 0.0f : -0.0f;
+
+    case FP_INFINITE:
+      return (sign == 0) ? kFP32PositiveInfinity : kFP32NegativeInfinity;
+
+    case FP_SUBNORMAL: {
+      // Calculate shift required to put mantissa into the most-significant bits
+      // of the destination mantissa.
+      int shift = CountLeadingZeros(mantissa << (32 - 10));
+
+      // Shift mantissa and discard implicit '1'.
+      mantissa <<= (kFloatMantissaBits - kFloat16MantissaBits) + shift + 1;
+      mantissa &= (1 << kFloatMantissaBits) - 1;
+
+      // Adjust the exponent for the shift applied, and rebias.
+      exponent = exponent - shift + (-15 + 127);
+      break;
+    }
+
+    case FP_NAN:
+      if (IsSignallingNaN(value)) {
+        FPProcessException();
+      }
+      if (DN()) return kFP32DefaultNaN;
+
+      // Convert NaNs as the processor would:
+      //  - The sign is propagated.
+      //  - The payload (mantissa) is transferred entirely, except that the top
+      //    bit is forced to '1', making the result a quiet NaN. The unused
+      //    (low-order) payload bits are set to 0.
+      exponent = (1 << kFloatExponentBits) - 1;
+
+      // Increase bits in mantissa, making low-order bits 0.
+      mantissa <<= (kFloatMantissaBits - kFloat16MantissaBits);
+      mantissa |= 1 << 22;  // Force a quiet NaN.
+      break;
+
+    case FP_NORMAL:
+      // Increase bits in mantissa, making low-order bits 0.
+      mantissa <<= (kFloatMantissaBits - kFloat16MantissaBits);
+
+      // Change exponent bias.
+      exponent += (-15 + 127);
+      break;
+
+    default: VIXL_UNREACHABLE();
+  }
+  return rawbits_to_float((sign << 31) |
+                          (exponent << kFloatMantissaBits) |
+                          mantissa);
+}
+
+
+float16 Simulator::FPToFloat16(float value, FPRounding round_mode) {
+  // Only the FPTieEven rounding mode is implemented.
+  VIXL_ASSERT(round_mode == FPTieEven);
+  USE(round_mode);
+
+  uint32_t raw = float_to_rawbits(value);
+  int32_t sign = raw >> 31;
+  int32_t exponent = unsigned_bitextract_32(30, 23, raw) - 127;
+  uint32_t mantissa = unsigned_bitextract_32(22, 0, raw);
+
+  switch (std::fpclassify(value)) {
+    case FP_NAN: {
+      if (IsSignallingNaN(value)) {
+        FPProcessException();
+      }
+      if (DN()) return kFP16DefaultNaN;
+
+      // Convert NaNs as the processor would:
+      //  - The sign is propagated.
+      //  - The payload (mantissa) is transferred as much as possible, except
+      //    that the top bit is forced to '1', making the result a quiet NaN.
+      float16 result = (sign == 0) ? kFP16PositiveInfinity
+                                   : kFP16NegativeInfinity;
+      result |= mantissa >> (kFloatMantissaBits - kFloat16MantissaBits);
+      result |= (1 << 9);  // Force a quiet NaN;
+      return result;
+    }
+
+    case FP_ZERO:
+      return (sign == 0) ? 0 : 0x8000;
+
+    case FP_INFINITE:
+      return (sign == 0) ? kFP16PositiveInfinity : kFP16NegativeInfinity;
+
+    case FP_NORMAL:
+    case FP_SUBNORMAL: {
+      // Convert float-to-half as the processor would, assuming that FPCR.FZ
+      // (flush-to-zero) is not set.
+
+      // Add the implicit '1' bit to the mantissa.
+      mantissa += (1 << 23);
+      return FPRoundToFloat16(sign, exponent, mantissa, round_mode);
+    }
+  }
+
+  VIXL_UNREACHABLE();
+  return 0;
+}
+
+
+float16 Simulator::FPToFloat16(double value, FPRounding round_mode) {
+  // Only the FPTieEven rounding mode is implemented.
+  VIXL_ASSERT(round_mode == FPTieEven);
+  USE(round_mode);
+
+  uint64_t raw = double_to_rawbits(value);
+  int32_t sign = raw >> 63;
+  int64_t exponent = unsigned_bitextract_64(62, 52, raw) - 1023;
+  uint64_t mantissa = unsigned_bitextract_64(51, 0, raw);
+
+  switch (std::fpclassify(value)) {
+    case FP_NAN: {
+      if (IsSignallingNaN(value)) {
+        FPProcessException();
+      }
+      if (DN()) return kFP16DefaultNaN;
+
+      // Convert NaNs as the processor would:
+      //  - The sign is propagated.
+      //  - The payload (mantissa) is transferred as much as possible, except
+      //    that the top bit is forced to '1', making the result a quiet NaN.
+      float16 result = (sign == 0) ? kFP16PositiveInfinity
+                                   : kFP16NegativeInfinity;
+      result |= mantissa >> (kDoubleMantissaBits - kFloat16MantissaBits);
+      result |= (1 << 9);  // Force a quiet NaN;
+      return result;
+    }
+
+    case FP_ZERO:
+      return (sign == 0) ? 0 : 0x8000;
+
+    case FP_INFINITE:
+      return (sign == 0) ? kFP16PositiveInfinity : kFP16NegativeInfinity;
+
+    case FP_NORMAL:
+    case FP_SUBNORMAL: {
+      // Convert double-to-half as the processor would, assuming that FPCR.FZ
+      // (flush-to-zero) is not set.
+
+      // Add the implicit '1' bit to the mantissa.
+      mantissa += (UINT64_C(1) << 52);
+      return FPRoundToFloat16(sign, exponent, mantissa, round_mode);
+    }
+  }
+
+  VIXL_UNREACHABLE();
+  return 0;
+}
+
+
+float Simulator::FPToFloat(double value, FPRounding round_mode) {
+  // Only the FPTieEven rounding mode is implemented.
+  VIXL_ASSERT((round_mode == FPTieEven) || (round_mode == FPRoundOdd));
+  USE(round_mode);
+
+  switch (std::fpclassify(value)) {
+    case FP_NAN: {
+      if (IsSignallingNaN(value)) {
+        FPProcessException();
+      }
+      if (DN()) return kFP32DefaultNaN;
+
+      // Convert NaNs as the processor would:
+      //  - The sign is propagated.
+      //  - The payload (mantissa) is transferred as much as possible, except
+      //    that the top bit is forced to '1', making the result a quiet NaN.
+      uint64_t raw = double_to_rawbits(value);
+
+      uint32_t sign = raw >> 63;
+      uint32_t exponent = (1 << 8) - 1;
+      uint32_t payload = unsigned_bitextract_64(50, 52 - 23, raw);
+      payload |= (1 << 22);   // Force a quiet NaN.
+
+      return rawbits_to_float((sign << 31) | (exponent << 23) | payload);
+    }
+
+    case FP_ZERO:
+    case FP_INFINITE: {
+      // In a C++ cast, any value representable in the target type will be
+      // unchanged. This is always the case for +/-0.0 and infinities.
+      return static_cast<float>(value);
+    }
+
+    case FP_NORMAL:
+    case FP_SUBNORMAL: {
+      // Convert double-to-float as the processor would, assuming that FPCR.FZ
+      // (flush-to-zero) is not set.
+      uint64_t raw = double_to_rawbits(value);
+      // Extract the IEEE-754 double components.
+      uint32_t sign = raw >> 63;
+      // Extract the exponent and remove the IEEE-754 encoding bias.
+      int32_t exponent = unsigned_bitextract_64(62, 52, raw) - 1023;
+      // Extract the mantissa and add the implicit '1' bit.
+      uint64_t mantissa = unsigned_bitextract_64(51, 0, raw);
+      if (std::fpclassify(value) == FP_NORMAL) {
+        mantissa |= (UINT64_C(1) << 52);
+      }
+      return FPRoundToFloat(sign, exponent, mantissa, round_mode);
+    }
+  }
+
+  VIXL_UNREACHABLE();
+  return value;
+}
+
+
 void Simulator::ld1(VectorFormat vform,
                     LogicVRegister dst,
                     uint64_t addr) {
@@ -1524,7 +1880,7 @@ LogicVRegister Simulator::sshl(VectorFormat vform,
     int64_t lj_src_val = src1.IntLeftJustified(vform, i);
 
     // Set signed saturation state.
-    if ((shift_val > CountLeadingSignBits(lj_src_val, 64)) &&
+    if ((shift_val > CountLeadingSignBits(lj_src_val)) &&
         (lj_src_val != 0)) {
       dst.SetSignedSat(i, lj_src_val >= 0);
     }
@@ -1532,7 +1888,7 @@ LogicVRegister Simulator::sshl(VectorFormat vform,
     // Set unsigned saturation state.
     if (lj_src_val < 0) {
       dst.SetUnsignedSat(i, false);
-    } else if ((shift_val > CountLeadingZeros(lj_src_val, 64)) &&
+    } else if ((shift_val > CountLeadingZeros(lj_src_val)) &&
                (lj_src_val != 0)) {
       dst.SetUnsignedSat(i, true);
     }
@@ -1570,7 +1926,7 @@ LogicVRegister Simulator::ushl(VectorFormat vform,
     uint64_t lj_src_val = src1.UintLeftJustified(vform, i);
 
     // Set saturation state.
-    if ((shift_val > CountLeadingZeros(lj_src_val, 64)) && (lj_src_val != 0)) {
+    if ((shift_val > CountLeadingZeros(lj_src_val)) && (lj_src_val != 0)) {
       dst.SetUnsignedSat(i, true);
     }
 
@@ -3153,9 +3509,9 @@ LogicVRegister Simulator::uzp2(VectorFormat vform,
 template <typename T>
 T Simulator::FPAdd(T op1, T op2) {
   T result = FPProcessNaNs(op1, op2);
-  if (isnan(result)) return result;
+  if (std::isnan(result)) return result;
 
-  if (isinf(op1) && isinf(op2) && (op1 != op2)) {
+  if (std::isinf(op1) && std::isinf(op2) && (op1 != op2)) {
     // inf + -inf returns the default NaN.
     FPProcessException();
     return FPDefaultNaN<T>();
@@ -3169,9 +3525,9 @@ T Simulator::FPAdd(T op1, T op2) {
 template <typename T>
 T Simulator::FPSub(T op1, T op2) {
   // NaNs should be handled elsewhere.
-  VIXL_ASSERT(!isnan(op1) && !isnan(op2));
+  VIXL_ASSERT(!std::isnan(op1) && !std::isnan(op2));
 
-  if (isinf(op1) && isinf(op2) && (op1 == op2)) {
+  if (std::isinf(op1) && std::isinf(op2) && (op1 == op2)) {
     // inf - inf returns the default NaN.
     FPProcessException();
     return FPDefaultNaN<T>();
@@ -3185,9 +3541,9 @@ T Simulator::FPSub(T op1, T op2) {
 template <typename T>
 T Simulator::FPMul(T op1, T op2) {
   // NaNs should be handled elsewhere.
-  VIXL_ASSERT(!isnan(op1) && !isnan(op2));
+  VIXL_ASSERT(!std::isnan(op1) && !std::isnan(op2));
 
-  if ((isinf(op1) && (op2 == 0.0)) || (isinf(op2) && (op1 == 0.0))) {
+  if ((std::isinf(op1) && (op2 == 0.0)) || (std::isinf(op2) && (op1 == 0.0))) {
     // inf * 0.0 returns the default NaN.
     FPProcessException();
     return FPDefaultNaN<T>();
@@ -3200,7 +3556,7 @@ T Simulator::FPMul(T op1, T op2) {
 
 template<typename T>
 T Simulator::FPMulx(T op1, T op2) {
-  if ((isinf(op1) && (op2 == 0.0)) || (isinf(op2) && (op1 == 0.0))) {
+  if ((std::isinf(op1) && (op2 == 0.0)) || (std::isinf(op2) && (op1 == 0.0))) {
     // inf * 0.0 returns +/-2.0.
     T two = 2.0;
     return copysign(1.0, op1) * copysign(1.0, op2) * two;
@@ -3215,13 +3571,13 @@ T Simulator::FPMulAdd(T a, T op1, T op2) {
 
   T sign_a = copysign(1.0, a);
   T sign_prod = copysign(1.0, op1) * copysign(1.0, op2);
-  bool isinf_prod = isinf(op1) || isinf(op2);
+  bool isinf_prod = std::isinf(op1) || std::isinf(op2);
   bool operation_generates_nan =
-      (isinf(op1) && (op2 == 0.0)) ||                     // inf * 0.0
-      (isinf(op2) && (op1 == 0.0)) ||                     // 0.0 * inf
-      (isinf(a) && isinf_prod && (sign_a != sign_prod));  // inf - inf
+      (std::isinf(op1) && (op2 == 0.0)) ||                     // inf * 0.0
+      (std::isinf(op2) && (op1 == 0.0)) ||                     // 0.0 * inf
+      (std::isinf(a) && isinf_prod && (sign_a != sign_prod));  // inf - inf
 
-  if (isnan(result)) {
+  if (std::isnan(result)) {
     // Generated NaNs override quiet NaNs propagated from a.
     if (operation_generates_nan && IsQuietNaN(a)) {
       FPProcessException();
@@ -3244,7 +3600,7 @@ T Simulator::FPMulAdd(T a, T op1, T op2) {
   }
 
   result = FusedMultiplyAdd(op1, op2, a);
-  VIXL_ASSERT(!isnan(result));
+  VIXL_ASSERT(!std::isnan(result));
 
   // Work around broken fma implementations for rounded zero results: If a is
   // 0.0, the sign of the result is the sign of op1 * op2 before rounding.
@@ -3259,9 +3615,9 @@ T Simulator::FPMulAdd(T a, T op1, T op2) {
 template <typename T>
 T Simulator::FPDiv(T op1, T op2) {
   // NaNs should be handled elsewhere.
-  VIXL_ASSERT(!isnan(op1) && !isnan(op2));
+  VIXL_ASSERT(!std::isnan(op1) && !std::isnan(op2));
 
-  if ((isinf(op1) && isinf(op2)) || ((op1 == 0.0) && (op2 == 0.0))) {
+  if ((std::isinf(op1) && std::isinf(op2)) || ((op1 == 0.0) && (op2 == 0.0))) {
     // inf / inf and 0.0 / 0.0 return the default NaN.
     FPProcessException();
     return FPDefaultNaN<T>();
@@ -3276,7 +3632,7 @@ T Simulator::FPDiv(T op1, T op2) {
 
 template <typename T>
 T Simulator::FPSqrt(T op) {
-  if (isnan(op)) {
+  if (std::isnan(op)) {
     return FPProcessNaN(op);
   } else if (op < 0.0) {
     FPProcessException();
@@ -3290,7 +3646,7 @@ T Simulator::FPSqrt(T op) {
 template <typename T>
 T Simulator::FPMax(T a, T b) {
   T result = FPProcessNaNs(a, b);
-  if (isnan(result)) return result;
+  if (std::isnan(result)) return result;
 
   if ((a == 0.0) && (b == 0.0) &&
       (copysign(1.0, a) != copysign(1.0, b))) {
@@ -3311,14 +3667,14 @@ T Simulator::FPMaxNM(T a, T b) {
   }
 
   T result = FPProcessNaNs(a, b);
-  return isnan(result) ? result : FPMax(a, b);
+  return std::isnan(result) ? result : FPMax(a, b);
 }
 
 
 template <typename T>
 T Simulator::FPMin(T a, T b) {
   T result = FPProcessNaNs(a, b);
-  if (isnan(result)) return result;
+  if (std::isnan(result)) return result;
 
   if ((a == 0.0) && (b == 0.0) &&
       (copysign(1.0, a) != copysign(1.0, b))) {
@@ -3339,16 +3695,17 @@ T Simulator::FPMinNM(T a, T b) {
   }
 
   T result = FPProcessNaNs(a, b);
-  return isnan(result) ? result : FPMin(a, b);
+  return std::isnan(result) ? result : FPMin(a, b);
 }
 
 
 template <typename T>
 T Simulator::FPRecipStepFused(T op1, T op2) {
   const T two = 2.0;
-  if ((isinf(op1) && (op2 == 0.0)) || ((op1 == 0.0) && (isinf(op2)))) {
+  if ((std::isinf(op1) && (op2 == 0.0))
+      || ((op1 == 0.0) && (std::isinf(op2)))) {
     return two;
-  } else if (isinf(op1) || isinf(op2)) {
+  } else if (std::isinf(op1) || std::isinf(op2)) {
     // Return +inf if signs match, otherwise -inf.
     return ((op1 >= 0.0) == (op2 >= 0.0)) ? kFP64PositiveInfinity
                                           : kFP64NegativeInfinity;
@@ -3363,9 +3720,10 @@ T Simulator::FPRSqrtStepFused(T op1, T op2) {
   const T one_point_five = 1.5;
   const T two = 2.0;
 
-  if ((isinf(op1) && (op2 == 0.0)) || ((op1 == 0.0) && (isinf(op2)))) {
+  if ((std::isinf(op1) && (op2 == 0.0))
+      || ((op1 == 0.0) && (std::isinf(op2)))) {
     return one_point_five;
-  } else if (isinf(op1) || isinf(op2)) {
+  } else if (std::isinf(op1) || std::isinf(op2)) {
     // Return +inf if signs match, otherwise -inf.
     return ((op1 >= 0.0) == (op2 >= 0.0)) ? kFP64PositiveInfinity
                                           : kFP64NegativeInfinity;
@@ -3373,9 +3731,9 @@ T Simulator::FPRSqrtStepFused(T op1, T op2) {
     // The multiply-add-halve operation must be fully fused, so avoid interim
     // rounding by checking which operand can be losslessly divided by two
     // before doing the multiply-add.
-    if (isnormal(op1 / two)) {
+    if (std::isnormal(op1 / two)) {
       return FusedMultiplyAdd(op1 / two, op2, one_point_five);
-    } else if (isnormal(op2 / two)) {
+    } else if (std::isnormal(op2 / two)) {
       return FusedMultiplyAdd(op1, op2 / two, one_point_five);
     } else {
       // Neither operand is normal after halving: the result is dominated by
@@ -3390,11 +3748,11 @@ double Simulator::FPRoundInt(double value, FPRounding round_mode) {
   if ((value == 0.0) || (value == kFP64PositiveInfinity) ||
       (value == kFP64NegativeInfinity)) {
     return value;
-  } else if (isnan(value)) {
+  } else if (std::isnan(value)) {
     return FPProcessNaN(value);
   }
 
-  double int_result = floor(value);
+  double int_result = std::floor(value);
   double error = value - int_result;
   switch (round_mode) {
     case FPTieAway: {
@@ -3419,7 +3777,7 @@ double Simulator::FPRoundInt(double value, FPRounding round_mode) {
       // If the error is greater than 0.5, or is equal to 0.5 and the integer
       // result is odd, round up.
       } else if ((error > 0.5) ||
-          ((error == 0.5) && (fmod(int_result, 2) != 0))) {
+          ((error == 0.5) && (std::fmod(int_result, 2) != 0))) {
         int_result++;
       }
       break;
@@ -3461,7 +3819,7 @@ int32_t Simulator::FPToInt32(double value, FPRounding rmode) {
   } else if (value < kWMinInt) {
     return kWMinInt;
   }
-  return isnan(value) ? 0 : static_cast<int32_t>(value);
+  return std::isnan(value) ? 0 : static_cast<int32_t>(value);
 }
 
 
@@ -3472,7 +3830,7 @@ int64_t Simulator::FPToInt64(double value, FPRounding rmode) {
   } else if (value < kXMinInt) {
     return kXMinInt;
   }
-  return isnan(value) ? 0 : static_cast<int64_t>(value);
+  return std::isnan(value) ? 0 : static_cast<int64_t>(value);
 }
 
 
@@ -3483,7 +3841,7 @@ uint32_t Simulator::FPToUInt32(double value, FPRounding rmode) {
   } else if (value < 0.0) {
     return 0;
   }
-  return isnan(value) ? 0 : static_cast<uint32_t>(value);
+  return std::isnan(value) ? 0 : static_cast<uint32_t>(value);
 }
 
 
@@ -3494,7 +3852,7 @@ uint64_t Simulator::FPToUInt64(double value, FPRounding rmode) {
   } else if (value < 0.0) {
     return 0;
   }
-  return isnan(value) ? 0 : static_cast<uint64_t>(value);
+  return std::isnan(value) ? 0 : static_cast<uint64_t>(value);
 }
 
 
@@ -3511,7 +3869,7 @@ LogicVRegister Simulator::FN(VectorFormat vform,                 \
     T result;                                                    \
     if (PROCNAN) {                                               \
       result = FPProcessNaNs(op1, op2);                          \
-      if (!isnan(result)) {                                      \
+      if (!std::isnan(result)) {                                      \
         result = OP(op1, op2);                                   \
       }                                                          \
     } else {                                                     \
@@ -3558,7 +3916,7 @@ LogicVRegister Simulator::frecps(VectorFormat vform,
     T op1 = -src1.Float<T>(i);
     T op2 = src2.Float<T>(i);
     T result = FPProcessNaNs(op1, op2);
-    dst.SetFloat(i, isnan(result) ? result : FPRecipStepFused(op1, op2));
+    dst.SetFloat(i, std::isnan(result) ? result : FPRecipStepFused(op1, op2));
   }
   return dst;
 }
@@ -3588,7 +3946,7 @@ LogicVRegister Simulator::frsqrts(VectorFormat vform,
     T op1 = -src1.Float<T>(i);
     T op2 = src2.Float<T>(i);
     T result = FPProcessNaNs(op1, op2);
-    dst.SetFloat(i, isnan(result) ? result : FPRSqrtStepFused(op1, op2));
+    dst.SetFloat(i, std::isnan(result) ? result : FPRSqrtStepFused(op1, op2));
   }
   return dst;
 }
@@ -3620,7 +3978,7 @@ LogicVRegister Simulator::fcmp(VectorFormat vform,
     T op1 = src1.Float<T>(i);
     T op2 = src2.Float<T>(i);
     T nan_result = FPProcessNaNs(op1, op2);
-    if (!isnan(nan_result)) {
+    if (!std::isnan(nan_result)) {
       switch (cond) {
         case eq: result = (op1 == op2); break;
         case ge: result = (op1 >= op2); break;
@@ -4001,7 +4359,7 @@ LogicVRegister Simulator::frint(VectorFormat vform,
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       float input = src.Float<float>(i);
       float rounded = FPRoundInt(input, rounding_mode);
-      if (inexact_exception && !isnan(input) && (input != rounded)) {
+      if (inexact_exception && !std::isnan(input) && (input != rounded)) {
         FPProcessException();
       }
       dst.SetFloat<float>(i, rounded);
@@ -4011,7 +4369,7 @@ LogicVRegister Simulator::frint(VectorFormat vform,
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       double input = src.Float<double>(i);
       double rounded = FPRoundInt(input, rounding_mode);
-      if (inexact_exception && !isnan(input) && (input != rounded)) {
+      if (inexact_exception && !std::isnan(input) && (input != rounded)) {
         FPProcessException();
       }
       dst.SetFloat<double>(i, rounded);
@@ -4029,13 +4387,13 @@ LogicVRegister Simulator::fcvts(VectorFormat vform,
   dst.ClearForWrite(vform);
   if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-      float op = src.Float<float>(i) * powf(2.0f, fbits);
+      float op = src.Float<float>(i) * std::pow(2.0f, fbits);
       dst.SetInt(vform, i, FPToInt32(op, rounding_mode));
     }
   } else {
     VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-      double op = src.Float<double>(i) * pow(2.0, fbits);
+      double op = src.Float<double>(i) * std::pow(2.0, fbits);
       dst.SetInt(vform, i, FPToInt64(op, rounding_mode));
     }
   }
@@ -4051,13 +4409,13 @@ LogicVRegister Simulator::fcvtu(VectorFormat vform,
   dst.ClearForWrite(vform);
   if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-      float op = src.Float<float>(i) * powf(2.0f, fbits);
+      float op = src.Float<float>(i) * std::pow(2.0f, fbits);
       dst.SetUint(vform, i, FPToUInt32(op, rounding_mode));
     }
   } else {
     VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-      double op = src.Float<double>(i) * pow(2.0, fbits);
+      double op = src.Float<double>(i) * std::pow(2.0, fbits);
       dst.SetUint(vform, i, FPToUInt64(op, rounding_mode));
     }
   }
@@ -4182,7 +4540,7 @@ static inline uint64_t Bits(uint64_t val, int start_bit, int end_bit) {
 
 template <typename T>
 T Simulator::FPRecipSqrtEstimate(T op) {
-  if (isnan(op)) {
+  if (std::isnan(op)) {
     return FPProcessNaN(op);
   } else if (op == 0.0) {
     if (copysign(1.0, op) < 0.0) {
@@ -4193,7 +4551,7 @@ T Simulator::FPRecipSqrtEstimate(T op) {
   } else if (copysign(1.0, op) < 0.0) {
     FPProcessException();
     return FPDefaultNaN<T>();
-  } else if (isinf(op)) {
+  } else if (std::isinf(op)) {
     return 0.0;
   } else {
     uint64_t fraction;
@@ -4271,17 +4629,17 @@ T Simulator::FPRecipEstimate(T op, FPRounding rounding) {
     sign = double_sign(op);
   }
 
-  if (isnan(op)) {
+  if (std::isnan(op)) {
     return FPProcessNaN(op);
-  } else if (isinf(op)) {
+  } else if (std::isinf(op)) {
     return (sign == 1) ? -0.0 : 0.0;
   } else if (op == 0.0) {
     FPProcessException();  // FPExc_DivideByZero exception.
     return (sign == 1) ? kFP64NegativeInfinity : kFP64PositiveInfinity;
   } else if (((sizeof(T) == sizeof(float)) &&  // NOLINT(runtime/sizeof)
-              (fabsf(op) < pow(2.0, -128))) ||
+              (std::fabs(op) < std::pow(2.0, -128.0))) ||
              ((sizeof(T) == sizeof(double)) &&  // NOLINT(runtime/sizeof)
-              (fabs(op) < pow(2.0, -1024)))) {
+              (std::fabs(op) < std::pow(2.0, -1024.0)))) {
     bool overflow_to_inf = false;
     switch (rounding) {
       case FPTieEven: overflow_to_inf = true; break;
@@ -4338,9 +4696,9 @@ T Simulator::FPRecipEstimate(T op, FPRounding rounding) {
 
     fraction = double_mantissa(estimate);
     if (result_exp == 0) {
-      fraction = (1L << 51) | Bits(fraction, 51, 1);
+      fraction = (UINT64_C(1) << 51) | Bits(fraction, 51, 1);
     } else if (result_exp == -1) {
-      fraction = (1L << 50) | Bits(fraction, 51, 2);
+      fraction = (UINT64_C(1) << 50) | Bits(fraction, 51, 2);
       result_exp = 0;
     }
     if (sizeof(T) == sizeof(float)) {  // NOLINT(runtime/sizeof)
@@ -4384,8 +4742,8 @@ LogicVRegister Simulator::ursqrte(VectorFormat vform,
     if (operand <= 0x3FFFFFFF) {
       result = 0xFFFFFFFF;
     } else {
-      dp_operand = operand * pow(2.0, -32);
-      dp_result = recip_sqrt_estimate(dp_operand) * pow(2.0, 31);
+      dp_operand = operand * std::pow(2.0, -32);
+      dp_result = recip_sqrt_estimate(dp_operand) * std::pow(2.0, 31);
       result = static_cast<uint32_t>(dp_result);
     }
     dst.SetUint(vform, i, result);
@@ -4416,8 +4774,8 @@ LogicVRegister Simulator::urecpe(VectorFormat vform,
     if (operand <= 0x7FFFFFFF) {
       result = 0xFFFFFFFF;
     } else {
-      dp_operand = operand * pow(2.0, -32);
-      dp_result = recip_estimate(dp_operand) * pow(2.0, 31);
+      dp_operand = operand * std::pow(2.0, -32);
+      dp_result = recip_estimate(dp_operand) * std::pow(2.0, 31);
       result = static_cast<uint32_t>(dp_result);
     }
     dst.SetUint(vform, i, result);
@@ -4433,7 +4791,7 @@ LogicVRegister Simulator::frecpx(VectorFormat vform,
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     T op = src.Float<T>(i);
     T result;
-    if (isnan(op)) {
+    if (std::isnan(op)) {
        result = FPProcessNaN(op);
     } else {
       int exp;

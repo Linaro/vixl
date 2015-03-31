@@ -27,8 +27,8 @@
 #include <stdlib.h>
 #include "test-runner.h"
 
-#include "a64/decoder-a64.h"
-#include "a64/disasm-a64.h"
+#include "vixl/a64/decoder-a64.h"
+#include "vixl/a64/disasm-a64.h"
 
 #define TEST(name)  TEST_(FUZZ_##name)
 

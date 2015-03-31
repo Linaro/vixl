@@ -27,9 +27,10 @@
 #ifndef VIXL_UTILS_H
 #define VIXL_UTILS_H
 
-#include <math.h>
 #include <string.h>
-#include "globals.h"
+#include <cmath>
+#include "vixl/globals.h"
+#include "vixl/compiler-intrinsics.h"
 
 namespace vixl {
 
@@ -121,7 +122,7 @@ int float16classify(float16 value);
 inline bool IsSignallingNaN(double num) {
   const uint64_t kFP64QuietNaNMask = UINT64_C(0x0008000000000000);
   uint64_t raw = double_to_rawbits(num);
-  if (isnan(num) && ((raw & kFP64QuietNaNMask) == 0)) {
+  if (std::isnan(num) && ((raw & kFP64QuietNaNMask) == 0)) {
     return true;
   }
   return false;
@@ -131,7 +132,7 @@ inline bool IsSignallingNaN(double num) {
 inline bool IsSignallingNaN(float num) {
   const uint32_t kFP32QuietNaNMask = 0x00400000;
   uint32_t raw = float_to_rawbits(num);
-  if (isnan(num) && ((raw & kFP32QuietNaNMask) == 0)) {
+  if (std::isnan(num) && ((raw & kFP32QuietNaNMask) == 0)) {
     return true;
   }
   return false;
@@ -147,21 +148,21 @@ inline bool IsSignallingNaN(float16 num) {
 
 template <typename T>
 inline bool IsQuietNaN(T num) {
-  return isnan(num) && !IsSignallingNaN(num);
+  return std::isnan(num) && !IsSignallingNaN(num);
 }
 
 
 // Convert the NaN in 'num' to a quiet NaN.
 inline double ToQuietNaN(double num) {
   const uint64_t kFP64QuietNaNMask = UINT64_C(0x0008000000000000);
-  VIXL_ASSERT(isnan(num));
+  VIXL_ASSERT(std::isnan(num));
   return rawbits_to_double(double_to_rawbits(num) | kFP64QuietNaNMask);
 }
 
 
 inline float ToQuietNaN(float num) {
   const uint32_t kFP32QuietNaNMask = 0x00400000;
-  VIXL_ASSERT(isnan(num));
+  VIXL_ASSERT(std::isnan(num));
   return rawbits_to_float(float_to_rawbits(num) | kFP32QuietNaNMask);
 }
 
@@ -177,14 +178,23 @@ inline float FusedMultiplyAdd(float op1, float op2, float a) {
 }
 
 
-// Bit counting.
-int CountLeadingZeros(uint64_t value, int width);
-int CountLeadingSignBits(int64_t value, int width);
-int CountTrailingZeros(uint64_t value, int width);
-int CountSetBits(uint64_t value, int width);
-uint64_t LowestSetBit(uint64_t value);
-int HighestSetBitPosition(uint64_t value);
-bool IsPowerOf2(int64_t value);
+inline uint64_t LowestSetBit(uint64_t value) {
+  return value & -value;
+}
+
+
+template<typename T>
+inline int HighestSetBitPosition(T value) {
+  VIXL_ASSERT(value != 0);
+  return (sizeof(value) * 8 - 1) - CountLeadingZeros(value);
+}
+
+
+template<typename V>
+inline int WhichPowerOf2(V value) {
+  VIXL_ASSERT(IsPowerOf2(value));
+  return CountTrailingZeros(value);
+}
 
 unsigned CountClearHalfWords(uint64_t imm, unsigned reg_size);
 

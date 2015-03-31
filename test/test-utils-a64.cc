@@ -26,13 +26,13 @@
 
 #include "test-utils-a64.h"
 
-#include <math.h>   // Needed for isnan().
+#include <cmath>
 
 #include "test-runner.h"
-#include "a64/macro-assembler-a64.h"
-#include "a64/simulator-a64.h"
-#include "a64/disasm-a64.h"
-#include "a64/cpu-a64.h"
+#include "vixl/a64/macro-assembler-a64.h"
+#include "vixl/a64/simulator-a64.h"
+#include "vixl/a64/disasm-a64.h"
+#include "vixl/a64/cpu-a64.h"
 
 #define __ masm->
 
@@ -85,7 +85,7 @@ bool EqualFP32(float expected, const RegisterDump*, float result) {
   if (float_to_rawbits(expected) == float_to_rawbits(result)) {
     return true;
   } else {
-    if (isnan(expected) || (expected == 0.0)) {
+    if (std::isnan(expected) || (expected == 0.0)) {
       printf("Expected 0x%08" PRIx32 "\t Found 0x%08" PRIx32 "\n",
              float_to_rawbits(expected), float_to_rawbits(result));
     } else {
@@ -104,7 +104,7 @@ bool EqualFP64(double expected, const RegisterDump*, double result) {
     return true;
   }
 
-  if (isnan(expected) || (expected == 0.0)) {
+  if (std::isnan(expected) || (expected == 0.0)) {
     printf("Expected 0x%016" PRIx64 "\t Found 0x%016" PRIx64 "\n",
            double_to_rawbits(expected), double_to_rawbits(result));
   } else {

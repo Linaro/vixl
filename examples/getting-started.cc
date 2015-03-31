@@ -24,8 +24,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "a64/simulator-a64.h"
-#include "a64/macro-assembler-a64.h"
+#include "vixl/a64/simulator-a64.h"
+#include "vixl/a64/macro-assembler-a64.h"
 
 #define BUF_SIZE (4096)
 #define __ masm->

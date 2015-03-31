@@ -27,7 +27,7 @@
 #ifndef VIXL_EXAMPLES_CUSTOM_DISASSEMBLER_H_
 #define VIXL_EXAMPLES_CUSTOM_DISASSEMBLER_H_
 
-#include "a64/disasm-a64.h"
+#include "vixl/a64/disasm-a64.h"
 
 using namespace vixl;
 

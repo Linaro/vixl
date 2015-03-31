@@ -49,7 +49,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stddef.h>
-#include "platform.h"
+#include "vixl/platform.h"
 
 
 typedef uint8_t byte;
@@ -87,5 +87,21 @@ template <typename T> inline void USE(T, T, T) {}
 template <typename T> inline void USE(T, T, T, T) {}
 
 #define VIXL_ALIGNMENT_EXCEPTION() printf("ALIGNMENT EXCEPTION\t"); VIXL_ABORT()
+
+// The clang::fallthrough attribute is used along with the Wimplicit-fallthrough
+// argument to annotate intentional fall-through between switch labels.
+// For more information please refer to:
+// http://clang.llvm.org/docs/AttributeReference.html#fallthrough-clang-fallthrough
+#ifndef __has_warning
+  #define __has_warning(x)  0
+#endif
+
+// Note: This option is only available for Clang. And will only be enabled for
+// C++11(201103L).
+#if __has_warning("-Wimplicit-fallthrough") && __cplusplus >= 201103L
+  #define VIXL_FALLTHROUGH() [[clang::fallthrough]] //NOLINT
+#else
+  #define VIXL_FALLTHROUGH() do {} while (0)
+#endif
 
 #endif  // VIXL_GLOBALS_H

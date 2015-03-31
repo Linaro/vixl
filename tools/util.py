@@ -24,6 +24,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import os
 import sys
 import subprocess
 import shlex
@@ -49,3 +50,8 @@ def last_line(text):
   lines = text.split('\n')
   last = lines[-1].split('\r')
   return last[-1]
+
+
+def has_compiler(compiler):
+  status, output = getstatusoutput('which ' + compiler)
+  return status == 0

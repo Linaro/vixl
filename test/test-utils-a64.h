@@ -28,10 +28,10 @@
 #define VIXL_A64_TEST_UTILS_A64_H_
 
 #include "test-runner.h"
-#include "a64/macro-assembler-a64.h"
-#include "a64/simulator-a64.h"
-#include "a64/disasm-a64.h"
-#include "a64/cpu-a64.h"
+#include "vixl/a64/macro-assembler-a64.h"
+#include "vixl/a64/simulator-a64.h"
+#include "vixl/a64/disasm-a64.h"
+#include "vixl/a64/cpu-a64.h"
 
 namespace vixl {
 

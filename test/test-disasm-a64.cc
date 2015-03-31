@@ -28,8 +28,8 @@
 #include <cstring>
 #include "test-runner.h"
 
-#include "a64/macro-assembler-a64.h"
-#include "a64/disasm-a64.h"
+#include "vixl/a64/macro-assembler-a64.h"
+#include "vixl/a64/disasm-a64.h"
 
 #define TEST(name)  TEST_(DISASM_##name)
 
@@ -457,6 +457,7 @@ TEST(mul_and_div) {
   COMPARE(smull(x0, w0, w1), "smull x0, w0, w1");
   COMPARE(smull(x30, w30, w0), "smull x30, w30, w0");
   COMPARE(smulh(x0, x1, x2), "smulh x0, x1, x2");
+  COMPARE(umulh(x0, x2, x1), "umulh x0, x2, x1");
 
   COMPARE(sdiv(w0, w1, w2), "sdiv w0, w1, w2");
   COMPARE(sdiv(x3, x4, x5), "sdiv x3, x4, x5");
@@ -2361,6 +2362,13 @@ TEST(fp_compare) {
   COMPARE(fcmp(s12, 0), "fcmp s12, #0.0");
   COMPARE(fcmp(d12, 0), "fcmp d12, #0.0");
 
+  COMPARE(fcmpe(s0, s1), "fcmpe s0, s1");
+  COMPARE(fcmpe(s31, s30), "fcmpe s31, s30");
+  COMPARE(fcmpe(d0, d1), "fcmpe d0, d1");
+  COMPARE(fcmpe(d31, d30), "fcmpe d31, d30");
+  COMPARE(fcmpe(s12, 0), "fcmpe s12, #0.0");
+  COMPARE(fcmpe(d12, 0), "fcmpe d12, #0.0");
+
   CLEANUP();
 }
 
@@ -2378,6 +2386,17 @@ TEST(fp_cond_compare) {
   COMPARE(fccmp(d31, d31, ZFlag, hs), "fccmp d31, d31, #nZcv, hs");
   COMPARE(fccmp(s14, s15, CVFlag, al), "fccmp s14, s15, #nzCV, al");
   COMPARE(fccmp(d16, d17, CFlag, nv), "fccmp d16, d17, #nzCv, nv");
+
+  COMPARE(fccmpe(s0, s1, NoFlag, eq), "fccmpe s0, s1, #nzcv, eq");
+  COMPARE(fccmpe(s2, s3, ZVFlag, ne), "fccmpe s2, s3, #nZcV, ne");
+  COMPARE(fccmpe(s30, s16, NCFlag, pl), "fccmpe s30, s16, #NzCv, pl");
+  COMPARE(fccmpe(s31, s31, NZCVFlag, le), "fccmpe s31, s31, #NZCV, le");
+  COMPARE(fccmpe(d4, d5, VFlag, gt), "fccmpe d4, d5, #nzcV, gt");
+  COMPARE(fccmpe(d6, d7, NFlag, vs), "fccmpe d6, d7, #Nzcv, vs");
+  COMPARE(fccmpe(d30, d0, NZFlag, vc), "fccmpe d30, d0, #NZcv, vc");
+  COMPARE(fccmpe(d31, d31, ZFlag, hs), "fccmpe d31, d31, #nZcv, hs");
+  COMPARE(fccmpe(s14, s15, CVFlag, al), "fccmpe s14, s15, #nzCV, al");
+  COMPARE(fccmpe(d16, d17, CFlag, nv), "fccmpe d16, d17, #nzCv, nv");
 
   CLEANUP();
 }
@@ -2654,6 +2673,12 @@ TEST(add_sub_negative) {
 
   COMPARE(Add(w19, w3, -0x344), "sub w19, w3, #0x344 (836)");
   COMPARE(Add(w20, w4, -2000), "sub w20, w4, #0x7d0 (2000)");
+
+  COMPARE(Add(w0, w1, 5, LeaveFlags), "add w0, w1, #0x5 (5)");
+  COMPARE(Add(w1, w2, 15, SetFlags), "adds w1, w2, #0xf (15)");
+
+  COMPARE(Sub(w0, w1, 5, LeaveFlags), "sub w0, w1, #0x5 (5)");
+  COMPARE(Sub(w1, w2, 15, SetFlags), "subs w1, w2, #0xf (15)");
 
   COMPARE(Sub(w21, w3, -0xbc), "add w21, w3, #0xbc (188)");
   COMPARE(Sub(w22, w4, -2000), "add w22, w4, #0x7d0 (2000)");

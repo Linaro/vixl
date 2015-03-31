@@ -24,7 +24,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "utils.h"
+#include "vixl/utils.h"
 #include <stdio.h>
 
 namespace vixl {
@@ -124,91 +124,6 @@ int float16classify(float16 value) {
     return FP_NAN;
   }
   return FP_NORMAL;
-}
-
-
-int CountLeadingZeros(uint64_t value, int width) {
-  VIXL_ASSERT((width == 8) || (width == 16) || (width == 32) || (width == 64));
-  int count = 0;
-  uint64_t bit_test = UINT64_C(1) << (width - 1);
-  while ((count < width) && ((bit_test & value) == 0)) {
-    count++;
-    bit_test >>= 1;
-  }
-  return count;
-}
-
-
-int CountLeadingSignBits(int64_t value, int width) {
-  VIXL_ASSERT((width == 8) || (width == 16) || (width == 32) || (width == 64));
-  if (value >= 0) {
-    return CountLeadingZeros(value, width) - 1;
-  } else {
-    return CountLeadingZeros(~value, width) - 1;
-  }
-}
-
-
-int CountTrailingZeros(uint64_t value, int width) {
-  VIXL_ASSERT((width == 32) || (width == 64));
-  int count = 0;
-  while ((count < width) && (((value >> count) & 1) == 0)) {
-    count++;
-  }
-  return count;
-}
-
-
-int CountSetBits(uint64_t value, int width) {
-  // TODO: Other widths could be added here, as the implementation already
-  // supports them.
-  VIXL_ASSERT((width == 32) || (width == 64));
-
-  // Mask out unused bits to ensure that they are not counted.
-  value &= (UINT64_C(0xffffffffffffffff) >> (64-width));
-
-  // Add up the set bits.
-  // The algorithm works by adding pairs of bit fields together iteratively,
-  // where the size of each bit field doubles each time.
-  // An example for an 8-bit value:
-  // Bits:  h  g  f  e  d  c  b  a
-  //         \ |   \ |   \ |   \ |
-  // value = h+g   f+e   d+c   b+a
-  //            \    |      \    |
-  // value =   h+g+f+e     d+c+b+a
-  //                  \          |
-  // value =       h+g+f+e+d+c+b+a
-  const uint64_t kMasks[] = {
-    UINT64_C(0x5555555555555555),
-    UINT64_C(0x3333333333333333),
-    UINT64_C(0x0f0f0f0f0f0f0f0f),
-    UINT64_C(0x00ff00ff00ff00ff),
-    UINT64_C(0x0000ffff0000ffff),
-    UINT64_C(0x00000000ffffffff),
-  };
-
-  for (unsigned i = 0; i < (sizeof(kMasks) / sizeof(kMasks[0])); i++) {
-    int shift = 1 << i;
-    value = ((value >> shift) & kMasks[i]) + (value & kMasks[i]);
-  }
-
-  return value;
-}
-
-
-uint64_t LowestSetBit(uint64_t value) {
-  return value & -value;
-}
-
-
-int HighestSetBitPosition(uint64_t number) {
-  VIXL_ASSERT(number != 0);
-  return 63 - CountLeadingZeros(number, 64);
-}
-
-
-bool IsPowerOf2(int64_t value) {
-  return (value != 0) && ((value & (value - 1)) == 0);
 }
 
 

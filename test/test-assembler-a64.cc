@@ -27,16 +27,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include <float.h>
+#include <cmath>
 
 #include "test-runner.h"
 #include "test-utils-a64.h"
-#include "a64/macro-assembler-a64.h"
-#include "a64/simulator-a64.h"
-#include "a64/debugger-a64.h"
-#include "a64/disasm-a64.h"
-#include "a64/cpu-a64.h"
+#include "vixl/a64/macro-assembler-a64.h"
+#include "vixl/a64/simulator-a64.h"
+#include "vixl/a64/debugger-a64.h"
+#include "vixl/a64/disasm-a64.h"
+#include "vixl/a64/cpu-a64.h"
 
 namespace vixl {
 
@@ -1072,28 +1072,28 @@ TEST(mul) {
   SETUP();
 
   START();
-  __ Mov(x16, 0);
-  __ Mov(x17, 1);
+  __ Mov(x25, 0);
+  __ Mov(x26, 1);
   __ Mov(x18, 0xffffffff);
   __ Mov(x19, 0xffffffffffffffff);
 
-  __ Mul(w0, w16, w16);
-  __ Mul(w1, w16, w17);
-  __ Mul(w2, w17, w18);
+  __ Mul(w0, w25, w25);
+  __ Mul(w1, w25, w26);
+  __ Mul(w2, w26, w18);
   __ Mul(w3, w18, w19);
-  __ Mul(x4, x16, x16);
-  __ Mul(x5, x17, x18);
+  __ Mul(x4, x25, x25);
+  __ Mul(x5, x26, x18);
   __ Mul(x6, x18, x19);
   __ Mul(x7, x19, x19);
-  __ Smull(x8, w17, w18);
+  __ Smull(x8, w26, w18);
   __ Smull(x9, w18, w18);
   __ Smull(x10, w19, w19);
-  __ Mneg(w11, w16, w16);
-  __ Mneg(w12, w16, w17);
-  __ Mneg(w13, w17, w18);
+  __ Mneg(w11, w25, w25);
+  __ Mneg(w12, w25, w26);
+  __ Mneg(w13, w26, w18);
   __ Mneg(w14, w18, w19);
-  __ Mneg(x20, x16, x16);
-  __ Mneg(x21, x17, x18);
+  __ Mneg(x20, x25, x25);
+  __ Mneg(x21, x26, x18);
   __ Mneg(x22, x18, x19);
   __ Mneg(x23, x19, x19);
   END();
@@ -1328,6 +1328,54 @@ TEST(smulh) {
   ASSERT_EQUAL_64(0x1c71c71c71c71c71, x9);
   ASSERT_EQUAL_64(0xe38e38e38e38e38e, x10);
   ASSERT_EQUAL_64(0x1c71c71c71c71c72, x11);
+
+  TEARDOWN();
+}
+
+
+TEST(umulh) {
+  SETUP();
+
+  START();
+  __ Mov(x20, 0);
+  __ Mov(x21, 1);
+  __ Mov(x22, 0x0000000100000000);
+  __ Mov(x23, 0x0000000012345678);
+  __ Mov(x24, 0x0123456789abcdef);
+  __ Mov(x25, 0x0000000200000000);
+  __ Mov(x26, 0x8000000000000000);
+  __ Mov(x27, 0xffffffffffffffff);
+  __ Mov(x28, 0x5555555555555555);
+  __ Mov(x29, 0xaaaaaaaaaaaaaaaa);
+
+  __ Umulh(x0, x20, x24);
+  __ Umulh(x1, x21, x24);
+  __ Umulh(x2, x22, x23);
+  __ Umulh(x3, x22, x24);
+  __ Umulh(x4, x24, x25);
+  __ Umulh(x5, x23, x27);
+  __ Umulh(x6, x26, x26);
+  __ Umulh(x7, x26, x27);
+  __ Umulh(x8, x27, x27);
+  __ Umulh(x9, x28, x28);
+  __ Umulh(x10, x28, x29);
+  __ Umulh(x11, x29, x29);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(0, x0);
+  ASSERT_EQUAL_64(0, x1);
+  ASSERT_EQUAL_64(0, x2);
+  ASSERT_EQUAL_64(0x0000000001234567, x3);
+  ASSERT_EQUAL_64(0x0000000002468acf, x4);
+  ASSERT_EQUAL_64(0x0000000012345677, x5);
+  ASSERT_EQUAL_64(0x4000000000000000, x6);
+  ASSERT_EQUAL_64(0x7fffffffffffffff, x7);
+  ASSERT_EQUAL_64(0xfffffffffffffffe, x8);
+  ASSERT_EQUAL_64(0x1c71c71c71c71c71, x9);
+  ASSERT_EQUAL_64(0x38e38e38e38e38e3, x10);
+  ASSERT_EQUAL_64(0x71c71c71c71c71c6, x11);
 
   TEARDOWN();
 }
@@ -9446,26 +9494,26 @@ static float MinMaxHelper(float n,
   uint32_t raw_n = float_to_rawbits(n);
   uint32_t raw_m = float_to_rawbits(m);
 
-  if (isnan(n) && ((raw_n & kFP32QuietNaNMask) == 0)) {
+  if (std::isnan(n) && ((raw_n & kFP32QuietNaNMask) == 0)) {
     // n is signalling NaN.
     return rawbits_to_float(raw_n | kFP32QuietNaNMask);
-  } else if (isnan(m) && ((raw_m & kFP32QuietNaNMask) == 0)) {
+  } else if (std::isnan(m) && ((raw_m & kFP32QuietNaNMask) == 0)) {
     // m is signalling NaN.
     return rawbits_to_float(raw_m | kFP32QuietNaNMask);
   } else if (quiet_nan_substitute == 0.0) {
-    if (isnan(n)) {
+    if (std::isnan(n)) {
       // n is quiet NaN.
       return n;
-    } else if (isnan(m)) {
+    } else if (std::isnan(m)) {
       // m is quiet NaN.
       return m;
     }
   } else {
     // Substitute n or m if one is quiet, but not both.
-    if (isnan(n) && !isnan(m)) {
+    if (std::isnan(n) && !std::isnan(m)) {
       // n is quiet NaN: replace with substitute.
       n = quiet_nan_substitute;
-    } else if (!isnan(n) && isnan(m)) {
+    } else if (!std::isnan(n) && std::isnan(m)) {
       // m is quiet NaN: replace with substitute.
       m = quiet_nan_substitute;
     }
@@ -9488,26 +9536,26 @@ static double MinMaxHelper(double n,
   uint64_t raw_n = double_to_rawbits(n);
   uint64_t raw_m = double_to_rawbits(m);
 
-  if (isnan(n) && ((raw_n & kFP64QuietNaNMask) == 0)) {
+  if (std::isnan(n) && ((raw_n & kFP64QuietNaNMask) == 0)) {
     // n is signalling NaN.
     return rawbits_to_double(raw_n | kFP64QuietNaNMask);
-  } else if (isnan(m) && ((raw_m & kFP64QuietNaNMask) == 0)) {
+  } else if (std::isnan(m) && ((raw_m & kFP64QuietNaNMask) == 0)) {
     // m is signalling NaN.
     return rawbits_to_double(raw_m | kFP64QuietNaNMask);
   } else if (quiet_nan_substitute == 0.0) {
-    if (isnan(n)) {
+    if (std::isnan(n)) {
       // n is quiet NaN.
       return n;
-    } else if (isnan(m)) {
+    } else if (std::isnan(m)) {
       // m is quiet NaN.
       return m;
     }
   } else {
     // Substitute n or m if one is quiet, but not both.
-    if (isnan(n) && !isnan(m)) {
+    if (std::isnan(n) && !std::isnan(m)) {
       // n is quiet NaN: replace with substitute.
       n = quiet_nan_substitute;
-    } else if (!isnan(n) && isnan(m)) {
+    } else if (!std::isnan(n) && std::isnan(m)) {
       // m is quiet NaN: replace with substitute.
       m = quiet_nan_substitute;
     }
@@ -9700,6 +9748,10 @@ TEST(fccmp) {
   __ Fmov(d18, -0.5);
   __ Fmov(d19, -1.0);
   __ Mov(x20, 0);
+  __ Mov(x21, 0x7ff0000000000001);  // Double precision NaN.
+  __ Fmov(d21, x21);
+  __ Mov(w22, 0x7f800001);  // Single precision NaN.
+  __ Fmov(s22, w22);
 
   __ Cmp(x20, 0);
   __ Fccmp(s16, s16, NoFlag, eq);
@@ -9739,6 +9791,22 @@ TEST(fccmp) {
 
   __ fccmp(d18, d18, NFlag, nv);
   __ Mrs(x9, NZCV);
+
+  __ Cmp(x20, 0);
+  __ Fccmpe(s16, s16, NoFlag, eq);
+  __ Mrs(x10, NZCV);
+
+  __ Cmp(x20, 0);
+  __ Fccmpe(d18, d19, ZCVFlag, ls);
+  __ Mrs(x11, NZCV);
+
+  __ Cmp(x20, 0);
+  __ Fccmpe(d21, d21, NoFlag, eq);
+  __ Mrs(x12, NZCV);
+
+  __ Cmp(x20, 0);
+  __ Fccmpe(s22, s22, NoFlag, eq);
+  __ Mrs(x13, NZCV);
   END();
 
   RUN();
@@ -9753,6 +9821,10 @@ TEST(fccmp) {
   ASSERT_EQUAL_32(NFlag, w7);
   ASSERT_EQUAL_32(ZCFlag, w8);
   ASSERT_EQUAL_32(ZCFlag, w9);
+  ASSERT_EQUAL_32(ZCFlag, w10);
+  ASSERT_EQUAL_32(CFlag, w11);
+  ASSERT_EQUAL_32(CVFlag, w12);
+  ASSERT_EQUAL_32(CVFlag, w13);
 
   TEARDOWN();
 }
@@ -9813,6 +9885,19 @@ TEST(fcmp) {
     __ Fcmp(d19, 12.3456);
     temps.Exclude(d0);
     __ Mrs(x16, NZCV);
+
+    __ Fcmpe(s8, s8);
+    __ Mrs(x22, NZCV);
+    __ Fcmpe(s8, 0.0);
+    __ Mrs(x23, NZCV);
+    __ Fcmpe(d19, d19);
+    __ Mrs(x24, NZCV);
+    __ Fcmpe(d19, 0.0);
+    __ Mrs(x25, NZCV);
+    __ Fcmpe(s18, s18);
+    __ Mrs(x26, NZCV);
+    __ Fcmpe(d21, d21);
+    __ Mrs(x27, NZCV);
   }
 
   END();
@@ -9833,6 +9918,12 @@ TEST(fcmp) {
   ASSERT_EQUAL_32(CVFlag, w14);
   ASSERT_EQUAL_32(ZCFlag, w15);
   ASSERT_EQUAL_32(NFlag, w16);
+  ASSERT_EQUAL_32(ZCFlag, w22);
+  ASSERT_EQUAL_32(ZCFlag, w23);
+  ASSERT_EQUAL_32(ZCFlag, w24);
+  ASSERT_EQUAL_32(ZCFlag, w25);
+  ASSERT_EQUAL_32(CVFlag, w26);
+  ASSERT_EQUAL_32(CVFlag, w27);
 
   TEARDOWN();
 }
@@ -11869,16 +11960,16 @@ static void TestUScvtfHelper(uint64_t in,
   double expected_ucvtf_base = rawbits_to_double(expected_ucvtf_bits);
 
   for (int fbits = 0; fbits <= 32; fbits++) {
-    double expected_scvtf = expected_scvtf_base / pow(2, fbits);
-    double expected_ucvtf = expected_ucvtf_base / pow(2, fbits);
+    double expected_scvtf = expected_scvtf_base / std::pow(2, fbits);
+    double expected_ucvtf = expected_ucvtf_base / std::pow(2, fbits);
     ASSERT_EQUAL_FP64(expected_scvtf, results_scvtf_x[fbits]);
     ASSERT_EQUAL_FP64(expected_ucvtf, results_ucvtf_x[fbits]);
     if (cvtf_s32) ASSERT_EQUAL_FP64(expected_scvtf, results_scvtf_w[fbits]);
     if (cvtf_u32) ASSERT_EQUAL_FP64(expected_ucvtf, results_ucvtf_w[fbits]);
   }
   for (int fbits = 33; fbits <= 64; fbits++) {
-    double expected_scvtf = expected_scvtf_base / pow(2, fbits);
-    double expected_ucvtf = expected_ucvtf_base / pow(2, fbits);
+    double expected_scvtf = expected_scvtf_base / std::pow(2, fbits);
+    double expected_ucvtf = expected_ucvtf_base / std::pow(2, fbits);
     ASSERT_EQUAL_FP64(expected_scvtf, results_scvtf_x[fbits]);
     ASSERT_EQUAL_FP64(expected_ucvtf, results_ucvtf_x[fbits]);
   }
@@ -12023,18 +12114,16 @@ static void TestUScvtf32Helper(uint64_t in,
   float expected_ucvtf_base = rawbits_to_float(expected_ucvtf_bits);
 
   for (int fbits = 0; fbits <= 32; fbits++) {
-    float expected_scvtf = expected_scvtf_base / powf(2, fbits);
-    float expected_ucvtf = expected_ucvtf_base / powf(2, fbits);
+    float expected_scvtf = expected_scvtf_base / std::pow(2.0f, fbits);
+    float expected_ucvtf = expected_ucvtf_base / std::pow(2.0f, fbits);
     ASSERT_EQUAL_FP32(expected_scvtf, results_scvtf_x[fbits]);
     ASSERT_EQUAL_FP32(expected_ucvtf, results_ucvtf_x[fbits]);
     if (cvtf_s32) ASSERT_EQUAL_FP32(expected_scvtf, results_scvtf_w[fbits]);
     if (cvtf_u32) ASSERT_EQUAL_FP32(expected_ucvtf, results_ucvtf_w[fbits]);
-    break;
   }
   for (int fbits = 33; fbits <= 64; fbits++) {
-    break;
-    float expected_scvtf = expected_scvtf_base / powf(2, fbits);
-    float expected_ucvtf = expected_ucvtf_base / powf(2, fbits);
+    float expected_scvtf = expected_scvtf_base / std::pow(2.0f, fbits);
+    float expected_ucvtf = expected_ucvtf_base / std::pow(2.0f, fbits);
     ASSERT_EQUAL_FP32(expected_scvtf, results_scvtf_x[fbits]);
     ASSERT_EQUAL_FP32(expected_ucvtf, results_ucvtf_x[fbits]);
   }
@@ -12617,6 +12706,10 @@ TEST(peek_poke_mixed) {
   SETUP();
   START();
 
+  // Acquire all temps from the MacroAssembler. They are used arbitrarily below.
+  UseScratchRegisterScope temps(&masm);
+  temps.ExcludeAll();
+
   // The literal base is chosen to have two useful properties:
   //  * When multiplied by small values (such as a register index), this value
   //    is clearly readable in the result.
@@ -12686,6 +12779,10 @@ TEST(peek_poke_mixed) {
 TEST(peek_poke_reglist) {
   SETUP();
   START();
+
+  // Acquire all temps from the MacroAssembler. They are used arbitrarily below.
+  UseScratchRegisterScope temps(&masm);
+  temps.ExcludeAll();
 
   // The literal base is chosen to have two useful properties:
   //  * When multiplied by small values (such as a register index), this value
@@ -12769,6 +12866,121 @@ TEST(peek_poke_reglist) {
 }
 
 
+TEST(load_store_reglist) {
+  SETUP();
+  START();
+
+  // The literal base is chosen to have two useful properties:
+  //  * When multiplied by small values (such as a register index), this value
+  //    is clearly readable in the result.
+  //  * The value is not formed from repeating fixed-size smaller values, so it
+  //    can be used to detect endianness-related errors.
+  uint64_t high_base = UINT32_C(0x01000010);
+  uint64_t low_base =  UINT32_C(0x00100101);
+  uint64_t base = (high_base << 32) | low_base;
+  uint64_t array[21];
+  memset(array, 0, sizeof(array));
+
+  // Initialize the registers.
+  __ Mov(x1, base);
+  __ Add(x2, x1, x1);
+  __ Add(x3, x2, x1);
+  __ Add(x4, x3, x1);
+  __ Fmov(d1, x1);
+  __ Fmov(d2, x2);
+  __ Fmov(d3, x3);
+  __ Fmov(d4, x4);
+  __ Fmov(d5, x1);
+  __ Fmov(d6, x2);
+  __ Fmov(d7, x3);
+  __ Fmov(d8, x4);
+
+  Register reg_base = x20;
+  Register reg_index = x21;
+  int size_stored = 0;
+
+  __ Mov(reg_base, reinterpret_cast<uintptr_t>(&array));
+
+  // Test aligned accesses.
+  CPURegList list_src(w1, w2, w3, w4);
+  CPURegList list_dst(w11, w12, w13, w14);
+  CPURegList list_fp_src_1(d1, d2, d3, d4);
+  CPURegList list_fp_dst_1(d11, d12, d13, d14);
+
+  __ StoreCPURegList(list_src, MemOperand(reg_base, 0 * sizeof(uint64_t)));
+  __ LoadCPURegList(list_dst, MemOperand(reg_base, 0 * sizeof(uint64_t)));
+  size_stored += 4 * kWRegSizeInBytes;
+
+  __ Mov(reg_index, size_stored);
+  __ StoreCPURegList(list_src, MemOperand(reg_base, reg_index));
+  __ LoadCPURegList(list_dst, MemOperand(reg_base, reg_index));
+  size_stored += 4 * kWRegSizeInBytes;
+
+  __ StoreCPURegList(list_fp_src_1, MemOperand(reg_base, size_stored));
+  __ LoadCPURegList(list_fp_dst_1, MemOperand(reg_base, size_stored));
+  size_stored += 4 * kDRegSizeInBytes;
+
+  __ Mov(reg_index, size_stored);
+  __ StoreCPURegList(list_fp_src_1, MemOperand(reg_base, reg_index));
+  __ LoadCPURegList(list_fp_dst_1, MemOperand(reg_base, reg_index));
+  size_stored += 4 * kDRegSizeInBytes;
+
+  // Test unaligned accesses.
+  CPURegList list_fp_src_2(d5, d6, d7, d8);
+  CPURegList list_fp_dst_2(d15, d16, d17, d18);
+
+  __ Str(wzr, MemOperand(reg_base, size_stored));
+  size_stored += 1 * kWRegSizeInBytes;
+  __ StoreCPURegList(list_fp_src_2, MemOperand(reg_base, size_stored));
+  __ LoadCPURegList(list_fp_dst_2, MemOperand(reg_base, size_stored));
+  size_stored += 4 * kDRegSizeInBytes;
+
+  __ Mov(reg_index, size_stored);
+  __ StoreCPURegList(list_fp_src_2, MemOperand(reg_base, reg_index));
+  __ LoadCPURegList(list_fp_dst_2, MemOperand(reg_base, reg_index));
+
+  END();
+  RUN();
+
+  VIXL_CHECK(array[0] == (1 * low_base) + (2 * low_base << kWRegSize));
+  VIXL_CHECK(array[1] == (3 * low_base) + (4 * low_base << kWRegSize));
+  VIXL_CHECK(array[2] == (1 * low_base) + (2 * low_base << kWRegSize));
+  VIXL_CHECK(array[3] == (3 * low_base) + (4 * low_base << kWRegSize));
+  VIXL_CHECK(array[4] == 1 * base);
+  VIXL_CHECK(array[5] == 2 * base);
+  VIXL_CHECK(array[6] == 3 * base);
+  VIXL_CHECK(array[7] == 4 * base);
+  VIXL_CHECK(array[8] == 1 * base);
+  VIXL_CHECK(array[9] == 2 * base);
+  VIXL_CHECK(array[10] == 3 * base);
+  VIXL_CHECK(array[11] == 4 * base);
+  VIXL_CHECK(array[12] == ((1 * low_base) << kSRegSize));
+  VIXL_CHECK(array[13] == (((2 * low_base) << kSRegSize) | (1 * high_base)));
+  VIXL_CHECK(array[14] == (((3 * low_base) << kSRegSize) | (2 * high_base)));
+  VIXL_CHECK(array[15] == (((4 * low_base) << kSRegSize) | (3 * high_base)));
+  VIXL_CHECK(array[16] == (((1 * low_base) << kSRegSize) | (4 * high_base)));
+  VIXL_CHECK(array[17] == (((2 * low_base) << kSRegSize) | (1 * high_base)));
+  VIXL_CHECK(array[18] == (((3 * low_base) << kSRegSize) | (2 * high_base)));
+  VIXL_CHECK(array[19] == (((4 * low_base) << kSRegSize) | (3 * high_base)));
+  VIXL_CHECK(array[20] == (4 * high_base));
+
+  ASSERT_EQUAL_64(1 * low_base, x11);
+  ASSERT_EQUAL_64(2 * low_base, x12);
+  ASSERT_EQUAL_64(3 * low_base, x13);
+  ASSERT_EQUAL_64(4 * low_base, x14);
+  ASSERT_EQUAL_FP64(rawbits_to_double(1 * base), d11);
+  ASSERT_EQUAL_FP64(rawbits_to_double(2 * base), d12);
+  ASSERT_EQUAL_FP64(rawbits_to_double(3 * base), d13);
+  ASSERT_EQUAL_FP64(rawbits_to_double(4 * base), d14);
+  ASSERT_EQUAL_FP64(rawbits_to_double(1 * base), d15);
+  ASSERT_EQUAL_FP64(rawbits_to_double(2 * base), d16);
+  ASSERT_EQUAL_FP64(rawbits_to_double(3 * base), d17);
+  ASSERT_EQUAL_FP64(rawbits_to_double(4 * base), d18);
+
+  TEARDOWN();
+}
+
+
 // This enum is used only as an argument to the push-pop test helpers.
 enum PushPopMethod {
   // Push or Pop using the Push and Pop methods, with blocks of up to four
@@ -12813,6 +13025,10 @@ static void PushPopXRegSimpleHelper(int reg_count,
   Register x[kNumberOfRegisters];
   RegList list = PopulateRegisterArray(NULL, x, r, reg_size, reg_count,
                                        allowed);
+
+  // Acquire all temps from the MacroAssembler. They are used arbitrarily below.
+  UseScratchRegisterScope temps(&masm);
+  temps.ExcludeAll();
 
   // The literal base is chosen to have two useful properties:
   //  * When multiplied by small values (such as a register index), this value
@@ -12993,6 +13209,10 @@ static void PushPopFPXRegSimpleHelper(int reg_count,
   // Arbitrarily pick a register to use as a stack pointer.
   const Register& stack_pointer = x10;
 
+  // Acquire all temps from the MacroAssembler. They are used arbitrarily below.
+  UseScratchRegisterScope temps(&masm);
+  temps.ExcludeAll();
+
   // The literal base is chosen to have two useful properties:
   //  * When multiplied (using an integer) by small values (such as a register
   //    index), this value is clearly readable in the result.
@@ -13167,6 +13387,10 @@ static void PushPopXRegMixedMethodsHelper(int claim, int reg_size) {
     r6_to_r9 |= x[i].Bit();
   }
 
+  // Acquire all temps from the MacroAssembler. They are used arbitrarily below.
+  UseScratchRegisterScope temps(&masm);
+  temps.ExcludeAll();
+
   // The literal base is chosen to have two useful properties:
   //  * When multiplied by small values (such as a register index), this value
   //    is clearly readable in the result.
@@ -13266,6 +13490,10 @@ static void PushPopXRegWXOverlapHelper(int reg_count, int claim) {
   for (int i = 0; i < kMaxWSlots; i++) {
     stack[i] = 0xdeadbeef;
   }
+
+  // Acquire all temps from the MacroAssembler. They are used arbitrarily below.
+  UseScratchRegisterScope temps(&masm);
+  temps.ExcludeAll();
 
   // The literal base is chosen to have two useful properties:
   //  * When multiplied by small values (such as a register index), this value
@@ -13445,6 +13673,10 @@ TEST(push_pop_sp) {
   START();
 
   VIXL_ASSERT(sp.Is(__ StackPointer()));
+
+  // Acquire all temps from the MacroAssembler. They are used arbitrarily below.
+  UseScratchRegisterScope temps(&masm);
+  temps.ExcludeAll();
 
   __ Mov(x3, 0x3333333333333333);
   __ Mov(x2, 0x2222222222222222);
@@ -14154,8 +14386,8 @@ TEST(process_nan_float) {
 
 
 static void ProcessNaNsHelper(double n, double m, double expected) {
-  VIXL_ASSERT(isnan(n) || isnan(m));
-  VIXL_ASSERT(isnan(expected));
+  VIXL_ASSERT(std::isnan(n) || std::isnan(m));
+  VIXL_ASSERT(std::isnan(expected));
 
   SETUP();
   START();
@@ -14225,8 +14457,8 @@ TEST(process_nans_double) {
 
 
 static void ProcessNaNsHelper(float n, float m, float expected) {
-  VIXL_ASSERT(isnan(n) || isnan(m));
-  VIXL_ASSERT(isnan(expected));
+  VIXL_ASSERT(std::isnan(n) || std::isnan(m));
+  VIXL_ASSERT(std::isnan(expected));
 
   SETUP();
   START();
@@ -14296,10 +14528,10 @@ TEST(process_nans_float) {
 
 
 static void DefaultNaNHelper(float n, float m, float a) {
-  VIXL_ASSERT(isnan(n) || isnan(m) || isnan(a));
+  VIXL_ASSERT(std::isnan(n) || std::isnan(m) || std::isnan(a));
 
-  bool test_1op = isnan(n);
-  bool test_2op = isnan(n) || isnan(m);
+  bool test_1op = std::isnan(n);
+  bool test_2op = std::isnan(n) || std::isnan(m);
 
   SETUP();
   START();
@@ -14423,10 +14655,10 @@ TEST(default_nan_float) {
 
 
 static void DefaultNaNHelper(double n, double m, double a) {
-  VIXL_ASSERT(isnan(n) || isnan(m) || isnan(a));
+  VIXL_ASSERT(std::isnan(n) || std::isnan(m) || std::isnan(a));
 
-  bool test_1op = isnan(n);
-  bool test_2op = isnan(n) || isnan(m);
+  bool test_1op = std::isnan(n);
+  bool test_2op = std::isnan(n) || std::isnan(m);
 
   SETUP();
   START();

@@ -27,11 +27,11 @@
 #ifndef VIXL_A64_INSTRUMENT_A64_H_
 #define VIXL_A64_INSTRUMENT_A64_H_
 
-#include "globals.h"
-#include "utils.h"
-#include "a64/decoder-a64.h"
-#include "a64/constants-a64.h"
-#include "a64/instrument-a64.h"
+#include "vixl/globals.h"
+#include "vixl/utils.h"
+#include "vixl/a64/decoder-a64.h"
+#include "vixl/a64/constants-a64.h"
+#include "vixl/a64/instrument-a64.h"
 
 namespace vixl {
 

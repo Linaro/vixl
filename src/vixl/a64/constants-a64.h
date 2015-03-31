@@ -225,6 +225,11 @@ inline Condition InvertCondition(Condition cond) {
   return static_cast<Condition>(cond ^ 1);
 }
 
+enum FPTrapFlags {
+  EnableTrap   = 1,
+  DisableTrap = 0
+};
+
 enum FlagsUpdate {
   SetFlags   = 1,
   LeaveFlags = 0
@@ -1092,8 +1097,10 @@ enum FPCompareOp {
   FCMP_zero      = FCMP_s_zero,
   FCMPE_s        = FPCompareFixed | 0x00000010,
   FCMPE_d        = FPCompareFixed | FP64 | 0x00000010,
+  FCMPE          = FCMPE_s,
   FCMPE_s_zero   = FPCompareFixed | 0x00000018,
-  FCMPE_d_zero   = FPCompareFixed | FP64 | 0x00000018
+  FCMPE_d_zero   = FPCompareFixed | FP64 | 0x00000018,
+  FCMPE_zero     = FCMPE_s_zero
 };
 
 // Floating point conditional compare.

@@ -28,11 +28,11 @@
 #define VIXL_A64_ASSEMBLER_A64_H_
 
 
-#include "globals.h"
-#include "invalset.h"
-#include "utils.h"
-#include "code-buffer.h"
-#include "a64/instructions-a64.h"
+#include "vixl/globals.h"
+#include "vixl/invalset.h"
+#include "vixl/utils.h"
+#include "vixl/code-buffer.h"
+#include "vixl/a64/instructions-a64.h"
 
 namespace vixl {
 
@@ -55,6 +55,7 @@ class CPURegister {
     kInvalid = 0,
     kRegister,
     kVRegister,
+    kFPRegister = kVRegister,
     kNoRegister
   };
 
@@ -556,6 +557,10 @@ class CPURegList {
                                  const CPURegList& list_3,
                                  const CPURegList& list_4);
 
+  bool Overlaps(const CPURegList& other) const {
+    return (type_ == other.type_) && ((list_ & other.list_) != 0);
+  }
+
   RegList list() const {
     VIXL_ASSERT(IsValid());
     return list_;
@@ -600,7 +605,7 @@ class CPURegList {
 
   int Count() const {
     VIXL_ASSERT(IsValid());
-    return CountSetBits(list_, kRegListSizeInBits);
+    return CountSetBits(list_);
   }
 
   unsigned RegisterSizeInBits() const {
@@ -630,7 +635,7 @@ class CPURegList {
 
 // AAPCS64 callee-saved registers.
 extern const CPURegList kCalleeSaved;
-extern const CPURegList kCalleeSavedFP;
+extern const CPURegList kCalleeSavedV;
 
 
 // AAPCS64 caller-saved registers. Note that this includes lr.
@@ -710,17 +715,17 @@ class MemOperand {
   explicit MemOperand(Register base,
                       int64_t offset = 0,
                       AddrMode addrmode = Offset);
-  explicit MemOperand(Register base,
-                      Register regoffset,
-                      Shift shift = LSL,
-                      unsigned shift_amount = 0);
-  explicit MemOperand(Register base,
-                      Register regoffset,
-                      Extend extend,
-                      unsigned shift_amount = 0);
-  explicit MemOperand(Register base,
-                      const Operand& offset,
-                      AddrMode addrmode = Offset);
+  MemOperand(Register base,
+             Register regoffset,
+             Shift shift = LSL,
+             unsigned shift_amount = 0);
+  MemOperand(Register base,
+             Register regoffset,
+             Extend extend,
+             unsigned shift_amount = 0);
+  MemOperand(Register base,
+             const Operand& offset,
+             AddrMode addrmode = Offset);
 
   const Register& base() const { return base_; }
   const Register& regoffset() const { return regoffset_; }
@@ -733,6 +738,8 @@ class MemOperand {
   bool IsRegisterOffset() const;
   bool IsPreIndex() const;
   bool IsPostIndex() const;
+
+  void AddOffset(int64_t offset);
 
  private:
   Register base_;
@@ -1606,6 +1613,11 @@ class Assembler {
     umaddl(rd, rn, rm, xzr);
   }
 
+  // Unsigned multiply high: 64 x 64 -> 64-bit <127:64>.
+  void umulh(const Register& xd,
+             const Register& xn,
+             const Register& xm);
+
   // Signed long multiply and subtract: 64 - (32 x 32) -> 64-bit.
   void smsubl(const Register& rd,
               const Register& rn,
@@ -2022,17 +2034,43 @@ class Assembler {
   // FP round to integer, towards zero.
   void frintz(const VRegister& vd, const VRegister& vn);
 
+  void FPCompareMacro(const VRegister& vn,
+                      double value,
+                      FPTrapFlags trap);
+
+  void FPCompareMacro(const VRegister& vn,
+                      const VRegister& vm,
+                      FPTrapFlags trap);
+
   // FP compare registers.
   void fcmp(const VRegister& vn, const VRegister& vm);
 
   // FP compare immediate.
   void fcmp(const VRegister& vn, double value);
 
+  void FPCCompareMacro(const VRegister& vn,
+                       const VRegister& vm,
+                       StatusFlags nzcv,
+                       Condition cond,
+                       FPTrapFlags trap);
+
   // FP conditional compare.
   void fccmp(const VRegister& vn,
              const VRegister& vm,
              StatusFlags nzcv,
              Condition cond);
+
+  // FP signaling compare registers.
+  void fcmpe(const VRegister& vn, const VRegister& vm);
+
+  // FP signaling compare immediate.
+  void fcmpe(const VRegister& vn, double value);
+
+  // FP conditional signaling compare.
+  void fccmpe(const VRegister& vn,
+              const VRegister& vm,
+              StatusFlags nzcv,
+              Condition cond);
 
   // FP conditional select.
   void fcsel(const VRegister& vd,
@@ -3949,8 +3987,8 @@ class Assembler {
                            unsigned* n = NULL,
                            unsigned* imm_s = NULL,
                            unsigned* imm_r = NULL);
-  static bool IsImmLSPair(int64_t offset, unsigned size);
-  static bool IsImmLSScaled(int64_t offset, unsigned size);
+  static bool IsImmLSPair(int64_t offset, unsigned access_size);
+  static bool IsImmLSScaled(int64_t offset, unsigned access_size);
   static bool IsImmLSUnscaled(int64_t offset);
   static bool IsImmMovn(uint64_t imm, unsigned reg_size);
   static bool IsImmMovz(uint64_t imm, unsigned reg_size);

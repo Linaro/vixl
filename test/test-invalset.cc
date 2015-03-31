@@ -26,7 +26,7 @@
 
 #include "test-runner.h"
 
-#include "invalset.h"
+#include "vixl/invalset.h"
 
 namespace vixl {
 

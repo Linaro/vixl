@@ -24,7 +24,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "a64/instrument-a64.h"
+#include "vixl/a64/instrument-a64.h"
 
 namespace vixl {
 
@@ -421,22 +421,26 @@ void Instrument::InstrumentLoadStore(const Instruction* instr) {
   static Counter* store_fp_counter = GetCounter("Store FP");
 
   switch (instr->Mask(LoadStoreMask)) {
-    case STRB_w:    // Fall through.
-    case STRH_w:    // Fall through.
-    case STR_w:     // Fall through.
+    case STRB_w:
+    case STRH_w:
+    case STR_w:
+      VIXL_FALLTHROUGH();
     case STR_x:     store_int_counter->Increment(); break;
-    case STR_s:     // Fall through.
+    case STR_s:
+      VIXL_FALLTHROUGH();
     case STR_d:     store_fp_counter->Increment(); break;
-    case LDRB_w:    // Fall through.
-    case LDRH_w:    // Fall through.
-    case LDR_w:     // Fall through.
-    case LDR_x:     // Fall through.
-    case LDRSB_x:   // Fall through.
-    case LDRSH_x:   // Fall through.
-    case LDRSW_x:   // Fall through.
-    case LDRSB_w:   // Fall through.
+    case LDRB_w:
+    case LDRH_w:
+    case LDR_w:
+    case LDR_x:
+    case LDRSB_x:
+    case LDRSH_x:
+    case LDRSW_x:
+    case LDRSB_w:
+      VIXL_FALLTHROUGH();
     case LDRSH_w:   load_int_counter->Increment(); break;
-    case LDR_s:     // Fall through.
+    case LDR_s:
+      VIXL_FALLTHROUGH();
     case LDR_d:     load_fp_counter->Increment(); break;
   }
 }

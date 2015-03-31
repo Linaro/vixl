@@ -26,7 +26,7 @@
 
 
 #include <cmath>
-#include "a64/assembler-a64.h"
+#include "vixl/a64/assembler-a64.h"
 
 namespace vixl {
 
@@ -35,7 +35,7 @@ CPURegister CPURegList::PopLowestIndex() {
   if (IsEmpty()) {
     return NoCPUReg;
   }
-  int index = CountTrailingZeros(list_, kRegListSizeInBits);
+  int index = CountTrailingZeros(list_);
   VIXL_ASSERT((1 << index) & list_);
   Remove(index);
   return CPURegister(index, size_, type_);
@@ -47,7 +47,7 @@ CPURegister CPURegList::PopHighestIndex() {
   if (IsEmpty()) {
     return NoCPUReg;
   }
-  int index = CountLeadingZeros(list_, kRegListSizeInBits);
+  int index = CountLeadingZeros(list_);
   index = kRegListSizeInBits - 1 - index;
   VIXL_ASSERT((1 << index) & list_);
   Remove(index);
@@ -460,6 +460,12 @@ bool MemOperand::IsPreIndex() const {
 
 bool MemOperand::IsPostIndex() const {
   return addrmode_ == PostIndex;
+}
+
+
+void MemOperand::AddOffset(int64_t offset) {
+  VIXL_ASSERT(IsImmediateOffset());
+  offset_ += offset;
 }
 
 
@@ -1346,6 +1352,14 @@ void Assembler::smulh(const Register& xd,
                       const Register& xm) {
   VIXL_ASSERT(xd.Is64Bits() && xn.Is64Bits() && xm.Is64Bits());
   DataProcessing3Source(xd, xn, xm, xzr, SMULH_x);
+}
+
+
+void Assembler::umulh(const Register& xd,
+                      const Register& xn,
+                      const Register& xm) {
+  VIXL_ASSERT(xd.Is64Bits() && xn.Is64Bits() && xm.Is64Bits());
+  DataProcessing3Source(xd, xn, xm, xzr, UMULH_x);
 }
 
 
@@ -2628,33 +2642,78 @@ void Assembler::fnmul(const VRegister& vd,
 }
 
 
-void Assembler::fcmp(const VRegister& vn,
-                     const VRegister& vm) {
+void Assembler::FPCompareMacro(const VRegister& vn,
+                               double value,
+                               FPTrapFlags trap) {
+  USE(value);
+  // Although the fcmp{e} instructions can strictly only take an immediate
+  // value of +0.0, we don't need to check for -0.0 because the sign of 0.0
+  // doesn't affect the result of the comparison.
+  VIXL_ASSERT(value == 0.0);
+  VIXL_ASSERT(vn.Is1S() || vn.Is1D());
+  Instr op = (trap == EnableTrap) ? FCMPE_zero : FCMP_zero;
+  Emit(FPType(vn) | op | Rn(vn));
+}
+
+
+void Assembler::FPCompareMacro(const VRegister& vn,
+                               const VRegister& vm,
+                               FPTrapFlags trap) {
   VIXL_ASSERT(vn.Is1S() || vn.Is1D());
   VIXL_ASSERT(vn.IsSameSizeAndType(vm));
-  Emit(FPType(vn) | FCMP | Rm(vm) | Rn(vn));
+  Instr op = (trap == EnableTrap) ? FCMPE : FCMP;
+  Emit(FPType(vn) | op | Rm(vm) | Rn(vn));
+}
+
+
+void Assembler::fcmp(const VRegister& vn,
+                     const VRegister& vm) {
+  FPCompareMacro(vn, vm, DisableTrap);
+}
+
+
+void Assembler::fcmpe(const VRegister& vn,
+                      const VRegister& vm) {
+  FPCompareMacro(vn, vm, EnableTrap);
 }
 
 
 void Assembler::fcmp(const VRegister& vn,
                      double value) {
-  USE(value);
-  // Although the fcmp instruction can strictly only take an immediate value of
-  // +0.0, we don't need to check for -0.0 because the sign of 0.0 doesn't
-  // affect the result of the comparison.
-  VIXL_ASSERT(value == 0.0);
-  VIXL_ASSERT(vn.Is1S() || vn.Is1D());
-  Emit(FPType(vn) | FCMP_zero | Rn(vn));
+  FPCompareMacro(vn, value, DisableTrap);
 }
 
+
+void Assembler::fcmpe(const VRegister& vn,
+                      double value) {
+  FPCompareMacro(vn, value, EnableTrap);
+}
+
+
+void Assembler::FPCCompareMacro(const VRegister& vn,
+                                const VRegister& vm,
+                                StatusFlags nzcv,
+                                Condition cond,
+                                FPTrapFlags trap) {
+  VIXL_ASSERT(vn.Is1S() || vn.Is1D());
+  VIXL_ASSERT(vn.IsSameSizeAndType(vm));
+  Instr op = (trap == EnableTrap) ? FCCMPE : FCCMP;
+  Emit(FPType(vn) | op | Rm(vm) | Cond(cond) | Rn(vn) | Nzcv(nzcv));
+}
 
 void Assembler::fccmp(const VRegister& vn,
                       const VRegister& vm,
                       StatusFlags nzcv,
                       Condition cond) {
-  VIXL_ASSERT(vn.Is1S() || vn.Is1D());
-  VIXL_ASSERT(vn.IsSameSizeAndType(vm));
-  Emit(FPType(vn) | FCCMP | Rm(vm) | Cond(cond) | Rn(vn) | Nzcv(nzcv));
+  FPCCompareMacro(vn, vm, nzcv, cond, DisableTrap);
+}
+
+
+void Assembler::fccmpe(const VRegister& vn,
+                       const VRegister& vm,
+                       StatusFlags nzcv,
+                       Condition cond) {
+  FPCCompareMacro(vn, vm, nzcv, cond, EnableTrap);
 }
 
 
@@ -4948,6 +5007,7 @@ bool Assembler::IsImmFP64(double imm) {
 
 
 bool Assembler::IsImmLSPair(int64_t offset, unsigned access_size) {
+  VIXL_ASSERT(access_size <= kQRegSizeInBytesLog2);
   bool offset_is_size_multiple =
       (((offset >> access_size) << access_size) == offset);
   return offset_is_size_multiple && is_int7(offset >> access_size);
@@ -4955,6 +5015,7 @@ bool Assembler::IsImmLSPair(int64_t offset, unsigned access_size) {
 
 
 bool Assembler::IsImmLSScaled(int64_t offset, unsigned access_size) {
+  VIXL_ASSERT(access_size <= kQRegSizeInBytesLog2);
   bool offset_is_size_multiple =
       (((offset >> access_size) << access_size) == offset);
   return offset_is_size_multiple && is_uint12(offset >> access_size);
@@ -5319,10 +5380,8 @@ bool AreAliased(const CPURegister& reg1, const CPURegister& reg2,
     }
   }
 
-  int number_of_unique_regs =
-    CountSetBits(unique_regs, sizeof(unique_regs) * 8);
-  int number_of_unique_fpregs =
-    CountSetBits(unique_fpregs, sizeof(unique_fpregs) * 8);
+  int number_of_unique_regs = CountSetBits(unique_regs);
+  int number_of_unique_fpregs = CountSetBits(unique_fpregs);
 
   VIXL_ASSERT(number_of_valid_regs >= number_of_unique_regs);
   VIXL_ASSERT(number_of_valid_fpregs >= number_of_unique_fpregs);

@@ -1,6 +1,13 @@
 VIXL Change Log
 ===============
 
+* 1.9
+    + Improved compatibility with Android build system.
+    + Improved compatibility with Clang toolchain.
+    + Added support for `umulh` instruction.
+    + Added support for `fcmpe` and `fccmpe` instructions.
+    + Other small bug fixes and improvements.
+
 * 1.8
     + Complete NEON instruction set support.
     + Support long branches using veneers.

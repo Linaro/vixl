@@ -30,9 +30,9 @@
 #include <algorithm>
 #include <limits>
 
-#include "globals.h"
-#include "a64/assembler-a64.h"
-#include "a64/debugger-a64.h"
+#include "vixl/globals.h"
+#include "vixl/a64/assembler-a64.h"
+#include "vixl/a64/debugger-a64.h"
 
 
 #define LS_MACRO_LIST(V)                                      \
@@ -56,6 +56,7 @@ namespace vixl {
 
 // Forward declaration
 class MacroAssembler;
+class UseScratchRegisterScope;
 
 class Pool {
  public:
@@ -631,13 +632,15 @@ class MacroAssembler : public Assembler {
   // Add and sub macros.
   void Add(const Register& rd,
            const Register& rn,
-           const Operand& operand);
+           const Operand& operand,
+           FlagsUpdate S = LeaveFlags);
   void Adds(const Register& rd,
             const Register& rn,
             const Operand& operand);
   void Sub(const Register& rd,
            const Register& rn,
-           const Operand& operand);
+           const Operand& operand,
+           FlagsUpdate S = LeaveFlags);
   void Subs(const Register& rd,
             const Register& rn,
             const Operand& operand);
@@ -844,39 +847,43 @@ class MacroAssembler : public Assembler {
   // supported.
   //
   // Otherwise, (Peek|Poke)(CPU|X|W|D|S)RegList is preferred.
-  void PeekCPURegList(CPURegList registers, int offset);
-  void PokeCPURegList(CPURegList registers, int offset);
+  void PeekCPURegList(CPURegList registers, int64_t offset) {
+    LoadCPURegList(registers, MemOperand(StackPointer(), offset));
+  }
+  void PokeCPURegList(CPURegList registers, int64_t offset) {
+    StoreCPURegList(registers, MemOperand(StackPointer(), offset));
+  }
 
-  void PeekSizeRegList(RegList registers, int offset, unsigned reg_size,
+  void PeekSizeRegList(RegList registers, int64_t offset, unsigned reg_size,
       CPURegister::RegisterType type = CPURegister::kRegister) {
     PeekCPURegList(CPURegList(type, reg_size, registers), offset);
   }
-  void PokeSizeRegList(RegList registers, int offset, unsigned reg_size,
+  void PokeSizeRegList(RegList registers, int64_t offset, unsigned reg_size,
       CPURegister::RegisterType type = CPURegister::kRegister) {
     PokeCPURegList(CPURegList(type, reg_size, registers), offset);
   }
-  void PeekXRegList(RegList regs, int offset) {
+  void PeekXRegList(RegList regs, int64_t offset) {
     PeekSizeRegList(regs, offset, kXRegSize);
   }
-  void PokeXRegList(RegList regs, int offset) {
+  void PokeXRegList(RegList regs, int64_t offset) {
     PokeSizeRegList(regs, offset, kXRegSize);
   }
-  void PeekWRegList(RegList regs, int offset) {
+  void PeekWRegList(RegList regs, int64_t offset) {
     PeekSizeRegList(regs, offset, kWRegSize);
   }
-  void PokeWRegList(RegList regs, int offset) {
+  void PokeWRegList(RegList regs, int64_t offset) {
     PokeSizeRegList(regs, offset, kWRegSize);
   }
-  void PeekDRegList(RegList regs, int offset) {
+  void PeekDRegList(RegList regs, int64_t offset) {
     PeekSizeRegList(regs, offset, kDRegSize, CPURegister::kVRegister);
   }
-  void PokeDRegList(RegList regs, int offset) {
+  void PokeDRegList(RegList regs, int64_t offset) {
     PokeSizeRegList(regs, offset, kDRegSize, CPURegister::kVRegister);
   }
-  void PeekSRegList(RegList regs, int offset) {
+  void PeekSRegList(RegList regs, int64_t offset) {
     PeekSizeRegList(regs, offset, kSRegSize, CPURegister::kVRegister);
   }
-  void PokeSRegList(RegList regs, int offset) {
+  void PokeSRegList(RegList regs, int64_t offset) {
     PokeSizeRegList(regs, offset, kSRegSize, CPURegister::kVRegister);
   }
 
@@ -910,6 +917,9 @@ class MacroAssembler : public Assembler {
   // This method must not be called unless StackPointer() is sp, and it is
   // aligned to 16 bytes.
   void PopCalleeSavedRegisters();
+
+  void LoadCPURegList(CPURegList registers, const MemOperand& src);
+  void StoreCPURegList(CPURegList registers, const MemOperand& dst);
 
   // Remaining instructions are simple pass-through calls to the assembler.
   void Adr(const Register& rd, Label* label) {
@@ -1135,18 +1145,31 @@ class MacroAssembler : public Assembler {
   void Fccmp(const VRegister& vn,
              const VRegister& vm,
              StatusFlags nzcv,
-             Condition cond) {
+             Condition cond,
+             FPTrapFlags trap = DisableTrap) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT((cond != al) && (cond != nv));
     SingleEmissionCheckScope guard(this);
-    fccmp(vn, vm, nzcv, cond);
+    FPCCompareMacro(vn, vm, nzcv, cond, trap);
   }
-  void Fcmp(const VRegister& vn, const VRegister& vm) {
+  void Fccmpe(const VRegister& vn,
+              const VRegister& vm,
+              StatusFlags nzcv,
+              Condition cond) {
+    Fccmp(vn, vm, nzcv, cond, EnableTrap);
+  }
+  void Fcmp(const VRegister& vn, const VRegister& vm,
+            FPTrapFlags trap = DisableTrap) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fcmp(vn, vm);
+    FPCompareMacro(vn, vm, trap);
   }
-  void Fcmp(const VRegister& vn, double value);
+  void Fcmp(const VRegister& vn, double value,
+            FPTrapFlags trap = DisableTrap);
+  void Fcmpe(const VRegister& vn, double value);
+  void Fcmpe(const VRegister& vn, const VRegister& vm) {
+    Fcmp(vn, vm, EnableTrap);
+  }
   void Fcsel(const VRegister& vd,
              const VRegister& vn,
              const VRegister& vm,
@@ -1999,6 +2022,14 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(!rm.IsZero());
     SingleEmissionCheckScope guard(this);
     umull(rd, rn, rm);
+  }
+  void Umulh(const Register& xd, const Register& xn, const Register& xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!xd.IsZero());
+    VIXL_ASSERT(!xn.IsZero());
+    VIXL_ASSERT(!xm.IsZero());
+    SingleEmissionCheckScope guard(this);
+    umulh(xd, xn, xm);
   }
   void Umsubl(const Register& rd,
               const Register& rn,
@@ -2988,6 +3019,23 @@ class MacroAssembler : public Assembler {
   // Note that size is per register, and is specified in bytes.
   void PrepareForPush(int count, int size);
   void PrepareForPop(int count, int size);
+
+  // The actual implementation of load and store operations for CPURegList.
+  enum LoadStoreCPURegListAction {
+    kLoad,
+    kStore
+  };
+  void LoadStoreCPURegListHelper(LoadStoreCPURegListAction operation,
+                                 CPURegList registers,
+                                 const MemOperand& mem);
+  // Returns a MemOperand suitable for loading or storing a CPURegList at `dst`.
+  // This helper may allocate registers from `scratch_scope` and generate code
+  // to compute an intermediate address. The resulting MemOperand is only valid
+  // as long as `scratch_scope` remains valid.
+  MemOperand BaseMemOperandForLoadStoreCPURegList(
+      const CPURegList& registers,
+      const MemOperand& mem,
+      UseScratchRegisterScope* scratch_scope);
 
   bool LabelIsOutOfRange(Label* label, ImmBranchType branch_type) {
     return !Instruction::IsValidImmPCOffset(branch_type,
