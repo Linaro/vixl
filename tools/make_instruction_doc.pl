@@ -27,7 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Assembler header file.
-my $hfile = "src/a64/assembler-a64.h";
+my $hfile = "src/vixl/a64/assembler-a64.h";
 
 # Extra pseudo instructions added to AArch64.
 my @extras = qw/bind debug dci dc32 dc64 place/;
@@ -87,7 +87,8 @@ print describe_insts('Additional or pseudo instructions', 'pseudo');
 sub inst_sort
 {
   $inst{$a}->{'mnemonic'} cmp $inst{$b}->{'mnemonic'} ||
-  $inst{$a}->{'description'} cmp $inst{$b}->{'description'};
+  $inst{$a}->{'description'} cmp $inst{$b}->{'description'} ||
+  $a cmp $b;
 }
 
 # Return a Markdown formatted list of instructions of a particular type.

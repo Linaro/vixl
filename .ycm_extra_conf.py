@@ -14,13 +14,14 @@ def AbsolutePath(path):
 
 flags = [
   '-I', AbsolutePath('src'),
+  '-DVIXL_DEBUG'
   '-Wall',
   '-Werror',
   '-Wextra',
   '-pedantic',
   '-Wno-newline-eof',
   '-Wwrite-strings',
-  '-std=c++',
+  '-std=c++11',
   '-x', 'c++'
 ]
 

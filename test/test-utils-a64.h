@@ -121,13 +121,13 @@ class RegisterDump {
     return dump_.sp_;
   }
 
-  inline int64_t wspreg() const {
+  inline int32_t wspreg() const {
     VIXL_ASSERT(SPRegAliasesMatch());
-    return dump_.wsp_;
+    return static_cast<int32_t>(dump_.wsp_);
   }
 
   // Flags accessors.
-  inline uint64_t flags_nzcv() const {
+  inline uint32_t flags_nzcv() const {
     VIXL_ASSERT(IsComplete());
     VIXL_ASSERT((dump_.flags_ & ~Flags_mask) == 0);
     return dump_.flags_ & Flags_mask;

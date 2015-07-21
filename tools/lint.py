@@ -29,68 +29,20 @@
 import argparse
 import multiprocessing
 import re
+import signal
 import subprocess
 import sys
 
+import config
 import git
 import printer
 import util
 
 
-# Google's cpplint.py from depot_tools is the linter used here.
-# These are positive rules, added to the set of rules that the linter checks.
-CPP_LINTER_RULES = '''
-build/class
-build/deprecated
-build/endif_comment
-build/forward_decl
-build/include_order
-build/printf_format
-build/storage_class
-legal/copyright
-readability/boost
-readability/braces
-readability/casting
-readability/constructors
-readability/fn_size
-readability/function
-readability/multiline_comment
-readability/multiline_string
-readability/streams
-readability/utf8
-runtime/arrays
-runtime/casting
-runtime/deprecated_fn
-runtime/explicit
-runtime/int
-runtime/memset
-runtime/mutex
-runtime/nonconf
-runtime/printf
-runtime/printf_format
-runtime/references
-runtime/rtti
-runtime/sizeof
-runtime/string
-runtime/virtual
-runtime/vlog
-whitespace/blank_line
-whitespace/braces
-whitespace/comma
-whitespace/comments
-whitespace/end_of_line
-whitespace/ending_newline
-whitespace/indent
-whitespace/labels
-whitespace/line_length
-whitespace/newline
-whitespace/operators
-whitespace/parens
-whitespace/tab
-whitespace/todo
-'''.split()
-
-
+# Catch SIGINT to gracefully exit when ctrl+C is pressed.
+def sigint_handler(signal, frame):
+  sys.exit(1)
+signal.signal(signal.SIGINT, sigint_handler)
 
 def BuildOptions():
   result = argparse.ArgumentParser(
@@ -104,8 +56,6 @@ def BuildOptions():
                       help='''Runs the tests using N jobs. If the option is set
                       but no value is provided, the script will use as many jobs
                       as it thinks useful.''')
-  result.add_argument('--verbose', action='store_true',
-                      help='Print verbose output.')
   return result.parse_args()
 
 
@@ -113,8 +63,8 @@ def BuildOptions():
 __lint_results_lock__ = multiprocessing.Lock()
 
 # Returns the number of errors in the file linted.
-def Lint(filename, lint_options, progress_prefix = '', verbose = False):
-  command = ['cpplint.py', lint_options, filename]
+def Lint(filename, progress_prefix = ''):
+  command = ['cpplint.py', filename]
   process = subprocess.Popen(command,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
@@ -133,10 +83,12 @@ def Lint(filename, lint_options, progress_prefix = '', verbose = False):
         output_line = progress_prefix + line.rstrip('\r\n')
 
         if LINT_ERROR_LINE_REGEXP.search(line):
-          printer.PrintOverwritableLine(output_line, verbose = verbose)
+          printer.PrintOverwritableLine(output_line,
+                                        type = printer.LINE_TYPE_LINTER)
           printer.EnsureNewLine()
         elif LINT_DONE_PROC_LINE_REGEXP.search(line):
-          printer.PrintOverwritableLine(output_line, verbose = verbose)
+          printer.PrintOverwritableLine(output_line,
+                                        type = printer.LINE_TYPE_LINTER)
         elif LINT_STATUS_LINE_REGEXP.search(line):
           status_line = line
 
@@ -151,7 +103,7 @@ def Lint(filename, lint_options, progress_prefix = '', verbose = False):
     n_errors = int(n_errors_str)
     status_line = \
         progress_prefix + 'Total errors found in %s : %d' % (filename, n_errors)
-    printer.PrintOverwritableLine(status_line, verbose = verbose)
+    printer.PrintOverwritableLine(status_line, type = printer.LINE_TYPE_LINTER)
     printer.EnsureNewLine()
     return n_errors
 
@@ -159,19 +111,40 @@ def Lint(filename, lint_options, progress_prefix = '', verbose = False):
 # The multiprocessing map_async function does not allow passing multiple
 # arguments directly, so use a wrapper.
 def LintWrapper(args):
-  return Lint(*args)
+  # Run under a try-catch  to avoid flooding the output when the script is
+  # interrupted from the keyboard with ctrl+C.
+  try:
+    return Lint(*args)
+  except:
+    sys.exit(1)
 
 
 # Returns the total number of errors found in the files linted.
-def LintFiles(files, lint_args = CPP_LINTER_RULES, jobs = 1, verbose = False,
-              progress_prefix = ''):
-  lint_options = '--filter=-,+' + ',+'.join(lint_args)
+def LintFiles(files, jobs = 1, progress_prefix = ''):
+  if not IsCppLintAvailable():
+    print(
+      printer.COLOUR_RED + \
+      ("cpplint.py not found. Please ensure the depot"
+       " tools are installed and in your PATH. See"
+       " http://dev.chromium.org/developers/how-tos/install-depot-tools for"
+       " details.") + \
+      printer.NO_COLOUR)
+    return -1
+
   pool = multiprocessing.Pool(jobs)
   # The '.get(9999999)' is workaround to allow killing the test script with
   # ctrl+C from the shell. This bug is documented at
   # http://bugs.python.org/issue8296.
-  tasks = [(f, lint_options, progress_prefix, verbose) for f in files]
-  results = pool.map_async(LintWrapper, tasks).get(9999999)
+  tasks = [(f, progress_prefix) for f in files]
+  # Run under a try-catch  to avoid flooding the output when the script is
+  # interrupted from the keyboard with ctrl+C.
+  try:
+    results = pool.map_async(LintWrapper, tasks).get(9999999)
+    pool.close()
+    pool.join()
+  except KeyboardInterrupt:
+    pool.terminate()
+    sys.exit(1)
   n_errors = sum(results)
 
   printer.PrintOverwritableLine(
@@ -186,20 +159,28 @@ def IsCppLintAvailable():
 
 
 CPP_EXT_REGEXP = re.compile('\.(cc|h)$')
-SIM_TRACES_REGEXP = re.compile('trace-a64\.h$')
 def is_linter_input(filename):
-  # Don't lint the simulator traces file; it takes a very long time to check
-  # and it's (mostly) generated automatically anyway.
-  if SIM_TRACES_REGEXP.search(filename): return False
-  # Otherwise, lint all C++ files.
+  # lint all C++ files.
   return CPP_EXT_REGEXP.search(filename) != None
-default_tracked_files = git.get_tracked_files().split()
-default_tracked_files = filter(is_linter_input, default_tracked_files)
+
+def GetDefaultTrackedFiles():
+  if git.is_git_repository_root(config.dir_root):
+    default_tracked_files = git.get_tracked_files().split()
+    default_tracked_files = filter(is_linter_input, default_tracked_files)
+    return 0, default_tracked_files
+  else:
+    printer.Print(printer.COLOUR_ORANGE + 'WARNING: This script is not run ' \
+                  'from its Git repository. The linter will not run.' + \
+                  printer.NO_COLOUR)
+    return 1, []
 
 if __name__ == '__main__':
   # Parse the arguments.
   args = BuildOptions()
 
+  retcode, default_tracked_files = GetDefaultTrackedFiles()
+  if retcode:
+    sys.exit(retcode)
   retcode = LintFiles(default_tracked_files,
-                      jobs = args.jobs, verbose = args.verbose)
+                      jobs = args.jobs)
   sys.exit(retcode)

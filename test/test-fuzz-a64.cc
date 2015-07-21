@@ -48,7 +48,7 @@ TEST(decoder) {
   Instruction buffer[kInstructionSize];
 
   for (int i = 0; i < instruction_count; i++) {
-    uint32_t instr = mrand48();
+    uint32_t instr = static_cast<uint32_t>(mrand48());
     buffer->SetInstructionBits(instr);
     decoder.Decode(buffer);
   }
@@ -68,7 +68,7 @@ TEST(disasm) {
 
   decoder.AppendVisitor(&disasm);
   for (int i = 0; i < instruction_count; i++) {
-    uint32_t instr = mrand48();
+    uint32_t instr = static_cast<uint32_t>(mrand48());
     buffer->SetInstructionBits(instr);
     decoder.Decode(buffer);
   }

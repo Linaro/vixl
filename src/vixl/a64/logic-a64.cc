@@ -347,7 +347,8 @@ float Simulator::FPToFloat(double value, FPRounding round_mode) {
 
       uint32_t sign = raw >> 63;
       uint32_t exponent = (1 << 8) - 1;
-      uint32_t payload = unsigned_bitextract_64(50, 52 - 23, raw);
+      uint32_t payload =
+          static_cast<uint32_t>(unsigned_bitextract_64(50, 52 - 23, raw));
       payload |= (1 << 22);   // Force a quiet NaN.
 
       return rawbits_to_float((sign << 31) | (exponent << 23) | payload);
@@ -368,7 +369,8 @@ float Simulator::FPToFloat(double value, FPRounding round_mode) {
       // Extract the IEEE-754 double components.
       uint32_t sign = raw >> 63;
       // Extract the exponent and remove the IEEE-754 encoding bias.
-      int32_t exponent = unsigned_bitextract_64(62, 52, raw) - 1023;
+      int32_t exponent =
+          static_cast<int32_t>(unsigned_bitextract_64(62, 52, raw)) - 1023;
       // Extract the mantissa and add the implicit '1' bit.
       uint64_t mantissa = unsigned_bitextract_64(51, 0, raw);
       if (std::fpclassify(value) == FP_NORMAL) {
@@ -2584,7 +2586,7 @@ LogicVRegister Simulator::tbx(VectorFormat vform,
                               const LogicVRegister& ind) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    unsigned j = ind.Uint(vform, i);
+    uint64_t j = ind.Uint(vform, i);
     switch (j >> 4) {
       case 0: dst.SetUint(vform, i, tab.Uint(kFormat16B, j & 15)); break;
     }
@@ -2600,7 +2602,7 @@ LogicVRegister Simulator::tbx(VectorFormat vform,
                               const LogicVRegister& ind) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    unsigned j = ind.Uint(vform, i);
+    uint64_t j = ind.Uint(vform, i);
     switch (j >> 4) {
       case 0: dst.SetUint(vform, i, tab.Uint(kFormat16B, j & 15)); break;
       case 1: dst.SetUint(vform, i, tab2.Uint(kFormat16B, j & 15)); break;
@@ -2618,7 +2620,7 @@ LogicVRegister Simulator::tbx(VectorFormat vform,
                               const LogicVRegister& ind) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    unsigned j = ind.Uint(vform, i);
+    uint64_t j = ind.Uint(vform, i);
     switch (j >> 4) {
       case 0: dst.SetUint(vform, i, tab.Uint(kFormat16B, j & 15)); break;
       case 1: dst.SetUint(vform, i, tab2.Uint(kFormat16B, j & 15)); break;
@@ -2638,7 +2640,7 @@ LogicVRegister Simulator::tbx(VectorFormat vform,
                               const LogicVRegister& ind) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    unsigned j = ind.Uint(vform, i);
+    uint64_t j = ind.Uint(vform, i);
     switch (j >> 4) {
       case 0: dst.SetUint(vform, i, tab.Uint(kFormat16B, j & 15)); break;
       case 1: dst.SetUint(vform, i, tab2.Uint(kFormat16B, j & 15)); break;
@@ -4587,14 +4589,14 @@ T Simulator::FPRecipSqrtEstimate(T op) {
       result_exp = (3068 - exp) / 2;
     }
 
-    double estimate = recip_sqrt_estimate(scaled);
+    uint64_t estimate = double_to_rawbits(recip_sqrt_estimate(scaled));
 
     if (sizeof(T) == sizeof(float)) {  // NOLINT(runtime/sizeof)
-      return float_pack(0, Bits(result_exp, 7, 0),
-          Bits(double_to_rawbits(estimate), 51, 29));
+      uint32_t exp_bits = static_cast<uint32_t>(Bits(result_exp, 7, 0));
+      uint32_t est_bits = static_cast<uint32_t>(Bits(estimate, 51, 29));
+      return float_pack(0, exp_bits, est_bits);
     } else {
-      return double_pack(0, Bits(result_exp, 10, 0),
-          Bits(double_to_rawbits(estimate), 51, 0));
+      return double_pack(0, Bits(result_exp, 10, 0), Bits(estimate, 51, 0));
     }
   }
 }
@@ -4702,7 +4704,9 @@ T Simulator::FPRecipEstimate(T op, FPRounding rounding) {
       result_exp = 0;
     }
     if (sizeof(T) == sizeof(float)) {  // NOLINT(runtime/sizeof)
-      return float_pack(sign, Bits(result_exp, 7, 0), Bits(fraction, 51, 29));
+      uint32_t exp_bits = static_cast<uint32_t>(Bits(result_exp, 7, 0));
+      uint32_t frac_bits = static_cast<uint32_t>(Bits(fraction, 51, 29));
+      return float_pack(sign, exp_bits, frac_bits);
     } else {
       return double_pack(sign, Bits(result_exp, 10, 0), Bits(fraction, 51, 0));
     }
@@ -4735,7 +4739,8 @@ LogicVRegister Simulator::ursqrte(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src) {
   dst.ClearForWrite(vform);
-  uint32_t operand, result;
+  uint64_t operand;
+  uint32_t result;
   double dp_operand, dp_result;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     operand = src.Uint(vform, i);
@@ -4767,7 +4772,8 @@ LogicVRegister Simulator::urecpe(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
   dst.ClearForWrite(vform);
-  uint32_t operand, result;
+  uint64_t operand;
+  uint32_t result;
   double dp_operand, dp_result;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     operand = src.Uint(vform, i);
@@ -4799,12 +4805,12 @@ LogicVRegister Simulator::frecpx(VectorFormat vform,
       if (sizeof(T) == sizeof(float)) {  // NOLINT(runtime/sizeof)
         sign = float_sign(op);
         exp = float_exp(op);
-        exp = (exp == 0) ? (0xFF - 1) : Bits(~exp, 7, 0);
+        exp = (exp == 0) ? (0xFF - 1) : static_cast<int>(Bits(~exp, 7, 0));
         result = float_pack(sign, exp, 0);
       } else {
         sign = double_sign(op);
         exp = double_exp(op);
-        exp = (exp == 0) ? (0x7FF - 1) : Bits(~exp, 10, 0);
+        exp = (exp == 0) ? (0x7FF - 1) : static_cast<int>(Bits(~exp, 10, 0));
         result = double_pack(sign, exp, 0);
       }
     }

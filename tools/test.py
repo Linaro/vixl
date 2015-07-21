@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-# Copyright 2014, ARM Limited
+# Copyright 2015, ARM Limited
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -26,221 +26,383 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os
-import sys
 import argparse
-import re
-import platform
-import subprocess
+import fcntl
+import git
+import itertools
 import multiprocessing
+import os
+from os.path import join
+import platform
+import re
+import subprocess
+import sys
 import time
+
+import config
+import lint
+import printer
+import test
+import threaded_tests
 import util
 
 
-from printer import EnsureNewLine, Print, UpdateProgress
+dir_root = config.dir_root
+
+def Optionify(name):
+  return '--' + name
+
+
+# The options that can be tested are abstracted to provide an easy way to add
+# new ones.
+# Environment options influence the environment. They can be used for example to
+# set the compiler used.
+# Build options are options passed to scons, with a syntax like `scons opt=val`
+# Runtime options are options passed to the test program.
+# See the definition of `test_options` below.
+
+# 'all' is a special value for the options. If specified, all other values of
+# the option are tested.
+class TestOption(object):
+  type_environment = 'type_environment'
+  type_build = 'type_build'
+  type_run = 'type_run'
+
+  def __init__(self, option_type, name, help,
+               val_test_choices, val_test_default = None,
+               # If unset, the user can pass any value.
+               strict_choices = True):
+    self.name = name
+    self.option_type = option_type
+    self.help = help
+    self.val_test_choices = val_test_choices
+    self.strict_choices = strict_choices
+    if val_test_default is not None:
+      self.val_test_default = val_test_default
+    else:
+      self.val_test_default = val_test_choices[0]
+
+  def ArgList(self, to_test):
+    res = []
+    if to_test == 'all':
+      for value in self.val_test_choices:
+        if value != 'all':
+          res.append(self.GetOptionString(value))
+    else:
+      for value in to_test:
+        res.append(self.GetOptionString(value))
+    return res
+
+class EnvironmentOption(TestOption):
+  option_type = TestOption.type_environment
+  def __init__(self, name, environment_variable_name, help,
+               val_test_choices, val_test_default = None,
+               strict_choices = True):
+    super(EnvironmentOption, self).__init__(EnvironmentOption.option_type,
+                                      name,
+                                      help,
+                                      val_test_choices,
+                                      val_test_default,
+                                      strict_choices = strict_choices)
+    self.environment_variable_name = environment_variable_name
+
+  def GetOptionString(self, value):
+    return self.environment_variable_name + '=' + value
+
+
+class BuildOption(TestOption):
+  option_type = TestOption.type_build
+  def __init__(self, name, help,
+               val_test_choices, val_test_default = None,
+               strict_choices = True):
+    super(BuildOption, self).__init__(BuildOption.option_type,
+                                      name,
+                                      help,
+                                      val_test_choices,
+                                      val_test_default,
+                                      strict_choices = strict_choices)
+  def GetOptionString(self, value):
+    return self.name + '=' + value
+
+
+class RuntimeOption(TestOption):
+  option_type = TestOption.type_run
+  def __init__(self, name, help,
+               val_test_choices, val_test_default = None):
+    super(RuntimeOption, self).__init__(RuntimeOption.option_type,
+                                        name,
+                                        help,
+                                        val_test_choices,
+                                        val_test_default)
+  def GetOptionString(self, value):
+    if value == 'on':
+      return Optionify(self.name)
+    else:
+      return None
+
+
+
+environment_option_compiler = \
+  EnvironmentOption('compiler', 'CXX', 'Test for the specified compilers.',
+                    val_test_choices=['all'] + config.tested_compilers,
+                    strict_choices = False)
+test_environment_options = [
+  environment_option_compiler
+]
+
+build_option_mode = \
+  BuildOption('mode', 'Test with the specified build modes.',
+              val_test_choices=['all'] + config.build_options_modes)
+build_option_standard = \
+  BuildOption('std', 'Test with the specified C++ standard.',
+              val_test_choices=['all'] + config.tested_cpp_standards,
+              strict_choices = False)
+test_build_options = [
+  build_option_mode,
+  build_option_standard
+]
+
+runtime_option_debugger = \
+  RuntimeOption('debugger',
+                '''Test with the specified configurations for the debugger.
+                Note that this is only tested if we are using the simulator.''',
+                val_test_choices=['all', 'on', 'off'])
+test_runtime_options = [
+  runtime_option_debugger
+]
+
+test_options = \
+  test_environment_options + test_build_options + test_runtime_options
 
 
 def BuildOptions():
-  result = argparse.ArgumentParser(
-      description =
-      '''This tool runs each test reported by $TEST --list (and filtered as
-         specified). A summary will be printed, and detailed test output will be
-         stored in log/$TEST.''',
-      # Print default values.
-      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-  result.add_argument('filters', metavar='filter', nargs='*',
-                      help='Run tests matching all of the (regexp) filters.')
-  result.add_argument('--runner', action='store', required=True,
-                      help='The test executable to run.')
-  result.add_argument('--coloured_trace', action='store_true',
-                      help='''Pass --coloured_trace to the test runner. This
-                              will put colour codes in the log files. The
-                              coloured output can be viewed by "less -R", for
-                              example.''')
-  result.add_argument('--debugger', action='store_true',
-                      help='''Pass --debugger to test, so that the debugger is
-                              used instead of the simulator. This has no effect
-                              when running natively.''')
-  result.add_argument('--verbose', action='store_true',
-                      help='Print verbose output.')
-  result.add_argument('--jobs', '-j', metavar='N', type=int, nargs='?',
-                      default=1, const=multiprocessing.cpu_count(),
-                      help='''Runs the tests using N jobs. If the option is set
-                      but no value is provided, the script will use as many jobs
-                      as it thinks useful.''')
+  args = argparse.ArgumentParser(
+    description =
+    '''This tool runs all tests matching the speficied filters for multiple
+    environment, build options, and runtime options configurations.''',
+    # Print default values.
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+  args.add_argument('filters', metavar='filter', nargs='*',
+                    help='Run tests matching all of the (regexp) filters.')
+
+  # We automatically build the script options from the options to be tested.
+  test_arguments = args.add_argument_group(
+    'Test options',
+    'These options indicate what should be tested')
+  for option in test_options:
+    choices = option.val_test_choices if option.strict_choices else None
+    help = option.help
+    if not option.strict_choices:
+      help += ' Supported values: {' + ','.join(option.val_test_choices) + '}'
+    test_arguments.add_argument(Optionify(option.name),
+                                nargs='+',
+                                choices=choices,
+                                default=option.val_test_default,
+                                help=help,
+                                action='store')
+
+  general_arguments = args.add_argument_group('General options')
+  general_arguments.add_argument('--fast', action='store_true',
+                                 help='''Skip the lint tests, and run only with
+                                 one compiler, in one mode, with one C++
+                                 standard, and with an appropriate default for
+                                 runtime options. The compiler, mode, and C++
+                                 standard used are the first ones provided to
+                                 the script or in the default arguments.''')
+  general_arguments.add_argument(
+    '--jobs', '-j', metavar='N', type=int, nargs='?',
+    default=multiprocessing.cpu_count(),
+    const=multiprocessing.cpu_count(),
+    help='''Runs the tests using N jobs. If the option is set but no value is
+    provided, the script will use as many jobs as it thinks useful.''')
+  general_arguments.add_argument('--nobench', action='store_true',
+                                 help='Do not run benchmarks.')
+  general_arguments.add_argument('--nolint', action='store_true',
+                                 help='Do not run the linter.')
+  general_arguments.add_argument('--notest', action='store_true',
+                                 help='Do not run tests.')
   sim_default = 'off' if platform.machine() == 'aarch64' else 'on'
-  result.add_argument('--simulator', action='store', choices=['on', 'off'],
-                      default=sim_default,
-                      help='Explicitly enable or disable the simulator.')
-  return result.parse_args()
+  general_arguments.add_argument(
+    '--simulator', action='store', choices=['on', 'off'],
+    default=sim_default,
+    help='Explicitly enable or disable the simulator.')
+  return args.parse_args()
 
 
-def VerbosePrint(verbose, string):
-  if verbose:
-    Print(string)
+def RunCommand(command, environment_options = None):
+  # Create a copy of the environment. We do not want to pollute the environment
+  # of future commands run.
+  environment = os.environ
+  # Configure the environment.
+  # TODO: We currently pass the options as strings, so we need to parse them. We
+  # should instead pass them as a data structure and build the string option
+  # later. `environment_options` looks like `['CXX=compiler', 'OPT=val']`.
+  if environment_options:
+    for option in environment_options:
+      opt, val = option.split('=')
+      environment[opt] = val
 
+  printable_command = ''
+  if environment_options:
+    printable_command += ' '.join(environment_options) + ' '
+  printable_command += ' '.join(command)
 
-# A class representing an individual test.
-class Test:
-  def __init__(self, name, runner, debugger, coloured_trace, verbose):
-    self.name = name
-    self.runner = runner
-    self.debugger = debugger
-    self.coloured_trace = coloured_trace
-    self.verbose = verbose
-    self.logpath = os.path.join('log', os.path.basename(self.runner))
-    if self.debugger:
-      basename = name + '_debugger'
-    else:
-      basename = name
-    self.logout = os.path.join(self.logpath, basename + '.stdout')
-    self.logerr = os.path.join(self.logpath, basename + '.stderr')
-    if not os.path.exists(self.logpath): os.makedirs(self.logpath)
+  printable_command_orange = \
+    printer.COLOUR_ORANGE + printable_command + printer.NO_COLOUR
+  printer.PrintOverwritableLine(printable_command_orange)
+  sys.stdout.flush()
 
-  # Run the test.
-  # Use a thread to be able to control the test.
-  def Run(self):
-    command = \
-        [self.runner, '--trace_sim', '--trace_reg', '--trace_write', self.name]
-    if self.coloured_trace:
-      command.append('--coloured_trace')
-    if self.debugger:
-      command.append('--debugger')
+  # Start a process for the command.
+  # Interleave `stderr` and `stdout`.
+  p = subprocess.Popen(command,
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.STDOUT,
+                       env=environment)
 
-    VerbosePrint(self.verbose, '==== Running ' + self.name + '... ====')
-    sys.stdout.flush()
+  # We want to be able to display a continuously updated 'work indicator' while
+  # the process is running. Since the process can hang if the `stdout` pipe is
+  # full, we need to pull from it regularly. We cannot do so via the
+  # `readline()` function because it is blocking, and would thus cause the
+  # indicator to not be updated properly. So use file control mechanisms
+  # instead.
+  indicator = ' (still working: %d seconds elapsed)'
 
-    process = subprocess.Popen(command,
-                               stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-    # Get the output and return status of the test.
-    stdout, stderr = process.communicate()
-    retcode = process.poll()
+  # Mark the process output as non-blocking.
+  flags = fcntl.fcntl(p.stdout, fcntl.F_GETFL)
+  fcntl.fcntl(p.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
-    # Write stdout and stderr to the log.
-    with open(self.logout, 'w') as f: f.write(stdout)
-    with open(self.logerr, 'w') as f: f.write(stderr)
+  t_start = time.time()
+  t_last_indication = t_start
+  process_output = ''
 
-    if retcode == 0:
-      # Success.
-      # We normally only print the command on failure, but with --verbose we
-      # should also print it on success.
-      VerbosePrint(self.verbose, 'COMMAND: ' + ' '.join(command))
-      VerbosePrint(self.verbose, 'LOG (stdout): ' + self.logout)
-      VerbosePrint(self.verbose, 'LOG (stderr): ' + self.logerr + '\n')
-    else:
-      # Failure.
-      Print('--- FAILED ' + self.name + ' ---')
-      Print('COMMAND: ' + ' '.join(command))
-      Print('LOG (stdout): ' + self.logout)
-      Print('LOG (stderr): ' + self.logerr + '\n')
+  # Keep looping as long as the process is running.
+  while p.poll() is None:
+    # Avoid polling too often.
+    time.sleep(0.1)
+    # Update the progress indicator.
+    t_current = time.time()
+    if (t_current - t_start >= 2) and (t_current - t_last_indication >= 1):
+      printer.PrintOverwritableLine(
+        printable_command_orange + indicator % int(t_current - t_start))
+      sys.stdout.flush()
+      t_last_indication = t_current
+    # Pull from the process output.
+    while True:
+      try:
+        line = os.read(p.stdout.fileno(), 1024)
+      except OSError:
+        line = ''
+        break
+      if line == '': break
+      process_output += line
 
-    return retcode
+  # The process has exited. Don't forget to retrieve the rest of its output.
+  out, err = p.communicate()
+  rc = p.poll()
+  process_output += out
 
-
-# Scan matching tests and return a test manifest.
-def ReadManifest(runner, filters = [],
-                 debugger = False, coloured_trace = False, verbose = False):
-  status, output = util.getstatusoutput(runner +  ' --list')
-  if status != 0: util.abort('Failed to list all tests')
-
-  names = output.split()
-  for f in filters:
-    names = filter(re.compile(f).search, names)
-
-  return map(lambda x:
-      Test(x, runner, debugger, coloured_trace, verbose), names)
-
-
-# Shared state for multiprocessing. Ideally the context should be passed with
-# arguments, but constraints from the multiprocessing module prevent us from
-# doing so: the shared variables (multiprocessing.Value) must be global, or no
-# work is started. So we abstract some additional state into global variables to
-# simplify the implementation.
-# Read-write variables for the workers.
-n_tests_passed = multiprocessing.Value('i', 0)
-n_tests_failed = multiprocessing.Value('i', 0)
-# Read-only for workers.
-n_tests = None
-start_time = None
-verbose_test_run = None
-test_suite_name = ''
-
-def RunTest(test):
-  UpdateProgress(start_time, n_tests_passed.value, n_tests_failed.value,
-                 n_tests, verbose_test_run, test.name, test_suite_name)
-  # Run the test and update the statistics.
-  retcode = test.Run()
-  if retcode == 0:
-    with n_tests_passed.get_lock(): n_tests_passed.value += 1
+  if rc == 0:
+    printer.Print(printer.COLOUR_GREEN + printable_command + printer.NO_COLOUR)
   else:
-    with n_tests_failed.get_lock(): n_tests_failed.value += 1
+    printer.Print(printer.COLOUR_RED + printable_command + printer.NO_COLOUR)
+    printer.Print(process_output)
+  return rc
 
 
-# Run all tests in the manifest.
-# This function won't run in parallel due to constraints from the
-# multiprocessing module.
-__run_tests_lock__ = multiprocessing.Lock()
-def RunTests(manifest, jobs = 1, verbose = False, debugger = False,
-             progress_prefix = ''):
-  global n_tests
-  global start_time
-  global verbose_test_run
-  global test_suite_name
+def RunLinter():
+  rc, default_tracked_files = lint.GetDefaultTrackedFiles()
+  if rc:
+    return rc
+  return lint.LintFiles(map(lambda x: join(dir_root, x), default_tracked_files),
+                        jobs = args.jobs, progress_prefix = 'cpp lint: ')
 
-  with __run_tests_lock__:
 
-    # Reset the counters.
-    n_tests_passed.value = 0
-    n_tests_failed.value = 0
 
-    verbose_test_run = verbose
-    test_suite_name = progress_prefix
+def BuildAll(build_options, jobs):
+  scons_command = ["scons", "-C", dir_root, 'all', '-j', str(jobs)]
+  scons_command += list(build_options)
+  return RunCommand(scons_command, list(environment_options))
 
-    n_tests = len(manifest)
 
-    if n_tests == 0:
-      Print('No tests to run.')
-      return 0
+def RunBenchmarks():
+  rc = 0
+  benchmark_names = util.ListCCFilesWithoutExt(config.dir_benchmarks)
+  for bench in benchmark_names:
+    rc |= RunCommand(
+      [os.path.realpath(join(config.dir_build_latest, 'benchmarks', bench))])
+  return rc
 
-    VerbosePrint(verbose, 'Running %d tests...' % (n_tests))
-    start_time = time.time()
 
-    pool = multiprocessing.Pool(jobs)
-    # The '.get(9999999)' is workaround to allow killing the test script with
-    # ctrl+C from the shell. This bug is documented at
-    # http://bugs.python.org/issue8296.
-    work = pool.map_async(RunTest, manifest).get(9999999)
+def PrintStatus(success):
+  printer.Print('\n$ ' + ' '.join(sys.argv))
+  if success:
+    printer.Print('SUCCESS')
+  else:
+    printer.Print('FAILURE')
 
-    done_message = '== Done =='
-    UpdateProgress(start_time, n_tests_passed.value, n_tests_failed.value,
-                   n_tests, verbose, done_message, progress_prefix)
-
-    return n_tests_failed.value # 0 indicates success
 
 
 if __name__ == '__main__':
-  # $ROOT/tools/test.py
-  root_dir = os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0])))
+  util.require_program('scons')
+  rc = 0
 
-  # Parse the arguments.
   args = BuildOptions()
 
-  # Find a valid path to args.runner (in case it doesn't begin with './').
-  args.runner = os.path.join('.', args.runner)
+  if args.fast:
+    def SetFast(option, specified, default):
+      option.val_test_choices = \
+        [default[0] if specified == 'all' else specified[0]]
+    SetFast(environment_option_compiler, args.compiler, config.tested_compilers)
+    SetFast(build_option_mode, args.mode, config.build_options_modes)
+    SetFast(build_option_standard, args.std, config.tested_cpp_standards)
+    SetFast(runtime_option_debugger, args.debugger, ['on', 'off'])
 
-  if not os.access(args.runner, os.X_OK):
-    print "'" + args.test + "' is not executable or does not exist."
-    sys.exit(1)
+  if not args.nolint and not args.fast:
+    rc |= RunLinter()
 
-  # List all matching tests.
-  manifest = ReadManifest(args.runner, args.filters,
-                          args.debugger, args.coloured_trace, args.verbose)
+  # Don't try to test the debugger if we are not running with the simulator.
+  if not args.simulator:
+    test_runtime_options = \
+      filter(lambda x: x.name != 'debugger', test_runtime_options)
 
-  # Run the tests.
-  status = RunTests(manifest, jobs=args.jobs,
-                    verbose=args.verbose, debugger=args.debugger)
-  EnsureNewLine()
+  # List all combinations of options that will be tested.
+  def ListCombinations(args, options):
+    opts_list = map(lambda opt : opt.ArgList(args.__dict__[opt.name]), options)
+    return list(itertools.product(*opts_list))
+  test_env_combinations = ListCombinations(args, test_environment_options)
+  test_build_combinations = ListCombinations(args, test_build_options)
+  test_runtime_combinations = ListCombinations(args, test_runtime_options)
 
-  sys.exit(status)
+  for environment_options in test_env_combinations:
+    for build_options in test_build_combinations:
+      # Avoid going through the build stage if we are not using the build
+      # result.
+      if not (args.notest and args.nobench):
+        build_rc = BuildAll(build_options, args.jobs)
+        # Don't run the tests for this configuration if the build failed.
+        if build_rc != 0:
+          rc |= build_rc
+          continue
 
+      # Use the realpath of the test executable so that the commands printed
+      # can be copy-pasted and run.
+      test_executable = os.path.realpath(
+        join(config.dir_build_latest, 'test', 'test-runner'))
+
+      if not args.notest:
+        printer.Print(test_executable)
+
+      for runtime_options in test_runtime_combinations:
+        if not args.notest:
+          runtime_options = [x for x in runtime_options if x is not None]
+          prefix = '  ' + ' '.join(runtime_options) + '  '
+          rc |= threaded_tests.RunTests(test_executable,
+                                        args.filters,
+                                        list(runtime_options),
+                                        jobs = args.jobs, prefix = prefix)
+
+      if not args.nobench:
+        rc |= RunBenchmarks()
+
+  PrintStatus(rc == 0)

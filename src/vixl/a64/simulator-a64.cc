@@ -64,6 +64,8 @@ Simulator::Simulator(Decoder* decoder, FILE* stream) {
   VIXL_ASSERT((static_cast<int32_t>(-1) >> 1) == -1);
   VIXL_ASSERT((static_cast<uint32_t>(-1) >> 1) == 0x7fffffff);
 
+  instruction_stats_ = false;
+
   // Set up the decoder.
   decoder_ = decoder;
   decoder_->AppendVisitor(this);
@@ -121,7 +123,7 @@ void Simulator::ResetState() {
 
 
 Simulator::~Simulator() {
-  delete [] stack_;
+  delete[] stack_;
   // The decoder may outlive the simulator.
   decoder_->RemoveVisitor(print_disasm_);
   delete print_disasm_;
@@ -1142,7 +1144,7 @@ void Simulator::LoadStoreHelper(const Instruction* instr,
     default: VIXL_UNIMPLEMENTED();
   }
 
-  size_t access_size = 1 << instr->SizeLS();
+  unsigned access_size = 1 << instr->SizeLS();
   if (instr->IsLoad()) {
     if ((op == LDR_s) || (op == LDR_d)) {
       LogVRead(address, srcdst, GetPrintRegisterFormatForSizeFP(access_size));
@@ -1189,7 +1191,7 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
                                     AddrMode addrmode) {
   unsigned rt = instr->Rt();
   unsigned rt2 = instr->Rt2();
-  size_t element_size = 1 << instr->SizeLSPair();
+  int element_size = 1 << instr->SizeLSPair();
   int64_t offset = instr->ImmLSPair() * element_size;
   uintptr_t address = AddressModeHelper(instr->Rn(), offset, addrmode);
   uintptr_t address2 = address + element_size;
@@ -1319,8 +1321,8 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
   bool is_load = instr->LdStXLoad();
   bool is_pair = instr->LdStXPair();
 
-  size_t element_size = 1 << instr->LdStXSizeLog2();
-  size_t access_size = is_pair ? element_size * 2 : element_size;
+  unsigned element_size = 1 << instr->LdStXSizeLog2();
+  unsigned access_size = is_pair ? element_size * 2 : element_size;
   uint64_t address = reg<uint64_t>(rn, Reg31IsStackPointer);
 
   // Verify that the address is available to the host.
@@ -1545,7 +1547,7 @@ void Simulator::VisitMoveWideImmediate(const Instruction* instr) {
 
   // Get the shifted immediate.
   int64_t shift = instr->ShiftMoveWide() * 16;
-  int64_t shifted_imm16 = instr->ImmMoveWide() << shift;
+  int64_t shifted_imm16 = static_cast<int64_t>(instr->ImmMoveWide()) << shift;
 
   // Compute the new value.
   switch (mov_op) {
@@ -1605,13 +1607,13 @@ void Simulator::VisitDataProcessing1Source(const Instruction* instr) {
   unsigned src = instr->Rn();
 
   switch (instr->Mask(DataProcessing1SourceMask)) {
-    case RBIT_w: set_wreg(dst, ReverseBits(wreg(src), kWRegSize)); break;
-    case RBIT_x: set_xreg(dst, ReverseBits(xreg(src), kXRegSize)); break;
-    case REV16_w: set_wreg(dst, ReverseBytes(wreg(src), Reverse16)); break;
-    case REV16_x: set_xreg(dst, ReverseBytes(xreg(src), Reverse16)); break;
-    case REV_w: set_wreg(dst, ReverseBytes(wreg(src), Reverse32)); break;
-    case REV32_x: set_xreg(dst, ReverseBytes(xreg(src), Reverse32)); break;
-    case REV_x: set_xreg(dst, ReverseBytes(xreg(src), Reverse64)); break;
+    case RBIT_w: set_wreg(dst, ReverseBits(wreg(src))); break;
+    case RBIT_x: set_xreg(dst, ReverseBits(xreg(src))); break;
+    case REV16_w: set_wreg(dst, ReverseBytes(wreg(src), 1)); break;
+    case REV16_x: set_xreg(dst, ReverseBytes(xreg(src), 1)); break;
+    case REV_w: set_wreg(dst, ReverseBytes(wreg(src), 2)); break;
+    case REV32_x: set_xreg(dst, ReverseBytes(xreg(src), 2)); break;
+    case REV_x: set_xreg(dst, ReverseBytes(xreg(src), 3)); break;
     case CLZ_w: set_wreg(dst, CountLeadingZeros(wreg(src))); break;
     case CLZ_x: set_xreg(dst, CountLeadingZeros(xreg(src))); break;
     case CLS_w: {
@@ -1624,45 +1626,6 @@ void Simulator::VisitDataProcessing1Source(const Instruction* instr) {
     }
     default: VIXL_UNIMPLEMENTED();
   }
-}
-
-
-uint64_t Simulator::ReverseBits(uint64_t value, unsigned num_bits) {
-  VIXL_ASSERT((num_bits == kWRegSize) || (num_bits == kXRegSize) ||
-              (num_bits == 8) || (num_bits == 16));
-  uint64_t result = 0;
-  for (unsigned i = 0; i < num_bits; i++) {
-    result = (result << 1) | (value & 1);
-    value >>= 1;
-  }
-  return result;
-}
-
-
-uint64_t Simulator::ReverseBytes(uint64_t value, ReverseByteMode mode) {
-  // Split the 64-bit value into an 8-bit array, where b[0] is the least
-  // significant byte, and b[7] is the most significant.
-  uint8_t bytes[8];
-  uint64_t mask = 0xff00000000000000;
-  for (int i = 7; i >= 0; i--) {
-    bytes[i] = (value & mask) >> (i * 8);
-    mask >>= 8;
-  }
-
-  // Permutation tables for REV instructions.
-  //  permute_table[Reverse16] is used by REV16_x, REV16_w
-  //  permute_table[Reverse32] is used by REV32_x, REV_w
-  //  permute_table[Reverse64] is used by REV_x
-  VIXL_STATIC_ASSERT((Reverse16 == 0) && (Reverse32 == 1) && (Reverse64 == 2));
-  static const uint8_t permute_table[3][8] = { {6, 7, 4, 5, 2, 3, 0, 1},
-                                               {4, 5, 6, 7, 0, 1, 2, 3},
-                                               {0, 1, 2, 3, 4, 5, 6, 7} };
-  uint64_t result = 0;
-  for (int i = 0; i < 8; i++) {
-    result <<= 8;
-    result |= bytes[permute_table[mode][i]];
-  }
-  return result;
 }
 
 
@@ -1681,11 +1644,11 @@ uint32_t Simulator::Poly32Mod2(unsigned n, uint64_t data, uint32_t poly) {
 
 template <typename T>
 uint32_t Simulator::Crc32Checksum(uint32_t acc, T val, uint32_t poly) {
-  unsigned size = sizeof(val) * 8;  // number of bits in type T
+  unsigned size = sizeof(val) * 8;  // Number of bits in type T.
   VIXL_ASSERT((size == 8) || (size == 16) || (size == 32));
-  uint64_t tempacc = ReverseBits(acc, 32) << size;
-  uint64_t tempval = ReverseBits(val, size) << 32;
-  return ReverseBits(Poly32Mod2(32 + size, tempacc ^ tempval, poly), 32);
+  uint64_t tempacc = static_cast<uint64_t>(ReverseBits(acc)) << size;
+  uint64_t tempval = static_cast<uint64_t>(ReverseBits(val)) << 32;
+  return ReverseBits(Poly32Mod2(32 + size, tempacc ^ tempval, poly));
 }
 
 
@@ -2393,11 +2356,11 @@ void Simulator::VisitSystem(const Instruction* instr) {
       case MSR: {
         switch (instr->ImmSystemRegister()) {
           case NZCV:
-            nzcv().SetRawValue(xreg(instr->Rt()));
+            nzcv().SetRawValue(wreg(instr->Rt()));
             LogSystemRegister(NZCV);
             break;
           case FPCR:
-            fpcr().SetRawValue(xreg(instr->Rt()));
+            fpcr().SetRawValue(wreg(instr->Rt()));
             LogSystemRegister(FPCR);
             break;
           default: VIXL_UNIMPLEMENTED();
@@ -3009,7 +2972,7 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
   VectorFormat vf = nfd.GetVectorFormat();
 
   uint64_t addr_base = xreg(instr->Rn(), Reg31IsStackPointer);
-  uint64_t reg_size = RegisterSizeInBytesFromFormat(vf);
+  int reg_size = RegisterSizeInBytesFromFormat(vf);
 
   int reg[4];
   uint64_t addr[4];

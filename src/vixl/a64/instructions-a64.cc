@@ -131,9 +131,9 @@ bool Instruction::IsStore() const {
 // not met.
 uint64_t Instruction::ImmLogical() const {
   unsigned reg_size = SixtyFourBits() ? kXRegSize : kWRegSize;
-  int64_t n = BitN();
-  int64_t imm_s = ImmSetBits();
-  int64_t imm_r = ImmRotate();
+  int32_t n = BitN();
+  int32_t imm_s = ImmSetBits();
+  int32_t imm_r = ImmRotate();
 
   // An integer is constructed from the n, imm_s and imm_r bits according to
   // the following table:
@@ -287,7 +287,7 @@ int32_t Instruction::ImmBranchForwardRange(ImmBranchType branch_type) {
 
 
 bool Instruction::IsValidImmPCOffset(ImmBranchType branch_type,
-                                     int32_t offset) {
+                                     int64_t offset) {
   return is_intn(ImmBranchRangeBitwidth(branch_type), offset);
 }
 
@@ -336,7 +336,7 @@ void Instruction::SetImmPCOffsetTarget(const Instruction* target) {
 
 
 void Instruction::SetPCRelImmTarget(const Instruction* target) {
-  int32_t imm21;
+  ptrdiff_t imm21;
   if ((Mask(PCRelAddressingMask) == ADR)) {
     imm21 = target - this;
   } else {
@@ -345,7 +345,7 @@ void Instruction::SetPCRelImmTarget(const Instruction* target) {
     uintptr_t target_page = reinterpret_cast<uintptr_t>(target) / kPageSize;
     imm21 = target_page - this_page;
   }
-  Instr imm = Assembler::ImmPCRelAddress(imm21);
+  Instr imm = Assembler::ImmPCRelAddress(static_cast<int32_t>(imm21));
 
   SetInstructionBits(Mask(~ImmPCRel_mask) | imm);
 }
@@ -355,7 +355,7 @@ void Instruction::SetBranchImmTarget(const Instruction* target) {
   VIXL_ASSERT(((target - this) & 3) == 0);
   Instr branch_imm = 0;
   uint32_t imm_mask = 0;
-  int offset = (target - this) >> kInstructionSizeLog2;
+  int offset = static_cast<int>((target - this) >> kInstructionSizeLog2);
   switch (BranchType()) {
     case CondBranchType: {
       branch_imm = Assembler::ImmCondBranch(offset);
@@ -386,7 +386,7 @@ void Instruction::SetBranchImmTarget(const Instruction* target) {
 void Instruction::SetImmLLiteral(const Instruction* source) {
   VIXL_ASSERT(IsWordAligned(source));
   ptrdiff_t offset = (source - this) >> kLiteralEntrySizeLog2;
-  Instr imm = Assembler::ImmLLiteral(offset);
+  Instr imm = Assembler::ImmLLiteral(static_cast<int>(offset));
   Instr mask = ImmLLiteral_mask;
 
   SetInstructionBits(Mask(~mask) | imm);

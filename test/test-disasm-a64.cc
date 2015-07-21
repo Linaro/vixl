@@ -102,7 +102,7 @@
   delete disasm;                                                               \
   delete decoder;                                                              \
   delete masm;                                                                 \
-  delete buf
+  delete[] buf
 
 namespace vixl {
 

@@ -165,7 +165,6 @@ class Disassembler: public DecoderVisitor {
 class PrintDisassembler: public Disassembler {
  public:
   explicit PrintDisassembler(FILE* stream) : stream_(stream) { }
-  virtual ~PrintDisassembler() { }
 
  protected:
   virtual void ProcessOutput(const Instruction* instr);

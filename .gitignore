@@ -1,10 +1,6 @@
 # ignore python compiled object
 *.pyc
 .sconsign.dblite
-obj/
-test-*
-bench-*
-libvixl*
-example-*
-vixl_stats.csv
 log/
+obj/
+vixl_stats.csv

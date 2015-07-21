@@ -105,7 +105,7 @@ int CountSetBitsFallBack(uint64_t value, int width) {
     value = ((value >> shift) & kMasks[i]) + (value & kMasks[i]);
   }
 
-  return value;
+  return static_cast<int>(value);
 }
 
 

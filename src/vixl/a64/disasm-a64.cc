@@ -2836,7 +2836,7 @@ int Disassembler::SubstituteRegisterField(const Instruction* instr,
         case 'z': {
           field_len = 3;
           char* eimm;
-          int imm = strtol(&format[3], &eimm, 10);
+          int imm = static_cast<int>(strtol(&format[3], &eimm, 10));
           field_len += eimm - &format[3];
           if (reg_num == 31) {
             switch (format[2]) {
@@ -2937,13 +2937,14 @@ int Disassembler::SubstituteImmediateField(const Instruction* instr,
   switch (format[1]) {
     case 'M': {  // IMoveImm, IMoveNeg or IMoveLSL.
       if (format[5] == 'L') {
-        AppendToOutput("#0x%" PRIx64, instr->ImmMoveWide());
+        AppendToOutput("#0x%" PRIx32, instr->ImmMoveWide());
         if (instr->ShiftMoveWide() > 0) {
-          AppendToOutput(", lsl #%" PRId64, 16 * instr->ShiftMoveWide());
+          AppendToOutput(", lsl #%" PRId32, 16 * instr->ShiftMoveWide());
         }
       } else {
         VIXL_ASSERT((format[5] == 'I') || (format[5] == 'N'));
-        uint64_t imm = instr->ImmMoveWide() << (16 * instr->ShiftMoveWide());
+        uint64_t imm = static_cast<uint64_t>(instr->ImmMoveWide()) <<
+            (16 * instr->ShiftMoveWide());
         if (format[5] == 'N')
           imm = ~imm;
         if (!instr->SixtyFourBits())
@@ -2955,13 +2956,13 @@ int Disassembler::SubstituteImmediateField(const Instruction* instr,
     case 'L': {
       switch (format[2]) {
         case 'L': {  // ILLiteral - Immediate Load Literal.
-          AppendToOutput("pc%+" PRId64,
+          AppendToOutput("pc%+" PRId32,
                          instr->ImmLLiteral() << kLiteralEntrySizeLog2);
           return 9;
         }
         case 'S': {  // ILS - Immediate Load/Store.
           if (instr->ImmLS() != 0) {
-            AppendToOutput(", #%" PRId64, instr->ImmLS());
+            AppendToOutput(", #%" PRId32, instr->ImmLS());
           }
           return 3;
         }
@@ -2969,14 +2970,14 @@ int Disassembler::SubstituteImmediateField(const Instruction* instr,
           if (instr->ImmLSPair() != 0) {
             // format[3] is the scale value. Convert to a number.
             int scale = 1 << (format[3] - '0');
-            AppendToOutput(", #%" PRId64, instr->ImmLSPair() * scale);
+            AppendToOutput(", #%" PRId32, instr->ImmLSPair() * scale);
           }
           return 4;
         }
         case 'U': {  // ILU - Immediate Load/Store Unsigned.
           if (instr->ImmLSUnsigned() != 0) {
             int shift = instr->SizeLS();
-            AppendToOutput(", #%" PRIu64, instr->ImmLSUnsigned() << shift);
+            AppendToOutput(", #%" PRId32, instr->ImmLSUnsigned() << shift);
           }
           return 3;
         }
@@ -2995,10 +2996,10 @@ int Disassembler::SubstituteImmediateField(const Instruction* instr,
     }
     case 'F': {  // IFPSingle, IFPDouble or IFPFBits.
       if (format[3] == 'F') {  // IFPFbits.
-        AppendToOutput("#%" PRId64, 64 - instr->FPScale());
+        AppendToOutput("#%" PRId32, 64 - instr->FPScale());
         return 8;
       } else {
-        AppendToOutput("#0x%" PRIx64 " (%.4f)", instr->ImmFP(),
+        AppendToOutput("#0x%" PRIx32 " (%.4f)", instr->ImmFP(),
                        format[3] == 'S' ? instr->ImmFP32() : instr->ImmFP64());
         return 9;
       }
@@ -3016,18 +3017,18 @@ int Disassembler::SubstituteImmediateField(const Instruction* instr,
       return 5;
     }
     case 'P': {  // IP - Conditional compare.
-      AppendToOutput("#%" PRId64, instr->ImmCondCmp());
+      AppendToOutput("#%" PRId32, instr->ImmCondCmp());
       return 2;
     }
     case 'B': {  // Bitfields.
       return SubstituteBitfieldImmediateField(instr, format);
     }
     case 'E': {  // IExtract.
-      AppendToOutput("#%" PRId64, instr->ImmS());
+      AppendToOutput("#%" PRId32, instr->ImmS());
       return 8;
     }
     case 'S': {  // IS - Test and branch bit.
-      AppendToOutput("#%" PRId64, (instr->ImmTestBranchBit5() << 5) |
+      AppendToOutput("#%" PRId32, (instr->ImmTestBranchBit5() << 5) |
                                   instr->ImmTestBranchBit40());
       return 2;
     }
@@ -3052,13 +3053,13 @@ int Disassembler::SubstituteImmediateField(const Instruction* instr,
       }
     }
     case 'D': {  // IDebug - HLT and BRK instructions.
-      AppendToOutput("#0x%" PRIx64, instr->ImmException());
+      AppendToOutput("#0x%" PRIx32, instr->ImmException());
       return 6;
     }
     case 'V': {  // Immediate Vector.
       switch (format[2]) {
         case 'E': {  // IVExtract.
-          AppendToOutput("#%" PRId64, instr->ImmNEONExt());
+          AppendToOutput("#%" PRId32, instr->ImmNEONExt());
           return 9;
         }
         case 'B': {  // IVByElemIndex.
@@ -3146,7 +3147,7 @@ int Disassembler::SubstituteImmediateField(const Instruction* instr,
       }
     }
     case 'X': {  // IX - CLREX instruction.
-      AppendToOutput("#0x%" PRIx64, instr->CRm());
+      AppendToOutput("#0x%" PRIx32, instr->CRm());
       return 2;
     }
     default: {
@@ -3244,7 +3245,7 @@ int Disassembler::SubstituteShiftField(const Instruction* instr,
     case 'L': {  // HLo.
       if (instr->ImmDPShift() != 0) {
         const char* shift_type[] = {"lsl", "lsr", "asr", "ror"};
-        AppendToOutput(", %s #%" PRId64, shift_type[instr->ShiftDP()],
+        AppendToOutput(", %s #%" PRId32, shift_type[instr->ShiftDP()],
                        instr->ImmDPShift());
       }
       return 3;
@@ -3346,12 +3347,12 @@ int Disassembler::SubstituteExtendField(const Instruction* instr,
       (((instr->ExtendMode() == UXTW) && (instr->SixtyFourBits() == 0)) ||
        (instr->ExtendMode() == UXTX))) {
     if (instr->ImmExtendShift() > 0) {
-      AppendToOutput(", lsl #%" PRId64, instr->ImmExtendShift());
+      AppendToOutput(", lsl #%" PRId32, instr->ImmExtendShift());
     }
   } else {
     AppendToOutput(", %s", extend_mode[instr->ExtendMode()]);
     if (instr->ImmExtendShift() > 0) {
-      AppendToOutput(" #%" PRId64, instr->ImmExtendShift());
+      AppendToOutput(" #%" PRId32, instr->ImmExtendShift());
     }
   }
   return 3;

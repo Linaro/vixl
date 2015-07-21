@@ -24,42 +24,23 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import glob
 import os
-import re
-import shlex
-import subprocess
-import sys
+
+# These paths describe the structure of the repository.
+dir_tools        = os.path.dirname(os.path.realpath(__file__))
+dir_root         = os.path.abspath(os.path.join(dir_tools, '..'))
+dir_build        = os.path.join(dir_root, 'obj')
+dir_build_latest = os.path.join(dir_build, 'latest')
+dir_src_vixl     = os.path.join(dir_root, 'src')
+dir_benchmarks   = os.path.join(dir_root, 'benchmarks')
+dir_examples     = os.path.join(dir_root, 'examples')
 
 
-def ListCCFilesWithoutExt(path):
-  return map(lambda x : os.path.splitext(os.path.basename(x))[0],
-             glob.glob(os.path.join(path, '*.cc')))
+# The full list of available build modes.
+build_options_modes = ['release', 'debug']
+# The list of C++ standard to test for.
+tested_cpp_standards = ['c++98', 'c++11']
+# The list of compilers tested.
+tested_compilers = ['g++', 'clang++']
 
 
-def abort(message):
-  print('ABORTING: ' + message)
-  sys.exit(1)
-
-
-# Emulate python3 subprocess.getstatusoutput.
-def getstatusoutput(command, shell=False):
-  try:
-    args = shlex.split(command)
-    output = subprocess.check_output(args, stderr=subprocess.STDOUT, shell=shell)
-    return 0, output.rstrip('\n')
-  except subprocess.CalledProcessError as e:
-    return e.returncode, e.output.rstrip('\n')
-
-
-def ensure_dir(path_name):
-  if not os.path.exists(path_name):
-    os.makedirs(path_name)
-
-
-# Check that the specified program is available.
-def require_program(program_name):
-  rc, out = getstatusoutput('which %s' % program_name)
-  if rc != 0:
-    print('ERROR: The required program %s was not found.' % program_name)
-    sys.exit(rc)

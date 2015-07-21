@@ -163,8 +163,7 @@ void CPU::EnsureIAndDCacheCoherency(void *address, size_t length) {
 #else
   // If the host isn't AArch64, we must be using the simulator, so this function
   // doesn't have to do anything.
-  USE(address);
-  USE(length);
+  USE(address, length);
 #endif
 }
 

@@ -54,9 +54,9 @@ inline bool is_uintn(unsigned n, int64_t x) {
   return !(x >> n);
 }
 
-inline unsigned truncate_to_intn(unsigned n, int64_t x) {
+inline uint32_t truncate_to_intn(unsigned n, int64_t x) {
   VIXL_ASSERT((0 < n) && (n < 64));
-  return (x & ((INT64_C(1) << n) - 1));
+  return static_cast<uint32_t>(x & ((INT64_C(1) << n) - 1));
 }
 
 #define INT_1_TO_63_LIST(V)                                                    \
@@ -74,7 +74,7 @@ inline bool is_int##N(int64_t x) { return is_intn(N, x); }
 #define DECLARE_IS_UINT_N(N)                                                   \
 inline bool is_uint##N(int64_t x) { return is_uintn(N, x); }
 #define DECLARE_TRUNCATE_TO_INT_N(N)                                           \
-inline int truncate_to_int##N(int x) { return truncate_to_intn(N, x); }
+inline uint32_t truncate_to_int##N(int x) { return truncate_to_intn(N, x); }
 INT_1_TO_63_LIST(DECLARE_IS_INT_N)
 INT_1_TO_63_LIST(DECLARE_IS_UINT_N)
 INT_1_TO_63_LIST(DECLARE_TRUNCATE_TO_INT_N)
@@ -196,7 +196,52 @@ inline int WhichPowerOf2(V value) {
   return CountTrailingZeros(value);
 }
 
+
 unsigned CountClearHalfWords(uint64_t imm, unsigned reg_size);
+
+
+template <typename T>
+T ReverseBits(T value) {
+  VIXL_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
+              (sizeof(value) == 4) || (sizeof(value) == 8));
+  T result = 0;
+  for (unsigned i = 0; i < (sizeof(value) * 8); i++) {
+    result = (result << 1) | (value & 1);
+    value >>= 1;
+  }
+  return result;
+}
+
+
+template <typename T>
+T ReverseBytes(T value, int block_bytes_log2) {
+  VIXL_ASSERT((sizeof(value) == 4) || (sizeof(value) == 8));
+  VIXL_ASSERT((1U << block_bytes_log2) <= sizeof(value));
+  // Split the 64-bit value into an 8-bit array, where b[0] is the least
+  // significant byte, and b[7] is the most significant.
+  uint8_t bytes[8];
+  uint64_t mask = 0xff00000000000000;
+  for (int i = 7; i >= 0; i--) {
+    bytes[i] = (static_cast<uint64_t>(value) & mask) >> (i * 8);
+    mask >>= 8;
+  }
+
+  // Permutation tables for REV instructions.
+  //  permute_table[0] is used by REV16_x, REV16_w
+  //  permute_table[1] is used by REV32_x, REV_w
+  //  permute_table[2] is used by REV_x
+  VIXL_ASSERT((0 < block_bytes_log2) && (block_bytes_log2 < 4));
+  static const uint8_t permute_table[3][8] = { {6, 7, 4, 5, 2, 3, 0, 1},
+                                               {4, 5, 6, 7, 0, 1, 2, 3},
+                                               {0, 1, 2, 3, 4, 5, 6, 7} };
+  T result = 0;
+  for (int i = 0; i < 8; i++) {
+    result <<= 8;
+    result |= bytes[permute_table[block_bytes_log2 - 1][i]];
+  }
+  return result;
+}
+
 
 // Pointer alignment
 // TODO: rename/refactor to make it specific to instructions.

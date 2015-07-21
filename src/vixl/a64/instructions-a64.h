@@ -188,16 +188,17 @@ class Instruction {
   }
 
   #define DEFINE_GETTER(Name, HighBit, LowBit, Func)             \
-  int64_t Name() const { return Func(HighBit, LowBit); }
+  int32_t Name() const { return Func(HighBit, LowBit); }
   INSTRUCTION_FIELDS_LIST(DEFINE_GETTER)
   #undef DEFINE_GETTER
 
   // ImmPCRel is a compound field (not present in INSTRUCTION_FIELDS_LIST),
   // formed from ImmPCRelLo and ImmPCRelHi.
   int ImmPCRel() const {
-    int const offset = ((ImmPCRelHi() << ImmPCRelLo_width) | ImmPCRelLo());
-    int const width = ImmPCRelLo_width + ImmPCRelHi_width;
-    return signed_bitextract_32(width-1, 0, offset);
+    int offset =
+        static_cast<int>((ImmPCRelHi() << ImmPCRelLo_width) | ImmPCRelLo());
+    int width = ImmPCRelLo_width + ImmPCRelHi_width;
+    return signed_bitextract_32(width - 1, 0, offset);
   }
 
   uint64_t ImmLogical() const;
@@ -217,11 +218,11 @@ class Instruction {
   }
 
   int NEONLSIndex(int access_size_shift) const {
-    int q = NEONQ();
-    int s = NEONS();
-    int size = NEONLSSize();
-    int index = (q << 3) | (s << 2) | size;
-    return index >> access_size_shift;
+    int64_t q = NEONQ();
+    int64_t s = NEONS();
+    int64_t size = NEONLSSize();
+    int64_t index = (q << 3) | (s << 2) | size;
+    return static_cast<int>(index >> access_size_shift);
   }
 
   // Helpers.
@@ -280,7 +281,7 @@ class Instruction {
 
   static int ImmBranchRangeBitwidth(ImmBranchType branch_type);
   static int32_t ImmBranchForwardRange(ImmBranchType branch_type);
-  static bool IsValidImmPCOffset(ImmBranchType branch_type, int32_t offset);
+  static bool IsValidImmPCOffset(ImmBranchType branch_type, int64_t offset);
 
   // Indicate whether Rd can be the stack pointer or the zero register. This
   // does not check that the instruction actually has an Rd field.
@@ -363,8 +364,8 @@ class Instruction {
   // mutable.
   template <typename T>
   T LiteralAddress() const {
-    uint64_t base_raw = reinterpret_cast<uintptr_t>(this);
-    ptrdiff_t offset = ImmLLiteral() << kLiteralEntrySizeLog2;
+    uint64_t base_raw = reinterpret_cast<uint64_t>(this);
+    int64_t offset = ImmLLiteral() << kLiteralEntrySizeLog2;
     uint64_t address_raw = base_raw + offset;
 
     // Cast the address using a C-style cast. A reinterpret_cast would be

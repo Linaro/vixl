@@ -1,6 +1,11 @@
 VIXL Change Log
 ===============
 
+* 1.10
+    + Improved support for externally managed literals.
+    + Reworked build and test infrastructure.
+    + Other small bug fixes and improvements.
+
 * 1.9
     + Improved compatibility with Android build system.
     + Improved compatibility with Clang toolchain.

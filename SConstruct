@@ -24,270 +24,304 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import glob
 import os
-import os.path
+from os.path import join
 import platform
 import subprocess
 import sys
 
 root_dir = os.path.dirname(File('SConstruct').rfile().abspath)
-sys.path.insert(0, os.path.join(root_dir, 'tools'))
+sys.path.insert(0, join(root_dir, 'tools'))
+import config
 import util
 
 
 Help('''
 Build system for the VIXL project.
 See README.md for documentation and details about the build system.
-Some common build targets are:
-    scons            # Build the VIXL library and test utility.
-    scons examples   # Build all the examples.
-    scons all        # Build everything.
-
 ''')
 
 
-# Global configuration.
-PROJ_SRC_DIR   = 'src'
-PROJ_SRC_FILES = '''
-src/vixl/a64/assembler-a64.cc
-src/vixl/a64/cpu-a64.cc
-src/vixl/a64/debugger-a64.cc
-src/vixl/a64/decoder-a64.cc
-src/vixl/a64/disasm-a64.cc
-src/vixl/a64/instructions-a64.cc
-src/vixl/a64/instrument-a64.cc
-src/vixl/a64/logic-a64.cc
-src/vixl/a64/macro-assembler-a64.cc
-src/vixl/a64/simulator-a64.cc
-src/vixl/code-buffer.cc
-src/vixl/compiler-intrinsics.cc
-src/vixl/utils.cc
-'''.split()
-PROJ_EXAMPLES_DIR = 'examples'
-PROJ_EXAMPLES_SRC_FILES = '''
-examples/abs.cc
-examples/add2-vectors.cc
-examples/add3-double.cc
-examples/add4-double.cc
-examples/check-bounds.cc
-examples/crc-checksums.cc
-examples/custom-disassembler.cc
-examples/debugger.cc
-examples/factorial-rec.cc
-examples/factorial.cc
-examples/neon-matrix-multiply.cc
-examples/getting-started.cc
-examples/non-const-visitor.cc
-examples/sum-array.cc
-examples/swap-int32.cc
-examples/swap4.cc
-'''.split()
-# List target specific files.
-# Target names are used as dictionary entries.
-TARGET_SRC_DIR = {
-  'test': 'test',
-  'bench-dataop': 'benchmarks',
-  'bench-branch': 'benchmarks',
-  'bench-branch-link': 'benchmarks',
-  'bench-branch-masm': 'benchmarks',
-  'bench-branch-link-masm': 'benchmarks',
-  'examples': 'examples'
-}
-TARGET_SRC_FILES = {
-  'test': '''
-    test/test-runner.cc
-    test/examples/test-examples.cc
-    test/test-assembler-a64.cc
-    test/test-disasm-a64.cc
-    test/test-fuzz-a64.cc
-    test/test-invalset.cc
-    test/test-simulator-a64.cc
-    test/test-utils-a64.cc
-    '''.split(),
-  'bench-dataop': '''
-    benchmarks/bench-dataop.cc
-    '''.split(),
-  'bench-branch': '''
-    benchmarks/bench-branch.cc
-    '''.split(),
-  'bench-branch-link': '''
-    benchmarks/bench-branch-link.cc
-    '''.split(),
-  'bench-branch-masm': '''
-    benchmarks/bench-branch-masm.cc
-    '''.split(),
-  'bench-branch-link-masm': '''
-    benchmarks/bench-branch-link-masm.cc
-    '''.split()
-}
-OBJ_DIR  = 'obj'
+# We track top-level targets to automatically generate help and alias them.
+class TopLevelTargets:
+  def __init__(self):
+    self.targets = []
+    self.help_messages = []
+  def Add(self, target, help_message):
+    self.targets.append(target)
+    self.help_messages.append(help_message)
+  def Help(self):
+    res = ""  
+    for i in range(len(self.targets)):
+      res += '\t{0:<{1}}{2:<{3}}\n'.format(
+        'scons ' + self.targets[i],
+        len('scons ') + max(map(len, self.targets)),
+        ' : ' + self.help_messages[i],
+        len(' : ') + max(map(len, self.help_messages)))
+    return res
 
-# Helper functions.
-def abort(message):
-  print('ABORTING: ' + message)
-  sys.exit(1)
+top_level_targets = TopLevelTargets()
 
 
-def list_target(obj_dir, src_files):
-  return map(lambda x: os.path.join(obj_dir, x), src_files)
+
+# Build options ----------------------------------------------------------------
+
+# Store all the options in a dictionary.
+# The SConstruct will check the build variables and construct the build
+# environment as appropriate.
+options = {
+    'all' : { # Unconditionally processed.
+      'CCFLAGS' : ['-Wall',
+                   '-Werror',
+                   '-fdiagnostics-show-option',
+                   '-Wextra',
+                   '-Wredundant-decls',
+                   '-pedantic',
+                   '-Wwrite-strings'],
+      'CPPPATH' : [config.dir_src_vixl]
+      },
+#   'build_option:value' : {
+#     'environment_key' : 'values to append'
+#     },
+    'mode:debug' : {
+      'CCFLAGS' : ['-DVIXL_DEBUG', '-O0']
+      },
+    'mode:release' : {
+      'CCFLAGS' : ['-O3']
+      },
+    'simulator:on' : {
+      'CCFLAGS' : ['-DUSE_SIMULATOR'],
+      },
+    'symbols:on' : {
+      'CCFLAGS' : ['-g'],
+      'LINKFLAGS' : ['-g']
+      },
+    }
 
 
-def is_compiler(compiler):
-  return env['CXX'].find(compiler) == 0
+# A `DefaultVariable` has a default value that depends on elements not known
+# when variables are first evaluated.
+# Each `DefaultVariable` has a handler that will compute the default value for
+# the given environment.
+def modifiable_flags_handler(env):
+  env['modifiable_flags'] = \
+      'on' if 'mode' in env and env['mode'] == 'debug' else 'off'
 
 
-def create_variant(obj_dir, targets_dir):
-  VariantDir(os.path.join(obj_dir, PROJ_SRC_DIR), PROJ_SRC_DIR)
-  for directory in targets_dir.itervalues():
-    VariantDir(os.path.join(obj_dir, directory), directory)
+def symbols_handler(env):
+  env['symbols'] = 'on' if 'mode' in env and env['mode'] == 'debug' else 'off'
 
 
-# Build arguments.
-args = Variables()
-args.Add(EnumVariable('mode', 'Build mode', 'release',
-                      allowed_values = ['release', 'debug']))
+vars_default_handlers = {
+    # variable_name    : [ 'default val', 'handler'                ]
+    'symbols'          : [ 'mode==debug', symbols_handler          ],
+    'modifiable_flags' : [ 'mode==debug', modifiable_flags_handler ]
+    }
+
+
+def DefaultVariable(name, help, allowed):
+  default_value = vars_default_handlers[name][0]
+  allowed.append(default_value)
+  return EnumVariable(name, help, default_value, allowed)
+
+
+vars = Variables()
+# Define command line build options.
 sim_default = 'off' if platform.machine() == 'aarch64' else 'on'
-args.Add(EnumVariable('simulator', 'build for the simulator', sim_default,
-                      allowed_values = ['on', 'off']))
-args.Add('std', 'c++ standard')
+vars.AddVariables(
+    EnumVariable('mode', 'Build mode',
+                 'release', allowed_values=config.build_options_modes),
+    DefaultVariable('symbols', 'Include debugging symbols in the binaries',
+                    ['on', 'off']),
+    EnumVariable('simulator', 'Build for the simulator',
+                 sim_default, allowed_values=['on', 'off']),
+    ('std', 'C++ standard. The standards tested are: %s.' % \
+                                         ', '.join(config.tested_cpp_standards))
+    )
 
-# Configure the environment.
-env = Environment(variables=args)
+# Abort the build if any command line option is unknown or invalid.
+unknown_build_options = vars.UnknownVariables()
+if unknown_build_options:
+  print 'Unknown build options:',  unknown_build_options.keys()
+  Exit(1)
 
-# Commandline help.
-Help(args.GenerateHelpText(env) + '\n')
-
-# Abort if any invalid argument was passed.
-# This check must happened after an environment is created.
-unknown_arg = args.UnknownVariables()
-if unknown_arg:
-  abort('Unknown variable(s): ' + str(unknown_arg.keys()))
-
-# Setup tools.
-# This is necessary for cross-compilation.
-env['CXX'] = os.environ.get('CXX', env.get('CXX'))
-env['AR'] = os.environ.get('AR', env.get('AR'))
-env['RANLIB'] = os.environ.get('RANLIB', env.get('RANLIB'))
-env['CC'] = os.environ.get('CC', env.get('CC'))
-env['LD'] = os.environ.get('LD', env.get('LD'))
-
-if os.environ.get('CPPFLAGS'):
-  env.Append(CPPFLAGS = os.environ.get('CPPFLAGS').split())
-if os.environ.get('LINKFLAGS'):
-  env.Append(LINKFLAGS = os.environ.get('LINKFLAGS').split())
-
-# Always look in 'src' for include files.
-# TODO: Restore the '-Wunreachable-code' flag. This flag breaks builds for clang
-# 3.4 with std=c++98. So we need to re-enable this conditionally when clang is at
-# version 3.5 or later.
-env.Append(CPPPATH = [PROJ_SRC_DIR])
-env.Append(CPPFLAGS = ['-Wall',
-                       '-Werror',
-                       '-fdiagnostics-show-option',
-                       '-Wextra',
-                       '-Wredundant-decls',
-                       '-pedantic',
-                       # Explicitly enable the write-strings warning. VIXL uses
-                       # const correctly when handling string constants.
-                       '-Wwrite-strings'])
-
-build_suffix = ''
-std_path = 'default-std'
-
-if 'std' in env:
-  env.Append(CPPFLAGS = ['-std=' + env['std']])
-  std_path = env['std']
-
-if is_compiler('clang++'):
-  # This warning only works for Clang, when compiling the code base as C++11
-  # or newer. The compiler does not complain if the option is passed when
-  # compiling earlier C++ standards.
-  env.Append(CPPFLAGS = ['-Wimplicit-fallthrough'])
-
-if env['simulator'] == 'on':
-  env.Append(CPPFLAGS = ['-DUSE_SIMULATOR'])
-  build_suffix += '_sim'
-
-if env['mode'] == 'debug':
-  env.Append(CPPFLAGS = ['-g', '-DVIXL_DEBUG'])
-  # Append the debug mode suffix to the executable name.
-  build_suffix += '_g'
-else:
-  # Release mode.
-  env.Append(CPPFLAGS = ['-O3'])
-  process = subprocess.Popen(env['CXX'] + ' --version | grep "gnu.*4\.8"',
-                             shell = True,
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-  stdout, stderr = process.communicate()
-  using_gcc48 = stdout != ''
-  if using_gcc48:
-    # GCC 4.8 has a bug which produces a warning saying that an anonymous
-    # Operand object might be used uninitialized:
-    #   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57045
-    # The bug does not seem to appear in GCC 4.7, or in debug builds with
-    # GCC 4.8.
-    env.Append(CPPFLAGS = ['-Wno-maybe-uninitialized'])
-
-# Configure build directory
-build_dir = os.path.join(OBJ_DIR, env['mode'], env['CXX'], std_path, '')
-create_variant(build_dir, TARGET_SRC_DIR)
-
-# The lists of available targets and target names.
-targets = []
-target_alias_names = []
-# Helper to create aliases.
-def create_alias(name, target):
-  env.Alias(name, target)
-  targets.append(target)
-  target_alias_names.append(name)
+# We use 'variant directories' to avoid recompiling multiple times when build
+# options are changed, different build paths are used depending on the options
+# set. These are the options that should be reflected in the build directory
+# path.
+options_influencing_build_path = ['mode', 'symbols', 'CXX', 'std', 'simulator']
 
 
-# The vixl library.
-libvixl = env.Library(build_dir + 'vixl' + build_suffix,
-                      list_target(build_dir, PROJ_SRC_FILES))
-create_alias('libvixl', libvixl)
+
+# Build helpers ----------------------------------------------------------------
+
+def RetrieveEnvironmentVariables(env):
+  for key in ['CC', 'CXX', 'CCFLAGS', 'CXXFLAGS', 'AR', 'RANLIB', 'LD']:
+    if os.getenv(key): env[key] = os.getenv(key)
+  if os.getenv('LD_LIBRARY_PATH'): env['LIBPATH'] = os.getenv('LD_LIBRARY_PATH')
+  if os.getenv('CXXFLAGS'):
+    env.Append(CXXFLAGS = os.getenv('CXXFLAGS').split())
+  if os.getenv('LINKFLAGS'):
+    env.Append(LINKFLAGS = os.getenv('LINKFLAGS').split())
+  # This allows colors to be displayed when using with clang.
+  env['ENV']['TERM'] = os.getenv('TERM')
 
 
-# The test executable.
-# The test requires building the example files with specific options, so we
-# create a separate variant dir for the example objects built this way.
-test_ex_vdir = os.path.join(build_dir, 'test_examples')
-VariantDir(test_ex_vdir, '.')
-test_ex_obj = env.Object(list_target(test_ex_vdir, PROJ_EXAMPLES_SRC_FILES),
-                         CPPFLAGS = env['CPPFLAGS'] + ['-DTEST_EXAMPLES'])
-test = env.Program(build_dir + 'test-runner' + build_suffix,
-                   list_target(build_dir, TARGET_SRC_FILES['test']) +
-                   test_ex_obj + libvixl,
-                   CPPPATH = env['CPPPATH'] + [PROJ_EXAMPLES_DIR])
-create_alias('test', test)
+def ProcessBuildOptions(env):
+  # 'all' is unconditionally processed.
+  if 'all' in options:
+    for var in options['all']:
+      if var in env and env[var]:
+        env[var] += options['all'][var]
+      else:
+        env[var] = options['all'][var]
+  # Other build options must match 'option:value'
+  env_dict = env.Dictionary()
+  for key in env_dict.keys():
+    # First apply the default variables handlers.
+    if key in vars_default_handlers and \
+        env_dict[key] == vars_default_handlers[key][0]:
+      vars_default_handlers[key][1](env_dict)
+    # Then update the environment according to the value of the variable.
+    key_val_couple = key + ':%s' % env_dict[key]
+    if key_val_couple in options:
+      for var in options[key_val_couple]:
+        env[var] += options[key_val_couple][var]
+
+
+def ConfigureEnvironmentForCompiler(env):
+  def is_compiler(compiler):
+    return env['CXX'].find(compiler) == 0
+  if is_compiler('clang++'):
+    # These warnings only work for Clang.
+    # -Wimplicit-fallthrough only works when compiling the code base as C++11 or
+    # newer. The compiler does not complain if the option is passed when
+    # compiling earlier C++ standards.
+    env.Append(CPPFLAGS = ['-Wimplicit-fallthrough', '-Wshorten-64-to-32'])
+
+    # The '-Wunreachable-code' flag breaks builds for clang 3.4.
+    process = subprocess.Popen(env['CXX'] + ' --version | grep "clang.*3\.4"',
+                               shell = True,
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout, stderr = process.communicate()
+    using_clang3_4 = stdout != ''
+    if not using_clang3_4:
+      env.Append(CPPFLAGS = ['-Wunreachable-code'])
+
+  # GCC 4.8 has a bug which produces a warning saying that an anonymous Operand
+  # object might be used uninitialized:
+  #   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57045
+  # The bug does not seem to appear in GCC 4.7, or in debug builds with GCC 4.8.
+  if env['mode'] == 'release':
+    process = subprocess.Popen(env['CXX'] + ' --version | grep "g++.*4\.8"',
+                               shell = True,
+                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    stdout, stderr = process.communicate()
+    using_gcc48 = stdout != ''
+    if using_gcc48:
+      env.Append(CPPFLAGS = ['-Wno-maybe-uninitialized'])
+
+
+def ConfigureEnvironment(env):
+  RetrieveEnvironmentVariables(env)
+  ProcessBuildOptions(env)
+  if 'std' in env:
+    env.Append(CPPFLAGS = ['-std=' + env['std']])
+    std_path = env['std']
+  ConfigureEnvironmentForCompiler(env)
+
+
+def TargetBuildDir(env):
+  # Build-time option values are embedded in the build path to avoid requiring a
+  # full build when an option changes.
+  build_dir = config.dir_build
+  for option in options_influencing_build_path:
+    option_value = env[option] if option in env else ''
+    build_dir = join(build_dir, option + '_'+ option_value)
+  return build_dir
+
+
+def PrepareVariantDir(location, build_dir):
+  location_build_dir = join(build_dir, location)
+  VariantDir(location_build_dir, location)
+  return location_build_dir
+
+
+def VIXLLibraryTarget(env):
+  build_dir = TargetBuildDir(env)
+  # Create a link to the latest build directory.
+  subprocess.check_call(["rm", "-f", config.dir_build_latest])
+  util.ensure_dir(build_dir)
+  subprocess.check_call(["ln", "-s", build_dir, config.dir_build_latest])
+  # Source files are in `src/vixl` and in `src/vixl/a64/`.
+  variant_dir_vixl = PrepareVariantDir(join('src', 'vixl'), build_dir)
+  variant_dir_a64 = PrepareVariantDir(join('src', 'vixl', 'a64'), build_dir)
+  sources = [Glob(join(variant_dir_vixl, '*.cc')),
+             Glob(join(variant_dir_a64, '*.cc'))]
+  return env.Library(join(build_dir, 'vixl'), sources)
+
+
+
+# Build ------------------------------------------------------------------------
+
+# The VIXL library, built by default.
+env = Environment(variables = vars)
+ConfigureEnvironment(env)
+ProcessBuildOptions(env)
+Help(vars.GenerateHelpText(env))
+libvixl = VIXLLibraryTarget(env)
+Default(libvixl)
+env.Alias('libvixl', libvixl)
+top_level_targets.Add('', 'Build the VIXL library.')
+
 
 # The benchmarks.
-benchmarks = ['bench-dataop', 'bench-branch', 'bench-branch-link',
-              'bench-branch-masm', 'bench-branch-link-masm']
-for bench in benchmarks:
-  prog = env.Program(build_dir + bench + build_suffix,
-                     list_target(build_dir, TARGET_SRC_FILES[bench]) + libvixl)
-  create_alias(bench, prog)
-# Alias to build all benchmarks.
-create_alias('benchmarks', benchmarks)
+benchmark_names = util.ListCCFilesWithoutExt(config.dir_benchmarks)
+benchmarks_build_dir = PrepareVariantDir('benchmarks', TargetBuildDir(env))
+benchmark_targets = []
+for bench in benchmark_names:
+  prog = env.Program(join(benchmarks_build_dir, bench),
+                     join(benchmarks_build_dir, bench + '.cc'),
+                     LIBS=[libvixl])
+  benchmark_targets.append(prog)
+env.Alias('benchmarks', benchmark_targets)
+top_level_targets.Add('benchmarks', 'Build the benchmarks.')
+
 
 # The examples.
-examples = []
-for example in PROJ_EXAMPLES_SRC_FILES:
-  example_name = "example-" + os.path.splitext(os.path.basename(example))[0]
-  prog = env.Program(build_dir + example_name,
-                     [os.path.join(build_dir, example)] + libvixl,
-                     CPPPATH = env['CPPPATH'] + [PROJ_EXAMPLES_DIR])
-  create_alias(example_name, prog)
-  examples.append(prog)
-# Alias to build all examples.
-create_alias('examples', examples)
+example_names = util.ListCCFilesWithoutExt(config.dir_examples)
+examples_build_dir = PrepareVariantDir('examples', TargetBuildDir(env))
+example_targets = []
+for example in example_names:
+  prog = env.Program(join(examples_build_dir, example),
+                     join(examples_build_dir, example + '.cc'),
+                     LIBS=[libvixl])
+  example_targets.append(prog)
+env.Alias('examples', example_targets)
+top_level_targets.Add('examples', 'Build the examples.')
 
 
-# Create a simple alias to build everything with the current options.
-create_alias('all', targets)
+# The tests.
+test_build_dir = PrepareVariantDir('test', TargetBuildDir(env))
+# The test requires building the example files with specific options, so we
+# create a separate variant dir for the example objects built this way.
+test_examples_vdir = join(TargetBuildDir(env), 'test', 'test_examples')
+VariantDir(test_examples_vdir, '.')
+test_examples_obj = env.Object(
+    [Glob(join(test_examples_vdir, join('test', 'examples', '*.cc'))),
+             Glob(join(test_examples_vdir, join('examples', '*.cc')))],
+    CCFLAGS = env['CCFLAGS'] + ['-DTEST_EXAMPLES'],
+    CPPPATH = env['CPPPATH'] + [config.dir_examples])
+test = env.Program(join(test_build_dir, 'test-runner'),
+                   [Glob(join(test_build_dir, '*.cc')), test_examples_obj],
+                   CPPPATH = env['CPPPATH'] + [config.dir_examples],
+                   LIBS=[libvixl])
+env.Alias('tests', test)
+top_level_targets.Add('tests', 'Build the tests.')
 
-Help('Available top level targets:\n' + '\t' + '\n\t'.join(target_alias_names) + '\n')
 
-# By default, only build the tests.
-Default(libvixl, test)
+env.Alias('all', top_level_targets.targets)
+top_level_targets.Add('all', 'Build all the targets above.')
+
+Help('\n\nAvailable top level targets:\n' + top_level_targets.Help())

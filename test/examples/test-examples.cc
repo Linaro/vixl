@@ -566,4 +566,11 @@ TEST(non_const_visitor) {
   assert(res_orig == -res_mod);
 }
 
+
+TEST(literal_example) {
+  VIXL_ASSERT(LiteralExample(1, 2) == 3);
+  VIXL_ASSERT(
+      LiteralExample(INT64_C(0x100000000), 0x1) == INT64_C(0x100000001));
+}
+
 #endif  // USE_SIMULATOR

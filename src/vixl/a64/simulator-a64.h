@@ -231,7 +231,7 @@ T FPRound(int64_t sign, int64_t exponent, uint64_t mantissa,
 
   // Bail out early for zero inputs.
   if (mantissa == 0) {
-    return sign << sign_offset;
+    return static_cast<T>(sign << sign_offset);
   }
 
   // If all bits in the exponent are set, the value is infinite or NaN.
@@ -256,9 +256,9 @@ T FPRound(int64_t sign, int64_t exponent, uint64_t mantissa,
       exponent = max_normal_exponent;
       mantissa = (UINT64_C(1) << exponent_offset) - 1;
     }
-    return (sign << sign_offset) |
-           (exponent << exponent_offset) |
-           (mantissa << mantissa_offset);
+    return static_cast<T>((sign << sign_offset) |
+                          (exponent << exponent_offset) |
+                          (mantissa << mantissa_offset));
   }
 
   // Calculate the shift required to move the top mantissa bit to the proper
@@ -281,13 +281,13 @@ T FPRound(int64_t sign, int64_t exponent, uint64_t mantissa,
     if (shift > (highest_significant_bit + 1)) {
       if (round_mode == FPTieEven) {
         // The result will always be +/-0.0.
-        return sign << sign_offset;
+        return static_cast<T>(sign << sign_offset);
       } else {
         VIXL_ASSERT(round_mode == FPRoundOdd);
         VIXL_ASSERT(mantissa != 0);
         // For FPRoundOdd, if the mantissa is too small to represent and
         // non-zero return the next "odd" value.
-        return (sign << sign_offset) | 1;
+        return static_cast<T>((sign << sign_offset) | 1);
       }
     }
 
@@ -309,9 +309,9 @@ T FPRound(int64_t sign, int64_t exponent, uint64_t mantissa,
       uint64_t adjusted = mantissa - adjustment;
       T halfbit_adjusted = (adjusted >> (shift-1)) & 1;
 
-      T result = (sign << sign_offset) |
-                 (exponent << exponent_offset) |
-                 ((mantissa >> shift) << mantissa_offset);
+      T result = static_cast<T>((sign << sign_offset) |
+                                (exponent << exponent_offset) |
+                                ((mantissa >> shift) << mantissa_offset));
 
       // A very large mantissa can overflow during rounding. If this happens,
       // the exponent should be incremented and the mantissa set to 1.0
@@ -331,17 +331,17 @@ T FPRound(int64_t sign, int64_t exponent, uint64_t mantissa,
         mantissa |= UINT64_C(1) << shift;
       }
 
-      return (sign << sign_offset) |
-             (exponent << exponent_offset) |
-             ((mantissa >> shift) << mantissa_offset);
+      return static_cast<T>((sign << sign_offset) |
+                            (exponent << exponent_offset) |
+                            ((mantissa >> shift) << mantissa_offset));
     }
   } else {
     // We have to shift the mantissa to the left (or not at all). The input
     // mantissa is exactly representable in the output mantissa, so apply no
     // rounding correction.
-    return (sign << sign_offset) |
-           (exponent << exponent_offset) |
-           ((mantissa << -shift) << mantissa_offset);
+    return static_cast<T>((sign << sign_offset) |
+                          (exponent << exponent_offset) |
+                          ((mantissa << -shift) << mantissa_offset));
   }
 }
 
@@ -520,11 +520,12 @@ class LogicVRegister {
   }
 
   void WriteUintToMem(VectorFormat vform, int index, uint64_t addr) const {
+    uint64_t value = Uint(vform, index);
     switch (LaneSizeInBitsFromFormat(vform)) {
-      case 8: Memory::Write<uint8_t>(addr, Uint(vform, index)); break;
-      case 16: Memory::Write<uint16_t>(addr, Uint(vform, index)); break;
-      case 32: Memory::Write<uint32_t>(addr, Uint(vform, index)); break;
-      case 64: Memory::Write<uint64_t>(addr, Uint(vform, index)); break;
+      case 8: Memory::Write(addr, static_cast<uint8_t>(value)); break;
+      case 16: Memory::Write(addr, static_cast<uint16_t>(value)); break;
+      case 32: Memory::Write(addr, static_cast<uint32_t>(value)); break;
+      case 64: Memory::Write(addr, value); break;
     }
   }
 
@@ -781,8 +782,7 @@ class SimExclusiveGlobalMonitor {
   SimExclusiveGlobalMonitor() : kPassProbability(8), seed_(0x87654321) {}
 
   bool IsExclusive(uint64_t address, size_t size) {
-    USE(address);
-    USE(size);
+    USE(address, size);
 
     bool pass = (seed_ % kPassProbability) != 0;
     // Advance seed_ using a simple linear congruential generator.
@@ -936,8 +936,12 @@ class Simulator : public DecoderVisitor {
 
     // Write (and possibly truncate) the value.
     switch (size) {
-      case kWRegSize: set_reg<uint32_t>(code, raw, log_mode, r31mode); break;
-      case kXRegSize: set_reg<uint64_t>(code, raw, log_mode, r31mode); break;
+      case kWRegSize:
+        set_reg(code, static_cast<uint32_t>(raw), log_mode, r31mode);
+        break;
+      case kXRegSize:
+        set_reg(code, raw, log_mode, r31mode);
+        break;
       default:
         VIXL_UNREACHABLE();
         return;
@@ -1425,14 +1429,6 @@ class Simulator : public DecoderVisitor {
                       int64_t value,
                       Extend extend_type,
                       unsigned left_shift = 0);
-
-  enum ReverseByteMode {
-    Reverse16 = 0,
-    Reverse32 = 1,
-    Reverse64 = 2
-  };
-  uint64_t ReverseBytes(uint64_t value, ReverseByteMode mode);
-  uint64_t ReverseBits(uint64_t value, unsigned num_bits);
   uint16_t PolynomialMult(uint8_t op1, uint8_t op2);
 
   void ld1(VectorFormat vform,

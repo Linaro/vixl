@@ -94,7 +94,7 @@ uint64_t double_mantissa(double val) {
 
 
 float float_pack(uint32_t sign, uint32_t exp, uint32_t mantissa) {
-  uint64_t bits = (sign << 31) | (exp << 23) | mantissa;
+  uint32_t bits = (sign << 31) | (exp << 23) | mantissa;
   return rawbits_to_float(bits);
 }
 

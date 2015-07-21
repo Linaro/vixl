@@ -1,3 +1,5 @@
+#!/usr/bin/env python2.7
+
 # Copyright 2015, ARM Limited
 # All rights reserved.
 #
@@ -24,42 +26,47 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
+import argparse
 import glob
 import os
-import re
-import shlex
-import subprocess
-import sys
 
 
-def ListCCFilesWithoutExt(path):
-  return map(lambda x : os.path.splitext(os.path.basename(x))[0],
-             glob.glob(os.path.join(path, '*.cc')))
+dir_android = os.path.dirname(os.path.realpath(__file__))
+dir_root = os.path.join(dir_android, '..', '..')
+
+target_mk_default = os.path.abspath(os.path.join(dir_root, 'Android.mk'))
 
 
-def abort(message):
-  print('ABORTING: ' + message)
-  sys.exit(1)
+parser = argparse.ArgumentParser(
+  description = \
+    'Generate an `Android.mk` to compile VIXL within Android.',
+  formatter_class=argparse.ArgumentDefaultsHelpFormatter
+)
+parser.add_argument('-o', '--output',
+                    default=os.path.relpath(target_mk_default, os.getcwd()),
+                    help='Target file.')
+args = parser.parse_args()
 
 
-# Emulate python3 subprocess.getstatusoutput.
-def getstatusoutput(command, shell=False):
-  try:
-    args = shlex.split(command)
-    output = subprocess.check_output(args, stderr=subprocess.STDOUT, shell=shell)
-    return 0, output.rstrip('\n')
-  except subprocess.CalledProcessError as e:
-    return e.returncode, e.output.rstrip('\n')
+sources = glob.glob(os.path.join(dir_root, 'src', 'vixl', '*.cc')) + \
+          glob.glob(os.path.join(dir_root, 'src', 'vixl', 'a64', '*.cc'))
+sources = map(lambda p : os.path.relpath(p, dir_root), sources)
+sources.sort()
+
+test_sources = glob.glob(os.path.join(dir_root, 'test', '*.cc'))
+test_sources = map(lambda p : os.path.relpath(p, dir_root), test_sources)
+test_sources.sort()
+
+android_mk_template = os.path.join(dir_android, 'Android.mk.template')
+with open(android_mk_template, 'r') as template_file:
+  template = template_file.read()
 
 
-def ensure_dir(path_name):
-  if not os.path.exists(path_name):
-    os.makedirs(path_name)
+template = template.format(vixl_sources=' \\\n  '.join(sources),
+                           vixl_test_files=' \\\n  '.join(test_sources))
 
 
-# Check that the specified program is available.
-def require_program(program_name):
-  rc, out = getstatusoutput('which %s' % program_name)
-  if rc != 0:
-    print('ERROR: The required program %s was not found.' % program_name)
-    sys.exit(rc)
+with open(args.output, 'w') as android_mk:
+  android_mk.write(template)
+

@@ -121,7 +121,7 @@ class FPRegisterToken : public ValueToken<const FPRegister> {
 class IdentifierToken : public ValueToken<char*> {
  public:
   explicit IdentifierToken(const char* name) {
-    int size = strlen(name) + 1;
+    size_t size = strlen(name) + 1;
     value_ = new char[size];
     strncpy(value_, name, size);
   }
@@ -162,7 +162,7 @@ class AddressToken : public ValueToken<uint8_t*> {
 // Format: n.
 class IntegerToken : public ValueToken<int64_t> {
  public:
-  explicit IntegerToken(int value) : ValueToken<int64_t>(value) {}
+  explicit IntegerToken(int64_t value) : ValueToken<int64_t>(value) {}
 
   virtual bool IsInteger() const { return true; }
   virtual void Print(FILE* out = stdout) const;
@@ -224,7 +224,7 @@ template<typename T> class Format : public FormatToken {
 class UnknownToken : public Token {
  public:
   explicit UnknownToken(const char* arg) {
-    int size = strlen(arg) + 1;
+    size_t size = strlen(arg) + 1;
     unknown_ = new char[size];
     strncpy(unknown_, arg, size);
   }
@@ -533,6 +533,11 @@ Debugger::Debugger(Decoder* decoder, FILE* stream)
   printer_->AppendVisitor(disasm_);
 }
 
+Debugger::~Debugger() {
+  delete disasm_;
+  delete printer_;
+}
+
 
 void Debugger::Run() {
   pc_modified_ = false;
@@ -617,12 +622,11 @@ void Debugger::PrintRegister(const Register& target_reg,
 // TODO(all): fix this for vector registers.
 void Debugger::PrintFPRegister(const FPRegister& target_fpreg,
                                const FormatToken* format) {
-  const uint64_t fpreg_size = target_fpreg.size();
+  const unsigned fpreg_size = target_fpreg.size();
   const uint64_t format_size = format->SizeOf() * 8;
   const uint64_t count = fpreg_size / format_size;
   const uint64_t mask = 0xffffffffffffffff >> (64 - format_size);
-  const uint64_t fpreg_value = vreg<uint64_t>(fpreg_size,
-                                              target_fpreg.code());
+  const uint64_t fpreg_value = vreg<uint64_t>(fpreg_size, target_fpreg.code());
   VIXL_ASSERT(count > 0);
 
   if (target_fpreg.Is32Bits()) {
@@ -900,8 +904,12 @@ Token* FPRegisterToken::Tokenize(const char* arg) {
 
       VRegister fpreg = NoVReg;
       switch (*arg) {
-        case 's': fpreg = VRegister::SRegFromCode(code); break;
-        case 'd': fpreg = VRegister::DRegFromCode(code); break;
+        case 's':
+          fpreg = VRegister::SRegFromCode(static_cast<unsigned>(code));
+          break;
+        case 'd':
+          fpreg = VRegister::DRegFromCode(static_cast<unsigned>(code));
+          break;
         default: VIXL_UNREACHABLE();
       }
 
@@ -985,7 +993,7 @@ Token* IntegerToken::Tokenize(const char* arg) {
 
 
 Token* FormatToken::Tokenize(const char* arg) {
-  int length = strlen(arg);
+  size_t length = strlen(arg);
   switch (arg[0]) {
     case 'x':
     case 's':
@@ -1453,8 +1461,8 @@ DebugCommand* ExamineCommand::Build(std::vector<Token*> args) {
 
 
 UnknownCommand::~UnknownCommand() {
-  const int size = args_.size();
-  for (int i = 0; i < size; ++i) {
+  const size_t size = args_.size();
+  for (size_t i = 0; i < size; ++i) {
     delete args_[i];
   }
 }
@@ -1465,8 +1473,8 @@ bool UnknownCommand::Run(Debugger* debugger) {
   USE(debugger);
 
   printf(" ** Unknown Command:");
-  const int size = args_.size();
-  for (int i = 0; i < size; ++i) {
+  const size_t size = args_.size();
+  for (size_t i = 0; i < size; ++i) {
     printf(" ");
     args_[i]->Print(stdout);
   }
@@ -1477,8 +1485,8 @@ bool UnknownCommand::Run(Debugger* debugger) {
 
 
 InvalidCommand::~InvalidCommand() {
-  const int size = args_.size();
-  for (int i = 0; i < size; ++i) {
+  const size_t size = args_.size();
+  for (size_t i = 0; i < size; ++i) {
     delete args_[i];
   }
 }
@@ -1489,10 +1497,10 @@ bool InvalidCommand::Run(Debugger* debugger) {
   USE(debugger);
 
   printf(" ** Invalid Command:");
-  const int size = args_.size();
-  for (int i = 0; i < size; ++i) {
+  const size_t size = args_.size();
+  for (size_t i = 0; i < size; ++i) {
     printf(" ");
-    if (i == index_) {
+    if (i == static_cast<size_t>(index_)) {
       printf(">>");
       args_[i]->Print(stdout);
       printf("<<");

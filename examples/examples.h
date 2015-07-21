@@ -115,5 +115,9 @@ void GenerateSwapInt32(MacroAssembler* masm);
 // This is the example used in doc/getting-started.txt
 void GenerateDemoFunction(MacroAssembler *masm);
 
+// This function generates and runs code that uses literals to sum the `a` and
+// `b` inputs.
+int64_t LiteralExample(int64_t a, int64_t b);
+
 
 #endif /* !VIXL_EXAMPLE_EXAMPLES_H_ */

@@ -1,9 +1,10 @@
-VIXL: AArch64 Runtime Code Generation Library Version 1.9
-=========================================================
+VIXL: AArch64 Runtime Code Generation Library Version 1.10
+==========================================================
 
 Contents:
 
  * Overview
+ * Licence
  * Requirements
  * Known limitations
  * Usage
@@ -26,6 +27,13 @@ The VIXL git repository can be found [on GitHub][vixl].
 
 Changes from previous versions of VIXL can be found in the
 [Changelog](doc/changelog.md).
+
+
+Licence
+=======
+
+This software is covered by the licence described in the [LICENCE](LICENCE)
+file.
 
 
 Requirements
@@ -117,22 +125,22 @@ Usage
 Running all Tests
 -----------------
 
-The helper script `tools/presubmit.py` will build and run every test that is
-provided with VIXL, in both release and debug mode. It is a useful script for
-verifying that all of VIXL's dependencies are in place and that VIXL is working
-as it should.
+The helper script `tools/test.py` will build and run every test that is provided
+with VIXL, in both release and debug mode. It is a useful script for verifying
+that all of VIXL's dependencies are in place and that VIXL is working as it
+should.
 
-By default, the `tools/presubmit.py` script runs a linter to check that the
-source code conforms with the code style guide, and to detect several common
-errors that the compiler may not warn about. This is most useful for VIXL
-developers. The linter has the following dependencies:
+By default, the `tools/test.py` script runs a linter to check that the source
+code conforms with the code style guide, and to detect several common errors
+that the compiler may not warn about. This is most useful for VIXL developers.
+The linter has the following dependencies:
 
  1. Git must be installed, and the VIXL project must be in a valid Git
     repository, such as one produced using `git clone`.
  2. `cpplint.py`, [as provided by Google][cpplint], must be available (and
     executable) on the `PATH`.
 
-It is possible to tell `tools/presubmit.py` to skip the linter stage by passing
+It is possible to tell `tools/test.py` to skip the linter stage by passing
 `--nolint`. This removes the dependency on `cpplint.py` and Git. The `--nolint`
 option is implied if the VIXL project is a snapshot (with no `.git` directory).
 

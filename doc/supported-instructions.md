@@ -1374,6 +1374,24 @@ Unsigned long multiply and subtract: 64 - (32 x 32) -> 64-bit.
                 const Register& ra)
 
 
+### UMULH ###
+
+Unsigned multiply high: 64 x 64 -> 64-bit <127:64>.
+
+    void umulh(const Register& xd,
+               const Register& xn,
+               const Register& xm)
+
+
+### UMULL ###
+
+Unsigned long multiply: 32 x 32 -> 64-bit.
+
+    void umull(const Register& rd,
+               const Register& rn,
+               const Register& rm)
+
+
 ### UXTB ###
 
 Unsigned extend byte.
@@ -1740,6 +1758,16 @@ FP conditional compare.
                Condition cond)
 
 
+### FCCMPE ###
+
+FP conditional signaling compare.
+
+    void fccmpe(const VRegister& vn,
+                const VRegister& vm,
+                StatusFlags nzcv,
+                Condition cond)
+
+
 ### FCMEQ ###
 
 FP compare equal to zero.
@@ -1826,6 +1854,20 @@ FP compare registers.
     void fcmp(const VRegister& vn, const VRegister& vm)
 
 
+### FCMPE ###
+
+FP signaling compare immediate.
+
+    void fcmpe(const VRegister& vn, double value)
+
+
+### FCMPE ###
+
+FP signaling compare registers.
+
+    void fcmpe(const VRegister& vn, const VRegister& vm)
+
+
 ### FCSEL ###
 
 FP conditional select.
@@ -1889,21 +1931,14 @@ FP convert to higher precision (second part).
 
 FP convert to signed integer, round towards -infinity.
 
-    void fcvtms(const VRegister& vd, const VRegister& vn)
+    void fcvtms(const Register& rd, const VRegister& vn)
 
 
 ### FCVTMS ###
 
 FP convert to signed integer, round towards -infinity.
 
-    void fcvtms(const Register& rd, const VRegister& vn)
-
-
-### FCVTMU ###
-
-FP convert to unsigned integer, round towards -infinity.
-
-    void fcvtmu(const VRegister& vd, const VRegister& vn)
+    void fcvtms(const VRegister& vd, const VRegister& vn)
 
 
 ### FCVTMU ###
@@ -1911,6 +1946,13 @@ FP convert to unsigned integer, round towards -infinity.
 FP convert to unsigned integer, round towards -infinity.
 
     void fcvtmu(const Register& rd, const VRegister& vn)
+
+
+### FCVTMU ###
+
+FP convert to unsigned integer, round towards -infinity.
+
+    void fcvtmu(const VRegister& vd, const VRegister& vn)
 
 
 ### FCVTN ###
@@ -1959,21 +2001,14 @@ FP convert to unsigned integer, nearest with ties to even.
 
 FP convert to signed integer, round towards +infinity.
 
-    void fcvtps(const VRegister& vd, const VRegister& vn)
+    void fcvtps(const Register& rd, const VRegister& vn)
 
 
 ### FCVTPS ###
 
 FP convert to signed integer, round towards +infinity.
 
-    void fcvtps(const Register& rd, const VRegister& vn)
-
-
-### FCVTPU ###
-
-FP convert to unsigned integer, round towards +infinity.
-
-    void fcvtpu(const VRegister& vd, const VRegister& vn)
+    void fcvtps(const VRegister& vd, const VRegister& vn)
 
 
 ### FCVTPU ###
@@ -1981,6 +2016,13 @@ FP convert to unsigned integer, round towards +infinity.
 FP convert to unsigned integer, round towards +infinity.
 
     void fcvtpu(const Register& rd, const VRegister& vn)
+
+
+### FCVTPU ###
+
+FP convert to unsigned integer, round towards +infinity.
+
+    void fcvtpu(const VRegister& vd, const VRegister& vn)
 
 
 ### FCVTXN ###
@@ -2001,14 +2043,14 @@ FP convert to lower precision, rounding to odd (second part).
 
 FP convert to signed integer or fixed-point, round towards zero.
 
-    void fcvtzs(const VRegister& vd, const VRegister& vn, int fbits = 0)
+    void fcvtzs(const Register& rd, const VRegister& vn, int fbits = 0)
 
 
 ### FCVTZS ###
 
 FP convert to signed integer or fixed-point, round towards zero.
 
-    void fcvtzs(const Register& rd, const VRegister& vn, int fbits = 0)
+    void fcvtzs(const VRegister& vd, const VRegister& vn, int fbits = 0)
 
 
 ### FCVTZU ###

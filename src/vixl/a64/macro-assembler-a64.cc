@@ -44,20 +44,29 @@ void Pool::SetNextCheckpoint(ptrdiff_t checkpoint) {
 
 
 LiteralPool::LiteralPool(MacroAssembler* masm)
-  : Pool(masm), size_(0), first_use_(-1) {
+    : Pool(masm), size_(0), first_use_(-1),
+      recommended_checkpoint_(kNoCheckpointRequired) {
 }
 
 
 LiteralPool::~LiteralPool() {
   VIXL_ASSERT(IsEmpty());
   VIXL_ASSERT(!IsBlocked());
+  for (std::vector<RawLiteral*>::iterator it = deleted_on_destruction_.begin();
+       it != deleted_on_destruction_.end();
+       it++) {
+    delete *it;
+  }
 }
 
 
 void LiteralPool::Reset() {
   std::vector<RawLiteral*>::iterator it, end;
   for (it = entries_.begin(), end = entries_.end(); it != end; ++it) {
-    delete *it;
+    RawLiteral* literal = *it;
+    if (literal->deletion_policy_ == RawLiteral::kDeletedOnPlacementByPool) {
+      delete literal;
+    }
   }
   entries_.clear();
   size_ = 0;
@@ -93,36 +102,43 @@ void LiteralPool::Emit(EmitOption option) {
 
   // Marker indicating the size of the literal pool in 32-bit words.
   VIXL_ASSERT((pool_size % kWRegSizeInBytes) == 0);
-  masm_->ldr(xzr, pool_size / kWRegSizeInBytes);
+  masm_->ldr(xzr, static_cast<int>(pool_size / kWRegSizeInBytes));
 
   // Now populate the literal pool.
   std::vector<RawLiteral*>::iterator it, end;
   for (it = entries_.begin(), end = entries_.end(); it != end; ++it) {
     VIXL_ASSERT((*it)->IsUsed());
     masm_->place(*it);
-    delete *it;
   }
 
   if (option == kBranchRequired) masm_->bind(&end_of_pool);
 
-  entries_.clear();
   Reset();
 }
 
 
-RawLiteral* LiteralPool::AddEntry(RawLiteral* literal) {
-  if (IsEmpty()) {
-    first_use_ = masm_->CursorOffset();
+void LiteralPool::AddEntry(RawLiteral* literal) {
+  // A literal must be registered immediately before its first use. Here we
+  // cannot control that it is its first use, but we check no code has been
+  // emitted since its last use.
+  VIXL_ASSERT(masm_->CursorOffset() == literal->last_use());
+
+  UpdateFirstUse(masm_->CursorOffset());
+  VIXL_ASSERT(masm_->CursorOffset() >= first_use_);
+  entries_.push_back(literal);
+  size_ += literal->size();
+}
+
+
+void LiteralPool::UpdateFirstUse(ptrdiff_t use_position) {
+  first_use_ = std::min(first_use_, use_position);
+  if (first_use_ == -1) {
+    first_use_ = use_position;
     SetNextRecommendedCheckpoint(NextRecommendedCheckpoint());
     SetNextCheckpoint(first_use_ + Instruction::kLoadLiteralRange);
   } else {
-    VIXL_ASSERT(masm_->CursorOffset() > first_use_);
+    VIXL_ASSERT(use_position > first_use_);
   }
-
-  entries_.push_back(literal);
-  size_ += literal->size();
-
-  return literal;
 }
 
 
@@ -176,7 +192,7 @@ void VeneerPool::DeleteUnresolvedBranchInfoForLabel(Label* label) {
 }
 
 
-bool VeneerPool::ShouldEmitVeneer(int max_reachable_pc, size_t amount) {
+bool VeneerPool::ShouldEmitVeneer(int64_t max_reachable_pc, size_t amount) {
   ptrdiff_t offset =
       kPoolNonVeneerCodeSize + amount + MaxSize() + OtherPoolsMaxSize();
   return (masm_->CursorOffset() + offset) > max_reachable_pc;
@@ -244,26 +260,24 @@ void VeneerPool::Emit(EmitOption option, size_t amount) {
 }
 
 
-EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm, size_t size) {
-  if (masm) {
-    masm->EnsureEmitFor(size);
+EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm, size_t size)
+    : masm_(masm) {
+  masm_->EnsureEmitFor(size);
+  masm_->BlockPools();
 #ifdef VIXL_DEBUG
-    masm_ = masm;
-    masm->Bind(&start_);
-    size_ = size;
-    masm->AcquireBuffer();
+  masm_->Bind(&start_);
+  size_ = size;
+  masm_->AcquireBuffer();
 #endif
-  }
 }
 
 
 EmissionCheckScope::~EmissionCheckScope() {
 #ifdef VIXL_DEBUG
-  if (masm_) {
-    masm_->ReleaseBuffer();
-    VIXL_ASSERT(masm_->SizeOfCodeGeneratedSince(&start_) <= size_);
-  }
+  masm_->ReleaseBuffer();
+  VIXL_ASSERT(masm_->SizeOfCodeGeneratedSince(&start_) <= size_);
 #endif
+  masm_->ReleasePools();
 }
 
 
@@ -277,7 +291,8 @@ MacroAssembler::MacroAssembler(size_t capacity,
       tmp_list_(ip0, ip1),
       fptmp_list_(d31),
       literal_pool_(this),
-      veneer_pool_(this) {
+      veneer_pool_(this),
+      recommended_checkpoint_(Pool::kNoCheckpointRequired) {
   checkpoint_ = NextCheckPoint();
 }
 
@@ -293,7 +308,8 @@ MacroAssembler::MacroAssembler(byte * buffer,
       tmp_list_(ip0, ip1),
       fptmp_list_(d31),
       literal_pool_(this),
-      veneer_pool_(this) {
+      veneer_pool_(this),
+      recommended_checkpoint_(Pool::kNoCheckpointRequired) {
   checkpoint_ = NextCheckPoint();
 }
 
@@ -1228,8 +1244,10 @@ void MacroAssembler::Fmov(VRegister vd, double imm) {
       if (rawbits == 0) {
         fmov(vd, xzr);
       } else {
-        RawLiteral* literal = literal_pool_.Add(imm);
-        ldr(vd, literal);
+        ldr(vd,
+            new Literal<double>(imm,
+                                &literal_pool_,
+                                RawLiteral::kDeletedOnPlacementByPool));
       }
     } else {
       // TODO: consider NEON support for load literal.
@@ -1258,8 +1276,10 @@ void MacroAssembler::Fmov(VRegister vd, float imm) {
       if (rawbits == 0) {
         fmov(vd, wzr);
       } else {
-        RawLiteral* literal = literal_pool_.Add(imm);
-        ldr(vd, literal);
+        ldr(vd,
+            new Literal<float>(imm,
+                               &literal_pool_,
+                               RawLiteral::kDeletedOnPlacementByPool));
       }
     } else {
       // TODO: consider NEON support for load literal.
@@ -1826,8 +1846,7 @@ void MacroAssembler::PrepareForPush(int count, int size) {
 
 
 void MacroAssembler::PrepareForPop(int count, int size) {
-  USE(count);
-  USE(size);
+  USE(count, size);
   if (sp.Is(StackPointer())) {
     // If the current stack pointer is sp, then it must be aligned to 16 bytes
     // on entry and the total size of the specified registers must also be a
@@ -1905,7 +1924,7 @@ void MacroAssembler::PushCalleeSavedRegisters() {
   // This method must not be called unless the current stack pointer is sp.
   VIXL_ASSERT(sp.Is(StackPointer()));
 
-  MemOperand tos(sp, -2 * kXRegSizeInBytes, PreIndex);
+  MemOperand tos(sp, -2 * static_cast<int>(kXRegSizeInBytes), PreIndex);
 
   stp(x29, x30, tos);
   stp(x27, x28, tos);
@@ -2283,8 +2302,7 @@ void MacroAssembler::Trace(TraceParameters parameters, TraceCommand command) {
   dc32(command);
 #else
   // Emit nothing on real hardware.
-  USE(parameters);
-  USE(command);
+  USE(parameters, command);
 #endif
 }
 

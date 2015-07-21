@@ -115,7 +115,7 @@ template<typename V>
 inline int CountLeadingZeros(V value, int width = (sizeof(V) * 8)) {
 #if COMPILER_HAS_BUILTIN_CLZ
   if (width == 32) {
-    return (value == 0) ? 32 : __builtin_clz(value);
+    return (value == 0) ? 32 : __builtin_clz(static_cast<unsigned>(value));
   } else if (width == 64) {
     return (value == 0) ? 64 : __builtin_clzll(value);
   }
@@ -128,7 +128,7 @@ template<typename V>
 inline int CountSetBits(V value, int width = (sizeof(V) * 8)) {
 #if COMPILER_HAS_BUILTIN_POPCOUNT
   if (width == 32) {
-    return __builtin_popcount(value);
+    return __builtin_popcount(static_cast<unsigned>(value));
   } else if (width == 64) {
     return __builtin_popcountll(value);
   }
@@ -141,7 +141,7 @@ template<typename V>
 inline int CountTrailingZeros(V value, int width = (sizeof(V) * 8)) {
 #if COMPILER_HAS_BUILTIN_CTZ
   if (width == 32) {
-    return (value == 0) ? 32 : __builtin_ctz(value);
+    return (value == 0) ? 32 : __builtin_ctz(static_cast<unsigned>(value));
   } else if (width == 64) {
     return (value == 0) ? 64 : __builtin_ctzll(value);
   }

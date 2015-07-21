@@ -27,6 +27,7 @@
 
 #include <cmath>
 #include "vixl/a64/assembler-a64.h"
+#include "vixl/a64/macro-assembler-a64.h"
 
 namespace vixl {
 
@@ -132,7 +133,8 @@ CPURegList CPURegList::GetCalleeSavedV(unsigned size) {
 CPURegList CPURegList::GetCallerSaved(unsigned size) {
   // Registers x0-x18 and lr (x30) are caller-saved.
   CPURegList list = CPURegList(CPURegister::kRegister, size, 0, 18);
-  list.Combine(lr);
+  // Do not use lr directly to avoid initialisation order fiasco bugs for users.
+  list.Combine(Register(30, kXRegSize));
   return list;
 }
 
@@ -469,6 +471,22 @@ void MemOperand::AddOffset(int64_t offset) {
 }
 
 
+RawLiteral::RawLiteral(size_t size,
+                       LiteralPool* literal_pool,
+                       DeletionPolicy deletion_policy)
+    : size_(size),
+      offset_(0),
+      low64_(0),
+      high64_(0),
+      literal_pool_(literal_pool),
+      deletion_policy_(deletion_policy) {
+  VIXL_ASSERT((deletion_policy == kManuallyDeleted) || (literal_pool_ != NULL));
+  if (deletion_policy == kDeletedOnPoolDestruction) {
+    literal_pool_->DeleteOnDestruction(this);
+  }
+}
+
+
 // Assembler
 Assembler::Assembler(byte* buffer, size_t capacity,
                      PositionIndependentCodeOption pic)
@@ -592,11 +610,16 @@ void Assembler::place(RawLiteral* literal) {
       dc64(literal->raw_value128_low64());
       dc64(literal->raw_value128_high64());
   }
+
+  literal->literal_pool_ = NULL;
 }
 
 
 ptrdiff_t Assembler::LinkAndGetWordOffsetTo(RawLiteral* literal) {
   VIXL_ASSERT(IsWordAligned(CursorOffset()));
+
+  bool register_first_use =
+      (literal->GetLiteralPool() != NULL) && !literal->IsUsed();
 
   if (literal->IsPlaced()) {
     // The literal is "behind", the offset will be negative.
@@ -610,6 +633,10 @@ ptrdiff_t Assembler::LinkAndGetWordOffsetTo(RawLiteral* literal) {
     offset = (literal->last_use() - CursorOffset()) >> kLiteralEntrySizeLog2;
   }
   literal->set_last_use(CursorOffset());
+
+  if (register_first_use) {
+    literal->GetLiteralPool()->AddEntry(literal);
+  }
 
   return offset;
 }
@@ -645,12 +672,16 @@ void Assembler::b(int imm19, Condition cond) {
 
 
 void Assembler::b(Label* label) {
-  b(LinkAndGetInstructionOffsetTo(label));
+  int64_t offset = LinkAndGetInstructionOffsetTo(label);
+  VIXL_ASSERT(Instruction::IsValidImmPCOffset(UncondBranchType, offset));
+  b(static_cast<int>(offset));
 }
 
 
 void Assembler::b(Label* label, Condition cond) {
-  b(LinkAndGetInstructionOffsetTo(label), cond);
+  int64_t offset = LinkAndGetInstructionOffsetTo(label);
+  VIXL_ASSERT(Instruction::IsValidImmPCOffset(CondBranchType, offset));
+  b(static_cast<int>(offset), cond);
 }
 
 
@@ -660,7 +691,9 @@ void Assembler::bl(int imm26) {
 
 
 void Assembler::bl(Label* label) {
-  bl(LinkAndGetInstructionOffsetTo(label));
+  int64_t offset = LinkAndGetInstructionOffsetTo(label);
+  VIXL_ASSERT(Instruction::IsValidImmPCOffset(UncondBranchType, offset));
+  bl(static_cast<int>(offset));
 }
 
 
@@ -672,7 +705,9 @@ void Assembler::cbz(const Register& rt,
 
 void Assembler::cbz(const Register& rt,
                     Label* label) {
-  cbz(rt, LinkAndGetInstructionOffsetTo(label));
+  int64_t offset = LinkAndGetInstructionOffsetTo(label);
+  VIXL_ASSERT(Instruction::IsValidImmPCOffset(CompareBranchType, offset));
+  cbz(rt, static_cast<int>(offset));
 }
 
 
@@ -684,7 +719,9 @@ void Assembler::cbnz(const Register& rt,
 
 void Assembler::cbnz(const Register& rt,
                      Label* label) {
-  cbnz(rt, LinkAndGetInstructionOffsetTo(label));
+  int64_t offset = LinkAndGetInstructionOffsetTo(label);
+  VIXL_ASSERT(Instruction::IsValidImmPCOffset(CompareBranchType, offset));
+  cbnz(rt, static_cast<int>(offset));
 }
 
 
@@ -723,8 +760,7 @@ void Assembler::tbl(const VRegister& vd,
                     const VRegister& vn2,
                     const VRegister& vn3,
                     const VRegister& vm) {
-  USE(vn2);
-  USE(vn3);
+  USE(vn2, vn3);
   VIXL_ASSERT(AreSameFormat(vn, vn2, vn3));
   VIXL_ASSERT(vn2.code() == ((vn.code() + 1) % kNumberOfVRegisters));
   VIXL_ASSERT(vn3.code() == ((vn.code() + 2) % kNumberOfVRegisters));
@@ -739,9 +775,7 @@ void Assembler::tbl(const VRegister& vd,
                     const VRegister& vn3,
                     const VRegister& vn4,
                     const VRegister& vm) {
-  USE(vn2);
-  USE(vn3);
-  USE(vn4);
+  USE(vn2, vn3, vn4);
   VIXL_ASSERT(AreSameFormat(vn, vn2, vn3, vn4));
   VIXL_ASSERT(vn2.code() == ((vn.code() + 1) % kNumberOfVRegisters));
   VIXL_ASSERT(vn3.code() == ((vn.code() + 2) % kNumberOfVRegisters));
@@ -775,8 +809,7 @@ void Assembler::tbx(const VRegister& vd,
                     const VRegister& vn2,
                     const VRegister& vn3,
                     const VRegister& vm) {
-  USE(vn2);
-  USE(vn3);
+  USE(vn2, vn3);
   VIXL_ASSERT(AreSameFormat(vn, vn2, vn3));
   VIXL_ASSERT(vn2.code() == ((vn.code() + 1) % kNumberOfVRegisters));
   VIXL_ASSERT(vn3.code() == ((vn.code() + 2) % kNumberOfVRegisters));
@@ -791,9 +824,7 @@ void Assembler::tbx(const VRegister& vd,
                     const VRegister& vn3,
                     const VRegister& vn4,
                     const VRegister& vm) {
-  USE(vn2);
-  USE(vn3);
-  USE(vn4);
+  USE(vn2, vn3, vn4);
   VIXL_ASSERT(AreSameFormat(vn, vn2, vn3, vn4));
   VIXL_ASSERT(vn2.code() == ((vn.code() + 1) % kNumberOfVRegisters));
   VIXL_ASSERT(vn3.code() == ((vn.code() + 2) % kNumberOfVRegisters));
@@ -814,7 +845,9 @@ void Assembler::tbz(const Register& rt,
 void Assembler::tbz(const Register& rt,
                     unsigned bit_pos,
                     Label* label) {
-  tbz(rt, bit_pos, LinkAndGetInstructionOffsetTo(label));
+  ptrdiff_t offset = LinkAndGetInstructionOffsetTo(label);
+  VIXL_ASSERT(Instruction::IsValidImmPCOffset(TestBranchType, offset));
+  tbz(rt, bit_pos, static_cast<int>(offset));
 }
 
 
@@ -829,7 +862,9 @@ void Assembler::tbnz(const Register& rt,
 void Assembler::tbnz(const Register& rt,
                      unsigned bit_pos,
                      Label* label) {
-  tbnz(rt, bit_pos, LinkAndGetInstructionOffsetTo(label));
+  ptrdiff_t offset = LinkAndGetInstructionOffsetTo(label);
+  VIXL_ASSERT(Instruction::IsValidImmPCOffset(TestBranchType, offset));
+  tbnz(rt, bit_pos, static_cast<int>(offset));
 }
 
 
@@ -840,7 +875,7 @@ void Assembler::adr(const Register& rd, int imm21) {
 
 
 void Assembler::adr(const Register& rd, Label* label) {
-  adr(rd, LinkAndGetByteOffsetTo(label));
+  adr(rd, static_cast<int>(LinkAndGetByteOffsetTo(label)));
 }
 
 
@@ -852,7 +887,7 @@ void Assembler::adrp(const Register& rd, int imm21) {
 
 void Assembler::adrp(const Register& rd, Label* label) {
   VIXL_ASSERT(AllowPageOffsetDependentCode());
-  adrp(rd, LinkAndGetPageOffsetTo(label));
+  adrp(rd, static_cast<int>(LinkAndGetPageOffsetTo(label)));
 }
 
 
@@ -1438,9 +1473,11 @@ void Assembler::LoadStorePair(const CPURegister& rt,
   // 'rt' and 'rt2' can only be aliased for stores.
   VIXL_ASSERT(((op & LoadStorePairLBit) == 0) || !rt.Is(rt2));
   VIXL_ASSERT(AreSameSizeAndType(rt, rt2));
+  VIXL_ASSERT(IsImmLSPair(addr.offset(), CalcLSPairDataSize(op)));
 
+  int offset = static_cast<int>(addr.offset());
   Instr memop = op | Rt(rt) | Rt2(rt2) | RnSP(addr.base()) |
-                ImmLSPair(addr.offset(), CalcLSPairDataSize(op));
+                ImmLSPair(offset, CalcLSPairDataSize(op));
 
   Instr addrmodeop;
   if (addr.IsImmediateOffset()) {
@@ -1484,8 +1521,9 @@ void Assembler::LoadStorePairNonTemporal(const CPURegister& rt,
 
   unsigned size = CalcLSPairDataSize(
     static_cast<LoadStorePairOp>(op & LoadStorePairMask));
-  Emit(op | Rt(rt) | Rt2(rt2) | RnSP(addr.base()) |
-       ImmLSPair(addr.offset(), size));
+  VIXL_ASSERT(IsImmLSPair(addr.offset(), size));
+  int offset = static_cast<int>(addr.offset());
+  Emit(op | Rt(rt) | Rt2(rt2) | RnSP(addr.base()) | ImmLSPair(offset, size));
 }
 
 
@@ -1639,13 +1677,13 @@ void Assembler::ldursw(const Register& rt, const MemOperand& src,
 void Assembler::ldrsw(const Register& rt, RawLiteral* literal) {
   VIXL_ASSERT(rt.Is64Bits());
   VIXL_ASSERT(literal->size() == kWRegSizeInBytes);
-  ldrsw(rt, LinkAndGetWordOffsetTo(literal));
+  ldrsw(rt, static_cast<int>(LinkAndGetWordOffsetTo(literal)));
 }
 
 
 void Assembler::ldr(const CPURegister& rt, RawLiteral* literal) {
   VIXL_ASSERT(literal->size() == static_cast<size_t>(rt.SizeInBytes()));
-  ldr(rt, LinkAndGetWordOffsetTo(literal));
+  ldr(rt, static_cast<int>(LinkAndGetWordOffsetTo(literal)));
 }
 
 
@@ -1863,7 +1901,7 @@ void Assembler::prfum(PrefetchOperation op, const MemOperand& address,
 
 
 void Assembler::prfm(PrefetchOperation op, RawLiteral* literal) {
-  prfm(op, LinkAndGetWordOffsetTo(literal));
+  prfm(op, static_cast<int>(LinkAndGetWordOffsetTo(literal)));
 }
 
 
@@ -1974,9 +2012,7 @@ void Assembler::LoadStoreStructVerify(const VRegister& vt,
                 addr.offset() == offset);
   }
 #else
-  USE(vt);
-  USE(addr);
-  USE(op);
+  USE(vt, addr, op);
 #endif
 }
 
@@ -3229,7 +3265,7 @@ NEON_3SAME_LIST(DEFINE_ASM_FUNC)
 #undef DEFINE_ASM_FUNC
 
 
-#define NEON_FP3SAME_LIST(V)                     \
+#define NEON_FP3SAME_OP_LIST(V)                  \
   V(fadd,    NEON_FADD,    FADD)                 \
   V(fsub,    NEON_FSUB,    FSUB)                 \
   V(fmul,    NEON_FMUL,    FMUL)                 \
@@ -3270,7 +3306,7 @@ void Assembler::FN(const VRegister& vd,                \
   }                                                    \
   NEONFP3Same(vd, vn, vm, op);                         \
 }
-NEON_FP3SAME_LIST(DEFINE_ASM_FUNC)
+NEON_FP3SAME_OP_LIST(DEFINE_ASM_FUNC)
 #undef DEFINE_ASM_FUNC
 
 
@@ -3368,10 +3404,12 @@ void Assembler::movi(const VRegister& vd,
     Emit(q | NEONModImmOp(1) | NEONModifiedImmediate_MOVI |
          ImmNEONabcdefgh(imm8) | NEONCmode(0xe) | Rd(vd));
   } else if (shift == LSL) {
-    NEONModifiedImmShiftLsl(vd, imm, shift_amount,
+    VIXL_ASSERT(is_uint8(imm));
+    NEONModifiedImmShiftLsl(vd, static_cast<int>(imm), shift_amount,
                             NEONModifiedImmediate_MOVI);
   } else {
-    NEONModifiedImmShiftMsl(vd, imm, shift_amount,
+    VIXL_ASSERT(is_uint8(imm));
+    NEONModifiedImmShiftMsl(vd, static_cast<int>(imm), shift_amount,
                             NEONModifiedImmediate_MOVI);
   }
 }
@@ -4504,13 +4542,13 @@ uint32_t Assembler::FP64ToImm8(double imm) {
   //       0000.0000.0000.0000.0000.0000.0000.0000
   uint64_t bits = double_to_rawbits(imm);
   // bit7: a000.0000
-  uint32_t bit7 = ((bits >> 63) & 0x1) << 7;
+  uint64_t bit7 = ((bits >> 63) & 0x1) << 7;
   // bit6: 0b00.0000
-  uint32_t bit6 = ((bits >> 61) & 0x1) << 6;
+  uint64_t bit6 = ((bits >> 61) & 0x1) << 6;
   // bit5_to_0: 00cd.efgh
-  uint32_t bit5_to_0 = (bits >> 48) & 0x3f;
+  uint64_t bit5_to_0 = (bits >> 48) & 0x3f;
 
-  return bit7 | bit6 | bit5_to_0;
+  return static_cast<uint32_t>(bit7 | bit6 | bit5_to_0);
 }
 
 
@@ -4577,7 +4615,7 @@ void Assembler::AddSub(const Register& rd,
     VIXL_ASSERT(IsImmAddSub(immediate));
     Instr dest_reg = (S == SetFlags) ? Rd(rd) : RdSP(rd);
     Emit(SF(rd) | AddSubImmediateFixed | op | Flags(S) |
-         ImmAddSub(immediate) | dest_reg | RnSP(rn));
+         ImmAddSub(static_cast<int>(immediate)) | dest_reg | RnSP(rn));
   } else if (operand.IsShiftedRegister()) {
     VIXL_ASSERT(operand.reg().size() == rd.size());
     VIXL_ASSERT(operand.shift() != ROR);
@@ -4693,7 +4731,8 @@ void Assembler::ConditionalCompare(const Register& rn,
   if (operand.IsImmediate()) {
     int64_t immediate = operand.immediate();
     VIXL_ASSERT(IsImmConditionalCompare(immediate));
-    ccmpop = ConditionalCompareImmediateFixed | op | ImmCondCmp(immediate);
+    ccmpop = ConditionalCompareImmediateFixed | op |
+        ImmCondCmp(static_cast<unsigned>(immediate));
   } else {
     VIXL_ASSERT(operand.IsShiftedRegister() && (operand.shift_amount() == 0));
     ccmpop = ConditionalCompareRegisterFixed | op | Rm(operand.reg());
@@ -4876,19 +4915,21 @@ Instr Assembler::LoadStoreMemOperand(const MemOperand& addr,
                            (option == RequireUnscaledOffset);
     if (prefer_unscaled && IsImmLSUnscaled(offset)) {
       // Use the unscaled addressing mode.
-      return base | LoadStoreUnscaledOffsetFixed | ImmLS(offset);
+      return base | LoadStoreUnscaledOffsetFixed |
+          ImmLS(static_cast<int>(offset));
     }
 
     if ((option != RequireUnscaledOffset) &&
         IsImmLSScaled(offset, access_size)) {
       // Use the scaled addressing mode.
       return base | LoadStoreUnsignedOffsetFixed |
-          ImmLSUnsigned(offset >> access_size);
+          ImmLSUnsigned(static_cast<int>(offset) >> access_size);
     }
 
     if ((option != RequireScaledOffset) && IsImmLSUnscaled(offset)) {
       // Use the unscaled addressing mode.
-      return base | LoadStoreUnscaledOffsetFixed | ImmLS(offset);
+      return base | LoadStoreUnscaledOffsetFixed |
+          ImmLS(static_cast<int>(offset));
     }
   }
 
@@ -4915,11 +4956,11 @@ Instr Assembler::LoadStoreMemOperand(const MemOperand& addr,
   }
 
   if (addr.IsPreIndex() && IsImmLSUnscaled(offset)) {
-    return base | LoadStorePreIndexFixed | ImmLS(offset);
+    return base | LoadStorePreIndexFixed | ImmLS(static_cast<int>(offset));
   }
 
   if (addr.IsPostIndex() && IsImmLSUnscaled(offset)) {
-    return base | LoadStorePostIndexFixed | ImmLS(offset);
+    return base | LoadStorePostIndexFixed | ImmLS(static_cast<int>(offset));
   }
 
   // If this point is reached, the MemOperand (addr) cannot be encoded.

@@ -107,7 +107,7 @@ void CustomDisassembler::AppendCodeRelativeCodeAddressToOutput(
 // disasssembled.
 void CustomDisassembler::VisitAddSubShifted(const Instruction* instr) {
   vixl::Disassembler::VisitAddSubShifted(instr);
-  if (instr->Rd() == vixl::x10.code()) {
+  if (instr->Rd() == 10) {
     AppendToOutput(" // add/sub to x10");
   }
   ProcessOutput(instr);

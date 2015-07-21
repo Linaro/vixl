@@ -28,8 +28,8 @@ import re
 import util
 import os.path
 
-def is_git_repository_root():
-  return os.path.isdir('.git')
+def is_git_repository_root(path):
+  return os.path.isdir(os.path.join(path, '.git'))
 
 def get_tracked_files():
   command = 'git ls-tree HEAD -r --full-tree --name-only'
