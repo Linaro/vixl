@@ -35,7 +35,7 @@
 
 // List macro containing all visitors needed by the decoder class.
 
-#define VISITOR_LIST(V)             \
+#define VISITOR_LIST_THAT_RETURN(V) \
   V(PCRelAddressing)                \
   V(AddSubImmediate)                \
   V(LogicalImmediate)               \
@@ -104,8 +104,14 @@
   V(NEONShiftImmediate)             \
   V(NEONTable)                      \
   V(NEONPerm)                       \
-  V(Unallocated)                    \
-  V(Unimplemented)
+
+#define VISITOR_LIST_THAT_DONT_RETURN(V)  \
+  V(Unallocated)                          \
+  V(Unimplemented)                        \
+
+#define VISITOR_LIST(V)             \
+  VISITOR_LIST_THAT_RETURN(V)       \
+  VISITOR_LIST_THAT_DONT_RETURN(V)  \
 
 namespace vixl {
 

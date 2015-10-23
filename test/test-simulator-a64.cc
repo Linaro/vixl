@@ -52,7 +52,7 @@ namespace vixl {
 
 #define BUF_SIZE (256)
 
-#ifdef USE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR
 
 #define SETUP()                                                               \
   MacroAssembler masm(BUF_SIZE);                                              \
@@ -94,7 +94,7 @@ namespace vixl {
 #define TEARDOWN()                                                            \
   delete simulator;
 
-#else     // USE_SIMULATOR
+#else     // VIXL_INCLUDE_SIMULATOR
 
 #define SETUP()                                                               \
   MacroAssembler masm(BUF_SIZE);                                              \
@@ -123,7 +123,7 @@ namespace vixl {
 
 #define TEARDOWN()
 
-#endif    // USE_SIMULATOR
+#endif    // VIXL_INCLUDE_SIMULATOR
 
 
 // The maximum number of errors to report in detail for each test.

@@ -33,6 +33,8 @@
 #include "vixl/globals.h"
 #include "vixl/a64/assembler-a64.h"
 #include "vixl/a64/debugger-a64.h"
+#include "vixl/a64/instrument-a64.h"
+#include "vixl/a64/simulator-constants-a64.h"
 
 
 #define LS_MACRO_LIST(V)                                      \
@@ -2074,13 +2076,13 @@ class MacroAssembler : public Assembler {
   void Unreachable() {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-#ifdef USE_SIMULATOR
-    hlt(kUnreachableOpcode);
-#else
-    // Branch to 0 to generate a segfault.
-    // lr - kInstructionSize is the address of the offending instruction.
-    blr(xzr);
-#endif
+    if (allow_simulator_instructions_) {
+      hlt(kUnreachableOpcode);
+    } else {
+      // Branch to 0 to generate a segfault.
+      // lr - kInstructionSize is the address of the offending instruction.
+      blr(xzr);
+    }
   }
   void Uxtb(const Register& rd, const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -2902,7 +2904,7 @@ class MacroAssembler : public Assembler {
   // one instruction. Refer to the implementation for details.
   void BumpSystemStackPointer(const Operand& space);
 
-#if VIXL_DEBUG
+#ifdef VIXL_DEBUG
   void SetAllowMacroInstructions(bool value) {
     allow_macro_instructions_ = value;
   }
@@ -2911,6 +2913,14 @@ class MacroAssembler : public Assembler {
     return allow_macro_instructions_;
   }
 #endif
+
+  void SetAllowSimulatorInstructions(bool value) {
+    allow_simulator_instructions_ = value;
+  }
+
+  bool AllowSimulatorInstructions() const {
+    return allow_simulator_instructions_;
+  }
 
   void BlockLiteralPool() { literal_pool_.Block(); }
   void ReleaseLiteralPool() { literal_pool_.Release(); }
@@ -3099,12 +3109,15 @@ class MacroAssembler : public Assembler {
                                             label->location() - CursorOffset());
   }
 
-#if VIXL_DEBUG
+#ifdef VIXL_DEBUG
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number
   // of instructions is called.
   bool allow_macro_instructions_;
 #endif
+
+  // Tell whether we should generate code that will run on the simulator or not.
+  bool allow_simulator_instructions_;
 
   // The register to use as a stack pointer for stack operations.
   Register sp_;
@@ -3326,10 +3339,10 @@ class UseScratchRegisterScope {
 #endif
 
   // Disallow copy constructor and operator=.
-  UseScratchRegisterScope(const UseScratchRegisterScope&) {
+  VIXL_DEBUG_NO_RETURN UseScratchRegisterScope(const UseScratchRegisterScope&) {
     VIXL_UNREACHABLE();
   }
-  void operator=(const UseScratchRegisterScope&) {
+  VIXL_DEBUG_NO_RETURN void operator=(const UseScratchRegisterScope&) {
     VIXL_UNREACHABLE();
   }
 };

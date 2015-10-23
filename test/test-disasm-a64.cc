@@ -45,7 +45,18 @@
 
 #define SETUP() SETUP_CLASS(Assembler)
 
-#define SETUP_MACRO() SETUP_CLASS(MacroAssembler)
+#ifdef VIXL_INCLUDE_SIMULATOR
+// Run tests with the simulator.
+#define SETUP_MACRO()                                                          \
+  SETUP_CLASS(MacroAssembler);                                                 \
+  masm->SetAllowSimulatorInstructions(true)
+
+#else  // ifdef VIXL_INCLUDE_SIMULATOR.
+#define SETUP_MACRO()                                                          \
+  SETUP_CLASS(MacroAssembler);                                                 \
+  masm->SetAllowSimulatorInstructions(false)
+
+#endif  // ifdef VIXL_INCLUDE_SIMULATOR.
 
 #define COMPARE(ASM, EXP)                                                      \
   masm->Reset();                                                               \
@@ -137,7 +148,7 @@ TEST(bootstrap) {
 
 
 TEST(mov_mvn) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Mov(w0, Operand(0x1234)), "mov w0, #0x1234");
   COMPARE(Mov(x1, Operand(0x1234)), "mov x1, #0x1234");
@@ -203,7 +214,7 @@ TEST(move_immediate) {
 
 
 TEST(move_immediate_2) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   // Move instructions expected for certain immediates. This is really a macro
   // assembler test, to ensure it generates immediates efficiently.
@@ -1848,7 +1859,7 @@ TEST(load_store_pair_nontemp) {
 
 
 TEST(load_literal_macro) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   // In each case, the literal will be placed at PC+8:
   //    ldr   x10, pc+8               // Test instruction.
@@ -2187,7 +2198,7 @@ TEST(cond_select) {
 
 
 TEST(cond_select_macro) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Csel(w0, w1, -1, eq), "csinv w0, w1, wzr, eq");
   COMPARE(Csel(w2, w3, 0, ne), "csel w2, w3, wzr, ne");
@@ -2219,7 +2230,7 @@ TEST(cond_cmp) {
 
 
 TEST(cond_cmp_macro) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Ccmp(w0, -1, VFlag, hi), "ccmn w0, #1, #nzcV, hi");
   COMPARE(Ccmp(x1, -31, CFlag, ge), "ccmn x1, #31, #nzCv, ge");
@@ -2584,9 +2595,9 @@ TEST(system_nop) {
 
 
 TEST(unreachable) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
-#ifdef USE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR
   VIXL_ASSERT(kUnreachableOpcode == 0xdeb0);
   COMPARE(Unreachable(), "hlt #0xdeb0");
 #else
@@ -2597,9 +2608,9 @@ TEST(unreachable) {
 }
 
 
-#ifdef USE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR
 TEST(trace) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   VIXL_ASSERT(kTraceOpcode == 0xdeb2);
 
@@ -2612,9 +2623,9 @@ TEST(trace) {
 #endif
 
 
-#ifdef USE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR
 TEST(log) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   VIXL_ASSERT(kLogOpcode == 0xdeb3);
 
@@ -2661,7 +2672,7 @@ TEST(svc) {
 
 
 TEST(add_sub_negative) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Add(x10, x0, -42), "sub x10, x0, #0x2a (42)");
   COMPARE(Add(x11, x1, -687), "sub x11, x1, #0x2af (687)");
@@ -2698,7 +2709,7 @@ TEST(add_sub_negative) {
 
 
 TEST(logical_immediate_move) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(And(w0, w1, 0), "mov w0, #0x0");
   COMPARE(And(x0, x1, 0), "mov x0, #0x0");
@@ -2737,7 +2748,7 @@ TEST(logical_immediate_move) {
 
 
 TEST(barriers) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   // DMB
   COMPARE(Dmb(FullSystem, BarrierAll), "dmb sy");
@@ -2837,7 +2848,7 @@ TEST(barriers) {
   V(V4S(), "4s")
 
 TEST(neon_load_store_vector) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   #define DISASM_INST(M, S)                                       \
   COMPARE(Ld1(v0.M, MemOperand(x15)),                             \
@@ -3023,7 +3034,7 @@ TEST(neon_load_store_vector) {
 
 
 TEST(neon_load_store_lane) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Ld1(v0.V8B(), 0, MemOperand(x15)), "ld1 {v0.b}[0], [x15]");
   COMPARE(Ld1(v1.V16B(), 1, MemOperand(x16)), "ld1 {v1.b}[1], [x16]");
@@ -3419,7 +3430,7 @@ TEST(neon_load_store_lane) {
 
 
 TEST(neon_load_all_lanes) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Ld1r(v14.V8B(), MemOperand(x0)), "ld1r {v14.8b}, [x0]");
   COMPARE(Ld1r(v15.V16B(), MemOperand(x1)), "ld1r {v15.16b}, [x1]");
@@ -3567,7 +3578,7 @@ TEST(neon_load_all_lanes) {
 
 
 TEST(neon_3same) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   #define DISASM_INST(M, S)  \
   COMPARE(Cmeq(v0.M, v1.M, v2.M), "cmeq v0." S ", v1." S ", v2." S);
@@ -3832,7 +3843,7 @@ TEST(neon_3same) {
   V(V2D(), "2d")
 
 TEST(neon_fp_3same) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   #define DISASM_INST(M, S)  \
   COMPARE(Fadd(v0.M, v1.M, v2.M), "fadd v0." S ", v1." S ", v2." S);
@@ -3965,7 +3976,7 @@ TEST(neon_fp_3same) {
   V(D(), "d")
 
 TEST(neon_scalar_3same) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   // Instructions that only support D-sized scalar operations.
   COMPARE(Add(v0.D(), v1.D(), v2.D()), "add d0, d1, d2");
@@ -4050,7 +4061,7 @@ TEST(neon_scalar_3same) {
 
 
 TEST(neon_byelement) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Mul(v0.V4H(), v1.V4H(), v2.H(), 0), "mul v0.4h, v1.4h, v2.h[0]");
   COMPARE(Mul(v2.V8H(), v3.V8H(), v15.H(), 7), "mul v2.8h, v3.8h, v15.h[7]");
@@ -4169,7 +4180,7 @@ TEST(neon_byelement) {
 
 
 TEST(neon_fp_byelement) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Fmul(v0.V2S(), v1.V2S(), v2.S(), 0), "fmul v0.2s, v1.2s, v2.s[0]");
   COMPARE(Fmul(v2.V4S(), v3.V4S(), v15.S(), 3), "fmul v2.4s, v3.4s, v15.s[3]");
@@ -4200,7 +4211,7 @@ TEST(neon_fp_byelement) {
 
 
 TEST(neon_3different) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   #define DISASM_INST(TA, TAS, TB, TBS)  \
   COMPARE(Uaddl(v0.TA, v1.TB, v2.TB), "uaddl v0." TAS ", v1." TBS ", v2." TBS);
@@ -4465,7 +4476,7 @@ TEST(neon_3different) {
 
 
 TEST(neon_perm) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   #define DISASM_INST(M, S)  \
   COMPARE(Trn1(v0.M, v1.M, v2.M), "trn1 v0." S ", v1." S ", v2." S);
@@ -4502,7 +4513,7 @@ TEST(neon_perm) {
 
 
 TEST(neon_copy) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Ins(v1.V16B(), 4, v5.V16B(), 0), "mov v1.b[4], v5.b[0]");
   COMPARE(Ins(v2.V8B(),  5, v6.V8B(),  1), "mov v2.b[5], v6.b[1]");
@@ -4618,7 +4629,7 @@ TEST(neon_copy) {
 
 
 TEST(neon_extract) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Ext(v4.V8B(), v5.V8B(), v6.V8B(), 0), "ext v4.8b, v5.8b, v6.8b, #0");
   COMPARE(Ext(v1.V8B(), v2.V8B(), v3.V8B(), 7), "ext v1.8b, v2.8b, v3.8b, #7");
@@ -4632,7 +4643,7 @@ TEST(neon_extract) {
 
 
 TEST(neon_modimm) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Orr(v4.V4H(), 0xaa, 0), "orr v4.4h, #0xaa, lsl #0");
   COMPARE(Orr(v1.V8H(), 0xcc, 8), "orr v1.8h, #0xcc, lsl #8");
@@ -4691,7 +4702,7 @@ TEST(neon_modimm) {
 
 
 TEST(neon_2regmisc) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Shll(v1.V8H(),  v8.V8B(),  8), "shll v1.8h, v8.8b, #8");
   COMPARE(Shll(v3.V4S(),  v1.V4H(),  16), "shll v3.4s, v1.4h, #16");
@@ -5072,7 +5083,7 @@ TEST(neon_2regmisc) {
 }
 
 TEST(neon_acrosslanes) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Smaxv(b4, v5.V8B()),  "smaxv b4, v5.8b");
   COMPARE(Smaxv(b4, v5.V16B()), "smaxv b4, v5.16b");
@@ -5125,7 +5136,7 @@ TEST(neon_acrosslanes) {
 }
 
 TEST(neon_scalar_pairwise) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Addp(d0, v1.V2D()), "addp d0, v1.2d");
   COMPARE(Faddp(s0, v1.V2S()), "faddp s0, v1.2s");
@@ -5142,7 +5153,7 @@ TEST(neon_scalar_pairwise) {
 }
 
 TEST(neon_shift_immediate) {
-  SETUP_CLASS(MacroAssembler);
+  SETUP_MACRO();
 
   COMPARE(Sshr(v0.V8B(), v1.V8B(), 1),  "sshr v0.8b, v1.8b, #1");
   COMPARE(Sshr(v2.V8B(), v3.V8B(), 8),  "sshr v2.8b, v3.8b, #8");

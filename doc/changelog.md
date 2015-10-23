@@ -1,6 +1,13 @@
 VIXL Change Log
 ===============
 
+* 1.11
+    + Fix bug in simulation of add with carry.
+    + Fix use-after-free bug in Literal handling.
+    + Build system updates for Android.
+    + Add option to run test.py under Valgrind.
+    + Other small bug fixes and improvements.
+
 * 1.10
     + Improved support for externally managed literals.
     + Reworked build and test infrastructure.

@@ -65,6 +65,7 @@ n_tests_failed = multiprocessing.Value('i', 0)
 # Read-only for workers.
 test_runner = None
 test_runner_runtime_options = None
+test_runner_under_valgrind = False
 n_tests = None
 start_time = None
 progress_prefix = None
@@ -72,6 +73,8 @@ progress_prefix = None
 
 def RunTest(test):
   command = [test_runner, test] + test_runner_runtime_options
+  if test_runner_under_valgrind:
+    command = ['valgrind'] + command
 
   p = subprocess.Popen(command,
                        stdout=subprocess.PIPE,
@@ -109,9 +112,11 @@ def RunTest(test):
 # multiprocessing module.
 __run_tests_lock__ = multiprocessing.Lock()
 def RunTests(test_runner_command, filters, runtime_options,
+             under_valgrind = False,
              jobs = 1, prefix = ''):
   global test_runner
   global test_runner_runtime_options
+  global test_runner_under_valgrind
   global n_tests
   global start_time
   global progress_prefix
@@ -128,6 +133,7 @@ def RunTests(test_runner_command, filters, runtime_options,
     start_time = time.time()
     test_runner = test_runner_command
     test_runner_runtime_options = runtime_options
+    test_runner_under_valgrind = under_valgrind
     n_tests = len(tests)
     n_tests_passed.value = 0
     n_tests_failed.value = 0

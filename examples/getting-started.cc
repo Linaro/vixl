@@ -41,7 +41,7 @@ void GenerateDemoFunction(MacroAssembler *masm) {
 
 
 #ifndef TEST_EXAMPLES
-#ifdef USE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR
 int main() {
   byte assm_buf[BUF_SIZE];
   MacroAssembler masm(assm_buf, BUF_SIZE);
@@ -62,5 +62,5 @@ int main() {
 #else
 // Without the simulator there is nothing to test.
 int main(void) { return 0; }
-#endif  // USE_SIMULATOR
+#endif  // VIXL_INCLUDE_SIMULATOR
 #endif  // TEST_EXAMPLES

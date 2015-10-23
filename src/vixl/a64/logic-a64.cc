@@ -24,6 +24,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#ifdef VIXL_INCLUDE_SIMULATOR
+
 #include <cmath>
 #include "vixl/a64/simulator-a64.h"
 
@@ -4871,3 +4873,5 @@ LogicVRegister Simulator::ucvtf(VectorFormat vform,
 
 
 }  // namespace vixl
+
+#endif  // VIXL_INCLUDE_SIMULATOR

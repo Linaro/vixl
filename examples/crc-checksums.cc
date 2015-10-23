@@ -77,7 +77,7 @@ void runExample(const char *msg) {
   GenerateCrc32(&masm);
   masm.FinalizeCode();
 
-#ifdef USE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR
   // Run example function in the simulator.
   uintptr_t msg_addr = reinterpret_cast<uintptr_t>(msg);
   size_t msg_size = strlen(msg);
@@ -91,7 +91,7 @@ void runExample(const char *msg) {
   // Run example function natively.
   printf("Not yet implemented.\n");
   USE(msg);
-#endif  // USE_SIMULATOR
+#endif  // VIXL_INCLUDE_SIMULATOR
 }
 
 

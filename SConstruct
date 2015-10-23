@@ -52,7 +52,7 @@ class TopLevelTargets:
     self.targets.append(target)
     self.help_messages.append(help_message)
   def Help(self):
-    res = ""  
+    res = ""
     for i in range(len(self.targets)):
       res += '\t{0:<{1}}{2:<{3}}\n'.format(
         'scons ' + self.targets[i],
@@ -78,6 +78,7 @@ options = {
                    '-Wextra',
                    '-Wredundant-decls',
                    '-pedantic',
+                   '-Wmissing-noreturn',
                    '-Wwrite-strings'],
       'CPPPATH' : [config.dir_src_vixl]
       },
@@ -91,7 +92,7 @@ options = {
       'CCFLAGS' : ['-O3']
       },
     'simulator:on' : {
-      'CCFLAGS' : ['-DUSE_SIMULATOR'],
+      'CCFLAGS' : ['-DVIXL_INCLUDE_SIMULATOR'],
       },
     'symbols:on' : {
       'CCFLAGS' : ['-g'],

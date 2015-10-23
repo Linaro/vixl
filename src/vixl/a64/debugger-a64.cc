@@ -24,7 +24,7 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 // EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifdef USE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR
 
 #include "vixl/a64/debugger-a64.h"
 
@@ -55,7 +55,7 @@ class Token {
   virtual bool IsUnknown() const { return false; }
   // Token properties.
   virtual bool CanAddressMemory() const { return false; }
-  virtual uint8_t* ToAddress(Debugger* debugger) const;
+  virtual uint8_t* ToAddress(Debugger* debugger) const = 0;
   virtual void Print(FILE* out = stdout) const = 0;
 
   static Token* Tokenize(const char* arg);
@@ -68,6 +68,11 @@ template<typename T> class ValueToken : public Token {
   ValueToken() {}
 
   T value() const { return value_; }
+
+  VIXL_NO_RETURN virtual uint8_t* ToAddress(Debugger* debugger) const {
+    USE(debugger);
+    VIXL_ABORT();
+  }
 
  protected:
   T value_;
@@ -194,6 +199,11 @@ class FormatToken : public Token {
   virtual void PrintData(void* data, FILE* out = stdout) const = 0;
   virtual void Print(FILE* out = stdout) const = 0;
 
+  VIXL_NO_RETURN virtual uint8_t* ToAddress(Debugger* debugger) const {
+    USE(debugger);
+    VIXL_ABORT();
+  }
+
   static Token* Tokenize(const char* arg);
   static FormatToken* Cast(Token* tok) {
     VIXL_ASSERT(tok->IsFormat());
@@ -229,6 +239,10 @@ class UnknownToken : public Token {
     strncpy(unknown_, arg, size);
   }
   virtual ~UnknownToken() { delete[] unknown_; }
+  VIXL_NO_RETURN virtual uint8_t* ToAddress(Debugger* debugger) const {
+    USE(debugger);
+    VIXL_ABORT();
+  }
 
   virtual bool IsUnknown() const { return true; }
   virtual void Print(FILE* out = stdout) const;
@@ -785,13 +799,6 @@ static bool StringToInt64(int64_t* value, const char* line, int base = 10) {
 
   *value = parsed;
   return true;
-}
-
-
-uint8_t* Token::ToAddress(Debugger* debugger) const {
-  USE(debugger);
-  VIXL_UNREACHABLE();
-  return NULL;
 }
 
 
@@ -1516,4 +1523,4 @@ bool InvalidCommand::Run(Debugger* debugger) {
 
 }  // namespace vixl
 
-#endif  // USE_SIMULATOR
+#endif  // VIXL_INCLUDE_SIMULATOR

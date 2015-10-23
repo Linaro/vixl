@@ -58,7 +58,7 @@ void GenerateCheckBounds(MacroAssembler* masm) {
 
 
 #ifndef TEST_EXAMPLES
-#ifdef USE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR
 void run_function(Simulator *simulator, Instruction * function,
                   uint64_t value, uint64_t low, uint64_t high) {
   simulator->set_xreg(0, value);
@@ -97,5 +97,5 @@ int main(void) {
 #else
 // Without the simulator there is nothing to test.
 int main(void) { return 0; }
-#endif  // USE_SIMULATOR
+#endif  // VIXL_INCLUDE_SIMULATOR
 #endif  // TEST_EXAMPLES

@@ -116,4 +116,36 @@ inline void USE(T1, T2, T3, T4) {}
   #define VIXL_FALLTHROUGH() do {} while (0)
 #endif
 
+#if __cplusplus >= 201103L
+  #define VIXL_NO_RETURN  [[noreturn]] //NOLINT
+#else
+  #define VIXL_NO_RETURN  __attribute__((noreturn))
+#endif
+
+// Some functions might only be marked as "noreturn" for the DEBUG build. This
+// macro should be used for such cases (for more details see what
+// VIXL_UNREACHABLE expands to).
+#ifdef VIXL_DEBUG
+  #define VIXL_DEBUG_NO_RETURN  VIXL_NO_RETURN
+#else
+  #define VIXL_DEBUG_NO_RETURN
+#endif
+
+#ifdef VIXL_INCLUDE_SIMULATOR
+#ifndef VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE
+  #define VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE  1
+#endif
+#else
+#ifndef VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE
+  #define VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE  0
+#endif
+#if VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE
+  #warning "Generating Simulator instructions without Simulator support."
+#endif
+#endif
+
+#ifdef USE_SIMULATOR
+  #error "Please see the release notes for USE_SIMULATOR."
+#endif
+
 #endif  // VIXL_GLOBALS_H

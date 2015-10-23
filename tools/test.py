@@ -227,6 +227,11 @@ def BuildOptions():
     '--simulator', action='store', choices=['on', 'off'],
     default=sim_default,
     help='Explicitly enable or disable the simulator.')
+  general_arguments.add_argument(
+    '--under_valgrind', action='store_true',
+    help='''Run the test-runner commands under Valgrind.
+            Note that a few tests are known to fail because of
+            issues in Valgrind''')
   return args.parse_args()
 
 
@@ -349,6 +354,9 @@ if __name__ == '__main__':
 
   args = BuildOptions()
 
+  if args.under_valgrind:
+    util.require_program('valgrind')
+
   if args.fast:
     def SetFast(option, specified, default):
       option.val_test_choices = \
@@ -400,6 +408,7 @@ if __name__ == '__main__':
           rc |= threaded_tests.RunTests(test_executable,
                                         args.filters,
                                         list(runtime_options),
+                                        args.under_valgrind,
                                         jobs = args.jobs, prefix = prefix)
 
       if not args.nobench:

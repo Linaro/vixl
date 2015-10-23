@@ -29,7 +29,7 @@
 #define BASE_BUF_SIZE (4096)
 #define __ masm.
 
-#ifdef USE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR
 int64_t LiteralExample(int64_t a, int64_t b) {
   // Create and initialize the macro-assembler and the simulator.
   MacroAssembler masm(BASE_BUF_SIZE);
@@ -85,13 +85,13 @@ int64_t LiteralExample(int64_t a, int64_t b) {
 #endif
 
 #ifndef TEST_EXAMPLES
-#ifdef USE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR
 int main(void) {
-  LiteralExample(1, 2);
+  VIXL_CHECK(LiteralExample(1, 2) == 3);
   return 0;
 }
 #else
 // Without the simulator there is nothing to test.
 int main(void) { return 0; }
-#endif  // USE_SIMULATOR
+#endif  // VIXL_INCLUDE_SIMULATOR
 #endif  // TEST_EXAMPLES

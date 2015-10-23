@@ -169,7 +169,8 @@ void Instrument::Update() {
   VIXL_ASSERT(counter->type() == Cumulative);
   counter->Increment();
 
-  if (counter->IsEnabled() && (counter->count() % sample_period_) == 0) {
+  if ((sample_period_ != 0) && counter->IsEnabled()
+      && (counter->count() % sample_period_) == 0) {
     DumpCounters();
   }
 }

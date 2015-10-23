@@ -99,6 +99,10 @@ class Instrument: public DecoderVisitor {
   std::list<Counter*> counters_;
 
   FILE *output_stream_;
+
+  // Counter information is dumped every sample_period_ instructions decoded.
+  // For a sample_period_ = 0 a final counter value is only produced when the
+  // Instrumentation class is destroyed.
   uint64_t sample_period_;
 };
 
