@@ -1,4 +1,4 @@
-VIXL: AArch64 Runtime Code Generation Library Version 1.11
+VIXL: AArch64 Runtime Code Generation Library Version 1.12
 ==========================================================
 
 Contents:

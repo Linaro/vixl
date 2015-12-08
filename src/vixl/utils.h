@@ -35,9 +35,9 @@
 namespace vixl {
 
 // Macros for compile-time format checking.
-#if defined(__GNUC__)
+#if GCC_VERSION_OR_NEWER(4, 4, 0)
 #define PRINTF_CHECK(format_index, varargs_index) \
-  __attribute__((format(printf, format_index, varargs_index)))
+  __attribute__((format(gnu_printf, format_index, varargs_index)))
 #else
 #define PRINTF_CHECK(format_index, varargs_index)
 #endif
@@ -220,7 +220,7 @@ T ReverseBytes(T value, int block_bytes_log2) {
   // Split the 64-bit value into an 8-bit array, where b[0] is the least
   // significant byte, and b[7] is the most significant.
   uint8_t bytes[8];
-  uint64_t mask = 0xff00000000000000;
+  uint64_t mask = UINT64_C(0xff00000000000000);
   for (int i = 7; i >= 0; i--) {
     bytes[i] = (static_cast<uint64_t>(value) & mask) >> (i * 8);
     mask >>= 8;

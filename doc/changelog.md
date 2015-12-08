@@ -1,6 +1,9 @@
 VIXL Change Log
 ===============
 
+* 1.12
+    + Bug fixes for toolchain compatibility.
+
 * 1.11
     + Fix bug in simulation of add with carry.
     + Fix use-after-free bug in Literal handling.

@@ -269,7 +269,6 @@ def VIXLLibraryTarget(env):
 # The VIXL library, built by default.
 env = Environment(variables = vars)
 ConfigureEnvironment(env)
-ProcessBuildOptions(env)
 Help(vars.GenerateHelpText(env))
 libvixl = VIXLLibraryTarget(env)
 Default(libvixl)
