@@ -54,7 +54,7 @@ int main() {
   masm.FinalizeCode();
 
   simulator.set_xreg(0, 0x8899aabbccddeeff);
-  simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&demo_function));
+  simulator.RunFrom(masm.GetLabelAddress<Instruction *>(&demo_function));
   printf("x0 = %" PRIx64 "\n", simulator.xreg(0));
 
   return 0;

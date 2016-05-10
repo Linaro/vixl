@@ -31,13 +31,13 @@
 namespace vixl {
 
 // List of commands supported by the debugger.
-#define DEBUG_COMMAND_LIST(C)  \
-C(HelpCommand)                 \
-C(ContinueCommand)             \
-C(StepCommand)                 \
-C(DisasmCommand)               \
-C(PrintCommand)                \
-C(ExamineCommand)
+#define DEBUG_COMMAND_LIST(C) \
+  C(HelpCommand)              \
+  C(ContinueCommand)          \
+  C(StepCommand)              \
+  C(DisasmCommand)            \
+  C(PrintCommand)             \
+  C(ExamineCommand)
 
 // Debugger command lines are broken up in token of different type to make
 // processing easier later on.
@@ -62,7 +62,8 @@ class Token {
 };
 
 // Tokens often hold one value.
-template<typename T> class ValueToken : public Token {
+template <typename T>
+class ValueToken : public Token {
  public:
   explicit ValueToken(T value) : value_(value) {}
   ValueToken() {}
@@ -88,7 +89,7 @@ class RegisterToken : public ValueToken<const Register> {
   virtual bool IsRegister() const { return true; }
   virtual bool CanAddressMemory() const { return value().Is64Bits(); }
   virtual uint8_t* ToAddress(Debugger* debugger) const;
-  virtual void Print(FILE* out = stdout) const ;
+  virtual void Print(FILE* out = stdout) const;
   const char* Name() const;
 
   static Token* Tokenize(const char* arg);
@@ -111,7 +112,7 @@ class FPRegisterToken : public ValueToken<const FPRegister> {
       : ValueToken<const FPRegister>(fpreg) {}
 
   virtual bool IsFPRegister() const { return true; }
-  virtual void Print(FILE* out = stdout) const ;
+  virtual void Print(FILE* out = stdout) const;
 
   static Token* Tokenize(const char* arg);
   static FPRegisterToken* Cast(Token* tok) {
@@ -153,7 +154,7 @@ class AddressToken : public ValueToken<uint8_t*> {
   virtual bool IsAddress() const { return true; }
   virtual bool CanAddressMemory() const { return true; }
   virtual uint8_t* ToAddress(Debugger* debugger) const;
-  virtual void Print(FILE* out = stdout) const ;
+  virtual void Print(FILE* out = stdout) const;
 
   static Token* Tokenize(const char* arg);
   static AddressToken* Cast(Token* tok) {
@@ -212,7 +213,8 @@ class FormatToken : public Token {
 };
 
 
-template<typename T> class Format : public FormatToken {
+template <typename T>
+class Format : public FormatToken {
  public:
   Format(const char* fmt, char type_code) : fmt_(fmt), type_code_(type_code) {}
 
@@ -263,7 +265,7 @@ class DebugCommand {
   const char* name() { return name_->value(); }
   // Run the command on the given debugger. The command returns true if
   // execution should move to the next instruction.
-  virtual bool Run(Debugger * debugger) = 0;
+  virtual bool Run(Debugger* debugger) = 0;
   virtual void Print(FILE* out = stdout);
 
   static bool Match(const char* name, const char** aliases);
@@ -419,121 +421,116 @@ class InvalidCommand : public DebugCommand {
   const char* cause_;
 };
 
-const char* HelpCommand::kAliases[] = { "help", NULL };
+const char* HelpCommand::kAliases[] = {"help", NULL};
 const char* HelpCommand::kArguments = NULL;
 const char* HelpCommand::kHelp = "  Print this help.";
 
-const char* ContinueCommand::kAliases[] = { "continue", "c", NULL };
+const char* ContinueCommand::kAliases[] = {"continue", "c", NULL};
 const char* ContinueCommand::kArguments = NULL;
 const char* ContinueCommand::kHelp = "  Resume execution.";
 
-const char* StepCommand::kAliases[] = { "stepi", "si", NULL };
+const char* StepCommand::kAliases[] = {"stepi", "si", NULL};
 const char* StepCommand::kArguments = "[n = 1]";
 const char* StepCommand::kHelp = "  Execute n next instruction(s).";
 
-const char* DisasmCommand::kAliases[] = { "disasm", "di", NULL };
+const char* DisasmCommand::kAliases[] = {"disasm", "di", NULL};
 const char* DisasmCommand::kArguments = "[n = 10]";
 const char* DisasmCommand::kHelp =
-  "  Disassemble n instruction(s) at pc.\n"
-  "  This command is equivalent to x pc.i [n = 10]."
-;
+    "  Disassemble n instruction(s) at pc.\n"
+    "  This command is equivalent to x pc.i [n = 10].";
 
-const char* PrintCommand::kAliases[] = { "print", "p", NULL };
-const char* PrintCommand::kArguments =  "<entity>[.format]";
+const char* PrintCommand::kAliases[] = {"print", "p", NULL};
+const char* PrintCommand::kArguments = "<entity>[.format]";
 const char* PrintCommand::kHelp =
-  "  Print the given entity according to the given format.\n"
-  "  The format parameter only affects individual registers; it is ignored\n"
-  "  for other entities.\n"
-  "  <entity> can be one of the following:\n"
-  "   * A register name (such as x0, s1, ...).\n"
-  "   * 'regs', to print all integer (W and X) registers.\n"
-  "   * 'fpregs' to print all floating-point (S and D) registers.\n"
-  "   * 'sysregs' to print all system registers (including NZCV).\n"
-  "   * 'pc' to print the current program counter.\n"
-;
+    "  Print the given entity according to the given format.\n"
+    "  The format parameter only affects individual registers; it is ignored\n"
+    "  for other entities.\n"
+    "  <entity> can be one of the following:\n"
+    "   * A register name (such as x0, s1, ...).\n"
+    "   * 'regs', to print all integer (W and X) registers.\n"
+    "   * 'fpregs' to print all floating-point (S and D) registers.\n"
+    "   * 'sysregs' to print all system registers (including NZCV).\n"
+    "   * 'pc' to print the current program counter.\n";
 
-const char* ExamineCommand::kAliases[] = { "m", "mem", "x", NULL };
+const char* ExamineCommand::kAliases[] = {"m", "mem", "x", NULL};
 const char* ExamineCommand::kArguments = "<addr>[.format] [n = 10]";
 const char* ExamineCommand::kHelp =
-  "  Examine memory. Print n items of memory at address <addr> according to\n"
-  "  the given [.format].\n"
-  "  Addr can be an immediate address, a register name or pc.\n"
-  "  Format is made of a type letter: 'x' (hexadecimal), 's' (signed), 'u'\n"
-  "  (unsigned), 'f' (floating point), i (instruction) and a size in bits\n"
-  "  when appropriate (8, 16, 32, 64)\n"
-  "  E.g 'x sp.x64' will print 10 64-bit words from the stack in\n"
-  "  hexadecimal format."
-;
+    "  Examine memory. Print n items of memory at address <addr> according to\n"
+    "  the given [.format].\n"
+    "  Addr can be an immediate address, a register name or pc.\n"
+    "  Format is made of a type letter: 'x' (hexadecimal), 's' (signed), 'u'\n"
+    "  (unsigned), 'f' (floating point), i (instruction) and a size in bits\n"
+    "  when appropriate (8, 16, 32, 64)\n"
+    "  E.g 'x sp.x64' will print 10 64-bit words from the stack in\n"
+    "  hexadecimal format.";
 
-const char* RegisterToken::kXAliases[kNumberOfRegisters][kMaxAliasNumber] = {
-  { "x0", NULL },
-  { "x1", NULL },
-  { "x2", NULL },
-  { "x3", NULL },
-  { "x4", NULL },
-  { "x5", NULL },
-  { "x6", NULL },
-  { "x7", NULL },
-  { "x8", NULL },
-  { "x9", NULL },
-  { "x10", NULL },
-  { "x11", NULL },
-  { "x12", NULL },
-  { "x13", NULL },
-  { "x14", NULL },
-  { "x15", NULL },
-  { "ip0", "x16", NULL },
-  { "ip1", "x17", NULL },
-  { "x18", "pr", NULL },
-  { "x19", NULL },
-  { "x20", NULL },
-  { "x21", NULL },
-  { "x22", NULL },
-  { "x23", NULL },
-  { "x24", NULL },
-  { "x25", NULL },
-  { "x26", NULL },
-  { "x27", NULL },
-  { "x28", NULL },
-  { "fp", "x29", NULL },
-  { "lr", "x30", NULL },
-  { "sp", NULL}
-};
+const char* RegisterToken::kXAliases[kNumberOfRegisters][kMaxAliasNumber] =
+    {{"x0", NULL},
+     {"x1", NULL},
+     {"x2", NULL},
+     {"x3", NULL},
+     {"x4", NULL},
+     {"x5", NULL},
+     {"x6", NULL},
+     {"x7", NULL},
+     {"x8", NULL},
+     {"x9", NULL},
+     {"x10", NULL},
+     {"x11", NULL},
+     {"x12", NULL},
+     {"x13", NULL},
+     {"x14", NULL},
+     {"x15", NULL},
+     {"ip0", "x16", NULL},
+     {"ip1", "x17", NULL},
+     {"x18", "pr", NULL},
+     {"x19", NULL},
+     {"x20", NULL},
+     {"x21", NULL},
+     {"x22", NULL},
+     {"x23", NULL},
+     {"x24", NULL},
+     {"x25", NULL},
+     {"x26", NULL},
+     {"x27", NULL},
+     {"x28", NULL},
+     {"fp", "x29", NULL},
+     {"lr", "x30", NULL},
+     {"sp", NULL}};
 
-const char* RegisterToken::kWAliases[kNumberOfRegisters][kMaxAliasNumber] = {
-  { "w0", NULL },
-  { "w1", NULL },
-  { "w2", NULL },
-  { "w3", NULL },
-  { "w4", NULL },
-  { "w5", NULL },
-  { "w6", NULL },
-  { "w7", NULL },
-  { "w8", NULL },
-  { "w9", NULL },
-  { "w10", NULL },
-  { "w11", NULL },
-  { "w12", NULL },
-  { "w13", NULL },
-  { "w14", NULL },
-  { "w15", NULL },
-  { "w16", NULL },
-  { "w17", NULL },
-  { "w18", NULL },
-  { "w19", NULL },
-  { "w20", NULL },
-  { "w21", NULL },
-  { "w22", NULL },
-  { "w23", NULL },
-  { "w24", NULL },
-  { "w25", NULL },
-  { "w26", NULL },
-  { "w27", NULL },
-  { "w28", NULL },
-  { "w29", NULL },
-  { "w30", NULL },
-  { "wsp", NULL }
-};
+const char* RegisterToken::kWAliases[kNumberOfRegisters][kMaxAliasNumber] =
+    {{"w0", NULL},
+     {"w1", NULL},
+     {"w2", NULL},
+     {"w3", NULL},
+     {"w4", NULL},
+     {"w5", NULL},
+     {"w6", NULL},
+     {"w7", NULL},
+     {"w8", NULL},
+     {"w9", NULL},
+     {"w10", NULL},
+     {"w11", NULL},
+     {"w12", NULL},
+     {"w13", NULL},
+     {"w14", NULL},
+     {"w15", NULL},
+     {"w16", NULL},
+     {"w17", NULL},
+     {"w18", NULL},
+     {"w19", NULL},
+     {"w20", NULL},
+     {"w21", NULL},
+     {"w22", NULL},
+     {"w23", NULL},
+     {"w24", NULL},
+     {"w25", NULL},
+     {"w26", NULL},
+     {"w27", NULL},
+     {"w28", NULL},
+     {"w29", NULL},
+     {"w30", NULL},
+     {"wsp", NULL}};
 
 
 Debugger::Debugger(Decoder* decoder, FILE* stream)
@@ -554,11 +551,13 @@ Debugger::~Debugger() {
 
 
 void Debugger::Run() {
-  pc_modified_ = false;
+  // Flush any written registers before executing anything, so that
+  // manually-set registers are logged _before_ the first instruction.
+  LogAllWrittenRegisters();
+
   while (pc_ != kEndOfSimAddress) {
     if (pending_request()) RunDebuggerShell();
     ExecuteInstruction();
-    LogAllWrittenRegisters();
   }
 }
 
@@ -575,8 +574,7 @@ void Debugger::PrintInstructions(const void* address, int64_t count) {
   }
   const Instruction* to = from + count * kInstructionSize;
 
-  for (const Instruction* current = from;
-       current < to;
+  for (const Instruction* current = from; current < to;
        current = current->NextInstruction()) {
     printer_->Decode(current);
   }
@@ -600,7 +598,7 @@ void Debugger::PrintMemory(const uint8_t* address,
 
   for (const uint8_t* current = from; current < to; current += size) {
     if (((current - from) % 8) == 0) {
-      printf("\n%p: ", current);
+      printf("\n%p: ", reinterpret_cast<const void*>(current));
     }
 
     uint64_t data = Memory::Read<uint64_t>(current);
@@ -618,8 +616,8 @@ void Debugger::PrintRegister(const Register& target_reg,
   const uint64_t format_size = format->SizeOf() * 8;
   const uint64_t count = reg_size / format_size;
   const uint64_t mask = 0xffffffffffffffff >> (64 - format_size);
-  const uint64_t reg_value = reg<uint64_t>(target_reg.code(),
-                                           Reg31IsStackPointer);
+  const uint64_t reg_value =
+      reg<uint64_t>(target_reg.code(), Reg31IsStackPointer);
   VIXL_ASSERT(count > 0);
 
   printf("%s = ", name);
@@ -665,7 +663,8 @@ void Debugger::VisitException(const Instruction* instr) {
       return;
     case HLT:
       VIXL_FALLTHROUGH();
-    default: Simulator::VisitException(instr);
+    default:
+      Simulator::VisitException(instr);
   }
 }
 
@@ -917,7 +916,8 @@ Token* FPRegisterToken::Tokenize(const char* arg) {
         case 'd':
           fpreg = VRegister::DRegFromCode(static_cast<unsigned>(code));
           break;
-        default: VIXL_UNREACHABLE();
+        default:
+          VIXL_UNREACHABLE();
       }
 
       return new FPRegisterToken(fpreg);
@@ -965,7 +965,7 @@ uint8_t* AddressToken::ToAddress(Debugger* debugger) const {
 
 
 void AddressToken::Print(FILE* out) const {
-  fprintf(out, "[Address %p]", value());
+  fprintf(out, "[Address %p]", reinterpret_cast<const void*>(value()));
 }
 
 
@@ -1011,7 +1011,8 @@ Token* FormatToken::Tokenize(const char* arg) {
     case 'i':
       if (length == 1) return new Format<uint32_t>("%08" PRIx32, 'i');
       VIXL_FALLTHROUGH();
-    default: return NULL;
+    default:
+      return NULL;
   }
 
   char* endptr = NULL;
@@ -1036,33 +1037,51 @@ Token* FormatToken::Tokenize(const char* arg) {
   switch (arg[0]) {
     case 'x':
       switch (count) {
-        case 8: return new Format<uint8_t>("%02" PRIx8, 'x');
-        case 16: return new Format<uint16_t>("%04" PRIx16, 'x');
-        case 32: return new Format<uint32_t>("%08" PRIx32, 'x');
-        case 64: return new Format<uint64_t>("%016" PRIx64, 'x');
-        default: return NULL;
+        case 8:
+          return new Format<uint8_t>("%02" PRIx8, 'x');
+        case 16:
+          return new Format<uint16_t>("%04" PRIx16, 'x');
+        case 32:
+          return new Format<uint32_t>("%08" PRIx32, 'x');
+        case 64:
+          return new Format<uint64_t>("%016" PRIx64, 'x');
+        default:
+          return NULL;
       }
     case 's':
       switch (count) {
-        case 8: return new Format<int8_t>("%4" PRId8, 's');
-        case 16: return new Format<int16_t>("%6" PRId16, 's');
-        case 32: return new Format<int32_t>("%11" PRId32, 's');
-        case 64: return new Format<int64_t>("%20" PRId64, 's');
-        default: return NULL;
+        case 8:
+          return new Format<int8_t>("%4" PRId8, 's');
+        case 16:
+          return new Format<int16_t>("%6" PRId16, 's');
+        case 32:
+          return new Format<int32_t>("%11" PRId32, 's');
+        case 64:
+          return new Format<int64_t>("%20" PRId64, 's');
+        default:
+          return NULL;
       }
     case 'u':
       switch (count) {
-        case 8: return new Format<uint8_t>("%3" PRIu8, 'u');
-        case 16: return new Format<uint16_t>("%5" PRIu16, 'u');
-        case 32: return new Format<uint32_t>("%10" PRIu32, 'u');
-        case 64: return new Format<uint64_t>("%20" PRIu64, 'u');
-        default: return NULL;
+        case 8:
+          return new Format<uint8_t>("%3" PRIu8, 'u');
+        case 16:
+          return new Format<uint16_t>("%5" PRIu16, 'u');
+        case 32:
+          return new Format<uint32_t>("%10" PRIu32, 'u');
+        case 64:
+          return new Format<uint64_t>("%20" PRIu64, 'u');
+        default:
+          return NULL;
       }
     case 'f':
       switch (count) {
-        case 32: return new Format<float>("%13g", 'f');
-        case 64: return new Format<double>("%13g", 'f');
-        default: return NULL;
+        case 32:
+          return new Format<float>("%13g", 'f');
+        case 64:
+          return new Format<double>("%13g", 'f');
+        default:
+          return NULL;
       }
     default:
       VIXL_UNREACHABLE();
@@ -1071,7 +1090,7 @@ Token* FormatToken::Tokenize(const char* arg) {
 }
 
 
-template<typename T>
+template <typename T>
 void Format<T>::Print(FILE* out) const {
   unsigned size = sizeof(T) * 8;
   fprintf(out, "[Format %c%u - %s]", type_code_, size, fmt_);
@@ -1083,15 +1102,13 @@ void UnknownToken::Print(FILE* out) const {
 }
 
 
-void DebugCommand::Print(FILE* out) {
-  fprintf(out, "%s", name());
-}
+void DebugCommand::Print(FILE* out) { fprintf(out, "%s", name()); }
 
 
 bool DebugCommand::Match(const char* name, const char** aliases) {
   for (const char** current = aliases; *current != NULL; current++) {
     if (strcmp(name, *current) == 0) {
-       return true;
+      return true;
     }
   }
 
@@ -1102,8 +1119,7 @@ bool DebugCommand::Match(const char* name, const char** aliases) {
 DebugCommand* DebugCommand::Parse(char* line) {
   std::vector<Token*> args;
 
-  for (char* chunk = strtok(line, " \t");
-       chunk != NULL;
+  for (char* chunk = strtok(line, " \t"); chunk != NULL;
        chunk = strtok(NULL, " \t")) {
     char* dot = strchr(chunk, '.');
     if (dot != NULL) {
@@ -1132,12 +1148,12 @@ DebugCommand* DebugCommand::Parse(char* line) {
   }
 
   const char* name = IdentifierToken::Cast(args[0])->value();
-  #define RETURN_IF_MATCH(Command)       \
-  if (Match(name, Command::kAliases)) {  \
-    return Command::Build(args);         \
+#define RETURN_IF_MATCH(Command)        \
+  if (Match(name, Command::kAliases)) { \
+    return Command::Build(args);        \
   }
   DEBUG_COMMAND_LIST(RETURN_IF_MATCH);
-  #undef RETURN_IF_MATCH
+#undef RETURN_IF_MATCH
 
   return new UnknownCommand(args);
 }
@@ -1165,12 +1181,12 @@ bool HelpCommand::Run(Debugger* debugger) {
   VIXL_ASSERT(debugger->IsDebuggerRunning());
   USE(debugger);
 
-  #define PRINT_HELP(Command)                     \
-    DebugCommand::PrintHelp(Command::kAliases,    \
-                            Command::kArguments,  \
-                            Command::kHelp);
+#define PRINT_HELP(Command)                    \
+  DebugCommand::PrintHelp(Command::kAliases,   \
+                          Command::kArguments, \
+                          Command::kHelp);
   DEBUG_COMMAND_LIST(PRINT_HELP);
-  #undef PRINT_HELP
+#undef PRINT_HELP
   printf("\n----\n\n");
 
   return false;
@@ -1331,8 +1347,7 @@ DebugCommand* PrintCommand::Build(std::vector<Token*> args) {
   }
 
   Token* target = args[1];
-  if (!target->IsRegister() &&
-      !target->IsFPRegister() &&
+  if (!target->IsRegister() && !target->IsFPRegister() &&
       !target->IsIdentifier()) {
     return new InvalidCommand(args, 1, "expects reg or identifier");
   }
@@ -1353,23 +1368,34 @@ DebugCommand* PrintCommand::Build(std::vector<Token*> args) {
     case 2: {
       if (target->IsRegister()) {
         switch (target_size) {
-          case 4: format = new Format<uint32_t>("%08" PRIx32, 'x'); break;
-          case 8: format = new Format<uint64_t>("%016" PRIx64, 'x'); break;
-          default: VIXL_UNREACHABLE();
+          case 4:
+            format = new Format<uint32_t>("%08" PRIx32, 'x');
+            break;
+          case 8:
+            format = new Format<uint64_t>("%016" PRIx64, 'x');
+            break;
+          default:
+            VIXL_UNREACHABLE();
         }
       } else if (target->IsFPRegister()) {
         switch (target_size) {
-          case 4: format = new Format<float>("%8g", 'f'); break;
-          case 8: format = new Format<double>("%8g", 'f'); break;
-          default: VIXL_UNREACHABLE();
+          case 4:
+            format = new Format<float>("%8g", 'f');
+            break;
+          case 8:
+            format = new Format<double>("%8g", 'f');
+            break;
+          default:
+            VIXL_UNREACHABLE();
         }
       }
       break;
     }
     case 3: {
       if (target->IsIdentifier()) {
-        return new InvalidCommand(args, 2,
-            "format is only allowed with registers");
+        return new InvalidCommand(args,
+                                  2,
+                                  "format is only allowed with registers");
       }
 
       Token* second = args[2];
@@ -1396,7 +1422,7 @@ bool ExamineCommand::Run(Debugger* debugger) {
   VIXL_ASSERT(debugger->IsDebuggerRunning());
 
   uint8_t* address = target()->ToAddress(debugger);
-  int64_t  amount = count()->value();
+  int64_t amount = count()->value();
   if (format()->type_code() == 'i') {
     debugger->PrintInstructions(address, amount);
   } else {

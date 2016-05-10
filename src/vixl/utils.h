@@ -59,6 +59,7 @@ inline uint32_t truncate_to_intn(unsigned n, int64_t x) {
   return static_cast<uint32_t>(x & ((INT64_C(1) << n) - 1));
 }
 
+// clang-format off
 #define INT_1_TO_63_LIST(V)                                                    \
 V(1)  V(2)  V(3)  V(4)  V(5)  V(6)  V(7)  V(8)                                 \
 V(9)  V(10) V(11) V(12) V(13) V(14) V(15) V(16)                                \
@@ -68,13 +69,14 @@ V(33) V(34) V(35) V(36) V(37) V(38) V(39) V(40)                                \
 V(41) V(42) V(43) V(44) V(45) V(46) V(47) V(48)                                \
 V(49) V(50) V(51) V(52) V(53) V(54) V(55) V(56)                                \
 V(57) V(58) V(59) V(60) V(61) V(62) V(63)
+// clang-format on
 
-#define DECLARE_IS_INT_N(N)                                                    \
-inline bool is_int##N(int64_t x) { return is_intn(N, x); }
-#define DECLARE_IS_UINT_N(N)                                                   \
-inline bool is_uint##N(int64_t x) { return is_uintn(N, x); }
-#define DECLARE_TRUNCATE_TO_INT_N(N)                                           \
-inline uint32_t truncate_to_int##N(int x) { return truncate_to_intn(N, x); }
+#define DECLARE_IS_INT_N(N) \
+  inline bool is_int##N(int64_t x) { return is_intn(N, x); }
+#define DECLARE_IS_UINT_N(N) \
+  inline bool is_uint##N(int64_t x) { return is_uintn(N, x); }
+#define DECLARE_TRUNCATE_TO_INT_N(N) \
+  inline uint32_t truncate_to_int##N(int x) { return truncate_to_intn(N, x); }
 INT_1_TO_63_LIST(DECLARE_IS_INT_N)
 INT_1_TO_63_LIST(DECLARE_IS_UINT_N)
 INT_1_TO_63_LIST(DECLARE_TRUNCATE_TO_INT_N)
@@ -141,8 +143,7 @@ inline bool IsSignallingNaN(float num) {
 
 inline bool IsSignallingNaN(float16 num) {
   const uint16_t kFP16QuietNaNMask = 0x0200;
-  return (float16classify(num) == FP_NAN) &&
-         ((num & kFP16QuietNaNMask) == 0);
+  return (float16classify(num) == FP_NAN) && ((num & kFP16QuietNaNMask) == 0);
 }
 
 
@@ -178,19 +179,17 @@ inline float FusedMultiplyAdd(float op1, float op2, float a) {
 }
 
 
-inline uint64_t LowestSetBit(uint64_t value) {
-  return value & -value;
-}
+inline uint64_t LowestSetBit(uint64_t value) { return value & -value; }
 
 
-template<typename T>
+template <typename T>
 inline int HighestSetBitPosition(T value) {
   VIXL_ASSERT(value != 0);
   return (sizeof(value) * 8 - 1) - CountLeadingZeros(value);
 }
 
 
-template<typename V>
+template <typename V>
 inline int WhichPowerOf2(V value) {
   VIXL_ASSERT(IsPowerOf2(value));
   return CountTrailingZeros(value);
@@ -231,9 +230,9 @@ T ReverseBytes(T value, int block_bytes_log2) {
   //  permute_table[1] is used by REV32_x, REV_w
   //  permute_table[2] is used by REV_x
   VIXL_ASSERT((0 < block_bytes_log2) && (block_bytes_log2 < 4));
-  static const uint8_t permute_table[3][8] = { {6, 7, 4, 5, 2, 3, 0, 1},
-                                               {4, 5, 6, 7, 0, 1, 2, 3},
-                                               {0, 1, 2, 3, 4, 5, 6, 7} };
+  static const uint8_t permute_table[3][8] = {{6, 7, 4, 5, 2, 3, 0, 1},
+                                              {4, 5, 6, 7, 0, 1, 2, 3},
+                                              {0, 1, 2, 3, 4, 5, 6, 7}};
   T result = 0;
   for (int i = 0; i < 8; i++) {
     result <<= 8;
@@ -245,14 +244,14 @@ T ReverseBytes(T value, int block_bytes_log2) {
 
 // Pointer alignment
 // TODO: rename/refactor to make it specific to instructions.
-template<typename T>
+template <typename T>
 bool IsWordAligned(T pointer) {
-  VIXL_ASSERT(sizeof(pointer) == sizeof(intptr_t));   // NOLINT(runtime/sizeof)
-  return ((intptr_t)(pointer) & 3) == 0;
+  VIXL_ASSERT(sizeof(pointer) == sizeof(intptr_t));  // NOLINT(runtime/sizeof)
+  return ((intptr_t)pointer & 3) == 0;
 }
 
 // Increment a pointer (up to 64 bits) until it has the specified alignment.
-template<class T>
+template <class T>
 T AlignUp(T pointer, size_t alignment) {
   // Use C-style casts to get static_cast behaviour for integral types (T), and
   // reinterpret_cast behaviour for other types.
@@ -267,7 +266,7 @@ T AlignUp(T pointer, size_t alignment) {
 }
 
 // Decrement a pointer (up to 64 bits) until it has the specified alignment.
-template<class T>
+template <class T>
 T AlignDown(T pointer, size_t alignment) {
   // Use C-style casts to get static_cast behaviour for integral types (T), and
   // reinterpret_cast behaviour for other types.

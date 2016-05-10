@@ -82,7 +82,7 @@ void GenerateAdd2Vectors(MacroAssembler* masm) {
 }
 
 
-void PrintVector(const uint8_t *vec, unsigned num) {
+void PrintVector(const uint8_t* vec, unsigned num) {
   unsigned i;
   printf("( ");
   if (num > 0) {
@@ -108,14 +108,14 @@ int main(void) {
   masm.FinalizeCode();
 
   // Initialize input data for the example function.
-  uint8_t vecA[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                    16, 17, 18, 19, 20};
-  uint8_t vecB[] = {16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-                    30, 31,
-                    16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-                    30, 31,
-                    32, 33, 34, 35, 36};
+  // clang-format: off
+  uint8_t vecA[] = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
+                    13, 14, 15, 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,
+                    10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+  uint8_t vecB[] = {16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+                    29, 30, 31, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+                    26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36};
+  // clang-format on
   uint8_t vecC[ARRAY_SIZE(vecA)];
 
   // Check whether the number of elements in both vectors match.

@@ -106,7 +106,8 @@ trace_header = """
 
 def BuildOptions(root):
   result = argparse.ArgumentParser(description = 'Simulator test generator.')
-  result.add_argument('--runner', action='store', default=root+'/test-runner',
+  result.add_argument('--runner', action='store',
+                      default=os.path.join(root, 'obj/latest/test/test-runner'),
                       help='The test executable to run.')
   result.add_argument('--out', action='store',
                       default='test/test-simulator-traces-a64.h')
@@ -120,8 +121,8 @@ if __name__ == '__main__':
 
   args = BuildOptions(root_dir)
 
-  # Run each simulator test (SIM_*) with the --sim_test_trace option, and use
-  # the output to create the traces header (from --out). In addition, the
+  # Run each simulator test (SIM_*) with the --generate_test_trace option, and
+  # use the output to create the traces header (from --out). In addition, the
   # test-simulator-traces-a64.h file, the master trace file, which includes all
   # other trace files is generated.
 
@@ -140,7 +141,7 @@ if __name__ == '__main__':
   for test in tests:
     # Run each test.
     print 'Generating trace for ' + test;
-    cmd = ' '.join([args.runner, '--sim_test_trace', test])
+    cmd = ' '.join([args.runner, '--generate_test_trace', test])
     status, output = util.getstatusoutput(cmd)
     if status != 0: util.abort('Failed to run ' + cmd + '.')
 

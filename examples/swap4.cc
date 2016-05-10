@@ -67,6 +67,7 @@ int main(void) {
   simulator.set_xreg(2, 0x3333333333333333);
   simulator.set_xreg(3, 0x4444444444444444);
 
+  // clang-format off
   printf("Before swap4:\n"
          "x0 = 0x%" PRIx64 "\n"
          "x1 = 0x%" PRIx64 "\n"
@@ -74,9 +75,11 @@ int main(void) {
          "x3 = 0x%" PRIx64 "\n",
          simulator.xreg(0), simulator.xreg(1),
          simulator.xreg(2), simulator.xreg(3));
+  // clang-format on
 
   simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&swap4));
 
+  // clang-format off
   printf("After swap4:\n"
          "x0 = 0x%" PRIx64 "\n"
          "x1 = 0x%" PRIx64 "\n"
@@ -84,6 +87,7 @@ int main(void) {
          "x3 = 0x%" PRIx64 "\n",
          simulator.xreg(0), simulator.xreg(1),
          simulator.xreg(2), simulator.xreg(3));
+  // clang-format on
 
   return 0;
 }

@@ -40,6 +40,7 @@ import sys
 import time
 
 import config
+import clang_format
 import lint
 import printer
 import test
@@ -178,7 +179,7 @@ test_options = \
 def BuildOptions():
   args = argparse.ArgumentParser(
     description =
-    '''This tool runs all tests matching the speficied filters for multiple
+    '''This tool runs all tests matching the specified filters for multiple
     environment, build options, and runtime options configurations.''',
     # Print default values.
     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -204,12 +205,13 @@ def BuildOptions():
 
   general_arguments = args.add_argument_group('General options')
   general_arguments.add_argument('--fast', action='store_true',
-                                 help='''Skip the lint tests, and run only with
-                                 one compiler, in one mode, with one C++
-                                 standard, and with an appropriate default for
-                                 runtime options. The compiler, mode, and C++
-                                 standard used are the first ones provided to
-                                 the script or in the default arguments.''')
+                                 help='''Skip the lint and clang-format tests,
+                                 and run only with one compiler, in one mode,
+                                 with one C++ standard, and with an appropriate
+                                 default for runtime options. The compiler,
+                                 mode, and C++ standard used are the first ones
+                                 provided to the script or in the default
+                                 arguments.''')
   general_arguments.add_argument(
     '--jobs', '-j', metavar='N', type=int, nargs='?',
     default=multiprocessing.cpu_count(),
@@ -220,6 +222,8 @@ def BuildOptions():
                                  help='Do not run benchmarks.')
   general_arguments.add_argument('--nolint', action='store_true',
                                  help='Do not run the linter.')
+  general_arguments.add_argument('--noclang-format', action='store_true',
+                                 help='Do not run clang-format.')
   general_arguments.add_argument('--notest', action='store_true',
                                  help='Do not run tests.')
   sim_default = 'off' if platform.machine() == 'aarch64' else 'on'
@@ -323,6 +327,12 @@ def RunLinter():
                         jobs = args.jobs, progress_prefix = 'cpp lint: ')
 
 
+def RunClangFormat():
+  return clang_format.ClangFormatFiles(clang_format.GetCppSourceFilesToFormat(),
+                                       jobs = args.jobs,
+                                       progress_prefix = 'clang-format: ')
+
+
 
 def BuildAll(build_options, jobs):
   scons_command = ["scons", "-C", dir_root, 'all', '-j', str(jobs)]
@@ -368,6 +378,8 @@ if __name__ == '__main__':
 
   if not args.nolint and not args.fast:
     rc |= RunLinter()
+  if not args.noclang_format and not args.fast:
+    rc |= RunClangFormat()
 
   # Don't try to test the debugger if we are not running with the simulator.
   if not args.simulator:

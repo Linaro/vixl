@@ -52,8 +52,8 @@ static uint64_t RotateRight(uint64_t value,
                             unsigned int width) {
   VIXL_ASSERT(width <= 64);
   rotate &= 63;
-  return ((value & ((UINT64_C(1) << rotate) - 1)) <<
-          (width - rotate)) | (value >> rotate);
+  return ((value & ((UINT64_C(1) << rotate) - 1)) << (width - rotate)) |
+         (value >> rotate);
 }
 
 
@@ -94,8 +94,10 @@ bool Instruction::IsLoad() const {
       case LDR_h:
       case LDR_s:
       case LDR_d:
-      case LDR_q: return true;
-      default: return false;
+      case LDR_q:
+        return true;
+      default:
+        return false;
     }
   }
 }
@@ -119,8 +121,10 @@ bool Instruction::IsStore() const {
       case STR_h:
       case STR_s:
       case STR_d:
-      case STR_q: return true;
-      default: return false;
+      case STR_q:
+        return true;
+      default:
+        return false;
     }
   }
 }
@@ -199,9 +203,7 @@ float Instruction::Imm8ToFP32(uint32_t imm8) {
 }
 
 
-float Instruction::ImmFP32() const {
-  return Imm8ToFP32(ImmFP());
-}
+float Instruction::ImmFP32() const { return Imm8ToFP32(ImmFP()); }
 
 
 double Instruction::Imm8ToFP64(uint32_t imm8) {
@@ -219,14 +221,10 @@ double Instruction::Imm8ToFP64(uint32_t imm8) {
 }
 
 
-double Instruction::ImmFP64() const {
-  return Imm8ToFP64(ImmFP());
-}
+double Instruction::ImmFP64() const { return Imm8ToFP64(ImmFP()); }
 
 
-float Instruction::ImmNEONFP32() const {
-  return Imm8ToFP32(ImmNEONabcdefgh());
-}
+float Instruction::ImmNEONFP32() const { return Imm8ToFP32(ImmNEONabcdefgh()); }
 
 
 double Instruction::ImmNEONFP64() const {
@@ -253,12 +251,15 @@ unsigned CalcLSPairDataSize(LoadStorePairOp op) {
   VIXL_STATIC_ASSERT(kWRegSizeInBytes == kSRegSizeInBytes);
   switch (op) {
     case STP_q:
-    case LDP_q: return kQRegSizeInBytesLog2;
+    case LDP_q:
+      return kQRegSizeInBytesLog2;
     case STP_x:
     case LDP_x:
     case STP_d:
-    case LDP_d: return kXRegSizeInBytesLog2;
-    default: return kWRegSizeInBytesLog2;
+    case LDP_d:
+      return kXRegSizeInBytesLog2;
+    default:
+      return kWRegSizeInBytesLog2;
   }
 }
 
@@ -293,7 +294,7 @@ bool Instruction::IsValidImmPCOffset(ImmBranchType branch_type,
 
 
 const Instruction* Instruction::ImmPCOffsetTarget() const {
-  const Instruction * base = this;
+  const Instruction* base = this;
   ptrdiff_t offset;
   if (IsPCRelAddressing()) {
     // ADR and ADRP.
@@ -316,11 +317,16 @@ const Instruction* Instruction::ImmPCOffsetTarget() const {
 
 int Instruction::ImmBranch() const {
   switch (BranchType()) {
-    case CondBranchType: return ImmCondBranch();
-    case UncondBranchType: return ImmUncondBranch();
-    case CompareBranchType: return ImmCmpBranch();
-    case TestBranchType: return ImmTestBranch();
-    default: VIXL_UNREACHABLE();
+    case CondBranchType:
+      return ImmCondBranch();
+    case UncondBranchType:
+      return ImmUncondBranch();
+    case CompareBranchType:
+      return ImmCmpBranch();
+    case TestBranchType:
+      return ImmTestBranch();
+    default:
+      VIXL_UNREACHABLE();
   }
   return 0;
 }
@@ -377,7 +383,8 @@ void Instruction::SetBranchImmTarget(const Instruction* target) {
       imm_mask = ImmTestBranch_mask;
       break;
     }
-    default: VIXL_UNREACHABLE();
+    default:
+      VIXL_UNREACHABLE();
   }
   SetInstructionBits(Mask(~imm_mask) | branch_imm);
 }
@@ -397,13 +404,21 @@ VectorFormat VectorFormatHalfWidth(const VectorFormat vform) {
   VIXL_ASSERT(vform == kFormat8H || vform == kFormat4S || vform == kFormat2D ||
               vform == kFormatH || vform == kFormatS || vform == kFormatD);
   switch (vform) {
-    case kFormat8H: return kFormat8B;
-    case kFormat4S: return kFormat4H;
-    case kFormat2D: return kFormat2S;
-    case kFormatH:  return kFormatB;
-    case kFormatS:  return kFormatH;
-    case kFormatD:  return kFormatS;
-    default: VIXL_UNREACHABLE(); return kFormatUndefined;
+    case kFormat8H:
+      return kFormat8B;
+    case kFormat4S:
+      return kFormat4H;
+    case kFormat2D:
+      return kFormat2S;
+    case kFormatH:
+      return kFormatB;
+    case kFormatS:
+      return kFormatH;
+    case kFormatD:
+      return kFormatS;
+    default:
+      VIXL_UNREACHABLE();
+      return kFormatUndefined;
   }
 }
 
@@ -412,13 +427,21 @@ VectorFormat VectorFormatDoubleWidth(const VectorFormat vform) {
   VIXL_ASSERT(vform == kFormat8B || vform == kFormat4H || vform == kFormat2S ||
               vform == kFormatB || vform == kFormatH || vform == kFormatS);
   switch (vform) {
-    case kFormat8B: return kFormat8H;
-    case kFormat4H: return kFormat4S;
-    case kFormat2S: return kFormat2D;
-    case kFormatB:  return kFormatH;
-    case kFormatH:  return kFormatS;
-    case kFormatS:  return kFormatD;
-    default: VIXL_UNREACHABLE(); return kFormatUndefined;
+    case kFormat8B:
+      return kFormat8H;
+    case kFormat4H:
+      return kFormat4S;
+    case kFormat2S:
+      return kFormat2D;
+    case kFormatB:
+      return kFormatH;
+    case kFormatH:
+      return kFormatS;
+    case kFormatS:
+      return kFormatD;
+    default:
+      VIXL_UNREACHABLE();
+      return kFormatUndefined;
   }
 }
 
@@ -427,39 +450,58 @@ VectorFormat VectorFormatFillQ(const VectorFormat vform) {
   switch (vform) {
     case kFormatB:
     case kFormat8B:
-    case kFormat16B: return kFormat16B;
+    case kFormat16B:
+      return kFormat16B;
     case kFormatH:
     case kFormat4H:
-    case kFormat8H:  return kFormat8H;
+    case kFormat8H:
+      return kFormat8H;
     case kFormatS:
     case kFormat2S:
-    case kFormat4S:  return kFormat4S;
+    case kFormat4S:
+      return kFormat4S;
     case kFormatD:
     case kFormat1D:
-    case kFormat2D:  return kFormat2D;
-    default: VIXL_UNREACHABLE(); return kFormatUndefined;
+    case kFormat2D:
+      return kFormat2D;
+    default:
+      VIXL_UNREACHABLE();
+      return kFormatUndefined;
   }
 }
 
 VectorFormat VectorFormatHalfWidthDoubleLanes(const VectorFormat vform) {
   switch (vform) {
-    case kFormat4H: return kFormat8B;
-    case kFormat8H: return kFormat16B;
-    case kFormat2S: return kFormat4H;
-    case kFormat4S: return kFormat8H;
-    case kFormat1D: return kFormat2S;
-    case kFormat2D: return kFormat4S;
-    default: VIXL_UNREACHABLE(); return kFormatUndefined;
+    case kFormat4H:
+      return kFormat8B;
+    case kFormat8H:
+      return kFormat16B;
+    case kFormat2S:
+      return kFormat4H;
+    case kFormat4S:
+      return kFormat8H;
+    case kFormat1D:
+      return kFormat2S;
+    case kFormat2D:
+      return kFormat4S;
+    default:
+      VIXL_UNREACHABLE();
+      return kFormatUndefined;
   }
 }
 
 VectorFormat VectorFormatDoubleLanes(const VectorFormat vform) {
   VIXL_ASSERT(vform == kFormat8B || vform == kFormat4H || vform == kFormat2S);
   switch (vform) {
-    case kFormat8B: return kFormat16B;
-    case kFormat4H: return kFormat8H;
-    case kFormat2S: return kFormat4S;
-    default: VIXL_UNREACHABLE(); return kFormatUndefined;
+    case kFormat8B:
+      return kFormat16B;
+    case kFormat4H:
+      return kFormat8H;
+    case kFormat2S:
+      return kFormat4S;
+    default:
+      VIXL_UNREACHABLE();
+      return kFormatUndefined;
   }
 }
 
@@ -467,21 +509,32 @@ VectorFormat VectorFormatDoubleLanes(const VectorFormat vform) {
 VectorFormat VectorFormatHalfLanes(const VectorFormat vform) {
   VIXL_ASSERT(vform == kFormat16B || vform == kFormat8H || vform == kFormat4S);
   switch (vform) {
-    case kFormat16B: return kFormat8B;
-    case kFormat8H: return kFormat4H;
-    case kFormat4S: return kFormat2S;
-    default: VIXL_UNREACHABLE(); return kFormatUndefined;
+    case kFormat16B:
+      return kFormat8B;
+    case kFormat8H:
+      return kFormat4H;
+    case kFormat4S:
+      return kFormat2S;
+    default:
+      VIXL_UNREACHABLE();
+      return kFormatUndefined;
   }
 }
 
 
 VectorFormat ScalarFormatFromLaneSize(int laneSize) {
   switch (laneSize) {
-    case 8:  return kFormatB;
-    case 16: return kFormatH;
-    case 32: return kFormatS;
-    case 64: return kFormatD;
-    default: VIXL_UNREACHABLE(); return kFormatUndefined;
+    case 8:
+      return kFormatB;
+    case 16:
+      return kFormatH;
+    case 32:
+      return kFormatS;
+    case 64:
+      return kFormatD;
+    default:
+      VIXL_UNREACHABLE();
+      return kFormatUndefined;
   }
 }
 
@@ -489,15 +542,21 @@ VectorFormat ScalarFormatFromLaneSize(int laneSize) {
 unsigned RegisterSizeInBitsFromFormat(VectorFormat vform) {
   VIXL_ASSERT(vform != kFormatUndefined);
   switch (vform) {
-    case kFormatB: return kBRegSize;
-    case kFormatH: return kHRegSize;
-    case kFormatS: return kSRegSize;
-    case kFormatD: return kDRegSize;
+    case kFormatB:
+      return kBRegSize;
+    case kFormatH:
+      return kHRegSize;
+    case kFormatS:
+      return kSRegSize;
+    case kFormatD:
+      return kDRegSize;
     case kFormat8B:
     case kFormat4H:
     case kFormat2S:
-    case kFormat1D: return kDRegSize;
-    default: return kQRegSize;
+    case kFormat1D:
+      return kDRegSize;
+    default:
+      return kQRegSize;
   }
 }
 
@@ -512,17 +571,23 @@ unsigned LaneSizeInBitsFromFormat(VectorFormat vform) {
   switch (vform) {
     case kFormatB:
     case kFormat8B:
-    case kFormat16B: return 8;
+    case kFormat16B:
+      return 8;
     case kFormatH:
     case kFormat4H:
-    case kFormat8H: return 16;
+    case kFormat8H:
+      return 16;
     case kFormatS:
     case kFormat2S:
-    case kFormat4S: return 32;
+    case kFormat4S:
+      return 32;
     case kFormatD:
     case kFormat1D:
-    case kFormat2D: return 64;
-    default: VIXL_UNREACHABLE(); return 0;
+    case kFormat2D:
+      return 64;
+    default:
+      VIXL_UNREACHABLE();
+      return 0;
   }
 }
 
@@ -537,17 +602,23 @@ int LaneSizeInBytesLog2FromFormat(VectorFormat vform) {
   switch (vform) {
     case kFormatB:
     case kFormat8B:
-    case kFormat16B: return 0;
+    case kFormat16B:
+      return 0;
     case kFormatH:
     case kFormat4H:
-    case kFormat8H: return 1;
+    case kFormat8H:
+      return 1;
     case kFormatS:
     case kFormat2S:
-    case kFormat4S: return 2;
+    case kFormat4S:
+      return 2;
     case kFormatD:
     case kFormat1D:
-    case kFormat2D: return 3;
-    default: VIXL_UNREACHABLE(); return 0;
+    case kFormat2D:
+      return 3;
+    default:
+      VIXL_UNREACHABLE();
+      return 0;
   }
 }
 
@@ -555,19 +626,26 @@ int LaneSizeInBytesLog2FromFormat(VectorFormat vform) {
 int LaneCountFromFormat(VectorFormat vform) {
   VIXL_ASSERT(vform != kFormatUndefined);
   switch (vform) {
-    case kFormat16B: return 16;
+    case kFormat16B:
+      return 16;
     case kFormat8B:
-    case kFormat8H: return 8;
+    case kFormat8H:
+      return 8;
     case kFormat4H:
-    case kFormat4S: return 4;
+    case kFormat4S:
+      return 4;
     case kFormat2S:
-    case kFormat2D: return 2;
+    case kFormat2D:
+      return 2;
     case kFormat1D:
     case kFormatB:
     case kFormatH:
     case kFormatS:
-    case kFormatD: return 1;
-    default: VIXL_UNREACHABLE(); return 0;
+    case kFormatD:
+      return 1;
+    default:
+      VIXL_UNREACHABLE();
+      return 0;
   }
 }
 
@@ -577,17 +655,23 @@ int MaxLaneCountFromFormat(VectorFormat vform) {
   switch (vform) {
     case kFormatB:
     case kFormat8B:
-    case kFormat16B: return 16;
+    case kFormat16B:
+      return 16;
     case kFormatH:
     case kFormat4H:
-    case kFormat8H: return 8;
+    case kFormat8H:
+      return 8;
     case kFormatS:
     case kFormat2S:
-    case kFormat4S: return 4;
+    case kFormat4S:
+      return 4;
     case kFormatD:
     case kFormat1D:
-    case kFormat2D: return 2;
-    default: VIXL_UNREACHABLE(); return 0;
+    case kFormat2D:
+      return 2;
+    default:
+      VIXL_UNREACHABLE();
+      return 0;
   }
 }
 
@@ -599,8 +683,10 @@ bool IsVectorFormat(VectorFormat vform) {
     case kFormatB:
     case kFormatH:
     case kFormatS:
-    case kFormatD: return false;
-    default: return true;
+    case kFormatD:
+      return false;
+    default:
+      return true;
   }
 }
 
@@ -619,4 +705,3 @@ uint64_t MaxUintFromFormat(VectorFormat vform) {
   return UINT64_MAX >> (64 - LaneSizeInBitsFromFormat(vform));
 }
 }  // namespace vixl
-

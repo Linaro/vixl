@@ -74,7 +74,7 @@ int main(void) {
   masm.FinalizeCode();
 
   // Run the example function.
-  uint8_t data[] = { 2, 45, 63, 7, 245, 38 };
+  uint8_t data[] = {2, 45, 63, 7, 245, 38};
   uintptr_t data_addr = reinterpret_cast<uintptr_t>(data);
   simulator.set_xreg(0, data_addr);
   simulator.set_xreg(1, ARRAY_SIZE(data));

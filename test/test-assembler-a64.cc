@@ -22007,4 +22007,12 @@ TEST(literal_deletion_policies) {
 }
 
 
+TEST(move_immediate_helpers) {
+  // Using these helpers to query information (without generating code) should
+  // not crash.
+  MacroAssembler::MoveImmediateHelper(NULL, x0, 0x12345678);
+  MacroAssembler::OneInstrMoveImmediateHelper(NULL, x1, 0xabcdef);
+}
+
+
 }  // namespace vixl

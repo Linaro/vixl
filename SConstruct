@@ -215,13 +215,17 @@ def ConfigureEnvironmentForCompiler(env):
   #   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57045
   # The bug does not seem to appear in GCC 4.7, or in debug builds with GCC 4.8.
   if env['mode'] == 'release':
-    process = subprocess.Popen(env['CXX'] + ' --version | grep "g++.*4\.8"',
+    process = subprocess.Popen(env['CXX'] + ' --version 2>&1 | grep "g++.*4\.8"',
                                shell = True,
                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    stdout, stderr = process.communicate()
+    stdout, unused = process.communicate()
     using_gcc48 = stdout != ''
     if using_gcc48:
       env.Append(CPPFLAGS = ['-Wno-maybe-uninitialized'])
+  # On OSX, compilers complain about `long long` being a C++11 extension when no
+  # standard is passed.
+  if 'std' not in env or env['std'] == 'c++98':
+    env.Append(CPPFLAGS = ['-Wno-c++11-long-long'])
 
 
 def ConfigureEnvironment(env):

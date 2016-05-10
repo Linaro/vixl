@@ -92,12 +92,12 @@ int CountSetBitsFallBack(uint64_t value, int width) {
   //                  \          |
   // value =       h+g+f+e+d+c+b+a
   const uint64_t kMasks[] = {
-    UINT64_C(0x5555555555555555),
-    UINT64_C(0x3333333333333333),
-    UINT64_C(0x0f0f0f0f0f0f0f0f),
-    UINT64_C(0x00ff00ff00ff00ff),
-    UINT64_C(0x0000ffff0000ffff),
-    UINT64_C(0x00000000ffffffff),
+      UINT64_C(0x5555555555555555),
+      UINT64_C(0x3333333333333333),
+      UINT64_C(0x0f0f0f0f0f0f0f0f),
+      UINT64_C(0x00ff00ff00ff00ff),
+      UINT64_C(0x0000ffff0000ffff),
+      UINT64_C(0x00000000ffffffff),
   };
 
   for (unsigned i = 0; i < (sizeof(kMasks) / sizeof(kMasks[0])); i++) {

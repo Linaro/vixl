@@ -35,19 +35,13 @@ Counter::Counter(const char* name, CounterType type)
 }
 
 
-void Counter::Enable() {
-  enabled_ = true;
-}
+void Counter::Enable() { enabled_ = true; }
 
 
-void Counter::Disable() {
-  enabled_ = false;
-}
+void Counter::Disable() { enabled_ = false; }
 
 
-bool Counter::IsEnabled() {
-  return enabled_;
-}
+bool Counter::IsEnabled() { return enabled_; }
 
 
 void Counter::Increment() {
@@ -67,14 +61,10 @@ uint64_t Counter::count() {
 }
 
 
-const char* Counter::name() {
-  return name_;
-}
+const char* Counter::name() { return name_; }
 
 
-CounterType Counter::type() {
-  return type_;
-}
+CounterType Counter::type() { return type_; }
 
 
 struct CounterDescriptor {
@@ -83,42 +73,40 @@ struct CounterDescriptor {
 };
 
 
-static const CounterDescriptor kCounterList[] = {
-  {"Instruction", Cumulative},
+static const CounterDescriptor kCounterList[] = {{"Instruction", Cumulative},
 
-  {"Move Immediate", Gauge},
-  {"Add/Sub DP", Gauge},
-  {"Logical DP", Gauge},
-  {"Other Int DP", Gauge},
-  {"FP DP", Gauge},
+                                                 {"Move Immediate", Gauge},
+                                                 {"Add/Sub DP", Gauge},
+                                                 {"Logical DP", Gauge},
+                                                 {"Other Int DP", Gauge},
+                                                 {"FP DP", Gauge},
 
-  {"Conditional Select", Gauge},
-  {"Conditional Compare", Gauge},
+                                                 {"Conditional Select", Gauge},
+                                                 {"Conditional Compare", Gauge},
 
-  {"Unconditional Branch", Gauge},
-  {"Compare and Branch", Gauge},
-  {"Test and Branch", Gauge},
-  {"Conditional Branch", Gauge},
+                                                 {"Unconditional Branch",
+                                                  Gauge},
+                                                 {"Compare and Branch", Gauge},
+                                                 {"Test and Branch", Gauge},
+                                                 {"Conditional Branch", Gauge},
 
-  {"Load Integer", Gauge},
-  {"Load FP", Gauge},
-  {"Load Pair", Gauge},
-  {"Load Literal", Gauge},
+                                                 {"Load Integer", Gauge},
+                                                 {"Load FP", Gauge},
+                                                 {"Load Pair", Gauge},
+                                                 {"Load Literal", Gauge},
 
-  {"Store Integer", Gauge},
-  {"Store FP", Gauge},
-  {"Store Pair", Gauge},
+                                                 {"Store Integer", Gauge},
+                                                 {"Store FP", Gauge},
+                                                 {"Store Pair", Gauge},
 
-  {"PC Addressing", Gauge},
-  {"Other", Gauge},
-  {"NEON", Gauge},
-  {"Crypto", Gauge}
-};
+                                                 {"PC Addressing", Gauge},
+                                                 {"Other", Gauge},
+                                                 {"NEON", Gauge},
+                                                 {"Crypto", Gauge}};
 
 
 Instrument::Instrument(const char* datafile, uint64_t sample_period)
     : output_stream_(stdout), sample_period_(sample_period) {
-
   // Set up the output stream. If datafile is non-NULL, use that file. If it
   // can't be opened, or datafile is NULL, use stdout.
   if (datafile != NULL) {
@@ -130,7 +118,7 @@ Instrument::Instrument(const char* datafile, uint64_t sample_period)
   }
 
   static const int num_counters =
-    sizeof(kCounterList) / sizeof(CounterDescriptor);
+      sizeof(kCounterList) / sizeof(CounterDescriptor);
 
   // Dump an instrumentation description comment at the top of the file.
   fprintf(output_stream_, "# counters=%d\n", num_counters);
@@ -169,8 +157,8 @@ void Instrument::Update() {
   VIXL_ASSERT(counter->type() == Cumulative);
   counter->Increment();
 
-  if ((sample_period_ != 0) && counter->IsEnabled()
-      && (counter->count() % sample_period_) == 0) {
+  if ((sample_period_ != 0) && counter->IsEnabled() &&
+      (counter->count() % sample_period_) == 0) {
     DumpCounters();
   }
 }
@@ -202,9 +190,14 @@ void Instrument::DumpCounterNames() {
 
 void Instrument::HandleInstrumentationEvent(unsigned event) {
   switch (event) {
-    case InstrumentStateEnable: Enable(); break;
-    case InstrumentStateDisable: Disable(); break;
-    default: DumpEventMarker(event);
+    case InstrumentStateEnable:
+      Enable();
+      break;
+    case InstrumentStateDisable:
+      Disable();
+      break;
+    default:
+      DumpEventMarker(event);
   }
 }
 
@@ -214,8 +207,11 @@ void Instrument::DumpEventMarker(unsigned marker) {
   // line.
   static Counter* counter = GetCounter("Instruction");
 
-  fprintf(output_stream_, "# %c%c @ %" PRId64 "\n", marker & 0xff,
-          (marker >> 8) & 0xff, counter->count());
+  fprintf(output_stream_,
+          "# %c%c @ %" PRId64 "\n",
+          marker & 0xff,
+          (marker >> 8) & 0xff,
+          counter->count());
 }
 
 
@@ -231,7 +227,7 @@ Counter* Instrument::GetCounter(const char* name) {
   // A Counter by that name does not exist: print an error message to stderr
   // and the output file, and exit.
   static const char* error_message =
-    "# Error: Unknown counter \"%s\". Exiting.\n";
+      "# Error: Unknown counter \"%s\". Exiting.\n";
   fprintf(stderr, error_message, name);
   fprintf(output_stream_, error_message, name);
   exit(1);
@@ -426,10 +422,14 @@ void Instrument::InstrumentLoadStore(const Instruction* instr) {
     case STRH_w:
     case STR_w:
       VIXL_FALLTHROUGH();
-    case STR_x:     store_int_counter->Increment(); break;
+    case STR_x:
+      store_int_counter->Increment();
+      break;
     case STR_s:
       VIXL_FALLTHROUGH();
-    case STR_d:     store_fp_counter->Increment(); break;
+    case STR_d:
+      store_fp_counter->Increment();
+      break;
     case LDRB_w:
     case LDRH_w:
     case LDR_w:
@@ -439,10 +439,14 @@ void Instrument::InstrumentLoadStore(const Instruction* instr) {
     case LDRSW_x:
     case LDRSB_w:
       VIXL_FALLTHROUGH();
-    case LDRSH_w:   load_int_counter->Increment(); break;
+    case LDRSH_w:
+      load_int_counter->Increment();
+      break;
     case LDR_s:
       VIXL_FALLTHROUGH();
-    case LDR_d:     load_fp_counter->Increment(); break;
+    case LDR_d:
+      load_fp_counter->Increment();
+      break;
   }
 }
 

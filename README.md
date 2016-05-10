@@ -1,4 +1,4 @@
-VIXL: AArch64 Runtime Code Generation Library Version 1.12
+VIXL: AArch64 Runtime Code Generation Library Version 1.13
 ==========================================================
 
 Contents:
@@ -49,10 +49,12 @@ A 64-bit host machine is required, implementing an LP64 data model. VIXL has
 been tested using GCC on AArch64 Debian, GCC and Clang on amd64 Ubuntu
 systems.
 
-To run the linter stage of the tests, the following software is also required:
+To run the linter and code formatting stages of the tests, the following
+software is also required:
 
  1. Git
  2. [Google's `cpplint.py`][cpplint]
+ 3. clang-format-3.6
 
 Refer to the 'Usage' section for details.
 
@@ -76,6 +78,11 @@ The VIXL simulator was developed to run on 64-bit amd64 platforms. Whilst it
 builds and mostly works for 32-bit x86 platforms, there are a number of
 floating-point operations which do not work correctly, and a number of tests
 fail as a result.
+
+VIXL may not build using Clang 3.7, due to a compiler warning. A workaround is
+to disable conversion of warnings to errors, or to delete the offending
+`return` statement reported and rebuild. This problem will be fixed in the next
+release.
 
 Debug Builds
 ------------
@@ -144,27 +151,13 @@ It is possible to tell `tools/test.py` to skip the linter stage by passing
 `--nolint`. This removes the dependency on `cpplint.py` and Git. The `--nolint`
 option is implied if the VIXL project is a snapshot (with no `.git` directory).
 
+Additionally, `tools/test.py` tests code formatting using `clang-format-3.6`.
+If you don't have `clang-format-3.6`, disable the test using the
+`--noclang-format` option.
 
-Building and Running the Benchmarks
------------------------------------
-
-There are three very basic benchmarks provided with VIXL:
-
- 1. bench-dataop, emitting adds
- 2. bench-branch, emitting branches
- 3. bench-branch-link, emitting branch-links
-
-Build these benchmarks using `scons bench-dataop`, `scons bench-branch` and
-`scons bench-branch-link`. This will produce binaries called
-`bench-dataop_sim`, `bench-branch_sim` and `bench-branch-link_sim`. Run these
-with an iteration count argument, for example `./bench-dataop_sim 10000000`. The
-benchmarks do not report a result; time them using the UNIX `time` command.
-
-Build the benchmarks natively for execution on an AArch64 target using `scons
-<benchmark name> simulator=off`. This will produce binaries called
-`bench-dataop`, `bench-branch` and `bench-branch-link`. Run and time these in
-the same way as the simulator versions.
-
+Also note that the tests for the tracing features depend upon external `diff`
+and `sed` tools. If these tools are not available in `PATH`, these tests will
+fail.
 
 Getting Started
 ---------------
@@ -173,7 +166,6 @@ A short introduction to using VIXL can be found [here](doc/getting-started.md).
 Example source code is provided in the [examples](examples) directory. You can
 build all the examples with `scons examples` from the root directory, or use
 `scons --help` to get a detailed list of available build targets.
-
 
 Using VIXL
 ----------

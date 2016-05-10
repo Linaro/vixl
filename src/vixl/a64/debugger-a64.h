@@ -45,7 +45,7 @@ namespace vixl {
 enum DebugParameters {
   DBG_INACTIVE = 0,
   DBG_ACTIVE = 1 << 0,  // The debugger is active.
-  DBG_BREAK  = 1 << 1   // The debugger is at a breakpoint.
+  DBG_BREAK = 1 << 1    // The debugger is at a breakpoint.
 };
 
 // Forward declarations.
@@ -81,9 +81,7 @@ class Debugger : public Simulator {
   }
 
   bool pending_request() const { return pending_request_; }
-  void update_pending_request() {
-    pending_request_ = IsDebuggerRunning();
-  }
+  void update_pending_request() { pending_request_ = IsDebuggerRunning(); }
 
   void PrintInstructions(const void* address, int64_t count = 1);
   void PrintMemory(const uint8_t* address,

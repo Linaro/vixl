@@ -76,7 +76,10 @@ int main(void) {
   simulator.set_xreg(1, c);
   simulator.set_dreg(1, d);
   simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&add4_double));
-  printf("%ld + %f + %ld + %f = %f\n", a, b, c, d, simulator.dreg(0));
+  // clang-format off
+  printf("%" PRIu64 " + %f + %" PRIu64 " + %f = %f\n",
+         a, b, c, d, simulator.dreg(0));
+  // clang-format on
 
   return 0;
 }

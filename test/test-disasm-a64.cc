@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <cstring>
+#include <string>
 #include "test-runner.h"
 
 #include "vixl/a64/macro-assembler-a64.h"
@@ -94,19 +95,44 @@
     printf("%08" PRIx32 "\t%s\n", encoding, disasm->GetOutput());              \
   }
 
-#define COMPARE_MACRO(ASM, EXP)                                                \
+#define COMPARE_MACRO_BASE(ASM, EXP)                                           \
   masm->Reset();                                                               \
   masm->ASM;                                                                   \
   masm->FinalizeCode();                                                        \
-  decoder->Decode(reinterpret_cast<Instruction*>(buf));                        \
-  encoding = *reinterpret_cast<uint32_t*>(buf);                                \
-  if (strncmp(disasm->GetOutput(), EXP, strlen(EXP)) != 0) {                   \
-    printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",          \
-           encoding, EXP, disasm->GetOutput());                                \
-    abort();                                                                   \
-  }                                                                            \
-  if (Test::trace_sim()) {                                                     \
-    printf("%08" PRIx32 "\t%s\n", encoding, disasm->GetOutput());              \
+  std::string res;                                                             \
+                                                                               \
+  Instruction* instruction = masm->GetOffsetAddress<Instruction*>(0);          \
+  Instruction* end = masm->GetOffsetAddress<Instruction*>(                     \
+      masm->SizeOfCodeGenerated());                                            \
+  while (instruction != end) {                                                 \
+    decoder->Decode(instruction);                                              \
+    res.append(disasm->GetOutput());                                           \
+    if (Test::trace_sim()) {                                                   \
+      encoding = *reinterpret_cast<uint32_t*>(instruction);                    \
+      printf("%08" PRIx32 "\t%s\n", encoding, disasm->GetOutput());            \
+    }                                                                          \
+    instruction += kInstructionSize;                                           \
+    if (instruction != end) {                                                  \
+      res.append("\n");                                                        \
+    }                                                                          \
+  }
+
+#define COMPARE_MACRO(ASM, EXP)                                                \
+  {                                                                            \
+    COMPARE_MACRO_BASE(ASM, EXP)                                               \
+    if (strcmp(res.c_str(), EXP) != 0) {                                       \
+      printf("Expected: %s\nFound:    %s\n", EXP, res.c_str());                \
+      abort();                                                                 \
+    }                                                                          \
+  }
+
+#define COMPARE_MACRO_PREFIX(ASM, EXP)                                         \
+  {                                                                            \
+    COMPARE_MACRO_BASE(ASM, EXP)                                               \
+    if (strncmp(res.c_str(), EXP, strlen(EXP)) != 0) {                         \
+      printf("Expected (prefix): %s\nFound:    %s\n", EXP, res.c_str());       \
+      abort();                                                                 \
+    }                                                                          \
   }
 
 #define CLEANUP()                                                              \
@@ -2200,12 +2226,215 @@ TEST(cond_select) {
 TEST(cond_select_macro) {
   SETUP_MACRO();
 
+  // In the tests below we also test the `GetCselSynthesisInformation()` helper.
+  // These tests are here (rather than in test-assembler-a64.cc) because the
+  // disassembly makes it easy to see whether or not the inputs are synthesised.
+  bool synthesises_left = false;
+  bool synthesises_right = false;
+
   COMPARE(Csel(w0, w1, -1, eq), "csinv w0, w1, wzr, eq");
+  MacroAssembler::GetCselSynthesisInformation(w0, w1, -1,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
   COMPARE(Csel(w2, w3, 0, ne), "csel w2, w3, wzr, ne");
+  MacroAssembler::GetCselSynthesisInformation(w2, w3, wzr,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
   COMPARE(Csel(w4, w5, 1, hs), "csinc w4, w5, wzr, hs");
+  MacroAssembler::GetCselSynthesisInformation(w4, w5, 1,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
   COMPARE(Csel(x6, x7, -1, lo), "csinv x6, x7, xzr, lo");
+  MacroAssembler::GetCselSynthesisInformation(x6, x7, xzr,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
   COMPARE(Csel(x8, x9, 0, mi), "csel x8, x9, xzr, mi");
+  MacroAssembler::GetCselSynthesisInformation(x8, x9, xzr,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
   COMPARE(Csel(x10, x11, 1, pl), "csinc x10, x11, xzr, pl");
+  MacroAssembler::GetCselSynthesisInformation(x10, x11, xzr,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
+  COMPARE_MACRO(Csel(x12,     0,     0, eq), "mov x12, #0x0");
+  MacroAssembler::GetCselSynthesisInformation(x12, 0, 0,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
+  COMPARE_MACRO(Csel(w13,     0,     1, eq), "cset w13, eq");
+  MacroAssembler::GetCselSynthesisInformation(w13, 0, 1,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
+  COMPARE_MACRO(Csel(x14,     1,     0, eq), "cset x14, ne");
+  MacroAssembler::GetCselSynthesisInformation(x14, 1, 0,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
+  COMPARE_MACRO(Csel(w15,     0,    -1, eq), "csetm w15, eq");
+  MacroAssembler::GetCselSynthesisInformation(w15, 0, -1,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
+  COMPARE_MACRO(Csel(x18,    -1,     0, eq), "csetm x18, ne");
+  MacroAssembler::GetCselSynthesisInformation(x18, -1, 0,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
+  COMPARE_MACRO(Csel(w19,    -1,     1, eq), "mov w19, #0x1\n"
+                                             "cneg w19, w19, eq");
+  MacroAssembler::GetCselSynthesisInformation(w19, -1, 1,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && synthesises_right);
+
+  COMPARE_MACRO(Csel(x20,     1,    -1, eq), "mov x20, #0xffffffffffffffff\n"
+                                             "cneg x20, x20, eq");
+  MacroAssembler::GetCselSynthesisInformation(x20, 1, -1,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && synthesises_right);
+
+  COMPARE_MACRO(Csel(w21,  0xaa,  0xbb, eq), "mov w16, #0xaa\n"
+                                             "mov w17, #0xbb\n"
+                                             "csel w21, w16, w17, eq");
+  MacroAssembler::GetCselSynthesisInformation(w21, 0xaa, 0xbb,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(synthesises_left && synthesises_right);
+
+  COMPARE_MACRO(Csel(x22,  0xaa, -0xbb, eq), "mov x16, #0xaa\n"
+                                             "mov x17, #0xffffffffffffff45\n"
+                                             "csel x22, x16, x17, eq");
+  MacroAssembler::GetCselSynthesisInformation(x22, 0xaa, -0xbb,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(synthesises_left && synthesises_right);
+
+  COMPARE_MACRO(Csel(w23,     0,  0xaa, eq), "mov w16, #0xaa\n"
+                                             "csel w23, w16, wzr, ne");
+  MacroAssembler::GetCselSynthesisInformation(w23, 0, 0xaa,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && synthesises_right);
+
+  COMPARE_MACRO(Csel(x24, -0xaa,     0, eq), "mov x16, #0xffffffffffffff56\n"
+                                             "csel x24, x16, xzr, eq");
+  MacroAssembler::GetCselSynthesisInformation(x24, -0xaa, 0,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(synthesises_left && !synthesises_right);
+
+  COMPARE_MACRO(Csel(w25,  0xcc, -0xcc, eq), "mov w25, #0xffffff34\n"
+                                             "cneg w25, w25, eq");
+  MacroAssembler::GetCselSynthesisInformation(w25, 0xcc, -0xcc,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && synthesises_right);
+
+  COMPARE_MACRO(Csel(x26, -0xcc,  0xcc, eq), "mov x26, #0xcc\n"
+                                             "cneg x26, x26, eq");
+  MacroAssembler::GetCselSynthesisInformation(w25, -0xcc, 0xcc,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && synthesises_right);
+
+  // Test with `Operand` inputs.
+  COMPARE_MACRO(Csel(x0, x1, Operand(x2, LSL, 3), eq), "lsl x16, x2, #3\n"
+                                                        "csel x0, x1, x16, eq");
+  MacroAssembler::GetCselSynthesisInformation(x0, x1,  Operand(x2, LSL, 3),
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && synthesises_right);
+
+  COMPARE_MACRO(Csel(x3, x4, Operand(x5, SXTH), eq), "sxth x16, w5\n"
+                                                     "csel x3, x4, x16, eq");
+  MacroAssembler::GetCselSynthesisInformation(x3, x4,  Operand(x5, SXTH),
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && synthesises_right);
+
+  COMPARE_MACRO(Csel(x6, Operand(x7, LSL, 7), x8, eq), "lsl x16, x7, #7\n"
+                                                       "csel x6, x16, x8, eq");
+  MacroAssembler::GetCselSynthesisInformation(x6, Operand(x7, LSL, 7), x8,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(synthesises_left && !synthesises_right);
+
+  COMPARE_MACRO(Csel(x9, Operand(x10, SXTH), x11, eq), "sxth x16, w10\n"
+                                                       "csel x9, x16, x11, eq");
+  MacroAssembler::GetCselSynthesisInformation(x9, Operand(x10, SXTH), x11,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(synthesises_left && !synthesises_right);
+
+  COMPARE_MACRO(Csel(x12, Operand(x13, LSL, 13), Operand(x14, SXTB), eq),
+                "lsl x16, x13, #13\n"
+                "sxtb x17, w14\n"
+                "csel x12, x16, x17, eq");
+  MacroAssembler::GetCselSynthesisInformation(x12,
+                                              Operand(x13, LSL, 13),
+                                              Operand(x14, SXTB),
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(synthesises_left && synthesises_right);
+
+  COMPARE_MACRO(Csel(x15, 0, Operand(x18, LSR, 18), eq),
+                "lsr x16, x18, #18\n"
+                "csel x15, x16, xzr, ne");
+  MacroAssembler::GetCselSynthesisInformation(x15, 0, Operand(x18, LSR, 18),
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && synthesises_right);
+
+  // Test with the zero register.
+  COMPARE_MACRO(Csel(w19, wzr, wzr, eq), "mov w19, #0x0");
+  MacroAssembler::GetCselSynthesisInformation(w19, wzr, wzr,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
+  COMPARE_MACRO(Csel(x20, x21, xzr, eq), "csel x20, x21, xzr, eq");
+  MacroAssembler::GetCselSynthesisInformation(x20, x21, xzr,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
+  COMPARE_MACRO(Csel(w22, wzr, w23, eq), "csel w22, w23, wzr, ne");
+  MacroAssembler::GetCselSynthesisInformation(w22, wzr, w23,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
+  COMPARE_MACRO(Csel(x24, xzr, 0, eq), "mov x24, #0x0");
+  MacroAssembler::GetCselSynthesisInformation(x24, xzr, 0,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
+  COMPARE_MACRO(Csel(w25, wzr, 1, eq), "cset w25, eq");
+  MacroAssembler::GetCselSynthesisInformation(w25, wzr, 1,
+                                              &synthesises_left,
+                                              &synthesises_right);
+  VIXL_CHECK(!synthesises_left && !synthesises_right);
+
 
   CLEANUP();
 }
@@ -2615,8 +2844,8 @@ TEST(trace) {
   VIXL_ASSERT(kTraceOpcode == 0xdeb2);
 
   // All Trace calls should produce the same instruction.
-  COMPARE_MACRO(Trace(LOG_ALL, TRACE_ENABLE), "hlt #0xdeb2");
-  COMPARE_MACRO(Trace(LOG_REGS, TRACE_DISABLE), "hlt #0xdeb2");
+  COMPARE_MACRO_PREFIX(Trace(LOG_ALL, TRACE_ENABLE), "hlt #0xdeb2");
+  COMPARE_MACRO_PREFIX(Trace(LOG_REGS, TRACE_DISABLE), "hlt #0xdeb2");
 
   CLEANUP();
 }
@@ -2630,8 +2859,8 @@ TEST(log) {
   VIXL_ASSERT(kLogOpcode == 0xdeb3);
 
   // All Log calls should produce the same instruction.
-  COMPARE_MACRO(Log(LOG_ALL), "hlt #0xdeb3");
-  COMPARE_MACRO(Log(LOG_SYSREGS), "hlt #0xdeb3");
+  COMPARE_MACRO_PREFIX(Log(LOG_ALL), "hlt #0xdeb3");
+  COMPARE_MACRO_PREFIX(Log(LOG_SYSREGS), "hlt #0xdeb3");
 
   CLEANUP();
 }
@@ -3033,6 +3262,71 @@ TEST(neon_load_store_vector) {
 }
 
 
+TEST(neon_load_store_vector_unallocated) {
+  SETUP();
+
+  const char* expected = "unallocated (NEONLoadStoreMultiStruct)";
+  // LD[1-4] (multiple structures) (no offset)
+  COMPARE(dci(0x0c401000), expected);  // opcode = 0b0001
+  COMPARE(dci(0x0c403000), expected);  // opcode = 0b0011
+  COMPARE(dci(0x0c405000), expected);  // opcode = 0b0101
+  COMPARE(dci(0x0c409000), expected);  // opcode = 0b1001
+  COMPARE(dci(0x0c40b000), expected);  // opcode = 0b1011
+  COMPARE(dci(0x0c40c000), expected);  // opcode = 0b1100
+  COMPARE(dci(0x0c40d000), expected);  // opcode = 0b1101
+  COMPARE(dci(0x0c40e000), expected);  // opcode = 0b1110
+  COMPARE(dci(0x0c40f000), expected);  // opcode = 0b1111
+  COMPARE(dci(0x0c400c00), expected);  // opcode = 0b0000, size:Q = 0b110
+  COMPARE(dci(0x0c404c00), expected);  // opcode = 0b0100, size:Q = 0b110
+  COMPARE(dci(0x0c408c00), expected);  // opcode = 0b1000, size:Q = 0b110
+
+  // ST[1-4] (multiple structures) (no offset)
+  COMPARE(dci(0x0c001000), expected);  // opcode = 0b0001
+  COMPARE(dci(0x0c003000), expected);  // opcode = 0b0011
+  COMPARE(dci(0x0c005000), expected);  // opcode = 0b0101
+  COMPARE(dci(0x0c009000), expected);  // opcode = 0b1001
+  COMPARE(dci(0x0c00b000), expected);  // opcode = 0b1011
+  COMPARE(dci(0x0c00c000), expected);  // opcode = 0b1100
+  COMPARE(dci(0x0c00d000), expected);  // opcode = 0b1101
+  COMPARE(dci(0x0c00e000), expected);  // opcode = 0b1110
+  COMPARE(dci(0x0c00f000), expected);  // opcode = 0b1111
+  COMPARE(dci(0x0c000c00), expected);  // opcode = 0b0000, size:Q = 0b110
+  COMPARE(dci(0x0c004c00), expected);  // opcode = 0b0100, size:Q = 0b110
+  COMPARE(dci(0x0c008c00), expected);  // opcode = 0b1000, size:Q = 0b110
+
+  expected = "unallocated (NEONLoadStoreMultiStructPostIndex)";
+  // LD[1-4] (multiple structures) (post index)
+  COMPARE(dci(0x0cc01000), expected);  // opcode = 0b0001
+  COMPARE(dci(0x0cc03000), expected);  // opcode = 0b0011
+  COMPARE(dci(0x0cc05000), expected);  // opcode = 0b0101
+  COMPARE(dci(0x0cc09000), expected);  // opcode = 0b1001
+  COMPARE(dci(0x0cc0b000), expected);  // opcode = 0b1011
+  COMPARE(dci(0x0cc0c000), expected);  // opcode = 0b1100
+  COMPARE(dci(0x0cc0d000), expected);  // opcode = 0b1101
+  COMPARE(dci(0x0cc0e000), expected);  // opcode = 0b1110
+  COMPARE(dci(0x0cc0f000), expected);  // opcode = 0b1111
+  COMPARE(dci(0x0cc00c00), expected);  // opcode = 0b0000, size:Q = 0b110
+  COMPARE(dci(0x0cc04c00), expected);  // opcode = 0b0100, size:Q = 0b110
+  COMPARE(dci(0x0cc08c00), expected);  // opcode = 0b1000, size:Q = 0b110
+
+  // ST[1-4] (multiple structures) (post index)
+  COMPARE(dci(0x0c801000), expected);  // opcode = 0b0001
+  COMPARE(dci(0x0c803000), expected);  // opcode = 0b0011
+  COMPARE(dci(0x0c805000), expected);  // opcode = 0b0101
+  COMPARE(dci(0x0c809000), expected);  // opcode = 0b1001
+  COMPARE(dci(0x0c80b000), expected);  // opcode = 0b1011
+  COMPARE(dci(0x0c80c000), expected);  // opcode = 0b1100
+  COMPARE(dci(0x0c80d000), expected);  // opcode = 0b1101
+  COMPARE(dci(0x0c80e000), expected);  // opcode = 0b1110
+  COMPARE(dci(0x0c80f000), expected);  // opcode = 0b1111
+  COMPARE(dci(0x0c800c00), expected);  // opcode = 0b0000, size:Q = 0b110
+  COMPARE(dci(0x0c804c00), expected);  // opcode = 0b0100, size:Q = 0b110
+  COMPARE(dci(0x0c808c00), expected);  // opcode = 0b1000, size:Q = 0b110
+
+  CLEANUP();
+}
+
+
 TEST(neon_load_store_lane) {
   SETUP_MACRO();
 
@@ -3077,8 +3371,12 @@ TEST(neon_load_store_lane) {
           "ld1 {v11.s}[1], [x26], #4");
   COMPARE(Ld1(v12.S(), 3, MemOperand(x27, x5, PostIndex)),
           "ld1 {v12.s}[3], [x27], x5");
+  COMPARE(Ld1(v12.S(), 3, MemOperand(x27, 4, PostIndex)),
+          "ld1 {v12.s}[3], [x27], #4");
   COMPARE(Ld1(v13.D(), 1, MemOperand(sp, x6, PostIndex)),
           "ld1 {v13.d}[1], [sp], x6");
+  COMPARE(Ld1(v13.D(), 1, MemOperand(sp, 8, PostIndex)),
+          "ld1 {v13.d}[1], [sp], #8");
 
   COMPARE(Ld2(v0.V8B(),  v1.V8B(),  0, MemOperand(x15)),
       "ld2 {v0.b, v1.b}[0], [x15]");
@@ -3135,8 +3433,12 @@ TEST(neon_load_store_lane) {
       "ld2 {v11.s, v12.s}[1], [x26], #8");
   COMPARE(Ld2(v12.S(),  v13.S(),   3, MemOperand(x27, x5, PostIndex)),
       "ld2 {v12.s, v13.s}[3], [x27], x5");
+  COMPARE(Ld2(v11.S(),  v12.S(),   3, MemOperand(x26, 8, PostIndex)),
+      "ld2 {v11.s, v12.s}[3], [x26], #8");
   COMPARE(Ld2(v13.D(),  v14.D(),   1, MemOperand(sp, x6, PostIndex)),
       "ld2 {v13.d, v14.d}[1], [sp], x6");
+  COMPARE(Ld2(v13.D(),  v14.D(),   1, MemOperand(sp, 16, PostIndex)),
+      "ld2 {v13.d, v14.d}[1], [sp], #16");
 
   COMPARE(Ld3(v0.V8B(),  v1.V8B(),  v2.V8B(),   0, MemOperand(x15)),
       "ld3 {v0.b, v1.b, v2.b}[0], [x15]");
@@ -3206,9 +3508,15 @@ TEST(neon_load_store_lane) {
   COMPARE(Ld3(v12.S(),   v13.S(),   v14.S(),   3,
               MemOperand(x27, x5, PostIndex)),
       "ld3 {v12.s, v13.s, v14.s}[3], [x27], x5");
+  COMPARE(Ld3(v12.S(),   v13.S(),   v14.S(),   3,
+              MemOperand(x27, 12, PostIndex)),
+      "ld3 {v12.s, v13.s, v14.s}[3], [x27], #12");
   COMPARE(Ld3(v13.D(),   v14.D(),   v15.D(),   1,
               MemOperand(sp, x6, PostIndex)),
       "ld3 {v13.d, v14.d, v15.d}[1], [sp], x6");
+  COMPARE(Ld3(v13.D(),   v14.D(),   v15.D(),   1,
+              MemOperand(sp, 24, PostIndex)),
+      "ld3 {v13.d, v14.d, v15.d}[1], [sp], #24");
 
   COMPARE(Ld4(v0.V8B(),   v1.V8B(),  v2.V8B(),   v3.V8B(),  0,
               MemOperand(x15)),
@@ -3292,9 +3600,15 @@ TEST(neon_load_store_lane) {
   COMPARE(Ld4(v12.S(),   v13.S(),   v14.S(),   v15.S(),    3,
               MemOperand(x27, x5, PostIndex)),
       "ld4 {v12.s, v13.s, v14.s, v15.s}[3], [x27], x5");
+  COMPARE(Ld4(v11.S(),   v12.S(),   v13.S(),   v14.S(),    3,
+              MemOperand(x26, 16, PostIndex)),
+      "ld4 {v11.s, v12.s, v13.s, v14.s}[3], [x26], #16");
   COMPARE(Ld4(v13.D(),   v14.D(),   v15.D(),   v16.D(),    1,
               MemOperand(sp, x6, PostIndex)),
       "ld4 {v13.d, v14.d, v15.d, v16.d}[1], [sp], x6");
+  COMPARE(Ld4(v13.D(),   v14.D(),   v15.D(),   v16.D(),    1,
+              MemOperand(sp, 32, PostIndex)),
+      "ld4 {v13.d, v14.d, v15.d, v16.d}[1], [sp], #32");
 
   COMPARE(St1(v0.V8B(), 0, MemOperand(x15)), "st1 {v0.b}[0], [x15]");
   COMPARE(St1(v1.V16B(), 1, MemOperand(x16)), "st1 {v1.b}[1], [x16]");
@@ -3424,6 +3738,81 @@ TEST(neon_load_store_lane) {
          "st4 {v12.s, v13.s, v14.s, v15.s}[3], [x27], x5");
   COMPARE(St4(VLIST4(v13.D()),   1, MemOperand(sp, x6, PostIndex)),
           "st4 {v13.d, v14.d, v15.d, v16.d}[1], [sp], x6");
+
+  CLEANUP();
+}
+
+
+TEST(neon_load_store_lane_unallocated) {
+  SETUP();
+
+  const char* expected = "unallocated (NEONLoadStoreSingleStruct)";
+  // LD1 (single structure) (no offset)
+  COMPARE(dci(0x0d404400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0d408800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0d409400), expected);  // .d, size<0> = 1, S = 1
+  // LD2 (single structure) (no offset)
+  COMPARE(dci(0x0d604400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0d608800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0d609400), expected);  // .d, size<0> = 1, S = 1
+  // LD3 (single structure) (no offset)
+  COMPARE(dci(0x0d406400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0d40a800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0d40b400), expected);  // .d, size<0> = 1, S = 1
+  // LD4 (single structure) (no offset)
+  COMPARE(dci(0x0d606400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0d60a800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0d60b400), expected);  // .d, size<0> = 1, S = 1
+  // ST1 (single structure) (no offset)
+  COMPARE(dci(0x0d004400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0d008800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0d009400), expected);  // .d, size<0> = 1, S = 1
+  // ST2 (single structure) (no offset)
+  COMPARE(dci(0x0d204400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0d208800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0d209400), expected);  // .d, size<0> = 1, S = 1
+  // ST3 (single structure) (no offset)
+  COMPARE(dci(0x0d006400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0d00a800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0d00b400), expected);  // .d, size<0> = 1, S = 1
+  // ST4 (single structure) (no offset)
+  COMPARE(dci(0x0d206400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0d20a800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0d20b400), expected);  // .d, size<0> = 1, S = 1
+
+  expected = "unallocated (NEONLoadStoreSingleStructPostIndex)";
+  // LD1 (single structure) (post index)
+  COMPARE(dci(0x0dc04400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0dc08800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0dc09400), expected);  // .d, size<0> = 1, S = 1
+  // LD2 (single structure) (post index)
+  COMPARE(dci(0x0de04400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0de08800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0de09400), expected);  // .d, size<0> = 1, S = 1
+  // LD3 (single structure) (post index)
+  COMPARE(dci(0x0dc06400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0dc0a800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0dc0b400), expected);  // .d, size<0> = 1, S = 1
+  // LD4 (single structure) (post index)
+  COMPARE(dci(0x0de06400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0de0a800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0de0b400), expected);  // .d, size<0> = 1, S = 1
+  // ST1 (single structure) (post index)
+  COMPARE(dci(0x0d804400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0d808800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0d809400), expected);  // .d, size<0> = 1, S = 1
+  // ST2 (single structure) (post index)
+  COMPARE(dci(0x0da04400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0da08800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0da09400), expected);  // .d, size<0> = 1, S = 1
+  // ST3 (single structure) (post index)
+  COMPARE(dci(0x0d806400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0d80a800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0d80b400), expected);  // .d, size<0> = 1, S = 1
+  // ST4 (single structure) (post index)
+  COMPARE(dci(0x0da06400), expected);  // .h, size<0> = 1
+  COMPARE(dci(0x0da0a800), expected);  // .s, size<1> = 1
+  COMPARE(dci(0x0da0b400), expected);  // .d, size<0> = 1, S = 1
 
   CLEANUP();
 }
@@ -3572,6 +3961,41 @@ TEST(neon_load_all_lanes) {
   COMPARE(Ld4r(v27.V2D(),  v28.V2D(),  v29.V2D(),  v30.V2D(),
                MemOperand(x12, 32, PostIndex)),
           "ld4r {v27.2d, v28.2d, v29.2d, v30.2d}, [x12], #32");
+
+  CLEANUP();
+}
+
+
+TEST(neon_load_all_lanes_unallocated) {
+  SETUP();
+
+  const char* expected = "unallocated (NEONLoadStoreSingleStruct)";
+  // LD1R (single structure) (no offset)
+  COMPARE(dci(0x0d00c000), expected);  // L = 0
+  COMPARE(dci(0x0d40d000), expected);  // S = 1
+  // LD2R (single structure) (no offset)
+  COMPARE(dci(0x0d20c000), expected);  // L = 0
+  COMPARE(dci(0x0d60d000), expected);  // S = 1
+  // LD3R (single structure) (no offset)
+  COMPARE(dci(0x0d00e000), expected);  // L = 0
+  COMPARE(dci(0x0d40f000), expected);  // S = 1
+  // LD4R (single structure) (no offset)
+  COMPARE(dci(0x0d20e000), expected);  // L = 0
+  COMPARE(dci(0x0d60f000), expected);  // S = 1
+
+  expected = "unallocated (NEONLoadStoreSingleStructPostIndex)";
+  // LD1R (single structure) (post index)
+  COMPARE(dci(0x0d80c000), expected);  // L = 0
+  COMPARE(dci(0x0dc0d000), expected);  // S = 1
+  // LD2R (single structure) (post index)
+  COMPARE(dci(0x0da0c000), expected);  // L = 0
+  COMPARE(dci(0x0de0d000), expected);  // S = 1
+  // LD3R (single structure) (post index)
+  COMPARE(dci(0x0d80e000), expected);  // L = 0
+  COMPARE(dci(0x0dc0f000), expected);  // S = 1
+  // LD4R (single structure) (post index)
+  COMPARE(dci(0x0da0e000), expected);  // L = 0
+  COMPARE(dci(0x0de0f000), expected);  // S = 1
 
   CLEANUP();
 }
@@ -4697,6 +5121,9 @@ TEST(neon_modimm) {
   COMPARE(Fmov(v1.V2D(), 1.0), "fmov v1.2d, #0x70 (1.0000)");
   COMPARE(Fmov(v29.V2D(), -13.0), "fmov v29.2d, #0xaa (-13.0000)");
 
+  // An unallocated form of fmov.
+  COMPARE(dci(0x2f07ffff), "unallocated (NEONModifiedImmediate)");
+
   CLEANUP();
 }
 
@@ -4710,6 +5137,11 @@ TEST(neon_2regmisc) {
   COMPARE(Shll2(v2.V8H(), v9.V16B(), 8), "shll2 v2.8h, v9.16b, #8");
   COMPARE(Shll2(v4.V4S(), v2.V8H(),  16), "shll2 v4.4s, v2.8h, #16");
   COMPARE(Shll2(v6.V2D(), v4.V4S(),  32), "shll2 v6.2d, v4.4s, #32");
+
+  // An unallocated form of shll.
+  COMPARE(dci(0x2ee13bff), "unallocated (NEON2RegMisc)");
+  // An unallocated form of shll2.
+  COMPARE(dci(0x6ee13bff), "unallocated (NEON2RegMisc)");
 
   #define DISASM_INST(M, S)  \
   COMPARE(Cmeq(v0.M, v1.M, 0), "cmeq v0." S ", v1." S ", #0");

@@ -61,7 +61,7 @@ int main(void) {
   int64_t input_value = -42;
   simulator.set_xreg(0, input_value);
   simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&abs));
-  printf("abs(%ld) = %ld\n", input_value, simulator.xreg(0));
+  printf("abs(%" PRId64 ") = %" PRId64 "\n", input_value, simulator.xreg(0));
 
   return 0;
 }

@@ -43,7 +43,7 @@ void GenerateFactorialRec(MacroAssembler* masm) {
   __ Mov(x1, x0);
   __ Sub(x0, x0, 1);
   __ Push(x1, lr);
-  __ Bl(&entry);    // Recursive call factorial_rec(n - 1).
+  __ Bl(&entry);  // Recursive call factorial_rec(n - 1).
   __ Pop(lr, x1);
   __ Mul(x0, x0, x1);
   __ Ret();
@@ -73,7 +73,9 @@ int main(void) {
   uint64_t input_val = 16;
   simulator.set_xreg(0, input_val);
   simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&factorial_rec));
-  printf("factorial(%ld) = %ld\n", input_val, simulator.xreg(0));
+  printf("factorial(%" PRIu64 ") = %" PRId64 "\n",
+         input_val,
+         simulator.xreg(0));
 
   return 0;
 }

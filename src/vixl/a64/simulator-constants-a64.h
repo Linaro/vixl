@@ -108,22 +108,19 @@ const unsigned kTraceLength = 3 * kInstructionSize;
 
 // Trace parameters.
 enum TraceParameters {
-  LOG_DISASM     = 1 << 0,  // Log disassembly.
-  LOG_REGS       = 1 << 1,  // Log general purpose registers.
-  LOG_VREGS      = 1 << 2,  // Log NEON and floating-point registers.
-  LOG_SYSREGS    = 1 << 3,  // Log the flags and system registers.
-  LOG_WRITE      = 1 << 4,  // Log writes to memory.
+  LOG_DISASM = 1 << 0,   // Log disassembly.
+  LOG_REGS = 1 << 1,     // Log general purpose registers.
+  LOG_VREGS = 1 << 2,    // Log NEON and floating-point registers.
+  LOG_SYSREGS = 1 << 3,  // Log the flags and system registers.
+  LOG_WRITE = 1 << 4,    // Log writes to memory.
 
-  LOG_NONE       = 0,
-  LOG_STATE      = LOG_REGS | LOG_VREGS | LOG_SYSREGS,
-  LOG_ALL        = LOG_DISASM | LOG_STATE | LOG_WRITE
+  LOG_NONE = 0,
+  LOG_STATE = LOG_REGS | LOG_VREGS | LOG_SYSREGS,
+  LOG_ALL = LOG_DISASM | LOG_STATE | LOG_WRITE
 };
 
 // Trace commands.
-enum TraceCommand {
-  TRACE_ENABLE   = 1,
-  TRACE_DISABLE  = 2
-};
+enum TraceCommand { TRACE_ENABLE = 1, TRACE_DISABLE = 2 };
 
 // Log - kLogOpcode
 //  - parameter: TraceParameter stored as a uint32_t

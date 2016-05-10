@@ -79,17 +79,21 @@ int main(void) {
   simulator.set_wreg(0, 0x11111111);
   simulator.set_wreg(1, 0x22222222);
 
+  // clang-format off
   printf("Before swap_int32:\n"
          "x0 = 0x%" PRIx32 "\n"
          "x1 = 0x%" PRIx32 "\n",
          simulator.wreg(0), simulator.wreg(1));
+  // clang-format on
 
   simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&swap_int32));
 
+  // clang-format off
   printf("After swap_int32:\n"
          "x0 = 0x%" PRIx32 "\n"
          "x1 = 0x%" PRIx32 "\n",
          simulator.wreg(0), simulator.wreg(1));
+  // clang-format on
 
   return 0;
 }

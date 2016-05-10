@@ -52,6 +52,11 @@ def getstatusoutput(command, shell=False):
     return e.returncode, e.output.rstrip('\n')
 
 
+def IsCommandAvailable(command):
+    retcode, unused_output = getstatusoutput('which %s' % command)
+    return retcode == 0
+
+
 def ensure_dir(path_name):
   if not os.path.exists(path_name):
     os.makedirs(path_name)

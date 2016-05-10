@@ -67,9 +67,10 @@ namespace vixl {
 // are used, a number of elements are preallocated.
 
 // 'ElementType' and 'KeyType' are respectively the types of the elements and
-// their key.  The structure only reclaims memory when safe to do so, if the
+// their key. The structure only reclaims memory when safe to do so, if the
 // number of elements that can be reclaimed is greater than `RECLAIM_FROM` and
 // greater than `<total number of elements> / RECLAIM_FACTOR.
+// clang-format off
 #define TEMPLATE_INVALSET_P_DECL                                               \
   class ElementType,                                                           \
   unsigned N_PREALLOCATED_ELEMENTS,                                            \
@@ -77,14 +78,17 @@ namespace vixl {
   KeyType INVALID_KEY,                                                         \
   size_t RECLAIM_FROM,                                                         \
   unsigned RECLAIM_FACTOR
+// clang-format on
 
-#define TEMPLATE_INVALSET_P_DEF                                                \
-ElementType, N_PREALLOCATED_ELEMENTS,                                          \
-KeyType, INVALID_KEY, RECLAIM_FROM, RECLAIM_FACTOR
+#define TEMPLATE_INVALSET_P_DEF                                             \
+  ElementType, N_PREALLOCATED_ELEMENTS, KeyType, INVALID_KEY, RECLAIM_FROM, \
+      RECLAIM_FACTOR
 
-template<class S> class InvalSetIterator;  // Forward declaration.
+template <class S>
+class InvalSetIterator;  // Forward declaration.
 
-template<TEMPLATE_INVALSET_P_DECL> class InvalSet {
+template <TEMPLATE_INVALSET_P_DECL>
+class InvalSet {
  public:
   InvalSet();
   ~InvalSet();
@@ -92,11 +96,17 @@ template<TEMPLATE_INVALSET_P_DECL> class InvalSet {
   static const size_t kNPreallocatedElements = N_PREALLOCATED_ELEMENTS;
   static const KeyType kInvalidKey = INVALID_KEY;
 
+  // C++ STL iterator interface.
+  typedef InvalSetIterator<InvalSet<TEMPLATE_INVALSET_P_DEF> > iterator;
+  iterator begin();
+  iterator end();
+
   // It is illegal to insert an element already present in the set.
   void insert(const ElementType& element);
 
   // Looks for the specified element in the set and - if found - deletes it.
-  void erase(const ElementType& element);
+  // The return value is the number of elements erased: either 0 or 1.
+  size_t erase(const ElementType& element);
 
   // This indicates the number of (valid) elements stored in this set.
   size_t size() const;
@@ -108,14 +118,17 @@ template<TEMPLATE_INVALSET_P_DECL> class InvalSet {
 
   void clear();
 
-  const ElementType min_element();
+  const ElementType GetMinElement();
 
   // This returns the key of the minimum element in the set.
-  KeyType min_element_key();
+  KeyType GetMinElementKey();
 
   static bool IsValid(const ElementType& element);
-  static KeyType Key(const ElementType& element);
+  static KeyType GetKey(const ElementType& element);
   static void SetKey(ElementType* element, KeyType key);
+
+  typedef ElementType _ElementType;
+  typedef KeyType _KeyType;
 
  protected:
   // Returns a pointer to the element in vector_ if it was found, or NULL
@@ -162,30 +175,30 @@ template<TEMPLATE_INVALSET_P_DECL> class InvalSet {
 
   // Returns the index of the element within the backing storage. The element
   // must belong to the backing storage.
-  size_t ElementIndex(const ElementType* element) const;
+  size_t GetElementIndex(const ElementType* element) const;
 
   // Returns the element at the specified index in the backing storage.
-  const ElementType* ElementAt(size_t index) const;
-  ElementType* ElementAt(size_t index);
+  const ElementType* GetElementAt(size_t index) const;
+  ElementType* GetElementAt(size_t index);
 
-  static const ElementType* FirstValidElement(const ElementType* from,
-                                              const ElementType* end);
+  static const ElementType* GetFirstValidElement(const ElementType* from,
+                                                 const ElementType* end);
 
   void CacheMinElement();
-  const ElementType CachedMinElement() const;
+  const ElementType GetCachedMinElement() const;
 
   bool ShouldReclaimMemory() const;
   void ReclaimMemory();
 
   bool IsUsingVector() const { return vector_ != NULL; }
-  void set_sorted(bool sorted) { sorted_ = sorted; }
+  void SetSorted(bool sorted) { sorted_ = sorted; }
 
   // We cache some data commonly required by users to improve performance.
   // We cannot cache pointers to elements as we do not control the backing
   // storage.
   bool valid_cached_min_;
   size_t cached_min_index_;  // Valid iff `valid_cached_min_` is true.
-  KeyType cached_min_key_;         // Valid iff `valid_cached_min_` is true.
+  KeyType cached_min_key_;   // Valid iff `valid_cached_min_` is true.
 
   // Indicates whether the elements are sorted.
   bool sorted_;
@@ -215,27 +228,51 @@ template<TEMPLATE_INVALSET_P_DECL> class InvalSet {
   }
 #endif
 
+ private:
+// The copy constructor and assignment operator are not used and the defaults
+// are unsafe, so disable them (without an implementation).
+#if __cplusplus >= 201103L
+  InvalSet(const InvalSet& other) = delete;
+  InvalSet operator=(const InvalSet& other) = delete;
+#else
+  InvalSet(const InvalSet& other);
+  InvalSet operator=(const InvalSet& other);
+#endif
+
   friend class InvalSetIterator<InvalSet<TEMPLATE_INVALSET_P_DEF> >;
-  typedef ElementType _ElementType;
-  typedef KeyType _KeyType;
 };
 
 
-template<class S> class InvalSetIterator {
+template <class S>
+class InvalSetIterator : public std::iterator<std::forward_iterator_tag,
+                                              typename S::_ElementType> {
  private:
   // Redefine types to mirror the associated set types.
   typedef typename S::_ElementType ElementType;
   typedef typename S::_KeyType KeyType;
 
  public:
-  explicit InvalSetIterator(S* inval_set);
-  ~InvalSetIterator();
+  explicit InvalSetIterator(S* inval_set = NULL);
 
-  ElementType* Current() const;
-  void Advance();
+  // This class implements the standard copy-swap idiom.
+  ~InvalSetIterator();
+  InvalSetIterator(const InvalSetIterator<S>& other);
+  InvalSetIterator<S>& operator=(InvalSetIterator<S> other);
+#if __cplusplus >= 201103L
+  InvalSetIterator(InvalSetIterator<S>&& other) noexcept;
+#endif
+
+  friend void swap(InvalSetIterator<S>& a, InvalSetIterator<S>& b) {
+    using std::swap;
+    swap(a.using_vector_, b.using_vector_);
+    swap(a.index_, b.index_);
+    swap(a.inval_set_, b.inval_set_);
+  }
+
+  // Return true if the iterator is at the end of the set.
   bool Done() const;
 
-  // Mark this iterator as 'done'.
+  // Move this iterator to the end of the set.
   void Finish();
 
   // Delete the current element and advance the iterator to point to the next
@@ -243,45 +280,77 @@ template<class S> class InvalSetIterator {
   void DeleteCurrentAndAdvance();
 
   static bool IsValid(const ElementType& element);
-  static KeyType Key(const ElementType& element);
+  static KeyType GetKey(const ElementType& element);
+
+  // Extra helpers to support the forward-iterator interface.
+  InvalSetIterator<S>& operator++();    // Pre-increment.
+  InvalSetIterator<S> operator++(int);  // Post-increment.
+  bool operator==(const InvalSetIterator<S>& rhs) const;
+  bool operator!=(const InvalSetIterator<S>& rhs) const {
+    return !(*this == rhs);
+  }
+  ElementType& operator*() { return *Current(); }
+  const ElementType& operator*() const { return *Current(); }
+  ElementType* operator->() { return Current(); }
+  const ElementType* operator->() const { return Current(); }
 
  protected:
   void MoveToValidElement();
 
   // Indicates if the iterator is looking at the vector or at the preallocated
   // elements.
-  const bool using_vector_;
+  bool using_vector_;
   // Used when looking at the preallocated elements, or in debug mode when using
   // the vector to track how many times the iterator has advanced.
   size_t index_;
   typename std::vector<ElementType>::iterator iterator_;
   S* inval_set_;
+
+  // TODO: These helpers are deprecated and will be removed in future versions
+  // of VIXL.
+  ElementType* Current() const;
+  void Advance();
 };
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 InvalSet<TEMPLATE_INVALSET_P_DEF>::InvalSet()
-  : valid_cached_min_(false),
-    sorted_(true), size_(0), vector_(NULL) {
+    : valid_cached_min_(false), sorted_(true), size_(0), vector_(NULL) {
 #ifdef VIXL_DEBUG
   monitor_ = 0;
 #endif
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 InvalSet<TEMPLATE_INVALSET_P_DEF>::~InvalSet() {
   VIXL_ASSERT(monitor_ == 0);
   delete vector_;
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
+typename InvalSet<TEMPLATE_INVALSET_P_DEF>::iterator
+InvalSet<TEMPLATE_INVALSET_P_DEF>::begin() {
+  return iterator(this);
+}
+
+
+template <TEMPLATE_INVALSET_P_DECL>
+typename InvalSet<TEMPLATE_INVALSET_P_DEF>::iterator
+InvalSet<TEMPLATE_INVALSET_P_DEF>::end() {
+  iterator end(this);
+  end.Finish();
+  return end;
+}
+
+
+template <TEMPLATE_INVALSET_P_DECL>
 void InvalSet<TEMPLATE_INVALSET_P_DEF>::insert(const ElementType& element) {
   VIXL_ASSERT(monitor() == 0);
   VIXL_ASSERT(IsValid(element));
   VIXL_ASSERT(Search(element) == NULL);
-  set_sorted(empty() || (sorted_ && (element > CleanBack())));
+  SetSorted(empty() || (sorted_ && (element > CleanBack())));
   if (IsUsingVector()) {
     vector_->push_back(element);
   } else {
@@ -289,16 +358,16 @@ void InvalSet<TEMPLATE_INVALSET_P_DEF>::insert(const ElementType& element) {
       preallocated_[size_] = element;
     } else {
       // Transition to using the vector.
-      vector_ = new std::vector<ElementType>(preallocated_,
-                                             preallocated_ + size_);
+      vector_ =
+          new std::vector<ElementType>(preallocated_, preallocated_ + size_);
       vector_->push_back(element);
     }
   }
   size_++;
 
-  if (valid_cached_min_ && (element < min_element())) {
+  if (valid_cached_min_ && (element < GetMinElement())) {
     cached_min_index_ = IsUsingVector() ? vector_->size() - 1 : size_ - 1;
-    cached_min_key_ = Key(element);
+    cached_min_key_ = GetKey(element);
     valid_cached_min_ = true;
   }
 
@@ -308,18 +377,20 @@ void InvalSet<TEMPLATE_INVALSET_P_DEF>::insert(const ElementType& element) {
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
-void InvalSet<TEMPLATE_INVALSET_P_DEF>::erase(const ElementType& element) {
+template <TEMPLATE_INVALSET_P_DECL>
+size_t InvalSet<TEMPLATE_INVALSET_P_DEF>::erase(const ElementType& element) {
   VIXL_ASSERT(monitor() == 0);
   VIXL_ASSERT(IsValid(element));
   ElementType* local_element = Search(element);
   if (local_element != NULL) {
     EraseInternal(local_element);
+    return 1;
   }
+  return 0;
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::Search(
     const ElementType& element) {
   VIXL_ASSERT(monitor() == 0);
@@ -335,66 +406,66 @@ ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::Search(
   if (!valid_cached_min_) {
     CacheMinElement();
   }
-  return BinarySearch(element, ElementAt(cached_min_index_), StorageEnd());
+  return BinarySearch(element, GetElementAt(cached_min_index_), StorageEnd());
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 size_t InvalSet<TEMPLATE_INVALSET_P_DEF>::size() const {
   return size_;
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 bool InvalSet<TEMPLATE_INVALSET_P_DEF>::empty() const {
   return size_ == 0;
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 void InvalSet<TEMPLATE_INVALSET_P_DEF>::clear() {
   VIXL_ASSERT(monitor() == 0);
   size_ = 0;
   if (IsUsingVector()) {
     vector_->clear();
   }
-  set_sorted(true);
+  SetSorted(true);
   valid_cached_min_ = false;
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
-const ElementType InvalSet<TEMPLATE_INVALSET_P_DEF>::min_element() {
+template <TEMPLATE_INVALSET_P_DECL>
+const ElementType InvalSet<TEMPLATE_INVALSET_P_DEF>::GetMinElement() {
   VIXL_ASSERT(monitor() == 0);
   VIXL_ASSERT(!empty());
   CacheMinElement();
-  return *ElementAt(cached_min_index_);
+  return *GetElementAt(cached_min_index_);
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
-KeyType InvalSet<TEMPLATE_INVALSET_P_DEF>::min_element_key() {
+template <TEMPLATE_INVALSET_P_DECL>
+KeyType InvalSet<TEMPLATE_INVALSET_P_DEF>::GetMinElementKey() {
   VIXL_ASSERT(monitor() == 0);
   if (valid_cached_min_) {
     return cached_min_key_;
   } else {
-    return Key(min_element());
+    return GetKey(GetMinElement());
   }
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 bool InvalSet<TEMPLATE_INVALSET_P_DEF>::IsValid(const ElementType& element) {
-  return Key(element) != kInvalidKey;
+  return GetKey(element) != kInvalidKey;
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 void InvalSet<TEMPLATE_INVALSET_P_DEF>::EraseInternal(ElementType* element) {
   // Note that this function must be safe even while an iterator has acquired
   // this set.
   VIXL_ASSERT(element != NULL);
-  size_t deleted_index = ElementIndex(element);
+  size_t deleted_index = GetElementIndex(element);
   if (IsUsingVector()) {
     VIXL_ASSERT((&(vector_->front()) <= element) &&
                 (element <= &(vector_->back())));
@@ -408,12 +479,11 @@ void InvalSet<TEMPLATE_INVALSET_P_DEF>::EraseInternal(ElementType* element) {
   }
   size_--;
 
-  if (valid_cached_min_ &&
-      (deleted_index == cached_min_index_)) {
+  if (valid_cached_min_ && (deleted_index == cached_min_index_)) {
     if (sorted_ && !empty()) {
-      const ElementType* min = FirstValidElement(element, StorageEnd());
-      cached_min_index_ = ElementIndex(min);
-      cached_min_key_ = Key(*min);
+      const ElementType* min = GetFirstValidElement(element, StorageEnd());
+      cached_min_index_ = GetElementIndex(min);
+      cached_min_key_ = GetKey(*min);
       valid_cached_min_ = true;
     } else {
       valid_cached_min_ = false;
@@ -422,7 +492,7 @@ void InvalSet<TEMPLATE_INVALSET_P_DEF>::EraseInternal(ElementType* element) {
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::BinarySearch(
     const ElementType& element, ElementType* start, ElementType* end) const {
   if (start == end) {
@@ -443,12 +513,12 @@ ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::BinarySearch(
     while (!IsValid(elements[high]) && (low < high)) --high;
     VIXL_ASSERT(low <= high);
     // Avoid overflow when computing the middle index.
-    size_t middle = low / 2 + high / 2 + (low & high & 1);
+    size_t middle = low + (high - low) / 2;
     if ((middle == low) || (middle == high)) {
       break;
     }
-    while (!IsValid(elements[middle]) && (middle < high - 1)) ++middle;
-    while (!IsValid(elements[middle]) && (low + 1 < middle)) --middle;
+    while ((middle < high - 1) && !IsValid(elements[middle])) ++middle;
+    while ((low + 1 < middle) && !IsValid(elements[middle])) --middle;
     if (!IsValid(elements[middle])) {
       break;
     }
@@ -465,14 +535,14 @@ ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::BinarySearch(
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 void InvalSet<TEMPLATE_INVALSET_P_DEF>::Sort(SortType sort_type) {
-  VIXL_ASSERT(monitor() == 0);
   if (sort_type == kSoftSort) {
     if (sorted_) {
       return;
     }
   }
+  VIXL_ASSERT(monitor() == 0);
   if (empty()) {
     return;
   }
@@ -480,14 +550,14 @@ void InvalSet<TEMPLATE_INVALSET_P_DEF>::Sort(SortType sort_type) {
   Clean();
   std::sort(StorageBegin(), StorageEnd());
 
-  set_sorted(true);
+  SetSorted(true);
   cached_min_index_ = 0;
-  cached_min_key_ = Key(Front());
+  cached_min_key_ = GetKey(Front());
   valid_cached_min_ = true;
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 void InvalSet<TEMPLATE_INVALSET_P_DEF>::Clean() {
   VIXL_ASSERT(monitor() == 0);
   if (empty() || !IsUsingVector()) {
@@ -501,17 +571,17 @@ void InvalSet<TEMPLATE_INVALSET_P_DEF>::Clean() {
   ElementType* first_valid;
   ElementType* next_invalid;
 
-  while (c < end && IsValid(*c)) { c++; }
+  while ((c < end) && IsValid(*c)) c++;
   first_invalid = c;
 
   while (c < end) {
-    while (c < end && !IsValid(*c)) { c++; }
+    while ((c < end) && !IsValid(*c)) c++;
     first_valid = c;
-    while (c < end && IsValid(*c)) { c++; }
+    while ((c < end) && IsValid(*c)) c++;
     next_invalid = c;
 
     ptrdiff_t n_moved_elements = (next_invalid - first_valid);
-    memmove(first_invalid, first_valid,  n_moved_elements * sizeof(*c));
+    memmove(first_invalid, first_valid, n_moved_elements * sizeof(*c));
     first_invalid = first_invalid + n_moved_elements;
     c = next_invalid;
   }
@@ -523,28 +593,28 @@ void InvalSet<TEMPLATE_INVALSET_P_DEF>::Clean() {
   if (sorted_) {
     valid_cached_min_ = true;
     cached_min_index_ = 0;
-    cached_min_key_ = Key(*ElementAt(0));
+    cached_min_key_ = GetKey(*GetElementAt(0));
   } else {
     valid_cached_min_ = false;
   }
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 const ElementType InvalSet<TEMPLATE_INVALSET_P_DEF>::Front() const {
   VIXL_ASSERT(!empty());
   return IsUsingVector() ? vector_->front() : preallocated_[0];
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 const ElementType InvalSet<TEMPLATE_INVALSET_P_DEF>::Back() const {
   VIXL_ASSERT(!empty());
   return IsUsingVector() ? vector_->back() : preallocated_[size_ - 1];
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 const ElementType InvalSet<TEMPLATE_INVALSET_P_DEF>::CleanBack() {
   VIXL_ASSERT(monitor() == 0);
   if (IsUsingVector()) {
@@ -559,55 +629,55 @@ const ElementType InvalSet<TEMPLATE_INVALSET_P_DEF>::CleanBack() {
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 const ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::StorageBegin() const {
   return IsUsingVector() ? &(vector_->front()) : preallocated_;
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 const ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::StorageEnd() const {
   return IsUsingVector() ? &(vector_->back()) + 1 : preallocated_ + size_;
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::StorageBegin() {
   return IsUsingVector() ? &(vector_->front()) : preallocated_;
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::StorageEnd() {
   return IsUsingVector() ? &(vector_->back()) + 1 : preallocated_ + size_;
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
-size_t InvalSet<TEMPLATE_INVALSET_P_DEF>::ElementIndex(
+template <TEMPLATE_INVALSET_P_DECL>
+size_t InvalSet<TEMPLATE_INVALSET_P_DEF>::GetElementIndex(
     const ElementType* element) const {
   VIXL_ASSERT((StorageBegin() <= element) && (element < StorageEnd()));
   return element - StorageBegin();
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
-const ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::ElementAt(
+template <TEMPLATE_INVALSET_P_DECL>
+const ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::GetElementAt(
     size_t index) const {
-  VIXL_ASSERT(
-      (IsUsingVector() && (index < vector_->size())) || (index < size_));
+  VIXL_ASSERT((IsUsingVector() && (index < vector_->size())) ||
+              (index < size_));
   return StorageBegin() + index;
 }
 
-template<TEMPLATE_INVALSET_P_DECL>
-ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::ElementAt(size_t index) {
-  VIXL_ASSERT(
-      (IsUsingVector() && (index < vector_->size())) || (index < size_));
+template <TEMPLATE_INVALSET_P_DECL>
+ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::GetElementAt(size_t index) {
+  VIXL_ASSERT((IsUsingVector() && (index < vector_->size())) ||
+              (index < size_));
   return StorageBegin() + index;
 }
 
-template<TEMPLATE_INVALSET_P_DECL>
-const ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::FirstValidElement(
+template <TEMPLATE_INVALSET_P_DECL>
+const ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::GetFirstValidElement(
     const ElementType* from, const ElementType* end) {
   while ((from < end) && !IsValid(*from)) {
     from++;
@@ -616,7 +686,7 @@ const ElementType* InvalSet<TEMPLATE_INVALSET_P_DEF>::FirstValidElement(
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 void InvalSet<TEMPLATE_INVALSET_P_DEF>::CacheMinElement() {
   VIXL_ASSERT(monitor() == 0);
   VIXL_ASSERT(!empty());
@@ -626,9 +696,9 @@ void InvalSet<TEMPLATE_INVALSET_P_DEF>::CacheMinElement() {
   }
 
   if (sorted_) {
-    const ElementType* min = FirstValidElement(StorageBegin(), StorageEnd());
-    cached_min_index_ = ElementIndex(min);
-    cached_min_key_ = Key(*min);
+    const ElementType* min = GetFirstValidElement(StorageBegin(), StorageEnd());
+    cached_min_index_ = GetElementIndex(min);
+    cached_min_key_ = GetKey(*min);
     valid_cached_min_ = true;
   } else {
     Sort(kHardSort);
@@ -637,7 +707,7 @@ void InvalSet<TEMPLATE_INVALSET_P_DEF>::CacheMinElement() {
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 bool InvalSet<TEMPLATE_INVALSET_P_DEF>::ShouldReclaimMemory() const {
   if (!IsUsingVector()) {
     return false;
@@ -648,14 +718,14 @@ bool InvalSet<TEMPLATE_INVALSET_P_DEF>::ShouldReclaimMemory() const {
 }
 
 
-template<TEMPLATE_INVALSET_P_DECL>
+template <TEMPLATE_INVALSET_P_DECL>
 void InvalSet<TEMPLATE_INVALSET_P_DEF>::ReclaimMemory() {
   VIXL_ASSERT(monitor() == 0);
   Clean();
 }
 
 
-template<class S>
+template <class S>
 InvalSetIterator<S>::InvalSetIterator(S* inval_set)
     : using_vector_((inval_set != NULL) && inval_set->IsUsingVector()),
       index_(0),
@@ -674,17 +744,15 @@ InvalSetIterator<S>::InvalSetIterator(S* inval_set)
 }
 
 
-template<class S>
+template <class S>
 InvalSetIterator<S>::~InvalSetIterator() {
 #ifdef VIXL_DEBUG
-  if (inval_set_ != NULL) {
-    inval_set_->Release();
-  }
+  if (inval_set_ != NULL) inval_set_->Release();
 #endif
 }
 
 
-template<class S>
+template <class S>
 typename S::_ElementType* InvalSetIterator<S>::Current() const {
   VIXL_ASSERT(!Done());
   if (using_vector_) {
@@ -695,22 +763,13 @@ typename S::_ElementType* InvalSetIterator<S>::Current() const {
 }
 
 
-template<class S>
+template <class S>
 void InvalSetIterator<S>::Advance() {
-  VIXL_ASSERT(!Done());
-  if (using_vector_) {
-    iterator_++;
-#ifdef VIXL_DEBUG
-    index_++;
-#endif
-    MoveToValidElement();
-  } else {
-    index_++;
-  }
+  ++(*this);
 }
 
 
-template<class S>
+template <class S>
 bool InvalSetIterator<S>::Done() const {
   if (using_vector_) {
     bool done = (iterator_ == inval_set_->vector_->end());
@@ -722,7 +781,7 @@ bool InvalSetIterator<S>::Done() const {
 }
 
 
-template<class S>
+template <class S>
 void InvalSetIterator<S>::Finish() {
   VIXL_ASSERT(inval_set_->sorted_);
   if (using_vector_) {
@@ -732,7 +791,7 @@ void InvalSetIterator<S>::Finish() {
 }
 
 
-template<class S>
+template <class S>
 void InvalSetIterator<S>::DeleteCurrentAndAdvance() {
   if (using_vector_) {
     inval_set_->EraseInternal(&(*iterator_));
@@ -743,19 +802,19 @@ void InvalSetIterator<S>::DeleteCurrentAndAdvance() {
 }
 
 
-template<class S>
+template <class S>
 bool InvalSetIterator<S>::IsValid(const ElementType& element) {
   return S::IsValid(element);
 }
 
 
-template<class S>
-typename S::_KeyType InvalSetIterator<S>::Key(const ElementType& element) {
-  return S::Key(element);
+template <class S>
+typename S::_KeyType InvalSetIterator<S>::GetKey(const ElementType& element) {
+  return S::GetKey(element);
 }
 
 
-template<class S>
+template <class S>
 void InvalSetIterator<S>::MoveToValidElement() {
   if (using_vector_) {
     while ((iterator_ != inval_set_->vector_->end()) && !IsValid(*iterator_)) {
@@ -766,6 +825,87 @@ void InvalSetIterator<S>::MoveToValidElement() {
     // Nothing to do.
   }
 }
+
+
+template <class S>
+InvalSetIterator<S>::InvalSetIterator(const InvalSetIterator<S>& other)
+    : using_vector_(other.using_vector_),
+      index_(other.index_),
+      inval_set_(other.inval_set_) {
+#ifdef VIXL_DEBUG
+  if (inval_set_ != NULL) inval_set_->Acquire();
+#endif
+}
+
+
+#if __cplusplus >= 201103L
+template <class S>
+InvalSetIterator<S>::InvalSetIterator(InvalSetIterator<S>&& other) noexcept
+    : using_vector_(false),
+      index_(0),
+      inval_set_(NULL) {
+  swap(*this, other);
+}
+#endif
+
+
+template <class S>
+InvalSetIterator<S>& InvalSetIterator<S>::operator=(InvalSetIterator<S> other) {
+  swap(*this, other);
+  return *this;
+}
+
+
+template <class S>
+bool InvalSetIterator<S>::operator==(const InvalSetIterator<S>& rhs) const {
+  bool equal = (inval_set_ == rhs.inval_set_);
+
+  // If the inval_set_ matches, using_vector_ must also match.
+  VIXL_ASSERT(!equal || (using_vector_ == rhs.using_vector_));
+
+  if (using_vector_) {
+    equal = equal && (iterator_ == rhs.iterator_);
+    // In debug mode, index_ is maintained even with using_vector_.
+    VIXL_ASSERT(!equal || (index_ == rhs.index_));
+  } else {
+    equal = equal && (index_ == rhs.index_);
+#ifdef DEBUG
+    // If not using_vector_, iterator_ should be default-initialised.
+    std::vector<ElementType>::iterator default_iterator;
+    VIXL_ASSERT(iterator_ == default_iterator);
+    VIXL_ASSERT(rhs.iterator_ == default_iterator);
+#endif
+  }
+  return equal;
+}
+
+
+template <class S>
+InvalSetIterator<S>& InvalSetIterator<S>::operator++() {
+  // Pre-increment.
+  VIXL_ASSERT(!Done());
+  if (using_vector_) {
+    iterator_++;
+#ifdef VIXL_DEBUG
+    index_++;
+#endif
+    MoveToValidElement();
+  } else {
+    index_++;
+  }
+  return *this;
+}
+
+
+template <class S>
+InvalSetIterator<S> InvalSetIterator<S>::operator++(int /* unused */) {
+  // Post-increment.
+  VIXL_ASSERT(!Done());
+  InvalSetIterator<S> old(*this);
+  ++(*this);
+  return old;
+}
+
 
 #undef TEMPLATE_INVALSET_P_DECL
 #undef TEMPLATE_INVALSET_P_DEF

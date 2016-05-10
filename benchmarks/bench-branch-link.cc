@@ -38,8 +38,12 @@ int main(int argc, char* argv[]) {
   int instructions = 0;
 
   switch (argc) {
-    case 1: instructions = kDefaultInstructionCount; break;
-    case 2: instructions = atoi(argv[1]); break;
+    case 1:
+      instructions = kDefaultInstructionCount;
+      break;
+    case 2:
+      instructions = atoi(argv[1]);
+      break;
     default:
       printf("Usage: %s [#instructions]\n", argv[0]);
       exit(1);
@@ -48,7 +52,7 @@ int main(int argc, char* argv[]) {
   MacroAssembler masm(instructions * kInstructionSize);
   InstructionAccurateScope scope(&masm, instructions);
 
-  #define __ masm.
+#define __ masm.
 
   Label target;
   for (int i = 0; i < instructions; i++) {

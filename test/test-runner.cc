@@ -47,8 +47,8 @@ bool vixl::Test::coloured_trace_ = false;
 // No instruction statistics by default.
 bool vixl::Test::instruction_stats_ = false;
 
-// Don't generate simulator test traces by default.
-bool vixl::Test::sim_test_trace_ = false;
+// Don't generate traces by default.
+bool vixl::Test::generate_test_trace_ = false;
 
 // Instantiate a Test and append it to the linked list.
 vixl::Test::Test(const char* name, TestFunction* callback)
@@ -96,18 +96,20 @@ static void NormalizeOption(char * arg) {
 static void PrintHelpMessage() {
   printf("Usage:  ./test [options] [test names]\n"
       "Run all tests specified on the command line.\n"
-      "--help              Print this help message.\n"
-      "--list              List all available tests.\n"
-      "--run_all           Run all available tests.\n"
-      "--debugger          Run in the debugger.\n"
-      "--trace_all         Enable all trace options, plus --coloured_trace.\n"
-      "--trace_sim         Generate a trace of simulated instructions, as\n"
-      "                    well as disassembly from the DISASM tests.\n"
-      "--trace_reg         Generate a trace of simulated registers.\n"
-      "--trace_write       Generate a trace of memory writes.\n"
-      "--coloured_trace    Generate coloured trace.\n"
-      "--instruction_stats Log instruction statistics to vixl_stats.csv.\n"
-      "--sim_test_trace    Print result traces for SIM_* tests.\n");
+      "--help                 Print this help message.\n"
+      "--list                 List all available tests.\n"
+      "--run_all              Run all available tests.\n"
+      "--debugger             Run in the debugger.\n"
+      "--trace_all            "
+      "Enable all trace options, plus --coloured_trace.\n"
+      "--trace_sim            Generate a trace of simulated instructions, as\n"
+      "                       well as disassembly from the DISASM tests.\n"
+      "--trace_reg            Generate a trace of simulated registers.\n"
+      "--trace_write          Generate a trace of memory writes.\n"
+      "--coloured_trace       Generate coloured trace.\n"
+      "--instruction_stats    Log instruction statistics to vixl_stats.csv.\n"
+      "--generate_test_trace  "
+      "Print result traces for SIM_* and TRACE_* tests.\n");
 }
 
 int main(int argc, char* argv[]) {
@@ -157,8 +159,8 @@ int main(int argc, char* argv[]) {
     vixl::Test::set_instruction_stats(true);
   }
 
-  if (IsInArgs("--sim-test-trace", argc, argv)) {
-    vixl::Test::set_sim_test_trace(true);
+  if (IsInArgs("--generate-test-trace", argc, argv)) {
+    vixl::Test::set_generate_test_trace(true);
   }
 
   // Basic (mutually-exclusive) operations.

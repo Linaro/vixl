@@ -53,8 +53,10 @@ namespace vixl {
 // Callers should use FPRoundToFloat or FPRoundToDouble directly, rather than
 // calling a templated FPRound.
 template <class T, int ebits, int mbits>
-T FPRound(int64_t sign, int64_t exponent, uint64_t mantissa,
-                 FPRounding round_mode) {
+T FPRound(int64_t sign,
+          int64_t exponent,
+          uint64_t mantissa,
+          FPRounding round_mode) {
   VIXL_ASSERT((sign == 0) || (sign == 1));
 
   // Only FPTieEven and FPRoundOdd rounding modes are implemented.
@@ -191,14 +193,14 @@ T FPRound(int64_t sign, int64_t exponent, uint64_t mantissa,
       // We have to shift the mantissa to the right. Some precision is lost, so
       // we need to apply rounding.
       uint64_t onebit_mantissa = (mantissa >> (shift)) & 1;
-      uint64_t halfbit_mantissa = (mantissa >> (shift-1)) & 1;
+      uint64_t halfbit_mantissa = (mantissa >> (shift - 1)) & 1;
       uint64_t adjustment = (halfbit_mantissa & ~onebit_mantissa);
       uint64_t adjusted = mantissa - adjustment;
-      T halfbit_adjusted = (adjusted >> (shift-1)) & 1;
+      T halfbit_adjusted = (adjusted >> (shift - 1)) & 1;
 
-      T result = static_cast<T>((sign << sign_offset) |
-                                (exponent << exponent_offset) |
-                                ((mantissa >> shift) << mantissa_offset));
+      T result =
+          static_cast<T>((sign << sign_offset) | (exponent << exponent_offset) |
+                         ((mantissa >> shift) << mantissa_offset));
 
       // A very large mantissa can overflow during rounding. If this happens,
       // the exponent should be incremented and the mantissa set to 1.0
@@ -251,7 +253,7 @@ class Memory {
     VIXL_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
                 (sizeof(value) == 4) || (sizeof(value) == 8) ||
                 (sizeof(value) == 16));
-    memcpy(&value, reinterpret_cast<const char *>(address), sizeof(value));
+    memcpy(&value, reinterpret_cast<const char*>(address), sizeof(value));
     return value;
   }
 
@@ -261,18 +263,18 @@ class Memory {
     VIXL_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
                 (sizeof(value) == 4) || (sizeof(value) == 8) ||
                 (sizeof(value) == 16));
-    memcpy(reinterpret_cast<char *>(address), &value, sizeof(value));
+    memcpy(reinterpret_cast<char*>(address), &value, sizeof(value));
   }
 };
 
 // Represent a register (r0-r31, v0-v31).
-template<int kSizeInBytes>
+template <int kSizeInBytes>
 class SimRegisterBase {
  public:
   SimRegisterBase() : written_since_last_log_(false) {}
 
   // Write the specified value. The value is zero-extended if necessary.
-  template<typename T>
+  template <typename T>
   void Set(T new_value) {
     VIXL_STATIC_ASSERT(sizeof(new_value) <= kSizeInBytes);
     if (sizeof(new_value) < kSizeInBytes) {
@@ -287,17 +289,17 @@ class SimRegisterBase {
   // unchanged. The lane parameter indicates where in the register the value
   // should be inserted, in the range [ 0, sizeof(value_) / sizeof(T) ), where
   // 0 represents the least significant bits.
-  template<typename T>
+  template <typename T>
   void Insert(int lane, T new_value) {
     VIXL_ASSERT(lane >= 0);
-    VIXL_ASSERT((sizeof(new_value) +
-                 (lane * sizeof(new_value))) <= kSizeInBytes);
+    VIXL_ASSERT((sizeof(new_value) + (lane * sizeof(new_value))) <=
+                kSizeInBytes);
     memcpy(&value_[lane * sizeof(new_value)], &new_value, sizeof(new_value));
     NotifyRegisterWrite();
   }
 
   // Read the value as the specified type. The value is truncated if necessary.
-  template<typename T>
+  template <typename T>
   T Get(int lane = 0) const {
     T result;
     VIXL_ASSERT(lane >= 0);
@@ -309,13 +311,9 @@ class SimRegisterBase {
   // TODO: Make this return a map of updated bytes, so that we can highlight
   // updated lanes for load-and-insert. (That never happens for scalar code, but
   // NEON has some instructions that can update individual lanes.)
-  bool WrittenSinceLastLog() const {
-    return written_since_last_log_;
-  }
+  bool WrittenSinceLastLog() const { return written_since_last_log_; }
 
-  void NotifyRegisterLogged() {
-    written_since_last_log_ = false;
-  }
+  void NotifyRegisterLogged() { written_since_last_log_ = false; }
 
  protected:
   uint8_t value_[kSizeInBytes];
@@ -323,12 +321,10 @@ class SimRegisterBase {
   // Helpers to aid with register tracing.
   bool written_since_last_log_;
 
-  void NotifyRegisterWrite() {
-    written_since_last_log_ = true;
-  }
+  void NotifyRegisterWrite() { written_since_last_log_ = true; }
 };
-typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;      // r0-r31
-typedef SimRegisterBase<kQRegSizeInBytes> SimVRegister;     // v0-v31
+typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;   // r0-r31
+typedef SimRegisterBase<kQRegSizeInBytes> SimVRegister;  // v0-v31
 
 // Representation of a vector register, with typed getters and setters for lanes
 // and additional information to represent lane state.
@@ -347,11 +343,21 @@ class LogicVRegister {
   int64_t Int(VectorFormat vform, int index) const {
     int64_t element;
     switch (LaneSizeInBitsFromFormat(vform)) {
-      case 8: element = register_.Get<int8_t>(index); break;
-      case 16: element = register_.Get<int16_t>(index); break;
-      case 32: element = register_.Get<int32_t>(index); break;
-      case 64: element = register_.Get<int64_t>(index); break;
-      default: VIXL_UNREACHABLE(); return 0;
+      case 8:
+        element = register_.Get<int8_t>(index);
+        break;
+      case 16:
+        element = register_.Get<int16_t>(index);
+        break;
+      case 32:
+        element = register_.Get<int32_t>(index);
+        break;
+      case 64:
+        element = register_.Get<int64_t>(index);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return 0;
     }
     return element;
   }
@@ -359,11 +365,21 @@ class LogicVRegister {
   uint64_t Uint(VectorFormat vform, int index) const {
     uint64_t element;
     switch (LaneSizeInBitsFromFormat(vform)) {
-      case 8: element = register_.Get<uint8_t>(index); break;
-      case 16: element = register_.Get<uint16_t>(index); break;
-      case 32: element = register_.Get<uint32_t>(index); break;
-      case 64: element = register_.Get<uint64_t>(index); break;
-      default: VIXL_UNREACHABLE(); return 0;
+      case 8:
+        element = register_.Get<uint8_t>(index);
+        break;
+      case 16:
+        element = register_.Get<uint16_t>(index);
+        break;
+      case 32:
+        element = register_.Get<uint32_t>(index);
+        break;
+      case 64:
+        element = register_.Get<uint64_t>(index);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return 0;
     }
     return element;
   }
@@ -378,41 +394,79 @@ class LogicVRegister {
 
   void SetInt(VectorFormat vform, int index, int64_t value) const {
     switch (LaneSizeInBitsFromFormat(vform)) {
-      case 8: register_.Insert(index, static_cast<int8_t>(value)); break;
-      case 16: register_.Insert(index, static_cast<int16_t>(value)); break;
-      case 32: register_.Insert(index, static_cast<int32_t>(value)); break;
-      case 64: register_.Insert(index, static_cast<int64_t>(value)); break;
-      default: VIXL_UNREACHABLE(); return;
+      case 8:
+        register_.Insert(index, static_cast<int8_t>(value));
+        break;
+      case 16:
+        register_.Insert(index, static_cast<int16_t>(value));
+        break;
+      case 32:
+        register_.Insert(index, static_cast<int32_t>(value));
+        break;
+      case 64:
+        register_.Insert(index, static_cast<int64_t>(value));
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return;
     }
   }
 
   void SetUint(VectorFormat vform, int index, uint64_t value) const {
     switch (LaneSizeInBitsFromFormat(vform)) {
-      case 8: register_.Insert(index, static_cast<uint8_t>(value)); break;
-      case 16: register_.Insert(index, static_cast<uint16_t>(value)); break;
-      case 32: register_.Insert(index, static_cast<uint32_t>(value)); break;
-      case 64: register_.Insert(index, static_cast<uint64_t>(value)); break;
-      default: VIXL_UNREACHABLE(); return;
+      case 8:
+        register_.Insert(index, static_cast<uint8_t>(value));
+        break;
+      case 16:
+        register_.Insert(index, static_cast<uint16_t>(value));
+        break;
+      case 32:
+        register_.Insert(index, static_cast<uint32_t>(value));
+        break;
+      case 64:
+        register_.Insert(index, static_cast<uint64_t>(value));
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return;
     }
   }
 
   void ReadUintFromMem(VectorFormat vform, int index, uint64_t addr) const {
     switch (LaneSizeInBitsFromFormat(vform)) {
-      case 8: register_.Insert(index, Memory::Read<uint8_t>(addr)); break;
-      case 16: register_.Insert(index, Memory::Read<uint16_t>(addr)); break;
-      case 32: register_.Insert(index, Memory::Read<uint32_t>(addr)); break;
-      case 64: register_.Insert(index, Memory::Read<uint64_t>(addr)); break;
-      default: VIXL_UNREACHABLE(); return;
+      case 8:
+        register_.Insert(index, Memory::Read<uint8_t>(addr));
+        break;
+      case 16:
+        register_.Insert(index, Memory::Read<uint16_t>(addr));
+        break;
+      case 32:
+        register_.Insert(index, Memory::Read<uint32_t>(addr));
+        break;
+      case 64:
+        register_.Insert(index, Memory::Read<uint64_t>(addr));
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return;
     }
   }
 
   void WriteUintToMem(VectorFormat vform, int index, uint64_t addr) const {
     uint64_t value = Uint(vform, index);
     switch (LaneSizeInBitsFromFormat(vform)) {
-      case 8: Memory::Write(addr, static_cast<uint8_t>(value)); break;
-      case 16: Memory::Write(addr, static_cast<uint16_t>(value)); break;
-      case 32: Memory::Write(addr, static_cast<uint32_t>(value)); break;
-      case 64: Memory::Write(addr, value); break;
+      case 8:
+        Memory::Write(addr, static_cast<uint8_t>(value));
+        break;
+      case 16:
+        Memory::Write(addr, static_cast<uint16_t>(value));
+        break;
+      case 32:
+        Memory::Write(addr, static_cast<uint32_t>(value));
+        break;
+      case 64:
+        Memory::Write(addr, value);
+        break;
     }
   }
 
@@ -458,9 +512,7 @@ class LogicVRegister {
   }
 
   // Setters for saturation state.
-  void ClearSat(int index) {
-    saturated_[index] = kNotSaturated;
-  }
+  void ClearSat(int index) { saturated_[index] = kNotSaturated; }
 
   void SetSignedSat(int index, bool positive) {
     SetSatFlag(index, positive ? kSignedSatPositive : kSignedSatNegative);
@@ -502,14 +554,10 @@ class LogicVRegister {
   }
 
   // Getter for rounding state.
-  bool GetRounding(int index) {
-    return round_[index];
-  }
+  bool GetRounding(int index) { return round_[index]; }
 
   // Setter for rounding state.
-  void SetRounding(int index, bool round) {
-    round_[index] = round;
-  }
+  void SetRounding(int index, bool round) { round_[index] = round; }
 
   // Round lanes of a vector based on rounding state.
   LogicVRegister& Round(VectorFormat vform) {
@@ -570,11 +618,9 @@ class SimSystemRegister {
  public:
   // The default constructor represents a register which has no writable bits.
   // It is not possible to set its value to anything other than 0.
-  SimSystemRegister() : value_(0), write_ignore_mask_(0xffffffff) { }
+  SimSystemRegister() : value_(0), write_ignore_mask_(0xffffffff) {}
 
-  uint32_t RawValue() const {
-    return value_;
-  }
+  uint32_t RawValue() const { return value_; }
 
   void SetRawValue(uint32_t new_value) {
     value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
@@ -593,10 +639,10 @@ class SimSystemRegister {
   // Default system register values.
   static SimSystemRegister DefaultValueFor(SystemRegister id);
 
-#define DEFINE_GETTER(Name, HighBit, LowBit, Func)                            \
-  uint32_t Name() const { return Func(HighBit, LowBit); }              \
+#define DEFINE_GETTER(Name, HighBit, LowBit, Func)        \
+  uint32_t Name() const { return Func(HighBit, LowBit); } \
   void Set##Name(uint32_t bits) { SetBits(HighBit, LowBit, bits); }
-#define DEFINE_WRITE_IGNORE_MASK(Name, Mask)                                  \
+#define DEFINE_WRITE_IGNORE_MASK(Name, Mask) \
   static const uint32_t Name##WriteIgnoreMask = ~static_cast<uint32_t>(Mask);
 
   SYSTEM_REGISTER_FIELDS_LIST(DEFINE_GETTER, DEFINE_WRITE_IGNORE_MASK)
@@ -609,7 +655,7 @@ class SimSystemRegister {
   // bits are "read-as-zero, write-ignored". The write_ignore_mask argument
   // describes the bits which are not modifiable.
   SimSystemRegister(uint32_t value, uint32_t write_ignore_mask)
-      : value_(value), write_ignore_mask_(write_ignore_mask) { }
+      : value_(value), write_ignore_mask_(write_ignore_mask) {}
 
   uint32_t value_;
   uint32_t write_ignore_mask_;
@@ -694,6 +740,9 @@ class Simulator : public DecoderVisitor {
   virtual void Run();
   void RunFrom(const Instruction* first);
 
+  // Execution ends when the PC hits this address.
+  static const Instruction* kEndOfSimAddress;
+
   // Simulation helpers.
   const Instruction* pc() const { return pc_; }
   void set_pc(const Instruction* new_pc) {
@@ -705,32 +754,32 @@ class Simulator : public DecoderVisitor {
     if (!pc_modified_) {
       pc_ = pc_->NextInstruction();
     }
-
-    pc_modified_ = false;
   }
 
   void ExecuteInstruction() {
     // The program counter should always be aligned.
     VIXL_ASSERT(IsWordAligned(pc_));
+    pc_modified_ = false;
     decoder_->Decode(pc_);
     increment_pc();
+    LogAllWrittenRegisters();
   }
 
-  // Declare all Visitor functions.
-  #define DECLARE(A) virtual void Visit##A(const Instruction* instr);
+// Declare all Visitor functions.
+#define DECLARE(A) virtual void Visit##A(const Instruction* instr);
   VISITOR_LIST_THAT_RETURN(DECLARE)
-  #undef DECLARE
+#undef DECLARE
 
-  #define DECLARE(A) \
-      VIXL_DEBUG_NO_RETURN virtual void Visit##A(const Instruction* instr);
+#define DECLARE(A) \
+  VIXL_DEBUG_NO_RETURN virtual void Visit##A(const Instruction* instr);
   VISITOR_LIST_THAT_DONT_RETURN(DECLARE)
-  #undef DECLARE
+#undef DECLARE
 
 
   // Integer register accessors.
 
   // Basic accessor: Read the register as the specified type.
-  template<typename T>
+  template <typename T>
   T reg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
     VIXL_ASSERT(code < kNumberOfRegisters);
     if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
@@ -742,25 +791,28 @@ class Simulator : public DecoderVisitor {
   }
 
   // Common specialized accessors for the reg() template.
-  int32_t wreg(unsigned code,
-               Reg31Mode r31mode = Reg31IsZeroRegister) const {
+  int32_t wreg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
     return reg<int32_t>(code, r31mode);
   }
 
-  int64_t xreg(unsigned code,
-               Reg31Mode r31mode = Reg31IsZeroRegister) const {
+  int64_t xreg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
     return reg<int64_t>(code, r31mode);
   }
 
   // As above, with parameterized size and return type. The value is
   // either zero-extended or truncated to fit, as required.
-  template<typename T>
-  T reg(unsigned size, unsigned code,
+  template <typename T>
+  T reg(unsigned size,
+        unsigned code,
         Reg31Mode r31mode = Reg31IsZeroRegister) const {
     uint64_t raw;
     switch (size) {
-      case kWRegSize: raw = reg<uint32_t>(code, r31mode); break;
-      case kXRegSize: raw = reg<uint64_t>(code, r31mode); break;
+      case kWRegSize:
+        raw = reg<uint32_t>(code, r31mode);
+        break;
+      case kXRegSize:
+        raw = reg<uint64_t>(code, r31mode);
+        break;
       default:
         VIXL_UNREACHABLE();
         return 0;
@@ -774,20 +826,19 @@ class Simulator : public DecoderVisitor {
   }
 
   // Use int64_t by default if T is not specified.
-  int64_t reg(unsigned size, unsigned code,
+  int64_t reg(unsigned size,
+              unsigned code,
               Reg31Mode r31mode = Reg31IsZeroRegister) const {
     return reg<int64_t>(size, code, r31mode);
   }
 
-  enum RegLogMode {
-    LogRegWrites,
-    NoRegLog
-  };
+  enum RegLogMode { LogRegWrites, NoRegLog };
 
   // Write 'value' into an integer register. The value is zero-extended. This
   // behaviour matches AArch64 register writes.
-  template<typename T>
-  void set_reg(unsigned code, T value,
+  template <typename T>
+  void set_reg(unsigned code,
+               T value,
                RegLogMode log_mode = LogRegWrites,
                Reg31Mode r31mode = Reg31IsZeroRegister) {
     VIXL_STATIC_ASSERT((sizeof(T) == kWRegSizeInBytes) ||
@@ -804,13 +855,15 @@ class Simulator : public DecoderVisitor {
   }
 
   // Common specialized accessors for the set_reg() template.
-  void set_wreg(unsigned code, int32_t value,
+  void set_wreg(unsigned code,
+                int32_t value,
                 RegLogMode log_mode = LogRegWrites,
                 Reg31Mode r31mode = Reg31IsZeroRegister) {
     set_reg(code, value, log_mode, r31mode);
   }
 
-  void set_xreg(unsigned code, int64_t value,
+  void set_xreg(unsigned code,
+                int64_t value,
                 RegLogMode log_mode = LogRegWrites,
                 Reg31Mode r31mode = Reg31IsZeroRegister) {
     set_reg(code, value, log_mode, r31mode);
@@ -818,8 +871,10 @@ class Simulator : public DecoderVisitor {
 
   // As above, with parameterized size and type. The value is either
   // zero-extended or truncated to fit, as required.
-  template<typename T>
-  void set_reg(unsigned size, unsigned code, T value,
+  template <typename T>
+  void set_reg(unsigned size,
+               unsigned code,
+               T value,
                RegLogMode log_mode = LogRegWrites,
                Reg31Mode r31mode = Reg31IsZeroRegister) {
     // Zero-extend the input.
@@ -844,12 +899,12 @@ class Simulator : public DecoderVisitor {
   // Common specialized accessors for the set_reg() template.
 
   // Commonly-used special cases.
-  template<typename T>
+  template <typename T>
   void set_lr(T value) {
     set_reg(kLinkRegCode, value);
   }
 
-  template<typename T>
+  template <typename T>
   void set_sp(T value) {
     set_reg(31, value, LogRegWrites, Reg31IsStackPointer);
   }
@@ -859,60 +914,51 @@ class Simulator : public DecoderVisitor {
   // registers.
 
   // A structure for representing a 128-bit Q register.
-  struct qreg_t { uint8_t val[kQRegSizeInBytes]; };
+  struct qreg_t {
+    uint8_t val[kQRegSizeInBytes];
+  };
 
   // Basic accessor: read the register as the specified type.
-  template<typename T>
+  template <typename T>
   T vreg(unsigned code) const {
-    VIXL_STATIC_ASSERT((sizeof(T) == kBRegSizeInBytes) ||
-                       (sizeof(T) == kHRegSizeInBytes) ||
-                       (sizeof(T) == kSRegSizeInBytes) ||
-                       (sizeof(T) == kDRegSizeInBytes) ||
-                       (sizeof(T) == kQRegSizeInBytes));
+    VIXL_STATIC_ASSERT(
+        (sizeof(T) == kBRegSizeInBytes) || (sizeof(T) == kHRegSizeInBytes) ||
+        (sizeof(T) == kSRegSizeInBytes) || (sizeof(T) == kDRegSizeInBytes) ||
+        (sizeof(T) == kQRegSizeInBytes));
     VIXL_ASSERT(code < kNumberOfVRegisters);
 
     return vregisters_[code].Get<T>();
   }
 
   // Common specialized accessors for the vreg() template.
-  int8_t breg(unsigned code) const {
-    return vreg<int8_t>(code);
-  }
+  int8_t breg(unsigned code) const { return vreg<int8_t>(code); }
 
-  int16_t hreg(unsigned code) const {
-    return vreg<int16_t>(code);
-  }
+  int16_t hreg(unsigned code) const { return vreg<int16_t>(code); }
 
-  float sreg(unsigned code) const {
-    return vreg<float>(code);
-  }
+  float sreg(unsigned code) const { return vreg<float>(code); }
 
-  uint32_t sreg_bits(unsigned code) const {
-    return vreg<uint32_t>(code);
-  }
+  uint32_t sreg_bits(unsigned code) const { return vreg<uint32_t>(code); }
 
-  double dreg(unsigned code) const {
-    return vreg<double>(code);
-  }
+  double dreg(unsigned code) const { return vreg<double>(code); }
 
-  uint64_t dreg_bits(unsigned code) const {
-    return vreg<uint64_t>(code);
-  }
+  uint64_t dreg_bits(unsigned code) const { return vreg<uint64_t>(code); }
 
-  qreg_t qreg(unsigned code)  const {
-    return vreg<qreg_t>(code);
-  }
+  qreg_t qreg(unsigned code) const { return vreg<qreg_t>(code); }
 
   // As above, with parameterized size and return type. The value is
   // either zero-extended or truncated to fit, as required.
-  template<typename T>
+  template <typename T>
   T vreg(unsigned size, unsigned code) const {
     uint64_t raw = 0;
     T result;
 
     switch (size) {
-      case kSRegSize: raw = vreg<uint32_t>(code); break;
-      case kDRegSize: raw = vreg<uint64_t>(code); break;
+      case kSRegSize:
+        raw = vreg<uint32_t>(code);
+        break;
+      case kDRegSize:
+        raw = vreg<uint64_t>(code);
+        break;
       default:
         VIXL_UNREACHABLE();
         break;
@@ -924,14 +970,11 @@ class Simulator : public DecoderVisitor {
     return result;
   }
 
-  inline SimVRegister& vreg(unsigned code) {
-    return vregisters_[code];
-  }
+  inline SimVRegister& vreg(unsigned code) { return vregisters_[code]; }
 
   // Basic accessor: Write the specified value.
-  template<typename T>
-  void set_vreg(unsigned code, T value,
-                RegLogMode log_mode = LogRegWrites) {
+  template <typename T>
+  void set_vreg(unsigned code, T value, RegLogMode log_mode = LogRegWrites) {
     VIXL_STATIC_ASSERT((sizeof(value) == kBRegSizeInBytes) ||
                        (sizeof(value) == kHRegSizeInBytes) ||
                        (sizeof(value) == kSRegSizeInBytes) ||
@@ -946,37 +989,44 @@ class Simulator : public DecoderVisitor {
   }
 
   // Common specialized accessors for the set_vreg() template.
-  void set_breg(unsigned code, int8_t value,
+  void set_breg(unsigned code,
+                int8_t value,
                 RegLogMode log_mode = LogRegWrites) {
     set_vreg(code, value, log_mode);
   }
 
-  void set_hreg(unsigned code, int16_t value,
+  void set_hreg(unsigned code,
+                int16_t value,
                 RegLogMode log_mode = LogRegWrites) {
     set_vreg(code, value, log_mode);
   }
 
-  void set_sreg(unsigned code, float value,
+  void set_sreg(unsigned code,
+                float value,
                 RegLogMode log_mode = LogRegWrites) {
     set_vreg(code, value, log_mode);
   }
 
-  void set_sreg_bits(unsigned code, uint32_t value,
+  void set_sreg_bits(unsigned code,
+                     uint32_t value,
+                     RegLogMode log_mode = LogRegWrites) {
+    set_vreg(code, value, log_mode);
+  }
+
+  void set_dreg(unsigned code,
+                double value,
                 RegLogMode log_mode = LogRegWrites) {
     set_vreg(code, value, log_mode);
   }
 
-  void set_dreg(unsigned code, double value,
-                RegLogMode log_mode = LogRegWrites) {
+  void set_dreg_bits(unsigned code,
+                     uint64_t value,
+                     RegLogMode log_mode = LogRegWrites) {
     set_vreg(code, value, log_mode);
   }
 
-  void set_dreg_bits(unsigned code, uint64_t value,
-                RegLogMode log_mode = LogRegWrites) {
-    set_vreg(code, value, log_mode);
-  }
-
-  void set_qreg(unsigned code, qreg_t value,
+  void set_qreg(unsigned code,
+                qreg_t value,
                 RegLogMode log_mode = LogRegWrites) {
     set_vreg(code, value, log_mode);
   }
@@ -1080,9 +1130,13 @@ class Simulator : public DecoderVisitor {
 
   PrintRegisterFormat GetPrintRegisterFormatForSizeFP(unsigned size) {
     switch (size) {
-      default: VIXL_UNREACHABLE(); return kPrintDReg;
-      case kDRegSizeInBytes: return kPrintDReg;
-      case kSRegSizeInBytes: return kPrintSReg;
+      default:
+        VIXL_UNREACHABLE();
+        return kPrintDReg;
+      case kDRegSizeInBytes:
+        return kPrintDReg;
+      case kSRegSizeInBytes:
+        return kPrintSReg;
     }
   }
 
@@ -1094,7 +1148,7 @@ class Simulator : public DecoderVisitor {
     return format;
   }
 
-  template<typename T>
+  template <typename T>
   PrintRegisterFormat GetPrintRegisterFormat(T value) {
     return GetPrintRegisterFormatForSize(sizeof(value));
   }
@@ -1110,6 +1164,7 @@ class Simulator : public DecoderVisitor {
   }
 
   PrintRegisterFormat GetPrintRegisterFormat(VectorFormat vform);
+  PrintRegisterFormat GetPrintRegisterFormatFP(VectorFormat vform);
 
   // Print all registers of the specified types.
   void PrintRegisters();
@@ -1149,44 +1204,60 @@ class Simulator : public DecoderVisitor {
   }
 
   // Print memory accesses.
-  void PrintRead(uintptr_t address, unsigned reg_code,
+  void PrintRead(uintptr_t address,
+                 unsigned reg_code,
                  PrintRegisterFormat format);
-  void PrintWrite(uintptr_t address, unsigned reg_code,
-                 PrintRegisterFormat format);
-  void PrintVRead(uintptr_t address, unsigned reg_code,
-                  PrintRegisterFormat format, unsigned lane);
-  void PrintVWrite(uintptr_t address, unsigned reg_code,
-                   PrintRegisterFormat format, unsigned lane);
+  void PrintWrite(uintptr_t address,
+                  unsigned reg_code,
+                  PrintRegisterFormat format);
+  void PrintVRead(uintptr_t address,
+                  unsigned reg_code,
+                  PrintRegisterFormat format,
+                  unsigned lane);
+  void PrintVWrite(uintptr_t address,
+                   unsigned reg_code,
+                   PrintRegisterFormat format,
+                   unsigned lane);
 
   // Like Print* (above), but respect trace_parameters().
-  void LogRead(uintptr_t address, unsigned reg_code,
+  void LogRead(uintptr_t address,
+               unsigned reg_code,
                PrintRegisterFormat format) {
     if (trace_parameters() & LOG_REGS) PrintRead(address, reg_code, format);
   }
-  void LogWrite(uintptr_t address, unsigned reg_code,
+  void LogWrite(uintptr_t address,
+                unsigned reg_code,
                 PrintRegisterFormat format) {
     if (trace_parameters() & LOG_WRITE) PrintWrite(address, reg_code, format);
   }
-  void LogVRead(uintptr_t address, unsigned reg_code,
-                PrintRegisterFormat format, unsigned lane = 0) {
+  void LogVRead(uintptr_t address,
+                unsigned reg_code,
+                PrintRegisterFormat format,
+                unsigned lane = 0) {
     if (trace_parameters() & LOG_VREGS) {
       PrintVRead(address, reg_code, format, lane);
     }
   }
-  void LogVWrite(uintptr_t address, unsigned reg_code,
-                 PrintRegisterFormat format, unsigned lane = 0) {
+  void LogVWrite(uintptr_t address,
+                 unsigned reg_code,
+                 PrintRegisterFormat format,
+                 unsigned lane = 0) {
     if (trace_parameters() & LOG_WRITE) {
       PrintVWrite(address, reg_code, format, lane);
     }
   }
 
   // Helper functions for register tracing.
-  void PrintRegisterRawHelper(unsigned code, Reg31Mode r31mode,
+  void PrintRegisterRawHelper(unsigned code,
+                              Reg31Mode r31mode,
                               int size_in_bytes = kXRegSizeInBytes);
-  void PrintVRegisterRawHelper(unsigned code, int bytes = kQRegSizeInBytes,
+  void PrintVRegisterRawHelper(unsigned code,
+                               int bytes = kQRegSizeInBytes,
                                int lsb = 0);
-  void PrintVRegisterFPHelper(unsigned code, unsigned lane_size_in_bytes,
-                              int lane_count = 1, int rightmost_lane = 0);
+  void PrintVRegisterFPHelper(unsigned code,
+                              unsigned lane_size_in_bytes,
+                              int lane_count = 1,
+                              int rightmost_lane = 0);
 
   VIXL_NO_RETURN void DoUnreachable(const Instruction* instr);
   void DoTrace(const Instruction* instr);
@@ -1210,9 +1281,7 @@ class Simulator : public DecoderVisitor {
 
   // Clear the simulated local monitor to force the next store-exclusive
   // instruction to fail.
-  void ClearLocalMonitor() {
-    local_monitor_.Clear();
-  }
+  void ClearLocalMonitor() { local_monitor_.Clear(); }
 
   void SilenceExclusiveAccessWarning() {
     print_exclusive_access_warning_ = false;
@@ -1276,9 +1345,7 @@ class Simulator : public DecoderVisitor {
     return ConditionPassed(static_cast<Condition>(cond));
   }
 
-  bool ConditionFailed(Condition cond) {
-    return !ConditionPassed(cond);
-  }
+  bool ConditionFailed(Condition cond) { return !ConditionPassed(cond); }
 
   void AddSubHelper(const Instruction* instr, int64_t op2);
   uint64_t AddWithCarry(unsigned reg_size,
@@ -1300,9 +1367,7 @@ class Simulator : public DecoderVisitor {
   void NEONLoadStoreSingleStructHelper(const Instruction* instr,
                                        AddrMode addr_mode);
 
-  uint64_t AddressUntag(uint64_t address) {
-    return address & ~kAddressTagMask;
-  }
+  uint64_t AddressUntag(uint64_t address) { return address & ~kAddressTagMask; }
 
   template <typename T>
   T* AddressUntag(T* address) {
@@ -1324,16 +1389,9 @@ class Simulator : public DecoderVisitor {
                       unsigned left_shift = 0);
   uint16_t PolynomialMult(uint8_t op1, uint8_t op2);
 
-  void ld1(VectorFormat vform,
-           LogicVRegister dst,
-           uint64_t addr);
-  void ld1(VectorFormat vform,
-           LogicVRegister dst,
-           int index,
-           uint64_t addr);
-  void ld1r(VectorFormat vform,
-            LogicVRegister dst,
-            uint64_t addr);
+  void ld1(VectorFormat vform, LogicVRegister dst, uint64_t addr);
+  void ld1(VectorFormat vform, LogicVRegister dst, int index, uint64_t addr);
+  void ld1r(VectorFormat vform, LogicVRegister dst, uint64_t addr);
   void ld2(VectorFormat vform,
            LogicVRegister dst1,
            LogicVRegister dst2,
@@ -1344,9 +1402,9 @@ class Simulator : public DecoderVisitor {
            int index,
            uint64_t addr);
   void ld2r(VectorFormat vform,
-           LogicVRegister dst1,
-           LogicVRegister dst2,
-           uint64_t addr);
+            LogicVRegister dst1,
+            LogicVRegister dst2,
+            uint64_t addr);
   void ld3(VectorFormat vform,
            LogicVRegister dst1,
            LogicVRegister dst2,
@@ -1359,10 +1417,10 @@ class Simulator : public DecoderVisitor {
            int index,
            uint64_t addr);
   void ld3r(VectorFormat vform,
-           LogicVRegister dst1,
-           LogicVRegister dst2,
-           LogicVRegister dst3,
-           uint64_t addr);
+            LogicVRegister dst1,
+            LogicVRegister dst2,
+            LogicVRegister dst3,
+            uint64_t addr);
   void ld4(VectorFormat vform,
            LogicVRegister dst1,
            LogicVRegister dst2,
@@ -1377,18 +1435,13 @@ class Simulator : public DecoderVisitor {
            int index,
            uint64_t addr);
   void ld4r(VectorFormat vform,
-           LogicVRegister dst1,
-           LogicVRegister dst2,
-           LogicVRegister dst3,
-           LogicVRegister dst4,
-           uint64_t addr);
-  void st1(VectorFormat vform,
-           LogicVRegister src,
-           uint64_t addr);
-  void st1(VectorFormat vform,
-           LogicVRegister src,
-           int index,
-           uint64_t addr);
+            LogicVRegister dst1,
+            LogicVRegister dst2,
+            LogicVRegister dst3,
+            LogicVRegister dst4,
+            uint64_t addr);
+  void st1(VectorFormat vform, LogicVRegister src, uint64_t addr);
+  void st1(VectorFormat vform, LogicVRegister src, int index, uint64_t addr);
   void st2(VectorFormat vform,
            LogicVRegister src,
            LogicVRegister src2,
@@ -1707,12 +1760,8 @@ class Simulator : public DecoderVisitor {
   LogicVRegister dup_immediate(VectorFormat vform,
                                LogicVRegister dst,
                                uint64_t imm);
-  LogicVRegister movi(VectorFormat vform,
-                      LogicVRegister dst,
-                      uint64_t imm);
-  LogicVRegister mvni(VectorFormat vform,
-                      LogicVRegister dst,
-                      uint64_t imm);
+  LogicVRegister movi(VectorFormat vform, LogicVRegister dst, uint64_t imm);
+  LogicVRegister mvni(VectorFormat vform, LogicVRegister dst, uint64_t imm);
   LogicVRegister orr(VectorFormat vform,
                      LogicVRegister dst,
                      const LogicVRegister& src,
@@ -1731,13 +1780,13 @@ class Simulator : public DecoderVisitor {
                          const LogicVRegister& src2,
                          bool max);
   LogicVRegister smax(VectorFormat vform,
-                     LogicVRegister dst,
-                     const LogicVRegister& src1,
-                     const LogicVRegister& src2);
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2);
   LogicVRegister smin(VectorFormat vform,
-                     LogicVRegister dst,
-                     const LogicVRegister& src1,
-                     const LogicVRegister& src2);
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2);
   LogicVRegister sminmaxp(VectorFormat vform,
                           LogicVRegister dst,
                           int dst_index,
@@ -1862,9 +1911,9 @@ class Simulator : public DecoderVisitor {
                         const LogicVRegister& src1,
                         const LogicVRegister& src2);
   LogicVRegister usubl(VectorFormat vform,
-                         LogicVRegister dst,
-                         const LogicVRegister& src1,
-                         const LogicVRegister& src2);
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2);
   LogicVRegister usubl2(VectorFormat vform,
                         LogicVRegister dst,
                         const LogicVRegister& src1,
@@ -1899,13 +1948,13 @@ class Simulator : public DecoderVisitor {
                          const LogicVRegister& src2,
                          bool max);
   LogicVRegister umax(VectorFormat vform,
-                     LogicVRegister dst,
-                     const LogicVRegister& src1,
-                     const LogicVRegister& src2);
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2);
   LogicVRegister umin(VectorFormat vform,
-                     LogicVRegister dst,
-                     const LogicVRegister& src1,
-                     const LogicVRegister& src2);
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2);
   LogicVRegister uminmaxp(VectorFormat vform,
                           LogicVRegister dst,
                           int dst_index,
@@ -2022,11 +2071,11 @@ class Simulator : public DecoderVisitor {
                        const LogicVRegister& src,
                        int shift);
   LogicVRegister suqadd(VectorFormat vform,
-                       LogicVRegister dst,
-                       const LogicVRegister& src);
+                        LogicVRegister dst,
+                        const LogicVRegister& src);
   LogicVRegister usqadd(VectorFormat vform,
-                       LogicVRegister dst,
-                       const LogicVRegister& src);
+                        LogicVRegister dst,
+                        const LogicVRegister& src);
   LogicVRegister sqshl(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src,
@@ -2080,9 +2129,9 @@ class Simulator : public DecoderVisitor {
                       const LogicVRegister& src,
                       int shift);
   LogicVRegister shrn2(VectorFormat vform,
-                      LogicVRegister dst,
-                      const LogicVRegister& src,
-                      int shift);
+                       LogicVRegister dst,
+                       const LogicVRegister& src,
+                       int shift);
   LogicVRegister rshrn(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src,
@@ -2148,93 +2197,93 @@ class Simulator : public DecoderVisitor {
                          LogicVRegister dst,
                          const LogicVRegister& src1,
                          const LogicVRegister& src2);
-  #define NEON_3VREG_LOGIC_LIST(V) \
-    V(addhn)                       \
-    V(addhn2)                      \
-    V(raddhn)                      \
-    V(raddhn2)                     \
-    V(subhn)                       \
-    V(subhn2)                      \
-    V(rsubhn)                      \
-    V(rsubhn2)                     \
-    V(pmull)                       \
-    V(pmull2)                      \
-    V(sabal)                       \
-    V(sabal2)                      \
-    V(uabal)                       \
-    V(uabal2)                      \
-    V(sabdl)                       \
-    V(sabdl2)                      \
-    V(uabdl)                       \
-    V(uabdl2)                      \
-    V(smull)                       \
-    V(smull2)                      \
-    V(umull)                       \
-    V(umull2)                      \
-    V(smlal)                       \
-    V(smlal2)                      \
-    V(umlal)                       \
-    V(umlal2)                      \
-    V(smlsl)                       \
-    V(smlsl2)                      \
-    V(umlsl)                       \
-    V(umlsl2)                      \
-    V(sqdmlal)                     \
-    V(sqdmlal2)                    \
-    V(sqdmlsl)                     \
-    V(sqdmlsl2)                    \
-    V(sqdmull)                     \
-    V(sqdmull2)
+#define NEON_3VREG_LOGIC_LIST(V) \
+  V(addhn)                       \
+  V(addhn2)                      \
+  V(raddhn)                      \
+  V(raddhn2)                     \
+  V(subhn)                       \
+  V(subhn2)                      \
+  V(rsubhn)                      \
+  V(rsubhn2)                     \
+  V(pmull)                       \
+  V(pmull2)                      \
+  V(sabal)                       \
+  V(sabal2)                      \
+  V(uabal)                       \
+  V(uabal2)                      \
+  V(sabdl)                       \
+  V(sabdl2)                      \
+  V(uabdl)                       \
+  V(uabdl2)                      \
+  V(smull)                       \
+  V(smull2)                      \
+  V(umull)                       \
+  V(umull2)                      \
+  V(smlal)                       \
+  V(smlal2)                      \
+  V(umlal)                       \
+  V(umlal2)                      \
+  V(smlsl)                       \
+  V(smlsl2)                      \
+  V(umlsl)                       \
+  V(umlsl2)                      \
+  V(sqdmlal)                     \
+  V(sqdmlal2)                    \
+  V(sqdmlsl)                     \
+  V(sqdmlsl2)                    \
+  V(sqdmull)                     \
+  V(sqdmull2)
 
-  #define DEFINE_LOGIC_FUNC(FXN)                   \
-    LogicVRegister FXN(VectorFormat vform,         \
-                       LogicVRegister dst,         \
-                       const LogicVRegister& src1, \
-                       const LogicVRegister& src2);
+#define DEFINE_LOGIC_FUNC(FXN)                   \
+  LogicVRegister FXN(VectorFormat vform,         \
+                     LogicVRegister dst,         \
+                     const LogicVRegister& src1, \
+                     const LogicVRegister& src2);
   NEON_3VREG_LOGIC_LIST(DEFINE_LOGIC_FUNC)
-  #undef DEFINE_LOGIC_FUNC
+#undef DEFINE_LOGIC_FUNC
 
-  #define NEON_FP3SAME_LIST(V)  \
-    V(fadd,   FPAdd,   false)   \
-    V(fsub,   FPSub,   true)    \
-    V(fmul,   FPMul,   true)    \
-    V(fmulx,  FPMulx,  true)    \
-    V(fdiv,   FPDiv,   true)    \
-    V(fmax,   FPMax,   false)   \
-    V(fmin,   FPMin,   false)   \
-    V(fmaxnm, FPMaxNM, false)   \
-    V(fminnm, FPMinNM, false)
+#define NEON_FP3SAME_LIST(V) \
+  V(fadd, FPAdd, false)      \
+  V(fsub, FPSub, true)       \
+  V(fmul, FPMul, true)       \
+  V(fmulx, FPMulx, true)     \
+  V(fdiv, FPDiv, true)       \
+  V(fmax, FPMax, false)      \
+  V(fmin, FPMin, false)      \
+  V(fmaxnm, FPMaxNM, false)  \
+  V(fminnm, FPMinNM, false)
 
-  #define DECLARE_NEON_FP_VECTOR_OP(FN, OP, PROCNAN) \
-    template <typename T>                            \
-    LogicVRegister FN(VectorFormat vform,            \
-                      LogicVRegister dst,            \
-                      const LogicVRegister& src1,    \
-                      const LogicVRegister& src2);   \
-    LogicVRegister FN(VectorFormat vform,            \
-                      LogicVRegister dst,            \
-                      const LogicVRegister& src1,    \
-                      const LogicVRegister& src2);
+#define DECLARE_NEON_FP_VECTOR_OP(FN, OP, PROCNAN) \
+  template <typename T>                            \
+  LogicVRegister FN(VectorFormat vform,            \
+                    LogicVRegister dst,            \
+                    const LogicVRegister& src1,    \
+                    const LogicVRegister& src2);   \
+  LogicVRegister FN(VectorFormat vform,            \
+                    LogicVRegister dst,            \
+                    const LogicVRegister& src1,    \
+                    const LogicVRegister& src2);
   NEON_FP3SAME_LIST(DECLARE_NEON_FP_VECTOR_OP)
-  #undef DECLARE_NEON_FP_VECTOR_OP
+#undef DECLARE_NEON_FP_VECTOR_OP
 
-  #define NEON_FPPAIRWISE_LIST(V)         \
-    V(faddp,   fadd,   FPAdd)             \
-    V(fmaxp,   fmax,   FPMax)             \
-    V(fmaxnmp, fmaxnm, FPMaxNM)           \
-    V(fminp,   fmin,   FPMin)             \
-    V(fminnmp, fminnm, FPMinNM)
+#define NEON_FPPAIRWISE_LIST(V) \
+  V(faddp, fadd, FPAdd)         \
+  V(fmaxp, fmax, FPMax)         \
+  V(fmaxnmp, fmaxnm, FPMaxNM)   \
+  V(fminp, fmin, FPMin)         \
+  V(fminnmp, fminnm, FPMinNM)
 
-  #define DECLARE_NEON_FP_PAIR_OP(FNP, FN, OP)       \
-    LogicVRegister FNP(VectorFormat vform,           \
-                       LogicVRegister dst,           \
-                       const LogicVRegister& src1,   \
-                       const LogicVRegister& src2);  \
-    LogicVRegister FNP(VectorFormat vform,           \
-                       LogicVRegister dst,           \
-                       const LogicVRegister& src);
+#define DECLARE_NEON_FP_PAIR_OP(FNP, FN, OP)      \
+  LogicVRegister FNP(VectorFormat vform,          \
+                     LogicVRegister dst,          \
+                     const LogicVRegister& src1,  \
+                     const LogicVRegister& src2); \
+  LogicVRegister FNP(VectorFormat vform,          \
+                     LogicVRegister dst,          \
+                     const LogicVRegister& src);
   NEON_FPPAIRWISE_LIST(DECLARE_NEON_FP_PAIR_OP)
-  #undef DECLARE_NEON_FP_PAIR_OP
+#undef DECLARE_NEON_FP_PAIR_OP
 
   template <typename T>
   LogicVRegister frecps(VectorFormat vform,
@@ -2393,7 +2442,7 @@ class Simulator : public DecoderVisitor {
                          LogicVRegister dst,
                          const LogicVRegister& src);
 
-  static const uint32_t CRC32_POLY  = 0x04C11DB7;
+  static const uint32_t CRC32_POLY = 0x04C11DB7;
   static const uint32_t CRC32C_POLY = 0x1EDC6F41;
   uint32_t Poly32Mod2(unsigned n, uint64_t data, uint32_t poly);
   template <typename T>
@@ -2470,7 +2519,7 @@ class Simulator : public DecoderVisitor {
 
   // This doesn't do anything at the moment. We'll need it if we want support
   // for cumulative exception bits or floating-point exceptions.
-  void FPProcessException() { }
+  void FPProcessException() {}
 
   bool FPProcessNaNs(const Instruction* instr);
 
@@ -2523,9 +2572,7 @@ class Simulator : public DecoderVisitor {
     return (result >> (reg_size - 1)) & 1;
   }
 
-  static int CalcZFlag(uint64_t result) {
-    return (result == 0) ? 1 : 0;
-  }
+  static int CalcZFlag(uint64_t result) { return (result == 0) ? 1 : 0; }
 
   static const uint32_t kConditionFlagsMask = 0xf0000000;
 
@@ -2547,8 +2594,6 @@ class Simulator : public DecoderVisitor {
   static const char* sreg_names[];
   static const char* dreg_names[];
   static const char* vreg_names[];
-
-  static const Instruction* kEndOfSimAddress;
 
  private:
   template <typename T>

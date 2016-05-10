@@ -37,7 +37,7 @@ void GenerateFactorial(MacroAssembler* masm) {
   Label loop, end;
 
   __ Mov(x1, x0);
-  __ Mov(x0, 1);     // Use x0 as the accumulator.
+  __ Mov(x0, 1);  // Use x0 as the accumulator.
 
   __ Cbz(x1, &end);  // Nothing to do if the input is null.
 
@@ -71,7 +71,9 @@ int main(void) {
   uint64_t input_val = 16;
   simulator.set_xreg(0, input_val);
   simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&factorial));
-  printf("factorial(%ld) = %ld\n", input_val, simulator.xreg(0));
+  printf("factorial(%" PRIu64 ") = %" PRId64 "\n",
+         input_val,
+         simulator.xreg(0));
 
   return 0;
 }

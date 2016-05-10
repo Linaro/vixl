@@ -35,83 +35,83 @@
 
 // List macro containing all visitors needed by the decoder class.
 
-#define VISITOR_LIST_THAT_RETURN(V) \
-  V(PCRelAddressing)                \
-  V(AddSubImmediate)                \
-  V(LogicalImmediate)               \
-  V(MoveWideImmediate)              \
-  V(Bitfield)                       \
-  V(Extract)                        \
-  V(UnconditionalBranch)            \
-  V(UnconditionalBranchToRegister)  \
-  V(CompareBranch)                  \
-  V(TestBranch)                     \
-  V(ConditionalBranch)              \
-  V(System)                         \
-  V(Exception)                      \
-  V(LoadStorePairPostIndex)         \
-  V(LoadStorePairOffset)            \
-  V(LoadStorePairPreIndex)          \
-  V(LoadStorePairNonTemporal)       \
-  V(LoadLiteral)                    \
-  V(LoadStoreUnscaledOffset)        \
-  V(LoadStorePostIndex)             \
-  V(LoadStorePreIndex)              \
-  V(LoadStoreRegisterOffset)        \
-  V(LoadStoreUnsignedOffset)        \
-  V(LoadStoreExclusive)             \
-  V(LogicalShifted)                 \
-  V(AddSubShifted)                  \
-  V(AddSubExtended)                 \
-  V(AddSubWithCarry)                \
-  V(ConditionalCompareRegister)     \
-  V(ConditionalCompareImmediate)    \
-  V(ConditionalSelect)              \
-  V(DataProcessing1Source)          \
-  V(DataProcessing2Source)          \
-  V(DataProcessing3Source)          \
-  V(FPCompare)                      \
-  V(FPConditionalCompare)           \
-  V(FPConditionalSelect)            \
-  V(FPImmediate)                    \
-  V(FPDataProcessing1Source)        \
-  V(FPDataProcessing2Source)        \
-  V(FPDataProcessing3Source)        \
-  V(FPIntegerConvert)               \
-  V(FPFixedPointConvert)            \
-  V(Crypto2RegSHA)                  \
-  V(Crypto3RegSHA)                  \
-  V(CryptoAES)                      \
-  V(NEON2RegMisc)                   \
-  V(NEON3Different)                 \
-  V(NEON3Same)                      \
-  V(NEONAcrossLanes)                \
-  V(NEONByIndexedElement)           \
-  V(NEONCopy)                       \
-  V(NEONExtract)                    \
-  V(NEONLoadStoreMultiStruct)       \
+#define VISITOR_LIST_THAT_RETURN(V)     \
+  V(PCRelAddressing)                    \
+  V(AddSubImmediate)                    \
+  V(LogicalImmediate)                   \
+  V(MoveWideImmediate)                  \
+  V(Bitfield)                           \
+  V(Extract)                            \
+  V(UnconditionalBranch)                \
+  V(UnconditionalBranchToRegister)      \
+  V(CompareBranch)                      \
+  V(TestBranch)                         \
+  V(ConditionalBranch)                  \
+  V(System)                             \
+  V(Exception)                          \
+  V(LoadStorePairPostIndex)             \
+  V(LoadStorePairOffset)                \
+  V(LoadStorePairPreIndex)              \
+  V(LoadStorePairNonTemporal)           \
+  V(LoadLiteral)                        \
+  V(LoadStoreUnscaledOffset)            \
+  V(LoadStorePostIndex)                 \
+  V(LoadStorePreIndex)                  \
+  V(LoadStoreRegisterOffset)            \
+  V(LoadStoreUnsignedOffset)            \
+  V(LoadStoreExclusive)                 \
+  V(LogicalShifted)                     \
+  V(AddSubShifted)                      \
+  V(AddSubExtended)                     \
+  V(AddSubWithCarry)                    \
+  V(ConditionalCompareRegister)         \
+  V(ConditionalCompareImmediate)        \
+  V(ConditionalSelect)                  \
+  V(DataProcessing1Source)              \
+  V(DataProcessing2Source)              \
+  V(DataProcessing3Source)              \
+  V(FPCompare)                          \
+  V(FPConditionalCompare)               \
+  V(FPConditionalSelect)                \
+  V(FPImmediate)                        \
+  V(FPDataProcessing1Source)            \
+  V(FPDataProcessing2Source)            \
+  V(FPDataProcessing3Source)            \
+  V(FPIntegerConvert)                   \
+  V(FPFixedPointConvert)                \
+  V(Crypto2RegSHA)                      \
+  V(Crypto3RegSHA)                      \
+  V(CryptoAES)                          \
+  V(NEON2RegMisc)                       \
+  V(NEON3Different)                     \
+  V(NEON3Same)                          \
+  V(NEONAcrossLanes)                    \
+  V(NEONByIndexedElement)               \
+  V(NEONCopy)                           \
+  V(NEONExtract)                        \
+  V(NEONLoadStoreMultiStruct)           \
   V(NEONLoadStoreMultiStructPostIndex)  \
-  V(NEONLoadStoreSingleStruct)      \
+  V(NEONLoadStoreSingleStruct)          \
   V(NEONLoadStoreSingleStructPostIndex) \
-  V(NEONModifiedImmediate)          \
-  V(NEONScalar2RegMisc)             \
-  V(NEONScalar3Diff)                \
-  V(NEONScalar3Same)                \
-  V(NEONScalarByIndexedElement)     \
-  V(NEONScalarCopy)                 \
-  V(NEONScalarPairwise)             \
-  V(NEONScalarShiftImmediate)       \
-  V(NEONShiftImmediate)             \
-  V(NEONTable)                      \
-  V(NEONPerm)                       \
+  V(NEONModifiedImmediate)              \
+  V(NEONScalar2RegMisc)                 \
+  V(NEONScalar3Diff)                    \
+  V(NEONScalar3Same)                    \
+  V(NEONScalarByIndexedElement)         \
+  V(NEONScalarCopy)                     \
+  V(NEONScalarPairwise)                 \
+  V(NEONScalarShiftImmediate)           \
+  V(NEONShiftImmediate)                 \
+  V(NEONTable)                          \
+  V(NEONPerm)
 
-#define VISITOR_LIST_THAT_DONT_RETURN(V)  \
-  V(Unallocated)                          \
-  V(Unimplemented)                        \
+#define VISITOR_LIST_THAT_DONT_RETURN(V) \
+  V(Unallocated)                         \
+  V(Unimplemented)
 
-#define VISITOR_LIST(V)             \
-  VISITOR_LIST_THAT_RETURN(V)       \
-  VISITOR_LIST_THAT_DONT_RETURN(V)  \
+#define VISITOR_LIST(V)       \
+  VISITOR_LIST_THAT_RETURN(V) \
+  VISITOR_LIST_THAT_DONT_RETURN(V)
 
 namespace vixl {
 
@@ -119,18 +119,15 @@ namespace vixl {
 // must provide implementations for all of these functions.
 class DecoderVisitor {
  public:
-  enum VisitorConstness {
-    kConstVisitor,
-    kNonConstVisitor
-  };
+  enum VisitorConstness { kConstVisitor, kNonConstVisitor };
   explicit DecoderVisitor(VisitorConstness constness = kConstVisitor)
       : constness_(constness) {}
 
   virtual ~DecoderVisitor() {}
 
-  #define DECLARE(A) virtual void Visit##A(const Instruction* instr) = 0;
+#define DECLARE(A) virtual void Visit##A(const Instruction* instr) = 0;
   VISITOR_LIST(DECLARE)
-  #undef DECLARE
+#undef DECLARE
 
   bool IsConstVisitor() const { return constness_ == kConstVisitor; }
   Instruction* MutableInstruction(const Instruction* instr) {
@@ -198,9 +195,9 @@ class Decoder {
   // of visitors stored by the decoder.
   void RemoveVisitor(DecoderVisitor* visitor);
 
-  #define DECLARE(A) void Visit##A(const Instruction* instr);
+#define DECLARE(A) void Visit##A(const Instruction* instr);
   VISITOR_LIST(DECLARE)
-  #undef DECLARE
+#undef DECLARE
 
 
   std::list<DecoderVisitor*>* visitors() { return &visitors_; }

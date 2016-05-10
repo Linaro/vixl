@@ -70,7 +70,7 @@ int64_t LiteralExample(int64_t a, int64_t b) {
 
   // Run the code.
   simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&start));
-  printf("111 + 222 = %ld\n", simulator.xreg(0));
+  printf("111 + 222 = %" PRId64 "\n", simulator.xreg(0));
 
   // Now let's modify the values of the literals.
   automatically_placed_literal.UpdateValue(a, code);

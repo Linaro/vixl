@@ -80,7 +80,7 @@ inline KeyType InvalSet<Obj,
                         KeyType,
                         kInvalidKey,
                         kReclaimFrom,
-                        kReclaimFactor>::Key(const Obj& obj) {
+                        kReclaimFactor>::GetKey(const Obj& obj) {
   return obj.key_;
 }
 template<>
@@ -106,10 +106,10 @@ TEST(basic_test) {
   set.insert(Obj(-123, 456));
   set.insert(Obj(2718, 2871828));
   VIXL_CHECK(set.size() == kNPreallocatedElements + 2);
-  VIXL_CHECK(set.min_element() == Obj(-123, 456));
+  VIXL_CHECK(set.GetMinElement() == Obj(-123, 456));
 
   set.erase(Obj(-123, 456));
-  VIXL_CHECK(set.min_element_key() == 0);
+  VIXL_CHECK(set.GetMinElementKey() == 0);
 
   set.clear();
   VIXL_CHECK(set.empty() && (set.size() == 0));
@@ -168,7 +168,7 @@ TEST(erase) {
   set.erase(Obj(100, -1));
   VIXL_CHECK(set.size() == max_size - 1);
   for (size_t i = 2; i <= max_size; i++) {
-    set.erase(set.min_element());
+    set.erase(set.GetMinElement());
     VIXL_CHECK(set.size() == max_size - i);
   }
 
@@ -186,9 +186,9 @@ TEST(min) {
   set.insert(Obj(-1, 0));
   set.insert(Obj(0, 0));
   set.insert(Obj(1, 0));
-  VIXL_CHECK(set.min_element() == Obj(-1, -1));
-  VIXL_CHECK(set.min_element_key() == -1);
-  VIXL_CHECK(set.min_element().key_ == set.min_element_key());
+  VIXL_CHECK(set.GetMinElement() == Obj(-1, -1));
+  VIXL_CHECK(set.GetMinElementKey() == -1);
+  VIXL_CHECK(set.GetMinElement().key_ == set.GetMinElementKey());
 
   // Test with more elements.
   set.clear();
@@ -198,13 +198,13 @@ TEST(min) {
     int sign = ((i % 2) == 0) ? -1 : 1;
     set.insert(Obj(sign * i, i));
   }
-  VIXL_CHECK(set.min_element() == Obj(-max_index, max_index));
-  VIXL_CHECK(set.min_element().key_ == set.min_element_key());
+  VIXL_CHECK(set.GetMinElement() == Obj(-max_index, max_index));
+  VIXL_CHECK(set.GetMinElement().key_ == set.GetMinElementKey());
 
   set.erase(Obj(0, 0));
-  VIXL_CHECK(set.min_element() == Obj(-max_index, max_index));
-  set.erase(set.min_element());
-  VIXL_CHECK(set.min_element() == Obj(-(max_index - 2), max_index - 2));
+  VIXL_CHECK(set.GetMinElement() == Obj(-max_index, max_index));
+  set.erase(set.GetMinElement());
+  VIXL_CHECK(set.GetMinElement() == Obj(-(max_index - 2), max_index - 2));
 
   set.clear();
   VIXL_CHECK(set.empty() && (set.size() == 0));
@@ -215,37 +215,191 @@ TEST(iterator) {
   TestSet set;
   VIXL_CHECK(set.empty() && (set.size() == 0));
 
+  // Ensure that set.begin() == set.end() for the empty set.
+  VIXL_CHECK(set.begin() == set.end());
+
   // Test with only preallocated elements in the set.
+  size_t expected_total = 0;
   for (unsigned i = 0; i < kNPreallocatedElements; i++) {
     set.insert(Obj(i, i));
+    expected_total += i;
   }
 
   size_t size = 0;
-  for (InvalSetIterator<TestSet> it(&set); !it.Done(); it.Advance()) {
+  size_t total = 0;
+  for (InvalSetIterator<TestSet> it = set.begin(); it != set.end(); ++it) {
+    total += it->val_;
     size++;
   }
   VIXL_CHECK(size == set.size());
+  VIXL_CHECK(total == expected_total);
 
   // Test with more elements.
   for (unsigned i = kNPreallocatedElements;
        i < 4 * kNPreallocatedElements;
        i++) {
     set.insert(Obj(i, i));
+    expected_total += i;
   }
 
   size = 0;
-  for (InvalSetIterator<TestSet> it(&set); !it.Done(); it.Advance()) {
+  total = 0;
+  for (InvalSetIterator<TestSet> it = set.begin(); it != set.end(); ++it) {
+    total += it->val_;
     size++;
   }
   VIXL_CHECK(size == set.size());
+  VIXL_CHECK(total == expected_total);
 
-  // Test after an element has been deleted.
-  size = 0;
-  set.erase(Obj(0, 0));
-  for (InvalSetIterator<TestSet> it(&set); !it.Done(); it.Advance()) {
-    size++;
+  // Test after elements have been deleted.
+  // - Select an interesting list of elements to erase.
+  std::vector<Obj> to_erase;
+  unsigned step = 0;
+  for (unsigned i = 0; i < set.size(); i += step, step++) {
+    to_erase.push_back(Obj(i, i));
   }
-  VIXL_CHECK(size == set.size());
+  to_erase.push_back(Obj(set.size() - 1, set.size() - 1));  // The last element.
+  to_erase.push_back(Obj(set.size(), set.size()));          // Not in the set.
+
+  // - Erase one at a time, retesting after each one.
+  while (!to_erase.empty()) {
+    size_t erased = set.erase(to_erase.back());
+    if (erased > 0) {
+      VIXL_CHECK(erased == 1);
+      expected_total -= to_erase.back().val_;
+    } else {
+    }
+    to_erase.pop_back();
+
+    size = 0;
+    total = 0;
+    for (InvalSetIterator<TestSet> it = set.begin(); it != set.end(); ++it) {
+      total += it->val_;
+      size++;
+    }
+    VIXL_CHECK(size == set.size());
+    VIXL_CHECK(total == expected_total);
+  }
 }
+
+
+#if __cplusplus >= 201103L
+TEST(iterator_cxx11) {
+  TestSet set;
+  VIXL_CHECK(set.empty() && (set.size() == 0));
+
+  // Test with only preallocated elements in the set.
+  size_t expected_total = 0;
+  for (unsigned i = 0; i < kNPreallocatedElements; i++) {
+    set.insert(Obj(i, i));
+    expected_total += i;
+  }
+
+  size_t size = 0;
+  size_t total = 0;
+  for (auto object : set) {
+    total += object.val_;
+    size++;
+  }
+  VIXL_CHECK(size == set.size());
+  VIXL_CHECK(total == expected_total);
+
+  // Test with more elements.
+  for (unsigned i = kNPreallocatedElements;
+       i < 4 * kNPreallocatedElements;
+       i++) {
+    set.insert(Obj(i, i));
+    expected_total += i;
+  }
+
+  size = 0;
+  total = 0;
+  for (auto object : set) {
+    total += object.val_;
+    size++;
+  }
+  VIXL_CHECK(size == set.size());
+  VIXL_CHECK(total == expected_total);
+
+  // Test after elements have been deleted.
+  // - Select an interesting list of elements to erase.
+  std::vector<Obj> to_erase;
+  unsigned step = 0;
+  for (unsigned i = 0; i < set.size(); i += step, step++) {
+    to_erase.push_back(Obj(i, i));
+  }
+  to_erase.push_back(Obj(set.size() - 1, set.size() - 1));  // The last element.
+  to_erase.push_back(Obj(set.size(), set.size()));          // Not in the set.
+
+  // - Erase one at a time, retesting after each one.
+  while (!to_erase.empty()) {
+    size_t erased = set.erase(to_erase.back());
+    if (erased > 0) {
+      VIXL_CHECK(erased == 1);
+      expected_total -= to_erase.back().val_;
+    } else {
+    }
+    to_erase.pop_back();
+
+    size = 0;
+    total = 0;
+    for (auto object : set) {
+      total += object.val_;
+      size++;
+    }
+    VIXL_CHECK(size == set.size());
+    VIXL_CHECK(total == expected_total);
+  }
+}
+#endif
+
+
+TEST(stl_forward_iterator) {
+  {
+    TestSet::iterator default_it;               // Default-constructible.
+    TestSet::iterator copy_it(default_it);      // Copy-constructible.
+    copy_it = default_it;                       // Copy-assignable.
+  }                                             // Destructible.
+
+  TestSet set1;
+  VIXL_CHECK(set1.empty() && (set1.size() == 0));
+
+  TestSet set2;
+  VIXL_CHECK(set2.empty() && (set2.size() == 0));
+
+  // Test with only preallocated elements in the set.
+  for (unsigned i = 0; i < kNPreallocatedElements; i++) {
+    set1.insert(Obj(i, 1));
+    set2.insert(Obj(i, 2));
+  }
+
+  TestSet::iterator it1_a = set1.begin();
+  TestSet::iterator it1_b = set1.begin();
+
+  // Incrementable (whilst valid).
+  it1_a++;
+  ++it1_b;
+
+  // Testable for equivalence.
+  VIXL_CHECK(it1_a == it1_b);
+  VIXL_CHECK(set1.begin() != set1.end());
+  VIXL_CHECK(set2.begin() != set2.end());
+  VIXL_CHECK(set1.begin() != set2.begin());
+  VIXL_CHECK(set1.end() != set2.end());
+
+  // Dereferencable.
+  VIXL_CHECK((*it1_a++).key_ == 1);
+  VIXL_CHECK(((*it1_a).key_ == 2) && ((*it1_a).val_ == 1));
+  *it1_b = Obj(42, 1);
+  VIXL_CHECK((it1_b->key_ == 42) && (it1_b->val_ == 1));
+
+#if __cplusplus >= 201103L
+  // Swappable.
+  std::swap(it1_a, it1_b);
+  VIXL_CHECK(it1_a->key_ == 42);
+  VIXL_CHECK(it1_b->key_ == 2);
+#endif
+}
+
 
 }  // namespace vixl

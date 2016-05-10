@@ -25,7 +25,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifndef VIXL_EXAMPLE_EXAMPLES_H_
-# define VIXL_EXAMPLE_EXAMPLES_H_
+#define VIXL_EXAMPLE_EXAMPLES_H_
 
 #include "vixl/a64/simulator-a64.h"
 #include "vixl/a64/debugger-a64.h"
@@ -113,7 +113,7 @@ void GenerateSwapInt32(MacroAssembler* masm);
 //   uint64_t demo_function(uint64_t x)
 //
 // This is the example used in doc/getting-started.txt
-void GenerateDemoFunction(MacroAssembler *masm);
+void GenerateDemoFunction(MacroAssembler* masm);
 
 // This function generates and runs code that uses literals to sum the `a` and
 // `b` inputs.

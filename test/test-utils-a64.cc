@@ -430,7 +430,7 @@ void RegisterDump::Dump(MacroAssembler* masm) {
   __ Str(tmp, MemOperand(dump_base, flags_offset));
 
   // To dump the values that were in tmp amd dump, we need a new scratch
-  // register.  We can use any of the already dumped registers since we can
+  // register. We can use any of the already dumped registers since we can
   // easily restore them.
   Register dump2_base = x10;
   Register dump2 = x11;

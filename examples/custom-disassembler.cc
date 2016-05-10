@@ -33,9 +33,8 @@
 
 
 // We override this method to specify how register names should be disassembled.
-void CustomDisassembler::AppendRegisterNameToOutput(
-    const Instruction* instr,
-    const CPURegister& reg) {
+void CustomDisassembler::AppendRegisterNameToOutput(const Instruction* instr,
+                                                    const CPURegister& reg) {
   USE(instr);
   if (reg.IsRegister()) {
     switch (reg.code()) {
@@ -170,11 +169,12 @@ void TestCustomDisassembler() {
     decoder.Decode(instr);
     printf("\n");
     printf("VIXL disasm\t %p:\t%s\n",
-           reinterpret_cast<void*>(instr), disasm.GetOutput());
+           reinterpret_cast<void*>(instr),
+           disasm.GetOutput());
     int64_t rel_addr =
         custom_disasm.CodeRelativeAddress(reinterpret_cast<void*>(instr));
     char rel_addr_sign_char = rel_addr < 0 ? '-' : ' ';
-    rel_addr = labs(rel_addr);
+    rel_addr = std::abs(rel_addr);
     printf("custom disasm\t%c0x%" PRIx64 ":\t%s\n",
            rel_addr_sign_char,
            rel_addr,

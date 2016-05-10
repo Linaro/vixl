@@ -41,8 +41,12 @@ int main(int argc, char* argv[]) {
   unsigned instructions = 0;
 
   switch (argc) {
-    case 1: instructions = kDefaultInstructionCount; break;
-    case 2: instructions = atoi(argv[1]); break;
+    case 1:
+      instructions = kDefaultInstructionCount;
+      break;
+    case 2:
+      instructions = atoi(argv[1]);
+      break;
     default:
       printf("Usage: %s [#instructions]\n", argv[0]);
       exit(1);
@@ -52,7 +56,7 @@ int main(int argc, char* argv[]) {
   const unsigned buffer_instruction_count = buffer_size / kInstructionSize;
   MacroAssembler masm(buffer_size);
 
-  #define __ masm.
+#define __ masm.
 
   unsigned rounds = instructions / buffer_instruction_count;
   for (unsigned i = 0; i < rounds; ++i) {

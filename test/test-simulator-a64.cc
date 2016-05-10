@@ -40,11 +40,12 @@ namespace vixl {
 //
 // These simulator tests check instruction behaviour against a trace taken from
 // real AArch64 hardware. The same test code is used to generate the trace; the
-// results are printed to stdout when the test is run with --sim_test_trace.
+// results are printed to stdout when the test is run with
+// --generate_test_trace.
 //
 // The input lists and expected results are stored in test/traces. The expected
-// results can be regenerated using tools/generate_simulator_traces.py. Adding
-// a test for a new instruction is described at the top of
+// results can be regenerated using tools/generate_simulator_traces.py. Adding a
+// test for a new instruction is described at the top of
 // test-simulator-traces-a64.h.
 
 #define __ masm.
@@ -261,7 +262,7 @@ static void Test1Op(const char * name, Test1OpFPHelper_t helper,
   Test1Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
                  reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_%s[] = {\n", d_bits, name);
     for (unsigned d = 0; d < results_length; d++) {
@@ -375,7 +376,7 @@ static void Test2Op(const char * name, Test2OpFPHelper_t helper,
   Test2Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
                  reinterpret_cast<uintptr_t>(results), bits);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_%s[] = {\n", bits, name);
     for (unsigned d = 0; d < results_length; d++) {
@@ -505,7 +506,7 @@ static void Test3Op(const char * name, Test3OpFPHelper_t helper,
   Test3Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
                  reinterpret_cast<uintptr_t>(results), bits);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_%s[] = {\n", bits, name);
     for (unsigned d = 0; d < results_length; d++) {
@@ -632,7 +633,7 @@ static void TestCmp(const char * name, TestFPCmpHelper_t helper,
   TestCmp_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
                  reinterpret_cast<uintptr_t>(results), bits);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint8_t kExpected_%s[] = {\n", name);
     for (unsigned d = 0; d < results_length; d++) {
@@ -751,7 +752,7 @@ static void TestCmpZero(const char * name, TestFPCmpZeroHelper_t helper,
   TestCmpZero_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
                      reinterpret_cast<uintptr_t>(results), bits);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint8_t kExpected_%s[] = {\n", name);
     for (unsigned d = 0; d < results_length; d++) {
@@ -918,7 +919,7 @@ static void TestFPToS(const char * name, TestFPToIntHelper_t helper,
   TestFPToInt_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
                      reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const int%u_t kExpected_%s[] = {\n", d_bits, name);
     // There is no simple C++ literal for INT*_MIN that doesn't produce
@@ -996,7 +997,7 @@ static void TestFPToU(const char * name, TestFPToIntHelper_t helper,
                      reinterpret_cast<uintptr_t>(inputs), inputs_length,
                      reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_%s[] = {\n", d_bits, name);
     for (unsigned d = 0; d < results_length; d++) {
@@ -1056,7 +1057,7 @@ static void TestFPToFixedS(const char * name, TestFPToFixedHelper_t helper,
                        reinterpret_cast<uintptr_t>(inputs), inputs_length,
                        reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const int%u_t kExpected_%s[] = {\n", d_bits, name);
     // There is no simple C++ literal for INT*_MIN that doesn't produce
@@ -1136,7 +1137,7 @@ static void TestFPToFixedU(const char * name, TestFPToFixedHelper_t helper,
                        reinterpret_cast<uintptr_t>(inputs), inputs_length,
                        reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_%s[] = {\n", d_bits, name);
     for (unsigned d = 0; d < results_length; d++) {
@@ -1286,7 +1287,7 @@ static void Test1OpNEON(const char * name, Test1OpNEONHelper_t helper,
                      reinterpret_cast<uintptr_t>(results),
                      vd_form, vn_form);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_NEON_%s[] = {\n", lane_bit, name);
     for (unsigned iteration = 0; iteration < results_length; iteration++) {
@@ -1477,7 +1478,7 @@ static void Test1OpAcrossNEON(const char * name, Test1OpNEONHelper_t helper,
                            reinterpret_cast<uintptr_t>(results),
                            vd_form, vn_form);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_NEON_%s[] = {\n", lane_bit, name);
     for (unsigned iteration = 0; iteration < results_length; iteration++) {
@@ -1708,7 +1709,7 @@ static void Test2OpNEON(const char * name, Test2OpNEONHelper_t helper,
                      reinterpret_cast<uintptr_t>(results),
                      vd_form, vn_form, vm_form);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_NEON_%s[] = {\n", lane_bit, name);
     for (unsigned iteration = 0; iteration < results_length; iteration++) {
@@ -1945,7 +1946,7 @@ static void TestByElementNEON(const char *name,
     reinterpret_cast<uintptr_t>(results),
     vd_form, vn_form, vm_form);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_NEON_%s[] = {\n", lane_bit, name);
     for (unsigned iteration = 0; iteration < results_length; iteration++) {
@@ -2155,7 +2156,7 @@ static void Test2OpImmNEON(
                         reinterpret_cast<uintptr_t>(results),
                         vd_form, vn_form);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_NEON_%s[] = {\n", lane_bit, name);
     for (unsigned iteration = 0; iteration < results_length; iteration++) {
@@ -2374,7 +2375,7 @@ static void TestOpImmOpImmNEON(const char * name,
                             reinterpret_cast<uintptr_t>(results),
                             vd_form, vn_form);
 
-  if (Test::sim_test_trace()) {
+  if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_NEON_%s[] = {\n", lane_bit, name);
     for (unsigned iteration = 0; iteration < results_length; iteration++) {

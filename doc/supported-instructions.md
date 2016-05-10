@@ -49,28 +49,28 @@ Add and update status flags.
 
 Calculate the address of a PC offset.
 
-    void adr(const Register& rd, int imm21)
+    void adr(const Register& xd, int imm21)
 
 
 ### ADR ###
 
 Calculate the address of a label.
 
-    void adr(const Register& rd, Label* label)
+    void adr(const Register& xd, Label* label)
 
 
 ### ADRP ###
 
 Calculate the page address of a PC offset.
 
-    void adrp(const Register& rd, int imm21)
+    void adrp(const Register& xd, int imm21)
 
 
 ### ADRP ###
 
 Calculate the page address of a label.
 
-    void adrp(const Register& rd, Label* label)
+    void adrp(const Register& xd, Label* label)
 
 
 ### AND ###
@@ -324,72 +324,72 @@ Conditional negate: rd = cond ? -rn : rn.
 
 CRC-32 checksum from byte.
 
-    void crc32b(const Register& rd,
-                const Register& rn,
-                const Register& rm)
+    void crc32b(const Register& wd,
+                const Register& wn,
+                const Register& wm)
 
 
 ### CRC32CB ###
 
 CRC-32 C checksum from byte.
 
-    void crc32cb(const Register& rd,
-                 const Register& rn,
-                 const Register& rm)
+    void crc32cb(const Register& wd,
+                 const Register& wn,
+                 const Register& wm)
 
 
 ### CRC32CH ###
 
 CRC-32 C checksum from half-word.
 
-    void crc32ch(const Register& rd,
-                 const Register& rn,
-                 const Register& rm)
+    void crc32ch(const Register& wd,
+                 const Register& wn,
+                 const Register& wm)
 
 
 ### CRC32CW ###
 
 CRC-32 C checksum from word.
 
-    void crc32cw(const Register& rd,
-                 const Register& rn,
-                 const Register& rm)
+    void crc32cw(const Register& wd,
+                 const Register& wn,
+                 const Register& wm)
 
 
 ### CRC32CX ###
 
 CRC-32C checksum from double word.
 
-    void crc32cx(const Register& rd,
-                 const Register& rn,
-                 const Register& rm)
+    void crc32cx(const Register& wd,
+                 const Register& wn,
+                 const Register& xm)
 
 
 ### CRC32H ###
 
 CRC-32 checksum from half-word.
 
-    void crc32h(const Register& rd,
-                const Register& rn,
-                const Register& rm)
+    void crc32h(const Register& wd,
+                const Register& wn,
+                const Register& wm)
 
 
 ### CRC32W ###
 
 CRC-32 checksum from word.
 
-    void crc32w(const Register& rd,
-                const Register& rn,
-                const Register& rm)
+    void crc32w(const Register& wd,
+                const Register& wn,
+                const Register& wm)
 
 
 ### CRC32X ###
 
 CRC-32 checksum from double word.
 
-    void crc32x(const Register& rd,
-                const Register& rn,
-                const Register& rm)
+    void crc32x(const Register& wd,
+                const Register& wn,
+                const Register& xm)
 
 
 ### CSEL ###
@@ -588,7 +588,7 @@ Load integer or FP register pair.
 
 Load word pair with sign extension.
 
-    void ldpsw(const Register& rt, const Register& rt2, const MemOperand& src)
+    void ldpsw(const Register& xt, const Register& xt2, const MemOperand& src)
 
 
 ### LDR ###
@@ -649,21 +649,21 @@ Load half-word with sign extension.
 
 Load word with sign extension from literal pool.
 
-    void ldrsw(const Register& rt, RawLiteral* literal)
+    void ldrsw(const Register& xt, RawLiteral* literal)
 
 
 ### LDRSW ###
 
 Load word with sign extension from pc + imm19 << 2.
 
-    void ldrsw(const Register& rt, int imm19)
+    void ldrsw(const Register& xt, int imm19)
 
 
 ### LDRSW ###
 
 Load word with sign extension.
 
-    void ldrsw(const Register& rt, const MemOperand& src,
+    void ldrsw(const Register& xt, const MemOperand& src,
                LoadStoreScalingOption option = PreferScaledOffset)
 
 
@@ -711,7 +711,7 @@ Load half-word with sign extension (and unscaled offset).
 
 Load word with sign extension.
 
-    void ldursw(const Register& rt, const MemOperand& src,
+    void ldursw(const Register& xt, const MemOperand& src,
                 LoadStoreScalingOption option = PreferUnscaledOffset)
 
 
@@ -820,14 +820,14 @@ Move immediate.
 
 Move to register from system register.
 
-    void mrs(const Register& rt, SystemRegister sysreg)
+    void mrs(const Register& xt, SystemRegister sysreg)
 
 
 ### MSR ###
 
 Move from register to system register.
 
-    void msr(SystemRegister sysreg, const Register& rt)
+    void msr(SystemRegister sysreg, const Register& xt)
 
 
 ### MSUB ###
@@ -969,7 +969,7 @@ Reverse bytes in 16-bit half words.
 
 Reverse bytes in 32-bit words.
 
-    void rev32(const Register& rd, const Register& rn)
+    void rev32(const Register& xd, const Register& xn)
 
 
 ### ROR ###
@@ -1045,20 +1045,20 @@ Signed integer divide.
 
 Signed long multiply and accumulate: 32 x 32 + 64 -> 64-bit.
 
-    void smaddl(const Register& rd,
-                const Register& rn,
-                const Register& rm,
-                const Register& ra)
+    void smaddl(const Register& xd,
+                const Register& wn,
+                const Register& wm,
+                const Register& xa)
 
 
 ### SMSUBL ###
 
 Signed long multiply and subtract: 64 - (32 x 32) -> 64-bit.
 
-    void smsubl(const Register& rd,
-                const Register& rn,
-                const Register& rm,
-                const Register& ra)
+    void smsubl(const Register& xd,
+                const Register& wn,
+                const Register& wm,
+                const Register& xa)
 
 
 ### SMULH ###
@@ -1072,7 +1072,7 @@ Signed multiply high: 64 x 64 -> 64-bit <127:64>.
 
 Signed long multiply: 32 x 32 -> 64-bit.
 
-    void smull(const Register& rd, const Register& rn, const Register& rm)
+    void smull(const Register& xd, const Register& wn, const Register& wm)
 
 
 ### STLR ###
@@ -1272,14 +1272,14 @@ Signed extend word.
 
 System instruction with pre-encoded op (op1:crn:crm:op2).
 
-    void sys(int op, const Register& rt = xzr)
+    void sys(int op, const Register& xt = xzr)
 
 
 ### SYS ###
 
 System instruction.
 
-    void sys(int op1, int crn, int crm, int op2, const Register& rt = xzr)
+    void sys(int op1, int crn, int crm, int op2, const Register& xt = xzr)
 
 
 ### TBNZ ###
@@ -1358,20 +1358,20 @@ Unsigned integer divide.
 
 Unsigned long multiply and accumulate: 32 x 32 + 64 -> 64-bit.
 
-    void umaddl(const Register& rd,
-                const Register& rn,
-                const Register& rm,
-                const Register& ra)
+    void umaddl(const Register& xd,
+                const Register& wn,
+                const Register& wm,
+                const Register& xa)
 
 
 ### UMSUBL ###
 
 Unsigned long multiply and subtract: 64 - (32 x 32) -> 64-bit.
 
-    void umsubl(const Register& rd,
-                const Register& rn,
-                const Register& rm,
-                const Register& ra)
+    void umsubl(const Register& xd,
+                const Register& wn,
+                const Register& wm,
+                const Register& xa)
 
 
 ### UMULH ###
@@ -1387,9 +1387,9 @@ Unsigned multiply high: 64 x 64 -> 64-bit <127:64>.
 
 Unsigned long multiply: 32 x 32 -> 64-bit.
 
-    void umull(const Register& rd,
-               const Register& rn,
-               const Register& rm)
+    void umull(const Register& xd,
+               const Register& wn,
+               const Register& wm)
 
 
 ### UXTB ###

@@ -53,7 +53,7 @@ int64_t RunNonConstVisitorTestGeneratedCode(const Instruction* start_instr) {
   simulator.set_xreg(1, b);
   simulator.RunFrom(start_instr);
   int64_t res = simulator.xreg(0);
-  printf("foo(%" PRId64", %" PRId64") = %" PRId64"\n", a, b, res);
+  printf("foo(%" PRId64 ", %" PRId64 ") = %" PRId64 "\n", a, b, res);
 
   return res;
 #else

@@ -35,22 +35,22 @@
 
 namespace vixl {
 
-class Disassembler: public DecoderVisitor {
+class Disassembler : public DecoderVisitor {
  public:
   Disassembler();
   Disassembler(char* text_buffer, int buffer_size);
   virtual ~Disassembler();
   char* GetOutput();
 
-  // Declare all Visitor functions.
-  #define DECLARE(A) virtual void Visit##A(const Instruction* instr);
+// Declare all Visitor functions.
+#define DECLARE(A) virtual void Visit##A(const Instruction* instr);
   VISITOR_LIST(DECLARE)
-  #undef DECLARE
+#undef DECLARE
 
  protected:
   virtual void ProcessOutput(const Instruction* instr);
 
-  // Default output functions.  The functions below implement a default way of
+  // Default output functions. The functions below implement a default way of
   // printing elements in the disassembly. A sub-class can override these to
   // customize the disassembly output.
 
@@ -106,15 +106,16 @@ class Disassembler: public DecoderVisitor {
   int64_t CodeRelativeAddress(const void* instr);
 
  private:
-  void Format(
-      const Instruction* instr, const char* mnemonic, const char* format);
+  void Format(const Instruction* instr,
+              const char* mnemonic,
+              const char* format);
   void Substitute(const Instruction* instr, const char* string);
   int SubstituteField(const Instruction* instr, const char* format);
   int SubstituteRegisterField(const Instruction* instr, const char* format);
   int SubstituteImmediateField(const Instruction* instr, const char* format);
   int SubstituteLiteralField(const Instruction* instr, const char* format);
-  int SubstituteBitfieldImmediateField(
-      const Instruction* instr, const char* format);
+  int SubstituteBitfieldImmediateField(const Instruction* instr,
+                                       const char* format);
   int SubstituteShiftField(const Instruction* instr, const char* format);
   int SubstituteExtendField(const Instruction* instr, const char* format);
   int SubstituteConditionField(const Instruction* instr, const char* format);
@@ -162,15 +163,15 @@ class Disassembler: public DecoderVisitor {
 };
 
 
-class PrintDisassembler: public Disassembler {
+class PrintDisassembler : public Disassembler {
  public:
-  explicit PrintDisassembler(FILE* stream) : stream_(stream) { }
+  explicit PrintDisassembler(FILE* stream) : stream_(stream) {}
 
  protected:
   virtual void ProcessOutput(const Instruction* instr);
 
  private:
-  FILE *stream_;
+  FILE* stream_;
 };
 }  // namespace vixl
 

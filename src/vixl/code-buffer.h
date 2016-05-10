@@ -46,9 +46,7 @@ class CodeBuffer {
     return cursor_offset - offset;
   }
 
-  ptrdiff_t CursorOffset() const {
-    return OffsetFrom(0);
-  }
+  ptrdiff_t CursorOffset() const { return OffsetFrom(0); }
 
   template <typename T>
   T GetOffsetAddress(ptrdiff_t offset) const {
@@ -110,4 +108,3 @@ class CodeBuffer {
 }  // namespace vixl
 
 #endif  // VIXL_CODE_BUFFER_H
-

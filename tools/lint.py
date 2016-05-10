@@ -45,18 +45,21 @@ def sigint_handler(signal, frame):
 signal.signal(signal.SIGINT, sigint_handler)
 
 def BuildOptions():
-  result = argparse.ArgumentParser(
+  parser = argparse.ArgumentParser(
       description =
-      '''This tool lints the C++ files tracked by the git repository, and
-      produces a summary of the errors found.''',
+      '''This tool lints C++ files and produces a summary of the errors found.
+      If no files are provided on the command-line, all C++ source files in the
+      repository are processed.''',
       # Print default values.
       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-  result.add_argument('--jobs', '-j', metavar='N', type=int, nargs='?',
-                      default=1, const=multiprocessing.cpu_count(),
+  parser.add_argument('files', nargs = '*')
+  parser.add_argument('--jobs', '-j', metavar='N', type=int, nargs='?',
+                      default=multiprocessing.cpu_count(),
+                      const=multiprocessing.cpu_count(),
                       help='''Runs the tests using N jobs. If the option is set
                       but no value is provided, the script will use as many jobs
                       as it thinks useful.''')
-  return result.parse_args()
+  return parser.parse_args()
 
 
 
@@ -178,9 +181,10 @@ if __name__ == '__main__':
   # Parse the arguments.
   args = BuildOptions()
 
-  retcode, default_tracked_files = GetDefaultTrackedFiles()
-  if retcode:
-    sys.exit(retcode)
-  retcode = LintFiles(default_tracked_files,
-                      jobs = args.jobs)
+  files = args.files
+  if not files:
+    retcode, files = GetDefaultTrackedFiles()
+    if retcode:
+      sys.exit(retcode)
+  retcode = LintFiles(files, jobs = args.jobs)
   sys.exit(retcode)

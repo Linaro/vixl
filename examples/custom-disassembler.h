@@ -37,10 +37,10 @@ void TestCustomDisassembler();
 // - Add comments to some add/sub instructions.
 // - Use aliases for register names.
 // - Add descriptions for code addresses.
-class CustomDisassembler: public Disassembler {
+class CustomDisassembler : public Disassembler {
  public:
-  CustomDisassembler() : Disassembler() { }
-  virtual ~CustomDisassembler() { }
+  CustomDisassembler() : Disassembler() {}
+  virtual ~CustomDisassembler() {}
 
   virtual void VisitAddSubShifted(const Instruction* instr);
 

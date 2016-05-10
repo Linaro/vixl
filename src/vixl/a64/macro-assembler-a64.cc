@@ -46,9 +46,10 @@ void Pool::SetNextCheckpoint(ptrdiff_t checkpoint) {
 
 
 LiteralPool::LiteralPool(MacroAssembler* masm)
-    : Pool(masm), size_(0), first_use_(-1),
-      recommended_checkpoint_(kNoCheckpointRequired) {
-}
+    : Pool(masm),
+      size_(0),
+      first_use_(-1),
+      recommended_checkpoint_(kNoCheckpointRequired) {}
 
 
 LiteralPool::~LiteralPool() {
@@ -264,6 +265,12 @@ void VeneerPool::Emit(EmitOption option, size_t amount) {
 
 EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm, size_t size)
     : masm_(masm) {
+  if (masm_ == NULL) {
+    // Nothing to do.
+    // We may reach this point in a context of conditional code generation. See
+    // `MacroAssembler::MoveImmediateHelper()` for an example.
+    return;
+  }
   masm_->EnsureEmitFor(size);
   masm_->BlockPools();
 #ifdef VIXL_DEBUG
@@ -275,6 +282,10 @@ EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm, size_t size)
 
 
 EmissionCheckScope::~EmissionCheckScope() {
+  if (masm_ == NULL) {
+    // Nothing to do.
+    return;
+  }
 #ifdef VIXL_DEBUG
   masm_->ReleaseBuffer();
   VIXL_ASSERT(masm_->SizeOfCodeGeneratedSince(&start_) <= size_);
@@ -300,7 +311,7 @@ MacroAssembler::MacroAssembler(size_t capacity,
 }
 
 
-MacroAssembler::MacroAssembler(byte * buffer,
+MacroAssembler::MacroAssembler(byte* buffer,
                                size_t capacity,
                                PositionIndependentCodeOption pic)
     : Assembler(buffer, capacity, pic),
@@ -318,8 +329,7 @@ MacroAssembler::MacroAssembler(byte * buffer,
 }
 
 
-MacroAssembler::~MacroAssembler() {
-}
+MacroAssembler::~MacroAssembler() {}
 
 
 void MacroAssembler::Reset() {
@@ -357,7 +367,7 @@ void MacroAssembler::CheckEmitFor(size_t amount) {
 
 
 int MacroAssembler::MoveImmediateHelper(MacroAssembler* masm,
-                                        const Register &rd,
+                                        const Register& rd,
                                         uint64_t imm) {
   bool emit_code = (masm != NULL);
   VIXL_ASSERT(is_uint32(imm) || is_int32(imm) || rd.Is64Bits());
@@ -417,7 +427,7 @@ int MacroAssembler::MoveImmediateHelper(MacroAssembler* masm,
     // halfword, and movk for subsequent halfwords.
     VIXL_ASSERT((reg_size % 16) == 0);
     bool first_mov_done = false;
-    for (unsigned i = 0; i < (temp.size() / 16); i++) {
+    for (unsigned i = 0; i < (reg_size / 16); i++) {
       uint64_t imm16 = (imm >> (16 * i)) & 0xffff;
       if (imm16 != ignored_halfword) {
         if (!first_mov_done) {
@@ -475,8 +485,12 @@ bool MacroAssembler::OneInstrMoveImmediateHelper(MacroAssembler* masm,
     // Immediate can be represented in a logical orr instruction.
     VIXL_ASSERT(!dst.IsZero());
     if (emit_code) {
-      masm->LogicalImmediate(
-          dst, AppropriateZeroRegFor(dst), n, imm_s, imm_r, ORR);
+      masm->LogicalImmediate(dst,
+                             AppropriateZeroRegFor(dst),
+                             n,
+                             imm_s,
+                             imm_r,
+                             ORR);
     }
     return true;
   }
@@ -491,12 +505,23 @@ void MacroAssembler::B(Label* label, BranchType type, Register reg, int bit) {
     B(static_cast<Condition>(type), label);
   } else {
     switch (type) {
-      case always:        B(label);              break;
-      case never:         break;
-      case reg_zero:      Cbz(reg, label);       break;
-      case reg_not_zero:  Cbnz(reg, label);      break;
-      case reg_bit_clear: Tbz(reg, bit, label);  break;
-      case reg_bit_set:   Tbnz(reg, bit, label); break;
+      case always:
+        B(label);
+        break;
+      case never:
+        break;
+      case reg_zero:
+        Cbz(reg, label);
+        break;
+      case reg_not_zero:
+        Cbnz(reg, label);
+        break;
+      case reg_bit_clear:
+        Tbz(reg, bit, label);
+        break;
+      case reg_bit_set:
+        Tbnz(reg, bit, label);
+        break;
       default:
         VIXL_UNREACHABLE();
     }
@@ -646,8 +671,7 @@ void MacroAssembler::Ands(const Register& rd,
 }
 
 
-void MacroAssembler::Tst(const Register& rn,
-                         const Operand& operand) {
+void MacroAssembler::Tst(const Register& rn, const Operand& operand) {
   VIXL_ASSERT(allow_macro_instructions_);
   Ands(AppropriateZeroRegFor(rn), rn, operand);
 }
@@ -795,11 +819,13 @@ void MacroAssembler::LogicalMacro(const Register& rd,
     // same modes here.
     VIXL_ASSERT(operand.shift_amount() <= 4);
     VIXL_ASSERT(operand.reg().Is64Bits() ||
-           ((operand.extend() != UXTX) && (operand.extend() != SXTX)));
+                ((operand.extend() != UXTX) && (operand.extend() != SXTX)));
 
     temps.Exclude(operand.reg());
     Register temp = temps.AcquireSameSizeAs(rn);
-    EmitExtendShift(temp, operand.reg(), operand.extend(),
+    EmitExtendShift(temp,
+                    operand.reg(),
+                    operand.extend(),
                     operand.shift_amount());
     Logical(rd, rn, Operand(temp), op);
   } else {
@@ -828,7 +854,9 @@ void MacroAssembler::Mov(const Register& rd,
   } else if (operand.IsExtendedRegister()) {
     // Emit an extend instruction if moving an extended register. This handles
     // extend with post-shift operations, too.
-    EmitExtendShift(rd, operand.reg(), operand.extend(),
+    EmitExtendShift(rd,
+                    operand.reg(),
+                    operand.extend(),
                     operand.shift_amount());
   } else {
     // Otherwise, emit a register move only if the registers are distinct, or
@@ -840,8 +868,8 @@ void MacroAssembler::Mov(const Register& rd,
     // this case, the instruction is discarded.
     //
     // If the sp is an operand, add #0 is emitted, otherwise, orr #0.
-    if (!rd.Is(operand.reg()) || (rd.Is32Bits() &&
-                                  (discard_mode == kDontDiscardForSameWReg))) {
+    if (!rd.Is(operand.reg()) ||
+        (rd.Is32Bits() && (discard_mode == kDontDiscardForSameWReg))) {
       mov(rd, operand.reg());
     }
   }
@@ -1011,9 +1039,7 @@ void MacroAssembler::Movi(const VRegister& vd,
 }
 
 
-void MacroAssembler::Movi(const VRegister& vd,
-                          uint64_t hi,
-                          uint64_t lo) {
+void MacroAssembler::Movi(const VRegister& vd, uint64_t hi, uint64_t lo) {
   // TODO: Move 128-bit values in a more efficient way.
   VIXL_ASSERT(vd.Is128Bits());
   UseScratchRegisterScope temps(this);
@@ -1039,7 +1065,9 @@ void MacroAssembler::Mvn(const Register& rd, const Operand& operand) {
     // Emit two instructions for the extend case. This differs from Mov, as
     // the extend and invert can't be achieved in one instruction.
     Register temp = temps.AcquireSameSizeAs(rd);
-    EmitExtendShift(temp, operand.reg(), operand.extend(),
+    EmitExtendShift(temp,
+                    operand.reg(),
+                    operand.extend(),
                     operand.shift_amount());
     mvn(rd, Operand(temp));
   } else {
@@ -1109,45 +1137,198 @@ void MacroAssembler::ConditionalCompareMacro(const Register& rn,
 }
 
 
-void MacroAssembler::Csel(const Register& rd,
-                          const Register& rn,
-                          const Operand& operand,
-                          Condition cond) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  VIXL_ASSERT(!rd.IsZero());
-  VIXL_ASSERT(!rn.IsZero());
-  VIXL_ASSERT((cond != al) && (cond != nv));
-  // The worst case for size is csel immediate:
-  //  * up to 4 instructions to materialise the constant
-  //  * 1 instruction for csel
-  MacroEmissionCheckScope guard(this);
+void MacroAssembler::CselHelper(MacroAssembler* masm,
+                                const Register& rd,
+                                Operand left,
+                                Operand right,
+                                Condition cond,
+                                bool* should_synthesise_left,
+                                bool* should_synthesise_right) {
+  bool emit_code = (masm != NULL);
 
-  if (operand.IsImmediate()) {
-    // Immediate argument. Handle special cases of 0, 1 and -1 using zero
-    // register.
-    int64_t imm = operand.immediate();
-    Register zr = AppropriateZeroRegFor(rn);
-    if (imm == 0) {
-      csel(rd, rn, zr, cond);
-    } else if (imm == 1) {
-      csinc(rd, rn, zr, cond);
-    } else if (imm == -1) {
-      csinv(rd, rn, zr, cond);
-    } else {
-      UseScratchRegisterScope temps(this);
-      Register temp = temps.AcquireSameSizeAs(rn);
-      Mov(temp, operand.immediate());
-      csel(rd, rn, temp, cond);
+  VIXL_ASSERT(!emit_code || masm->allow_macro_instructions_);
+  VIXL_ASSERT((cond != al) && (cond != nv));
+  VIXL_ASSERT(!rd.IsZero() && !rd.IsSP());
+  VIXL_ASSERT(left.IsImmediate() || !left.reg().IsSP());
+  VIXL_ASSERT(right.IsImmediate() || !right.reg().IsSP());
+
+  if (should_synthesise_left != NULL) *should_synthesise_left = false;
+  if (should_synthesise_right != NULL) *should_synthesise_right = false;
+
+  // The worst case for size occurs when the inputs are two non encodable
+  // constants:
+  //  * up to 4 instructions to materialise the left constant
+  //  * up to 4 instructions to materialise the right constant
+  //  * 1 instruction for csel
+  EmissionCheckScope guard(masm, 9 * kInstructionSize);
+  UseScratchRegisterScope temps;
+  if (masm != NULL) {
+    temps.Open(masm);
+  }
+
+  // Try to handle cases where both inputs are immediates.
+  bool left_is_immediate = left.IsImmediate() || left.IsZero();
+  bool right_is_immediate = right.IsImmediate() || right.IsZero();
+  if (left_is_immediate && right_is_immediate &&
+      CselSubHelperTwoImmediates(masm,
+                                 rd,
+                                 left.GetEquivalentImmediate(),
+                                 right.GetEquivalentImmediate(),
+                                 cond,
+                                 should_synthesise_left,
+                                 should_synthesise_right)) {
+    return;
+  }
+
+  // Handle cases where one of the two inputs is -1, 0, or 1.
+  bool left_is_small_immediate =
+      left_is_immediate && ((-1 <= left.GetEquivalentImmediate()) &&
+                            (left.GetEquivalentImmediate() <= 1));
+  bool right_is_small_immediate =
+      right_is_immediate && ((-1 <= right.GetEquivalentImmediate()) &&
+                             (right.GetEquivalentImmediate() <= 1));
+  if (right_is_small_immediate || left_is_small_immediate) {
+    bool swapped_inputs = false;
+    if (!right_is_small_immediate) {
+      std::swap(left, right);
+      cond = InvertCondition(cond);
+      swapped_inputs = true;
     }
-  } else if (operand.IsShiftedRegister() && (operand.shift_amount() == 0)) {
-    // Unshifted register argument.
-    csel(rd, rn, operand.reg(), cond);
+    CselSubHelperRightSmallImmediate(masm,
+                                     &temps,
+                                     rd,
+                                     left,
+                                     right,
+                                     cond,
+                                     swapped_inputs ? should_synthesise_right
+                                                    : should_synthesise_left);
+    return;
+  }
+
+  // Otherwise both inputs need to be available in registers. Synthesise them
+  // if necessary and emit the `csel`.
+  if (!left.IsPlainRegister()) {
+    if (emit_code) {
+      Register temp = temps.AcquireSameSizeAs(rd);
+      masm->Mov(temp, left);
+      left = temp;
+    }
+    if (should_synthesise_left != NULL) *should_synthesise_left = true;
+  }
+  if (!right.IsPlainRegister()) {
+    if (emit_code) {
+      Register temp = temps.AcquireSameSizeAs(rd);
+      masm->Mov(temp, right);
+      right = temp;
+    }
+    if (should_synthesise_right != NULL) *should_synthesise_right = true;
+  }
+  if (emit_code) {
+    VIXL_ASSERT(left.IsPlainRegister() && right.IsPlainRegister());
+    if (left.reg().Is(right.reg())) {
+      masm->Mov(rd, left.reg());
+    } else {
+      masm->csel(rd, left.reg(), right.reg(), cond);
+    }
+  }
+}
+
+
+bool MacroAssembler::CselSubHelperTwoImmediates(MacroAssembler* masm,
+                                                const Register& rd,
+                                                int64_t left,
+                                                int64_t right,
+                                                Condition cond,
+                                                bool* should_synthesise_left,
+                                                bool* should_synthesise_right) {
+  bool emit_code = (masm != NULL);
+  if (should_synthesise_left != NULL) *should_synthesise_left = false;
+  if (should_synthesise_right != NULL) *should_synthesise_right = false;
+
+  if (left == right) {
+    if (emit_code) masm->Mov(rd, left);
+    return true;
+  } else if (left == -right) {
+    if (should_synthesise_right != NULL) *should_synthesise_right = true;
+    if (emit_code) {
+      masm->Mov(rd, right);
+      masm->Cneg(rd, rd, cond);
+    }
+    return true;
+  }
+
+  if (CselSubHelperTwoOrderedImmediates(masm, rd, left, right, cond)) {
+    return true;
   } else {
-    // All other arguments.
-    UseScratchRegisterScope temps(this);
-    Register temp = temps.AcquireSameSizeAs(rn);
-    Mov(temp, operand);
-    csel(rd, rn, temp, cond);
+    std::swap(left, right);
+    if (CselSubHelperTwoOrderedImmediates(masm,
+                                          rd,
+                                          left,
+                                          right,
+                                          InvertCondition(cond))) {
+      return true;
+    }
+  }
+
+  // TODO: Handle more situations. For example handle `csel rd, #5, #6, cond`
+  // with `cinc`.
+  return false;
+}
+
+
+bool MacroAssembler::CselSubHelperTwoOrderedImmediates(MacroAssembler* masm,
+                                                       const Register& rd,
+                                                       int64_t left,
+                                                       int64_t right,
+                                                       Condition cond) {
+  bool emit_code = (masm != NULL);
+
+  if ((left == 0) && (right == 1)) {
+    if (emit_code) masm->cset(rd, cond);
+    return true;
+  } else if ((left == 0) && (right == -1)) {
+    Register zr = AppropriateZeroRegFor(rd);
+    if (emit_code) masm->csinv(rd, zr, zr, InvertCondition(cond));
+    return true;
+  }
+  return false;
+}
+
+
+void MacroAssembler::CselSubHelperRightSmallImmediate(
+    MacroAssembler* masm,
+    UseScratchRegisterScope* temps,
+    const Register& rd,
+    const Operand& left,
+    const Operand& right,
+    Condition cond,
+    bool* should_synthesise_left) {
+  bool emit_code = (masm != NULL);
+  VIXL_ASSERT((right.IsImmediate() || right.IsZero()) &&
+              (-1 <= right.GetEquivalentImmediate()) &&
+              (right.GetEquivalentImmediate() <= 1));
+  Register left_register;
+
+  if (left.IsPlainRegister()) {
+    left_register = left.reg();
+  } else {
+    if (emit_code) {
+      left_register = temps->AcquireSameSizeAs(rd);
+      masm->Mov(left_register, left);
+    }
+    if (should_synthesise_left != NULL) *should_synthesise_left = true;
+  }
+  if (emit_code) {
+    int64_t imm = right.GetEquivalentImmediate();
+    Register zr = AppropriateZeroRegFor(rd);
+    if (imm == 0) {
+      masm->csel(rd, left_register, zr, cond);
+    } else if (imm == 1) {
+      masm->csinc(rd, left_register, zr, cond);
+    } else {
+      VIXL_ASSERT(imm == -1);
+      masm->csinv(rd, left_register, zr, cond);
+    }
   }
 }
 
@@ -1206,7 +1387,8 @@ void MacroAssembler::Cmp(const Register& rn, const Operand& operand) {
 }
 
 
-void MacroAssembler::Fcmp(const FPRegister& fn, double value,
+void MacroAssembler::Fcmp(const FPRegister& fn,
+                          double value,
                           FPTrapFlags trap) {
   VIXL_ASSERT(allow_macro_instructions_);
   // The worst case for size is:
@@ -1293,9 +1475,7 @@ void MacroAssembler::Fmov(VRegister vd, float imm) {
 }
 
 
-
-void MacroAssembler::Neg(const Register& rd,
-                         const Operand& operand) {
+void MacroAssembler::Neg(const Register& rd, const Operand& operand) {
   VIXL_ASSERT(allow_macro_instructions_);
   if (operand.IsImmediate()) {
     Mov(rd, -operand.immediate());
@@ -1305,8 +1485,7 @@ void MacroAssembler::Neg(const Register& rd,
 }
 
 
-void MacroAssembler::Negs(const Register& rd,
-                          const Operand& operand) {
+void MacroAssembler::Negs(const Register& rd, const Operand& operand) {
   VIXL_ASSERT(allow_macro_instructions_);
   Subs(rd, AppropriateZeroRegFor(rd), operand);
 }
@@ -1391,7 +1570,7 @@ void MacroAssembler::AddSubMacro(const Register& rd,
   }
 
   if ((operand.IsImmediate() && !IsImmAddSub(operand.immediate())) ||
-      (rn.IsZero() && !operand.IsShiftedRegister())                ||
+      (rn.IsZero() && !operand.IsShiftedRegister()) ||
       (operand.IsShiftedRegister() && (operand.shift() == ROR))) {
     UseScratchRegisterScope temps(this);
     Register temp = temps.AcquireSameSizeAs(rn);
@@ -1441,16 +1620,14 @@ void MacroAssembler::Sbcs(const Register& rd,
 }
 
 
-void MacroAssembler::Ngc(const Register& rd,
-                         const Operand& operand) {
+void MacroAssembler::Ngc(const Register& rd, const Operand& operand) {
   VIXL_ASSERT(allow_macro_instructions_);
   Register zr = AppropriateZeroRegFor(rd);
   Sbc(rd, zr, operand);
 }
 
 
-void MacroAssembler::Ngcs(const Register& rd,
-                         const Operand& operand) {
+void MacroAssembler::Ngcs(const Register& rd, const Operand& operand) {
   VIXL_ASSERT(allow_macro_instructions_);
   Register zr = AppropriateZeroRegFor(rd);
   Sbcs(rd, zr, operand);
@@ -1480,7 +1657,7 @@ void MacroAssembler::AddSubWithCarryMacro(const Register& rd,
     VIXL_ASSERT(operand.reg().size() == rd.size());
     VIXL_ASSERT(operand.shift() != ROR);
     VIXL_ASSERT(is_uintn(rd.size() == kXRegSize ? kXRegSizeLog2 : kWRegSizeLog2,
-                    operand.shift_amount()));
+                         operand.shift_amount()));
     temps.Exclude(operand.reg());
     Register temp = temps.AcquireSameSizeAs(rn);
     EmitShift(temp, operand.reg(), operand.shift(), operand.shift_amount());
@@ -1492,10 +1669,12 @@ void MacroAssembler::AddSubWithCarryMacro(const Register& rd,
     // same modes.
     VIXL_ASSERT(operand.shift_amount() <= 4);
     VIXL_ASSERT(operand.reg().Is64Bits() ||
-           ((operand.extend() != UXTX) && (operand.extend() != SXTX)));
+                ((operand.extend() != UXTX) && (operand.extend() != SXTX)));
     temps.Exclude(operand.reg());
     Register temp = temps.AcquireSameSizeAs(rn);
-    EmitExtendShift(temp, operand.reg(), operand.extend(),
+    EmitExtendShift(temp,
+                    operand.reg(),
+                    operand.extend(),
                     operand.shift_amount());
     AddSubWithCarry(rd, rn, Operand(temp), S, op);
   } else {
@@ -1505,11 +1684,11 @@ void MacroAssembler::AddSubWithCarryMacro(const Register& rd,
 }
 
 
-#define DEFINE_FUNCTION(FN, REGTYPE, REG, OP)                         \
-void MacroAssembler::FN(const REGTYPE REG, const MemOperand& addr) {  \
-  VIXL_ASSERT(allow_macro_instructions_);                             \
-  LoadStoreMacro(REG, addr, OP);                                      \
-}
+#define DEFINE_FUNCTION(FN, REGTYPE, REG, OP)                          \
+  void MacroAssembler::FN(const REGTYPE REG, const MemOperand& addr) { \
+    VIXL_ASSERT(allow_macro_instructions_);                            \
+    LoadStoreMacro(REG, addr, OP);                                     \
+  }
 LS_MACRO_LIST(DEFINE_FUNCTION)
 #undef DEFINE_FUNCTION
 
@@ -1552,13 +1731,13 @@ void MacroAssembler::LoadStoreMacro(const CPURegister& rt,
 }
 
 
-#define DEFINE_FUNCTION(FN, REGTYPE, REG, REG2, OP)  \
-void MacroAssembler::FN(const REGTYPE REG,           \
-                        const REGTYPE REG2,          \
-                        const MemOperand& addr) {    \
-  VIXL_ASSERT(allow_macro_instructions_);            \
-  LoadStorePairMacro(REG, REG2, addr, OP);           \
-}
+#define DEFINE_FUNCTION(FN, REGTYPE, REG, REG2, OP) \
+  void MacroAssembler::FN(const REGTYPE REG,        \
+                          const REGTYPE REG2,       \
+                          const MemOperand& addr) { \
+    VIXL_ASSERT(allow_macro_instructions_);         \
+    LoadStorePairMacro(REG, REG2, addr, OP);        \
+  }
 LSPAIR_MACRO_LIST(DEFINE_FUNCTION)
 #undef DEFINE_FUNCTION
 
@@ -1628,8 +1807,10 @@ void MacroAssembler::Prfm(PrefetchOperation op, const MemOperand& addr) {
 }
 
 
-void MacroAssembler::Push(const CPURegister& src0, const CPURegister& src1,
-                          const CPURegister& src2, const CPURegister& src3) {
+void MacroAssembler::Push(const CPURegister& src0,
+                          const CPURegister& src1,
+                          const CPURegister& src2,
+                          const CPURegister& src3) {
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(AreSameSizeAndType(src0, src1, src2, src3));
   VIXL_ASSERT(src0.IsValid());
@@ -1642,8 +1823,10 @@ void MacroAssembler::Push(const CPURegister& src0, const CPURegister& src1,
 }
 
 
-void MacroAssembler::Pop(const CPURegister& dst0, const CPURegister& dst1,
-                         const CPURegister& dst2, const CPURegister& dst3) {
+void MacroAssembler::Pop(const CPURegister& dst0,
+                         const CPURegister& dst1,
+                         const CPURegister& dst2,
+                         const CPURegister& dst3) {
   // It is not valid to pop into the same register more than once in one
   // instruction, not even into the zero register.
   VIXL_ASSERT(allow_macro_instructions_);
@@ -1749,14 +1932,16 @@ void MacroAssembler::PushMultipleTimes(int count, Register src) {
 }
 
 
-void MacroAssembler::PushHelper(int count, int size,
+void MacroAssembler::PushHelper(int count,
+                                int size,
                                 const CPURegister& src0,
                                 const CPURegister& src1,
                                 const CPURegister& src2,
                                 const CPURegister& src3) {
   // Ensure that we don't unintentionally modify scratch or debug registers.
   // Worst case for size is 2 stp.
-  InstructionAccurateScope scope(this, 2,
+  InstructionAccurateScope scope(this,
+                                 2,
                                  InstructionAccurateScope::kMaximumSize);
 
   VIXL_ASSERT(AreSameSizeAndType(src0, src1, src2, src3));
@@ -1791,14 +1976,16 @@ void MacroAssembler::PushHelper(int count, int size,
 }
 
 
-void MacroAssembler::PopHelper(int count, int size,
+void MacroAssembler::PopHelper(int count,
+                               int size,
                                const CPURegister& dst0,
                                const CPURegister& dst1,
                                const CPURegister& dst2,
                                const CPURegister& dst3) {
   // Ensure that we don't unintentionally modify scratch or debug registers.
   // Worst case for size is 2 ldp.
-  InstructionAccurateScope scope(this, 2,
+  InstructionAccurateScope scope(this,
+                                 2,
                                  InstructionAccurateScope::kMaximumSize);
 
   VIXL_ASSERT(AreSameSizeAndType(dst0, dst1, dst2, dst3));
@@ -1990,9 +2177,7 @@ void MacroAssembler::LoadStoreCPURegListHelper(LoadStoreCPURegListAction op,
 
   UseScratchRegisterScope temps(this);
 
-  MemOperand loc = BaseMemOperandForLoadStoreCPURegList(registers,
-                                                        mem,
-                                                        &temps);
+  MemOperand loc = BaseMemOperandForLoadStoreCPURegList(registers, mem, &temps);
 
   while (registers.Count() >= 2) {
     const CPURegister& dst0 = registers.PopLowestIndex();
@@ -2057,7 +2242,7 @@ void MacroAssembler::BumpSystemStackPointer(const Operand& space) {
 
 // This is the main Printf implementation. All callee-saved registers are
 // preserved, but NZCV and the caller-saved registers may be clobbered.
-void MacroAssembler::PrintfNoPreserve(const char * format,
+void MacroAssembler::PrintfNoPreserve(const char* format,
                                       const CPURegister& arg0,
                                       const CPURegister& arg1,
                                       const CPURegister& arg2,
@@ -2167,9 +2352,9 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
     //   strlen(format) + 1 (includes null termination)
     //   padding to next instruction
     //   unreachable
-    EmissionCheckScope guard(
-        this,
-        AlignUp(strlen(format) + 1, kInstructionSize) + 2 * kInstructionSize);
+    EmissionCheckScope guard(this,
+                             AlignUp(strlen(format) + 1, kInstructionSize) +
+                                 2 * kInstructionSize);
     Label after_data;
     B(&after_data);
     Bind(&format_address);
@@ -2190,7 +2375,7 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
   if (allow_simulator_instructions_) {
     InstructionAccurateScope scope(this, kPrintfLength / kInstructionSize);
     hlt(kPrintfOpcode);
-    dc32(arg_count);          // kPrintfArgCountOffset
+    dc32(arg_count);  // kPrintfArgCountOffset
 
     // Determine the argument pattern.
     uint32_t arg_pattern_list = 0;
@@ -2205,7 +2390,7 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
       VIXL_ASSERT(arg_pattern < (1 << kPrintfArgPatternBits));
       arg_pattern_list |= (arg_pattern << (kPrintfArgPatternBits * i));
     }
-    dc32(arg_pattern_list);   // kPrintfArgPatternListOffset
+    dc32(arg_pattern_list);  // kPrintfArgPatternListOffset
   } else {
     Register tmp = temps.AcquireX();
     Mov(tmp, reinterpret_cast<uintptr_t>(printf));
@@ -2214,7 +2399,7 @@ void MacroAssembler::PrintfNoPreserve(const char * format,
 }
 
 
-void MacroAssembler::Printf(const char * format,
+void MacroAssembler::Printf(const char* format,
                             CPURegister arg0,
                             CPURegister arg1,
                             CPURegister arg2,
@@ -2238,7 +2423,8 @@ void MacroAssembler::Printf(const char * format,
   PushCPURegList(kCallerSaved);
   PushCPURegList(kCallerSavedV);
 
-  { UseScratchRegisterScope temps(this);
+  {
+    UseScratchRegisterScope temps(this);
     // We can use caller-saved registers as scratch values (except for argN).
     temps.Include(kCallerSaved);
     temps.Include(kCallerSavedV);
@@ -2255,7 +2441,8 @@ void MacroAssembler::Printf(const char * format,
       // Allocate a register to hold the original stack pointer value, to pass
       // to PrintfNoPreserve as an argument.
       Register arg_sp = temps.AcquireX();
-      Add(arg_sp, StackPointer(),
+      Add(arg_sp,
+          StackPointer(),
           kCallerSaved.TotalSizeInBytes() + kCallerSavedV.TotalSizeInBytes());
       if (arg0_sp) arg0 = Register(arg_sp.code(), arg0.size());
       if (arg1_sp) arg1 = Register(arg_sp.code(), arg1.size());
@@ -2361,6 +2548,7 @@ void MacroAssembler::AnnotateInstrumentation(const char* marker_name) {
 
 void UseScratchRegisterScope::Open(MacroAssembler* masm) {
   VIXL_ASSERT(!initialised_);
+  VIXL_ASSERT(masm != NULL);
   available_ = masm->TmpList();
   availablefp_ = masm->FPTmpList();
   old_available_ = available_->list();
@@ -2397,16 +2585,16 @@ UseScratchRegisterScope::UseScratchRegisterScope(MacroAssembler* masm) {
 
 // This allows deferred (and optional) initialisation of the scope.
 UseScratchRegisterScope::UseScratchRegisterScope()
-    : available_(NULL), availablefp_(NULL),
-      old_available_(0), old_availablefp_(0) {
+    : available_(NULL),
+      availablefp_(NULL),
+      old_available_(0),
+      old_availablefp_(0) {
 #ifdef VIXL_DEBUG
   initialised_ = false;
 #endif
 }
 
-UseScratchRegisterScope::~UseScratchRegisterScope() {
-  Close();
-}
+UseScratchRegisterScope::~UseScratchRegisterScope() { Close(); }
 
 
 bool UseScratchRegisterScope::IsAvailable(const CPURegister& reg) const {

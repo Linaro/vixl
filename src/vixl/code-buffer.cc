@@ -76,7 +76,7 @@ void CodeBuffer::Align() {
   const size_t padding_size = end - cursor_;
   VIXL_ASSERT(RemainingBytes() >= padding_size);
   VIXL_ASSERT(padding_size <= 4);
-  const byte padding[] = { 0, 0, 0, 0};
+  const byte padding[] = {0, 0, 0, 0};
   dirty_ = true;
   memcpy(cursor_, padding, padding_size);
   cursor_ = end;

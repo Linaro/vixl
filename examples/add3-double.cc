@@ -35,8 +35,8 @@ void GenerateAdd3Double(MacroAssembler* masm) {
   //    x -> d0
   //    y -> d1
   //    z -> d2
-  __ Fadd(d0, d0, d1);    // d0 <- x + y
-  __ Fadd(d0, d0, d2);    // d0 <- d0 + z
+  __ Fadd(d0, d0, d1);  // d0 <- x + y
+  __ Fadd(d0, d0, d2);  // d0 <- d0 + z
 
   // The return value is already in d0.
   __ Ret();

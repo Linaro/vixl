@@ -61,8 +61,8 @@ uint32_t CPU::GetCacheType() {
 #ifdef __aarch64__
   uint64_t cache_type_register;
   // Copy the content of the cache type register to a core register.
-  __asm__ __volatile__ ("mrs %[ctr], ctr_el0"  // NOLINT
-                        : [ctr] "=r" (cache_type_register));
+  __asm__ __volatile__("mrs %[ctr], ctr_el0"  // NOLINT
+                       : [ctr] "=r"(cache_type_register));
   VIXL_ASSERT(is_uint32(cache_type_register));
   return cache_type_register;
 #else
@@ -101,65 +101,70 @@ void CPU::EnsureIAndDCacheCoherency(void *address, size_t length) {
   uintptr_t end = start + length;
 
   do {
-    __asm__ __volatile__ (
-      // Clean each line of the D cache containing the target data.
-      //
-      // dc       : Data Cache maintenance
-      //     c    : Clean
-      //      va  : by (Virtual) Address
-      //        u : to the point of Unification
-      // The point of unification for a processor is the point by which the
-      // instruction and data caches are guaranteed to see the same copy of a
-      // memory location. See ARM DDI 0406B page B2-12 for more information.
-      "   dc    cvau, %[dline]\n"
-      :
-      : [dline] "r" (dline)
-      // This code does not write to memory, but the "memory" dependency
-      // prevents GCC from reordering the code.
-      : "memory");
+    __asm__ __volatile__(
+        // Clean each line of the D cache containing the target data.
+        //
+        // dc       : Data Cache maintenance
+        //     c    : Clean
+        //      va  : by (Virtual) Address
+        //        u : to the point of Unification
+        // The point of unification for a processor is the point by which the
+        // instruction and data caches are guaranteed to see the same copy of a
+        // memory location. See ARM DDI 0406B page B2-12 for more information.
+        "   dc    cvau, %[dline]\n"
+        :
+        : [dline] "r"(dline)
+        // This code does not write to memory, but the "memory" dependency
+        // prevents GCC from reordering the code.
+        : "memory");
     dline += dsize;
   } while (dline < end);
 
-  __asm__ __volatile__ (
-    // Make sure that the data cache operations (above) complete before the
-    // instruction cache operations (below).
-    //
-    // dsb      : Data Synchronisation Barrier
-    //      ish : Inner SHareable domain
-    //
-    // The point of unification for an Inner Shareable shareability domain is
-    // the point by which the instruction and data caches of all the processors
-    // in that Inner Shareable shareability domain are guaranteed to see the
-    // same copy of a memory location.  See ARM DDI 0406B page B2-12 for more
-    // information.
-    "   dsb   ish\n"
-    : : : "memory");
+  __asm__ __volatile__(
+      // Make sure that the data cache operations (above) complete before the
+      // instruction cache operations (below).
+      //
+      // dsb      : Data Synchronisation Barrier
+      //      ish : Inner SHareable domain
+      //
+      // The point of unification for an Inner Shareable shareability domain is
+      // the point by which the instruction and data caches of all the
+      // processors
+      // in that Inner Shareable shareability domain are guaranteed to see the
+      // same copy of a memory location. See ARM DDI 0406B page B2-12 for more
+      // information.
+      "   dsb   ish\n"
+      :
+      :
+      : "memory");
 
   do {
-    __asm__ __volatile__ (
-      // Invalidate each line of the I cache containing the target data.
-      //
-      // ic      : Instruction Cache maintenance
-      //    i    : Invalidate
-      //     va  : by Address
-      //       u : to the point of Unification
-      "   ic   ivau, %[iline]\n"
-      :
-      : [iline] "r" (iline)
-      : "memory");
+    __asm__ __volatile__(
+        // Invalidate each line of the I cache containing the target data.
+        //
+        // ic      : Instruction Cache maintenance
+        //    i    : Invalidate
+        //     va  : by Address
+        //       u : to the point of Unification
+        "   ic   ivau, %[iline]\n"
+        :
+        : [iline] "r"(iline)
+        : "memory");
     iline += isize;
   } while (iline < end);
 
-  __asm__ __volatile__ (
-    // Make sure that the instruction cache operations (above) take effect
-    // before the isb (below).
-    "   dsb  ish\n"
+  __asm__ __volatile__(
+      // Make sure that the instruction cache operations (above) take effect
+      // before the isb (below).
+      "   dsb  ish\n"
 
-    // Ensure that any instructions already in the pipeline are discarded and
-    // reloaded from the new data.
-    // isb : Instruction Synchronisation Barrier
-    "   isb\n"
-    : : : "memory");
+      // Ensure that any instructions already in the pipeline are discarded and
+      // reloaded from the new data.
+      // isb : Instruction Synchronisation Barrier
+      "   isb\n"
+      :
+      :
+      : "memory");
 #else
   // If the host isn't AArch64, we must be using the simulator, so this function
   // doesn't have to do anything.

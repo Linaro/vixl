@@ -37,8 +37,12 @@ int main(int argc, char* argv[]) {
   int iterations = 0;
 
   switch (argc) {
-    case 1: iterations = kDefaultIterationsCount; break;
-    case 2: iterations = atoi(argv[1]); break;
+    case 1:
+      iterations = kDefaultIterationsCount;
+      break;
+    case 2:
+      iterations = atoi(argv[1]);
+      break;
     default:
       printf("Usage: %s [#iterations]\n", argv[0]);
       exit(1);

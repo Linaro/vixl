@@ -124,15 +124,39 @@ int main(void) {
   //   float mat1[kLength] = { 1.0f, 52.03f, 4.43f, ... };
   // However, the following way better shows the "column-major" arrangement.
 
-  mat1[0] =   1.0f; mat1[4] =   2.0f; mat1[ 8] =   3.0f; mat1[12] =   4.0f;
-  mat1[1] = 52.03f; mat1[5] = 12.24f; mat1[ 9] = 53.56f; mat1[13] = 22.22f;
-  mat1[2] =  4.43f; mat1[6] =  5.00f; mat1[10] =  7.00f; mat1[14] =  3.11f;
-  mat1[3] = 43.47f; mat1[7] = 10.97f; mat1[11] = 37.78f; mat1[15] = 90.91f;
+  mat1[0] = 1.0f;
+  mat1[4] = 2.0f;
+  mat1[8] = 3.0f;
+  mat1[12] = 4.0f;
+  mat1[1] = 52.03f;
+  mat1[5] = 12.24f;
+  mat1[9] = 53.56f;
+  mat1[13] = 22.22f;
+  mat1[2] = 4.43f;
+  mat1[6] = 5.00f;
+  mat1[10] = 7.00f;
+  mat1[14] = 3.11f;
+  mat1[3] = 43.47f;
+  mat1[7] = 10.97f;
+  mat1[11] = 37.78f;
+  mat1[15] = 90.91f;
 
-  mat2[0] =   1.0f; mat2[4] = 11.24f; mat2[ 8] = 21.00f; mat2[12] = 21.31f;
-  mat2[1] =   2.0f; mat2[5] =  2.24f; mat2[ 9] =  8.56f; mat2[13] = 52.03f;
-  mat2[2] =   3.0f; mat2[6] = 51.00f; mat2[10] = 21.00f; mat2[14] = 33.11f;
-  mat2[3] =   4.0f; mat2[7] =  0.00f; mat2[11] = 84.00f; mat2[15] =  1.97f;
+  mat2[0] = 1.0f;
+  mat2[4] = 11.24f;
+  mat2[8] = 21.00f;
+  mat2[12] = 21.31f;
+  mat2[1] = 2.0f;
+  mat2[5] = 2.24f;
+  mat2[9] = 8.56f;
+  mat2[13] = 52.03f;
+  mat2[2] = 3.0f;
+  mat2[6] = 51.00f;
+  mat2[10] = 21.00f;
+  mat2[14] = 33.11f;
+  mat2[3] = 4.0f;
+  mat2[7] = 0.00f;
+  mat2[11] = 84.00f;
+  mat2[15] = 1.97f;
 
   simulator.ResetState();
   simulator.set_xreg(0, reinterpret_cast<uintptr_t>(output));
@@ -142,20 +166,32 @@ int main(void) {
 
   // Print the 4x4 output matrix along with both 4x4 input matrices.
   for (int i = 0; i < kRowSize; i++) {
-    printf("| %8.2f %8.2f %8.2f %8.2f |   "
-           "| %8.2f %8.2f %8.2f %8.2f |       "
-           "| %8.2f %8.2f %8.2f %8.2f |\n",
-             mat1[i],   mat1[4+i],   mat1[8+i],   mat1[12+i],
-             mat2[i],   mat2[4+i],   mat2[8+i],   mat2[12+i],
-           output[i], output[4+i], output[8+i], output[12+i]);
+    printf(
+        "| %8.2f %8.2f %8.2f %8.2f |   "
+        "| %8.2f %8.2f %8.2f %8.2f |       "
+        "| %8.2f %8.2f %8.2f %8.2f |\n",
+        mat1[i],
+        mat1[4 + i],
+        mat1[8 + i],
+        mat1[12 + i],
+        mat2[i],
+        mat2[4 + i],
+        mat2[8 + i],
+        mat2[12 + i],
+        output[i],
+        output[4 + i],
+        output[8 + i],
+        output[12 + i]);
     if (i == 0 || i == 2) {
-      printf("|                                     |   "
-             "|                                     |       "
-             "|                                     |\n");
+      printf(
+          "|                                     |   "
+          "|                                     |       "
+          "|                                     |\n");
     } else if (i == 1) {
-      printf("|                                     | x "
-             "|                                     |   =   "
-             "|                                     |\n");
+      printf(
+          "|                                     | x "
+          "|                                     |   =   "
+          "|                                     |\n");
     }
   }
 

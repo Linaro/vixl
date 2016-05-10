@@ -98,8 +98,8 @@ const unsigned kRegCodeMask = 0x1f;
 
 const unsigned kAddressTagOffset = 56;
 const unsigned kAddressTagWidth = 8;
-const uint64_t kAddressTagMask =
-    ((UINT64_C(1) << kAddressTagWidth) - 1) << kAddressTagOffset;
+const uint64_t kAddressTagMask = ((UINT64_C(1) << kAddressTagWidth) - 1)
+                                 << kAddressTagOffset;
 VIXL_STATIC_ASSERT(kAddressTagMask == UINT64_C(0xff00000000000000));
 
 // AArch64 floating-point specifics. These match IEEE-754.
@@ -128,17 +128,13 @@ unsigned CalcLSPairDataSize(LoadStorePairOp op);
 
 enum ImmBranchType {
   UnknownBranchType = 0,
-  CondBranchType    = 1,
-  UncondBranchType  = 2,
+  CondBranchType = 1,
+  UncondBranchType = 2,
   CompareBranchType = 3,
-  TestBranchType    = 4
+  TestBranchType = 4
 };
 
-enum AddrMode {
-  Offset,
-  PreIndex,
-  PostIndex
-};
+enum AddrMode { Offset, PreIndex, PostIndex };
 
 enum FPRounding {
   // The first four values are encodable directly by FPCR<RMode>.
@@ -153,10 +149,7 @@ enum FPRounding {
   FPRoundOdd
 };
 
-enum Reg31Mode {
-  Reg31IsStackPointer,
-  Reg31IsZeroRegister
-};
+enum Reg31Mode { Reg31IsStackPointer, Reg31IsZeroRegister };
 
 // Instructions. ---------------------------------------------------------------
 
@@ -170,9 +163,7 @@ class Instruction {
     *(reinterpret_cast<Instr*>(this)) = new_instr;
   }
 
-  int Bit(int pos) const {
-    return (InstructionBits() >> pos) & 1;
-  }
+  int Bit(int pos) const { return (InstructionBits() >> pos) & 1; }
 
   uint32_t Bits(int msb, int lsb) const {
     return unsigned_bitextract_32(msb, lsb, InstructionBits());
@@ -183,14 +174,12 @@ class Instruction {
     return signed_bitextract_32(msb, lsb, bits);
   }
 
-  Instr Mask(uint32_t mask) const {
-    return InstructionBits() & mask;
-  }
+  Instr Mask(uint32_t mask) const { return InstructionBits() & mask; }
 
-  #define DEFINE_GETTER(Name, HighBit, LowBit, Func)             \
+#define DEFINE_GETTER(Name, HighBit, LowBit, Func) \
   int32_t Name() const { return Func(HighBit, LowBit); }
   INSTRUCTION_FIELDS_LIST(DEFINE_GETTER)
-  #undef DEFINE_GETTER
+#undef DEFINE_GETTER
 
   // ImmPCRel is a compound field (not present in INSTRUCTION_FIELDS_LIST),
   // formed from ImmPCRelLo and ImmPCRelHi.
@@ -238,13 +227,9 @@ class Instruction {
     return Mask(CompareBranchFMask) == CompareBranchFixed;
   }
 
-  bool IsTestBranch() const {
-    return Mask(TestBranchFMask) == TestBranchFixed;
-  }
+  bool IsTestBranch() const { return Mask(TestBranchFMask) == TestBranchFixed; }
 
-  bool IsImmBranch() const {
-    return BranchType() != UnknownBranchType;
-  }
+  bool IsImmBranch() const { return BranchType() != UnknownBranchType; }
 
   bool IsPCRelAddressing() const {
     return Mask(PCRelAddressingFMask) == PCRelAddressingFixed;
@@ -390,28 +375,24 @@ class Instruction {
     return literal;
   }
 
-  float LiteralFP32() const {
-    return rawbits_to_float(Literal32());
-  }
+  float LiteralFP32() const { return rawbits_to_float(Literal32()); }
 
-  double LiteralFP64() const {
-    return rawbits_to_double(Literal64());
-  }
+  double LiteralFP64() const { return rawbits_to_double(Literal64()); }
 
-  const Instruction* NextInstruction() const {
-    return this + kInstructionSize;
-  }
+  const Instruction* NextInstruction() const { return this + kInstructionSize; }
 
   const Instruction* InstructionAtOffset(int64_t offset) const {
     VIXL_ASSERT(IsWordAligned(this + offset));
     return this + offset;
   }
 
-  template<typename T> static Instruction* Cast(T src) {
+  template <typename T>
+  static Instruction* Cast(T src) {
     return reinterpret_cast<Instruction*>(src);
   }
 
-  template<typename T> static const Instruction* CastConst(T src) {
+  template <typename T>
+  static const Instruction* CastConst(T src) {
     return reinterpret_cast<const Instruction*>(src);
   }
 
@@ -429,14 +410,14 @@ class Instruction {
 // Functions for handling NEON vector format information.
 enum VectorFormat {
   kFormatUndefined = 0xffffffff,
-  kFormat8B  = NEON_8B,
+  kFormat8B = NEON_8B,
   kFormat16B = NEON_16B,
-  kFormat4H  = NEON_4H,
-  kFormat8H  = NEON_8H,
-  kFormat2S  = NEON_2S,
-  kFormat4S  = NEON_4S,
-  kFormat1D  = NEON_1D,
-  kFormat2D  = NEON_2D,
+  kFormat4H = NEON_4H,
+  kFormat8H = NEON_8H,
+  kFormat2S = NEON_2S,
+  kFormat4S = NEON_4S,
+  kFormat1D = NEON_1D,
+  kFormat2D = NEON_2D,
 
   // Scalar formats. We add the scalar bit to distinguish between scalar and
   // vector enumerations; the bit is always set in the encoding of scalar ops
@@ -470,6 +451,7 @@ int64_t MinIntFromFormat(VectorFormat vform);
 uint64_t MaxUintFromFormat(VectorFormat vform);
 
 
+// clang-format off
 enum NEONFormat {
   NF_UNDEF = 0,
   NF_8B    = 1,
@@ -485,6 +467,7 @@ enum NEONFormat {
   NF_S     = 11,
   NF_D     = 12
 };
+// clang-format on
 
 static const unsigned kNEONFormatMaxBits = 6;
 
@@ -498,10 +481,7 @@ struct NEONFormatMap {
 
 class NEONFormatDecoder {
  public:
-  enum SubstitutionMode {
-    kPlaceholder,
-    kFormat
-  };
+  enum SubstitutionMode { kPlaceholder, kFormat };
 
   // Construct a format decoder with increasingly specific format maps for each
   // subsitution. If no format map is specified, the default is the integer
@@ -510,8 +490,7 @@ class NEONFormatDecoder {
     instrbits_ = instr->InstructionBits();
     SetFormatMaps(IntegerFormatMap());
   }
-  NEONFormatDecoder(const Instruction* instr,
-                    const NEONFormatMap* format) {
+  NEONFormatDecoder(const Instruction* instr, const NEONFormatMap* format) {
     instrbits_ = instr->InstructionBits();
     SetFormatMaps(format);
   }
@@ -556,7 +535,9 @@ class NEONFormatDecoder {
                          SubstitutionMode mode0 = kFormat,
                          SubstitutionMode mode1 = kFormat,
                          SubstitutionMode mode2 = kFormat) {
-    snprintf(form_buffer_, sizeof(form_buffer_), string,
+    snprintf(form_buffer_,
+             sizeof(form_buffer_),
+             string,
              GetSubstitute(0, mode0),
              GetSubstitute(1, mode1),
              GetSubstitute(2, mode2));
@@ -577,12 +558,19 @@ class NEONFormatDecoder {
   }
 
   VectorFormat GetVectorFormat(const NEONFormatMap* format_map) {
-    static const VectorFormat vform[] = {
-      kFormatUndefined,
-      kFormat8B, kFormat16B, kFormat4H, kFormat8H,
-      kFormat2S, kFormat4S, kFormat1D, kFormat2D,
-      kFormatB, kFormatH, kFormatS, kFormatD
-    };
+    static const VectorFormat vform[] = {kFormatUndefined,
+                                         kFormat8B,
+                                         kFormat16B,
+                                         kFormat4H,
+                                         kFormat8H,
+                                         kFormat2S,
+                                         kFormat4S,
+                                         kFormat1D,
+                                         kFormat2D,
+                                         kFormatB,
+                                         kFormatH,
+                                         kFormatS,
+                                         kFormatD};
     VIXL_ASSERT(GetNEONFormat(format_map) < (sizeof(vform) / sizeof(vform[0])));
     return vform[GetNEONFormat(format_map)];
   }
@@ -592,10 +580,9 @@ class NEONFormatDecoder {
   // The integer format map uses three bits (Q, size<1:0>) to encode the
   // "standard" set of NEON integer vector formats.
   static const NEONFormatMap* IntegerFormatMap() {
-    static const NEONFormatMap map = {
-      {23, 22, 30},
-      {NF_8B, NF_16B, NF_4H, NF_8H, NF_2S, NF_4S, NF_UNDEF, NF_2D}
-    };
+    static const NEONFormatMap map =
+        {{23, 22, 30},
+         {NF_8B, NF_16B, NF_4H, NF_8H, NF_2S, NF_4S, NF_UNDEF, NF_2D}};
     return &map;
   }
 
@@ -603,9 +590,7 @@ class NEONFormatDecoder {
   // long set of NEON integer vector formats. These are used in narrow, wide
   // and long operations.
   static const NEONFormatMap* LongIntegerFormatMap() {
-    static const NEONFormatMap map = {
-      {23, 22}, {NF_8H, NF_4S, NF_2D}
-    };
+    static const NEONFormatMap map = {{23, 22}, {NF_8H, NF_4S, NF_2D}};
     return &map;
   }
 
@@ -614,28 +599,24 @@ class NEONFormatDecoder {
   static const NEONFormatMap* FPFormatMap() {
     // The FP format map assumes two bits (Q, size<0>) are used to encode the
     // NEON FP vector formats: NF_2S, NF_4S, NF_2D.
-    static const NEONFormatMap map = {
-      {22, 30}, {NF_2S, NF_4S, NF_UNDEF, NF_2D}
-    };
+    static const NEONFormatMap map = {{22, 30},
+                                      {NF_2S, NF_4S, NF_UNDEF, NF_2D}};
     return &map;
   }
 
   // The load/store format map uses three bits (Q, 11, 10) to encode the
   // set of NEON vector formats.
   static const NEONFormatMap* LoadStoreFormatMap() {
-    static const NEONFormatMap map = {
-      {11, 10, 30},
-      {NF_8B, NF_16B, NF_4H, NF_8H, NF_2S, NF_4S, NF_1D, NF_2D}
-    };
+    static const NEONFormatMap map =
+        {{11, 10, 30},
+         {NF_8B, NF_16B, NF_4H, NF_8H, NF_2S, NF_4S, NF_1D, NF_2D}};
     return &map;
   }
 
   // The logical format map uses one bit (Q) to encode the NEON vector format:
   // NF_8B, NF_16B.
   static const NEONFormatMap* LogicalFormatMap() {
-    static const NEONFormatMap map = {
-      {30}, {NF_8B, NF_16B}
-    };
+    static const NEONFormatMap map = {{30}, {NF_8B, NF_16B}};
     return &map;
   }
 
@@ -644,40 +625,60 @@ class NEONFormatDecoder {
   // xxx10->8B, xxx11->16B, xx100->4H, xx101->8H
   // x1000->2S, x1001->4S,  10001->2D, all others undefined.
   static const NEONFormatMap* TriangularFormatMap() {
-    static const NEONFormatMap map = {
-      {19, 18, 17, 16, 30},
-      {NF_UNDEF, NF_UNDEF, NF_8B, NF_16B, NF_4H, NF_8H, NF_8B, NF_16B, NF_2S,
-       NF_4S, NF_8B, NF_16B, NF_4H, NF_8H, NF_8B, NF_16B, NF_UNDEF, NF_2D,
-       NF_8B, NF_16B, NF_4H, NF_8H, NF_8B, NF_16B, NF_2S, NF_4S, NF_8B, NF_16B,
-       NF_4H, NF_8H, NF_8B, NF_16B}
-    };
+    static const NEONFormatMap map = {{19, 18, 17, 16, 30},
+                                      {NF_UNDEF,
+                                       NF_UNDEF,
+                                       NF_8B,
+                                       NF_16B,
+                                       NF_4H,
+                                       NF_8H,
+                                       NF_8B,
+                                       NF_16B,
+                                       NF_2S,
+                                       NF_4S,
+                                       NF_8B,
+                                       NF_16B,
+                                       NF_4H,
+                                       NF_8H,
+                                       NF_8B,
+                                       NF_16B,
+                                       NF_UNDEF,
+                                       NF_2D,
+                                       NF_8B,
+                                       NF_16B,
+                                       NF_4H,
+                                       NF_8H,
+                                       NF_8B,
+                                       NF_16B,
+                                       NF_2S,
+                                       NF_4S,
+                                       NF_8B,
+                                       NF_16B,
+                                       NF_4H,
+                                       NF_8H,
+                                       NF_8B,
+                                       NF_16B}};
     return &map;
   }
 
   // The scalar format map uses two bits (size<1:0>) to encode the NEON scalar
   // formats: NF_B, NF_H, NF_S, NF_D.
   static const NEONFormatMap* ScalarFormatMap() {
-    static const NEONFormatMap map = {
-      {23, 22}, {NF_B, NF_H, NF_S, NF_D}
-    };
+    static const NEONFormatMap map = {{23, 22}, {NF_B, NF_H, NF_S, NF_D}};
     return &map;
   }
 
   // The long scalar format map uses two bits (size<1:0>) to encode the longer
   // NEON scalar formats: NF_H, NF_S, NF_D.
   static const NEONFormatMap* LongScalarFormatMap() {
-    static const NEONFormatMap map = {
-      {23, 22}, {NF_H, NF_S, NF_D}
-    };
+    static const NEONFormatMap map = {{23, 22}, {NF_H, NF_S, NF_D}};
     return &map;
   }
 
   // The FP scalar format map assumes one bit (size<0>) is used to encode the
   // NEON FP scalar formats: NF_S, NF_D.
   static const NEONFormatMap* FPScalarFormatMap() {
-    static const NEONFormatMap map = {
-      {22}, {NF_S, NF_D}
-    };
+    static const NEONFormatMap map = {{22}, {NF_S, NF_D}};
     return &map;
   }
 
@@ -685,11 +686,23 @@ class NEONFormatDecoder {
   // the NEON FP scalar formats:
   // xxx1->B, xx10->H, x100->S, 1000->D, all others undefined.
   static const NEONFormatMap* TriangularScalarFormatMap() {
-    static const NEONFormatMap map = {
-      {19, 18, 17, 16},
-      {NF_UNDEF, NF_B, NF_H, NF_B, NF_S, NF_B, NF_H, NF_B,
-       NF_D,     NF_B, NF_H, NF_B, NF_S, NF_B, NF_H, NF_B}
-    };
+    static const NEONFormatMap map = {{19, 18, 17, 16},
+                                      {NF_UNDEF,
+                                       NF_B,
+                                       NF_H,
+                                       NF_B,
+                                       NF_S,
+                                       NF_B,
+                                       NF_H,
+                                       NF_B,
+                                       NF_D,
+                                       NF_B,
+                                       NF_H,
+                                       NF_B,
+                                       NF_S,
+                                       NF_B,
+                                       NF_H,
+                                       NF_B}};
     return &map;
   }
 
@@ -712,26 +725,29 @@ class NEONFormatDecoder {
 
   // Convert a NEONFormat into a string.
   static const char* NEONFormatAsString(NEONFormat format) {
+    // clang-format off
     static const char* formats[] = {
       "undefined",
       "8b", "16b", "4h", "8h", "2s", "4s", "1d", "2d",
       "b", "h", "s", "d"
     };
+    // clang-format on
     VIXL_ASSERT(format < (sizeof(formats) / sizeof(formats[0])));
     return formats[format];
   }
 
   // Convert a NEONFormat into a register placeholder string.
   static const char* NEONFormatAsPlaceholder(NEONFormat format) {
-    VIXL_ASSERT((format == NF_B) || (format == NF_H) ||
-                (format == NF_S) || (format == NF_D) ||
-                (format == NF_UNDEF));
+    VIXL_ASSERT((format == NF_B) || (format == NF_H) || (format == NF_S) ||
+                (format == NF_D) || (format == NF_UNDEF));
+    // clang-format off
     static const char* formats[] = {
       "undefined",
       "undefined", "undefined", "undefined", "undefined",
       "undefined", "undefined", "undefined", "undefined",
       "'B", "'H", "'S", "'D"
     };
+    // clang-format on
     return formats[format];
   }
 

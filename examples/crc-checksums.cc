@@ -43,8 +43,8 @@ void GenerateCrc32(MacroAssembler* masm) {
   // Move input array to temp register so we can re-use w0 as return register.
   __ Mov(x2, x0);
 
-  // Initial remainder for the checksum.  If length=0, then this value will
-  // be returned.
+  // Initial remainder for the checksum. If length=0, then this value will be
+  // returned.
   __ Mov(w0, 0xffffffff);
 
   // Loop for iterating through the array, starting at msg[0].
@@ -66,7 +66,7 @@ void GenerateCrc32(MacroAssembler* masm) {
 
 #ifndef TEST_EXAMPLES
 
-void runExample(const char *msg) {
+void runExample(const char* msg) {
   // Create and initialize the assembler and the simulator.
   byte assm_buf[BUF_SIZE];
   MacroAssembler masm(assm_buf, BUF_SIZE);
