@@ -2004,7 +2004,7 @@ static T MultiplyHigh(T u, T v) {
 void Simulator::VisitDataProcessing3Source(const Instruction* instr) {
   unsigned reg_size = instr->SixtyFourBits() ? kXRegSize : kWRegSize;
 
-  int64_t result = 0;
+  uint64_t result = 0;
   // Extract and sign- or zero-extend 32-bit arguments for widening operations.
   uint64_t rn_u32 = reg<uint32_t>(instr->Rn());
   uint64_t rm_u32 = reg<uint32_t>(instr->Rm());
