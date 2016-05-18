@@ -427,3 +427,5 @@ if __name__ == '__main__':
         rc |= RunBenchmarks()
 
   PrintStatus(rc == 0)
+
+  sys.exit(rc)
