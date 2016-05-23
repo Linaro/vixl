@@ -27,13 +27,13 @@
 #ifndef VIXL_A64_SIMULATOR_A64_H_
 #define VIXL_A64_SIMULATOR_A64_H_
 
-#include "vixl/globals.h"
-#include "vixl/utils.h"
-#include "vixl/a64/instructions-a64.h"
-#include "vixl/a64/assembler-a64.h"
-#include "vixl/a64/disasm-a64.h"
-#include "vixl/a64/instrument-a64.h"
-#include "vixl/a64/simulator-constants-a64.h"
+#include "globals.h"
+#include "utils.h"
+#include "a64/instructions-a64.h"
+#include "a64/assembler-a64.h"
+#include "a64/disasm-a64.h"
+#include "a64/instrument-a64.h"
+#include "a64/simulator-constants-a64.h"
 
 namespace vixl {
 

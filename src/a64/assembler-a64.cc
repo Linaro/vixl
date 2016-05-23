@@ -26,8 +26,8 @@
 
 
 #include <cmath>
-#include "vixl/a64/assembler-a64.h"
-#include "vixl/a64/macro-assembler-a64.h"
+#include "a64/assembler-a64.h"
+#include "a64/macro-assembler-a64.h"
 
 namespace vixl {
 

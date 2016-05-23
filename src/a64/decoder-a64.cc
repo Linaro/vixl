@@ -24,9 +24,9 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "vixl/globals.h"
-#include "vixl/utils.h"
-#include "vixl/a64/decoder-a64.h"
+#include "globals.h"
+#include "utils.h"
+#include "a64/decoder-a64.h"
 
 namespace vixl {
 

@@ -25,7 +25,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstdlib>
-#include "vixl/a64/disasm-a64.h"
+#include "a64/disasm-a64.h"
 
 namespace vixl {
 

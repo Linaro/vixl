@@ -26,7 +26,7 @@
 
 #ifdef VIXL_INCLUDE_SIMULATOR
 
-#include "vixl/a64/debugger-a64.h"
+#include "a64/debugger-a64.h"
 
 namespace vixl {
 

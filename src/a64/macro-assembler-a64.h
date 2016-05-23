@@ -30,11 +30,11 @@
 #include <algorithm>
 #include <limits>
 
-#include "vixl/globals.h"
-#include "vixl/a64/assembler-a64.h"
-#include "vixl/a64/debugger-a64.h"
-#include "vixl/a64/instrument-a64.h"
-#include "vixl/a64/simulator-constants-a64.h"
+#include "globals.h"
+#include "a64/assembler-a64.h"
+#include "a64/debugger-a64.h"
+#include "a64/instrument-a64.h"
+#include "a64/simulator-constants-a64.h"
 
 
 #define LS_MACRO_LIST(V)                                     \

@@ -26,7 +26,7 @@
 
 #include <ctype.h>
 
-#include "vixl/a64/macro-assembler-a64.h"
+#include "a64/macro-assembler-a64.h"
 
 namespace vixl {
 

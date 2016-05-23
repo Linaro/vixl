@@ -27,7 +27,7 @@
 #ifdef VIXL_INCLUDE_SIMULATOR
 
 #include <cmath>
-#include "vixl/a64/simulator-a64.h"
+#include "a64/simulator-a64.h"
 
 namespace vixl {
 

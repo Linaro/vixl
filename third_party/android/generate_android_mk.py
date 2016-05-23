@@ -49,8 +49,8 @@ parser.add_argument('-o', '--output',
 args = parser.parse_args()
 
 
-sources = glob.glob(os.path.join(dir_root, 'src', 'vixl', '*.cc')) + \
-          glob.glob(os.path.join(dir_root, 'src', 'vixl', 'a64', '*.cc'))
+sources = glob.glob(os.path.join(dir_root, 'src', '*.cc')) + \
+          glob.glob(os.path.join(dir_root, 'src', 'a64', '*.cc'))
 sources = map(lambda p : os.path.relpath(p, dir_root), sources)
 sources.sort()
 

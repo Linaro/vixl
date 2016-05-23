@@ -34,10 +34,10 @@
 #include <errno.h>
 #include <vector>
 
-#include "vixl/globals.h"
-#include "vixl/utils.h"
-#include "vixl/a64/constants-a64.h"
-#include "vixl/a64/simulator-a64.h"
+#include "globals.h"
+#include "utils.h"
+#include "a64/constants-a64.h"
+#include "a64/simulator-a64.h"
 
 namespace vixl {
 

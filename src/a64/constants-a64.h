@@ -55,7 +55,7 @@ R(24) R(25) R(26) R(27) R(28) R(29) R(30) R(31)
   V_(Ra, 14, 10, Bits)  /* Third source register.       */ \
   V_(Rt, 4, 0, Bits)    /* Load/store register.         */ \
   V_(Rt2, 14, 10, Bits) /* Load/store second register.  */ \
-  V_(Rs, 20, 16, Bits)  /* Exclusive access status.     */  \
+  V_(Rs, 20, 16, Bits)  /* Exclusive access status.     */ \
                                                            \
   /* Common bits */                                        \
   V_(SixtyFourBits, 31, 31, Bits)                          \

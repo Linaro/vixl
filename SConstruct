@@ -259,9 +259,9 @@ def VIXLLibraryTarget(env):
   subprocess.check_call(["rm", "-f", config.dir_build_latest])
   util.ensure_dir(build_dir)
   subprocess.check_call(["ln", "-s", build_dir, config.dir_build_latest])
-  # Source files are in `src/vixl` and in `src/vixl/a64/`.
-  variant_dir_vixl = PrepareVariantDir(join('src', 'vixl'), build_dir)
-  variant_dir_a64 = PrepareVariantDir(join('src', 'vixl', 'a64'), build_dir)
+  # Source files are in `src` and in `src/a64/`.
+  variant_dir_vixl = PrepareVariantDir(join('src'), build_dir)
+  variant_dir_a64 = PrepareVariantDir(join('src', 'a64'), build_dir)
   sources = [Glob(join(variant_dir_vixl, '*.cc')),
              Glob(join(variant_dir_a64, '*.cc'))]
   return env.Library(join(build_dir, 'vixl'), sources)

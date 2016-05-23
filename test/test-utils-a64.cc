@@ -29,10 +29,10 @@
 #include <cmath>
 
 #include "test-runner.h"
-#include "vixl/a64/macro-assembler-a64.h"
-#include "vixl/a64/simulator-a64.h"
-#include "vixl/a64/disasm-a64.h"
-#include "vixl/a64/cpu-a64.h"
+#include "a64/macro-assembler-a64.h"
+#include "a64/simulator-a64.h"
+#include "a64/disasm-a64.h"
+#include "a64/cpu-a64.h"
 
 #define __ masm->
 

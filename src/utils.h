@@ -29,8 +29,8 @@
 
 #include <string.h>
 #include <cmath>
-#include "vixl/globals.h"
-#include "vixl/compiler-intrinsics.h"
+#include "globals.h"
+#include "compiler-intrinsics.h"
 
 namespace vixl {
 

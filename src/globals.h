@@ -49,7 +49,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stddef.h>
-#include "vixl/platform.h"
+#include "platform.h"
 
 
 typedef uint8_t byte;

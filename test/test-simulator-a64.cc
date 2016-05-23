@@ -31,8 +31,8 @@
 #include "test-utils-a64.h"
 #include "test-simulator-inputs-a64.h"
 #include "test-simulator-traces-a64.h"
-#include "vixl/a64/macro-assembler-a64.h"
-#include "vixl/a64/simulator-a64.h"
+#include "a64/macro-assembler-a64.h"
+#include "a64/simulator-a64.h"
 
 namespace vixl {
 

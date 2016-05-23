@@ -24,8 +24,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "vixl/code-buffer.h"
-#include "vixl/utils.h"
+#include "code-buffer.h"
+#include "utils.h"
 
 namespace vixl {
 

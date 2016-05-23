@@ -29,8 +29,8 @@
 #include <string>
 #include "test-runner.h"
 
-#include "vixl/a64/macro-assembler-a64.h"
-#include "vixl/a64/disasm-a64.h"
+#include "a64/macro-assembler-a64.h"
+#include "a64/disasm-a64.h"
 
 #define TEST(name)  TEST_(DISASM_##name)
 
