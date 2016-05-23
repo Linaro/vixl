@@ -24,7 +24,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "globals.h"
+#include "globals-vixl.h"
 
 #include "a64/macro-assembler-a64.h"
 #include "a64/instructions-a64.h"

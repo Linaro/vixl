@@ -32,7 +32,7 @@
 #include <algorithm>
 #include <vector>
 
-#include "globals.h"
+#include "globals-vixl.h"
 
 namespace vixl {
 

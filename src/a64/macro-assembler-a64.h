@@ -30,7 +30,7 @@
 #include <algorithm>
 #include <limits>
 
-#include "globals.h"
+#include "globals-vixl.h"
 #include "a64/assembler-a64.h"
 #include "a64/debugger-a64.h"
 #include "a64/instrument-a64.h"

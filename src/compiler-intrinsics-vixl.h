@@ -28,7 +28,7 @@
 #ifndef VIXL_COMPILER_INTRINSICS_H
 #define VIXL_COMPILER_INTRINSICS_H
 
-#include "globals.h"
+#include "globals-vixl.h"
 
 namespace vixl {
 

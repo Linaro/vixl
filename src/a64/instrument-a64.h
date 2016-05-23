@@ -27,8 +27,8 @@
 #ifndef VIXL_A64_INSTRUMENT_A64_H_
 #define VIXL_A64_INSTRUMENT_A64_H_
 
-#include "globals.h"
-#include "utils.h"
+#include "globals-vixl.h"
+#include "utils-vixl.h"
 #include "a64/decoder-a64.h"
 #include "a64/constants-a64.h"
 #include "a64/instrument-a64.h"

@@ -28,10 +28,10 @@
 #define VIXL_A64_ASSEMBLER_A64_H_
 
 
-#include "globals.h"
-#include "invalset.h"
-#include "utils.h"
-#include "code-buffer.h"
+#include "globals-vixl.h"
+#include "invalset-vixl.h"
+#include "utils-vixl.h"
+#include "code-buffer-vixl.h"
 #include "a64/instructions-a64.h"
 
 namespace vixl {

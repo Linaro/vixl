@@ -27,8 +27,8 @@
 #ifndef VIXL_A64_SIMULATOR_A64_H_
 #define VIXL_A64_SIMULATOR_A64_H_
 
-#include "globals.h"
-#include "utils.h"
+#include "globals-vixl.h"
+#include "utils-vixl.h"
 #include "a64/instructions-a64.h"
 #include "a64/assembler-a64.h"
 #include "a64/disasm-a64.h"

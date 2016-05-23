@@ -34,8 +34,8 @@
 #include <errno.h>
 #include <vector>
 
-#include "globals.h"
-#include "utils.h"
+#include "globals-vixl.h"
+#include "utils-vixl.h"
 #include "a64/constants-a64.h"
 #include "a64/simulator-a64.h"
 
