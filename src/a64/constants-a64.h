@@ -27,6 +27,8 @@
 #ifndef VIXL_A64_CONSTANTS_A64_H_
 #define VIXL_A64_CONSTANTS_A64_H_
 
+#include "globals-vixl.h"
+
 namespace vixl {
 
 const unsigned kNumberOfRegisters = 32;

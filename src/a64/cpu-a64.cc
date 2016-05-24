@@ -25,6 +25,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "utils-vixl.h"
+
 #include "a64/cpu-a64.h"
 
 namespace vixl {

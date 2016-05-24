@@ -26,8 +26,8 @@
 
 #include "globals-vixl.h"
 
-#include "a64/macro-assembler-a64.h"
 #include "a64/instructions-a64.h"
+#include "a64/macro-assembler-a64.h"
 
 using namespace vixl;
 

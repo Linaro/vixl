@@ -29,6 +29,7 @@
 
 #include "globals-vixl.h"
 #include "utils-vixl.h"
+
 #include "a64/constants-a64.h"
 
 namespace vixl {

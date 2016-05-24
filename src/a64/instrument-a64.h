@@ -29,8 +29,9 @@
 
 #include "globals-vixl.h"
 #include "utils-vixl.h"
-#include "a64/decoder-a64.h"
+
 #include "a64/constants-a64.h"
+#include "a64/decoder-a64.h"
 #include "a64/instrument-a64.h"
 
 namespace vixl {

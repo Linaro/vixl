@@ -24,13 +24,14 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <stdio.h>
 #include <float.h>
+#include <stdio.h>
 
 #include "test-runner.h"
-#include "test-utils-a64.h"
 #include "test-simulator-inputs-a64.h"
 #include "test-simulator-traces-a64.h"
+#include "test-utils-a64.h"
+
 #include "a64/macro-assembler-a64.h"
 #include "a64/simulator-a64.h"
 

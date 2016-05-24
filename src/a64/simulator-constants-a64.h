@@ -27,6 +27,8 @@
 #ifndef VIXL_A64_SIMULATOR_CONSTANTS_A64_H_
 #define VIXL_A64_SIMULATOR_CONSTANTS_A64_H_
 
+#include "a64/instructions-a64.h"
+
 namespace vixl {
 
 // Debug instructions.

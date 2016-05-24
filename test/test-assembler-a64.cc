@@ -24,19 +24,21 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <float.h>
+
 #include <cmath>
 
 #include "test-runner.h"
 #include "test-utils-a64.h"
-#include "a64/macro-assembler-a64.h"
-#include "a64/simulator-a64.h"
+
+#include "a64/cpu-a64.h"
 #include "a64/debugger-a64.h"
 #include "a64/disasm-a64.h"
-#include "a64/cpu-a64.h"
+#include "a64/macro-assembler-a64.h"
+#include "a64/simulator-a64.h"
 
 namespace vixl {
 

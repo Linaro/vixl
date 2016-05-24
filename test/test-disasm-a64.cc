@@ -25,12 +25,14 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdio.h>
+
 #include <cstring>
 #include <string>
+
 #include "test-runner.h"
 
-#include "a64/macro-assembler-a64.h"
 #include "a64/disasm-a64.h"
+#include "a64/macro-assembler-a64.h"
 
 #define TEST(name)  TEST_(DISASM_##name)
 

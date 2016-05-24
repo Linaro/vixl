@@ -28,9 +28,11 @@
 #define VIXL_UTILS_H
 
 #include <string.h>
+
 #include <cmath>
-#include "globals-vixl.h"
+
 #include "compiler-intrinsics-vixl.h"
+#include "globals-vixl.h"
 
 namespace vixl {
 
