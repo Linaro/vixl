@@ -218,11 +218,13 @@ LOCAL_SANITIZE_RECOVER := shift-exponent
 LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
 include $(BUILD_HOST_EXECUTABLE)
 
+vixl_host_out := $(if $(ANDROID_HOST_OUT), $(ANDROID_HOST_OUT), ../../$(HOST_OUT))
+
 .PHONY: run-vixl-tests
 run-vixl-tests: vixl-test-runner
 	$(vixl_root)/third_party/android/check_top_level_android_mk.sh
 	# TODO: Once available, use the appropriate option of vixl-test-runner
 	# to point to the trace files instead of running from the vixl root.
-	cd $(vixl_root) && ../../$(HOST_OUT)/bin/vixl-test-runner --run_all
-	cd $(vixl_root) && ../../$(HOST_OUT)/bin/vixl-test-runner --run_all --debugger
+	cd $(vixl_root) && $(vixl_host_out)/bin/vixl-test-runner --run_all
+	cd $(vixl_root) && $(vixl_host_out)/bin/vixl-test-runner --run_all --debugger
 	@echo vixl tests PASSED
