@@ -37,3 +37,6 @@ BinPackParameters: false
 
 PenaltyBreakBeforeFirstCallParameter: 500
 PenaltyBreakString: 100
+
+# Do not format comments that contain the `NOLINT` pragma for `cpplint.py`.
+CommentPragmas: NOLINT
