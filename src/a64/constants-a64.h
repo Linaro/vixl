@@ -47,7 +47,6 @@ R(0)  R(1)  R(2)  R(3)  R(4)  R(5)  R(6)  R(7)                                 \
 R(8)  R(9)  R(10) R(11) R(12) R(13) R(14) R(15)                                \
 R(16) R(17) R(18) R(19) R(20) R(21) R(22) R(23)                                \
 R(24) R(25) R(26) R(27) R(28) R(29) R(30) R(31)
-// clang-format on
 
 #define INSTRUCTION_FIELDS_LIST(V_)                        \
   /* Register fields */                                    \
@@ -167,6 +166,7 @@ R(24) R(25) R(26) R(27) R(28) R(29) R(30) R(31)
   V_(ImmNEONImmhImmb, 22, 16, Bits)                        \
   V_(ImmNEONImmh, 22, 19, Bits)                            \
   V_(ImmNEONImmb, 18, 16, Bits)
+// clang-format on
 
 #define SYSTEM_REGISTER_FIELDS_LIST(V_, M_) \
   /* NZCV */                                \
