@@ -37,6 +37,7 @@
 #include "a64/simulator-constants-a64.h"
 
 namespace vixl {
+namespace aarch64 {
 
 // Assemble the specified IEEE-754 components into the target type and apply
 // appropriate rounding.
@@ -276,7 +277,7 @@ class SimRegisterBase {
 
   // Write the specified value. The value is zero-extended if necessary.
   template <typename T>
-  void Set(T new_value) {
+  void Write(T new_value) {
     VIXL_STATIC_ASSERT(sizeof(new_value) <= kSizeInBytes);
     if (sizeof(new_value) < kSizeInBytes) {
       // All AArch64 registers are zero-extending.
@@ -284,6 +285,10 @@ class SimRegisterBase {
     }
     memcpy(value_, &new_value, sizeof(new_value));
     NotifyRegisterWrite();
+  }
+  template <typename T>
+  VIXL_DEPRECATED("Write", void Set(T new_value)) {
+    Write(new_value);
   }
 
   // Insert a typed value into a register, leaving the rest of the register
@@ -299,14 +304,25 @@ class SimRegisterBase {
     NotifyRegisterWrite();
   }
 
-  // Read the value as the specified type. The value is truncated if necessary.
+  // Get the value as the specified type. The value is truncated if necessary.
   template <typename T>
-  T Get(int lane = 0) const {
+  T Get() const {
+    return GetLane<T>(0);
+  }
+
+  // Get the lane value as the specified type. The value is truncated if
+  // necessary.
+  template <typename T>
+  T GetLane(int lane) const {
     T result;
     VIXL_ASSERT(lane >= 0);
     VIXL_ASSERT((sizeof(result) + (lane * sizeof(result))) <= kSizeInBytes);
     memcpy(&result, &value_[lane * sizeof(result)], sizeof(result));
     return result;
+  }
+  template <typename T>
+  VIXL_DEPRECATED("GetLane", T Get(int lane) const) {
+    return GetLane(lane);
   }
 
   // TODO: Make this return a map of updated bytes, so that we can highlight
@@ -345,16 +361,16 @@ class LogicVRegister {
     int64_t element;
     switch (LaneSizeInBitsFromFormat(vform)) {
       case 8:
-        element = register_.Get<int8_t>(index);
+        element = register_.GetLane<int8_t>(index);
         break;
       case 16:
-        element = register_.Get<int16_t>(index);
+        element = register_.GetLane<int16_t>(index);
         break;
       case 32:
-        element = register_.Get<int32_t>(index);
+        element = register_.GetLane<int32_t>(index);
         break;
       case 64:
-        element = register_.Get<int64_t>(index);
+        element = register_.GetLane<int64_t>(index);
         break;
       default:
         VIXL_UNREACHABLE();
@@ -367,16 +383,16 @@ class LogicVRegister {
     uint64_t element;
     switch (LaneSizeInBitsFromFormat(vform)) {
       case 8:
-        element = register_.Get<uint8_t>(index);
+        element = register_.GetLane<uint8_t>(index);
         break;
       case 16:
-        element = register_.Get<uint16_t>(index);
+        element = register_.GetLane<uint16_t>(index);
         break;
       case 32:
-        element = register_.Get<uint32_t>(index);
+        element = register_.GetLane<uint32_t>(index);
         break;
       case 64:
-        element = register_.Get<uint64_t>(index);
+        element = register_.GetLane<uint64_t>(index);
         break;
       default:
         VIXL_UNREACHABLE();
@@ -473,7 +489,7 @@ class LogicVRegister {
 
   template <typename T>
   T Float(int index) const {
-    return register_.Get<T>(index);
+    return register_.GetLane<T>(index);
   }
 
   template <typename T>
@@ -621,18 +637,28 @@ class SimSystemRegister {
   // It is not possible to set its value to anything other than 0.
   SimSystemRegister() : value_(0), write_ignore_mask_(0xffffffff) {}
 
-  uint32_t RawValue() const { return value_; }
+  uint32_t GetRawValue() const { return value_; }
+  VIXL_DEPRECATED("GetRawValue", uint32_t RawValue() const) {
+    return GetRawValue();
+  }
 
   void SetRawValue(uint32_t new_value) {
     value_ = (value_ & write_ignore_mask_) | (new_value & ~write_ignore_mask_);
   }
 
-  uint32_t Bits(int msb, int lsb) const {
-    return unsigned_bitextract_32(msb, lsb, value_);
+  uint32_t ExtractBits(int msb, int lsb) const {
+    return ExtractUnsignedBitfield32(msb, lsb, value_);
+  }
+  VIXL_DEPRECATED("ExtractBits", uint32_t Bits(int msb, int lsb) const) {
+    return ExtractBits(msb, lsb);
   }
 
-  int32_t SignedBits(int msb, int lsb) const {
-    return signed_bitextract_32(msb, lsb, value_);
+  int32_t ExtractSignedBits(int msb, int lsb) const {
+    return ExtractSignedBitfield32(msb, lsb, value_);
+  }
+  VIXL_DEPRECATED("ExtractSignedBits",
+                  int32_t SignedBits(int msb, int lsb) const) {
+    return ExtractSignedBits(msb, lsb);
   }
 
   void SetBits(int msb, int lsb, uint32_t bits);
@@ -640,8 +666,9 @@ class SimSystemRegister {
   // Default system register values.
   static SimSystemRegister DefaultValueFor(SystemRegister id);
 
-#define DEFINE_GETTER(Name, HighBit, LowBit, Func)        \
-  uint32_t Name() const { return Func(HighBit, LowBit); } \
+#define DEFINE_GETTER(Name, HighBit, LowBit, Func)                            \
+  uint32_t Get##Name() const { return this->Func(HighBit, LowBit); }          \
+  VIXL_DEPRECATED("Get" #Name, uint32_t Name() const) { return Get##Name(); } \
   void Set##Name(uint32_t bits) { SetBits(HighBit, LowBit, bits); }
 #define DEFINE_WRITE_IGNORE_MASK(Name, Mask) \
   static const uint32_t Name##WriteIgnoreMask = ~static_cast<uint32_t>(Mask);
@@ -745,24 +772,30 @@ class Simulator : public DecoderVisitor {
   static const Instruction* kEndOfSimAddress;
 
   // Simulation helpers.
-  const Instruction* pc() const { return pc_; }
-  void set_pc(const Instruction* new_pc) {
+  const Instruction* ReadPc() const { return pc_; }
+  VIXL_DEPRECATED("ReadPc", const Instruction* pc() const) { return ReadPc(); }
+
+  void WritePc(const Instruction* new_pc) {
     pc_ = Memory::AddressUntag(new_pc);
     pc_modified_ = true;
   }
+  VIXL_DEPRECATED("WritePc", void set_pc(const Instruction* new_pc)) {
+    return WritePc(new_pc);
+  }
 
-  void increment_pc() {
+  void IncrementPc() {
     if (!pc_modified_) {
-      pc_ = pc_->NextInstruction();
+      pc_ = pc_->GetNextInstruction();
     }
   }
+  VIXL_DEPRECATED("IncrementPc", void increment_pc()) { IncrementPc(); }
 
   void ExecuteInstruction() {
     // The program counter should always be aligned.
     VIXL_ASSERT(IsWordAligned(pc_));
     pc_modified_ = false;
     decoder_->Decode(pc_);
-    increment_pc();
+    IncrementPc();
     LogAllWrittenRegisters();
   }
 
@@ -781,7 +814,7 @@ class Simulator : public DecoderVisitor {
 
   // Basic accessor: Read the register as the specified type.
   template <typename T>
-  T reg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
+  T ReadRegister(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
     VIXL_ASSERT(code < kNumberOfRegisters);
     if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
       T result;
@@ -790,29 +823,47 @@ class Simulator : public DecoderVisitor {
     }
     return registers_[code].Get<T>();
   }
-
-  // Common specialized accessors for the reg() template.
-  int32_t wreg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
-    return reg<int32_t>(code, r31mode);
+  template <typename T>
+  VIXL_DEPRECATED("ReadRegister",
+                  T reg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister)
+                      const) {
+    return ReadRegister<T>(code, r31mode);
   }
 
-  int64_t xreg(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
-    return reg<int64_t>(code, r31mode);
+  // Common specialized accessors for the ReadRegister() template.
+  int32_t ReadWRegister(unsigned code,
+                        Reg31Mode r31mode = Reg31IsZeroRegister) const {
+    return ReadRegister<int32_t>(code, r31mode);
+  }
+  VIXL_DEPRECATED("ReadWRegister",
+                  int32_t wreg(unsigned code,
+                               Reg31Mode r31mode = Reg31IsZeroRegister) const) {
+    return ReadWRegister(code, r31mode);
+  }
+
+  int64_t ReadXRegister(unsigned code,
+                        Reg31Mode r31mode = Reg31IsZeroRegister) const {
+    return ReadRegister<int64_t>(code, r31mode);
+  }
+  VIXL_DEPRECATED("ReadXRegister",
+                  int64_t xreg(unsigned code,
+                               Reg31Mode r31mode = Reg31IsZeroRegister) const) {
+    return ReadXRegister(code, r31mode);
   }
 
   // As above, with parameterized size and return type. The value is
   // either zero-extended or truncated to fit, as required.
   template <typename T>
-  T reg(unsigned size,
-        unsigned code,
-        Reg31Mode r31mode = Reg31IsZeroRegister) const {
+  T ReadRegister(unsigned size,
+                 unsigned code,
+                 Reg31Mode r31mode = Reg31IsZeroRegister) const {
     uint64_t raw;
     switch (size) {
       case kWRegSize:
-        raw = reg<uint32_t>(code, r31mode);
+        raw = ReadRegister<uint32_t>(code, r31mode);
         break;
       case kXRegSize:
-        raw = reg<uint64_t>(code, r31mode);
+        raw = ReadRegister<uint64_t>(code, r31mode);
         break;
       default:
         VIXL_UNREACHABLE();
@@ -825,12 +876,25 @@ class Simulator : public DecoderVisitor {
     memcpy(&result, &raw, sizeof(result));
     return result;
   }
+  template <typename T>
+  VIXL_DEPRECATED("ReadRegister",
+                  T reg(unsigned size,
+                        unsigned code,
+                        Reg31Mode r31mode = Reg31IsZeroRegister) const) {
+    return ReadRegister<T>(size, code, r31mode);
+  }
 
   // Use int64_t by default if T is not specified.
-  int64_t reg(unsigned size,
-              unsigned code,
-              Reg31Mode r31mode = Reg31IsZeroRegister) const {
-    return reg<int64_t>(size, code, r31mode);
+  int64_t ReadRegister(unsigned size,
+                       unsigned code,
+                       Reg31Mode r31mode = Reg31IsZeroRegister) const {
+    return ReadRegister<int64_t>(size, code, r31mode);
+  }
+  VIXL_DEPRECATED("ReadRegister",
+                  int64_t reg(unsigned size,
+                              unsigned code,
+                              Reg31Mode r31mode = Reg31IsZeroRegister) const) {
+    return ReadRegister(size, code, r31mode);
   }
 
   enum RegLogMode { LogRegWrites, NoRegLog };
@@ -838,10 +902,10 @@ class Simulator : public DecoderVisitor {
   // Write 'value' into an integer register. The value is zero-extended. This
   // behaviour matches AArch64 register writes.
   template <typename T>
-  void set_reg(unsigned code,
-               T value,
-               RegLogMode log_mode = LogRegWrites,
-               Reg31Mode r31mode = Reg31IsZeroRegister) {
+  void WriteRegister(unsigned code,
+                     T value,
+                     RegLogMode log_mode = LogRegWrites,
+                     Reg31Mode r31mode = Reg31IsZeroRegister) {
     VIXL_STATIC_ASSERT((sizeof(T) == kWRegSizeInBytes) ||
                        (sizeof(T) == kXRegSizeInBytes));
     VIXL_ASSERT(code < kNumberOfRegisters);
@@ -850,34 +914,56 @@ class Simulator : public DecoderVisitor {
       return;
     }
 
-    registers_[code].Set(value);
+    registers_[code].Write(value);
 
     if (log_mode == LogRegWrites) LogRegister(code, r31mode);
   }
-
-  // Common specialized accessors for the set_reg() template.
-  void set_wreg(unsigned code,
-                int32_t value,
-                RegLogMode log_mode = LogRegWrites,
-                Reg31Mode r31mode = Reg31IsZeroRegister) {
-    set_reg(code, value, log_mode, r31mode);
+  template <typename T>
+  VIXL_DEPRECATED("WriteRegister",
+                  void set_reg(unsigned code,
+                               T value,
+                               RegLogMode log_mode = LogRegWrites,
+                               Reg31Mode r31mode = Reg31IsZeroRegister)) {
+    WriteRegister<T>(code, value, log_mode, r31mode);
   }
 
-  void set_xreg(unsigned code,
-                int64_t value,
-                RegLogMode log_mode = LogRegWrites,
-                Reg31Mode r31mode = Reg31IsZeroRegister) {
-    set_reg(code, value, log_mode, r31mode);
+  // Common specialized accessors for the set_reg() template.
+  void WriteWRegister(unsigned code,
+                      int32_t value,
+                      RegLogMode log_mode = LogRegWrites,
+                      Reg31Mode r31mode = Reg31IsZeroRegister) {
+    WriteRegister(code, value, log_mode, r31mode);
+  }
+  VIXL_DEPRECATED("WriteWRegister",
+                  void set_wreg(unsigned code,
+                                int32_t value,
+                                RegLogMode log_mode = LogRegWrites,
+                                Reg31Mode r31mode = Reg31IsZeroRegister)) {
+    WriteWRegister(code, value, log_mode, r31mode);
+  }
+
+  void WriteXRegister(unsigned code,
+                      int64_t value,
+                      RegLogMode log_mode = LogRegWrites,
+                      Reg31Mode r31mode = Reg31IsZeroRegister) {
+    WriteRegister(code, value, log_mode, r31mode);
+  }
+  VIXL_DEPRECATED("WriteXRegister",
+                  void set_xreg(unsigned code,
+                                int64_t value,
+                                RegLogMode log_mode = LogRegWrites,
+                                Reg31Mode r31mode = Reg31IsZeroRegister)) {
+    WriteXRegister(code, value, log_mode, r31mode);
   }
 
   // As above, with parameterized size and type. The value is either
   // zero-extended or truncated to fit, as required.
   template <typename T>
-  void set_reg(unsigned size,
-               unsigned code,
-               T value,
-               RegLogMode log_mode = LogRegWrites,
-               Reg31Mode r31mode = Reg31IsZeroRegister) {
+  void WriteRegister(unsigned size,
+                     unsigned code,
+                     T value,
+                     RegLogMode log_mode = LogRegWrites,
+                     Reg31Mode r31mode = Reg31IsZeroRegister) {
     // Zero-extend the input.
     uint64_t raw = 0;
     VIXL_STATIC_ASSERT(sizeof(value) <= sizeof(raw));
@@ -886,28 +972,45 @@ class Simulator : public DecoderVisitor {
     // Write (and possibly truncate) the value.
     switch (size) {
       case kWRegSize:
-        set_reg(code, static_cast<uint32_t>(raw), log_mode, r31mode);
+        WriteRegister(code, static_cast<uint32_t>(raw), log_mode, r31mode);
         break;
       case kXRegSize:
-        set_reg(code, raw, log_mode, r31mode);
+        WriteRegister(code, raw, log_mode, r31mode);
         break;
       default:
         VIXL_UNREACHABLE();
         return;
     }
   }
+  template <typename T>
+  VIXL_DEPRECATED("WriteRegister",
+                  void set_reg(unsigned size,
+                               unsigned code,
+                               T value,
+                               RegLogMode log_mode = LogRegWrites,
+                               Reg31Mode r31mode = Reg31IsZeroRegister)) {
+    WriteRegister(size, code, value, log_mode, r31mode);
+  }
 
   // Common specialized accessors for the set_reg() template.
 
   // Commonly-used special cases.
   template <typename T>
-  void set_lr(T value) {
-    set_reg(kLinkRegCode, value);
+  void WriteLr(T value) {
+    WriteRegister(kLinkRegCode, value);
+  }
+  template <typename T>
+  VIXL_DEPRECATED("WriteLr", void set_lr(T value)) {
+    WriteLr(value);
   }
 
   template <typename T>
-  void set_sp(T value) {
-    set_reg(31, value, LogRegWrites, Reg31IsStackPointer);
+  void WriteSp(T value) {
+    WriteRegister(31, value, LogRegWrites, Reg31IsStackPointer);
+  }
+  template <typename T>
+  VIXL_DEPRECATED("WriteSp", void set_sp(T value)) {
+    WriteSp(value);
   }
 
   // Vector register accessors.
@@ -921,7 +1024,7 @@ class Simulator : public DecoderVisitor {
 
   // Basic accessor: read the register as the specified type.
   template <typename T>
-  T vreg(unsigned code) const {
+  T ReadVRegister(unsigned code) const {
     VIXL_STATIC_ASSERT(
         (sizeof(T) == kBRegSizeInBytes) || (sizeof(T) == kHRegSizeInBytes) ||
         (sizeof(T) == kSRegSizeInBytes) || (sizeof(T) == kDRegSizeInBytes) ||
@@ -930,35 +1033,76 @@ class Simulator : public DecoderVisitor {
 
     return vregisters_[code].Get<T>();
   }
+  template <typename T>
+  VIXL_DEPRECATED("ReadVRegister", T vreg(unsigned code) const) {
+    return ReadVRegister<T>(code);
+  }
 
   // Common specialized accessors for the vreg() template.
-  int8_t breg(unsigned code) const { return vreg<int8_t>(code); }
+  int8_t ReadBRegister(unsigned code) const {
+    return ReadVRegister<int8_t>(code);
+  }
+  VIXL_DEPRECATED("ReadBRegister", int8_t breg(unsigned code) const) {
+    return ReadBRegister(code);
+  }
 
-  int16_t hreg(unsigned code) const { return vreg<int16_t>(code); }
+  int16_t ReadHRegister(unsigned code) const {
+    return ReadVRegister<int16_t>(code);
+  }
+  VIXL_DEPRECATED("ReadHRegister", int16_t hreg(unsigned code) const) {
+    return ReadHRegister(code);
+  }
 
-  float sreg(unsigned code) const { return vreg<float>(code); }
+  float ReadSRegister(unsigned code) const {
+    return ReadVRegister<float>(code);
+  }
+  VIXL_DEPRECATED("ReadSRegister", float sreg(unsigned code) const) {
+    return ReadSRegister(code);
+  }
 
-  uint32_t sreg_bits(unsigned code) const { return vreg<uint32_t>(code); }
+  uint32_t ReadSRegisterBits(unsigned code) const {
+    return ReadVRegister<uint32_t>(code);
+  }
+  VIXL_DEPRECATED("ReadSRegisterBits",
+                  uint32_t sreg_bits(unsigned code) const) {
+    return ReadSRegisterBits(code);
+  }
 
-  double dreg(unsigned code) const { return vreg<double>(code); }
+  double ReadDRegister(unsigned code) const {
+    return ReadVRegister<double>(code);
+  }
+  VIXL_DEPRECATED("ReadDRegister", double dreg(unsigned code) const) {
+    return ReadDRegister(code);
+  }
 
-  uint64_t dreg_bits(unsigned code) const { return vreg<uint64_t>(code); }
+  uint64_t ReadDRegisterBits(unsigned code) const {
+    return ReadVRegister<uint64_t>(code);
+  }
+  VIXL_DEPRECATED("ReadDRegisterBits",
+                  uint64_t dreg_bits(unsigned code) const) {
+    return ReadDRegisterBits(code);
+  }
 
-  qreg_t qreg(unsigned code) const { return vreg<qreg_t>(code); }
+  qreg_t ReadQRegister(unsigned code) const {
+    return ReadVRegister<qreg_t>(code);
+  }
+  VIXL_DEPRECATED("ReadQRegister", qreg_t qreg(unsigned code) const) {
+    return ReadQRegister(code);
+  }
 
   // As above, with parameterized size and return type. The value is
   // either zero-extended or truncated to fit, as required.
   template <typename T>
-  T vreg(unsigned size, unsigned code) const {
+  T ReadVRegister(unsigned size, unsigned code) const {
     uint64_t raw = 0;
     T result;
 
     switch (size) {
       case kSRegSize:
-        raw = vreg<uint32_t>(code);
+        raw = ReadVRegister<uint32_t>(code);
         break;
       case kDRegSize:
-        raw = vreg<uint64_t>(code);
+        raw = ReadVRegister<uint64_t>(code);
         break;
       default:
         VIXL_UNREACHABLE();
@@ -970,79 +1114,153 @@ class Simulator : public DecoderVisitor {
     memcpy(&result, &raw, sizeof(result));
     return result;
   }
+  template <typename T>
+  VIXL_DEPRECATED("ReadVRegister", T vreg(unsigned size, unsigned code) const) {
+    return ReadVRegister<T>(size, code);
+  }
 
-  inline SimVRegister& vreg(unsigned code) { return vregisters_[code]; }
+  SimVRegister& ReadVRegister(unsigned code) { return vregisters_[code]; }
+  VIXL_DEPRECATED("ReadVRegister", SimVRegister& vreg(unsigned code)) {
+    return ReadVRegister(code);
+  }
 
   // Basic accessor: Write the specified value.
   template <typename T>
-  void set_vreg(unsigned code, T value, RegLogMode log_mode = LogRegWrites) {
+  void WriteVRegister(unsigned code,
+                      T value,
+                      RegLogMode log_mode = LogRegWrites) {
     VIXL_STATIC_ASSERT((sizeof(value) == kBRegSizeInBytes) ||
                        (sizeof(value) == kHRegSizeInBytes) ||
                        (sizeof(value) == kSRegSizeInBytes) ||
                        (sizeof(value) == kDRegSizeInBytes) ||
                        (sizeof(value) == kQRegSizeInBytes));
     VIXL_ASSERT(code < kNumberOfVRegisters);
-    vregisters_[code].Set(value);
+    vregisters_[code].Write(value);
 
     if (log_mode == LogRegWrites) {
       LogVRegister(code, GetPrintRegisterFormat(value));
     }
   }
-
-  // Common specialized accessors for the set_vreg() template.
-  void set_breg(unsigned code,
-                int8_t value,
-                RegLogMode log_mode = LogRegWrites) {
-    set_vreg(code, value, log_mode);
+  template <typename T>
+  VIXL_DEPRECATED("WriteVRegister",
+                  void set_vreg(unsigned code,
+                                T value,
+                                RegLogMode log_mode = LogRegWrites)) {
+    WriteVRegister(code, value, log_mode);
   }
 
-  void set_hreg(unsigned code,
-                int16_t value,
-                RegLogMode log_mode = LogRegWrites) {
-    set_vreg(code, value, log_mode);
+  // Common specialized accessors for the WriteVRegister() template.
+  void WriteBRegister(unsigned code,
+                      int8_t value,
+                      RegLogMode log_mode = LogRegWrites) {
+    WriteVRegister(code, value, log_mode);
+  }
+  VIXL_DEPRECATED("WriteBRegister",
+                  void set_breg(unsigned code,
+                                int8_t value,
+                                RegLogMode log_mode = LogRegWrites)) {
+    return WriteBRegister(code, value, log_mode);
   }
 
-  void set_sreg(unsigned code,
-                float value,
-                RegLogMode log_mode = LogRegWrites) {
-    set_vreg(code, value, log_mode);
+  void WriteHRegister(unsigned code,
+                      int16_t value,
+                      RegLogMode log_mode = LogRegWrites) {
+    WriteVRegister(code, value, log_mode);
+  }
+  VIXL_DEPRECATED("WriteHRegister",
+                  void set_hreg(unsigned code,
+                                int16_t value,
+                                RegLogMode log_mode = LogRegWrites)) {
+    return WriteHRegister(code, value, log_mode);
   }
 
-  void set_sreg_bits(unsigned code,
-                     uint32_t value,
-                     RegLogMode log_mode = LogRegWrites) {
-    set_vreg(code, value, log_mode);
+  void WriteSRegister(unsigned code,
+                      float value,
+                      RegLogMode log_mode = LogRegWrites) {
+    WriteVRegister(code, value, log_mode);
+  }
+  VIXL_DEPRECATED("WriteSRegister",
+                  void set_sreg(unsigned code,
+                                float value,
+                                RegLogMode log_mode = LogRegWrites)) {
+    WriteSRegister(code, value, log_mode);
   }
 
-  void set_dreg(unsigned code,
-                double value,
-                RegLogMode log_mode = LogRegWrites) {
-    set_vreg(code, value, log_mode);
+  void WriteSRegisterBits(unsigned code,
+                          uint32_t value,
+                          RegLogMode log_mode = LogRegWrites) {
+    WriteVRegister(code, value, log_mode);
+  }
+  VIXL_DEPRECATED("WriteSRegisterBits",
+                  void set_sreg_bits(unsigned code,
+                                     uint32_t value,
+                                     RegLogMode log_mode = LogRegWrites)) {
+    WriteSRegisterBits(code, value, log_mode);
   }
 
-  void set_dreg_bits(unsigned code,
-                     uint64_t value,
-                     RegLogMode log_mode = LogRegWrites) {
-    set_vreg(code, value, log_mode);
+  void WriteDRegister(unsigned code,
+                      double value,
+                      RegLogMode log_mode = LogRegWrites) {
+    WriteVRegister(code, value, log_mode);
+  }
+  VIXL_DEPRECATED("WriteDRegister",
+                  void set_dreg(unsigned code,
+                                double value,
+                                RegLogMode log_mode = LogRegWrites)) {
+    WriteDRegister(code, value, log_mode);
   }
 
-  void set_qreg(unsigned code,
-                qreg_t value,
-                RegLogMode log_mode = LogRegWrites) {
-    set_vreg(code, value, log_mode);
+  void WriteDRegisterBits(unsigned code,
+                          uint64_t value,
+                          RegLogMode log_mode = LogRegWrites) {
+    WriteVRegister(code, value, log_mode);
+  }
+  VIXL_DEPRECATED("WriteDRegisterBits",
+                  void set_dreg_bits(unsigned code,
+                                     uint64_t value,
+                                     RegLogMode log_mode = LogRegWrites)) {
+    WriteDRegisterBits(code, value, log_mode);
   }
 
-  bool N() const { return nzcv_.N() != 0; }
-  bool Z() const { return nzcv_.Z() != 0; }
-  bool C() const { return nzcv_.C() != 0; }
-  bool V() const { return nzcv_.V() != 0; }
-  SimSystemRegister& nzcv() { return nzcv_; }
+  void WriteQRegister(unsigned code,
+                      qreg_t value,
+                      RegLogMode log_mode = LogRegWrites) {
+    WriteVRegister(code, value, log_mode);
+  }
+  VIXL_DEPRECATED("WriteQRegister",
+                  void set_qreg(unsigned code,
+                                qreg_t value,
+                                RegLogMode log_mode = LogRegWrites)) {
+    WriteQRegister(code, value, log_mode);
+  }
+
+  bool ReadN() const { return nzcv_.GetN() != 0; }
+  VIXL_DEPRECATED("ReadN", bool N() const) { return ReadN(); }
+
+  bool ReadZ() const { return nzcv_.GetZ() != 0; }
+  VIXL_DEPRECATED("ReadZ", bool Z() const) { return ReadZ(); }
+
+  bool ReadC() const { return nzcv_.GetC() != 0; }
+  VIXL_DEPRECATED("ReadC", bool C() const) { return ReadC(); }
+
+  bool ReadV() const { return nzcv_.GetV() != 0; }
+  VIXL_DEPRECATED("ReadV", bool V() const) { return ReadV(); }
+
+  SimSystemRegister& ReadNzcv() { return nzcv_; }
+  VIXL_DEPRECATED("ReadNzcv", SimSystemRegister& nzcv()) { return ReadNzcv(); }
 
   // TODO: Find a way to make the fpcr_ members return the proper types, so
   // these accessors are not necessary.
-  FPRounding RMode() { return static_cast<FPRounding>(fpcr_.RMode()); }
-  bool DN() { return fpcr_.DN() != 0; }
-  SimSystemRegister& fpcr() { return fpcr_; }
+  FPRounding ReadRMode() const {
+    return static_cast<FPRounding>(fpcr_.GetRMode());
+  }
+  VIXL_DEPRECATED("ReadRMode", FPRounding RMode()) { return ReadRMode(); }
+
+  bool ReadDN() const { return fpcr_.GetDN() != 0; }
+  VIXL_DEPRECATED("ReadDN", bool DN()) { return ReadDN(); }
+
+  SimSystemRegister& ReadFpcr() { return fpcr_; }
+  VIXL_DEPRECATED("ReadFpcr", SimSystemRegister& fpcr()) { return ReadFpcr(); }
 
   // Specify relevant register formats for Print(V)Register and related helpers.
   enum PrintRegisterFormat {
@@ -1178,10 +1396,10 @@ class Simulator : public DecoderVisitor {
 
   // As above, but respect LOG_REG and LOG_VREG.
   void LogWrittenRegisters() {
-    if (trace_parameters() & LOG_REGS) PrintWrittenRegisters();
+    if (GetTraceParameters() & LOG_REGS) PrintWrittenRegisters();
   }
   void LogWrittenVRegisters() {
-    if (trace_parameters() & LOG_VREGS) PrintWrittenVRegisters();
+    if (GetTraceParameters() & LOG_VREGS) PrintWrittenVRegisters();
   }
   void LogAllWrittenRegisters() {
     LogWrittenRegisters();
@@ -1193,15 +1411,15 @@ class Simulator : public DecoderVisitor {
   void PrintVRegister(unsigned code, PrintRegisterFormat format);
   void PrintSystemRegister(SystemRegister id);
 
-  // Like Print* (above), but respect trace_parameters().
+  // Like Print* (above), but respect GetTraceParameters().
   void LogRegister(unsigned code, Reg31Mode r31mode = Reg31IsStackPointer) {
-    if (trace_parameters() & LOG_REGS) PrintRegister(code, r31mode);
+    if (GetTraceParameters() & LOG_REGS) PrintRegister(code, r31mode);
   }
   void LogVRegister(unsigned code, PrintRegisterFormat format) {
-    if (trace_parameters() & LOG_VREGS) PrintVRegister(code, format);
+    if (GetTraceParameters() & LOG_VREGS) PrintVRegister(code, format);
   }
   void LogSystemRegister(SystemRegister id) {
-    if (trace_parameters() & LOG_SYSREGS) PrintSystemRegister(id);
+    if (GetTraceParameters() & LOG_SYSREGS) PrintSystemRegister(id);
   }
 
   // Print memory accesses.
@@ -1220,22 +1438,22 @@ class Simulator : public DecoderVisitor {
                    PrintRegisterFormat format,
                    unsigned lane);
 
-  // Like Print* (above), but respect trace_parameters().
+  // Like Print* (above), but respect GetTraceParameters().
   void LogRead(uintptr_t address,
                unsigned reg_code,
                PrintRegisterFormat format) {
-    if (trace_parameters() & LOG_REGS) PrintRead(address, reg_code, format);
+    if (GetTraceParameters() & LOG_REGS) PrintRead(address, reg_code, format);
   }
   void LogWrite(uintptr_t address,
                 unsigned reg_code,
                 PrintRegisterFormat format) {
-    if (trace_parameters() & LOG_WRITE) PrintWrite(address, reg_code, format);
+    if (GetTraceParameters() & LOG_WRITE) PrintWrite(address, reg_code, format);
   }
   void LogVRead(uintptr_t address,
                 unsigned reg_code,
                 PrintRegisterFormat format,
                 unsigned lane = 0) {
-    if (trace_parameters() & LOG_VREGS) {
+    if (GetTraceParameters() & LOG_VREGS) {
       PrintVRead(address, reg_code, format, lane);
     }
   }
@@ -1243,7 +1461,7 @@ class Simulator : public DecoderVisitor {
                  unsigned reg_code,
                  PrintRegisterFormat format,
                  unsigned lane = 0) {
-    if (trace_parameters() & LOG_WRITE) {
+    if (GetTraceParameters() & LOG_WRITE) {
       PrintVWrite(address, reg_code, format, lane);
     }
   }
@@ -1272,13 +1490,34 @@ class Simulator : public DecoderVisitor {
   static const char* DRegNameForCode(unsigned code);
   static const char* VRegNameForCode(unsigned code);
 
-  bool coloured_trace() const { return coloured_trace_; }
-  void set_coloured_trace(bool value);
+  bool IsColouredTrace() const { return coloured_trace_; }
+  VIXL_DEPRECATED("IsColouredTrace", bool coloured_trace() const) {
+    return IsColouredTrace();
+  }
 
-  int trace_parameters() const { return trace_parameters_; }
-  void set_trace_parameters(int parameters);
+  void SetColouredTrace(bool value);
+  VIXL_DEPRECATED("SetColouredTrace", void set_coloured_trace(bool value)) {
+    SetColouredTrace(value);
+  }
 
-  void set_instruction_stats(bool value);
+  // Values for traces parameters defined in simulator-constants-a64.h in
+  // enum TraceParameters.
+  int GetTraceParameters() const { return trace_parameters_; }
+  VIXL_DEPRECATED("GetTraceParameters", int trace_parameters() const) {
+    return GetTraceParameters();
+  }
+
+  void SetTraceParameters(int parameters);
+  VIXL_DEPRECATED("SetTraceParameters",
+                  void set_trace_parameters(int parameters)) {
+    SetTraceParameters(parameters);
+  }
+
+  void SetInstructionStats(bool value);
+  VIXL_DEPRECATED("SetInstructionStats",
+                  void set_instruction_stats(bool value)) {
+    SetInstructionStats(value);
+  }
 
   // Clear the simulated local monitor to force the next store-exclusive
   // instruction to fail.
@@ -1305,33 +1544,33 @@ class Simulator : public DecoderVisitor {
   bool ConditionPassed(Condition cond) {
     switch (cond) {
       case eq:
-        return Z();
+        return ReadZ();
       case ne:
-        return !Z();
+        return !ReadZ();
       case hs:
-        return C();
+        return ReadC();
       case lo:
-        return !C();
+        return !ReadC();
       case mi:
-        return N();
+        return ReadN();
       case pl:
-        return !N();
+        return !ReadN();
       case vs:
-        return V();
+        return ReadV();
       case vc:
-        return !V();
+        return !ReadV();
       case hi:
-        return C() && !Z();
+        return ReadC() && !ReadZ();
       case ls:
-        return !(C() && !Z());
+        return !(ReadC() && !ReadZ());
       case ge:
-        return N() == V();
+        return ReadN() == ReadV();
       case lt:
-        return N() != V();
+        return ReadN() != ReadV();
       case gt:
-        return !Z() && (N() == V());
+        return !ReadZ() && (ReadN() == ReadV());
       case le:
-        return !(!Z() && (N() == V()));
+        return !(!ReadZ() && (ReadN() == ReadV()));
       case nv:
         VIXL_FALLTHROUGH();
       case al:
@@ -2562,11 +2801,13 @@ class Simulator : public DecoderVisitor {
   // functions, or to save and restore it when entering and leaving generated
   // code.
   void AssertSupportedFPCR() {
-    VIXL_ASSERT(fpcr().FZ() == 0);             // No flush-to-zero support.
-    VIXL_ASSERT(fpcr().RMode() == FPTieEven);  // Ties-to-even rounding only.
+    // No flush-to-zero support.
+    VIXL_ASSERT(ReadFpcr().GetFZ() == 0);
+    // Ties-to-even rounding only.
+    VIXL_ASSERT(ReadFpcr().GetRMode() == FPTieEven);
 
-    // The simulator does not support half-precision operations so fpcr().AHP()
-    // is irrelevant, and is not checked here.
+    // The simulator does not support half-precision operations so
+    // GetFpcr().AHP() is irrelevant, and is not checked here.
   }
 
   static int CalcNFlag(uint64_t result, unsigned reg_size) {
@@ -2607,7 +2848,7 @@ class Simulator : public DecoderVisitor {
     if (IsSignallingNaN(op)) {
       FPProcessException();
     }
-    return DN() ? FPDefaultNaN<T>() : ToQuietNaN(op);
+    return ReadDN() ? FPDefaultNaN<T>() : ToQuietNaN(op);
   }
 
   template <typename T>
@@ -2661,6 +2902,7 @@ class Simulator : public DecoderVisitor {
   bool print_exclusive_access_warning_;
   void PrintExclusiveAccessWarning();
 };
+}  // namespace aarch64
 }  // namespace vixl
 
 #endif  // VIXL_A64_SIMULATOR_A64_H_

@@ -89,7 +89,8 @@ options = {
       'CCFLAGS' : ['-DVIXL_DEBUG', '-O0']
       },
     'mode:release' : {
-      'CCFLAGS' : ['-O3']
+      'CCFLAGS' : ['-O3', '-fdata-sections', '-ffunction-sections'],
+      'LINKFLAGS' : ['-Wl,--gc-sections']
       },
     'simulator:on' : {
       'CCFLAGS' : ['-DVIXL_INCLUDE_SIMULATOR'],
@@ -158,9 +159,11 @@ options_influencing_build_path = ['mode', 'symbols', 'CXX', 'std', 'simulator']
 # Build helpers ----------------------------------------------------------------
 
 def RetrieveEnvironmentVariables(env):
-  for key in ['CC', 'CXX', 'CCFLAGS', 'CXXFLAGS', 'AR', 'RANLIB', 'LD']:
+  for key in ['CC', 'CXX', 'AR', 'RANLIB', 'LD']:
     if os.getenv(key): env[key] = os.getenv(key)
   if os.getenv('LD_LIBRARY_PATH'): env['LIBPATH'] = os.getenv('LD_LIBRARY_PATH')
+  if os.getenv('CCFLAGS'):
+    env.Append(CCFLAGS = os.getenv('CCFLAGS').split())
   if os.getenv('CXXFLAGS'):
     env.Append(CXXFLAGS = os.getenv('CXXFLAGS').split())
   if os.getenv('LINKFLAGS'):
@@ -210,6 +213,13 @@ def ConfigureEnvironmentForCompiler(env):
     if not using_clang3_4:
       env.Append(CPPFLAGS = ['-Wunreachable-code'])
 
+    env.Append(CPPFLAGS = ['-Wno-unreachable-code'])
+    env.Append(CPPFLAGS = ['-Wno-shorten-64-to-32'])
+    env.Append(CPPFLAGS = ['-Wno-missing-noreturn'])
+    env.Append(CPPFLAGS = ['-Wno-unused-private-field'])
+    env.Append(CPPFLAGS = ['-Wno-implicit-fallthrough'])
+    env.Append(CPPFLAGS = ['-Wno-sometimes-uninitialized'])
+
   # GCC 4.8 has a bug which produces a warning saying that an anonymous Operand
   # object might be used uninitialized:
   #   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57045
@@ -226,6 +236,12 @@ def ConfigureEnvironmentForCompiler(env):
   # standard is passed.
   if 'std' not in env or env['std'] == 'c++98':
     env.Append(CPPFLAGS = ['-Wno-c++11-long-long'])
+
+  # The generated macro assembler contains uninitialized variables and
+  # GCC cannot prove that they are always initialised, even though it
+  # should.
+  if env['mode'] == 'release' and is_compiler('g++'):
+    env.Append(CPPFLAGS = ['-Wno-maybe-uninitialized'])
 
 
 def ConfigureEnvironment(env):
@@ -261,8 +277,10 @@ def VIXLLibraryTarget(env):
   subprocess.check_call(["ln", "-s", build_dir, config.dir_build_latest])
   # Source files are in `src` and in `src/a64/`.
   variant_dir_vixl = PrepareVariantDir(join('src'), build_dir)
+  variant_dir_a32 = PrepareVariantDir(join('src', 'a32'), build_dir)
   variant_dir_a64 = PrepareVariantDir(join('src', 'a64'), build_dir)
   sources = [Glob(join(variant_dir_vixl, '*.cc')),
+             Glob(join(variant_dir_a32, '*.cc')),
              Glob(join(variant_dir_a64, '*.cc'))]
   return env.Library(join(build_dir, 'vixl'), sources)
 
@@ -281,45 +299,67 @@ top_level_targets.Add('', 'Build the VIXL library.')
 
 
 # The benchmarks.
-benchmark_names = util.ListCCFilesWithoutExt(config.dir_benchmarks)
-benchmarks_build_dir = PrepareVariantDir('benchmarks', TargetBuildDir(env))
-benchmark_targets = []
-for bench in benchmark_names:
-  prog = env.Program(join(benchmarks_build_dir, bench),
-                     join(benchmarks_build_dir, bench + '.cc'),
+a64_benchmark_names = util.ListCCFilesWithoutExt(config.dir_a64_benchmarks)
+a64_benchmarks_build_dir = PrepareVariantDir('benchmarks/a64', TargetBuildDir(env))
+a64_benchmark_targets = []
+for bench in a64_benchmark_names:
+  prog = env.Program(join(a64_benchmarks_build_dir, bench),
+                     join(a64_benchmarks_build_dir, bench + '.cc'),
                      LIBS=[libvixl])
-  benchmark_targets.append(prog)
-env.Alias('benchmarks', benchmark_targets)
-top_level_targets.Add('benchmarks', 'Build the benchmarks.')
+  a64_benchmark_targets.append(prog)
+env.Alias('a64_benchmarks', a64_benchmark_targets)
+top_level_targets.Add('a64_benchmarks', 'Build the benchmarks for AArch64.')
 
 
 # The examples.
-example_names = util.ListCCFilesWithoutExt(config.dir_examples)
-examples_build_dir = PrepareVariantDir('examples', TargetBuildDir(env))
-example_targets = []
-for example in example_names:
-  prog = env.Program(join(examples_build_dir, example),
-                     join(examples_build_dir, example + '.cc'),
+a64_example_names = util.ListCCFilesWithoutExt(config.dir_a64_examples)
+a64_examples_build_dir = PrepareVariantDir('examples/a64', TargetBuildDir(env))
+a64_example_targets = []
+for example in a64_example_names:
+  prog = env.Program(join(a64_examples_build_dir, example),
+                     join(a64_examples_build_dir, example + '.cc'),
                      LIBS=[libvixl])
-  example_targets.append(prog)
-env.Alias('examples', example_targets)
-top_level_targets.Add('examples', 'Build the examples.')
+  a64_example_targets.append(prog)
+env.Alias('a64_examples', a64_example_targets)
+top_level_targets.Add('a64_examples', 'Build the examples for AArch64.')
+a32_example_names = util.ListCCFilesWithoutExt(config.dir_a32_examples)
+a32_examples_build_dir = PrepareVariantDir('examples/a32', TargetBuildDir(env))
+a32_example_targets = []
+for example in a32_example_names:
+  prog = env.Program(join(a32_examples_build_dir, example),
+                     join(a32_examples_build_dir, example + '.cc'),
+                     LIBS=[libvixl])
+  a32_example_targets.append(prog)
+env.Alias('a32_examples', a32_example_targets)
+top_level_targets.Add('a32_examples', 'Build the examples for AArch32.')
 
 
 # The tests.
 test_build_dir = PrepareVariantDir('test', TargetBuildDir(env))
+test_objects = [env.Object(Glob(join(test_build_dir, '*.cc')))]
+
+test_a32_build_dir = PrepareVariantDir(join('test', 'a32'), TargetBuildDir(env))
+test_objects.append(env.Object(
+    Glob(join(test_a32_build_dir, '*.cc')),
+    CPPPATH = env['CPPPATH'] + [config.dir_tests]))
+
+test_a64_build_dir = PrepareVariantDir(join('test', 'a64'), TargetBuildDir(env))
+test_objects.append(env.Object(
+    Glob(join(test_a64_build_dir, '*.cc')),
+    CPPPATH = env['CPPPATH'] + [config.dir_tests]))
+
 # The test requires building the example files with specific options, so we
 # create a separate variant dir for the example objects built this way.
-test_examples_vdir = join(TargetBuildDir(env), 'test', 'test_examples')
-VariantDir(test_examples_vdir, '.')
-test_examples_obj = env.Object(
-    [Glob(join(test_examples_vdir, join('test', 'examples', '*.cc'))),
-             Glob(join(test_examples_vdir, join('examples', '*.cc')))],
+test_a64_examples_vdir = join(TargetBuildDir(env), 'test', 'a64', 'test_examples')
+VariantDir(test_a64_examples_vdir, '.')
+test_a64_examples_obj = env.Object(
+    [Glob(join(test_a64_examples_vdir, join('test', 'a64', 'examples/a64', '*.cc'))),
+     Glob(join(test_a64_examples_vdir, join('examples/a64', '*.cc')))],
     CCFLAGS = env['CCFLAGS'] + ['-DTEST_EXAMPLES'],
-    CPPPATH = env['CPPPATH'] + [config.dir_examples])
-test = env.Program(join(test_build_dir, 'test-runner'),
-                   [Glob(join(test_build_dir, '*.cc')), test_examples_obj],
-                   CPPPATH = env['CPPPATH'] + [config.dir_examples],
+    CPPPATH = env['CPPPATH'] + [config.dir_a64_examples] + [config.dir_tests])
+test_objects.append(test_a64_examples_obj)
+
+test = env.Program(join(test_build_dir, 'test-runner'), test_objects,
                    LIBS=[libvixl])
 env.Alias('tests', test)
 top_level_targets.Add('tests', 'Build the tests.')

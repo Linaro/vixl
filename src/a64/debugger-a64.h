@@ -42,6 +42,7 @@
 #include "a64/simulator-a64.h"
 
 namespace vixl {
+namespace aarch64 {
 
 // Flags that represent the debugger state.
 enum DebugParameters {
@@ -63,27 +64,47 @@ class Debugger : public Simulator {
   virtual void Run();
   virtual void VisitException(const Instruction* instr);
 
-  int debug_parameters() const { return debug_parameters_; }
-  void set_debug_parameters(int parameters) {
+  int GetDebugParameters() const { return debug_parameters_; }
+  VIXL_DEPRECATED("GetDebugParameters", int debug_parameters() const) {
+    return GetDebugParameters();
+  }
+
+  void SetDebugParameters(int parameters) {
     debug_parameters_ = parameters;
 
-    update_pending_request();
+    UpdatePendingRequestStatus();
+  }
+  VIXL_DEPRECATED("SetDebugParameters",
+                  void set_debug_parameters(int parameters)) {
+    return SetDebugParameters(parameters);
   }
 
   // Numbers of instructions to execute before the debugger shell is given
   // back control.
-  int64_t steps() const { return steps_; }
-  void set_steps(int64_t value) {
+  int64_t GetSteps() const { return steps_; }
+  VIXL_DEPRECATED("GetSteps", int64_t steps() const) { return GetSteps(); }
+
+  void SetSteps(int64_t value) {
     VIXL_ASSERT(value > 1);
     steps_ = value;
+  }
+  VIXL_DEPRECATED("SetSteps", void set_steps(int64_t value)) {
+    return SetSteps(value);
   }
 
   bool IsDebuggerRunning() const {
     return (debug_parameters_ & DBG_ACTIVE) != 0;
   }
 
-  bool pending_request() const { return pending_request_; }
-  void update_pending_request() { pending_request_ = IsDebuggerRunning(); }
+  bool HasPendingRequest() const { return pending_request_; }
+  VIXL_DEPRECATED("HasPendingRequest", bool pending_request() const) {
+    return HasPendingRequest();
+  }
+
+  void UpdatePendingRequestStatus() { pending_request_ = IsDebuggerRunning(); }
+  VIXL_DEPRECATED("UpdatePendingRequestStatus", void update_pending_request()) {
+    UpdatePendingRequestStatus();
+  }
 
   void PrintInstructions(const void* address, int64_t count = 1);
   void PrintMemory(const uint8_t* address,
@@ -111,6 +132,7 @@ class Debugger : public Simulator {
   static const int kMaxDebugShellLine = 256;
 };
 
+}  // namespace aarch64
 }  // namespace vixl
 
 #endif  // VIXL_A64_DEBUGGER_A64_H_

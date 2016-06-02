@@ -62,7 +62,7 @@ CodeBuffer::~CodeBuffer() {
 
 
 void CodeBuffer::EmitString(const char* string) {
-  VIXL_ASSERT(RemainingBytes() > strlen(string));
+  VIXL_ASSERT(HasSpaceFor(strlen(string) + 1));
   char* dst = reinterpret_cast<char*>(cursor_);
   dirty_ = true;
   char* null_char = stpcpy(dst, string);
@@ -70,11 +70,19 @@ void CodeBuffer::EmitString(const char* string) {
 }
 
 
+void CodeBuffer::EmitData(const void* data, size_t size) {
+  VIXL_ASSERT(HasSpaceFor(size));
+  dirty_ = true;
+  memcpy(cursor_, data, size);
+  cursor_ = cursor_ + size;
+}
+
+
 void CodeBuffer::Align() {
   byte* end = AlignUp(cursor_, 4);
   VIXL_ASSERT(end >= cursor_);
   const size_t padding_size = end - cursor_;
-  VIXL_ASSERT(RemainingBytes() >= padding_size);
+  VIXL_ASSERT(HasSpaceFor(padding_size));
   VIXL_ASSERT(padding_size <= 4);
   const byte padding[] = {0, 0, 0, 0};
   dirty_ = true;
@@ -86,7 +94,7 @@ void CodeBuffer::Align() {
 void CodeBuffer::Reset() {
 #ifdef VIXL_DEBUG
   if (managed_) {
-    // TODO(all): Consider allowing for custom default values, e.g. HLT.
+    // Fill with zeros (there is no useful value common to A32 and T32).
     memset(buffer_, 0, capacity_);
   }
 #endif
@@ -98,7 +106,7 @@ void CodeBuffer::Reset() {
 void CodeBuffer::Grow(size_t new_capacity) {
   VIXL_ASSERT(managed_);
   VIXL_ASSERT(new_capacity > capacity_);
-  size_t size = CursorOffset();
+  size_t size = GetCursorOffset();
   buffer_ = static_cast<byte*>(realloc(buffer_, new_capacity));
   VIXL_CHECK(buffer_ != NULL);
 

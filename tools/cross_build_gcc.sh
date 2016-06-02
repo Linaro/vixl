@@ -38,23 +38,23 @@ export CC=$1gcc
 export LD=$1ld
 
 OK=1
-if [ ! -x "$CXX" ]; then
+if [ ! -x "`which $CXX`" ]; then
   echo "Error: $CXX does not exist or is not executable."
   OK=0
 fi
-if [ ! -x "$AR" ]; then
+if [ ! -x "`which $AR`" ]; then
   echo "Error: $AR does not exist or is not executable."
   OK=0
 fi
-if [ ! -x "$RANLIB" ]; then
+if [ ! -x "`which $RANLIB`" ]; then
   echo "Error: $RANLIB does not exist or is not executable."
   OK=0
 fi
-if [ ! -x "$CC" ]; then
+if [ ! -x "`which $CC`" ]; then
   echo "Error: $CC does not exist or is not executable."
   OK=0
 fi
-if [ ! -x "$LD" ]; then
+if [ ! -x "`which $LD`" ]; then
   echo "Error: $LD does not exist or is not executable."
   OK=0
 fi

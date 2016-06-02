@@ -59,16 +59,22 @@
 LOCAL_PATH:= $(call my-dir)
 
 vixl_root := $(LOCAL_PATH)/
-vixl_include_files := $(vixl_root)/src/
+vixl_src_include_path := $(vixl_root)/src/
+vixl_test_include_path := $(vixl_src_include_path) $(vixl_root)/test/
 
-vixl_src_files := \
-  {vixl_sources}
+vixl_common_files := \
+  {vixl_common}
+
+vixl_src_files_a32 := \
+  {vixl_a32_sources}
+
+vixl_src_files_a64 := \
+  {vixl_a64_sources}
 
 vixl_test_files := \
   {vixl_test_files}
 
 vixl_cpp_flags := \
-  -DVIXL_INCLUDE_SIMULATOR \
   -DVIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE=0 \
   -Wall \
   -Wextra \
@@ -105,13 +111,13 @@ endif
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
-LOCAL_CPPFLAGS := $(vixl_cpp_flags_release)
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_release) -DVIXL_INCLUDE_SIMULATOR
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
-LOCAL_C_INCLUDES := $(vixl_include_files)
-LOCAL_SRC_FILES :=  $(vixl_src_files)
+LOCAL_C_INCLUDES := $(vixl_src_include_path)
+LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_a64)
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE := libvixl
+LOCAL_MODULE := libvixl-a64
 LOCAL_SANITIZE_RECOVER := shift-exponent
 LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
 include $(BUILD_SHARED_LIBRARY)
@@ -119,17 +125,82 @@ include $(BUILD_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
-LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug)
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug) -DVIXL_INCLUDE_SIMULATOR
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
-LOCAL_C_INCLUDES := $(vixl_include_files)
-LOCAL_SRC_FILES :=  $(vixl_src_files)
+LOCAL_C_INCLUDES := $(vixl_src_include_path)
+LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_a64)
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE := libvixld
+LOCAL_MODULE := libvixld-a64
 LOCAL_SANITIZE_RECOVER := shift-exponent
 LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
 include $(BUILD_SHARED_LIBRARY)
 
+
+include $(CLEAR_VARS)
+LOCAL_CLANG := true
+LOCAL_CPP_EXTENSION := .cc
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_release) -DVIXL_INCLUDE_SIMULATOR
+LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
+LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
+LOCAL_C_INCLUDES := $(vixl_src_include_path)
+LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_a64)
+LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE := libvixl-a64
+LOCAL_SANITIZE_RECOVER := shift-exponent
+LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
+LOCAL_MULTILIB := both
+include $(BUILD_HOST_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_CLANG := true
+LOCAL_CPP_EXTENSION := .cc
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug) -DVIXL_INCLUDE_SIMULATOR
+LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
+LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
+LOCAL_C_INCLUDES := $(vixl_src_include_path)
+LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_a64)
+LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE := libvixld-a64
+LOCAL_SANITIZE_RECOVER := shift-exponent
+LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
+LOCAL_MULTILIB := both
+include $(BUILD_HOST_SHARED_LIBRARY)
+
+# Static libraries for host
+include $(CLEAR_VARS)
+LOCAL_CLANG := true
+LOCAL_CPP_EXTENSION := .cc
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_release) -DVIXL_INCLUDE_SIMULATOR
+LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
+LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
+LOCAL_C_INCLUDES := $(vixl_src_include_path)
+LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_a64)
+LOCAL_STATIC_LIBRARIES := liblog
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE := libvixl-a64
+LOCAL_SANITIZE_RECOVER := shift-exponent
+LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
+LOCAL_MULTILIB := both
+include $(BUILD_HOST_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_CLANG := true
+LOCAL_CPP_EXTENSION := .cc
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug) -DVIXL_INCLUDE_SIMULATOR
+LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
+LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
+LOCAL_C_INCLUDES := $(vixl_src_include_path)
+LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_a64)
+LOCAL_STATIC_LIBRARIES := liblog
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE := libvixld-a64
+LOCAL_SANITIZE_RECOVER := shift-exponent
+LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
+LOCAL_MULTILIB := both
+include $(BUILD_HOST_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
@@ -137,11 +208,11 @@ LOCAL_CPP_EXTENSION := .cc
 LOCAL_CPPFLAGS := $(vixl_cpp_flags_release)
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
 LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
-LOCAL_C_INCLUDES := $(vixl_include_files)
-LOCAL_SRC_FILES :=  $(vixl_src_files)
+LOCAL_C_INCLUDES := $(vixl_src_include_path)
+LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_a32)
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE := libvixl
+LOCAL_MODULE := libvixl-a32
 LOCAL_SANITIZE_RECOVER := shift-exponent
 LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
 LOCAL_MULTILIB := both
@@ -153,11 +224,11 @@ LOCAL_CPP_EXTENSION := .cc
 LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug)
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
 LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
-LOCAL_C_INCLUDES := $(vixl_include_files)
-LOCAL_SRC_FILES :=  $(vixl_src_files)
+LOCAL_C_INCLUDES := $(vixl_src_include_path)
+LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_a32)
 LOCAL_SHARED_LIBRARIES := liblog
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE := libvixld
+LOCAL_MODULE := libvixld-a32
 LOCAL_SANITIZE_RECOVER := shift-exponent
 LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
 LOCAL_MULTILIB := both
@@ -170,11 +241,11 @@ LOCAL_CPP_EXTENSION := .cc
 LOCAL_CPPFLAGS := $(vixl_cpp_flags_release)
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
 LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
-LOCAL_C_INCLUDES := $(vixl_include_files)
-LOCAL_SRC_FILES :=  $(vixl_src_files)
+LOCAL_C_INCLUDES := $(vixl_src_include_path)
+LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_a32)
 LOCAL_STATIC_LIBRARIES := liblog
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE := libvixl
+LOCAL_MODULE := libvixl-a32
 LOCAL_SANITIZE_RECOVER := shift-exponent
 LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
 LOCAL_MULTILIB := both
@@ -186,11 +257,11 @@ LOCAL_CPP_EXTENSION := .cc
 LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug)
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
 LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
-LOCAL_C_INCLUDES := $(vixl_include_files)
-LOCAL_SRC_FILES :=  $(vixl_src_files)
+LOCAL_C_INCLUDES := $(vixl_src_include_path)
+LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_a32)
 LOCAL_STATIC_LIBRARIES := liblog
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE := libvixld
+LOCAL_MODULE := libvixld-a32
 LOCAL_SANITIZE_RECOVER := shift-exponent
 LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
 LOCAL_MULTILIB := both
@@ -205,11 +276,11 @@ include $(BUILD_HOST_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
-LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug)
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug) -DVIXL_INCLUDE_SIMULATOR
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
 LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
-LOCAL_C_INCLUDES := $(vixl_include_files)
-LOCAL_SRC_FILES :=  $(vixl_test_files) $(vixl_src_files)
+LOCAL_C_INCLUDES := $(vixl_test_include_path)
+LOCAL_SRC_FILES :=  $(vixl_test_files) $(vixl_common_files) $(vixl_src_files_a32) $(vixl_src_files_a64)
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_HOST_ARCH := x86_64
 LOCAL_FORCE_STATIC_EXECUTABLE := true

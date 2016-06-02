@@ -30,12 +30,13 @@
 #include "a64/decoder-a64.h"
 
 namespace vixl {
+namespace aarch64 {
 
 void Decoder::DecodeInstruction(const Instruction* instr) {
-  if (instr->Bits(28, 27) == 0) {
+  if (instr->ExtractBits(28, 27) == 0) {
     VisitUnallocated(instr);
   } else {
-    switch (instr->Bits(27, 24)) {
+    switch (instr->ExtractBits(27, 24)) {
       // 0:   PC relative addressing.
       case 0x0:
         DecodePCRelAddressing(instr);
@@ -174,19 +175,21 @@ void Decoder::RemoveVisitor(DecoderVisitor* visitor) {
 
 
 void Decoder::DecodePCRelAddressing(const Instruction* instr) {
-  VIXL_ASSERT(instr->Bits(27, 24) == 0x0);
+  VIXL_ASSERT(instr->ExtractBits(27, 24) == 0x0);
   // We know bit 28 is set, as <b28:b27> = 0 is filtered out at the top level
   // decode.
-  VIXL_ASSERT(instr->Bit(28) == 0x1);
+  VIXL_ASSERT(instr->ExtractBit(28) == 0x1);
   VisitPCRelAddressing(instr);
 }
 
 
 void Decoder::DecodeBranchSystemException(const Instruction* instr) {
-  VIXL_ASSERT((instr->Bits(27, 24) == 0x4) || (instr->Bits(27, 24) == 0x5) ||
-              (instr->Bits(27, 24) == 0x6) || (instr->Bits(27, 24) == 0x7));
+  VIXL_ASSERT((instr->ExtractBits(27, 24) == 0x4) ||
+              (instr->ExtractBits(27, 24) == 0x5) ||
+              (instr->ExtractBits(27, 24) == 0x6) ||
+              (instr->ExtractBits(27, 24) == 0x7));
 
-  switch (instr->Bits(31, 29)) {
+  switch (instr->ExtractBits(31, 29)) {
     case 0:
     case 4: {
       VisitUnconditionalBranch(instr);
@@ -194,7 +197,7 @@ void Decoder::DecodeBranchSystemException(const Instruction* instr) {
     }
     case 1:
     case 5: {
-      if (instr->Bit(25) == 0) {
+      if (instr->ExtractBit(25) == 0) {
         VisitCompareBranch(instr);
       } else {
         VisitTestBranch(instr);
@@ -202,8 +205,8 @@ void Decoder::DecodeBranchSystemException(const Instruction* instr) {
       break;
     }
     case 2: {
-      if (instr->Bit(25) == 0) {
-        if ((instr->Bit(24) == 0x1) ||
+      if (instr->ExtractBit(25) == 0) {
+        if ((instr->ExtractBit(24) == 0x1) ||
             (instr->Mask(0x01000010) == 0x00000010)) {
           VisitUnallocated(instr);
         } else {
@@ -215,9 +218,9 @@ void Decoder::DecodeBranchSystemException(const Instruction* instr) {
       break;
     }
     case 6: {
-      if (instr->Bit(25) == 0) {
-        if (instr->Bit(24) == 0) {
-          if ((instr->Bits(4, 2) != 0) ||
+      if (instr->ExtractBit(25) == 0) {
+        if (instr->ExtractBit(24) == 0) {
+          if ((instr->ExtractBits(4, 2) != 0) ||
               (instr->Mask(0x00E0001D) == 0x00200001) ||
               (instr->Mask(0x00E0001D) == 0x00400001) ||
               (instr->Mask(0x00E0001E) == 0x00200002) ||
@@ -231,9 +234,9 @@ void Decoder::DecodeBranchSystemException(const Instruction* instr) {
             VisitException(instr);
           }
         } else {
-          if (instr->Bits(23, 22) == 0) {
+          if (instr->ExtractBits(23, 22) == 0) {
             const Instr masked_003FF0E0 = instr->Mask(0x003FF0E0);
-            if ((instr->Bits(21, 19) == 0x4) ||
+            if ((instr->ExtractBits(21, 19) == 0x4) ||
                 (masked_003FF0E0 == 0x00033000) ||
                 (masked_003FF0E0 == 0x003FF020) ||
                 (masked_003FF0E0 == 0x003FF060) ||
@@ -259,9 +262,12 @@ void Decoder::DecodeBranchSystemException(const Instruction* instr) {
           }
         }
       } else {
-        if ((instr->Bit(24) == 0x1) || (instr->Bits(20, 16) != 0x1F) ||
-            (instr->Bits(15, 10) != 0) || (instr->Bits(4, 0) != 0) ||
-            (instr->Bits(24, 21) == 0x3) || (instr->Bits(24, 22) == 0x3)) {
+        if ((instr->ExtractBit(24) == 0x1) ||
+            (instr->ExtractBits(20, 16) != 0x1F) ||
+            (instr->ExtractBits(15, 10) != 0) ||
+            (instr->ExtractBits(4, 0) != 0) ||
+            (instr->ExtractBits(24, 21) == 0x3) ||
+            (instr->ExtractBits(24, 22) == 0x3)) {
           VisitUnallocated(instr);
         } else {
           VisitUnconditionalBranchToRegister(instr);
@@ -279,28 +285,31 @@ void Decoder::DecodeBranchSystemException(const Instruction* instr) {
 
 
 void Decoder::DecodeLoadStore(const Instruction* instr) {
-  VIXL_ASSERT((instr->Bits(27, 24) == 0x8) || (instr->Bits(27, 24) == 0x9) ||
-              (instr->Bits(27, 24) == 0xC) || (instr->Bits(27, 24) == 0xD));
+  VIXL_ASSERT((instr->ExtractBits(27, 24) == 0x8) ||
+              (instr->ExtractBits(27, 24) == 0x9) ||
+              (instr->ExtractBits(27, 24) == 0xC) ||
+              (instr->ExtractBits(27, 24) == 0xD));
   // TODO(all): rearrange the tree to integrate this branch.
-  if ((instr->Bit(28) == 0) && (instr->Bit(29) == 0) && (instr->Bit(26) == 1)) {
+  if ((instr->ExtractBit(28) == 0) && (instr->ExtractBit(29) == 0) &&
+      (instr->ExtractBit(26) == 1)) {
     DecodeNEONLoadStore(instr);
     return;
   }
 
-  if (instr->Bit(24) == 0) {
-    if (instr->Bit(28) == 0) {
-      if (instr->Bit(29) == 0) {
-        if (instr->Bit(26) == 0) {
+  if (instr->ExtractBit(24) == 0) {
+    if (instr->ExtractBit(28) == 0) {
+      if (instr->ExtractBit(29) == 0) {
+        if (instr->ExtractBit(26) == 0) {
           VisitLoadStoreExclusive(instr);
         } else {
           VIXL_UNREACHABLE();
         }
       } else {
-        if ((instr->Bits(31, 30) == 0x3) ||
+        if ((instr->ExtractBits(31, 30) == 0x3) ||
             (instr->Mask(0xC4400000) == 0x40000000)) {
           VisitUnallocated(instr);
         } else {
-          if (instr->Bit(23) == 0) {
+          if (instr->ExtractBit(23) == 0) {
             if (instr->Mask(0xC4400000) == 0xC0400000) {
               VisitUnallocated(instr);
             } else {
@@ -312,7 +321,7 @@ void Decoder::DecodeLoadStore(const Instruction* instr) {
         }
       }
     } else {
-      if (instr->Bit(29) == 0) {
+      if (instr->ExtractBit(29) == 0) {
         if (instr->Mask(0xC4000000) == 0xC4000000) {
           VisitUnallocated(instr);
         } else {
@@ -324,8 +333,8 @@ void Decoder::DecodeLoadStore(const Instruction* instr) {
             (instr->Mask(0x84800000) == 0x84800000)) {
           VisitUnallocated(instr);
         } else {
-          if (instr->Bit(21) == 0) {
-            switch (instr->Bits(11, 10)) {
+          if (instr->ExtractBit(21) == 0) {
+            switch (instr->ExtractBits(11, 10)) {
               case 0: {
                 VisitLoadStoreUnscaledOffset(instr);
                 break;
@@ -353,8 +362,8 @@ void Decoder::DecodeLoadStore(const Instruction* instr) {
               }
             }
           } else {
-            if (instr->Bits(11, 10) == 0x2) {
-              if (instr->Bit(14) == 0) {
+            if (instr->ExtractBits(11, 10) == 0x2) {
+              if (instr->ExtractBit(14) == 0) {
                 VisitUnallocated(instr);
               } else {
                 VisitLoadStoreRegisterOffset(instr);
@@ -367,15 +376,15 @@ void Decoder::DecodeLoadStore(const Instruction* instr) {
       }
     }
   } else {
-    if (instr->Bit(28) == 0) {
-      if (instr->Bit(29) == 0) {
+    if (instr->ExtractBit(28) == 0) {
+      if (instr->ExtractBit(29) == 0) {
         VisitUnallocated(instr);
       } else {
-        if ((instr->Bits(31, 30) == 0x3) ||
+        if ((instr->ExtractBits(31, 30) == 0x3) ||
             (instr->Mask(0xC4400000) == 0x40000000)) {
           VisitUnallocated(instr);
         } else {
-          if (instr->Bit(23) == 0) {
+          if (instr->ExtractBit(23) == 0) {
             VisitLoadStorePairOffset(instr);
           } else {
             VisitLoadStorePairPreIndex(instr);
@@ -383,7 +392,7 @@ void Decoder::DecodeLoadStore(const Instruction* instr) {
         }
       }
     } else {
-      if (instr->Bit(29) == 0) {
+      if (instr->ExtractBit(29) == 0) {
         VisitUnallocated(instr);
       } else {
         if ((instr->Mask(0x84C00000) == 0x80C00000) ||
@@ -400,15 +409,15 @@ void Decoder::DecodeLoadStore(const Instruction* instr) {
 
 
 void Decoder::DecodeLogical(const Instruction* instr) {
-  VIXL_ASSERT(instr->Bits(27, 24) == 0x2);
+  VIXL_ASSERT(instr->ExtractBits(27, 24) == 0x2);
 
   if (instr->Mask(0x80400000) == 0x00400000) {
     VisitUnallocated(instr);
   } else {
-    if (instr->Bit(23) == 0) {
+    if (instr->ExtractBit(23) == 0) {
       VisitLogicalImmediate(instr);
     } else {
-      if (instr->Bits(30, 29) == 0x1) {
+      if (instr->ExtractBits(30, 29) == 0x1) {
         VisitUnallocated(instr);
       } else {
         VisitMoveWideImmediate(instr);
@@ -419,13 +428,13 @@ void Decoder::DecodeLogical(const Instruction* instr) {
 
 
 void Decoder::DecodeBitfieldExtract(const Instruction* instr) {
-  VIXL_ASSERT(instr->Bits(27, 24) == 0x3);
+  VIXL_ASSERT(instr->ExtractBits(27, 24) == 0x3);
 
   if ((instr->Mask(0x80400000) == 0x80000000) ||
       (instr->Mask(0x80400000) == 0x00400000) ||
       (instr->Mask(0x80008000) == 0x00008000)) {
     VisitUnallocated(instr);
-  } else if (instr->Bit(23) == 0) {
+  } else if (instr->ExtractBit(23) == 0) {
     if ((instr->Mask(0x80200000) == 0x00200000) ||
         (instr->Mask(0x60000000) == 0x60000000)) {
       VisitUnallocated(instr);
@@ -444,8 +453,8 @@ void Decoder::DecodeBitfieldExtract(const Instruction* instr) {
 
 
 void Decoder::DecodeAddSubImmediate(const Instruction* instr) {
-  VIXL_ASSERT(instr->Bits(27, 24) == 0x1);
-  if (instr->Bit(23) == 1) {
+  VIXL_ASSERT(instr->ExtractBits(27, 24) == 0x1);
+  if (instr->ExtractBit(23) == 1) {
     VisitUnallocated(instr);
   } else {
     VisitAddSubImmediate(instr);
@@ -454,17 +463,18 @@ void Decoder::DecodeAddSubImmediate(const Instruction* instr) {
 
 
 void Decoder::DecodeDataProcessing(const Instruction* instr) {
-  VIXL_ASSERT((instr->Bits(27, 24) == 0xA) || (instr->Bits(27, 24) == 0xB));
+  VIXL_ASSERT((instr->ExtractBits(27, 24) == 0xA) ||
+              (instr->ExtractBits(27, 24) == 0xB));
 
-  if (instr->Bit(24) == 0) {
-    if (instr->Bit(28) == 0) {
+  if (instr->ExtractBit(24) == 0) {
+    if (instr->ExtractBit(28) == 0) {
       if (instr->Mask(0x80008000) == 0x00008000) {
         VisitUnallocated(instr);
       } else {
         VisitLogicalShifted(instr);
       }
     } else {
-      switch (instr->Bits(23, 21)) {
+      switch (instr->ExtractBits(23, 21)) {
         case 0: {
           if (instr->Mask(0x0000FC00) != 0) {
             VisitUnallocated(instr);
@@ -474,10 +484,10 @@ void Decoder::DecodeDataProcessing(const Instruction* instr) {
           break;
         }
         case 2: {
-          if ((instr->Bit(29) == 0) || (instr->Mask(0x00000410) != 0)) {
+          if ((instr->ExtractBit(29) == 0) || (instr->Mask(0x00000410) != 0)) {
             VisitUnallocated(instr);
           } else {
-            if (instr->Bit(11) == 0) {
+            if (instr->ExtractBit(11) == 0) {
               VisitConditionalCompareRegister(instr);
             } else {
               VisitConditionalCompareImmediate(instr);
@@ -494,15 +504,16 @@ void Decoder::DecodeDataProcessing(const Instruction* instr) {
           break;
         }
         case 6: {
-          if (instr->Bit(29) == 0x1) {
+          if (instr->ExtractBit(29) == 0x1) {
             VisitUnallocated(instr);
             VIXL_FALLTHROUGH();
           } else {
-            if (instr->Bit(30) == 0) {
-              if ((instr->Bit(15) == 0x1) || (instr->Bits(15, 11) == 0) ||
-                  (instr->Bits(15, 12) == 0x1) ||
-                  (instr->Bits(15, 12) == 0x3) ||
-                  (instr->Bits(15, 13) == 0x3) ||
+            if (instr->ExtractBit(30) == 0) {
+              if ((instr->ExtractBit(15) == 0x1) ||
+                  (instr->ExtractBits(15, 11) == 0) ||
+                  (instr->ExtractBits(15, 12) == 0x1) ||
+                  (instr->ExtractBits(15, 12) == 0x3) ||
+                  (instr->ExtractBits(15, 13) == 0x3) ||
                   (instr->Mask(0x8000EC00) == 0x00004C00) ||
                   (instr->Mask(0x8000E800) == 0x80004000) ||
                   (instr->Mask(0x8000E400) == 0x80004000)) {
@@ -511,8 +522,9 @@ void Decoder::DecodeDataProcessing(const Instruction* instr) {
                 VisitDataProcessing2Source(instr);
               }
             } else {
-              if ((instr->Bit(13) == 1) || (instr->Bits(20, 16) != 0) ||
-                  (instr->Bits(15, 14) != 0) ||
+              if ((instr->ExtractBit(13) == 1) ||
+                  (instr->ExtractBits(20, 16) != 0) ||
+                  (instr->ExtractBits(15, 14) != 0) ||
                   (instr->Mask(0xA01FFC00) == 0x00000C00) ||
                   (instr->Mask(0x201FF800) == 0x00001800)) {
                 VisitUnallocated(instr);
@@ -532,9 +544,9 @@ void Decoder::DecodeDataProcessing(const Instruction* instr) {
       }
     }
   } else {
-    if (instr->Bit(28) == 0) {
-      if (instr->Bit(21) == 0) {
-        if ((instr->Bits(23, 22) == 0x3) ||
+    if (instr->ExtractBit(28) == 0) {
+      if (instr->ExtractBit(21) == 0) {
+        if ((instr->ExtractBits(23, 22) == 0x3) ||
             (instr->Mask(0x80008000) == 0x00008000)) {
           VisitUnallocated(instr);
         } else {
@@ -550,7 +562,8 @@ void Decoder::DecodeDataProcessing(const Instruction* instr) {
         }
       }
     } else {
-      if ((instr->Bit(30) == 0x1) || (instr->Bits(30, 29) == 0x1) ||
+      if ((instr->ExtractBit(30) == 0x1) ||
+          (instr->ExtractBits(30, 29) == 0x1) ||
           (instr->Mask(0xE0600000) == 0x00200000) ||
           (instr->Mask(0xE0608000) == 0x00400000) ||
           (instr->Mask(0x60608000) == 0x00408000) ||
@@ -567,19 +580,20 @@ void Decoder::DecodeDataProcessing(const Instruction* instr) {
 
 
 void Decoder::DecodeFP(const Instruction* instr) {
-  VIXL_ASSERT((instr->Bits(27, 24) == 0xE) || (instr->Bits(27, 24) == 0xF));
-  if (instr->Bit(28) == 0) {
+  VIXL_ASSERT((instr->ExtractBits(27, 24) == 0xE) ||
+              (instr->ExtractBits(27, 24) == 0xF));
+  if (instr->ExtractBit(28) == 0) {
     DecodeNEONVectorDataProcessing(instr);
   } else {
-    if (instr->Bits(31, 30) == 0x3) {
+    if (instr->ExtractBits(31, 30) == 0x3) {
       VisitUnallocated(instr);
-    } else if (instr->Bits(31, 30) == 0x1) {
+    } else if (instr->ExtractBits(31, 30) == 0x1) {
       DecodeNEONScalarDataProcessing(instr);
     } else {
-      if (instr->Bit(29) == 0) {
-        if (instr->Bit(24) == 0) {
-          if (instr->Bit(21) == 0) {
-            if ((instr->Bit(23) == 1) || (instr->Bit(18) == 1) ||
+      if (instr->ExtractBit(29) == 0) {
+        if (instr->ExtractBit(24) == 0) {
+          if (instr->ExtractBit(21) == 0) {
+            if ((instr->ExtractBit(23) == 1) || (instr->ExtractBit(18) == 1) ||
                 (instr->Mask(0x80008000) == 0x00000000) ||
                 (instr->Mask(0x000E0000) == 0x00000000) ||
                 (instr->Mask(0x000E0000) == 0x000A0000) ||
@@ -590,10 +604,10 @@ void Decoder::DecodeFP(const Instruction* instr) {
               VisitFPFixedPointConvert(instr);
             }
           } else {
-            if (instr->Bits(15, 10) == 32) {
+            if (instr->ExtractBits(15, 10) == 32) {
               VisitUnallocated(instr);
-            } else if (instr->Bits(15, 10) == 0) {
-              if ((instr->Bits(23, 22) == 0x3) ||
+            } else if (instr->ExtractBits(15, 10) == 0) {
+              if ((instr->ExtractBits(23, 22) == 0x3) ||
                   (instr->Mask(0x000E0000) == 0x000A0000) ||
                   (instr->Mask(0x000E0000) == 0x000C0000) ||
                   (instr->Mask(0x00160000) == 0x00120000) ||
@@ -613,7 +627,7 @@ void Decoder::DecodeFP(const Instruction* instr) {
               } else {
                 VisitFPIntegerConvert(instr);
               }
-            } else if (instr->Bits(14, 10) == 16) {
+            } else if (instr->ExtractBits(14, 10) == 16) {
               const Instr masked_A0DF8000 = instr->Mask(0xA0DF8000);
               if ((instr->Mask(0x80180000) != 0) ||
                   (masked_A0DF8000 == 0x00020000) ||
@@ -630,15 +644,16 @@ void Decoder::DecodeFP(const Instruction* instr) {
               } else {
                 VisitFPDataProcessing1Source(instr);
               }
-            } else if (instr->Bits(13, 10) == 8) {
-              if ((instr->Bits(15, 14) != 0) || (instr->Bits(2, 0) != 0) ||
+            } else if (instr->ExtractBits(13, 10) == 8) {
+              if ((instr->ExtractBits(15, 14) != 0) ||
+                  (instr->ExtractBits(2, 0) != 0) ||
                   (instr->Mask(0x80800000) != 0x00000000)) {
                 VisitUnallocated(instr);
               } else {
                 VisitFPCompare(instr);
               }
-            } else if (instr->Bits(12, 10) == 4) {
-              if ((instr->Bits(9, 5) != 0) ||
+            } else if (instr->ExtractBits(12, 10) == 4) {
+              if ((instr->ExtractBits(9, 5) != 0) ||
                   (instr->Mask(0x80800000) != 0x00000000)) {
                 VisitUnallocated(instr);
               } else {
@@ -648,13 +663,13 @@ void Decoder::DecodeFP(const Instruction* instr) {
               if (instr->Mask(0x80800000) != 0x00000000) {
                 VisitUnallocated(instr);
               } else {
-                switch (instr->Bits(11, 10)) {
+                switch (instr->ExtractBits(11, 10)) {
                   case 1: {
                     VisitFPConditionalCompare(instr);
                     break;
                   }
                   case 2: {
-                    if ((instr->Bits(15, 14) == 0x3) ||
+                    if ((instr->ExtractBits(15, 14) == 0x3) ||
                         (instr->Mask(0x00009000) == 0x00009000) ||
                         (instr->Mask(0x0000A000) == 0x0000A000)) {
                       VisitUnallocated(instr);
@@ -675,7 +690,7 @@ void Decoder::DecodeFP(const Instruction* instr) {
           }
         } else {
           // Bit 30 == 1 has been handled earlier.
-          VIXL_ASSERT(instr->Bit(30) == 0);
+          VIXL_ASSERT(instr->ExtractBit(30) == 0);
           if (instr->Mask(0xA0800000) != 0) {
             VisitUnallocated(instr);
           } else {
@@ -691,16 +706,16 @@ void Decoder::DecodeFP(const Instruction* instr) {
 
 
 void Decoder::DecodeNEONLoadStore(const Instruction* instr) {
-  VIXL_ASSERT(instr->Bits(29, 25) == 0x6);
-  if (instr->Bit(31) == 0) {
-    if ((instr->Bit(24) == 0) && (instr->Bit(21) == 1)) {
+  VIXL_ASSERT(instr->ExtractBits(29, 25) == 0x6);
+  if (instr->ExtractBit(31) == 0) {
+    if ((instr->ExtractBit(24) == 0) && (instr->ExtractBit(21) == 1)) {
       VisitUnallocated(instr);
       return;
     }
 
-    if (instr->Bit(23) == 0) {
-      if (instr->Bits(20, 16) == 0) {
-        if (instr->Bit(24) == 0) {
+    if (instr->ExtractBit(23) == 0) {
+      if (instr->ExtractBits(20, 16) == 0) {
+        if (instr->ExtractBit(24) == 0) {
           VisitNEONLoadStoreMultiStruct(instr);
         } else {
           VisitNEONLoadStoreSingleStruct(instr);
@@ -709,7 +724,7 @@ void Decoder::DecodeNEONLoadStore(const Instruction* instr) {
         VisitUnallocated(instr);
       }
     } else {
-      if (instr->Bit(24) == 0) {
+      if (instr->ExtractBit(24) == 0) {
         VisitNEONLoadStoreMultiStructPostIndex(instr);
       } else {
         VisitNEONLoadStoreSingleStructPostIndex(instr);
@@ -722,14 +737,14 @@ void Decoder::DecodeNEONLoadStore(const Instruction* instr) {
 
 
 void Decoder::DecodeNEONVectorDataProcessing(const Instruction* instr) {
-  VIXL_ASSERT(instr->Bits(28, 25) == 0x7);
-  if (instr->Bit(31) == 0) {
-    if (instr->Bit(24) == 0) {
-      if (instr->Bit(21) == 0) {
-        if (instr->Bit(15) == 0) {
-          if (instr->Bit(10) == 0) {
-            if (instr->Bit(29) == 0) {
-              if (instr->Bit(11) == 0) {
+  VIXL_ASSERT(instr->ExtractBits(28, 25) == 0x7);
+  if (instr->ExtractBit(31) == 0) {
+    if (instr->ExtractBit(24) == 0) {
+      if (instr->ExtractBit(21) == 0) {
+        if (instr->ExtractBit(15) == 0) {
+          if (instr->ExtractBit(10) == 0) {
+            if (instr->ExtractBit(29) == 0) {
+              if (instr->ExtractBit(11) == 0) {
                 VisitNEONTable(instr);
               } else {
                 VisitNEONPerm(instr);
@@ -738,7 +753,7 @@ void Decoder::DecodeNEONVectorDataProcessing(const Instruction* instr) {
               VisitNEONExtract(instr);
             }
           } else {
-            if (instr->Bits(23, 22) == 0) {
+            if (instr->ExtractBits(23, 22) == 0) {
               VisitNEONCopy(instr);
             } else {
               VisitUnallocated(instr);
@@ -748,23 +763,23 @@ void Decoder::DecodeNEONVectorDataProcessing(const Instruction* instr) {
           VisitUnallocated(instr);
         }
       } else {
-        if (instr->Bit(10) == 0) {
-          if (instr->Bit(11) == 0) {
+        if (instr->ExtractBit(10) == 0) {
+          if (instr->ExtractBit(11) == 0) {
             VisitNEON3Different(instr);
           } else {
-            if (instr->Bits(18, 17) == 0) {
-              if (instr->Bit(20) == 0) {
-                if (instr->Bit(19) == 0) {
+            if (instr->ExtractBits(18, 17) == 0) {
+              if (instr->ExtractBit(20) == 0) {
+                if (instr->ExtractBit(19) == 0) {
                   VisitNEON2RegMisc(instr);
                 } else {
-                  if (instr->Bits(30, 29) == 0x2) {
+                  if (instr->ExtractBits(30, 29) == 0x2) {
                     VisitCryptoAES(instr);
                   } else {
                     VisitUnallocated(instr);
                   }
                 }
               } else {
-                if (instr->Bit(19) == 0) {
+                if (instr->ExtractBit(19) == 0) {
                   VisitNEONAcrossLanes(instr);
                 } else {
                   VisitUnallocated(instr);
@@ -779,11 +794,11 @@ void Decoder::DecodeNEONVectorDataProcessing(const Instruction* instr) {
         }
       }
     } else {
-      if (instr->Bit(10) == 0) {
+      if (instr->ExtractBit(10) == 0) {
         VisitNEONByIndexedElement(instr);
       } else {
-        if (instr->Bit(23) == 0) {
-          if (instr->Bits(22, 19) == 0) {
+        if (instr->ExtractBit(23) == 0) {
+          if (instr->ExtractBits(22, 19) == 0) {
             VisitNEONModifiedImmediate(instr);
           } else {
             VisitNEONShiftImmediate(instr);
@@ -800,13 +815,13 @@ void Decoder::DecodeNEONVectorDataProcessing(const Instruction* instr) {
 
 
 void Decoder::DecodeNEONScalarDataProcessing(const Instruction* instr) {
-  VIXL_ASSERT(instr->Bits(28, 25) == 0xF);
-  if (instr->Bit(24) == 0) {
-    if (instr->Bit(21) == 0) {
-      if (instr->Bit(15) == 0) {
-        if (instr->Bit(10) == 0) {
-          if (instr->Bit(29) == 0) {
-            if (instr->Bit(11) == 0) {
+  VIXL_ASSERT(instr->ExtractBits(28, 25) == 0xF);
+  if (instr->ExtractBit(24) == 0) {
+    if (instr->ExtractBit(21) == 0) {
+      if (instr->ExtractBit(15) == 0) {
+        if (instr->ExtractBit(10) == 0) {
+          if (instr->ExtractBit(29) == 0) {
+            if (instr->ExtractBit(11) == 0) {
               VisitCrypto3RegSHA(instr);
             } else {
               VisitUnallocated(instr);
@@ -815,7 +830,7 @@ void Decoder::DecodeNEONScalarDataProcessing(const Instruction* instr) {
             VisitUnallocated(instr);
           }
         } else {
-          if (instr->Bits(23, 22) == 0) {
+          if (instr->ExtractBits(23, 22) == 0) {
             VisitNEONScalarCopy(instr);
           } else {
             VisitUnallocated(instr);
@@ -825,23 +840,23 @@ void Decoder::DecodeNEONScalarDataProcessing(const Instruction* instr) {
         VisitUnallocated(instr);
       }
     } else {
-      if (instr->Bit(10) == 0) {
-        if (instr->Bit(11) == 0) {
+      if (instr->ExtractBit(10) == 0) {
+        if (instr->ExtractBit(11) == 0) {
           VisitNEONScalar3Diff(instr);
         } else {
-          if (instr->Bits(18, 17) == 0) {
-            if (instr->Bit(20) == 0) {
-              if (instr->Bit(19) == 0) {
+          if (instr->ExtractBits(18, 17) == 0) {
+            if (instr->ExtractBit(20) == 0) {
+              if (instr->ExtractBit(19) == 0) {
                 VisitNEONScalar2RegMisc(instr);
               } else {
-                if (instr->Bit(29) == 0) {
+                if (instr->ExtractBit(29) == 0) {
                   VisitCrypto2RegSHA(instr);
                 } else {
                   VisitUnallocated(instr);
                 }
               }
             } else {
-              if (instr->Bit(19) == 0) {
+              if (instr->ExtractBit(19) == 0) {
                 VisitNEONScalarPairwise(instr);
               } else {
                 VisitUnallocated(instr);
@@ -856,10 +871,10 @@ void Decoder::DecodeNEONScalarDataProcessing(const Instruction* instr) {
       }
     }
   } else {
-    if (instr->Bit(10) == 0) {
+    if (instr->ExtractBit(10) == 0) {
       VisitNEONScalarByIndexedElement(instr);
     } else {
-      if (instr->Bit(23) == 0) {
+      if (instr->ExtractBit(23) == 0) {
         VisitNEONScalarShiftImmediate(instr);
       } else {
         VisitUnallocated(instr);
@@ -879,4 +894,5 @@ void Decoder::DecodeNEONScalarDataProcessing(const Instruction* instr) {
   }
 VISITOR_LIST(DEFINE_VISITOR_CALLERS)
 #undef DEFINE_VISITOR_CALLERS
+}  // namespace aarch64
 }  // namespace vixl

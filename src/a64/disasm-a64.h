@@ -35,6 +35,7 @@
 #include "a64/instructions-a64.h"
 
 namespace vixl {
+namespace aarch64 {
 
 class Disassembler : public DecoderVisitor {
  public:
@@ -128,19 +129,19 @@ class Disassembler : public DecoderVisitor {
   int SubstituteSysOpField(const Instruction* instr, const char* format);
   int SubstituteCrField(const Instruction* instr, const char* format);
   bool RdIsZROrSP(const Instruction* instr) const {
-    return (instr->Rd() == kZeroRegCode);
+    return (instr->GetRd() == kZeroRegCode);
   }
 
   bool RnIsZROrSP(const Instruction* instr) const {
-    return (instr->Rn() == kZeroRegCode);
+    return (instr->GetRn() == kZeroRegCode);
   }
 
   bool RmIsZROrSP(const Instruction* instr) const {
-    return (instr->Rm() == kZeroRegCode);
+    return (instr->GetRm() == kZeroRegCode);
   }
 
   bool RaIsZROrSP(const Instruction* instr) const {
-    return (instr->Ra() == kZeroRegCode);
+    return (instr->GetRa() == kZeroRegCode);
   }
 
   bool IsMovzMovnImm(unsigned reg_size, uint64_t value);
@@ -167,6 +168,7 @@ class Disassembler : public DecoderVisitor {
 class PrintDisassembler : public Disassembler {
  public:
   explicit PrintDisassembler(FILE* stream) : stream_(stream) {}
+  void DisassembleBuffer(const Instruction* start, uint64_t size);
 
  protected:
   virtual void ProcessOutput(const Instruction* instr);
@@ -174,6 +176,7 @@ class PrintDisassembler : public Disassembler {
  private:
   FILE* stream_;
 };
+}  // namespace aarch64
 }  // namespace vixl
 
 #endif  // VIXL_A64_DISASM_A64_H

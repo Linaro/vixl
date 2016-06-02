@@ -28,22 +28,23 @@
 #include "a64/instructions-a64.h"
 
 namespace vixl {
+namespace aarch64 {
 
 
 // Floating-point infinity values.
 const float16 kFP16PositiveInfinity = 0x7c00;
 const float16 kFP16NegativeInfinity = 0xfc00;
-const float kFP32PositiveInfinity = rawbits_to_float(0x7f800000);
-const float kFP32NegativeInfinity = rawbits_to_float(0xff800000);
+const float kFP32PositiveInfinity = RawbitsToFloat(0x7f800000);
+const float kFP32NegativeInfinity = RawbitsToFloat(0xff800000);
 const double kFP64PositiveInfinity =
-    rawbits_to_double(UINT64_C(0x7ff0000000000000));
+    RawbitsToDouble(UINT64_C(0x7ff0000000000000));
 const double kFP64NegativeInfinity =
-    rawbits_to_double(UINT64_C(0xfff0000000000000));
+    RawbitsToDouble(UINT64_C(0xfff0000000000000));
 
 
 // The default NaN values (for FPCR.DN=1).
-const double kFP64DefaultNaN = rawbits_to_double(UINT64_C(0x7ff8000000000000));
-const float kFP32DefaultNaN = rawbits_to_float(0x7fc00000);
+const double kFP64DefaultNaN = RawbitsToDouble(UINT64_C(0x7ff8000000000000));
+const float kFP32DefaultNaN = RawbitsToFloat(0x7fc00000);
 const float16 kFP16DefaultNaN = 0x7e00;
 
 
@@ -133,11 +134,11 @@ bool Instruction::IsStore() const {
 // Logical immediates can't encode zero, so a return value of zero is used to
 // indicate a failure case. Specifically, where the constraints on imm_s are
 // not met.
-uint64_t Instruction::ImmLogical() const {
-  unsigned reg_size = SixtyFourBits() ? kXRegSize : kWRegSize;
-  int32_t n = BitN();
-  int32_t imm_s = ImmSetBits();
-  int32_t imm_r = ImmRotate();
+uint64_t Instruction::GetImmLogical() const {
+  unsigned reg_size = GetSixtyFourBits() ? kXRegSize : kWRegSize;
+  int32_t n = GetBitN();
+  int32_t imm_s = GetImmSetBits();
+  int32_t imm_r = GetImmRotate();
 
   // An integer is constructed from the n, imm_s and imm_r bits according to
   // the following table:
@@ -184,8 +185,8 @@ uint64_t Instruction::ImmLogical() const {
 }
 
 
-uint32_t Instruction::ImmNEONabcdefgh() const {
-  return ImmNEONabc() << 5 | ImmNEONdefgh();
+uint32_t Instruction::GetImmNEONabcdefgh() const {
+  return GetImmNEONabc() << 5 | GetImmNEONdefgh();
 }
 
 
@@ -199,11 +200,11 @@ float Instruction::Imm8ToFP32(uint32_t imm8) {
   uint32_t bit5_to_0 = bits & 0x3f;
   uint32_t result = (bit7 << 31) | ((32 - bit6) << 25) | (bit5_to_0 << 19);
 
-  return rawbits_to_float(result);
+  return RawbitsToFloat(result);
 }
 
 
-float Instruction::ImmFP32() const { return Imm8ToFP32(ImmFP()); }
+float Instruction::GetImmFP32() const { return Imm8ToFP32(GetImmFP()); }
 
 
 double Instruction::Imm8ToFP64(uint32_t imm8) {
@@ -217,18 +218,20 @@ double Instruction::Imm8ToFP64(uint32_t imm8) {
   uint64_t bit5_to_0 = bits & 0x3f;
   uint64_t result = (bit7 << 63) | ((256 - bit6) << 54) | (bit5_to_0 << 48);
 
-  return rawbits_to_double(result);
+  return RawbitsToDouble(result);
 }
 
 
-double Instruction::ImmFP64() const { return Imm8ToFP64(ImmFP()); }
+double Instruction::GetImmFP64() const { return Imm8ToFP64(GetImmFP()); }
 
 
-float Instruction::ImmNEONFP32() const { return Imm8ToFP32(ImmNEONabcdefgh()); }
+float Instruction::GetImmNEONFP32() const {
+  return Imm8ToFP32(GetImmNEONabcdefgh());
+}
 
 
-double Instruction::ImmNEONFP64() const {
-  return Imm8ToFP64(ImmNEONabcdefgh());
+double Instruction::GetImmNEONFP64() const {
+  return Imm8ToFP64(GetImmNEONabcdefgh());
 }
 
 
@@ -264,7 +267,7 @@ unsigned CalcLSPairDataSize(LoadStorePairOp op) {
 }
 
 
-int Instruction::ImmBranchRangeBitwidth(ImmBranchType branch_type) {
+int Instruction::GetImmBranchRangeBitwidth(ImmBranchType branch_type) {
   switch (branch_type) {
     case UncondBranchType:
       return ImmUncondBranch_width;
@@ -281,24 +284,24 @@ int Instruction::ImmBranchRangeBitwidth(ImmBranchType branch_type) {
 }
 
 
-int32_t Instruction::ImmBranchForwardRange(ImmBranchType branch_type) {
-  int32_t encoded_max = 1 << (ImmBranchRangeBitwidth(branch_type) - 1);
+int32_t Instruction::GetImmBranchForwardRange(ImmBranchType branch_type) {
+  int32_t encoded_max = 1 << (GetImmBranchRangeBitwidth(branch_type) - 1);
   return encoded_max * kInstructionSize;
 }
 
 
 bool Instruction::IsValidImmPCOffset(ImmBranchType branch_type,
                                      int64_t offset) {
-  return is_intn(ImmBranchRangeBitwidth(branch_type), offset);
+  return IsIntN(GetImmBranchRangeBitwidth(branch_type), offset);
 }
 
 
-const Instruction* Instruction::ImmPCOffsetTarget() const {
+const Instruction* Instruction::GetImmPCOffsetTarget() const {
   const Instruction* base = this;
   ptrdiff_t offset;
   if (IsPCRelAddressing()) {
     // ADR and ADRP.
-    offset = ImmPCRel();
+    offset = GetImmPCRel();
     if (Mask(PCRelAddressingMask) == ADRP) {
       base = AlignDown(base, kPageSize);
       offset *= kPageSize;
@@ -307,24 +310,24 @@ const Instruction* Instruction::ImmPCOffsetTarget() const {
     }
   } else {
     // All PC-relative branches.
-    VIXL_ASSERT(BranchType() != UnknownBranchType);
+    VIXL_ASSERT(GetBranchType() != UnknownBranchType);
     // Relative branch offsets are instruction-size-aligned.
-    offset = ImmBranch() << kInstructionSizeLog2;
+    offset = GetImmBranch() << kInstructionSizeLog2;
   }
   return base + offset;
 }
 
 
-int Instruction::ImmBranch() const {
-  switch (BranchType()) {
+int Instruction::GetImmBranch() const {
+  switch (GetBranchType()) {
     case CondBranchType:
-      return ImmCondBranch();
+      return GetImmCondBranch();
     case UncondBranchType:
-      return ImmUncondBranch();
+      return GetImmUncondBranch();
     case CompareBranchType:
-      return ImmCmpBranch();
+      return GetImmCmpBranch();
     case TestBranchType:
-      return ImmTestBranch();
+      return GetImmTestBranch();
     default:
       VIXL_UNREACHABLE();
   }
@@ -362,7 +365,7 @@ void Instruction::SetBranchImmTarget(const Instruction* target) {
   Instr branch_imm = 0;
   uint32_t imm_mask = 0;
   int offset = static_cast<int>((target - this) >> kInstructionSizeLog2);
-  switch (BranchType()) {
+  switch (GetBranchType()) {
     case CondBranchType: {
       branch_imm = Assembler::ImmCondBranch(offset);
       imm_mask = ImmCondBranch_mask;
@@ -704,4 +707,5 @@ int64_t MinIntFromFormat(VectorFormat vform) {
 uint64_t MaxUintFromFormat(VectorFormat vform) {
   return UINT64_MAX >> (64 - LaneSizeInBitsFromFormat(vform));
 }
+}  // namespace aarch64
 }  // namespace vixl

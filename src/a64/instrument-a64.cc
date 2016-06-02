@@ -27,6 +27,7 @@
 #include "a64/instrument-a64.h"
 
 namespace vixl {
+namespace aarch64 {
 
 Counter::Counter(const char* name, CounterType type)
     : count_(0), enabled_(false), type_(type) {
@@ -51,7 +52,7 @@ void Counter::Increment() {
 }
 
 
-uint64_t Counter::count() {
+uint64_t Counter::GetCount() {
   uint64_t result = count_;
   if (type_ == Gauge) {
     // If the counter is a Gauge, reset the count after reading.
@@ -61,10 +62,10 @@ uint64_t Counter::count() {
 }
 
 
-const char* Counter::name() { return name_; }
+const char* Counter::GetName() { return name_; }
 
 
-CounterType Counter::type() { return type_; }
+CounterType Counter::GetType() { return type_; }
 
 
 struct CounterDescriptor {
@@ -154,11 +155,11 @@ void Instrument::Update() {
   // Increment the instruction counter, and dump all counters if a sample period
   // has elapsed.
   static Counter* counter = GetCounter("Instruction");
-  VIXL_ASSERT(counter->type() == Cumulative);
+  VIXL_ASSERT(counter->GetType() == Cumulative);
   counter->Increment();
 
   if ((sample_period_ != 0) && counter->IsEnabled() &&
-      (counter->count() % sample_period_) == 0) {
+      (counter->GetCount() % sample_period_) == 0) {
     DumpCounters();
   }
 }
@@ -169,7 +170,7 @@ void Instrument::DumpCounters() {
   // stream.
   std::list<Counter*>::const_iterator it;
   for (it = counters_.begin(); it != counters_.end(); it++) {
-    fprintf(output_stream_, "%" PRIu64 ",", (*it)->count());
+    fprintf(output_stream_, "%" PRIu64 ",", (*it)->GetCount());
   }
   fprintf(output_stream_, "\n");
   fflush(output_stream_);
@@ -181,7 +182,7 @@ void Instrument::DumpCounterNames() {
   // output stream.
   std::list<Counter*>::const_iterator it;
   for (it = counters_.begin(); it != counters_.end(); it++) {
-    fprintf(output_stream_, "%s,", (*it)->name());
+    fprintf(output_stream_, "%s,", (*it)->GetName());
   }
   fprintf(output_stream_, "\n");
   fflush(output_stream_);
@@ -211,7 +212,7 @@ void Instrument::DumpEventMarker(unsigned marker) {
           "# %c%c @ %" PRId64 "\n",
           marker & 0xff,
           (marker >> 8) & 0xff,
-          counter->count());
+          counter->GetCount());
 }
 
 
@@ -219,7 +220,7 @@ Counter* Instrument::GetCounter(const char* name) {
   // Get a Counter object by name from the counter list.
   std::list<Counter*>::const_iterator it;
   for (it = counters_.begin(); it != counters_.end(); it++) {
-    if (strcmp((*it)->name(), name) == 0) {
+    if (strcmp((*it)->GetName(), name) == 0) {
       return *it;
     }
   }
@@ -278,8 +279,8 @@ void Instrument::VisitMoveWideImmediate(const Instruction* instr) {
   Update();
   static Counter* counter = GetCounter("Move Immediate");
 
-  if (instr->IsMovn() && (instr->Rd() == kZeroRegCode)) {
-    unsigned imm = instr->ImmMoveWide();
+  if (instr->IsMovn() && (instr->GetRd() == kZeroRegCode)) {
+    unsigned imm = instr->GetImmMoveWide();
     HandleInstrumentationEvent(imm);
   } else {
     counter->Increment();
@@ -852,4 +853,5 @@ void Instrument::VisitUnimplemented(const Instruction* instr) {
 }
 
 
+}  // namespace aarch64
 }  // namespace vixl

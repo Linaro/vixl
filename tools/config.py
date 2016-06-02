@@ -27,13 +27,16 @@
 import os
 
 # These paths describe the structure of the repository.
-dir_tools        = os.path.dirname(os.path.realpath(__file__))
-dir_root         = os.path.abspath(os.path.join(dir_tools, '..'))
-dir_build        = os.path.join(dir_root, 'obj')
-dir_build_latest = os.path.join(dir_build, 'latest')
-dir_src_vixl     = os.path.join(dir_root, 'src')
-dir_benchmarks   = os.path.join(dir_root, 'benchmarks')
-dir_examples     = os.path.join(dir_root, 'examples')
+dir_tools          = os.path.dirname(os.path.realpath(__file__))
+dir_root           = os.path.abspath(os.path.join(dir_tools, '..'))
+dir_build          = os.path.join(dir_root, 'obj')
+dir_build_latest   = os.path.join(dir_build, 'latest')
+dir_src_vixl       = os.path.join(dir_root, 'src')
+dir_tests          = os.path.join(dir_root, 'test')
+dir_a64_benchmarks = os.path.join(dir_root, 'benchmarks/a64')
+dir_a32_benchmarks = os.path.join(dir_root, 'benchmarks/a32')
+dir_a64_examples   = os.path.join(dir_root, 'examples/a64')
+dir_a32_examples   = os.path.join(dir_root, 'examples/a32')
 
 
 # The full list of available build modes.

@@ -31,6 +31,11 @@ import argparse
 import glob
 import os
 
+def get_source_files(dir_root, path):
+  sources = glob.glob(os.path.join(dir_root, path))
+  sources = map(lambda p : os.path.relpath(p, dir_root), sources)
+  sources.sort()
+  return sources
 
 dir_android = os.path.dirname(os.path.realpath(__file__))
 dir_root = os.path.join(dir_android, '..', '..')
@@ -54,8 +59,6 @@ sources = glob.glob(os.path.join(dir_root, 'src', '*.cc')) + \
 sources = map(lambda p : os.path.relpath(p, dir_root), sources)
 sources.sort()
 
-test_sources = glob.glob(os.path.join(dir_root, 'test', '*.cc'))
-test_sources = map(lambda p : os.path.relpath(p, dir_root), test_sources)
 test_sources.sort()
 
 android_mk_template = os.path.join(dir_android, 'Android.mk.template')
@@ -63,7 +66,9 @@ with open(android_mk_template, 'r') as template_file:
   template = template_file.read()
 
 
-template = template.format(vixl_sources=' \\\n  '.join(sources),
+template = template.format(vixl_common=' \\\n  '.join(common_sources),
+                           vixl_a64_sources=' \\\n  '.join(a64_sources),
+                           vixl_a32_sources=' \\\n  '.join(a32_sources),
                            vixl_test_files=' \\\n  '.join(test_sources))
 
 

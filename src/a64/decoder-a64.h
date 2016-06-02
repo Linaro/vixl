@@ -115,6 +115,7 @@
   VISITOR_LIST_THAT_DONT_RETURN(V)
 
 namespace vixl {
+namespace aarch64 {
 
 // The Visitor interface. Disassembler and simulator (and other tools)
 // must provide implementations for all of these functions.
@@ -268,6 +269,7 @@ class Decoder {
   std::list<DecoderVisitor*> visitors_;
 };
 
+}  // namespace aarch64
 }  // namespace vixl
 
 #endif  // VIXL_A64_DECODER_A64_H_

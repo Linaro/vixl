@@ -30,6 +30,7 @@
 #include "globals-vixl.h"
 
 namespace vixl {
+namespace aarch64 {
 
 const unsigned kNumberOfRegisters = 32;
 const unsigned kNumberOfVRegisters = 32;
@@ -43,144 +44,144 @@ const int kFirstCalleeSavedFPRegisterIndex = 8;
 
 // clang-format off
 #define REGISTER_CODE_LIST(R)                                                  \
-R(0)  R(1)  R(2)  R(3)  R(4)  R(5)  R(6)  R(7)                                 \
-R(8)  R(9)  R(10) R(11) R(12) R(13) R(14) R(15)                                \
-R(16) R(17) R(18) R(19) R(20) R(21) R(22) R(23)                                \
-R(24) R(25) R(26) R(27) R(28) R(29) R(30) R(31)
+  R(0)  R(1)  R(2)  R(3)  R(4)  R(5)  R(6)  R(7)                               \
+  R(8)  R(9)  R(10) R(11) R(12) R(13) R(14) R(15)                              \
+  R(16) R(17) R(18) R(19) R(20) R(21) R(22) R(23)                              \
+  R(24) R(25) R(26) R(27) R(28) R(29) R(30) R(31)
 
-#define INSTRUCTION_FIELDS_LIST(V_)                        \
-  /* Register fields */                                    \
-  V_(Rd, 4, 0, Bits)    /* Destination register.        */ \
-  V_(Rn, 9, 5, Bits)    /* First source register.       */ \
-  V_(Rm, 20, 16, Bits)  /* Second source register.      */ \
-  V_(Ra, 14, 10, Bits)  /* Third source register.       */ \
-  V_(Rt, 4, 0, Bits)    /* Load/store register.         */ \
-  V_(Rt2, 14, 10, Bits) /* Load/store second register.  */ \
-  V_(Rs, 20, 16, Bits)  /* Exclusive access status.     */ \
-                                                           \
-  /* Common bits */                                        \
-  V_(SixtyFourBits, 31, 31, Bits)                          \
-  V_(FlagsUpdate, 29, 29, Bits)                            \
-                                                           \
-  /* PC relative addressing */                             \
-  V_(ImmPCRelHi, 23, 5, SignedBits)                        \
-  V_(ImmPCRelLo, 30, 29, Bits)                             \
-                                                           \
-  /* Add/subtract/logical shift register */                \
-  V_(ShiftDP, 23, 22, Bits)                                \
-  V_(ImmDPShift, 15, 10, Bits)                             \
-                                                           \
-  /* Add/subtract immediate */                             \
-  V_(ImmAddSub, 21, 10, Bits)                              \
-  V_(ShiftAddSub, 23, 22, Bits)                            \
-                                                           \
-  /* Add/substract extend */                               \
-  V_(ImmExtendShift, 12, 10, Bits)                         \
-  V_(ExtendMode, 15, 13, Bits)                             \
-                                                           \
-  /* Move wide */                                          \
-  V_(ImmMoveWide, 20, 5, Bits)                             \
-  V_(ShiftMoveWide, 22, 21, Bits)                          \
-                                                           \
-  /* Logical immediate, bitfield and extract */            \
-  V_(BitN, 22, 22, Bits)                                   \
-  V_(ImmRotate, 21, 16, Bits)                              \
-  V_(ImmSetBits, 15, 10, Bits)                             \
-  V_(ImmR, 21, 16, Bits)                                   \
-  V_(ImmS, 15, 10, Bits)                                   \
-                                                           \
-  /* Test and branch immediate */                          \
-  V_(ImmTestBranch, 18, 5, SignedBits)                     \
-  V_(ImmTestBranchBit40, 23, 19, Bits)                     \
-  V_(ImmTestBranchBit5, 31, 31, Bits)                      \
-                                                           \
-  /* Conditionals */                                       \
-  V_(Condition, 15, 12, Bits)                              \
-  V_(ConditionBranch, 3, 0, Bits)                          \
-  V_(Nzcv, 3, 0, Bits)                                     \
-  V_(ImmCondCmp, 20, 16, Bits)                             \
-  V_(ImmCondBranch, 23, 5, SignedBits)                     \
-                                                           \
-  /* Floating point */                                     \
-  V_(FPType, 23, 22, Bits)                                 \
-  V_(ImmFP, 20, 13, Bits)                                  \
-  V_(FPScale, 15, 10, Bits)                                \
-                                                           \
-  /* Load Store */                                         \
-  V_(ImmLS, 20, 12, SignedBits)                            \
-  V_(ImmLSUnsigned, 21, 10, Bits)                          \
-  V_(ImmLSPair, 21, 15, SignedBits)                        \
-  V_(ImmShiftLS, 12, 12, Bits)                             \
-  V_(LSOpc, 23, 22, Bits)                                  \
-  V_(LSVector, 26, 26, Bits)                               \
-  V_(LSSize, 31, 30, Bits)                                 \
-  V_(ImmPrefetchOperation, 4, 0, Bits)                     \
-  V_(PrefetchHint, 4, 3, Bits)                             \
-  V_(PrefetchTarget, 2, 1, Bits)                           \
-  V_(PrefetchStream, 0, 0, Bits)                           \
-                                                           \
-  /* Other immediates */                                   \
-  V_(ImmUncondBranch, 25, 0, SignedBits)                   \
-  V_(ImmCmpBranch, 23, 5, SignedBits)                      \
-  V_(ImmLLiteral, 23, 5, SignedBits)                       \
-  V_(ImmException, 20, 5, Bits)                            \
-  V_(ImmHint, 11, 5, Bits)                                 \
-  V_(ImmBarrierDomain, 11, 10, Bits)                       \
-  V_(ImmBarrierType, 9, 8, Bits)                           \
-                                                           \
-  /* System (MRS, MSR, SYS) */                             \
-  V_(ImmSystemRegister, 19, 5, Bits)                       \
-  V_(SysO0, 19, 19, Bits)                                  \
-  V_(SysOp, 18, 5, Bits)                                   \
-  V_(SysOp1, 18, 16, Bits)                                 \
-  V_(SysOp2, 7, 5, Bits)                                   \
-  V_(CRn, 15, 12, Bits)                                    \
-  V_(CRm, 11, 8, Bits)                                     \
-                                                           \
-  /* Load-/store-exclusive */                              \
-  V_(LdStXLoad, 22, 22, Bits)                              \
-  V_(LdStXNotExclusive, 23, 23, Bits)                      \
-  V_(LdStXAcquireRelease, 15, 15, Bits)                    \
-  V_(LdStXSizeLog2, 31, 30, Bits)                          \
-  V_(LdStXPair, 21, 21, Bits)                              \
-                                                           \
-  /* NEON generic fields */                                \
-  V_(NEONQ, 30, 30, Bits)                                  \
-  V_(NEONSize, 23, 22, Bits)                               \
-  V_(NEONLSSize, 11, 10, Bits)                             \
-  V_(NEONS, 12, 12, Bits)                                  \
-  V_(NEONL, 21, 21, Bits)                                  \
-  V_(NEONM, 20, 20, Bits)                                  \
-  V_(NEONH, 11, 11, Bits)                                  \
-  V_(ImmNEONExt, 14, 11, Bits)                             \
-  V_(ImmNEON5, 20, 16, Bits)                               \
-  V_(ImmNEON4, 14, 11, Bits)                               \
-                                                           \
-  /* NEON Modified Immediate fields */                     \
-  V_(ImmNEONabc, 18, 16, Bits)                             \
-  V_(ImmNEONdefgh, 9, 5, Bits)                             \
-  V_(NEONModImmOp, 29, 29, Bits)                           \
-  V_(NEONCmode, 15, 12, Bits)                              \
-                                                           \
-  /* NEON Shift Immediate fields */                        \
-  V_(ImmNEONImmhImmb, 22, 16, Bits)                        \
-  V_(ImmNEONImmh, 22, 19, Bits)                            \
-  V_(ImmNEONImmb, 18, 16, Bits)
+#define INSTRUCTION_FIELDS_LIST(V_)                                          \
+/* Register fields */                                                        \
+V_(Rd, 4, 0, ExtractBits)                 /* Destination register.        */ \
+V_(Rn, 9, 5, ExtractBits)                 /* First source register.       */ \
+V_(Rm, 20, 16, ExtractBits)               /* Second source register.      */ \
+V_(Ra, 14, 10, ExtractBits)               /* Third source register.       */ \
+V_(Rt, 4, 0, ExtractBits)                 /* Load/store register.         */ \
+V_(Rt2, 14, 10, ExtractBits)              /* Load/store second register.  */ \
+V_(Rs, 20, 16, ExtractBits)               /* Exclusive access status.     */ \
+                                                                             \
+/* Common bits */                                                            \
+V_(SixtyFourBits, 31, 31, ExtractBits)                                       \
+V_(FlagsUpdate, 29, 29, ExtractBits)                                         \
+                                                                             \
+/* PC relative addressing */                                                 \
+V_(ImmPCRelHi, 23, 5, ExtractSignedBits)                                     \
+V_(ImmPCRelLo, 30, 29, ExtractBits)                                          \
+                                                                             \
+/* Add/subtract/logical shift register */                                    \
+V_(ShiftDP, 23, 22, ExtractBits)                                             \
+V_(ImmDPShift, 15, 10, ExtractBits)                                          \
+                                                                             \
+/* Add/subtract immediate */                                                 \
+V_(ImmAddSub, 21, 10, ExtractBits)                                           \
+V_(ShiftAddSub, 23, 22, ExtractBits)                                         \
+                                                                             \
+/* Add/substract extend */                                                   \
+V_(ImmExtendShift, 12, 10, ExtractBits)                                      \
+V_(ExtendMode, 15, 13, ExtractBits)                                          \
+                                                                             \
+/* Move wide */                                                              \
+V_(ImmMoveWide, 20, 5, ExtractBits)                                          \
+V_(ShiftMoveWide, 22, 21, ExtractBits)                                       \
+                                                                             \
+/* Logical immediate, bitfield and extract */                                \
+V_(BitN, 22, 22, ExtractBits)                                                \
+V_(ImmRotate, 21, 16, ExtractBits)                                           \
+V_(ImmSetBits, 15, 10, ExtractBits)                                          \
+V_(ImmR, 21, 16, ExtractBits)                                                \
+V_(ImmS, 15, 10, ExtractBits)                                                \
+                                                                             \
+/* Test and branch immediate */                                              \
+V_(ImmTestBranch, 18, 5, ExtractSignedBits)                                  \
+V_(ImmTestBranchBit40, 23, 19, ExtractBits)                                  \
+V_(ImmTestBranchBit5, 31, 31, ExtractBits)                                   \
+                                                                             \
+/* Conditionals */                                                           \
+V_(Condition, 15, 12, ExtractBits)                                           \
+V_(ConditionBranch, 3, 0, ExtractBits)                                       \
+V_(Nzcv, 3, 0, ExtractBits)                                                  \
+V_(ImmCondCmp, 20, 16, ExtractBits)                                          \
+V_(ImmCondBranch, 23, 5, ExtractSignedBits)                                  \
+                                                                             \
+/* Floating point */                                                         \
+V_(FPType, 23, 22, ExtractBits)                                              \
+V_(ImmFP, 20, 13, ExtractBits)                                               \
+V_(FPScale, 15, 10, ExtractBits)                                             \
+                                                                             \
+/* Load Store */                                                             \
+V_(ImmLS, 20, 12, ExtractSignedBits)                                         \
+V_(ImmLSUnsigned, 21, 10, ExtractBits)                                       \
+V_(ImmLSPair, 21, 15, ExtractSignedBits)                                     \
+V_(ImmShiftLS, 12, 12, ExtractBits)                                          \
+V_(LSOpc, 23, 22, ExtractBits)                                               \
+V_(LSVector, 26, 26, ExtractBits)                                            \
+V_(LSSize, 31, 30, ExtractBits)                                              \
+V_(ImmPrefetchOperation, 4, 0, ExtractBits)                                  \
+V_(PrefetchHint, 4, 3, ExtractBits)                                          \
+V_(PrefetchTarget, 2, 1, ExtractBits)                                        \
+V_(PrefetchStream, 0, 0, ExtractBits)                                        \
+                                                                             \
+/* Other immediates */                                                       \
+V_(ImmUncondBranch, 25, 0, ExtractSignedBits)                                \
+V_(ImmCmpBranch, 23, 5, ExtractSignedBits)                                   \
+V_(ImmLLiteral, 23, 5, ExtractSignedBits)                                    \
+V_(ImmException, 20, 5, ExtractBits)                                         \
+V_(ImmHint, 11, 5, ExtractBits)                                              \
+V_(ImmBarrierDomain, 11, 10, ExtractBits)                                    \
+V_(ImmBarrierType, 9, 8, ExtractBits)                                        \
+                                                                             \
+/* System (MRS, MSR, SYS) */                                                 \
+V_(ImmSystemRegister, 19, 5, ExtractBits)                                    \
+V_(SysO0, 19, 19, ExtractBits)                                               \
+V_(SysOp, 18, 5, ExtractBits)                                                \
+V_(SysOp1, 18, 16, ExtractBits)                                              \
+V_(SysOp2, 7, 5, ExtractBits)                                                \
+V_(CRn, 15, 12, ExtractBits)                                                 \
+V_(CRm, 11, 8, ExtractBits)                                                  \
+                                                                             \
+/* Load-/store-exclusive */                                                  \
+V_(LdStXLoad, 22, 22, ExtractBits)                                           \
+V_(LdStXNotExclusive, 23, 23, ExtractBits)                                   \
+V_(LdStXAcquireRelease, 15, 15, ExtractBits)                                 \
+V_(LdStXSizeLog2, 31, 30, ExtractBits)                                       \
+V_(LdStXPair, 21, 21, ExtractBits)                                           \
+                                                                             \
+/* NEON generic fields */                                                    \
+V_(NEONQ, 30, 30, ExtractBits)                                               \
+V_(NEONSize, 23, 22, ExtractBits)                                            \
+V_(NEONLSSize, 11, 10, ExtractBits)                                          \
+V_(NEONS, 12, 12, ExtractBits)                                               \
+V_(NEONL, 21, 21, ExtractBits)                                               \
+V_(NEONM, 20, 20, ExtractBits)                                               \
+V_(NEONH, 11, 11, ExtractBits)                                               \
+V_(ImmNEONExt, 14, 11, ExtractBits)                                          \
+V_(ImmNEON5, 20, 16, ExtractBits)                                            \
+V_(ImmNEON4, 14, 11, ExtractBits)                                            \
+                                                                             \
+/* NEON Modified Immediate fields */                                         \
+V_(ImmNEONabc, 18, 16, ExtractBits)                                          \
+V_(ImmNEONdefgh, 9, 5, ExtractBits)                                          \
+V_(NEONModImmOp, 29, 29, ExtractBits)                                        \
+V_(NEONCmode, 15, 12, ExtractBits)                                           \
+                                                                             \
+/* NEON Shift Immediate fields */                                            \
+V_(ImmNEONImmhImmb, 22, 16, ExtractBits)                                     \
+V_(ImmNEONImmh, 22, 19, ExtractBits)                                         \
+V_(ImmNEONImmb, 18, 16, ExtractBits)
 // clang-format on
 
 #define SYSTEM_REGISTER_FIELDS_LIST(V_, M_) \
   /* NZCV */                                \
-  V_(Flags, 31, 28, Bits)                   \
-  V_(N, 31, 31, Bits)                       \
-  V_(Z, 30, 30, Bits)                       \
-  V_(C, 29, 29, Bits)                       \
-  V_(V, 28, 28, Bits)                       \
+  V_(Flags, 31, 28, ExtractBits)            \
+  V_(N, 31, 31, ExtractBits)                \
+  V_(Z, 30, 30, ExtractBits)                \
+  V_(C, 29, 29, ExtractBits)                \
+  V_(V, 28, 28, ExtractBits)                \
   M_(NZCV, Flags_mask)                      \
   /* FPCR */                                \
-  V_(AHP, 26, 26, Bits)                     \
-  V_(DN, 25, 25, Bits)                      \
-  V_(FZ, 24, 24, Bits)                      \
-  V_(RMode, 23, 22, Bits)                   \
+  V_(AHP, 26, 26, ExtractBits)              \
+  V_(DN, 25, 25, ExtractBits)               \
+  V_(FZ, 24, 24, ExtractBits)               \
+  V_(RMode, 23, 22, ExtractBits)            \
   M_(FPCR, AHP_mask | DN_mask | FZ_mask | RMode_mask)
 
 // Fields offsets.
@@ -2122,6 +2123,7 @@ enum UnallocatedOp {
 // Re-enable `clang-format` after the `enum`s.
 // clang-format on
 
+}  // namespace aarch64
 }  // namespace vixl
 
 #endif  // VIXL_A64_CONSTANTS_A64_H_

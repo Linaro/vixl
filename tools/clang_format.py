@@ -174,8 +174,10 @@ def Find(path, filters = ['*']):
 
 def GetCppSourceFilesToFormat():
   sources = []
-  source_dirs = [config.dir_benchmarks,
-                 config.dir_examples,
+  source_dirs = [config.dir_a32_benchmarks,
+                 config.dir_a32_examples,
+                 config.dir_a64_benchmarks,
+                 config.dir_a64_examples,
                  config.dir_src_vixl ]
   for directory in source_dirs:
     sources += Find(directory, ['*.h', '*.cc'])

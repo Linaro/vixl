@@ -29,6 +29,7 @@
 #include "a64/debugger-a64.h"
 
 namespace vixl {
+namespace aarch64 {
 
 // List of commands supported by the debugger.
 #define DEBUG_COMMAND_LIST(C) \
@@ -556,7 +557,7 @@ void Debugger::Run() {
   LogAllWrittenRegisters();
 
   while (pc_ != kEndOfSimAddress) {
-    if (pending_request()) RunDebuggerShell();
+    if (HasPendingRequest()) RunDebuggerShell();
     ExecuteInstruction();
   }
 }
@@ -575,7 +576,7 @@ void Debugger::PrintInstructions(const void* address, int64_t count) {
   const Instruction* to = from + count * kInstructionSize;
 
   for (const Instruction* current = from; current < to;
-       current = current->NextInstruction()) {
+       current = current->GetNextInstruction()) {
     printer_->Decode(current);
   }
 }
@@ -612,12 +613,12 @@ void Debugger::PrintMemory(const uint8_t* address,
 void Debugger::PrintRegister(const Register& target_reg,
                              const char* name,
                              const FormatToken* format) {
-  const uint64_t reg_size = target_reg.size();
+  const uint64_t reg_size = target_reg.GetSizeInBits();
   const uint64_t format_size = format->SizeOf() * 8;
   const uint64_t count = reg_size / format_size;
   const uint64_t mask = 0xffffffffffffffff >> (64 - format_size);
   const uint64_t reg_value =
-      reg<uint64_t>(target_reg.code(), Reg31IsStackPointer);
+      ReadRegister<uint64_t>(target_reg.GetCode(), Reg31IsStackPointer);
   VIXL_ASSERT(count > 0);
 
   printf("%s = ", name);
@@ -634,17 +635,18 @@ void Debugger::PrintRegister(const Register& target_reg,
 // TODO(all): fix this for vector registers.
 void Debugger::PrintFPRegister(const FPRegister& target_fpreg,
                                const FormatToken* format) {
-  const unsigned fpreg_size = target_fpreg.size();
+  const unsigned fpreg_size = target_fpreg.GetSizeInBits();
   const uint64_t format_size = format->SizeOf() * 8;
   const uint64_t count = fpreg_size / format_size;
   const uint64_t mask = 0xffffffffffffffff >> (64 - format_size);
-  const uint64_t fpreg_value = vreg<uint64_t>(fpreg_size, target_fpreg.code());
+  const uint64_t fpreg_value =
+      ReadVRegister<uint64_t>(fpreg_size, target_fpreg.GetCode());
   VIXL_ASSERT(count > 0);
 
   if (target_fpreg.Is32Bits()) {
-    printf("s%u = ", target_fpreg.code());
+    printf("s%u = ", target_fpreg.GetCode());
   } else {
-    printf("d%u = ", target_fpreg.code());
+    printf("d%u = ", target_fpreg.GetCode());
   }
   for (uint64_t i = 1; i <= count; i++) {
     uint64_t data = fpreg_value >> (fpreg_size - (i * format_size));
@@ -712,7 +714,7 @@ void Debugger::RunDebuggerShell() {
     }
 
     printf("Next: ");
-    PrintInstructions(pc());
+    PrintInstructions(ReadPc());
     bool done = false;
     while (!done) {
       char buffer[kMaxDebugShellLine];
@@ -735,7 +737,7 @@ void Debugger::RunDebuggerShell() {
     if ((debug_parameters_ & DBG_BREAK) != 0) {
       // The break request has now been handled, move to next instruction.
       debug_parameters_ &= ~DBG_BREAK;
-      increment_pc();
+      IncrementPc();
     }
   }
 }
@@ -745,9 +747,9 @@ void Debugger::DoBreakpoint(const Instruction* instr) {
   VIXL_ASSERT(instr->Mask(ExceptionMask) == BRK);
 
   printf("Hit breakpoint at pc=%p.\n", reinterpret_cast<const void*>(instr));
-  set_debug_parameters(debug_parameters() | DBG_BREAK | DBG_ACTIVE);
+  SetDebugParameters(GetDebugParameters() | DBG_BREAK | DBG_ACTIVE);
   // Make the shell point to the brk instruction.
-  set_pc(instr);
+  WritePc(instr);
 }
 
 
@@ -840,7 +842,8 @@ Token* Token::Tokenize(const char* arg) {
 
 uint8_t* RegisterToken::ToAddress(Debugger* debugger) const {
   VIXL_ASSERT(CanAddressMemory());
-  uint64_t reg_value = debugger->xreg(value().code(), Reg31IsStackPointer);
+  uint64_t reg_value =
+      debugger->ReadXRegister(value().GetCode(), Reg31IsStackPointer);
   uint8_t* address = NULL;
   memcpy(&address, &reg_value, sizeof(address));
   return address;
@@ -855,9 +858,9 @@ void RegisterToken::Print(FILE* out) const {
 
 const char* RegisterToken::Name() const {
   if (value().Is32Bits()) {
-    return kWAliases[value().code()][0];
+    return kWAliases[value().GetCode()][0];
   } else {
-    return kXAliases[value().code()][0];
+    return kXAliases[value().GetCode()][0];
   }
 }
 
@@ -867,14 +870,14 @@ Token* RegisterToken::Tokenize(const char* arg) {
     // Is it a X register or alias?
     for (const char** current = kXAliases[i]; *current != NULL; current++) {
       if (strcmp(arg, *current) == 0) {
-        return new RegisterToken(Register::XRegFromCode(i));
+        return new RegisterToken(Register::GetXRegFromCode(i));
       }
     }
 
     // Is it a W register or alias?
     for (const char** current = kWAliases[i]; *current != NULL; current++) {
       if (strcmp(arg, *current) == 0) {
-        return new RegisterToken(Register::WRegFromCode(i));
+        return new RegisterToken(Register::GetWRegFromCode(i));
       }
     }
   }
@@ -886,7 +889,7 @@ Token* RegisterToken::Tokenize(const char* arg) {
 void FPRegisterToken::Print(FILE* out) const {
   VIXL_ASSERT(value().IsValid());
   char prefix = value().Is32Bits() ? 's' : 'd';
-  fprintf(out, "[FPRegister %c%" PRIu32 "]", prefix, value().code());
+  fprintf(out, "[FPRegister %c%" PRIu32 "]", prefix, value().GetCode());
 }
 
 
@@ -911,10 +914,10 @@ Token* FPRegisterToken::Tokenize(const char* arg) {
       VRegister fpreg = NoVReg;
       switch (*arg) {
         case 's':
-          fpreg = VRegister::SRegFromCode(static_cast<unsigned>(code));
+          fpreg = VRegister::GetSRegFromCode(static_cast<unsigned>(code));
           break;
         case 'd':
-          fpreg = VRegister::DRegFromCode(static_cast<unsigned>(code));
+          fpreg = VRegister::GetDRegFromCode(static_cast<unsigned>(code));
           break;
         default:
           VIXL_UNREACHABLE();
@@ -929,7 +932,7 @@ Token* FPRegisterToken::Tokenize(const char* arg) {
 
 uint8_t* IdentifierToken::ToAddress(Debugger* debugger) const {
   VIXL_ASSERT(CanAddressMemory());
-  const Instruction* pc_value = debugger->pc();
+  const Instruction* pc_value = debugger->ReadPc();
   uint8_t* address = NULL;
   memcpy(&address, &pc_value, sizeof(address));
   return address;
@@ -1205,7 +1208,7 @@ DebugCommand* HelpCommand::Build(std::vector<Token*> args) {
 bool ContinueCommand::Run(Debugger* debugger) {
   VIXL_ASSERT(debugger->IsDebuggerRunning());
 
-  debugger->set_debug_parameters(debugger->debug_parameters() & ~DBG_ACTIVE);
+  debugger->SetDebugParameters(debugger->GetDebugParameters() & ~DBG_ACTIVE);
   return true;
 }
 
@@ -1226,7 +1229,7 @@ bool StepCommand::Run(Debugger* debugger) {
   if (steps < 0) {
     printf(" ** invalid value for steps: %" PRId64 " (<0) **\n", steps);
   } else if (steps > 1) {
-    debugger->set_steps(steps - 1);
+    debugger->SetSteps(steps - 1);
   }
 
   return true;
@@ -1307,7 +1310,7 @@ bool PrintCommand::Run(Debugger* debugger) {
     } else if (strcmp(identifier, "sysregs") == 0) {
       debugger->PrintSystemRegisters();
     } else if (strcmp(identifier, "pc") == 0) {
-      printf("pc = %16p\n", reinterpret_cast<const void*>(debugger->pc()));
+      printf("pc = %16p\n", reinterpret_cast<const void*>(debugger->ReadPc()));
     } else {
       printf(" ** Unknown identifier to print: %s **\n", identifier);
     }
@@ -1356,10 +1359,10 @@ DebugCommand* PrintCommand::Build(std::vector<Token*> args) {
   int target_size = 0;
   if (target->IsRegister()) {
     Register reg = RegisterToken::Cast(target)->value();
-    target_size = reg.SizeInBytes();
+    target_size = reg.GetSizeInBytes();
   } else if (target->IsFPRegister()) {
     FPRegister fpreg = FPRegisterToken::Cast(target)->value();
-    target_size = fpreg.SizeInBytes();
+    target_size = fpreg.GetSizeInBytes();
   }
   // If the target is an identifier there must be no format. This is checked
   // in the switch statement below.
@@ -1547,6 +1550,7 @@ bool InvalidCommand::Run(Debugger* debugger) {
   return false;
 }
 
+}  // namespace aarch64
 }  // namespace vixl
 
 #endif  // VIXL_INCLUDE_SIMULATOR

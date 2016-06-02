@@ -30,83 +30,83 @@
 
 namespace vixl {
 
-uint32_t float_to_rawbits(float value) {
+uint32_t FloatToRawbits(float value) {
   uint32_t bits = 0;
   memcpy(&bits, &value, 4);
   return bits;
 }
 
 
-uint64_t double_to_rawbits(double value) {
+uint64_t DoubleToRawbits(double value) {
   uint64_t bits = 0;
   memcpy(&bits, &value, 8);
   return bits;
 }
 
 
-float rawbits_to_float(uint32_t bits) {
+float RawbitsToFloat(uint32_t bits) {
   float value = 0.0;
   memcpy(&value, &bits, 4);
   return value;
 }
 
 
-double rawbits_to_double(uint64_t bits) {
+double RawbitsToDouble(uint64_t bits) {
   double value = 0.0;
   memcpy(&value, &bits, 8);
   return value;
 }
 
 
-uint32_t float_sign(float val) {
-  uint32_t rawbits = float_to_rawbits(val);
-  return unsigned_bitextract_32(31, 31, rawbits);
+uint32_t FloatSign(float val) {
+  uint32_t rawbits = FloatToRawbits(val);
+  return ExtractUnsignedBitfield32(31, 31, rawbits);
 }
 
 
-uint32_t float_exp(float val) {
-  uint32_t rawbits = float_to_rawbits(val);
-  return unsigned_bitextract_32(30, 23, rawbits);
+uint32_t FloatExp(float val) {
+  uint32_t rawbits = FloatToRawbits(val);
+  return ExtractUnsignedBitfield32(30, 23, rawbits);
 }
 
 
-uint32_t float_mantissa(float val) {
-  uint32_t rawbits = float_to_rawbits(val);
-  return unsigned_bitextract_32(22, 0, rawbits);
+uint32_t FloatMantissa(float val) {
+  uint32_t rawbits = FloatToRawbits(val);
+  return ExtractUnsignedBitfield32(22, 0, rawbits);
 }
 
 
-uint32_t double_sign(double val) {
-  uint64_t rawbits = double_to_rawbits(val);
-  return static_cast<uint32_t>(unsigned_bitextract_64(63, 63, rawbits));
+uint32_t DoubleSign(double val) {
+  uint64_t rawbits = DoubleToRawbits(val);
+  return static_cast<uint32_t>(ExtractUnsignedBitfield64(63, 63, rawbits));
 }
 
 
-uint32_t double_exp(double val) {
-  uint64_t rawbits = double_to_rawbits(val);
-  return static_cast<uint32_t>(unsigned_bitextract_64(62, 52, rawbits));
+uint32_t DoubleExp(double val) {
+  uint64_t rawbits = DoubleToRawbits(val);
+  return static_cast<uint32_t>(ExtractUnsignedBitfield64(62, 52, rawbits));
 }
 
 
-uint64_t double_mantissa(double val) {
-  uint64_t rawbits = double_to_rawbits(val);
-  return unsigned_bitextract_64(51, 0, rawbits);
+uint64_t DoubleMantissa(double val) {
+  uint64_t rawbits = DoubleToRawbits(val);
+  return ExtractUnsignedBitfield64(51, 0, rawbits);
 }
 
 
-float float_pack(uint32_t sign, uint32_t exp, uint32_t mantissa) {
+float FloatPack(uint32_t sign, uint32_t exp, uint32_t mantissa) {
   uint32_t bits = (sign << 31) | (exp << 23) | mantissa;
-  return rawbits_to_float(bits);
+  return RawbitsToFloat(bits);
 }
 
 
-double double_pack(uint64_t sign, uint64_t exp, uint64_t mantissa) {
+double DoublePack(uint64_t sign, uint64_t exp, uint64_t mantissa) {
   uint64_t bits = (sign << 63) | (exp << 52) | mantissa;
-  return rawbits_to_double(bits);
+  return RawbitsToDouble(bits);
 }
 
 
-int float16classify(float16 value) {
+int Float16Classify(float16 value) {
   uint16_t exponent_max = (1 << 5) - 1;
   uint16_t exponent_mask = exponent_max << 10;
   uint16_t mantissa_mask = (1 << 10) - 1;
@@ -139,5 +139,11 @@ unsigned CountClearHalfWords(uint64_t imm, unsigned reg_size) {
   }
   return count;
 }
+
+
+int BitCount(uint64_t value) { return CountSetBits(value); }
+
+
+Int64 BitCount(Uint32 value) { return CountSetBits(value.Get()); }
 
 }  // namespace vixl

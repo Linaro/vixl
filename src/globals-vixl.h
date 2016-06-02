@@ -65,6 +65,11 @@ const int MBytes = 1024 * KBytes;
     printf("in %s, line %i", __FILE__, __LINE__); \
     abort();                                      \
   } while (false)
+#define VIXL_ABORT_WITH_MSG(msg) \
+  {                              \
+    printf("%s", msg);           \
+    VIXL_ABORT();                \
+  }
 #ifdef VIXL_DEBUG
 #define VIXL_ASSERT(condition) assert(condition)
 #define VIXL_CHECK(condition) VIXL_ASSERT(condition)

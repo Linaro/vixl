@@ -32,6 +32,7 @@
 #include "a64/instructions-a64.h"
 
 namespace vixl {
+namespace aarch64 {
 
 class CPU {
  public:
@@ -47,7 +48,7 @@ class CPU {
   // Handle tagged pointers.
   template <typename T>
   static T SetPointerTag(T pointer, uint64_t tag) {
-    VIXL_ASSERT(is_uintn(kAddressTagWidth, tag));
+    VIXL_ASSERT(IsUintN(kAddressTagWidth, tag));
 
     // Use C-style casts to get static_cast behaviour for integral types (T),
     // and reinterpret_cast behaviour for other types.
@@ -79,6 +80,7 @@ class CPU {
   static unsigned dcache_line_size_;
 };
 
+}  // namespace aarch64
 }  // namespace vixl
 
 #endif  // VIXL_CPU_A64_H

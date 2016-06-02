@@ -35,6 +35,7 @@
 #include "a64/instrument-a64.h"
 
 namespace vixl {
+namespace aarch64 {
 
 const int kCounterNameMaxLength = 256;
 const uint64_t kDefaultInstrumentationSamplingPeriod = 1 << 22;
@@ -57,9 +58,14 @@ class Counter {
   void Enable();
   void Disable();
   bool IsEnabled();
-  uint64_t count();
-  const char* name();
-  CounterType type();
+  uint64_t GetCount();
+  VIXL_DEPRECATED("GetCount", uint64_t count()) { return GetCount(); }
+
+  const char* GetName();
+  VIXL_DEPRECATED("GetName", const char* name()) { return GetName(); }
+
+  CounterType GetType();
+  VIXL_DEPRECATED("GetType", CounterType type()) { return GetType(); }
 
  private:
   char name_[kCounterNameMaxLength];
@@ -105,6 +111,7 @@ class Instrument : public DecoderVisitor {
   uint64_t sample_period_;
 };
 
+}  // namespace aarch64
 }  // namespace vixl
 
 #endif  // VIXL_A64_INSTRUMENT_A64_H_

@@ -342,10 +342,10 @@ def BuildAll(build_options, jobs):
 
 def RunBenchmarks():
   rc = 0
-  benchmark_names = util.ListCCFilesWithoutExt(config.dir_benchmarks)
+  benchmark_names = util.ListCCFilesWithoutExt(config.dir_a64_benchmarks)
   for bench in benchmark_names:
     rc |= RunCommand(
-      [os.path.realpath(join(config.dir_build_latest, 'benchmarks', bench))])
+      [os.path.realpath(join(config.dir_build_latest, 'benchmarks/a64', bench))])
   return rc
 
 

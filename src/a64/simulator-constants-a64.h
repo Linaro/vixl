@@ -30,6 +30,7 @@
 #include "a64/instructions-a64.h"
 
 namespace vixl {
+namespace aarch64 {
 
 // Debug instructions.
 //
@@ -135,6 +136,7 @@ enum TraceCommand { TRACE_ENABLE = 1, TRACE_DISABLE = 2 };
 // LOG_DISASM is not supported for Log.
 const unsigned kLogParamsOffset = 1 * kInstructionSize;
 const unsigned kLogLength = 2 * kInstructionSize;
+}  // namespace aarch64
 }  // namespace vixl
 
 #endif  // VIXL_A64_SIMULATOR_CONSTANTS_A64_H_

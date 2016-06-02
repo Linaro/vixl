@@ -29,6 +29,7 @@
 #include "a64/disasm-a64.h"
 
 namespace vixl {
+namespace aarch64 {
 
 Disassembler::Disassembler() {
   buffer_size_ = 256;
@@ -60,9 +61,9 @@ char *Disassembler::GetOutput() { return buffer_; }
 
 void Disassembler::VisitAddSubImmediate(const Instruction *instr) {
   bool rd_is_zr = RdIsZROrSP(instr);
-  bool stack_op = (rd_is_zr || RnIsZROrSP(instr)) && (instr->ImmAddSub() == 0)
-                      ? true
-                      : false;
+  bool stack_op =
+      (rd_is_zr || RnIsZROrSP(instr)) && (instr->GetImmAddSub() == 0) ? true
+                                                                      : false;
   const char *mnemonic = "";
   const char *form = "'Rds, 'Rns, 'IAddSub";
   const char *form_cmp = "'Rns, 'IAddSub";
@@ -160,7 +161,7 @@ void Disassembler::VisitAddSubShifted(const Instruction *instr) {
 void Disassembler::VisitAddSubExtended(const Instruction *instr) {
   bool rd_is_zr = RdIsZROrSP(instr);
   const char *mnemonic = "";
-  Extend mode = static_cast<Extend>(instr->ExtendMode());
+  Extend mode = static_cast<Extend>(instr->GetExtendMode());
   const char *form = ((mode == UXTX) || (mode == SXTX)) ? "'Rds, 'Rns, 'Xm'Ext"
                                                         : "'Rds, 'Rns, 'Wm'Ext";
   const char *form_cmp =
@@ -246,7 +247,7 @@ void Disassembler::VisitLogicalImmediate(const Instruction *instr) {
   const char *mnemonic = "";
   const char *form = "'Rds, 'Rn, 'ITri";
 
-  if (instr->ImmLogical() == 0) {
+  if (instr->GetImmLogical() == 0) {
     // The immediate encoded in the instruction is not in the expected format.
     Format(instr, "unallocated", "(LogicalImmediate)");
     return;
@@ -260,8 +261,9 @@ void Disassembler::VisitLogicalImmediate(const Instruction *instr) {
     case ORR_w_imm:
     case ORR_x_imm: {
       mnemonic = "orr";
-      unsigned reg_size = (instr->SixtyFourBits() == 1) ? kXRegSize : kWRegSize;
-      if (rn_is_zr && !IsMovzMovnImm(reg_size, instr->ImmLogical())) {
+      unsigned reg_size =
+          (instr->GetSixtyFourBits() == 1) ? kXRegSize : kWRegSize;
+      if (rn_is_zr && !IsMovzMovnImm(reg_size, instr->GetImmLogical())) {
         mnemonic = "mov";
         form = "'Rds, 'ITri";
       }
@@ -354,7 +356,8 @@ void Disassembler::VisitLogicalShifted(const Instruction *instr) {
     case ORR_w:
     case ORR_x: {
       mnemonic = "orr";
-      if (rn_is_zr && (instr->ImmDPShift() == 0) && (instr->ShiftDP() == LSL)) {
+      if (rn_is_zr && (instr->GetImmDPShift() == 0) &&
+          (instr->GetShiftDP() == LSL)) {
         mnemonic = "mov";
         form = "'Rd, 'Rm";
       }
@@ -419,13 +422,13 @@ void Disassembler::VisitConditionalCompareImmediate(const Instruction *instr) {
 
 void Disassembler::VisitConditionalSelect(const Instruction *instr) {
   bool rnm_is_zr = (RnIsZROrSP(instr) && RmIsZROrSP(instr));
-  bool rn_is_rm = (instr->Rn() == instr->Rm());
+  bool rn_is_rm = (instr->GetRn() == instr->GetRm());
   const char *mnemonic = "";
   const char *form = "'Rd, 'Rn, 'Rm, 'Cond";
   const char *form_test = "'Rd, 'CInv";
   const char *form_update = "'Rd, 'Rn, 'CInv";
 
-  Condition cond = static_cast<Condition>(instr->Condition());
+  Condition cond = static_cast<Condition>(instr->GetCondition());
   bool invertible_cond = (cond != al) && (cond != nv);
 
   switch (instr->Mask(ConditionalSelectMask)) {
@@ -474,10 +477,10 @@ void Disassembler::VisitConditionalSelect(const Instruction *instr) {
 
 
 void Disassembler::VisitBitfield(const Instruction *instr) {
-  unsigned s = instr->ImmS();
-  unsigned r = instr->ImmR();
+  unsigned s = instr->GetImmS();
+  unsigned r = instr->GetImmR();
   unsigned rd_size_minus_1 =
-      ((instr->SixtyFourBits() == 1) ? kXRegSize : kWRegSize) - 1;
+      ((instr->GetSixtyFourBits() == 1) ? kXRegSize : kWRegSize) - 1;
   const char *mnemonic = "";
   const char *form = "";
   const char *form_shift_right = "'Rd, 'Rn, 'IBr";
@@ -497,7 +500,7 @@ void Disassembler::VisitBitfield(const Instruction *instr) {
           mnemonic = "sxtb";
         } else if (s == 15) {
           mnemonic = "sxth";
-        } else if ((s == 31) && (instr->SixtyFourBits() == 1)) {
+        } else if ((s == 31) && (instr->GetSixtyFourBits() == 1)) {
           mnemonic = "sxtw";
         } else {
           form = form_bfx;
@@ -558,7 +561,7 @@ void Disassembler::VisitExtract(const Instruction *instr) {
   switch (instr->Mask(ExtractMask)) {
     case EXTR_w:
     case EXTR_x: {
-      if (instr->Rn() == instr->Rm()) {
+      if (instr->GetRn() == instr->GetRm()) {
         mnemonic = "ror";
         form = "'Rd, 'Rn, 'IExtract";
       } else {
@@ -612,7 +615,7 @@ void Disassembler::VisitUnconditionalBranchToRegister(
       break;
     case RET: {
       mnemonic = "ret";
-      if (instr->Rn() == kLinkRegCode) {
+      if (instr->GetRn() == kLinkRegCode) {
         form = NULL;
       }
       break;
@@ -850,8 +853,9 @@ void Disassembler::VisitMoveWideImmediate(const Instruction *instr) {
   switch (instr->Mask(MoveWideImmediateMask)) {
     case MOVN_w:
     case MOVN_x:
-      if ((instr->ImmMoveWide()) || (instr->ShiftMoveWide() == 0)) {
-        if ((instr->SixtyFourBits() == 0) && (instr->ImmMoveWide() == 0xffff)) {
+      if ((instr->GetImmMoveWide()) || (instr->GetShiftMoveWide() == 0)) {
+        if ((instr->GetSixtyFourBits() == 0) &&
+            (instr->GetImmMoveWide() == 0xffff)) {
           mnemonic = "movn";
         } else {
           mnemonic = "mov";
@@ -863,7 +867,7 @@ void Disassembler::VisitMoveWideImmediate(const Instruction *instr) {
       break;
     case MOVZ_w:
     case MOVZ_x:
-      if ((instr->ImmMoveWide()) || (instr->ShiftMoveWide() == 0))
+      if ((instr->GetImmMoveWide()) || (instr->GetShiftMoveWide() == 0))
         mnemonic = "mov";
       else
         mnemonic = "movz";
@@ -1728,7 +1732,7 @@ void Disassembler::VisitSystem(const Instruction *instr) {
     switch (instr->Mask(SystemExclusiveMonitorMask)) {
       case CLREX: {
         mnemonic = "clrex";
-        form = (instr->CRm() == 0xf) ? NULL : "'IX";
+        form = (instr->GetCRm() == 0xf) ? NULL : "'IX";
         break;
       }
     }
@@ -1736,7 +1740,7 @@ void Disassembler::VisitSystem(const Instruction *instr) {
     switch (instr->Mask(SystemSysRegMask)) {
       case MRS: {
         mnemonic = "mrs";
-        switch (instr->ImmSystemRegister()) {
+        switch (instr->GetImmSystemRegister()) {
           case NZCV:
             form = "'Xt, nzcv";
             break;
@@ -1751,7 +1755,7 @@ void Disassembler::VisitSystem(const Instruction *instr) {
       }
       case MSR: {
         mnemonic = "msr";
-        switch (instr->ImmSystemRegister()) {
+        switch (instr->GetImmSystemRegister()) {
           case NZCV:
             form = "nzcv, 'Xt";
             break;
@@ -1766,7 +1770,7 @@ void Disassembler::VisitSystem(const Instruction *instr) {
       }
     }
   } else if (instr->Mask(SystemHintFMask) == SystemHintFixed) {
-    switch (instr->ImmHint()) {
+    switch (instr->GetImmHint()) {
       case NOP: {
         mnemonic = "nop";
         form = NULL;
@@ -1792,7 +1796,7 @@ void Disassembler::VisitSystem(const Instruction *instr) {
       }
     }
   } else if (instr->Mask(SystemSysFMask) == SystemSysFixed) {
-    switch (instr->SysOp()) {
+    switch (instr->GetSysOp()) {
       case IVAU:
         mnemonic = "ic";
         form = "ivau, 'Xt";
@@ -1815,7 +1819,7 @@ void Disassembler::VisitSystem(const Instruction *instr) {
         break;
       default:
         mnemonic = "sys";
-        if (instr->Rt() == 31) {
+        if (instr->GetRt() == 31) {
           form = "'G1, 'Kn, 'Km, 'G2";
         } else {
           form = "'G1, 'Kn, 'Km, 'G2, 'Xt";
@@ -1973,7 +1977,7 @@ void Disassembler::VisitNEON2RegMisc(const Instruction *instr) {
         mnemonic = "neg";
         break;
       case NEON_RBIT_NOT:
-        switch (instr->FPType()) {
+        switch (instr->GetFPType()) {
           case 0:
             mnemonic = "mvn";
             break;
@@ -2127,7 +2131,7 @@ void Disassembler::VisitNEON2RegMisc(const Instruction *instr) {
               mnemonic = "shll";
               nfd.SetFormatMap(0, nfd.LongIntegerFormatMap());
               nfd.SetFormatMap(1, nfd.IntegerFormatMap());
-              switch (instr->NEONSize()) {
+              switch (instr->GetNEONSize()) {
                 case 0:
                   form = "'Vd.%s, 'Vn.%s, #8";
                   break;
@@ -2165,7 +2169,7 @@ void Disassembler::VisitNEON3Same(const Instruction *instr) {
         break;
       case NEON_ORR:
         mnemonic = "orr";
-        if (instr->Rm() == instr->Rn()) {
+        if (instr->GetRm() == instr->GetRn()) {
           mnemonic = "mov";
           form = "'Vd.%s, 'Vn.%s";
         }
@@ -2230,8 +2234,8 @@ void Disassembler::VisitNEON3Same(const Instruction *instr) {
 
     // Operation is determined by the opcode bits (15-11), the top bit of
     // size (23) and the U bit (29).
-    unsigned index =
-        (instr->Bits(15, 11) << 2) | (instr->Bit(23) << 1) | instr->Bit(29);
+    unsigned index = (instr->ExtractBits(15, 11) << 2) |
+                     (instr->ExtractBit(23) << 1) | instr->ExtractBit(29);
     VIXL_ASSERT(index < (sizeof(mnemonics) / sizeof(mnemonics[0])));
     mnemonic = mnemonics[index];
     // Assert that index is not one of the previously handled logical
@@ -2537,7 +2541,7 @@ void Disassembler::VisitNEONCopy(const Instruction *instr) {
       form = "'Vd.%s['IVInsIndex1], 'Wn";
     }
   } else if (instr->Mask(NEONCopyUmovMask) == NEON_UMOV) {
-    if (instr->Mask(NEON_Q) || ((instr->ImmNEON5() & 7) == 4)) {
+    if (instr->Mask(NEON_Q) || ((instr->GetImmNEON5() & 7) == 4)) {
       mnemonic = "mov";
     } else {
       mnemonic = "umov";
@@ -2659,7 +2663,7 @@ void Disassembler::VisitNEONLoadStoreMultiStruct(const Instruction *instr) {
     case NEON_ST3:
     case NEON_ST4:
       // LD[2-4] and ST[2-4] cannot use .1d format.
-      allocated = (instr->NEONQ() != 0) || (instr->NEONLSSize() != 3);
+      allocated = (instr->GetNEONQ() != 0) || (instr->GetNEONLSSize() != 3);
       break;
     default:
       break;
@@ -2758,7 +2762,7 @@ void Disassembler::VisitNEONLoadStoreMultiStructPostIndex(
     case NEON_ST3_post:
     case NEON_ST4_post:
       // LD[2-4] and ST[2-4] cannot use .1d format.
-      allocated = (instr->NEONQ() != 0) || (instr->NEONLSSize() != 3);
+      allocated = (instr->GetNEONQ() != 0) || (instr->GetNEONLSSize() != 3);
       break;
     default:
       break;
@@ -2797,7 +2801,7 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
     case NEON_LD1_s:
       mnemonic = "ld1";
       VIXL_STATIC_ASSERT((NEON_LD1_s | (1 << NEONLSSize_offset)) == NEON_LD1_d);
-      form = ((instr->NEONLSSize() & 1) == 0) ? form_1s : form_1d;
+      form = ((instr->GetNEONLSSize() & 1) == 0) ? form_1s : form_1d;
       break;
     case NEON_ST1_b:
       mnemonic = "st1";
@@ -2810,7 +2814,7 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
     case NEON_ST1_s:
       mnemonic = "st1";
       VIXL_STATIC_ASSERT((NEON_ST1_s | (1 << NEONLSSize_offset)) == NEON_ST1_d);
-      form = ((instr->NEONLSSize() & 1) == 0) ? form_1s : form_1d;
+      form = ((instr->GetNEONLSSize() & 1) == 0) ? form_1s : form_1d;
       break;
     case NEON_LD1R:
       mnemonic = "ld1r";
@@ -2818,20 +2822,20 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
       break;
     case NEON_LD2_b:
     case NEON_ST2_b:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld2" : "st2";
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld2" : "st2";
       form = "{'Vt.b, 'Vt2.b}['IVLSLane0], ['Xns]";
       break;
     case NEON_LD2_h:
     case NEON_ST2_h:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld2" : "st2";
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld2" : "st2";
       form = "{'Vt.h, 'Vt2.h}['IVLSLane1], ['Xns]";
       break;
     case NEON_LD2_s:
     case NEON_ST2_s:
       VIXL_STATIC_ASSERT((NEON_ST2_s | (1 << NEONLSSize_offset)) == NEON_ST2_d);
       VIXL_STATIC_ASSERT((NEON_LD2_s | (1 << NEONLSSize_offset)) == NEON_LD2_d);
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld2" : "st2";
-      if ((instr->NEONLSSize() & 1) == 0) {
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld2" : "st2";
+      if ((instr->GetNEONLSSize() & 1) == 0) {
         form = "{'Vt.s, 'Vt2.s}['IVLSLane2], ['Xns]";
       } else {
         form = "{'Vt.d, 'Vt2.d}['IVLSLane3], ['Xns]";
@@ -2843,18 +2847,18 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
       break;
     case NEON_LD3_b:
     case NEON_ST3_b:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld3" : "st3";
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld3" : "st3";
       form = "{'Vt.b, 'Vt2.b, 'Vt3.b}['IVLSLane0], ['Xns]";
       break;
     case NEON_LD3_h:
     case NEON_ST3_h:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld3" : "st3";
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld3" : "st3";
       form = "{'Vt.h, 'Vt2.h, 'Vt3.h}['IVLSLane1], ['Xns]";
       break;
     case NEON_LD3_s:
     case NEON_ST3_s:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld3" : "st3";
-      if ((instr->NEONLSSize() & 1) == 0) {
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld3" : "st3";
+      if ((instr->GetNEONLSSize() & 1) == 0) {
         form = "{'Vt.s, 'Vt2.s, 'Vt3.s}['IVLSLane2], ['Xns]";
       } else {
         form = "{'Vt.d, 'Vt2.d, 'Vt3.d}['IVLSLane3], ['Xns]";
@@ -2866,20 +2870,20 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
       break;
     case NEON_LD4_b:
     case NEON_ST4_b:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld4" : "st4";
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld4" : "st4";
       form = "{'Vt.b, 'Vt2.b, 'Vt3.b, 'Vt4.b}['IVLSLane0], ['Xns]";
       break;
     case NEON_LD4_h:
     case NEON_ST4_h:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld4" : "st4";
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld4" : "st4";
       form = "{'Vt.h, 'Vt2.h, 'Vt3.h, 'Vt4.h}['IVLSLane1], ['Xns]";
       break;
     case NEON_LD4_s:
     case NEON_ST4_s:
       VIXL_STATIC_ASSERT((NEON_LD4_s | (1 << NEONLSSize_offset)) == NEON_LD4_d);
       VIXL_STATIC_ASSERT((NEON_ST4_s | (1 << NEONLSSize_offset)) == NEON_ST4_d);
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld4" : "st4";
-      if ((instr->NEONLSSize() & 1) == 0) {
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld4" : "st4";
+      if ((instr->GetNEONLSSize() & 1) == 0) {
         form = "{'Vt.s, 'Vt2.s, 'Vt3.s, 'Vt4.s}['IVLSLane2], ['Xns]";
       } else {
         form = "{'Vt.d, 'Vt2.d, 'Vt3.d, 'Vt4.d}['IVLSLane3], ['Xns]";
@@ -2905,7 +2909,7 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
     case NEON_ST3_h:
     case NEON_ST4_h:
       VIXL_ASSERT(allocated);
-      allocated = ((instr->NEONLSSize() & 1) == 0);
+      allocated = ((instr->GetNEONLSSize() & 1) == 0);
       break;
     case NEON_LD1_s:
     case NEON_LD2_s:
@@ -2916,15 +2920,15 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
     case NEON_ST3_s:
     case NEON_ST4_s:
       VIXL_ASSERT(allocated);
-      allocated = (instr->NEONLSSize() <= 1) &&
-                  ((instr->NEONLSSize() == 0) || (instr->NEONS() == 0));
+      allocated = (instr->GetNEONLSSize() <= 1) &&
+                  ((instr->GetNEONLSSize() == 0) || (instr->GetNEONS() == 0));
       break;
     case NEON_LD1R:
     case NEON_LD2R:
     case NEON_LD3R:
     case NEON_LD4R:
       VIXL_ASSERT(allocated);
-      allocated = (instr->NEONS() == 0);
+      allocated = (instr->GetNEONS() == 0);
       break;
     default:
       break;
@@ -2964,7 +2968,7 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
     case NEON_LD1_s_post:
       mnemonic = "ld1";
       VIXL_STATIC_ASSERT((NEON_LD1_s | (1 << NEONLSSize_offset)) == NEON_LD1_d);
-      form = ((instr->NEONLSSize() & 1) == 0) ? form_1s : form_1d;
+      form = ((instr->GetNEONLSSize() & 1) == 0) ? form_1s : form_1d;
       break;
     case NEON_ST1_b_post:
       mnemonic = "st1";
@@ -2977,7 +2981,7 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
     case NEON_ST1_s_post:
       mnemonic = "st1";
       VIXL_STATIC_ASSERT((NEON_ST1_s | (1 << NEONLSSize_offset)) == NEON_ST1_d);
-      form = ((instr->NEONLSSize() & 1) == 0) ? form_1s : form_1d;
+      form = ((instr->GetNEONLSSize() & 1) == 0) ? form_1s : form_1d;
       break;
     case NEON_LD1R_post:
       mnemonic = "ld1r";
@@ -2985,18 +2989,18 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
       break;
     case NEON_LD2_b_post:
     case NEON_ST2_b_post:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld2" : "st2";
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld2" : "st2";
       form = "{'Vt.b, 'Vt2.b}['IVLSLane0], ['Xns], 'Xmb2";
       break;
     case NEON_ST2_h_post:
     case NEON_LD2_h_post:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld2" : "st2";
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld2" : "st2";
       form = "{'Vt.h, 'Vt2.h}['IVLSLane1], ['Xns], 'Xmb4";
       break;
     case NEON_LD2_s_post:
     case NEON_ST2_s_post:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld2" : "st2";
-      if ((instr->NEONLSSize() & 1) == 0)
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld2" : "st2";
+      if ((instr->GetNEONLSSize() & 1) == 0)
         form = "{'Vt.s, 'Vt2.s}['IVLSLane2], ['Xns], 'Xmb8";
       else
         form = "{'Vt.d, 'Vt2.d}['IVLSLane3], ['Xns], 'Xmb16";
@@ -3007,18 +3011,18 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
       break;
     case NEON_LD3_b_post:
     case NEON_ST3_b_post:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld3" : "st3";
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld3" : "st3";
       form = "{'Vt.b, 'Vt2.b, 'Vt3.b}['IVLSLane0], ['Xns], 'Xmb3";
       break;
     case NEON_LD3_h_post:
     case NEON_ST3_h_post:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld3" : "st3";
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld3" : "st3";
       form = "{'Vt.h, 'Vt2.h, 'Vt3.h}['IVLSLane1], ['Xns], 'Xmb6";
       break;
     case NEON_LD3_s_post:
     case NEON_ST3_s_post:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld3" : "st3";
-      if ((instr->NEONLSSize() & 1) == 0)
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld3" : "st3";
+      if ((instr->GetNEONLSSize() & 1) == 0)
         form = "{'Vt.s, 'Vt2.s, 'Vt3.s}['IVLSLane2], ['Xns], 'Xmb12";
       else
         form = "{'Vt.d, 'Vt2.d, 'Vt3.d}['IVLSLane3], ['Xns], 'Xmb24";
@@ -3029,18 +3033,18 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
       break;
     case NEON_LD4_b_post:
     case NEON_ST4_b_post:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld4" : "st4";
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld4" : "st4";
       form = "{'Vt.b, 'Vt2.b, 'Vt3.b, 'Vt4.b}['IVLSLane0], ['Xns], 'Xmb4";
       break;
     case NEON_LD4_h_post:
     case NEON_ST4_h_post:
-      mnemonic = (instr->LdStXLoad()) == 1 ? "ld4" : "st4";
+      mnemonic = (instr->GetLdStXLoad()) == 1 ? "ld4" : "st4";
       form = "{'Vt.h, 'Vt2.h, 'Vt3.h, 'Vt4.h}['IVLSLane1], ['Xns], 'Xmb8";
       break;
     case NEON_LD4_s_post:
     case NEON_ST4_s_post:
-      mnemonic = (instr->LdStXLoad() == 1) ? "ld4" : "st4";
-      if ((instr->NEONLSSize() & 1) == 0)
+      mnemonic = (instr->GetLdStXLoad() == 1) ? "ld4" : "st4";
+      if ((instr->GetNEONLSSize() & 1) == 0)
         form = "{'Vt.s, 'Vt2.s, 'Vt3.s, 'Vt4.s}['IVLSLane2], ['Xns], 'Xmb16";
       else
         form = "{'Vt.d, 'Vt2.d, 'Vt3.d, 'Vt4.d}['IVLSLane3], ['Xns], 'Xmb32";
@@ -3065,7 +3069,7 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
     case NEON_ST3_h_post:
     case NEON_ST4_h_post:
       VIXL_ASSERT(allocated);
-      allocated = ((instr->NEONLSSize() & 1) == 0);
+      allocated = ((instr->GetNEONLSSize() & 1) == 0);
       break;
     case NEON_LD1_s_post:
     case NEON_LD2_s_post:
@@ -3076,15 +3080,15 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
     case NEON_ST3_s_post:
     case NEON_ST4_s_post:
       VIXL_ASSERT(allocated);
-      allocated = (instr->NEONLSSize() <= 1) &&
-                  ((instr->NEONLSSize() == 0) || (instr->NEONS() == 0));
+      allocated = (instr->GetNEONLSSize() <= 1) &&
+                  ((instr->GetNEONLSSize() == 0) || (instr->GetNEONS() == 0));
       break;
     case NEON_LD1R_post:
     case NEON_LD2R_post:
     case NEON_LD3R_post:
     case NEON_LD4R_post:
       VIXL_ASSERT(allocated);
-      allocated = (instr->NEONS() == 0);
+      allocated = (instr->GetNEONS() == 0);
       break;
     default:
       break;
@@ -3105,13 +3109,13 @@ void Disassembler::VisitNEONModifiedImmediate(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'Vt.%s, 'IVMIImm8, lsl 'IVMIShiftAmt1";
 
-  int cmode = instr->NEONCmode();
+  int cmode = instr->GetNEONCmode();
   int cmode_3 = (cmode >> 3) & 1;
   int cmode_2 = (cmode >> 2) & 1;
   int cmode_1 = (cmode >> 1) & 1;
   int cmode_0 = cmode & 1;
-  int q = instr->NEONQ();
-  int op = instr->NEONModImmOp();
+  int q = instr->GetNEONQ();
+  int op = instr->GetNEONModImmOp();
 
   static const NEONFormatMap map_b = {{30}, {NF_8B, NF_16B}};
   static const NEONFormatMap map_h = {{30}, {NF_4H, NF_8H}};
@@ -3586,7 +3590,7 @@ void Disassembler::VisitNEONScalarShiftImmediate(const Instruction *instr) {
       {{21, 20, 19}, {NF_UNDEF, NF_H, NF_S, NF_S, NF_D, NF_D, NF_D, NF_D}};
   NEONFormatDecoder nfd(instr, &map_shift);
 
-  if (instr->ImmNEONImmh()) {  // immh has to be non-zero.
+  if (instr->GetImmNEONImmh()) {  // immh has to be non-zero.
     switch (instr->Mask(NEONScalarShiftImmediateMask)) {
       case NEON_FCVTZU_imm_scalar:
         mnemonic = "fcvtzu";
@@ -3730,7 +3734,7 @@ void Disassembler::VisitNEONShiftImmediate(const Instruction *instr) {
 
   NEONFormatDecoder nfd(instr, &map_shift_tb);
 
-  if (instr->ImmNEONImmh()) {  // immh has to be non-zero.
+  if (instr->GetImmNEONImmh()) {  // immh has to be non-zero.
     switch (instr->Mask(NEONShiftImmediateMask)) {
       case NEON_SQSHLU:
         mnemonic = "sqshlu";
@@ -3825,8 +3829,8 @@ void Disassembler::VisitNEONShiftImmediate(const Instruction *instr) {
         break;
       case NEON_SSHLL:
         nfd.SetFormatMap(0, &map_shift_ta);
-        if (instr->ImmNEONImmb() == 0 &&
-            CountSetBits(instr->ImmNEONImmh(), 32) == 1) {  // sxtl variant.
+        if (instr->GetImmNEONImmb() == 0 &&
+            CountSetBits(instr->GetImmNEONImmh(), 32) == 1) {  // sxtl variant.
           form = form_xtl;
           mnemonic = instr->Mask(NEON_Q) ? "sxtl2" : "sxtl";
         } else {  // sshll variant.
@@ -3836,8 +3840,8 @@ void Disassembler::VisitNEONShiftImmediate(const Instruction *instr) {
         break;
       case NEON_USHLL:
         nfd.SetFormatMap(0, &map_shift_ta);
-        if (instr->ImmNEONImmb() == 0 &&
-            CountSetBits(instr->ImmNEONImmh(), 32) == 1) {  // uxtl variant.
+        if (instr->GetImmNEONImmb() == 0 &&
+            CountSetBits(instr->GetImmNEONImmh(), 32) == 1) {  // uxtl variant.
           form = form_xtl;
           mnemonic = instr->Mask(NEON_Q) ? "uxtl2" : "uxtl";
         } else {  // ushll variant.
@@ -3904,7 +3908,7 @@ void Disassembler::VisitNEONTable(const Instruction *instr) {
   }
 
   char re_form[sizeof(form_4v) + 6];
-  int reg_num = instr->Rn();
+  int reg_num = instr->GetRn();
   snprintf(re_form,
            sizeof(re_form),
            form,
@@ -3972,7 +3976,7 @@ void Disassembler::AppendRegisterNameToOutput(const Instruction *instr,
     reg_char = reg.Is64Bits() ? 'x' : 'w';
   } else {
     VIXL_ASSERT(reg.IsVRegister());
-    switch (reg.SizeInBits()) {
+    switch (reg.GetSizeInBits()) {
       case kBRegSize:
         reg_char = 'b';
         break;
@@ -3993,7 +3997,7 @@ void Disassembler::AppendRegisterNameToOutput(const Instruction *instr,
 
   if (reg.IsVRegister() || !(reg.Aliases(sp) || reg.Aliases(xzr))) {
     // A core or scalar/vector register: [wx]0 - 30, [bhsdq]0 - 31.
-    AppendToOutput("%c%d", reg_char, reg.code());
+    AppendToOutput("%c%d", reg_char, reg.GetCode());
   } else if (reg.Aliases(sp)) {
     // Disassemble w31/x31 as stack pointer wsp/sp.
     AppendToOutput("%s", reg.Is64Bits() ? "sp" : "wsp");
@@ -4156,17 +4160,17 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
 
   switch (format[1]) {
     case 'd':
-      reg_num = instr->Rd();
+      reg_num = instr->GetRd();
       if (format[2] == 'q') {
-        reg_prefix = instr->NEONQ() ? 'X' : 'W';
+        reg_prefix = instr->GetNEONQ() ? 'X' : 'W';
         field_len = 3;
       }
       break;
     case 'n':
-      reg_num = instr->Rn();
+      reg_num = instr->GetRn();
       break;
     case 'm':
-      reg_num = instr->Rm();
+      reg_num = instr->GetRm();
       switch (format[2]) {
         // Handle registers tagged with b (bytes), z (instruction), or
         // r (registers), used for address updates in
@@ -4181,11 +4185,11 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
           if (reg_num == 31) {
             switch (format[2]) {
               case 'z':
-                imm *= (1 << instr->NEONLSSize());
+                imm *= (1 << instr->GetNEONLSSize());
                 break;
               case 'r':
-                imm *=
-                    (instr->NEONQ() == 0) ? kDRegSizeInBytes : kQRegSizeInBytes;
+                imm *= (instr->GetNEONQ() == 0) ? kDRegSizeInBytes
+                                                : kQRegSizeInBytes;
                 break;
               case 'b':
                 break;
@@ -4200,16 +4204,16 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
     case 'e':
       // This is register Rm, but using a 4-bit specifier. Used in NEON
       // by-element instructions.
-      reg_num = (instr->Rm() & 0xf);
+      reg_num = (instr->GetRm() & 0xf);
       break;
     case 'a':
-      reg_num = instr->Ra();
+      reg_num = instr->GetRa();
       break;
     case 's':
-      reg_num = instr->Rs();
+      reg_num = instr->GetRs();
       break;
     case 't':
-      reg_num = instr->Rt();
+      reg_num = instr->GetRt();
       if (format[0] == 'V') {
         if ((format[2] >= '2') && (format[2] <= '4')) {
           // Handle consecutive vector register specifiers Vt2, Vt3 and Vt4.
@@ -4219,7 +4223,7 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
       } else {
         if (format[2] == '2') {
           // Handle register specifier Rt2.
-          reg_num = instr->Rt2();
+          reg_num = instr->GetRt2();
           field_len = 3;
         }
       }
@@ -4237,9 +4241,9 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
   unsigned reg_size = kXRegSize;
 
   if (reg_prefix == 'R') {
-    reg_prefix = instr->SixtyFourBits() ? 'X' : 'W';
+    reg_prefix = instr->GetSixtyFourBits() ? 'X' : 'W';
   } else if (reg_prefix == 'F') {
-    reg_prefix = ((instr->FPType() & 1) == 0) ? 'S' : 'D';
+    reg_prefix = ((instr->GetFPType() & 1) == 0) ? 'S' : 'D';
   }
 
   switch (reg_prefix) {
@@ -4296,16 +4300,16 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
   switch (format[1]) {
     case 'M': {  // IMoveImm, IMoveNeg or IMoveLSL.
       if (format[5] == 'L') {
-        AppendToOutput("#0x%" PRIx32, instr->ImmMoveWide());
-        if (instr->ShiftMoveWide() > 0) {
-          AppendToOutput(", lsl #%" PRId32, 16 * instr->ShiftMoveWide());
+        AppendToOutput("#0x%" PRIx32, instr->GetImmMoveWide());
+        if (instr->GetShiftMoveWide() > 0) {
+          AppendToOutput(", lsl #%" PRId32, 16 * instr->GetShiftMoveWide());
         }
       } else {
         VIXL_ASSERT((format[5] == 'I') || (format[5] == 'N'));
-        uint64_t imm = static_cast<uint64_t>(instr->ImmMoveWide())
-                       << (16 * instr->ShiftMoveWide());
+        uint64_t imm = static_cast<uint64_t>(instr->GetImmMoveWide())
+                       << (16 * instr->GetShiftMoveWide());
         if (format[5] == 'N') imm = ~imm;
-        if (!instr->SixtyFourBits()) imm &= UINT64_C(0xffffffff);
+        if (!instr->GetSixtyFourBits()) imm &= UINT64_C(0xffffffff);
         AppendToOutput("#0x%" PRIx64, imm);
       }
       return 8;
@@ -4314,60 +4318,61 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
       switch (format[2]) {
         case 'L': {  // ILLiteral - Immediate Load Literal.
           AppendToOutput("pc%+" PRId32,
-                         instr->ImmLLiteral() << kLiteralEntrySizeLog2);
+                         instr->GetImmLLiteral() << kLiteralEntrySizeLog2);
           return 9;
         }
         case 'S': {  // ILS - Immediate Load/Store.
-          if (instr->ImmLS() != 0) {
-            AppendToOutput(", #%" PRId32, instr->ImmLS());
+          if (instr->GetImmLS() != 0) {
+            AppendToOutput(", #%" PRId32, instr->GetImmLS());
           }
           return 3;
         }
         case 'P': {  // ILPx - Immediate Load/Store Pair, x = access size.
-          if (instr->ImmLSPair() != 0) {
+          if (instr->GetImmLSPair() != 0) {
             // format[3] is the scale value. Convert to a number.
             int scale = 1 << (format[3] - '0');
-            AppendToOutput(", #%" PRId32, instr->ImmLSPair() * scale);
+            AppendToOutput(", #%" PRId32, instr->GetImmLSPair() * scale);
           }
           return 4;
         }
         case 'U': {  // ILU - Immediate Load/Store Unsigned.
-          if (instr->ImmLSUnsigned() != 0) {
-            int shift = instr->SizeLS();
-            AppendToOutput(", #%" PRId32, instr->ImmLSUnsigned() << shift);
+          if (instr->GetImmLSUnsigned() != 0) {
+            int shift = instr->GetSizeLS();
+            AppendToOutput(", #%" PRId32, instr->GetImmLSUnsigned() << shift);
           }
           return 3;
         }
       }
     }
     case 'C': {  // ICondB - Immediate Conditional Branch.
-      int64_t offset = instr->ImmCondBranch() << 2;
+      int64_t offset = instr->GetImmCondBranch() << 2;
       AppendPCRelativeOffsetToOutput(instr, offset);
       return 6;
     }
     case 'A': {  // IAddSub.
-      VIXL_ASSERT(instr->ShiftAddSub() <= 1);
-      int64_t imm = instr->ImmAddSub() << (12 * instr->ShiftAddSub());
+      VIXL_ASSERT(instr->GetShiftAddSub() <= 1);
+      int64_t imm = instr->GetImmAddSub() << (12 * instr->GetShiftAddSub());
       AppendToOutput("#0x%" PRIx64 " (%" PRId64 ")", imm, imm);
       return 7;
     }
     case 'F': {                // IFPSingle, IFPDouble or IFPFBits.
       if (format[3] == 'F') {  // IFPFbits.
-        AppendToOutput("#%" PRId32, 64 - instr->FPScale());
+        AppendToOutput("#%" PRId32, 64 - instr->GetFPScale());
         return 8;
       } else {
         AppendToOutput("#0x%" PRIx32 " (%.4f)",
-                       instr->ImmFP(),
-                       format[3] == 'S' ? instr->ImmFP32() : instr->ImmFP64());
+                       instr->GetImmFP(),
+                       format[3] == 'S' ? instr->GetImmFP32()
+                                        : instr->GetImmFP64());
         return 9;
       }
     }
     case 'T': {  // ITri - Immediate Triangular Encoded.
-      AppendToOutput("#0x%" PRIx64, instr->ImmLogical());
+      AppendToOutput("#0x%" PRIx64, instr->GetImmLogical());
       return 4;
     }
     case 'N': {  // INzcv.
-      int nzcv = (instr->Nzcv() << Flags_offset);
+      int nzcv = (instr->GetNzcv() << Flags_offset);
       AppendToOutput("#%c%c%c%c",
                      ((nzcv & NFlag) == 0) ? 'n' : 'N',
                      ((nzcv & ZFlag) == 0) ? 'z' : 'Z',
@@ -4376,33 +4381,33 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
       return 5;
     }
     case 'P': {  // IP - Conditional compare.
-      AppendToOutput("#%" PRId32, instr->ImmCondCmp());
+      AppendToOutput("#%" PRId32, instr->GetImmCondCmp());
       return 2;
     }
     case 'B': {  // Bitfields.
       return SubstituteBitfieldImmediateField(instr, format);
     }
     case 'E': {  // IExtract.
-      AppendToOutput("#%" PRId32, instr->ImmS());
+      AppendToOutput("#%" PRId32, instr->GetImmS());
       return 8;
     }
     case 'S': {  // IS - Test and branch bit.
       AppendToOutput("#%" PRId32,
-                     (instr->ImmTestBranchBit5() << 5) |
-                         instr->ImmTestBranchBit40());
+                     (instr->GetImmTestBranchBit5() << 5) |
+                         instr->GetImmTestBranchBit40());
       return 2;
     }
     case 's': {  // Is - Shift (immediate).
       switch (format[2]) {
         case '1': {  // Is1 - SSHR.
-          int shift = 16 << HighestSetBitPosition(instr->ImmNEONImmh());
-          shift -= instr->ImmNEONImmhImmb();
+          int shift = 16 << HighestSetBitPosition(instr->GetImmNEONImmh());
+          shift -= instr->GetImmNEONImmhImmb();
           AppendToOutput("#%d", shift);
           return 3;
         }
         case '2': {  // Is2 - SLI.
-          int shift = instr->ImmNEONImmhImmb();
-          shift -= 8 << HighestSetBitPosition(instr->ImmNEONImmh());
+          int shift = instr->GetImmNEONImmhImmb();
+          shift -= 8 << HighestSetBitPosition(instr->GetImmNEONImmh());
           AppendToOutput("#%d", shift);
           return 3;
         }
@@ -4413,19 +4418,19 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
       }
     }
     case 'D': {  // IDebug - HLT and BRK instructions.
-      AppendToOutput("#0x%" PRIx32, instr->ImmException());
+      AppendToOutput("#0x%" PRIx32, instr->GetImmException());
       return 6;
     }
     case 'V': {  // Immediate Vector.
       switch (format[2]) {
         case 'E': {  // IVExtract.
-          AppendToOutput("#%" PRId32, instr->ImmNEONExt());
+          AppendToOutput("#%" PRId32, instr->GetImmNEONExt());
           return 9;
         }
         case 'B': {  // IVByElemIndex.
-          int vm_index = (instr->NEONH() << 1) | instr->NEONL();
-          if (instr->NEONSize() == 1) {
-            vm_index = (vm_index << 1) | instr->NEONM();
+          int vm_index = (instr->GetNEONH() << 1) | instr->GetNEONL();
+          if (instr->GetNEONSize() == 1) {
+            vm_index = (vm_index << 1) | instr->GetNEONM();
           }
           AppendToOutput("%d", vm_index);
           return strlen("IVByElemIndex");
@@ -4433,8 +4438,8 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
         case 'I': {  // INS element.
           if (strncmp(format, "IVInsIndex", strlen("IVInsIndex")) == 0) {
             int rd_index, rn_index;
-            int imm5 = instr->ImmNEON5();
-            int imm4 = instr->ImmNEON4();
+            int imm5 = instr->GetImmNEON5();
+            int imm4 = instr->GetImmNEON4();
             int tz = CountTrailingZeros(imm5, 32);
             rd_index = imm5 >> (tz + 1);
             rn_index = imm4 >> tz;
@@ -4453,29 +4458,29 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           VIXL_FALLTHROUGH();
         }
         case 'L': {  // IVLSLane[0123] - suffix indicates access size shift.
-          AppendToOutput("%d", instr->NEONLSIndex(format[8] - '0'));
+          AppendToOutput("%d", instr->GetNEONLSIndex(format[8] - '0'));
           return 9;
         }
         case 'M': {  // Modified Immediate cases.
           if (strncmp(format, "IVMIImmFPSingle", strlen("IVMIImmFPSingle")) ==
               0) {
             AppendToOutput("#0x%" PRIx32 " (%.4f)",
-                           instr->ImmNEONabcdefgh(),
-                           instr->ImmNEONFP32());
+                           instr->GetImmNEONabcdefgh(),
+                           instr->GetImmNEONFP32());
             return strlen("IVMIImmFPSingle");
           } else if (strncmp(format,
                              "IVMIImmFPDouble",
                              strlen("IVMIImmFPDouble")) == 0) {
             AppendToOutput("#0x%" PRIx32 " (%.4f)",
-                           instr->ImmNEONabcdefgh(),
-                           instr->ImmNEONFP64());
+                           instr->GetImmNEONabcdefgh(),
+                           instr->GetImmNEONFP64());
             return strlen("IVMIImmFPDouble");
           } else if (strncmp(format, "IVMIImm8", strlen("IVMIImm8")) == 0) {
-            uint64_t imm8 = instr->ImmNEONabcdefgh();
+            uint64_t imm8 = instr->GetImmNEONabcdefgh();
             AppendToOutput("#0x%" PRIx64, imm8);
             return strlen("IVMIImm8");
           } else if (strncmp(format, "IVMIImm", strlen("IVMIImm")) == 0) {
-            uint64_t imm8 = instr->ImmNEONabcdefgh();
+            uint64_t imm8 = instr->GetImmNEONabcdefgh();
             uint64_t imm = 0;
             for (int i = 0; i < 8; ++i) {
               if (imm8 & (1 << i)) {
@@ -4487,14 +4492,14 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           } else if (strncmp(format,
                              "IVMIShiftAmt1",
                              strlen("IVMIShiftAmt1")) == 0) {
-            int cmode = instr->NEONCmode();
+            int cmode = instr->GetNEONCmode();
             int shift_amount = 8 * ((cmode >> 1) & 3);
             AppendToOutput("#%d", shift_amount);
             return strlen("IVMIShiftAmt1");
           } else if (strncmp(format,
                              "IVMIShiftAmt2",
                              strlen("IVMIShiftAmt2")) == 0) {
-            int cmode = instr->NEONCmode();
+            int cmode = instr->GetNEONCmode();
             int shift_amount = 8 << (cmode & 1);
             AppendToOutput("#%d", shift_amount);
             return strlen("IVMIShiftAmt2");
@@ -4510,7 +4515,7 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
       }
     }
     case 'X': {  // IX - CLREX instruction.
-      AppendToOutput("#0x%" PRIx32, instr->CRm());
+      AppendToOutput("#0x%" PRIx32, instr->GetCRm());
       return 2;
     }
     default: {
@@ -4524,8 +4529,8 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
 int Disassembler::SubstituteBitfieldImmediateField(const Instruction *instr,
                                                    const char *format) {
   VIXL_ASSERT((format[0] == 'I') && (format[1] == 'B'));
-  unsigned r = instr->ImmR();
-  unsigned s = instr->ImmS();
+  unsigned r = instr->GetImmR();
+  unsigned s = instr->GetImmS();
 
   switch (format[2]) {
     case 'r': {  // IBr.
@@ -4544,7 +4549,8 @@ int Disassembler::SubstituteBitfieldImmediateField(const Instruction *instr,
     }
     case 'Z': {  // IBZ-r.
       VIXL_ASSERT((format[3] == '-') && (format[4] == 'r'));
-      unsigned reg_size = (instr->SixtyFourBits() == 1) ? kXRegSize : kWRegSize;
+      unsigned reg_size =
+          (instr->GetSixtyFourBits() == 1) ? kXRegSize : kWRegSize;
       AppendToOutput("#%d", reg_size - r);
       return 5;
     }
@@ -4561,7 +4567,7 @@ int Disassembler::SubstituteLiteralField(const Instruction *instr,
   VIXL_ASSERT(strncmp(format, "LValue", 6) == 0);
   USE(format);
 
-  const void *address = instr->LiteralAddress<const void *>();
+  const void *address = instr->GetLiteralAddress<const void *>();
   switch (instr->Mask(LoadLiteralMask)) {
     case LDR_w_lit:
     case LDR_x_lit:
@@ -4573,7 +4579,7 @@ int Disassembler::SubstituteLiteralField(const Instruction *instr,
       break;
     case PRFM_lit: {
       // Use the prefetch hint to decide how to print the address.
-      switch (instr->PrefetchHint()) {
+      switch (instr->GetPrefetchHint()) {
         case 0x0:  // PLD: prefetch for load.
         case 0x2:  // PST: prepare for store.
           AppendCodeRelativeDataAddressToOutput(instr, address);
@@ -4598,19 +4604,19 @@ int Disassembler::SubstituteLiteralField(const Instruction *instr,
 int Disassembler::SubstituteShiftField(const Instruction *instr,
                                        const char *format) {
   VIXL_ASSERT(format[0] == 'N');
-  VIXL_ASSERT(instr->ShiftDP() <= 0x3);
+  VIXL_ASSERT(instr->GetShiftDP() <= 0x3);
 
   switch (format[1]) {
     case 'D': {  // HDP.
-      VIXL_ASSERT(instr->ShiftDP() != ROR);
+      VIXL_ASSERT(instr->GetShiftDP() != ROR);
       VIXL_FALLTHROUGH();
     }
     case 'L': {  // HLo.
-      if (instr->ImmDPShift() != 0) {
+      if (instr->GetImmDPShift() != 0) {
         const char *shift_type[] = {"lsl", "lsr", "asr", "ror"};
         AppendToOutput(", %s #%" PRId32,
-                       shift_type[instr->ShiftDP()],
-                       instr->ImmDPShift());
+                       shift_type[instr->GetShiftDP()],
+                       instr->GetImmDPShift());
       }
       return 3;
     }
@@ -4643,14 +4649,14 @@ int Disassembler::SubstituteConditionField(const Instruction *instr,
   int cond;
   switch (format[1]) {
     case 'B':
-      cond = instr->ConditionBranch();
+      cond = instr->GetConditionBranch();
       break;
     case 'I': {
-      cond = InvertCondition(static_cast<Condition>(instr->Condition()));
+      cond = InvertCondition(static_cast<Condition>(instr->GetCondition()));
       break;
     }
     default:
-      cond = instr->Condition();
+      cond = instr->GetCondition();
   }
   AppendToOutput("%s", condition_code[cond]);
   return 4;
@@ -4662,7 +4668,7 @@ int Disassembler::SubstitutePCRelAddressField(const Instruction *instr,
   VIXL_ASSERT((strcmp(format, "AddrPCRelByte") == 0) ||  // Used by `adr`.
               (strcmp(format, "AddrPCRelPage") == 0));   // Used by `adrp`.
 
-  int64_t offset = instr->ImmPCRel();
+  int64_t offset = instr->GetImmPCRel();
 
   // Compute the target address based on the effective address (after applying
   // code_address_offset). This is required for correct behaviour of adrp.
@@ -4691,19 +4697,19 @@ int Disassembler::SubstituteBranchTargetField(const Instruction *instr,
   switch (format[5]) {
     // BImmUncn - unconditional branch immediate.
     case 'n':
-      offset = instr->ImmUncondBranch();
+      offset = instr->GetImmUncondBranch();
       break;
     // BImmCond - conditional branch immediate.
     case 'o':
-      offset = instr->ImmCondBranch();
+      offset = instr->GetImmCondBranch();
       break;
     // BImmCmpa - compare and branch immediate.
     case 'm':
-      offset = instr->ImmCmpBranch();
+      offset = instr->GetImmCmpBranch();
       break;
     // BImmTest - test and branch immediate.
     case 'e':
-      offset = instr->ImmTestBranch();
+      offset = instr->GetImmTestBranch();
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -4723,7 +4729,7 @@ int Disassembler::SubstituteBranchTargetField(const Instruction *instr,
 int Disassembler::SubstituteExtendField(const Instruction *instr,
                                         const char *format) {
   VIXL_ASSERT(strncmp(format, "Ext", 3) == 0);
-  VIXL_ASSERT(instr->ExtendMode() <= 7);
+  VIXL_ASSERT(instr->GetExtendMode() <= 7);
   USE(format);
 
   const char *extend_mode[] =
@@ -4731,16 +4737,16 @@ int Disassembler::SubstituteExtendField(const Instruction *instr,
 
   // If rd or rn is SP, uxtw on 32-bit registers and uxtx on 64-bit
   // registers becomes lsl.
-  if (((instr->Rd() == kZeroRegCode) || (instr->Rn() == kZeroRegCode)) &&
-      (((instr->ExtendMode() == UXTW) && (instr->SixtyFourBits() == 0)) ||
-       (instr->ExtendMode() == UXTX))) {
-    if (instr->ImmExtendShift() > 0) {
-      AppendToOutput(", lsl #%" PRId32, instr->ImmExtendShift());
+  if (((instr->GetRd() == kZeroRegCode) || (instr->GetRn() == kZeroRegCode)) &&
+      (((instr->GetExtendMode() == UXTW) && (instr->GetSixtyFourBits() == 0)) ||
+       (instr->GetExtendMode() == UXTX))) {
+    if (instr->GetImmExtendShift() > 0) {
+      AppendToOutput(", lsl #%" PRId32, instr->GetImmExtendShift());
     }
   } else {
-    AppendToOutput(", %s", extend_mode[instr->ExtendMode()]);
-    if (instr->ImmExtendShift() > 0) {
-      AppendToOutput(" #%" PRId32, instr->ImmExtendShift());
+    AppendToOutput(", %s", extend_mode[instr->GetExtendMode()]);
+    if (instr->GetImmExtendShift() > 0) {
+      AppendToOutput(" #%" PRId32, instr->GetImmExtendShift());
     }
   }
   return 3;
@@ -4760,11 +4766,11 @@ int Disassembler::SubstituteLSRegOffsetField(const Instruction *instr,
                                "sxtx"};
   USE(format);
 
-  unsigned shift = instr->ImmShiftLS();
-  Extend ext = static_cast<Extend>(instr->ExtendMode());
+  unsigned shift = instr->GetImmShiftLS();
+  Extend ext = static_cast<Extend>(instr->GetExtendMode());
   char reg_type = ((ext == UXTW) || (ext == SXTW)) ? 'w' : 'x';
 
-  unsigned rm = instr->Rm();
+  unsigned rm = instr->GetRm();
   if (rm == kZeroRegCode) {
     AppendToOutput("%czr", reg_type);
   } else {
@@ -4775,7 +4781,7 @@ int Disassembler::SubstituteLSRegOffsetField(const Instruction *instr,
   if (!((ext == UXTX) && (shift == 0))) {
     AppendToOutput(", %s", extend_mode[ext]);
     if (shift != 0) {
-      AppendToOutput(" #%d", instr->SizeLS());
+      AppendToOutput(" #%d", instr->GetSizeLS());
     }
   }
   return 9;
@@ -4790,13 +4796,13 @@ int Disassembler::SubstitutePrefetchField(const Instruction *instr,
   static const char *hints[] = {"ld", "li", "st"};
   static const char *stream_options[] = {"keep", "strm"};
 
-  unsigned hint = instr->PrefetchHint();
-  unsigned target = instr->PrefetchTarget() + 1;
-  unsigned stream = instr->PrefetchStream();
+  unsigned hint = instr->GetPrefetchHint();
+  unsigned target = instr->GetPrefetchTarget() + 1;
+  unsigned stream = instr->GetPrefetchStream();
 
   if ((hint >= (sizeof(hints) / sizeof(hints[0]))) || (target > 3)) {
     // Unallocated prefetch operations.
-    int prefetch_mode = instr->ImmPrefetchOperation();
+    int prefetch_mode = instr->GetImmPrefetchOperation();
     AppendToOutput("#0b%c%c%c%c%c",
                    (prefetch_mode & (1 << 4)) ? '1' : '0',
                    (prefetch_mode & (1 << 3)) ? '1' : '0',
@@ -4819,8 +4825,8 @@ int Disassembler::SubstituteBarrierField(const Instruction *instr,
                                       {"sy (0b0100)", "nshld", "nshst", "nsh"},
                                       {"sy (0b1000)", "ishld", "ishst", "ish"},
                                       {"sy (0b1100)", "ld", "st", "sy"}};
-  int domain = instr->ImmBarrierDomain();
-  int type = instr->ImmBarrierType();
+  int domain = instr->GetImmBarrierDomain();
+  int type = instr->GetImmBarrierType();
 
   AppendToOutput("%s", options[domain][type]);
   return 1;
@@ -4832,10 +4838,10 @@ int Disassembler::SubstituteSysOpField(const Instruction *instr,
   int op = -1;
   switch (format[1]) {
     case '1':
-      op = instr->SysOp1();
+      op = instr->GetSysOp1();
       break;
     case '2':
-      op = instr->SysOp2();
+      op = instr->GetSysOp2();
       break;
     default:
       VIXL_UNREACHABLE();
@@ -4850,10 +4856,10 @@ int Disassembler::SubstituteCrField(const Instruction *instr,
   int cr = -1;
   switch (format[1]) {
     case 'n':
-      cr = instr->CRn();
+      cr = instr->GetCRn();
       break;
     case 'm':
-      cr = instr->CRm();
+      cr = instr->GetCRm();
       break;
     default:
       VIXL_UNREACHABLE();
@@ -4879,12 +4885,25 @@ void Disassembler::AppendToOutput(const char *format, ...) {
 }
 
 
+void PrintDisassembler::DisassembleBuffer(const Instruction *start,
+                                          uint64_t size) {
+  Decoder decoder;
+  decoder.AppendVisitor(this);
+  const Instruction *instr_end = start + size;
+  for (const Instruction *instr = start; instr < instr_end;
+       instr += kInstructionSize) {
+    decoder.Decode(instr);
+  }
+}
+
+
 void PrintDisassembler::ProcessOutput(const Instruction *instr) {
   fprintf(stream_,
           "0x%016" PRIx64 "  %08" PRIx32 "\t\t%s\n",
           reinterpret_cast<uint64_t>(instr),
-          instr->InstructionBits(),
+          instr->GetInstructionBits(),
           GetOutput());
 }
 
+}  // namespace aarch64
 }  // namespace vixl

@@ -29,6 +29,7 @@
 #include "a64/cpu-a64.h"
 
 namespace vixl {
+namespace aarch64 {
 
 // Initialise to smallest possible cache size.
 unsigned CPU::dcache_line_size_ = 1;
@@ -64,7 +65,7 @@ uint32_t CPU::GetCacheType() {
   // Copy the content of the cache type register to a core register.
   __asm__ __volatile__("mrs %[ctr], ctr_el0"  // NOLINT
                        : [ctr] "=r"(cache_type_register));
-  VIXL_ASSERT(is_uint32(cache_type_register));
+  VIXL_ASSERT(IsUint32(cache_type_register));
   return cache_type_register;
 #else
   // This will lead to a cache with 1 byte long lines, which is fine since
@@ -173,4 +174,5 @@ void CPU::EnsureIAndDCacheCoherency(void *address, size_t length) {
 #endif
 }
 
+}  // namespace aarch64
 }  // namespace vixl

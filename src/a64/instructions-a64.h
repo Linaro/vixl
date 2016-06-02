@@ -33,6 +33,7 @@
 #include "a64/constants-a64.h"
 
 namespace vixl {
+namespace aarch64 {
 // ISA constants. --------------------------------------------------------------
 
 typedef uint32_t Instr;
@@ -92,7 +93,9 @@ const int64_t kXMaxInt = INT64_C(0x7fffffffffffffff);
 const int64_t kXMinInt = INT64_C(0x8000000000000000);
 const int32_t kWMaxInt = INT32_C(0x7fffffff);
 const int32_t kWMinInt = INT32_C(0x80000000);
+const unsigned kFpRegCode = 29;
 const unsigned kLinkRegCode = 30;
+const unsigned kSpRegCode = 31;
 const unsigned kZeroRegCode = 31;
 const unsigned kSPRegInternalCode = 63;
 const unsigned kRegCodeMask = 0x1f;
@@ -156,63 +159,105 @@ enum Reg31Mode { Reg31IsStackPointer, Reg31IsZeroRegister };
 
 class Instruction {
  public:
-  Instr InstructionBits() const {
+  Instr GetInstructionBits() const {
     return *(reinterpret_cast<const Instr*>(this));
+  }
+  VIXL_DEPRECATED("GetInstructionBits", Instr InstructionBits() const) {
+    return GetInstructionBits();
   }
 
   void SetInstructionBits(Instr new_instr) {
     *(reinterpret_cast<Instr*>(this)) = new_instr;
   }
 
-  int Bit(int pos) const { return (InstructionBits() >> pos) & 1; }
-
-  uint32_t Bits(int msb, int lsb) const {
-    return unsigned_bitextract_32(msb, lsb, InstructionBits());
+  int ExtractBit(int pos) const { return (GetInstructionBits() >> pos) & 1; }
+  VIXL_DEPRECATED("ExtractBit", int Bit(int pos) const) {
+    return ExtractBit(pos);
   }
 
-  int32_t SignedBits(int msb, int lsb) const {
+  uint32_t ExtractBits(int msb, int lsb) const {
+    return ExtractUnsignedBitfield32(msb, lsb, GetInstructionBits());
+  }
+  VIXL_DEPRECATED("ExtractBits", uint32_t Bits(int msb, int lsb) const) {
+    return ExtractBits(msb, lsb);
+  }
+
+  int32_t ExtractSignedBits(int msb, int lsb) const {
     int32_t bits = *(reinterpret_cast<const int32_t*>(this));
-    return signed_bitextract_32(msb, lsb, bits);
+    return ExtractSignedBitfield32(msb, lsb, bits);
+  }
+  VIXL_DEPRECATED("ExtractSignedBits",
+                  int32_t SignedBits(int msb, int lsb) const) {
+    return ExtractSignedBits(msb, lsb);
   }
 
-  Instr Mask(uint32_t mask) const { return InstructionBits() & mask; }
+  Instr Mask(uint32_t mask) const { return GetInstructionBits() & mask; }
 
-#define DEFINE_GETTER(Name, HighBit, LowBit, Func) \
-  int32_t Name() const { return Func(HighBit, LowBit); }
+#define DEFINE_GETTER(Name, HighBit, LowBit, Func)                  \
+  int32_t Get##Name() const { return this->Func(HighBit, LowBit); } \
+  VIXL_DEPRECATED("Get" #Name, int32_t Name() const) { return Get##Name(); }
   INSTRUCTION_FIELDS_LIST(DEFINE_GETTER)
 #undef DEFINE_GETTER
 
   // ImmPCRel is a compound field (not present in INSTRUCTION_FIELDS_LIST),
   // formed from ImmPCRelLo and ImmPCRelHi.
-  int ImmPCRel() const {
-    int offset =
-        static_cast<int>((ImmPCRelHi() << ImmPCRelLo_width) | ImmPCRelLo());
+  int GetImmPCRel() const {
+    int offset = static_cast<int>((GetImmPCRelHi() << ImmPCRelLo_width) |
+                                  GetImmPCRelLo());
     int width = ImmPCRelLo_width + ImmPCRelHi_width;
-    return signed_bitextract_32(width - 1, 0, offset);
+    return ExtractSignedBitfield32(width - 1, 0, offset);
+  }
+  VIXL_DEPRECATED("GetImmPCRel", int ImmPCRel() const) { return GetImmPCRel(); }
+
+  uint64_t GetImmLogical() const;
+  VIXL_DEPRECATED("GetImmLogical", uint64_t ImmLogical() const) {
+    return GetImmLogical();
   }
 
-  uint64_t ImmLogical() const;
-  unsigned ImmNEONabcdefgh() const;
-  float ImmFP32() const;
-  double ImmFP64() const;
-  float ImmNEONFP32() const;
-  double ImmNEONFP64() const;
+  unsigned GetImmNEONabcdefgh() const;
+  VIXL_DEPRECATED("GetImmNEONabcdefgh", unsigned ImmNEONabcdefgh() const) {
+    return GetImmNEONabcdefgh();
+  }
 
-  unsigned SizeLS() const {
+  float GetImmFP32() const;
+  VIXL_DEPRECATED("GetImmFP32", float ImmFP32() const) { return GetImmFP32(); }
+
+  double GetImmFP64() const;
+  VIXL_DEPRECATED("GetImmFP64", double ImmFP64() const) { return GetImmFP64(); }
+
+  float GetImmNEONFP32() const;
+  VIXL_DEPRECATED("GetImmNEONFP32", float ImmNEONFP32() const) {
+    return GetImmNEONFP32();
+  }
+
+  double GetImmNEONFP64() const;
+  VIXL_DEPRECATED("GetImmNEONFP64", double ImmNEONFP64() const) {
+    return GetImmNEONFP64();
+  }
+
+  unsigned GetSizeLS() const {
     return CalcLSDataSize(static_cast<LoadStoreOp>(Mask(LoadStoreMask)));
   }
+  VIXL_DEPRECATED("GetSizeLS", unsigned SizeLS() const) { return GetSizeLS(); }
 
-  unsigned SizeLSPair() const {
+  unsigned GetSizeLSPair() const {
     return CalcLSPairDataSize(
         static_cast<LoadStorePairOp>(Mask(LoadStorePairMask)));
   }
+  VIXL_DEPRECATED("GetSizeLSPair", unsigned SizeLSPair() const) {
+    return GetSizeLSPair();
+  }
 
-  int NEONLSIndex(int access_size_shift) const {
-    int64_t q = NEONQ();
-    int64_t s = NEONS();
-    int64_t size = NEONLSSize();
+  int GetNEONLSIndex(int access_size_shift) const {
+    int64_t q = GetNEONQ();
+    int64_t s = GetNEONS();
+    int64_t size = GetNEONLSSize();
     int64_t index = (q << 3) | (s << 2) | size;
     return static_cast<int>(index >> access_size_shift);
+  }
+  VIXL_DEPRECATED("GetNEONLSIndex",
+                  int NEONLSIndex(int access_size_shift) const) {
+    return GetNEONLSIndex(access_size_shift);
   }
 
   // Helpers.
@@ -230,7 +275,7 @@ class Instruction {
 
   bool IsTestBranch() const { return Mask(TestBranchFMask) == TestBranchFixed; }
 
-  bool IsImmBranch() const { return BranchType() != UnknownBranchType; }
+  bool IsImmBranch() const { return GetBranchType() != UnknownBranchType; }
 
   bool IsPCRelAddressing() const {
     return Mask(PCRelAddressingFMask) == PCRelAddressingFixed;
@@ -265,13 +310,25 @@ class Instruction {
            (Mask(MoveWideImmediateMask) == MOVN_w);
   }
 
-  static int ImmBranchRangeBitwidth(ImmBranchType branch_type);
-  static int32_t ImmBranchForwardRange(ImmBranchType branch_type);
+  static int GetImmBranchRangeBitwidth(ImmBranchType branch_type);
+  VIXL_DEPRECATED(
+      "GetImmBranchRangeBitwidth",
+      static int ImmBranchRangeBitwidth(ImmBranchType branch_type)) {
+    return GetImmBranchRangeBitwidth(branch_type);
+  }
+
+  static int32_t GetImmBranchForwardRange(ImmBranchType branch_type);
+  VIXL_DEPRECATED(
+      "GetImmBranchForwardRange",
+      static int32_t ImmBranchForwardRange(ImmBranchType branch_type)) {
+    return GetImmBranchForwardRange(branch_type);
+  }
+
   static bool IsValidImmPCOffset(ImmBranchType branch_type, int64_t offset);
 
   // Indicate whether Rd can be the stack pointer or the zero register. This
   // does not check that the instruction actually has an Rd field.
-  Reg31Mode RdMode() const {
+  Reg31Mode GetRdMode() const {
     // The following instructions use sp or wsp as Rd:
     //  Add/sub (immediate) when not setting the flags.
     //  Add/sub (extended) when not setting the flags.
@@ -297,10 +354,11 @@ class Instruction {
     }
     return Reg31IsZeroRegister;
   }
+  VIXL_DEPRECATED("GetRdMode", Reg31Mode RdMode() const) { return GetRdMode(); }
 
   // Indicate whether Rn can be the stack pointer or the zero register. This
   // does not check that the instruction actually has an Rn field.
-  Reg31Mode RnMode() const {
+  Reg31Mode GetRnMode() const {
     // The following instructions use sp or wsp as Rn:
     //  All loads and stores.
     //  Add/sub (immediate).
@@ -311,8 +369,9 @@ class Instruction {
     }
     return Reg31IsZeroRegister;
   }
+  VIXL_DEPRECATED("GetRnMode", Reg31Mode RnMode() const) { return GetRnMode(); }
 
-  ImmBranchType BranchType() const {
+  ImmBranchType GetBranchType() const {
     if (IsCondBranchImm()) {
       return CondBranchType;
     } else if (IsUncondBranchImm()) {
@@ -325,10 +384,17 @@ class Instruction {
       return UnknownBranchType;
     }
   }
+  VIXL_DEPRECATED("GetBranchType", ImmBranchType BranchType() const) {
+    return GetBranchType();
+  }
 
   // Find the target of this instruction. 'this' may be a branch or a
   // PC-relative addressing instruction.
-  const Instruction* ImmPCOffsetTarget() const;
+  const Instruction* GetImmPCOffsetTarget() const;
+  VIXL_DEPRECATED("GetImmPCOffsetTarget",
+                  const Instruction* ImmPCOffsetTarget() const) {
+    return GetImmPCOffsetTarget();
+  }
 
   // Patch a PC-relative offset to refer to 'target'. 'this' may be a branch or
   // a PC-relative addressing instruction.
@@ -349,9 +415,9 @@ class Instruction {
   // The literal itself is safely mutable only if the backing buffer is safely
   // mutable.
   template <typename T>
-  T LiteralAddress() const {
+  T GetLiteralAddress() const {
     uint64_t base_raw = reinterpret_cast<uint64_t>(this);
-    int64_t offset = ImmLLiteral() << kLiteralEntrySizeLog2;
+    int64_t offset = GetImmLLiteral() << kLiteralEntrySizeLog2;
     uint64_t address_raw = base_raw + offset;
 
     // Cast the address using a C-style cast. A reinterpret_cast would be
@@ -363,28 +429,55 @@ class Instruction {
 
     return address;
   }
+  template <typename T>
+  VIXL_DEPRECATED("GetLiteralAddress", T LiteralAddress() const) {
+    return GetLiteralAddress<T>();
+  }
 
-  uint32_t Literal32() const {
+  uint32_t GetLiteral32() const {
     uint32_t literal;
-    memcpy(&literal, LiteralAddress<const void*>(), sizeof(literal));
+    memcpy(&literal, GetLiteralAddress<const void*>(), sizeof(literal));
     return literal;
   }
+  VIXL_DEPRECATED("GetLiteral32", uint32_t Literal32() const) {
+    return GetLiteral32();
+  }
 
-  uint64_t Literal64() const {
+  uint64_t GetLiteral64() const {
     uint64_t literal;
-    memcpy(&literal, LiteralAddress<const void*>(), sizeof(literal));
+    memcpy(&literal, GetLiteralAddress<const void*>(), sizeof(literal));
     return literal;
   }
+  VIXL_DEPRECATED("GetLiteral64", uint64_t Literal64() const) {
+    return GetLiteral64();
+  }
 
-  float LiteralFP32() const { return rawbits_to_float(Literal32()); }
+  float GetLiteralFP32() const { return RawbitsToFloat(GetLiteral32()); }
+  VIXL_DEPRECATED("GetLiteralFP32", float LiteralFP32() const) {
+    return GetLiteralFP32();
+  }
 
-  double LiteralFP64() const { return rawbits_to_double(Literal64()); }
+  double GetLiteralFP64() const { return RawbitsToDouble(GetLiteral64()); }
+  VIXL_DEPRECATED("GetLiteralFP64", double LiteralFP64() const) {
+    return GetLiteralFP64();
+  }
 
-  const Instruction* NextInstruction() const { return this + kInstructionSize; }
+  const Instruction* GetNextInstruction() const {
+    return this + kInstructionSize;
+  }
+  VIXL_DEPRECATED("GetNextInstruction",
+                  const Instruction* NextInstruction() const) {
+    return GetNextInstruction();
+  }
 
-  const Instruction* InstructionAtOffset(int64_t offset) const {
+  const Instruction* GetInstructionAtOffset(int64_t offset) const {
     VIXL_ASSERT(IsWordAligned(this + offset));
     return this + offset;
+  }
+  VIXL_DEPRECATED("GetInstructionAtOffset",
+                  const Instruction* InstructionAtOffset(int64_t offset)
+                      const) {
+    return GetInstructionAtOffset(offset);
   }
 
   template <typename T>
@@ -398,7 +491,7 @@ class Instruction {
   }
 
  private:
-  int ImmBranch() const;
+  int GetImmBranch() const;
 
   static float Imm8ToFP32(uint32_t imm8);
   static double Imm8ToFP64(uint32_t imm8);
@@ -488,24 +581,24 @@ class NEONFormatDecoder {
   // subsitution. If no format map is specified, the default is the integer
   // format map.
   explicit NEONFormatDecoder(const Instruction* instr) {
-    instrbits_ = instr->InstructionBits();
+    instrbits_ = instr->GetInstructionBits();
     SetFormatMaps(IntegerFormatMap());
   }
   NEONFormatDecoder(const Instruction* instr, const NEONFormatMap* format) {
-    instrbits_ = instr->InstructionBits();
+    instrbits_ = instr->GetInstructionBits();
     SetFormatMaps(format);
   }
   NEONFormatDecoder(const Instruction* instr,
                     const NEONFormatMap* format0,
                     const NEONFormatMap* format1) {
-    instrbits_ = instr->InstructionBits();
+    instrbits_ = instr->GetInstructionBits();
     SetFormatMaps(format0, format1);
   }
   NEONFormatDecoder(const Instruction* instr,
                     const NEONFormatMap* format0,
                     const NEONFormatMap* format1,
                     const NEONFormatMap* format2) {
-    instrbits_ = instr->InstructionBits();
+    instrbits_ = instr->GetInstructionBits();
     SetFormatMaps(format0, format1, format2);
   }
 
@@ -769,6 +862,7 @@ class NEONFormatDecoder {
   char form_buffer_[64];
   char mne_buffer_[16];
 };
+}  // namespace aarch64
 }  // namespace vixl
 
 #endif  // VIXL_A64_INSTRUCTIONS_A64_H_

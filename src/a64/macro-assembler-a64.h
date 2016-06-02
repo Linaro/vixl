@@ -56,6 +56,7 @@
   V(Ldpsw, CPURegister&, rt, rt2, LDPSW_x)
 
 namespace vixl {
+namespace aarch64 {
 
 // Forward declaration
 class MacroAssembler;
@@ -80,7 +81,10 @@ class Pool {
   static const ptrdiff_t kNoCheckpointRequired = PTRDIFF_MAX;
 
   void SetNextCheckpoint(ptrdiff_t checkpoint);
-  ptrdiff_t checkpoint() const { return checkpoint_; }
+  ptrdiff_t GetCheckpoint() const { return checkpoint_; }
+  VIXL_DEPRECATED("GetCheckpoint", ptrdiff_t checkpoint() const) {
+    return GetCheckpoint();
+  }
 
   enum EmitOption { kBranchRequired, kNoBranchRequired };
 
@@ -102,15 +106,26 @@ class LiteralPool : public Pool {
 
   void AddEntry(RawLiteral* literal);
   bool IsEmpty() const { return entries_.empty(); }
-  size_t Size() const;
-  size_t MaxSize() const;
-  size_t OtherPoolsMaxSize() const;
+  size_t GetSize() const;
+  VIXL_DEPRECATED("GetSize", size_t Size() const) { return GetSize(); }
+
+  size_t GetMaxSize() const;
+  VIXL_DEPRECATED("GetMaxSize", size_t MaxSize() const) { return GetMaxSize(); }
+
+  size_t GetOtherPoolsMaxSize() const;
+  VIXL_DEPRECATED("GetOtherPoolsMaxSize", size_t OtherPoolsMaxSize() const) {
+    return GetOtherPoolsMaxSize();
+  }
 
   void CheckEmitFor(size_t amount, EmitOption option = kBranchRequired);
   void Emit(EmitOption option = kNoBranchRequired);
 
   void SetNextRecommendedCheckpoint(ptrdiff_t offset);
-  ptrdiff_t NextRecommendedCheckpoint();
+  ptrdiff_t GetNextRecommendedCheckpoint();
+  VIXL_DEPRECATED("GetNextRecommendedCheckpoint",
+                  ptrdiff_t NextRecommendedCheckpoint()) {
+    return GetNextRecommendedCheckpoint();
+  }
 
   void UpdateFirstUse(ptrdiff_t use_position);
 
@@ -136,19 +151,19 @@ class LiteralPool : public Pool {
 };
 
 
-inline size_t LiteralPool::Size() const {
+inline size_t LiteralPool::GetSize() const {
   // Account for the pool header.
   return size_ + kInstructionSize;
 }
 
 
-inline size_t LiteralPool::MaxSize() const {
+inline size_t LiteralPool::GetMaxSize() const {
   // Account for the potential branch over the pool.
-  return Size() + kInstructionSize;
+  return GetSize() + kInstructionSize;
 }
 
 
-inline ptrdiff_t LiteralPool::NextRecommendedCheckpoint() {
+inline ptrdiff_t LiteralPool::GetNextRecommendedCheckpoint() {
   return first_use_ + kRecommendedLiteralPoolRange;
 }
 
@@ -162,7 +177,7 @@ class VeneerPool : public Pool {
   void Block() { monitor_++; }
   void Release();
   bool IsBlocked() const { return monitor_ != 0; }
-  bool IsEmpty() const { return unresolved_branches_.empty(); }
+  bool IsEmpty() const { return unresolved_branches_.IsEmpty(); }
 
   class BranchInfo {
    public:
@@ -174,7 +189,7 @@ class VeneerPool : public Pool {
     BranchInfo(ptrdiff_t offset, Label* label, ImmBranchType branch_type)
         : pc_offset_(offset), label_(label), branch_type_(branch_type) {
       max_reachable_pc_ =
-          pc_offset_ + Instruction::ImmBranchForwardRange(branch_type_);
+          pc_offset_ + Instruction::GetImmBranchForwardRange(branch_type_);
     }
 
     static bool IsValidComparison(const BranchInfo& branch_1,
@@ -232,7 +247,7 @@ class VeneerPool : public Pool {
 
   bool ShouldEmitVeneer(int64_t max_reachable_pc, size_t amount);
   bool ShouldEmitVeneers(size_t amount) {
-    return ShouldEmitVeneer(unresolved_branches_.FirstLimit(), amount);
+    return ShouldEmitVeneer(unresolved_branches_.GetFirstLimit(), amount);
   }
 
   void CheckEmitFor(size_t amount, EmitOption option = kBranchRequired);
@@ -247,18 +262,26 @@ class VeneerPool : public Pool {
   // over the pool.
   static const int kPoolNonVeneerCodeSize = 1 * kInstructionSize;
 
-  void UpdateNextCheckPoint() { SetNextCheckpoint(NextCheckPoint()); }
+  void UpdateNextCheckPoint() { SetNextCheckpoint(GetNextCheckPoint()); }
 
-  int NumberOfPotentialVeneers() const {
-    return static_cast<int>(unresolved_branches_.size());
+  int GetNumberOfPotentialVeneers() const {
+    return static_cast<int>(unresolved_branches_.GetSize());
+  }
+  VIXL_DEPRECATED("GetNumberOfPotentialVeneers",
+                  int NumberOfPotentialVeneers() const) {
+    return GetNumberOfPotentialVeneers();
   }
 
-  size_t MaxSize() const {
+  size_t GetMaxSize() const {
     return kPoolNonVeneerCodeSize +
-           unresolved_branches_.size() * kVeneerCodeSize;
+           unresolved_branches_.GetSize() * kVeneerCodeSize;
   }
+  VIXL_DEPRECATED("GetMaxSize", size_t MaxSize() const) { return GetMaxSize(); }
 
-  size_t OtherPoolsMaxSize() const;
+  size_t GetOtherPoolsMaxSize() const;
+  VIXL_DEPRECATED("GetOtherPoolsMaxSize", size_t OtherPoolsMaxSize() const) {
+    return GetOtherPoolsMaxSize();
+  }
 
   static const int kNPreallocatedInfos = 4;
   static const ptrdiff_t kInvalidOffset = PTRDIFF_MAX;
@@ -278,11 +301,14 @@ class VeneerPool : public Pool {
    public:
     BranchInfoTypedSet() : BranchInfoTypedSetBase() {}
 
-    ptrdiff_t FirstLimit() {
+    ptrdiff_t GetFirstLimit() {
       if (empty()) {
         return kInvalidOffset;
       }
       return GetMinElementKey();
+    }
+    VIXL_DEPRECATED("GetFirstLimit", ptrdiff_t FirstLimit()) {
+      return GetFirstLimit();
     }
   };
 
@@ -313,15 +339,16 @@ class VeneerPool : public Pool {
       }
     }
 
-    size_t size() const {
+    size_t GetSize() const {
       size_t res = 0;
       for (int i = 0; i < kNumberOfTrackedBranchTypes; i++) {
         res += typed_set_[i].size();
       }
       return res;
     }
+    VIXL_DEPRECATED("GetSize", size_t size() const) { return GetSize(); }
 
-    bool empty() const {
+    bool IsEmpty() const {
       for (int i = 0; i < kNumberOfTrackedBranchTypes; i++) {
         if (!typed_set_[i].empty()) {
           return false;
@@ -329,13 +356,17 @@ class VeneerPool : public Pool {
       }
       return true;
     }
+    VIXL_DEPRECATED("IsEmpty", bool empty() const) { return IsEmpty(); }
 
-    ptrdiff_t FirstLimit() {
+    ptrdiff_t GetFirstLimit() {
       ptrdiff_t res = kInvalidOffset;
       for (int i = 0; i < kNumberOfTrackedBranchTypes; i++) {
-        res = std::min(res, typed_set_[i].FirstLimit());
+        res = std::min(res, typed_set_[i].GetFirstLimit());
       }
       return res;
+    }
+    VIXL_DEPRECATED("GetFirstLimit", ptrdiff_t FirstLimit()) {
+      return GetFirstLimit();
     }
 
     void Reset() {
@@ -447,42 +478,20 @@ class VeneerPool : public Pool {
         sub_iterator_[BranchInfoSet::kNumberOfTrackedBranchTypes];
   };
 
-  ptrdiff_t NextCheckPoint() {
-    if (unresolved_branches_.empty()) {
+  ptrdiff_t GetNextCheckPoint() {
+    if (unresolved_branches_.IsEmpty()) {
       return kNoCheckpointRequired;
     } else {
-      return unresolved_branches_.FirstLimit();
+      return unresolved_branches_.GetFirstLimit();
     }
+  }
+  VIXL_DEPRECATED("GetNextCheckPoint", ptrdiff_t NextCheckPoint()) {
+    return GetNextCheckPoint();
   }
 
   // Information about unresolved (forward) branches.
   BranchInfoSet unresolved_branches_;
 };
-
-
-// Required InvalSet template specialisations.
-template <>
-inline ptrdiff_t
-InvalSet<VeneerPool::BranchInfo,
-         VeneerPool::kNPreallocatedInfos,
-         ptrdiff_t,
-         VeneerPool::kInvalidOffset,
-         VeneerPool::kReclaimFrom,
-         VeneerPool::kReclaimFactor>::GetKey(const VeneerPool::BranchInfo&
-                                                 branch_info) {
-  return branch_info.max_reachable_pc_;
-}
-template <>
-inline void InvalSet<VeneerPool::BranchInfo,
-                     VeneerPool::kNPreallocatedInfos,
-                     ptrdiff_t,
-                     VeneerPool::kInvalidOffset,
-                     VeneerPool::kReclaimFrom,
-                     VeneerPool::kReclaimFactor>::SetKey(VeneerPool::BranchInfo*
-                                                             branch_info,
-                                                         ptrdiff_t key) {
-  branch_info->max_reachable_pc_ = key;
-}
 
 
 // This scope has the following purposes:
@@ -666,7 +675,7 @@ class MacroAssembler : public Assembler {
            const Operand& operand,
            DiscardMoveMode discard_mode = kDontDiscardForSameWReg);
   void Mvn(const Register& rd, uint64_t imm) {
-    Mov(rd, (rd.size() == kXRegSize) ? ~imm : (~imm & kWRegMask));
+    Mov(rd, (rd.GetSizeInBits() == kXRegSize) ? ~imm : (~imm & kWRegMask));
   }
   void Mvn(const Register& rd, const Operand& operand);
 
@@ -1508,7 +1517,7 @@ class MacroAssembler : public Assembler {
                                       RawLiteral::kDeletedOnPlacementByPool);
     } else {
       VIXL_ASSERT(rt.Is32Bits());
-      VIXL_ASSERT(is_uint32(imm) || is_int32(imm));
+      VIXL_ASSERT(IsUint32(imm) || IsInt32(imm));
       literal = new Literal<uint32_t>(static_cast<uint32_t>(imm),
                                       &literal_pool_,
                                       RawLiteral::kDeletedOnPlacementByPool);
@@ -1821,7 +1830,7 @@ class MacroAssembler : public Assembler {
              const Register& rt2,
              const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
     VIXL_ASSERT(!rs.Aliases(rt));
     VIXL_ASSERT(!rs.Aliases(rt2));
     SingleEmissionCheckScope guard(this);
@@ -1829,21 +1838,21 @@ class MacroAssembler : public Assembler {
   }
   void Stlxr(const Register& rs, const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
     VIXL_ASSERT(!rs.Aliases(rt));
     SingleEmissionCheckScope guard(this);
     stlxr(rs, rt, dst);
   }
   void Stlxrb(const Register& rs, const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
     VIXL_ASSERT(!rs.Aliases(rt));
     SingleEmissionCheckScope guard(this);
     stlxrb(rs, rt, dst);
   }
   void Stlxrh(const Register& rs, const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
     VIXL_ASSERT(!rs.Aliases(rt));
     SingleEmissionCheckScope guard(this);
     stlxrh(rs, rt, dst);
@@ -1860,7 +1869,7 @@ class MacroAssembler : public Assembler {
             const Register& rt2,
             const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
     VIXL_ASSERT(!rs.Aliases(rt));
     VIXL_ASSERT(!rs.Aliases(rt2));
     SingleEmissionCheckScope guard(this);
@@ -1868,21 +1877,21 @@ class MacroAssembler : public Assembler {
   }
   void Stxr(const Register& rs, const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
     VIXL_ASSERT(!rs.Aliases(rt));
     SingleEmissionCheckScope guard(this);
     stxr(rs, rt, dst);
   }
   void Stxrb(const Register& rs, const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
     VIXL_ASSERT(!rs.Aliases(rt));
     SingleEmissionCheckScope guard(this);
     stxrb(rs, rt, dst);
   }
   void Stxrh(const Register& rs, const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.base()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
     VIXL_ASSERT(!rs.Aliases(rt));
     SingleEmissionCheckScope guard(this);
     stxrh(rs, rt, dst);
@@ -2850,35 +2859,52 @@ class MacroAssembler : public Assembler {
     ReleaseVeneerPool();
   }
 
-  size_t LiteralPoolSize() const { return literal_pool_.Size(); }
-
-  size_t LiteralPoolMaxSize() const { return literal_pool_.MaxSize(); }
-
-  size_t VeneerPoolMaxSize() const { return veneer_pool_.MaxSize(); }
-
-  // The number of unresolved branches that may require a veneer.
-  int NumberOfPotentialVeneers() const {
-    return veneer_pool_.NumberOfPotentialVeneers();
+  size_t GetLiteralPoolSize() const { return literal_pool_.GetSize(); }
+  VIXL_DEPRECATED("GetLiteralPoolSize", size_t LiteralPoolSize() const) {
+    return GetLiteralPoolSize();
   }
 
-  ptrdiff_t NextCheckPoint() {
+  size_t GetLiteralPoolMaxSize() const { return literal_pool_.GetMaxSize(); }
+  VIXL_DEPRECATED("GetLiteralPoolMaxSize", size_t LiteralPoolMaxSize() const) {
+    return GetLiteralPoolMaxSize();
+  }
+
+  size_t GetVeneerPoolMaxSize() const { return veneer_pool_.GetMaxSize(); }
+  VIXL_DEPRECATED("GetVeneerPoolMaxSize", size_t VeneerPoolMaxSize() const) {
+    return GetVeneerPoolMaxSize();
+  }
+
+  // The number of unresolved branches that may require a veneer.
+  int GetNumberOfPotentialVeneers() const {
+    return veneer_pool_.GetNumberOfPotentialVeneers();
+  }
+  VIXL_DEPRECATED("GetNumberOfPotentialVeneers",
+                  int NumberOfPotentialVeneers() const) {
+    return GetNumberOfPotentialVeneers();
+  }
+
+  ptrdiff_t GetNextCheckPoint() const {
     ptrdiff_t next_checkpoint_for_pools =
-        std::min(literal_pool_.checkpoint(), veneer_pool_.checkpoint());
-    return std::min(next_checkpoint_for_pools, BufferEndOffset());
+        std::min(literal_pool_.GetCheckpoint(), veneer_pool_.GetCheckpoint());
+    return std::min(next_checkpoint_for_pools, GetBufferEndOffset());
+  }
+  VIXL_DEPRECATED("GetNextCheckPoint", ptrdiff_t NextCheckPoint()) {
+    return GetNextCheckPoint();
   }
 
   void EmitLiteralPool(LiteralPool::EmitOption option) {
     if (!literal_pool_.IsEmpty()) literal_pool_.Emit(option);
 
-    checkpoint_ = NextCheckPoint();
-    recommended_checkpoint_ = literal_pool_.NextRecommendedCheckpoint();
+    checkpoint_ = GetNextCheckPoint();
+    recommended_checkpoint_ = literal_pool_.GetNextRecommendedCheckpoint();
   }
 
   void CheckEmitFor(size_t amount);
   void EnsureEmitFor(size_t amount) {
     ptrdiff_t offset = amount;
-    ptrdiff_t max_pools_size = literal_pool_.MaxSize() + veneer_pool_.MaxSize();
-    ptrdiff_t cursor = CursorOffset();
+    ptrdiff_t max_pools_size =
+        literal_pool_.GetMaxSize() + veneer_pool_.GetMaxSize();
+    ptrdiff_t cursor = GetCursorOffset();
     if ((cursor >= recommended_checkpoint_) ||
         ((cursor + offset + max_pools_size) >= checkpoint_)) {
       CheckEmitFor(amount);
@@ -2887,15 +2913,22 @@ class MacroAssembler : public Assembler {
 
   // Set the current stack pointer, but don't generate any code.
   void SetStackPointer(const Register& stack_pointer) {
-    VIXL_ASSERT(!TmpList()->IncludesAliasOf(stack_pointer));
+    VIXL_ASSERT(!GetScratchRegisterList()->IncludesAliasOf(stack_pointer));
     sp_ = stack_pointer;
   }
 
   // Return the current stack pointer, as set by SetStackPointer.
   const Register& StackPointer() const { return sp_; }
 
-  CPURegList* TmpList() { return &tmp_list_; }
-  CPURegList* FPTmpList() { return &fptmp_list_; }
+  CPURegList* GetScratchRegisterList() { return &tmp_list_; }
+  VIXL_DEPRECATED("GetScratchRegisterList", CPURegList* TmpList()) {
+    return GetScratchRegisterList();
+  }
+
+  CPURegList* GetScratchFPRegisterList() { return &fptmp_list_; }
+  VIXL_DEPRECATED("GetScratchFPRegisterList", CPURegList* FPTmpList()) {
+    return GetScratchFPRegisterList();
+  }
 
   // Like printf, but print at run-time from generated code.
   //
@@ -3052,7 +3085,8 @@ class MacroAssembler : public Assembler {
 
   bool LabelIsOutOfRange(Label* label, ImmBranchType branch_type) {
     return !Instruction::IsValidImmPCOffset(branch_type,
-                                            label->location() - CursorOffset());
+                                            label->GetLocation() -
+                                                GetCursorOffset());
   }
 
 #ifdef VIXL_DEBUG
@@ -3083,13 +3117,13 @@ class MacroAssembler : public Assembler {
 };
 
 
-inline size_t VeneerPool::OtherPoolsMaxSize() const {
-  return masm_->LiteralPoolMaxSize();
+inline size_t VeneerPool::GetOtherPoolsMaxSize() const {
+  return masm_->GetLiteralPoolMaxSize();
 }
 
 
-inline size_t LiteralPool::OtherPoolsMaxSize() const {
-  return masm_->VeneerPoolMaxSize();
+inline size_t LiteralPool::GetOtherPoolsMaxSize() const {
+  return masm_->GetVeneerPoolMaxSize();
 }
 
 
@@ -3170,9 +3204,9 @@ class BlockPoolsScope {
 
 
 // This scope utility allows scratch registers to be managed safely. The
-// MacroAssembler's TmpList() (and FPTmpList()) is used as a pool of scratch
-// registers. These registers can be allocated on demand, and will be returned
-// at the end of the scope.
+// MacroAssembler's GetScratchRegisterList() (and GetScratchFPRegisterList()) is
+// used as a pool of scratch registers. These registers can be allocated on
+// demand, and will be returned at the end of the scope.
 //
 // When the scope ends, the MacroAssembler's lists will be restored to their
 // original state, even if the lists were modified by some other means.
@@ -3281,6 +3315,33 @@ class UseScratchRegisterScope {
   }
 };
 
+
+}  // namespace aarch64
+
+// Required InvalSet template specialisations.
+// TODO: These template specialisations should not live in this file.  Move
+// VeneerPool out of the aarch64 namespace in order to share its implementation
+// later.
+template <>
+inline ptrdiff_t InvalSet<aarch64::VeneerPool::BranchInfo,
+                          aarch64::VeneerPool::kNPreallocatedInfos,
+                          ptrdiff_t,
+                          aarch64::VeneerPool::kInvalidOffset,
+                          aarch64::VeneerPool::kReclaimFrom,
+                          aarch64::VeneerPool::kReclaimFactor>::
+    GetKey(const aarch64::VeneerPool::BranchInfo& branch_info) {
+  return branch_info.max_reachable_pc_;
+}
+template <>
+inline void InvalSet<aarch64::VeneerPool::BranchInfo,
+                     aarch64::VeneerPool::kNPreallocatedInfos,
+                     ptrdiff_t,
+                     aarch64::VeneerPool::kInvalidOffset,
+                     aarch64::VeneerPool::kReclaimFrom,
+                     aarch64::VeneerPool::kReclaimFactor>::
+    SetKey(aarch64::VeneerPool::BranchInfo* branch_info, ptrdiff_t key) {
+  branch_info->max_reachable_pc_ = key;
+}
 
 }  // namespace vixl
 
