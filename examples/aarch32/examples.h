@@ -93,7 +93,7 @@ void GenerateAbs(MacroAssembler* masm);
 // Generate a function with the following prototype:
 //   uint32_t demo_function(uint32_t x)
 //
-// This is the example used in doc/getting-started-a32.txt
+// This is the example used in doc/getting-started-aarch32.md
 void GenerateDemo(MacroAssembler* masm);
 
 #endif  // VIXL_EXAMPLE_EXAMPLES_H_

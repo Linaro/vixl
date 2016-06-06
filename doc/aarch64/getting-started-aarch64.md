@@ -197,3 +197,11 @@ The example shown in this tutorial is very simple, because the goal was to
 demonstrate the basics of the VIXL framework. There are more complex code
 examples in the VIXL `examples/aarch64` directory showing more features of both the
 macro assembler and the ARMv8 architecture.
+
+
+Extras
+------
+
+In addition to this document and the [examples](/examples/aarch64), you can find
+documentation and guides on various topics that may be helpful
+[here](/doc/aarch64/topics/index.md).
