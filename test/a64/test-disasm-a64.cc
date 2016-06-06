@@ -2277,25 +2277,25 @@ TEST(cond_select_macro) {
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
-  COMPARE_MACRO(Csel(w13,     0,     1, eq), "cset w13, eq");
+  COMPARE_MACRO(Csel(w13,     0,     1, eq), "cset w13, ne");
   MacroAssembler::GetCselSynthesisInformation(w13, 0, 1,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
-  COMPARE_MACRO(Csel(x14,     1,     0, eq), "cset x14, ne");
+  COMPARE_MACRO(Csel(x14,     1,     0, eq), "cset x14, eq");
   MacroAssembler::GetCselSynthesisInformation(x14, 1, 0,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
-  COMPARE_MACRO(Csel(w15,     0,    -1, eq), "csetm w15, eq");
+  COMPARE_MACRO(Csel(w15,     0,    -1, eq), "csetm w15, ne");
   MacroAssembler::GetCselSynthesisInformation(w15, 0, -1,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
-  COMPARE_MACRO(Csel(x18,    -1,     0, eq), "csetm x18, ne");
+  COMPARE_MACRO(Csel(x18,    -1,     0, eq), "csetm x18, eq");
   MacroAssembler::GetCselSynthesisInformation(x18, -1, 0,
                                               &synthesises_left,
                                               &synthesises_right);
@@ -2361,7 +2361,7 @@ TEST(cond_select_macro) {
 
   // Test with `Operand` inputs.
   COMPARE_MACRO(Csel(x0, x1, Operand(x2, LSL, 3), eq), "lsl x16, x2, #3\n"
-                                                        "csel x0, x1, x16, eq");
+                                                       "csel x0, x1, x16, eq");
   MacroAssembler::GetCselSynthesisInformation(x0, x1,  Operand(x2, LSL, 3),
                                               &synthesises_left,
                                               &synthesises_right);
@@ -2432,7 +2432,7 @@ TEST(cond_select_macro) {
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
-  COMPARE_MACRO(Csel(w25, wzr, 1, eq), "cset w25, eq");
+  COMPARE_MACRO(Csel(w25, wzr, 1, eq), "cset w25, ne");
   MacroAssembler::GetCselSynthesisInformation(w25, wzr, 1,
                                               &synthesises_left,
                                               &synthesises_right);
