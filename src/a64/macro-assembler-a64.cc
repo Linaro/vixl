@@ -1283,12 +1283,11 @@ bool MacroAssembler::CselSubHelperTwoOrderedImmediates(MacroAssembler* masm,
                                                        Condition cond) {
   bool emit_code = (masm != NULL);
 
-  if ((left == 0) && (right == 1)) {
+  if ((left == 1) && (right == 0)) {
     if (emit_code) masm->cset(rd, cond);
     return true;
-  } else if ((left == 0) && (right == -1)) {
-    Register zr = AppropriateZeroRegFor(rd);
-    if (emit_code) masm->csinv(rd, zr, zr, InvertCondition(cond));
+  } else if ((left == -1) && (right == 0)) {
+    if (emit_code) masm->csetm(rd, cond);
     return true;
   }
   return false;

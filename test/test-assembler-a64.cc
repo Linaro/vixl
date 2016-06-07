@@ -8619,7 +8619,7 @@ TEST(ccmp_shift_extend) {
 }
 
 
-TEST(csel) {
+TEST(csel_reg) {
   SETUP();
   ALLOW_ASM();
 
@@ -8681,6 +8681,40 @@ TEST(csel) {
 
 
 TEST(csel_imm) {
+  SETUP();
+
+  int values[] = {-123, -2, -1, 0, 1, 2, 123};
+  int n_values = sizeof(values) / sizeof(values[0]);
+
+  for (int i = 0; i < n_values; i++) {
+    for (int j = 0; j < n_values; j++) {
+      int left = values[i];
+      int right = values[j];
+
+      START();
+      __ Mov(x10, 0);
+      __ Cmp(x10, 0);
+      __ Csel(w0, left, right, eq);
+      __ Csel(w1, left, right, ne);
+      __ Csel(x2, left, right, eq);
+      __ Csel(x3, left, right, ne);
+
+      END();
+
+      RUN();
+
+      ASSERT_EQUAL_32(left, w0);
+      ASSERT_EQUAL_32(right, w1);
+      ASSERT_EQUAL_64(left, x2);
+      ASSERT_EQUAL_64(right, x3);
+    }
+  }
+
+  TEARDOWN();
+}
+
+
+TEST(csel_mixed) {
   SETUP();
 
   START();
