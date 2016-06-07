@@ -366,6 +366,26 @@ static void GenerateTestSequenceBase(MacroAssembler* masm) {
   __ uxth(x6, x7);
   __ uxtw(w8, w9);
   __ uxtw(x10, x11);
+
+  // Branch tests.
+  {
+    Label end;
+    // Branch to the next instruction.
+    __ b(&end);
+    __ bind(&end);
+  }
+  {
+    Label loop, end;
+    __ subs(x3, x3, x3);
+    __ bind(&loop);
+    // Not-taken branch (the first time).
+    // Taken branch (the second time).
+    __ b(&end, ne);
+    __ cmp(x3, 1);
+    // Backwards branch.
+    __ b(&loop);
+    __ bind(&end);
+  }
 }
 
 
@@ -2543,7 +2563,10 @@ static void MaskAddresses(const char* trace) {
       // Mask accessed memory addresses.
       {"((<-|->) " COLOUR "0x)[0-9a-f]{16}", ESCAPE(1) "~~~~~~~~~~~~~~~~"},
       // Mask instruction addresses.
-      {"^0x[0-9a-f]{16}", "0x~~~~~~~~~~~~~~~~"}
+      {"^0x[0-9a-f]{16}", "0x~~~~~~~~~~~~~~~~"},
+      // Mask branch targets.
+      {"(Branch" COLOUR " to 0x)[0-9a-f]{16}", ESCAPE(1) "~~~~~~~~~~~~~~~~"},
+      {"addr 0x[0-9a-f]+", "addr 0x~~~~~~~~~~~~~~~~"}
   };
   const size_t patterns_length = sizeof(patterns) / sizeof(patterns[0]);
   // Rewrite `trace`, masking addresses and other values that legitimately vary
@@ -2679,6 +2702,9 @@ TEST(sysregs) {
 TEST(write) {
   TraceTestHelper(false, LOG_WRITE, REF("log-write"));
 }
+TEST(branch) {
+  TraceTestHelper(false, LOG_WRITE, REF("log-branch"));
+}
 
 // Test standard combinations.
 TEST(none) {
@@ -2707,6 +2733,9 @@ TEST(sysregs_colour) {
 }
 TEST(write_colour) {
   TraceTestHelper(true, LOG_WRITE, REF("log-write-colour"));
+}
+TEST(branch_colour) {
+  TraceTestHelper(true, LOG_WRITE, REF("log-branch-colour"));
 }
 
 // Test standard combinations (with colour).

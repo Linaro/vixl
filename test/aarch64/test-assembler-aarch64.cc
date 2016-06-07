@@ -130,14 +130,15 @@ namespace aarch64 {
   masm.Reset();                                                                \
   simulator->ResetState();                                                     \
   __ PushCalleeSavedRegisters();                                               \
-  if (Test::trace_reg()) {                                                     \
-    __ Trace(LOG_STATE, TRACE_ENABLE);                                         \
-  }                                                                            \
-  if (Test::trace_write()) {                                                   \
-    __ Trace(LOG_WRITE, TRACE_ENABLE);                                         \
-  }                                                                            \
-  if (Test::trace_sim()) {                                                     \
-    __ Trace(LOG_DISASM, TRACE_ENABLE);                                        \
+  {                                                                            \
+    int trace_parameters = 0;                                                  \
+    if (Test::trace_reg()) trace_parameters |= LOG_STATE;                      \
+    if (Test::trace_write()) trace_parameters |= LOG_WRITE;                    \
+    if (Test::trace_sim()) trace_parameters |= LOG_DISASM;                     \
+    if (Test::trace_branch()) trace_parameters |= LOG_BRANCH;                  \
+    if (trace_parameters != 0) {                                               \
+      __ Trace(static_cast<TraceParameters>(trace_parameters), TRACE_ENABLE);  \
+    }                                                                          \
   }                                                                            \
   if (Test::instruction_stats()) {                                             \
     __ EnableInstrumentation();                                                \

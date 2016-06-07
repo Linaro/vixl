@@ -154,7 +154,7 @@ void Simulator::Run() {
 
 
 void Simulator::RunFrom(const Instruction* first) {
-  WritePc(first);
+  WritePc(first, NoBranchLog);
   Run();
 }
 
@@ -235,6 +235,7 @@ const char* Simulator::VRegNameForCode(unsigned code) {
 
 #define COLOUR(colour_code) "\033[0;" colour_code "m"
 #define COLOUR_BOLD(colour_code) "\033[1;" colour_code "m"
+#define COLOUR_HIGHLIGHT "\033[43m"
 #define NORMAL ""
 #define GREY "30"
 #define RED "31"
@@ -258,6 +259,7 @@ void Simulator::SetColouredTrace(bool value) {
   clr_warning = value ? COLOUR_BOLD(YELLOW) : "";
   clr_warning_message = value ? COLOUR(YELLOW) : "";
   clr_printf = value ? COLOUR(GREEN) : "";
+  clr_branch_marker = value ? COLOUR(GREY) COLOUR_HIGHLIGHT : "";
 }
 
 
@@ -955,6 +957,15 @@ void Simulator::PrintVWrite(uintptr_t address,
           clr_memory_address,
           address,
           clr_normal);
+}
+
+
+void Simulator::PrintTakenBranch(const Instruction* target) {
+  fprintf(stream_,
+          "# %sBranch%s to 0x%016" PRIx64 ".\n",
+          clr_branch_marker,
+          clr_normal,
+          reinterpret_cast<uint64_t>(target));
 }
 
 

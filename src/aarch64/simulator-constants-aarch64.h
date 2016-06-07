@@ -118,10 +118,11 @@ enum TraceParameters {
   LOG_VREGS = 1 << 2,    // Log NEON and floating-point registers.
   LOG_SYSREGS = 1 << 3,  // Log the flags and system registers.
   LOG_WRITE = 1 << 4,    // Log writes to memory.
+  LOG_BRANCH = 1 << 5,   // Log taken branches.
 
   LOG_NONE = 0,
   LOG_STATE = LOG_REGS | LOG_VREGS | LOG_SYSREGS,
-  LOG_ALL = LOG_DISASM | LOG_STATE | LOG_WRITE
+  LOG_ALL = LOG_DISASM | LOG_STATE | LOG_WRITE | LOG_BRANCH
 };
 
 // Trace commands.

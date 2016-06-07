@@ -805,7 +805,11 @@ class Simulator : public DecoderVisitor {
   const Instruction* ReadPc() const { return pc_; }
   VIXL_DEPRECATED("ReadPc", const Instruction* pc() const) { return ReadPc(); }
 
-  void WritePc(const Instruction* new_pc) {
+  enum BranchLogMode { LogBranches, NoBranchLog };
+
+  void WritePc(const Instruction* new_pc,
+               BranchLogMode log_mode = LogBranches) {
+    if (log_mode == LogBranches) LogTakenBranch(new_pc);
     pc_ = Memory::AddressUntag(new_pc);
     pc_modified_ = true;
   }
@@ -1521,6 +1525,7 @@ class Simulator : public DecoderVisitor {
   void PrintRegister(unsigned code, Reg31Mode r31mode = Reg31IsStackPointer);
   void PrintVRegister(unsigned code, PrintRegisterFormat format);
   void PrintSystemRegister(SystemRegister id);
+  void PrintTakenBranch(const Instruction* target);
 
   // Like Print* (above), but respect GetTraceParameters().
   void LogRegister(unsigned code, Reg31Mode r31mode = Reg31IsStackPointer) {
@@ -1531,6 +1536,9 @@ class Simulator : public DecoderVisitor {
   }
   void LogSystemRegister(SystemRegister id) {
     if (GetTraceParameters() & LOG_SYSREGS) PrintSystemRegister(id);
+  }
+  void LogTakenBranch(const Instruction* target) {
+    if (GetTraceParameters() & LOG_BRANCH) PrintTakenBranch(target);
   }
 
   // Print memory accesses.
@@ -1745,6 +1753,7 @@ class Simulator : public DecoderVisitor {
   const char* clr_warning;
   const char* clr_warning_message;
   const char* clr_printf;
+  const char* clr_branch_marker;
 
   // Simulation helpers ------------------------------------
   bool ConditionPassed(Condition cond) {
