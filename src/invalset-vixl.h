@@ -871,7 +871,7 @@ bool InvalSetIterator<S>::operator==(const InvalSetIterator<S>& rhs) const {
     equal = equal && (index_ == rhs.index_);
 #ifdef DEBUG
     // If not using_vector_, iterator_ should be default-initialised.
-    std::vector<ElementType>::iterator default_iterator;
+    typename std::vector<ElementType>::iterator default_iterator;
     VIXL_ASSERT(iterator_ == default_iterator);
     VIXL_ASSERT(rhs.iterator_ == default_iterator);
 #endif
