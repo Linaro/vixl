@@ -272,7 +272,8 @@ def PrepareVariantDir(location, build_dir):
 def VIXLLibraryTarget(env):
   build_dir = TargetBuildDir(env)
   # Create a link to the latest build directory.
-  subprocess.check_call(["rm", "-f", config.dir_build_latest])
+  # Use `-r` to avoid failure when `latest` exists and is a directory.
+  subprocess.check_call(["rm", "-rf", config.dir_build_latest])
   util.ensure_dir(build_dir)
   subprocess.check_call(["ln", "-s", build_dir, config.dir_build_latest])
   # Source files are in `src` and in `src/a64/`.
