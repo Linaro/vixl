@@ -296,6 +296,21 @@ EmissionCheckScope::~EmissionCheckScope() {
 }
 
 
+MacroAssembler::MacroAssembler() :
+#ifdef VIXL_DEBUG
+      allow_macro_instructions_(true),
+#endif
+      allow_simulator_instructions_(VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE),
+      sp_(sp),
+      tmp_list_(ip0, ip1),
+      fptmp_list_(d31),
+      literal_pool_(this),
+      veneer_pool_(this),
+      recommended_checkpoint_(Pool::kNoCheckpointRequired) {
+  checkpoint_ = GetNextCheckPoint();
+}
+
+
 MacroAssembler::MacroAssembler(size_t capacity,
                                PositionIndependentCodeOption pic)
     : Assembler(capacity, pic),
