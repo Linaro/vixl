@@ -274,10 +274,9 @@ def ConfigureEnvironmentForCompiler(env):
     using_gcc48 = stdout != ''
     if using_gcc48:
       env.Append(CPPFLAGS = ['-Wno-maybe-uninitialized'])
-  # On OSX, compilers complain about `long long` being a C++11 extension when no
-  # standard is passed.
+  # When compiling with c++98 (the default), allow long long constants.
   if 'std' not in env or env['std'] == 'c++98':
-    env.Append(CPPFLAGS = ['-Wno-c++11-long-long'])
+    env.Append(CPPFLAGS = ['-Wno-long-long'])
 
 
 def ConfigureEnvironment(env):
