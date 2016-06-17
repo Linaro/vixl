@@ -296,7 +296,8 @@ EmissionCheckScope::~EmissionCheckScope() {
 }
 
 
-MacroAssembler::MacroAssembler() :
+MacroAssembler::MacroAssembler()
+    :
 #ifdef VIXL_DEBUG
       allow_macro_instructions_(true),
 #endif
@@ -2204,7 +2205,25 @@ void MacroAssembler::LoadStoreCPURegListHelper(LoadStoreCPURegListAction op,
   UseScratchRegisterScope temps(this);
 
   MemOperand loc = BaseMemOperandForLoadStoreCPURegList(registers, mem, &temps);
+  const int reg_size = registers.GetRegisterSizeInBytes();
 
+  VIXL_ASSERT(IsPowerOf2(reg_size));
+
+  // Since we are operating on register pairs, we would like to align on double
+  // the standard size; on the other hand, we don't want to insert an extra
+  // operation, which will happen if the number of registers is even. Note that
+  // the alignment of the base pointer is unknown here, but we assume that it
+  // is more likely to be aligned.
+  if (((loc.GetOffset() & (2 * reg_size - 1)) != 0) &&
+      ((registers.GetCount() % 2) != 0)) {
+    if (op == kStore) {
+      Str(registers.PopLowestIndex(), loc);
+    } else {
+      VIXL_ASSERT(op == kLoad);
+      Ldr(registers.PopLowestIndex(), loc);
+    }
+    loc.AddOffset(reg_size);
+  }
   while (registers.GetCount() >= 2) {
     const CPURegister& dst0 = registers.PopLowestIndex();
     const CPURegister& dst1 = registers.PopLowestIndex();
@@ -2214,7 +2233,7 @@ void MacroAssembler::LoadStoreCPURegListHelper(LoadStoreCPURegListAction op,
       VIXL_ASSERT(op == kLoad);
       Ldp(dst0, dst1, loc);
     }
-    loc.AddOffset(2 * registers.GetRegisterSizeInBytes());
+    loc.AddOffset(2 * reg_size);
   }
   if (!registers.IsEmpty()) {
     if (op == kStore) {
