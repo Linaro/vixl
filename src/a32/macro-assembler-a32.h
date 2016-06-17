@@ -442,7 +442,7 @@ class MacroAssembler : public Assembler {
 
   void ComputeCheckpoint();
 
-  void EnsureEmitFor(uint32_t size = 0) {
+  void EnsureEmitFor(uint32_t size) {
     Label::Offset target = AlignUp(GetCursorOffset() + size, 4);
     if (target < checkpoint_) return;
     PerformEnsureEmit(target, size);
