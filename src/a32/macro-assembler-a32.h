@@ -104,9 +104,6 @@ class LiteralPool {
   std::list<RawLiteral*> keep_until_delete_;
 };
 
-// TODO(all): Add MightSetFlags to determine best sequence to emit.
-enum FlagsUpdate { SetFlags = 1, LeaveFlags = 0 };
-
 // Macro assembler for aarch32 instruction set.
 class MacroAssembler : public Assembler {
  public:
