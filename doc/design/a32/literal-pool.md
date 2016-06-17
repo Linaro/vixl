@@ -76,12 +76,11 @@ What still needs to be done with this version of the literal pools:
  • Have a notion of shared literal so that the literal can be reused
    even when the literal has been emitted
 
-The current implementation for AArch64 is quite a spaghetti plate where
-the literal pool is associated to a macro-assembler, the literal may be
-associated to a literal pool, and the assembler places the literal. If
-the literal is linked to literal pool, the assembler will have callbacks
-in the macro-assembler (as sub class of the assembler)... So, it’s pretty
-hard to manage all this. Here's a gdb trace:
+In the current implementation for AArch64 the literal pool is associated to a
+macro-assembler, the literal may be associated to a literal pool, and the
+assembler places the literal. If the literal is linked to literal pool, the
+assembler will have callbacks in the macro-assembler (as sub class of the
+assembler)... So, it’s pretty hard to manage all this. Here's a gdb trace:
 
 
     vixl::aarch64::MacroAssembler::Ldr (this, rt, imm=1311768467294899695)
