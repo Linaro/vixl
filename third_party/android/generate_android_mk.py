@@ -54,10 +54,14 @@ parser.add_argument('-o', '--output',
 args = parser.parse_args()
 
 
-sources = glob.glob(os.path.join(dir_root, 'src', '*.cc')) + \
-          glob.glob(os.path.join(dir_root, 'src', 'a64', '*.cc'))
-sources = map(lambda p : os.path.relpath(p, dir_root), sources)
-sources.sort()
+common_sources = get_source_files(dir_root, os.path.join('src', '*.cc'))
+a32_sources = get_source_files(dir_root, os.path.join('src', 'a32', '*.cc'))
+a64_sources = get_source_files(dir_root, os.path.join('src', 'a64', '*.cc'))
+
+test_common_sources = get_source_files(dir_root, os.path.join('test', '*.cc'))
+test_a64_sources = get_source_files(dir_root, os.path.join('test', 'a64', '*.cc'))
+test_a32_sources = get_source_files(dir_root, os.path.join('test', 'a32', '*.cc'))
+test_sources = test_common_sources + test_a32_sources + test_a64_sources
 
 test_sources.sort()
 
