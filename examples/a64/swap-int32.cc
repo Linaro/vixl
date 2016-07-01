@@ -26,7 +26,6 @@
 
 #include "examples.h"
 
-#define BUF_SIZE (4096)
 #define __ masm->
 
 void GenerateSwapInt32(MacroAssembler* masm) {
@@ -63,9 +62,7 @@ void GenerateSwapInt32(MacroAssembler* masm) {
 #ifndef TEST_EXAMPLES
 #ifdef VIXL_INCLUDE_SIMULATOR
 int main(void) {
-  // Create and initialize the assembler and the simulator.
-  byte assm_buf[BUF_SIZE];
-  MacroAssembler masm(assm_buf, BUF_SIZE);
+  MacroAssembler masm;
   Decoder decoder;
   Simulator simulator(&decoder);
 

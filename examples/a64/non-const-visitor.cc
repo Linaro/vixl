@@ -27,7 +27,6 @@
 #include "examples.h"
 #include "non-const-visitor.h"
 
-#define BUF_SIZE (4096)
 #define __ masm->
 
 
@@ -67,9 +66,7 @@ int64_t RunNonConstVisitorTestGeneratedCode(const Instruction* start_instr) {
 #ifndef TEST_EXAMPLES
 #ifdef VIXL_INCLUDE_SIMULATOR
 int main(void) {
-  // Create and initialize the assembler.
-  byte assm_buf[BUF_SIZE];
-  MacroAssembler masm(assm_buf, BUF_SIZE);
+  MacroAssembler masm;
 
   // Generate the code.
   Label code_start, code_end;

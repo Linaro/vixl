@@ -488,14 +488,11 @@ RawLiteral::RawLiteral(size_t size,
 
 
 // Assembler
-Assembler::Assembler(byte* buffer,
-                     size_t capacity,
-                     PositionIndependentCodeOption pic)
-    : pic_(pic) {
+Assembler::Assembler(PositionIndependentCodeOption pic) : pic_(pic) {
 #ifdef VIXL_DEBUG
   buffer_monitor_ = 0;
 #endif
-  buffer_ = new CodeBuffer(buffer, capacity);
+  buffer_ = new CodeBuffer();
 }
 
 
@@ -505,6 +502,17 @@ Assembler::Assembler(size_t capacity, PositionIndependentCodeOption pic)
   buffer_monitor_ = 0;
 #endif
   buffer_ = new CodeBuffer(capacity);
+}
+
+
+Assembler::Assembler(byte* buffer,
+                     size_t capacity,
+                     PositionIndependentCodeOption pic)
+    : pic_(pic) {
+#ifdef VIXL_DEBUG
+  buffer_monitor_ = 0;
+#endif
+  buffer_ = new CodeBuffer(buffer, capacity);
 }
 
 

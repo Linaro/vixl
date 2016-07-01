@@ -26,7 +26,6 @@
 
 #include "examples.h"
 
-#define BUF_SIZE (4096)
 #define __ masm->
 
 void GenerateCrc32(MacroAssembler* masm) {
@@ -67,9 +66,7 @@ void GenerateCrc32(MacroAssembler* masm) {
 #ifndef TEST_EXAMPLES
 
 void runExample(const char* msg) {
-  // Create and initialize the assembler and the simulator.
-  byte assm_buf[BUF_SIZE];
-  MacroAssembler masm(assm_buf, BUF_SIZE);
+  MacroAssembler masm;
 
   // Generate the code for the example function.
   Label func;

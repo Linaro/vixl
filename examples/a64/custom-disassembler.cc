@@ -28,7 +28,6 @@
 #include "examples.h"
 
 
-#define BUF_SIZE (4096)
 #define __ masm->
 
 
@@ -134,9 +133,7 @@ void GenerateCustomDisassemblerTestCode(MacroAssembler* masm) {
 
 
 void TestCustomDisassembler() {
-  // Create and initialize the assembler.
-  byte assm_buf[BUF_SIZE];
-  MacroAssembler masm(assm_buf, BUF_SIZE);
+  MacroAssembler masm;
 
   // Generate the code.
   Label code_start, code_end;

@@ -30,7 +30,6 @@
 // This is an interactive example, not to be used for testing.
 #ifndef TEST_EXAMPLES
 
-#define BUF_SIZE (4096)
 #define __ masm->
 
 // The aim is to let the user "play" with the debugger. Brk will trigger the
@@ -51,9 +50,7 @@ void GenerateBreak(MacroAssembler* masm) {
 
 #ifdef VIXL_INCLUDE_SIMULATOR
 int main(void) {
-  // Create and initialize the assembler and the debugger.
-  byte assm_buf[BUF_SIZE];
-  MacroAssembler masm(assm_buf, BUF_SIZE);
+  MacroAssembler masm;
   Decoder decoder;
   Debugger debugger(&decoder);
 

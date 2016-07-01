@@ -36,7 +36,9 @@ namespace vixl {
 
 class CodeBuffer {
  public:
-  explicit CodeBuffer(size_t capacity = 4 * KBytes);
+  static const size_t kDefaultCapacity = 4 * KBytes;
+
+  explicit CodeBuffer(size_t capacity = kDefaultCapacity);
   CodeBuffer(void* buffer, size_t capacity);
   ~CodeBuffer();
 

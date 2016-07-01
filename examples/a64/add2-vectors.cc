@@ -28,7 +28,6 @@
 
 // Macro to compute the number of elements in a vector.
 #define ARRAY_SIZE(Array) (sizeof(Array) / sizeof((Array)[0]))
-#define BUF_SIZE (4096)
 #define __ masm->
 
 /*
@@ -97,9 +96,7 @@ void PrintVector(const uint8_t* vec, unsigned num) {
 
 #ifndef TEST_EXAMPLES
 int main(void) {
-  // Create and initialize the assembler.
-  byte assm_buf[BUF_SIZE];
-  MacroAssembler masm(assm_buf, BUF_SIZE);
+  MacroAssembler masm;
 
   // Generate native code for the example function.
   Label add2_vectors;

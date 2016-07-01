@@ -582,7 +582,8 @@ enum DiscardMoveMode { kDontDiscardForSameWReg, kDiscardForSameWReg };
 
 class MacroAssembler : public Assembler {
  public:
-  MacroAssembler();
+  explicit MacroAssembler(
+      PositionIndependentCodeOption pic = PositionIndependentCode);
   MacroAssembler(size_t capacity,
                  PositionIndependentCodeOption pic = PositionIndependentCode);
   MacroAssembler(byte* buffer,

@@ -27,7 +27,6 @@
 #include "a64/macro-assembler-a64.h"
 #include "a64/simulator-a64.h"
 
-#define BUF_SIZE (4096)
 #define __ masm->
 
 using namespace vixl::aarch64;
@@ -43,8 +42,7 @@ void GenerateDemoFunction(MacroAssembler *masm) {
 #ifndef TEST_EXAMPLES
 #ifdef VIXL_INCLUDE_SIMULATOR
 int main() {
-  byte assm_buf[BUF_SIZE];
-  MacroAssembler masm(assm_buf, BUF_SIZE);
+  MacroAssembler masm;
   Decoder decoder;
   Simulator simulator(&decoder);
 

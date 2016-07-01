@@ -96,18 +96,16 @@ namespace aarch64 {
 #define __ masm.
 #define TEST(name)  TEST_(AARCH64_ASM_##name)
 
-#define BUF_SIZE (4096)
-
 #ifdef VIXL_INCLUDE_SIMULATOR
 // Run tests with the simulator.
 
 #define SETUP()                                                                \
-  MacroAssembler masm(BUF_SIZE);                                               \
+  MacroAssembler masm;                                                         \
   SETUP_COMMON()
 
 #define SETUP_CUSTOM(size, pic)                                                \
-  byte* buf = new byte[size + BUF_SIZE];                                       \
-  MacroAssembler masm(buf, size + BUF_SIZE, pic);                              \
+  byte* buf = new byte[size + CodeBuffer::kDefaultCapacity];                   \
+  MacroAssembler masm(buf, size + CodeBuffer::kDefaultCapacity, pic);          \
   SETUP_COMMON()
 
 #define SETUP_COMMON()                                                         \
@@ -168,12 +166,13 @@ namespace aarch64 {
 #else  // ifdef VIXL_INCLUDE_SIMULATOR.
 // Run the test on real hardware or models.
 #define SETUP()                                                                \
-  MacroAssembler masm(BUF_SIZE);                                               \
+  MacroAssembler masm;                                                         \
   SETUP_COMMON()
 
 #define SETUP_CUSTOM(size, pic)                                                \
-  ExecutableMemory code(size + BUF_SIZE);                                      \
-  MacroAssembler masm(code.GetBuffer(), code.GetSize() + BUF_SIZE, pic);       \
+  ExecutableMemory code(size + CodeBuffer::kDefaultCapacity);                  \
+  MacroAssembler masm(code.GetBuffer(),                                        \
+                      code.GetSize() + CodeBuffer::kDefaultCapacity, pic);     \
   SETUP_COMMON()
 
 #define SETUP_COMMON()                                                         \
@@ -16196,7 +16195,7 @@ TEST(branch_and_link_tagged) {
 
 
 TEST(branch_tagged_and_adr_adrp) {
-  SETUP_CUSTOM(BUF_SIZE, PageOffsetDependentCode);
+  SETUP_CUSTOM(kPageSize, PageOffsetDependentCode);
   START();
 
   Label loop, loop_entry, done;

@@ -26,7 +26,6 @@
 
 #include "examples.h"
 
-#define BUF_SIZE (4096)
 #define __ masm->
 
 void GenerateCheckBounds(MacroAssembler* masm) {
@@ -79,9 +78,7 @@ void run_function(Simulator* simulator,
 }
 
 int main(void) {
-  // Create and initialize the assembler and the simulator.
-  byte assm_buf[BUF_SIZE];
-  MacroAssembler masm(assm_buf, BUF_SIZE);
+  MacroAssembler masm;
   Decoder decoder;
   Simulator simulator(&decoder);
 
