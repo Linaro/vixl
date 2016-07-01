@@ -14,6 +14,7 @@ def AbsolutePath(path):
 
 flags = [
   '-I', AbsolutePath('src'),
+  '-I', AbsolutePath('test'),
   '-DVIXL_DEBUG'
   '-Wall',
   '-Werror',
@@ -26,7 +27,7 @@ flags = [
 ]
 
 if platform.machine() != 'aarch64':
-  flags.append('-DUSE_SIMULATOR')
+  flags.append('-DVIXL_INCLUDE_SIMULATOR')
 
 
 def FlagsForFile(filename, **kwargs):
