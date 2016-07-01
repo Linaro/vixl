@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-# Copyright 2015, ARM Limited
+# Copyright 2015, VIXL authors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ import argparse
 import re
 import util
 
-copyright_header = """// Copyright 2015, ARM Limited
+copyright_header = """// Copyright 2015, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without

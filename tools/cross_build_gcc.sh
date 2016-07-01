@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright 2013, ARM Limited
+# Copyright 2013, VIXL authors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without

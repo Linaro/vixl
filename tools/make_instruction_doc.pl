@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# Copyright 2015, ARM Limited
+# Copyright 2015, VIXL authors
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
