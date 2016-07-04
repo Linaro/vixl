@@ -29,7 +29,7 @@
 #include <sys/mman.h>
 
 #include "globals-vixl.h"
-#include "a64/cpu-a64.h"
+#include "aarch64/cpu-aarch64.h"
 
 namespace vixl {
 

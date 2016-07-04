@@ -34,7 +34,7 @@ CodeBuffer::CodeBuffer(size_t capacity) : managed_(true), capacity_(capacity) {
   VIXL_CHECK(capacity_ != 0);
   buffer_ = reinterpret_cast<byte*>(malloc(capacity_));
   VIXL_CHECK(buffer_ != NULL);
-  // A64 instructions must be word aligned, we assert the default allocator
+  // Aarch64 instructions must be word aligned, we assert the default allocator
   // always returns word align memory.
   VIXL_ASSERT(IsWordAligned(buffer_));
 

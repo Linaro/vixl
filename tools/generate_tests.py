@@ -42,16 +42,16 @@ you can provide your own:
 Once the script has finished, it will have generated test files, as many as
 present in the `default_config_files` list. For example:
 
-- test/a32/test-assembler-cond-rd-rn-immediate-a32.cc
-- test/a32/test-assembler-cond-rd-rn-rm-a32.cc
-- test/a32/test-assembler-cond-rd-rn-rm-q-a32.cc
-- test/a32/test-assembler-cond-rd-rn-rm-ge-a32.cc
+- test/aarch32/test-assembler-cond-rd-rn-immediate-a32.cc
+- test/aarch32/test-assembler-cond-rd-rn-rm-a32.cc
+- test/aarch32/test-assembler-cond-rd-rn-rm-q-a32.cc
+- test/aarch32/test-assembler-cond-rd-rn-rm-ge-a32.cc
 
 Because these test cases need traces in order to build, the script will have
-generated dummy trace files in `test/a32/traces/`. If you look at them you'll
-see they are basically empty:
+generated dummy trace files in `test/aarch32/traces/`. If you look at them
+you'll see they are basically empty:
 
-    $ cat test/a32/traces/sim-cond-rd-rn-immediate-adc-a32.h
+    $ cat test/aarch32/traces/sim-cond-rd-rn-immediate-adc-a32.h
     static const TestResult *kReferenceAdc = NULL;
 
 So of course, we can now build the test cases but running them will crash. We
@@ -78,20 +78,20 @@ TODO: Write a simple and well documented complete example configuration file and
       mention it here.
 
 The underlying `test_generator` framework reads JSON description files and
-generates tests according to them. These files live in `test/a32/config` by
+generates tests according to them. These files live in `test/aarch32/config` by
 default, but you may provide your own files with the `--config-files FILE ...`
 flag. The JSON format was extended to support C++ like one-line comments.
 
 Each configuration file will serve to generate one or more test files,
 we even use its file name to choose the name of the test:
 
-    test/a32/config/cond-rd-rn-immediate-a32.json
-    `-> test/a32/test-simulator-cond-rd-rn-immediate-a32.cc
-    `-> test/a32/test-assembler-cond-rd-rn-immediate-a32.cc
+    test/aarch32/config/cond-rd-rn-immediate-a32.json
+    `-> test/aarch32/test-simulator-cond-rd-rn-immediate-a32.cc
+    `-> test/aarch32/test-assembler-cond-rd-rn-immediate-a32.cc
 
 In addition to these test configuration files, we also provide a JSON
 description with shared information. This information represents data types that
-instructions use and lives in `test/a32/config/data-types.json`.
+instructions use and lives in `test/aarch32/config/data-types.json`.
 
 Data types description
 ----------------------
@@ -375,9 +375,9 @@ Above, we've decided to generate three tests: a "simulator" test and two
 "assembler" tests. The resulting files will have names with the following
 pattern.
 
-  - "test/a32/test-assembler-{configuration name}-a32.cc"
-  - "test/a32/test-assembler-{configuration name}-special-case-a32.cc"
-  - "test/a32/test-simulator-{configuration name}-a32.cc"
+  - "test/aarch32/test-assembler-{configuration name}-a32.cc"
+  - "test/aarch32/test-assembler-{configuration name}-special-case-a32.cc"
+  - "test/aarch32/test-simulator-{configuration name}-a32.cc"
 
 The "type" field describes the kind of testing we want to do, these types are
 recognized by the generator and, at the moment, can be one of "simulator" or
@@ -613,57 +613,57 @@ import test_generator.parser
 
 
 default_config_files = [
-    'test/a32/config/rd-rn-rm-a32.json',
-    'test/a32/config/cond-rd-rn-operand-const-a32.json',
-    'test/a32/config/cond-rd-rn-operand-rm-a32.json',
-    'test/a32/config/cond-rd-rn-operand-rm-shift-amount-1to31-a32.json',
-    'test/a32/config/cond-rd-rn-operand-rm-shift-amount-1to32-a32.json',
-    'test/a32/config/cond-rd-rn-operand-rm-shift-rs-a32.json',
-    'test/a32/config/cond-rd-rn-operand-rm-ror-amount-a32.json',
-    'test/a32/config/cond-rd-rn-a32.json',
-    'test/a32/config/cond-rd-rn-rm-a32.json',
-    'test/a32/config/cond-rd-operand-const-a32.json',
-    'test/a32/config/cond-rd-operand-rn-a32.json',
-    'test/a32/config/cond-rd-operand-rn-shift-amount-1to31-a32.json',
-    'test/a32/config/cond-rd-operand-rn-shift-amount-1to32-a32.json',
-    'test/a32/config/cond-rd-operand-rn-shift-rs-a32.json',
-    'test/a32/config/cond-rd-operand-rn-ror-amount-a32.json',
-    'test/a32/config/cond-rd-memop-immediate-512-a32.json',
-    'test/a32/config/cond-rd-memop-immediate-8192-a32.json',
-    'test/a32/config/cond-rd-memop-rs-a32.json',
-    'test/a32/config/cond-rd-memop-rs-shift-amount-1to31-a32.json',
-    'test/a32/config/cond-rd-memop-rs-shift-amount-1to32-a32.json',
+    'test/aarch32/config/rd-rn-rm-a32.json',
+    'test/aarch32/config/cond-rd-rn-operand-const-a32.json',
+    'test/aarch32/config/cond-rd-rn-operand-rm-a32.json',
+    'test/aarch32/config/cond-rd-rn-operand-rm-shift-amount-1to31-a32.json',
+    'test/aarch32/config/cond-rd-rn-operand-rm-shift-amount-1to32-a32.json',
+    'test/aarch32/config/cond-rd-rn-operand-rm-shift-rs-a32.json',
+    'test/aarch32/config/cond-rd-rn-operand-rm-ror-amount-a32.json',
+    'test/aarch32/config/cond-rd-rn-a32.json',
+    'test/aarch32/config/cond-rd-rn-rm-a32.json',
+    'test/aarch32/config/cond-rd-operand-const-a32.json',
+    'test/aarch32/config/cond-rd-operand-rn-a32.json',
+    'test/aarch32/config/cond-rd-operand-rn-shift-amount-1to31-a32.json',
+    'test/aarch32/config/cond-rd-operand-rn-shift-amount-1to32-a32.json',
+    'test/aarch32/config/cond-rd-operand-rn-shift-rs-a32.json',
+    'test/aarch32/config/cond-rd-operand-rn-ror-amount-a32.json',
+    'test/aarch32/config/cond-rd-memop-immediate-512-a32.json',
+    'test/aarch32/config/cond-rd-memop-immediate-8192-a32.json',
+    'test/aarch32/config/cond-rd-memop-rs-a32.json',
+    'test/aarch32/config/cond-rd-memop-rs-shift-amount-1to31-a32.json',
+    'test/aarch32/config/cond-rd-memop-rs-shift-amount-1to32-a32.json',
 
-    'test/a32/config/cond-rd-rn-t32.json',
-    'test/a32/config/cond-rd-rn-rm-t32.json',
-    'test/a32/config/cond-rdlow-rnlow-rmlow-t32.json',
-    'test/a32/config/cond-rd-rn-operand-const-t32.json',
-    'test/a32/config/cond-rd-pc-operand-imm12-t32.json',
-    'test/a32/config/cond-rd-rn-operand-imm12-t32.json',
-    'test/a32/config/cond-rd-pc-operand-imm8-t32.json',
-    'test/a32/config/cond-rd-sp-operand-imm8-t32.json',
-    'test/a32/config/cond-rdlow-rnlow-operand-immediate-t32.json',
-    'test/a32/config/cond-sp-sp-operand-imm7-t32.json',
-    'test/a32/config/cond-rd-rn-operand-rm-t32.json',
-    'test/a32/config/cond-rd-rn-operand-rm-shift-amount-1to31-t32.json',
-    'test/a32/config/cond-rd-rn-operand-rm-shift-amount-1to32-t32.json',
-    'test/a32/config/cond-rd-rn-operand-rm-ror-amount-t32.json',
-    'test/a32/config/cond-rd-operand-const-t32.json',
-    'test/a32/config/cond-rd-operand-imm16-t32.json',
-    'test/a32/config/cond-rdlow-operand-imm8-t32.json',
-    'test/a32/config/cond-rd-operand-rn-shift-amount-1to31-t32.json',
-    'test/a32/config/cond-rd-operand-rn-shift-amount-1to32-t32.json',
-    'test/a32/config/cond-rd-operand-rn-shift-rs-t32.json',
-    'test/a32/config/cond-rd-operand-rn-ror-amount-t32.json',
-    'test/a32/config/cond-rd-operand-rn-t32.json',
-    'test/a32/config/rd-rn-rm-t32.json',
+    'test/aarch32/config/cond-rd-rn-t32.json',
+    'test/aarch32/config/cond-rd-rn-rm-t32.json',
+    'test/aarch32/config/cond-rdlow-rnlow-rmlow-t32.json',
+    'test/aarch32/config/cond-rd-rn-operand-const-t32.json',
+    'test/aarch32/config/cond-rd-pc-operand-imm12-t32.json',
+    'test/aarch32/config/cond-rd-rn-operand-imm12-t32.json',
+    'test/aarch32/config/cond-rd-pc-operand-imm8-t32.json',
+    'test/aarch32/config/cond-rd-sp-operand-imm8-t32.json',
+    'test/aarch32/config/cond-rdlow-rnlow-operand-immediate-t32.json',
+    'test/aarch32/config/cond-sp-sp-operand-imm7-t32.json',
+    'test/aarch32/config/cond-rd-rn-operand-rm-t32.json',
+    'test/aarch32/config/cond-rd-rn-operand-rm-shift-amount-1to31-t32.json',
+    'test/aarch32/config/cond-rd-rn-operand-rm-shift-amount-1to32-t32.json',
+    'test/aarch32/config/cond-rd-rn-operand-rm-ror-amount-t32.json',
+    'test/aarch32/config/cond-rd-operand-const-t32.json',
+    'test/aarch32/config/cond-rd-operand-imm16-t32.json',
+    'test/aarch32/config/cond-rdlow-operand-imm8-t32.json',
+    'test/aarch32/config/cond-rd-operand-rn-shift-amount-1to31-t32.json',
+    'test/aarch32/config/cond-rd-operand-rn-shift-amount-1to32-t32.json',
+    'test/aarch32/config/cond-rd-operand-rn-shift-rs-t32.json',
+    'test/aarch32/config/cond-rd-operand-rn-ror-amount-t32.json',
+    'test/aarch32/config/cond-rd-operand-rn-t32.json',
+    'test/aarch32/config/rd-rn-rm-t32.json',
 ]
 
 
 # Link a test type with a template file.
 template_files = {
-    'simulator': "test/a32/config/template-simulator-a32.cc.in",
-    'assembler': "test/a32/config/template-assembler-a32.cc.in",
+    'simulator': "test/aarch32/config/template-simulator-aarch32.cc.in",
+    'assembler': "test/aarch32/config/template-assembler-aarch32.cc.in",
 }
 
 
@@ -749,14 +749,14 @@ def GenerateTest(generator, clang_format):
     })
   # Create the test case and pipe it through `clang-format` before writing it.
   with open(
-      "test/a32/test-{}-{}.cc".format(generator.test_type, generator.test_name),
+      "test/aarch32/test-{}-{}.cc".format(generator.test_type, generator.test_name),
       "w") as f:
     proc = subprocess.Popen([clang_format, "-style=google"],
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     out, _ = proc.communicate(generated_file.encode())
     f.write(out.decode())
-  # Write dummy trace files into 'test/a32/traces/'.
-  generator.WriteEmptyTraces("test/a32/traces/")
+  # Write dummy trace files into 'test/aarch32/traces/'.
+  generator.WriteEmptyTraces("test/aarch32/traces/")
   print("Generated {} test for \"{}\".".format(generator.test_type, generator.test_name))
 
 
@@ -764,7 +764,7 @@ if __name__ == '__main__':
   args = BuildOptions()
 
   # Each file in `args.config_files` populates a `Generator` object.
-  generators = test_generator.parser.Parse('test/a32/config/data-types.json',
+  generators = test_generator.parser.Parse('test/aarch32/config/data-types.json',
                                            args.config_files)
 
   # Call the `GenerateTest` function for each generator object in parallel. This

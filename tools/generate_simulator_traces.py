@@ -62,20 +62,21 @@ copyright_header = """// Copyright 2015, VIXL authors
 
 master_trace_header = """
 // This file holds the expected results for the instructions tested by
-// test-simulator-a64.
+// test-simulator-aarch64.
 //
-// If you update input lists in test-simulator-inputs-a64.h, or add a new test
-// to test-simulator-a64.cc, please run tools/generate_simulator_traces.py on a
-// reference platform to regenerate this file and trace files.
+// If you update input lists in test-simulator-inputs-aarch64.h, or add a new
+// test to test-simulator-aarch64.cc, please run
+// tools/generate_simulator_traces.py on a reference platform to regenerate
+// this file and trace files.
 //
 
-#ifndef VIXL_TEST_A64_SIMULATOR_TRACES_A64_H_
-#define VIXL_TEST_A64_SIMULATOR_TRACES_A64_H_
+#ifndef VIXL_TEST_AARCH64_SIMULATOR_TRACES_AARCH64_H_
+#define VIXL_TEST_AARCH64_SIMULATOR_TRACES_AARCH64_H_
 
 #include <stdint.h>
 
-// To add a new simulator test to test-simulator-a64.cc, add dummy array(s)
-// below to build test-simulator-a64 for reference platform. Then, run
+// To add a new simulator test to test-simulator-aarch64.cc, add dummy array(s)
+// below to build test-simulator-aarch64 for reference platform. Then, run
 // tools/generate_simulator_traces.py on a reference platform to regenerate this
 // file and traces files.
 
@@ -93,7 +94,7 @@ const size_t kExpectedCount_dummy_32 = 0;
 // ---------------------------------------------------------------------
 """
 master_trace_footer = """
-#endif  // VIXL_TEST_A64_SIMULATOR_TRACES_A64_H_
+#endif  // VIXL_TEST_AARCH64_SIMULATOR_TRACES_AARCH64_H_
 """
 
 trace_header = """
@@ -112,7 +113,7 @@ def BuildOptions(root):
   result.add_argument('--aarch32-only', action='store_true')
   result.add_argument('--aarch64-only', action='store_true')
   result.add_argument('--out', action='store',
-                      default='test/a64/test-simulator-traces-a64.h')
+                      default='test/aarch64/test-simulator-traces-aarch64.h')
   return result.parse_args()
 
 def ShouldGenerateAArch32(args):
@@ -135,7 +136,7 @@ if __name__ == '__main__':
   if ShouldGenerateAArch64(args):
     # Run each simulator test (AARCH64_SIM_*) with the --generate_test_trace
     # option, and use the output to create the traces header (from --out). In
-    # addition, the test-simulator-traces-a64.h file, the master trace file,
+    # addition, the test-simulator-traces-aarch64.h file, the master trace file,
     # which includes all other trace files is generated.
 
     # Create master trace file.
@@ -157,22 +158,23 @@ if __name__ == '__main__':
       if status != 0: util.abort('Failed to run ' + cmd + '.')
 
       # Create a new trace header file.
-      trace_filename = test_name.lower().replace('_', '-') + "-trace-a64.h"
-      trace_f =  open("test/a64/traces/" + trace_filename, 'w')
+      trace_filename = test_name.lower().replace('_', '-') + "-trace-aarch64.h"
+      trace_f =  open("test/aarch64/traces/" + trace_filename, 'w')
       trace_f.write(copyright_header)
       trace_f.write(trace_header)
       trace_f.write('\n')
-      trace_f.write("#ifndef VIXL_" + test_name.upper() + "_TRACE_A64_H_\n")
-      trace_f.write("#define VIXL_" + test_name.upper() + "_TRACE_A64_H_\n")
+      trace_f.write("#ifndef VIXL_" + test_name.upper() + "_TRACE_AARCH64_H_\n")
+      trace_f.write("#define VIXL_" + test_name.upper() + "_TRACE_AARCH64_H_\n")
       trace_f.write('\n')
       trace_f.write(output)
       trace_f.write('\n')
       trace_f.write('\n' + "#endif  // VIXL_"
-                    + test_name.upper() + "_TRACE_A64_H_" + '\n')
+                    + test_name.upper() + "_TRACE_AARCH64_H_" + '\n')
       trace_f.close()
 
       # Update master trace file.
-      master_trace_f.write('#include \"a64/traces/' + trace_filename + '\"\n')
+      master_trace_f.write(
+          '#include \"aarch64/traces/' + trace_filename + '\"\n')
 
     # Close master trace file.
     master_trace_f.write(master_trace_footer)
@@ -198,7 +200,7 @@ if __name__ == '__main__':
 
       # Create a new trace header file.
       trace_filename = test_name.lower().replace('_', '-') + ".h"
-      trace_f =  open("test/a32/traces/" + trace_filename, 'w')
+      trace_f =  open("test/aarch32/traces/" + trace_filename, 'w')
       trace_f.write(copyright_header)
       trace_f.write(trace_header)
       trace_f.write('\n')
@@ -207,7 +209,8 @@ if __name__ == '__main__':
       trace_f.write('\n')
       trace_f.write(output)
       trace_f.write('\n')
-      trace_f.write('\n' + "#endif  // VIXL_" + test_name.upper() + "_H_" + '\n')
+      trace_f.write(
+          '\n' + "#endif  // VIXL_" + test_name.upper() + "_H_" + '\n')
       trace_f.close()
 
   print 'Trace generation COMPLETE'

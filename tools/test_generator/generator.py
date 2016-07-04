@@ -452,14 +452,14 @@ class Generator(object):
   def IncludeTraceFiles(self):
     """
     ~~~
-    #include "a32/traces/sim-...-a32.h"
-    #include "a32/traces/sim-...-a32.h"
+    #include "aarch32/traces/sim-...-a32.h"
+    #include "aarch32/traces/sim-...-a32.h"
     ...
     ~~~
     """
     operands = "-".join(self.operands.GetNames())
     return "".join([
-        "#include \"a32/traces/" + self.GetTraceFileName(mnemonic) + "\"\n"
+        "#include \"aarch32/traces/" + self.GetTraceFileName(mnemonic) + "\"\n"
         for mnemonic in self.mnemonics
     ])
 

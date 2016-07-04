@@ -29,8 +29,8 @@
 """
 Verify generated AArch32 assembler traces against `llvm-mc`.
 
-This script will find all files in `test/a32/traces/` with names starting will
-`assembler`, and check them against `llvm-mc`. It checks our assembler is
+This script will find all files in `test/aarch32/traces/` with names starting
+will `assembler`, and check them against `llvm-mc`. It checks our assembler is
 correct by looking up what instruction we meant to asssemble, assemble it with
 `llvm` and check the result is bit identical to what our assembler generated.
 
@@ -409,7 +409,7 @@ if __name__ == "__main__":
 
   CheckLLVMVersion(args.llvm_mc)
 
-  trace_dir = 'test/a32/traces/'
+  trace_dir = 'test/aarch32/traces/'
   trace_files = [
       trace_file
       for trace_file in os.listdir(trace_dir)

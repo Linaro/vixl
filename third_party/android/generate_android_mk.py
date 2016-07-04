@@ -55,13 +55,13 @@ args = parser.parse_args()
 
 
 common_sources = get_source_files(dir_root, os.path.join('src', '*.cc'))
-a32_sources = get_source_files(dir_root, os.path.join('src', 'a32', '*.cc'))
-a64_sources = get_source_files(dir_root, os.path.join('src', 'a64', '*.cc'))
+aarch32_sources = get_source_files(dir_root, os.path.join('src', 'aarch32', '*.cc'))
+aarch64_sources = get_source_files(dir_root, os.path.join('src', 'aarch64', '*.cc'))
 
 test_common_sources = get_source_files(dir_root, os.path.join('test', '*.cc'))
-test_a64_sources = get_source_files(dir_root, os.path.join('test', 'a64', '*.cc'))
-test_a32_sources = get_source_files(dir_root, os.path.join('test', 'a32', '*.cc'))
-test_sources = test_common_sources + test_a32_sources + test_a64_sources
+test_aarch64_sources = get_source_files(dir_root, os.path.join('test', 'aarch64', '*.cc'))
+test_aarch32_sources = get_source_files(dir_root, os.path.join('test', 'aarch32', '*.cc'))
+test_sources = test_common_sources + test_aarch32_sources + test_aarch64_sources
 
 test_sources.sort()
 
@@ -71,8 +71,8 @@ with open(android_mk_template, 'r') as template_file:
 
 
 template = template.format(vixl_common=' \\\n  '.join(common_sources),
-                           vixl_a64_sources=' \\\n  '.join(a64_sources),
-                           vixl_a32_sources=' \\\n  '.join(a32_sources),
+                           vixl_aarch64_sources=' \\\n  '.join(aarch64_sources),
+                           vixl_aarch32_sources=' \\\n  '.join(aarch32_sources),
                            vixl_test_files=' \\\n  '.join(test_sources))
 
 
