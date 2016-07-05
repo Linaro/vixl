@@ -426,6 +426,11 @@ class Assembler {
   // called before executing or copying code from the buffer.
   void FinalizeCode();
 
+  // Set the permissions of the buffer to read+execute.
+  void SetBufferExecutable() { buffer_->SetExecutable(); }
+  // Set the permissions of the buffer to read+write.
+  void SetBufferWritable() { buffer_->SetWritable(); }
+
   // Label.
   // Bind a label to the current PC.
   void bind(Label* label);

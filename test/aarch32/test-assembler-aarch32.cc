@@ -97,17 +97,16 @@ namespace aarch32 {
   __ Bx(lr);                                                                   \
   __ FinalizeCode();
 
-// Copy the generated code into a memory area garanteed to be executable before
-// executing it.
-// Note the offset for ExecutableMemory::Execute since the PCS requires that
+// Execute the generated code from the MacroAssembler's automatic code buffer.
+// Note the offset for ExecuteMemory since the PCS requires that
 // the address be odd in the case of branching to T32 code.
 #define RUN()                                                                  \
   {                                                                            \
-    ExecutableMemory code(masm.GetBuffer().GetCursorOffset());                 \
-    code.Write(masm.GetBuffer().GetOffsetAddress<byte*>(0),                    \
-               masm.GetBuffer().GetCursorOffset());                            \
     int pcs_offset = masm.IsUsingT32() ? 1 : 0;                                \
-    code.Execute(pcs_offset);                                                  \
+    masm.SetBufferExecutable();                                                \
+    ExecuteMemory(masm.GetBuffer().GetOffsetAddress<byte*>(0),                 \
+                  masm.GetBuffer().GetCursorOffset(), pcs_offset);             \
+    masm.SetBufferWritable();                                                  \
   }
 
 #define TEARDOWN()

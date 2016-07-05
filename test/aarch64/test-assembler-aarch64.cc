@@ -24,6 +24,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <sys/mman.h>
 #include <cfloat>
 #include <cmath>
 #include <cstdio>
@@ -169,9 +170,12 @@ namespace aarch64 {
   SETUP_COMMON()
 
 #define SETUP_CUSTOM(size, pic)                                                \
-  ExecutableMemory code(size + CodeBuffer::kDefaultCapacity);                  \
-  MacroAssembler masm(code.GetBuffer(),                                        \
-                      code.GetSize() + CodeBuffer::kDefaultCapacity, pic);     \
+  byte *buffer = reinterpret_cast<byte*>(                                      \
+      mmap(NULL, size + CodeBuffer::kDefaultCapacity,                          \
+           PROT_READ | PROT_WRITE,                                             \
+           MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));                               \
+  size_t buffer_size = size + CodeBuffer::kDefaultCapacity;                    \
+  MacroAssembler masm(buffer, buffer_size, pic);                               \
   SETUP_COMMON()
 
 #define SETUP_COMMON()                                                         \
@@ -194,18 +198,17 @@ namespace aarch64 {
   __ Ret();                                                                    \
   masm.FinalizeCode()
 
-// Copy the generated code into a memory area garanteed to be executable before
-// executing it.
+// Execute the generated code from the memory area.
 #define RUN()                                                                  \
-  {                                                                            \
-    ExecutableMemory code(masm.GetCursorOffset());                             \
-    code.Write(masm.GetOffsetAddress<byte*>(0), masm.GetCursorOffset());       \
-    code.Execute();                                                            \
-  }
+  masm.SetBufferExecutable();                                                  \
+  ExecuteMemory(masm.GetOffsetAddress<byte*>(0), masm.GetCursorOffset());      \
+  masm.SetBufferWritable()
 
-// The generated code was written directly into `code`, execute it directly.
+// The generated code was written directly into `buffer`, execute it directly.
 #define RUN_CUSTOM()                                                           \
-  code.Execute()
+  mprotect(buffer, buffer_size, PROT_READ | PROT_EXEC);                        \
+  ExecuteMemory(buffer, buffer_size);                                          \
+  mprotect(buffer, buffer_size, PROT_READ | PROT_WRITE)
 
 #define TEARDOWN()
 

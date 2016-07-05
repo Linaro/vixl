@@ -33,21 +33,7 @@
 
 namespace vixl {
 
-class ExecutableMemory {
- public:
-  explicit ExecutableMemory(size_t size);
-  ~ExecutableMemory();
-
-  size_t GetSize() const { return size_; }
-  byte* GetBuffer() const { return reinterpret_cast<byte*>(buffer_); }
-
-  void Write(const byte* code_start, size_t code_size) const;
-  void Execute(int offset = 0) const;
-
- private:
-  size_t size_;
-  void* buffer_;
-};
+void ExecuteMemory(byte* buffer, size_t size, int offset = 0);
 
 }  // namespace vixl
 

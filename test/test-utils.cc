@@ -42,38 +42,25 @@ namespace vixl {
 #define MAP_ANONYMOUS MAP_ANON
 #endif
 
-ExecutableMemory::ExecutableMemory(size_t size)
-  : size_(size),
-    buffer_(mmap(NULL, size, PROT_READ | PROT_WRITE | PROT_EXEC,
-                 MAP_SHARED | MAP_ANONYMOUS, -1, 0)) {
-  VIXL_ASSERT(reinterpret_cast<intptr_t>(buffer_) != -1);
-}
 
-ExecutableMemory::~ExecutableMemory() {
-  munmap(buffer_, size_);
-}
-
-void ExecutableMemory::Write(const byte* code_start, size_t code_size) const {
-  VIXL_CHECK(code_size <= size_);
-  memcpy(buffer_, code_start, size_);
-}
-
-void ExecutableMemory::Execute(int offset) const {
+void ExecuteMemory(byte* buffer, size_t size, int offset) {
   void (*test_function)(void);
 
-  VIXL_ASSERT((offset >= 0) && (static_cast<size_t>(offset) < size_));
-  VIXL_STATIC_ASSERT(sizeof(buffer_) == sizeof(test_function));
+  VIXL_ASSERT((offset >= 0) && (static_cast<size_t>(offset) < size));
+  VIXL_STATIC_ASSERT(sizeof(buffer) == sizeof(test_function));
   VIXL_STATIC_ASSERT(sizeof(uintptr_t) == sizeof(test_function));
-  uintptr_t entry_point = reinterpret_cast<uintptr_t>(buffer_);
+  uintptr_t entry_point = reinterpret_cast<uintptr_t>(buffer);
   entry_point += offset;
   memcpy(&test_function, &entry_point, sizeof(test_function));
 
+  USE(size);
+
 #if defined(__aarch64__)
-  aarch64::CPU::EnsureIAndDCacheCoherency(buffer_, size_);
+  aarch64::CPU::EnsureIAndDCacheCoherency(buffer, size);
 #elif defined(__arm__)
   // TODO: Do not use __builtin___clear_cache and instead implement
   // `CPU::EnsureIAndDCacheCoherency` for aarch32.
-  __builtin___clear_cache(buffer_, reinterpret_cast<char*>(buffer_) + size_);
+  __builtin___clear_cache(buffer, reinterpret_cast<char*>(buffer) + size);
 #endif
   test_function();
 }

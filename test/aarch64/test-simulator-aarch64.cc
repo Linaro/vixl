@@ -114,9 +114,9 @@ namespace aarch64 {
 
 #define RUN()                                                                  \
   {                                                                            \
-    ExecutableMemory code(masm.GetCursorOffset());                             \
-    code.Write(masm.GetOffsetAddress<byte*>(0), masm.GetCursorOffset());       \
-    code.Execute();                                                            \
+    masm.SetBufferExecutable();                                                \
+    ExecuteMemory(masm.GetOffsetAddress<byte*>(0), masm.GetCursorOffset());    \
+    masm.SetBufferWritable();                                                  \
   }
 
 #define TEARDOWN()

@@ -44,6 +44,9 @@ class CodeBuffer {
 
   void Reset();
 
+  void SetExecutable();
+  void SetWritable();
+
   ptrdiff_t GetOffsetFrom(ptrdiff_t offset) const {
     ptrdiff_t cursor_offset = cursor_ - buffer_;
     VIXL_ASSERT((offset >= 0) && (offset <= cursor_offset));
