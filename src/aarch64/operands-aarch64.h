@@ -827,6 +827,21 @@ class MemOperand {
 
   void AddOffset(int64_t offset);
 
+  bool IsValid() const {
+    return base_.IsValid() &&
+           ((addrmode_ == Offset) || (addrmode_ == PreIndex) ||
+            (addrmode_ == PostIndex)) &&
+           ((shift_ == NO_SHIFT) || (extend_ == NO_EXTEND)) &&
+           ((offset_ == 0) || !regoffset_.IsValid());
+  }
+
+  bool Equals(const MemOperand& other) const {
+    return base_.Is(other.base_) && regoffset_.Is(other.regoffset_) &&
+           (offset_ == other.offset_) && (addrmode_ == other.addrmode_) &&
+           (shift_ == other.shift_) && (extend_ == other.extend_) &&
+           (shift_amount_ == other.shift_amount_);
+  }
+
  private:
   Register base_;
   Register regoffset_;
