@@ -43,6 +43,6 @@ build_options_modes = ['release', 'debug']
 # The list of C++ standard to test for.
 tested_cpp_standards = ['c++98', 'c++11']
 # The list of compilers tested.
-tested_compilers = ['g++', 'clang++']
+tested_compilers = ['clang++', 'g++']
 
 

@@ -208,10 +208,7 @@ def BuildOptions():
                                  help='''Skip the lint and clang-format tests,
                                  and run only with one compiler, in one mode,
                                  with one C++ standard, and with an appropriate
-                                 default for runtime options. The compiler,
-                                 mode, and C++ standard used are the first ones
-                                 provided to the script or in the default
-                                 arguments.''')
+                                 default for runtime options.''')
   general_arguments.add_argument(
     '--jobs', '-j', metavar='N', type=int, nargs='?',
     default=multiprocessing.cpu_count(),
@@ -378,11 +375,12 @@ if __name__ == '__main__':
   if args.fast:
     def SetFast(option, specified, default):
       option.val_test_choices = \
-        [default[0] if specified == 'all' else specified[0]]
-    SetFast(environment_option_compiler, args.compiler, config.tested_compilers)
-    SetFast(build_option_mode, args.mode, config.build_options_modes)
-    SetFast(build_option_standard, args.std, config.tested_cpp_standards)
-    SetFast(runtime_option_debugger, args.debugger, ['on', 'off'])
+        [default if specified == 'all' else specified[0]]
+    # `g++` is very slow to compile a few aarch32 test files.
+    SetFast(environment_option_compiler, args.compiler, 'clang++')
+    SetFast(build_option_standard, args.std, 'c++98')
+    SetFast(build_option_mode, args.mode, 'debug')
+    SetFast(runtime_option_debugger, args.debugger, 'on')
 
   if not args.nolint and not args.fast:
     rc |= RunLinter()
