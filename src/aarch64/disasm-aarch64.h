@@ -30,9 +30,9 @@
 #include "globals-vixl.h"
 #include "utils-vixl.h"
 
-#include "aarch64/assembler-aarch64.h"
 #include "aarch64/decoder-aarch64.h"
 #include "aarch64/instructions-aarch64.h"
+#include "aarch64/operands-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {
