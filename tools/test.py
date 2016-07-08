@@ -226,6 +226,8 @@ def BuildOptions():
                                  help='Do not run clang-format.')
   general_arguments.add_argument('--notest', action='store_true',
                                  help='Do not run tests.')
+  general_arguments.add_argument('--fail-early', action='store_true',
+                                 help='Exit as soon as a test fails.')
   sim_default = 'off' if platform.machine() == 'aarch64' else 'on'
   general_arguments.add_argument(
     '--simulator', action='store', choices=['on', 'off'],
@@ -365,6 +367,11 @@ if __name__ == '__main__':
 
   args = BuildOptions()
 
+  def MaybeExitEarly(rc):
+    if args.fail_early and rc != 0:
+      PrintStatus(rc == 0)
+      sys.exit(rc)
+
   if args.under_valgrind:
     util.require_program('valgrind')
 
@@ -379,8 +386,11 @@ if __name__ == '__main__':
 
   if not args.nolint and not args.fast:
     rc |= RunLinter()
+    MaybeExitEarly(rc)
+
   if not args.noclang_format and not args.fast:
     rc |= RunClangFormat()
+    MaybeExitEarly(rc)
 
   # Don't try to test the debugger if we are not running with the simulator.
   if not args.simulator:
@@ -404,6 +414,7 @@ if __name__ == '__main__':
         # Don't run the tests for this configuration if the build failed.
         if build_rc != 0:
           rc |= build_rc
+          MaybeExitEarly(rc)
           continue
 
       # Use the realpath of the test executable so that the commands printed
@@ -423,9 +434,11 @@ if __name__ == '__main__':
                                         list(runtime_options),
                                         args.under_valgrind,
                                         jobs = args.jobs, prefix = prefix)
+          MaybeExitEarly(rc)
 
       if not args.nobench:
         rc |= RunBenchmarks()
+        MaybeExitEarly(rc)
 
   PrintStatus(rc == 0)
 
