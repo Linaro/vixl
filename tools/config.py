@@ -33,9 +33,11 @@ dir_build              = os.path.join(dir_root, 'obj')
 dir_build_latest       = os.path.join(dir_build, 'latest')
 dir_src_vixl           = os.path.join(dir_root, 'src')
 dir_tests              = os.path.join(dir_root, 'test')
-dir_aarch64_benchmarks = os.path.join(dir_root, 'benchmarks/aarch64')
-dir_aarch64_examples   = os.path.join(dir_root, 'examples/aarch64')
-dir_aarch32_examples   = os.path.join(dir_root, 'examples/aarch32')
+dir_aarch64_benchmarks = os.path.join(dir_root, 'benchmarks', 'aarch64')
+dir_aarch64_examples   = os.path.join(dir_root, 'examples', 'aarch64')
+dir_aarch32_examples   = os.path.join(dir_root, 'examples', 'aarch32')
+dir_aarch64_traces     = os.path.join(dir_tests, 'aarch64', 'traces')
+dir_aarch32_traces     = os.path.join(dir_tests, 'aarch32', 'traces')
 
 
 # The full list of available build modes.
