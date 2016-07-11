@@ -319,10 +319,10 @@ def RunCommand(command, environment_options = None):
 
 
 def RunLinter():
-  rc, default_tracked_files = lint.GetDefaultTrackedFiles()
+  rc, default_tracked_files = lint.GetDefaultFilesToLint()
   if rc:
     return rc
-  return lint.LintFiles(map(lambda x: join(dir_root, x), default_tracked_files),
+  return lint.RunLinter(map(lambda x: join(dir_root, x), default_tracked_files),
                         jobs = args.jobs, progress_prefix = 'cpp lint: ')
 
 
