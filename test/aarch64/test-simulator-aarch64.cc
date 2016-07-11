@@ -53,12 +53,10 @@ namespace aarch64 {
 #define __ masm.
 #define TEST(name)  TEST_(AARCH64_SIM_##name)
 
-#define BUF_SIZE (256)
-
 #ifdef VIXL_INCLUDE_SIMULATOR
 
 #define SETUP()                                                               \
-  MacroAssembler masm(BUF_SIZE);                                              \
+  MacroAssembler masm;                                                        \
   Decoder decoder;                                                            \
   Simulator* simulator = Test::run_debugger() ? new Debugger(&decoder)        \
                                               : new Simulator(&decoder);      \
@@ -100,7 +98,7 @@ namespace aarch64 {
 #else     // VIXL_INCLUDE_SIMULATOR
 
 #define SETUP()                                                               \
-  MacroAssembler masm(BUF_SIZE);                                              \
+  MacroAssembler masm;                                                        \
   CPU::SetUp()
 
 #define START()                                                               \

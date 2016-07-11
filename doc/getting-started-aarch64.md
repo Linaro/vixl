@@ -21,28 +21,21 @@ of your source file:
     #include "aarch64/simulator-aarch64.h"
     #include "aarch64/macro-assembler-aarch64.h"
 
-VIXL's assembler will generate some code at run-time, and this code needs to
-be stored in a buffer. It must be large enough to contain all of the
-instructions and data that will be generated. In this guide we will use a
-default value of 4096 but you are free to change it to something that suits your
-needs.
-
-    #define BUF_SIZE (4096)
-
 All VIXL components are declared in the `vixl::aarch64` namespace, so let's add
 this to the beginning of the file for convenience:
 
     using namespace vixl::aarch64;
 
-Now we are ready to create and initialize the different components.
+Creating a macro assembler is as simple as
 
-First of all we need to allocate the code buffer and to create a macro
-assembler object which uses this buffer.
+    MacroAssembler masm;
 
-    byte assm_buf[BUF_SIZE];
-    MacroAssembler masm(assm_buf, BUF_SIZE);
+VIXL's assembler will generate some code at run-time, and this code needs to
+be stored in a buffer. By default the assembler will automatically manage
+the code buffer. However constructors are available that allow manual management
+of the code buffer.
 
-We also need to set-up the simulator. The simulator uses a Decoder object to
+We also need to set up the simulator. The simulator uses a Decoder object to
 read and decode the instructions from the code buffer. We need to create a
 decoder and bind our simulator to this decoder.
 

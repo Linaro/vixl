@@ -47,7 +47,6 @@ TEST(custom_disassembler) {
 // The tests below only work with the simulator.
 #ifdef VIXL_INCLUDE_SIMULATOR
 
-#define BUF_SIZE (4096)
 #define __ masm->
 
 uint64_t FactorialC(uint64_t n) {
@@ -169,7 +168,7 @@ void GenerateTestWrapper(MacroAssembler* masm, RegisterDump *regs) {
   } while (0)
 
 #define START()                                             \
-  MacroAssembler masm(BUF_SIZE);                            \
+  MacroAssembler masm;                                      \
   Decoder decoder;                                          \
   Debugger simulator(&decoder);                             \
   simulator.SetColouredTrace(Test::coloured_trace());       \
@@ -546,8 +545,7 @@ TEST(getting_started) {
 
 
 TEST(non_const_visitor) {
-  byte assm_buf[BUF_SIZE];
-  MacroAssembler masm(assm_buf, BUF_SIZE);
+  MacroAssembler masm;
 
   Label code_start, code_end;
   masm.Bind(&code_start);

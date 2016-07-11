@@ -26,13 +26,12 @@
 
 #include "examples.h"
 
-#define BASE_BUF_SIZE (4096)
 #define __ masm.
 
 #ifdef VIXL_INCLUDE_SIMULATOR
 int64_t LiteralExample(int64_t a, int64_t b) {
   // Create and initialize the macro-assembler and the simulator.
-  MacroAssembler masm(BASE_BUF_SIZE);
+  MacroAssembler masm;
   Decoder decoder;
   Simulator simulator(&decoder);
 
