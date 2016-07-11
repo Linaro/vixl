@@ -72,53 +72,31 @@ def BuildOptions():
 
 
 
-__lint_results_lock__ = multiprocessing.Lock()
-
 # Returns a tuple (filename, number of lint errors).
 def Lint(filename, progress_prefix = ''):
   command = ['cpplint.py', filename]
   process = subprocess.Popen(command,
                              stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
+                             stderr=subprocess.STDOUT)
 
-  # Use a lock to avoid mixing the output for different files.
-  with __lint_results_lock__:
-    # Process the output as the process is running, until it exits.
-    LINT_ERROR_LINE_REGEXP = re.compile('\[[1-5]\]$')
-    LINT_DONE_PROC_LINE_REGEXP = re.compile('Done processing')
-    LINT_STATUS_LINE_REGEXP = re.compile('Total errors found')
-    while True:
-      retcode = process.poll()
-      while True:
-        line = process.stderr.readline()
-        if line == '': break
-        output_line = progress_prefix + line.rstrip('\r\n')
+  outerr, _ = process.communicate()
 
-        if LINT_ERROR_LINE_REGEXP.search(line):
-          printer.PrintOverwritableLine(output_line,
-                                        type = printer.LINE_TYPE_LINTER)
-          printer.EnsureNewLine()
-        elif LINT_DONE_PROC_LINE_REGEXP.search(line):
-          printer.PrintOverwritableLine(output_line,
-                                        type = printer.LINE_TYPE_LINTER)
-        elif LINT_STATUS_LINE_REGEXP.search(line):
-          status_line = line
+  if process.returncode == 0:
+    printer.PrintOverwritableLine(
+      progress_prefix + "Done processing %s" % filename,
+      type = printer.LINE_TYPE_LINTER)
+    return (filename, 0)
 
-      if retcode != None: break;
+  if progress_prefix:
+    outerr = re.sub('^', progress_prefix, outerr, flags=re.MULTILINE)
+  printer.Print(outerr)
 
-    if retcode == 0:
-      return (filename, 0)
+  # Find the number of errors in this file.
+  res = re.search('Total errors found: (\d+)$', outerr)
+  n_errors_str = res.string[res.start(1):res.end(1)]
+  n_errors = int(n_errors_str)
 
-    # Return the number of errors in this file.
-    res = re.search('\d+$', status_line)
-    n_errors_str = res.string[res.start():res.end()]
-    n_errors = int(n_errors_str)
-    status_line = \
-        progress_prefix + 'Total errors found in %s : %d' % (filename, n_errors)
-    printer.PrintOverwritableLine(status_line, type = printer.LINE_TYPE_LINTER)
-    printer.EnsureNewLine()
-
-    return (filename, n_errors)
+  return (filename, n_errors)
 
 
 # The multiprocessing map_async function does not allow passing multiple
