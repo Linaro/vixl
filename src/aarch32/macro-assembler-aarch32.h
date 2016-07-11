@@ -601,7 +601,7 @@ class MacroAssembler : public Assembler {
               CPURegister reg4 = NoReg);
   // Functions used by Printf for generation.
   void PushRegister(CPURegister reg);
-#if !VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE
+#if !VIXL_GENERATE_SIMULATOR_CODE
   void PreparePrintfArgument(CPURegister reg,
                              int* core_count,
                              int* vfp_count,

@@ -539,7 +539,7 @@ void MacroAssembler::Printf(const char* format,
                             CPURegister reg2,
                             CPURegister reg3,
                             CPURegister reg4) {
-#if VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE
+#if VIXL_GENERATE_SIMULATOR_CODE
   PushRegister(reg4);
   PushRegister(reg3);
   PushRegister(reg2);
@@ -707,7 +707,7 @@ void MacroAssembler::PushRegister(CPURegister reg) {
 }
 
 
-#if !VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE
+#if !VIXL_GENERATE_SIMULATOR_CODE
 void MacroAssembler::PreparePrintfArgument(CPURegister reg,
                                            int* core_count,
                                            int* vfp_count,

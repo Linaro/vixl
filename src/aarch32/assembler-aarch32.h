@@ -65,20 +65,20 @@ class Assembler : public Instructions {
       : t32_(false),
         first_condition_(al),
         it_mask_(0),
-        generate_for_simulator_(VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE),
+        generate_for_simulator_(VIXL_GENERATE_SIMULATOR_CODE),
         has_32_dregs_(true) {}
   explicit Assembler(size_t size)
       : t32_(false),
         first_condition_(al),
         it_mask_(0),
-        generate_for_simulator_(VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE),
+        generate_for_simulator_(VIXL_GENERATE_SIMULATOR_CODE),
         has_32_dregs_(true),
         buffer_(size) {}
   Assembler(void* buffer, size_t size)
       : t32_(false),
         first_condition_(al),
         it_mask_(0),
-        generate_for_simulator_(VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE),
+        generate_for_simulator_(VIXL_GENERATE_SIMULATOR_CODE),
         has_32_dregs_(true),
         buffer_(buffer, size) {}
   virtual ~Assembler() {}

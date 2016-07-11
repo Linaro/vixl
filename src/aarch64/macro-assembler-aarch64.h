@@ -2077,7 +2077,7 @@ class MacroAssembler : public Assembler {
   void Unreachable() {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    if (allow_simulator_instructions_) {
+    if (generate_simulator_code_) {
       hlt(kUnreachableOpcode);
     } else {
       // Branch to 0 to generate a segfault.
@@ -2836,13 +2836,11 @@ class MacroAssembler : public Assembler {
   bool AllowMacroInstructions() const { return allow_macro_instructions_; }
 #endif
 
-  void SetAllowSimulatorInstructions(bool value) {
-    allow_simulator_instructions_ = value;
+  void SetGenerateSimulatorCode(bool value) {
+    generate_simulator_code_ = value;
   }
 
-  bool AllowSimulatorInstructions() const {
-    return allow_simulator_instructions_;
-  }
+  bool GenerateSimulatorCode() const { return generate_simulator_code_; }
 
   void BlockLiteralPool() { literal_pool_.Block(); }
   void ReleaseLiteralPool() { literal_pool_.Release(); }
@@ -3098,8 +3096,8 @@ class MacroAssembler : public Assembler {
   bool allow_macro_instructions_;
 #endif
 
-  // Tell whether we should generate code that will run on the simulator or not.
-  bool allow_simulator_instructions_;
+  // Indicates whether we should generate simulator or native code.
+  bool generate_simulator_code_;
 
   // The register to use as a stack pointer for stack operations.
   Register sp_;

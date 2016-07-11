@@ -109,7 +109,7 @@ namespace aarch64 {
   SETUP_COMMON()
 
 #define SETUP_COMMON()                                                         \
-  masm.SetAllowSimulatorInstructions(true);                                    \
+  masm.SetGenerateSimulatorCode(true);                                    \
   Decoder decoder;                                                             \
   Simulator* simulator = Test::run_debugger() ? new Debugger(&decoder)         \
                                               : new Simulator(&decoder);       \
@@ -176,7 +176,7 @@ namespace aarch64 {
   SETUP_COMMON()
 
 #define SETUP_COMMON()                                                         \
-  masm.SetAllowSimulatorInstructions(false);                                   \
+  masm.SetGenerateSimulatorCode(false);                                        \
   RegisterDump core;                                                           \
   CPU::SetUp()
 

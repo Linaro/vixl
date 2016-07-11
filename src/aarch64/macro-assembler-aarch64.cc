@@ -301,7 +301,7 @@ MacroAssembler::MacroAssembler(PositionIndependentCodeOption pic)
 #ifdef VIXL_DEBUG
       allow_macro_instructions_(true),
 #endif
-      allow_simulator_instructions_(VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE),
+      generate_simulator_code_(VIXL_GENERATE_SIMULATOR_CODE),
       sp_(sp),
       tmp_list_(ip0, ip1),
       fptmp_list_(d31),
@@ -318,7 +318,7 @@ MacroAssembler::MacroAssembler(size_t capacity,
 #ifdef VIXL_DEBUG
       allow_macro_instructions_(true),
 #endif
-      allow_simulator_instructions_(VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE),
+      generate_simulator_code_(VIXL_GENERATE_SIMULATOR_CODE),
       sp_(sp),
       tmp_list_(ip0, ip1),
       fptmp_list_(d31),
@@ -336,7 +336,7 @@ MacroAssembler::MacroAssembler(byte* buffer,
 #ifdef VIXL_DEBUG
       allow_macro_instructions_(true),
 #endif
-      allow_simulator_instructions_(VIXL_GENERATE_SIMULATOR_INSTRUCTIONS_VALUE),
+      generate_simulator_code_(VIXL_GENERATE_SIMULATOR_CODE),
       sp_(sp),
       tmp_list_(ip0, ip1),
       fptmp_list_(d31),
@@ -2418,7 +2418,7 @@ void MacroAssembler::PrintfNoPreserve(const char* format,
   // Actually call printf. This part needs special handling for the simulator,
   // since the system printf function will use a different instruction set and
   // the procedure-call standard will not be compatible.
-  if (allow_simulator_instructions_) {
+  if (generate_simulator_code_) {
     InstructionAccurateScope scope(this, kPrintfLength / kInstructionSize);
     hlt(kPrintfOpcode);
     dc32(arg_count);  // kPrintfArgCountOffset
@@ -2519,7 +2519,7 @@ void MacroAssembler::Printf(const char* format,
 void MacroAssembler::Trace(TraceParameters parameters, TraceCommand command) {
   VIXL_ASSERT(allow_macro_instructions_);
 
-  if (allow_simulator_instructions_) {
+  if (generate_simulator_code_) {
     // The arguments to the trace pseudo instruction need to be contiguous in
     // memory, so make sure we don't try to emit a literal pool.
     InstructionAccurateScope scope(this, kTraceLength / kInstructionSize);
@@ -2546,7 +2546,7 @@ void MacroAssembler::Trace(TraceParameters parameters, TraceCommand command) {
 void MacroAssembler::Log(TraceParameters parameters) {
   VIXL_ASSERT(allow_macro_instructions_);
 
-  if (allow_simulator_instructions_) {
+  if (generate_simulator_code_) {
     // The arguments to the log pseudo instruction need to be contiguous in
     // memory, so make sure we don't try to emit a literal pool.
     InstructionAccurateScope scope(this, kLogLength / kInstructionSize);

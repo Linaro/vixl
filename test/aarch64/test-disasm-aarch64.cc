@@ -52,12 +52,12 @@
 // Run tests with the simulator.
 #define SETUP_MACRO()                                                          \
   SETUP_CLASS(MacroAssembler);                                                 \
-  masm->SetAllowSimulatorInstructions(true)
+  masm->SetGenerateSimulatorCode(true)
 
 #else  // ifdef VIXL_INCLUDE_SIMULATOR.
 #define SETUP_MACRO()                                                          \
   SETUP_CLASS(MacroAssembler);                                                 \
-  masm->SetAllowSimulatorInstructions(false)
+  masm->SetGenerateSimulatorCode(false)
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR.
 
