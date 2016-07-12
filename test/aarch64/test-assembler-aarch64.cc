@@ -22167,5 +22167,89 @@ TEST(generic_operand) {
 }
 
 
+int32_t runtime_call_add_one(int32_t a) {
+  return a + 1;
+}
+
+double runtime_call_add_doubles(double a, double b, double c) {
+  return a + b + c;
+}
+
+int64_t runtime_call_one_argument_on_stack(int64_t arg1 __attribute__((unused)),
+                                           int64_t arg2 __attribute__((unused)),
+                                           int64_t arg3 __attribute__((unused)),
+                                           int64_t arg4 __attribute__((unused)),
+                                           int64_t arg5 __attribute__((unused)),
+                                           int64_t arg6 __attribute__((unused)),
+                                           int64_t arg7 __attribute__((unused)),
+                                           int64_t arg8 __attribute__((unused)),
+                                           int64_t arg9) {
+  return arg9;
+}
+
+double runtime_call_two_arguments_on_stack(int64_t arg1 __attribute__((unused)),
+                                           int64_t arg2 __attribute__((unused)),
+                                           int64_t arg3 __attribute__((unused)),
+                                           int64_t arg4 __attribute__((unused)),
+                                           int64_t arg5 __attribute__((unused)),
+                                           int64_t arg6 __attribute__((unused)),
+                                           int64_t arg7 __attribute__((unused)),
+                                           int64_t arg8 __attribute__((unused)),
+                                           double arg9,
+                                           double arg10) {
+  return arg9 - arg10;
+}
+
+void runtime_call_store_at_address(int64_t* address) {
+  *address = 0xf00d;
+}
+
+#if defined(VIXL_SIMULATED_RUNTIME_CALL_SUPPORT) || !defined(VIXL_INCLUDE_SIMULATOR)
+TEST(runtime_calls) {
+  SETUP();
+
+  START();
+  __ Mov(w0, 0);
+  __ CallRuntime(runtime_call_add_one);
+  __ Mov(w20, w0);
+
+  __ Fmov(d0, 0.0);
+  __ Fmov(d1, 1.5);
+  __ Fmov(d2, 2.5);
+  __ CallRuntime(runtime_call_add_doubles);
+  __ Fmov(d20, d0);
+
+  __ Mov(x0, 0x123);
+  __ Push(x0, x0);
+  __ CallRuntime(runtime_call_one_argument_on_stack);
+  __ Mov(x21, x0);
+  __ Pop(x0, x1);
+
+  __ Fmov(d0, 314.0);
+  __ Fmov(d1, 4.0);
+  __ Push(d1, d0);
+  __ CallRuntime(runtime_call_two_arguments_on_stack);
+  __ Mov(d21, d0);
+  __ Pop(d1, d0);
+
+  int64_t value = 0xbadbeef;
+  __ Mov(x0, reinterpret_cast<uint64_t>(&value));
+  __ CallRuntime(runtime_call_store_at_address);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(1, w20);
+  ASSERT_EQUAL_FP64(4.0, d20);
+  ASSERT_EQUAL_64(0x123, x21);
+  ASSERT_EQUAL_FP64(310.0, d21);
+  VIXL_CHECK(value == 0xf00d);
+
+  TEARDOWN();
+}
+#endif
+
+
 }  // namespace aarch64
 }  // namespace vixl

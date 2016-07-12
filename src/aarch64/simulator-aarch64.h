@@ -30,10 +30,21 @@
 #include "globals-vixl.h"
 #include "utils-vixl.h"
 
+#include "aarch64/abi-aarch64.h"
 #include "aarch64/disasm-aarch64.h"
 #include "aarch64/instructions-aarch64.h"
 #include "aarch64/instrument-aarch64.h"
 #include "aarch64/simulator-constants-aarch64.h"
+
+// These are only used for the ABI feature, and depend on checks performed for
+// it.
+#ifdef VIXL_ABI_SUPPORT
+#include <tuple>
+#if __cplusplus >= 201402L
+// Required for `std::index_sequence`
+#include <utility>
+#endif
+#endif
 
 namespace vixl {
 namespace aarch64 {
@@ -1526,6 +1537,98 @@ class Simulator : public DecoderVisitor {
     print_exclusive_access_warning_ = false;
   }
 
+// Runtime call emulation support.
+// It requires VIXL's ABI features, and C++11 or greater.
+#if defined(VIXL_ABI_SUPPORT) && __cplusplus >= 201103L
+
+#define VIXL_SIMULATED_RUNTIME_CALL_SUPPORT
+
+// The implementation of the runtime call helpers require the functionality
+// provided by `std::index_sequence`. It is only available from C++14, but
+// we want runtime call simulation to work from C++11, so we emulate if
+// necessary.
+#if __cplusplus >= 201402L
+  template <std::size_t... I>
+  using local_index_sequence = std::index_sequence<I...>;
+  template <typename... P>
+  using __local_index_sequence_for = std::index_sequence_for<P...>;
+#else
+  // Emulate the behaviour of `std::index_sequence` and
+  // `std::index_sequence_for`.
+  // Naming follow the `std` names, prefixed with `emulated_`.
+  template <size_t... I>
+  struct emulated_index_sequence {};
+
+  // A recursive template to create a sequence of indexes.
+  // The base case (for `N == 0`) is declared outside of the class scope, as
+  // required by C++.
+  template <std::size_t N, size_t... I>
+  struct emulated_make_index_sequence_helper
+      : emulated_make_index_sequence_helper<N - 1, N - 1, I...> {};
+
+  template <std::size_t N>
+  struct emulated_make_index_sequence : emulated_make_index_sequence_helper<N> {
+  };
+
+  template <typename... P>
+  struct emulated_index_sequence_for
+      : emulated_make_index_sequence<sizeof...(P)> {};
+
+  template <std::size_t... I>
+  using local_index_sequence = emulated_index_sequence<I...>;
+  template <typename... P>
+  using __local_index_sequence_for = emulated_index_sequence_for<P...>;
+#endif
+
+  // Expand the argument tuple and perform the call.
+  template <typename R, typename... P, std::size_t... I>
+  R DoRuntimeCall(R (*function)(P...),
+                  std::tuple<P...> arguments,
+                  local_index_sequence<I...>) {
+    return function(std::get<I>(arguments)...);
+  }
+
+  template <typename R, typename... P>
+  void RuntimeCallNonVoid(R (*function)(P...)) {
+    ABI abi;
+    std::tuple<P...> argument_operands{
+        ReadGenericOperand<P>(abi.GetNextParameterGenericOperand<P>())...};
+    R return_value = DoRuntimeCall(function,
+                                   argument_operands,
+                                   __local_index_sequence_for<P...>{});
+    WriteGenericOperand(abi.GetReturnGenericOperand<R>(), return_value);
+  }
+
+  template <typename R, typename... P>
+  void RuntimeCallVoid(R (*function)(P...)) {
+    ABI abi;
+    std::tuple<P...> argument_operands{
+        ReadGenericOperand<P>(abi.GetNextParameterGenericOperand<P>())...};
+    DoRuntimeCall(function,
+                  argument_operands,
+                  __local_index_sequence_for<P...>{});
+  }
+
+  // We use `struct` for `void` return type specialisation.
+  template <typename R, typename... P>
+  struct RuntimeCallStructHelper {
+    static void Wrapper(Simulator* simulator, void* function_pointer) {
+      R (*function)(P...) = reinterpret_cast<R (*)(P...)>(function_pointer);
+      simulator->RuntimeCallNonVoid(function);
+    }
+  };
+
+  // Partial specialization when the return type is `void`.
+  template <typename... P>
+  struct RuntimeCallStructHelper<void, P...> {
+    static void Wrapper(Simulator* simulator, void* function_pointer) {
+      void (*function)(P...) =
+          reinterpret_cast<void (*)(P...)>(function_pointer);
+      simulator->RuntimeCallVoid(function);
+    }
+  };
+#endif
+
  protected:
   const char* clr_normal;
   const char* clr_flag_name;
@@ -2765,6 +2868,12 @@ class Simulator : public DecoderVisitor {
   // Pseudo Printf instruction
   void DoPrintf(const Instruction* instr);
 
+// Simulate a runtime call.
+#ifndef VIXL_SIMULATED_RUNTIME_CALL_SUPPORT
+  VIXL_NO_RETURN_IN_DEBUG_MODE
+#endif
+  void DoRuntimeCall(const Instruction* instr);
+
   // Processor state ---------------------------------------
 
   // Simulated monitors for exclusive access instructions.
@@ -2901,6 +3010,15 @@ class Simulator : public DecoderVisitor {
   bool print_exclusive_access_warning_;
   void PrintExclusiveAccessWarning();
 };
+
+#if defined(VIXL_ABI_SUPPORT) && __cplusplus >= 201103L && __cplusplus < 201402L
+// Base case of the recursive template used to emulate C++14
+// `std::index_sequence`.
+template <size_t... I>
+struct Simulator::emulated_make_index_sequence_helper<0, I...>
+    : Simulator::emulated_index_sequence<I...> {};
+#endif
+
 }  // namespace aarch64
 }  // namespace vixl
 

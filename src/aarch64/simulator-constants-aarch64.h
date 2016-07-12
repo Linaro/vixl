@@ -50,6 +50,7 @@ enum DebugHltOpcodes {
   kPrintfOpcode,
   kTraceOpcode,
   kLogOpcode,
+  kRuntimeCallOpcode,
   // Aliases.
   kDebugHltFirstOpcode = kUnreachableOpcode,
   kDebugHltLastOpcode = kLogOpcode
@@ -137,6 +138,16 @@ enum TraceCommand { TRACE_ENABLE = 1, TRACE_DISABLE = 2 };
 // LOG_DISASM is not supported for Log.
 const unsigned kLogParamsOffset = 1 * kInstructionSize;
 const unsigned kLogLength = 2 * kInstructionSize;
+
+// Runtime call simulation - kRuntimeCall
+const unsigned kRuntimeCallWrapperOffset = 1 * kInstructionSize;
+// The size of a pointer on Aarch64.
+const unsigned kRuntimeCallAddressSize = sizeof(uint64_t);
+const unsigned kRuntimeCallFunctionOffset =
+    kRuntimeCallWrapperOffset + kRuntimeCallAddressSize;
+const unsigned kRuntimeCallLength =
+    kRuntimeCallFunctionOffset + kRuntimeCallAddressSize;
+
 }  // namespace aarch64
 }  // namespace vixl
 

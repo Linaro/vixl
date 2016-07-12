@@ -158,6 +158,11 @@ inline void USE(T1, T2, T3, T4) {}
 #else
 #define VIXL_NO_RETURN __attribute__((noreturn))
 #endif
+#ifdef VIXL_DEBUG
+#define VIXL_NO_RETURN_IN_DEBUG_MODE VIXL_NO_RETURN
+#else
+#define VIXL_NO_RETURN_IN_DEBUG_MODE
+#endif
 
 // Some functions might only be marked as "noreturn" for the DEBUG build. This
 // macro should be used for such cases (for more details see what

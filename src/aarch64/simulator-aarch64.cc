@@ -2884,6 +2884,9 @@ void Simulator::VisitException(const Instruction* instr) {
         case kPrintfOpcode:
           DoPrintf(instr);
           return;
+        case kRuntimeCallOpcode:
+          DoRuntimeCall(instr);
+          return;
         default:
           HostBreakpoint();
           return;
@@ -5292,6 +5295,28 @@ void Simulator::DoPrintf(const Instruction* instr) {
 
   delete[] format;
 }
+
+
+#ifdef VIXL_SIMULATED_RUNTIME_CALL_SUPPORT
+void Simulator::DoRuntimeCall(const Instruction* instr) {
+  VIXL_STATIC_ASSERT(kRuntimeCallAddressSize == sizeof(uint64_t));
+  // The appropriate `Simulator::SimulateRuntimeCall()` wrapper and the function
+  // to call are passed inlined in the assembly.
+  uint64_t call_wrapper_address =
+      Memory::Read<uint64_t>(instr + kRuntimeCallWrapperOffset);
+  uint64_t function_address =
+      Memory::Read<uint64_t>(instr + kRuntimeCallFunctionOffset);
+  auto runtime_call_wrapper =
+      reinterpret_cast<void (*)(Simulator*, void*)>(call_wrapper_address);
+  runtime_call_wrapper(this, reinterpret_cast<void*>(function_address));
+  WritePc(instr->GetInstructionAtOffset(kRuntimeCallLength));
+}
+#else
+void Simulator::DoRuntimeCall(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNREACHABLE();
+}
+#endif
 
 }  // namespace aarch64
 }  // namespace vixl

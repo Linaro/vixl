@@ -118,5 +118,7 @@ void GenerateDemoFunction(MacroAssembler* masm);
 // `b` inputs.
 int64_t LiteralExample(int64_t a, int64_t b);
 
+// Generate a few examples of runtime calls.
+void GenerateRuntimeCallExamples(MacroAssembler* masm);
 
 #endif /* !VIXL_EXAMPLE_EXAMPLES_H_ */

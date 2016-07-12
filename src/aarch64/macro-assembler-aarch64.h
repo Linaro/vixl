@@ -35,7 +35,7 @@
 #include "aarch64/assembler-aarch64.h"
 #include "aarch64/debugger-aarch64.h"
 #include "aarch64/instrument-aarch64.h"
-#include "aarch64/simulator-constants-aarch64.h"
+#include "aarch64/simulator-aarch64.h"
 
 
 #define LS_MACRO_LIST(V)                                     \
@@ -2999,6 +2999,14 @@ class MacroAssembler : public Assembler {
 
   LiteralPool* GetLiteralPool() { return &literal_pool_; }
 
+// Support for simulated runtime calls.
+
+// Variadic templating is only available from C++11.
+#if __cplusplus >= 201103L
+  template <typename R, typename... P>
+  void CallRuntime(R (*function)(P...));
+#endif
+
  protected:
   // Helper used to query information about code generation and to generate
   // code for `csel`.
@@ -3327,6 +3335,42 @@ class UseScratchRegisterScope {
   }
 };
 
+// Variadic templating is only available from C++11.
+#if __cplusplus >= 201103L
+
+// `R` stands for 'return type', and `P` for 'parameter types'.
+template <typename R, typename... P>
+void MacroAssembler::CallRuntime(R (*function)(P...)) {
+  if (generate_simulator_code_) {
+#ifdef VIXL_SIMULATED_RUNTIME_CALL_SUPPORT
+    uint64_t runtime_call_wrapper_address = reinterpret_cast<uint64_t>(
+        &(Simulator::RuntimeCallStructHelper<R, P...>::Wrapper));
+    uint64_t function_address = reinterpret_cast<uint64_t>(function);
+
+    InstructionAccurateScope scope(this, 5);
+    Label start;
+    bind(&start);
+    hlt(kRuntimeCallOpcode);
+    VIXL_ASSERT(GetSizeOfCodeGeneratedSince(&start) ==
+                kRuntimeCallWrapperOffset);
+    dc64(runtime_call_wrapper_address);
+    VIXL_ASSERT(GetSizeOfCodeGeneratedSince(&start) ==
+                kRuntimeCallFunctionOffset);
+    dc64(function_address);
+    VIXL_ASSERT(GetSizeOfCodeGeneratedSince(&start) ==
+                kRuntimeCallFunctionOffset + kRuntimeCallAddressSize);
+#else
+    VIXL_UNREACHABLE();
+#endif
+  } else {
+    UseScratchRegisterScope temps(this);
+    Register temp = temps.AcquireX();
+    Mov(temp, reinterpret_cast<uint64_t>(function));
+    Blr(temp);
+  }
+}
+
+#endif
 
 }  // namespace aarch64
 

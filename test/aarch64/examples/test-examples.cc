@@ -570,4 +570,31 @@ TEST(literal_example) {
       LiteralExample(INT64_C(0x100000000), 0x1) == INT64_C(0x100000001));
 }
 
+
+// This is an approximation of the result that works for the ranges tested
+// below.
+#define RUNTIME_CALLS_EXPECTED(A, B) ((A + B) << 2)
+
+#define RUNTIME_CALLS_DOTEST(A, B, R)                              \
+  do {                                                             \
+    simulator.ResetState();                                        \
+    simulator.WriteWRegister(0, A);                                \
+    simulator.WriteWRegister(1, B);                                \
+    TEST_FUNCTION(start);                                          \
+    assert(regs.wreg<int32_t>(0) == RUNTIME_CALLS_EXPECTED(A, B)); \
+  } while (0)
+
+TEST(runtime_calls) {
+  START();
+
+  Label start;
+  masm.Bind(&start);
+  GenerateRuntimeCallExamples(&masm);
+  masm.FinalizeCode();
+
+  RUNTIME_CALLS_DOTEST(0, 0);
+  RUNTIME_CALLS_DOTEST(1, -2);
+  RUNTIME_CALLS_DOTEST(123, 456);
+}
+
 #endif  // VIXL_INCLUDE_SIMULATOR
