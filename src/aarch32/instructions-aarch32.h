@@ -204,6 +204,12 @@ class DRegister : public VRegister {
   DRegister() : VRegister(kNoRegister, 0, kDRegSizeInBits) {}
   explicit DRegister(uint32_t code)
       : VRegister(kDRegister, code, kDRegSizeInBits) {}
+  SRegister GetLane(uint32_t lane) const {
+    uint32_t lane_count = kDRegSizeInBits / kSRegSizeInBits;
+    VIXL_ASSERT(lane < lane_count);
+    VIXL_ASSERT(GetCode() * lane_count < kNumberOfSRegisters);
+    return SRegister(GetCode() * lane_count + lane);
+  }
   uint32_t Encode(int single_bit_field, int four_bit_field_lowest_bit) const {
     VIXL_ASSERT(single_bit_field >= 4);
     return ((GetCode() & 0x10) << (single_bit_field - 4)) |
@@ -340,8 +346,19 @@ class QRegister : public VRegister {
   explicit QRegister(uint32_t code)
       : VRegister(kQRegister, code, kQRegSizeInBits) {}
   uint32_t Encode(int offset) { return GetCode() << offset; }
+  DRegister GetDLane(uint32_t lane) const {
+    uint32_t lane_count = kQRegSizeInBits / kDRegSizeInBits;
+    VIXL_ASSERT(lane < lane_count);
+    return DRegister(GetCode() * lane_count + lane);
+  }
   DRegister GetLowDRegister() const { return DRegister(GetCode() * 2); }
   DRegister GetHighDRegister() const { return DRegister(1 + GetCode() * 2); }
+  SRegister GetSLane(uint32_t lane) const {
+    uint32_t lane_count = kQRegSizeInBits / kSRegSizeInBits;
+    VIXL_ASSERT(lane < lane_count);
+    VIXL_ASSERT(GetCode() * lane_count < kNumberOfSRegisters);
+    return SRegister(GetCode() * lane_count + lane);
+  }
   uint32_t Encode(int single_bit_field, int four_bit_field_lowest_bit) {
     // Encode "code * 2".
     VIXL_ASSERT(single_bit_field >= 3);
