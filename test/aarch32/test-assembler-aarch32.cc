@@ -1266,6 +1266,53 @@ TEST(veneers_labels_sort) {
 }
 
 
+// This test check that we can update a Literal after usage.
+TEST(literal_update) {
+  SETUP();
+
+  START();
+  Label exit;
+  Literal<uint32_t>* a32 =
+      new Literal<uint32_t>(0xabcdef01, RawLiteral::kDeletedOnPoolDestruction);
+  Literal<uint64_t>* a64 =
+      new Literal<uint64_t>(
+          UINT64_C(0xabcdef01abcdef01), RawLiteral::kDeletedOnPoolDestruction);
+  __ AddLiteral(a32);
+  __ AddLiteral(a64);
+  __ Ldr(r0, a32);
+  __ Ldrd(r2, r3, a64);
+  __ EmitLiteralPool();
+  Literal<uint32_t>* b32 =
+      new Literal<uint32_t>(0x10fedcba, RawLiteral::kDeletedOnPoolDestruction);
+  Literal<uint64_t>* b64 =
+      new Literal<uint64_t>(
+          UINT64_C(0x10fedcba10fedcba), RawLiteral::kDeletedOnPoolDestruction);
+  __ AddLiteral(b32);
+  __ AddLiteral(b64);
+  __ Ldr(r1, b32);
+  __ Ldrd(r4, r5, b64);
+  // Update literals' values. "a32" and "a64" are already emitted. "b32" and
+  // "b64" will only be emitted when "END()" will be called.
+  a32->UpdateValue(0x12345678, &masm.GetBuffer());
+  a64->UpdateValue(UINT64_C(0x13579bdf02468ace), &masm.GetBuffer());
+  b32->UpdateValue(0x87654321, &masm.GetBuffer());
+  b64->UpdateValue(UINT64_C(0x1032547698badcfe), &masm.GetBuffer());
+  END();
+
+  RUN();
+
+  PrintDisassembler dis(std::cout, 0);
+  dis.DisassembleA32Buffer(
+      masm.GetBuffer().GetOffsetAddress<uint32_t*>(0), masm.GetCursorOffset());
+  ASSERT_EQUAL_32(0x12345678, r0);
+  ASSERT_EQUAL_32(0x87654321, r1);
+  ASSERT_EQUAL_32(0x13579bdf, r2);
+  ASSERT_EQUAL_32(0x02468ace, r3);
+  ASSERT_EQUAL_32(0x10325476, r4);
+  ASSERT_EQUAL_32(0x98badcfe, r5);
+}
+
+
 void SwitchCase(JumpTableBase* switch_, uint32_t case_index,
                 bool is_using_t32) {
   SETUP();

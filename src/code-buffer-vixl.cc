@@ -84,6 +84,14 @@ void CodeBuffer::EmitData(const void* data, size_t size) {
 }
 
 
+void CodeBuffer::UpdateData(size_t offset, const void* data, size_t size) {
+  dirty_ = true;
+  byte* dst = buffer_ + offset;
+  VIXL_ASSERT(dst + size <= cursor_);
+  memcpy(dst, data, size);
+}
+
+
 void CodeBuffer::Align() {
   byte* end = AlignUp(cursor_, 4);
   VIXL_ASSERT(end >= cursor_);

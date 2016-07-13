@@ -107,6 +107,8 @@ class CodeBuffer {
 
   void EmitData(const void* data, size_t size);
 
+  void UpdateData(size_t offset, const void* data, size_t size);
+
   // Align to 32bit.
   void Align();
 

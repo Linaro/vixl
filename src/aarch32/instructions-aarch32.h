@@ -35,6 +35,7 @@ extern "C" {
 #include <ostream>
 
 #include "utils-vixl.h"
+#include "code-buffer-vixl.h"
 #include "aarch32/constants-aarch32.h"
 #include "aarch32/label-aarch32.h"
 
@@ -1355,6 +1356,12 @@ class Literal : public RawLiteral {
   explicit Literal(const T& value,
                    DeletionPolicy deletion_policy = kManuallyDeleted)
       : RawLiteral(&value_, sizeof(T), deletion_policy), value_(value) {}
+  void UpdateValue(const T& value, CodeBuffer* buffer) {
+    value_ = value;
+    if (IsBound()) {
+      buffer->UpdateData(GetLocation(), GetDataAddress(), GetSize());
+    }
+  }
 
  private:
   T value_;
