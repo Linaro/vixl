@@ -355,6 +355,18 @@ if env['target_arch'] in ['aarch32', 'both']:
   env.Alias('aarch32_examples', aarch32_example_targets)
   top_level_targets.Add('aarch32_examples', 'Build the examples for AArch32.')
 
+  # The benchmarks
+  aarch32_benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch32_benchmarks)
+  aarch32_benchmarks_build_dir = PrepareVariantDir('benchmarks/aarch32', TargetBuildDir(env))
+  aarch32_benchmark_targets = []
+  for bench in aarch32_benchmark_names:
+    prog = env.Program(join(aarch32_benchmarks_build_dir, bench),
+                       join(aarch32_benchmarks_build_dir, bench + '.cc'),
+                       LIBS=[libvixl])
+    aarch32_benchmark_targets.append(prog)
+  env.Alias('aarch32_benchmarks', aarch32_benchmark_targets)
+  top_level_targets.Add('aarch32_benchmarks', 'Build the benchmarks for AArch32.')
+
   # The tests.
   test_aarch32_build_dir = PrepareVariantDir(join('test', 'aarch32'), TargetBuildDir(env))
   test_objects.append(env.Object(
