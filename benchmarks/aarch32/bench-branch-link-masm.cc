@@ -1,4 +1,4 @@
-// Copyright 2014, VIXL authors
+// Copyright 2016, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -24,70 +24,80 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <stdio.h>
+#include <stdint.h>
 #include <sys/time.h>
-#include "globals-vixl.h"
 
-#include "aarch64/instructions-aarch64.h"
-#include "aarch64/macro-assembler-aarch64.h"
+#include "aarch32/constants-aarch32.h"
+#include "aarch32/instructions-aarch32.h"
+#include "aarch32/macro-assembler-aarch32.h"
 
-using namespace vixl;
-using namespace vixl::aarch64;
+using namespace vixl::aarch32;
 
-static const unsigned kDefaultInstructionCount = 100000;
+#ifdef VIXL_DEBUG
+static const int kDefaultIterationsCount = 10000;
+#else
+static const int kDefaultIterationsCount = 100000;
+#endif
 
-// This program focuses on emitting simple instructions.
-//
-// This code will emit a given number of 'add x0, x1, x2' in a fixed size
-// buffer, looping over the buffer if necessary. This code therefore focuses
-// on Emit and Operand.
-int main(int argc, char* argv[]) {
-  unsigned instructions = 0;
+// This program focuses on the emission of branches and veneers.
+void benchmark(int iterations, bool t32) {
+  const int buffer_size = 256 * KBytes;
 
-  switch (argc) {
-    case 1:
-      instructions = kDefaultInstructionCount;
-      break;
-    case 2:
-      instructions = atoi(argv[1]);
-      break;
-    default:
-      printf("Usage: %s [#instructions]\n", argv[0]);
-      exit(1);
-  }
-
-  const unsigned buffer_size = 256 * KBytes;
-  const unsigned buffer_instruction_count = buffer_size / kInstructionSize;
   timeval start;
   gettimeofday(&start, NULL);
   MacroAssembler masm(buffer_size);
+  masm.SetT32(t32);
 
 #define __ masm.
 
-  unsigned rounds = instructions / buffer_instruction_count;
-  for (unsigned i = 0; i < rounds; ++i) {
-    {
-      InstructionAccurateScope scope(&masm, buffer_instruction_count);
-      for (unsigned j = 0; j < buffer_instruction_count; ++j) {
-        __ add(x0, x1, Operand(x2));
-      }
-    }
-    masm.Reset();
+  Label target_1, target_2, target_3, target_4;
+  for (int i = 0; i < iterations; i++) {
+    __ B(&target_1);
   }
-
-  unsigned remaining = instructions % buffer_instruction_count;
-  {
-    InstructionAccurateScope scope(&masm, remaining);
-    for (unsigned i = 0; i < remaining; ++i) {
-      __ add(x0, x1, Operand(x2));
-    }
+  __ Bind(&target_1);
+  for (int i = 0; i < iterations; i++) {
+    __ B(eq, &target_2);
   }
+  __ Bind(&target_2);
+  for (int i = 0; i < iterations; i++) {
+    __ Bl(&target_3);
+  }
+  __ Bind(&target_3);
+  for (int i = 0; i < iterations; i++) {
+    __ Blx(&target_4);
+  }
+  __ Bind(&target_4);
 
   masm.FinalizeCode();
   timeval end;
   gettimeofday(&end, NULL);
   double delta = (end.tv_sec - start.tv_sec) +
                  static_cast<double>(end.tv_usec - start.tv_usec) / 1000000;
-  printf("A64: time for %d instructions: %gs\n", instructions, delta);
+  printf("%s: time for %d iterations: %gs\n",
+         t32 ? "T32" : "A32",
+         iterations,
+         delta);
+}
+
+
+int main(int argc, char* argv[]) {
+  int iterations = 0;
+
+  switch (argc) {
+    case 1:
+      iterations = kDefaultIterationsCount;
+      break;
+    case 2:
+      iterations = atoi(argv[1]);
+      break;
+    default:
+      printf("Usage: %s [#iterations]\n", argv[0]);
+      exit(1);
+  }
+
+  benchmark(iterations, false);
+  benchmark(iterations, true);
 
   return 0;
 }

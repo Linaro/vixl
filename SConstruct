@@ -299,6 +299,16 @@ for bench in aarch64_benchmark_names:
   aarch64_benchmark_targets.append(prog)
 env.Alias('aarch64_benchmarks', aarch64_benchmark_targets)
 top_level_targets.Add('aarch64_benchmarks', 'Build the benchmarks for AArch64.')
+aarch32_benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch32_benchmarks)
+aarch32_benchmarks_build_dir = PrepareVariantDir('benchmarks/aarch32', TargetBuildDir(env))
+aarch32_benchmark_targets = []
+for bench in aarch32_benchmark_names:
+  prog = env.Program(join(aarch32_benchmarks_build_dir, bench),
+                     join(aarch32_benchmarks_build_dir, bench + '.cc'),
+                     LIBS=[libvixl])
+  aarch32_benchmark_targets.append(prog)
+env.Alias('aarch32_benchmarks', aarch32_benchmark_targets)
+top_level_targets.Add('aarch32_benchmarks', 'Build the benchmarks for AArch32.')
 
 
 # The examples.
