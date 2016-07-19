@@ -264,8 +264,8 @@ class DebugCommand {
   virtual ~DebugCommand() { delete name_; }
 
   const char* name() { return name_->value(); }
-  // Run the command on the given debugger. The command returns true if
-  // execution should move to the next instruction.
+  // Run the command on the given debugger.
+  // Return `true` if control should be given back to the debugger.
   virtual bool Run(Debugger* debugger) = 0;
   virtual void Print(FILE* out = stdout);
 
@@ -1225,14 +1225,23 @@ DebugCommand* ContinueCommand::Build(std::vector<Token*> args) {
 bool StepCommand::Run(Debugger* debugger) {
   VIXL_ASSERT(debugger->IsDebuggerRunning());
 
+  // To avoid recursive calls to the debugger shell when hitting breakpoints
+  // while stepping, stepping is implemented by telling the debugger how many
+  // instructions to execute before starting the shell again.
   int64_t steps = count();
-  if (steps < 0) {
-    printf(" ** invalid value for steps: %" PRId64 " (<0) **\n", steps);
-  } else if (steps > 1) {
+  if (steps <= 0) {
+    if (steps < 0) {
+      printf(" ** invalid value for steps: %" PRId64 " (<0) **\n", steps);
+    }
+    // Execute nothing and stay in the shell.
+    return false;
+  } else {
     debugger->SetSteps(steps - 1);
+    // Relinquish control to the debugger. It will execute the next instruction,
+    // followed by `steps - 1` instructions, before starting the shell again.
+    // (Unless another breakpoint is hit in the meantime.)
+    return true;
   }
-
-  return true;
 }
 
 

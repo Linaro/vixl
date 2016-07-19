@@ -85,7 +85,7 @@ class Debugger : public Simulator {
   VIXL_DEPRECATED("GetSteps", int64_t steps() const) { return GetSteps(); }
 
   void SetSteps(int64_t value) {
-    VIXL_ASSERT(value > 1);
+    VIXL_ASSERT(value >= 0);
     steps_ = value;
   }
   VIXL_DEPRECATED("SetSteps", void set_steps(int64_t value)) {
