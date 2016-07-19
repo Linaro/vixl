@@ -22059,5 +22059,113 @@ TEST(move_immediate_helpers) {
   MacroAssembler::OneInstrMoveImmediateHelper(NULL, x1, 0xabcdef);
 }
 
+
+TEST(generic_operand_helpers) {
+  GenericOperand invalid_1;
+  GenericOperand invalid_2;
+  GenericOperand reg(x3);
+  GenericOperand mem(MemOperand(sp, 8), kXRegSizeInBytes);
+
+  VIXL_CHECK(!invalid_1.IsValid());
+  VIXL_CHECK(!invalid_2.IsValid());
+
+  VIXL_CHECK(invalid_1.Equals(invalid_1));
+  VIXL_CHECK(invalid_2.Equals(invalid_2));
+  VIXL_CHECK(reg.Equals(reg));
+  VIXL_CHECK(mem.Equals(mem));
+
+  VIXL_CHECK(invalid_1.Equals(invalid_2));
+  VIXL_CHECK(invalid_2.Equals(invalid_1));
+
+  VIXL_CHECK(!invalid_1.Equals(reg));
+  VIXL_CHECK(!invalid_1.Equals(mem));
+  VIXL_CHECK(!reg.Equals(invalid_1));
+  VIXL_CHECK(!reg.Equals(invalid_2));
+  VIXL_CHECK(!reg.Equals(mem));
+  VIXL_CHECK(!mem.Equals(invalid_1));
+  VIXL_CHECK(!mem.Equals(reg));
+}
+
+
+TEST(generic_operand) {
+  SETUP();
+
+  int32_t data_32_array[5] = {
+    0xbadbeef, 0x11111111, 0xbadbeef, 0x33333333, 0xbadbeef };
+  int64_t data_64_array[5] = {
+    INT64_C(0xbadbadbadbeef), INT64_C(0x1111111111111111),
+    INT64_C(0xbadbadbadbeef), INT64_C(0x3333333333333333), INT64_C(0xbadbadbadbeef) };
+  size_t size_32 = sizeof(data_32_array[0]);
+  size_t size_64 = sizeof(data_64_array[0]);
+
+  START();
+
+  intptr_t data_32_address = reinterpret_cast<intptr_t>(&data_32_array[0]);
+  intptr_t data_64_address = reinterpret_cast<intptr_t>(&data_64_array[0]);
+  Register data_32 = x27;
+  Register data_64 = x28;
+  __ Mov(data_32, data_32_address);
+  __ Mov(data_64, data_64_address);
+
+  __ Move(GenericOperand(w0),
+          GenericOperand(MemOperand(data_32, 1 * size_32), size_32));
+  __ Move(GenericOperand(s0),
+          GenericOperand(MemOperand(data_32, 3 * size_32), size_32));
+  __ Move(GenericOperand(x10),
+          GenericOperand(MemOperand(data_64, 1 * size_64), size_64));
+  __ Move(GenericOperand(d10),
+          GenericOperand(MemOperand(data_64, 3 * size_64), size_64));
+
+  __ Move(GenericOperand(w1), GenericOperand(w0));
+  __ Move(GenericOperand(s1), GenericOperand(s0));
+  __ Move(GenericOperand(x11), GenericOperand(x10));
+  __ Move(GenericOperand(d11), GenericOperand(d10));
+
+  __ Move(GenericOperand(MemOperand(data_32, 0 * size_32), size_32),
+          GenericOperand(w1));
+  __ Move(GenericOperand(MemOperand(data_32, 2 * size_32), size_32),
+          GenericOperand(s1));
+  __ Move(GenericOperand(MemOperand(data_64, 0 * size_64), size_64),
+          GenericOperand(x11));
+  __ Move(GenericOperand(MemOperand(data_64, 2 * size_64), size_64),
+          GenericOperand(d11));
+
+  __ Move(GenericOperand(MemOperand(data_32, 4 * size_32), size_32),
+          GenericOperand(MemOperand(data_32, 0 * size_32), size_32));
+  __ Move(GenericOperand(MemOperand(data_64, 4 * size_64), size_64),
+          GenericOperand(MemOperand(data_64, 0 * size_64), size_64));
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(data_32_address, data_32);
+  ASSERT_EQUAL_64(data_64_address, data_64);
+
+  ASSERT_EQUAL_32(0x11111111, w0);
+  ASSERT_EQUAL_32(0x33333333, core.sreg_bits(0));
+  ASSERT_EQUAL_64(INT64_C(0x1111111111111111), x10);
+  ASSERT_EQUAL_64(INT64_C(0x3333333333333333), core.dreg_bits(10));
+
+  ASSERT_EQUAL_32(0x11111111, w1);
+  ASSERT_EQUAL_32(0x33333333, core.sreg_bits(1));
+  ASSERT_EQUAL_64(INT64_C(0x1111111111111111), x11);
+  ASSERT_EQUAL_64(INT64_C(0x3333333333333333), core.dreg_bits(11));
+
+  VIXL_CHECK(data_32_array[0] == 0x11111111);
+  VIXL_CHECK(data_32_array[1] == 0x11111111);
+  VIXL_CHECK(data_32_array[2] == 0x33333333);
+  VIXL_CHECK(data_32_array[3] == 0x33333333);
+  VIXL_CHECK(data_32_array[4] == 0x11111111);
+
+  VIXL_CHECK(data_64_array[0] == INT64_C(0x1111111111111111));
+  VIXL_CHECK(data_64_array[1] == INT64_C(0x1111111111111111));
+  VIXL_CHECK(data_64_array[2] == INT64_C(0x3333333333333333));
+  VIXL_CHECK(data_64_array[3] == INT64_C(0x3333333333333333));
+  VIXL_CHECK(data_64_array[4] == INT64_C(0x1111111111111111));
+
+  TEARDOWN();
+}
+
+
 }  // namespace aarch64
 }  // namespace vixl

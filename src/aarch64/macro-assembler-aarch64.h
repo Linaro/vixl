@@ -693,6 +693,8 @@ class MacroAssembler : public Assembler {
   // applied in the Operand.
   Operand MoveImmediateForShiftedOp(const Register& dst, int64_t imm);
 
+  void Move(const GenericOperand& dst, const GenericOperand& src);
+
   // Synthesises the address represented by a MemOperand into a register.
   void ComputeAddress(const Register& dst, const MemOperand& mem_op);
 
@@ -3240,8 +3242,19 @@ class UseScratchRegisterScope {
   VRegister AcquireD() { return AcquireNextAvailable(availablefp_).D(); }
 
 
-  Register AcquireSameSizeAs(const Register& reg);
-  VRegister AcquireSameSizeAs(const VRegister& reg);
+  Register AcquireRegisterOfSize(int size_in_bits);
+  Register AcquireSameSizeAs(const Register& reg) {
+    return AcquireRegisterOfSize(reg.GetSizeInBits());
+  }
+  VRegister AcquireVRegisterOfSize(int size_in_bits);
+  VRegister AcquireSameSizeAs(const VRegister& reg) {
+    return AcquireVRegisterOfSize(reg.GetSizeInBits());
+  }
+  CPURegister AcquireCPURegisterOfSize(int size_in_bits) {
+    return available_->IsEmpty()
+               ? CPURegister(AcquireVRegisterOfSize(size_in_bits))
+               : CPURegister(AcquireRegisterOfSize(size_in_bits));
+  }
 
 
   // Explicitly release an acquired (or excluded) register, putting it back in
@@ -3282,7 +3295,6 @@ class UseScratchRegisterScope {
 
   // Prevent any scratch registers from being used in this scope.
   void ExcludeAll();
-
 
  private:
   static CPURegister AcquireNextAvailable(CPURegList* available);

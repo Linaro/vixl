@@ -216,8 +216,12 @@ class CPURegister {
   const VRegister& D() const;
   const VRegister& Q() const;
 
+  bool IsSameType(const CPURegister& other) const {
+    return type_ == other.type_;
+  }
+
   bool IsSameSizeAndType(const CPURegister& other) const {
-    return (size_ == other.size_) && (type_ == other.type_);
+    return (size_ == other.size_) && IsSameType(other);
   }
 
  protected:
@@ -778,6 +782,8 @@ class Operand {
 // MemOperand represents the addressing mode of a load or store instruction.
 class MemOperand {
  public:
+  // Creates an invalid `MemOperand`.
+  MemOperand();
   explicit MemOperand(Register base,
                       int64_t offset = 0,
                       AddrMode addrmode = Offset);
@@ -850,6 +856,72 @@ class MemOperand {
   Shift shift_;
   Extend extend_;
   unsigned shift_amount_;
+};
+
+// This an abstraction that can represent a register or memory location. The
+// `MacroAssembler` provides helpers to move data between generic operands.
+class GenericOperand {
+ public:
+  GenericOperand() { VIXL_ASSERT(!IsValid()); }
+  GenericOperand(const CPURegister& reg);  // NOLINT(runtime/explicit)
+  GenericOperand(const MemOperand& mem_op,
+                 size_t mem_op_size = 0);  // NOLINT(runtime/explicit)
+
+  bool IsValid() const { return cpu_register_.IsValid() != mem_op_.IsValid(); }
+
+  bool Equals(const GenericOperand& other) const;
+
+  bool IsCPURegister() const {
+    VIXL_ASSERT(IsValid());
+    return cpu_register_.IsValid();
+  }
+
+  bool IsRegister() const {
+    return IsCPURegister() && cpu_register_.IsRegister();
+  }
+
+  bool IsVRegister() const {
+    return IsCPURegister() && cpu_register_.IsVRegister();
+  }
+
+  bool IsSameCPURegisterType(const GenericOperand& other) {
+    return IsCPURegister() && other.IsCPURegister() &&
+           GetCPURegister().IsSameType(other.GetCPURegister());
+  }
+
+  bool IsMemOperand() const {
+    VIXL_ASSERT(IsValid());
+    return mem_op_.IsValid();
+  }
+
+  CPURegister GetCPURegister() const {
+    VIXL_ASSERT(IsCPURegister());
+    return cpu_register_;
+  }
+
+  MemOperand GetMemOperand() const {
+    VIXL_ASSERT(IsMemOperand());
+    return mem_op_;
+  }
+
+  size_t GetMemOperandSizeInBytes() const {
+    VIXL_ASSERT(IsMemOperand());
+    return mem_op_size_;
+  }
+
+  size_t GetSizeInBytes() const {
+    return IsCPURegister() ? cpu_register_.GetSizeInBytes()
+                           : GetMemOperandSizeInBytes();
+  }
+
+  size_t GetSizeInBits() const { return GetSizeInBytes() * kBitsPerByte; }
+
+ private:
+  CPURegister cpu_register_;
+  MemOperand mem_op_;
+  // The size of the memory region pointed to, in bytes.
+  // We only support sizes up to X/D register sizes.
+  size_t mem_op_size_;
 };
 }
 }  // namespace vixl::aarch64

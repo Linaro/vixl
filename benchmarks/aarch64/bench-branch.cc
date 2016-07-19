@@ -29,6 +29,7 @@
 #include "aarch64/instructions-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 
+using namespace vixl;
 using namespace vixl::aarch64;
 
 static const int kDefaultInstructionCount = 100000;

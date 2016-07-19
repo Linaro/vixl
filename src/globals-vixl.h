@@ -52,6 +52,8 @@
 #include "platform-vixl.h"
 
 
+namespace vixl {
+
 typedef uint8_t byte;
 
 // Type for half-precision (16 bit) floating point numbers.
@@ -59,6 +61,10 @@ typedef uint16_t float16;
 
 const int KBytes = 1024;
 const int MBytes = 1024 * KBytes;
+
+const int kBitsPerByte = 8;
+
+}  // namespace vixl
 
 #define VIXL_ABORT()                              \
   do {                                            \

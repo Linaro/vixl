@@ -364,6 +364,15 @@ Operand Operand::ToExtendedRegister() const {
 
 
 // MemOperand
+MemOperand::MemOperand()
+    : base_(NoReg),
+      regoffset_(NoReg),
+      offset_(0),
+      addrmode_(Offset),
+      shift_(NO_SHIFT),
+      extend_(NO_EXTEND) {}
+
+
 MemOperand::MemOperand(Register base, int64_t offset, AddrMode addrmode)
     : base_(base),
       regoffset_(NoReg),
@@ -473,6 +482,39 @@ bool MemOperand::IsPostIndex() const { return addrmode_ == PostIndex; }
 void MemOperand::AddOffset(int64_t offset) {
   VIXL_ASSERT(IsImmediateOffset());
   offset_ += offset;
+}
+
+
+GenericOperand::GenericOperand(const CPURegister& reg)
+    : cpu_register_(reg), mem_op_size_(0) {
+  if (reg.IsQ()) {
+    VIXL_ASSERT(reg.GetSizeInBits() > static_cast<int>(kXRegSize));
+    // Support for Q registers is not implemented yet.
+    VIXL_UNIMPLEMENTED();
+  }
+}
+
+
+GenericOperand::GenericOperand(const MemOperand& mem_op, size_t mem_op_size)
+    : cpu_register_(NoReg), mem_op_(mem_op), mem_op_size_(mem_op_size) {
+  if (mem_op_size_ > kXRegSizeInBytes) {
+    // We only support generic operands up to the size of X registers.
+    VIXL_UNIMPLEMENTED();
+  }
+}
+
+bool GenericOperand::Equals(const GenericOperand& other) const {
+  if (!IsValid() || !other.IsValid()) {
+    // Two invalid generic operands are considered equal.
+    return !IsValid() && !other.IsValid();
+  }
+  if (IsCPURegister() && other.IsCPURegister()) {
+    return GetCPURegister().Is(other.GetCPURegister());
+  } else if (IsMemOperand() && other.IsMemOperand()) {
+    return GetMemOperand().Equals(other.GetMemOperand()) &&
+           (GetMemOperandSizeInBytes() == other.GetMemOperandSizeInBytes());
+  }
+  return false;
 }
 }
 }  // namespace vixl::aarch64
