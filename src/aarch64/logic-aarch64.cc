@@ -1122,7 +1122,7 @@ LogicVRegister Simulator::sqrdmulh(VectorFormat vform,
 }
 
 
-uint16_t Simulator::PolynomialMult(uint8_t op1, uint8_t op2) {
+uint16_t Simulator::PolynomialMult(uint8_t op1, uint8_t op2) const {
   uint16_t result = 0;
   uint16_t extended_op2 = op2;
   for (int i = 0; i < 8; ++i) {

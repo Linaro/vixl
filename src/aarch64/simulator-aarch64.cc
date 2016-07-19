@@ -328,7 +328,7 @@ uint64_t Simulator::AddWithCarry(unsigned reg_size,
 int64_t Simulator::ShiftOperand(unsigned reg_size,
                                 int64_t value,
                                 Shift shift_type,
-                                unsigned amount) {
+                                unsigned amount) const {
   if (amount == 0) {
     return value;
   }
@@ -362,7 +362,7 @@ int64_t Simulator::ShiftOperand(unsigned reg_size,
 int64_t Simulator::ExtendValue(unsigned reg_size,
                                int64_t value,
                                Extend extend_type,
-                               unsigned left_shift) {
+                               unsigned left_shift) const {
   switch (extend_type) {
     case UXTB:
       value &= kByteMask;
@@ -416,6 +416,26 @@ void Simulator::FPCompare(double val0, double val1, FPTrapFlags trap) {
   }
   LogSystemRegister(NZCV);
   if (process_exception) FPProcessException();
+}
+
+
+uint64_t Simulator::ComputeMemOperandAddress(const MemOperand& mem_op) const {
+  VIXL_ASSERT(mem_op.IsValid());
+  int64_t base = ReadRegister<int64_t>(mem_op.GetBaseRegister());
+  if (mem_op.IsImmediateOffset()) {
+    return base + mem_op.GetOffset();
+  } else {
+    VIXL_ASSERT(mem_op.GetRegisterOffset().IsValid());
+    int64_t offset = ReadRegister<int64_t>(mem_op.GetRegisterOffset());
+    int64_t shift_amount = mem_op.GetShiftAmount();
+    if (mem_op.GetShift() != NO_SHIFT) {
+      offset = ShiftOperand(kXRegSize, offset, mem_op.GetShift(), shift_amount);
+    }
+    if (mem_op.GetExtend() != NO_EXTEND) {
+      offset = ExtendValue(kXRegSize, offset, mem_op.GetExtend(), shift_amount);
+    }
+    return static_cast<uint64_t>(base + offset);
+  }
 }
 
 

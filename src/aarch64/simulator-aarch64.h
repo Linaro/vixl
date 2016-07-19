@@ -825,11 +825,16 @@ class Simulator : public DecoderVisitor {
   // Basic accessor: Read the register as the specified type.
   template <typename T>
   T ReadRegister(unsigned code, Reg31Mode r31mode = Reg31IsZeroRegister) const {
-    VIXL_ASSERT(code < kNumberOfRegisters);
+    VIXL_ASSERT(
+        code < kNumberOfRegisters ||
+        ((r31mode == Reg31IsZeroRegister) && (code == kSPRegInternalCode)));
     if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
       T result;
       memset(&result, 0, sizeof(result));
       return result;
+    }
+    if ((r31mode == Reg31IsZeroRegister) && (code == kSPRegInternalCode)) {
+      code = 31;
     }
     return registers_[code].Get<T>();
   }
@@ -918,10 +923,16 @@ class Simulator : public DecoderVisitor {
                      Reg31Mode r31mode = Reg31IsZeroRegister) {
     VIXL_STATIC_ASSERT((sizeof(T) == kWRegSizeInBytes) ||
                        (sizeof(T) == kXRegSizeInBytes));
-    VIXL_ASSERT(code < kNumberOfRegisters);
+    VIXL_ASSERT(
+        code < kNumberOfRegisters ||
+        ((r31mode == Reg31IsZeroRegister) && (code == kSPRegInternalCode)));
 
     if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
       return;
+    }
+
+    if ((r31mode == Reg31IsZeroRegister) && (code == kSPRegInternalCode)) {
+      code = 31;
     }
 
     registers_[code].Write(value);
@@ -1242,6 +1253,74 @@ class Simulator : public DecoderVisitor {
                                 qreg_t value,
                                 RegLogMode log_mode = LogRegWrites)) {
     WriteQRegister(code, value, log_mode);
+  }
+
+  template <typename T>
+  T ReadRegister(Register reg) const {
+    return ReadRegister<T>(reg.GetCode(), Reg31IsZeroRegister);
+  }
+
+  template <typename T>
+  void WriteRegister(Register reg,
+                     T value,
+                     RegLogMode log_mode = LogRegWrites) {
+    WriteRegister<T>(reg.GetCode(), value, log_mode, Reg31IsZeroRegister);
+  }
+
+  template <typename T>
+  T ReadVRegister(VRegister vreg) const {
+    return ReadVRegister<T>(vreg.GetCode());
+  }
+
+  template <typename T>
+  void WriteVRegister(VRegister vreg,
+                      T value,
+                      RegLogMode log_mode = LogRegWrites) {
+    WriteVRegister<T>(vreg.GetCode(), value, log_mode);
+  }
+
+  template <typename T>
+  T ReadCPURegister(CPURegister reg) const {
+    if (reg.IsVRegister()) {
+      return ReadVRegister<T>(VRegister(reg));
+    } else {
+      return ReadRegister<T>(Register(reg));
+    }
+  }
+
+  template <typename T>
+  void WriteCPURegister(CPURegister reg,
+                        T value,
+                        RegLogMode log_mode = LogRegWrites) {
+    if (reg.IsVRegister()) {
+      WriteVRegister<T>(VRegister(reg), value, log_mode);
+    } else {
+      WriteRegister<T>(Register(reg), value, log_mode);
+    }
+  }
+
+  uint64_t ComputeMemOperandAddress(const MemOperand& mem_op) const;
+
+  template <typename T>
+  T ReadGenericOperand(GenericOperand operand) const {
+    if (operand.IsCPURegister()) {
+      return ReadCPURegister<T>(operand.GetCPURegister());
+    } else {
+      VIXL_ASSERT(operand.IsMemOperand());
+      return Memory::Read<T>(ComputeMemOperandAddress(operand.GetMemOperand()));
+    }
+  }
+
+  template <typename T>
+  void WriteGenericOperand(GenericOperand operand,
+                           T value,
+                           RegLogMode log_mode = LogRegWrites) {
+    if (operand.IsCPURegister()) {
+      WriteCPURegister<T>(operand.GetCPURegister(), value, log_mode);
+    } else {
+      VIXL_ASSERT(operand.IsMemOperand());
+      Memory::Write(ComputeMemOperandAddress(operand.GetMemOperand()), value);
+    }
   }
 
   bool ReadN() const { return nzcv_.GetN() != 0; }
@@ -1720,16 +1799,12 @@ class Simulator : public DecoderVisitor {
   int64_t ShiftOperand(unsigned reg_size,
                        int64_t value,
                        Shift shift_type,
-                       unsigned amount);
-  int64_t Rotate(unsigned reg_width,
-                 int64_t value,
-                 Shift shift_type,
-                 unsigned amount);
+                       unsigned amount) const;
   int64_t ExtendValue(unsigned reg_width,
                       int64_t value,
                       Extend extend_type,
-                      unsigned left_shift = 0);
-  uint16_t PolynomialMult(uint8_t op1, uint8_t op2);
+                      unsigned left_shift = 0) const;
+  uint16_t PolynomialMult(uint8_t op1, uint8_t op2) const;
 
   void ld1(VectorFormat vform, LogicVRegister dst, uint64_t addr);
   void ld1(VectorFormat vform, LogicVRegister dst, int index, uint64_t addr);
