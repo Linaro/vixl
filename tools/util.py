@@ -68,3 +68,6 @@ def require_program(program_name):
   if rc != 0:
     print('ERROR: The required program %s was not found.' % program_name)
     sys.exit(rc)
+
+def relrealpath(path, start=os.getcwd()):
+  return os.path.relpath(os.path.realpath(path), start)

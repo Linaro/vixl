@@ -344,7 +344,7 @@ def RunBenchmarks():
   benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch64_benchmarks)
   for bench in benchmark_names:
     rc |= RunCommand(
-      [os.path.realpath(
+      [util.relrealpath(
           join(config.dir_build_latest, 'benchmarks/aarch64', bench))])
   return rc
 
@@ -417,7 +417,7 @@ if __name__ == '__main__':
 
       # Use the realpath of the test executable so that the commands printed
       # can be copy-pasted and run.
-      test_executable = os.path.realpath(
+      test_executable = util.relrealpath(
         join(config.dir_build_latest, 'test', 'test-runner'))
 
       if not args.notest:
