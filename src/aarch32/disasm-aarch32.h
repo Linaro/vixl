@@ -2237,7 +2237,7 @@ DataTypeValue Dt_size_16_Decode(uint32_t value);
 
 class PrintDisassembler : public Disassembler {
  public:
-  PrintDisassembler(std::ostream& os, uint32_t pc)  // NOLINT
+  explicit PrintDisassembler(std::ostream& os, uint32_t pc = 0)  // NOLINT
       : Disassembler(os, pc) {}
 
   void DecodeT32(uint32_t instruction);
