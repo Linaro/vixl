@@ -36,6 +36,7 @@ namespace aarch64 {
   C(HelpCommand)              \
   C(ContinueCommand)          \
   C(StepCommand)              \
+  C(SkipCommand)              \
   C(DisasmCommand)            \
   C(PrintCommand)             \
   C(ExamineCommand)
@@ -329,6 +330,26 @@ class StepCommand : public DebugCommand {
   IntegerToken* count_;
 };
 
+class SkipCommand : public DebugCommand {
+ public:
+  SkipCommand(Token* name, IntegerToken* count)
+      : DebugCommand(name), count_(count) {}
+  virtual ~SkipCommand() { delete count_; }
+
+  int64_t count() { return count_->value(); }
+  virtual bool Run(Debugger* debugger);
+  virtual void Print(FILE* out = stdout);
+
+  static DebugCommand* Build(std::vector<Token*> args);
+
+  static const char* kHelp;
+  static const char* kAliases[];
+  static const char* kArguments;
+
+ private:
+  IntegerToken* count_;
+};
+
 class DisasmCommand : public DebugCommand {
  public:
   static DebugCommand* Build(std::vector<Token*> args);
@@ -433,6 +454,10 @@ const char* ContinueCommand::kHelp = "  Resume execution.";
 const char* StepCommand::kAliases[] = {"stepi", "si", NULL};
 const char* StepCommand::kArguments = "[n = 1]";
 const char* StepCommand::kHelp = "  Execute n next instruction(s).";
+
+const char* SkipCommand::kAliases[] = {"skip", NULL};
+const char* SkipCommand::kArguments = "[n = 1]";
+const char* SkipCommand::kHelp = "  Skip the next n instruction(s).";
 
 const char* DisasmCommand::kAliases[] = {"disasm", "di", NULL};
 const char* DisasmCommand::kArguments = "[n = 10]";
@@ -563,7 +588,9 @@ void Debugger::Run() {
 }
 
 
-void Debugger::PrintInstructions(const void* address, int64_t count) {
+void Debugger::PrintInstructions(const void* address,
+                                 int64_t count,
+                                 const char* prefix) {
   if (count == 0) {
     return;
   }
@@ -577,6 +604,7 @@ void Debugger::PrintInstructions(const void* address, int64_t count) {
 
   for (const Instruction* current = from; current < to;
        current = current->GetNextInstruction()) {
+    printf("%s", prefix);
     printer_->Decode(current);
   }
 }
@@ -713,8 +741,7 @@ void Debugger::RunDebuggerShell() {
       return;
     }
 
-    printf("Next: ");
-    PrintInstructions(ReadPc());
+    PrintNextInstruction();
     bool done = false;
     while (!done) {
       char buffer[kMaxDebugShellLine];
@@ -1270,6 +1297,51 @@ DebugCommand* StepCommand::Build(std::vector<Token*> args) {
   }
 
   return new StepCommand(args[0], count);
+}
+
+
+bool SkipCommand::Run(Debugger* debugger) {
+  VIXL_ASSERT(debugger->IsDebuggerRunning());
+
+  int64_t steps = count();
+  if (steps < 0) {
+    printf(" ** invalid value for steps: %" PRId64 " (<0) **\n", steps);
+  } else {
+    printf("Skipping over %" PRId64 " instructions:\n", steps);
+    debugger->PrintInstructions(debugger->ReadPc(), steps, "Skip: ");
+    debugger->WritePc(debugger->ReadPc() + steps * kInstructionSize);
+    debugger->PrintNextInstruction();
+  }
+
+  return false;
+}
+
+
+void SkipCommand::Print(FILE* out) {
+  fprintf(out, "%s %" PRId64 "", name(), count());
+}
+
+
+DebugCommand* SkipCommand::Build(std::vector<Token*> args) {
+  IntegerToken* count = NULL;
+  switch (args.size()) {
+    case 1: {  // step [1]
+      count = new IntegerToken(1);
+      break;
+    }
+    case 2: {  // step n
+      Token* first = args[1];
+      if (!first->IsInteger()) {
+        return new InvalidCommand(args, 1, "expects int");
+      }
+      count = IntegerToken::Cast(first);
+      break;
+    }
+    default:
+      return new InvalidCommand(args, -1, "too many arguments");
+  }
+
+  return new SkipCommand(args[0], count);
 }
 
 
