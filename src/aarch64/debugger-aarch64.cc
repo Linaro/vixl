@@ -737,7 +737,7 @@ void Debugger::RunDebuggerShell() {
     if ((debug_parameters_ & DBG_BREAK) != 0) {
       // The break request has now been handled, move to next instruction.
       debug_parameters_ &= ~DBG_BREAK;
-      IncrementPc();
+      pc_ = pc_->GetNextInstruction();
     }
   }
 }
