@@ -1527,7 +1527,7 @@ static void TestHelper(Fn instruction, const char* mnemonic,
       printf("  },\n");
     }
     printf("};\n");
-  } else {
+  } else if (kCheckSimulatorTestResults) {
     // Check the results.
     unsigned total_error_count = 0;
     for (size_t i = 0; i < ARRAY_SIZE(kTests); i++) {
@@ -1595,6 +1595,8 @@ static void TestHelper(Fn instruction, const char* mnemonic,
 #ifndef VIXL_INCLUDE_SIMULATOR
     VIXL_CHECK(total_error_count == 0);
 #endif
+  } else {
+    VIXL_WARNING("Assembled the code, but did not run anything.\n");
   }
 
   for (size_t i = 0; i < ARRAY_SIZE(kTests); i++) {

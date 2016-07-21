@@ -106,6 +106,11 @@ const int MBytes = 1024 * KBytes;
 #define VIXL_STATIC_ASSERT_MESSAGE(condition, message) \
   VIXL_STATIC_ASSERT_LINE(__LINE__, condition, message)
 
+#define VIXL_WARNING(message)                                          \
+  do {                                                                 \
+    printf("WARNING in %s, line %i: %s", __FILE__, __LINE__, message); \
+  } while (false)
+
 template <typename T1>
 inline void USE(T1) {}
 
