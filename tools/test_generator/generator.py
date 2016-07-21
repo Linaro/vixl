@@ -650,5 +650,5 @@ class Generator(object):
     for mnemonic in self.mnemonics:
       with open(os.path.join(output_directory, self.GetTraceFileName(mnemonic)),
                 "w") as f:
-        code = "static const TestResult *kReference{} = NULL;"
+        code = "static const TestResult *kReference{} = NULL;\n"
         f.write(code.format(mnemonic))
