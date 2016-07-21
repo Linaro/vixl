@@ -561,8 +561,7 @@ const char* RegisterToken::kWAliases[kNumberOfRegisters][kMaxAliasNumber] =
 
 Debugger::Debugger(Decoder* decoder, FILE* stream)
     : Simulator(decoder, stream),
-      debug_parameters_(DBG_INACTIVE),
-      pending_request_(false),
+      debugger_active_(false),
       steps_(0),
       last_command_(NULL) {
   disasm_ = new PrintDisassembler(stdout);
@@ -582,7 +581,7 @@ void Debugger::Run() {
   LogAllWrittenRegisters();
 
   while (pc_ != kEndOfSimAddress) {
-    if (HasPendingRequest()) RunDebuggerShell();
+    if (IsDebuggerActive()) RunDebuggerShell();
     ExecuteInstruction();
   }
 }
@@ -734,7 +733,7 @@ char* Debugger::ReadCommandLine(const char* prompt, char* buffer, int length) {
 
 
 void Debugger::RunDebuggerShell() {
-  if (IsDebuggerRunning()) {
+  if (IsDebuggerActive()) {
     if (steps_ > 0) {
       // Finish stepping first.
       --steps_;
@@ -760,12 +759,6 @@ void Debugger::RunDebuggerShell() {
         printf("No previous command to run!\n");
       }
     }
-
-    if ((debug_parameters_ & DBG_BREAK) != 0) {
-      // The break request has now been handled, move to next instruction.
-      debug_parameters_ &= ~DBG_BREAK;
-      pc_ = pc_->GetNextInstruction();
-    }
   }
 }
 
@@ -774,9 +767,7 @@ void Debugger::DoBreakpoint(const Instruction* instr) {
   VIXL_ASSERT(instr->Mask(ExceptionMask) == BRK);
 
   printf("Hit breakpoint at pc=%p.\n", reinterpret_cast<const void*>(instr));
-  SetDebugParameters(GetDebugParameters() | DBG_BREAK | DBG_ACTIVE);
-  // Make the shell point to the brk instruction.
-  WritePc(instr);
+  ActivateDebugger();
 }
 
 
@@ -1208,7 +1199,7 @@ void DebugCommand::PrintHelp(const char** aliases,
 
 
 bool HelpCommand::Run(Debugger* debugger) {
-  VIXL_ASSERT(debugger->IsDebuggerRunning());
+  VIXL_ASSERT(debugger->IsDebuggerActive());
   USE(debugger);
 
 #define PRINT_HELP(Command)                    \
@@ -1233,9 +1224,9 @@ DebugCommand* HelpCommand::Build(std::vector<Token*> args) {
 
 
 bool ContinueCommand::Run(Debugger* debugger) {
-  VIXL_ASSERT(debugger->IsDebuggerRunning());
+  VIXL_ASSERT(debugger->IsDebuggerActive());
 
-  debugger->SetDebugParameters(debugger->GetDebugParameters() & ~DBG_ACTIVE);
+  debugger->DeactivateDebugger();
   return true;
 }
 
@@ -1250,7 +1241,7 @@ DebugCommand* ContinueCommand::Build(std::vector<Token*> args) {
 
 
 bool StepCommand::Run(Debugger* debugger) {
-  VIXL_ASSERT(debugger->IsDebuggerRunning());
+  VIXL_ASSERT(debugger->IsDebuggerActive());
 
   // To avoid recursive calls to the debugger shell when hitting breakpoints
   // while stepping, stepping is implemented by telling the debugger how many
@@ -1301,7 +1292,7 @@ DebugCommand* StepCommand::Build(std::vector<Token*> args) {
 
 
 bool SkipCommand::Run(Debugger* debugger) {
-  VIXL_ASSERT(debugger->IsDebuggerRunning());
+  VIXL_ASSERT(debugger->IsDebuggerActive());
 
   int64_t steps = count();
   if (steps < 0) {
@@ -1379,7 +1370,7 @@ void PrintCommand::Print(FILE* out) {
 
 
 bool PrintCommand::Run(Debugger* debugger) {
-  VIXL_ASSERT(debugger->IsDebuggerRunning());
+  VIXL_ASSERT(debugger->IsDebuggerActive());
 
   Token* tok = target();
   if (tok->IsIdentifier()) {
@@ -1503,7 +1494,7 @@ DebugCommand* PrintCommand::Build(std::vector<Token*> args) {
 
 
 bool ExamineCommand::Run(Debugger* debugger) {
-  VIXL_ASSERT(debugger->IsDebuggerRunning());
+  VIXL_ASSERT(debugger->IsDebuggerActive());
 
   uint8_t* address = target()->ToAddress(debugger);
   int64_t amount = count()->value();
@@ -1586,7 +1577,7 @@ UnknownCommand::~UnknownCommand() {
 
 
 bool UnknownCommand::Run(Debugger* debugger) {
-  VIXL_ASSERT(debugger->IsDebuggerRunning());
+  VIXL_ASSERT(debugger->IsDebuggerActive());
   USE(debugger);
 
   printf(" ** Unknown Command:");
@@ -1610,7 +1601,7 @@ InvalidCommand::~InvalidCommand() {
 
 
 bool InvalidCommand::Run(Debugger* debugger) {
-  VIXL_ASSERT(debugger->IsDebuggerRunning());
+  VIXL_ASSERT(debugger->IsDebuggerActive());
   USE(debugger);
 
   printf(" ** Invalid Command:");

@@ -44,13 +44,6 @@
 namespace vixl {
 namespace aarch64 {
 
-// Flags that represent the debugger state.
-enum DebugParameters {
-  DBG_INACTIVE = 0,
-  DBG_ACTIVE = 1 << 0,  // The debugger is active.
-  DBG_BREAK = 1 << 1    // The debugger is at a breakpoint.
-};
-
 // Forward declarations.
 class DebugCommand;
 class Token;
@@ -64,20 +57,9 @@ class Debugger : public Simulator {
   virtual void Run();
   virtual void VisitException(const Instruction* instr);
 
-  int GetDebugParameters() const { return debug_parameters_; }
-  VIXL_DEPRECATED("GetDebugParameters", int debug_parameters() const) {
-    return GetDebugParameters();
-  }
-
-  void SetDebugParameters(int parameters) {
-    debug_parameters_ = parameters;
-
-    UpdatePendingRequestStatus();
-  }
-  VIXL_DEPRECATED("SetDebugParameters",
-                  void set_debug_parameters(int parameters)) {
-    return SetDebugParameters(parameters);
-  }
+  bool IsDebuggerActive() const { return debugger_active_; }
+  void ActivateDebugger() { debugger_active_ = true; }
+  void DeactivateDebugger() { debugger_active_ = false; }
 
   // Numbers of instructions to execute before the debugger shell is given
   // back control.
@@ -90,20 +72,6 @@ class Debugger : public Simulator {
   }
   VIXL_DEPRECATED("SetSteps", void set_steps(int64_t value)) {
     return SetSteps(value);
-  }
-
-  bool IsDebuggerRunning() const {
-    return (debug_parameters_ & DBG_ACTIVE) != 0;
-  }
-
-  bool HasPendingRequest() const { return pending_request_; }
-  VIXL_DEPRECATED("HasPendingRequest", bool pending_request() const) {
-    return HasPendingRequest();
-  }
-
-  void UpdatePendingRequestStatus() { pending_request_ = IsDebuggerRunning(); }
-  VIXL_DEPRECATED("UpdatePendingRequestStatus", void update_pending_request()) {
-    UpdatePendingRequestStatus();
   }
 
   void PrintInstructions(const void* address,
@@ -124,8 +92,7 @@ class Debugger : public Simulator {
   void RunDebuggerShell();
   void DoBreakpoint(const Instruction* instr);
 
-  int debug_parameters_;
-  bool pending_request_;
+  bool debugger_active_;
   int64_t steps_;
   DebugCommand* last_command_;
   PrintDisassembler* disasm_;
