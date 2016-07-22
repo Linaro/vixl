@@ -133,6 +133,8 @@ class Assembler : public Instructions {
     return buffer_.GetOffsetFrom(label->GetLocation());
   }
 
+  size_t GetSizeOfCodeGenerated() const { return buffer_.GetOffsetFrom(0); }
+
   // Helpers for it instruction.
   void it(Condition cond) { it(cond, 0x8); }
   void itt(Condition cond) { it(cond, 0x4); }
