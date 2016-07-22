@@ -108,6 +108,7 @@ ifeq ($(ART_COVERAGE), true)
   VIXL_COVERAGE := true
 endif
 
+# Shared libraries for target - aarch64
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
@@ -136,7 +137,7 @@ LOCAL_SANITIZE_RECOVER := shift-exponent
 LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
 include $(BUILD_SHARED_LIBRARY)
 
-
+# Shared libraries for host - aarch64
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
@@ -169,7 +170,7 @@ LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
 LOCAL_MULTILIB := both
 include $(BUILD_HOST_SHARED_LIBRARY)
 
-# Static libraries for host
+# Static libraries for host - aarch64
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
@@ -202,6 +203,36 @@ LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
 LOCAL_MULTILIB := both
 include $(BUILD_HOST_STATIC_LIBRARY)
 
+# Shared libraries for target - aarch32
+include $(CLEAR_VARS)
+LOCAL_CLANG := true
+LOCAL_CPP_EXTENSION := .cc
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_release)
+LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
+LOCAL_C_INCLUDES := $(vixl_src_include_path)
+LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_aarch32)
+LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE := libvixl-aarch32
+LOCAL_SANITIZE_RECOVER := shift-exponent
+LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_CLANG := true
+LOCAL_CPP_EXTENSION := .cc
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug)
+LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
+LOCAL_C_INCLUDES := $(vixl_src_include_path)
+LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_aarch32)
+LOCAL_SHARED_LIBRARIES := liblog
+LOCAL_MODULE_TAGS := optional
+LOCAL_MODULE := libvixld-aarch32
+LOCAL_SANITIZE_RECOVER := shift-exponent
+LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
+include $(BUILD_SHARED_LIBRARY)
+
+# Shared libraries for host - aarch32
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
@@ -234,7 +265,7 @@ LOCAL_ADDITIONAL_DEPENDENCIES := $(LOCAL_PATH)/Android.mk
 LOCAL_MULTILIB := both
 include $(BUILD_HOST_SHARED_LIBRARY)
 
-# Static libraries for host
+# Static libraries for host - aarch32
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
