@@ -735,7 +735,18 @@ void Simulator::PrintVRegisterFPHelper(unsigned code,
     double value = (lane_size_in_bytes == kSRegSizeInBytes)
                        ? ReadVRegister(code).GetLane<float>(lane)
                        : ReadVRegister(code).GetLane<double>(lane);
-    fprintf(stream_, "%s%s%#g%s", separator, clr_vreg_value, value, clr_normal);
+    if (std::isnan(value)) {
+      // The output for NaNs is implementation defined. Always print `nan`, so
+      // that traces are coherent across different implementations.
+      fprintf(stream_, "%s%snan%s", separator, clr_vreg_value, clr_normal);
+    } else {
+      fprintf(stream_,
+              "%s%s%#g%s",
+              separator,
+              clr_vreg_value,
+              value,
+              clr_normal);
+    }
     separator = ", ";
   }
 
