@@ -170,8 +170,11 @@ void TestCustomDisassembler() {
            disasm.GetOutput());
     int64_t rel_addr =
         custom_disasm.CodeRelativeAddress(reinterpret_cast<void*>(instr));
-    char rel_addr_sign_char = rel_addr < 0 ? '-' : ' ';
-    rel_addr = std::abs(rel_addr);
+    char rel_addr_sign_char = ' ';
+    if (rel_addr < 0) {
+      rel_addr_sign_char = '-';
+      rel_addr = -rel_addr;
+    }
     printf("custom disasm\t%c0x%" PRIx64 ":\t%s\n",
            rel_addr_sign_char,
            rel_addr,
