@@ -33,6 +33,13 @@
 
 namespace vixl {
 
+// BSD uses `MAP_ANON` instead of the Linux `MAP_ANONYMOUS`. The `MAP_ANONYMOUS`
+// alias should generally be available, but is not always, so define it manually
+// if necessary.
+#if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
+#define MAP_ANONYMOUS MAP_ANON
+#endif
+
 ExecutableMemory::ExecutableMemory(size_t size)
   : size_(size),
     buffer_(mmap(NULL, size, PROT_READ | PROT_WRITE | PROT_EXEC,
