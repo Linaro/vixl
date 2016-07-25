@@ -89,8 +89,7 @@ options = {
       'CCFLAGS' : ['-DVIXL_DEBUG', '-O0']
       },
     'mode:release' : {
-      'CCFLAGS' : ['-O3', '-fdata-sections', '-ffunction-sections'],
-      'LINKFLAGS' : ['-Wl,--gc-sections']
+      'CCFLAGS' : ['-O3'],
       },
     'simulator:on' : {
       'CCFLAGS' : ['-DVIXL_INCLUDE_SIMULATOR'],
