@@ -150,7 +150,7 @@
             "cond", "rd", "rn", "rm"
           ],
           "operand-filter": "cond == 'al'",
-          "operand-limit": 2000
+          "operand-limit": 300
         }
       ]
     },

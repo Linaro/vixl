@@ -97,7 +97,7 @@
           "operands": [
             "cond", "rd", "rn", "rm", "ror", "amount"
           ],
-          "operand-limit": 2000
+          "operand-limit": 1000
         }
       ]
     },

@@ -94,7 +94,7 @@
             "cond", "rd", "rn", "shift", "amount"
           ],
           "operand-filter": "cond == 'al'",
-          "operand-limit": 2000
+          "operand-limit": 1000
         }
       ]
     },
@@ -114,7 +114,7 @@
           // Make sure the macro-assembler has generated an IT instruction.
           "expect-instruction-before": "It {cond}",
           "operand-filter": "cond != 'al' and register_is_low(rd) and register_is_low(rn) and shift != 'ROR'",
-          "operand-limit": 2000
+          "operand-limit": 1000
         }
       ]
     },

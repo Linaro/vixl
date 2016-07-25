@@ -84,7 +84,7 @@
           "operands": [
             "rd", "rn", "immediate"
           ],
-          "operand-limit": 2000
+          "operand-limit": 1000
         }
       ]
     },

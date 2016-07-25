@@ -88,7 +88,7 @@
           "operands": [
             "cond", "rd", "rn", "shift", "amount"
           ],
-          "operand-limit": 2000
+          "operand-limit": 1000
         }
       ]
     },

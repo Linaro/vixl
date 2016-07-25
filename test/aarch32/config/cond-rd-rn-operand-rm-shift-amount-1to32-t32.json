@@ -117,7 +117,7 @@
             "cond", "rd", "rn", "rm", "shift", "amount"
           ],
           "operand-filter": "cond == 'al'",
-          "operand-limit": 2000
+          "operand-limit": 500
         }
       ]
     },

@@ -133,7 +133,7 @@
           "operands": [
             "cond", "rd", "rn", "rm"
           ],
-          "operand-limit": 2000
+          "operand-limit": 500
         }
       ]
     },

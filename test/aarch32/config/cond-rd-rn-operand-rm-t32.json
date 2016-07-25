@@ -196,7 +196,8 @@
           "operands": [
             "cond", "rd", "rn", "rm"
           ],
-          "operand-filter": "cond == 'al'"
+          "operand-filter": "cond == 'al'",
+          "operand-limit": 500
         }
       ]
     },
@@ -217,7 +218,7 @@
           // Make sure the macro-assembler has generated an IT instruction.
           "expect-instruction-before": "It {cond}",
           "operand-filter": "cond != 'al' and register_is_low(rd) and register_is_low(rn) and register_is_low(rm)",
-          "operand-limit": 2000
+          "operand-limit": 500
         }
       ]
     },
@@ -244,7 +245,8 @@
           ],
           // Make sure the macro-assembler has generated an IT instruction.
           "expect-instruction-before": "It {cond}",
-          "operand-filter": "cond != 'al' and rd == rn and register_is_low(rn) and register_is_low(rm)"
+          "operand-filter": "cond != 'al' and rd == rn and register_is_low(rn) and register_is_low(rm)",
+          "operand-limit": 500
         }
       ]
     },
@@ -262,7 +264,8 @@
           ],
           // Make sure the macro-assembler has generated an IT instruction.
           "expect-instruction-before": "It {cond}",
-          "operand-filter": "cond != 'al' and rd == rn and rm != 'r13'"
+          "operand-filter": "cond != 'al' and rd == rn and rm != 'r13'",
+          "operand-limit": 500
         }
       ]
     },

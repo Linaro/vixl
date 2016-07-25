@@ -71,7 +71,8 @@
           "name": "Registers",
           "operands": [
             "rd", "rn", "rm"
-          ]
+          ],
+          "operand-limit": 500
         }
       ]
     },
