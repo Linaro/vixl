@@ -2520,15 +2520,29 @@ static void GenerateTestSequenceNEONFP(MacroAssembler* masm) {
 
 
 static void MaskAddresses(const char* trace) {
-#define COLOUR "(\\x1b\\[[01];([0-9][0-9])?m)?"
+  // Hexadecimal expressions of the form `\xab` do not work out-of-the box with
+  // BSD `sed`. So we use ANSI-C quoting to have the regular expressions below
+  // work both on Linux and BSD (and macOS).
+#ifdef __APPLE__
+#define MAYBE_ANSI_C_QUOTE "$"
+#define HEX(val) "\\x" #val
+#define ESCAPE(c) "\\\\" #c
+  const char* sed_options = "-i \"\" -E";
+#else
+#define MAYBE_ANSI_C_QUOTE
+#define HEX(val) "\\x" #val
+#define ESCAPE(c) "\\" #c
+  const char* sed_options = "--in-place --regexp-extended";
+#endif
+#define COLOUR "(" HEX(1b) ESCAPE([) "[01];([0-9][0-9])?m)?"
   struct {
     const char* search;
     const char* replace;
   } patterns[] = {
       // Mask registers that hold addresses that change from run to run.
-      {"((x0|x1|x2|sp): " COLOUR "0x)[0-9a-f]{16}", "\\1~~~~~~~~~~~~~~~~"},
+      {"((x0|x1|x2|sp): " COLOUR "0x)[0-9a-f]{16}", ESCAPE(1) "~~~~~~~~~~~~~~~~"},
       // Mask accessed memory addresses.
-      {"((<-|->) " COLOUR "0x)[0-9a-f]{16}", "\\1~~~~~~~~~~~~~~~~"},
+      {"((<-|->) " COLOUR "0x)[0-9a-f]{16}", ESCAPE(1) "~~~~~~~~~~~~~~~~"},
       // Mask instruction addresses.
       {"^0x[0-9a-f]{16}", "0x~~~~~~~~~~~~~~~~"}
   };
@@ -2538,8 +2552,9 @@ static void MaskAddresses(const char* trace) {
   char command[1024];
   for (size_t i = 0; i < patterns_length; i++) {
     size_t length =
-        snprintf(command, sizeof(command), "sed -ri 's/%s/%s/' '%s'",
-                 patterns[i].search, patterns[i].replace, trace);
+        snprintf(command, sizeof(command),
+                 "sed %s " MAYBE_ANSI_C_QUOTE "'s/%s/%s/' '%s'",
+                 sed_options, patterns[i].search, patterns[i].replace, trace);
     VIXL_CHECK(length < sizeof(command));
     VIXL_CHECK(system(command) == 0);
   }
