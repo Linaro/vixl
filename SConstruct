@@ -236,12 +236,6 @@ def ConfigureEnvironmentForCompiler(env):
   if 'std' not in env or env['std'] == 'c++98':
     env.Append(CPPFLAGS = ['-Wno-c++11-long-long'])
 
-  # The generated macro assembler contains uninitialized variables and
-  # GCC cannot prove that they are always initialised, even though it
-  # should.
-  if env['mode'] == 'release' and is_compiler('g++'):
-    env.Append(CPPFLAGS = ['-Wno-maybe-uninitialized'])
-
 
 def ConfigureEnvironment(env):
   RetrieveEnvironmentVariables(env)
