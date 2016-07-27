@@ -34,7 +34,7 @@ namespace vixl {
 namespace aarch32 {
 
 class Assembler : public Instructions {
-  bool t32_;
+  InstructionSet isa_;
   Condition first_condition_;
   uint16_t it_mask_;
   bool generate_for_simulator_;
@@ -61,39 +61,43 @@ class Assembler : public Instructions {
   void AdvanceIT() { it_mask_ = (it_mask_ << 1) & 0xf; }
 
  public:
-  Assembler()
-      : t32_(false),
+  explicit Assembler(InstructionSet isa = A32)
+      : isa_(isa),
         first_condition_(al),
         it_mask_(0),
         generate_for_simulator_(VIXL_GENERATE_SIMULATOR_CODE),
         has_32_dregs_(true) {}
-  explicit Assembler(size_t size)
-      : t32_(false),
+  explicit Assembler(size_t size, InstructionSet isa = A32)
+      : isa_(isa),
         first_condition_(al),
         it_mask_(0),
         generate_for_simulator_(VIXL_GENERATE_SIMULATOR_CODE),
         has_32_dregs_(true),
         buffer_(size) {}
-  Assembler(void* buffer, size_t size)
-      : t32_(false),
+  Assembler(void* buffer, size_t size, InstructionSet isa = A32)
+      : isa_(isa),
         first_condition_(al),
         it_mask_(0),
         generate_for_simulator_(VIXL_GENERATE_SIMULATOR_CODE),
         has_32_dregs_(true),
         buffer_(buffer, size) {}
   virtual ~Assembler() {}
-  void SetT32(bool t32) {
-    VIXL_ASSERT((t32_ == t32) || (GetCursorOffset() == 0));
-    t32_ = t32;
+  void UseInstructionSet(InstructionSet isa) {
+    VIXL_ASSERT((isa_ == isa) || (GetCursorOffset() == 0));
+    isa_ = isa;
   }
-  bool IsT32() const { return t32_; }
+  InstructionSet GetInstructionSetInUse() const { return isa_; }
+  void UseT32() { UseInstructionSet(T32); }
+  void UseA32() { UseInstructionSet(A32); }
+  bool IsUsingT32() const { return GetInstructionSetInUse() == T32; }
+  bool IsUsingA32() const { return GetInstructionSetInUse() == A32; }
   void SetIT(Condition first_condition, uint16_t it_mask) {
     VIXL_ASSERT(it_mask_ == 0);
     first_condition_ = first_condition;
     it_mask_ = it_mask;
   }
   bool Is16BitEncoding(uint16_t instr) const {
-    VIXL_ASSERT(IsT32());
+    VIXL_ASSERT(IsUsingT32());
     return instr < 0xe800;
   }
   bool InITBlock() { return it_mask_ != 0; }
@@ -115,7 +119,7 @@ class Assembler : public Instructions {
     VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
     return buffer_.GetOffsetAddress<T>(offset);
   }
-  uint32_t GetArchitectureStatePCOffset() const { return IsT32() ? 4 : 8; }
+  uint32_t GetArchitectureStatePCOffset() const { return IsUsingT32() ? 4 : 8; }
   void EncodeLabelFor(const Label::ForwardReference& forward, Label* label);
   uint32_t Link(uint32_t instr,
                 Label* label,

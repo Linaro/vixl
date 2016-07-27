@@ -2905,7 +2905,7 @@ static void TestHelper(Fn instruction, const char* mnemonic,
   unsigned total_error_count = 0;
   MacroAssembler masm(BUF_SIZE);
 
-  masm.SetT32(false);
+  masm.UseA32();
 
   for (unsigned i = 0; i < ARRAY_SIZE(kTests); i++) {
     // Values to pass to the macro-assembler.

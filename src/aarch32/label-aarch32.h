@@ -66,7 +66,7 @@ class Label {
     uint32_t GetStatePCOffset() const {
       return is_t32_ ? kT32PcDelta : kA32PcDelta;
     }
-    bool IsT32() const { return is_t32_; }
+    bool IsUsingT32() const { return is_t32_; }
     bool IsBranch() const { return is_branch_; }
     void SetIsBranch() { is_branch_ = true; }
     const LabelEmitOperator& GetEmitOperator() const { return op_; }
@@ -130,7 +130,7 @@ class Label {
     VIXL_ASSERT(IsBound());
     return imm_offset_ + static_cast<Offset>(pc_offset_);
   }
-  bool IsT32() const {
+  bool IsUsingT32() const {
     VIXL_ASSERT(IsBound());  // Must be bound to know if it's a T32 label
     return is_t32_;
   }

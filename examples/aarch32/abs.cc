@@ -42,8 +42,7 @@ void GenerateAbs(MacroAssembler* masm) {
 
 #ifndef TEST_EXAMPLES
 int main() {
-  MacroAssembler masm;
-  masm.SetT32(false);
+  MacroAssembler masm(A32);
   // Generate the code for the example function.
   Label abs;
   masm.Bind(&abs);

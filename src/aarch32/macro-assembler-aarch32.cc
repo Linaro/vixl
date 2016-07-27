@@ -335,7 +335,7 @@ void MacroAssembler::Switch(Register reg, JumpTableBase* table) {
   B(ge, table->GetDefaultLabel());
 
   Adr(scratch, &jump_table);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     Add(scratch, scratch, Operand(reg, LSL, table->GetOffsetShift()));
     switch (table->GetOffsetShift()) {
       case 0:
@@ -748,7 +748,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               const Operand& operand) {
   // add, movt, movw, sub, sxtbl16, teq, uxtb16
   ContextScope context(this);
-  if (IsT32() && operand.IsRegisterShiftedRegister()) {
+  if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
     InstructionCondRROp shiftop = NULL;
     switch (operand.GetShift().GetType()) {
       case LSL:
@@ -811,7 +811,7 @@ void MacroAssembler::Delegate(InstructionType type,
   // cmn cmp mov movs mvn mvns sxtb sxth tst uxtb uxth
   ContextScope context(this);
   VIXL_ASSERT(size.IsBest());
-  if (IsT32() && operand.IsRegisterShiftedRegister()) {
+  if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
     InstructionCondRROp shiftop = NULL;
     switch (operand.GetShift().GetType()) {
       case LSL:
@@ -880,7 +880,7 @@ void MacroAssembler::Delegate(InstructionType type,
         break;
       case kMvn:
       case kMvns:
-        if (!IsT32() || !rn.IsPC()) {
+        if (IsUsingA32() || !rn.IsPC()) {
           UseScratchRegisterScope temps(this);
           Register scratch = temps.Acquire();
           HandleOutOfBoundsImmediate(cond, scratch, imm);
@@ -912,7 +912,7 @@ void MacroAssembler::Delegate(InstructionType type,
   // addw orn orns pkhbt pkhtb rsc rscs subw sxtab sxtab16 sxtah uxtab uxtab16
   // uxtah
   ContextScope context(this);
-  if (IsT32() && operand.IsRegisterShiftedRegister()) {
+  if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
     InstructionCondRROp shiftop = NULL;
     switch (operand.GetShift().GetType()) {
       case LSL:
@@ -948,7 +948,7 @@ void MacroAssembler::Delegate(InstructionType type,
       return (this->*instruction)(cond, rd, rn, scratch);
     }
   }
-  if (IsT32() && ((type == kRsc) || (type == kRscs))) {
+  if (IsUsingT32() && ((type == kRsc) || (type == kRscs))) {
     // The RegisterShiftRegister case should have been handled above.
     VIXL_ASSERT(!operand.IsRegisterShiftedRegister());
     UseScratchRegisterScope temps(this);
@@ -967,7 +967,7 @@ void MacroAssembler::Delegate(InstructionType type,
     }
     return Adcs(cond, rd, negated_rn, operand);
   }
-  if (!IsT32() && ((type == kOrn) || (type == kOrns))) {
+  if (IsUsingA32() && ((type == kOrn) || (type == kOrns))) {
     // TODO: orn r0, r1, imm -> orr r0, r1, neg(imm) if doable
     //  mvn r0, r2
     //  orr r0, r1, r0
@@ -1035,7 +1035,7 @@ void MacroAssembler::Delegate(InstructionType type,
   // orr orrs ror rors rsb rsbs sbc sbcs sub subs
   ContextScope context(this);
   VIXL_ASSERT(size.IsBest());
-  if (IsT32() && operand.IsRegisterShiftedRegister()) {
+  if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
     InstructionCondRROp shiftop = NULL;
     switch (operand.GetShift().GetType()) {
       case LSL:
@@ -1126,7 +1126,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               Label* label) {
   // cbz cbnz
   ContextScope context(this);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     switch (type) {
       case kCbnz: {
         Label done;
@@ -1860,7 +1860,7 @@ void MacroAssembler::Delegate(InstructionType type,
   bool can_delegate = true;
   if (((type == kLdrd) || (type == kStrd) || (type == kLdaexd) ||
        (type == kLdrexd)) &&
-      !IsT32()) {
+      IsUsingA32()) {
     can_delegate =
         (((rt.GetCode() & 1) == 0) && !rt.Is(lr) &&
          (((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()));
@@ -2068,7 +2068,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               const MemOperand& operand) {
   // stlexd strexd
   ContextScope context(this);
-  if (IsT32() ||
+  if (IsUsingT32() ||
       (((rt.GetCode() & 1) == 0) && !rt.Is(lr) &&
        (((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()))) {
     if (operand.IsImmediate()) {

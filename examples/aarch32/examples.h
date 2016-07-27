@@ -59,7 +59,7 @@ class ExecutableMemory {
   template <typename T>
   T GetEntryPoint(const Label& entry_point) const {
     uint32_t location = entry_point.GetLocation();
-    if (entry_point.IsT32()) location += 1;
+    if (entry_point.IsUsingT32()) location += 1;
     return GetOffsetAddress<T>(location);
   }
 

@@ -98,7 +98,7 @@
     ExecutableMemory code(masm.GetBuffer().GetCursorOffset()); \
     code.Write(masm.GetBuffer().GetOffsetAddress<byte*>(0),    \
                masm.GetBuffer().GetCursorOffset());            \
-    int pcs_offset = masm.IsT32() ? 1 : 0;                     \
+    int pcs_offset = masm.IsUsingT32() ? 1 : 0;                \
     code.Execute(pcs_offset);                                  \
   }
 
@@ -397,7 +397,7 @@ typedef void (MacroAssembler::*Fn)(Condition cond, Register rd, Register rn,
 static void TestHelper(Fn instruction, const char* mnemonic,
                        const TestResult reference[]) {
   SETUP();
-  masm.SetT32(false);
+  masm.UseA32();
   START();
 
   // Data to compare to `reference`.

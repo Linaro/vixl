@@ -75,8 +75,7 @@ void GenerateGradeComment(MacroAssembler* masm) {
 
 #ifndef TEST_EXAMPLES
 int main() {
-  MacroAssembler masm;
-  masm.SetT32(true);
+  MacroAssembler masm(T32);
   // Generate the code for the example function.
   Label entry_point;
   masm.Bind(&entry_point);

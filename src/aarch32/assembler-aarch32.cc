@@ -61,7 +61,7 @@ void Assembler::EmitA32(uint32_t instr) {
 #ifdef VIXL_DEBUG
 void Assembler::PerformCheckIT(Condition condition) {
   if (it_mask_ == 0) {
-    VIXL_ASSERT(!IsT32() || condition.Is(al));
+    VIXL_ASSERT(IsUsingA32() || condition.Is(al));
   } else {
     VIXL_ASSERT(condition.Is(first_condition_));
     first_condition_ =
@@ -69,7 +69,7 @@ void Assembler::PerformCheckIT(Condition condition) {
     // For A32, AdavanceIT() is not called by the assembler. We must call it
     // in order to check that IT instructions are used consistently with
     // the following conditional instructions.
-    if (!IsT32()) AdvanceIT();
+    if (IsUsingA32()) AdvanceIT();
   }
 }
 #endif
@@ -83,7 +83,7 @@ uint32_t Assembler::Link(uint32_t instr,
                      GetCursorOffset() + GetArchitectureStatePCOffset(),
                      label);
   }
-  label->AddForwardRef(GetCursorOffset(), IsT32(), op);
+  label->AddForwardRef(GetCursorOffset(), IsUsingT32(), op);
   return instr;
 }
 
@@ -93,7 +93,7 @@ void Assembler::EncodeLabelFor(const Label::ForwardReference& forward,
   const uint32_t location = forward.GetLocation();
   const uint32_t from = location + forward.GetStatePCOffset();
   const Label::LabelEmitOperator& encoder = forward.GetEmitOperator();
-  if (forward.IsT32()) {
+  if (forward.IsUsingT32()) {
     uint16_t* instr_ptr = buffer_.GetOffsetAddress<uint16_t*>(location);
     if (Is16BitEncoding(instr_ptr[0])) {
       // The Encode methods always deals with uint32_t types so we need
@@ -119,7 +119,7 @@ void Assembler::EncodeLabelFor(const Label::ForwardReference& forward,
 
 void Assembler::bind(Label* label) {
   VIXL_ASSERT(!label->IsBound());
-  label->Bind(GetCursorOffset(), IsT32());
+  label->Bind(GetCursorOffset(), IsUsingT32());
 
   for (Label::ForwardRefList::iterator ref = label->GetFirstForwardRef();
        ref != label->GetEndForwardRef();
@@ -1795,7 +1795,7 @@ void Assembler::adc(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // ADC{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid()) {
@@ -1820,7 +1820,7 @@ void Assembler::adc(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // ADC<c>{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
         if (InITBlock() && !size.IsWide() && rd.Is(rn) && rn.IsLow() &&
             rm.IsLow()) {
@@ -1832,7 +1832,7 @@ void Assembler::adc(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ADC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -1856,7 +1856,7 @@ void Assembler::adc(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // ADC{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00a00010U | (cond.GetCondition() << 28) |
@@ -1878,7 +1878,7 @@ void Assembler::adcs(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // ADCS{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid()) {
@@ -1903,7 +1903,7 @@ void Assembler::adcs(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // ADCS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
         if (OutsideITBlock() && !size.IsWide() && rd.Is(rn) && rn.IsLow() &&
             rm.IsLow()) {
@@ -1915,7 +1915,7 @@ void Assembler::adcs(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ADCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -1939,7 +1939,7 @@ void Assembler::adcs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // ADCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00b00010U | (cond.GetCondition() << 28) |
@@ -1961,7 +1961,7 @@ void Assembler::add(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // ADD{<c>}{<q>} <Rd>, PC, #<imm8> ; T1
       if (!size.IsWide() && rd.IsLow() && rn.Is(pc) && (imm <= 1020) &&
@@ -2067,7 +2067,7 @@ void Assembler::add(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // ADD<c>{<q>} <Rd>, <Rn>, <Rm> ; T1
         if (InITBlock() && !size.IsWide() && rd.IsLow() && rn.IsLow() &&
             rm.IsLow()) {
@@ -2100,7 +2100,7 @@ void Assembler::add(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ADD{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T3
       if (!size.IsNarrow() && shift.IsValidAmount(amount) && !rn.Is(sp)) {
         uint32_t amount_ = amount % 32;
@@ -2141,7 +2141,7 @@ void Assembler::add(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // ADD{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00800010U | (cond.GetCondition() << 28) |
@@ -2159,7 +2159,7 @@ void Assembler::add(Condition cond, Register rd, const Operand& operand) {
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ADD<c>{<q>} <Rdn>, #<imm8> ; T2
       if (InITBlock() && rd.IsLow() && (imm <= 255)) {
         EmitT32_16(0x3000 | (rd.GetCode() << 8) | imm);
@@ -2170,7 +2170,7 @@ void Assembler::add(Condition cond, Register rd, const Operand& operand) {
   }
   if (operand.IsPlainRegister()) {
     Register rm = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ADD<c>{<q>} <Rdn>, <Rm> ; T2
       if (InITBlock() && !rm.Is(sp)) {
         EmitT32_16(0x4400 | (rd.GetCode() & 0x7) | ((rd.GetCode() & 0x8) << 4) |
@@ -2191,7 +2191,7 @@ void Assembler::adds(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // ADDS{<q>} <Rd>, <Rn>, #<imm3> ; T1
       if (OutsideITBlock() && !size.IsWide() && rd.IsLow() && rn.IsLow() &&
@@ -2247,7 +2247,7 @@ void Assembler::adds(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // ADDS{<q>} {<Rd>}, <Rn>, <Rm> ; T1
         if (OutsideITBlock() && !size.IsWide() && rd.IsLow() && rn.IsLow() &&
             rm.IsLow()) {
@@ -2260,7 +2260,7 @@ void Assembler::adds(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ADDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T3
       if (!size.IsNarrow() && shift.IsValidAmount(amount) && !rn.Is(sp) &&
           !rd.Is(pc)) {
@@ -2303,7 +2303,7 @@ void Assembler::adds(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // ADDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00900010U | (cond.GetCondition() << 28) |
@@ -2321,7 +2321,7 @@ void Assembler::adds(Register rd, const Operand& operand) {
   CheckIT(al);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ADDS{<q>} <Rdn>, #<imm8> ; T2
       if (OutsideITBlock() && rd.IsLow() && (imm <= 255)) {
         EmitT32_16(0x3000 | (rd.GetCode() << 8) | imm);
@@ -2340,7 +2340,7 @@ void Assembler::addw(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ADDW{<c>}{<q>} <Rd>, PC, #<imm12> ; T3
       if (rn.Is(pc) && (imm <= 4095)) {
         EmitT32_32(0xf20f0000U | (rd.GetCode() << 8) | (imm & 0xff) |
@@ -2377,7 +2377,7 @@ void Assembler::adr(Condition cond,
           ? label->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     int32_t neg_offset = -offset;
     // ADR{<c>}{<q>} <Rd>, <label> ; T1
     if (!size.IsWide() && rd.IsLow() &&
@@ -2488,7 +2488,7 @@ void Assembler::and_(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // AND{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid()) {
@@ -2513,7 +2513,7 @@ void Assembler::and_(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // AND<c>{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
         if (InITBlock() && !size.IsWide() && rd.Is(rn) && rn.IsLow() &&
             rm.IsLow()) {
@@ -2525,7 +2525,7 @@ void Assembler::and_(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // AND{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -2549,7 +2549,7 @@ void Assembler::and_(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // AND{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00000010U | (cond.GetCondition() << 28) |
@@ -2571,7 +2571,7 @@ void Assembler::ands(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // ANDS{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid() && !rd.Is(pc)) {
@@ -2596,7 +2596,7 @@ void Assembler::ands(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // ANDS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
         if (OutsideITBlock() && !size.IsWide() && rd.Is(rn) && rn.IsLow() &&
             rm.IsLow()) {
@@ -2608,7 +2608,7 @@ void Assembler::ands(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ANDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount) && !rd.Is(pc)) {
         uint32_t amount_ = amount % 32;
@@ -2632,7 +2632,7 @@ void Assembler::ands(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // ANDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00100010U | (cond.GetCondition() << 28) |
@@ -2654,7 +2654,7 @@ void Assembler::asr(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ASR<c>{<q>} {<Rd>}, <Rm>, #<imm> ; T2
       if (InITBlock() && !size.IsWide() && rd.IsLow() && rm.IsLow() &&
           (imm >= 1) && (imm <= 32)) {
@@ -2684,7 +2684,7 @@ void Assembler::asr(Condition cond,
   }
   if (operand.IsPlainRegister()) {
     Register rs = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ASR<c>{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
       if (InITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
           rs.IsLow()) {
@@ -2719,7 +2719,7 @@ void Assembler::asrs(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ASRS{<q>} {<Rd>}, <Rm>, #<imm> ; T2
       if (OutsideITBlock() && !size.IsWide() && rd.IsLow() && rm.IsLow() &&
           (imm >= 1) && (imm <= 32)) {
@@ -2749,7 +2749,7 @@ void Assembler::asrs(Condition cond,
   }
   if (operand.IsPlainRegister()) {
     Register rs = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ASRS{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
       if (OutsideITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
           rs.IsLow()) {
@@ -2782,7 +2782,7 @@ void Assembler::b(Condition cond, EncodingSize size, Label* label) {
           ? label->GetLocation() -
                 (GetCursorOffset() + GetArchitectureStatePCOffset())
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // B<c>{<q>} <label> ; T1
     if (OutsideITBlock() && !size.IsWide() &&
         ((label->IsBound() && (offset >= -256) && (offset <= 254) &&
@@ -2914,7 +2914,7 @@ void Assembler::bfc(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t width = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // BFC{<c>}{<q>} <Rd>, #<lsb>, #<width> ; T1
       if ((lsb <= 31) &&
           (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
@@ -2946,7 +2946,7 @@ void Assembler::bfi(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t width = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // BFI{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; T1
       if ((lsb <= 31) && !rn.Is(pc) &&
           (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
@@ -2978,7 +2978,7 @@ void Assembler::bic(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // BIC{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid()) {
@@ -3003,7 +3003,7 @@ void Assembler::bic(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // BIC<c>{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
         if (InITBlock() && !size.IsWide() && rd.Is(rn) && rn.IsLow() &&
             rm.IsLow()) {
@@ -3015,7 +3015,7 @@ void Assembler::bic(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // BIC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -3039,7 +3039,7 @@ void Assembler::bic(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // BIC{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x01c00010U | (cond.GetCondition() << 28) |
@@ -3061,7 +3061,7 @@ void Assembler::bics(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // BICS{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid()) {
@@ -3086,7 +3086,7 @@ void Assembler::bics(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // BICS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
         if (OutsideITBlock() && !size.IsWide() && rd.Is(rn) && rn.IsLow() &&
             rm.IsLow()) {
@@ -3098,7 +3098,7 @@ void Assembler::bics(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // BICS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -3122,7 +3122,7 @@ void Assembler::bics(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // BICS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x01d00010U | (cond.GetCondition() << 28) |
@@ -3138,7 +3138,7 @@ void Assembler::bics(Condition cond,
 
 void Assembler::bkpt(Condition cond, uint32_t imm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // BKPT{<q>} {#}<imm> ; T1
     if ((imm <= 255)) {
       EmitT32_16(0xbe00 | imm);
@@ -3163,7 +3163,7 @@ void Assembler::bl(Condition cond, Label* label) {
           ? label->GetLocation() -
                 (GetCursorOffset() + GetArchitectureStatePCOffset())
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // BL{<c>}{<q>} <label> ; T1
     if (((label->IsBound() && (offset >= -16777216) && (offset <= 16777214) &&
           ((offset & 0x1) == 0)) ||
@@ -3222,7 +3222,7 @@ void Assembler::blx(Condition cond, Label* label) {
           ? label->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // BLX{<c>}{<q>} <label> ; T2
     if (((label->IsBound() && (offset >= -16777216) && (offset <= 16777212) &&
           ((offset & 0x3) == 0)) ||
@@ -3277,7 +3277,7 @@ void Assembler::blx(Condition cond, Label* label) {
 
 void Assembler::blx(Condition cond, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // BLX{<c>}{<q>} <Rm> ; T1
     EmitT32_16(0x4780 | (rm.GetCode() << 3));
     AdvanceIT();
@@ -3294,7 +3294,7 @@ void Assembler::blx(Condition cond, Register rm) {
 
 void Assembler::bx(Condition cond, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // BX{<c>}{<q>} <Rm> ; T1
     EmitT32_16(0x4700 | (rm.GetCode() << 3));
     AdvanceIT();
@@ -3311,7 +3311,7 @@ void Assembler::bx(Condition cond, Register rm) {
 
 void Assembler::bxj(Condition cond, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // BXJ{<c>}{<q>} <Rm> ; T1
     EmitT32_32(0xf3c08f00U | (rm.GetCode() << 16));
     AdvanceIT();
@@ -3333,7 +3333,7 @@ void Assembler::cbnz(Register rn, Label* label) {
           ? label->GetLocation() -
                 (GetCursorOffset() + GetArchitectureStatePCOffset())
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // CBNZ{<q>} <Rn>, <label> ; T1
     if (rn.IsLow() && ((label->IsBound() && (offset >= 0) && (offset <= 126) &&
                         ((offset & 0x1) == 0)) ||
@@ -3366,7 +3366,7 @@ void Assembler::cbz(Register rn, Label* label) {
           ? label->GetLocation() -
                 (GetCursorOffset() + GetArchitectureStatePCOffset())
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // CBZ{<q>} <Rn>, <label> ; T1
     if (rn.IsLow() && ((label->IsBound() && (offset >= 0) && (offset <= 126) &&
                         ((offset & 0x1) == 0)) ||
@@ -3394,7 +3394,7 @@ void Assembler::cbz(Register rn, Label* label) {
 
 void Assembler::clrex(Condition cond) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // CLREX{<c>}{<q>} ; T1
     EmitT32_32(0xf3bf8f2fU);
     AdvanceIT();
@@ -3411,7 +3411,7 @@ void Assembler::clrex(Condition cond) {
 
 void Assembler::clz(Condition cond, Register rd, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // CLZ{<c>}{<q>} <Rd>, <Rm> ; T1
     EmitT32_32(0xfab0f080U | (rd.GetCode() << 8) | rm.GetCode() |
                (rm.GetCode() << 16));
@@ -3435,7 +3435,7 @@ void Assembler::cmn(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // CMN{<c>}{<q>} <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid()) {
@@ -3459,7 +3459,7 @@ void Assembler::cmn(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // CMN{<c>}{<q>} <Rn>, <Rm> ; T1
         if (!size.IsWide() && rn.IsLow() && rm.IsLow()) {
           EmitT32_16(0x42c0 | rn.GetCode() | (rm.GetCode() << 3));
@@ -3470,7 +3470,7 @@ void Assembler::cmn(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // CMN{<c>}{<q>} <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -3494,7 +3494,7 @@ void Assembler::cmn(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // CMN{<c>}{<q>} <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x01700010U | (cond.GetCondition() << 28) |
@@ -3514,7 +3514,7 @@ void Assembler::cmp(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // CMP{<c>}{<q>} <Rn>, #<imm8> ; T1
       if (!size.IsWide() && rn.IsLow() && (imm <= 255)) {
@@ -3544,7 +3544,7 @@ void Assembler::cmp(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // CMP{<c>}{<q>} <Rn>, <Rm> ; T1
         if (!size.IsWide() && rn.IsLow() && rm.IsLow()) {
           EmitT32_16(0x4280 | rn.GetCode() | (rm.GetCode() << 3));
@@ -3562,7 +3562,7 @@ void Assembler::cmp(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // CMP{<c>}{<q>} <Rn>, <Rm>, <shift> #<amount> ; T3
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -3586,7 +3586,7 @@ void Assembler::cmp(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // CMP{<c>}{<q>} <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x01500010U | (cond.GetCondition() << 28) |
@@ -3601,7 +3601,7 @@ void Assembler::cmp(Condition cond,
 
 void Assembler::crc32b(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // CRC32B{<q>} <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfac0f080U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -3620,7 +3620,7 @@ void Assembler::crc32b(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::crc32cb(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // CRC32CB{<q>} <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfad0f080U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -3639,7 +3639,7 @@ void Assembler::crc32cb(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::crc32ch(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // CRC32CH{<q>} <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfad0f090U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -3658,7 +3658,7 @@ void Assembler::crc32ch(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::crc32cw(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // CRC32CW{<q>} <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfad0f0a0U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -3677,7 +3677,7 @@ void Assembler::crc32cw(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::crc32h(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // CRC32H{<q>} <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfac0f090U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -3696,7 +3696,7 @@ void Assembler::crc32h(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::crc32w(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // CRC32W{<q>} <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfac0f0a0U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -3715,7 +3715,7 @@ void Assembler::crc32w(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::dmb(Condition cond, MemoryBarrier option) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // DMB{<c>}{<q>} {<option>} ; T1
     EmitT32_32(0xf3bf8f50U | option.GetType());
     AdvanceIT();
@@ -3732,7 +3732,7 @@ void Assembler::dmb(Condition cond, MemoryBarrier option) {
 
 void Assembler::dsb(Condition cond, MemoryBarrier option) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // DSB{<c>}{<q>} {<option>} ; T1
     EmitT32_32(0xf3bf8f40U | option.GetType());
     AdvanceIT();
@@ -3755,7 +3755,7 @@ void Assembler::eor(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // EOR{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid()) {
@@ -3780,7 +3780,7 @@ void Assembler::eor(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // EOR<c>{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
         if (InITBlock() && !size.IsWide() && rd.Is(rn) && rn.IsLow() &&
             rm.IsLow()) {
@@ -3792,7 +3792,7 @@ void Assembler::eor(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // EOR{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -3816,7 +3816,7 @@ void Assembler::eor(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // EOR{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00200010U | (cond.GetCondition() << 28) |
@@ -3838,7 +3838,7 @@ void Assembler::eors(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // EORS{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid() && !rd.Is(pc)) {
@@ -3863,7 +3863,7 @@ void Assembler::eors(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // EORS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
         if (OutsideITBlock() && !size.IsWide() && rd.Is(rn) && rn.IsLow() &&
             rm.IsLow()) {
@@ -3875,7 +3875,7 @@ void Assembler::eors(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // EORS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount) && !rd.Is(pc)) {
         uint32_t amount_ = amount % 32;
@@ -3899,7 +3899,7 @@ void Assembler::eors(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // EORS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00300010U | (cond.GetCondition() << 28) |
@@ -3918,7 +3918,7 @@ void Assembler::fldmdbx(Condition cond,
                         WriteBack write_back,
                         DRegisterList dreglist) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // FLDMDBX{<c>}{<q>} <Rn>!, <dreglist> ; T1
     if (write_back.DoesWriteBack() &&
         (((dreglist.GetLength() <= 16) &&
@@ -3952,7 +3952,7 @@ void Assembler::fldmiax(Condition cond,
                         WriteBack write_back,
                         DRegisterList dreglist) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // FLDMIAX{<c>}{<q>} <Rn>{!}, <dreglist> ; T1
     if ((((dreglist.GetLength() <= 16) &&
           (dreglist.GetLastDRegister().GetCode() < 16)) ||
@@ -3986,7 +3986,7 @@ void Assembler::fstmdbx(Condition cond,
                         WriteBack write_back,
                         DRegisterList dreglist) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // FSTMDBX{<c>}{<q>} <Rn>!, <dreglist> ; T1
     if (write_back.DoesWriteBack() &&
         (((dreglist.GetLength() <= 16) &&
@@ -4020,7 +4020,7 @@ void Assembler::fstmiax(Condition cond,
                         WriteBack write_back,
                         DRegisterList dreglist) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // FSTMIAX{<c>}{<q>} <Rn>{!}, <dreglist> ; T1
     if ((((dreglist.GetLength() <= 16) &&
           (dreglist.GetLastDRegister().GetCode() < 16)) ||
@@ -4051,7 +4051,7 @@ void Assembler::fstmiax(Condition cond,
 
 void Assembler::hlt(Condition cond, uint32_t imm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // HLT{<q>} {#}<imm> ; T1
     if ((imm <= 63)) {
       EmitT32_16(0xba80 | imm);
@@ -4071,7 +4071,7 @@ void Assembler::hlt(Condition cond, uint32_t imm) {
 
 void Assembler::hvc(Condition cond, uint32_t imm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // HVC{<q>} {#}<imm16> ; T1
     if ((imm <= 65535)) {
       EmitT32_32(0xf7e08000U | (imm & 0xfff) | ((imm & 0xf000) << 4));
@@ -4091,7 +4091,7 @@ void Assembler::hvc(Condition cond, uint32_t imm) {
 
 void Assembler::isb(Condition cond, MemoryBarrier option) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // ISB{<c>}{<q>} {<option>} ; T1
     EmitT32_32(0xf3bf8f60U | option.GetType());
     AdvanceIT();
@@ -4118,7 +4118,7 @@ void Assembler::it(Condition cond, uint16_t mask) {
         mask ^= 0x8;
       }
     }
-    if (IsT32()) EmitT32_16(0xbf00 | (cond.GetCondition() << 4) | mask);
+    if (IsUsingT32()) EmitT32_16(0xbf00 | (cond.GetCondition() << 4) | mask);
     SetIT(cond, mask);
     return;
   }
@@ -4129,7 +4129,7 @@ void Assembler::lda(Condition cond, Register rt, const MemOperand& operand) {
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDA{<c>}{<q>} <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -4154,7 +4154,7 @@ void Assembler::ldab(Condition cond, Register rt, const MemOperand& operand) {
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDAB{<c>}{<q>} <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -4179,7 +4179,7 @@ void Assembler::ldaex(Condition cond, Register rt, const MemOperand& operand) {
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDAEX{<c>}{<q>} <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -4204,7 +4204,7 @@ void Assembler::ldaexb(Condition cond, Register rt, const MemOperand& operand) {
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDAEXB{<c>}{<q>} <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -4232,7 +4232,7 @@ void Assembler::ldaexd(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDAEXD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -4260,7 +4260,7 @@ void Assembler::ldaexh(Condition cond, Register rt, const MemOperand& operand) {
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDAEXH{<c>}{<q>} <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -4285,7 +4285,7 @@ void Assembler::ldah(Condition cond, Register rt, const MemOperand& operand) {
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDAH{<c>}{<q>} <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -4312,7 +4312,7 @@ void Assembler::ldm(Condition cond,
                     WriteBack write_back,
                     RegisterList registers) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // LDM{<c>}{<q>} <Rn>{!}, <registers> ; T1
     if (!size.IsWide() && rn.IsLow() &&
         (((registers.GetList() & (1 << rn.GetCode())) == 0) ==
@@ -4358,7 +4358,7 @@ void Assembler::ldmda(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     // LDMDA{<c>}{<q>} <Rn>{!}, <registers> ; A1
     if (cond.IsNotNever()) {
       EmitA32(0x08100000U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -4375,7 +4375,7 @@ void Assembler::ldmdb(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // LDMDB{<c>}{<q>} <Rn>{!}, <registers> ; T1
     if (((registers.GetList() & ~0xdfff) == 0)) {
       EmitT32_32(0xe9100000U | (rn.GetCode() << 16) |
@@ -4403,7 +4403,7 @@ void Assembler::ldmea(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // LDMEA{<c>}{<q>} <Rn>{!}, <registers> ; T1
     if (((registers.GetList() & ~0xdfff) == 0)) {
       EmitT32_32(0xe9100000U | (rn.GetCode() << 16) |
@@ -4431,7 +4431,7 @@ void Assembler::ldmed(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     // LDMED{<c>}{<q>} <Rn>{!}, <registers> ; A1
     if (cond.IsNotNever()) {
       EmitA32(0x09900000U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -4448,7 +4448,7 @@ void Assembler::ldmfa(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     // LDMFA{<c>}{<q>} <Rn>{!}, <registers> ; A1
     if (cond.IsNotNever()) {
       EmitA32(0x08100000U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -4466,7 +4466,7 @@ void Assembler::ldmfd(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // LDMFD{<c>}{<q>} <Rn>{!}, <registers> ; T1
     if (!size.IsWide() && rn.IsLow() &&
         (((registers.GetList() & (1 << rn.GetCode())) == 0) ==
@@ -4504,7 +4504,7 @@ void Assembler::ldmib(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     // LDMIB{<c>}{<q>} <Rn>{!}, <registers> ; A1
     if (cond.IsNotNever()) {
       EmitA32(0x09900000U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -4524,7 +4524,7 @@ void Assembler::ldr(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDR{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && (offset >= 0) &&
           (offset <= 124) && ((offset % 4) == 0) &&
@@ -4640,7 +4640,7 @@ void Assembler::ldr(Condition cond,
     Register rn = operand.GetBaseRegister();
     Sign sign = operand.GetSign();
     Register rm = operand.GetOffsetRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDR{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && rm.IsLow() &&
           sign.IsPlus() && (operand.GetAddrMode() == Offset)) {
@@ -4657,7 +4657,7 @@ void Assembler::ldr(Condition cond,
     Register rm = operand.GetOffsetRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDR{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2
       if (!size.IsNarrow() && sign.IsPlus() && shift.IsLSL() && (amount <= 3) &&
           (operand.GetAddrMode() == Offset) && ((rn.GetCode() & 0xf) != 0xf)) {
@@ -4715,7 +4715,7 @@ void Assembler::ldr(Condition cond,
           ? label->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // LDR{<c>}{<q>} <Rt>, <label> ; T1
     if (!size.IsWide() && rt.IsLow() &&
         ((label->IsBound() && (offset >= 0) && (offset <= 1020) &&
@@ -4795,7 +4795,7 @@ void Assembler::ldrb(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDRB{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && (offset >= 0) &&
           (offset <= 31) && (operand.GetAddrMode() == Offset)) {
@@ -4902,7 +4902,7 @@ void Assembler::ldrb(Condition cond,
     Register rn = operand.GetBaseRegister();
     Sign sign = operand.GetSign();
     Register rm = operand.GetOffsetRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDRB{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && rm.IsLow() &&
           sign.IsPlus() && (operand.GetAddrMode() == Offset)) {
@@ -4919,7 +4919,7 @@ void Assembler::ldrb(Condition cond,
     Register rm = operand.GetOffsetRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDRB{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2
       if (!size.IsNarrow() && sign.IsPlus() && shift.IsLSL() && (amount <= 3) &&
           (operand.GetAddrMode() == Offset) && ((rn.GetCode() & 0xf) != 0xf) &&
@@ -4975,7 +4975,7 @@ void Assembler::ldrb(Condition cond, Register rt, Label* label) {
           ? label->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // LDRB{<c>}{<q>} <Rt>, <label> ; T1
     if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
          !label->IsBound()) &&
@@ -5033,7 +5033,7 @@ void Assembler::ldrd(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm>}] ; T1
       if ((offset >= -1020) && (offset <= 1020) && ((offset % 4) == 0) &&
           (operand.GetAddrMode() == Offset) && ((rn.GetCode() & 0xf) != 0xf)) {
@@ -5134,7 +5134,7 @@ void Assembler::ldrd(Condition cond,
     Register rn = operand.GetBaseRegister();
     Sign sign = operand.GetSign();
     Register rm = operand.GetOffsetRegister();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>, #{+/-}<Rm>] ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           (operand.GetAddrMode() == Offset) && cond.IsNotNever() &&
@@ -5177,7 +5177,7 @@ void Assembler::ldrd(Condition cond, Register rt, Register rt2, Label* label) {
           ? label->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; T1
     if (((label->IsBound() && (offset >= -1020) && (offset <= 1020) &&
           ((offset & 0x3) == 0)) ||
@@ -5239,7 +5239,7 @@ void Assembler::ldrex(Condition cond, Register rt, const MemOperand& operand) {
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDREX{<c>}{<q>} <Rt>, [<Rn>{, #<imm>}] ; T1
       if ((offset >= 0) && (offset <= 1020) && ((offset % 4) == 0) &&
           (operand.GetAddrMode() == Offset)) {
@@ -5266,7 +5266,7 @@ void Assembler::ldrexb(Condition cond, Register rt, const MemOperand& operand) {
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDREXB{<c>}{<q>} <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -5294,7 +5294,7 @@ void Assembler::ldrexd(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDREXD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -5322,7 +5322,7 @@ void Assembler::ldrexh(Condition cond, Register rt, const MemOperand& operand) {
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDREXH{<c>}{<q>} <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -5351,7 +5351,7 @@ void Assembler::ldrh(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDRH{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && (offset >= 0) &&
           (offset <= 62) && ((offset % 2) == 0) &&
@@ -5461,7 +5461,7 @@ void Assembler::ldrh(Condition cond,
     Register rn = operand.GetBaseRegister();
     Sign sign = operand.GetSign();
     Register rm = operand.GetOffsetRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDRH{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && rm.IsLow() &&
           sign.IsPlus() && (operand.GetAddrMode() == Offset)) {
@@ -5503,7 +5503,7 @@ void Assembler::ldrh(Condition cond,
     Register rm = operand.GetOffsetRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDRH{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2
       if (!size.IsNarrow() && sign.IsPlus() && shift.IsLSL() && (amount <= 3) &&
           (operand.GetAddrMode() == Offset) && ((rn.GetCode() & 0xf) != 0xf) &&
@@ -5525,7 +5525,7 @@ void Assembler::ldrh(Condition cond, Register rt, Label* label) {
           ? label->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // LDRH{<c>}{<q>} <Rt>, <label> ; T1
     if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
          !label->IsBound()) &&
@@ -5584,7 +5584,7 @@ void Assembler::ldrsb(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDRSB{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
       if (!size.IsNarrow() && (offset >= 0) && (offset <= 4095) &&
           (operand.GetAddrMode() == Offset) && ((rn.GetCode() & 0xf) != 0xf) &&
@@ -5684,7 +5684,7 @@ void Assembler::ldrsb(Condition cond,
     Register rn = operand.GetBaseRegister();
     Sign sign = operand.GetSign();
     Register rm = operand.GetOffsetRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDRSB{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && rm.IsLow() &&
           sign.IsPlus() && (operand.GetAddrMode() == Offset)) {
@@ -5726,7 +5726,7 @@ void Assembler::ldrsb(Condition cond,
     Register rm = operand.GetOffsetRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDRSB{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2
       if (!size.IsNarrow() && sign.IsPlus() && shift.IsLSL() && (amount <= 3) &&
           (operand.GetAddrMode() == Offset) && ((rn.GetCode() & 0xf) != 0xf) &&
@@ -5748,7 +5748,7 @@ void Assembler::ldrsb(Condition cond, Register rt, Label* label) {
           ? label->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // LDRSB{<c>}{<q>} <Rt>, <label> ; T1
     if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
          !label->IsBound()) &&
@@ -5807,7 +5807,7 @@ void Assembler::ldrsh(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDRSH{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
       if (!size.IsNarrow() && (offset >= 0) && (offset <= 4095) &&
           (operand.GetAddrMode() == Offset) && ((rn.GetCode() & 0xf) != 0xf) &&
@@ -5907,7 +5907,7 @@ void Assembler::ldrsh(Condition cond,
     Register rn = operand.GetBaseRegister();
     Sign sign = operand.GetSign();
     Register rm = operand.GetOffsetRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDRSH{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && rm.IsLow() &&
           sign.IsPlus() && (operand.GetAddrMode() == Offset)) {
@@ -5949,7 +5949,7 @@ void Assembler::ldrsh(Condition cond,
     Register rm = operand.GetOffsetRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LDRSH{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2
       if (!size.IsNarrow() && sign.IsPlus() && shift.IsLSL() && (amount <= 3) &&
           (operand.GetAddrMode() == Offset) && ((rn.GetCode() & 0xf) != 0xf) &&
@@ -5971,7 +5971,7 @@ void Assembler::ldrsh(Condition cond, Register rt, Label* label) {
           ? label->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // LDRSH{<c>}{<q>} <Rt>, <label> ; T1
     if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
          !label->IsBound()) &&
@@ -6030,7 +6030,7 @@ void Assembler::lsl(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LSL<c>{<q>} {<Rd>}, <Rm>, #<imm> ; T2
       if (InITBlock() && !size.IsWide() && rd.IsLow() && rm.IsLow() &&
           (imm >= 1) && (imm <= 31)) {
@@ -6056,7 +6056,7 @@ void Assembler::lsl(Condition cond,
   }
   if (operand.IsPlainRegister()) {
     Register rs = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LSL<c>{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
       if (InITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
           rs.IsLow()) {
@@ -6091,7 +6091,7 @@ void Assembler::lsls(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LSLS{<q>} {<Rd>}, <Rm>, #<imm> ; T2
       if (OutsideITBlock() && !size.IsWide() && rd.IsLow() && rm.IsLow() &&
           (imm >= 1) && (imm <= 31)) {
@@ -6117,7 +6117,7 @@ void Assembler::lsls(Condition cond,
   }
   if (operand.IsPlainRegister()) {
     Register rs = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LSLS{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
       if (OutsideITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
           rs.IsLow()) {
@@ -6152,7 +6152,7 @@ void Assembler::lsr(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LSR<c>{<q>} {<Rd>}, <Rm>, #<imm> ; T2
       if (InITBlock() && !size.IsWide() && rd.IsLow() && rm.IsLow() &&
           (imm >= 1) && (imm <= 32)) {
@@ -6182,7 +6182,7 @@ void Assembler::lsr(Condition cond,
   }
   if (operand.IsPlainRegister()) {
     Register rs = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LSR<c>{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
       if (InITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
           rs.IsLow()) {
@@ -6217,7 +6217,7 @@ void Assembler::lsrs(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LSRS{<q>} {<Rd>}, <Rm>, #<imm> ; T2
       if (OutsideITBlock() && !size.IsWide() && rd.IsLow() && rm.IsLow() &&
           (imm >= 1) && (imm <= 32)) {
@@ -6247,7 +6247,7 @@ void Assembler::lsrs(Condition cond,
   }
   if (operand.IsPlainRegister()) {
     Register rs = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // LSRS{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
       if (OutsideITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
           rs.IsLow()) {
@@ -6277,7 +6277,7 @@ void Assembler::lsrs(Condition cond,
 void Assembler::mla(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // MLA{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb000000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -6299,7 +6299,7 @@ void Assembler::mla(
 void Assembler::mlas(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     // MLAS{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; A1
     if (cond.IsNotNever()) {
       EmitA32(0x00300090U | (cond.GetCondition() << 28) | (rd.GetCode() << 16) |
@@ -6313,7 +6313,7 @@ void Assembler::mlas(
 void Assembler::mls(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // MLS{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     EmitT32_32(0xfb000010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode() | (ra.GetCode() << 12));
@@ -6338,7 +6338,7 @@ void Assembler::mov(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // MOV{<c>}{<q>} <Rd>, <Rm> ; T1
         if (!size.IsWide()) {
           EmitT32_16(0x4600 | (rd.GetCode() & 0x7) |
@@ -6350,7 +6350,7 @@ void Assembler::mov(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // MOV<c>{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T2
       if (InITBlock() && !size.IsWide() && rd.IsLow() &&
           shift.IsValidAmount(amount) && rm.IsLow() &&
@@ -6384,7 +6384,7 @@ void Assembler::mov(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // MOV<c>{<q>} <Rdm>, <Rdm>, ASR <Rs> ; T1
       if (InITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
           shift.IsASR() && operand.GetShiftRegister().IsLow()) {
@@ -6437,7 +6437,7 @@ void Assembler::mov(Condition cond,
   }
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // MOV<c>{<q>} <Rd>, #<imm8> ; T1
       if (InITBlock() && !size.IsWide() && rd.IsLow() && (imm <= 255)) {
@@ -6490,7 +6490,7 @@ void Assembler::movs(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // MOVS{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T2
       if (OutsideITBlock() && !size.IsWide() && rd.IsLow() &&
           shift.IsValidAmount(amount) && rm.IsLow() &&
@@ -6524,7 +6524,7 @@ void Assembler::movs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // MOVS{<q>} <Rdm>, <Rdm>, ASR <Rs> ; T1
       if (OutsideITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
           shift.IsASR() && operand.GetShiftRegister().IsLow()) {
@@ -6577,7 +6577,7 @@ void Assembler::movs(Condition cond,
   }
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // MOVS{<q>} <Rd>, #<imm8> ; T1
       if (OutsideITBlock() && !size.IsWide() && rd.IsLow() && (imm <= 255)) {
@@ -6611,7 +6611,7 @@ void Assembler::movt(Condition cond, Register rd, const Operand& operand) {
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // MOVT{<c>}{<q>} <Rd>, #<imm16> ; T1
       if ((imm <= 65535)) {
         EmitT32_32(0xf2c00000U | (rd.GetCode() << 8) | (imm & 0xff) |
@@ -6636,7 +6636,7 @@ void Assembler::movw(Condition cond, Register rd, const Operand& operand) {
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // MOVW{<c>}{<q>} <Rd>, #<imm16> ; T3
       if ((imm <= 65535)) {
         EmitT32_32(0xf2400000U | (rd.GetCode() << 8) | (imm & 0xff) |
@@ -6659,7 +6659,7 @@ void Assembler::movw(Condition cond, Register rd, const Operand& operand) {
 
 void Assembler::mrs(Condition cond, Register rd, SpecialRegister spec_reg) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // MRS{<c>}{<q>} <Rd>, <spec_reg> ; T1
     EmitT32_32(0xf3ef8000U | (rd.GetCode() << 8) | (spec_reg.GetReg() << 20));
     AdvanceIT();
@@ -6681,7 +6681,7 @@ void Assembler::msr(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       ImmediateA32 immediate_a32(imm);
       // MSR{<c>}{<q>} <spec_reg>, #<imm> ; A1
       if (immediate_a32.IsValid() && cond.IsNotNever()) {
@@ -6695,7 +6695,7 @@ void Assembler::msr(Condition cond,
   }
   if (operand.IsPlainRegister()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // MSR{<c>}{<q>} <spec_reg>, <Rn> ; T1
       EmitT32_32(0xf3808000U | ((spec_reg.GetReg() & 0xf) << 8) |
                  ((spec_reg.GetReg() & 0x10) << 16) | (rn.GetCode() << 16));
@@ -6717,7 +6717,7 @@ void Assembler::msr(Condition cond,
 void Assembler::mul(
     Condition cond, EncodingSize size, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // MUL<c>{<q>} <Rdm>, <Rn>, {<Rdm>} ; T1
     if (InITBlock() && !size.IsWide() && rd.Is(rm) && rn.IsLow() &&
         rm.IsLow()) {
@@ -6745,7 +6745,7 @@ void Assembler::mul(
 
 void Assembler::muls(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // MULS{<q>} <Rdm>, <Rn>, {<Rdm>} ; T1
     if (OutsideITBlock() && rd.Is(rm) && rn.IsLow() && rm.IsLow()) {
       EmitT32_16(0x4340 | rd.GetCode() | (rn.GetCode() << 3));
@@ -6770,7 +6770,7 @@ void Assembler::mvn(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // MVN{<c>}{<q>} <Rd>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid()) {
@@ -6794,7 +6794,7 @@ void Assembler::mvn(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // MVN<c>{<q>} <Rd>, <Rm> ; T1
         if (InITBlock() && !size.IsWide() && rd.IsLow() && rm.IsLow()) {
           EmitT32_16(0x43c0 | rd.GetCode() | (rm.GetCode() << 3));
@@ -6805,7 +6805,7 @@ void Assembler::mvn(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // MVN{<c>}{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -6829,7 +6829,7 @@ void Assembler::mvn(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // MVN{<c>}{<q>} <Rd>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x01e00010U | (cond.GetCondition() << 28) |
@@ -6849,7 +6849,7 @@ void Assembler::mvns(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // MVNS{<c>}{<q>} <Rd>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid()) {
@@ -6873,7 +6873,7 @@ void Assembler::mvns(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // MVNS{<q>} <Rd>, <Rm> ; T1
         if (OutsideITBlock() && !size.IsWide() && rd.IsLow() && rm.IsLow()) {
           EmitT32_16(0x43c0 | rd.GetCode() | (rm.GetCode() << 3));
@@ -6884,7 +6884,7 @@ void Assembler::mvns(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // MVNS{<c>}{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -6908,7 +6908,7 @@ void Assembler::mvns(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // MVNS{<c>}{<q>} <Rd>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x01f00010U | (cond.GetCondition() << 28) |
@@ -6923,7 +6923,7 @@ void Assembler::mvns(Condition cond,
 
 void Assembler::nop(Condition cond, EncodingSize size) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // NOP{<c>}{<q>} ; T1
     if (!size.IsWide()) {
       EmitT32_16(0xbf00);
@@ -6953,7 +6953,7 @@ void Assembler::orn(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // ORN{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (immediate_t32.IsValid() && !rn.Is(pc)) {
@@ -6970,7 +6970,7 @@ void Assembler::orn(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ORN{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T1
       if (shift.IsValidAmount(amount) && !rn.Is(pc)) {
         uint32_t amount_ = amount % 32;
@@ -6992,7 +6992,7 @@ void Assembler::orns(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // ORNS{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (immediate_t32.IsValid() && !rn.Is(pc)) {
@@ -7009,7 +7009,7 @@ void Assembler::orns(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ORNS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T1
       if (shift.IsValidAmount(amount) && !rn.Is(pc)) {
         uint32_t amount_ = amount % 32;
@@ -7032,7 +7032,7 @@ void Assembler::orr(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // ORR{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid() && !rn.Is(pc)) {
@@ -7057,7 +7057,7 @@ void Assembler::orr(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // ORR<c>{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
         if (InITBlock() && !size.IsWide() && rd.Is(rn) && rn.IsLow() &&
             rm.IsLow()) {
@@ -7069,7 +7069,7 @@ void Assembler::orr(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ORR{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount) && !rn.Is(pc)) {
         uint32_t amount_ = amount % 32;
@@ -7093,7 +7093,7 @@ void Assembler::orr(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // ORR{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x01800010U | (cond.GetCondition() << 28) |
@@ -7115,7 +7115,7 @@ void Assembler::orrs(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // ORRS{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid() && !rn.Is(pc)) {
@@ -7140,7 +7140,7 @@ void Assembler::orrs(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // ORRS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
         if (OutsideITBlock() && !size.IsWide() && rd.Is(rn) && rn.IsLow() &&
             rm.IsLow()) {
@@ -7152,7 +7152,7 @@ void Assembler::orrs(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ORRS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount) && !rn.Is(pc)) {
         uint32_t amount_ = amount % 32;
@@ -7176,7 +7176,7 @@ void Assembler::orrs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // ORRS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x01900010U | (cond.GetCondition() << 28) |
@@ -7199,7 +7199,7 @@ void Assembler::pkhbt(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // PKHBT{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, LSL #<imm> } ; T1
       if (shift.IsLSL() && shift.IsValidAmount(amount)) {
         EmitT32_32(0xeac00000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -7230,7 +7230,7 @@ void Assembler::pkhtb(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // PKHTB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ASR #<imm> } ; T1
       if ((shift.IsASR() || (amount == 0)) && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -7262,7 +7262,7 @@ void Assembler::pld(Condition cond, Label* label) {
           ? label->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // PLD{<c>}{<q>} <label> ; T1
     if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
          !label->IsBound())) {
@@ -7314,7 +7314,7 @@ void Assembler::pld(Condition cond, const MemOperand& operand) {
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // PLD{<c>}{<q>} [PC, #<_plusminus_><imm>] ; T1
       if ((offset >= -4095) && (offset <= 4095) && rn.Is(pc)) {
         uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
@@ -7338,7 +7338,7 @@ void Assembler::pld(Condition cond, const MemOperand& operand) {
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // PLD{<c>}{<q>} [<Rn>{, #{+}<imm>}] ; T1
       if ((offset >= 0) && (offset <= 4095) && ((rn.GetCode() & 0xf) != 0xf)) {
         EmitT32_32(0xf890f000U | (rn.GetCode() << 16) | (offset & 0xfff));
@@ -7370,7 +7370,7 @@ void Assembler::pld(Condition cond, const MemOperand& operand) {
     Register rm = operand.GetOffsetRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // PLD{<c>}{<q>} [<Rn>, {+}<Rm>{, LSL #<amount>}] ; T1
       if (sign.IsPlus() && shift.IsLSL() && (operand.GetAddrMode() == Offset) &&
           ((rn.GetCode() & 0xf) != 0xf)) {
@@ -7410,7 +7410,7 @@ void Assembler::pldw(Condition cond, const MemOperand& operand) {
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // PLDW{<c>}{<q>} [<Rn>{, #{+}<imm>}] ; T1
       if ((offset >= 0) && (offset <= 4095) && ((rn.GetCode() & 0xf) != 0xf)) {
         EmitT32_32(0xf8b0f000U | (rn.GetCode() << 16) | (offset & 0xfff));
@@ -7442,7 +7442,7 @@ void Assembler::pldw(Condition cond, const MemOperand& operand) {
     Register rm = operand.GetOffsetRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // PLDW{<c>}{<q>} [<Rn>, {+}<Rm>{, LSL #<amount>}] ; T1
       if (sign.IsPlus() && shift.IsLSL() && (operand.GetAddrMode() == Offset) &&
           ((rn.GetCode() & 0xf) != 0xf)) {
@@ -7482,7 +7482,7 @@ void Assembler::pli(Condition cond, const MemOperand& operand) {
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // PLI{<c>}{<q>} [<Rn>{, #{+}<imm>}] ; T1
       if ((offset >= 0) && (offset <= 4095) && ((rn.GetCode() & 0xf) != 0xf)) {
         EmitT32_32(0xf990f000U | (rn.GetCode() << 16) | (offset & 0xfff));
@@ -7511,7 +7511,7 @@ void Assembler::pli(Condition cond, const MemOperand& operand) {
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // PLI{<c>}{<q>} [PC, #<_plusminus_><imm_2>] ; T3
       if ((offset >= -4095) && (offset <= 4095) && rn.Is(pc)) {
         uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
@@ -7538,7 +7538,7 @@ void Assembler::pli(Condition cond, const MemOperand& operand) {
     Register rm = operand.GetOffsetRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // PLI{<c>}{<q>} [<Rn>, {+}<Rm>{, LSL #<amount>}] ; T1
       if (sign.IsPlus() && shift.IsLSL() && (operand.GetAddrMode() == Offset) &&
           ((rn.GetCode() & 0xf) != 0xf)) {
@@ -7580,7 +7580,7 @@ void Assembler::pli(Condition cond, Label* label) {
           ? label->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // PLI{<c>}{<q>} <label> ; T3
     if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
          !label->IsBound())) {
@@ -7629,7 +7629,7 @@ void Assembler::pli(Condition cond, Label* label) {
 
 void Assembler::pop(Condition cond, EncodingSize size, RegisterList registers) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // POP{<c>}{<q>} <registers> ; T1
     if (!size.IsWide() && ((registers.GetList() & ~0x80ff) == 0)) {
       EmitT32_16(0xbc00 | (GetRegisterListEncoding(registers, 15, 1) << 8) |
@@ -7659,7 +7659,7 @@ void Assembler::pop(Condition cond, EncodingSize size, RegisterList registers) {
 
 void Assembler::pop(Condition cond, EncodingSize size, Register rt) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // POP{<c>}{<q>} <single_register_list> ; T4
     if (!size.IsNarrow() && (!rt.IsPC() || OutsideITBlockAndAlOrLast(cond))) {
       EmitT32_32(0xf85d0b04U | (rt.GetCode() << 12));
@@ -7680,7 +7680,7 @@ void Assembler::push(Condition cond,
                      EncodingSize size,
                      RegisterList registers) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // PUSH{<c>}{<q>} <registers> ; T1
     if (!size.IsWide() && ((registers.GetList() & ~0x40ff) == 0)) {
       EmitT32_16(0xb400 | (GetRegisterListEncoding(registers, 14, 1) << 8) |
@@ -7709,7 +7709,7 @@ void Assembler::push(Condition cond,
 
 void Assembler::push(Condition cond, EncodingSize size, Register rt) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // PUSH{<c>}{<q>} <single_register_list> ; T4
     if (!size.IsNarrow()) {
       EmitT32_32(0xf84d0d04U | (rt.GetCode() << 12));
@@ -7728,7 +7728,7 @@ void Assembler::push(Condition cond, EncodingSize size, Register rt) {
 
 void Assembler::qadd(Condition cond, Register rd, Register rm, Register rn) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // QADD{<c>}{<q>} {<Rd>}, <Rm>, <Rn> ; T1
     EmitT32_32(0xfa80f080U | (rd.GetCode() << 8) | rm.GetCode() |
                (rn.GetCode() << 16));
@@ -7747,7 +7747,7 @@ void Assembler::qadd(Condition cond, Register rd, Register rm, Register rn) {
 
 void Assembler::qadd16(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // QADD16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfa90f010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -7766,7 +7766,7 @@ void Assembler::qadd16(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::qadd8(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // QADD8{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfa80f010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -7785,7 +7785,7 @@ void Assembler::qadd8(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::qasx(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // QASX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfaa0f010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -7804,7 +7804,7 @@ void Assembler::qasx(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::qdadd(Condition cond, Register rd, Register rm, Register rn) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // QDADD{<c>}{<q>} {<Rd>}, <Rm>, <Rn> ; T1
     EmitT32_32(0xfa80f090U | (rd.GetCode() << 8) | rm.GetCode() |
                (rn.GetCode() << 16));
@@ -7823,7 +7823,7 @@ void Assembler::qdadd(Condition cond, Register rd, Register rm, Register rn) {
 
 void Assembler::qdsub(Condition cond, Register rd, Register rm, Register rn) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // QDSUB{<c>}{<q>} {<Rd>}, <Rm>, <Rn> ; T1
     EmitT32_32(0xfa80f0b0U | (rd.GetCode() << 8) | rm.GetCode() |
                (rn.GetCode() << 16));
@@ -7842,7 +7842,7 @@ void Assembler::qdsub(Condition cond, Register rd, Register rm, Register rn) {
 
 void Assembler::qsax(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // QSAX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfae0f010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -7861,7 +7861,7 @@ void Assembler::qsax(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::qsub(Condition cond, Register rd, Register rm, Register rn) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // QSUB{<c>}{<q>} {<Rd>}, <Rm>, <Rn> ; T1
     EmitT32_32(0xfa80f0a0U | (rd.GetCode() << 8) | rm.GetCode() |
                (rn.GetCode() << 16));
@@ -7880,7 +7880,7 @@ void Assembler::qsub(Condition cond, Register rd, Register rm, Register rn) {
 
 void Assembler::qsub16(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // QSUB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfad0f010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -7899,7 +7899,7 @@ void Assembler::qsub16(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::qsub8(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // QSUB8{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfac0f010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -7918,7 +7918,7 @@ void Assembler::qsub8(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::rbit(Condition cond, Register rd, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // RBIT{<c>}{<q>} <Rd>, <Rm> ; T1
     EmitT32_32(0xfa90f0a0U | (rd.GetCode() << 8) | rm.GetCode() |
                (rm.GetCode() << 16));
@@ -7940,7 +7940,7 @@ void Assembler::rev(Condition cond,
                     Register rd,
                     Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // REV{<c>}{<q>} <Rd>, <Rm> ; T1
     if (!size.IsWide() && rd.IsLow() && rm.IsLow()) {
       EmitT32_16(0xba00 | rd.GetCode() | (rm.GetCode() << 3));
@@ -7970,7 +7970,7 @@ void Assembler::rev16(Condition cond,
                       Register rd,
                       Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // REV16{<c>}{<q>} <Rd>, <Rm> ; T1
     if (!size.IsWide() && rd.IsLow() && rm.IsLow()) {
       EmitT32_16(0xba40 | rd.GetCode() | (rm.GetCode() << 3));
@@ -8000,7 +8000,7 @@ void Assembler::revsh(Condition cond,
                       Register rd,
                       Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // REVSH{<c>}{<q>} <Rd>, <Rm> ; T1
     if (!size.IsWide() && rd.IsLow() && rm.IsLow()) {
       EmitT32_16(0xbac0 | rd.GetCode() | (rm.GetCode() << 3));
@@ -8033,7 +8033,7 @@ void Assembler::ror(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ROR{<c>}{<q>} {<Rd>}, <Rm>, #<imm> ; T3
       if (!size.IsNarrow() && (imm >= 1) && (imm <= 31)) {
         EmitT32_32(0xea4f0030U | (rd.GetCode() << 8) | rm.GetCode() |
@@ -8052,7 +8052,7 @@ void Assembler::ror(Condition cond,
   }
   if (operand.IsPlainRegister()) {
     Register rs = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // ROR<c>{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
       if (InITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
           rs.IsLow()) {
@@ -8087,7 +8087,7 @@ void Assembler::rors(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // RORS{<c>}{<q>} {<Rd>}, <Rm>, #<imm> ; T3
       if (!size.IsNarrow() && (imm >= 1) && (imm <= 31)) {
         EmitT32_32(0xea5f0030U | (rd.GetCode() << 8) | rm.GetCode() |
@@ -8106,7 +8106,7 @@ void Assembler::rors(Condition cond,
   }
   if (operand.IsPlainRegister()) {
     Register rs = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // RORS{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
       if (OutsideITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
           rs.IsLow()) {
@@ -8135,7 +8135,7 @@ void Assembler::rors(Condition cond,
 
 void Assembler::rrx(Condition cond, Register rd, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // RRX{<c>}{<q>} {<Rd>}, <Rm> ; T3
     EmitT32_32(0xea4f0030U | (rd.GetCode() << 8) | rm.GetCode());
     AdvanceIT();
@@ -8153,7 +8153,7 @@ void Assembler::rrx(Condition cond, Register rd, Register rm) {
 
 void Assembler::rrxs(Condition cond, Register rd, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // RRXS{<c>}{<q>} {<Rd>}, <Rm> ; T3
     EmitT32_32(0xea5f0030U | (rd.GetCode() << 8) | rm.GetCode());
     AdvanceIT();
@@ -8177,7 +8177,7 @@ void Assembler::rsb(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // RSB<c>{<q>} {<Rd>}, <Rn>, #0 ; T1
       if (InITBlock() && !size.IsWide() && rd.IsLow() && rn.IsLow() &&
@@ -8210,7 +8210,7 @@ void Assembler::rsb(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // RSB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T1
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -8234,7 +8234,7 @@ void Assembler::rsb(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // RSB{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00600010U | (cond.GetCondition() << 28) |
@@ -8256,7 +8256,7 @@ void Assembler::rsbs(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // RSBS{<q>} {<Rd>}, <Rn>, #0 ; T1
       if (OutsideITBlock() && !size.IsWide() && rd.IsLow() && rn.IsLow() &&
@@ -8289,7 +8289,7 @@ void Assembler::rsbs(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // RSBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T1
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -8313,7 +8313,7 @@ void Assembler::rsbs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // RSBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00700010U | (cond.GetCondition() << 28) |
@@ -8334,7 +8334,7 @@ void Assembler::rsc(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       ImmediateA32 immediate_a32(imm);
       // RSC{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; A1
       if (immediate_a32.IsValid() && cond.IsNotNever()) {
@@ -8349,7 +8349,7 @@ void Assembler::rsc(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // RSC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1
       if (shift.IsValidAmount(amount) && cond.IsNotNever()) {
         uint32_t amount_ = amount % 32;
@@ -8363,7 +8363,7 @@ void Assembler::rsc(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // RSC{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00e00010U | (cond.GetCondition() << 28) |
@@ -8384,7 +8384,7 @@ void Assembler::rscs(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       ImmediateA32 immediate_a32(imm);
       // RSCS{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; A1
       if (immediate_a32.IsValid() && cond.IsNotNever()) {
@@ -8399,7 +8399,7 @@ void Assembler::rscs(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // RSCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1
       if (shift.IsValidAmount(amount) && cond.IsNotNever()) {
         uint32_t amount_ = amount % 32;
@@ -8413,7 +8413,7 @@ void Assembler::rscs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // RSCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00f00010U | (cond.GetCondition() << 28) |
@@ -8429,7 +8429,7 @@ void Assembler::rscs(Condition cond,
 
 void Assembler::sadd16(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SADD16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfa90f000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -8448,7 +8448,7 @@ void Assembler::sadd16(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::sadd8(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SADD8{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfa80f000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -8467,7 +8467,7 @@ void Assembler::sadd8(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::sasx(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SASX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfaa0f000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -8492,7 +8492,7 @@ void Assembler::sbc(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // SBC{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid()) {
@@ -8517,7 +8517,7 @@ void Assembler::sbc(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // SBC<c>{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
         if (InITBlock() && !size.IsWide() && rd.Is(rn) && rn.IsLow() &&
             rm.IsLow()) {
@@ -8529,7 +8529,7 @@ void Assembler::sbc(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SBC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -8553,7 +8553,7 @@ void Assembler::sbc(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // SBC{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00c00010U | (cond.GetCondition() << 28) |
@@ -8575,7 +8575,7 @@ void Assembler::sbcs(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // SBCS{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid()) {
@@ -8600,7 +8600,7 @@ void Assembler::sbcs(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // SBCS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
         if (OutsideITBlock() && !size.IsWide() && rd.Is(rn) && rn.IsLow() &&
             rm.IsLow()) {
@@ -8612,7 +8612,7 @@ void Assembler::sbcs(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SBCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -8636,7 +8636,7 @@ void Assembler::sbcs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // SBCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00d00010U | (cond.GetCondition() << 28) |
@@ -8658,7 +8658,7 @@ void Assembler::sbfx(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t width = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SBFX{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; T1
       if ((lsb <= 31) &&
           (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
@@ -8685,7 +8685,7 @@ void Assembler::sbfx(Condition cond,
 
 void Assembler::sdiv(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SDIV{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb90f0f0U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -8704,7 +8704,7 @@ void Assembler::sdiv(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::sel(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SEL{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfaa0f080U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -8723,7 +8723,7 @@ void Assembler::sel(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::shadd16(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SHADD16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfa90f020U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -8742,7 +8742,7 @@ void Assembler::shadd16(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::shadd8(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SHADD8{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfa80f020U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -8761,7 +8761,7 @@ void Assembler::shadd8(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::shasx(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SHASX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfaa0f020U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -8780,7 +8780,7 @@ void Assembler::shasx(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::shsax(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SHSAX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfae0f020U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -8799,7 +8799,7 @@ void Assembler::shsax(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::shsub16(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SHSUB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfad0f020U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -8818,7 +8818,7 @@ void Assembler::shsub16(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::shsub8(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SHSUB8{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfac0f020U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -8838,7 +8838,7 @@ void Assembler::shsub8(Condition cond, Register rd, Register rn, Register rm) {
 void Assembler::smlabb(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLABB{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb100000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -8860,7 +8860,7 @@ void Assembler::smlabb(
 void Assembler::smlabt(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLABT{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb100010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -8882,7 +8882,7 @@ void Assembler::smlabt(
 void Assembler::smlad(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLAD{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb200000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -8904,7 +8904,7 @@ void Assembler::smlad(
 void Assembler::smladx(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLADX{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb200010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -8926,7 +8926,7 @@ void Assembler::smladx(
 void Assembler::smlal(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLAL{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfbc00000U | (rdlo.GetCode() << 12) | (rdhi.GetCode() << 8) |
                (rn.GetCode() << 16) | rm.GetCode());
@@ -8947,7 +8947,7 @@ void Assembler::smlal(
 void Assembler::smlalbb(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLALBB{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfbc00080U | (rdlo.GetCode() << 12) | (rdhi.GetCode() << 8) |
                (rn.GetCode() << 16) | rm.GetCode());
@@ -8968,7 +8968,7 @@ void Assembler::smlalbb(
 void Assembler::smlalbt(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLALBT{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfbc00090U | (rdlo.GetCode() << 12) | (rdhi.GetCode() << 8) |
                (rn.GetCode() << 16) | rm.GetCode());
@@ -8989,7 +8989,7 @@ void Assembler::smlalbt(
 void Assembler::smlald(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLALD{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfbc000c0U | (rdlo.GetCode() << 12) | (rdhi.GetCode() << 8) |
                (rn.GetCode() << 16) | rm.GetCode());
@@ -9010,7 +9010,7 @@ void Assembler::smlald(
 void Assembler::smlaldx(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLALDX{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfbc000d0U | (rdlo.GetCode() << 12) | (rdhi.GetCode() << 8) |
                (rn.GetCode() << 16) | rm.GetCode());
@@ -9031,7 +9031,7 @@ void Assembler::smlaldx(
 void Assembler::smlals(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     // SMLALS{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; A1
     if (cond.IsNotNever()) {
       EmitA32(0x00f00090U | (cond.GetCondition() << 28) |
@@ -9046,7 +9046,7 @@ void Assembler::smlals(
 void Assembler::smlaltb(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLALTB{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfbc000a0U | (rdlo.GetCode() << 12) | (rdhi.GetCode() << 8) |
                (rn.GetCode() << 16) | rm.GetCode());
@@ -9067,7 +9067,7 @@ void Assembler::smlaltb(
 void Assembler::smlaltt(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLALTT{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfbc000b0U | (rdlo.GetCode() << 12) | (rdhi.GetCode() << 8) |
                (rn.GetCode() << 16) | rm.GetCode());
@@ -9088,7 +9088,7 @@ void Assembler::smlaltt(
 void Assembler::smlatb(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLATB{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb100020U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -9110,7 +9110,7 @@ void Assembler::smlatb(
 void Assembler::smlatt(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLATT{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb100030U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -9132,7 +9132,7 @@ void Assembler::smlatt(
 void Assembler::smlawb(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLAWB{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb300000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -9154,7 +9154,7 @@ void Assembler::smlawb(
 void Assembler::smlawt(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLAWT{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb300010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -9176,7 +9176,7 @@ void Assembler::smlawt(
 void Assembler::smlsd(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLSD{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb400000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -9198,7 +9198,7 @@ void Assembler::smlsd(
 void Assembler::smlsdx(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLSDX{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb400010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -9220,7 +9220,7 @@ void Assembler::smlsdx(
 void Assembler::smlsld(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLSLD{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfbd000c0U | (rdlo.GetCode() << 12) | (rdhi.GetCode() << 8) |
                (rn.GetCode() << 16) | rm.GetCode());
@@ -9241,7 +9241,7 @@ void Assembler::smlsld(
 void Assembler::smlsldx(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMLSLDX{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfbd000d0U | (rdlo.GetCode() << 12) | (rdhi.GetCode() << 8) |
                (rn.GetCode() << 16) | rm.GetCode());
@@ -9262,7 +9262,7 @@ void Assembler::smlsldx(
 void Assembler::smmla(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMMLA{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb500000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -9284,7 +9284,7 @@ void Assembler::smmla(
 void Assembler::smmlar(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMMLAR{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb500010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -9306,7 +9306,7 @@ void Assembler::smmlar(
 void Assembler::smmls(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMMLS{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     EmitT32_32(0xfb600000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode() | (ra.GetCode() << 12));
@@ -9326,7 +9326,7 @@ void Assembler::smmls(
 void Assembler::smmlsr(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMMLSR{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     EmitT32_32(0xfb600010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode() | (ra.GetCode() << 12));
@@ -9345,7 +9345,7 @@ void Assembler::smmlsr(
 
 void Assembler::smmul(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMMUL{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb50f000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9364,7 +9364,7 @@ void Assembler::smmul(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::smmulr(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMMULR{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb50f010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9383,7 +9383,7 @@ void Assembler::smmulr(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::smuad(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMUAD{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb20f000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9402,7 +9402,7 @@ void Assembler::smuad(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::smuadx(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMUADX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb20f010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9421,7 +9421,7 @@ void Assembler::smuadx(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::smulbb(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMULBB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb10f000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9440,7 +9440,7 @@ void Assembler::smulbb(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::smulbt(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMULBT{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb10f010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9460,7 +9460,7 @@ void Assembler::smulbt(Condition cond, Register rd, Register rn, Register rm) {
 void Assembler::smull(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMULL{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb800000U | (rdlo.GetCode() << 12) | (rdhi.GetCode() << 8) |
                (rn.GetCode() << 16) | rm.GetCode());
@@ -9481,7 +9481,7 @@ void Assembler::smull(
 void Assembler::smulls(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     // SMULLS{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; A1
     if (cond.IsNotNever()) {
       EmitA32(0x00d00090U | (cond.GetCondition() << 28) |
@@ -9495,7 +9495,7 @@ void Assembler::smulls(
 
 void Assembler::smultb(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMULTB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb10f020U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9514,7 +9514,7 @@ void Assembler::smultb(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::smultt(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMULTT{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb10f030U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9533,7 +9533,7 @@ void Assembler::smultt(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::smulwb(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMULWB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb30f000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9552,7 +9552,7 @@ void Assembler::smulwb(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::smulwt(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMULWT{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb30f010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9571,7 +9571,7 @@ void Assembler::smulwt(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::smusd(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMUSD{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb40f000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9590,7 +9590,7 @@ void Assembler::smusd(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::smusdx(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SMUSDX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb40f010U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9616,7 +9616,7 @@ void Assembler::ssat(Condition cond,
     Register rn = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SSAT{<c>}{<q>} <Rd>, #<imm>, <Rn>, ASR #<amount> ; T1
       if ((imm >= 1) && (imm <= 32) && shift.IsASR() && (amount >= 1) &&
           (amount <= 31)) {
@@ -9663,7 +9663,7 @@ void Assembler::ssat(Condition cond,
 
 void Assembler::ssat16(Condition cond, Register rd, uint32_t imm, Register rn) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SSAT16{<c>}{<q>} <Rd>, #<imm>, <Rn> ; T1
     if ((imm >= 1) && (imm <= 16)) {
       uint32_t imm_ = imm - 1;
@@ -9686,7 +9686,7 @@ void Assembler::ssat16(Condition cond, Register rd, uint32_t imm, Register rn) {
 
 void Assembler::ssax(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SSAX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfae0f000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9705,7 +9705,7 @@ void Assembler::ssax(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::ssub16(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SSUB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfad0f000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9724,7 +9724,7 @@ void Assembler::ssub16(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::ssub8(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SSUB8{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfac0f000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -9745,7 +9745,7 @@ void Assembler::stl(Condition cond, Register rt, const MemOperand& operand) {
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STL{<c>}{<q>} <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -9770,7 +9770,7 @@ void Assembler::stlb(Condition cond, Register rt, const MemOperand& operand) {
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STLB{<c>}{<q>} <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -9798,7 +9798,7 @@ void Assembler::stlex(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STLEX{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -9827,7 +9827,7 @@ void Assembler::stlexb(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STLEXB{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -9857,7 +9857,7 @@ void Assembler::stlexd(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STLEXD{<c>}{<q>} <Rd>, <Rt>, <Rt2>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -9888,7 +9888,7 @@ void Assembler::stlexh(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STLEXH{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -9914,7 +9914,7 @@ void Assembler::stlh(Condition cond, Register rt, const MemOperand& operand) {
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STLH{<c>}{<q>} <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -9941,7 +9941,7 @@ void Assembler::stm(Condition cond,
                     WriteBack write_back,
                     RegisterList registers) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // STM{<c>}{<q>} <Rn>!, <registers> ; T1
     if (!size.IsWide() && rn.IsLow() && write_back.DoesWriteBack() &&
         ((registers.GetList() & ~0xff) == 0)) {
@@ -9976,7 +9976,7 @@ void Assembler::stmda(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     // STMDA{<c>}{<q>} <Rn>{!}, <registers> ; A1
     if (cond.IsNotNever()) {
       EmitA32(0x08000000U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -9994,7 +9994,7 @@ void Assembler::stmdb(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // STMDB{<c>}{<q>} SP!, <registers> ; T1
     if (!size.IsWide() && rn.Is(sp) && write_back.DoesWriteBack() &&
         ((registers.GetList() & ~0x40ff) == 0)) {
@@ -10030,7 +10030,7 @@ void Assembler::stmea(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // STMEA{<c>}{<q>} <Rn>!, <registers> ; T1
     if (!size.IsWide() && rn.IsLow() && write_back.DoesWriteBack() &&
         ((registers.GetList() & ~0xff) == 0)) {
@@ -10074,7 +10074,7 @@ void Assembler::stmed(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     // STMED{<c>}{<q>} <Rn>{!}, <registers> ; A1
     if (cond.IsNotNever()) {
       EmitA32(0x08000000U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -10091,7 +10091,7 @@ void Assembler::stmfa(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     // STMFA{<c>}{<q>} <Rn>{!}, <registers> ; A1
     if (cond.IsNotNever()) {
       EmitA32(0x09800000U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -10108,7 +10108,7 @@ void Assembler::stmfd(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // STMFD{<c>}{<q>} <Rn>{!}, <registers> ; T1
     if (((registers.GetList() & ~0x5fff) == 0)) {
       EmitT32_32(0xe9000000U | (rn.GetCode() << 16) |
@@ -10135,7 +10135,7 @@ void Assembler::stmib(Condition cond,
                       WriteBack write_back,
                       RegisterList registers) {
   CheckIT(cond);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     // STMIB{<c>}{<q>} <Rn>{!}, <registers> ; A1
     if (cond.IsNotNever()) {
       EmitA32(0x09800000U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -10155,7 +10155,7 @@ void Assembler::str(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STR{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && (offset >= 0) &&
           (offset <= 124) && ((offset % 4) == 0) &&
@@ -10250,7 +10250,7 @@ void Assembler::str(Condition cond,
     Register rn = operand.GetBaseRegister();
     Sign sign = operand.GetSign();
     Register rm = operand.GetOffsetRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STR{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && rm.IsLow() &&
           sign.IsPlus() && (operand.GetAddrMode() == Offset)) {
@@ -10267,7 +10267,7 @@ void Assembler::str(Condition cond,
     Register rm = operand.GetOffsetRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STR{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2
       if (!size.IsNarrow() && sign.IsPlus() && shift.IsLSL() && (amount <= 3) &&
           (operand.GetAddrMode() == Offset) && ((rn.GetCode() & 0xf) != 0xf)) {
@@ -10323,7 +10323,7 @@ void Assembler::strb(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STRB{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && (offset >= 0) &&
           (offset <= 31) && (operand.GetAddrMode() == Offset)) {
@@ -10407,7 +10407,7 @@ void Assembler::strb(Condition cond,
     Register rn = operand.GetBaseRegister();
     Sign sign = operand.GetSign();
     Register rm = operand.GetOffsetRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STRB{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && rm.IsLow() &&
           sign.IsPlus() && (operand.GetAddrMode() == Offset)) {
@@ -10424,7 +10424,7 @@ void Assembler::strb(Condition cond,
     Register rm = operand.GetOffsetRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STRB{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2
       if (!size.IsNarrow() && sign.IsPlus() && shift.IsLSL() && (amount <= 3) &&
           (operand.GetAddrMode() == Offset) && ((rn.GetCode() & 0xf) != 0xf)) {
@@ -10480,7 +10480,7 @@ void Assembler::strd(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm>}] ; T1
       if ((offset >= -1020) && (offset <= 1020) && ((offset % 4) == 0) &&
           (operand.GetAddrMode() == Offset) && ((rn.GetCode() & 0xf) != 0xf)) {
@@ -10556,7 +10556,7 @@ void Assembler::strd(Condition cond,
     Register rn = operand.GetBaseRegister();
     Sign sign = operand.GetSign();
     Register rm = operand.GetOffsetRegister();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>, #{+/-}<Rm>] ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           (operand.GetAddrMode() == Offset) && cond.IsNotNever() &&
@@ -10600,7 +10600,7 @@ void Assembler::strex(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STREX{<c>}{<q>} <Rd>, <Rt>, [<Rn>{, #<imm>}] ; T1
       if ((offset >= 0) && (offset <= 1020) && ((offset % 4) == 0) &&
           (operand.GetAddrMode() == Offset)) {
@@ -10630,7 +10630,7 @@ void Assembler::strexb(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STREXB{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -10660,7 +10660,7 @@ void Assembler::strexd(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STREXD{<c>}{<q>} <Rd>, <Rt>, <Rt2>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -10691,7 +10691,7 @@ void Assembler::strexh(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediateZero()) {
     Register rn = operand.GetBaseRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STREXH{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; T1
       if ((operand.GetAddrMode() == Offset) &&
           ((!rn.IsPC()) || AllowUnpredictable())) {
@@ -10721,7 +10721,7 @@ void Assembler::strh(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STRH{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && (offset >= 0) &&
           (offset <= 62) && ((offset % 2) == 0) &&
@@ -10807,7 +10807,7 @@ void Assembler::strh(Condition cond,
     Register rn = operand.GetBaseRegister();
     Sign sign = operand.GetSign();
     Register rm = operand.GetOffsetRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STRH{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
       if (!size.IsWide() && rt.IsLow() && rn.IsLow() && rm.IsLow() &&
           sign.IsPlus() && (operand.GetAddrMode() == Offset)) {
@@ -10849,7 +10849,7 @@ void Assembler::strh(Condition cond,
     Register rm = operand.GetOffsetRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // STRH{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2
       if (!size.IsNarrow() && sign.IsPlus() && shift.IsLSL() && (amount <= 3) &&
           (operand.GetAddrMode() == Offset) && ((rn.GetCode() & 0xf) != 0xf)) {
@@ -10871,7 +10871,7 @@ void Assembler::sub(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // SUB<c>{<q>} <Rd>, <Rn>, #<imm3> ; T1
       if (InITBlock() && !size.IsWide() && rd.IsLow() && rn.IsLow() &&
@@ -10961,7 +10961,7 @@ void Assembler::sub(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // SUB<c>{<q>} <Rd>, <Rn>, <Rm> ; T1
         if (InITBlock() && !size.IsWide() && rd.IsLow() && rn.IsLow() &&
             rm.IsLow()) {
@@ -10980,7 +10980,7 @@ void Assembler::sub(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SUB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount) && !rn.Is(sp)) {
         uint32_t amount_ = amount % 32;
@@ -11021,7 +11021,7 @@ void Assembler::sub(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // SUB{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00400010U | (cond.GetCondition() << 28) |
@@ -11039,7 +11039,7 @@ void Assembler::sub(Condition cond, Register rd, const Operand& operand) {
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SUB<c>{<q>} <Rdn>, #<imm8> ; T2
       if (InITBlock() && rd.IsLow() && (imm <= 255)) {
         EmitT32_16(0x3800 | (rd.GetCode() << 8) | imm);
@@ -11059,7 +11059,7 @@ void Assembler::subs(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // SUBS{<q>} <Rd>, <Rn>, #<imm3> ; T1
       if (OutsideITBlock() && !size.IsWide() && rd.IsLow() && rn.IsLow() &&
@@ -11121,7 +11121,7 @@ void Assembler::subs(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // SUBS{<q>} {<Rd>}, <Rn>, <Rm> ; T1
         if (OutsideITBlock() && !size.IsWide() && rd.IsLow() && rn.IsLow() &&
             rm.IsLow()) {
@@ -11134,7 +11134,7 @@ void Assembler::subs(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SUBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount) && !rn.Is(sp) &&
           !rd.Is(pc)) {
@@ -11177,7 +11177,7 @@ void Assembler::subs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // SUBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x00500010U | (cond.GetCondition() << 28) |
@@ -11195,7 +11195,7 @@ void Assembler::subs(Register rd, const Operand& operand) {
   CheckIT(al);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SUBS{<q>} <Rdn>, #<imm8> ; T2
       if (OutsideITBlock() && rd.IsLow() && (imm <= 255)) {
         EmitT32_16(0x3800 | (rd.GetCode() << 8) | imm);
@@ -11214,7 +11214,7 @@ void Assembler::subw(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SUBW{<c>}{<q>} {<Rd>}, <Rn>, #<imm12> ; T4
       if ((imm <= 4095) && ((rn.GetCode() & 0xd) != 0xd)) {
         EmitT32_32(0xf2a00000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -11236,7 +11236,7 @@ void Assembler::subw(Condition cond,
 
 void Assembler::svc(Condition cond, uint32_t imm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // SVC{<c>}{<q>} {#}<imm> ; T1
     if ((imm <= 255)) {
       EmitT32_16(0xdf00 | imm);
@@ -11262,7 +11262,7 @@ void Assembler::sxtab(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SXTAB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; T1
       if ((shift.IsROR() || (amount == 0)) && (amount <= 24) &&
           ((amount % 8) == 0) && !rn.Is(pc)) {
@@ -11296,7 +11296,7 @@ void Assembler::sxtab16(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SXTAB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; T1
       if ((shift.IsROR() || (amount == 0)) && (amount <= 24) &&
           ((amount % 8) == 0) && !rn.Is(pc)) {
@@ -11330,7 +11330,7 @@ void Assembler::sxtah(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SXTAH{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; T1
       if ((shift.IsROR() || (amount == 0)) && (amount <= 24) &&
           ((amount % 8) == 0) && !rn.Is(pc)) {
@@ -11363,7 +11363,7 @@ void Assembler::sxtb(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // SXTB{<c>}{<q>} {<Rd>}, <Rm> ; T1
         if (!size.IsWide() && rd.IsLow() && rm.IsLow()) {
           EmitT32_16(0xb240 | rd.GetCode() | (rm.GetCode() << 3));
@@ -11374,7 +11374,7 @@ void Assembler::sxtb(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SXTB{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount> } ; T2
       if (!size.IsNarrow() && (shift.IsROR() || (amount == 0)) &&
           (amount <= 24) && ((amount % 8) == 0)) {
@@ -11404,7 +11404,7 @@ void Assembler::sxtb16(Condition cond, Register rd, const Operand& operand) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SXTB16{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount> } ; T1
       if ((shift.IsROR() || (amount == 0)) && (amount <= 24) &&
           ((amount % 8) == 0)) {
@@ -11436,7 +11436,7 @@ void Assembler::sxth(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // SXTH{<c>}{<q>} {<Rd>}, <Rm> ; T1
         if (!size.IsWide() && rd.IsLow() && rm.IsLow()) {
           EmitT32_16(0xb200 | rd.GetCode() | (rm.GetCode() << 3));
@@ -11447,7 +11447,7 @@ void Assembler::sxth(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // SXTH{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount> } ; T2
       if (!size.IsNarrow() && (shift.IsROR() || (amount == 0)) &&
           (amount <= 24) && ((amount % 8) == 0)) {
@@ -11473,7 +11473,7 @@ void Assembler::sxth(Condition cond,
 
 void Assembler::tbb(Condition cond, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // TBB{<c>}{<q>} [<Rn>, <Rm>] ; T1
     if (OutsideITBlockAndAlOrLast(cond) &&
         ((!rm.IsPC()) || AllowUnpredictable())) {
@@ -11487,7 +11487,7 @@ void Assembler::tbb(Condition cond, Register rn, Register rm) {
 
 void Assembler::tbh(Condition cond, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // TBH{<c>}{<q>} [<Rn>, <Rm>, LSL #1] ; T1
     if (OutsideITBlockAndAlOrLast(cond) &&
         ((!rm.IsPC()) || AllowUnpredictable())) {
@@ -11503,7 +11503,7 @@ void Assembler::teq(Condition cond, Register rn, const Operand& operand) {
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // TEQ{<c>}{<q>} <Rn>, #<const> ; T1
       if (immediate_t32.IsValid()) {
@@ -11528,7 +11528,7 @@ void Assembler::teq(Condition cond, Register rn, const Operand& operand) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // TEQ{<c>}{<q>} <Rn>, <Rm> {, <shift> #<amount> } ; T1
       if (shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -11552,7 +11552,7 @@ void Assembler::teq(Condition cond, Register rn, const Operand& operand) {
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // TEQ{<c>}{<q>} <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x01300010U | (cond.GetCondition() << 28) |
@@ -11572,7 +11572,7 @@ void Assembler::tst(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t imm = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // TST{<c>}{<q>} <Rn>, #<const> ; T1
       if (!size.IsNarrow() && immediate_t32.IsValid()) {
@@ -11596,7 +11596,7 @@ void Assembler::tst(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // TST{<c>}{<q>} <Rn>, <Rm> ; T1
         if (!size.IsWide() && rn.IsLow() && rm.IsLow()) {
           EmitT32_16(0x4200 | rn.GetCode() | (rm.GetCode() << 3));
@@ -11607,7 +11607,7 @@ void Assembler::tst(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // TST{<c>}{<q>} <Rn>, <Rm> {, <shift> #<amount> } ; T2
       if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
         uint32_t amount_ = amount % 32;
@@ -11631,7 +11631,7 @@ void Assembler::tst(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
-    if (!IsT32()) {
+    if (IsUsingA32()) {
       // TST{<c>}{<q>} <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever()) {
         EmitA32(0x01100010U | (cond.GetCondition() << 28) |
@@ -11646,7 +11646,7 @@ void Assembler::tst(Condition cond,
 
 void Assembler::uadd16(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UADD16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfa90f040U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -11665,7 +11665,7 @@ void Assembler::uadd16(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::uadd8(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UADD8{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfa80f040U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -11684,7 +11684,7 @@ void Assembler::uadd8(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::uasx(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UASX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfaa0f040U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -11709,7 +11709,7 @@ void Assembler::ubfx(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     uint32_t width = operand.GetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // UBFX{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; T1
       if ((lsb <= 31) &&
           (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
@@ -11736,7 +11736,7 @@ void Assembler::ubfx(Condition cond,
 
 void Assembler::udf(Condition cond, EncodingSize size, uint32_t imm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UDF{<c>}{<q>} {#}<imm> ; T1
     if (!size.IsWide() && (imm <= 255)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -11767,7 +11767,7 @@ void Assembler::udf(Condition cond, EncodingSize size, uint32_t imm) {
 
 void Assembler::udiv(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UDIV{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfbb0f0f0U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -11786,7 +11786,7 @@ void Assembler::udiv(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::uhadd16(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UHADD16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfa90f060U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -11805,7 +11805,7 @@ void Assembler::uhadd16(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::uhadd8(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UHADD8{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfa80f060U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -11824,7 +11824,7 @@ void Assembler::uhadd8(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::uhasx(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UHASX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfaa0f060U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -11843,7 +11843,7 @@ void Assembler::uhasx(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::uhsax(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UHSAX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfae0f060U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -11862,7 +11862,7 @@ void Assembler::uhsax(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::uhsub16(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UHSUB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfad0f060U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -11881,7 +11881,7 @@ void Assembler::uhsub16(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::uhsub8(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UHSUB8{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfac0f060U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -11901,7 +11901,7 @@ void Assembler::uhsub8(Condition cond, Register rd, Register rn, Register rm) {
 void Assembler::umaal(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UMAAL{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfbe00060U | (rdlo.GetCode() << 12) | (rdhi.GetCode() << 8) |
                (rn.GetCode() << 16) | rm.GetCode());
@@ -11922,7 +11922,7 @@ void Assembler::umaal(
 void Assembler::umlal(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UMLAL{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfbe00000U | (rdlo.GetCode() << 12) | (rdhi.GetCode() << 8) |
                (rn.GetCode() << 16) | rm.GetCode());
@@ -11943,7 +11943,7 @@ void Assembler::umlal(
 void Assembler::umlals(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     // UMLALS{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; A1
     if (cond.IsNotNever()) {
       EmitA32(0x00b00090U | (cond.GetCondition() << 28) |
@@ -11958,7 +11958,7 @@ void Assembler::umlals(
 void Assembler::umull(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UMULL{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; T1
     EmitT32_32(0xfba00000U | (rdlo.GetCode() << 12) | (rdhi.GetCode() << 8) |
                (rn.GetCode() << 16) | rm.GetCode());
@@ -11979,7 +11979,7 @@ void Assembler::umull(
 void Assembler::umulls(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
   CheckIT(cond);
-  if (!IsT32()) {
+  if (IsUsingA32()) {
     // UMULLS{<c>}{<q>} <Rd>, <Rd>, <Rn>, <Rm> ; A1
     if (cond.IsNotNever()) {
       EmitA32(0x00900090U | (cond.GetCondition() << 28) |
@@ -11993,7 +11993,7 @@ void Assembler::umulls(
 
 void Assembler::uqadd16(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UQADD16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfa90f050U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -12012,7 +12012,7 @@ void Assembler::uqadd16(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::uqadd8(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UQADD8{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfa80f050U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -12031,7 +12031,7 @@ void Assembler::uqadd8(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::uqasx(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UQASX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfaa0f050U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -12050,7 +12050,7 @@ void Assembler::uqasx(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::uqsax(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UQSAX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfae0f050U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -12069,7 +12069,7 @@ void Assembler::uqsax(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::uqsub16(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UQSUB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfad0f050U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -12088,7 +12088,7 @@ void Assembler::uqsub16(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::uqsub8(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // UQSUB8{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfac0f050U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -12107,7 +12107,7 @@ void Assembler::uqsub8(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::usad8(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // USAD8{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfb70f000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -12127,7 +12127,7 @@ void Assembler::usad8(Condition cond, Register rd, Register rn, Register rm) {
 void Assembler::usada8(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // USADA8{<c>}{<q>} <Rd>, <Rn>, <Rm>, <Ra> ; T1
     if (!ra.Is(pc)) {
       EmitT32_32(0xfb700000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
@@ -12155,7 +12155,7 @@ void Assembler::usat(Condition cond,
     Register rn = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // USAT{<c>}{<q>} <Rd>, #<imm>, <Rn>, ASR #<amount> ; T1
       if ((imm <= 31) && shift.IsASR() && (amount >= 1) && (amount <= 31)) {
         EmitT32_32(0xf3a00000U | (rd.GetCode() << 8) | imm |
@@ -12196,7 +12196,7 @@ void Assembler::usat(Condition cond,
 
 void Assembler::usat16(Condition cond, Register rd, uint32_t imm, Register rn) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // USAT16{<c>}{<q>} <Rd>, #<imm>, <Rn> ; T1
     if ((imm <= 15)) {
       EmitT32_32(0xf3a00000U | (rd.GetCode() << 8) | imm |
@@ -12217,7 +12217,7 @@ void Assembler::usat16(Condition cond, Register rd, uint32_t imm, Register rn) {
 
 void Assembler::usax(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // USAX{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfae0f040U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -12236,7 +12236,7 @@ void Assembler::usax(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::usub16(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // USUB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfad0f040U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -12255,7 +12255,7 @@ void Assembler::usub16(Condition cond, Register rd, Register rn, Register rm) {
 
 void Assembler::usub8(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // USUB8{<c>}{<q>} {<Rd>}, <Rn>, <Rm> ; T1
     EmitT32_32(0xfac0f040U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                rm.GetCode());
@@ -12281,7 +12281,7 @@ void Assembler::uxtab(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // UXTAB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; T1
       if ((shift.IsROR() || (amount == 0)) && (amount <= 24) &&
           ((amount % 8) == 0) && !rn.Is(pc)) {
@@ -12315,7 +12315,7 @@ void Assembler::uxtab16(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // UXTAB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; T1
       if ((shift.IsROR() || (amount == 0)) && (amount <= 24) &&
           ((amount % 8) == 0) && !rn.Is(pc)) {
@@ -12349,7 +12349,7 @@ void Assembler::uxtah(Condition cond,
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // UXTAH{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; T1
       if ((shift.IsROR() || (amount == 0)) && (amount <= 24) &&
           ((amount % 8) == 0) && !rn.Is(pc)) {
@@ -12382,7 +12382,7 @@ void Assembler::uxtb(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // UXTB{<c>}{<q>} {<Rd>}, <Rm> ; T1
         if (!size.IsWide() && rd.IsLow() && rm.IsLow()) {
           EmitT32_16(0xb2c0 | rd.GetCode() | (rm.GetCode() << 3));
@@ -12393,7 +12393,7 @@ void Assembler::uxtb(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // UXTB{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount> } ; T2
       if (!size.IsNarrow() && (shift.IsROR() || (amount == 0)) &&
           (amount <= 24) && ((amount % 8) == 0)) {
@@ -12423,7 +12423,7 @@ void Assembler::uxtb16(Condition cond, Register rd, const Operand& operand) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // UXTB16{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount> } ; T1
       if ((shift.IsROR() || (amount == 0)) && (amount <= 24) &&
           ((amount % 8) == 0)) {
@@ -12455,7 +12455,7 @@ void Assembler::uxth(Condition cond,
   if (operand.IsImmediateShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     if (operand.IsPlainRegister()) {
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // UXTH{<c>}{<q>} {<Rd>}, <Rm> ; T1
         if (!size.IsWide() && rd.IsLow() && rm.IsLow()) {
           EmitT32_16(0xb280 | rd.GetCode() | (rm.GetCode() << 3));
@@ -12466,7 +12466,7 @@ void Assembler::uxth(Condition cond,
     }
     Shift shift = operand.GetShift();
     uint32_t amount = operand.GetShiftAmount();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // UXTH{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount> } ; T2
       if (!size.IsNarrow() && (shift.IsROR() || (amount == 0)) &&
           (amount <= 24) && ((amount % 8) == 0)) {
@@ -12494,7 +12494,7 @@ void Assembler::vaba(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VABA{<c>}{<q>}.<dt> <Dd>, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12523,7 +12523,7 @@ void Assembler::vaba(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VABA{<c>}{<q>}.<dt> <Qd>, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12552,7 +12552,7 @@ void Assembler::vabal(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VABAL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12581,7 +12581,7 @@ void Assembler::vabd(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VABD{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12627,7 +12627,7 @@ void Assembler::vabd(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VABD{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12673,7 +12673,7 @@ void Assembler::vabdl(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VABDL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12701,7 +12701,7 @@ void Assembler::vabdl(
 void Assembler::vabs(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
   Dt_F_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VABS{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12741,7 +12741,7 @@ void Assembler::vabs(Condition cond, DataType dt, DRegister rd, DRegister rm) {
 void Assembler::vabs(Condition cond, DataType dt, QRegister rd, QRegister rm) {
   CheckIT(cond);
   Dt_F_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VABS{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12768,7 +12768,7 @@ void Assembler::vabs(Condition cond, DataType dt, QRegister rd, QRegister rm) {
 
 void Assembler::vabs(Condition cond, DataType dt, SRegister rd, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VABS{<c>}{<q>}.F32 <Sd>, <Sm> ; T2
     if (dt.Is(F32)) {
       EmitT32_32(0xeeb00ac0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -12789,7 +12789,7 @@ void Assembler::vabs(Condition cond, DataType dt, SRegister rd, SRegister rm) {
 void Assembler::vacge(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VACGE{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12815,7 +12815,7 @@ void Assembler::vacge(
 void Assembler::vacge(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VACGE{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12841,7 +12841,7 @@ void Assembler::vacge(
 void Assembler::vacgt(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VACGT{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12867,7 +12867,7 @@ void Assembler::vacgt(
 void Assembler::vacgt(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VACGT{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12893,7 +12893,7 @@ void Assembler::vacgt(
 void Assembler::vacle(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VACLE{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12919,7 +12919,7 @@ void Assembler::vacle(
 void Assembler::vacle(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VACLE{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12945,7 +12945,7 @@ void Assembler::vacle(
 void Assembler::vaclt(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VACLT{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12971,7 +12971,7 @@ void Assembler::vaclt(
 void Assembler::vaclt(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VACLT{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -12998,7 +12998,7 @@ void Assembler::vadd(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_size_2 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VADD{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13055,7 +13055,7 @@ void Assembler::vadd(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_size_2 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VADD{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13098,7 +13098,7 @@ void Assembler::vadd(
 void Assembler::vadd(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VADD{<c>}{<q>}.F32 {<Sd>}, <Sn>, <Sm> ; T2
     if (dt.Is(F32)) {
       EmitT32_32(0xee300a00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -13121,7 +13121,7 @@ void Assembler::vaddhn(
     Condition cond, DataType dt, DRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VADDHN{<c>}{<q>}.<dt> <Dd>, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid() && (dt.Is(I16) || dt.Is(I32) || dt.Is(I64))) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13148,7 +13148,7 @@ void Assembler::vaddl(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VADDL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13177,7 +13177,7 @@ void Assembler::vaddw(
     Condition cond, DataType dt, QRegister rd, QRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VADDW{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13210,7 +13210,7 @@ void Assembler::vand(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     ImmediateVand encoded_dt(dt, operand.GetNeonImmediate());
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VAND{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; T1
       if (encoded_dt.IsValid() && rd.Is(rn)) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13239,7 +13239,7 @@ void Assembler::vand(Condition cond,
   if (operand.IsRegister()) {
     DRegister rm = operand.GetRegister();
     USE(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VAND{<c>}{<q>}{.<dt>} {<Dd>}, <Dn>, <Dm> ; T1
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xef000110U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -13267,7 +13267,7 @@ void Assembler::vand(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     ImmediateVand encoded_dt(dt, operand.GetNeonImmediate());
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VAND{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; T1
       if (encoded_dt.IsValid() && rd.Is(rn)) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13296,7 +13296,7 @@ void Assembler::vand(Condition cond,
   if (operand.IsRegister()) {
     QRegister rm = operand.GetRegister();
     USE(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VAND{<c>}{<q>}{.<dt>} {<Qd>}, <Qn>, <Qm> ; T1
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xef000150U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -13324,7 +13324,7 @@ void Assembler::vbic(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     ImmediateVbic encoded_dt(dt, operand.GetNeonImmediate());
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VBIC{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; T1
       if (encoded_dt.IsValid() && rd.Is(rn)) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13353,7 +13353,7 @@ void Assembler::vbic(Condition cond,
   if (operand.IsRegister()) {
     DRegister rm = operand.GetRegister();
     USE(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VBIC{<c>}{<q>}{.<dt>} {<Dd>}, <Dn>, <Dm> ; T1
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xef100110U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -13381,7 +13381,7 @@ void Assembler::vbic(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     ImmediateVbic encoded_dt(dt, operand.GetNeonImmediate());
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VBIC{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; T1
       if (encoded_dt.IsValid() && rd.Is(rn)) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13410,7 +13410,7 @@ void Assembler::vbic(Condition cond,
   if (operand.IsRegister()) {
     QRegister rm = operand.GetRegister();
     USE(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VBIC{<c>}{<q>}{.<dt>} {<Qd>}, <Qn>, <Qm> ; T1
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xef100150U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -13434,7 +13434,7 @@ void Assembler::vbif(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VBIF{<c>}{<q>}{.<dt>} {<Dd>}, <Dn>, <Dm> ; T1
     if (cond.Is(al) || AllowStronglyDiscouraged()) {
       EmitT32_32(0xff300110U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -13457,7 +13457,7 @@ void Assembler::vbif(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VBIF{<c>}{<q>}{.<dt>} {<Qd>}, <Qn>, <Qm> ; T1
     if (cond.Is(al) || AllowStronglyDiscouraged()) {
       EmitT32_32(0xff300150U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -13480,7 +13480,7 @@ void Assembler::vbit(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VBIT{<c>}{<q>}{.<dt>} {<Dd>}, <Dn>, <Dm> ; T1
     if (cond.Is(al) || AllowStronglyDiscouraged()) {
       EmitT32_32(0xff200110U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -13503,7 +13503,7 @@ void Assembler::vbit(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VBIT{<c>}{<q>}{.<dt>} {<Qd>}, <Qn>, <Qm> ; T1
     if (cond.Is(al) || AllowStronglyDiscouraged()) {
       EmitT32_32(0xff200150U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -13526,7 +13526,7 @@ void Assembler::vbsl(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VBSL{<c>}{<q>}{.<dt>} {<Dd>}, <Dn>, <Dm> ; T1
     if (cond.Is(al) || AllowStronglyDiscouraged()) {
       EmitT32_32(0xff100110U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -13549,7 +13549,7 @@ void Assembler::vbsl(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VBSL{<c>}{<q>}{.<dt>} {<Qd>}, <Qn>, <Qm> ; T1
     if (cond.Is(al) || AllowStronglyDiscouraged()) {
       EmitT32_32(0xff100150U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -13578,7 +13578,7 @@ void Assembler::vceq(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_F_size_2 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VCEQ{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #0 ; T1
         if (encoded_dt.IsValid() && (imm == 0)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13617,7 +13617,7 @@ void Assembler::vceq(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_F_size_2 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VCEQ{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #0 ; T1
         if (encoded_dt.IsValid() && (imm == 0)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13651,7 +13651,7 @@ void Assembler::vceq(
   CheckIT(cond);
   Dt_size_4 encoded_dt(dt);
   Dt_sz_1 encoded_dt_2(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCEQ{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13696,7 +13696,7 @@ void Assembler::vceq(
   CheckIT(cond);
   Dt_size_4 encoded_dt(dt);
   Dt_sz_1 encoded_dt_2(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCEQ{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13746,7 +13746,7 @@ void Assembler::vcge(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_F_size_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VCGE{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #0 ; T1
         if (encoded_dt.IsValid() && (imm == 0)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13785,7 +13785,7 @@ void Assembler::vcge(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_F_size_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VCGE{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #0 ; T1
         if (encoded_dt.IsValid() && (imm == 0)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13818,7 +13818,7 @@ void Assembler::vcge(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCGE{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13864,7 +13864,7 @@ void Assembler::vcge(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCGE{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13916,7 +13916,7 @@ void Assembler::vcgt(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_F_size_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VCGT{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #0 ; T1
         if (encoded_dt.IsValid() && (imm == 0)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13955,7 +13955,7 @@ void Assembler::vcgt(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_F_size_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VCGT{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #0 ; T1
         if (encoded_dt.IsValid() && (imm == 0)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -13988,7 +13988,7 @@ void Assembler::vcgt(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCGT{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14034,7 +14034,7 @@ void Assembler::vcgt(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCGT{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14086,7 +14086,7 @@ void Assembler::vcle(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_F_size_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VCLE{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #0 ; T1
         if (encoded_dt.IsValid() && (imm == 0)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14125,7 +14125,7 @@ void Assembler::vcle(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_F_size_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VCLE{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #0 ; T1
         if (encoded_dt.IsValid() && (imm == 0)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14158,7 +14158,7 @@ void Assembler::vcle(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCLE{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14204,7 +14204,7 @@ void Assembler::vcle(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCLE{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14249,7 +14249,7 @@ void Assembler::vcle(
 void Assembler::vcls(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
   Dt_size_5 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCLS{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14275,7 +14275,7 @@ void Assembler::vcls(Condition cond, DataType dt, DRegister rd, DRegister rm) {
 void Assembler::vcls(Condition cond, DataType dt, QRegister rd, QRegister rm) {
   CheckIT(cond);
   Dt_size_5 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCLS{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14308,7 +14308,7 @@ void Assembler::vclt(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_F_size_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VCLT{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #0 ; T1
         if (encoded_dt.IsValid() && (imm == 0)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14347,7 +14347,7 @@ void Assembler::vclt(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_F_size_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VCLT{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #0 ; T1
         if (encoded_dt.IsValid() && (imm == 0)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14380,7 +14380,7 @@ void Assembler::vclt(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCLT{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14426,7 +14426,7 @@ void Assembler::vclt(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCLT{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14471,7 +14471,7 @@ void Assembler::vclt(
 void Assembler::vclz(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
   Dt_size_4 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCLZ{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14497,7 +14497,7 @@ void Assembler::vclz(Condition cond, DataType dt, DRegister rd, DRegister rm) {
 void Assembler::vclz(Condition cond, DataType dt, QRegister rd, QRegister rm) {
   CheckIT(cond);
   Dt_size_4 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCLZ{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14522,7 +14522,7 @@ void Assembler::vclz(Condition cond, DataType dt, QRegister rd, QRegister rm) {
 
 void Assembler::vcmp(Condition cond, DataType dt, SRegister rd, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCMP{<c>}{<q>}.F32 <Sd>, <Sm> ; T1
     if (dt.Is(F32)) {
       EmitT32_32(0xeeb40a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -14542,7 +14542,7 @@ void Assembler::vcmp(Condition cond, DataType dt, SRegister rd, SRegister rm) {
 
 void Assembler::vcmp(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCMP{<c>}{<q>}.F64 <Dd>, <Dm> ; T1
     if (dt.Is(F64)) {
       EmitT32_32(0xeeb40b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -14562,7 +14562,7 @@ void Assembler::vcmp(Condition cond, DataType dt, DRegister rd, DRegister rm) {
 
 void Assembler::vcmp(Condition cond, DataType dt, SRegister rd, double imm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCMP{<c>}{<q>}.F32 <Sd>, #0.0 ; T2
     if (dt.Is(F32) && (imm == 0.0)) {
       EmitT32_32(0xeeb50a40U | rd.Encode(22, 12));
@@ -14581,7 +14581,7 @@ void Assembler::vcmp(Condition cond, DataType dt, SRegister rd, double imm) {
 
 void Assembler::vcmp(Condition cond, DataType dt, DRegister rd, double imm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCMP{<c>}{<q>}.F64 <Dd>, #0.0 ; T2
     if (dt.Is(F64) && (imm == 0.0)) {
       EmitT32_32(0xeeb50b40U | rd.Encode(22, 12));
@@ -14600,7 +14600,7 @@ void Assembler::vcmp(Condition cond, DataType dt, DRegister rd, double imm) {
 
 void Assembler::vcmpe(Condition cond, DataType dt, SRegister rd, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCMPE{<c>}{<q>}.F32 <Sd>, <Sm> ; T1
     if (dt.Is(F32)) {
       EmitT32_32(0xeeb40ac0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -14620,7 +14620,7 @@ void Assembler::vcmpe(Condition cond, DataType dt, SRegister rd, SRegister rm) {
 
 void Assembler::vcmpe(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCMPE{<c>}{<q>}.F64 <Dd>, <Dm> ; T1
     if (dt.Is(F64)) {
       EmitT32_32(0xeeb40bc0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -14640,7 +14640,7 @@ void Assembler::vcmpe(Condition cond, DataType dt, DRegister rd, DRegister rm) {
 
 void Assembler::vcmpe(Condition cond, DataType dt, SRegister rd, double imm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCMPE{<c>}{<q>}.F32 <Sd>, #0.0 ; T2
     if (dt.Is(F32) && (imm == 0.0)) {
       EmitT32_32(0xeeb50ac0U | rd.Encode(22, 12));
@@ -14659,7 +14659,7 @@ void Assembler::vcmpe(Condition cond, DataType dt, SRegister rd, double imm) {
 
 void Assembler::vcmpe(Condition cond, DataType dt, DRegister rd, double imm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCMPE{<c>}{<q>}.F64 <Dd>, #0.0 ; T2
     if (dt.Is(F64) && (imm == 0.0)) {
       EmitT32_32(0xeeb50bc0U | rd.Encode(22, 12));
@@ -14678,7 +14678,7 @@ void Assembler::vcmpe(Condition cond, DataType dt, DRegister rd, double imm) {
 
 void Assembler::vcnt(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCNT{<c>}{<q>}.8 <Dd>, <Dm> ; T1
     if (dt.Is(Untyped8)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14701,7 +14701,7 @@ void Assembler::vcnt(Condition cond, DataType dt, DRegister rd, DRegister rm) {
 
 void Assembler::vcnt(Condition cond, DataType dt, QRegister rd, QRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCNT{<c>}{<q>}.8 <Qd>, <Qm> ; T1
     if (dt.Is(Untyped8)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14726,7 +14726,7 @@ void Assembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, SRegister rm) {
   CheckIT(cond);
   Dt_op_2 encoded_dt(dt2);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVT{<c>}{<q>}.F64.F32 <Dd>, <Sm> ; T1
     if (dt1.Is(F64) && dt2.Is(F32)) {
       EmitT32_32(0xeeb70ac0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -14761,7 +14761,7 @@ void Assembler::vcvt(
 void Assembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVT{<c>}{<q>}.F32.F64 <Sd>, <Dm> ; T1
     if (dt1.Is(F32) && dt2.Is(F64)) {
       EmitT32_32(0xeeb70bc0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -14813,7 +14813,7 @@ void Assembler::vcvt(Condition cond,
   Dt_op_U_1 encoded_dt(dt1, dt2);
   Dt_U_sx_1 encoded_dt_2(dt2);
   Dt_U_sx_1 encoded_dt_3(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVT{<c>}{<q>}.<dt>.<dt> <Dd>, <Dm>, #<fbits> ; T1
     if (encoded_dt.IsValid() && (fbits >= 1) && (fbits <= 32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14914,7 +14914,7 @@ void Assembler::vcvt(Condition cond,
                      int32_t fbits) {
   CheckIT(cond);
   Dt_op_U_1 encoded_dt(dt1, dt2);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVT{<c>}{<q>}.<dt>.<dt> <Qd>, <Qm>, #<fbits> ; T1
     if (encoded_dt.IsValid() && (fbits >= 1) && (fbits <= 32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -14950,7 +14950,7 @@ void Assembler::vcvt(Condition cond,
   CheckIT(cond);
   Dt_U_sx_1 encoded_dt(dt2);
   Dt_U_sx_1 encoded_dt_2(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVT{<c>}{<q>}.F32.<dt> <Sdm>, <Sdm>, #<fbits> ; T1
     if (dt1.Is(F32) && encoded_dt.IsValid() && rd.Is(rm) &&
         (((dt2.Is(S16) || dt2.Is(U16)) && (fbits <= 16)) ||
@@ -15026,7 +15026,7 @@ void Assembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
   CheckIT(cond);
   Dt_op_1 encoded_dt(dt1, dt2);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVT{<c>}{<q>}.<dt>.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -15053,7 +15053,7 @@ void Assembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
   CheckIT(cond);
   Dt_op_1 encoded_dt(dt1, dt2);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVT{<c>}{<q>}.<dt>.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -15079,7 +15079,7 @@ void Assembler::vcvt(
 void Assembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, QRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVT{<c>}{<q>}.F16.F32 <Dd>, <Qm> ; T1
     if (dt1.Is(F16) && dt2.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -15103,7 +15103,7 @@ void Assembler::vcvt(
 void Assembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, QRegister rd, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVT{<c>}{<q>}.F32.F16 <Qd>, <Dm> ; T1
     if (dt1.Is(F32) && dt2.Is(F16)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -15128,7 +15128,7 @@ void Assembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(cond);
   Dt_op_2 encoded_dt(dt2);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVT{<c>}{<q>}.U32.F32 <Sd>, <Sm> ; T1
     if (dt1.Is(U32) && dt2.Is(F32)) {
       EmitT32_32(0xeebc0ac0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -15175,7 +15175,7 @@ void Assembler::vcvt(
 void Assembler::vcvta(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
   CheckIT(al);
   Dt_op_3 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTA{<q>}.<dt>.F32 <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F32)) {
       EmitT32_32(0xffbb0000U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15197,7 +15197,7 @@ void Assembler::vcvta(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
 void Assembler::vcvta(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
   CheckIT(al);
   Dt_op_3 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTA{<q>}.<dt>.F32 <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F32)) {
       EmitT32_32(0xffbb0040U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15219,7 +15219,7 @@ void Assembler::vcvta(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
 void Assembler::vcvta(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(al);
   Dt_op_2 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTA{<q>}.<dt>.F32 <Sd>, <Sm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F32)) {
       EmitT32_32(0xfebc0a40U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15241,7 +15241,7 @@ void Assembler::vcvta(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
 void Assembler::vcvta(DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
   CheckIT(al);
   Dt_op_2 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTA{<q>}.<dt>.F64 <Sd>, <Dm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F64)) {
       EmitT32_32(0xfebc0b40U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15263,7 +15263,7 @@ void Assembler::vcvta(DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
 void Assembler::vcvtb(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTB{<c>}{<q>}.F32.F16 <Sd>, <Sm> ; T1
     if (dt1.Is(F32) && dt2.Is(F16)) {
       EmitT32_32(0xeeb20a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -15296,7 +15296,7 @@ void Assembler::vcvtb(
 void Assembler::vcvtb(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTB{<c>}{<q>}.F64.F16 <Dd>, <Sm> ; T1
     if (dt1.Is(F64) && dt2.Is(F16)) {
       EmitT32_32(0xeeb20b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -15317,7 +15317,7 @@ void Assembler::vcvtb(
 void Assembler::vcvtb(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTB{<c>}{<q>}.F16.F64 <Sd>, <Dm> ; T1
     if (dt1.Is(F16) && dt2.Is(F64)) {
       EmitT32_32(0xeeb30b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -15338,7 +15338,7 @@ void Assembler::vcvtb(
 void Assembler::vcvtm(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
   CheckIT(al);
   Dt_op_3 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTM{<q>}.<dt>.F32 <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F32)) {
       EmitT32_32(0xffbb0300U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15360,7 +15360,7 @@ void Assembler::vcvtm(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
 void Assembler::vcvtm(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
   CheckIT(al);
   Dt_op_3 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTM{<q>}.<dt>.F32 <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F32)) {
       EmitT32_32(0xffbb0340U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15382,7 +15382,7 @@ void Assembler::vcvtm(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
 void Assembler::vcvtm(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(al);
   Dt_op_2 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTM{<q>}.<dt>.F32 <Sd>, <Sm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F32)) {
       EmitT32_32(0xfebf0a40U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15404,7 +15404,7 @@ void Assembler::vcvtm(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
 void Assembler::vcvtm(DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
   CheckIT(al);
   Dt_op_2 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTM{<q>}.<dt>.F64 <Sd>, <Dm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F64)) {
       EmitT32_32(0xfebf0b40U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15426,7 +15426,7 @@ void Assembler::vcvtm(DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
 void Assembler::vcvtn(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
   CheckIT(al);
   Dt_op_3 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTN{<q>}.<dt>.F32 <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F32)) {
       EmitT32_32(0xffbb0100U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15448,7 +15448,7 @@ void Assembler::vcvtn(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
 void Assembler::vcvtn(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
   CheckIT(al);
   Dt_op_3 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTN{<q>}.<dt>.F32 <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F32)) {
       EmitT32_32(0xffbb0140U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15470,7 +15470,7 @@ void Assembler::vcvtn(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
 void Assembler::vcvtn(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(al);
   Dt_op_2 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTN{<q>}.<dt>.F32 <Sd>, <Sm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F32)) {
       EmitT32_32(0xfebd0a40U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15492,7 +15492,7 @@ void Assembler::vcvtn(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
 void Assembler::vcvtn(DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
   CheckIT(al);
   Dt_op_2 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTN{<q>}.<dt>.F64 <Sd>, <Dm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F64)) {
       EmitT32_32(0xfebd0b40U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15514,7 +15514,7 @@ void Assembler::vcvtn(DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
 void Assembler::vcvtp(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
   CheckIT(al);
   Dt_op_3 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTP{<q>}.<dt>.F32 <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F32)) {
       EmitT32_32(0xffbb0200U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15536,7 +15536,7 @@ void Assembler::vcvtp(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
 void Assembler::vcvtp(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
   CheckIT(al);
   Dt_op_3 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTP{<q>}.<dt>.F32 <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F32)) {
       EmitT32_32(0xffbb0240U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15558,7 +15558,7 @@ void Assembler::vcvtp(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
 void Assembler::vcvtp(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(al);
   Dt_op_2 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTP{<q>}.<dt>.F32 <Sd>, <Sm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F32)) {
       EmitT32_32(0xfebe0a40U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15580,7 +15580,7 @@ void Assembler::vcvtp(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
 void Assembler::vcvtp(DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
   CheckIT(al);
   Dt_op_2 encoded_dt(dt1);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTP{<q>}.<dt>.F64 <Sd>, <Dm> ; T1
     if (encoded_dt.IsValid() && dt2.Is(F64)) {
       EmitT32_32(0xfebe0b40U | (encoded_dt.GetEncodingValue() << 7) |
@@ -15602,7 +15602,7 @@ void Assembler::vcvtp(DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
 void Assembler::vcvtr(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTR{<c>}{<q>}.U32.F32 <Sd>, <Sm> ; T1
     if (dt1.Is(U32) && dt2.Is(F32)) {
       EmitT32_32(0xeebc0a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -15635,7 +15635,7 @@ void Assembler::vcvtr(
 void Assembler::vcvtr(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTR{<c>}{<q>}.U32.F64 <Sd>, <Dm> ; T1
     if (dt1.Is(U32) && dt2.Is(F64)) {
       EmitT32_32(0xeebc0b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -15668,7 +15668,7 @@ void Assembler::vcvtr(
 void Assembler::vcvtt(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTT{<c>}{<q>}.F32.F16 <Sd>, <Sm> ; T1
     if (dt1.Is(F32) && dt2.Is(F16)) {
       EmitT32_32(0xeeb20ac0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -15701,7 +15701,7 @@ void Assembler::vcvtt(
 void Assembler::vcvtt(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTT{<c>}{<q>}.F64.F16 <Dd>, <Sm> ; T1
     if (dt1.Is(F64) && dt2.Is(F16)) {
       EmitT32_32(0xeeb20bc0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -15722,7 +15722,7 @@ void Assembler::vcvtt(
 void Assembler::vcvtt(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VCVTT{<c>}{<q>}.F16.F64 <Sd>, <Dm> ; T1
     if (dt1.Is(F16) && dt2.Is(F64)) {
       EmitT32_32(0xeeb30bc0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -15743,7 +15743,7 @@ void Assembler::vcvtt(
 void Assembler::vdiv(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VDIV{<c>}{<q>}.F32 {<Sd>}, <Sn>, <Sm> ; T1
     if (dt.Is(F32)) {
       EmitT32_32(0xee800a00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -15765,7 +15765,7 @@ void Assembler::vdiv(
 void Assembler::vdiv(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VDIV{<c>}{<q>}.F64 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F64)) {
       EmitT32_32(0xee800b00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -15787,7 +15787,7 @@ void Assembler::vdiv(
 void Assembler::vdup(Condition cond, DataType dt, QRegister rd, Register rt) {
   CheckIT(cond);
   Dt_B_E_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VDUP{<c>}{<q>}.<dt> <Qd>, <Rt> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -15816,7 +15816,7 @@ void Assembler::vdup(Condition cond, DataType dt, QRegister rd, Register rt) {
 void Assembler::vdup(Condition cond, DataType dt, DRegister rd, Register rt) {
   CheckIT(cond);
   Dt_B_E_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VDUP{<c>}{<q>}.<dt> <Dd>, <Rt> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -15848,7 +15848,7 @@ void Assembler::vdup(Condition cond,
                      DRegisterLane rm) {
   CheckIT(cond);
   Dt_imm4_1 encoded_dt(dt, rm);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VDUP{<c>}{<q>}.<dt> <Dd>, <Dm[x]> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -15877,7 +15877,7 @@ void Assembler::vdup(Condition cond,
                      DRegisterLane rm) {
   CheckIT(cond);
   Dt_imm4_1 encoded_dt(dt, rm);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VDUP{<c>}{<q>}.<dt> <Qd>, <Dm[x]> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -15904,7 +15904,7 @@ void Assembler::veor(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VEOR{<c>}{<q>}{.<dt>} {<Dd>}, <Dn>, <Dm> ; T1
     if (cond.Is(al) || AllowStronglyDiscouraged()) {
       EmitT32_32(0xff000110U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -15927,7 +15927,7 @@ void Assembler::veor(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VEOR{<c>}{<q>}{.<dt>} {<Qd>}, <Qn>, <Qm> ; T1
     if (cond.Is(al) || AllowStronglyDiscouraged()) {
       EmitT32_32(0xff000150U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -15956,7 +15956,7 @@ void Assembler::vext(Condition cond,
   if (operand.IsImmediate()) {
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VEXT{<c>}{<q>}.8 {<Dd>}, <Dn>, <Dm>, #<imm> ; T1
         if (dt.Is(Untyped8) && (imm <= 7)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -16012,7 +16012,7 @@ void Assembler::vext(Condition cond,
   if (operand.IsImmediate()) {
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VEXT{<c>}{<q>}.8 {<Qd>}, <Qn>, <Qm>, #<imm> ; T1
         if (dt.Is(Untyped8) && (imm <= 15)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -16061,7 +16061,7 @@ void Assembler::vext(Condition cond,
 void Assembler::vfma(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VFMA{<c>}{<q>}.F32 <Dd>, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -16100,7 +16100,7 @@ void Assembler::vfma(
 void Assembler::vfma(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VFMA{<c>}{<q>}.F32 <Qd>, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -16126,7 +16126,7 @@ void Assembler::vfma(
 void Assembler::vfma(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VFMA{<c>}{<q>}.F32 <Sd>, <Sn>, <Sm> ; T2
     if (dt.Is(F32)) {
       EmitT32_32(0xeea00a00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -16148,7 +16148,7 @@ void Assembler::vfma(
 void Assembler::vfms(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VFMS{<c>}{<q>}.F32 <Dd>, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -16187,7 +16187,7 @@ void Assembler::vfms(
 void Assembler::vfms(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VFMS{<c>}{<q>}.F32 <Qd>, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -16213,7 +16213,7 @@ void Assembler::vfms(
 void Assembler::vfms(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VFMS{<c>}{<q>}.F32 <Sd>, <Sn>, <Sm> ; T2
     if (dt.Is(F32)) {
       EmitT32_32(0xeea00a40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -16235,7 +16235,7 @@ void Assembler::vfms(
 void Assembler::vfnma(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VFNMA{<c>}{<q>}.F32 <Sd>, <Sn>, <Sm> ; T1
     if (dt.Is(F32)) {
       EmitT32_32(0xee900a40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -16257,7 +16257,7 @@ void Assembler::vfnma(
 void Assembler::vfnma(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VFNMA{<c>}{<q>}.F64 <Dd>, <Dn>, <Dm> ; T1
     if (dt.Is(F64)) {
       EmitT32_32(0xee900b40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -16279,7 +16279,7 @@ void Assembler::vfnma(
 void Assembler::vfnms(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VFNMS{<c>}{<q>}.F32 <Sd>, <Sn>, <Sm> ; T1
     if (dt.Is(F32)) {
       EmitT32_32(0xee900a00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -16301,7 +16301,7 @@ void Assembler::vfnms(
 void Assembler::vfnms(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VFNMS{<c>}{<q>}.F64 <Dd>, <Dn>, <Dm> ; T1
     if (dt.Is(F64)) {
       EmitT32_32(0xee900b00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -16324,7 +16324,7 @@ void Assembler::vhadd(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VHADD{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -16353,7 +16353,7 @@ void Assembler::vhadd(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VHADD{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -16382,7 +16382,7 @@ void Assembler::vhsub(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VHSUB{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -16411,7 +16411,7 @@ void Assembler::vhsub(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VHSUB{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -16449,7 +16449,7 @@ void Assembler::vld1(Condition cond,
     Align_align_1 encoded_align_1(align, nreglist);
     Align_a_1 encoded_align_2(align, dt);
     Align_index_align_1 encoded_align_3(align, nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4) &&
@@ -16700,7 +16700,7 @@ void Assembler::vld1(Condition cond,
     Align_align_1 encoded_align_1(align, nreglist);
     Align_a_1 encoded_align_2(align, dt);
     Align_index_align_1 encoded_align_3(align, nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4) &&
@@ -16833,7 +16833,7 @@ void Assembler::vld2(Condition cond,
     Align_align_2 encoded_align_1(align, nreglist);
     Align_a_2 encoded_align_2(align, dt);
     Align_index_align_2 encoded_align_3(align, nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
@@ -17075,7 +17075,7 @@ void Assembler::vld2(Condition cond,
     Align_align_2 encoded_align_1(align, nreglist);
     Align_a_2 encoded_align_2(align, dt);
     Align_index_align_2 encoded_align_3(align, nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
@@ -17202,7 +17202,7 @@ void Assembler::vld3(Condition cond,
     Alignment align = operand.GetAlignment();
     Dt_size_7 encoded_dt(dt);
     Align_align_3 encoded_align_1(align);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
@@ -17278,7 +17278,7 @@ void Assembler::vld3(Condition cond,
     Register rm = operand.GetOffsetRegister();
     Dt_size_7 encoded_dt(dt);
     Align_align_3 encoded_align_1(align);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
@@ -17325,7 +17325,7 @@ void Assembler::vld3(Condition cond,
     Register rn = operand.GetBaseRegister();
     Dt_size_7 encoded_dt(dt);
     Index_1 encoded_align_1(nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>] ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferAllLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
@@ -17455,7 +17455,7 @@ void Assembler::vld3(Condition cond,
     Register rm = operand.GetOffsetRegister();
     Dt_size_7 encoded_dt(dt);
     Index_1 encoded_align_1(nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>], #<Rm> ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferAllLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
@@ -17532,7 +17532,7 @@ void Assembler::vld4(Condition cond,
     Align_align_4 encoded_align_1(align);
     Align_a_3 encoded_align_2(align, dt);
     Align_index_align_3 encoded_align_3(align, nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
@@ -17735,7 +17735,7 @@ void Assembler::vld4(Condition cond,
     Align_align_4 encoded_align_1(align);
     Align_a_3 encoded_align_2(align, dt);
     Align_index_align_3 encoded_align_3(align, nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
@@ -17839,7 +17839,7 @@ void Assembler::vldm(Condition cond,
                      DRegisterList dreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1
     if ((((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
@@ -17872,7 +17872,7 @@ void Assembler::vldm(Condition cond,
                      SRegisterList sreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; T2
     const SRegister& sreg = sreglist.GetFirstSRegister();
     unsigned len = sreglist.GetLength();
@@ -17902,7 +17902,7 @@ void Assembler::vldmdb(Condition cond,
                        DRegisterList dreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; T1
     if (write_back.DoesWriteBack() &&
         (((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
@@ -17934,7 +17934,7 @@ void Assembler::vldmdb(Condition cond,
                        SRegisterList sreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ; T2
     if (write_back.DoesWriteBack()) {
       const SRegister& sreg = sreglist.GetFirstSRegister();
@@ -17964,7 +17964,7 @@ void Assembler::vldmia(Condition cond,
                        DRegisterList dreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VLDMIA{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1
     if ((((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
@@ -17997,7 +17997,7 @@ void Assembler::vldmia(Condition cond,
                        SRegisterList sreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VLDMIA{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; T2
     const SRegister& sreg = sreglist.GetFirstSRegister();
     unsigned len = sreglist.GetLength();
@@ -18027,7 +18027,7 @@ void Assembler::vldr(Condition cond, DataType dt, DRegister rd, Label* label) {
           ? label->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VLDR{<c>}{<q>}{.64} <Dd>, <label> ; T1
     if (dt.IsNoneOr(Untyped64) &&
         ((label->IsBound() && (offset >= -1020) && (offset <= 1020) &&
@@ -18092,7 +18092,7 @@ void Assembler::vldr(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VLDR{<c>}{<q>}{.64} <Dd>, [PC, #<_plusminus_><imm>] ; T1
       if (dt.IsNoneOr(Untyped64) && (offset >= -1020) && (offset <= 1020) &&
           ((offset % 4) == 0) && rn.Is(pc) &&
@@ -18147,7 +18147,7 @@ void Assembler::vldr(Condition cond, DataType dt, SRegister rd, Label* label) {
           ? label->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VLDR{<c>}{<q>}{.32} <Sd>, <label> ; T2
     if (dt.IsNoneOr(Untyped32) &&
         ((label->IsBound() && (offset >= -1020) && (offset <= 1020) &&
@@ -18212,7 +18212,7 @@ void Assembler::vldr(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VLDR{<c>}{<q>}{.32} <Sd>, [PC, #<_plusminus_><imm>] ; T2
       if (dt.IsNoneOr(Untyped32) && (offset >= -1020) && (offset <= 1020) &&
           ((offset % 4) == 0) && rn.Is(pc) &&
@@ -18264,7 +18264,7 @@ void Assembler::vmax(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMAX{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -18310,7 +18310,7 @@ void Assembler::vmax(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMAX{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -18354,7 +18354,7 @@ void Assembler::vmax(
 
 void Assembler::vmaxnm(DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMAXNM{<q>}.F32 <Dd>, <Dn>, <Dm> ; T1
     if (OutsideITBlock() && dt.Is(F32)) {
       EmitT32_32(0xff000f10U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -18388,7 +18388,7 @@ void Assembler::vmaxnm(DataType dt, DRegister rd, DRegister rn, DRegister rm) {
 
 void Assembler::vmaxnm(DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMAXNM{<q>}.F32 <Qd>, <Qn>, <Qm> ; T1
     if (OutsideITBlock() && dt.Is(F32)) {
       EmitT32_32(0xff000f50U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -18409,7 +18409,7 @@ void Assembler::vmaxnm(DataType dt, QRegister rd, QRegister rn, QRegister rm) {
 
 void Assembler::vmaxnm(DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMAXNM{<q>}.F32 <Sd>, <Sn>, <Sm> ; T2
     if (OutsideITBlock() && dt.Is(F32)) {
       EmitT32_32(0xfe800a00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -18432,7 +18432,7 @@ void Assembler::vmin(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMIN{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -18478,7 +18478,7 @@ void Assembler::vmin(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMIN{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -18522,7 +18522,7 @@ void Assembler::vmin(
 
 void Assembler::vminnm(DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMINNM{<q>}.F32 <Dd>, <Dn>, <Dm> ; T1
     if (OutsideITBlock() && dt.Is(F32)) {
       EmitT32_32(0xff200f10U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -18556,7 +18556,7 @@ void Assembler::vminnm(DataType dt, DRegister rd, DRegister rn, DRegister rm) {
 
 void Assembler::vminnm(DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMINNM{<q>}.F32 <Qd>, <Qn>, <Qm> ; T1
     if (OutsideITBlock() && dt.Is(F32)) {
       EmitT32_32(0xff200f50U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -18577,7 +18577,7 @@ void Assembler::vminnm(DataType dt, QRegister rd, QRegister rn, QRegister rm) {
 
 void Assembler::vminnm(DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMINNM{<q>}.F32 <Sd>, <Sn>, <Sm> ; T2
     if (OutsideITBlock() && dt.Is(F32)) {
       EmitT32_32(0xfe800a40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -18600,7 +18600,7 @@ void Assembler::vmla(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegisterLane rm) {
   CheckIT(cond);
   Dt_size_9 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLA{<c>}{<q>}.<type><size> <Dd>, <Dn>, <Dm[x]> ; T1
     if (encoded_dt.IsValid() &&
         (((dt.GetSize() == 16) && (rm.GetCode() <= 7) && (rm.GetLane() <= 3)) ||
@@ -18635,7 +18635,7 @@ void Assembler::vmla(
     Condition cond, DataType dt, QRegister rd, QRegister rn, DRegisterLane rm) {
   CheckIT(cond);
   Dt_size_9 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLA{<c>}{<q>}.<type><size> <Qd>, <Qn>, <Dm[x]> ; T1
     if (encoded_dt.IsValid() &&
         (((dt.GetSize() == 16) && (rm.GetCode() <= 7) && (rm.GetLane() <= 3)) ||
@@ -18670,7 +18670,7 @@ void Assembler::vmla(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_size_10 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLA{<c>}{<q>}.F32 <Dd>, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -18727,7 +18727,7 @@ void Assembler::vmla(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_size_10 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLA{<c>}{<q>}.F32 <Qd>, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -18770,7 +18770,7 @@ void Assembler::vmla(
 void Assembler::vmla(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLA{<c>}{<q>}.F32 <Sd>, <Sn>, <Sm> ; T2
     if (dt.Is(F32)) {
       EmitT32_32(0xee000a00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -18793,7 +18793,7 @@ void Assembler::vmlal(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegisterLane rm) {
   CheckIT(cond);
   Dt_size_11 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLAL{<c>}{<q>}.<type><size> <Qd>, <Dn>, <Dm[x]> ; T1
     if (encoded_dt.IsValid() &&
         (((dt.GetSize() == 16) && (rm.GetCode() <= 7) && (rm.GetLane() <= 3)) ||
@@ -18828,7 +18828,7 @@ void Assembler::vmlal(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_size_12 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLAL{<c>}{<q>}.<type><size> <Qd>, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -18857,7 +18857,7 @@ void Assembler::vmls(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegisterLane rm) {
   CheckIT(cond);
   Dt_size_9 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLS{<c>}{<q>}.<type><size> <Dd>, <Dn>, <Dm[x]> ; T1
     if (encoded_dt.IsValid() &&
         (((dt.GetSize() == 16) && (rm.GetCode() <= 7) && (rm.GetLane() <= 3)) ||
@@ -18892,7 +18892,7 @@ void Assembler::vmls(
     Condition cond, DataType dt, QRegister rd, QRegister rn, DRegisterLane rm) {
   CheckIT(cond);
   Dt_size_9 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLS{<c>}{<q>}.<type><size> <Qd>, <Qn>, <Dm[x]> ; T1
     if (encoded_dt.IsValid() &&
         (((dt.GetSize() == 16) && (rm.GetCode() <= 7) && (rm.GetLane() <= 3)) ||
@@ -18927,7 +18927,7 @@ void Assembler::vmls(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_size_10 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLS{<c>}{<q>}.F32 <Dd>, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -18984,7 +18984,7 @@ void Assembler::vmls(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_size_10 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLS{<c>}{<q>}.F32 <Qd>, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -19027,7 +19027,7 @@ void Assembler::vmls(
 void Assembler::vmls(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLS{<c>}{<q>}.F32 <Sd>, <Sn>, <Sm> ; T2
     if (dt.Is(F32)) {
       EmitT32_32(0xee000a40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -19050,7 +19050,7 @@ void Assembler::vmlsl(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegisterLane rm) {
   CheckIT(cond);
   Dt_size_11 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLSL{<c>}{<q>}.<type><size> <Qd>, <Dn>, <Dm[x]> ; T1
     if (encoded_dt.IsValid() &&
         (((dt.GetSize() == 16) && (rm.GetCode() <= 7) && (rm.GetLane() <= 3)) ||
@@ -19085,7 +19085,7 @@ void Assembler::vmlsl(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_size_12 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMLSL{<c>}{<q>}.<type><size> <Qd>, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -19112,7 +19112,7 @@ void Assembler::vmlsl(
 
 void Assembler::vmov(Condition cond, Register rt, SRegister rn) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMOV{<c>}{<q>} <Rt>, <Sn> ; T1
     EmitT32_32(0xee100a10U | (rt.GetCode() << 12) | rn.Encode(7, 16));
     AdvanceIT();
@@ -19130,7 +19130,7 @@ void Assembler::vmov(Condition cond, Register rt, SRegister rn) {
 
 void Assembler::vmov(Condition cond, SRegister rn, Register rt) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMOV{<c>}{<q>} <Sn>, <Rt> ; T1
     EmitT32_32(0xee000a10U | rn.Encode(7, 16) | (rt.GetCode() << 12));
     AdvanceIT();
@@ -19148,7 +19148,7 @@ void Assembler::vmov(Condition cond, SRegister rn, Register rt) {
 
 void Assembler::vmov(Condition cond, Register rt, Register rt2, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMOV{<c>}{<q>} <Rt>, <Rt2>, <Dm> ; T1
     EmitT32_32(0xec500b10U | (rt.GetCode() << 12) | (rt2.GetCode() << 16) |
                rm.Encode(5, 0));
@@ -19167,7 +19167,7 @@ void Assembler::vmov(Condition cond, Register rt, Register rt2, DRegister rm) {
 
 void Assembler::vmov(Condition cond, DRegister rm, Register rt, Register rt2) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMOV{<c>}{<q>} <Dm>, <Rt>, <Rt2> ; T1
     EmitT32_32(0xec400b10U | rm.Encode(5, 0) | (rt.GetCode() << 12) |
                (rt2.GetCode() << 16));
@@ -19187,7 +19187,7 @@ void Assembler::vmov(Condition cond, DRegister rm, Register rt, Register rt2) {
 void Assembler::vmov(
     Condition cond, Register rt, Register rt2, SRegister rm, SRegister rm1) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMOV{<c>}{<q>} <Rt>, <Rt2>, <Sm>, <Sm1> ; T1
     if ((((rm.GetCode() + 1) % kNumberOfSRegisters) == rm1.GetCode())) {
       EmitT32_32(0xec500a10U | (rt.GetCode() << 12) | (rt2.GetCode() << 16) |
@@ -19210,7 +19210,7 @@ void Assembler::vmov(
 void Assembler::vmov(
     Condition cond, SRegister rm, SRegister rm1, Register rt, Register rt2) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMOV{<c>}{<q>} <Sm>, <Sm1>, <Rt>, <Rt2> ; T1
     if ((((rm.GetCode() + 1) % kNumberOfSRegisters) == rm1.GetCode())) {
       EmitT32_32(0xec400a10U | rm.Encode(5, 0) | (rt.GetCode() << 12) |
@@ -19236,7 +19236,7 @@ void Assembler::vmov(Condition cond,
                      Register rt) {
   CheckIT(cond);
   Dt_opc1_opc2_1 encoded_dt(dt, rd);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMOV{<c>}{<q>}{.<size>} <Dd[x]>, <Rt> ; T1
     if (encoded_dt.IsValid()) {
       EmitT32_32(0xee000b10U | ((encoded_dt.GetEncodingValue() & 0x3) << 5) |
@@ -19266,7 +19266,7 @@ void Assembler::vmov(Condition cond,
   if (operand.IsImmediate()) {
     ImmediateVmov encoded_dt(dt, operand.GetNeonImmediate());
     ImmediateVFP vfp(operand.GetNeonImmediate());
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1
       if (encoded_dt.IsValid()) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -19311,7 +19311,7 @@ void Assembler::vmov(Condition cond,
   }
   if (operand.IsRegister()) {
     DRegister rm = operand.GetRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VMOV{<c>}{<q>}.F64 <Dd>, <Dm> ; T2
       if (dt.Is(F64)) {
         EmitT32_32(0xeeb00b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -19354,7 +19354,7 @@ void Assembler::vmov(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     ImmediateVmov encoded_dt(dt, operand.GetNeonImmediate());
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1
       if (encoded_dt.IsValid()) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -19384,7 +19384,7 @@ void Assembler::vmov(Condition cond,
   }
   if (operand.IsRegister()) {
     QRegister rm = operand.GetRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VMOV{<c>}{<q>}{.<dt>} <Qd>, <Qm> ; T1
       if (!dt.Is(F64)) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -19415,7 +19415,7 @@ void Assembler::vmov(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     ImmediateVFP vfp(operand.GetNeonImmediate());
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VMOV{<c>}{<q>}.F32 <Sd>, #<imm> ; T2
       if (dt.Is(F32) && vfp.IsValid()) {
         EmitT32_32(0xeeb00a00U | rd.Encode(22, 12) |
@@ -19436,7 +19436,7 @@ void Assembler::vmov(Condition cond,
   }
   if (operand.IsRegister()) {
     SRegister rm = operand.GetRegister();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VMOV{<c>}{<q>}.F32 <Sd>, <Sm> ; T2
       if (dt.Is(F32)) {
         EmitT32_32(0xeeb00a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -19461,7 +19461,7 @@ void Assembler::vmov(Condition cond,
                      DRegisterLane rn) {
   CheckIT(cond);
   Dt_U_opc1_opc2_1 encoded_dt(dt, rn);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMOV{<c>}{<q>}{.<dt>} <Rt>, <Dn[x]> ; T1
     if (encoded_dt.IsValid()) {
       EmitT32_32(0xee100b10U | ((encoded_dt.GetEncodingValue() & 0x3) << 5) |
@@ -19488,7 +19488,7 @@ void Assembler::vmov(Condition cond,
 void Assembler::vmovl(Condition cond, DataType dt, QRegister rd, DRegister rm) {
   CheckIT(cond);
   Dt_U_imm3H_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMOVL{<c>}{<q>}.<dt> <Qd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -19516,7 +19516,7 @@ void Assembler::vmovl(Condition cond, DataType dt, QRegister rd, DRegister rm) {
 void Assembler::vmovn(Condition cond, DataType dt, DRegister rd, QRegister rm) {
   CheckIT(cond);
   Dt_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMOVN{<c>}{<q>}.<dt> <Dd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -19543,7 +19543,7 @@ void Assembler::vmrs(Condition cond,
                      RegisterOrAPSR_nzcv rt,
                      SpecialFPRegister spec_reg) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMRS{<c>}{<q>} <Rt>, <spec_reg> ; T1
     EmitT32_32(0xeef00a10U | (rt.GetCode() << 12) | (spec_reg.GetReg() << 16));
     AdvanceIT();
@@ -19561,7 +19561,7 @@ void Assembler::vmrs(Condition cond,
 
 void Assembler::vmsr(Condition cond, SpecialFPRegister spec_reg, Register rt) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMSR{<c>}{<q>} <spec_reg>, <Rt> ; T1
     EmitT32_32(0xeee00a10U | (spec_reg.GetReg() << 16) | (rt.GetCode() << 12));
     AdvanceIT();
@@ -19585,7 +19585,7 @@ void Assembler::vmul(Condition cond,
                      unsigned index) {
   CheckIT(cond);
   Dt_F_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMUL{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm>[<index>] ; T1
     if (encoded_dt.IsValid() &&
         ((dt.Is(I16) && (index <= 3) && (dm.GetCode() <= 7)) ||
@@ -19634,7 +19634,7 @@ void Assembler::vmul(Condition cond,
                      unsigned index) {
   CheckIT(cond);
   Dt_F_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMUL{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm>[<index>] ; T1
     if (encoded_dt.IsValid() &&
         ((dt.Is(I16) && (index <= 3) && (dm.GetCode() <= 7)) ||
@@ -19679,7 +19679,7 @@ void Assembler::vmul(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_op_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMUL{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -19738,7 +19738,7 @@ void Assembler::vmul(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_op_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMUL{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -19783,7 +19783,7 @@ void Assembler::vmul(
 void Assembler::vmul(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMUL{<c>}{<q>}.F32 {<Sd>}, <Sn>, <Sm> ; T2
     if (dt.Is(F32)) {
       EmitT32_32(0xee200a00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -19810,7 +19810,7 @@ void Assembler::vmull(Condition cond,
                       unsigned index) {
   CheckIT(cond);
   Dt_U_size_2 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMULL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; T1
     if (encoded_dt.IsValid() &&
         (((dt.Is(S16) || dt.Is(U16)) && (index <= 3) && (dm.GetCode() <= 7)) ||
@@ -19855,7 +19855,7 @@ void Assembler::vmull(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_op_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VMULL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -19889,7 +19889,7 @@ void Assembler::vmvn(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     ImmediateVmvn encoded_dt(dt, operand.GetNeonImmediate());
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1
       if (encoded_dt.IsValid()) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -19918,7 +19918,7 @@ void Assembler::vmvn(Condition cond,
   if (operand.IsRegister()) {
     DRegister rm = operand.GetRegister();
     USE(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VMVN{<c>}{<q>}{.<dt>} <Dd>, <Dm> ; T1
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xffb00580U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -19943,7 +19943,7 @@ void Assembler::vmvn(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     ImmediateVmvn encoded_dt(dt, operand.GetNeonImmediate());
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1
       if (encoded_dt.IsValid()) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -19972,7 +19972,7 @@ void Assembler::vmvn(Condition cond,
   if (operand.IsRegister()) {
     QRegister rm = operand.GetRegister();
     USE(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VMVN{<c>}{<q>}{.<dt>} <Qd>, <Qm> ; T1
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xffb005c0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -19993,7 +19993,7 @@ void Assembler::vmvn(Condition cond,
 void Assembler::vneg(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
   Dt_F_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VNEG{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20033,7 +20033,7 @@ void Assembler::vneg(Condition cond, DataType dt, DRegister rd, DRegister rm) {
 void Assembler::vneg(Condition cond, DataType dt, QRegister rd, QRegister rm) {
   CheckIT(cond);
   Dt_F_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VNEG{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20060,7 +20060,7 @@ void Assembler::vneg(Condition cond, DataType dt, QRegister rd, QRegister rm) {
 
 void Assembler::vneg(Condition cond, DataType dt, SRegister rd, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VNEG{<c>}{<q>}.F32 <Sd>, <Sm> ; T2
     if (dt.Is(F32)) {
       EmitT32_32(0xeeb10a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -20081,7 +20081,7 @@ void Assembler::vneg(Condition cond, DataType dt, SRegister rd, SRegister rm) {
 void Assembler::vnmla(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VNMLA{<c>}{<q>}.F32 <Sd>, <Sn>, <Sm> ; T1
     if (dt.Is(F32)) {
       EmitT32_32(0xee100a40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -20103,7 +20103,7 @@ void Assembler::vnmla(
 void Assembler::vnmla(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VNMLA{<c>}{<q>}.F64 <Dd>, <Dn>, <Dm> ; T1
     if (dt.Is(F64)) {
       EmitT32_32(0xee100b40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -20125,7 +20125,7 @@ void Assembler::vnmla(
 void Assembler::vnmls(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VNMLS{<c>}{<q>}.F32 <Sd>, <Sn>, <Sm> ; T1
     if (dt.Is(F32)) {
       EmitT32_32(0xee100a00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -20147,7 +20147,7 @@ void Assembler::vnmls(
 void Assembler::vnmls(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VNMLS{<c>}{<q>}.F64 <Dd>, <Dn>, <Dm> ; T1
     if (dt.Is(F64)) {
       EmitT32_32(0xee100b00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -20169,7 +20169,7 @@ void Assembler::vnmls(
 void Assembler::vnmul(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VNMUL{<c>}{<q>}.F32 {<Sd>}, <Sn>, <Sm> ; T1
     if (dt.Is(F32)) {
       EmitT32_32(0xee200a40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -20191,7 +20191,7 @@ void Assembler::vnmul(
 void Assembler::vnmul(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VNMUL{<c>}{<q>}.F64 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F64)) {
       EmitT32_32(0xee200b40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -20218,7 +20218,7 @@ void Assembler::vorn(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     ImmediateVorn encoded_dt(dt, operand.GetNeonImmediate());
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VORN{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; T1
       if (encoded_dt.IsValid() && rd.Is(rn)) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20247,7 +20247,7 @@ void Assembler::vorn(Condition cond,
   if (operand.IsRegister()) {
     DRegister rm = operand.GetRegister();
     USE(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VORN{<c>}{<q>}{.<dt>} {<Dd>}, <Dn>, <Dm> ; T1
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xef300110U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -20275,7 +20275,7 @@ void Assembler::vorn(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     ImmediateVorn encoded_dt(dt, operand.GetNeonImmediate());
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VORN{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; T1
       if (encoded_dt.IsValid() && rd.Is(rn)) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20304,7 +20304,7 @@ void Assembler::vorn(Condition cond,
   if (operand.IsRegister()) {
     QRegister rm = operand.GetRegister();
     USE(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VORN{<c>}{<q>}{.<dt>} {<Qd>}, <Qn>, <Qm> ; T1
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xef300150U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -20333,7 +20333,7 @@ void Assembler::vorr(Condition cond,
   if (operand.IsRegister()) {
     DRegister rm = operand.GetRegister();
     USE(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VORR{<c>}{<q>}{.<dt>} {<Dd>}, <Dn>, <Dm> ; T1
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xef200110U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -20352,7 +20352,7 @@ void Assembler::vorr(Condition cond,
   }
   if (operand.IsImmediate()) {
     ImmediateVorr encoded_dt(dt, operand.GetNeonImmediate());
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VORR{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; T1
       if (encoded_dt.IsValid() && rd.Is(rn)) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20390,7 +20390,7 @@ void Assembler::vorr(Condition cond,
   if (operand.IsRegister()) {
     QRegister rm = operand.GetRegister();
     USE(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VORR{<c>}{<q>}{.<dt>} {<Qd>}, <Qn>, <Qm> ; T1
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xef200150U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -20409,7 +20409,7 @@ void Assembler::vorr(Condition cond,
   }
   if (operand.IsImmediate()) {
     ImmediateVorr encoded_dt(dt, operand.GetNeonImmediate());
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VORR{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; T1
       if (encoded_dt.IsValid() && rd.Is(rn)) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20444,7 +20444,7 @@ void Assembler::vpadal(Condition cond,
                        DRegister rm) {
   CheckIT(cond);
   Dt_op_size_2 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VPADAL{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20475,7 +20475,7 @@ void Assembler::vpadal(Condition cond,
                        QRegister rm) {
   CheckIT(cond);
   Dt_op_size_2 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VPADAL{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20504,7 +20504,7 @@ void Assembler::vpadd(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_size_4 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VPADD{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20550,7 +20550,7 @@ void Assembler::vpaddl(Condition cond,
                        DRegister rm) {
   CheckIT(cond);
   Dt_op_size_2 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VPADDL{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20581,7 +20581,7 @@ void Assembler::vpaddl(Condition cond,
                        QRegister rm) {
   CheckIT(cond);
   Dt_op_size_2 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VPADDL{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20610,7 +20610,7 @@ void Assembler::vpmax(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VPMAX{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20656,7 +20656,7 @@ void Assembler::vpmin(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VPMIN{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20701,7 +20701,7 @@ void Assembler::vpmin(
 void Assembler::vpop(Condition cond, DataType dt, DRegisterList dreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VPOP{<c>}{<q>}{.<size>} <dreglist> ; T1
     if ((((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
@@ -20727,7 +20727,7 @@ void Assembler::vpop(Condition cond, DataType dt, DRegisterList dreglist) {
 void Assembler::vpop(Condition cond, DataType dt, SRegisterList sreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VPOP{<c>}{<q>}{.<size>} <sreglist> ; T2
     const SRegister& sreg = sreglist.GetFirstSRegister();
     unsigned len = sreglist.GetLength();
@@ -20750,7 +20750,7 @@ void Assembler::vpop(Condition cond, DataType dt, SRegisterList sreglist) {
 void Assembler::vpush(Condition cond, DataType dt, DRegisterList dreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VPUSH{<c>}{<q>}{.<size>} <dreglist> ; T1
     if ((((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
@@ -20776,7 +20776,7 @@ void Assembler::vpush(Condition cond, DataType dt, DRegisterList dreglist) {
 void Assembler::vpush(Condition cond, DataType dt, SRegisterList sreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VPUSH{<c>}{<q>}{.<size>} <sreglist> ; T2
     const SRegister& sreg = sreglist.GetFirstSRegister();
     unsigned len = sreglist.GetLength();
@@ -20799,7 +20799,7 @@ void Assembler::vpush(Condition cond, DataType dt, SRegisterList sreglist) {
 void Assembler::vqabs(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
   Dt_size_5 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQABS{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20825,7 +20825,7 @@ void Assembler::vqabs(Condition cond, DataType dt, DRegister rd, DRegister rm) {
 void Assembler::vqabs(Condition cond, DataType dt, QRegister rd, QRegister rm) {
   CheckIT(cond);
   Dt_size_5 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQABS{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20852,7 +20852,7 @@ void Assembler::vqadd(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQADD{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20881,7 +20881,7 @@ void Assembler::vqadd(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_U_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQADD{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20910,7 +20910,7 @@ void Assembler::vqdmlal(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQDMLAL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid() && (dt.Is(S16) || dt.Is(S32))) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -20941,7 +20941,7 @@ void Assembler::vqdmlal(Condition cond,
                         unsigned index) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQDMLAL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; T2
     if (encoded_dt.IsValid() &&
         ((dt.Is(S16) && (index <= 3) && (dm.GetCode() <= 7)) ||
@@ -20986,7 +20986,7 @@ void Assembler::vqdmlsl(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQDMLSL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid() && (dt.Is(S16) || dt.Is(S32))) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21017,7 +21017,7 @@ void Assembler::vqdmlsl(Condition cond,
                         unsigned index) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQDMLSL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; T2
     if (encoded_dt.IsValid() &&
         ((dt.Is(S16) && (index <= 3) && (dm.GetCode() <= 7)) ||
@@ -21062,7 +21062,7 @@ void Assembler::vqdmulh(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQDMULH{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21089,7 +21089,7 @@ void Assembler::vqdmulh(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQDMULH{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21116,7 +21116,7 @@ void Assembler::vqdmulh(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegisterLane rm) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQDMULH{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm[x]> ; T2
     if (encoded_dt.IsValid() &&
         (((dt.GetSize() == 16) && (rm.GetCode() <= 7) && (rm.GetLane() <= 3)) ||
@@ -21151,7 +21151,7 @@ void Assembler::vqdmulh(
     Condition cond, DataType dt, QRegister rd, QRegister rn, DRegisterLane rm) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQDMULH{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm[x]> ; T2
     if (encoded_dt.IsValid() &&
         (((dt.GetSize() == 16) && (rm.GetCode() <= 7) && (rm.GetLane() <= 3)) ||
@@ -21186,7 +21186,7 @@ void Assembler::vqdmull(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQDMULL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid() && (dt.Is(S16) || dt.Is(S32))) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21213,7 +21213,7 @@ void Assembler::vqdmull(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegisterLane rm) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQDMULL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm[x]> ; T2
     if (encoded_dt.IsValid() &&
         (((dt.GetSize() == 16) && (rm.GetCode() <= 7) && (rm.GetLane() <= 3)) ||
@@ -21250,7 +21250,7 @@ void Assembler::vqmovn(Condition cond,
                        QRegister rm) {
   CheckIT(cond);
   Dt_op_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQMOVN{<c>}{<q>}.<dt> <Dd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21281,7 +21281,7 @@ void Assembler::vqmovun(Condition cond,
                         QRegister rm) {
   CheckIT(cond);
   Dt_size_14 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQMOVUN{<c>}{<q>}.<dt> <Dd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21307,7 +21307,7 @@ void Assembler::vqmovun(Condition cond,
 void Assembler::vqneg(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
   Dt_size_5 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQNEG{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21333,7 +21333,7 @@ void Assembler::vqneg(Condition cond, DataType dt, DRegister rd, DRegister rm) {
 void Assembler::vqneg(Condition cond, DataType dt, QRegister rd, QRegister rm) {
   CheckIT(cond);
   Dt_size_5 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQNEG{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21360,7 +21360,7 @@ void Assembler::vqrdmulh(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQRDMULH{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21387,7 +21387,7 @@ void Assembler::vqrdmulh(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQRDMULH{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21414,7 +21414,7 @@ void Assembler::vqrdmulh(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegisterLane rm) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQRDMULH{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm[x]> ; T2
     if (encoded_dt.IsValid() &&
         (((dt.GetSize() == 16) && (rm.GetCode() <= 7) && (rm.GetLane() <= 3)) ||
@@ -21449,7 +21449,7 @@ void Assembler::vqrdmulh(
     Condition cond, DataType dt, QRegister rd, QRegister rn, DRegisterLane rm) {
   CheckIT(cond);
   Dt_size_13 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQRDMULH{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm[x]> ; T2
     if (encoded_dt.IsValid() &&
         (((dt.GetSize() == 16) && (rm.GetCode() <= 7) && (rm.GetLane() <= 3)) ||
@@ -21484,7 +21484,7 @@ void Assembler::vqrshl(
     Condition cond, DataType dt, DRegister rd, DRegister rm, DRegister rn) {
   CheckIT(cond);
   Dt_U_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQRSHL{<c>}{<q>}.<dt> {<Dd>}, <Dm>, <Dn> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21513,7 +21513,7 @@ void Assembler::vqrshl(
     Condition cond, DataType dt, QRegister rd, QRegister rm, QRegister rn) {
   CheckIT(cond);
   Dt_U_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQRSHL{<c>}{<q>}.<dt> {<Qd>}, <Qm>, <Qn> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21549,7 +21549,7 @@ void Assembler::vqrshrn(Condition cond,
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_op_size_3 encoded_dt(dt);
       Dt_imm6_1 encoded_dt_2(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VQRSHRN{<c>}{<q>}.<dt> <Dd>, <Qm>, #0 ; T1
         if (encoded_dt.IsValid() && (imm == 0)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21611,7 +21611,7 @@ void Assembler::vqrshrun(Condition cond,
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_imm6_2 encoded_dt(dt);
       Dt_size_14 encoded_dt_2(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VQRSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize() / 2)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21666,7 +21666,7 @@ void Assembler::vqshl(Condition cond,
   if (operand.IsRegister()) {
     DRegister rn = operand.GetRegister();
     Dt_U_size_3 encoded_dt(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VQSHL{<c>}{<q>}.<dt> {<Dd>}, <Dm>, <Dn> ; T1
       if (encoded_dt.IsValid()) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21694,7 +21694,7 @@ void Assembler::vqshl(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VQSHL{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm <= dt.GetSize() - 1)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21734,7 +21734,7 @@ void Assembler::vqshl(Condition cond,
   if (operand.IsRegister()) {
     QRegister rn = operand.GetRegister();
     Dt_U_size_3 encoded_dt(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VQSHL{<c>}{<q>}.<dt> {<Qd>}, <Qm>, <Qn> ; T1
       if (encoded_dt.IsValid()) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21762,7 +21762,7 @@ void Assembler::vqshl(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VQSHL{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm <= dt.GetSize() - 1)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21803,7 +21803,7 @@ void Assembler::vqshlu(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_2 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VQSHLU{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm <= dt.GetSize() - 1)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21844,7 +21844,7 @@ void Assembler::vqshlu(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_2 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VQSHLU{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm <= dt.GetSize() - 1)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21886,7 +21886,7 @@ void Assembler::vqshrn(Condition cond,
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_op_size_3 encoded_dt(dt);
       Dt_imm6_1 encoded_dt_2(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VQSHRN{<c>}{<q>}.<dt> <Dd>, <Qm>, #0 ; T1
         if (encoded_dt.IsValid() && (imm == 0)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21948,7 +21948,7 @@ void Assembler::vqshrun(Condition cond,
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_imm6_2 encoded_dt(dt);
       Dt_size_14 encoded_dt_2(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VQSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize() / 2)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -21998,7 +21998,7 @@ void Assembler::vqsub(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQSUB{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22027,7 +22027,7 @@ void Assembler::vqsub(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_U_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VQSUB{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22056,7 +22056,7 @@ void Assembler::vraddhn(
     Condition cond, DataType dt, DRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRADDHN{<c>}{<q>}.<dt> <Dd>, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid() && (dt.Is(I16) || dt.Is(I32) || dt.Is(I64))) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22085,7 +22085,7 @@ void Assembler::vrecpe(Condition cond,
                        DRegister rm) {
   CheckIT(cond);
   Dt_F_size_4 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRECPE{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22116,7 +22116,7 @@ void Assembler::vrecpe(Condition cond,
                        QRegister rm) {
   CheckIT(cond);
   Dt_F_size_4 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRECPE{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22144,7 +22144,7 @@ void Assembler::vrecpe(Condition cond,
 void Assembler::vrecps(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRECPS{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22170,7 +22170,7 @@ void Assembler::vrecps(
 void Assembler::vrecps(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRECPS{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22199,7 +22199,7 @@ void Assembler::vrev16(Condition cond,
                        DRegister rm) {
   CheckIT(cond);
   Dt_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VREV16{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22228,7 +22228,7 @@ void Assembler::vrev16(Condition cond,
                        QRegister rm) {
   CheckIT(cond);
   Dt_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VREV16{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22257,7 +22257,7 @@ void Assembler::vrev32(Condition cond,
                        DRegister rm) {
   CheckIT(cond);
   Dt_size_15 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VREV32{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22286,7 +22286,7 @@ void Assembler::vrev32(Condition cond,
                        QRegister rm) {
   CheckIT(cond);
   Dt_size_15 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VREV32{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22315,7 +22315,7 @@ void Assembler::vrev64(Condition cond,
                        DRegister rm) {
   CheckIT(cond);
   Dt_size_7 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VREV64{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22344,7 +22344,7 @@ void Assembler::vrev64(Condition cond,
                        QRegister rm) {
   CheckIT(cond);
   Dt_size_7 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VREV64{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22371,7 +22371,7 @@ void Assembler::vrhadd(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRHADD{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22400,7 +22400,7 @@ void Assembler::vrhadd(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRHADD{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22427,7 +22427,7 @@ void Assembler::vrhadd(
 
 void Assembler::vrinta(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTA{<q>}.F32.F32 <Dd>, <Dm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xffba0500U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22457,7 +22457,7 @@ void Assembler::vrinta(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
 
 void Assembler::vrinta(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTA{<q>}.F32.F32 <Qd>, <Qm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xffba0540U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22476,7 +22476,7 @@ void Assembler::vrinta(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
 
 void Assembler::vrinta(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTA{<q>}.F32.F32 <Sd>, <Sm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xfeb80a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22495,7 +22495,7 @@ void Assembler::vrinta(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
 
 void Assembler::vrintm(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTM{<q>}.F32.F32 <Dd>, <Dm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xffba0680U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22525,7 +22525,7 @@ void Assembler::vrintm(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
 
 void Assembler::vrintm(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTM{<q>}.F32.F32 <Qd>, <Qm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xffba06c0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22544,7 +22544,7 @@ void Assembler::vrintm(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
 
 void Assembler::vrintm(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTM{<q>}.F32.F32 <Sd>, <Sm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xfebb0a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22563,7 +22563,7 @@ void Assembler::vrintm(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
 
 void Assembler::vrintn(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTN{<q>}.F32.F32 <Dd>, <Dm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xffba0400U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22593,7 +22593,7 @@ void Assembler::vrintn(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
 
 void Assembler::vrintn(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTN{<q>}.F32.F32 <Qd>, <Qm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xffba0440U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22612,7 +22612,7 @@ void Assembler::vrintn(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
 
 void Assembler::vrintn(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTN{<q>}.F32.F32 <Sd>, <Sm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xfeb90a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22631,7 +22631,7 @@ void Assembler::vrintn(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
 
 void Assembler::vrintp(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTP{<q>}.F32.F32 <Dd>, <Dm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xffba0780U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22661,7 +22661,7 @@ void Assembler::vrintp(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
 
 void Assembler::vrintp(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTP{<q>}.F32.F32 <Qd>, <Qm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xffba07c0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22680,7 +22680,7 @@ void Assembler::vrintp(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
 
 void Assembler::vrintp(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTP{<q>}.F32.F32 <Sd>, <Sm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xfeba0a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22700,7 +22700,7 @@ void Assembler::vrintp(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
 void Assembler::vrintr(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTR{<c>}{<q>}.F32.F32 <Sd>, <Sm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xeeb60a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22721,7 +22721,7 @@ void Assembler::vrintr(
 void Assembler::vrintr(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTR{<c>}{<q>}.F64.F64 <Dd>, <Dm> ; T1
     if (dt1.Is(F64) && dt2.Is(F64)) {
       EmitT32_32(0xeeb60b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22742,7 +22742,7 @@ void Assembler::vrintr(
 void Assembler::vrintx(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTX{<q>}.F32.F32 <Dd>, <Dm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xffba0480U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22773,7 +22773,7 @@ void Assembler::vrintx(
 
 void Assembler::vrintx(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTX{<q>}.F32.F32 <Qd>, <Qm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xffba04c0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22793,7 +22793,7 @@ void Assembler::vrintx(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
 void Assembler::vrintx(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTX{<c>}{<q>}.F32.F32 <Sd>, <Sm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xeeb70a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22814,7 +22814,7 @@ void Assembler::vrintx(
 void Assembler::vrintz(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTZ{<q>}.F32.F32 <Dd>, <Dm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xffba0580U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22845,7 +22845,7 @@ void Assembler::vrintz(
 
 void Assembler::vrintz(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTZ{<q>}.F32.F32 <Qd>, <Qm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xffba05c0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22865,7 +22865,7 @@ void Assembler::vrintz(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
 void Assembler::vrintz(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRINTZ{<c>}{<q>}.F32.F32 <Sd>, <Sm> ; T1
     if (dt1.Is(F32) && dt2.Is(F32)) {
       EmitT32_32(0xeeb60ac0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -22887,7 +22887,7 @@ void Assembler::vrshl(
     Condition cond, DataType dt, DRegister rd, DRegister rm, DRegister rn) {
   CheckIT(cond);
   Dt_U_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRSHL{<c>}{<q>}.<dt> {<Dd>}, <Dm>, <Dn> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22916,7 +22916,7 @@ void Assembler::vrshl(
     Condition cond, DataType dt, QRegister rd, QRegister rm, QRegister rn) {
   CheckIT(cond);
   Dt_U_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRSHL{<c>}{<q>}.<dt> {<Qd>}, <Qm>, <Qn> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -22951,7 +22951,7 @@ void Assembler::vrshr(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VRSHR{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize())) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23009,7 +23009,7 @@ void Assembler::vrshr(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VRSHR{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize())) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23068,7 +23068,7 @@ void Assembler::vrshrn(Condition cond,
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_imm6_3 encoded_dt(dt);
       Dt_size_3 encoded_dt_2(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VRSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize() / 2)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23120,7 +23120,7 @@ void Assembler::vrsqrte(Condition cond,
                         DRegister rm) {
   CheckIT(cond);
   Dt_F_size_4 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRSQRTE{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23151,7 +23151,7 @@ void Assembler::vrsqrte(Condition cond,
                         QRegister rm) {
   CheckIT(cond);
   Dt_F_size_4 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRSQRTE{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23179,7 +23179,7 @@ void Assembler::vrsqrte(Condition cond,
 void Assembler::vrsqrts(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRSQRTS{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23205,7 +23205,7 @@ void Assembler::vrsqrts(
 void Assembler::vrsqrts(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRSQRTS{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23238,7 +23238,7 @@ void Assembler::vrsra(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VRSRA{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize())) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23279,7 +23279,7 @@ void Assembler::vrsra(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VRSRA{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize())) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23314,7 +23314,7 @@ void Assembler::vrsubhn(
     Condition cond, DataType dt, DRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VRSUBHN{<c>}{<q>}.<dt> <Dd>, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid() && (dt.Is(I16) || dt.Is(I32) || dt.Is(I64))) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23339,7 +23339,7 @@ void Assembler::vrsubhn(
 
 void Assembler::vseleq(DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSELEQ.F64 <Dd>, <Dn>, <Dm> ; T1
     if (OutsideITBlock() && dt.Is(F64)) {
       EmitT32_32(0xfe000b00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -23360,7 +23360,7 @@ void Assembler::vseleq(DataType dt, DRegister rd, DRegister rn, DRegister rm) {
 
 void Assembler::vseleq(DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSELEQ.F32 <Sd>, <Sn>, <Sm> ; T1
     if (OutsideITBlock() && dt.Is(F32)) {
       EmitT32_32(0xfe000a00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -23381,7 +23381,7 @@ void Assembler::vseleq(DataType dt, SRegister rd, SRegister rn, SRegister rm) {
 
 void Assembler::vselge(DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSELGE.F64 <Dd>, <Dn>, <Dm> ; T1
     if (OutsideITBlock() && dt.Is(F64)) {
       EmitT32_32(0xfe200b00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -23402,7 +23402,7 @@ void Assembler::vselge(DataType dt, DRegister rd, DRegister rn, DRegister rm) {
 
 void Assembler::vselge(DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSELGE.F32 <Sd>, <Sn>, <Sm> ; T1
     if (OutsideITBlock() && dt.Is(F32)) {
       EmitT32_32(0xfe200a00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -23423,7 +23423,7 @@ void Assembler::vselge(DataType dt, SRegister rd, SRegister rn, SRegister rm) {
 
 void Assembler::vselgt(DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSELGT.F64 <Dd>, <Dn>, <Dm> ; T1
     if (OutsideITBlock() && dt.Is(F64)) {
       EmitT32_32(0xfe300b00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -23444,7 +23444,7 @@ void Assembler::vselgt(DataType dt, DRegister rd, DRegister rn, DRegister rm) {
 
 void Assembler::vselgt(DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSELGT.F32 <Sd>, <Sn>, <Sm> ; T1
     if (OutsideITBlock() && dt.Is(F32)) {
       EmitT32_32(0xfe300a00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -23465,7 +23465,7 @@ void Assembler::vselgt(DataType dt, SRegister rd, SRegister rn, SRegister rm) {
 
 void Assembler::vselvs(DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSELVS.F64 <Dd>, <Dn>, <Dm> ; T1
     if (OutsideITBlock() && dt.Is(F64)) {
       EmitT32_32(0xfe100b00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -23486,7 +23486,7 @@ void Assembler::vselvs(DataType dt, DRegister rd, DRegister rn, DRegister rm) {
 
 void Assembler::vselvs(DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(al);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSELVS.F32 <Sd>, <Sn>, <Sm> ; T1
     if (OutsideITBlock() && dt.Is(F32)) {
       EmitT32_32(0xfe100a00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -23515,7 +23515,7 @@ void Assembler::vshl(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_3 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VSHL{<c>}{<q>}.I<size> {<Dd>}, <Dm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm <= dt.GetSize() - 1)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23546,7 +23546,7 @@ void Assembler::vshl(Condition cond,
   if (operand.IsRegister()) {
     DRegister rn = operand.GetRegister();
     Dt_U_size_3 encoded_dt(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VSHL{<c>}{<q>}.<dt> {<Dd>}, <Dm>, <Dn> ; T1
       if (encoded_dt.IsValid()) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23583,7 +23583,7 @@ void Assembler::vshl(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_3 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VSHL{<c>}{<q>}.I<size> {<Qd>}, <Qm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm <= dt.GetSize() - 1)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23614,7 +23614,7 @@ void Assembler::vshl(Condition cond,
   if (operand.IsRegister()) {
     QRegister rn = operand.GetRegister();
     Dt_U_size_3 encoded_dt(dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VSHL{<c>}{<q>}.<dt> {<Qd>}, <Qm>, <Qn> ; T1
       if (encoded_dt.IsValid()) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23652,7 +23652,7 @@ void Assembler::vshll(Condition cond,
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_imm6_4 encoded_dt(dt);
       Dt_size_16 encoded_dt_2(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize() - 1)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23708,7 +23708,7 @@ void Assembler::vshr(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VSHR{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize())) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23766,7 +23766,7 @@ void Assembler::vshr(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VSHR{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize())) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23825,7 +23825,7 @@ void Assembler::vshrn(Condition cond,
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_imm6_3 encoded_dt(dt);
       Dt_size_3 encoded_dt_2(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize() / 2)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23881,7 +23881,7 @@ void Assembler::vsli(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_4 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VSLI{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm <= dt.GetSize() - 1)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23922,7 +23922,7 @@ void Assembler::vsli(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_4 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VSLI{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm <= dt.GetSize() - 1)) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -23955,7 +23955,7 @@ void Assembler::vsli(Condition cond,
 
 void Assembler::vsqrt(Condition cond, DataType dt, SRegister rd, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSQRT{<c>}{<q>}.F32 <Sd>, <Sm> ; T1
     if (dt.Is(F32)) {
       EmitT32_32(0xeeb10ac0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -23975,7 +23975,7 @@ void Assembler::vsqrt(Condition cond, DataType dt, SRegister rd, SRegister rm) {
 
 void Assembler::vsqrt(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSQRT{<c>}{<q>}.F64 <Dd>, <Dm> ; T1
     if (dt.Is(F64)) {
       EmitT32_32(0xeeb10bc0U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -24003,7 +24003,7 @@ void Assembler::vsra(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VSRA{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize())) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -24044,7 +24044,7 @@ void Assembler::vsra(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_1 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VSRA{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize())) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -24085,7 +24085,7 @@ void Assembler::vsri(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_4 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VSRI{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize())) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -24126,7 +24126,7 @@ void Assembler::vsri(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_L_imm6_4 encoded_dt(dt);
-      if (IsT32()) {
+      if (IsUsingT32()) {
         // VSRI{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize())) {
           if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -24169,7 +24169,7 @@ void Assembler::vst1(Condition cond,
     Dt_size_7 encoded_dt_2(dt);
     Align_align_5 encoded_align_1(align, nreglist);
     Align_index_align_1 encoded_align_2(align, nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4) &&
@@ -24357,7 +24357,7 @@ void Assembler::vst1(Condition cond,
     Dt_size_7 encoded_dt_2(dt);
     Align_align_5 encoded_align_1(align, nreglist);
     Align_index_align_1 encoded_align_2(align, nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4) &&
@@ -24460,7 +24460,7 @@ void Assembler::vst2(Condition cond,
     Dt_size_7 encoded_dt(dt);
     Align_align_2 encoded_align_1(align, nreglist);
     Align_index_align_2 encoded_align_2(align, nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
@@ -24635,7 +24635,7 @@ void Assembler::vst2(Condition cond,
     Dt_size_7 encoded_dt(dt);
     Align_align_2 encoded_align_1(align, nreglist);
     Align_index_align_2 encoded_align_2(align, nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
@@ -24731,7 +24731,7 @@ void Assembler::vst3(Condition cond,
     Alignment align = operand.GetAlignment();
     Dt_size_7 encoded_dt(dt);
     Align_align_3 encoded_align_1(align);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
@@ -24807,7 +24807,7 @@ void Assembler::vst3(Condition cond,
     Register rm = operand.GetOffsetRegister();
     Dt_size_7 encoded_dt(dt);
     Align_align_3 encoded_align_1(align);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
@@ -24854,7 +24854,7 @@ void Assembler::vst3(Condition cond,
     Register rn = operand.GetBaseRegister();
     Dt_size_7 encoded_dt(dt);
     Index_1 encoded_align_1(nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VST3{<c>}{<q>}.<dt> <list>, [<Rn>] ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
@@ -24922,7 +24922,7 @@ void Assembler::vst3(Condition cond,
     Register rm = operand.GetOffsetRegister();
     Dt_size_7 encoded_dt(dt);
     Index_1 encoded_align_1(nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VST3{<c>}{<q>}.<dt> <list>, [<Rn>], #<Rm> ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
@@ -24968,7 +24968,7 @@ void Assembler::vst4(Condition cond,
     Dt_size_7 encoded_dt(dt);
     Align_align_4 encoded_align_1(align);
     Align_index_align_3 encoded_align_2(align, nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
@@ -25103,7 +25103,7 @@ void Assembler::vst4(Condition cond,
     Dt_size_7 encoded_dt(dt);
     Align_align_4 encoded_align_1(align);
     Align_index_align_3 encoded_align_2(align, nreglist, dt);
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
@@ -25176,7 +25176,7 @@ void Assembler::vstm(Condition cond,
                      DRegisterList dreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1
     if ((((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
@@ -25209,7 +25209,7 @@ void Assembler::vstm(Condition cond,
                      SRegisterList sreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; T2
     const SRegister& sreg = sreglist.GetFirstSRegister();
     unsigned len = sreglist.GetLength();
@@ -25239,7 +25239,7 @@ void Assembler::vstmdb(Condition cond,
                        DRegisterList dreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; T1
     if (write_back.DoesWriteBack() &&
         (((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
@@ -25271,7 +25271,7 @@ void Assembler::vstmdb(Condition cond,
                        SRegisterList sreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ; T2
     if (write_back.DoesWriteBack()) {
       const SRegister& sreg = sreglist.GetFirstSRegister();
@@ -25301,7 +25301,7 @@ void Assembler::vstmia(Condition cond,
                        DRegisterList dreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSTMIA{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1
     if ((((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
@@ -25334,7 +25334,7 @@ void Assembler::vstmia(Condition cond,
                        SRegisterList sreglist) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSTMIA{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; T2
     const SRegister& sreg = sreglist.GetFirstSRegister();
     unsigned len = sreglist.GetLength();
@@ -25365,7 +25365,7 @@ void Assembler::vstr(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VSTR{<c>}{<q>}{.64} <Dd>, [<Rn>{, #{+/-}<imm>}] ; T1
       if (dt.IsNoneOr(Untyped64) && (offset >= -1020) && (offset <= 1020) &&
           ((offset % 4) == 0) && (operand.GetAddrMode() == Offset)) {
@@ -25400,7 +25400,7 @@ void Assembler::vstr(Condition cond,
   if (operand.IsImmediate()) {
     Register rn = operand.GetBaseRegister();
     int32_t offset = operand.GetOffsetImmediate();
-    if (IsT32()) {
+    if (IsUsingT32()) {
       // VSTR{<c>}{<q>}{.32} <Sd>, [<Rn>{, #{+/-}<imm>}] ; T2
       if (dt.IsNoneOr(Untyped32) && (offset >= -1020) && (offset <= 1020) &&
           ((offset % 4) == 0) && (operand.GetAddrMode() == Offset)) {
@@ -25431,7 +25431,7 @@ void Assembler::vsub(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_size_2 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSUB{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -25488,7 +25488,7 @@ void Assembler::vsub(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_size_2 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSUB{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T1
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -25531,7 +25531,7 @@ void Assembler::vsub(
 void Assembler::vsub(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSUB{<c>}{<q>}.F32 {<Sd>}, <Sn>, <Sm> ; T2
     if (dt.Is(F32)) {
       EmitT32_32(0xee300a40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
@@ -25554,7 +25554,7 @@ void Assembler::vsubhn(
     Condition cond, DataType dt, DRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_size_3 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSUBHN{<c>}{<q>}.<dt> <Dd>, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid() && (dt.Is(I16) || dt.Is(I32) || dt.Is(I64))) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -25581,7 +25581,7 @@ void Assembler::vsubl(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSUBL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -25610,7 +25610,7 @@ void Assembler::vsubw(
     Condition cond, DataType dt, QRegister rd, QRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_U_size_1 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSUBW{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -25638,7 +25638,7 @@ void Assembler::vsubw(
 void Assembler::vswp(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSWP{<c>}{<q>}{.<dt>} <Dd>, <Dm> ; T1
     if (cond.Is(al) || AllowStronglyDiscouraged()) {
       EmitT32_32(0xffb20000U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -25658,7 +25658,7 @@ void Assembler::vswp(Condition cond, DataType dt, DRegister rd, DRegister rm) {
 void Assembler::vswp(Condition cond, DataType dt, QRegister rd, QRegister rm) {
   CheckIT(cond);
   USE(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VSWP{<c>}{<q>}{.<dt>} <Qd>, <Qm> ; T1
     if (cond.Is(al) || AllowStronglyDiscouraged()) {
       EmitT32_32(0xffb20040U | rd.Encode(22, 12) | rm.Encode(5, 0));
@@ -25681,7 +25681,7 @@ void Assembler::vtbl(Condition cond,
                      const NeonRegisterList& nreglist,
                      DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VTBL{<c>}{<q>}.8 <Dd>, <list>, <Dm> ; T1
     if (dt.Is(Untyped8) && nreglist.IsTransferMultipleLanes() &&
         (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4)) {
@@ -25716,7 +25716,7 @@ void Assembler::vtbx(Condition cond,
                      const NeonRegisterList& nreglist,
                      DRegister rm) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VTBX{<c>}{<q>}.8 <Dd>, <list>, <Dm> ; T1
     if (dt.Is(Untyped8) && nreglist.IsTransferMultipleLanes() &&
         (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4)) {
@@ -25748,7 +25748,7 @@ void Assembler::vtbx(Condition cond,
 void Assembler::vtrn(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
   Dt_size_7 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VTRN{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -25774,7 +25774,7 @@ void Assembler::vtrn(Condition cond, DataType dt, DRegister rd, DRegister rm) {
 void Assembler::vtrn(Condition cond, DataType dt, QRegister rd, QRegister rm) {
   CheckIT(cond);
   Dt_size_7 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VTRN{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -25801,7 +25801,7 @@ void Assembler::vtst(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
   CheckIT(cond);
   Dt_size_7 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VTST{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -25828,7 +25828,7 @@ void Assembler::vtst(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
   CheckIT(cond);
   Dt_size_7 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VTST{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -25854,7 +25854,7 @@ void Assembler::vtst(
 void Assembler::vuzp(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
   Dt_size_15 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VUZP{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -25895,7 +25895,7 @@ void Assembler::vuzp(Condition cond, DataType dt, DRegister rd, DRegister rm) {
 void Assembler::vuzp(Condition cond, DataType dt, QRegister rd, QRegister rm) {
   CheckIT(cond);
   Dt_size_7 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VUZP{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -25921,7 +25921,7 @@ void Assembler::vuzp(Condition cond, DataType dt, QRegister rd, QRegister rm) {
 void Assembler::vzip(Condition cond, DataType dt, DRegister rd, DRegister rm) {
   CheckIT(cond);
   Dt_size_15 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VZIP{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -25962,7 +25962,7 @@ void Assembler::vzip(Condition cond, DataType dt, DRegister rd, DRegister rm) {
 void Assembler::vzip(Condition cond, DataType dt, QRegister rd, QRegister rm) {
   CheckIT(cond);
   Dt_size_7 encoded_dt(dt);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // VZIP{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
     if (encoded_dt.IsValid()) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
@@ -25987,7 +25987,7 @@ void Assembler::vzip(Condition cond, DataType dt, QRegister rd, QRegister rm) {
 
 void Assembler::yield(Condition cond, EncodingSize size) {
   CheckIT(cond);
-  if (IsT32()) {
+  if (IsUsingT32()) {
     // YIELD{<c>}{<q>} ; T1
     if (!size.IsWide()) {
       EmitT32_16(0xbf10);

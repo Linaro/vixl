@@ -147,7 +147,7 @@ class MacroAssembler : public Assembler {
    public:
     ITScope(MacroAssembler* masm, Condition* cond, bool can_use_it = false)
         : masm_(masm), cond_(*cond), can_use_it_(can_use_it) {
-      if (!cond_.Is(al) && masm->IsT32()) {
+      if (!cond_.Is(al) && masm->IsUsingT32()) {
         if (can_use_it_) {
           // IT is not deprecated (that implies a 16 bit T32 instruction).
           // We generate an IT instruction and a conditional instruction.
@@ -168,7 +168,7 @@ class MacroAssembler : public Assembler {
 #endif
     }
     ~ITScope() {
-      if (!cond_.Is(al) && masm_->IsT32() && !can_use_it_) {
+      if (!cond_.Is(al) && masm_->IsUsingT32() && !can_use_it_) {
         VIXL_ASSERT(masm_->GetCursorOffset() - initial_cursor_offset_ <=
                     kMaxT32MacroInstructionSizeInBytes);
         masm_->bind(&label_);
@@ -363,18 +363,8 @@ class MacroAssembler : public Assembler {
   }
 
  public:
-  MacroAssembler()
-      : available_(r12),
-        checkpoint_(Label::kMaxOffset),
-        literal_pool_manager_(this),
-        veneer_pool_manager_(this) {
-#ifdef VIXL_DEBUG
-    SetAllowMacroInstructions(true);
-#endif
-    ComputeCheckpoint();
-  }
-  explicit MacroAssembler(size_t size)
-      : Assembler(size),
+  explicit MacroAssembler(InstructionSet isa = A32)
+      : Assembler(isa),
         available_(r12),
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
@@ -384,8 +374,19 @@ class MacroAssembler : public Assembler {
 #endif
     ComputeCheckpoint();
   }
-  MacroAssembler(void* buffer, size_t size)
-      : Assembler(buffer, size),
+  explicit MacroAssembler(size_t size, InstructionSet isa = A32)
+      : Assembler(size, isa),
+        available_(r12),
+        checkpoint_(Label::kMaxOffset),
+        literal_pool_manager_(this),
+        veneer_pool_manager_(this) {
+#ifdef VIXL_DEBUG
+    SetAllowMacroInstructions(true);
+#endif
+    ComputeCheckpoint();
+  }
+  MacroAssembler(void* buffer, size_t size, InstructionSet isa = A32)
+      : Assembler(buffer, size, isa),
         available_(r12),
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
@@ -416,7 +417,7 @@ class MacroAssembler : public Assembler {
 
   // State and type helpers.
   bool IsModifiedImmediate(uint32_t imm) {
-    return (IsT32() && ImmediateT32(imm).IsValid()) ||
+    return (IsUsingT32() && ImmediateT32(imm).IsValid()) ||
            ImmediateA32(imm).IsValid();
   }
 
@@ -8370,7 +8371,7 @@ class JumpTable : public JumpTableBase {
     uint32_t from = GetBranchLocation();
     int offset = location - from;
     T* case_offset = masm->GetBuffer().GetOffsetAddress<T*>(position_in_table);
-    if (masm->IsT32()) {
+    if (masm->IsUsingT32()) {
       *case_offset = offset >> 1;
     } else {
       *case_offset = offset >> 2;

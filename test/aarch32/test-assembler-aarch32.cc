@@ -106,7 +106,7 @@ namespace aarch32 {
     ExecutableMemory code(masm.GetBuffer().GetCursorOffset());                 \
     code.Write(masm.GetBuffer().GetOffsetAddress<byte*>(0),                    \
                masm.GetBuffer().GetCursorOffset());                            \
-    int pcs_offset = masm.IsT32() ? 1 : 0;                                     \
+    int pcs_offset = masm.IsUsingT32() ? 1 : 0;                                \
     code.Execute(pcs_offset);                                                  \
   }
 
@@ -115,7 +115,7 @@ namespace aarch32 {
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR
 
 #define START_T32()                                                            \
-  __ SetT32(true);                                                             \
+  __ UseT32();                                                                 \
   START();
 
 #ifdef VIXL_INCLUDE_SIMULATOR
@@ -1266,10 +1266,11 @@ TEST(veneers_labels_sort) {
 }
 
 
-void SwitchCase(JumpTableBase* switch_, uint32_t case_index, bool IsT32) {
+void SwitchCase(JumpTableBase* switch_, uint32_t case_index,
+                bool is_using_t32) {
   SETUP();
 
-  if (IsT32) {
+  if (is_using_t32) {
     START_T32();
   } else {
     START();
@@ -1599,6 +1600,134 @@ TEST(use_scratch_register_scope_v_registers) {
   ASSERT_EQUAL_64(0x0000009a0000009a, d6);
 
   TEARDOWN();
+}
+
+
+template<typename T>
+void CheckInstructionSetA32(const T& assm) {
+  VIXL_CHECK(assm.IsUsingA32());
+  VIXL_CHECK(!assm.IsUsingT32());
+  VIXL_CHECK(assm.GetInstructionSetInUse() == A32);
+}
+
+
+template<typename T>
+void CheckInstructionSetT32(const T& assm) {
+  VIXL_CHECK(assm.IsUsingT32());
+  VIXL_CHECK(!assm.IsUsingA32());
+  VIXL_CHECK(assm.GetInstructionSetInUse() == T32);
+}
+
+
+TEST(set_isa_constructors) {
+  char buffer[1024];
+
+  // A32 by default.
+  CheckInstructionSetA32(Assembler());
+  CheckInstructionSetA32(Assembler(1024));
+  CheckInstructionSetA32(Assembler(buffer, sizeof(buffer)));
+  // Explicit A32.
+  CheckInstructionSetA32(Assembler(A32));
+  CheckInstructionSetA32(Assembler(1024, A32));
+  CheckInstructionSetA32(Assembler(buffer, sizeof(buffer), A32));
+  // Explicit T32.
+  CheckInstructionSetT32(Assembler(T32));
+  CheckInstructionSetT32(Assembler(1024, T32));
+  CheckInstructionSetT32(Assembler(buffer, sizeof(buffer), T32));
+
+  // A32 by default.
+  CheckInstructionSetA32(MacroAssembler());
+  CheckInstructionSetA32(MacroAssembler(1024));
+  CheckInstructionSetA32(MacroAssembler(buffer, sizeof(buffer)));
+  // Explicit A32.
+  CheckInstructionSetA32(MacroAssembler(A32));
+  CheckInstructionSetA32(MacroAssembler(1024, A32));
+  CheckInstructionSetA32(MacroAssembler(buffer, sizeof(buffer), A32));
+  // Explicit T32.
+  CheckInstructionSetT32(MacroAssembler(T32));
+  CheckInstructionSetT32(MacroAssembler(1024, T32));
+  CheckInstructionSetT32(MacroAssembler(buffer, sizeof(buffer), T32));
+}
+
+
+TEST(set_isa_empty) {
+  // It is possible to change the instruction set if no instructions have yet
+  // been generated.
+  Assembler assm;
+  CheckInstructionSetA32(assm);
+  assm.UseT32();
+  CheckInstructionSetT32(assm);
+  assm.UseA32();
+  CheckInstructionSetA32(assm);
+  assm.UseInstructionSet(T32);
+  CheckInstructionSetT32(assm);
+  assm.UseInstructionSet(A32);
+  CheckInstructionSetA32(assm);
+
+  MacroAssembler masm;
+  CheckInstructionSetA32(masm);
+  masm.UseT32();
+  CheckInstructionSetT32(masm);
+  masm.UseA32();
+  CheckInstructionSetA32(masm);
+  masm.UseInstructionSet(T32);
+  CheckInstructionSetT32(masm);
+  masm.UseInstructionSet(A32);
+  CheckInstructionSetA32(masm);
+}
+
+
+TEST(set_isa_noop) {
+  // It is possible to call a no-op UseA32/T32 or UseInstructionSet even if
+  // one or more instructions have been generated.
+  {
+    Assembler assm(A32);
+    CheckInstructionSetA32(assm);
+    assm.bx(lr);
+    VIXL_ASSERT(assm.GetCursorOffset() > 0);
+    CheckInstructionSetA32(assm);
+    assm.UseA32();
+    CheckInstructionSetA32(assm);
+    assm.UseInstructionSet(A32);
+    CheckInstructionSetA32(assm);
+    assm.FinalizeCode();
+  }
+  {
+    Assembler assm(T32);
+    CheckInstructionSetT32(assm);
+    assm.bx(lr);
+    VIXL_ASSERT(assm.GetCursorOffset() > 0);
+    CheckInstructionSetT32(assm);
+    assm.UseT32();
+    CheckInstructionSetT32(assm);
+    assm.UseInstructionSet(T32);
+    CheckInstructionSetT32(assm);
+    assm.FinalizeCode();
+  }
+  {
+    MacroAssembler masm(A32);
+    CheckInstructionSetA32(masm);
+    masm.Bx(lr);
+    VIXL_ASSERT(masm.GetCursorOffset() > 0);
+    CheckInstructionSetA32(masm);
+    masm.UseA32();
+    CheckInstructionSetA32(masm);
+    masm.UseInstructionSet(A32);
+    CheckInstructionSetA32(masm);
+    masm.FinalizeCode();
+  }
+  {
+    MacroAssembler masm(T32);
+    CheckInstructionSetT32(masm);
+    masm.Bx(lr);
+    VIXL_ASSERT(masm.GetCursorOffset() > 0);
+    CheckInstructionSetT32(masm);
+    masm.UseT32();
+    CheckInstructionSetT32(masm);
+    masm.UseInstructionSet(T32);
+    CheckInstructionSetT32(masm);
+    masm.FinalizeCode();
+  }
 }
 
 

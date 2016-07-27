@@ -479,9 +479,9 @@ class Generator(object):
     Generate code to set the ISA.
     """
     if self.test_isa == "t32":
-      return "masm.SetT32(true);"
+      return "masm.UseT32();"
     else:
-      return "masm.SetT32(false);"
+      return "masm.UseA32();"
 
   def CodeInstantiateOperands(self):
     """

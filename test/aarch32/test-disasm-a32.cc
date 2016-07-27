@@ -55,7 +55,7 @@ namespace aarch32 {
     masm.FinalizeCode();                                                       \
     std::ostringstream ss;                                                     \
     TestDisassembler disassembler(ss, 0);                                      \
-    if (masm.IsT32()) {                                                        \
+    if (masm.IsUsingT32()) {                                                   \
       disassembler.DisassembleT32(masm.GetBuffer(), start, end);               \
     } else {                                                                   \
       disassembler.DisassembleA32(masm.GetBuffer(), start, end);               \
@@ -68,11 +68,11 @@ namespace aarch32 {
   }
 
 #define COMPARE_A32(ASM, EXP)                                                  \
-  masm.SetT32(false);                                                          \
+  masm.UseA32();                                                               \
   COMPARE(ASM, EXP)
 
 #define COMPARE_T32(ASM, EXP)                                                  \
-  masm.SetT32(true);                                                           \
+  masm.UseT32();                                                               \
   COMPARE(ASM, EXP)
 
 
