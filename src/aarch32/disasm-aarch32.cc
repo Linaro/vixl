@@ -8627,8 +8627,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       unsigned rn = (instr >> 16) & 0xf;
                       uint32_t amount =
                           ((instr >> 6) & 0x3) | ((instr >> 10) & 0x1c);
-                      // SSAT{<c>}{<q>} <Rd>, #<imm>, <Rn> {, LSL #<amount> } ;
-                      // T1 NOLINT(whitespace/line_length)
+                      // SSAT{<c>}{<q>} <Rd>, #<imm>, <Rn> {, LSL #<amount> } ; T1 NOLINT(whitespace/line_length)
                       ssat(CurrentCond(),
                            Register(rd),
                            imm,
@@ -8666,8 +8665,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           unsigned rn = (instr >> 16) & 0xf;
                           uint32_t amount =
                               ((instr >> 6) & 0x3) | ((instr >> 10) & 0x1c);
-                          // SSAT{<c>}{<q>} <Rd>, #<imm>, <Rn>, ASR #<amount> ;
-                          // T1 NOLINT(whitespace/line_length)
+                          // SSAT{<c>}{<q>} <Rd>, #<imm>, <Rn>, ASR #<amount> ; T1 NOLINT(whitespace/line_length)
                           ssat(CurrentCond(),
                                Register(rd),
                                imm,
@@ -8748,8 +8746,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       unsigned rn = (instr >> 16) & 0xf;
                       uint32_t amount =
                           ((instr >> 6) & 0x3) | ((instr >> 10) & 0x1c);
-                      // USAT{<c>}{<q>} <Rd>, #<imm>, <Rn> {, LSL #<amount> } ;
-                      // T1 NOLINT(whitespace/line_length)
+                      // USAT{<c>}{<q>} <Rd>, #<imm>, <Rn> {, LSL #<amount> } ; T1 NOLINT(whitespace/line_length)
                       usat(CurrentCond(),
                            Register(rd),
                            imm,
@@ -8787,8 +8784,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           unsigned rn = (instr >> 16) & 0xf;
                           uint32_t amount =
                               ((instr >> 6) & 0x3) | ((instr >> 10) & 0x1c);
-                          // USAT{<c>}{<q>} <Rd>, #<imm>, <Rn>, ASR #<amount> ;
-                          // T1 NOLINT(whitespace/line_length)
+                          // USAT{<c>}{<q>} <Rd>, #<imm>, <Rn>, ASR #<amount> ; T1 NOLINT(whitespace/line_length)
                           usat(CurrentCond(),
                                Register(rd),
                                imm,
@@ -9333,8 +9329,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned rt = (instr >> 12) & 0xf;
                               unsigned rn = (instr >> 16) & 0xf;
                               int32_t offset = (instr & 0xff) << 2;
-                              // STREX{<c>}{<q>} <Rd>, <Rt>, [<Rn>{, #<imm>}] ;
-                              // T1 NOLINT(whitespace/line_length)
+                              // STREX{<c>}{<q>} <Rd>, <Rt>, [<Rn>{, #<imm>}] ; T1 NOLINT(whitespace/line_length)
                               strex(CurrentCond(),
                                     Register(rd),
                                     Register(rt),
@@ -9383,8 +9378,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned rt = (instr >> 12) & 0xf;
                                   unsigned rt2 = (instr >> 8) & 0xf;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // STREXD{<c>}{<q>} <Rd>, <Rt>, <Rt2>, [<Rn>]
-                                  // ; T1 NOLINT(whitespace/line_length)
+                                  // STREXD{<c>}{<q>} <Rd>, <Rt>, <Rt2>, [<Rn>] ; T1 NOLINT(whitespace/line_length)
                                   strexd(CurrentCond(),
                                          Register(rd),
                                          Register(rt),
@@ -9482,8 +9476,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned rt = (instr >> 12) & 0xf;
                                   unsigned rt2 = (instr >> 8) & 0xf;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // STLEXD{<c>}{<q>} <Rd>, <Rt>, <Rt2>, [<Rn>]
-                                  // ; T1 NOLINT(whitespace/line_length)
+                                  // STLEXD{<c>}{<q>} <Rd>, <Rt>, <Rt2>, [<Rn>] ; T1 NOLINT(whitespace/line_length)
                                   stlexd(CurrentCond(),
                                          Register(rd),
                                          Register(rt),
@@ -9513,8 +9506,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           Sign sign((((instr >> 23) & 0x1) == 0) ? minus
                                                                  : plus);
                           int32_t offset = (instr & 0xff) << 2;
-                          // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>], #{+/-}<imm> ;
-                          // T1 NOLINT(whitespace/line_length)
+                          // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>], #{+/-}<imm> ; T1 NOLINT(whitespace/line_length)
                           strd(CurrentCond(),
                                Register(rt),
                                Register(rt2),
@@ -9597,8 +9589,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           Sign sign((((instr >> 23) & 0x1) == 0) ? minus
                                                                  : plus);
                           int32_t offset = (instr & 0xff) << 2;
-                          // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm>}] ;
-                          // T1 NOLINT(whitespace/line_length)
+                          // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm>}] ; T1 NOLINT(whitespace/line_length)
                           strd(CurrentCond(),
                                Register(rt),
                                Register(rt2),
@@ -9617,8 +9608,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           Sign sign((((instr >> 23) & 0x1) == 0) ? minus
                                                                  : plus);
                           int32_t offset = (instr & 0xff) << 2;
-                          // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm>}]!
-                          // ; T1 NOLINT(whitespace/line_length)
+                          // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm>}]! ; T1 NOLINT(whitespace/line_length)
                           strd(CurrentCond(),
                                Register(rt),
                                Register(rt2),
@@ -9968,8 +9958,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               Sign sign((((instr >> 23) & 0x1) == 0) ? minus
                                                                      : plus);
                               int32_t offset = (instr & 0xff) << 2;
-                              // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>], #{+/-}<imm>
-                              // ; T1 NOLINT(whitespace/line_length)
+                              // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>], #{+/-}<imm> ; T1 NOLINT(whitespace/line_length)
                               ldrd(CurrentCond(),
                                    Register(rt),
                                    Register(rt2),
@@ -10020,9 +10009,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               Sign sign((((instr >> 23) & 0x1) == 0) ? minus
                                                                      : plus);
                               int32_t offset = (instr & 0xff) << 2;
-                              // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{,
-                              // #{+/-}<imm>}] ; T1
-                              // NOLINT(whitespace/line_length)
+                              // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm>}] ; T1 NOLINT(whitespace/line_length)
                               ldrd(CurrentCond(),
                                    Register(rt),
                                    Register(rt2),
@@ -10073,9 +10060,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               Sign sign((((instr >> 23) & 0x1) == 0) ? minus
                                                                      : plus);
                               int32_t offset = (instr & 0xff) << 2;
-                              // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{,
-                              // #{+/-}<imm>}]! ; T1
-                              // NOLINT(whitespace/line_length)
+                              // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm>}]! ; T1 NOLINT(whitespace/line_length)
                               ldrd(CurrentCond(),
                                    Register(rt),
                                    Register(rt2),
@@ -10128,8 +10113,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               Register(rm),
                                               addrmode));
                             } else {
-                              // STRB{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL
-                              // #<imm>}] ; T2 NOLINT(whitespace/line_length)
+                              // STRB{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2 NOLINT(whitespace/line_length)
                               strb(CurrentCond(),
                                    Best,
                                    Register(rt),
@@ -10247,8 +10231,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                              Register(rm),
                                              addrmode));
                             } else {
-                              // STR{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL
-                              // #<imm>}] ; T2 NOLINT(whitespace/line_length)
+                              // STR{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2 NOLINT(whitespace/line_length)
                               str(CurrentCond(),
                                   Best,
                                   Register(rt),
@@ -10388,8 +10371,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               Register(rm),
                                               addrmode));
                             } else {
-                              // STRH{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL
-                              // #<imm>}] ; T2 NOLINT(whitespace/line_length)
+                              // STRH{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2 NOLINT(whitespace/line_length)
                               strh(CurrentCond(),
                                    Best,
                                    Register(rt),
@@ -10632,9 +10614,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST4{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vst4(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -10683,9 +10663,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST4{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vst4(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -10740,9 +10718,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vst1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -10799,9 +10775,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vst2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -10854,9 +10828,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST3{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vst3(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -10909,9 +10881,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST3{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vst3(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -10966,9 +10936,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vst1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11023,9 +10991,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vst1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11082,9 +11048,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vst2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11141,9 +11105,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vst2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11198,9 +11160,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vst1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11259,9 +11219,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST4{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vst4(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11310,9 +11268,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST4{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vst4(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11367,9 +11323,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vst1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11426,9 +11380,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vst2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11481,9 +11433,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST3{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vst3(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11536,9 +11486,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST3{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vst3(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11593,9 +11541,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vst1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11650,9 +11596,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vst1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11709,9 +11653,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vst2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11768,9 +11710,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vst2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11825,9 +11765,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VST1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vst1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -11891,8 +11829,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vst4(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -11945,8 +11882,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vst4(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -12003,8 +11939,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vst1(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -12062,8 +11997,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vst2(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -12117,8 +12051,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vst3(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -12172,8 +12105,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vst3(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -12230,8 +12162,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vst1(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -12288,8 +12219,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vst1(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -12347,8 +12277,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vst2(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -12406,8 +12335,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vst2(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -12464,8 +12392,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vst1(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -12534,9 +12461,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD4{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vld4(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -12585,9 +12510,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD4{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vld4(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -12642,9 +12565,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vld1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -12701,9 +12622,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vld2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -12752,9 +12671,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD3{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vld3(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -12803,9 +12720,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD3{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vld3(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -12860,9 +12775,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vld1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -12917,9 +12830,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vld1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -12976,9 +12887,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vld2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13035,9 +12944,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vld2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13092,9 +12999,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}]! ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                   vld1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13153,9 +13058,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD4{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vld4(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13204,9 +13107,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD4{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vld4(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13261,9 +13162,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vld1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13320,9 +13219,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vld2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13371,9 +13268,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD3{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vld3(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13422,9 +13317,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD3{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vld3(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13479,9 +13372,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vld1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13536,9 +13427,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vld1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13595,9 +13484,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vld2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13654,9 +13541,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vld2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13711,9 +13596,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   TransferType transfer = kMultipleLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
-                                  // VLD1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                   vld1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -13777,8 +13660,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vld4(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -13831,8 +13713,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vld4(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -13889,8 +13770,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vld1(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -13948,8 +13828,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vld2(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -14002,8 +13881,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vld3(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -14056,8 +13934,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vld3(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -14114,8 +13991,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vld1(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -14172,8 +14048,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vld1(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -14231,8 +14106,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vld2(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -14290,8 +14164,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vld2(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -14348,8 +14221,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               TransferType transfer = kMultipleLanes;
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
-                              // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                              // <Rm> ; T1 NOLINT(whitespace/line_length)
+                              // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                               vld1(CurrentCond(),
                                    dt,
                                    NeonRegisterList(DRegister(first),
@@ -14418,9 +14290,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       unsigned length = 1;
                                       unsigned last = first + length - 1;
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VST1{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}]! ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                       vst1(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -14462,9 +14332,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       unsigned length = 1;
                                       unsigned last = first + length - 1;
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VST1{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}] ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                       vst1(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -14509,9 +14377,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   unsigned rn = (instr >> 16) & 0xf;
                                   unsigned rm = instr & 0xf;
-                                  // VST1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}], <Rm> ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                                   vst1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -14576,9 +14442,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (length - 1) *
                                               (spacing == kSingle ? 1 : 2);
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VST2{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}]! ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                       vst2(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -14623,9 +14487,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (length - 1) *
                                               (spacing == kSingle ? 1 : 2);
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VST2{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}] ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                       vst2(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -14673,9 +14535,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   unsigned rn = (instr >> 16) & 0xf;
                                   unsigned rm = instr & 0xf;
-                                  // VST2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}], <Rm> ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                                   vst2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -14791,8 +14651,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (length - 1) *
                                               (spacing == kSingle ? 1 : 2);
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VST3{<c>}{<q>}.<dt> <list>, [<Rn>]! ;
-                                      // T1 NOLINT(whitespace/line_length)
+                                      // VST3{<c>}{<q>}.<dt> <list>, [<Rn>]! ; T1 NOLINT(whitespace/line_length)
                                       vst3(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -14884,8 +14743,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned rn = (instr >> 16) & 0xf;
                                   Sign sign(plus);
                                   unsigned rm = instr & 0xf;
-                                  // VST3{<c>}{<q>}.<dt> <list>, [<Rn>], #<Rm> ;
-                                  // T1 NOLINT(whitespace/line_length)
+                                  // VST3{<c>}{<q>}.<dt> <list>, [<Rn>], #<Rm> ; T1 NOLINT(whitespace/line_length)
                                   vst3(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -14950,9 +14808,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (length - 1) *
                                               (spacing == kSingle ? 1 : 2);
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VST4{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}]! ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                       vst4(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -14997,9 +14853,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (length - 1) *
                                               (spacing == kSingle ? 1 : 2);
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VST4{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}] ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                       vst4(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -15047,9 +14901,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   unsigned rn = (instr >> 16) & 0xf;
                                   unsigned rm = instr & 0xf;
-                                  // VST4{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}], <Rm> ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                                   vst4(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -15116,9 +14968,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       unsigned last = first + length - 1;
                                       TransferType transfer = kAllLanes;
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VLD1{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}]! ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                       vld1(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -15163,9 +15013,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       unsigned last = first + length - 1;
                                       TransferType transfer = kAllLanes;
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VLD1{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}] ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                       vld1(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -15216,9 +15064,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   TransferType transfer = kAllLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
                                   unsigned rm = instr & 0xf;
-                                  // VLD1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}], <Rm> ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                                   vld1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -15269,9 +15115,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       unsigned length = 1;
                                       unsigned last = first + length - 1;
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VLD1{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}]! ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                       vld1(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -15313,9 +15157,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       unsigned length = 1;
                                       unsigned last = first + length - 1;
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VLD1{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}] ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                       vld1(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -15360,9 +15202,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned last = first + length - 1;
                                   unsigned rn = (instr >> 16) & 0xf;
                                   unsigned rm = instr & 0xf;
-                                  // VLD1{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}], <Rm> ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                                   vld1(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -15428,9 +15268,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (spacing == kSingle ? 1 : 2);
                                       TransferType transfer = kAllLanes;
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VLD2{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}]! ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                       vld2(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -15480,9 +15318,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (spacing == kSingle ? 1 : 2);
                                       TransferType transfer = kAllLanes;
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VLD2{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}] ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                       vld2(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -15538,9 +15374,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   TransferType transfer = kAllLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
                                   unsigned rm = instr & 0xf;
-                                  // VLD2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}], <Rm> ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                                   vld2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -15594,9 +15428,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (length - 1) *
                                               (spacing == kSingle ? 1 : 2);
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VLD2{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}]! ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                       vld2(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -15641,9 +15473,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (length - 1) *
                                               (spacing == kSingle ? 1 : 2);
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VLD2{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}] ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                       vld2(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -15691,9 +15521,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   unsigned rn = (instr >> 16) & 0xf;
                                   unsigned rm = instr & 0xf;
-                                  // VLD2{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}], <Rm> ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                                   vld2(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -15754,8 +15582,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (spacing == kSingle ? 1 : 2);
                                           TransferType transfer = kAllLanes;
                                           unsigned rn = (instr >> 16) & 0xf;
-                                          // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>]!
-                                          // ; T1 NOLINT(whitespace/line_length)
+                                          // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>]! ; T1 NOLINT(whitespace/line_length)
                                           vld3(CurrentCond(),
                                                dt,
                                                NeonRegisterList(DRegister(
@@ -15797,8 +15624,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (spacing == kSingle ? 1 : 2);
                                           TransferType transfer = kAllLanes;
                                           unsigned rn = (instr >> 16) & 0xf;
-                                          // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>]
-                                          // ; T1 NOLINT(whitespace/line_length)
+                                          // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>] ; T1 NOLINT(whitespace/line_length)
                                           vld3(CurrentCond(),
                                                dt,
                                                NeonRegisterList(DRegister(
@@ -15848,9 +15674,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       unsigned rn = (instr >> 16) & 0xf;
                                       Sign sign(plus);
                                       unsigned rm = instr & 0xf;
-                                      // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>],
-                                      // #<Rm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>], #<Rm> ; T1 NOLINT(whitespace/line_length)
                                       vld3(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -15908,8 +15732,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (length - 1) *
                                               (spacing == kSingle ? 1 : 2);
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>]! ;
-                                      // T1 NOLINT(whitespace/line_length)
+                                      // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>]! ; T1 NOLINT(whitespace/line_length)
                                       vld3(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -15993,8 +15816,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned rn = (instr >> 16) & 0xf;
                                   Sign sign(plus);
                                   unsigned rm = instr & 0xf;
-                                  // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>], #<Rm> ;
-                                  // T1 NOLINT(whitespace/line_length)
+                                  // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>], #<Rm> ; T1 NOLINT(whitespace/line_length)
                                   vld3(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -16061,9 +15883,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (spacing == kSingle ? 1 : 2);
                                       TransferType transfer = kAllLanes;
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VLD4{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}]! ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                       vld4(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -16114,9 +15934,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (spacing == kSingle ? 1 : 2);
                                       TransferType transfer = kAllLanes;
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VLD4{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}] ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                       vld4(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -16174,9 +15992,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   TransferType transfer = kAllLanes;
                                   unsigned rn = (instr >> 16) & 0xf;
                                   unsigned rm = instr & 0xf;
-                                  // VLD4{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}], <Rm> ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                                   vld4(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -16230,9 +16046,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (length - 1) *
                                               (spacing == kSingle ? 1 : 2);
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VLD4{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}]! ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1 NOLINT(whitespace/line_length)
                                       vld4(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -16277,9 +16091,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (length - 1) *
                                               (spacing == kSingle ? 1 : 2);
                                       unsigned rn = (instr >> 16) & 0xf;
-                                      // VLD4{<c>}{<q>}.<dt> <list>,
-                                      // [<Rn>{:<align>}] ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1 NOLINT(whitespace/line_length)
                                       vld4(CurrentCond(),
                                            dt,
                                            NeonRegisterList(DRegister(first),
@@ -16327,9 +16139,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           (spacing == kSingle ? 1 : 2);
                                   unsigned rn = (instr >> 16) & 0xf;
                                   unsigned rm = instr & 0xf;
-                                  // VLD4{<c>}{<q>}.<dt> <list>,
-                                  // [<Rn>{:<align>}], <Rm> ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; T1 NOLINT(whitespace/line_length)
                                   vld4(CurrentCond(),
                                        dt,
                                        NeonRegisterList(DRegister(first),
@@ -16440,9 +16250,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           Shift shift = LSL;
                                           uint32_t amount = (instr >> 4) & 0x3;
                                           AddrMode addrmode = Offset;
-                                          // PLD{<c>}{<q>} [<Rn>, {+}<Rm>{, LSL
-                                          // #<amount>}] ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // PLD{<c>}{<q>} [<Rn>, {+}<Rm>{, LSL #<amount>}] ; T1 NOLINT(whitespace/line_length)
                                           pld(CurrentCond(),
                                               MemOperand(Register(rn),
                                                          sign,
@@ -16470,9 +16278,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (rm < kNumberOfT32LowRegisters) &&
                                               shift.IsLSL() && (amount == 0) &&
                                               sign.IsPlus()) {
-                                            // LDRB{<c>}.W <Rt>, [<Rn>,
-                                            // #{+}<Rm>] ; T2
-                                            // NOLINT(whitespace/line_length)
+                                            // LDRB{<c>}.W <Rt>, [<Rn>, #{+}<Rm>] ; T2 NOLINT(whitespace/line_length)
                                             ldrb(CurrentCond(),
                                                  Wide,
                                                  Register(rt),
@@ -16481,9 +16287,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                             Register(rm),
                                                             addrmode));
                                           } else {
-                                            // LDRB{<c>}{<q>} <Rt>, [<Rn>,
-                                            // {+}<Rm>{, LSL #<imm>}] ; T2
-                                            // NOLINT(whitespace/line_length)
+                                            // LDRB{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2 NOLINT(whitespace/line_length)
                                             ldrb(CurrentCond(),
                                                  Best,
                                                  Register(rt),
@@ -16517,8 +16321,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   Sign sign((((instr >> 9) & 0x1) == 0) ? minus
                                                                         : plus);
                                   int32_t offset = instr & 0xff;
-                                  // LDRB{<c>}{<q>} <Rt>, [<Rn>], #{+/-}<imm_2>
-                                  // ; T3 NOLINT(whitespace/line_length)
+                                  // LDRB{<c>}{<q>} <Rt>, [<Rn>], #{+/-}<imm_2> ; T3 NOLINT(whitespace/line_length)
                                   ldrb(CurrentCond(),
                                        Best,
                                        Register(rt),
@@ -16542,8 +16345,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rn = (instr >> 16) & 0xf;
                                           int32_t offset = instr & 0xff;
-                                          // PLD{<c>}{<q>} [<Rn>{, #-<imm_1>}] ;
-                                          // T2 NOLINT(whitespace/line_length)
+                                          // PLD{<c>}{<q>} [<Rn>{, #-<imm_1>}] ; T2 NOLINT(whitespace/line_length)
                                           pld(CurrentCond(),
                                               MemOperand(Register(rn),
                                                          minus,
@@ -16560,9 +16362,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           unsigned rt = (instr >> 12) & 0xf;
                                           unsigned rn = (instr >> 16) & 0xf;
                                           int32_t offset = instr & 0xff;
-                                          // LDRB{<c>}{<q>} <Rt>, [<Rn>{,
-                                          // #-<imm_2>}] ; T3
-                                          // NOLINT(whitespace/line_length)
+                                          // LDRB{<c>}{<q>} <Rt>, [<Rn>{, #-<imm_2>}] ; T3 NOLINT(whitespace/line_length)
                                           ldrb(CurrentCond(),
                                                Best,
                                                Register(rt),
@@ -16598,9 +16398,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   Sign sign((((instr >> 9) & 0x1) == 0) ? minus
                                                                         : plus);
                                   int32_t offset = instr & 0xff;
-                                  // LDRB{<c>}{<q>} <Rt>, [<Rn>{,
-                                  // #{+/-}<imm_2>}]! ; T3
-                                  // NOLINT(whitespace/line_length)
+                                  // LDRB{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_2>}]! ; T3 NOLINT(whitespace/line_length)
                                   ldrb(CurrentCond(),
                                        Best,
                                        Register(rt),
@@ -16638,9 +16436,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           Shift shift = LSL;
                                           uint32_t amount = (instr >> 4) & 0x3;
                                           AddrMode addrmode = Offset;
-                                          // PLDW{<c>}{<q>} [<Rn>, {+}<Rm>{, LSL
-                                          // #<amount>}] ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // PLDW{<c>}{<q>} [<Rn>, {+}<Rm>{, LSL #<amount>}] ; T1 NOLINT(whitespace/line_length)
                                           pldw(CurrentCond(),
                                                MemOperand(Register(rn),
                                                           sign,
@@ -16668,9 +16464,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (rm < kNumberOfT32LowRegisters) &&
                                               shift.IsLSL() && (amount == 0) &&
                                               sign.IsPlus()) {
-                                            // LDRH{<c>}.W <Rt>, [<Rn>,
-                                            // #{+}<Rm>] ; T2
-                                            // NOLINT(whitespace/line_length)
+                                            // LDRH{<c>}.W <Rt>, [<Rn>, #{+}<Rm>] ; T2 NOLINT(whitespace/line_length)
                                             ldrh(CurrentCond(),
                                                  Wide,
                                                  Register(rt),
@@ -16679,9 +16473,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                             Register(rm),
                                                             addrmode));
                                           } else {
-                                            // LDRH{<c>}{<q>} <Rt>, [<Rn>,
-                                            // {+}<Rm>{, LSL #<imm>}] ; T2
-                                            // NOLINT(whitespace/line_length)
+                                            // LDRH{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2 NOLINT(whitespace/line_length)
                                             ldrh(CurrentCond(),
                                                  Best,
                                                  Register(rt),
@@ -16715,8 +16507,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   Sign sign((((instr >> 9) & 0x1) == 0) ? minus
                                                                         : plus);
                                   int32_t offset = instr & 0xff;
-                                  // LDRH{<c>}{<q>} <Rt>, [<Rn>], #{+/-}<imm_2>
-                                  // ; T3 NOLINT(whitespace/line_length)
+                                  // LDRH{<c>}{<q>} <Rt>, [<Rn>], #{+/-}<imm_2> ; T3 NOLINT(whitespace/line_length)
                                   ldrh(CurrentCond(),
                                        Best,
                                        Register(rt),
@@ -16740,8 +16531,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rn = (instr >> 16) & 0xf;
                                           int32_t offset = instr & 0xff;
-                                          // PLDW{<c>}{<q>} [<Rn>{, #-<imm_1>}]
-                                          // ; T2 NOLINT(whitespace/line_length)
+                                          // PLDW{<c>}{<q>} [<Rn>{, #-<imm_1>}] ; T2 NOLINT(whitespace/line_length)
                                           pldw(CurrentCond(),
                                                MemOperand(Register(rn),
                                                           minus,
@@ -16758,9 +16548,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           unsigned rt = (instr >> 12) & 0xf;
                                           unsigned rn = (instr >> 16) & 0xf;
                                           int32_t offset = instr & 0xff;
-                                          // LDRH{<c>}{<q>} <Rt>, [<Rn>{,
-                                          // #-<imm_2>}] ; T3
-                                          // NOLINT(whitespace/line_length)
+                                          // LDRH{<c>}{<q>} <Rt>, [<Rn>{, #-<imm_2>}] ; T3 NOLINT(whitespace/line_length)
                                           ldrh(CurrentCond(),
                                                Best,
                                                Register(rt),
@@ -16796,9 +16584,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   Sign sign((((instr >> 9) & 0x1) == 0) ? minus
                                                                         : plus);
                                   int32_t offset = instr & 0xff;
-                                  // LDRH{<c>}{<q>} <Rt>, [<Rn>{,
-                                  // #{+/-}<imm_2>}]! ; T3
-                                  // NOLINT(whitespace/line_length)
+                                  // LDRH{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_2>}]! ; T3 NOLINT(whitespace/line_length)
                                   ldrh(CurrentCond(),
                                        Best,
                                        Register(rt),
@@ -16846,8 +16632,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   if ((rt < kNumberOfT32LowRegisters) &&
                                       (rn < kNumberOfT32LowRegisters) &&
                                       ((offset >= 0) && (offset <= 31))) {
-                                    // LDRB{<c>}.W <Rt>, [<Rn>{, #{+}<imm_1>}] ;
-                                    // T2 NOLINT(whitespace/line_length)
+                                    // LDRB{<c>}.W <Rt>, [<Rn>{, #{+}<imm_1>}] ; T2 NOLINT(whitespace/line_length)
                                     ldrb(CurrentCond(),
                                          Wide,
                                          Register(rt),
@@ -16856,9 +16641,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                     offset,
                                                     Offset));
                                   } else {
-                                    // LDRB{<c>}{<q>} <Rt>, [<Rn>{,
-                                    // #{+}<imm_1>}] ; T2
-                                    // NOLINT(whitespace/line_length)
+                                    // LDRB{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm_1>}] ; T2 NOLINT(whitespace/line_length)
                                     ldrb(CurrentCond(),
                                          Best,
                                          Register(rt),
@@ -16904,8 +16687,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       (rn < kNumberOfT32LowRegisters) &&
                                       ((offset >= 0) && (offset <= 62) &&
                                        ((offset & 1) == 0))) {
-                                    // LDRH{<c>}.W <Rt>, [<Rn>{, #{+}<imm_1>}] ;
-                                    // T2 NOLINT(whitespace/line_length)
+                                    // LDRH{<c>}.W <Rt>, [<Rn>{, #{+}<imm_1>}] ; T2 NOLINT(whitespace/line_length)
                                     ldrh(CurrentCond(),
                                          Wide,
                                          Register(rt),
@@ -16914,9 +16696,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                     offset,
                                                     Offset));
                                   } else {
-                                    // LDRH{<c>}{<q>} <Rt>, [<Rn>{,
-                                    // #{+}<imm_1>}] ; T2
-                                    // NOLINT(whitespace/line_length)
+                                    // LDRH{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm_1>}] ; T2 NOLINT(whitespace/line_length)
                                     ldrh(CurrentCond(),
                                          Best,
                                          Register(rt),
@@ -16986,8 +16766,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             (rm < kNumberOfT32LowRegisters) &&
                                             shift.IsLSL() && (amount == 0) &&
                                             sign.IsPlus()) {
-                                          // LDR{<c>}.W <Rt>, [<Rn>, #{+}<Rm>] ;
-                                          // T2 NOLINT(whitespace/line_length)
+                                          // LDR{<c>}.W <Rt>, [<Rn>, #{+}<Rm>] ; T2 NOLINT(whitespace/line_length)
                                           ldr(CurrentCond(),
                                               Wide,
                                               Register(rt),
@@ -16996,9 +16775,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                          Register(rm),
                                                          addrmode));
                                         } else {
-                                          // LDR{<c>}{<q>} <Rt>, [<Rn>,
-                                          // {+}<Rm>{, LSL #<imm>}] ; T2
-                                          // NOLINT(whitespace/line_length)
+                                          // LDR{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2 NOLINT(whitespace/line_length)
                                           ldr(CurrentCond(),
                                               Best,
                                               Register(rt),
@@ -17028,15 +16805,12 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                            Uint32(0x4))) {
                                         unsigned rt = (instr >> 12) & 0xf;
                                         if ((rt <= 7) || (rt == kPCRegNum)) {
-                                          // POP{<c>}.W <single_register_list> ;
-                                          // T4 NOLINT(whitespace/line_length)
+                                          // POP{<c>}.W <single_register_list> ; T4 NOLINT(whitespace/line_length)
                                           pop(CurrentCond(),
                                               Wide,
                                               Register(rt));
                                         } else {
-                                          // POP{<c>}{<q>}
-                                          // <single_register_list> ; T4
-                                          // NOLINT(whitespace/line_length)
+                                          // POP{<c>}{<q>} <single_register_list> ; T4 NOLINT(whitespace/line_length)
                                           pop(CurrentCond(),
                                               Best,
                                               Register(rt));
@@ -17049,9 +16823,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                     ? minus
                                                     : plus);
                                       int32_t offset = instr & 0xff;
-                                      // LDR{<c>}{<q>} <Rt>, [<Rn>],
-                                      // #{+/-}<imm_2> ; T4
-                                      // NOLINT(whitespace/line_length)
+                                      // LDR{<c>}{<q>} <Rt>, [<Rn>], #{+/-}<imm_2> ; T4 NOLINT(whitespace/line_length)
                                       ldr(CurrentCond(),
                                           Best,
                                           Register(rt),
@@ -17073,9 +16845,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           unsigned rt = (instr >> 12) & 0xf;
                                           unsigned rn = (instr >> 16) & 0xf;
                                           int32_t offset = instr & 0xff;
-                                          // LDR{<c>}{<q>} <Rt>, [<Rn>{,
-                                          // #-<imm_2>}] ; T4
-                                          // NOLINT(whitespace/line_length)
+                                          // LDR{<c>}{<q>} <Rt>, [<Rn>{, #-<imm_2>}] ; T4 NOLINT(whitespace/line_length)
                                           ldr(CurrentCond(),
                                               Best,
                                               Register(rt),
@@ -17109,9 +16879,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                     ? minus
                                                     : plus);
                                       int32_t offset = instr & 0xff;
-                                      // LDR{<c>}{<q>} <Rt>, [<Rn>{,
-                                      // #{+/-}<imm_2>}]! ; T4
-                                      // NOLINT(whitespace/line_length)
+                                      // LDR{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_2>}]! ; T4 NOLINT(whitespace/line_length)
                                       ldr(CurrentCond(),
                                           Best,
                                           Register(rt),
@@ -17145,8 +16913,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                        (rn == sp.GetCode()) &&
                                        ((offset >= 0) && (offset <= 1020) &&
                                         ((offset & 3) == 0)))) {
-                                    // LDR{<c>}.W <Rt>, [<Rn>{, #{+}<imm_1>}] ;
-                                    // T3 NOLINT(whitespace/line_length)
+                                    // LDR{<c>}.W <Rt>, [<Rn>{, #{+}<imm_1>}] ; T3 NOLINT(whitespace/line_length)
                                     ldr(CurrentCond(),
                                         Wide,
                                         Register(rt),
@@ -17155,8 +16922,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                    offset,
                                                    Offset));
                                   } else {
-                                    // LDR{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm_1>}]
-                                    // ; T3 NOLINT(whitespace/line_length)
+                                    // LDR{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm_1>}] ; T3 NOLINT(whitespace/line_length)
                                     ldr(CurrentCond(),
                                         Best,
                                         Register(rt),
@@ -17243,9 +17009,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               uint32_t amount =
                                                   (instr >> 4) & 0x3;
                                               AddrMode addrmode = Offset;
-                                              // PLI{<c>}{<q>} [<Rn>, {+}<Rm>{,
-                                              // LSL #<amount>}] ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // PLI{<c>}{<q>} [<Rn>, {+}<Rm>{, LSL #<amount>}] ; T1 NOLINT(whitespace/line_length)
                                               pli(CurrentCond(),
                                                   MemOperand(Register(rn),
                                                              sign,
@@ -17280,9 +17044,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   shift.IsLSL() &&
                                                   (amount == 0) &&
                                                   sign.IsPlus()) {
-                                                // LDRSB{<c>}.W <Rt>, [<Rn>,
-                                                // #{+}<Rm>] ; T2
-                                                // NOLINT(whitespace/line_length)
+                                                // LDRSB{<c>}.W <Rt>, [<Rn>, #{+}<Rm>] ; T2 NOLINT(whitespace/line_length)
                                                 ldrsb(CurrentCond(),
                                                       Wide,
                                                       Register(rt),
@@ -17291,9 +17053,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                  Register(rm),
                                                                  addrmode));
                                               } else {
-                                                // LDRSB{<c>}{<q>} <Rt>, [<Rn>,
-                                                // {+}<Rm>{, LSL #<imm>}] ; T2
-                                                // NOLINT(whitespace/line_length)
+                                                // LDRSB{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2 NOLINT(whitespace/line_length)
                                                 ldrsb(CurrentCond(),
                                                       Best,
                                                       Register(rt),
@@ -17328,9 +17088,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                     ? minus
                                                     : plus);
                                       int32_t offset = instr & 0xff;
-                                      // LDRSB{<c>}{<q>} <Rt>, [<Rn>],
-                                      // #{+/-}<imm_1> ; T2
-                                      // NOLINT(whitespace/line_length)
+                                      // LDRSB{<c>}{<q>} <Rt>, [<Rn>], #{+/-}<imm_1> ; T2 NOLINT(whitespace/line_length)
                                       ldrsb(CurrentCond(),
                                             Best,
                                             Register(rt),
@@ -17355,9 +17113,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               }
                                               unsigned rn = (instr >> 16) & 0xf;
                                               int32_t offset = instr & 0xff;
-                                              // PLI{<c>}{<q>} [<Rn>{,
-                                              // #-<imm_1>}] ; T2
-                                              // NOLINT(whitespace/line_length)
+                                              // PLI{<c>}{<q>} [<Rn>{, #-<imm_1>}] ; T2 NOLINT(whitespace/line_length)
                                               pli(CurrentCond(),
                                                   MemOperand(Register(rn),
                                                              minus,
@@ -17376,9 +17132,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               unsigned rt = (instr >> 12) & 0xf;
                                               unsigned rn = (instr >> 16) & 0xf;
                                               int32_t offset = instr & 0xff;
-                                              // LDRSB{<c>}{<q>} <Rt>, [<Rn>{,
-                                              // #-<imm_1>}] ; T2
-                                              // NOLINT(whitespace/line_length)
+                                              // LDRSB{<c>}{<q>} <Rt>, [<Rn>{, #-<imm_1>}] ; T2 NOLINT(whitespace/line_length)
                                               ldrsb(CurrentCond(),
                                                     Best,
                                                     Register(rt),
@@ -17415,9 +17169,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                     ? minus
                                                     : plus);
                                       int32_t offset = instr & 0xff;
-                                      // LDRSB{<c>}{<q>} <Rt>, [<Rn>{,
-                                      // #{+/-}<imm_1>}]! ; T2
-                                      // NOLINT(whitespace/line_length)
+                                      // LDRSB{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_1>}]! ; T2 NOLINT(whitespace/line_length)
                                       ldrsb(CurrentCond(),
                                             Best,
                                             Register(rt),
@@ -17462,9 +17214,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       unsigned rt = (instr >> 12) & 0xf;
                                       unsigned rn = (instr >> 16) & 0xf;
                                       int32_t offset = instr & 0xfff;
-                                      // LDRSB{<c>}{<q>} <Rt>, [<Rn>{,
-                                      // #{+}<imm>}] ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // LDRSB{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1 NOLINT(whitespace/line_length)
                                       ldrsb(CurrentCond(),
                                             Best,
                                             Register(rt),
@@ -17527,8 +17277,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             (rm < kNumberOfT32LowRegisters) &&
                                             shift.IsLSL() && (amount == 0) &&
                                             sign.IsPlus()) {
-                                          // LDRSH{<c>}.W <Rt>, [<Rn>, #{+}<Rm>]
-                                          // ; T2 NOLINT(whitespace/line_length)
+                                          // LDRSH{<c>}.W <Rt>, [<Rn>, #{+}<Rm>] ; T2 NOLINT(whitespace/line_length)
                                           ldrsh(CurrentCond(),
                                                 Wide,
                                                 Register(rt),
@@ -17537,9 +17286,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                            Register(rm),
                                                            addrmode));
                                         } else {
-                                          // LDRSH{<c>}{<q>} <Rt>, [<Rn>,
-                                          // {+}<Rm>{, LSL #<imm>}] ; T2
-                                          // NOLINT(whitespace/line_length)
+                                          // LDRSH{<c>}{<q>} <Rt>, [<Rn>, {+}<Rm>{, LSL #<imm>}] ; T2 NOLINT(whitespace/line_length)
                                           ldrsh(CurrentCond(),
                                                 Best,
                                                 Register(rt),
@@ -17567,9 +17314,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                     ? minus
                                                     : plus);
                                       int32_t offset = instr & 0xff;
-                                      // LDRSH{<c>}{<q>} <Rt>, [<Rn>],
-                                      // #{+/-}<imm_1> ; T2
-                                      // NOLINT(whitespace/line_length)
+                                      // LDRSH{<c>}{<q>} <Rt>, [<Rn>], #{+/-}<imm_1> ; T2 NOLINT(whitespace/line_length)
                                       ldrsh(CurrentCond(),
                                             Best,
                                             Register(rt),
@@ -17592,9 +17337,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           unsigned rt = (instr >> 12) & 0xf;
                                           unsigned rn = (instr >> 16) & 0xf;
                                           int32_t offset = instr & 0xff;
-                                          // LDRSH{<c>}{<q>} <Rt>, [<Rn>{,
-                                          // #-<imm_1>}] ; T2
-                                          // NOLINT(whitespace/line_length)
+                                          // LDRSH{<c>}{<q>} <Rt>, [<Rn>{, #-<imm_1>}] ; T2 NOLINT(whitespace/line_length)
                                           ldrsh(CurrentCond(),
                                                 Best,
                                                 Register(rt),
@@ -17628,9 +17371,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                     ? minus
                                                     : plus);
                                       int32_t offset = instr & 0xff;
-                                      // LDRSH{<c>}{<q>} <Rt>, [<Rn>{,
-                                      // #{+/-}<imm_1>}]! ; T2
-                                      // NOLINT(whitespace/line_length)
+                                      // LDRSH{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_1>}]! ; T2 NOLINT(whitespace/line_length)
                                       ldrsh(CurrentCond(),
                                             Best,
                                             Register(rt),
@@ -17657,8 +17398,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned rt = (instr >> 12) & 0xf;
                                   unsigned rn = (instr >> 16) & 0xf;
                                   int32_t offset = instr & 0xfff;
-                                  // LDRSH{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ;
-                                  // T1 NOLINT(whitespace/line_length)
+                                  // LDRSH{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1 NOLINT(whitespace/line_length)
                                   ldrsh(CurrentCond(),
                                         Best,
                                         Register(rt),
@@ -17741,8 +17481,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                             }
                           } else {
                             VIXL_ASSERT((instr & 0x00100000) == 0x00000000);
-                            // AND{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                            // #<amount> } ; T2 NOLINT(whitespace/line_length)
+                            // AND{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                             and_(CurrentCond(),
                                  Best,
                                  Register(rd),
@@ -17807,8 +17546,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                             }
                           } else {
                             VIXL_ASSERT((instr & 0x00100000) == 0x00000000);
-                            // BIC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                            // #<amount> } ; T2 NOLINT(whitespace/line_length)
+                            // BIC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                             bic(CurrentCond(),
                                 Best,
                                 Register(rd),
@@ -17973,8 +17711,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               if ((instr & 0x00100000) == 0x00000000 &&
                                   (shift_operand.GetShift().IsLSL() &&
                                    (shift_operand.GetAmount() == 0))) {
-                                // MOV<c>.W <Rd>, <Rm> {, <shift> #<amount> } ;
-                                // T3 NOLINT(whitespace/line_length)
+                                // MOV<c>.W <Rd>, <Rm> {, <shift> #<amount> } ; T3 NOLINT(whitespace/line_length)
                                 mov(CurrentCond(),
                                     Wide,
                                     Register(rd),
@@ -17988,8 +17725,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                          (instr & 0x00100000) == 0x00000000 &&
                                          ((rd < kNumberOfT32LowRegisters) &&
                                           (rm < kNumberOfT32LowRegisters))) {
-                                // MOV<c>.W <Rd>, <Rm> {, <shift> #<amount> } ;
-                                // T3 NOLINT(whitespace/line_length)
+                                // MOV<c>.W <Rd>, <Rm> {, <shift> #<amount> } ; T3 NOLINT(whitespace/line_length)
                                 mov(CurrentCond(),
                                     Wide,
                                     Register(rd),
@@ -18001,8 +17737,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 }
                               } else {
                                 VIXL_ASSERT((instr & 0x00100000) == 0x00000000);
-                                // MOV{<c>}{<q>} <Rd>, <Rm> {, <shift> #<amount>
-                                // } ; T3 NOLINT(whitespace/line_length)
+                                // MOV{<c>}{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T3 NOLINT(whitespace/line_length)
                                 mov(CurrentCond(),
                                     Best,
                                     Register(rd),
@@ -18071,9 +17806,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 }
                               } else {
                                 VIXL_ASSERT((instr & 0x00100000) == 0x00000000);
-                                // ORR{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                                // #<amount> } ; T2
-                                // NOLINT(whitespace/line_length)
+                                // ORR{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                                 orr(CurrentCond(),
                                     Best,
                                     Register(rd),
@@ -18140,8 +17873,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 }
                               } else {
                                 VIXL_ASSERT((instr & 0x00100000) == 0x00000000);
-                                // MVN{<c>}{<q>} <Rd>, <Rm> {, <shift> #<amount>
-                                // } ; T2 NOLINT(whitespace/line_length)
+                                // MVN{<c>}{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                                 mvn(CurrentCond(),
                                     Best,
                                     Register(rd),
@@ -18191,8 +17923,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   shift_operand((instr >> 4) & 0x3,
                                                 ((instr >> 6) & 0x3) |
                                                     ((instr >> 10) & 0x1c));
-                              // ORN{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                              // #<amount> } ; T1 NOLINT(whitespace/line_length)
+                              // ORN{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T1 NOLINT(whitespace/line_length)
                               orn(CurrentCond(),
                                   Register(rd),
                                   Register(rn),
@@ -18260,8 +17991,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   UnpredictableT32(instr);
                                 }
                               } else {
-                                // TST{<c>}{<q>} <Rn>, <Rm> {, <shift> #<amount>
-                                // } ; T2 NOLINT(whitespace/line_length)
+                                // TST{<c>}{<q>} <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                                 tst(CurrentCond(),
                                     Best,
                                     Register(rn),
@@ -18330,9 +18060,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 }
                               } else {
                                 VIXL_ASSERT((instr & 0x00100000) == 0x00100000);
-                                // ANDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                                // #<amount> } ; T2
-                                // NOLINT(whitespace/line_length)
+                                // ANDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                                 ands(CurrentCond(),
                                      Best,
                                      Register(rd),
@@ -18400,8 +18128,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                             }
                           } else {
                             VIXL_ASSERT((instr & 0x00100000) == 0x00100000);
-                            // BICS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                            // #<amount> } ; T2 NOLINT(whitespace/line_length)
+                            // BICS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                             bics(CurrentCond(),
                                  Best,
                                  Register(rd),
@@ -18579,9 +18306,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 }
                               } else {
                                 VIXL_ASSERT((instr & 0x00100000) == 0x00100000);
-                                // MOVS{<c>}{<q>} <Rd>, <Rm> {, <shift>
-                                // #<amount> } ; T3
-                                // NOLINT(whitespace/line_length)
+                                // MOVS{<c>}{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T3 NOLINT(whitespace/line_length)
                                 movs(CurrentCond(),
                                      Best,
                                      Register(rd),
@@ -18650,9 +18375,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 }
                               } else {
                                 VIXL_ASSERT((instr & 0x00100000) == 0x00100000);
-                                // ORRS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                                // #<amount> } ; T2
-                                // NOLINT(whitespace/line_length)
+                                // ORRS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                                 orrs(CurrentCond(),
                                      Best,
                                      Register(rd),
@@ -18719,9 +18442,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 }
                               } else {
                                 VIXL_ASSERT((instr & 0x00100000) == 0x00100000);
-                                // MVNS{<c>}{<q>} <Rd>, <Rm> {, <shift>
-                                // #<amount> } ; T2
-                                // NOLINT(whitespace/line_length)
+                                // MVNS{<c>}{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                                 mvns(CurrentCond(),
                                      Best,
                                      Register(rd),
@@ -18771,8 +18492,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   shift_operand((instr >> 4) & 0x3,
                                                 ((instr >> 6) & 0x3) |
                                                     ((instr >> 10) & 0x1c));
-                              // ORNS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                              // #<amount> } ; T1 NOLINT(whitespace/line_length)
+                              // ORNS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T1 NOLINT(whitespace/line_length)
                               orns(CurrentCond(),
                                    Register(rd),
                                    Register(rn),
@@ -18844,8 +18564,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                             }
                           } else {
                             VIXL_ASSERT((instr & 0x00100000) == 0x00000000);
-                            // EOR{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                            // #<amount> } ; T2 NOLINT(whitespace/line_length)
+                            // EOR{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                             eor(CurrentCond(),
                                 Best,
                                 Register(rd),
@@ -18872,8 +18591,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           unsigned rm = instr & 0xf;
                           uint32_t amount =
                               ((instr >> 6) & 0x3) | ((instr >> 10) & 0x1c);
-                          // PKHBT{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, LSL #<imm> }
-                          // ; T1 NOLINT(whitespace/line_length)
+                          // PKHBT{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, LSL #<imm> } ; T1 NOLINT(whitespace/line_length)
                           pkhbt(CurrentCond(),
                                 Register(rd),
                                 Register(rn),
@@ -18891,8 +18609,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           uint32_t amount =
                               ((instr >> 6) & 0x3) | ((instr >> 10) & 0x1c);
                           if (amount == 0) amount = 32;
-                          // PKHTB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ASR #<imm> }
-                          // ; T1 NOLINT(whitespace/line_length)
+                          // PKHTB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ASR #<imm> } ; T1 NOLINT(whitespace/line_length)
                           pkhtb(CurrentCond(),
                                 Register(rd),
                                 Register(rn),
@@ -18949,8 +18666,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   shift_operand((instr >> 4) & 0x3,
                                                 ((instr >> 6) & 0x3) |
                                                     ((instr >> 10) & 0x1c));
-                              // TEQ{<c>}{<q>} <Rn>, <Rm> {, <shift> #<amount> }
-                              // ; T1 NOLINT(whitespace/line_length)
+                              // TEQ{<c>}{<q>} <Rn>, <Rm> {, <shift> #<amount> } ; T1 NOLINT(whitespace/line_length)
                               teq(CurrentCond(),
                                   Register(rn),
                                   Operand(Register(rm),
@@ -19017,9 +18733,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 }
                               } else {
                                 VIXL_ASSERT((instr & 0x00100000) == 0x00100000);
-                                // EORS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                                // #<amount> } ; T2
-                                // NOLINT(whitespace/line_length)
+                                // EORS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                                 eors(CurrentCond(),
                                      Best,
                                      Register(rd),
@@ -19096,9 +18810,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 }
                               } else {
                                 VIXL_ASSERT((instr & 0x00100000) == 0x00000000);
-                                // ADD{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift>
-                                // #<amount> } ; T3
-                                // NOLINT(whitespace/line_length)
+                                // ADD{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift> #<amount> } ; T3 NOLINT(whitespace/line_length)
                                 add(CurrentCond(),
                                     Best,
                                     Register(rd),
@@ -19181,9 +18893,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 }
                               } else {
                                 VIXL_ASSERT((instr & 0x00100000) == 0x00000000);
-                                // ADD{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                                // #<amount> } ; T3
-                                // NOLINT(whitespace/line_length)
+                                // ADD{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T3 NOLINT(whitespace/line_length)
                                 add(CurrentCond(),
                                     Best,
                                     Register(rd),
@@ -19251,8 +18961,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                             }
                           } else {
                             VIXL_ASSERT((instr & 0x00100000) == 0x00000000);
-                            // ADC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                            // #<amount> } ; T2 NOLINT(whitespace/line_length)
+                            // ADC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                             adc(CurrentCond(),
                                 Best,
                                 Register(rd),
@@ -19317,8 +19026,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                             }
                           } else {
                             VIXL_ASSERT((instr & 0x00100000) == 0x00000000);
-                            // SBC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                            // #<amount> } ; T2 NOLINT(whitespace/line_length)
+                            // SBC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                             sbc(CurrentCond(),
                                 Best,
                                 Register(rd),
@@ -19389,8 +19097,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   UnpredictableT32(instr);
                                 }
                               } else {
-                                // CMN{<c>}{<q>} <Rn>, <Rm> {, <shift> #<amount>
-                                // } ; T2 NOLINT(whitespace/line_length)
+                                // CMN{<c>}{<q>} <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                                 cmn(CurrentCond(),
                                     Best,
                                     Register(rn),
@@ -19442,9 +19149,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       shift_operand((instr >> 4) & 0x3,
                                                     ((instr >> 6) & 0x3) |
                                                         ((instr >> 10) & 0x1c));
-                                  // ADDS{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift>
-                                  // #<amount> } ; T3
-                                  // NOLINT(whitespace/line_length)
+                                  // ADDS{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift> #<amount> } ; T3 NOLINT(whitespace/line_length)
                                   adds(CurrentCond(),
                                        Best,
                                        Register(rd),
@@ -19516,9 +19221,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   } else {
                                     VIXL_ASSERT((instr & 0x00100000) ==
                                                 0x00100000);
-                                    // ADDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {,
-                                    // <shift> #<amount> } ; T3
-                                    // NOLINT(whitespace/line_length)
+                                    // ADDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T3 NOLINT(whitespace/line_length)
                                     adds(CurrentCond(),
                                          Best,
                                          Register(rd),
@@ -19589,8 +19292,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                             }
                           } else {
                             VIXL_ASSERT((instr & 0x00100000) == 0x00100000);
-                            // ADCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                            // #<amount> } ; T2 NOLINT(whitespace/line_length)
+                            // ADCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                             adcs(CurrentCond(),
                                  Best,
                                  Register(rd),
@@ -19655,8 +19357,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                             }
                           } else {
                             VIXL_ASSERT((instr & 0x00100000) == 0x00100000);
-                            // SBCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                            // #<amount> } ; T2 NOLINT(whitespace/line_length)
+                            // SBCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                             sbcs(CurrentCond(),
                                  Best,
                                  Register(rd),
@@ -19729,9 +19430,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 }
                               } else {
                                 VIXL_ASSERT((instr & 0x00100000) == 0x00000000);
-                                // SUB{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift>
-                                // #<amount> } ; T1
-                                // NOLINT(whitespace/line_length)
+                                // SUB{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift> #<amount> } ; T1 NOLINT(whitespace/line_length)
                                 sub(CurrentCond(),
                                     Best,
                                     Register(rd),
@@ -19801,9 +19500,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 }
                               } else {
                                 VIXL_ASSERT((instr & 0x00100000) == 0x00000000);
-                                // SUB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                                // #<amount> } ; T2
-                                // NOLINT(whitespace/line_length)
+                                // SUB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                                 sub(CurrentCond(),
                                     Best,
                                     Register(rd),
@@ -19854,8 +19551,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               shift_operand((instr >> 4) & 0x3,
                                             ((instr >> 6) & 0x3) |
                                                 ((instr >> 10) & 0x1c));
-                          // RSB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                          // #<amount> } ; T1 NOLINT(whitespace/line_length)
+                          // RSB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T1 NOLINT(whitespace/line_length)
                           rsb(CurrentCond(),
                               Best,
                               Register(rd),
@@ -19923,8 +19619,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   UnpredictableT32(instr);
                                 }
                               } else {
-                                // CMP{<c>}{<q>} <Rn>, <Rm>, <shift> #<amount> ;
-                                // T3 NOLINT(whitespace/line_length)
+                                // CMP{<c>}{<q>} <Rn>, <Rm>, <shift> #<amount> ; T3 NOLINT(whitespace/line_length)
                                 cmp(CurrentCond(),
                                     Best,
                                     Register(rn),
@@ -19976,9 +19671,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       shift_operand((instr >> 4) & 0x3,
                                                     ((instr >> 6) & 0x3) |
                                                         ((instr >> 10) & 0x1c));
-                                  // SUBS{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift>
-                                  // #<amount> } ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // SUBS{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift> #<amount> } ; T1 NOLINT(whitespace/line_length)
                                   subs(CurrentCond(),
                                        Best,
                                        Register(rd),
@@ -20050,9 +19743,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   } else {
                                     VIXL_ASSERT((instr & 0x00100000) ==
                                                 0x00100000);
-                                    // SUBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {,
-                                    // <shift> #<amount> } ; T2
-                                    // NOLINT(whitespace/line_length)
+                                    // SUBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2 NOLINT(whitespace/line_length)
                                     subs(CurrentCond(),
                                          Best,
                                          Register(rd),
@@ -20106,8 +19797,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               shift_operand((instr >> 4) & 0x3,
                                             ((instr >> 6) & 0x3) |
                                                 ((instr >> 10) & 0x1c));
-                          // RSBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                          // #<amount> } ; T1 NOLINT(whitespace/line_length)
+                          // RSBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T1 NOLINT(whitespace/line_length)
                           rsbs(CurrentCond(),
                                Best,
                                Register(rd),
@@ -20285,8 +19975,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   UnpredictableT32(instr);
                                 }
                               } else {
-                                // SXTH{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount>
-                                // } ; T2 NOLINT(whitespace/line_length)
+                                // SXTH{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount> } ; T2 NOLINT(whitespace/line_length)
                                 sxth(CurrentCond(),
                                      Best,
                                      Register(rd),
@@ -20306,8 +19995,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
                               uint32_t amount = ((instr >> 4) & 0x3) * 8;
-                              // SXTAH{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR
-                              // #<amount> } ; T1 NOLINT(whitespace/line_length)
+                              // SXTAH{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; T1 NOLINT(whitespace/line_length)
                               sxtah(CurrentCond(),
                                     Register(rd),
                                     Register(rn),
@@ -20328,8 +20016,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned rd = (instr >> 8) & 0xf;
                               unsigned rm = instr & 0xf;
                               uint32_t amount = ((instr >> 4) & 0x3) * 8;
-                              // SXTB16{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount>
-                              // } ; T1 NOLINT(whitespace/line_length)
+                              // SXTB16{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount> } ; T1 NOLINT(whitespace/line_length)
                               sxtb16(CurrentCond(),
                                      Register(rd),
                                      Operand(Register(rm), ROR, amount));
@@ -20347,8 +20034,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
                               uint32_t amount = ((instr >> 4) & 0x3) * 8;
-                              // SXTAB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR
-                              // #<amount> } ; T1 NOLINT(whitespace/line_length)
+                              // SXTAB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; T1 NOLINT(whitespace/line_length)
                               sxtab16(CurrentCond(),
                                       Register(rd),
                                       Register(rn),
@@ -20381,8 +20067,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   UnpredictableT32(instr);
                                 }
                               } else {
-                                // SXTB{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount>
-                                // } ; T2 NOLINT(whitespace/line_length)
+                                // SXTB{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount> } ; T2 NOLINT(whitespace/line_length)
                                 sxtb(CurrentCond(),
                                      Best,
                                      Register(rd),
@@ -20402,8 +20087,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
                               uint32_t amount = ((instr >> 4) & 0x3) * 8;
-                              // SXTAB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR
-                              // #<amount> } ; T1 NOLINT(whitespace/line_length)
+                              // SXTAB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; T1 NOLINT(whitespace/line_length)
                               sxtab(CurrentCond(),
                                     Register(rd),
                                     Register(rn),
@@ -20586,8 +20270,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   UnpredictableT32(instr);
                                 }
                               } else {
-                                // UXTH{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount>
-                                // } ; T2 NOLINT(whitespace/line_length)
+                                // UXTH{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount> } ; T2 NOLINT(whitespace/line_length)
                                 uxth(CurrentCond(),
                                      Best,
                                      Register(rd),
@@ -20607,8 +20290,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
                               uint32_t amount = ((instr >> 4) & 0x3) * 8;
-                              // UXTAH{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR
-                              // #<amount> } ; T1 NOLINT(whitespace/line_length)
+                              // UXTAH{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; T1 NOLINT(whitespace/line_length)
                               uxtah(CurrentCond(),
                                     Register(rd),
                                     Register(rn),
@@ -20629,8 +20311,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned rd = (instr >> 8) & 0xf;
                               unsigned rm = instr & 0xf;
                               uint32_t amount = ((instr >> 4) & 0x3) * 8;
-                              // UXTB16{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount>
-                              // } ; T1 NOLINT(whitespace/line_length)
+                              // UXTB16{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount> } ; T1 NOLINT(whitespace/line_length)
                               uxtb16(CurrentCond(),
                                      Register(rd),
                                      Operand(Register(rm), ROR, amount));
@@ -20648,8 +20329,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
                               uint32_t amount = ((instr >> 4) & 0x3) * 8;
-                              // UXTAB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR
-                              // #<amount> } ; T1 NOLINT(whitespace/line_length)
+                              // UXTAB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; T1 NOLINT(whitespace/line_length)
                               uxtab16(CurrentCond(),
                                       Register(rd),
                                       Register(rn),
@@ -20682,8 +20362,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   UnpredictableT32(instr);
                                 }
                               } else {
-                                // UXTB{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount>
-                                // } ; T2 NOLINT(whitespace/line_length)
+                                // UXTB{<c>}{<q>} {<Rd>}, <Rm> {, ROR #<amount> } ; T2 NOLINT(whitespace/line_length)
                                 uxtb(CurrentCond(),
                                      Best,
                                      Register(rd),
@@ -20703,8 +20382,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned rm = instr & 0xf;
                               uint32_t amount = ((instr >> 4) & 0x3) * 8;
-                              // UXTAB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR
-                              // #<amount> } ; T1 NOLINT(whitespace/line_length)
+                              // UXTAB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; T1 NOLINT(whitespace/line_length)
                               uxtab(CurrentCond(),
                                     Register(rd),
                                     Register(rn),
@@ -22278,8 +21956,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned len = imm8 / 2;
                               unsigned end = first + len;
                               unsigned last = end - 1;
-                              // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ;
-                              // T1 NOLINT(whitespace/line_length)
+                              // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1 NOLINT(whitespace/line_length)
                               vstm(CurrentCond(),
                                    kDataTypeValueNone,
                                    Register(rn),
@@ -22473,8 +22150,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned len = imm8 / 2;
                               unsigned end = first + len;
                               unsigned last = end - 1;
-                              // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ;
-                              // T1 NOLINT(whitespace/line_length)
+                              // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1 NOLINT(whitespace/line_length)
                               vldm(CurrentCond(),
                                    kDataTypeValueNone,
                                    Register(rn),
@@ -22576,8 +22252,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               Sign sign((((instr >> 23) & 0x1) == 0) ? minus
                                                                      : plus);
                               int32_t offset = (instr & 0xff) << 2;
-                              // VSTR{<c>}{<q>}{.32} <Sd>, [<Rn>{, #{+/-}<imm>}]
-                              // ; T2 NOLINT(whitespace/line_length)
+                              // VSTR{<c>}{<q>}{.32} <Sd>, [<Rn>{, #{+/-}<imm>}] ; T2 NOLINT(whitespace/line_length)
                               vstr(CurrentCond(),
                                    kDataTypeValueNone,
                                    SRegister(rd),
@@ -22594,8 +22269,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               Sign sign((((instr >> 23) & 0x1) == 0) ? minus
                                                                      : plus);
                               int32_t offset = (instr & 0xff) << 2;
-                              // VSTR{<c>}{<q>}{.64} <Dd>, [<Rn>{, #{+/-}<imm>}]
-                              // ; T1 NOLINT(whitespace/line_length)
+                              // VSTR{<c>}{<q>}{.64} <Dd>, [<Rn>{, #{+/-}<imm>}] ; T1 NOLINT(whitespace/line_length)
                               vstr(CurrentCond(),
                                    kDataTypeValueNone,
                                    DRegister(rd),
@@ -22648,8 +22322,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned first = ExtractSRegister(instr, 22, 12);
                               unsigned len = instr & 0xff;
                               unsigned last = first + len - 1;
-                              // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ;
-                              // T2 NOLINT(whitespace/line_length)
+                              // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ; T2 NOLINT(whitespace/line_length)
                               vstmdb(CurrentCond(),
                                      kDataTypeValueNone,
                                      Register(rn),
@@ -22693,8 +22366,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned len = imm8 / 2;
                                   unsigned end = first + len;
                                   unsigned last = end - 1;
-                                  // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist>
-                                  // ; T1 NOLINT(whitespace/line_length)
+                                  // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; T1 NOLINT(whitespace/line_length)
                                   vstmdb(CurrentCond(),
                                          kDataTypeValueNone,
                                          Register(rn),
@@ -22826,9 +22498,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                 ? minus
                                                 : plus);
                                   int32_t offset = (instr & 0xff) << 2;
-                                  // VLDR{<c>}{<q>}{.32} <Sd>, [<Rn>{,
-                                  // #{+/-}<imm>}] ; T2
-                                  // NOLINT(whitespace/line_length)
+                                  // VLDR{<c>}{<q>}{.32} <Sd>, [<Rn>{, #{+/-}<imm>}] ; T2 NOLINT(whitespace/line_length)
                                   vldr(CurrentCond(),
                                        kDataTypeValueNone,
                                        SRegister(rd),
@@ -22850,9 +22520,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                 ? minus
                                                 : plus);
                                   int32_t offset = (instr & 0xff) << 2;
-                                  // VLDR{<c>}{<q>}{.64} <Dd>, [<Rn>{,
-                                  // #{+/-}<imm>}] ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VLDR{<c>}{<q>}{.64} <Dd>, [<Rn>{, #{+/-}<imm>}] ; T1 NOLINT(whitespace/line_length)
                                   vldr(CurrentCond(),
                                        kDataTypeValueNone,
                                        DRegister(rd),
@@ -22892,8 +22560,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned first = ExtractSRegister(instr, 22, 12);
                               unsigned len = instr & 0xff;
                               unsigned last = first + len - 1;
-                              // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ;
-                              // T2 NOLINT(whitespace/line_length)
+                              // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ; T2 NOLINT(whitespace/line_length)
                               vldmdb(CurrentCond(),
                                      kDataTypeValueNone,
                                      Register(rn),
@@ -22918,8 +22585,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned len = imm8 / 2;
                                   unsigned end = first + len;
                                   unsigned last = end - 1;
-                                  // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist>
-                                  // ; T1 NOLINT(whitespace/line_length)
+                                  // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; T1 NOLINT(whitespace/line_length)
                                   vldmdb(CurrentCond(),
                                          kDataTypeValueNone,
                                          Register(rn),
@@ -23700,8 +23366,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractSRegister(instr, 22, 12);
                                       unsigned rm =
                                           ExtractSRegister(instr, 5, 0);
-                                      // VRINTR{<c>}{<q>}.F32.F32 <Sd>, <Sm> ;
-                                      // T1 NOLINT(whitespace/line_length)
+                                      // VRINTR{<c>}{<q>}.F32.F32 <Sd>, <Sm> ; T1 NOLINT(whitespace/line_length)
                                       vrintr(CurrentCond(),
                                              F32,
                                              F32,
@@ -23715,8 +23380,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractSRegister(instr, 22, 12);
                                       unsigned rm =
                                           ExtractSRegister(instr, 5, 0);
-                                      // VRINTZ{<c>}{<q>}.F32.F32 <Sd>, <Sm> ;
-                                      // T1 NOLINT(whitespace/line_length)
+                                      // VRINTZ{<c>}{<q>}.F32.F32 <Sd>, <Sm> ; T1 NOLINT(whitespace/line_length)
                                       vrintz(CurrentCond(),
                                              F32,
                                              F32,
@@ -23730,8 +23394,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractSRegister(instr, 22, 12);
                                       unsigned rm =
                                           ExtractSRegister(instr, 5, 0);
-                                      // VRINTX{<c>}{<q>}.F32.F32 <Sd>, <Sm> ;
-                                      // T1 NOLINT(whitespace/line_length)
+                                      // VRINTX{<c>}{<q>}.F32.F32 <Sd>, <Sm> ; T1 NOLINT(whitespace/line_length)
                                       vrintx(CurrentCond(),
                                              F32,
                                              F32,
@@ -23796,9 +23459,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   uint32_t fbits =
                                       offset - (((instr >> 5) & 0x1) |
                                                 ((instr << 1) & 0x1e));
-                                  // VCVT{<c>}{<q>}.F32.<dt> <Sdm>, <Sdm>,
-                                  // #<fbits> ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VCVT{<c>}{<q>}.F32.<dt> <Sdm>, <Sdm>, #<fbits> ; T1 NOLINT(whitespace/line_length)
                                   vcvt(CurrentCond(),
                                        F32,
                                        dt,
@@ -23886,9 +23547,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   uint32_t fbits =
                                       offset - (((instr >> 5) & 0x1) |
                                                 ((instr << 1) & 0x1e));
-                                  // VCVT{<c>}{<q>}.<dt>.F32 <Sdm>, <Sdm>,
-                                  // #<fbits> ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VCVT{<c>}{<q>}.<dt>.F32 <Sdm>, <Sdm>, #<fbits> ; T1 NOLINT(whitespace/line_length)
                                   vcvt(CurrentCond(),
                                        dt,
                                        F32,
@@ -24108,8 +23767,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractDRegister(instr, 22, 12);
                                       unsigned rm =
                                           ExtractDRegister(instr, 5, 0);
-                                      // VRINTR{<c>}{<q>}.F64.F64 <Dd>, <Dm> ;
-                                      // T1 NOLINT(whitespace/line_length)
+                                      // VRINTR{<c>}{<q>}.F64.F64 <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                       vrintr(CurrentCond(),
                                              F64,
                                              F64,
@@ -24123,8 +23781,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractDRegister(instr, 22, 12);
                                       unsigned rm =
                                           ExtractDRegister(instr, 5, 0);
-                                      // VRINTZ{<c>}{<q>}.F64.F64 <Dd>, <Dm> ;
-                                      // T1 NOLINT(whitespace/line_length)
+                                      // VRINTZ{<c>}{<q>}.F64.F64 <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                       vrintz(CurrentCond(),
                                              F64,
                                              F64,
@@ -24138,8 +23795,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractDRegister(instr, 22, 12);
                                       unsigned rm =
                                           ExtractDRegister(instr, 5, 0);
-                                      // VRINTX{<c>}{<q>}.F64.F64 <Dd>, <Dm> ;
-                                      // T1 NOLINT(whitespace/line_length)
+                                      // VRINTX{<c>}{<q>}.F64.F64 <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                       vrintx(CurrentCond(),
                                              F64,
                                              F64,
@@ -24204,9 +23860,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   uint32_t fbits =
                                       offset - (((instr >> 5) & 0x1) |
                                                 ((instr << 1) & 0x1e));
-                                  // VCVT{<c>}{<q>}.F64.<dt> <Ddm>, <Ddm>,
-                                  // #<fbits> ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VCVT{<c>}{<q>}.F64.<dt> <Ddm>, <Ddm>, #<fbits> ; T1 NOLINT(whitespace/line_length)
                                   vcvt(CurrentCond(),
                                        F64,
                                        dt,
@@ -24294,9 +23948,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   uint32_t fbits =
                                       offset - (((instr >> 5) & 0x1) |
                                                 ((instr << 1) & 0x1e));
-                                  // VCVT{<c>}{<q>}.<dt>.F64 <Ddm>, <Ddm>,
-                                  // #<fbits> ; T1
-                                  // NOLINT(whitespace/line_length)
+                                  // VCVT{<c>}{<q>}.<dt>.F64 <Ddm>, <Ddm>, #<fbits> ; T1 NOLINT(whitespace/line_length)
                                   vcvt(CurrentCond(),
                                        dt,
                                        F64,
@@ -25553,8 +25205,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned rd = ExtractDRegister(instr, 22, 12);
                               unsigned rn = ExtractDRegister(instr, 7, 16);
                               unsigned rm = ExtractDRegister(instr, 5, 0);
-                              // VMLA{<c>}{<q>}.<type><size> <Dd>, <Dn>, <Dm> ;
-                              // T1 NOLINT(whitespace/line_length)
+                              // VMLA{<c>}{<q>}.<type><size> <Dd>, <Dn>, <Dm> ; T1 NOLINT(whitespace/line_length)
                               vmla(CurrentCond(),
                                    dt,
                                    DRegister(rd),
@@ -25573,8 +25224,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned rd = ExtractDRegister(instr, 22, 12);
                               unsigned rn = ExtractDRegister(instr, 7, 16);
                               unsigned rm = ExtractDRegister(instr, 5, 0);
-                              // VMLS{<c>}{<q>}.<type><size> <Dd>, <Dn>, <Dm> ;
-                              // T1 NOLINT(whitespace/line_length)
+                              // VMLS{<c>}{<q>}.<type><size> <Dd>, <Dn>, <Dm> ; T1 NOLINT(whitespace/line_length)
                               vmls(CurrentCond(),
                                    dt,
                                    DRegister(rd),
@@ -25611,8 +25261,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 return;
                               }
                               unsigned rm = ExtractQRegister(instr, 5, 0);
-                              // VMLA{<c>}{<q>}.<type><size> <Qd>, <Qn>, <Qm> ;
-                              // T1 NOLINT(whitespace/line_length)
+                              // VMLA{<c>}{<q>}.<type><size> <Qd>, <Qn>, <Qm> ; T1 NOLINT(whitespace/line_length)
                               vmla(CurrentCond(),
                                    dt,
                                    QRegister(rd),
@@ -25643,8 +25292,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 return;
                               }
                               unsigned rm = ExtractQRegister(instr, 5, 0);
-                              // VMLS{<c>}{<q>}.<type><size> <Qd>, <Qn>, <Qm> ;
-                              // T1 NOLINT(whitespace/line_length)
+                              // VMLS{<c>}{<q>}.<type><size> <Qd>, <Qn>, <Qm> ; T1 NOLINT(whitespace/line_length)
                               vmls(CurrentCond(),
                                    dt,
                                    QRegister(rd),
@@ -26286,8 +25934,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned rn = ExtractDRegister(instr, 7, 16);
                                   unsigned rm = ExtractDRegister(instr, 5, 0);
                                   uint32_t imm = (instr >> 8) & 0xf;
-                                  // VEXT{<c>}{<q>}.8 {<Dd>}, <Dn>, <Dm>, #<imm>
-                                  // ; T1 NOLINT(whitespace/line_length)
+                                  // VEXT{<c>}{<q>}.8 {<Dd>}, <Dn>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vext(CurrentCond(),
                                        Untyped8,
                                        DRegister(rd),
@@ -26314,8 +25961,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   }
                                   unsigned rm = ExtractQRegister(instr, 5, 0);
                                   uint32_t imm = (instr >> 8) & 0xf;
-                                  // VEXT{<c>}{<q>}.8 {<Qd>}, <Qn>, <Qm>, #<imm>
-                                  // ; T1 NOLINT(whitespace/line_length)
+                                  // VEXT{<c>}{<q>}.8 {<Qd>}, <Qn>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vext(CurrentCond(),
                                        Untyped8,
                                        QRegister(rd),
@@ -26348,8 +25994,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractDRegister(instr, 22, 12);
                                           unsigned rm =
                                               ExtractDRegister(instr, 5, 0);
-                                          // VREV64{<c>}{<q>}.<dt> <Dd>, <Dm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VREV64{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                           vrev64(CurrentCond(),
                                                  dt,
                                                  DRegister(rd),
@@ -26376,8 +26021,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rm =
                                               ExtractQRegister(instr, 5, 0);
-                                          // VREV64{<c>}{<q>}.<dt> <Qd>, <Qm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VREV64{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                           vrev64(CurrentCond(),
                                                  dt,
                                                  QRegister(rd),
@@ -26396,8 +26040,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractDRegister(instr, 22, 12);
                                           unsigned rm =
                                               ExtractDRegister(instr, 5, 0);
-                                          // VREV32{<c>}{<q>}.<dt> <Dd>, <Dm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VREV32{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                           vrev32(CurrentCond(),
                                                  dt,
                                                  DRegister(rd),
@@ -26424,8 +26067,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rm =
                                               ExtractQRegister(instr, 5, 0);
-                                          // VREV32{<c>}{<q>}.<dt> <Qd>, <Qm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VREV32{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                           vrev32(CurrentCond(),
                                                  dt,
                                                  QRegister(rd),
@@ -26444,8 +26086,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractDRegister(instr, 22, 12);
                                           unsigned rm =
                                               ExtractDRegister(instr, 5, 0);
-                                          // VREV16{<c>}{<q>}.<dt> <Dd>, <Dm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VREV16{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                           vrev16(CurrentCond(),
                                                  dt,
                                                  DRegister(rd),
@@ -26472,8 +26113,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rm =
                                               ExtractQRegister(instr, 5, 0);
-                                          // VREV16{<c>}{<q>}.<dt> <Qd>, <Qm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VREV16{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                           vrev16(CurrentCond(),
                                                  dt,
                                                  QRegister(rd),
@@ -26624,9 +26264,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                 ExtractDRegister(instr, 22, 12);
                                             unsigned rm =
                                                 ExtractDRegister(instr, 5, 0);
-                                            // VMVN{<c>}{<q>}{.<dt>} <Dd>, <Dm>
-                                            // ; T1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}{.<dt>} <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                             vmvn(CurrentCond(),
                                                  kDataTypeValueNone,
                                                  DRegister(rd),
@@ -26652,9 +26290,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             }
                                             unsigned rm =
                                                 ExtractQRegister(instr, 5, 0);
-                                            // VMVN{<c>}{<q>}{.<dt>} <Qd>, <Qm>
-                                            // ; T1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}{.<dt>} <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                             vmvn(CurrentCond(),
                                                  kDataTypeValueNone,
                                                  QRegister(rd),
@@ -26687,8 +26323,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractDRegister(instr, 22, 12);
                                           unsigned rm =
                                               ExtractDRegister(instr, 5, 0);
-                                          // VPADDL{<c>}{<q>}.<dt> <Dd>, <Dm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VPADDL{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                           vpaddl(CurrentCond(),
                                                  dt,
                                                  DRegister(rd),
@@ -26716,8 +26351,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rm =
                                               ExtractQRegister(instr, 5, 0);
-                                          // VPADDL{<c>}{<q>}.<dt> <Qd>, <Qm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VPADDL{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                           vpaddl(CurrentCond(),
                                                  dt,
                                                  QRegister(rd),
@@ -26773,8 +26407,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractDRegister(instr, 22, 12);
                                           unsigned rm =
                                               ExtractDRegister(instr, 5, 0);
-                                          // VPADAL{<c>}{<q>}.<dt> <Dd>, <Dm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VPADAL{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                           vpadal(CurrentCond(),
                                                  dt,
                                                  DRegister(rd),
@@ -26802,8 +26435,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rm =
                                               ExtractQRegister(instr, 5, 0);
-                                          // VPADAL{<c>}{<q>}.<dt> <Qd>, <Qm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VPADAL{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                           vpadal(CurrentCond(),
                                                  dt,
                                                  QRegister(rd),
@@ -26828,9 +26460,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                    12);
                                               unsigned rm =
                                                   ExtractDRegister(instr, 5, 0);
-                                              // VQABS{<c>}{<q>}.<dt> <Dd>, <Dm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VQABS{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                               vqabs(CurrentCond(),
                                                     dt,
                                                     DRegister(rd),
@@ -26852,9 +26482,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                    12);
                                               unsigned rm =
                                                   ExtractDRegister(instr, 5, 0);
-                                              // VQNEG{<c>}{<q>}.<dt> <Dd>, <Dm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VQNEG{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                               vqneg(CurrentCond(),
                                                     dt,
                                                     DRegister(rd),
@@ -26890,9 +26518,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               }
                                               unsigned rm =
                                                   ExtractQRegister(instr, 5, 0);
-                                              // VQABS{<c>}{<q>}.<dt> <Qd>, <Qm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VQABS{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                               vqabs(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -26922,9 +26548,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               }
                                               unsigned rm =
                                                   ExtractQRegister(instr, 5, 0);
-                                              // VQNEG{<c>}{<q>}.<dt> <Qd>, <Qm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VQNEG{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                               vqneg(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -26953,9 +26577,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractDRegister(instr, 22, 12);
                                           unsigned rm =
                                               ExtractDRegister(instr, 5, 0);
-                                          // VCGT{<c>}{<q>}.<dt> {<Dd>}, <Dm>,
-                                          // #0 ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VCGT{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #0 ; T1 NOLINT(whitespace/line_length)
                                           vcgt(CurrentCond(),
                                                dt,
                                                DRegister(rd),
@@ -26984,9 +26606,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rm =
                                               ExtractQRegister(instr, 5, 0);
-                                          // VCGT{<c>}{<q>}.<dt> {<Qd>}, <Qm>,
-                                          // #0 ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VCGT{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #0 ; T1 NOLINT(whitespace/line_length)
                                           vcgt(CurrentCond(),
                                                dt,
                                                QRegister(rd),
@@ -27007,9 +26627,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractDRegister(instr, 22, 12);
                                           unsigned rm =
                                               ExtractDRegister(instr, 5, 0);
-                                          // VCGE{<c>}{<q>}.<dt> {<Dd>}, <Dm>,
-                                          // #0 ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VCGE{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #0 ; T1 NOLINT(whitespace/line_length)
                                           vcge(CurrentCond(),
                                                dt,
                                                DRegister(rd),
@@ -27038,9 +26656,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rm =
                                               ExtractQRegister(instr, 5, 0);
-                                          // VCGE{<c>}{<q>}.<dt> {<Qd>}, <Qm>,
-                                          // #0 ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VCGE{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #0 ; T1 NOLINT(whitespace/line_length)
                                           vcge(CurrentCond(),
                                                dt,
                                                QRegister(rd),
@@ -27061,9 +26677,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractDRegister(instr, 22, 12);
                                           unsigned rm =
                                               ExtractDRegister(instr, 5, 0);
-                                          // VCEQ{<c>}{<q>}.<dt> {<Dd>}, <Dm>,
-                                          // #0 ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VCEQ{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #0 ; T1 NOLINT(whitespace/line_length)
                                           vceq(CurrentCond(),
                                                dt,
                                                DRegister(rd),
@@ -27092,9 +26706,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rm =
                                               ExtractQRegister(instr, 5, 0);
-                                          // VCEQ{<c>}{<q>}.<dt> {<Qd>}, <Qm>,
-                                          // #0 ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VCEQ{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #0 ; T1 NOLINT(whitespace/line_length)
                                           vceq(CurrentCond(),
                                                dt,
                                                QRegister(rd),
@@ -27115,9 +26727,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractDRegister(instr, 22, 12);
                                           unsigned rm =
                                               ExtractDRegister(instr, 5, 0);
-                                          // VCLE{<c>}{<q>}.<dt> {<Dd>}, <Dm>,
-                                          // #0 ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VCLE{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #0 ; T1 NOLINT(whitespace/line_length)
                                           vcle(CurrentCond(),
                                                dt,
                                                DRegister(rd),
@@ -27146,9 +26756,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rm =
                                               ExtractQRegister(instr, 5, 0);
-                                          // VCLE{<c>}{<q>}.<dt> {<Qd>}, <Qm>,
-                                          // #0 ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VCLE{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #0 ; T1 NOLINT(whitespace/line_length)
                                           vcle(CurrentCond(),
                                                dt,
                                                QRegister(rd),
@@ -27175,9 +26783,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractDRegister(instr, 22, 12);
                                           unsigned rm =
                                               ExtractDRegister(instr, 5, 0);
-                                          // VCLT{<c>}{<q>}.<dt> {<Dd>}, <Dm>,
-                                          // #0 ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VCLT{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #0 ; T1 NOLINT(whitespace/line_length)
                                           vclt(CurrentCond(),
                                                dt,
                                                DRegister(rd),
@@ -27206,9 +26812,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rm =
                                               ExtractQRegister(instr, 5, 0);
-                                          // VCLT{<c>}{<q>}.<dt> {<Qd>}, <Qm>,
-                                          // #0 ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VCLT{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #0 ; T1 NOLINT(whitespace/line_length)
                                           vclt(CurrentCond(),
                                                dt,
                                                QRegister(rd),
@@ -27340,9 +26944,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                 ExtractDRegister(instr, 22, 12);
                                             unsigned rm =
                                                 ExtractDRegister(instr, 5, 0);
-                                            // VSWP{<c>}{<q>}{.<dt>} <Dd>, <Dm>
-                                            // ; T1
-                                            // NOLINT(whitespace/line_length)
+                                            // VSWP{<c>}{<q>}{.<dt>} <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                             vswp(CurrentCond(),
                                                  kDataTypeValueNone,
                                                  DRegister(rd),
@@ -27368,9 +26970,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             }
                                             unsigned rm =
                                                 ExtractQRegister(instr, 5, 0);
-                                            // VSWP{<c>}{<q>}{.<dt>} <Qd>, <Qm>
-                                            // ; T1
-                                            // NOLINT(whitespace/line_length)
+                                            // VSWP{<c>}{<q>}{.<dt>} <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                             vswp(CurrentCond(),
                                                  kDataTypeValueNone,
                                                  QRegister(rd),
@@ -27526,8 +27126,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                 ExtractDRegister(instr, 22, 12);
                                             unsigned rm =
                                                 ExtractDRegister(instr, 5, 0);
-                                            // VRINTN{<q>}.F32.F32 <Dd>, <Dm> ;
-                                            // T1 NOLINT(whitespace/line_length)
+                                            // VRINTN{<q>}.F32.F32 <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                             vrintn(F32,
                                                    F32,
                                                    DRegister(rd),
@@ -27553,8 +27152,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             }
                                             unsigned rm =
                                                 ExtractQRegister(instr, 5, 0);
-                                            // VRINTN{<q>}.F32.F32 <Qd>, <Qm> ;
-                                            // T1 NOLINT(whitespace/line_length)
+                                            // VRINTN{<q>}.F32.F32 <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                             vrintn(F32,
                                                    F32,
                                                    QRegister(rd),
@@ -27572,8 +27170,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                 ExtractDRegister(instr, 22, 12);
                                             unsigned rm =
                                                 ExtractDRegister(instr, 5, 0);
-                                            // VRINTX{<q>}.F32.F32 <Dd>, <Dm> ;
-                                            // T1 NOLINT(whitespace/line_length)
+                                            // VRINTX{<q>}.F32.F32 <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                             vrintx(Condition::kNone,
                                                    F32,
                                                    F32,
@@ -27600,8 +27197,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             }
                                             unsigned rm =
                                                 ExtractQRegister(instr, 5, 0);
-                                            // VRINTX{<q>}.F32.F32 <Qd>, <Qm> ;
-                                            // T1 NOLINT(whitespace/line_length)
+                                            // VRINTX{<q>}.F32.F32 <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                             vrintx(F32,
                                                    F32,
                                                    QRegister(rd),
@@ -27619,8 +27215,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                 ExtractDRegister(instr, 22, 12);
                                             unsigned rm =
                                                 ExtractDRegister(instr, 5, 0);
-                                            // VRINTA{<q>}.F32.F32 <Dd>, <Dm> ;
-                                            // T1 NOLINT(whitespace/line_length)
+                                            // VRINTA{<q>}.F32.F32 <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                             vrinta(F32,
                                                    F32,
                                                    DRegister(rd),
@@ -27646,8 +27241,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             }
                                             unsigned rm =
                                                 ExtractQRegister(instr, 5, 0);
-                                            // VRINTA{<q>}.F32.F32 <Qd>, <Qm> ;
-                                            // T1 NOLINT(whitespace/line_length)
+                                            // VRINTA{<q>}.F32.F32 <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                             vrinta(F32,
                                                    F32,
                                                    QRegister(rd),
@@ -27665,8 +27259,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                 ExtractDRegister(instr, 22, 12);
                                             unsigned rm =
                                                 ExtractDRegister(instr, 5, 0);
-                                            // VRINTZ{<q>}.F32.F32 <Dd>, <Dm> ;
-                                            // T1 NOLINT(whitespace/line_length)
+                                            // VRINTZ{<q>}.F32.F32 <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                             vrintz(Condition::kNone,
                                                    F32,
                                                    F32,
@@ -27693,8 +27286,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             }
                                             unsigned rm =
                                                 ExtractQRegister(instr, 5, 0);
-                                            // VRINTZ{<q>}.F32.F32 <Qd>, <Qm> ;
-                                            // T1 NOLINT(whitespace/line_length)
+                                            // VRINTZ{<q>}.F32.F32 <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                             vrintz(F32,
                                                    F32,
                                                    QRegister(rd),
@@ -27732,9 +27324,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               }
                                               unsigned rm =
                                                   ExtractQRegister(instr, 5, 0);
-                                              // VMOVN{<c>}{<q>}.<dt> <Dd>, <Qm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VMOVN{<c>}{<q>}.<dt> <Dd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                               vmovn(CurrentCond(),
                                                     dt,
                                                     DRegister(rd),
@@ -27760,9 +27350,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               }
                                               unsigned rm =
                                                   ExtractQRegister(instr, 5, 0);
-                                              // VQMOVUN{<c>}{<q>}.<dt> <Dd>,
-                                              // <Qm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VQMOVUN{<c>}{<q>}.<dt> <Dd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                               vqmovun(CurrentCond(),
                                                       dt,
                                                       DRegister(rd),
@@ -27789,8 +27377,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rm =
                                               ExtractQRegister(instr, 5, 0);
-                                          // VQMOVN{<c>}{<q>}.<dt> <Dd>, <Qm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VQMOVN{<c>}{<q>}.<dt> <Dd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                           vqmovn(CurrentCond(),
                                                  dt,
                                                  DRegister(rd),
@@ -27816,9 +27403,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             unsigned rm =
                                                 ExtractDRegister(instr, 5, 0);
                                             uint32_t imm = dt.GetSize();
-                                            // VSHLL{<c>}{<q>}.<type><size>
-                                            // <Qd>, <Dm>, #<imm> ; T2
-                                            // NOLINT(whitespace/line_length)
+                                            // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T2 NOLINT(whitespace/line_length)
                                             vshll(CurrentCond(),
                                                   dt,
                                                   QRegister(rd),
@@ -27863,9 +27448,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             }
                                             unsigned rm =
                                                 ExtractQRegister(instr, 5, 0);
-                                            // VCVT{<c>}{<q>}.F16.F32 <Dd>, <Qm>
-                                            // ; T1
-                                            // NOLINT(whitespace/line_length)
+                                            // VCVT{<c>}{<q>}.F16.F32 <Dd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                             vcvt(CurrentCond(),
                                                  F16,
                                                  F32,
@@ -27887,9 +27470,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                    12);
                                               unsigned rm =
                                                   ExtractDRegister(instr, 5, 0);
-                                              // VRINTM{<q>}.F32.F32 <Dd>, <Dm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VRINTM{<q>}.F32.F32 <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                               vrintm(F32,
                                                      F32,
                                                      DRegister(rd),
@@ -27912,9 +27493,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               }
                                               unsigned rm =
                                                   ExtractQRegister(instr, 5, 0);
-                                              // VRINTM{<q>}.F32.F32 <Qd>, <Qm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VRINTM{<q>}.F32.F32 <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                               vrintm(F32,
                                                      F32,
                                                      QRegister(rd),
@@ -27940,9 +27519,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                 ExtractQRegister(instr, 22, 12);
                                             unsigned rm =
                                                 ExtractDRegister(instr, 5, 0);
-                                            // VCVT{<c>}{<q>}.F32.F16 <Qd>, <Dm>
-                                            // ; T1
-                                            // NOLINT(whitespace/line_length)
+                                            // VCVT{<c>}{<q>}.F32.F16 <Qd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                             vcvt(CurrentCond(),
                                                  F32,
                                                  F16,
@@ -27964,9 +27541,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                    12);
                                               unsigned rm =
                                                   ExtractDRegister(instr, 5, 0);
-                                              // VRINTP{<q>}.F32.F32 <Dd>, <Dm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VRINTP{<q>}.F32.F32 <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                               vrintp(F32,
                                                      F32,
                                                      DRegister(rd),
@@ -27989,9 +27564,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               }
                                               unsigned rm =
                                                   ExtractQRegister(instr, 5, 0);
-                                              // VRINTP{<q>}.F32.F32 <Qd>, <Qm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VRINTP{<q>}.F32.F32 <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                               vrintp(F32,
                                                      F32,
                                                      QRegister(rd),
@@ -28029,9 +27602,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                    12);
                                               unsigned rm =
                                                   ExtractDRegister(instr, 5, 0);
-                                              // VCVTA{<q>}.<dt>.F32 <Dd>, <Dm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VCVTA{<q>}.<dt>.F32 <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                               vcvta(dt,
                                                     F32,
                                                     DRegister(rd),
@@ -28053,9 +27624,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                    12);
                                               unsigned rm =
                                                   ExtractDRegister(instr, 5, 0);
-                                              // VCVTN{<q>}.<dt>.F32 <Dd>, <Dm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VCVTN{<q>}.<dt>.F32 <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                               vcvtn(dt,
                                                     F32,
                                                     DRegister(rd),
@@ -28095,9 +27664,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               }
                                               unsigned rm =
                                                   ExtractQRegister(instr, 5, 0);
-                                              // VCVTA{<q>}.<dt>.F32 <Qd>, <Qm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VCVTA{<q>}.<dt>.F32 <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                               vcvta(dt,
                                                     F32,
                                                     QRegister(rd),
@@ -28127,9 +27694,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               }
                                               unsigned rm =
                                                   ExtractQRegister(instr, 5, 0);
-                                              // VCVTN{<q>}.<dt>.F32 <Qd>, <Qm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VCVTN{<q>}.<dt>.F32 <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                               vcvtn(dt,
                                                     F32,
                                                     QRegister(rd),
@@ -28162,9 +27727,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                    12);
                                               unsigned rm =
                                                   ExtractDRegister(instr, 5, 0);
-                                              // VRECPE{<c>}{<q>}.<dt> <Dd>,
-                                              // <Dm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VRECPE{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                               vrecpe(CurrentCond(),
                                                      dt,
                                                      DRegister(rd),
@@ -28187,9 +27750,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                    12);
                                               unsigned rm =
                                                   ExtractDRegister(instr, 5, 0);
-                                              // VRSQRTE{<c>}{<q>}.<dt> <Dd>,
-                                              // <Dm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VRSQRTE{<c>}{<q>}.<dt> <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                               vrsqrte(CurrentCond(),
                                                       dt,
                                                       DRegister(rd),
@@ -28226,9 +27787,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               }
                                               unsigned rm =
                                                   ExtractQRegister(instr, 5, 0);
-                                              // VRECPE{<c>}{<q>}.<dt> <Qd>,
-                                              // <Qm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VRECPE{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                               vrecpe(CurrentCond(),
                                                      dt,
                                                      QRegister(rd),
@@ -28259,9 +27818,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               }
                                               unsigned rm =
                                                   ExtractQRegister(instr, 5, 0);
-                                              // VRSQRTE{<c>}{<q>}.<dt> <Qd>,
-                                              // <Qm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VRSQRTE{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                               vrsqrte(CurrentCond(),
                                                       dt,
                                                       QRegister(rd),
@@ -28295,9 +27852,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                    12);
                                               unsigned rm =
                                                   ExtractDRegister(instr, 5, 0);
-                                              // VCVTP{<q>}.<dt>.F32 <Dd>, <Dm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VCVTP{<q>}.<dt>.F32 <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                               vcvtp(dt,
                                                     F32,
                                                     DRegister(rd),
@@ -28319,9 +27874,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                    12);
                                               unsigned rm =
                                                   ExtractDRegister(instr, 5, 0);
-                                              // VCVTM{<q>}.<dt>.F32 <Dd>, <Dm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VCVTM{<q>}.<dt>.F32 <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                               vcvtm(dt,
                                                     F32,
                                                     DRegister(rd),
@@ -28357,9 +27910,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               }
                                               unsigned rm =
                                                   ExtractQRegister(instr, 5, 0);
-                                              // VCVTP{<q>}.<dt>.F32 <Qd>, <Qm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VCVTP{<q>}.<dt>.F32 <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                               vcvtp(dt,
                                                     F32,
                                                     QRegister(rd),
@@ -28389,9 +27940,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               }
                                               unsigned rm =
                                                   ExtractQRegister(instr, 5, 0);
-                                              // VCVTM{<q>}.<dt>.F32 <Qd>, <Qm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VCVTM{<q>}.<dt>.F32 <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                               vcvtm(dt,
                                                     F32,
                                                     QRegister(rd),
@@ -28419,8 +27968,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractDRegister(instr, 22, 12);
                                           unsigned rm =
                                               ExtractDRegister(instr, 5, 0);
-                                          // VCVT{<c>}{<q>}.<dt>.<dt> <Dd>, <Dm>
-                                          // ; T1 NOLINT(whitespace/line_length)
+                                          // VCVT{<c>}{<q>}.<dt>.<dt> <Dd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                           vcvt(CurrentCond(),
                                                dt1,
                                                dt2,
@@ -28454,8 +28002,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           unsigned rm =
                                               ExtractQRegister(instr, 5, 0);
-                                          // VCVT{<c>}{<q>}.<dt>.<dt> <Qd>, <Qm>
-                                          // ; T1 NOLINT(whitespace/line_length)
+                                          // VCVT{<c>}{<q>}.<dt>.<dt> <Qd>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                           vcvt(CurrentCond(),
                                                dt1,
                                                dt2,
@@ -28504,8 +28051,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       TransferType transfer = kMultipleLanes;
                                       unsigned rm =
                                           ExtractDRegister(instr, 5, 0);
-                                      // VTBL{<c>}{<q>}.8 <Dd>, <list>, <Dm> ;
-                                      // T1 NOLINT(whitespace/line_length)
+                                      // VTBL{<c>}{<q>}.8 <Dd>, <list>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                       vtbl(CurrentCond(),
                                            Untyped8,
                                            DRegister(rd),
@@ -28544,8 +28090,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       TransferType transfer = kMultipleLanes;
                                       unsigned rm =
                                           ExtractDRegister(instr, 5, 0);
-                                      // VTBX{<c>}{<q>}.8 <Dd>, <list>, <Dm> ;
-                                      // T1 NOLINT(whitespace/line_length)
+                                      // VTBX{<c>}{<q>}.8 <Dd>, <list>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                       vtbx(CurrentCond(),
                                            Untyped8,
                                            DRegister(rd),
@@ -28572,8 +28117,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             ExtractDRegister(instr, 22, 12);
                                         unsigned rm =
                                             ExtractDRegister(instr, 5, 0);
-                                        // VDUP{<c>}{<q>}.<dt> <Dd>, <Dm[x]> ;
-                                        // T1 NOLINT(whitespace/line_length)
+                                        // VDUP{<c>}{<q>}.<dt> <Dd>, <Dm[x]> ; T1 NOLINT(whitespace/line_length)
                                         vdup(CurrentCond(),
                                              dt,
                                              DRegister(rd),
@@ -28603,8 +28147,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             ExtractQRegister(instr, 22, 12);
                                         unsigned rm =
                                             ExtractDRegister(instr, 5, 0);
-                                        // VDUP{<c>}{<q>}.<dt> <Qd>, <Dm[x]> ;
-                                        // T1 NOLINT(whitespace/line_length)
+                                        // VDUP{<c>}{<q>}.<dt> <Qd>, <Dm[x]> ; T1 NOLINT(whitespace/line_length)
                                         vdup(CurrentCond(),
                                              dt,
                                              QRegister(rd),
@@ -28680,8 +28223,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   }
                                   unsigned rn = ExtractQRegister(instr, 7, 16);
                                   unsigned rm = ExtractDRegister(instr, 5, 0);
-                                  // VADDW{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm> ;
-                                  // T1 NOLINT(whitespace/line_length)
+                                  // VADDW{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                   vaddw(CurrentCond(),
                                         dt,
                                         QRegister(rd),
@@ -28741,8 +28283,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   }
                                   unsigned rn = ExtractQRegister(instr, 7, 16);
                                   unsigned rm = ExtractDRegister(instr, 5, 0);
-                                  // VSUBW{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm> ;
-                                  // T1 NOLINT(whitespace/line_length)
+                                  // VSUBW{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                   vsubw(CurrentCond(),
                                         dt,
                                         QRegister(rd),
@@ -28783,9 +28324,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                   5,
                                                                   0,
                                                                   &lane);
-                                      // VMLA{<c>}{<q>}.<type><size> <Dd>, <Dn>,
-                                      // <Dm[x]> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VMLA{<c>}{<q>}.<type><size> <Dd>, <Dn>, <Dm[x]> ; T1 NOLINT(whitespace/line_length)
                                       vmla(CurrentCond(),
                                            dt,
                                            DRegister(rd),
@@ -28825,9 +28364,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                   5,
                                                                   0,
                                                                   &lane);
-                                      // VMLA{<c>}{<q>}.<type><size> <Qd>, <Qn>,
-                                      // <Dm[x]> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VMLA{<c>}{<q>}.<type><size> <Qd>, <Qn>, <Dm[x]> ; T1 NOLINT(whitespace/line_length)
                                       vmla(CurrentCond(),
                                            dt,
                                            QRegister(rd),
@@ -28870,9 +28407,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                   5,
                                                                   0,
                                                                   &lane);
-                                      // VMLAL{<c>}{<q>}.<type><size> <Qd>,
-                                      // <Dn>, <Dm[x]> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VMLAL{<c>}{<q>}.<type><size> <Qd>, <Dn>, <Dm[x]> ; T1 NOLINT(whitespace/line_length)
                                       vmlal(CurrentCond(),
                                             dt,
                                             QRegister(rd),
@@ -28909,9 +28444,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                         }
                                         uint32_t vm = mvm & ((1 << shift) - 1);
                                         uint32_t index = mvm >> shift;
-                                        // VQDMLAL{<c>}{<q>}.<dt> <Qd>, <Dn>,
-                                        // <Dm>[<index>] ; T2
-                                        // NOLINT(whitespace/line_length)
+                                        // VQDMLAL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; T2 NOLINT(whitespace/line_length)
                                         vqdmlal(CurrentCond(),
                                                 dt,
                                                 QRegister(rd),
@@ -28961,8 +28494,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       }
                                       unsigned rm =
                                           ExtractQRegister(instr, 5, 0);
-                                      // VADDHN{<c>}{<q>}.<dt> <Dd>, <Qn>, <Qm>
-                                      // ; T1 NOLINT(whitespace/line_length)
+                                      // VADDHN{<c>}{<q>}.<dt> <Dd>, <Qn>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                       vaddhn(CurrentCond(),
                                              dt,
                                              DRegister(rd),
@@ -28996,8 +28528,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       }
                                       unsigned rm =
                                           ExtractQRegister(instr, 5, 0);
-                                      // VRADDHN{<c>}{<q>}.<dt> <Dd>, <Qn>, <Qm>
-                                      // ; T1 NOLINT(whitespace/line_length)
+                                      // VRADDHN{<c>}{<q>}.<dt> <Dd>, <Qn>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                       vraddhn(CurrentCond(),
                                               dt,
                                               DRegister(rd),
@@ -29065,8 +28596,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       }
                                       unsigned rm =
                                           ExtractQRegister(instr, 5, 0);
-                                      // VSUBHN{<c>}{<q>}.<dt> <Dd>, <Qn>, <Qm>
-                                      // ; T1 NOLINT(whitespace/line_length)
+                                      // VSUBHN{<c>}{<q>}.<dt> <Dd>, <Qn>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                       vsubhn(CurrentCond(),
                                              dt,
                                              DRegister(rd),
@@ -29100,8 +28630,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       }
                                       unsigned rm =
                                           ExtractQRegister(instr, 5, 0);
-                                      // VRSUBHN{<c>}{<q>}.<dt> <Dd>, <Qn>, <Qm>
-                                      // ; T1 NOLINT(whitespace/line_length)
+                                      // VRSUBHN{<c>}{<q>}.<dt> <Dd>, <Qn>, <Qm> ; T1 NOLINT(whitespace/line_length)
                                       vrsubhn(CurrentCond(),
                                               dt,
                                               DRegister(rd),
@@ -29173,9 +28702,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                   5,
                                                                   0,
                                                                   &lane);
-                                      // VMLS{<c>}{<q>}.<type><size> <Dd>, <Dn>,
-                                      // <Dm[x]> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VMLS{<c>}{<q>}.<type><size> <Dd>, <Dn>, <Dm[x]> ; T1 NOLINT(whitespace/line_length)
                                       vmls(CurrentCond(),
                                            dt,
                                            DRegister(rd),
@@ -29215,9 +28742,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                   5,
                                                                   0,
                                                                   &lane);
-                                      // VMLS{<c>}{<q>}.<type><size> <Qd>, <Qn>,
-                                      // <Dm[x]> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VMLS{<c>}{<q>}.<type><size> <Qd>, <Qn>, <Dm[x]> ; T1 NOLINT(whitespace/line_length)
                                       vmls(CurrentCond(),
                                            dt,
                                            QRegister(rd),
@@ -29260,9 +28785,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                   5,
                                                                   0,
                                                                   &lane);
-                                      // VMLSL{<c>}{<q>}.<type><size> <Qd>,
-                                      // <Dn>, <Dm[x]> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VMLSL{<c>}{<q>}.<type><size> <Qd>, <Dn>, <Dm[x]> ; T1 NOLINT(whitespace/line_length)
                                       vmlsl(CurrentCond(),
                                             dt,
                                             QRegister(rd),
@@ -29299,9 +28822,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                         }
                                         uint32_t vm = mvm & ((1 << shift) - 1);
                                         uint32_t index = mvm >> shift;
-                                        // VQDMLSL{<c>}{<q>}.<dt> <Qd>, <Dn>,
-                                        // <Dm>[<index>] ; T2
-                                        // NOLINT(whitespace/line_length)
+                                        // VQDMLSL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; T2 NOLINT(whitespace/line_length)
                                         vqdmlsl(CurrentCond(),
                                                 dt,
                                                 QRegister(rd),
@@ -29342,8 +28863,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned rd = ExtractQRegister(instr, 22, 12);
                                   unsigned rn = ExtractDRegister(instr, 7, 16);
                                   unsigned rm = ExtractDRegister(instr, 5, 0);
-                                  // VMLAL{<c>}{<q>}.<type><size> <Qd>, <Dn>,
-                                  // <Dm> ; T1 NOLINT(whitespace/line_length)
+                                  // VMLAL{<c>}{<q>}.<type><size> <Qd>, <Dn>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                   vmlal(CurrentCond(),
                                         dt,
                                         QRegister(rd),
@@ -29373,8 +28893,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                     unsigned rn =
                                         ExtractDRegister(instr, 7, 16);
                                     unsigned rm = ExtractDRegister(instr, 5, 0);
-                                    // VQDMLAL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ;
-                                    // T1 NOLINT(whitespace/line_length)
+                                    // VQDMLAL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                     vqdmlal(CurrentCond(),
                                             dt,
                                             QRegister(rd),
@@ -29405,8 +28924,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned rd = ExtractQRegister(instr, 22, 12);
                                   unsigned rn = ExtractDRegister(instr, 7, 16);
                                   unsigned rm = ExtractDRegister(instr, 5, 0);
-                                  // VMLSL{<c>}{<q>}.<type><size> <Qd>, <Dn>,
-                                  // <Dm> ; T1 NOLINT(whitespace/line_length)
+                                  // VMLSL{<c>}{<q>}.<type><size> <Qd>, <Dn>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                   vmlsl(CurrentCond(),
                                         dt,
                                         QRegister(rd),
@@ -29436,8 +28954,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                     unsigned rn =
                                         ExtractDRegister(instr, 7, 16);
                                     unsigned rm = ExtractDRegister(instr, 5, 0);
-                                    // VQDMLSL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ;
-                                    // T1 NOLINT(whitespace/line_length)
+                                    // VQDMLSL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                     vqdmlsl(CurrentCond(),
                                             dt,
                                             QRegister(rd),
@@ -29482,9 +28999,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       }
                                       uint32_t vm = mvm & ((1 << shift) - 1);
                                       uint32_t index = mvm >> shift;
-                                      // VMUL{<c>}{<q>}.<dt> {<Dd>}, <Dn>,
-                                      // <Dm>[<index>] ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VMUL{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm>[<index>] ; T1 NOLINT(whitespace/line_length)
                                       vmul(CurrentCond(),
                                            dt,
                                            DRegister(rd),
@@ -29526,9 +29041,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       }
                                       uint32_t vm = mvm & ((1 << shift) - 1);
                                       uint32_t index = mvm >> shift;
-                                      // VMUL{<c>}{<q>}.<dt> {<Qd>}, <Qn>,
-                                      // <Dm>[<index>] ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VMUL{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm>[<index>] ; T1 NOLINT(whitespace/line_length)
                                       vmul(CurrentCond(),
                                            dt,
                                            QRegister(rd),
@@ -29572,9 +29085,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       }
                                       uint32_t vm = mvm & ((1 << shift) - 1);
                                       uint32_t index = mvm >> shift;
-                                      // VMULL{<c>}{<q>}.<dt> <Qd>, <Dn>,
-                                      // <Dm>[<index>] ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VMULL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; T1 NOLINT(whitespace/line_length)
                                       vmull(CurrentCond(),
                                             dt,
                                             QRegister(rd),
@@ -29611,9 +29122,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                     5,
                                                                     0,
                                                                     &lane);
-                                        // VQDMULL{<c>}{<q>}.<dt> <Qd>, <Dn>,
-                                        // <Dm[x]> ; T2
-                                        // NOLINT(whitespace/line_length)
+                                        // VQDMULL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm[x]> ; T2 NOLINT(whitespace/line_length)
                                         vqdmull(CurrentCond(),
                                                 dt,
                                                 QRegister(rd),
@@ -29684,8 +29193,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                     unsigned rn =
                                         ExtractDRegister(instr, 7, 16);
                                     unsigned rm = ExtractDRegister(instr, 5, 0);
-                                    // VQDMULL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ;
-                                    // T1 NOLINT(whitespace/line_length)
+                                    // VQDMULL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                     vqdmull(CurrentCond(),
                                             dt,
                                             QRegister(rd),
@@ -29722,8 +29230,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                         5,
                                                                         0,
                                                                         &lane);
-                                  // VQDMULH{<c>}{<q>}.<dt> {<Dd>}, <Dn>,
-                                  // <Dm[x]> ; T2 NOLINT(whitespace/line_length)
+                                  // VQDMULH{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm[x]> ; T2 NOLINT(whitespace/line_length)
                                   vqdmulh(CurrentCond(),
                                           dt,
                                           DRegister(rd),
@@ -29751,8 +29258,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                         5,
                                                                         0,
                                                                         &lane);
-                                  // VQRDMULH{<c>}{<q>}.<dt> {<Dd>}, <Dn>,
-                                  // <Dm[x]> ; T2 NOLINT(whitespace/line_length)
+                                  // VQRDMULH{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm[x]> ; T2 NOLINT(whitespace/line_length)
                                   vqrdmulh(CurrentCond(),
                                            dt,
                                            DRegister(rd),
@@ -29788,8 +29294,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                         5,
                                                                         0,
                                                                         &lane);
-                                  // VQDMULH{<c>}{<q>}.<dt> {<Qd>}, <Qn>,
-                                  // <Dm[x]> ; T2 NOLINT(whitespace/line_length)
+                                  // VQDMULH{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm[x]> ; T2 NOLINT(whitespace/line_length)
                                   vqdmulh(CurrentCond(),
                                           dt,
                                           QRegister(rd),
@@ -29825,8 +29330,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                         5,
                                                                         0,
                                                                         &lane);
-                                  // VQRDMULH{<c>}{<q>}.<dt> {<Qd>}, <Qn>,
-                                  // <Dm[x]> ; T2 NOLINT(whitespace/line_length)
+                                  // VQRDMULH{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm[x]> ; T2 NOLINT(whitespace/line_length)
                                   vqrdmulh(CurrentCond(),
                                            dt,
                                            QRegister(rd),
@@ -31310,8 +30814,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vmvn(CurrentCond(),
                                                dt,
                                                DRegister(rd),
@@ -31345,8 +30848,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vmov(CurrentCond(),
                                                dt,
                                                DRegister(rd),
@@ -31384,9 +30886,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (instr & 0xf) |
                                                   ((instr >> 12) & 0x70) |
                                                   ((instr >> 21) & 0x80));
-                                      // VORR{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>,
-                                      // #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VORR{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vorr(CurrentCond(),
                                            dt,
                                            DRegister(rd),
@@ -31416,9 +30916,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (instr & 0xf) |
                                                   ((instr >> 12) & 0x70) |
                                                   ((instr >> 21) & 0x80));
-                                      // VBIC{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>,
-                                      // #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VBIC{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vbic(CurrentCond(),
                                            dt,
                                            DRegister(rd),
@@ -31456,8 +30954,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       (dt.IsSize(64) ? 64
                                                      : (dt.GetSize() * 2)) -
                                       imm6;
-                                  // VSHR{<c>}{<q>}.<type><size> {<Dd>}, <Dm>,
-                                  // #<imm> ; T1 NOLINT(whitespace/line_length)
+                                  // VSHR{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vshr(CurrentCond(),
                                        dt,
                                        DRegister(rd),
@@ -31487,8 +30984,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       (dt.IsSize(64) ? 64
                                                      : (dt.GetSize() * 2)) -
                                       imm6;
-                                  // VSRA{<c>}{<q>}.<type><size> {<Dd>}, <Dm>,
-                                  // #<imm> ; T1 NOLINT(whitespace/line_length)
+                                  // VSRA{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vsra(CurrentCond(),
                                        dt,
                                        DRegister(rd),
@@ -31518,8 +31014,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       (dt.IsSize(64) ? 64
                                                      : (dt.GetSize() * 2)) -
                                       imm6;
-                                  // VRSHR{<c>}{<q>}.<type><size> {<Dd>}, <Dm>,
-                                  // #<imm> ; T1 NOLINT(whitespace/line_length)
+                                  // VRSHR{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vrshr(CurrentCond(),
                                         dt,
                                         DRegister(rd),
@@ -31549,8 +31044,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       (dt.IsSize(64) ? 64
                                                      : (dt.GetSize() * 2)) -
                                       imm6;
-                                  // VRSRA{<c>}{<q>}.<type><size> {<Dd>}, <Dm>,
-                                  // #<imm> ; T1 NOLINT(whitespace/line_length)
+                                  // VRSRA{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vrsra(CurrentCond(),
                                         dt,
                                         DRegister(rd),
@@ -31599,8 +31093,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vmvn(CurrentCond(),
                                                dt,
                                                DRegister(rd),
@@ -31634,8 +31127,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vmov(CurrentCond(),
                                                dt,
                                                DRegister(rd),
@@ -31673,9 +31165,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (instr & 0xf) |
                                                   ((instr >> 12) & 0x70) |
                                                   ((instr >> 21) & 0x80));
-                                      // VORR{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>,
-                                      // #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VORR{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vorr(CurrentCond(),
                                            dt,
                                            DRegister(rd),
@@ -31705,9 +31195,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (instr & 0xf) |
                                                   ((instr >> 12) & 0x70) |
                                                   ((instr >> 21) & 0x80));
-                                      // VBIC{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>,
-                                      // #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VBIC{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vbic(CurrentCond(),
                                            dt,
                                            DRegister(rd),
@@ -31745,8 +31233,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                         (dt.IsSize(64) ? 64
                                                        : (dt.GetSize() * 2)) -
                                         imm6;
-                                    // VSRI{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #<imm>
-                                    // ; T1 NOLINT(whitespace/line_length)
+                                    // VSRI{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                     vsri(CurrentCond(),
                                          dt,
                                          DRegister(rd),
@@ -31781,9 +31268,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       uint32_t imm =
                                           imm6 -
                                           (dt.IsSize(64) ? 0 : dt.GetSize());
-                                      // VSHL{<c>}{<q>}.I<size> {<Dd>}, <Dm>,
-                                      // #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VSHL{<c>}{<q>}.I<size> {<Dd>}, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vshl(CurrentCond(),
                                            dt,
                                            DRegister(rd),
@@ -31812,9 +31297,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       uint32_t imm =
                                           imm6 -
                                           (dt.IsSize(64) ? 0 : dt.GetSize());
-                                      // VSLI{<c>}{<q>}.<dt> {<Dd>}, <Dm>,
-                                      // #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VSLI{<c>}{<q>}.<dt> {<Dd>}, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vsli(CurrentCond(),
                                            dt,
                                            DRegister(rd),
@@ -31845,8 +31328,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   uint32_t imm6 = (instr >> 16) & 0x3f;
                                   uint32_t imm =
                                       imm6 - (dt.IsSize(64) ? 0 : dt.GetSize());
-                                  // VQSHLU{<c>}{<q>}.<type><size> {<Dd>}, <Dm>,
-                                  // #<imm> ; T1 NOLINT(whitespace/line_length)
+                                  // VQSHLU{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vqshlu(CurrentCond(),
                                          dt,
                                          DRegister(rd),
@@ -31874,8 +31356,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   uint32_t imm6 = (instr >> 16) & 0x3f;
                                   uint32_t imm =
                                       imm6 - (dt.IsSize(64) ? 0 : dt.GetSize());
-                                  // VQSHL{<c>}{<q>}.<type><size> {<Dd>}, <Dm>,
-                                  // #<imm> ; T1 NOLINT(whitespace/line_length)
+                                  // VQSHL{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vqshl(CurrentCond(),
                                         dt,
                                         DRegister(rd),
@@ -31936,9 +31417,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                       ((instr >>
                                                                         21) &
                                                                        0x80));
-                                              // VMVN{<c>}{<q>}.<dt> <Dd>,
-                                              // #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vmvn(CurrentCond(),
                                                    dt,
                                                    DRegister(rd),
@@ -31980,9 +31459,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                       ((instr >>
                                                                         21) &
                                                                        0x80));
-                                              // VMOV{<c>}{<q>}.<dt> <Dd>,
-                                              // #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vmov(CurrentCond(),
                                                    dt,
                                                    DRegister(rd),
@@ -32020,9 +31497,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VORR{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>,
-                                          // #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VORR{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vorr(CurrentCond(),
                                                dt,
                                                DRegister(rd),
@@ -32052,9 +31527,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VBIC{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>,
-                                          // #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VBIC{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vbic(CurrentCond(),
                                                dt,
                                                DRegister(rd),
@@ -32096,9 +31569,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractQRegister(instr, 5, 0);
                                           uint32_t imm6 = (instr >> 16) & 0x3f;
                                           uint32_t imm = dt.GetSize() - imm6;
-                                          // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>,
-                                          // #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vshrn(CurrentCond(),
                                                 dt,
                                                 DRegister(rd),
@@ -32131,9 +31602,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractQRegister(instr, 5, 0);
                                           uint32_t imm6 = (instr >> 16) & 0x3f;
                                           uint32_t imm = dt.GetSize() - imm6;
-                                          // VQSHRUN{<c>}{<q>}.<type><size>
-                                          // <Dd>, <Qm>, #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VQSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vqshrun(CurrentCond(),
                                                   dt,
                                                   DRegister(rd),
@@ -32167,9 +31636,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractQRegister(instr, 5, 0);
                                       uint32_t imm6 = (instr >> 16) & 0x3f;
                                       uint32_t imm = dt.GetSize() - imm6;
-                                      // VQSHRN{<c>}{<q>}.<type><size> <Dd>,
-                                      // <Qm>, #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vqshrn(CurrentCond(),
                                              dt,
                                              DRegister(rd),
@@ -32203,9 +31670,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractDRegister(instr, 5, 0);
                                       uint32_t imm6 = (instr >> 16) & 0x3f;
                                       uint32_t imm = imm6 - dt.GetSize();
-                                      // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                      // <Dm>, #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vshll(CurrentCond(),
                                             dt,
                                             QRegister(rd),
@@ -32248,9 +31713,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractQRegister(instr, 5, 0);
                                           uint32_t imm6 = (instr >> 16) & 0x3f;
                                           uint32_t imm = dt.GetSize() - imm6;
-                                          // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>,
-                                          // #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vshrn(CurrentCond(),
                                                 dt,
                                                 DRegister(rd),
@@ -32283,9 +31746,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractQRegister(instr, 5, 0);
                                           uint32_t imm6 = (instr >> 16) & 0x3f;
                                           uint32_t imm = dt.GetSize() - imm6;
-                                          // VQSHRUN{<c>}{<q>}.<type><size>
-                                          // <Dd>, <Qm>, #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VQSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vqshrun(CurrentCond(),
                                                   dt,
                                                   DRegister(rd),
@@ -32319,9 +31780,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractQRegister(instr, 5, 0);
                                       uint32_t imm6 = (instr >> 16) & 0x3f;
                                       uint32_t imm = dt.GetSize() - imm6;
-                                      // VQSHRN{<c>}{<q>}.<type><size> <Dd>,
-                                      // <Qm>, #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vqshrn(CurrentCond(),
                                              dt,
                                              DRegister(rd),
@@ -32355,9 +31814,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractDRegister(instr, 5, 0);
                                       uint32_t imm6 = (instr >> 16) & 0x3f;
                                       uint32_t imm = imm6 - dt.GetSize();
-                                      // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                      // <Dm>, #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vshll(CurrentCond(),
                                             dt,
                                             QRegister(rd),
@@ -32400,9 +31857,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractQRegister(instr, 5, 0);
                                           uint32_t imm6 = (instr >> 16) & 0x3f;
                                           uint32_t imm = dt.GetSize() - imm6;
-                                          // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>,
-                                          // #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vshrn(CurrentCond(),
                                                 dt,
                                                 DRegister(rd),
@@ -32435,9 +31890,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractQRegister(instr, 5, 0);
                                           uint32_t imm6 = (instr >> 16) & 0x3f;
                                           uint32_t imm = dt.GetSize() - imm6;
-                                          // VQSHRUN{<c>}{<q>}.<type><size>
-                                          // <Dd>, <Qm>, #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VQSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vqshrun(CurrentCond(),
                                                   dt,
                                                   DRegister(rd),
@@ -32471,9 +31924,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractQRegister(instr, 5, 0);
                                       uint32_t imm6 = (instr >> 16) & 0x3f;
                                       uint32_t imm = dt.GetSize() - imm6;
-                                      // VQSHRN{<c>}{<q>}.<type><size> <Dd>,
-                                      // <Qm>, #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vqshrn(CurrentCond(),
                                              dt,
                                              DRegister(rd),
@@ -32507,9 +31958,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractDRegister(instr, 5, 0);
                                       uint32_t imm6 = (instr >> 16) & 0x3f;
                                       uint32_t imm = imm6 - dt.GetSize();
-                                      // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                      // <Dm>, #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vshll(CurrentCond(),
                                             dt,
                                             QRegister(rd),
@@ -32552,9 +32001,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractQRegister(instr, 5, 0);
                                           uint32_t imm6 = (instr >> 16) & 0x3f;
                                           uint32_t imm = dt.GetSize() - imm6;
-                                          // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>,
-                                          // #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vshrn(CurrentCond(),
                                                 dt,
                                                 DRegister(rd),
@@ -32587,9 +32034,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractQRegister(instr, 5, 0);
                                           uint32_t imm6 = (instr >> 16) & 0x3f;
                                           uint32_t imm = dt.GetSize() - imm6;
-                                          // VQSHRUN{<c>}{<q>}.<type><size>
-                                          // <Dd>, <Qm>, #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VQSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vqshrun(CurrentCond(),
                                                   dt,
                                                   DRegister(rd),
@@ -32623,9 +32068,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractQRegister(instr, 5, 0);
                                       uint32_t imm6 = (instr >> 16) & 0x3f;
                                       uint32_t imm = dt.GetSize() - imm6;
-                                      // VQSHRN{<c>}{<q>}.<type><size> <Dd>,
-                                      // <Qm>, #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vqshrn(CurrentCond(),
                                              dt,
                                              DRegister(rd),
@@ -32659,9 +32102,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractDRegister(instr, 5, 0);
                                       uint32_t imm6 = (instr >> 16) & 0x3f;
                                       uint32_t imm = imm6 - dt.GetSize();
-                                      // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                      // <Dm>, #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vshll(CurrentCond(),
                                             dt,
                                             QRegister(rd),
@@ -32703,9 +32144,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractQRegister(instr, 5, 0);
                                           uint32_t imm6 = (instr >> 16) & 0x3f;
                                           uint32_t imm = dt.GetSize() - imm6;
-                                          // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>,
-                                          // #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vshrn(CurrentCond(),
                                                 dt,
                                                 DRegister(rd),
@@ -32738,9 +32177,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractQRegister(instr, 5, 0);
                                           uint32_t imm6 = (instr >> 16) & 0x3f;
                                           uint32_t imm = dt.GetSize() - imm6;
-                                          // VQSHRUN{<c>}{<q>}.<type><size>
-                                          // <Dd>, <Qm>, #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VQSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vqshrun(CurrentCond(),
                                                   dt,
                                                   DRegister(rd),
@@ -32774,9 +32211,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractQRegister(instr, 5, 0);
                                       uint32_t imm6 = (instr >> 16) & 0x3f;
                                       uint32_t imm = dt.GetSize() - imm6;
-                                      // VQSHRN{<c>}{<q>}.<type><size> <Dd>,
-                                      // <Qm>, #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vqshrn(CurrentCond(),
                                              dt,
                                              DRegister(rd),
@@ -32822,9 +32257,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                    12);
                                               unsigned rm =
                                                   ExtractDRegister(instr, 5, 0);
-                                              // VMOVL{<c>}{<q>}.<dt> <Qd>, <Dm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VMOVL{<c>}{<q>}.<dt> <Qd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                               vmovl(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -32869,9 +32302,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -32917,9 +32348,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -32965,9 +32394,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33013,9 +32440,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33061,9 +32486,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33109,9 +32532,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33157,9 +32578,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33199,9 +32618,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                    12);
                                               unsigned rm =
                                                   ExtractDRegister(instr, 5, 0);
-                                              // VMOVL{<c>}{<q>}.<dt> <Qd>, <Dm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VMOVL{<c>}{<q>}.<dt> <Qd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                               vmovl(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33246,9 +32663,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33294,9 +32709,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33342,9 +32755,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33390,9 +32801,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33438,9 +32847,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33486,9 +32893,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33534,9 +32939,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33582,9 +32985,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33630,9 +33031,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33678,9 +33077,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33726,9 +33123,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33774,9 +33169,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33822,9 +33215,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33870,9 +33261,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33918,9 +33307,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -33960,9 +33347,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                    12);
                                               unsigned rm =
                                                   ExtractDRegister(instr, 5, 0);
-                                              // VMOVL{<c>}{<q>}.<dt> <Qd>, <Dm>
-                                              // ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VMOVL{<c>}{<q>}.<dt> <Qd>, <Dm> ; T1 NOLINT(whitespace/line_length)
                                               vmovl(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34007,9 +33392,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34055,9 +33438,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34103,9 +33484,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34151,9 +33530,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34199,9 +33576,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34247,9 +33622,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34295,9 +33668,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34343,9 +33714,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34391,9 +33760,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34439,9 +33806,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34487,9 +33852,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34535,9 +33898,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34583,9 +33944,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34631,9 +33990,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34679,9 +34036,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34727,9 +34082,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34775,9 +34128,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34823,9 +34174,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34871,9 +34220,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34919,9 +34266,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -34967,9 +34312,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -35015,9 +34358,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -35063,9 +34404,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -35111,9 +34450,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -35159,9 +34496,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -35207,9 +34542,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -35255,9 +34588,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -35303,9 +34634,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -35351,9 +34680,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -35399,9 +34726,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -35447,9 +34772,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr >> 16) & 0x3f;
                                               uint32_t imm =
                                                   imm6 - dt.GetSize();
-                                              // VSHLL{<c>}{<q>}.<type><size>
-                                              // <Qd>, <Dm>, #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vshll(CurrentCond(),
                                                     dt,
                                                     QRegister(rd),
@@ -35493,9 +34816,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractDRegister(instr, 5, 0);
                                           uint32_t imm6 = (instr >> 16) & 0x3f;
                                           uint32_t imm = imm6 - dt.GetSize();
-                                          // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                          // <Dm>, #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vshll(CurrentCond(),
                                                 dt,
                                                 QRegister(rd),
@@ -35563,8 +34884,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vmov(CurrentCond(),
                                                dt,
                                                DRegister(rd),
@@ -35599,8 +34919,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vmov(CurrentCond(),
                                                dt,
                                                DRegister(rd),
@@ -35652,9 +34971,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -35696,9 +35013,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -35745,9 +35060,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -35789,9 +35102,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -35838,9 +35149,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -35882,9 +35191,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -35931,9 +35238,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -35975,9 +35280,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -36024,9 +35327,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -36068,9 +35369,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -36117,9 +35416,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -36161,9 +35458,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -36210,9 +35505,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -36254,9 +35547,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -36303,9 +35594,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -36347,9 +35636,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -36396,9 +35683,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -36445,9 +35730,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -36494,9 +35777,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Dd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        DRegister(rd),
@@ -36545,9 +35826,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                       ((instr >>
                                                                         21) &
                                                                        0x80));
-                                              // VMOV{<c>}{<q>}.<dt> <Dd>,
-                                              // #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vmov(CurrentCond(),
                                                    dt,
                                                    DRegister(rd),
@@ -36592,9 +35871,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                     unsigned rm = ExtractDRegister(instr, 5, 0);
                                     uint32_t fbits =
                                         64 - ((instr >> 16) & 0x3f);
-                                    // VCVT{<c>}{<q>}.<dt>.<dt> <Dd>, <Dm>,
-                                    // #<fbits> ; T1
-                                    // NOLINT(whitespace/line_length)
+                                    // VCVT{<c>}{<q>}.<dt>.<dt> <Dd>, <Dm>, #<fbits> ; T1 NOLINT(whitespace/line_length)
                                     vcvt(CurrentCond(),
                                          dt1,
                                          dt2,
@@ -36661,8 +35938,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vmvn(CurrentCond(),
                                                dt,
                                                QRegister(rd),
@@ -36700,8 +35976,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vmov(CurrentCond(),
                                                dt,
                                                QRegister(rd),
@@ -36743,9 +36018,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (instr & 0xf) |
                                                   ((instr >> 12) & 0x70) |
                                                   ((instr >> 21) & 0x80));
-                                      // VORR{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>,
-                                      // #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VORR{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vorr(CurrentCond(),
                                            dt,
                                            QRegister(rd),
@@ -36779,9 +36052,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (instr & 0xf) |
                                                   ((instr >> 12) & 0x70) |
                                                   ((instr >> 21) & 0x80));
-                                      // VBIC{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>,
-                                      // #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VBIC{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vbic(CurrentCond(),
                                            dt,
                                            QRegister(rd),
@@ -36827,8 +36098,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       (dt.IsSize(64) ? 64
                                                      : (dt.GetSize() * 2)) -
                                       imm6;
-                                  // VSHR{<c>}{<q>}.<type><size> {<Qd>}, <Qm>,
-                                  // #<imm> ; T1 NOLINT(whitespace/line_length)
+                                  // VSHR{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vshr(CurrentCond(),
                                        dt,
                                        QRegister(rd),
@@ -36866,8 +36136,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       (dt.IsSize(64) ? 64
                                                      : (dt.GetSize() * 2)) -
                                       imm6;
-                                  // VSRA{<c>}{<q>}.<type><size> {<Qd>}, <Qm>,
-                                  // #<imm> ; T1 NOLINT(whitespace/line_length)
+                                  // VSRA{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vsra(CurrentCond(),
                                        dt,
                                        QRegister(rd),
@@ -36905,8 +36174,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       (dt.IsSize(64) ? 64
                                                      : (dt.GetSize() * 2)) -
                                       imm6;
-                                  // VRSHR{<c>}{<q>}.<type><size> {<Qd>}, <Qm>,
-                                  // #<imm> ; T1 NOLINT(whitespace/line_length)
+                                  // VRSHR{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vrshr(CurrentCond(),
                                         dt,
                                         QRegister(rd),
@@ -36944,8 +36212,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       (dt.IsSize(64) ? 64
                                                      : (dt.GetSize() * 2)) -
                                       imm6;
-                                  // VRSRA{<c>}{<q>}.<type><size> {<Qd>}, <Qm>,
-                                  // #<imm> ; T1 NOLINT(whitespace/line_length)
+                                  // VRSRA{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vrsra(CurrentCond(),
                                         dt,
                                         QRegister(rd),
@@ -36998,8 +36265,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vmvn(CurrentCond(),
                                                dt,
                                                QRegister(rd),
@@ -37037,8 +36303,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vmov(CurrentCond(),
                                                dt,
                                                QRegister(rd),
@@ -37080,9 +36345,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (instr & 0xf) |
                                                   ((instr >> 12) & 0x70) |
                                                   ((instr >> 21) & 0x80));
-                                      // VORR{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>,
-                                      // #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VORR{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vorr(CurrentCond(),
                                            dt,
                                            QRegister(rd),
@@ -37116,9 +36379,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               (instr & 0xf) |
                                                   ((instr >> 12) & 0x70) |
                                                   ((instr >> 21) & 0x80));
-                                      // VBIC{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>,
-                                      // #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VBIC{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vbic(CurrentCond(),
                                            dt,
                                            QRegister(rd),
@@ -37164,8 +36425,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                         (dt.IsSize(64) ? 64
                                                        : (dt.GetSize() * 2)) -
                                         imm6;
-                                    // VSRI{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #<imm>
-                                    // ; T1 NOLINT(whitespace/line_length)
+                                    // VSRI{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                     vsri(CurrentCond(),
                                          dt,
                                          QRegister(rd),
@@ -37208,9 +36468,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       uint32_t imm =
                                           imm6 -
                                           (dt.IsSize(64) ? 0 : dt.GetSize());
-                                      // VSHL{<c>}{<q>}.I<size> {<Qd>}, <Qm>,
-                                      // #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VSHL{<c>}{<q>}.I<size> {<Qd>}, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vshl(CurrentCond(),
                                            dt,
                                            QRegister(rd),
@@ -37247,9 +36505,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       uint32_t imm =
                                           imm6 -
                                           (dt.IsSize(64) ? 0 : dt.GetSize());
-                                      // VSLI{<c>}{<q>}.<dt> {<Qd>}, <Qm>,
-                                      // #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VSLI{<c>}{<q>}.<dt> {<Qd>}, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vsli(CurrentCond(),
                                            dt,
                                            QRegister(rd),
@@ -37288,8 +36544,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   uint32_t imm6 = (instr >> 16) & 0x3f;
                                   uint32_t imm =
                                       imm6 - (dt.IsSize(64) ? 0 : dt.GetSize());
-                                  // VQSHLU{<c>}{<q>}.<type><size> {<Qd>}, <Qm>,
-                                  // #<imm> ; T1 NOLINT(whitespace/line_length)
+                                  // VQSHLU{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vqshlu(CurrentCond(),
                                          dt,
                                          QRegister(rd),
@@ -37325,8 +36580,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   uint32_t imm6 = (instr >> 16) & 0x3f;
                                   uint32_t imm =
                                       imm6 - (dt.IsSize(64) ? 0 : dt.GetSize());
-                                  // VQSHL{<c>}{<q>}.<type><size> {<Qd>}, <Qm>,
-                                  // #<imm> ; T1 NOLINT(whitespace/line_length)
+                                  // VQSHL{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                   vqshl(CurrentCond(),
                                         dt,
                                         QRegister(rd),
@@ -37391,9 +36645,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                       ((instr >>
                                                                         21) &
                                                                        0x80));
-                                              // VMVN{<c>}{<q>}.<dt> <Qd>,
-                                              // #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vmvn(CurrentCond(),
                                                    dt,
                                                    QRegister(rd),
@@ -37439,9 +36691,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                       ((instr >>
                                                                         21) &
                                                                        0x80));
-                                              // VMOV{<c>}{<q>}.<dt> <Qd>,
-                                              // #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vmov(CurrentCond(),
                                                    dt,
                                                    QRegister(rd),
@@ -37483,9 +36733,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VORR{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>,
-                                          // #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VORR{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vorr(CurrentCond(),
                                                dt,
                                                QRegister(rd),
@@ -37519,9 +36767,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VBIC{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>,
-                                          // #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VBIC{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vbic(CurrentCond(),
                                                dt,
                                                QRegister(rd),
@@ -37562,9 +36808,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractQRegister(instr, 5, 0);
                                           uint32_t imm6 = (instr >> 16) & 0x3f;
                                           uint32_t imm = dt.GetSize() - imm6;
-                                          // VRSHRN{<c>}{<q>}.I<size> <Dd>,
-                                          // <Qm>, #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VRSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vrshrn(CurrentCond(),
                                                  dt,
                                                  DRegister(rd),
@@ -37597,9 +36841,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               ExtractQRegister(instr, 5, 0);
                                           uint32_t imm6 = (instr >> 16) & 0x3f;
                                           uint32_t imm = dt.GetSize() - imm6;
-                                          // VQRSHRUN{<c>}{<q>}.<type><size>
-                                          // <Dd>, <Qm>, #<imm> ; T1
-                                          // NOLINT(whitespace/line_length)
+                                          // VQRSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vqrshrun(CurrentCond(),
                                                    dt,
                                                    DRegister(rd),
@@ -37633,9 +36875,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           ExtractQRegister(instr, 5, 0);
                                       uint32_t imm6 = (instr >> 16) & 0x3f;
                                       uint32_t imm = dt.GetSize() - imm6;
-                                      // VQRSHRN{<c>}{<q>}.<type><size> <Dd>,
-                                      // <Qm>, #<imm> ; T1
-                                      // NOLINT(whitespace/line_length)
+                                      // VQRSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                       vqrshrn(CurrentCond(),
                                               dt,
                                               DRegister(rd),
@@ -37704,8 +36944,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vmov(CurrentCond(),
                                                dt,
                                                QRegister(rd),
@@ -37744,8 +36983,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   (instr & 0xf) |
                                                       ((instr >> 12) & 0x70) |
                                                       ((instr >> 21) & 0x80));
-                                          // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ;
-                                          // T1 NOLINT(whitespace/line_length)
+                                          // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                           vmov(CurrentCond(),
                                                dt,
                                                QRegister(rd),
@@ -37802,9 +37040,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -37851,9 +37087,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -37905,9 +37139,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -37954,9 +37186,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38008,9 +37238,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38057,9 +37285,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38111,9 +37337,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38160,9 +37384,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38214,9 +37436,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38263,9 +37483,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38317,9 +37535,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38366,9 +37582,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38420,9 +37634,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38469,9 +37681,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38523,9 +37733,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38572,9 +37780,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMVN{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmvn(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38626,9 +37832,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38680,9 +37884,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38734,9 +37936,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                0x70) |
                                                               ((instr >> 21) &
                                                                0x80));
-                                                  // VMOV{<c>}{<q>}.<dt> <Qd>,
-                                                  // #<imm> ; T1
-                                                  // NOLINT(whitespace/line_length)
+                                                  // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                                   vmov(CurrentCond(),
                                                        dt,
                                                        QRegister(rd),
@@ -38789,9 +37989,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                       ((instr >>
                                                                         21) &
                                                                        0x80));
-                                              // VMOV{<c>}{<q>}.<dt> <Qd>,
-                                              // #<imm> ; T1
-                                              // NOLINT(whitespace/line_length)
+                                              // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; T1 NOLINT(whitespace/line_length)
                                               vmov(CurrentCond(),
                                                    dt,
                                                    QRegister(rd),
@@ -38844,9 +38042,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                     unsigned rm = ExtractQRegister(instr, 5, 0);
                                     uint32_t fbits =
                                         64 - ((instr >> 16) & 0x3f);
-                                    // VCVT{<c>}{<q>}.<dt>.<dt> <Qd>, <Qm>,
-                                    // #<fbits> ; T1
-                                    // NOLINT(whitespace/line_length)
+                                    // VCVT{<c>}{<q>}.<dt>.<dt> <Qd>, <Qm>, #<fbits> ; T1 NOLINT(whitespace/line_length)
                                     vcvt(CurrentCond(),
                                          dt1,
                                          dt2,
@@ -42529,8 +41725,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                   unsigned rd = ExtractQRegister(instr, 22, 12);
                                   unsigned rm = ExtractDRegister(instr, 5, 0);
                                   uint32_t imm = dt.GetSize();
-                                  // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>,
-                                  // #<imm> ; A2 NOLINT(whitespace/line_length)
+                                  // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A2 NOLINT(whitespace/line_length)
                                   vshll(al,
                                         dt,
                                         QRegister(rd),
@@ -43354,8 +42549,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int lane;
                             unsigned rm =
                                 ExtractDRegisterAndLane(instr, dt, 5, 0, &lane);
-                            // VMLA{<c>}{<q>}.<type><size> <Dd>, <Dn>, <Dm[x]> ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VMLA{<c>}{<q>}.<type><size> <Dd>, <Dn>, <Dm[x]> ; A1 NOLINT(whitespace/line_length)
                             vmla(al,
                                  dt,
                                  DRegister(rd),
@@ -43388,8 +42582,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int lane;
                             unsigned rm =
                                 ExtractDRegisterAndLane(instr, dt, 5, 0, &lane);
-                            // VMLA{<c>}{<q>}.<type><size> <Qd>, <Qn>, <Dm[x]> ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VMLA{<c>}{<q>}.<type><size> <Qd>, <Qn>, <Dm[x]> ; A1 NOLINT(whitespace/line_length)
                             vmla(al,
                                  dt,
                                  QRegister(rd),
@@ -43425,8 +42618,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int lane;
                             unsigned rm =
                                 ExtractDRegisterAndLane(instr, dt, 5, 0, &lane);
-                            // VMLAL{<c>}{<q>}.<type><size> <Qd>, <Dn>, <Dm[x]>
-                            // ; A1 NOLINT(whitespace/line_length)
+                            // VMLAL{<c>}{<q>}.<type><size> <Qd>, <Dn>, <Dm[x]> ; A1 NOLINT(whitespace/line_length)
                             vmlal(al,
                                   dt,
                                   QRegister(rd),
@@ -43461,9 +42653,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                               }
                               uint32_t vm = mvm & ((1 << shift) - 1);
                               uint32_t index = mvm >> shift;
-                              // VQDMLAL{<c>}{<q>}.<dt> <Qd>, <Dn>,
-                              // <Dm>[<index>] ; A2
-                              // NOLINT(whitespace/line_length)
+                              // VQDMLAL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; A2 NOLINT(whitespace/line_length)
                               vqdmlal(al,
                                       dt,
                                       QRegister(rd),
@@ -43696,8 +42886,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int lane;
                             unsigned rm =
                                 ExtractDRegisterAndLane(instr, dt, 5, 0, &lane);
-                            // VMLS{<c>}{<q>}.<type><size> <Dd>, <Dn>, <Dm[x]> ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VMLS{<c>}{<q>}.<type><size> <Dd>, <Dn>, <Dm[x]> ; A1 NOLINT(whitespace/line_length)
                             vmls(al,
                                  dt,
                                  DRegister(rd),
@@ -43730,8 +42919,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int lane;
                             unsigned rm =
                                 ExtractDRegisterAndLane(instr, dt, 5, 0, &lane);
-                            // VMLS{<c>}{<q>}.<type><size> <Qd>, <Qn>, <Dm[x]> ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VMLS{<c>}{<q>}.<type><size> <Qd>, <Qn>, <Dm[x]> ; A1 NOLINT(whitespace/line_length)
                             vmls(al,
                                  dt,
                                  QRegister(rd),
@@ -43767,8 +42955,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int lane;
                             unsigned rm =
                                 ExtractDRegisterAndLane(instr, dt, 5, 0, &lane);
-                            // VMLSL{<c>}{<q>}.<type><size> <Qd>, <Dn>, <Dm[x]>
-                            // ; A1 NOLINT(whitespace/line_length)
+                            // VMLSL{<c>}{<q>}.<type><size> <Qd>, <Dn>, <Dm[x]> ; A1 NOLINT(whitespace/line_length)
                             vmlsl(al,
                                   dt,
                                   QRegister(rd),
@@ -43803,9 +42990,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                               }
                               uint32_t vm = mvm & ((1 << shift) - 1);
                               uint32_t index = mvm >> shift;
-                              // VQDMLSL{<c>}{<q>}.<dt> <Qd>, <Dn>,
-                              // <Dm>[<index>] ; A2
-                              // NOLINT(whitespace/line_length)
+                              // VQDMLSL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; A2 NOLINT(whitespace/line_length)
                               vqdmlsl(al,
                                       dt,
                                       QRegister(rd),
@@ -43971,8 +43156,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             }
                             uint32_t vm = mvm & ((1 << shift) - 1);
                             uint32_t index = mvm >> shift;
-                            // VMUL{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm>[<index>] ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VMUL{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm>[<index>] ; A1 NOLINT(whitespace/line_length)
                             vmul(al,
                                  dt,
                                  DRegister(rd),
@@ -44011,8 +43195,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             }
                             uint32_t vm = mvm & ((1 << shift) - 1);
                             uint32_t index = mvm >> shift;
-                            // VMUL{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm>[<index>] ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VMUL{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm>[<index>] ; A1 NOLINT(whitespace/line_length)
                             vmul(al,
                                  dt,
                                  QRegister(rd),
@@ -44053,8 +43236,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             }
                             uint32_t vm = mvm & ((1 << shift) - 1);
                             uint32_t index = mvm >> shift;
-                            // VMULL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VMULL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; A1 NOLINT(whitespace/line_length)
                             vmull(al,
                                   dt,
                                   QRegister(rd),
@@ -44399,8 +43581,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     cmode,
                                     (instr & 0xf) | ((instr >> 12) & 0x70) |
                                         ((instr >> 17) & 0x80));
-                                // VORR{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ;
-                                // A1 NOLINT(whitespace/line_length)
+                                // VORR{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vorr(al, dt, DRegister(rd), DRegister(rd), imm);
                                 break;
                               }
@@ -44422,8 +43603,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     cmode,
                                     (instr & 0xf) | ((instr >> 12) & 0x70) |
                                         ((instr >> 17) & 0x80));
-                                // VBIC{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ;
-                                // A1 NOLINT(whitespace/line_length)
+                                // VBIC{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vbic(al, dt, DRegister(rd), DRegister(rd), imm);
                                 break;
                               }
@@ -44455,8 +43635,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             uint32_t imm =
                                 (dt.IsSize(64) ? 64 : (dt.GetSize() * 2)) -
                                 imm6;
-                            // VSHR{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm>
-                            // ; A1 NOLINT(whitespace/line_length)
+                            // VSHR{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                             vshr(al, dt, DRegister(rd), DRegister(rm), imm);
                             break;
                           }
@@ -44480,8 +43659,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             uint32_t imm =
                                 (dt.IsSize(64) ? 64 : (dt.GetSize() * 2)) -
                                 imm6;
-                            // VSRA{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm>
-                            // ; A1 NOLINT(whitespace/line_length)
+                            // VSRA{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                             vsra(al, dt, DRegister(rd), DRegister(rm), imm);
                             break;
                           }
@@ -44505,8 +43683,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             uint32_t imm =
                                 (dt.IsSize(64) ? 64 : (dt.GetSize() * 2)) -
                                 imm6;
-                            // VRSHR{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm>
-                            // ; A1 NOLINT(whitespace/line_length)
+                            // VRSHR{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                             vrshr(al, dt, DRegister(rd), DRegister(rm), imm);
                             break;
                           }
@@ -44530,8 +43707,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             uint32_t imm =
                                 (dt.IsSize(64) ? 64 : (dt.GetSize() * 2)) -
                                 imm6;
-                            // VRSRA{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm>
-                            // ; A1 NOLINT(whitespace/line_length)
+                            // VRSRA{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                             vrsra(al, dt, DRegister(rd), DRegister(rm), imm);
                             break;
                           }
@@ -44637,8 +43813,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     cmode,
                                     (instr & 0xf) | ((instr >> 12) & 0x70) |
                                         ((instr >> 17) & 0x80));
-                                // VORR{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ;
-                                // A1 NOLINT(whitespace/line_length)
+                                // VORR{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vorr(al, dt, DRegister(rd), DRegister(rd), imm);
                                 break;
                               }
@@ -44660,8 +43835,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     cmode,
                                     (instr & 0xf) | ((instr >> 12) & 0x70) |
                                         ((instr >> 17) & 0x80));
-                                // VBIC{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ;
-                                // A1 NOLINT(whitespace/line_length)
+                                // VBIC{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vbic(al, dt, DRegister(rd), DRegister(rd), imm);
                                 break;
                               }
@@ -44720,8 +43894,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 uint32_t imm6 = (instr >> 16) & 0x3f;
                                 uint32_t imm =
                                     imm6 - (dt.IsSize(64) ? 0 : dt.GetSize());
-                                // VSHL{<c>}{<q>}.I<size> {<Dd>}, <Dm>, #<imm> ;
-                                // A1 NOLINT(whitespace/line_length)
+                                // VSHL{<c>}{<q>}.I<size> {<Dd>}, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vshl(al, dt, DRegister(rd), DRegister(rm), imm);
                                 break;
                               }
@@ -44769,8 +43942,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             uint32_t imm6 = (instr >> 16) & 0x3f;
                             uint32_t imm =
                                 imm6 - (dt.IsSize(64) ? 0 : dt.GetSize());
-                            // VQSHLU{<c>}{<q>}.<type><size> {<Dd>}, <Dm>,
-                            // #<imm> ; A1 NOLINT(whitespace/line_length)
+                            // VQSHLU{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                             vqshlu(al, dt, DRegister(rd), DRegister(rm), imm);
                             break;
                           }
@@ -44793,8 +43965,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             uint32_t imm6 = (instr >> 16) & 0x3f;
                             uint32_t imm =
                                 imm6 - (dt.IsSize(64) ? 0 : dt.GetSize());
-                            // VQSHL{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm>
-                            // ; A1 NOLINT(whitespace/line_length)
+                            // VQSHL{<c>}{<q>}.<type><size> {<Dd>}, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                             vqshl(al, dt, DRegister(rd), DRegister(rm), imm);
                             break;
                           }
@@ -44907,9 +44078,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             (instr & 0xf) |
                                                 ((instr >> 12) & 0x70) |
                                                 ((instr >> 17) & 0x80));
-                                    // VORR{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>,
-                                    // #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VORR{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vorr(al,
                                          dt,
                                          DRegister(rd),
@@ -44939,9 +44108,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             (instr & 0xf) |
                                                 ((instr >> 12) & 0x70) |
                                                 ((instr >> 17) & 0x80));
-                                    // VBIC{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>,
-                                    // #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VBIC{<c>}{<q>}.<dt> {<Ddn>}, <Ddn>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vbic(al,
                                          dt,
                                          DRegister(rd),
@@ -44982,9 +44149,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     unsigned rm = ExtractQRegister(instr, 5, 0);
                                     uint32_t imm6 = (instr >> 16) & 0x3f;
                                     uint32_t imm = dt.GetSize() - imm6;
-                                    // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>,
-                                    // #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vshrn(al,
                                           dt,
                                           DRegister(rd),
@@ -45014,9 +44179,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     unsigned rm = ExtractQRegister(instr, 5, 0);
                                     uint32_t imm6 = (instr >> 16) & 0x3f;
                                     uint32_t imm = dt.GetSize() - imm6;
-                                    // VQSHRUN{<c>}{<q>}.<type><size> <Dd>,
-                                    // <Qm>, #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VQSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vqshrun(al,
                                             dt,
                                             DRegister(rd),
@@ -45048,8 +44211,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned rm = ExtractQRegister(instr, 5, 0);
                                 uint32_t imm6 = (instr >> 16) & 0x3f;
                                 uint32_t imm = dt.GetSize() - imm6;
-                                // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>,
-                                // #<imm> ; A1 NOLINT(whitespace/line_length)
+                                // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vqshrn(al,
                                        dt,
                                        DRegister(rd),
@@ -45081,8 +44243,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned rm = ExtractDRegister(instr, 5, 0);
                                 uint32_t imm6 = (instr >> 16) & 0x3f;
                                 uint32_t imm = imm6 - dt.GetSize();
-                                // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>,
-                                // #<imm> ; A1 NOLINT(whitespace/line_length)
+                                // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vshll(al,
                                       dt,
                                       QRegister(rd),
@@ -45124,9 +44285,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     unsigned rm = ExtractQRegister(instr, 5, 0);
                                     uint32_t imm6 = (instr >> 16) & 0x3f;
                                     uint32_t imm = dt.GetSize() - imm6;
-                                    // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>,
-                                    // #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vshrn(al,
                                           dt,
                                           DRegister(rd),
@@ -45156,9 +44315,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     unsigned rm = ExtractQRegister(instr, 5, 0);
                                     uint32_t imm6 = (instr >> 16) & 0x3f;
                                     uint32_t imm = dt.GetSize() - imm6;
-                                    // VQSHRUN{<c>}{<q>}.<type><size> <Dd>,
-                                    // <Qm>, #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VQSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vqshrun(al,
                                             dt,
                                             DRegister(rd),
@@ -45190,8 +44347,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned rm = ExtractQRegister(instr, 5, 0);
                                 uint32_t imm6 = (instr >> 16) & 0x3f;
                                 uint32_t imm = dt.GetSize() - imm6;
-                                // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>,
-                                // #<imm> ; A1 NOLINT(whitespace/line_length)
+                                // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vqshrn(al,
                                        dt,
                                        DRegister(rd),
@@ -45223,8 +44379,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned rm = ExtractDRegister(instr, 5, 0);
                                 uint32_t imm6 = (instr >> 16) & 0x3f;
                                 uint32_t imm = imm6 - dt.GetSize();
-                                // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>,
-                                // #<imm> ; A1 NOLINT(whitespace/line_length)
+                                // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vshll(al,
                                       dt,
                                       QRegister(rd),
@@ -45266,9 +44421,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     unsigned rm = ExtractQRegister(instr, 5, 0);
                                     uint32_t imm6 = (instr >> 16) & 0x3f;
                                     uint32_t imm = dt.GetSize() - imm6;
-                                    // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>,
-                                    // #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vshrn(al,
                                           dt,
                                           DRegister(rd),
@@ -45298,9 +44451,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     unsigned rm = ExtractQRegister(instr, 5, 0);
                                     uint32_t imm6 = (instr >> 16) & 0x3f;
                                     uint32_t imm = dt.GetSize() - imm6;
-                                    // VQSHRUN{<c>}{<q>}.<type><size> <Dd>,
-                                    // <Qm>, #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VQSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vqshrun(al,
                                             dt,
                                             DRegister(rd),
@@ -45332,8 +44483,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned rm = ExtractQRegister(instr, 5, 0);
                                 uint32_t imm6 = (instr >> 16) & 0x3f;
                                 uint32_t imm = dt.GetSize() - imm6;
-                                // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>,
-                                // #<imm> ; A1 NOLINT(whitespace/line_length)
+                                // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vqshrn(al,
                                        dt,
                                        DRegister(rd),
@@ -45365,8 +44515,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned rm = ExtractDRegister(instr, 5, 0);
                                 uint32_t imm6 = (instr >> 16) & 0x3f;
                                 uint32_t imm = imm6 - dt.GetSize();
-                                // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>,
-                                // #<imm> ; A1 NOLINT(whitespace/line_length)
+                                // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vshll(al,
                                       dt,
                                       QRegister(rd),
@@ -45408,9 +44557,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     unsigned rm = ExtractQRegister(instr, 5, 0);
                                     uint32_t imm6 = (instr >> 16) & 0x3f;
                                     uint32_t imm = dt.GetSize() - imm6;
-                                    // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>,
-                                    // #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vshrn(al,
                                           dt,
                                           DRegister(rd),
@@ -45440,9 +44587,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     unsigned rm = ExtractQRegister(instr, 5, 0);
                                     uint32_t imm6 = (instr >> 16) & 0x3f;
                                     uint32_t imm = dt.GetSize() - imm6;
-                                    // VQSHRUN{<c>}{<q>}.<type><size> <Dd>,
-                                    // <Qm>, #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VQSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vqshrun(al,
                                             dt,
                                             DRegister(rd),
@@ -45474,8 +44619,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned rm = ExtractQRegister(instr, 5, 0);
                                 uint32_t imm6 = (instr >> 16) & 0x3f;
                                 uint32_t imm = dt.GetSize() - imm6;
-                                // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>,
-                                // #<imm> ; A1 NOLINT(whitespace/line_length)
+                                // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vqshrn(al,
                                        dt,
                                        DRegister(rd),
@@ -45507,8 +44651,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned rm = ExtractDRegister(instr, 5, 0);
                                 uint32_t imm6 = (instr >> 16) & 0x3f;
                                 uint32_t imm = imm6 - dt.GetSize();
-                                // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>,
-                                // #<imm> ; A1 NOLINT(whitespace/line_length)
+                                // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vshll(al,
                                       dt,
                                       QRegister(rd),
@@ -45549,9 +44692,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     unsigned rm = ExtractQRegister(instr, 5, 0);
                                     uint32_t imm6 = (instr >> 16) & 0x3f;
                                     uint32_t imm = dt.GetSize() - imm6;
-                                    // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>,
-                                    // #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vshrn(al,
                                           dt,
                                           DRegister(rd),
@@ -45581,9 +44722,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     unsigned rm = ExtractQRegister(instr, 5, 0);
                                     uint32_t imm6 = (instr >> 16) & 0x3f;
                                     uint32_t imm = dt.GetSize() - imm6;
-                                    // VQSHRUN{<c>}{<q>}.<type><size> <Dd>,
-                                    // <Qm>, #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VQSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vqshrun(al,
                                             dt,
                                             DRegister(rd),
@@ -45615,8 +44754,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned rm = ExtractQRegister(instr, 5, 0);
                                 uint32_t imm6 = (instr >> 16) & 0x3f;
                                 uint32_t imm = dt.GetSize() - imm6;
-                                // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>,
-                                // #<imm> ; A1 NOLINT(whitespace/line_length)
+                                // VQSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vqshrn(al,
                                        dt,
                                        DRegister(rd),
@@ -45690,9 +44828,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -45728,9 +44864,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -45766,9 +44900,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -45804,9 +44936,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -45842,9 +44972,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -45880,9 +45008,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -45918,9 +45044,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -45988,9 +45112,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46026,9 +45148,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46064,9 +45184,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46102,9 +45220,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46140,9 +45256,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46178,9 +45292,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46216,9 +45328,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46254,9 +45364,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46292,9 +45400,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46330,9 +45436,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46368,9 +45472,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46406,9 +45508,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46444,9 +45544,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46482,9 +45580,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46520,9 +45616,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46590,9 +45684,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46628,9 +45720,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46666,9 +45756,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46704,9 +45792,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46742,9 +45828,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46780,9 +45864,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46818,9 +45900,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46856,9 +45936,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46894,9 +45972,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46932,9 +46008,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -46970,9 +46044,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47008,9 +46080,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47046,9 +46116,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47084,9 +46152,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47122,9 +46188,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47160,9 +46224,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47198,9 +46260,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47236,9 +46296,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47274,9 +46332,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47312,9 +46368,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47350,9 +46404,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47388,9 +46440,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47426,9 +46476,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47464,9 +46512,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47502,9 +46548,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47540,9 +46584,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47578,9 +46620,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47616,9 +46656,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47654,9 +46692,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47692,9 +46728,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47730,9 +46764,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             ExtractDRegister(instr, 5, 0);
                                         uint32_t imm6 = (instr >> 16) & 0x3f;
                                         uint32_t imm = imm6 - dt.GetSize();
-                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>,
-                                        // <Dm>, #<imm> ; A1
-                                        // NOLINT(whitespace/line_length)
+                                        // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                         vshll(al,
                                               dt,
                                               QRegister(rd),
@@ -47771,9 +46803,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     unsigned rm = ExtractDRegister(instr, 5, 0);
                                     uint32_t imm6 = (instr >> 16) & 0x3f;
                                     uint32_t imm = imm6 - dt.GetSize();
-                                    // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>,
-                                    // #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vshll(al,
                                           dt,
                                           QRegister(rd),
@@ -47908,9 +46938,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -47938,9 +46966,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -47972,9 +46998,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48002,9 +47026,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48036,9 +47058,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48066,9 +47086,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48100,9 +47118,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48130,9 +47146,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48164,9 +47178,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48194,9 +47206,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48228,9 +47238,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48258,9 +47266,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48292,9 +47298,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48322,9 +47326,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48356,9 +47358,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48386,9 +47386,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48420,9 +47418,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48454,9 +47450,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48488,9 +47482,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, DRegister(rd), imm);
                                             break;
                                           }
@@ -48565,8 +47557,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                               unsigned rd = ExtractDRegister(instr, 22, 12);
                               unsigned rm = ExtractDRegister(instr, 5, 0);
                               uint32_t fbits = 64 - ((instr >> 16) & 0x3f);
-                              // VCVT{<c>}{<q>}.<dt>.<dt> <Dd>, <Dm>, #<fbits> ;
-                              // A1 NOLINT(whitespace/line_length)
+                              // VCVT{<c>}{<q>}.<dt>.<dt> <Dd>, <Dm>, #<fbits> ; A1 NOLINT(whitespace/line_length)
                               vcvt(al,
                                    dt1,
                                    dt2,
@@ -48702,8 +47693,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     cmode,
                                     (instr & 0xf) | ((instr >> 12) & 0x70) |
                                         ((instr >> 17) & 0x80));
-                                // VORR{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ;
-                                // A1 NOLINT(whitespace/line_length)
+                                // VORR{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vorr(al, dt, QRegister(rd), QRegister(rd), imm);
                                 break;
                               }
@@ -48729,8 +47719,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     cmode,
                                     (instr & 0xf) | ((instr >> 12) & 0x70) |
                                         ((instr >> 17) & 0x80));
-                                // VBIC{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ;
-                                // A1 NOLINT(whitespace/line_length)
+                                // VBIC{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vbic(al, dt, QRegister(rd), QRegister(rd), imm);
                                 break;
                               }
@@ -48770,8 +47759,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             uint32_t imm =
                                 (dt.IsSize(64) ? 64 : (dt.GetSize() * 2)) -
                                 imm6;
-                            // VSHR{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm>
-                            // ; A1 NOLINT(whitespace/line_length)
+                            // VSHR{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                             vshr(al, dt, QRegister(rd), QRegister(rm), imm);
                             break;
                           }
@@ -48803,8 +47791,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             uint32_t imm =
                                 (dt.IsSize(64) ? 64 : (dt.GetSize() * 2)) -
                                 imm6;
-                            // VSRA{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm>
-                            // ; A1 NOLINT(whitespace/line_length)
+                            // VSRA{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                             vsra(al, dt, QRegister(rd), QRegister(rm), imm);
                             break;
                           }
@@ -48836,8 +47823,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             uint32_t imm =
                                 (dt.IsSize(64) ? 64 : (dt.GetSize() * 2)) -
                                 imm6;
-                            // VRSHR{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm>
-                            // ; A1 NOLINT(whitespace/line_length)
+                            // VRSHR{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                             vrshr(al, dt, QRegister(rd), QRegister(rm), imm);
                             break;
                           }
@@ -48869,8 +47855,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             uint32_t imm =
                                 (dt.IsSize(64) ? 64 : (dt.GetSize() * 2)) -
                                 imm6;
-                            // VRSRA{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm>
-                            // ; A1 NOLINT(whitespace/line_length)
+                            // VRSRA{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                             vrsra(al, dt, QRegister(rd), QRegister(rm), imm);
                             break;
                           }
@@ -48988,8 +47973,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     cmode,
                                     (instr & 0xf) | ((instr >> 12) & 0x70) |
                                         ((instr >> 17) & 0x80));
-                                // VORR{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ;
-                                // A1 NOLINT(whitespace/line_length)
+                                // VORR{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vorr(al, dt, QRegister(rd), QRegister(rd), imm);
                                 break;
                               }
@@ -49015,8 +47999,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     cmode,
                                     (instr & 0xf) | ((instr >> 12) & 0x70) |
                                         ((instr >> 17) & 0x80));
-                                // VBIC{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ;
-                                // A1 NOLINT(whitespace/line_length)
+                                // VBIC{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vbic(al, dt, QRegister(rd), QRegister(rd), imm);
                                 break;
                               }
@@ -49091,8 +48074,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 uint32_t imm6 = (instr >> 16) & 0x3f;
                                 uint32_t imm =
                                     imm6 - (dt.IsSize(64) ? 0 : dt.GetSize());
-                                // VSHL{<c>}{<q>}.I<size> {<Qd>}, <Qm>, #<imm> ;
-                                // A1 NOLINT(whitespace/line_length)
+                                // VSHL{<c>}{<q>}.I<size> {<Qd>}, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vshl(al, dt, QRegister(rd), QRegister(rm), imm);
                                 break;
                               }
@@ -49156,8 +48138,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             uint32_t imm6 = (instr >> 16) & 0x3f;
                             uint32_t imm =
                                 imm6 - (dt.IsSize(64) ? 0 : dt.GetSize());
-                            // VQSHLU{<c>}{<q>}.<type><size> {<Qd>}, <Qm>,
-                            // #<imm> ; A1 NOLINT(whitespace/line_length)
+                            // VQSHLU{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                             vqshlu(al, dt, QRegister(rd), QRegister(rm), imm);
                             break;
                           }
@@ -49188,8 +48169,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             uint32_t imm6 = (instr >> 16) & 0x3f;
                             uint32_t imm =
                                 imm6 - (dt.IsSize(64) ? 0 : dt.GetSize());
-                            // VQSHL{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm>
-                            // ; A1 NOLINT(whitespace/line_length)
+                            // VQSHL{<c>}{<q>}.<type><size> {<Qd>}, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                             vqshl(al, dt, QRegister(rd), QRegister(rm), imm);
                             break;
                           }
@@ -49314,9 +48294,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             (instr & 0xf) |
                                                 ((instr >> 12) & 0x70) |
                                                 ((instr >> 17) & 0x80));
-                                    // VORR{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>,
-                                    // #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VORR{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vorr(al,
                                          dt,
                                          QRegister(rd),
@@ -49350,9 +48328,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             (instr & 0xf) |
                                                 ((instr >> 12) & 0x70) |
                                                 ((instr >> 17) & 0x80));
-                                    // VBIC{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>,
-                                    // #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VBIC{<c>}{<q>}.<dt> {<Qdn>}, <Qdn>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vbic(al,
                                          dt,
                                          QRegister(rd),
@@ -49392,9 +48368,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     unsigned rm = ExtractQRegister(instr, 5, 0);
                                     uint32_t imm6 = (instr >> 16) & 0x3f;
                                     uint32_t imm = dt.GetSize() - imm6;
-                                    // VRSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>,
-                                    // #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VRSHRN{<c>}{<q>}.I<size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vrshrn(al,
                                            dt,
                                            DRegister(rd),
@@ -49424,9 +48398,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     unsigned rm = ExtractQRegister(instr, 5, 0);
                                     uint32_t imm6 = (instr >> 16) & 0x3f;
                                     uint32_t imm = dt.GetSize() - imm6;
-                                    // VQRSHRUN{<c>}{<q>}.<type><size> <Dd>,
-                                    // <Qm>, #<imm> ; A1
-                                    // NOLINT(whitespace/line_length)
+                                    // VQRSHRUN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                     vqrshrun(al,
                                              dt,
                                              DRegister(rd),
@@ -49458,8 +48430,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned rm = ExtractQRegister(instr, 5, 0);
                                 uint32_t imm6 = (instr >> 16) & 0x3f;
                                 uint32_t imm = dt.GetSize() - imm6;
-                                // VQRSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>,
-                                // #<imm> ; A1 NOLINT(whitespace/line_length)
+                                // VQRSHRN{<c>}{<q>}.<type><size> <Dd>, <Qm>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                 vqrshrn(al,
                                         dt,
                                         DRegister(rd),
@@ -49603,9 +48574,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -49637,9 +48606,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -49675,9 +48642,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -49709,9 +48674,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -49747,9 +48710,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -49781,9 +48742,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -49819,9 +48778,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -49853,9 +48810,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -49891,9 +48846,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -49925,9 +48878,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -49963,9 +48914,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -49997,9 +48946,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -50035,9 +48982,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -50069,9 +49014,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -50107,9 +49050,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -50141,9 +49082,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMVN{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmvn(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -50179,9 +49118,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -50217,9 +49154,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -50255,9 +49190,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                     (instr & 0xf) |
                                                         ((instr >> 12) & 0x70) |
                                                         ((instr >> 17) & 0x80));
-                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm>
-                                            // ; A1
-                                            // NOLINT(whitespace/line_length)
+                                            // VMOV{<c>}{<q>}.<dt> <Qd>, #<imm> ; A1 NOLINT(whitespace/line_length)
                                             vmov(al, dt, QRegister(rd), imm);
                                             break;
                                           }
@@ -50344,8 +49277,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                               }
                               unsigned rm = ExtractQRegister(instr, 5, 0);
                               uint32_t fbits = 64 - ((instr >> 16) & 0x3f);
-                              // VCVT{<c>}{<q>}.<dt>.<dt> <Qd>, <Qm>, #<fbits> ;
-                              // A1 NOLINT(whitespace/line_length)
+                              // VCVT{<c>}{<q>}.<dt>.<dt> <Qd>, <Qm>, #<fbits> ; A1 NOLINT(whitespace/line_length)
                               vcvt(al,
                                    dt1,
                                    dt2,
@@ -50425,8 +49357,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vst4(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -50472,8 +49403,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vst4(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -50526,8 +49456,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned last = first + length - 1;
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vst1(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -50581,8 +49510,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vst2(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -50632,8 +49560,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vst3(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -50683,8 +49610,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vst3(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -50737,8 +49663,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned last = first + length - 1;
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vst1(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -50791,8 +49716,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned last = first + length - 1;
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vst1(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -50846,8 +49770,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vst2(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -50901,8 +49824,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vst2(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -50955,8 +49877,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned last = first + length - 1;
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vst1(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -51594,8 +50515,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vst4(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -51646,8 +50566,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vst4(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -51703,8 +50622,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vst1(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -51760,8 +50678,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vst2(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -51813,8 +50730,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vst3(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -51866,8 +50782,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VST3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vst3(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -51923,8 +50838,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vst1(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -51980,8 +50894,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vst1(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -52037,8 +50950,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vst2(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -52094,8 +51006,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vst2(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -52151,8 +51062,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vst1(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -52219,8 +51129,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned length = 1;
                                 unsigned last = first + length - 1;
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]!
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                                 vst1(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -52260,8 +51169,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned length = 1;
                                 unsigned last = first + length - 1;
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; A1 NOLINT(whitespace/line_length)
                                 vst1(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -52302,8 +51210,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned last = first + length - 1;
                             unsigned rn = (instr >> 16) & 0xf;
                             unsigned rm = instr & 0xf;
-                            // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                            // <Rm> ; A1 NOLINT(whitespace/line_length)
+                            // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                             vst1(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -52365,8 +51272,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     first +
                                     (length - 1) * (spacing == kSingle ? 1 : 2);
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]!
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                                 vst2(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -52408,8 +51314,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     first +
                                     (length - 1) * (spacing == kSingle ? 1 : 2);
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; A1 NOLINT(whitespace/line_length)
                                 vst2(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -52452,8 +51357,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             unsigned rn = (instr >> 16) & 0xf;
                             unsigned rm = instr & 0xf;
-                            // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                            // <Rm> ; A1 NOLINT(whitespace/line_length)
+                            // VST2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                             vst2(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -52713,8 +51617,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     first +
                                     (length - 1) * (spacing == kSingle ? 1 : 2);
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]!
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                                 vst4(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -52756,8 +51659,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     first +
                                     (length - 1) * (spacing == kSingle ? 1 : 2);
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; A1 NOLINT(whitespace/line_length)
                                 vst4(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -52800,8 +51702,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             unsigned rn = (instr >> 16) & 0xf;
                             unsigned rm = instr & 0xf;
-                            // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                            // <Rm> ; A1 NOLINT(whitespace/line_length)
+                            // VST4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                             vst4(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -52917,8 +51818,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vld4(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -52964,8 +51864,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vld4(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -53018,8 +51917,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned last = first + length - 1;
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vld1(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -53073,8 +51971,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vld2(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -53120,8 +52017,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vld3(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -53167,8 +52063,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vld3(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -53221,8 +52116,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned last = first + length - 1;
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vld1(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -53275,8 +52169,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned last = first + length - 1;
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vld1(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -53330,8 +52223,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vld2(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -53385,8 +52277,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vld2(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -53439,8 +52330,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned last = first + length - 1;
                             TransferType transfer = kMultipleLanes;
                             unsigned rn = (instr >> 16) & 0xf;
-                            // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                             vld1(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -54070,8 +52960,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vld4(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -54122,8 +53011,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vld4(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -54179,8 +53067,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vld1(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -54236,8 +53123,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vld2(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -54288,8 +53174,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vld3(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -54340,8 +53225,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vld3(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -54397,8 +53281,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vld1(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -54454,8 +53337,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vld1(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -54511,8 +53393,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vld2(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -54568,8 +53449,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vld2(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -54625,8 +53505,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         TransferType transfer = kMultipleLanes;
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
-                        // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                         vld1(al,
                              dt,
                              NeonRegisterList(DRegister(first),
@@ -54693,8 +53572,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned last = first + length - 1;
                                 TransferType transfer = kAllLanes;
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]!
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                                 vld1(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -54738,8 +53616,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned last = first + length - 1;
                                 TransferType transfer = kAllLanes;
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; A1 NOLINT(whitespace/line_length)
                                 vld1(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -54788,8 +53665,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             TransferType transfer = kAllLanes;
                             unsigned rn = (instr >> 16) & 0xf;
                             unsigned rm = instr & 0xf;
-                            // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                            // <Rm> ; A1 NOLINT(whitespace/line_length)
+                            // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                             vld1(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -54838,8 +53714,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned length = 1;
                                 unsigned last = first + length - 1;
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]!
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                                 vld1(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -54879,8 +53754,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned length = 1;
                                 unsigned last = first + length - 1;
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; A1 NOLINT(whitespace/line_length)
                                 vld1(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -54921,8 +53795,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned last = first + length - 1;
                             unsigned rn = (instr >> 16) & 0xf;
                             unsigned rm = instr & 0xf;
-                            // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                            // <Rm> ; A1 NOLINT(whitespace/line_length)
+                            // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                             vld1(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -54986,8 +53859,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     (length - 1) * (spacing == kSingle ? 1 : 2);
                                 TransferType transfer = kAllLanes;
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]!
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                                 vld2(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -55035,8 +53907,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     (length - 1) * (spacing == kSingle ? 1 : 2);
                                 TransferType transfer = kAllLanes;
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; A1 NOLINT(whitespace/line_length)
                                 vld2(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -55089,8 +53960,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             TransferType transfer = kAllLanes;
                             unsigned rn = (instr >> 16) & 0xf;
                             unsigned rm = instr & 0xf;
-                            // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                            // <Rm> ; A1 NOLINT(whitespace/line_length)
+                            // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                             vld2(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -55141,8 +54011,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     first +
                                     (length - 1) * (spacing == kSingle ? 1 : 2);
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]!
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                                 vld2(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -55184,8 +54053,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     first +
                                     (length - 1) * (spacing == kSingle ? 1 : 2);
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; A1 NOLINT(whitespace/line_length)
                                 vld2(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -55228,8 +54096,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             unsigned rn = (instr >> 16) & 0xf;
                             unsigned rm = instr & 0xf;
-                            // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                            // <Rm> ; A1 NOLINT(whitespace/line_length)
+                            // VLD2{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                             vld2(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -55377,8 +54244,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 unsigned rn = (instr >> 16) & 0xf;
                                 Sign sign(plus);
                                 unsigned rm = instr & 0xf;
-                                // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>], #<Rm> ;
-                                // A1 NOLINT(whitespace/line_length)
+                                // VLD3{<c>}{<q>}.<dt> <list>, [<Rn>], #<Rm> ; A1 NOLINT(whitespace/line_length)
                                 vld3(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -55576,8 +54442,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     (length - 1) * (spacing == kSingle ? 1 : 2);
                                 TransferType transfer = kAllLanes;
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]!
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                                 vld4(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -55627,8 +54492,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     (length - 1) * (spacing == kSingle ? 1 : 2);
                                 TransferType transfer = kAllLanes;
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; A1 NOLINT(whitespace/line_length)
                                 vld4(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -55683,8 +54547,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             TransferType transfer = kAllLanes;
                             unsigned rn = (instr >> 16) & 0xf;
                             unsigned rm = instr & 0xf;
-                            // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                            // <Rm> ; A1 NOLINT(whitespace/line_length)
+                            // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                             vld4(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -55735,8 +54598,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     first +
                                     (length - 1) * (spacing == kSingle ? 1 : 2);
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]!
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1 NOLINT(whitespace/line_length)
                                 vld4(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -55778,8 +54640,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     first +
                                     (length - 1) * (spacing == kSingle ? 1 : 2);
                                 unsigned rn = (instr >> 16) & 0xf;
-                                // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]
-                                // ; A1 NOLINT(whitespace/line_length)
+                                // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; A1 NOLINT(whitespace/line_length)
                                 vld4(al,
                                      dt,
                                      NeonRegisterList(DRegister(first),
@@ -55822,8 +54683,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 (length - 1) * (spacing == kSingle ? 1 : 2);
                             unsigned rn = (instr >> 16) & 0xf;
                             unsigned rm = instr & 0xf;
-                            // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}],
-                            // <Rm> ; A1 NOLINT(whitespace/line_length)
+                            // VLD4{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}], <Rm> ; A1 NOLINT(whitespace/line_length)
                             vld4(al,
                                  dt,
                                  NeonRegisterList(DRegister(first),
@@ -56789,8 +55649,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                             (instr >> 7) &
                                                                 0x1f);
-                        // AND{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount>
-                        // } ; A1 NOLINT(whitespace/line_length)
+                        // AND{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                         and_(condition,
                              Best,
                              Register(rd),
@@ -56839,8 +55698,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                                     0x3,
                                                                 (instr >> 7) &
                                                                     0x1f);
-                            // SUB{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift>
-                            // #<amount> } ; A1 NOLINT(whitespace/line_length)
+                            // SUB{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                             sub(condition,
                                 Best,
                                 Register(rd),
@@ -56889,8 +55747,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                                     0x3,
                                                                 (instr >> 7) &
                                                                     0x1f);
-                            // SUB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                            // #<amount> } ; A1 NOLINT(whitespace/line_length)
+                            // SUB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                             sub(condition,
                                 Best,
                                 Register(rd),
@@ -56946,8 +55803,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                             (instr >> 7) &
                                                                 0x1f);
-                        // EOR{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount>
-                        // } ; A1 NOLINT(whitespace/line_length)
+                        // EOR{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                         eor(condition,
                             Best,
                             Register(rd),
@@ -56994,8 +55850,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                             (instr >> 7) &
                                                                 0x1f);
-                        // RSB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount>
-                        // } ; A1 NOLINT(whitespace/line_length)
+                        // RSB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                         rsb(condition,
                             Best,
                             Register(rd),
@@ -57050,8 +55905,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                                     0x3,
                                                                 (instr >> 7) &
                                                                     0x1f);
-                            // ADD{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift>
-                            // #<amount> } ; A1 NOLINT(whitespace/line_length)
+                            // ADD{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                             add(condition,
                                 Best,
                                 Register(rd),
@@ -57100,8 +55954,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                                     0x3,
                                                                 (instr >> 7) &
                                                                     0x1f);
-                            // ADD{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                            // #<amount> } ; A1 NOLINT(whitespace/line_length)
+                            // ADD{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                             add(condition,
                                 Best,
                                 Register(rd),
@@ -57151,8 +56004,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                             (instr >> 7) &
                                                                 0x1f);
-                        // SBC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount>
-                        // } ; A1 NOLINT(whitespace/line_length)
+                        // SBC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                         sbc(condition,
                             Best,
                             Register(rd),
@@ -57205,8 +56057,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                             (instr >> 7) &
                                                                 0x1f);
-                        // ADC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount>
-                        // } ; A1 NOLINT(whitespace/line_length)
+                        // ADC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                         adc(condition,
                             Best,
                             Register(rd),
@@ -57252,8 +56103,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                             (instr >> 7) &
                                                                 0x1f);
-                        // RSC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount>
-                        // } ; A1 NOLINT(whitespace/line_length)
+                        // RSC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                         rsc(condition,
                             Register(rd),
                             Register(rn),
@@ -57888,8 +56738,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                             (instr >> 7) &
                                                                 0x1f);
-                        // ORR{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount>
-                        // } ; A1 NOLINT(whitespace/line_length)
+                        // ORR{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                         orr(condition,
                             Best,
                             Register(rd),
@@ -57936,8 +56785,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                             (instr >> 7) &
                                                                 0x1f);
-                        // BIC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount>
-                        // } ; A1 NOLINT(whitespace/line_length)
+                        // BIC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                         bic(condition,
                             Best,
                             Register(rd),
@@ -59459,8 +58307,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                                    : plus);
                             int32_t offset =
                                 (instr & 0xf) | ((instr >> 4) & 0xf0);
-                            // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>], #{+/-}<imm_1>
-                            // ; A1 NOLINT(whitespace/line_length)
+                            // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>], #{+/-}<imm_1> ; A1 NOLINT(whitespace/line_length)
                             ldrd(condition,
                                  Register(rt),
                                  Register(rt + 1),
@@ -59484,9 +58331,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                                    : plus);
                             int32_t offset =
                                 (instr & 0xf) | ((instr >> 4) & 0xf0);
-                            // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{,
-                            // #{+/-}<imm_1>}] ; A1
-                            // NOLINT(whitespace/line_length)
+                            // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm_1>}] ; A1 NOLINT(whitespace/line_length)
                             ldrd(condition,
                                  Register(rt),
                                  Register(rt + 1),
@@ -59510,9 +58355,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                                    : plus);
                             int32_t offset =
                                 (instr & 0xf) | ((instr >> 4) & 0xf0);
-                            // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{,
-                            // #{+/-}<imm_1>}]! ; A1
-                            // NOLINT(whitespace/line_length)
+                            // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm_1>}]! ; A1 NOLINT(whitespace/line_length)
                             ldrd(condition,
                                  Register(rt),
                                  Register(rt + 1),
@@ -59546,8 +58389,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned rn = (instr >> 16) & 0xf;
                         Sign sign((((instr >> 23) & 0x1) == 0) ? minus : plus);
                         int32_t offset = (instr & 0xf) | ((instr >> 4) & 0xf0);
-                        // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>], #{+/-}<imm_1> ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>], #{+/-}<imm_1> ; A1 NOLINT(whitespace/line_length)
                         strd(condition,
                              Register(rt),
                              Register(rt + 1),
@@ -59565,8 +58407,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned rn = (instr >> 16) & 0xf;
                         Sign sign((((instr >> 23) & 0x1) == 0) ? minus : plus);
                         int32_t offset = (instr & 0xf) | ((instr >> 4) & 0xf0);
-                        // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm_1>}] ;
-                        // A1 NOLINT(whitespace/line_length)
+                        // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm_1>}] ; A1 NOLINT(whitespace/line_length)
                         strd(condition,
                              Register(rt),
                              Register(rt + 1),
@@ -59584,8 +58425,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned rn = (instr >> 16) & 0xf;
                         Sign sign((((instr >> 23) & 0x1) == 0) ? minus : plus);
                         int32_t offset = (instr & 0xf) | ((instr >> 4) & 0xf0);
-                        // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm_1>}]!
-                        // ; A1 NOLINT(whitespace/line_length)
+                        // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm_1>}]! ; A1 NOLINT(whitespace/line_length)
                         strd(condition,
                              Register(rt),
                              Register(rt + 1),
@@ -59641,8 +58481,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     unsigned rm = instr & 0xf;
                     ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                         (instr >> 7) & 0x1f);
-                    // ANDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> }
-                    // ; A1 NOLINT(whitespace/line_length)
+                    // ANDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                     ands(condition,
                          Best,
                          Register(rd),
@@ -59688,8 +58527,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     unsigned rm = instr & 0xf;
                     ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                         (instr >> 7) & 0x1f);
-                    // EORS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> }
-                    // ; A1 NOLINT(whitespace/line_length)
+                    // EORS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                     eors(condition,
                          Best,
                          Register(rd),
@@ -59737,8 +58575,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                             (instr >> 7) &
                                                                 0x1f);
-                        // SUBS{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift> #<amount>
-                        // } ; A1 NOLINT(whitespace/line_length)
+                        // SUBS{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                         subs(condition,
                              Best,
                              Register(rd),
@@ -59786,8 +58623,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                             (instr >> 7) &
                                                                 0x1f);
-                        // SUBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                        // #<amount> } ; A1 NOLINT(whitespace/line_length)
+                        // SUBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                         subs(condition,
                              Best,
                              Register(rd),
@@ -59836,8 +58672,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     unsigned rm = instr & 0xf;
                     ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                         (instr >> 7) & 0x1f);
-                    // RSBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> }
-                    // ; A1 NOLINT(whitespace/line_length)
+                    // RSBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                     rsbs(condition,
                          Best,
                          Register(rd),
@@ -59885,8 +58720,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                             (instr >> 7) &
                                                                 0x1f);
-                        // ADDS{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift> #<amount>
-                        // } ; A1 NOLINT(whitespace/line_length)
+                        // ADDS{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                         adds(condition,
                              Best,
                              Register(rd),
@@ -59934,8 +58768,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                             (instr >> 7) &
                                                                 0x1f);
-                        // ADDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift>
-                        // #<amount> } ; A1 NOLINT(whitespace/line_length)
+                        // ADDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                         adds(condition,
                              Best,
                              Register(rd),
@@ -59984,8 +58817,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     unsigned rm = instr & 0xf;
                     ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                         (instr >> 7) & 0x1f);
-                    // ADCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> }
-                    // ; A1 NOLINT(whitespace/line_length)
+                    // ADCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                     adcs(condition,
                          Best,
                          Register(rd),
@@ -60031,8 +58863,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     unsigned rm = instr & 0xf;
                     ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                         (instr >> 7) & 0x1f);
-                    // SBCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> }
-                    // ; A1 NOLINT(whitespace/line_length)
+                    // SBCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                     sbcs(condition,
                          Best,
                          Register(rd),
@@ -60077,8 +58908,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     unsigned rm = instr & 0xf;
                     ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                         (instr >> 7) & 0x1f);
-                    // RSCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> }
-                    // ; A1 NOLINT(whitespace/line_length)
+                    // RSCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                     rscs(condition,
                          Register(rd),
                          Register(rn),
@@ -60311,8 +59141,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     unsigned rm = instr & 0xf;
                     ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                         (instr >> 7) & 0x1f);
-                    // ORRS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> }
-                    // ; A1 NOLINT(whitespace/line_length)
+                    // ORRS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                     orrs(condition,
                          Best,
                          Register(rd),
@@ -60473,8 +59302,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     unsigned rm = instr & 0xf;
                     ImmediateShiftOperand shift_operand((instr >> 5) & 0x3,
                                                         (instr >> 7) & 0x1f);
-                    // BICS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> }
-                    // ; A1 NOLINT(whitespace/line_length)
+                    // BICS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; A1 NOLINT(whitespace/line_length)
                     bics(condition,
                          Best,
                          Register(rd),
@@ -61729,8 +60557,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                                    : plus);
                             int32_t offset =
                                 (instr & 0xf) | ((instr >> 4) & 0xf0);
-                            // LDRH{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_3>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // LDRH{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_3>}]! ; A1 NOLINT(whitespace/line_length)
                             ldrh(condition,
                                  Best,
                                  Register(rt),
@@ -61845,8 +60672,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                                    : plus);
                             int32_t offset =
                                 (instr & 0xf) | ((instr >> 4) & 0xf0);
-                            // LDRSB{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_2>}] ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // LDRSB{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_2>}] ; A1 NOLINT(whitespace/line_length)
                             ldrsb(condition,
                                   Best,
                                   Register(rt),
@@ -61896,8 +60722,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                                    : plus);
                             int32_t offset =
                                 (instr & 0xf) | ((instr >> 4) & 0xf0);
-                            // LDRSB{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_2>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // LDRSB{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_2>}]! ; A1 NOLINT(whitespace/line_length)
                             ldrsb(condition,
                                   Best,
                                   Register(rt),
@@ -62012,8 +60837,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                                    : plus);
                             int32_t offset =
                                 (instr & 0xf) | ((instr >> 4) & 0xf0);
-                            // LDRSH{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_2>}] ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // LDRSH{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_2>}] ; A1 NOLINT(whitespace/line_length)
                             ldrsh(condition,
                                   Best,
                                   Register(rt),
@@ -62063,8 +60887,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                                    : plus);
                             int32_t offset =
                                 (instr & 0xf) | ((instr >> 4) & 0xf0);
-                            // LDRSH{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_2>}]! ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // LDRSH{<c>}{<q>} <Rt>, [<Rn>{, #{+/-}<imm_2>}]! ; A1 NOLINT(whitespace/line_length)
                             ldrsh(condition,
                                   Best,
                                   Register(rt),
@@ -63617,8 +62440,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
                         uint32_t amount = ((instr >> 10) & 0x3) * 8;
-                        // SXTAB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount>
-                        // } ; A1 NOLINT(whitespace/line_length)
+                        // SXTAB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; A1 NOLINT(whitespace/line_length)
                         sxtab16(condition,
                                 Register(rd),
                                 Register(rn),
@@ -64047,8 +62869,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
                         uint32_t amount = ((instr >> 10) & 0x3) * 8;
-                        // SXTAB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> }
-                        // ; A1 NOLINT(whitespace/line_length)
+                        // SXTAB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; A1 NOLINT(whitespace/line_length)
                         sxtab(condition,
                               Register(rd),
                               Register(rn),
@@ -64095,8 +62916,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
                         uint32_t amount = ((instr >> 10) & 0x3) * 8;
-                        // SXTAH{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> }
-                        // ; A1 NOLINT(whitespace/line_length)
+                        // SXTAH{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; A1 NOLINT(whitespace/line_length)
                         sxtah(condition,
                               Register(rd),
                               Register(rn),
@@ -64321,8 +63141,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     unsigned rn = (instr >> 16) & 0xf;
                     unsigned rm = instr & 0xf;
                     uint32_t amount = ((instr >> 10) & 0x3) * 8;
-                    // UXTAB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ;
-                    // A1 NOLINT(whitespace/line_length)
+                    // UXTAB16{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; A1 NOLINT(whitespace/line_length)
                     uxtab16(condition,
                             Register(rd),
                             Register(rn),
@@ -64750,8 +63569,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
                         uint32_t amount = ((instr >> 10) & 0x3) * 8;
-                        // UXTAB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> }
-                        // ; A1 NOLINT(whitespace/line_length)
+                        // UXTAB{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; A1 NOLINT(whitespace/line_length)
                         uxtab(condition,
                               Register(rd),
                               Register(rn),
@@ -64798,8 +63616,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned rm = instr & 0xf;
                         uint32_t amount = ((instr >> 10) & 0x3) * 8;
-                        // UXTAH{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> }
-                        // ; A1 NOLINT(whitespace/line_length)
+                        // UXTAH{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, ROR #<amount> } ; A1 NOLINT(whitespace/line_length)
                         uxtah(condition,
                               Register(rd),
                               Register(rn),
@@ -66608,8 +65425,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             Sign sign((((instr >> 23) & 0x1) == 0) ? minus
                                                                    : plus);
                             int32_t offset = (instr & 0xff) << 2;
-                            // VLDR{<c>}{<q>}{.32} <Sd>, [<Rn>{, #{+/-}<imm>}] ;
-                            // A2 NOLINT(whitespace/line_length)
+                            // VLDR{<c>}{<q>}{.32} <Sd>, [<Rn>{, #{+/-}<imm>}] ; A2 NOLINT(whitespace/line_length)
                             vldr(condition,
                                  kDataTypeValueNone,
                                  SRegister(rd),
@@ -66632,8 +65448,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             Sign sign((((instr >> 23) & 0x1) == 0) ? minus
                                                                    : plus);
                             int32_t offset = (instr & 0xff) << 2;
-                            // VLDR{<c>}{<q>}{.64} <Dd>, [<Rn>{, #{+/-}<imm>}] ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VLDR{<c>}{<q>}{.64} <Dd>, [<Rn>{, #{+/-}<imm>}] ; A1 NOLINT(whitespace/line_length)
                             vldr(condition,
                                  kDataTypeValueNone,
                                  DRegister(rd),
@@ -67608,8 +66423,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             }
                             uint32_t fbits = offset - (((instr >> 5) & 0x1) |
                                                        ((instr << 1) & 0x1e));
-                            // VCVT{<c>}{<q>}.F32.<dt> <Sdm>, <Sdm>, #<fbits> ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VCVT{<c>}{<q>}.F32.<dt> <Sdm>, <Sdm>, #<fbits> ; A1 NOLINT(whitespace/line_length)
                             vcvt(condition,
                                  F32,
                                  dt,
@@ -67712,8 +66526,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             }
                             uint32_t fbits = offset - (((instr >> 5) & 0x1) |
                                                        ((instr << 1) & 0x1e));
-                            // VCVT{<c>}{<q>}.<dt>.F32 <Sdm>, <Sdm>, #<fbits> ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VCVT{<c>}{<q>}.<dt>.F32 <Sdm>, <Sdm>, #<fbits> ; A1 NOLINT(whitespace/line_length)
                             vcvt(condition,
                                  dt,
                                  F32,
@@ -68079,8 +66892,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             }
                             uint32_t fbits = offset - (((instr >> 5) & 0x1) |
                                                        ((instr << 1) & 0x1e));
-                            // VCVT{<c>}{<q>}.F64.<dt> <Ddm>, <Ddm>, #<fbits> ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VCVT{<c>}{<q>}.F64.<dt> <Ddm>, <Ddm>, #<fbits> ; A1 NOLINT(whitespace/line_length)
                             vcvt(condition,
                                  F64,
                                  dt,
@@ -68183,8 +66995,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             }
                             uint32_t fbits = offset - (((instr >> 5) & 0x1) |
                                                        ((instr << 1) & 0x1e));
-                            // VCVT{<c>}{<q>}.<dt>.F64 <Ddm>, <Ddm>, #<fbits> ;
-                            // A1 NOLINT(whitespace/line_length)
+                            // VCVT{<c>}{<q>}.<dt>.F64 <Ddm>, <Ddm>, #<fbits> ; A1 NOLINT(whitespace/line_length)
                             vcvt(condition,
                                  dt,
                                  F64,
