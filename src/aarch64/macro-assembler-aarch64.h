@@ -3342,7 +3342,7 @@ class UseScratchRegisterScope {
 template <typename R, typename... P>
 void MacroAssembler::CallRuntime(R (*function)(P...)) {
   if (generate_simulator_code_) {
-#ifdef VIXL_SIMULATED_RUNTIME_CALL_SUPPORT
+#ifdef VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
     uint64_t runtime_call_wrapper_address = reinterpret_cast<uint64_t>(
         &(Simulator::RuntimeCallStructHelper<R, P...>::Wrapper));
     uint64_t function_address = reinterpret_cast<uint64_t>(function);

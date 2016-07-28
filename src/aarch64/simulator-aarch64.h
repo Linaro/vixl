@@ -38,7 +38,7 @@
 
 // These are only used for the ABI feature, and depend on checks performed for
 // it.
-#ifdef VIXL_ABI_SUPPORT
+#ifdef VIXL_HAS_ABI_SUPPORT
 #include <tuple>
 #if __cplusplus >= 201402L
 // Required for `std::index_sequence`
@@ -1618,9 +1618,9 @@ class Simulator : public DecoderVisitor {
 
 // Runtime call emulation support.
 // It requires VIXL's ABI features, and C++11 or greater.
-#if defined(VIXL_ABI_SUPPORT) && __cplusplus >= 201103L
+#if defined(VIXL_HAS_ABI_SUPPORT) && __cplusplus >= 201103L
 
-#define VIXL_SIMULATED_RUNTIME_CALL_SUPPORT
+#define VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
 
 // The implementation of the runtime call helpers require the functionality
 // provided by `std::index_sequence`. It is only available from C++14, but
@@ -2944,7 +2944,7 @@ class Simulator : public DecoderVisitor {
   void DoPrintf(const Instruction* instr);
 
 // Simulate a runtime call.
-#ifndef VIXL_SIMULATED_RUNTIME_CALL_SUPPORT
+#ifndef VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
   VIXL_NO_RETURN_IN_DEBUG_MODE
 #endif
   void DoRuntimeCall(const Instruction* instr);
@@ -3086,7 +3086,8 @@ class Simulator : public DecoderVisitor {
   void PrintExclusiveAccessWarning();
 };
 
-#if defined(VIXL_ABI_SUPPORT) && __cplusplus >= 201103L && __cplusplus < 201402L
+#if defined(VIXL_HAS_ABI_SUPPORT) && __cplusplus >= 201103L && \
+    __cplusplus < 201402L
 // Base case of the recursive template used to emulate C++14
 // `std::index_sequence`.
 template <size_t... I>

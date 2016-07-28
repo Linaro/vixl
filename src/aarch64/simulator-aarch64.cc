@@ -5317,7 +5317,7 @@ void Simulator::DoPrintf(const Instruction* instr) {
 }
 
 
-#ifdef VIXL_SIMULATED_RUNTIME_CALL_SUPPORT
+#ifdef VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
 void Simulator::DoRuntimeCall(const Instruction* instr) {
   VIXL_STATIC_ASSERT(kRuntimeCallAddressSize == sizeof(uint64_t));
   // The appropriate `Simulator::SimulateRuntimeCall()` wrapper and the function

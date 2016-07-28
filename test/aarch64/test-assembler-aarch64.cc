@@ -22204,7 +22204,21 @@ void runtime_call_store_at_address(int64_t* address) {
   *address = 0xf00d;
 }
 
-#if defined(VIXL_SIMULATED_RUNTIME_CALL_SUPPORT) || !defined(VIXL_INCLUDE_SIMULATOR)
+
+// C++11 should be sufficient to provide support for ABI and simulated runtime
+// calls.
+#if __cplusplus >= 201103L
+#ifndef VIXL_HAS_ABI_SUPPORT
+#error "C++11 should be sufficient to provide ABI support."
+#endif
+#ifndef VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
+#error "C++11 should be sufficient to provide support for simulated runtime calls."
+#endif
+#endif
+
+
+#if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) || \
+    !defined(VIXL_INCLUDE_SIMULATOR)
 TEST(runtime_calls) {
   SETUP();
 
