@@ -87,7 +87,7 @@ class ABI {
     const bool is_floating_point_type = std::is_floating_point<T>::value;
     const bool is_integral_type = std::is_integral<T>::value;
     const bool is_pointer_type = std::is_pointer<T>::value;
-    size_t type_alignment = std::alignment_of<T>::value;
+    int type_alignment = std::alignment_of<T>::value;
 
     // We only support basic types.
     VIXL_ASSERT(is_floating_point_type || is_integral_type || is_pointer_type);
@@ -133,8 +133,7 @@ class ABI {
     // Stage C.11
     NGRN_ = 8;
     // Stage C.12
-    stack_offset_ =
-        AlignUp(stack_offset_, std::max(type_alignment, UINT64_C(8)));
+    stack_offset_ = AlignUp(stack_offset_, std::max(type_alignment, 8));
     // Stage C.13: Unsupported. Caught by the assertions above.
     // Stage C.14
     VIXL_ASSERT(size <= 8u);
