@@ -26,7 +26,7 @@
 
 
 // The example assumes support for ELF binaries.
-#ifndef __linux__
+#ifdef __linux__
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -317,4 +317,4 @@ int main(void) {
   return 0;
 }
 
-#endif  // __APPLE__
+#endif  // __linux__
