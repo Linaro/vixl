@@ -574,10 +574,7 @@ static void TestHelper(Fn instruction, const char* mnemonic,
       printf("%u other errors follow.\n",
              total_error_count - kErrorReportLimit);
     }
-// TODO: Do this check for the simulator too when it is ready.
-#ifndef VIXL_INCLUDE_SIMULATOR
     VIXL_CHECK(total_error_count == 0);
-#endif
   } else {
     VIXL_WARNING("Assembled the code, but did not run anything.\n");
   }
