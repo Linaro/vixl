@@ -212,12 +212,7 @@ def ConfigureEnvironmentForCompiler(env):
     if not using_clang3_4:
       env.Append(CPPFLAGS = ['-Wunreachable-code'])
 
-    env.Append(CPPFLAGS = ['-Wno-unreachable-code'])
     env.Append(CPPFLAGS = ['-Wno-shorten-64-to-32'])
-    env.Append(CPPFLAGS = ['-Wno-missing-noreturn'])
-    env.Append(CPPFLAGS = ['-Wno-unused-private-field'])
-    env.Append(CPPFLAGS = ['-Wno-implicit-fallthrough'])
-    env.Append(CPPFLAGS = ['-Wno-sometimes-uninitialized'])
 
   # GCC 4.8 has a bug which produces a warning saying that an anonymous Operand
   # object might be used uninitialized:
