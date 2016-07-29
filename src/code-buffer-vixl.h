@@ -81,6 +81,13 @@ class CodeBuffer {
 
   byte* GetBuffer() const { return GetOffsetAddress<byte*>(0); }
 
+  // Return the address of the start of the buffer.
+  template <typename T>
+  T GetStartAddress() const {
+    VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
+    return GetOffsetAddress<T>(0);
+  }
+
   size_t GetSizeInBytes() const {
     VIXL_ASSERT((cursor_ >= buffer_) && (cursor_ <= (buffer_ + capacity_)));
     return cursor_ - buffer_;
