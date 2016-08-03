@@ -3226,8 +3226,9 @@ class UseScratchRegisterScope {
   // must not be `NULL`), so it is ready to use immediately after it has been
   // constructed.
   explicit UseScratchRegisterScope(MacroAssembler* masm);
-  // This constructor does not implicitly initialise the scope. Instead,the user
-  // is required to explicitly call the `Open` function before using the scope.
+  // This constructor does not implicitly initialise the scope. Instead, the
+  // user is required to explicitly call the `Open` function before using the
+  // scope.
   UseScratchRegisterScope();
   // This function performs the actual initialisation work.
   void Open(MacroAssembler* masm);

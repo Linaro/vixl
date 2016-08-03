@@ -3404,46 +3404,38 @@ class CodeBufferCheckScope {
     kMaximumSize  // The code emitted must be at most size bytes.
   };
 
+  // This constructor implicitly calls `Open` to initialise the scope (`assm`
+  // must not be `NULL`), so it is ready to use immediately after it has been
+  // constructed.
   CodeBufferCheckScope(Assembler* assm,
                        size_t size,
                        CheckPolicy check_policy = kCheck,
-                       AssertPolicy assert_policy = kMaximumSize)
-      : assm_(assm) {
-    if (check_policy == kCheck) assm->EnsureSpaceFor(size);
-#ifdef VIXL_DEBUG
-    assm->bind(&start_);
-    size_ = size;
-    assert_policy_ = assert_policy;
-    assm->AcquireBuffer();
-#else
-    USE(assert_policy);
-#endif
-  }
+                       AssertPolicy assert_policy = kMaximumSize);
 
-  ~CodeBufferCheckScope() {
-#ifdef VIXL_DEBUG
-    assm_->ReleaseBuffer();
-    switch (assert_policy_) {
-      case kNoAssert:
-        break;
-      case kExactSize:
-        VIXL_ASSERT(assm_->GetSizeOfCodeGeneratedSince(&start_) == size_);
-        break;
-      case kMaximumSize:
-        VIXL_ASSERT(assm_->GetSizeOfCodeGeneratedSince(&start_) <= size_);
-        break;
-      default:
-        VIXL_UNREACHABLE();
-    }
-#endif
-  }
+  // This constructor does not implicitly initialise the scope. Instead, the
+  // user is required to explicitly call the `Open` function before using the
+  // scope.
+  CodeBufferCheckScope();
 
+  // This function performs the actual initialisation work.
+  void Open(Assembler* assm,
+            size_t size,
+            CheckPolicy check_policy = kCheck,
+            AssertPolicy assert_policy = kMaximumSize);
+
+  ~CodeBufferCheckScope();
+
+  // This function performs the cleaning-up work. It must succeed even if the
+  // scope has not been opened. It is safe to call multiple times.
+  void Close();
+
+#ifdef VIXL_DEBUG
  protected:
   Assembler* assm_;
-#ifdef VIXL_DEBUG
-  Label start_;
   size_t size_;
   AssertPolicy assert_policy_;
+  Label start_;
+  bool initialised_;
 #endif
 };
 
