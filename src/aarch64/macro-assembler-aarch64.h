@@ -502,11 +502,30 @@ class VeneerPool : public Pool {
 //  * Ensure there is enough space to emit the macro-instruction.
 class EmissionCheckScope : public CodeBufferCheckScope {
  public:
-  EmissionCheckScope(MacroAssembler* masm, size_t size);
+  EmissionCheckScope(MacroAssembler* masm,
+                     size_t size,
+                     AssertPolicy assert_policy = kMaximumSize);
   ~EmissionCheckScope();
 
+  enum PoolPolicy { kIgnorePools, kCheckPools };
+
  protected:
+  // This constructor should only be used from code that is *currently
+  // generating* the pools, to avoid an infinite loop.
+  EmissionCheckScope(MacroAssembler* masm,
+                     size_t size,
+                     AssertPolicy assert_policy,
+                     PoolPolicy pool_policy);
+
+  void Open(MacroAssembler* masm,
+            size_t size,
+            AssertPolicy assert_policy = kMaximumSize,
+            PoolPolicy pool_policy = kCheckPools);
+
+  void Close();
+
   MacroAssembler* masm_;
+  PoolPolicy pool_policy_;
 };
 
 
@@ -3153,15 +3172,15 @@ inline void LiteralPool::SetNextRecommendedCheckpoint(ptrdiff_t offset) {
 
 // Use this scope when you need a one-to-one mapping between methods and
 // instructions. This scope prevents the MacroAssembler from being called and
-// literal pools from being emitted. It also asserts the number of instructions
-// emitted is what you specified when creating the scope.
-class InstructionAccurateScope : public CodeBufferCheckScope {
+// pools from being emitted. It also asserts the number of instructions emitted
+// is what you specified when creating the scope.
+class InstructionAccurateScope : public EmissionCheckScope {
  public:
   InstructionAccurateScope(MacroAssembler* masm,
                            int64_t count,
-                           AssertPolicy policy = kExactSize)
-      : CodeBufferCheckScope(masm, (count * kInstructionSize), kCheck, policy) {
-    VIXL_ASSERT(policy != kNoAssert);
+                           AssertPolicy assert_policy = kExactSize)
+      : EmissionCheckScope(masm, (count * kInstructionSize), assert_policy) {
+    VIXL_ASSERT(assert_policy != kNoAssert);
 #ifdef VIXL_DEBUG
     old_allow_macro_instructions_ = masm->AllowMacroInstructions();
     masm->SetAllowMacroInstructions(false);
@@ -3176,6 +3195,25 @@ class InstructionAccurateScope : public CodeBufferCheckScope {
   }
 
  private:
+  InstructionAccurateScope(MacroAssembler* masm,
+                           int64_t count,
+                           AssertPolicy assert_policy,
+                           PoolPolicy pool_policy)
+      : EmissionCheckScope(masm,
+                           (count * kInstructionSize),
+                           assert_policy,
+                           pool_policy) {
+    VIXL_ASSERT(assert_policy != kNoAssert);
+#ifdef VIXL_DEBUG
+    old_allow_macro_instructions_ = masm->AllowMacroInstructions();
+    masm->SetAllowMacroInstructions(false);
+#endif
+  }
+
+  // Grant access to the above private constructor for pool emission methods.
+  friend void LiteralPool::Emit(LiteralPool::EmitOption);
+  friend void VeneerPool::Emit(VeneerPool::EmitOption, size_t);
+
 #ifdef VIXL_DEBUG
   bool old_allow_macro_instructions_;
 #endif

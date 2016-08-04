@@ -101,21 +101,45 @@ void LiteralPool::Emit(EmitOption option) {
   Label end_of_pool;
 
   VIXL_ASSERT(emit_size % kInstructionSize == 0);
-  InstructionAccurateScope guard(masm_, emit_size / kInstructionSize);
-  if (option == kBranchRequired) masm_->b(&end_of_pool);
+  {
+    CodeBufferCheckScope guard(masm_,
+                               emit_size,
+                               CodeBufferCheckScope::kCheck,
+                               CodeBufferCheckScope::kExactSize);
+#ifdef VIXL_DEBUG
+    // Also explicitly disallow usage of the `MacroAssembler` here.
+    masm_->SetAllowMacroInstructions(false);
+#endif
+    if (option == kBranchRequired) {
+      InstructionAccurateScope guard(masm_,
+                                     1,
+                                     CodeBufferCheckScope::kExactSize,
+                                     EmissionCheckScope::kIgnorePools);
+      masm_->b(&end_of_pool);
+    }
 
-  // Marker indicating the size of the literal pool in 32-bit words.
-  VIXL_ASSERT((pool_size % kWRegSizeInBytes) == 0);
-  masm_->ldr(xzr, static_cast<int>(pool_size / kWRegSizeInBytes));
+    {
+      // Marker indicating the size of the literal pool in 32-bit words.
+      VIXL_ASSERT((pool_size % kWRegSizeInBytes) == 0);
+      InstructionAccurateScope guard(masm_,
+                                     1,
+                                     CodeBufferCheckScope::kExactSize,
+                                     EmissionCheckScope::kIgnorePools);
+      masm_->ldr(xzr, static_cast<int>(pool_size / kWRegSizeInBytes));
+    }
 
-  // Now populate the literal pool.
-  std::vector<RawLiteral*>::iterator it, end;
-  for (it = entries_.begin(), end = entries_.end(); it != end; ++it) {
-    VIXL_ASSERT((*it)->IsUsed());
-    masm_->place(*it);
+    // Now populate the literal pool.
+    std::vector<RawLiteral*>::iterator it, end;
+    for (it = entries_.begin(), end = entries_.end(); it != end; ++it) {
+      VIXL_ASSERT((*it)->IsUsed());
+      masm_->place(*it);
+    }
+
+    if (option == kBranchRequired) masm_->bind(&end_of_pool);
+#ifdef VIXL_DEBUG
+    masm_->SetAllowMacroInstructions(true);
+#endif
   }
-
-  if (option == kBranchRequired) masm_->bind(&end_of_pool);
 
   Reset();
 }
@@ -226,7 +250,10 @@ void VeneerPool::Emit(EmitOption option, size_t amount) {
 
   Label end;
   if (option == kBranchRequired) {
-    InstructionAccurateScope scope(masm_, 1);
+    InstructionAccurateScope guard(masm_,
+                                   1,
+                                   CodeBufferCheckScope::kExactSize,
+                                   EmissionCheckScope::kIgnorePools);
     masm_->b(&end);
   }
 
@@ -239,7 +266,10 @@ void VeneerPool::Emit(EmitOption option, size_t amount) {
     BranchInfo* branch_info = it.Current();
     if (ShouldEmitVeneer(branch_info->max_reachable_pc_,
                          amount + kVeneerEmissionMargin)) {
-      InstructionAccurateScope scope(masm_, kVeneerCodeSize / kInstructionSize);
+      CodeBufferCheckScope scope(masm_,
+                                 kVeneerCodeSize,
+                                 CodeBufferCheckScope::kCheck,
+                                 CodeBufferCheckScope::kExactSize);
       ptrdiff_t branch_pos = branch_info->pc_offset_;
       Instruction* branch = masm_->GetInstructionAt(branch_pos);
       Label* label = branch_info->label_;
@@ -248,7 +278,13 @@ void VeneerPool::Emit(EmitOption option, size_t amount) {
       // to the label.
       Instruction* veneer = masm_->GetCursorAddress<Instruction*>();
       branch->SetImmPCOffsetTarget(veneer);
-      masm_->b(label);
+      {
+        InstructionAccurateScope guard(masm_,
+                                       1,
+                                       CodeBufferCheckScope::kExactSize,
+                                       EmissionCheckScope::kIgnorePools);
+        masm_->b(label);
+      }
 
       // Update the label. The branch patched does not point to it any longer.
       label->DeleteLink(branch_pos);
@@ -265,30 +301,56 @@ void VeneerPool::Emit(EmitOption option, size_t amount) {
 }
 
 
-EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm, size_t size)
-    : masm_(masm) {
+EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm,
+                                       size_t size,
+                                       AssertPolicy assert_policy) {
+  Open(masm, size, assert_policy);
+}
+
+
+EmissionCheckScope::~EmissionCheckScope() { Close(); }
+
+
+EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm,
+                                       size_t size,
+                                       AssertPolicy assert_policy,
+                                       PoolPolicy pool_policy) {
+  Open(masm, size, assert_policy, pool_policy);
+}
+
+
+void EmissionCheckScope::Open(MacroAssembler* masm,
+                              size_t size,
+                              AssertPolicy assert_policy,
+                              PoolPolicy pool_policy) {
+  masm_ = masm;
+  pool_policy_ = pool_policy;
   if (masm_ == NULL) {
     // Nothing to do.
     // We may reach this point in a context of conditional code generation. See
     // `MacroAssembler::MoveImmediateHelper()` for an example.
     return;
   }
-  // Do not use the more generic `EnsureEmitFor()` to avoid duplicating the work
-  // to check that enough space is available in the buffer. It is done below
-  // when opening `CodeBufferCheckScope`.
-  masm_->EnsureEmitPoolsFor(size);
-  masm_->BlockPools();
+  if (pool_policy_ == kCheckPools) {
+    // Do not use the more generic `EnsureEmitFor()` to avoid duplicating the
+    // work to check that enough space is available in the buffer. It is done
+    // below when opening `CodeBufferCheckScope`.
+    masm_->EnsureEmitPoolsFor(size);
+    masm_->BlockPools();
+  }
   // The buffer should be checked *after* we emit the pools.
-  CodeBufferCheckScope::Open(masm_, size, kCheck, kMaximumSize);
+  CodeBufferCheckScope::Open(masm_, size, kCheck, assert_policy);
 }
 
 
-EmissionCheckScope::~EmissionCheckScope() {
+void EmissionCheckScope::Close() {
   if (masm_ == NULL) {
     // Nothing to do.
     return;
   }
-  masm_->ReleasePools();
+  if (pool_policy_ == kCheckPools) {
+    masm_->ReleasePools();
+  }
 }
 
 
