@@ -36,12 +36,9 @@
 
 #define TEST(name)  TEST_(AARCH64_DISASM_##name)
 
-#define EXP_SIZE   (256)
-#define INSTR_SIZE (1024)
 #define SETUP_CLASS(ASMCLASS)                                                  \
-  byte* buf = new byte[INSTR_SIZE];                                            \
   uint32_t encoding = 0;                                                       \
-  ASMCLASS* masm = new ASMCLASS(buf, INSTR_SIZE);                              \
+  ASMCLASS* masm = new ASMCLASS();                                             \
   Decoder* decoder = new Decoder();                                            \
   Disassembler* disasm = new Disassembler();                                   \
   decoder->AppendVisitor(disasm)
@@ -61,15 +58,19 @@
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR.
 
+// A conservative limit for the size of the code that we generate in these
+// tests.
+#define MAX_SIZE_GENERATED 1024
+
 #define COMPARE(ASM, EXP)                                                      \
   masm->Reset();                                                               \
   {                                                                            \
-    CodeBufferCheckScope blind(masm);                                          \
+    CodeBufferCheckScope guard(masm, MAX_SIZE_GENERATED);                      \
     masm->ASM;                                                                 \
   }                                                                            \
   masm->FinalizeCode();                                                        \
-  decoder->Decode(reinterpret_cast<Instruction*>(buf));                        \
-  encoding = *reinterpret_cast<uint32_t*>(buf);                                \
+  decoder->Decode(masm->GetStartAddress<Instruction*>());                      \
+  encoding = *masm->GetStartAddress<uint32_t*>();                              \
   if (strcmp(disasm->GetOutput(), EXP) != 0) {                                 \
     printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",          \
            encoding, EXP, disasm->GetOutput());                                \
@@ -82,12 +83,12 @@
 #define COMPARE_PREFIX(ASM, EXP)                                               \
   masm->Reset();                                                               \
   {                                                                            \
-    CodeBufferCheckScope blind(masm);                                          \
+    CodeBufferCheckScope guard(masm, MAX_SIZE_GENERATED);                      \
     masm->ASM;                                                                 \
   }                                                                            \
   masm->FinalizeCode();                                                        \
-  decoder->Decode(reinterpret_cast<Instruction*>(buf));                        \
-  encoding = *reinterpret_cast<uint32_t*>(buf);                                \
+  decoder->Decode(masm->GetStartAddress<Instruction*>());                      \
+  encoding = *masm->GetStartAddress<uint32_t*>();                              \
   if (strncmp(disasm->GetOutput(), EXP, strlen(EXP)) != 0) {                   \
     printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",          \
            encoding, EXP, disasm->GetOutput());                                \
@@ -140,8 +141,7 @@
 #define CLEANUP()                                                              \
   delete disasm;                                                               \
   delete decoder;                                                              \
-  delete masm;                                                                 \
-  delete[] buf
+  delete masm;
 
 namespace vixl {
 namespace aarch64 {
@@ -5931,7 +5931,7 @@ TEST(address_map) {
   // Check that we can disassemble from a fake base address.
   SETUP();
 
-  disasm->MapCodeAddress(0, reinterpret_cast<Instruction*>(buf));
+  disasm->MapCodeAddress(0, masm->GetStartAddress<Instruction*>());
   COMPARE(ldr(x0, 0), "ldr x0, pc+0 (addr 0x0)");
   COMPARE(ldr(x0, -1), "ldr x0, pc-4 (addr -0x4)");
   COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x4)");
@@ -5948,7 +5948,7 @@ TEST(address_map) {
   COMPARE(b(-1), "b #-0x4 (addr -0x4)");
   COMPARE(b(1), "b #+0x4 (addr 0x4)");
 
-  disasm->MapCodeAddress(0x1234, reinterpret_cast<Instruction*>(buf));
+  disasm->MapCodeAddress(0x1234, masm->GetStartAddress<Instruction*>());
   COMPARE(ldr(x0, 0), "ldr x0, pc+0 (addr 0x1234)");
   COMPARE(ldr(x0, -1), "ldr x0, pc-4 (addr 0x1230)");
   COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x1238)");
@@ -5967,7 +5967,7 @@ TEST(address_map) {
 
   // Check that 64-bit addresses work.
   disasm->MapCodeAddress(UINT64_C(0x100000000),
-                         reinterpret_cast<Instruction*>(buf));
+                         masm->GetStartAddress<Instruction*>());
   COMPARE(ldr(x0, 0), "ldr x0, pc+0 (addr 0x100000000)");
   COMPARE(ldr(x0, -1), "ldr x0, pc-4 (addr 0xfffffffc)");
   COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x100000004)");
@@ -5984,7 +5984,7 @@ TEST(address_map) {
   COMPARE(b(-1), "b #-0x4 (addr 0xfffffffc)");
   COMPARE(b(1), "b #+0x4 (addr 0x100000004)");
 
-  disasm->MapCodeAddress(0xfffffffc, reinterpret_cast<Instruction*>(buf));
+  disasm->MapCodeAddress(0xfffffffc, masm->GetStartAddress<Instruction*>());
   COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x100000000)");
   COMPARE(prfm(PLIL1KEEP, 1), "prfm plil1keep, pc+4 (addr 0x100000000)");
   COMPARE(b(1), "b #+0x4 (addr 0x100000000)");
@@ -5994,7 +5994,7 @@ TEST(address_map) {
   // Check that very large offsets are handled properly. This detects misuse of
   // the host's ptrdiff_t type when run on a 32-bit host. Only adrp is capable
   // of encoding such offsets.
-  disasm->MapCodeAddress(0, reinterpret_cast<Instruction*>(buf));
+  disasm->MapCodeAddress(0, masm->GetStartAddress<Instruction*>());
   COMPARE(adrp(x0, 0x000fffff), "adrp x0, #+0xfffff000 (addr 0xfffff000)");
   COMPARE(adrp(x0, -0x00100000), "adrp x0, #-0x100000000 (addr -0x100000000)");
 

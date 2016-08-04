@@ -3420,15 +3420,6 @@ class CodeBufferCheckScope {
 #endif
   }
 
-  // This is a shortcut for CodeBufferCheckScope(assm, 0, kNoCheck, kNoAssert).
-  explicit CodeBufferCheckScope(Assembler* assm) : assm_(assm) {
-#ifdef VIXL_DEBUG
-    size_ = 0;
-    assert_policy_ = kNoAssert;
-    assm->AcquireBuffer();
-#endif
-  }
-
   ~CodeBufferCheckScope() {
 #ifdef VIXL_DEBUG
     assm_->ReleaseBuffer();
