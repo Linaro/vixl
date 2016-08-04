@@ -38,10 +38,10 @@
 
 #define SETUP_CLASS(ASMCLASS)                                                  \
   uint32_t encoding = 0;                                                       \
-  ASMCLASS* masm = new ASMCLASS();                                             \
-  Decoder* decoder = new Decoder();                                            \
-  Disassembler* disasm = new Disassembler();                                   \
-  decoder->AppendVisitor(disasm)
+  ASMCLASS masm;                                                               \
+  Decoder decoder;                                                             \
+  Disassembler disasm;                                                         \
+  decoder.AppendVisitor(&disasm)
 
 #define SETUP() SETUP_CLASS(Assembler)
 
@@ -49,12 +49,12 @@
 // Run tests with the simulator.
 #define SETUP_MACRO()                                                          \
   SETUP_CLASS(MacroAssembler);                                                 \
-  masm->SetGenerateSimulatorCode(true)
+  masm.SetGenerateSimulatorCode(true)
 
 #else  // ifdef VIXL_INCLUDE_SIMULATOR.
 #define SETUP_MACRO()                                                          \
   SETUP_CLASS(MacroAssembler);                                                 \
-  masm->SetGenerateSimulatorCode(false)
+  masm.SetGenerateSimulatorCode(false)
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR.
 
@@ -63,56 +63,56 @@
 #define MAX_SIZE_GENERATED 1024
 
 #define COMPARE(ASM, EXP)                                                      \
-  masm->Reset();                                                               \
+  masm.Reset();                                                                \
   {                                                                            \
-    CodeBufferCheckScope guard(masm, MAX_SIZE_GENERATED);                      \
-    masm->ASM;                                                                 \
+    CodeBufferCheckScope guard(&masm, MAX_SIZE_GENERATED);                     \
+    masm.ASM;                                                                  \
   }                                                                            \
-  masm->FinalizeCode();                                                        \
-  decoder->Decode(masm->GetStartAddress<Instruction*>());                      \
-  encoding = *masm->GetStartAddress<uint32_t*>();                              \
-  if (strcmp(disasm->GetOutput(), EXP) != 0) {                                 \
+  masm.FinalizeCode();                                                         \
+  decoder.Decode(masm.GetStartAddress<Instruction*>());                        \
+  encoding = *masm.GetStartAddress<uint32_t*>();                               \
+  if (strcmp(disasm.GetOutput(), EXP) != 0) {                                  \
     printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",          \
-           encoding, EXP, disasm->GetOutput());                                \
+           encoding, EXP, disasm.GetOutput());                                 \
     abort();                                                                   \
   }                                                                            \
   if (Test::trace_sim()) {                                                     \
-    printf("%08" PRIx32 "\t%s\n", encoding, disasm->GetOutput());              \
+    printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());               \
   }
 
 #define COMPARE_PREFIX(ASM, EXP)                                               \
-  masm->Reset();                                                               \
+  masm.Reset();                                                                \
   {                                                                            \
-    CodeBufferCheckScope guard(masm, MAX_SIZE_GENERATED);                      \
-    masm->ASM;                                                                 \
+    CodeBufferCheckScope guard(&masm, MAX_SIZE_GENERATED);                     \
+    masm.ASM;                                                                  \
   }                                                                            \
-  masm->FinalizeCode();                                                        \
-  decoder->Decode(masm->GetStartAddress<Instruction*>());                      \
-  encoding = *masm->GetStartAddress<uint32_t*>();                              \
-  if (strncmp(disasm->GetOutput(), EXP, strlen(EXP)) != 0) {                   \
+  masm.FinalizeCode();                                                         \
+  decoder.Decode(masm.GetStartAddress<Instruction*>());                        \
+  encoding = *masm.GetStartAddress<uint32_t*>();                               \
+  if (strncmp(disasm.GetOutput(), EXP, strlen(EXP)) != 0) {                    \
     printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",          \
-           encoding, EXP, disasm->GetOutput());                                \
+           encoding, EXP, disasm.GetOutput());                                 \
     abort();                                                                   \
   }                                                                            \
   if (Test::trace_sim()) {                                                     \
-    printf("%08" PRIx32 "\t%s\n", encoding, disasm->GetOutput());              \
+    printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());               \
   }
 
 #define COMPARE_MACRO_BASE(ASM, EXP)                                           \
-  masm->Reset();                                                               \
-  masm->ASM;                                                                   \
-  masm->FinalizeCode();                                                        \
+  masm.Reset();                                                                \
+  masm.ASM;                                                                    \
+  masm.FinalizeCode();                                                         \
   std::string res;                                                             \
                                                                                \
-  Instruction* instruction = masm->GetOffsetAddress<Instruction*>(0);          \
-  Instruction* end = masm->GetOffsetAddress<Instruction*>(                     \
-      masm->GetSizeOfCodeGenerated());                                         \
+  Instruction* instruction = masm.GetOffsetAddress<Instruction*>(0);           \
+  Instruction* end = masm.GetOffsetAddress<Instruction*>(                      \
+      masm.GetSizeOfCodeGenerated());                                          \
   while (instruction != end) {                                                 \
-    decoder->Decode(instruction);                                              \
-    res.append(disasm->GetOutput());                                           \
+    decoder.Decode(instruction);                                               \
+    res.append(disasm.GetOutput());                                            \
     if (Test::trace_sim()) {                                                   \
       encoding = *reinterpret_cast<uint32_t*>(instruction);                    \
-      printf("%08" PRIx32 "\t%s\n", encoding, disasm->GetOutput());            \
+      printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());             \
     }                                                                          \
     instruction += kInstructionSize;                                           \
     if (instruction != end) {                                                  \
@@ -138,10 +138,7 @@
     }                                                                          \
   }
 
-#define CLEANUP()                                                              \
-  delete disasm;                                                               \
-  delete decoder;                                                              \
-  delete masm;
+#define CLEANUP()
 
 namespace vixl {
 namespace aarch64 {
@@ -5931,7 +5928,7 @@ TEST(address_map) {
   // Check that we can disassemble from a fake base address.
   SETUP();
 
-  disasm->MapCodeAddress(0, masm->GetStartAddress<Instruction*>());
+  disasm.MapCodeAddress(0, masm.GetStartAddress<Instruction*>());
   COMPARE(ldr(x0, 0), "ldr x0, pc+0 (addr 0x0)");
   COMPARE(ldr(x0, -1), "ldr x0, pc-4 (addr -0x4)");
   COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x4)");
@@ -5948,7 +5945,7 @@ TEST(address_map) {
   COMPARE(b(-1), "b #-0x4 (addr -0x4)");
   COMPARE(b(1), "b #+0x4 (addr 0x4)");
 
-  disasm->MapCodeAddress(0x1234, masm->GetStartAddress<Instruction*>());
+  disasm.MapCodeAddress(0x1234, masm.GetStartAddress<Instruction*>());
   COMPARE(ldr(x0, 0), "ldr x0, pc+0 (addr 0x1234)");
   COMPARE(ldr(x0, -1), "ldr x0, pc-4 (addr 0x1230)");
   COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x1238)");
@@ -5966,8 +5963,8 @@ TEST(address_map) {
   COMPARE(b(1), "b #+0x4 (addr 0x1238)");
 
   // Check that 64-bit addresses work.
-  disasm->MapCodeAddress(UINT64_C(0x100000000),
-                         masm->GetStartAddress<Instruction*>());
+  disasm.MapCodeAddress(UINT64_C(0x100000000),
+                        masm.GetStartAddress<Instruction*>());
   COMPARE(ldr(x0, 0), "ldr x0, pc+0 (addr 0x100000000)");
   COMPARE(ldr(x0, -1), "ldr x0, pc-4 (addr 0xfffffffc)");
   COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x100000004)");
@@ -5984,7 +5981,7 @@ TEST(address_map) {
   COMPARE(b(-1), "b #-0x4 (addr 0xfffffffc)");
   COMPARE(b(1), "b #+0x4 (addr 0x100000004)");
 
-  disasm->MapCodeAddress(0xfffffffc, masm->GetStartAddress<Instruction*>());
+  disasm.MapCodeAddress(0xfffffffc, masm.GetStartAddress<Instruction*>());
   COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x100000000)");
   COMPARE(prfm(PLIL1KEEP, 1), "prfm plil1keep, pc+4 (addr 0x100000000)");
   COMPARE(b(1), "b #+0x4 (addr 0x100000000)");
@@ -5994,7 +5991,7 @@ TEST(address_map) {
   // Check that very large offsets are handled properly. This detects misuse of
   // the host's ptrdiff_t type when run on a 32-bit host. Only adrp is capable
   // of encoding such offsets.
-  disasm->MapCodeAddress(0, masm->GetStartAddress<Instruction*>());
+  disasm.MapCodeAddress(0, masm.GetStartAddress<Instruction*>());
   COMPARE(adrp(x0, 0x000fffff), "adrp x0, #+0xfffff000 (addr 0xfffff000)");
   COMPARE(adrp(x0, -0x00100000), "adrp x0, #-0x100000000 (addr -0x100000000)");
 
