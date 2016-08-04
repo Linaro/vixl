@@ -30,6 +30,7 @@ from os.path import join
 import platform
 import subprocess
 import sys
+from collections import OrderedDict
 
 root_dir = os.path.dirname(File('SConstruct').rfile().abspath)
 sys.path.insert(0, join(root_dir, 'tools'))
@@ -92,7 +93,7 @@ options = {
     'mode:release' : {
       'CCFLAGS' : ['-O3'],
       },
-    'simulator:on' : {
+    'simulator:aarch64' : {
       'CCFLAGS' : ['-DVIXL_INCLUDE_SIMULATOR_AARCH64'],
       },
     'symbols:on' : {
@@ -115,29 +116,68 @@ def symbols_handler(env):
   env['symbols'] = 'on' if 'mode' in env and env['mode'] == 'debug' else 'off'
 
 
-vars_default_handlers = {
+# The architecture targeted by default will depend on the compiler being
+# used. 'host_arch' is extracted from the compiler while 'target_arch' can be
+# set by the user.
+# By default, we target both AArch32 and AArch64 unless the compiler
+# targets AArch32. At the moment, we cannot build VIXL's AArch64 support on a 32
+# bit platform.
+# TODO: Port VIXL to build on a 32 bit platform.
+def target_arch_handler(env):
+  if env['host_arch'] == 'aarch32':
+    env['target_arch'] = 'aarch32'
+  else:
+    env['target_arch'] = 'both'
+
+
+# By default, include the simulator only if AArch64 is targeted and we are not
+# building VIXL natively for AArch64.
+def simulator_handler(env):
+  if env['host_arch'] != 'aarch64' and \
+     env['target_arch'] in ['aarch64', 'both']:
+    env['simulator'] = 'aarch64'
+  else:
+    env['simulator'] = 'none'
+
+
+# Default variables may depend on each other, therefore we need this dictionnary
+# to be ordered.
+vars_default_handlers = OrderedDict({
     # variable_name    : [ 'default val', 'handler'                ]
     'symbols'          : [ 'mode==debug', symbols_handler          ],
-    'modifiable_flags' : [ 'mode==debug', modifiable_flags_handler ]
-    }
+    'modifiable_flags' : [ 'mode==debug', modifiable_flags_handler ],
+    'target_arch'      : [ 'same as host architecture if running on AArch32 - '
+                           'otherwise both',
+                           target_arch_handler ],
+    'simulator'        : ['on if the target architectures include AArch64 but '
+                           'the host is not AArch64, else off',
+                           simulator_handler ]
+    })
 
 
-def DefaultVariable(name, help, allowed):
+def DefaultVariable(name, help, allowed_values):
+  help = '%s (%s)' % (help, '|'.join(allowed_values))
   default_value = vars_default_handlers[name][0]
-  allowed.append(default_value)
-  return EnumVariable(name, help, default_value, allowed)
+  def validator(name, value, env):
+    if value != default_value and value not in allowed_values:
+        raise SCons.Errors.UserError(
+            'Invalid value for option {name}: {value}.  '
+            'Valid values are: {allowed_values}'.format(name,
+                                                        value,
+                                                        allowed_values))
+  return (name, help, default_value, validator)
 
 
 vars = Variables()
 # Define command line build options.
-sim_default = 'off' if platform.machine() == 'aarch64' else 'on'
 vars.AddVariables(
     EnumVariable('mode', 'Build mode',
                  'release', allowed_values=config.build_options_modes),
     DefaultVariable('symbols', 'Include debugging symbols in the binaries',
                     ['on', 'off']),
-    EnumVariable('simulator', 'Build for the simulator',
-                 sim_default, allowed_values=['on', 'off']),
+    DefaultVariable('target_arch', 'Target architecture',
+                    ['aarch32', 'aarch64', 'both']),
+    DefaultVariable('simulator', 'Simulators to include', ['aarch64', 'none']),
     ('std', 'C++ standard. The standards tested are: %s.' % \
                                          ', '.join(config.tested_cpp_standards))
     )
@@ -152,7 +192,9 @@ if unknown_build_options:
 # options are changed, different build paths are used depending on the options
 # set. These are the options that should be reflected in the build directory
 # path.
-options_influencing_build_path = ['mode', 'symbols', 'CXX', 'std', 'simulator']
+options_influencing_build_path = [
+  'target_arch', 'mode', 'symbols', 'CXX', 'std', 'simulator'
+]
 
 
 
@@ -180,13 +222,18 @@ def ProcessBuildOptions(env):
         env[var] += options['all'][var]
       else:
         env[var] = options['all'][var]
+
   # Other build options must match 'option:value'
   env_dict = env.Dictionary()
+
+  # First apply the default variables handlers in order.
+  for key, value in vars_default_handlers.items():
+    default = value[0]
+    handler = value[1]
+    if env_dict.get(key) == default:
+      handler(env_dict)
+
   for key in env_dict.keys():
-    # First apply the default variables handlers.
-    if key in vars_default_handlers and \
-        env_dict[key] == vars_default_handlers[key][0]:
-      vars_default_handlers[key][1](env_dict)
     # Then update the environment according to the value of the variable.
     key_val_couple = key + ':%s' % env_dict[key]
     if key_val_couple in options:
@@ -235,6 +282,7 @@ def ConfigureEnvironmentForCompiler(env):
 
 def ConfigureEnvironment(env):
   RetrieveEnvironmentVariables(env)
+  env['host_arch'] = util.GetHostArch(env['CXX'])
   ProcessBuildOptions(env)
   if 'std' in env:
     env.Append(CPPFLAGS = ['-std=' + env['std']])
@@ -267,11 +315,13 @@ def VIXLLibraryTarget(env):
   subprocess.check_call(["ln", "-s", build_dir, config.dir_build_latest])
   # Source files are in `src` and in `src/aarch64/`.
   variant_dir_vixl = PrepareVariantDir(join('src'), build_dir)
-  variant_dir_aarch32 = PrepareVariantDir(join('src', 'aarch32'), build_dir)
-  variant_dir_aarch64 = PrepareVariantDir(join('src', 'aarch64'), build_dir)
-  sources = [Glob(join(variant_dir_vixl, '*.cc')),
-             Glob(join(variant_dir_aarch32, '*.cc')),
-             Glob(join(variant_dir_aarch64, '*.cc'))]
+  sources = [Glob(join(variant_dir_vixl, '*.cc'))]
+  if env['target_arch'] in ['aarch32', 'both']:
+    variant_dir_aarch32 = PrepareVariantDir(join('src', 'aarch32'), build_dir)
+    sources.append(Glob(join(variant_dir_aarch32, '*.cc')))
+  if env['target_arch'] in ['aarch64', 'both']:
+    variant_dir_aarch64 = PrepareVariantDir(join('src', 'aarch64'), build_dir)
+    sources.append(Glob(join(variant_dir_aarch64, '*.cc')))
   return env.Library(join(build_dir, 'vixl'), sources)
 
 
@@ -288,66 +338,72 @@ env.Alias('libvixl', libvixl)
 top_level_targets.Add('', 'Build the VIXL library.')
 
 
-# The benchmarks.
-aarch64_benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch64_benchmarks)
-aarch64_benchmarks_build_dir = PrepareVariantDir('benchmarks/aarch64', TargetBuildDir(env))
-aarch64_benchmark_targets = []
-for bench in aarch64_benchmark_names:
-  prog = env.Program(join(aarch64_benchmarks_build_dir, bench),
-                     join(aarch64_benchmarks_build_dir, bench + '.cc'),
-                     LIBS=[libvixl])
-  aarch64_benchmark_targets.append(prog)
-env.Alias('aarch64_benchmarks', aarch64_benchmark_targets)
-top_level_targets.Add('aarch64_benchmarks', 'Build the benchmarks for AArch64.')
-
-
-# The examples.
-aarch64_example_names = util.ListCCFilesWithoutExt(config.dir_aarch64_examples)
-aarch64_examples_build_dir = PrepareVariantDir('examples/aarch64', TargetBuildDir(env))
-aarch64_example_targets = []
-for example in aarch64_example_names:
-  prog = env.Program(join(aarch64_examples_build_dir, example),
-                     join(aarch64_examples_build_dir, example + '.cc'),
-                     LIBS=[libvixl])
-  aarch64_example_targets.append(prog)
-env.Alias('aarch64_examples', aarch64_example_targets)
-top_level_targets.Add('aarch64_examples', 'Build the examples for AArch64.')
-aarch32_example_names = util.ListCCFilesWithoutExt(config.dir_aarch32_examples)
-aarch32_examples_build_dir = PrepareVariantDir('examples/aarch32', TargetBuildDir(env))
-aarch32_example_targets = []
-for example in aarch32_example_names:
-  prog = env.Program(join(aarch32_examples_build_dir, example),
-                     join(aarch32_examples_build_dir, example + '.cc'),
-                     LIBS=[libvixl])
-  aarch32_example_targets.append(prog)
-env.Alias('aarch32_examples', aarch32_example_targets)
-top_level_targets.Add('aarch32_examples', 'Build the examples for AArch32.')
-
-
-# The tests.
+# Common test code.
 test_build_dir = PrepareVariantDir('test', TargetBuildDir(env))
 test_objects = [env.Object(Glob(join(test_build_dir, '*.cc')))]
 
-test_aarch32_build_dir = PrepareVariantDir(join('test', 'aarch32'), TargetBuildDir(env))
-test_objects.append(env.Object(
-    Glob(join(test_aarch32_build_dir, '*.cc')),
-    CPPPATH = env['CPPPATH'] + [config.dir_tests]))
+# AArch32 support
+if env['target_arch'] in ['aarch32', 'both']:
+  # The examples.
+  aarch32_example_names = util.ListCCFilesWithoutExt(config.dir_aarch32_examples)
+  aarch32_examples_build_dir = PrepareVariantDir('examples/aarch32', TargetBuildDir(env))
+  aarch32_example_targets = []
+  for example in aarch32_example_names:
+    prog = env.Program(join(aarch32_examples_build_dir, example),
+                       join(aarch32_examples_build_dir, example + '.cc'),
+                       LIBS=[libvixl])
+    aarch32_example_targets.append(prog)
+  env.Alias('aarch32_examples', aarch32_example_targets)
+  top_level_targets.Add('aarch32_examples', 'Build the examples for AArch32.')
 
-test_aarch64_build_dir = PrepareVariantDir(join('test', 'aarch64'), TargetBuildDir(env))
-test_objects.append(env.Object(
-    Glob(join(test_aarch64_build_dir, '*.cc')),
-    CPPPATH = env['CPPPATH'] + [config.dir_tests]))
+  # The tests.
+  test_aarch32_build_dir = PrepareVariantDir(join('test', 'aarch32'), TargetBuildDir(env))
+  test_objects.append(env.Object(
+      Glob(join(test_aarch32_build_dir, '*.cc')),
+      CPPPATH = env['CPPPATH'] + [config.dir_tests]))
 
-# The test requires building the example files with specific options, so we
-# create a separate variant dir for the example objects built this way.
-test_aarch64_examples_vdir = join(TargetBuildDir(env), 'test', 'aarch64', 'test_examples')
-VariantDir(test_aarch64_examples_vdir, '.')
-test_aarch64_examples_obj = env.Object(
-    [Glob(join(test_aarch64_examples_vdir, join('test', 'aarch64', 'examples/aarch64', '*.cc'))),
-     Glob(join(test_aarch64_examples_vdir, join('examples/aarch64', '*.cc')))],
-    CCFLAGS = env['CCFLAGS'] + ['-DTEST_EXAMPLES'],
-    CPPPATH = env['CPPPATH'] + [config.dir_aarch64_examples] + [config.dir_tests])
-test_objects.append(test_aarch64_examples_obj)
+# AArch64 support
+if env['target_arch'] in ['aarch64', 'both']:
+  # The benchmarks.
+  aarch64_benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch64_benchmarks)
+  aarch64_benchmarks_build_dir = PrepareVariantDir('benchmarks/aarch64', TargetBuildDir(env))
+  aarch64_benchmark_targets = []
+  for bench in aarch64_benchmark_names:
+    prog = env.Program(join(aarch64_benchmarks_build_dir, bench),
+                       join(aarch64_benchmarks_build_dir, bench + '.cc'),
+                       LIBS=[libvixl])
+    aarch64_benchmark_targets.append(prog)
+  env.Alias('aarch64_benchmarks', aarch64_benchmark_targets)
+  top_level_targets.Add('aarch64_benchmarks', 'Build the benchmarks for AArch64.')
+
+  # The examples.
+  aarch64_example_names = util.ListCCFilesWithoutExt(config.dir_aarch64_examples)
+  aarch64_examples_build_dir = PrepareVariantDir('examples/aarch64', TargetBuildDir(env))
+  aarch64_example_targets = []
+  for example in aarch64_example_names:
+    prog = env.Program(join(aarch64_examples_build_dir, example),
+                       join(aarch64_examples_build_dir, example + '.cc'),
+                       LIBS=[libvixl])
+    aarch64_example_targets.append(prog)
+  env.Alias('aarch64_examples', aarch64_example_targets)
+  top_level_targets.Add('aarch64_examples', 'Build the examples for AArch64.')
+
+  # The tests.
+  test_aarch64_build_dir = PrepareVariantDir(join('test', 'aarch64'), TargetBuildDir(env))
+  test_objects.append(env.Object(
+      Glob(join(test_aarch64_build_dir, '*.cc')),
+      CPPPATH = env['CPPPATH'] + [config.dir_tests]))
+
+  # The test requires building the example files with specific options, so we
+  # create a separate variant dir for the example objects built this way.
+  test_aarch64_examples_vdir = join(TargetBuildDir(env), 'test', 'aarch64', 'test_examples')
+  VariantDir(test_aarch64_examples_vdir, '.')
+  test_aarch64_examples_obj = env.Object(
+      [Glob(join(test_aarch64_examples_vdir, join('test', 'aarch64', 'examples/aarch64', '*.cc'))),
+       Glob(join(test_aarch64_examples_vdir, join('examples/aarch64', '*.cc')))],
+      CCFLAGS = env['CCFLAGS'] + ['-DTEST_EXAMPLES'],
+      CPPPATH = env['CPPPATH'] + [config.dir_aarch64_examples] + [config.dir_tests])
+  test_objects.append(test_aarch64_examples_obj)
 
 test = env.Program(join(test_build_dir, 'test-runner'), test_objects,
                    LIBS=[libvixl])

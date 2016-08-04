@@ -71,3 +71,31 @@ def require_program(program_name):
 
 def relrealpath(path, start=os.getcwd()):
   return os.path.relpath(os.path.realpath(path), start)
+
+# Query the target architecture of the compiler. The 'target' architecture of
+# the compiler used to build VIXL is considered to be the 'host' architecture of
+# VIXL itself.
+def GetHostArch(cxx):
+  # Instruct the compiler to dump all its preprocessor macros.
+  dump = subprocess.Popen([cxx, '-E', '-dM', '-'], stdin=subprocess.PIPE,
+                          stdout=subprocess.PIPE)
+  out, _ = dump.communicate()
+  macro_list = [
+    # Extract the macro name.
+    match.group(1)
+    for match in [
+      # Capture macro name.
+      re.search('#define (.*?) 1', macro)
+      for macro in out.split('\n')
+    ]
+    # Filter out non-matches.
+    if match
+  ]
+  if "__x86_64__" in macro_list:
+    return "x86_64"
+  elif "__arm__" in macro_list:
+    return "aarch32"
+  elif "__aarch64__" in macro_list:
+    return "aarch64"
+  else:
+    raise Exception("Unsupported archtecture")

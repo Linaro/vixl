@@ -225,9 +225,9 @@ def BuildOptions():
                                  help='Do not run tests.')
   general_arguments.add_argument('--fail-early', action='store_true',
                                  help='Exit as soon as a test fails.')
-  sim_default = 'off' if platform.machine() == 'aarch64' else 'on'
+  sim_default = 'none' if platform.machine() == 'aarch64' else 'aarch64'
   general_arguments.add_argument(
-    '--simulator', action='store', choices=['on', 'off'],
+    '--simulator', action='store', choices=['aarch64', 'none'],
     default=sim_default,
     help='Explicitly enable or disable the simulator.')
   general_arguments.add_argument(
