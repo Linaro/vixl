@@ -368,7 +368,8 @@ class MacroAssembler : public Assembler {
         available_(r12),
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
-        veneer_pool_manager_(this) {
+        veneer_pool_manager_(this),
+        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE) {
 #ifdef VIXL_DEBUG
     SetAllowMacroInstructions(true);
 #else
@@ -382,7 +383,8 @@ class MacroAssembler : public Assembler {
         available_(r12),
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
-        veneer_pool_manager_(this) {
+        veneer_pool_manager_(this),
+        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE) {
 #ifdef VIXL_DEBUG
     SetAllowMacroInstructions(true);
 #endif
@@ -393,12 +395,15 @@ class MacroAssembler : public Assembler {
         available_(r12),
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
-        veneer_pool_manager_(this) {
+        veneer_pool_manager_(this),
+        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE) {
 #ifdef VIXL_DEBUG
     SetAllowMacroInstructions(true);
 #endif
     ComputeCheckpoint();
   }
+
+  bool GenerateSimulatorCode() const { return generate_simulator_code_; }
 
 #ifdef VIXL_DEBUG
   // Tell whether any of the macro instruction can be used. When false the
@@ -604,12 +609,10 @@ class MacroAssembler : public Assembler {
               CPURegister reg4 = NoReg);
   // Functions used by Printf for generation.
   void PushRegister(CPURegister reg);
-#if !VIXL_GENERATE_SIMULATOR_CODE
   void PreparePrintfArgument(CPURegister reg,
                              int* core_count,
                              int* vfp_count,
                              uint32_t* printf_type);
-#endif
   // Handlers for cases not handled by the assembler.
   virtual void Delegate(InstructionType type,
                         InstructionCondROp instruction,
@@ -8091,6 +8094,7 @@ class MacroAssembler : public Assembler {
   Label::Offset checkpoint_;
   LiteralPoolManager literal_pool_manager_;
   VeneerPoolManager veneer_pool_manager_;
+  bool generate_simulator_code_;
   bool allow_macro_instructions_;
 };
 

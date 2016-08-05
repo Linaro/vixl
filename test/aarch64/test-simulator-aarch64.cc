@@ -53,7 +53,7 @@ namespace aarch64 {
 #define __ masm.
 #define TEST(name)  TEST_(AARCH64_SIM_##name)
 
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
 #define SETUP()                                                               \
   MacroAssembler masm;                                                        \
@@ -95,7 +95,7 @@ namespace aarch64 {
 #define TEARDOWN()                                                            \
   delete simulator;
 
-#else     // VIXL_INCLUDE_SIMULATOR
+#else     // VIXL_INCLUDE_SIMULATOR_AARCH64
 
 #define SETUP()                                                               \
   MacroAssembler masm;                                                        \
@@ -124,7 +124,7 @@ namespace aarch64 {
 
 #define TEARDOWN()
 
-#endif    // VIXL_INCLUDE_SIMULATOR
+#endif    // VIXL_INCLUDE_SIMULATOR_AARCH64
 
 
 // The maximum number of errors to report in detail for each test.

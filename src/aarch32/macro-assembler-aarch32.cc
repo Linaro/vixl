@@ -539,151 +539,152 @@ void MacroAssembler::Printf(const char* format,
                             CPURegister reg2,
                             CPURegister reg3,
                             CPURegister reg4) {
-#if VIXL_GENERATE_SIMULATOR_CODE
-  PushRegister(reg4);
-  PushRegister(reg3);
-  PushRegister(reg2);
-  PushRegister(reg1);
-  Push(RegisterList(r0, r1));
-  Ldr(r0, format);
-  uint32_t args = (reg4.GetType() << 12) | (reg3.GetType() << 8) |
-                  (reg2.GetType() << 4) | reg1.GetType();
-  Mov(r1, args);
-  Hvc(kPrintfCode);
-  Pop(RegisterList(r0, r1));
-  int size = reg4.GetRegSizeInBytes() + reg3.GetRegSizeInBytes() +
-             reg2.GetRegSizeInBytes() + reg1.GetRegSizeInBytes();
-  Drop(size);
-#else
-  // Generate on a native platform => 32 bit environment.
-  // Preserve core registers r0-r3, r12, r14
-  const uint32_t saved_registers_mask =
-      kCallerSavedRegistersMask | (1 << r5.GetCode());
-  Push(RegisterList(saved_registers_mask));
-  // Push VFP registers.
-  Vpush(Untyped64, DRegisterList(d0, d7));
-  if (Has32DRegs()) Vpush(Untyped64, DRegisterList(d16, d31));
-  // Search one register which has been saved and which doesn't need to be
-  // printed.
-  RegisterList available_registers(kCallerSavedRegistersMask);
-  if (reg1.GetType() == CPURegister::kRRegister) {
-    available_registers.Remove(Register(reg1.GetCode()));
-  }
-  if (reg2.GetType() == CPURegister::kRRegister) {
-    available_registers.Remove(Register(reg2.GetCode()));
-  }
-  if (reg3.GetType() == CPURegister::kRRegister) {
-    available_registers.Remove(Register(reg3.GetCode()));
-  }
-  if (reg4.GetType() == CPURegister::kRRegister) {
-    available_registers.Remove(Register(reg4.GetCode()));
-  }
-  Register tmp = available_registers.GetFirstAvailableRegister();
-  VIXL_ASSERT(tmp.GetType() == CPURegister::kRRegister);
-  // Push the flags.
-  Mrs(tmp, APSR);
-  Push(tmp);
-  Vmrs(RegisterOrAPSR_nzcv(tmp.GetCode()), FPSCR);
-  Push(tmp);
-  // Push the registers to print on the stack.
-  PushRegister(reg4);
-  PushRegister(reg3);
-  PushRegister(reg2);
-  PushRegister(reg1);
-  int core_count = 1;
-  int vfp_count = 0;
-  uint32_t printf_type = 0;
-  // Pop the registers to print and store them into r1-r3 and/or d0-d3.
-  // Reg4 may stay into the stack if all the register to print are core
-  // registers.
-  PreparePrintfArgument(reg1, &core_count, &vfp_count, &printf_type);
-  PreparePrintfArgument(reg2, &core_count, &vfp_count, &printf_type);
-  PreparePrintfArgument(reg3, &core_count, &vfp_count, &printf_type);
-  PreparePrintfArgument(reg4, &core_count, &vfp_count, &printf_type);
-  // Ensure that the stack is aligned on 8 bytes.
-  And(r5, sp, 0x7);
-  if (core_count == 5) {
-    // One 32 bit argument (reg4) has been left on the stack =>  align the stack
-    // before the argument.
-    Pop(r0);
-    Sub(sp, sp, r5);
-    Push(r0);
+  if (generate_simulator_code_) {
+    PushRegister(reg4);
+    PushRegister(reg3);
+    PushRegister(reg2);
+    PushRegister(reg1);
+    Push(RegisterList(r0, r1));
+    Ldr(r0, format);
+    uint32_t args = (reg4.GetType() << 12) | (reg3.GetType() << 8) |
+                    (reg2.GetType() << 4) | reg1.GetType();
+    Mov(r1, args);
+    Hvc(kPrintfCode);
+    Pop(RegisterList(r0, r1));
+    int size = reg4.GetRegSizeInBytes() + reg3.GetRegSizeInBytes() +
+               reg2.GetRegSizeInBytes() + reg1.GetRegSizeInBytes();
+    Drop(size);
   } else {
-    Sub(sp, sp, r5);
+    // Generate on a native platform => 32 bit environment.
+    // Preserve core registers r0-r3, r12, r14
+    const uint32_t saved_registers_mask =
+        kCallerSavedRegistersMask | (1 << r5.GetCode());
+    Push(RegisterList(saved_registers_mask));
+    // Push VFP registers.
+    Vpush(Untyped64, DRegisterList(d0, d7));
+    if (Has32DRegs()) Vpush(Untyped64, DRegisterList(d16, d31));
+    // Search one register which has been saved and which doesn't need to be
+    // printed.
+    RegisterList available_registers(kCallerSavedRegistersMask);
+    if (reg1.GetType() == CPURegister::kRRegister) {
+      available_registers.Remove(Register(reg1.GetCode()));
+    }
+    if (reg2.GetType() == CPURegister::kRRegister) {
+      available_registers.Remove(Register(reg2.GetCode()));
+    }
+    if (reg3.GetType() == CPURegister::kRRegister) {
+      available_registers.Remove(Register(reg3.GetCode()));
+    }
+    if (reg4.GetType() == CPURegister::kRRegister) {
+      available_registers.Remove(Register(reg4.GetCode()));
+    }
+    Register tmp = available_registers.GetFirstAvailableRegister();
+    VIXL_ASSERT(tmp.GetType() == CPURegister::kRRegister);
+    // Push the flags.
+    Mrs(tmp, APSR);
+    Push(tmp);
+    Vmrs(RegisterOrAPSR_nzcv(tmp.GetCode()), FPSCR);
+    Push(tmp);
+    // Push the registers to print on the stack.
+    PushRegister(reg4);
+    PushRegister(reg3);
+    PushRegister(reg2);
+    PushRegister(reg1);
+    int core_count = 1;
+    int vfp_count = 0;
+    uint32_t printf_type = 0;
+    // Pop the registers to print and store them into r1-r3 and/or d0-d3.
+    // Reg4 may stay into the stack if all the register to print are core
+    // registers.
+    PreparePrintfArgument(reg1, &core_count, &vfp_count, &printf_type);
+    PreparePrintfArgument(reg2, &core_count, &vfp_count, &printf_type);
+    PreparePrintfArgument(reg3, &core_count, &vfp_count, &printf_type);
+    PreparePrintfArgument(reg4, &core_count, &vfp_count, &printf_type);
+    // Ensure that the stack is aligned on 8 bytes.
+    And(r5, sp, 0x7);
+    if (core_count == 5) {
+      // One 32 bit argument (reg4) has been left on the stack =>  align the
+      // stack
+      // before the argument.
+      Pop(r0);
+      Sub(sp, sp, r5);
+      Push(r0);
+    } else {
+      Sub(sp, sp, r5);
+    }
+    // Select the right trampoline depending on the arguments.
+    uintptr_t address;
+    switch (printf_type) {
+      case 0:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineRRRR);
+        break;
+      case 1:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineDRRR);
+        break;
+      case 2:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineRDRR);
+        break;
+      case 3:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineDDRR);
+        break;
+      case 4:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineRRDR);
+        break;
+      case 5:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineDRDR);
+        break;
+      case 6:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineRDDR);
+        break;
+      case 7:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineDDDR);
+        break;
+      case 8:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineRRRD);
+        break;
+      case 9:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineDRRD);
+        break;
+      case 10:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineRDRD);
+        break;
+      case 11:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineDDRD);
+        break;
+      case 12:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineRRDD);
+        break;
+      case 13:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineDRDD);
+        break;
+      case 14:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineRDDD);
+        break;
+      case 15:
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineDDDD);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        address = reinterpret_cast<uintptr_t>(PrintfTrampolineRRRR);
+        break;
+    }
+    Ldr(r0, format);
+    Mov(ip, address);
+    Blx(ip);
+    // If register reg4 was left on the stack => skip it.
+    if (core_count == 5) Drop(kRegSizeInBytes);
+    // Restore the stack as it was before alignment.
+    Add(sp, sp, r5);
+    // Restore the flags.
+    Pop(tmp);
+    Vmsr(FPSCR, tmp);
+    Pop(tmp);
+    Msr(APSR_nzcvqg, tmp);
+    // Restore the regsisters.
+    if (Has32DRegs()) Vpop(Untyped64, DRegisterList(d16, d31));
+    Vpop(Untyped64, DRegisterList(d0, d7));
+    Pop(RegisterList(saved_registers_mask));
   }
-  // Select the right trampoline depending on the arguments.
-  uintptr_t address;
-  switch (printf_type) {
-    case 0:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineRRRR);
-      break;
-    case 1:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineDRRR);
-      break;
-    case 2:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineRDRR);
-      break;
-    case 3:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineDDRR);
-      break;
-    case 4:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineRRDR);
-      break;
-    case 5:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineDRDR);
-      break;
-    case 6:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineRDDR);
-      break;
-    case 7:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineDDDR);
-      break;
-    case 8:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineRRRD);
-      break;
-    case 9:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineDRRD);
-      break;
-    case 10:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineRDRD);
-      break;
-    case 11:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineDDRD);
-      break;
-    case 12:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineRRDD);
-      break;
-    case 13:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineDRDD);
-      break;
-    case 14:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineRDDD);
-      break;
-    case 15:
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineDDDD);
-      break;
-    default:
-      VIXL_UNREACHABLE();
-      address = reinterpret_cast<uintptr_t>(PrintfTrampolineRRRR);
-      break;
-  }
-  Ldr(r0, format);
-  Mov(ip, address);
-  Blx(ip);
-  // If register reg4 was left on the stack => skip it.
-  if (core_count == 5) Drop(kRegSizeInBytes);
-  // Restore the stack as it was before alignment.
-  Add(sp, sp, r5);
-  // Restore the flags.
-  Pop(tmp);
-  Vmsr(FPSCR, tmp);
-  Pop(tmp);
-  Msr(APSR_nzcvqg, tmp);
-  // Restore the regsisters.
-  if (Has32DRegs()) Vpop(Untyped64, DRegisterList(d16, d31));
-  Vpop(Untyped64, DRegisterList(d0, d7));
-  Pop(RegisterList(saved_registers_mask));
-#endif
 }
 
 
@@ -707,7 +708,6 @@ void MacroAssembler::PushRegister(CPURegister reg) {
 }
 
 
-#if !VIXL_GENERATE_SIMULATOR_CODE
 void MacroAssembler::PreparePrintfArgument(CPURegister reg,
                                            int* core_count,
                                            int* vfp_count,
@@ -738,7 +738,6 @@ void MacroAssembler::PreparePrintfArgument(CPURegister reg,
       break;
   }
 }
-#endif
 
 
 void MacroAssembler::Delegate(InstructionType type,

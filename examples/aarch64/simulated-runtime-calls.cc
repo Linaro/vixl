@@ -77,7 +77,7 @@ void GenerateRuntimeCallExamples(MacroAssembler* masm) {
 
 
 #ifndef TEST_EXAMPLES
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
 int main(void) {
   MacroAssembler masm;
@@ -110,7 +110,7 @@ int main(void) {
 #else
 // TODO: Support running natively.
 int main(void) { return 0; }
-#endif  // VIXL_INCLUDE_SIMULATOR
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 #endif  // TEST_EXAMPLES
 #else
 #ifndef TEST_EXAMPLES

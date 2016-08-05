@@ -50,7 +50,7 @@ int main() {
   // Ensure that everything is generated and that the generated buffer is
   // ready to use.
   masm.FinalizeCode();
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 // There is no simulator defined for VIXL AArch32.
 #else
   byte* code = masm.GetBuffer().GetBuffer();

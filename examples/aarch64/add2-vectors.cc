@@ -123,7 +123,7 @@ int main(void) {
     vecC[i] = vecA[i] + vecB[i];
   }
 
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   uintptr_t vecA_addr = reinterpret_cast<uintptr_t>(vecA);
   uintptr_t vecB_addr = reinterpret_cast<uintptr_t>(vecB);
 
@@ -145,7 +145,7 @@ int main(void) {
   // Placeholder to run test natively.
   printf("Running tests natively is not supported yet.\n");
   return 0;
-#endif  // VIXL_INCLUDE_SIMULATOR
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
   // Check that the computed value in NEON matches the C version.
   for (unsigned i = 0; i < ARRAY_SIZE(vecA); i++) {
     assert(vecC[i] == vecA[i]);

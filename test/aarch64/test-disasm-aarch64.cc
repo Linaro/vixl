@@ -45,18 +45,18 @@
 
 #define SETUP() SETUP_CLASS(Assembler)
 
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 // Run tests with the simulator.
 #define SETUP_MACRO()                                                          \
   SETUP_CLASS(MacroAssembler);                                                 \
   masm.SetGenerateSimulatorCode(true)
 
-#else  // ifdef VIXL_INCLUDE_SIMULATOR.
+#else  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
 #define SETUP_MACRO()                                                          \
   SETUP_CLASS(MacroAssembler);                                                 \
   masm.SetGenerateSimulatorCode(false)
 
-#endif  // ifdef VIXL_INCLUDE_SIMULATOR.
+#endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
 
 // A conservative limit for the size of the code that we generate in these
 // tests.
@@ -2826,7 +2826,7 @@ TEST(system_nop) {
 TEST(unreachable) {
   SETUP_MACRO();
 
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   VIXL_ASSERT(kUnreachableOpcode == 0xdeb0);
   COMPARE(Unreachable(), "hlt #0xdeb0");
 #else
@@ -2837,7 +2837,7 @@ TEST(unreachable) {
 }
 
 
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 TEST(trace) {
   SETUP_MACRO();
 
@@ -2852,7 +2852,7 @@ TEST(trace) {
 #endif
 
 
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 TEST(log) {
   SETUP_MACRO();
 

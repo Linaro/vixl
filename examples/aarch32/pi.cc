@@ -87,7 +87,7 @@ int main() {
   masm.Bind(&pi_approx);
   GenerateApproximatePi(&masm);
   masm.FinalizeCode();
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
   // There is no simulator defined for VIXL AArch32.
   printf("This example cannot be simulated\n");
 #else

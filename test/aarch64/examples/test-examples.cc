@@ -45,7 +45,7 @@ TEST(custom_disassembler) {
 
 
 // The tests below only work with the simulator.
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
 #define __ masm->
 
@@ -597,4 +597,4 @@ TEST(runtime_calls) {
   RUNTIME_CALLS_DOTEST(123, 456);
 }
 
-#endif  // VIXL_INCLUDE_SIMULATOR
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64

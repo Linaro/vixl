@@ -359,7 +359,7 @@ MacroAssembler::MacroAssembler(PositionIndependentCodeOption pic)
 #ifdef VIXL_DEBUG
       allow_macro_instructions_(true),
 #endif
-      generate_simulator_code_(VIXL_GENERATE_SIMULATOR_CODE),
+      generate_simulator_code_(VIXL_AARCH64_GENERATE_SIMULATOR_CODE),
       sp_(sp),
       tmp_list_(ip0, ip1),
       fptmp_list_(d31),
@@ -379,7 +379,7 @@ MacroAssembler::MacroAssembler(size_t capacity,
 #ifdef VIXL_DEBUG
       allow_macro_instructions_(true),
 #endif
-      generate_simulator_code_(VIXL_GENERATE_SIMULATOR_CODE),
+      generate_simulator_code_(VIXL_AARCH64_GENERATE_SIMULATOR_CODE),
       sp_(sp),
       tmp_list_(ip0, ip1),
       fptmp_list_(d31),
@@ -397,7 +397,7 @@ MacroAssembler::MacroAssembler(byte* buffer,
 #ifdef VIXL_DEBUG
       allow_macro_instructions_(true),
 #endif
-      generate_simulator_code_(VIXL_GENERATE_SIMULATOR_CODE),
+      generate_simulator_code_(VIXL_AARCH64_GENERATE_SIMULATOR_CODE),
       sp_(sp),
       tmp_list_(ip0, ip1),
       fptmp_list_(d31),

@@ -46,7 +46,7 @@
 #define __ masm.
 #define BUF_SIZE (4096)
 
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 // Run tests with the simulator.
 
 #define SETUP() MacroAssembler masm(BUF_SIZE)
@@ -62,7 +62,7 @@
 
 #define TEARDOWN()
 
-#else  // ifdef VIXL_INCLUDE_SIMULATOR.
+#else  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32.
 
 #define SETUP() MacroAssembler masm(BUF_SIZE);
 
@@ -106,7 +106,7 @@
 
 #define TEARDOWN()
 
-#endif  // ifdef VIXL_INCLUDE_SIMULATOR
+#endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 
 namespace vixl {
 namespace aarch32 {

@@ -93,7 +93,7 @@ options = {
       'CCFLAGS' : ['-O3'],
       },
     'simulator:on' : {
-      'CCFLAGS' : ['-DVIXL_INCLUDE_SIMULATOR'],
+      'CCFLAGS' : ['-DVIXL_INCLUDE_SIMULATOR_AARCH64'],
       },
     'symbols:on' : {
       'CCFLAGS' : ['-g'],

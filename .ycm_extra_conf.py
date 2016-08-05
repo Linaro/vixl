@@ -27,7 +27,7 @@ flags = [
 ]
 
 if platform.machine() != 'aarch64':
-  flags.append('-DVIXL_INCLUDE_SIMULATOR')
+  flags.append('-DVIXL_INCLUDE_SIMULATOR_AARCH64')
 
 
 def FlagsForFile(filename, **kwargs):

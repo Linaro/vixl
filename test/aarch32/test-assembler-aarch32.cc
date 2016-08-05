@@ -46,7 +46,7 @@ namespace aarch32 {
 #define ASSERT_LITERAL_POOL_SIZE(size) \
     do { assert(__ GetLiteralPoolSize() == size); } while (false)
 
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 // No simulator yet.
 
 #define SETUP() \
@@ -63,7 +63,7 @@ namespace aarch32 {
 
 #define TEARDOWN()
 
-#else  // ifdef VIXL_INCLUDE_SIMULATOR.
+#else  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32.
 
 #define SETUP()                                                                \
   RegisterDump core;                                                           \
@@ -112,13 +112,13 @@ namespace aarch32 {
 
 #define TEARDOWN()
 
-#endif  // ifdef VIXL_INCLUDE_SIMULATOR
+#endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 
 #define START_T32()                                                            \
   __ UseT32();                                                                 \
   START();
 
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 // No simulator yet. We can't test the results.
 
 #define ASSERT_EQUAL_32(expected, result)

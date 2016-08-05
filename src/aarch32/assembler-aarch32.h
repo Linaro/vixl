@@ -37,7 +37,6 @@ class Assembler : public Instructions {
   InstructionSet isa_;
   Condition first_condition_;
   uint16_t it_mask_;
-  bool generate_for_simulator_;
   bool has_32_dregs_;
 
  protected:
@@ -62,23 +61,17 @@ class Assembler : public Instructions {
 
  public:
   explicit Assembler(InstructionSet isa = A32)
-      : isa_(isa),
-        first_condition_(al),
-        it_mask_(0),
-        generate_for_simulator_(VIXL_GENERATE_SIMULATOR_CODE),
-        has_32_dregs_(true) {}
+      : isa_(isa), first_condition_(al), it_mask_(0), has_32_dregs_(true) {}
   explicit Assembler(size_t size, InstructionSet isa = A32)
       : isa_(isa),
         first_condition_(al),
         it_mask_(0),
-        generate_for_simulator_(VIXL_GENERATE_SIMULATOR_CODE),
         has_32_dregs_(true),
         buffer_(size) {}
   Assembler(void* buffer, size_t size, InstructionSet isa = A32)
       : isa_(isa),
         first_condition_(al),
         it_mask_(0),
-        generate_for_simulator_(VIXL_GENERATE_SIMULATOR_CODE),
         has_32_dregs_(true),
         buffer_(buffer, size) {}
   virtual ~Assembler() {}
@@ -107,7 +100,6 @@ class Assembler : public Instructions {
     return ((it_mask_ == 0) && cond.Is(al)) || (it_mask_ == 0x8);
   }
   void CheckNotIT() { VIXL_ASSERT(it_mask_ == 0); }
-  bool GenerateForSimulator() const { return generate_for_simulator_; }
   bool Has32DRegs() const { return has_32_dregs_; }
   void SetHas32DRegs(bool has_32_dregs) { has_32_dregs_ = has_32_dregs; }
 

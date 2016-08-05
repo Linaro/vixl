@@ -112,7 +112,7 @@ endif
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
-LOCAL_CPPFLAGS := $(vixl_cpp_flags_release) -DVIXL_INCLUDE_SIMULATOR
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_release) -DVIXL_INCLUDE_SIMULATOR_AARCH64
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
 LOCAL_C_INCLUDES := $(vixl_src_include_path)
 LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_arm64)
@@ -126,7 +126,7 @@ include $(BUILD_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
-LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug) -DVIXL_INCLUDE_SIMULATOR
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug) -DVIXL_INCLUDE_SIMULATOR_AARCH64
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
 LOCAL_C_INCLUDES := $(vixl_src_include_path)
 LOCAL_SRC_FILES :=  $(vixl_common_files) $(vixl_src_files_arm64)
@@ -141,7 +141,7 @@ include $(BUILD_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
-LOCAL_CPPFLAGS := $(vixl_cpp_flags_release) -DVIXL_INCLUDE_SIMULATOR
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_release) -DVIXL_INCLUDE_SIMULATOR_AARCH64
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
 LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
 LOCAL_C_INCLUDES := $(vixl_src_include_path)
@@ -157,7 +157,7 @@ include $(BUILD_HOST_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
-LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug) -DVIXL_INCLUDE_SIMULATOR
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug) -DVIXL_INCLUDE_SIMULATOR_AARCH64
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
 LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
 LOCAL_C_INCLUDES := $(vixl_src_include_path)
@@ -174,7 +174,7 @@ include $(BUILD_HOST_SHARED_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
-LOCAL_CPPFLAGS := $(vixl_cpp_flags_release) -DVIXL_INCLUDE_SIMULATOR
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_release) -DVIXL_INCLUDE_SIMULATOR_AARCH64
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
 LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
 LOCAL_C_INCLUDES := $(vixl_src_include_path)
@@ -190,7 +190,7 @@ include $(BUILD_HOST_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
-LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug) -DVIXL_INCLUDE_SIMULATOR
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug) -DVIXL_INCLUDE_SIMULATOR_AARCH64
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
 LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
 LOCAL_C_INCLUDES := $(vixl_src_include_path)
@@ -307,7 +307,7 @@ include $(BUILD_HOST_STATIC_LIBRARY)
 include $(CLEAR_VARS)
 LOCAL_CLANG := true
 LOCAL_CPP_EXTENSION := .cc
-LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug) -DVIXL_INCLUDE_SIMULATOR
+LOCAL_CPPFLAGS := $(vixl_cpp_flags_debug) -DVIXL_INCLUDE_SIMULATOR_AARCH64
 LOCAL_CLANG_CFLAGS := -Wimplicit-fallthrough
 LOCAL_NATIVE_COVERAGE := $(VIXL_COVERAGE)
 LOCAL_C_INCLUDES := $(vixl_test_include_path)

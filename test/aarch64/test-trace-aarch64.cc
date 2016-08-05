@@ -42,7 +42,7 @@
 namespace vixl {
 namespace aarch64 {
 // Trace tests can only work with the simulator.
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
 #define __ masm->
 #define TEST(name) TEST_(TRACE_##name)
@@ -2717,6 +2717,6 @@ TEST(all_colour) {
 }
 
 
-#endif  // VIXL_INCLUDE_SIMULATOR
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 }  // namespace aarch64
 }  // namespace vixl

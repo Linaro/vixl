@@ -29,7 +29,7 @@
 
 extern "C" {
 #include <stdint.h>
-#ifndef VIXL_INCLUDE_SIMULATOR
+#ifndef VIXL_INCLUDE_SIMULATOR_AARCH32
 #include <sys/mman.h>
 #endif
 }
@@ -44,7 +44,7 @@ extern "C" {
 using namespace vixl;
 using namespace vixl::aarch32;
 
-#ifndef VIXL_INCLUDE_SIMULATOR
+#ifndef VIXL_INCLUDE_SIMULATOR_AARCH32
 class ExecutableMemory {
  public:
   ExecutableMemory(const byte* code_start, size_t size)

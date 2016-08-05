@@ -95,7 +95,7 @@ namespace aarch64 {
 #define __ masm.
 #define TEST(name)  TEST_(AARCH64_ASM_##name)
 
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 // Run tests with the simulator.
 
 #define SETUP()                                                                \
@@ -162,7 +162,7 @@ namespace aarch64 {
 #define TEARDOWN_COMMON()                                                      \
   delete simulator;
 
-#else  // ifdef VIXL_INCLUDE_SIMULATOR.
+#else  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
 // Run the test on real hardware or models.
 #define SETUP()                                                                \
   MacroAssembler masm;                                                         \
@@ -211,7 +211,7 @@ namespace aarch64 {
 
 #define TEARDOWN_CUSTOM()
 
-#endif  // ifdef VIXL_INCLUDE_SIMULATOR.
+#endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
 
 #define ASSERT_EQUAL_NZCV(expected)                                            \
   assert(EqualNzcv(expected, core.flags_nzcv()))
@@ -14369,7 +14369,7 @@ TEST(printf_no_preserve) {
 }
 
 
-#ifndef VIXL_INCLUDE_SIMULATOR
+#ifndef VIXL_INCLUDE_SIMULATOR_AARCH64
 TEST(trace) {
   // The Trace helper should not generate any code unless the simulator (or
   // debugger) is being used.
@@ -14388,7 +14388,7 @@ TEST(trace) {
 #endif
 
 
-#ifndef VIXL_INCLUDE_SIMULATOR
+#ifndef VIXL_INCLUDE_SIMULATOR_AARCH64
 TEST(log) {
   // The Log helper should not generate any code unless the simulator (or
   // debugger) is being used.
@@ -15463,7 +15463,7 @@ TEST(clrex) {
 }
 
 
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 // Check that the simulator occasionally makes store-exclusive fail.
 TEST(ldxr_stxr_fail) {
   uint64_t data[] = {0, 0, 0};
@@ -15547,7 +15547,7 @@ TEST(ldxr_stxr_fail) {
 #endif
 
 
-#ifdef VIXL_INCLUDE_SIMULATOR
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 // Check that the simulator occasionally makes store-exclusive fail.
 TEST(ldaxr_stlxr_fail) {
   uint64_t data[] = {0, 0, 0};
@@ -22255,7 +22255,6 @@ void runtime_call_store_at_address(int64_t* address) {
     !defined(VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT)
 #error "C++11 should be sufficient to provide support for `MacroAssembler::CallRuntime()`."
 #endif  // #if (__cplusplus >= 201103L) && ...
-
 
 #ifdef VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT
 TEST(runtime_calls) {
