@@ -22206,14 +22206,16 @@ void runtime_call_store_at_address(int64_t* address) {
 
 
 // C++11 should be sufficient to provide support for ABI and simulated runtime
-// calls.
-#if __cplusplus >= 201103L
-#ifndef VIXL_HAS_ABI_SUPPORT
+// calls, except that a GCC bug before 4.9.1 prevents the use of simulated
+// runtime calls.
+#if (__cplusplus >= 201103L) && !defined(VIXL_HAS_ABI_SUPPORT)
 #error "C++11 should be sufficient to provide ABI support."
 #endif
-#ifndef VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
+
+#if (__cplusplus >= 201103L) && \
+    (defined(__clang__) || GCC_VERSION_OR_NEWER(4, 9, 1)) && \
+    !defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT)
 #error "C++11 should be sufficient to provide support for simulated runtime calls."
-#endif
 #endif
 
 
@@ -22243,7 +22245,7 @@ TEST(runtime_calls) {
   __ Fmov(d1, 4.0);
   __ Push(d1, d0);
   __ CallRuntime(runtime_call_two_arguments_on_stack);
-  __ Mov(d21, d0);
+  __ Fmov(d21, d0);
   __ Pop(d1, d0);
 
   int64_t value = 0xbadbeef;

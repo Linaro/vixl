@@ -1618,7 +1618,10 @@ class Simulator : public DecoderVisitor {
 
 // Runtime call emulation support.
 // It requires VIXL's ABI features, and C++11 or greater.
-#if defined(VIXL_HAS_ABI_SUPPORT) && __cplusplus >= 201103L
+// Also, the initialisation of the tuples in RuntimeCall(Non)Void is incorrect
+// in GCC before 4.9.1: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=51253
+#if defined(VIXL_HAS_ABI_SUPPORT) && __cplusplus >= 201103L && \
+    (defined(__clang__) || GCC_VERSION_OR_NEWER(4, 9, 1))
 
 #define VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
 
@@ -1691,7 +1694,7 @@ class Simulator : public DecoderVisitor {
   // We use `struct` for `void` return type specialisation.
   template <typename R, typename... P>
   struct RuntimeCallStructHelper {
-    static void Wrapper(Simulator* simulator, void* function_pointer) {
+    static void Wrapper(Simulator* simulator, uintptr_t function_pointer) {
       R (*function)(P...) = reinterpret_cast<R (*)(P...)>(function_pointer);
       simulator->RuntimeCallNonVoid(function);
     }
@@ -1700,7 +1703,7 @@ class Simulator : public DecoderVisitor {
   // Partial specialization when the return type is `void`.
   template <typename... P>
   struct RuntimeCallStructHelper<void, P...> {
-    static void Wrapper(Simulator* simulator, void* function_pointer) {
+    static void Wrapper(Simulator* simulator, uintptr_t function_pointer) {
       void (*function)(P...) =
           reinterpret_cast<void (*)(P...)>(function_pointer);
       simulator->RuntimeCallVoid(function);
@@ -3086,8 +3089,7 @@ class Simulator : public DecoderVisitor {
   void PrintExclusiveAccessWarning();
 };
 
-#if defined(VIXL_HAS_ABI_SUPPORT) && __cplusplus >= 201103L && \
-    __cplusplus < 201402L
+#if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) && __cplusplus < 201402L
 // Base case of the recursive template used to emulate C++14
 // `std::index_sequence`.
 template <size_t... I>
