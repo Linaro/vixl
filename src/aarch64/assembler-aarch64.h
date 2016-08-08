@@ -3423,7 +3423,7 @@ class CodeBufferCheckScope {
             CheckPolicy check_policy = kCheck,
             AssertPolicy assert_policy = kMaximumSize);
 
-  ~CodeBufferCheckScope();
+  virtual ~CodeBufferCheckScope();
 
   // This function performs the cleaning-up work. It must succeed even if the
   // scope has not been opened. It is safe to call multiple times.

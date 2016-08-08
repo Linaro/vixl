@@ -505,7 +505,7 @@ class EmissionCheckScope : public CodeBufferCheckScope {
   EmissionCheckScope(MacroAssembler* masm,
                      size_t size,
                      AssertPolicy assert_policy = kMaximumSize);
-  ~EmissionCheckScope();
+  virtual ~EmissionCheckScope();
 
   enum PoolPolicy { kIgnorePools, kCheckPools };
 
@@ -3187,7 +3187,7 @@ class InstructionAccurateScope : public EmissionCheckScope {
 #endif
   }
 
-  ~InstructionAccurateScope() {
+  virtual ~InstructionAccurateScope() {
 #ifdef VIXL_DEBUG
     MacroAssembler* masm = reinterpret_cast<MacroAssembler*>(assm_);
     masm->SetAllowMacroInstructions(old_allow_macro_instructions_);
