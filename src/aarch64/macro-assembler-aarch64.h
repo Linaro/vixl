@@ -500,17 +500,13 @@ class VeneerPool : public Pool {
 //  * Emit the literal or veneer pools if necessary before emitting the
 //    macro-instruction.
 //  * Ensure there is enough space to emit the macro-instruction.
-class EmissionCheckScope {
+class EmissionCheckScope : public CodeBufferCheckScope {
  public:
   EmissionCheckScope(MacroAssembler* masm, size_t size);
   ~EmissionCheckScope();
 
  protected:
   MacroAssembler* masm_;
-#ifdef VIXL_DEBUG
-  Label start_;
-  size_t size_;
-#endif
 };
 
 
@@ -2910,6 +2906,18 @@ class MacroAssembler : public Assembler {
     if ((cursor >= recommended_checkpoint_) ||
         ((cursor + offset + max_pools_size) >= checkpoint_)) {
       CheckEmitFor(amount);
+    }
+  }
+
+  void CheckEmitPoolsFor(size_t amount);
+  void EnsureEmitPoolsFor(size_t amount) {
+    ptrdiff_t offset = amount;
+    ptrdiff_t max_pools_size =
+        literal_pool_.GetMaxSize() + veneer_pool_.GetMaxSize();
+    ptrdiff_t cursor = GetCursorOffset();
+    if ((cursor >= recommended_checkpoint_) ||
+        ((cursor + offset + max_pools_size) >= checkpoint_)) {
+      CheckEmitPoolsFor(amount);
     }
   }
 

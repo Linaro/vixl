@@ -273,13 +273,13 @@ EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm, size_t size)
     // `MacroAssembler::MoveImmediateHelper()` for an example.
     return;
   }
-  masm_->EnsureEmitFor(size);
+  // Do not use the more generic `EnsureEmitFor()` to avoid duplicating the work
+  // to check that enough space is available in the buffer. It is done below
+  // when opening `CodeBufferCheckScope`.
+  masm_->EnsureEmitPoolsFor(size);
   masm_->BlockPools();
-#ifdef VIXL_DEBUG
-  masm_->Bind(&start_);
-  size_ = size;
-  masm_->AcquireBuffer();
-#endif
+  // The buffer should be checked *after* we emit the pools.
+  CodeBufferCheckScope::Open(masm_, size, kCheck, kMaximumSize);
 }
 
 
@@ -288,10 +288,6 @@ EmissionCheckScope::~EmissionCheckScope() {
     // Nothing to do.
     return;
   }
-#ifdef VIXL_DEBUG
-  masm_->ReleaseBuffer();
-  VIXL_ASSERT(masm_->GetSizeOfCodeGeneratedSince(&start_) <= size_);
-#endif
   masm_->ReleasePools();
 }
 
@@ -370,16 +366,19 @@ void MacroAssembler::FinalizeCode() {
 
 
 void MacroAssembler::CheckEmitFor(size_t amount) {
+  CheckEmitPoolsFor(amount);
   ptrdiff_t offset = amount;
-
-  literal_pool_.CheckEmitFor(amount);
-  veneer_pool_.CheckEmitFor(amount);
   // Ensure there's enough space for the emit, keep in mind the cursor will
   // have moved if a pool was emitted.
   if ((GetCursorOffset() + offset) > GetBufferEndOffset()) {
     EnsureSpaceFor(amount);
   }
+}
 
+
+void MacroAssembler::CheckEmitPoolsFor(size_t amount) {
+  literal_pool_.CheckEmitFor(amount);
+  veneer_pool_.CheckEmitFor(amount);
   checkpoint_ = GetNextCheckPoint();
 }
 
