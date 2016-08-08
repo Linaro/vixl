@@ -37,6 +37,7 @@
 #include "aarch32/instructions-aarch32.h"
 #include "aarch32/macro-assembler-aarch32.h"
 
+using namespace vixl;
 using namespace vixl::aarch32;
 
 #ifndef VIXL_INCLUDE_SIMULATOR
