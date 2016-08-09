@@ -3379,9 +3379,7 @@ class Assembler {
   CodeBuffer* buffer_;
   PositionIndependentCodeOption pic_;
 
-#ifdef VIXL_DEBUG
   int64_t buffer_monitor_;
-#endif
 };
 
 
@@ -3429,14 +3427,12 @@ class CodeBufferCheckScope {
   // scope has not been opened. It is safe to call multiple times.
   void Close();
 
-#ifdef VIXL_DEBUG
  protected:
   Assembler* assm_;
   size_t size_;
   AssertPolicy assert_policy_;
   Label start_;
   bool initialised_;
-#endif
 };
 
 

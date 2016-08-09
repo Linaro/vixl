@@ -79,7 +79,8 @@ options = {
                    '-Wredundant-decls',
                    '-pedantic',
                    '-Wmissing-noreturn',
-                   '-Wwrite-strings'],
+                   '-Wwrite-strings',
+                   '-Wunused'],
       'CPPPATH' : [config.dir_src_vixl]
       },
 #   'build_option:value' : {

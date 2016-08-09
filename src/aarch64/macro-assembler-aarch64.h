@@ -3126,12 +3126,10 @@ class MacroAssembler : public Assembler {
                                                 GetCursorOffset());
   }
 
-#ifdef VIXL_DEBUG
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number
   // of instructions is called.
   bool allow_macro_instructions_;
-#endif
 
   // Indicates whether we should generate simulator or native code.
   bool generate_simulator_code_;
@@ -3184,6 +3182,8 @@ class InstructionAccurateScope : public EmissionCheckScope {
 #ifdef VIXL_DEBUG
     old_allow_macro_instructions_ = masm->AllowMacroInstructions();
     masm->SetAllowMacroInstructions(false);
+#else
+    USE(old_allow_macro_instructions_);
 #endif
   }
 
@@ -3214,9 +3214,7 @@ class InstructionAccurateScope : public EmissionCheckScope {
   friend void LiteralPool::Emit(LiteralPool::EmitOption);
   friend void VeneerPool::Emit(VeneerPool::EmitOption, size_t);
 
-#ifdef VIXL_DEBUG
   bool old_allow_macro_instructions_;
-#endif
 };
 
 
@@ -3369,9 +3367,7 @@ class UseScratchRegisterScope {
   // The state of the available lists at the start of this scope.
   RegList old_available_;    // kRegister
   RegList old_availablefp_;  // kVRegister
-#ifdef VIXL_DEBUG
   bool initialised_;
-#endif
 
   // Disallow copy constructor and operator=.
   VIXL_DEBUG_NO_RETURN UseScratchRegisterScope(const UseScratchRegisterScope&) {

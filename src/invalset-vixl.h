@@ -215,11 +215,11 @@ class InvalSet {
   ElementType preallocated_[kNPreallocatedElements];
   std::vector<ElementType>* vector_;
 
-#ifdef VIXL_DEBUG
   // Iterators acquire and release this monitor. While a set is acquired,
   // certain operations are illegal to ensure that the iterator will
   // correctly iterate over the elements in the set.
   int monitor_;
+#ifdef VIXL_DEBUG
   int monitor() const { return monitor_; }
   void Acquire() { monitor_++; }
   void Release() {

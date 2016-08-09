@@ -367,6 +367,9 @@ MacroAssembler::MacroAssembler(PositionIndependentCodeOption pic)
       veneer_pool_(this),
       recommended_checkpoint_(Pool::kNoCheckpointRequired) {
   checkpoint_ = GetNextCheckPoint();
+#ifndef VIXL_DEBUG
+  USE(allow_macro_instructions_);
+#endif
 }
 
 
@@ -2733,6 +2736,8 @@ void UseScratchRegisterScope::Close() {
 UseScratchRegisterScope::UseScratchRegisterScope(MacroAssembler* masm) {
 #ifdef VIXL_DEBUG
   initialised_ = false;
+#else
+  USE(initialised_);
 #endif
   Open(masm);
 }

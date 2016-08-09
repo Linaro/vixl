@@ -165,6 +165,8 @@ class MacroAssembler : public Assembler {
       }
 #ifdef VIXL_DEBUG
       initial_cursor_offset_ = masm->GetCursorOffset();
+#else
+      USE(initial_cursor_offset_);
 #endif
     }
     ~ITScope() {
@@ -180,9 +182,7 @@ class MacroAssembler : public Assembler {
     Condition cond_;
     Label label_;
     bool can_use_it_;
-#ifdef VIXL_DEBUG
     uint32_t initial_cursor_offset_;
-#endif
   };
 
   template <Assembler::InstructionCondDtDL asmfn>
@@ -371,6 +371,9 @@ class MacroAssembler : public Assembler {
         veneer_pool_manager_(this) {
 #ifdef VIXL_DEBUG
     SetAllowMacroInstructions(true);
+#else
+    USE(literal_pool_manager_);
+    USE(allow_macro_instructions_);
 #endif
     ComputeCheckpoint();
   }
@@ -8088,9 +8091,7 @@ class MacroAssembler : public Assembler {
   Label::Offset checkpoint_;
   LiteralPoolManager literal_pool_manager_;
   VeneerPoolManager veneer_pool_manager_;
-#ifdef VIXL_DEBUG
   bool allow_macro_instructions_;
-#endif
 };
 
 // This scope is used to ensure that the specified size of instructions will be
@@ -8142,11 +8143,9 @@ class CodeBufferCheckScope {
 
  protected:
   MacroAssembler* masm_;
-#ifdef VIXL_DEBUG
   uint32_t initial_cursor_offset_;
   uint32_t size_;
   AssertPolicy assert_policy_;
-#endif
 };
 
 // Use this scope when you need a one-to-one mapping between methods and
@@ -8167,6 +8166,8 @@ class AssemblerAccurateScope : public CodeBufferCheckScope {
 #ifdef VIXL_DEBUG
     old_allow_macro_instructions_ = masm->AllowMacroInstructions();
     masm->SetAllowMacroInstructions(false);
+#else
+    USE(old_allow_macro_instructions_);
 #endif
   }
 
@@ -8177,9 +8178,7 @@ class AssemblerAccurateScope : public CodeBufferCheckScope {
   }
 
  private:
-#ifdef VIXL_DEBUG
   bool old_allow_macro_instructions_;
-#endif
 };
 
 // This scope utility allows scratch registers to be managed safely. The
