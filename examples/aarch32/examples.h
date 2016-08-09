@@ -67,7 +67,7 @@ class ExecutableMemory {
  protected:
   template <typename T>
   T GetOffsetAddress(ptrdiff_t offset) const {
-    VIXL_ASSERT((offset >= 0) && (offset <= size_));
+    VIXL_ASSERT((offset >= 0) && (static_cast<size_t>(offset) <= size_));
     T function_address;
     byte* buffer_address = buffer_ + offset;
     memcpy(&function_address, &buffer_address, sizeof(T));
