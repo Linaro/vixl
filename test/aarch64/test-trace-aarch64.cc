@@ -2633,7 +2633,7 @@ static void TraceTestHelper(bool coloured_trace,
     trace_stream = fopen(trace_stream_filename, "r");
     VIXL_ASSERT(trace_stream != NULL);
     fseek(trace_stream, 0, SEEK_SET);
-    char c;
+    int c;
     while (1) {
       c = getc(trace_stream);
       if (c == EOF) break;
