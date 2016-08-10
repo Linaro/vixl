@@ -24,6 +24,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 // -----------------------------------------------------------------------------
 // This file is auto generated from the
 // test/aarch32/config/template-simulator-aarch32.cc.in template file using
@@ -31,6 +32,7 @@
 //
 // PLEASE DO NOT EDIT.
 // -----------------------------------------------------------------------------
+
 
 #include "test-runner.h"
 
@@ -125,6 +127,7 @@ namespace aarch32 {
   M(Uxtb)                      \
   M(Uxtb16)                    \
   M(Uxth)
+
 
 // Values to be passed to the assembler to produce the instruction under test.
 struct Operands {
@@ -404,6 +407,7 @@ static const Inputs kRdIsNotRn[] = {{NoFlag, 0x00000002, 0xcccccccc},
                                     {NoFlag, 0xfffffffe, 0x55555555},
                                     {NoFlag, 0xffffff82, 0xffffffff}};
 
+
 // A loop will be generated for each element of this array.
 static const TestLoopData kTests[] = {
     {{eq, r0, r0},
@@ -586,13 +590,16 @@ struct TestResult {
 #include "aarch32/traces/simulator-cond-rd-operand-rn-a32-uxtb16.h"
 #include "aarch32/traces/simulator-cond-rd-operand-rn-a32-uxth.h"
 
+
 // The maximum number of errors to report in detail for each test.
 static const unsigned kErrorReportLimit = 8;
 
-typedef void (MacroAssembler::*Fn)(Condition cond, Register rd,
+typedef void (MacroAssembler::*Fn)(Condition cond,
+                                   Register rd,
                                    const Operand& op);
 
-static void TestHelper(Fn instruction, const char* mnemonic,
+static void TestHelper(Fn instruction,
+                       const char* mnemonic,
                        const TestResult reference[]) {
   SETUP();
   masm.UseA32();
@@ -639,7 +646,8 @@ static void TestHelper(Fn instruction, const char* mnemonic,
     // Initialize `input_ptr` to the first element and `input_end` the address
     // after the array.
     __ Mov(input_ptr, input_address);
-    __ Add(input_end, input_ptr,
+    __ Add(input_end,
+           input_ptr,
            sizeof(kTests[i].inputs[0]) * kTests[i].input_size);
     __ Mov(result_ptr, result_address);
     __ Bind(&loop);
@@ -687,7 +695,8 @@ static void TestHelper(Fn instruction, const char* mnemonic,
   if (Test::generate_test_trace()) {
     // Print the results.
     for (size_t i = 0; i < ARRAY_SIZE(kTests); i++) {
-      printf("static const Inputs kOutputs_%s_%s[] = {\n", mnemonic,
+      printf("static const Inputs kOutputs_%s_%s[] = {\n",
+             mnemonic,
              kTests[i].identifier);
       for (size_t j = 0; j < results[i]->output_size; j++) {
         printf("  { ");
@@ -703,7 +712,8 @@ static void TestHelper(Fn instruction, const char* mnemonic,
     printf("static const TestResult kReference%s[] = {\n", mnemonic);
     for (size_t i = 0; i < ARRAY_SIZE(kTests); i++) {
       printf("  {\n");
-      printf("    ARRAY_SIZE(kOutputs_%s_%s),\n", mnemonic,
+      printf("    ARRAY_SIZE(kOutputs_%s_%s),\n",
+             mnemonic,
              kTests[i].identifier);
       printf("    kOutputs_%s_%s,\n", mnemonic, kTests[i].identifier);
       printf("  },\n");
@@ -729,7 +739,8 @@ static void TestHelper(Fn instruction, const char* mnemonic,
             (++total_error_count <= kErrorReportLimit)) {
           // Print the instruction once even if it triggered multiple failures.
           if (!instruction_has_errors) {
-            printf("Error(s) when testing \"%s %s\":\n", mnemonic,
+            printf("Error(s) when testing \"%s %s\":\n",
+                   mnemonic,
                    kTests[i].operands_description);
             instruction_has_errors = true;
           }
@@ -778,13 +789,13 @@ static void TestHelper(Fn instruction, const char* mnemonic,
 }
 
 // Instantiate tests for each instruction in the list.
-#define TEST(mnemonic)                                                      \
-  static void Test_##mnemonic() {                                           \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
-  }                                                                         \
-  static Test test_##mnemonic(                                              \
-      "AARCH32_SIMULATOR_COND_RD_OPERAND_RN_A32_" #mnemonic,                \
-      &Test_##mnemonic);
+#define TEST(mnemonic)                                                       \
+  static void Test_##mnemonic() {                                            \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);  \
+  }                                                                          \
+  static Test                                                                \
+      test_##mnemonic("AARCH32_SIMULATOR_COND_RD_OPERAND_RN_A32_" #mnemonic, \
+                      &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST
 

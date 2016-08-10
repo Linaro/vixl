@@ -24,6 +24,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 // -----------------------------------------------------------------------------
 // This file is auto generated from the
 // test/aarch32/config/template-simulator-aarch32.cc.in template file using
@@ -31,6 +32,7 @@
 //
 // PLEASE DO NOT EDIT.
 // -----------------------------------------------------------------------------
+
 
 #include "test-runner.h"
 
@@ -131,6 +133,7 @@ namespace aarch32 {
   M(Sbcs)                      \
   M(Sub)                       \
   M(Subs)
+
 
 // Values to be passed to the assembler to produce the instruction under test.
 struct Operands {
@@ -1204,6 +1207,7 @@ static const Inputs kModifiedImmediate[] = {{NoFlag, 0xabababab, 0x00000000},
                                             {NoFlag, 0xabababab, 0xfffffffe},
                                             {NoFlag, 0xabababab, 0xffffffff}};
 
+
 // A loop will be generated for each element of this array.
 static const TestLoopData kTests[] = {{{eq, r0, r0, 0x000000ab},
                                        "eq r0 r0 0x000000ab",
@@ -1576,13 +1580,17 @@ struct TestResult {
 #include "aarch32/traces/simulator-cond-rd-rn-operand-const-a32-sub.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-const-a32-subs.h"
 
+
 // The maximum number of errors to report in detail for each test.
 static const unsigned kErrorReportLimit = 8;
 
-typedef void (MacroAssembler::*Fn)(Condition cond, Register rd, Register rn,
+typedef void (MacroAssembler::*Fn)(Condition cond,
+                                   Register rd,
+                                   Register rn,
                                    const Operand& op);
 
-static void TestHelper(Fn instruction, const char* mnemonic,
+static void TestHelper(Fn instruction,
+                       const char* mnemonic,
                        const TestResult reference[]) {
   SETUP();
   masm.UseA32();
@@ -1630,7 +1638,8 @@ static void TestHelper(Fn instruction, const char* mnemonic,
     // Initialize `input_ptr` to the first element and `input_end` the address
     // after the array.
     __ Mov(input_ptr, input_address);
-    __ Add(input_end, input_ptr,
+    __ Add(input_end,
+           input_ptr,
            sizeof(kTests[i].inputs[0]) * kTests[i].input_size);
     __ Mov(result_ptr, result_address);
     __ Bind(&loop);
@@ -1678,7 +1687,8 @@ static void TestHelper(Fn instruction, const char* mnemonic,
   if (Test::generate_test_trace()) {
     // Print the results.
     for (size_t i = 0; i < ARRAY_SIZE(kTests); i++) {
-      printf("static const Inputs kOutputs_%s_%s[] = {\n", mnemonic,
+      printf("static const Inputs kOutputs_%s_%s[] = {\n",
+             mnemonic,
              kTests[i].identifier);
       for (size_t j = 0; j < results[i]->output_size; j++) {
         printf("  { ");
@@ -1694,7 +1704,8 @@ static void TestHelper(Fn instruction, const char* mnemonic,
     printf("static const TestResult kReference%s[] = {\n", mnemonic);
     for (size_t i = 0; i < ARRAY_SIZE(kTests); i++) {
       printf("  {\n");
-      printf("    ARRAY_SIZE(kOutputs_%s_%s),\n", mnemonic,
+      printf("    ARRAY_SIZE(kOutputs_%s_%s),\n",
+             mnemonic,
              kTests[i].identifier);
       printf("    kOutputs_%s_%s,\n", mnemonic, kTests[i].identifier);
       printf("  },\n");
@@ -1720,7 +1731,8 @@ static void TestHelper(Fn instruction, const char* mnemonic,
             (++total_error_count <= kErrorReportLimit)) {
           // Print the instruction once even if it triggered multiple failures.
           if (!instruction_has_errors) {
-            printf("Error(s) when testing \"%s %s\":\n", mnemonic,
+            printf("Error(s) when testing \"%s %s\":\n",
+                   mnemonic,
                    kTests[i].operands_description);
             instruction_has_errors = true;
           }

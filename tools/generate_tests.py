@@ -751,8 +751,8 @@ def GenerateTest(generator, clang_format):
   with open(
       "test/aarch32/test-{}-{}.cc".format(generator.test_type, generator.test_name),
       "w") as f:
-    proc = subprocess.Popen([clang_format, "-style=google"],
-                            stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+    proc = subprocess.Popen([clang_format], stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE)
     out, _ = proc.communicate(generated_file.encode())
     f.write(out.decode())
   # Write dummy trace files into 'test/aarch32/traces/'.

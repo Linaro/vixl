@@ -24,6 +24,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 // -----------------------------------------------------------------------------
 // This file is auto generated from the
 // test/aarch32/config/template-assembler-aarch32.cc.in template file using
@@ -31,6 +32,7 @@
 //
 // PLEASE DO NOT EDIT.
 // -----------------------------------------------------------------------------
+
 
 #include "test-runner.h"
 
@@ -53,6 +55,7 @@ namespace aarch32 {
   M(Uxtab)                     \
   M(Uxtab16)                   \
   M(Uxtah)
+
 
 // Values to be passed to the assembler to produce the instruction under test.
 struct Operands {
@@ -2582,10 +2585,8 @@ static const TestData kTests[] = {
      "",
      "le r9 r3 r14 ROR 16",
      "le_r9_r3_r14_ROR_16"},
-    {{le, r1, r4, r6, ROR, 16},
-     "",
-     "le r1 r4 r6 ROR 16",
-     "le_r1_r4_r6_ROR_16"}};
+    {{le, r1, r4, r6, ROR, 16}, "", "le r1 r4 r6 ROR 16", "le_r1_r4_r6_ROR_"
+                                                          "16"}};
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
@@ -2596,13 +2597,17 @@ static const TestData kTests[] = {
 #include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-a32-uxtab16.h"
 #include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-a32-uxtah.h"
 
+
 // The maximum number of errors to report in detail for each test.
 static const unsigned kErrorReportLimit = 8;
 
-typedef void (MacroAssembler::*Fn)(Condition cond, Register rd, Register rn,
+typedef void (MacroAssembler::*Fn)(Condition cond,
+                                   Register rd,
+                                   Register rn,
                                    const Operand& op);
 
-static void TestHelper(Fn instruction, const char* mnemonic,
+static void TestHelper(Fn instruction,
+                       const char* mnemonic,
                        const TestResult reference[]) {
   unsigned total_error_count = 0;
   MacroAssembler masm(BUF_SIZE);
@@ -2629,7 +2634,8 @@ static void TestHelper(Fn instruction, const char* mnemonic,
 
     if (Test::generate_test_trace()) {
       // Print the result bytes.
-      printf("static const byte kInstruction_%s_%s[] = {\n", mnemonic,
+      printf("static const byte kInstruction_%s_%s[] = {\n",
+             mnemonic,
              kTests[i].identifier);
       for (uint32_t j = 0; j < result_size; j++) {
         if (j == 0) {
@@ -2641,8 +2647,10 @@ static void TestHelper(Fn instruction, const char* mnemonic,
       // This comment is meant to be used by external tools to validate
       // the encoding. We can parse the comment to figure out what
       // instruction this corresponds to.
-      printf(" // %s %s %s\n};\n", kTests[i].expect_instruction_before,
-             mnemonic, kTests[i].operands_description);
+      printf(" // %s %s %s\n};\n",
+             kTests[i].expect_instruction_before,
+             mnemonic,
+             kTests[i].operands_description);
     } else {
       // Check we've emitted the exact same encoding as present in the
       // trace file. Only print up to `kErrorReportLimit` errors.
@@ -2650,7 +2658,8 @@ static void TestHelper(Fn instruction, const char* mnemonic,
            (memcmp(result_ptr, reference[i].encoding, reference[i].size) !=
             0)) &&
           (++total_error_count <= kErrorReportLimit)) {
-        printf("Error when testing \"%s\" with operands \"%s\":\n", mnemonic,
+        printf("Error when testing \"%s\" with operands \"%s\":\n",
+               mnemonic,
                kTests[i].operands_description);
         printf("  Expected: ");
         for (uint32_t j = 0; j < reference[i].size; j++) {
@@ -2682,7 +2691,8 @@ static void TestHelper(Fn instruction, const char* mnemonic,
     printf("static const TestResult kReference%s[] = {\n", mnemonic);
     for (unsigned i = 0; i < ARRAY_SIZE(kTests); i++) {
       printf("  {\n");
-      printf("    ARRAY_SIZE(kInstruction_%s_%s),\n", mnemonic,
+      printf("    ARRAY_SIZE(kInstruction_%s_%s),\n",
+             mnemonic,
              kTests[i].identifier);
       printf("    kInstruction_%s_%s,\n", mnemonic, kTests[i].identifier);
       printf("  },\n");
