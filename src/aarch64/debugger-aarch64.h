@@ -29,10 +29,9 @@
 #ifndef VIXL_AARCH64_DEBUGGER_AARCH64_H_
 #define VIXL_AARCH64_DEBUGGER_AARCH64_H_
 
-#include <ctype.h>
-#include <errno.h>
-#include <limits.h>
-
+#include <cctype>
+#include <cerrno>
+#include <climits>
 #include <vector>
 
 #include "globals-vixl.h"

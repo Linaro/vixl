@@ -40,14 +40,16 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include <assert.h>
+extern "C" {
 #include <inttypes.h>
-#include <stdarg.h>
-#include <stddef.h>
 #include <stdint.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+}
+
+#include <cassert>
+#include <cstdarg>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
 
 #include "platform-vixl.h"
 

@@ -26,7 +26,9 @@
 
 #include "test-utils.h"
 
+extern "C" {
 #include <sys/mman.h>
+}
 
 #include "globals-vixl.h"
 #include "aarch64/cpu-aarch64.h"

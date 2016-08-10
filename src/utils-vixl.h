@@ -27,9 +27,8 @@
 #ifndef VIXL_UTILS_H
 #define VIXL_UTILS_H
 
-#include <string.h>
-
 #include <cmath>
+#include <cstring>
 #include <vector>
 
 #include "compiler-intrinsics-vixl.h"

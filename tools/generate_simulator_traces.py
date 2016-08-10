@@ -73,7 +73,9 @@ master_trace_header = """
 #ifndef VIXL_TEST_AARCH64_SIMULATOR_TRACES_AARCH64_H_
 #define VIXL_TEST_AARCH64_SIMULATOR_TRACES_AARCH64_H_
 
+extern "C" {
 #include <stdint.h>
+}
 
 // To add a new simulator test to test-simulator-aarch64.cc, add dummy array(s)
 // below to build test-simulator-aarch64 for reference platform. Then, run

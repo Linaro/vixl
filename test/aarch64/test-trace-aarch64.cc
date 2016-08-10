@@ -24,12 +24,11 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <float.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
+#include <cfloat>
 #include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "test-runner.h"
 #include "test-utils-aarch64.h"

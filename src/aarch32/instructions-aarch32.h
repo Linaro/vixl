@@ -27,9 +27,13 @@
 #ifndef VIXL_AARCH32_INSTRUCTIONS_AARCH32_H_
 #define VIXL_AARCH32_INSTRUCTIONS_AARCH32_H_
 
+extern "C" {
 #include <stdint.h>
-#include <ostream>
+}
+
 #include <algorithm>
+#include <ostream>
+
 #include "utils-vixl.h"
 #include "aarch32/constants-aarch32.h"
 #include "aarch32/label-aarch32.h"

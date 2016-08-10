@@ -27,12 +27,16 @@
 #ifndef VIXL_EXAMPLE_EXAMPLES_H_
 #define VIXL_EXAMPLE_EXAMPLES_H_
 
-#include <stdio.h>
+extern "C" {
 #include <stdint.h>
 #ifndef VIXL_INCLUDE_SIMULATOR
 #include <sys/mman.h>
 #endif
+}
+
+#include <cstdio>
 #include <string>
+
 #include "aarch32/constants-aarch32.h"
 #include "aarch32/instructions-aarch32.h"
 #include "aarch32/macro-assembler-aarch32.h"

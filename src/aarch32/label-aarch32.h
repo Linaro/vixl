@@ -27,10 +27,13 @@
 #ifndef VIXL_AARCH32_LABEL_AARCH32_H_
 #define VIXL_AARCH32_LABEL_AARCH32_H_
 
+extern "C" {
 #include <stdint.h>
-#include <stddef.h>
-#include <list>
+}
+
+#include <cstddef>
 #include <iomanip>
+#include <list>
 
 namespace vixl {
 namespace aarch32 {

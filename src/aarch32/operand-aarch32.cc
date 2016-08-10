@@ -25,14 +25,18 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+extern "C" {
 #include <stdint.h>
-#include <assert.h>
 #include <inttypes.h>
-#include <math.h>
+}
+
+#include <cassert>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>  // NOLINT
+
 #include "utils-vixl.h"
 #include "aarch32/constants-aarch32.h"
 #include "aarch32/instructions-aarch32.h"

@@ -30,7 +30,9 @@
 // on a reference platform to regenerate the expected outputs. The outputs are
 // stored in test-simulator-traces-aarch64.h.
 
+extern "C" {
 #include <stdint.h>
+}
 
 // This header should only be used by test/test-simulator-aarch64.cc, so it
 // doesn't need the usual header guard.

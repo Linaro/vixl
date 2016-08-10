@@ -26,8 +26,7 @@
 
 #ifdef VIXL_INCLUDE_SIMULATOR
 
-#include <string.h>
-
+#include <cstring>
 #include <cmath>
 
 #include "aarch64/simulator-aarch64.h"

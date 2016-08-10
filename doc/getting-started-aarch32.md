@@ -18,9 +18,13 @@ First of all you need to make sure that the header files for the assembler are
 included. You should have the following lines at the beginning of your source
 file:
 
-    #include <stdio.h>
-    #include <string>
+    // You may use <cstdint> if using C++11 or later.
+    extern "C" {
     #include <stdint.h>
+    }
+
+    #include <cstdio>
+    #include <string>
     #include "aarch32/constants-aarch32.h"
     #include "aarch32/instructions-aarch32.h"
     #include "aarch32/macro-assembler-aarch32.h"

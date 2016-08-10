@@ -28,17 +28,21 @@
 // The example assumes support for ELF binaries.
 #ifdef __linux__
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
+extern "C" {
 #include <elf.h>
-#include <stdint.h>
 #include <fcntl.h>
+#include <stdint.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <errno.h>
+}
+
+#include <cerrno>
 #include <iostream>
-#include <string>
 #include <map>
+#include <string>
+
 #include "globals-vixl.h"
 #include "aarch32/instructions-aarch32.h"
 #include "aarch32/disasm-aarch32.h"

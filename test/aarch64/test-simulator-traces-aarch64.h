@@ -28,15 +28,18 @@
 // This file holds the expected results for the instructions tested by
 // test-simulator-aarch64.
 //
-// If you update input lists in test-simulator-inputs-aarch64.h, or add a new test
-// to test-simulator-aarch64.cc, please run tools/generate_simulator_traces.py on a
-// reference platform to regenerate this file and trace files.
+// If you update input lists in test-simulator-inputs-aarch64.h, or add a new
+// test to test-simulator-aarch64.cc, please run
+// tools/generate_simulator_traces.py on a reference platform to regenerate
+// this file and trace files.
 //
 
 #ifndef VIXL_TEST_AARCH64_SIMULATOR_TRACES_AARCH64_H_
 #define VIXL_TEST_AARCH64_SIMULATOR_TRACES_AARCH64_H_
 
+extern "C" {
 #include <stdint.h>
+}
 
 // To add a new simulator test to test-simulator-aarch64.cc, add dummy array(s)
 // below to build test-simulator-aarch64 for reference platform. Then, run
