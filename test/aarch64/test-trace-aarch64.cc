@@ -27,9 +27,9 @@
 #include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <cmath>
-#include <string>
 
 #include "test-runner.h"
 #include "test-utils-aarch64.h"
@@ -2636,7 +2636,7 @@ static void TraceTestHelper(bool coloured_trace,
     char c;
     while (1) {
       c = getc(trace_stream);
-      if (c == std::char_traits<char>::eof()) break;
+      if (c == EOF) break;
       putc(c, stdout);
     }
     fclose(trace_stream);
