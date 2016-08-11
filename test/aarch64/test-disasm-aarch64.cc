@@ -5008,6 +5008,14 @@ TEST(neon_copy) {
   COMPARE(Mov(v9.S(), v4.S(), 2),   "mov s9, v4.s[2]");
   COMPARE(Mov(v2.D(), v6.D(), 0),   "mov d2, v6.d[0]");
 
+  COMPARE(Mov(v0.B(), v1.V8B(), 7),   "mov b0, v1.b[7]");
+  COMPARE(Mov(b2, v3.V16B(), 15),     "mov b2, v3.b[15]");
+  COMPARE(Mov(v4.H(), v5.V4H(), 3),   "mov h4, v5.h[3]");
+  COMPARE(Mov(h6, v7.V8H(), 7),       "mov h6, v7.h[7]");
+  COMPARE(Mov(v8.S(), v9.V2S(), 1),   "mov s8, v9.s[1]");
+  COMPARE(Mov(s10, v11.V4S(), 3),     "mov s10, v11.s[3]");
+  COMPARE(Mov(v12.D(), v13.V2D(), 1), "mov d12, v13.d[1]");
+
   COMPARE(Dup(v5.V8B(),  w0), "dup v5.8b, w0");
   COMPARE(Dup(v6.V16B(), w1), "dup v6.16b, w1");
   COMPARE(Dup(v7.V4H(),  w2), "dup v7.4h, w2");

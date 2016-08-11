@@ -3239,7 +3239,7 @@ void Assembler::dup(const VRegister& vd, const VRegister& vn, int vn_index) {
 
 
 void Assembler::mov(const VRegister& vd, const VRegister& vn, int vn_index) {
-  VIXL_ASSERT(vn.IsScalar());
+  VIXL_ASSERT(vd.IsScalar());
   dup(vd, vn, vn_index);
 }
 
