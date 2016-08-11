@@ -1165,7 +1165,7 @@ static void TestHelper(Fn instruction,
   for (size_t i = 0; i < ARRAY_SIZE(kTests); i++) {
     delete[] results[i]->outputs;
     delete results[i];
-    delete scratch_memory_buffers[i];
+    delete[] scratch_memory_buffers[i];
   }
 
   TEARDOWN();
