@@ -118,16 +118,16 @@ const int kBitsPerByte = 8;
   } while (false)
 
 template <typename T1>
-inline void USE(T1) {}
+inline void USE(const T1&) {}
 
 template <typename T1, typename T2>
-inline void USE(T1, T2) {}
+inline void USE(const T1&, const T2&) {}
 
 template <typename T1, typename T2, typename T3>
-inline void USE(T1, T2, T3) {}
+inline void USE(const T1&, const T2&, const T3&) {}
 
 template <typename T1, typename T2, typename T3, typename T4>
-inline void USE(T1, T2, T3, T4) {}
+inline void USE(const T1&, const T2&, const T3&, const T4&) {}
 
 #define VIXL_ALIGNMENT_EXCEPTION()            \
   do {                                        \
