@@ -71,8 +71,8 @@ with open(android_mk_template, 'r') as template_file:
 
 
 template = template.format(vixl_common=' \\\n  '.join(common_sources),
-                           vixl_aarch64_sources=' \\\n  '.join(aarch64_sources),
-                           vixl_aarch32_sources=' \\\n  '.join(aarch32_sources),
+                           vixl_arm_sources=' \\\n  '.join(aarch32_sources),
+                           vixl_arm64_sources=' \\\n  '.join(aarch64_sources),
                            vixl_test_files=' \\\n  '.join(test_sources))
 
 
