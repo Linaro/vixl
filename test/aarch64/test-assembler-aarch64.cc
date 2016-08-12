@@ -22243,17 +22243,21 @@ void runtime_call_store_at_address(int64_t* address) {
 // runtime calls.
 #if (__cplusplus >= 201103L) && !defined(VIXL_HAS_ABI_SUPPORT)
 #error "C++11 should be sufficient to provide ABI support."
-#endif
+#endif  // #if (__cplusplus >= 201103L) && !defined(VIXL_HAS_ABI_SUPPORT)
 
 #if (__cplusplus >= 201103L) && \
     (defined(__clang__) || GCC_VERSION_OR_NEWER(4, 9, 1)) && \
     !defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT)
 #error "C++11 should be sufficient to provide support for simulated runtime calls."
-#endif
+#endif  // #if (__cplusplus >= 201103L) && ...
+
+#if (__cplusplus >= 201103L) && \
+    !defined(VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT)
+#error "C++11 should be sufficient to provide support for `MacroAssembler::CallRuntime()`."
+#endif  // #if (__cplusplus >= 201103L) && ...
 
 
-#if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) || \
-    !defined(VIXL_INCLUDE_SIMULATOR)
+#ifdef VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT
 TEST(runtime_calls) {
   SETUP();
 
@@ -22287,6 +22291,8 @@ TEST(runtime_calls) {
 
   END();
 
+#if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) || \
+    !defined(VIXL_INCLUDE_SIMULATOR)
   RUN();
 
   ASSERT_EQUAL_32(1, w20);
@@ -22294,10 +22300,11 @@ TEST(runtime_calls) {
   ASSERT_EQUAL_64(0x123, x21);
   ASSERT_EQUAL_FP64(310.0, d21);
   VIXL_CHECK(value == 0xf00d);
+#endif  // #if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) || ...
 
   TEARDOWN();
 }
-#endif
+#endif  // #ifdef VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT
 
 
 }  // namespace aarch64
