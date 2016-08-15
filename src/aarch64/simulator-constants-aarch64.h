@@ -141,8 +141,8 @@ const unsigned kLogLength = 2 * kInstructionSize;
 
 // Runtime call simulation - kRuntimeCall
 const unsigned kRuntimeCallWrapperOffset = 1 * kInstructionSize;
-// The size of a pointer on Aarch64.
-const unsigned kRuntimeCallAddressSize = sizeof(uint64_t);
+// The size of a pointer on host.
+const unsigned kRuntimeCallAddressSize = sizeof(uintptr_t);
 const unsigned kRuntimeCallFunctionOffset =
     kRuntimeCallWrapperOffset + kRuntimeCallAddressSize;
 const unsigned kRuntimeCallLength =

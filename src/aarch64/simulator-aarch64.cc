@@ -5318,16 +5318,16 @@ void Simulator::DoPrintf(const Instruction* instr) {
 
 #ifdef VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
 void Simulator::DoRuntimeCall(const Instruction* instr) {
-  VIXL_STATIC_ASSERT(kRuntimeCallAddressSize == sizeof(uint64_t));
+  VIXL_STATIC_ASSERT(kRuntimeCallAddressSize == sizeof(uintptr_t));
   // The appropriate `Simulator::SimulateRuntimeCall()` wrapper and the function
   // to call are passed inlined in the assembly.
-  uint64_t call_wrapper_address =
-      Memory::Read<uint64_t>(instr + kRuntimeCallWrapperOffset);
-  uint64_t function_address =
-      Memory::Read<uint64_t>(instr + kRuntimeCallFunctionOffset);
+  uintptr_t call_wrapper_address =
+      Memory::Read<uintptr_t>(instr + kRuntimeCallWrapperOffset);
+  uintptr_t function_address =
+      Memory::Read<uintptr_t>(instr + kRuntimeCallFunctionOffset);
   auto runtime_call_wrapper =
       reinterpret_cast<void (*)(Simulator*, uintptr_t)>(call_wrapper_address);
-  runtime_call_wrapper(this, static_cast<uintptr_t>(function_address));
+  runtime_call_wrapper(this, function_address);
   WritePc(instr->GetInstructionAtOffset(kRuntimeCallLength));
 }
 #else

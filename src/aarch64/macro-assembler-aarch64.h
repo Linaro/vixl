@@ -3394,20 +3394,25 @@ template <typename R, typename... P>
 void MacroAssembler::CallRuntime(R (*function)(P...)) {
   if (generate_simulator_code_) {
 #ifdef VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
-    uint64_t runtime_call_wrapper_address = reinterpret_cast<uint64_t>(
+    uintptr_t runtime_call_wrapper_address = reinterpret_cast<uintptr_t>(
         &(Simulator::RuntimeCallStructHelper<R, P...>::Wrapper));
-    uint64_t function_address = reinterpret_cast<uint64_t>(function);
+    uintptr_t function_address = reinterpret_cast<uintptr_t>(function);
 
-    InstructionAccurateScope scope(this, 5);
+    EmissionCheckScope guard(this,
+                             kInstructionSize + 2 * kRuntimeCallAddressSize,
+                             CodeBufferCheckScope::kExactSize);
     Label start;
     bind(&start);
-    hlt(kRuntimeCallOpcode);
+    {
+      InstructionAccurateScope scope(this, 1);
+      hlt(kRuntimeCallOpcode);
+    }
     VIXL_ASSERT(GetSizeOfCodeGeneratedSince(&start) ==
                 kRuntimeCallWrapperOffset);
-    dc64(runtime_call_wrapper_address);
+    dc(runtime_call_wrapper_address);
     VIXL_ASSERT(GetSizeOfCodeGeneratedSince(&start) ==
                 kRuntimeCallFunctionOffset);
-    dc64(function_address);
+    dc(function_address);
     VIXL_ASSERT(GetSizeOfCodeGeneratedSince(&start) ==
                 kRuntimeCallFunctionOffset + kRuntimeCallAddressSize);
 #else
