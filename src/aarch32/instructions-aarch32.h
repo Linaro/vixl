@@ -525,22 +525,6 @@ inline uint32_t GetRegisterListEncoding(const RegisterList& registers,
 
 std::ostream& operator<<(std::ostream& os, RegisterList registers);
 
-class RegisterListWithPC : public RegisterList {
- public:
-  explicit RegisterListWithPC(Register reg) : RegisterList(reg) {}
-  explicit RegisterListWithPC(uint32_t mask) : RegisterList(mask) {}
-};
-
-std::ostream& operator<<(std::ostream& os, RegisterListWithPC registers);
-
-class RegisterListWithoutPC : public RegisterList {
- public:
-  explicit RegisterListWithoutPC(Register reg) : RegisterList(reg) {}
-  explicit RegisterListWithoutPC(uint32_t mask) : RegisterList(mask) {}
-};
-
-std::ostream& operator<<(std::ostream& os, RegisterListWithoutPC registers);
-
 class VRegisterList {
  public:
   VRegisterList() : list_(0) {}

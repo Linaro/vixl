@@ -132,16 +132,6 @@ std::ostream& operator<<(std::ostream& os, RegisterList registers) {
 }
 
 
-std::ostream& operator<<(std::ostream& os, RegisterListWithPC registers) {
-  return PrintRegisterList(os, registers.GetList() | (1 << kPcCode));
-}
-
-
-std::ostream& operator<<(std::ostream& os, RegisterListWithoutPC registers) {
-  return PrintRegisterList(os, registers.GetList());
-}
-
-
 QRegister VRegisterList::GetFirstAvailableQRegister() const {
   for (uint32_t i = 0; i < kNumberOfQRegisters; i++) {
     if (((list_ >> (i * 4)) & 0xf) == 0xf) return QRegister(i);
