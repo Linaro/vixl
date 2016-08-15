@@ -186,6 +186,15 @@ bool Equal64(const Register& reg0,
 }
 
 
+bool Equal64(uint64_t expected,
+             const RegisterDump* core,
+             const VRegister& vreg) {
+  VIXL_ASSERT(vreg.Is64Bits());
+  uint64_t result = core->dreg_bits(vreg.GetCode());
+  return Equal64(expected, core, result);
+}
+
+
 static char FlagN(uint32_t flags) {
   return (flags & NFlag) ? 'N' : 'n';
 }

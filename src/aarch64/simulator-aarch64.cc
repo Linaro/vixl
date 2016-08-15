@@ -112,11 +112,18 @@ void Simulator::ResetState() {
     WriteXRegister(i, 0xbadbeef);
   }
   // Set FP registers to a value that is a NaN in both 32-bit and 64-bit FP.
-  uint64_t nan_bits = UINT64_C(0x7ff0dead7f8beef1);
-  VIXL_ASSERT(IsSignallingNaN(RawbitsToDouble(nan_bits & kDRegMask)));
-  VIXL_ASSERT(IsSignallingNaN(RawbitsToFloat(nan_bits & kSRegMask)));
-  for (unsigned i = 0; i < kNumberOfFPRegisters; i++) {
-    WriteDRegisterBits(i, nan_bits);
+  uint64_t nan_bits[] = {
+      UINT64_C(0x7ff00cab7f8ba9e1), UINT64_C(0x7ff0dead7f8beef1),
+  };
+  VIXL_ASSERT(IsSignallingNaN(RawbitsToDouble(nan_bits[0] & kDRegMask)));
+  VIXL_ASSERT(IsSignallingNaN(RawbitsToFloat(nan_bits[0] & kSRegMask)));
+
+  qreg_t q_bits;
+  VIXL_ASSERT(sizeof(q_bits) == sizeof(nan_bits));
+  memcpy(&q_bits, nan_bits, sizeof(nan_bits));
+
+  for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
+    WriteQRegister(i, q_bits);
   }
   // Returning to address 0 exits the Simulator.
   WriteLr(kEndOfSimAddress);

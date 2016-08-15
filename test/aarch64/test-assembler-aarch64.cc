@@ -12123,7 +12123,7 @@ TEST(neon_fcvtn) {
 
   RUN();
   ASSERT_EQUAL_128(0x000080007e7ffe7f, 0x3100b1007c00fc00, q16);
-  ASSERT_EQUAL_128(0, 0x7e7ffe7f00008000, q17);
+  ASSERT_EQUAL_64(0x7e7ffe7f00008000, d17);
   ASSERT_EQUAL_128(0x7f800000ff800000, 0x3e200000be200000, q18);
   ASSERT_EQUAL_128(0x7fc7ffffffc7ffff, 0x0000000080000000, q19);
   ASSERT_EQUAL_128(0x0000000080000000, 0x7fc7ffffffc7ffff, q20);
@@ -19057,11 +19057,11 @@ TEST(neon_modimm_movi_64bit_any) {
 
   RUN();
 
-  ASSERT_EQUAL_128(0x0, 0x00ffff0000ffffff, q0);
+  ASSERT_EQUAL_64(0x00ffff0000ffffff, d0);
   ASSERT_EQUAL_128(0xabababababababab, 0xabababababababab, q1);
   ASSERT_EQUAL_128(0xabcdabcdabcdabcd, 0xabcdabcdabcdabcd, q2);
   ASSERT_EQUAL_128(0xabcdef01abcdef01, 0xabcdef01abcdef01, q3);
-  ASSERT_EQUAL_128(0x0, 0xabcdef0123456789, q4);
+  ASSERT_EQUAL_64(0xabcdef0123456789, d4);
   ASSERT_EQUAL_128(0xabcdef0123456789, 0xabcdef0123456789, q5);
 
   TEARDOWN();

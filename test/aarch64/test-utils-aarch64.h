@@ -202,6 +202,7 @@ bool EqualFP64(double expected, const RegisterDump*, double result);
 
 bool Equal32(uint32_t expected, const RegisterDump* core, const Register& reg);
 bool Equal64(uint64_t expected, const RegisterDump* core, const Register& reg);
+bool Equal64(uint64_t expected, const RegisterDump* core, const VRegister& vreg);
 
 bool EqualFP32(float expected, const RegisterDump* core,
                const FPRegister& fpreg);
