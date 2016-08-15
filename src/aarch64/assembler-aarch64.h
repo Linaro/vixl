@@ -2573,15 +2573,16 @@ class Assembler {
   void dci(Instr raw_inst) { Emit(raw_inst); }
 
   // Emit 32 bits of data into the instruction stream.
-  void dc32(uint32_t data) {
-    VIXL_ASSERT(buffer_monitor_ > 0);
-    buffer_->Emit32(data);
-  }
+  void dc32(uint32_t data) { dc(data); }
 
   // Emit 64 bits of data into the instruction stream.
-  void dc64(uint64_t data) {
+  void dc64(uint64_t data) { dc(data); }
+
+  // Emit data in the instruction stream.
+  template <typename T>
+  void dc(T data) {
     VIXL_ASSERT(buffer_monitor_ > 0);
-    buffer_->Emit64(data);
+    buffer_->Emit<T>(data);
   }
 
   // Copy a string into the instruction stream, including the terminating NULL

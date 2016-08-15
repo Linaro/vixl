@@ -107,6 +107,14 @@ class CodeBuffer {
 
   void EmitData(const void* data, size_t size);
 
+  template <typename T>
+  void Emit(T value) {
+    VIXL_ASSERT(HasSpaceFor(sizeof(value)));
+    dirty_ = true;
+    memcpy(cursor_, &value, sizeof(value));
+    cursor_ += sizeof(value);
+  }
+
   void UpdateData(size_t offset, const void* data, size_t size);
 
   // Align to 32bit.
@@ -145,14 +153,6 @@ class CodeBuffer {
   }
 
  private:
-  template <typename T>
-  void Emit(T value) {
-    VIXL_ASSERT(HasSpaceFor(sizeof(value)));
-    dirty_ = true;
-    memcpy(cursor_, &value, sizeof(value));
-    cursor_ += sizeof(value);
-  }
-
   // Backing store of the buffer.
   byte* buffer_;
   // If true the backing store is allocated and deallocated by the buffer. The
