@@ -141,15 +141,17 @@ int main(void) {
   simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&add2_vectors));
   printf(" =\n");
   PrintVector(vecA, ARRAY_SIZE(vecA));
-#else
-  // Placeholder to run test natively.
-  printf("Running tests natively is not supported yet.\n");
-  return 0;
-#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
   // Check that the computed value in NEON matches the C version.
   for (unsigned i = 0; i < ARRAY_SIZE(vecA); i++) {
     assert(vecC[i] == vecA[i]);
   }
+#else
+  USE(vecC);
+
+  // Placeholder to run test natively.
+  printf("Running tests natively is not supported yet.\n");
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
   return 0;
 }
