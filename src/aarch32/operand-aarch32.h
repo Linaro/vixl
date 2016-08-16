@@ -566,6 +566,19 @@ class ImmediateVorn : public ImmediateVorr {
 //   The index register may have an associated {+/-} sign,
 //   which if ommitted, defaults to + .
 //
+//   We have two constructors for the offset:
+//
+//   One with a signed value offset parameter. The value of sign_ is
+//   "sign_of(constructor's offset parameter) and the value of offset_ is
+//   "constructor's offset parameter".
+//
+//   The other with a sign and a positive value offset parameters. The value of
+//   sign_ is "constructor's sign parameter" and the value of offset_ is
+//   "constructor's sign parameter * constructor's offset parameter".
+//
+//   The value of offset_ reflects the effective offset. For an offset_ of 0,
+//   sign_ can be positive or negative. Otherwise, sign_ always agrees with
+//   the sign of offset_.
 class MemOperand {
  public:
   // rn
