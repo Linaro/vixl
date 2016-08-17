@@ -36,6 +36,8 @@
 #include "aarch64/instrument-aarch64.h"
 #include "aarch64/simulator-constants-aarch64.h"
 
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+
 // These are only used for the ABI feature, and depend on checks performed for
 // it.
 #ifdef VIXL_HAS_ABI_SUPPORT
@@ -3099,5 +3101,7 @@ struct Simulator::emulated_make_index_sequence_helper<0, I...>
 
 }  // namespace aarch64
 }  // namespace vixl
+
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
 #endif  // VIXL_AARCH64_SIMULATOR_AARCH64_H_
