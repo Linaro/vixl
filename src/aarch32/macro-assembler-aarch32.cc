@@ -1125,7 +1125,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               Label* label) {
   // cbz cbnz
   ContextScope context(this);
-  if (IsUsingT32()) {
+  if (IsUsingT32() && rn.IsLow()) {
     switch (type) {
       case kCbnz: {
         Label done;
