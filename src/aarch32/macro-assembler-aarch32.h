@@ -38,6 +38,8 @@ namespace aarch32 {
 
 class JumpTableBase;
 
+enum FlagsUpdate { LeaveFlags = 0, SetFlags = 1, DontCare = 2 };
+
 // LiteralPool class, defined as a container for literals
 class LiteralPool {
  public:
@@ -728,6 +730,36 @@ class MacroAssembler : public Assembler {
   void Adc(Register rd, Register rn, const Operand& operand) {
     Adc(al, rd, rn, operand);
   }
+  void Adc(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Adc(cond, rd, rn, operand);
+        break;
+      case SetFlags:
+        Adcs(cond, rd, rn, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
+                                    rn.Is(rd) && operand.IsPlainRegister() &&
+                                    operand.GetBaseRegister().IsLow();
+        if (can_be_16bit_encoded) {
+          Adcs(cond, rd, rn, operand);
+        } else {
+          Adc(cond, rd, rn, operand);
+        }
+        break;
+    }
+  }
+  void Adc(FlagsUpdate flags,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    Adc(flags, al, rd, rn, operand);
+  }
 
   void Adcs(Condition cond, Register rd, Register rn, const Operand& operand) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -769,6 +801,42 @@ class MacroAssembler : public Assembler {
   }
   void Add(Register rd, Register rn, const Operand& operand) {
     Add(al, rd, rn, operand);
+  }
+  void Add(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Add(cond, rd, rn, operand);
+        break;
+      case SetFlags:
+        Adds(cond, rd, rn, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded =
+            IsUsingT32() && cond.Is(al) &&
+            ((operand.IsPlainRegister() &&
+              ((rd.IsLow() && rn.IsLow() &&
+                operand.GetBaseRegister().IsLow()) ||
+               rd.Is(rn))) ||
+             (operand.IsImmediate() &&
+              ((rd.IsLow() && rn.IsLow() && (operand.GetImmediate() < 8)) ||
+               (rd.IsLow() && rn.Is(rd) && (operand.GetImmediate() < 256)))));
+        if (can_be_16bit_encoded) {
+          Adds(cond, rd, rn, operand);
+        } else {
+          Add(cond, rd, rn, operand);
+        }
+        break;
+    }
+  }
+  void Add(FlagsUpdate flags,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    Add(flags, al, rd, rn, operand);
   }
 
   void Adds(Condition cond, Register rd, Register rn, const Operand& operand) {
@@ -816,6 +884,36 @@ class MacroAssembler : public Assembler {
   void And(Register rd, Register rn, const Operand& operand) {
     And(al, rd, rn, operand);
   }
+  void And(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        And(cond, rd, rn, operand);
+        break;
+      case SetFlags:
+        Ands(cond, rd, rn, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
+                                    rn.Is(rd) && operand.IsPlainRegister() &&
+                                    operand.GetBaseRegister().IsLow();
+        if (can_be_16bit_encoded) {
+          Ands(cond, rd, rn, operand);
+        } else {
+          And(cond, rd, rn, operand);
+        }
+        break;
+    }
+  }
+  void And(FlagsUpdate flags,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    And(flags, al, rd, rn, operand);
+  }
 
   void Ands(Condition cond, Register rd, Register rn, const Operand& operand) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -844,6 +942,36 @@ class MacroAssembler : public Assembler {
   }
   void Asr(Register rd, Register rm, const Operand& operand) {
     Asr(al, rd, rm, operand);
+  }
+  void Asr(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rm,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Asr(cond, rd, rm, operand);
+        break;
+      case SetFlags:
+        Asrs(cond, rd, rm, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
+                                    rm.IsLow() && operand.IsImmediate() &&
+                                    (operand.GetImmediate() < 32);
+        if (can_be_16bit_encoded) {
+          Asrs(cond, rd, rm, operand);
+        } else {
+          Asr(cond, rd, rm, operand);
+        }
+        break;
+    }
+  }
+  void Asr(FlagsUpdate flags,
+           Register rd,
+           Register rm,
+           const Operand& operand) {
+    Asr(flags, al, rd, rm, operand);
   }
 
   void Asrs(Condition cond, Register rd, Register rm, const Operand& operand) {
@@ -905,6 +1033,36 @@ class MacroAssembler : public Assembler {
   }
   void Bic(Register rd, Register rn, const Operand& operand) {
     Bic(al, rd, rn, operand);
+  }
+  void Bic(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Bic(cond, rd, rn, operand);
+        break;
+      case SetFlags:
+        Bics(cond, rd, rn, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
+                                    rn.Is(rd) && operand.IsPlainRegister() &&
+                                    operand.GetBaseRegister().IsLow();
+        if (can_be_16bit_encoded) {
+          Bics(cond, rd, rn, operand);
+        } else {
+          Bic(cond, rd, rn, operand);
+        }
+        break;
+    }
+  }
+  void Bic(FlagsUpdate flags,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    Bic(flags, al, rd, rn, operand);
   }
 
   void Bics(Condition cond, Register rd, Register rn, const Operand& operand) {
@@ -1134,6 +1292,36 @@ class MacroAssembler : public Assembler {
   }
   void Eor(Register rd, Register rn, const Operand& operand) {
     Eor(al, rd, rn, operand);
+  }
+  void Eor(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Eor(cond, rd, rn, operand);
+        break;
+      case SetFlags:
+        Eors(cond, rd, rn, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
+                                    rn.Is(rd) && operand.IsPlainRegister() &&
+                                    operand.GetBaseRegister().IsLow();
+        if (can_be_16bit_encoded) {
+          Eors(cond, rd, rn, operand);
+        } else {
+          Eor(cond, rd, rn, operand);
+        }
+        break;
+    }
+  }
+  void Eor(FlagsUpdate flags,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    Eor(flags, al, rd, rn, operand);
   }
 
   void Eors(Condition cond, Register rd, Register rn, const Operand& operand) {
@@ -1648,6 +1836,37 @@ class MacroAssembler : public Assembler {
   void Lsl(Register rd, Register rm, const Operand& operand) {
     Lsl(al, rd, rm, operand);
   }
+  void Lsl(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rm,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Lsl(cond, rd, rm, operand);
+        break;
+      case SetFlags:
+        Lsls(cond, rd, rm, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
+                                    rm.IsLow() && operand.IsImmediate() &&
+                                    (operand.GetImmediate() < 32) &&
+                                    (operand.GetImmediate() != 0);
+        if (can_be_16bit_encoded) {
+          Lsls(cond, rd, rm, operand);
+        } else {
+          Lsl(cond, rd, rm, operand);
+        }
+        break;
+    }
+  }
+  void Lsl(FlagsUpdate flags,
+           Register rd,
+           Register rm,
+           const Operand& operand) {
+    Lsl(flags, al, rd, rm, operand);
+  }
 
   void Lsls(Condition cond, Register rd, Register rm, const Operand& operand) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1677,6 +1896,36 @@ class MacroAssembler : public Assembler {
   void Lsr(Register rd, Register rm, const Operand& operand) {
     Lsr(al, rd, rm, operand);
   }
+  void Lsr(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rm,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Lsr(cond, rd, rm, operand);
+        break;
+      case SetFlags:
+        Lsrs(cond, rd, rm, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
+                                    rm.IsLow() && operand.IsImmediate() &&
+                                    (operand.GetImmediate() < 32);
+        if (can_be_16bit_encoded) {
+          Lsrs(cond, rd, rm, operand);
+        } else {
+          Lsr(cond, rd, rm, operand);
+        }
+        break;
+    }
+  }
+  void Lsr(FlagsUpdate flags,
+           Register rd,
+           Register rm,
+           const Operand& operand) {
+    Lsr(flags, al, rd, rm, operand);
+  }
 
   void Lsrs(Condition cond, Register rd, Register rm, const Operand& operand) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1698,6 +1947,28 @@ class MacroAssembler : public Assembler {
   }
   void Mla(Register rd, Register rn, Register rm, Register ra) {
     Mla(al, rd, rn, rm, ra);
+  }
+  void Mla(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rn,
+           Register rm,
+           Register ra) {
+    switch (flags) {
+      case LeaveFlags:
+        Mla(cond, rd, rn, rm, ra);
+        break;
+      case SetFlags:
+        Mlas(cond, rd, rn, rm, ra);
+        break;
+      case DontCare:
+        Mla(cond, rd, rn, rm, ra);
+        break;
+    }
+  }
+  void Mla(
+      FlagsUpdate flags, Register rd, Register rn, Register rm, Register ra) {
+    Mla(flags, al, rd, rn, rm, ra);
   }
 
   void Mlas(
@@ -1752,6 +2023,43 @@ class MacroAssembler : public Assembler {
     mov(cond, rd, operand);
   }
   void Mov(Register rd, const Operand& operand) { Mov(al, rd, operand); }
+  void Mov(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Mov(cond, rd, operand);
+        break;
+      case SetFlags:
+        Movs(cond, rd, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded =
+            IsUsingT32() && cond.Is(al) &&
+            ((operand.IsImmediateShiftedRegister() && rd.IsLow() &&
+              operand.GetBaseRegister().IsLow() &&
+              (operand.GetShiftAmount() < 32) &&
+              (operand.GetShift().IsLSL() || operand.GetShift().IsLSR() ||
+               operand.GetShift().IsASR())) ||
+             (operand.IsRegisterShiftedRegister() && rd.IsLow() &&
+              operand.GetBaseRegister().Is(rd) &&
+              operand.GetShiftRegister().IsLow() &&
+              (operand.GetShift().IsLSL() || operand.GetShift().IsLSR() ||
+               operand.GetShift().IsASR() || operand.GetShift().IsROR())) ||
+             (operand.IsImmediate() && rd.IsLow() &&
+              (operand.GetImmediate() < 256)));
+        if (can_be_16bit_encoded) {
+          Movs(cond, rd, operand);
+        } else {
+          Mov(cond, rd, operand);
+        }
+        break;
+    }
+  }
+  void Mov(FlagsUpdate flags, Register rd, const Operand& operand) {
+    Mov(flags, al, rd, operand);
+  }
 
   void Movs(Condition cond, Register rd, const Operand& operand) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1813,6 +2121,32 @@ class MacroAssembler : public Assembler {
     mul(cond, rd, rn, rm);
   }
   void Mul(Register rd, Register rn, Register rm) { Mul(al, rd, rn, rm); }
+  void Mul(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rn,
+           Register rm) {
+    switch (flags) {
+      case LeaveFlags:
+        Mul(cond, rd, rn, rm);
+        break;
+      case SetFlags:
+        Muls(cond, rd, rn, rm);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
+                                    rn.IsLow() && rm.Is(rd);
+        if (can_be_16bit_encoded) {
+          Muls(cond, rd, rn, rm);
+        } else {
+          Mul(cond, rd, rn, rm);
+        }
+        break;
+    }
+  }
+  void Mul(FlagsUpdate flags, Register rd, Register rn, Register rm) {
+    Mul(flags, al, rd, rn, rm);
+  }
 
   void Muls(Condition cond, Register rd, Register rn, Register rm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1835,6 +2169,32 @@ class MacroAssembler : public Assembler {
     mvn(cond, rd, operand);
   }
   void Mvn(Register rd, const Operand& operand) { Mvn(al, rd, operand); }
+  void Mvn(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Mvn(cond, rd, operand);
+        break;
+      case SetFlags:
+        Mvns(cond, rd, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
+                                    operand.IsPlainRegister() &&
+                                    operand.GetBaseRegister().IsLow();
+        if (can_be_16bit_encoded) {
+          Mvns(cond, rd, operand);
+        } else {
+          Mvn(cond, rd, operand);
+        }
+        break;
+    }
+  }
+  void Mvn(FlagsUpdate flags, Register rd, const Operand& operand) {
+    Mvn(flags, al, rd, operand);
+  }
 
   void Mvns(Condition cond, Register rd, const Operand& operand) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1864,6 +2224,29 @@ class MacroAssembler : public Assembler {
   void Orn(Register rd, Register rn, const Operand& operand) {
     Orn(al, rd, rn, operand);
   }
+  void Orn(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Orn(cond, rd, rn, operand);
+        break;
+      case SetFlags:
+        Orns(cond, rd, rn, operand);
+        break;
+      case DontCare:
+        Orn(cond, rd, rn, operand);
+        break;
+    }
+  }
+  void Orn(FlagsUpdate flags,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    Orn(flags, al, rd, rn, operand);
+  }
 
   void Orns(Condition cond, Register rd, Register rn, const Operand& operand) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1889,6 +2272,36 @@ class MacroAssembler : public Assembler {
   }
   void Orr(Register rd, Register rn, const Operand& operand) {
     Orr(al, rd, rn, operand);
+  }
+  void Orr(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Orr(cond, rd, rn, operand);
+        break;
+      case SetFlags:
+        Orrs(cond, rd, rn, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
+                                    rn.Is(rd) && operand.IsPlainRegister() &&
+                                    operand.GetBaseRegister().IsLow();
+        if (can_be_16bit_encoded) {
+          Orrs(cond, rd, rn, operand);
+        } else {
+          Orr(cond, rd, rn, operand);
+        }
+        break;
+    }
+  }
+  void Orr(FlagsUpdate flags,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    Orr(flags, al, rd, rn, operand);
   }
 
   void Orrs(Condition cond, Register rd, Register rn, const Operand& operand) {
@@ -2148,6 +2561,29 @@ class MacroAssembler : public Assembler {
   void Ror(Register rd, Register rm, const Operand& operand) {
     Ror(al, rd, rm, operand);
   }
+  void Ror(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rm,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Ror(cond, rd, rm, operand);
+        break;
+      case SetFlags:
+        Rors(cond, rd, rm, operand);
+        break;
+      case DontCare:
+        Ror(cond, rd, rm, operand);
+        break;
+    }
+  }
+  void Ror(FlagsUpdate flags,
+           Register rd,
+           Register rm,
+           const Operand& operand) {
+    Ror(flags, al, rd, rm, operand);
+  }
 
   void Rors(Condition cond, Register rd, Register rm, const Operand& operand) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -2168,6 +2604,22 @@ class MacroAssembler : public Assembler {
     rrx(cond, rd, rm);
   }
   void Rrx(Register rd, Register rm) { Rrx(al, rd, rm); }
+  void Rrx(FlagsUpdate flags, Condition cond, Register rd, Register rm) {
+    switch (flags) {
+      case LeaveFlags:
+        Rrx(cond, rd, rm);
+        break;
+      case SetFlags:
+        Rrxs(cond, rd, rm);
+        break;
+      case DontCare:
+        Rrx(cond, rd, rm);
+        break;
+    }
+  }
+  void Rrx(FlagsUpdate flags, Register rd, Register rm) {
+    Rrx(flags, al, rd, rm);
+  }
 
   void Rrxs(Condition cond, Register rd, Register rm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -2192,6 +2644,36 @@ class MacroAssembler : public Assembler {
   void Rsb(Register rd, Register rn, const Operand& operand) {
     Rsb(al, rd, rn, operand);
   }
+  void Rsb(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Rsb(cond, rd, rn, operand);
+        break;
+      case SetFlags:
+        Rsbs(cond, rd, rn, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
+                                    rn.IsLow() && operand.IsImmediate() &&
+                                    (operand.GetImmediate() == 0);
+        if (can_be_16bit_encoded) {
+          Rsbs(cond, rd, rn, operand);
+        } else {
+          Rsb(cond, rd, rn, operand);
+        }
+        break;
+    }
+  }
+  void Rsb(FlagsUpdate flags,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    Rsb(flags, al, rd, rn, operand);
+  }
 
   void Rsbs(Condition cond, Register rd, Register rn, const Operand& operand) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -2213,6 +2695,29 @@ class MacroAssembler : public Assembler {
   }
   void Rsc(Register rd, Register rn, const Operand& operand) {
     Rsc(al, rd, rn, operand);
+  }
+  void Rsc(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Rsc(cond, rd, rn, operand);
+        break;
+      case SetFlags:
+        Rscs(cond, rd, rn, operand);
+        break;
+      case DontCare:
+        Rsc(cond, rd, rn, operand);
+        break;
+    }
+  }
+  void Rsc(FlagsUpdate flags,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    Rsc(flags, al, rd, rn, operand);
   }
 
   void Rscs(Condition cond, Register rd, Register rn, const Operand& operand) {
@@ -2266,6 +2771,36 @@ class MacroAssembler : public Assembler {
   }
   void Sbc(Register rd, Register rn, const Operand& operand) {
     Sbc(al, rd, rn, operand);
+  }
+  void Sbc(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Sbc(cond, rd, rn, operand);
+        break;
+      case SetFlags:
+        Sbcs(cond, rd, rn, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
+                                    rn.Is(rd) && operand.IsPlainRegister() &&
+                                    operand.GetBaseRegister().IsLow();
+        if (can_be_16bit_encoded) {
+          Sbcs(cond, rd, rn, operand);
+        } else {
+          Sbc(cond, rd, rn, operand);
+        }
+        break;
+    }
+  }
+  void Sbc(FlagsUpdate flags,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    Sbc(flags, al, rd, rn, operand);
   }
 
   void Sbcs(Condition cond, Register rd, Register rn, const Operand& operand) {
@@ -2722,6 +3257,31 @@ class MacroAssembler : public Assembler {
   }
   void Smull(Register rdlo, Register rdhi, Register rn, Register rm) {
     Smull(al, rdlo, rdhi, rn, rm);
+  }
+  void Smull(FlagsUpdate flags,
+             Condition cond,
+             Register rdlo,
+             Register rdhi,
+             Register rn,
+             Register rm) {
+    switch (flags) {
+      case LeaveFlags:
+        Smull(cond, rdlo, rdhi, rn, rm);
+        break;
+      case SetFlags:
+        Smulls(cond, rdlo, rdhi, rn, rm);
+        break;
+      case DontCare:
+        Smull(cond, rdlo, rdhi, rn, rm);
+        break;
+    }
+  }
+  void Smull(FlagsUpdate flags,
+             Register rdlo,
+             Register rdhi,
+             Register rn,
+             Register rm) {
+    Smull(flags, al, rdlo, rdhi, rn, rm);
   }
 
   void Smulls(
@@ -3197,6 +3757,40 @@ class MacroAssembler : public Assembler {
   void Sub(Register rd, Register rn, const Operand& operand) {
     Sub(al, rd, rn, operand);
   }
+  void Sub(FlagsUpdate flags,
+           Condition cond,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    switch (flags) {
+      case LeaveFlags:
+        Sub(cond, rd, rn, operand);
+        break;
+      case SetFlags:
+        Subs(cond, rd, rn, operand);
+        break;
+      case DontCare:
+        bool can_be_16bit_encoded =
+            IsUsingT32() && cond.Is(al) &&
+            ((operand.IsPlainRegister() && rd.IsLow() && rn.IsLow() &&
+              operand.GetBaseRegister().IsLow()) ||
+             (operand.IsImmediate() &&
+              ((rd.IsLow() && rn.IsLow() && (operand.GetImmediate() < 8)) ||
+               (rd.IsLow() && rn.Is(rd) && (operand.GetImmediate() < 256)))));
+        if (can_be_16bit_encoded) {
+          Subs(cond, rd, rn, operand);
+        } else {
+          Sub(cond, rd, rn, operand);
+        }
+        break;
+    }
+  }
+  void Sub(FlagsUpdate flags,
+           Register rd,
+           Register rn,
+           const Operand& operand) {
+    Sub(flags, al, rd, rn, operand);
+  }
 
   void Subs(Condition cond, Register rd, Register rn, const Operand& operand) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -3473,6 +4067,31 @@ class MacroAssembler : public Assembler {
   void Umlal(Register rdlo, Register rdhi, Register rn, Register rm) {
     Umlal(al, rdlo, rdhi, rn, rm);
   }
+  void Umlal(FlagsUpdate flags,
+             Condition cond,
+             Register rdlo,
+             Register rdhi,
+             Register rn,
+             Register rm) {
+    switch (flags) {
+      case LeaveFlags:
+        Umlal(cond, rdlo, rdhi, rn, rm);
+        break;
+      case SetFlags:
+        Umlals(cond, rdlo, rdhi, rn, rm);
+        break;
+      case DontCare:
+        Umlal(cond, rdlo, rdhi, rn, rm);
+        break;
+    }
+  }
+  void Umlal(FlagsUpdate flags,
+             Register rdlo,
+             Register rdhi,
+             Register rn,
+             Register rm) {
+    Umlal(flags, al, rdlo, rdhi, rn, rm);
+  }
 
   void Umlals(
       Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
@@ -3496,6 +4115,31 @@ class MacroAssembler : public Assembler {
   }
   void Umull(Register rdlo, Register rdhi, Register rn, Register rm) {
     Umull(al, rdlo, rdhi, rn, rm);
+  }
+  void Umull(FlagsUpdate flags,
+             Condition cond,
+             Register rdlo,
+             Register rdhi,
+             Register rn,
+             Register rm) {
+    switch (flags) {
+      case LeaveFlags:
+        Umull(cond, rdlo, rdhi, rn, rm);
+        break;
+      case SetFlags:
+        Umulls(cond, rdlo, rdhi, rn, rm);
+        break;
+      case DontCare:
+        Umull(cond, rdlo, rdhi, rn, rm);
+        break;
+    }
+  }
+  void Umull(FlagsUpdate flags,
+             Register rdlo,
+             Register rdhi,
+             Register rn,
+             Register rm) {
+    Umull(flags, al, rdlo, rdhi, rn, rm);
   }
 
   void Umulls(
