@@ -1116,12 +1116,12 @@ void Disassembler::adc(Condition cond,
                        Register rd,
                        Register rn,
                        const Operand& operand) {
-  os_ << "adc" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "adc" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::adcs(Condition cond,
@@ -1129,12 +1129,12 @@ void Disassembler::adcs(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "adcs" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "adcs" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::add(Condition cond,
@@ -1142,17 +1142,17 @@ void Disassembler::add(Condition cond,
                        Register rd,
                        Register rn,
                        const Operand& operand) {
-  os_ << "add" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "add" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::add(Condition cond, Register rd, const Operand& operand) {
-  os_ << "add" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << operand;
+  os() << "add" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << operand;
 }
 
 void Disassembler::adds(Condition cond,
@@ -1160,37 +1160,37 @@ void Disassembler::adds(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "adds" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "adds" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::adds(Register rd, const Operand& operand) {
-  os_ << "adds"
-      << " " << rd << ", " << operand;
+  os() << "adds"
+       << " " << rd << ", " << operand;
 }
 
 void Disassembler::addw(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "addw" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "addw" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::adr(Condition cond,
                        EncodingSize size,
                        Register rd,
                        Label* label) {
-  os_ << "adr" << ConditionPrinter(it_block_, cond) << size << " " << rd << ", "
-      << PrintLabel(label, GetPc() & ~3);
+  os() << "adr" << ConditionPrinter(it_block_, cond) << size << " " << rd
+       << ", " << PrintLabel(kAnyLocation, label, GetPc() & ~3);
 }
 
 void Disassembler::and_(Condition cond,
@@ -1198,12 +1198,12 @@ void Disassembler::and_(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "and" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "and" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::ands(Condition cond,
@@ -1211,12 +1211,12 @@ void Disassembler::ands(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "ands" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "ands" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::asr(Condition cond,
@@ -1224,12 +1224,12 @@ void Disassembler::asr(Condition cond,
                        Register rd,
                        Register rm,
                        const Operand& operand) {
-  os_ << "asr" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "asr" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::asrs(Condition cond,
@@ -1237,25 +1237,25 @@ void Disassembler::asrs(Condition cond,
                         Register rd,
                         Register rm,
                         const Operand& operand) {
-  os_ << "asrs" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "asrs" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::b(Condition cond, EncodingSize size, Label* label) {
-  os_ << "b" << ConditionPrinter(it_block_, cond) << size << " "
-      << PrintLabel(label, GetPc());
+  os() << "b" << ConditionPrinter(it_block_, cond) << size << " "
+       << PrintLabel(kCodeLocation, label, GetPc());
 }
 
 void Disassembler::bfc(Condition cond,
                        Register rd,
                        uint32_t lsb,
                        const Operand& operand) {
-  os_ << "bfc" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << "#" << lsb << ", " << operand;
+  os() << "bfc" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << "#" << lsb << ", " << operand;
 }
 
 void Disassembler::bfi(Condition cond,
@@ -1263,9 +1263,9 @@ void Disassembler::bfi(Condition cond,
                        Register rn,
                        uint32_t lsb,
                        const Operand& operand) {
-  os_ << "bfi" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
-      << ", "
-      << "#" << lsb << ", " << operand;
+  os() << "bfi" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
+       << ", "
+       << "#" << lsb << ", " << operand;
 }
 
 void Disassembler::bic(Condition cond,
@@ -1273,12 +1273,12 @@ void Disassembler::bic(Condition cond,
                        Register rd,
                        Register rn,
                        const Operand& operand) {
-  os_ << "bic" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "bic" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::bics(Condition cond,
@@ -1286,128 +1286,128 @@ void Disassembler::bics(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "bics" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "bics" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::bkpt(Condition cond, uint32_t imm) {
-  os_ << "bkpt" << ConditionPrinter(it_block_, cond) << " " << imm;
+  os() << "bkpt" << ConditionPrinter(it_block_, cond) << " " << imm;
 }
 
 void Disassembler::bl(Condition cond, Label* label) {
-  os_ << "bl" << ConditionPrinter(it_block_, cond) << " "
-      << PrintLabel(label, GetPc());
+  os() << "bl" << ConditionPrinter(it_block_, cond) << " "
+       << PrintLabel(kCodeLocation, label, GetPc());
 }
 
 void Disassembler::blx(Condition cond, Label* label) {
-  os_ << "blx" << ConditionPrinter(it_block_, cond) << " "
-      << PrintLabel(label, GetPc() & ~3);
+  os() << "blx" << ConditionPrinter(it_block_, cond) << " "
+       << PrintLabel(kCodeLocation, label, GetPc() & ~3);
 }
 
 void Disassembler::blx(Condition cond, Register rm) {
-  os_ << "blx" << ConditionPrinter(it_block_, cond) << " " << rm;
+  os() << "blx" << ConditionPrinter(it_block_, cond) << " " << rm;
 }
 
 void Disassembler::bx(Condition cond, Register rm) {
-  os_ << "bx" << ConditionPrinter(it_block_, cond) << " " << rm;
+  os() << "bx" << ConditionPrinter(it_block_, cond) << " " << rm;
 }
 
 void Disassembler::bxj(Condition cond, Register rm) {
-  os_ << "bxj" << ConditionPrinter(it_block_, cond) << " " << rm;
+  os() << "bxj" << ConditionPrinter(it_block_, cond) << " " << rm;
 }
 
 void Disassembler::cbnz(Register rn, Label* label) {
-  os_ << "cbnz"
-      << " " << rn << ", " << PrintLabel(label, GetPc());
+  os() << "cbnz"
+       << " " << rn << ", " << PrintLabel(kCodeLocation, label, GetPc());
 }
 
 void Disassembler::cbz(Register rn, Label* label) {
-  os_ << "cbz"
-      << " " << rn << ", " << PrintLabel(label, GetPc());
+  os() << "cbz"
+       << " " << rn << ", " << PrintLabel(kCodeLocation, label, GetPc());
 }
 
 void Disassembler::clrex(Condition cond) {
-  os_ << "clrex" << ConditionPrinter(it_block_, cond);
+  os() << "clrex" << ConditionPrinter(it_block_, cond);
 }
 
 void Disassembler::clz(Condition cond, Register rd, Register rm) {
-  os_ << "clz" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rm;
+  os() << "clz" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rm;
 }
 
 void Disassembler::cmn(Condition cond,
                        EncodingSize size,
                        Register rn,
                        const Operand& operand) {
-  os_ << "cmn" << ConditionPrinter(it_block_, cond) << size << " " << rn << ", "
-      << operand;
+  os() << "cmn" << ConditionPrinter(it_block_, cond) << size << " " << rn
+       << ", " << operand;
 }
 
 void Disassembler::cmp(Condition cond,
                        EncodingSize size,
                        Register rn,
                        const Operand& operand) {
-  os_ << "cmp" << ConditionPrinter(it_block_, cond) << size << " " << rn << ", "
-      << operand;
+  os() << "cmp" << ConditionPrinter(it_block_, cond) << size << " " << rn
+       << ", " << operand;
 }
 
 void Disassembler::crc32b(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "crc32b" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "crc32b" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::crc32cb(Condition cond,
                            Register rd,
                            Register rn,
                            Register rm) {
-  os_ << "crc32cb" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "crc32cb" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::crc32ch(Condition cond,
                            Register rd,
                            Register rn,
                            Register rm) {
-  os_ << "crc32ch" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "crc32ch" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::crc32cw(Condition cond,
                            Register rd,
                            Register rn,
                            Register rm) {
-  os_ << "crc32cw" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "crc32cw" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::crc32h(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "crc32h" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "crc32h" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::crc32w(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "crc32w" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "crc32w" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::dmb(Condition cond, MemoryBarrier option) {
-  os_ << "dmb" << ConditionPrinter(it_block_, cond) << " " << option;
+  os() << "dmb" << ConditionPrinter(it_block_, cond) << " " << option;
 }
 
 void Disassembler::dsb(Condition cond, MemoryBarrier option) {
-  os_ << "dsb" << ConditionPrinter(it_block_, cond) << " " << option;
+  os() << "dsb" << ConditionPrinter(it_block_, cond) << " " << option;
 }
 
 void Disassembler::eor(Condition cond,
@@ -1415,12 +1415,12 @@ void Disassembler::eor(Condition cond,
                        Register rd,
                        Register rn,
                        const Operand& operand) {
-  os_ << "eor" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "eor" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::eors(Condition cond,
@@ -1428,60 +1428,60 @@ void Disassembler::eors(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "eors" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "eors" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::fldmdbx(Condition cond,
                            Register rn,
                            WriteBack write_back,
                            DRegisterList dreglist) {
-  os_ << "fldmdbx" << ConditionPrinter(it_block_, cond) << " " << rn
-      << write_back << ", " << dreglist;
+  os() << "fldmdbx" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << dreglist;
 }
 
 void Disassembler::fldmiax(Condition cond,
                            Register rn,
                            WriteBack write_back,
                            DRegisterList dreglist) {
-  os_ << "fldmiax" << ConditionPrinter(it_block_, cond) << " " << rn
-      << write_back << ", " << dreglist;
+  os() << "fldmiax" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << dreglist;
 }
 
 void Disassembler::fstmdbx(Condition cond,
                            Register rn,
                            WriteBack write_back,
                            DRegisterList dreglist) {
-  os_ << "fstmdbx" << ConditionPrinter(it_block_, cond) << " " << rn
-      << write_back << ", " << dreglist;
+  os() << "fstmdbx" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << dreglist;
 }
 
 void Disassembler::fstmiax(Condition cond,
                            Register rn,
                            WriteBack write_back,
                            DRegisterList dreglist) {
-  os_ << "fstmiax" << ConditionPrinter(it_block_, cond) << " " << rn
-      << write_back << ", " << dreglist;
+  os() << "fstmiax" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << dreglist;
 }
 
 void Disassembler::hlt(Condition cond, uint32_t imm) {
-  os_ << "hlt" << ConditionPrinter(it_block_, cond) << " " << imm;
+  os() << "hlt" << ConditionPrinter(it_block_, cond) << " " << imm;
 }
 
 void Disassembler::hvc(Condition cond, uint32_t imm) {
-  os_ << "hvc" << ConditionPrinter(it_block_, cond) << " " << imm;
+  os() << "hvc" << ConditionPrinter(it_block_, cond) << " " << imm;
 }
 
 void Disassembler::isb(Condition cond, MemoryBarrier option) {
-  os_ << "isb" << ConditionPrinter(it_block_, cond) << " " << option;
+  os() << "isb" << ConditionPrinter(it_block_, cond) << " " << option;
 }
 
 void Disassembler::it(Condition cond, uint16_t mask) {
-  os_ << "it";
+  os() << "it";
   int count;
   if ((mask & 0x1) != 0) {
     count = 3;
@@ -1495,63 +1495,63 @@ void Disassembler::it(Condition cond, uint16_t mask) {
   uint16_t tmp = 0x8;
   uint16_t ref = (cond.GetCondition() & 0x1) << 3;
   while (count-- > 0) {
-    os_ << (((mask & tmp) == ref) ? "t" : "e");
+    os() << (((mask & tmp) == ref) ? "t" : "e");
     tmp >>= 1;
     ref >>= 1;
   }
   if (cond.Is(al)) {
-    os_ << " al";
+    os() << " al";
   } else {
-    os_ << " " << cond;
+    os() << " " << cond;
   }
 }
 
 void Disassembler::lda(Condition cond, Register rt, const MemOperand& operand) {
-  os_ << "lda" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << operand;
+  os() << "lda" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintMemOperand(kLoadWordLocation, operand);
 }
 
 void Disassembler::ldab(Condition cond,
                         Register rt,
                         const MemOperand& operand) {
-  os_ << "ldab" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << operand;
+  os() << "ldab" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintMemOperand(kLoadByteLocation, operand);
 }
 
 void Disassembler::ldaex(Condition cond,
                          Register rt,
                          const MemOperand& operand) {
-  os_ << "ldaex" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << operand;
+  os() << "ldaex" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintMemOperand(kLoadWordLocation, operand);
 }
 
 void Disassembler::ldaexb(Condition cond,
                           Register rt,
                           const MemOperand& operand) {
-  os_ << "ldaexb" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << operand;
+  os() << "ldaexb" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintMemOperand(kLoadByteLocation, operand);
 }
 
 void Disassembler::ldaexd(Condition cond,
                           Register rt,
                           Register rt2,
                           const MemOperand& operand) {
-  os_ << "ldaexd" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << rt2 << ", " << operand;
+  os() << "ldaexd" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << rt2 << ", " << PrintMemOperand(kLoadDoubleWordLocation, operand);
 }
 
 void Disassembler::ldaexh(Condition cond,
                           Register rt,
                           const MemOperand& operand) {
-  os_ << "ldaexh" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << operand;
+  os() << "ldaexh" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintMemOperand(kLoadHalfWordLocation, operand);
 }
 
 void Disassembler::ldah(Condition cond,
                         Register rt,
                         const MemOperand& operand) {
-  os_ << "ldah" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << operand;
+  os() << "ldah" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintMemOperand(kLoadHalfWordLocation, operand);
 }
 
 void Disassembler::ldm(Condition cond,
@@ -1559,48 +1559,48 @@ void Disassembler::ldm(Condition cond,
                        Register rn,
                        WriteBack write_back,
                        RegisterList registers) {
-  os_ << "ldm" << ConditionPrinter(it_block_, cond) << size << " " << rn
-      << write_back << ", " << registers;
+  os() << "ldm" << ConditionPrinter(it_block_, cond) << size << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::ldmda(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "ldmda" << ConditionPrinter(it_block_, cond) << " " << rn << write_back
-      << ", " << registers;
+  os() << "ldmda" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::ldmdb(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "ldmdb" << ConditionPrinter(it_block_, cond) << " " << rn << write_back
-      << ", " << registers;
+  os() << "ldmdb" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::ldmea(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "ldmea" << ConditionPrinter(it_block_, cond) << " " << rn << write_back
-      << ", " << registers;
+  os() << "ldmea" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::ldmed(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "ldmed" << ConditionPrinter(it_block_, cond) << " " << rn << write_back
-      << ", " << registers;
+  os() << "ldmed" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::ldmfa(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "ldmfa" << ConditionPrinter(it_block_, cond) << " " << rn << write_back
-      << ", " << registers;
+  os() << "ldmfa" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::ldmfd(Condition cond,
@@ -1608,129 +1608,130 @@ void Disassembler::ldmfd(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "ldmfd" << ConditionPrinter(it_block_, cond) << size << " " << rn
-      << write_back << ", " << registers;
+  os() << "ldmfd" << ConditionPrinter(it_block_, cond) << size << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::ldmib(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "ldmib" << ConditionPrinter(it_block_, cond) << " " << rn << write_back
-      << ", " << registers;
+  os() << "ldmib" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::ldr(Condition cond,
                        EncodingSize size,
                        Register rt,
                        const MemOperand& operand) {
-  os_ << "ldr" << ConditionPrinter(it_block_, cond) << size << " " << rt << ", "
-      << operand;
+  os() << "ldr" << ConditionPrinter(it_block_, cond) << size << " " << rt
+       << ", " << PrintMemOperand(kLoadWordLocation, operand);
 }
 
 void Disassembler::ldr(Condition cond,
                        EncodingSize size,
                        Register rt,
                        Label* label) {
-  os_ << "ldr" << ConditionPrinter(it_block_, cond) << size << " " << rt << ", "
-      << PrintLabel(label, GetPc() & ~3);
+  os() << "ldr" << ConditionPrinter(it_block_, cond) << size << " " << rt
+       << ", " << PrintLabel(kLoadWordLocation, label, GetPc() & ~3);
 }
 
 void Disassembler::ldrb(Condition cond,
                         EncodingSize size,
                         Register rt,
                         const MemOperand& operand) {
-  os_ << "ldrb" << ConditionPrinter(it_block_, cond) << size << " " << rt
-      << ", " << operand;
+  os() << "ldrb" << ConditionPrinter(it_block_, cond) << size << " " << rt
+       << ", " << PrintMemOperand(kLoadByteLocation, operand);
 }
 
 void Disassembler::ldrb(Condition cond, Register rt, Label* label) {
-  os_ << "ldrb" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << PrintLabel(label, GetPc() & ~3);
+  os() << "ldrb" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintLabel(kLoadByteLocation, label, GetPc() & ~3);
 }
 
 void Disassembler::ldrd(Condition cond,
                         Register rt,
                         Register rt2,
                         const MemOperand& operand) {
-  os_ << "ldrd" << ConditionPrinter(it_block_, cond) << " " << rt << ", " << rt2
-      << ", " << operand;
+  os() << "ldrd" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << rt2 << ", " << PrintMemOperand(kLoadDoubleWordLocation, operand);
 }
 
 void Disassembler::ldrd(Condition cond,
                         Register rt,
                         Register rt2,
                         Label* label) {
-  os_ << "ldrd" << ConditionPrinter(it_block_, cond) << " " << rt << ", " << rt2
-      << ", " << PrintLabel(label, GetPc() & ~3);
+  os() << "ldrd" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << rt2 << ", "
+       << PrintLabel(kLoadDoubleWordLocation, label, GetPc() & ~3);
 }
 
 void Disassembler::ldrex(Condition cond,
                          Register rt,
                          const MemOperand& operand) {
-  os_ << "ldrex" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << operand;
+  os() << "ldrex" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintMemOperand(kLoadWordLocation, operand);
 }
 
 void Disassembler::ldrexb(Condition cond,
                           Register rt,
                           const MemOperand& operand) {
-  os_ << "ldrexb" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << operand;
+  os() << "ldrexb" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintMemOperand(kLoadByteLocation, operand);
 }
 
 void Disassembler::ldrexd(Condition cond,
                           Register rt,
                           Register rt2,
                           const MemOperand& operand) {
-  os_ << "ldrexd" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << rt2 << ", " << operand;
+  os() << "ldrexd" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << rt2 << ", " << PrintMemOperand(kLoadDoubleWordLocation, operand);
 }
 
 void Disassembler::ldrexh(Condition cond,
                           Register rt,
                           const MemOperand& operand) {
-  os_ << "ldrexh" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << operand;
+  os() << "ldrexh" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintMemOperand(kLoadHalfWordLocation, operand);
 }
 
 void Disassembler::ldrh(Condition cond,
                         EncodingSize size,
                         Register rt,
                         const MemOperand& operand) {
-  os_ << "ldrh" << ConditionPrinter(it_block_, cond) << size << " " << rt
-      << ", " << operand;
+  os() << "ldrh" << ConditionPrinter(it_block_, cond) << size << " " << rt
+       << ", " << PrintMemOperand(kLoadHalfWordLocation, operand);
 }
 
 void Disassembler::ldrh(Condition cond, Register rt, Label* label) {
-  os_ << "ldrh" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << PrintLabel(label, GetPc() & ~3);
+  os() << "ldrh" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintLabel(kLoadHalfWordLocation, label, GetPc() & ~3);
 }
 
 void Disassembler::ldrsb(Condition cond,
                          EncodingSize size,
                          Register rt,
                          const MemOperand& operand) {
-  os_ << "ldrsb" << ConditionPrinter(it_block_, cond) << size << " " << rt
-      << ", " << operand;
+  os() << "ldrsb" << ConditionPrinter(it_block_, cond) << size << " " << rt
+       << ", " << PrintMemOperand(kLoadSignedByteLocation, operand);
 }
 
 void Disassembler::ldrsb(Condition cond, Register rt, Label* label) {
-  os_ << "ldrsb" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << PrintLabel(label, GetPc() & ~3);
+  os() << "ldrsb" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintLabel(kLoadSignedByteLocation, label, GetPc() & ~3);
 }
 
 void Disassembler::ldrsh(Condition cond,
                          EncodingSize size,
                          Register rt,
                          const MemOperand& operand) {
-  os_ << "ldrsh" << ConditionPrinter(it_block_, cond) << size << " " << rt
-      << ", " << operand;
+  os() << "ldrsh" << ConditionPrinter(it_block_, cond) << size << " " << rt
+       << ", " << PrintMemOperand(kLoadSignedHalfWordLocation, operand);
 }
 
 void Disassembler::ldrsh(Condition cond, Register rt, Label* label) {
-  os_ << "ldrsh" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << PrintLabel(label, GetPc() & ~3);
+  os() << "ldrsh" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintLabel(kLoadSignedHalfWordLocation, label, GetPc() & ~3);
 }
 
 void Disassembler::lsl(Condition cond,
@@ -1738,12 +1739,12 @@ void Disassembler::lsl(Condition cond,
                        Register rd,
                        Register rm,
                        const Operand& operand) {
-  os_ << "lsl" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "lsl" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::lsls(Condition cond,
@@ -1751,12 +1752,12 @@ void Disassembler::lsls(Condition cond,
                         Register rd,
                         Register rm,
                         const Operand& operand) {
-  os_ << "lsls" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "lsls" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::lsr(Condition cond,
@@ -1764,12 +1765,12 @@ void Disassembler::lsr(Condition cond,
                        Register rd,
                        Register rm,
                        const Operand& operand) {
-  os_ << "lsr" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "lsr" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::lsrs(Condition cond,
@@ -1777,123 +1778,123 @@ void Disassembler::lsrs(Condition cond,
                         Register rd,
                         Register rm,
                         const Operand& operand) {
-  os_ << "lsrs" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "lsrs" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::mla(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "mla" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
-      << ", " << rm << ", " << ra;
+  os() << "mla" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
+       << ", " << rm << ", " << ra;
 }
 
 void Disassembler::mlas(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "mlas" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
-      << ", " << rm << ", " << ra;
+  os() << "mlas" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
+       << ", " << rm << ", " << ra;
 }
 
 void Disassembler::mls(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "mls" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
-      << ", " << rm << ", " << ra;
+  os() << "mls" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
+       << ", " << rm << ", " << ra;
 }
 
 void Disassembler::mov(Condition cond,
                        EncodingSize size,
                        Register rd,
                        const Operand& operand) {
-  os_ << "mov" << ConditionPrinter(it_block_, cond) << size << " " << rd << ", "
-      << operand;
+  os() << "mov" << ConditionPrinter(it_block_, cond) << size << " " << rd
+       << ", " << operand;
 }
 
 void Disassembler::movs(Condition cond,
                         EncodingSize size,
                         Register rd,
                         const Operand& operand) {
-  os_ << "movs" << ConditionPrinter(it_block_, cond) << size << " " << rd
-      << ", " << operand;
+  os() << "movs" << ConditionPrinter(it_block_, cond) << size << " " << rd
+       << ", " << operand;
 }
 
 void Disassembler::movt(Condition cond, Register rd, const Operand& operand) {
-  os_ << "movt" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << operand;
+  os() << "movt" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << operand;
 }
 
 void Disassembler::movw(Condition cond, Register rd, const Operand& operand) {
-  os_ << "movw" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << operand;
+  os() << "movw" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << operand;
 }
 
 void Disassembler::mrs(Condition cond, Register rd, SpecialRegister spec_reg) {
-  os_ << "mrs" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << spec_reg;
+  os() << "mrs" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << spec_reg;
 }
 
 void Disassembler::msr(Condition cond,
                        MaskedSpecialRegister spec_reg,
                        const Operand& operand) {
-  os_ << "msr" << ConditionPrinter(it_block_, cond) << " " << spec_reg << ", "
-      << operand;
+  os() << "msr" << ConditionPrinter(it_block_, cond) << " " << spec_reg << ", "
+       << operand;
 }
 
 void Disassembler::mul(
     Condition cond, EncodingSize size, Register rd, Register rn, Register rm) {
-  os_ << "mul" << ConditionPrinter(it_block_, cond) << size << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "mul" << ConditionPrinter(it_block_, cond) << size << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::muls(Condition cond, Register rd, Register rn, Register rm) {
-  os_ << "muls" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
-      << ", " << rm;
+  os() << "muls" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
+       << ", " << rm;
 }
 
 void Disassembler::mvn(Condition cond,
                        EncodingSize size,
                        Register rd,
                        const Operand& operand) {
-  os_ << "mvn" << ConditionPrinter(it_block_, cond) << size << " " << rd << ", "
-      << operand;
+  os() << "mvn" << ConditionPrinter(it_block_, cond) << size << " " << rd
+       << ", " << operand;
 }
 
 void Disassembler::mvns(Condition cond,
                         EncodingSize size,
                         Register rd,
                         const Operand& operand) {
-  os_ << "mvns" << ConditionPrinter(it_block_, cond) << size << " " << rd
-      << ", " << operand;
+  os() << "mvns" << ConditionPrinter(it_block_, cond) << size << " " << rd
+       << ", " << operand;
 }
 
 void Disassembler::nop(Condition cond, EncodingSize size) {
-  os_ << "nop" << ConditionPrinter(it_block_, cond) << size;
+  os() << "nop" << ConditionPrinter(it_block_, cond) << size;
 }
 
 void Disassembler::orn(Condition cond,
                        Register rd,
                        Register rn,
                        const Operand& operand) {
-  os_ << "orn" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "orn" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::orns(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "orns" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "orns" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::orr(Condition cond,
@@ -1901,12 +1902,12 @@ void Disassembler::orr(Condition cond,
                        Register rd,
                        Register rn,
                        const Operand& operand) {
-  os_ << "orr" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "orr" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::orrs(Condition cond,
@@ -1914,217 +1915,222 @@ void Disassembler::orrs(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "orrs" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "orrs" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::pkhbt(Condition cond,
                          Register rd,
                          Register rn,
                          const Operand& operand) {
-  os_ << "pkhbt" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "pkhbt" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::pkhtb(Condition cond,
                          Register rd,
                          Register rn,
                          const Operand& operand) {
-  os_ << "pkhtb" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "pkhtb" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::pld(Condition cond, Label* label) {
-  os_ << "pld" << ConditionPrinter(it_block_, cond) << " "
-      << PrintLabel(label, GetPc() & ~3);
+  os() << "pld" << ConditionPrinter(it_block_, cond) << " "
+       << PrintLabel(kDataLocation, label, GetPc() & ~3);
 }
 
 void Disassembler::pld(Condition cond, const MemOperand& operand) {
-  os_ << "pld" << ConditionPrinter(it_block_, cond) << " " << operand;
+  os() << "pld" << ConditionPrinter(it_block_, cond) << " "
+       << PrintMemOperand(kDataLocation, operand);
 }
 
 void Disassembler::pldw(Condition cond, const MemOperand& operand) {
-  os_ << "pldw" << ConditionPrinter(it_block_, cond) << " " << operand;
+  os() << "pldw" << ConditionPrinter(it_block_, cond) << " "
+       << PrintMemOperand(kDataLocation, operand);
 }
 
 void Disassembler::pli(Condition cond, const MemOperand& operand) {
-  os_ << "pli" << ConditionPrinter(it_block_, cond) << " " << operand;
+  os() << "pli" << ConditionPrinter(it_block_, cond) << " "
+       << PrintMemOperand(kCodeLocation, operand);
 }
 
 void Disassembler::pli(Condition cond, Label* label) {
-  os_ << "pli" << ConditionPrinter(it_block_, cond) << " "
-      << PrintLabel(label, GetPc() & ~3);
+  os() << "pli" << ConditionPrinter(it_block_, cond) << " "
+       << PrintLabel(kCodeLocation, label, GetPc() & ~3);
 }
 
 void Disassembler::pop(Condition cond,
                        EncodingSize size,
                        RegisterList registers) {
-  os_ << "pop" << ConditionPrinter(it_block_, cond) << size << " " << registers;
+  os() << "pop" << ConditionPrinter(it_block_, cond) << size << " "
+       << registers;
 }
 
 void Disassembler::pop(Condition cond, EncodingSize size, Register rt) {
-  os_ << "pop" << ConditionPrinter(it_block_, cond) << size << " "
-      << "{" << rt << "}";
+  os() << "pop" << ConditionPrinter(it_block_, cond) << size << " "
+       << "{" << rt << "}";
 }
 
 void Disassembler::push(Condition cond,
                         EncodingSize size,
                         RegisterList registers) {
-  os_ << "push" << ConditionPrinter(it_block_, cond) << size << " "
-      << registers;
+  os() << "push" << ConditionPrinter(it_block_, cond) << size << " "
+       << registers;
 }
 
 void Disassembler::push(Condition cond, EncodingSize size, Register rt) {
-  os_ << "push" << ConditionPrinter(it_block_, cond) << size << " "
-      << "{" << rt << "}";
+  os() << "push" << ConditionPrinter(it_block_, cond) << size << " "
+       << "{" << rt << "}";
 }
 
 void Disassembler::qadd(Condition cond, Register rd, Register rm, Register rn) {
-  os_ << "qadd" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "qadd" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << rn;
+  os() << rm << ", " << rn;
 }
 
 void Disassembler::qadd16(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "qadd16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "qadd16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::qadd8(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "qadd8" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "qadd8" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::qasx(Condition cond, Register rd, Register rn, Register rm) {
-  os_ << "qasx" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "qasx" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::qdadd(Condition cond,
                          Register rd,
                          Register rm,
                          Register rn) {
-  os_ << "qdadd" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "qdadd" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << rn;
+  os() << rm << ", " << rn;
 }
 
 void Disassembler::qdsub(Condition cond,
                          Register rd,
                          Register rm,
                          Register rn) {
-  os_ << "qdsub" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "qdsub" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << rn;
+  os() << rm << ", " << rn;
 }
 
 void Disassembler::qsax(Condition cond, Register rd, Register rn, Register rm) {
-  os_ << "qsax" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "qsax" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::qsub(Condition cond, Register rd, Register rm, Register rn) {
-  os_ << "qsub" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "qsub" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << rn;
+  os() << rm << ", " << rn;
 }
 
 void Disassembler::qsub16(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "qsub16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "qsub16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::qsub8(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "qsub8" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "qsub8" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::rbit(Condition cond, Register rd, Register rm) {
-  os_ << "rbit" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rm;
+  os() << "rbit" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::rev(Condition cond,
                        EncodingSize size,
                        Register rd,
                        Register rm) {
-  os_ << "rev" << ConditionPrinter(it_block_, cond) << size << " " << rd << ", "
-      << rm;
+  os() << "rev" << ConditionPrinter(it_block_, cond) << size << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::rev16(Condition cond,
                          EncodingSize size,
                          Register rd,
                          Register rm) {
-  os_ << "rev16" << ConditionPrinter(it_block_, cond) << size << " " << rd
-      << ", " << rm;
+  os() << "rev16" << ConditionPrinter(it_block_, cond) << size << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::revsh(Condition cond,
                          EncodingSize size,
                          Register rd,
                          Register rm) {
-  os_ << "revsh" << ConditionPrinter(it_block_, cond) << size << " " << rd
-      << ", " << rm;
+  os() << "revsh" << ConditionPrinter(it_block_, cond) << size << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::ror(Condition cond,
@@ -2132,12 +2138,12 @@ void Disassembler::ror(Condition cond,
                        Register rd,
                        Register rm,
                        const Operand& operand) {
-  os_ << "ror" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "ror" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::rors(Condition cond,
@@ -2145,30 +2151,30 @@ void Disassembler::rors(Condition cond,
                         Register rd,
                         Register rm,
                         const Operand& operand) {
-  os_ << "rors" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "rors" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::rrx(Condition cond, Register rd, Register rm) {
-  os_ << "rrx" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "rrx" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm;
+  os() << rm;
 }
 
 void Disassembler::rrxs(Condition cond, Register rd, Register rm) {
-  os_ << "rrxs" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "rrxs" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm;
+  os() << rm;
 }
 
 void Disassembler::rsb(Condition cond,
@@ -2176,12 +2182,12 @@ void Disassembler::rsb(Condition cond,
                        Register rd,
                        Register rn,
                        const Operand& operand) {
-  os_ << "rsb" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "rsb" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::rsbs(Condition cond,
@@ -2189,69 +2195,69 @@ void Disassembler::rsbs(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "rsbs" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "rsbs" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::rsc(Condition cond,
                        Register rd,
                        Register rn,
                        const Operand& operand) {
-  os_ << "rsc" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "rsc" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::rscs(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "rscs" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "rscs" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::sadd16(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "sadd16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "sadd16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::sadd8(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "sadd8" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "sadd8" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::sasx(Condition cond, Register rd, Register rn, Register rm) {
-  os_ << "sasx" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "sasx" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::sbc(Condition cond,
@@ -2259,12 +2265,12 @@ void Disassembler::sbc(Condition cond,
                        Register rd,
                        Register rn,
                        const Operand& operand) {
-  os_ << "sbc" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "sbc" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::sbcs(Condition cond,
@@ -2272,12 +2278,12 @@ void Disassembler::sbcs(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "sbcs" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "sbcs" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::sbfx(Condition cond,
@@ -2285,476 +2291,476 @@ void Disassembler::sbfx(Condition cond,
                         Register rn,
                         uint32_t lsb,
                         const Operand& operand) {
-  os_ << "sbfx" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
-      << ", "
-      << "#" << lsb << ", " << operand;
+  os() << "sbfx" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
+       << ", "
+       << "#" << lsb << ", " << operand;
 }
 
 void Disassembler::sdiv(Condition cond, Register rd, Register rn, Register rm) {
-  os_ << "sdiv" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "sdiv" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::sel(Condition cond, Register rd, Register rn, Register rm) {
-  os_ << "sel" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "sel" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::shadd16(Condition cond,
                            Register rd,
                            Register rn,
                            Register rm) {
-  os_ << "shadd16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "shadd16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::shadd8(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "shadd8" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "shadd8" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::shasx(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "shasx" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "shasx" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::shsax(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "shsax" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "shsax" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::shsub16(Condition cond,
                            Register rd,
                            Register rn,
                            Register rm) {
-  os_ << "shsub16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "shsub16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::shsub8(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "shsub8" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "shsub8" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::smlabb(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smlabb" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm << ", " << ra;
+  os() << "smlabb" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smlabt(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smlabt" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm << ", " << ra;
+  os() << "smlabt" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smlad(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smlad" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
-      << ", " << rm << ", " << ra;
+  os() << "smlad" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smladx(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smladx" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm << ", " << ra;
+  os() << "smladx" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smlal(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "smlal" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "smlal" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::smlalbb(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "smlalbb" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "smlalbb" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::smlalbt(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "smlalbt" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "smlalbt" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::smlald(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "smlald" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "smlald" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::smlaldx(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "smlaldx" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "smlaldx" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::smlals(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "smlals" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "smlals" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::smlaltb(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "smlaltb" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "smlaltb" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::smlaltt(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "smlaltt" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "smlaltt" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::smlatb(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smlatb" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm << ", " << ra;
+  os() << "smlatb" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smlatt(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smlatt" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm << ", " << ra;
+  os() << "smlatt" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smlawb(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smlawb" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm << ", " << ra;
+  os() << "smlawb" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smlawt(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smlawt" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm << ", " << ra;
+  os() << "smlawt" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smlsd(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smlsd" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
-      << ", " << rm << ", " << ra;
+  os() << "smlsd" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smlsdx(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smlsdx" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm << ", " << ra;
+  os() << "smlsdx" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smlsld(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "smlsld" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "smlsld" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::smlsldx(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "smlsldx" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "smlsldx" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::smmla(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smmla" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
-      << ", " << rm << ", " << ra;
+  os() << "smmla" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smmlar(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smmlar" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm << ", " << ra;
+  os() << "smmlar" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smmls(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smmls" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
-      << ", " << rm << ", " << ra;
+  os() << "smmls" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smmlsr(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "smmlsr" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm << ", " << ra;
+  os() << "smmlsr" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::smmul(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "smmul" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "smmul" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::smmulr(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "smmulr" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "smmulr" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::smuad(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "smuad" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "smuad" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::smuadx(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "smuadx" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "smuadx" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::smulbb(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "smulbb" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "smulbb" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::smulbt(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "smulbt" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "smulbt" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::smull(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "smull" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "smull" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::smulls(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "smulls" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "smulls" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::smultb(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "smultb" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "smultb" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::smultt(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "smultt" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "smultt" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::smulwb(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "smulwb" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "smulwb" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::smulwt(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "smulwt" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "smulwt" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::smusd(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "smusd" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "smusd" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::smusdx(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "smusdx" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "smusdx" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::ssat(Condition cond,
                         Register rd,
                         uint32_t imm,
                         const Operand& operand) {
-  os_ << "ssat" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << "#" << imm << ", " << operand;
+  os() << "ssat" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << "#" << imm << ", " << operand;
 }
 
 void Disassembler::ssat16(Condition cond,
                           Register rd,
                           uint32_t imm,
                           Register rn) {
-  os_ << "ssat16" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << "#" << imm << ", " << rn;
+  os() << "ssat16" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << "#" << imm << ", " << rn;
 }
 
 void Disassembler::ssax(Condition cond, Register rd, Register rn, Register rm) {
-  os_ << "ssax" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "ssax" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::ssub16(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "ssub16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "ssub16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::ssub8(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "ssub8" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "ssub8" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::stl(Condition cond, Register rt, const MemOperand& operand) {
-  os_ << "stl" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << operand;
+  os() << "stl" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintMemOperand(kStoreWordLocation, operand);
 }
 
 void Disassembler::stlb(Condition cond,
                         Register rt,
                         const MemOperand& operand) {
-  os_ << "stlb" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << operand;
+  os() << "stlb" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintMemOperand(kStoreByteLocation, operand);
 }
 
 void Disassembler::stlex(Condition cond,
                          Register rd,
                          Register rt,
                          const MemOperand& operand) {
-  os_ << "stlex" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rt
-      << ", " << operand;
+  os() << "stlex" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rt << ", " << PrintMemOperand(kStoreWordLocation, operand);
 }
 
 void Disassembler::stlexb(Condition cond,
                           Register rd,
                           Register rt,
                           const MemOperand& operand) {
-  os_ << "stlexb" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rt << ", " << operand;
+  os() << "stlexb" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rt << ", " << PrintMemOperand(kStoreByteLocation, operand);
 }
 
 void Disassembler::stlexd(Condition cond,
@@ -2762,23 +2768,24 @@ void Disassembler::stlexd(Condition cond,
                           Register rt,
                           Register rt2,
                           const MemOperand& operand) {
-  os_ << "stlexd" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rt << ", " << rt2 << ", " << operand;
+  os() << "stlexd" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rt << ", " << rt2 << ", "
+       << PrintMemOperand(kStoreDoubleWordLocation, operand);
 }
 
 void Disassembler::stlexh(Condition cond,
                           Register rd,
                           Register rt,
                           const MemOperand& operand) {
-  os_ << "stlexh" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rt << ", " << operand;
+  os() << "stlexh" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rt << ", " << PrintMemOperand(kStoreHalfWordLocation, operand);
 }
 
 void Disassembler::stlh(Condition cond,
                         Register rt,
                         const MemOperand& operand) {
-  os_ << "stlh" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << operand;
+  os() << "stlh" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << PrintMemOperand(kStoreHalfWordLocation, operand);
 }
 
 void Disassembler::stm(Condition cond,
@@ -2786,16 +2793,16 @@ void Disassembler::stm(Condition cond,
                        Register rn,
                        WriteBack write_back,
                        RegisterList registers) {
-  os_ << "stm" << ConditionPrinter(it_block_, cond) << size << " " << rn
-      << write_back << ", " << registers;
+  os() << "stm" << ConditionPrinter(it_block_, cond) << size << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::stmda(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "stmda" << ConditionPrinter(it_block_, cond) << " " << rn << write_back
-      << ", " << registers;
+  os() << "stmda" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::stmdb(Condition cond,
@@ -2803,8 +2810,8 @@ void Disassembler::stmdb(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "stmdb" << ConditionPrinter(it_block_, cond) << size << " " << rn
-      << write_back << ", " << registers;
+  os() << "stmdb" << ConditionPrinter(it_block_, cond) << size << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::stmea(Condition cond,
@@ -2812,80 +2819,80 @@ void Disassembler::stmea(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "stmea" << ConditionPrinter(it_block_, cond) << size << " " << rn
-      << write_back << ", " << registers;
+  os() << "stmea" << ConditionPrinter(it_block_, cond) << size << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::stmed(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "stmed" << ConditionPrinter(it_block_, cond) << " " << rn << write_back
-      << ", " << registers;
+  os() << "stmed" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::stmfa(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "stmfa" << ConditionPrinter(it_block_, cond) << " " << rn << write_back
-      << ", " << registers;
+  os() << "stmfa" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::stmfd(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "stmfd" << ConditionPrinter(it_block_, cond) << " " << rn << write_back
-      << ", " << registers;
+  os() << "stmfd" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::stmib(Condition cond,
                          Register rn,
                          WriteBack write_back,
                          RegisterList registers) {
-  os_ << "stmib" << ConditionPrinter(it_block_, cond) << " " << rn << write_back
-      << ", " << registers;
+  os() << "stmib" << ConditionPrinter(it_block_, cond) << " " << rn
+       << write_back << ", " << registers;
 }
 
 void Disassembler::str(Condition cond,
                        EncodingSize size,
                        Register rt,
                        const MemOperand& operand) {
-  os_ << "str" << ConditionPrinter(it_block_, cond) << size << " " << rt << ", "
-      << operand;
+  os() << "str" << ConditionPrinter(it_block_, cond) << size << " " << rt
+       << ", " << PrintMemOperand(kStoreWordLocation, operand);
 }
 
 void Disassembler::strb(Condition cond,
                         EncodingSize size,
                         Register rt,
                         const MemOperand& operand) {
-  os_ << "strb" << ConditionPrinter(it_block_, cond) << size << " " << rt
-      << ", " << operand;
+  os() << "strb" << ConditionPrinter(it_block_, cond) << size << " " << rt
+       << ", " << PrintMemOperand(kStoreByteLocation, operand);
 }
 
 void Disassembler::strd(Condition cond,
                         Register rt,
                         Register rt2,
                         const MemOperand& operand) {
-  os_ << "strd" << ConditionPrinter(it_block_, cond) << " " << rt << ", " << rt2
-      << ", " << operand;
+  os() << "strd" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << rt2 << ", " << PrintMemOperand(kStoreDoubleWordLocation, operand);
 }
 
 void Disassembler::strex(Condition cond,
                          Register rd,
                          Register rt,
                          const MemOperand& operand) {
-  os_ << "strex" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rt
-      << ", " << operand;
+  os() << "strex" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rt << ", " << PrintMemOperand(kStoreWordLocation, operand);
 }
 
 void Disassembler::strexb(Condition cond,
                           Register rd,
                           Register rt,
                           const MemOperand& operand) {
-  os_ << "strexb" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rt << ", " << operand;
+  os() << "strexb" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rt << ", " << PrintMemOperand(kStoreByteLocation, operand);
 }
 
 void Disassembler::strexd(Condition cond,
@@ -2893,24 +2900,25 @@ void Disassembler::strexd(Condition cond,
                           Register rt,
                           Register rt2,
                           const MemOperand& operand) {
-  os_ << "strexd" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rt << ", " << rt2 << ", " << operand;
+  os() << "strexd" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rt << ", " << rt2 << ", "
+       << PrintMemOperand(kStoreDoubleWordLocation, operand);
 }
 
 void Disassembler::strexh(Condition cond,
                           Register rd,
                           Register rt,
                           const MemOperand& operand) {
-  os_ << "strexh" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rt << ", " << operand;
+  os() << "strexh" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rt << ", " << PrintMemOperand(kStoreHalfWordLocation, operand);
 }
 
 void Disassembler::strh(Condition cond,
                         EncodingSize size,
                         Register rt,
                         const MemOperand& operand) {
-  os_ << "strh" << ConditionPrinter(it_block_, cond) << size << " " << rt
-      << ", " << operand;
+  os() << "strh" << ConditionPrinter(it_block_, cond) << size << " " << rt
+       << ", " << PrintMemOperand(kStoreHalfWordLocation, operand);
 }
 
 void Disassembler::sub(Condition cond,
@@ -2918,17 +2926,17 @@ void Disassembler::sub(Condition cond,
                        Register rd,
                        Register rn,
                        const Operand& operand) {
-  os_ << "sub" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "sub" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::sub(Condition cond, Register rd, const Operand& operand) {
-  os_ << "sub" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << operand;
+  os() << "sub" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << operand;
 }
 
 void Disassembler::subs(Condition cond,
@@ -2936,158 +2944,158 @@ void Disassembler::subs(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "subs" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "subs" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::subs(Register rd, const Operand& operand) {
-  os_ << "subs"
-      << " " << rd << ", " << operand;
+  os() << "subs"
+       << " " << rd << ", " << operand;
 }
 
 void Disassembler::subw(Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) {
-  os_ << "subw" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "subw" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::svc(Condition cond, uint32_t imm) {
-  os_ << "svc" << ConditionPrinter(it_block_, cond) << " " << imm;
+  os() << "svc" << ConditionPrinter(it_block_, cond) << " " << imm;
 }
 
 void Disassembler::sxtab(Condition cond,
                          Register rd,
                          Register rn,
                          const Operand& operand) {
-  os_ << "sxtab" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "sxtab" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::sxtab16(Condition cond,
                            Register rd,
                            Register rn,
                            const Operand& operand) {
-  os_ << "sxtab16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "sxtab16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::sxtah(Condition cond,
                          Register rd,
                          Register rn,
                          const Operand& operand) {
-  os_ << "sxtah" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "sxtah" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::sxtb(Condition cond,
                         EncodingSize size,
                         Register rd,
                         const Operand& operand) {
-  os_ << "sxtb" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "sxtb" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(operand.GetBaseRegister())) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << operand;
+  os() << operand;
 }
 
 void Disassembler::sxtb16(Condition cond, Register rd, const Operand& operand) {
-  os_ << "sxtb16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "sxtb16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(operand.GetBaseRegister())) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << operand;
+  os() << operand;
 }
 
 void Disassembler::sxth(Condition cond,
                         EncodingSize size,
                         Register rd,
                         const Operand& operand) {
-  os_ << "sxth" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "sxth" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(operand.GetBaseRegister())) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << operand;
+  os() << operand;
 }
 
 void Disassembler::tbb(Condition cond, Register rn, Register rm) {
-  os_ << "tbb" << ConditionPrinter(it_block_, cond) << " "
-      << MemOperand(rn, rm);
+  os() << "tbb" << ConditionPrinter(it_block_, cond) << " "
+       << MemOperand(rn, rm);
 }
 
 void Disassembler::tbh(Condition cond, Register rn, Register rm) {
-  os_ << "tbh" << ConditionPrinter(it_block_, cond) << " "
-      << MemOperand(rn, plus, rm, LSL, 1);
+  os() << "tbh" << ConditionPrinter(it_block_, cond) << " "
+       << MemOperand(rn, plus, rm, LSL, 1);
 }
 
 void Disassembler::teq(Condition cond, Register rn, const Operand& operand) {
-  os_ << "teq" << ConditionPrinter(it_block_, cond) << " " << rn << ", "
-      << operand;
+  os() << "teq" << ConditionPrinter(it_block_, cond) << " " << rn << ", "
+       << operand;
 }
 
 void Disassembler::tst(Condition cond,
                        EncodingSize size,
                        Register rn,
                        const Operand& operand) {
-  os_ << "tst" << ConditionPrinter(it_block_, cond) << size << " " << rn << ", "
-      << operand;
+  os() << "tst" << ConditionPrinter(it_block_, cond) << size << " " << rn
+       << ", " << operand;
 }
 
 void Disassembler::uadd16(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "uadd16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uadd16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uadd8(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "uadd8" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uadd8" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uasx(Condition cond, Register rd, Register rn, Register rm) {
-  os_ << "uasx" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uasx" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::ubfx(Condition cond,
@@ -3095,532 +3103,532 @@ void Disassembler::ubfx(Condition cond,
                         Register rn,
                         uint32_t lsb,
                         const Operand& operand) {
-  os_ << "ubfx" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
-      << ", "
-      << "#" << lsb << ", " << operand;
+  os() << "ubfx" << ConditionPrinter(it_block_, cond) << " " << rd << ", " << rn
+       << ", "
+       << "#" << lsb << ", " << operand;
 }
 
 void Disassembler::udf(Condition cond, EncodingSize size, uint32_t imm) {
-  os_ << "udf" << ConditionPrinter(it_block_, cond) << size << " " << imm;
+  os() << "udf" << ConditionPrinter(it_block_, cond) << size << " " << imm;
 }
 
 void Disassembler::udiv(Condition cond, Register rd, Register rn, Register rm) {
-  os_ << "udiv" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "udiv" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uhadd16(Condition cond,
                            Register rd,
                            Register rn,
                            Register rm) {
-  os_ << "uhadd16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uhadd16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uhadd8(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "uhadd8" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uhadd8" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uhasx(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "uhasx" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uhasx" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uhsax(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "uhsax" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uhsax" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uhsub16(Condition cond,
                            Register rd,
                            Register rn,
                            Register rm) {
-  os_ << "uhsub16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uhsub16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uhsub8(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "uhsub8" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uhsub8" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::umaal(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "umaal" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "umaal" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::umlal(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "umlal" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "umlal" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::umlals(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "umlals" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "umlals" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::umull(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "umull" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "umull" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::umulls(
     Condition cond, Register rdlo, Register rdhi, Register rn, Register rm) {
-  os_ << "umulls" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
-      << rdhi << ", " << rn << ", " << rm;
+  os() << "umulls" << ConditionPrinter(it_block_, cond) << " " << rdlo << ", "
+       << rdhi << ", " << rn << ", " << rm;
 }
 
 void Disassembler::uqadd16(Condition cond,
                            Register rd,
                            Register rn,
                            Register rm) {
-  os_ << "uqadd16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uqadd16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uqadd8(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "uqadd8" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uqadd8" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uqasx(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "uqasx" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uqasx" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uqsax(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "uqsax" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uqsax" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uqsub16(Condition cond,
                            Register rd,
                            Register rn,
                            Register rm) {
-  os_ << "uqsub16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uqsub16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uqsub8(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "uqsub8" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uqsub8" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::usad8(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "usad8" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "usad8" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::usada8(
     Condition cond, Register rd, Register rn, Register rm, Register ra) {
-  os_ << "usada8" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << rn << ", " << rm << ", " << ra;
+  os() << "usada8" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << rn << ", " << rm << ", " << ra;
 }
 
 void Disassembler::usat(Condition cond,
                         Register rd,
                         uint32_t imm,
                         const Operand& operand) {
-  os_ << "usat" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << "#" << imm << ", " << operand;
+  os() << "usat" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << "#" << imm << ", " << operand;
 }
 
 void Disassembler::usat16(Condition cond,
                           Register rd,
                           uint32_t imm,
                           Register rn) {
-  os_ << "usat16" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
-      << "#" << imm << ", " << rn;
+  os() << "usat16" << ConditionPrinter(it_block_, cond) << " " << rd << ", "
+       << "#" << imm << ", " << rn;
 }
 
 void Disassembler::usax(Condition cond, Register rd, Register rn, Register rm) {
-  os_ << "usax" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "usax" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::usub16(Condition cond,
                           Register rd,
                           Register rn,
                           Register rm) {
-  os_ << "usub16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "usub16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::usub8(Condition cond,
                          Register rd,
                          Register rn,
                          Register rm) {
-  os_ << "usub8" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "usub8" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::uxtab(Condition cond,
                          Register rd,
                          Register rn,
                          const Operand& operand) {
-  os_ << "uxtab" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uxtab" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::uxtab16(Condition cond,
                            Register rd,
                            Register rn,
                            const Operand& operand) {
-  os_ << "uxtab16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uxtab16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::uxtah(Condition cond,
                          Register rd,
                          Register rn,
                          const Operand& operand) {
-  os_ << "uxtah" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uxtah" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::uxtb(Condition cond,
                         EncodingSize size,
                         Register rd,
                         const Operand& operand) {
-  os_ << "uxtb" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "uxtb" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(operand.GetBaseRegister())) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << operand;
+  os() << operand;
 }
 
 void Disassembler::uxtb16(Condition cond, Register rd, const Operand& operand) {
-  os_ << "uxtb16" << ConditionPrinter(it_block_, cond);
-  os_ << " ";
+  os() << "uxtb16" << ConditionPrinter(it_block_, cond);
+  os() << " ";
   if (!rd.Is(operand.GetBaseRegister())) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << operand;
+  os() << operand;
 }
 
 void Disassembler::uxth(Condition cond,
                         EncodingSize size,
                         Register rd,
                         const Operand& operand) {
-  os_ << "uxth" << ConditionPrinter(it_block_, cond) << size;
-  os_ << " ";
+  os() << "uxth" << ConditionPrinter(it_block_, cond) << size;
+  os() << " ";
   if (!rd.Is(operand.GetBaseRegister())) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << operand;
+  os() << operand;
 }
 
 void Disassembler::vaba(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vaba" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vaba" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vaba(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vaba" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vaba" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vabal(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vabal" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vabal" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vabd(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vabd" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vabd" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vabd(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vabd" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vabd" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vabdl(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vabdl" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vabdl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vabs(Condition cond,
                         DataType dt,
                         DRegister rd,
                         DRegister rm) {
-  os_ << "vabs" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vabs" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vabs(Condition cond,
                         DataType dt,
                         QRegister rd,
                         QRegister rm) {
-  os_ << "vabs" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vabs" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vabs(Condition cond,
                         DataType dt,
                         SRegister rd,
                         SRegister rm) {
-  os_ << "vabs" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vabs" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vacge(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vacge" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vacge" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vacge(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vacge" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vacge" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vacgt(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vacgt" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vacgt" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vacgt(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vacgt" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vacgt" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vacle(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vacle" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vacle" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vacle(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vacle" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vacle" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vaclt(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vaclt" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vaclt" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vaclt(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vaclt" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vaclt" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vadd(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vadd" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vadd" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vadd(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vadd" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vadd" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vadd(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
-  os_ << "vadd" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vadd" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vaddhn(
     Condition cond, DataType dt, DRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vaddhn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rn << ", " << rm;
+  os() << "vaddhn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vaddl(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vaddl" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vaddl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vaddw(
     Condition cond, DataType dt, QRegister rd, QRegister rn, DRegister rm) {
-  os_ << "vaddw" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vaddw" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vand(Condition cond,
@@ -3628,12 +3636,12 @@ void Disassembler::vand(Condition cond,
                         DRegister rd,
                         DRegister rn,
                         const DOperand& operand) {
-  os_ << "vand" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vand" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::vand(Condition cond,
@@ -3641,12 +3649,12 @@ void Disassembler::vand(Condition cond,
                         QRegister rd,
                         QRegister rn,
                         const QOperand& operand) {
-  os_ << "vand" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vand" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::vbic(Condition cond,
@@ -3654,12 +3662,12 @@ void Disassembler::vbic(Condition cond,
                         DRegister rd,
                         DRegister rn,
                         const DOperand& operand) {
-  os_ << "vbic" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vbic" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::vbic(Condition cond,
@@ -3667,72 +3675,72 @@ void Disassembler::vbic(Condition cond,
                         QRegister rd,
                         QRegister rn,
                         const QOperand& operand) {
-  os_ << "vbic" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vbic" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::vbif(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vbif" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vbif" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vbif(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vbif" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vbif" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vbit(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vbit" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vbit" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vbit(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vbit" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vbit" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vbsl(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vbsl" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vbsl" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vbsl(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vbsl" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vbsl" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vceq(Condition cond,
@@ -3740,12 +3748,12 @@ void Disassembler::vceq(Condition cond,
                         DRegister rd,
                         DRegister rm,
                         const DOperand& operand) {
-  os_ << "vceq" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vceq" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vceq(Condition cond,
@@ -3753,32 +3761,32 @@ void Disassembler::vceq(Condition cond,
                         QRegister rd,
                         QRegister rm,
                         const QOperand& operand) {
-  os_ << "vceq" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vceq" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vceq(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vceq" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vceq" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vceq(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vceq" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vceq" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vcge(Condition cond,
@@ -3786,12 +3794,12 @@ void Disassembler::vcge(Condition cond,
                         DRegister rd,
                         DRegister rm,
                         const DOperand& operand) {
-  os_ << "vcge" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vcge" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vcge(Condition cond,
@@ -3799,32 +3807,32 @@ void Disassembler::vcge(Condition cond,
                         QRegister rd,
                         QRegister rm,
                         const QOperand& operand) {
-  os_ << "vcge" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vcge" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vcge(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vcge" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vcge" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vcge(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vcge" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vcge" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vcgt(Condition cond,
@@ -3832,12 +3840,12 @@ void Disassembler::vcgt(Condition cond,
                         DRegister rd,
                         DRegister rm,
                         const DOperand& operand) {
-  os_ << "vcgt" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vcgt" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vcgt(Condition cond,
@@ -3845,32 +3853,32 @@ void Disassembler::vcgt(Condition cond,
                         QRegister rd,
                         QRegister rm,
                         const QOperand& operand) {
-  os_ << "vcgt" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vcgt" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vcgt(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vcgt" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vcgt" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vcgt(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vcgt" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vcgt" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vcle(Condition cond,
@@ -3878,12 +3886,12 @@ void Disassembler::vcle(Condition cond,
                         DRegister rd,
                         DRegister rm,
                         const DOperand& operand) {
-  os_ << "vcle" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vcle" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vcle(Condition cond,
@@ -3891,48 +3899,48 @@ void Disassembler::vcle(Condition cond,
                         QRegister rd,
                         QRegister rm,
                         const QOperand& operand) {
-  os_ << "vcle" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vcle" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vcle(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vcle" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vcle" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vcle(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vcle" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vcle" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vcls(Condition cond,
                         DataType dt,
                         DRegister rd,
                         DRegister rm) {
-  os_ << "vcls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vcls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vcls(Condition cond,
                         DataType dt,
                         QRegister rd,
                         QRegister rm) {
-  os_ << "vcls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vcls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vclt(Condition cond,
@@ -3940,12 +3948,12 @@ void Disassembler::vclt(Condition cond,
                         DRegister rd,
                         DRegister rm,
                         const DOperand& operand) {
-  os_ << "vclt" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vclt" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vclt(Condition cond,
@@ -3953,138 +3961,140 @@ void Disassembler::vclt(Condition cond,
                         QRegister rd,
                         QRegister rm,
                         const QOperand& operand) {
-  os_ << "vclt" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vclt" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vclt(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vclt" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vclt" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vclt(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vclt" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vclt" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vclz(Condition cond,
                         DataType dt,
                         DRegister rd,
                         DRegister rm) {
-  os_ << "vclz" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vclz" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vclz(Condition cond,
                         DataType dt,
                         QRegister rd,
                         QRegister rm) {
-  os_ << "vclz" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vclz" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vcmp(Condition cond,
                         DataType dt,
                         SRegister rd,
                         SRegister rm) {
-  os_ << "vcmp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vcmp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vcmp(Condition cond,
                         DataType dt,
                         DRegister rd,
                         DRegister rm) {
-  os_ << "vcmp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vcmp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vcmp(Condition cond, DataType dt, SRegister rd, double imm) {
-  os_ << "vcmp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << "#" << std::fixed << std::setprecision(1) << imm
-      << std::resetiosflags(std::ios_base::floatfield);
+  os() << "vcmp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << "#" << std::fixed << std::setprecision(1) << imm
+       << std::resetiosflags(std::ios_base::floatfield);
 }
 
 void Disassembler::vcmp(Condition cond, DataType dt, DRegister rd, double imm) {
-  os_ << "vcmp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << "#" << std::fixed << std::setprecision(1) << imm
-      << std::resetiosflags(std::ios_base::floatfield);
+  os() << "vcmp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << "#" << std::fixed << std::setprecision(1) << imm
+       << std::resetiosflags(std::ios_base::floatfield);
 }
 
 void Disassembler::vcmpe(Condition cond,
                          DataType dt,
                          SRegister rd,
                          SRegister rm) {
-  os_ << "vcmpe" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vcmpe" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vcmpe(Condition cond,
                          DataType dt,
                          DRegister rd,
                          DRegister rm) {
-  os_ << "vcmpe" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vcmpe" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vcmpe(Condition cond,
                          DataType dt,
                          SRegister rd,
                          double imm) {
-  os_ << "vcmpe" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << "#" << std::fixed << std::setprecision(1) << imm
-      << std::resetiosflags(std::ios_base::floatfield);
+  os() << "vcmpe" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", "
+       << "#" << std::fixed << std::setprecision(1) << imm
+       << std::resetiosflags(std::ios_base::floatfield);
 }
 
 void Disassembler::vcmpe(Condition cond,
                          DataType dt,
                          DRegister rd,
                          double imm) {
-  os_ << "vcmpe" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << "#" << std::fixed << std::setprecision(1) << imm
-      << std::resetiosflags(std::ios_base::floatfield);
+  os() << "vcmpe" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", "
+       << "#" << std::fixed << std::setprecision(1) << imm
+       << std::resetiosflags(std::ios_base::floatfield);
 }
 
 void Disassembler::vcnt(Condition cond,
                         DataType dt,
                         DRegister rd,
                         DRegister rm) {
-  os_ << "vcnt" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vcnt" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vcnt(Condition cond,
                         DataType dt,
                         QRegister rd,
                         QRegister rm) {
-  os_ << "vcnt" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vcnt" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, SRegister rm) {
-  os_ << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
-  os_ << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vcvt(Condition cond,
@@ -4093,9 +4103,9 @@ void Disassembler::vcvt(Condition cond,
                         DRegister rd,
                         DRegister rm,
                         int32_t fbits) {
-  os_ << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm << ", "
-      << "#" << fbits;
+  os() << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
+       << ", " << rm << ", "
+       << "#" << fbits;
 }
 
 void Disassembler::vcvt(Condition cond,
@@ -4104,9 +4114,9 @@ void Disassembler::vcvt(Condition cond,
                         QRegister rd,
                         QRegister rm,
                         int32_t fbits) {
-  os_ << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm << ", "
-      << "#" << fbits;
+  os() << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
+       << ", " << rm << ", "
+       << "#" << fbits;
 }
 
 void Disassembler::vcvt(Condition cond,
@@ -4115,271 +4125,271 @@ void Disassembler::vcvt(Condition cond,
                         SRegister rd,
                         SRegister rm,
                         int32_t fbits) {
-  os_ << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm << ", "
-      << "#" << fbits;
+  os() << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
+       << ", " << rm << ", "
+       << "#" << fbits;
 }
 
 void Disassembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
-  os_ << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
-  os_ << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, QRegister rm) {
-  os_ << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, QRegister rd, DRegister rm) {
-  os_ << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vcvt(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-  os_ << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vcvta(DataType dt1,
                          DataType dt2,
                          DRegister rd,
                          DRegister rm) {
-  os_ << "vcvta" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvta" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvta(DataType dt1,
                          DataType dt2,
                          QRegister rd,
                          QRegister rm) {
-  os_ << "vcvta" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvta" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvta(DataType dt1,
                          DataType dt2,
                          SRegister rd,
                          SRegister rm) {
-  os_ << "vcvta" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvta" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvta(DataType dt1,
                          DataType dt2,
                          SRegister rd,
                          DRegister rm) {
-  os_ << "vcvta" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvta" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvtb(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-  os_ << "vcvtb" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvtb" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vcvtb(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, SRegister rm) {
-  os_ << "vcvtb" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvtb" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vcvtb(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
-  os_ << "vcvtb" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvtb" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vcvtm(DataType dt1,
                          DataType dt2,
                          DRegister rd,
                          DRegister rm) {
-  os_ << "vcvtm" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvtm" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvtm(DataType dt1,
                          DataType dt2,
                          QRegister rd,
                          QRegister rm) {
-  os_ << "vcvtm" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvtm" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvtm(DataType dt1,
                          DataType dt2,
                          SRegister rd,
                          SRegister rm) {
-  os_ << "vcvtm" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvtm" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvtm(DataType dt1,
                          DataType dt2,
                          SRegister rd,
                          DRegister rm) {
-  os_ << "vcvtm" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvtm" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvtn(DataType dt1,
                          DataType dt2,
                          DRegister rd,
                          DRegister rm) {
-  os_ << "vcvtn" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvtn" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvtn(DataType dt1,
                          DataType dt2,
                          QRegister rd,
                          QRegister rm) {
-  os_ << "vcvtn" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvtn" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvtn(DataType dt1,
                          DataType dt2,
                          SRegister rd,
                          SRegister rm) {
-  os_ << "vcvtn" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvtn" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvtn(DataType dt1,
                          DataType dt2,
                          SRegister rd,
                          DRegister rm) {
-  os_ << "vcvtn" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvtn" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvtp(DataType dt1,
                          DataType dt2,
                          DRegister rd,
                          DRegister rm) {
-  os_ << "vcvtp" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvtp" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvtp(DataType dt1,
                          DataType dt2,
                          QRegister rd,
                          QRegister rm) {
-  os_ << "vcvtp" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvtp" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvtp(DataType dt1,
                          DataType dt2,
                          SRegister rd,
                          SRegister rm) {
-  os_ << "vcvtp" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvtp" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvtp(DataType dt1,
                          DataType dt2,
                          SRegister rd,
                          DRegister rm) {
-  os_ << "vcvtp" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vcvtp" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vcvtr(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-  os_ << "vcvtr" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvtr" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vcvtr(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
-  os_ << "vcvtr" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvtr" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vcvtt(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-  os_ << "vcvtt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvtt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vcvtt(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, SRegister rm) {
-  os_ << "vcvtt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvtt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vcvtt(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, DRegister rm) {
-  os_ << "vcvtt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " " << rd
-      << ", " << rm;
+  os() << "vcvtt" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vdiv(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
-  os_ << "vdiv" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vdiv" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vdiv(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vdiv" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vdiv" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vdup(Condition cond,
                         DataType dt,
                         QRegister rd,
                         Register rt) {
-  os_ << "vdup" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rt;
+  os() << "vdup" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rt;
 }
 
 void Disassembler::vdup(Condition cond,
                         DataType dt,
                         DRegister rd,
                         Register rt) {
-  os_ << "vdup" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rt;
+  os() << "vdup" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rt;
 }
 
 void Disassembler::vdup(Condition cond,
                         DataType dt,
                         DRegister rd,
                         DRegisterLane rm) {
-  os_ << "vdup" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vdup" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vdup(Condition cond,
                         DataType dt,
                         QRegister rd,
                         DRegisterLane rm) {
-  os_ << "vdup" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vdup" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::veor(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "veor" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "veor" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::veor(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "veor" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "veor" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vext(Condition cond,
@@ -4388,12 +4398,12 @@ void Disassembler::vext(Condition cond,
                         DRegister rn,
                         DRegister rm,
                         const DOperand& operand) {
-  os_ << "vext" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vext" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm << ", " << operand;
+  os() << rn << ", " << rm << ", " << operand;
 }
 
 void Disassembler::vext(Condition cond,
@@ -4402,152 +4412,152 @@ void Disassembler::vext(Condition cond,
                         QRegister rn,
                         QRegister rm,
                         const QOperand& operand) {
-  os_ << "vext" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vext" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm << ", " << operand;
+  os() << rn << ", " << rm << ", " << operand;
 }
 
 void Disassembler::vfma(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vfma" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vfma" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vfma(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vfma" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vfma" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vfma(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
-  os_ << "vfma" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vfma" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vfms(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vfms" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vfms" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vfms(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vfms" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vfms" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vfms(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
-  os_ << "vfms" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vfms" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vfnma(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
-  os_ << "vfnma" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vfnma" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vfnma(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vfnma" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vfnma" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vfnms(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
-  os_ << "vfnms" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vfnms" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vfnms(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vfnms" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vfnms" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vhadd(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vhadd" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vhadd" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vhadd(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vhadd" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vhadd" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vhsub(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vhsub" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vhsub" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vhsub(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vhsub" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vhsub" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vld1(Condition cond,
                         DataType dt,
                         const NeonRegisterList& nreglist,
                         const AlignedMemOperand& operand) {
-  os_ << "vld1" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
-      << ", " << operand;
+  os() << "vld1" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
+       << ", " << PrintAlignedMemOperand(kVld1Location, operand);
 }
 
 void Disassembler::vld2(Condition cond,
                         DataType dt,
                         const NeonRegisterList& nreglist,
                         const AlignedMemOperand& operand) {
-  os_ << "vld2" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
-      << ", " << operand;
+  os() << "vld2" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
+       << ", " << PrintAlignedMemOperand(kVld2Location, operand);
 }
 
 void Disassembler::vld3(Condition cond,
                         DataType dt,
                         const NeonRegisterList& nreglist,
                         const AlignedMemOperand& operand) {
-  os_ << "vld3" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
-      << ", " << operand;
+  os() << "vld3" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
+       << ", " << PrintAlignedMemOperand(kVld3Location, operand);
 }
 
 void Disassembler::vld3(Condition cond,
                         DataType dt,
                         const NeonRegisterList& nreglist,
                         const MemOperand& operand) {
-  os_ << "vld3" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
-      << ", " << operand;
+  os() << "vld3" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
+       << ", " << PrintMemOperand(kVld3Location, operand);
 }
 
 void Disassembler::vld4(Condition cond,
                         DataType dt,
                         const NeonRegisterList& nreglist,
                         const AlignedMemOperand& operand) {
-  os_ << "vld4" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
-      << ", " << operand;
+  os() << "vld4" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
+       << ", " << PrintAlignedMemOperand(kVld4Location, operand);
 }
 
 void Disassembler::vldm(Condition cond,
@@ -4555,8 +4565,8 @@ void Disassembler::vldm(Condition cond,
                         Register rn,
                         WriteBack write_back,
                         DRegisterList dreglist) {
-  os_ << "vldm" << ConditionPrinter(it_block_, cond) << dt << " " << rn
-      << write_back << ", " << dreglist;
+  os() << "vldm" << ConditionPrinter(it_block_, cond) << dt << " " << rn
+       << write_back << ", " << dreglist;
 }
 
 void Disassembler::vldm(Condition cond,
@@ -4564,8 +4574,8 @@ void Disassembler::vldm(Condition cond,
                         Register rn,
                         WriteBack write_back,
                         SRegisterList sreglist) {
-  os_ << "vldm" << ConditionPrinter(it_block_, cond) << dt << " " << rn
-      << write_back << ", " << sreglist;
+  os() << "vldm" << ConditionPrinter(it_block_, cond) << dt << " " << rn
+       << write_back << ", " << sreglist;
 }
 
 void Disassembler::vldmdb(Condition cond,
@@ -4573,8 +4583,8 @@ void Disassembler::vldmdb(Condition cond,
                           Register rn,
                           WriteBack write_back,
                           DRegisterList dreglist) {
-  os_ << "vldmdb" << ConditionPrinter(it_block_, cond) << dt << " " << rn
-      << write_back << ", " << dreglist;
+  os() << "vldmdb" << ConditionPrinter(it_block_, cond) << dt << " " << rn
+       << write_back << ", " << dreglist;
 }
 
 void Disassembler::vldmdb(Condition cond,
@@ -4582,8 +4592,8 @@ void Disassembler::vldmdb(Condition cond,
                           Register rn,
                           WriteBack write_back,
                           SRegisterList sreglist) {
-  os_ << "vldmdb" << ConditionPrinter(it_block_, cond) << dt << " " << rn
-      << write_back << ", " << sreglist;
+  os() << "vldmdb" << ConditionPrinter(it_block_, cond) << dt << " " << rn
+       << write_back << ", " << sreglist;
 }
 
 void Disassembler::vldmia(Condition cond,
@@ -4591,8 +4601,8 @@ void Disassembler::vldmia(Condition cond,
                           Register rn,
                           WriteBack write_back,
                           DRegisterList dreglist) {
-  os_ << "vldmia" << ConditionPrinter(it_block_, cond) << dt << " " << rn
-      << write_back << ", " << dreglist;
+  os() << "vldmia" << ConditionPrinter(it_block_, cond) << dt << " " << rn
+       << write_back << ", " << dreglist;
 }
 
 void Disassembler::vldmia(Condition cond,
@@ -4600,312 +4610,314 @@ void Disassembler::vldmia(Condition cond,
                           Register rn,
                           WriteBack write_back,
                           SRegisterList sreglist) {
-  os_ << "vldmia" << ConditionPrinter(it_block_, cond) << dt << " " << rn
-      << write_back << ", " << sreglist;
+  os() << "vldmia" << ConditionPrinter(it_block_, cond) << dt << " " << rn
+       << write_back << ", " << sreglist;
 }
 
 void Disassembler::vldr(Condition cond,
                         DataType dt,
                         DRegister rd,
                         Label* label) {
-  os_ << "vldr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << PrintLabel(label, GetPc() & ~3);
+  os() << "vldr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << PrintLabel(kLoadDoublePrecisionLocation, label, GetPc() & ~3);
 }
 
 void Disassembler::vldr(Condition cond,
                         DataType dt,
                         DRegister rd,
                         const MemOperand& operand) {
-  os_ << "vldr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << operand;
+  os() << "vldr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << PrintMemOperand(kLoadDoublePrecisionLocation, operand);
 }
 
 void Disassembler::vldr(Condition cond,
                         DataType dt,
                         SRegister rd,
                         Label* label) {
-  os_ << "vldr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << PrintLabel(label, GetPc() & ~3);
+  os() << "vldr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << PrintLabel(kLoadSinglePrecisionLocation, label, GetPc() & ~3);
 }
 
 void Disassembler::vldr(Condition cond,
                         DataType dt,
                         SRegister rd,
                         const MemOperand& operand) {
-  os_ << "vldr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << operand;
+  os() << "vldr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << PrintMemOperand(kLoadSinglePrecisionLocation, operand);
 }
 
 void Disassembler::vmax(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vmax" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vmax" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vmax(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vmax" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vmax" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vmaxnm(DataType dt,
                           DRegister rd,
                           DRegister rn,
                           DRegister rm) {
-  os_ << "vmaxnm" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vmaxnm" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vmaxnm(DataType dt,
                           QRegister rd,
                           QRegister rn,
                           QRegister rm) {
-  os_ << "vmaxnm" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vmaxnm" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vmaxnm(DataType dt,
                           SRegister rd,
                           SRegister rn,
                           SRegister rm) {
-  os_ << "vmaxnm" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vmaxnm" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vmin(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vmin" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vmin" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vmin(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vmin" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vmin" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vminnm(DataType dt,
                           DRegister rd,
                           DRegister rn,
                           DRegister rm) {
-  os_ << "vminnm" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vminnm" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vminnm(DataType dt,
                           QRegister rd,
                           QRegister rn,
                           QRegister rm) {
-  os_ << "vminnm" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vminnm" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vminnm(DataType dt,
                           SRegister rd,
                           SRegister rn,
                           SRegister rm) {
-  os_ << "vminnm" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vminnm" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vmla(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegisterLane rm) {
-  os_ << "vmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vmla(
     Condition cond, DataType dt, QRegister rd, QRegister rn, DRegisterLane rm) {
-  os_ << "vmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vmla(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vmla(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vmla(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
-  os_ << "vmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vmlal(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegisterLane rm) {
-  os_ << "vmlal" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmlal" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vmlal(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vmlal" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmlal" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vmls(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegisterLane rm) {
-  os_ << "vmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vmls(
     Condition cond, DataType dt, QRegister rd, QRegister rn, DRegisterLane rm) {
-  os_ << "vmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vmls(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vmls(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vmls(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
-  os_ << "vmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rn << ", " << rm;
 }
 
 void Disassembler::vmlsl(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegisterLane rm) {
-  os_ << "vmlsl" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmlsl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vmlsl(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vmlsl" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmlsl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vmov(Condition cond, Register rt, SRegister rn) {
-  os_ << "vmov" << ConditionPrinter(it_block_, cond) << " " << rt << ", " << rn;
+  os() << "vmov" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << rn;
 }
 
 void Disassembler::vmov(Condition cond, SRegister rn, Register rt) {
-  os_ << "vmov" << ConditionPrinter(it_block_, cond) << " " << rn << ", " << rt;
+  os() << "vmov" << ConditionPrinter(it_block_, cond) << " " << rn << ", "
+       << rt;
 }
 
 void Disassembler::vmov(Condition cond,
                         Register rt,
                         Register rt2,
                         DRegister rm) {
-  os_ << "vmov" << ConditionPrinter(it_block_, cond) << " " << rt << ", " << rt2
-      << ", " << rm;
+  os() << "vmov" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << rt2 << ", " << rm;
 }
 
 void Disassembler::vmov(Condition cond,
                         DRegister rm,
                         Register rt,
                         Register rt2) {
-  os_ << "vmov" << ConditionPrinter(it_block_, cond) << " " << rm << ", " << rt
-      << ", " << rt2;
+  os() << "vmov" << ConditionPrinter(it_block_, cond) << " " << rm << ", " << rt
+       << ", " << rt2;
 }
 
 void Disassembler::vmov(
     Condition cond, Register rt, Register rt2, SRegister rm, SRegister rm1) {
-  os_ << "vmov" << ConditionPrinter(it_block_, cond) << " " << rt << ", " << rt2
-      << ", " << rm << ", " << rm1;
+  os() << "vmov" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << rt2 << ", " << rm << ", " << rm1;
 }
 
 void Disassembler::vmov(
     Condition cond, SRegister rm, SRegister rm1, Register rt, Register rt2) {
-  os_ << "vmov" << ConditionPrinter(it_block_, cond) << " " << rm << ", " << rm1
-      << ", " << rt << ", " << rt2;
+  os() << "vmov" << ConditionPrinter(it_block_, cond) << " " << rm << ", "
+       << rm1 << ", " << rt << ", " << rt2;
 }
 
 void Disassembler::vmov(Condition cond,
                         DataType dt,
                         DRegisterLane rd,
                         Register rt) {
-  os_ << "vmov" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rt;
+  os() << "vmov" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rt;
 }
 
 void Disassembler::vmov(Condition cond,
                         DataType dt,
                         DRegister rd,
                         const DOperand& operand) {
-  os_ << "vmov" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << operand;
+  os() << "vmov" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << operand;
 }
 
 void Disassembler::vmov(Condition cond,
                         DataType dt,
                         QRegister rd,
                         const QOperand& operand) {
-  os_ << "vmov" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << operand;
+  os() << "vmov" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << operand;
 }
 
 void Disassembler::vmov(Condition cond,
                         DataType dt,
                         SRegister rd,
                         const SOperand& operand) {
-  os_ << "vmov" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << operand;
+  os() << "vmov" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << operand;
 }
 
 void Disassembler::vmov(Condition cond,
                         DataType dt,
                         Register rt,
                         DRegisterLane rn) {
-  os_ << "vmov" << ConditionPrinter(it_block_, cond) << dt << " " << rt << ", "
-      << rn;
+  os() << "vmov" << ConditionPrinter(it_block_, cond) << dt << " " << rt << ", "
+       << rn;
 }
 
 void Disassembler::vmovl(Condition cond,
                          DataType dt,
                          QRegister rd,
                          DRegister rm) {
-  os_ << "vmovl" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vmovl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vmovn(Condition cond,
                          DataType dt,
                          DRegister rd,
                          QRegister rm) {
-  os_ << "vmovn" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vmovn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vmrs(Condition cond,
                         RegisterOrAPSR_nzcv rt,
                         SpecialFPRegister spec_reg) {
-  os_ << "vmrs" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-      << spec_reg;
+  os() << "vmrs" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
+       << spec_reg;
 }
 
 void Disassembler::vmsr(Condition cond,
                         SpecialFPRegister spec_reg,
                         Register rt) {
-  os_ << "vmsr" << ConditionPrinter(it_block_, cond) << " " << spec_reg << ", "
-      << rt;
+  os() << "vmsr" << ConditionPrinter(it_block_, cond) << " " << spec_reg << ", "
+       << rt;
 }
 
 void Disassembler::vmul(Condition cond,
@@ -4914,12 +4926,12 @@ void Disassembler::vmul(Condition cond,
                         DRegister rn,
                         DRegister dm,
                         unsigned index) {
-  os_ << "vmul" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vmul" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << dm << "[" << index << "]";
+  os() << rn << ", " << dm << "[" << index << "]";
 }
 
 void Disassembler::vmul(Condition cond,
@@ -4928,42 +4940,42 @@ void Disassembler::vmul(Condition cond,
                         QRegister rn,
                         DRegister dm,
                         unsigned index) {
-  os_ << "vmul" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vmul" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << dm << "[" << index << "]";
+  os() << rn << ", " << dm << "[" << index << "]";
 }
 
 void Disassembler::vmul(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vmul" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vmul" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vmul(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vmul" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vmul" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vmul(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
-  os_ << "vmul" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vmul" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vmull(Condition cond,
@@ -4972,98 +4984,98 @@ void Disassembler::vmull(Condition cond,
                          DRegister rn,
                          DRegister dm,
                          unsigned index) {
-  os_ << "vmull" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << dm << "[" << index << "]";
+  os() << "vmull" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << dm << "[" << index << "]";
 }
 
 void Disassembler::vmull(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vmull" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vmull" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vmvn(Condition cond,
                         DataType dt,
                         DRegister rd,
                         const DOperand& operand) {
-  os_ << "vmvn" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << operand;
+  os() << "vmvn" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << operand;
 }
 
 void Disassembler::vmvn(Condition cond,
                         DataType dt,
                         QRegister rd,
                         const QOperand& operand) {
-  os_ << "vmvn" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << operand;
+  os() << "vmvn" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << operand;
 }
 
 void Disassembler::vneg(Condition cond,
                         DataType dt,
                         DRegister rd,
                         DRegister rm) {
-  os_ << "vneg" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vneg" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vneg(Condition cond,
                         DataType dt,
                         QRegister rd,
                         QRegister rm) {
-  os_ << "vneg" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vneg" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vneg(Condition cond,
                         DataType dt,
                         SRegister rd,
                         SRegister rm) {
-  os_ << "vneg" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vneg" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vnmla(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
-  os_ << "vnmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vnmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vnmla(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vnmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vnmla" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vnmls(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
-  os_ << "vnmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vnmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vnmls(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vnmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vnmls" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vnmul(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
-  os_ << "vnmul" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vnmul" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vnmul(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vnmul" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vnmul" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vorn(Condition cond,
@@ -5071,12 +5083,12 @@ void Disassembler::vorn(Condition cond,
                         DRegister rd,
                         DRegister rn,
                         const DOperand& operand) {
-  os_ << "vorn" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vorn" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::vorn(Condition cond,
@@ -5084,12 +5096,12 @@ void Disassembler::vorn(Condition cond,
                         QRegister rd,
                         QRegister rn,
                         const QOperand& operand) {
-  os_ << "vorn" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vorn" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::vorr(Condition cond,
@@ -5097,12 +5109,12 @@ void Disassembler::vorr(Condition cond,
                         DRegister rd,
                         DRegister rn,
                         const DOperand& operand) {
-  os_ << "vorr" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vorr" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::vorr(Condition cond,
@@ -5110,132 +5122,132 @@ void Disassembler::vorr(Condition cond,
                         QRegister rd,
                         QRegister rn,
                         const QOperand& operand) {
-  os_ << "vorr" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vorr" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << operand;
+  os() << rn << ", " << operand;
 }
 
 void Disassembler::vpadal(Condition cond,
                           DataType dt,
                           DRegister rd,
                           DRegister rm) {
-  os_ << "vpadal" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vpadal" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vpadal(Condition cond,
                           DataType dt,
                           QRegister rd,
                           QRegister rm) {
-  os_ << "vpadal" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vpadal" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vpadd(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vpadd" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vpadd" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vpaddl(Condition cond,
                           DataType dt,
                           DRegister rd,
                           DRegister rm) {
-  os_ << "vpaddl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vpaddl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vpaddl(Condition cond,
                           DataType dt,
                           QRegister rd,
                           QRegister rm) {
-  os_ << "vpaddl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vpaddl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vpmax(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vpmax" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vpmax" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vpmin(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vpmin" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vpmin" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vpop(Condition cond, DataType dt, DRegisterList dreglist) {
-  os_ << "vpop" << ConditionPrinter(it_block_, cond) << dt << " " << dreglist;
+  os() << "vpop" << ConditionPrinter(it_block_, cond) << dt << " " << dreglist;
 }
 
 void Disassembler::vpop(Condition cond, DataType dt, SRegisterList sreglist) {
-  os_ << "vpop" << ConditionPrinter(it_block_, cond) << dt << " " << sreglist;
+  os() << "vpop" << ConditionPrinter(it_block_, cond) << dt << " " << sreglist;
 }
 
 void Disassembler::vpush(Condition cond, DataType dt, DRegisterList dreglist) {
-  os_ << "vpush" << ConditionPrinter(it_block_, cond) << dt << " " << dreglist;
+  os() << "vpush" << ConditionPrinter(it_block_, cond) << dt << " " << dreglist;
 }
 
 void Disassembler::vpush(Condition cond, DataType dt, SRegisterList sreglist) {
-  os_ << "vpush" << ConditionPrinter(it_block_, cond) << dt << " " << sreglist;
+  os() << "vpush" << ConditionPrinter(it_block_, cond) << dt << " " << sreglist;
 }
 
 void Disassembler::vqabs(Condition cond,
                          DataType dt,
                          DRegister rd,
                          DRegister rm) {
-  os_ << "vqabs" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vqabs" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vqabs(Condition cond,
                          DataType dt,
                          QRegister rd,
                          QRegister rm) {
-  os_ << "vqabs" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vqabs" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vqadd(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vqadd" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqadd" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vqadd(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vqadd" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqadd" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vqdmlal(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vqdmlal" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rn << ", " << rm;
+  os() << "vqdmlal" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vqdmlal(Condition cond,
@@ -5244,14 +5256,14 @@ void Disassembler::vqdmlal(Condition cond,
                            DRegister rn,
                            DRegister dm,
                            unsigned index) {
-  os_ << "vqdmlal" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rn << ", " << dm << "[" << index << "]";
+  os() << "vqdmlal" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << dm << "[" << index << "]";
 }
 
 void Disassembler::vqdmlsl(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vqdmlsl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rn << ", " << rm;
+  os() << "vqdmlsl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vqdmlsl(Condition cond,
@@ -5260,152 +5272,152 @@ void Disassembler::vqdmlsl(Condition cond,
                            DRegister rn,
                            DRegister dm,
                            unsigned index) {
-  os_ << "vqdmlsl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rn << ", " << dm << "[" << index << "]";
+  os() << "vqdmlsl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << dm << "[" << index << "]";
 }
 
 void Disassembler::vqdmulh(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vqdmulh" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqdmulh" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vqdmulh(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vqdmulh" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqdmulh" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vqdmulh(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegisterLane rm) {
-  os_ << "vqdmulh" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqdmulh" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vqdmulh(
     Condition cond, DataType dt, QRegister rd, QRegister rn, DRegisterLane rm) {
-  os_ << "vqdmulh" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqdmulh" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vqdmull(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vqdmull" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rn << ", " << rm;
+  os() << "vqdmull" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vqdmull(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegisterLane rm) {
-  os_ << "vqdmull" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rn << ", " << rm;
+  os() << "vqdmull" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vqmovn(Condition cond,
                           DataType dt,
                           DRegister rd,
                           QRegister rm) {
-  os_ << "vqmovn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vqmovn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vqmovun(Condition cond,
                            DataType dt,
                            DRegister rd,
                            QRegister rm) {
-  os_ << "vqmovun" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vqmovun" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vqneg(Condition cond,
                          DataType dt,
                          DRegister rd,
                          DRegister rm) {
-  os_ << "vqneg" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vqneg" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vqneg(Condition cond,
                          DataType dt,
                          QRegister rd,
                          QRegister rm) {
-  os_ << "vqneg" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vqneg" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vqrdmulh(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vqrdmulh" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqrdmulh" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vqrdmulh(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vqrdmulh" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqrdmulh" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vqrdmulh(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegisterLane rm) {
-  os_ << "vqrdmulh" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqrdmulh" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vqrdmulh(
     Condition cond, DataType dt, QRegister rd, QRegister rn, DRegisterLane rm) {
-  os_ << "vqrdmulh" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqrdmulh" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vqrshl(
     Condition cond, DataType dt, DRegister rd, DRegister rm, DRegister rn) {
-  os_ << "vqrshl" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqrshl" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << rn;
+  os() << rm << ", " << rn;
 }
 
 void Disassembler::vqrshl(
     Condition cond, DataType dt, QRegister rd, QRegister rm, QRegister rn) {
-  os_ << "vqrshl" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqrshl" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << rn;
+  os() << rm << ", " << rn;
 }
 
 void Disassembler::vqrshrn(Condition cond,
@@ -5413,8 +5425,8 @@ void Disassembler::vqrshrn(Condition cond,
                            DRegister rd,
                            QRegister rm,
                            const QOperand& operand) {
-  os_ << "vqrshrn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm << ", " << operand;
+  os() << "vqrshrn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm << ", " << operand;
 }
 
 void Disassembler::vqrshrun(Condition cond,
@@ -5422,8 +5434,8 @@ void Disassembler::vqrshrun(Condition cond,
                             DRegister rd,
                             QRegister rm,
                             const QOperand& operand) {
-  os_ << "vqrshrun" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm << ", " << operand;
+  os() << "vqrshrun" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm << ", " << operand;
 }
 
 void Disassembler::vqshl(Condition cond,
@@ -5431,12 +5443,12 @@ void Disassembler::vqshl(Condition cond,
                          DRegister rd,
                          DRegister rm,
                          const DOperand& operand) {
-  os_ << "vqshl" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqshl" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vqshl(Condition cond,
@@ -5444,12 +5456,12 @@ void Disassembler::vqshl(Condition cond,
                          QRegister rd,
                          QRegister rm,
                          const QOperand& operand) {
-  os_ << "vqshl" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqshl" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vqshlu(Condition cond,
@@ -5457,12 +5469,12 @@ void Disassembler::vqshlu(Condition cond,
                           DRegister rd,
                           DRegister rm,
                           const DOperand& operand) {
-  os_ << "vqshlu" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqshlu" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vqshlu(Condition cond,
@@ -5470,12 +5482,12 @@ void Disassembler::vqshlu(Condition cond,
                           QRegister rd,
                           QRegister rm,
                           const QOperand& operand) {
-  os_ << "vqshlu" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqshlu" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vqshrn(Condition cond,
@@ -5483,8 +5495,8 @@ void Disassembler::vqshrn(Condition cond,
                           DRegister rd,
                           QRegister rm,
                           const QOperand& operand) {
-  os_ << "vqshrn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm << ", " << operand;
+  os() << "vqshrn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm << ", " << operand;
 }
 
 void Disassembler::vqshrun(Condition cond,
@@ -5492,292 +5504,292 @@ void Disassembler::vqshrun(Condition cond,
                            DRegister rd,
                            QRegister rm,
                            const QOperand& operand) {
-  os_ << "vqshrun" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm << ", " << operand;
+  os() << "vqshrun" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm << ", " << operand;
 }
 
 void Disassembler::vqsub(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vqsub" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqsub" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vqsub(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vqsub" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vqsub" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vraddhn(
     Condition cond, DataType dt, DRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vraddhn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rn << ", " << rm;
+  os() << "vraddhn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vrecpe(Condition cond,
                           DataType dt,
                           DRegister rd,
                           DRegister rm) {
-  os_ << "vrecpe" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vrecpe" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vrecpe(Condition cond,
                           DataType dt,
                           QRegister rd,
                           QRegister rm) {
-  os_ << "vrecpe" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vrecpe" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vrecps(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vrecps" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vrecps" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vrecps(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vrecps" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vrecps" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vrev16(Condition cond,
                           DataType dt,
                           DRegister rd,
                           DRegister rm) {
-  os_ << "vrev16" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vrev16" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vrev16(Condition cond,
                           DataType dt,
                           QRegister rd,
                           QRegister rm) {
-  os_ << "vrev16" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vrev16" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vrev32(Condition cond,
                           DataType dt,
                           DRegister rd,
                           DRegister rm) {
-  os_ << "vrev32" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vrev32" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vrev32(Condition cond,
                           DataType dt,
                           QRegister rd,
                           QRegister rm) {
-  os_ << "vrev32" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vrev32" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vrev64(Condition cond,
                           DataType dt,
                           DRegister rd,
                           DRegister rm) {
-  os_ << "vrev64" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vrev64" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vrev64(Condition cond,
                           DataType dt,
                           QRegister rd,
                           QRegister rm) {
-  os_ << "vrev64" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vrev64" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vrhadd(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vrhadd" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vrhadd" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vrhadd(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vrhadd" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vrhadd" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vrinta(DataType dt1,
                           DataType dt2,
                           DRegister rd,
                           DRegister rm) {
-  os_ << "vrinta" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrinta" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrinta(DataType dt1,
                           DataType dt2,
                           QRegister rd,
                           QRegister rm) {
-  os_ << "vrinta" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrinta" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrinta(DataType dt1,
                           DataType dt2,
                           SRegister rd,
                           SRegister rm) {
-  os_ << "vrinta" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrinta" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrintm(DataType dt1,
                           DataType dt2,
                           DRegister rd,
                           DRegister rm) {
-  os_ << "vrintm" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrintm" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrintm(DataType dt1,
                           DataType dt2,
                           QRegister rd,
                           QRegister rm) {
-  os_ << "vrintm" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrintm" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrintm(DataType dt1,
                           DataType dt2,
                           SRegister rd,
                           SRegister rm) {
-  os_ << "vrintm" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrintm" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrintn(DataType dt1,
                           DataType dt2,
                           DRegister rd,
                           DRegister rm) {
-  os_ << "vrintn" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrintn" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrintn(DataType dt1,
                           DataType dt2,
                           QRegister rd,
                           QRegister rm) {
-  os_ << "vrintn" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrintn" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrintn(DataType dt1,
                           DataType dt2,
                           SRegister rd,
                           SRegister rm) {
-  os_ << "vrintn" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrintn" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrintp(DataType dt1,
                           DataType dt2,
                           DRegister rd,
                           DRegister rm) {
-  os_ << "vrintp" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrintp" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrintp(DataType dt1,
                           DataType dt2,
                           QRegister rd,
                           QRegister rm) {
-  os_ << "vrintp" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrintp" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrintp(DataType dt1,
                           DataType dt2,
                           SRegister rd,
                           SRegister rm) {
-  os_ << "vrintp" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrintp" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrintr(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-  os_ << "vrintr" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
-      << rd << ", " << rm;
+  os() << "vrintr" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vrintr(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
-  os_ << "vrintr" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
-      << rd << ", " << rm;
+  os() << "vrintr" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vrintx(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
-  os_ << "vrintx" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
-      << rd << ", " << rm;
+  os() << "vrintx" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vrintx(DataType dt1,
                           DataType dt2,
                           QRegister rd,
                           QRegister rm) {
-  os_ << "vrintx" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrintx" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrintx(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-  os_ << "vrintx" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
-      << rd << ", " << rm;
+  os() << "vrintx" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vrintz(
     Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
-  os_ << "vrintz" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
-      << rd << ", " << rm;
+  os() << "vrintz" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vrintz(DataType dt1,
                           DataType dt2,
                           QRegister rd,
                           QRegister rm) {
-  os_ << "vrintz" << dt1 << dt2 << " " << rd << ", " << rm;
+  os() << "vrintz" << dt1 << dt2 << " " << rd << ", " << rm;
 }
 
 void Disassembler::vrintz(
     Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-  os_ << "vrintz" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
-      << rd << ", " << rm;
+  os() << "vrintz" << ConditionPrinter(it_block_, cond) << dt1 << dt2 << " "
+       << rd << ", " << rm;
 }
 
 void Disassembler::vrshl(
     Condition cond, DataType dt, DRegister rd, DRegister rm, DRegister rn) {
-  os_ << "vrshl" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vrshl" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << rn;
+  os() << rm << ", " << rn;
 }
 
 void Disassembler::vrshl(
     Condition cond, DataType dt, QRegister rd, QRegister rm, QRegister rn) {
-  os_ << "vrshl" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vrshl" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << rn;
+  os() << rm << ", " << rn;
 }
 
 void Disassembler::vrshr(Condition cond,
@@ -5785,12 +5797,12 @@ void Disassembler::vrshr(Condition cond,
                          DRegister rd,
                          DRegister rm,
                          const DOperand& operand) {
-  os_ << "vrshr" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vrshr" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vrshr(Condition cond,
@@ -5798,12 +5810,12 @@ void Disassembler::vrshr(Condition cond,
                          QRegister rd,
                          QRegister rm,
                          const QOperand& operand) {
-  os_ << "vrshr" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vrshr" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vrshrn(Condition cond,
@@ -5811,44 +5823,44 @@ void Disassembler::vrshrn(Condition cond,
                           DRegister rd,
                           QRegister rm,
                           const QOperand& operand) {
-  os_ << "vrshrn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm << ", " << operand;
+  os() << "vrshrn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm << ", " << operand;
 }
 
 void Disassembler::vrsqrte(Condition cond,
                            DataType dt,
                            DRegister rd,
                            DRegister rm) {
-  os_ << "vrsqrte" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vrsqrte" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vrsqrte(Condition cond,
                            DataType dt,
                            QRegister rd,
                            QRegister rm) {
-  os_ << "vrsqrte" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rm;
+  os() << "vrsqrte" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vrsqrts(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vrsqrts" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vrsqrts" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vrsqrts(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vrsqrts" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vrsqrts" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vrsra(Condition cond,
@@ -5856,12 +5868,12 @@ void Disassembler::vrsra(Condition cond,
                          DRegister rd,
                          DRegister rm,
                          const DOperand& operand) {
-  os_ << "vrsra" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vrsra" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vrsra(Condition cond,
@@ -5869,74 +5881,74 @@ void Disassembler::vrsra(Condition cond,
                          QRegister rd,
                          QRegister rm,
                          const QOperand& operand) {
-  os_ << "vrsra" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vrsra" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vrsubhn(
     Condition cond, DataType dt, DRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vrsubhn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rn << ", " << rm;
+  os() << "vrsubhn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vseleq(DataType dt,
                           DRegister rd,
                           DRegister rn,
                           DRegister rm) {
-  os_ << "vseleq" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vseleq" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vseleq(DataType dt,
                           SRegister rd,
                           SRegister rn,
                           SRegister rm) {
-  os_ << "vseleq" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vseleq" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vselge(DataType dt,
                           DRegister rd,
                           DRegister rn,
                           DRegister rm) {
-  os_ << "vselge" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vselge" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vselge(DataType dt,
                           SRegister rd,
                           SRegister rn,
                           SRegister rm) {
-  os_ << "vselge" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vselge" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vselgt(DataType dt,
                           DRegister rd,
                           DRegister rn,
                           DRegister rm) {
-  os_ << "vselgt" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vselgt" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vselgt(DataType dt,
                           SRegister rd,
                           SRegister rn,
                           SRegister rm) {
-  os_ << "vselgt" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vselgt" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vselvs(DataType dt,
                           DRegister rd,
                           DRegister rn,
                           DRegister rm) {
-  os_ << "vselvs" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vselvs" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vselvs(DataType dt,
                           SRegister rd,
                           SRegister rn,
                           SRegister rm) {
-  os_ << "vselvs" << dt << " " << rd << ", " << rn << ", " << rm;
+  os() << "vselvs" << dt << " " << rd << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vshl(Condition cond,
@@ -5944,12 +5956,12 @@ void Disassembler::vshl(Condition cond,
                         DRegister rd,
                         DRegister rm,
                         const DOperand& operand) {
-  os_ << "vshl" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vshl" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vshl(Condition cond,
@@ -5957,12 +5969,12 @@ void Disassembler::vshl(Condition cond,
                         QRegister rd,
                         QRegister rm,
                         const QOperand& operand) {
-  os_ << "vshl" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vshl" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vshll(Condition cond,
@@ -5970,8 +5982,8 @@ void Disassembler::vshll(Condition cond,
                          QRegister rd,
                          DRegister rm,
                          const DOperand& operand) {
-  os_ << "vshll" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm << ", " << operand;
+  os() << "vshll" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm << ", " << operand;
 }
 
 void Disassembler::vshr(Condition cond,
@@ -5979,12 +5991,12 @@ void Disassembler::vshr(Condition cond,
                         DRegister rd,
                         DRegister rm,
                         const DOperand& operand) {
-  os_ << "vshr" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vshr" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vshr(Condition cond,
@@ -5992,12 +6004,12 @@ void Disassembler::vshr(Condition cond,
                         QRegister rd,
                         QRegister rm,
                         const QOperand& operand) {
-  os_ << "vshr" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vshr" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vshrn(Condition cond,
@@ -6005,8 +6017,8 @@ void Disassembler::vshrn(Condition cond,
                          DRegister rd,
                          QRegister rm,
                          const QOperand& operand) {
-  os_ << "vshrn" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm << ", " << operand;
+  os() << "vshrn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm << ", " << operand;
 }
 
 void Disassembler::vsli(Condition cond,
@@ -6014,12 +6026,12 @@ void Disassembler::vsli(Condition cond,
                         DRegister rd,
                         DRegister rm,
                         const DOperand& operand) {
-  os_ << "vsli" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vsli" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vsli(Condition cond,
@@ -6027,28 +6039,28 @@ void Disassembler::vsli(Condition cond,
                         QRegister rd,
                         QRegister rm,
                         const QOperand& operand) {
-  os_ << "vsli" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vsli" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vsqrt(Condition cond,
                          DataType dt,
                          SRegister rd,
                          SRegister rm) {
-  os_ << "vsqrt" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vsqrt" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vsqrt(Condition cond,
                          DataType dt,
                          DRegister rd,
                          DRegister rm) {
-  os_ << "vsqrt" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vsqrt" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rm;
 }
 
 void Disassembler::vsra(Condition cond,
@@ -6056,12 +6068,12 @@ void Disassembler::vsra(Condition cond,
                         DRegister rd,
                         DRegister rm,
                         const DOperand& operand) {
-  os_ << "vsra" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vsra" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vsra(Condition cond,
@@ -6069,12 +6081,12 @@ void Disassembler::vsra(Condition cond,
                         QRegister rd,
                         QRegister rm,
                         const QOperand& operand) {
-  os_ << "vsra" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vsra" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vsri(Condition cond,
@@ -6082,12 +6094,12 @@ void Disassembler::vsri(Condition cond,
                         DRegister rd,
                         DRegister rm,
                         const DOperand& operand) {
-  os_ << "vsri" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vsri" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vsri(Condition cond,
@@ -6095,52 +6107,52 @@ void Disassembler::vsri(Condition cond,
                         QRegister rd,
                         QRegister rm,
                         const QOperand& operand) {
-  os_ << "vsri" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vsri" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rm)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rm << ", " << operand;
+  os() << rm << ", " << operand;
 }
 
 void Disassembler::vst1(Condition cond,
                         DataType dt,
                         const NeonRegisterList& nreglist,
                         const AlignedMemOperand& operand) {
-  os_ << "vst1" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
-      << ", " << operand;
+  os() << "vst1" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
+       << ", " << PrintAlignedMemOperand(kVst1Location, operand);
 }
 
 void Disassembler::vst2(Condition cond,
                         DataType dt,
                         const NeonRegisterList& nreglist,
                         const AlignedMemOperand& operand) {
-  os_ << "vst2" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
-      << ", " << operand;
+  os() << "vst2" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
+       << ", " << PrintAlignedMemOperand(kVst2Location, operand);
 }
 
 void Disassembler::vst3(Condition cond,
                         DataType dt,
                         const NeonRegisterList& nreglist,
                         const AlignedMemOperand& operand) {
-  os_ << "vst3" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
-      << ", " << operand;
+  os() << "vst3" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
+       << ", " << PrintAlignedMemOperand(kVst3Location, operand);
 }
 
 void Disassembler::vst3(Condition cond,
                         DataType dt,
                         const NeonRegisterList& nreglist,
                         const MemOperand& operand) {
-  os_ << "vst3" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
-      << ", " << operand;
+  os() << "vst3" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
+       << ", " << PrintMemOperand(kVst3Location, operand);
 }
 
 void Disassembler::vst4(Condition cond,
                         DataType dt,
                         const NeonRegisterList& nreglist,
                         const AlignedMemOperand& operand) {
-  os_ << "vst4" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
-      << ", " << operand;
+  os() << "vst4" << ConditionPrinter(it_block_, cond) << dt << " " << nreglist
+       << ", " << PrintAlignedMemOperand(kVst4Location, operand);
 }
 
 void Disassembler::vstm(Condition cond,
@@ -6148,8 +6160,8 @@ void Disassembler::vstm(Condition cond,
                         Register rn,
                         WriteBack write_back,
                         DRegisterList dreglist) {
-  os_ << "vstm" << ConditionPrinter(it_block_, cond) << dt << " " << rn
-      << write_back << ", " << dreglist;
+  os() << "vstm" << ConditionPrinter(it_block_, cond) << dt << " " << rn
+       << write_back << ", " << dreglist;
 }
 
 void Disassembler::vstm(Condition cond,
@@ -6157,8 +6169,8 @@ void Disassembler::vstm(Condition cond,
                         Register rn,
                         WriteBack write_back,
                         SRegisterList sreglist) {
-  os_ << "vstm" << ConditionPrinter(it_block_, cond) << dt << " " << rn
-      << write_back << ", " << sreglist;
+  os() << "vstm" << ConditionPrinter(it_block_, cond) << dt << " " << rn
+       << write_back << ", " << sreglist;
 }
 
 void Disassembler::vstmdb(Condition cond,
@@ -6166,8 +6178,8 @@ void Disassembler::vstmdb(Condition cond,
                           Register rn,
                           WriteBack write_back,
                           DRegisterList dreglist) {
-  os_ << "vstmdb" << ConditionPrinter(it_block_, cond) << dt << " " << rn
-      << write_back << ", " << dreglist;
+  os() << "vstmdb" << ConditionPrinter(it_block_, cond) << dt << " " << rn
+       << write_back << ", " << dreglist;
 }
 
 void Disassembler::vstmdb(Condition cond,
@@ -6175,8 +6187,8 @@ void Disassembler::vstmdb(Condition cond,
                           Register rn,
                           WriteBack write_back,
                           SRegisterList sreglist) {
-  os_ << "vstmdb" << ConditionPrinter(it_block_, cond) << dt << " " << rn
-      << write_back << ", " << sreglist;
+  os() << "vstmdb" << ConditionPrinter(it_block_, cond) << dt << " " << rn
+       << write_back << ", " << sreglist;
 }
 
 void Disassembler::vstmia(Condition cond,
@@ -6184,8 +6196,8 @@ void Disassembler::vstmia(Condition cond,
                           Register rn,
                           WriteBack write_back,
                           DRegisterList dreglist) {
-  os_ << "vstmia" << ConditionPrinter(it_block_, cond) << dt << " " << rn
-      << write_back << ", " << dreglist;
+  os() << "vstmia" << ConditionPrinter(it_block_, cond) << dt << " " << rn
+       << write_back << ", " << dreglist;
 }
 
 void Disassembler::vstmia(Condition cond,
@@ -6193,92 +6205,92 @@ void Disassembler::vstmia(Condition cond,
                           Register rn,
                           WriteBack write_back,
                           SRegisterList sreglist) {
-  os_ << "vstmia" << ConditionPrinter(it_block_, cond) << dt << " " << rn
-      << write_back << ", " << sreglist;
+  os() << "vstmia" << ConditionPrinter(it_block_, cond) << dt << " " << rn
+       << write_back << ", " << sreglist;
 }
 
 void Disassembler::vstr(Condition cond,
                         DataType dt,
                         DRegister rd,
                         const MemOperand& operand) {
-  os_ << "vstr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << operand;
+  os() << "vstr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << PrintMemOperand(kStoreDoublePrecisionLocation, operand);
 }
 
 void Disassembler::vstr(Condition cond,
                         DataType dt,
                         SRegister rd,
                         const MemOperand& operand) {
-  os_ << "vstr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << operand;
+  os() << "vstr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << PrintMemOperand(kStoreSinglePrecisionLocation, operand);
 }
 
 void Disassembler::vsub(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vsub" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vsub" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vsub(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vsub" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vsub" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vsub(
     Condition cond, DataType dt, SRegister rd, SRegister rn, SRegister rm) {
-  os_ << "vsub" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vsub" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vsubhn(
     Condition cond, DataType dt, DRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vsubhn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
-      << ", " << rn << ", " << rm;
+  os() << "vsubhn" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vsubl(
     Condition cond, DataType dt, QRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vsubl" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rn << ", " << rm;
+  os() << "vsubl" << ConditionPrinter(it_block_, cond) << dt << " " << rd
+       << ", " << rn << ", " << rm;
 }
 
 void Disassembler::vsubw(
     Condition cond, DataType dt, QRegister rd, QRegister rn, DRegister rm) {
-  os_ << "vsubw" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vsubw" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vswp(Condition cond,
                         DataType dt,
                         DRegister rd,
                         DRegister rm) {
-  os_ << "vswp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vswp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vswp(Condition cond,
                         DataType dt,
                         QRegister rd,
                         QRegister rm) {
-  os_ << "vswp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vswp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vtbl(Condition cond,
@@ -6286,8 +6298,8 @@ void Disassembler::vtbl(Condition cond,
                         DRegister rd,
                         const NeonRegisterList& nreglist,
                         DRegister rm) {
-  os_ << "vtbl" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << nreglist << ", " << rm;
+  os() << "vtbl" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << nreglist << ", " << rm;
 }
 
 void Disassembler::vtbx(Condition cond,
@@ -6295,80 +6307,80 @@ void Disassembler::vtbx(Condition cond,
                         DRegister rd,
                         const NeonRegisterList& nreglist,
                         DRegister rm) {
-  os_ << "vtbx" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << nreglist << ", " << rm;
+  os() << "vtbx" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << nreglist << ", " << rm;
 }
 
 void Disassembler::vtrn(Condition cond,
                         DataType dt,
                         DRegister rd,
                         DRegister rm) {
-  os_ << "vtrn" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vtrn" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vtrn(Condition cond,
                         DataType dt,
                         QRegister rd,
                         QRegister rm) {
-  os_ << "vtrn" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vtrn" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vtst(
     Condition cond, DataType dt, DRegister rd, DRegister rn, DRegister rm) {
-  os_ << "vtst" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vtst" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vtst(
     Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm) {
-  os_ << "vtst" << ConditionPrinter(it_block_, cond) << dt;
-  os_ << " ";
+  os() << "vtst" << ConditionPrinter(it_block_, cond) << dt;
+  os() << " ";
   if (!rd.Is(rn)) {
-    os_ << rd << ", ";
+    os() << rd << ", ";
   }
-  os_ << rn << ", " << rm;
+  os() << rn << ", " << rm;
 }
 
 void Disassembler::vuzp(Condition cond,
                         DataType dt,
                         DRegister rd,
                         DRegister rm) {
-  os_ << "vuzp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vuzp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vuzp(Condition cond,
                         DataType dt,
                         QRegister rd,
                         QRegister rm) {
-  os_ << "vuzp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vuzp" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vzip(Condition cond,
                         DataType dt,
                         DRegister rd,
                         DRegister rm) {
-  os_ << "vzip" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vzip" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::vzip(Condition cond,
                         DataType dt,
                         QRegister rd,
                         QRegister rm) {
-  os_ << "vzip" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-      << rm;
+  os() << "vzip" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
+       << rm;
 }
 
 void Disassembler::yield(Condition cond, EncodingSize size) {
-  os_ << "yield" << ConditionPrinter(it_block_, cond) << size;
+  os() << "yield" << ConditionPrinter(it_block_, cond) << size;
 }
 
 int Disassembler::T32Size(uint32_t instr) {
@@ -67336,26 +67348,21 @@ void Disassembler::DecodeA32(uint32_t instr) {
 // End of generated code.
 
 void PrintDisassembler::DecodeT32(uint32_t instruction) {
+  PrintPc(GetPc());
   if (T32Size(instruction) == 2) {
-    os() << "0x" << std::hex << std::setw(8) << std::setfill('0') << GetPc()
-         << "  " << std::hex << std::setw(4) << std::setfill('0')
-         << (instruction >> 16) << "    " << std::dec << "\t";
+    PrintOpcode16(instruction >> 16);
     Disassembler::DecodeT32(instruction);
-    os() << "\n";
   } else {
-    os() << "0x" << std::hex << std::setw(8) << std::setfill('0') << GetPc()
-         << "  " << std::hex << std::setw(8) << std::setfill('0') << instruction
-         << std::dec << "\t";
+    PrintOpcode32(instruction);
     Disassembler::DecodeT32(instruction);
-    os() << "\n";
   }
+  os() << "\n";
 }
 
 
 void PrintDisassembler::DecodeA32(uint32_t instruction) {
-  os() << "0x" << std::hex << std::setw(8) << std::setfill('0') << GetPc()
-       << "  " << std::hex << std::setw(8) << std::setfill('0') << instruction
-       << std::dec << "\t";
+  PrintPc(GetPc());
+  PrintOpcode32(instruction);
   Disassembler::DecodeA32(instruction);
   os() << "\n";
 }

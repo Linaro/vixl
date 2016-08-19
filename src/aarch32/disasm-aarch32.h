@@ -28,6 +28,7 @@
 #define VIXL_DISASM_AARCH32_H_
 
 #include "aarch32/label-aarch32.h"
+#include "aarch32/operand-aarch32.h"
 
 namespace vixl {
 namespace aarch32 {
@@ -58,8 +59,35 @@ class ITBlock {
 };
 
 class Disassembler : public Instructions {
-  std::ostream& os_;
-  uint32_t pc_;
+ public:
+  enum LocationType {
+    kAnyLocation,
+    kCodeLocation,
+    kDataLocation,
+    kCoprocLocation,
+    kLoadByteLocation,
+    kLoadHalfWordLocation,
+    kLoadWordLocation,
+    kLoadDoubleWordLocation,
+    kLoadSignedByteLocation,
+    kLoadSignedHalfWordLocation,
+    kLoadSinglePrecisionLocation,
+    kLoadDoublePrecisionLocation,
+    kStoreByteLocation,
+    kStoreHalfWordLocation,
+    kStoreWordLocation,
+    kStoreDoubleWordLocation,
+    kStoreSinglePrecisionLocation,
+    kStoreDoublePrecisionLocation,
+    kVld1Location,
+    kVld2Location,
+    kVld3Location,
+    kVld4Location,
+    kVst1Location,
+    kVst2Location,
+    kVst3Location,
+    kVst4Location
+  };
 
   class ConditionPrinter {
     const ITBlock& it_block_;
@@ -77,6 +105,275 @@ class Disassembler : public Instructions {
     }
   };
 
+  class PrintLabel {
+    LocationType location_type_;
+    Label* label_;
+    Label::Offset position_;
+
+   public:
+    PrintLabel(LocationType location_type, Label* label, Label::Offset position)
+        : location_type_(location_type), label_(label), position_(position) {}
+    LocationType GetLocationType() const { return location_type_; }
+    Label* GetLabel() const { return label_; }
+    Label::Offset GetPosition() const { return position_; }
+    friend inline std::ostream& operator<<(std::ostream& os,
+                                           const PrintLabel& label) {
+      if (label.label_->IsMinusZero()) {
+        os << "[pc, #-0]";
+      } else {
+        os << "0x" << std::hex << std::setw(8) << std::setfill('0')
+           << static_cast<int32_t>(label.label_->GetLocation() +
+                                   label.position_) << std::dec;
+      }
+      return os;
+    }
+  };
+
+  class PrintMemOperand {
+    LocationType location_type_;
+    const MemOperand& operand_;
+
+   public:
+    PrintMemOperand(LocationType location_type, const MemOperand& operand)
+        : location_type_(location_type), operand_(operand) {}
+    LocationType GetLocationType() const { return location_type_; }
+    const MemOperand& GetOperand() const { return operand_; }
+  };
+
+  class PrintAlignedMemOperand {
+    LocationType location_type_;
+    const AlignedMemOperand& operand_;
+
+   public:
+    PrintAlignedMemOperand(LocationType location_type,
+                           const AlignedMemOperand& operand)
+        : location_type_(location_type), operand_(operand) {}
+    LocationType GetLocationType() const { return location_type_; }
+    const AlignedMemOperand& GetOperand() const { return operand_; }
+  };
+
+  class DisassemblerStream {
+    std::ostream& os_;
+
+   public:
+    explicit DisassemblerStream(std::ostream& os) : os_(os) {}
+    virtual ~DisassemblerStream() {}
+    std::ostream& os() const { return os_; }
+    template <typename T>
+    DisassemblerStream& operator<<(T value) {
+      os_ << value;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const ConditionPrinter& cond) {
+      os_ << cond;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const Condition cond) {
+      os_ << cond;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const EncodingSize& size) {
+      os_ << size;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const DataType& type) {
+      os_ << type;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const Shift shift) {
+      os_ << shift;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const Sign sign) {
+      os_ << sign;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const Alignment alignment) {
+      os_ << alignment;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const PrintLabel& label) {
+      os_ << label;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const WriteBack& write_back) {
+      os_ << write_back;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const NeonImmediate& immediate) {
+      os_ << immediate;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const Register reg) {
+      os_ << reg;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const SRegister reg) {
+      os_ << reg;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const DRegister reg) {
+      os_ << reg;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const QRegister reg) {
+      os_ << reg;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const SpecialRegister reg) {
+      os_ << reg;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const MaskedSpecialRegister reg) {
+      os_ << reg;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const SpecialFPRegister reg) {
+      os_ << reg;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const BankedRegister reg) {
+      os_ << reg;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const RegisterList& list) {
+      os_ << list;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const RegisterListWithoutPC& list) {
+      os_ << list;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const RegisterListWithPC& list) {
+      os_ << list;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const SRegisterList& list) {
+      os_ << list;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const DRegisterList& list) {
+      os_ << list;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const NeonRegisterList& list) {
+      os_ << list;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const Coprocessor coproc) {
+      os_ << coproc;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const CRegister reg) {
+      os_ << reg;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const Endianness endian_specifier) {
+      os_ << endian_specifier;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const MemoryBarrier option) {
+      os_ << option;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const InterruptFlags iflags) {
+      os_ << iflags;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const Operand& operand) {
+      if (operand.IsImmediate()) {
+        return *this << "#" << operand.GetImmediate();
+      }
+      if (operand.IsImmediateShiftedRegister()) {
+        if ((operand.GetShift().IsLSL() || operand.GetShift().IsROR()) &&
+            (operand.GetShiftAmount() == 0)) {
+          return *this << operand.GetBaseRegister();
+        }
+        if (operand.GetShift().IsRRX()) {
+          return *this << operand.GetBaseRegister() << ", rrx";
+        }
+        return *this << operand.GetBaseRegister() << ", " << operand.GetShift()
+                     << " #" << operand.GetShiftAmount();
+      }
+      if (operand.IsRegisterShiftedRegister()) {
+        return *this << operand.GetBaseRegister() << ", " << operand.GetShift()
+                     << " " << operand.GetShiftRegister();
+      }
+      VIXL_UNREACHABLE();
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const SOperand& operand) {
+      if (operand.IsImmediate()) {
+        return *this << operand.GetNeonImmediate();
+      }
+      return *this << operand.GetRegister();
+    }
+    virtual DisassemblerStream& operator<<(const DOperand& operand) {
+      if (operand.IsImmediate()) {
+        return *this << operand.GetNeonImmediate();
+      }
+      return *this << operand.GetRegister();
+    }
+    virtual DisassemblerStream& operator<<(const QOperand& operand) {
+      if (operand.IsImmediate()) {
+        return *this << operand.GetNeonImmediate();
+      }
+      return *this << operand.GetRegister();
+    }
+    virtual DisassemblerStream& operator<<(const MemOperand& operand) {
+      *this << "[" << operand.GetBaseRegister();
+      if (operand.GetAddrMode() == PostIndex) {
+        *this << "]";
+      }
+      if (operand.IsImmediate()) {
+        if ((operand.GetOffsetImmediate() != 0) ||
+            operand.GetSign().IsMinus() ||
+            ((operand.GetAddrMode() != Offset) && !operand.IsRegisterOnly())) {
+          if (operand.GetOffsetImmediate() == 0) {
+            *this << ", #" << operand.GetSign() << operand.GetOffsetImmediate();
+          } else {
+            *this << ", #" << operand.GetOffsetImmediate();
+          }
+        }
+      } else if (operand.IsPlainRegister()) {
+        *this << ", " << operand.GetSign() << operand.GetOffsetRegister();
+      } else if (operand.IsShiftedRegister()) {
+        *this << ", " << operand.GetSign() << operand.GetOffsetRegister()
+              << ImmediateShiftOperand(operand.GetShift(),
+                                       operand.GetShiftAmount());
+      } else {
+        VIXL_UNREACHABLE();
+        return *this;
+      }
+      if (operand.GetAddrMode() == Offset) {
+        *this << "]";
+      } else if (operand.GetAddrMode() == PreIndex) {
+        *this << "]!";
+      }
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const PrintMemOperand& operand) {
+      return *this << operand.GetOperand();
+    }
+    virtual DisassemblerStream& operator<<(const AlignedMemOperand& operand) {
+      *this << "[" << operand.GetBaseRegister() << operand.GetAlignment()
+            << "]";
+      if (operand.GetAddrMode() == PostIndex) {
+        if (operand.IsPlainRegister()) {
+          *this << ", " << operand.GetOffsetRegister();
+        } else {
+          *this << "!";
+        }
+      }
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(
+        const PrintAlignedMemOperand& operand) {
+      return *this << operand.GetOperand();
+    }
+  };
+
+ private:
   class ITBlockScope {
     ITBlock* const it_block_;
     bool inside_;
@@ -90,13 +387,18 @@ class Disassembler : public Instructions {
   };
 
   ITBlock it_block_;
+  DisassemblerStream* os_;
+  uint32_t pc_;
 
  public:
   explicit Disassembler(std::ostream& os, uint32_t pc = 0)  // NOLINT
+      : os_(new DisassemblerStream(os)),
+        pc_(pc) {}
+  explicit Disassembler(DisassemblerStream* os, uint32_t pc = 0)  // NOLINT
       : os_(os),
         pc_(pc) {}
-  virtual ~Disassembler() {}
-  std::ostream& os() const { return os_; }
+  virtual ~Disassembler() { delete os_; }
+  DisassemblerStream& os() const { return *os_; }
   void SetIT(Condition first_condition, uint16_t it_mask) {
     it_block_.Set(first_condition, it_mask);
   }
@@ -113,30 +415,30 @@ class Disassembler : public Instructions {
 
   virtual void UnallocatedT32(uint32_t instruction) {
     if (T32Size(instruction) == 2) {
-      os_ << "unallocated " << std::hex << std::setw(4) << std::setfill('0')
-          << (instruction >> 16) << std::dec;
+      os() << "unallocated " << std::hex << std::setw(4) << std::setfill('0')
+           << (instruction >> 16) << std::dec;
     } else {
-      os_ << "unallocated " << std::hex << std::setw(8) << std::setfill('0')
-          << instruction << std::dec;
+      os() << "unallocated " << std::hex << std::setw(8) << std::setfill('0')
+           << instruction << std::dec;
     }
   }
   virtual void UnallocatedA32(uint32_t instruction) {
-    os_ << "unallocated " << std::hex << std::setw(8) << std::setfill('0')
-        << instruction << std::dec;
+    os() << "unallocated " << std::hex << std::setw(8) << std::setfill('0')
+         << instruction << std::dec;
   }
   virtual void UnimplementedT32_16(const char* name, uint32_t instruction) {
-    os_ << "unimplemented " << name << " T32:" << std::hex << std::setw(4)
-        << std::setfill('0') << (instruction >> 16) << std::dec;
+    os() << "unimplemented " << name << " T32:" << std::hex << std::setw(4)
+         << std::setfill('0') << (instruction >> 16) << std::dec;
   }
   virtual void UnimplementedT32_32(const char* name, uint32_t instruction) {
-    os_ << "unimplemented " << name << " T32:" << std::hex << std::setw(8)
-        << std::setfill('0') << instruction << std::dec;
+    os() << "unimplemented " << name << " T32:" << std::hex << std::setw(8)
+         << std::setfill('0') << instruction << std::dec;
   }
   virtual void UnimplementedA32(const char* name, uint32_t instruction) {
-    os_ << "unimplemented " << name << " ARM:" << std::hex << std::setw(8)
-        << std::setfill('0') << instruction << std::dec;
+    os() << "unimplemented " << name << " ARM:" << std::hex << std::setw(8)
+         << std::setfill('0') << instruction << std::dec;
   }
-  virtual void Unpredictable() { os_ << " ; unpredictable"; }
+  virtual void Unpredictable() { os() << " ; unpredictable"; }
   virtual void UnpredictableT32(uint32_t /*instr*/) { return Unpredictable(); }
   virtual void UnpredictableA32(uint32_t /*instr*/) { return Unpredictable(); }
 
@@ -2239,6 +2541,22 @@ class PrintDisassembler : public Disassembler {
  public:
   explicit PrintDisassembler(std::ostream& os, uint32_t pc = 0)  // NOLINT
       : Disassembler(os, pc) {}
+  explicit PrintDisassembler(DisassemblerStream* os, uint32_t pc = 0)  // NOLINT
+      : Disassembler(os, pc) {}
+
+  virtual void PrintPc(uint32_t pc) {
+    os() << "0x" << std::hex << std::setw(8) << std::setfill('0') << pc << "\t";
+  }
+
+  virtual void PrintOpcode16(uint32_t opcode) {
+    os() << std::hex << std::setw(4) << std::setfill('0') << opcode << "    "
+         << std::dec << "\t";
+  }
+
+  virtual void PrintOpcode32(uint32_t opcode) {
+    os() << std::hex << std::setw(8) << std::setfill('0') << opcode << std::dec
+         << "\t";
+  }
 
   void DecodeT32(uint32_t instruction);
   void DecodeA32(uint32_t instruction);

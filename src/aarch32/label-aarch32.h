@@ -230,27 +230,6 @@ class Label {
 };
 
 
-class PrintLabel {
-  Label* label_;
-  Label::Offset position_;
-
- public:
-  PrintLabel(Label* label, Label::Offset position)
-      : label_(label), position_(position) {}
-  Label* GetLabel() const { return label_; }
-  friend inline std::ostream& operator<<(std::ostream& os,
-                                         const PrintLabel& label) {
-    if (label.label_->IsMinusZero()) {
-      os << "[pc, #-0]";
-    } else {
-      os << "0x" << std::hex << std::setw(8) << std::setfill('0')
-         << static_cast<int32_t>(label.label_->GetLocation() + label.position_)
-         << std::dec;
-    }
-    return os;
-  }
-};
-
 }  // namespace aarch32
 }  // namespace vixl
 
