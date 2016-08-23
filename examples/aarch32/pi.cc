@@ -34,7 +34,7 @@ void GenerateApproximatePi(MacroAssembler* masm) {
   // pi/4 = 1 - 1/3 + 1/5 - 1/7 + ... + (-1)^n / (2n + 1)
   __ Cmp(r0, 0);
   __ Bx(eq, lr);
-  __ Vpush(Untyped64, DRegisterList(d8, d15));
+  __ Vpush(Untyped64, DRegisterList(d8, 8));
   __ Vldr(d0, 1.0);
   __ Vldr(d1, 3.0);
   __ Vldr(d2, 5.0);
@@ -75,7 +75,7 @@ void GenerateApproximatePi(MacroAssembler* masm) {
   __ Vadd(F64, d11, d11, d13);
   __ Vsub(F64, d10, d10, d11);
   __ Vmul(F64, d0, d10, d4);
-  __ Vpop(Untyped64, DRegisterList(d8, d15));
+  __ Vpop(Untyped64, DRegisterList(d8, 8));
   __ Bx(lr);
 }
 

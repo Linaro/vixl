@@ -21946,14 +21946,12 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           WriteBack write_back((instr >> 21) & 0x1);
                           unsigned first = ExtractSRegister(instr, 22, 12);
                           unsigned len = instr & 0xff;
-                          unsigned last = first + len - 1;
                           // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; T2
                           vstm(CurrentCond(),
                                kDataTypeValueNone,
                                Register(rn),
                                write_back,
-                               SRegisterList(SRegister(first),
-                                             SRegister(last)));
+                               SRegisterList(SRegister(first), len));
                           if ((len == 0) ||
                               ((first + len) > kNumberOfSRegisters)) {
                             UnpredictableT32(instr);
@@ -21971,14 +21969,12 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned imm8 = (instr & 0xff);
                               unsigned len = imm8 / 2;
                               unsigned end = first + len;
-                              unsigned last = end - 1;
                               // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1 NOLINT(whitespace/line_length)
                               vstm(CurrentCond(),
                                    kDataTypeValueNone,
                                    Register(rn),
                                    write_back,
-                                   DRegisterList(DRegister(first),
-                                                 DRegister(last)));
+                                   DRegisterList(DRegister(first), len));
                               if ((len == 0) || (len > 16) ||
                                   (end > kMaxNumberOfDRegisters)) {
                                 UnpredictableT32(instr);
@@ -21993,13 +21989,11 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned imm8 = (instr & 0xff);
                               unsigned len = imm8 / 2;
                               unsigned end = first + len;
-                              unsigned last = end - 1;
                               // FSTMIAX{<c>}{<q>} <Rn>{!}, <dreglist> ; T1
                               fstmiax(CurrentCond(),
                                       Register(rn),
                                       write_back,
-                                      DRegisterList(DRegister(first),
-                                                    DRegister(last)));
+                                      DRegisterList(DRegister(first), len));
                               if ((len == 0) || (len > 16) || (end > 16)) {
                                 UnpredictableT32(instr);
                               }
@@ -22103,12 +22097,10 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                Uint32(0xd))) {
                             unsigned first = ExtractSRegister(instr, 22, 12);
                             unsigned len = instr & 0xff;
-                            unsigned last = first + len - 1;
                             // VPOP{<c>}{<q>}{.<size>} <sreglist> ; T2
                             vpop(CurrentCond(),
                                  kDataTypeValueNone,
-                                 SRegisterList(SRegister(first),
-                                               SRegister(last)));
+                                 SRegisterList(SRegister(first), len));
                             if ((len == 0) ||
                                 ((first + len) > kNumberOfSRegisters)) {
                               UnpredictableT32(instr);
@@ -22119,14 +22111,12 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           WriteBack write_back((instr >> 21) & 0x1);
                           unsigned first = ExtractSRegister(instr, 22, 12);
                           unsigned len = instr & 0xff;
-                          unsigned last = first + len - 1;
                           // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; T2
                           vldm(CurrentCond(),
                                kDataTypeValueNone,
                                Register(rn),
                                write_back,
-                               SRegisterList(SRegister(first),
-                                             SRegister(last)));
+                               SRegisterList(SRegister(first), len));
                           if ((len == 0) ||
                               ((first + len) > kNumberOfSRegisters)) {
                             UnpredictableT32(instr);
@@ -22147,12 +22137,10 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 unsigned imm8 = (instr & 0xff);
                                 unsigned len = imm8 / 2;
                                 unsigned end = first + len;
-                                unsigned last = end - 1;
                                 // VPOP{<c>}{<q>}{.<size>} <dreglist> ; T1
                                 vpop(CurrentCond(),
                                      kDataTypeValueNone,
-                                     DRegisterList(DRegister(first),
-                                                   DRegister(last)));
+                                     DRegisterList(DRegister(first), len));
                                 if ((len == 0) || (len > 16) ||
                                     (end > kMaxNumberOfDRegisters)) {
                                   UnpredictableT32(instr);
@@ -22165,14 +22153,12 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned imm8 = (instr & 0xff);
                               unsigned len = imm8 / 2;
                               unsigned end = first + len;
-                              unsigned last = end - 1;
                               // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1 NOLINT(whitespace/line_length)
                               vldm(CurrentCond(),
                                    kDataTypeValueNone,
                                    Register(rn),
                                    write_back,
-                                   DRegisterList(DRegister(first),
-                                                 DRegister(last)));
+                                   DRegisterList(DRegister(first), len));
                               if ((len == 0) || (len > 16) ||
                                   (end > kMaxNumberOfDRegisters)) {
                                 UnpredictableT32(instr);
@@ -22187,13 +22173,11 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned imm8 = (instr & 0xff);
                               unsigned len = imm8 / 2;
                               unsigned end = first + len;
-                              unsigned last = end - 1;
                               // FLDMIAX{<c>}{<q>} <Rn>{!}, <dreglist> ; T1
                               fldmiax(CurrentCond(),
                                       Register(rn),
                                       write_back,
-                                      DRegisterList(DRegister(first),
-                                                    DRegister(last)));
+                                      DRegisterList(DRegister(first), len));
                               if ((len == 0) || (len > 16) || (end > 16)) {
                                 UnpredictableT32(instr);
                               }
@@ -22322,12 +22306,10 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                 unsigned first =
                                     ExtractSRegister(instr, 22, 12);
                                 unsigned len = instr & 0xff;
-                                unsigned last = first + len - 1;
                                 // VPUSH{<c>}{<q>}{.<size>} <sreglist> ; T2
                                 vpush(CurrentCond(),
                                       kDataTypeValueNone,
-                                      SRegisterList(SRegister(first),
-                                                    SRegister(last)));
+                                      SRegisterList(SRegister(first), len));
                                 if ((len == 0) ||
                                     ((first + len) > kNumberOfSRegisters)) {
                                   UnpredictableT32(instr);
@@ -22337,14 +22319,12 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned first = ExtractSRegister(instr, 22, 12);
                               unsigned len = instr & 0xff;
-                              unsigned last = first + len - 1;
                               // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ; T2 NOLINT(whitespace/line_length)
                               vstmdb(CurrentCond(),
                                      kDataTypeValueNone,
                                      Register(rn),
                                      WriteBack(WRITE_BACK),
-                                     SRegisterList(SRegister(first),
-                                                   SRegister(last)));
+                                     SRegisterList(SRegister(first), len));
                               if ((len == 0) ||
                                   ((first + len) > kNumberOfSRegisters)) {
                                 UnpredictableT32(instr);
@@ -22363,12 +22343,10 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                     unsigned imm8 = (instr & 0xff);
                                     unsigned len = imm8 / 2;
                                     unsigned end = first + len;
-                                    unsigned last = end - 1;
                                     // VPUSH{<c>}{<q>}{.<size>} <dreglist> ; T1
                                     vpush(CurrentCond(),
                                           kDataTypeValueNone,
-                                          DRegisterList(DRegister(first),
-                                                        DRegister(last)));
+                                          DRegisterList(DRegister(first), len));
                                     if ((len == 0) || (len > 16) ||
                                         (end > kMaxNumberOfDRegisters)) {
                                       UnpredictableT32(instr);
@@ -22381,14 +22359,12 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned imm8 = (instr & 0xff);
                                   unsigned len = imm8 / 2;
                                   unsigned end = first + len;
-                                  unsigned last = end - 1;
                                   // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; T1 NOLINT(whitespace/line_length)
                                   vstmdb(CurrentCond(),
                                          kDataTypeValueNone,
                                          Register(rn),
                                          WriteBack(WRITE_BACK),
-                                         DRegisterList(DRegister(first),
-                                                       DRegister(last)));
+                                         DRegisterList(DRegister(first), len));
                                   if ((len == 0) || (len > 16) ||
                                       (end > kMaxNumberOfDRegisters)) {
                                     UnpredictableT32(instr);
@@ -22403,13 +22379,11 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned imm8 = (instr & 0xff);
                                   unsigned len = imm8 / 2;
                                   unsigned end = first + len;
-                                  unsigned last = end - 1;
                                   // FSTMDBX{<c>}{<q>} <Rn>!, <dreglist> ; T1
                                   fstmdbx(CurrentCond(),
                                           Register(rn),
                                           WriteBack(WRITE_BACK),
-                                          DRegisterList(DRegister(first),
-                                                        DRegister(last)));
+                                          DRegisterList(DRegister(first), len));
                                   if ((len == 0) || (len > 16) || (end > 16)) {
                                     UnpredictableT32(instr);
                                   }
@@ -22575,14 +22549,12 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               unsigned rn = (instr >> 16) & 0xf;
                               unsigned first = ExtractSRegister(instr, 22, 12);
                               unsigned len = instr & 0xff;
-                              unsigned last = first + len - 1;
                               // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ; T2 NOLINT(whitespace/line_length)
                               vldmdb(CurrentCond(),
                                      kDataTypeValueNone,
                                      Register(rn),
                                      WriteBack(WRITE_BACK),
-                                     SRegisterList(SRegister(first),
-                                                   SRegister(last)));
+                                     SRegisterList(SRegister(first), len));
                               if ((len == 0) ||
                                   ((first + len) > kNumberOfSRegisters)) {
                                 UnpredictableT32(instr);
@@ -22600,14 +22572,12 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned imm8 = (instr & 0xff);
                                   unsigned len = imm8 / 2;
                                   unsigned end = first + len;
-                                  unsigned last = end - 1;
                                   // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; T1 NOLINT(whitespace/line_length)
                                   vldmdb(CurrentCond(),
                                          kDataTypeValueNone,
                                          Register(rn),
                                          WriteBack(WRITE_BACK),
-                                         DRegisterList(DRegister(first),
-                                                       DRegister(last)));
+                                         DRegisterList(DRegister(first), len));
                                   if ((len == 0) || (len > 16) ||
                                       (end > kMaxNumberOfDRegisters)) {
                                     UnpredictableT32(instr);
@@ -22622,13 +22592,11 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   unsigned imm8 = (instr & 0xff);
                                   unsigned len = imm8 / 2;
                                   unsigned end = first + len;
-                                  unsigned last = end - 1;
                                   // FLDMDBX{<c>}{<q>} <Rn>!, <dreglist> ; T1
                                   fldmdbx(CurrentCond(),
                                           Register(rn),
                                           WriteBack(WRITE_BACK),
-                                          DRegisterList(DRegister(first),
-                                                        DRegister(last)));
+                                          DRegisterList(DRegister(first), len));
                                   if ((len == 0) || (len > 16) || (end > 16)) {
                                     UnpredictableT32(instr);
                                   }
@@ -64791,13 +64759,12 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     WriteBack write_back((instr >> 21) & 0x1);
                     unsigned first = ExtractSRegister(instr, 22, 12);
                     unsigned len = instr & 0xff;
-                    unsigned last = first + len - 1;
                     // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; A2
                     vstm(condition,
                          kDataTypeValueNone,
                          Register(rn),
                          write_back,
-                         SRegisterList(SRegister(first), SRegister(last)));
+                         SRegisterList(SRegister(first), len));
                     if ((len == 0) || ((first + len) > kNumberOfSRegisters)) {
                       UnpredictableA32(instr);
                     }
@@ -64819,13 +64786,12 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned imm8 = (instr & 0xff);
                         unsigned len = imm8 / 2;
                         unsigned end = first + len;
-                        unsigned last = end - 1;
                         // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; A1
                         vstm(condition,
                              kDataTypeValueNone,
                              Register(rn),
                              write_back,
-                             DRegisterList(DRegister(first), DRegister(last)));
+                             DRegisterList(DRegister(first), len));
                         if ((len == 0) || (len > 16) ||
                             (end > kMaxNumberOfDRegisters)) {
                           UnpredictableA32(instr);
@@ -64845,13 +64811,11 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned imm8 = (instr & 0xff);
                         unsigned len = imm8 / 2;
                         unsigned end = first + len;
-                        unsigned last = end - 1;
                         // FSTMIAX{<c>}{<q>} <Rn>{!}, <dreglist> ; A1
                         fstmiax(condition,
                                 Register(rn),
                                 write_back,
-                                DRegisterList(DRegister(first),
-                                              DRegister(last)));
+                                DRegisterList(DRegister(first), len));
                         if ((len == 0) || (len > 16) || (end > 16)) {
                           UnpredictableA32(instr);
                         }
@@ -64974,11 +64938,10 @@ void Disassembler::DecodeA32(uint32_t instr) {
                       Condition condition((instr >> 28) & 0xf);
                       unsigned first = ExtractSRegister(instr, 22, 12);
                       unsigned len = instr & 0xff;
-                      unsigned last = first + len - 1;
                       // VPOP{<c>}{<q>}{.<size>} <sreglist> ; A2
                       vpop(condition,
                            kDataTypeValueNone,
-                           SRegisterList(SRegister(first), SRegister(last)));
+                           SRegisterList(SRegister(first), len));
                       if ((len == 0) || ((first + len) > kNumberOfSRegisters)) {
                         UnpredictableA32(instr);
                       }
@@ -64989,13 +64952,12 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     WriteBack write_back((instr >> 21) & 0x1);
                     unsigned first = ExtractSRegister(instr, 22, 12);
                     unsigned len = instr & 0xff;
-                    unsigned last = first + len - 1;
                     // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; A2
                     vldm(condition,
                          kDataTypeValueNone,
                          Register(rn),
                          write_back,
-                         SRegisterList(SRegister(first), SRegister(last)));
+                         SRegisterList(SRegister(first), len));
                     if ((len == 0) || ((first + len) > kNumberOfSRegisters)) {
                       UnpredictableA32(instr);
                     }
@@ -65020,12 +64982,10 @@ void Disassembler::DecodeA32(uint32_t instr) {
                           unsigned imm8 = (instr & 0xff);
                           unsigned len = imm8 / 2;
                           unsigned end = first + len;
-                          unsigned last = end - 1;
                           // VPOP{<c>}{<q>}{.<size>} <dreglist> ; A1
                           vpop(condition,
                                kDataTypeValueNone,
-                               DRegisterList(DRegister(first),
-                                             DRegister(last)));
+                               DRegisterList(DRegister(first), len));
                           if ((len == 0) || (len > 16) ||
                               (end > kMaxNumberOfDRegisters)) {
                             UnpredictableA32(instr);
@@ -65039,13 +64999,12 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned imm8 = (instr & 0xff);
                         unsigned len = imm8 / 2;
                         unsigned end = first + len;
-                        unsigned last = end - 1;
                         // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; A1
                         vldm(condition,
                              kDataTypeValueNone,
                              Register(rn),
                              write_back,
-                             DRegisterList(DRegister(first), DRegister(last)));
+                             DRegisterList(DRegister(first), len));
                         if ((len == 0) || (len > 16) ||
                             (end > kMaxNumberOfDRegisters)) {
                           UnpredictableA32(instr);
@@ -65065,13 +65024,11 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned imm8 = (instr & 0xff);
                         unsigned len = imm8 / 2;
                         unsigned end = first + len;
-                        unsigned last = end - 1;
                         // FLDMIAX{<c>}{<q>} <Rn>{!}, <dreglist> ; A1
                         fldmiax(condition,
                                 Register(rn),
                                 write_back,
-                                DRegisterList(DRegister(first),
-                                              DRegister(last)));
+                                DRegisterList(DRegister(first), len));
                         if ((len == 0) || (len > 16) || (end > 16)) {
                           UnpredictableA32(instr);
                         }
@@ -65226,12 +65183,10 @@ void Disassembler::DecodeA32(uint32_t instr) {
                           Condition condition((instr >> 28) & 0xf);
                           unsigned first = ExtractSRegister(instr, 22, 12);
                           unsigned len = instr & 0xff;
-                          unsigned last = first + len - 1;
                           // VPUSH{<c>}{<q>}{.<size>} <sreglist> ; A2
                           vpush(condition,
                                 kDataTypeValueNone,
-                                SRegisterList(SRegister(first),
-                                              SRegister(last)));
+                                SRegisterList(SRegister(first), len));
                           if ((len == 0) ||
                               ((first + len) > kNumberOfSRegisters)) {
                             UnpredictableA32(instr);
@@ -65242,14 +65197,12 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned first = ExtractSRegister(instr, 22, 12);
                         unsigned len = instr & 0xff;
-                        unsigned last = first + len - 1;
                         // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ; A2
                         vstmdb(condition,
                                kDataTypeValueNone,
                                Register(rn),
                                WriteBack(WRITE_BACK),
-                               SRegisterList(SRegister(first),
-                                             SRegister(last)));
+                               SRegisterList(SRegister(first), len));
                         if ((len == 0) ||
                             ((first + len) > kNumberOfSRegisters)) {
                           UnpredictableA32(instr);
@@ -65273,12 +65226,10 @@ void Disassembler::DecodeA32(uint32_t instr) {
                               unsigned imm8 = (instr & 0xff);
                               unsigned len = imm8 / 2;
                               unsigned end = first + len;
-                              unsigned last = end - 1;
                               // VPUSH{<c>}{<q>}{.<size>} <dreglist> ; A1
                               vpush(condition,
                                     kDataTypeValueNone,
-                                    DRegisterList(DRegister(first),
-                                                  DRegister(last)));
+                                    DRegisterList(DRegister(first), len));
                               if ((len == 0) || (len > 16) ||
                                   (end > kMaxNumberOfDRegisters)) {
                                 UnpredictableA32(instr);
@@ -65291,14 +65242,12 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned imm8 = (instr & 0xff);
                             unsigned len = imm8 / 2;
                             unsigned end = first + len;
-                            unsigned last = end - 1;
                             // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; A1
                             vstmdb(condition,
                                    kDataTypeValueNone,
                                    Register(rn),
                                    WriteBack(WRITE_BACK),
-                                   DRegisterList(DRegister(first),
-                                                 DRegister(last)));
+                                   DRegisterList(DRegister(first), len));
                             if ((len == 0) || (len > 16) ||
                                 (end > kMaxNumberOfDRegisters)) {
                               UnpredictableA32(instr);
@@ -65317,13 +65266,11 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned imm8 = (instr & 0xff);
                             unsigned len = imm8 / 2;
                             unsigned end = first + len;
-                            unsigned last = end - 1;
                             // FSTMDBX{<c>}{<q>} <Rn>!, <dreglist> ; A1
                             fstmdbx(condition,
                                     Register(rn),
                                     WriteBack(WRITE_BACK),
-                                    DRegisterList(DRegister(first),
-                                                  DRegister(last)));
+                                    DRegisterList(DRegister(first), len));
                             if ((len == 0) || (len > 16) || (end > 16)) {
                               UnpredictableA32(instr);
                             }
@@ -65509,14 +65456,12 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         unsigned rn = (instr >> 16) & 0xf;
                         unsigned first = ExtractSRegister(instr, 22, 12);
                         unsigned len = instr & 0xff;
-                        unsigned last = first + len - 1;
                         // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ; A2
                         vldmdb(condition,
                                kDataTypeValueNone,
                                Register(rn),
                                WriteBack(WRITE_BACK),
-                               SRegisterList(SRegister(first),
-                                             SRegister(last)));
+                               SRegisterList(SRegister(first), len));
                         if ((len == 0) ||
                             ((first + len) > kNumberOfSRegisters)) {
                           UnpredictableA32(instr);
@@ -65538,14 +65483,12 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned imm8 = (instr & 0xff);
                             unsigned len = imm8 / 2;
                             unsigned end = first + len;
-                            unsigned last = end - 1;
                             // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; A1
                             vldmdb(condition,
                                    kDataTypeValueNone,
                                    Register(rn),
                                    WriteBack(WRITE_BACK),
-                                   DRegisterList(DRegister(first),
-                                                 DRegister(last)));
+                                   DRegisterList(DRegister(first), len));
                             if ((len == 0) || (len > 16) ||
                                 (end > kMaxNumberOfDRegisters)) {
                               UnpredictableA32(instr);
@@ -65564,13 +65507,11 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             unsigned imm8 = (instr & 0xff);
                             unsigned len = imm8 / 2;
                             unsigned end = first + len;
-                            unsigned last = end - 1;
                             // FLDMDBX{<c>}{<q>} <Rn>!, <dreglist> ; A1
                             fldmdbx(condition,
                                     Register(rn),
                                     WriteBack(WRITE_BACK),
-                                    DRegisterList(DRegister(first),
-                                                  DRegister(last)));
+                                    DRegisterList(DRegister(first), len));
                             if ((len == 0) || (len > 16) || (end > 16)) {
                               UnpredictableA32(instr);
                             }

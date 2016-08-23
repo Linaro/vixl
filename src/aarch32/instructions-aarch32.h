@@ -631,35 +631,39 @@ class VRegisterList {
 };
 
 class SRegisterList {
-  SRegister first_, last_;
+  SRegister first_;
+  int length_;
 
  public:
-  explicit SRegisterList(SRegister reg)
-      : first_(reg.GetCode()), last_(reg.GetCode()) {}
-  SRegisterList(SRegister first, SRegister last)
-      : first_(first.GetCode()), last_(last.GetCode()) {
-    VIXL_ASSERT(first_.GetCode() <= last_.GetCode());
+  explicit SRegisterList(SRegister reg) : first_(reg.GetCode()), length_(1) {}
+  SRegisterList(SRegister first, int length)
+      : first_(first.GetCode()), length_(length) {
+    VIXL_ASSERT(length >= 0);
   }
   const SRegister& GetFirstSRegister() const { return first_; }
-  const SRegister& GetLastSRegister() const { return last_; }
-  uint32_t GetLength() const { return 1 + last_.GetCode() - first_.GetCode(); }
+  const SRegister GetLastSRegister() const {
+    return SRegister(first_.GetCode() + length_ - 1);
+  }
+  int GetLength() const { return length_; }
 };
 
 std::ostream& operator<<(std::ostream& os, SRegisterList registers);
 
 class DRegisterList {
-  DRegister first_, last_;
+  DRegister first_;
+  int length_;
 
  public:
-  explicit DRegisterList(DRegister reg)
-      : first_(reg.GetCode()), last_(reg.GetCode()) {}
-  DRegisterList(DRegister first, DRegister last)
-      : first_(first.GetCode()), last_(last.GetCode()) {
-    VIXL_ASSERT(first_.GetCode() <= last_.GetCode());
+  explicit DRegisterList(DRegister reg) : first_(reg.GetCode()), length_(1) {}
+  DRegisterList(DRegister first, int length)
+      : first_(first.GetCode()), length_(length) {
+    VIXL_ASSERT(length >= 0);
   }
   const DRegister& GetFirstDRegister() const { return first_; }
-  const DRegister& GetLastDRegister() const { return last_; }
-  uint32_t GetLength() const { return 1 + last_.GetCode() - first_.GetCode(); }
+  const DRegister GetLastDRegister() const {
+    return DRegister(first_.GetCode() + length_ - 1);
+  }
+  int GetLength() const { return length_; }
 };
 
 std::ostream& operator<<(std::ostream& os, DRegisterList registers);
