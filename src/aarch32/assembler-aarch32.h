@@ -38,6 +38,8 @@ class Assembler : public Instructions {
   Condition first_condition_;
   uint16_t it_mask_;
   bool has_32_dregs_;
+  // True if we can use the assembler instructions.
+  bool allow_assembler_;
 
  protected:
   CodeBuffer buffer_;
@@ -61,18 +63,24 @@ class Assembler : public Instructions {
 
  public:
   explicit Assembler(InstructionSet isa = A32)
-      : isa_(isa), first_condition_(al), it_mask_(0), has_32_dregs_(true) {}
+      : isa_(isa),
+        first_condition_(al),
+        it_mask_(0),
+        has_32_dregs_(true),
+        allow_assembler_(true) {}
   explicit Assembler(size_t size, InstructionSet isa = A32)
       : isa_(isa),
         first_condition_(al),
         it_mask_(0),
         has_32_dregs_(true),
+        allow_assembler_(true),
         buffer_(size) {}
   Assembler(void* buffer, size_t size, InstructionSet isa = A32)
       : isa_(isa),
         first_condition_(al),
         it_mask_(0),
         has_32_dregs_(true),
+        allow_assembler_(true),
         buffer_(buffer, size) {}
   virtual ~Assembler() {}
   void UseInstructionSet(InstructionSet isa) {
@@ -89,6 +97,10 @@ class Assembler : public Instructions {
     first_condition_ = first_condition;
     it_mask_ = it_mask;
   }
+  void SetAllowAssembler(bool allow_assembler) {
+    allow_assembler_ = allow_assembler;
+  }
+  bool AllowAssembler() const { return allow_assembler_; }
   bool Is16BitEncoding(uint16_t instr) const {
     VIXL_ASSERT(IsUsingT32());
     return instr < 0xe800;
