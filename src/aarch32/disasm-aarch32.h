@@ -240,14 +240,6 @@ class Disassembler : public Instructions {
       os_ << list;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const RegisterListWithoutPC& list) {
-      os_ << list;
-      return *this;
-    }
-    virtual DisassemblerStream& operator<<(const RegisterListWithPC& list) {
-      os_ << list;
-      return *this;
-    }
     virtual DisassemblerStream& operator<<(const SRegisterList& list) {
       os_ << list;
       return *this;
