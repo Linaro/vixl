@@ -31,6 +31,7 @@ import subprocess
 import sys
 import time
 
+from known_test_failures import FilterKnownTestFailures
 import printer
 import util
 
@@ -122,6 +123,7 @@ def RunTests(test_runner_command, filters, runtime_options,
   global progress_prefix
 
   tests = GetTests(test_runner_command, filters)
+  tests = FilterKnownTestFailures(tests, under_valgrind=under_valgrind)
 
   if n_tests == 0:
     printer.Print('No tests to run.')
