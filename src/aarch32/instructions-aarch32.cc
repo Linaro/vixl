@@ -62,10 +62,6 @@ bool Shift::IsValidAmount(uint32_t amount) const {
 
 std::ostream& operator<<(std::ostream& os, const Register reg) {
   switch (reg.GetCode()) {
-    case 10:
-      return os << "sl";
-    case 11:
-      return os << "fp";
     case 12:
       return os << "ip";
     case 13:
