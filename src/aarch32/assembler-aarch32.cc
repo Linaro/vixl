@@ -14133,7 +14133,7 @@ void Assembler::vcge(
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xef000310U | ((encoded_dt.GetEncodingValue() & 0x3) << 20) |
                    ((encoded_dt.GetEncodingValue() & 0x4) << 26) |
-                   rd.Encode(22, 12) | rn.Encode(7, 16) | rm.Encode(5, 0));
+                   rd.Encode(22, 12) | rn.Encode(5, 0) | rm.Encode(7, 16));
         AdvanceIT();
         return;
       }
@@ -14180,7 +14180,7 @@ void Assembler::vcge(
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xef000350U | ((encoded_dt.GetEncodingValue() & 0x3) << 20) |
                    ((encoded_dt.GetEncodingValue() & 0x4) << 26) |
-                   rd.Encode(22, 12) | rn.Encode(7, 16) | rm.Encode(5, 0));
+                   rd.Encode(22, 12) | rn.Encode(5, 0) | rm.Encode(7, 16));
         AdvanceIT();
         return;
       }
@@ -14307,7 +14307,7 @@ void Assembler::vcgt(
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xef000300U | ((encoded_dt.GetEncodingValue() & 0x3) << 20) |
                    ((encoded_dt.GetEncodingValue() & 0x4) << 26) |
-                   rd.Encode(22, 12) | rn.Encode(7, 16) | rm.Encode(5, 0));
+                   rd.Encode(22, 12) | rn.Encode(5, 0) | rm.Encode(7, 16));
         AdvanceIT();
         return;
       }
@@ -14354,7 +14354,7 @@ void Assembler::vcgt(
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         EmitT32_32(0xef000340U | ((encoded_dt.GetEncodingValue() & 0x3) << 20) |
                    ((encoded_dt.GetEncodingValue() & 0x4) << 26) |
-                   rd.Encode(22, 12) | rn.Encode(7, 16) | rm.Encode(5, 0));
+                   rd.Encode(22, 12) | rn.Encode(5, 0) | rm.Encode(7, 16));
         AdvanceIT();
         return;
       }
@@ -14489,8 +14489,8 @@ void Assembler::vcle(
     // VCLE{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T2
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
-        EmitT32_32(0xff000e00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
-                   rm.Encode(5, 0));
+        EmitT32_32(0xff000e00U | rd.Encode(22, 12) | rn.Encode(5, 0) |
+                   rm.Encode(7, 16));
         AdvanceIT();
         return;
       }
@@ -14501,15 +14501,15 @@ void Assembler::vcle(
       if (cond.Is(al)) {
         EmitA32(0xf2000310U | ((encoded_dt.GetEncodingValue() & 0x3) << 20) |
                 ((encoded_dt.GetEncodingValue() & 0x4) << 22) |
-                rd.Encode(22, 12) | rn.Encode(7, 16) | rm.Encode(5, 0));
+                rd.Encode(22, 12) | rn.Encode(5, 0) | rm.Encode(7, 16));
         return;
       }
     }
     // VCLE{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; A2
     if (dt.Is(F32)) {
       if (cond.Is(al)) {
-        EmitA32(0xf3000e00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
-                rm.Encode(5, 0));
+        EmitA32(0xf3000e00U | rd.Encode(22, 12) | rn.Encode(5, 0) |
+                rm.Encode(7, 16));
         return;
       }
     }
@@ -14536,8 +14536,8 @@ void Assembler::vcle(
     // VCLE{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T2
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
-        EmitT32_32(0xff000e40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
-                   rm.Encode(5, 0));
+        EmitT32_32(0xff000e40U | rd.Encode(22, 12) | rn.Encode(5, 0) |
+                   rm.Encode(7, 16));
         AdvanceIT();
         return;
       }
@@ -14548,15 +14548,15 @@ void Assembler::vcle(
       if (cond.Is(al)) {
         EmitA32(0xf2000350U | ((encoded_dt.GetEncodingValue() & 0x3) << 20) |
                 ((encoded_dt.GetEncodingValue() & 0x4) << 22) |
-                rd.Encode(22, 12) | rn.Encode(7, 16) | rm.Encode(5, 0));
+                rd.Encode(22, 12) | rn.Encode(5, 0) | rm.Encode(7, 16));
         return;
       }
     }
     // VCLE{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; A2
     if (dt.Is(F32)) {
       if (cond.Is(al)) {
-        EmitA32(0xf3000e40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
-                rm.Encode(5, 0));
+        EmitA32(0xf3000e40U | rd.Encode(22, 12) | rn.Encode(5, 0) |
+                rm.Encode(7, 16));
         return;
       }
     }
@@ -14717,8 +14717,8 @@ void Assembler::vclt(
     // VCLT{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; T2
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
-        EmitT32_32(0xff200e00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
-                   rm.Encode(5, 0));
+        EmitT32_32(0xff200e00U | rd.Encode(22, 12) | rn.Encode(5, 0) |
+                   rm.Encode(7, 16));
         AdvanceIT();
         return;
       }
@@ -14729,15 +14729,15 @@ void Assembler::vclt(
       if (cond.Is(al)) {
         EmitA32(0xf2000300U | ((encoded_dt.GetEncodingValue() & 0x3) << 20) |
                 ((encoded_dt.GetEncodingValue() & 0x4) << 22) |
-                rd.Encode(22, 12) | rn.Encode(7, 16) | rm.Encode(5, 0));
+                rd.Encode(22, 12) | rn.Encode(5, 0) | rm.Encode(7, 16));
         return;
       }
     }
     // VCLT{<c>}{<q>}.F32 {<Dd>}, <Dn>, <Dm> ; A2
     if (dt.Is(F32)) {
       if (cond.Is(al)) {
-        EmitA32(0xf3200e00U | rd.Encode(22, 12) | rn.Encode(7, 16) |
-                rm.Encode(5, 0));
+        EmitA32(0xf3200e00U | rd.Encode(22, 12) | rn.Encode(5, 0) |
+                rm.Encode(7, 16));
         return;
       }
     }
@@ -14764,8 +14764,8 @@ void Assembler::vclt(
     // VCLT{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; T2
     if (dt.Is(F32)) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
-        EmitT32_32(0xff200e40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
-                   rm.Encode(5, 0));
+        EmitT32_32(0xff200e40U | rd.Encode(22, 12) | rn.Encode(5, 0) |
+                   rm.Encode(7, 16));
         AdvanceIT();
         return;
       }
@@ -14776,15 +14776,15 @@ void Assembler::vclt(
       if (cond.Is(al)) {
         EmitA32(0xf2000340U | ((encoded_dt.GetEncodingValue() & 0x3) << 20) |
                 ((encoded_dt.GetEncodingValue() & 0x4) << 22) |
-                rd.Encode(22, 12) | rn.Encode(7, 16) | rm.Encode(5, 0));
+                rd.Encode(22, 12) | rn.Encode(5, 0) | rm.Encode(7, 16));
         return;
       }
     }
     // VCLT{<c>}{<q>}.F32 {<Qd>}, <Qn>, <Qm> ; A2
     if (dt.Is(F32)) {
       if (cond.Is(al)) {
-        EmitA32(0xf3200e40U | rd.Encode(22, 12) | rn.Encode(7, 16) |
-                rm.Encode(5, 0));
+        EmitA32(0xf3200e40U | rd.Encode(22, 12) | rn.Encode(5, 0) |
+                rm.Encode(7, 16));
         return;
       }
     }
