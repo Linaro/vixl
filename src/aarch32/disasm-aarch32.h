@@ -2550,6 +2550,13 @@ class PrintDisassembler : public Disassembler {
          << "\t";
   }
 
+  const uint32_t* DecodeA32At(const uint32_t* instruction_address) {
+    DecodeA32(*instruction_address);
+    return instruction_address + 1;
+  }
+
+  // Returns the address of the next instruction.
+  const uint16_t* DecodeT32At(const uint16_t* instruction_address);
   void DecodeT32(uint32_t instruction);
   void DecodeA32(uint32_t instruction);
   void DisassembleA32Buffer(const uint32_t* buffer, uint32_t size_in_bytes);
