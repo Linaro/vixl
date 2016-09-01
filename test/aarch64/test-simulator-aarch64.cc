@@ -28,9 +28,11 @@
 #include <cstdio>
 
 #include "test-runner.h"
-#include "test-simulator-inputs-aarch64.h"
-#include "test-simulator-traces-aarch64.h"
-#include "test-utils-aarch64.h"
+#include "test-utils.h"
+
+#include "aarch64/test-simulator-inputs-aarch64.h"
+#include "aarch64/test-simulator-traces-aarch64.h"
+#include "aarch64/test-utils-aarch64.h"
 
 #include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/simulator-aarch64.h"
@@ -112,14 +114,9 @@ namespace aarch64 {
 
 #define RUN()                                                                  \
   {                                                                            \
-    byte* buffer_start = masm.GetStartAddress<byte*>();                        \
-    size_t buffer_length = masm.GetCursorOffset();                             \
-    void (*test_function)(void);                                               \
-                                                                               \
-    CPU::EnsureIAndDCacheCoherency(buffer_start, buffer_length);               \
-    VIXL_STATIC_ASSERT(sizeof(buffer_start) == sizeof(test_function));         \
-    memcpy(&test_function, &buffer_start, sizeof(buffer_start));               \
-    test_function();                                                           \
+    ExecutableMemory code(masm.GetCursorOffset());                             \
+    code.Write(masm.GetOffsetAddress<byte*>(0), masm.GetCursorOffset());       \
+    code.Execute();                                                            \
   }
 
 #define TEARDOWN()
