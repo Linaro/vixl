@@ -341,11 +341,6 @@ def BuildAll(build_options, jobs):
 
 def RunBenchmarks():
   rc = 0
-  benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch32_benchmarks)
-  for bench in benchmark_names:
-    rc |= RunCommand(
-      [os.path.realpath(
-          join(config.dir_build_latest, 'benchmarks/aarch32', bench))])
   benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch64_benchmarks)
   for bench in benchmark_names:
     rc |= RunCommand(

@@ -174,8 +174,7 @@ def Find(path, filters = ['*']):
 
 def GetCppSourceFilesToFormat():
   sources = []
-  source_dirs = [config.dir_aarch32_benchmarks,
-                 config.dir_aarch32_examples,
+  source_dirs = [config.dir_aarch32_examples,
                  config.dir_aarch64_benchmarks,
                  config.dir_aarch64_examples,
                  config.dir_src_vixl ]

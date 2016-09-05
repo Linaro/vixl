@@ -24,7 +24,6 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <sys/time.h>
 #include "globals-vixl.h"
 
 #include "aarch64/instructions-aarch64.h"
@@ -59,8 +58,6 @@ int main(int argc, char* argv[]) {
   const int max_buffer_iterations =
       buffer_size / (instructions_per_iteration * kInstructionSize);
 
-  timeval start;
-  gettimeofday(&start, NULL);
   MacroAssembler masm(buffer_size);
 
 #define __ masm.
@@ -78,12 +75,6 @@ int main(int argc, char* argv[]) {
   }
 
   masm.FinalizeCode();
-
-  timeval end;
-  gettimeofday(&end, NULL);
-  double delta = (end.tv_sec - start.tv_sec) +
-                 static_cast<double>(end.tv_usec - start.tv_usec) / 1000000;
-  printf("A64: time for %d iterations: %gs\n", iterations, delta);
 
   return 0;
 }
