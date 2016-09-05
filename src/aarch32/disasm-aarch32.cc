@@ -67288,7 +67288,8 @@ void Disassembler::DecodeA32(uint32_t instr) {
 }  // NOLINT(readability/fn_size)
 // End of generated code.
 
-const uint16_t* PrintDisassembler::DecodeT32At(const uint16_t* instruction_address) {
+const uint16_t* PrintDisassembler::DecodeT32At(
+    const uint16_t* instruction_address) {
   uint32_t instruction = *instruction_address++ << 16;
 
   if (instruction >= kLowestT32_32Opcode) {
