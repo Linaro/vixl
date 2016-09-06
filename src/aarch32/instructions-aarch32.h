@@ -626,7 +626,7 @@ class SRegisterList {
   }
   const SRegister& GetFirstSRegister() const { return first_; }
   const SRegister GetLastSRegister() const {
-    return SRegister(first_.GetCode() + length_ - 1);
+    return SRegister((first_.GetCode() + length_ - 1) % kNumberOfSRegisters);
   }
   int GetLength() const { return length_; }
 };
@@ -645,7 +645,7 @@ class DRegisterList {
   }
   const DRegister& GetFirstDRegister() const { return first_; }
   const DRegister GetLastDRegister() const {
-    return DRegister(first_.GetCode() + length_ - 1);
+    return DRegister((first_.GetCode() + length_ - 1) % kMaxNumberOfDRegisters);
   }
   int GetLength() const { return length_; }
 };
