@@ -3334,7 +3334,7 @@ void Assembler::mov(const VRegister& vd, int vd_index, const Register& rn) {
 
 
 void Assembler::umov(const Register& rd, const VRegister& vn, int vn_index) {
-  // We support vd arguments of the form vd.VxT() or vd.T(), where x is the
+  // We support vn arguments of the form vn.VxT() or vn.T(), where x is the
   // number of lanes, and T is b, h, s or d.
   int lane_size = vn.GetLaneSizeInBytes();
   NEONFormatField format;
@@ -3374,7 +3374,7 @@ void Assembler::mov(const Register& rd, const VRegister& vn, int vn_index) {
 
 
 void Assembler::smov(const Register& rd, const VRegister& vn, int vn_index) {
-  // We support vd arguments of the form vd.VxT() or vd.T(), where x is the
+  // We support vn arguments of the form vn.VxT() or vn.T(), where x is the
   // number of lanes, and T is b, h, s.
   int lane_size = vn.GetLaneSizeInBytes();
   NEONFormatField format;
