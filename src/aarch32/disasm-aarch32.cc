@@ -9547,7 +9547,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               (BitCount(((Uint32((instr >> 14)) & Uint32(0x1))
                                          << 13) |
                                         (Uint32(instr) & Uint32(0x1fff))) >
-                               1)) {
+                               Int64(1))) {
                             RegisterList registers(
                                 (((instr >> 14) & 0x1) << kLRRegNum) |
                                 (instr & 0x1fff));
@@ -9662,7 +9662,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                         ((Uint32((instr >> 14)) & Uint32(0x1))
                                          << 13) |
                                         (Uint32(instr) & Uint32(0x1fff))) >
-                               1)) {
+                               Int64(1))) {
                             RegisterList registers(
                                 (((instr >> 15) & 0x1) << kPCRegNum) |
                                 (((instr >> 14) & 0x1) << kLRRegNum) |
@@ -64524,7 +64524,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                 if (((Uint32((instr >> 21)) & Uint32(0x1)) == Uint32(0x1)) &&
                     ((Uint32((instr >> 16)) & Uint32(0xf)) == Uint32(0xd)) &&
                     ((instr & 0xf0000000) != 0xf0000000) &&
-                    (BitCount((Uint32(instr) & Uint32(0xffff))) > 1)) {
+                    (BitCount((Uint32(instr) & Uint32(0xffff))) > Int64(1))) {
                   Condition condition((instr >> 28) & 0xf);
                   RegisterList registers((instr & 0xffff));
                   // PUSH{<c>}{<q>} <registers> ; A1
@@ -64582,7 +64582,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                 if (((Uint32((instr >> 21)) & Uint32(0x1)) == Uint32(0x1)) &&
                     ((Uint32((instr >> 16)) & Uint32(0xf)) == Uint32(0xd)) &&
                     ((instr & 0xf0000000) != 0xf0000000) &&
-                    (BitCount((Uint32(instr) & Uint32(0xffff))) > 1)) {
+                    (BitCount((Uint32(instr) & Uint32(0xffff))) > Int64(1))) {
                   Condition condition((instr >> 28) & 0xf);
                   RegisterList registers((instr & 0xffff));
                   // POP{<c>}{<q>} <registers> ; A1
