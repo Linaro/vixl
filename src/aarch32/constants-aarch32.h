@@ -28,6 +28,10 @@
 #ifndef VIXL_CONSTANTS_AARCH32_H_
 #define VIXL_CONSTANTS_AARCH32_H_
 
+extern "C" {
+#include <stdint.h>
+}
+
 namespace vixl {
 namespace aarch32 {
 

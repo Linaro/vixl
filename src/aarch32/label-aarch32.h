@@ -31,9 +31,12 @@ extern "C" {
 #include <stdint.h>
 }
 
+#include <algorithm>
 #include <cstddef>
 #include <iomanip>
 #include <list>
+
+#include "utils-vixl.h"
 
 namespace vixl {
 namespace aarch32 {

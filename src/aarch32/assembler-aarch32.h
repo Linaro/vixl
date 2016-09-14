@@ -28,6 +28,8 @@
 #define VIXL_AARCH32_ASSEMBLER_AARCH32_H_
 
 #include "code-buffer-vixl.h"
+
+#include "aarch32/instructions-aarch32.h"
 #include "aarch32/label-aarch32.h"
 
 namespace vixl {

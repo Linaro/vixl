@@ -27,6 +27,11 @@
 #ifndef VIXL_DISASM_AARCH32_H_
 #define VIXL_DISASM_AARCH32_H_
 
+extern "C" {
+#include <stdint.h>
+}
+
+#include "aarch32/constants-aarch32.h"
 #include "aarch32/label-aarch32.h"
 #include "aarch32/operand-aarch32.h"
 
