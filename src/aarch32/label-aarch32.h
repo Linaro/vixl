@@ -94,7 +94,7 @@ class Label {
   }
 
   Offset GetNextCheckpoint() {
-    if (!forward_.empty()) {
+    if (IsReferenced()) {
       ForwardRefList::iterator min_checkpoint =
           std::min_element(forward_.begin(),
                            forward_.end(),
@@ -123,6 +123,7 @@ class Label {
         checkpoint_(kMaxOffset) {}
   ~Label() {}
   bool IsBound() const { return is_bound_; }
+  bool IsReferenced() const { return !forward_.empty(); }
   void Bind(Offset offset, bool isT32) {
     VIXL_ASSERT(!IsBound());
     imm_offset_ = offset;
@@ -165,7 +166,7 @@ class Label {
   ForwardReference& GetBackForwardRef() { return forward_.back(); }
 
   Offset GetLastInsertForwardDistance() const {
-    if (!forward_.empty()) {
+    if (IsReferenced()) {
       return forward_.back().GetMaxForwardDistance();
     }
     return kMaxOffset;
@@ -182,7 +183,7 @@ class Label {
   void InvalidateLastForwardReference(
       UpdateCheckpointOption update_checkpoint = kRecomputeCheckpoint) {
     if (!IsBound()) {
-      VIXL_ASSERT(!forward_.empty());
+      VIXL_ASSERT(IsReferenced());
       forward_.pop_back();
     }
     VIXL_ASSERT((update_checkpoint == kNoUpdateNecessary) &&
@@ -200,7 +201,7 @@ class Label {
   // The last forward reference is assumed to be the one freshly
   // added regarding this literal.
   void UpdateCheckpoint() {
-    if (!forward_.empty()) {
+    if (IsReferenced()) {
       const ForwardReference& ref = forward_.back();
       checkpoint_ = std::min(checkpoint_, ref.GetCheckpoint());
     }
