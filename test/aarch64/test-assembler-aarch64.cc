@@ -22312,5 +22312,26 @@ TEST(runtime_calls) {
 #endif  // #ifdef VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT
 
 
+TEST(optimised_mov_register) {
+  SETUP();
+
+  START();
+  Label start;
+  __ Bind(&start);
+  __ Mov(x0, x0);
+  VIXL_CHECK(__ GetSizeOfCodeGeneratedSince(&start) == 0);
+  __ Mov(w0, w0, kDiscardForSameWReg);
+  VIXL_CHECK(__ GetSizeOfCodeGeneratedSince(&start) == 0);
+  __ Mov(w0, w0);
+  VIXL_CHECK(__ GetSizeOfCodeGeneratedSince(&start) == kInstructionSize);
+
+  END();
+
+  RUN();
+
+  TEARDOWN();
+}
+
+
 }  // namespace aarch64
 }  // namespace vixl

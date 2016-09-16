@@ -1636,10 +1636,24 @@ class MacroAssembler : public Assembler {
     SingleEmissionCheckScope guard(this);
     mneg(rd, rn, rm);
   }
-  void Mov(const Register& rd, const Register& rn) {
+  void Mov(const Register& rd,
+           const Register& rn,
+           DiscardMoveMode discard_mode = kDontDiscardForSameWReg) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    mov(rd, rn);
+    // Emit a register move only if the registers are distinct, or if they are
+    // not X registers.
+    //
+    // Note that mov(w0, w0) is not a no-op because it clears the top word of
+    // x0. A flag is provided (kDiscardForSameWReg) if a move between the same W
+    // registers is not required to clear the top word of the X register. In
+    // this case, the instruction is discarded.
+    //
+    // If the sp is an operand, add #0 is emitted, otherwise, orr #0.
+    if (!rd.Is(rn) ||
+        (rd.Is32Bits() && (discard_mode == kDontDiscardForSameWReg))) {
+      SingleEmissionCheckScope guard(this);
+      mov(rd, rn);
+    }
   }
   void Movk(const Register& rd, uint64_t imm, int shift = -1) {
     VIXL_ASSERT(allow_macro_instructions_);
