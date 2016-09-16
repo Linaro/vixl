@@ -4,7 +4,10 @@ This design document describes the way that the Assembler and MacroAssembler
 generate code. This has wide implications, including buffer management,
 instruction-precise generation and related control over code generation.
 
-TODO: Not all of this document is implemented yet.
+**NOTE**: This document describes design decisions, but the code does not
+implement or match everything that is described in this document.
+TODO: Work on the code to achieve what is expressed in this document, and update
+the documentation.
 
 ## Basic Use-Cases
 
