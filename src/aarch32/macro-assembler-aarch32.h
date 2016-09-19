@@ -1451,13 +1451,6 @@ class MacroAssembler : public Assembler {
   }
   void Isb(MemoryBarrier option) { Isb(al, option); }
 
-  void It(Condition cond, uint16_t mask) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
-    it(cond, mask);
-  }
-
   void Lda(Condition cond, Register rt, const MemOperand& operand) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
