@@ -381,14 +381,14 @@ inline std::ostream& operator<<(std::ostream& os, const QRegister reg) {
 }
 
 // clang-format off
-#define REGISTER_CODE_LIST(R)                                                  \
+#define AARCH32_REGISTER_CODE_LIST(R)                                          \
   R(0)  R(1)  R(2)  R(3)  R(4)  R(5)  R(6)  R(7)                               \
   R(8)  R(9)  R(10) R(11) R(12) R(13) R(14) R(15)
 // clang-format on
 #define DEFINE_REGISTER(N) const Register r##N(N);
-REGISTER_CODE_LIST(DEFINE_REGISTER)
+AARCH32_REGISTER_CODE_LIST(DEFINE_REGISTER)
 #undef DEFINE_REGISTER
-#undef REGISTER_CODE_LIST
+#undef AARCH32_REGISTER_CODE_LIST
 
 enum RegNum { kIPRegNum = 12, kSPRegNum = 13, kLRRegNum = 14, kPCRegNum = 15 };
 

@@ -412,7 +412,7 @@ const CPURegister NoCPUReg;
 #define DEFINE_REGISTERS(N)          \
   const Register w##N(N, kWRegSize); \
   const Register x##N(N, kXRegSize);
-REGISTER_CODE_LIST(DEFINE_REGISTERS)
+AARCH64_REGISTER_CODE_LIST(DEFINE_REGISTERS)
 #undef DEFINE_REGISTERS
 const Register wsp(kSPRegInternalCode, kWRegSize);
 const Register sp(kSPRegInternalCode, kXRegSize);
@@ -425,7 +425,7 @@ const Register sp(kSPRegInternalCode, kXRegSize);
   const VRegister d##N(N, kDRegSize); \
   const VRegister q##N(N, kQRegSize); \
   const VRegister v##N(N, kQRegSize);
-REGISTER_CODE_LIST(DEFINE_VREGISTERS)
+AARCH64_REGISTER_CODE_LIST(DEFINE_VREGISTERS)
 #undef DEFINE_VREGISTERS
 
 

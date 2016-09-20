@@ -152,35 +152,35 @@ const CPURegList kCallerSavedV = CPURegList::GetCallerSavedV();
 
 // Registers.
 #define WREG(n) w##n,
-const Register Register::wregisters[] = {REGISTER_CODE_LIST(WREG)};
+const Register Register::wregisters[] = {AARCH64_REGISTER_CODE_LIST(WREG)};
 #undef WREG
 
 #define XREG(n) x##n,
-const Register Register::xregisters[] = {REGISTER_CODE_LIST(XREG)};
+const Register Register::xregisters[] = {AARCH64_REGISTER_CODE_LIST(XREG)};
 #undef XREG
 
 #define BREG(n) b##n,
-const VRegister VRegister::bregisters[] = {REGISTER_CODE_LIST(BREG)};
+const VRegister VRegister::bregisters[] = {AARCH64_REGISTER_CODE_LIST(BREG)};
 #undef BREG
 
 #define HREG(n) h##n,
-const VRegister VRegister::hregisters[] = {REGISTER_CODE_LIST(HREG)};
+const VRegister VRegister::hregisters[] = {AARCH64_REGISTER_CODE_LIST(HREG)};
 #undef HREG
 
 #define SREG(n) s##n,
-const VRegister VRegister::sregisters[] = {REGISTER_CODE_LIST(SREG)};
+const VRegister VRegister::sregisters[] = {AARCH64_REGISTER_CODE_LIST(SREG)};
 #undef SREG
 
 #define DREG(n) d##n,
-const VRegister VRegister::dregisters[] = {REGISTER_CODE_LIST(DREG)};
+const VRegister VRegister::dregisters[] = {AARCH64_REGISTER_CODE_LIST(DREG)};
 #undef DREG
 
 #define QREG(n) q##n,
-const VRegister VRegister::qregisters[] = {REGISTER_CODE_LIST(QREG)};
+const VRegister VRegister::qregisters[] = {AARCH64_REGISTER_CODE_LIST(QREG)};
 #undef QREG
 
 #define VREG(n) v##n,
-const VRegister VRegister::vregisters[] = {REGISTER_CODE_LIST(VREG)};
+const VRegister VRegister::vregisters[] = {AARCH64_REGISTER_CODE_LIST(VREG)};
 #undef VREG
 
 
