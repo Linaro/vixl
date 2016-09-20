@@ -385,16 +385,23 @@ class Disassembler {
 
   ITBlock it_block_;
   DisassemblerStream* os_;
+  bool owns_os_;
   uint32_t pc_;
 
  public:
   explicit Disassembler(std::ostream& os, uint32_t pc = 0)  // NOLINT
       : os_(new DisassemblerStream(os)),
+        owns_os_(true),
         pc_(pc) {}
   explicit Disassembler(DisassemblerStream* os, uint32_t pc = 0)  // NOLINT
       : os_(os),
+        owns_os_(false),
         pc_(pc) {}
-  virtual ~Disassembler() { delete os_; }
+  virtual ~Disassembler() {
+    if (owns_os_) {
+      delete os_;
+    }
+  }
   DisassemblerStream& os() const { return *os_; }
   void SetIT(Condition first_condition, uint16_t it_mask) {
     it_block_.Set(first_condition, it_mask);
