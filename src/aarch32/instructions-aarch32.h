@@ -1369,13 +1369,6 @@ class Literal<const char*> : public RawLiteral {
       : RawLiteral(str, strlen(str) + 1, deletion_policy) {}
 };
 
-class Instructions {
- public:
-  Instructions() {}
-  // Start of generated code.
-  // End of generated code.
-};
-
 }  // namespace aarch32
 }  // namespace vixl
 

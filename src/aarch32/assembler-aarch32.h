@@ -35,7 +35,7 @@
 namespace vixl {
 namespace aarch32 {
 
-class Assembler : public Instructions {
+class Assembler {
   InstructionSet isa_;
   Condition first_condition_;
   uint16_t it_mask_;

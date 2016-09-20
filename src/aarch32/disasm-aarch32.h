@@ -63,7 +63,7 @@ class ITBlock {
   Condition GetCurrentCondition() const { return condition_; }
 };
 
-class Disassembler : public Instructions {
+class Disassembler {
  public:
   enum LocationType {
     kAnyLocation,
