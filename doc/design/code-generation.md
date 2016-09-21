@@ -67,17 +67,18 @@ deprecated, and a few have been given more flexibility.
 Each scope utility will behave in the same way for VIXL64 as for VIXL32, even if
 the implementations differ.
 
-### `CodeBufferCheckScope(Assembler * assm, ...)`
+### `CodeBufferCheckScope(Assembler* assm, size_t size, ...)`
 
-- Acquire the CodeBuffer, so that the Assembler can be used.
-- Optionally reserve space in the CodeBuffer (if it is managed by VIXL).
-- Optionally, on destruction, check the size of the generated code. (The size
-  can be either exact or a maximum size.)
+- Acquire the CodeBuffer.
+- Allow code emission from the specified `Assembler`.
+- Optionally reserve space in the `CodeBuffer` (if it is managed by VIXL).
+- Optionally, on destruction, check the size of the generated code.
+  (The size can be either exact or a maximum size.)
 
 This scope exists so that callers can use an Assembler by itself, without even
 instantiating a MacroAssembler.
 
-### `CodeBufferCheckScope(MacroAssembler * masm, ...)`
+### `CodeBufferCheckScope(MacroAssembler* masm, ...)`
 
 - DEPRECATED
 
@@ -95,35 +96,30 @@ EmissionCheckScope, which allows the Assembler and MacroAssembler to be mixed,
 but also blocks pools and therefore avoids the problems that
 `CodeBufferCheckScope` has.
 
-### `ExactAssemblyScope(MacroAssembler * masm, ...)`
+### `EmissionCheckScope(MacroAssembler* masm, size_t size, AssertPolicy ...)`
 
-- Acquire the CodeBuffer, so that the Assembler can be used.
-- Block access to the MacroAssembler (using run-time assertions).
-- Optionally reserve space in the CodeBuffer (if it is managed by VIXL).
-- Dump pools if the specified size would push them out of range.
-- Optionally, on destruction, check the size of the generated code. (The size
-  can be either exact or a maximum size.)
+- Do the same as `CodeBufferCheckSCope`, but:
+  - If managed by VIXL, always reserve space in the `CodeBuffer`.
+  - Always check the (exact or maximum) size of the generated code on
+    destruction.
+- Emit pools if the specified size would push them out of range.
+- Block pools emission for the duration of the scope.
 
-Compared to existing VIXL64, this adds quite a bit of flexibility. This scope
-basically means "take away the MacroAssembler features, and let me use the
-Assembler".
-
-This replaces VIXL64's InstructionAccurateScope.
-
-### `EmissionCheckScope(MacroAssembler * masm, ...)` (and variants)
-
-- `MacroAssembler::EnsureEmitFor`
-  - Reserve space in the CodeBuffer (if it is managed by VIXL).
-  - Dump pools if the specified size would push them out of range.
-- Acquire the CodeBuffer, so that the Assembler can be used.
-- Explicitly block literal pools. (This probably isn't necessary after
-  `EnsureEmitFor`, but it doesn't hurt.)
-- On destruction, check the (maximum) size of the generated code.
-
-This scope allows the Assembler and MacroAssembler to be freely and safely mixed
-for its duration.
+This scope allows the `Assembler` and `MacroAssembler` to be freely and safely
+mixed for its duration.
 
 The MacroAssembler uses this to implement its own macros.
+
+### `ExactAssemblyScope(MacroAssembler* masm, ...)`
+
+- Do the same as `EmissionCheckScope`.
+- Block access to the MacroAssembler (using run-time assertions).
+
+This scope allows safely generating exact assembly code. Compared to
+`CodeBufferCheckScope`, it disables the `MacroAssembler`, and guarantees that
+no pools will be emitted during code generation.
+
+This replaces VIXL64's InstructionAccurateScope.
 
 ### `BlockPoolsScope` (and variants)
 
@@ -190,7 +186,7 @@ use the Assembler after using this utility alone.
 
 ### Basic Usage
 
-    void fn(MacroAssembler * masm) {
+    void fn(MacroAssembler* masm) {
       // - Uses delegates if necessary.
       // - Arbitrary length (including 0, potentially).
       // - Can automatically reserve space in the code buffer.
@@ -198,7 +194,7 @@ use the Assembler after using this utility alone.
       masm->Add(...);
     }
 
-    void fn(MacroAssembler * masm) {
+    void fn(MacroAssembler* masm) {
       // - No delegates allowed.
       //   - If a delegate is called, it should crash even in release mode.
       //     (This helps to avoid security bugs derived from data-dependent code
@@ -213,7 +209,7 @@ use the Assembler after using this utility alone.
       masm->add(...);
     }
 
-    void fn(Assembler * assm) {
+    void fn(Assembler* assm) {
       // Identical to the MacroAssembler::add example, except that we must use
       // CodeBufferCheckScope to acquire the buffer.
       CodeBufferCheckScope(assm, ...);
@@ -242,7 +238,7 @@ use the Assembler after using this utility alone.
 
 ### Patchable Regions: Precise Code Generation
 
-    void fn(MacroAssembler * masm) {
+    void fn(MacroAssembler* masm) {
       __ Add(...);
       __ Add(...);
       __ Add(...);
