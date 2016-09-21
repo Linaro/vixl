@@ -1778,5 +1778,78 @@ TEST(set_isa_noop) {
 }
 
 
+TEST(logical_arithmetic_identities) {
+  SETUP();
+
+  START();
+
+  Label blob_1;
+  __ Bind(&blob_1);
+  __ Add(r0, r0, 0);
+  __ And(r0, r0, 0xffffffff);
+  __ Bic(r0, r0, 0);
+  __ Eor(r0, r0, 0);
+  __ Orn(r0, r0, 0xffffffff);
+  __ Orr(r0, r0, 0);
+  __ Sub(r0, r0, 0);
+  VIXL_ASSERT(masm.GetSizeOfCodeGeneratedSince(&blob_1) == 0);
+
+  Label blob_2;
+  __ Bind(&blob_2);
+  __ Adds(r0, r0, 0);
+  VIXL_ASSERT(masm.GetSizeOfCodeGeneratedSince(&blob_2) != 0);
+
+  Label blob_3;
+  __ Bind(&blob_3);
+  __ Ands(r0, r0, 0);
+  VIXL_ASSERT(masm.GetSizeOfCodeGeneratedSince(&blob_3) != 0);
+
+  Label blob_4;
+  __ Bind(&blob_4);
+  __ Bics(r0, r0, 0);
+  VIXL_ASSERT(masm.GetSizeOfCodeGeneratedSince(&blob_4) != 0);
+
+  Label blob_5;
+  __ Bind(&blob_5);
+  __ Eors(r0, r0, 0);
+  VIXL_ASSERT(masm.GetSizeOfCodeGeneratedSince(&blob_5) != 0);
+
+  Label blob_6;
+  __ Bind(&blob_6);
+  __ Orns(r0, r0, 0);
+  VIXL_ASSERT(masm.GetSizeOfCodeGeneratedSince(&blob_6) != 0);
+
+  Label blob_7;
+  __ Bind(&blob_7);
+  __ Orrs(r0, r0, 0);
+  VIXL_ASSERT(masm.GetSizeOfCodeGeneratedSince(&blob_7) != 0);
+
+  Label blob_8;
+  __ Bind(&blob_8);
+  __ Subs(r0, r0, 0);
+  VIXL_ASSERT(masm.GetSizeOfCodeGeneratedSince(&blob_8) != 0);
+
+  __ Mov(r0, 0xbad);
+  __ And(r1, r0, 0);
+  __ Bic(r2, r0, 0xffffffff);
+  __ Eor(r3, r0, 0xffffffff);
+  __ Orn(r4, r0, 0);
+  __ Orr(r5, r0, 0xffffffff);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0xbad, r0);
+  ASSERT_EQUAL_32(0, r1);
+  ASSERT_EQUAL_32(0, r2);
+  ASSERT_EQUAL_32(~0xbad, r3);
+  ASSERT_EQUAL_32(0, r4);
+  ASSERT_EQUAL_32(0, r5);
+
+  TEARDOWN();
+}
+
+
 }  // namespace aarch32
 }  // namespace vixl

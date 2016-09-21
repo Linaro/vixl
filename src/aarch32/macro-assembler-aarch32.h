@@ -809,6 +809,12 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
+    if (cond.Is(al) && rd.Is(rn) && operand.IsImmediate()) {
+      uint32_t immediate = operand.GetImmediate();
+      if (immediate == 0) {
+        return;
+      }
+    }
     bool can_use_it =
         // ADD<c>{<q>} <Rd>, <Rn>, #<imm3> ; T1
         (operand.IsImmediate() && (operand.GetImmediate() <= 7) && rn.IsLow() &&
@@ -907,6 +913,16 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
+    if (cond.Is(al) && rd.Is(rn) && operand.IsImmediate()) {
+      uint32_t immediate = operand.GetImmediate();
+      if (immediate == 0) {
+        mov(rd, 0);
+        return;
+      }
+      if (immediate == 0xffffffff) {
+        return;
+      }
+    }
     bool can_use_it =
         // AND<c>{<q>} {<Rdn>,} <Rdn>, <Rm> ; T1
         operand.IsPlainRegister() && rd.Is(rn) && rn.IsLow() &&
@@ -1057,6 +1073,16 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
+    if (cond.Is(al) && rd.Is(rn) && operand.IsImmediate()) {
+      uint32_t immediate = operand.GetImmediate();
+      if (immediate == 0) {
+        return;
+      }
+      if (immediate == 0xffffffff) {
+        mov(rd, 0);
+        return;
+      }
+    }
     bool can_use_it =
         // BIC<c>{<q>} {<Rdn>,} <Rdn>, <Rm> ; T1
         operand.IsPlainRegister() && rd.Is(rn) && rn.IsLow() &&
@@ -1316,6 +1342,16 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
+    if (cond.Is(al) && rd.Is(rn) && operand.IsImmediate()) {
+      uint32_t immediate = operand.GetImmediate();
+      if (immediate == 0) {
+        return;
+      }
+      if (immediate == 0xffffffff) {
+        mvn(rd, rn);
+        return;
+      }
+    }
     bool can_use_it =
         // EOR<c>{<q>} {<Rdn>,} <Rdn>, <Rm> ; T1
         operand.IsPlainRegister() && rd.Is(rn) && rn.IsLow() &&
@@ -1450,6 +1486,7 @@ class MacroAssembler : public Assembler {
     isb(cond, option);
   }
   void Isb(MemoryBarrier option) { Isb(al, option); }
+
 
   void Lda(Condition cond, Register rt, const MemOperand& operand) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -2244,6 +2281,16 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
+    if (cond.Is(al) && rd.Is(rn) && operand.IsImmediate()) {
+      uint32_t immediate = operand.GetImmediate();
+      if (immediate == 0) {
+        mov(rd, 0xffffffff);
+        return;
+      }
+      if (immediate == 0xffffffff) {
+        return;
+      }
+    }
     ITScope it_scope(this, &cond);
     orn(cond, rd, rn, operand);
   }
@@ -2289,6 +2336,16 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
+    if (cond.Is(al) && rd.Is(rn) && operand.IsImmediate()) {
+      uint32_t immediate = operand.GetImmediate();
+      if (immediate == 0) {
+        return;
+      }
+      if (immediate == 0xffffffff) {
+        mov(rd, 0xffffffff);
+        return;
+      }
+    }
     bool can_use_it =
         // ORR<c>{<q>} {<Rdn>,} <Rdn>, <Rm> ; T1
         operand.IsPlainRegister() && rd.Is(rn) && rn.IsLow() &&
@@ -3767,6 +3824,12 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
+    if (cond.Is(al) && rd.Is(rn) && operand.IsImmediate()) {
+      uint32_t immediate = operand.GetImmediate();
+      if (immediate == 0) {
+        return;
+      }
+    }
     bool can_use_it =
         // SUB<c>{<q>} <Rd>, <Rn>, #<imm3> ; T1
         (operand.IsImmediate() && (operand.GetImmediate() <= 7) && rn.IsLow() &&
