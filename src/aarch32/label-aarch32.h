@@ -133,6 +133,7 @@ class Label {
     is_bound_ = true;
     is_t32_ = isT32;
   }
+  uint32_t GetPcOffset() const { return pc_offset_; }
   Offset GetLocation() const {
     VIXL_ASSERT(IsBound());
     return imm_offset_ + static_cast<Offset>(pc_offset_);
