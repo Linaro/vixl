@@ -69,8 +69,8 @@
     masm.ASM;                                                                  \
   }                                                                            \
   masm.FinalizeCode();                                                         \
-  decoder.Decode(masm.GetStartAddress<Instruction*>());                        \
-  encoding = *masm.GetStartAddress<uint32_t*>();                               \
+  decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>());           \
+  encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>();                  \
   if (strcmp(disasm.GetOutput(), EXP) != 0) {                                  \
     printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",          \
            encoding, EXP, disasm.GetOutput());                                 \
@@ -87,8 +87,8 @@
     masm.ASM;                                                                  \
   }                                                                            \
   masm.FinalizeCode();                                                         \
-  decoder.Decode(masm.GetStartAddress<Instruction*>());                        \
-  encoding = *masm.GetStartAddress<uint32_t*>();                               \
+  decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>());           \
+  encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>();                  \
   if (strncmp(disasm.GetOutput(), EXP, strlen(EXP)) != 0) {                    \
     printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",          \
            encoding, EXP, disasm.GetOutput());                                 \
@@ -104,13 +104,13 @@
   masm.FinalizeCode();                                                         \
   std::string res;                                                             \
                                                                                \
-  Instruction* instruction = masm.GetOffsetAddress<Instruction*>(0);           \
-  Instruction* end = masm.GetOffsetAddress<Instruction*>(                      \
-      masm.GetSizeOfCodeGenerated());                                          \
+  Instruction* instruction =                                                   \
+      masm.GetBuffer()->GetStartAddress<Instruction*>();                       \
+  Instruction* end = masm.GetCursorAddress<Instruction*>();                    \
   while (instruction != end) {                                                 \
     decoder.Decode(instruction);                                               \
     res.append(disasm.GetOutput());                                            \
-    if (Test::disassemble()) {                                                   \
+    if (Test::disassemble()) {                                                 \
       encoding = *reinterpret_cast<uint32_t*>(instruction);                    \
       printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());             \
     }                                                                          \
@@ -5936,7 +5936,7 @@ TEST(address_map) {
   // Check that we can disassemble from a fake base address.
   SETUP();
 
-  disasm.MapCodeAddress(0, masm.GetStartAddress<Instruction*>());
+  disasm.MapCodeAddress(0, masm.GetBuffer()->GetStartAddress<Instruction*>());
   COMPARE(ldr(x0, INT64_C(0)), "ldr x0, pc+0 (addr 0x0)");
   COMPARE(ldr(x0, -1), "ldr x0, pc-4 (addr -0x4)");
   COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x4)");
@@ -5953,7 +5953,8 @@ TEST(address_map) {
   COMPARE(b(-1), "b #-0x4 (addr -0x4)");
   COMPARE(b(1), "b #+0x4 (addr 0x4)");
 
-  disasm.MapCodeAddress(0x1234, masm.GetStartAddress<Instruction*>());
+  disasm.MapCodeAddress(0x1234,
+                        masm.GetBuffer()->GetStartAddress<Instruction*>());
   COMPARE(ldr(x0, INT64_C(0)), "ldr x0, pc+0 (addr 0x1234)");
   COMPARE(ldr(x0, -1), "ldr x0, pc-4 (addr 0x1230)");
   COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x1238)");
@@ -5972,11 +5973,12 @@ TEST(address_map) {
 
   // Check that 64-bit addresses work.
   disasm.MapCodeAddress(UINT64_C(0x100000000),
-                        masm.GetStartAddress<Instruction*>());
+                        masm.GetBuffer()->GetStartAddress<Instruction*>());
   COMPARE(ldr(x0, INT64_C(0)), "ldr x0, pc+0 (addr 0x100000000)");
   COMPARE(ldr(x0, -1), "ldr x0, pc-4 (addr 0xfffffffc)");
   COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x100000004)");
-  COMPARE(prfm(PLIL1KEEP, INT64_C(0)), "prfm plil1keep, pc+0 (addr 0x100000000)");
+  COMPARE(prfm(PLIL1KEEP, INT64_C(0)),
+          "prfm plil1keep, pc+0 (addr 0x100000000)");
   COMPARE(prfm(PLIL1KEEP, -1), "prfm plil1keep, pc-4 (addr 0xfffffffc)");
   COMPARE(prfm(PLIL1KEEP, 1), "prfm plil1keep, pc+4 (addr 0x100000004)");
   COMPARE(adr(x0, INT64_C(0)), "adr x0, #+0x0 (addr 0x100000000)");
@@ -5989,7 +5991,8 @@ TEST(address_map) {
   COMPARE(b(-1), "b #-0x4 (addr 0xfffffffc)");
   COMPARE(b(1), "b #+0x4 (addr 0x100000004)");
 
-  disasm.MapCodeAddress(0xfffffffc, masm.GetStartAddress<Instruction*>());
+  disasm.MapCodeAddress(0xfffffffc,
+                        masm.GetBuffer()->GetStartAddress<Instruction*>());
   COMPARE(ldr(x0, 1), "ldr x0, pc+4 (addr 0x100000000)");
   COMPARE(prfm(PLIL1KEEP, 1), "prfm plil1keep, pc+4 (addr 0x100000000)");
   COMPARE(b(1), "b #+0x4 (addr 0x100000000)");
@@ -5999,7 +6002,7 @@ TEST(address_map) {
   // Check that very large offsets are handled properly. This detects misuse of
   // the host's ptrdiff_t type when run on a 32-bit host. Only adrp is capable
   // of encoding such offsets.
-  disasm.MapCodeAddress(0, masm.GetStartAddress<Instruction*>());
+  disasm.MapCodeAddress(0, masm.GetBuffer()->GetStartAddress<Instruction*>());
   COMPARE(adrp(x0, 0x000fffff), "adrp x0, #+0xfffff000 (addr 0xfffff000)");
   COMPARE(adrp(x0, -0x00100000), "adrp x0, #-0x100000000 (addr -0x100000000)");
 

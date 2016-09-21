@@ -422,15 +422,6 @@ class Assembler : public internal::AssemblerBase {
   // and data that has already been emitted into the buffer.
   void Reset();
 
-  // Finalize a code buffer of generated instructions. This function must be
-  // called before executing or copying code from the buffer.
-  void FinalizeCode();
-
-  // Set the permissions of the buffer to read+execute.
-  void SetBufferExecutable() { buffer_.SetExecutable(); }
-  // Set the permissions of the buffer to read+write.
-  void SetBufferWritable() { buffer_.SetWritable(); }
-
   // Label.
   // Bind a label to the current PC.
   void bind(Label* label);
@@ -441,23 +432,17 @@ class Assembler : public internal::AssemblerBase {
   // Place a literal at the current PC.
   void place(RawLiteral* literal);
 
-  ptrdiff_t GetCursorOffset() const { return GetBuffer().GetCursorOffset(); }
   VIXL_DEPRECATED("GetCursorOffset", ptrdiff_t CursorOffset() const) {
     return GetCursorOffset();
   }
 
-  ptrdiff_t GetBufferEndOffset() const {
+  VIXL_DEPRECATED("GetBuffer().GetCapacity()",
+                  ptrdiff_t GetBufferEndOffset() const) {
     return static_cast<ptrdiff_t>(GetBuffer().GetCapacity());
   }
-  VIXL_DEPRECATED("GetBufferEndOffset", ptrdiff_t BufferEndOffset() const) {
-    return GetBufferEndOffset();
-  }
-
-  // Return the address of an offset in the buffer.
-  template <typename T>
-  T GetOffsetAddress(ptrdiff_t offset) const {
-    VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
-    return GetBuffer().GetOffsetAddress<T>(offset);
+  VIXL_DEPRECATED("GetBuffer().GetCapacity()",
+                  ptrdiff_t BufferEndOffset() const) {
+    return GetBuffer().GetCapacity();
   }
 
   // Return the address of a bound label.
@@ -465,25 +450,11 @@ class Assembler : public internal::AssemblerBase {
   T GetLabelAddress(const Label* label) const {
     VIXL_ASSERT(label->IsBound());
     VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
-    return GetOffsetAddress<T>(label->GetLocation());
-  }
-
-  // Return the address of the cursor.
-  template <typename T>
-  T GetCursorAddress() const {
-    VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
-    return GetOffsetAddress<T>(GetCursorOffset());
-  }
-
-  // Return the address of the start of the buffer.
-  template <typename T>
-  T GetStartAddress() const {
-    VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
-    return GetOffsetAddress<T>(0);
+    return GetBuffer().GetOffsetAddress<T>(label->GetLocation());
   }
 
   Instruction* GetInstructionAt(ptrdiff_t instruction_offset) {
-    return GetOffsetAddress<Instruction*>(instruction_offset);
+    return GetBuffer()->GetOffsetAddress<Instruction*>(instruction_offset);
   }
   VIXL_DEPRECATED("GetInstructionAt",
                   Instruction* InstructionAt(ptrdiff_t instruction_offset)) {
@@ -492,9 +463,10 @@ class Assembler : public internal::AssemblerBase {
 
   ptrdiff_t GetInstructionOffset(Instruction* instruction) {
     VIXL_STATIC_ASSERT(sizeof(*instruction) == 1);
-    ptrdiff_t offset = instruction - GetStartAddress<Instruction*>();
+    ptrdiff_t offset =
+        instruction - GetBuffer()->GetStartAddress<Instruction*>();
     VIXL_ASSERT((0 <= offset) &&
-                (offset < static_cast<ptrdiff_t>(GetBufferCapacity())));
+                (offset < static_cast<ptrdiff_t>(GetBuffer()->GetCapacity())));
     return offset;
   }
   VIXL_DEPRECATED("GetInstructionOffset",
@@ -3078,28 +3050,22 @@ class Assembler : public internal::AssemblerBase {
     return GetSizeOfCodeGeneratedSince(label);
   }
 
-  size_t GetSizeOfCodeGenerated() const {
-    return GetBuffer().GetCursorOffset();
+  VIXL_DEPRECATED("GetBuffer().GetCapacity()",
+                  size_t GetBufferCapacity() const) {
+    return GetBuffer().GetCapacity();
   }
-  VIXL_DEPRECATED("GetSizeOfCodeGenerated",
-                  size_t SizeOfCodeGenerated() const) {
-    return GetSizeOfCodeGenerated();
-  }
-
-  size_t GetBufferCapacity() const { return GetBuffer().GetCapacity(); }
-  VIXL_DEPRECATED("GetBufferCapacity", size_t BufferCapacity() const) {
-    return GetBufferCapacity();
+  VIXL_DEPRECATED("GetBuffer().GetCapacity()", size_t BufferCapacity() const) {
+    return GetBuffer().GetCapacity();
   }
 
-  size_t GetRemainingBufferSpace() const {
+  VIXL_DEPRECATED("GetBuffer().GetRemainingBytes()",
+                  size_t GetRemainingBufferSpace() const) {
     return GetBuffer().GetRemainingBytes();
   }
-  VIXL_DEPRECATED("GetRemainingBufferSpace",
+  VIXL_DEPRECATED("GetBuffer().GetRemainingBytes()",
                   size_t RemainingBufferSpace() const) {
-    return GetRemainingBufferSpace();
+    return GetBuffer().GetRemainingBytes();
   }
-
-  void EnsureSpaceFor(size_t amount) { GetBuffer()->EnsureSpaceFor(amount); }
 
 #ifdef VIXL_DEBUG
   void AcquireBuffer() {
@@ -3443,13 +3409,16 @@ class CodeBufferCheckScope {
 
 template <typename T>
 void Literal<T>::UpdateValue(T new_value, const Assembler* assembler) {
-  return UpdateValue(new_value, assembler->GetStartAddress<uint8_t*>());
+  return UpdateValue(new_value,
+                     assembler->GetBuffer().GetStartAddress<uint8_t*>());
 }
 
 
 template <typename T>
 void Literal<T>::UpdateValue(T high64, T low64, const Assembler* assembler) {
-  return UpdateValue(high64, low64, assembler->GetStartAddress<uint8_t*>());
+  return UpdateValue(high64,
+                     low64,
+                     assembler->GetBuffer().GetStartAddress<uint8_t*>());
 }
 
 

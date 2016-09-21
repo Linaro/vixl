@@ -38,12 +38,44 @@ class AssemblerBase {
   explicit AssemblerBase(size_t capacity) : buffer_(capacity) {}
   AssemblerBase(byte* buffer, size_t capacity) : buffer_(buffer, capacity) {}
 
+  // Finalize a code buffer of generated instructions. This function must be
+  // called before executing or copying code from the buffer.
+  void FinalizeCode() { GetBuffer()->SetClean(); }
+
+  ptrdiff_t GetCursorOffset() const { return GetBuffer().GetCursorOffset(); }
+
+  // Return the address of the cursor.
+  template <typename T>
+  T GetCursorAddress() const {
+    VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
+    return GetBuffer().GetOffsetAddress<T>(GetCursorOffset());
+  }
+
+  size_t GetSizeOfCodeGenerated() const { return GetCursorOffset(); }
+
   CodeBuffer* GetBuffer() { return &buffer_; }
   const CodeBuffer& GetBuffer() const { return buffer_; }
 
  protected:
   // Buffer where the code is emitted.
   CodeBuffer buffer_;
+
+ public:
+  // Deprecated public interface.
+
+  // Return the address of an offset in the buffer.
+  template <typename T>
+  VIXL_DEPRECATED("GetBuffer().GetOffsetAddress<T>(offset)",
+                  T GetOffsetAddress(ptrdiff_t offset) const) {
+    return GetBuffer().GetOffsetAddress<T>(offset);
+  }
+
+  // Return the address of the start of the buffer.
+  template <typename T>
+  VIXL_DEPRECATED("GetBuffer().GetStartAddress<T>()",
+                  T GetStartAddress() const) {
+    return GetBuffer().GetOffsetAddress<T>(0);
+  }
 };
 
 }  // namespace internal

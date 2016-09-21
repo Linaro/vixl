@@ -83,10 +83,6 @@ class Assembler : public internal::AssemblerBase {
         has_32_dregs_(true),
         allow_assembler_(true) {}
   virtual ~Assembler() {}
-  // Set the permissions of the buffer to read+execute.
-  void SetBufferExecutable() { buffer_.SetExecutable(); }
-  // Set the permissions of the buffer to read+write.
-  void SetBufferWritable() { buffer_.SetWritable(); }
   void UseInstructionSet(InstructionSet isa) {
     VIXL_ASSERT((isa_ == isa) || (GetCursorOffset() == 0));
     isa_ = isa;
@@ -124,19 +120,7 @@ class Assembler : public internal::AssemblerBase {
     VIXL_ASSERT(IsInt32(offset));
     return static_cast<int32_t>(offset);
   }
-  // Return the address of an offset in the buffer.
-  template <typename T>
-  T GetOffsetAddress(intptr_t offset) const {
-    VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
-    return buffer_.GetOffsetAddress<T>(offset);
-  }
 
-  // Return the address of the start of the buffer.
-  template <typename T>
-  T GetStartAddress() const {
-    VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
-    return GetOffsetAddress<T>(0);
-  }
   uint32_t GetArchitectureStatePCOffset() const { return IsUsingT32() ? 4 : 8; }
   void EncodeLabelFor(const Label::ForwardReference& forward, Label* label);
   uint32_t Link(uint32_t instr,
@@ -148,14 +132,11 @@ class Assembler : public internal::AssemblerBase {
     GetBuffer()->EmitData(literal->GetDataAddress(), literal->GetSize());
     GetBuffer()->Align();
   }
-  void FinalizeCode() { GetBuffer()->SetClean(); }
 
   size_t GetSizeOfCodeGeneratedSince(Label* label) const {
     VIXL_ASSERT(label->IsBound());
     return buffer_.GetOffsetFrom(label->GetLocation());
   }
-
-  size_t GetSizeOfCodeGenerated() const { return buffer_.GetOffsetFrom(0); }
 
   // Helpers for it instruction.
   void it(Condition cond) { it(cond, 0x8); }

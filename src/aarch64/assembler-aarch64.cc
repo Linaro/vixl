@@ -81,9 +81,6 @@ Assembler::~Assembler() { VIXL_ASSERT(buffer_monitor_ == 0); }
 void Assembler::Reset() { GetBuffer()->Reset(); }
 
 
-void Assembler::FinalizeCode() { GetBuffer()->SetClean(); }
-
-
 void Assembler::bind(Label* label) {
   BindToOffset(label, GetBuffer()->GetCursorOffset());
 }
@@ -96,7 +93,8 @@ void Assembler::BindToOffset(Label* label, ptrdiff_t offset) {
   label->Bind(offset);
 
   for (Label::LabelLinksIterator it(label); !it.Done(); it.Advance()) {
-    Instruction* link = GetOffsetAddress<Instruction*>(*it.Current());
+    Instruction* link =
+        GetBuffer()->GetOffsetAddress<Instruction*>(*it.Current());
     link->SetImmPCOffsetTarget(GetLabelAddress<Instruction*>(label));
   }
   label->ClearAllLinks();
@@ -147,7 +145,7 @@ void Assembler::place(RawLiteral* literal) {
     ptrdiff_t offset = literal->GetLastUse();
     bool done;
     do {
-      Instruction* ldr = GetOffsetAddress<Instruction*>(offset);
+      Instruction* ldr = GetBuffer()->GetOffsetAddress<Instruction*>(offset);
       VIXL_ASSERT(ldr->IsLoadLiteral());
 
       ptrdiff_t imm19 = ldr->GetImmLLiteral();
@@ -4906,7 +4904,7 @@ void CodeBufferCheckScope::Open(Assembler* assm,
                                 AssertPolicy assert_policy) {
   VIXL_ASSERT(!initialised_);
   VIXL_ASSERT(assm != NULL);
-  if (check_policy == kCheck) assm->EnsureSpaceFor(size);
+  if (check_policy == kCheck) assm->GetBuffer()->EnsureSpaceFor(size);
 #ifdef VIXL_DEBUG
   assm_ = assm;
   size_ = size;

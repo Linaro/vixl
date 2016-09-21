@@ -65,7 +65,7 @@ int64_t LiteralExample(int64_t a, int64_t b) {
   if (code == NULL) {
     return 1;
   }
-  memcpy(code, masm.GetStartAddress<void*>(), code_size);
+  memcpy(code, masm.GetBuffer()->GetStartAddress<void*>(), code_size);
 
   // Run the code.
   simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&start));

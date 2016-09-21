@@ -432,12 +432,7 @@ void MacroAssembler::FinalizeCode() {
 
 void MacroAssembler::CheckEmitFor(size_t amount) {
   CheckEmitPoolsFor(amount);
-  ptrdiff_t offset = amount;
-  // Ensure there's enough space for the emit, keep in mind the cursor will
-  // have moved if a pool was emitted.
-  if ((GetCursorOffset() + offset) > GetBufferEndOffset()) {
-    EnsureSpaceFor(amount);
-  }
+  GetBuffer()->EnsureSpaceFor(amount);
 }
 
 

@@ -105,11 +105,11 @@ namespace aarch32 {
   DISASSEMBLE();                                                               \
   {                                                                            \
     int pcs_offset = masm.IsUsingT32() ? 1 : 0;                                \
-    masm.SetBufferExecutable();                                                \
+    masm.GetBuffer()->SetExecutable();                                         \
     ExecuteMemory(masm.GetBuffer()->GetStartAddress<byte*>(),                  \
                   masm.GetSizeOfCodeGenerated(),                               \
                   pcs_offset);                                                 \
-    masm.SetBufferWritable();                                                  \
+    masm.GetBuffer()->SetWritable();                                           \
   }
 
 #define TEARDOWN()

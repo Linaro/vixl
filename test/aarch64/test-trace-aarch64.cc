@@ -48,7 +48,7 @@ namespace aarch64 {
 #define TEST(name) TEST_(TRACE_##name)
 
 static void GenerateTestSequenceBase(MacroAssembler* masm) {
-  CodeBufferCheckScope guard(masm, masm->GetRemainingBufferSpace());
+  CodeBufferCheckScope guard(masm, masm->GetBuffer()->GetRemainingBytes());
 
   __ adc(w3, w4, w5);
   __ adc(x6, x7, x8);
@@ -370,7 +370,7 @@ static void GenerateTestSequenceBase(MacroAssembler* masm) {
 
 
 static void GenerateTestSequenceFP(MacroAssembler* masm) {
-  CodeBufferCheckScope guard(masm, masm->GetRemainingBufferSpace());
+  CodeBufferCheckScope guard(masm, masm->GetBuffer()->GetRemainingBytes());
 
   // Scalar floating point instructions.
   __ fabd(d13, d2, d19);
@@ -582,7 +582,7 @@ static void GenerateTestSequenceFP(MacroAssembler* masm) {
 
 
 static void GenerateTestSequenceNEON(MacroAssembler* masm) {
-  CodeBufferCheckScope guard(masm, masm->GetRemainingBufferSpace());
+  CodeBufferCheckScope guard(masm, masm->GetBuffer()->GetRemainingBytes());
 
   // NEON integer instructions.
   __ abs(d19, d0);
@@ -2292,7 +2292,7 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
 
 
 static void GenerateTestSequenceNEONFP(MacroAssembler* masm) {
-  CodeBufferCheckScope guard(masm, masm->GetRemainingBufferSpace());
+  CodeBufferCheckScope guard(masm, masm->GetBuffer()->GetRemainingBytes());
 
   // NEON floating point instructions.
   __ fabd(v3.V2D(), v25.V2D(), v8.V2D());
@@ -2622,7 +2622,7 @@ static void TraceTestHelper(bool coloured_trace,
   masm.Ret();
   masm.FinalizeCode();
 
-  simulator.RunFrom(masm.GetStartAddress<Instruction*>());
+  simulator.RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>());
 
   fclose(trace_stream);
   MaskAddresses(trace_stream_filename);

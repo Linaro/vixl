@@ -2920,7 +2920,8 @@ class MacroAssembler : public Assembler {
   ptrdiff_t GetNextCheckPoint() const {
     ptrdiff_t next_checkpoint_for_pools =
         std::min(literal_pool_.GetCheckpoint(), veneer_pool_.GetCheckpoint());
-    return std::min(next_checkpoint_for_pools, GetBufferEndOffset());
+    return std::min(next_checkpoint_for_pools,
+                    static_cast<ptrdiff_t>(GetBuffer().GetCapacity()));
   }
   VIXL_DEPRECATED("GetNextCheckPoint", ptrdiff_t NextCheckPoint()) {
     return GetNextCheckPoint();

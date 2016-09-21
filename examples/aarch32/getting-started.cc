@@ -53,7 +53,7 @@ int main() {
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 // There is no simulator defined for VIXL AArch32.
 #else
-  byte* code = masm.GetBuffer()->GetBuffer();
+  byte* code = masm.GetBuffer()->GetStartAddress<byte*>();
   uint32_t code_size = masm.GetSizeOfCodeGenerated();
   ExecutableMemory memory(code, code_size);
   // Run the example function.
