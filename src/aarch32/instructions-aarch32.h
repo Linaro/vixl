@@ -113,6 +113,12 @@ class CPURegister {
   RegisterType GetType() const {
     return static_cast<RegisterType>((value_ & kTypeMask) >> kTypeShift);
   }
+  bool IsRegister() const { return GetType() == kRRegister; }
+  bool IsS() const { return GetType() == kSRegister; }
+  bool IsD() const { return GetType() == kDRegister; }
+  bool IsQ() const { return GetType() == kQRegister; }
+  bool IsVRegister() const { return IsS() || IsD() || IsQ(); }
+  bool IsFPRegister() const { return IsS() || IsD(); }
   uint32_t GetCode() const { return (value_ & kCodeMask) >> kCodeShift; }
   uint32_t GetReg() const { return value_; }
   int GetSizeInBits() const { return (value_ & kSizeMask) >> kSizeShift; }

@@ -8756,6 +8756,279 @@ class MacroAssembler : public Assembler {
     yield(cond);
   }
   void Yield() { Yield(al); }
+  void Vabs(Condition cond, VRegister rd, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vabs(cond, F32, rd.S(), rm.S());
+    } else {
+      Vabs(cond, F64, rd.D(), rm.D());
+    }
+  }
+  void Vabs(VRegister rd, VRegister rm) { Vabs(al, rd, rm); }
+  void Vadd(Condition cond, VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vadd(cond, F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vadd(cond, F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vadd(VRegister rd, VRegister rn, VRegister rm) { Vadd(al, rd, rn, rm); }
+  void Vcmp(Condition cond, VRegister rd, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vcmp(cond, F32, rd.S(), rm.S());
+    } else {
+      Vcmp(cond, F64, rd.D(), rm.D());
+    }
+  }
+  void Vcmp(VRegister rd, VRegister rm) { Vcmp(al, rd, rm); }
+  void Vcmpe(Condition cond, VRegister rd, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vcmpe(cond, F32, rd.S(), rm.S());
+    } else {
+      Vcmpe(cond, F64, rd.D(), rm.D());
+    }
+  }
+  void Vcmpe(VRegister rd, VRegister rm) { Vcmpe(al, rd, rm); }
+  void Vdiv(Condition cond, VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vdiv(cond, F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vdiv(cond, F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vdiv(VRegister rd, VRegister rn, VRegister rm) { Vdiv(al, rd, rn, rm); }
+  void Vfma(Condition cond, VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vfma(cond, F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vfma(cond, F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vfma(VRegister rd, VRegister rn, VRegister rm) { Vfma(al, rd, rn, rm); }
+  void Vfms(Condition cond, VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vfms(cond, F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vfms(cond, F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vfms(VRegister rd, VRegister rn, VRegister rm) { Vfms(al, rd, rn, rm); }
+  void Vfnma(Condition cond, VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vfnma(cond, F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vfnma(cond, F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vfnma(VRegister rd, VRegister rn, VRegister rm) {
+    Vfnma(al, rd, rn, rm);
+  }
+  void Vfnms(Condition cond, VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vfnms(cond, F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vfnms(cond, F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vfnms(VRegister rd, VRegister rn, VRegister rm) {
+    Vfnms(al, rd, rn, rm);
+  }
+  void Vmaxnm(VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vmaxnm(F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vmaxnm(F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vminnm(VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vminnm(F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vminnm(F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vmla(Condition cond, VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vmla(cond, F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vmla(cond, F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vmla(VRegister rd, VRegister rn, VRegister rm) { Vmla(al, rd, rn, rm); }
+  void Vmls(Condition cond, VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vmls(cond, F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vmls(cond, F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vmls(VRegister rd, VRegister rn, VRegister rm) { Vmls(al, rd, rn, rm); }
+  void Vmov(Condition cond, VRegister rd, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vmov(cond, F32, rd.S(), rm.S());
+    } else {
+      Vmov(cond, F64, rd.D(), rm.D());
+    }
+  }
+  void Vmov(VRegister rd, VRegister rm) { Vmov(al, rd, rm); }
+  void Vmul(Condition cond, VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vmul(cond, F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vmul(cond, F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vmul(VRegister rd, VRegister rn, VRegister rm) { Vmul(al, rd, rn, rm); }
+  void Vneg(Condition cond, VRegister rd, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vneg(cond, F32, rd.S(), rm.S());
+    } else {
+      Vneg(cond, F64, rd.D(), rm.D());
+    }
+  }
+  void Vneg(VRegister rd, VRegister rm) { Vneg(al, rd, rm); }
+  void Vnmla(Condition cond, VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vnmla(cond, F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vnmla(cond, F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vnmla(VRegister rd, VRegister rn, VRegister rm) {
+    Vnmla(al, rd, rn, rm);
+  }
+  void Vnmls(Condition cond, VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vnmls(cond, F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vnmls(cond, F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vnmls(VRegister rd, VRegister rn, VRegister rm) {
+    Vnmls(al, rd, rn, rm);
+  }
+  void Vnmul(Condition cond, VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vnmul(cond, F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vnmul(cond, F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vnmul(VRegister rd, VRegister rn, VRegister rm) {
+    Vnmul(al, rd, rn, rm);
+  }
+  void Vseleq(VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vseleq(F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vseleq(F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vselge(VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vselge(F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vselge(F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vselgt(VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vselgt(F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vselgt(F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vselvs(VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vselvs(F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vselvs(F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vsqrt(Condition cond, VRegister rd, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vsqrt(cond, F32, rd.S(), rm.S());
+    } else {
+      Vsqrt(cond, F64, rd.D(), rm.D());
+    }
+  }
+  void Vsqrt(VRegister rd, VRegister rm) { Vsqrt(al, rd, rm); }
+  void Vsub(Condition cond, VRegister rd, VRegister rn, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rn.GetType());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vsub(cond, F32, rd.S(), rn.S(), rm.S());
+    } else {
+      Vsub(cond, F64, rd.D(), rn.D(), rm.D());
+    }
+  }
+  void Vsub(VRegister rd, VRegister rn, VRegister rm) { Vsub(al, rd, rn, rm); }
   // End of generated code.
  private:
   RegisterList available_;
