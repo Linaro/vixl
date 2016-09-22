@@ -1301,10 +1301,10 @@ TEST(literal_update) {
       masm.GetBuffer().GetOffsetAddress<uint32_t*>(0), masm.GetCursorOffset());
   ASSERT_EQUAL_32(0x12345678, r0);
   ASSERT_EQUAL_32(0x87654321, r1);
-  ASSERT_EQUAL_32(0x13579bdf, r2);
-  ASSERT_EQUAL_32(0x02468ace, r3);
-  ASSERT_EQUAL_32(0x10325476, r4);
-  ASSERT_EQUAL_32(0x98badcfe, r5);
+  ASSERT_EQUAL_32(0x02468ace, r2);
+  ASSERT_EQUAL_32(0x13579bdf, r3);
+  ASSERT_EQUAL_32(0x98badcfe, r4);
+  ASSERT_EQUAL_32(0x10325476, r5);
 }
 
 
