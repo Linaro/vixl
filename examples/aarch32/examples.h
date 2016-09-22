@@ -96,4 +96,4 @@ void GenerateAbs(MacroAssembler* masm);
 // This is the example used in doc/getting-started-a32.txt
 void GenerateDemo(MacroAssembler* masm);
 
-#endif /* !VIXL_EXAMPLE_EXAMPLES_H_ */
+#endif  // VIXL_EXAMPLE_EXAMPLES_H_

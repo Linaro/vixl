@@ -121,4 +121,4 @@ int64_t LiteralExample(int64_t a, int64_t b);
 // Generate a few examples of runtime calls.
 void GenerateRuntimeCallExamples(MacroAssembler* masm);
 
-#endif /* !VIXL_EXAMPLE_EXAMPLES_H_ */
+#endif  // VIXL_EXAMPLE_EXAMPLES_H_
