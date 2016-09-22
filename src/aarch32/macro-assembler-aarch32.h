@@ -60,12 +60,13 @@ class LiteralPool {
   unsigned GetSize() const { return size_; }
 
   // Add a literal to the literal container.
-  uint32_t AddLiteral(RawLiteral* literal) {
-    uint32_t position = GetSize();
-    literal->SetPositionInPool(position);
-    literals_.push_back(literal);
-    size_ += literal->GetAlignedSize();
-    return position;
+  void AddLiteral(RawLiteral* literal) {
+    if (literal->GetPositionInPool() == Label::kMaxOffset) {
+      uint32_t position = GetSize();
+      literal->SetPositionInPool(position);
+      literals_.push_back(literal);
+      size_ += literal->GetAlignedSize();
+    }
   }
 
   // First literal to be emitted.
@@ -307,9 +308,6 @@ class MacroAssembler : public Assembler {
       }
     }
 
-    // Inserts the literal in the pool, and update the different checkpoints.
-    void AddLiteral(RawLiteral* literal) { literal_pool_.AddLiteral(literal); }
-
    private:
     MacroAssembler* const masm_;
     LiteralPool literal_pool_;
@@ -376,18 +374,19 @@ class MacroAssembler : public Assembler {
       AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
       instr_callback.emit(this, literal);
     }
-    if (IsInsertTooFar(literal, where)) {
-      // The instruction's data is too far: revert the emission
-      GetBuffer().Rewind(cursor);
-      literal->InvalidateLastForwardReference(RawLiteral::kNoUpdateNecessary);
-      EmitLiteralPool(kBranchRequired);
-      AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
-      instr_callback.emit(this, literal);
+    if (!literal->IsManuallyPlaced()) {
+      if (IsInsertTooFar(literal, where)) {
+        // The instruction's data is too far: revert the emission
+        GetBuffer().Rewind(cursor);
+        literal->InvalidateLastForwardReference(RawLiteral::kNoUpdateNecessary);
+        EmitLiteralPool(kBranchRequired);
+        AllowAssemblerEmissionScope allow_scope(this,
+                                                kMaxInstructionSizeInBytes);
+        instr_callback.emit(this, literal);
+      }
+      literal_pool_manager_.GetLiteralPool()->AddLiteral(literal);
+      literal_pool_manager_.UpdateCheckpoint(literal);
     }
-    if (literal->GetPositionInPool() == Label::kMaxOffset) {
-      literal_pool_manager_.AddLiteral(literal);
-    }
-    literal_pool_manager_.UpdateCheckpoint(literal);
   }
 
  public:
@@ -473,6 +472,7 @@ class MacroAssembler : public Assembler {
 
   void Place(RawLiteral* literal) {
     VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(literal->IsManuallyPlaced());
     EnsureEmitFor(literal->GetSize());
     place(literal);
   }
@@ -539,9 +539,72 @@ class MacroAssembler : public Assembler {
     return literal_pool_manager_.GetLiteralPoolSize();
   }
 
-  // Add a Literal to the internal literal pool
-  void AddLiteral(RawLiteral* literal) {
-    return literal_pool_manager_.AddLiteral(literal);
+  // Loads with literals already constructed. Add the literal to the pool
+  // if it is not already done.
+  void Ldr(Condition cond, Register rt, RawLiteral* literal) {
+    EmitLiteralCondRL<&Assembler::ldr> emit_helper(cond, rt);
+    GenerateInstruction(emit_helper, literal);
+  }
+  void Ldr(Register rt, RawLiteral* literal) { Ldr(al, rt, literal); }
+
+  void Ldrb(Condition cond, Register rt, RawLiteral* literal) {
+    EmitLiteralCondRL<&Assembler::ldrb> emit_helper(cond, rt);
+    GenerateInstruction(emit_helper, literal);
+  }
+  void Ldrb(Register rt, RawLiteral* literal) { Ldrb(al, rt, literal); }
+
+  void Ldrd(Condition cond, Register rt, Register rt2, RawLiteral* literal) {
+    EmitLiteralCondRRL<&Assembler::ldrd> emit_helper(cond, rt, rt2);
+    GenerateInstruction(emit_helper, literal);
+  }
+  void Ldrd(Register rt, Register rt2, RawLiteral* literal) {
+    Ldrd(al, rt, rt2, literal);
+  }
+
+  void Ldrh(Condition cond, Register rt, RawLiteral* literal) {
+    EmitLiteralCondRL<&Assembler::ldrh> emit_helper(cond, rt);
+    GenerateInstruction(emit_helper, literal);
+  }
+  void Ldrh(Register rt, RawLiteral* literal) { Ldrh(al, rt, literal); }
+
+  void Ldrsb(Condition cond, Register rt, RawLiteral* literal) {
+    EmitLiteralCondRL<&Assembler::ldrsb> emit_helper(cond, rt);
+    GenerateInstruction(emit_helper, literal);
+  }
+  void Ldrsb(Register rt, RawLiteral* literal) { Ldrsb(al, rt, literal); }
+
+  void Ldrsh(Condition cond, Register rt, RawLiteral* literal) {
+    EmitLiteralCondRL<&Assembler::ldrsh> emit_helper(cond, rt);
+    GenerateInstruction(emit_helper, literal);
+  }
+  void Ldrsh(Register rt, RawLiteral* literal) { Ldrsh(al, rt, literal); }
+
+  void Vldr(Condition cond, DataType dt, DRegister rd, RawLiteral* literal) {
+    EmitLiteralCondDtDL<&Assembler::vldr> emit_helper(cond, dt, rd);
+    GenerateInstruction(emit_helper, literal);
+  }
+  void Vldr(DataType dt, DRegister rd, RawLiteral* literal) {
+    Vldr(al, dt, rd, literal);
+  }
+  void Vldr(Condition cond, DRegister rd, RawLiteral* literal) {
+    Vldr(cond, Untyped64, rd, literal);
+  }
+  void Vldr(DRegister rd, RawLiteral* literal) {
+    Vldr(al, Untyped64, rd, literal);
+  }
+
+  void Vldr(Condition cond, DataType dt, SRegister rd, RawLiteral* literal) {
+    EmitLiteralCondDtSL<&Assembler::vldr> emit_helper(cond, dt, rd);
+    GenerateInstruction(emit_helper, literal);
+  }
+  void Vldr(DataType dt, SRegister rd, RawLiteral* literal) {
+    Vldr(al, dt, rd, literal);
+  }
+  void Vldr(Condition cond, SRegister rd, RawLiteral* literal) {
+    Vldr(cond, Untyped32, rd, literal);
+  }
+  void Vldr(SRegister rd, RawLiteral* literal) {
+    Vldr(al, Untyped32, rd, literal);
   }
 
   // Generic Ldr(register, data)
@@ -576,21 +639,21 @@ class MacroAssembler : public Assembler {
     Ldrd(al, rt, rt2, v);
   }
 
-  void Vldr(Condition cond, SRegister rt, float v) {
+  void Vldr(Condition cond, SRegister rd, float v) {
     RawLiteral* literal =
         new Literal<float>(v, RawLiteral::kDeletedOnPlacementByPool);
-    EmitLiteralCondDtSL<&Assembler::vldr> emit_helper(cond, Untyped32, rt);
+    EmitLiteralCondDtSL<&Assembler::vldr> emit_helper(cond, Untyped32, rd);
     GenerateInstruction(emit_helper, literal);
   }
-  void Vldr(SRegister rt, float v) { Vldr(al, rt, v); }
+  void Vldr(SRegister rd, float v) { Vldr(al, rd, v); }
 
-  void Vldr(Condition cond, DRegister rt, double v) {
+  void Vldr(Condition cond, DRegister rd, double v) {
     RawLiteral* literal =
         new Literal<double>(v, RawLiteral::kDeletedOnPlacementByPool);
-    EmitLiteralCondDtDL<&Assembler::vldr> emit_helper(cond, Untyped64, rt);
+    EmitLiteralCondDtDL<&Assembler::vldr> emit_helper(cond, Untyped64, rd);
     GenerateInstruction(emit_helper, literal);
   }
-  void Vldr(DRegister rt, double v) { Vldr(al, rt, v); }
+  void Vldr(DRegister rd, double v) { Vldr(al, rd, v); }
 
   void Vmov(Condition cond, DRegister rt, double v) { Vmov(cond, F64, rt, v); }
   void Vmov(DRegister rt, double v) { Vmov(al, F64, rt, v); }

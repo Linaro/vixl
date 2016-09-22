@@ -1301,6 +1301,8 @@ inline std::ostream& operator<<(std::ostream& os, Alignment align) {
 
 class RawLiteral : public Label {
  public:
+  enum PlacementPolicy { kPlacedWhenUsed, kManuallyPlaced };
+
   enum DeletionPolicy {
     kDeletedOnPlacementByPool,
     kDeletedOnPoolDestruction,
@@ -1310,16 +1312,23 @@ class RawLiteral : public Label {
  public:
   RawLiteral(const void* addr,
              size_t size,
+             PlacementPolicy placement_policy = kPlacedWhenUsed,
              DeletionPolicy deletion_policy = kManuallyDeleted)
       : addr_(addr),
         size_(size),
         position_(kMaxOffset),
+        manually_placed_(placement_policy == kManuallyPlaced),
+        deletion_policy_(deletion_policy) {}
+  RawLiteral(const void* addr, size_t size, DeletionPolicy deletion_policy)
+      : addr_(addr),
+        size_(size),
+        position_(kMaxOffset),
+        manually_placed_(false),
         deletion_policy_(deletion_policy) {}
   ~RawLiteral() {}
+  const void* GetDataAddress() const { return addr_; }
   size_t GetSize() const { return size_; }
   size_t GetAlignedSize() const { return (size_ + 3) & ~0x3; }
-  const void* GetDataAddress() const { return addr_; }
-  DeletionPolicy GetDeletionPolicy() const { return deletion_policy_; }
 
   Offset GetPositionInPool() const { return position_; }
   void SetPositionInPool(Offset position_in_pool) {
@@ -1329,6 +1338,9 @@ class RawLiteral : public Label {
     position_ = position_in_pool;
   }
 
+  bool IsManuallyPlaced() const { return manually_placed_; }
+  DeletionPolicy GetDeletionPolicy() const { return deletion_policy_; }
+
  private:
   // Data address before it's moved into the code buffer.
   const void* const addr_;
@@ -1336,6 +1348,8 @@ class RawLiteral : public Label {
   const size_t size_;
   // Position in the pool, if not in a pool: Label::kMaxOffset.
   Offset position_;
+  // When this flag is true, the label will be placed manually.
+  bool manually_placed_;
   // When is the literal to be removed from the memory
   // Can be delete'd when:
   //   moved into the code buffer: kDeletedOnPlacementByPool
@@ -1348,7 +1362,11 @@ template <typename T>
 class Literal : public RawLiteral {
  public:
   explicit Literal(const T& value,
+                   PlacementPolicy placement_policy = kPlacedWhenUsed,
                    DeletionPolicy deletion_policy = kManuallyDeleted)
+      : RawLiteral(&value_, sizeof(T), placement_policy, deletion_policy),
+        value_(value) {}
+  explicit Literal(const T& value, DeletionPolicy deletion_policy)
       : RawLiteral(&value_, sizeof(T), deletion_policy), value_(value) {}
   void UpdateValue(const T& value, CodeBuffer* buffer) {
     value_ = value;
@@ -1365,7 +1383,10 @@ template <>
 class Literal<const char*> : public RawLiteral {
  public:
   explicit Literal(const char* str,
+                   PlacementPolicy placement_policy = kPlacedWhenUsed,
                    DeletionPolicy deletion_policy = kManuallyDeleted)
+      : RawLiteral(str, strlen(str) + 1, placement_policy, deletion_policy) {}
+  explicit Literal(const char* str, DeletionPolicy deletion_policy)
       : RawLiteral(str, strlen(str) + 1, deletion_policy) {}
 };
 

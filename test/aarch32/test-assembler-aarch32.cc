@@ -1083,7 +1083,6 @@ TEST(custom_literal_in_pool) {
   ASSERT_LITERAL_POOL_SIZE(0);
 
   Literal<uint32_t> l0(static_cast<uint32_t>(0x12345678));
-  masm.AddLiteral(&l0);
   __ Ldr(r0, &l0);
   masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
   __ Ldr(r1, &l0);
@@ -1091,7 +1090,6 @@ TEST(custom_literal_in_pool) {
 
   Label past_literal2;
   Literal<uint64_t> cafebeefdeadbaba(0xcafebeefdeadbaba);
-  masm.AddLiteral(&cafebeefdeadbaba);
   __ Ldrd(r8, r9, &cafebeefdeadbaba);
   masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
   __ Ldrd(r2, r3, &cafebeefdeadbaba);
@@ -1118,7 +1116,8 @@ TEST(custom_literal_place) {
   ASSERT_LITERAL_POOL_SIZE(0);
 
   Label past_literal0;
-  Literal<uint32_t> literal0(static_cast<uint32_t>(0x12345678));
+  Literal<uint32_t> literal0(static_cast<uint32_t>(0x12345678),
+                             RawLiteral::kManuallyPlaced);
   __ Ldr(r0, &literal0);
   __ B(&past_literal0);
   __ Place(&literal0);
@@ -1128,7 +1127,8 @@ TEST(custom_literal_place) {
   ASSERT_LITERAL_POOL_SIZE(0);
 
   Label past_literal1;
-  Literal<uint64_t> cafebeefdeadbaba(0xcafebeefdeadbaba);
+  Literal<uint64_t> cafebeefdeadbaba(0xcafebeefdeadbaba,
+                                     RawLiteral::kManuallyPlaced);
   __ B(&past_literal1);
   __ Place(&cafebeefdeadbaba);
   __ Bind(&past_literal1);
@@ -1276,8 +1276,6 @@ TEST(literal_update) {
   Literal<uint64_t>* a64 =
       new Literal<uint64_t>(
           UINT64_C(0xabcdef01abcdef01), RawLiteral::kDeletedOnPoolDestruction);
-  __ AddLiteral(a32);
-  __ AddLiteral(a64);
   __ Ldr(r0, a32);
   __ Ldrd(r2, r3, a64);
   __ EmitLiteralPool();
@@ -1286,8 +1284,6 @@ TEST(literal_update) {
   Literal<uint64_t>* b64 =
       new Literal<uint64_t>(
           UINT64_C(0x10fedcba10fedcba), RawLiteral::kDeletedOnPoolDestruction);
-  __ AddLiteral(b32);
-  __ AddLiteral(b64);
   __ Ldr(r1, b32);
   __ Ldrd(r4, r5, b64);
   // Update literals' values. "a32" and "a64" are already emitted. "b32" and
