@@ -65,10 +65,10 @@ class Label {
 
   class ForwardReference {
    public:
-    ForwardReference(ptrdiff_t location, const LabelEmitOperator& op, bool t32)
+    ForwardReference(int32_t location, const LabelEmitOperator& op, bool t32)
         : location_(location), op_(op), is_t32_(t32), is_branch_(false) {}
     Offset GetMaxForwardDistance() const { return op_.GetMaxForwardDistance(); }
-    ptrdiff_t GetLocation() const { return location_; }
+    int32_t GetLocation() const { return location_; }
     uint32_t GetStatePCOffset() const {
       return is_t32_ ? kT32PcDelta : kA32PcDelta;
     }
@@ -81,7 +81,7 @@ class Label {
     }
 
    private:
-    ptrdiff_t location_;
+    int32_t location_;
     const LabelEmitOperator& op_;
     bool is_t32_;
     bool is_branch_;
@@ -154,7 +154,7 @@ class Label {
   Offset GetAlignedCheckpoint(int byte_align) const {
     return AlignDown(GetCheckpoint(), byte_align);
   }
-  void AddForwardRef(ptrdiff_t instr_location,
+  void AddForwardRef(int32_t instr_location,
                      bool isT32,
                      const LabelEmitOperator& op) {
     forward_.push_back(ForwardReference(instr_location, op, isT32));

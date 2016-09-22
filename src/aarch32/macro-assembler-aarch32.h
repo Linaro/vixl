@@ -367,7 +367,7 @@ class MacroAssembler : public Assembler {
   // void T::emit(MacroAssembler* const, RawLiteral* const)
   template <typename T>
   void GenerateInstruction(T instr_callback, RawLiteral* const literal) {
-    ptrdiff_t cursor = GetBuffer().GetCursorOffset();
+    int32_t cursor = GetCursorOffset();
     uint32_t where = cursor + GetArchitectureStatePCOffset();
     // Emit the instruction, via the assembler
     {
@@ -473,7 +473,9 @@ class MacroAssembler : public Assembler {
   void Place(RawLiteral* literal) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(literal->IsManuallyPlaced());
-    EnsureEmitFor(literal->GetSize());
+    size_t literal_size = literal->GetSize();
+    VIXL_ASSERT(IsUint32(literal_size));
+    EnsureEmitFor(static_cast<uint32_t>(literal_size));
     place(literal);
   }
 
@@ -501,8 +503,7 @@ class MacroAssembler : public Assembler {
            literal_it != literal_pool->GetEnd();
            literal_it++) {
         RawLiteral* literal = *literal_it;
-        VIXL_ASSERT(GetCursorOffset() <
-                    static_cast<uint32_t>(literal->GetCheckpoint()));
+        VIXL_ASSERT(GetCursorOffset() < literal->GetCheckpoint());
       }
 #endif
       Label after_literal;
@@ -535,7 +536,7 @@ class MacroAssembler : public Assembler {
     ComputeCheckpoint();
   }
 
-  unsigned GetLiteralPoolSize() const {
+  size_t GetLiteralPoolSize() const {
     return literal_pool_manager_.GetLiteralPoolSize();
   }
 

@@ -558,8 +558,6 @@ class MemOperand(Input):
     return """
       // Allocate 4 bytes for the instruction to work with.
       scratch_memory_buffers[i] = new byte[4];
-      uintptr_t scratch_memory_addr
-          = reinterpret_cast<uintptr_t>(scratch_memory_buffers[i]);
       {{
         UseScratchRegisterScope temp_registers(&masm);
 
@@ -567,7 +565,7 @@ class MemOperand(Input):
         Register base_register = {name}.GetBaseRegister();
 
         // Write the expected data into the scratch buffer.
-        __ Mov(base_register, scratch_memory_addr);
+        __ Mov(base_register, Operand::From(scratch_memory_buffers[i]));
         __ Ldr({name}_tmp, MemOperand(input_ptr, offsetof(Inputs, {name}) + 4));
         __ Str({name}_tmp, MemOperand(base_register));
 
@@ -635,7 +633,7 @@ class MemOperand(Input):
 
         // Record the value of the base register, as an offset from the scratch
         // buffer's address.
-        __ Mov({name}_tmp, scratch_memory_addr);
+        __ Mov({name}_tmp, Operand::From(scratch_memory_buffers[i]));
         __ Sub(base_register, base_register, {name}_tmp);
         __ Str(base_register, MemOperand(result_ptr, offsetof(Inputs, {name})));
 

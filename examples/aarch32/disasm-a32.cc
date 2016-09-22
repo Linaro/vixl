@@ -280,7 +280,7 @@ int main(int argc, char** argv) {
        sres++) {
     const Symbol& symbol = sres->second;
     uint32_t func_addr = symbol.GetAddress();
-    size_t func_size = symbol.GetSize();
+    uint32_t func_size = symbol.GetSize();
     if (func_size == 0) {
       SymbolTable::iterator next_func = sres;
       next_func++;

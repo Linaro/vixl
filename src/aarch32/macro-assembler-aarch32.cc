@@ -276,14 +276,16 @@ void MacroAssembler::PerformEnsureEmit(Label::Offset target, uint32_t size) {
   // Check if the macro-assembler's internal literal pool should be emitted
   // to avoid any overflow. If we already generated the veneers, we can
   // emit the pool (the branch is already done).
-  VIXL_ASSERT(GetCursorOffset() <=
-              static_cast<uint32_t>(literal_pool_manager_.GetCheckpoint()));
+  VIXL_ASSERT(GetCursorOffset() <= literal_pool_manager_.GetCheckpoint());
   if ((target > literal_pool_manager_.GetCheckpoint()) ||
       (option == kNoBranchRequired)) {
     // We will generate the literal pool. Generate all the veneers which
     // would become out of range.
+    size_t literal_pool_size = literal_pool_manager_.GetLiteralPoolSize();
+    VIXL_ASSERT(IsInt32(literal_pool_size));
     Label::Offset veneers_target =
-        target + literal_pool_manager_.GetLiteralPoolSize();
+        target + static_cast<Label::Offset>(literal_pool_size);
+    VIXL_ASSERT(veneers_target >= 0);
     if (veneers_target >= veneer_pool_manager_.GetCheckpoint()) {
       veneer_pool_manager_.Emit(veneers_target);
     }
@@ -301,11 +303,16 @@ void MacroAssembler::PerformEnsureEmit(Label::Offset target, uint32_t size) {
 void MacroAssembler::ComputeCheckpoint() {
   checkpoint_ = veneer_pool_manager_.GetCheckpoint();
   if (literal_pool_manager_.GetCheckpoint() != Label::kMaxOffset) {
+    size_t veneer_max_size = veneer_pool_manager_.GetMaxSize();
+    VIXL_ASSERT(IsInt32(veneer_max_size));
     Label::Offset tmp = literal_pool_manager_.GetCheckpoint() -
-                        veneer_pool_manager_.GetMaxSize();
+                        static_cast<Label::Offset>(veneer_max_size);
+    VIXL_ASSERT(tmp >= 0);
     checkpoint_ = std::min(checkpoint_, tmp);
   }
-  Label::Offset buffer_checkpoint = GetBuffer().GetCapacity();
+  size_t buffer_size = GetBuffer().GetCapacity();
+  VIXL_ASSERT(IsInt32(buffer_size));
+  Label::Offset buffer_checkpoint = static_cast<Label::Offset>(buffer_size);
   checkpoint_ = std::min(checkpoint_, buffer_checkpoint);
 }
 
@@ -710,7 +717,7 @@ void MacroAssembler::Printf(const char* format,
         break;
     }
     Ldr(r0, format);
-    Mov(ip, address);
+    Mov(ip, Operand::From(address));
     Blx(ip);
     // If register reg4 was left on the stack => skip it.
     if (core_count == 5) Drop(kRegSizeInBytes);

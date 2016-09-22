@@ -3370,8 +3370,8 @@ static void TestHelper(Fn instruction,
     results[i]->outputs = new Inputs[kTests[i].input_size];
     results[i]->output_size = kTests[i].input_size;
 
-    uintptr_t input_address = reinterpret_cast<uintptr_t>(kTests[i].inputs);
-    uintptr_t result_address = reinterpret_cast<uintptr_t>(results[i]->outputs);
+    size_t input_stride = sizeof(kTests[i].inputs[0]) * kTests[i].input_size;
+    VIXL_ASSERT(IsUint32(input_stride));
 
     scratch_memory_buffers[i] = NULL;
 
@@ -3399,11 +3399,9 @@ static void TestHelper(Fn instruction,
 
     // Initialize `input_ptr` to the first element and `input_end` the address
     // after the array.
-    __ Mov(input_ptr, input_address);
-    __ Add(input_end,
-           input_ptr,
-           sizeof(kTests[i].inputs[0]) * kTests[i].input_size);
-    __ Mov(result_ptr, result_address);
+    __ Mov(input_ptr, Operand::From(kTests[i].inputs));
+    __ Add(input_end, input_ptr, static_cast<uint32_t>(input_stride));
+    __ Mov(result_ptr, Operand::From(results[i]->outputs));
     __ Bind(&loop);
 
     {
@@ -3422,8 +3420,6 @@ static void TestHelper(Fn instruction,
     __ Ldr(rm, MemOperand(input_ptr, offsetof(Inputs, rm)));
     // Allocate 4 bytes for the instruction to work with.
     scratch_memory_buffers[i] = new byte[4];
-    uintptr_t scratch_memory_addr =
-        reinterpret_cast<uintptr_t>(scratch_memory_buffers[i]);
     {
       UseScratchRegisterScope temp_registers(&masm);
 
@@ -3431,7 +3427,7 @@ static void TestHelper(Fn instruction,
       Register base_register = memop.GetBaseRegister();
 
       // Write the expected data into the scratch buffer.
-      __ Mov(base_register, scratch_memory_addr);
+      __ Mov(base_register, Operand::From(scratch_memory_buffers[i]));
       __ Ldr(memop_tmp, MemOperand(input_ptr, offsetof(Inputs, memop) + 4));
       __ Str(memop_tmp, MemOperand(base_register));
 
@@ -3506,7 +3502,7 @@ static void TestHelper(Fn instruction,
 
       // Record the value of the base register, as an offset from the scratch
       // buffer's address.
-      __ Mov(memop_tmp, scratch_memory_addr);
+      __ Mov(memop_tmp, Operand::From(scratch_memory_buffers[i]));
       __ Sub(base_register, base_register, memop_tmp);
       __ Str(base_register, MemOperand(result_ptr, offsetof(Inputs, memop)));
 
@@ -3517,9 +3513,9 @@ static void TestHelper(Fn instruction,
 
 
     // Advance the result pointer.
-    __ Add(result_ptr, result_ptr, sizeof(kTests[i].inputs[0]));
+    __ Add(result_ptr, result_ptr, Operand::From(sizeof(kTests[i].inputs[0])));
     // Loop back until `input_ptr` is lower than `input_base`.
-    __ Add(input_ptr, input_ptr, sizeof(kTests[i].inputs[0]));
+    __ Add(input_ptr, input_ptr, Operand::From(sizeof(kTests[i].inputs[0])));
     __ Cmp(input_ptr, input_end);
     __ B(ne, &loop);
   }

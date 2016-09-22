@@ -671,10 +671,10 @@ class Uint64 {
   int64_t GetSigned() const { return data_; }
   Uint32 ToUint32() const {
     VIXL_ASSERT((data_ >> 32) == 0);
-    return Uint32(data_);
+    return Uint32(static_cast<uint32_t>(data_));
   }
   Uint32 GetHigh32() const { return Uint32(data_ >> 32); }
-  Uint32 GetLow32() const { return Uint32(data_); }
+  Uint32 GetLow32() const { return Uint32(data_ & 0xffffffff); }
   Uint64 operator~() const { return Uint64(~data_); }
   Uint64 operator-() const { return Uint64(-data_); }
   bool operator==(Uint64 value) const { return data_ == value.data_; }

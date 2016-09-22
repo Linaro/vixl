@@ -52,7 +52,7 @@ void RegisterDump::Dump(MacroAssembler* masm) {
   __ Push(tmp);
 
   // Load the address of the dump_ structure.
-  __ Mov(dump_base, reinterpret_cast<uintptr_t>(&dump_));
+  __ Mov(dump_base, Operand::From(&dump_));
 
   // Dump all core registers.  Note that the stack pointer and temporary
   // registers will be stored again later after they are restored.

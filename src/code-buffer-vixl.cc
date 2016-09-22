@@ -141,12 +141,12 @@ void CodeBuffer::Reset() {
 void CodeBuffer::Grow(size_t new_capacity) {
   VIXL_ASSERT(managed_);
   VIXL_ASSERT(new_capacity > capacity_);
-  size_t size = GetCursorOffset();
+  ptrdiff_t cursor_offset = GetCursorOffset();
   buffer_ = static_cast<byte*>(
       mremap(buffer_, capacity_, new_capacity, MREMAP_MAYMOVE));
   VIXL_CHECK(buffer_ != MAP_FAILED);
 
-  cursor_ = buffer_ + size;
+  cursor_ = buffer_ + cursor_offset;
   capacity_ = new_capacity;
 }
 

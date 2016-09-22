@@ -122,20 +122,25 @@ class Assembler {
   void SetHas32DRegs(bool has_32_dregs) { has_32_dregs_ = has_32_dregs; }
 
   CodeBuffer& GetBuffer() { return buffer_; }
-  uint32_t GetCursorOffset() const { return buffer_.GetCursorOffset(); }
+  int32_t GetCursorOffset() const {
+    ptrdiff_t offset = buffer_.GetCursorOffset();
+    VIXL_ASSERT(IsInt32(offset));
+    return static_cast<int32_t>(offset);
+  }
   // Return the address of an offset in the buffer.
   template <typename T>
-  T GetOffsetAddress(ptrdiff_t offset) const {
+  T GetOffsetAddress(intptr_t offset) const {
     VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
     return buffer_.GetOffsetAddress<T>(offset);
   }
-  uint32_t GetArchitectureStatePCOffset() const { return IsUsingT32() ? 4 : 8; }
+
   // Return the address of the start of the buffer.
   template <typename T>
   T GetStartAddress() const {
     VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
     return GetOffsetAddress<T>(0);
   }
+  uint32_t GetArchitectureStatePCOffset() const { return IsUsingT32() ? 4 : 8; }
   void EncodeLabelFor(const Label::ForwardReference& forward, Label* label);
   uint32_t Link(uint32_t instr,
                 Label* label,

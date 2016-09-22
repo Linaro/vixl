@@ -1614,8 +1614,8 @@ void MacroAssembler::Move(const GenericOperand& dst,
 
   // The sizes of the operands must match exactly.
   VIXL_ASSERT(dst.GetSizeInBits() == src.GetSizeInBits());
-  size_t operand_size = dst.GetSizeInBits();
-  VIXL_ASSERT(operand_size <= kXRegSize);
+  VIXL_ASSERT(dst.GetSizeInBits() <= kXRegSize);
+  int operand_size = static_cast<int>(dst.GetSizeInBits());
 
   if (dst.IsCPURegister() && src.IsCPURegister()) {
     CPURegister dst_reg = dst.GetCPURegister();

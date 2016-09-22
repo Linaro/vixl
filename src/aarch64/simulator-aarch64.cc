@@ -433,7 +433,7 @@ uint64_t Simulator::ComputeMemOperandAddress(const MemOperand& mem_op) const {
   } else {
     VIXL_ASSERT(mem_op.GetRegisterOffset().IsValid());
     int64_t offset = ReadRegister<int64_t>(mem_op.GetRegisterOffset());
-    int64_t shift_amount = mem_op.GetShiftAmount();
+    unsigned shift_amount = mem_op.GetShiftAmount();
     if (mem_op.GetShift() != NO_SHIFT) {
       offset = ShiftOperand(kXRegSize, offset, mem_op.GetShift(), shift_amount);
     }

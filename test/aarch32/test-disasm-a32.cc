@@ -49,9 +49,9 @@ namespace aarch32 {
 
 #define COMPARE(ASM, EXP)                                                      \
   {                                                                            \
-    ptrdiff_t start = masm.GetBuffer().GetCursorOffset();                      \
+    int32_t start = masm.GetCursorOffset();                                    \
     masm.ASM;                                                                  \
-    ptrdiff_t end = masm.GetBuffer().GetCursorOffset();                        \
+    int32_t end = masm.GetCursorOffset();                                      \
     masm.FinalizeCode();                                                       \
     std::ostringstream ss;                                                     \
     TestDisassembler disassembler(ss, 0);                                      \

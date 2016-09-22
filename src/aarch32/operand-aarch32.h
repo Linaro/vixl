@@ -59,6 +59,12 @@ class Operand {
         shift_(LSL),
         amount_(0),
         rs_(NoReg) {}
+  Operand(int32_t immediate)  // NOLINT
+      : imm_(immediate),
+        rm_(NoReg),
+        shift_(LSL),
+        amount_(0),
+        rs_(NoReg) {}
 
   // rm
   // where rm is the base register
@@ -120,6 +126,26 @@ class Operand {
     VIXL_ASSERT(!shift_.IsRRX());
   }
 
+  // Factory methods creating operands from any integral or pointer type. The
+  // source must fit into 32 bits.
+  template <typename T>
+  static Operand From(T immediate) {
+#if __cplusplus >= 201103L
+    VIXL_STATIC_ASSERT_MESSAGE(std::is_integral<T>::value,
+                               "An integral type is required to build an "
+                               "immediate operand.");
+#endif
+    VIXL_ASSERT(IsUint32(immediate));
+    return Operand(static_cast<uint32_t>(immediate));
+  }
+
+  template <typename T>
+  static Operand From(T* address) {
+    uintptr_t address_as_integral = reinterpret_cast<uintptr_t>(address);
+    VIXL_ASSERT(IsUint32(address_as_integral));
+    return Operand(static_cast<uint32_t>(address_as_integral));
+  }
+
   bool IsImmediate() const { return !rm_.IsValid(); }
 
   bool IsPlainRegister() const {
@@ -164,6 +190,28 @@ class Operand {
   }
 
  private:
+// Forbid implicitely creating operands around types that cannot be encoded
+// into a uint32_t without loss.
+#if __cplusplus >= 201103L
+  Operand(int64_t) = delete;   // NOLINT
+  Operand(uint64_t) = delete;  // NOLINT
+  Operand(float) = delete;     // NOLINT
+  Operand(double) = delete;    // NOLINT
+#else
+  Operand(int64_t) VIXL_NO_RETURN_IN_DEBUG_MODE {  // NOLINT
+    VIXL_UNREACHABLE();
+  }
+  Operand(uint64_t) VIXL_NO_RETURN_IN_DEBUG_MODE {  // NOLINT
+    VIXL_UNREACHABLE();
+  }
+  Operand(float) VIXL_NO_RETURN_IN_DEBUG_MODE {  // NOLINT
+    VIXL_UNREACHABLE();
+  }
+  Operand(double) VIXL_NO_RETURN_IN_DEBUG_MODE {  // NOLINT
+    VIXL_UNREACHABLE();
+  }
+#endif
+
   uint32_t imm_;
   Register rm_;
   Shift shift_;

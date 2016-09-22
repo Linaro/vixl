@@ -5127,7 +5127,7 @@ static void TestHelper(Fn instruction,
     uint32_t amount = kTests[i].operands.amount;
     Operand op(rm, ror, amount);
 
-    uint32_t start = masm.GetCursorOffset();
+    int32_t start = masm.GetCursorOffset();
     {
       // We never generate more that 4 bytes, as IT instructions are only
       // allowed for narrow encodings.
@@ -5139,10 +5139,11 @@ static void TestHelper(Fn instruction,
       }
       (masm.*instruction)(cond, rd, rn, op);
     }
-    uint32_t end = masm.GetCursorOffset();
+    int32_t end = masm.GetCursorOffset();
 
     const byte* result_ptr =
         masm.GetBuffer().GetOffsetAddress<const byte*>(start);
+    VIXL_ASSERT(start < end);
     uint32_t result_size = end - start;
 
     if (Test::generate_test_trace()) {
