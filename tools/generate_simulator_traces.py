@@ -196,6 +196,11 @@ if __name__ == '__main__':
       print 'Generating trace for ' + test;
       # Strip out 'AARCH32_' to get the name of the test.
       test_name = test[len('AARCH32_'):]
+
+      # An "and" instruction will be called "and_" since we cannot clash with
+      # the C++ operator. Rename "and_" to "and" to keep sane filenames.
+      test_name = test_name.replace('and_', 'and')
+
       cmd = ' '.join([args.runner, '--generate_test_trace', test])
       status, output = util.getstatusoutput(cmd)
       if status != 0: util.abort('Failed to run ' + cmd + '.')

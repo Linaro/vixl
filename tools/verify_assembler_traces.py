@@ -144,7 +144,8 @@ def ConvertToLLVMFormat(vixl_instruction, triple):
   # `llvm_mc_instruction_converters` below. The value needs to be a capturing
   # regular expression.
   pattern_matchers = {
-      "mnemonic": "(\w+)",
+      # Allow an optional underscore in case this an "and" instruction.
+      "mnemonic": "(\w+?)_?",
       "condition":
           "(al|eq|ne|cs|cc|mi|pl|vs|vc|hi|ls|ge|lt|gt|le)",
       "register":

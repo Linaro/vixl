@@ -34,2106 +34,2106 @@
 #ifndef VIXL_ASSEMBLER_COND_RD_RN_RM_T32_SMUSD_H_
 #define VIXL_ASSEMBLER_COND_RD_RN_RM_T32_SMUSD_H_
 
-static const byte kInstruction_Smusd_al_r5_r12_r2[] = {
-  0x4c, 0xfb, 0x02, 0xf5 //  Smusd al r5 r12 r2
+static const byte kInstruction_smusd_al_r5_r12_r2[] = {
+  0x4c, 0xfb, 0x02, 0xf5 // smusd al r5 r12 r2
 };
-static const byte kInstruction_Smusd_al_r7_r3_r12[] = {
-  0x43, 0xfb, 0x0c, 0xf7 //  Smusd al r7 r3 r12
+static const byte kInstruction_smusd_al_r7_r3_r12[] = {
+  0x43, 0xfb, 0x0c, 0xf7 // smusd al r7 r3 r12
 };
-static const byte kInstruction_Smusd_al_r1_r2_r10[] = {
-  0x42, 0xfb, 0x0a, 0xf1 //  Smusd al r1 r2 r10
+static const byte kInstruction_smusd_al_r1_r2_r10[] = {
+  0x42, 0xfb, 0x0a, 0xf1 // smusd al r1 r2 r10
 };
-static const byte kInstruction_Smusd_al_r2_r7_r1[] = {
-  0x47, 0xfb, 0x01, 0xf2 //  Smusd al r2 r7 r1
+static const byte kInstruction_smusd_al_r2_r7_r1[] = {
+  0x47, 0xfb, 0x01, 0xf2 // smusd al r2 r7 r1
 };
-static const byte kInstruction_Smusd_al_r11_r9_r0[] = {
-  0x49, 0xfb, 0x00, 0xfb //  Smusd al r11 r9 r0
+static const byte kInstruction_smusd_al_r11_r9_r0[] = {
+  0x49, 0xfb, 0x00, 0xfb // smusd al r11 r9 r0
 };
-static const byte kInstruction_Smusd_al_r6_r9_r10[] = {
-  0x49, 0xfb, 0x0a, 0xf6 //  Smusd al r6 r9 r10
+static const byte kInstruction_smusd_al_r6_r9_r10[] = {
+  0x49, 0xfb, 0x0a, 0xf6 // smusd al r6 r9 r10
 };
-static const byte kInstruction_Smusd_al_r0_r5_r0[] = {
-  0x45, 0xfb, 0x00, 0xf0 //  Smusd al r0 r5 r0
+static const byte kInstruction_smusd_al_r0_r5_r0[] = {
+  0x45, 0xfb, 0x00, 0xf0 // smusd al r0 r5 r0
 };
-static const byte kInstruction_Smusd_al_r4_r6_r6[] = {
-  0x46, 0xfb, 0x06, 0xf4 //  Smusd al r4 r6 r6
+static const byte kInstruction_smusd_al_r4_r6_r6[] = {
+  0x46, 0xfb, 0x06, 0xf4 // smusd al r4 r6 r6
 };
-static const byte kInstruction_Smusd_al_r1_r13_r1[] = {
-  0x4d, 0xfb, 0x01, 0xf1 //  Smusd al r1 r13 r1
+static const byte kInstruction_smusd_al_r1_r13_r1[] = {
+  0x4d, 0xfb, 0x01, 0xf1 // smusd al r1 r13 r1
 };
-static const byte kInstruction_Smusd_al_r8_r14_r8[] = {
-  0x4e, 0xfb, 0x08, 0xf8 //  Smusd al r8 r14 r8
+static const byte kInstruction_smusd_al_r8_r14_r8[] = {
+  0x4e, 0xfb, 0x08, 0xf8 // smusd al r8 r14 r8
 };
-static const byte kInstruction_Smusd_al_r6_r12_r11[] = {
-  0x4c, 0xfb, 0x0b, 0xf6 //  Smusd al r6 r12 r11
+static const byte kInstruction_smusd_al_r6_r12_r11[] = {
+  0x4c, 0xfb, 0x0b, 0xf6 // smusd al r6 r12 r11
 };
-static const byte kInstruction_Smusd_al_r7_r2_r8[] = {
-  0x42, 0xfb, 0x08, 0xf7 //  Smusd al r7 r2 r8
+static const byte kInstruction_smusd_al_r7_r2_r8[] = {
+  0x42, 0xfb, 0x08, 0xf7 // smusd al r7 r2 r8
 };
-static const byte kInstruction_Smusd_al_r13_r6_r7[] = {
-  0x46, 0xfb, 0x07, 0xfd //  Smusd al r13 r6 r7
+static const byte kInstruction_smusd_al_r13_r6_r7[] = {
+  0x46, 0xfb, 0x07, 0xfd // smusd al r13 r6 r7
 };
-static const byte kInstruction_Smusd_al_r10_r3_r13[] = {
-  0x43, 0xfb, 0x0d, 0xfa //  Smusd al r10 r3 r13
+static const byte kInstruction_smusd_al_r10_r3_r13[] = {
+  0x43, 0xfb, 0x0d, 0xfa // smusd al r10 r3 r13
 };
-static const byte kInstruction_Smusd_al_r10_r10_r2[] = {
-  0x4a, 0xfb, 0x02, 0xfa //  Smusd al r10 r10 r2
+static const byte kInstruction_smusd_al_r10_r10_r2[] = {
+  0x4a, 0xfb, 0x02, 0xfa // smusd al r10 r10 r2
 };
-static const byte kInstruction_Smusd_al_r3_r2_r12[] = {
-  0x42, 0xfb, 0x0c, 0xf3 //  Smusd al r3 r2 r12
+static const byte kInstruction_smusd_al_r3_r2_r12[] = {
+  0x42, 0xfb, 0x0c, 0xf3 // smusd al r3 r2 r12
 };
-static const byte kInstruction_Smusd_al_r0_r9_r7[] = {
-  0x49, 0xfb, 0x07, 0xf0 //  Smusd al r0 r9 r7
+static const byte kInstruction_smusd_al_r0_r9_r7[] = {
+  0x49, 0xfb, 0x07, 0xf0 // smusd al r0 r9 r7
 };
-static const byte kInstruction_Smusd_al_r4_r1_r5[] = {
-  0x41, 0xfb, 0x05, 0xf4 //  Smusd al r4 r1 r5
+static const byte kInstruction_smusd_al_r4_r1_r5[] = {
+  0x41, 0xfb, 0x05, 0xf4 // smusd al r4 r1 r5
 };
-static const byte kInstruction_Smusd_al_r12_r12_r1[] = {
-  0x4c, 0xfb, 0x01, 0xfc //  Smusd al r12 r12 r1
+static const byte kInstruction_smusd_al_r12_r12_r1[] = {
+  0x4c, 0xfb, 0x01, 0xfc // smusd al r12 r12 r1
 };
-static const byte kInstruction_Smusd_al_r4_r12_r2[] = {
-  0x4c, 0xfb, 0x02, 0xf4 //  Smusd al r4 r12 r2
+static const byte kInstruction_smusd_al_r4_r12_r2[] = {
+  0x4c, 0xfb, 0x02, 0xf4 // smusd al r4 r12 r2
 };
-static const byte kInstruction_Smusd_al_r9_r3_r4[] = {
-  0x43, 0xfb, 0x04, 0xf9 //  Smusd al r9 r3 r4
+static const byte kInstruction_smusd_al_r9_r3_r4[] = {
+  0x43, 0xfb, 0x04, 0xf9 // smusd al r9 r3 r4
 };
-static const byte kInstruction_Smusd_al_r13_r11_r3[] = {
-  0x4b, 0xfb, 0x03, 0xfd //  Smusd al r13 r11 r3
+static const byte kInstruction_smusd_al_r13_r11_r3[] = {
+  0x4b, 0xfb, 0x03, 0xfd // smusd al r13 r11 r3
 };
-static const byte kInstruction_Smusd_al_r5_r1_r5[] = {
-  0x41, 0xfb, 0x05, 0xf5 //  Smusd al r5 r1 r5
+static const byte kInstruction_smusd_al_r5_r1_r5[] = {
+  0x41, 0xfb, 0x05, 0xf5 // smusd al r5 r1 r5
 };
-static const byte kInstruction_Smusd_al_r14_r6_r2[] = {
-  0x46, 0xfb, 0x02, 0xfe //  Smusd al r14 r6 r2
+static const byte kInstruction_smusd_al_r14_r6_r2[] = {
+  0x46, 0xfb, 0x02, 0xfe // smusd al r14 r6 r2
 };
-static const byte kInstruction_Smusd_al_r1_r2_r0[] = {
-  0x42, 0xfb, 0x00, 0xf1 //  Smusd al r1 r2 r0
+static const byte kInstruction_smusd_al_r1_r2_r0[] = {
+  0x42, 0xfb, 0x00, 0xf1 // smusd al r1 r2 r0
 };
-static const byte kInstruction_Smusd_al_r1_r8_r14[] = {
-  0x48, 0xfb, 0x0e, 0xf1 //  Smusd al r1 r8 r14
+static const byte kInstruction_smusd_al_r1_r8_r14[] = {
+  0x48, 0xfb, 0x0e, 0xf1 // smusd al r1 r8 r14
 };
-static const byte kInstruction_Smusd_al_r12_r9_r10[] = {
-  0x49, 0xfb, 0x0a, 0xfc //  Smusd al r12 r9 r10
+static const byte kInstruction_smusd_al_r12_r9_r10[] = {
+  0x49, 0xfb, 0x0a, 0xfc // smusd al r12 r9 r10
 };
-static const byte kInstruction_Smusd_al_r2_r2_r6[] = {
-  0x42, 0xfb, 0x06, 0xf2 //  Smusd al r2 r2 r6
+static const byte kInstruction_smusd_al_r2_r2_r6[] = {
+  0x42, 0xfb, 0x06, 0xf2 // smusd al r2 r2 r6
 };
-static const byte kInstruction_Smusd_al_r13_r6_r2[] = {
-  0x46, 0xfb, 0x02, 0xfd //  Smusd al r13 r6 r2
+static const byte kInstruction_smusd_al_r13_r6_r2[] = {
+  0x46, 0xfb, 0x02, 0xfd // smusd al r13 r6 r2
 };
-static const byte kInstruction_Smusd_al_r8_r4_r3[] = {
-  0x44, 0xfb, 0x03, 0xf8 //  Smusd al r8 r4 r3
+static const byte kInstruction_smusd_al_r8_r4_r3[] = {
+  0x44, 0xfb, 0x03, 0xf8 // smusd al r8 r4 r3
 };
-static const byte kInstruction_Smusd_al_r7_r11_r3[] = {
-  0x4b, 0xfb, 0x03, 0xf7 //  Smusd al r7 r11 r3
+static const byte kInstruction_smusd_al_r7_r11_r3[] = {
+  0x4b, 0xfb, 0x03, 0xf7 // smusd al r7 r11 r3
 };
-static const byte kInstruction_Smusd_al_r8_r1_r13[] = {
-  0x41, 0xfb, 0x0d, 0xf8 //  Smusd al r8 r1 r13
+static const byte kInstruction_smusd_al_r8_r1_r13[] = {
+  0x41, 0xfb, 0x0d, 0xf8 // smusd al r8 r1 r13
 };
-static const byte kInstruction_Smusd_al_r1_r11_r6[] = {
-  0x4b, 0xfb, 0x06, 0xf1 //  Smusd al r1 r11 r6
+static const byte kInstruction_smusd_al_r1_r11_r6[] = {
+  0x4b, 0xfb, 0x06, 0xf1 // smusd al r1 r11 r6
 };
-static const byte kInstruction_Smusd_al_r2_r3_r10[] = {
-  0x43, 0xfb, 0x0a, 0xf2 //  Smusd al r2 r3 r10
+static const byte kInstruction_smusd_al_r2_r3_r10[] = {
+  0x43, 0xfb, 0x0a, 0xf2 // smusd al r2 r3 r10
 };
-static const byte kInstruction_Smusd_al_r0_r9_r0[] = {
-  0x49, 0xfb, 0x00, 0xf0 //  Smusd al r0 r9 r0
+static const byte kInstruction_smusd_al_r0_r9_r0[] = {
+  0x49, 0xfb, 0x00, 0xf0 // smusd al r0 r9 r0
 };
-static const byte kInstruction_Smusd_al_r6_r6_r1[] = {
-  0x46, 0xfb, 0x01, 0xf6 //  Smusd al r6 r6 r1
+static const byte kInstruction_smusd_al_r6_r6_r1[] = {
+  0x46, 0xfb, 0x01, 0xf6 // smusd al r6 r6 r1
 };
-static const byte kInstruction_Smusd_al_r5_r7_r10[] = {
-  0x47, 0xfb, 0x0a, 0xf5 //  Smusd al r5 r7 r10
+static const byte kInstruction_smusd_al_r5_r7_r10[] = {
+  0x47, 0xfb, 0x0a, 0xf5 // smusd al r5 r7 r10
 };
-static const byte kInstruction_Smusd_al_r10_r14_r7[] = {
-  0x4e, 0xfb, 0x07, 0xfa //  Smusd al r10 r14 r7
+static const byte kInstruction_smusd_al_r10_r14_r7[] = {
+  0x4e, 0xfb, 0x07, 0xfa // smusd al r10 r14 r7
 };
-static const byte kInstruction_Smusd_al_r8_r2_r12[] = {
-  0x42, 0xfb, 0x0c, 0xf8 //  Smusd al r8 r2 r12
+static const byte kInstruction_smusd_al_r8_r2_r12[] = {
+  0x42, 0xfb, 0x0c, 0xf8 // smusd al r8 r2 r12
 };
-static const byte kInstruction_Smusd_al_r11_r12_r3[] = {
-  0x4c, 0xfb, 0x03, 0xfb //  Smusd al r11 r12 r3
+static const byte kInstruction_smusd_al_r11_r12_r3[] = {
+  0x4c, 0xfb, 0x03, 0xfb // smusd al r11 r12 r3
 };
-static const byte kInstruction_Smusd_al_r0_r4_r13[] = {
-  0x44, 0xfb, 0x0d, 0xf0 //  Smusd al r0 r4 r13
+static const byte kInstruction_smusd_al_r0_r4_r13[] = {
+  0x44, 0xfb, 0x0d, 0xf0 // smusd al r0 r4 r13
 };
-static const byte kInstruction_Smusd_al_r13_r0_r8[] = {
-  0x40, 0xfb, 0x08, 0xfd //  Smusd al r13 r0 r8
+static const byte kInstruction_smusd_al_r13_r0_r8[] = {
+  0x40, 0xfb, 0x08, 0xfd // smusd al r13 r0 r8
 };
-static const byte kInstruction_Smusd_al_r7_r14_r12[] = {
-  0x4e, 0xfb, 0x0c, 0xf7 //  Smusd al r7 r14 r12
+static const byte kInstruction_smusd_al_r7_r14_r12[] = {
+  0x4e, 0xfb, 0x0c, 0xf7 // smusd al r7 r14 r12
 };
-static const byte kInstruction_Smusd_al_r8_r11_r10[] = {
-  0x4b, 0xfb, 0x0a, 0xf8 //  Smusd al r8 r11 r10
+static const byte kInstruction_smusd_al_r8_r11_r10[] = {
+  0x4b, 0xfb, 0x0a, 0xf8 // smusd al r8 r11 r10
 };
-static const byte kInstruction_Smusd_al_r8_r13_r14[] = {
-  0x4d, 0xfb, 0x0e, 0xf8 //  Smusd al r8 r13 r14
+static const byte kInstruction_smusd_al_r8_r13_r14[] = {
+  0x4d, 0xfb, 0x0e, 0xf8 // smusd al r8 r13 r14
 };
-static const byte kInstruction_Smusd_al_r13_r7_r1[] = {
-  0x47, 0xfb, 0x01, 0xfd //  Smusd al r13 r7 r1
+static const byte kInstruction_smusd_al_r13_r7_r1[] = {
+  0x47, 0xfb, 0x01, 0xfd // smusd al r13 r7 r1
 };
-static const byte kInstruction_Smusd_al_r10_r0_r14[] = {
-  0x40, 0xfb, 0x0e, 0xfa //  Smusd al r10 r0 r14
+static const byte kInstruction_smusd_al_r10_r0_r14[] = {
+  0x40, 0xfb, 0x0e, 0xfa // smusd al r10 r0 r14
 };
-static const byte kInstruction_Smusd_al_r6_r4_r12[] = {
-  0x44, 0xfb, 0x0c, 0xf6 //  Smusd al r6 r4 r12
+static const byte kInstruction_smusd_al_r6_r4_r12[] = {
+  0x44, 0xfb, 0x0c, 0xf6 // smusd al r6 r4 r12
 };
-static const byte kInstruction_Smusd_al_r8_r8_r12[] = {
-  0x48, 0xfb, 0x0c, 0xf8 //  Smusd al r8 r8 r12
+static const byte kInstruction_smusd_al_r8_r8_r12[] = {
+  0x48, 0xfb, 0x0c, 0xf8 // smusd al r8 r8 r12
 };
-static const byte kInstruction_Smusd_al_r10_r9_r4[] = {
-  0x49, 0xfb, 0x04, 0xfa //  Smusd al r10 r9 r4
+static const byte kInstruction_smusd_al_r10_r9_r4[] = {
+  0x49, 0xfb, 0x04, 0xfa // smusd al r10 r9 r4
 };
-static const byte kInstruction_Smusd_al_r14_r9_r8[] = {
-  0x49, 0xfb, 0x08, 0xfe //  Smusd al r14 r9 r8
+static const byte kInstruction_smusd_al_r14_r9_r8[] = {
+  0x49, 0xfb, 0x08, 0xfe // smusd al r14 r9 r8
 };
-static const byte kInstruction_Smusd_al_r9_r1_r0[] = {
-  0x41, 0xfb, 0x00, 0xf9 //  Smusd al r9 r1 r0
+static const byte kInstruction_smusd_al_r9_r1_r0[] = {
+  0x41, 0xfb, 0x00, 0xf9 // smusd al r9 r1 r0
 };
-static const byte kInstruction_Smusd_al_r14_r4_r11[] = {
-  0x44, 0xfb, 0x0b, 0xfe //  Smusd al r14 r4 r11
+static const byte kInstruction_smusd_al_r14_r4_r11[] = {
+  0x44, 0xfb, 0x0b, 0xfe // smusd al r14 r4 r11
 };
-static const byte kInstruction_Smusd_al_r13_r1_r12[] = {
-  0x41, 0xfb, 0x0c, 0xfd //  Smusd al r13 r1 r12
+static const byte kInstruction_smusd_al_r13_r1_r12[] = {
+  0x41, 0xfb, 0x0c, 0xfd // smusd al r13 r1 r12
 };
-static const byte kInstruction_Smusd_al_r6_r14_r5[] = {
-  0x4e, 0xfb, 0x05, 0xf6 //  Smusd al r6 r14 r5
+static const byte kInstruction_smusd_al_r6_r14_r5[] = {
+  0x4e, 0xfb, 0x05, 0xf6 // smusd al r6 r14 r5
 };
-static const byte kInstruction_Smusd_al_r7_r7_r6[] = {
-  0x47, 0xfb, 0x06, 0xf7 //  Smusd al r7 r7 r6
+static const byte kInstruction_smusd_al_r7_r7_r6[] = {
+  0x47, 0xfb, 0x06, 0xf7 // smusd al r7 r7 r6
 };
-static const byte kInstruction_Smusd_al_r6_r14_r0[] = {
-  0x4e, 0xfb, 0x00, 0xf6 //  Smusd al r6 r14 r0
+static const byte kInstruction_smusd_al_r6_r14_r0[] = {
+  0x4e, 0xfb, 0x00, 0xf6 // smusd al r6 r14 r0
 };
-static const byte kInstruction_Smusd_al_r7_r5_r11[] = {
-  0x45, 0xfb, 0x0b, 0xf7 //  Smusd al r7 r5 r11
+static const byte kInstruction_smusd_al_r7_r5_r11[] = {
+  0x45, 0xfb, 0x0b, 0xf7 // smusd al r7 r5 r11
 };
-static const byte kInstruction_Smusd_al_r9_r10_r9[] = {
-  0x4a, 0xfb, 0x09, 0xf9 //  Smusd al r9 r10 r9
+static const byte kInstruction_smusd_al_r9_r10_r9[] = {
+  0x4a, 0xfb, 0x09, 0xf9 // smusd al r9 r10 r9
 };
-static const byte kInstruction_Smusd_al_r4_r5_r0[] = {
-  0x45, 0xfb, 0x00, 0xf4 //  Smusd al r4 r5 r0
+static const byte kInstruction_smusd_al_r4_r5_r0[] = {
+  0x45, 0xfb, 0x00, 0xf4 // smusd al r4 r5 r0
 };
-static const byte kInstruction_Smusd_al_r3_r11_r2[] = {
-  0x4b, 0xfb, 0x02, 0xf3 //  Smusd al r3 r11 r2
+static const byte kInstruction_smusd_al_r3_r11_r2[] = {
+  0x4b, 0xfb, 0x02, 0xf3 // smusd al r3 r11 r2
 };
-static const byte kInstruction_Smusd_al_r1_r4_r3[] = {
-  0x44, 0xfb, 0x03, 0xf1 //  Smusd al r1 r4 r3
+static const byte kInstruction_smusd_al_r1_r4_r3[] = {
+  0x44, 0xfb, 0x03, 0xf1 // smusd al r1 r4 r3
 };
-static const byte kInstruction_Smusd_al_r13_r14_r6[] = {
-  0x4e, 0xfb, 0x06, 0xfd //  Smusd al r13 r14 r6
+static const byte kInstruction_smusd_al_r13_r14_r6[] = {
+  0x4e, 0xfb, 0x06, 0xfd // smusd al r13 r14 r6
 };
-static const byte kInstruction_Smusd_al_r1_r8_r13[] = {
-  0x48, 0xfb, 0x0d, 0xf1 //  Smusd al r1 r8 r13
+static const byte kInstruction_smusd_al_r1_r8_r13[] = {
+  0x48, 0xfb, 0x0d, 0xf1 // smusd al r1 r8 r13
 };
-static const byte kInstruction_Smusd_al_r4_r2_r7[] = {
-  0x42, 0xfb, 0x07, 0xf4 //  Smusd al r4 r2 r7
+static const byte kInstruction_smusd_al_r4_r2_r7[] = {
+  0x42, 0xfb, 0x07, 0xf4 // smusd al r4 r2 r7
 };
-static const byte kInstruction_Smusd_al_r1_r11_r3[] = {
-  0x4b, 0xfb, 0x03, 0xf1 //  Smusd al r1 r11 r3
+static const byte kInstruction_smusd_al_r1_r11_r3[] = {
+  0x4b, 0xfb, 0x03, 0xf1 // smusd al r1 r11 r3
 };
-static const byte kInstruction_Smusd_al_r9_r3_r6[] = {
-  0x43, 0xfb, 0x06, 0xf9 //  Smusd al r9 r3 r6
+static const byte kInstruction_smusd_al_r9_r3_r6[] = {
+  0x43, 0xfb, 0x06, 0xf9 // smusd al r9 r3 r6
 };
-static const byte kInstruction_Smusd_al_r0_r10_r5[] = {
-  0x4a, 0xfb, 0x05, 0xf0 //  Smusd al r0 r10 r5
+static const byte kInstruction_smusd_al_r0_r10_r5[] = {
+  0x4a, 0xfb, 0x05, 0xf0 // smusd al r0 r10 r5
 };
-static const byte kInstruction_Smusd_al_r5_r7_r2[] = {
-  0x47, 0xfb, 0x02, 0xf5 //  Smusd al r5 r7 r2
+static const byte kInstruction_smusd_al_r5_r7_r2[] = {
+  0x47, 0xfb, 0x02, 0xf5 // smusd al r5 r7 r2
 };
-static const byte kInstruction_Smusd_al_r1_r14_r9[] = {
-  0x4e, 0xfb, 0x09, 0xf1 //  Smusd al r1 r14 r9
+static const byte kInstruction_smusd_al_r1_r14_r9[] = {
+  0x4e, 0xfb, 0x09, 0xf1 // smusd al r1 r14 r9
 };
-static const byte kInstruction_Smusd_al_r9_r12_r11[] = {
-  0x4c, 0xfb, 0x0b, 0xf9 //  Smusd al r9 r12 r11
+static const byte kInstruction_smusd_al_r9_r12_r11[] = {
+  0x4c, 0xfb, 0x0b, 0xf9 // smusd al r9 r12 r11
 };
-static const byte kInstruction_Smusd_al_r0_r11_r8[] = {
-  0x4b, 0xfb, 0x08, 0xf0 //  Smusd al r0 r11 r8
+static const byte kInstruction_smusd_al_r0_r11_r8[] = {
+  0x4b, 0xfb, 0x08, 0xf0 // smusd al r0 r11 r8
 };
-static const byte kInstruction_Smusd_al_r9_r10_r12[] = {
-  0x4a, 0xfb, 0x0c, 0xf9 //  Smusd al r9 r10 r12
+static const byte kInstruction_smusd_al_r9_r10_r12[] = {
+  0x4a, 0xfb, 0x0c, 0xf9 // smusd al r9 r10 r12
 };
-static const byte kInstruction_Smusd_al_r8_r5_r5[] = {
-  0x45, 0xfb, 0x05, 0xf8 //  Smusd al r8 r5 r5
+static const byte kInstruction_smusd_al_r8_r5_r5[] = {
+  0x45, 0xfb, 0x05, 0xf8 // smusd al r8 r5 r5
 };
-static const byte kInstruction_Smusd_al_r10_r3_r10[] = {
-  0x43, 0xfb, 0x0a, 0xfa //  Smusd al r10 r3 r10
+static const byte kInstruction_smusd_al_r10_r3_r10[] = {
+  0x43, 0xfb, 0x0a, 0xfa // smusd al r10 r3 r10
 };
-static const byte kInstruction_Smusd_al_r13_r5_r8[] = {
-  0x45, 0xfb, 0x08, 0xfd //  Smusd al r13 r5 r8
+static const byte kInstruction_smusd_al_r13_r5_r8[] = {
+  0x45, 0xfb, 0x08, 0xfd // smusd al r13 r5 r8
 };
-static const byte kInstruction_Smusd_al_r11_r4_r2[] = {
-  0x44, 0xfb, 0x02, 0xfb //  Smusd al r11 r4 r2
+static const byte kInstruction_smusd_al_r11_r4_r2[] = {
+  0x44, 0xfb, 0x02, 0xfb // smusd al r11 r4 r2
 };
-static const byte kInstruction_Smusd_al_r1_r10_r7[] = {
-  0x4a, 0xfb, 0x07, 0xf1 //  Smusd al r1 r10 r7
+static const byte kInstruction_smusd_al_r1_r10_r7[] = {
+  0x4a, 0xfb, 0x07, 0xf1 // smusd al r1 r10 r7
 };
-static const byte kInstruction_Smusd_al_r12_r4_r1[] = {
-  0x44, 0xfb, 0x01, 0xfc //  Smusd al r12 r4 r1
+static const byte kInstruction_smusd_al_r12_r4_r1[] = {
+  0x44, 0xfb, 0x01, 0xfc // smusd al r12 r4 r1
 };
-static const byte kInstruction_Smusd_al_r11_r14_r8[] = {
-  0x4e, 0xfb, 0x08, 0xfb //  Smusd al r11 r14 r8
+static const byte kInstruction_smusd_al_r11_r14_r8[] = {
+  0x4e, 0xfb, 0x08, 0xfb // smusd al r11 r14 r8
 };
-static const byte kInstruction_Smusd_al_r1_r11_r8[] = {
-  0x4b, 0xfb, 0x08, 0xf1 //  Smusd al r1 r11 r8
+static const byte kInstruction_smusd_al_r1_r11_r8[] = {
+  0x4b, 0xfb, 0x08, 0xf1 // smusd al r1 r11 r8
 };
-static const byte kInstruction_Smusd_al_r3_r11_r10[] = {
-  0x4b, 0xfb, 0x0a, 0xf3 //  Smusd al r3 r11 r10
+static const byte kInstruction_smusd_al_r3_r11_r10[] = {
+  0x4b, 0xfb, 0x0a, 0xf3 // smusd al r3 r11 r10
 };
-static const byte kInstruction_Smusd_al_r6_r7_r0[] = {
-  0x47, 0xfb, 0x00, 0xf6 //  Smusd al r6 r7 r0
+static const byte kInstruction_smusd_al_r6_r7_r0[] = {
+  0x47, 0xfb, 0x00, 0xf6 // smusd al r6 r7 r0
 };
-static const byte kInstruction_Smusd_al_r6_r13_r9[] = {
-  0x4d, 0xfb, 0x09, 0xf6 //  Smusd al r6 r13 r9
+static const byte kInstruction_smusd_al_r6_r13_r9[] = {
+  0x4d, 0xfb, 0x09, 0xf6 // smusd al r6 r13 r9
 };
-static const byte kInstruction_Smusd_al_r9_r14_r0[] = {
-  0x4e, 0xfb, 0x00, 0xf9 //  Smusd al r9 r14 r0
+static const byte kInstruction_smusd_al_r9_r14_r0[] = {
+  0x4e, 0xfb, 0x00, 0xf9 // smusd al r9 r14 r0
 };
-static const byte kInstruction_Smusd_al_r6_r8_r2[] = {
-  0x48, 0xfb, 0x02, 0xf6 //  Smusd al r6 r8 r2
+static const byte kInstruction_smusd_al_r6_r8_r2[] = {
+  0x48, 0xfb, 0x02, 0xf6 // smusd al r6 r8 r2
 };
-static const byte kInstruction_Smusd_al_r7_r11_r12[] = {
-  0x4b, 0xfb, 0x0c, 0xf7 //  Smusd al r7 r11 r12
+static const byte kInstruction_smusd_al_r7_r11_r12[] = {
+  0x4b, 0xfb, 0x0c, 0xf7 // smusd al r7 r11 r12
 };
-static const byte kInstruction_Smusd_al_r9_r3_r0[] = {
-  0x43, 0xfb, 0x00, 0xf9 //  Smusd al r9 r3 r0
+static const byte kInstruction_smusd_al_r9_r3_r0[] = {
+  0x43, 0xfb, 0x00, 0xf9 // smusd al r9 r3 r0
 };
-static const byte kInstruction_Smusd_al_r5_r3_r5[] = {
-  0x43, 0xfb, 0x05, 0xf5 //  Smusd al r5 r3 r5
+static const byte kInstruction_smusd_al_r5_r3_r5[] = {
+  0x43, 0xfb, 0x05, 0xf5 // smusd al r5 r3 r5
 };
-static const byte kInstruction_Smusd_al_r5_r10_r8[] = {
-  0x4a, 0xfb, 0x08, 0xf5 //  Smusd al r5 r10 r8
+static const byte kInstruction_smusd_al_r5_r10_r8[] = {
+  0x4a, 0xfb, 0x08, 0xf5 // smusd al r5 r10 r8
 };
-static const byte kInstruction_Smusd_al_r12_r4_r13[] = {
-  0x44, 0xfb, 0x0d, 0xfc //  Smusd al r12 r4 r13
+static const byte kInstruction_smusd_al_r12_r4_r13[] = {
+  0x44, 0xfb, 0x0d, 0xfc // smusd al r12 r4 r13
 };
-static const byte kInstruction_Smusd_al_r7_r12_r10[] = {
-  0x4c, 0xfb, 0x0a, 0xf7 //  Smusd al r7 r12 r10
+static const byte kInstruction_smusd_al_r7_r12_r10[] = {
+  0x4c, 0xfb, 0x0a, 0xf7 // smusd al r7 r12 r10
 };
-static const byte kInstruction_Smusd_al_r6_r13_r11[] = {
-  0x4d, 0xfb, 0x0b, 0xf6 //  Smusd al r6 r13 r11
+static const byte kInstruction_smusd_al_r6_r13_r11[] = {
+  0x4d, 0xfb, 0x0b, 0xf6 // smusd al r6 r13 r11
 };
-static const byte kInstruction_Smusd_al_r5_r3_r7[] = {
-  0x43, 0xfb, 0x07, 0xf5 //  Smusd al r5 r3 r7
+static const byte kInstruction_smusd_al_r5_r3_r7[] = {
+  0x43, 0xfb, 0x07, 0xf5 // smusd al r5 r3 r7
 };
-static const byte kInstruction_Smusd_al_r11_r4_r6[] = {
-  0x44, 0xfb, 0x06, 0xfb //  Smusd al r11 r4 r6
+static const byte kInstruction_smusd_al_r11_r4_r6[] = {
+  0x44, 0xfb, 0x06, 0xfb // smusd al r11 r4 r6
 };
-static const byte kInstruction_Smusd_al_r10_r2_r3[] = {
-  0x42, 0xfb, 0x03, 0xfa //  Smusd al r10 r2 r3
+static const byte kInstruction_smusd_al_r10_r2_r3[] = {
+  0x42, 0xfb, 0x03, 0xfa // smusd al r10 r2 r3
 };
-static const byte kInstruction_Smusd_al_r0_r2_r1[] = {
-  0x42, 0xfb, 0x01, 0xf0 //  Smusd al r0 r2 r1
+static const byte kInstruction_smusd_al_r0_r2_r1[] = {
+  0x42, 0xfb, 0x01, 0xf0 // smusd al r0 r2 r1
 };
-static const byte kInstruction_Smusd_al_r11_r5_r7[] = {
-  0x45, 0xfb, 0x07, 0xfb //  Smusd al r11 r5 r7
+static const byte kInstruction_smusd_al_r11_r5_r7[] = {
+  0x45, 0xfb, 0x07, 0xfb // smusd al r11 r5 r7
 };
-static const byte kInstruction_Smusd_al_r14_r10_r1[] = {
-  0x4a, 0xfb, 0x01, 0xfe //  Smusd al r14 r10 r1
+static const byte kInstruction_smusd_al_r14_r10_r1[] = {
+  0x4a, 0xfb, 0x01, 0xfe // smusd al r14 r10 r1
 };
-static const byte kInstruction_Smusd_al_r1_r4_r1[] = {
-  0x44, 0xfb, 0x01, 0xf1 //  Smusd al r1 r4 r1
+static const byte kInstruction_smusd_al_r1_r4_r1[] = {
+  0x44, 0xfb, 0x01, 0xf1 // smusd al r1 r4 r1
 };
-static const byte kInstruction_Smusd_al_r9_r10_r11[] = {
-  0x4a, 0xfb, 0x0b, 0xf9 //  Smusd al r9 r10 r11
+static const byte kInstruction_smusd_al_r9_r10_r11[] = {
+  0x4a, 0xfb, 0x0b, 0xf9 // smusd al r9 r10 r11
 };
-static const byte kInstruction_Smusd_al_r6_r8_r0[] = {
-  0x48, 0xfb, 0x00, 0xf6 //  Smusd al r6 r8 r0
+static const byte kInstruction_smusd_al_r6_r8_r0[] = {
+  0x48, 0xfb, 0x00, 0xf6 // smusd al r6 r8 r0
 };
-static const byte kInstruction_Smusd_al_r0_r10_r11[] = {
-  0x4a, 0xfb, 0x0b, 0xf0 //  Smusd al r0 r10 r11
+static const byte kInstruction_smusd_al_r0_r10_r11[] = {
+  0x4a, 0xfb, 0x0b, 0xf0 // smusd al r0 r10 r11
 };
-static const byte kInstruction_Smusd_al_r14_r1_r4[] = {
-  0x41, 0xfb, 0x04, 0xfe //  Smusd al r14 r1 r4
+static const byte kInstruction_smusd_al_r14_r1_r4[] = {
+  0x41, 0xfb, 0x04, 0xfe // smusd al r14 r1 r4
 };
-static const byte kInstruction_Smusd_al_r7_r9_r5[] = {
-  0x49, 0xfb, 0x05, 0xf7 //  Smusd al r7 r9 r5
+static const byte kInstruction_smusd_al_r7_r9_r5[] = {
+  0x49, 0xfb, 0x05, 0xf7 // smusd al r7 r9 r5
 };
-static const byte kInstruction_Smusd_al_r13_r4_r2[] = {
-  0x44, 0xfb, 0x02, 0xfd //  Smusd al r13 r4 r2
+static const byte kInstruction_smusd_al_r13_r4_r2[] = {
+  0x44, 0xfb, 0x02, 0xfd // smusd al r13 r4 r2
 };
-static const byte kInstruction_Smusd_al_r5_r6_r3[] = {
-  0x46, 0xfb, 0x03, 0xf5 //  Smusd al r5 r6 r3
+static const byte kInstruction_smusd_al_r5_r6_r3[] = {
+  0x46, 0xfb, 0x03, 0xf5 // smusd al r5 r6 r3
 };
-static const byte kInstruction_Smusd_al_r13_r4_r8[] = {
-  0x44, 0xfb, 0x08, 0xfd //  Smusd al r13 r4 r8
+static const byte kInstruction_smusd_al_r13_r4_r8[] = {
+  0x44, 0xfb, 0x08, 0xfd // smusd al r13 r4 r8
 };
-static const byte kInstruction_Smusd_al_r11_r11_r12[] = {
-  0x4b, 0xfb, 0x0c, 0xfb //  Smusd al r11 r11 r12
+static const byte kInstruction_smusd_al_r11_r11_r12[] = {
+  0x4b, 0xfb, 0x0c, 0xfb // smusd al r11 r11 r12
 };
-static const byte kInstruction_Smusd_al_r3_r12_r6[] = {
-  0x4c, 0xfb, 0x06, 0xf3 //  Smusd al r3 r12 r6
+static const byte kInstruction_smusd_al_r3_r12_r6[] = {
+  0x4c, 0xfb, 0x06, 0xf3 // smusd al r3 r12 r6
 };
-static const byte kInstruction_Smusd_al_r4_r10_r1[] = {
-  0x4a, 0xfb, 0x01, 0xf4 //  Smusd al r4 r10 r1
+static const byte kInstruction_smusd_al_r4_r10_r1[] = {
+  0x4a, 0xfb, 0x01, 0xf4 // smusd al r4 r10 r1
 };
-static const byte kInstruction_Smusd_al_r7_r8_r12[] = {
-  0x48, 0xfb, 0x0c, 0xf7 //  Smusd al r7 r8 r12
+static const byte kInstruction_smusd_al_r7_r8_r12[] = {
+  0x48, 0xfb, 0x0c, 0xf7 // smusd al r7 r8 r12
 };
-static const byte kInstruction_Smusd_al_r11_r3_r3[] = {
-  0x43, 0xfb, 0x03, 0xfb //  Smusd al r11 r3 r3
+static const byte kInstruction_smusd_al_r11_r3_r3[] = {
+  0x43, 0xfb, 0x03, 0xfb // smusd al r11 r3 r3
 };
-static const byte kInstruction_Smusd_al_r14_r6_r6[] = {
-  0x46, 0xfb, 0x06, 0xfe //  Smusd al r14 r6 r6
+static const byte kInstruction_smusd_al_r14_r6_r6[] = {
+  0x46, 0xfb, 0x06, 0xfe // smusd al r14 r6 r6
 };
-static const byte kInstruction_Smusd_al_r1_r12_r1[] = {
-  0x4c, 0xfb, 0x01, 0xf1 //  Smusd al r1 r12 r1
+static const byte kInstruction_smusd_al_r1_r12_r1[] = {
+  0x4c, 0xfb, 0x01, 0xf1 // smusd al r1 r12 r1
 };
-static const byte kInstruction_Smusd_al_r13_r5_r7[] = {
-  0x45, 0xfb, 0x07, 0xfd //  Smusd al r13 r5 r7
+static const byte kInstruction_smusd_al_r13_r5_r7[] = {
+  0x45, 0xfb, 0x07, 0xfd // smusd al r13 r5 r7
 };
-static const byte kInstruction_Smusd_al_r6_r10_r8[] = {
-  0x4a, 0xfb, 0x08, 0xf6 //  Smusd al r6 r10 r8
+static const byte kInstruction_smusd_al_r6_r10_r8[] = {
+  0x4a, 0xfb, 0x08, 0xf6 // smusd al r6 r10 r8
 };
-static const byte kInstruction_Smusd_al_r7_r13_r5[] = {
-  0x4d, 0xfb, 0x05, 0xf7 //  Smusd al r7 r13 r5
+static const byte kInstruction_smusd_al_r7_r13_r5[] = {
+  0x4d, 0xfb, 0x05, 0xf7 // smusd al r7 r13 r5
 };
-static const byte kInstruction_Smusd_al_r12_r13_r4[] = {
-  0x4d, 0xfb, 0x04, 0xfc //  Smusd al r12 r13 r4
+static const byte kInstruction_smusd_al_r12_r13_r4[] = {
+  0x4d, 0xfb, 0x04, 0xfc // smusd al r12 r13 r4
 };
-static const byte kInstruction_Smusd_al_r7_r0_r8[] = {
-  0x40, 0xfb, 0x08, 0xf7 //  Smusd al r7 r0 r8
+static const byte kInstruction_smusd_al_r7_r0_r8[] = {
+  0x40, 0xfb, 0x08, 0xf7 // smusd al r7 r0 r8
 };
-static const byte kInstruction_Smusd_al_r7_r11_r9[] = {
-  0x4b, 0xfb, 0x09, 0xf7 //  Smusd al r7 r11 r9
+static const byte kInstruction_smusd_al_r7_r11_r9[] = {
+  0x4b, 0xfb, 0x09, 0xf7 // smusd al r7 r11 r9
 };
-static const byte kInstruction_Smusd_al_r8_r9_r1[] = {
-  0x49, 0xfb, 0x01, 0xf8 //  Smusd al r8 r9 r1
+static const byte kInstruction_smusd_al_r8_r9_r1[] = {
+  0x49, 0xfb, 0x01, 0xf8 // smusd al r8 r9 r1
 };
-static const byte kInstruction_Smusd_al_r14_r5_r10[] = {
-  0x45, 0xfb, 0x0a, 0xfe //  Smusd al r14 r5 r10
+static const byte kInstruction_smusd_al_r14_r5_r10[] = {
+  0x45, 0xfb, 0x0a, 0xfe // smusd al r14 r5 r10
 };
-static const byte kInstruction_Smusd_al_r4_r9_r14[] = {
-  0x49, 0xfb, 0x0e, 0xf4 //  Smusd al r4 r9 r14
+static const byte kInstruction_smusd_al_r4_r9_r14[] = {
+  0x49, 0xfb, 0x0e, 0xf4 // smusd al r4 r9 r14
 };
-static const byte kInstruction_Smusd_al_r10_r14_r9[] = {
-  0x4e, 0xfb, 0x09, 0xfa //  Smusd al r10 r14 r9
+static const byte kInstruction_smusd_al_r10_r14_r9[] = {
+  0x4e, 0xfb, 0x09, 0xfa // smusd al r10 r14 r9
 };
-static const byte kInstruction_Smusd_al_r0_r1_r11[] = {
-  0x41, 0xfb, 0x0b, 0xf0 //  Smusd al r0 r1 r11
+static const byte kInstruction_smusd_al_r0_r1_r11[] = {
+  0x41, 0xfb, 0x0b, 0xf0 // smusd al r0 r1 r11
 };
-static const byte kInstruction_Smusd_al_r11_r0_r11[] = {
-  0x40, 0xfb, 0x0b, 0xfb //  Smusd al r11 r0 r11
+static const byte kInstruction_smusd_al_r11_r0_r11[] = {
+  0x40, 0xfb, 0x0b, 0xfb // smusd al r11 r0 r11
 };
-static const byte kInstruction_Smusd_al_r10_r10_r7[] = {
-  0x4a, 0xfb, 0x07, 0xfa //  Smusd al r10 r10 r7
+static const byte kInstruction_smusd_al_r10_r10_r7[] = {
+  0x4a, 0xfb, 0x07, 0xfa // smusd al r10 r10 r7
 };
-static const byte kInstruction_Smusd_al_r8_r12_r7[] = {
-  0x4c, 0xfb, 0x07, 0xf8 //  Smusd al r8 r12 r7
+static const byte kInstruction_smusd_al_r8_r12_r7[] = {
+  0x4c, 0xfb, 0x07, 0xf8 // smusd al r8 r12 r7
 };
-static const byte kInstruction_Smusd_al_r9_r4_r10[] = {
-  0x44, 0xfb, 0x0a, 0xf9 //  Smusd al r9 r4 r10
+static const byte kInstruction_smusd_al_r9_r4_r10[] = {
+  0x44, 0xfb, 0x0a, 0xf9 // smusd al r9 r4 r10
 };
-static const byte kInstruction_Smusd_al_r8_r11_r14[] = {
-  0x4b, 0xfb, 0x0e, 0xf8 //  Smusd al r8 r11 r14
+static const byte kInstruction_smusd_al_r8_r11_r14[] = {
+  0x4b, 0xfb, 0x0e, 0xf8 // smusd al r8 r11 r14
 };
-static const byte kInstruction_Smusd_al_r8_r4_r7[] = {
-  0x44, 0xfb, 0x07, 0xf8 //  Smusd al r8 r4 r7
+static const byte kInstruction_smusd_al_r8_r4_r7[] = {
+  0x44, 0xfb, 0x07, 0xf8 // smusd al r8 r4 r7
 };
-static const byte kInstruction_Smusd_al_r13_r9_r11[] = {
-  0x49, 0xfb, 0x0b, 0xfd //  Smusd al r13 r9 r11
+static const byte kInstruction_smusd_al_r13_r9_r11[] = {
+  0x49, 0xfb, 0x0b, 0xfd // smusd al r13 r9 r11
 };
-static const byte kInstruction_Smusd_al_r2_r5_r7[] = {
-  0x45, 0xfb, 0x07, 0xf2 //  Smusd al r2 r5 r7
+static const byte kInstruction_smusd_al_r2_r5_r7[] = {
+  0x45, 0xfb, 0x07, 0xf2 // smusd al r2 r5 r7
 };
-static const byte kInstruction_Smusd_al_r9_r6_r8[] = {
-  0x46, 0xfb, 0x08, 0xf9 //  Smusd al r9 r6 r8
+static const byte kInstruction_smusd_al_r9_r6_r8[] = {
+  0x46, 0xfb, 0x08, 0xf9 // smusd al r9 r6 r8
 };
-static const byte kInstruction_Smusd_al_r2_r4_r10[] = {
-  0x44, 0xfb, 0x0a, 0xf2 //  Smusd al r2 r4 r10
+static const byte kInstruction_smusd_al_r2_r4_r10[] = {
+  0x44, 0xfb, 0x0a, 0xf2 // smusd al r2 r4 r10
 };
-static const byte kInstruction_Smusd_al_r2_r9_r4[] = {
-  0x49, 0xfb, 0x04, 0xf2 //  Smusd al r2 r9 r4
+static const byte kInstruction_smusd_al_r2_r9_r4[] = {
+  0x49, 0xfb, 0x04, 0xf2 // smusd al r2 r9 r4
 };
-static const byte kInstruction_Smusd_al_r12_r8_r12[] = {
-  0x48, 0xfb, 0x0c, 0xfc //  Smusd al r12 r8 r12
+static const byte kInstruction_smusd_al_r12_r8_r12[] = {
+  0x48, 0xfb, 0x0c, 0xfc // smusd al r12 r8 r12
 };
-static const byte kInstruction_Smusd_al_r0_r12_r2[] = {
-  0x4c, 0xfb, 0x02, 0xf0 //  Smusd al r0 r12 r2
+static const byte kInstruction_smusd_al_r0_r12_r2[] = {
+  0x4c, 0xfb, 0x02, 0xf0 // smusd al r0 r12 r2
 };
-static const byte kInstruction_Smusd_al_r4_r11_r13[] = {
-  0x4b, 0xfb, 0x0d, 0xf4 //  Smusd al r4 r11 r13
+static const byte kInstruction_smusd_al_r4_r11_r13[] = {
+  0x4b, 0xfb, 0x0d, 0xf4 // smusd al r4 r11 r13
 };
-static const byte kInstruction_Smusd_al_r7_r12_r14[] = {
-  0x4c, 0xfb, 0x0e, 0xf7 //  Smusd al r7 r12 r14
+static const byte kInstruction_smusd_al_r7_r12_r14[] = {
+  0x4c, 0xfb, 0x0e, 0xf7 // smusd al r7 r12 r14
 };
-static const byte kInstruction_Smusd_al_r4_r10_r3[] = {
-  0x4a, 0xfb, 0x03, 0xf4 //  Smusd al r4 r10 r3
+static const byte kInstruction_smusd_al_r4_r10_r3[] = {
+  0x4a, 0xfb, 0x03, 0xf4 // smusd al r4 r10 r3
 };
-static const byte kInstruction_Smusd_al_r5_r14_r7[] = {
-  0x4e, 0xfb, 0x07, 0xf5 //  Smusd al r5 r14 r7
+static const byte kInstruction_smusd_al_r5_r14_r7[] = {
+  0x4e, 0xfb, 0x07, 0xf5 // smusd al r5 r14 r7
 };
-static const byte kInstruction_Smusd_al_r1_r6_r10[] = {
-  0x46, 0xfb, 0x0a, 0xf1 //  Smusd al r1 r6 r10
+static const byte kInstruction_smusd_al_r1_r6_r10[] = {
+  0x46, 0xfb, 0x0a, 0xf1 // smusd al r1 r6 r10
 };
-static const byte kInstruction_Smusd_al_r0_r10_r10[] = {
-  0x4a, 0xfb, 0x0a, 0xf0 //  Smusd al r0 r10 r10
+static const byte kInstruction_smusd_al_r0_r10_r10[] = {
+  0x4a, 0xfb, 0x0a, 0xf0 // smusd al r0 r10 r10
 };
-static const byte kInstruction_Smusd_al_r6_r3_r3[] = {
-  0x43, 0xfb, 0x03, 0xf6 //  Smusd al r6 r3 r3
+static const byte kInstruction_smusd_al_r6_r3_r3[] = {
+  0x43, 0xfb, 0x03, 0xf6 // smusd al r6 r3 r3
 };
-static const byte kInstruction_Smusd_al_r2_r14_r6[] = {
-  0x4e, 0xfb, 0x06, 0xf2 //  Smusd al r2 r14 r6
+static const byte kInstruction_smusd_al_r2_r14_r6[] = {
+  0x4e, 0xfb, 0x06, 0xf2 // smusd al r2 r14 r6
 };
-static const byte kInstruction_Smusd_al_r7_r4_r2[] = {
-  0x44, 0xfb, 0x02, 0xf7 //  Smusd al r7 r4 r2
+static const byte kInstruction_smusd_al_r7_r4_r2[] = {
+  0x44, 0xfb, 0x02, 0xf7 // smusd al r7 r4 r2
 };
-static const byte kInstruction_Smusd_al_r3_r7_r9[] = {
-  0x47, 0xfb, 0x09, 0xf3 //  Smusd al r3 r7 r9
+static const byte kInstruction_smusd_al_r3_r7_r9[] = {
+  0x47, 0xfb, 0x09, 0xf3 // smusd al r3 r7 r9
 };
-static const byte kInstruction_Smusd_al_r0_r4_r12[] = {
-  0x44, 0xfb, 0x0c, 0xf0 //  Smusd al r0 r4 r12
+static const byte kInstruction_smusd_al_r0_r4_r12[] = {
+  0x44, 0xfb, 0x0c, 0xf0 // smusd al r0 r4 r12
 };
-static const byte kInstruction_Smusd_al_r8_r14_r11[] = {
-  0x4e, 0xfb, 0x0b, 0xf8 //  Smusd al r8 r14 r11
+static const byte kInstruction_smusd_al_r8_r14_r11[] = {
+  0x4e, 0xfb, 0x0b, 0xf8 // smusd al r8 r14 r11
 };
-static const byte kInstruction_Smusd_al_r2_r8_r11[] = {
-  0x48, 0xfb, 0x0b, 0xf2 //  Smusd al r2 r8 r11
+static const byte kInstruction_smusd_al_r2_r8_r11[] = {
+  0x48, 0xfb, 0x0b, 0xf2 // smusd al r2 r8 r11
 };
-static const byte kInstruction_Smusd_al_r14_r11_r8[] = {
-  0x4b, 0xfb, 0x08, 0xfe //  Smusd al r14 r11 r8
+static const byte kInstruction_smusd_al_r14_r11_r8[] = {
+  0x4b, 0xfb, 0x08, 0xfe // smusd al r14 r11 r8
 };
-static const byte kInstruction_Smusd_al_r5_r10_r12[] = {
-  0x4a, 0xfb, 0x0c, 0xf5 //  Smusd al r5 r10 r12
+static const byte kInstruction_smusd_al_r5_r10_r12[] = {
+  0x4a, 0xfb, 0x0c, 0xf5 // smusd al r5 r10 r12
 };
-static const byte kInstruction_Smusd_al_r0_r12_r5[] = {
-  0x4c, 0xfb, 0x05, 0xf0 //  Smusd al r0 r12 r5
+static const byte kInstruction_smusd_al_r0_r12_r5[] = {
+  0x4c, 0xfb, 0x05, 0xf0 // smusd al r0 r12 r5
 };
-static const byte kInstruction_Smusd_al_r4_r4_r7[] = {
-  0x44, 0xfb, 0x07, 0xf4 //  Smusd al r4 r4 r7
+static const byte kInstruction_smusd_al_r4_r4_r7[] = {
+  0x44, 0xfb, 0x07, 0xf4 // smusd al r4 r4 r7
 };
-static const byte kInstruction_Smusd_al_r5_r2_r10[] = {
-  0x42, 0xfb, 0x0a, 0xf5 //  Smusd al r5 r2 r10
+static const byte kInstruction_smusd_al_r5_r2_r10[] = {
+  0x42, 0xfb, 0x0a, 0xf5 // smusd al r5 r2 r10
 };
-static const byte kInstruction_Smusd_al_r14_r0_r0[] = {
-  0x40, 0xfb, 0x00, 0xfe //  Smusd al r14 r0 r0
+static const byte kInstruction_smusd_al_r14_r0_r0[] = {
+  0x40, 0xfb, 0x00, 0xfe // smusd al r14 r0 r0
 };
-static const byte kInstruction_Smusd_al_r1_r14_r4[] = {
-  0x4e, 0xfb, 0x04, 0xf1 //  Smusd al r1 r14 r4
+static const byte kInstruction_smusd_al_r1_r14_r4[] = {
+  0x4e, 0xfb, 0x04, 0xf1 // smusd al r1 r14 r4
 };
-static const byte kInstruction_Smusd_al_r1_r0_r2[] = {
-  0x40, 0xfb, 0x02, 0xf1 //  Smusd al r1 r0 r2
+static const byte kInstruction_smusd_al_r1_r0_r2[] = {
+  0x40, 0xfb, 0x02, 0xf1 // smusd al r1 r0 r2
 };
-static const byte kInstruction_Smusd_al_r11_r10_r7[] = {
-  0x4a, 0xfb, 0x07, 0xfb //  Smusd al r11 r10 r7
+static const byte kInstruction_smusd_al_r11_r10_r7[] = {
+  0x4a, 0xfb, 0x07, 0xfb // smusd al r11 r10 r7
 };
-static const byte kInstruction_Smusd_al_r13_r10_r4[] = {
-  0x4a, 0xfb, 0x04, 0xfd //  Smusd al r13 r10 r4
+static const byte kInstruction_smusd_al_r13_r10_r4[] = {
+  0x4a, 0xfb, 0x04, 0xfd // smusd al r13 r10 r4
 };
-static const byte kInstruction_Smusd_al_r13_r1_r9[] = {
-  0x41, 0xfb, 0x09, 0xfd //  Smusd al r13 r1 r9
+static const byte kInstruction_smusd_al_r13_r1_r9[] = {
+  0x41, 0xfb, 0x09, 0xfd // smusd al r13 r1 r9
 };
-static const byte kInstruction_Smusd_al_r8_r1_r9[] = {
-  0x41, 0xfb, 0x09, 0xf8 //  Smusd al r8 r1 r9
+static const byte kInstruction_smusd_al_r8_r1_r9[] = {
+  0x41, 0xfb, 0x09, 0xf8 // smusd al r8 r1 r9
 };
-static const byte kInstruction_Smusd_al_r6_r3_r9[] = {
-  0x43, 0xfb, 0x09, 0xf6 //  Smusd al r6 r3 r9
+static const byte kInstruction_smusd_al_r6_r3_r9[] = {
+  0x43, 0xfb, 0x09, 0xf6 // smusd al r6 r3 r9
 };
-static const byte kInstruction_Smusd_al_r10_r6_r8[] = {
-  0x46, 0xfb, 0x08, 0xfa //  Smusd al r10 r6 r8
+static const byte kInstruction_smusd_al_r10_r6_r8[] = {
+  0x46, 0xfb, 0x08, 0xfa // smusd al r10 r6 r8
 };
-static const byte kInstruction_Smusd_al_r6_r11_r9[] = {
-  0x4b, 0xfb, 0x09, 0xf6 //  Smusd al r6 r11 r9
+static const byte kInstruction_smusd_al_r6_r11_r9[] = {
+  0x4b, 0xfb, 0x09, 0xf6 // smusd al r6 r11 r9
 };
-static const byte kInstruction_Smusd_al_r1_r13_r14[] = {
-  0x4d, 0xfb, 0x0e, 0xf1 //  Smusd al r1 r13 r14
+static const byte kInstruction_smusd_al_r1_r13_r14[] = {
+  0x4d, 0xfb, 0x0e, 0xf1 // smusd al r1 r13 r14
 };
-static const byte kInstruction_Smusd_al_r1_r14_r12[] = {
-  0x4e, 0xfb, 0x0c, 0xf1 //  Smusd al r1 r14 r12
+static const byte kInstruction_smusd_al_r1_r14_r12[] = {
+  0x4e, 0xfb, 0x0c, 0xf1 // smusd al r1 r14 r12
 };
-static const byte kInstruction_Smusd_al_r0_r1_r4[] = {
-  0x41, 0xfb, 0x04, 0xf0 //  Smusd al r0 r1 r4
+static const byte kInstruction_smusd_al_r0_r1_r4[] = {
+  0x41, 0xfb, 0x04, 0xf0 // smusd al r0 r1 r4
 };
-static const byte kInstruction_Smusd_al_r8_r13_r1[] = {
-  0x4d, 0xfb, 0x01, 0xf8 //  Smusd al r8 r13 r1
+static const byte kInstruction_smusd_al_r8_r13_r1[] = {
+  0x4d, 0xfb, 0x01, 0xf8 // smusd al r8 r13 r1
 };
-static const byte kInstruction_Smusd_al_r7_r14_r5[] = {
-  0x4e, 0xfb, 0x05, 0xf7 //  Smusd al r7 r14 r5
+static const byte kInstruction_smusd_al_r7_r14_r5[] = {
+  0x4e, 0xfb, 0x05, 0xf7 // smusd al r7 r14 r5
 };
-static const byte kInstruction_Smusd_al_r5_r13_r8[] = {
-  0x4d, 0xfb, 0x08, 0xf5 //  Smusd al r5 r13 r8
+static const byte kInstruction_smusd_al_r5_r13_r8[] = {
+  0x4d, 0xfb, 0x08, 0xf5 // smusd al r5 r13 r8
 };
-static const byte kInstruction_Smusd_al_r11_r10_r13[] = {
-  0x4a, 0xfb, 0x0d, 0xfb //  Smusd al r11 r10 r13
+static const byte kInstruction_smusd_al_r11_r10_r13[] = {
+  0x4a, 0xfb, 0x0d, 0xfb // smusd al r11 r10 r13
 };
-static const byte kInstruction_Smusd_al_r7_r13_r2[] = {
-  0x4d, 0xfb, 0x02, 0xf7 //  Smusd al r7 r13 r2
+static const byte kInstruction_smusd_al_r7_r13_r2[] = {
+  0x4d, 0xfb, 0x02, 0xf7 // smusd al r7 r13 r2
 };
-static const byte kInstruction_Smusd_al_r2_r2_r13[] = {
-  0x42, 0xfb, 0x0d, 0xf2 //  Smusd al r2 r2 r13
+static const byte kInstruction_smusd_al_r2_r2_r13[] = {
+  0x42, 0xfb, 0x0d, 0xf2 // smusd al r2 r2 r13
 };
-static const byte kInstruction_Smusd_al_r1_r7_r5[] = {
-  0x47, 0xfb, 0x05, 0xf1 //  Smusd al r1 r7 r5
+static const byte kInstruction_smusd_al_r1_r7_r5[] = {
+  0x47, 0xfb, 0x05, 0xf1 // smusd al r1 r7 r5
 };
-static const byte kInstruction_Smusd_al_r12_r6_r12[] = {
-  0x46, 0xfb, 0x0c, 0xfc //  Smusd al r12 r6 r12
+static const byte kInstruction_smusd_al_r12_r6_r12[] = {
+  0x46, 0xfb, 0x0c, 0xfc // smusd al r12 r6 r12
 };
-static const byte kInstruction_Smusd_al_r5_r9_r11[] = {
-  0x49, 0xfb, 0x0b, 0xf5 //  Smusd al r5 r9 r11
+static const byte kInstruction_smusd_al_r5_r9_r11[] = {
+  0x49, 0xfb, 0x0b, 0xf5 // smusd al r5 r9 r11
 };
-static const byte kInstruction_Smusd_al_r12_r7_r1[] = {
-  0x47, 0xfb, 0x01, 0xfc //  Smusd al r12 r7 r1
+static const byte kInstruction_smusd_al_r12_r7_r1[] = {
+  0x47, 0xfb, 0x01, 0xfc // smusd al r12 r7 r1
 };
-static const byte kInstruction_Smusd_al_r13_r9_r9[] = {
-  0x49, 0xfb, 0x09, 0xfd //  Smusd al r13 r9 r9
+static const byte kInstruction_smusd_al_r13_r9_r9[] = {
+  0x49, 0xfb, 0x09, 0xfd // smusd al r13 r9 r9
 };
-static const byte kInstruction_Smusd_al_r10_r4_r13[] = {
-  0x44, 0xfb, 0x0d, 0xfa //  Smusd al r10 r4 r13
+static const byte kInstruction_smusd_al_r10_r4_r13[] = {
+  0x44, 0xfb, 0x0d, 0xfa // smusd al r10 r4 r13
 };
-static const byte kInstruction_Smusd_al_r9_r2_r10[] = {
-  0x42, 0xfb, 0x0a, 0xf9 //  Smusd al r9 r2 r10
+static const byte kInstruction_smusd_al_r9_r2_r10[] = {
+  0x42, 0xfb, 0x0a, 0xf9 // smusd al r9 r2 r10
 };
-static const byte kInstruction_Smusd_al_r1_r5_r13[] = {
-  0x45, 0xfb, 0x0d, 0xf1 //  Smusd al r1 r5 r13
+static const byte kInstruction_smusd_al_r1_r5_r13[] = {
+  0x45, 0xfb, 0x0d, 0xf1 // smusd al r1 r5 r13
 };
-static const byte kInstruction_Smusd_al_r12_r3_r9[] = {
-  0x43, 0xfb, 0x09, 0xfc //  Smusd al r12 r3 r9
+static const byte kInstruction_smusd_al_r12_r3_r9[] = {
+  0x43, 0xfb, 0x09, 0xfc // smusd al r12 r3 r9
 };
-static const byte kInstruction_Smusd_al_r6_r3_r0[] = {
-  0x43, 0xfb, 0x00, 0xf6 //  Smusd al r6 r3 r0
+static const byte kInstruction_smusd_al_r6_r3_r0[] = {
+  0x43, 0xfb, 0x00, 0xf6 // smusd al r6 r3 r0
 };
-static const byte kInstruction_Smusd_al_r9_r8_r8[] = {
-  0x48, 0xfb, 0x08, 0xf9 //  Smusd al r9 r8 r8
+static const byte kInstruction_smusd_al_r9_r8_r8[] = {
+  0x48, 0xfb, 0x08, 0xf9 // smusd al r9 r8 r8
 };
-static const byte kInstruction_Smusd_al_r6_r3_r4[] = {
-  0x43, 0xfb, 0x04, 0xf6 //  Smusd al r6 r3 r4
+static const byte kInstruction_smusd_al_r6_r3_r4[] = {
+  0x43, 0xfb, 0x04, 0xf6 // smusd al r6 r3 r4
 };
-static const byte kInstruction_Smusd_al_r12_r9_r0[] = {
-  0x49, 0xfb, 0x00, 0xfc //  Smusd al r12 r9 r0
+static const byte kInstruction_smusd_al_r12_r9_r0[] = {
+  0x49, 0xfb, 0x00, 0xfc // smusd al r12 r9 r0
 };
-static const byte kInstruction_Smusd_al_r4_r10_r0[] = {
-  0x4a, 0xfb, 0x00, 0xf4 //  Smusd al r4 r10 r0
+static const byte kInstruction_smusd_al_r4_r10_r0[] = {
+  0x4a, 0xfb, 0x00, 0xf4 // smusd al r4 r10 r0
 };
-static const byte kInstruction_Smusd_al_r3_r13_r4[] = {
-  0x4d, 0xfb, 0x04, 0xf3 //  Smusd al r3 r13 r4
+static const byte kInstruction_smusd_al_r3_r13_r4[] = {
+  0x4d, 0xfb, 0x04, 0xf3 // smusd al r3 r13 r4
 };
-static const byte kInstruction_Smusd_al_r2_r10_r14[] = {
-  0x4a, 0xfb, 0x0e, 0xf2 //  Smusd al r2 r10 r14
+static const byte kInstruction_smusd_al_r2_r10_r14[] = {
+  0x4a, 0xfb, 0x0e, 0xf2 // smusd al r2 r10 r14
 };
-static const byte kInstruction_Smusd_al_r3_r9_r8[] = {
-  0x49, 0xfb, 0x08, 0xf3 //  Smusd al r3 r9 r8
+static const byte kInstruction_smusd_al_r3_r9_r8[] = {
+  0x49, 0xfb, 0x08, 0xf3 // smusd al r3 r9 r8
 };
-static const byte kInstruction_Smusd_al_r12_r4_r8[] = {
-  0x44, 0xfb, 0x08, 0xfc //  Smusd al r12 r4 r8
+static const byte kInstruction_smusd_al_r12_r4_r8[] = {
+  0x44, 0xfb, 0x08, 0xfc // smusd al r12 r4 r8
 };
-static const byte kInstruction_Smusd_al_r2_r1_r11[] = {
-  0x41, 0xfb, 0x0b, 0xf2 //  Smusd al r2 r1 r11
+static const byte kInstruction_smusd_al_r2_r1_r11[] = {
+  0x41, 0xfb, 0x0b, 0xf2 // smusd al r2 r1 r11
 };
-static const byte kInstruction_Smusd_al_r1_r7_r0[] = {
-  0x47, 0xfb, 0x00, 0xf1 //  Smusd al r1 r7 r0
+static const byte kInstruction_smusd_al_r1_r7_r0[] = {
+  0x47, 0xfb, 0x00, 0xf1 // smusd al r1 r7 r0
 };
-static const byte kInstruction_Smusd_al_r0_r1_r2[] = {
-  0x41, 0xfb, 0x02, 0xf0 //  Smusd al r0 r1 r2
+static const byte kInstruction_smusd_al_r0_r1_r2[] = {
+  0x41, 0xfb, 0x02, 0xf0 // smusd al r0 r1 r2
 };
-static const byte kInstruction_Smusd_al_r11_r12_r7[] = {
-  0x4c, 0xfb, 0x07, 0xfb //  Smusd al r11 r12 r7
+static const byte kInstruction_smusd_al_r11_r12_r7[] = {
+  0x4c, 0xfb, 0x07, 0xfb // smusd al r11 r12 r7
 };
-static const byte kInstruction_Smusd_al_r12_r14_r7[] = {
-  0x4e, 0xfb, 0x07, 0xfc //  Smusd al r12 r14 r7
+static const byte kInstruction_smusd_al_r12_r14_r7[] = {
+  0x4e, 0xfb, 0x07, 0xfc // smusd al r12 r14 r7
 };
-static const byte kInstruction_Smusd_al_r0_r3_r10[] = {
-  0x43, 0xfb, 0x0a, 0xf0 //  Smusd al r0 r3 r10
+static const byte kInstruction_smusd_al_r0_r3_r10[] = {
+  0x43, 0xfb, 0x0a, 0xf0 // smusd al r0 r3 r10
 };
-static const byte kInstruction_Smusd_al_r3_r6_r7[] = {
-  0x46, 0xfb, 0x07, 0xf3 //  Smusd al r3 r6 r7
+static const byte kInstruction_smusd_al_r3_r6_r7[] = {
+  0x46, 0xfb, 0x07, 0xf3 // smusd al r3 r6 r7
 };
-static const byte kInstruction_Smusd_al_r0_r10_r1[] = {
-  0x4a, 0xfb, 0x01, 0xf0 //  Smusd al r0 r10 r1
+static const byte kInstruction_smusd_al_r0_r10_r1[] = {
+  0x4a, 0xfb, 0x01, 0xf0 // smusd al r0 r10 r1
 };
-static const byte kInstruction_Smusd_al_r8_r11_r5[] = {
-  0x4b, 0xfb, 0x05, 0xf8 //  Smusd al r8 r11 r5
+static const byte kInstruction_smusd_al_r8_r11_r5[] = {
+  0x4b, 0xfb, 0x05, 0xf8 // smusd al r8 r11 r5
 };
-static const byte kInstruction_Smusd_al_r1_r10_r8[] = {
-  0x4a, 0xfb, 0x08, 0xf1 //  Smusd al r1 r10 r8
+static const byte kInstruction_smusd_al_r1_r10_r8[] = {
+  0x4a, 0xfb, 0x08, 0xf1 // smusd al r1 r10 r8
 };
-static const byte kInstruction_Smusd_al_r7_r8_r5[] = {
-  0x48, 0xfb, 0x05, 0xf7 //  Smusd al r7 r8 r5
+static const byte kInstruction_smusd_al_r7_r8_r5[] = {
+  0x48, 0xfb, 0x05, 0xf7 // smusd al r7 r8 r5
 };
-static const byte kInstruction_Smusd_al_r9_r9_r2[] = {
-  0x49, 0xfb, 0x02, 0xf9 //  Smusd al r9 r9 r2
+static const byte kInstruction_smusd_al_r9_r9_r2[] = {
+  0x49, 0xfb, 0x02, 0xf9 // smusd al r9 r9 r2
 };
-static const byte kInstruction_Smusd_al_r13_r13_r0[] = {
-  0x4d, 0xfb, 0x00, 0xfd //  Smusd al r13 r13 r0
+static const byte kInstruction_smusd_al_r13_r13_r0[] = {
+  0x4d, 0xfb, 0x00, 0xfd // smusd al r13 r13 r0
 };
-static const byte kInstruction_Smusd_al_r9_r10_r5[] = {
-  0x4a, 0xfb, 0x05, 0xf9 //  Smusd al r9 r10 r5
+static const byte kInstruction_smusd_al_r9_r10_r5[] = {
+  0x4a, 0xfb, 0x05, 0xf9 // smusd al r9 r10 r5
 };
-static const byte kInstruction_Smusd_al_r6_r6_r14[] = {
-  0x46, 0xfb, 0x0e, 0xf6 //  Smusd al r6 r6 r14
+static const byte kInstruction_smusd_al_r6_r6_r14[] = {
+  0x46, 0xfb, 0x0e, 0xf6 // smusd al r6 r6 r14
 };
-static const byte kInstruction_Smusd_al_r1_r8_r5[] = {
-  0x48, 0xfb, 0x05, 0xf1 //  Smusd al r1 r8 r5
+static const byte kInstruction_smusd_al_r1_r8_r5[] = {
+  0x48, 0xfb, 0x05, 0xf1 // smusd al r1 r8 r5
 };
-static const byte kInstruction_Smusd_al_r1_r4_r8[] = {
-  0x44, 0xfb, 0x08, 0xf1 //  Smusd al r1 r4 r8
+static const byte kInstruction_smusd_al_r1_r4_r8[] = {
+  0x44, 0xfb, 0x08, 0xf1 // smusd al r1 r4 r8
 };
-static const byte kInstruction_Smusd_al_r0_r2_r12[] = {
-  0x42, 0xfb, 0x0c, 0xf0 //  Smusd al r0 r2 r12
+static const byte kInstruction_smusd_al_r0_r2_r12[] = {
+  0x42, 0xfb, 0x0c, 0xf0 // smusd al r0 r2 r12
 };
-static const byte kInstruction_Smusd_al_r5_r14_r1[] = {
-  0x4e, 0xfb, 0x01, 0xf5 //  Smusd al r5 r14 r1
+static const byte kInstruction_smusd_al_r5_r14_r1[] = {
+  0x4e, 0xfb, 0x01, 0xf5 // smusd al r5 r14 r1
 };
-static const byte kInstruction_Smusd_al_r2_r1_r5[] = {
-  0x41, 0xfb, 0x05, 0xf2 //  Smusd al r2 r1 r5
+static const byte kInstruction_smusd_al_r2_r1_r5[] = {
+  0x41, 0xfb, 0x05, 0xf2 // smusd al r2 r1 r5
 };
-static const byte kInstruction_Smusd_al_r11_r11_r6[] = {
-  0x4b, 0xfb, 0x06, 0xfb //  Smusd al r11 r11 r6
+static const byte kInstruction_smusd_al_r11_r11_r6[] = {
+  0x4b, 0xfb, 0x06, 0xfb // smusd al r11 r11 r6
 };
-static const byte kInstruction_Smusd_al_r3_r11_r1[] = {
-  0x4b, 0xfb, 0x01, 0xf3 //  Smusd al r3 r11 r1
+static const byte kInstruction_smusd_al_r3_r11_r1[] = {
+  0x4b, 0xfb, 0x01, 0xf3 // smusd al r3 r11 r1
 };
-static const byte kInstruction_Smusd_al_r13_r14_r9[] = {
-  0x4e, 0xfb, 0x09, 0xfd //  Smusd al r13 r14 r9
+static const byte kInstruction_smusd_al_r13_r14_r9[] = {
+  0x4e, 0xfb, 0x09, 0xfd // smusd al r13 r14 r9
 };
-static const byte kInstruction_Smusd_al_r7_r1_r5[] = {
-  0x41, 0xfb, 0x05, 0xf7 //  Smusd al r7 r1 r5
+static const byte kInstruction_smusd_al_r7_r1_r5[] = {
+  0x41, 0xfb, 0x05, 0xf7 // smusd al r7 r1 r5
 };
-static const byte kInstruction_Smusd_al_r10_r14_r3[] = {
-  0x4e, 0xfb, 0x03, 0xfa //  Smusd al r10 r14 r3
+static const byte kInstruction_smusd_al_r10_r14_r3[] = {
+  0x4e, 0xfb, 0x03, 0xfa // smusd al r10 r14 r3
 };
-static const byte kInstruction_Smusd_al_r5_r6_r14[] = {
-  0x46, 0xfb, 0x0e, 0xf5 //  Smusd al r5 r6 r14
+static const byte kInstruction_smusd_al_r5_r6_r14[] = {
+  0x46, 0xfb, 0x0e, 0xf5 // smusd al r5 r6 r14
 };
-static const byte kInstruction_Smusd_al_r1_r7_r7[] = {
-  0x47, 0xfb, 0x07, 0xf1 //  Smusd al r1 r7 r7
+static const byte kInstruction_smusd_al_r1_r7_r7[] = {
+  0x47, 0xfb, 0x07, 0xf1 // smusd al r1 r7 r7
 };
-static const byte kInstruction_Smusd_al_r12_r5_r14[] = {
-  0x45, 0xfb, 0x0e, 0xfc //  Smusd al r12 r5 r14
+static const byte kInstruction_smusd_al_r12_r5_r14[] = {
+  0x45, 0xfb, 0x0e, 0xfc // smusd al r12 r5 r14
 };
-static const byte kInstruction_Smusd_al_r10_r5_r1[] = {
-  0x45, 0xfb, 0x01, 0xfa //  Smusd al r10 r5 r1
+static const byte kInstruction_smusd_al_r10_r5_r1[] = {
+  0x45, 0xfb, 0x01, 0xfa // smusd al r10 r5 r1
 };
-static const byte kInstruction_Smusd_al_r10_r8_r3[] = {
-  0x48, 0xfb, 0x03, 0xfa //  Smusd al r10 r8 r3
+static const byte kInstruction_smusd_al_r10_r8_r3[] = {
+  0x48, 0xfb, 0x03, 0xfa // smusd al r10 r8 r3
 };
-static const byte kInstruction_Smusd_al_r4_r6_r5[] = {
-  0x46, 0xfb, 0x05, 0xf4 //  Smusd al r4 r6 r5
+static const byte kInstruction_smusd_al_r4_r6_r5[] = {
+  0x46, 0xfb, 0x05, 0xf4 // smusd al r4 r6 r5
 };
-static const byte kInstruction_Smusd_al_r4_r3_r2[] = {
-  0x43, 0xfb, 0x02, 0xf4 //  Smusd al r4 r3 r2
+static const byte kInstruction_smusd_al_r4_r3_r2[] = {
+  0x43, 0xfb, 0x02, 0xf4 // smusd al r4 r3 r2
 };
-static const byte kInstruction_Smusd_al_r10_r13_r13[] = {
-  0x4d, 0xfb, 0x0d, 0xfa //  Smusd al r10 r13 r13
+static const byte kInstruction_smusd_al_r10_r13_r13[] = {
+  0x4d, 0xfb, 0x0d, 0xfa // smusd al r10 r13 r13
 };
-static const byte kInstruction_Smusd_al_r1_r10_r4[] = {
-  0x4a, 0xfb, 0x04, 0xf1 //  Smusd al r1 r10 r4
+static const byte kInstruction_smusd_al_r1_r10_r4[] = {
+  0x4a, 0xfb, 0x04, 0xf1 // smusd al r1 r10 r4
 };
-static const byte kInstruction_Smusd_al_r8_r10_r12[] = {
-  0x4a, 0xfb, 0x0c, 0xf8 //  Smusd al r8 r10 r12
+static const byte kInstruction_smusd_al_r8_r10_r12[] = {
+  0x4a, 0xfb, 0x0c, 0xf8 // smusd al r8 r10 r12
 };
-static const byte kInstruction_Smusd_al_r6_r0_r13[] = {
-  0x40, 0xfb, 0x0d, 0xf6 //  Smusd al r6 r0 r13
+static const byte kInstruction_smusd_al_r6_r0_r13[] = {
+  0x40, 0xfb, 0x0d, 0xf6 // smusd al r6 r0 r13
 };
-static const byte kInstruction_Smusd_al_r1_r12_r0[] = {
-  0x4c, 0xfb, 0x00, 0xf1 //  Smusd al r1 r12 r0
+static const byte kInstruction_smusd_al_r1_r12_r0[] = {
+  0x4c, 0xfb, 0x00, 0xf1 // smusd al r1 r12 r0
 };
-static const byte kInstruction_Smusd_al_r4_r13_r1[] = {
-  0x4d, 0xfb, 0x01, 0xf4 //  Smusd al r4 r13 r1
+static const byte kInstruction_smusd_al_r4_r13_r1[] = {
+  0x4d, 0xfb, 0x01, 0xf4 // smusd al r4 r13 r1
 };
-static const byte kInstruction_Smusd_al_r10_r0_r0[] = {
-  0x40, 0xfb, 0x00, 0xfa //  Smusd al r10 r0 r0
+static const byte kInstruction_smusd_al_r10_r0_r0[] = {
+  0x40, 0xfb, 0x00, 0xfa // smusd al r10 r0 r0
 };
-static const byte kInstruction_Smusd_al_r13_r6_r4[] = {
-  0x46, 0xfb, 0x04, 0xfd //  Smusd al r13 r6 r4
+static const byte kInstruction_smusd_al_r13_r6_r4[] = {
+  0x46, 0xfb, 0x04, 0xfd // smusd al r13 r6 r4
 };
-static const byte kInstruction_Smusd_al_r0_r3_r14[] = {
-  0x43, 0xfb, 0x0e, 0xf0 //  Smusd al r0 r3 r14
+static const byte kInstruction_smusd_al_r0_r3_r14[] = {
+  0x43, 0xfb, 0x0e, 0xf0 // smusd al r0 r3 r14
 };
-static const byte kInstruction_Smusd_al_r7_r11_r2[] = {
-  0x4b, 0xfb, 0x02, 0xf7 //  Smusd al r7 r11 r2
+static const byte kInstruction_smusd_al_r7_r11_r2[] = {
+  0x4b, 0xfb, 0x02, 0xf7 // smusd al r7 r11 r2
 };
-static const byte kInstruction_Smusd_al_r9_r11_r12[] = {
-  0x4b, 0xfb, 0x0c, 0xf9 //  Smusd al r9 r11 r12
+static const byte kInstruction_smusd_al_r9_r11_r12[] = {
+  0x4b, 0xfb, 0x0c, 0xf9 // smusd al r9 r11 r12
 };
-static const byte kInstruction_Smusd_al_r2_r14_r7[] = {
-  0x4e, 0xfb, 0x07, 0xf2 //  Smusd al r2 r14 r7
+static const byte kInstruction_smusd_al_r2_r14_r7[] = {
+  0x4e, 0xfb, 0x07, 0xf2 // smusd al r2 r14 r7
 };
-static const byte kInstruction_Smusd_al_r10_r14_r8[] = {
-  0x4e, 0xfb, 0x08, 0xfa //  Smusd al r10 r14 r8
+static const byte kInstruction_smusd_al_r10_r14_r8[] = {
+  0x4e, 0xfb, 0x08, 0xfa // smusd al r10 r14 r8
 };
-static const byte kInstruction_Smusd_al_r1_r3_r2[] = {
-  0x43, 0xfb, 0x02, 0xf1 //  Smusd al r1 r3 r2
+static const byte kInstruction_smusd_al_r1_r3_r2[] = {
+  0x43, 0xfb, 0x02, 0xf1 // smusd al r1 r3 r2
 };
-static const byte kInstruction_Smusd_al_r0_r1_r8[] = {
-  0x41, 0xfb, 0x08, 0xf0 //  Smusd al r0 r1 r8
+static const byte kInstruction_smusd_al_r0_r1_r8[] = {
+  0x41, 0xfb, 0x08, 0xf0 // smusd al r0 r1 r8
 };
-static const byte kInstruction_Smusd_al_r2_r9_r13[] = {
-  0x49, 0xfb, 0x0d, 0xf2 //  Smusd al r2 r9 r13
+static const byte kInstruction_smusd_al_r2_r9_r13[] = {
+  0x49, 0xfb, 0x0d, 0xf2 // smusd al r2 r9 r13
 };
-static const byte kInstruction_Smusd_al_r2_r3_r5[] = {
-  0x43, 0xfb, 0x05, 0xf2 //  Smusd al r2 r3 r5
+static const byte kInstruction_smusd_al_r2_r3_r5[] = {
+  0x43, 0xfb, 0x05, 0xf2 // smusd al r2 r3 r5
 };
-static const byte kInstruction_Smusd_al_r13_r9_r3[] = {
-  0x49, 0xfb, 0x03, 0xfd //  Smusd al r13 r9 r3
+static const byte kInstruction_smusd_al_r13_r9_r3[] = {
+  0x49, 0xfb, 0x03, 0xfd // smusd al r13 r9 r3
 };
-static const byte kInstruction_Smusd_al_r3_r8_r8[] = {
-  0x48, 0xfb, 0x08, 0xf3 //  Smusd al r3 r8 r8
+static const byte kInstruction_smusd_al_r3_r8_r8[] = {
+  0x48, 0xfb, 0x08, 0xf3 // smusd al r3 r8 r8
 };
-static const byte kInstruction_Smusd_al_r0_r8_r7[] = {
-  0x48, 0xfb, 0x07, 0xf0 //  Smusd al r0 r8 r7
+static const byte kInstruction_smusd_al_r0_r8_r7[] = {
+  0x48, 0xfb, 0x07, 0xf0 // smusd al r0 r8 r7
 };
-static const byte kInstruction_Smusd_al_r9_r14_r7[] = {
-  0x4e, 0xfb, 0x07, 0xf9 //  Smusd al r9 r14 r7
+static const byte kInstruction_smusd_al_r9_r14_r7[] = {
+  0x4e, 0xfb, 0x07, 0xf9 // smusd al r9 r14 r7
 };
-static const byte kInstruction_Smusd_al_r10_r3_r11[] = {
-  0x43, 0xfb, 0x0b, 0xfa //  Smusd al r10 r3 r11
+static const byte kInstruction_smusd_al_r10_r3_r11[] = {
+  0x43, 0xfb, 0x0b, 0xfa // smusd al r10 r3 r11
 };
-static const byte kInstruction_Smusd_al_r1_r14_r13[] = {
-  0x4e, 0xfb, 0x0d, 0xf1 //  Smusd al r1 r14 r13
+static const byte kInstruction_smusd_al_r1_r14_r13[] = {
+  0x4e, 0xfb, 0x0d, 0xf1 // smusd al r1 r14 r13
 };
-static const byte kInstruction_Smusd_al_r14_r4_r1[] = {
-  0x44, 0xfb, 0x01, 0xfe //  Smusd al r14 r4 r1
+static const byte kInstruction_smusd_al_r14_r4_r1[] = {
+  0x44, 0xfb, 0x01, 0xfe // smusd al r14 r4 r1
 };
-static const byte kInstruction_Smusd_al_r12_r12_r4[] = {
-  0x4c, 0xfb, 0x04, 0xfc //  Smusd al r12 r12 r4
+static const byte kInstruction_smusd_al_r12_r12_r4[] = {
+  0x4c, 0xfb, 0x04, 0xfc // smusd al r12 r12 r4
 };
-static const byte kInstruction_Smusd_al_r0_r12_r0[] = {
-  0x4c, 0xfb, 0x00, 0xf0 //  Smusd al r0 r12 r0
+static const byte kInstruction_smusd_al_r0_r12_r0[] = {
+  0x4c, 0xfb, 0x00, 0xf0 // smusd al r0 r12 r0
 };
-static const byte kInstruction_Smusd_al_r1_r5_r1[] = {
-  0x45, 0xfb, 0x01, 0xf1 //  Smusd al r1 r5 r1
+static const byte kInstruction_smusd_al_r1_r5_r1[] = {
+  0x45, 0xfb, 0x01, 0xf1 // smusd al r1 r5 r1
 };
-static const byte kInstruction_Smusd_al_r3_r9_r6[] = {
-  0x49, 0xfb, 0x06, 0xf3 //  Smusd al r3 r9 r6
+static const byte kInstruction_smusd_al_r3_r9_r6[] = {
+  0x49, 0xfb, 0x06, 0xf3 // smusd al r3 r9 r6
 };
-static const byte kInstruction_Smusd_al_r2_r11_r0[] = {
-  0x4b, 0xfb, 0x00, 0xf2 //  Smusd al r2 r11 r0
+static const byte kInstruction_smusd_al_r2_r11_r0[] = {
+  0x4b, 0xfb, 0x00, 0xf2 // smusd al r2 r11 r0
 };
-static const byte kInstruction_Smusd_al_r2_r6_r11[] = {
-  0x46, 0xfb, 0x0b, 0xf2 //  Smusd al r2 r6 r11
+static const byte kInstruction_smusd_al_r2_r6_r11[] = {
+  0x46, 0xfb, 0x0b, 0xf2 // smusd al r2 r6 r11
 };
-static const byte kInstruction_Smusd_al_r8_r12_r8[] = {
-  0x4c, 0xfb, 0x08, 0xf8 //  Smusd al r8 r12 r8
+static const byte kInstruction_smusd_al_r8_r12_r8[] = {
+  0x4c, 0xfb, 0x08, 0xf8 // smusd al r8 r12 r8
 };
-static const byte kInstruction_Smusd_al_r2_r12_r10[] = {
-  0x4c, 0xfb, 0x0a, 0xf2 //  Smusd al r2 r12 r10
+static const byte kInstruction_smusd_al_r2_r12_r10[] = {
+  0x4c, 0xfb, 0x0a, 0xf2 // smusd al r2 r12 r10
 };
-static const byte kInstruction_Smusd_al_r4_r4_r10[] = {
-  0x44, 0xfb, 0x0a, 0xf4 //  Smusd al r4 r4 r10
+static const byte kInstruction_smusd_al_r4_r4_r10[] = {
+  0x44, 0xfb, 0x0a, 0xf4 // smusd al r4 r4 r10
 };
-static const byte kInstruction_Smusd_al_r6_r14_r7[] = {
-  0x4e, 0xfb, 0x07, 0xf6 //  Smusd al r6 r14 r7
+static const byte kInstruction_smusd_al_r6_r14_r7[] = {
+  0x4e, 0xfb, 0x07, 0xf6 // smusd al r6 r14 r7
 };
-static const byte kInstruction_Smusd_al_r11_r10_r14[] = {
-  0x4a, 0xfb, 0x0e, 0xfb //  Smusd al r11 r10 r14
+static const byte kInstruction_smusd_al_r11_r10_r14[] = {
+  0x4a, 0xfb, 0x0e, 0xfb // smusd al r11 r10 r14
 };
-static const byte kInstruction_Smusd_al_r13_r0_r5[] = {
-  0x40, 0xfb, 0x05, 0xfd //  Smusd al r13 r0 r5
+static const byte kInstruction_smusd_al_r13_r0_r5[] = {
+  0x40, 0xfb, 0x05, 0xfd // smusd al r13 r0 r5
 };
-static const byte kInstruction_Smusd_al_r4_r3_r7[] = {
-  0x43, 0xfb, 0x07, 0xf4 //  Smusd al r4 r3 r7
+static const byte kInstruction_smusd_al_r4_r3_r7[] = {
+  0x43, 0xfb, 0x07, 0xf4 // smusd al r4 r3 r7
 };
-static const byte kInstruction_Smusd_al_r13_r7_r8[] = {
-  0x47, 0xfb, 0x08, 0xfd //  Smusd al r13 r7 r8
+static const byte kInstruction_smusd_al_r13_r7_r8[] = {
+  0x47, 0xfb, 0x08, 0xfd // smusd al r13 r7 r8
 };
-static const byte kInstruction_Smusd_al_r9_r2_r8[] = {
-  0x42, 0xfb, 0x08, 0xf9 //  Smusd al r9 r2 r8
+static const byte kInstruction_smusd_al_r9_r2_r8[] = {
+  0x42, 0xfb, 0x08, 0xf9 // smusd al r9 r2 r8
 };
-static const byte kInstruction_Smusd_al_r4_r13_r11[] = {
-  0x4d, 0xfb, 0x0b, 0xf4 //  Smusd al r4 r13 r11
+static const byte kInstruction_smusd_al_r4_r13_r11[] = {
+  0x4d, 0xfb, 0x0b, 0xf4 // smusd al r4 r13 r11
 };
-static const byte kInstruction_Smusd_al_r4_r7_r14[] = {
-  0x47, 0xfb, 0x0e, 0xf4 //  Smusd al r4 r7 r14
+static const byte kInstruction_smusd_al_r4_r7_r14[] = {
+  0x47, 0xfb, 0x0e, 0xf4 // smusd al r4 r7 r14
 };
-static const byte kInstruction_Smusd_al_r7_r10_r4[] = {
-  0x4a, 0xfb, 0x04, 0xf7 //  Smusd al r7 r10 r4
+static const byte kInstruction_smusd_al_r7_r10_r4[] = {
+  0x4a, 0xfb, 0x04, 0xf7 // smusd al r7 r10 r4
 };
-static const byte kInstruction_Smusd_al_r10_r9_r12[] = {
-  0x49, 0xfb, 0x0c, 0xfa //  Smusd al r10 r9 r12
+static const byte kInstruction_smusd_al_r10_r9_r12[] = {
+  0x49, 0xfb, 0x0c, 0xfa // smusd al r10 r9 r12
 };
-static const byte kInstruction_Smusd_al_r8_r13_r3[] = {
-  0x4d, 0xfb, 0x03, 0xf8 //  Smusd al r8 r13 r3
+static const byte kInstruction_smusd_al_r8_r13_r3[] = {
+  0x4d, 0xfb, 0x03, 0xf8 // smusd al r8 r13 r3
 };
-static const byte kInstruction_Smusd_al_r3_r7_r14[] = {
-  0x47, 0xfb, 0x0e, 0xf3 //  Smusd al r3 r7 r14
+static const byte kInstruction_smusd_al_r3_r7_r14[] = {
+  0x47, 0xfb, 0x0e, 0xf3 // smusd al r3 r7 r14
 };
-static const byte kInstruction_Smusd_al_r12_r0_r6[] = {
-  0x40, 0xfb, 0x06, 0xfc //  Smusd al r12 r0 r6
+static const byte kInstruction_smusd_al_r12_r0_r6[] = {
+  0x40, 0xfb, 0x06, 0xfc // smusd al r12 r0 r6
 };
-static const byte kInstruction_Smusd_al_r10_r9_r11[] = {
-  0x49, 0xfb, 0x0b, 0xfa //  Smusd al r10 r9 r11
+static const byte kInstruction_smusd_al_r10_r9_r11[] = {
+  0x49, 0xfb, 0x0b, 0xfa // smusd al r10 r9 r11
 };
-static const byte kInstruction_Smusd_al_r3_r10_r1[] = {
-  0x4a, 0xfb, 0x01, 0xf3 //  Smusd al r3 r10 r1
+static const byte kInstruction_smusd_al_r3_r10_r1[] = {
+  0x4a, 0xfb, 0x01, 0xf3 // smusd al r3 r10 r1
 };
-static const byte kInstruction_Smusd_al_r5_r0_r11[] = {
-  0x40, 0xfb, 0x0b, 0xf5 //  Smusd al r5 r0 r11
+static const byte kInstruction_smusd_al_r5_r0_r11[] = {
+  0x40, 0xfb, 0x0b, 0xf5 // smusd al r5 r0 r11
 };
-static const byte kInstruction_Smusd_al_r8_r13_r2[] = {
-  0x4d, 0xfb, 0x02, 0xf8 //  Smusd al r8 r13 r2
+static const byte kInstruction_smusd_al_r8_r13_r2[] = {
+  0x4d, 0xfb, 0x02, 0xf8 // smusd al r8 r13 r2
 };
-static const byte kInstruction_Smusd_al_r5_r4_r10[] = {
-  0x44, 0xfb, 0x0a, 0xf5 //  Smusd al r5 r4 r10
+static const byte kInstruction_smusd_al_r5_r4_r10[] = {
+  0x44, 0xfb, 0x0a, 0xf5 // smusd al r5 r4 r10
 };
-static const byte kInstruction_Smusd_al_r3_r7_r2[] = {
-  0x47, 0xfb, 0x02, 0xf3 //  Smusd al r3 r7 r2
+static const byte kInstruction_smusd_al_r3_r7_r2[] = {
+  0x47, 0xfb, 0x02, 0xf3 // smusd al r3 r7 r2
 };
-static const byte kInstruction_Smusd_al_r14_r14_r6[] = {
-  0x4e, 0xfb, 0x06, 0xfe //  Smusd al r14 r14 r6
+static const byte kInstruction_smusd_al_r14_r14_r6[] = {
+  0x4e, 0xfb, 0x06, 0xfe // smusd al r14 r14 r6
 };
-static const byte kInstruction_Smusd_al_r6_r14_r13[] = {
-  0x4e, 0xfb, 0x0d, 0xf6 //  Smusd al r6 r14 r13
+static const byte kInstruction_smusd_al_r6_r14_r13[] = {
+  0x4e, 0xfb, 0x0d, 0xf6 // smusd al r6 r14 r13
 };
-static const byte kInstruction_Smusd_al_r2_r2_r10[] = {
-  0x42, 0xfb, 0x0a, 0xf2 //  Smusd al r2 r2 r10
+static const byte kInstruction_smusd_al_r2_r2_r10[] = {
+  0x42, 0xfb, 0x0a, 0xf2 // smusd al r2 r2 r10
 };
-static const byte kInstruction_Smusd_al_r5_r13_r2[] = {
-  0x4d, 0xfb, 0x02, 0xf5 //  Smusd al r5 r13 r2
+static const byte kInstruction_smusd_al_r5_r13_r2[] = {
+  0x4d, 0xfb, 0x02, 0xf5 // smusd al r5 r13 r2
 };
-static const byte kInstruction_Smusd_al_r7_r14_r9[] = {
-  0x4e, 0xfb, 0x09, 0xf7 //  Smusd al r7 r14 r9
+static const byte kInstruction_smusd_al_r7_r14_r9[] = {
+  0x4e, 0xfb, 0x09, 0xf7 // smusd al r7 r14 r9
 };
-static const byte kInstruction_Smusd_al_r5_r6_r7[] = {
-  0x46, 0xfb, 0x07, 0xf5 //  Smusd al r5 r6 r7
+static const byte kInstruction_smusd_al_r5_r6_r7[] = {
+  0x46, 0xfb, 0x07, 0xf5 // smusd al r5 r6 r7
 };
-static const byte kInstruction_Smusd_al_r5_r3_r6[] = {
-  0x43, 0xfb, 0x06, 0xf5 //  Smusd al r5 r3 r6
+static const byte kInstruction_smusd_al_r5_r3_r6[] = {
+  0x43, 0xfb, 0x06, 0xf5 // smusd al r5 r3 r6
 };
-static const byte kInstruction_Smusd_al_r2_r1_r14[] = {
-  0x41, 0xfb, 0x0e, 0xf2 //  Smusd al r2 r1 r14
+static const byte kInstruction_smusd_al_r2_r1_r14[] = {
+  0x41, 0xfb, 0x0e, 0xf2 // smusd al r2 r1 r14
 };
-static const byte kInstruction_Smusd_al_r13_r11_r10[] = {
-  0x4b, 0xfb, 0x0a, 0xfd //  Smusd al r13 r11 r10
+static const byte kInstruction_smusd_al_r13_r11_r10[] = {
+  0x4b, 0xfb, 0x0a, 0xfd // smusd al r13 r11 r10
 };
-static const byte kInstruction_Smusd_al_r7_r9_r12[] = {
-  0x49, 0xfb, 0x0c, 0xf7 //  Smusd al r7 r9 r12
+static const byte kInstruction_smusd_al_r7_r9_r12[] = {
+  0x49, 0xfb, 0x0c, 0xf7 // smusd al r7 r9 r12
 };
-static const byte kInstruction_Smusd_al_r11_r14_r11[] = {
-  0x4e, 0xfb, 0x0b, 0xfb //  Smusd al r11 r14 r11
+static const byte kInstruction_smusd_al_r11_r14_r11[] = {
+  0x4e, 0xfb, 0x0b, 0xfb // smusd al r11 r14 r11
 };
-static const byte kInstruction_Smusd_al_r3_r10_r9[] = {
-  0x4a, 0xfb, 0x09, 0xf3 //  Smusd al r3 r10 r9
+static const byte kInstruction_smusd_al_r3_r10_r9[] = {
+  0x4a, 0xfb, 0x09, 0xf3 // smusd al r3 r10 r9
 };
-static const byte kInstruction_Smusd_al_r0_r4_r4[] = {
-  0x44, 0xfb, 0x04, 0xf0 //  Smusd al r0 r4 r4
+static const byte kInstruction_smusd_al_r0_r4_r4[] = {
+  0x44, 0xfb, 0x04, 0xf0 // smusd al r0 r4 r4
 };
-static const byte kInstruction_Smusd_al_r5_r8_r3[] = {
-  0x48, 0xfb, 0x03, 0xf5 //  Smusd al r5 r8 r3
+static const byte kInstruction_smusd_al_r5_r8_r3[] = {
+  0x48, 0xfb, 0x03, 0xf5 // smusd al r5 r8 r3
 };
-static const byte kInstruction_Smusd_al_r10_r5_r13[] = {
-  0x45, 0xfb, 0x0d, 0xfa //  Smusd al r10 r5 r13
+static const byte kInstruction_smusd_al_r10_r5_r13[] = {
+  0x45, 0xfb, 0x0d, 0xfa // smusd al r10 r5 r13
 };
-static const byte kInstruction_Smusd_al_r8_r3_r12[] = {
-  0x43, 0xfb, 0x0c, 0xf8 //  Smusd al r8 r3 r12
+static const byte kInstruction_smusd_al_r8_r3_r12[] = {
+  0x43, 0xfb, 0x0c, 0xf8 // smusd al r8 r3 r12
 };
-static const byte kInstruction_Smusd_al_r2_r1_r12[] = {
-  0x41, 0xfb, 0x0c, 0xf2 //  Smusd al r2 r1 r12
+static const byte kInstruction_smusd_al_r2_r1_r12[] = {
+  0x41, 0xfb, 0x0c, 0xf2 // smusd al r2 r1 r12
 };
-static const byte kInstruction_Smusd_al_r6_r8_r7[] = {
-  0x48, 0xfb, 0x07, 0xf6 //  Smusd al r6 r8 r7
+static const byte kInstruction_smusd_al_r6_r8_r7[] = {
+  0x48, 0xfb, 0x07, 0xf6 // smusd al r6 r8 r7
 };
-static const byte kInstruction_Smusd_al_r13_r13_r6[] = {
-  0x4d, 0xfb, 0x06, 0xfd //  Smusd al r13 r13 r6
+static const byte kInstruction_smusd_al_r13_r13_r6[] = {
+  0x4d, 0xfb, 0x06, 0xfd // smusd al r13 r13 r6
 };
-static const byte kInstruction_Smusd_al_r7_r2_r3[] = {
-  0x42, 0xfb, 0x03, 0xf7 //  Smusd al r7 r2 r3
+static const byte kInstruction_smusd_al_r7_r2_r3[] = {
+  0x42, 0xfb, 0x03, 0xf7 // smusd al r7 r2 r3
 };
-static const byte kInstruction_Smusd_al_r3_r6_r3[] = {
-  0x46, 0xfb, 0x03, 0xf3 //  Smusd al r3 r6 r3
+static const byte kInstruction_smusd_al_r3_r6_r3[] = {
+  0x46, 0xfb, 0x03, 0xf3 // smusd al r3 r6 r3
 };
-static const byte kInstruction_Smusd_al_r6_r5_r7[] = {
-  0x45, 0xfb, 0x07, 0xf6 //  Smusd al r6 r5 r7
+static const byte kInstruction_smusd_al_r6_r5_r7[] = {
+  0x45, 0xfb, 0x07, 0xf6 // smusd al r6 r5 r7
 };
-static const TestResult kReferenceSmusd[] = {
+static const TestResult kReferencesmusd[] = {
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r12_r2),
-    kInstruction_Smusd_al_r5_r12_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r12_r2),
+    kInstruction_smusd_al_r5_r12_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r3_r12),
-    kInstruction_Smusd_al_r7_r3_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r3_r12),
+    kInstruction_smusd_al_r7_r3_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r2_r10),
-    kInstruction_Smusd_al_r1_r2_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r2_r10),
+    kInstruction_smusd_al_r1_r2_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r7_r1),
-    kInstruction_Smusd_al_r2_r7_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r7_r1),
+    kInstruction_smusd_al_r2_r7_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r9_r0),
-    kInstruction_Smusd_al_r11_r9_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r9_r0),
+    kInstruction_smusd_al_r11_r9_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r9_r10),
-    kInstruction_Smusd_al_r6_r9_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r9_r10),
+    kInstruction_smusd_al_r6_r9_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r5_r0),
-    kInstruction_Smusd_al_r0_r5_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r5_r0),
+    kInstruction_smusd_al_r0_r5_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r6_r6),
-    kInstruction_Smusd_al_r4_r6_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r6_r6),
+    kInstruction_smusd_al_r4_r6_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r13_r1),
-    kInstruction_Smusd_al_r1_r13_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r13_r1),
+    kInstruction_smusd_al_r1_r13_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r14_r8),
-    kInstruction_Smusd_al_r8_r14_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r14_r8),
+    kInstruction_smusd_al_r8_r14_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r12_r11),
-    kInstruction_Smusd_al_r6_r12_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r12_r11),
+    kInstruction_smusd_al_r6_r12_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r2_r8),
-    kInstruction_Smusd_al_r7_r2_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r2_r8),
+    kInstruction_smusd_al_r7_r2_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r6_r7),
-    kInstruction_Smusd_al_r13_r6_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r6_r7),
+    kInstruction_smusd_al_r13_r6_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r3_r13),
-    kInstruction_Smusd_al_r10_r3_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r3_r13),
+    kInstruction_smusd_al_r10_r3_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r10_r2),
-    kInstruction_Smusd_al_r10_r10_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r10_r2),
+    kInstruction_smusd_al_r10_r10_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r2_r12),
-    kInstruction_Smusd_al_r3_r2_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r2_r12),
+    kInstruction_smusd_al_r3_r2_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r9_r7),
-    kInstruction_Smusd_al_r0_r9_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r9_r7),
+    kInstruction_smusd_al_r0_r9_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r1_r5),
-    kInstruction_Smusd_al_r4_r1_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r1_r5),
+    kInstruction_smusd_al_r4_r1_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r12_r1),
-    kInstruction_Smusd_al_r12_r12_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r12_r1),
+    kInstruction_smusd_al_r12_r12_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r12_r2),
-    kInstruction_Smusd_al_r4_r12_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r12_r2),
+    kInstruction_smusd_al_r4_r12_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r3_r4),
-    kInstruction_Smusd_al_r9_r3_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r3_r4),
+    kInstruction_smusd_al_r9_r3_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r11_r3),
-    kInstruction_Smusd_al_r13_r11_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r11_r3),
+    kInstruction_smusd_al_r13_r11_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r1_r5),
-    kInstruction_Smusd_al_r5_r1_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r1_r5),
+    kInstruction_smusd_al_r5_r1_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r14_r6_r2),
-    kInstruction_Smusd_al_r14_r6_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r14_r6_r2),
+    kInstruction_smusd_al_r14_r6_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r2_r0),
-    kInstruction_Smusd_al_r1_r2_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r2_r0),
+    kInstruction_smusd_al_r1_r2_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r8_r14),
-    kInstruction_Smusd_al_r1_r8_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r8_r14),
+    kInstruction_smusd_al_r1_r8_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r9_r10),
-    kInstruction_Smusd_al_r12_r9_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r9_r10),
+    kInstruction_smusd_al_r12_r9_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r2_r6),
-    kInstruction_Smusd_al_r2_r2_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r2_r6),
+    kInstruction_smusd_al_r2_r2_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r6_r2),
-    kInstruction_Smusd_al_r13_r6_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r6_r2),
+    kInstruction_smusd_al_r13_r6_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r4_r3),
-    kInstruction_Smusd_al_r8_r4_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r4_r3),
+    kInstruction_smusd_al_r8_r4_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r11_r3),
-    kInstruction_Smusd_al_r7_r11_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r11_r3),
+    kInstruction_smusd_al_r7_r11_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r1_r13),
-    kInstruction_Smusd_al_r8_r1_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r1_r13),
+    kInstruction_smusd_al_r8_r1_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r11_r6),
-    kInstruction_Smusd_al_r1_r11_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r11_r6),
+    kInstruction_smusd_al_r1_r11_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r3_r10),
-    kInstruction_Smusd_al_r2_r3_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r3_r10),
+    kInstruction_smusd_al_r2_r3_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r9_r0),
-    kInstruction_Smusd_al_r0_r9_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r9_r0),
+    kInstruction_smusd_al_r0_r9_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r6_r1),
-    kInstruction_Smusd_al_r6_r6_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r6_r1),
+    kInstruction_smusd_al_r6_r6_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r7_r10),
-    kInstruction_Smusd_al_r5_r7_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r7_r10),
+    kInstruction_smusd_al_r5_r7_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r14_r7),
-    kInstruction_Smusd_al_r10_r14_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r14_r7),
+    kInstruction_smusd_al_r10_r14_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r2_r12),
-    kInstruction_Smusd_al_r8_r2_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r2_r12),
+    kInstruction_smusd_al_r8_r2_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r12_r3),
-    kInstruction_Smusd_al_r11_r12_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r12_r3),
+    kInstruction_smusd_al_r11_r12_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r4_r13),
-    kInstruction_Smusd_al_r0_r4_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r4_r13),
+    kInstruction_smusd_al_r0_r4_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r0_r8),
-    kInstruction_Smusd_al_r13_r0_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r0_r8),
+    kInstruction_smusd_al_r13_r0_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r14_r12),
-    kInstruction_Smusd_al_r7_r14_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r14_r12),
+    kInstruction_smusd_al_r7_r14_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r11_r10),
-    kInstruction_Smusd_al_r8_r11_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r11_r10),
+    kInstruction_smusd_al_r8_r11_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r13_r14),
-    kInstruction_Smusd_al_r8_r13_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r13_r14),
+    kInstruction_smusd_al_r8_r13_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r7_r1),
-    kInstruction_Smusd_al_r13_r7_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r7_r1),
+    kInstruction_smusd_al_r13_r7_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r0_r14),
-    kInstruction_Smusd_al_r10_r0_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r0_r14),
+    kInstruction_smusd_al_r10_r0_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r4_r12),
-    kInstruction_Smusd_al_r6_r4_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r4_r12),
+    kInstruction_smusd_al_r6_r4_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r8_r12),
-    kInstruction_Smusd_al_r8_r8_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r8_r12),
+    kInstruction_smusd_al_r8_r8_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r9_r4),
-    kInstruction_Smusd_al_r10_r9_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r9_r4),
+    kInstruction_smusd_al_r10_r9_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r14_r9_r8),
-    kInstruction_Smusd_al_r14_r9_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r14_r9_r8),
+    kInstruction_smusd_al_r14_r9_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r1_r0),
-    kInstruction_Smusd_al_r9_r1_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r1_r0),
+    kInstruction_smusd_al_r9_r1_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r14_r4_r11),
-    kInstruction_Smusd_al_r14_r4_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r14_r4_r11),
+    kInstruction_smusd_al_r14_r4_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r1_r12),
-    kInstruction_Smusd_al_r13_r1_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r1_r12),
+    kInstruction_smusd_al_r13_r1_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r14_r5),
-    kInstruction_Smusd_al_r6_r14_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r14_r5),
+    kInstruction_smusd_al_r6_r14_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r7_r6),
-    kInstruction_Smusd_al_r7_r7_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r7_r6),
+    kInstruction_smusd_al_r7_r7_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r14_r0),
-    kInstruction_Smusd_al_r6_r14_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r14_r0),
+    kInstruction_smusd_al_r6_r14_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r5_r11),
-    kInstruction_Smusd_al_r7_r5_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r5_r11),
+    kInstruction_smusd_al_r7_r5_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r10_r9),
-    kInstruction_Smusd_al_r9_r10_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r10_r9),
+    kInstruction_smusd_al_r9_r10_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r5_r0),
-    kInstruction_Smusd_al_r4_r5_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r5_r0),
+    kInstruction_smusd_al_r4_r5_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r11_r2),
-    kInstruction_Smusd_al_r3_r11_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r11_r2),
+    kInstruction_smusd_al_r3_r11_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r4_r3),
-    kInstruction_Smusd_al_r1_r4_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r4_r3),
+    kInstruction_smusd_al_r1_r4_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r14_r6),
-    kInstruction_Smusd_al_r13_r14_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r14_r6),
+    kInstruction_smusd_al_r13_r14_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r8_r13),
-    kInstruction_Smusd_al_r1_r8_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r8_r13),
+    kInstruction_smusd_al_r1_r8_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r2_r7),
-    kInstruction_Smusd_al_r4_r2_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r2_r7),
+    kInstruction_smusd_al_r4_r2_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r11_r3),
-    kInstruction_Smusd_al_r1_r11_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r11_r3),
+    kInstruction_smusd_al_r1_r11_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r3_r6),
-    kInstruction_Smusd_al_r9_r3_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r3_r6),
+    kInstruction_smusd_al_r9_r3_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r10_r5),
-    kInstruction_Smusd_al_r0_r10_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r10_r5),
+    kInstruction_smusd_al_r0_r10_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r7_r2),
-    kInstruction_Smusd_al_r5_r7_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r7_r2),
+    kInstruction_smusd_al_r5_r7_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r14_r9),
-    kInstruction_Smusd_al_r1_r14_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r14_r9),
+    kInstruction_smusd_al_r1_r14_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r12_r11),
-    kInstruction_Smusd_al_r9_r12_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r12_r11),
+    kInstruction_smusd_al_r9_r12_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r11_r8),
-    kInstruction_Smusd_al_r0_r11_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r11_r8),
+    kInstruction_smusd_al_r0_r11_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r10_r12),
-    kInstruction_Smusd_al_r9_r10_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r10_r12),
+    kInstruction_smusd_al_r9_r10_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r5_r5),
-    kInstruction_Smusd_al_r8_r5_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r5_r5),
+    kInstruction_smusd_al_r8_r5_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r3_r10),
-    kInstruction_Smusd_al_r10_r3_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r3_r10),
+    kInstruction_smusd_al_r10_r3_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r5_r8),
-    kInstruction_Smusd_al_r13_r5_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r5_r8),
+    kInstruction_smusd_al_r13_r5_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r4_r2),
-    kInstruction_Smusd_al_r11_r4_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r4_r2),
+    kInstruction_smusd_al_r11_r4_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r10_r7),
-    kInstruction_Smusd_al_r1_r10_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r10_r7),
+    kInstruction_smusd_al_r1_r10_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r4_r1),
-    kInstruction_Smusd_al_r12_r4_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r4_r1),
+    kInstruction_smusd_al_r12_r4_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r14_r8),
-    kInstruction_Smusd_al_r11_r14_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r14_r8),
+    kInstruction_smusd_al_r11_r14_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r11_r8),
-    kInstruction_Smusd_al_r1_r11_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r11_r8),
+    kInstruction_smusd_al_r1_r11_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r11_r10),
-    kInstruction_Smusd_al_r3_r11_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r11_r10),
+    kInstruction_smusd_al_r3_r11_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r7_r0),
-    kInstruction_Smusd_al_r6_r7_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r7_r0),
+    kInstruction_smusd_al_r6_r7_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r13_r9),
-    kInstruction_Smusd_al_r6_r13_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r13_r9),
+    kInstruction_smusd_al_r6_r13_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r14_r0),
-    kInstruction_Smusd_al_r9_r14_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r14_r0),
+    kInstruction_smusd_al_r9_r14_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r8_r2),
-    kInstruction_Smusd_al_r6_r8_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r8_r2),
+    kInstruction_smusd_al_r6_r8_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r11_r12),
-    kInstruction_Smusd_al_r7_r11_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r11_r12),
+    kInstruction_smusd_al_r7_r11_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r3_r0),
-    kInstruction_Smusd_al_r9_r3_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r3_r0),
+    kInstruction_smusd_al_r9_r3_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r3_r5),
-    kInstruction_Smusd_al_r5_r3_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r3_r5),
+    kInstruction_smusd_al_r5_r3_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r10_r8),
-    kInstruction_Smusd_al_r5_r10_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r10_r8),
+    kInstruction_smusd_al_r5_r10_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r4_r13),
-    kInstruction_Smusd_al_r12_r4_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r4_r13),
+    kInstruction_smusd_al_r12_r4_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r12_r10),
-    kInstruction_Smusd_al_r7_r12_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r12_r10),
+    kInstruction_smusd_al_r7_r12_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r13_r11),
-    kInstruction_Smusd_al_r6_r13_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r13_r11),
+    kInstruction_smusd_al_r6_r13_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r3_r7),
-    kInstruction_Smusd_al_r5_r3_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r3_r7),
+    kInstruction_smusd_al_r5_r3_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r4_r6),
-    kInstruction_Smusd_al_r11_r4_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r4_r6),
+    kInstruction_smusd_al_r11_r4_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r2_r3),
-    kInstruction_Smusd_al_r10_r2_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r2_r3),
+    kInstruction_smusd_al_r10_r2_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r2_r1),
-    kInstruction_Smusd_al_r0_r2_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r2_r1),
+    kInstruction_smusd_al_r0_r2_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r5_r7),
-    kInstruction_Smusd_al_r11_r5_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r5_r7),
+    kInstruction_smusd_al_r11_r5_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r14_r10_r1),
-    kInstruction_Smusd_al_r14_r10_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r14_r10_r1),
+    kInstruction_smusd_al_r14_r10_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r4_r1),
-    kInstruction_Smusd_al_r1_r4_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r4_r1),
+    kInstruction_smusd_al_r1_r4_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r10_r11),
-    kInstruction_Smusd_al_r9_r10_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r10_r11),
+    kInstruction_smusd_al_r9_r10_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r8_r0),
-    kInstruction_Smusd_al_r6_r8_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r8_r0),
+    kInstruction_smusd_al_r6_r8_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r10_r11),
-    kInstruction_Smusd_al_r0_r10_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r10_r11),
+    kInstruction_smusd_al_r0_r10_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r14_r1_r4),
-    kInstruction_Smusd_al_r14_r1_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r14_r1_r4),
+    kInstruction_smusd_al_r14_r1_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r9_r5),
-    kInstruction_Smusd_al_r7_r9_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r9_r5),
+    kInstruction_smusd_al_r7_r9_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r4_r2),
-    kInstruction_Smusd_al_r13_r4_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r4_r2),
+    kInstruction_smusd_al_r13_r4_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r6_r3),
-    kInstruction_Smusd_al_r5_r6_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r6_r3),
+    kInstruction_smusd_al_r5_r6_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r4_r8),
-    kInstruction_Smusd_al_r13_r4_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r4_r8),
+    kInstruction_smusd_al_r13_r4_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r11_r12),
-    kInstruction_Smusd_al_r11_r11_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r11_r12),
+    kInstruction_smusd_al_r11_r11_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r12_r6),
-    kInstruction_Smusd_al_r3_r12_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r12_r6),
+    kInstruction_smusd_al_r3_r12_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r10_r1),
-    kInstruction_Smusd_al_r4_r10_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r10_r1),
+    kInstruction_smusd_al_r4_r10_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r8_r12),
-    kInstruction_Smusd_al_r7_r8_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r8_r12),
+    kInstruction_smusd_al_r7_r8_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r3_r3),
-    kInstruction_Smusd_al_r11_r3_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r3_r3),
+    kInstruction_smusd_al_r11_r3_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r14_r6_r6),
-    kInstruction_Smusd_al_r14_r6_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r14_r6_r6),
+    kInstruction_smusd_al_r14_r6_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r12_r1),
-    kInstruction_Smusd_al_r1_r12_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r12_r1),
+    kInstruction_smusd_al_r1_r12_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r5_r7),
-    kInstruction_Smusd_al_r13_r5_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r5_r7),
+    kInstruction_smusd_al_r13_r5_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r10_r8),
-    kInstruction_Smusd_al_r6_r10_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r10_r8),
+    kInstruction_smusd_al_r6_r10_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r13_r5),
-    kInstruction_Smusd_al_r7_r13_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r13_r5),
+    kInstruction_smusd_al_r7_r13_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r13_r4),
-    kInstruction_Smusd_al_r12_r13_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r13_r4),
+    kInstruction_smusd_al_r12_r13_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r0_r8),
-    kInstruction_Smusd_al_r7_r0_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r0_r8),
+    kInstruction_smusd_al_r7_r0_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r11_r9),
-    kInstruction_Smusd_al_r7_r11_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r11_r9),
+    kInstruction_smusd_al_r7_r11_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r9_r1),
-    kInstruction_Smusd_al_r8_r9_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r9_r1),
+    kInstruction_smusd_al_r8_r9_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r14_r5_r10),
-    kInstruction_Smusd_al_r14_r5_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r14_r5_r10),
+    kInstruction_smusd_al_r14_r5_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r9_r14),
-    kInstruction_Smusd_al_r4_r9_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r9_r14),
+    kInstruction_smusd_al_r4_r9_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r14_r9),
-    kInstruction_Smusd_al_r10_r14_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r14_r9),
+    kInstruction_smusd_al_r10_r14_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r1_r11),
-    kInstruction_Smusd_al_r0_r1_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r1_r11),
+    kInstruction_smusd_al_r0_r1_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r0_r11),
-    kInstruction_Smusd_al_r11_r0_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r0_r11),
+    kInstruction_smusd_al_r11_r0_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r10_r7),
-    kInstruction_Smusd_al_r10_r10_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r10_r7),
+    kInstruction_smusd_al_r10_r10_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r12_r7),
-    kInstruction_Smusd_al_r8_r12_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r12_r7),
+    kInstruction_smusd_al_r8_r12_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r4_r10),
-    kInstruction_Smusd_al_r9_r4_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r4_r10),
+    kInstruction_smusd_al_r9_r4_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r11_r14),
-    kInstruction_Smusd_al_r8_r11_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r11_r14),
+    kInstruction_smusd_al_r8_r11_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r4_r7),
-    kInstruction_Smusd_al_r8_r4_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r4_r7),
+    kInstruction_smusd_al_r8_r4_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r9_r11),
-    kInstruction_Smusd_al_r13_r9_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r9_r11),
+    kInstruction_smusd_al_r13_r9_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r5_r7),
-    kInstruction_Smusd_al_r2_r5_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r5_r7),
+    kInstruction_smusd_al_r2_r5_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r6_r8),
-    kInstruction_Smusd_al_r9_r6_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r6_r8),
+    kInstruction_smusd_al_r9_r6_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r4_r10),
-    kInstruction_Smusd_al_r2_r4_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r4_r10),
+    kInstruction_smusd_al_r2_r4_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r9_r4),
-    kInstruction_Smusd_al_r2_r9_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r9_r4),
+    kInstruction_smusd_al_r2_r9_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r8_r12),
-    kInstruction_Smusd_al_r12_r8_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r8_r12),
+    kInstruction_smusd_al_r12_r8_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r12_r2),
-    kInstruction_Smusd_al_r0_r12_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r12_r2),
+    kInstruction_smusd_al_r0_r12_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r11_r13),
-    kInstruction_Smusd_al_r4_r11_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r11_r13),
+    kInstruction_smusd_al_r4_r11_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r12_r14),
-    kInstruction_Smusd_al_r7_r12_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r12_r14),
+    kInstruction_smusd_al_r7_r12_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r10_r3),
-    kInstruction_Smusd_al_r4_r10_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r10_r3),
+    kInstruction_smusd_al_r4_r10_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r14_r7),
-    kInstruction_Smusd_al_r5_r14_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r14_r7),
+    kInstruction_smusd_al_r5_r14_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r6_r10),
-    kInstruction_Smusd_al_r1_r6_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r6_r10),
+    kInstruction_smusd_al_r1_r6_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r10_r10),
-    kInstruction_Smusd_al_r0_r10_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r10_r10),
+    kInstruction_smusd_al_r0_r10_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r3_r3),
-    kInstruction_Smusd_al_r6_r3_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r3_r3),
+    kInstruction_smusd_al_r6_r3_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r14_r6),
-    kInstruction_Smusd_al_r2_r14_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r14_r6),
+    kInstruction_smusd_al_r2_r14_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r4_r2),
-    kInstruction_Smusd_al_r7_r4_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r4_r2),
+    kInstruction_smusd_al_r7_r4_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r7_r9),
-    kInstruction_Smusd_al_r3_r7_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r7_r9),
+    kInstruction_smusd_al_r3_r7_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r4_r12),
-    kInstruction_Smusd_al_r0_r4_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r4_r12),
+    kInstruction_smusd_al_r0_r4_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r14_r11),
-    kInstruction_Smusd_al_r8_r14_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r14_r11),
+    kInstruction_smusd_al_r8_r14_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r8_r11),
-    kInstruction_Smusd_al_r2_r8_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r8_r11),
+    kInstruction_smusd_al_r2_r8_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r14_r11_r8),
-    kInstruction_Smusd_al_r14_r11_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r14_r11_r8),
+    kInstruction_smusd_al_r14_r11_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r10_r12),
-    kInstruction_Smusd_al_r5_r10_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r10_r12),
+    kInstruction_smusd_al_r5_r10_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r12_r5),
-    kInstruction_Smusd_al_r0_r12_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r12_r5),
+    kInstruction_smusd_al_r0_r12_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r4_r7),
-    kInstruction_Smusd_al_r4_r4_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r4_r7),
+    kInstruction_smusd_al_r4_r4_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r2_r10),
-    kInstruction_Smusd_al_r5_r2_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r2_r10),
+    kInstruction_smusd_al_r5_r2_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r14_r0_r0),
-    kInstruction_Smusd_al_r14_r0_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r14_r0_r0),
+    kInstruction_smusd_al_r14_r0_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r14_r4),
-    kInstruction_Smusd_al_r1_r14_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r14_r4),
+    kInstruction_smusd_al_r1_r14_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r0_r2),
-    kInstruction_Smusd_al_r1_r0_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r0_r2),
+    kInstruction_smusd_al_r1_r0_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r10_r7),
-    kInstruction_Smusd_al_r11_r10_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r10_r7),
+    kInstruction_smusd_al_r11_r10_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r10_r4),
-    kInstruction_Smusd_al_r13_r10_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r10_r4),
+    kInstruction_smusd_al_r13_r10_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r1_r9),
-    kInstruction_Smusd_al_r13_r1_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r1_r9),
+    kInstruction_smusd_al_r13_r1_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r1_r9),
-    kInstruction_Smusd_al_r8_r1_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r1_r9),
+    kInstruction_smusd_al_r8_r1_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r3_r9),
-    kInstruction_Smusd_al_r6_r3_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r3_r9),
+    kInstruction_smusd_al_r6_r3_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r6_r8),
-    kInstruction_Smusd_al_r10_r6_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r6_r8),
+    kInstruction_smusd_al_r10_r6_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r11_r9),
-    kInstruction_Smusd_al_r6_r11_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r11_r9),
+    kInstruction_smusd_al_r6_r11_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r13_r14),
-    kInstruction_Smusd_al_r1_r13_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r13_r14),
+    kInstruction_smusd_al_r1_r13_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r14_r12),
-    kInstruction_Smusd_al_r1_r14_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r14_r12),
+    kInstruction_smusd_al_r1_r14_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r1_r4),
-    kInstruction_Smusd_al_r0_r1_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r1_r4),
+    kInstruction_smusd_al_r0_r1_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r13_r1),
-    kInstruction_Smusd_al_r8_r13_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r13_r1),
+    kInstruction_smusd_al_r8_r13_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r14_r5),
-    kInstruction_Smusd_al_r7_r14_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r14_r5),
+    kInstruction_smusd_al_r7_r14_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r13_r8),
-    kInstruction_Smusd_al_r5_r13_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r13_r8),
+    kInstruction_smusd_al_r5_r13_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r10_r13),
-    kInstruction_Smusd_al_r11_r10_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r10_r13),
+    kInstruction_smusd_al_r11_r10_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r13_r2),
-    kInstruction_Smusd_al_r7_r13_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r13_r2),
+    kInstruction_smusd_al_r7_r13_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r2_r13),
-    kInstruction_Smusd_al_r2_r2_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r2_r13),
+    kInstruction_smusd_al_r2_r2_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r7_r5),
-    kInstruction_Smusd_al_r1_r7_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r7_r5),
+    kInstruction_smusd_al_r1_r7_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r6_r12),
-    kInstruction_Smusd_al_r12_r6_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r6_r12),
+    kInstruction_smusd_al_r12_r6_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r9_r11),
-    kInstruction_Smusd_al_r5_r9_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r9_r11),
+    kInstruction_smusd_al_r5_r9_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r7_r1),
-    kInstruction_Smusd_al_r12_r7_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r7_r1),
+    kInstruction_smusd_al_r12_r7_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r9_r9),
-    kInstruction_Smusd_al_r13_r9_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r9_r9),
+    kInstruction_smusd_al_r13_r9_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r4_r13),
-    kInstruction_Smusd_al_r10_r4_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r4_r13),
+    kInstruction_smusd_al_r10_r4_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r2_r10),
-    kInstruction_Smusd_al_r9_r2_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r2_r10),
+    kInstruction_smusd_al_r9_r2_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r5_r13),
-    kInstruction_Smusd_al_r1_r5_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r5_r13),
+    kInstruction_smusd_al_r1_r5_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r3_r9),
-    kInstruction_Smusd_al_r12_r3_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r3_r9),
+    kInstruction_smusd_al_r12_r3_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r3_r0),
-    kInstruction_Smusd_al_r6_r3_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r3_r0),
+    kInstruction_smusd_al_r6_r3_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r8_r8),
-    kInstruction_Smusd_al_r9_r8_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r8_r8),
+    kInstruction_smusd_al_r9_r8_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r3_r4),
-    kInstruction_Smusd_al_r6_r3_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r3_r4),
+    kInstruction_smusd_al_r6_r3_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r9_r0),
-    kInstruction_Smusd_al_r12_r9_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r9_r0),
+    kInstruction_smusd_al_r12_r9_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r10_r0),
-    kInstruction_Smusd_al_r4_r10_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r10_r0),
+    kInstruction_smusd_al_r4_r10_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r13_r4),
-    kInstruction_Smusd_al_r3_r13_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r13_r4),
+    kInstruction_smusd_al_r3_r13_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r10_r14),
-    kInstruction_Smusd_al_r2_r10_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r10_r14),
+    kInstruction_smusd_al_r2_r10_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r9_r8),
-    kInstruction_Smusd_al_r3_r9_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r9_r8),
+    kInstruction_smusd_al_r3_r9_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r4_r8),
-    kInstruction_Smusd_al_r12_r4_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r4_r8),
+    kInstruction_smusd_al_r12_r4_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r1_r11),
-    kInstruction_Smusd_al_r2_r1_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r1_r11),
+    kInstruction_smusd_al_r2_r1_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r7_r0),
-    kInstruction_Smusd_al_r1_r7_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r7_r0),
+    kInstruction_smusd_al_r1_r7_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r1_r2),
-    kInstruction_Smusd_al_r0_r1_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r1_r2),
+    kInstruction_smusd_al_r0_r1_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r12_r7),
-    kInstruction_Smusd_al_r11_r12_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r12_r7),
+    kInstruction_smusd_al_r11_r12_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r14_r7),
-    kInstruction_Smusd_al_r12_r14_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r14_r7),
+    kInstruction_smusd_al_r12_r14_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r3_r10),
-    kInstruction_Smusd_al_r0_r3_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r3_r10),
+    kInstruction_smusd_al_r0_r3_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r6_r7),
-    kInstruction_Smusd_al_r3_r6_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r6_r7),
+    kInstruction_smusd_al_r3_r6_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r10_r1),
-    kInstruction_Smusd_al_r0_r10_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r10_r1),
+    kInstruction_smusd_al_r0_r10_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r11_r5),
-    kInstruction_Smusd_al_r8_r11_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r11_r5),
+    kInstruction_smusd_al_r8_r11_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r10_r8),
-    kInstruction_Smusd_al_r1_r10_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r10_r8),
+    kInstruction_smusd_al_r1_r10_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r8_r5),
-    kInstruction_Smusd_al_r7_r8_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r8_r5),
+    kInstruction_smusd_al_r7_r8_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r9_r2),
-    kInstruction_Smusd_al_r9_r9_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r9_r2),
+    kInstruction_smusd_al_r9_r9_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r13_r0),
-    kInstruction_Smusd_al_r13_r13_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r13_r0),
+    kInstruction_smusd_al_r13_r13_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r10_r5),
-    kInstruction_Smusd_al_r9_r10_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r10_r5),
+    kInstruction_smusd_al_r9_r10_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r6_r14),
-    kInstruction_Smusd_al_r6_r6_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r6_r14),
+    kInstruction_smusd_al_r6_r6_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r8_r5),
-    kInstruction_Smusd_al_r1_r8_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r8_r5),
+    kInstruction_smusd_al_r1_r8_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r4_r8),
-    kInstruction_Smusd_al_r1_r4_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r4_r8),
+    kInstruction_smusd_al_r1_r4_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r2_r12),
-    kInstruction_Smusd_al_r0_r2_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r2_r12),
+    kInstruction_smusd_al_r0_r2_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r14_r1),
-    kInstruction_Smusd_al_r5_r14_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r14_r1),
+    kInstruction_smusd_al_r5_r14_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r1_r5),
-    kInstruction_Smusd_al_r2_r1_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r1_r5),
+    kInstruction_smusd_al_r2_r1_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r11_r6),
-    kInstruction_Smusd_al_r11_r11_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r11_r6),
+    kInstruction_smusd_al_r11_r11_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r11_r1),
-    kInstruction_Smusd_al_r3_r11_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r11_r1),
+    kInstruction_smusd_al_r3_r11_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r14_r9),
-    kInstruction_Smusd_al_r13_r14_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r14_r9),
+    kInstruction_smusd_al_r13_r14_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r1_r5),
-    kInstruction_Smusd_al_r7_r1_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r1_r5),
+    kInstruction_smusd_al_r7_r1_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r14_r3),
-    kInstruction_Smusd_al_r10_r14_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r14_r3),
+    kInstruction_smusd_al_r10_r14_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r6_r14),
-    kInstruction_Smusd_al_r5_r6_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r6_r14),
+    kInstruction_smusd_al_r5_r6_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r7_r7),
-    kInstruction_Smusd_al_r1_r7_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r7_r7),
+    kInstruction_smusd_al_r1_r7_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r5_r14),
-    kInstruction_Smusd_al_r12_r5_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r5_r14),
+    kInstruction_smusd_al_r12_r5_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r5_r1),
-    kInstruction_Smusd_al_r10_r5_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r5_r1),
+    kInstruction_smusd_al_r10_r5_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r8_r3),
-    kInstruction_Smusd_al_r10_r8_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r8_r3),
+    kInstruction_smusd_al_r10_r8_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r6_r5),
-    kInstruction_Smusd_al_r4_r6_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r6_r5),
+    kInstruction_smusd_al_r4_r6_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r3_r2),
-    kInstruction_Smusd_al_r4_r3_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r3_r2),
+    kInstruction_smusd_al_r4_r3_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r13_r13),
-    kInstruction_Smusd_al_r10_r13_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r13_r13),
+    kInstruction_smusd_al_r10_r13_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r10_r4),
-    kInstruction_Smusd_al_r1_r10_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r10_r4),
+    kInstruction_smusd_al_r1_r10_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r10_r12),
-    kInstruction_Smusd_al_r8_r10_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r10_r12),
+    kInstruction_smusd_al_r8_r10_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r0_r13),
-    kInstruction_Smusd_al_r6_r0_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r0_r13),
+    kInstruction_smusd_al_r6_r0_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r12_r0),
-    kInstruction_Smusd_al_r1_r12_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r12_r0),
+    kInstruction_smusd_al_r1_r12_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r13_r1),
-    kInstruction_Smusd_al_r4_r13_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r13_r1),
+    kInstruction_smusd_al_r4_r13_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r0_r0),
-    kInstruction_Smusd_al_r10_r0_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r0_r0),
+    kInstruction_smusd_al_r10_r0_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r6_r4),
-    kInstruction_Smusd_al_r13_r6_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r6_r4),
+    kInstruction_smusd_al_r13_r6_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r3_r14),
-    kInstruction_Smusd_al_r0_r3_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r3_r14),
+    kInstruction_smusd_al_r0_r3_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r11_r2),
-    kInstruction_Smusd_al_r7_r11_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r11_r2),
+    kInstruction_smusd_al_r7_r11_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r11_r12),
-    kInstruction_Smusd_al_r9_r11_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r11_r12),
+    kInstruction_smusd_al_r9_r11_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r14_r7),
-    kInstruction_Smusd_al_r2_r14_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r14_r7),
+    kInstruction_smusd_al_r2_r14_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r14_r8),
-    kInstruction_Smusd_al_r10_r14_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r14_r8),
+    kInstruction_smusd_al_r10_r14_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r3_r2),
-    kInstruction_Smusd_al_r1_r3_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r3_r2),
+    kInstruction_smusd_al_r1_r3_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r1_r8),
-    kInstruction_Smusd_al_r0_r1_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r1_r8),
+    kInstruction_smusd_al_r0_r1_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r9_r13),
-    kInstruction_Smusd_al_r2_r9_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r9_r13),
+    kInstruction_smusd_al_r2_r9_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r3_r5),
-    kInstruction_Smusd_al_r2_r3_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r3_r5),
+    kInstruction_smusd_al_r2_r3_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r9_r3),
-    kInstruction_Smusd_al_r13_r9_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r9_r3),
+    kInstruction_smusd_al_r13_r9_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r8_r8),
-    kInstruction_Smusd_al_r3_r8_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r8_r8),
+    kInstruction_smusd_al_r3_r8_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r8_r7),
-    kInstruction_Smusd_al_r0_r8_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r8_r7),
+    kInstruction_smusd_al_r0_r8_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r14_r7),
-    kInstruction_Smusd_al_r9_r14_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r14_r7),
+    kInstruction_smusd_al_r9_r14_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r3_r11),
-    kInstruction_Smusd_al_r10_r3_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r3_r11),
+    kInstruction_smusd_al_r10_r3_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r14_r13),
-    kInstruction_Smusd_al_r1_r14_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r14_r13),
+    kInstruction_smusd_al_r1_r14_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r14_r4_r1),
-    kInstruction_Smusd_al_r14_r4_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r14_r4_r1),
+    kInstruction_smusd_al_r14_r4_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r12_r4),
-    kInstruction_Smusd_al_r12_r12_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r12_r4),
+    kInstruction_smusd_al_r12_r12_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r12_r0),
-    kInstruction_Smusd_al_r0_r12_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r12_r0),
+    kInstruction_smusd_al_r0_r12_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r1_r5_r1),
-    kInstruction_Smusd_al_r1_r5_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r1_r5_r1),
+    kInstruction_smusd_al_r1_r5_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r9_r6),
-    kInstruction_Smusd_al_r3_r9_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r9_r6),
+    kInstruction_smusd_al_r3_r9_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r11_r0),
-    kInstruction_Smusd_al_r2_r11_r0,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r11_r0),
+    kInstruction_smusd_al_r2_r11_r0,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r6_r11),
-    kInstruction_Smusd_al_r2_r6_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r6_r11),
+    kInstruction_smusd_al_r2_r6_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r12_r8),
-    kInstruction_Smusd_al_r8_r12_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r12_r8),
+    kInstruction_smusd_al_r8_r12_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r12_r10),
-    kInstruction_Smusd_al_r2_r12_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r12_r10),
+    kInstruction_smusd_al_r2_r12_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r4_r10),
-    kInstruction_Smusd_al_r4_r4_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r4_r10),
+    kInstruction_smusd_al_r4_r4_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r14_r7),
-    kInstruction_Smusd_al_r6_r14_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r14_r7),
+    kInstruction_smusd_al_r6_r14_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r10_r14),
-    kInstruction_Smusd_al_r11_r10_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r10_r14),
+    kInstruction_smusd_al_r11_r10_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r0_r5),
-    kInstruction_Smusd_al_r13_r0_r5,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r0_r5),
+    kInstruction_smusd_al_r13_r0_r5,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r3_r7),
-    kInstruction_Smusd_al_r4_r3_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r3_r7),
+    kInstruction_smusd_al_r4_r3_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r7_r8),
-    kInstruction_Smusd_al_r13_r7_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r7_r8),
+    kInstruction_smusd_al_r13_r7_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r9_r2_r8),
-    kInstruction_Smusd_al_r9_r2_r8,
+    ARRAY_SIZE(kInstruction_smusd_al_r9_r2_r8),
+    kInstruction_smusd_al_r9_r2_r8,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r13_r11),
-    kInstruction_Smusd_al_r4_r13_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r13_r11),
+    kInstruction_smusd_al_r4_r13_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r4_r7_r14),
-    kInstruction_Smusd_al_r4_r7_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r4_r7_r14),
+    kInstruction_smusd_al_r4_r7_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r10_r4),
-    kInstruction_Smusd_al_r7_r10_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r10_r4),
+    kInstruction_smusd_al_r7_r10_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r9_r12),
-    kInstruction_Smusd_al_r10_r9_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r9_r12),
+    kInstruction_smusd_al_r10_r9_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r13_r3),
-    kInstruction_Smusd_al_r8_r13_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r13_r3),
+    kInstruction_smusd_al_r8_r13_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r7_r14),
-    kInstruction_Smusd_al_r3_r7_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r7_r14),
+    kInstruction_smusd_al_r3_r7_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r12_r0_r6),
-    kInstruction_Smusd_al_r12_r0_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r12_r0_r6),
+    kInstruction_smusd_al_r12_r0_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r9_r11),
-    kInstruction_Smusd_al_r10_r9_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r9_r11),
+    kInstruction_smusd_al_r10_r9_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r10_r1),
-    kInstruction_Smusd_al_r3_r10_r1,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r10_r1),
+    kInstruction_smusd_al_r3_r10_r1,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r0_r11),
-    kInstruction_Smusd_al_r5_r0_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r0_r11),
+    kInstruction_smusd_al_r5_r0_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r13_r2),
-    kInstruction_Smusd_al_r8_r13_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r13_r2),
+    kInstruction_smusd_al_r8_r13_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r4_r10),
-    kInstruction_Smusd_al_r5_r4_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r4_r10),
+    kInstruction_smusd_al_r5_r4_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r7_r2),
-    kInstruction_Smusd_al_r3_r7_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r7_r2),
+    kInstruction_smusd_al_r3_r7_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r14_r14_r6),
-    kInstruction_Smusd_al_r14_r14_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r14_r14_r6),
+    kInstruction_smusd_al_r14_r14_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r14_r13),
-    kInstruction_Smusd_al_r6_r14_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r14_r13),
+    kInstruction_smusd_al_r6_r14_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r2_r10),
-    kInstruction_Smusd_al_r2_r2_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r2_r10),
+    kInstruction_smusd_al_r2_r2_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r13_r2),
-    kInstruction_Smusd_al_r5_r13_r2,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r13_r2),
+    kInstruction_smusd_al_r5_r13_r2,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r14_r9),
-    kInstruction_Smusd_al_r7_r14_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r14_r9),
+    kInstruction_smusd_al_r7_r14_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r6_r7),
-    kInstruction_Smusd_al_r5_r6_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r6_r7),
+    kInstruction_smusd_al_r5_r6_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r3_r6),
-    kInstruction_Smusd_al_r5_r3_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r3_r6),
+    kInstruction_smusd_al_r5_r3_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r1_r14),
-    kInstruction_Smusd_al_r2_r1_r14,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r1_r14),
+    kInstruction_smusd_al_r2_r1_r14,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r11_r10),
-    kInstruction_Smusd_al_r13_r11_r10,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r11_r10),
+    kInstruction_smusd_al_r13_r11_r10,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r9_r12),
-    kInstruction_Smusd_al_r7_r9_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r9_r12),
+    kInstruction_smusd_al_r7_r9_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r11_r14_r11),
-    kInstruction_Smusd_al_r11_r14_r11,
+    ARRAY_SIZE(kInstruction_smusd_al_r11_r14_r11),
+    kInstruction_smusd_al_r11_r14_r11,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r10_r9),
-    kInstruction_Smusd_al_r3_r10_r9,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r10_r9),
+    kInstruction_smusd_al_r3_r10_r9,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r0_r4_r4),
-    kInstruction_Smusd_al_r0_r4_r4,
+    ARRAY_SIZE(kInstruction_smusd_al_r0_r4_r4),
+    kInstruction_smusd_al_r0_r4_r4,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r5_r8_r3),
-    kInstruction_Smusd_al_r5_r8_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r5_r8_r3),
+    kInstruction_smusd_al_r5_r8_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r10_r5_r13),
-    kInstruction_Smusd_al_r10_r5_r13,
+    ARRAY_SIZE(kInstruction_smusd_al_r10_r5_r13),
+    kInstruction_smusd_al_r10_r5_r13,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r8_r3_r12),
-    kInstruction_Smusd_al_r8_r3_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r8_r3_r12),
+    kInstruction_smusd_al_r8_r3_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r2_r1_r12),
-    kInstruction_Smusd_al_r2_r1_r12,
+    ARRAY_SIZE(kInstruction_smusd_al_r2_r1_r12),
+    kInstruction_smusd_al_r2_r1_r12,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r8_r7),
-    kInstruction_Smusd_al_r6_r8_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r8_r7),
+    kInstruction_smusd_al_r6_r8_r7,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r13_r13_r6),
-    kInstruction_Smusd_al_r13_r13_r6,
+    ARRAY_SIZE(kInstruction_smusd_al_r13_r13_r6),
+    kInstruction_smusd_al_r13_r13_r6,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r7_r2_r3),
-    kInstruction_Smusd_al_r7_r2_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r7_r2_r3),
+    kInstruction_smusd_al_r7_r2_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r3_r6_r3),
-    kInstruction_Smusd_al_r3_r6_r3,
+    ARRAY_SIZE(kInstruction_smusd_al_r3_r6_r3),
+    kInstruction_smusd_al_r3_r6_r3,
   },
   {
-    ARRAY_SIZE(kInstruction_Smusd_al_r6_r5_r7),
-    kInstruction_Smusd_al_r6_r5_r7,
+    ARRAY_SIZE(kInstruction_smusd_al_r6_r5_r7),
+    kInstruction_smusd_al_r6_r5_r7,
   },
 };
 

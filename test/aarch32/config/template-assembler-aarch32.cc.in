@@ -59,9 +59,11 @@ struct TestData {
   // The `operands` field represents what to pass to the assembler to
   // produce the instruction.
   Operands operands;
-  // Optionally expect the MacroAssembler to have generated an extra
-  // instruction. This is used when the instruction needs to be in an IT block.
-  const char* expect_instruction_before;
+  // True if we need to generate an IT instruction for this test to be valid.
+  bool in_it_block;
+  // The condition to give the IT instruction, this will be set to "al" by
+  // default.
+  Condition it_condition;
   // Description of the operands, used for error reporting.
   const char* operands_description;
   // Unique identifier, used for generating traces.
@@ -97,7 +99,16 @@ static void TestHelper(Fn instruction, const char* mnemonic,
     ${code_instantiate_operands}
 
     uint32_t start = masm.GetCursorOffset();
-    (masm.*instruction)(${code_parameter_list});
+    {
+      // We never generate more that 4 bytes, as IT instructions are only
+      // allowed for narrow encodings.
+      AssemblerAccurateScope scope(&masm, 4,
+                                   AssemblerAccurateScope::kMaximumSize);
+      if (kTests[i].in_it_block) {
+        masm.it(kTests[i].it_condition);
+      }
+      (masm.*instruction)(${code_parameter_list});
+    }
     uint32_t end = masm.GetCursorOffset();
 
     const byte* result_ptr =
@@ -118,8 +129,12 @@ static void TestHelper(Fn instruction, const char* mnemonic,
       // This comment is meant to be used by external tools to validate
       // the encoding. We can parse the comment to figure out what
       // instruction this corresponds to.
-      printf(" // %s %s %s\n};\n", kTests[i].expect_instruction_before,
-             mnemonic, kTests[i].operands_description);
+      if (kTests[i].in_it_block) {
+        printf(" // It %s; %s %s\n};\n", kTests[i].it_condition.GetName(),
+               mnemonic, kTests[i].operands_description);
+      } else {
+        printf(" // %s %s\n};\n", mnemonic, kTests[i].operands_description);
+      }
     } else {
       // Check we've emitted the exact same encoding as present in the
       // trace file. Only print up to `kErrorReportLimit` errors.
@@ -171,6 +186,8 @@ static void TestHelper(Fn instruction, const char* mnemonic,
       printf("%u other errors follow.\n",
              total_error_count - kErrorReportLimit);
     }
+    // Crash if the test failed.
+    VIXL_CHECK(total_error_count == 0);
   }
 }
 

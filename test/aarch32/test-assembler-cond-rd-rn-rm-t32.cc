@@ -49,63 +49,63 @@ namespace aarch32 {
 
 // List of instruction mnemonics.
 #define FOREACH_INSTRUCTION(M) \
-  M(Mul)                       \
-  M(Qadd16)                    \
-  M(Qadd8)                     \
-  M(Qasx)                      \
-  M(Qsax)                      \
-  M(Qsub16)                    \
-  M(Qsub8)                     \
-  M(Sdiv)                      \
-  M(Shadd16)                   \
-  M(Shadd8)                    \
-  M(Shasx)                     \
-  M(Shsax)                     \
-  M(Shsub16)                   \
-  M(Shsub8)                    \
-  M(Smmul)                     \
-  M(Smmulr)                    \
-  M(Smuad)                     \
-  M(Smuadx)                    \
-  M(Smulbb)                    \
-  M(Smulbt)                    \
-  M(Smultb)                    \
-  M(Smultt)                    \
-  M(Smulwb)                    \
-  M(Smulwt)                    \
-  M(Smusd)                     \
-  M(Smusdx)                    \
-  M(Udiv)                      \
-  M(Uhadd16)                   \
-  M(Uhadd8)                    \
-  M(Uhasx)                     \
-  M(Uhsax)                     \
-  M(Uhsub16)                   \
-  M(Uhsub8)                    \
-  M(Uqadd16)                   \
-  M(Uqadd8)                    \
-  M(Uqasx)                     \
-  M(Uqsax)                     \
-  M(Uqsub16)                   \
-  M(Uqsub8)                    \
-  M(Usad8)                     \
-  M(Sadd16)                    \
-  M(Sadd8)                     \
-  M(Sasx)                      \
-  M(Sel)                       \
-  M(Ssax)                      \
-  M(Ssub16)                    \
-  M(Ssub8)                     \
-  M(Uadd16)                    \
-  M(Uadd8)                     \
-  M(Uasx)                      \
-  M(Usax)                      \
-  M(Usub16)                    \
-  M(Usub8)                     \
-  M(Qadd)                      \
-  M(Qdadd)                     \
-  M(Qdsub)                     \
-  M(Qsub)
+  M(mul)                       \
+  M(qadd16)                    \
+  M(qadd8)                     \
+  M(qasx)                      \
+  M(qsax)                      \
+  M(qsub16)                    \
+  M(qsub8)                     \
+  M(sdiv)                      \
+  M(shadd16)                   \
+  M(shadd8)                    \
+  M(shasx)                     \
+  M(shsax)                     \
+  M(shsub16)                   \
+  M(shsub8)                    \
+  M(smmul)                     \
+  M(smmulr)                    \
+  M(smuad)                     \
+  M(smuadx)                    \
+  M(smulbb)                    \
+  M(smulbt)                    \
+  M(smultb)                    \
+  M(smultt)                    \
+  M(smulwb)                    \
+  M(smulwt)                    \
+  M(smusd)                     \
+  M(smusdx)                    \
+  M(udiv)                      \
+  M(uhadd16)                   \
+  M(uhadd8)                    \
+  M(uhasx)                     \
+  M(uhsax)                     \
+  M(uhsub16)                   \
+  M(uhsub8)                    \
+  M(uqadd16)                   \
+  M(uqadd8)                    \
+  M(uqasx)                     \
+  M(uqsax)                     \
+  M(uqsub16)                   \
+  M(uqsub8)                    \
+  M(usad8)                     \
+  M(sadd16)                    \
+  M(sadd8)                     \
+  M(sasx)                      \
+  M(sel)                       \
+  M(ssax)                      \
+  M(ssub16)                    \
+  M(ssub8)                     \
+  M(uadd16)                    \
+  M(uadd8)                     \
+  M(uasx)                      \
+  M(usax)                      \
+  M(usub16)                    \
+  M(usub8)                     \
+  M(qadd)                      \
+  M(qdadd)                     \
+  M(qdsub)                     \
+  M(qsub)
 
 
 // Values to be passed to the assembler to produce the instruction under test.
@@ -122,9 +122,11 @@ struct TestData {
   // The `operands` field represents what to pass to the assembler to
   // produce the instruction.
   Operands operands;
-  // Optionally expect the MacroAssembler to have generated an extra
-  // instruction. This is used when the instruction needs to be in an IT block.
-  const char* expect_instruction_before;
+  // True if we need to generate an IT instruction for this test to be valid.
+  bool in_it_block;
+  // The condition to give the IT instruction, this will be set to "al" by
+  // default.
+  Condition it_condition;
   // Description of the operands, used for error reporting.
   const char* operands_description;
   // Unique identifier, used for generating traces.
@@ -138,306 +140,306 @@ struct TestResult {
 
 // Each element of this array produce one instruction encoding.
 static const TestData kTests[] =
-    {{{al, r5, r12, r2}, "", "al r5 r12 r2", "al_r5_r12_r2"},
-     {{al, r7, r3, r12}, "", "al r7 r3 r12", "al_r7_r3_r12"},
-     {{al, r1, r2, r10}, "", "al r1 r2 r10", "al_r1_r2_r10"},
-     {{al, r2, r7, r1}, "", "al r2 r7 r1", "al_r2_r7_r1"},
-     {{al, r11, r9, r0}, "", "al r11 r9 r0", "al_r11_r9_r0"},
-     {{al, r6, r9, r10}, "", "al r6 r9 r10", "al_r6_r9_r10"},
-     {{al, r0, r5, r0}, "", "al r0 r5 r0", "al_r0_r5_r0"},
-     {{al, r4, r6, r6}, "", "al r4 r6 r6", "al_r4_r6_r6"},
-     {{al, r1, r13, r1}, "", "al r1 r13 r1", "al_r1_r13_r1"},
-     {{al, r8, r14, r8}, "", "al r8 r14 r8", "al_r8_r14_r8"},
-     {{al, r6, r12, r11}, "", "al r6 r12 r11", "al_r6_r12_r11"},
-     {{al, r7, r2, r8}, "", "al r7 r2 r8", "al_r7_r2_r8"},
-     {{al, r13, r6, r7}, "", "al r13 r6 r7", "al_r13_r6_r7"},
-     {{al, r10, r3, r13}, "", "al r10 r3 r13", "al_r10_r3_r13"},
-     {{al, r10, r10, r2}, "", "al r10 r10 r2", "al_r10_r10_r2"},
-     {{al, r3, r2, r12}, "", "al r3 r2 r12", "al_r3_r2_r12"},
-     {{al, r0, r9, r7}, "", "al r0 r9 r7", "al_r0_r9_r7"},
-     {{al, r4, r1, r5}, "", "al r4 r1 r5", "al_r4_r1_r5"},
-     {{al, r12, r12, r1}, "", "al r12 r12 r1", "al_r12_r12_r1"},
-     {{al, r4, r12, r2}, "", "al r4 r12 r2", "al_r4_r12_r2"},
-     {{al, r9, r3, r4}, "", "al r9 r3 r4", "al_r9_r3_r4"},
-     {{al, r13, r11, r3}, "", "al r13 r11 r3", "al_r13_r11_r3"},
-     {{al, r5, r1, r5}, "", "al r5 r1 r5", "al_r5_r1_r5"},
-     {{al, r14, r6, r2}, "", "al r14 r6 r2", "al_r14_r6_r2"},
-     {{al, r1, r2, r0}, "", "al r1 r2 r0", "al_r1_r2_r0"},
-     {{al, r1, r8, r14}, "", "al r1 r8 r14", "al_r1_r8_r14"},
-     {{al, r12, r9, r10}, "", "al r12 r9 r10", "al_r12_r9_r10"},
-     {{al, r2, r2, r6}, "", "al r2 r2 r6", "al_r2_r2_r6"},
-     {{al, r13, r6, r2}, "", "al r13 r6 r2", "al_r13_r6_r2"},
-     {{al, r8, r4, r3}, "", "al r8 r4 r3", "al_r8_r4_r3"},
-     {{al, r7, r11, r3}, "", "al r7 r11 r3", "al_r7_r11_r3"},
-     {{al, r8, r1, r13}, "", "al r8 r1 r13", "al_r8_r1_r13"},
-     {{al, r1, r11, r6}, "", "al r1 r11 r6", "al_r1_r11_r6"},
-     {{al, r2, r3, r10}, "", "al r2 r3 r10", "al_r2_r3_r10"},
-     {{al, r0, r9, r0}, "", "al r0 r9 r0", "al_r0_r9_r0"},
-     {{al, r6, r6, r1}, "", "al r6 r6 r1", "al_r6_r6_r1"},
-     {{al, r5, r7, r10}, "", "al r5 r7 r10", "al_r5_r7_r10"},
-     {{al, r10, r14, r7}, "", "al r10 r14 r7", "al_r10_r14_r7"},
-     {{al, r8, r2, r12}, "", "al r8 r2 r12", "al_r8_r2_r12"},
-     {{al, r11, r12, r3}, "", "al r11 r12 r3", "al_r11_r12_r3"},
-     {{al, r0, r4, r13}, "", "al r0 r4 r13", "al_r0_r4_r13"},
-     {{al, r13, r0, r8}, "", "al r13 r0 r8", "al_r13_r0_r8"},
-     {{al, r7, r14, r12}, "", "al r7 r14 r12", "al_r7_r14_r12"},
-     {{al, r8, r11, r10}, "", "al r8 r11 r10", "al_r8_r11_r10"},
-     {{al, r8, r13, r14}, "", "al r8 r13 r14", "al_r8_r13_r14"},
-     {{al, r13, r7, r1}, "", "al r13 r7 r1", "al_r13_r7_r1"},
-     {{al, r10, r0, r14}, "", "al r10 r0 r14", "al_r10_r0_r14"},
-     {{al, r6, r4, r12}, "", "al r6 r4 r12", "al_r6_r4_r12"},
-     {{al, r8, r8, r12}, "", "al r8 r8 r12", "al_r8_r8_r12"},
-     {{al, r10, r9, r4}, "", "al r10 r9 r4", "al_r10_r9_r4"},
-     {{al, r14, r9, r8}, "", "al r14 r9 r8", "al_r14_r9_r8"},
-     {{al, r9, r1, r0}, "", "al r9 r1 r0", "al_r9_r1_r0"},
-     {{al, r14, r4, r11}, "", "al r14 r4 r11", "al_r14_r4_r11"},
-     {{al, r13, r1, r12}, "", "al r13 r1 r12", "al_r13_r1_r12"},
-     {{al, r6, r14, r5}, "", "al r6 r14 r5", "al_r6_r14_r5"},
-     {{al, r7, r7, r6}, "", "al r7 r7 r6", "al_r7_r7_r6"},
-     {{al, r6, r14, r0}, "", "al r6 r14 r0", "al_r6_r14_r0"},
-     {{al, r7, r5, r11}, "", "al r7 r5 r11", "al_r7_r5_r11"},
-     {{al, r9, r10, r9}, "", "al r9 r10 r9", "al_r9_r10_r9"},
-     {{al, r4, r5, r0}, "", "al r4 r5 r0", "al_r4_r5_r0"},
-     {{al, r3, r11, r2}, "", "al r3 r11 r2", "al_r3_r11_r2"},
-     {{al, r1, r4, r3}, "", "al r1 r4 r3", "al_r1_r4_r3"},
-     {{al, r13, r14, r6}, "", "al r13 r14 r6", "al_r13_r14_r6"},
-     {{al, r1, r8, r13}, "", "al r1 r8 r13", "al_r1_r8_r13"},
-     {{al, r4, r2, r7}, "", "al r4 r2 r7", "al_r4_r2_r7"},
-     {{al, r1, r11, r3}, "", "al r1 r11 r3", "al_r1_r11_r3"},
-     {{al, r9, r3, r6}, "", "al r9 r3 r6", "al_r9_r3_r6"},
-     {{al, r0, r10, r5}, "", "al r0 r10 r5", "al_r0_r10_r5"},
-     {{al, r5, r7, r2}, "", "al r5 r7 r2", "al_r5_r7_r2"},
-     {{al, r1, r14, r9}, "", "al r1 r14 r9", "al_r1_r14_r9"},
-     {{al, r9, r12, r11}, "", "al r9 r12 r11", "al_r9_r12_r11"},
-     {{al, r0, r11, r8}, "", "al r0 r11 r8", "al_r0_r11_r8"},
-     {{al, r9, r10, r12}, "", "al r9 r10 r12", "al_r9_r10_r12"},
-     {{al, r8, r5, r5}, "", "al r8 r5 r5", "al_r8_r5_r5"},
-     {{al, r10, r3, r10}, "", "al r10 r3 r10", "al_r10_r3_r10"},
-     {{al, r13, r5, r8}, "", "al r13 r5 r8", "al_r13_r5_r8"},
-     {{al, r11, r4, r2}, "", "al r11 r4 r2", "al_r11_r4_r2"},
-     {{al, r1, r10, r7}, "", "al r1 r10 r7", "al_r1_r10_r7"},
-     {{al, r12, r4, r1}, "", "al r12 r4 r1", "al_r12_r4_r1"},
-     {{al, r11, r14, r8}, "", "al r11 r14 r8", "al_r11_r14_r8"},
-     {{al, r1, r11, r8}, "", "al r1 r11 r8", "al_r1_r11_r8"},
-     {{al, r3, r11, r10}, "", "al r3 r11 r10", "al_r3_r11_r10"},
-     {{al, r6, r7, r0}, "", "al r6 r7 r0", "al_r6_r7_r0"},
-     {{al, r6, r13, r9}, "", "al r6 r13 r9", "al_r6_r13_r9"},
-     {{al, r9, r14, r0}, "", "al r9 r14 r0", "al_r9_r14_r0"},
-     {{al, r6, r8, r2}, "", "al r6 r8 r2", "al_r6_r8_r2"},
-     {{al, r7, r11, r12}, "", "al r7 r11 r12", "al_r7_r11_r12"},
-     {{al, r9, r3, r0}, "", "al r9 r3 r0", "al_r9_r3_r0"},
-     {{al, r5, r3, r5}, "", "al r5 r3 r5", "al_r5_r3_r5"},
-     {{al, r5, r10, r8}, "", "al r5 r10 r8", "al_r5_r10_r8"},
-     {{al, r12, r4, r13}, "", "al r12 r4 r13", "al_r12_r4_r13"},
-     {{al, r7, r12, r10}, "", "al r7 r12 r10", "al_r7_r12_r10"},
-     {{al, r6, r13, r11}, "", "al r6 r13 r11", "al_r6_r13_r11"},
-     {{al, r5, r3, r7}, "", "al r5 r3 r7", "al_r5_r3_r7"},
-     {{al, r11, r4, r6}, "", "al r11 r4 r6", "al_r11_r4_r6"},
-     {{al, r10, r2, r3}, "", "al r10 r2 r3", "al_r10_r2_r3"},
-     {{al, r0, r2, r1}, "", "al r0 r2 r1", "al_r0_r2_r1"},
-     {{al, r11, r5, r7}, "", "al r11 r5 r7", "al_r11_r5_r7"},
-     {{al, r14, r10, r1}, "", "al r14 r10 r1", "al_r14_r10_r1"},
-     {{al, r1, r4, r1}, "", "al r1 r4 r1", "al_r1_r4_r1"},
-     {{al, r9, r10, r11}, "", "al r9 r10 r11", "al_r9_r10_r11"},
-     {{al, r6, r8, r0}, "", "al r6 r8 r0", "al_r6_r8_r0"},
-     {{al, r0, r10, r11}, "", "al r0 r10 r11", "al_r0_r10_r11"},
-     {{al, r14, r1, r4}, "", "al r14 r1 r4", "al_r14_r1_r4"},
-     {{al, r7, r9, r5}, "", "al r7 r9 r5", "al_r7_r9_r5"},
-     {{al, r13, r4, r2}, "", "al r13 r4 r2", "al_r13_r4_r2"},
-     {{al, r5, r6, r3}, "", "al r5 r6 r3", "al_r5_r6_r3"},
-     {{al, r13, r4, r8}, "", "al r13 r4 r8", "al_r13_r4_r8"},
-     {{al, r11, r11, r12}, "", "al r11 r11 r12", "al_r11_r11_r12"},
-     {{al, r3, r12, r6}, "", "al r3 r12 r6", "al_r3_r12_r6"},
-     {{al, r4, r10, r1}, "", "al r4 r10 r1", "al_r4_r10_r1"},
-     {{al, r7, r8, r12}, "", "al r7 r8 r12", "al_r7_r8_r12"},
-     {{al, r11, r3, r3}, "", "al r11 r3 r3", "al_r11_r3_r3"},
-     {{al, r14, r6, r6}, "", "al r14 r6 r6", "al_r14_r6_r6"},
-     {{al, r1, r12, r1}, "", "al r1 r12 r1", "al_r1_r12_r1"},
-     {{al, r13, r5, r7}, "", "al r13 r5 r7", "al_r13_r5_r7"},
-     {{al, r6, r10, r8}, "", "al r6 r10 r8", "al_r6_r10_r8"},
-     {{al, r7, r13, r5}, "", "al r7 r13 r5", "al_r7_r13_r5"},
-     {{al, r12, r13, r4}, "", "al r12 r13 r4", "al_r12_r13_r4"},
-     {{al, r7, r0, r8}, "", "al r7 r0 r8", "al_r7_r0_r8"},
-     {{al, r7, r11, r9}, "", "al r7 r11 r9", "al_r7_r11_r9"},
-     {{al, r8, r9, r1}, "", "al r8 r9 r1", "al_r8_r9_r1"},
-     {{al, r14, r5, r10}, "", "al r14 r5 r10", "al_r14_r5_r10"},
-     {{al, r4, r9, r14}, "", "al r4 r9 r14", "al_r4_r9_r14"},
-     {{al, r10, r14, r9}, "", "al r10 r14 r9", "al_r10_r14_r9"},
-     {{al, r0, r1, r11}, "", "al r0 r1 r11", "al_r0_r1_r11"},
-     {{al, r11, r0, r11}, "", "al r11 r0 r11", "al_r11_r0_r11"},
-     {{al, r10, r10, r7}, "", "al r10 r10 r7", "al_r10_r10_r7"},
-     {{al, r8, r12, r7}, "", "al r8 r12 r7", "al_r8_r12_r7"},
-     {{al, r9, r4, r10}, "", "al r9 r4 r10", "al_r9_r4_r10"},
-     {{al, r8, r11, r14}, "", "al r8 r11 r14", "al_r8_r11_r14"},
-     {{al, r8, r4, r7}, "", "al r8 r4 r7", "al_r8_r4_r7"},
-     {{al, r13, r9, r11}, "", "al r13 r9 r11", "al_r13_r9_r11"},
-     {{al, r2, r5, r7}, "", "al r2 r5 r7", "al_r2_r5_r7"},
-     {{al, r9, r6, r8}, "", "al r9 r6 r8", "al_r9_r6_r8"},
-     {{al, r2, r4, r10}, "", "al r2 r4 r10", "al_r2_r4_r10"},
-     {{al, r2, r9, r4}, "", "al r2 r9 r4", "al_r2_r9_r4"},
-     {{al, r12, r8, r12}, "", "al r12 r8 r12", "al_r12_r8_r12"},
-     {{al, r0, r12, r2}, "", "al r0 r12 r2", "al_r0_r12_r2"},
-     {{al, r4, r11, r13}, "", "al r4 r11 r13", "al_r4_r11_r13"},
-     {{al, r7, r12, r14}, "", "al r7 r12 r14", "al_r7_r12_r14"},
-     {{al, r4, r10, r3}, "", "al r4 r10 r3", "al_r4_r10_r3"},
-     {{al, r5, r14, r7}, "", "al r5 r14 r7", "al_r5_r14_r7"},
-     {{al, r1, r6, r10}, "", "al r1 r6 r10", "al_r1_r6_r10"},
-     {{al, r0, r10, r10}, "", "al r0 r10 r10", "al_r0_r10_r10"},
-     {{al, r6, r3, r3}, "", "al r6 r3 r3", "al_r6_r3_r3"},
-     {{al, r2, r14, r6}, "", "al r2 r14 r6", "al_r2_r14_r6"},
-     {{al, r7, r4, r2}, "", "al r7 r4 r2", "al_r7_r4_r2"},
-     {{al, r3, r7, r9}, "", "al r3 r7 r9", "al_r3_r7_r9"},
-     {{al, r0, r4, r12}, "", "al r0 r4 r12", "al_r0_r4_r12"},
-     {{al, r8, r14, r11}, "", "al r8 r14 r11", "al_r8_r14_r11"},
-     {{al, r2, r8, r11}, "", "al r2 r8 r11", "al_r2_r8_r11"},
-     {{al, r14, r11, r8}, "", "al r14 r11 r8", "al_r14_r11_r8"},
-     {{al, r5, r10, r12}, "", "al r5 r10 r12", "al_r5_r10_r12"},
-     {{al, r0, r12, r5}, "", "al r0 r12 r5", "al_r0_r12_r5"},
-     {{al, r4, r4, r7}, "", "al r4 r4 r7", "al_r4_r4_r7"},
-     {{al, r5, r2, r10}, "", "al r5 r2 r10", "al_r5_r2_r10"},
-     {{al, r14, r0, r0}, "", "al r14 r0 r0", "al_r14_r0_r0"},
-     {{al, r1, r14, r4}, "", "al r1 r14 r4", "al_r1_r14_r4"},
-     {{al, r1, r0, r2}, "", "al r1 r0 r2", "al_r1_r0_r2"},
-     {{al, r11, r10, r7}, "", "al r11 r10 r7", "al_r11_r10_r7"},
-     {{al, r13, r10, r4}, "", "al r13 r10 r4", "al_r13_r10_r4"},
-     {{al, r13, r1, r9}, "", "al r13 r1 r9", "al_r13_r1_r9"},
-     {{al, r8, r1, r9}, "", "al r8 r1 r9", "al_r8_r1_r9"},
-     {{al, r6, r3, r9}, "", "al r6 r3 r9", "al_r6_r3_r9"},
-     {{al, r10, r6, r8}, "", "al r10 r6 r8", "al_r10_r6_r8"},
-     {{al, r6, r11, r9}, "", "al r6 r11 r9", "al_r6_r11_r9"},
-     {{al, r1, r13, r14}, "", "al r1 r13 r14", "al_r1_r13_r14"},
-     {{al, r1, r14, r12}, "", "al r1 r14 r12", "al_r1_r14_r12"},
-     {{al, r0, r1, r4}, "", "al r0 r1 r4", "al_r0_r1_r4"},
-     {{al, r8, r13, r1}, "", "al r8 r13 r1", "al_r8_r13_r1"},
-     {{al, r7, r14, r5}, "", "al r7 r14 r5", "al_r7_r14_r5"},
-     {{al, r5, r13, r8}, "", "al r5 r13 r8", "al_r5_r13_r8"},
-     {{al, r11, r10, r13}, "", "al r11 r10 r13", "al_r11_r10_r13"},
-     {{al, r7, r13, r2}, "", "al r7 r13 r2", "al_r7_r13_r2"},
-     {{al, r2, r2, r13}, "", "al r2 r2 r13", "al_r2_r2_r13"},
-     {{al, r1, r7, r5}, "", "al r1 r7 r5", "al_r1_r7_r5"},
-     {{al, r12, r6, r12}, "", "al r12 r6 r12", "al_r12_r6_r12"},
-     {{al, r5, r9, r11}, "", "al r5 r9 r11", "al_r5_r9_r11"},
-     {{al, r12, r7, r1}, "", "al r12 r7 r1", "al_r12_r7_r1"},
-     {{al, r13, r9, r9}, "", "al r13 r9 r9", "al_r13_r9_r9"},
-     {{al, r10, r4, r13}, "", "al r10 r4 r13", "al_r10_r4_r13"},
-     {{al, r9, r2, r10}, "", "al r9 r2 r10", "al_r9_r2_r10"},
-     {{al, r1, r5, r13}, "", "al r1 r5 r13", "al_r1_r5_r13"},
-     {{al, r12, r3, r9}, "", "al r12 r3 r9", "al_r12_r3_r9"},
-     {{al, r6, r3, r0}, "", "al r6 r3 r0", "al_r6_r3_r0"},
-     {{al, r9, r8, r8}, "", "al r9 r8 r8", "al_r9_r8_r8"},
-     {{al, r6, r3, r4}, "", "al r6 r3 r4", "al_r6_r3_r4"},
-     {{al, r12, r9, r0}, "", "al r12 r9 r0", "al_r12_r9_r0"},
-     {{al, r4, r10, r0}, "", "al r4 r10 r0", "al_r4_r10_r0"},
-     {{al, r3, r13, r4}, "", "al r3 r13 r4", "al_r3_r13_r4"},
-     {{al, r2, r10, r14}, "", "al r2 r10 r14", "al_r2_r10_r14"},
-     {{al, r3, r9, r8}, "", "al r3 r9 r8", "al_r3_r9_r8"},
-     {{al, r12, r4, r8}, "", "al r12 r4 r8", "al_r12_r4_r8"},
-     {{al, r2, r1, r11}, "", "al r2 r1 r11", "al_r2_r1_r11"},
-     {{al, r1, r7, r0}, "", "al r1 r7 r0", "al_r1_r7_r0"},
-     {{al, r0, r1, r2}, "", "al r0 r1 r2", "al_r0_r1_r2"},
-     {{al, r11, r12, r7}, "", "al r11 r12 r7", "al_r11_r12_r7"},
-     {{al, r12, r14, r7}, "", "al r12 r14 r7", "al_r12_r14_r7"},
-     {{al, r0, r3, r10}, "", "al r0 r3 r10", "al_r0_r3_r10"},
-     {{al, r3, r6, r7}, "", "al r3 r6 r7", "al_r3_r6_r7"},
-     {{al, r0, r10, r1}, "", "al r0 r10 r1", "al_r0_r10_r1"},
-     {{al, r8, r11, r5}, "", "al r8 r11 r5", "al_r8_r11_r5"},
-     {{al, r1, r10, r8}, "", "al r1 r10 r8", "al_r1_r10_r8"},
-     {{al, r7, r8, r5}, "", "al r7 r8 r5", "al_r7_r8_r5"},
-     {{al, r9, r9, r2}, "", "al r9 r9 r2", "al_r9_r9_r2"},
-     {{al, r13, r13, r0}, "", "al r13 r13 r0", "al_r13_r13_r0"},
-     {{al, r9, r10, r5}, "", "al r9 r10 r5", "al_r9_r10_r5"},
-     {{al, r6, r6, r14}, "", "al r6 r6 r14", "al_r6_r6_r14"},
-     {{al, r1, r8, r5}, "", "al r1 r8 r5", "al_r1_r8_r5"},
-     {{al, r1, r4, r8}, "", "al r1 r4 r8", "al_r1_r4_r8"},
-     {{al, r0, r2, r12}, "", "al r0 r2 r12", "al_r0_r2_r12"},
-     {{al, r5, r14, r1}, "", "al r5 r14 r1", "al_r5_r14_r1"},
-     {{al, r2, r1, r5}, "", "al r2 r1 r5", "al_r2_r1_r5"},
-     {{al, r11, r11, r6}, "", "al r11 r11 r6", "al_r11_r11_r6"},
-     {{al, r3, r11, r1}, "", "al r3 r11 r1", "al_r3_r11_r1"},
-     {{al, r13, r14, r9}, "", "al r13 r14 r9", "al_r13_r14_r9"},
-     {{al, r7, r1, r5}, "", "al r7 r1 r5", "al_r7_r1_r5"},
-     {{al, r10, r14, r3}, "", "al r10 r14 r3", "al_r10_r14_r3"},
-     {{al, r5, r6, r14}, "", "al r5 r6 r14", "al_r5_r6_r14"},
-     {{al, r1, r7, r7}, "", "al r1 r7 r7", "al_r1_r7_r7"},
-     {{al, r12, r5, r14}, "", "al r12 r5 r14", "al_r12_r5_r14"},
-     {{al, r10, r5, r1}, "", "al r10 r5 r1", "al_r10_r5_r1"},
-     {{al, r10, r8, r3}, "", "al r10 r8 r3", "al_r10_r8_r3"},
-     {{al, r4, r6, r5}, "", "al r4 r6 r5", "al_r4_r6_r5"},
-     {{al, r4, r3, r2}, "", "al r4 r3 r2", "al_r4_r3_r2"},
-     {{al, r10, r13, r13}, "", "al r10 r13 r13", "al_r10_r13_r13"},
-     {{al, r1, r10, r4}, "", "al r1 r10 r4", "al_r1_r10_r4"},
-     {{al, r8, r10, r12}, "", "al r8 r10 r12", "al_r8_r10_r12"},
-     {{al, r6, r0, r13}, "", "al r6 r0 r13", "al_r6_r0_r13"},
-     {{al, r1, r12, r0}, "", "al r1 r12 r0", "al_r1_r12_r0"},
-     {{al, r4, r13, r1}, "", "al r4 r13 r1", "al_r4_r13_r1"},
-     {{al, r10, r0, r0}, "", "al r10 r0 r0", "al_r10_r0_r0"},
-     {{al, r13, r6, r4}, "", "al r13 r6 r4", "al_r13_r6_r4"},
-     {{al, r0, r3, r14}, "", "al r0 r3 r14", "al_r0_r3_r14"},
-     {{al, r7, r11, r2}, "", "al r7 r11 r2", "al_r7_r11_r2"},
-     {{al, r9, r11, r12}, "", "al r9 r11 r12", "al_r9_r11_r12"},
-     {{al, r2, r14, r7}, "", "al r2 r14 r7", "al_r2_r14_r7"},
-     {{al, r10, r14, r8}, "", "al r10 r14 r8", "al_r10_r14_r8"},
-     {{al, r1, r3, r2}, "", "al r1 r3 r2", "al_r1_r3_r2"},
-     {{al, r0, r1, r8}, "", "al r0 r1 r8", "al_r0_r1_r8"},
-     {{al, r2, r9, r13}, "", "al r2 r9 r13", "al_r2_r9_r13"},
-     {{al, r2, r3, r5}, "", "al r2 r3 r5", "al_r2_r3_r5"},
-     {{al, r13, r9, r3}, "", "al r13 r9 r3", "al_r13_r9_r3"},
-     {{al, r3, r8, r8}, "", "al r3 r8 r8", "al_r3_r8_r8"},
-     {{al, r0, r8, r7}, "", "al r0 r8 r7", "al_r0_r8_r7"},
-     {{al, r9, r14, r7}, "", "al r9 r14 r7", "al_r9_r14_r7"},
-     {{al, r10, r3, r11}, "", "al r10 r3 r11", "al_r10_r3_r11"},
-     {{al, r1, r14, r13}, "", "al r1 r14 r13", "al_r1_r14_r13"},
-     {{al, r14, r4, r1}, "", "al r14 r4 r1", "al_r14_r4_r1"},
-     {{al, r12, r12, r4}, "", "al r12 r12 r4", "al_r12_r12_r4"},
-     {{al, r0, r12, r0}, "", "al r0 r12 r0", "al_r0_r12_r0"},
-     {{al, r1, r5, r1}, "", "al r1 r5 r1", "al_r1_r5_r1"},
-     {{al, r3, r9, r6}, "", "al r3 r9 r6", "al_r3_r9_r6"},
-     {{al, r2, r11, r0}, "", "al r2 r11 r0", "al_r2_r11_r0"},
-     {{al, r2, r6, r11}, "", "al r2 r6 r11", "al_r2_r6_r11"},
-     {{al, r8, r12, r8}, "", "al r8 r12 r8", "al_r8_r12_r8"},
-     {{al, r2, r12, r10}, "", "al r2 r12 r10", "al_r2_r12_r10"},
-     {{al, r4, r4, r10}, "", "al r4 r4 r10", "al_r4_r4_r10"},
-     {{al, r6, r14, r7}, "", "al r6 r14 r7", "al_r6_r14_r7"},
-     {{al, r11, r10, r14}, "", "al r11 r10 r14", "al_r11_r10_r14"},
-     {{al, r13, r0, r5}, "", "al r13 r0 r5", "al_r13_r0_r5"},
-     {{al, r4, r3, r7}, "", "al r4 r3 r7", "al_r4_r3_r7"},
-     {{al, r13, r7, r8}, "", "al r13 r7 r8", "al_r13_r7_r8"},
-     {{al, r9, r2, r8}, "", "al r9 r2 r8", "al_r9_r2_r8"},
-     {{al, r4, r13, r11}, "", "al r4 r13 r11", "al_r4_r13_r11"},
-     {{al, r4, r7, r14}, "", "al r4 r7 r14", "al_r4_r7_r14"},
-     {{al, r7, r10, r4}, "", "al r7 r10 r4", "al_r7_r10_r4"},
-     {{al, r10, r9, r12}, "", "al r10 r9 r12", "al_r10_r9_r12"},
-     {{al, r8, r13, r3}, "", "al r8 r13 r3", "al_r8_r13_r3"},
-     {{al, r3, r7, r14}, "", "al r3 r7 r14", "al_r3_r7_r14"},
-     {{al, r12, r0, r6}, "", "al r12 r0 r6", "al_r12_r0_r6"},
-     {{al, r10, r9, r11}, "", "al r10 r9 r11", "al_r10_r9_r11"},
-     {{al, r3, r10, r1}, "", "al r3 r10 r1", "al_r3_r10_r1"},
-     {{al, r5, r0, r11}, "", "al r5 r0 r11", "al_r5_r0_r11"},
-     {{al, r8, r13, r2}, "", "al r8 r13 r2", "al_r8_r13_r2"},
-     {{al, r5, r4, r10}, "", "al r5 r4 r10", "al_r5_r4_r10"},
-     {{al, r3, r7, r2}, "", "al r3 r7 r2", "al_r3_r7_r2"},
-     {{al, r14, r14, r6}, "", "al r14 r14 r6", "al_r14_r14_r6"},
-     {{al, r6, r14, r13}, "", "al r6 r14 r13", "al_r6_r14_r13"},
-     {{al, r2, r2, r10}, "", "al r2 r2 r10", "al_r2_r2_r10"},
-     {{al, r5, r13, r2}, "", "al r5 r13 r2", "al_r5_r13_r2"},
-     {{al, r7, r14, r9}, "", "al r7 r14 r9", "al_r7_r14_r9"},
-     {{al, r5, r6, r7}, "", "al r5 r6 r7", "al_r5_r6_r7"},
-     {{al, r5, r3, r6}, "", "al r5 r3 r6", "al_r5_r3_r6"},
-     {{al, r2, r1, r14}, "", "al r2 r1 r14", "al_r2_r1_r14"},
-     {{al, r13, r11, r10}, "", "al r13 r11 r10", "al_r13_r11_r10"},
-     {{al, r7, r9, r12}, "", "al r7 r9 r12", "al_r7_r9_r12"},
-     {{al, r11, r14, r11}, "", "al r11 r14 r11", "al_r11_r14_r11"},
-     {{al, r3, r10, r9}, "", "al r3 r10 r9", "al_r3_r10_r9"},
-     {{al, r0, r4, r4}, "", "al r0 r4 r4", "al_r0_r4_r4"},
-     {{al, r5, r8, r3}, "", "al r5 r8 r3", "al_r5_r8_r3"},
-     {{al, r10, r5, r13}, "", "al r10 r5 r13", "al_r10_r5_r13"},
-     {{al, r8, r3, r12}, "", "al r8 r3 r12", "al_r8_r3_r12"},
-     {{al, r2, r1, r12}, "", "al r2 r1 r12", "al_r2_r1_r12"},
-     {{al, r6, r8, r7}, "", "al r6 r8 r7", "al_r6_r8_r7"},
-     {{al, r13, r13, r6}, "", "al r13 r13 r6", "al_r13_r13_r6"},
-     {{al, r7, r2, r3}, "", "al r7 r2 r3", "al_r7_r2_r3"},
-     {{al, r3, r6, r3}, "", "al r3 r6 r3", "al_r3_r6_r3"},
-     {{al, r6, r5, r7}, "", "al r6 r5 r7", "al_r6_r5_r7"}};
+    {{{al, r5, r12, r2}, false, al, "al r5 r12 r2", "al_r5_r12_r2"},
+     {{al, r7, r3, r12}, false, al, "al r7 r3 r12", "al_r7_r3_r12"},
+     {{al, r1, r2, r10}, false, al, "al r1 r2 r10", "al_r1_r2_r10"},
+     {{al, r2, r7, r1}, false, al, "al r2 r7 r1", "al_r2_r7_r1"},
+     {{al, r11, r9, r0}, false, al, "al r11 r9 r0", "al_r11_r9_r0"},
+     {{al, r6, r9, r10}, false, al, "al r6 r9 r10", "al_r6_r9_r10"},
+     {{al, r0, r5, r0}, false, al, "al r0 r5 r0", "al_r0_r5_r0"},
+     {{al, r4, r6, r6}, false, al, "al r4 r6 r6", "al_r4_r6_r6"},
+     {{al, r1, r13, r1}, false, al, "al r1 r13 r1", "al_r1_r13_r1"},
+     {{al, r8, r14, r8}, false, al, "al r8 r14 r8", "al_r8_r14_r8"},
+     {{al, r6, r12, r11}, false, al, "al r6 r12 r11", "al_r6_r12_r11"},
+     {{al, r7, r2, r8}, false, al, "al r7 r2 r8", "al_r7_r2_r8"},
+     {{al, r13, r6, r7}, false, al, "al r13 r6 r7", "al_r13_r6_r7"},
+     {{al, r10, r3, r13}, false, al, "al r10 r3 r13", "al_r10_r3_r13"},
+     {{al, r10, r10, r2}, false, al, "al r10 r10 r2", "al_r10_r10_r2"},
+     {{al, r3, r2, r12}, false, al, "al r3 r2 r12", "al_r3_r2_r12"},
+     {{al, r0, r9, r7}, false, al, "al r0 r9 r7", "al_r0_r9_r7"},
+     {{al, r4, r1, r5}, false, al, "al r4 r1 r5", "al_r4_r1_r5"},
+     {{al, r12, r12, r1}, false, al, "al r12 r12 r1", "al_r12_r12_r1"},
+     {{al, r4, r12, r2}, false, al, "al r4 r12 r2", "al_r4_r12_r2"},
+     {{al, r9, r3, r4}, false, al, "al r9 r3 r4", "al_r9_r3_r4"},
+     {{al, r13, r11, r3}, false, al, "al r13 r11 r3", "al_r13_r11_r3"},
+     {{al, r5, r1, r5}, false, al, "al r5 r1 r5", "al_r5_r1_r5"},
+     {{al, r14, r6, r2}, false, al, "al r14 r6 r2", "al_r14_r6_r2"},
+     {{al, r1, r2, r0}, false, al, "al r1 r2 r0", "al_r1_r2_r0"},
+     {{al, r1, r8, r14}, false, al, "al r1 r8 r14", "al_r1_r8_r14"},
+     {{al, r12, r9, r10}, false, al, "al r12 r9 r10", "al_r12_r9_r10"},
+     {{al, r2, r2, r6}, false, al, "al r2 r2 r6", "al_r2_r2_r6"},
+     {{al, r13, r6, r2}, false, al, "al r13 r6 r2", "al_r13_r6_r2"},
+     {{al, r8, r4, r3}, false, al, "al r8 r4 r3", "al_r8_r4_r3"},
+     {{al, r7, r11, r3}, false, al, "al r7 r11 r3", "al_r7_r11_r3"},
+     {{al, r8, r1, r13}, false, al, "al r8 r1 r13", "al_r8_r1_r13"},
+     {{al, r1, r11, r6}, false, al, "al r1 r11 r6", "al_r1_r11_r6"},
+     {{al, r2, r3, r10}, false, al, "al r2 r3 r10", "al_r2_r3_r10"},
+     {{al, r0, r9, r0}, false, al, "al r0 r9 r0", "al_r0_r9_r0"},
+     {{al, r6, r6, r1}, false, al, "al r6 r6 r1", "al_r6_r6_r1"},
+     {{al, r5, r7, r10}, false, al, "al r5 r7 r10", "al_r5_r7_r10"},
+     {{al, r10, r14, r7}, false, al, "al r10 r14 r7", "al_r10_r14_r7"},
+     {{al, r8, r2, r12}, false, al, "al r8 r2 r12", "al_r8_r2_r12"},
+     {{al, r11, r12, r3}, false, al, "al r11 r12 r3", "al_r11_r12_r3"},
+     {{al, r0, r4, r13}, false, al, "al r0 r4 r13", "al_r0_r4_r13"},
+     {{al, r13, r0, r8}, false, al, "al r13 r0 r8", "al_r13_r0_r8"},
+     {{al, r7, r14, r12}, false, al, "al r7 r14 r12", "al_r7_r14_r12"},
+     {{al, r8, r11, r10}, false, al, "al r8 r11 r10", "al_r8_r11_r10"},
+     {{al, r8, r13, r14}, false, al, "al r8 r13 r14", "al_r8_r13_r14"},
+     {{al, r13, r7, r1}, false, al, "al r13 r7 r1", "al_r13_r7_r1"},
+     {{al, r10, r0, r14}, false, al, "al r10 r0 r14", "al_r10_r0_r14"},
+     {{al, r6, r4, r12}, false, al, "al r6 r4 r12", "al_r6_r4_r12"},
+     {{al, r8, r8, r12}, false, al, "al r8 r8 r12", "al_r8_r8_r12"},
+     {{al, r10, r9, r4}, false, al, "al r10 r9 r4", "al_r10_r9_r4"},
+     {{al, r14, r9, r8}, false, al, "al r14 r9 r8", "al_r14_r9_r8"},
+     {{al, r9, r1, r0}, false, al, "al r9 r1 r0", "al_r9_r1_r0"},
+     {{al, r14, r4, r11}, false, al, "al r14 r4 r11", "al_r14_r4_r11"},
+     {{al, r13, r1, r12}, false, al, "al r13 r1 r12", "al_r13_r1_r12"},
+     {{al, r6, r14, r5}, false, al, "al r6 r14 r5", "al_r6_r14_r5"},
+     {{al, r7, r7, r6}, false, al, "al r7 r7 r6", "al_r7_r7_r6"},
+     {{al, r6, r14, r0}, false, al, "al r6 r14 r0", "al_r6_r14_r0"},
+     {{al, r7, r5, r11}, false, al, "al r7 r5 r11", "al_r7_r5_r11"},
+     {{al, r9, r10, r9}, false, al, "al r9 r10 r9", "al_r9_r10_r9"},
+     {{al, r4, r5, r0}, false, al, "al r4 r5 r0", "al_r4_r5_r0"},
+     {{al, r3, r11, r2}, false, al, "al r3 r11 r2", "al_r3_r11_r2"},
+     {{al, r1, r4, r3}, false, al, "al r1 r4 r3", "al_r1_r4_r3"},
+     {{al, r13, r14, r6}, false, al, "al r13 r14 r6", "al_r13_r14_r6"},
+     {{al, r1, r8, r13}, false, al, "al r1 r8 r13", "al_r1_r8_r13"},
+     {{al, r4, r2, r7}, false, al, "al r4 r2 r7", "al_r4_r2_r7"},
+     {{al, r1, r11, r3}, false, al, "al r1 r11 r3", "al_r1_r11_r3"},
+     {{al, r9, r3, r6}, false, al, "al r9 r3 r6", "al_r9_r3_r6"},
+     {{al, r0, r10, r5}, false, al, "al r0 r10 r5", "al_r0_r10_r5"},
+     {{al, r5, r7, r2}, false, al, "al r5 r7 r2", "al_r5_r7_r2"},
+     {{al, r1, r14, r9}, false, al, "al r1 r14 r9", "al_r1_r14_r9"},
+     {{al, r9, r12, r11}, false, al, "al r9 r12 r11", "al_r9_r12_r11"},
+     {{al, r0, r11, r8}, false, al, "al r0 r11 r8", "al_r0_r11_r8"},
+     {{al, r9, r10, r12}, false, al, "al r9 r10 r12", "al_r9_r10_r12"},
+     {{al, r8, r5, r5}, false, al, "al r8 r5 r5", "al_r8_r5_r5"},
+     {{al, r10, r3, r10}, false, al, "al r10 r3 r10", "al_r10_r3_r10"},
+     {{al, r13, r5, r8}, false, al, "al r13 r5 r8", "al_r13_r5_r8"},
+     {{al, r11, r4, r2}, false, al, "al r11 r4 r2", "al_r11_r4_r2"},
+     {{al, r1, r10, r7}, false, al, "al r1 r10 r7", "al_r1_r10_r7"},
+     {{al, r12, r4, r1}, false, al, "al r12 r4 r1", "al_r12_r4_r1"},
+     {{al, r11, r14, r8}, false, al, "al r11 r14 r8", "al_r11_r14_r8"},
+     {{al, r1, r11, r8}, false, al, "al r1 r11 r8", "al_r1_r11_r8"},
+     {{al, r3, r11, r10}, false, al, "al r3 r11 r10", "al_r3_r11_r10"},
+     {{al, r6, r7, r0}, false, al, "al r6 r7 r0", "al_r6_r7_r0"},
+     {{al, r6, r13, r9}, false, al, "al r6 r13 r9", "al_r6_r13_r9"},
+     {{al, r9, r14, r0}, false, al, "al r9 r14 r0", "al_r9_r14_r0"},
+     {{al, r6, r8, r2}, false, al, "al r6 r8 r2", "al_r6_r8_r2"},
+     {{al, r7, r11, r12}, false, al, "al r7 r11 r12", "al_r7_r11_r12"},
+     {{al, r9, r3, r0}, false, al, "al r9 r3 r0", "al_r9_r3_r0"},
+     {{al, r5, r3, r5}, false, al, "al r5 r3 r5", "al_r5_r3_r5"},
+     {{al, r5, r10, r8}, false, al, "al r5 r10 r8", "al_r5_r10_r8"},
+     {{al, r12, r4, r13}, false, al, "al r12 r4 r13", "al_r12_r4_r13"},
+     {{al, r7, r12, r10}, false, al, "al r7 r12 r10", "al_r7_r12_r10"},
+     {{al, r6, r13, r11}, false, al, "al r6 r13 r11", "al_r6_r13_r11"},
+     {{al, r5, r3, r7}, false, al, "al r5 r3 r7", "al_r5_r3_r7"},
+     {{al, r11, r4, r6}, false, al, "al r11 r4 r6", "al_r11_r4_r6"},
+     {{al, r10, r2, r3}, false, al, "al r10 r2 r3", "al_r10_r2_r3"},
+     {{al, r0, r2, r1}, false, al, "al r0 r2 r1", "al_r0_r2_r1"},
+     {{al, r11, r5, r7}, false, al, "al r11 r5 r7", "al_r11_r5_r7"},
+     {{al, r14, r10, r1}, false, al, "al r14 r10 r1", "al_r14_r10_r1"},
+     {{al, r1, r4, r1}, false, al, "al r1 r4 r1", "al_r1_r4_r1"},
+     {{al, r9, r10, r11}, false, al, "al r9 r10 r11", "al_r9_r10_r11"},
+     {{al, r6, r8, r0}, false, al, "al r6 r8 r0", "al_r6_r8_r0"},
+     {{al, r0, r10, r11}, false, al, "al r0 r10 r11", "al_r0_r10_r11"},
+     {{al, r14, r1, r4}, false, al, "al r14 r1 r4", "al_r14_r1_r4"},
+     {{al, r7, r9, r5}, false, al, "al r7 r9 r5", "al_r7_r9_r5"},
+     {{al, r13, r4, r2}, false, al, "al r13 r4 r2", "al_r13_r4_r2"},
+     {{al, r5, r6, r3}, false, al, "al r5 r6 r3", "al_r5_r6_r3"},
+     {{al, r13, r4, r8}, false, al, "al r13 r4 r8", "al_r13_r4_r8"},
+     {{al, r11, r11, r12}, false, al, "al r11 r11 r12", "al_r11_r11_r12"},
+     {{al, r3, r12, r6}, false, al, "al r3 r12 r6", "al_r3_r12_r6"},
+     {{al, r4, r10, r1}, false, al, "al r4 r10 r1", "al_r4_r10_r1"},
+     {{al, r7, r8, r12}, false, al, "al r7 r8 r12", "al_r7_r8_r12"},
+     {{al, r11, r3, r3}, false, al, "al r11 r3 r3", "al_r11_r3_r3"},
+     {{al, r14, r6, r6}, false, al, "al r14 r6 r6", "al_r14_r6_r6"},
+     {{al, r1, r12, r1}, false, al, "al r1 r12 r1", "al_r1_r12_r1"},
+     {{al, r13, r5, r7}, false, al, "al r13 r5 r7", "al_r13_r5_r7"},
+     {{al, r6, r10, r8}, false, al, "al r6 r10 r8", "al_r6_r10_r8"},
+     {{al, r7, r13, r5}, false, al, "al r7 r13 r5", "al_r7_r13_r5"},
+     {{al, r12, r13, r4}, false, al, "al r12 r13 r4", "al_r12_r13_r4"},
+     {{al, r7, r0, r8}, false, al, "al r7 r0 r8", "al_r7_r0_r8"},
+     {{al, r7, r11, r9}, false, al, "al r7 r11 r9", "al_r7_r11_r9"},
+     {{al, r8, r9, r1}, false, al, "al r8 r9 r1", "al_r8_r9_r1"},
+     {{al, r14, r5, r10}, false, al, "al r14 r5 r10", "al_r14_r5_r10"},
+     {{al, r4, r9, r14}, false, al, "al r4 r9 r14", "al_r4_r9_r14"},
+     {{al, r10, r14, r9}, false, al, "al r10 r14 r9", "al_r10_r14_r9"},
+     {{al, r0, r1, r11}, false, al, "al r0 r1 r11", "al_r0_r1_r11"},
+     {{al, r11, r0, r11}, false, al, "al r11 r0 r11", "al_r11_r0_r11"},
+     {{al, r10, r10, r7}, false, al, "al r10 r10 r7", "al_r10_r10_r7"},
+     {{al, r8, r12, r7}, false, al, "al r8 r12 r7", "al_r8_r12_r7"},
+     {{al, r9, r4, r10}, false, al, "al r9 r4 r10", "al_r9_r4_r10"},
+     {{al, r8, r11, r14}, false, al, "al r8 r11 r14", "al_r8_r11_r14"},
+     {{al, r8, r4, r7}, false, al, "al r8 r4 r7", "al_r8_r4_r7"},
+     {{al, r13, r9, r11}, false, al, "al r13 r9 r11", "al_r13_r9_r11"},
+     {{al, r2, r5, r7}, false, al, "al r2 r5 r7", "al_r2_r5_r7"},
+     {{al, r9, r6, r8}, false, al, "al r9 r6 r8", "al_r9_r6_r8"},
+     {{al, r2, r4, r10}, false, al, "al r2 r4 r10", "al_r2_r4_r10"},
+     {{al, r2, r9, r4}, false, al, "al r2 r9 r4", "al_r2_r9_r4"},
+     {{al, r12, r8, r12}, false, al, "al r12 r8 r12", "al_r12_r8_r12"},
+     {{al, r0, r12, r2}, false, al, "al r0 r12 r2", "al_r0_r12_r2"},
+     {{al, r4, r11, r13}, false, al, "al r4 r11 r13", "al_r4_r11_r13"},
+     {{al, r7, r12, r14}, false, al, "al r7 r12 r14", "al_r7_r12_r14"},
+     {{al, r4, r10, r3}, false, al, "al r4 r10 r3", "al_r4_r10_r3"},
+     {{al, r5, r14, r7}, false, al, "al r5 r14 r7", "al_r5_r14_r7"},
+     {{al, r1, r6, r10}, false, al, "al r1 r6 r10", "al_r1_r6_r10"},
+     {{al, r0, r10, r10}, false, al, "al r0 r10 r10", "al_r0_r10_r10"},
+     {{al, r6, r3, r3}, false, al, "al r6 r3 r3", "al_r6_r3_r3"},
+     {{al, r2, r14, r6}, false, al, "al r2 r14 r6", "al_r2_r14_r6"},
+     {{al, r7, r4, r2}, false, al, "al r7 r4 r2", "al_r7_r4_r2"},
+     {{al, r3, r7, r9}, false, al, "al r3 r7 r9", "al_r3_r7_r9"},
+     {{al, r0, r4, r12}, false, al, "al r0 r4 r12", "al_r0_r4_r12"},
+     {{al, r8, r14, r11}, false, al, "al r8 r14 r11", "al_r8_r14_r11"},
+     {{al, r2, r8, r11}, false, al, "al r2 r8 r11", "al_r2_r8_r11"},
+     {{al, r14, r11, r8}, false, al, "al r14 r11 r8", "al_r14_r11_r8"},
+     {{al, r5, r10, r12}, false, al, "al r5 r10 r12", "al_r5_r10_r12"},
+     {{al, r0, r12, r5}, false, al, "al r0 r12 r5", "al_r0_r12_r5"},
+     {{al, r4, r4, r7}, false, al, "al r4 r4 r7", "al_r4_r4_r7"},
+     {{al, r5, r2, r10}, false, al, "al r5 r2 r10", "al_r5_r2_r10"},
+     {{al, r14, r0, r0}, false, al, "al r14 r0 r0", "al_r14_r0_r0"},
+     {{al, r1, r14, r4}, false, al, "al r1 r14 r4", "al_r1_r14_r4"},
+     {{al, r1, r0, r2}, false, al, "al r1 r0 r2", "al_r1_r0_r2"},
+     {{al, r11, r10, r7}, false, al, "al r11 r10 r7", "al_r11_r10_r7"},
+     {{al, r13, r10, r4}, false, al, "al r13 r10 r4", "al_r13_r10_r4"},
+     {{al, r13, r1, r9}, false, al, "al r13 r1 r9", "al_r13_r1_r9"},
+     {{al, r8, r1, r9}, false, al, "al r8 r1 r9", "al_r8_r1_r9"},
+     {{al, r6, r3, r9}, false, al, "al r6 r3 r9", "al_r6_r3_r9"},
+     {{al, r10, r6, r8}, false, al, "al r10 r6 r8", "al_r10_r6_r8"},
+     {{al, r6, r11, r9}, false, al, "al r6 r11 r9", "al_r6_r11_r9"},
+     {{al, r1, r13, r14}, false, al, "al r1 r13 r14", "al_r1_r13_r14"},
+     {{al, r1, r14, r12}, false, al, "al r1 r14 r12", "al_r1_r14_r12"},
+     {{al, r0, r1, r4}, false, al, "al r0 r1 r4", "al_r0_r1_r4"},
+     {{al, r8, r13, r1}, false, al, "al r8 r13 r1", "al_r8_r13_r1"},
+     {{al, r7, r14, r5}, false, al, "al r7 r14 r5", "al_r7_r14_r5"},
+     {{al, r5, r13, r8}, false, al, "al r5 r13 r8", "al_r5_r13_r8"},
+     {{al, r11, r10, r13}, false, al, "al r11 r10 r13", "al_r11_r10_r13"},
+     {{al, r7, r13, r2}, false, al, "al r7 r13 r2", "al_r7_r13_r2"},
+     {{al, r2, r2, r13}, false, al, "al r2 r2 r13", "al_r2_r2_r13"},
+     {{al, r1, r7, r5}, false, al, "al r1 r7 r5", "al_r1_r7_r5"},
+     {{al, r12, r6, r12}, false, al, "al r12 r6 r12", "al_r12_r6_r12"},
+     {{al, r5, r9, r11}, false, al, "al r5 r9 r11", "al_r5_r9_r11"},
+     {{al, r12, r7, r1}, false, al, "al r12 r7 r1", "al_r12_r7_r1"},
+     {{al, r13, r9, r9}, false, al, "al r13 r9 r9", "al_r13_r9_r9"},
+     {{al, r10, r4, r13}, false, al, "al r10 r4 r13", "al_r10_r4_r13"},
+     {{al, r9, r2, r10}, false, al, "al r9 r2 r10", "al_r9_r2_r10"},
+     {{al, r1, r5, r13}, false, al, "al r1 r5 r13", "al_r1_r5_r13"},
+     {{al, r12, r3, r9}, false, al, "al r12 r3 r9", "al_r12_r3_r9"},
+     {{al, r6, r3, r0}, false, al, "al r6 r3 r0", "al_r6_r3_r0"},
+     {{al, r9, r8, r8}, false, al, "al r9 r8 r8", "al_r9_r8_r8"},
+     {{al, r6, r3, r4}, false, al, "al r6 r3 r4", "al_r6_r3_r4"},
+     {{al, r12, r9, r0}, false, al, "al r12 r9 r0", "al_r12_r9_r0"},
+     {{al, r4, r10, r0}, false, al, "al r4 r10 r0", "al_r4_r10_r0"},
+     {{al, r3, r13, r4}, false, al, "al r3 r13 r4", "al_r3_r13_r4"},
+     {{al, r2, r10, r14}, false, al, "al r2 r10 r14", "al_r2_r10_r14"},
+     {{al, r3, r9, r8}, false, al, "al r3 r9 r8", "al_r3_r9_r8"},
+     {{al, r12, r4, r8}, false, al, "al r12 r4 r8", "al_r12_r4_r8"},
+     {{al, r2, r1, r11}, false, al, "al r2 r1 r11", "al_r2_r1_r11"},
+     {{al, r1, r7, r0}, false, al, "al r1 r7 r0", "al_r1_r7_r0"},
+     {{al, r0, r1, r2}, false, al, "al r0 r1 r2", "al_r0_r1_r2"},
+     {{al, r11, r12, r7}, false, al, "al r11 r12 r7", "al_r11_r12_r7"},
+     {{al, r12, r14, r7}, false, al, "al r12 r14 r7", "al_r12_r14_r7"},
+     {{al, r0, r3, r10}, false, al, "al r0 r3 r10", "al_r0_r3_r10"},
+     {{al, r3, r6, r7}, false, al, "al r3 r6 r7", "al_r3_r6_r7"},
+     {{al, r0, r10, r1}, false, al, "al r0 r10 r1", "al_r0_r10_r1"},
+     {{al, r8, r11, r5}, false, al, "al r8 r11 r5", "al_r8_r11_r5"},
+     {{al, r1, r10, r8}, false, al, "al r1 r10 r8", "al_r1_r10_r8"},
+     {{al, r7, r8, r5}, false, al, "al r7 r8 r5", "al_r7_r8_r5"},
+     {{al, r9, r9, r2}, false, al, "al r9 r9 r2", "al_r9_r9_r2"},
+     {{al, r13, r13, r0}, false, al, "al r13 r13 r0", "al_r13_r13_r0"},
+     {{al, r9, r10, r5}, false, al, "al r9 r10 r5", "al_r9_r10_r5"},
+     {{al, r6, r6, r14}, false, al, "al r6 r6 r14", "al_r6_r6_r14"},
+     {{al, r1, r8, r5}, false, al, "al r1 r8 r5", "al_r1_r8_r5"},
+     {{al, r1, r4, r8}, false, al, "al r1 r4 r8", "al_r1_r4_r8"},
+     {{al, r0, r2, r12}, false, al, "al r0 r2 r12", "al_r0_r2_r12"},
+     {{al, r5, r14, r1}, false, al, "al r5 r14 r1", "al_r5_r14_r1"},
+     {{al, r2, r1, r5}, false, al, "al r2 r1 r5", "al_r2_r1_r5"},
+     {{al, r11, r11, r6}, false, al, "al r11 r11 r6", "al_r11_r11_r6"},
+     {{al, r3, r11, r1}, false, al, "al r3 r11 r1", "al_r3_r11_r1"},
+     {{al, r13, r14, r9}, false, al, "al r13 r14 r9", "al_r13_r14_r9"},
+     {{al, r7, r1, r5}, false, al, "al r7 r1 r5", "al_r7_r1_r5"},
+     {{al, r10, r14, r3}, false, al, "al r10 r14 r3", "al_r10_r14_r3"},
+     {{al, r5, r6, r14}, false, al, "al r5 r6 r14", "al_r5_r6_r14"},
+     {{al, r1, r7, r7}, false, al, "al r1 r7 r7", "al_r1_r7_r7"},
+     {{al, r12, r5, r14}, false, al, "al r12 r5 r14", "al_r12_r5_r14"},
+     {{al, r10, r5, r1}, false, al, "al r10 r5 r1", "al_r10_r5_r1"},
+     {{al, r10, r8, r3}, false, al, "al r10 r8 r3", "al_r10_r8_r3"},
+     {{al, r4, r6, r5}, false, al, "al r4 r6 r5", "al_r4_r6_r5"},
+     {{al, r4, r3, r2}, false, al, "al r4 r3 r2", "al_r4_r3_r2"},
+     {{al, r10, r13, r13}, false, al, "al r10 r13 r13", "al_r10_r13_r13"},
+     {{al, r1, r10, r4}, false, al, "al r1 r10 r4", "al_r1_r10_r4"},
+     {{al, r8, r10, r12}, false, al, "al r8 r10 r12", "al_r8_r10_r12"},
+     {{al, r6, r0, r13}, false, al, "al r6 r0 r13", "al_r6_r0_r13"},
+     {{al, r1, r12, r0}, false, al, "al r1 r12 r0", "al_r1_r12_r0"},
+     {{al, r4, r13, r1}, false, al, "al r4 r13 r1", "al_r4_r13_r1"},
+     {{al, r10, r0, r0}, false, al, "al r10 r0 r0", "al_r10_r0_r0"},
+     {{al, r13, r6, r4}, false, al, "al r13 r6 r4", "al_r13_r6_r4"},
+     {{al, r0, r3, r14}, false, al, "al r0 r3 r14", "al_r0_r3_r14"},
+     {{al, r7, r11, r2}, false, al, "al r7 r11 r2", "al_r7_r11_r2"},
+     {{al, r9, r11, r12}, false, al, "al r9 r11 r12", "al_r9_r11_r12"},
+     {{al, r2, r14, r7}, false, al, "al r2 r14 r7", "al_r2_r14_r7"},
+     {{al, r10, r14, r8}, false, al, "al r10 r14 r8", "al_r10_r14_r8"},
+     {{al, r1, r3, r2}, false, al, "al r1 r3 r2", "al_r1_r3_r2"},
+     {{al, r0, r1, r8}, false, al, "al r0 r1 r8", "al_r0_r1_r8"},
+     {{al, r2, r9, r13}, false, al, "al r2 r9 r13", "al_r2_r9_r13"},
+     {{al, r2, r3, r5}, false, al, "al r2 r3 r5", "al_r2_r3_r5"},
+     {{al, r13, r9, r3}, false, al, "al r13 r9 r3", "al_r13_r9_r3"},
+     {{al, r3, r8, r8}, false, al, "al r3 r8 r8", "al_r3_r8_r8"},
+     {{al, r0, r8, r7}, false, al, "al r0 r8 r7", "al_r0_r8_r7"},
+     {{al, r9, r14, r7}, false, al, "al r9 r14 r7", "al_r9_r14_r7"},
+     {{al, r10, r3, r11}, false, al, "al r10 r3 r11", "al_r10_r3_r11"},
+     {{al, r1, r14, r13}, false, al, "al r1 r14 r13", "al_r1_r14_r13"},
+     {{al, r14, r4, r1}, false, al, "al r14 r4 r1", "al_r14_r4_r1"},
+     {{al, r12, r12, r4}, false, al, "al r12 r12 r4", "al_r12_r12_r4"},
+     {{al, r0, r12, r0}, false, al, "al r0 r12 r0", "al_r0_r12_r0"},
+     {{al, r1, r5, r1}, false, al, "al r1 r5 r1", "al_r1_r5_r1"},
+     {{al, r3, r9, r6}, false, al, "al r3 r9 r6", "al_r3_r9_r6"},
+     {{al, r2, r11, r0}, false, al, "al r2 r11 r0", "al_r2_r11_r0"},
+     {{al, r2, r6, r11}, false, al, "al r2 r6 r11", "al_r2_r6_r11"},
+     {{al, r8, r12, r8}, false, al, "al r8 r12 r8", "al_r8_r12_r8"},
+     {{al, r2, r12, r10}, false, al, "al r2 r12 r10", "al_r2_r12_r10"},
+     {{al, r4, r4, r10}, false, al, "al r4 r4 r10", "al_r4_r4_r10"},
+     {{al, r6, r14, r7}, false, al, "al r6 r14 r7", "al_r6_r14_r7"},
+     {{al, r11, r10, r14}, false, al, "al r11 r10 r14", "al_r11_r10_r14"},
+     {{al, r13, r0, r5}, false, al, "al r13 r0 r5", "al_r13_r0_r5"},
+     {{al, r4, r3, r7}, false, al, "al r4 r3 r7", "al_r4_r3_r7"},
+     {{al, r13, r7, r8}, false, al, "al r13 r7 r8", "al_r13_r7_r8"},
+     {{al, r9, r2, r8}, false, al, "al r9 r2 r8", "al_r9_r2_r8"},
+     {{al, r4, r13, r11}, false, al, "al r4 r13 r11", "al_r4_r13_r11"},
+     {{al, r4, r7, r14}, false, al, "al r4 r7 r14", "al_r4_r7_r14"},
+     {{al, r7, r10, r4}, false, al, "al r7 r10 r4", "al_r7_r10_r4"},
+     {{al, r10, r9, r12}, false, al, "al r10 r9 r12", "al_r10_r9_r12"},
+     {{al, r8, r13, r3}, false, al, "al r8 r13 r3", "al_r8_r13_r3"},
+     {{al, r3, r7, r14}, false, al, "al r3 r7 r14", "al_r3_r7_r14"},
+     {{al, r12, r0, r6}, false, al, "al r12 r0 r6", "al_r12_r0_r6"},
+     {{al, r10, r9, r11}, false, al, "al r10 r9 r11", "al_r10_r9_r11"},
+     {{al, r3, r10, r1}, false, al, "al r3 r10 r1", "al_r3_r10_r1"},
+     {{al, r5, r0, r11}, false, al, "al r5 r0 r11", "al_r5_r0_r11"},
+     {{al, r8, r13, r2}, false, al, "al r8 r13 r2", "al_r8_r13_r2"},
+     {{al, r5, r4, r10}, false, al, "al r5 r4 r10", "al_r5_r4_r10"},
+     {{al, r3, r7, r2}, false, al, "al r3 r7 r2", "al_r3_r7_r2"},
+     {{al, r14, r14, r6}, false, al, "al r14 r14 r6", "al_r14_r14_r6"},
+     {{al, r6, r14, r13}, false, al, "al r6 r14 r13", "al_r6_r14_r13"},
+     {{al, r2, r2, r10}, false, al, "al r2 r2 r10", "al_r2_r2_r10"},
+     {{al, r5, r13, r2}, false, al, "al r5 r13 r2", "al_r5_r13_r2"},
+     {{al, r7, r14, r9}, false, al, "al r7 r14 r9", "al_r7_r14_r9"},
+     {{al, r5, r6, r7}, false, al, "al r5 r6 r7", "al_r5_r6_r7"},
+     {{al, r5, r3, r6}, false, al, "al r5 r3 r6", "al_r5_r3_r6"},
+     {{al, r2, r1, r14}, false, al, "al r2 r1 r14", "al_r2_r1_r14"},
+     {{al, r13, r11, r10}, false, al, "al r13 r11 r10", "al_r13_r11_r10"},
+     {{al, r7, r9, r12}, false, al, "al r7 r9 r12", "al_r7_r9_r12"},
+     {{al, r11, r14, r11}, false, al, "al r11 r14 r11", "al_r11_r14_r11"},
+     {{al, r3, r10, r9}, false, al, "al r3 r10 r9", "al_r3_r10_r9"},
+     {{al, r0, r4, r4}, false, al, "al r0 r4 r4", "al_r0_r4_r4"},
+     {{al, r5, r8, r3}, false, al, "al r5 r8 r3", "al_r5_r8_r3"},
+     {{al, r10, r5, r13}, false, al, "al r10 r5 r13", "al_r10_r5_r13"},
+     {{al, r8, r3, r12}, false, al, "al r8 r3 r12", "al_r8_r3_r12"},
+     {{al, r2, r1, r12}, false, al, "al r2 r1 r12", "al_r2_r1_r12"},
+     {{al, r6, r8, r7}, false, al, "al r6 r8 r7", "al_r6_r8_r7"},
+     {{al, r13, r13, r6}, false, al, "al r13 r13 r6", "al_r13_r13_r6"},
+     {{al, r7, r2, r3}, false, al, "al r7 r2 r3", "al_r7_r2_r3"},
+     {{al, r3, r6, r3}, false, al, "al r3 r6 r3", "al_r3_r6_r3"},
+     {{al, r6, r5, r7}, false, al, "al r6 r5 r7", "al_r6_r5_r7"}};
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
@@ -524,7 +526,17 @@ static void TestHelper(Fn instruction,
     Register rm = kTests[i].operands.rm;
 
     uint32_t start = masm.GetCursorOffset();
-    (masm.*instruction)(cond, rd, rn, rm);
+    {
+      // We never generate more that 4 bytes, as IT instructions are only
+      // allowed for narrow encodings.
+      AssemblerAccurateScope scope(&masm,
+                                   4,
+                                   AssemblerAccurateScope::kMaximumSize);
+      if (kTests[i].in_it_block) {
+        masm.it(kTests[i].it_condition);
+      }
+      (masm.*instruction)(cond, rd, rn, rm);
+    }
     uint32_t end = masm.GetCursorOffset();
 
     const byte* result_ptr =
@@ -546,10 +558,14 @@ static void TestHelper(Fn instruction,
       // This comment is meant to be used by external tools to validate
       // the encoding. We can parse the comment to figure out what
       // instruction this corresponds to.
-      printf(" // %s %s %s\n};\n",
-             kTests[i].expect_instruction_before,
-             mnemonic,
-             kTests[i].operands_description);
+      if (kTests[i].in_it_block) {
+        printf(" // It %s; %s %s\n};\n",
+               kTests[i].it_condition.GetName(),
+               mnemonic,
+               kTests[i].operands_description);
+      } else {
+        printf(" // %s %s\n};\n", mnemonic, kTests[i].operands_description);
+      }
     } else {
       // Check we've emitted the exact same encoding as present in the
       // trace file. Only print up to `kErrorReportLimit` errors.
@@ -602,6 +618,8 @@ static void TestHelper(Fn instruction,
       printf("%u other errors follow.\n",
              total_error_count - kErrorReportLimit);
     }
+    // Crash if the test failed.
+    VIXL_CHECK(total_error_count == 0);
   }
 }
 

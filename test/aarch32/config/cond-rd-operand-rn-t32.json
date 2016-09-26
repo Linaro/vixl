@@ -125,8 +125,8 @@
           "operands": [
             "cond", "rd", "rn"
           ],
-          // Make sure the macro-assembler has generated an IT instruction.
-          "expect-instruction-before": "It {cond}",
+          // Generate an extra IT instruction.
+          "in-it-block": "{cond}",
           "operand-filter": "cond != 'al'"
         }
       ]
@@ -145,8 +145,8 @@
           "operands": [
             "cond", "rd", "rn"
           ],
-          // Make sure the macro-assembler has generated an IT instruction.
-          "expect-instruction-before": "It {cond}",
+          // Generate an extra IT instruction.
+          "in-it-block": "{cond}",
           "operand-filter": "cond != 'al' and register_is_low(rd) and register_is_low(rn)"
         }
       ]
@@ -165,8 +165,8 @@
           "operands": [
             "cond", "rd", "rn"
           ],
-          // Make sure the macro-assembler has generated an IT instruction.
-          "expect-instruction-before": "It {cond}",
+          // Generate an extra IT instruction.
+          "in-it-block": "{cond}",
           "operand-filter": "cond != 'al' and rd == rn and register_is_low(rd)"
         }
       ]

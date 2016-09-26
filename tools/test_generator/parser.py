@@ -277,8 +277,10 @@ def ParseTestCase(json_test_case):
     "operands": [
       "cond", "rd", "rn", "rm"
     ],
-    // Make sure the macro-assembler has generated an IT instruction.
-    "expect-instruction-before": "It {cond}",
+    "in-it-block": "{cond}", // Generate an extra IT instruction. This string
+                             // will be used as the operand passed to IT. One
+                             // needs to specify under what name the condition
+                             // operand is represented, in braces.
     "operand-filter": "cond != 'al' and rd == rm"
   }
   ~~~
@@ -302,8 +304,8 @@ def ParseTestCase(json_test_case):
       if "operand-limit" in json_test_case else None
   input_limit = json_test_case["input-limit"] \
       if "input-limit" in json_test_case else None
-  expect_instruction_before = json_test_case["expect-instruction-before"] + ";" \
-      if "expect-instruction-before" in json_test_case else ""
+  in_it_block = json_test_case["in-it-block"] \
+      if "in-it-block" in json_test_case else None
 
   # Create a seed from the test case description. It will only change if the
   # test case has changed.
@@ -312,7 +314,7 @@ def ParseTestCase(json_test_case):
 
   return generator.TestCase(json_test_case["name"], seed, operand_names, input_names,
                             operand_filter, input_filter, operand_limit,
-                            input_limit, expect_instruction_before)
+                            input_limit, in_it_block)
 
 
 def ParseTestFile(test_name, test_isa, mnemonics, operand_list, input_list,

@@ -48,7 +48,7 @@ namespace vixl {
 namespace aarch32 {
 
 // List of instruction mnemonics.
-#define FOREACH_INSTRUCTION(M) M(Rsbs)
+#define FOREACH_INSTRUCTION(M) M(rsbs)
 
 
 // Values to be passed to the assembler to produce the instruction under test.
@@ -65,9 +65,11 @@ struct TestData {
   // The `operands` field represents what to pass to the assembler to
   // produce the instruction.
   Operands operands;
-  // Optionally expect the MacroAssembler to have generated an extra
-  // instruction. This is used when the instruction needs to be in an IT block.
-  const char* expect_instruction_before;
+  // True if we need to generate an IT instruction for this test to be valid.
+  bool in_it_block;
+  // The condition to give the IT instruction, this will be set to "al" by
+  // default.
+  Condition it_condition;
   // Description of the operands, used for error reporting.
   const char* operands_description;
   // Unique identifier, used for generating traces.
@@ -81,70 +83,70 @@ struct TestResult {
 
 // Each element of this array produce one instruction encoding.
 static const TestData kTests[] =
-    {{{al, r0, r0, 0}, "", "al r0 r0 0", "al_r0_r0_0"},
-     {{al, r0, r1, 0}, "", "al r0 r1 0", "al_r0_r1_0"},
-     {{al, r0, r2, 0}, "", "al r0 r2 0", "al_r0_r2_0"},
-     {{al, r0, r3, 0}, "", "al r0 r3 0", "al_r0_r3_0"},
-     {{al, r0, r4, 0}, "", "al r0 r4 0", "al_r0_r4_0"},
-     {{al, r0, r5, 0}, "", "al r0 r5 0", "al_r0_r5_0"},
-     {{al, r0, r6, 0}, "", "al r0 r6 0", "al_r0_r6_0"},
-     {{al, r0, r7, 0}, "", "al r0 r7 0", "al_r0_r7_0"},
-     {{al, r1, r0, 0}, "", "al r1 r0 0", "al_r1_r0_0"},
-     {{al, r1, r1, 0}, "", "al r1 r1 0", "al_r1_r1_0"},
-     {{al, r1, r2, 0}, "", "al r1 r2 0", "al_r1_r2_0"},
-     {{al, r1, r3, 0}, "", "al r1 r3 0", "al_r1_r3_0"},
-     {{al, r1, r4, 0}, "", "al r1 r4 0", "al_r1_r4_0"},
-     {{al, r1, r5, 0}, "", "al r1 r5 0", "al_r1_r5_0"},
-     {{al, r1, r6, 0}, "", "al r1 r6 0", "al_r1_r6_0"},
-     {{al, r1, r7, 0}, "", "al r1 r7 0", "al_r1_r7_0"},
-     {{al, r2, r0, 0}, "", "al r2 r0 0", "al_r2_r0_0"},
-     {{al, r2, r1, 0}, "", "al r2 r1 0", "al_r2_r1_0"},
-     {{al, r2, r2, 0}, "", "al r2 r2 0", "al_r2_r2_0"},
-     {{al, r2, r3, 0}, "", "al r2 r3 0", "al_r2_r3_0"},
-     {{al, r2, r4, 0}, "", "al r2 r4 0", "al_r2_r4_0"},
-     {{al, r2, r5, 0}, "", "al r2 r5 0", "al_r2_r5_0"},
-     {{al, r2, r6, 0}, "", "al r2 r6 0", "al_r2_r6_0"},
-     {{al, r2, r7, 0}, "", "al r2 r7 0", "al_r2_r7_0"},
-     {{al, r3, r0, 0}, "", "al r3 r0 0", "al_r3_r0_0"},
-     {{al, r3, r1, 0}, "", "al r3 r1 0", "al_r3_r1_0"},
-     {{al, r3, r2, 0}, "", "al r3 r2 0", "al_r3_r2_0"},
-     {{al, r3, r3, 0}, "", "al r3 r3 0", "al_r3_r3_0"},
-     {{al, r3, r4, 0}, "", "al r3 r4 0", "al_r3_r4_0"},
-     {{al, r3, r5, 0}, "", "al r3 r5 0", "al_r3_r5_0"},
-     {{al, r3, r6, 0}, "", "al r3 r6 0", "al_r3_r6_0"},
-     {{al, r3, r7, 0}, "", "al r3 r7 0", "al_r3_r7_0"},
-     {{al, r4, r0, 0}, "", "al r4 r0 0", "al_r4_r0_0"},
-     {{al, r4, r1, 0}, "", "al r4 r1 0", "al_r4_r1_0"},
-     {{al, r4, r2, 0}, "", "al r4 r2 0", "al_r4_r2_0"},
-     {{al, r4, r3, 0}, "", "al r4 r3 0", "al_r4_r3_0"},
-     {{al, r4, r4, 0}, "", "al r4 r4 0", "al_r4_r4_0"},
-     {{al, r4, r5, 0}, "", "al r4 r5 0", "al_r4_r5_0"},
-     {{al, r4, r6, 0}, "", "al r4 r6 0", "al_r4_r6_0"},
-     {{al, r4, r7, 0}, "", "al r4 r7 0", "al_r4_r7_0"},
-     {{al, r5, r0, 0}, "", "al r5 r0 0", "al_r5_r0_0"},
-     {{al, r5, r1, 0}, "", "al r5 r1 0", "al_r5_r1_0"},
-     {{al, r5, r2, 0}, "", "al r5 r2 0", "al_r5_r2_0"},
-     {{al, r5, r3, 0}, "", "al r5 r3 0", "al_r5_r3_0"},
-     {{al, r5, r4, 0}, "", "al r5 r4 0", "al_r5_r4_0"},
-     {{al, r5, r5, 0}, "", "al r5 r5 0", "al_r5_r5_0"},
-     {{al, r5, r6, 0}, "", "al r5 r6 0", "al_r5_r6_0"},
-     {{al, r5, r7, 0}, "", "al r5 r7 0", "al_r5_r7_0"},
-     {{al, r6, r0, 0}, "", "al r6 r0 0", "al_r6_r0_0"},
-     {{al, r6, r1, 0}, "", "al r6 r1 0", "al_r6_r1_0"},
-     {{al, r6, r2, 0}, "", "al r6 r2 0", "al_r6_r2_0"},
-     {{al, r6, r3, 0}, "", "al r6 r3 0", "al_r6_r3_0"},
-     {{al, r6, r4, 0}, "", "al r6 r4 0", "al_r6_r4_0"},
-     {{al, r6, r5, 0}, "", "al r6 r5 0", "al_r6_r5_0"},
-     {{al, r6, r6, 0}, "", "al r6 r6 0", "al_r6_r6_0"},
-     {{al, r6, r7, 0}, "", "al r6 r7 0", "al_r6_r7_0"},
-     {{al, r7, r0, 0}, "", "al r7 r0 0", "al_r7_r0_0"},
-     {{al, r7, r1, 0}, "", "al r7 r1 0", "al_r7_r1_0"},
-     {{al, r7, r2, 0}, "", "al r7 r2 0", "al_r7_r2_0"},
-     {{al, r7, r3, 0}, "", "al r7 r3 0", "al_r7_r3_0"},
-     {{al, r7, r4, 0}, "", "al r7 r4 0", "al_r7_r4_0"},
-     {{al, r7, r5, 0}, "", "al r7 r5 0", "al_r7_r5_0"},
-     {{al, r7, r6, 0}, "", "al r7 r6 0", "al_r7_r6_0"},
-     {{al, r7, r7, 0}, "", "al r7 r7 0", "al_r7_r7_0"}};
+    {{{al, r0, r0, 0}, false, al, "al r0 r0 0", "al_r0_r0_0"},
+     {{al, r0, r1, 0}, false, al, "al r0 r1 0", "al_r0_r1_0"},
+     {{al, r0, r2, 0}, false, al, "al r0 r2 0", "al_r0_r2_0"},
+     {{al, r0, r3, 0}, false, al, "al r0 r3 0", "al_r0_r3_0"},
+     {{al, r0, r4, 0}, false, al, "al r0 r4 0", "al_r0_r4_0"},
+     {{al, r0, r5, 0}, false, al, "al r0 r5 0", "al_r0_r5_0"},
+     {{al, r0, r6, 0}, false, al, "al r0 r6 0", "al_r0_r6_0"},
+     {{al, r0, r7, 0}, false, al, "al r0 r7 0", "al_r0_r7_0"},
+     {{al, r1, r0, 0}, false, al, "al r1 r0 0", "al_r1_r0_0"},
+     {{al, r1, r1, 0}, false, al, "al r1 r1 0", "al_r1_r1_0"},
+     {{al, r1, r2, 0}, false, al, "al r1 r2 0", "al_r1_r2_0"},
+     {{al, r1, r3, 0}, false, al, "al r1 r3 0", "al_r1_r3_0"},
+     {{al, r1, r4, 0}, false, al, "al r1 r4 0", "al_r1_r4_0"},
+     {{al, r1, r5, 0}, false, al, "al r1 r5 0", "al_r1_r5_0"},
+     {{al, r1, r6, 0}, false, al, "al r1 r6 0", "al_r1_r6_0"},
+     {{al, r1, r7, 0}, false, al, "al r1 r7 0", "al_r1_r7_0"},
+     {{al, r2, r0, 0}, false, al, "al r2 r0 0", "al_r2_r0_0"},
+     {{al, r2, r1, 0}, false, al, "al r2 r1 0", "al_r2_r1_0"},
+     {{al, r2, r2, 0}, false, al, "al r2 r2 0", "al_r2_r2_0"},
+     {{al, r2, r3, 0}, false, al, "al r2 r3 0", "al_r2_r3_0"},
+     {{al, r2, r4, 0}, false, al, "al r2 r4 0", "al_r2_r4_0"},
+     {{al, r2, r5, 0}, false, al, "al r2 r5 0", "al_r2_r5_0"},
+     {{al, r2, r6, 0}, false, al, "al r2 r6 0", "al_r2_r6_0"},
+     {{al, r2, r7, 0}, false, al, "al r2 r7 0", "al_r2_r7_0"},
+     {{al, r3, r0, 0}, false, al, "al r3 r0 0", "al_r3_r0_0"},
+     {{al, r3, r1, 0}, false, al, "al r3 r1 0", "al_r3_r1_0"},
+     {{al, r3, r2, 0}, false, al, "al r3 r2 0", "al_r3_r2_0"},
+     {{al, r3, r3, 0}, false, al, "al r3 r3 0", "al_r3_r3_0"},
+     {{al, r3, r4, 0}, false, al, "al r3 r4 0", "al_r3_r4_0"},
+     {{al, r3, r5, 0}, false, al, "al r3 r5 0", "al_r3_r5_0"},
+     {{al, r3, r6, 0}, false, al, "al r3 r6 0", "al_r3_r6_0"},
+     {{al, r3, r7, 0}, false, al, "al r3 r7 0", "al_r3_r7_0"},
+     {{al, r4, r0, 0}, false, al, "al r4 r0 0", "al_r4_r0_0"},
+     {{al, r4, r1, 0}, false, al, "al r4 r1 0", "al_r4_r1_0"},
+     {{al, r4, r2, 0}, false, al, "al r4 r2 0", "al_r4_r2_0"},
+     {{al, r4, r3, 0}, false, al, "al r4 r3 0", "al_r4_r3_0"},
+     {{al, r4, r4, 0}, false, al, "al r4 r4 0", "al_r4_r4_0"},
+     {{al, r4, r5, 0}, false, al, "al r4 r5 0", "al_r4_r5_0"},
+     {{al, r4, r6, 0}, false, al, "al r4 r6 0", "al_r4_r6_0"},
+     {{al, r4, r7, 0}, false, al, "al r4 r7 0", "al_r4_r7_0"},
+     {{al, r5, r0, 0}, false, al, "al r5 r0 0", "al_r5_r0_0"},
+     {{al, r5, r1, 0}, false, al, "al r5 r1 0", "al_r5_r1_0"},
+     {{al, r5, r2, 0}, false, al, "al r5 r2 0", "al_r5_r2_0"},
+     {{al, r5, r3, 0}, false, al, "al r5 r3 0", "al_r5_r3_0"},
+     {{al, r5, r4, 0}, false, al, "al r5 r4 0", "al_r5_r4_0"},
+     {{al, r5, r5, 0}, false, al, "al r5 r5 0", "al_r5_r5_0"},
+     {{al, r5, r6, 0}, false, al, "al r5 r6 0", "al_r5_r6_0"},
+     {{al, r5, r7, 0}, false, al, "al r5 r7 0", "al_r5_r7_0"},
+     {{al, r6, r0, 0}, false, al, "al r6 r0 0", "al_r6_r0_0"},
+     {{al, r6, r1, 0}, false, al, "al r6 r1 0", "al_r6_r1_0"},
+     {{al, r6, r2, 0}, false, al, "al r6 r2 0", "al_r6_r2_0"},
+     {{al, r6, r3, 0}, false, al, "al r6 r3 0", "al_r6_r3_0"},
+     {{al, r6, r4, 0}, false, al, "al r6 r4 0", "al_r6_r4_0"},
+     {{al, r6, r5, 0}, false, al, "al r6 r5 0", "al_r6_r5_0"},
+     {{al, r6, r6, 0}, false, al, "al r6 r6 0", "al_r6_r6_0"},
+     {{al, r6, r7, 0}, false, al, "al r6 r7 0", "al_r6_r7_0"},
+     {{al, r7, r0, 0}, false, al, "al r7 r0 0", "al_r7_r0_0"},
+     {{al, r7, r1, 0}, false, al, "al r7 r1 0", "al_r7_r1_0"},
+     {{al, r7, r2, 0}, false, al, "al r7 r2 0", "al_r7_r2_0"},
+     {{al, r7, r3, 0}, false, al, "al r7 r3 0", "al_r7_r3_0"},
+     {{al, r7, r4, 0}, false, al, "al r7 r4 0", "al_r7_r4_0"},
+     {{al, r7, r5, 0}, false, al, "al r7 r5 0", "al_r7_r5_0"},
+     {{al, r7, r6, 0}, false, al, "al r7 r6 0", "al_r7_r6_0"},
+     {{al, r7, r7, 0}, false, al, "al r7 r7 0", "al_r7_r7_0"}};
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
@@ -176,7 +178,17 @@ static void TestHelper(Fn instruction,
     Operand op(immediate);
 
     uint32_t start = masm.GetCursorOffset();
-    (masm.*instruction)(cond, rd, rn, op);
+    {
+      // We never generate more that 4 bytes, as IT instructions are only
+      // allowed for narrow encodings.
+      AssemblerAccurateScope scope(&masm,
+                                   4,
+                                   AssemblerAccurateScope::kMaximumSize);
+      if (kTests[i].in_it_block) {
+        masm.it(kTests[i].it_condition);
+      }
+      (masm.*instruction)(cond, rd, rn, op);
+    }
     uint32_t end = masm.GetCursorOffset();
 
     const byte* result_ptr =
@@ -198,10 +210,14 @@ static void TestHelper(Fn instruction,
       // This comment is meant to be used by external tools to validate
       // the encoding. We can parse the comment to figure out what
       // instruction this corresponds to.
-      printf(" // %s %s %s\n};\n",
-             kTests[i].expect_instruction_before,
-             mnemonic,
-             kTests[i].operands_description);
+      if (kTests[i].in_it_block) {
+        printf(" // It %s; %s %s\n};\n",
+               kTests[i].it_condition.GetName(),
+               mnemonic,
+               kTests[i].operands_description);
+      } else {
+        printf(" // %s %s\n};\n", mnemonic, kTests[i].operands_description);
+      }
     } else {
       // Check we've emitted the exact same encoding as present in the
       // trace file. Only print up to `kErrorReportLimit` errors.
@@ -254,6 +270,8 @@ static void TestHelper(Fn instruction,
       printf("%u other errors follow.\n",
              total_error_count - kErrorReportLimit);
     }
+    // Crash if the test failed.
+    VIXL_CHECK(total_error_count == 0);
   }
 }
 

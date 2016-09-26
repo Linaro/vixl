@@ -215,8 +215,8 @@
           "operands": [
             "cond", "rd", "rn", "rm"
           ],
-          // Make sure the macro-assembler has generated an IT instruction.
-          "expect-instruction-before": "It {cond}",
+          // Generate an extra IT instruction.
+          "in-it-block": "{cond}",
           "operand-filter": "cond != 'al' and register_is_low(rd) and register_is_low(rn) and register_is_low(rm)",
           "operand-limit": 500
         }
@@ -243,8 +243,8 @@
           "operands": [
             "cond", "rd", "rn", "rm"
           ],
-          // Make sure the macro-assembler has generated an IT instruction.
-          "expect-instruction-before": "It {cond}",
+          // Generate an extra IT instruction.
+          "in-it-block": "{cond}",
           "operand-filter": "cond != 'al' and rd == rn and register_is_low(rn) and register_is_low(rm)",
           "operand-limit": 500
         }
@@ -262,8 +262,8 @@
           "operands": [
             "cond", "rd", "rn", "rm"
           ],
-          // Make sure the macro-assembler has generated an IT instruction.
-          "expect-instruction-before": "It {cond}",
+          // Generate an extra IT instruction.
+          "in-it-block": "{cond}",
           "operand-filter": "cond != 'al' and rd == rn and rm != 'r13'",
           "operand-limit": 500
         }
@@ -282,8 +282,8 @@
           "operands": [
             "cond", "rd", "rn", "rm"
           ],
-          // Make sure the macro-assembler has generated an IT instruction.
-          "expect-instruction-before": "It {cond}",
+          // Generate an extra IT instruction.
+          "in-it-block": "{cond}",
           "operand-filter": "cond != 'al' and rd == rm and register_is_low(rm) and rn == 'r13'"
         }
       ]
@@ -301,8 +301,8 @@
           "operands": [
             "cond", "rd", "rn", "rm"
           ],
-          // Make sure the macro-assembler has generated an IT instruction.
-          "expect-instruction-before": "It {cond}",
+          // Generate an extra IT instruction.
+          "in-it-block": "{cond}",
           "operand-filter": "cond != 'al' and rd == 'r13' and rn == 'r13'"
         }
       ]
