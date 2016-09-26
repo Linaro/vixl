@@ -27,7 +27,7 @@
 #ifndef VIXL_AARCH64_CONSTANTS_AARCH64_H_
 #define VIXL_AARCH64_CONSTANTS_AARCH64_H_
 
-#include "globals-vixl.h"
+#include "../globals-vixl.h"
 
 namespace vixl {
 namespace aarch64 {

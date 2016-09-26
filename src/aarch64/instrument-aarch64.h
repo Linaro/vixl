@@ -27,12 +27,12 @@
 #ifndef VIXL_AARCH64_INSTRUMENT_AARCH64_H_
 #define VIXL_AARCH64_INSTRUMENT_AARCH64_H_
 
-#include "globals-vixl.h"
-#include "utils-vixl.h"
+#include "../globals-vixl.h"
+#include "../utils-vixl.h"
 
-#include "aarch64/constants-aarch64.h"
-#include "aarch64/decoder-aarch64.h"
-#include "aarch64/instrument-aarch64.h"
+#include "constants-aarch64.h"
+#include "decoder-aarch64.h"
+#include "instrument-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {

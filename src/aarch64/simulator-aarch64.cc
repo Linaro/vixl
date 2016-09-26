@@ -29,7 +29,7 @@
 #include <cstring>
 #include <cmath>
 
-#include "aarch64/simulator-aarch64.h"
+#include "simulator-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {

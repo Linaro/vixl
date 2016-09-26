@@ -29,9 +29,9 @@
 
 #include <list>
 
-#include "globals-vixl.h"
+#include "../globals-vixl.h"
 
-#include "aarch64/instructions-aarch64.h"
+#include "instructions-aarch64.h"
 
 
 // List macro containing all visitors needed by the decoder class.

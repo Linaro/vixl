@@ -34,11 +34,11 @@
 #include <climits>
 #include <vector>
 
-#include "globals-vixl.h"
-#include "utils-vixl.h"
+#include "../globals-vixl.h"
+#include "../utils-vixl.h"
 
-#include "aarch64/constants-aarch64.h"
-#include "aarch64/simulator-aarch64.h"
+#include "constants-aarch64.h"
+#include "simulator-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {

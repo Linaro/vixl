@@ -24,9 +24,9 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "utils-vixl.h"
+#include "../utils-vixl.h"
 
-#include "aarch64/cpu-aarch64.h"
+#include "cpu-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {

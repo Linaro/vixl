@@ -26,7 +26,7 @@
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
-#include "aarch64/debugger-aarch64.h"
+#include "debugger-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {

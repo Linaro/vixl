@@ -26,7 +26,7 @@
 
 #include <cstdlib>
 
-#include "aarch64/disasm-aarch64.h"
+#include "disasm-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {

@@ -27,7 +27,7 @@
 #ifndef VIXL_AARCH64_OPERANDS_AARCH64_H_
 #define VIXL_AARCH64_OPERANDS_AARCH64_H_
 
-#include "aarch64/instructions-aarch64.h"
+#include "instructions-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {

@@ -27,14 +27,14 @@
 #ifndef VIXL_AARCH64_SIMULATOR_AARCH64_H_
 #define VIXL_AARCH64_SIMULATOR_AARCH64_H_
 
-#include "globals-vixl.h"
-#include "utils-vixl.h"
+#include "../globals-vixl.h"
+#include "../utils-vixl.h"
 
-#include "aarch64/abi-aarch64.h"
-#include "aarch64/disasm-aarch64.h"
-#include "aarch64/instructions-aarch64.h"
-#include "aarch64/instrument-aarch64.h"
-#include "aarch64/simulator-constants-aarch64.h"
+#include "abi-aarch64.h"
+#include "disasm-aarch64.h"
+#include "instructions-aarch64.h"
+#include "instrument-aarch64.h"
+#include "simulator-constants-aarch64.h"
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 

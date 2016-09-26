@@ -27,12 +27,12 @@
 #ifndef VIXL_AARCH64_ASSEMBLER_AARCH64_H_
 #define VIXL_AARCH64_ASSEMBLER_AARCH64_H_
 
-#include "code-buffer-vixl.h"
-#include "globals-vixl.h"
-#include "invalset-vixl.h"
-#include "utils-vixl.h"
+#include "../code-buffer-vixl.h"
+#include "../globals-vixl.h"
+#include "../invalset-vixl.h"
+#include "../utils-vixl.h"
 
-#include "aarch64/operands-aarch64.h"
+#include "operands-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {

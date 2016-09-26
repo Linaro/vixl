@@ -27,9 +27,9 @@
 #ifndef VIXL_CPU_AARCH64_H
 #define VIXL_CPU_AARCH64_H
 
-#include "globals-vixl.h"
+#include "../globals-vixl.h"
 
-#include "aarch64/instructions-aarch64.h"
+#include "instructions-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {

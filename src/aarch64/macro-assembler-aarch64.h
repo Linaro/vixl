@@ -30,15 +30,15 @@
 #include <algorithm>
 #include <limits>
 
-#include "globals-vixl.h"
+#include "../globals-vixl.h"
 
-#include "aarch64/assembler-aarch64.h"
-#include "aarch64/debugger-aarch64.h"
-#include "aarch64/instrument-aarch64.h"
+#include "assembler-aarch64.h"
+#include "debugger-aarch64.h"
+#include "instrument-aarch64.h"
 // Required in order to generate debugging instructions for the simulator. This
 // is needed regardless of whether the simulator is included or not, since
 // generating simulator specific instructions is controlled at runtime.
-#include "aarch64/simulator-constants-aarch64.h"
+#include "simulator-constants-aarch64.h"
 
 
 #define LS_MACRO_LIST(V)                                     \

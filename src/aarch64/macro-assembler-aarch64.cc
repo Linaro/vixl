@@ -26,7 +26,7 @@
 
 #include <cctype>
 
-#include "aarch64/macro-assembler-aarch64.h"
+#include "macro-assembler-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {
