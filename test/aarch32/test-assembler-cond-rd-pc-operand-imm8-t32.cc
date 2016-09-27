@@ -1095,7 +1095,7 @@ const TestData kTests[] =
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-rd-pc-operand-imm8-t32-add.h"
+#include "aarch32/traces/assembler-cond-rd-pc-operand-imm8-add-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -1220,13 +1220,13 @@ void TestHelper(Fn instruction,
 }
 
 // Instantiate tests for each instruction in the list.
-#define TEST(mnemonic)                                                      \
-  void Test_##mnemonic() {                                                  \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
-  }                                                                         \
-  Test test_##mnemonic(                                                     \
-      "AARCH32_ASSEMBLER_COND_RD_PC_OPERAND_IMM8_T32_" #mnemonic,           \
-      &Test_##mnemonic);
+#define TEST(mnemonic)                                                        \
+  void Test_##mnemonic() {                                                    \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);   \
+  }                                                                           \
+  Test test_##mnemonic("AARCH32_ASSEMBLER_COND_RD_PC_OPERAND_IMM8_" #mnemonic \
+                       "_T32",                                                \
+                       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST
 

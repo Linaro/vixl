@@ -1202,12 +1202,12 @@ const TestData kTests[] = {
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-rd-operand-rn-ror-amount-t32-sxtb.h"
-#include "aarch32/traces/assembler-cond-rd-operand-rn-ror-amount-t32-sxtb16.h"
-#include "aarch32/traces/assembler-cond-rd-operand-rn-ror-amount-t32-sxth.h"
-#include "aarch32/traces/assembler-cond-rd-operand-rn-ror-amount-t32-uxtb.h"
-#include "aarch32/traces/assembler-cond-rd-operand-rn-ror-amount-t32-uxtb16.h"
-#include "aarch32/traces/assembler-cond-rd-operand-rn-ror-amount-t32-uxth.h"
+#include "aarch32/traces/assembler-cond-rd-operand-rn-ror-amount-sxtb-t32.h"
+#include "aarch32/traces/assembler-cond-rd-operand-rn-ror-amount-sxtb16-t32.h"
+#include "aarch32/traces/assembler-cond-rd-operand-rn-ror-amount-sxth-t32.h"
+#include "aarch32/traces/assembler-cond-rd-operand-rn-ror-amount-uxtb-t32.h"
+#include "aarch32/traces/assembler-cond-rd-operand-rn-ror-amount-uxtb16-t32.h"
+#include "aarch32/traces/assembler-cond-rd-operand-rn-ror-amount-uxth-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -1337,7 +1337,7 @@ void TestHelper(Fn instruction,
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
   Test test_##mnemonic(                                                     \
-      "AARCH32_ASSEMBLER_COND_RD_OPERAND_RN_ROR_AMOUNT_T32_" #mnemonic,     \
+      "AARCH32_ASSEMBLER_COND_RD_OPERAND_RN_ROR_AMOUNT_" #mnemonic "_T32",  \
       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST

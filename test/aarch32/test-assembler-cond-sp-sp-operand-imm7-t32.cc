@@ -225,8 +225,8 @@ const TestData kTests[] =
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-sp-sp-operand-imm7-t32-add.h"
-#include "aarch32/traces/assembler-cond-sp-sp-operand-imm7-t32-sub.h"
+#include "aarch32/traces/assembler-cond-sp-sp-operand-imm7-add-t32.h"
+#include "aarch32/traces/assembler-cond-sp-sp-operand-imm7-sub-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -351,13 +351,13 @@ void TestHelper(Fn instruction,
 }
 
 // Instantiate tests for each instruction in the list.
-#define TEST(mnemonic)                                                      \
-  void Test_##mnemonic() {                                                  \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
-  }                                                                         \
-  Test test_##mnemonic(                                                     \
-      "AARCH32_ASSEMBLER_COND_SP_SP_OPERAND_IMM7_T32_" #mnemonic,           \
-      &Test_##mnemonic);
+#define TEST(mnemonic)                                                        \
+  void Test_##mnemonic() {                                                    \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);   \
+  }                                                                           \
+  Test test_##mnemonic("AARCH32_ASSEMBLER_COND_SP_SP_OPERAND_IMM7_" #mnemonic \
+                       "_T32",                                                \
+                       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST
 

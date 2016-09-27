@@ -1077,12 +1077,12 @@ struct TestResult {
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-amount-t32-sxtab.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-amount-t32-sxtab16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-amount-t32-sxtah.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-amount-t32-uxtab.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-amount-t32-uxtab16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-amount-t32-uxtah.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-amount-sxtab-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-amount-sxtab16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-amount-sxtah-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-amount-uxtab-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-amount-uxtab16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-amount-uxtah-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -1302,21 +1302,21 @@ void TestHelper(Fn instruction,
 // Instantiate tests for each instruction in the list.
 // TODO: Remove this limitation by having a sandboxing mechanism.
 #if defined(VIXL_HOST_POINTER_32)
-#define TEST(mnemonic)                                                      \
-  void Test_##mnemonic() {                                                  \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
-  }                                                                         \
-  Test test_##mnemonic(                                                     \
-      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_ROR_AMOUNT_T32_" #mnemonic,  \
+#define TEST(mnemonic)                                                        \
+  void Test_##mnemonic() {                                                    \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);   \
+  }                                                                           \
+  Test test_##mnemonic(                                                       \
+      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_ROR_AMOUNT_" #mnemonic "_T32", \
       &Test_##mnemonic);
 #else
-#define TEST(mnemonic)                                                     \
-  void Test_##mnemonic() {                                                 \
-    VIXL_WARNING("This test can only run on a 32-bit host.\n");            \
-    USE(TestHelper);                                                       \
-  }                                                                        \
-  Test test_##mnemonic(                                                    \
-      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_ROR_AMOUNT_T32_" #mnemonic, \
+#define TEST(mnemonic)                                                        \
+  void Test_##mnemonic() {                                                    \
+    VIXL_WARNING("This test can only run on a 32-bit host.\n");               \
+    USE(TestHelper);                                                          \
+  }                                                                           \
+  Test test_##mnemonic(                                                       \
+      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_ROR_AMOUNT_" #mnemonic "_T32", \
       &Test_##mnemonic);
 #endif
 

@@ -628,7 +628,7 @@ void TestHelper(Fn instruction, const char* mnemonic) {
 // Instantiate tests for each instruction in the list.
 #define TEST(mnemonic)                                                         \
   void Test_##mnemonic() { TestHelper(&MacroAssembler::mnemonic, #mnemonic); } \
-  Test test_##mnemonic("AARCH32_MACRO_ASSEMBLER_COND_RD_RN_PC_A32_" #mnemonic, \
+  Test test_##mnemonic("AARCH32_MACRO_ASSEMBLER_COND_RD_RN_PC_" #mnemonic,     \
                        &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST

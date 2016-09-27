@@ -2149,9 +2149,9 @@ const TestData kTests[] = {{{al, r0, 0}, false, al, "al r0 0", "al_r0_0"},
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-rdlow-operand-imm8-t32-cmp.h"
-#include "aarch32/traces/assembler-cond-rdlow-operand-imm8-t32-mov.h"
-#include "aarch32/traces/assembler-cond-rdlow-operand-imm8-t32-movs.h"
+#include "aarch32/traces/assembler-cond-rdlow-operand-imm8-cmp-t32.h"
+#include "aarch32/traces/assembler-cond-rdlow-operand-imm8-mov-t32.h"
+#include "aarch32/traces/assembler-cond-rdlow-operand-imm8-movs-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -2274,13 +2274,13 @@ void TestHelper(Fn instruction,
 }
 
 // Instantiate tests for each instruction in the list.
-#define TEST(mnemonic)                                                      \
-  void Test_##mnemonic() {                                                  \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
-  }                                                                         \
-  Test test_##mnemonic(                                                     \
-      "AARCH32_ASSEMBLER_COND_RDLOW_OPERAND_IMM8_T32_" #mnemonic,           \
-      &Test_##mnemonic);
+#define TEST(mnemonic)                                                        \
+  void Test_##mnemonic() {                                                    \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);   \
+  }                                                                           \
+  Test test_##mnemonic("AARCH32_ASSEMBLER_COND_RDLOW_OPERAND_IMM8_" #mnemonic \
+                       "_T32",                                                \
+                       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST
 

@@ -1432,63 +1432,63 @@ struct TestResult {
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-mul.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-qadd16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-qadd8.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-qasx.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-qsax.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-qsub16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-qsub8.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-sdiv.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-shadd16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-shadd8.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-shasx.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-shsax.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-shsub16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-shsub8.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-smmul.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-smmulr.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-smuad.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-smuadx.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-smulbb.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-smulbt.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-smultb.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-smultt.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-smulwb.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-smulwt.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-smusd.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-smusdx.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-udiv.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uhadd16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uhadd8.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uhasx.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uhsax.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uhsub16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uhsub8.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uqadd16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uqadd8.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uqasx.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uqsax.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uqsub16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uqsub8.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-usad8.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-sadd16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-sadd8.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-sasx.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-sel.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-ssax.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-ssub16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-ssub8.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uadd16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uadd8.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-uasx.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-usax.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-usub16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-usub8.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-qadd.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-qdadd.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-qdsub.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-t32-qsub.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-mul-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qadd16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qadd8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qasx-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qsax-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qsub16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qsub8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-sdiv-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-shadd16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-shadd8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-shasx-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-shsax-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-shsub16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-shsub8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-smmul-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-smmulr-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-smuad-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-smuadx-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-smulbb-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-smulbt-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-smultb-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-smultt-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-smulwb-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-smulwt-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-smusd-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-smusdx-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-udiv-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uhadd16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uhadd8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uhasx-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uhsax-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uhsub16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uhsub8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uqadd16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uqadd8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uqasx-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uqsax-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uqsub16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uqsub8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-usad8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-sadd16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-sadd8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-sasx-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-sel-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-ssax-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-ssub16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-ssub8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uadd16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uadd8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uasx-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-usax-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-usub16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-usub8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qadd-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qdadd-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qdsub-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qsub-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -1765,15 +1765,15 @@ void TestHelper(Fn instruction,
   void Test_##mnemonic() {                                                  \
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
-  Test test_##mnemonic("AARCH32_SIMULATOR_COND_RD_RN_RM_T32_" #mnemonic,    \
+  Test test_##mnemonic("AARCH32_SIMULATOR_COND_RD_RN_RM_" #mnemonic "_T32", \
                        &Test_##mnemonic);
 #else
-#define TEST(mnemonic)                                                   \
-  void Test_##mnemonic() {                                               \
-    VIXL_WARNING("This test can only run on a 32-bit host.\n");          \
-    USE(TestHelper);                                                     \
-  }                                                                      \
-  Test test_##mnemonic("AARCH32_SIMULATOR_COND_RD_RN_RM_T32_" #mnemonic, \
+#define TEST(mnemonic)                                                      \
+  void Test_##mnemonic() {                                                  \
+    VIXL_WARNING("This test can only run on a 32-bit host.\n");             \
+    USE(TestHelper);                                                        \
+  }                                                                         \
+  Test test_##mnemonic("AARCH32_SIMULATOR_COND_RD_RN_RM_" #mnemonic "_T32", \
                        &Test_##mnemonic);
 #endif
 

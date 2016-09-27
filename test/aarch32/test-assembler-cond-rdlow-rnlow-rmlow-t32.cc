@@ -159,7 +159,7 @@ const TestData kTests[] =
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-rdlow-rnlow-rmlow-t32-muls.h"
+#include "aarch32/traces/assembler-cond-rdlow-rnlow-rmlow-muls-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -283,13 +283,13 @@ void TestHelper(Fn instruction,
 }
 
 // Instantiate tests for each instruction in the list.
-#define TEST(mnemonic)                                                      \
-  void Test_##mnemonic() {                                                  \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
-  }                                                                         \
-  Test test_##mnemonic(                                                     \
-      "AARCH32_ASSEMBLER_COND_RDLOW_RNLOW_RMLOW_T32_" #mnemonic,            \
-      &Test_##mnemonic);
+#define TEST(mnemonic)                                                       \
+  void Test_##mnemonic() {                                                   \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);  \
+  }                                                                          \
+  Test test_##mnemonic("AARCH32_ASSEMBLER_COND_RDLOW_RNLOW_RMLOW_" #mnemonic \
+                       "_T32",                                               \
+                       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST
 

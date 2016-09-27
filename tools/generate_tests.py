@@ -615,7 +615,10 @@ import test_generator.parser
 
 
 default_config_files = [
-    'test/aarch32/config/rd-rn-rm-a32.json',
+    # A32 and T32 tests
+    'test/aarch32/config/rd-rn-rm.json',
+
+    # A32 specific tests
     'test/aarch32/config/cond-rd-rn-operand-const-a32.json',
     'test/aarch32/config/cond-rd-rn-operand-rm-a32.json',
     'test/aarch32/config/cond-rd-rn-operand-rm-shift-amount-1to31-a32.json',
@@ -637,6 +640,7 @@ default_config_files = [
     'test/aarch32/config/cond-rd-memop-rs-shift-amount-1to31-a32.json',
     'test/aarch32/config/cond-rd-memop-rs-shift-amount-1to32-a32.json',
 
+    # T32 specific tests
     'test/aarch32/config/cond-rd-rn-t32.json',
     'test/aarch32/config/cond-rd-rn-rm-t32.json',
     'test/aarch32/config/cond-rdlow-rnlow-rmlow-t32.json',
@@ -659,7 +663,6 @@ default_config_files = [
     'test/aarch32/config/cond-rd-operand-rn-shift-rs-t32.json',
     'test/aarch32/config/cond-rd-operand-rn-ror-amount-t32.json',
     'test/aarch32/config/cond-rd-operand-rn-t32.json',
-    'test/aarch32/config/rd-rn-rm-t32.json',
 ]
 
 
@@ -751,12 +754,15 @@ def GenerateTest(generator, clang_format, skip_traces):
       'check_print_expected': generator.CheckPrintExpected(),
       'check_print_found': generator.CheckPrintFound(),
 
+      'test_isa': generator.TestISA(),
       'test_name': generator.TestName(),
       'isa_guard': generator.GetIsaGuard()
     })
   # Create the test case and pipe it through `clang-format` before writing it.
   with open(
-      "test/aarch32/test-{}-{}.cc".format(generator.test_type, generator.test_name),
+      "test/aarch32/test-{}-{}-{}.cc".format(generator.test_type,
+                                             generator.test_name,
+                                             generator.test_isa),
       "w") as f:
     proc = subprocess.Popen([clang_format], stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE)
@@ -765,8 +771,9 @@ def GenerateTest(generator, clang_format, skip_traces):
   if not skip_traces:
     # Write dummy trace files into 'test/aarch32/traces/'.
     generator.WriteEmptyTraces("test/aarch32/traces/")
-  print("Generated {} test for \"{}\".".format(generator.test_type, generator.test_name))
-
+  print("Generated {} {} test for \"{}\".".format(generator.test_isa.upper(),
+                                                  generator.test_type,
+                                                  generator.test_name))
 
 if __name__ == '__main__':
   args = BuildOptions()

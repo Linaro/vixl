@@ -2341,14 +2341,14 @@ const TestData kTests[] =
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-rd-operand-const-t32-cmn.h"
-#include "aarch32/traces/assembler-cond-rd-operand-const-t32-cmp.h"
-#include "aarch32/traces/assembler-cond-rd-operand-const-t32-mov.h"
-#include "aarch32/traces/assembler-cond-rd-operand-const-t32-movs.h"
-#include "aarch32/traces/assembler-cond-rd-operand-const-t32-mvn.h"
-#include "aarch32/traces/assembler-cond-rd-operand-const-t32-mvns.h"
-#include "aarch32/traces/assembler-cond-rd-operand-const-t32-teq.h"
-#include "aarch32/traces/assembler-cond-rd-operand-const-t32-tst.h"
+#include "aarch32/traces/assembler-cond-rd-operand-const-cmn-t32.h"
+#include "aarch32/traces/assembler-cond-rd-operand-const-cmp-t32.h"
+#include "aarch32/traces/assembler-cond-rd-operand-const-mov-t32.h"
+#include "aarch32/traces/assembler-cond-rd-operand-const-movs-t32.h"
+#include "aarch32/traces/assembler-cond-rd-operand-const-mvn-t32.h"
+#include "aarch32/traces/assembler-cond-rd-operand-const-mvns-t32.h"
+#include "aarch32/traces/assembler-cond-rd-operand-const-teq-t32.h"
+#include "aarch32/traces/assembler-cond-rd-operand-const-tst-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -2475,9 +2475,9 @@ void TestHelper(Fn instruction,
   void Test_##mnemonic() {                                                  \
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
-  Test test_##mnemonic(                                                     \
-      "AARCH32_ASSEMBLER_COND_RD_OPERAND_CONST_T32_" #mnemonic,             \
-      &Test_##mnemonic);
+  Test test_##mnemonic("AARCH32_ASSEMBLER_COND_RD_OPERAND_CONST_" #mnemonic \
+                       "_T32",                                              \
+                       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST
 

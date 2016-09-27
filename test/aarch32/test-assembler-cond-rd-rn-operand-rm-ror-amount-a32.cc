@@ -5102,12 +5102,12 @@ const TestData kTests[] = {{{ls, r3, r3, r13, ROR, 0},
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-a32-sxtab.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-a32-sxtab16.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-a32-sxtah.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-a32-uxtab.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-a32-uxtab16.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-a32-uxtah.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-sxtab-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-sxtab16-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-sxtah-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-uxtab-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-uxtab16-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-amount-uxtah-a32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -5234,12 +5234,12 @@ void TestHelper(Fn instruction,
 }
 
 // Instantiate tests for each instruction in the list.
-#define TEST(mnemonic)                                                      \
-  void Test_##mnemonic() {                                                  \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
-  }                                                                         \
-  Test test_##mnemonic(                                                     \
-      "AARCH32_ASSEMBLER_COND_RD_RN_OPERAND_RM_ROR_AMOUNT_A32_" #mnemonic,  \
+#define TEST(mnemonic)                                                        \
+  void Test_##mnemonic() {                                                    \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);   \
+  }                                                                           \
+  Test test_##mnemonic(                                                       \
+      "AARCH32_ASSEMBLER_COND_RD_RN_OPERAND_RM_ROR_AMOUNT_" #mnemonic "_A32", \
       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST

@@ -360,7 +360,7 @@ def ParseTestFile(test_name, test_isa, mnemonics, operand_list, input_list,
                              mnemonics, operand_list, input_list, test_cases)
 
 
-def ParseConfig(test_name, test_isa, data_type_builder, json_config):
+def ParseConfig(test_name, test_isas, data_type_builder, json_config):
   """
   Return a list of `generator.Generator` objects from a JSON description. This
   is the top-level description.
@@ -385,28 +385,50 @@ def ParseConfig(test_name, test_isa, data_type_builder, json_config):
   operand_list, input_list = ParseDescription(
       data_type_builder, json_config["description"])
 
-  return [
-      ParseTestFile(test_name, test_isa, mnemonics, operand_list, input_list,
-                    json_test_file)
-      for json_test_file in json_config["test-files"]
-  ]
+  return itertools.chain(*[[
+          ParseTestFile(test_name, test_isa, mnemonics, operand_list,
+                        input_list, json_test_file)
+          for json_test_file in json_config["test-files"]
+      ]
+      for test_isa in test_isas
+  ])
+
+
+def GetTestNameAndISAFromFileName(filename):
+  """
+  Return a tuple (name, [isa, ...]) extracted from the file name.
+  """
+  # Strip the ".json" extension
+  stripped_basename = os.path.splitext(os.path.basename(filename))[0]
+  # The ISA is the last element in the filename, seperated with "-".
+  if stripped_basename.endswith(('-a32', '-t32')):
+    isa = [stripped_basename[-3:]]
+    test_name = stripped_basename[:-4]
+  else:
+    # If the ISA is ommitted, support both.
+    isa = ["a32", "t32"]
+    test_name = stripped_basename
+
+  return (test_name, isa)
 
 
 def GetTestNameFromFileName(filename):
   """
-  Return the name given to this test from its file name.
+  Return the name given to this test from its file name, stripped of the
+  optional "a32" or "t32" at the end.
   """
-  return os.path.splitext(os.path.basename(filename))[0]
+  test_name, _ = GetTestNameAndISAFromFileName(filename)
+  return test_name
 
 
-def GetISAFromFileName(filename):
+def GetISAsFromFileName(filename):
   """
-  Return the ISA from the file name, either "a32" or "t32".
+  Return a list of ISAs supported by the test, from the file name, either
+  ["a32"], ["t32"] or both.
   """
-  isa = GetTestNameFromFileName(filename).split("-")[-1]
-  assert(isa in ["a32", "t32"])
-  return isa
+  _, isas = GetTestNameAndISAFromFileName(filename)
 
+  return isas
 
 def Parse(data_type_file, config_files):
   """
@@ -423,7 +445,7 @@ def Parse(data_type_file, config_files):
   json_configs = [
       # We create the name of the test by looking at the file name stripped of
       # its extension.
-      (GetTestNameFromFileName(config_file), GetISAFromFileName(config_file),
+      (GetTestNameFromFileName(config_file), GetISAsFromFileName(config_file),
        LoadJSON(config_file))
       for config_file in config_files
   ]
@@ -433,6 +455,6 @@ def Parse(data_type_file, config_files):
   # Note that `ParseConfig` returns a list of generators already. We use `chain`
   # here to flatten a list of lists into just a list.
   return itertools.chain(*[
-      ParseConfig(test_name, test_isa, data_type_builder, json_config)
-      for test_name, test_isa, json_config in json_configs
+      ParseConfig(test_name, test_isas, data_type_builder, json_config)
+      for test_name, test_isas, json_config in json_configs
   ])

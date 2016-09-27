@@ -600,12 +600,12 @@ const TestData kTests[] =
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-rd-rn-rm-a32-crc32b.h"
-#include "aarch32/traces/assembler-rd-rn-rm-a32-crc32cb.h"
-#include "aarch32/traces/assembler-rd-rn-rm-a32-crc32ch.h"
-#include "aarch32/traces/assembler-rd-rn-rm-a32-crc32cw.h"
-#include "aarch32/traces/assembler-rd-rn-rm-a32-crc32h.h"
-#include "aarch32/traces/assembler-rd-rn-rm-a32-crc32w.h"
+#include "aarch32/traces/assembler-rd-rn-rm-crc32b-a32.h"
+#include "aarch32/traces/assembler-rd-rn-rm-crc32cb-a32.h"
+#include "aarch32/traces/assembler-rd-rn-rm-crc32ch-a32.h"
+#include "aarch32/traces/assembler-rd-rn-rm-crc32cw-a32.h"
+#include "aarch32/traces/assembler-rd-rn-rm-crc32h-a32.h"
+#include "aarch32/traces/assembler-rd-rn-rm-crc32w-a32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -729,7 +729,7 @@ void TestHelper(Fn instruction,
   void Test_##mnemonic() {                                                  \
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
-  Test test_##mnemonic("AARCH32_ASSEMBLER_RD_RN_RM_A32_" #mnemonic,         \
+  Test test_##mnemonic("AARCH32_ASSEMBLER_RD_RN_RM_" #mnemonic "_A32",      \
                        &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST

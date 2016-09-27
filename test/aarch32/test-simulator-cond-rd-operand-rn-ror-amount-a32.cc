@@ -672,12 +672,12 @@ struct TestResult {
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/simulator-cond-rd-operand-rn-ror-amount-a32-sxtb.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-ror-amount-a32-sxtb16.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-ror-amount-a32-sxth.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-ror-amount-a32-uxtb.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-ror-amount-a32-uxtb16.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-ror-amount-a32-uxth.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-ror-amount-sxtb-a32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-ror-amount-sxtb16-a32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-ror-amount-sxth-a32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-ror-amount-uxtb-a32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-ror-amount-uxtb16-a32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-ror-amount-uxth-a32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -885,16 +885,16 @@ void TestHelper(Fn instruction,
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
   Test test_##mnemonic(                                                     \
-      "AARCH32_SIMULATOR_COND_RD_OPERAND_RN_ROR_AMOUNT_A32_" #mnemonic,     \
+      "AARCH32_SIMULATOR_COND_RD_OPERAND_RN_ROR_AMOUNT_" #mnemonic "_A32",  \
       &Test_##mnemonic);
 #else
-#define TEST(mnemonic)                                                  \
-  void Test_##mnemonic() {                                              \
-    VIXL_WARNING("This test can only run on a 32-bit host.\n");         \
-    USE(TestHelper);                                                    \
-  }                                                                     \
-  Test test_##mnemonic(                                                 \
-      "AARCH32_SIMULATOR_COND_RD_OPERAND_RN_ROR_AMOUNT_A32_" #mnemonic, \
+#define TEST(mnemonic)                                                     \
+  void Test_##mnemonic() {                                                 \
+    VIXL_WARNING("This test can only run on a 32-bit host.\n");            \
+    USE(TestHelper);                                                       \
+  }                                                                        \
+  Test test_##mnemonic(                                                    \
+      "AARCH32_SIMULATOR_COND_RD_OPERAND_RN_ROR_AMOUNT_" #mnemonic "_A32", \
       &Test_##mnemonic);
 #endif
 

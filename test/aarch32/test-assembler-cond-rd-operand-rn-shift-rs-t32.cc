@@ -2147,8 +2147,8 @@ const TestData kTests[] = {
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-rd-operand-rn-shift-rs-t32-mov.h"
-#include "aarch32/traces/assembler-cond-rd-operand-rn-shift-rs-t32-movs.h"
+#include "aarch32/traces/assembler-cond-rd-operand-rn-shift-rs-mov-t32.h"
+#include "aarch32/traces/assembler-cond-rd-operand-rn-shift-rs-movs-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -2278,7 +2278,7 @@ void TestHelper(Fn instruction,
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
   Test test_##mnemonic(                                                     \
-      "AARCH32_ASSEMBLER_COND_RD_OPERAND_RN_SHIFT_RS_T32_" #mnemonic,       \
+      "AARCH32_ASSEMBLER_COND_RD_OPERAND_RN_SHIFT_RS_" #mnemonic "_T32",    \
       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST

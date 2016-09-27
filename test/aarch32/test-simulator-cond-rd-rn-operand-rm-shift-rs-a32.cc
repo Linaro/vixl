@@ -2086,26 +2086,26 @@ struct TestResult {
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-adc.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-adcs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-add.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-adds.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-and.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-ands.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-bic.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-bics.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-eor.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-eors.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-orr.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-orrs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-rsb.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-rsbs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-rsc.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-rscs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-sbc.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-sbcs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-sub.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-a32-subs.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-adc-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-adcs-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-add-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-adds-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-and-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-ands-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-bic-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-bics-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-eor-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-eors-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-orr-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-orrs-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-rsb-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-rsbs-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-rsc-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-rscs-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-sbc-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-sbcs-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-sub-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-rs-subs-a32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -2344,16 +2344,16 @@ void TestHelper(Fn instruction,
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
   Test test_##mnemonic(                                                     \
-      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_SHIFT_RS_A32_" #mnemonic,    \
+      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_SHIFT_RS_" #mnemonic "_A32", \
       &Test_##mnemonic);
 #else
-#define TEST(mnemonic)                                                   \
-  void Test_##mnemonic() {                                               \
-    VIXL_WARNING("This test can only run on a 32-bit host.\n");          \
-    USE(TestHelper);                                                     \
-  }                                                                      \
-  Test test_##mnemonic(                                                  \
-      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_SHIFT_RS_A32_" #mnemonic, \
+#define TEST(mnemonic)                                                      \
+  void Test_##mnemonic() {                                                  \
+    VIXL_WARNING("This test can only run on a 32-bit host.\n");             \
+    USE(TestHelper);                                                        \
+  }                                                                         \
+  Test test_##mnemonic(                                                     \
+      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_SHIFT_RS_" #mnemonic "_A32", \
       &Test_##mnemonic);
 #endif
 

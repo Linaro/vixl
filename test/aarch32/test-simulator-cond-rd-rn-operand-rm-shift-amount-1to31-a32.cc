@@ -1381,26 +1381,26 @@ struct TestResult {
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-adc.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-adcs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-add.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-adds.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-and.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-ands.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-bic.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-bics.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-eor.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-eors.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-orr.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-orrs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-rsb.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-rsbs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-rsc.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-rscs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-sbc.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-sbcs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-sub.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-a32-subs.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-adc-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-adcs-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-add-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-adds-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-and-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-ands-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-bic-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-bics-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-eor-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-eors-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-orr-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-orrs-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-rsb-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-rsbs-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-rsc-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-rscs-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-sbc-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-sbcs-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-sub-a32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-shift-amount-1to31-subs-a32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -1620,23 +1620,23 @@ void TestHelper(Fn instruction,
 // Instantiate tests for each instruction in the list.
 // TODO: Remove this limitation by having a sandboxing mechanism.
 #if defined(VIXL_HOST_POINTER_32)
-#define TEST(mnemonic)                                                      \
-  void Test_##mnemonic() {                                                  \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
-  }                                                                         \
-  Test test_##mnemonic(                                                     \
-      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_SHIFT_AMOUNT_1TO31_"         \
-      "A32_" #mnemonic,                                                     \
+#define TEST(mnemonic)                                                        \
+  void Test_##mnemonic() {                                                    \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);   \
+  }                                                                           \
+  Test test_##mnemonic(                                                       \
+      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_SHIFT_AMOUNT_1TO31_" #mnemonic \
+      "_A32",                                                                 \
       &Test_##mnemonic);
 #else
-#define TEST(mnemonic)                                              \
-  void Test_##mnemonic() {                                          \
-    VIXL_WARNING("This test can only run on a 32-bit host.\n");     \
-    USE(TestHelper);                                                \
-  }                                                                 \
-  Test test_##mnemonic(                                             \
-      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_SHIFT_AMOUNT_1TO31_" \
-      "A32_" #mnemonic,                                             \
+#define TEST(mnemonic)                                                        \
+  void Test_##mnemonic() {                                                    \
+    VIXL_WARNING("This test can only run on a 32-bit host.\n");               \
+    USE(TestHelper);                                                          \
+  }                                                                           \
+  Test test_##mnemonic(                                                       \
+      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_SHIFT_AMOUNT_1TO31_" #mnemonic \
+      "_A32",                                                                 \
       &Test_##mnemonic);
 #endif
 

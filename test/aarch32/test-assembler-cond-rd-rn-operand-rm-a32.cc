@@ -629,40 +629,40 @@ const TestData kTests[] =
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-adc.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-adcs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-add.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-adds.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-and.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-ands.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-bic.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-bics.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-eor.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-eors.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-orr.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-orrs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-rsb.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-rsbs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-rsc.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-rscs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-sbc.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-sbcs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-sub.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-subs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-sxtab.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-sxtab16.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-sxtah.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-uxtab.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-uxtab16.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-uxtah.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-asr.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-asrs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-lsl.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-lsls.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-lsr.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-lsrs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-ror.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-a32-rors.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-adc-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-adcs-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-add-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-adds-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-and-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ands-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-bic-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-bics-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-eor-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-eors-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-orr-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-orrs-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-rsb-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-rsbs-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-rsc-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-rscs-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-sbc-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-sbcs-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-sub-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-subs-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-sxtab-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-sxtab16-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-sxtah-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-uxtab-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-uxtab16-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-uxtah-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-asr-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-asrs-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-lsl-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-lsls-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-lsr-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-lsrs-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-ror-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-rors-a32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -791,9 +791,9 @@ void TestHelper(Fn instruction,
   void Test_##mnemonic() {                                                  \
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
-  Test test_##mnemonic(                                                     \
-      "AARCH32_ASSEMBLER_COND_RD_RN_OPERAND_RM_A32_" #mnemonic,             \
-      &Test_##mnemonic);
+  Test test_##mnemonic("AARCH32_ASSEMBLER_COND_RD_RN_OPERAND_RM_" #mnemonic \
+                       "_A32",                                              \
+                       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST
 

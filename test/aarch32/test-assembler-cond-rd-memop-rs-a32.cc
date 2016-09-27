@@ -3604,14 +3604,14 @@ const TestData kTests[] = {{{pl, r8, r11, plus, r6, Offset},
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-rd-memop-rs-a32-ldr.h"
-#include "aarch32/traces/assembler-cond-rd-memop-rs-a32-ldrb.h"
-#include "aarch32/traces/assembler-cond-rd-memop-rs-a32-ldrh.h"
-#include "aarch32/traces/assembler-cond-rd-memop-rs-a32-ldrsb.h"
-#include "aarch32/traces/assembler-cond-rd-memop-rs-a32-ldrsh.h"
-#include "aarch32/traces/assembler-cond-rd-memop-rs-a32-str.h"
-#include "aarch32/traces/assembler-cond-rd-memop-rs-a32-strb.h"
-#include "aarch32/traces/assembler-cond-rd-memop-rs-a32-strh.h"
+#include "aarch32/traces/assembler-cond-rd-memop-rs-ldr-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-rs-ldrb-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-rs-ldrh-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-rs-ldrsb-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-rs-ldrsh-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-rs-str-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-rs-strb-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-rs-strh-a32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -3737,11 +3737,11 @@ void TestHelper(Fn instruction,
 }
 
 // Instantiate tests for each instruction in the list.
-#define TEST(mnemonic)                                                      \
-  void Test_##mnemonic() {                                                  \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
-  }                                                                         \
-  Test test_##mnemonic("AARCH32_ASSEMBLER_COND_RD_MEMOP_RS_A32_" #mnemonic, \
+#define TEST(mnemonic)                                                         \
+  void Test_##mnemonic() {                                                     \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);    \
+  }                                                                            \
+  Test test_##mnemonic("AARCH32_ASSEMBLER_COND_RD_MEMOP_RS_" #mnemonic "_A32", \
                        &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST

@@ -2614,26 +2614,26 @@ const TestData kTests[] = {{{al, r13, r14, 0x02ac0000},
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-adc.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-adcs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-add.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-adds.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-and.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-ands.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-bic.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-bics.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-eor.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-eors.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-orn.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-orns.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-orr.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-orrs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-rsb.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-rsbs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-sbc.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-sbcs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-sub.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-const-t32-subs.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-adc-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-adcs-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-add-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-adds-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-and-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-ands-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-bic-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-bics-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-eor-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-eors-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-orn-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-orns-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-orr-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-orrs-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-rsb-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-rsbs-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-sbc-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-sbcs-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-sub-t32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-const-subs-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -2758,13 +2758,13 @@ void TestHelper(Fn instruction,
 }
 
 // Instantiate tests for each instruction in the list.
-#define TEST(mnemonic)                                                      \
-  void Test_##mnemonic() {                                                  \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
-  }                                                                         \
-  Test test_##mnemonic(                                                     \
-      "AARCH32_ASSEMBLER_COND_RD_RN_OPERAND_CONST_T32_" #mnemonic,          \
-      &Test_##mnemonic);
+#define TEST(mnemonic)                                                         \
+  void Test_##mnemonic() {                                                     \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);    \
+  }                                                                            \
+  Test test_##mnemonic("AARCH32_ASSEMBLER_COND_RD_RN_OPERAND_CONST_" #mnemonic \
+                       "_T32",                                                 \
+                       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST
 

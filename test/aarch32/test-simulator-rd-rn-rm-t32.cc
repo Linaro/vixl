@@ -653,12 +653,12 @@ struct TestResult {
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/simulator-rd-rn-rm-t32-crc32b.h"
-#include "aarch32/traces/simulator-rd-rn-rm-t32-crc32cb.h"
-#include "aarch32/traces/simulator-rd-rn-rm-t32-crc32ch.h"
-#include "aarch32/traces/simulator-rd-rn-rm-t32-crc32cw.h"
-#include "aarch32/traces/simulator-rd-rn-rm-t32-crc32h.h"
-#include "aarch32/traces/simulator-rd-rn-rm-t32-crc32w.h"
+#include "aarch32/traces/simulator-rd-rn-rm-crc32b-t32.h"
+#include "aarch32/traces/simulator-rd-rn-rm-crc32cb-t32.h"
+#include "aarch32/traces/simulator-rd-rn-rm-crc32ch-t32.h"
+#include "aarch32/traces/simulator-rd-rn-rm-crc32cw-t32.h"
+#include "aarch32/traces/simulator-rd-rn-rm-crc32h-t32.h"
+#include "aarch32/traces/simulator-rd-rn-rm-crc32w-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -843,15 +843,15 @@ void TestHelper(Fn instruction,
   void Test_##mnemonic() {                                                  \
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
-  Test test_##mnemonic("AARCH32_SIMULATOR_RD_RN_RM_T32_" #mnemonic,         \
+  Test test_##mnemonic("AARCH32_SIMULATOR_RD_RN_RM_" #mnemonic "_T32",      \
                        &Test_##mnemonic);
 #else
-#define TEST(mnemonic)                                              \
-  void Test_##mnemonic() {                                          \
-    VIXL_WARNING("This test can only run on a 32-bit host.\n");     \
-    USE(TestHelper);                                                \
-  }                                                                 \
-  Test test_##mnemonic("AARCH32_SIMULATOR_RD_RN_RM_T32_" #mnemonic, \
+#define TEST(mnemonic)                                                 \
+  void Test_##mnemonic() {                                             \
+    VIXL_WARNING("This test can only run on a 32-bit host.\n");        \
+    USE(TestHelper);                                                   \
+  }                                                                    \
+  Test test_##mnemonic("AARCH32_SIMULATOR_RD_RN_RM_" #mnemonic "_T32", \
                        &Test_##mnemonic);
 #endif
 

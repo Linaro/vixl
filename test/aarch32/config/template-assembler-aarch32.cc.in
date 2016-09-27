@@ -205,8 +205,8 @@ void TestHelper(Fn instruction, const char* mnemonic,
   void Test_##mnemonic() {                                                  \
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
-  Test test_##mnemonic("AARCH32_${test_name}_" #mnemonic,                   \
-                              &Test_##mnemonic);
+  Test test_##mnemonic("AARCH32_${test_name}_" #mnemonic "_${test_isa}",    \
+                       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST
 

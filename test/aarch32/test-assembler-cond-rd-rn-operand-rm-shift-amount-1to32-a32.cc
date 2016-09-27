@@ -2616,26 +2616,26 @@ const TestData kTests[] = {{{eq, r13, r6, r7, ASR, 5},
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-adc.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-adcs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-add.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-adds.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-and.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-ands.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-bic.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-bics.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-eor.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-eors.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-orr.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-orrs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-rsb.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-rsbs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-rsc.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-rscs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-sbc.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-sbcs.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-sub.h"
-#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-a32-subs.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-adc-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-adcs-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-add-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-adds-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-and-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-ands-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-bic-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-bics-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-eor-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-eors-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-orr-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-orrs-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-rsb-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-rsbs-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-rsc-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-rscs-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-sbc-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-sbcs-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-sub-a32.h"
+#include "aarch32/traces/assembler-cond-rd-rn-operand-rm-shift-amount-1to32-subs-a32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -2762,13 +2762,13 @@ void TestHelper(Fn instruction,
 }
 
 // Instantiate tests for each instruction in the list.
-#define TEST(mnemonic)                                                      \
-  void Test_##mnemonic() {                                                  \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
-  }                                                                         \
-  Test test_##mnemonic(                                                     \
-      "AARCH32_ASSEMBLER_COND_RD_RN_OPERAND_RM_SHIFT_AMOUNT_1TO32_"         \
-      "A32_" #mnemonic,                                                     \
+#define TEST(mnemonic)                                                        \
+  void Test_##mnemonic() {                                                    \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);   \
+  }                                                                           \
+  Test test_##mnemonic(                                                       \
+      "AARCH32_ASSEMBLER_COND_RD_RN_OPERAND_RM_SHIFT_AMOUNT_1TO32_" #mnemonic \
+      "_A32",                                                                 \
       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST

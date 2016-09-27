@@ -3600,10 +3600,10 @@ const TestData kTests[] = {{{pl, r13, r0, plus, 0, Offset},
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-rd-memop-immediate-512-a32-ldrh.h"
-#include "aarch32/traces/assembler-cond-rd-memop-immediate-512-a32-ldrsh.h"
-#include "aarch32/traces/assembler-cond-rd-memop-immediate-512-a32-ldrsb.h"
-#include "aarch32/traces/assembler-cond-rd-memop-immediate-512-a32-strh.h"
+#include "aarch32/traces/assembler-cond-rd-memop-immediate-512-ldrh-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-immediate-512-ldrsh-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-immediate-512-ldrsb-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-immediate-512-strh-a32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -3734,7 +3734,7 @@ void TestHelper(Fn instruction,
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
   Test test_##mnemonic(                                                     \
-      "AARCH32_ASSEMBLER_COND_RD_MEMOP_IMMEDIATE_512_A32_" #mnemonic,       \
+      "AARCH32_ASSEMBLER_COND_RD_MEMOP_IMMEDIATE_512_" #mnemonic "_A32",    \
       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST

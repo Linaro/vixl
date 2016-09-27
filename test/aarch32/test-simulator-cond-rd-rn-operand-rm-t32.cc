@@ -1050,40 +1050,40 @@ struct TestResult {
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-adc.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-adcs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-add.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-adds.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-and.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-ands.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-bic.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-bics.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-eor.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-eors.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-orn.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-orns.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-orr.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-orrs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-rsb.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-rsbs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-sbc.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-sbcs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-sub.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-subs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-sxtab.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-sxtab16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-sxtah.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-uxtab.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-uxtab16.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-uxtah.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-asr.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-asrs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-lsl.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-lsls.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-lsr.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-lsrs.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-ror.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-t32-rors.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-adc-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-adcs-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-add-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-adds-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-and-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ands-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-bic-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-bics-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-eor-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-eors-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-orn-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-orns-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-orr-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-orrs-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-rsb-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-rsbs-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-sbc-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-sbcs-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-sub-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-subs-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-sxtab-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-sxtab16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-sxtah-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-uxtab-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-uxtab16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-uxtah-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-asr-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-asrs-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-lsl-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-lsls-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-lsr-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-lsrs-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-rors-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -1305,18 +1305,18 @@ void TestHelper(Fn instruction,
   void Test_##mnemonic() {                                                  \
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
-  Test test_##mnemonic(                                                     \
-      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_T32_" #mnemonic,             \
-      &Test_##mnemonic);
+  Test test_##mnemonic("AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_" #mnemonic \
+                       "_T32",                                              \
+                       &Test_##mnemonic);
 #else
-#define TEST(mnemonic)                                          \
-  void Test_##mnemonic() {                                      \
-    VIXL_WARNING("This test can only run on a 32-bit host.\n"); \
-    USE(TestHelper);                                            \
-  }                                                             \
-  Test test_##mnemonic(                                         \
-      "AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_T32_" #mnemonic, \
-      &Test_##mnemonic);
+#define TEST(mnemonic)                                                      \
+  void Test_##mnemonic() {                                                  \
+    VIXL_WARNING("This test can only run on a 32-bit host.\n");             \
+    USE(TestHelper);                                                        \
+  }                                                                         \
+  Test test_##mnemonic("AARCH32_SIMULATOR_COND_RD_RN_OPERAND_RM_" #mnemonic \
+                       "_T32",                                              \
+                       &Test_##mnemonic);
 #endif
 
 FOREACH_INSTRUCTION(TEST)

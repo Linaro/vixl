@@ -3337,10 +3337,10 @@ struct TestResult {
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/simulator-cond-rd-memop-immediate-8192-a32-ldr.h"
-#include "aarch32/traces/simulator-cond-rd-memop-immediate-8192-a32-ldrb.h"
-#include "aarch32/traces/simulator-cond-rd-memop-immediate-8192-a32-str.h"
-#include "aarch32/traces/simulator-cond-rd-memop-immediate-8192-a32-strb.h"
+#include "aarch32/traces/simulator-cond-rd-memop-immediate-8192-ldr-a32.h"
+#include "aarch32/traces/simulator-cond-rd-memop-immediate-8192-ldrb-a32.h"
+#include "aarch32/traces/simulator-cond-rd-memop-immediate-8192-str-a32.h"
+#include "aarch32/traces/simulator-cond-rd-memop-immediate-8192-strb-a32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -3640,16 +3640,16 @@ void TestHelper(Fn instruction,
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
   Test test_##mnemonic(                                                     \
-      "AARCH32_SIMULATOR_COND_RD_MEMOP_IMMEDIATE_8192_A32_" #mnemonic,      \
+      "AARCH32_SIMULATOR_COND_RD_MEMOP_IMMEDIATE_8192_" #mnemonic "_A32",   \
       &Test_##mnemonic);
 #else
-#define TEST(mnemonic)                                                 \
-  void Test_##mnemonic() {                                             \
-    VIXL_WARNING("This test can only run on a 32-bit host.\n");        \
-    USE(TestHelper);                                                   \
-  }                                                                    \
-  Test test_##mnemonic(                                                \
-      "AARCH32_SIMULATOR_COND_RD_MEMOP_IMMEDIATE_8192_A32_" #mnemonic, \
+#define TEST(mnemonic)                                                    \
+  void Test_##mnemonic() {                                                \
+    VIXL_WARNING("This test can only run on a 32-bit host.\n");           \
+    USE(TestHelper);                                                      \
+  }                                                                       \
+  Test test_##mnemonic(                                                   \
+      "AARCH32_SIMULATOR_COND_RD_MEMOP_IMMEDIATE_8192_" #mnemonic "_A32", \
       &Test_##mnemonic);
 #endif
 

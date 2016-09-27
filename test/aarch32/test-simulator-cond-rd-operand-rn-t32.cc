@@ -587,20 +587,20 @@ struct TestResult {
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-cmn.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-cmp.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-mov.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-movs.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-mvn.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-mvns.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-teq.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-tst.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-sxtb.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-sxtb16.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-sxth.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-uxtb.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-uxtb16.h"
-#include "aarch32/traces/simulator-cond-rd-operand-rn-t32-uxth.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-cmn-t32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-cmp-t32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-mov-t32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-movs-t32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-mvn-t32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-mvns-t32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-teq-t32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-tst-t32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-sxtb-t32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-sxtb16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-sxth-t32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-uxtb-t32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-uxtb16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-rn-uxth-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -801,19 +801,21 @@ void TestHelper(Fn instruction,
 // Instantiate tests for each instruction in the list.
 // TODO: Remove this limitation by having a sandboxing mechanism.
 #if defined(VIXL_HOST_POINTER_32)
-#define TEST(mnemonic)                                                        \
-  void Test_##mnemonic() {                                                    \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);   \
-  }                                                                           \
-  Test test_##mnemonic("AARCH32_SIMULATOR_COND_RD_OPERAND_RN_T32_" #mnemonic, \
+#define TEST(mnemonic)                                                      \
+  void Test_##mnemonic() {                                                  \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
+  }                                                                         \
+  Test test_##mnemonic("AARCH32_SIMULATOR_COND_RD_OPERAND_RN_" #mnemonic    \
+                       "_T32",                                              \
                        &Test_##mnemonic);
 #else
-#define TEST(mnemonic)                                                        \
-  void Test_##mnemonic() {                                                    \
-    VIXL_WARNING("This test can only run on a 32-bit host.\n");               \
-    USE(TestHelper);                                                          \
-  }                                                                           \
-  Test test_##mnemonic("AARCH32_SIMULATOR_COND_RD_OPERAND_RN_T32_" #mnemonic, \
+#define TEST(mnemonic)                                                   \
+  void Test_##mnemonic() {                                               \
+    VIXL_WARNING("This test can only run on a 32-bit host.\n");          \
+    USE(TestHelper);                                                     \
+  }                                                                      \
+  Test test_##mnemonic("AARCH32_SIMULATOR_COND_RD_OPERAND_RN_" #mnemonic \
+                       "_T32",                                           \
                        &Test_##mnemonic);
 #endif
 

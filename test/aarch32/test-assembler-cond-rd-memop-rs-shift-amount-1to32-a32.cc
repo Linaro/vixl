@@ -3602,10 +3602,10 @@ const TestData kTests[] = {{{pl, r8, r11, plus, r6, LSR, 1, Offset},
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-rd-memop-rs-shift-amount-1to32-a32-ldr.h"
-#include "aarch32/traces/assembler-cond-rd-memop-rs-shift-amount-1to32-a32-ldrb.h"
-#include "aarch32/traces/assembler-cond-rd-memop-rs-shift-amount-1to32-a32-str.h"
-#include "aarch32/traces/assembler-cond-rd-memop-rs-shift-amount-1to32-a32-strb.h"
+#include "aarch32/traces/assembler-cond-rd-memop-rs-shift-amount-1to32-ldr-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-rs-shift-amount-1to32-ldrb-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-rs-shift-amount-1to32-str-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-rs-shift-amount-1to32-strb-a32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -3733,12 +3733,13 @@ void TestHelper(Fn instruction,
 }
 
 // Instantiate tests for each instruction in the list.
-#define TEST(mnemonic)                                                        \
-  void Test_##mnemonic() {                                                    \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);   \
-  }                                                                           \
-  Test test_##mnemonic(                                                       \
-      "AARCH32_ASSEMBLER_COND_RD_MEMOP_RS_SHIFT_AMOUNT_1TO32_A32_" #mnemonic, \
+#define TEST(mnemonic)                                                      \
+  void Test_##mnemonic() {                                                  \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
+  }                                                                         \
+  Test test_##mnemonic(                                                     \
+      "AARCH32_ASSEMBLER_COND_RD_MEMOP_RS_SHIFT_AMOUNT_1TO32_" #mnemonic    \
+      "_A32",                                                               \
       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST

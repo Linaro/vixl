@@ -463,14 +463,14 @@ struct TestResult {
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/simulator-cond-rd-operand-const-a32-cmn.h"
-#include "aarch32/traces/simulator-cond-rd-operand-const-a32-cmp.h"
-#include "aarch32/traces/simulator-cond-rd-operand-const-a32-mov.h"
-#include "aarch32/traces/simulator-cond-rd-operand-const-a32-movs.h"
-#include "aarch32/traces/simulator-cond-rd-operand-const-a32-mvn.h"
-#include "aarch32/traces/simulator-cond-rd-operand-const-a32-mvns.h"
-#include "aarch32/traces/simulator-cond-rd-operand-const-a32-teq.h"
-#include "aarch32/traces/simulator-cond-rd-operand-const-a32-tst.h"
+#include "aarch32/traces/simulator-cond-rd-operand-const-cmn-a32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-const-cmp-a32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-const-mov-a32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-const-movs-a32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-const-mvn-a32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-const-mvns-a32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-const-teq-a32.h"
+#include "aarch32/traces/simulator-cond-rd-operand-const-tst-a32.h"
 
 
 // The maximum number of errors to report in detail for each test.
@@ -661,18 +661,18 @@ void TestHelper(Fn instruction,
   void Test_##mnemonic() {                                                  \
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
-  Test test_##mnemonic(                                                     \
-      "AARCH32_SIMULATOR_COND_RD_OPERAND_CONST_A32_" #mnemonic,             \
-      &Test_##mnemonic);
+  Test test_##mnemonic("AARCH32_SIMULATOR_COND_RD_OPERAND_CONST_" #mnemonic \
+                       "_A32",                                              \
+                       &Test_##mnemonic);
 #else
-#define TEST(mnemonic)                                          \
-  void Test_##mnemonic() {                                      \
-    VIXL_WARNING("This test can only run on a 32-bit host.\n"); \
-    USE(TestHelper);                                            \
-  }                                                             \
-  Test test_##mnemonic(                                         \
-      "AARCH32_SIMULATOR_COND_RD_OPERAND_CONST_A32_" #mnemonic, \
-      &Test_##mnemonic);
+#define TEST(mnemonic)                                                      \
+  void Test_##mnemonic() {                                                  \
+    VIXL_WARNING("This test can only run on a 32-bit host.\n");             \
+    USE(TestHelper);                                                        \
+  }                                                                         \
+  Test test_##mnemonic("AARCH32_SIMULATOR_COND_RD_OPERAND_CONST_" #mnemonic \
+                       "_A32",                                              \
+                       &Test_##mnemonic);
 #endif
 
 FOREACH_INSTRUCTION(TEST)
