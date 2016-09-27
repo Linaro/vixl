@@ -1843,8 +1843,8 @@ TEST(logical_arithmetic_identities) {
   ASSERT_EQUAL_32(0, r1);
   ASSERT_EQUAL_32(0, r2);
   ASSERT_EQUAL_32(~0xbad, r3);
-  ASSERT_EQUAL_32(0, r4);
-  ASSERT_EQUAL_32(0, r5);
+  ASSERT_EQUAL_32(0xffffffff, r4);
+  ASSERT_EQUAL_32(0xffffffff, r5);
 
   TEARDOWN();
 }
