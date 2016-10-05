@@ -142,28 +142,28 @@ void GenerateTestWrapper(MacroAssembler* masm, RegisterDump *regs) {
     simulator.WriteXRegister(15, masm.GetLabelAddress<uint64_t>(&Func));\
     simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&test));       \
                                                                         \
-    assert(saved_xregs[0] == simulator.ReadXRegister(19));              \
-    assert(saved_xregs[1] == simulator.ReadXRegister(20));              \
-    assert(saved_xregs[2] == simulator.ReadXRegister(21));              \
-    assert(saved_xregs[3] == simulator.ReadXRegister(22));              \
-    assert(saved_xregs[4] == simulator.ReadXRegister(23));              \
-    assert(saved_xregs[5] == simulator.ReadXRegister(24));              \
-    assert(saved_xregs[6] == simulator.ReadXRegister(25));              \
-    assert(saved_xregs[7] == simulator.ReadXRegister(26));              \
-    assert(saved_xregs[8] == simulator.ReadXRegister(27));              \
-    assert(saved_xregs[9] == simulator.ReadXRegister(28));              \
-    assert(saved_xregs[10] == simulator.ReadXRegister(29));             \
-    assert(saved_xregs[11] == simulator.ReadXRegister(30));             \
-    assert(saved_xregs[12] == simulator.ReadXRegister(31));             \
+    VIXL_CHECK(saved_xregs[0] == simulator.ReadXRegister(19));          \
+    VIXL_CHECK(saved_xregs[1] == simulator.ReadXRegister(20));          \
+    VIXL_CHECK(saved_xregs[2] == simulator.ReadXRegister(21));          \
+    VIXL_CHECK(saved_xregs[3] == simulator.ReadXRegister(22));          \
+    VIXL_CHECK(saved_xregs[4] == simulator.ReadXRegister(23));          \
+    VIXL_CHECK(saved_xregs[5] == simulator.ReadXRegister(24));          \
+    VIXL_CHECK(saved_xregs[6] == simulator.ReadXRegister(25));          \
+    VIXL_CHECK(saved_xregs[7] == simulator.ReadXRegister(26));          \
+    VIXL_CHECK(saved_xregs[8] == simulator.ReadXRegister(27));          \
+    VIXL_CHECK(saved_xregs[9] == simulator.ReadXRegister(28));          \
+    VIXL_CHECK(saved_xregs[10] == simulator.ReadXRegister(29));         \
+    VIXL_CHECK(saved_xregs[11] == simulator.ReadXRegister(30));         \
+    VIXL_CHECK(saved_xregs[12] == simulator.ReadXRegister(31));         \
                                                                         \
-    assert(saved_dregs[0] == simulator.ReadDRegisterBits(8));           \
-    assert(saved_dregs[1] == simulator.ReadDRegisterBits(9));           \
-    assert(saved_dregs[2] == simulator.ReadDRegisterBits(10));          \
-    assert(saved_dregs[3] == simulator.ReadDRegisterBits(11));          \
-    assert(saved_dregs[4] == simulator.ReadDRegisterBits(12));          \
-    assert(saved_dregs[5] == simulator.ReadDRegisterBits(13));          \
-    assert(saved_dregs[6] == simulator.ReadDRegisterBits(14));          \
-    assert(saved_dregs[7] == simulator.ReadDRegisterBits(15));          \
+    VIXL_CHECK(saved_dregs[0] == simulator.ReadDRegisterBits(8));       \
+    VIXL_CHECK(saved_dregs[1] == simulator.ReadDRegisterBits(9));       \
+    VIXL_CHECK(saved_dregs[2] == simulator.ReadDRegisterBits(10));      \
+    VIXL_CHECK(saved_dregs[3] == simulator.ReadDRegisterBits(11));      \
+    VIXL_CHECK(saved_dregs[4] == simulator.ReadDRegisterBits(12));      \
+    VIXL_CHECK(saved_dregs[5] == simulator.ReadDRegisterBits(13));      \
+    VIXL_CHECK(saved_dregs[6] == simulator.ReadDRegisterBits(14));      \
+    VIXL_CHECK(saved_dregs[7] == simulator.ReadDRegisterBits(15));      \
                                                                         \
   } while (0)
 
@@ -197,7 +197,7 @@ void GenerateTestWrapper(MacroAssembler* masm, RegisterDump *regs) {
     simulator.ResetState();                                             \
     simulator.WriteXRegister(0, N);                                     \
     TEST_FUNCTION(factorial);                                           \
-    assert(static_cast<uint64_t>(regs.xreg(0)) == FactorialC(N));       \
+    VIXL_CHECK(static_cast<uint64_t>(regs.xreg(0)) == FactorialC(N));   \
   } while (0)
 
 TEST(factorial) {
@@ -222,7 +222,7 @@ TEST(factorial) {
     simulator.ResetState();                                             \
     simulator.WriteXRegister(0, N);                                     \
     TEST_FUNCTION(factorial_rec);                                       \
-    assert(static_cast<uint64_t>(regs.xreg(0)) == FactorialC(N));       \
+    VIXL_CHECK(static_cast<uint64_t>(regs.xreg(0)) == FactorialC(N));   \
   } while (0)
 
 TEST(factorial_rec) {
@@ -278,7 +278,7 @@ TEST(neon_matrix_multiply) {
 
     // Check that the results match what is expected.
     for (int i = 0; i < kLength; i++) {
-      assert(output[i] == expected[i]);
+      VIXL_CHECK(output[i] == expected[i]);
     }
   }
 }
@@ -318,7 +318,7 @@ TEST(add2_vectors) {
 
   // Compare vectors to ensure sums are equal.
   for (unsigned i = 0; i < ARRAY_SIZE(A); i++) {
-    assert(A[i] == D[i]);
+    VIXL_CHECK(A[i] == D[i]);
   }
 }
 
@@ -329,7 +329,7 @@ TEST(add2_vectors) {
     simulator.WriteDRegister(1, B);                                     \
     simulator.WriteDRegister(2, C);                                     \
     TEST_FUNCTION(add3_double);                                         \
-    assert(regs.dreg(0) == Add3DoubleC(A, B, C));                       \
+    VIXL_CHECK(regs.dreg(0) == Add3DoubleC(A, B, C));                   \
   } while (0)
 
 TEST(add3_double) {
@@ -355,7 +355,7 @@ TEST(add3_double) {
     simulator.WriteXRegister(1, C);                                     \
     simulator.WriteDRegister(1, D);                                     \
     TEST_FUNCTION(add4_double);                                         \
-    assert(regs.dreg(0) == Add4DoubleC(A, B, C, D));                    \
+    VIXL_CHECK(regs.dreg(0) == Add4DoubleC(A, B, C, D));                \
   } while (0)
 
 TEST(add4_double) {
@@ -381,7 +381,7 @@ TEST(add4_double) {
     simulator.WriteXRegister(0, addr);                                  \
     simulator.WriteXRegister(1, ARRAY_SIZE(Array));                     \
     TEST_FUNCTION(sum_array);                                           \
-    assert(regs.xreg(0) == SumArrayC(Array, ARRAY_SIZE(Array)));        \
+    VIXL_CHECK(regs.xreg(0) == SumArrayC(Array, ARRAY_SIZE(Array)));    \
   } while (0)
 
 TEST(sum_array) {
@@ -410,7 +410,7 @@ TEST(sum_array) {
     simulator.ResetState();                                             \
     simulator.WriteXRegister(0, X);                                     \
     TEST_FUNCTION(func_abs);                                            \
-    assert(regs.xreg(0) == abs(X));                                     \
+    VIXL_CHECK(regs.xreg(0) == abs(X));                                 \
   } while (0)
 
 TEST(abs) {
@@ -443,7 +443,7 @@ TEST(crc32) {
   simulator.WriteXRegister(0, msg_addr);
   simulator.WriteXRegister(1, msg_size);
   TEST_FUNCTION(crc32);
-  assert(regs.xreg(0) == chksum);
+  VIXL_CHECK(regs.xreg(0) == chksum);
 }
 
 
@@ -465,10 +465,10 @@ TEST(swap4) {
   simulator.WriteXRegister(2, c);
   simulator.WriteXRegister(3, d);
   TEST_FUNCTION(swap4);
-  assert(regs.xreg(0) == d);
-  assert(regs.xreg(1) == c);
-  assert(regs.xreg(2) == b);
-  assert(regs.xreg(3) == a);
+  VIXL_CHECK(regs.xreg(0) == d);
+  VIXL_CHECK(regs.xreg(1) == c);
+  VIXL_CHECK(regs.xreg(2) == b);
+  VIXL_CHECK(regs.xreg(3) == a);
 }
 
 
@@ -485,8 +485,8 @@ TEST(swap_int32) {
   simulator.WriteWRegister(0, x);
   simulator.WriteWRegister(1, y);
   TEST_FUNCTION(swap_int32);
-  assert(regs.wreg(0) == y);
-  assert(regs.wreg(1) == x);
+  VIXL_CHECK(regs.wreg(0) == y);
+  VIXL_CHECK(regs.wreg(1) == x);
 }
 
 
@@ -497,7 +497,7 @@ TEST(swap_int32) {
     simulator.WriteXRegister(1, Low);                                   \
     simulator.WriteXRegister(2, High);                                  \
     TEST_FUNCTION(check_bounds);                                        \
-    assert(regs.xreg(0) == ((Low <= Value) && (Value <= High)));        \
+    VIXL_CHECK(regs.xreg(0) == ((Low <= Value) && (Value <= High)));    \
   } while (0)
 
 TEST(check_bounds) {
@@ -525,7 +525,7 @@ TEST(check_bounds) {
     simulator.ResetState();                                     \
     simulator.WriteXRegister(0, Value);                         \
     TEST_FUNCTION(demo_function);                               \
-    assert(regs.xreg(0) == (Value & 0x1122334455667788));       \
+    VIXL_CHECK(regs.xreg(0) == (Value & 0x1122334455667788));   \
   } while (0)
 
 TEST(getting_started) {
@@ -560,7 +560,7 @@ TEST(non_const_visitor) {
   ModifyNonConstVisitorTestGeneratedCode(instr_start, instr_end);
 
   int64_t res_mod = RunNonConstVisitorTestGeneratedCode(instr_start);
-  assert(res_orig == -res_mod);
+  VIXL_CHECK(res_orig == -res_mod);
 }
 
 
@@ -575,13 +575,13 @@ TEST(literal_example) {
 // below.
 #define RUNTIME_CALLS_EXPECTED(A, B) ((A + B) << 2)
 
-#define RUNTIME_CALLS_DOTEST(A, B, R)                              \
-  do {                                                             \
-    simulator.ResetState();                                        \
-    simulator.WriteWRegister(0, A);                                \
-    simulator.WriteWRegister(1, B);                                \
-    TEST_FUNCTION(start);                                          \
-    assert(regs.wreg<int32_t>(0) == RUNTIME_CALLS_EXPECTED(A, B)); \
+#define RUNTIME_CALLS_DOTEST(A, B, R)                                  \
+  do {                                                                 \
+    simulator.ResetState();                                            \
+    simulator.WriteWRegister(0, A);                                    \
+    simulator.WriteWRegister(1, B);                                    \
+    TEST_FUNCTION(start);                                              \
+    VIXL_CHECK(regs.wreg<int32_t>(0) == RUNTIME_CALLS_EXPECTED(A, B)); \
   } while (0)
 
 TEST(runtime_calls) {

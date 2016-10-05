@@ -44,7 +44,7 @@ namespace aarch32 {
 #define BUF_SIZE (4096)
 
 #define ASSERT_LITERAL_POOL_SIZE(size) \
-    do { assert(__ GetLiteralPoolSize() == size); } while (false)
+    do { VIXL_CHECK(__ GetLiteralPoolSize() == size); } while (false)
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 // No simulator yet.
@@ -135,22 +135,22 @@ namespace aarch32 {
 #else
 
 #define ASSERT_EQUAL_32(expected, result)                                      \
-  assert(Equal32(expected, &core, result))
+  VIXL_CHECK(Equal32(expected, &core, result))
 
 #define ASSERT_EQUAL_64(expected, result)                                      \
-  assert(Equal64(expected, &core, result))
+  VIXL_CHECK(Equal64(expected, &core, result))
 
 #define ASSERT_EQUAL_128(expected_h, expected_l, result)                       \
-  assert(Equal128(expected_h, expected_l, &core, result))
+  VIXL_CHECK(Equal128(expected_h, expected_l, &core, result))
 
 #define ASSERT_EQUAL_FP32(expected, result)                                    \
-  assert(EqualFP32(expected, &core, result))
+  VIXL_CHECK(EqualFP32(expected, &core, result))
 
 #define ASSERT_EQUAL_FP64(expected, result)                                    \
-  assert(EqualFP64(expected, &core, result))
+  VIXL_CHECK(EqualFP64(expected, &core, result))
 
 #define ASSERT_EQUAL_NZCV(expected)                                            \
-  assert(EqualNzcv(expected, core.flags_nzcv()))
+  VIXL_CHECK(EqualNzcv(expected, core.flags_nzcv()))
 
 #endif
 

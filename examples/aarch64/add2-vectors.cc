@@ -116,7 +116,7 @@ int main(void) {
   uint8_t vecC[ARRAY_SIZE(vecA)];
 
   // Check whether the number of elements in both vectors match.
-  assert(ARRAY_SIZE(vecA) == ARRAY_SIZE(vecB));
+  VIXL_CHECK(ARRAY_SIZE(vecA) == ARRAY_SIZE(vecB));
 
   // Compute the result in C.
   for (unsigned i = 0; i < ARRAY_SIZE(vecA); i++) {
@@ -144,7 +144,7 @@ int main(void) {
 
   // Check that the computed value in NEON matches the C version.
   for (unsigned i = 0; i < ARRAY_SIZE(vecA); i++) {
-    assert(vecC[i] == vecA[i]);
+    VIXL_CHECK(vecC[i] == vecA[i]);
   }
 #else
   USE(vecC);

@@ -78,9 +78,13 @@ const int kBitsPerByte = 8;
     printf("%s", msg);           \
     VIXL_ABORT();                \
   }
+#define VIXL_CHECK(condition)                                                 \
+  if (!(condition)) {                                                         \
+    printf("Assertion: " #condition " in %s, line %i\n", __FILE__, __LINE__); \
+    abort();                                                                  \
+  }
 #ifdef VIXL_DEBUG
 #define VIXL_ASSERT(condition) assert(condition)
-#define VIXL_CHECK(condition) VIXL_ASSERT(condition)
 #define VIXL_UNIMPLEMENTED()            \
   do {                                  \
     fprintf(stderr, "UNIMPLEMENTED\t"); \
@@ -93,7 +97,6 @@ const int kBitsPerByte = 8;
   } while (false)
 #else
 #define VIXL_ASSERT(condition) ((void)0)
-#define VIXL_CHECK(condition) assert(condition)
 #define VIXL_UNIMPLEMENTED() ((void)0)
 #define VIXL_UNREACHABLE() ((void)0)
 #endif

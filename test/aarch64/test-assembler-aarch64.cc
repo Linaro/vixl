@@ -217,28 +217,28 @@ namespace aarch64 {
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
 
 #define ASSERT_EQUAL_NZCV(expected)                                            \
-  assert(EqualNzcv(expected, core.flags_nzcv()))
+  VIXL_CHECK(EqualNzcv(expected, core.flags_nzcv()))
 
 #define ASSERT_EQUAL_REGISTERS(expected)                                       \
-  assert(EqualRegisters(&expected, &core))
+  VIXL_CHECK(EqualRegisters(&expected, &core))
 
 #define ASSERT_EQUAL_32(expected, result)                                      \
-  assert(Equal32(static_cast<uint32_t>(expected), &core, result))
+  VIXL_CHECK(Equal32(static_cast<uint32_t>(expected), &core, result))
 
 #define ASSERT_EQUAL_FP32(expected, result)                                    \
-  assert(EqualFP32(expected, &core, result))
+  VIXL_CHECK(EqualFP32(expected, &core, result))
 
 #define ASSERT_EQUAL_64(expected, result)                                      \
-  assert(Equal64(expected, &core, result))
+  VIXL_CHECK(Equal64(expected, &core, result))
 
 #define ASSERT_EQUAL_FP64(expected, result)                                    \
-  assert(EqualFP64(expected, &core, result))
+  VIXL_CHECK(EqualFP64(expected, &core, result))
 
 #define ASSERT_EQUAL_128(expected_h, expected_l, result)                       \
-  assert(Equal128(expected_h, expected_l, &core, result))
+  VIXL_CHECK(Equal128(expected_h, expected_l, &core, result))
 
 #define ASSERT_LITERAL_POOL_SIZE(expected)                                     \
-  assert((expected + kInstructionSize) == (masm.GetLiteralPoolSize()))
+  VIXL_CHECK((expected + kInstructionSize) == (masm.GetLiteralPoolSize()))
 
 
 TEST(stack_ops) {
@@ -12756,26 +12756,26 @@ TEST(register_bit) {
   // teardown.
 
   // Simple tests.
-  assert(x0.GetBit() == (UINT64_C(1) << 0));
-  assert(x1.GetBit() == (UINT64_C(1) << 1));
-  assert(x10.GetBit() == (UINT64_C(1) << 10));
+  VIXL_CHECK(x0.GetBit() == (UINT64_C(1) << 0));
+  VIXL_CHECK(x1.GetBit() == (UINT64_C(1) << 1));
+  VIXL_CHECK(x10.GetBit() == (UINT64_C(1) << 10));
 
   // AAPCS64 definitions.
-  assert(lr.GetBit() == (UINT64_C(1) << kLinkRegCode));
+  VIXL_CHECK(lr.GetBit() == (UINT64_C(1) << kLinkRegCode));
 
   // Fixed (hardware) definitions.
-  assert(xzr.GetBit() == (UINT64_C(1) << kZeroRegCode));
+  VIXL_CHECK(xzr.GetBit() == (UINT64_C(1) << kZeroRegCode));
 
   // Internal ABI definitions.
-  assert(sp.GetBit() == (UINT64_C(1) << kSPRegInternalCode));
-  assert(sp.GetBit() != xzr.GetBit());
+  VIXL_CHECK(sp.GetBit() == (UINT64_C(1) << kSPRegInternalCode));
+  VIXL_CHECK(sp.GetBit() != xzr.GetBit());
 
   // xn.GetBit() == wn.GetBit() at all times, for the same n.
-  assert(x0.GetBit() == w0.GetBit());
-  assert(x1.GetBit() == w1.GetBit());
-  assert(x10.GetBit() == w10.GetBit());
-  assert(xzr.GetBit() == wzr.GetBit());
-  assert(sp.GetBit() == wsp.GetBit());
+  VIXL_CHECK(x0.GetBit() == w0.GetBit());
+  VIXL_CHECK(x1.GetBit() == w1.GetBit());
+  VIXL_CHECK(x10.GetBit() == w10.GetBit());
+  VIXL_CHECK(xzr.GetBit() == wzr.GetBit());
+  VIXL_CHECK(sp.GetBit() == wsp.GetBit());
 }
 
 
@@ -12786,13 +12786,13 @@ TEST(stack_pointer_override) {
   START();
 
   // The default stack pointer in VIXL is sp.
-  assert(sp.Is(__ StackPointer()));
+  VIXL_CHECK(sp.Is(__ StackPointer()));
   __ SetStackPointer(x0);
-  assert(x0.Is(__ StackPointer()));
+  VIXL_CHECK(x0.Is(__ StackPointer()));
   __ SetStackPointer(x28);
-  assert(x28.Is(__ StackPointer()));
+  VIXL_CHECK(x28.Is(__ StackPointer()));
   __ SetStackPointer(sp);
-  assert(sp.Is(__ StackPointer()));
+  VIXL_CHECK(sp.Is(__ StackPointer()));
 
   END();
   RUN();
