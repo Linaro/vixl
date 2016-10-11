@@ -2568,11 +2568,12 @@ class PrintDisassembler : public Disassembler {
   }
 
   // Returns the address of the next instruction.
-  const uint16_t* DecodeT32At(const uint16_t* instruction_address);
+  const uint16_t* DecodeT32At(const uint16_t* instruction_address,
+                              const uint16_t* buffer_end);
   void DecodeT32(uint32_t instruction);
   void DecodeA32(uint32_t instruction);
-  void DisassembleA32Buffer(const uint32_t* buffer, uint32_t size_in_bytes);
-  void DisassembleT32Buffer(const uint16_t* buffer, uint32_t size_in_bytes);
+  void DisassembleA32Buffer(const uint32_t* buffer, size_t size_in_bytes);
+  void DisassembleT32Buffer(const uint16_t* buffer, size_t size_in_bytes);
 };
 
 }  // namespace aarch32

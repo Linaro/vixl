@@ -67289,10 +67289,14 @@ void Disassembler::DecodeA32(uint32_t instr) {
 // End of generated code.
 
 const uint16_t* PrintDisassembler::DecodeT32At(
-    const uint16_t* instruction_address) {
+    const uint16_t* instruction_address, const uint16_t* buffer_end) {
   uint32_t instruction = *instruction_address++ << 16;
 
   if (instruction >= kLowestT32_32Opcode) {
+    if (instruction_address >= buffer_end) {
+      os() << "?\n";
+      return instruction_address;
+    }
     instruction |= *instruction_address++;
   }
 
@@ -67322,7 +67326,9 @@ void PrintDisassembler::DecodeA32(uint32_t instruction) {
 
 
 void PrintDisassembler::DisassembleA32Buffer(const uint32_t* buffer,
-                                             uint32_t size_in_bytes) {
+                                             size_t size_in_bytes) {
+  VIXL_ASSERT(IsAligned<sizeof(buffer[0])>(buffer));
+  VIXL_ASSERT(IsMultiple<sizeof(buffer[0])>(size_in_bytes));
   const uint32_t* const end_buffer =
       buffer + (size_in_bytes / sizeof(uint32_t));
   while (buffer < end_buffer) {
@@ -67332,12 +67338,15 @@ void PrintDisassembler::DisassembleA32Buffer(const uint32_t* buffer,
 
 
 void PrintDisassembler::DisassembleT32Buffer(const uint16_t* buffer,
-                                             uint32_t size_in_bytes) {
+                                             size_t size_in_bytes) {
+  VIXL_ASSERT(IsAligned<sizeof(buffer[0])>(buffer));
+  VIXL_ASSERT(IsMultiple<sizeof(buffer[0])>(size_in_bytes));
   const uint16_t* const end_buffer =
       buffer + (size_in_bytes / sizeof(uint16_t));
   while (buffer < end_buffer) {
-    buffer = DecodeT32At(buffer);
+    buffer = DecodeT32At(buffer, end_buffer);
   }
+  VIXL_ASSERT(buffer == end_buffer);
 }
 
 }  // namespace aarch32
