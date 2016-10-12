@@ -109,12 +109,16 @@ namespace aarch64 {
   SETUP_COMMON()
 
 #define SETUP_COMMON()                                                         \
-  masm.SetGenerateSimulatorCode(true);                                    \
-  Decoder decoder;                                                             \
-  Simulator* simulator = Test::run_debugger() ? new Debugger(&decoder)         \
-                                              : new Simulator(&decoder);       \
+  masm.SetGenerateSimulatorCode(true);                                         \
+  Decoder simulator_decoder;                                                   \
+  Simulator* simulator =                                                       \
+      Test::run_debugger() ? new Debugger(&simulator_decoder)                  \
+                           : new Simulator(&simulator_decoder);                \
   simulator->SetColouredTrace(Test::coloured_trace());                         \
   simulator->SetInstructionStats(Test::instruction_stats());                   \
+  Disassembler disasm;                                                         \
+  Decoder disassembler_decoder;                                                \
+  disassembler_decoder.AppendVisitor(&disasm);                                 \
   RegisterDump core
 
 // This is a convenience macro to avoid creating a scope for every assembler
@@ -150,6 +154,7 @@ namespace aarch64 {
   masm.FinalizeCode()
 
 #define RUN()                                                                  \
+  DISASSEMBLE();                                                               \
   simulator->RunFrom(masm.GetStartAddress<Instruction*>())
 
 #define RUN_CUSTOM() RUN()
@@ -179,6 +184,9 @@ namespace aarch64 {
   SETUP_COMMON()
 
 #define SETUP_COMMON()                                                         \
+  Disassembler disasm;                                                         \
+  Decoder disassembler_decoder;                                                \
+  disassembler_decoder.AppendVisitor(&disasm);                                 \
   masm.SetGenerateSimulatorCode(false);                                        \
   RegisterDump core;                                                           \
   CPU::SetUp()
@@ -200,12 +208,14 @@ namespace aarch64 {
 
 // Execute the generated code from the memory area.
 #define RUN()                                                                  \
+  DISASSEMBLE();                                                               \
   masm.SetBufferExecutable();                                                  \
   ExecuteMemory(masm.GetOffsetAddress<byte*>(0), masm.GetCursorOffset());      \
   masm.SetBufferWritable()
 
 // The generated code was written directly into `buffer`, execute it directly.
 #define RUN_CUSTOM()                                                           \
+  DISASSEMBLE();                                                               \
   mprotect(buffer, buffer_size, PROT_READ | PROT_EXEC);                        \
   ExecuteMemory(buffer, buffer_size);                                          \
   mprotect(buffer, buffer_size, PROT_READ | PROT_WRITE)
@@ -215,6 +225,19 @@ namespace aarch64 {
 #define TEARDOWN_CUSTOM()
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
+
+#define DISASSEMBLE() \
+  if (Test::disassemble()) {                                                   \
+    Instruction* instruction = masm.GetOffsetAddress<Instruction*>(0);         \
+    Instruction* end = masm.GetOffsetAddress<Instruction*>(                    \
+        masm.GetSizeOfCodeGenerated());                                        \
+    while (instruction != end) {                                               \
+      disassembler_decoder.Decode(instruction);                                \
+      uint32_t encoding = *reinterpret_cast<uint32_t*>(instruction);           \
+      printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());             \
+      instruction += kInstructionSize;                                         \
+    }                                                                          \
+  }
 
 #define ASSERT_EQUAL_NZCV(expected)                                            \
   VIXL_CHECK(EqualNzcv(expected, core.flags_nzcv()))

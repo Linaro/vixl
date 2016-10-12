@@ -59,7 +59,8 @@ namespace aarch32 {
   __ Hlt(0);                                                                   \
   __ FinalizeCode();
 
-#define RUN()
+#define RUN()                                                                  \
+  DISASSEMBLE();
 
 #define TEARDOWN()
 
@@ -101,6 +102,7 @@ namespace aarch32 {
 // Note the offset for ExecuteMemory since the PCS requires that
 // the address be odd in the case of branching to T32 code.
 #define RUN()                                                                  \
+  DISASSEMBLE();                                                               \
   {                                                                            \
     int pcs_offset = masm.IsUsingT32() ? 1 : 0;                                \
     masm.SetBufferExecutable();                                                \
@@ -153,6 +155,18 @@ namespace aarch32 {
   VIXL_CHECK(EqualNzcv(expected, core.flags_nzcv()))
 
 #endif
+
+#define DISASSEMBLE() \
+  if (Test::disassemble()) {                                                   \
+    PrintDisassembler dis(std::cout, 0);                                       \
+    if (masm.IsUsingT32()) {                                                   \
+      dis.DisassembleT32Buffer(masm.GetBuffer().GetOffsetAddress<uint16_t*>(0),\
+                               masm.GetCursorOffset());                        \
+    } else {                                                                   \
+      dis.DisassembleA32Buffer(masm.GetBuffer().GetOffsetAddress<uint32_t*>(0),\
+                               masm.GetCursorOffset());                        \
+    }                                                                          \
+  }
 
 // TODO: Add SBC to the ADC tests.
 
@@ -1296,9 +1310,6 @@ TEST(literal_update) {
 
   RUN();
 
-  PrintDisassembler dis(std::cout, 0);
-  dis.DisassembleA32Buffer(
-      masm.GetBuffer().GetOffsetAddress<uint32_t*>(0), masm.GetCursorOffset());
   ASSERT_EQUAL_32(0x12345678, r0);
   ASSERT_EQUAL_32(0x87654321, r1);
   ASSERT_EQUAL_32(0x02468ace, r2);
@@ -1596,9 +1607,6 @@ TEST(printf2) {
   __ Printf("d0=%g d1=%g r0=%x r1=%x\n", d0, s2, r0, r1);
   END();
 
-  PrintDisassembler dis(std::cout, 0);
-  dis.DisassembleA32Buffer(
-      masm.GetBuffer().GetOffsetAddress<uint32_t*>(0), masm.GetCursorOffset());
   RUN();
 
   TEARDOWN();

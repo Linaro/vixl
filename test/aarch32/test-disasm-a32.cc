@@ -61,6 +61,9 @@ namespace aarch32 {
       disassembler.DisassembleA32(masm.GetBuffer(), start, end);               \
     }                                                                          \
     masm.GetBuffer().Reset();                                                  \
+    if (Test::disassemble()) {                                                 \
+      printf("%s", ss.str().c_str());                                          \
+    }                                                                          \
     if (std::string(EXP) != ss.str()) {                                        \
       printf("\nFound:\n%sExpected:\n%s", ss.str().c_str(), EXP);              \
       abort();                                                                 \

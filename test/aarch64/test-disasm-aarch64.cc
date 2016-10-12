@@ -76,7 +76,7 @@
            encoding, EXP, disasm.GetOutput());                                 \
     abort();                                                                   \
   }                                                                            \
-  if (Test::trace_sim()) {                                                     \
+  if (Test::disassemble()) {                                                   \
     printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());               \
   }
 
@@ -94,7 +94,7 @@
            encoding, EXP, disasm.GetOutput());                                 \
     abort();                                                                   \
   }                                                                            \
-  if (Test::trace_sim()) {                                                     \
+  if (Test::disassemble()) {                                                   \
     printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());               \
   }
 
@@ -110,7 +110,7 @@
   while (instruction != end) {                                                 \
     decoder.Decode(instruction);                                               \
     res.append(disasm.GetOutput());                                            \
-    if (Test::trace_sim()) {                                                   \
+    if (Test::disassemble()) {                                                   \
       encoding = *reinterpret_cast<uint32_t*>(instruction);                    \
       printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());             \
     }                                                                          \
