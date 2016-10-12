@@ -1041,6 +1041,18 @@ void MacroAssembler::Delegate(InstructionType type,
   }
   if (operand.IsImmediate()) {
     int32_t imm = operand.GetImmediate();
+    if (ImmediateT32::IsImmediateT32(~imm)) {
+      if (IsUsingT32()) {
+        switch (type) {
+          case kOrn:
+            return orr(cond, rd, rn, ~imm);
+          case kOrns:
+            return orrs(cond, rd, rn, ~imm);
+          default:
+            break;
+        }
+      }
+    }
     if (imm < 0) {
       switch (type) {
         case kAddw:
@@ -1125,6 +1137,18 @@ void MacroAssembler::Delegate(InstructionType type,
   }
   if (operand.IsImmediate()) {
     int32_t imm = operand.GetImmediate();
+    if (ImmediateT32::IsImmediateT32(~imm)) {
+      if (IsUsingT32()) {
+        switch (type) {
+          case kOrr:
+            return orn(cond, rd, rn, ~imm);
+          case kOrrs:
+            return orns(cond, rd, rn, ~imm);
+          default:
+            break;
+        }
+      }
+    }
     if (imm < 0) {
       InstructionCondSizeRROp asmcb = NULL;
       switch (type) {

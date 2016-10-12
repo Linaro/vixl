@@ -78,6 +78,12 @@ namespace aarch32 {
   masm.UseT32();                                                               \
   COMPARE(ASM, EXP)
 
+#define COMPARE_BOTH(ASM, EXP)                                                 \
+  masm.UseA32();                                                               \
+  COMPARE(ASM, EXP)                                                            \
+  masm.UseT32();                                                               \
+  COMPARE(ASM, EXP)
+
 
 class TestDisassembler : public Disassembler {
  public:
@@ -313,6 +319,78 @@ TEST(macro_assembler_wide_immediate) {
               "movt ip, #2989\n"
               "adds r0, ip\n");
 
+  CLEANUP();
+}
+
+
+TEST(macro_assembler_And) {
+  SETUP();
+
+  // Identities.
+  COMPARE_BOTH(And(r0, r1, 0),
+               "mov r0, #0\n");
+  COMPARE_BOTH(And(r0, r0, 0xffffffff),
+               "");
+  CLEANUP();
+}
+
+
+TEST(macro_assembler_Bic) {
+  SETUP();
+
+  // Identities.
+  COMPARE_BOTH(Bic(r0, r1, 0xffffffff),
+               "mov r0, #0\n");
+  COMPARE_BOTH(Bic(r0, r0, 0),
+               "");
+  CLEANUP();
+}
+
+
+TEST(macro_assembler_Orn) {
+  SETUP();
+
+  // Identities.
+  COMPARE_BOTH(Orn(r0, r1, 0),
+               "mvn r0, #0\n");
+  COMPARE_BOTH(Orn(r0, r0, 0xffffffff),
+               "");
+  CLEANUP();
+}
+
+
+TEST(macro_assembler_Orr) {
+  SETUP();
+
+  // Identities.
+  COMPARE_BOTH(Orr(r0, r1, 0xffffffff),
+               "mvn r0, #0\n");
+  COMPARE_BOTH(Orr(r0, r0, 0),
+               "");
+  CLEANUP();
+}
+
+
+TEST(macro_assembler_InstructionCondRROp) {
+  SETUP();
+
+  // Negate the immediate.
+  COMPARE_T32(Orn(r0, r1, 0xffffff),
+              "orr r0, r1, #4278190080\n");
+  COMPARE_T32(Orns(r0, r1, 0xffffff),
+              "orrs r0, r1, #4278190080\n");
+  CLEANUP();
+}
+
+
+TEST(macro_assembler_InstructionCondSizeRROp) {
+  SETUP();
+
+  // Negate the immediate.
+  COMPARE_T32(Orr(r0, r1, 0xffffff),
+              "orn r0, r1, #4278190080\n");
+  COMPARE_T32(Orrs(r0, r1, 0xffffff),
+              "orns r0, r1, #4278190080\n");
   CLEANUP();
 }
 

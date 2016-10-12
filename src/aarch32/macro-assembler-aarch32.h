@@ -977,13 +977,13 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
-    if (cond.Is(al) && rd.Is(rn) && operand.IsImmediate()) {
+    if (cond.Is(al) && operand.IsImmediate()) {
       uint32_t immediate = operand.GetImmediate();
       if (immediate == 0) {
         mov(rd, 0);
         return;
       }
-      if (immediate == 0xffffffff) {
+      if ((immediate == 0xffffffff) && rd.Is(rn)) {
         return;
       }
     }
@@ -1137,9 +1137,9 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
-    if (cond.Is(al) && rd.Is(rn) && operand.IsImmediate()) {
+    if (cond.Is(al) && operand.IsImmediate()) {
       uint32_t immediate = operand.GetImmediate();
-      if (immediate == 0) {
+      if ((immediate == 0) && rd.Is(rn)) {
         return;
       }
       if (immediate == 0xffffffff) {
@@ -2345,13 +2345,13 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
-    if (cond.Is(al) && rd.Is(rn) && operand.IsImmediate()) {
+    if (cond.Is(al) && operand.IsImmediate()) {
       uint32_t immediate = operand.GetImmediate();
       if (immediate == 0) {
-        mov(rd, 0xffffffff);
+        mvn(rd, 0);
         return;
       }
-      if (immediate == 0xffffffff) {
+      if ((immediate == 0xffffffff) && rd.Is(rn)) {
         return;
       }
     }
@@ -2400,13 +2400,13 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
-    if (cond.Is(al) && rd.Is(rn) && operand.IsImmediate()) {
+    if (cond.Is(al) && operand.IsImmediate()) {
       uint32_t immediate = operand.GetImmediate();
-      if (immediate == 0) {
+      if ((immediate == 0) && rd.Is(rn)) {
         return;
       }
       if (immediate == 0xffffffff) {
-        mov(rd, 0xffffffff);
+        mvn(rd, 0);
         return;
       }
     }
