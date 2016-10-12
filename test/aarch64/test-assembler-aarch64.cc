@@ -20856,6 +20856,12 @@ TEST(neon_fmulx_scalar) {
 }
 
 
+// We currently disable tests for CRC32 instructions when running natively.
+// Support for this family of instruction is optional, and so native platforms
+// may simply fail to execute the test.
+// TODO: Run the test on native platforms where the CRC32 instructions are
+// available.
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 TEST(crc32b) {
   SETUP();
   START();
@@ -21170,6 +21176,7 @@ TEST(crc32cx) {
 
   TEARDOWN();
 }
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
 
 TEST(neon_fabd_scalar) {
