@@ -30,6 +30,7 @@
 #include "aarch64/debugger-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 
+using namespace vixl;
 using namespace vixl::aarch64;
 
 // Generate a function with the following prototype:

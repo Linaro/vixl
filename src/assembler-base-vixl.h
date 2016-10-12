@@ -34,9 +34,13 @@ namespace internal {
 
 class AssemblerBase {
  public:
-  AssemblerBase() {}
-  explicit AssemblerBase(size_t capacity) : buffer_(capacity) {}
-  AssemblerBase(byte* buffer, size_t capacity) : buffer_(buffer, capacity) {}
+  AssemblerBase() : allow_assembler_(false) {}
+  explicit AssemblerBase(size_t capacity)
+      : buffer_(capacity), allow_assembler_(false) {}
+  AssemblerBase(byte* buffer, size_t capacity)
+      : buffer_(buffer, capacity), allow_assembler_(false) {}
+
+  virtual ~AssemblerBase() {}
 
   // Finalize a code buffer of generated instructions. This function must be
   // called before executing or copying code from the buffer.
@@ -53,12 +57,18 @@ class AssemblerBase {
 
   size_t GetSizeOfCodeGenerated() const { return GetCursorOffset(); }
 
+  // Accessors.
   CodeBuffer* GetBuffer() { return &buffer_; }
   const CodeBuffer& GetBuffer() const { return buffer_; }
+  bool AllowAssembler() const { return allow_assembler_; }
+  void SetAllowAssembler(bool allow) { allow_assembler_ = allow; }
 
  protected:
   // Buffer where the code is emitted.
   CodeBuffer buffer_;
+
+ private:
+  bool allow_assembler_;
 
  public:
   // Deprecated public interface.

@@ -69,7 +69,6 @@ the implementations differ.
 
 ### `CodeBufferCheckScope(Assembler* assm, size_t size, ...)`
 
-- Acquire the CodeBuffer.
 - Allow code emission from the specified `Assembler`.
 - Optionally reserve space in the `CodeBuffer` (if it is managed by VIXL).
 - Optionally, on destruction, check the size of the generated code.

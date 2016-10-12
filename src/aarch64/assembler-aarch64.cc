@@ -49,35 +49,6 @@ RawLiteral::RawLiteral(size_t size,
 }
 
 
-// Assembler
-Assembler::Assembler(PositionIndependentCodeOption pic) : pic_(pic) {
-#ifdef VIXL_DEBUG
-  buffer_monitor_ = 0;
-#endif
-}
-
-
-Assembler::Assembler(size_t capacity, PositionIndependentCodeOption pic)
-    : AssemblerBase(capacity), pic_(pic) {
-#ifdef VIXL_DEBUG
-  buffer_monitor_ = 0;
-#endif
-}
-
-
-Assembler::Assembler(byte* buffer,
-                     size_t capacity,
-                     PositionIndependentCodeOption pic)
-    : AssemblerBase(buffer, capacity), pic_(pic) {
-#ifdef VIXL_DEBUG
-  buffer_monitor_ = 0;
-#endif
-}
-
-
-Assembler::~Assembler() { VIXL_ASSERT(buffer_monitor_ == 0); }
-
-
 void Assembler::Reset() { GetBuffer()->Reset(); }
 
 
@@ -4874,73 +4845,6 @@ bool AreConsecutive(const VRegister& reg1,
   match &= !reg4.IsValid() ||
            (reg4.GetCode() == ((reg1.GetCode() + 3) % kNumberOfVRegisters));
   return match;
-}
-
-
-CodeBufferCheckScope::CodeBufferCheckScope(Assembler* assm,
-                                           size_t size,
-                                           CheckPolicy check_policy,
-                                           AssertPolicy assert_policy)
-#ifdef VIXL_DEBUG
-    : initialised_(false)
-#endif
-{
-  Open(assm, size, check_policy, assert_policy);
-}
-
-
-CodeBufferCheckScope::CodeBufferCheckScope()
-#ifdef VIXL_DEBUG
-    : initialised_(false)
-#endif
-{
-  // Nothing to do.
-}
-
-
-void CodeBufferCheckScope::Open(Assembler* assm,
-                                size_t size,
-                                CheckPolicy check_policy,
-                                AssertPolicy assert_policy) {
-  VIXL_ASSERT(!initialised_);
-  VIXL_ASSERT(assm != NULL);
-  if (check_policy == kCheck) assm->GetBuffer()->EnsureSpaceFor(size);
-#ifdef VIXL_DEBUG
-  assm_ = assm;
-  size_ = size;
-  assert_policy_ = assert_policy;
-  assm_->bind(&start_);
-  assm_->AcquireBuffer();
-  initialised_ = true;
-#else
-  USE(assert_policy);
-#endif
-}
-
-
-CodeBufferCheckScope::~CodeBufferCheckScope() { Close(); }
-
-
-void CodeBufferCheckScope::Close() {
-#ifdef VIXL_DEBUG
-  if (!initialised_) {
-    return;
-  }
-  assm_->ReleaseBuffer();
-  switch (assert_policy_) {
-    case kNoAssert:
-      break;
-    case kExactSize:
-      VIXL_ASSERT(assm_->GetSizeOfCodeGeneratedSince(&start_) == size_);
-      break;
-    case kMaximumSize:
-      VIXL_ASSERT(assm_->GetSizeOfCodeGeneratedSince(&start_) <= size_);
-      break;
-    default:
-      VIXL_UNREACHABLE();
-  }
-  initialised_ = false;
-#endif
 }
 }  // namespace aarch64
 }  // namespace vixl

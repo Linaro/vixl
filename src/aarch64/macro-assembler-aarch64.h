@@ -507,7 +507,7 @@ class EmissionCheckScope : public CodeBufferCheckScope {
  public:
   EmissionCheckScope(MacroAssembler* masm,
                      size_t size,
-                     AssertPolicy assert_policy = kMaximumSize);
+                     SizePolicy size_policy = kMaximumSize);
   virtual ~EmissionCheckScope();
 
   enum PoolPolicy { kIgnorePools, kCheckPools };
@@ -517,12 +517,12 @@ class EmissionCheckScope : public CodeBufferCheckScope {
   // generating* the pools, to avoid an infinite loop.
   EmissionCheckScope(MacroAssembler* masm,
                      size_t size,
-                     AssertPolicy assert_policy,
+                     SizePolicy size_policy,
                      PoolPolicy pool_policy);
 
   void Open(MacroAssembler* masm,
             size_t size,
-            AssertPolicy assert_policy = kMaximumSize,
+            SizePolicy size_policy = kMaximumSize,
             PoolPolicy pool_policy = kCheckPools);
 
   void Close();
@@ -3199,9 +3199,9 @@ class InstructionAccurateScope : public EmissionCheckScope {
  public:
   InstructionAccurateScope(MacroAssembler* masm,
                            int64_t count,
-                           AssertPolicy assert_policy = kExactSize)
-      : EmissionCheckScope(masm, (count * kInstructionSize), assert_policy) {
-    VIXL_ASSERT(assert_policy != kNoAssert);
+                           SizePolicy size_policy = kExactSize)
+      : EmissionCheckScope(masm, (count * kInstructionSize), size_policy) {
+    VIXL_ASSERT(size_policy != kNoAssert);
 #ifdef VIXL_DEBUG
     old_allow_macro_instructions_ = masm->AllowMacroInstructions();
     masm->SetAllowMacroInstructions(false);
@@ -3212,7 +3212,7 @@ class InstructionAccurateScope : public EmissionCheckScope {
 
   virtual ~InstructionAccurateScope() {
 #ifdef VIXL_DEBUG
-    MacroAssembler* masm = reinterpret_cast<MacroAssembler*>(assm_);
+    MacroAssembler* masm = reinterpret_cast<MacroAssembler*>(assembler_);
     masm->SetAllowMacroInstructions(old_allow_macro_instructions_);
 #endif
   }
@@ -3220,13 +3220,13 @@ class InstructionAccurateScope : public EmissionCheckScope {
  private:
   InstructionAccurateScope(MacroAssembler* masm,
                            int64_t count,
-                           AssertPolicy assert_policy,
+                           SizePolicy size_policy,
                            PoolPolicy pool_policy)
       : EmissionCheckScope(masm,
                            (count * kInstructionSize),
-                           assert_policy,
+                           size_policy,
                            pool_policy) {
-    VIXL_ASSERT(assert_policy != kNoAssert);
+    VIXL_ASSERT(size_policy != kNoAssert);
 #ifdef VIXL_DEBUG
     old_allow_macro_instructions_ = masm->AllowMacroInstructions();
     masm->SetAllowMacroInstructions(false);

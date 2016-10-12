@@ -21960,7 +21960,7 @@ TEST(ldr_literal_explicit) {
   {
     CodeBufferCheckScope scope(&masm,
                                kInstructionSize + sizeof(int64_t),
-                               CodeBufferCheckScope::kCheck,
+                               CodeBufferCheckScope::kReserveBufferSpace,
                                CodeBufferCheckScope::kExactSize);
     Label over_literal;
     __ b(&over_literal);

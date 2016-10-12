@@ -28,6 +28,7 @@
 #define VIXL_AARCH64_ASSEMBLER_AARCH64_H_
 
 #include "../assembler-base-vixl.h"
+#include "../code-generation-scopes-vixl.h"
 #include "../globals-vixl.h"
 #include "../invalset-vixl.h"
 #include "../utils-vixl.h"
@@ -402,19 +403,22 @@ enum LoadStoreScalingOption {
 class Assembler : public internal::AssemblerBase {
  public:
   explicit Assembler(
-      PositionIndependentCodeOption pic = PositionIndependentCode);
+      PositionIndependentCodeOption pic = PositionIndependentCode)
+      : pic_(pic) {}
   explicit Assembler(
       size_t capacity,
-      PositionIndependentCodeOption pic = PositionIndependentCode);
+      PositionIndependentCodeOption pic = PositionIndependentCode)
+      : AssemblerBase(capacity), pic_(pic) {}
   Assembler(byte* buffer,
             size_t capacity,
-            PositionIndependentCodeOption pic = PositionIndependentCode);
+            PositionIndependentCodeOption pic = PositionIndependentCode)
+      : AssemblerBase(buffer, capacity), pic_(pic) {}
 
-  // The destructor asserts that one of the following is true:
+  // Upon destruction, the code will assert that one of the following is true:
   //  * The Assembler object has not been used.
   //  * Nothing has been emitted since the last Reset() call.
   //  * Nothing has been emitted since the last FinalizeCode() call.
-  ~Assembler();
+  ~Assembler() {}
 
   // System functions.
 
@@ -2558,7 +2562,7 @@ class Assembler : public internal::AssemblerBase {
   // Emit data in the instruction stream.
   template <typename T>
   void dc(T data) {
-    VIXL_ASSERT(buffer_monitor_ > 0);
+    VIXL_ASSERT(AllowAssembler());
     GetBuffer()->Emit<T>(data);
   }
 
@@ -2567,7 +2571,7 @@ class Assembler : public internal::AssemblerBase {
   // subsequent instructions.
   void EmitString(const char* string) {
     VIXL_ASSERT(string != NULL);
-    VIXL_ASSERT(buffer_monitor_ > 0);
+    VIXL_ASSERT(AllowAssembler());
 
     GetBuffer()->EmitString(string);
     GetBuffer()->Align();
@@ -3067,18 +3071,6 @@ class Assembler : public internal::AssemblerBase {
     return GetBuffer().GetRemainingBytes();
   }
 
-#ifdef VIXL_DEBUG
-  void AcquireBuffer() {
-    VIXL_ASSERT(buffer_monitor_ >= 0);
-    buffer_monitor_++;
-  }
-
-  void ReleaseBuffer() {
-    buffer_monitor_--;
-    VIXL_ASSERT(buffer_monitor_ >= 0);
-  }
-#endif
-
   PositionIndependentCodeOption GetPic() const { return pic_; }
   VIXL_DEPRECATED("GetPic", PositionIndependentCodeOption pic() const) {
     return GetPic();
@@ -3344,66 +3336,11 @@ class Assembler : public internal::AssemblerBase {
   // Emit the instruction in buffer_.
   void Emit(Instr instruction) {
     VIXL_STATIC_ASSERT(sizeof(instruction) == kInstructionSize);
-    VIXL_ASSERT(buffer_monitor_ > 0);
+    VIXL_ASSERT(AllowAssembler());
     GetBuffer()->Emit32(instruction);
   }
 
   PositionIndependentCodeOption pic_;
-
-  int64_t buffer_monitor_;
-};
-
-
-// All Assembler emits MUST acquire/release the underlying code buffer. The
-// helper scope below will do so and optionally ensure the buffer is big enough
-// to receive the emit. It is possible to request the scope not to perform any
-// checks (kNoCheck) if for example it is known in advance the buffer size is
-// adequate or there is some other size checking mechanism in place.
-class CodeBufferCheckScope {
- public:
-  // Tell whether or not the scope needs to ensure the associated CodeBuffer
-  // has enough space for the requested size.
-  enum CheckPolicy { kNoCheck, kCheck };
-
-  // Tell whether or not the scope should assert the amount of code emitted
-  // within the scope is consistent with the requested amount.
-  enum AssertPolicy {
-    kNoAssert,    // No assert required.
-    kExactSize,   // The code emitted must be exactly size bytes.
-    kMaximumSize  // The code emitted must be at most size bytes.
-  };
-
-  // This constructor implicitly calls `Open` to initialise the scope (`assm`
-  // must not be `NULL`), so it is ready to use immediately after it has been
-  // constructed.
-  CodeBufferCheckScope(Assembler* assm,
-                       size_t size,
-                       CheckPolicy check_policy = kCheck,
-                       AssertPolicy assert_policy = kMaximumSize);
-
-  // This constructor does not implicitly initialise the scope. Instead, the
-  // user is required to explicitly call the `Open` function before using the
-  // scope.
-  CodeBufferCheckScope();
-
-  // This function performs the actual initialisation work.
-  void Open(Assembler* assm,
-            size_t size,
-            CheckPolicy check_policy = kCheck,
-            AssertPolicy assert_policy = kMaximumSize);
-
-  virtual ~CodeBufferCheckScope();
-
-  // This function performs the cleaning-up work. It must succeed even if the
-  // scope has not been opened. It is safe to call multiple times.
-  void Close();
-
- protected:
-  Assembler* assm_;
-  size_t size_;
-  AssertPolicy assert_policy_;
-  Label start_;
-  bool initialised_;
 };
 
 

@@ -303,8 +303,8 @@ void VeneerPool::Emit(EmitOption option, size_t amount) {
 
 EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm,
                                        size_t size,
-                                       AssertPolicy assert_policy) {
-  Open(masm, size, assert_policy);
+                                       SizePolicy size_policy) {
+  Open(masm, size, size_policy);
 }
 
 
@@ -313,15 +313,15 @@ EmissionCheckScope::~EmissionCheckScope() { Close(); }
 
 EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm,
                                        size_t size,
-                                       AssertPolicy assert_policy,
+                                       SizePolicy size_policy,
                                        PoolPolicy pool_policy) {
-  Open(masm, size, assert_policy, pool_policy);
+  Open(masm, size, size_policy, pool_policy);
 }
 
 
 void EmissionCheckScope::Open(MacroAssembler* masm,
                               size_t size,
-                              AssertPolicy assert_policy,
+                              SizePolicy size_policy,
                               PoolPolicy pool_policy) {
   masm_ = masm;
   pool_policy_ = pool_policy;
@@ -339,7 +339,7 @@ void EmissionCheckScope::Open(MacroAssembler* masm,
     masm_->BlockPools();
   }
   // The buffer should be checked *after* we emit the pools.
-  CodeBufferCheckScope::Open(masm_, size, kCheck, assert_policy);
+  CodeBufferCheckScope::Open(masm_, size, kCheck, size_policy);
 }
 
 
