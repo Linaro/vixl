@@ -159,11 +159,32 @@ class Disassembler {
 
   class DisassemblerStream {
     std::ostream& os_;
+    InstructionType current_instruction_type_;
+    InstructionAttribute current_instruction_attributes_;
 
    public:
-    explicit DisassemblerStream(std::ostream& os) : os_(os) {}
+    explicit DisassemblerStream(
+        std::ostream& os)  // NOLINT [runtime/references]
+        : os_(os),
+          current_instruction_type_(kUndefInstructionType),
+          current_instruction_attributes_(kNoAttribute) {}
     virtual ~DisassemblerStream() {}
     std::ostream& os() const { return os_; }
+    void SetCurrentInstruction(
+        InstructionType current_instruction_type,
+        InstructionAttribute current_instruction_attributes) {
+      current_instruction_type_ = current_instruction_type;
+      current_instruction_attributes_ = current_instruction_attributes;
+    }
+    InstructionType GetCurrentInstructionType() const {
+      return current_instruction_type_;
+    }
+    InstructionAttribute GetCurrentInstructionAttributes() const {
+      return current_instruction_attributes_;
+    }
+    bool Has(InstructionAttribute attributes) const {
+      return (current_instruction_attributes_ & attributes) == attributes;
+    }
     template <typename T>
     DisassemblerStream& operator<<(T value) {
       os_ << value;
@@ -279,6 +300,10 @@ class Disassembler {
     }
     virtual DisassemblerStream& operator<<(const Operand& operand) {
       if (operand.IsImmediate()) {
+        if (Has(kBitwise)) {
+          return *this << "#0x" << std::hex << operand.GetImmediate()
+                       << std::dec;
+        }
         return *this << "#" << operand.GetImmediate();
       }
       if (operand.IsImmediateShiftedRegister()) {
