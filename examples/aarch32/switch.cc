@@ -85,8 +85,8 @@ int main() {
   // There is no simulator defined for VIXL AArch32.
   printf("This example cannot be simulated\n");
 #else
-  byte* code = masm.GetBuffer().GetBuffer();
-  uint32_t code_size = masm.GetBuffer().GetSizeInBytes();
+  byte* code = masm.GetBuffer()->GetBuffer();
+  uint32_t code_size = masm.GetSizeOfCodeGenerated();
   ExecutableMemory memory(code, code_size);
   // Run the example function.
   void (*comment_function)(char grade) =

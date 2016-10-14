@@ -1133,7 +1133,7 @@ static void TestHelper(Fn instruction,
     int32_t end = masm.GetCursorOffset();
 
     const byte* result_ptr =
-        masm.GetBuffer().GetOffsetAddress<const byte*>(start);
+        masm.GetBuffer()->GetOffsetAddress<const byte*>(start);
     VIXL_ASSERT(start < end);
     uint32_t result_size = end - start;
 

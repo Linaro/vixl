@@ -210,7 +210,8 @@ namespace aarch64 {
 #define RUN()                                                                  \
   DISASSEMBLE();                                                               \
   masm.SetBufferExecutable();                                                  \
-  ExecuteMemory(masm.GetOffsetAddress<byte*>(0), masm.GetCursorOffset());      \
+    ExecuteMemory(masm.GetBuffer()->GetStartAddress<byte*>(),                  \
+                  masm.GetSizeOfCodeGenerated());                              \
   masm.SetBufferWritable()
 
 // The generated code was written directly into `buffer`, execute it directly.

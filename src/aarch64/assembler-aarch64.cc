@@ -54,49 +54,43 @@ Assembler::Assembler(PositionIndependentCodeOption pic) : pic_(pic) {
 #ifdef VIXL_DEBUG
   buffer_monitor_ = 0;
 #endif
-  buffer_ = new CodeBuffer();
 }
 
 
 Assembler::Assembler(size_t capacity, PositionIndependentCodeOption pic)
-    : pic_(pic) {
+    : AssemblerBase(capacity), pic_(pic) {
 #ifdef VIXL_DEBUG
   buffer_monitor_ = 0;
 #endif
-  buffer_ = new CodeBuffer(capacity);
 }
 
 
 Assembler::Assembler(byte* buffer,
                      size_t capacity,
                      PositionIndependentCodeOption pic)
-    : pic_(pic) {
+    : AssemblerBase(buffer, capacity), pic_(pic) {
 #ifdef VIXL_DEBUG
   buffer_monitor_ = 0;
 #endif
-  buffer_ = new CodeBuffer(buffer, capacity);
 }
 
 
-Assembler::~Assembler() {
-  VIXL_ASSERT(buffer_monitor_ == 0);
-  delete buffer_;
-}
+Assembler::~Assembler() { VIXL_ASSERT(buffer_monitor_ == 0); }
 
 
-void Assembler::Reset() { buffer_->Reset(); }
+void Assembler::Reset() { GetBuffer()->Reset(); }
 
 
-void Assembler::FinalizeCode() { buffer_->SetClean(); }
+void Assembler::FinalizeCode() { GetBuffer()->SetClean(); }
 
 
 void Assembler::bind(Label* label) {
-  BindToOffset(label, buffer_->GetCursorOffset());
+  BindToOffset(label, GetBuffer()->GetCursorOffset());
 }
 
 
 void Assembler::BindToOffset(Label* label, ptrdiff_t offset) {
-  VIXL_ASSERT((offset >= 0) && (offset <= buffer_->GetCursorOffset()));
+  VIXL_ASSERT((offset >= 0) && (offset <= GetBuffer()->GetCursorOffset()));
   VIXL_ASSERT(offset % kInstructionSize == 0);
 
   label->Bind(offset);
@@ -123,7 +117,7 @@ ptrdiff_t Assembler::LinkAndGetOffsetTo(Label* label) {
     uintptr_t label_offset = GetLabelAddress<uintptr_t>(label) >> element_shift;
     return label_offset - pc_offset;
   } else {
-    label->AddLink(buffer_->GetCursorOffset());
+    label->AddLink(GetBuffer()->GetCursorOffset());
     return 0;
   }
 }

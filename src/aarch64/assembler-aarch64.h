@@ -27,7 +27,7 @@
 #ifndef VIXL_AARCH64_ASSEMBLER_AARCH64_H_
 #define VIXL_AARCH64_ASSEMBLER_AARCH64_H_
 
-#include "../code-buffer-vixl.h"
+#include "../assembler-base-vixl.h"
 #include "../globals-vixl.h"
 #include "../invalset-vixl.h"
 #include "../utils-vixl.h"
@@ -399,7 +399,7 @@ enum LoadStoreScalingOption {
 
 
 // Assembler.
-class Assembler {
+class Assembler : public internal::AssemblerBase {
  public:
   explicit Assembler(
       PositionIndependentCodeOption pic = PositionIndependentCode);
@@ -427,9 +427,9 @@ class Assembler {
   void FinalizeCode();
 
   // Set the permissions of the buffer to read+execute.
-  void SetBufferExecutable() { buffer_->SetExecutable(); }
+  void SetBufferExecutable() { buffer_.SetExecutable(); }
   // Set the permissions of the buffer to read+write.
-  void SetBufferWritable() { buffer_->SetWritable(); }
+  void SetBufferWritable() { buffer_.SetWritable(); }
 
   // Label.
   // Bind a label to the current PC.
@@ -441,13 +441,13 @@ class Assembler {
   // Place a literal at the current PC.
   void place(RawLiteral* literal);
 
-  ptrdiff_t GetCursorOffset() const { return buffer_->GetCursorOffset(); }
+  ptrdiff_t GetCursorOffset() const { return GetBuffer().GetCursorOffset(); }
   VIXL_DEPRECATED("GetCursorOffset", ptrdiff_t CursorOffset() const) {
     return GetCursorOffset();
   }
 
   ptrdiff_t GetBufferEndOffset() const {
-    return static_cast<ptrdiff_t>(buffer_->GetCapacity());
+    return static_cast<ptrdiff_t>(GetBuffer().GetCapacity());
   }
   VIXL_DEPRECATED("GetBufferEndOffset", ptrdiff_t BufferEndOffset() const) {
     return GetBufferEndOffset();
@@ -457,7 +457,7 @@ class Assembler {
   template <typename T>
   T GetOffsetAddress(ptrdiff_t offset) const {
     VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
-    return buffer_->GetOffsetAddress<T>(offset);
+    return GetBuffer().GetOffsetAddress<T>(offset);
   }
 
   // Return the address of a bound label.
@@ -2587,7 +2587,7 @@ class Assembler {
   template <typename T>
   void dc(T data) {
     VIXL_ASSERT(buffer_monitor_ > 0);
-    buffer_->Emit<T>(data);
+    GetBuffer()->Emit<T>(data);
   }
 
   // Copy a string into the instruction stream, including the terminating NULL
@@ -2597,8 +2597,8 @@ class Assembler {
     VIXL_ASSERT(string != NULL);
     VIXL_ASSERT(buffer_monitor_ > 0);
 
-    buffer_->EmitString(string);
-    buffer_->Align();
+    GetBuffer()->EmitString(string);
+    GetBuffer()->Align();
   }
 
   // Code generation helpers.
@@ -3071,33 +3071,35 @@ class Assembler {
   // Size of the code generated since label to the current position.
   size_t GetSizeOfCodeGeneratedSince(Label* label) const {
     VIXL_ASSERT(label->IsBound());
-    return buffer_->GetOffsetFrom(label->GetLocation());
+    return GetBuffer().GetOffsetFrom(label->GetLocation());
   }
   VIXL_DEPRECATED("GetSizeOfCodeGeneratedSince",
                   size_t SizeOfCodeGeneratedSince(Label* label) const) {
     return GetSizeOfCodeGeneratedSince(label);
   }
 
-  size_t GetSizeOfCodeGenerated() const { return buffer_->GetCursorOffset(); }
+  size_t GetSizeOfCodeGenerated() const {
+    return GetBuffer().GetCursorOffset();
+  }
   VIXL_DEPRECATED("GetSizeOfCodeGenerated",
                   size_t SizeOfCodeGenerated() const) {
     return GetSizeOfCodeGenerated();
   }
 
-  size_t GetBufferCapacity() const { return buffer_->GetCapacity(); }
+  size_t GetBufferCapacity() const { return GetBuffer().GetCapacity(); }
   VIXL_DEPRECATED("GetBufferCapacity", size_t BufferCapacity() const) {
     return GetBufferCapacity();
   }
 
   size_t GetRemainingBufferSpace() const {
-    return buffer_->GetRemainingBytes();
+    return GetBuffer().GetRemainingBytes();
   }
   VIXL_DEPRECATED("GetRemainingBufferSpace",
                   size_t RemainingBufferSpace() const) {
     return GetRemainingBufferSpace();
   }
 
-  void EnsureSpaceFor(size_t amount) { buffer_->EnsureSpaceFor(amount); }
+  void EnsureSpaceFor(size_t amount) { GetBuffer()->EnsureSpaceFor(amount); }
 
 #ifdef VIXL_DEBUG
   void AcquireBuffer() {
@@ -3124,7 +3126,6 @@ class Assembler {
   static const Register& AppropriateZeroRegFor(const CPURegister& reg) {
     return reg.Is64Bits() ? xzr : wzr;
   }
-
 
  protected:
   void LoadStore(const CPURegister& rt,
@@ -3378,11 +3379,9 @@ class Assembler {
   void Emit(Instr instruction) {
     VIXL_STATIC_ASSERT(sizeof(instruction) == kInstructionSize);
     VIXL_ASSERT(buffer_monitor_ > 0);
-    buffer_->Emit32(instruction);
+    GetBuffer()->Emit32(instruction);
   }
 
-  // Buffer where the code is emitted.
-  CodeBuffer* buffer_;
   PositionIndependentCodeOption pic_;
 
   int64_t buffer_monitor_;

@@ -53,7 +53,7 @@ namespace aarch32 {
   MacroAssembler masm(BUF_SIZE);
 
 #define START() \
-  masm.GetBuffer().Reset();
+  masm.GetBuffer()->Reset();
 
 #define END()                                                                  \
   __ Hlt(0);                                                                   \
@@ -71,7 +71,7 @@ namespace aarch32 {
   MacroAssembler masm(BUF_SIZE);
 
 #define START()                                                                \
-  masm.GetBuffer().Reset();                                                    \
+  masm.GetBuffer()->Reset();                                                   \
   __ Push(r4);                                                                 \
   __ Push(r5);                                                                 \
   __ Push(r6);                                                                 \
@@ -106,8 +106,9 @@ namespace aarch32 {
   {                                                                            \
     int pcs_offset = masm.IsUsingT32() ? 1 : 0;                                \
     masm.SetBufferExecutable();                                                \
-    ExecuteMemory(masm.GetBuffer().GetOffsetAddress<byte*>(0),                 \
-                  masm.GetBuffer().GetCursorOffset(), pcs_offset);             \
+    ExecuteMemory(masm.GetBuffer()->GetStartAddress<byte*>(),                  \
+                  masm.GetSizeOfCodeGenerated(),                               \
+                  pcs_offset);                                                 \
     masm.SetBufferWritable();                                                  \
   }
 
@@ -160,10 +161,10 @@ namespace aarch32 {
   if (Test::disassemble()) {                                                   \
     PrintDisassembler dis(std::cout, 0);                                       \
     if (masm.IsUsingT32()) {                                                   \
-      dis.DisassembleT32Buffer(masm.GetBuffer().GetOffsetAddress<uint16_t*>(0),\
+      dis.DisassembleT32Buffer(masm.GetBuffer()->GetStartAddress<uint16_t*>(), \
                                masm.GetCursorOffset());                        \
     } else {                                                                   \
-      dis.DisassembleA32Buffer(masm.GetBuffer().GetOffsetAddress<uint32_t*>(0),\
+      dis.DisassembleA32Buffer(masm.GetBuffer()->GetStartAddress<uint32_t*>(), \
                                masm.GetCursorOffset());                        \
     }                                                                          \
   }
@@ -1050,8 +1051,8 @@ TEST(emit_literal) {
   // Emit code up to the maximum literal load range and ensure the pool
   // has not been emitted.
   static const int ldrd_size = 255 - 4;
-  ptrdiff_t end = masm.GetBuffer().GetCursorOffset() + ldrd_size;
-  while (masm.GetBuffer().GetCursorOffset() < end) {
+  ptrdiff_t end = masm.GetBuffer()->GetCursorOffset() + ldrd_size;
+  while (masm.GetBuffer()->GetCursorOffset() < end) {
     // Random instruction that does not affect the test, ie
     // an instruction that does not depend on a literal.
     // Avoid Nop as it can be skipped by the macro-assembler.
@@ -1302,10 +1303,10 @@ TEST(literal_update) {
   __ Ldrd(r4, r5, b64);
   // Update literals' values. "a32" and "a64" are already emitted. "b32" and
   // "b64" will only be emitted when "END()" will be called.
-  a32->UpdateValue(0x12345678, &masm.GetBuffer());
-  a64->UpdateValue(UINT64_C(0x13579bdf02468ace), &masm.GetBuffer());
-  b32->UpdateValue(0x87654321, &masm.GetBuffer());
-  b64->UpdateValue(UINT64_C(0x1032547698badcfe), &masm.GetBuffer());
+  a32->UpdateValue(0x12345678, masm.GetBuffer());
+  a64->UpdateValue(UINT64_C(0x13579bdf02468ace), masm.GetBuffer());
+  b32->UpdateValue(0x87654321, masm.GetBuffer());
+  b64->UpdateValue(UINT64_C(0x1032547698badcfe), masm.GetBuffer());
   END();
 
   RUN();
@@ -1423,7 +1424,7 @@ TEST(claim_peek_poke) {
   __ Bind(&start);
   __ Claim(0);
   __ Drop(0);
-  VIXL_CHECK((__ GetCursorOffset() - start.GetLocation()) == 0);
+  VIXL_CHECK((masm.GetCursorOffset() - start.GetLocation()) == 0);
 
   __ Claim(32);
   __ Ldr(r0, 0xcafe0000);
@@ -1670,7 +1671,7 @@ void CheckInstructionSetT32(const T& assm) {
 
 
 TEST(set_isa_constructors) {
-  char buffer[1024];
+  byte buffer[1024];
 
   // A32 by default.
   CheckInstructionSetA32(Assembler());

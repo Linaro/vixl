@@ -56,11 +56,11 @@ namespace aarch32 {
     std::ostringstream ss;                                                     \
     TestDisassembler disassembler(ss, 0);                                      \
     if (masm.IsUsingT32()) {                                                   \
-      disassembler.DisassembleT32(masm.GetBuffer(), start, end);               \
+      disassembler.DisassembleT32(*masm.GetBuffer(), start, end);              \
     } else {                                                                   \
-      disassembler.DisassembleA32(masm.GetBuffer(), start, end);               \
+      disassembler.DisassembleA32(*masm.GetBuffer(), start, end);              \
     }                                                                          \
-    masm.GetBuffer().Reset();                                                  \
+    masm.GetBuffer()->Reset();                                                  \
     if (Test::disassemble()) {                                                 \
       printf("%s", ss.str().c_str());                                          \
     }                                                                          \

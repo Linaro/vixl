@@ -112,11 +112,12 @@ namespace aarch64 {
   __ Ret();                                                                   \
   masm.FinalizeCode()
 
-#define RUN()                                                                  \
-  {                                                                            \
-    masm.SetBufferExecutable();                                                \
-    ExecuteMemory(masm.GetOffsetAddress<byte*>(0), masm.GetCursorOffset());    \
-    masm.SetBufferWritable();                                                  \
+#define RUN()                                                                 \
+  {                                                                           \
+    masm.SetBufferExecutable();                                               \
+    ExecuteMemory(masm.GetBuffer()->GetStartAddress<byte*>(),                 \
+                  masm.GetSizeOfCodeGenerated());                             \
+    masm.SetBufferWritable();                                                 \
   }
 
 #define TEARDOWN()

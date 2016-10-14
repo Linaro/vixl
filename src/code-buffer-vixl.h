@@ -1,4 +1,4 @@
-// Copyright 2014, VIXL authors
+// Copyright 2016, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ class CodeBuffer {
   static const size_t kDefaultCapacity = 4 * KBytes;
 
   explicit CodeBuffer(size_t capacity = kDefaultCapacity);
-  CodeBuffer(void* buffer, size_t capacity);
+  CodeBuffer(byte* buffer, size_t capacity);
   ~CodeBuffer();
 
   void Reset();

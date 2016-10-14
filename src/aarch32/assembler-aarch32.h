@@ -27,7 +27,7 @@
 #ifndef VIXL_AARCH32_ASSEMBLER_AARCH32_H_
 #define VIXL_AARCH32_ASSEMBLER_AARCH32_H_
 
-#include "code-buffer-vixl.h"
+#include "assembler-base-vixl.h"
 
 #include "aarch32/instructions-aarch32.h"
 #include "aarch32/label-aarch32.h"
@@ -35,7 +35,7 @@
 namespace vixl {
 namespace aarch32 {
 
-class Assembler {
+class Assembler : public internal::AssemblerBase {
   InstructionSet isa_;
   Condition first_condition_;
   uint16_t it_mask_;
@@ -44,8 +44,6 @@ class Assembler {
   bool allow_assembler_;
 
  protected:
-  CodeBuffer buffer_;
-
   void EmitT32_16(uint16_t instr);
   void EmitT32_32(uint32_t instr);
   void EmitA32(uint32_t instr);
@@ -70,20 +68,20 @@ class Assembler {
         it_mask_(0),
         has_32_dregs_(true),
         allow_assembler_(true) {}
-  explicit Assembler(size_t size, InstructionSet isa = A32)
-      : isa_(isa),
+  explicit Assembler(size_t capacity, InstructionSet isa = A32)
+      : AssemblerBase(capacity),
+        isa_(isa),
         first_condition_(al),
         it_mask_(0),
         has_32_dregs_(true),
-        allow_assembler_(true),
-        buffer_(size) {}
-  Assembler(void* buffer, size_t size, InstructionSet isa = A32)
-      : isa_(isa),
+        allow_assembler_(true) {}
+  Assembler(byte* buffer, size_t capacity, InstructionSet isa = A32)
+      : AssemblerBase(buffer, capacity),
+        isa_(isa),
         first_condition_(al),
         it_mask_(0),
         has_32_dregs_(true),
-        allow_assembler_(true),
-        buffer_(buffer, size) {}
+        allow_assembler_(true) {}
   virtual ~Assembler() {}
   // Set the permissions of the buffer to read+execute.
   void SetBufferExecutable() { buffer_.SetExecutable(); }
@@ -121,7 +119,6 @@ class Assembler {
   bool Has32DRegs() const { return has_32_dregs_; }
   void SetHas32DRegs(bool has_32_dregs) { has_32_dregs_ = has_32_dregs; }
 
-  CodeBuffer& GetBuffer() { return buffer_; }
   int32_t GetCursorOffset() const {
     ptrdiff_t offset = buffer_.GetCursorOffset();
     VIXL_ASSERT(IsInt32(offset));
@@ -148,10 +145,10 @@ class Assembler {
   void bind(Label* label);
   void place(RawLiteral* literal) {
     bind(literal);
-    GetBuffer().EmitData(literal->GetDataAddress(), literal->GetSize());
-    GetBuffer().Align();
+    GetBuffer()->EmitData(literal->GetDataAddress(), literal->GetSize());
+    GetBuffer()->Align();
   }
-  void FinalizeCode() { GetBuffer().SetClean(); }
+  void FinalizeCode() { GetBuffer()->SetClean(); }
 
   size_t GetSizeOfCodeGeneratedSince(Label* label) const {
     VIXL_ASSERT(label->IsBound());

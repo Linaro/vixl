@@ -24,44 +24,29 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "examples.h"
+#ifndef VIXL_ASSEMBLER_BASE_H
+#define VIXL_ASSEMBLER_BASE_H
 
-#define __ masm->
+#include "code-buffer-vixl.h"
 
-void GenerateAbs(MacroAssembler* masm) {
-  // int32_t abs(int32_t x)
-  // Argument location:
-  //   x -> r0
+namespace vixl {
+namespace internal {
 
-  __ Cmp(r0, 0);
-  // If r0 is negative, negate r0.
-  __ Rsb(mi, r0, r0, 0);
-  __ Bx(lr);
-}
+class AssemblerBase {
+ public:
+  AssemblerBase() {}
+  explicit AssemblerBase(size_t capacity) : buffer_(capacity) {}
+  AssemblerBase(byte* buffer, size_t capacity) : buffer_(buffer, capacity) {}
 
+  CodeBuffer* GetBuffer() { return &buffer_; }
+  const CodeBuffer& GetBuffer() const { return buffer_; }
 
-#ifndef TEST_EXAMPLES
-int main() {
-  MacroAssembler masm(A32);
-  // Generate the code for the example function.
-  Label abs;
-  masm.Bind(&abs);
-  GenerateAbs(&masm);
-  masm.FinalizeCode();
-#ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
-  // There is no simulator defined for VIXL AArch32.
-  printf("This example cannot be simulated\n");
-#else
-  byte* code = masm.GetBuffer()->GetBuffer();
-  uint32_t code_size = masm.GetSizeOfCodeGenerated();
-  ExecutableMemory memory(code, code_size);
-  // Run the example function.
-  int32_t (*abs_function)(int32_t) =
-      memory.GetEntryPoint<int32_t (*)(int32_t)>(abs);
-  int32_t input_value = -42;
-  int32_t output_value = (*abs_function)(input_value);
-  printf("native: abs(%d) = %d\n", input_value, output_value);
-#endif
-  return 0;
-}
-#endif  // TEST_EXAMPLES
+ protected:
+  // Buffer where the code is emitted.
+  CodeBuffer buffer_;
+};
+
+}  // namespace internal
+}  // namespace vixl
+
+#endif  // VIXL_ASSEMBLER_BASE_H

@@ -58,7 +58,7 @@ CodeBuffer::CodeBuffer(size_t capacity)
 }
 
 
-CodeBuffer::CodeBuffer(void* buffer, size_t capacity)
+CodeBuffer::CodeBuffer(byte* buffer, size_t capacity)
     : buffer_(reinterpret_cast<byte*>(buffer)),
       managed_(false),
       cursor_(reinterpret_cast<byte*>(buffer)),
