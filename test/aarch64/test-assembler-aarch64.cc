@@ -1938,14 +1938,13 @@ static void AdrpOffsetHelper(int64_t offset) {
     __ bind(&page);
 
     {
-      int imm21 = static_cast<int>(offset);
       InstructionAccurateScope scope_page(&masm, kPageSize / kInstructionSize);
       // Every adrp instruction on this page should return the same value.
-      __ adrp(x0, imm21);
-      __ adrp(x1, imm21);
+      __ adrp(x0, offset);
+      __ adrp(x1, offset);
       for (size_t i = 2; i < kPageSize / kInstructionSize; i += 2) {
         __ ccmp(x0, x1, NoFlag, eq);
-        __ adrp(x1, imm21);
+        __ adrp(x1, offset);
       }
     }
   }
@@ -7167,7 +7166,7 @@ TEST(prfm_literal_imm19) {
     PrefetchOperation op = static_cast<PrefetchOperation>(i);
 
     // The address used in prfm doesn't have to be valid.
-    __ prfm(op, 0);
+    __ prfm(op, INT64_C(0));
     __ prfm(op, 1);
     __ prfm(op, -1);
     __ prfm(op, 1000);

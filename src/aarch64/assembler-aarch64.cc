@@ -232,10 +232,10 @@ void Assembler::ret(const Register& xn) {
 }
 
 
-void Assembler::b(int imm26) { Emit(B | ImmUncondBranch(imm26)); }
+void Assembler::b(int64_t imm26) { Emit(B | ImmUncondBranch(imm26)); }
 
 
-void Assembler::b(int imm19, Condition cond) {
+void Assembler::b(int64_t imm19, Condition cond) {
   Emit(B_cond | ImmCondBranch(imm19) | cond);
 }
 
@@ -254,7 +254,7 @@ void Assembler::b(Label* label, Condition cond) {
 }
 
 
-void Assembler::bl(int imm26) { Emit(BL | ImmUncondBranch(imm26)); }
+void Assembler::bl(int64_t imm26) { Emit(BL | ImmUncondBranch(imm26)); }
 
 
 void Assembler::bl(Label* label) {
@@ -264,7 +264,7 @@ void Assembler::bl(Label* label) {
 }
 
 
-void Assembler::cbz(const Register& rt, int imm19) {
+void Assembler::cbz(const Register& rt, int64_t imm19) {
   Emit(SF(rt) | CBZ | ImmCmpBranch(imm19) | Rt(rt));
 }
 
@@ -276,7 +276,7 @@ void Assembler::cbz(const Register& rt, Label* label) {
 }
 
 
-void Assembler::cbnz(const Register& rt, int imm19) {
+void Assembler::cbnz(const Register& rt, int64_t imm19) {
   Emit(SF(rt) | CBNZ | ImmCmpBranch(imm19) | Rt(rt));
 }
 
@@ -397,7 +397,7 @@ void Assembler::tbx(const VRegister& vd,
 }
 
 
-void Assembler::tbz(const Register& rt, unsigned bit_pos, int imm14) {
+void Assembler::tbz(const Register& rt, unsigned bit_pos, int64_t imm14) {
   VIXL_ASSERT(rt.Is64Bits() || (rt.Is32Bits() && (bit_pos < kWRegSize)));
   Emit(TBZ | ImmTestBranchBit(bit_pos) | ImmTestBranch(imm14) | Rt(rt));
 }
@@ -410,7 +410,7 @@ void Assembler::tbz(const Register& rt, unsigned bit_pos, Label* label) {
 }
 
 
-void Assembler::tbnz(const Register& rt, unsigned bit_pos, int imm14) {
+void Assembler::tbnz(const Register& rt, unsigned bit_pos, int64_t imm14) {
   VIXL_ASSERT(rt.Is64Bits() || (rt.Is32Bits() && (bit_pos < kWRegSize)));
   Emit(TBNZ | ImmTestBranchBit(bit_pos) | ImmTestBranch(imm14) | Rt(rt));
 }
@@ -423,7 +423,7 @@ void Assembler::tbnz(const Register& rt, unsigned bit_pos, Label* label) {
 }
 
 
-void Assembler::adr(const Register& xd, int imm21) {
+void Assembler::adr(const Register& xd, int64_t imm21) {
   VIXL_ASSERT(xd.Is64Bits());
   Emit(ADR | ImmPCRelAddress(imm21) | Rd(xd));
 }
@@ -434,7 +434,7 @@ void Assembler::adr(const Register& xd, Label* label) {
 }
 
 
-void Assembler::adrp(const Register& xd, int imm21) {
+void Assembler::adrp(const Register& xd, int64_t imm21) {
   VIXL_ASSERT(xd.Is64Bits());
   Emit(ADRP | ImmPCRelAddress(imm21) | Rd(xd));
 }
@@ -1252,18 +1252,18 @@ void Assembler::ldr(const CPURegister& rt, RawLiteral* literal) {
 }
 
 
-void Assembler::ldrsw(const Register& rt, int imm19) {
+void Assembler::ldrsw(const Register& rt, int64_t imm19) {
   Emit(LDRSW_x_lit | ImmLLiteral(imm19) | Rt(rt));
 }
 
 
-void Assembler::ldr(const CPURegister& rt, int imm19) {
+void Assembler::ldr(const CPURegister& rt, int64_t imm19) {
   LoadLiteralOp op = LoadLiteralOpFor(rt);
   Emit(op | ImmLLiteral(imm19) | Rt(rt));
 }
 
 
-void Assembler::prfm(PrefetchOperation op, int imm19) {
+void Assembler::prfm(PrefetchOperation op, int64_t imm19) {
   Emit(PRFM_lit | ImmPrefetchOperation(op) | ImmLLiteral(imm19));
 }
 

@@ -521,28 +521,28 @@ class Assembler {
   void b(Label* label, Condition cond);
 
   // Unconditional branch to PC offset.
-  void b(int imm26);
+  void b(int64_t imm26);
 
   // Conditional branch to PC offset.
-  void b(int imm19, Condition cond);
+  void b(int64_t imm19, Condition cond);
 
   // Branch with link to label.
   void bl(Label* label);
 
   // Branch with link to PC offset.
-  void bl(int imm26);
+  void bl(int64_t imm26);
 
   // Compare and branch to label if zero.
   void cbz(const Register& rt, Label* label);
 
   // Compare and branch to PC offset if zero.
-  void cbz(const Register& rt, int imm19);
+  void cbz(const Register& rt, int64_t imm19);
 
   // Compare and branch to label if not zero.
   void cbnz(const Register& rt, Label* label);
 
   // Compare and branch to PC offset if not zero.
-  void cbnz(const Register& rt, int imm19);
+  void cbnz(const Register& rt, int64_t imm19);
 
   // Table lookup from one register.
   void tbl(const VRegister& vd, const VRegister& vn, const VRegister& vm);
@@ -596,13 +596,13 @@ class Assembler {
   void tbz(const Register& rt, unsigned bit_pos, Label* label);
 
   // Test bit and branch to PC offset if zero.
-  void tbz(const Register& rt, unsigned bit_pos, int imm14);
+  void tbz(const Register& rt, unsigned bit_pos, int64_t imm14);
 
   // Test bit and branch to label if not zero.
   void tbnz(const Register& rt, unsigned bit_pos, Label* label);
 
   // Test bit and branch to PC offset if not zero.
-  void tbnz(const Register& rt, unsigned bit_pos, int imm14);
+  void tbnz(const Register& rt, unsigned bit_pos, int64_t imm14);
 
   // Address calculation instructions.
   // Calculate a PC-relative address. Unlike for branches the offset in adr is
@@ -612,13 +612,13 @@ class Assembler {
   void adr(const Register& xd, Label* label);
 
   // Calculate the address of a PC offset.
-  void adr(const Register& xd, int imm21);
+  void adr(const Register& xd, int64_t imm21);
 
   // Calculate the page address of a label.
   void adrp(const Register& xd, Label* label);
 
   // Calculate the page address of a PC offset.
-  void adrp(const Register& xd, int imm21);
+  void adrp(const Register& xd, int64_t imm21);
 
   // Data Processing instructions.
   // Add.
@@ -1119,10 +1119,10 @@ class Assembler {
   void ldrsw(const Register& xt, RawLiteral* literal);
 
   // Load integer or FP register from pc + imm19 << 2.
-  void ldr(const CPURegister& rt, int imm19);
+  void ldr(const CPURegister& rt, int64_t imm19);
 
   // Load word with sign extension from pc + imm19 << 2.
-  void ldrsw(const Register& xt, int imm19);
+  void ldrsw(const Register& xt, int64_t imm19);
 
   // Store exclusive byte.
   void stxrb(const Register& rs, const Register& rt, const MemOperand& dst);
@@ -1210,7 +1210,7 @@ class Assembler {
   void prfm(PrefetchOperation op, RawLiteral* literal);
 
   // Prefetch from pc + imm19 << 2.
-  void prfm(PrefetchOperation op, int imm19);
+  void prfm(PrefetchOperation op, int64_t imm19);
 
   // Move instructions. The default shift of -1 indicates that the move
   // instruction will calculate an appropriate 16-bit immediate and left shift
@@ -2671,7 +2671,7 @@ class Assembler {
   static Instr Cond(Condition cond) { return cond << Condition_offset; }
 
   // PC-relative address encoding.
-  static Instr ImmPCRelAddress(int imm21) {
+  static Instr ImmPCRelAddress(int64_t imm21) {
     VIXL_ASSERT(IsInt21(imm21));
     Instr imm = static_cast<Instr>(TruncateToInt21(imm21));
     Instr immhi = (imm >> ImmPCRelLo_width) << ImmPCRelHi_offset;
@@ -2680,22 +2680,22 @@ class Assembler {
   }
 
   // Branch encoding.
-  static Instr ImmUncondBranch(int imm26) {
+  static Instr ImmUncondBranch(int64_t imm26) {
     VIXL_ASSERT(IsInt26(imm26));
     return TruncateToInt26(imm26) << ImmUncondBranch_offset;
   }
 
-  static Instr ImmCondBranch(int imm19) {
+  static Instr ImmCondBranch(int64_t imm19) {
     VIXL_ASSERT(IsInt19(imm19));
     return TruncateToInt19(imm19) << ImmCondBranch_offset;
   }
 
-  static Instr ImmCmpBranch(int imm19) {
+  static Instr ImmCmpBranch(int64_t imm19) {
     VIXL_ASSERT(IsInt19(imm19));
     return TruncateToInt19(imm19) << ImmCmpBranch_offset;
   }
 
-  static Instr ImmTestBranch(int imm14) {
+  static Instr ImmTestBranch(int64_t imm14) {
     VIXL_ASSERT(IsInt14(imm14));
     return TruncateToInt14(imm14) << ImmTestBranch_offset;
   }
@@ -2756,7 +2756,7 @@ class Assembler {
     return immr << ImmRotate_offset;
   }
 
-  static Instr ImmLLiteral(int imm19) {
+  static Instr ImmLLiteral(int64_t imm19) {
     VIXL_ASSERT(IsInt19(imm19));
     return TruncateToInt19(imm19) << ImmLLiteral_offset;
   }
@@ -2795,19 +2795,19 @@ class Assembler {
   }
 
   // MemOperand offset encoding.
-  static Instr ImmLSUnsigned(int imm12) {
+  static Instr ImmLSUnsigned(int64_t imm12) {
     VIXL_ASSERT(IsUint12(imm12));
-    return imm12 << ImmLSUnsigned_offset;
+    return TruncateToInt12(imm12) << ImmLSUnsigned_offset;
   }
 
-  static Instr ImmLS(int imm9) {
+  static Instr ImmLS(int64_t imm9) {
     VIXL_ASSERT(IsInt9(imm9));
     return TruncateToInt9(imm9) << ImmLS_offset;
   }
 
-  static Instr ImmLSPair(int imm7, unsigned access_size) {
+  static Instr ImmLSPair(int64_t imm7, unsigned access_size) {
     VIXL_ASSERT(((imm7 >> access_size) << access_size) == imm7);
-    int scaled_imm7 = imm7 >> access_size;
+    int64_t scaled_imm7 = imm7 >> access_size;
     VIXL_ASSERT(IsInt7(scaled_imm7));
     return TruncateToInt7(scaled_imm7) << ImmLSPair_offset;
   }

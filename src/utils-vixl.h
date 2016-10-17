@@ -117,11 +117,11 @@ V(57) V(58) V(59) V(60) V(61) V(62) V(63)
     return IsUintN(N, x);                                           \
   }
 
-#define DECLARE_TRUNCATE_TO_INT_N(N)                                       \
-  inline uint32_t TruncateToInt##N(int x) { return TruncateToIntN(N, x); } \
-  VIXL_DEPRECATED("TruncateToInt" #N,                                      \
-                  inline bool truncate_to_int##N(int64_t x)) {             \
-    return TruncateToIntN(N, x);                                           \
+#define DECLARE_TRUNCATE_TO_INT_N(N)                                           \
+  inline uint32_t TruncateToInt##N(int64_t x) { return TruncateToIntN(N, x); } \
+  VIXL_DEPRECATED("TruncateToInt" #N,                                          \
+                  inline bool truncate_to_int##N(int64_t x)) {                 \
+    return TruncateToIntN(N, x);                                               \
   }
 
 INT_1_TO_63_LIST(DECLARE_IS_INT_N)
