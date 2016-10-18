@@ -2673,7 +2673,7 @@ class Assembler {
   // PC-relative address encoding.
   static Instr ImmPCRelAddress(int64_t imm21) {
     VIXL_ASSERT(IsInt21(imm21));
-    Instr imm = static_cast<Instr>(TruncateToInt21(imm21));
+    Instr imm = static_cast<Instr>(TruncateToUint21(imm21));
     Instr immhi = (imm >> ImmPCRelLo_width) << ImmPCRelHi_offset;
     Instr immlo = imm << ImmPCRelLo_offset;
     return (immhi & ImmPCRelHi_mask) | (immlo & ImmPCRelLo_mask);
@@ -2682,22 +2682,22 @@ class Assembler {
   // Branch encoding.
   static Instr ImmUncondBranch(int64_t imm26) {
     VIXL_ASSERT(IsInt26(imm26));
-    return TruncateToInt26(imm26) << ImmUncondBranch_offset;
+    return TruncateToUint26(imm26) << ImmUncondBranch_offset;
   }
 
   static Instr ImmCondBranch(int64_t imm19) {
     VIXL_ASSERT(IsInt19(imm19));
-    return TruncateToInt19(imm19) << ImmCondBranch_offset;
+    return TruncateToUint19(imm19) << ImmCondBranch_offset;
   }
 
   static Instr ImmCmpBranch(int64_t imm19) {
     VIXL_ASSERT(IsInt19(imm19));
-    return TruncateToInt19(imm19) << ImmCmpBranch_offset;
+    return TruncateToUint19(imm19) << ImmCmpBranch_offset;
   }
 
   static Instr ImmTestBranch(int64_t imm14) {
     VIXL_ASSERT(IsInt14(imm14));
-    return TruncateToInt14(imm14) << ImmTestBranch_offset;
+    return TruncateToUint14(imm14) << ImmTestBranch_offset;
   }
 
   static Instr ImmTestBranchBit(unsigned bit_pos) {
@@ -2758,7 +2758,7 @@ class Assembler {
 
   static Instr ImmLLiteral(int64_t imm19) {
     VIXL_ASSERT(IsInt19(imm19));
-    return TruncateToInt19(imm19) << ImmLLiteral_offset;
+    return TruncateToUint19(imm19) << ImmLLiteral_offset;
   }
 
   static Instr BitN(unsigned bitn, unsigned reg_size) {
@@ -2797,19 +2797,19 @@ class Assembler {
   // MemOperand offset encoding.
   static Instr ImmLSUnsigned(int64_t imm12) {
     VIXL_ASSERT(IsUint12(imm12));
-    return TruncateToInt12(imm12) << ImmLSUnsigned_offset;
+    return TruncateToUint12(imm12) << ImmLSUnsigned_offset;
   }
 
   static Instr ImmLS(int64_t imm9) {
     VIXL_ASSERT(IsInt9(imm9));
-    return TruncateToInt9(imm9) << ImmLS_offset;
+    return TruncateToUint9(imm9) << ImmLS_offset;
   }
 
   static Instr ImmLSPair(int64_t imm7, unsigned access_size) {
     VIXL_ASSERT(((imm7 >> access_size) << access_size) == imm7);
     int64_t scaled_imm7 = imm7 >> access_size;
     VIXL_ASSERT(IsInt7(scaled_imm7));
-    return TruncateToInt7(scaled_imm7) << ImmLSPair_offset;
+    return TruncateToUint7(scaled_imm7) << ImmLSPair_offset;
   }
 
   static Instr ImmShiftLS(unsigned shift_amount) {
