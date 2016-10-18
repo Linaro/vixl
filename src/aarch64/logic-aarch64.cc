@@ -1343,7 +1343,7 @@ LogicVRegister Simulator::sminmax(VectorFormat vform,
     int64_t src1_val = src1.Int(vform, i);
     int64_t src2_val = src2.Int(vform, i);
     int64_t dst_val;
-    if (max == true) {
+    if (max) {
       dst_val = (src1_val > src2_val) ? src1_val : src2_val;
     } else {
       dst_val = (src1_val < src2_val) ? src1_val : src2_val;
@@ -1379,7 +1379,7 @@ LogicVRegister Simulator::sminmaxp(VectorFormat vform,
     int64_t src1_val = src.Int(vform, i);
     int64_t src2_val = src.Int(vform, i + 1);
     int64_t dst_val;
-    if (max == true) {
+    if (max) {
       dst_val = (src1_val > src2_val) ? src1_val : src2_val;
     } else {
       dst_val = (src1_val < src2_val) ? src1_val : src2_val;
@@ -1480,17 +1480,16 @@ LogicVRegister Simulator::sminmaxv(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src,
                                    bool max) {
-  dst.ClearForWrite(vform);
   int64_t dst_val = max ? INT64_MIN : INT64_MAX;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst.SetInt(vform, i, 0);
     int64_t src_val = src.Int(vform, i);
-    if (max == true) {
+    if (max) {
       dst_val = (src_val > dst_val) ? src_val : dst_val;
     } else {
       dst_val = (src_val < dst_val) ? src_val : dst_val;
     }
   }
+  dst.ClearForWrite(ScalarFormatFromFormat(vform));
   dst.SetInt(vform, 0, dst_val);
   return dst;
 }
@@ -1522,7 +1521,7 @@ LogicVRegister Simulator::uminmax(VectorFormat vform,
     uint64_t src1_val = src1.Uint(vform, i);
     uint64_t src2_val = src2.Uint(vform, i);
     uint64_t dst_val;
-    if (max == true) {
+    if (max) {
       dst_val = (src1_val > src2_val) ? src1_val : src2_val;
     } else {
       dst_val = (src1_val < src2_val) ? src1_val : src2_val;
@@ -1558,7 +1557,7 @@ LogicVRegister Simulator::uminmaxp(VectorFormat vform,
     uint64_t src1_val = src.Uint(vform, i);
     uint64_t src2_val = src.Uint(vform, i + 1);
     uint64_t dst_val;
-    if (max == true) {
+    if (max) {
       dst_val = (src1_val > src2_val) ? src1_val : src2_val;
     } else {
       dst_val = (src1_val < src2_val) ? src1_val : src2_val;
@@ -1595,17 +1594,17 @@ LogicVRegister Simulator::uminmaxv(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src,
                                    bool max) {
-  dst.ClearForWrite(vform);
   uint64_t dst_val = max ? 0 : UINT64_MAX;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst.SetUint(vform, i, 0);
     uint64_t src_val = src.Uint(vform, i);
-    if (max == true) {
+    dst.SetUint(vform, i, i);
+    if (max) {
       dst_val = (src_val > dst_val) ? src_val : dst_val;
     } else {
       dst_val = (src_val < dst_val) ? src_val : dst_val;
     }
   }
+  dst.ClearForWrite(ScalarFormatFromFormat(vform));
   dst.SetUint(vform, 0, dst_val);
   return dst;
 }

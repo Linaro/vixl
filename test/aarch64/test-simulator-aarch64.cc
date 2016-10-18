@@ -1391,21 +1391,26 @@ static void Test1OpAcrossNEON_Helper(Test1OpNEONHelper_t helper,
 
   // TODO: Refactor duplicate definitions below with a VRegister::As() routine.
   const unsigned vd_bits = RegisterSizeInBitsFromFormat(vd_form);
-
   const unsigned vn_bits = RegisterSizeInBitsFromFormat(vn_form);
   const unsigned vn_lane_count = LaneCountFromFormat(vn_form);
   const unsigned vn_lane_bytes = LaneSizeInBytesFromFormat(vn_form);
   const unsigned vn_lane_bytes_log2 = LaneSizeInBytesLog2FromFormat(vn_form);
   const unsigned vn_lane_bits = LaneSizeInBitsFromFormat(vn_form);
 
+  // Test destructive operations by (arbitrarily) using the same register for
+  // B and S lane sizes.
+  bool destructive = (vd_bits == kBRegSize) || (vd_bits == kSRegSize);
 
-  // These will be either a D- or a Q-register form, with a single lane
-  // (for use in scalar load and store operations).
+  // Create two aliases for v0; the first is the destination for the tested
+  // instruction, the second, the whole Q register to check the results.
   VRegister vd = VRegister(0, vd_bits);
+  VRegister vdstr = VRegister(0, kQRegSize);
+
   VRegister vn = VRegister(1, vn_bits);
   VRegister vntmp = VRegister(3, vn_bits);
 
   // These will have the correct format for use when calling 'helper'.
+  VRegister vd_helper = VRegister(0, vn_bits, vn_lane_count);
   VRegister vn_helper = VRegister(1, vn_bits, vn_lane_count);
 
   // 'v*tmp_single' will be either 'Vt.B', 'Vt.H', 'Vt.S' or 'Vt.D'.
@@ -1430,17 +1435,16 @@ static void Test1OpAcrossNEON_Helper(Test1OpNEONHelper_t helper,
                                   vn_lane_bytes_log2));
   __ Ext(vn_ext, vn_ext, vntmp_ext, vn_lane_bytes);
 
-  // Set the destination to zero for tests such as '[r]shrn2'.
-  // TODO: Setting the destination to values other than zero
-  //       might be a better test for instructions such as sqxtn2
-  //       which may leave parts of V registers unchanged.
-  __ Movi(vd.V16B(), 0);
-
-  {
+  if (destructive) {
+    __ Mov(vd_helper, vn_helper);
+    SingleEmissionCheckScope guard(&masm);
+    (masm.*helper)(vd, vd_helper);
+  } else {
     SingleEmissionCheckScope guard(&masm);
     (masm.*helper)(vd, vn_helper);
   }
-  __ Str(vd, MemOperand(out, vd.GetSizeInBytes(), PostIndex));
+
+  __ Str(vdstr, MemOperand(out, kQRegSizeInBytes, PostIndex));
 
   __ Add(index_n, index_n, 1);
   __ Cmp(index_n, inputs_n_length);
@@ -1463,9 +1467,10 @@ static void Test1OpAcrossNEON(const char * name, Test1OpNEONHelper_t helper,
   VIXL_ASSERT(inputs_n_length > 0);
 
   const unsigned vd_lane_count = LaneCountFromFormat(vd_form);
+  const unsigned vd_lanes_per_q = MaxLaneCountFromFormat(vd_form);
 
   const unsigned results_length = inputs_n_length;
-  Td* results = new Td[results_length * vd_lane_count];
+  Td* results = new Td[results_length * vd_lanes_per_q];
   const unsigned lane_bit = sizeof(Td) * 8;
   const unsigned lane_len_in_hex = MaxHexCharCount<Td, Tn>();
 
@@ -1505,9 +1510,19 @@ static void Test1OpAcrossNEON(const char * name, Test1OpNEONHelper_t helper,
       bool error_in_vector = false;
 
       for (unsigned lane = 0; lane < vd_lane_count; lane++) {
-        unsigned output_index = (n * vd_lane_count) + lane;
+        unsigned expected_index = (n * vd_lane_count) + lane;
+        unsigned results_index = (n * vd_lanes_per_q) + lane;
 
-        if (results[output_index] != expected[output_index]) {
+        if (results[results_index] != expected[expected_index]) {
+          error_in_vector = true;
+          break;
+        }
+      }
+
+      // For across operations, the remaining lanes should be zero.
+      for (unsigned lane = vd_lane_count; lane < vd_lanes_per_q; lane++) {
+        unsigned results_index = (n * vd_lanes_per_q) + lane;
+        if (results[results_index] != 0) {
           error_in_vector = true;
           break;
         }
@@ -1518,8 +1533,8 @@ static void Test1OpAcrossNEON(const char * name, Test1OpNEONHelper_t helper,
 
         printf("%s\n", name);
         printf(" Vn%.*s| Vd%.*s| Expected\n",
-                lane_len_in_hex+1, padding,
-                lane_len_in_hex+1, padding);
+                lane_len_in_hex + 1, padding,
+                lane_len_in_hex + 1, padding);
 
         // TODO: In case of an error, all tests print out as many elements as
         //       there are lanes in the output or input vectors. This way
@@ -1530,28 +1545,25 @@ static void Test1OpAcrossNEON(const char * name, Test1OpNEONHelper_t helper,
         //       This output for the 'Across' category has the required
         //       modifications.
         for (unsigned lane = 0; lane < vn_lane_count; lane++) {
-          unsigned output_index = n * vd_lane_count;
+          unsigned results_index = (n * vd_lanes_per_q) + ((vn_lane_count - 1)  - lane);
           unsigned input_index_n = (inputs_n_length - vn_lane_count +
               n + 1 + lane) % inputs_n_length;
 
-          if (vn_lane_count-1 == lane) {  // Is this the last lane?
-            // Print the result element(s) in the last lane only.
-            printf("%c0x%0*" PRIx64 " | 0x%0*" PRIx64 " "
-                  "| 0x%0*" PRIx64 "\n",
-                  results[output_index] != expected[output_index] ? '*' : ' ',
-                  lane_len_in_hex,
-                  static_cast<uint64_t>(inputs_n[input_index_n]),
-                  lane_len_in_hex,
-                  static_cast<uint64_t>(results[output_index]),
-                  lane_len_in_hex,
-                  static_cast<uint64_t>(expected[output_index]));
-          } else {
-            printf(" 0x%0*" PRIx64 " |   %.*s|   %.*s\n",
-                  lane_len_in_hex,
-                  static_cast<uint64_t>(inputs_n[input_index_n]),
-                  lane_len_in_hex+1, padding,
-                  lane_len_in_hex+1, padding);
+          Td expect = 0;
+          if ((vn_lane_count - 1) == lane) {
+            // This is the last lane to be printed, ie. the least-significant
+            // lane, so use the expected value; any other lane should be zero.
+            unsigned expected_index = n * vd_lane_count;
+            expect = expected[expected_index];
           }
+          printf("%c0x%0*" PRIx64 " | 0x%0*" PRIx64 " | 0x%0*" PRIx64 "\n",
+                 results[results_index] != expect ? '*' : ' ',
+                 lane_len_in_hex,
+                 static_cast<uint64_t>(inputs_n[input_index_n]),
+                 lane_len_in_hex,
+                 static_cast<uint64_t>(results[results_index]),
+                 lane_len_in_hex,
+                 static_cast<uint64_t>(expect));
         }
       }
     }

@@ -524,13 +524,14 @@ enum VectorFormat {
   kFormatD = NEON_D | NEONScalar
 };
 
-VectorFormat VectorFormatHalfWidth(const VectorFormat vform);
-VectorFormat VectorFormatDoubleWidth(const VectorFormat vform);
-VectorFormat VectorFormatDoubleLanes(const VectorFormat vform);
-VectorFormat VectorFormatHalfLanes(const VectorFormat vform);
+VectorFormat VectorFormatHalfWidth(VectorFormat vform);
+VectorFormat VectorFormatDoubleWidth(VectorFormat vform);
+VectorFormat VectorFormatDoubleLanes(VectorFormat vform);
+VectorFormat VectorFormatHalfLanes(VectorFormat vform);
 VectorFormat ScalarFormatFromLaneSize(int lanesize);
-VectorFormat VectorFormatHalfWidthDoubleLanes(const VectorFormat vform);
-VectorFormat VectorFormatFillQ(const VectorFormat vform);
+VectorFormat VectorFormatHalfWidthDoubleLanes(VectorFormat vform);
+VectorFormat VectorFormatFillQ(VectorFormat vform);
+VectorFormat ScalarFormatFromFormat(VectorFormat vform);
 unsigned RegisterSizeInBitsFromFormat(VectorFormat vform);
 unsigned RegisterSizeInBytesFromFormat(VectorFormat vform);
 // TODO: Make the return types of these functions consistent.

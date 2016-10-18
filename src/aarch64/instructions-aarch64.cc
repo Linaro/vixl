@@ -403,7 +403,7 @@ void Instruction::SetImmLLiteral(const Instruction* source) {
 }
 
 
-VectorFormat VectorFormatHalfWidth(const VectorFormat vform) {
+VectorFormat VectorFormatHalfWidth(VectorFormat vform) {
   VIXL_ASSERT(vform == kFormat8H || vform == kFormat4S || vform == kFormat2D ||
               vform == kFormatH || vform == kFormatS || vform == kFormatD);
   switch (vform) {
@@ -426,7 +426,7 @@ VectorFormat VectorFormatHalfWidth(const VectorFormat vform) {
 }
 
 
-VectorFormat VectorFormatDoubleWidth(const VectorFormat vform) {
+VectorFormat VectorFormatDoubleWidth(VectorFormat vform) {
   VIXL_ASSERT(vform == kFormat8B || vform == kFormat4H || vform == kFormat2S ||
               vform == kFormatB || vform == kFormatH || vform == kFormatS);
   switch (vform) {
@@ -449,7 +449,7 @@ VectorFormat VectorFormatDoubleWidth(const VectorFormat vform) {
 }
 
 
-VectorFormat VectorFormatFillQ(const VectorFormat vform) {
+VectorFormat VectorFormatFillQ(VectorFormat vform) {
   switch (vform) {
     case kFormatB:
     case kFormat8B:
@@ -473,7 +473,7 @@ VectorFormat VectorFormatFillQ(const VectorFormat vform) {
   }
 }
 
-VectorFormat VectorFormatHalfWidthDoubleLanes(const VectorFormat vform) {
+VectorFormat VectorFormatHalfWidthDoubleLanes(VectorFormat vform) {
   switch (vform) {
     case kFormat4H:
       return kFormat8B;
@@ -493,7 +493,7 @@ VectorFormat VectorFormatHalfWidthDoubleLanes(const VectorFormat vform) {
   }
 }
 
-VectorFormat VectorFormatDoubleLanes(const VectorFormat vform) {
+VectorFormat VectorFormatDoubleLanes(VectorFormat vform) {
   VIXL_ASSERT(vform == kFormat8B || vform == kFormat4H || vform == kFormat2S);
   switch (vform) {
     case kFormat8B:
@@ -509,7 +509,7 @@ VectorFormat VectorFormatDoubleLanes(const VectorFormat vform) {
 }
 
 
-VectorFormat VectorFormatHalfLanes(const VectorFormat vform) {
+VectorFormat VectorFormatHalfLanes(VectorFormat vform) {
   VIXL_ASSERT(vform == kFormat16B || vform == kFormat8H || vform == kFormat4S);
   switch (vform) {
     case kFormat16B:
@@ -539,6 +539,11 @@ VectorFormat ScalarFormatFromLaneSize(int laneSize) {
       VIXL_UNREACHABLE();
       return kFormatUndefined;
   }
+}
+
+
+VectorFormat ScalarFormatFromFormat(VectorFormat vform) {
+  return ScalarFormatFromLaneSize(LaneSizeInBitsFromFormat(vform));
 }
 
 
