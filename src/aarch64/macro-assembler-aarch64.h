@@ -30,7 +30,9 @@
 #include <algorithm>
 #include <limits>
 
+#include "../code-generation-scopes-vixl.h"
 #include "../globals-vixl.h"
+#include "../macro-assembler-interface.h"
 
 #include "assembler-aarch64.h"
 #include "debugger-aarch64.h"
@@ -497,46 +499,11 @@ class VeneerPool : public Pool {
 };
 
 
-// This scope has the following purposes:
-//  * Acquire/Release the underlying assembler's code buffer.
-//     * This is mandatory before emitting.
-//  * Emit the literal or veneer pools if necessary before emitting the
-//    macro-instruction.
-//  * Ensure there is enough space to emit the macro-instruction.
-class EmissionCheckScope : public CodeBufferCheckScope {
- public:
-  EmissionCheckScope(MacroAssembler* masm,
-                     size_t size,
-                     SizePolicy size_policy = kMaximumSize);
-  virtual ~EmissionCheckScope();
-
-  enum PoolPolicy { kIgnorePools, kCheckPools };
-
- protected:
-  // This constructor should only be used from code that is *currently
-  // generating* the pools, to avoid an infinite loop.
-  EmissionCheckScope(MacroAssembler* masm,
-                     size_t size,
-                     SizePolicy size_policy,
-                     PoolPolicy pool_policy);
-
-  void Open(MacroAssembler* masm,
-            size_t size,
-            SizePolicy size_policy = kMaximumSize,
-            PoolPolicy pool_policy = kCheckPools);
-
-  void Close();
-
-  MacroAssembler* masm_;
-  PoolPolicy pool_policy_;
-};
-
-
 // Helper for common Emission checks.
 // The macro-instruction maps to a single instruction.
 class SingleEmissionCheckScope : public EmissionCheckScope {
  public:
-  explicit SingleEmissionCheckScope(MacroAssembler* masm)
+  explicit SingleEmissionCheckScope(MacroAssemblerInterface* masm)
       : EmissionCheckScope(masm, kInstructionSize) {}
 };
 
@@ -545,7 +512,7 @@ class SingleEmissionCheckScope : public EmissionCheckScope {
 // instruction only emit a few instructions, a few being defined as 8 here.
 class MacroEmissionCheckScope : public EmissionCheckScope {
  public:
-  explicit MacroEmissionCheckScope(MacroAssembler* masm)
+  explicit MacroEmissionCheckScope(MacroAssemblerInterface* masm)
       : EmissionCheckScope(masm, kTypicalMacroInstructionMaxSize) {}
 
  private:
@@ -598,7 +565,7 @@ enum BranchType {
 enum DiscardMoveMode { kDontDiscardForSameWReg, kDiscardForSameWReg };
 
 
-class MacroAssembler : public Assembler {
+class MacroAssembler : public Assembler, public MacroAssemblerInterface {
  public:
   explicit MacroAssembler(
       PositionIndependentCodeOption pic = PositionIndependentCode);
@@ -608,6 +575,8 @@ class MacroAssembler : public Assembler {
                  size_t capacity,
                  PositionIndependentCodeOption pic = PositionIndependentCode);
   ~MacroAssembler();
+
+  AssemblerBase* GetAssemblerBase() { return this; }
 
   // Start generating code from the beginning of the buffer, discarding any code
   // and data that has already been emitted into the buffer.

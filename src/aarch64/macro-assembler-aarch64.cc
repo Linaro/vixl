@@ -301,59 +301,6 @@ void VeneerPool::Emit(EmitOption option, size_t amount) {
 }
 
 
-EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm,
-                                       size_t size,
-                                       SizePolicy size_policy) {
-  Open(masm, size, size_policy);
-}
-
-
-EmissionCheckScope::~EmissionCheckScope() { Close(); }
-
-
-EmissionCheckScope::EmissionCheckScope(MacroAssembler* masm,
-                                       size_t size,
-                                       SizePolicy size_policy,
-                                       PoolPolicy pool_policy) {
-  Open(masm, size, size_policy, pool_policy);
-}
-
-
-void EmissionCheckScope::Open(MacroAssembler* masm,
-                              size_t size,
-                              SizePolicy size_policy,
-                              PoolPolicy pool_policy) {
-  masm_ = masm;
-  pool_policy_ = pool_policy;
-  if (masm_ == NULL) {
-    // Nothing to do.
-    // We may reach this point in a context of conditional code generation. See
-    // `MacroAssembler::MoveImmediateHelper()` for an example.
-    return;
-  }
-  if (pool_policy_ == kCheckPools) {
-    // Do not use the more generic `EnsureEmitFor()` to avoid duplicating the
-    // work to check that enough space is available in the buffer. It is done
-    // below when opening `CodeBufferCheckScope`.
-    masm_->EnsureEmitPoolsFor(size);
-    masm_->BlockPools();
-  }
-  // The buffer should be checked *after* we emit the pools.
-  CodeBufferCheckScope::Open(masm_, size, kCheck, size_policy);
-}
-
-
-void EmissionCheckScope::Close() {
-  if (masm_ == NULL) {
-    // Nothing to do.
-    return;
-  }
-  if (pool_policy_ == kCheckPools) {
-    masm_->ReleasePools();
-  }
-}
-
-
 MacroAssembler::MacroAssembler(PositionIndependentCodeOption pic)
     : Assembler(pic),
 #ifdef VIXL_DEBUG

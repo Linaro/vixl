@@ -30,6 +30,7 @@
 
 
 #include "assembler-base-vixl.h"
+#include "macro-assembler-interface.h"
 
 
 namespace vixl {
@@ -67,21 +68,14 @@ class CodeBufferCheckScope {
                        size_t size,
                        BufferSpacePolicy check_policy = kReserveBufferSpace,
                        SizePolicy size_policy = kMaximumSize)
-#ifdef VIXL_DEBUG
-      : initialised_(false)
-#endif
-  {
+      : assembler_(NULL), initialised_(false) {
     Open(assembler, size, check_policy, size_policy);
   }
 
   // This constructor does not implicitly initialise the scope. Instead, the
   // user is required to explicitly call the `Open` function before using the
   // scope.
-  CodeBufferCheckScope()
-#ifdef VIXL_DEBUG
-      : initialised_(false)
-#endif
-  {
+  CodeBufferCheckScope() : assembler_(NULL), initialised_(false) {
     // Nothing to do.
   }
 
@@ -94,19 +88,19 @@ class CodeBufferCheckScope {
             SizePolicy size_policy = kMaximumSize) {
     VIXL_ASSERT(!initialised_);
     VIXL_ASSERT(assembler != NULL);
+    assembler_ = assembler;
     if (check_policy == kReserveBufferSpace) {
       assembler->GetBuffer()->EnsureSpaceFor(size);
     }
 #ifdef VIXL_DEBUG
-    assembler_ = assembler;
     limit_ = assembler_->GetSizeOfCodeGenerated() + size;
     assert_policy_ = size_policy;
     previous_allow_assembler_ = assembler_->AllowAssembler();
     assembler_->SetAllowAssembler(true);
-    initialised_ = true;
 #else
     USE(size_policy);
 #endif
+    initialised_ = true;
   }
 
   // This function performs the cleaning-up work. It must succeed even if the
@@ -129,8 +123,8 @@ class CodeBufferCheckScope {
       default:
         VIXL_UNREACHABLE();
     }
-    initialised_ = false;
 #endif
+    initialised_ = false;
   }
 
  protected:
@@ -140,6 +134,100 @@ class CodeBufferCheckScope {
   bool previous_allow_assembler_;
   bool initialised_;
 };
+
+
+// This scope will:
+// - Do the same as `CodeBufferCheckSCope`, but:
+//   - If managed by VIXL, always reserve space in the `CodeBuffer`.
+//   - Always check the size (exact or maximum) of the generated code on
+//     destruction.
+// - Emit pools if the specified size would push them out of range.
+// - Block pools emission for the duration of the scope.
+// This scope allows the `Assembler` and `MacroAssembler` to be freely and
+// safely mixed for its duration.
+class EmissionCheckScope : public CodeBufferCheckScope {
+ public:
+  // This constructor implicitly calls `Open` (when `masm` is not `NULL`) to
+  // initialise the scope, so it is ready to use immediately after it has been
+  // constructed.
+  EmissionCheckScope(MacroAssemblerInterface* masm,
+                     size_t size,
+                     SizePolicy size_policy = kMaximumSize) {
+    Open(masm, size, size_policy);
+  }
+
+  // This constructor does not implicitly initialise the scope. Instead, the
+  // user is required to explicitly call the `Open` function before using the
+  // scope.
+  EmissionCheckScope() {}
+
+  virtual ~EmissionCheckScope() { Close(); }
+
+  enum PoolPolicy { kIgnorePools, kCheckPools };
+
+  void Open(MacroAssemblerInterface* masm,
+            size_t size,
+            SizePolicy size_policy = kMaximumSize) {
+    Open(masm, size, size_policy, kCheckPools);
+  }
+
+  void Close() {
+    if (!initialised_) {
+      return;
+    }
+    if (masm_ == NULL) {
+      // Nothing to do.
+      return;
+    }
+    if (pool_policy_ == kCheckPools) {
+      masm_->ReleasePools();
+    }
+    CodeBufferCheckScope::Close();
+    VIXL_ASSERT(!initialised_);
+  }
+
+ protected:
+  void Open(MacroAssemblerInterface* masm,
+            size_t size,
+            SizePolicy size_policy,
+            PoolPolicy pool_policy) {
+    if (masm == NULL) {
+      // Nothing to do.
+      // We may reach this point in a context of conditional code generation.
+      // See `aarch64::MacroAssembler::MoveImmediateHelper()` for an example.
+      return;
+    }
+    masm_ = masm;
+    pool_policy_ = pool_policy;
+    if (pool_policy_ == kCheckPools) {
+      // To avoid duplicating the work to check that enough space is available
+      // in the buffer, do not use the more generic `EnsureEmitFor()`. It is
+      // done below when opening `CodeBufferCheckScope`.
+      masm->EnsureEmitPoolsFor(size);
+      masm->BlockPools();
+    }
+    // The buffer should be checked *after* we emit the pools.
+    CodeBufferCheckScope::Open(masm->GetAssemblerBase(),
+                               size,
+                               kReserveBufferSpace,
+                               size_policy);
+    VIXL_ASSERT(initialised_);
+  }
+
+  // This constructor should only be used from code that is *currently
+  // generating* the pools, to avoid an infinite loop.
+  EmissionCheckScope(MacroAssemblerInterface* masm,
+                     size_t size,
+                     SizePolicy size_policy,
+                     PoolPolicy pool_policy) {
+    Open(masm, size, size_policy, pool_policy);
+  }
+
+  MacroAssemblerInterface* masm_;
+  PoolPolicy pool_policy_;
+};
+
+
 }  // namespace vixl
 
 #endif  // VIXL_CODE_GENERATION_SCOPES_H_

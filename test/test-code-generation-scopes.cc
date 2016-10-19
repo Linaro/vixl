@@ -91,5 +91,131 @@ TEST(CodeBufferCheckScope_Open_Close) {
 }
 
 
+TEST(EmissionCheckScope_basic) {
+  aarch64::MacroAssembler masm;
+
+  {
+    EmissionCheckScope scope(&masm, aarch64::kInstructionSize);
+    __ Mov(aarch64::x0, 0);
+  }
+
+  masm.FinalizeCode();
+}
+
+
+TEST(EmissionCheckScope_Open) {
+  aarch64::MacroAssembler masm;
+
+  {
+    EmissionCheckScope scope;
+    __ Mov(aarch64::x0, 0);
+    scope.Open(&masm, aarch64::kInstructionSize);
+    __ Mov(aarch64::x1, 1);
+  }
+
+  masm.FinalizeCode();
+}
+
+
+TEST(EmissionCheckScope_Close) {
+  aarch64::MacroAssembler masm;
+
+  {
+    EmissionCheckScope scope(&masm, aarch64::kInstructionSize);
+    __ Mov(aarch64::x0, 0);
+    scope.Close();
+    __ Mov(aarch64::x1, 1);
+  }
+
+  masm.FinalizeCode();
+}
+
+
+TEST(EmissionCheckScope_Open_Close) {
+  aarch64::MacroAssembler masm;
+
+  {
+    EmissionCheckScope scope;
+    __ Mov(aarch64::x0, 0);
+    scope.Open(&masm, aarch64::kInstructionSize);
+    __ Mov(aarch64::x1, 1);
+    scope.Close();
+    __ Mov(aarch64::x2, 2);
+  }
+
+  masm.FinalizeCode();
+}
+
+
+#define ASSERT_LITERAL_POOL_SIZE(expected)                                     \
+  VIXL_CHECK(                                                                  \
+      (expected + aarch64::kInstructionSize) == (masm.GetLiteralPoolSize()))
+
+TEST(EmissionCheckScope_emit_pool) {
+  aarch64::MacroAssembler masm;
+
+  // Make sure the pool is empty;
+  masm.EmitLiteralPool(aarch64::LiteralPool::kBranchRequired);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  __ Ldr(aarch64::x0, 0x1234567890abcdef);
+  ASSERT_LITERAL_POOL_SIZE(8);
+
+  {
+    // Check that opening the scope with a reserved space well below the limit
+    // at which can generate the literal pool does not force the emission of
+    // the pool.
+    EmissionCheckScope scope(&masm,
+                             10 * aarch64::kInstructionSize,
+                             EmissionCheckScope::kMaximumSize);
+    ASSERT_LITERAL_POOL_SIZE(8);
+  }
+
+  {
+    // Check that the scope forces emission of the pool if necessary.
+    EmissionCheckScope scope(&masm,
+                             aarch64::kMaxLoadLiteralRange + 1,
+                             EmissionCheckScope::kMaximumSize);
+    ASSERT_LITERAL_POOL_SIZE(0);
+  }
+
+  masm.FinalizeCode();
+}
+
+
+TEST(EmissionCheckScope_emit_pool_on_Open) {
+  aarch64::MacroAssembler masm;
+
+  // Make sure the pool is empty;
+  masm.EmitLiteralPool(aarch64::LiteralPool::kBranchRequired);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  __ Ldr(aarch64::x0, 0x1234567890abcdef);
+  ASSERT_LITERAL_POOL_SIZE(8);
+
+  {
+    // Check that opening the scope with a reserved space well below the limit
+    // at which can generate the literal pool does not force the emission of
+    // the pool.
+    EmissionCheckScope scope;
+    scope.Open(&masm,
+               10 * aarch64::kInstructionSize,
+               EmissionCheckScope::kMaximumSize);
+    ASSERT_LITERAL_POOL_SIZE(8);
+  }
+
+  {
+    // Check that the scope forces emission of the pool if necessary.
+    EmissionCheckScope scope;
+    scope.Open(&masm,
+               aarch64::kMaxLoadLiteralRange + 1,
+               EmissionCheckScope::kMaximumSize);
+    ASSERT_LITERAL_POOL_SIZE(0);
+  }
+
+  masm.FinalizeCode();
+}
+
+
 }  // namespace vixl
 
