@@ -173,7 +173,7 @@ class Disassembler {
       os_ << cond;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const Condition cond) {
+    virtual DisassemblerStream& operator<<(Condition cond) {
       os_ << cond;
       return *this;
     }
@@ -185,15 +185,15 @@ class Disassembler {
       os_ << type;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const Shift shift) {
+    virtual DisassemblerStream& operator<<(Shift shift) {
       os_ << shift;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const Sign sign) {
+    virtual DisassemblerStream& operator<<(Sign sign) {
       os_ << sign;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const Alignment alignment) {
+    virtual DisassemblerStream& operator<<(Alignment alignment) {
       os_ << alignment;
       return *this;
     }
@@ -209,35 +209,35 @@ class Disassembler {
       os_ << immediate;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const Register reg) {
+    virtual DisassemblerStream& operator<<(Register reg) {
       os_ << reg;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const SRegister reg) {
+    virtual DisassemblerStream& operator<<(SRegister reg) {
       os_ << reg;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const DRegister reg) {
+    virtual DisassemblerStream& operator<<(DRegister reg) {
       os_ << reg;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const QRegister reg) {
+    virtual DisassemblerStream& operator<<(QRegister reg) {
       os_ << reg;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const SpecialRegister reg) {
+    virtual DisassemblerStream& operator<<(SpecialRegister reg) {
       os_ << reg;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const MaskedSpecialRegister reg) {
+    virtual DisassemblerStream& operator<<(MaskedSpecialRegister reg) {
       os_ << reg;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const SpecialFPRegister reg) {
+    virtual DisassemblerStream& operator<<(SpecialFPRegister reg) {
       os_ << reg;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const BankedRegister reg) {
+    virtual DisassemblerStream& operator<<(BankedRegister reg) {
       os_ << reg;
       return *this;
     }
@@ -257,23 +257,23 @@ class Disassembler {
       os_ << list;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const Coprocessor coproc) {
+    virtual DisassemblerStream& operator<<(Coprocessor coproc) {
       os_ << coproc;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const CRegister reg) {
+    virtual DisassemblerStream& operator<<(CRegister reg) {
       os_ << reg;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const Endianness endian_specifier) {
+    virtual DisassemblerStream& operator<<(Endianness endian_specifier) {
       os_ << endian_specifier;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const MemoryBarrier option) {
+    virtual DisassemblerStream& operator<<(MemoryBarrier option) {
       os_ << option;
       return *this;
     }
-    virtual DisassemblerStream& operator<<(const InterruptFlags iflags) {
+    virtual DisassemblerStream& operator<<(InterruptFlags iflags) {
       os_ << iflags;
       return *this;
     }
