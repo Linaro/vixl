@@ -1004,6 +1004,80 @@ TEST(bics) {
 }
 
 
+// This test will emit the veneer in the middle of a macro-assembler
+// instruction.
+// The Mov(r1, 0x7ff80000) can't be emitted with only one instruction.
+// Only one instruction doesn't, here, emit the veneer. Therefore, the
+// veneer emission is only triggered when we are in the Delegate.
+TEST(mov_and_veneer) {
+  SETUP();
+
+  START_T32();
+  Label end;
+  __ Mov(r0, 1);
+  __ Cbz(r0, &end);
+  // Generate enough instructions to have, after this loop, only one more
+  // instruction that can be generated (Mov(r1, 0x7ff80000) needs two assembler
+  // instructions).
+  while (masm.GetMarginBeforeVeneerEmission() >
+         static_cast<int32_t>(kMaxInstructionSizeInBytes)) {
+    VIXL_CHECK(!masm.VeneerPoolIsEmpty());
+    __ Mov(r1, r0);
+  }
+  VIXL_CHECK(!masm.VeneerPoolIsEmpty());
+  Label check;
+  __ Bind(&check);
+  __ Mov(r1, 0x12345678);
+  VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&check) >
+             2 * kMaxInstructionSizeInBytes);
+  __ Bind(&end);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0x12345678, r1);
+
+  TEARDOWN();
+}
+
+
+// This test will emit the literal pool in the middle of a macro-assembler
+// instruction.
+// The Mov(r2, 0x7ff80000) can't be emitted with only one instruction.
+// Only one instruction doesn't, here, emit the pool. Therefore, the
+// pool emission is only triggered when we are in the Delegate.
+TEST(mov_and_literal) {
+  SETUP();
+
+  START();
+  __ Ldrd(r0, r1, 0x1234567890abcdef);
+  // Generate enough instructions to have, after this loop, only one more
+  // instruction that can be generated (Mov(r2, 0x7ff80000) needs two assembler
+  // instructions).
+  while (masm.GetMarginBeforePoolEmission() >
+         static_cast<int32_t>(kMaxInstructionSizeInBytes)) {
+    VIXL_CHECK(!masm.LiteralPoolIsEmpty());
+    __ Mov(r2, r0);
+  }
+  VIXL_CHECK(!masm.LiteralPoolIsEmpty());
+  Label check;
+  __ Bind(&check);
+  __ Mov(r2, 0x7ff80000);
+  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&check) >
+             2 * kMaxInstructionSizeInBytes);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0x90abcdef, r0);
+  ASSERT_EQUAL_32(0x12345678, r1);
+  ASSERT_EQUAL_32(0x7ff80000, r2);
+
+  TEARDOWN();
+}
+
+
 TEST(emit_single_literal) {
   SETUP();
 

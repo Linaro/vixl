@@ -481,6 +481,20 @@ class MacroAssembler : public Assembler {
 
   void ComputeCheckpoint();
 
+  int32_t GetMarginBeforeVeneerEmission() const {
+    return veneer_pool_manager_.GetCheckpoint() - GetCursorOffset();
+  }
+
+  int32_t GetMarginBeforePoolEmission() const {
+    return literal_pool_manager_.GetCheckpoint() - GetCursorOffset();
+  }
+
+  bool VeneerPoolIsEmpty() const {
+    return veneer_pool_manager_.GetCheckpoint() == Label::kMaxOffset;
+  }
+
+  bool LiteralPoolIsEmpty() const { return GetLiteralPoolSize() == 0; }
+
   void EnsureEmitFor(uint32_t size) {
     Label::Offset target = AlignUp(GetCursorOffset() + size, 4);
     if (target < checkpoint_) return;
@@ -509,14 +523,13 @@ class MacroAssembler : public Assembler {
       Label after_literal;
       if (option == kBranchRequired) {
         GetBuffer()->EnsureSpaceFor(kMaxInstructionSizeInBytes);
-        VIXL_ASSERT(!AllowAssembler());
 #ifdef VIXL_DEBUG
+        bool save_assembler_state = AllowAssembler();
         SetAllowAssembler(true);
 #endif
         b(&after_literal);
-        VIXL_ASSERT(AllowAssembler());
 #ifdef VIXL_DEBUG
-        SetAllowAssembler(false);
+        SetAllowAssembler(save_assembler_state);
 #endif
       }
       GetBuffer()->Align();
