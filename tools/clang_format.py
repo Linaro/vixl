@@ -110,6 +110,8 @@ def ClangFormat(filename, in_place = False, progress_prefix = ''):
                   cmd_diff_string + '\n' + \
                   out)
 
+  os.remove(temp_file_name)
+
   return 0 if rc == 0 else 1
 
 

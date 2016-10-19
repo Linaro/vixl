@@ -2566,8 +2566,7 @@ static void TraceTestHelper(bool coloured_trace,
   MacroAssembler masm(12 * KBytes);
 
   char trace_stream_filename[] = "/tmp/vixl-test-trace-XXXXXX";
-  int trace_stream_fd = mkstemp(trace_stream_filename);
-  FILE* trace_stream = fdopen(trace_stream_fd, "w");
+  FILE* trace_stream = fdopen(mkstemp(trace_stream_filename), "w");
 
   Decoder decoder;
   Simulator simulator(&decoder, trace_stream);
@@ -2627,6 +2626,7 @@ static void TraceTestHelper(bool coloured_trace,
   fclose(trace_stream);
   MaskAddresses(trace_stream_filename);
 
+  bool trace_matched_reference;
   if (Test::generate_test_trace()) {
     // Copy trace_stream to stdout.
     trace_stream = fopen(trace_stream_filename, "r");
@@ -2639,21 +2639,25 @@ static void TraceTestHelper(bool coloured_trace,
       putc(c, stdout);
     }
     fclose(trace_stream);
+    trace_matched_reference = true;
   } else {
     // Check trace_stream against ref_file.
     char command[1024];
     size_t length = snprintf(command, sizeof(command),
                              "diff -u %s %s", ref_file, trace_stream_filename);
     VIXL_CHECK(length < sizeof(command));
-    VIXL_CHECK(system(command) == 0);
+    trace_matched_reference = (system(command) == 0);
   }
 
   uint64_t offset_base = simulator.ReadRegister<uint64_t>(0);
   uint64_t index_base = simulator.ReadRegister<uint64_t>(1);
+
+  // Clean up before checking the result; VIXL_CHECK aborts.
+  remove(trace_stream_filename);
+
+  VIXL_CHECK(trace_matched_reference);
   VIXL_CHECK(index_base >= offset_base);
   VIXL_CHECK((index_base - offset_base) <= kScratchSize);
-
-  // remove(trace_stream_filename);
 }
 
 
