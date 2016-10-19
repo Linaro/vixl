@@ -198,7 +198,7 @@ class MacroAssembler : public Assembler {
       if (!cond_.Is(al) && masm_->IsUsingT32() && !can_use_it_) {
         VIXL_ASSERT(masm_->GetCursorOffset() - initial_cursor_offset_ <=
                     kMaxT32MacroInstructionSizeInBytes);
-        masm_->bind(&label_);
+        masm_->BindHelper(&label_);
       }
     }
 
@@ -461,7 +461,7 @@ class MacroAssembler : public Assembler {
 
   void Bind(Label* label) {
     VIXL_ASSERT(allow_macro_instructions_);
-    bind(label);
+    BindHelper(label);
     if (label->IsInVeneerPool()) veneer_pool_manager_.RemoveLabel(label);
   }
 
@@ -476,7 +476,8 @@ class MacroAssembler : public Assembler {
     size_t literal_size = literal->GetSize();
     VIXL_ASSERT(IsUint32(literal_size));
     EnsureEmitFor(static_cast<uint32_t>(literal_size));
-    place(literal);
+    PlaceHelper(literal);
+    GetBuffer()->Align();
   }
 
   void ComputeCheckpoint();
@@ -537,9 +538,10 @@ class MacroAssembler : public Assembler {
       for (LiteralPool::RawLiteralListIterator it = literal_pool->GetFirst();
            it != literal_pool->GetEnd();
            it++) {
-        place(*it);
+        PlaceHelper(*it);
+        GetBuffer()->Align();
       }
-      if (option == kBranchRequired) bind(&after_literal);
+      if (option == kBranchRequired) BindHelper(&after_literal);
       literal_pool->Clear();
     }
   }

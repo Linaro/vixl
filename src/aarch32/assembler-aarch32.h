@@ -60,6 +60,15 @@ class Assembler : public internal::AssemblerBase {
   void PerformCheckIT(Condition condition);
 #endif
   void AdvanceIT() { it_mask_ = (it_mask_ << 1) & 0xf; }
+  void BindHelper(Label* label);
+  void PlaceHelper(RawLiteral* literal) {
+    BindHelper(literal);
+    GetBuffer()->EmitData(literal->GetDataAddress(), literal->GetSize());
+  }
+  uint32_t Link(uint32_t instr,
+                Label* label,
+                const Label::LabelEmitOperator& op);
+  void EncodeLabelFor(const Label::ForwardReference& forward, Label* label);
 
  public:
   explicit Assembler(InstructionSet isa = A32)
@@ -122,15 +131,14 @@ class Assembler : public internal::AssemblerBase {
   }
 
   uint32_t GetArchitectureStatePCOffset() const { return IsUsingT32() ? 4 : 8; }
-  void EncodeLabelFor(const Label::ForwardReference& forward, Label* label);
-  uint32_t Link(uint32_t instr,
-                Label* label,
-                const Label::LabelEmitOperator& op);
-  void bind(Label* label);
+  void bind(Label* label) {
+    VIXL_ASSERT(AllowAssembler());
+    VIXL_ASSERT(!label->IsInVeneerPool());
+    BindHelper(label);
+  }
   void place(RawLiteral* literal) {
-    bind(literal);
-    GetBuffer()->EmitData(literal->GetDataAddress(), literal->GetSize());
-    GetBuffer()->Align();
+    VIXL_ASSERT(AllowAssembler());
+    PlaceHelper(literal);
   }
 
   size_t GetSizeOfCodeGeneratedSince(Label* label) const {

@@ -79,6 +79,18 @@ void Assembler::PerformCheckIT(Condition condition) {
 #endif
 
 
+void Assembler::BindHelper(Label* label) {
+  VIXL_ASSERT(!label->IsBound());
+  label->Bind(GetCursorOffset(), IsUsingT32());
+
+  for (Label::ForwardRefList::iterator ref = label->GetFirstForwardRef();
+       ref != label->GetEndForwardRef();
+       ref++) {
+    EncodeLabelFor(*ref, label);
+  }
+}
+
+
 uint32_t Assembler::Link(uint32_t instr,
                          Label* label,
                          const Label::LabelEmitOperator& op) {
@@ -117,18 +129,6 @@ void Assembler::EncodeLabelFor(const Label::ForwardReference& forward,
   } else {
     uint32_t* instr_ptr = buffer_.GetOffsetAddress<uint32_t*>(location);
     instr_ptr[0] = encoder.Encode(instr_ptr[0], from, label);
-  }
-}
-
-
-void Assembler::bind(Label* label) {
-  VIXL_ASSERT(!label->IsBound());
-  label->Bind(GetCursorOffset(), IsUsingT32());
-
-  for (Label::ForwardRefList::iterator ref = label->GetFirstForwardRef();
-       ref != label->GetEndForwardRef();
-       ref++) {
-    EncodeLabelFor(*ref, label);
   }
 }
 

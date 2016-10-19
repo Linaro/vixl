@@ -293,7 +293,7 @@ void MacroAssembler::PerformEnsureEmit(Label::Offset target, uint32_t size) {
     }
     EmitLiteralPool(option);
   }
-  bind(&after_pools);
+  BindHelper(&after_pools);
   if (GetBuffer()->IsManaged()) {
     bool grow_requested;
     GetBuffer()->EnsureSpaceFor(size, &grow_requested);
