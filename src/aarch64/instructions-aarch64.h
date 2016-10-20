@@ -524,6 +524,8 @@ enum VectorFormat {
   kFormatD = NEON_D | NEONScalar
 };
 
+const int kMaxLanesPerVector = 16;
+
 VectorFormat VectorFormatHalfWidth(VectorFormat vform);
 VectorFormat VectorFormatDoubleWidth(VectorFormat vform);
 VectorFormat VectorFormatDoubleLanes(VectorFormat vform);

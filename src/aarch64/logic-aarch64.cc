@@ -1372,20 +1372,28 @@ LogicVRegister Simulator::smin(VectorFormat vform,
 
 LogicVRegister Simulator::sminmaxp(VectorFormat vform,
                                    LogicVRegister dst,
-                                   int dst_index,
-                                   const LogicVRegister& src,
+                                   const LogicVRegister& src1,
+                                   const LogicVRegister& src2,
                                    bool max) {
-  for (int i = 0; i < LaneCountFromFormat(vform); i += 2) {
-    int64_t src1_val = src.Int(vform, i);
-    int64_t src2_val = src.Int(vform, i + 1);
-    int64_t dst_val;
-    if (max) {
-      dst_val = (src1_val > src2_val) ? src1_val : src2_val;
-    } else {
-      dst_val = (src1_val < src2_val) ? src1_val : src2_val;
+  int lanes = LaneCountFromFormat(vform);
+  int64_t result[kMaxLanesPerVector];
+  const LogicVRegister* src = &src1;
+  for (int j = 0; j < 2; j++) {
+    for (int i = 0; i < lanes; i += 2) {
+      int64_t first_val = src->Int(vform, i);
+      int64_t second_val = src->Int(vform, i + 1);
+      int64_t dst_val;
+      if (max) {
+        dst_val = (first_val > second_val) ? first_val : second_val;
+      } else {
+        dst_val = (first_val < second_val) ? first_val : second_val;
+      }
+      VIXL_ASSERT(((i >> 1) + (j * lanes / 2)) < kMaxLanesPerVector);
+      result[(i >> 1) + (j * lanes / 2)] = dst_val;
     }
-    dst.SetInt(vform, dst_index + (i >> 1), dst_val);
+    src = &src2;
   }
+  dst.SetIntArray(vform, result);
   return dst;
 }
 
@@ -1394,10 +1402,7 @@ LogicVRegister Simulator::smaxp(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
-  dst.ClearForWrite(vform);
-  sminmaxp(vform, dst, 0, src1, true);
-  sminmaxp(vform, dst, LaneCountFromFormat(vform) >> 1, src2, true);
-  return dst;
+  return sminmaxp(vform, dst, src1, src2, true);
 }
 
 
@@ -1405,10 +1410,7 @@ LogicVRegister Simulator::sminp(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
-  dst.ClearForWrite(vform);
-  sminmaxp(vform, dst, 0, src1, false);
-  sminmaxp(vform, dst, LaneCountFromFormat(vform) >> 1, src2, false);
-  return dst;
+  return sminmaxp(vform, dst, src1, src2, false);
 }
 
 
@@ -1550,20 +1552,28 @@ LogicVRegister Simulator::umin(VectorFormat vform,
 
 LogicVRegister Simulator::uminmaxp(VectorFormat vform,
                                    LogicVRegister dst,
-                                   int dst_index,
-                                   const LogicVRegister& src,
+                                   const LogicVRegister& src1,
+                                   const LogicVRegister& src2,
                                    bool max) {
-  for (int i = 0; i < LaneCountFromFormat(vform); i += 2) {
-    uint64_t src1_val = src.Uint(vform, i);
-    uint64_t src2_val = src.Uint(vform, i + 1);
-    uint64_t dst_val;
-    if (max) {
-      dst_val = (src1_val > src2_val) ? src1_val : src2_val;
-    } else {
-      dst_val = (src1_val < src2_val) ? src1_val : src2_val;
+  int lanes = LaneCountFromFormat(vform);
+  uint64_t result[kMaxLanesPerVector];
+  const LogicVRegister* src = &src1;
+  for (int j = 0; j < 2; j++) {
+    for (int i = 0; i < LaneCountFromFormat(vform); i += 2) {
+      uint64_t first_val = src->Uint(vform, i);
+      uint64_t second_val = src->Uint(vform, i + 1);
+      uint64_t dst_val;
+      if (max) {
+        dst_val = (first_val > second_val) ? first_val : second_val;
+      } else {
+        dst_val = (first_val < second_val) ? first_val : second_val;
+      }
+      VIXL_ASSERT(((i >> 1) + (j * lanes / 2)) < kMaxLanesPerVector);
+      result[(i >> 1) + (j * lanes / 2)] = dst_val;
     }
-    dst.SetUint(vform, dst_index + (i >> 1), dst_val);
+    src = &src2;
   }
+  dst.SetUintArray(vform, result);
   return dst;
 }
 
@@ -1572,10 +1582,7 @@ LogicVRegister Simulator::umaxp(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
-  dst.ClearForWrite(vform);
-  uminmaxp(vform, dst, 0, src1, true);
-  uminmaxp(vform, dst, LaneCountFromFormat(vform) >> 1, src2, true);
-  return dst;
+  return uminmaxp(vform, dst, src1, src2, true);
 }
 
 
@@ -1583,10 +1590,7 @@ LogicVRegister Simulator::uminp(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
-  dst.ClearForWrite(vform);
-  uminmaxp(vform, dst, 0, src1, false);
-  uminmaxp(vform, dst, LaneCountFromFormat(vform) >> 1, src2, false);
-  return dst;
+  return uminmaxp(vform, dst, src1, src2, false);
 }
 
 
@@ -2591,12 +2595,38 @@ LogicVRegister Simulator::rshrn2(VectorFormat vform,
 }
 
 
+LogicVRegister Simulator::Table(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicVRegister& ind,
+                                bool zero_out_of_bounds,
+                                const LogicVRegister* tab1,
+                                const LogicVRegister* tab2,
+                                const LogicVRegister* tab3,
+                                const LogicVRegister* tab4) {
+  VIXL_ASSERT(tab1 != NULL);
+  const LogicVRegister* tab[4] = {tab1, tab2, tab3, tab4};
+  uint64_t result[kMaxLanesPerVector];
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    result[i] = zero_out_of_bounds ? 0 : dst.Uint(kFormat16B, i);
+  }
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    uint64_t j = ind.Uint(vform, i);
+    int tab_idx = static_cast<int>(j >> 4);
+    int j_idx = static_cast<int>(j & 15);
+    if ((tab_idx < 4) && (tab[tab_idx] != NULL)) {
+      result[i] = tab[tab_idx]->Uint(kFormat16B, j_idx);
+    }
+  }
+  dst.SetUintArray(vform, result);
+  return dst;
+}
+
+
 LogicVRegister Simulator::tbl(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& tab,
                               const LogicVRegister& ind) {
-  movi(vform, dst, 0);
-  return tbx(vform, dst, tab, ind);
+  return Table(vform, dst, ind, true, &tab);
 }
 
 
@@ -2605,8 +2635,7 @@ LogicVRegister Simulator::tbl(VectorFormat vform,
                               const LogicVRegister& tab,
                               const LogicVRegister& tab2,
                               const LogicVRegister& ind) {
-  movi(vform, dst, 0);
-  return tbx(vform, dst, tab, tab2, ind);
+  return Table(vform, dst, ind, true, &tab, &tab2);
 }
 
 
@@ -2616,8 +2645,7 @@ LogicVRegister Simulator::tbl(VectorFormat vform,
                               const LogicVRegister& tab2,
                               const LogicVRegister& tab3,
                               const LogicVRegister& ind) {
-  movi(vform, dst, 0);
-  return tbx(vform, dst, tab, tab2, tab3, ind);
+  return Table(vform, dst, ind, true, &tab, &tab2, &tab3);
 }
 
 
@@ -2628,8 +2656,7 @@ LogicVRegister Simulator::tbl(VectorFormat vform,
                               const LogicVRegister& tab3,
                               const LogicVRegister& tab4,
                               const LogicVRegister& ind) {
-  movi(vform, dst, 0);
-  return tbx(vform, dst, tab, tab2, tab3, tab4, ind);
+  return Table(vform, dst, ind, true, &tab, &tab2, &tab3, &tab4);
 }
 
 
@@ -2637,16 +2664,7 @@ LogicVRegister Simulator::tbx(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& tab,
                               const LogicVRegister& ind) {
-  dst.ClearForWrite(vform);
-  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    uint64_t j = ind.Uint(vform, i);
-    switch (j >> 4) {
-      case 0:
-        dst.SetUint(vform, i, tab.Uint(kFormat16B, j & 15));
-        break;
-    }
-  }
-  return dst;
+  return Table(vform, dst, ind, false, &tab);
 }
 
 
@@ -2655,19 +2673,7 @@ LogicVRegister Simulator::tbx(VectorFormat vform,
                               const LogicVRegister& tab,
                               const LogicVRegister& tab2,
                               const LogicVRegister& ind) {
-  dst.ClearForWrite(vform);
-  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    uint64_t j = ind.Uint(vform, i);
-    switch (j >> 4) {
-      case 0:
-        dst.SetUint(vform, i, tab.Uint(kFormat16B, j & 15));
-        break;
-      case 1:
-        dst.SetUint(vform, i, tab2.Uint(kFormat16B, j & 15));
-        break;
-    }
-  }
-  return dst;
+  return Table(vform, dst, ind, false, &tab, &tab2);
 }
 
 
@@ -2677,22 +2683,7 @@ LogicVRegister Simulator::tbx(VectorFormat vform,
                               const LogicVRegister& tab2,
                               const LogicVRegister& tab3,
                               const LogicVRegister& ind) {
-  dst.ClearForWrite(vform);
-  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    uint64_t j = ind.Uint(vform, i);
-    switch (j >> 4) {
-      case 0:
-        dst.SetUint(vform, i, tab.Uint(kFormat16B, j & 15));
-        break;
-      case 1:
-        dst.SetUint(vform, i, tab2.Uint(kFormat16B, j & 15));
-        break;
-      case 2:
-        dst.SetUint(vform, i, tab3.Uint(kFormat16B, j & 15));
-        break;
-    }
-  }
-  return dst;
+  return Table(vform, dst, ind, false, &tab, &tab2, &tab3);
 }
 
 
@@ -2703,25 +2694,7 @@ LogicVRegister Simulator::tbx(VectorFormat vform,
                               const LogicVRegister& tab3,
                               const LogicVRegister& tab4,
                               const LogicVRegister& ind) {
-  dst.ClearForWrite(vform);
-  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    uint64_t j = ind.Uint(vform, i);
-    switch (j >> 4) {
-      case 0:
-        dst.SetUint(vform, i, tab.Uint(kFormat16B, j & 15));
-        break;
-      case 1:
-        dst.SetUint(vform, i, tab2.Uint(kFormat16B, j & 15));
-        break;
-      case 2:
-        dst.SetUint(vform, i, tab3.Uint(kFormat16B, j & 15));
-        break;
-      case 3:
-        dst.SetUint(vform, i, tab4.Uint(kFormat16B, j & 15));
-        break;
-    }
-  }
-  return dst;
+  return Table(vform, dst, ind, false, &tab, &tab2, &tab3, &tab4);
 }
 
 

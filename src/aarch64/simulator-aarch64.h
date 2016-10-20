@@ -441,6 +441,13 @@ class LogicVRegister {
     }
   }
 
+  void SetIntArray(VectorFormat vform, const int64_t* src) const {
+    ClearForWrite(vform);
+    for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+      SetInt(vform, i, src[i]);
+    }
+  }
+
   void SetUint(VectorFormat vform, int index, uint64_t value) const {
     switch (LaneSizeInBitsFromFormat(vform)) {
       case 8:
@@ -458,6 +465,13 @@ class LogicVRegister {
       default:
         VIXL_UNREACHABLE();
         return;
+    }
+  }
+
+  void SetUintArray(VectorFormat vform, const uint64_t* src) const {
+    ClearForWrite(vform);
+    for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+      SetUint(vform, i, src[i]);
     }
   }
 
@@ -2211,8 +2225,8 @@ class Simulator : public DecoderVisitor {
                       const LogicVRegister& src2);
   LogicVRegister sminmaxp(VectorFormat vform,
                           LogicVRegister dst,
-                          int dst_index,
-                          const LogicVRegister& src,
+                          const LogicVRegister& src1,
+                          const LogicVRegister& src2,
                           bool max);
   LogicVRegister smaxp(VectorFormat vform,
                        LogicVRegister dst,
@@ -2278,6 +2292,14 @@ class Simulator : public DecoderVisitor {
                      const LogicVRegister& tab3,
                      const LogicVRegister& tab4,
                      const LogicVRegister& ind);
+  LogicVRegister Table(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& ind,
+                       bool zero_out_of_bounds,
+                       const LogicVRegister* tab1,
+                       const LogicVRegister* tab2 = NULL,
+                       const LogicVRegister* tab3 = NULL,
+                       const LogicVRegister* tab4 = NULL);
   LogicVRegister tbx(VectorFormat vform,
                      LogicVRegister dst,
                      const LogicVRegister& tab,
@@ -2379,8 +2401,8 @@ class Simulator : public DecoderVisitor {
                       const LogicVRegister& src2);
   LogicVRegister uminmaxp(VectorFormat vform,
                           LogicVRegister dst,
-                          int dst_index,
-                          const LogicVRegister& src,
+                          const LogicVRegister& src1,
+                          const LogicVRegister& src2,
                           bool max);
   LogicVRegister umaxp(VectorFormat vform,
                        LogicVRegister dst,

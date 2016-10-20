@@ -5992,6 +5992,212 @@ TEST(neon_st4_q_postindex) {
 }
 
 
+TEST(neon_destructive_minmaxp) {
+  SETUP();
+
+  START();
+  __ Movi(v0.V2D(), 0, 0x2222222233333333);
+  __ Movi(v1.V2D(), 0, 0x0000000011111111);
+
+  __ Sminp(v16.V2S(), v0.V2S(), v1.V2S());
+  __ Mov(v17, v0);
+  __ Sminp(v17.V2S(), v17.V2S(), v1.V2S());
+  __ Mov(v18, v1);
+  __ Sminp(v18.V2S(), v0.V2S(), v18.V2S());
+  __ Mov(v19, v0);
+  __ Sminp(v19.V2S(), v19.V2S(), v19.V2S());
+
+  __ Smaxp(v20.V2S(), v0.V2S(), v1.V2S());
+  __ Mov(v21, v0);
+  __ Smaxp(v21.V2S(), v21.V2S(), v1.V2S());
+  __ Mov(v22, v1);
+  __ Smaxp(v22.V2S(), v0.V2S(), v22.V2S());
+  __ Mov(v23, v0);
+  __ Smaxp(v23.V2S(), v23.V2S(), v23.V2S());
+
+  __ Uminp(v24.V2S(), v0.V2S(), v1.V2S());
+  __ Mov(v25, v0);
+  __ Uminp(v25.V2S(), v25.V2S(), v1.V2S());
+  __ Mov(v26, v1);
+  __ Uminp(v26.V2S(), v0.V2S(), v26.V2S());
+  __ Mov(v27, v0);
+  __ Uminp(v27.V2S(), v27.V2S(), v27.V2S());
+
+  __ Umaxp(v28.V2S(), v0.V2S(), v1.V2S());
+  __ Mov(v29, v0);
+  __ Umaxp(v29.V2S(), v29.V2S(), v1.V2S());
+  __ Mov(v30, v1);
+  __ Umaxp(v30.V2S(), v0.V2S(), v30.V2S());
+  __ Mov(v31, v0);
+  __ Umaxp(v31.V2S(), v31.V2S(), v31.V2S());
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_128(0, 0x0000000022222222, q16);
+  ASSERT_EQUAL_128(0, 0x0000000022222222, q17);
+  ASSERT_EQUAL_128(0, 0x0000000022222222, q18);
+  ASSERT_EQUAL_128(0, 0x2222222222222222, q19);
+
+  ASSERT_EQUAL_128(0, 0x1111111133333333, q20);
+  ASSERT_EQUAL_128(0, 0x1111111133333333, q21);
+  ASSERT_EQUAL_128(0, 0x1111111133333333, q22);
+  ASSERT_EQUAL_128(0, 0x3333333333333333, q23);
+
+  ASSERT_EQUAL_128(0, 0x0000000022222222, q24);
+  ASSERT_EQUAL_128(0, 0x0000000022222222, q25);
+  ASSERT_EQUAL_128(0, 0x0000000022222222, q26);
+  ASSERT_EQUAL_128(0, 0x2222222222222222, q27);
+
+  ASSERT_EQUAL_128(0, 0x1111111133333333, q28);
+  ASSERT_EQUAL_128(0, 0x1111111133333333, q29);
+  ASSERT_EQUAL_128(0, 0x1111111133333333, q30);
+  ASSERT_EQUAL_128(0, 0x3333333333333333, q31);
+
+  TEARDOWN();
+}
+
+
+TEST(neon_destructive_tbl) {
+  SETUP();
+
+  START();
+  __ Movi(v0.V2D(), 0x0041424334353627, 0x28291a1b1c0d0e0f);
+  __ Movi(v1.V2D(), 0xafaeadacabaaa9a8, 0xa7a6a5a4a3a2a1a0);
+  __ Movi(v2.V2D(), 0xbfbebdbcbbbab9b8, 0xb7b6b5b4b3b2b1b0);
+  __ Movi(v3.V2D(), 0xcfcecdcccbcac9c8, 0xc7c6c5c4c3c2c1c0);
+  __ Movi(v4.V2D(), 0xdfdedddcdbdad9d8, 0xd7d6d5d4d3d2d1d0);
+
+  __ Movi(v16.V2D(), 0x5555555555555555, 0x5555555555555555);
+  __ Tbl(v16.V16B(), v1.V16B(), v0.V16B());
+  __ Mov(v17, v0);
+  __ Tbl(v17.V16B(), v1.V16B(), v17.V16B());
+  __ Mov(v18, v1);
+  __ Tbl(v18.V16B(), v18.V16B(), v0.V16B());
+  __ Mov(v19, v0);
+  __ Tbl(v19.V16B(), v19.V16B(), v19.V16B());
+
+  __ Movi(v20.V2D(), 0x5555555555555555, 0x5555555555555555);
+  __ Tbl(v20.V16B(), v1.V16B(), v2.V16B(), v3.V16B(), v4.V16B(), v0.V16B());
+  __ Mov(v21, v0);
+  __ Tbl(v21.V16B(), v1.V16B(), v2.V16B(), v3.V16B(), v4.V16B(), v21.V16B());
+  __ Mov(v22, v1);
+  __ Mov(v23, v2);
+  __ Mov(v24, v3);
+  __ Mov(v25, v4);
+  __ Tbl(v22.V16B(), v22.V16B(), v23.V16B(), v24.V16B(), v25.V16B(), v0.V16B());
+  __ Mov(v26, v0);
+  __ Mov(v27, v1);
+  __ Mov(v28, v2);
+  __ Mov(v29, v3);
+  __ Tbl(v26.V16B(), v26.V16B(), v27.V16B(), v28.V16B(), v29.V16B(), v26.V16B());
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_128(0xa000000000000000, 0x0000000000adaeaf, q16);
+  ASSERT_EQUAL_128(0xa000000000000000, 0x0000000000adaeaf, q17);
+  ASSERT_EQUAL_128(0xa000000000000000, 0x0000000000adaeaf, q18);
+  ASSERT_EQUAL_128(0x0f00000000000000, 0x0000000000424100, q19);
+
+  ASSERT_EQUAL_128(0xa0000000d4d5d6c7, 0xc8c9babbbcadaeaf, q20);
+  ASSERT_EQUAL_128(0xa0000000d4d5d6c7, 0xc8c9babbbcadaeaf, q21);
+  ASSERT_EQUAL_128(0xa0000000d4d5d6c7, 0xc8c9babbbcadaeaf, q22);
+  ASSERT_EQUAL_128(0x0f000000c4c5c6b7, 0xb8b9aaabac424100, q26);
+
+  TEARDOWN();
+}
+
+
+TEST(neon_destructive_tbx) {
+  SETUP();
+
+  START();
+  __ Movi(v0.V2D(), 0x0041424334353627, 0x28291a1b1c0d0e0f);
+  __ Movi(v1.V2D(), 0xafaeadacabaaa9a8, 0xa7a6a5a4a3a2a1a0);
+  __ Movi(v2.V2D(), 0xbfbebdbcbbbab9b8, 0xb7b6b5b4b3b2b1b0);
+  __ Movi(v3.V2D(), 0xcfcecdcccbcac9c8, 0xc7c6c5c4c3c2c1c0);
+  __ Movi(v4.V2D(), 0xdfdedddcdbdad9d8, 0xd7d6d5d4d3d2d1d0);
+
+  __ Movi(v16.V2D(), 0x5555555555555555, 0x5555555555555555);
+  __ Tbx(v16.V16B(), v1.V16B(), v0.V16B());
+  __ Mov(v17, v0);
+  __ Tbx(v17.V16B(), v1.V16B(), v17.V16B());
+  __ Mov(v18, v1);
+  __ Tbx(v18.V16B(), v18.V16B(), v0.V16B());
+  __ Mov(v19, v0);
+  __ Tbx(v19.V16B(), v19.V16B(), v19.V16B());
+
+  __ Movi(v20.V2D(), 0x5555555555555555, 0x5555555555555555);
+  __ Tbx(v20.V16B(), v1.V16B(), v2.V16B(), v3.V16B(), v4.V16B(), v0.V16B());
+  __ Mov(v21, v0);
+  __ Tbx(v21.V16B(), v1.V16B(), v2.V16B(), v3.V16B(), v4.V16B(), v21.V16B());
+  __ Mov(v22, v1);
+  __ Mov(v23, v2);
+  __ Mov(v24, v3);
+  __ Mov(v25, v4);
+  __ Tbx(v22.V16B(), v22.V16B(), v23.V16B(), v24.V16B(), v25.V16B(), v0.V16B());
+  __ Mov(v26, v0);
+  __ Mov(v27, v1);
+  __ Mov(v28, v2);
+  __ Mov(v29, v3);
+  __ Tbx(v26.V16B(), v26.V16B(), v27.V16B(), v28.V16B(), v29.V16B(), v26.V16B());
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_128(0xa055555555555555, 0x5555555555adaeaf, q16);
+  ASSERT_EQUAL_128(0xa041424334353627, 0x28291a1b1cadaeaf, q17);
+  ASSERT_EQUAL_128(0xa0aeadacabaaa9a8, 0xa7a6a5a4a3adaeaf, q18);
+  ASSERT_EQUAL_128(0x0f41424334353627, 0x28291a1b1c424100, q19);
+
+  ASSERT_EQUAL_128(0xa0555555d4d5d6c7, 0xc8c9babbbcadaeaf, q20);
+  ASSERT_EQUAL_128(0xa0414243d4d5d6c7, 0xc8c9babbbcadaeaf, q21);
+  ASSERT_EQUAL_128(0xa0aeadacd4d5d6c7, 0xc8c9babbbcadaeaf, q22);
+  ASSERT_EQUAL_128(0x0f414243c4c5c6b7, 0xb8b9aaabac424100, q26);
+
+  TEARDOWN();
+}
+
+
+TEST(neon_destructive_fcvtl) {
+  SETUP();
+
+  START();
+  __ Movi(v0.V2D(), 0x400000003f800000, 0xbf800000c0000000);
+  __ Fcvtl(v16.V2D(), v0.V2S());
+  __ Fcvtl2(v17.V2D(), v0.V4S());
+  __ Mov(v18, v0);
+  __ Mov(v19, v0);
+  __ Fcvtl(v18.V2D(), v18.V2S());
+  __ Fcvtl2(v19.V2D(), v19.V4S());
+
+  __ Movi(v1.V2D(), 0x40003c003c004000, 0xc000bc00bc00c000);
+  __ Fcvtl(v20.V4S(), v1.V4H());
+  __ Fcvtl2(v21.V4S(), v1.V8H());
+  __ Mov(v22, v1);
+  __ Mov(v23, v1);
+  __ Fcvtl(v22.V4S(), v22.V4H());
+  __ Fcvtl2(v23.V4S(), v23.V8H());
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_128(0xbff0000000000000, 0xc000000000000000, q16);
+  ASSERT_EQUAL_128(0x4000000000000000, 0x3ff0000000000000, q17);
+  ASSERT_EQUAL_128(0xbff0000000000000, 0xc000000000000000, q18);
+  ASSERT_EQUAL_128(0x4000000000000000, 0x3ff0000000000000, q19);
+
+  ASSERT_EQUAL_128(0xc0000000bf800000, 0xbf800000c0000000, q20);
+  ASSERT_EQUAL_128(0x400000003f800000, 0x3f80000040000000, q21);
+  ASSERT_EQUAL_128(0xc0000000bf800000, 0xbf800000c0000000, q22);
+  ASSERT_EQUAL_128(0x400000003f800000, 0x3f80000040000000, q23);
+
+  TEARDOWN();
+}
+
+
 TEST(ldp_stp_float) {
   SETUP();
 
