@@ -593,7 +593,9 @@ void MacroAssembler::Printf(const char* format,
     PushRegister(reg2);
     PushRegister(reg1);
     Push(RegisterList(r0, r1));
-    Ldr(r0, format);
+    StringLiteral* format_literal =
+        new StringLiteral(format, RawLiteral::kDeletedOnPlacementByPool);
+    Adr(r0, format_literal);
     uint32_t args = (reg4.GetType() << 12) | (reg3.GetType() << 8) |
                     (reg2.GetType() << 4) | reg1.GetType();
     Mov(r1, args);
@@ -716,7 +718,9 @@ void MacroAssembler::Printf(const char* format,
         address = reinterpret_cast<uintptr_t>(PrintfTrampolineRRRR);
         break;
     }
-    Ldr(r0, format);
+    StringLiteral* format_literal =
+        new StringLiteral(format, RawLiteral::kDeletedOnPlacementByPool);
+    Adr(r0, format_literal);
     Mov(ip, Operand::From(address));
     Blx(ip);
     // If register reg4 was left on the stack => skip it.

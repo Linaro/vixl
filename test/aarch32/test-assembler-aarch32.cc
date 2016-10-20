@@ -1065,8 +1065,8 @@ TEST(emit_literal) {
   // The pool should have been emitted.
   ASSERT_LITERAL_POOL_SIZE(0);
 
-  std::string big_literal(260, 'x');
-  __ Ldr(r4, big_literal.c_str());
+  StringLiteral big_literal(std::string(260, 'x').c_str());
+  __ Adr(r4, &big_literal);
   // This add will overflow the literal pool and force a rewind.
   __ Ldrd(r2, r3, 0xcafebeefdeadbaba);
   ASSERT_LITERAL_POOL_SIZE(8);
@@ -1088,6 +1088,30 @@ TEST(emit_literal) {
   TEARDOWN();
 }
 
+TEST(string_literal) {
+  SETUP();
+
+  START();
+  // Make sure the pool is empty.
+  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  StringLiteral hello_string("hello");
+
+  __ Ldrb(r1, &hello_string);
+
+  __ Adr(r0, &hello_string);
+  __ Ldrb(r2, MemOperand(r0));
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32('h', r1);
+  ASSERT_EQUAL_32('h', r2);
+
+  TEARDOWN();
+}
+
 
 TEST(custom_literal_in_pool) {
   SETUP();
@@ -1103,11 +1127,18 @@ TEST(custom_literal_in_pool) {
   __ Ldr(r1, &l0);
   ASSERT_LITERAL_POOL_SIZE(0);
 
-  Label past_literal2;
   Literal<uint64_t> cafebeefdeadbaba(0xcafebeefdeadbaba);
   __ Ldrd(r8, r9, &cafebeefdeadbaba);
   masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
   __ Ldrd(r2, r3, &cafebeefdeadbaba);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  Literal<uint32_t> l1(0x09abcdef);
+  __ Adr(r4, &l1);
+  __ Ldr(r4, MemOperand(r4));
+  masm.EmitLiteralPool();
+  __ Adr(r5, &l1);
+  __ Ldr(r5, MemOperand(r5));
   ASSERT_LITERAL_POOL_SIZE(0);
 
   END();
@@ -1117,8 +1148,12 @@ TEST(custom_literal_in_pool) {
   // Check that the literals loaded correctly.
   ASSERT_EQUAL_32(0x12345678, r0);
   ASSERT_EQUAL_32(0x12345678, r1);
+  ASSERT_EQUAL_32(0xdeadbaba, r2);
+  ASSERT_EQUAL_32(0xcafebeef, r3);
   ASSERT_EQUAL_32(0xdeadbaba, r8);
   ASSERT_EQUAL_32(0xcafebeef, r9);
+  ASSERT_EQUAL_32(0x09abcdef, r4);
+  ASSERT_EQUAL_32(0x09abcdef, r5);
 }
 
 
@@ -1488,7 +1523,8 @@ TEST(printf) {
 //  __ Printf("Hello world!\n");
   __ Mov(r0, 0x1234);
   __ Mov(r1, 0x5678);
-  __ Ldr(r2, "extra string");
+  StringLiteral literal("extra string");
+  __ Adr(r2, &literal);
   __ Mov(r3, 5);
   __ Mov(r4, 0xdead4444);
   __ Mov(r5, 0xdead5555);

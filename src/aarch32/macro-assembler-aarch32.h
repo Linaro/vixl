@@ -540,6 +540,14 @@ class MacroAssembler : public Assembler {
     return literal_pool_manager_.GetLiteralPoolSize();
   }
 
+  // Adr with a literal already constructed. Add the literal to the pool if it
+  // is not already done.
+  void Adr(Condition cond, Register rd, RawLiteral* literal) {
+    EmitLiteralCondRL<&Assembler::adr> emit_helper(cond, rd);
+    GenerateInstruction(emit_helper, literal);
+  }
+  void Adr(Register rd, RawLiteral* literal) { Adr(al, rd, literal); }
+
   // Loads with literals already constructed. Add the literal to the pool
   // if it is not already done.
   void Ldr(Condition cond, Register rt, RawLiteral* literal) {
@@ -613,14 +621,6 @@ class MacroAssembler : public Assembler {
     RawLiteral* literal =
         new Literal<uint32_t>(v, RawLiteral::kDeletedOnPlacementByPool);
     EmitLiteralCondRL<&Assembler::ldr> emit_helper(cond, rt);
-    GenerateInstruction(emit_helper, literal);
-  }
-  // Ldr string pointer. The string is added to the literal pool and the
-  // string's address in the literal pool is loaded in rt (adr instruction).
-  void Ldr(Condition cond, Register rt, const char* str) {
-    RawLiteral* literal =
-        new Literal<const char*>(str, RawLiteral::kDeletedOnPlacementByPool);
-    EmitLiteralCondRL<&Assembler::adr> emit_helper(cond, rt);
     GenerateInstruction(emit_helper, literal);
   }
   template <typename T>

@@ -1379,14 +1379,13 @@ class Literal : public RawLiteral {
   T value_;
 };
 
-template <>
-class Literal<const char*> : public RawLiteral {
+class StringLiteral : public RawLiteral {
  public:
-  explicit Literal(const char* str,
-                   PlacementPolicy placement_policy = kPlacedWhenUsed,
-                   DeletionPolicy deletion_policy = kManuallyDeleted)
+  explicit StringLiteral(const char* str,
+                         PlacementPolicy placement_policy = kPlacedWhenUsed,
+                         DeletionPolicy deletion_policy = kManuallyDeleted)
       : RawLiteral(str, strlen(str) + 1, placement_policy, deletion_policy) {}
-  explicit Literal(const char* str, DeletionPolicy deletion_policy)
+  explicit StringLiteral(const char* str, DeletionPolicy deletion_policy)
       : RawLiteral(str, strlen(str) + 1, deletion_policy) {}
 };
 
