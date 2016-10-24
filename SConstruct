@@ -93,6 +93,16 @@ options = {
     'mode:release' : {
       'CCFLAGS' : ['-O3'],
       },
+    'target:aarch32' : {
+      'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH32']
+      },
+    'target:aarch64' : {
+      'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH64']
+      },
+    'target:both' : {
+      'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH32'],
+      'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH64']
+      },
     'simulator:aarch64' : {
       'CCFLAGS' : ['-DVIXL_INCLUDE_SIMULATOR_AARCH64'],
       },

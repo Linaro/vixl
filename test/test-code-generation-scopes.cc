@@ -26,7 +26,9 @@
 
 #include "test-runner.h"
 
+#ifdef VIXL_INCLUDE_TARGET_AARCH64
 #include "aarch64/macro-assembler-aarch64.h"
+#endif
 
 #define TEST(name)  TEST_(SCOPES_##name)
 #define __ masm.
@@ -35,6 +37,7 @@ namespace vixl {
 
 // This file contains tests for code generation scopes.
 
+#ifdef VIXL_INCLUDE_TARGET_AARCH64
 TEST(CodeBufferCheckScope_basic) {
   aarch64::MacroAssembler masm;
 
@@ -215,6 +218,7 @@ TEST(EmissionCheckScope_emit_pool_on_Open) {
 
   masm.FinalizeCode();
 }
+#endif  // VIXL_INCLUDE_TARGET_AARCH64
 
 
 }  // namespace vixl
