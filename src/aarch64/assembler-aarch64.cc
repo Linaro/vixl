@@ -4837,14 +4837,26 @@ bool AreConsecutive(const VRegister& reg1,
                     const VRegister& reg3,
                     const VRegister& reg4) {
   VIXL_ASSERT(reg1.IsValid());
-  bool match = true;
-  match &= !reg2.IsValid() ||
-           (reg2.GetCode() == ((reg1.GetCode() + 1) % kNumberOfVRegisters));
-  match &= !reg3.IsValid() ||
-           (reg3.GetCode() == ((reg1.GetCode() + 2) % kNumberOfVRegisters));
-  match &= !reg4.IsValid() ||
-           (reg4.GetCode() == ((reg1.GetCode() + 3) % kNumberOfVRegisters));
-  return match;
+
+  if (!reg2.IsValid()) {
+    return true;
+  } else if (reg2.GetCode() != ((reg1.GetCode() + 1) % kNumberOfVRegisters)) {
+    return false;
+  }
+
+  if (!reg3.IsValid()) {
+    return true;
+  } else if (reg3.GetCode() != ((reg2.GetCode() + 1) % kNumberOfVRegisters)) {
+    return false;
+  }
+
+  if (!reg4.IsValid()) {
+    return true;
+  } else if (reg4.GetCode() != ((reg3.GetCode() + 1) % kNumberOfVRegisters)) {
+    return false;
+  }
+
+  return true;
 }
 }  // namespace aarch64
 }  // namespace vixl

@@ -14384,6 +14384,58 @@ TEST(isvalid) {
 }
 
 
+TEST(areconsecutive) {
+  // This test generates no code; it just checks that AreConsecutive works.
+  VIXL_CHECK(AreConsecutive(b0, NoVReg));
+  VIXL_CHECK(AreConsecutive(b1, b2));
+  VIXL_CHECK(AreConsecutive(b3, b4, b5));
+  VIXL_CHECK(AreConsecutive(b6, b7, b8, b9));
+  VIXL_CHECK(AreConsecutive(h10, NoVReg));
+  VIXL_CHECK(AreConsecutive(h11, h12));
+  VIXL_CHECK(AreConsecutive(h13, h14, h15));
+  VIXL_CHECK(AreConsecutive(h16, h17, h18, h19));
+  VIXL_CHECK(AreConsecutive(s20, NoVReg));
+  VIXL_CHECK(AreConsecutive(s21, s22));
+  VIXL_CHECK(AreConsecutive(s23, s24, s25));
+  VIXL_CHECK(AreConsecutive(s26, s27, s28, s29));
+  VIXL_CHECK(AreConsecutive(d30, NoVReg));
+  VIXL_CHECK(AreConsecutive(d31, d0));
+  VIXL_CHECK(AreConsecutive(d1, d2, d3));
+  VIXL_CHECK(AreConsecutive(d4, d5, d6, d7));
+  VIXL_CHECK(AreConsecutive(q8, NoVReg));
+  VIXL_CHECK(AreConsecutive(q9, q10));
+  VIXL_CHECK(AreConsecutive(q11, q12, q13));
+  VIXL_CHECK(AreConsecutive(q14, q15, q16, q17));
+  VIXL_CHECK(AreConsecutive(v18, NoVReg));
+  VIXL_CHECK(AreConsecutive(v19, v20));
+  VIXL_CHECK(AreConsecutive(v21, v22, v23));
+  VIXL_CHECK(AreConsecutive(v24, v25, v26, v27));
+  VIXL_CHECK(AreConsecutive(b29, h30));
+  VIXL_CHECK(AreConsecutive(s31, d0, q1));
+  VIXL_CHECK(AreConsecutive(v2, b3, h4, s5));
+
+  VIXL_CHECK(!AreConsecutive(b0, b2));
+  VIXL_CHECK(!AreConsecutive(h1, h0));
+  VIXL_CHECK(!AreConsecutive(s31, s1));
+  VIXL_CHECK(!AreConsecutive(d12, d12));
+  VIXL_CHECK(!AreConsecutive(q31, q1));
+
+  VIXL_CHECK(!AreConsecutive(b0, b1, b3));
+  VIXL_CHECK(!AreConsecutive(h4, h5, h6, h6));
+  VIXL_CHECK(!AreConsecutive(d11, d13, NoVReg, d14));
+  VIXL_CHECK(!AreConsecutive(d15, d16, d18, NoVReg));
+  VIXL_CHECK(!AreConsecutive(b26, b28, NoVReg, b29));
+  VIXL_CHECK(!AreConsecutive(s28, s30, NoVReg, NoVReg));
+
+  VIXL_CHECK(AreConsecutive(q19, NoVReg, NoVReg, q22));
+  VIXL_CHECK(AreConsecutive(v23, NoVReg, v25, NoVReg));
+  VIXL_CHECK(AreConsecutive(b26, b27, NoVReg, NoVReg));
+  VIXL_CHECK(AreConsecutive(h28, NoVReg, NoVReg, NoVReg));
+  VIXL_CHECK(AreConsecutive(s30, s31, NoVReg, s2));
+  VIXL_CHECK(AreConsecutive(d3, NoVReg, d6, d7));
+}
+
+
 TEST(printf) {
   SETUP();
   START();
