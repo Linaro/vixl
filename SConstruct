@@ -192,12 +192,6 @@ vars.AddVariables(
                                          ', '.join(config.tested_cpp_standards))
     )
 
-# Abort the build if any command line option is unknown or invalid.
-unknown_build_options = vars.UnknownVariables()
-if unknown_build_options:
-  print 'Unknown build options:',  unknown_build_options.keys()
-  Exit(1)
-
 # We use 'variant directories' to avoid recompiling multiple times when build
 # options are changed, different build paths are used depending on the options
 # set. These are the options that should be reflected in the build directory
@@ -337,6 +331,12 @@ def VIXLLibraryTarget(env):
 
 # The VIXL library, built by default.
 env = Environment(variables = vars)
+# Abort the build if any command line option is unknown or invalid.
+unknown_build_options = vars.UnknownVariables()
+if unknown_build_options:
+  print 'Unknown build options:',  unknown_build_options.keys()
+  Exit(1)
+
 ConfigureEnvironment(env)
 Help(vars.GenerateHelpText(env))
 libvixl = VIXLLibraryTarget(env)
