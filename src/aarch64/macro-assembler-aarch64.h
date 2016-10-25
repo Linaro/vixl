@@ -3160,55 +3160,14 @@ inline void LiteralPool::SetNextRecommendedCheckpoint(ptrdiff_t offset) {
   recommended_checkpoint_ = offset;
 }
 
-// Use this scope when you need a one-to-one mapping between methods and
-// instructions. This scope prevents the MacroAssembler from being called and
-// pools from being emitted. It also asserts the number of instructions emitted
-// is what you specified when creating the scope.
-class InstructionAccurateScope : public EmissionCheckScope {
+class InstructionAccurateScope : public ExactAssemblyScope {
  public:
-  InstructionAccurateScope(MacroAssembler* masm,
-                           int64_t count,
-                           SizePolicy size_policy = kExactSize)
-      : EmissionCheckScope(masm, (count * kInstructionSize), size_policy) {
-    VIXL_ASSERT(size_policy != kNoAssert);
-#ifdef VIXL_DEBUG
-    old_allow_macro_instructions_ = masm->AllowMacroInstructions();
-    masm->SetAllowMacroInstructions(false);
-#else
-    USE(old_allow_macro_instructions_);
-#endif
-  }
-
-  virtual ~InstructionAccurateScope() {
-#ifdef VIXL_DEBUG
-    MacroAssembler* masm = reinterpret_cast<MacroAssembler*>(assembler_);
-    masm->SetAllowMacroInstructions(old_allow_macro_instructions_);
-#endif
-  }
-
- private:
-  InstructionAccurateScope(MacroAssembler* masm,
-                           int64_t count,
-                           SizePolicy size_policy,
-                           PoolPolicy pool_policy)
-      : EmissionCheckScope(masm,
-                           (count * kInstructionSize),
-                           size_policy,
-                           pool_policy) {
-    VIXL_ASSERT(size_policy != kNoAssert);
-#ifdef VIXL_DEBUG
-    old_allow_macro_instructions_ = masm->AllowMacroInstructions();
-    masm->SetAllowMacroInstructions(false);
-#endif
-  }
-
-  // Grant access to the above private constructor for pool emission methods.
-  friend void LiteralPool::Emit(LiteralPool::EmitOption);
-  friend void VeneerPool::Emit(VeneerPool::EmitOption, size_t);
-
-  bool old_allow_macro_instructions_;
+  VIXL_DEPRECATED("ExactAssemblyScope",
+                  InstructionAccurateScope(MacroAssembler* masm,
+                                           int64_t count,
+                                           SizePolicy size_policy = kExactSize))
+      : ExactAssemblyScope(masm, count * kInstructionSize, size_policy) {}
 };
-
 
 class BlockLiteralPoolScope {
  public:
@@ -3388,7 +3347,7 @@ void MacroAssembler::CallRuntime(R (*function)(P...)) {
     Label start;
     bind(&start);
     {
-      InstructionAccurateScope scope(this, 1);
+      ExactAssemblyScope scope(this, kInstructionSize);
       hlt(kRuntimeCallOpcode);
     }
     VIXL_ASSERT(GetSizeOfCodeGeneratedSince(&start) ==

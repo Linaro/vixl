@@ -227,6 +227,61 @@ class EmissionCheckScope : public CodeBufferCheckScope {
   PoolPolicy pool_policy_;
 };
 
+// Use this scope when you need a one-to-one mapping between methods and
+// instructions. This scope will:
+// - Do the same as `EmissionCheckScope`.
+// - Block access to the MacroAssemblerInterface (using run-time assertions).
+class ExactAssemblyScope : public EmissionCheckScope {
+ public:
+  // This constructor implicitly calls `Open` (when `masm` is not `NULL`) to
+  // initialise the scope, so it is ready to use immediately after it has been
+  // constructed.
+  ExactAssemblyScope(MacroAssemblerInterface* masm,
+                     size_t size,
+                     SizePolicy assert_policy = kExactSize)
+      : EmissionCheckScope(masm, size, assert_policy) {
+    VIXL_ASSERT(assert_policy != kNoAssert);
+#ifdef VIXL_DEBUG
+    previous_allow_macro_assembler_ = masm->AllowMacroInstructions();
+    masm->SetAllowMacroInstructions(false);
+#else
+    USE(previous_allow_macro_assembler_);
+#endif
+  }
+
+  // This constructor does not implicitly initialise the scope. Instead, the
+  // user is required to explicitly call the `Open` function before using the
+  // scope.
+  ExactAssemblyScope() {}
+
+  virtual ~ExactAssemblyScope() {
+#ifdef VIXL_DEBUG
+    MacroAssemblerInterface* masm =
+        dynamic_cast<MacroAssemblerInterface*>(assembler_);
+    masm->SetAllowMacroInstructions(previous_allow_macro_assembler_);
+#endif
+  }
+
+ protected:
+  // This protected constructor allows overriding the pool policy. It is
+  // available to allow this scope to be used in code that handles generation
+  // of pools.
+  ExactAssemblyScope(MacroAssemblerInterface* masm,
+                     size_t size,
+                     SizePolicy assert_policy,
+                     PoolPolicy pool_policy)
+      : EmissionCheckScope(masm, size, assert_policy, pool_policy) {
+    VIXL_ASSERT(assert_policy != kNoAssert);
+#ifdef VIXL_DEBUG
+    previous_allow_macro_assembler_ = masm->AllowMacroInstructions();
+    masm->SetAllowMacroInstructions(false);
+#endif
+  }
+
+ private:
+  bool previous_allow_macro_assembler_;
+};
+
 
 }  // namespace vixl
 

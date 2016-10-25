@@ -112,7 +112,7 @@ The MacroAssembler uses this to implement its own macros.
 ### `ExactAssemblyScope(MacroAssembler* masm, ...)`
 
 - Do the same as `EmissionCheckScope`.
-- Block access to the MacroAssembler (using run-time assertions).
+- Block access to the MacroAssemblerInterface (using run-time assertions).
 
 This scope allows safely generating exact assembly code. Compared to
 `CodeBufferCheckScope`, it disables the `MacroAssembler`, and guarantees that

@@ -1774,9 +1774,9 @@ TEST(adrp) {
 
   // Waste space until the start of a page.
   {
-    InstructionAccurateScope scope(&masm,
-                                   kPageSize / kInstructionSize,
-                                   InstructionAccurateScope::kMaximumSize);
+    ExactAssemblyScope scope(&masm,
+                             kPageSize,
+                             ExactAssemblyScope::kMaximumSize);
     const uintptr_t kPageOffsetMask = kPageSize - 1;
     while ((masm.GetCursorAddress<uintptr_t>() & kPageOffsetMask) != 0) {
       __ b(&start);
@@ -1848,9 +1848,9 @@ static void AdrpPageBoundaryHelper(unsigned offset_into_page) {
   Label start;
 
   {
-    InstructionAccurateScope scope(&masm,
-                                   kMaxCodeSize / kInstructionSize,
-                                   InstructionAccurateScope::kMaximumSize);
+    ExactAssemblyScope scope(&masm,
+                             kMaxCodeSize,
+                             ExactAssemblyScope::kMaximumSize);
     // Initialize NZCV with `eq` flags.
     __ cmp(wzr, wzr);
     // Waste space until the start of a page.
@@ -1861,7 +1861,7 @@ static void AdrpPageBoundaryHelper(unsigned offset_into_page) {
     // The first page.
     VIXL_STATIC_ASSERT(kStartPage < 0);
     {
-      InstructionAccurateScope scope_page(&masm, kPageSize / kInstructionSize);
+      ExactAssemblyScope scope_page(&masm, kPageSize);
       __ bind(&start);
       __ adrp(x0, &test);
       __ adrp(x1, &test);
@@ -1874,7 +1874,7 @@ static void AdrpPageBoundaryHelper(unsigned offset_into_page) {
     // Subsequent pages.
     VIXL_STATIC_ASSERT(kEndPage >= 0);
     for (int page = (kStartPage + 1); page <= kEndPage; page++) {
-      InstructionAccurateScope scope_page(&masm, kPageSize / kInstructionSize);
+      ExactAssemblyScope scope_page(&masm, kPageSize);
       if (page == 0) {
         for (size_t i = 0; i < (kPageSize / kInstructionSize);) {
           if (i++ == (offset_into_page / kInstructionSize)) __ bind(&test);
@@ -1928,9 +1928,9 @@ static void AdrpOffsetHelper(int64_t offset) {
   Label page;
 
   {
-    InstructionAccurateScope scope(&masm,
-                                   kMaxCodeSize / kInstructionSize,
-                                   InstructionAccurateScope::kMaximumSize);
+    ExactAssemblyScope scope(&masm,
+                             kMaxCodeSize,
+                             ExactAssemblyScope::kMaximumSize);
     // Initialize NZCV with `eq` flags.
     __ cmp(wzr, wzr);
     // Waste space until the start of a page.
@@ -1940,7 +1940,7 @@ static void AdrpOffsetHelper(int64_t offset) {
     __ bind(&page);
 
     {
-      InstructionAccurateScope scope_page(&masm, kPageSize / kInstructionSize);
+      ExactAssemblyScope scope_page(&masm, kPageSize);
       // Every adrp instruction on this page should return the same value.
       __ adrp(x0, offset);
       __ adrp(x1, offset);
@@ -14689,71 +14689,6 @@ TEST(log) {
   TEARDOWN();
 }
 #endif
-
-
-TEST(instruction_accurate_scope) {
-  SETUP();
-  START();
-
-  // By default macro instructions are allowed.
-  VIXL_ASSERT(masm.AllowMacroInstructions());
-  {
-    InstructionAccurateScope scope1(&masm, 2);
-    VIXL_ASSERT(!masm.AllowMacroInstructions());
-    __ nop();
-    {
-      InstructionAccurateScope scope2(&masm, 1);
-      VIXL_ASSERT(!masm.AllowMacroInstructions());
-      __ nop();
-    }
-    VIXL_ASSERT(!masm.AllowMacroInstructions());
-  }
-  VIXL_ASSERT(masm.AllowMacroInstructions());
-
-  {
-    InstructionAccurateScope scope(&masm, 2);
-    __ add(x0, x0, x0);
-    __ sub(x0, x0, x0);
-  }
-
-  END();
-  RUN();
-  TEARDOWN();
-}
-
-
-TEST(instruction_accurate_scope_with_pools) {
-  SETUP();
-  START();
-
-  ASSERT_LITERAL_POOL_SIZE(0);
-
-  __ Ldr(x10, 0x1234567890abcdef);
-
-  ASSERT_LITERAL_POOL_SIZE(8);
-
-  const int64_t n_instructions = kMaxLoadLiteralRange / kInstructionSize;
-  {
-    // The literal pool should be generated at this point, as otherwise the
-    // `Ldr` will run out of range when we generate the `nop` instructions
-    // below.
-    InstructionAccurateScope scope(&masm, n_instructions);
-
-    // Although it must be, we do not check that the literal pool size is zero
-    // here, because we want this regression test to fail while or after we
-    // generate the nops.
-
-    for (int64_t i = 0; i < n_instructions; ++i) {
-      __ nop();
-    }
-  }
-
-  ASSERT_LITERAL_POOL_SIZE(0);
-
-  END();
-  RUN();
-  TEARDOWN();
-}
 
 
 TEST(blr_lr) {

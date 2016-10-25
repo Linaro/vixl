@@ -29,6 +29,7 @@
 #include "aarch64/instructions-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 
+using namespace vixl;
 using namespace vixl::aarch64;
 
 static const int kDefaultInstructionCount = 100000;
@@ -51,7 +52,7 @@ int main(int argc, char* argv[]) {
   }
 
   MacroAssembler masm(instructions * kInstructionSize);
-  InstructionAccurateScope scope(&masm, instructions);
+  ExactAssemblyScope scope(&masm, instructions * kInstructionSize);
 
 #define __ masm.
 

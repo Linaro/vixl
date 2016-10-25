@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
   unsigned rounds = instructions / buffer_instruction_count;
   for (unsigned i = 0; i < rounds; ++i) {
     {
-      InstructionAccurateScope scope(&masm, buffer_instruction_count);
+      ExactAssemblyScope scope(&masm, buffer_size);
       for (unsigned j = 0; j < buffer_instruction_count; ++j) {
         __ add(x0, x1, Operand(x2));
       }
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
 
   unsigned remaining = instructions % buffer_instruction_count;
   {
-    InstructionAccurateScope scope(&masm, remaining);
+    ExactAssemblyScope scope(&masm, remaining * kInstructionSize);
     for (unsigned i = 0; i < remaining; ++i) {
       __ add(x0, x1, Operand(x2));
     }

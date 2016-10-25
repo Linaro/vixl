@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
   int rounds = instructions / buffer_instruction_count;
   for (int i = 0; i < rounds; ++i) {
     {
-      InstructionAccurateScope scope(&masm, buffer_instruction_count);
+      ExactAssemblyScope scope(&masm, buffer_size);
       for (int j = 0; j < buffer_instruction_count; ++j) {
         Label target;
         __ b(&target);
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
 
   int remaining = instructions % buffer_instruction_count;
   {
-    InstructionAccurateScope scope(&masm, remaining);
+    ExactAssemblyScope scope(&masm, remaining * kInstructionSize);
     for (int i = 0; i < remaining; ++i) {
       Label target;
       __ b(&target);

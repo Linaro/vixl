@@ -218,6 +218,124 @@ TEST(EmissionCheckScope_emit_pool_on_Open) {
 
   masm.FinalizeCode();
 }
+
+
+TEST(ExactAssemblyScope_basic) {
+  aarch64::MacroAssembler masm;
+
+  {
+    ExactAssemblyScope scope(&masm, aarch64::kInstructionSize);
+    __ nop();
+  }
+
+  masm.FinalizeCode();
+}
+
+
+TEST(ExactAssemblyScope_Open) {
+  aarch64::MacroAssembler masm;
+
+  {
+    ExactAssemblyScope scope;
+    __ Mov(aarch64::x0, 0);
+    scope.Open(&masm, aarch64::kInstructionSize);
+    __ movz(aarch64::x1, 1);
+  }
+
+  masm.FinalizeCode();
+}
+
+
+TEST(ExactAssemblyScope_Close) {
+  aarch64::MacroAssembler masm;
+
+  {
+    CodeBufferCheckScope scope(&masm, aarch64::kInstructionSize);
+    __ movz(aarch64::x0, 0);
+    scope.Close();
+    __ Mov(aarch64::x1, 1);
+  }
+
+  masm.FinalizeCode();
+}
+
+
+TEST(ExactAssemblyScope_Open_Close) {
+  aarch64::MacroAssembler masm;
+
+  {
+    ExactAssemblyScope scope;
+    __ Mov(aarch64::x0, 0);
+    scope.Open(&masm, aarch64::kInstructionSize);
+    __ movz(aarch64::x1, 1);
+    scope.Close();
+    __ Mov(aarch64::x2, 2);
+  }
+
+  masm.FinalizeCode();
+}
+
+
+TEST(ExactAssemblyScope) {
+  aarch64::MacroAssembler masm;
+
+  // By default macro instructions are allowed.
+  VIXL_ASSERT(masm.AllowMacroInstructions());
+  {
+    ExactAssemblyScope scope1(&masm, 2 * aarch64::kInstructionSize);
+    VIXL_ASSERT(!masm.AllowMacroInstructions());
+    __ nop();
+    {
+      ExactAssemblyScope scope2(&masm, 1 * aarch64::kInstructionSize);
+      VIXL_ASSERT(!masm.AllowMacroInstructions());
+      __ nop();
+    }
+    VIXL_ASSERT(!masm.AllowMacroInstructions());
+  }
+  VIXL_ASSERT(masm.AllowMacroInstructions());
+
+  {
+    ExactAssemblyScope scope(&masm, 2 * aarch64::kInstructionSize);
+    __ add(aarch64::x0, aarch64::x0, aarch64::x0);
+    __ sub(aarch64::x0, aarch64::x0, aarch64::x0);
+  }
+
+  masm.FinalizeCode();
+}
+
+
+TEST(ExactAssemblyScope_scope_with_pools) {
+  aarch64::MacroAssembler masm;
+
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  __ Ldr(aarch64::x10, 0x1234567890abcdef);
+
+  ASSERT_LITERAL_POOL_SIZE(8);
+
+  const int64_t n_nops =
+      aarch64::kMaxLoadLiteralRange / aarch64::kInstructionSize;
+  {
+    // The literal pool should be generated at this point, as otherwise the
+    // `Ldr` will run out of range when we generate the `nop` instructions
+    // below.
+    ExactAssemblyScope scope(&masm, n_nops * aarch64::kInstructionSize);
+
+    // Although it must be, we do not check that the literal pool size is zero
+    // here, because we want this regression test to fail while or after we
+    // generate the nops.
+
+    for (int64_t i = 0; i < n_nops; ++i) {
+      __ nop();
+    }
+  }
+
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  masm.FinalizeCode();
+}
+
+
 #endif  // VIXL_INCLUDE_TARGET_AARCH64
 
 
