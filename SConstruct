@@ -93,13 +93,13 @@ options = {
     'mode:release' : {
       'CCFLAGS' : ['-O3'],
       },
-    'target:aarch32' : {
+    'target_arch:aarch32' : {
       'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH32']
       },
-    'target:aarch64' : {
+    'target_arch:aarch64' : {
       'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH64']
       },
-    'target:both' : {
+    'target_arch:both' : {
       'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH32'],
       'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH64']
       },
