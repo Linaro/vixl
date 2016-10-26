@@ -631,7 +631,7 @@ class MemOperand {
  public:
   // rn
   // where rn is the general purpose base register only
-  MemOperand(Register rn, AddrMode addrmode = Offset)  // NOLINT
+  explicit MemOperand(Register rn, AddrMode addrmode = Offset)
       : rn_(rn),
         offset_(0),
         sign_(plus),

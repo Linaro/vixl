@@ -1073,7 +1073,7 @@ TEST(emit_literal) {
 
   masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
   ASSERT_LITERAL_POOL_SIZE(0);
-  __ Ldr(r4, r4);  // Load the first 4 characters in r4.
+  __ Ldr(r4, MemOperand(r4));  // Load the first 4 characters in r4.
   END();
 
   RUN();
