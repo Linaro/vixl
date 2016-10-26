@@ -3952,6 +3952,7 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
     case NEON_ST2_post:
       st2(vf, ReadVRegister(reg[0]), ReadVRegister(reg[1]), addr[0]);
       count = 2;
+      log_read = false;
       break;
     case NEON_LD3_post:
     case NEON_LD3:
@@ -3970,6 +3971,7 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
           ReadVRegister(reg[2]),
           addr[0]);
       count = 3;
+      log_read = false;
       break;
     case NEON_ST4:
     case NEON_ST4_post:
@@ -3980,6 +3982,7 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
           ReadVRegister(reg[3]),
           addr[0]);
       count = 4;
+      log_read = false;
       break;
     case NEON_LD4_post:
     case NEON_LD4:
