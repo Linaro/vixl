@@ -3892,12 +3892,10 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
   int count = 1;
   bool log_read = true;
 
-  Instr itype = instr->Mask(NEONLoadStoreMultiStructMask);
-  if (((itype == NEON_LD1_1v) || (itype == NEON_LD1_2v) ||
-       (itype == NEON_LD1_3v) || (itype == NEON_LD1_4v) ||
-       (itype == NEON_ST1_1v) || (itype == NEON_ST1_2v) ||
-       (itype == NEON_ST1_3v) || (itype == NEON_ST1_4v)) &&
-      (instr->ExtractBits(20, 16) != 0)) {
+  // Bit 23 determines whether this is an offset or post-index addressing mode.
+  // In offset mode, bits 20 to 16 should be zero; these bits encode the
+  // register or immediate in post-index mode.
+  if ((instr->ExtractBit(23) == 0) && (instr->ExtractBits(20, 16) != 0)) {
     VIXL_UNREACHABLE();
   }
 
@@ -4040,10 +4038,10 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
   uint64_t addr = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
   int rt = instr->GetRt();
 
-  Instr itype = instr->Mask(NEONLoadStoreSingleStructMask);
-  if (((itype == NEON_LD1_b) || (itype == NEON_LD1_h) ||
-       (itype == NEON_LD1_s) || (itype == NEON_LD1_d)) &&
-      (instr->ExtractBits(20, 16) != 0)) {
+  // Bit 23 determines whether this is an offset or post-index addressing mode.
+  // In offset mode, bits 20 to 16 should be zero; these bits encode the
+  // register or immediate in post-index mode.
+  if ((instr->ExtractBit(23) == 0) && (instr->ExtractBits(20, 16) != 0)) {
     VIXL_UNREACHABLE();
   }
 
