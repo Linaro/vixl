@@ -47,10 +47,11 @@ namespace aarch32 {
 
 #define CLEANUP()
 
-#define COMPARE(ASM, EXP)                                                      \
+#define START_COMPARE()                                                        \
   {                                                                            \
-    int32_t start = masm.GetCursorOffset();                                    \
-    masm.ASM;                                                                  \
+    int32_t start = masm.GetCursorOffset();
+
+#define END_COMPARE(EXP)                                                       \
     int32_t end = masm.GetCursorOffset();                                      \
     masm.FinalizeCode();                                                       \
     std::ostringstream ss;                                                     \
@@ -60,7 +61,7 @@ namespace aarch32 {
     } else {                                                                   \
       disassembler.DisassembleA32(*masm.GetBuffer(), start, end);              \
     }                                                                          \
-    masm.GetBuffer()->Reset();                                                  \
+    masm.GetBuffer()->Reset();                                                 \
     if (Test::disassemble()) {                                                 \
       printf("%s", ss.str().c_str());                                          \
     }                                                                          \
@@ -72,57 +73,80 @@ namespace aarch32 {
 
 #define COMPARE_A32(ASM, EXP)                                                  \
   masm.UseA32();                                                               \
-  COMPARE(ASM, EXP)
+  START_COMPARE()                                                              \
+  masm.ASM;                                                                    \
+  END_COMPARE(EXP)
 
 #define COMPARE_T32(ASM, EXP)                                                  \
   masm.UseT32();                                                               \
-  COMPARE(ASM, EXP)
+  START_COMPARE()                                                              \
+  masm.ASM;                                                                    \
+  END_COMPARE(EXP)
 
 #define COMPARE_BOTH(ASM, EXP)                                                 \
-  masm.UseA32();                                                               \
-  COMPARE(ASM, EXP)                                                            \
-  masm.UseT32();                                                               \
-  COMPARE(ASM, EXP)
+  COMPARE_A32(ASM, EXP)                                                        \
+  COMPARE_T32(ASM, EXP)
 
 
-class TestDisassembler : public Disassembler {
+class TestDisassembler : public PrintDisassembler {
  public:
   TestDisassembler(std::ostream& os, uint32_t pc)  // NOLINT
-      : Disassembler(os, pc) {
+      : PrintDisassembler(os, pc) {
+  }
+
+  virtual void PrintPc(uint32_t pc) {
+    USE(pc);
+  }
+
+  virtual void PrintOpcode16(uint32_t opcode) {
+    USE(opcode);
+  }
+
+  virtual void PrintOpcode32(uint32_t opcode) {
+    USE(opcode);
   }
 
   void DisassembleA32(const CodeBuffer& buffer, ptrdiff_t start,
                       ptrdiff_t end) {
-    const uint32_t* start_addr =
-        buffer.GetOffsetAddress<const uint32_t*>(start);
-    const uint32_t* end_addr = buffer.GetOffsetAddress<const uint32_t*>(end);
-    while (start_addr < end_addr) {
-      DecodeA32(*start_addr++);
-    }
+    DisassembleA32Buffer(buffer.GetOffsetAddress<const uint32_t*>(start),
+                         end - start);
   }
 
   void DisassembleT32(const CodeBuffer& buffer, ptrdiff_t start,
                       ptrdiff_t end) {
-    const uint16_t* start_addr =
-        buffer.GetOffsetAddress<const uint16_t*>(start);
-    const uint16_t* end_addr = buffer.GetOffsetAddress<const uint16_t*>(end);
-    while (start_addr < end_addr) {
-      uint32_t value = *start_addr++ << 16;
-      if (value >= kLowestT32_32Opcode) value |= *start_addr++;
-      DecodeT32(value);
-    }
-  }
-
-  void DecodeT32(uint32_t instruction) {
-    Disassembler::DecodeT32(instruction);
-    os() << "\n";
-  }
-
-  void DecodeA32(uint32_t instruction) {
-    Disassembler::DecodeA32(instruction);
-    os() << "\n";
+    DisassembleT32Buffer(buffer.GetOffsetAddress<const uint16_t*>(start),
+                         end - start);
   }
 };
+
+
+TEST(t32_disassembler_limit1) {
+  SETUP();
+
+  masm.UseT32();
+  START_COMPARE()
+  masm.Add(r10, r11, r12);
+  masm.GetBuffer()->Emit16(kLowestT32_32Opcode >> 16);
+  END_COMPARE("add r10, r11, ip\n"
+              "?\n");
+
+  CLEANUP();
+}
+
+
+TEST(t32_disassembler_limit2) {
+  SETUP();
+
+  masm.UseT32();
+  START_COMPARE()
+  masm.Add(r10, r11, r12);
+  masm.Add(r0, r0, r1);
+  END_COMPARE("add r10, r11, ip\n"
+              "add r0, r1\n");
+
+  CLEANUP();
+}
+
 
 TEST(macro_assembler_orn) {
   SETUP();
