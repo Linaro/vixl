@@ -368,11 +368,6 @@ T ReverseBytes(T value, int block_bytes_log2) {
   return result;
 }
 
-template <unsigned MULTIPLE, typename T>
-inline bool IsMultiple(T value) {
-  VIXL_ASSERT(IsPowerOf2(MULTIPLE));
-  return (value & (MULTIPLE - 1)) == 0;
-}
 
 // Pointer alignment
 // TODO: rename/refactor to make it specific to instructions.
