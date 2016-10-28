@@ -100,8 +100,8 @@ options = {
       'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH64']
       },
     'target_arch:both' : {
-      'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH32'],
-      'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH64']
+      'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH32',
+                   '-DVIXL_INCLUDE_TARGET_AARCH64']
       },
     'simulator:aarch64' : {
       'CCFLAGS' : ['-DVIXL_INCLUDE_SIMULATOR_AARCH64'],
