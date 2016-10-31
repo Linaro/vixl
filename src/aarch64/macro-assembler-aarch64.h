@@ -576,7 +576,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                  PositionIndependentCodeOption pic = PositionIndependentCode);
   ~MacroAssembler();
 
-  AssemblerBase* GetAssemblerBase() { return this; }
+  AssemblerBase* GetAssemblerBase() VIXL_OVERRIDE { return this; }
 
   // Start generating code from the beginning of the buffer, discarding any code
   // and data that has already been emitted into the buffer.
@@ -2832,11 +2832,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void BumpSystemStackPointer(const Operand& space);
 
 #ifdef VIXL_DEBUG
-  void SetAllowMacroInstructions(bool value) {
+  void SetAllowMacroInstructions(bool value) VIXL_OVERRIDE {
     allow_macro_instructions_ = value;
   }
 
-  bool AllowMacroInstructions() const { return allow_macro_instructions_; }
+  bool AllowMacroInstructions() const VIXL_OVERRIDE {
+    return allow_macro_instructions_;
+  }
 #endif
 
   void SetGenerateSimulatorCode(bool value) {
@@ -2852,12 +2854,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void ReleaseVeneerPool() { veneer_pool_.Release(); }
   bool IsVeneerPoolBlocked() const { return veneer_pool_.IsBlocked(); }
 
-  void BlockPools() {
+  void BlockPools() VIXL_OVERRIDE {
     BlockLiteralPool();
     BlockVeneerPool();
   }
 
-  void ReleasePools() {
+  void ReleasePools() VIXL_OVERRIDE {
     ReleaseLiteralPool();
     ReleaseVeneerPool();
   }
@@ -2916,7 +2918,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
 
   void CheckEmitPoolsFor(size_t amount);
-  void EnsureEmitPoolsFor(size_t amount) {
+  void EnsureEmitPoolsFor(size_t amount) VIXL_OVERRIDE {
     ptrdiff_t offset = amount;
     ptrdiff_t max_pools_size =
         literal_pool_.GetMaxSize() + veneer_pool_.GetMaxSize();

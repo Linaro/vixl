@@ -42,14 +42,14 @@ class CustomDisassembler : public Disassembler {
   CustomDisassembler() : Disassembler() {}
   virtual ~CustomDisassembler() {}
 
-  virtual void VisitAddSubShifted(const Instruction* instr);
+  virtual void VisitAddSubShifted(const Instruction* instr) VIXL_OVERRIDE;
 
  protected:
   virtual void AppendRegisterNameToOutput(const Instruction* instr,
-                                          const CPURegister& reg);
+                                          const CPURegister& reg) VIXL_OVERRIDE;
 
-  virtual void AppendCodeRelativeCodeAddressToOutput(const Instruction* instr,
-                                                     const void* addr);
+  virtual void AppendCodeRelativeCodeAddressToOutput(
+      const Instruction* instr, const void* addr) VIXL_OVERRIDE;
 };
 
 

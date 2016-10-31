@@ -53,8 +53,8 @@ class Debugger : public Simulator {
   explicit Debugger(Decoder* decoder, FILE* stream = stdout);
   ~Debugger();
 
-  virtual void Run();
-  virtual void VisitException(const Instruction* instr);
+  virtual void Run() VIXL_OVERRIDE;
+  virtual void VisitException(const Instruction* instr) VIXL_OVERRIDE;
 
   bool IsDebuggerActive() const { return debugger_active_; }
   void ActivateDebugger() { debugger_active_ = true; }

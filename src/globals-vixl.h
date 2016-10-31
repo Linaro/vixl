@@ -169,6 +169,12 @@ inline void USE(const T1&, const T2&, const T3&, const T4&) {}
 #define VIXL_NO_RETURN_IN_DEBUG_MODE
 #endif
 
+#if __cplusplus >= 201103L
+#define VIXL_OVERRIDE override
+#else
+#define VIXL_OVERRIDE
+#endif
+
 // Some functions might only be marked as "noreturn" for the DEBUG build. This
 // macro should be used for such cases (for more details see what
 // VIXL_UNREACHABLE expands to).

@@ -2399,9 +2399,9 @@ void Assembler::adr(Condition cond,
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(0, 1020) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= 0) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
@@ -2427,9 +2427,9 @@ void Assembler::adr(Condition cond,
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(0, 4095) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           int32_t target;
           if ((offset >= 0) && (offset <= 4095) && !label->IsMinusZero()) {
@@ -2457,9 +2457,9 @@ void Assembler::adr(Condition cond,
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(0, 255) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           int32_t target;
           ImmediateA32 positive_immediate_a32(offset);
@@ -2809,9 +2809,9 @@ void Assembler::b(Condition cond, EncodingSize size, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-256, 254) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - pc;
           VIXL_ASSERT((offset >= -256) && (offset <= 254) &&
                       ((offset & 0x1) == 0));
@@ -2832,9 +2832,9 @@ void Assembler::b(Condition cond, EncodingSize size, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-2048, 2046) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - pc;
           VIXL_ASSERT((offset >= -2048) && (offset <= 2046) &&
                       ((offset & 0x1) == 0));
@@ -2855,9 +2855,9 @@ void Assembler::b(Condition cond, EncodingSize size, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-1048576, 1048574) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - pc;
           VIXL_ASSERT((offset >= -1048576) && (offset <= 1048574) &&
                       ((offset & 0x1) == 0));
@@ -2880,9 +2880,9 @@ void Assembler::b(Condition cond, EncodingSize size, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-16777216, 16777214) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - pc;
           VIXL_ASSERT((offset >= -16777216) && (offset <= 16777214) &&
                       ((offset & 0x1) == 0));
@@ -2907,9 +2907,9 @@ void Assembler::b(Condition cond, EncodingSize size, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-33554432, 33554428) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - pc;
           VIXL_ASSERT((offset >= -33554432) && (offset <= 33554428) &&
                       ((offset & 0x3) == 0));
@@ -3194,9 +3194,9 @@ void Assembler::bl(Condition cond, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-16777216, 16777214) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - pc;
           VIXL_ASSERT((offset >= -16777216) && (offset <= 16777214) &&
                       ((offset & 0x1) == 0));
@@ -3221,9 +3221,9 @@ void Assembler::bl(Condition cond, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-33554432, 33554428) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - pc;
           VIXL_ASSERT((offset >= -33554432) && (offset <= 33554428) &&
                       ((offset & 0x3) == 0));
@@ -3254,9 +3254,9 @@ void Assembler::blx(Condition cond, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-16777216, 16777212) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -16777216) && (offset <= 16777212) &&
                       ((offset & 0x3) == 0));
@@ -3281,9 +3281,9 @@ void Assembler::blx(Condition cond, Label* label) {
         static class EmitOp : public Label::LabelEmitOperator {
          public:
           EmitOp() : Label::LabelEmitOperator(-33554432, 33554430) {}
-          uint32_t Encode(uint32_t instr,
-                          Label::Offset pc,
-                          const Label* label) const {
+          virtual uint32_t Encode(uint32_t instr,
+                                  Label::Offset pc,
+                                  const Label* label) const VIXL_OVERRIDE {
             Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
             VIXL_ASSERT((offset >= -33554432) && (offset <= 33554430) &&
                         ((offset & 0x1) == 0));
@@ -3369,9 +3369,9 @@ void Assembler::cbnz(Register rn, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(0, 126) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - pc;
           VIXL_ASSERT((offset >= 0) && (offset <= 126) &&
                       ((offset & 0x1) == 0));
@@ -3403,9 +3403,9 @@ void Assembler::cbz(Register rn, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(0, 126) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - pc;
           VIXL_ASSERT((offset >= 0) && (offset <= 126) &&
                       ((offset & 0x1) == 0));
@@ -4792,9 +4792,9 @@ void Assembler::ldr(Condition cond,
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(0, 1020) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= 0) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
@@ -4813,9 +4813,9 @@ void Assembler::ldr(Condition cond,
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -4835,9 +4835,9 @@ void Assembler::ldr(Condition cond,
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -5053,9 +5053,9 @@ void Assembler::ldrb(Condition cond, Register rt, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -5075,9 +5075,9 @@ void Assembler::ldrb(Condition cond, Register rt, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -5257,9 +5257,9 @@ void Assembler::ldrd(Condition cond, Register rt, Register rt2, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-1020, 1020) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
@@ -5285,9 +5285,9 @@ void Assembler::ldrd(Condition cond, Register rt, Register rt2, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-255, 255) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
           uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -5611,9 +5611,9 @@ void Assembler::ldrh(Condition cond, Register rt, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -5633,9 +5633,9 @@ void Assembler::ldrh(Condition cond, Register rt, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-255, 255) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
           uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -5836,9 +5836,9 @@ void Assembler::ldrsb(Condition cond, Register rt, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -5858,9 +5858,9 @@ void Assembler::ldrsb(Condition cond, Register rt, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-255, 255) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
           uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -6061,9 +6061,9 @@ void Assembler::ldrsh(Condition cond, Register rt, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -6083,9 +6083,9 @@ void Assembler::ldrsh(Condition cond, Register rt, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-255, 255) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
           uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -7376,9 +7376,9 @@ void Assembler::pld(Condition cond, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -7398,9 +7398,9 @@ void Assembler::pld(Condition cond, Label* label) {
         static class EmitOp : public Label::LabelEmitOperator {
          public:
           EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
-          uint32_t Encode(uint32_t instr,
-                          Label::Offset pc,
-                          const Label* label) const {
+          virtual uint32_t Encode(uint32_t instr,
+                                  Label::Offset pc,
+                                  const Label* label) const VIXL_OVERRIDE {
             Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
             VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
             uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -7698,9 +7698,9 @@ void Assembler::pli(Condition cond, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -7720,9 +7720,9 @@ void Assembler::pli(Condition cond, Label* label) {
         static class EmitOp : public Label::LabelEmitOperator {
          public:
           EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
-          uint32_t Encode(uint32_t instr,
-                          Label::Offset pc,
-                          const Label* label) const {
+          virtual uint32_t Encode(uint32_t instr,
+                                  Label::Offset pc,
+                                  const Label* label) const VIXL_OVERRIDE {
             Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
             VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
             uint32_t U = (offset >= 0) && !label->IsMinusZero();
@@ -18442,9 +18442,9 @@ void Assembler::vldr(Condition cond, DataType dt, DRegister rd, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-1020, 1020) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
@@ -18468,9 +18468,9 @@ void Assembler::vldr(Condition cond, DataType dt, DRegister rd, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-1020, 1020) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
@@ -18564,9 +18564,9 @@ void Assembler::vldr(Condition cond, DataType dt, SRegister rd, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-1020, 1020) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
@@ -18590,9 +18590,9 @@ void Assembler::vldr(Condition cond, DataType dt, SRegister rd, Label* label) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-1020, 1020) {}
-        uint32_t Encode(uint32_t instr,
-                        Label::Offset pc,
-                        const Label* label) const {
+        virtual uint32_t Encode(uint32_t instr,
+                                Label::Offset pc,
+                                const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));

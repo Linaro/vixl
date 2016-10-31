@@ -826,12 +826,14 @@ class Simulator : public DecoderVisitor {
   }
 
 // Declare all Visitor functions.
-#define DECLARE(A) virtual void Visit##A(const Instruction* instr);
+#define DECLARE(A) \
+  virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE;
   VISITOR_LIST_THAT_RETURN(DECLARE)
 #undef DECLARE
 
-#define DECLARE(A) \
-  VIXL_DEBUG_NO_RETURN virtual void Visit##A(const Instruction* instr);
+#define DECLARE(A)                                                     \
+  VIXL_DEBUG_NO_RETURN virtual void Visit##A(const Instruction* instr) \
+      VIXL_OVERRIDE;
   VISITOR_LIST_THAT_DONT_RETURN(DECLARE)
 #undef DECLARE
 

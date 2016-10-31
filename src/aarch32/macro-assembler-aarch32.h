@@ -717,99 +717,99 @@ class MacroAssembler : public Assembler {
                         InstructionCondROp instruction,
                         Condition cond,
                         Register rn,
-                        const Operand& operand);
+                        const Operand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondSizeROp instruction,
                         Condition cond,
                         EncodingSize size,
                         Register rn,
-                        const Operand& operand);
+                        const Operand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondRROp instruction,
                         Condition cond,
                         Register rd,
                         Register rn,
-                        const Operand& operand);
+                        const Operand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondSizeRROp instruction,
                         Condition cond,
                         EncodingSize size,
                         Register rd,
                         Register rn,
-                        const Operand& operand);
+                        const Operand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionRL instruction,
                         Register rn,
-                        Label* label);
+                        Label* label) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondDtSSop instruction,
                         Condition cond,
                         DataType dt,
                         SRegister rd,
-                        const SOperand& operand);
+                        const SOperand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondDtDDop instruction,
                         Condition cond,
                         DataType dt,
                         DRegister rd,
-                        const DOperand& operand);
+                        const DOperand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondDtQQop instruction,
                         Condition cond,
                         DataType dt,
                         QRegister rd,
-                        const QOperand& operand);
+                        const QOperand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondMop instruction,
                         Condition cond,
-                        const MemOperand& operand);
+                        const MemOperand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondRMop instruction,
                         Condition cond,
                         Register rd,
-                        const MemOperand& operand);
+                        const MemOperand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondSizeRMop instruction,
                         Condition cond,
                         EncodingSize size,
                         Register rd,
-                        const MemOperand& operand);
+                        const MemOperand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondRRMop instruction,
                         Condition cond,
                         Register rt,
                         Register rt2,
-                        const MemOperand& operand);
+                        const MemOperand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondRRRMop instruction,
                         Condition cond,
                         Register rd,
                         Register rt,
                         Register rt2,
-                        const MemOperand& operand);
+                        const MemOperand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondDtSMop instruction,
                         Condition cond,
                         DataType dt,
                         SRegister rd,
-                        const MemOperand& operand);
+                        const MemOperand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondDtDMop instruction,
                         Condition cond,
                         DataType dt,
                         DRegister rd,
-                        const MemOperand& operand);
+                        const MemOperand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondDtNrlMop instruction,
                         Condition cond,
                         DataType dt,
                         const NeonRegisterList& reglist,
-                        const MemOperand& operand);
+                        const MemOperand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondMsrOp instruction,
                         Condition cond,
                         MaskedSpecialRegister spec_reg,
-                        const Operand& operand);
+                        const Operand& operand) VIXL_OVERRIDE;
 
   // Start of generated code.
 
@@ -9444,7 +9444,9 @@ class JumpTable : public JumpTableBase {
   explicit JumpTable(int length) : JumpTableBase(length, sizeof(T)) {}
 
  public:
-  virtual void Link(MacroAssembler* masm, int case_index, uint32_t location) {
+  virtual void Link(MacroAssembler* masm,
+                    int case_index,
+                    uint32_t location) VIXL_OVERRIDE {
     uint32_t position_in_table = GetLocationForCase(case_index);
     uint32_t from = GetBranchLocation();
     int offset = location - from;

@@ -37,7 +37,7 @@ class SwitchAddSubRegisterSources : public DecoderVisitor {
   // Our visitor switches the register sources for some add and sub instructions
   // (not all add and sub instructions). Visitors are listed by the macro
   // `VISITOR_LIST` in aarch64/decoder-aarch64.h.
-  virtual void VisitAddSubShifted(const Instruction* instr) {
+  virtual void VisitAddSubShifted(const Instruction* instr) VIXL_OVERRIDE {
     int rn = instr->GetRn();
     int rm = instr->GetRm();
     // Only non-const visitors are allowed to discard constness of the visited
@@ -125,7 +125,7 @@ class SwitchAddSubRegisterSources : public DecoderVisitor {
   V(Unallocated)                        \
   V(Unimplemented)
 #define DEFINE_UNUSED_VISITOR(Name)                                  \
-  virtual void Visit##Name(const Instruction* i) {                   \
+  virtual void Visit##Name(const Instruction* i) VIXL_OVERRIDE {     \
     USE(i); /* Prevents compiler warnings about unused variables. */ \
   }
   UNUSED_VISITOR_LIST(DEFINE_UNUSED_VISITOR)
