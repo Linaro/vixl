@@ -35,6 +35,8 @@ class MacroAssemblerInterface {
  public:
   virtual internal::AssemblerBase* GetAssemblerBase() = 0;
 
+  virtual ~MacroAssemblerInterface() {}
+
 #ifdef VIXL_DEBUG
   virtual bool AllowMacroInstructions() const = 0;
   virtual void SetAllowMacroInstructions(bool allow) = 0;
