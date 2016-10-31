@@ -1601,7 +1601,6 @@ LogicVRegister Simulator::uminmaxv(VectorFormat vform,
   uint64_t dst_val = max ? 0 : UINT64_MAX;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     uint64_t src_val = src.Uint(vform, i);
-    dst.SetUint(vform, i, i);
     if (max) {
       dst_val = (src_val > dst_val) ? src_val : dst_val;
     } else {

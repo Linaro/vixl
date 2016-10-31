@@ -275,8 +275,7 @@ void Assembler::tbl(const VRegister& vd,
                     const VRegister& vm) {
   USE(vn2);
   VIXL_ASSERT(AreSameFormat(vn, vn2));
-  VIXL_ASSERT(vn2.GetCode() == ((vn.GetCode() + 1) % kNumberOfVRegisters));
-
+  VIXL_ASSERT(AreConsecutive(vn, vn2));
   NEONTable(vd, vn, vm, NEON_TBL_2v);
 }
 
@@ -288,9 +287,7 @@ void Assembler::tbl(const VRegister& vd,
                     const VRegister& vm) {
   USE(vn2, vn3);
   VIXL_ASSERT(AreSameFormat(vn, vn2, vn3));
-  VIXL_ASSERT(vn2.GetCode() == ((vn.GetCode() + 1) % kNumberOfVRegisters));
-  VIXL_ASSERT(vn3.GetCode() == ((vn.GetCode() + 2) % kNumberOfVRegisters));
-
+  VIXL_ASSERT(AreConsecutive(vn, vn2, vn3));
   NEONTable(vd, vn, vm, NEON_TBL_3v);
 }
 
@@ -303,10 +300,7 @@ void Assembler::tbl(const VRegister& vd,
                     const VRegister& vm) {
   USE(vn2, vn3, vn4);
   VIXL_ASSERT(AreSameFormat(vn, vn2, vn3, vn4));
-  VIXL_ASSERT(vn2.GetCode() == ((vn.GetCode() + 1) % kNumberOfVRegisters));
-  VIXL_ASSERT(vn3.GetCode() == ((vn.GetCode() + 2) % kNumberOfVRegisters));
-  VIXL_ASSERT(vn4.GetCode() == ((vn.GetCode() + 3) % kNumberOfVRegisters));
-
+  VIXL_ASSERT(AreConsecutive(vn, vn2, vn3, vn4));
   NEONTable(vd, vn, vm, NEON_TBL_4v);
 }
 
@@ -324,8 +318,7 @@ void Assembler::tbx(const VRegister& vd,
                     const VRegister& vm) {
   USE(vn2);
   VIXL_ASSERT(AreSameFormat(vn, vn2));
-  VIXL_ASSERT(vn2.GetCode() == ((vn.GetCode() + 1) % kNumberOfVRegisters));
-
+  VIXL_ASSERT(AreConsecutive(vn, vn2));
   NEONTable(vd, vn, vm, NEON_TBX_2v);
 }
 
@@ -337,9 +330,7 @@ void Assembler::tbx(const VRegister& vd,
                     const VRegister& vm) {
   USE(vn2, vn3);
   VIXL_ASSERT(AreSameFormat(vn, vn2, vn3));
-  VIXL_ASSERT(vn2.GetCode() == ((vn.GetCode() + 1) % kNumberOfVRegisters));
-  VIXL_ASSERT(vn3.GetCode() == ((vn.GetCode() + 2) % kNumberOfVRegisters));
-
+  VIXL_ASSERT(AreConsecutive(vn, vn2, vn3));
   NEONTable(vd, vn, vm, NEON_TBX_3v);
 }
 
@@ -352,10 +343,7 @@ void Assembler::tbx(const VRegister& vd,
                     const VRegister& vm) {
   USE(vn2, vn3, vn4);
   VIXL_ASSERT(AreSameFormat(vn, vn2, vn3, vn4));
-  VIXL_ASSERT(vn2.GetCode() == ((vn.GetCode() + 1) % kNumberOfVRegisters));
-  VIXL_ASSERT(vn3.GetCode() == ((vn.GetCode() + 2) % kNumberOfVRegisters));
-  VIXL_ASSERT(vn4.GetCode() == ((vn.GetCode() + 3) % kNumberOfVRegisters));
-
+  VIXL_ASSERT(AreConsecutive(vn, vn2, vn3, vn4));
   NEONTable(vd, vn, vm, NEON_TBX_4v);
 }
 
