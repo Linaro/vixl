@@ -574,41 +574,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // Every literal is placed on a 32bit boundary
   // All the literals in the pool will be removed from the pool and potentially
   // delete'd.
-  void EmitLiteralPool(LiteralPool* const literal_pool, EmitOption option) {
-    if (literal_pool->GetSize() > 0) {
-#ifdef VIXL_DEBUG
-      for (LiteralPool::RawLiteralListIterator literal_it =
-               literal_pool->GetFirst();
-           literal_it != literal_pool->GetEnd();
-           literal_it++) {
-        RawLiteral* literal = *literal_it;
-        VIXL_ASSERT(GetCursorOffset() < literal->GetCheckpoint());
-      }
-#endif
-      Label after_literal;
-      if (option == kBranchRequired) {
-        GetBuffer()->EnsureSpaceFor(kMaxInstructionSizeInBytes);
-#ifdef VIXL_DEBUG
-        bool save_assembler_state = AllowAssembler();
-        SetAllowAssembler(true);
-#endif
-        b(&after_literal);
-#ifdef VIXL_DEBUG
-        SetAllowAssembler(save_assembler_state);
-#endif
-      }
-      GetBuffer()->Align();
-      GetBuffer()->EnsureSpaceFor(literal_pool->GetSize());
-      for (LiteralPool::RawLiteralListIterator it = literal_pool->GetFirst();
-           it != literal_pool->GetEnd();
-           it++) {
-        PlaceHelper(*it);
-        GetBuffer()->Align();
-      }
-      if (option == kBranchRequired) BindHelper(&after_literal);
-      literal_pool->Clear();
-    }
-  }
+  void EmitLiteralPool(LiteralPool* const literal_pool, EmitOption option);
   void EmitLiteralPool(EmitOption option = kBranchRequired) {
     VIXL_ASSERT(!literal_pool_manager_.IsBlocked());
     EmitLiteralPool(literal_pool_manager_.GetLiteralPool(), option);
@@ -10703,50 +10669,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   VeneerPoolManager veneer_pool_manager_;
   bool generate_simulator_code_;
   bool allow_macro_instructions_;
-};
-
-// Use this scope when you need a one-to-one mapping between methods and
-// instructions. This scope prevents the MacroAssembler functions from being
-// called and the literal pools and veneers from being emitted (they can only be
-// emitted when you create the scope). It also asserts the size of the emitted
-// instructions is the specified size (or not greater than the specified size).
-// This scope must be used when you want to directly use the assembler. It will
-// ensure that the buffer is big enough and that you don't break the pool and
-// veneer mechanisms.
-class AssemblerAccurateScope : public CodeBufferCheckScope {
- public:
-  AssemblerAccurateScope(MacroAssembler* masm,
-                         uint32_t size,
-                         SizePolicy size_policy = kExactSize)
-      : masm_(masm) {
-    VIXL_ASSERT(size_policy != kNoAssert);
-    masm_->EnsureEmitFor(size);
-    // We cannot initialise the `CodeBufferCheckScope` in the initialisation
-    // list, as the size checks must be performed after we have checked for the
-    // pools.
-    CodeBufferCheckScope::Open(masm, size, kReserveBufferSpace, size_policy);
-#ifdef VIXL_DEBUG
-    old_allow_macro_instructions_ = masm->AllowMacroInstructions();
-    old_allow_assembler_ = masm->AllowAssembler();
-    masm->SetAllowMacroInstructions(false);
-    masm->SetAllowAssembler(true);
-#else
-    USE(old_allow_macro_instructions_);
-    USE(old_allow_assembler_);
-#endif
-  }
-
-  ~AssemblerAccurateScope() {
-#ifdef VIXL_DEBUG
-    masm_->SetAllowMacroInstructions(old_allow_macro_instructions_);
-    masm_->SetAllowAssembler(old_allow_assembler_);
-#endif
-  }
-
- private:
-  MacroAssembler* masm_;
-  bool old_allow_macro_instructions_;
-  bool old_allow_assembler_;
 };
 
 // This scope utility allows scratch registers to be managed safely. The

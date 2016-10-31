@@ -480,8 +480,22 @@ TEST(EmissionCheckScope_emit_pool_on_Open_64) {
 #endif  // VIXL_INCLUDE_TARGET_AARCH64
 
 
+#ifdef VIXL_INCLUDE_TARGET_AARCH32
+TEST(ExactAssemblyScope_basic_32) {
+  aarch32::MacroAssembler masm;
+
+  {
+    ExactAssemblyScope scope(&masm, aarch32::kA32InstructionSizeInBytes);
+    __ nop();
+  }
+
+  masm.FinalizeCode();
+}
+#endif  // VIXL_INCLUDE_TARGET_AARCH32
+
+
 #ifdef VIXL_INCLUDE_TARGET_AARCH64
-TEST(ExactAssemblyScope_basic) {
+TEST(ExactAssemblyScope_basic_64) {
   aarch64::MacroAssembler masm;
 
   {
@@ -491,9 +505,27 @@ TEST(ExactAssemblyScope_basic) {
 
   masm.FinalizeCode();
 }
+#endif  // VIXL_INCLUDE_TARGET_AARCH64
 
 
-TEST(ExactAssemblyScope_Open) {
+#ifdef VIXL_INCLUDE_TARGET_AARCH32
+TEST(ExactAssemblyScope_Open_32) {
+  aarch32::MacroAssembler masm;
+
+  {
+    ExactAssemblyScope scope;
+    __ Mov(aarch32::r0, 0);
+    scope.Open(&masm, aarch32::kA32InstructionSizeInBytes);
+    __ mov(aarch32::r1, 1);
+  }
+
+  masm.FinalizeCode();
+}
+#endif  // VIXL_INCLUDE_TARGET_AARCH32
+
+
+#ifdef VIXL_INCLUDE_TARGET_AARCH64
+TEST(ExactAssemblyScope_Open_64) {
   aarch64::MacroAssembler masm;
 
   {
@@ -505,9 +537,27 @@ TEST(ExactAssemblyScope_Open) {
 
   masm.FinalizeCode();
 }
+#endif  // VIXL_INCLUDE_TARGET_AARCH64
 
 
-TEST(ExactAssemblyScope_Close) {
+#ifdef VIXL_INCLUDE_TARGET_AARCH32
+TEST(ExactAssemblyScope_Close_32) {
+  aarch32::MacroAssembler masm;
+
+  {
+    CodeBufferCheckScope scope(&masm, aarch32::kA32InstructionSizeInBytes);
+    __ mov(aarch32::r0, 0);
+    scope.Close();
+    __ Mov(aarch32::r1, 1);
+  }
+
+  masm.FinalizeCode();
+}
+#endif  // VIXL_INCLUDE_TARGET_AARCH32
+
+
+#ifdef VIXL_INCLUDE_TARGET_AARCH64
+TEST(ExactAssemblyScope_Close_64) {
   aarch64::MacroAssembler masm;
 
   {
@@ -519,9 +569,29 @@ TEST(ExactAssemblyScope_Close) {
 
   masm.FinalizeCode();
 }
+#endif  // VIXL_INCLUDE_TARGET_AARCH64
 
 
-TEST(ExactAssemblyScope_Open_Close) {
+#ifdef VIXL_INCLUDE_TARGET_AARCH32
+TEST(ExactAssemblyScope_Open_Close_32) {
+  aarch32::MacroAssembler masm;
+
+  {
+    ExactAssemblyScope scope;
+    __ Mov(aarch32::r0, 0);
+    scope.Open(&masm, aarch32::kA32InstructionSizeInBytes);
+    __ mov(aarch32::r1, 1);
+    scope.Close();
+    __ Mov(aarch32::r2, 2);
+  }
+
+  masm.FinalizeCode();
+}
+#endif  // VIXL_INCLUDE_TARGET_AARCH32
+
+
+#ifdef VIXL_INCLUDE_TARGET_AARCH64
+TEST(ExactAssemblyScope_Open_Close_64) {
   aarch64::MacroAssembler masm;
 
   {
@@ -535,9 +605,41 @@ TEST(ExactAssemblyScope_Open_Close) {
 
   masm.FinalizeCode();
 }
+#endif  // VIXL_INCLUDE_TARGET_AARCH64
 
 
-TEST(ExactAssemblyScope) {
+#ifdef VIXL_INCLUDE_TARGET_AARCH32
+TEST(ExactAssemblyScope_32) {
+  aarch32::MacroAssembler masm;
+
+  // By default macro instructions are allowed.
+  VIXL_ASSERT(masm.AllowMacroInstructions());
+  {
+    ExactAssemblyScope scope1(&masm, 2 * aarch32::kA32InstructionSizeInBytes);
+    VIXL_ASSERT(!masm.AllowMacroInstructions());
+    __ nop();
+    {
+      ExactAssemblyScope scope2(&masm, 1 * aarch32::kA32InstructionSizeInBytes);
+      VIXL_ASSERT(!masm.AllowMacroInstructions());
+      __ nop();
+    }
+    VIXL_ASSERT(!masm.AllowMacroInstructions());
+  }
+  VIXL_ASSERT(masm.AllowMacroInstructions());
+
+  {
+    ExactAssemblyScope scope(&masm, 2 * aarch32::kA32InstructionSizeInBytes);
+    __ add(aarch32::r0, aarch32::r0, aarch32::r0);
+    __ sub(aarch32::r0, aarch32::r0, aarch32::r0);
+  }
+
+  masm.FinalizeCode();
+}
+#endif  // VIXL_INCLUDE_TARGET_AARCH32
+
+
+#ifdef VIXL_INCLUDE_TARGET_AARCH64
+TEST(ExactAssemblyScope_64) {
   aarch64::MacroAssembler masm;
 
   // By default macro instructions are allowed.
@@ -563,9 +665,45 @@ TEST(ExactAssemblyScope) {
 
   masm.FinalizeCode();
 }
+#endif  // VIXL_INCLUDE_TARGET_AARCH64
 
 
-TEST(ExactAssemblyScope_scope_with_pools) {
+#ifdef VIXL_INCLUDE_TARGET_AARCH32
+TEST(ExactAssemblyScope_scope_with_pools_32) {
+  aarch32::MacroAssembler masm;
+
+  ASSERT_LITERAL_POOL_SIZE_32(0);
+
+  __ Ldrd(aarch32::r0, aarch32::r1, 0x1234567890abcdef);
+
+  ASSERT_LITERAL_POOL_SIZE_32(8);
+
+  const int32_t kLdrdRange = 255;
+  const int32_t n_nops = (kLdrdRange / aarch32::kA32InstructionSizeInBytes) + 1;
+  {
+    // The literal pool should be generated when opening this scope, as
+    // otherwise the `Ldrd` will run out of range when we generate the `nop`
+    // instructions below.
+    ExactAssemblyScope scope(&masm, n_nops * aarch32::kA32InstructionSizeInBytes);
+
+    // Although it must be, we do not check that the literal pool size is zero
+    // here, because we want this regression test to fail while or after we
+    // generate the nops.
+
+    for (int32_t i = 0; i < n_nops; ++i) {
+      __ nop();
+    }
+  }
+
+  ASSERT_LITERAL_POOL_SIZE_32(0);
+
+  masm.FinalizeCode();
+}
+#endif  // VIXL_INCLUDE_TARGET_AARCH32
+
+
+#ifdef VIXL_INCLUDE_TARGET_AARCH64
+TEST(ExactAssemblyScope_scope_with_pools_64) {
   aarch64::MacroAssembler masm;
 
   ASSERT_LITERAL_POOL_SIZE_64(0);
@@ -577,9 +715,9 @@ TEST(ExactAssemblyScope_scope_with_pools) {
   const int64_t n_nops =
       aarch64::kMaxLoadLiteralRange / aarch64::kInstructionSize;
   {
-    // The literal pool should be generated at this point, as otherwise the
-    // `Ldr` will run out of range when we generate the `nop` instructions
-    // below.
+    // The literal pool should be generated when opening this scope, as
+    // otherwise the `Ldr` will run out of range when we generate the `nop`
+    // instructions below.
     ExactAssemblyScope scope(&masm, n_nops * aarch64::kInstructionSize);
 
     // Although it must be, we do not check that the literal pool size is zero
@@ -595,8 +733,6 @@ TEST(ExactAssemblyScope_scope_with_pools) {
 
   masm.FinalizeCode();
 }
-
-
 #endif  // VIXL_INCLUDE_TARGET_AARCH64
 
 

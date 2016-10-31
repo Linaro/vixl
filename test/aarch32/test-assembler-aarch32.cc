@@ -1060,13 +1060,11 @@ TEST_T32(veneer_pool_in_delegate) {
   // Generate enough code to have, after the loop, a margin of only one 16-bit
   // instruction that can be generated before we need to generate the veneer
   // pool.
-  // Use `CodeBufferCheckScope` and the assembler to generate the code.
+  // Use `ExactAssemblyScope` and the assembler to generate the code.
   int32_t space =
       masm.GetMarginBeforeVeneerEmission() - k16BitT32InstructionSizeInBytes;
   {
-    AssemblerAccurateScope scope(&masm,
-                                 space,
-                                 CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, space, ExactAssemblyScope::kExactSize);
     while (space > 0) {
       __ nop();
       space -= k16BitT32InstructionSizeInBytes;
@@ -1123,9 +1121,7 @@ TEST_T32(literal_pool_in_delegate) {
   int32_t space = masm.GetMarginBeforeLiteralEmission() -
       2 * k16BitT32InstructionSizeInBytes;
   {
-    AssemblerAccurateScope scope(&masm,
-                                 space,
-                                 CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, space, ExactAssemblyScope::kExactSize);
     while (space > 0) {
       __ nop();
       space -= k16BitT32InstructionSizeInBytes;
@@ -1223,9 +1219,7 @@ void EmitLdrdLiteralTest(MacroAssembler* masm) {
 
   int32_t margin = masm->GetMarginBeforeLiteralEmission();
   {
-    AssemblerAccurateScope scope(masm,
-                                 margin,
-                                 CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(masm, margin, ExactAssemblyScope::kExactSize);
     // Opening the scope should not have triggered the emission of the literal
     // pool.
     VIXL_CHECK(!masm->LiteralPoolIsEmpty());
@@ -1360,9 +1354,7 @@ TEST_A32(ldr_literal_range_same_time) {
 
   {
     int space = AlignDown(ldr_padding, kA32InstructionSizeInBytes);
-    AssemblerAccurateScope scope(&masm,
-                                 space,
-                                 CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, space, ExactAssemblyScope::kExactSize);
     int32_t end = masm.GetCursorOffset() + space;
     while (masm.GetCursorOffset() < end) {
       __ nop();
@@ -1374,9 +1366,7 @@ TEST_A32(ldr_literal_range_same_time) {
 
   {
     int space = AlignDown(ldrd_padding, kA32InstructionSizeInBytes);
-    AssemblerAccurateScope scope(&masm,
-                                 space,
-                                 CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, space, ExactAssemblyScope::kExactSize);
     for (int32_t end = masm.GetCursorOffset() + space;
          masm.GetCursorOffset() < end;) {
       __ nop();
@@ -1491,8 +1481,7 @@ void GenerateLdrLiteralTriggerPoolEmission(InstructionSet isa,
     int end = masm.GetCursorOffset() + space;
     {
       // Generate nops precisely to fill the buffer.
-      AssemblerAccurateScope accurate_scope(&masm, space);
-      // This should not trigger emission of the pool.
+      ExactAssemblyScope accurate_scope(&masm, space); // This should not trigger emission of the pool.
       VIXL_CHECK(!masm.LiteralPoolIsEmpty());
       while (masm.GetCursorOffset() < end) {
         __ nop();
@@ -1984,9 +1973,9 @@ TEST_T32(veneer_bind) {
 
   {
     // Bind the target label using the `Assembler`.
-    AssemblerAccurateScope aas(&masm,
-                               kMaxInstructionSizeInBytes,
-                               CodeBufferCheckScope::kMaximumSize);
+    ExactAssemblyScope aas(&masm,
+                           kMaxInstructionSizeInBytes,
+                           ExactAssemblyScope::kMaximumSize);
     __ bind(&target);
     __ nop();
   }
@@ -2847,9 +2836,7 @@ TEST(literal_pool_margin) {
   int32_t margin = masm.GetMarginBeforeLiteralEmission();
   int32_t end = masm.GetCursorOffset() + margin;
   {
-    AssemblerAccurateScope scope(&masm,
-                                 margin,
-                                 CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, margin, ExactAssemblyScope::kExactSize);
     // Opening the scope should not have triggered the emission of the literal
     // pool.
     VIXL_CHECK(!masm.LiteralPoolIsEmpty());
@@ -2898,9 +2885,7 @@ TEST(veneer_pool_margin) {
   int32_t margin = masm.GetMarginBeforeVeneerEmission();
   int32_t end = masm.GetCursorOffset() + margin;
   {
-    AssemblerAccurateScope scope(&masm,
-                                 margin,
-                                 CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, margin, ExactAssemblyScope::kExactSize);
     // Opening the scope should not have triggered the emission of the veneer
     // pool.
     VIXL_CHECK(!masm.VeneerPoolIsEmpty());
@@ -2919,9 +2904,7 @@ TEST(veneer_pool_margin) {
   Label check;
   __ Bind(&check);
   {
-    AssemblerAccurateScope scope(&masm,
-                                 2,
-                                 AssemblerAccurateScope::kMaximumSize);
+    ExactAssemblyScope scope(&masm, 2, ExactAssemblyScope::kMaximumSize);
     // Do not actually generate any code.
   }
   VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&check) > 0);
@@ -2944,9 +2927,7 @@ TEST_NOASM(code_buffer_precise_growth) {
 
   {
     // Fill the buffer with nops.
-    AssemblerAccurateScope scope(&masm,
-                                 kBaseBufferSize,
-                                 CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, kBaseBufferSize, ExactAssemblyScope::kExactSize);
     for (int i = 0; i < kBaseBufferSize; i += k16BitT32InstructionSizeInBytes) {
       __ nop();
     }
@@ -2983,9 +2964,7 @@ TEST_NOASM(out_of_space_immediately_before_PerformEnsureEmit) {
   uint32_t space = static_cast<uint32_t>(masm.GetBuffer()->GetRemainingBytes());
   {
     // Fill the buffer with nops.
-    AssemblerAccurateScope scope(&masm,
-                                 space,
-                                 CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, space, ExactAssemblyScope::kExactSize);
     for (uint32_t i = 0; i < space; i += k16BitT32InstructionSizeInBytes) {
       __ nop();
     }
