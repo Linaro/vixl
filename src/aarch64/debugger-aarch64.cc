@@ -198,7 +198,7 @@ class FormatToken : public Token {
 
   virtual bool IsFormat() const { return true; }
   virtual int SizeOf() const = 0;
-  virtual char type_code() const = 0;
+  virtual char GetTypeCode() const = 0;
   virtual void PrintData(void* data, FILE* out = stdout) const = 0;
   virtual void Print(FILE* out = stdout) const = 0;
 
@@ -221,7 +221,7 @@ class Format : public FormatToken {
   Format(const char* fmt, char type_code) : fmt_(fmt), type_code_(type_code) {}
 
   virtual int SizeOf() const { return sizeof(T); }
-  virtual char type_code() const { return type_code_; }
+  virtual char GetTypeCode() const { return type_code_; }
   virtual void PrintData(void* data, FILE* out = stdout) const {
     T value;
     memcpy(&value, data, sizeof(value));
@@ -1392,7 +1392,7 @@ bool PrintCommand::Run(Debugger* debugger) {
 
   FormatToken* format_tok = format();
   VIXL_ASSERT(format_tok != NULL);
-  if (format_tok->type_code() == 'i') {
+  if (format_tok->GetTypeCode() == 'i') {
     // TODO(all): Add support for instruction disassembly.
     printf(" ** unsupported format: instructions **\n");
     return false;
@@ -1498,7 +1498,7 @@ bool ExamineCommand::Run(Debugger* debugger) {
 
   uint8_t* address = target()->ToAddress(debugger);
   int64_t amount = count()->value();
-  if (format()->type_code() == 'i') {
+  if (format()->GetTypeCode() == 'i') {
     debugger->PrintInstructions(address, amount);
   } else {
     debugger->PrintMemory(address, format(), amount);
