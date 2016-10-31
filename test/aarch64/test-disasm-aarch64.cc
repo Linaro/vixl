@@ -5063,6 +5063,43 @@ TEST(neon_copy) {
 }
 
 
+TEST(neon_table) {
+  SETUP_MACRO();
+
+  COMPARE(Tbl(v0.V8B(), v1.V16B(), v2.V8B()), "tbl v0.8b, {v1.16b}, v2.8b");
+  COMPARE(Tbl(v3.V8B(), v4.V16B(), v5.V16B(), v6.V8B()),
+          "tbl v3.8b, {v4.16b, v5.16b}, v6.8b");
+  COMPARE(Tbl(v7.V8B(), v8.V16B(), v9.V16B(), v10.V16B(), v11.V8B()),
+          "tbl v7.8b, {v8.16b, v9.16b, v10.16b}, v11.8b");
+  COMPARE(Tbl(v12.V8B(), v13.V16B(), v14.V16B(), v15.V16B(), v16.V16B(), v17.V8B()),
+          "tbl v12.8b, {v13.16b, v14.16b, v15.16b, v16.16b}, v17.8b");
+  COMPARE(Tbl(v18.V16B(), v19.V16B(), v20.V16B()), "tbl v18.16b, {v19.16b}, v20.16b");
+  COMPARE(Tbl(v21.V16B(), v22.V16B(), v23.V16B(), v24.V16B()),
+          "tbl v21.16b, {v22.16b, v23.16b}, v24.16b");
+  COMPARE(Tbl(v25.V16B(), v26.V16B(), v27.V16B(), v28.V16B(), v29.V16B()),
+          "tbl v25.16b, {v26.16b, v27.16b, v28.16b}, v29.16b");
+  COMPARE(Tbl(v30.V16B(), v31.V16B(), v0.V16B(), v1.V16B(), v2.V16B(), v3.V16B()),
+          "tbl v30.16b, {v31.16b, v0.16b, v1.16b, v2.16b}, v3.16b");
+
+  COMPARE(Tbx(v0.V8B(), v1.V16B(), v2.V8B()), "tbx v0.8b, {v1.16b}, v2.8b");
+  COMPARE(Tbx(v3.V8B(), v4.V16B(), v5.V16B(), v6.V8B()),
+          "tbx v3.8b, {v4.16b, v5.16b}, v6.8b");
+  COMPARE(Tbx(v7.V8B(), v8.V16B(), v9.V16B(), v10.V16B(), v11.V8B()),
+          "tbx v7.8b, {v8.16b, v9.16b, v10.16b}, v11.8b");
+  COMPARE(Tbx(v12.V8B(), v13.V16B(), v14.V16B(), v15.V16B(), v16.V16B(), v17.V8B()),
+          "tbx v12.8b, {v13.16b, v14.16b, v15.16b, v16.16b}, v17.8b");
+  COMPARE(Tbx(v18.V16B(), v19.V16B(), v20.V16B()), "tbx v18.16b, {v19.16b}, v20.16b");
+  COMPARE(Tbx(v21.V16B(), v22.V16B(), v23.V16B(), v24.V16B()),
+          "tbx v21.16b, {v22.16b, v23.16b}, v24.16b");
+  COMPARE(Tbx(v25.V16B(), v26.V16B(), v27.V16B(), v28.V16B(), v29.V16B()),
+          "tbx v25.16b, {v26.16b, v27.16b, v28.16b}, v29.16b");
+  COMPARE(Tbx(v30.V16B(), v31.V16B(), v0.V16B(), v1.V16B(), v2.V16B(), v3.V16B()),
+          "tbx v30.16b, {v31.16b, v0.16b, v1.16b, v2.16b}, v3.16b");
+
+  CLEANUP();
+}
+
+
 TEST(neon_extract) {
   SETUP_MACRO();
 
