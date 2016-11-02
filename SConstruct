@@ -246,9 +246,8 @@ def ProcessBuildOptions(env):
 
 
 def ConfigureEnvironmentForCompiler(env):
-  def is_compiler(compiler):
-    return env['CXX'].find(compiler) == 0
-  if is_compiler('clang++'):
+  compiler = util.CompilerInformation(env['CXX'])
+  if compiler == 'clang':
     # These warnings only work for Clang.
     # -Wimplicit-fallthrough only works when compiling the code base as C++11 or
     # newer. The compiler does not complain if the option is passed when
@@ -256,12 +255,7 @@ def ConfigureEnvironmentForCompiler(env):
     env.Append(CPPFLAGS = ['-Wimplicit-fallthrough', '-Wshorten-64-to-32'])
 
     # The '-Wunreachable-code' flag breaks builds for clang 3.4.
-    process = subprocess.Popen(env['CXX'] + ' --version | grep "clang.*3\.4"',
-                               shell = True,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    stdout, stderr = process.communicate()
-    using_clang3_4 = stdout != ''
-    if not using_clang3_4:
+    if compiler == 'clang-3.4':
       env.Append(CPPFLAGS = ['-Wunreachable-code'])
 
   # GCC 4.8 has a bug which produces a warning saying that an anonymous Operand
@@ -269,21 +263,17 @@ def ConfigureEnvironmentForCompiler(env):
   #   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=57045
   # The bug does not seem to appear in GCC 4.7, or in debug builds with GCC 4.8.
   if env['mode'] == 'release':
-    process = subprocess.Popen(env['CXX'] + ' --version 2>&1 | grep "g++.*4\.8"',
-                               shell = True,
-                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    stdout, unused = process.communicate()
-    using_gcc48 = stdout != ''
-    if using_gcc48:
+    if compiler == 'gcc-4.8':
       env.Append(CPPFLAGS = ['-Wno-maybe-uninitialized'])
+
   # When compiling with c++98 (the default), allow long long constants.
   if 'std' not in env or env['std'] == 'c++98':
     env.Append(CPPFLAGS = ['-Wno-long-long'])
   # When compiling with c++11, suggest missing override keywords on methods.
   if 'std' in env and env['std'] in ['c++11', 'c++14']:
-    if is_compiler('g++'):
+    if compiler >= 'gcc-5':
       env.Append(CPPFLAGS = ['-Wsuggest-override'])
-    elif is_compiler('clang++'):
+    elif compiler >= 'clang-3.6':
       env.Append(CPPFLAGS = ['-Winconsistent-missing-override'])
 
 
