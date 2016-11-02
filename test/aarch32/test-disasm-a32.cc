@@ -94,8 +94,8 @@ class TestDisassembler : public PrintDisassembler {
       : PrintDisassembler(os, pc) {
   }
 
-  virtual void PrintPc(uint32_t pc) VIXL_OVERRIDE {
-    USE(pc);
+  virtual void PrintCodeAddress(uint32_t code_address) VIXL_OVERRIDE {
+    USE(code_address);
   }
 
   virtual void PrintOpcode16(uint32_t opcode) VIXL_OVERRIDE {

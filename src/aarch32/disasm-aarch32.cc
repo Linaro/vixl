@@ -44,22 +44,24 @@ extern "C" {
 namespace vixl {
 namespace aarch32 {
 
-class T32PCIncrementer {
-  uint32_t* pc_;
-  uint32_t incpc_;
+class T32CodeAddressIncrementer {
+  uint32_t* code_address_;
+  uint32_t increment_;
 
  public:
-  T32PCIncrementer(uint32_t instr, uint32_t* pc)
-      : pc_(pc), incpc_(Disassembler::Is16BitEncoding(instr) ? 2 : 4) {}
-  ~T32PCIncrementer() { *pc_ += incpc_; }
+  T32CodeAddressIncrementer(uint32_t instr, uint32_t* code_address)
+      : code_address_(code_address),
+        increment_(Disassembler::Is16BitEncoding(instr) ? 2 : 4) {}
+  ~T32CodeAddressIncrementer() { *code_address_ += increment_; }
 };
 
-class A32PCIncrementer {
-  uint32_t* pc_;
+class A32CodeAddressIncrementer {
+  uint32_t* code_address_;
 
  public:
-  explicit A32PCIncrementer(uint32_t* pc) : pc_(pc) {}
-  ~A32PCIncrementer() { *pc_ += 4; }
+  explicit A32CodeAddressIncrementer(uint32_t* code_address)
+      : code_address_(code_address) {}
+  ~A32CodeAddressIncrementer() { *code_address_ += 4; }
 };
 
 class DecodeNeon {
@@ -1198,7 +1200,7 @@ void Disassembler::adr(Condition cond,
                        Label* label) {
   os().SetCurrentInstruction(kAdr, kAddress);
   os() << "adr" << ConditionPrinter(it_block_, cond) << size << " " << rd
-       << ", " << PrintLabel(kAnyLocation, label, GetPc() & ~3);
+       << ", " << PrintLabel(kAnyLocation, label, GetCodeAddress() & ~3);
 }
 
 void Disassembler::and_(Condition cond,
@@ -1260,7 +1262,7 @@ void Disassembler::asrs(Condition cond,
 void Disassembler::b(Condition cond, EncodingSize size, Label* label) {
   os().SetCurrentInstruction(kB, kAddress | kBranch);
   os() << "b" << ConditionPrinter(it_block_, cond) << size << " "
-       << PrintLabel(kCodeLocation, label, GetPc());
+       << PrintLabel(kCodeLocation, label, GetCodeAddress());
 }
 
 void Disassembler::bfc(Condition cond,
@@ -1319,13 +1321,13 @@ void Disassembler::bkpt(Condition cond, uint32_t imm) {
 void Disassembler::bl(Condition cond, Label* label) {
   os().SetCurrentInstruction(kBl, kAddress | kBranch);
   os() << "bl" << ConditionPrinter(it_block_, cond) << " "
-       << PrintLabel(kCodeLocation, label, GetPc());
+       << PrintLabel(kCodeLocation, label, GetCodeAddress());
 }
 
 void Disassembler::blx(Condition cond, Label* label) {
   os().SetCurrentInstruction(kBlx, kAddress | kBranch);
   os() << "blx" << ConditionPrinter(it_block_, cond) << " "
-       << PrintLabel(kCodeLocation, label, GetPc() & ~3);
+       << PrintLabel(kCodeLocation, label, GetCodeAddress() & ~3);
 }
 
 void Disassembler::blx(Condition cond, Register rm) {
@@ -1346,13 +1348,15 @@ void Disassembler::bxj(Condition cond, Register rm) {
 void Disassembler::cbnz(Register rn, Label* label) {
   os().SetCurrentInstruction(kCbnz, kAddress | kBranch);
   os() << "cbnz"
-       << " " << rn << ", " << PrintLabel(kCodeLocation, label, GetPc());
+       << " " << rn << ", "
+       << PrintLabel(kCodeLocation, label, GetCodeAddress());
 }
 
 void Disassembler::cbz(Register rn, Label* label) {
   os().SetCurrentInstruction(kCbz, kAddress | kBranch);
   os() << "cbz"
-       << " " << rn << ", " << PrintLabel(kCodeLocation, label, GetPc());
+       << " " << rn << ", "
+       << PrintLabel(kCodeLocation, label, GetCodeAddress());
 }
 
 void Disassembler::clrex(Condition cond) {
@@ -1701,7 +1705,7 @@ void Disassembler::ldr(Condition cond,
                        Label* label) {
   os().SetCurrentInstruction(kLdr, kAddress | kLoadStore);
   os() << "ldr" << ConditionPrinter(it_block_, cond) << size << " " << rt
-       << ", " << PrintLabel(kLoadWordLocation, label, GetPc() & ~3);
+       << ", " << PrintLabel(kLoadWordLocation, label, GetCodeAddress() & ~3);
 }
 
 void Disassembler::ldrb(Condition cond,
@@ -1716,7 +1720,7 @@ void Disassembler::ldrb(Condition cond,
 void Disassembler::ldrb(Condition cond, Register rt, Label* label) {
   os().SetCurrentInstruction(kLdrb, kAddress | kLoadStore);
   os() << "ldrb" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-       << PrintLabel(kLoadByteLocation, label, GetPc() & ~3);
+       << PrintLabel(kLoadByteLocation, label, GetCodeAddress() & ~3);
 }
 
 void Disassembler::ldrd(Condition cond,
@@ -1735,7 +1739,7 @@ void Disassembler::ldrd(Condition cond,
   os().SetCurrentInstruction(kLdrd, kAddress | kLoadStore);
   os() << "ldrd" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
        << rt2 << ", "
-       << PrintLabel(kLoadDoubleWordLocation, label, GetPc() & ~3);
+       << PrintLabel(kLoadDoubleWordLocation, label, GetCodeAddress() & ~3);
 }
 
 void Disassembler::ldrex(Condition cond,
@@ -1783,7 +1787,7 @@ void Disassembler::ldrh(Condition cond,
 void Disassembler::ldrh(Condition cond, Register rt, Label* label) {
   os().SetCurrentInstruction(kLdrh, kAddress | kLoadStore);
   os() << "ldrh" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-       << PrintLabel(kLoadHalfWordLocation, label, GetPc() & ~3);
+       << PrintLabel(kLoadHalfWordLocation, label, GetCodeAddress() & ~3);
 }
 
 void Disassembler::ldrsb(Condition cond,
@@ -1798,7 +1802,7 @@ void Disassembler::ldrsb(Condition cond,
 void Disassembler::ldrsb(Condition cond, Register rt, Label* label) {
   os().SetCurrentInstruction(kLdrsb, kAddress | kLoadStore);
   os() << "ldrsb" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-       << PrintLabel(kLoadSignedByteLocation, label, GetPc() & ~3);
+       << PrintLabel(kLoadSignedByteLocation, label, GetCodeAddress() & ~3);
 }
 
 void Disassembler::ldrsh(Condition cond,
@@ -1813,7 +1817,7 @@ void Disassembler::ldrsh(Condition cond,
 void Disassembler::ldrsh(Condition cond, Register rt, Label* label) {
   os().SetCurrentInstruction(kLdrsh, kAddress | kLoadStore);
   os() << "ldrsh" << ConditionPrinter(it_block_, cond) << " " << rt << ", "
-       << PrintLabel(kLoadSignedHalfWordLocation, label, GetPc() & ~3);
+       << PrintLabel(kLoadSignedHalfWordLocation, label, GetCodeAddress() & ~3);
 }
 
 void Disassembler::lsl(Condition cond,
@@ -2056,7 +2060,7 @@ void Disassembler::pkhtb(Condition cond,
 void Disassembler::pld(Condition cond, Label* label) {
   os().SetCurrentInstruction(kPld, kAddress);
   os() << "pld" << ConditionPrinter(it_block_, cond) << " "
-       << PrintLabel(kDataLocation, label, GetPc() & ~3);
+       << PrintLabel(kDataLocation, label, GetCodeAddress() & ~3);
 }
 
 void Disassembler::pld(Condition cond, const MemOperand& operand) {
@@ -2080,7 +2084,7 @@ void Disassembler::pli(Condition cond, const MemOperand& operand) {
 void Disassembler::pli(Condition cond, Label* label) {
   os().SetCurrentInstruction(kPli, kAddress);
   os() << "pli" << ConditionPrinter(it_block_, cond) << " "
-       << PrintLabel(kCodeLocation, label, GetPc() & ~3);
+       << PrintLabel(kCodeLocation, label, GetCodeAddress() & ~3);
 }
 
 void Disassembler::pop(Condition cond,
@@ -5029,7 +5033,9 @@ void Disassembler::vldr(Condition cond,
                         Label* label) {
   os().SetCurrentInstruction(kVldr, kFpNeon);
   os() << "vldr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-       << PrintLabel(kLoadDoublePrecisionLocation, label, GetPc() & ~3);
+       << PrintLabel(kLoadDoublePrecisionLocation,
+                     label,
+                     GetCodeAddress() & ~3);
 }
 
 void Disassembler::vldr(Condition cond,
@@ -5047,7 +5053,9 @@ void Disassembler::vldr(Condition cond,
                         Label* label) {
   os().SetCurrentInstruction(kVldr, kFpNeon);
   os() << "vldr" << ConditionPrinter(it_block_, cond) << dt << " " << rd << ", "
-       << PrintLabel(kLoadSinglePrecisionLocation, label, GetPc() & ~3);
+       << PrintLabel(kLoadSinglePrecisionLocation,
+                     label,
+                     GetCodeAddress() & ~3);
 }
 
 void Disassembler::vldr(Condition cond,
@@ -7021,7 +7029,7 @@ int Disassembler::T32Size(uint32_t instr) {
 }
 
 void Disassembler::DecodeT32(uint32_t instr) {
-  T32PCIncrementer incrementer(instr, &pc_);
+  T32CodeAddressIncrementer incrementer(instr, &code_address_);
   ITBlockScope it_scope(&it_block_);
 
   switch (instr & 0xe0000000) {
@@ -38689,7 +38697,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
 }  // NOLINT(readability/fn_size)
 
 void Disassembler::DecodeA32(uint32_t instr) {
-  A32PCIncrementer incrementer(&pc_);
+  A32CodeAddressIncrementer incrementer(&code_address_);
   if ((instr & 0xf0000000) == 0xf0000000) {
     switch (instr & 0x0e000000) {
       case 0x00000000: {
@@ -67927,7 +67935,7 @@ const uint16_t* PrintDisassembler::DecodeT32At(
 }
 
 void PrintDisassembler::DecodeT32(uint32_t instruction) {
-  PrintPc(GetPc());
+  PrintCodeAddress(GetCodeAddress());
   if (T32Size(instruction) == 2) {
     PrintOpcode16(instruction >> 16);
     Disassembler::DecodeT32(instruction);
@@ -67940,7 +67948,7 @@ void PrintDisassembler::DecodeT32(uint32_t instruction) {
 
 
 void PrintDisassembler::DecodeA32(uint32_t instruction) {
-  PrintPc(GetPc());
+  PrintCodeAddress(GetCodeAddress());
   PrintOpcode32(instruction);
   Disassembler::DecodeA32(instruction);
   os() << "\n";

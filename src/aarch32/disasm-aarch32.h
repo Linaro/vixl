@@ -411,17 +411,18 @@ class Disassembler {
   ITBlock it_block_;
   DisassemblerStream* os_;
   bool owns_os_;
-  uint32_t pc_;
+  uint32_t code_address_;
 
  public:
-  explicit Disassembler(std::ostream& os, uint32_t pc = 0)  // NOLINT
+  explicit Disassembler(std::ostream& os, uint32_t code_address = 0)  // NOLINT
       : os_(new DisassemblerStream(os)),
         owns_os_(true),
-        pc_(pc) {}
-  explicit Disassembler(DisassemblerStream* os, uint32_t pc = 0)  // NOLINT
+        code_address_(code_address) {}
+  explicit Disassembler(DisassemblerStream* os,
+                        uint32_t code_address = 0)  // NOLINT
       : os_(os),
         owns_os_(false),
-        pc_(pc) {}
+        code_address_(code_address) {}
   virtual ~Disassembler() {
     if (owns_os_) {
       delete os_;
@@ -472,8 +473,8 @@ class Disassembler {
   virtual void UnpredictableA32(uint32_t /*instr*/) { return Unpredictable(); }
 
   static bool Is16BitEncoding(uint32_t instr) { return instr < 0xe8000000; }
-  uint32_t GetPc() const { return pc_; }
-  void JumpToPc(uint32_t pc) { pc_ = pc; }
+  uint32_t GetCodeAddress() const { return code_address_; }
+  void SetCodeAddress(uint32_t code_address) { code_address_ = code_address; }
 
   // Start of generated code.
 
@@ -2568,13 +2569,15 @@ DataTypeValue Dt_size_16_Decode(uint32_t value);
 
 class PrintDisassembler : public Disassembler {
  public:
-  explicit PrintDisassembler(std::ostream& os, uint32_t pc = 0)  // NOLINT
-      : Disassembler(os, pc) {}
-  explicit PrintDisassembler(DisassemblerStream* os, uint32_t pc = 0)  // NOLINT
-      : Disassembler(os, pc) {}
+  explicit PrintDisassembler(std::ostream& os,  // NOLINT(runtime/references)
+                             uint32_t code_address = 0)
+      : Disassembler(os, code_address) {}
+  explicit PrintDisassembler(DisassemblerStream* os, uint32_t code_address = 0)
+      : Disassembler(os, code_address) {}
 
-  virtual void PrintPc(uint32_t pc) {
-    os() << "0x" << std::hex << std::setw(8) << std::setfill('0') << pc << "\t";
+  virtual void PrintCodeAddress(uint32_t code_address) {
+    os() << "0x" << std::hex << std::setw(8) << std::setfill('0')
+         << code_address << "\t";
   }
 
   virtual void PrintOpcode16(uint32_t opcode) {

@@ -295,12 +295,12 @@ int main(int argc, char** argv) {
     std::cout << "--- " << symbol.GetName() << ":" << std::endl;
     if ((func_addr & 1) == 1) {
       func_addr &= ~1;
-      dis.JumpToPc(func_addr);
+      dis.SetCodeAddress(func_addr);
       dis.DisassembleT32Buffer(reinterpret_cast<uint16_t*>(
                                    base_addr + symbol.GetMemoryAddress()),
                                func_size);
     } else {
-      dis.JumpToPc(func_addr);
+      dis.SetCodeAddress(func_addr);
       dis.DisassembleA32Buffer(reinterpret_cast<uint32_t*>(
                                    base_addr + symbol.GetMemoryAddress()),
                                func_size);
