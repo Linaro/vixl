@@ -545,6 +545,56 @@ TEST(mov) {
 }
 
 
+TEST(mov_negative) {
+  SETUP();
+
+  START();
+  __ Mov(w11, 0xffffffff);
+  __ Mov(x12, 0xffffffffffffffff);
+
+  __ Mov(w13, Operand(w11, LSL, 1));
+  __ Mov(w14, Operand(w11, LSR, 1));
+  __ Mov(w15, Operand(w11, ASR, 1));
+  __ Mov(w18, Operand(w11, ROR, 1));
+  __ Mov(w19, Operand(w11, UXTB, 1));
+  __ Mov(w20, Operand(w11, SXTB, 1));
+  __ Mov(w21, Operand(w11, UXTH, 1));
+  __ Mov(w22, Operand(w11, SXTH, 1));
+
+  __ Mov(x23, Operand(x12, LSL, 1));
+  __ Mov(x24, Operand(x12, LSR, 1));
+  __ Mov(x25, Operand(x12, ASR, 1));
+  __ Mov(x26, Operand(x12, ROR, 1));
+  __ Mov(x27, Operand(x12, UXTH, 1));
+  __ Mov(x28, Operand(x12, SXTH, 1));
+  __ Mov(x29, Operand(x12, UXTW, 1));
+  __ Mov(x30, Operand(x12, SXTW, 1));
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(0xfffffffe, x13);
+  ASSERT_EQUAL_64(0x7fffffff, x14);
+  ASSERT_EQUAL_64(0xffffffff, x15);
+  ASSERT_EQUAL_64(0xffffffff, x18);
+  ASSERT_EQUAL_64(0x000001fe, x19);
+  ASSERT_EQUAL_64(0xfffffffe, x20);
+  ASSERT_EQUAL_64(0x0001fffe, x21);
+  ASSERT_EQUAL_64(0xfffffffe, x22);
+
+  ASSERT_EQUAL_64(0xfffffffffffffffe, x23);
+  ASSERT_EQUAL_64(0x7fffffffffffffff, x24);
+  ASSERT_EQUAL_64(0xffffffffffffffff, x25);
+  ASSERT_EQUAL_64(0xffffffffffffffff, x26);
+  ASSERT_EQUAL_64(0x000000000001fffe, x27);
+  ASSERT_EQUAL_64(0xfffffffffffffffe, x28);
+  ASSERT_EQUAL_64(0x00000001fffffffe, x29);
+  ASSERT_EQUAL_64(0xfffffffffffffffe, x30);
+
+  TEARDOWN();
+}
+
+
 TEST(orr) {
   SETUP();
 

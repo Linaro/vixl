@@ -413,12 +413,15 @@ class LogicVRegister {
     return element;
   }
 
-  int64_t IntLeftJustified(VectorFormat vform, int index) const {
-    return Int(vform, index) << (64 - LaneSizeInBitsFromFormat(vform));
-  }
-
   uint64_t UintLeftJustified(VectorFormat vform, int index) const {
     return Uint(vform, index) << (64 - LaneSizeInBitsFromFormat(vform));
+  }
+
+  int64_t IntLeftJustified(VectorFormat vform, int index) const {
+    uint64_t value = UintLeftJustified(vform, index);
+    int64_t result;
+    memcpy(&result, &value, sizeof(result));
+    return result;
   }
 
   void SetInt(VectorFormat vform, int index, int64_t value) const {
@@ -605,7 +608,7 @@ class LogicVRegister {
   // Round lanes of a vector based on rounding state.
   LogicVRegister& Round(VectorFormat vform) {
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-      SetInt(vform, i, Int(vform, i) + (GetRounding(i) ? 1 : 0));
+      SetUint(vform, i, Uint(vform, i) + (GetRounding(i) ? 1 : 0));
     }
     return *this;
   }

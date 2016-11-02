@@ -28,6 +28,7 @@
 
 #include <cstring>
 #include <cmath>
+#include <limits>
 
 #include "simulator-aarch64.h"
 
@@ -335,33 +336,45 @@ int64_t Simulator::ShiftOperand(unsigned reg_size,
                                 int64_t value,
                                 Shift shift_type,
                                 unsigned amount) const {
+  VIXL_ASSERT((reg_size == kWRegSize) || (reg_size == kXRegSize));
   if (amount == 0) {
     return value;
   }
-  int64_t mask = reg_size == kXRegSize ? kXRegMask : kWRegMask;
+  uint64_t uvalue = static_cast<uint64_t>(value);
+  uint64_t mask = kWRegMask;
+  bool is_negative = (uvalue & kWSignMask) != 0;
+  if (reg_size == kXRegSize) {
+    mask = kXRegMask;
+    is_negative = (uvalue & kXSignMask) != 0;
+  }
+
   switch (shift_type) {
     case LSL:
-      return (value << amount) & mask;
+      uvalue <<= amount;
+      break;
     case LSR:
-      return static_cast<uint64_t>(value) >> amount;
-    case ASR: {
-      // Shift used to restore the sign.
-      unsigned s_shift = kXRegSize - reg_size;
-      // Value with its sign restored.
-      int64_t s_value = (value << s_shift) >> s_shift;
-      return (s_value >> amount) & mask;
-    }
-    case ROR: {
-      if (reg_size == kWRegSize) {
-        value &= kWRegMask;
+      uvalue >>= amount;
+      break;
+    case ASR:
+      uvalue >>= amount;
+      if (is_negative) {
+        // Simulate sign-extension to 64 bits.
+        uvalue |= ~UINT64_C(0) << (reg_size - amount);
       }
-      return (static_cast<uint64_t>(value) >> amount) |
-             ((value & ((INT64_C(1) << amount) - 1)) << (reg_size - amount));
+      break;
+    case ROR: {
+      uvalue = (uvalue >> amount) | (uvalue << (reg_size - amount));
+      break;
     }
     default:
       VIXL_UNIMPLEMENTED();
       return 0;
   }
+  uvalue &= mask;
+
+  int64_t result;
+  memcpy(&result, &uvalue, sizeof(result));
+  return result;
 }
 
 
@@ -380,13 +393,22 @@ int64_t Simulator::ExtendValue(unsigned reg_size,
       value &= kWordMask;
       break;
     case SXTB:
-      value = (value << 56) >> 56;
+      value &= kByteMask;
+      if ((value & 0x80) != 0) {
+        value |= ~UINT64_C(0) << 8;
+      }
       break;
     case SXTH:
-      value = (value << 48) >> 48;
+      value &= kHalfWordMask;
+      if ((value & 0x8000) != 0) {
+        value |= ~UINT64_C(0) << 16;
+      }
       break;
     case SXTW:
-      value = (value << 32) >> 32;
+      value &= kWordMask;
+      if ((value & 0x80000000) != 0) {
+        value |= ~UINT64_C(0) << 32;
+      }
       break;
     case UXTX:
     case SXTX:
@@ -394,8 +416,7 @@ int64_t Simulator::ExtendValue(unsigned reg_size,
     default:
       VIXL_UNREACHABLE();
   }
-  int64_t mask = (reg_size == kXRegSize) ? kXRegMask : kWRegMask;
-  return (value << left_shift) & mask;
+  return ShiftOperand(reg_size, value, LSL, left_shift);
 }
 
 
@@ -2042,27 +2063,35 @@ void Simulator::VisitDataProcessing2Source(const Instruction* instr) {
 
 // The algorithm used is adapted from the one described in section 8.2 of
 //   Hacker's Delight, by Henry S. Warren, Jr.
-// It assumes that a right shift on a signed integer is an arithmetic shift.
-// Type T must be either uint64_t or int64_t.
 template <typename T>
-static T MultiplyHigh(T u, T v) {
-  uint64_t u0, v0, w0;
-  T u1, v1, w1, w2, t;
+static int64_t MultiplyHigh(T u, T v) {
+  uint64_t u0, v0, w0, u1, v1, w1, w2, t;
+  uint64_t sign_mask = UINT64_C(0x8000000000000000);
+  uint64_t sign_ext = 0;
+  if (std::numeric_limits<T>::is_signed) {
+    sign_ext = UINT64_C(0xffffffff00000000);
+  }
 
+  VIXL_ASSERT(sizeof(u) == sizeof(uint64_t));
   VIXL_ASSERT(sizeof(u) == sizeof(u0));
 
   u0 = u & 0xffffffff;
-  u1 = u >> 32;
+  u1 = u >> 32 | (((u & sign_mask) != 0) ? sign_ext : 0);
   v0 = v & 0xffffffff;
-  v1 = v >> 32;
+  v1 = v >> 32 | (((v & sign_mask) != 0) ? sign_ext : 0);
 
   w0 = u0 * v0;
   t = u1 * v0 + (w0 >> 32);
-  w1 = t & 0xffffffff;
-  w2 = t >> 32;
-  w1 = u0 * v1 + w1;
 
-  return u1 * v1 + w2 + (w1 >> 32);
+  w1 = t & 0xffffffff;
+  w2 = t >> 32 | (((t & sign_mask) != 0) ? sign_ext : 0);
+  w1 = u0 * v1 + w1;
+  w1 = w1 >> 32 | (((w1 & sign_mask) != 0) ? sign_ext : 0);
+
+  uint64_t value = u1 * v1 + w2 + w1;
+  int64_t result;
+  memcpy(&result, &value, sizeof(result));
+  return result;
 }
 
 
@@ -2075,22 +2104,24 @@ void Simulator::VisitDataProcessing3Source(const Instruction* instr) {
   uint64_t rm_u32 = ReadRegister<uint32_t>(instr->GetRm());
   int64_t rn_s32 = ReadRegister<int32_t>(instr->GetRn());
   int64_t rm_s32 = ReadRegister<int32_t>(instr->GetRm());
+  uint64_t rn_u64 = ReadXRegister(instr->GetRn());
+  uint64_t rm_u64 = ReadXRegister(instr->GetRm());
   switch (instr->Mask(DataProcessing3SourceMask)) {
     case MADD_w:
     case MADD_x:
-      result = ReadXRegister(instr->GetRa()) +
-               (ReadXRegister(instr->GetRn()) * ReadXRegister(instr->GetRm()));
+      result = ReadXRegister(instr->GetRa()) + (rn_u64 * rm_u64);
       break;
     case MSUB_w:
     case MSUB_x:
-      result = ReadXRegister(instr->GetRa()) -
-               (ReadXRegister(instr->GetRn()) * ReadXRegister(instr->GetRm()));
+      result = ReadXRegister(instr->GetRa()) - (rn_u64 * rm_u64);
       break;
     case SMADDL_x:
-      result = ReadXRegister(instr->GetRa()) + (rn_s32 * rm_s32);
+      result = ReadXRegister(instr->GetRa()) +
+               static_cast<uint64_t>(rn_s32 * rm_s32);
       break;
     case SMSUBL_x:
-      result = ReadXRegister(instr->GetRa()) - (rn_s32 * rm_s32);
+      result = ReadXRegister(instr->GetRa()) -
+               static_cast<uint64_t>(rn_s32 * rm_s32);
       break;
     case UMADDL_x:
       result = ReadXRegister(instr->GetRa()) + (rn_u32 * rm_u32);
@@ -2119,12 +2150,13 @@ void Simulator::VisitBitfield(const Instruction* instr) {
   int64_t R = instr->GetImmR();
   int64_t S = instr->GetImmS();
   int64_t diff = S - R;
-  int64_t mask;
+  uint64_t mask;
   if (diff >= 0) {
-    mask = (diff < (reg_size - 1)) ? (INT64_C(1) << (diff + 1)) - 1 : reg_mask;
+    mask = ~UINT64_C(0) >> (64 - (diff + 1));
+    mask = (diff < (reg_size - 1)) ? mask : reg_mask;
   } else {
-    mask = (INT64_C(1) << (S + 1)) - 1;
-    mask = (static_cast<uint64_t>(mask) >> R) | (mask << (reg_size - R));
+    mask = ~UINT64_C(0) >> (64 - (S + 1));
+    mask = (R == 0) ? mask : ((mask >> R) | (mask << (reg_size - R)));
     diff += reg_size;
   }
 
@@ -2150,13 +2182,13 @@ void Simulator::VisitBitfield(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
   }
 
-  int64_t dst = inzero ? 0 : ReadRegister(reg_size, instr->GetRd());
-  int64_t src = ReadRegister(reg_size, instr->GetRn());
+  uint64_t dst = inzero ? 0 : ReadRegister(reg_size, instr->GetRd());
+  uint64_t src = ReadRegister(reg_size, instr->GetRn());
   // Rotate source bitfield into place.
-  int64_t result = (static_cast<uint64_t>(src) >> R) | (src << (reg_size - R));
+  uint64_t result = (R == 0) ? src : ((src >> R) | (src << (reg_size - R)));
   // Determine the sign extension.
-  int64_t topbits = ((INT64_C(1) << (reg_size - diff - 1)) - 1) << (diff + 1);
-  int64_t signbits = extend && ((src >> S) & 1) ? topbits : 0;
+  uint64_t topbits = (diff == 63) ? 0 : (~UINT64_C(0) << (diff + 1));
+  uint64_t signbits = extend && ((src >> S) & 1) ? topbits : 0;
 
   // Merge sign extension, dest/zero and bitfield.
   result = signbits | (result & mask) | (dst & ~mask);
@@ -2170,8 +2202,9 @@ void Simulator::VisitExtract(const Instruction* instr) {
   unsigned reg_size = (instr->GetSixtyFourBits() == 1) ? kXRegSize : kWRegSize;
   uint64_t low_res =
       static_cast<uint64_t>(ReadRegister(reg_size, instr->GetRm())) >> lsb;
-  uint64_t high_res = (lsb == 0) ? 0 : ReadRegister(reg_size, instr->GetRn())
-                                           << (reg_size - lsb);
+  uint64_t high_res =
+      (lsb == 0) ? 0 : ReadRegister<uint64_t>(reg_size, instr->GetRn())
+                           << (reg_size - lsb);
   WriteRegister(reg_size, instr->GetRd(), low_res | high_res);
 }
 
