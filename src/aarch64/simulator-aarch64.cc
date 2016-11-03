@@ -363,7 +363,7 @@ int64_t Simulator::ShiftOperand(unsigned reg_size,
       }
       break;
     case ROR: {
-      uvalue = (uvalue >> amount) | (uvalue << (reg_size - amount));
+      uvalue = RotateRight(uvalue, amount, reg_size);
       break;
     }
     default:
@@ -2147,16 +2147,16 @@ void Simulator::VisitDataProcessing3Source(const Instruction* instr) {
 void Simulator::VisitBitfield(const Instruction* instr) {
   unsigned reg_size = instr->GetSixtyFourBits() ? kXRegSize : kWRegSize;
   int64_t reg_mask = instr->GetSixtyFourBits() ? kXRegMask : kWRegMask;
-  int64_t R = instr->GetImmR();
-  int64_t S = instr->GetImmS();
-  int64_t diff = S - R;
+  int R = instr->GetImmR();
+  int S = instr->GetImmS();
+  int diff = S - R;
   uint64_t mask;
   if (diff >= 0) {
     mask = ~UINT64_C(0) >> (64 - (diff + 1));
-    mask = (diff < (reg_size - 1)) ? mask : reg_mask;
+    mask = (static_cast<unsigned>(diff) < (reg_size - 1)) ? mask : reg_mask;
   } else {
     mask = ~UINT64_C(0) >> (64 - (S + 1));
-    mask = (R == 0) ? mask : ((mask >> R) | (mask << (reg_size - R)));
+    mask = RotateRight(mask, R, reg_size);
     diff += reg_size;
   }
 
@@ -2185,7 +2185,7 @@ void Simulator::VisitBitfield(const Instruction* instr) {
   uint64_t dst = inzero ? 0 : ReadRegister(reg_size, instr->GetRd());
   uint64_t src = ReadRegister(reg_size, instr->GetRn());
   // Rotate source bitfield into place.
-  uint64_t result = (R == 0) ? src : ((src >> R) | (src << (reg_size - R)));
+  uint64_t result = RotateRight(src, R, reg_size);
   // Determine the sign extension.
   uint64_t topbits = (diff == 63) ? 0 : (~UINT64_C(0) << (diff + 1));
   uint64_t signbits = extend && ((src >> S) & 1) ? topbits : 0;

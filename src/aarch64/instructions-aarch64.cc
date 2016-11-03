@@ -48,16 +48,6 @@ const float kFP32DefaultNaN = RawbitsToFloat(0x7fc00000);
 const float16 kFP16DefaultNaN = 0x7e00;
 
 
-static uint64_t RotateRight(uint64_t value,
-                            unsigned int rotate,
-                            unsigned int width) {
-  VIXL_ASSERT(width <= 64);
-  rotate &= 63;
-  return ((value & ((UINT64_C(1) << rotate) - 1)) << (width - rotate)) |
-         (value >> rotate);
-}
-
-
 static uint64_t RepeatBitsAcrossReg(unsigned reg_size,
                                     uint64_t value,
                                     unsigned width) {
@@ -312,7 +302,7 @@ const Instruction* Instruction::GetImmPCOffsetTarget() const {
     // All PC-relative branches.
     VIXL_ASSERT(GetBranchType() != UnknownBranchType);
     // Relative branch offsets are instruction-size-aligned.
-    offset = GetImmBranch() << kInstructionSizeLog2;
+    offset = GetImmBranch() * static_cast<int>(kInstructionSize);
   }
   return base + offset;
 }

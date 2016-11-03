@@ -4318,7 +4318,8 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
       switch (format[2]) {
         case 'L': {  // ILLiteral - Immediate Load Literal.
           AppendToOutput("pc%+" PRId32,
-                         instr->GetImmLLiteral() << kLiteralEntrySizeLog2);
+                         instr->GetImmLLiteral() *
+                             static_cast<int>(kLiteralEntrySize));
           return 9;
         }
         case 'S': {  // ILS - Immediate Load/Store.
@@ -4437,23 +4438,24 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
         }
         case 'I': {  // INS element.
           if (strncmp(format, "IVInsIndex", strlen("IVInsIndex")) == 0) {
-            int rd_index, rn_index;
-            int imm5 = instr->GetImmNEON5();
-            int imm4 = instr->GetImmNEON4();
+            unsigned rd_index, rn_index;
+            unsigned imm5 = instr->GetImmNEON5();
+            unsigned imm4 = instr->GetImmNEON4();
             int tz = CountTrailingZeros(imm5, 32);
-            rd_index = imm5 >> (tz + 1);
-            rn_index = imm4 >> tz;
-            if (strncmp(format, "IVInsIndex1", strlen("IVInsIndex1")) == 0) {
-              AppendToOutput("%d", rd_index);
-              return strlen("IVInsIndex1");
-            } else if (strncmp(format, "IVInsIndex2", strlen("IVInsIndex2")) ==
-                       0) {
-              AppendToOutput("%d", rn_index);
-              return strlen("IVInsIndex2");
-            } else {
-              VIXL_UNIMPLEMENTED();
-              return 0;
+            if (tz <= 3) {  // Defined for tz = 0 to 3 only.
+              rd_index = imm5 >> (tz + 1);
+              rn_index = imm4 >> tz;
+              if (strncmp(format, "IVInsIndex1", strlen("IVInsIndex1")) == 0) {
+                AppendToOutput("%d", rd_index);
+                return strlen("IVInsIndex1");
+              } else if (strncmp(format,
+                                 "IVInsIndex2",
+                                 strlen("IVInsIndex2")) == 0) {
+                AppendToOutput("%d", rn_index);
+                return strlen("IVInsIndex2");
+              }
             }
+            return 0;
           }
           VIXL_FALLTHROUGH();
         }
@@ -4714,7 +4716,7 @@ int Disassembler::SubstituteBranchTargetField(const Instruction *instr,
     default:
       VIXL_UNIMPLEMENTED();
   }
-  offset <<= kInstructionSizeLog2;
+  offset *= static_cast<int>(kInstructionSize);
   const void *target_address = reinterpret_cast<const void *>(instr + offset);
   VIXL_STATIC_ASSERT(sizeof(*instr) == 1);
 

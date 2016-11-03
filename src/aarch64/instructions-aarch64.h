@@ -202,8 +202,9 @@ class Instruction {
   // ImmPCRel is a compound field (not present in INSTRUCTION_FIELDS_LIST),
   // formed from ImmPCRelLo and ImmPCRelHi.
   int GetImmPCRel() const {
-    int offset = static_cast<int>((GetImmPCRelHi() << ImmPCRelLo_width) |
-                                  GetImmPCRelLo());
+    uint32_t hi = static_cast<uint32_t>(GetImmPCRelHi());
+    uint32_t lo = GetImmPCRelLo();
+    uint32_t offset = (hi << ImmPCRelLo_width) | lo;
     int width = ImmPCRelLo_width + ImmPCRelHi_width;
     return ExtractSignedBitfield32(width - 1, 0, offset);
   }
@@ -417,7 +418,7 @@ class Instruction {
   template <typename T>
   T GetLiteralAddress() const {
     uint64_t base_raw = reinterpret_cast<uint64_t>(this);
-    int64_t offset = GetImmLLiteral() << kLiteralEntrySizeLog2;
+    int64_t offset = GetImmLLiteral() * static_cast<int>(kLiteralEntrySize);
     uint64_t address_raw = base_raw + offset;
 
     // Cast the address using a C-style cast. A reinterpret_cast would be

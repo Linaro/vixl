@@ -2782,8 +2782,8 @@ class Assembler : public internal::AssemblerBase {
   }
 
   static Instr ImmLSPair(int64_t imm7, unsigned access_size) {
-    VIXL_ASSERT(((imm7 >> access_size) << access_size) == imm7);
-    int64_t scaled_imm7 = imm7 >> access_size;
+    VIXL_ASSERT(IsMultiple(imm7, 1 << access_size));
+    int64_t scaled_imm7 = imm7 / (1 << access_size);
     VIXL_ASSERT(IsInt7(scaled_imm7));
     return TruncateToUint7(scaled_imm7) << ImmLSPair_offset;
   }

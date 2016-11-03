@@ -4387,17 +4387,15 @@ bool Assembler::IsImmFP64(double imm) {
 
 bool Assembler::IsImmLSPair(int64_t offset, unsigned access_size) {
   VIXL_ASSERT(access_size <= kQRegSizeInBytesLog2);
-  bool offset_is_size_multiple =
-      (((offset >> access_size) << access_size) == offset);
-  return offset_is_size_multiple && IsInt7(offset >> access_size);
+  return IsMultiple(offset, 1 << access_size) &&
+         IsInt7(offset / (1 << access_size));
 }
 
 
 bool Assembler::IsImmLSScaled(int64_t offset, unsigned access_size) {
   VIXL_ASSERT(access_size <= kQRegSizeInBytesLog2);
-  bool offset_is_size_multiple =
-      (((offset >> access_size) << access_size) == offset);
-  return offset_is_size_multiple && IsUint12(offset >> access_size);
+  return IsMultiple(offset, 1 << access_size) &&
+         IsUint12(offset / (1 << access_size));
 }
 
 
@@ -4614,10 +4612,10 @@ bool Assembler::IsImmLogical(uint64_t value,
   //    1110ss     4    UInt(ss)
   //    11110s     2    UInt(s)
   //
-  // So we 'or' (-d << 1) with our computed s to form imms.
+  // So we 'or' (2 * -d) with our computed s to form imms.
   if ((n != NULL) || (imm_s != NULL) || (imm_r != NULL)) {
     *n = out_n;
-    *imm_s = ((-d << 1) | (s - 1)) & 0x3f;
+    *imm_s = ((2 * -d) | (s - 1)) & 0x3f;
     *imm_r = r;
   }
 

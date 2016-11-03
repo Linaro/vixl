@@ -146,4 +146,5 @@ int BitCount(uint64_t value) { return CountSetBits(value); }
 
 Int64 BitCount(Uint32 value) { return CountSetBits(value.Get()); }
 
+
 }  // namespace vixl

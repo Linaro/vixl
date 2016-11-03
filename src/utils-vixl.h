@@ -139,21 +139,58 @@ INT_1_TO_32_LIST(DECLARE_TRUNCATE_TO_UINT_32)
 #undef DECLARE_TRUNCATE_TO_INT_N
 
 // Bit field extraction.
-inline uint32_t ExtractUnsignedBitfield32(int msb, int lsb, uint32_t x) {
-  return (x >> lsb) & ((1 << (1 + msb - lsb)) - 1);
-}
-
 inline uint64_t ExtractUnsignedBitfield64(int msb, int lsb, uint64_t x) {
+  VIXL_ASSERT((static_cast<size_t>(msb) < sizeof(x) * 8) && (lsb >= 0) &&
+              (msb >= lsb));
+  if ((msb == 63) && (lsb == 0)) return x;
   return (x >> lsb) & ((static_cast<uint64_t>(1) << (1 + msb - lsb)) - 1);
 }
 
-inline int32_t ExtractSignedBitfield32(int msb, int lsb, int32_t x) {
-  return (x << (31 - msb)) >> (lsb + 31 - msb);
+
+inline uint32_t ExtractUnsignedBitfield32(int msb, int lsb, uint32_t x) {
+  VIXL_ASSERT((static_cast<size_t>(msb) < sizeof(x) * 8) && (lsb >= 0) &&
+              (msb >= lsb));
+  return TruncateToUint32(ExtractUnsignedBitfield64(msb, lsb, x));
 }
 
+
 inline int64_t ExtractSignedBitfield64(int msb, int lsb, int64_t x) {
-  return (x << (63 - msb)) >> (lsb + 63 - msb);
+  VIXL_ASSERT((static_cast<size_t>(msb) < sizeof(x) * 8) && (lsb >= 0) &&
+              (msb >= lsb));
+  uint64_t temp = ExtractUnsignedBitfield64(msb, lsb, x);
+  // If the highest extracted bit is set, sign extend.
+  if ((temp >> (msb - lsb)) == 1) {
+    temp |= ~UINT64_C(0) << (msb - lsb);
+  }
+  int64_t result;
+  memcpy(&result, &temp, sizeof(result));
+  return result;
 }
+
+
+inline int32_t ExtractSignedBitfield32(int msb, int lsb, int32_t x) {
+  VIXL_ASSERT((static_cast<size_t>(msb) < sizeof(x) * 8) && (lsb >= 0) &&
+              (msb >= lsb));
+  uint32_t temp = TruncateToUint32(ExtractSignedBitfield64(msb, lsb, x));
+  int32_t result;
+  memcpy(&result, &temp, sizeof(result));
+  return result;
+}
+
+
+inline uint64_t RotateRight(uint64_t value,
+                            unsigned int rotate,
+                            unsigned int width) {
+  VIXL_ASSERT((width > 0) && (width <= 64));
+  uint64_t width_mask = ~UINT64_C(0) >> (64 - width);
+  rotate &= 63;
+  if (rotate > 0) {
+    value &= width_mask;
+    value = (value << (width - rotate)) | (value >> rotate);
+  }
+  return value & width_mask;
+}
+
 
 // Floating point representation.
 uint32_t FloatToRawbits(float value);
@@ -360,11 +397,15 @@ T ReverseBytes(T value, int block_bytes_log2) {
   static const uint8_t permute_table[3][8] = {{6, 7, 4, 5, 2, 3, 0, 1},
                                               {4, 5, 6, 7, 0, 1, 2, 3},
                                               {0, 1, 2, 3, 4, 5, 6, 7}};
-  T result = 0;
+  uint64_t temp = 0;
   for (int i = 0; i < 8; i++) {
-    result <<= 8;
-    result |= bytes[permute_table[block_bytes_log2 - 1][i]];
+    temp <<= 8;
+    temp |= bytes[permute_table[block_bytes_log2 - 1][i]];
   }
+
+  T result;
+  VIXL_STATIC_ASSERT(sizeof(result) <= sizeof(temp));
+  memcpy(&result, &temp, sizeof(result));
   return result;
 }
 
@@ -372,6 +413,12 @@ template <unsigned MULTIPLE, typename T>
 inline bool IsMultiple(T value) {
   VIXL_ASSERT(IsPowerOf2(MULTIPLE));
   return (value & (MULTIPLE - 1)) == 0;
+}
+
+template <typename T>
+inline bool IsMultiple(T value, unsigned multiple) {
+  VIXL_ASSERT(IsPowerOf2(multiple));
+  return (value & (multiple - 1)) == 0;
 }
 
 // Pointer alignment
