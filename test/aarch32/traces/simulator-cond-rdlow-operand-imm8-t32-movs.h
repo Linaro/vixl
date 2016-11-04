@@ -34,7 +34,7 @@
 #ifndef VIXL_SIMULATOR_COND_RDLOW_OPERAND_IMM8_T32_MOVS_H_
 #define VIXL_SIMULATOR_COND_RDLOW_OPERAND_IMM8_T32_MOVS_H_
 
-static const Inputs kOutputs_Movs_Condition_eq_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_eq_r0_0[] = {
   { 0x80000000, 0xabababab },
   { 0x40000000, 0x00000000 },
   { 0x20000000, 0xabababab },
@@ -51,7 +51,7 @@ static const Inputs kOutputs_Movs_Condition_eq_r0_0[] = {
   { 0x70000000, 0x00000000 },
   { 0x70000000, 0x00000000 },
 };
-static const Inputs kOutputs_Movs_Condition_ne_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_ne_r0_0[] = {
   { 0x40000000, 0x00000000 },
   { 0x40000000, 0xabababab },
   { 0x60000000, 0x00000000 },
@@ -68,7 +68,7 @@ static const Inputs kOutputs_Movs_Condition_ne_r0_0[] = {
   { 0x70000000, 0xabababab },
   { 0xf0000000, 0xabababab },
 };
-static const Inputs kOutputs_Movs_Condition_cs_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_cs_r0_0[] = {
   { 0x80000000, 0xabababab },
   { 0x40000000, 0xabababab },
   { 0x60000000, 0x00000000 },
@@ -85,7 +85,7 @@ static const Inputs kOutputs_Movs_Condition_cs_r0_0[] = {
   { 0x70000000, 0x00000000 },
   { 0x70000000, 0x00000000 },
 };
-static const Inputs kOutputs_Movs_Condition_cc_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_cc_r0_0[] = {
   { 0x40000000, 0x00000000 },
   { 0x40000000, 0x00000000 },
   { 0x20000000, 0xabababab },
@@ -102,7 +102,7 @@ static const Inputs kOutputs_Movs_Condition_cc_r0_0[] = {
   { 0x70000000, 0xabababab },
   { 0xf0000000, 0xabababab },
 };
-static const Inputs kOutputs_Movs_Condition_mi_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_mi_r0_0[] = {
   { 0x40000000, 0x00000000 },
   { 0x40000000, 0xabababab },
   { 0x20000000, 0xabababab },
@@ -119,7 +119,7 @@ static const Inputs kOutputs_Movs_Condition_mi_r0_0[] = {
   { 0x70000000, 0xabababab },
   { 0x70000000, 0x00000000 },
 };
-static const Inputs kOutputs_Movs_Condition_pl_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_pl_r0_0[] = {
   { 0x80000000, 0xabababab },
   { 0x40000000, 0x00000000 },
   { 0x60000000, 0x00000000 },
@@ -136,7 +136,7 @@ static const Inputs kOutputs_Movs_Condition_pl_r0_0[] = {
   { 0x70000000, 0x00000000 },
   { 0xf0000000, 0xabababab },
 };
-static const Inputs kOutputs_Movs_Condition_vs_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_vs_r0_0[] = {
   { 0x80000000, 0xabababab },
   { 0x40000000, 0xabababab },
   { 0x20000000, 0xabababab },
@@ -153,7 +153,7 @@ static const Inputs kOutputs_Movs_Condition_vs_r0_0[] = {
   { 0x70000000, 0x00000000 },
   { 0x70000000, 0x00000000 },
 };
-static const Inputs kOutputs_Movs_Condition_vc_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_vc_r0_0[] = {
   { 0x40000000, 0x00000000 },
   { 0x40000000, 0x00000000 },
   { 0x60000000, 0x00000000 },
@@ -170,7 +170,7 @@ static const Inputs kOutputs_Movs_Condition_vc_r0_0[] = {
   { 0x70000000, 0xabababab },
   { 0xf0000000, 0xabababab },
 };
-static const Inputs kOutputs_Movs_Condition_hi_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_hi_r0_0[] = {
   { 0x80000000, 0xabababab },
   { 0x40000000, 0xabababab },
   { 0x60000000, 0x00000000 },
@@ -187,7 +187,7 @@ static const Inputs kOutputs_Movs_Condition_hi_r0_0[] = {
   { 0x70000000, 0xabababab },
   { 0xf0000000, 0xabababab },
 };
-static const Inputs kOutputs_Movs_Condition_ls_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_ls_r0_0[] = {
   { 0x40000000, 0x00000000 },
   { 0x40000000, 0x00000000 },
   { 0x20000000, 0xabababab },
@@ -204,7 +204,7 @@ static const Inputs kOutputs_Movs_Condition_ls_r0_0[] = {
   { 0x70000000, 0x00000000 },
   { 0x70000000, 0x00000000 },
 };
-static const Inputs kOutputs_Movs_Condition_ge_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_ge_r0_0[] = {
   { 0x80000000, 0xabababab },
   { 0x40000000, 0x00000000 },
   { 0x60000000, 0x00000000 },
@@ -221,7 +221,7 @@ static const Inputs kOutputs_Movs_Condition_ge_r0_0[] = {
   { 0x70000000, 0xabababab },
   { 0x70000000, 0x00000000 },
 };
-static const Inputs kOutputs_Movs_Condition_lt_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_lt_r0_0[] = {
   { 0x40000000, 0x00000000 },
   { 0x40000000, 0xabababab },
   { 0x20000000, 0xabababab },
@@ -238,7 +238,7 @@ static const Inputs kOutputs_Movs_Condition_lt_r0_0[] = {
   { 0x70000000, 0x00000000 },
   { 0xf0000000, 0xabababab },
 };
-static const Inputs kOutputs_Movs_Condition_gt_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_gt_r0_0[] = {
   { 0x80000000, 0xabababab },
   { 0x40000000, 0xabababab },
   { 0x60000000, 0x00000000 },
@@ -255,7 +255,7 @@ static const Inputs kOutputs_Movs_Condition_gt_r0_0[] = {
   { 0x70000000, 0xabababab },
   { 0xf0000000, 0xabababab },
 };
-static const Inputs kOutputs_Movs_Condition_le_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_le_r0_0[] = {
   { 0x40000000, 0x00000000 },
   { 0x40000000, 0x00000000 },
   { 0x20000000, 0xabababab },
@@ -272,7 +272,7 @@ static const Inputs kOutputs_Movs_Condition_le_r0_0[] = {
   { 0x70000000, 0x00000000 },
   { 0x70000000, 0x00000000 },
 };
-static const Inputs kOutputs_Movs_Condition_al_r0_0[] = {
+const Inputs kOutputs_Movs_Condition_al_r0_0[] = {
   { 0x40000000, 0x00000000 },
   { 0x40000000, 0x00000000 },
   { 0x60000000, 0x00000000 },
@@ -289,7 +289,7 @@ static const Inputs kOutputs_Movs_Condition_al_r0_0[] = {
   { 0x70000000, 0x00000000 },
   { 0x70000000, 0x00000000 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_0[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_0[] = {
   { 0x40000000, 0x00000000 },
   { 0x40000000, 0x00000000 },
   { 0x40000000, 0x00000000 },
@@ -322,7 +322,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_0[] = {
   { 0x40000000, 0x00000000 },
   { 0x40000000, 0x00000000 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_1[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_1[] = {
   { 0x00000000, 0x00000001 },
   { 0x00000000, 0x00000001 },
   { 0x00000000, 0x00000001 },
@@ -355,7 +355,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_1[] = {
   { 0x00000000, 0x00000001 },
   { 0x00000000, 0x00000001 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_2[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_2[] = {
   { 0x00000000, 0x00000002 },
   { 0x00000000, 0x00000002 },
   { 0x00000000, 0x00000002 },
@@ -388,7 +388,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_2[] = {
   { 0x00000000, 0x00000002 },
   { 0x00000000, 0x00000002 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_3[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_3[] = {
   { 0x00000000, 0x00000003 },
   { 0x00000000, 0x00000003 },
   { 0x00000000, 0x00000003 },
@@ -421,7 +421,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_3[] = {
   { 0x00000000, 0x00000003 },
   { 0x00000000, 0x00000003 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_4[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_4[] = {
   { 0x00000000, 0x00000004 },
   { 0x00000000, 0x00000004 },
   { 0x00000000, 0x00000004 },
@@ -454,7 +454,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_4[] = {
   { 0x00000000, 0x00000004 },
   { 0x00000000, 0x00000004 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_5[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_5[] = {
   { 0x00000000, 0x00000005 },
   { 0x00000000, 0x00000005 },
   { 0x00000000, 0x00000005 },
@@ -487,7 +487,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_5[] = {
   { 0x00000000, 0x00000005 },
   { 0x00000000, 0x00000005 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_6[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_6[] = {
   { 0x00000000, 0x00000006 },
   { 0x00000000, 0x00000006 },
   { 0x00000000, 0x00000006 },
@@ -520,7 +520,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_6[] = {
   { 0x00000000, 0x00000006 },
   { 0x00000000, 0x00000006 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_7[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_7[] = {
   { 0x00000000, 0x00000007 },
   { 0x00000000, 0x00000007 },
   { 0x00000000, 0x00000007 },
@@ -553,7 +553,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_7[] = {
   { 0x00000000, 0x00000007 },
   { 0x00000000, 0x00000007 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_8[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_8[] = {
   { 0x00000000, 0x00000008 },
   { 0x00000000, 0x00000008 },
   { 0x00000000, 0x00000008 },
@@ -586,7 +586,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_8[] = {
   { 0x00000000, 0x00000008 },
   { 0x00000000, 0x00000008 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_9[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_9[] = {
   { 0x00000000, 0x00000009 },
   { 0x00000000, 0x00000009 },
   { 0x00000000, 0x00000009 },
@@ -619,7 +619,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_9[] = {
   { 0x00000000, 0x00000009 },
   { 0x00000000, 0x00000009 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_10[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_10[] = {
   { 0x00000000, 0x0000000a },
   { 0x00000000, 0x0000000a },
   { 0x00000000, 0x0000000a },
@@ -652,7 +652,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_10[] = {
   { 0x00000000, 0x0000000a },
   { 0x00000000, 0x0000000a },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_11[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_11[] = {
   { 0x00000000, 0x0000000b },
   { 0x00000000, 0x0000000b },
   { 0x00000000, 0x0000000b },
@@ -685,7 +685,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_11[] = {
   { 0x00000000, 0x0000000b },
   { 0x00000000, 0x0000000b },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_12[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_12[] = {
   { 0x00000000, 0x0000000c },
   { 0x00000000, 0x0000000c },
   { 0x00000000, 0x0000000c },
@@ -718,7 +718,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_12[] = {
   { 0x00000000, 0x0000000c },
   { 0x00000000, 0x0000000c },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_13[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_13[] = {
   { 0x00000000, 0x0000000d },
   { 0x00000000, 0x0000000d },
   { 0x00000000, 0x0000000d },
@@ -751,7 +751,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_13[] = {
   { 0x00000000, 0x0000000d },
   { 0x00000000, 0x0000000d },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_14[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_14[] = {
   { 0x00000000, 0x0000000e },
   { 0x00000000, 0x0000000e },
   { 0x00000000, 0x0000000e },
@@ -784,7 +784,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_14[] = {
   { 0x00000000, 0x0000000e },
   { 0x00000000, 0x0000000e },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_15[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_15[] = {
   { 0x00000000, 0x0000000f },
   { 0x00000000, 0x0000000f },
   { 0x00000000, 0x0000000f },
@@ -817,7 +817,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_15[] = {
   { 0x00000000, 0x0000000f },
   { 0x00000000, 0x0000000f },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_16[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_16[] = {
   { 0x00000000, 0x00000010 },
   { 0x00000000, 0x00000010 },
   { 0x00000000, 0x00000010 },
@@ -850,7 +850,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_16[] = {
   { 0x00000000, 0x00000010 },
   { 0x00000000, 0x00000010 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_17[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_17[] = {
   { 0x00000000, 0x00000011 },
   { 0x00000000, 0x00000011 },
   { 0x00000000, 0x00000011 },
@@ -883,7 +883,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_17[] = {
   { 0x00000000, 0x00000011 },
   { 0x00000000, 0x00000011 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_18[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_18[] = {
   { 0x00000000, 0x00000012 },
   { 0x00000000, 0x00000012 },
   { 0x00000000, 0x00000012 },
@@ -916,7 +916,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_18[] = {
   { 0x00000000, 0x00000012 },
   { 0x00000000, 0x00000012 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_19[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_19[] = {
   { 0x00000000, 0x00000013 },
   { 0x00000000, 0x00000013 },
   { 0x00000000, 0x00000013 },
@@ -949,7 +949,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_19[] = {
   { 0x00000000, 0x00000013 },
   { 0x00000000, 0x00000013 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_20[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_20[] = {
   { 0x00000000, 0x00000014 },
   { 0x00000000, 0x00000014 },
   { 0x00000000, 0x00000014 },
@@ -982,7 +982,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_20[] = {
   { 0x00000000, 0x00000014 },
   { 0x00000000, 0x00000014 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_21[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_21[] = {
   { 0x00000000, 0x00000015 },
   { 0x00000000, 0x00000015 },
   { 0x00000000, 0x00000015 },
@@ -1015,7 +1015,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_21[] = {
   { 0x00000000, 0x00000015 },
   { 0x00000000, 0x00000015 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_22[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_22[] = {
   { 0x00000000, 0x00000016 },
   { 0x00000000, 0x00000016 },
   { 0x00000000, 0x00000016 },
@@ -1048,7 +1048,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_22[] = {
   { 0x00000000, 0x00000016 },
   { 0x00000000, 0x00000016 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_23[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_23[] = {
   { 0x00000000, 0x00000017 },
   { 0x00000000, 0x00000017 },
   { 0x00000000, 0x00000017 },
@@ -1081,7 +1081,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_23[] = {
   { 0x00000000, 0x00000017 },
   { 0x00000000, 0x00000017 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_24[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_24[] = {
   { 0x00000000, 0x00000018 },
   { 0x00000000, 0x00000018 },
   { 0x00000000, 0x00000018 },
@@ -1114,7 +1114,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_24[] = {
   { 0x00000000, 0x00000018 },
   { 0x00000000, 0x00000018 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_25[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_25[] = {
   { 0x00000000, 0x00000019 },
   { 0x00000000, 0x00000019 },
   { 0x00000000, 0x00000019 },
@@ -1147,7 +1147,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_25[] = {
   { 0x00000000, 0x00000019 },
   { 0x00000000, 0x00000019 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_26[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_26[] = {
   { 0x00000000, 0x0000001a },
   { 0x00000000, 0x0000001a },
   { 0x00000000, 0x0000001a },
@@ -1180,7 +1180,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_26[] = {
   { 0x00000000, 0x0000001a },
   { 0x00000000, 0x0000001a },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_27[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_27[] = {
   { 0x00000000, 0x0000001b },
   { 0x00000000, 0x0000001b },
   { 0x00000000, 0x0000001b },
@@ -1213,7 +1213,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_27[] = {
   { 0x00000000, 0x0000001b },
   { 0x00000000, 0x0000001b },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_28[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_28[] = {
   { 0x00000000, 0x0000001c },
   { 0x00000000, 0x0000001c },
   { 0x00000000, 0x0000001c },
@@ -1246,7 +1246,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_28[] = {
   { 0x00000000, 0x0000001c },
   { 0x00000000, 0x0000001c },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_29[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_29[] = {
   { 0x00000000, 0x0000001d },
   { 0x00000000, 0x0000001d },
   { 0x00000000, 0x0000001d },
@@ -1279,7 +1279,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_29[] = {
   { 0x00000000, 0x0000001d },
   { 0x00000000, 0x0000001d },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_30[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_30[] = {
   { 0x00000000, 0x0000001e },
   { 0x00000000, 0x0000001e },
   { 0x00000000, 0x0000001e },
@@ -1312,7 +1312,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_30[] = {
   { 0x00000000, 0x0000001e },
   { 0x00000000, 0x0000001e },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_31[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_31[] = {
   { 0x00000000, 0x0000001f },
   { 0x00000000, 0x0000001f },
   { 0x00000000, 0x0000001f },
@@ -1345,7 +1345,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_31[] = {
   { 0x00000000, 0x0000001f },
   { 0x00000000, 0x0000001f },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_32[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_32[] = {
   { 0x00000000, 0x00000020 },
   { 0x00000000, 0x00000020 },
   { 0x00000000, 0x00000020 },
@@ -1378,7 +1378,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_32[] = {
   { 0x00000000, 0x00000020 },
   { 0x00000000, 0x00000020 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_33[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_33[] = {
   { 0x00000000, 0x00000021 },
   { 0x00000000, 0x00000021 },
   { 0x00000000, 0x00000021 },
@@ -1411,7 +1411,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_33[] = {
   { 0x00000000, 0x00000021 },
   { 0x00000000, 0x00000021 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_34[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_34[] = {
   { 0x00000000, 0x00000022 },
   { 0x00000000, 0x00000022 },
   { 0x00000000, 0x00000022 },
@@ -1444,7 +1444,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_34[] = {
   { 0x00000000, 0x00000022 },
   { 0x00000000, 0x00000022 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_35[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_35[] = {
   { 0x00000000, 0x00000023 },
   { 0x00000000, 0x00000023 },
   { 0x00000000, 0x00000023 },
@@ -1477,7 +1477,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_35[] = {
   { 0x00000000, 0x00000023 },
   { 0x00000000, 0x00000023 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_36[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_36[] = {
   { 0x00000000, 0x00000024 },
   { 0x00000000, 0x00000024 },
   { 0x00000000, 0x00000024 },
@@ -1510,7 +1510,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_36[] = {
   { 0x00000000, 0x00000024 },
   { 0x00000000, 0x00000024 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_37[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_37[] = {
   { 0x00000000, 0x00000025 },
   { 0x00000000, 0x00000025 },
   { 0x00000000, 0x00000025 },
@@ -1543,7 +1543,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_37[] = {
   { 0x00000000, 0x00000025 },
   { 0x00000000, 0x00000025 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_38[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_38[] = {
   { 0x00000000, 0x00000026 },
   { 0x00000000, 0x00000026 },
   { 0x00000000, 0x00000026 },
@@ -1576,7 +1576,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_38[] = {
   { 0x00000000, 0x00000026 },
   { 0x00000000, 0x00000026 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_39[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_39[] = {
   { 0x00000000, 0x00000027 },
   { 0x00000000, 0x00000027 },
   { 0x00000000, 0x00000027 },
@@ -1609,7 +1609,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_39[] = {
   { 0x00000000, 0x00000027 },
   { 0x00000000, 0x00000027 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_40[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_40[] = {
   { 0x00000000, 0x00000028 },
   { 0x00000000, 0x00000028 },
   { 0x00000000, 0x00000028 },
@@ -1642,7 +1642,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_40[] = {
   { 0x00000000, 0x00000028 },
   { 0x00000000, 0x00000028 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_41[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_41[] = {
   { 0x00000000, 0x00000029 },
   { 0x00000000, 0x00000029 },
   { 0x00000000, 0x00000029 },
@@ -1675,7 +1675,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_41[] = {
   { 0x00000000, 0x00000029 },
   { 0x00000000, 0x00000029 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_42[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_42[] = {
   { 0x00000000, 0x0000002a },
   { 0x00000000, 0x0000002a },
   { 0x00000000, 0x0000002a },
@@ -1708,7 +1708,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_42[] = {
   { 0x00000000, 0x0000002a },
   { 0x00000000, 0x0000002a },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_43[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_43[] = {
   { 0x00000000, 0x0000002b },
   { 0x00000000, 0x0000002b },
   { 0x00000000, 0x0000002b },
@@ -1741,7 +1741,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_43[] = {
   { 0x00000000, 0x0000002b },
   { 0x00000000, 0x0000002b },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_44[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_44[] = {
   { 0x00000000, 0x0000002c },
   { 0x00000000, 0x0000002c },
   { 0x00000000, 0x0000002c },
@@ -1774,7 +1774,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_44[] = {
   { 0x00000000, 0x0000002c },
   { 0x00000000, 0x0000002c },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_45[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_45[] = {
   { 0x00000000, 0x0000002d },
   { 0x00000000, 0x0000002d },
   { 0x00000000, 0x0000002d },
@@ -1807,7 +1807,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_45[] = {
   { 0x00000000, 0x0000002d },
   { 0x00000000, 0x0000002d },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_46[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_46[] = {
   { 0x00000000, 0x0000002e },
   { 0x00000000, 0x0000002e },
   { 0x00000000, 0x0000002e },
@@ -1840,7 +1840,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_46[] = {
   { 0x00000000, 0x0000002e },
   { 0x00000000, 0x0000002e },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_47[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_47[] = {
   { 0x00000000, 0x0000002f },
   { 0x00000000, 0x0000002f },
   { 0x00000000, 0x0000002f },
@@ -1873,7 +1873,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_47[] = {
   { 0x00000000, 0x0000002f },
   { 0x00000000, 0x0000002f },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_48[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_48[] = {
   { 0x00000000, 0x00000030 },
   { 0x00000000, 0x00000030 },
   { 0x00000000, 0x00000030 },
@@ -1906,7 +1906,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_48[] = {
   { 0x00000000, 0x00000030 },
   { 0x00000000, 0x00000030 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_49[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_49[] = {
   { 0x00000000, 0x00000031 },
   { 0x00000000, 0x00000031 },
   { 0x00000000, 0x00000031 },
@@ -1939,7 +1939,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_49[] = {
   { 0x00000000, 0x00000031 },
   { 0x00000000, 0x00000031 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_50[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_50[] = {
   { 0x00000000, 0x00000032 },
   { 0x00000000, 0x00000032 },
   { 0x00000000, 0x00000032 },
@@ -1972,7 +1972,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_50[] = {
   { 0x00000000, 0x00000032 },
   { 0x00000000, 0x00000032 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_51[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_51[] = {
   { 0x00000000, 0x00000033 },
   { 0x00000000, 0x00000033 },
   { 0x00000000, 0x00000033 },
@@ -2005,7 +2005,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_51[] = {
   { 0x00000000, 0x00000033 },
   { 0x00000000, 0x00000033 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_52[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_52[] = {
   { 0x00000000, 0x00000034 },
   { 0x00000000, 0x00000034 },
   { 0x00000000, 0x00000034 },
@@ -2038,7 +2038,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_52[] = {
   { 0x00000000, 0x00000034 },
   { 0x00000000, 0x00000034 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_53[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_53[] = {
   { 0x00000000, 0x00000035 },
   { 0x00000000, 0x00000035 },
   { 0x00000000, 0x00000035 },
@@ -2071,7 +2071,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_53[] = {
   { 0x00000000, 0x00000035 },
   { 0x00000000, 0x00000035 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_54[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_54[] = {
   { 0x00000000, 0x00000036 },
   { 0x00000000, 0x00000036 },
   { 0x00000000, 0x00000036 },
@@ -2104,7 +2104,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_54[] = {
   { 0x00000000, 0x00000036 },
   { 0x00000000, 0x00000036 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_55[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_55[] = {
   { 0x00000000, 0x00000037 },
   { 0x00000000, 0x00000037 },
   { 0x00000000, 0x00000037 },
@@ -2137,7 +2137,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_55[] = {
   { 0x00000000, 0x00000037 },
   { 0x00000000, 0x00000037 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_56[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_56[] = {
   { 0x00000000, 0x00000038 },
   { 0x00000000, 0x00000038 },
   { 0x00000000, 0x00000038 },
@@ -2170,7 +2170,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_56[] = {
   { 0x00000000, 0x00000038 },
   { 0x00000000, 0x00000038 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_57[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_57[] = {
   { 0x00000000, 0x00000039 },
   { 0x00000000, 0x00000039 },
   { 0x00000000, 0x00000039 },
@@ -2203,7 +2203,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_57[] = {
   { 0x00000000, 0x00000039 },
   { 0x00000000, 0x00000039 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_58[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_58[] = {
   { 0x00000000, 0x0000003a },
   { 0x00000000, 0x0000003a },
   { 0x00000000, 0x0000003a },
@@ -2236,7 +2236,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_58[] = {
   { 0x00000000, 0x0000003a },
   { 0x00000000, 0x0000003a },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_59[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_59[] = {
   { 0x00000000, 0x0000003b },
   { 0x00000000, 0x0000003b },
   { 0x00000000, 0x0000003b },
@@ -2269,7 +2269,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_59[] = {
   { 0x00000000, 0x0000003b },
   { 0x00000000, 0x0000003b },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_60[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_60[] = {
   { 0x00000000, 0x0000003c },
   { 0x00000000, 0x0000003c },
   { 0x00000000, 0x0000003c },
@@ -2302,7 +2302,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_60[] = {
   { 0x00000000, 0x0000003c },
   { 0x00000000, 0x0000003c },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_61[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_61[] = {
   { 0x00000000, 0x0000003d },
   { 0x00000000, 0x0000003d },
   { 0x00000000, 0x0000003d },
@@ -2335,7 +2335,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_61[] = {
   { 0x00000000, 0x0000003d },
   { 0x00000000, 0x0000003d },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_62[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_62[] = {
   { 0x00000000, 0x0000003e },
   { 0x00000000, 0x0000003e },
   { 0x00000000, 0x0000003e },
@@ -2368,7 +2368,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_62[] = {
   { 0x00000000, 0x0000003e },
   { 0x00000000, 0x0000003e },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_63[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_63[] = {
   { 0x00000000, 0x0000003f },
   { 0x00000000, 0x0000003f },
   { 0x00000000, 0x0000003f },
@@ -2401,7 +2401,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_63[] = {
   { 0x00000000, 0x0000003f },
   { 0x00000000, 0x0000003f },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_64[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_64[] = {
   { 0x00000000, 0x00000040 },
   { 0x00000000, 0x00000040 },
   { 0x00000000, 0x00000040 },
@@ -2434,7 +2434,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_64[] = {
   { 0x00000000, 0x00000040 },
   { 0x00000000, 0x00000040 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_65[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_65[] = {
   { 0x00000000, 0x00000041 },
   { 0x00000000, 0x00000041 },
   { 0x00000000, 0x00000041 },
@@ -2467,7 +2467,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_65[] = {
   { 0x00000000, 0x00000041 },
   { 0x00000000, 0x00000041 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_66[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_66[] = {
   { 0x00000000, 0x00000042 },
   { 0x00000000, 0x00000042 },
   { 0x00000000, 0x00000042 },
@@ -2500,7 +2500,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_66[] = {
   { 0x00000000, 0x00000042 },
   { 0x00000000, 0x00000042 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_67[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_67[] = {
   { 0x00000000, 0x00000043 },
   { 0x00000000, 0x00000043 },
   { 0x00000000, 0x00000043 },
@@ -2533,7 +2533,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_67[] = {
   { 0x00000000, 0x00000043 },
   { 0x00000000, 0x00000043 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_68[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_68[] = {
   { 0x00000000, 0x00000044 },
   { 0x00000000, 0x00000044 },
   { 0x00000000, 0x00000044 },
@@ -2566,7 +2566,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_68[] = {
   { 0x00000000, 0x00000044 },
   { 0x00000000, 0x00000044 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_69[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_69[] = {
   { 0x00000000, 0x00000045 },
   { 0x00000000, 0x00000045 },
   { 0x00000000, 0x00000045 },
@@ -2599,7 +2599,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_69[] = {
   { 0x00000000, 0x00000045 },
   { 0x00000000, 0x00000045 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_70[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_70[] = {
   { 0x00000000, 0x00000046 },
   { 0x00000000, 0x00000046 },
   { 0x00000000, 0x00000046 },
@@ -2632,7 +2632,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_70[] = {
   { 0x00000000, 0x00000046 },
   { 0x00000000, 0x00000046 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_71[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_71[] = {
   { 0x00000000, 0x00000047 },
   { 0x00000000, 0x00000047 },
   { 0x00000000, 0x00000047 },
@@ -2665,7 +2665,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_71[] = {
   { 0x00000000, 0x00000047 },
   { 0x00000000, 0x00000047 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_72[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_72[] = {
   { 0x00000000, 0x00000048 },
   { 0x00000000, 0x00000048 },
   { 0x00000000, 0x00000048 },
@@ -2698,7 +2698,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_72[] = {
   { 0x00000000, 0x00000048 },
   { 0x00000000, 0x00000048 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_73[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_73[] = {
   { 0x00000000, 0x00000049 },
   { 0x00000000, 0x00000049 },
   { 0x00000000, 0x00000049 },
@@ -2731,7 +2731,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_73[] = {
   { 0x00000000, 0x00000049 },
   { 0x00000000, 0x00000049 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_74[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_74[] = {
   { 0x00000000, 0x0000004a },
   { 0x00000000, 0x0000004a },
   { 0x00000000, 0x0000004a },
@@ -2764,7 +2764,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_74[] = {
   { 0x00000000, 0x0000004a },
   { 0x00000000, 0x0000004a },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_75[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_75[] = {
   { 0x00000000, 0x0000004b },
   { 0x00000000, 0x0000004b },
   { 0x00000000, 0x0000004b },
@@ -2797,7 +2797,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_75[] = {
   { 0x00000000, 0x0000004b },
   { 0x00000000, 0x0000004b },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_76[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_76[] = {
   { 0x00000000, 0x0000004c },
   { 0x00000000, 0x0000004c },
   { 0x00000000, 0x0000004c },
@@ -2830,7 +2830,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_76[] = {
   { 0x00000000, 0x0000004c },
   { 0x00000000, 0x0000004c },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_77[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_77[] = {
   { 0x00000000, 0x0000004d },
   { 0x00000000, 0x0000004d },
   { 0x00000000, 0x0000004d },
@@ -2863,7 +2863,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_77[] = {
   { 0x00000000, 0x0000004d },
   { 0x00000000, 0x0000004d },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_78[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_78[] = {
   { 0x00000000, 0x0000004e },
   { 0x00000000, 0x0000004e },
   { 0x00000000, 0x0000004e },
@@ -2896,7 +2896,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_78[] = {
   { 0x00000000, 0x0000004e },
   { 0x00000000, 0x0000004e },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_79[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_79[] = {
   { 0x00000000, 0x0000004f },
   { 0x00000000, 0x0000004f },
   { 0x00000000, 0x0000004f },
@@ -2929,7 +2929,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_79[] = {
   { 0x00000000, 0x0000004f },
   { 0x00000000, 0x0000004f },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_80[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_80[] = {
   { 0x00000000, 0x00000050 },
   { 0x00000000, 0x00000050 },
   { 0x00000000, 0x00000050 },
@@ -2962,7 +2962,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_80[] = {
   { 0x00000000, 0x00000050 },
   { 0x00000000, 0x00000050 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_81[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_81[] = {
   { 0x00000000, 0x00000051 },
   { 0x00000000, 0x00000051 },
   { 0x00000000, 0x00000051 },
@@ -2995,7 +2995,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_81[] = {
   { 0x00000000, 0x00000051 },
   { 0x00000000, 0x00000051 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_82[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_82[] = {
   { 0x00000000, 0x00000052 },
   { 0x00000000, 0x00000052 },
   { 0x00000000, 0x00000052 },
@@ -3028,7 +3028,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_82[] = {
   { 0x00000000, 0x00000052 },
   { 0x00000000, 0x00000052 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_83[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_83[] = {
   { 0x00000000, 0x00000053 },
   { 0x00000000, 0x00000053 },
   { 0x00000000, 0x00000053 },
@@ -3061,7 +3061,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_83[] = {
   { 0x00000000, 0x00000053 },
   { 0x00000000, 0x00000053 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_84[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_84[] = {
   { 0x00000000, 0x00000054 },
   { 0x00000000, 0x00000054 },
   { 0x00000000, 0x00000054 },
@@ -3094,7 +3094,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_84[] = {
   { 0x00000000, 0x00000054 },
   { 0x00000000, 0x00000054 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_85[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_85[] = {
   { 0x00000000, 0x00000055 },
   { 0x00000000, 0x00000055 },
   { 0x00000000, 0x00000055 },
@@ -3127,7 +3127,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_85[] = {
   { 0x00000000, 0x00000055 },
   { 0x00000000, 0x00000055 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_86[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_86[] = {
   { 0x00000000, 0x00000056 },
   { 0x00000000, 0x00000056 },
   { 0x00000000, 0x00000056 },
@@ -3160,7 +3160,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_86[] = {
   { 0x00000000, 0x00000056 },
   { 0x00000000, 0x00000056 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_87[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_87[] = {
   { 0x00000000, 0x00000057 },
   { 0x00000000, 0x00000057 },
   { 0x00000000, 0x00000057 },
@@ -3193,7 +3193,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_87[] = {
   { 0x00000000, 0x00000057 },
   { 0x00000000, 0x00000057 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_88[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_88[] = {
   { 0x00000000, 0x00000058 },
   { 0x00000000, 0x00000058 },
   { 0x00000000, 0x00000058 },
@@ -3226,7 +3226,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_88[] = {
   { 0x00000000, 0x00000058 },
   { 0x00000000, 0x00000058 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_89[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_89[] = {
   { 0x00000000, 0x00000059 },
   { 0x00000000, 0x00000059 },
   { 0x00000000, 0x00000059 },
@@ -3259,7 +3259,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_89[] = {
   { 0x00000000, 0x00000059 },
   { 0x00000000, 0x00000059 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_90[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_90[] = {
   { 0x00000000, 0x0000005a },
   { 0x00000000, 0x0000005a },
   { 0x00000000, 0x0000005a },
@@ -3292,7 +3292,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_90[] = {
   { 0x00000000, 0x0000005a },
   { 0x00000000, 0x0000005a },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_91[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_91[] = {
   { 0x00000000, 0x0000005b },
   { 0x00000000, 0x0000005b },
   { 0x00000000, 0x0000005b },
@@ -3325,7 +3325,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_91[] = {
   { 0x00000000, 0x0000005b },
   { 0x00000000, 0x0000005b },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_92[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_92[] = {
   { 0x00000000, 0x0000005c },
   { 0x00000000, 0x0000005c },
   { 0x00000000, 0x0000005c },
@@ -3358,7 +3358,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_92[] = {
   { 0x00000000, 0x0000005c },
   { 0x00000000, 0x0000005c },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_93[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_93[] = {
   { 0x00000000, 0x0000005d },
   { 0x00000000, 0x0000005d },
   { 0x00000000, 0x0000005d },
@@ -3391,7 +3391,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_93[] = {
   { 0x00000000, 0x0000005d },
   { 0x00000000, 0x0000005d },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_94[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_94[] = {
   { 0x00000000, 0x0000005e },
   { 0x00000000, 0x0000005e },
   { 0x00000000, 0x0000005e },
@@ -3424,7 +3424,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_94[] = {
   { 0x00000000, 0x0000005e },
   { 0x00000000, 0x0000005e },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_95[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_95[] = {
   { 0x00000000, 0x0000005f },
   { 0x00000000, 0x0000005f },
   { 0x00000000, 0x0000005f },
@@ -3457,7 +3457,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_95[] = {
   { 0x00000000, 0x0000005f },
   { 0x00000000, 0x0000005f },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_96[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_96[] = {
   { 0x00000000, 0x00000060 },
   { 0x00000000, 0x00000060 },
   { 0x00000000, 0x00000060 },
@@ -3490,7 +3490,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_96[] = {
   { 0x00000000, 0x00000060 },
   { 0x00000000, 0x00000060 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_97[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_97[] = {
   { 0x00000000, 0x00000061 },
   { 0x00000000, 0x00000061 },
   { 0x00000000, 0x00000061 },
@@ -3523,7 +3523,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_97[] = {
   { 0x00000000, 0x00000061 },
   { 0x00000000, 0x00000061 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_98[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_98[] = {
   { 0x00000000, 0x00000062 },
   { 0x00000000, 0x00000062 },
   { 0x00000000, 0x00000062 },
@@ -3556,7 +3556,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_98[] = {
   { 0x00000000, 0x00000062 },
   { 0x00000000, 0x00000062 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_99[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_99[] = {
   { 0x00000000, 0x00000063 },
   { 0x00000000, 0x00000063 },
   { 0x00000000, 0x00000063 },
@@ -3589,7 +3589,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_99[] = {
   { 0x00000000, 0x00000063 },
   { 0x00000000, 0x00000063 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_100[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_100[] = {
   { 0x00000000, 0x00000064 },
   { 0x00000000, 0x00000064 },
   { 0x00000000, 0x00000064 },
@@ -3622,7 +3622,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_100[] = {
   { 0x00000000, 0x00000064 },
   { 0x00000000, 0x00000064 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_101[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_101[] = {
   { 0x00000000, 0x00000065 },
   { 0x00000000, 0x00000065 },
   { 0x00000000, 0x00000065 },
@@ -3655,7 +3655,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_101[] = {
   { 0x00000000, 0x00000065 },
   { 0x00000000, 0x00000065 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_102[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_102[] = {
   { 0x00000000, 0x00000066 },
   { 0x00000000, 0x00000066 },
   { 0x00000000, 0x00000066 },
@@ -3688,7 +3688,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_102[] = {
   { 0x00000000, 0x00000066 },
   { 0x00000000, 0x00000066 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_103[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_103[] = {
   { 0x00000000, 0x00000067 },
   { 0x00000000, 0x00000067 },
   { 0x00000000, 0x00000067 },
@@ -3721,7 +3721,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_103[] = {
   { 0x00000000, 0x00000067 },
   { 0x00000000, 0x00000067 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_104[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_104[] = {
   { 0x00000000, 0x00000068 },
   { 0x00000000, 0x00000068 },
   { 0x00000000, 0x00000068 },
@@ -3754,7 +3754,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_104[] = {
   { 0x00000000, 0x00000068 },
   { 0x00000000, 0x00000068 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_105[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_105[] = {
   { 0x00000000, 0x00000069 },
   { 0x00000000, 0x00000069 },
   { 0x00000000, 0x00000069 },
@@ -3787,7 +3787,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_105[] = {
   { 0x00000000, 0x00000069 },
   { 0x00000000, 0x00000069 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_106[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_106[] = {
   { 0x00000000, 0x0000006a },
   { 0x00000000, 0x0000006a },
   { 0x00000000, 0x0000006a },
@@ -3820,7 +3820,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_106[] = {
   { 0x00000000, 0x0000006a },
   { 0x00000000, 0x0000006a },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_107[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_107[] = {
   { 0x00000000, 0x0000006b },
   { 0x00000000, 0x0000006b },
   { 0x00000000, 0x0000006b },
@@ -3853,7 +3853,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_107[] = {
   { 0x00000000, 0x0000006b },
   { 0x00000000, 0x0000006b },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_108[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_108[] = {
   { 0x00000000, 0x0000006c },
   { 0x00000000, 0x0000006c },
   { 0x00000000, 0x0000006c },
@@ -3886,7 +3886,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_108[] = {
   { 0x00000000, 0x0000006c },
   { 0x00000000, 0x0000006c },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_109[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_109[] = {
   { 0x00000000, 0x0000006d },
   { 0x00000000, 0x0000006d },
   { 0x00000000, 0x0000006d },
@@ -3919,7 +3919,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_109[] = {
   { 0x00000000, 0x0000006d },
   { 0x00000000, 0x0000006d },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_110[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_110[] = {
   { 0x00000000, 0x0000006e },
   { 0x00000000, 0x0000006e },
   { 0x00000000, 0x0000006e },
@@ -3952,7 +3952,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_110[] = {
   { 0x00000000, 0x0000006e },
   { 0x00000000, 0x0000006e },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_111[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_111[] = {
   { 0x00000000, 0x0000006f },
   { 0x00000000, 0x0000006f },
   { 0x00000000, 0x0000006f },
@@ -3985,7 +3985,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_111[] = {
   { 0x00000000, 0x0000006f },
   { 0x00000000, 0x0000006f },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_112[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_112[] = {
   { 0x00000000, 0x00000070 },
   { 0x00000000, 0x00000070 },
   { 0x00000000, 0x00000070 },
@@ -4018,7 +4018,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_112[] = {
   { 0x00000000, 0x00000070 },
   { 0x00000000, 0x00000070 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_113[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_113[] = {
   { 0x00000000, 0x00000071 },
   { 0x00000000, 0x00000071 },
   { 0x00000000, 0x00000071 },
@@ -4051,7 +4051,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_113[] = {
   { 0x00000000, 0x00000071 },
   { 0x00000000, 0x00000071 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_114[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_114[] = {
   { 0x00000000, 0x00000072 },
   { 0x00000000, 0x00000072 },
   { 0x00000000, 0x00000072 },
@@ -4084,7 +4084,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_114[] = {
   { 0x00000000, 0x00000072 },
   { 0x00000000, 0x00000072 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_115[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_115[] = {
   { 0x00000000, 0x00000073 },
   { 0x00000000, 0x00000073 },
   { 0x00000000, 0x00000073 },
@@ -4117,7 +4117,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_115[] = {
   { 0x00000000, 0x00000073 },
   { 0x00000000, 0x00000073 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_116[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_116[] = {
   { 0x00000000, 0x00000074 },
   { 0x00000000, 0x00000074 },
   { 0x00000000, 0x00000074 },
@@ -4150,7 +4150,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_116[] = {
   { 0x00000000, 0x00000074 },
   { 0x00000000, 0x00000074 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_117[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_117[] = {
   { 0x00000000, 0x00000075 },
   { 0x00000000, 0x00000075 },
   { 0x00000000, 0x00000075 },
@@ -4183,7 +4183,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_117[] = {
   { 0x00000000, 0x00000075 },
   { 0x00000000, 0x00000075 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_118[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_118[] = {
   { 0x00000000, 0x00000076 },
   { 0x00000000, 0x00000076 },
   { 0x00000000, 0x00000076 },
@@ -4216,7 +4216,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_118[] = {
   { 0x00000000, 0x00000076 },
   { 0x00000000, 0x00000076 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_119[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_119[] = {
   { 0x00000000, 0x00000077 },
   { 0x00000000, 0x00000077 },
   { 0x00000000, 0x00000077 },
@@ -4249,7 +4249,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_119[] = {
   { 0x00000000, 0x00000077 },
   { 0x00000000, 0x00000077 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_120[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_120[] = {
   { 0x00000000, 0x00000078 },
   { 0x00000000, 0x00000078 },
   { 0x00000000, 0x00000078 },
@@ -4282,7 +4282,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_120[] = {
   { 0x00000000, 0x00000078 },
   { 0x00000000, 0x00000078 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_121[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_121[] = {
   { 0x00000000, 0x00000079 },
   { 0x00000000, 0x00000079 },
   { 0x00000000, 0x00000079 },
@@ -4315,7 +4315,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_121[] = {
   { 0x00000000, 0x00000079 },
   { 0x00000000, 0x00000079 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_122[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_122[] = {
   { 0x00000000, 0x0000007a },
   { 0x00000000, 0x0000007a },
   { 0x00000000, 0x0000007a },
@@ -4348,7 +4348,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_122[] = {
   { 0x00000000, 0x0000007a },
   { 0x00000000, 0x0000007a },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_123[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_123[] = {
   { 0x00000000, 0x0000007b },
   { 0x00000000, 0x0000007b },
   { 0x00000000, 0x0000007b },
@@ -4381,7 +4381,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_123[] = {
   { 0x00000000, 0x0000007b },
   { 0x00000000, 0x0000007b },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_124[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_124[] = {
   { 0x00000000, 0x0000007c },
   { 0x00000000, 0x0000007c },
   { 0x00000000, 0x0000007c },
@@ -4414,7 +4414,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_124[] = {
   { 0x00000000, 0x0000007c },
   { 0x00000000, 0x0000007c },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_125[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_125[] = {
   { 0x00000000, 0x0000007d },
   { 0x00000000, 0x0000007d },
   { 0x00000000, 0x0000007d },
@@ -4447,7 +4447,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_125[] = {
   { 0x00000000, 0x0000007d },
   { 0x00000000, 0x0000007d },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_126[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_126[] = {
   { 0x00000000, 0x0000007e },
   { 0x00000000, 0x0000007e },
   { 0x00000000, 0x0000007e },
@@ -4480,7 +4480,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_126[] = {
   { 0x00000000, 0x0000007e },
   { 0x00000000, 0x0000007e },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_127[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_127[] = {
   { 0x00000000, 0x0000007f },
   { 0x00000000, 0x0000007f },
   { 0x00000000, 0x0000007f },
@@ -4513,7 +4513,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_127[] = {
   { 0x00000000, 0x0000007f },
   { 0x00000000, 0x0000007f },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_128[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_128[] = {
   { 0x00000000, 0x00000080 },
   { 0x00000000, 0x00000080 },
   { 0x00000000, 0x00000080 },
@@ -4546,7 +4546,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_128[] = {
   { 0x00000000, 0x00000080 },
   { 0x00000000, 0x00000080 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_129[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_129[] = {
   { 0x00000000, 0x00000081 },
   { 0x00000000, 0x00000081 },
   { 0x00000000, 0x00000081 },
@@ -4579,7 +4579,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_129[] = {
   { 0x00000000, 0x00000081 },
   { 0x00000000, 0x00000081 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_130[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_130[] = {
   { 0x00000000, 0x00000082 },
   { 0x00000000, 0x00000082 },
   { 0x00000000, 0x00000082 },
@@ -4612,7 +4612,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_130[] = {
   { 0x00000000, 0x00000082 },
   { 0x00000000, 0x00000082 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_131[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_131[] = {
   { 0x00000000, 0x00000083 },
   { 0x00000000, 0x00000083 },
   { 0x00000000, 0x00000083 },
@@ -4645,7 +4645,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_131[] = {
   { 0x00000000, 0x00000083 },
   { 0x00000000, 0x00000083 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_132[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_132[] = {
   { 0x00000000, 0x00000084 },
   { 0x00000000, 0x00000084 },
   { 0x00000000, 0x00000084 },
@@ -4678,7 +4678,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_132[] = {
   { 0x00000000, 0x00000084 },
   { 0x00000000, 0x00000084 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_133[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_133[] = {
   { 0x00000000, 0x00000085 },
   { 0x00000000, 0x00000085 },
   { 0x00000000, 0x00000085 },
@@ -4711,7 +4711,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_133[] = {
   { 0x00000000, 0x00000085 },
   { 0x00000000, 0x00000085 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_134[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_134[] = {
   { 0x00000000, 0x00000086 },
   { 0x00000000, 0x00000086 },
   { 0x00000000, 0x00000086 },
@@ -4744,7 +4744,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_134[] = {
   { 0x00000000, 0x00000086 },
   { 0x00000000, 0x00000086 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_135[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_135[] = {
   { 0x00000000, 0x00000087 },
   { 0x00000000, 0x00000087 },
   { 0x00000000, 0x00000087 },
@@ -4777,7 +4777,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_135[] = {
   { 0x00000000, 0x00000087 },
   { 0x00000000, 0x00000087 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_136[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_136[] = {
   { 0x00000000, 0x00000088 },
   { 0x00000000, 0x00000088 },
   { 0x00000000, 0x00000088 },
@@ -4810,7 +4810,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_136[] = {
   { 0x00000000, 0x00000088 },
   { 0x00000000, 0x00000088 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_137[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_137[] = {
   { 0x00000000, 0x00000089 },
   { 0x00000000, 0x00000089 },
   { 0x00000000, 0x00000089 },
@@ -4843,7 +4843,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_137[] = {
   { 0x00000000, 0x00000089 },
   { 0x00000000, 0x00000089 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_138[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_138[] = {
   { 0x00000000, 0x0000008a },
   { 0x00000000, 0x0000008a },
   { 0x00000000, 0x0000008a },
@@ -4876,7 +4876,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_138[] = {
   { 0x00000000, 0x0000008a },
   { 0x00000000, 0x0000008a },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_139[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_139[] = {
   { 0x00000000, 0x0000008b },
   { 0x00000000, 0x0000008b },
   { 0x00000000, 0x0000008b },
@@ -4909,7 +4909,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_139[] = {
   { 0x00000000, 0x0000008b },
   { 0x00000000, 0x0000008b },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_140[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_140[] = {
   { 0x00000000, 0x0000008c },
   { 0x00000000, 0x0000008c },
   { 0x00000000, 0x0000008c },
@@ -4942,7 +4942,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_140[] = {
   { 0x00000000, 0x0000008c },
   { 0x00000000, 0x0000008c },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_141[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_141[] = {
   { 0x00000000, 0x0000008d },
   { 0x00000000, 0x0000008d },
   { 0x00000000, 0x0000008d },
@@ -4975,7 +4975,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_141[] = {
   { 0x00000000, 0x0000008d },
   { 0x00000000, 0x0000008d },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_142[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_142[] = {
   { 0x00000000, 0x0000008e },
   { 0x00000000, 0x0000008e },
   { 0x00000000, 0x0000008e },
@@ -5008,7 +5008,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_142[] = {
   { 0x00000000, 0x0000008e },
   { 0x00000000, 0x0000008e },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_143[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_143[] = {
   { 0x00000000, 0x0000008f },
   { 0x00000000, 0x0000008f },
   { 0x00000000, 0x0000008f },
@@ -5041,7 +5041,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_143[] = {
   { 0x00000000, 0x0000008f },
   { 0x00000000, 0x0000008f },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_144[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_144[] = {
   { 0x00000000, 0x00000090 },
   { 0x00000000, 0x00000090 },
   { 0x00000000, 0x00000090 },
@@ -5074,7 +5074,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_144[] = {
   { 0x00000000, 0x00000090 },
   { 0x00000000, 0x00000090 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_145[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_145[] = {
   { 0x00000000, 0x00000091 },
   { 0x00000000, 0x00000091 },
   { 0x00000000, 0x00000091 },
@@ -5107,7 +5107,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_145[] = {
   { 0x00000000, 0x00000091 },
   { 0x00000000, 0x00000091 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_146[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_146[] = {
   { 0x00000000, 0x00000092 },
   { 0x00000000, 0x00000092 },
   { 0x00000000, 0x00000092 },
@@ -5140,7 +5140,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_146[] = {
   { 0x00000000, 0x00000092 },
   { 0x00000000, 0x00000092 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_147[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_147[] = {
   { 0x00000000, 0x00000093 },
   { 0x00000000, 0x00000093 },
   { 0x00000000, 0x00000093 },
@@ -5173,7 +5173,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_147[] = {
   { 0x00000000, 0x00000093 },
   { 0x00000000, 0x00000093 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_148[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_148[] = {
   { 0x00000000, 0x00000094 },
   { 0x00000000, 0x00000094 },
   { 0x00000000, 0x00000094 },
@@ -5206,7 +5206,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_148[] = {
   { 0x00000000, 0x00000094 },
   { 0x00000000, 0x00000094 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_149[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_149[] = {
   { 0x00000000, 0x00000095 },
   { 0x00000000, 0x00000095 },
   { 0x00000000, 0x00000095 },
@@ -5239,7 +5239,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_149[] = {
   { 0x00000000, 0x00000095 },
   { 0x00000000, 0x00000095 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_150[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_150[] = {
   { 0x00000000, 0x00000096 },
   { 0x00000000, 0x00000096 },
   { 0x00000000, 0x00000096 },
@@ -5272,7 +5272,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_150[] = {
   { 0x00000000, 0x00000096 },
   { 0x00000000, 0x00000096 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_151[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_151[] = {
   { 0x00000000, 0x00000097 },
   { 0x00000000, 0x00000097 },
   { 0x00000000, 0x00000097 },
@@ -5305,7 +5305,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_151[] = {
   { 0x00000000, 0x00000097 },
   { 0x00000000, 0x00000097 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_152[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_152[] = {
   { 0x00000000, 0x00000098 },
   { 0x00000000, 0x00000098 },
   { 0x00000000, 0x00000098 },
@@ -5338,7 +5338,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_152[] = {
   { 0x00000000, 0x00000098 },
   { 0x00000000, 0x00000098 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_153[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_153[] = {
   { 0x00000000, 0x00000099 },
   { 0x00000000, 0x00000099 },
   { 0x00000000, 0x00000099 },
@@ -5371,7 +5371,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_153[] = {
   { 0x00000000, 0x00000099 },
   { 0x00000000, 0x00000099 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_154[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_154[] = {
   { 0x00000000, 0x0000009a },
   { 0x00000000, 0x0000009a },
   { 0x00000000, 0x0000009a },
@@ -5404,7 +5404,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_154[] = {
   { 0x00000000, 0x0000009a },
   { 0x00000000, 0x0000009a },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_155[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_155[] = {
   { 0x00000000, 0x0000009b },
   { 0x00000000, 0x0000009b },
   { 0x00000000, 0x0000009b },
@@ -5437,7 +5437,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_155[] = {
   { 0x00000000, 0x0000009b },
   { 0x00000000, 0x0000009b },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_156[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_156[] = {
   { 0x00000000, 0x0000009c },
   { 0x00000000, 0x0000009c },
   { 0x00000000, 0x0000009c },
@@ -5470,7 +5470,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_156[] = {
   { 0x00000000, 0x0000009c },
   { 0x00000000, 0x0000009c },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_157[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_157[] = {
   { 0x00000000, 0x0000009d },
   { 0x00000000, 0x0000009d },
   { 0x00000000, 0x0000009d },
@@ -5503,7 +5503,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_157[] = {
   { 0x00000000, 0x0000009d },
   { 0x00000000, 0x0000009d },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_158[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_158[] = {
   { 0x00000000, 0x0000009e },
   { 0x00000000, 0x0000009e },
   { 0x00000000, 0x0000009e },
@@ -5536,7 +5536,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_158[] = {
   { 0x00000000, 0x0000009e },
   { 0x00000000, 0x0000009e },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_159[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_159[] = {
   { 0x00000000, 0x0000009f },
   { 0x00000000, 0x0000009f },
   { 0x00000000, 0x0000009f },
@@ -5569,7 +5569,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_159[] = {
   { 0x00000000, 0x0000009f },
   { 0x00000000, 0x0000009f },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_160[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_160[] = {
   { 0x00000000, 0x000000a0 },
   { 0x00000000, 0x000000a0 },
   { 0x00000000, 0x000000a0 },
@@ -5602,7 +5602,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_160[] = {
   { 0x00000000, 0x000000a0 },
   { 0x00000000, 0x000000a0 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_161[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_161[] = {
   { 0x00000000, 0x000000a1 },
   { 0x00000000, 0x000000a1 },
   { 0x00000000, 0x000000a1 },
@@ -5635,7 +5635,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_161[] = {
   { 0x00000000, 0x000000a1 },
   { 0x00000000, 0x000000a1 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_162[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_162[] = {
   { 0x00000000, 0x000000a2 },
   { 0x00000000, 0x000000a2 },
   { 0x00000000, 0x000000a2 },
@@ -5668,7 +5668,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_162[] = {
   { 0x00000000, 0x000000a2 },
   { 0x00000000, 0x000000a2 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_163[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_163[] = {
   { 0x00000000, 0x000000a3 },
   { 0x00000000, 0x000000a3 },
   { 0x00000000, 0x000000a3 },
@@ -5701,7 +5701,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_163[] = {
   { 0x00000000, 0x000000a3 },
   { 0x00000000, 0x000000a3 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_164[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_164[] = {
   { 0x00000000, 0x000000a4 },
   { 0x00000000, 0x000000a4 },
   { 0x00000000, 0x000000a4 },
@@ -5734,7 +5734,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_164[] = {
   { 0x00000000, 0x000000a4 },
   { 0x00000000, 0x000000a4 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_165[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_165[] = {
   { 0x00000000, 0x000000a5 },
   { 0x00000000, 0x000000a5 },
   { 0x00000000, 0x000000a5 },
@@ -5767,7 +5767,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_165[] = {
   { 0x00000000, 0x000000a5 },
   { 0x00000000, 0x000000a5 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_166[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_166[] = {
   { 0x00000000, 0x000000a6 },
   { 0x00000000, 0x000000a6 },
   { 0x00000000, 0x000000a6 },
@@ -5800,7 +5800,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_166[] = {
   { 0x00000000, 0x000000a6 },
   { 0x00000000, 0x000000a6 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_167[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_167[] = {
   { 0x00000000, 0x000000a7 },
   { 0x00000000, 0x000000a7 },
   { 0x00000000, 0x000000a7 },
@@ -5833,7 +5833,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_167[] = {
   { 0x00000000, 0x000000a7 },
   { 0x00000000, 0x000000a7 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_168[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_168[] = {
   { 0x00000000, 0x000000a8 },
   { 0x00000000, 0x000000a8 },
   { 0x00000000, 0x000000a8 },
@@ -5866,7 +5866,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_168[] = {
   { 0x00000000, 0x000000a8 },
   { 0x00000000, 0x000000a8 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_169[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_169[] = {
   { 0x00000000, 0x000000a9 },
   { 0x00000000, 0x000000a9 },
   { 0x00000000, 0x000000a9 },
@@ -5899,7 +5899,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_169[] = {
   { 0x00000000, 0x000000a9 },
   { 0x00000000, 0x000000a9 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_170[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_170[] = {
   { 0x00000000, 0x000000aa },
   { 0x00000000, 0x000000aa },
   { 0x00000000, 0x000000aa },
@@ -5932,7 +5932,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_170[] = {
   { 0x00000000, 0x000000aa },
   { 0x00000000, 0x000000aa },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_171[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_171[] = {
   { 0x00000000, 0x000000ab },
   { 0x00000000, 0x000000ab },
   { 0x00000000, 0x000000ab },
@@ -5965,7 +5965,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_171[] = {
   { 0x00000000, 0x000000ab },
   { 0x00000000, 0x000000ab },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_172[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_172[] = {
   { 0x00000000, 0x000000ac },
   { 0x00000000, 0x000000ac },
   { 0x00000000, 0x000000ac },
@@ -5998,7 +5998,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_172[] = {
   { 0x00000000, 0x000000ac },
   { 0x00000000, 0x000000ac },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_173[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_173[] = {
   { 0x00000000, 0x000000ad },
   { 0x00000000, 0x000000ad },
   { 0x00000000, 0x000000ad },
@@ -6031,7 +6031,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_173[] = {
   { 0x00000000, 0x000000ad },
   { 0x00000000, 0x000000ad },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_174[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_174[] = {
   { 0x00000000, 0x000000ae },
   { 0x00000000, 0x000000ae },
   { 0x00000000, 0x000000ae },
@@ -6064,7 +6064,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_174[] = {
   { 0x00000000, 0x000000ae },
   { 0x00000000, 0x000000ae },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_175[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_175[] = {
   { 0x00000000, 0x000000af },
   { 0x00000000, 0x000000af },
   { 0x00000000, 0x000000af },
@@ -6097,7 +6097,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_175[] = {
   { 0x00000000, 0x000000af },
   { 0x00000000, 0x000000af },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_176[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_176[] = {
   { 0x00000000, 0x000000b0 },
   { 0x00000000, 0x000000b0 },
   { 0x00000000, 0x000000b0 },
@@ -6130,7 +6130,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_176[] = {
   { 0x00000000, 0x000000b0 },
   { 0x00000000, 0x000000b0 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_177[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_177[] = {
   { 0x00000000, 0x000000b1 },
   { 0x00000000, 0x000000b1 },
   { 0x00000000, 0x000000b1 },
@@ -6163,7 +6163,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_177[] = {
   { 0x00000000, 0x000000b1 },
   { 0x00000000, 0x000000b1 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_178[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_178[] = {
   { 0x00000000, 0x000000b2 },
   { 0x00000000, 0x000000b2 },
   { 0x00000000, 0x000000b2 },
@@ -6196,7 +6196,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_178[] = {
   { 0x00000000, 0x000000b2 },
   { 0x00000000, 0x000000b2 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_179[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_179[] = {
   { 0x00000000, 0x000000b3 },
   { 0x00000000, 0x000000b3 },
   { 0x00000000, 0x000000b3 },
@@ -6229,7 +6229,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_179[] = {
   { 0x00000000, 0x000000b3 },
   { 0x00000000, 0x000000b3 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_180[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_180[] = {
   { 0x00000000, 0x000000b4 },
   { 0x00000000, 0x000000b4 },
   { 0x00000000, 0x000000b4 },
@@ -6262,7 +6262,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_180[] = {
   { 0x00000000, 0x000000b4 },
   { 0x00000000, 0x000000b4 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_181[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_181[] = {
   { 0x00000000, 0x000000b5 },
   { 0x00000000, 0x000000b5 },
   { 0x00000000, 0x000000b5 },
@@ -6295,7 +6295,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_181[] = {
   { 0x00000000, 0x000000b5 },
   { 0x00000000, 0x000000b5 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_182[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_182[] = {
   { 0x00000000, 0x000000b6 },
   { 0x00000000, 0x000000b6 },
   { 0x00000000, 0x000000b6 },
@@ -6328,7 +6328,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_182[] = {
   { 0x00000000, 0x000000b6 },
   { 0x00000000, 0x000000b6 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_183[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_183[] = {
   { 0x00000000, 0x000000b7 },
   { 0x00000000, 0x000000b7 },
   { 0x00000000, 0x000000b7 },
@@ -6361,7 +6361,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_183[] = {
   { 0x00000000, 0x000000b7 },
   { 0x00000000, 0x000000b7 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_184[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_184[] = {
   { 0x00000000, 0x000000b8 },
   { 0x00000000, 0x000000b8 },
   { 0x00000000, 0x000000b8 },
@@ -6394,7 +6394,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_184[] = {
   { 0x00000000, 0x000000b8 },
   { 0x00000000, 0x000000b8 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_185[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_185[] = {
   { 0x00000000, 0x000000b9 },
   { 0x00000000, 0x000000b9 },
   { 0x00000000, 0x000000b9 },
@@ -6427,7 +6427,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_185[] = {
   { 0x00000000, 0x000000b9 },
   { 0x00000000, 0x000000b9 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_186[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_186[] = {
   { 0x00000000, 0x000000ba },
   { 0x00000000, 0x000000ba },
   { 0x00000000, 0x000000ba },
@@ -6460,7 +6460,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_186[] = {
   { 0x00000000, 0x000000ba },
   { 0x00000000, 0x000000ba },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_187[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_187[] = {
   { 0x00000000, 0x000000bb },
   { 0x00000000, 0x000000bb },
   { 0x00000000, 0x000000bb },
@@ -6493,7 +6493,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_187[] = {
   { 0x00000000, 0x000000bb },
   { 0x00000000, 0x000000bb },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_188[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_188[] = {
   { 0x00000000, 0x000000bc },
   { 0x00000000, 0x000000bc },
   { 0x00000000, 0x000000bc },
@@ -6526,7 +6526,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_188[] = {
   { 0x00000000, 0x000000bc },
   { 0x00000000, 0x000000bc },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_189[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_189[] = {
   { 0x00000000, 0x000000bd },
   { 0x00000000, 0x000000bd },
   { 0x00000000, 0x000000bd },
@@ -6559,7 +6559,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_189[] = {
   { 0x00000000, 0x000000bd },
   { 0x00000000, 0x000000bd },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_190[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_190[] = {
   { 0x00000000, 0x000000be },
   { 0x00000000, 0x000000be },
   { 0x00000000, 0x000000be },
@@ -6592,7 +6592,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_190[] = {
   { 0x00000000, 0x000000be },
   { 0x00000000, 0x000000be },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_191[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_191[] = {
   { 0x00000000, 0x000000bf },
   { 0x00000000, 0x000000bf },
   { 0x00000000, 0x000000bf },
@@ -6625,7 +6625,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_191[] = {
   { 0x00000000, 0x000000bf },
   { 0x00000000, 0x000000bf },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_192[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_192[] = {
   { 0x00000000, 0x000000c0 },
   { 0x00000000, 0x000000c0 },
   { 0x00000000, 0x000000c0 },
@@ -6658,7 +6658,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_192[] = {
   { 0x00000000, 0x000000c0 },
   { 0x00000000, 0x000000c0 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_193[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_193[] = {
   { 0x00000000, 0x000000c1 },
   { 0x00000000, 0x000000c1 },
   { 0x00000000, 0x000000c1 },
@@ -6691,7 +6691,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_193[] = {
   { 0x00000000, 0x000000c1 },
   { 0x00000000, 0x000000c1 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_194[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_194[] = {
   { 0x00000000, 0x000000c2 },
   { 0x00000000, 0x000000c2 },
   { 0x00000000, 0x000000c2 },
@@ -6724,7 +6724,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_194[] = {
   { 0x00000000, 0x000000c2 },
   { 0x00000000, 0x000000c2 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_195[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_195[] = {
   { 0x00000000, 0x000000c3 },
   { 0x00000000, 0x000000c3 },
   { 0x00000000, 0x000000c3 },
@@ -6757,7 +6757,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_195[] = {
   { 0x00000000, 0x000000c3 },
   { 0x00000000, 0x000000c3 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_196[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_196[] = {
   { 0x00000000, 0x000000c4 },
   { 0x00000000, 0x000000c4 },
   { 0x00000000, 0x000000c4 },
@@ -6790,7 +6790,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_196[] = {
   { 0x00000000, 0x000000c4 },
   { 0x00000000, 0x000000c4 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_197[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_197[] = {
   { 0x00000000, 0x000000c5 },
   { 0x00000000, 0x000000c5 },
   { 0x00000000, 0x000000c5 },
@@ -6823,7 +6823,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_197[] = {
   { 0x00000000, 0x000000c5 },
   { 0x00000000, 0x000000c5 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_198[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_198[] = {
   { 0x00000000, 0x000000c6 },
   { 0x00000000, 0x000000c6 },
   { 0x00000000, 0x000000c6 },
@@ -6856,7 +6856,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_198[] = {
   { 0x00000000, 0x000000c6 },
   { 0x00000000, 0x000000c6 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_199[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_199[] = {
   { 0x00000000, 0x000000c7 },
   { 0x00000000, 0x000000c7 },
   { 0x00000000, 0x000000c7 },
@@ -6889,7 +6889,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_199[] = {
   { 0x00000000, 0x000000c7 },
   { 0x00000000, 0x000000c7 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_200[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_200[] = {
   { 0x00000000, 0x000000c8 },
   { 0x00000000, 0x000000c8 },
   { 0x00000000, 0x000000c8 },
@@ -6922,7 +6922,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_200[] = {
   { 0x00000000, 0x000000c8 },
   { 0x00000000, 0x000000c8 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_201[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_201[] = {
   { 0x00000000, 0x000000c9 },
   { 0x00000000, 0x000000c9 },
   { 0x00000000, 0x000000c9 },
@@ -6955,7 +6955,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_201[] = {
   { 0x00000000, 0x000000c9 },
   { 0x00000000, 0x000000c9 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_202[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_202[] = {
   { 0x00000000, 0x000000ca },
   { 0x00000000, 0x000000ca },
   { 0x00000000, 0x000000ca },
@@ -6988,7 +6988,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_202[] = {
   { 0x00000000, 0x000000ca },
   { 0x00000000, 0x000000ca },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_203[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_203[] = {
   { 0x00000000, 0x000000cb },
   { 0x00000000, 0x000000cb },
   { 0x00000000, 0x000000cb },
@@ -7021,7 +7021,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_203[] = {
   { 0x00000000, 0x000000cb },
   { 0x00000000, 0x000000cb },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_204[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_204[] = {
   { 0x00000000, 0x000000cc },
   { 0x00000000, 0x000000cc },
   { 0x00000000, 0x000000cc },
@@ -7054,7 +7054,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_204[] = {
   { 0x00000000, 0x000000cc },
   { 0x00000000, 0x000000cc },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_205[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_205[] = {
   { 0x00000000, 0x000000cd },
   { 0x00000000, 0x000000cd },
   { 0x00000000, 0x000000cd },
@@ -7087,7 +7087,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_205[] = {
   { 0x00000000, 0x000000cd },
   { 0x00000000, 0x000000cd },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_206[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_206[] = {
   { 0x00000000, 0x000000ce },
   { 0x00000000, 0x000000ce },
   { 0x00000000, 0x000000ce },
@@ -7120,7 +7120,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_206[] = {
   { 0x00000000, 0x000000ce },
   { 0x00000000, 0x000000ce },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_207[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_207[] = {
   { 0x00000000, 0x000000cf },
   { 0x00000000, 0x000000cf },
   { 0x00000000, 0x000000cf },
@@ -7153,7 +7153,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_207[] = {
   { 0x00000000, 0x000000cf },
   { 0x00000000, 0x000000cf },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_208[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_208[] = {
   { 0x00000000, 0x000000d0 },
   { 0x00000000, 0x000000d0 },
   { 0x00000000, 0x000000d0 },
@@ -7186,7 +7186,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_208[] = {
   { 0x00000000, 0x000000d0 },
   { 0x00000000, 0x000000d0 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_209[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_209[] = {
   { 0x00000000, 0x000000d1 },
   { 0x00000000, 0x000000d1 },
   { 0x00000000, 0x000000d1 },
@@ -7219,7 +7219,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_209[] = {
   { 0x00000000, 0x000000d1 },
   { 0x00000000, 0x000000d1 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_210[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_210[] = {
   { 0x00000000, 0x000000d2 },
   { 0x00000000, 0x000000d2 },
   { 0x00000000, 0x000000d2 },
@@ -7252,7 +7252,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_210[] = {
   { 0x00000000, 0x000000d2 },
   { 0x00000000, 0x000000d2 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_211[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_211[] = {
   { 0x00000000, 0x000000d3 },
   { 0x00000000, 0x000000d3 },
   { 0x00000000, 0x000000d3 },
@@ -7285,7 +7285,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_211[] = {
   { 0x00000000, 0x000000d3 },
   { 0x00000000, 0x000000d3 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_212[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_212[] = {
   { 0x00000000, 0x000000d4 },
   { 0x00000000, 0x000000d4 },
   { 0x00000000, 0x000000d4 },
@@ -7318,7 +7318,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_212[] = {
   { 0x00000000, 0x000000d4 },
   { 0x00000000, 0x000000d4 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_213[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_213[] = {
   { 0x00000000, 0x000000d5 },
   { 0x00000000, 0x000000d5 },
   { 0x00000000, 0x000000d5 },
@@ -7351,7 +7351,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_213[] = {
   { 0x00000000, 0x000000d5 },
   { 0x00000000, 0x000000d5 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_214[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_214[] = {
   { 0x00000000, 0x000000d6 },
   { 0x00000000, 0x000000d6 },
   { 0x00000000, 0x000000d6 },
@@ -7384,7 +7384,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_214[] = {
   { 0x00000000, 0x000000d6 },
   { 0x00000000, 0x000000d6 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_215[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_215[] = {
   { 0x00000000, 0x000000d7 },
   { 0x00000000, 0x000000d7 },
   { 0x00000000, 0x000000d7 },
@@ -7417,7 +7417,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_215[] = {
   { 0x00000000, 0x000000d7 },
   { 0x00000000, 0x000000d7 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_216[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_216[] = {
   { 0x00000000, 0x000000d8 },
   { 0x00000000, 0x000000d8 },
   { 0x00000000, 0x000000d8 },
@@ -7450,7 +7450,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_216[] = {
   { 0x00000000, 0x000000d8 },
   { 0x00000000, 0x000000d8 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_217[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_217[] = {
   { 0x00000000, 0x000000d9 },
   { 0x00000000, 0x000000d9 },
   { 0x00000000, 0x000000d9 },
@@ -7483,7 +7483,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_217[] = {
   { 0x00000000, 0x000000d9 },
   { 0x00000000, 0x000000d9 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_218[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_218[] = {
   { 0x00000000, 0x000000da },
   { 0x00000000, 0x000000da },
   { 0x00000000, 0x000000da },
@@ -7516,7 +7516,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_218[] = {
   { 0x00000000, 0x000000da },
   { 0x00000000, 0x000000da },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_219[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_219[] = {
   { 0x00000000, 0x000000db },
   { 0x00000000, 0x000000db },
   { 0x00000000, 0x000000db },
@@ -7549,7 +7549,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_219[] = {
   { 0x00000000, 0x000000db },
   { 0x00000000, 0x000000db },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_220[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_220[] = {
   { 0x00000000, 0x000000dc },
   { 0x00000000, 0x000000dc },
   { 0x00000000, 0x000000dc },
@@ -7582,7 +7582,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_220[] = {
   { 0x00000000, 0x000000dc },
   { 0x00000000, 0x000000dc },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_221[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_221[] = {
   { 0x00000000, 0x000000dd },
   { 0x00000000, 0x000000dd },
   { 0x00000000, 0x000000dd },
@@ -7615,7 +7615,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_221[] = {
   { 0x00000000, 0x000000dd },
   { 0x00000000, 0x000000dd },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_222[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_222[] = {
   { 0x00000000, 0x000000de },
   { 0x00000000, 0x000000de },
   { 0x00000000, 0x000000de },
@@ -7648,7 +7648,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_222[] = {
   { 0x00000000, 0x000000de },
   { 0x00000000, 0x000000de },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_223[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_223[] = {
   { 0x00000000, 0x000000df },
   { 0x00000000, 0x000000df },
   { 0x00000000, 0x000000df },
@@ -7681,7 +7681,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_223[] = {
   { 0x00000000, 0x000000df },
   { 0x00000000, 0x000000df },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_224[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_224[] = {
   { 0x00000000, 0x000000e0 },
   { 0x00000000, 0x000000e0 },
   { 0x00000000, 0x000000e0 },
@@ -7714,7 +7714,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_224[] = {
   { 0x00000000, 0x000000e0 },
   { 0x00000000, 0x000000e0 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_225[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_225[] = {
   { 0x00000000, 0x000000e1 },
   { 0x00000000, 0x000000e1 },
   { 0x00000000, 0x000000e1 },
@@ -7747,7 +7747,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_225[] = {
   { 0x00000000, 0x000000e1 },
   { 0x00000000, 0x000000e1 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_226[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_226[] = {
   { 0x00000000, 0x000000e2 },
   { 0x00000000, 0x000000e2 },
   { 0x00000000, 0x000000e2 },
@@ -7780,7 +7780,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_226[] = {
   { 0x00000000, 0x000000e2 },
   { 0x00000000, 0x000000e2 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_227[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_227[] = {
   { 0x00000000, 0x000000e3 },
   { 0x00000000, 0x000000e3 },
   { 0x00000000, 0x000000e3 },
@@ -7813,7 +7813,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_227[] = {
   { 0x00000000, 0x000000e3 },
   { 0x00000000, 0x000000e3 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_228[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_228[] = {
   { 0x00000000, 0x000000e4 },
   { 0x00000000, 0x000000e4 },
   { 0x00000000, 0x000000e4 },
@@ -7846,7 +7846,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_228[] = {
   { 0x00000000, 0x000000e4 },
   { 0x00000000, 0x000000e4 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_229[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_229[] = {
   { 0x00000000, 0x000000e5 },
   { 0x00000000, 0x000000e5 },
   { 0x00000000, 0x000000e5 },
@@ -7879,7 +7879,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_229[] = {
   { 0x00000000, 0x000000e5 },
   { 0x00000000, 0x000000e5 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_230[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_230[] = {
   { 0x00000000, 0x000000e6 },
   { 0x00000000, 0x000000e6 },
   { 0x00000000, 0x000000e6 },
@@ -7912,7 +7912,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_230[] = {
   { 0x00000000, 0x000000e6 },
   { 0x00000000, 0x000000e6 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_231[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_231[] = {
   { 0x00000000, 0x000000e7 },
   { 0x00000000, 0x000000e7 },
   { 0x00000000, 0x000000e7 },
@@ -7945,7 +7945,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_231[] = {
   { 0x00000000, 0x000000e7 },
   { 0x00000000, 0x000000e7 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_232[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_232[] = {
   { 0x00000000, 0x000000e8 },
   { 0x00000000, 0x000000e8 },
   { 0x00000000, 0x000000e8 },
@@ -7978,7 +7978,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_232[] = {
   { 0x00000000, 0x000000e8 },
   { 0x00000000, 0x000000e8 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_233[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_233[] = {
   { 0x00000000, 0x000000e9 },
   { 0x00000000, 0x000000e9 },
   { 0x00000000, 0x000000e9 },
@@ -8011,7 +8011,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_233[] = {
   { 0x00000000, 0x000000e9 },
   { 0x00000000, 0x000000e9 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_234[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_234[] = {
   { 0x00000000, 0x000000ea },
   { 0x00000000, 0x000000ea },
   { 0x00000000, 0x000000ea },
@@ -8044,7 +8044,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_234[] = {
   { 0x00000000, 0x000000ea },
   { 0x00000000, 0x000000ea },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_235[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_235[] = {
   { 0x00000000, 0x000000eb },
   { 0x00000000, 0x000000eb },
   { 0x00000000, 0x000000eb },
@@ -8077,7 +8077,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_235[] = {
   { 0x00000000, 0x000000eb },
   { 0x00000000, 0x000000eb },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_236[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_236[] = {
   { 0x00000000, 0x000000ec },
   { 0x00000000, 0x000000ec },
   { 0x00000000, 0x000000ec },
@@ -8110,7 +8110,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_236[] = {
   { 0x00000000, 0x000000ec },
   { 0x00000000, 0x000000ec },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_237[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_237[] = {
   { 0x00000000, 0x000000ed },
   { 0x00000000, 0x000000ed },
   { 0x00000000, 0x000000ed },
@@ -8143,7 +8143,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_237[] = {
   { 0x00000000, 0x000000ed },
   { 0x00000000, 0x000000ed },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_238[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_238[] = {
   { 0x00000000, 0x000000ee },
   { 0x00000000, 0x000000ee },
   { 0x00000000, 0x000000ee },
@@ -8176,7 +8176,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_238[] = {
   { 0x00000000, 0x000000ee },
   { 0x00000000, 0x000000ee },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_239[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_239[] = {
   { 0x00000000, 0x000000ef },
   { 0x00000000, 0x000000ef },
   { 0x00000000, 0x000000ef },
@@ -8209,7 +8209,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_239[] = {
   { 0x00000000, 0x000000ef },
   { 0x00000000, 0x000000ef },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_240[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_240[] = {
   { 0x00000000, 0x000000f0 },
   { 0x00000000, 0x000000f0 },
   { 0x00000000, 0x000000f0 },
@@ -8242,7 +8242,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_240[] = {
   { 0x00000000, 0x000000f0 },
   { 0x00000000, 0x000000f0 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_241[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_241[] = {
   { 0x00000000, 0x000000f1 },
   { 0x00000000, 0x000000f1 },
   { 0x00000000, 0x000000f1 },
@@ -8275,7 +8275,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_241[] = {
   { 0x00000000, 0x000000f1 },
   { 0x00000000, 0x000000f1 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_242[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_242[] = {
   { 0x00000000, 0x000000f2 },
   { 0x00000000, 0x000000f2 },
   { 0x00000000, 0x000000f2 },
@@ -8308,7 +8308,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_242[] = {
   { 0x00000000, 0x000000f2 },
   { 0x00000000, 0x000000f2 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_243[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_243[] = {
   { 0x00000000, 0x000000f3 },
   { 0x00000000, 0x000000f3 },
   { 0x00000000, 0x000000f3 },
@@ -8341,7 +8341,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_243[] = {
   { 0x00000000, 0x000000f3 },
   { 0x00000000, 0x000000f3 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_244[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_244[] = {
   { 0x00000000, 0x000000f4 },
   { 0x00000000, 0x000000f4 },
   { 0x00000000, 0x000000f4 },
@@ -8374,7 +8374,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_244[] = {
   { 0x00000000, 0x000000f4 },
   { 0x00000000, 0x000000f4 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_245[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_245[] = {
   { 0x00000000, 0x000000f5 },
   { 0x00000000, 0x000000f5 },
   { 0x00000000, 0x000000f5 },
@@ -8407,7 +8407,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_245[] = {
   { 0x00000000, 0x000000f5 },
   { 0x00000000, 0x000000f5 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_246[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_246[] = {
   { 0x00000000, 0x000000f6 },
   { 0x00000000, 0x000000f6 },
   { 0x00000000, 0x000000f6 },
@@ -8440,7 +8440,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_246[] = {
   { 0x00000000, 0x000000f6 },
   { 0x00000000, 0x000000f6 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_247[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_247[] = {
   { 0x00000000, 0x000000f7 },
   { 0x00000000, 0x000000f7 },
   { 0x00000000, 0x000000f7 },
@@ -8473,7 +8473,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_247[] = {
   { 0x00000000, 0x000000f7 },
   { 0x00000000, 0x000000f7 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_248[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_248[] = {
   { 0x00000000, 0x000000f8 },
   { 0x00000000, 0x000000f8 },
   { 0x00000000, 0x000000f8 },
@@ -8506,7 +8506,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_248[] = {
   { 0x00000000, 0x000000f8 },
   { 0x00000000, 0x000000f8 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_249[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_249[] = {
   { 0x00000000, 0x000000f9 },
   { 0x00000000, 0x000000f9 },
   { 0x00000000, 0x000000f9 },
@@ -8539,7 +8539,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_249[] = {
   { 0x00000000, 0x000000f9 },
   { 0x00000000, 0x000000f9 },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_250[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_250[] = {
   { 0x00000000, 0x000000fa },
   { 0x00000000, 0x000000fa },
   { 0x00000000, 0x000000fa },
@@ -8572,7 +8572,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_250[] = {
   { 0x00000000, 0x000000fa },
   { 0x00000000, 0x000000fa },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_251[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_251[] = {
   { 0x00000000, 0x000000fb },
   { 0x00000000, 0x000000fb },
   { 0x00000000, 0x000000fb },
@@ -8605,7 +8605,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_251[] = {
   { 0x00000000, 0x000000fb },
   { 0x00000000, 0x000000fb },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_252[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_252[] = {
   { 0x00000000, 0x000000fc },
   { 0x00000000, 0x000000fc },
   { 0x00000000, 0x000000fc },
@@ -8638,7 +8638,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_252[] = {
   { 0x00000000, 0x000000fc },
   { 0x00000000, 0x000000fc },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_253[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_253[] = {
   { 0x00000000, 0x000000fd },
   { 0x00000000, 0x000000fd },
   { 0x00000000, 0x000000fd },
@@ -8671,7 +8671,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_253[] = {
   { 0x00000000, 0x000000fd },
   { 0x00000000, 0x000000fd },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_254[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_254[] = {
   { 0x00000000, 0x000000fe },
   { 0x00000000, 0x000000fe },
   { 0x00000000, 0x000000fe },
@@ -8704,7 +8704,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_254[] = {
   { 0x00000000, 0x000000fe },
   { 0x00000000, 0x000000fe },
 };
-static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_255[] = {
+const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_255[] = {
   { 0x00000000, 0x000000ff },
   { 0x00000000, 0x000000ff },
   { 0x00000000, 0x000000ff },
@@ -8737,7 +8737,7 @@ static const Inputs kOutputs_Movs_ModifiedImmediate_al_r0_255[] = {
   { 0x00000000, 0x000000ff },
   { 0x00000000, 0x000000ff },
 };
-static const TestResult kReferenceMovs[] = {
+const TestResult kReferenceMovs[] = {
   {
     ARRAY_SIZE(kOutputs_Movs_Condition_eq_r0_0),
     kOutputs_Movs_Condition_eq_r0_0,

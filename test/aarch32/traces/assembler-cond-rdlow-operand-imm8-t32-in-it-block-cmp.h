@@ -34,3007 +34,3007 @@
 #ifndef VIXL_ASSEMBLER_COND_RDLOW_OPERAND_IMM8_T32_IN_IT_BLOCK_CMP_H_
 #define VIXL_ASSEMBLER_COND_RDLOW_OPERAND_IMM8_T32_IN_IT_BLOCK_CMP_H_
 
-static const byte kInstruction_cmp_vc_r1_111[] = {
+const byte kInstruction_cmp_vc_r1_111[] = {
   0x78, 0xbf, 0x6f, 0x29 // It vc; cmp vc r1 111
 };
-static const byte kInstruction_cmp_ne_r1_134[] = {
+const byte kInstruction_cmp_ne_r1_134[] = {
   0x18, 0xbf, 0x86, 0x29 // It ne; cmp ne r1 134
 };
-static const byte kInstruction_cmp_ne_r5_21[] = {
+const byte kInstruction_cmp_ne_r5_21[] = {
   0x18, 0xbf, 0x15, 0x2d // It ne; cmp ne r5 21
 };
-static const byte kInstruction_cmp_cs_r6_221[] = {
+const byte kInstruction_cmp_cs_r6_221[] = {
   0x28, 0xbf, 0xdd, 0x2e // It cs; cmp cs r6 221
 };
-static const byte kInstruction_cmp_cs_r3_100[] = {
+const byte kInstruction_cmp_cs_r3_100[] = {
   0x28, 0xbf, 0x64, 0x2b // It cs; cmp cs r3 100
 };
-static const byte kInstruction_cmp_le_r2_209[] = {
+const byte kInstruction_cmp_le_r2_209[] = {
   0xd8, 0xbf, 0xd1, 0x2a // It le; cmp le r2 209
 };
-static const byte kInstruction_cmp_ls_r7_8[] = {
+const byte kInstruction_cmp_ls_r7_8[] = {
   0x98, 0xbf, 0x08, 0x2f // It ls; cmp ls r7 8
 };
-static const byte kInstruction_cmp_cs_r7_201[] = {
+const byte kInstruction_cmp_cs_r7_201[] = {
   0x28, 0xbf, 0xc9, 0x2f // It cs; cmp cs r7 201
 };
-static const byte kInstruction_cmp_ne_r3_112[] = {
+const byte kInstruction_cmp_ne_r3_112[] = {
   0x18, 0xbf, 0x70, 0x2b // It ne; cmp ne r3 112
 };
-static const byte kInstruction_cmp_lt_r4_152[] = {
+const byte kInstruction_cmp_lt_r4_152[] = {
   0xb8, 0xbf, 0x98, 0x2c // It lt; cmp lt r4 152
 };
-static const byte kInstruction_cmp_mi_r4_165[] = {
+const byte kInstruction_cmp_mi_r4_165[] = {
   0x48, 0xbf, 0xa5, 0x2c // It mi; cmp mi r4 165
 };
-static const byte kInstruction_cmp_eq_r6_175[] = {
+const byte kInstruction_cmp_eq_r6_175[] = {
   0x08, 0xbf, 0xaf, 0x2e // It eq; cmp eq r6 175
 };
-static const byte kInstruction_cmp_hi_r3_187[] = {
+const byte kInstruction_cmp_hi_r3_187[] = {
   0x88, 0xbf, 0xbb, 0x2b // It hi; cmp hi r3 187
 };
-static const byte kInstruction_cmp_ne_r0_192[] = {
+const byte kInstruction_cmp_ne_r0_192[] = {
   0x18, 0xbf, 0xc0, 0x28 // It ne; cmp ne r0 192
 };
-static const byte kInstruction_cmp_vc_r7_207[] = {
+const byte kInstruction_cmp_vc_r7_207[] = {
   0x78, 0xbf, 0xcf, 0x2f // It vc; cmp vc r7 207
 };
-static const byte kInstruction_cmp_vs_r3_135[] = {
+const byte kInstruction_cmp_vs_r3_135[] = {
   0x68, 0xbf, 0x87, 0x2b // It vs; cmp vs r3 135
 };
-static const byte kInstruction_cmp_cs_r4_204[] = {
+const byte kInstruction_cmp_cs_r4_204[] = {
   0x28, 0xbf, 0xcc, 0x2c // It cs; cmp cs r4 204
 };
-static const byte kInstruction_cmp_gt_r0_122[] = {
+const byte kInstruction_cmp_gt_r0_122[] = {
   0xc8, 0xbf, 0x7a, 0x28 // It gt; cmp gt r0 122
 };
-static const byte kInstruction_cmp_lt_r4_185[] = {
+const byte kInstruction_cmp_lt_r4_185[] = {
   0xb8, 0xbf, 0xb9, 0x2c // It lt; cmp lt r4 185
 };
-static const byte kInstruction_cmp_eq_r2_187[] = {
+const byte kInstruction_cmp_eq_r2_187[] = {
   0x08, 0xbf, 0xbb, 0x2a // It eq; cmp eq r2 187
 };
-static const byte kInstruction_cmp_ne_r5_226[] = {
+const byte kInstruction_cmp_ne_r5_226[] = {
   0x18, 0xbf, 0xe2, 0x2d // It ne; cmp ne r5 226
 };
-static const byte kInstruction_cmp_ge_r1_250[] = {
+const byte kInstruction_cmp_ge_r1_250[] = {
   0xa8, 0xbf, 0xfa, 0x29 // It ge; cmp ge r1 250
 };
-static const byte kInstruction_cmp_lt_r7_97[] = {
+const byte kInstruction_cmp_lt_r7_97[] = {
   0xb8, 0xbf, 0x61, 0x2f // It lt; cmp lt r7 97
 };
-static const byte kInstruction_cmp_cs_r4_21[] = {
+const byte kInstruction_cmp_cs_r4_21[] = {
   0x28, 0xbf, 0x15, 0x2c // It cs; cmp cs r4 21
 };
-static const byte kInstruction_cmp_vc_r0_217[] = {
+const byte kInstruction_cmp_vc_r0_217[] = {
   0x78, 0xbf, 0xd9, 0x28 // It vc; cmp vc r0 217
 };
-static const byte kInstruction_cmp_mi_r1_81[] = {
+const byte kInstruction_cmp_mi_r1_81[] = {
   0x48, 0xbf, 0x51, 0x29 // It mi; cmp mi r1 81
 };
-static const byte kInstruction_cmp_cc_r5_156[] = {
+const byte kInstruction_cmp_cc_r5_156[] = {
   0x38, 0xbf, 0x9c, 0x2d // It cc; cmp cc r5 156
 };
-static const byte kInstruction_cmp_ne_r7_171[] = {
+const byte kInstruction_cmp_ne_r7_171[] = {
   0x18, 0xbf, 0xab, 0x2f // It ne; cmp ne r7 171
 };
-static const byte kInstruction_cmp_vs_r2_252[] = {
+const byte kInstruction_cmp_vs_r2_252[] = {
   0x68, 0xbf, 0xfc, 0x2a // It vs; cmp vs r2 252
 };
-static const byte kInstruction_cmp_lt_r4_103[] = {
+const byte kInstruction_cmp_lt_r4_103[] = {
   0xb8, 0xbf, 0x67, 0x2c // It lt; cmp lt r4 103
 };
-static const byte kInstruction_cmp_ge_r6_203[] = {
+const byte kInstruction_cmp_ge_r6_203[] = {
   0xa8, 0xbf, 0xcb, 0x2e // It ge; cmp ge r6 203
 };
-static const byte kInstruction_cmp_ne_r4_234[] = {
+const byte kInstruction_cmp_ne_r4_234[] = {
   0x18, 0xbf, 0xea, 0x2c // It ne; cmp ne r4 234
 };
-static const byte kInstruction_cmp_mi_r2_27[] = {
+const byte kInstruction_cmp_mi_r2_27[] = {
   0x48, 0xbf, 0x1b, 0x2a // It mi; cmp mi r2 27
 };
-static const byte kInstruction_cmp_ne_r4_224[] = {
+const byte kInstruction_cmp_ne_r4_224[] = {
   0x18, 0xbf, 0xe0, 0x2c // It ne; cmp ne r4 224
 };
-static const byte kInstruction_cmp_gt_r3_124[] = {
+const byte kInstruction_cmp_gt_r3_124[] = {
   0xc8, 0xbf, 0x7c, 0x2b // It gt; cmp gt r3 124
 };
-static const byte kInstruction_cmp_lt_r4_49[] = {
+const byte kInstruction_cmp_lt_r4_49[] = {
   0xb8, 0xbf, 0x31, 0x2c // It lt; cmp lt r4 49
 };
-static const byte kInstruction_cmp_gt_r1_201[] = {
+const byte kInstruction_cmp_gt_r1_201[] = {
   0xc8, 0xbf, 0xc9, 0x29 // It gt; cmp gt r1 201
 };
-static const byte kInstruction_cmp_ge_r4_133[] = {
+const byte kInstruction_cmp_ge_r4_133[] = {
   0xa8, 0xbf, 0x85, 0x2c // It ge; cmp ge r4 133
 };
-static const byte kInstruction_cmp_hi_r4_176[] = {
+const byte kInstruction_cmp_hi_r4_176[] = {
   0x88, 0xbf, 0xb0, 0x2c // It hi; cmp hi r4 176
 };
-static const byte kInstruction_cmp_pl_r3_94[] = {
+const byte kInstruction_cmp_pl_r3_94[] = {
   0x58, 0xbf, 0x5e, 0x2b // It pl; cmp pl r3 94
 };
-static const byte kInstruction_cmp_le_r2_69[] = {
+const byte kInstruction_cmp_le_r2_69[] = {
   0xd8, 0xbf, 0x45, 0x2a // It le; cmp le r2 69
 };
-static const byte kInstruction_cmp_hi_r0_145[] = {
+const byte kInstruction_cmp_hi_r0_145[] = {
   0x88, 0xbf, 0x91, 0x28 // It hi; cmp hi r0 145
 };
-static const byte kInstruction_cmp_ne_r1_119[] = {
+const byte kInstruction_cmp_ne_r1_119[] = {
   0x18, 0xbf, 0x77, 0x29 // It ne; cmp ne r1 119
 };
-static const byte kInstruction_cmp_hi_r0_124[] = {
+const byte kInstruction_cmp_hi_r0_124[] = {
   0x88, 0xbf, 0x7c, 0x28 // It hi; cmp hi r0 124
 };
-static const byte kInstruction_cmp_vc_r6_221[] = {
+const byte kInstruction_cmp_vc_r6_221[] = {
   0x78, 0xbf, 0xdd, 0x2e // It vc; cmp vc r6 221
 };
-static const byte kInstruction_cmp_cs_r2_71[] = {
+const byte kInstruction_cmp_cs_r2_71[] = {
   0x28, 0xbf, 0x47, 0x2a // It cs; cmp cs r2 71
 };
-static const byte kInstruction_cmp_eq_r0_87[] = {
+const byte kInstruction_cmp_eq_r0_87[] = {
   0x08, 0xbf, 0x57, 0x28 // It eq; cmp eq r0 87
 };
-static const byte kInstruction_cmp_cc_r3_42[] = {
+const byte kInstruction_cmp_cc_r3_42[] = {
   0x38, 0xbf, 0x2a, 0x2b // It cc; cmp cc r3 42
 };
-static const byte kInstruction_cmp_cs_r7_98[] = {
+const byte kInstruction_cmp_cs_r7_98[] = {
   0x28, 0xbf, 0x62, 0x2f // It cs; cmp cs r7 98
 };
-static const byte kInstruction_cmp_vc_r3_28[] = {
+const byte kInstruction_cmp_vc_r3_28[] = {
   0x78, 0xbf, 0x1c, 0x2b // It vc; cmp vc r3 28
 };
-static const byte kInstruction_cmp_eq_r4_94[] = {
+const byte kInstruction_cmp_eq_r4_94[] = {
   0x08, 0xbf, 0x5e, 0x2c // It eq; cmp eq r4 94
 };
-static const byte kInstruction_cmp_gt_r7_84[] = {
+const byte kInstruction_cmp_gt_r7_84[] = {
   0xc8, 0xbf, 0x54, 0x2f // It gt; cmp gt r7 84
 };
-static const byte kInstruction_cmp_hi_r3_101[] = {
+const byte kInstruction_cmp_hi_r3_101[] = {
   0x88, 0xbf, 0x65, 0x2b // It hi; cmp hi r3 101
 };
-static const byte kInstruction_cmp_pl_r5_197[] = {
+const byte kInstruction_cmp_pl_r5_197[] = {
   0x58, 0xbf, 0xc5, 0x2d // It pl; cmp pl r5 197
 };
-static const byte kInstruction_cmp_pl_r6_214[] = {
+const byte kInstruction_cmp_pl_r6_214[] = {
   0x58, 0xbf, 0xd6, 0x2e // It pl; cmp pl r6 214
 };
-static const byte kInstruction_cmp_hi_r7_32[] = {
+const byte kInstruction_cmp_hi_r7_32[] = {
   0x88, 0xbf, 0x20, 0x2f // It hi; cmp hi r7 32
 };
-static const byte kInstruction_cmp_ge_r7_217[] = {
+const byte kInstruction_cmp_ge_r7_217[] = {
   0xa8, 0xbf, 0xd9, 0x2f // It ge; cmp ge r7 217
 };
-static const byte kInstruction_cmp_cc_r3_21[] = {
+const byte kInstruction_cmp_cc_r3_21[] = {
   0x38, 0xbf, 0x15, 0x2b // It cc; cmp cc r3 21
 };
-static const byte kInstruction_cmp_le_r2_216[] = {
+const byte kInstruction_cmp_le_r2_216[] = {
   0xd8, 0xbf, 0xd8, 0x2a // It le; cmp le r2 216
 };
-static const byte kInstruction_cmp_le_r5_199[] = {
+const byte kInstruction_cmp_le_r5_199[] = {
   0xd8, 0xbf, 0xc7, 0x2d // It le; cmp le r5 199
 };
-static const byte kInstruction_cmp_cc_r3_162[] = {
+const byte kInstruction_cmp_cc_r3_162[] = {
   0x38, 0xbf, 0xa2, 0x2b // It cc; cmp cc r3 162
 };
-static const byte kInstruction_cmp_cs_r5_39[] = {
+const byte kInstruction_cmp_cs_r5_39[] = {
   0x28, 0xbf, 0x27, 0x2d // It cs; cmp cs r5 39
 };
-static const byte kInstruction_cmp_cc_r5_204[] = {
+const byte kInstruction_cmp_cc_r5_204[] = {
   0x38, 0xbf, 0xcc, 0x2d // It cc; cmp cc r5 204
 };
-static const byte kInstruction_cmp_ge_r1_182[] = {
+const byte kInstruction_cmp_ge_r1_182[] = {
   0xa8, 0xbf, 0xb6, 0x29 // It ge; cmp ge r1 182
 };
-static const byte kInstruction_cmp_ne_r5_12[] = {
+const byte kInstruction_cmp_ne_r5_12[] = {
   0x18, 0xbf, 0x0c, 0x2d // It ne; cmp ne r5 12
 };
-static const byte kInstruction_cmp_lt_r4_39[] = {
+const byte kInstruction_cmp_lt_r4_39[] = {
   0xb8, 0xbf, 0x27, 0x2c // It lt; cmp lt r4 39
 };
-static const byte kInstruction_cmp_vc_r5_205[] = {
+const byte kInstruction_cmp_vc_r5_205[] = {
   0x78, 0xbf, 0xcd, 0x2d // It vc; cmp vc r5 205
 };
-static const byte kInstruction_cmp_cc_r7_36[] = {
+const byte kInstruction_cmp_cc_r7_36[] = {
   0x38, 0xbf, 0x24, 0x2f // It cc; cmp cc r7 36
 };
-static const byte kInstruction_cmp_pl_r1_121[] = {
+const byte kInstruction_cmp_pl_r1_121[] = {
   0x58, 0xbf, 0x79, 0x29 // It pl; cmp pl r1 121
 };
-static const byte kInstruction_cmp_lt_r3_206[] = {
+const byte kInstruction_cmp_lt_r3_206[] = {
   0xb8, 0xbf, 0xce, 0x2b // It lt; cmp lt r3 206
 };
-static const byte kInstruction_cmp_ne_r5_130[] = {
+const byte kInstruction_cmp_ne_r5_130[] = {
   0x18, 0xbf, 0x82, 0x2d // It ne; cmp ne r5 130
 };
-static const byte kInstruction_cmp_pl_r2_84[] = {
+const byte kInstruction_cmp_pl_r2_84[] = {
   0x58, 0xbf, 0x54, 0x2a // It pl; cmp pl r2 84
 };
-static const byte kInstruction_cmp_pl_r5_180[] = {
+const byte kInstruction_cmp_pl_r5_180[] = {
   0x58, 0xbf, 0xb4, 0x2d // It pl; cmp pl r5 180
 };
-static const byte kInstruction_cmp_ne_r1_126[] = {
+const byte kInstruction_cmp_ne_r1_126[] = {
   0x18, 0xbf, 0x7e, 0x29 // It ne; cmp ne r1 126
 };
-static const byte kInstruction_cmp_ge_r5_91[] = {
+const byte kInstruction_cmp_ge_r5_91[] = {
   0xa8, 0xbf, 0x5b, 0x2d // It ge; cmp ge r5 91
 };
-static const byte kInstruction_cmp_pl_r6_48[] = {
+const byte kInstruction_cmp_pl_r6_48[] = {
   0x58, 0xbf, 0x30, 0x2e // It pl; cmp pl r6 48
 };
-static const byte kInstruction_cmp_mi_r3_241[] = {
+const byte kInstruction_cmp_mi_r3_241[] = {
   0x48, 0xbf, 0xf1, 0x2b // It mi; cmp mi r3 241
 };
-static const byte kInstruction_cmp_le_r3_197[] = {
+const byte kInstruction_cmp_le_r3_197[] = {
   0xd8, 0xbf, 0xc5, 0x2b // It le; cmp le r3 197
 };
-static const byte kInstruction_cmp_gt_r3_154[] = {
+const byte kInstruction_cmp_gt_r3_154[] = {
   0xc8, 0xbf, 0x9a, 0x2b // It gt; cmp gt r3 154
 };
-static const byte kInstruction_cmp_vc_r1_31[] = {
+const byte kInstruction_cmp_vc_r1_31[] = {
   0x78, 0xbf, 0x1f, 0x29 // It vc; cmp vc r1 31
 };
-static const byte kInstruction_cmp_ls_r4_218[] = {
+const byte kInstruction_cmp_ls_r4_218[] = {
   0x98, 0xbf, 0xda, 0x2c // It ls; cmp ls r4 218
 };
-static const byte kInstruction_cmp_ne_r0_237[] = {
+const byte kInstruction_cmp_ne_r0_237[] = {
   0x18, 0xbf, 0xed, 0x28 // It ne; cmp ne r0 237
 };
-static const byte kInstruction_cmp_ge_r0_171[] = {
+const byte kInstruction_cmp_ge_r0_171[] = {
   0xa8, 0xbf, 0xab, 0x28 // It ge; cmp ge r0 171
 };
-static const byte kInstruction_cmp_cc_r7_102[] = {
+const byte kInstruction_cmp_cc_r7_102[] = {
   0x38, 0xbf, 0x66, 0x2f // It cc; cmp cc r7 102
 };
-static const byte kInstruction_cmp_ge_r5_245[] = {
+const byte kInstruction_cmp_ge_r5_245[] = {
   0xa8, 0xbf, 0xf5, 0x2d // It ge; cmp ge r5 245
 };
-static const byte kInstruction_cmp_ne_r4_28[] = {
+const byte kInstruction_cmp_ne_r4_28[] = {
   0x18, 0xbf, 0x1c, 0x2c // It ne; cmp ne r4 28
 };
-static const byte kInstruction_cmp_cs_r7_186[] = {
+const byte kInstruction_cmp_cs_r7_186[] = {
   0x28, 0xbf, 0xba, 0x2f // It cs; cmp cs r7 186
 };
-static const byte kInstruction_cmp_ls_r0_30[] = {
+const byte kInstruction_cmp_ls_r0_30[] = {
   0x98, 0xbf, 0x1e, 0x28 // It ls; cmp ls r0 30
 };
-static const byte kInstruction_cmp_ge_r1_17[] = {
+const byte kInstruction_cmp_ge_r1_17[] = {
   0xa8, 0xbf, 0x11, 0x29 // It ge; cmp ge r1 17
 };
-static const byte kInstruction_cmp_cc_r5_92[] = {
+const byte kInstruction_cmp_cc_r5_92[] = {
   0x38, 0xbf, 0x5c, 0x2d // It cc; cmp cc r5 92
 };
-static const byte kInstruction_cmp_mi_r1_71[] = {
+const byte kInstruction_cmp_mi_r1_71[] = {
   0x48, 0xbf, 0x47, 0x29 // It mi; cmp mi r1 71
 };
-static const byte kInstruction_cmp_vs_r4_250[] = {
+const byte kInstruction_cmp_vs_r4_250[] = {
   0x68, 0xbf, 0xfa, 0x2c // It vs; cmp vs r4 250
 };
-static const byte kInstruction_cmp_le_r3_170[] = {
+const byte kInstruction_cmp_le_r3_170[] = {
   0xd8, 0xbf, 0xaa, 0x2b // It le; cmp le r3 170
 };
-static const byte kInstruction_cmp_mi_r3_64[] = {
+const byte kInstruction_cmp_mi_r3_64[] = {
   0x48, 0xbf, 0x40, 0x2b // It mi; cmp mi r3 64
 };
-static const byte kInstruction_cmp_ls_r2_177[] = {
+const byte kInstruction_cmp_ls_r2_177[] = {
   0x98, 0xbf, 0xb1, 0x2a // It ls; cmp ls r2 177
 };
-static const byte kInstruction_cmp_vs_r5_70[] = {
+const byte kInstruction_cmp_vs_r5_70[] = {
   0x68, 0xbf, 0x46, 0x2d // It vs; cmp vs r5 70
 };
-static const byte kInstruction_cmp_vs_r4_51[] = {
+const byte kInstruction_cmp_vs_r4_51[] = {
   0x68, 0xbf, 0x33, 0x2c // It vs; cmp vs r4 51
 };
-static const byte kInstruction_cmp_vs_r3_176[] = {
+const byte kInstruction_cmp_vs_r3_176[] = {
   0x68, 0xbf, 0xb0, 0x2b // It vs; cmp vs r3 176
 };
-static const byte kInstruction_cmp_le_r1_101[] = {
+const byte kInstruction_cmp_le_r1_101[] = {
   0xd8, 0xbf, 0x65, 0x29 // It le; cmp le r1 101
 };
-static const byte kInstruction_cmp_ne_r3_74[] = {
+const byte kInstruction_cmp_ne_r3_74[] = {
   0x18, 0xbf, 0x4a, 0x2b // It ne; cmp ne r3 74
 };
-static const byte kInstruction_cmp_ge_r0_210[] = {
+const byte kInstruction_cmp_ge_r0_210[] = {
   0xa8, 0xbf, 0xd2, 0x28 // It ge; cmp ge r0 210
 };
-static const byte kInstruction_cmp_gt_r1_181[] = {
+const byte kInstruction_cmp_gt_r1_181[] = {
   0xc8, 0xbf, 0xb5, 0x29 // It gt; cmp gt r1 181
 };
-static const byte kInstruction_cmp_eq_r7_223[] = {
+const byte kInstruction_cmp_eq_r7_223[] = {
   0x08, 0xbf, 0xdf, 0x2f // It eq; cmp eq r7 223
 };
-static const byte kInstruction_cmp_ge_r3_175[] = {
+const byte kInstruction_cmp_ge_r3_175[] = {
   0xa8, 0xbf, 0xaf, 0x2b // It ge; cmp ge r3 175
 };
-static const byte kInstruction_cmp_eq_r3_106[] = {
+const byte kInstruction_cmp_eq_r3_106[] = {
   0x08, 0xbf, 0x6a, 0x2b // It eq; cmp eq r3 106
 };
-static const byte kInstruction_cmp_ge_r5_127[] = {
+const byte kInstruction_cmp_ge_r5_127[] = {
   0xa8, 0xbf, 0x7f, 0x2d // It ge; cmp ge r5 127
 };
-static const byte kInstruction_cmp_cc_r5_59[] = {
+const byte kInstruction_cmp_cc_r5_59[] = {
   0x38, 0xbf, 0x3b, 0x2d // It cc; cmp cc r5 59
 };
-static const byte kInstruction_cmp_cs_r4_0[] = {
+const byte kInstruction_cmp_cs_r4_0[] = {
   0x28, 0xbf, 0x00, 0x2c // It cs; cmp cs r4 0
 };
-static const byte kInstruction_cmp_gt_r6_133[] = {
+const byte kInstruction_cmp_gt_r6_133[] = {
   0xc8, 0xbf, 0x85, 0x2e // It gt; cmp gt r6 133
 };
-static const byte kInstruction_cmp_ls_r1_56[] = {
+const byte kInstruction_cmp_ls_r1_56[] = {
   0x98, 0xbf, 0x38, 0x29 // It ls; cmp ls r1 56
 };
-static const byte kInstruction_cmp_le_r3_25[] = {
+const byte kInstruction_cmp_le_r3_25[] = {
   0xd8, 0xbf, 0x19, 0x2b // It le; cmp le r3 25
 };
-static const byte kInstruction_cmp_vc_r1_24[] = {
+const byte kInstruction_cmp_vc_r1_24[] = {
   0x78, 0xbf, 0x18, 0x29 // It vc; cmp vc r1 24
 };
-static const byte kInstruction_cmp_eq_r2_59[] = {
+const byte kInstruction_cmp_eq_r2_59[] = {
   0x08, 0xbf, 0x3b, 0x2a // It eq; cmp eq r2 59
 };
-static const byte kInstruction_cmp_eq_r3_35[] = {
+const byte kInstruction_cmp_eq_r3_35[] = {
   0x08, 0xbf, 0x23, 0x2b // It eq; cmp eq r3 35
 };
-static const byte kInstruction_cmp_ls_r1_68[] = {
+const byte kInstruction_cmp_ls_r1_68[] = {
   0x98, 0xbf, 0x44, 0x29 // It ls; cmp ls r1 68
 };
-static const byte kInstruction_cmp_hi_r5_240[] = {
+const byte kInstruction_cmp_hi_r5_240[] = {
   0x88, 0xbf, 0xf0, 0x2d // It hi; cmp hi r5 240
 };
-static const byte kInstruction_cmp_ls_r1_58[] = {
+const byte kInstruction_cmp_ls_r1_58[] = {
   0x98, 0xbf, 0x3a, 0x29 // It ls; cmp ls r1 58
 };
-static const byte kInstruction_cmp_cc_r7_207[] = {
+const byte kInstruction_cmp_cc_r7_207[] = {
   0x38, 0xbf, 0xcf, 0x2f // It cc; cmp cc r7 207
 };
-static const byte kInstruction_cmp_ls_r6_138[] = {
+const byte kInstruction_cmp_ls_r6_138[] = {
   0x98, 0xbf, 0x8a, 0x2e // It ls; cmp ls r6 138
 };
-static const byte kInstruction_cmp_lt_r5_192[] = {
+const byte kInstruction_cmp_lt_r5_192[] = {
   0xb8, 0xbf, 0xc0, 0x2d // It lt; cmp lt r5 192
 };
-static const byte kInstruction_cmp_ne_r7_210[] = {
+const byte kInstruction_cmp_ne_r7_210[] = {
   0x18, 0xbf, 0xd2, 0x2f // It ne; cmp ne r7 210
 };
-static const byte kInstruction_cmp_eq_r3_82[] = {
+const byte kInstruction_cmp_eq_r3_82[] = {
   0x08, 0xbf, 0x52, 0x2b // It eq; cmp eq r3 82
 };
-static const byte kInstruction_cmp_gt_r3_174[] = {
+const byte kInstruction_cmp_gt_r3_174[] = {
   0xc8, 0xbf, 0xae, 0x2b // It gt; cmp gt r3 174
 };
-static const byte kInstruction_cmp_ge_r6_10[] = {
+const byte kInstruction_cmp_ge_r6_10[] = {
   0xa8, 0xbf, 0x0a, 0x2e // It ge; cmp ge r6 10
 };
-static const byte kInstruction_cmp_vs_r3_113[] = {
+const byte kInstruction_cmp_vs_r3_113[] = {
   0x68, 0xbf, 0x71, 0x2b // It vs; cmp vs r3 113
 };
-static const byte kInstruction_cmp_hi_r2_102[] = {
+const byte kInstruction_cmp_hi_r2_102[] = {
   0x88, 0xbf, 0x66, 0x2a // It hi; cmp hi r2 102
 };
-static const byte kInstruction_cmp_le_r1_81[] = {
+const byte kInstruction_cmp_le_r1_81[] = {
   0xd8, 0xbf, 0x51, 0x29 // It le; cmp le r1 81
 };
-static const byte kInstruction_cmp_vc_r3_8[] = {
+const byte kInstruction_cmp_vc_r3_8[] = {
   0x78, 0xbf, 0x08, 0x2b // It vc; cmp vc r3 8
 };
-static const byte kInstruction_cmp_mi_r4_60[] = {
+const byte kInstruction_cmp_mi_r4_60[] = {
   0x48, 0xbf, 0x3c, 0x2c // It mi; cmp mi r4 60
 };
-static const byte kInstruction_cmp_pl_r7_133[] = {
+const byte kInstruction_cmp_pl_r7_133[] = {
   0x58, 0xbf, 0x85, 0x2f // It pl; cmp pl r7 133
 };
-static const byte kInstruction_cmp_le_r0_41[] = {
+const byte kInstruction_cmp_le_r0_41[] = {
   0xd8, 0xbf, 0x29, 0x28 // It le; cmp le r0 41
 };
-static const byte kInstruction_cmp_vc_r6_4[] = {
+const byte kInstruction_cmp_vc_r6_4[] = {
   0x78, 0xbf, 0x04, 0x2e // It vc; cmp vc r6 4
 };
-static const byte kInstruction_cmp_ls_r7_243[] = {
+const byte kInstruction_cmp_ls_r7_243[] = {
   0x98, 0xbf, 0xf3, 0x2f // It ls; cmp ls r7 243
 };
-static const byte kInstruction_cmp_mi_r3_129[] = {
+const byte kInstruction_cmp_mi_r3_129[] = {
   0x48, 0xbf, 0x81, 0x2b // It mi; cmp mi r3 129
 };
-static const byte kInstruction_cmp_eq_r6_3[] = {
+const byte kInstruction_cmp_eq_r6_3[] = {
   0x08, 0xbf, 0x03, 0x2e // It eq; cmp eq r6 3
 };
-static const byte kInstruction_cmp_ge_r0_28[] = {
+const byte kInstruction_cmp_ge_r0_28[] = {
   0xa8, 0xbf, 0x1c, 0x28 // It ge; cmp ge r0 28
 };
-static const byte kInstruction_cmp_pl_r3_129[] = {
+const byte kInstruction_cmp_pl_r3_129[] = {
   0x58, 0xbf, 0x81, 0x2b // It pl; cmp pl r3 129
 };
-static const byte kInstruction_cmp_ne_r6_202[] = {
+const byte kInstruction_cmp_ne_r6_202[] = {
   0x18, 0xbf, 0xca, 0x2e // It ne; cmp ne r6 202
 };
-static const byte kInstruction_cmp_gt_r0_84[] = {
+const byte kInstruction_cmp_gt_r0_84[] = {
   0xc8, 0xbf, 0x54, 0x28 // It gt; cmp gt r0 84
 };
-static const byte kInstruction_cmp_hi_r7_3[] = {
+const byte kInstruction_cmp_hi_r7_3[] = {
   0x88, 0xbf, 0x03, 0x2f // It hi; cmp hi r7 3
 };
-static const byte kInstruction_cmp_vs_r1_14[] = {
+const byte kInstruction_cmp_vs_r1_14[] = {
   0x68, 0xbf, 0x0e, 0x29 // It vs; cmp vs r1 14
 };
-static const byte kInstruction_cmp_eq_r3_107[] = {
+const byte kInstruction_cmp_eq_r3_107[] = {
   0x08, 0xbf, 0x6b, 0x2b // It eq; cmp eq r3 107
 };
-static const byte kInstruction_cmp_pl_r1_57[] = {
+const byte kInstruction_cmp_pl_r1_57[] = {
   0x58, 0xbf, 0x39, 0x29 // It pl; cmp pl r1 57
 };
-static const byte kInstruction_cmp_pl_r0_138[] = {
+const byte kInstruction_cmp_pl_r0_138[] = {
   0x58, 0xbf, 0x8a, 0x28 // It pl; cmp pl r0 138
 };
-static const byte kInstruction_cmp_cs_r6_158[] = {
+const byte kInstruction_cmp_cs_r6_158[] = {
   0x28, 0xbf, 0x9e, 0x2e // It cs; cmp cs r6 158
 };
-static const byte kInstruction_cmp_ne_r2_120[] = {
+const byte kInstruction_cmp_ne_r2_120[] = {
   0x18, 0xbf, 0x78, 0x2a // It ne; cmp ne r2 120
 };
-static const byte kInstruction_cmp_ge_r1_132[] = {
+const byte kInstruction_cmp_ge_r1_132[] = {
   0xa8, 0xbf, 0x84, 0x29 // It ge; cmp ge r1 132
 };
-static const byte kInstruction_cmp_hi_r6_204[] = {
+const byte kInstruction_cmp_hi_r6_204[] = {
   0x88, 0xbf, 0xcc, 0x2e // It hi; cmp hi r6 204
 };
-static const byte kInstruction_cmp_ge_r5_228[] = {
+const byte kInstruction_cmp_ge_r5_228[] = {
   0xa8, 0xbf, 0xe4, 0x2d // It ge; cmp ge r5 228
 };
-static const byte kInstruction_cmp_gt_r5_55[] = {
+const byte kInstruction_cmp_gt_r5_55[] = {
   0xc8, 0xbf, 0x37, 0x2d // It gt; cmp gt r5 55
 };
-static const byte kInstruction_cmp_vc_r7_55[] = {
+const byte kInstruction_cmp_vc_r7_55[] = {
   0x78, 0xbf, 0x37, 0x2f // It vc; cmp vc r7 55
 };
-static const byte kInstruction_cmp_ge_r3_90[] = {
+const byte kInstruction_cmp_ge_r3_90[] = {
   0xa8, 0xbf, 0x5a, 0x2b // It ge; cmp ge r3 90
 };
-static const byte kInstruction_cmp_vs_r7_252[] = {
+const byte kInstruction_cmp_vs_r7_252[] = {
   0x68, 0xbf, 0xfc, 0x2f // It vs; cmp vs r7 252
 };
-static const byte kInstruction_cmp_le_r5_168[] = {
+const byte kInstruction_cmp_le_r5_168[] = {
   0xd8, 0xbf, 0xa8, 0x2d // It le; cmp le r5 168
 };
-static const byte kInstruction_cmp_vc_r6_9[] = {
+const byte kInstruction_cmp_vc_r6_9[] = {
   0x78, 0xbf, 0x09, 0x2e // It vc; cmp vc r6 9
 };
-static const byte kInstruction_cmp_eq_r7_153[] = {
+const byte kInstruction_cmp_eq_r7_153[] = {
   0x08, 0xbf, 0x99, 0x2f // It eq; cmp eq r7 153
 };
-static const byte kInstruction_cmp_cs_r2_129[] = {
+const byte kInstruction_cmp_cs_r2_129[] = {
   0x28, 0xbf, 0x81, 0x2a // It cs; cmp cs r2 129
 };
-static const byte kInstruction_cmp_eq_r4_232[] = {
+const byte kInstruction_cmp_eq_r4_232[] = {
   0x08, 0xbf, 0xe8, 0x2c // It eq; cmp eq r4 232
 };
-static const byte kInstruction_cmp_le_r3_86[] = {
+const byte kInstruction_cmp_le_r3_86[] = {
   0xd8, 0xbf, 0x56, 0x2b // It le; cmp le r3 86
 };
-static const byte kInstruction_cmp_vs_r1_138[] = {
+const byte kInstruction_cmp_vs_r1_138[] = {
   0x68, 0xbf, 0x8a, 0x29 // It vs; cmp vs r1 138
 };
-static const byte kInstruction_cmp_vs_r6_107[] = {
+const byte kInstruction_cmp_vs_r6_107[] = {
   0x68, 0xbf, 0x6b, 0x2e // It vs; cmp vs r6 107
 };
-static const byte kInstruction_cmp_gt_r0_59[] = {
+const byte kInstruction_cmp_gt_r0_59[] = {
   0xc8, 0xbf, 0x3b, 0x28 // It gt; cmp gt r0 59
 };
-static const byte kInstruction_cmp_mi_r3_81[] = {
+const byte kInstruction_cmp_mi_r3_81[] = {
   0x48, 0xbf, 0x51, 0x2b // It mi; cmp mi r3 81
 };
-static const byte kInstruction_cmp_le_r5_74[] = {
+const byte kInstruction_cmp_le_r5_74[] = {
   0xd8, 0xbf, 0x4a, 0x2d // It le; cmp le r5 74
 };
-static const byte kInstruction_cmp_le_r6_207[] = {
+const byte kInstruction_cmp_le_r6_207[] = {
   0xd8, 0xbf, 0xcf, 0x2e // It le; cmp le r6 207
 };
-static const byte kInstruction_cmp_vs_r0_64[] = {
+const byte kInstruction_cmp_vs_r0_64[] = {
   0x68, 0xbf, 0x40, 0x28 // It vs; cmp vs r0 64
 };
-static const byte kInstruction_cmp_le_r7_146[] = {
+const byte kInstruction_cmp_le_r7_146[] = {
   0xd8, 0xbf, 0x92, 0x2f // It le; cmp le r7 146
 };
-static const byte kInstruction_cmp_cc_r4_160[] = {
+const byte kInstruction_cmp_cc_r4_160[] = {
   0x38, 0xbf, 0xa0, 0x2c // It cc; cmp cc r4 160
 };
-static const byte kInstruction_cmp_vs_r5_10[] = {
+const byte kInstruction_cmp_vs_r5_10[] = {
   0x68, 0xbf, 0x0a, 0x2d // It vs; cmp vs r5 10
 };
-static const byte kInstruction_cmp_gt_r2_126[] = {
+const byte kInstruction_cmp_gt_r2_126[] = {
   0xc8, 0xbf, 0x7e, 0x2a // It gt; cmp gt r2 126
 };
-static const byte kInstruction_cmp_le_r0_94[] = {
+const byte kInstruction_cmp_le_r0_94[] = {
   0xd8, 0xbf, 0x5e, 0x28 // It le; cmp le r0 94
 };
-static const byte kInstruction_cmp_ne_r6_168[] = {
+const byte kInstruction_cmp_ne_r6_168[] = {
   0x18, 0xbf, 0xa8, 0x2e // It ne; cmp ne r6 168
 };
-static const byte kInstruction_cmp_cc_r4_34[] = {
+const byte kInstruction_cmp_cc_r4_34[] = {
   0x38, 0xbf, 0x22, 0x2c // It cc; cmp cc r4 34
 };
-static const byte kInstruction_cmp_hi_r5_197[] = {
+const byte kInstruction_cmp_hi_r5_197[] = {
   0x88, 0xbf, 0xc5, 0x2d // It hi; cmp hi r5 197
 };
-static const byte kInstruction_cmp_eq_r0_103[] = {
+const byte kInstruction_cmp_eq_r0_103[] = {
   0x08, 0xbf, 0x67, 0x28 // It eq; cmp eq r0 103
 };
-static const byte kInstruction_cmp_cs_r4_32[] = {
+const byte kInstruction_cmp_cs_r4_32[] = {
   0x28, 0xbf, 0x20, 0x2c // It cs; cmp cs r4 32
 };
-static const byte kInstruction_cmp_hi_r7_221[] = {
+const byte kInstruction_cmp_hi_r7_221[] = {
   0x88, 0xbf, 0xdd, 0x2f // It hi; cmp hi r7 221
 };
-static const byte kInstruction_cmp_mi_r0_0[] = {
+const byte kInstruction_cmp_mi_r0_0[] = {
   0x48, 0xbf, 0x00, 0x28 // It mi; cmp mi r0 0
 };
-static const byte kInstruction_cmp_pl_r0_163[] = {
+const byte kInstruction_cmp_pl_r0_163[] = {
   0x58, 0xbf, 0xa3, 0x28 // It pl; cmp pl r0 163
 };
-static const byte kInstruction_cmp_cc_r2_167[] = {
+const byte kInstruction_cmp_cc_r2_167[] = {
   0x38, 0xbf, 0xa7, 0x2a // It cc; cmp cc r2 167
 };
-static const byte kInstruction_cmp_gt_r4_37[] = {
+const byte kInstruction_cmp_gt_r4_37[] = {
   0xc8, 0xbf, 0x25, 0x2c // It gt; cmp gt r4 37
 };
-static const byte kInstruction_cmp_mi_r5_35[] = {
+const byte kInstruction_cmp_mi_r5_35[] = {
   0x48, 0xbf, 0x23, 0x2d // It mi; cmp mi r5 35
 };
-static const byte kInstruction_cmp_cc_r7_131[] = {
+const byte kInstruction_cmp_cc_r7_131[] = {
   0x38, 0xbf, 0x83, 0x2f // It cc; cmp cc r7 131
 };
-static const byte kInstruction_cmp_pl_r4_187[] = {
+const byte kInstruction_cmp_pl_r4_187[] = {
   0x58, 0xbf, 0xbb, 0x2c // It pl; cmp pl r4 187
 };
-static const byte kInstruction_cmp_ls_r2_26[] = {
+const byte kInstruction_cmp_ls_r2_26[] = {
   0x98, 0xbf, 0x1a, 0x2a // It ls; cmp ls r2 26
 };
-static const byte kInstruction_cmp_mi_r7_10[] = {
+const byte kInstruction_cmp_mi_r7_10[] = {
   0x48, 0xbf, 0x0a, 0x2f // It mi; cmp mi r7 10
 };
-static const byte kInstruction_cmp_le_r2_113[] = {
+const byte kInstruction_cmp_le_r2_113[] = {
   0xd8, 0xbf, 0x71, 0x2a // It le; cmp le r2 113
 };
-static const byte kInstruction_cmp_vc_r2_26[] = {
+const byte kInstruction_cmp_vc_r2_26[] = {
   0x78, 0xbf, 0x1a, 0x2a // It vc; cmp vc r2 26
 };
-static const byte kInstruction_cmp_vs_r1_255[] = {
+const byte kInstruction_cmp_vs_r1_255[] = {
   0x68, 0xbf, 0xff, 0x29 // It vs; cmp vs r1 255
 };
-static const byte kInstruction_cmp_ls_r5_238[] = {
+const byte kInstruction_cmp_ls_r5_238[] = {
   0x98, 0xbf, 0xee, 0x2d // It ls; cmp ls r5 238
 };
-static const byte kInstruction_cmp_ge_r0_86[] = {
+const byte kInstruction_cmp_ge_r0_86[] = {
   0xa8, 0xbf, 0x56, 0x28 // It ge; cmp ge r0 86
 };
-static const byte kInstruction_cmp_gt_r0_104[] = {
+const byte kInstruction_cmp_gt_r0_104[] = {
   0xc8, 0xbf, 0x68, 0x28 // It gt; cmp gt r0 104
 };
-static const byte kInstruction_cmp_eq_r2_78[] = {
+const byte kInstruction_cmp_eq_r2_78[] = {
   0x08, 0xbf, 0x4e, 0x2a // It eq; cmp eq r2 78
 };
-static const byte kInstruction_cmp_cc_r1_102[] = {
+const byte kInstruction_cmp_cc_r1_102[] = {
   0x38, 0xbf, 0x66, 0x29 // It cc; cmp cc r1 102
 };
-static const byte kInstruction_cmp_cc_r0_16[] = {
+const byte kInstruction_cmp_cc_r0_16[] = {
   0x38, 0xbf, 0x10, 0x28 // It cc; cmp cc r0 16
 };
-static const byte kInstruction_cmp_mi_r4_48[] = {
+const byte kInstruction_cmp_mi_r4_48[] = {
   0x48, 0xbf, 0x30, 0x2c // It mi; cmp mi r4 48
 };
-static const byte kInstruction_cmp_cc_r2_210[] = {
+const byte kInstruction_cmp_cc_r2_210[] = {
   0x38, 0xbf, 0xd2, 0x2a // It cc; cmp cc r2 210
 };
-static const byte kInstruction_cmp_hi_r5_184[] = {
+const byte kInstruction_cmp_hi_r5_184[] = {
   0x88, 0xbf, 0xb8, 0x2d // It hi; cmp hi r5 184
 };
-static const byte kInstruction_cmp_vs_r5_156[] = {
+const byte kInstruction_cmp_vs_r5_156[] = {
   0x68, 0xbf, 0x9c, 0x2d // It vs; cmp vs r5 156
 };
-static const byte kInstruction_cmp_cc_r2_241[] = {
+const byte kInstruction_cmp_cc_r2_241[] = {
   0x38, 0xbf, 0xf1, 0x2a // It cc; cmp cc r2 241
 };
-static const byte kInstruction_cmp_le_r5_169[] = {
+const byte kInstruction_cmp_le_r5_169[] = {
   0xd8, 0xbf, 0xa9, 0x2d // It le; cmp le r5 169
 };
-static const byte kInstruction_cmp_pl_r5_114[] = {
+const byte kInstruction_cmp_pl_r5_114[] = {
   0x58, 0xbf, 0x72, 0x2d // It pl; cmp pl r5 114
 };
-static const byte kInstruction_cmp_eq_r6_200[] = {
+const byte kInstruction_cmp_eq_r6_200[] = {
   0x08, 0xbf, 0xc8, 0x2e // It eq; cmp eq r6 200
 };
-static const byte kInstruction_cmp_vs_r4_174[] = {
+const byte kInstruction_cmp_vs_r4_174[] = {
   0x68, 0xbf, 0xae, 0x2c // It vs; cmp vs r4 174
 };
-static const byte kInstruction_cmp_vc_r5_233[] = {
+const byte kInstruction_cmp_vc_r5_233[] = {
   0x78, 0xbf, 0xe9, 0x2d // It vc; cmp vc r5 233
 };
-static const byte kInstruction_cmp_hi_r2_233[] = {
+const byte kInstruction_cmp_hi_r2_233[] = {
   0x88, 0xbf, 0xe9, 0x2a // It hi; cmp hi r2 233
 };
-static const byte kInstruction_cmp_ne_r5_210[] = {
+const byte kInstruction_cmp_ne_r5_210[] = {
   0x18, 0xbf, 0xd2, 0x2d // It ne; cmp ne r5 210
 };
-static const byte kInstruction_cmp_le_r1_109[] = {
+const byte kInstruction_cmp_le_r1_109[] = {
   0xd8, 0xbf, 0x6d, 0x29 // It le; cmp le r1 109
 };
-static const byte kInstruction_cmp_eq_r7_188[] = {
+const byte kInstruction_cmp_eq_r7_188[] = {
   0x08, 0xbf, 0xbc, 0x2f // It eq; cmp eq r7 188
 };
-static const byte kInstruction_cmp_hi_r2_66[] = {
+const byte kInstruction_cmp_hi_r2_66[] = {
   0x88, 0xbf, 0x42, 0x2a // It hi; cmp hi r2 66
 };
-static const byte kInstruction_cmp_le_r7_109[] = {
+const byte kInstruction_cmp_le_r7_109[] = {
   0xd8, 0xbf, 0x6d, 0x2f // It le; cmp le r7 109
 };
-static const byte kInstruction_cmp_ge_r6_175[] = {
+const byte kInstruction_cmp_ge_r6_175[] = {
   0xa8, 0xbf, 0xaf, 0x2e // It ge; cmp ge r6 175
 };
-static const byte kInstruction_cmp_mi_r2_25[] = {
+const byte kInstruction_cmp_mi_r2_25[] = {
   0x48, 0xbf, 0x19, 0x2a // It mi; cmp mi r2 25
 };
-static const byte kInstruction_cmp_pl_r2_137[] = {
+const byte kInstruction_cmp_pl_r2_137[] = {
   0x58, 0xbf, 0x89, 0x2a // It pl; cmp pl r2 137
 };
-static const byte kInstruction_cmp_pl_r0_249[] = {
+const byte kInstruction_cmp_pl_r0_249[] = {
   0x58, 0xbf, 0xf9, 0x28 // It pl; cmp pl r0 249
 };
-static const byte kInstruction_cmp_lt_r1_139[] = {
+const byte kInstruction_cmp_lt_r1_139[] = {
   0xb8, 0xbf, 0x8b, 0x29 // It lt; cmp lt r1 139
 };
-static const byte kInstruction_cmp_cs_r2_165[] = {
+const byte kInstruction_cmp_cs_r2_165[] = {
   0x28, 0xbf, 0xa5, 0x2a // It cs; cmp cs r2 165
 };
-static const byte kInstruction_cmp_ne_r6_174[] = {
+const byte kInstruction_cmp_ne_r6_174[] = {
   0x18, 0xbf, 0xae, 0x2e // It ne; cmp ne r6 174
 };
-static const byte kInstruction_cmp_le_r7_90[] = {
+const byte kInstruction_cmp_le_r7_90[] = {
   0xd8, 0xbf, 0x5a, 0x2f // It le; cmp le r7 90
 };
-static const byte kInstruction_cmp_gt_r5_67[] = {
+const byte kInstruction_cmp_gt_r5_67[] = {
   0xc8, 0xbf, 0x43, 0x2d // It gt; cmp gt r5 67
 };
-static const byte kInstruction_cmp_gt_r0_175[] = {
+const byte kInstruction_cmp_gt_r0_175[] = {
   0xc8, 0xbf, 0xaf, 0x28 // It gt; cmp gt r0 175
 };
-static const byte kInstruction_cmp_hi_r3_81[] = {
+const byte kInstruction_cmp_hi_r3_81[] = {
   0x88, 0xbf, 0x51, 0x2b // It hi; cmp hi r3 81
 };
-static const byte kInstruction_cmp_le_r4_144[] = {
+const byte kInstruction_cmp_le_r4_144[] = {
   0xd8, 0xbf, 0x90, 0x2c // It le; cmp le r4 144
 };
-static const byte kInstruction_cmp_vs_r4_23[] = {
+const byte kInstruction_cmp_vs_r4_23[] = {
   0x68, 0xbf, 0x17, 0x2c // It vs; cmp vs r4 23
 };
-static const byte kInstruction_cmp_eq_r7_85[] = {
+const byte kInstruction_cmp_eq_r7_85[] = {
   0x08, 0xbf, 0x55, 0x2f // It eq; cmp eq r7 85
 };
-static const byte kInstruction_cmp_eq_r7_202[] = {
+const byte kInstruction_cmp_eq_r7_202[] = {
   0x08, 0xbf, 0xca, 0x2f // It eq; cmp eq r7 202
 };
-static const byte kInstruction_cmp_cs_r1_201[] = {
+const byte kInstruction_cmp_cs_r1_201[] = {
   0x28, 0xbf, 0xc9, 0x29 // It cs; cmp cs r1 201
 };
-static const byte kInstruction_cmp_lt_r4_67[] = {
+const byte kInstruction_cmp_lt_r4_67[] = {
   0xb8, 0xbf, 0x43, 0x2c // It lt; cmp lt r4 67
 };
-static const byte kInstruction_cmp_pl_r2_206[] = {
+const byte kInstruction_cmp_pl_r2_206[] = {
   0x58, 0xbf, 0xce, 0x2a // It pl; cmp pl r2 206
 };
-static const byte kInstruction_cmp_vc_r0_87[] = {
+const byte kInstruction_cmp_vc_r0_87[] = {
   0x78, 0xbf, 0x57, 0x28 // It vc; cmp vc r0 87
 };
-static const byte kInstruction_cmp_lt_r1_35[] = {
+const byte kInstruction_cmp_lt_r1_35[] = {
   0xb8, 0xbf, 0x23, 0x29 // It lt; cmp lt r1 35
 };
-static const byte kInstruction_cmp_pl_r7_192[] = {
+const byte kInstruction_cmp_pl_r7_192[] = {
   0x58, 0xbf, 0xc0, 0x2f // It pl; cmp pl r7 192
 };
-static const byte kInstruction_cmp_cc_r5_213[] = {
+const byte kInstruction_cmp_cc_r5_213[] = {
   0x38, 0xbf, 0xd5, 0x2d // It cc; cmp cc r5 213
 };
-static const byte kInstruction_cmp_vs_r5_86[] = {
+const byte kInstruction_cmp_vs_r5_86[] = {
   0x68, 0xbf, 0x56, 0x2d // It vs; cmp vs r5 86
 };
-static const byte kInstruction_cmp_ls_r1_182[] = {
+const byte kInstruction_cmp_ls_r1_182[] = {
   0x98, 0xbf, 0xb6, 0x29 // It ls; cmp ls r1 182
 };
-static const byte kInstruction_cmp_vc_r0_227[] = {
+const byte kInstruction_cmp_vc_r0_227[] = {
   0x78, 0xbf, 0xe3, 0x28 // It vc; cmp vc r0 227
 };
-static const byte kInstruction_cmp_cs_r1_206[] = {
+const byte kInstruction_cmp_cs_r1_206[] = {
   0x28, 0xbf, 0xce, 0x29 // It cs; cmp cs r1 206
 };
-static const byte kInstruction_cmp_vs_r7_194[] = {
+const byte kInstruction_cmp_vs_r7_194[] = {
   0x68, 0xbf, 0xc2, 0x2f // It vs; cmp vs r7 194
 };
-static const byte kInstruction_cmp_gt_r1_242[] = {
+const byte kInstruction_cmp_gt_r1_242[] = {
   0xc8, 0xbf, 0xf2, 0x29 // It gt; cmp gt r1 242
 };
-static const byte kInstruction_cmp_le_r3_222[] = {
+const byte kInstruction_cmp_le_r3_222[] = {
   0xd8, 0xbf, 0xde, 0x2b // It le; cmp le r3 222
 };
-static const byte kInstruction_cmp_mi_r2_194[] = {
+const byte kInstruction_cmp_mi_r2_194[] = {
   0x48, 0xbf, 0xc2, 0x2a // It mi; cmp mi r2 194
 };
-static const byte kInstruction_cmp_vs_r2_19[] = {
+const byte kInstruction_cmp_vs_r2_19[] = {
   0x68, 0xbf, 0x13, 0x2a // It vs; cmp vs r2 19
 };
-static const byte kInstruction_cmp_cs_r6_230[] = {
+const byte kInstruction_cmp_cs_r6_230[] = {
   0x28, 0xbf, 0xe6, 0x2e // It cs; cmp cs r6 230
 };
-static const byte kInstruction_cmp_ls_r1_141[] = {
+const byte kInstruction_cmp_ls_r1_141[] = {
   0x98, 0xbf, 0x8d, 0x29 // It ls; cmp ls r1 141
 };
-static const byte kInstruction_cmp_le_r1_144[] = {
+const byte kInstruction_cmp_le_r1_144[] = {
   0xd8, 0xbf, 0x90, 0x29 // It le; cmp le r1 144
 };
-static const byte kInstruction_cmp_ls_r1_184[] = {
+const byte kInstruction_cmp_ls_r1_184[] = {
   0x98, 0xbf, 0xb8, 0x29 // It ls; cmp ls r1 184
 };
-static const byte kInstruction_cmp_pl_r0_175[] = {
+const byte kInstruction_cmp_pl_r0_175[] = {
   0x58, 0xbf, 0xaf, 0x28 // It pl; cmp pl r0 175
 };
-static const byte kInstruction_cmp_cs_r3_0[] = {
+const byte kInstruction_cmp_cs_r3_0[] = {
   0x28, 0xbf, 0x00, 0x2b // It cs; cmp cs r3 0
 };
-static const byte kInstruction_cmp_cs_r0_142[] = {
+const byte kInstruction_cmp_cs_r0_142[] = {
   0x28, 0xbf, 0x8e, 0x28 // It cs; cmp cs r0 142
 };
-static const byte kInstruction_cmp_le_r4_5[] = {
+const byte kInstruction_cmp_le_r4_5[] = {
   0xd8, 0xbf, 0x05, 0x2c // It le; cmp le r4 5
 };
-static const byte kInstruction_cmp_pl_r4_123[] = {
+const byte kInstruction_cmp_pl_r4_123[] = {
   0x58, 0xbf, 0x7b, 0x2c // It pl; cmp pl r4 123
 };
-static const byte kInstruction_cmp_cs_r3_128[] = {
+const byte kInstruction_cmp_cs_r3_128[] = {
   0x28, 0xbf, 0x80, 0x2b // It cs; cmp cs r3 128
 };
-static const byte kInstruction_cmp_pl_r7_112[] = {
+const byte kInstruction_cmp_pl_r7_112[] = {
   0x58, 0xbf, 0x70, 0x2f // It pl; cmp pl r7 112
 };
-static const byte kInstruction_cmp_vs_r2_186[] = {
+const byte kInstruction_cmp_vs_r2_186[] = {
   0x68, 0xbf, 0xba, 0x2a // It vs; cmp vs r2 186
 };
-static const byte kInstruction_cmp_pl_r6_200[] = {
+const byte kInstruction_cmp_pl_r6_200[] = {
   0x58, 0xbf, 0xc8, 0x2e // It pl; cmp pl r6 200
 };
-static const byte kInstruction_cmp_ne_r7_200[] = {
+const byte kInstruction_cmp_ne_r7_200[] = {
   0x18, 0xbf, 0xc8, 0x2f // It ne; cmp ne r7 200
 };
-static const byte kInstruction_cmp_le_r6_223[] = {
+const byte kInstruction_cmp_le_r6_223[] = {
   0xd8, 0xbf, 0xdf, 0x2e // It le; cmp le r6 223
 };
-static const byte kInstruction_cmp_vs_r4_117[] = {
+const byte kInstruction_cmp_vs_r4_117[] = {
   0x68, 0xbf, 0x75, 0x2c // It vs; cmp vs r4 117
 };
-static const byte kInstruction_cmp_cs_r4_6[] = {
+const byte kInstruction_cmp_cs_r4_6[] = {
   0x28, 0xbf, 0x06, 0x2c // It cs; cmp cs r4 6
 };
-static const byte kInstruction_cmp_ls_r6_86[] = {
+const byte kInstruction_cmp_ls_r6_86[] = {
   0x98, 0xbf, 0x56, 0x2e // It ls; cmp ls r6 86
 };
-static const byte kInstruction_cmp_cc_r2_37[] = {
+const byte kInstruction_cmp_cc_r2_37[] = {
   0x38, 0xbf, 0x25, 0x2a // It cc; cmp cc r2 37
 };
-static const byte kInstruction_cmp_ge_r6_28[] = {
+const byte kInstruction_cmp_ge_r6_28[] = {
   0xa8, 0xbf, 0x1c, 0x2e // It ge; cmp ge r6 28
 };
-static const byte kInstruction_cmp_ls_r3_247[] = {
+const byte kInstruction_cmp_ls_r3_247[] = {
   0x98, 0xbf, 0xf7, 0x2b // It ls; cmp ls r3 247
 };
-static const byte kInstruction_cmp_ge_r4_193[] = {
+const byte kInstruction_cmp_ge_r4_193[] = {
   0xa8, 0xbf, 0xc1, 0x2c // It ge; cmp ge r4 193
 };
-static const byte kInstruction_cmp_le_r4_108[] = {
+const byte kInstruction_cmp_le_r4_108[] = {
   0xd8, 0xbf, 0x6c, 0x2c // It le; cmp le r4 108
 };
-static const byte kInstruction_cmp_vc_r0_106[] = {
+const byte kInstruction_cmp_vc_r0_106[] = {
   0x78, 0xbf, 0x6a, 0x28 // It vc; cmp vc r0 106
 };
-static const byte kInstruction_cmp_gt_r0_64[] = {
+const byte kInstruction_cmp_gt_r0_64[] = {
   0xc8, 0xbf, 0x40, 0x28 // It gt; cmp gt r0 64
 };
-static const byte kInstruction_cmp_pl_r0_247[] = {
+const byte kInstruction_cmp_pl_r0_247[] = {
   0x58, 0xbf, 0xf7, 0x28 // It pl; cmp pl r0 247
 };
-static const byte kInstruction_cmp_eq_r0_88[] = {
+const byte kInstruction_cmp_eq_r0_88[] = {
   0x08, 0xbf, 0x58, 0x28 // It eq; cmp eq r0 88
 };
-static const byte kInstruction_cmp_mi_r4_88[] = {
+const byte kInstruction_cmp_mi_r4_88[] = {
   0x48, 0xbf, 0x58, 0x2c // It mi; cmp mi r4 88
 };
-static const byte kInstruction_cmp_ne_r6_118[] = {
+const byte kInstruction_cmp_ne_r6_118[] = {
   0x18, 0xbf, 0x76, 0x2e // It ne; cmp ne r6 118
 };
-static const byte kInstruction_cmp_vc_r2_79[] = {
+const byte kInstruction_cmp_vc_r2_79[] = {
   0x78, 0xbf, 0x4f, 0x2a // It vc; cmp vc r2 79
 };
-static const byte kInstruction_cmp_vc_r0_104[] = {
+const byte kInstruction_cmp_vc_r0_104[] = {
   0x78, 0xbf, 0x68, 0x28 // It vc; cmp vc r0 104
 };
-static const byte kInstruction_cmp_vs_r3_128[] = {
+const byte kInstruction_cmp_vs_r3_128[] = {
   0x68, 0xbf, 0x80, 0x2b // It vs; cmp vs r3 128
 };
-static const byte kInstruction_cmp_pl_r1_129[] = {
+const byte kInstruction_cmp_pl_r1_129[] = {
   0x58, 0xbf, 0x81, 0x29 // It pl; cmp pl r1 129
 };
-static const byte kInstruction_cmp_mi_r6_149[] = {
+const byte kInstruction_cmp_mi_r6_149[] = {
   0x48, 0xbf, 0x95, 0x2e // It mi; cmp mi r6 149
 };
-static const byte kInstruction_cmp_mi_r4_226[] = {
+const byte kInstruction_cmp_mi_r4_226[] = {
   0x48, 0xbf, 0xe2, 0x2c // It mi; cmp mi r4 226
 };
-static const byte kInstruction_cmp_pl_r5_232[] = {
+const byte kInstruction_cmp_pl_r5_232[] = {
   0x58, 0xbf, 0xe8, 0x2d // It pl; cmp pl r5 232
 };
-static const byte kInstruction_cmp_hi_r1_88[] = {
+const byte kInstruction_cmp_hi_r1_88[] = {
   0x88, 0xbf, 0x58, 0x29 // It hi; cmp hi r1 88
 };
-static const byte kInstruction_cmp_mi_r3_13[] = {
+const byte kInstruction_cmp_mi_r3_13[] = {
   0x48, 0xbf, 0x0d, 0x2b // It mi; cmp mi r3 13
 };
-static const byte kInstruction_cmp_vs_r1_44[] = {
+const byte kInstruction_cmp_vs_r1_44[] = {
   0x68, 0xbf, 0x2c, 0x29 // It vs; cmp vs r1 44
 };
-static const byte kInstruction_cmp_le_r3_88[] = {
+const byte kInstruction_cmp_le_r3_88[] = {
   0xd8, 0xbf, 0x58, 0x2b // It le; cmp le r3 88
 };
-static const byte kInstruction_cmp_pl_r7_224[] = {
+const byte kInstruction_cmp_pl_r7_224[] = {
   0x58, 0xbf, 0xe0, 0x2f // It pl; cmp pl r7 224
 };
-static const byte kInstruction_cmp_eq_r2_117[] = {
+const byte kInstruction_cmp_eq_r2_117[] = {
   0x08, 0xbf, 0x75, 0x2a // It eq; cmp eq r2 117
 };
-static const byte kInstruction_cmp_cc_r5_94[] = {
+const byte kInstruction_cmp_cc_r5_94[] = {
   0x38, 0xbf, 0x5e, 0x2d // It cc; cmp cc r5 94
 };
-static const byte kInstruction_cmp_gt_r3_43[] = {
+const byte kInstruction_cmp_gt_r3_43[] = {
   0xc8, 0xbf, 0x2b, 0x2b // It gt; cmp gt r3 43
 };
-static const byte kInstruction_cmp_vs_r4_159[] = {
+const byte kInstruction_cmp_vs_r4_159[] = {
   0x68, 0xbf, 0x9f, 0x2c // It vs; cmp vs r4 159
 };
-static const byte kInstruction_cmp_mi_r7_205[] = {
+const byte kInstruction_cmp_mi_r7_205[] = {
   0x48, 0xbf, 0xcd, 0x2f // It mi; cmp mi r7 205
 };
-static const byte kInstruction_cmp_eq_r6_161[] = {
+const byte kInstruction_cmp_eq_r6_161[] = {
   0x08, 0xbf, 0xa1, 0x2e // It eq; cmp eq r6 161
 };
-static const byte kInstruction_cmp_le_r6_150[] = {
+const byte kInstruction_cmp_le_r6_150[] = {
   0xd8, 0xbf, 0x96, 0x2e // It le; cmp le r6 150
 };
-static const byte kInstruction_cmp_ls_r2_144[] = {
+const byte kInstruction_cmp_ls_r2_144[] = {
   0x98, 0xbf, 0x90, 0x2a // It ls; cmp ls r2 144
 };
-static const byte kInstruction_cmp_le_r2_240[] = {
+const byte kInstruction_cmp_le_r2_240[] = {
   0xd8, 0xbf, 0xf0, 0x2a // It le; cmp le r2 240
 };
-static const byte kInstruction_cmp_pl_r1_11[] = {
+const byte kInstruction_cmp_pl_r1_11[] = {
   0x58, 0xbf, 0x0b, 0x29 // It pl; cmp pl r1 11
 };
-static const byte kInstruction_cmp_pl_r2_116[] = {
+const byte kInstruction_cmp_pl_r2_116[] = {
   0x58, 0xbf, 0x74, 0x2a // It pl; cmp pl r2 116
 };
-static const byte kInstruction_cmp_ne_r3_122[] = {
+const byte kInstruction_cmp_ne_r3_122[] = {
   0x18, 0xbf, 0x7a, 0x2b // It ne; cmp ne r3 122
 };
-static const byte kInstruction_cmp_cs_r7_146[] = {
+const byte kInstruction_cmp_cs_r7_146[] = {
   0x28, 0xbf, 0x92, 0x2f // It cs; cmp cs r7 146
 };
-static const byte kInstruction_cmp_eq_r5_21[] = {
+const byte kInstruction_cmp_eq_r5_21[] = {
   0x08, 0xbf, 0x15, 0x2d // It eq; cmp eq r5 21
 };
-static const byte kInstruction_cmp_ge_r0_49[] = {
+const byte kInstruction_cmp_ge_r0_49[] = {
   0xa8, 0xbf, 0x31, 0x28 // It ge; cmp ge r0 49
 };
-static const byte kInstruction_cmp_gt_r2_170[] = {
+const byte kInstruction_cmp_gt_r2_170[] = {
   0xc8, 0xbf, 0xaa, 0x2a // It gt; cmp gt r2 170
 };
-static const byte kInstruction_cmp_mi_r3_208[] = {
+const byte kInstruction_cmp_mi_r3_208[] = {
   0x48, 0xbf, 0xd0, 0x2b // It mi; cmp mi r3 208
 };
-static const byte kInstruction_cmp_le_r4_47[] = {
+const byte kInstruction_cmp_le_r4_47[] = {
   0xd8, 0xbf, 0x2f, 0x2c // It le; cmp le r4 47
 };
-static const byte kInstruction_cmp_ne_r4_176[] = {
+const byte kInstruction_cmp_ne_r4_176[] = {
   0x18, 0xbf, 0xb0, 0x2c // It ne; cmp ne r4 176
 };
-static const byte kInstruction_cmp_le_r1_153[] = {
+const byte kInstruction_cmp_le_r1_153[] = {
   0xd8, 0xbf, 0x99, 0x29 // It le; cmp le r1 153
 };
-static const byte kInstruction_cmp_cs_r3_136[] = {
+const byte kInstruction_cmp_cs_r3_136[] = {
   0x28, 0xbf, 0x88, 0x2b // It cs; cmp cs r3 136
 };
-static const byte kInstruction_cmp_le_r7_166[] = {
+const byte kInstruction_cmp_le_r7_166[] = {
   0xd8, 0xbf, 0xa6, 0x2f // It le; cmp le r7 166
 };
-static const byte kInstruction_cmp_vc_r2_148[] = {
+const byte kInstruction_cmp_vc_r2_148[] = {
   0x78, 0xbf, 0x94, 0x2a // It vc; cmp vc r2 148
 };
-static const byte kInstruction_cmp_ge_r6_226[] = {
+const byte kInstruction_cmp_ge_r6_226[] = {
   0xa8, 0xbf, 0xe2, 0x2e // It ge; cmp ge r6 226
 };
-static const byte kInstruction_cmp_mi_r7_224[] = {
+const byte kInstruction_cmp_mi_r7_224[] = {
   0x48, 0xbf, 0xe0, 0x2f // It mi; cmp mi r7 224
 };
-static const byte kInstruction_cmp_le_r0_88[] = {
+const byte kInstruction_cmp_le_r0_88[] = {
   0xd8, 0xbf, 0x58, 0x28 // It le; cmp le r0 88
 };
-static const byte kInstruction_cmp_lt_r3_131[] = {
+const byte kInstruction_cmp_lt_r3_131[] = {
   0xb8, 0xbf, 0x83, 0x2b // It lt; cmp lt r3 131
 };
-static const byte kInstruction_cmp_gt_r6_70[] = {
+const byte kInstruction_cmp_gt_r6_70[] = {
   0xc8, 0xbf, 0x46, 0x2e // It gt; cmp gt r6 70
 };
-static const byte kInstruction_cmp_cc_r5_212[] = {
+const byte kInstruction_cmp_cc_r5_212[] = {
   0x38, 0xbf, 0xd4, 0x2d // It cc; cmp cc r5 212
 };
-static const byte kInstruction_cmp_pl_r7_184[] = {
+const byte kInstruction_cmp_pl_r7_184[] = {
   0x58, 0xbf, 0xb8, 0x2f // It pl; cmp pl r7 184
 };
-static const byte kInstruction_cmp_gt_r0_170[] = {
+const byte kInstruction_cmp_gt_r0_170[] = {
   0xc8, 0xbf, 0xaa, 0x28 // It gt; cmp gt r0 170
 };
-static const byte kInstruction_cmp_ne_r7_227[] = {
+const byte kInstruction_cmp_ne_r7_227[] = {
   0x18, 0xbf, 0xe3, 0x2f // It ne; cmp ne r7 227
 };
-static const byte kInstruction_cmp_cs_r7_129[] = {
+const byte kInstruction_cmp_cs_r7_129[] = {
   0x28, 0xbf, 0x81, 0x2f // It cs; cmp cs r7 129
 };
-static const byte kInstruction_cmp_lt_r2_214[] = {
+const byte kInstruction_cmp_lt_r2_214[] = {
   0xb8, 0xbf, 0xd6, 0x2a // It lt; cmp lt r2 214
 };
-static const byte kInstruction_cmp_le_r3_68[] = {
+const byte kInstruction_cmp_le_r3_68[] = {
   0xd8, 0xbf, 0x44, 0x2b // It le; cmp le r3 68
 };
-static const byte kInstruction_cmp_cs_r1_174[] = {
+const byte kInstruction_cmp_cs_r1_174[] = {
   0x28, 0xbf, 0xae, 0x29 // It cs; cmp cs r1 174
 };
-static const byte kInstruction_cmp_mi_r6_224[] = {
+const byte kInstruction_cmp_mi_r6_224[] = {
   0x48, 0xbf, 0xe0, 0x2e // It mi; cmp mi r6 224
 };
-static const byte kInstruction_cmp_gt_r3_107[] = {
+const byte kInstruction_cmp_gt_r3_107[] = {
   0xc8, 0xbf, 0x6b, 0x2b // It gt; cmp gt r3 107
 };
-static const byte kInstruction_cmp_pl_r6_62[] = {
+const byte kInstruction_cmp_pl_r6_62[] = {
   0x58, 0xbf, 0x3e, 0x2e // It pl; cmp pl r6 62
 };
-static const byte kInstruction_cmp_mi_r2_173[] = {
+const byte kInstruction_cmp_mi_r2_173[] = {
   0x48, 0xbf, 0xad, 0x2a // It mi; cmp mi r2 173
 };
-static const byte kInstruction_cmp_cs_r3_208[] = {
+const byte kInstruction_cmp_cs_r3_208[] = {
   0x28, 0xbf, 0xd0, 0x2b // It cs; cmp cs r3 208
 };
-static const byte kInstruction_cmp_cc_r3_214[] = {
+const byte kInstruction_cmp_cc_r3_214[] = {
   0x38, 0xbf, 0xd6, 0x2b // It cc; cmp cc r3 214
 };
-static const byte kInstruction_cmp_lt_r5_20[] = {
+const byte kInstruction_cmp_lt_r5_20[] = {
   0xb8, 0xbf, 0x14, 0x2d // It lt; cmp lt r5 20
 };
-static const byte kInstruction_cmp_vs_r2_9[] = {
+const byte kInstruction_cmp_vs_r2_9[] = {
   0x68, 0xbf, 0x09, 0x2a // It vs; cmp vs r2 9
 };
-static const byte kInstruction_cmp_le_r1_55[] = {
+const byte kInstruction_cmp_le_r1_55[] = {
   0xd8, 0xbf, 0x37, 0x29 // It le; cmp le r1 55
 };
-static const byte kInstruction_cmp_vc_r3_14[] = {
+const byte kInstruction_cmp_vc_r3_14[] = {
   0x78, 0xbf, 0x0e, 0x2b // It vc; cmp vc r3 14
 };
-static const byte kInstruction_cmp_eq_r5_74[] = {
+const byte kInstruction_cmp_eq_r5_74[] = {
   0x08, 0xbf, 0x4a, 0x2d // It eq; cmp eq r5 74
 };
-static const byte kInstruction_cmp_cs_r0_40[] = {
+const byte kInstruction_cmp_cs_r0_40[] = {
   0x28, 0xbf, 0x28, 0x28 // It cs; cmp cs r0 40
 };
-static const byte kInstruction_cmp_ge_r6_98[] = {
+const byte kInstruction_cmp_ge_r6_98[] = {
   0xa8, 0xbf, 0x62, 0x2e // It ge; cmp ge r6 98
 };
-static const byte kInstruction_cmp_cs_r3_79[] = {
+const byte kInstruction_cmp_cs_r3_79[] = {
   0x28, 0xbf, 0x4f, 0x2b // It cs; cmp cs r3 79
 };
-static const byte kInstruction_cmp_ne_r0_199[] = {
+const byte kInstruction_cmp_ne_r0_199[] = {
   0x18, 0xbf, 0xc7, 0x28 // It ne; cmp ne r0 199
 };
-static const byte kInstruction_cmp_lt_r0_163[] = {
+const byte kInstruction_cmp_lt_r0_163[] = {
   0xb8, 0xbf, 0xa3, 0x28 // It lt; cmp lt r0 163
 };
-static const byte kInstruction_cmp_cs_r6_42[] = {
+const byte kInstruction_cmp_cs_r6_42[] = {
   0x28, 0xbf, 0x2a, 0x2e // It cs; cmp cs r6 42
 };
-static const byte kInstruction_cmp_eq_r6_32[] = {
+const byte kInstruction_cmp_eq_r6_32[] = {
   0x08, 0xbf, 0x20, 0x2e // It eq; cmp eq r6 32
 };
-static const byte kInstruction_cmp_vs_r1_64[] = {
+const byte kInstruction_cmp_vs_r1_64[] = {
   0x68, 0xbf, 0x40, 0x29 // It vs; cmp vs r1 64
 };
-static const byte kInstruction_cmp_hi_r4_91[] = {
+const byte kInstruction_cmp_hi_r4_91[] = {
   0x88, 0xbf, 0x5b, 0x2c // It hi; cmp hi r4 91
 };
-static const byte kInstruction_cmp_ls_r3_79[] = {
+const byte kInstruction_cmp_ls_r3_79[] = {
   0x98, 0xbf, 0x4f, 0x2b // It ls; cmp ls r3 79
 };
-static const byte kInstruction_cmp_gt_r3_68[] = {
+const byte kInstruction_cmp_gt_r3_68[] = {
   0xc8, 0xbf, 0x44, 0x2b // It gt; cmp gt r3 68
 };
-static const byte kInstruction_cmp_eq_r0_133[] = {
+const byte kInstruction_cmp_eq_r0_133[] = {
   0x08, 0xbf, 0x85, 0x28 // It eq; cmp eq r0 133
 };
-static const byte kInstruction_cmp_vs_r4_8[] = {
+const byte kInstruction_cmp_vs_r4_8[] = {
   0x68, 0xbf, 0x08, 0x2c // It vs; cmp vs r4 8
 };
-static const byte kInstruction_cmp_cs_r2_248[] = {
+const byte kInstruction_cmp_cs_r2_248[] = {
   0x28, 0xbf, 0xf8, 0x2a // It cs; cmp cs r2 248
 };
-static const byte kInstruction_cmp_cs_r2_153[] = {
+const byte kInstruction_cmp_cs_r2_153[] = {
   0x28, 0xbf, 0x99, 0x2a // It cs; cmp cs r2 153
 };
-static const byte kInstruction_cmp_cc_r1_21[] = {
+const byte kInstruction_cmp_cc_r1_21[] = {
   0x38, 0xbf, 0x15, 0x29 // It cc; cmp cc r1 21
 };
-static const byte kInstruction_cmp_mi_r3_171[] = {
+const byte kInstruction_cmp_mi_r3_171[] = {
   0x48, 0xbf, 0xab, 0x2b // It mi; cmp mi r3 171
 };
-static const byte kInstruction_cmp_gt_r6_126[] = {
+const byte kInstruction_cmp_gt_r6_126[] = {
   0xc8, 0xbf, 0x7e, 0x2e // It gt; cmp gt r6 126
 };
-static const byte kInstruction_cmp_hi_r0_155[] = {
+const byte kInstruction_cmp_hi_r0_155[] = {
   0x88, 0xbf, 0x9b, 0x28 // It hi; cmp hi r0 155
 };
-static const byte kInstruction_cmp_cs_r0_224[] = {
+const byte kInstruction_cmp_cs_r0_224[] = {
   0x28, 0xbf, 0xe0, 0x28 // It cs; cmp cs r0 224
 };
-static const byte kInstruction_cmp_cc_r2_38[] = {
+const byte kInstruction_cmp_cc_r2_38[] = {
   0x38, 0xbf, 0x26, 0x2a // It cc; cmp cc r2 38
 };
-static const byte kInstruction_cmp_lt_r3_127[] = {
+const byte kInstruction_cmp_lt_r3_127[] = {
   0xb8, 0xbf, 0x7f, 0x2b // It lt; cmp lt r3 127
 };
-static const byte kInstruction_cmp_gt_r6_21[] = {
+const byte kInstruction_cmp_gt_r6_21[] = {
   0xc8, 0xbf, 0x15, 0x2e // It gt; cmp gt r6 21
 };
-static const byte kInstruction_cmp_gt_r4_39[] = {
+const byte kInstruction_cmp_gt_r4_39[] = {
   0xc8, 0xbf, 0x27, 0x2c // It gt; cmp gt r4 39
 };
-static const byte kInstruction_cmp_ge_r4_40[] = {
+const byte kInstruction_cmp_ge_r4_40[] = {
   0xa8, 0xbf, 0x28, 0x2c // It ge; cmp ge r4 40
 };
-static const byte kInstruction_cmp_hi_r4_228[] = {
+const byte kInstruction_cmp_hi_r4_228[] = {
   0x88, 0xbf, 0xe4, 0x2c // It hi; cmp hi r4 228
 };
-static const byte kInstruction_cmp_le_r6_51[] = {
+const byte kInstruction_cmp_le_r6_51[] = {
   0xd8, 0xbf, 0x33, 0x2e // It le; cmp le r6 51
 };
-static const byte kInstruction_cmp_ge_r3_3[] = {
+const byte kInstruction_cmp_ge_r3_3[] = {
   0xa8, 0xbf, 0x03, 0x2b // It ge; cmp ge r3 3
 };
-static const byte kInstruction_cmp_ge_r5_24[] = {
+const byte kInstruction_cmp_ge_r5_24[] = {
   0xa8, 0xbf, 0x18, 0x2d // It ge; cmp ge r5 24
 };
-static const byte kInstruction_cmp_ge_r0_52[] = {
+const byte kInstruction_cmp_ge_r0_52[] = {
   0xa8, 0xbf, 0x34, 0x28 // It ge; cmp ge r0 52
 };
-static const byte kInstruction_cmp_vs_r6_84[] = {
+const byte kInstruction_cmp_vs_r6_84[] = {
   0x68, 0xbf, 0x54, 0x2e // It vs; cmp vs r6 84
 };
-static const byte kInstruction_cmp_gt_r7_238[] = {
+const byte kInstruction_cmp_gt_r7_238[] = {
   0xc8, 0xbf, 0xee, 0x2f // It gt; cmp gt r7 238
 };
-static const byte kInstruction_cmp_pl_r2_118[] = {
+const byte kInstruction_cmp_pl_r2_118[] = {
   0x58, 0xbf, 0x76, 0x2a // It pl; cmp pl r2 118
 };
-static const byte kInstruction_cmp_cc_r0_96[] = {
+const byte kInstruction_cmp_cc_r0_96[] = {
   0x38, 0xbf, 0x60, 0x28 // It cc; cmp cc r0 96
 };
-static const byte kInstruction_cmp_gt_r1_241[] = {
+const byte kInstruction_cmp_gt_r1_241[] = {
   0xc8, 0xbf, 0xf1, 0x29 // It gt; cmp gt r1 241
 };
-static const byte kInstruction_cmp_lt_r5_231[] = {
+const byte kInstruction_cmp_lt_r5_231[] = {
   0xb8, 0xbf, 0xe7, 0x2d // It lt; cmp lt r5 231
 };
-static const byte kInstruction_cmp_vs_r0_223[] = {
+const byte kInstruction_cmp_vs_r0_223[] = {
   0x68, 0xbf, 0xdf, 0x28 // It vs; cmp vs r0 223
 };
-static const byte kInstruction_cmp_vc_r6_85[] = {
+const byte kInstruction_cmp_vc_r6_85[] = {
   0x78, 0xbf, 0x55, 0x2e // It vc; cmp vc r6 85
 };
-static const byte kInstruction_cmp_vs_r4_171[] = {
+const byte kInstruction_cmp_vs_r4_171[] = {
   0x68, 0xbf, 0xab, 0x2c // It vs; cmp vs r4 171
 };
-static const byte kInstruction_cmp_hi_r7_34[] = {
+const byte kInstruction_cmp_hi_r7_34[] = {
   0x88, 0xbf, 0x22, 0x2f // It hi; cmp hi r7 34
 };
-static const byte kInstruction_cmp_hi_r4_243[] = {
+const byte kInstruction_cmp_hi_r4_243[] = {
   0x88, 0xbf, 0xf3, 0x2c // It hi; cmp hi r4 243
 };
-static const byte kInstruction_cmp_cc_r6_16[] = {
+const byte kInstruction_cmp_cc_r6_16[] = {
   0x38, 0xbf, 0x10, 0x2e // It cc; cmp cc r6 16
 };
-static const byte kInstruction_cmp_cs_r2_179[] = {
+const byte kInstruction_cmp_cs_r2_179[] = {
   0x28, 0xbf, 0xb3, 0x2a // It cs; cmp cs r2 179
 };
-static const byte kInstruction_cmp_cs_r5_128[] = {
+const byte kInstruction_cmp_cs_r5_128[] = {
   0x28, 0xbf, 0x80, 0x2d // It cs; cmp cs r5 128
 };
-static const byte kInstruction_cmp_lt_r6_43[] = {
+const byte kInstruction_cmp_lt_r6_43[] = {
   0xb8, 0xbf, 0x2b, 0x2e // It lt; cmp lt r6 43
 };
-static const byte kInstruction_cmp_lt_r1_116[] = {
+const byte kInstruction_cmp_lt_r1_116[] = {
   0xb8, 0xbf, 0x74, 0x29 // It lt; cmp lt r1 116
 };
-static const byte kInstruction_cmp_mi_r4_176[] = {
+const byte kInstruction_cmp_mi_r4_176[] = {
   0x48, 0xbf, 0xb0, 0x2c // It mi; cmp mi r4 176
 };
-static const byte kInstruction_cmp_hi_r3_158[] = {
+const byte kInstruction_cmp_hi_r3_158[] = {
   0x88, 0xbf, 0x9e, 0x2b // It hi; cmp hi r3 158
 };
-static const byte kInstruction_cmp_cs_r6_21[] = {
+const byte kInstruction_cmp_cs_r6_21[] = {
   0x28, 0xbf, 0x15, 0x2e // It cs; cmp cs r6 21
 };
-static const byte kInstruction_cmp_ge_r5_114[] = {
+const byte kInstruction_cmp_ge_r5_114[] = {
   0xa8, 0xbf, 0x72, 0x2d // It ge; cmp ge r5 114
 };
-static const byte kInstruction_cmp_vs_r3_109[] = {
+const byte kInstruction_cmp_vs_r3_109[] = {
   0x68, 0xbf, 0x6d, 0x2b // It vs; cmp vs r3 109
 };
-static const byte kInstruction_cmp_ne_r4_249[] = {
+const byte kInstruction_cmp_ne_r4_249[] = {
   0x18, 0xbf, 0xf9, 0x2c // It ne; cmp ne r4 249
 };
-static const byte kInstruction_cmp_ls_r5_96[] = {
+const byte kInstruction_cmp_ls_r5_96[] = {
   0x98, 0xbf, 0x60, 0x2d // It ls; cmp ls r5 96
 };
-static const byte kInstruction_cmp_hi_r0_135[] = {
+const byte kInstruction_cmp_hi_r0_135[] = {
   0x88, 0xbf, 0x87, 0x28 // It hi; cmp hi r0 135
 };
-static const byte kInstruction_cmp_vc_r2_63[] = {
+const byte kInstruction_cmp_vc_r2_63[] = {
   0x78, 0xbf, 0x3f, 0x2a // It vc; cmp vc r2 63
 };
-static const byte kInstruction_cmp_le_r0_169[] = {
+const byte kInstruction_cmp_le_r0_169[] = {
   0xd8, 0xbf, 0xa9, 0x28 // It le; cmp le r0 169
 };
-static const byte kInstruction_cmp_vc_r4_230[] = {
+const byte kInstruction_cmp_vc_r4_230[] = {
   0x78, 0xbf, 0xe6, 0x2c // It vc; cmp vc r4 230
 };
-static const byte kInstruction_cmp_gt_r3_181[] = {
+const byte kInstruction_cmp_gt_r3_181[] = {
   0xc8, 0xbf, 0xb5, 0x2b // It gt; cmp gt r3 181
 };
-static const byte kInstruction_cmp_eq_r6_202[] = {
+const byte kInstruction_cmp_eq_r6_202[] = {
   0x08, 0xbf, 0xca, 0x2e // It eq; cmp eq r6 202
 };
-static const byte kInstruction_cmp_mi_r4_57[] = {
+const byte kInstruction_cmp_mi_r4_57[] = {
   0x48, 0xbf, 0x39, 0x2c // It mi; cmp mi r4 57
 };
-static const byte kInstruction_cmp_lt_r7_220[] = {
+const byte kInstruction_cmp_lt_r7_220[] = {
   0xb8, 0xbf, 0xdc, 0x2f // It lt; cmp lt r7 220
 };
-static const byte kInstruction_cmp_lt_r3_43[] = {
+const byte kInstruction_cmp_lt_r3_43[] = {
   0xb8, 0xbf, 0x2b, 0x2b // It lt; cmp lt r3 43
 };
-static const byte kInstruction_cmp_pl_r3_210[] = {
+const byte kInstruction_cmp_pl_r3_210[] = {
   0x58, 0xbf, 0xd2, 0x2b // It pl; cmp pl r3 210
 };
-static const byte kInstruction_cmp_cc_r4_182[] = {
+const byte kInstruction_cmp_cc_r4_182[] = {
   0x38, 0xbf, 0xb6, 0x2c // It cc; cmp cc r4 182
 };
-static const byte kInstruction_cmp_vc_r5_105[] = {
+const byte kInstruction_cmp_vc_r5_105[] = {
   0x78, 0xbf, 0x69, 0x2d // It vc; cmp vc r5 105
 };
-static const byte kInstruction_cmp_ls_r4_150[] = {
+const byte kInstruction_cmp_ls_r4_150[] = {
   0x98, 0xbf, 0x96, 0x2c // It ls; cmp ls r4 150
 };
-static const byte kInstruction_cmp_ls_r0_2[] = {
+const byte kInstruction_cmp_ls_r0_2[] = {
   0x98, 0xbf, 0x02, 0x28 // It ls; cmp ls r0 2
 };
-static const byte kInstruction_cmp_eq_r0_0[] = {
+const byte kInstruction_cmp_eq_r0_0[] = {
   0x08, 0xbf, 0x00, 0x28 // It eq; cmp eq r0 0
 };
-static const byte kInstruction_cmp_cc_r6_204[] = {
+const byte kInstruction_cmp_cc_r6_204[] = {
   0x38, 0xbf, 0xcc, 0x2e // It cc; cmp cc r6 204
 };
-static const byte kInstruction_cmp_lt_r4_226[] = {
+const byte kInstruction_cmp_lt_r4_226[] = {
   0xb8, 0xbf, 0xe2, 0x2c // It lt; cmp lt r4 226
 };
-static const byte kInstruction_cmp_pl_r2_37[] = {
+const byte kInstruction_cmp_pl_r2_37[] = {
   0x58, 0xbf, 0x25, 0x2a // It pl; cmp pl r2 37
 };
-static const byte kInstruction_cmp_ge_r3_208[] = {
+const byte kInstruction_cmp_ge_r3_208[] = {
   0xa8, 0xbf, 0xd0, 0x2b // It ge; cmp ge r3 208
 };
-static const byte kInstruction_cmp_mi_r1_75[] = {
+const byte kInstruction_cmp_mi_r1_75[] = {
   0x48, 0xbf, 0x4b, 0x29 // It mi; cmp mi r1 75
 };
-static const byte kInstruction_cmp_hi_r7_249[] = {
+const byte kInstruction_cmp_hi_r7_249[] = {
   0x88, 0xbf, 0xf9, 0x2f // It hi; cmp hi r7 249
 };
-static const byte kInstruction_cmp_vc_r6_61[] = {
+const byte kInstruction_cmp_vc_r6_61[] = {
   0x78, 0xbf, 0x3d, 0x2e // It vc; cmp vc r6 61
 };
-static const byte kInstruction_cmp_eq_r1_185[] = {
+const byte kInstruction_cmp_eq_r1_185[] = {
   0x08, 0xbf, 0xb9, 0x29 // It eq; cmp eq r1 185
 };
-static const byte kInstruction_cmp_vs_r5_55[] = {
+const byte kInstruction_cmp_vs_r5_55[] = {
   0x68, 0xbf, 0x37, 0x2d // It vs; cmp vs r5 55
 };
-static const byte kInstruction_cmp_pl_r2_243[] = {
+const byte kInstruction_cmp_pl_r2_243[] = {
   0x58, 0xbf, 0xf3, 0x2a // It pl; cmp pl r2 243
 };
-static const byte kInstruction_cmp_eq_r0_111[] = {
+const byte kInstruction_cmp_eq_r0_111[] = {
   0x08, 0xbf, 0x6f, 0x28 // It eq; cmp eq r0 111
 };
-static const byte kInstruction_cmp_cc_r5_75[] = {
+const byte kInstruction_cmp_cc_r5_75[] = {
   0x38, 0xbf, 0x4b, 0x2d // It cc; cmp cc r5 75
 };
-static const byte kInstruction_cmp_mi_r1_103[] = {
+const byte kInstruction_cmp_mi_r1_103[] = {
   0x48, 0xbf, 0x67, 0x29 // It mi; cmp mi r1 103
 };
-static const byte kInstruction_cmp_mi_r5_201[] = {
+const byte kInstruction_cmp_mi_r5_201[] = {
   0x48, 0xbf, 0xc9, 0x2d // It mi; cmp mi r5 201
 };
-static const byte kInstruction_cmp_eq_r6_13[] = {
+const byte kInstruction_cmp_eq_r6_13[] = {
   0x08, 0xbf, 0x0d, 0x2e // It eq; cmp eq r6 13
 };
-static const byte kInstruction_cmp_le_r1_117[] = {
+const byte kInstruction_cmp_le_r1_117[] = {
   0xd8, 0xbf, 0x75, 0x29 // It le; cmp le r1 117
 };
-static const byte kInstruction_cmp_le_r4_245[] = {
+const byte kInstruction_cmp_le_r4_245[] = {
   0xd8, 0xbf, 0xf5, 0x2c // It le; cmp le r4 245
 };
-static const byte kInstruction_cmp_vc_r5_253[] = {
+const byte kInstruction_cmp_vc_r5_253[] = {
   0x78, 0xbf, 0xfd, 0x2d // It vc; cmp vc r5 253
 };
-static const byte kInstruction_cmp_vc_r1_245[] = {
+const byte kInstruction_cmp_vc_r1_245[] = {
   0x78, 0xbf, 0xf5, 0x29 // It vc; cmp vc r1 245
 };
-static const byte kInstruction_cmp_hi_r0_160[] = {
+const byte kInstruction_cmp_hi_r0_160[] = {
   0x88, 0xbf, 0xa0, 0x28 // It hi; cmp hi r0 160
 };
-static const byte kInstruction_cmp_ne_r6_139[] = {
+const byte kInstruction_cmp_ne_r6_139[] = {
   0x18, 0xbf, 0x8b, 0x2e // It ne; cmp ne r6 139
 };
-static const byte kInstruction_cmp_cc_r3_71[] = {
+const byte kInstruction_cmp_cc_r3_71[] = {
   0x38, 0xbf, 0x47, 0x2b // It cc; cmp cc r3 71
 };
-static const byte kInstruction_cmp_lt_r0_155[] = {
+const byte kInstruction_cmp_lt_r0_155[] = {
   0xb8, 0xbf, 0x9b, 0x28 // It lt; cmp lt r0 155
 };
-static const byte kInstruction_cmp_ls_r4_100[] = {
+const byte kInstruction_cmp_ls_r4_100[] = {
   0x98, 0xbf, 0x64, 0x2c // It ls; cmp ls r4 100
 };
-static const byte kInstruction_cmp_vs_r5_117[] = {
+const byte kInstruction_cmp_vs_r5_117[] = {
   0x68, 0xbf, 0x75, 0x2d // It vs; cmp vs r5 117
 };
-static const byte kInstruction_cmp_gt_r7_9[] = {
+const byte kInstruction_cmp_gt_r7_9[] = {
   0xc8, 0xbf, 0x09, 0x2f // It gt; cmp gt r7 9
 };
-static const byte kInstruction_cmp_lt_r5_30[] = {
+const byte kInstruction_cmp_lt_r5_30[] = {
   0xb8, 0xbf, 0x1e, 0x2d // It lt; cmp lt r5 30
 };
-static const byte kInstruction_cmp_pl_r6_32[] = {
+const byte kInstruction_cmp_pl_r6_32[] = {
   0x58, 0xbf, 0x20, 0x2e // It pl; cmp pl r6 32
 };
-static const byte kInstruction_cmp_mi_r1_105[] = {
+const byte kInstruction_cmp_mi_r1_105[] = {
   0x48, 0xbf, 0x69, 0x29 // It mi; cmp mi r1 105
 };
-static const byte kInstruction_cmp_hi_r1_34[] = {
+const byte kInstruction_cmp_hi_r1_34[] = {
   0x88, 0xbf, 0x22, 0x29 // It hi; cmp hi r1 34
 };
-static const byte kInstruction_cmp_cs_r7_213[] = {
+const byte kInstruction_cmp_cs_r7_213[] = {
   0x28, 0xbf, 0xd5, 0x2f // It cs; cmp cs r7 213
 };
-static const byte kInstruction_cmp_le_r7_218[] = {
+const byte kInstruction_cmp_le_r7_218[] = {
   0xd8, 0xbf, 0xda, 0x2f // It le; cmp le r7 218
 };
-static const byte kInstruction_cmp_pl_r3_131[] = {
+const byte kInstruction_cmp_pl_r3_131[] = {
   0x58, 0xbf, 0x83, 0x2b // It pl; cmp pl r3 131
 };
-static const byte kInstruction_cmp_cs_r6_117[] = {
+const byte kInstruction_cmp_cs_r6_117[] = {
   0x28, 0xbf, 0x75, 0x2e // It cs; cmp cs r6 117
 };
-static const byte kInstruction_cmp_cc_r1_177[] = {
+const byte kInstruction_cmp_cc_r1_177[] = {
   0x38, 0xbf, 0xb1, 0x29 // It cc; cmp cc r1 177
 };
-static const byte kInstruction_cmp_cs_r1_74[] = {
+const byte kInstruction_cmp_cs_r1_74[] = {
   0x28, 0xbf, 0x4a, 0x29 // It cs; cmp cs r1 74
 };
-static const byte kInstruction_cmp_ls_r7_176[] = {
+const byte kInstruction_cmp_ls_r7_176[] = {
   0x98, 0xbf, 0xb0, 0x2f // It ls; cmp ls r7 176
 };
-static const byte kInstruction_cmp_lt_r7_208[] = {
+const byte kInstruction_cmp_lt_r7_208[] = {
   0xb8, 0xbf, 0xd0, 0x2f // It lt; cmp lt r7 208
 };
-static const byte kInstruction_cmp_ge_r2_252[] = {
+const byte kInstruction_cmp_ge_r2_252[] = {
   0xa8, 0xbf, 0xfc, 0x2a // It ge; cmp ge r2 252
 };
-static const byte kInstruction_cmp_gt_r7_135[] = {
+const byte kInstruction_cmp_gt_r7_135[] = {
   0xc8, 0xbf, 0x87, 0x2f // It gt; cmp gt r7 135
 };
-static const byte kInstruction_cmp_cs_r4_128[] = {
+const byte kInstruction_cmp_cs_r4_128[] = {
   0x28, 0xbf, 0x80, 0x2c // It cs; cmp cs r4 128
 };
-static const byte kInstruction_cmp_le_r6_44[] = {
+const byte kInstruction_cmp_le_r6_44[] = {
   0xd8, 0xbf, 0x2c, 0x2e // It le; cmp le r6 44
 };
-static const byte kInstruction_cmp_cs_r5_184[] = {
+const byte kInstruction_cmp_cs_r5_184[] = {
   0x28, 0xbf, 0xb8, 0x2d // It cs; cmp cs r5 184
 };
-static const byte kInstruction_cmp_cc_r5_17[] = {
+const byte kInstruction_cmp_cc_r5_17[] = {
   0x38, 0xbf, 0x11, 0x2d // It cc; cmp cc r5 17
 };
-static const byte kInstruction_cmp_le_r1_48[] = {
+const byte kInstruction_cmp_le_r1_48[] = {
   0xd8, 0xbf, 0x30, 0x29 // It le; cmp le r1 48
 };
-static const byte kInstruction_cmp_vs_r7_152[] = {
+const byte kInstruction_cmp_vs_r7_152[] = {
   0x68, 0xbf, 0x98, 0x2f // It vs; cmp vs r7 152
 };
-static const byte kInstruction_cmp_cs_r3_236[] = {
+const byte kInstruction_cmp_cs_r3_236[] = {
   0x28, 0xbf, 0xec, 0x2b // It cs; cmp cs r3 236
 };
-static const byte kInstruction_cmp_cc_r1_68[] = {
+const byte kInstruction_cmp_cc_r1_68[] = {
   0x38, 0xbf, 0x44, 0x29 // It cc; cmp cc r1 68
 };
-static const byte kInstruction_cmp_cs_r6_179[] = {
+const byte kInstruction_cmp_cs_r6_179[] = {
   0x28, 0xbf, 0xb3, 0x2e // It cs; cmp cs r6 179
 };
-static const byte kInstruction_cmp_eq_r5_35[] = {
+const byte kInstruction_cmp_eq_r5_35[] = {
   0x08, 0xbf, 0x23, 0x2d // It eq; cmp eq r5 35
 };
-static const byte kInstruction_cmp_le_r5_220[] = {
+const byte kInstruction_cmp_le_r5_220[] = {
   0xd8, 0xbf, 0xdc, 0x2d // It le; cmp le r5 220
 };
-static const byte kInstruction_cmp_pl_r1_63[] = {
+const byte kInstruction_cmp_pl_r1_63[] = {
   0x58, 0xbf, 0x3f, 0x29 // It pl; cmp pl r1 63
 };
-static const byte kInstruction_cmp_vs_r5_255[] = {
+const byte kInstruction_cmp_vs_r5_255[] = {
   0x68, 0xbf, 0xff, 0x2d // It vs; cmp vs r5 255
 };
-static const byte kInstruction_cmp_pl_r5_193[] = {
+const byte kInstruction_cmp_pl_r5_193[] = {
   0x58, 0xbf, 0xc1, 0x2d // It pl; cmp pl r5 193
 };
-static const byte kInstruction_cmp_gt_r3_165[] = {
+const byte kInstruction_cmp_gt_r3_165[] = {
   0xc8, 0xbf, 0xa5, 0x2b // It gt; cmp gt r3 165
 };
-static const byte kInstruction_cmp_le_r0_120[] = {
+const byte kInstruction_cmp_le_r0_120[] = {
   0xd8, 0xbf, 0x78, 0x28 // It le; cmp le r0 120
 };
-static const byte kInstruction_cmp_cc_r0_21[] = {
+const byte kInstruction_cmp_cc_r0_21[] = {
   0x38, 0xbf, 0x15, 0x28 // It cc; cmp cc r0 21
 };
-static const byte kInstruction_cmp_ge_r3_203[] = {
+const byte kInstruction_cmp_ge_r3_203[] = {
   0xa8, 0xbf, 0xcb, 0x2b // It ge; cmp ge r3 203
 };
-static const byte kInstruction_cmp_ne_r0_25[] = {
+const byte kInstruction_cmp_ne_r0_25[] = {
   0x18, 0xbf, 0x19, 0x28 // It ne; cmp ne r0 25
 };
-static const byte kInstruction_cmp_mi_r6_6[] = {
+const byte kInstruction_cmp_mi_r6_6[] = {
   0x48, 0xbf, 0x06, 0x2e // It mi; cmp mi r6 6
 };
-static const byte kInstruction_cmp_ne_r7_194[] = {
+const byte kInstruction_cmp_ne_r7_194[] = {
   0x18, 0xbf, 0xc2, 0x2f // It ne; cmp ne r7 194
 };
-static const byte kInstruction_cmp_lt_r6_20[] = {
+const byte kInstruction_cmp_lt_r6_20[] = {
   0xb8, 0xbf, 0x14, 0x2e // It lt; cmp lt r6 20
 };
-static const byte kInstruction_cmp_ls_r3_94[] = {
+const byte kInstruction_cmp_ls_r3_94[] = {
   0x98, 0xbf, 0x5e, 0x2b // It ls; cmp ls r3 94
 };
-static const byte kInstruction_cmp_gt_r6_222[] = {
+const byte kInstruction_cmp_gt_r6_222[] = {
   0xc8, 0xbf, 0xde, 0x2e // It gt; cmp gt r6 222
 };
-static const byte kInstruction_cmp_cc_r1_247[] = {
+const byte kInstruction_cmp_cc_r1_247[] = {
   0x38, 0xbf, 0xf7, 0x29 // It cc; cmp cc r1 247
 };
-static const byte kInstruction_cmp_cc_r0_127[] = {
+const byte kInstruction_cmp_cc_r0_127[] = {
   0x38, 0xbf, 0x7f, 0x28 // It cc; cmp cc r0 127
 };
-static const byte kInstruction_cmp_mi_r2_252[] = {
+const byte kInstruction_cmp_mi_r2_252[] = {
   0x48, 0xbf, 0xfc, 0x2a // It mi; cmp mi r2 252
 };
-static const byte kInstruction_cmp_ge_r0_150[] = {
+const byte kInstruction_cmp_ge_r0_150[] = {
   0xa8, 0xbf, 0x96, 0x28 // It ge; cmp ge r0 150
 };
-static const byte kInstruction_cmp_mi_r4_18[] = {
+const byte kInstruction_cmp_mi_r4_18[] = {
   0x48, 0xbf, 0x12, 0x2c // It mi; cmp mi r4 18
 };
-static const byte kInstruction_cmp_vs_r5_182[] = {
+const byte kInstruction_cmp_vs_r5_182[] = {
   0x68, 0xbf, 0xb6, 0x2d // It vs; cmp vs r5 182
 };
-static const byte kInstruction_cmp_pl_r1_125[] = {
+const byte kInstruction_cmp_pl_r1_125[] = {
   0x58, 0xbf, 0x7d, 0x29 // It pl; cmp pl r1 125
 };
-static const byte kInstruction_cmp_pl_r6_159[] = {
+const byte kInstruction_cmp_pl_r6_159[] = {
   0x58, 0xbf, 0x9f, 0x2e // It pl; cmp pl r6 159
 };
-static const byte kInstruction_cmp_le_r3_218[] = {
+const byte kInstruction_cmp_le_r3_218[] = {
   0xd8, 0xbf, 0xda, 0x2b // It le; cmp le r3 218
 };
-static const byte kInstruction_cmp_hi_r2_163[] = {
+const byte kInstruction_cmp_hi_r2_163[] = {
   0x88, 0xbf, 0xa3, 0x2a // It hi; cmp hi r2 163
 };
-static const byte kInstruction_cmp_mi_r7_246[] = {
+const byte kInstruction_cmp_mi_r7_246[] = {
   0x48, 0xbf, 0xf6, 0x2f // It mi; cmp mi r7 246
 };
-static const byte kInstruction_cmp_lt_r7_1[] = {
+const byte kInstruction_cmp_lt_r7_1[] = {
   0xb8, 0xbf, 0x01, 0x2f // It lt; cmp lt r7 1
 };
-static const byte kInstruction_cmp_pl_r4_82[] = {
+const byte kInstruction_cmp_pl_r4_82[] = {
   0x58, 0xbf, 0x52, 0x2c // It pl; cmp pl r4 82
 };
-static const byte kInstruction_cmp_le_r2_115[] = {
+const byte kInstruction_cmp_le_r2_115[] = {
   0xd8, 0xbf, 0x73, 0x2a // It le; cmp le r2 115
 };
-static const byte kInstruction_cmp_vc_r0_74[] = {
+const byte kInstruction_cmp_vc_r0_74[] = {
   0x78, 0xbf, 0x4a, 0x28 // It vc; cmp vc r0 74
 };
-static const byte kInstruction_cmp_gt_r3_11[] = {
+const byte kInstruction_cmp_gt_r3_11[] = {
   0xc8, 0xbf, 0x0b, 0x2b // It gt; cmp gt r3 11
 };
-static const byte kInstruction_cmp_cs_r7_225[] = {
+const byte kInstruction_cmp_cs_r7_225[] = {
   0x28, 0xbf, 0xe1, 0x2f // It cs; cmp cs r7 225
 };
-static const byte kInstruction_cmp_gt_r2_245[] = {
+const byte kInstruction_cmp_gt_r2_245[] = {
   0xc8, 0xbf, 0xf5, 0x2a // It gt; cmp gt r2 245
 };
-static const byte kInstruction_cmp_lt_r4_13[] = {
+const byte kInstruction_cmp_lt_r4_13[] = {
   0xb8, 0xbf, 0x0d, 0x2c // It lt; cmp lt r4 13
 };
-static const byte kInstruction_cmp_le_r3_83[] = {
+const byte kInstruction_cmp_le_r3_83[] = {
   0xd8, 0xbf, 0x53, 0x2b // It le; cmp le r3 83
 };
-static const byte kInstruction_cmp_eq_r7_83[] = {
+const byte kInstruction_cmp_eq_r7_83[] = {
   0x08, 0xbf, 0x53, 0x2f // It eq; cmp eq r7 83
 };
-static const byte kInstruction_cmp_vc_r6_86[] = {
+const byte kInstruction_cmp_vc_r6_86[] = {
   0x78, 0xbf, 0x56, 0x2e // It vc; cmp vc r6 86
 };
-static const byte kInstruction_cmp_le_r2_99[] = {
+const byte kInstruction_cmp_le_r2_99[] = {
   0xd8, 0xbf, 0x63, 0x2a // It le; cmp le r2 99
 };
-static const byte kInstruction_cmp_hi_r0_139[] = {
+const byte kInstruction_cmp_hi_r0_139[] = {
   0x88, 0xbf, 0x8b, 0x28 // It hi; cmp hi r0 139
 };
-static const byte kInstruction_cmp_gt_r6_122[] = {
+const byte kInstruction_cmp_gt_r6_122[] = {
   0xc8, 0xbf, 0x7a, 0x2e // It gt; cmp gt r6 122
 };
-static const byte kInstruction_cmp_cs_r2_190[] = {
+const byte kInstruction_cmp_cs_r2_190[] = {
   0x28, 0xbf, 0xbe, 0x2a // It cs; cmp cs r2 190
 };
-static const byte kInstruction_cmp_pl_r0_97[] = {
+const byte kInstruction_cmp_pl_r0_97[] = {
   0x58, 0xbf, 0x61, 0x28 // It pl; cmp pl r0 97
 };
-static const byte kInstruction_cmp_ls_r7_41[] = {
+const byte kInstruction_cmp_ls_r7_41[] = {
   0x98, 0xbf, 0x29, 0x2f // It ls; cmp ls r7 41
 };
-static const byte kInstruction_cmp_pl_r2_111[] = {
+const byte kInstruction_cmp_pl_r2_111[] = {
   0x58, 0xbf, 0x6f, 0x2a // It pl; cmp pl r2 111
 };
-static const byte kInstruction_cmp_ls_r5_239[] = {
+const byte kInstruction_cmp_ls_r5_239[] = {
   0x98, 0xbf, 0xef, 0x2d // It ls; cmp ls r5 239
 };
-static const byte kInstruction_cmp_le_r3_104[] = {
+const byte kInstruction_cmp_le_r3_104[] = {
   0xd8, 0xbf, 0x68, 0x2b // It le; cmp le r3 104
 };
-static const byte kInstruction_cmp_gt_r3_29[] = {
+const byte kInstruction_cmp_gt_r3_29[] = {
   0xc8, 0xbf, 0x1d, 0x2b // It gt; cmp gt r3 29
 };
-static const byte kInstruction_cmp_ge_r7_247[] = {
+const byte kInstruction_cmp_ge_r7_247[] = {
   0xa8, 0xbf, 0xf7, 0x2f // It ge; cmp ge r7 247
 };
-static const byte kInstruction_cmp_le_r6_1[] = {
+const byte kInstruction_cmp_le_r6_1[] = {
   0xd8, 0xbf, 0x01, 0x2e // It le; cmp le r6 1
 };
-static const byte kInstruction_cmp_hi_r0_161[] = {
+const byte kInstruction_cmp_hi_r0_161[] = {
   0x88, 0xbf, 0xa1, 0x28 // It hi; cmp hi r0 161
 };
-static const byte kInstruction_cmp_vs_r1_143[] = {
+const byte kInstruction_cmp_vs_r1_143[] = {
   0x68, 0xbf, 0x8f, 0x29 // It vs; cmp vs r1 143
 };
-static const byte kInstruction_cmp_cs_r7_14[] = {
+const byte kInstruction_cmp_cs_r7_14[] = {
   0x28, 0xbf, 0x0e, 0x2f // It cs; cmp cs r7 14
 };
-static const byte kInstruction_cmp_gt_r3_80[] = {
+const byte kInstruction_cmp_gt_r3_80[] = {
   0xc8, 0xbf, 0x50, 0x2b // It gt; cmp gt r3 80
 };
-static const byte kInstruction_cmp_ls_r6_207[] = {
+const byte kInstruction_cmp_ls_r6_207[] = {
   0x98, 0xbf, 0xcf, 0x2e // It ls; cmp ls r6 207
 };
-static const byte kInstruction_cmp_vs_r1_187[] = {
+const byte kInstruction_cmp_vs_r1_187[] = {
   0x68, 0xbf, 0xbb, 0x29 // It vs; cmp vs r1 187
 };
-static const byte kInstruction_cmp_ne_r6_193[] = {
+const byte kInstruction_cmp_ne_r6_193[] = {
   0x18, 0xbf, 0xc1, 0x2e // It ne; cmp ne r6 193
 };
-static const byte kInstruction_cmp_le_r5_202[] = {
+const byte kInstruction_cmp_le_r5_202[] = {
   0xd8, 0xbf, 0xca, 0x2d // It le; cmp le r5 202
 };
-static const byte kInstruction_cmp_vs_r3_23[] = {
+const byte kInstruction_cmp_vs_r3_23[] = {
   0x68, 0xbf, 0x17, 0x2b // It vs; cmp vs r3 23
 };
-static const byte kInstruction_cmp_mi_r2_141[] = {
+const byte kInstruction_cmp_mi_r2_141[] = {
   0x48, 0xbf, 0x8d, 0x2a // It mi; cmp mi r2 141
 };
-static const byte kInstruction_cmp_mi_r1_145[] = {
+const byte kInstruction_cmp_mi_r1_145[] = {
   0x48, 0xbf, 0x91, 0x29 // It mi; cmp mi r1 145
 };
-static const byte kInstruction_cmp_lt_r0_176[] = {
+const byte kInstruction_cmp_lt_r0_176[] = {
   0xb8, 0xbf, 0xb0, 0x28 // It lt; cmp lt r0 176
 };
-static const byte kInstruction_cmp_hi_r2_18[] = {
+const byte kInstruction_cmp_hi_r2_18[] = {
   0x88, 0xbf, 0x12, 0x2a // It hi; cmp hi r2 18
 };
-static const byte kInstruction_cmp_gt_r4_247[] = {
+const byte kInstruction_cmp_gt_r4_247[] = {
   0xc8, 0xbf, 0xf7, 0x2c // It gt; cmp gt r4 247
 };
-static const byte kInstruction_cmp_lt_r1_144[] = {
+const byte kInstruction_cmp_lt_r1_144[] = {
   0xb8, 0xbf, 0x90, 0x29 // It lt; cmp lt r1 144
 };
-static const byte kInstruction_cmp_cc_r5_174[] = {
+const byte kInstruction_cmp_cc_r5_174[] = {
   0x38, 0xbf, 0xae, 0x2d // It cc; cmp cc r5 174
 };
-static const byte kInstruction_cmp_ge_r6_66[] = {
+const byte kInstruction_cmp_ge_r6_66[] = {
   0xa8, 0xbf, 0x42, 0x2e // It ge; cmp ge r6 66
 };
-static const byte kInstruction_cmp_vc_r0_223[] = {
+const byte kInstruction_cmp_vc_r0_223[] = {
   0x78, 0xbf, 0xdf, 0x28 // It vc; cmp vc r0 223
 };
-static const byte kInstruction_cmp_cc_r7_211[] = {
+const byte kInstruction_cmp_cc_r7_211[] = {
   0x38, 0xbf, 0xd3, 0x2f // It cc; cmp cc r7 211
 };
-static const byte kInstruction_cmp_le_r1_186[] = {
+const byte kInstruction_cmp_le_r1_186[] = {
   0xd8, 0xbf, 0xba, 0x29 // It le; cmp le r1 186
 };
-static const byte kInstruction_cmp_ne_r4_73[] = {
+const byte kInstruction_cmp_ne_r4_73[] = {
   0x18, 0xbf, 0x49, 0x2c // It ne; cmp ne r4 73
 };
-static const byte kInstruction_cmp_ls_r4_64[] = {
+const byte kInstruction_cmp_ls_r4_64[] = {
   0x98, 0xbf, 0x40, 0x2c // It ls; cmp ls r4 64
 };
-static const byte kInstruction_cmp_cc_r3_100[] = {
+const byte kInstruction_cmp_cc_r3_100[] = {
   0x38, 0xbf, 0x64, 0x2b // It cc; cmp cc r3 100
 };
-static const byte kInstruction_cmp_ls_r7_83[] = {
+const byte kInstruction_cmp_ls_r7_83[] = {
   0x98, 0xbf, 0x53, 0x2f // It ls; cmp ls r7 83
 };
-static const byte kInstruction_cmp_ge_r7_253[] = {
+const byte kInstruction_cmp_ge_r7_253[] = {
   0xa8, 0xbf, 0xfd, 0x2f // It ge; cmp ge r7 253
 };
-static const byte kInstruction_cmp_lt_r1_190[] = {
+const byte kInstruction_cmp_lt_r1_190[] = {
   0xb8, 0xbf, 0xbe, 0x29 // It lt; cmp lt r1 190
 };
-static const byte kInstruction_cmp_hi_r0_132[] = {
+const byte kInstruction_cmp_hi_r0_132[] = {
   0x88, 0xbf, 0x84, 0x28 // It hi; cmp hi r0 132
 };
-static const byte kInstruction_cmp_cc_r1_172[] = {
+const byte kInstruction_cmp_cc_r1_172[] = {
   0x38, 0xbf, 0xac, 0x29 // It cc; cmp cc r1 172
 };
-static const byte kInstruction_cmp_cs_r4_24[] = {
+const byte kInstruction_cmp_cs_r4_24[] = {
   0x28, 0xbf, 0x18, 0x2c // It cs; cmp cs r4 24
 };
-static const byte kInstruction_cmp_vs_r0_183[] = {
+const byte kInstruction_cmp_vs_r0_183[] = {
   0x68, 0xbf, 0xb7, 0x28 // It vs; cmp vs r0 183
 };
-static const byte kInstruction_cmp_eq_r3_231[] = {
+const byte kInstruction_cmp_eq_r3_231[] = {
   0x08, 0xbf, 0xe7, 0x2b // It eq; cmp eq r3 231
 };
-static const byte kInstruction_cmp_cc_r4_6[] = {
+const byte kInstruction_cmp_cc_r4_6[] = {
   0x38, 0xbf, 0x06, 0x2c // It cc; cmp cc r4 6
 };
-static const byte kInstruction_cmp_le_r6_151[] = {
+const byte kInstruction_cmp_le_r6_151[] = {
   0xd8, 0xbf, 0x97, 0x2e // It le; cmp le r6 151
 };
-static const byte kInstruction_cmp_eq_r4_123[] = {
+const byte kInstruction_cmp_eq_r4_123[] = {
   0x08, 0xbf, 0x7b, 0x2c // It eq; cmp eq r4 123
 };
-static const byte kInstruction_cmp_lt_r2_110[] = {
+const byte kInstruction_cmp_lt_r2_110[] = {
   0xb8, 0xbf, 0x6e, 0x2a // It lt; cmp lt r2 110
 };
-static const byte kInstruction_cmp_vc_r2_39[] = {
+const byte kInstruction_cmp_vc_r2_39[] = {
   0x78, 0xbf, 0x27, 0x2a // It vc; cmp vc r2 39
 };
-static const byte kInstruction_cmp_gt_r5_45[] = {
+const byte kInstruction_cmp_gt_r5_45[] = {
   0xc8, 0xbf, 0x2d, 0x2d // It gt; cmp gt r5 45
 };
-static const byte kInstruction_cmp_eq_r2_120[] = {
+const byte kInstruction_cmp_eq_r2_120[] = {
   0x08, 0xbf, 0x78, 0x2a // It eq; cmp eq r2 120
 };
-static const byte kInstruction_cmp_ge_r0_6[] = {
+const byte kInstruction_cmp_ge_r0_6[] = {
   0xa8, 0xbf, 0x06, 0x28 // It ge; cmp ge r0 6
 };
-static const byte kInstruction_cmp_vs_r3_54[] = {
+const byte kInstruction_cmp_vs_r3_54[] = {
   0x68, 0xbf, 0x36, 0x2b // It vs; cmp vs r3 54
 };
-static const byte kInstruction_cmp_cc_r0_164[] = {
+const byte kInstruction_cmp_cc_r0_164[] = {
   0x38, 0xbf, 0xa4, 0x28 // It cc; cmp cc r0 164
 };
-static const byte kInstruction_cmp_eq_r6_198[] = {
+const byte kInstruction_cmp_eq_r6_198[] = {
   0x08, 0xbf, 0xc6, 0x2e // It eq; cmp eq r6 198
 };
-static const byte kInstruction_cmp_cc_r0_254[] = {
+const byte kInstruction_cmp_cc_r0_254[] = {
   0x38, 0xbf, 0xfe, 0x28 // It cc; cmp cc r0 254
 };
-static const byte kInstruction_cmp_ne_r1_167[] = {
+const byte kInstruction_cmp_ne_r1_167[] = {
   0x18, 0xbf, 0xa7, 0x29 // It ne; cmp ne r1 167
 };
-static const byte kInstruction_cmp_hi_r7_89[] = {
+const byte kInstruction_cmp_hi_r7_89[] = {
   0x88, 0xbf, 0x59, 0x2f // It hi; cmp hi r7 89
 };
-static const byte kInstruction_cmp_mi_r6_220[] = {
+const byte kInstruction_cmp_mi_r6_220[] = {
   0x48, 0xbf, 0xdc, 0x2e // It mi; cmp mi r6 220
 };
-static const byte kInstruction_cmp_vs_r5_199[] = {
+const byte kInstruction_cmp_vs_r5_199[] = {
   0x68, 0xbf, 0xc7, 0x2d // It vs; cmp vs r5 199
 };
-static const byte kInstruction_cmp_ls_r4_166[] = {
+const byte kInstruction_cmp_ls_r4_166[] = {
   0x98, 0xbf, 0xa6, 0x2c // It ls; cmp ls r4 166
 };
-static const byte kInstruction_cmp_le_r2_139[] = {
+const byte kInstruction_cmp_le_r2_139[] = {
   0xd8, 0xbf, 0x8b, 0x2a // It le; cmp le r2 139
 };
-static const byte kInstruction_cmp_vs_r5_112[] = {
+const byte kInstruction_cmp_vs_r5_112[] = {
   0x68, 0xbf, 0x70, 0x2d // It vs; cmp vs r5 112
 };
-static const byte kInstruction_cmp_cs_r3_13[] = {
+const byte kInstruction_cmp_cs_r3_13[] = {
   0x28, 0xbf, 0x0d, 0x2b // It cs; cmp cs r3 13
 };
-static const byte kInstruction_cmp_gt_r3_95[] = {
+const byte kInstruction_cmp_gt_r3_95[] = {
   0xc8, 0xbf, 0x5f, 0x2b // It gt; cmp gt r3 95
 };
-static const byte kInstruction_cmp_pl_r2_94[] = {
+const byte kInstruction_cmp_pl_r2_94[] = {
   0x58, 0xbf, 0x5e, 0x2a // It pl; cmp pl r2 94
 };
-static const byte kInstruction_cmp_ne_r2_227[] = {
+const byte kInstruction_cmp_ne_r2_227[] = {
   0x18, 0xbf, 0xe3, 0x2a // It ne; cmp ne r2 227
 };
-static const byte kInstruction_cmp_ne_r7_251[] = {
+const byte kInstruction_cmp_ne_r7_251[] = {
   0x18, 0xbf, 0xfb, 0x2f // It ne; cmp ne r7 251
 };
-static const byte kInstruction_cmp_ge_r5_97[] = {
+const byte kInstruction_cmp_ge_r5_97[] = {
   0xa8, 0xbf, 0x61, 0x2d // It ge; cmp ge r5 97
 };
-static const byte kInstruction_cmp_gt_r5_253[] = {
+const byte kInstruction_cmp_gt_r5_253[] = {
   0xc8, 0xbf, 0xfd, 0x2d // It gt; cmp gt r5 253
 };
-static const byte kInstruction_cmp_hi_r7_95[] = {
+const byte kInstruction_cmp_hi_r7_95[] = {
   0x88, 0xbf, 0x5f, 0x2f // It hi; cmp hi r7 95
 };
-static const byte kInstruction_cmp_gt_r3_253[] = {
+const byte kInstruction_cmp_gt_r3_253[] = {
   0xc8, 0xbf, 0xfd, 0x2b // It gt; cmp gt r3 253
 };
-static const byte kInstruction_cmp_le_r7_162[] = {
+const byte kInstruction_cmp_le_r7_162[] = {
   0xd8, 0xbf, 0xa2, 0x2f // It le; cmp le r7 162
 };
-static const byte kInstruction_cmp_gt_r4_36[] = {
+const byte kInstruction_cmp_gt_r4_36[] = {
   0xc8, 0xbf, 0x24, 0x2c // It gt; cmp gt r4 36
 };
-static const byte kInstruction_cmp_ne_r3_58[] = {
+const byte kInstruction_cmp_ne_r3_58[] = {
   0x18, 0xbf, 0x3a, 0x2b // It ne; cmp ne r3 58
 };
-static const byte kInstruction_cmp_vs_r0_25[] = {
+const byte kInstruction_cmp_vs_r0_25[] = {
   0x68, 0xbf, 0x19, 0x28 // It vs; cmp vs r0 25
 };
-static const byte kInstruction_cmp_ne_r7_116[] = {
+const byte kInstruction_cmp_ne_r7_116[] = {
   0x18, 0xbf, 0x74, 0x2f // It ne; cmp ne r7 116
 };
-static const byte kInstruction_cmp_cs_r1_198[] = {
+const byte kInstruction_cmp_cs_r1_198[] = {
   0x28, 0xbf, 0xc6, 0x29 // It cs; cmp cs r1 198
 };
-static const byte kInstruction_cmp_cc_r0_122[] = {
+const byte kInstruction_cmp_cc_r0_122[] = {
   0x38, 0xbf, 0x7a, 0x28 // It cc; cmp cc r0 122
 };
-static const byte kInstruction_cmp_le_r4_57[] = {
+const byte kInstruction_cmp_le_r4_57[] = {
   0xd8, 0xbf, 0x39, 0x2c // It le; cmp le r4 57
 };
-static const byte kInstruction_cmp_vc_r3_150[] = {
+const byte kInstruction_cmp_vc_r3_150[] = {
   0x78, 0xbf, 0x96, 0x2b // It vc; cmp vc r3 150
 };
-static const byte kInstruction_cmp_eq_r1_54[] = {
+const byte kInstruction_cmp_eq_r1_54[] = {
   0x08, 0xbf, 0x36, 0x29 // It eq; cmp eq r1 54
 };
-static const byte kInstruction_cmp_ge_r1_146[] = {
+const byte kInstruction_cmp_ge_r1_146[] = {
   0xa8, 0xbf, 0x92, 0x29 // It ge; cmp ge r1 146
 };
-static const byte kInstruction_cmp_vc_r1_124[] = {
+const byte kInstruction_cmp_vc_r1_124[] = {
   0x78, 0xbf, 0x7c, 0x29 // It vc; cmp vc r1 124
 };
-static const byte kInstruction_cmp_ne_r6_165[] = {
+const byte kInstruction_cmp_ne_r6_165[] = {
   0x18, 0xbf, 0xa5, 0x2e // It ne; cmp ne r6 165
 };
-static const byte kInstruction_cmp_vc_r6_54[] = {
+const byte kInstruction_cmp_vc_r6_54[] = {
   0x78, 0xbf, 0x36, 0x2e // It vc; cmp vc r6 54
 };
-static const byte kInstruction_cmp_hi_r3_226[] = {
+const byte kInstruction_cmp_hi_r3_226[] = {
   0x88, 0xbf, 0xe2, 0x2b // It hi; cmp hi r3 226
 };
-static const byte kInstruction_cmp_eq_r1_167[] = {
+const byte kInstruction_cmp_eq_r1_167[] = {
   0x08, 0xbf, 0xa7, 0x29 // It eq; cmp eq r1 167
 };
-static const byte kInstruction_cmp_mi_r3_162[] = {
+const byte kInstruction_cmp_mi_r3_162[] = {
   0x48, 0xbf, 0xa2, 0x2b // It mi; cmp mi r3 162
 };
-static const byte kInstruction_cmp_mi_r5_8[] = {
+const byte kInstruction_cmp_mi_r5_8[] = {
   0x48, 0xbf, 0x08, 0x2d // It mi; cmp mi r5 8
 };
-static const byte kInstruction_cmp_mi_r3_67[] = {
+const byte kInstruction_cmp_mi_r3_67[] = {
   0x48, 0xbf, 0x43, 0x2b // It mi; cmp mi r3 67
 };
-static const byte kInstruction_cmp_ge_r6_113[] = {
+const byte kInstruction_cmp_ge_r6_113[] = {
   0xa8, 0xbf, 0x71, 0x2e // It ge; cmp ge r6 113
 };
-static const byte kInstruction_cmp_lt_r2_51[] = {
+const byte kInstruction_cmp_lt_r2_51[] = {
   0xb8, 0xbf, 0x33, 0x2a // It lt; cmp lt r2 51
 };
-static const byte kInstruction_cmp_vc_r2_131[] = {
+const byte kInstruction_cmp_vc_r2_131[] = {
   0x78, 0xbf, 0x83, 0x2a // It vc; cmp vc r2 131
 };
-static const byte kInstruction_cmp_ne_r4_196[] = {
+const byte kInstruction_cmp_ne_r4_196[] = {
   0x18, 0xbf, 0xc4, 0x2c // It ne; cmp ne r4 196
 };
-static const byte kInstruction_cmp_mi_r5_189[] = {
+const byte kInstruction_cmp_mi_r5_189[] = {
   0x48, 0xbf, 0xbd, 0x2d // It mi; cmp mi r5 189
 };
-static const byte kInstruction_cmp_cs_r1_62[] = {
+const byte kInstruction_cmp_cs_r1_62[] = {
   0x28, 0xbf, 0x3e, 0x29 // It cs; cmp cs r1 62
 };
-static const byte kInstruction_cmp_hi_r4_142[] = {
+const byte kInstruction_cmp_hi_r4_142[] = {
   0x88, 0xbf, 0x8e, 0x2c // It hi; cmp hi r4 142
 };
-static const byte kInstruction_cmp_ne_r5_91[] = {
+const byte kInstruction_cmp_ne_r5_91[] = {
   0x18, 0xbf, 0x5b, 0x2d // It ne; cmp ne r5 91
 };
-static const byte kInstruction_cmp_eq_r3_38[] = {
+const byte kInstruction_cmp_eq_r3_38[] = {
   0x08, 0xbf, 0x26, 0x2b // It eq; cmp eq r3 38
 };
-static const byte kInstruction_cmp_ls_r3_155[] = {
+const byte kInstruction_cmp_ls_r3_155[] = {
   0x98, 0xbf, 0x9b, 0x2b // It ls; cmp ls r3 155
 };
-static const byte kInstruction_cmp_le_r5_0[] = {
+const byte kInstruction_cmp_le_r5_0[] = {
   0xd8, 0xbf, 0x00, 0x2d // It le; cmp le r5 0
 };
-static const byte kInstruction_cmp_vc_r1_106[] = {
+const byte kInstruction_cmp_vc_r1_106[] = {
   0x78, 0xbf, 0x6a, 0x29 // It vc; cmp vc r1 106
 };
-static const byte kInstruction_cmp_lt_r0_212[] = {
+const byte kInstruction_cmp_lt_r0_212[] = {
   0xb8, 0xbf, 0xd4, 0x28 // It lt; cmp lt r0 212
 };
-static const byte kInstruction_cmp_lt_r1_87[] = {
+const byte kInstruction_cmp_lt_r1_87[] = {
   0xb8, 0xbf, 0x57, 0x29 // It lt; cmp lt r1 87
 };
-static const byte kInstruction_cmp_mi_r2_62[] = {
+const byte kInstruction_cmp_mi_r2_62[] = {
   0x48, 0xbf, 0x3e, 0x2a // It mi; cmp mi r2 62
 };
-static const byte kInstruction_cmp_vc_r0_2[] = {
+const byte kInstruction_cmp_vc_r0_2[] = {
   0x78, 0xbf, 0x02, 0x28 // It vc; cmp vc r0 2
 };
-static const byte kInstruction_cmp_ls_r7_24[] = {
+const byte kInstruction_cmp_ls_r7_24[] = {
   0x98, 0xbf, 0x18, 0x2f // It ls; cmp ls r7 24
 };
-static const byte kInstruction_cmp_ls_r3_12[] = {
+const byte kInstruction_cmp_ls_r3_12[] = {
   0x98, 0xbf, 0x0c, 0x2b // It ls; cmp ls r3 12
 };
-static const byte kInstruction_cmp_pl_r0_181[] = {
+const byte kInstruction_cmp_pl_r0_181[] = {
   0x58, 0xbf, 0xb5, 0x28 // It pl; cmp pl r0 181
 };
-static const byte kInstruction_cmp_gt_r2_43[] = {
+const byte kInstruction_cmp_gt_r2_43[] = {
   0xc8, 0xbf, 0x2b, 0x2a // It gt; cmp gt r2 43
 };
-static const byte kInstruction_cmp_cc_r5_130[] = {
+const byte kInstruction_cmp_cc_r5_130[] = {
   0x38, 0xbf, 0x82, 0x2d // It cc; cmp cc r5 130
 };
-static const byte kInstruction_cmp_eq_r6_170[] = {
+const byte kInstruction_cmp_eq_r6_170[] = {
   0x08, 0xbf, 0xaa, 0x2e // It eq; cmp eq r6 170
 };
-static const byte kInstruction_cmp_hi_r4_208[] = {
+const byte kInstruction_cmp_hi_r4_208[] = {
   0x88, 0xbf, 0xd0, 0x2c // It hi; cmp hi r4 208
 };
-static const byte kInstruction_cmp_cc_r2_196[] = {
+const byte kInstruction_cmp_cc_r2_196[] = {
   0x38, 0xbf, 0xc4, 0x2a // It cc; cmp cc r2 196
 };
-static const byte kInstruction_cmp_lt_r4_131[] = {
+const byte kInstruction_cmp_lt_r4_131[] = {
   0xb8, 0xbf, 0x83, 0x2c // It lt; cmp lt r4 131
 };
-static const byte kInstruction_cmp_vs_r7_122[] = {
+const byte kInstruction_cmp_vs_r7_122[] = {
   0x68, 0xbf, 0x7a, 0x2f // It vs; cmp vs r7 122
 };
-static const byte kInstruction_cmp_cs_r0_212[] = {
+const byte kInstruction_cmp_cs_r0_212[] = {
   0x28, 0xbf, 0xd4, 0x28 // It cs; cmp cs r0 212
 };
-static const byte kInstruction_cmp_eq_r2_50[] = {
+const byte kInstruction_cmp_eq_r2_50[] = {
   0x08, 0xbf, 0x32, 0x2a // It eq; cmp eq r2 50
 };
-static const byte kInstruction_cmp_gt_r3_202[] = {
+const byte kInstruction_cmp_gt_r3_202[] = {
   0xc8, 0xbf, 0xca, 0x2b // It gt; cmp gt r3 202
 };
-static const byte kInstruction_cmp_eq_r4_197[] = {
+const byte kInstruction_cmp_eq_r4_197[] = {
   0x08, 0xbf, 0xc5, 0x2c // It eq; cmp eq r4 197
 };
-static const byte kInstruction_cmp_cc_r3_7[] = {
+const byte kInstruction_cmp_cc_r3_7[] = {
   0x38, 0xbf, 0x07, 0x2b // It cc; cmp cc r3 7
 };
-static const byte kInstruction_cmp_vs_r5_206[] = {
+const byte kInstruction_cmp_vs_r5_206[] = {
   0x68, 0xbf, 0xce, 0x2d // It vs; cmp vs r5 206
 };
-static const byte kInstruction_cmp_lt_r6_137[] = {
+const byte kInstruction_cmp_lt_r6_137[] = {
   0xb8, 0xbf, 0x89, 0x2e // It lt; cmp lt r6 137
 };
-static const byte kInstruction_cmp_cs_r4_154[] = {
+const byte kInstruction_cmp_cs_r4_154[] = {
   0x28, 0xbf, 0x9a, 0x2c // It cs; cmp cs r4 154
 };
-static const byte kInstruction_cmp_hi_r0_16[] = {
+const byte kInstruction_cmp_hi_r0_16[] = {
   0x88, 0xbf, 0x10, 0x28 // It hi; cmp hi r0 16
 };
-static const byte kInstruction_cmp_le_r1_110[] = {
+const byte kInstruction_cmp_le_r1_110[] = {
   0xd8, 0xbf, 0x6e, 0x29 // It le; cmp le r1 110
 };
-static const byte kInstruction_cmp_ge_r5_67[] = {
+const byte kInstruction_cmp_ge_r5_67[] = {
   0xa8, 0xbf, 0x43, 0x2d // It ge; cmp ge r5 67
 };
-static const byte kInstruction_cmp_lt_r2_58[] = {
+const byte kInstruction_cmp_lt_r2_58[] = {
   0xb8, 0xbf, 0x3a, 0x2a // It lt; cmp lt r2 58
 };
-static const byte kInstruction_cmp_gt_r4_45[] = {
+const byte kInstruction_cmp_gt_r4_45[] = {
   0xc8, 0xbf, 0x2d, 0x2c // It gt; cmp gt r4 45
 };
-static const byte kInstruction_cmp_gt_r7_227[] = {
+const byte kInstruction_cmp_gt_r7_227[] = {
   0xc8, 0xbf, 0xe3, 0x2f // It gt; cmp gt r7 227
 };
-static const byte kInstruction_cmp_lt_r6_143[] = {
+const byte kInstruction_cmp_lt_r6_143[] = {
   0xb8, 0xbf, 0x8f, 0x2e // It lt; cmp lt r6 143
 };
-static const byte kInstruction_cmp_cs_r5_168[] = {
+const byte kInstruction_cmp_cs_r5_168[] = {
   0x28, 0xbf, 0xa8, 0x2d // It cs; cmp cs r5 168
 };
-static const byte kInstruction_cmp_hi_r5_74[] = {
+const byte kInstruction_cmp_hi_r5_74[] = {
   0x88, 0xbf, 0x4a, 0x2d // It hi; cmp hi r5 74
 };
-static const byte kInstruction_cmp_gt_r6_165[] = {
+const byte kInstruction_cmp_gt_r6_165[] = {
   0xc8, 0xbf, 0xa5, 0x2e // It gt; cmp gt r6 165
 };
-static const byte kInstruction_cmp_le_r2_191[] = {
+const byte kInstruction_cmp_le_r2_191[] = {
   0xd8, 0xbf, 0xbf, 0x2a // It le; cmp le r2 191
 };
-static const byte kInstruction_cmp_pl_r3_212[] = {
+const byte kInstruction_cmp_pl_r3_212[] = {
   0x58, 0xbf, 0xd4, 0x2b // It pl; cmp pl r3 212
 };
-static const byte kInstruction_cmp_lt_r2_108[] = {
+const byte kInstruction_cmp_lt_r2_108[] = {
   0xb8, 0xbf, 0x6c, 0x2a // It lt; cmp lt r2 108
 };
-static const byte kInstruction_cmp_gt_r4_225[] = {
+const byte kInstruction_cmp_gt_r4_225[] = {
   0xc8, 0xbf, 0xe1, 0x2c // It gt; cmp gt r4 225
 };
-static const byte kInstruction_cmp_cc_r3_181[] = {
+const byte kInstruction_cmp_cc_r3_181[] = {
   0x38, 0xbf, 0xb5, 0x2b // It cc; cmp cc r3 181
 };
-static const byte kInstruction_cmp_ge_r7_39[] = {
+const byte kInstruction_cmp_ge_r7_39[] = {
   0xa8, 0xbf, 0x27, 0x2f // It ge; cmp ge r7 39
 };
-static const byte kInstruction_cmp_gt_r2_212[] = {
+const byte kInstruction_cmp_gt_r2_212[] = {
   0xc8, 0xbf, 0xd4, 0x2a // It gt; cmp gt r2 212
 };
-static const byte kInstruction_cmp_cc_r2_32[] = {
+const byte kInstruction_cmp_cc_r2_32[] = {
   0x38, 0xbf, 0x20, 0x2a // It cc; cmp cc r2 32
 };
-static const byte kInstruction_cmp_vs_r1_92[] = {
+const byte kInstruction_cmp_vs_r1_92[] = {
   0x68, 0xbf, 0x5c, 0x29 // It vs; cmp vs r1 92
 };
-static const byte kInstruction_cmp_cs_r0_64[] = {
+const byte kInstruction_cmp_cs_r0_64[] = {
   0x28, 0xbf, 0x40, 0x28 // It cs; cmp cs r0 64
 };
-static const byte kInstruction_cmp_mi_r3_195[] = {
+const byte kInstruction_cmp_mi_r3_195[] = {
   0x48, 0xbf, 0xc3, 0x2b // It mi; cmp mi r3 195
 };
-static const byte kInstruction_cmp_ne_r7_168[] = {
+const byte kInstruction_cmp_ne_r7_168[] = {
   0x18, 0xbf, 0xa8, 0x2f // It ne; cmp ne r7 168
 };
-static const byte kInstruction_cmp_vc_r2_84[] = {
+const byte kInstruction_cmp_vc_r2_84[] = {
   0x78, 0xbf, 0x54, 0x2a // It vc; cmp vc r2 84
 };
-static const byte kInstruction_cmp_hi_r1_105[] = {
+const byte kInstruction_cmp_hi_r1_105[] = {
   0x88, 0xbf, 0x69, 0x29 // It hi; cmp hi r1 105
 };
-static const byte kInstruction_cmp_vc_r4_91[] = {
+const byte kInstruction_cmp_vc_r4_91[] = {
   0x78, 0xbf, 0x5b, 0x2c // It vc; cmp vc r4 91
 };
-static const byte kInstruction_cmp_pl_r0_103[] = {
+const byte kInstruction_cmp_pl_r0_103[] = {
   0x58, 0xbf, 0x67, 0x28 // It pl; cmp pl r0 103
 };
-static const byte kInstruction_cmp_cc_r7_122[] = {
+const byte kInstruction_cmp_cc_r7_122[] = {
   0x38, 0xbf, 0x7a, 0x2f // It cc; cmp cc r7 122
 };
-static const byte kInstruction_cmp_vs_r7_228[] = {
+const byte kInstruction_cmp_vs_r7_228[] = {
   0x68, 0xbf, 0xe4, 0x2f // It vs; cmp vs r7 228
 };
-static const byte kInstruction_cmp_ls_r4_154[] = {
+const byte kInstruction_cmp_ls_r4_154[] = {
   0x98, 0xbf, 0x9a, 0x2c // It ls; cmp ls r4 154
 };
-static const byte kInstruction_cmp_mi_r5_159[] = {
+const byte kInstruction_cmp_mi_r5_159[] = {
   0x48, 0xbf, 0x9f, 0x2d // It mi; cmp mi r5 159
 };
-static const byte kInstruction_cmp_gt_r6_207[] = {
+const byte kInstruction_cmp_gt_r6_207[] = {
   0xc8, 0xbf, 0xcf, 0x2e // It gt; cmp gt r6 207
 };
-static const byte kInstruction_cmp_lt_r0_75[] = {
+const byte kInstruction_cmp_lt_r0_75[] = {
   0xb8, 0xbf, 0x4b, 0x28 // It lt; cmp lt r0 75
 };
-static const byte kInstruction_cmp_gt_r4_106[] = {
+const byte kInstruction_cmp_gt_r4_106[] = {
   0xc8, 0xbf, 0x6a, 0x2c // It gt; cmp gt r4 106
 };
-static const byte kInstruction_cmp_gt_r0_236[] = {
+const byte kInstruction_cmp_gt_r0_236[] = {
   0xc8, 0xbf, 0xec, 0x28 // It gt; cmp gt r0 236
 };
-static const byte kInstruction_cmp_le_r7_127[] = {
+const byte kInstruction_cmp_le_r7_127[] = {
   0xd8, 0xbf, 0x7f, 0x2f // It le; cmp le r7 127
 };
-static const byte kInstruction_cmp_vs_r0_138[] = {
+const byte kInstruction_cmp_vs_r0_138[] = {
   0x68, 0xbf, 0x8a, 0x28 // It vs; cmp vs r0 138
 };
-static const byte kInstruction_cmp_vs_r3_145[] = {
+const byte kInstruction_cmp_vs_r3_145[] = {
   0x68, 0xbf, 0x91, 0x2b // It vs; cmp vs r3 145
 };
-static const byte kInstruction_cmp_cs_r1_70[] = {
+const byte kInstruction_cmp_cs_r1_70[] = {
   0x28, 0xbf, 0x46, 0x29 // It cs; cmp cs r1 70
 };
-static const byte kInstruction_cmp_cs_r3_69[] = {
+const byte kInstruction_cmp_cs_r3_69[] = {
   0x28, 0xbf, 0x45, 0x2b // It cs; cmp cs r3 69
 };
-static const byte kInstruction_cmp_hi_r3_28[] = {
+const byte kInstruction_cmp_hi_r3_28[] = {
   0x88, 0xbf, 0x1c, 0x2b // It hi; cmp hi r3 28
 };
-static const byte kInstruction_cmp_le_r5_122[] = {
+const byte kInstruction_cmp_le_r5_122[] = {
   0xd8, 0xbf, 0x7a, 0x2d // It le; cmp le r5 122
 };
-static const byte kInstruction_cmp_cc_r7_212[] = {
+const byte kInstruction_cmp_cc_r7_212[] = {
   0x38, 0xbf, 0xd4, 0x2f // It cc; cmp cc r7 212
 };
-static const byte kInstruction_cmp_mi_r4_186[] = {
+const byte kInstruction_cmp_mi_r4_186[] = {
   0x48, 0xbf, 0xba, 0x2c // It mi; cmp mi r4 186
 };
-static const byte kInstruction_cmp_ne_r1_171[] = {
+const byte kInstruction_cmp_ne_r1_171[] = {
   0x18, 0xbf, 0xab, 0x29 // It ne; cmp ne r1 171
 };
-static const byte kInstruction_cmp_vs_r4_205[] = {
+const byte kInstruction_cmp_vs_r4_205[] = {
   0x68, 0xbf, 0xcd, 0x2c // It vs; cmp vs r4 205
 };
-static const byte kInstruction_cmp_ls_r1_26[] = {
+const byte kInstruction_cmp_ls_r1_26[] = {
   0x98, 0xbf, 0x1a, 0x29 // It ls; cmp ls r1 26
 };
-static const byte kInstruction_cmp_le_r5_58[] = {
+const byte kInstruction_cmp_le_r5_58[] = {
   0xd8, 0xbf, 0x3a, 0x2d // It le; cmp le r5 58
 };
-static const byte kInstruction_cmp_gt_r2_140[] = {
+const byte kInstruction_cmp_gt_r2_140[] = {
   0xc8, 0xbf, 0x8c, 0x2a // It gt; cmp gt r2 140
 };
-static const byte kInstruction_cmp_pl_r5_121[] = {
+const byte kInstruction_cmp_pl_r5_121[] = {
   0x58, 0xbf, 0x79, 0x2d // It pl; cmp pl r5 121
 };
-static const byte kInstruction_cmp_vc_r3_183[] = {
+const byte kInstruction_cmp_vc_r3_183[] = {
   0x78, 0xbf, 0xb7, 0x2b // It vc; cmp vc r3 183
 };
-static const byte kInstruction_cmp_vs_r5_110[] = {
+const byte kInstruction_cmp_vs_r5_110[] = {
   0x68, 0xbf, 0x6e, 0x2d // It vs; cmp vs r5 110
 };
-static const byte kInstruction_cmp_ls_r2_89[] = {
+const byte kInstruction_cmp_ls_r2_89[] = {
   0x98, 0xbf, 0x59, 0x2a // It ls; cmp ls r2 89
 };
-static const byte kInstruction_cmp_vc_r3_173[] = {
+const byte kInstruction_cmp_vc_r3_173[] = {
   0x78, 0xbf, 0xad, 0x2b // It vc; cmp vc r3 173
 };
-static const byte kInstruction_cmp_le_r7_57[] = {
+const byte kInstruction_cmp_le_r7_57[] = {
   0xd8, 0xbf, 0x39, 0x2f // It le; cmp le r7 57
 };
-static const byte kInstruction_cmp_eq_r5_111[] = {
+const byte kInstruction_cmp_eq_r5_111[] = {
   0x08, 0xbf, 0x6f, 0x2d // It eq; cmp eq r5 111
 };
-static const byte kInstruction_cmp_mi_r4_180[] = {
+const byte kInstruction_cmp_mi_r4_180[] = {
   0x48, 0xbf, 0xb4, 0x2c // It mi; cmp mi r4 180
 };
-static const byte kInstruction_cmp_vs_r1_252[] = {
+const byte kInstruction_cmp_vs_r1_252[] = {
   0x68, 0xbf, 0xfc, 0x29 // It vs; cmp vs r1 252
 };
-static const byte kInstruction_cmp_le_r2_168[] = {
+const byte kInstruction_cmp_le_r2_168[] = {
   0xd8, 0xbf, 0xa8, 0x2a // It le; cmp le r2 168
 };
-static const byte kInstruction_cmp_ne_r7_240[] = {
+const byte kInstruction_cmp_ne_r7_240[] = {
   0x18, 0xbf, 0xf0, 0x2f // It ne; cmp ne r7 240
 };
-static const byte kInstruction_cmp_hi_r5_177[] = {
+const byte kInstruction_cmp_hi_r5_177[] = {
   0x88, 0xbf, 0xb1, 0x2d // It hi; cmp hi r5 177
 };
-static const byte kInstruction_cmp_cc_r7_156[] = {
+const byte kInstruction_cmp_cc_r7_156[] = {
   0x38, 0xbf, 0x9c, 0x2f // It cc; cmp cc r7 156
 };
-static const byte kInstruction_cmp_ls_r0_140[] = {
+const byte kInstruction_cmp_ls_r0_140[] = {
   0x98, 0xbf, 0x8c, 0x28 // It ls; cmp ls r0 140
 };
-static const byte kInstruction_cmp_vc_r2_206[] = {
+const byte kInstruction_cmp_vc_r2_206[] = {
   0x78, 0xbf, 0xce, 0x2a // It vc; cmp vc r2 206
 };
-static const byte kInstruction_cmp_ge_r3_198[] = {
+const byte kInstruction_cmp_ge_r3_198[] = {
   0xa8, 0xbf, 0xc6, 0x2b // It ge; cmp ge r3 198
 };
-static const byte kInstruction_cmp_pl_r1_154[] = {
+const byte kInstruction_cmp_pl_r1_154[] = {
   0x58, 0xbf, 0x9a, 0x29 // It pl; cmp pl r1 154
 };
-static const byte kInstruction_cmp_eq_r5_118[] = {
+const byte kInstruction_cmp_eq_r5_118[] = {
   0x08, 0xbf, 0x76, 0x2d // It eq; cmp eq r5 118
 };
-static const byte kInstruction_cmp_le_r7_173[] = {
+const byte kInstruction_cmp_le_r7_173[] = {
   0xd8, 0xbf, 0xad, 0x2f // It le; cmp le r7 173
 };
-static const byte kInstruction_cmp_mi_r6_174[] = {
+const byte kInstruction_cmp_mi_r6_174[] = {
   0x48, 0xbf, 0xae, 0x2e // It mi; cmp mi r6 174
 };
-static const byte kInstruction_cmp_pl_r2_159[] = {
+const byte kInstruction_cmp_pl_r2_159[] = {
   0x58, 0xbf, 0x9f, 0x2a // It pl; cmp pl r2 159
 };
-static const byte kInstruction_cmp_lt_r0_97[] = {
+const byte kInstruction_cmp_lt_r0_97[] = {
   0xb8, 0xbf, 0x61, 0x28 // It lt; cmp lt r0 97
 };
-static const byte kInstruction_cmp_ge_r2_145[] = {
+const byte kInstruction_cmp_ge_r2_145[] = {
   0xa8, 0xbf, 0x91, 0x2a // It ge; cmp ge r2 145
 };
-static const byte kInstruction_cmp_cc_r5_196[] = {
+const byte kInstruction_cmp_cc_r5_196[] = {
   0x38, 0xbf, 0xc4, 0x2d // It cc; cmp cc r5 196
 };
-static const byte kInstruction_cmp_vs_r3_152[] = {
+const byte kInstruction_cmp_vs_r3_152[] = {
   0x68, 0xbf, 0x98, 0x2b // It vs; cmp vs r3 152
 };
-static const byte kInstruction_cmp_le_r3_85[] = {
+const byte kInstruction_cmp_le_r3_85[] = {
   0xd8, 0xbf, 0x55, 0x2b // It le; cmp le r3 85
 };
-static const byte kInstruction_cmp_le_r7_155[] = {
+const byte kInstruction_cmp_le_r7_155[] = {
   0xd8, 0xbf, 0x9b, 0x2f // It le; cmp le r7 155
 };
-static const byte kInstruction_cmp_cc_r1_160[] = {
+const byte kInstruction_cmp_cc_r1_160[] = {
   0x38, 0xbf, 0xa0, 0x29 // It cc; cmp cc r1 160
 };
-static const byte kInstruction_cmp_gt_r2_195[] = {
+const byte kInstruction_cmp_gt_r2_195[] = {
   0xc8, 0xbf, 0xc3, 0x2a // It gt; cmp gt r2 195
 };
-static const byte kInstruction_cmp_vc_r3_67[] = {
+const byte kInstruction_cmp_vc_r3_67[] = {
   0x78, 0xbf, 0x43, 0x2b // It vc; cmp vc r3 67
 };
-static const byte kInstruction_cmp_lt_r0_119[] = {
+const byte kInstruction_cmp_lt_r0_119[] = {
   0xb8, 0xbf, 0x77, 0x28 // It lt; cmp lt r0 119
 };
-static const byte kInstruction_cmp_ne_r3_123[] = {
+const byte kInstruction_cmp_ne_r3_123[] = {
   0x18, 0xbf, 0x7b, 0x2b // It ne; cmp ne r3 123
 };
-static const byte kInstruction_cmp_le_r5_23[] = {
+const byte kInstruction_cmp_le_r5_23[] = {
   0xd8, 0xbf, 0x17, 0x2d // It le; cmp le r5 23
 };
-static const byte kInstruction_cmp_lt_r6_208[] = {
+const byte kInstruction_cmp_lt_r6_208[] = {
   0xb8, 0xbf, 0xd0, 0x2e // It lt; cmp lt r6 208
 };
-static const byte kInstruction_cmp_cc_r5_245[] = {
+const byte kInstruction_cmp_cc_r5_245[] = {
   0x38, 0xbf, 0xf5, 0x2d // It cc; cmp cc r5 245
 };
-static const byte kInstruction_cmp_vs_r4_111[] = {
+const byte kInstruction_cmp_vs_r4_111[] = {
   0x68, 0xbf, 0x6f, 0x2c // It vs; cmp vs r4 111
 };
-static const byte kInstruction_cmp_pl_r4_75[] = {
+const byte kInstruction_cmp_pl_r4_75[] = {
   0x58, 0xbf, 0x4b, 0x2c // It pl; cmp pl r4 75
 };
-static const byte kInstruction_cmp_le_r6_59[] = {
+const byte kInstruction_cmp_le_r6_59[] = {
   0xd8, 0xbf, 0x3b, 0x2e // It le; cmp le r6 59
 };
-static const byte kInstruction_cmp_pl_r6_70[] = {
+const byte kInstruction_cmp_pl_r6_70[] = {
   0x58, 0xbf, 0x46, 0x2e // It pl; cmp pl r6 70
 };
-static const byte kInstruction_cmp_vc_r1_191[] = {
+const byte kInstruction_cmp_vc_r1_191[] = {
   0x78, 0xbf, 0xbf, 0x29 // It vc; cmp vc r1 191
 };
-static const byte kInstruction_cmp_le_r2_125[] = {
+const byte kInstruction_cmp_le_r2_125[] = {
   0xd8, 0xbf, 0x7d, 0x2a // It le; cmp le r2 125
 };
-static const byte kInstruction_cmp_ls_r4_249[] = {
+const byte kInstruction_cmp_ls_r4_249[] = {
   0x98, 0xbf, 0xf9, 0x2c // It ls; cmp ls r4 249
 };
-static const byte kInstruction_cmp_vs_r2_41[] = {
+const byte kInstruction_cmp_vs_r2_41[] = {
   0x68, 0xbf, 0x29, 0x2a // It vs; cmp vs r2 41
 };
-static const byte kInstruction_cmp_pl_r4_199[] = {
+const byte kInstruction_cmp_pl_r4_199[] = {
   0x58, 0xbf, 0xc7, 0x2c // It pl; cmp pl r4 199
 };
-static const byte kInstruction_cmp_cc_r3_180[] = {
+const byte kInstruction_cmp_cc_r3_180[] = {
   0x38, 0xbf, 0xb4, 0x2b // It cc; cmp cc r3 180
 };
-static const byte kInstruction_cmp_ls_r0_225[] = {
+const byte kInstruction_cmp_ls_r0_225[] = {
   0x98, 0xbf, 0xe1, 0x28 // It ls; cmp ls r0 225
 };
-static const byte kInstruction_cmp_ne_r2_93[] = {
+const byte kInstruction_cmp_ne_r2_93[] = {
   0x18, 0xbf, 0x5d, 0x2a // It ne; cmp ne r2 93
 };
-static const byte kInstruction_cmp_cc_r3_16[] = {
+const byte kInstruction_cmp_cc_r3_16[] = {
   0x38, 0xbf, 0x10, 0x2b // It cc; cmp cc r3 16
 };
-static const byte kInstruction_cmp_pl_r1_223[] = {
+const byte kInstruction_cmp_pl_r1_223[] = {
   0x58, 0xbf, 0xdf, 0x29 // It pl; cmp pl r1 223
 };
-static const byte kInstruction_cmp_ge_r0_129[] = {
+const byte kInstruction_cmp_ge_r0_129[] = {
   0xa8, 0xbf, 0x81, 0x28 // It ge; cmp ge r0 129
 };
-static const byte kInstruction_cmp_lt_r5_34[] = {
+const byte kInstruction_cmp_lt_r5_34[] = {
   0xb8, 0xbf, 0x22, 0x2d // It lt; cmp lt r5 34
 };
-static const byte kInstruction_cmp_vc_r5_156[] = {
+const byte kInstruction_cmp_vc_r5_156[] = {
   0x78, 0xbf, 0x9c, 0x2d // It vc; cmp vc r5 156
 };
-static const byte kInstruction_cmp_hi_r0_29[] = {
+const byte kInstruction_cmp_hi_r0_29[] = {
   0x88, 0xbf, 0x1d, 0x28 // It hi; cmp hi r0 29
 };
-static const byte kInstruction_cmp_eq_r5_228[] = {
+const byte kInstruction_cmp_eq_r5_228[] = {
   0x08, 0xbf, 0xe4, 0x2d // It eq; cmp eq r5 228
 };
-static const byte kInstruction_cmp_ls_r5_86[] = {
+const byte kInstruction_cmp_ls_r5_86[] = {
   0x98, 0xbf, 0x56, 0x2d // It ls; cmp ls r5 86
 };
-static const byte kInstruction_cmp_cs_r5_99[] = {
+const byte kInstruction_cmp_cs_r5_99[] = {
   0x28, 0xbf, 0x63, 0x2d // It cs; cmp cs r5 99
 };
-static const byte kInstruction_cmp_eq_r4_217[] = {
+const byte kInstruction_cmp_eq_r4_217[] = {
   0x08, 0xbf, 0xd9, 0x2c // It eq; cmp eq r4 217
 };
-static const byte kInstruction_cmp_ne_r0_15[] = {
+const byte kInstruction_cmp_ne_r0_15[] = {
   0x18, 0xbf, 0x0f, 0x28 // It ne; cmp ne r0 15
 };
-static const byte kInstruction_cmp_ls_r2_17[] = {
+const byte kInstruction_cmp_ls_r2_17[] = {
   0x98, 0xbf, 0x11, 0x2a // It ls; cmp ls r2 17
 };
-static const byte kInstruction_cmp_cs_r3_70[] = {
+const byte kInstruction_cmp_cs_r3_70[] = {
   0x28, 0xbf, 0x46, 0x2b // It cs; cmp cs r3 70
 };
-static const byte kInstruction_cmp_ge_r0_60[] = {
+const byte kInstruction_cmp_ge_r0_60[] = {
   0xa8, 0xbf, 0x3c, 0x28 // It ge; cmp ge r0 60
 };
-static const byte kInstruction_cmp_cc_r0_107[] = {
+const byte kInstruction_cmp_cc_r0_107[] = {
   0x38, 0xbf, 0x6b, 0x28 // It cc; cmp cc r0 107
 };
-static const byte kInstruction_cmp_gt_r3_192[] = {
+const byte kInstruction_cmp_gt_r3_192[] = {
   0xc8, 0xbf, 0xc0, 0x2b // It gt; cmp gt r3 192
 };
-static const byte kInstruction_cmp_ne_r1_175[] = {
+const byte kInstruction_cmp_ne_r1_175[] = {
   0x18, 0xbf, 0xaf, 0x29 // It ne; cmp ne r1 175
 };
-static const byte kInstruction_cmp_le_r1_88[] = {
+const byte kInstruction_cmp_le_r1_88[] = {
   0xd8, 0xbf, 0x58, 0x29 // It le; cmp le r1 88
 };
-static const byte kInstruction_cmp_mi_r5_216[] = {
+const byte kInstruction_cmp_mi_r5_216[] = {
   0x48, 0xbf, 0xd8, 0x2d // It mi; cmp mi r5 216
 };
-static const byte kInstruction_cmp_pl_r4_149[] = {
+const byte kInstruction_cmp_pl_r4_149[] = {
   0x58, 0xbf, 0x95, 0x2c // It pl; cmp pl r4 149
 };
-static const byte kInstruction_cmp_cs_r6_28[] = {
+const byte kInstruction_cmp_cs_r6_28[] = {
   0x28, 0xbf, 0x1c, 0x2e // It cs; cmp cs r6 28
 };
-static const byte kInstruction_cmp_vs_r1_65[] = {
+const byte kInstruction_cmp_vs_r1_65[] = {
   0x68, 0xbf, 0x41, 0x29 // It vs; cmp vs r1 65
 };
-static const byte kInstruction_cmp_vs_r2_169[] = {
+const byte kInstruction_cmp_vs_r2_169[] = {
   0x68, 0xbf, 0xa9, 0x2a // It vs; cmp vs r2 169
 };
-static const byte kInstruction_cmp_eq_r3_108[] = {
+const byte kInstruction_cmp_eq_r3_108[] = {
   0x08, 0xbf, 0x6c, 0x2b // It eq; cmp eq r3 108
 };
-static const byte kInstruction_cmp_eq_r5_127[] = {
+const byte kInstruction_cmp_eq_r5_127[] = {
   0x08, 0xbf, 0x7f, 0x2d // It eq; cmp eq r5 127
 };
-static const byte kInstruction_cmp_vc_r1_23[] = {
+const byte kInstruction_cmp_vc_r1_23[] = {
   0x78, 0xbf, 0x17, 0x29 // It vc; cmp vc r1 23
 };
-static const byte kInstruction_cmp_pl_r7_132[] = {
+const byte kInstruction_cmp_pl_r7_132[] = {
   0x58, 0xbf, 0x84, 0x2f // It pl; cmp pl r7 132
 };
-static const byte kInstruction_cmp_vc_r3_90[] = {
+const byte kInstruction_cmp_vc_r3_90[] = {
   0x78, 0xbf, 0x5a, 0x2b // It vc; cmp vc r3 90
 };
-static const byte kInstruction_cmp_pl_r3_195[] = {
+const byte kInstruction_cmp_pl_r3_195[] = {
   0x58, 0xbf, 0xc3, 0x2b // It pl; cmp pl r3 195
 };
-static const byte kInstruction_cmp_ne_r7_28[] = {
+const byte kInstruction_cmp_ne_r7_28[] = {
   0x18, 0xbf, 0x1c, 0x2f // It ne; cmp ne r7 28
 };
-static const byte kInstruction_cmp_vs_r2_233[] = {
+const byte kInstruction_cmp_vs_r2_233[] = {
   0x68, 0xbf, 0xe9, 0x2a // It vs; cmp vs r2 233
 };
-static const byte kInstruction_cmp_ge_r5_3[] = {
+const byte kInstruction_cmp_ge_r5_3[] = {
   0xa8, 0xbf, 0x03, 0x2d // It ge; cmp ge r5 3
 };
-static const byte kInstruction_cmp_ge_r3_231[] = {
+const byte kInstruction_cmp_ge_r3_231[] = {
   0xa8, 0xbf, 0xe7, 0x2b // It ge; cmp ge r3 231
 };
-static const byte kInstruction_cmp_pl_r2_10[] = {
+const byte kInstruction_cmp_pl_r2_10[] = {
   0x58, 0xbf, 0x0a, 0x2a // It pl; cmp pl r2 10
 };
-static const byte kInstruction_cmp_le_r1_56[] = {
+const byte kInstruction_cmp_le_r1_56[] = {
   0xd8, 0xbf, 0x38, 0x29 // It le; cmp le r1 56
 };
-static const byte kInstruction_cmp_eq_r5_232[] = {
+const byte kInstruction_cmp_eq_r5_232[] = {
   0x08, 0xbf, 0xe8, 0x2d // It eq; cmp eq r5 232
 };
-static const byte kInstruction_cmp_mi_r5_124[] = {
+const byte kInstruction_cmp_mi_r5_124[] = {
   0x48, 0xbf, 0x7c, 0x2d // It mi; cmp mi r5 124
 };
-static const byte kInstruction_cmp_vc_r2_198[] = {
+const byte kInstruction_cmp_vc_r2_198[] = {
   0x78, 0xbf, 0xc6, 0x2a // It vc; cmp vc r2 198
 };
-static const byte kInstruction_cmp_lt_r5_86[] = {
+const byte kInstruction_cmp_lt_r5_86[] = {
   0xb8, 0xbf, 0x56, 0x2d // It lt; cmp lt r5 86
 };
-static const byte kInstruction_cmp_eq_r1_199[] = {
+const byte kInstruction_cmp_eq_r1_199[] = {
   0x08, 0xbf, 0xc7, 0x29 // It eq; cmp eq r1 199
 };
-static const byte kInstruction_cmp_eq_r2_21[] = {
+const byte kInstruction_cmp_eq_r2_21[] = {
   0x08, 0xbf, 0x15, 0x2a // It eq; cmp eq r2 21
 };
-static const byte kInstruction_cmp_mi_r4_194[] = {
+const byte kInstruction_cmp_mi_r4_194[] = {
   0x48, 0xbf, 0xc2, 0x2c // It mi; cmp mi r4 194
 };
-static const byte kInstruction_cmp_ge_r1_235[] = {
+const byte kInstruction_cmp_ge_r1_235[] = {
   0xa8, 0xbf, 0xeb, 0x29 // It ge; cmp ge r1 235
 };
-static const byte kInstruction_cmp_gt_r6_164[] = {
+const byte kInstruction_cmp_gt_r6_164[] = {
   0xc8, 0xbf, 0xa4, 0x2e // It gt; cmp gt r6 164
 };
-static const byte kInstruction_cmp_ne_r0_132[] = {
+const byte kInstruction_cmp_ne_r0_132[] = {
   0x18, 0xbf, 0x84, 0x28 // It ne; cmp ne r0 132
 };
-static const byte kInstruction_cmp_mi_r2_188[] = {
+const byte kInstruction_cmp_mi_r2_188[] = {
   0x48, 0xbf, 0xbc, 0x2a // It mi; cmp mi r2 188
 };
-static const byte kInstruction_cmp_ls_r7_136[] = {
+const byte kInstruction_cmp_ls_r7_136[] = {
   0x98, 0xbf, 0x88, 0x2f // It ls; cmp ls r7 136
 };
-static const byte kInstruction_cmp_mi_r3_248[] = {
+const byte kInstruction_cmp_mi_r3_248[] = {
   0x48, 0xbf, 0xf8, 0x2b // It mi; cmp mi r3 248
 };
-static const byte kInstruction_cmp_pl_r1_248[] = {
+const byte kInstruction_cmp_pl_r1_248[] = {
   0x58, 0xbf, 0xf8, 0x29 // It pl; cmp pl r1 248
 };
-static const byte kInstruction_cmp_gt_r1_4[] = {
+const byte kInstruction_cmp_gt_r1_4[] = {
   0xc8, 0xbf, 0x04, 0x29 // It gt; cmp gt r1 4
 };
-static const byte kInstruction_cmp_eq_r3_171[] = {
+const byte kInstruction_cmp_eq_r3_171[] = {
   0x08, 0xbf, 0xab, 0x2b // It eq; cmp eq r3 171
 };
-static const byte kInstruction_cmp_ge_r5_75[] = {
+const byte kInstruction_cmp_ge_r5_75[] = {
   0xa8, 0xbf, 0x4b, 0x2d // It ge; cmp ge r5 75
 };
-static const byte kInstruction_cmp_ne_r6_115[] = {
+const byte kInstruction_cmp_ne_r6_115[] = {
   0x18, 0xbf, 0x73, 0x2e // It ne; cmp ne r6 115
 };
-static const byte kInstruction_cmp_mi_r1_218[] = {
+const byte kInstruction_cmp_mi_r1_218[] = {
   0x48, 0xbf, 0xda, 0x29 // It mi; cmp mi r1 218
 };
-static const byte kInstruction_cmp_pl_r6_160[] = {
+const byte kInstruction_cmp_pl_r6_160[] = {
   0x58, 0xbf, 0xa0, 0x2e // It pl; cmp pl r6 160
 };
-static const byte kInstruction_cmp_ls_r3_69[] = {
+const byte kInstruction_cmp_ls_r3_69[] = {
   0x98, 0xbf, 0x45, 0x2b // It ls; cmp ls r3 69
 };
-static const byte kInstruction_cmp_hi_r3_73[] = {
+const byte kInstruction_cmp_hi_r3_73[] = {
   0x88, 0xbf, 0x49, 0x2b // It hi; cmp hi r3 73
 };
-static const byte kInstruction_cmp_cc_r2_248[] = {
+const byte kInstruction_cmp_cc_r2_248[] = {
   0x38, 0xbf, 0xf8, 0x2a // It cc; cmp cc r2 248
 };
-static const byte kInstruction_cmp_le_r0_1[] = {
+const byte kInstruction_cmp_le_r0_1[] = {
   0xd8, 0xbf, 0x01, 0x28 // It le; cmp le r0 1
 };
-static const byte kInstruction_cmp_gt_r0_43[] = {
+const byte kInstruction_cmp_gt_r0_43[] = {
   0xc8, 0xbf, 0x2b, 0x28 // It gt; cmp gt r0 43
 };
-static const byte kInstruction_cmp_pl_r7_202[] = {
+const byte kInstruction_cmp_pl_r7_202[] = {
   0x58, 0xbf, 0xca, 0x2f // It pl; cmp pl r7 202
 };
-static const byte kInstruction_cmp_le_r3_8[] = {
+const byte kInstruction_cmp_le_r3_8[] = {
   0xd8, 0xbf, 0x08, 0x2b // It le; cmp le r3 8
 };
-static const byte kInstruction_cmp_ls_r1_235[] = {
+const byte kInstruction_cmp_ls_r1_235[] = {
   0x98, 0xbf, 0xeb, 0x29 // It ls; cmp ls r1 235
 };
-static const byte kInstruction_cmp_cs_r5_223[] = {
+const byte kInstruction_cmp_cs_r5_223[] = {
   0x28, 0xbf, 0xdf, 0x2d // It cs; cmp cs r5 223
 };
-static const byte kInstruction_cmp_le_r7_89[] = {
+const byte kInstruction_cmp_le_r7_89[] = {
   0xd8, 0xbf, 0x59, 0x2f // It le; cmp le r7 89
 };
-static const byte kInstruction_cmp_ls_r5_45[] = {
+const byte kInstruction_cmp_ls_r5_45[] = {
   0x98, 0xbf, 0x2d, 0x2d // It ls; cmp ls r5 45
 };
-static const byte kInstruction_cmp_pl_r6_206[] = {
+const byte kInstruction_cmp_pl_r6_206[] = {
   0x58, 0xbf, 0xce, 0x2e // It pl; cmp pl r6 206
 };
-static const byte kInstruction_cmp_ne_r3_12[] = {
+const byte kInstruction_cmp_ne_r3_12[] = {
   0x18, 0xbf, 0x0c, 0x2b // It ne; cmp ne r3 12
 };
-static const byte kInstruction_cmp_vc_r3_37[] = {
+const byte kInstruction_cmp_vc_r3_37[] = {
   0x78, 0xbf, 0x25, 0x2b // It vc; cmp vc r3 37
 };
-static const byte kInstruction_cmp_cs_r3_112[] = {
+const byte kInstruction_cmp_cs_r3_112[] = {
   0x28, 0xbf, 0x70, 0x2b // It cs; cmp cs r3 112
 };
-static const byte kInstruction_cmp_cs_r3_10[] = {
+const byte kInstruction_cmp_cs_r3_10[] = {
   0x28, 0xbf, 0x0a, 0x2b // It cs; cmp cs r3 10
 };
-static const byte kInstruction_cmp_cs_r0_206[] = {
+const byte kInstruction_cmp_cs_r0_206[] = {
   0x28, 0xbf, 0xce, 0x28 // It cs; cmp cs r0 206
 };
-static const byte kInstruction_cmp_vs_r2_215[] = {
+const byte kInstruction_cmp_vs_r2_215[] = {
   0x68, 0xbf, 0xd7, 0x2a // It vs; cmp vs r2 215
 };
-static const byte kInstruction_cmp_hi_r2_171[] = {
+const byte kInstruction_cmp_hi_r2_171[] = {
   0x88, 0xbf, 0xab, 0x2a // It hi; cmp hi r2 171
 };
-static const byte kInstruction_cmp_ge_r3_117[] = {
+const byte kInstruction_cmp_ge_r3_117[] = {
   0xa8, 0xbf, 0x75, 0x2b // It ge; cmp ge r3 117
 };
-static const byte kInstruction_cmp_vc_r7_211[] = {
+const byte kInstruction_cmp_vc_r7_211[] = {
   0x78, 0xbf, 0xd3, 0x2f // It vc; cmp vc r7 211
 };
-static const byte kInstruction_cmp_hi_r6_147[] = {
+const byte kInstruction_cmp_hi_r6_147[] = {
   0x88, 0xbf, 0x93, 0x2e // It hi; cmp hi r6 147
 };
-static const byte kInstruction_cmp_gt_r4_64[] = {
+const byte kInstruction_cmp_gt_r4_64[] = {
   0xc8, 0xbf, 0x40, 0x2c // It gt; cmp gt r4 64
 };
-static const byte kInstruction_cmp_ge_r2_17[] = {
+const byte kInstruction_cmp_ge_r2_17[] = {
   0xa8, 0xbf, 0x11, 0x2a // It ge; cmp ge r2 17
 };
-static const byte kInstruction_cmp_lt_r0_242[] = {
+const byte kInstruction_cmp_lt_r0_242[] = {
   0xb8, 0xbf, 0xf2, 0x28 // It lt; cmp lt r0 242
 };
-static const byte kInstruction_cmp_ls_r5_144[] = {
+const byte kInstruction_cmp_ls_r5_144[] = {
   0x98, 0xbf, 0x90, 0x2d // It ls; cmp ls r5 144
 };
-static const byte kInstruction_cmp_cc_r7_44[] = {
+const byte kInstruction_cmp_cc_r7_44[] = {
   0x38, 0xbf, 0x2c, 0x2f // It cc; cmp cc r7 44
 };
-static const byte kInstruction_cmp_vs_r7_214[] = {
+const byte kInstruction_cmp_vs_r7_214[] = {
   0x68, 0xbf, 0xd6, 0x2f // It vs; cmp vs r7 214
 };
-static const byte kInstruction_cmp_ge_r3_132[] = {
+const byte kInstruction_cmp_ge_r3_132[] = {
   0xa8, 0xbf, 0x84, 0x2b // It ge; cmp ge r3 132
 };
-static const byte kInstruction_cmp_hi_r4_36[] = {
+const byte kInstruction_cmp_hi_r4_36[] = {
   0x88, 0xbf, 0x24, 0x2c // It hi; cmp hi r4 36
 };
-static const byte kInstruction_cmp_cs_r1_5[] = {
+const byte kInstruction_cmp_cs_r1_5[] = {
   0x28, 0xbf, 0x05, 0x29 // It cs; cmp cs r1 5
 };
-static const byte kInstruction_cmp_mi_r6_194[] = {
+const byte kInstruction_cmp_mi_r6_194[] = {
   0x48, 0xbf, 0xc2, 0x2e // It mi; cmp mi r6 194
 };
-static const byte kInstruction_cmp_ge_r1_134[] = {
+const byte kInstruction_cmp_ge_r1_134[] = {
   0xa8, 0xbf, 0x86, 0x29 // It ge; cmp ge r1 134
 };
-static const byte kInstruction_cmp_ls_r2_90[] = {
+const byte kInstruction_cmp_ls_r2_90[] = {
   0x98, 0xbf, 0x5a, 0x2a // It ls; cmp ls r2 90
 };
-static const byte kInstruction_cmp_vc_r1_207[] = {
+const byte kInstruction_cmp_vc_r1_207[] = {
   0x78, 0xbf, 0xcf, 0x29 // It vc; cmp vc r1 207
 };
-static const byte kInstruction_cmp_cc_r7_13[] = {
+const byte kInstruction_cmp_cc_r7_13[] = {
   0x38, 0xbf, 0x0d, 0x2f // It cc; cmp cc r7 13
 };
-static const byte kInstruction_cmp_cc_r6_117[] = {
+const byte kInstruction_cmp_cc_r6_117[] = {
   0x38, 0xbf, 0x75, 0x2e // It cc; cmp cc r6 117
 };
-static const byte kInstruction_cmp_mi_r2_113[] = {
+const byte kInstruction_cmp_mi_r2_113[] = {
   0x48, 0xbf, 0x71, 0x2a // It mi; cmp mi r2 113
 };
-static const byte kInstruction_cmp_vc_r0_107[] = {
+const byte kInstruction_cmp_vc_r0_107[] = {
   0x78, 0xbf, 0x6b, 0x28 // It vc; cmp vc r0 107
 };
-static const byte kInstruction_cmp_mi_r6_156[] = {
+const byte kInstruction_cmp_mi_r6_156[] = {
   0x48, 0xbf, 0x9c, 0x2e // It mi; cmp mi r6 156
 };
-static const byte kInstruction_cmp_hi_r0_193[] = {
+const byte kInstruction_cmp_hi_r0_193[] = {
   0x88, 0xbf, 0xc1, 0x28 // It hi; cmp hi r0 193
 };
-static const byte kInstruction_cmp_gt_r5_5[] = {
+const byte kInstruction_cmp_gt_r5_5[] = {
   0xc8, 0xbf, 0x05, 0x2d // It gt; cmp gt r5 5
 };
-static const byte kInstruction_cmp_cc_r5_137[] = {
+const byte kInstruction_cmp_cc_r5_137[] = {
   0x38, 0xbf, 0x89, 0x2d // It cc; cmp cc r5 137
 };
-static const byte kInstruction_cmp_vs_r1_60[] = {
+const byte kInstruction_cmp_vs_r1_60[] = {
   0x68, 0xbf, 0x3c, 0x29 // It vs; cmp vs r1 60
 };
-static const byte kInstruction_cmp_ge_r5_156[] = {
+const byte kInstruction_cmp_ge_r5_156[] = {
   0xa8, 0xbf, 0x9c, 0x2d // It ge; cmp ge r5 156
 };
-static const byte kInstruction_cmp_hi_r5_246[] = {
+const byte kInstruction_cmp_hi_r5_246[] = {
   0x88, 0xbf, 0xf6, 0x2d // It hi; cmp hi r5 246
 };
-static const byte kInstruction_cmp_pl_r1_228[] = {
+const byte kInstruction_cmp_pl_r1_228[] = {
   0x58, 0xbf, 0xe4, 0x29 // It pl; cmp pl r1 228
 };
-static const byte kInstruction_cmp_mi_r6_214[] = {
+const byte kInstruction_cmp_mi_r6_214[] = {
   0x48, 0xbf, 0xd6, 0x2e // It mi; cmp mi r6 214
 };
-static const byte kInstruction_cmp_ls_r1_39[] = {
+const byte kInstruction_cmp_ls_r1_39[] = {
   0x98, 0xbf, 0x27, 0x29 // It ls; cmp ls r1 39
 };
-static const byte kInstruction_cmp_ge_r2_201[] = {
+const byte kInstruction_cmp_ge_r2_201[] = {
   0xa8, 0xbf, 0xc9, 0x2a // It ge; cmp ge r2 201
 };
-static const byte kInstruction_cmp_ls_r5_250[] = {
+const byte kInstruction_cmp_ls_r5_250[] = {
   0x98, 0xbf, 0xfa, 0x2d // It ls; cmp ls r5 250
 };
-static const byte kInstruction_cmp_mi_r2_40[] = {
+const byte kInstruction_cmp_mi_r2_40[] = {
   0x48, 0xbf, 0x28, 0x2a // It mi; cmp mi r2 40
 };
-static const byte kInstruction_cmp_cc_r4_225[] = {
+const byte kInstruction_cmp_cc_r4_225[] = {
   0x38, 0xbf, 0xe1, 0x2c // It cc; cmp cc r4 225
 };
-static const byte kInstruction_cmp_ne_r1_96[] = {
+const byte kInstruction_cmp_ne_r1_96[] = {
   0x18, 0xbf, 0x60, 0x29 // It ne; cmp ne r1 96
 };
-static const byte kInstruction_cmp_ge_r5_162[] = {
+const byte kInstruction_cmp_ge_r5_162[] = {
   0xa8, 0xbf, 0xa2, 0x2d // It ge; cmp ge r5 162
 };
-static const byte kInstruction_cmp_eq_r5_176[] = {
+const byte kInstruction_cmp_eq_r5_176[] = {
   0x08, 0xbf, 0xb0, 0x2d // It eq; cmp eq r5 176
 };
-static const byte kInstruction_cmp_lt_r1_246[] = {
+const byte kInstruction_cmp_lt_r1_246[] = {
   0xb8, 0xbf, 0xf6, 0x29 // It lt; cmp lt r1 246
 };
-static const byte kInstruction_cmp_ls_r4_44[] = {
+const byte kInstruction_cmp_ls_r4_44[] = {
   0x98, 0xbf, 0x2c, 0x2c // It ls; cmp ls r4 44
 };
-static const byte kInstruction_cmp_lt_r2_96[] = {
+const byte kInstruction_cmp_lt_r2_96[] = {
   0xb8, 0xbf, 0x60, 0x2a // It lt; cmp lt r2 96
 };
-static const byte kInstruction_cmp_ge_r5_54[] = {
+const byte kInstruction_cmp_ge_r5_54[] = {
   0xa8, 0xbf, 0x36, 0x2d // It ge; cmp ge r5 54
 };
-static const byte kInstruction_cmp_lt_r6_13[] = {
+const byte kInstruction_cmp_lt_r6_13[] = {
   0xb8, 0xbf, 0x0d, 0x2e // It lt; cmp lt r6 13
 };
-static const byte kInstruction_cmp_mi_r5_106[] = {
+const byte kInstruction_cmp_mi_r5_106[] = {
   0x48, 0xbf, 0x6a, 0x2d // It mi; cmp mi r5 106
 };
-static const byte kInstruction_cmp_vs_r5_62[] = {
+const byte kInstruction_cmp_vs_r5_62[] = {
   0x68, 0xbf, 0x3e, 0x2d // It vs; cmp vs r5 62
 };
-static const byte kInstruction_cmp_vs_r5_235[] = {
+const byte kInstruction_cmp_vs_r5_235[] = {
   0x68, 0xbf, 0xeb, 0x2d // It vs; cmp vs r5 235
 };
-static const byte kInstruction_cmp_hi_r1_49[] = {
+const byte kInstruction_cmp_hi_r1_49[] = {
   0x88, 0xbf, 0x31, 0x29 // It hi; cmp hi r1 49
 };
-static const byte kInstruction_cmp_cs_r5_32[] = {
+const byte kInstruction_cmp_cs_r5_32[] = {
   0x28, 0xbf, 0x20, 0x2d // It cs; cmp cs r5 32
 };
-static const byte kInstruction_cmp_cc_r7_43[] = {
+const byte kInstruction_cmp_cc_r7_43[] = {
   0x38, 0xbf, 0x2b, 0x2f // It cc; cmp cc r7 43
 };
-static const byte kInstruction_cmp_pl_r6_122[] = {
+const byte kInstruction_cmp_pl_r6_122[] = {
   0x58, 0xbf, 0x7a, 0x2e // It pl; cmp pl r6 122
 };
-static const byte kInstruction_cmp_eq_r7_87[] = {
+const byte kInstruction_cmp_eq_r7_87[] = {
   0x08, 0xbf, 0x57, 0x2f // It eq; cmp eq r7 87
 };
-static const byte kInstruction_cmp_cc_r1_250[] = {
+const byte kInstruction_cmp_cc_r1_250[] = {
   0x38, 0xbf, 0xfa, 0x29 // It cc; cmp cc r1 250
 };
-static const byte kInstruction_cmp_vc_r1_236[] = {
+const byte kInstruction_cmp_vc_r1_236[] = {
   0x78, 0xbf, 0xec, 0x29 // It vc; cmp vc r1 236
 };
-static const byte kInstruction_cmp_pl_r1_83[] = {
+const byte kInstruction_cmp_pl_r1_83[] = {
   0x58, 0xbf, 0x53, 0x29 // It pl; cmp pl r1 83
 };
-static const byte kInstruction_cmp_gt_r2_228[] = {
+const byte kInstruction_cmp_gt_r2_228[] = {
   0xc8, 0xbf, 0xe4, 0x2a // It gt; cmp gt r2 228
 };
-static const byte kInstruction_cmp_mi_r1_41[] = {
+const byte kInstruction_cmp_mi_r1_41[] = {
   0x48, 0xbf, 0x29, 0x29 // It mi; cmp mi r1 41
 };
-static const byte kInstruction_cmp_hi_r1_42[] = {
+const byte kInstruction_cmp_hi_r1_42[] = {
   0x88, 0xbf, 0x2a, 0x29 // It hi; cmp hi r1 42
 };
-static const byte kInstruction_cmp_hi_r0_242[] = {
+const byte kInstruction_cmp_hi_r0_242[] = {
   0x88, 0xbf, 0xf2, 0x28 // It hi; cmp hi r0 242
 };
-static const byte kInstruction_cmp_ne_r7_9[] = {
+const byte kInstruction_cmp_ne_r7_9[] = {
   0x18, 0xbf, 0x09, 0x2f // It ne; cmp ne r7 9
 };
-static const byte kInstruction_cmp_lt_r3_0[] = {
+const byte kInstruction_cmp_lt_r3_0[] = {
   0xb8, 0xbf, 0x00, 0x2b // It lt; cmp lt r3 0
 };
-static const byte kInstruction_cmp_pl_r0_183[] = {
+const byte kInstruction_cmp_pl_r0_183[] = {
   0x58, 0xbf, 0xb7, 0x28 // It pl; cmp pl r0 183
 };
-static const byte kInstruction_cmp_hi_r2_117[] = {
+const byte kInstruction_cmp_hi_r2_117[] = {
   0x88, 0xbf, 0x75, 0x2a // It hi; cmp hi r2 117
 };
-static const byte kInstruction_cmp_hi_r0_77[] = {
+const byte kInstruction_cmp_hi_r0_77[] = {
   0x88, 0xbf, 0x4d, 0x28 // It hi; cmp hi r0 77
 };
-static const byte kInstruction_cmp_ls_r3_159[] = {
+const byte kInstruction_cmp_ls_r3_159[] = {
   0x98, 0xbf, 0x9f, 0x2b // It ls; cmp ls r3 159
 };
-static const byte kInstruction_cmp_cc_r4_5[] = {
+const byte kInstruction_cmp_cc_r4_5[] = {
   0x38, 0xbf, 0x05, 0x2c // It cc; cmp cc r4 5
 };
-static const byte kInstruction_cmp_vc_r4_244[] = {
+const byte kInstruction_cmp_vc_r4_244[] = {
   0x78, 0xbf, 0xf4, 0x2c // It vc; cmp vc r4 244
 };
-static const byte kInstruction_cmp_hi_r2_121[] = {
+const byte kInstruction_cmp_hi_r2_121[] = {
   0x88, 0xbf, 0x79, 0x2a // It hi; cmp hi r2 121
 };
-static const byte kInstruction_cmp_le_r3_90[] = {
+const byte kInstruction_cmp_le_r3_90[] = {
   0xd8, 0xbf, 0x5a, 0x2b // It le; cmp le r3 90
 };
-static const byte kInstruction_cmp_vc_r6_10[] = {
+const byte kInstruction_cmp_vc_r6_10[] = {
   0x78, 0xbf, 0x0a, 0x2e // It vc; cmp vc r6 10
 };
-static const byte kInstruction_cmp_cs_r5_150[] = {
+const byte kInstruction_cmp_cs_r5_150[] = {
   0x28, 0xbf, 0x96, 0x2d // It cs; cmp cs r5 150
 };
-static const byte kInstruction_cmp_vc_r7_117[] = {
+const byte kInstruction_cmp_vc_r7_117[] = {
   0x78, 0xbf, 0x75, 0x2f // It vc; cmp vc r7 117
 };
-static const byte kInstruction_cmp_cs_r7_211[] = {
+const byte kInstruction_cmp_cs_r7_211[] = {
   0x28, 0xbf, 0xd3, 0x2f // It cs; cmp cs r7 211
 };
-static const byte kInstruction_cmp_cs_r0_18[] = {
+const byte kInstruction_cmp_cs_r0_18[] = {
   0x28, 0xbf, 0x12, 0x28 // It cs; cmp cs r0 18
 };
-static const byte kInstruction_cmp_ne_r2_60[] = {
+const byte kInstruction_cmp_ne_r2_60[] = {
   0x18, 0xbf, 0x3c, 0x2a // It ne; cmp ne r2 60
 };
-static const byte kInstruction_cmp_ge_r0_223[] = {
+const byte kInstruction_cmp_ge_r0_223[] = {
   0xa8, 0xbf, 0xdf, 0x28 // It ge; cmp ge r0 223
 };
-static const byte kInstruction_cmp_lt_r1_176[] = {
+const byte kInstruction_cmp_lt_r1_176[] = {
   0xb8, 0xbf, 0xb0, 0x29 // It lt; cmp lt r1 176
 };
-static const byte kInstruction_cmp_eq_r6_15[] = {
+const byte kInstruction_cmp_eq_r6_15[] = {
   0x08, 0xbf, 0x0f, 0x2e // It eq; cmp eq r6 15
 };
-static const byte kInstruction_cmp_vs_r7_74[] = {
+const byte kInstruction_cmp_vs_r7_74[] = {
   0x68, 0xbf, 0x4a, 0x2f // It vs; cmp vs r7 74
 };
-static const byte kInstruction_cmp_ne_r5_68[] = {
+const byte kInstruction_cmp_ne_r5_68[] = {
   0x18, 0xbf, 0x44, 0x2d // It ne; cmp ne r5 68
 };
-static const byte kInstruction_cmp_ne_r7_49[] = {
+const byte kInstruction_cmp_ne_r7_49[] = {
   0x18, 0xbf, 0x31, 0x2f // It ne; cmp ne r7 49
 };
-static const byte kInstruction_cmp_le_r0_139[] = {
+const byte kInstruction_cmp_le_r0_139[] = {
   0xd8, 0xbf, 0x8b, 0x28 // It le; cmp le r0 139
 };
-static const byte kInstruction_cmp_ge_r3_218[] = {
+const byte kInstruction_cmp_ge_r3_218[] = {
   0xa8, 0xbf, 0xda, 0x2b // It ge; cmp ge r3 218
 };
-static const byte kInstruction_cmp_ge_r2_25[] = {
+const byte kInstruction_cmp_ge_r2_25[] = {
   0xa8, 0xbf, 0x19, 0x2a // It ge; cmp ge r2 25
 };
-static const byte kInstruction_cmp_mi_r5_117[] = {
+const byte kInstruction_cmp_mi_r5_117[] = {
   0x48, 0xbf, 0x75, 0x2d // It mi; cmp mi r5 117
 };
-static const byte kInstruction_cmp_pl_r7_57[] = {
+const byte kInstruction_cmp_pl_r7_57[] = {
   0x58, 0xbf, 0x39, 0x2f // It pl; cmp pl r7 57
 };
-static const byte kInstruction_cmp_gt_r7_7[] = {
+const byte kInstruction_cmp_gt_r7_7[] = {
   0xc8, 0xbf, 0x07, 0x2f // It gt; cmp gt r7 7
 };
-static const byte kInstruction_cmp_ne_r4_55[] = {
+const byte kInstruction_cmp_ne_r4_55[] = {
   0x18, 0xbf, 0x37, 0x2c // It ne; cmp ne r4 55
 };
-static const byte kInstruction_cmp_ne_r7_56[] = {
+const byte kInstruction_cmp_ne_r7_56[] = {
   0x18, 0xbf, 0x38, 0x2f // It ne; cmp ne r7 56
 };
-static const byte kInstruction_cmp_cc_r5_55[] = {
+const byte kInstruction_cmp_cc_r5_55[] = {
   0x38, 0xbf, 0x37, 0x2d // It cc; cmp cc r5 55
 };
-static const byte kInstruction_cmp_cc_r7_84[] = {
+const byte kInstruction_cmp_cc_r7_84[] = {
   0x38, 0xbf, 0x54, 0x2f // It cc; cmp cc r7 84
 };
-static const byte kInstruction_cmp_cs_r5_229[] = {
+const byte kInstruction_cmp_cs_r5_229[] = {
   0x28, 0xbf, 0xe5, 0x2d // It cs; cmp cs r5 229
 };
-static const byte kInstruction_cmp_ne_r1_205[] = {
+const byte kInstruction_cmp_ne_r1_205[] = {
   0x18, 0xbf, 0xcd, 0x29 // It ne; cmp ne r1 205
 };
-static const byte kInstruction_cmp_ge_r1_133[] = {
+const byte kInstruction_cmp_ge_r1_133[] = {
   0xa8, 0xbf, 0x85, 0x29 // It ge; cmp ge r1 133
 };
-static const byte kInstruction_cmp_vc_r0_25[] = {
+const byte kInstruction_cmp_vc_r0_25[] = {
   0x78, 0xbf, 0x19, 0x28 // It vc; cmp vc r0 25
 };
-static const byte kInstruction_cmp_ge_r0_114[] = {
+const byte kInstruction_cmp_ge_r0_114[] = {
   0xa8, 0xbf, 0x72, 0x28 // It ge; cmp ge r0 114
 };
-static const byte kInstruction_cmp_le_r5_135[] = {
+const byte kInstruction_cmp_le_r5_135[] = {
   0xd8, 0xbf, 0x87, 0x2d // It le; cmp le r5 135
 };
-static const byte kInstruction_cmp_pl_r3_145[] = {
+const byte kInstruction_cmp_pl_r3_145[] = {
   0x58, 0xbf, 0x91, 0x2b // It pl; cmp pl r3 145
 };
-static const byte kInstruction_cmp_le_r5_197[] = {
+const byte kInstruction_cmp_le_r5_197[] = {
   0xd8, 0xbf, 0xc5, 0x2d // It le; cmp le r5 197
 };
-static const byte kInstruction_cmp_vc_r0_14[] = {
+const byte kInstruction_cmp_vc_r0_14[] = {
   0x78, 0xbf, 0x0e, 0x28 // It vc; cmp vc r0 14
 };
-static const byte kInstruction_cmp_vc_r3_113[] = {
+const byte kInstruction_cmp_vc_r3_113[] = {
   0x78, 0xbf, 0x71, 0x2b // It vc; cmp vc r3 113
 };
-static const byte kInstruction_cmp_le_r3_224[] = {
+const byte kInstruction_cmp_le_r3_224[] = {
   0xd8, 0xbf, 0xe0, 0x2b // It le; cmp le r3 224
 };
-static const byte kInstruction_cmp_le_r1_99[] = {
+const byte kInstruction_cmp_le_r1_99[] = {
   0xd8, 0xbf, 0x63, 0x29 // It le; cmp le r1 99
 };
-static const byte kInstruction_cmp_le_r6_222[] = {
+const byte kInstruction_cmp_le_r6_222[] = {
   0xd8, 0xbf, 0xde, 0x2e // It le; cmp le r6 222
 };
-static const byte kInstruction_cmp_vc_r6_15[] = {
+const byte kInstruction_cmp_vc_r6_15[] = {
   0x78, 0xbf, 0x0f, 0x2e // It vc; cmp vc r6 15
 };
-static const byte kInstruction_cmp_ge_r5_59[] = {
+const byte kInstruction_cmp_ge_r5_59[] = {
   0xa8, 0xbf, 0x3b, 0x2d // It ge; cmp ge r5 59
 };
-static const byte kInstruction_cmp_mi_r2_187[] = {
+const byte kInstruction_cmp_mi_r2_187[] = {
   0x48, 0xbf, 0xbb, 0x2a // It mi; cmp mi r2 187
 };
-static const byte kInstruction_cmp_ls_r0_107[] = {
+const byte kInstruction_cmp_ls_r0_107[] = {
   0x98, 0xbf, 0x6b, 0x28 // It ls; cmp ls r0 107
 };
-static const byte kInstruction_cmp_le_r6_111[] = {
+const byte kInstruction_cmp_le_r6_111[] = {
   0xd8, 0xbf, 0x6f, 0x2e // It le; cmp le r6 111
 };
-static const byte kInstruction_cmp_hi_r7_58[] = {
+const byte kInstruction_cmp_hi_r7_58[] = {
   0x88, 0xbf, 0x3a, 0x2f // It hi; cmp hi r7 58
 };
-static const byte kInstruction_cmp_le_r1_143[] = {
+const byte kInstruction_cmp_le_r1_143[] = {
   0xd8, 0xbf, 0x8f, 0x29 // It le; cmp le r1 143
 };
-static const byte kInstruction_cmp_cs_r7_181[] = {
+const byte kInstruction_cmp_cs_r7_181[] = {
   0x28, 0xbf, 0xb5, 0x2f // It cs; cmp cs r7 181
 };
-static const byte kInstruction_cmp_hi_r4_235[] = {
+const byte kInstruction_cmp_hi_r4_235[] = {
   0x88, 0xbf, 0xeb, 0x2c // It hi; cmp hi r4 235
 };
-static const byte kInstruction_cmp_vs_r3_69[] = {
+const byte kInstruction_cmp_vs_r3_69[] = {
   0x68, 0xbf, 0x45, 0x2b // It vs; cmp vs r3 69
 };
-static const byte kInstruction_cmp_ls_r1_100[] = {
+const byte kInstruction_cmp_ls_r1_100[] = {
   0x98, 0xbf, 0x64, 0x29 // It ls; cmp ls r1 100
 };
-static const byte kInstruction_cmp_ne_r7_93[] = {
+const byte kInstruction_cmp_ne_r7_93[] = {
   0x18, 0xbf, 0x5d, 0x2f // It ne; cmp ne r7 93
 };
-static const byte kInstruction_cmp_pl_r5_10[] = {
+const byte kInstruction_cmp_pl_r5_10[] = {
   0x58, 0xbf, 0x0a, 0x2d // It pl; cmp pl r5 10
 };
-static const byte kInstruction_cmp_eq_r0_158[] = {
+const byte kInstruction_cmp_eq_r0_158[] = {
   0x08, 0xbf, 0x9e, 0x28 // It eq; cmp eq r0 158
 };
-static const byte kInstruction_cmp_pl_r5_8[] = {
+const byte kInstruction_cmp_pl_r5_8[] = {
   0x58, 0xbf, 0x08, 0x2d // It pl; cmp pl r5 8
 };
-static const byte kInstruction_cmp_vc_r5_172[] = {
+const byte kInstruction_cmp_vc_r5_172[] = {
   0x78, 0xbf, 0xac, 0x2d // It vc; cmp vc r5 172
 };
-static const byte kInstruction_cmp_ne_r6_0[] = {
+const byte kInstruction_cmp_ne_r6_0[] = {
   0x18, 0xbf, 0x00, 0x2e // It ne; cmp ne r6 0
 };
-static const byte kInstruction_cmp_mi_r0_106[] = {
+const byte kInstruction_cmp_mi_r0_106[] = {
   0x48, 0xbf, 0x6a, 0x28 // It mi; cmp mi r0 106
 };
-static const byte kInstruction_cmp_vs_r7_229[] = {
+const byte kInstruction_cmp_vs_r7_229[] = {
   0x68, 0xbf, 0xe5, 0x2f // It vs; cmp vs r7 229
 };
-static const byte kInstruction_cmp_ne_r6_75[] = {
+const byte kInstruction_cmp_ne_r6_75[] = {
   0x18, 0xbf, 0x4b, 0x2e // It ne; cmp ne r6 75
 };
-static const byte kInstruction_cmp_cc_r7_247[] = {
+const byte kInstruction_cmp_cc_r7_247[] = {
   0x38, 0xbf, 0xf7, 0x2f // It cc; cmp cc r7 247
 };
-static const byte kInstruction_cmp_ne_r0_171[] = {
+const byte kInstruction_cmp_ne_r0_171[] = {
   0x18, 0xbf, 0xab, 0x28 // It ne; cmp ne r0 171
 };
-static const byte kInstruction_cmp_lt_r6_76[] = {
+const byte kInstruction_cmp_lt_r6_76[] = {
   0xb8, 0xbf, 0x4c, 0x2e // It lt; cmp lt r6 76
 };
-static const byte kInstruction_cmp_ls_r6_20[] = {
+const byte kInstruction_cmp_ls_r6_20[] = {
   0x98, 0xbf, 0x14, 0x2e // It ls; cmp ls r6 20
 };
-static const byte kInstruction_cmp_ne_r3_79[] = {
+const byte kInstruction_cmp_ne_r3_79[] = {
   0x18, 0xbf, 0x4f, 0x2b // It ne; cmp ne r3 79
 };
-static const byte kInstruction_cmp_lt_r4_214[] = {
+const byte kInstruction_cmp_lt_r4_214[] = {
   0xb8, 0xbf, 0xd6, 0x2c // It lt; cmp lt r4 214
 };
-static const byte kInstruction_cmp_gt_r1_108[] = {
+const byte kInstruction_cmp_gt_r1_108[] = {
   0xc8, 0xbf, 0x6c, 0x29 // It gt; cmp gt r1 108
 };
-static const byte kInstruction_cmp_ls_r0_149[] = {
+const byte kInstruction_cmp_ls_r0_149[] = {
   0x98, 0xbf, 0x95, 0x28 // It ls; cmp ls r0 149
 };
-static const byte kInstruction_cmp_vc_r5_218[] = {
+const byte kInstruction_cmp_vc_r5_218[] = {
   0x78, 0xbf, 0xda, 0x2d // It vc; cmp vc r5 218
 };
-static const byte kInstruction_cmp_hi_r3_65[] = {
+const byte kInstruction_cmp_hi_r3_65[] = {
   0x88, 0xbf, 0x41, 0x2b // It hi; cmp hi r3 65
 };
-static const byte kInstruction_cmp_ge_r4_9[] = {
+const byte kInstruction_cmp_ge_r4_9[] = {
   0xa8, 0xbf, 0x09, 0x2c // It ge; cmp ge r4 9
 };
-static const byte kInstruction_cmp_ls_r2_252[] = {
+const byte kInstruction_cmp_ls_r2_252[] = {
   0x98, 0xbf, 0xfc, 0x2a // It ls; cmp ls r2 252
 };
-static const byte kInstruction_cmp_vs_r1_107[] = {
+const byte kInstruction_cmp_vs_r1_107[] = {
   0x68, 0xbf, 0x6b, 0x29 // It vs; cmp vs r1 107
 };
-static const byte kInstruction_cmp_le_r7_32[] = {
+const byte kInstruction_cmp_le_r7_32[] = {
   0xd8, 0xbf, 0x20, 0x2f // It le; cmp le r7 32
 };
-static const byte kInstruction_cmp_cs_r7_22[] = {
+const byte kInstruction_cmp_cs_r7_22[] = {
   0x28, 0xbf, 0x16, 0x2f // It cs; cmp cs r7 22
 };
-static const byte kInstruction_cmp_le_r1_145[] = {
+const byte kInstruction_cmp_le_r1_145[] = {
   0xd8, 0xbf, 0x91, 0x29 // It le; cmp le r1 145
 };
-static const byte kInstruction_cmp_ne_r2_144[] = {
+const byte kInstruction_cmp_ne_r2_144[] = {
   0x18, 0xbf, 0x90, 0x2a // It ne; cmp ne r2 144
 };
-static const byte kInstruction_cmp_mi_r4_79[] = {
+const byte kInstruction_cmp_mi_r4_79[] = {
   0x48, 0xbf, 0x4f, 0x2c // It mi; cmp mi r4 79
 };
-static const byte kInstruction_cmp_ne_r5_240[] = {
+const byte kInstruction_cmp_ne_r5_240[] = {
   0x18, 0xbf, 0xf0, 0x2d // It ne; cmp ne r5 240
 };
-static const byte kInstruction_cmp_lt_r7_251[] = {
+const byte kInstruction_cmp_lt_r7_251[] = {
   0xb8, 0xbf, 0xfb, 0x2f // It lt; cmp lt r7 251
 };
-static const byte kInstruction_cmp_le_r0_118[] = {
+const byte kInstruction_cmp_le_r0_118[] = {
   0xd8, 0xbf, 0x76, 0x28 // It le; cmp le r0 118
 };
-static const byte kInstruction_cmp_eq_r0_199[] = {
+const byte kInstruction_cmp_eq_r0_199[] = {
   0x08, 0xbf, 0xc7, 0x28 // It eq; cmp eq r0 199
 };
-static const byte kInstruction_cmp_hi_r3_105[] = {
+const byte kInstruction_cmp_hi_r3_105[] = {
   0x88, 0xbf, 0x69, 0x2b // It hi; cmp hi r3 105
 };
-static const byte kInstruction_cmp_cs_r3_215[] = {
+const byte kInstruction_cmp_cs_r3_215[] = {
   0x28, 0xbf, 0xd7, 0x2b // It cs; cmp cs r3 215
 };
-static const byte kInstruction_cmp_ge_r7_19[] = {
+const byte kInstruction_cmp_ge_r7_19[] = {
   0xa8, 0xbf, 0x13, 0x2f // It ge; cmp ge r7 19
 };
-static const byte kInstruction_cmp_le_r4_94[] = {
+const byte kInstruction_cmp_le_r4_94[] = {
   0xd8, 0xbf, 0x5e, 0x2c // It le; cmp le r4 94
 };
-static const byte kInstruction_cmp_hi_r4_100[] = {
+const byte kInstruction_cmp_hi_r4_100[] = {
   0x88, 0xbf, 0x64, 0x2c // It hi; cmp hi r4 100
 };
-static const byte kInstruction_cmp_cc_r7_116[] = {
+const byte kInstruction_cmp_cc_r7_116[] = {
   0x38, 0xbf, 0x74, 0x2f // It cc; cmp cc r7 116
 };
-static const byte kInstruction_cmp_ls_r4_168[] = {
+const byte kInstruction_cmp_ls_r4_168[] = {
   0x98, 0xbf, 0xa8, 0x2c // It ls; cmp ls r4 168
 };
-static const byte kInstruction_cmp_lt_r5_5[] = {
+const byte kInstruction_cmp_lt_r5_5[] = {
   0xb8, 0xbf, 0x05, 0x2d // It lt; cmp lt r5 5
 };
-static const byte kInstruction_cmp_vc_r4_121[] = {
+const byte kInstruction_cmp_vc_r4_121[] = {
   0x78, 0xbf, 0x79, 0x2c // It vc; cmp vc r4 121
 };
-static const byte kInstruction_cmp_ls_r2_235[] = {
+const byte kInstruction_cmp_ls_r2_235[] = {
   0x98, 0xbf, 0xeb, 0x2a // It ls; cmp ls r2 235
 };
-static const byte kInstruction_cmp_gt_r2_65[] = {
+const byte kInstruction_cmp_gt_r2_65[] = {
   0xc8, 0xbf, 0x41, 0x2a // It gt; cmp gt r2 65
 };
-static const byte kInstruction_cmp_le_r0_153[] = {
+const byte kInstruction_cmp_le_r0_153[] = {
   0xd8, 0xbf, 0x99, 0x28 // It le; cmp le r0 153
 };
-static const byte kInstruction_cmp_ge_r2_92[] = {
+const byte kInstruction_cmp_ge_r2_92[] = {
   0xa8, 0xbf, 0x5c, 0x2a // It ge; cmp ge r2 92
 };
-static const byte kInstruction_cmp_cs_r7_183[] = {
+const byte kInstruction_cmp_cs_r7_183[] = {
   0x28, 0xbf, 0xb7, 0x2f // It cs; cmp cs r7 183
 };
-static const byte kInstruction_cmp_vs_r7_90[] = {
+const byte kInstruction_cmp_vs_r7_90[] = {
   0x68, 0xbf, 0x5a, 0x2f // It vs; cmp vs r7 90
 };
-static const byte kInstruction_cmp_ge_r7_83[] = {
+const byte kInstruction_cmp_ge_r7_83[] = {
   0xa8, 0xbf, 0x53, 0x2f // It ge; cmp ge r7 83
 };
-static const byte kInstruction_cmp_vc_r6_170[] = {
+const byte kInstruction_cmp_vc_r6_170[] = {
   0x78, 0xbf, 0xaa, 0x2e // It vc; cmp vc r6 170
 };
-static const byte kInstruction_cmp_vs_r7_13[] = {
+const byte kInstruction_cmp_vs_r7_13[] = {
   0x68, 0xbf, 0x0d, 0x2f // It vs; cmp vs r7 13
 };
-static const byte kInstruction_cmp_cc_r2_26[] = {
+const byte kInstruction_cmp_cc_r2_26[] = {
   0x38, 0xbf, 0x1a, 0x2a // It cc; cmp cc r2 26
 };
-static const byte kInstruction_cmp_ls_r3_118[] = {
+const byte kInstruction_cmp_ls_r3_118[] = {
   0x98, 0xbf, 0x76, 0x2b // It ls; cmp ls r3 118
 };
-static const byte kInstruction_cmp_vc_r4_78[] = {
+const byte kInstruction_cmp_vc_r4_78[] = {
   0x78, 0xbf, 0x4e, 0x2c // It vc; cmp vc r4 78
 };
-static const byte kInstruction_cmp_vc_r1_222[] = {
+const byte kInstruction_cmp_vc_r1_222[] = {
   0x78, 0xbf, 0xde, 0x29 // It vc; cmp vc r1 222
 };
-static const byte kInstruction_cmp_ls_r7_16[] = {
+const byte kInstruction_cmp_ls_r7_16[] = {
   0x98, 0xbf, 0x10, 0x2f // It ls; cmp ls r7 16
 };
-static const byte kInstruction_cmp_vs_r4_41[] = {
+const byte kInstruction_cmp_vs_r4_41[] = {
   0x68, 0xbf, 0x29, 0x2c // It vs; cmp vs r4 41
 };
-static const byte kInstruction_cmp_lt_r3_21[] = {
+const byte kInstruction_cmp_lt_r3_21[] = {
   0xb8, 0xbf, 0x15, 0x2b // It lt; cmp lt r3 21
 };
-static const byte kInstruction_cmp_gt_r5_73[] = {
+const byte kInstruction_cmp_gt_r5_73[] = {
   0xc8, 0xbf, 0x49, 0x2d // It gt; cmp gt r5 73
 };
-static const byte kInstruction_cmp_vs_r2_21[] = {
+const byte kInstruction_cmp_vs_r2_21[] = {
   0x68, 0xbf, 0x15, 0x2a // It vs; cmp vs r2 21
 };
-static const byte kInstruction_cmp_gt_r6_212[] = {
+const byte kInstruction_cmp_gt_r6_212[] = {
   0xc8, 0xbf, 0xd4, 0x2e // It gt; cmp gt r6 212
 };
-static const byte kInstruction_cmp_ge_r0_217[] = {
+const byte kInstruction_cmp_ge_r0_217[] = {
   0xa8, 0xbf, 0xd9, 0x28 // It ge; cmp ge r0 217
 };
-static const byte kInstruction_cmp_ge_r3_163[] = {
+const byte kInstruction_cmp_ge_r3_163[] = {
   0xa8, 0xbf, 0xa3, 0x2b // It ge; cmp ge r3 163
 };
-static const byte kInstruction_cmp_hi_r4_180[] = {
+const byte kInstruction_cmp_hi_r4_180[] = {
   0x88, 0xbf, 0xb4, 0x2c // It hi; cmp hi r4 180
 };
-static const byte kInstruction_cmp_cs_r3_163[] = {
+const byte kInstruction_cmp_cs_r3_163[] = {
   0x28, 0xbf, 0xa3, 0x2b // It cs; cmp cs r3 163
 };
-static const byte kInstruction_cmp_hi_r3_3[] = {
+const byte kInstruction_cmp_hi_r3_3[] = {
   0x88, 0xbf, 0x03, 0x2b // It hi; cmp hi r3 3
 };
-static const byte kInstruction_cmp_gt_r3_121[] = {
+const byte kInstruction_cmp_gt_r3_121[] = {
   0xc8, 0xbf, 0x79, 0x2b // It gt; cmp gt r3 121
 };
-static const byte kInstruction_cmp_cs_r0_82[] = {
+const byte kInstruction_cmp_cs_r0_82[] = {
   0x28, 0xbf, 0x52, 0x28 // It cs; cmp cs r0 82
 };
-static const byte kInstruction_cmp_cc_r1_204[] = {
+const byte kInstruction_cmp_cc_r1_204[] = {
   0x38, 0xbf, 0xcc, 0x29 // It cc; cmp cc r1 204
 };
-static const byte kInstruction_cmp_cc_r2_16[] = {
+const byte kInstruction_cmp_cc_r2_16[] = {
   0x38, 0xbf, 0x10, 0x2a // It cc; cmp cc r2 16
 };
-static const byte kInstruction_cmp_le_r4_152[] = {
+const byte kInstruction_cmp_le_r4_152[] = {
   0xd8, 0xbf, 0x98, 0x2c // It le; cmp le r4 152
 };
-static const byte kInstruction_cmp_ls_r6_168[] = {
+const byte kInstruction_cmp_ls_r6_168[] = {
   0x98, 0xbf, 0xa8, 0x2e // It ls; cmp ls r6 168
 };
-static const byte kInstruction_cmp_cs_r4_85[] = {
+const byte kInstruction_cmp_cs_r4_85[] = {
   0x28, 0xbf, 0x55, 0x2c // It cs; cmp cs r4 85
 };
-static const byte kInstruction_cmp_lt_r7_175[] = {
+const byte kInstruction_cmp_lt_r7_175[] = {
   0xb8, 0xbf, 0xaf, 0x2f // It lt; cmp lt r7 175
 };
-static const byte kInstruction_cmp_cs_r7_165[] = {
+const byte kInstruction_cmp_cs_r7_165[] = {
   0x28, 0xbf, 0xa5, 0x2f // It cs; cmp cs r7 165
 };
-static const byte kInstruction_cmp_ge_r1_6[] = {
+const byte kInstruction_cmp_ge_r1_6[] = {
   0xa8, 0xbf, 0x06, 0x29 // It ge; cmp ge r1 6
 };
-static const byte kInstruction_cmp_cs_r3_59[] = {
+const byte kInstruction_cmp_cs_r3_59[] = {
   0x28, 0xbf, 0x3b, 0x2b // It cs; cmp cs r3 59
 };
-static const byte kInstruction_cmp_ne_r1_223[] = {
+const byte kInstruction_cmp_ne_r1_223[] = {
   0x18, 0xbf, 0xdf, 0x29 // It ne; cmp ne r1 223
 };
-static const byte kInstruction_cmp_vs_r1_222[] = {
+const byte kInstruction_cmp_vs_r1_222[] = {
   0x68, 0xbf, 0xde, 0x29 // It vs; cmp vs r1 222
 };
-static const byte kInstruction_cmp_cs_r0_102[] = {
+const byte kInstruction_cmp_cs_r0_102[] = {
   0x28, 0xbf, 0x66, 0x28 // It cs; cmp cs r0 102
 };
-static const byte kInstruction_cmp_ls_r0_62[] = {
+const byte kInstruction_cmp_ls_r0_62[] = {
   0x98, 0xbf, 0x3e, 0x28 // It ls; cmp ls r0 62
 };
-static const byte kInstruction_cmp_vs_r6_97[] = {
+const byte kInstruction_cmp_vs_r6_97[] = {
   0x68, 0xbf, 0x61, 0x2e // It vs; cmp vs r6 97
 };
-static const byte kInstruction_cmp_gt_r6_60[] = {
+const byte kInstruction_cmp_gt_r6_60[] = {
   0xc8, 0xbf, 0x3c, 0x2e // It gt; cmp gt r6 60
 };
-static const byte kInstruction_cmp_mi_r7_144[] = {
+const byte kInstruction_cmp_mi_r7_144[] = {
   0x48, 0xbf, 0x90, 0x2f // It mi; cmp mi r7 144
 };
-static const byte kInstruction_cmp_vs_r4_0[] = {
+const byte kInstruction_cmp_vs_r4_0[] = {
   0x68, 0xbf, 0x00, 0x2c // It vs; cmp vs r4 0
 };
-static const byte kInstruction_cmp_hi_r5_62[] = {
+const byte kInstruction_cmp_hi_r5_62[] = {
   0x88, 0xbf, 0x3e, 0x2d // It hi; cmp hi r5 62
 };
-static const byte kInstruction_cmp_le_r1_49[] = {
+const byte kInstruction_cmp_le_r1_49[] = {
   0xd8, 0xbf, 0x31, 0x29 // It le; cmp le r1 49
 };
-static const byte kInstruction_cmp_le_r4_178[] = {
+const byte kInstruction_cmp_le_r4_178[] = {
   0xd8, 0xbf, 0xb2, 0x2c // It le; cmp le r4 178
 };
-static const byte kInstruction_cmp_lt_r3_149[] = {
+const byte kInstruction_cmp_lt_r3_149[] = {
   0xb8, 0xbf, 0x95, 0x2b // It lt; cmp lt r3 149
 };
-static const byte kInstruction_cmp_vs_r7_64[] = {
+const byte kInstruction_cmp_vs_r7_64[] = {
   0x68, 0xbf, 0x40, 0x2f // It vs; cmp vs r7 64
 };
-static const byte kInstruction_cmp_ne_r3_202[] = {
+const byte kInstruction_cmp_ne_r3_202[] = {
   0x18, 0xbf, 0xca, 0x2b // It ne; cmp ne r3 202
 };
-static const byte kInstruction_cmp_ne_r2_164[] = {
+const byte kInstruction_cmp_ne_r2_164[] = {
   0x18, 0xbf, 0xa4, 0x2a // It ne; cmp ne r2 164
 };
-static const byte kInstruction_cmp_gt_r3_193[] = {
+const byte kInstruction_cmp_gt_r3_193[] = {
   0xc8, 0xbf, 0xc1, 0x2b // It gt; cmp gt r3 193
 };
-static const byte kInstruction_cmp_le_r7_164[] = {
+const byte kInstruction_cmp_le_r7_164[] = {
   0xd8, 0xbf, 0xa4, 0x2f // It le; cmp le r7 164
 };
-static const byte kInstruction_cmp_eq_r6_151[] = {
+const byte kInstruction_cmp_eq_r6_151[] = {
   0x08, 0xbf, 0x97, 0x2e // It eq; cmp eq r6 151
 };
-static const byte kInstruction_cmp_hi_r3_38[] = {
+const byte kInstruction_cmp_hi_r3_38[] = {
   0x88, 0xbf, 0x26, 0x2b // It hi; cmp hi r3 38
 };
-static const byte kInstruction_cmp_gt_r7_191[] = {
+const byte kInstruction_cmp_gt_r7_191[] = {
   0xc8, 0xbf, 0xbf, 0x2f // It gt; cmp gt r7 191
 };
-static const byte kInstruction_cmp_ge_r6_42[] = {
+const byte kInstruction_cmp_ge_r6_42[] = {
   0xa8, 0xbf, 0x2a, 0x2e // It ge; cmp ge r6 42
 };
-static const byte kInstruction_cmp_vc_r6_247[] = {
+const byte kInstruction_cmp_vc_r6_247[] = {
   0x78, 0xbf, 0xf7, 0x2e // It vc; cmp vc r6 247
 };
-static const byte kInstruction_cmp_hi_r5_236[] = {
+const byte kInstruction_cmp_hi_r5_236[] = {
   0x88, 0xbf, 0xec, 0x2d // It hi; cmp hi r5 236
 };
-static const byte kInstruction_cmp_hi_r5_234[] = {
+const byte kInstruction_cmp_hi_r5_234[] = {
   0x88, 0xbf, 0xea, 0x2d // It hi; cmp hi r5 234
 };
-static const byte kInstruction_cmp_le_r4_126[] = {
+const byte kInstruction_cmp_le_r4_126[] = {
   0xd8, 0xbf, 0x7e, 0x2c // It le; cmp le r4 126
 };
-static const byte kInstruction_cmp_gt_r7_241[] = {
+const byte kInstruction_cmp_gt_r7_241[] = {
   0xc8, 0xbf, 0xf1, 0x2f // It gt; cmp gt r7 241
 };
-static const byte kInstruction_cmp_hi_r7_116[] = {
+const byte kInstruction_cmp_hi_r7_116[] = {
   0x88, 0xbf, 0x74, 0x2f // It hi; cmp hi r7 116
 };
-static const byte kInstruction_cmp_cs_r7_119[] = {
+const byte kInstruction_cmp_cs_r7_119[] = {
   0x28, 0xbf, 0x77, 0x2f // It cs; cmp cs r7 119
 };
-static const byte kInstruction_cmp_ge_r3_148[] = {
+const byte kInstruction_cmp_ge_r3_148[] = {
   0xa8, 0xbf, 0x94, 0x2b // It ge; cmp ge r3 148
 };
-static const byte kInstruction_cmp_gt_r7_88[] = {
+const byte kInstruction_cmp_gt_r7_88[] = {
   0xc8, 0xbf, 0x58, 0x2f // It gt; cmp gt r7 88
 };
-static const byte kInstruction_cmp_vc_r6_58[] = {
+const byte kInstruction_cmp_vc_r6_58[] = {
   0x78, 0xbf, 0x3a, 0x2e // It vc; cmp vc r6 58
 };
-static const byte kInstruction_cmp_mi_r6_157[] = {
+const byte kInstruction_cmp_mi_r6_157[] = {
   0x48, 0xbf, 0x9d, 0x2e // It mi; cmp mi r6 157
 };
-static const byte kInstruction_cmp_cs_r0_129[] = {
+const byte kInstruction_cmp_cs_r0_129[] = {
   0x28, 0xbf, 0x81, 0x28 // It cs; cmp cs r0 129
 };
-static const byte kInstruction_cmp_vc_r1_161[] = {
+const byte kInstruction_cmp_vc_r1_161[] = {
   0x78, 0xbf, 0xa1, 0x29 // It vc; cmp vc r1 161
 };
-static const byte kInstruction_cmp_mi_r0_34[] = {
+const byte kInstruction_cmp_mi_r0_34[] = {
   0x48, 0xbf, 0x22, 0x28 // It mi; cmp mi r0 34
 };
-static const TestResult kReferencecmp[] = {
+const TestResult kReferencecmp[] = {
   {
     ARRAY_SIZE(kInstruction_cmp_vc_r1_111),
     kInstruction_cmp_vc_r1_111,

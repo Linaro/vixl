@@ -34,7 +34,7 @@
 #ifndef VIXL_SIMULATOR_COND_RD_MEMOP_IMMEDIATE_8192_A32_LDRB_H_
 #define VIXL_SIMULATOR_COND_RD_MEMOP_IMMEDIATE_8192_A32_LDRB_H_
 
-static const Inputs kOutputs_Ldrb_Condition_eq_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_eq_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x40000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x20000000, 0xabababab, {0x00000000, 0x77777777} },
@@ -51,7 +51,7 @@ static const Inputs kOutputs_Ldrb_Condition_eq_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0xf0000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_ne_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_ne_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x40000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x20000000, 0x00000077, {0x00000000, 0x77777777} },
@@ -68,7 +68,7 @@ static const Inputs kOutputs_Ldrb_Condition_ne_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0xf0000000, 0xabababab, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_cs_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_cs_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x40000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x20000000, 0x00000077, {0x00000000, 0x77777777} },
@@ -85,7 +85,7 @@ static const Inputs kOutputs_Ldrb_Condition_cs_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0xf0000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_cc_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_cc_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x40000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x20000000, 0xabababab, {0x00000000, 0x77777777} },
@@ -102,7 +102,7 @@ static const Inputs kOutputs_Ldrb_Condition_cc_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0xf0000000, 0xabababab, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_mi_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_mi_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x40000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x20000000, 0xabababab, {0x00000000, 0x77777777} },
@@ -119,7 +119,7 @@ static const Inputs kOutputs_Ldrb_Condition_mi_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0xf0000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_pl_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_pl_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x40000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x20000000, 0x00000077, {0x00000000, 0x77777777} },
@@ -136,7 +136,7 @@ static const Inputs kOutputs_Ldrb_Condition_pl_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0xf0000000, 0xabababab, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_vs_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_vs_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x40000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x20000000, 0xabababab, {0x00000000, 0x77777777} },
@@ -153,7 +153,7 @@ static const Inputs kOutputs_Ldrb_Condition_vs_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0xf0000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_vc_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_vc_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x40000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x20000000, 0x00000077, {0x00000000, 0x77777777} },
@@ -170,7 +170,7 @@ static const Inputs kOutputs_Ldrb_Condition_vc_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0xf0000000, 0xabababab, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_hi_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_hi_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x40000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x20000000, 0x00000077, {0x00000000, 0x77777777} },
@@ -187,7 +187,7 @@ static const Inputs kOutputs_Ldrb_Condition_hi_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0xf0000000, 0xabababab, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_ls_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_ls_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x40000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x20000000, 0xabababab, {0x00000000, 0x77777777} },
@@ -204,7 +204,7 @@ static const Inputs kOutputs_Ldrb_Condition_ls_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0xf0000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_ge_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_ge_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x40000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x20000000, 0x00000077, {0x00000000, 0x77777777} },
@@ -221,7 +221,7 @@ static const Inputs kOutputs_Ldrb_Condition_ge_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0xf0000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_lt_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_lt_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x40000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x20000000, 0xabababab, {0x00000000, 0x77777777} },
@@ -238,7 +238,7 @@ static const Inputs kOutputs_Ldrb_Condition_lt_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0xf0000000, 0xabababab, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_gt_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_gt_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x40000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0x20000000, 0x00000077, {0x00000000, 0x77777777} },
@@ -255,7 +255,7 @@ static const Inputs kOutputs_Ldrb_Condition_gt_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0xabababab, {0x00000000, 0x77777777} },
   { 0xf0000000, 0xabababab, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_le_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_le_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x40000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x20000000, 0xabababab, {0x00000000, 0x77777777} },
@@ -272,7 +272,7 @@ static const Inputs kOutputs_Ldrb_Condition_le_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0xf0000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_Condition_al_r0_r1_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_Condition_al_r0_r1_plus_0_Offset[] = {
   { 0x80000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x40000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x20000000, 0x00000077, {0x00000000, 0x77777777} },
@@ -289,7 +289,7 @@ static const Inputs kOutputs_Ldrb_Condition_al_r0_r1_plus_0_Offset[] = {
   { 0x70000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0xf0000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r6_plus_2582_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r6_plus_2582_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -301,7 +301,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r6_plus_2582_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r5_plus_0_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r5_plus_0_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -313,7 +313,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r5_plus_0_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r1_plus_3989_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r1_plus_3989_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -325,7 +325,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r1_plus_3989_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r10_plus_1892_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r10_plus_1892_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -337,7 +337,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r10_plus_1892_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r12_plus_1677_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r12_plus_1677_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -349,7 +349,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r12_plus_1677_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r4_plus_3015_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r4_plus_3015_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -361,7 +361,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r4_plus_3015_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r4_plus_1231_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r4_plus_1231_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -373,7 +373,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r4_plus_1231_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r10_plus_523_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r10_plus_523_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -385,7 +385,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r10_plus_523_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r9_plus_1485_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r9_plus_1485_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -397,7 +397,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r9_plus_1485_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r0_plus_1924_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r0_plus_1924_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -409,7 +409,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r0_plus_1924_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r2_plus_670_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r2_plus_670_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -421,7 +421,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r2_plus_670_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r7_plus_3417_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r7_plus_3417_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -433,7 +433,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r7_plus_3417_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r5_plus_470_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r5_plus_470_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -445,7 +445,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r5_plus_470_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r11_plus_1660_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r11_plus_1660_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -457,7 +457,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r11_plus_1660_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r6_plus_3978_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r6_plus_3978_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -469,7 +469,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r6_plus_3978_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r3_plus_3739_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r3_plus_3739_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -481,7 +481,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r3_plus_3739_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r4_plus_3787_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r4_plus_3787_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -493,7 +493,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r4_plus_3787_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r0_plus_732_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r0_plus_732_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -505,7 +505,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r0_plus_732_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r14_plus_3625_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r14_plus_3625_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -517,7 +517,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r14_plus_3625_Offset[] =
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r1_plus_2451_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r1_plus_2451_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -529,7 +529,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r1_plus_2451_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r6_plus_1241_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r6_plus_1241_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -541,7 +541,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r6_plus_1241_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r4_plus_2040_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r4_plus_2040_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -553,7 +553,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r4_plus_2040_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r12_plus_251_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r12_plus_251_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -565,7 +565,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r12_plus_251_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r14_plus_3765_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r14_plus_3765_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -577,7 +577,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r14_plus_3765_Offset[] =
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r0_plus_3028_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r0_plus_3028_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -589,7 +589,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r0_plus_3028_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r7_plus_1872_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r7_plus_1872_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -601,7 +601,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r7_plus_1872_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r11_plus_3450_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r11_plus_3450_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -613,7 +613,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r11_plus_3450_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r7_plus_3717_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r7_plus_3717_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -625,7 +625,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r7_plus_3717_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r3_plus_2011_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r3_plus_2011_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -637,7 +637,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r3_plus_2011_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r6_plus_1399_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r6_plus_1399_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -649,7 +649,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r6_plus_1399_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r6_plus_2546_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r6_plus_2546_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -661,7 +661,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r6_plus_2546_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r2_plus_850_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r2_plus_850_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -673,7 +673,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r2_plus_850_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r10_plus_371_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r10_plus_371_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -685,7 +685,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r10_plus_371_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r10_plus_2240_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r10_plus_2240_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -697,7 +697,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r10_plus_2240_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r9_plus_712_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r9_plus_712_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -709,7 +709,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r9_plus_712_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r7_plus_2025_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r7_plus_2025_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -721,7 +721,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r7_plus_2025_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r3_plus_595_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r3_plus_595_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -733,7 +733,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r3_plus_595_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r3_plus_1459_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r3_plus_1459_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -745,7 +745,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r3_plus_1459_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r7_plus_582_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r7_plus_582_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -757,7 +757,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r7_plus_582_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r10_plus_3282_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r10_plus_3282_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -769,7 +769,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r10_plus_3282_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r3_plus_674_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r3_plus_674_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -781,7 +781,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r3_plus_674_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r1_plus_72_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r1_plus_72_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -793,7 +793,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r1_plus_72_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r7_plus_3702_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r7_plus_3702_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -805,7 +805,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r7_plus_3702_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r5_plus_932_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r5_plus_932_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -817,7 +817,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r5_plus_932_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r9_plus_233_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r9_plus_233_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -829,7 +829,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r9_plus_233_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r5_plus_523_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r5_plus_523_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -841,7 +841,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r5_plus_523_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r9_plus_844_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r9_plus_844_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -853,7 +853,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r14_r9_plus_844_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r5_plus_1459_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r5_plus_1459_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -865,7 +865,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r5_plus_1459_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r14_plus_3384_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r14_plus_3384_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -877,7 +877,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r14_plus_3384_Offset[] =
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r12_plus_2345_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r12_plus_2345_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -889,7 +889,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r12_plus_2345_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r9_plus_1642_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r9_plus_1642_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -901,7 +901,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r9_plus_1642_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r7_plus_2901_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r7_plus_2901_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -913,7 +913,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r7_plus_2901_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r3_plus_1934_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r3_plus_1934_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -925,7 +925,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r3_plus_1934_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r4_plus_3952_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r4_plus_3952_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -937,7 +937,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r4_plus_3952_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r0_plus_2710_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r0_plus_2710_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -949,7 +949,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r0_plus_2710_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r2_plus_270_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r2_plus_270_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -961,7 +961,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r2_plus_270_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r2_plus_132_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r2_plus_132_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -973,7 +973,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r2_plus_132_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r5_plus_19_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r5_plus_19_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -985,7 +985,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r5_plus_19_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r14_plus_1848_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r14_plus_1848_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -997,7 +997,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r14_plus_1848_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r10_plus_977_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r10_plus_977_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1009,7 +1009,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r10_plus_977_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r8_plus_3239_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r8_plus_3239_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1021,7 +1021,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r8_plus_3239_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r0_plus_1295_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r0_plus_1295_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1033,7 +1033,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r0_plus_1295_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r5_plus_517_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r5_plus_517_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1045,7 +1045,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r5_plus_517_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r8_plus_3071_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r8_plus_3071_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1057,7 +1057,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r8_plus_3071_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r6_plus_3194_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r6_plus_3194_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1069,7 +1069,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r6_plus_3194_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r2_plus_198_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r2_plus_198_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1081,7 +1081,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r10_r2_plus_198_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r3_plus_565_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r3_plus_565_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1093,7 +1093,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r3_plus_565_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r0_plus_3399_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r0_plus_3399_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1105,7 +1105,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r0_plus_3399_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r1_plus_1916_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r1_plus_1916_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1117,7 +1117,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r1_plus_1916_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r9_plus_263_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r9_plus_263_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1129,7 +1129,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r9_plus_263_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r1_plus_3772_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r1_plus_3772_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1141,7 +1141,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r1_plus_3772_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r2_plus_2906_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r2_plus_2906_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1153,7 +1153,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r2_plus_2906_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r0_plus_2451_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r0_plus_2451_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1165,7 +1165,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r0_plus_2451_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r0_plus_689_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r0_plus_689_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1177,7 +1177,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r0_plus_689_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r9_plus_3063_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r9_plus_3063_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1189,7 +1189,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r9_plus_3063_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r4_plus_932_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r4_plus_932_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1201,7 +1201,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r4_plus_932_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r10_plus_704_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r10_plus_704_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1213,7 +1213,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r10_plus_704_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r4_plus_2374_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r4_plus_2374_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1225,7 +1225,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r4_plus_2374_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r9_plus_2345_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r9_plus_2345_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1237,7 +1237,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r12_r9_plus_2345_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r1_plus_2651_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r1_plus_2651_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1249,7 +1249,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r1_plus_2651_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r3_plus_998_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r3_plus_998_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1261,7 +1261,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r3_plus_998_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r11_plus_679_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r11_plus_679_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1273,7 +1273,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r11_plus_679_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r1_plus_2945_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r1_plus_2945_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1285,7 +1285,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r1_plus_2945_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r9_plus_3439_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r9_plus_3439_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1297,7 +1297,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r9_plus_3439_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r10_plus_3636_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r10_plus_3636_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1309,7 +1309,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r8_r10_plus_3636_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r12_plus_3986_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r12_plus_3986_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1321,7 +1321,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r12_plus_3986_Offset[] =
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r8_plus_2240_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r8_plus_2240_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1333,7 +1333,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r6_r8_plus_2240_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r8_plus_1961_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r8_plus_1961_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1345,7 +1345,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r11_r8_plus_1961_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r6_plus_1536_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r6_plus_1536_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1357,7 +1357,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r5_r6_plus_1536_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r12_plus_1759_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r12_plus_1759_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1369,7 +1369,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r12_plus_1759_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r1_plus_1266_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r1_plus_1266_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1381,7 +1381,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r1_plus_1266_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r4_plus_1017_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r4_plus_1017_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1393,7 +1393,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r4_plus_1017_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r3_plus_2224_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r3_plus_2224_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1405,7 +1405,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r9_r3_plus_2224_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r9_plus_3078_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r9_plus_3078_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1417,7 +1417,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r2_r9_plus_3078_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r2_plus_2690_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r2_plus_2690_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1429,7 +1429,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r7_r2_plus_2690_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r0_plus_3078_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r0_plus_3078_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1441,7 +1441,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r3_r0_plus_3078_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r12_plus_1017_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r12_plus_1017_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1453,7 +1453,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r4_r12_plus_1017_Offset[] = 
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r5_plus_3787_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r5_plus_3787_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1465,7 +1465,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r5_plus_3787_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r10_plus_342_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r10_plus_342_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1477,7 +1477,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r0_r10_plus_342_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r2_plus_1097_Offset[] = {
+const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r2_plus_1097_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1489,7 +1489,7 @@ static const Inputs kOutputs_Ldrb_PositiveOffset_al_r1_r2_plus_1097_Offset[] = {
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r8_minus_4065_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r8_minus_4065_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1501,7 +1501,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r8_minus_4065_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r5_minus_1459_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r5_minus_1459_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1513,7 +1513,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r5_minus_1459_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r3_minus_1867_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r3_minus_1867_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1525,7 +1525,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r3_minus_1867_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r9_minus_1537_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r9_minus_1537_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1537,7 +1537,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r9_minus_1537_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r8_minus_421_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r8_minus_421_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1549,7 +1549,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r8_minus_421_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r12_minus_3625_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r12_minus_3625_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1561,7 +1561,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r12_minus_3625_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r1_minus_1536_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r1_minus_1536_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1573,7 +1573,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r1_minus_1536_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r10_r12_minus_3397_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r10_r12_minus_3397_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1585,7 +1585,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r10_r12_minus_3397_Offset[] 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r2_minus_3450_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r2_minus_3450_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1597,7 +1597,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r2_minus_3450_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r10_r14_minus_1551_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r10_r14_minus_1551_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1609,7 +1609,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r10_r14_minus_1551_Offset[] 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r5_minus_3625_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r5_minus_3625_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1621,7 +1621,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r5_minus_3625_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r11_minus_3633_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r11_minus_3633_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1633,7 +1633,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r11_minus_3633_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r6_minus_2490_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r6_minus_2490_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1645,7 +1645,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r6_minus_2490_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r12_minus_3003_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r12_minus_3003_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1657,7 +1657,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r12_minus_3003_Offset[] 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r10_minus_1848_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r10_minus_1848_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1669,7 +1669,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r10_minus_1848_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r6_minus_342_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r6_minus_342_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1681,7 +1681,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r6_minus_342_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r2_minus_3254_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r2_minus_3254_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1693,7 +1693,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r2_minus_3254_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r5_minus_2233_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r5_minus_2233_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1705,7 +1705,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r5_minus_2233_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r1_minus_3608_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r1_minus_3608_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1717,7 +1717,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r1_minus_3608_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r5_minus_624_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r5_minus_624_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1729,7 +1729,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r5_minus_624_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r5_minus_3774_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r5_minus_3774_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1741,7 +1741,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r5_minus_3774_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r6_minus_2427_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r6_minus_2427_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1753,7 +1753,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r6_minus_2427_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r8_minus_322_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r8_minus_322_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1765,7 +1765,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r8_minus_322_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r8_minus_3626_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r8_minus_3626_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1777,7 +1777,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r8_minus_3626_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r11_minus_1867_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r11_minus_1867_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1789,7 +1789,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r11_minus_1867_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r12_minus_2864_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r12_minus_2864_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1801,7 +1801,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r12_minus_2864_Offset[] 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r9_minus_4018_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r9_minus_4018_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1813,7 +1813,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r9_minus_4018_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r2_minus_1231_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r2_minus_1231_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1825,7 +1825,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r2_minus_1231_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r3_minus_601_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r3_minus_601_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1837,7 +1837,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r3_minus_601_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r2_minus_263_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r2_minus_263_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1849,7 +1849,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r2_minus_263_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r8_minus_1234_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r8_minus_1234_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1861,7 +1861,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r8_minus_1234_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r10_minus_2311_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r10_minus_2311_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1873,7 +1873,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r10_minus_2311_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r1_minus_3714_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r1_minus_3714_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1885,7 +1885,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r1_minus_3714_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r1_minus_1479_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r1_minus_1479_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1897,7 +1897,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r1_minus_1479_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r12_minus_213_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r12_minus_213_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1909,7 +1909,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r12_minus_213_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r9_minus_3071_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r9_minus_3071_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1921,7 +1921,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r9_minus_3071_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r12_minus_2_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r12_minus_2_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1933,7 +1933,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r12_minus_2_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r3_minus_831_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r3_minus_831_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1945,7 +1945,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r3_minus_831_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r0_minus_3443_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r0_minus_3443_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1957,7 +1957,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r0_minus_3443_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r7_minus_3256_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r7_minus_3256_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1969,7 +1969,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r7_minus_3256_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r9_minus_1372_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r9_minus_1372_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1981,7 +1981,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r9_minus_1372_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r7_minus_1665_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r7_minus_1665_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -1993,7 +1993,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r7_minus_1665_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r0_minus_3325_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r0_minus_3325_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2005,7 +2005,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r0_minus_3325_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r5_minus_132_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r5_minus_132_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2017,7 +2017,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r5_minus_132_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r10_minus_828_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r10_minus_828_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2029,7 +2029,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r10_minus_828_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r12_minus_3002_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r12_minus_3002_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2041,7 +2041,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r12_minus_3002_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r9_minus_371_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r9_minus_371_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2053,7 +2053,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r9_minus_371_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r14_minus_2326_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r14_minus_2326_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2065,7 +2065,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r14_minus_2326_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r7_minus_811_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r7_minus_811_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2077,7 +2077,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r7_minus_811_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r11_minus_2946_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r11_minus_2946_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2089,7 +2089,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r11_minus_2946_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r12_minus_216_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r12_minus_216_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2101,7 +2101,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r12_minus_216_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r12_minus_2651_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r12_minus_2651_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2113,7 +2113,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r12_minus_2651_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r5_minus_2072_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r5_minus_2072_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2125,7 +2125,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r5_minus_2072_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r12_r4_minus_2690_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r12_r4_minus_2690_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2137,7 +2137,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r12_r4_minus_2690_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r9_minus_3041_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r9_minus_3041_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2149,7 +2149,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r9_minus_3041_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r6_minus_732_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r6_minus_732_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2161,7 +2161,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r6_minus_732_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r4_minus_1567_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r4_minus_1567_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2173,7 +2173,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r4_minus_1567_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r9_minus_2036_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r9_minus_2036_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2185,7 +2185,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r9_minus_2036_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r9_minus_618_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r9_minus_618_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2197,7 +2197,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r9_minus_618_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r10_minus_1437_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r10_minus_1437_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2209,7 +2209,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r10_minus_1437_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r9_minus_3105_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r9_minus_3105_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2221,7 +2221,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r9_minus_3105_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r6_minus_1116_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r6_minus_1116_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2233,7 +2233,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r6_minus_1116_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r0_minus_2892_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r0_minus_2892_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2245,7 +2245,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r0_minus_2892_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r8_minus_3069_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r8_minus_3069_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2257,7 +2257,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r8_minus_3069_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r2_minus_1498_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r2_minus_1498_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2269,7 +2269,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r2_minus_1498_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r9_minus_1999_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r9_minus_1999_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2281,7 +2281,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r9_minus_1999_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r6_minus_2588_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r6_minus_2588_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2293,7 +2293,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r6_minus_2588_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r12_minus_2792_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r12_minus_2792_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2305,7 +2305,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r12_minus_2792_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r10_minus_251_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r10_minus_251_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2317,7 +2317,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r10_minus_251_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r6_r8_minus_3696_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r6_r8_minus_3696_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2329,7 +2329,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r6_r8_minus_3696_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r6_minus_3856_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r6_minus_3856_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2341,7 +2341,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r6_minus_3856_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r6_minus_233_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r6_minus_233_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2353,7 +2353,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r6_minus_233_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r6_r5_minus_3366_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r6_r5_minus_3366_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2365,7 +2365,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r6_r5_minus_3366_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r3_minus_2359_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r3_minus_2359_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2377,7 +2377,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r3_minus_2359_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r9_minus_2866_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r9_minus_2866_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2389,7 +2389,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r9_minus_2866_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r6_r3_minus_2381_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r6_r3_minus_2381_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2401,7 +2401,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r6_r3_minus_2381_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r3_minus_3221_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r3_minus_3221_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2413,7 +2413,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r3_minus_3221_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r10_r8_minus_2036_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r10_r8_minus_2036_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2425,7 +2425,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r10_r8_minus_2036_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r0_minus_2591_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r0_minus_2591_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2437,7 +2437,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r0_minus_2591_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r10_minus_2040_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r10_minus_2040_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2449,7 +2449,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r10_minus_2040_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r7_minus_2929_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r7_minus_2929_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2461,7 +2461,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r7_minus_2929_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r14_minus_1867_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r14_minus_1867_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2473,7 +2473,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r14_minus_1867_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r0_minus_2945_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r0_minus_2945_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2485,7 +2485,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r0_minus_2945_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r3_minus_2403_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r3_minus_2403_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2497,7 +2497,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r3_minus_2403_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r12_r8_minus_1999_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r12_r8_minus_1999_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2509,7 +2509,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r12_r8_minus_1999_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r5_minus_3994_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r5_minus_3994_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2521,7 +2521,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r5_minus_3994_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r3_minus_2180_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r3_minus_2180_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2533,7 +2533,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r14_r3_minus_2180_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r5_minus_3914_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r5_minus_3914_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2545,7 +2545,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r5_minus_3914_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r10_minus_3079_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r10_minus_3079_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2557,7 +2557,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r10_minus_3079_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r14_minus_3266_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r14_minus_3266_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2569,7 +2569,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r8_r14_minus_3266_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r11_minus_1732_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r11_minus_1732_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2581,7 +2581,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r4_r11_minus_1732_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r5_minus_806_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r5_minus_806_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2593,7 +2593,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r11_r5_minus_806_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r7_minus_3039_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r7_minus_3039_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2605,7 +2605,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r9_r7_minus_3039_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r12_r9_minus_2453_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r12_r9_minus_2453_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2617,7 +2617,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r12_r9_minus_2453_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r7_minus_3626_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r7_minus_3626_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2629,7 +2629,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r0_r7_minus_3626_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r11_minus_1981_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r11_minus_1981_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2641,7 +2641,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r3_r11_minus_1981_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r8_minus_3082_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r8_minus_3082_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2653,7 +2653,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r2_r8_minus_3082_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r11_minus_3608_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r11_minus_3608_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2665,7 +2665,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r1_r11_minus_3608_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r11_minus_3391_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r11_minus_3391_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2677,7 +2677,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r5_r11_minus_3391_Offset[] =
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r12_minus_872_Offset[] = {
+const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r12_minus_872_Offset[] = {
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x0000009e, {0x00000000, 0x0cabba9e} },
   { 0x00000000, 0x00000055, {0x00000000, 0x55555555} },
@@ -2689,7 +2689,7 @@ static const Inputs kOutputs_Ldrb_NegativeOffset_al_r7_r12_minus_872_Offset[] = 
   { 0x00000000, 0x000000ef, {0x00000000, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0x00000000, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r11_plus_1506_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r11_plus_1506_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000005e2, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000005e2, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000005e2, 0x0cabba9e} },
@@ -2701,7 +2701,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r11_plus_1506_PostInd
   { 0x00000000, 0x0000009e, {0x000005e2, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000005e2, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r14_plus_3399_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r14_plus_3399_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000d47, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000d47, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000d47, 0x0cabba9e} },
@@ -2713,7 +2713,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r14_plus_3399_PostInde
   { 0x00000000, 0x0000009e, {0x00000d47, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000d47, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r6_plus_2588_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r6_plus_2588_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000a1c, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000a1c, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000a1c, 0x0cabba9e} },
@@ -2725,7 +2725,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r6_plus_2588_PostInde
   { 0x00000000, 0x0000009e, {0x00000a1c, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000a1c, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r9_plus_2906_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r9_plus_2906_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000b5a, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000b5a, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000b5a, 0x0cabba9e} },
@@ -2737,7 +2737,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r9_plus_2906_PostIndex
   { 0x00000000, 0x0000009e, {0x00000b5a, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000b5a, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r8_plus_1916_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r8_plus_1916_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x0000077c, 0x77777777} },
   { 0x00000000, 0x00000055, {0x0000077c, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x0000077c, 0x0cabba9e} },
@@ -2749,7 +2749,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r8_plus_1916_PostIndex
   { 0x00000000, 0x0000009e, {0x0000077c, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x0000077c, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r0_plus_1835_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r0_plus_1835_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x0000072b, 0x77777777} },
   { 0x00000000, 0x00000055, {0x0000072b, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x0000072b, 0x0cabba9e} },
@@ -2761,7 +2761,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r0_plus_1835_PostIndex
   { 0x00000000, 0x0000009e, {0x0000072b, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x0000072b, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r14_plus_2984_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r14_plus_2984_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000ba8, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000ba8, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000ba8, 0x0cabba9e} },
@@ -2773,7 +2773,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r14_plus_2984_PostInde
   { 0x00000000, 0x0000009e, {0x00000ba8, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000ba8, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r12_plus_3994_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r12_plus_3994_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000f9a, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000f9a, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000f9a, 0x0cabba9e} },
@@ -2785,7 +2785,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r12_plus_3994_PostInde
   { 0x00000000, 0x0000009e, {0x00000f9a, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000f9a, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r5_plus_766_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r5_plus_766_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000002fe, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000002fe, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000002fe, 0x0cabba9e} },
@@ -2797,7 +2797,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r5_plus_766_PostIndex
   { 0x00000000, 0x0000009e, {0x000002fe, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000002fe, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r9_plus_188_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r9_plus_188_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000000bc, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000000bc, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000000bc, 0x0cabba9e} },
@@ -2809,7 +2809,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r9_plus_188_PostIndex[
   { 0x00000000, 0x0000009e, {0x000000bc, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000000bc, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r14_plus_479_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r14_plus_479_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000001df, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000001df, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000001df, 0x0cabba9e} },
@@ -2821,7 +2821,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r14_plus_479_PostInde
   { 0x00000000, 0x0000009e, {0x000001df, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000001df, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r14_plus_2797_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r14_plus_2797_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000aed, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000aed, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000aed, 0x0cabba9e} },
@@ -2833,7 +2833,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r14_plus_2797_PostInde
   { 0x00000000, 0x0000009e, {0x00000aed, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000aed, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r8_plus_3170_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r8_plus_3170_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000c62, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000c62, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000c62, 0x0cabba9e} },
@@ -2845,7 +2845,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r8_plus_3170_PostIndex
   { 0x00000000, 0x0000009e, {0x00000c62, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000c62, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r2_plus_663_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r2_plus_663_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000297, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000297, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000297, 0x0cabba9e} },
@@ -2857,7 +2857,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r2_plus_663_PostIndex[
   { 0x00000000, 0x0000009e, {0x00000297, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000297, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r0_plus_1097_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r0_plus_1097_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000449, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000449, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000449, 0x0cabba9e} },
@@ -2869,7 +2869,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r0_plus_1097_PostInde
   { 0x00000000, 0x0000009e, {0x00000449, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000449, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r7_plus_3481_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r7_plus_3481_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000d99, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000d99, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000d99, 0x0cabba9e} },
@@ -2881,7 +2881,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r7_plus_3481_PostIndex
   { 0x00000000, 0x0000009e, {0x00000d99, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000d99, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r2_plus_2183_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r2_plus_2183_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000887, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000887, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000887, 0x0cabba9e} },
@@ -2893,7 +2893,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r2_plus_2183_PostIndex
   { 0x00000000, 0x0000009e, {0x00000887, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000887, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r4_plus_1948_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r4_plus_1948_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x0000079c, 0x77777777} },
   { 0x00000000, 0x00000055, {0x0000079c, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x0000079c, 0x0cabba9e} },
@@ -2905,7 +2905,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r4_plus_1948_PostIndex
   { 0x00000000, 0x0000009e, {0x0000079c, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x0000079c, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r12_plus_2047_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r12_plus_2047_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000007ff, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000007ff, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000007ff, 0x0cabba9e} },
@@ -2917,7 +2917,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r12_plus_2047_PostInde
   { 0x00000000, 0x0000009e, {0x000007ff, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000007ff, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r0_plus_2451_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r0_plus_2451_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000993, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000993, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000993, 0x0cabba9e} },
@@ -2929,7 +2929,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r0_plus_2451_PostIndex
   { 0x00000000, 0x0000009e, {0x00000993, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000993, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r4_plus_3057_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r4_plus_3057_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000bf1, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000bf1, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000bf1, 0x0cabba9e} },
@@ -2941,7 +2941,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r4_plus_3057_PostIndex
   { 0x00000000, 0x0000009e, {0x00000bf1, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000bf1, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r9_plus_3308_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r9_plus_3308_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000cec, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000cec, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000cec, 0x0cabba9e} },
@@ -2953,7 +2953,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r9_plus_3308_PostIndex
   { 0x00000000, 0x0000009e, {0x00000cec, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000cec, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r14_plus_2677_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r14_plus_2677_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000a75, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000a75, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000a75, 0x0cabba9e} },
@@ -2965,7 +2965,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r14_plus_2677_PostInde
   { 0x00000000, 0x0000009e, {0x00000a75, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000a75, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r1_plus_1601_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r1_plus_1601_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000641, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000641, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000641, 0x0cabba9e} },
@@ -2977,7 +2977,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r1_plus_1601_PostIndex
   { 0x00000000, 0x0000009e, {0x00000641, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000641, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r1_plus_662_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r1_plus_662_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000296, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000296, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000296, 0x0cabba9e} },
@@ -2989,7 +2989,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r1_plus_662_PostIndex[
   { 0x00000000, 0x0000009e, {0x00000296, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000296, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r2_plus_1485_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r2_plus_1485_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000005cd, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000005cd, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000005cd, 0x0cabba9e} },
@@ -3001,7 +3001,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r2_plus_1485_PostIndex
   { 0x00000000, 0x0000009e, {0x000005cd, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000005cd, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r3_plus_3413_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r3_plus_3413_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000d55, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000d55, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000d55, 0x0cabba9e} },
@@ -3013,7 +3013,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r3_plus_3413_PostIndex
   { 0x00000000, 0x0000009e, {0x00000d55, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000d55, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r4_plus_2175_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r4_plus_2175_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x0000087f, 0x77777777} },
   { 0x00000000, 0x00000055, {0x0000087f, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x0000087f, 0x0cabba9e} },
@@ -3025,7 +3025,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r4_plus_2175_PostIndex
   { 0x00000000, 0x0000009e, {0x0000087f, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x0000087f, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r2_plus_3517_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r2_plus_3517_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000dbd, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000dbd, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000dbd, 0x0cabba9e} },
@@ -3037,7 +3037,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r2_plus_3517_PostIndex
   { 0x00000000, 0x0000009e, {0x00000dbd, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000dbd, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r6_plus_2535_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r6_plus_2535_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000009e7, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000009e7, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000009e7, 0x0cabba9e} },
@@ -3049,7 +3049,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r6_plus_2535_PostIndex
   { 0x00000000, 0x0000009e, {0x000009e7, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000009e7, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r2_plus_2982_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r2_plus_2982_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000ba6, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000ba6, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000ba6, 0x0cabba9e} },
@@ -3061,7 +3061,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r2_plus_2982_PostInde
   { 0x00000000, 0x0000009e, {0x00000ba6, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000ba6, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r5_plus_1867_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r5_plus_1867_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x0000074b, 0x77777777} },
   { 0x00000000, 0x00000055, {0x0000074b, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x0000074b, 0x0cabba9e} },
@@ -3073,7 +3073,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r5_plus_1867_PostIndex
   { 0x00000000, 0x0000009e, {0x0000074b, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x0000074b, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r1_plus_3209_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r1_plus_3209_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000c89, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000c89, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000c89, 0x0cabba9e} },
@@ -3085,7 +3085,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r1_plus_3209_PostInde
   { 0x00000000, 0x0000009e, {0x00000c89, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000c89, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r10_plus_977_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r10_plus_977_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000003d1, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000003d1, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000003d1, 0x0cabba9e} },
@@ -3097,7 +3097,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r10_plus_977_PostIndex
   { 0x00000000, 0x0000009e, {0x000003d1, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000003d1, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r5_plus_3239_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r5_plus_3239_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000ca7, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000ca7, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000ca7, 0x0cabba9e} },
@@ -3109,7 +3109,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r5_plus_3239_PostIndex
   { 0x00000000, 0x0000009e, {0x00000ca7, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000ca7, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r0_plus_1808_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r0_plus_1808_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000710, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000710, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000710, 0x0cabba9e} },
@@ -3121,7 +3121,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r0_plus_1808_PostIndex
   { 0x00000000, 0x0000009e, {0x00000710, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000710, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r7_plus_3787_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r7_plus_3787_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000ecb, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000ecb, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000ecb, 0x0cabba9e} },
@@ -3133,7 +3133,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r7_plus_3787_PostIndex
   { 0x00000000, 0x0000009e, {0x00000ecb, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000ecb, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r7_plus_678_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r7_plus_678_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000002a6, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000002a6, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000002a6, 0x0cabba9e} },
@@ -3145,7 +3145,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r7_plus_678_PostIndex[
   { 0x00000000, 0x0000009e, {0x000002a6, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000002a6, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r9_plus_4090_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r9_plus_4090_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000ffa, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000ffa, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000ffa, 0x0cabba9e} },
@@ -3157,7 +3157,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r9_plus_4090_PostIndex
   { 0x00000000, 0x0000009e, {0x00000ffa, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000ffa, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r2_plus_1438_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r2_plus_1438_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x0000059e, 0x77777777} },
   { 0x00000000, 0x00000055, {0x0000059e, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x0000059e, 0x0cabba9e} },
@@ -3169,7 +3169,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r2_plus_1438_PostIndex
   { 0x00000000, 0x0000009e, {0x0000059e, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x0000059e, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r5_plus_3195_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r5_plus_3195_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000c7b, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000c7b, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000c7b, 0x0cabba9e} },
@@ -3181,7 +3181,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r5_plus_3195_PostIndex
   { 0x00000000, 0x0000009e, {0x00000c7b, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000c7b, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r2_plus_1922_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r2_plus_1922_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000782, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000782, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000782, 0x0cabba9e} },
@@ -3193,7 +3193,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r2_plus_1922_PostIndex
   { 0x00000000, 0x0000009e, {0x00000782, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000782, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r1_plus_4095_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r1_plus_4095_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000fff, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000fff, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000fff, 0x0cabba9e} },
@@ -3205,7 +3205,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r1_plus_4095_PostIndex
   { 0x00000000, 0x0000009e, {0x00000fff, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000fff, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r9_plus_1261_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r9_plus_1261_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000004ed, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000004ed, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000004ed, 0x0cabba9e} },
@@ -3217,7 +3217,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r9_plus_1261_PostIndex
   { 0x00000000, 0x0000009e, {0x000004ed, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000004ed, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r11_plus_2718_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r11_plus_2718_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000a9e, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000a9e, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000a9e, 0x0cabba9e} },
@@ -3229,7 +3229,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r11_plus_2718_PostInd
   { 0x00000000, 0x0000009e, {0x00000a9e, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000a9e, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r0_plus_132_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r0_plus_132_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000084, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000084, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000084, 0x0cabba9e} },
@@ -3241,7 +3241,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r0_plus_132_PostIndex[
   { 0x00000000, 0x0000009e, {0x00000084, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000084, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r5_plus_1601_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r5_plus_1601_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000641, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000641, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000641, 0x0cabba9e} },
@@ -3253,7 +3253,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r5_plus_1601_PostInde
   { 0x00000000, 0x0000009e, {0x00000641, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000641, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r4_plus_19_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r4_plus_19_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000013, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000013, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000013, 0x0cabba9e} },
@@ -3265,7 +3265,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r4_plus_19_PostIndex[
   { 0x00000000, 0x0000009e, {0x00000013, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000013, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r0_plus_386_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r0_plus_386_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000182, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000182, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000182, 0x0cabba9e} },
@@ -3277,7 +3277,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r0_plus_386_PostIndex[
   { 0x00000000, 0x0000009e, {0x00000182, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000182, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r2_plus_672_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r2_plus_672_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000002a0, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000002a0, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000002a0, 0x0cabba9e} },
@@ -3289,7 +3289,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r2_plus_672_PostIndex
   { 0x00000000, 0x0000009e, {0x000002a0, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000002a0, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r10_plus_3626_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r10_plus_3626_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000e2a, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000e2a, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000e2a, 0x0cabba9e} },
@@ -3301,7 +3301,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r10_plus_3626_PostInde
   { 0x00000000, 0x0000009e, {0x00000e2a, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000e2a, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r14_plus_2813_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r14_plus_2813_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000afd, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000afd, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000afd, 0x0cabba9e} },
@@ -3313,7 +3313,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r14_plus_2813_PostInde
   { 0x00000000, 0x0000009e, {0x00000afd, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000afd, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r3_plus_2091_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r3_plus_2091_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x0000082b, 0x77777777} },
   { 0x00000000, 0x00000055, {0x0000082b, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x0000082b, 0x0cabba9e} },
@@ -3325,7 +3325,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r3_plus_2091_PostIndex
   { 0x00000000, 0x0000009e, {0x0000082b, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x0000082b, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r3_plus_932_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r3_plus_932_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000003a4, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000003a4, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000003a4, 0x0cabba9e} },
@@ -3337,7 +3337,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r3_plus_932_PostIndex[
   { 0x00000000, 0x0000009e, {0x000003a4, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000003a4, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r8_plus_970_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r8_plus_970_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000003ca, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000003ca, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000003ca, 0x0cabba9e} },
@@ -3349,7 +3349,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r8_plus_970_PostIndex[
   { 0x00000000, 0x0000009e, {0x000003ca, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000003ca, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r5_plus_3610_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r5_plus_3610_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000e1a, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000e1a, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000e1a, 0x0cabba9e} },
@@ -3361,7 +3361,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r5_plus_3610_PostIndex
   { 0x00000000, 0x0000009e, {0x00000e1a, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000e1a, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r5_plus_2180_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r5_plus_2180_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000884, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000884, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000884, 0x0cabba9e} },
@@ -3373,7 +3373,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r5_plus_2180_PostIndex
   { 0x00000000, 0x0000009e, {0x00000884, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000884, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r6_plus_3397_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r6_plus_3397_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000d45, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000d45, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000d45, 0x0cabba9e} },
@@ -3385,7 +3385,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r6_plus_3397_PostIndex
   { 0x00000000, 0x0000009e, {0x00000d45, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000d45, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r8_plus_3063_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r8_plus_3063_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000bf7, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000bf7, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000bf7, 0x0cabba9e} },
@@ -3397,7 +3397,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r8_plus_3063_PostInde
   { 0x00000000, 0x0000009e, {0x00000bf7, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000bf7, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r3_plus_3028_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r3_plus_3028_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000bd4, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000bd4, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000bd4, 0x0cabba9e} },
@@ -3409,7 +3409,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r3_plus_3028_PostInde
   { 0x00000000, 0x0000009e, {0x00000bd4, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000bd4, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r4_plus_1099_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r4_plus_1099_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x0000044b, 0x77777777} },
   { 0x00000000, 0x00000055, {0x0000044b, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x0000044b, 0x0cabba9e} },
@@ -3421,7 +3421,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r4_plus_1099_PostIndex
   { 0x00000000, 0x0000009e, {0x0000044b, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x0000044b, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r5_plus_2175_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r5_plus_2175_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x0000087f, 0x77777777} },
   { 0x00000000, 0x00000055, {0x0000087f, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x0000087f, 0x0cabba9e} },
@@ -3433,7 +3433,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r5_plus_2175_PostIndex
   { 0x00000000, 0x0000009e, {0x0000087f, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x0000087f, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r12_plus_3221_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r12_plus_3221_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000c95, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000c95, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000c95, 0x0cabba9e} },
@@ -3445,7 +3445,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r12_plus_3221_PostInde
   { 0x00000000, 0x0000009e, {0x00000c95, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000c95, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r1_plus_2475_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r1_plus_2475_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000009ab, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000009ab, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000009ab, 0x0cabba9e} },
@@ -3457,7 +3457,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r1_plus_2475_PostIndex
   { 0x00000000, 0x0000009e, {0x000009ab, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000009ab, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r11_plus_1009_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r11_plus_1009_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000003f1, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000003f1, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000003f1, 0x0cabba9e} },
@@ -3469,7 +3469,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r11_plus_1009_PostInde
   { 0x00000000, 0x0000009e, {0x000003f1, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000003f1, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r1_plus_1526_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r1_plus_1526_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000005f6, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000005f6, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000005f6, 0x0cabba9e} },
@@ -3481,7 +3481,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r1_plus_1526_PostIndex
   { 0x00000000, 0x0000009e, {0x000005f6, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000005f6, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r11_plus_282_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r11_plus_282_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x0000011a, 0x77777777} },
   { 0x00000000, 0x00000055, {0x0000011a, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x0000011a, 0x0cabba9e} },
@@ -3493,7 +3493,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r11_plus_282_PostIndex
   { 0x00000000, 0x0000009e, {0x0000011a, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x0000011a, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r11_plus_3583_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r11_plus_3583_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000dff, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000dff, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000dff, 0x0cabba9e} },
@@ -3505,7 +3505,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r11_plus_3583_PostInd
   { 0x00000000, 0x0000009e, {0x00000dff, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000dff, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r6_plus_3209_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r6_plus_3209_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000c89, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000c89, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000c89, 0x0cabba9e} },
@@ -3517,7 +3517,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r6_plus_3209_PostInde
   { 0x00000000, 0x0000009e, {0x00000c89, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000c89, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r8_plus_1736_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r8_plus_1736_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000006c8, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000006c8, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000006c8, 0x0cabba9e} },
@@ -3529,7 +3529,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r7_r8_plus_1736_PostIndex
   { 0x00000000, 0x0000009e, {0x000006c8, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000006c8, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r8_plus_1542_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r8_plus_1542_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000606, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000606, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000606, 0x0cabba9e} },
@@ -3541,7 +3541,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r8_plus_1542_PostIndex
   { 0x00000000, 0x0000009e, {0x00000606, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000606, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r4_plus_180_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r4_plus_180_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000000b4, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000000b4, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000000b4, 0x0cabba9e} },
@@ -3553,7 +3553,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r4_plus_180_PostIndex
   { 0x00000000, 0x0000009e, {0x000000b4, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000000b4, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r5_plus_3076_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r5_plus_3076_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000c04, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000c04, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000c04, 0x0cabba9e} },
@@ -3565,7 +3565,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r5_plus_3076_PostIndex
   { 0x00000000, 0x0000009e, {0x00000c04, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000c04, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r2_plus_2541_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r2_plus_2541_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000009ed, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000009ed, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000009ed, 0x0cabba9e} },
@@ -3577,7 +3577,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r2_plus_2541_PostIndex
   { 0x00000000, 0x0000009e, {0x000009ed, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000009ed, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r2_plus_2946_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r2_plus_2946_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000b82, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000b82, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000b82, 0x0cabba9e} },
@@ -3589,7 +3589,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r2_plus_2946_PostIndex
   { 0x00000000, 0x0000009e, {0x00000b82, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000b82, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r6_plus_3743_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r6_plus_3743_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000e9f, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000e9f, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000e9f, 0x0cabba9e} },
@@ -3601,7 +3601,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r6_plus_3743_PostIndex
   { 0x00000000, 0x0000009e, {0x00000e9f, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000e9f, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r8_plus_3907_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r8_plus_3907_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000f43, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000f43, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000f43, 0x0cabba9e} },
@@ -3613,7 +3613,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r8_plus_3907_PostIndex
   { 0x00000000, 0x0000009e, {0x00000f43, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000f43, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r9_plus_791_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r9_plus_791_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000317, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000317, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000317, 0x0cabba9e} },
@@ -3625,7 +3625,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r3_r9_plus_791_PostIndex[
   { 0x00000000, 0x0000009e, {0x00000317, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000317, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r5_plus_3636_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r5_plus_3636_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000e34, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000e34, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000e34, 0x0cabba9e} },
@@ -3637,7 +3637,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r5_plus_3636_PostInde
   { 0x00000000, 0x0000009e, {0x00000e34, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000e34, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r12_plus_2545_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r12_plus_2545_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000009f1, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000009f1, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000009f1, 0x0cabba9e} },
@@ -3649,7 +3649,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r12_plus_2545_PostInde
   { 0x00000000, 0x0000009e, {0x000009f1, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000009f1, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r5_plus_3450_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r5_plus_3450_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000d7a, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000d7a, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000d7a, 0x0cabba9e} },
@@ -3661,7 +3661,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r5_plus_3450_PostInde
   { 0x00000000, 0x0000009e, {0x00000d7a, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000d7a, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r5_plus_1712_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r5_plus_1712_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000006b0, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000006b0, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000006b0, 0x0cabba9e} },
@@ -3673,7 +3673,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r1_r5_plus_1712_PostIndex
   { 0x00000000, 0x0000009e, {0x000006b0, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000006b0, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r11_plus_2665_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r11_plus_2665_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000a69, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000a69, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000a69, 0x0cabba9e} },
@@ -3685,7 +3685,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r6_r11_plus_2665_PostInde
   { 0x00000000, 0x0000009e, {0x00000a69, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000a69, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r8_plus_3450_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r8_plus_3450_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000d7a, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000d7a, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000d7a, 0x0cabba9e} },
@@ -3697,7 +3697,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r8_plus_3450_PostInde
   { 0x00000000, 0x0000009e, {0x00000d7a, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000d7a, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r9_plus_386_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r9_plus_386_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000182, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000182, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000182, 0x0cabba9e} },
@@ -3709,7 +3709,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r9_plus_386_PostIndex[
   { 0x00000000, 0x0000009e, {0x00000182, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000182, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r0_plus_2462_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r0_plus_2462_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x0000099e, 0x77777777} },
   { 0x00000000, 0x00000055, {0x0000099e, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x0000099e, 0x0cabba9e} },
@@ -3721,7 +3721,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r0_plus_2462_PostInde
   { 0x00000000, 0x0000009e, {0x0000099e, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x0000099e, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r1_plus_3313_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r1_plus_3313_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000cf1, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000cf1, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000cf1, 0x0cabba9e} },
@@ -3733,7 +3733,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r4_r1_plus_3313_PostIndex
   { 0x00000000, 0x0000009e, {0x00000cf1, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000cf1, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r1_plus_4093_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r1_plus_4093_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000ffd, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000ffd, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000ffd, 0x0cabba9e} },
@@ -3745,7 +3745,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r1_plus_4093_PostIndex
   { 0x00000000, 0x0000009e, {0x00000ffd, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000ffd, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r6_plus_3287_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r6_plus_3287_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000cd7, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000cd7, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000cd7, 0x0cabba9e} },
@@ -3757,7 +3757,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r6_plus_3287_PostIndex
   { 0x00000000, 0x0000009e, {0x00000cd7, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000cd7, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r14_plus_48_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r14_plus_48_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000030, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000030, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000030, 0x0cabba9e} },
@@ -3769,7 +3769,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r2_r14_plus_48_PostIndex[
   { 0x00000000, 0x0000009e, {0x00000030, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000030, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r0_plus_484_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r0_plus_484_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000001e4, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000001e4, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000001e4, 0x0cabba9e} },
@@ -3781,7 +3781,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r0_plus_484_PostIndex
   { 0x00000000, 0x0000009e, {0x000001e4, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000001e4, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r9_plus_1505_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r9_plus_1505_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000005e1, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000005e1, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000005e1, 0x0cabba9e} },
@@ -3793,7 +3793,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r10_r9_plus_1505_PostInde
   { 0x00000000, 0x0000009e, {0x000005e1, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000005e1, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r11_plus_2464_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r11_plus_2464_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000009a0, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000009a0, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000009a0, 0x0cabba9e} },
@@ -3805,7 +3805,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r12_r11_plus_2464_PostInd
   { 0x00000000, 0x0000009e, {0x000009a0, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000009a0, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r5_plus_4076_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r5_plus_4076_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000fec, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000fec, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000fec, 0x0cabba9e} },
@@ -3817,7 +3817,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r0_r5_plus_4076_PostIndex
   { 0x00000000, 0x0000009e, {0x00000fec, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000fec, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r12_plus_2326_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r12_plus_2326_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000916, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000916, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000916, 0x0cabba9e} },
@@ -3829,7 +3829,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r12_plus_2326_PostInde
   { 0x00000000, 0x0000009e, {0x00000916, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000916, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r7_plus_2025_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r7_plus_2025_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x000007e9, 0x77777777} },
   { 0x00000000, 0x00000055, {0x000007e9, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x000007e9, 0x0cabba9e} },
@@ -3841,7 +3841,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r9_r7_plus_2025_PostIndex
   { 0x00000000, 0x0000009e, {0x000007e9, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x000007e9, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r3_plus_831_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r3_plus_831_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x0000033f, 0x77777777} },
   { 0x00000000, 0x00000055, {0x0000033f, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x0000033f, 0x0cabba9e} },
@@ -3853,7 +3853,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r14_r3_plus_831_PostIndex
   { 0x00000000, 0x0000009e, {0x0000033f, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x0000033f, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r2_plus_136_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r2_plus_136_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000088, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000088, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000088, 0x0cabba9e} },
@@ -3865,7 +3865,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r8_r2_plus_136_PostIndex[
   { 0x00000000, 0x0000009e, {0x00000088, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000088, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r4_plus_774_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r4_plus_774_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x00000306, 0x77777777} },
   { 0x00000000, 0x00000055, {0x00000306, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x00000306, 0x0cabba9e} },
@@ -3877,7 +3877,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r11_r4_plus_774_PostIndex
   { 0x00000000, 0x0000009e, {0x00000306, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x00000306, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r10_plus_2395_PostIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r10_plus_2395_PostIndex[] = {
   { 0x00000000, 0x00000077, {0x0000095b, 0x77777777} },
   { 0x00000000, 0x00000055, {0x0000095b, 0x55555555} },
   { 0x00000000, 0x0000009e, {0x0000095b, 0x0cabba9e} },
@@ -3889,7 +3889,7 @@ static const Inputs kOutputs_Ldrb_PositivePostIndex_al_r5_r10_plus_2395_PostInde
   { 0x00000000, 0x0000009e, {0x0000095b, 0x0cabba9e} },
   { 0x00000000, 0x000000ef, {0x0000095b, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r1_minus_2642_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r1_minus_2642_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff5ae, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff5ae, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5ae, 0x0badbeef} },
@@ -3901,7 +3901,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r1_minus_2642_PostInd
   { 0x00000000, 0x000000ef, {0xfffff5ae, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5ae, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r6_minus_4093_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r6_minus_4093_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff003, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff003, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff003, 0x0badbeef} },
@@ -3913,7 +3913,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r6_minus_4093_PostInde
   { 0x00000000, 0x000000ef, {0xfffff003, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff003, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r11_minus_3162_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r11_minus_3162_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff3a6, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff3a6, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff3a6, 0x0badbeef} },
@@ -3925,7 +3925,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r11_minus_3162_PostInd
   { 0x00000000, 0x000000ef, {0xfffff3a6, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff3a6, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r8_minus_2311_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r8_minus_2311_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff6f9, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff6f9, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff6f9, 0x0badbeef} },
@@ -3937,7 +3937,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r8_minus_2311_PostInde
   { 0x00000000, 0x000000ef, {0xfffff6f9, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff6f9, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r5_minus_806_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r5_minus_806_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffcda, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffcda, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffcda, 0x0badbeef} },
@@ -3949,7 +3949,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r5_minus_806_PostInde
   { 0x00000000, 0x000000ef, {0xfffffcda, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffcda, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r11_minus_2628_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r11_minus_2628_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff5bc, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff5bc, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5bc, 0x0badbeef} },
@@ -3961,7 +3961,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r11_minus_2628_PostIn
   { 0x00000000, 0x000000ef, {0xfffff5bc, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5bc, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r10_minus_672_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r10_minus_672_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffd60, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffd60, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffd60, 0x0badbeef} },
@@ -3973,7 +3973,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r10_minus_672_PostInde
   { 0x00000000, 0x000000ef, {0xfffffd60, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffd60, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r4_minus_2619_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r4_minus_2619_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff5c5, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff5c5, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5c5, 0x0badbeef} },
@@ -3985,7 +3985,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r4_minus_2619_PostInd
   { 0x00000000, 0x000000ef, {0xfffff5c5, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5c5, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r8_minus_1035_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r8_minus_1035_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffbf5, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffbf5, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffbf5, 0x0badbeef} },
@@ -3997,7 +3997,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r8_minus_1035_PostInd
   { 0x00000000, 0x000000ef, {0xfffffbf5, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffbf5, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r7_minus_3771_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r7_minus_3771_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff145, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff145, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff145, 0x0badbeef} },
@@ -4009,7 +4009,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r7_minus_3771_PostInde
   { 0x00000000, 0x000000ef, {0xfffff145, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff145, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r10_minus_1372_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r10_minus_1372_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffaa4, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffaa4, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffaa4, 0x0badbeef} },
@@ -4021,7 +4021,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r10_minus_1372_PostInd
   { 0x00000000, 0x000000ef, {0xfffffaa4, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffaa4, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r4_minus_4065_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r4_minus_4065_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff01f, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff01f, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff01f, 0x0badbeef} },
@@ -4033,7 +4033,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r4_minus_4065_PostInde
   { 0x00000000, 0x000000ef, {0xfffff01f, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff01f, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r5_minus_3344_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r5_minus_3344_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff2f0, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff2f0, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff2f0, 0x0badbeef} },
@@ -4045,7 +4045,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r5_minus_3344_PostInd
   { 0x00000000, 0x000000ef, {0xfffff2f0, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff2f0, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r11_minus_2726_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r11_minus_2726_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff55a, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff55a, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff55a, 0x0badbeef} },
@@ -4057,7 +4057,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r11_minus_2726_PostInd
   { 0x00000000, 0x000000ef, {0xfffff55a, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff55a, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r11_minus_3282_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r11_minus_3282_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff32e, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff32e, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff32e, 0x0badbeef} },
@@ -4069,7 +4069,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r11_minus_3282_PostInd
   { 0x00000000, 0x000000ef, {0xfffff32e, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff32e, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r0_minus_1231_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r0_minus_1231_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffb31, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffb31, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffb31, 0x0badbeef} },
@@ -4081,7 +4081,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r0_minus_1231_PostInde
   { 0x00000000, 0x000000ef, {0xfffffb31, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffb31, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r8_minus_2490_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r8_minus_2490_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff646, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff646, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff646, 0x0badbeef} },
@@ -4093,7 +4093,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r8_minus_2490_PostInd
   { 0x00000000, 0x000000ef, {0xfffff646, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff646, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r14_minus_2963_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r14_minus_2963_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff46d, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff46d, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff46d, 0x0badbeef} },
@@ -4105,7 +4105,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r14_minus_2963_PostInd
   { 0x00000000, 0x000000ef, {0xfffff46d, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff46d, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r5_minus_3069_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r5_minus_3069_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff403, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff403, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff403, 0x0badbeef} },
@@ -4117,7 +4117,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r5_minus_3069_PostInd
   { 0x00000000, 0x000000ef, {0xfffff403, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff403, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r5_r6_minus_3743_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r5_r6_minus_3743_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff161, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff161, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff161, 0x0badbeef} },
@@ -4129,7 +4129,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r5_r6_minus_3743_PostInde
   { 0x00000000, 0x000000ef, {0xfffff161, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff161, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r0_minus_1175_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r0_minus_1175_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffb69, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffb69, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffb69, 0x0badbeef} },
@@ -4141,7 +4141,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r0_minus_1175_PostInd
   { 0x00000000, 0x000000ef, {0xfffffb69, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffb69, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r0_minus_479_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r0_minus_479_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffe21, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffe21, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffe21, 0x0badbeef} },
@@ -4153,7 +4153,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r0_minus_479_PostInde
   { 0x00000000, 0x000000ef, {0xfffffe21, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffe21, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r1_minus_2464_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r1_minus_2464_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff660, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff660, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff660, 0x0badbeef} },
@@ -4165,7 +4165,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r1_minus_2464_PostInde
   { 0x00000000, 0x000000ef, {0xfffff660, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff660, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r6_minus_1171_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r6_minus_1171_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffb6d, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffb6d, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffb6d, 0x0badbeef} },
@@ -4177,7 +4177,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r6_minus_1171_PostInde
   { 0x00000000, 0x000000ef, {0xfffffb6d, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffb6d, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r2_minus_871_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r2_minus_871_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffc99, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffc99, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffc99, 0x0badbeef} },
@@ -4189,7 +4189,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r2_minus_871_PostInde
   { 0x00000000, 0x000000ef, {0xfffffc99, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffc99, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r10_minus_1687_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r10_minus_1687_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff969, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff969, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff969, 0x0badbeef} },
@@ -4201,7 +4201,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r10_minus_1687_PostInd
   { 0x00000000, 0x000000ef, {0xfffff969, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff969, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r1_minus_1527_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r1_minus_1527_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffa09, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffa09, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffa09, 0x0badbeef} },
@@ -4213,7 +4213,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r1_minus_1527_PostInde
   { 0x00000000, 0x000000ef, {0xfffffa09, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffa09, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r7_minus_2365_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r7_minus_2365_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff6c3, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff6c3, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff6c3, 0x0badbeef} },
@@ -4225,7 +4225,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r7_minus_2365_PostInde
   { 0x00000000, 0x000000ef, {0xfffff6c3, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff6c3, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r12_minus_2619_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r12_minus_2619_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff5c5, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff5c5, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5c5, 0x0badbeef} },
@@ -4237,7 +4237,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r12_minus_2619_PostInd
   { 0x00000000, 0x000000ef, {0xfffff5c5, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5c5, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r7_minus_1695_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r7_minus_1695_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff961, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff961, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff961, 0x0badbeef} },
@@ -4249,7 +4249,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r7_minus_1695_PostInd
   { 0x00000000, 0x000000ef, {0xfffff961, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff961, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r8_minus_3949_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r8_minus_3949_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff093, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff093, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff093, 0x0badbeef} },
@@ -4261,7 +4261,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r8_minus_3949_PostInde
   { 0x00000000, 0x000000ef, {0xfffff093, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff093, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r8_minus_1359_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r8_minus_1359_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffab1, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffab1, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffab1, 0x0badbeef} },
@@ -4273,7 +4273,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r8_minus_1359_PostInde
   { 0x00000000, 0x000000ef, {0xfffffab1, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffab1, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r6_minus_3117_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r6_minus_3117_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff3d3, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff3d3, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff3d3, 0x0badbeef} },
@@ -4285,7 +4285,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r6_minus_3117_PostInd
   { 0x00000000, 0x000000ef, {0xfffff3d3, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff3d3, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r12_minus_831_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r12_minus_831_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffcc1, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffcc1, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffcc1, 0x0badbeef} },
@@ -4297,7 +4297,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r12_minus_831_PostInde
   { 0x00000000, 0x000000ef, {0xfffffcc1, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffcc1, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r7_minus_1537_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r7_minus_1537_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff9ff, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff9ff, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff9ff, 0x0badbeef} },
@@ -4309,7 +4309,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r7_minus_1537_PostInde
   { 0x00000000, 0x000000ef, {0xfffff9ff, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff9ff, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r11_minus_1948_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r11_minus_1948_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff864, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff864, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff864, 0x0badbeef} },
@@ -4321,7 +4321,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r11_minus_1948_PostInd
   { 0x00000000, 0x000000ef, {0xfffff864, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff864, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r12_minus_362_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r12_minus_362_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffe96, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffe96, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffe96, 0x0badbeef} },
@@ -4333,7 +4333,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r12_minus_362_PostInde
   { 0x00000000, 0x000000ef, {0xfffffe96, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffe96, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r0_minus_3583_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r0_minus_3583_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff201, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff201, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff201, 0x0badbeef} },
@@ -4345,7 +4345,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r0_minus_3583_PostInde
   { 0x00000000, 0x000000ef, {0xfffff201, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff201, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r3_minus_2794_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r3_minus_2794_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff516, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff516, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff516, 0x0badbeef} },
@@ -4357,7 +4357,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r3_minus_2794_PostInd
   { 0x00000000, 0x000000ef, {0xfffff516, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff516, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r3_minus_53_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r3_minus_53_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xffffffcb, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xffffffcb, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xffffffcb, 0x0badbeef} },
@@ -4369,7 +4369,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r3_minus_53_PostIndex
   { 0x00000000, 0x000000ef, {0xffffffcb, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xffffffcb, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r8_minus_2026_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r8_minus_2026_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff816, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff816, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff816, 0x0badbeef} },
@@ -4381,7 +4381,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r8_minus_2026_PostInde
   { 0x00000000, 0x000000ef, {0xfffff816, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff816, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r11_minus_3472_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r11_minus_3472_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff270, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff270, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff270, 0x0badbeef} },
@@ -4393,7 +4393,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r11_minus_3472_PostIn
   { 0x00000000, 0x000000ef, {0xfffff270, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff270, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r5_r8_minus_200_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r5_r8_minus_200_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xffffff38, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xffffff38, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xffffff38, 0x0badbeef} },
@@ -4405,7 +4405,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r5_r8_minus_200_PostIndex
   { 0x00000000, 0x000000ef, {0xffffff38, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xffffff38, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r11_minus_398_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r11_minus_398_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffe72, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffe72, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffe72, 0x0badbeef} },
@@ -4417,7 +4417,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r11_minus_398_PostInde
   { 0x00000000, 0x000000ef, {0xfffffe72, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffe72, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r1_minus_4091_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r1_minus_4091_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff005, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff005, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff005, 0x0badbeef} },
@@ -4429,7 +4429,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r1_minus_4091_PostInde
   { 0x00000000, 0x000000ef, {0xfffff005, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff005, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r7_minus_601_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r7_minus_601_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffda7, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffda7, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffda7, 0x0badbeef} },
@@ -4441,7 +4441,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r7_minus_601_PostIndex
   { 0x00000000, 0x000000ef, {0xfffffda7, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffda7, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r0_minus_2849_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r0_minus_2849_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff4df, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff4df, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff4df, 0x0badbeef} },
@@ -4453,7 +4453,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r0_minus_2849_PostInd
   { 0x00000000, 0x000000ef, {0xfffff4df, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff4df, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r3_minus_1323_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r3_minus_1323_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffad5, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffad5, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffad5, 0x0badbeef} },
@@ -4465,7 +4465,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r3_minus_1323_PostInde
   { 0x00000000, 0x000000ef, {0xfffffad5, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffad5, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r9_minus_969_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r9_minus_969_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffc37, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffc37, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffc37, 0x0badbeef} },
@@ -4477,7 +4477,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r9_minus_969_PostInde
   { 0x00000000, 0x000000ef, {0xfffffc37, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffc37, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r14_minus_2628_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r14_minus_2628_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff5bc, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff5bc, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5bc, 0x0badbeef} },
@@ -4489,7 +4489,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r14_minus_2628_PostInd
   { 0x00000000, 0x000000ef, {0xfffff5bc, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5bc, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r1_minus_251_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r1_minus_251_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xffffff05, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xffffff05, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xffffff05, 0x0badbeef} },
@@ -4501,7 +4501,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r10_r1_minus_251_PostInde
   { 0x00000000, 0x000000ef, {0xffffff05, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xffffff05, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r2_minus_1266_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r2_minus_1266_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffb0e, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffb0e, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffb0e, 0x0badbeef} },
@@ -4513,7 +4513,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r2_minus_1266_PostInde
   { 0x00000000, 0x000000ef, {0xfffffb0e, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffb0e, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r7_minus_2588_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r7_minus_2588_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff5e4, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff5e4, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5e4, 0x0badbeef} },
@@ -4525,7 +4525,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r7_minus_2588_PostInde
   { 0x00000000, 0x000000ef, {0xfffff5e4, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5e4, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r10_minus_2669_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r10_minus_2669_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff593, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff593, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff593, 0x0badbeef} },
@@ -4537,7 +4537,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r10_minus_2669_PostInd
   { 0x00000000, 0x000000ef, {0xfffff593, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff593, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r11_minus_2023_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r11_minus_2023_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff819, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff819, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff819, 0x0badbeef} },
@@ -4549,7 +4549,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r11_minus_2023_PostIn
   { 0x00000000, 0x000000ef, {0xfffff819, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff819, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r1_minus_3610_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r1_minus_3610_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff1e6, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff1e6, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff1e6, 0x0badbeef} },
@@ -4561,7 +4561,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r1_minus_3610_PostInde
   { 0x00000000, 0x000000ef, {0xfffff1e6, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff1e6, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r9_minus_624_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r9_minus_624_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffd90, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffd90, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffd90, 0x0badbeef} },
@@ -4573,7 +4573,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r9_minus_624_PostIndex
   { 0x00000000, 0x000000ef, {0xfffffd90, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffd90, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r8_minus_1610_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r8_minus_1610_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff9b6, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff9b6, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff9b6, 0x0badbeef} },
@@ -4585,7 +4585,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r8_minus_1610_PostInd
   { 0x00000000, 0x000000ef, {0xfffff9b6, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff9b6, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r11_minus_3136_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r11_minus_3136_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff3c0, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff3c0, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff3c0, 0x0badbeef} },
@@ -4597,7 +4597,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r11_minus_3136_PostInd
   { 0x00000000, 0x000000ef, {0xfffff3c0, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff3c0, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r7_minus_3949_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r7_minus_3949_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff093, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff093, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff093, 0x0badbeef} },
@@ -4609,7 +4609,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r7_minus_3949_PostInde
   { 0x00000000, 0x000000ef, {0xfffff093, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff093, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r0_minus_1635_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r0_minus_1635_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff99d, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff99d, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff99d, 0x0badbeef} },
@@ -4621,7 +4621,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r0_minus_1635_PostInde
   { 0x00000000, 0x000000ef, {0xfffff99d, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff99d, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r2_minus_3008_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r2_minus_3008_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff440, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff440, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff440, 0x0badbeef} },
@@ -4633,7 +4633,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r2_minus_3008_PostInde
   { 0x00000000, 0x000000ef, {0xfffff440, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff440, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r3_minus_3566_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r3_minus_3566_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff212, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff212, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff212, 0x0badbeef} },
@@ -4645,7 +4645,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r3_minus_3566_PostInde
   { 0x00000000, 0x000000ef, {0xfffff212, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff212, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r8_minus_3774_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r8_minus_3774_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff142, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff142, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff142, 0x0badbeef} },
@@ -4657,7 +4657,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r8_minus_3774_PostInd
   { 0x00000000, 0x000000ef, {0xfffff142, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff142, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r10_minus_3978_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r10_minus_3978_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff076, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff076, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff076, 0x0badbeef} },
@@ -4669,7 +4669,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r10_minus_3978_PostIn
   { 0x00000000, 0x000000ef, {0xfffff076, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff076, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r6_minus_2358_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r6_minus_2358_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff6ca, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff6ca, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff6ca, 0x0badbeef} },
@@ -4681,7 +4681,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r6_minus_2358_PostInde
   { 0x00000000, 0x000000ef, {0xfffff6ca, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff6ca, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r9_minus_2650_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r9_minus_2650_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff5a6, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff5a6, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5a6, 0x0badbeef} },
@@ -4693,7 +4693,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r9_minus_2650_PostInd
   { 0x00000000, 0x000000ef, {0xfffff5a6, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff5a6, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r14_minus_2365_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r14_minus_2365_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff6c3, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff6c3, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff6c3, 0x0badbeef} },
@@ -4705,7 +4705,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r14_minus_2365_PostInd
   { 0x00000000, 0x000000ef, {0xfffff6c3, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff6c3, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r2_minus_496_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r2_minus_496_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffe10, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffe10, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffe10, 0x0badbeef} },
@@ -4717,7 +4717,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r14_r2_minus_496_PostInde
   { 0x00000000, 0x000000ef, {0xfffffe10, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffe10, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r0_minus_2124_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r0_minus_2124_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff7b4, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff7b4, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff7b4, 0x0badbeef} },
@@ -4729,7 +4729,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r0_minus_2124_PostInde
   { 0x00000000, 0x000000ef, {0xfffff7b4, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff7b4, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r2_minus_3366_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r2_minus_3366_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff2da, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff2da, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff2da, 0x0badbeef} },
@@ -4741,7 +4741,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r2_minus_3366_PostInde
   { 0x00000000, 0x000000ef, {0xfffff2da, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff2da, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r2_minus_2866_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r2_minus_2866_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff4ce, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff4ce, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff4ce, 0x0badbeef} },
@@ -4753,7 +4753,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r2_minus_2866_PostInde
   { 0x00000000, 0x000000ef, {0xfffff4ce, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff4ce, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r4_minus_3003_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r4_minus_3003_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff445, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff445, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff445, 0x0badbeef} },
@@ -4765,7 +4765,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r4_minus_3003_PostInde
   { 0x00000000, 0x000000ef, {0xfffff445, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff445, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r3_minus_1234_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r3_minus_1234_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffb2e, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffb2e, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffb2e, 0x0badbeef} },
@@ -4777,7 +4777,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r3_minus_1234_PostInde
   { 0x00000000, 0x000000ef, {0xfffffb2e, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffb2e, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r8_minus_2290_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r8_minus_2290_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff70e, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff70e, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff70e, 0x0badbeef} },
@@ -4789,7 +4789,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r8_minus_2290_PostInde
   { 0x00000000, 0x000000ef, {0xfffff70e, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff70e, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r2_minus_3811_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r2_minus_3811_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff11d, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff11d, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff11d, 0x0badbeef} },
@@ -4801,7 +4801,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r2_minus_3811_PostInde
   { 0x00000000, 0x000000ef, {0xfffff11d, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff11d, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r9_minus_429_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r9_minus_429_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffe53, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffe53, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffe53, 0x0badbeef} },
@@ -4813,7 +4813,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r4_r9_minus_429_PostIndex
   { 0x00000000, 0x000000ef, {0xfffffe53, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffe53, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r1_minus_2025_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r1_minus_2025_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff817, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff817, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff817, 0x0badbeef} },
@@ -4825,7 +4825,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r1_minus_2025_PostInde
   { 0x00000000, 0x000000ef, {0xfffff817, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff817, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r7_minus_3517_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r7_minus_3517_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff243, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff243, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff243, 0x0badbeef} },
@@ -4837,7 +4837,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r7_minus_3517_PostInd
   { 0x00000000, 0x000000ef, {0xfffff243, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff243, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r4_minus_251_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r4_minus_251_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xffffff05, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xffffff05, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xffffff05, 0x0badbeef} },
@@ -4849,7 +4849,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r7_r4_minus_251_PostIndex
   { 0x00000000, 0x000000ef, {0xffffff05, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xffffff05, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r12_minus_1635_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r12_minus_1635_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff99d, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff99d, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff99d, 0x0badbeef} },
@@ -4861,7 +4861,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r12_minus_1635_PostInd
   { 0x00000000, 0x000000ef, {0xfffff99d, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff99d, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r7_minus_3685_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r7_minus_3685_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff19b, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff19b, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff19b, 0x0badbeef} },
@@ -4873,7 +4873,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r7_minus_3685_PostInde
   { 0x00000000, 0x000000ef, {0xfffff19b, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff19b, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r11_minus_1981_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r11_minus_1981_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff843, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff843, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff843, 0x0badbeef} },
@@ -4885,7 +4885,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r9_r11_minus_1981_PostInd
   { 0x00000000, 0x000000ef, {0xfffff843, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff843, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r2_minus_180_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r2_minus_180_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xffffff4c, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xffffff4c, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xffffff4c, 0x0badbeef} },
@@ -4897,7 +4897,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r2_minus_180_PostIndex
   { 0x00000000, 0x000000ef, {0xffffff4c, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xffffff4c, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r6_minus_2490_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r6_minus_2490_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff646, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff646, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff646, 0x0badbeef} },
@@ -4909,7 +4909,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r6_minus_2490_PostInd
   { 0x00000000, 0x000000ef, {0xfffff646, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff646, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r3_minus_3994_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r3_minus_3994_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff066, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff066, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff066, 0x0badbeef} },
@@ -4921,7 +4921,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r1_r3_minus_3994_PostInde
   { 0x00000000, 0x000000ef, {0xfffff066, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff066, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r2_minus_3094_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r2_minus_3094_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff3ea, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff3ea, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff3ea, 0x0badbeef} },
@@ -4933,7 +4933,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r2_minus_3094_PostInde
   { 0x00000000, 0x000000ef, {0xfffff3ea, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff3ea, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r7_minus_1377_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r7_minus_1377_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffa9f, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffa9f, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffa9f, 0x0badbeef} },
@@ -4945,7 +4945,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r7_minus_1377_PostInde
   { 0x00000000, 0x000000ef, {0xfffffa9f, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffa9f, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r11_minus_2098_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r11_minus_2098_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff7ce, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff7ce, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff7ce, 0x0badbeef} },
@@ -4957,7 +4957,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r11_minus_2098_PostIn
   { 0x00000000, 0x000000ef, {0xfffff7ce, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff7ce, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r3_minus_2462_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r3_minus_2462_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff662, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff662, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff662, 0x0badbeef} },
@@ -4969,7 +4969,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r0_r3_minus_2462_PostInde
   { 0x00000000, 0x000000ef, {0xfffff662, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff662, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r3_minus_3659_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r3_minus_3659_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff1b5, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff1b5, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff1b5, 0x0badbeef} },
@@ -4981,7 +4981,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r6_r3_minus_3659_PostInde
   { 0x00000000, 0x000000ef, {0xfffff1b5, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff1b5, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r5_r1_minus_2139_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r5_r1_minus_2139_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff7a5, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff7a5, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff7a5, 0x0badbeef} },
@@ -4993,7 +4993,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r5_r1_minus_2139_PostInde
   { 0x00000000, 0x000000ef, {0xfffff7a5, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff7a5, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r1_minus_1934_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r1_minus_1934_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff872, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff872, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff872, 0x0badbeef} },
@@ -5005,7 +5005,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r11_r1_minus_1934_PostInd
   { 0x00000000, 0x000000ef, {0xfffff872, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff872, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r11_minus_1961_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r11_minus_1961_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff857, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff857, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff857, 0x0badbeef} },
@@ -5017,7 +5017,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r11_minus_1961_PostInd
   { 0x00000000, 0x000000ef, {0xfffff857, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff857, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r8_minus_2535_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r8_minus_2535_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff619, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff619, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff619, 0x0badbeef} },
@@ -5029,7 +5029,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r3_r8_minus_2535_PostInde
   { 0x00000000, 0x000000ef, {0xfffff619, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff619, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r7_minus_3688_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r7_minus_3688_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff198, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff198, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff198, 0x0badbeef} },
@@ -5041,7 +5041,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r12_r7_minus_3688_PostInd
   { 0x00000000, 0x000000ef, {0xfffff198, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff198, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r1_minus_513_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r1_minus_513_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffdff, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffdff, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffdff, 0x0badbeef} },
@@ -5053,7 +5053,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r1_minus_513_PostIndex
   { 0x00000000, 0x000000ef, {0xfffffdff, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffdff, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r2_minus_213_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r2_minus_213_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xffffff2b, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xffffff2b, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xffffff2b, 0x0badbeef} },
@@ -5065,7 +5065,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r8_r2_minus_213_PostIndex
   { 0x00000000, 0x000000ef, {0xffffff2b, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xffffff2b, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r5_minus_670_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r5_minus_670_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffffd62, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffffd62, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffd62, 0x0badbeef} },
@@ -5077,7 +5077,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r2_r5_minus_670_PostIndex
   { 0x00000000, 0x000000ef, {0xfffffd62, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffffd62, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r5_r6_minus_3986_PostIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePostIndex_al_r5_r6_minus_3986_PostIndex[] = {
   { 0x00000000, 0x00000077, {0xfffff06e, 0x77777777} },
   { 0x00000000, 0x000000ef, {0xfffff06e, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff06e, 0x0badbeef} },
@@ -5089,7 +5089,7 @@ static const Inputs kOutputs_Ldrb_NegativePostIndex_al_r5_r6_minus_3986_PostInde
   { 0x00000000, 0x000000ef, {0xfffff06e, 0x0badbeef} },
   { 0x00000000, 0x000000ef, {0xfffff06e, 0x0badbeef} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r12_plus_2982_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r12_plus_2982_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000ba6, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000ba6, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000ba6, 0x77777777} },
@@ -5101,7 +5101,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r12_plus_2982_PreIndex
   { 0x00000000, 0x00000077, {0x00000ba6, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000ba6, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r11_plus_1241_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r11_plus_1241_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000004d9, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000004d9, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000004d9, 0x77777777} },
@@ -5113,7 +5113,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r11_plus_1241_PreIndex[
   { 0x00000000, 0x00000077, {0x000004d9, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000004d9, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r5_plus_2677_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r5_plus_2677_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000a75, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000a75, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000a75, 0x77777777} },
@@ -5125,7 +5125,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r5_plus_2677_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000a75, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000a75, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r12_plus_2403_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r12_plus_2403_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000963, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000963, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000963, 0x77777777} },
@@ -5137,7 +5137,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r12_plus_2403_PreIndex
   { 0x00000000, 0x00000077, {0x00000963, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000963, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r5_plus_1274_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r5_plus_1274_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000004fa, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000004fa, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000004fa, 0x77777777} },
@@ -5149,7 +5149,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r5_plus_1274_PreIndex[]
   { 0x00000000, 0x00000077, {0x000004fa, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000004fa, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r7_plus_2208_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r7_plus_2208_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000008a0, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000008a0, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000008a0, 0x77777777} },
@@ -5161,7 +5161,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r7_plus_2208_PreIndex[]
   { 0x00000000, 0x00000077, {0x000008a0, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000008a0, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r10_plus_3583_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r10_plus_3583_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000dff, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000dff, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000dff, 0x77777777} },
@@ -5173,7 +5173,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r10_plus_3583_PreIndex[
   { 0x00000000, 0x00000077, {0x00000dff, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000dff, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r5_plus_3975_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r5_plus_3975_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000f87, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000f87, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000f87, 0x77777777} },
@@ -5185,7 +5185,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r5_plus_3975_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000f87, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000f87, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r9_plus_2326_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r9_plus_2326_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000916, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000916, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000916, 0x77777777} },
@@ -5197,7 +5197,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r9_plus_2326_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000916, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000916, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r7_plus_2098_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r7_plus_2098_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000832, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000832, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000832, 0x77777777} },
@@ -5209,7 +5209,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r7_plus_2098_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000832, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000832, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r5_r11_plus_3015_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r5_r11_plus_3015_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000bc7, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000bc7, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000bc7, 0x77777777} },
@@ -5221,7 +5221,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r5_r11_plus_3015_PreIndex[
   { 0x00000000, 0x00000077, {0x00000bc7, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000bc7, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r1_r12_plus_719_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r1_r12_plus_719_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000002cf, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000002cf, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000002cf, 0x77777777} },
@@ -5233,7 +5233,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r1_r12_plus_719_PreIndex[]
   { 0x00000000, 0x00000077, {0x000002cf, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000002cf, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r1_plus_3413_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r1_plus_3413_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000d55, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000d55, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000d55, 0x77777777} },
@@ -5245,7 +5245,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r1_plus_3413_PreIndex[
   { 0x00000000, 0x00000077, {0x00000d55, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000d55, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r0_plus_3949_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r0_plus_3949_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000f6d, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000f6d, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000f6d, 0x77777777} },
@@ -5257,7 +5257,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r0_plus_3949_PreIndex[
   { 0x00000000, 0x00000077, {0x00000f6d, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000f6d, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r4_plus_3088_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r4_plus_3088_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000c10, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000c10, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000c10, 0x77777777} },
@@ -5269,7 +5269,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r4_plus_3088_PreIndex[
   { 0x00000000, 0x00000077, {0x00000c10, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000c10, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r3_plus_2690_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r3_plus_2690_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000a82, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000a82, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000a82, 0x77777777} },
@@ -5281,7 +5281,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r3_plus_2690_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000a82, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000a82, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r6_plus_3384_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r6_plus_3384_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000d38, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000d38, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000d38, 0x77777777} },
@@ -5293,7 +5293,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r6_plus_3384_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000d38, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000d38, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r7_plus_3636_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r7_plus_3636_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000e34, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000e34, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000e34, 0x77777777} },
@@ -5305,7 +5305,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r7_plus_3636_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000e34, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000e34, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r1_plus_1390_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r1_plus_1390_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x0000056e, 0x55555555} },
   { 0x00000000, 0x00000055, {0x0000056e, 0x55555555} },
   { 0x00000000, 0x00000077, {0x0000056e, 0x77777777} },
@@ -5317,7 +5317,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r1_plus_1390_PreIndex[
   { 0x00000000, 0x00000077, {0x0000056e, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x0000056e, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r8_plus_2546_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r8_plus_2546_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000009f2, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000009f2, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000009f2, 0x77777777} },
@@ -5329,7 +5329,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r8_plus_2546_PreIndex[]
   { 0x00000000, 0x00000077, {0x000009f2, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000009f2, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r14_plus_2619_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r14_plus_2619_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000a3b, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000a3b, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000a3b, 0x77777777} },
@@ -5341,7 +5341,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r14_plus_2619_PreIndex[
   { 0x00000000, 0x00000077, {0x00000a3b, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000a3b, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r0_r12_plus_2591_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r0_r12_plus_2591_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000a1f, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000a1f, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000a1f, 0x77777777} },
@@ -5353,7 +5353,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r0_r12_plus_2591_PreIndex[
   { 0x00000000, 0x00000077, {0x00000a1f, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000a1f, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r7_plus_3287_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r7_plus_3287_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000cd7, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000cd7, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000cd7, 0x77777777} },
@@ -5365,7 +5365,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r7_plus_3287_PreIndex[
   { 0x00000000, 0x00000077, {0x00000cd7, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000cd7, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r0_plus_3638_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r0_plus_3638_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000e36, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000e36, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000e36, 0x77777777} },
@@ -5377,7 +5377,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r0_plus_3638_PreIndex[
   { 0x00000000, 0x00000077, {0x00000e36, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000e36, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r2_plus_2944_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r2_plus_2944_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000b80, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000b80, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000b80, 0x77777777} },
@@ -5389,7 +5389,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r2_plus_2944_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000b80, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000b80, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r3_plus_2290_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r3_plus_2290_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000008f2, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000008f2, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000008f2, 0x77777777} },
@@ -5401,7 +5401,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r3_plus_2290_PreIndex[
   { 0x00000000, 0x00000077, {0x000008f2, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000008f2, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r7_plus_1567_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r7_plus_1567_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x0000061f, 0x55555555} },
   { 0x00000000, 0x00000055, {0x0000061f, 0x55555555} },
   { 0x00000000, 0x00000077, {0x0000061f, 0x77777777} },
@@ -5413,7 +5413,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r7_plus_1567_PreIndex[]
   { 0x00000000, 0x00000077, {0x0000061f, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x0000061f, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r14_plus_3994_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r14_plus_3994_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000f9a, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000f9a, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000f9a, 0x77777777} },
@@ -5425,7 +5425,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r14_plus_3994_PreIndex[
   { 0x00000000, 0x00000077, {0x00000f9a, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000f9a, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r11_plus_3504_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r11_plus_3504_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000db0, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000db0, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000db0, 0x77777777} },
@@ -5437,7 +5437,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r11_plus_3504_PreIndex[
   { 0x00000000, 0x00000077, {0x00000db0, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000db0, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r10_plus_3564_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r10_plus_3564_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000dec, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000dec, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000dec, 0x77777777} },
@@ -5449,7 +5449,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r10_plus_3564_PreIndex[
   { 0x00000000, 0x00000077, {0x00000dec, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000dec, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r3_plus_872_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r3_plus_872_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000368, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000368, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000368, 0x77777777} },
@@ -5461,7 +5461,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r3_plus_872_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000368, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000368, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r7_plus_3685_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r7_plus_3685_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000e65, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000e65, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000e65, 0x77777777} },
@@ -5473,7 +5473,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r7_plus_3685_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000e65, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000e65, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r0_plus_2532_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r0_plus_2532_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000009e4, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000009e4, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000009e4, 0x77777777} },
@@ -5485,7 +5485,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r0_plus_2532_PreIndex[]
   { 0x00000000, 0x00000077, {0x000009e4, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000009e4, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r4_plus_57_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r4_plus_57_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000039, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000039, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000039, 0x77777777} },
@@ -5497,7 +5497,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r4_plus_57_PreIndex[] 
   { 0x00000000, 0x00000077, {0x00000039, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000039, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r1_plus_3343_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r1_plus_3343_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000d0f, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000d0f, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000d0f, 0x77777777} },
@@ -5509,7 +5509,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r1_plus_3343_PreIndex[
   { 0x00000000, 0x00000077, {0x00000d0f, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000d0f, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r10_plus_459_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r10_plus_459_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000001cb, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000001cb, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000001cb, 0x77777777} },
@@ -5521,7 +5521,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r10_plus_459_PreIndex[
   { 0x00000000, 0x00000077, {0x000001cb, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000001cb, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r6_plus_3867_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r6_plus_3867_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000f1b, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000f1b, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000f1b, 0x77777777} },
@@ -5533,7 +5533,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r6_plus_3867_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000f1b, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000f1b, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r12_plus_1035_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r12_plus_1035_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x0000040b, 0x55555555} },
   { 0x00000000, 0x00000055, {0x0000040b, 0x55555555} },
   { 0x00000000, 0x00000077, {0x0000040b, 0x77777777} },
@@ -5545,7 +5545,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r12_plus_1035_PreIndex
   { 0x00000000, 0x00000077, {0x0000040b, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x0000040b, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r10_plus_3597_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r10_plus_3597_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000e0d, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000e0d, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000e0d, 0x77777777} },
@@ -5557,7 +5557,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r10_plus_3597_PreIndex[
   { 0x00000000, 0x00000077, {0x00000e0d, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000e0d, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r2_plus_2281_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r2_plus_2281_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000008e9, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000008e9, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000008e9, 0x77777777} },
@@ -5569,7 +5569,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r2_plus_2281_PreIndex[
   { 0x00000000, 0x00000077, {0x000008e9, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000008e9, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r10_plus_2901_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r10_plus_2901_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000b55, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000b55, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000b55, 0x77777777} },
@@ -5581,7 +5581,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r10_plus_2901_PreIndex[
   { 0x00000000, 0x00000077, {0x00000b55, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000b55, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r14_plus_2052_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r14_plus_2052_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000804, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000804, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000804, 0x77777777} },
@@ -5593,7 +5593,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r14_plus_2052_PreIndex[
   { 0x00000000, 0x00000077, {0x00000804, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000804, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r6_plus_4091_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r6_plus_4091_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000ffb, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000ffb, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000ffb, 0x77777777} },
@@ -5605,7 +5605,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r6_plus_4091_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000ffb, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000ffb, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r12_plus_871_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r12_plus_871_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000367, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000367, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000367, 0x77777777} },
@@ -5617,7 +5617,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r12_plus_871_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000367, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000367, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r2_plus_1860_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r2_plus_1860_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000744, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000744, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000744, 0x77777777} },
@@ -5629,7 +5629,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r2_plus_1860_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000744, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000744, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r0_plus_2345_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r0_plus_2345_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000929, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000929, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000929, 0x77777777} },
@@ -5641,7 +5641,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r0_plus_2345_PreIndex[
   { 0x00000000, 0x00000077, {0x00000929, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000929, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r12_plus_1601_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r12_plus_1601_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000641, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000641, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000641, 0x77777777} },
@@ -5653,7 +5653,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r12_plus_1601_PreIndex[
   { 0x00000000, 0x00000077, {0x00000641, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000641, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r5_plus_2240_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r5_plus_2240_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000008c0, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000008c0, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000008c0, 0x77777777} },
@@ -5665,7 +5665,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r5_plus_2240_PreIndex[]
   { 0x00000000, 0x00000077, {0x000008c0, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000008c0, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r14_plus_1542_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r14_plus_1542_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000606, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000606, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000606, 0x77777777} },
@@ -5677,7 +5677,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r14_plus_1542_PreIndex
   { 0x00000000, 0x00000077, {0x00000606, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000606, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r12_plus_1246_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r12_plus_1246_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000004de, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000004de, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000004de, 0x77777777} },
@@ -5689,7 +5689,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r12_plus_1246_PreIndex[
   { 0x00000000, 0x00000077, {0x000004de, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000004de, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r0_r10_plus_770_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r0_r10_plus_770_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000302, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000302, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000302, 0x77777777} },
@@ -5701,7 +5701,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r0_r10_plus_770_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000302, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000302, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r5_r8_plus_3076_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r5_r8_plus_3076_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000c04, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000c04, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000c04, 0x77777777} },
@@ -5713,7 +5713,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r5_r8_plus_3076_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000c04, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000c04, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r10_plus_3572_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r10_plus_3572_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000df4, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000df4, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000df4, 0x77777777} },
@@ -5725,7 +5725,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r10_plus_3572_PreIndex[
   { 0x00000000, 0x00000077, {0x00000df4, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000df4, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r8_plus_2_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r8_plus_2_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000002, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000002, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000002, 0x77777777} },
@@ -5737,7 +5737,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r8_plus_2_PreIndex[] =
   { 0x00000000, 0x00000077, {0x00000002, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000002, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r1_plus_670_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r1_plus_670_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x0000029e, 0x55555555} },
   { 0x00000000, 0x00000055, {0x0000029e, 0x55555555} },
   { 0x00000000, 0x00000077, {0x0000029e, 0x77777777} },
@@ -5749,7 +5749,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r1_plus_670_PreIndex[]
   { 0x00000000, 0x00000077, {0x0000029e, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x0000029e, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r4_plus_251_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r4_plus_251_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000000fb, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000000fb, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000000fb, 0x77777777} },
@@ -5761,7 +5761,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r4_plus_251_PreIndex[] 
   { 0x00000000, 0x00000077, {0x000000fb, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000000fb, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r2_plus_2532_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r2_plus_2532_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000009e4, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000009e4, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000009e4, 0x77777777} },
@@ -5773,7 +5773,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r2_plus_2532_PreIndex[
   { 0x00000000, 0x00000077, {0x000009e4, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000009e4, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r14_plus_2906_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r14_plus_2906_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000b5a, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000b5a, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000b5a, 0x77777777} },
@@ -5785,7 +5785,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r14_plus_2906_PreIndex[
   { 0x00000000, 0x00000077, {0x00000b5a, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000b5a, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r5_plus_2864_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r5_plus_2864_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000b30, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000b30, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000b30, 0x77777777} },
@@ -5797,7 +5797,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r5_plus_2864_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000b30, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000b30, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r7_plus_53_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r7_plus_53_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000035, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000035, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000035, 0x77777777} },
@@ -5809,7 +5809,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r7_plus_53_PreIndex[] =
   { 0x00000000, 0x00000077, {0x00000035, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000035, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r0_r12_plus_2462_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r0_r12_plus_2462_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x0000099e, 0x55555555} },
   { 0x00000000, 0x00000055, {0x0000099e, 0x55555555} },
   { 0x00000000, 0x00000077, {0x0000099e, 0x77777777} },
@@ -5821,7 +5821,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r0_r12_plus_2462_PreIndex[
   { 0x00000000, 0x00000077, {0x0000099e, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x0000099e, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r1_plus_2183_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r1_plus_2183_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000887, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000887, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000887, 0x77777777} },
@@ -5833,7 +5833,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r1_plus_2183_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000887, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000887, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r14_plus_3774_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r14_plus_3774_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000ebe, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000ebe, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000ebe, 0x77777777} },
@@ -5845,7 +5845,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r14_plus_3774_PreIndex[
   { 0x00000000, 0x00000077, {0x00000ebe, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000ebe, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r0_plus_3994_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r0_plus_3994_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000f9a, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000f9a, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000f9a, 0x77777777} },
@@ -5857,7 +5857,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r0_plus_3994_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000f9a, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000f9a, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r1_r5_plus_3039_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r1_r5_plus_3039_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000bdf, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000bdf, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000bdf, 0x77777777} },
@@ -5869,7 +5869,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r1_r5_plus_3039_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000bdf, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000bdf, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r12_plus_3425_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r12_plus_3425_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000d61, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000d61, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000d61, 0x77777777} },
@@ -5881,7 +5881,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r12_plus_3425_PreIndex[
   { 0x00000000, 0x00000077, {0x00000d61, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000d61, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r9_plus_4046_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r9_plus_4046_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000fce, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000fce, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000fce, 0x77777777} },
@@ -5893,7 +5893,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r9_plus_4046_PreIndex[
   { 0x00000000, 0x00000077, {0x00000fce, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000fce, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r11_plus_2451_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r11_plus_2451_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000993, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000993, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000993, 0x77777777} },
@@ -5905,7 +5905,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r11_plus_2451_PreIndex
   { 0x00000000, 0x00000077, {0x00000993, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000993, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r9_plus_3063_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r9_plus_3063_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000bf7, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000bf7, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000bf7, 0x77777777} },
@@ -5917,7 +5917,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r9_plus_3063_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000bf7, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000bf7, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r1_plus_3865_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r1_plus_3865_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000f19, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000f19, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000f19, 0x77777777} },
@@ -5929,7 +5929,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r1_plus_3865_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000f19, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000f19, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r4_plus_1537_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r4_plus_1537_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000601, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000601, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000601, 0x77777777} },
@@ -5941,7 +5941,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r4_plus_1537_PreIndex[
   { 0x00000000, 0x00000077, {0x00000601, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000601, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r6_plus_3413_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r6_plus_3413_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000d55, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000d55, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000d55, 0x77777777} },
@@ -5953,7 +5953,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r6_plus_3413_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000d55, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000d55, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r1_plus_2403_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r1_plus_2403_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000963, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000963, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000963, 0x77777777} },
@@ -5965,7 +5965,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r1_plus_2403_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000963, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000963, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r4_plus_2224_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r4_plus_2224_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000008b0, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000008b0, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000008b0, 0x77777777} },
@@ -5977,7 +5977,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r14_r4_plus_2224_PreIndex[
   { 0x00000000, 0x00000077, {0x000008b0, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000008b0, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r5_plus_3743_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r5_plus_3743_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000e9f, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000e9f, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000e9f, 0x77777777} },
@@ -5989,7 +5989,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r5_plus_3743_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000e9f, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000e9f, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r1_plus_1475_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r1_plus_1475_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000005c3, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000005c3, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000005c3, 0x77777777} },
@@ -6001,7 +6001,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r1_plus_1475_PreIndex[]
   { 0x00000000, 0x00000077, {0x000005c3, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000005c3, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r8_plus_132_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r8_plus_132_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000084, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000084, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000084, 0x77777777} },
@@ -6013,7 +6013,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r8_plus_132_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000084, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000084, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r10_plus_1459_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r10_plus_1459_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000005b3, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000005b3, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000005b3, 0x77777777} },
@@ -6025,7 +6025,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r10_plus_1459_PreIndex[
   { 0x00000000, 0x00000077, {0x000005b3, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000005b3, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r8_plus_2254_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r8_plus_2254_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000008ce, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000008ce, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000008ce, 0x77777777} },
@@ -6037,7 +6037,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r8_plus_2254_PreIndex[
   { 0x00000000, 0x00000077, {0x000008ce, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000008ce, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r0_plus_3079_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r0_plus_3079_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000c07, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000c07, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000c07, 0x77777777} },
@@ -6049,7 +6049,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r0_plus_3079_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000c07, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000c07, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r14_plus_3717_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r14_plus_3717_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000e85, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000e85, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000e85, 0x77777777} },
@@ -6061,7 +6061,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r14_plus_3717_PreIndex[
   { 0x00000000, 0x00000077, {0x00000e85, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000e85, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r10_plus_2490_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r10_plus_2490_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000009ba, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000009ba, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000009ba, 0x77777777} },
@@ -6073,7 +6073,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r10_plus_2490_PreIndex[
   { 0x00000000, 0x00000077, {0x000009ba, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000009ba, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r8_plus_210_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r8_plus_210_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000000d2, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000000d2, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000000d2, 0x77777777} },
@@ -6085,7 +6085,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r8_plus_210_PreIndex[] 
   { 0x00000000, 0x00000077, {0x000000d2, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000000d2, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r5_r2_plus_2559_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r5_r2_plus_2559_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000009ff, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000009ff, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000009ff, 0x77777777} },
@@ -6097,7 +6097,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r5_r2_plus_2559_PreIndex[]
   { 0x00000000, 0x00000077, {0x000009ff, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000009ff, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r11_plus_2326_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r11_plus_2326_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000916, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000916, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000916, 0x77777777} },
@@ -6109,7 +6109,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r11_plus_2326_PreIndex[
   { 0x00000000, 0x00000077, {0x00000916, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000916, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r1_plus_4093_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r1_plus_4093_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000ffd, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000ffd, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000ffd, 0x77777777} },
@@ -6121,7 +6121,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r1_plus_4093_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000ffd, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000ffd, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r1_plus_663_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r1_plus_663_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000297, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000297, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000297, 0x77777777} },
@@ -6133,7 +6133,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r1_plus_663_PreIndex[] 
   { 0x00000000, 0x00000077, {0x00000297, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000297, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r3_plus_1551_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r3_plus_1551_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x0000060f, 0x55555555} },
   { 0x00000000, 0x00000055, {0x0000060f, 0x55555555} },
   { 0x00000000, 0x00000077, {0x0000060f, 0x77777777} },
@@ -6145,7 +6145,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r9_r3_plus_1551_PreIndex[]
   { 0x00000000, 0x00000077, {0x0000060f, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x0000060f, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r14_plus_1556_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r14_plus_1556_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000614, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000614, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000614, 0x77777777} },
@@ -6157,7 +6157,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r3_r14_plus_1556_PreIndex[
   { 0x00000000, 0x00000077, {0x00000614, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000614, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r9_plus_1359_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r9_plus_1359_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x0000054f, 0x55555555} },
   { 0x00000000, 0x00000055, {0x0000054f, 0x55555555} },
   { 0x00000000, 0x00000077, {0x0000054f, 0x77777777} },
@@ -6169,7 +6169,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r6_r9_plus_1359_PreIndex[]
   { 0x00000000, 0x00000077, {0x0000054f, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x0000054f, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r7_plus_3438_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r7_plus_3438_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000d6e, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000d6e, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000d6e, 0x77777777} },
@@ -6181,7 +6181,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r2_r7_plus_3438_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000d6e, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000d6e, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r5_plus_1526_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r5_plus_1526_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000005f6, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000005f6, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000005f6, 0x77777777} },
@@ -6193,7 +6193,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r7_r5_plus_1526_PreIndex[]
   { 0x00000000, 0x00000077, {0x000005f6, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000005f6, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r7_plus_57_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r7_plus_57_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000039, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000039, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000039, 0x77777777} },
@@ -6205,7 +6205,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r7_plus_57_PreIndex[] 
   { 0x00000000, 0x00000077, {0x00000039, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000039, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r0_plus_3138_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r0_plus_3138_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000c42, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000c42, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000c42, 0x77777777} },
@@ -6217,7 +6217,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r12_r0_plus_3138_PreIndex[
   { 0x00000000, 0x00000077, {0x00000c42, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000c42, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r11_plus_672_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r11_plus_672_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000002a0, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000002a0, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000002a0, 0x77777777} },
@@ -6229,7 +6229,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r4_r11_plus_672_PreIndex[]
   { 0x00000000, 0x00000077, {0x000002a0, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000002a0, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r14_plus_689_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r14_plus_689_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x000002b1, 0x55555555} },
   { 0x00000000, 0x00000055, {0x000002b1, 0x55555555} },
   { 0x00000000, 0x00000077, {0x000002b1, 0x77777777} },
@@ -6241,7 +6241,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r10_r14_plus_689_PreIndex[
   { 0x00000000, 0x00000077, {0x000002b1, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x000002b1, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r1_r8_plus_3572_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r1_r8_plus_3572_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000df4, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000df4, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000df4, 0x77777777} },
@@ -6253,7 +6253,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r1_r8_plus_3572_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000df4, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000df4, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r6_plus_3405_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r6_plus_3405_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000d4d, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000d4d, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000d4d, 0x77777777} },
@@ -6265,7 +6265,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r8_r6_plus_3405_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000d4d, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000d4d, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r0_plus_1845_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r0_plus_1845_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000735, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000735, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000735, 0x77777777} },
@@ -6277,7 +6277,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r0_plus_1845_PreIndex[
   { 0x00000000, 0x00000077, {0x00000735, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000735, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r3_plus_791_PreIndex[] = {
+const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r3_plus_791_PreIndex[] = {
   { 0x00000000, 0x00000055, {0x00000317, 0x55555555} },
   { 0x00000000, 0x00000055, {0x00000317, 0x55555555} },
   { 0x00000000, 0x00000077, {0x00000317, 0x77777777} },
@@ -6289,7 +6289,7 @@ static const Inputs kOutputs_Ldrb_PositivePreIndex_al_r11_r3_plus_791_PreIndex[]
   { 0x00000000, 0x00000077, {0x00000317, 0x77777777} },
   { 0x00000000, 0x0000009e, {0x00000317, 0x0cabba9e} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r11_minus_479_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r11_minus_479_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffe21, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffe21, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffe21, 0x0cabba9e} },
@@ -6301,7 +6301,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r11_minus_479_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffe21, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffe21, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r10_minus_3603_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r10_minus_3603_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff1ed, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff1ed, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff1ed, 0x0cabba9e} },
@@ -6313,7 +6313,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r10_minus_3603_PreIndex
   { 0x00000000, 0x00000055, {0xfffff1ed, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff1ed, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r9_minus_704_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r9_minus_704_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffd40, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffd40, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffd40, 0x0cabba9e} },
@@ -6325,7 +6325,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r9_minus_704_PreIndex[]
   { 0x00000000, 0x00000055, {0xfffffd40, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffd40, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r1_minus_1017_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r1_minus_1017_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffc07, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffc07, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffc07, 0x0cabba9e} },
@@ -6337,7 +6337,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r1_minus_1017_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffc07, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffc07, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r5_minus_1712_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r5_minus_1712_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff950, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff950, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff950, 0x0cabba9e} },
@@ -6349,7 +6349,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r5_minus_1712_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff950, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff950, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r2_minus_2046_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r2_minus_2046_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff802, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff802, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff802, 0x0cabba9e} },
@@ -6361,7 +6361,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r2_minus_2046_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff802, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff802, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r5_minus_1999_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r5_minus_1999_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff831, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff831, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff831, 0x0cabba9e} },
@@ -6373,7 +6373,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r5_minus_1999_PreIndex
   { 0x00000000, 0x00000055, {0xfffff831, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff831, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r4_minus_2849_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r4_minus_2849_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff4df, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff4df, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff4df, 0x0cabba9e} },
@@ -6385,7 +6385,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r4_minus_2849_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff4df, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff4df, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r14_minus_263_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r14_minus_263_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffef9, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffef9, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffef9, 0x0cabba9e} },
@@ -6397,7 +6397,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r14_minus_263_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffef9, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffef9, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r1_minus_517_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r1_minus_517_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffdfb, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffdfb, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffdfb, 0x0cabba9e} },
@@ -6409,7 +6409,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r1_minus_517_PreIndex[]
   { 0x00000000, 0x00000055, {0xfffffdfb, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffdfb, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r10_minus_1961_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r10_minus_1961_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff857, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff857, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff857, 0x0cabba9e} },
@@ -6421,7 +6421,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r10_minus_1961_PreInde
   { 0x00000000, 0x00000055, {0xfffff857, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff857, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r14_minus_1295_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r14_minus_1295_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffaf1, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffaf1, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffaf1, 0x0cabba9e} },
@@ -6433,7 +6433,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r14_minus_1295_PreIndex
   { 0x00000000, 0x00000055, {0xfffffaf1, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffaf1, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r8_minus_213_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r8_minus_213_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xffffff2b, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xffffff2b, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xffffff2b, 0x0cabba9e} },
@@ -6445,7 +6445,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r8_minus_213_PreIndex[]
   { 0x00000000, 0x00000055, {0xffffff2b, 0x55555555} },
   { 0x00000000, 0x00000077, {0xffffff2b, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r9_minus_2866_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r9_minus_2866_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff4ce, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff4ce, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff4ce, 0x0cabba9e} },
@@ -6457,7 +6457,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r9_minus_2866_PreIndex
   { 0x00000000, 0x00000055, {0xfffff4ce, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff4ce, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r6_minus_1823_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r6_minus_1823_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff8e1, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff8e1, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff8e1, 0x0cabba9e} },
@@ -6469,7 +6469,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r6_minus_1823_PreIndex
   { 0x00000000, 0x00000055, {0xfffff8e1, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff8e1, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r14_minus_2395_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r14_minus_2395_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff6a5, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff6a5, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff6a5, 0x0cabba9e} },
@@ -6481,7 +6481,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r14_minus_2395_PreIndex
   { 0x00000000, 0x00000055, {0xfffff6a5, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff6a5, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r6_minus_2044_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r6_minus_2044_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff804, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff804, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff804, 0x0cabba9e} },
@@ -6493,7 +6493,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r6_minus_2044_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff804, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff804, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r5_minus_3963_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r5_minus_3963_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff085, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff085, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff085, 0x0cabba9e} },
@@ -6505,7 +6505,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r5_minus_3963_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff085, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff085, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r8_minus_3989_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r8_minus_3989_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff06b, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff06b, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff06b, 0x0cabba9e} },
@@ -6517,7 +6517,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r8_minus_3989_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff06b, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff06b, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r0_minus_3975_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r0_minus_3975_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff079, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff079, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff079, 0x0cabba9e} },
@@ -6529,7 +6529,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r0_minus_3975_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff079, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff079, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r10_minus_481_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r10_minus_481_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffe1f, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffe1f, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffe1f, 0x0cabba9e} },
@@ -6541,7 +6541,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r10_minus_481_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffe1f, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffe1f, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r11_minus_3696_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r11_minus_3696_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff190, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff190, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff190, 0x0cabba9e} },
@@ -6553,7 +6553,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r11_minus_3696_PreIndex
   { 0x00000000, 0x00000055, {0xfffff190, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff190, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r12_r9_minus_371_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r12_r9_minus_371_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffe8d, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffe8d, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffe8d, 0x0cabba9e} },
@@ -6565,7 +6565,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r12_r9_minus_371_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffe8d, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffe8d, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r9_minus_2464_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r9_minus_2464_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff660, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff660, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff660, 0x0cabba9e} },
@@ -6577,7 +6577,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r9_minus_2464_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff660, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff660, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r0_minus_1168_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r0_minus_1168_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffb70, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffb70, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffb70, 0x0cabba9e} },
@@ -6589,7 +6589,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r0_minus_1168_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffb70, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffb70, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r0_minus_1066_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r0_minus_1066_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffbd6, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffbd6, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffbd6, 0x0cabba9e} },
@@ -6601,7 +6601,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r0_minus_1066_PreIndex
   { 0x00000000, 0x00000055, {0xfffffbd6, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffbd6, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r1_minus_1651_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r1_minus_1651_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff98d, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff98d, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff98d, 0x0cabba9e} },
@@ -6613,7 +6613,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r1_minus_1651_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff98d, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff98d, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r0_minus_3821_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r0_minus_3821_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff113, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff113, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff113, 0x0cabba9e} },
@@ -6625,7 +6625,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r0_minus_3821_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff113, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff113, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r6_minus_2052_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r6_minus_2052_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff7fc, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff7fc, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff7fc, 0x0cabba9e} },
@@ -6637,7 +6637,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r6_minus_2052_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff7fc, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff7fc, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r12_minus_490_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r12_minus_490_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffe16, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffe16, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffe16, 0x0cabba9e} },
@@ -6649,7 +6649,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r12_minus_490_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffe16, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffe16, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r3_minus_1922_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r3_minus_1922_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff87e, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff87e, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff87e, 0x0cabba9e} },
@@ -6661,7 +6661,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r3_minus_1922_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff87e, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff87e, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r5_minus_875_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r5_minus_875_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffc95, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffc95, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffc95, 0x0cabba9e} },
@@ -6673,7 +6673,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r5_minus_875_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffc95, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffc95, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r2_minus_2183_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r2_minus_2183_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff779, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff779, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff779, 0x0cabba9e} },
@@ -6685,7 +6685,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r2_minus_2183_PreIndex
   { 0x00000000, 0x00000055, {0xfffff779, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff779, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r4_minus_1961_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r4_minus_1961_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff857, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff857, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff857, 0x0cabba9e} },
@@ -6697,7 +6697,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r4_minus_1961_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff857, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff857, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r5_minus_3413_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r5_minus_3413_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff2ab, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff2ab, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff2ab, 0x0cabba9e} },
@@ -6709,7 +6709,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r5_minus_3413_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff2ab, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff2ab, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r14_minus_2016_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r14_minus_2016_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff820, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff820, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff820, 0x0cabba9e} },
@@ -6721,7 +6721,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r14_minus_2016_PreIndex
   { 0x00000000, 0x00000055, {0xfffff820, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff820, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r3_minus_484_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r3_minus_484_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffe1c, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffe1c, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffe1c, 0x0cabba9e} },
@@ -6733,7 +6733,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r3_minus_484_PreIndex[]
   { 0x00000000, 0x00000055, {0xfffffe1c, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffe1c, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r14_minus_322_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r14_minus_322_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffebe, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffebe, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffebe, 0x0cabba9e} },
@@ -6745,7 +6745,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r14_minus_322_PreIndex
   { 0x00000000, 0x00000055, {0xfffffebe, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffebe, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r5_minus_2139_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r5_minus_2139_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff7a5, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff7a5, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff7a5, 0x0cabba9e} },
@@ -6757,7 +6757,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r5_minus_2139_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff7a5, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff7a5, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r14_minus_2976_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r14_minus_2976_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff460, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff460, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff460, 0x0cabba9e} },
@@ -6769,7 +6769,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r14_minus_2976_PreIndex
   { 0x00000000, 0x00000055, {0xfffff460, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff460, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r0_minus_2839_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r0_minus_2839_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff4e9, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff4e9, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff4e9, 0x0cabba9e} },
@@ -6781,7 +6781,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r0_minus_2839_PreIndex
   { 0x00000000, 0x00000055, {0xfffff4e9, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff4e9, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r2_minus_2541_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r2_minus_2541_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff613, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff613, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff613, 0x0cabba9e} },
@@ -6793,7 +6793,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r2_minus_2541_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff613, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff613, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r0_minus_3907_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r0_minus_3907_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff0bd, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff0bd, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff0bd, 0x0cabba9e} },
@@ -6805,7 +6805,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r0_minus_3907_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff0bd, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff0bd, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r14_minus_3449_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r14_minus_3449_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff287, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff287, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff287, 0x0cabba9e} },
@@ -6817,7 +6817,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r14_minus_3449_PreIndex
   { 0x00000000, 0x00000055, {0xfffff287, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff287, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r14_minus_2069_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r14_minus_2069_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff7eb, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff7eb, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff7eb, 0x0cabba9e} },
@@ -6829,7 +6829,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r14_minus_2069_PreIndex
   { 0x00000000, 0x00000055, {0xfffff7eb, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff7eb, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r6_minus_3570_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r6_minus_3570_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff20e, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff20e, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff20e, 0x0cabba9e} },
@@ -6841,7 +6841,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r6_minus_3570_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff20e, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff20e, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r4_minus_811_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r4_minus_811_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffcd5, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffcd5, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffcd5, 0x0cabba9e} },
@@ -6853,7 +6853,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r4_minus_811_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffcd5, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffcd5, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r8_minus_1867_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r8_minus_1867_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff8b5, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff8b5, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff8b5, 0x0cabba9e} },
@@ -6865,7 +6865,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r8_minus_1867_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff8b5, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff8b5, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r7_minus_3978_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r7_minus_3978_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff076, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff076, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff076, 0x0cabba9e} },
@@ -6877,7 +6877,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r7_minus_3978_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff076, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff076, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r6_r11_minus_3438_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r6_r11_minus_3438_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff292, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff292, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff292, 0x0cabba9e} },
@@ -6889,7 +6889,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r6_r11_minus_3438_PreIndex
   { 0x00000000, 0x00000055, {0xfffff292, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff292, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r0_minus_669_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r0_minus_669_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffd63, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffd63, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffd63, 0x0cabba9e} },
@@ -6901,7 +6901,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r0_minus_669_PreIndex[]
   { 0x00000000, 0x00000055, {0xfffffd63, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffd63, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r7_minus_1916_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r7_minus_1916_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff884, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff884, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff884, 0x0cabba9e} },
@@ -6913,7 +6913,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r7_minus_1916_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff884, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff884, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r12_r6_minus_3949_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r12_r6_minus_3949_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff093, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff093, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff093, 0x0cabba9e} },
@@ -6925,7 +6925,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r12_r6_minus_3949_PreIndex
   { 0x00000000, 0x00000055, {0xfffff093, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff093, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r14_minus_496_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r14_minus_496_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffe10, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffe10, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffe10, 0x0cabba9e} },
@@ -6937,7 +6937,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r14_minus_496_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffe10, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffe10, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r9_minus_3914_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r9_minus_3914_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff0b6, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff0b6, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff0b6, 0x0cabba9e} },
@@ -6949,7 +6949,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r9_minus_3914_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff0b6, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff0b6, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r2_minus_1377_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r2_minus_1377_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffa9f, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffa9f, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffa9f, 0x0cabba9e} },
@@ -6961,7 +6961,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r2_minus_1377_PreIndex
   { 0x00000000, 0x00000055, {0xfffffa9f, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffa9f, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r7_minus_3007_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r7_minus_3007_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff441, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff441, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff441, 0x0cabba9e} },
@@ -6973,7 +6973,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r7_minus_3007_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff441, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff441, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r1_minus_496_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r1_minus_496_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffe10, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffe10, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffe10, 0x0cabba9e} },
@@ -6985,7 +6985,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r1_minus_496_PreIndex[]
   { 0x00000000, 0x00000055, {0xfffffe10, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffe10, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r7_minus_138_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r7_minus_138_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xffffff76, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xffffff76, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xffffff76, 0x0cabba9e} },
@@ -6997,7 +6997,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r7_minus_138_PreIndex[
   { 0x00000000, 0x00000055, {0xffffff76, 0x55555555} },
   { 0x00000000, 0x00000077, {0xffffff76, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r3_minus_732_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r3_minus_732_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffd24, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffd24, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffd24, 0x0cabba9e} },
@@ -7009,7 +7009,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r3_minus_732_PreIndex[]
   { 0x00000000, 0x00000055, {0xfffffd24, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffd24, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r14_minus_1635_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r14_minus_1635_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff99d, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff99d, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff99d, 0x0cabba9e} },
@@ -7021,7 +7021,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r14_minus_1635_PreIndex
   { 0x00000000, 0x00000055, {0xfffff99d, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff99d, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r0_minus_2119_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r0_minus_2119_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff7b9, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff7b9, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff7b9, 0x0cabba9e} },
@@ -7033,7 +7033,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r0_minus_2119_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff7b9, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff7b9, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r14_minus_1585_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r14_minus_1585_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff9cf, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff9cf, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff9cf, 0x0cabba9e} },
@@ -7045,7 +7045,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r14_minus_1585_PreIndex
   { 0x00000000, 0x00000055, {0xfffff9cf, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff9cf, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r11_minus_831_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r11_minus_831_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffcc1, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffcc1, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffcc1, 0x0cabba9e} },
@@ -7057,7 +7057,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r11_minus_831_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffcc1, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffcc1, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r3_minus_470_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r3_minus_470_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffe2a, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffe2a, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffe2a, 0x0cabba9e} },
@@ -7069,7 +7069,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r3_minus_470_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffe2a, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffe2a, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r12_r6_minus_47_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r12_r6_minus_47_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xffffffd1, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xffffffd1, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xffffffd1, 0x0cabba9e} },
@@ -7081,7 +7081,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r12_r6_minus_47_PreIndex[]
   { 0x00000000, 0x00000055, {0xffffffd1, 0x55555555} },
   { 0x00000000, 0x00000077, {0xffffffd1, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r2_minus_1542_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r2_minus_1542_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff9fa, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff9fa, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff9fa, 0x0cabba9e} },
@@ -7093,7 +7093,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r1_r2_minus_1542_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff9fa, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff9fa, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r7_minus_2442_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r7_minus_2442_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff676, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff676, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff676, 0x0cabba9e} },
@@ -7105,7 +7105,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r7_minus_2442_PreIndex
   { 0x00000000, 0x00000055, {0xfffff676, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff676, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r10_minus_1896_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r10_minus_1896_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff898, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff898, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff898, 0x0cabba9e} },
@@ -7117,7 +7117,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r10_minus_1896_PreIndex
   { 0x00000000, 0x00000055, {0xfffff898, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff898, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r6_minus_3504_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r6_minus_3504_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff250, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff250, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff250, 0x0cabba9e} },
@@ -7129,7 +7129,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r6_minus_3504_PreIndex
   { 0x00000000, 0x00000055, {0xfffff250, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff250, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r5_minus_1872_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r5_minus_1872_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff8b0, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff8b0, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff8b0, 0x0cabba9e} },
@@ -7141,7 +7141,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r5_minus_1872_PreIndex
   { 0x00000000, 0x00000055, {0xfffff8b0, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff8b0, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r11_minus_386_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r11_minus_386_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffe7e, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffe7e, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffe7e, 0x0cabba9e} },
@@ -7153,7 +7153,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r11_minus_386_PreIndex
   { 0x00000000, 0x00000055, {0xfffffe7e, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffe7e, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r12_minus_2483_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r12_minus_2483_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff64d, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff64d, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff64d, 0x0cabba9e} },
@@ -7165,7 +7165,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r12_minus_2483_PreIndex
   { 0x00000000, 0x00000055, {0xfffff64d, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff64d, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r6_r2_minus_2052_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r6_r2_minus_2052_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff7fc, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff7fc, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff7fc, 0x0cabba9e} },
@@ -7177,7 +7177,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r6_r2_minus_2052_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff7fc, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff7fc, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r10_minus_1399_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r10_minus_1399_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffa89, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffa89, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffa89, 0x0cabba9e} },
@@ -7189,7 +7189,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r10_minus_1399_PreIndex
   { 0x00000000, 0x00000055, {0xfffffa89, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffa89, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r5_minus_1027_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r5_minus_1027_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffbfd, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffbfd, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffbfd, 0x0cabba9e} },
@@ -7201,7 +7201,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r5_minus_1027_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffbfd, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffbfd, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r14_minus_2627_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r14_minus_2627_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff5bd, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff5bd, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff5bd, 0x0cabba9e} },
@@ -7213,7 +7213,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r14_minus_2627_PreInde
   { 0x00000000, 0x00000055, {0xfffff5bd, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff5bd, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r9_minus_2728_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r9_minus_2728_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff558, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff558, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff558, 0x0cabba9e} },
@@ -7225,7 +7225,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r9_minus_2728_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff558, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff558, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r8_minus_2475_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r8_minus_2475_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff655, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff655, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff655, 0x0cabba9e} },
@@ -7237,7 +7237,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r8_minus_2475_PreIndex
   { 0x00000000, 0x00000055, {0xfffff655, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff655, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r5_minus_510_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r5_minus_510_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffe02, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffe02, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffe02, 0x0cabba9e} },
@@ -7249,7 +7249,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r5_minus_510_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffe02, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffe02, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r3_minus_2311_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r3_minus_2311_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff6f9, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff6f9, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff6f9, 0x0cabba9e} },
@@ -7261,7 +7261,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r3_minus_2311_PreIndex
   { 0x00000000, 0x00000055, {0xfffff6f9, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff6f9, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r12_minus_2792_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r12_minus_2792_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff518, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff518, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff518, 0x0cabba9e} },
@@ -7273,7 +7273,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r12_minus_2792_PreIndex
   { 0x00000000, 0x00000055, {0xfffff518, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff518, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r14_minus_1655_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r14_minus_1655_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff989, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff989, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff989, 0x0cabba9e} },
@@ -7285,7 +7285,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r14_minus_1655_PreIndex
   { 0x00000000, 0x00000055, {0xfffff989, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff989, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r5_minus_3282_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r5_minus_3282_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff32e, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff32e, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff32e, 0x0cabba9e} },
@@ -7297,7 +7297,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r10_r5_minus_3282_PreIndex
   { 0x00000000, 0x00000055, {0xfffff32e, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff32e, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r7_minus_3472_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r7_minus_3472_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff270, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff270, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff270, 0x0cabba9e} },
@@ -7309,7 +7309,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r11_r7_minus_3472_PreIndex
   { 0x00000000, 0x00000055, {0xfffff270, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff270, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r1_minus_3266_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r1_minus_3266_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff33e, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff33e, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff33e, 0x0cabba9e} },
@@ -7321,7 +7321,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r1_minus_3266_PreIndex
   { 0x00000000, 0x00000055, {0xfffff33e, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff33e, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r1_minus_3256_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r1_minus_3256_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff348, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff348, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff348, 0x0cabba9e} },
@@ -7333,7 +7333,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r1_minus_3256_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff348, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff348, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r11_minus_4_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r11_minus_4_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffffc, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffffc, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffffc, 0x0cabba9e} },
@@ -7345,7 +7345,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r7_r11_minus_4_PreIndex[] 
   { 0x00000000, 0x00000055, {0xfffffffc, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffffc, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r3_minus_1695_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r3_minus_1695_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff961, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff961, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff961, 0x0cabba9e} },
@@ -7357,7 +7357,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r9_r3_minus_1695_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff961, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff961, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r1_minus_2326_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r1_minus_2326_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff6ea, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff6ea, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff6ea, 0x0cabba9e} },
@@ -7369,7 +7369,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r1_minus_2326_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff6ea, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff6ea, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r14_minus_1651_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r14_minus_1651_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff98d, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff98d, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff98d, 0x0cabba9e} },
@@ -7381,7 +7381,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r14_minus_1651_PreIndex
   { 0x00000000, 0x00000055, {0xfffff98d, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff98d, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r1_minus_955_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r1_minus_955_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffc45, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffc45, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffc45, 0x0cabba9e} },
@@ -7393,7 +7393,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r3_r1_minus_955_PreIndex[]
   { 0x00000000, 0x00000055, {0xfffffc45, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffc45, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r9_minus_3443_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r9_minus_3443_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff28d, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff28d, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff28d, 0x0cabba9e} },
@@ -7405,7 +7405,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r0_r9_minus_3443_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff28d, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff28d, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r10_minus_1017_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r10_minus_1017_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffc07, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffc07, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffc07, 0x0cabba9e} },
@@ -7417,7 +7417,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r10_minus_1017_PreInde
   { 0x00000000, 0x00000055, {0xfffffc07, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffc07, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r3_minus_2703_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r3_minus_2703_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff571, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff571, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff571, 0x0cabba9e} },
@@ -7429,7 +7429,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r3_minus_2703_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff571, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff571, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r10_minus_831_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r10_minus_831_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffffcc1, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffffcc1, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffffcc1, 0x0cabba9e} },
@@ -7441,7 +7441,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r8_r10_minus_831_PreIndex[
   { 0x00000000, 0x00000055, {0xfffffcc1, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffffcc1, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r6_minus_3194_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r6_minus_3194_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff386, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff386, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff386, 0x0cabba9e} },
@@ -7453,7 +7453,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r5_r6_minus_3194_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff386, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff386, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r3_minus_3607_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r3_minus_3607_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff1e9, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff1e9, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff1e9, 0x0cabba9e} },
@@ -7465,7 +7465,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r2_r3_minus_3607_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff1e9, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff1e9, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r7_minus_2119_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r7_minus_2119_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff7b9, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff7b9, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff7b9, 0x0cabba9e} },
@@ -7477,7 +7477,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r14_r7_minus_2119_PreIndex
   { 0x00000000, 0x00000055, {0xfffff7b9, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff7b9, 0x77777777} },
 };
-static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r3_minus_2559_PreIndex[] = {
+const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r3_minus_2559_PreIndex[] = {
   { 0x00000000, 0x000000ef, {0xfffff601, 0x0badbeef} },
   { 0x00000000, 0x00000077, {0xfffff601, 0x77777777} },
   { 0x00000000, 0x0000009e, {0xfffff601, 0x0cabba9e} },
@@ -7489,7 +7489,7 @@ static const Inputs kOutputs_Ldrb_NegativePreIndex_al_r4_r3_minus_2559_PreIndex[
   { 0x00000000, 0x00000055, {0xfffff601, 0x55555555} },
   { 0x00000000, 0x00000077, {0xfffff601, 0x77777777} },
 };
-static const TestResult kReferenceLdrb[] = {
+const TestResult kReferenceLdrb[] = {
   {
     ARRAY_SIZE(kOutputs_Ldrb_Condition_eq_r0_r1_plus_0_Offset),
     kOutputs_Ldrb_Condition_eq_r0_r1_plus_0_Offset,

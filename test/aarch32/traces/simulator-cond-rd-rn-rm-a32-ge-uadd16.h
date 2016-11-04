@@ -34,7 +34,7 @@
 #ifndef VIXL_SIMULATOR_COND_RD_RN_RM_A32_GE_UADD16_H_
 #define VIXL_SIMULATOR_COND_RD_RN_RM_A32_GE_UADD16_H_
 
-static const Inputs kOutputs_Uadd16_GE_al_r12_r0_r10[] = {
+const Inputs kOutputs_Uadd16_GE_al_r12_r0_r10[] = {
   { 0x00000000, 0x00000000, 0x00000000, 0x0000fffd, 0x00007ffe, 0x00007fff },
   { 0x00000000, 0x00000000, 0x00000000, 0xffffff84, 0x00000001, 0xffffff83 },
   { 0x00000000, 0x00000000, 0x00030000, 0xffff7f7d, 0xffffff80, 0x00007ffd },
@@ -236,7 +236,7 @@ static const Inputs kOutputs_Uadd16_GE_al_r12_r0_r10[] = {
   { 0x00000000, 0x00000000, 0x000f0000, 0xcccb4ccf, 0xcccccccc, 0xffff8003 },
   { 0x00000000, 0x00000000, 0x00000000, 0x000000fa, 0x0000007d, 0x0000007d },
 };
-static const TestResult kReferenceUadd16[] = {
+const TestResult kReferenceUadd16[] = {
   {
     ARRAY_SIZE(kOutputs_Uadd16_GE_al_r12_r0_r10),
     kOutputs_Uadd16_GE_al_r12_r0_r10,

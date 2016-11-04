@@ -34,7 +34,7 @@
 #ifndef VIXL_SIMULATOR_COND_RD_RN_RM_A32_SEL_SEL_H_
 #define VIXL_SIMULATOR_COND_RD_RN_RM_A32_SEL_SEL_H_
 
-static const Inputs kOutputs_Sel_GE_al_r9_r2_r10[] = {
+const Inputs kOutputs_Sel_GE_al_r9_r2_r10[] = {
   { 0x00000000, 0x00000000, 0x000e0000, 0xffffff7e, 0xfffffffe, 0x0000007e },
   { 0x00000000, 0x00000000, 0x000c0000, 0x7fffff82, 0x7fffffff, 0xffffff82 },
   { 0x00000000, 0x00000000, 0x000e0000, 0x7fffff81, 0x7ffffffe, 0xffffff81 },
@@ -236,7 +236,7 @@ static const Inputs kOutputs_Sel_GE_al_r9_r2_r10[] = {
   { 0x00000000, 0x00000000, 0x00070000, 0x00fffffd, 0xfffffffd, 0x00007ffd },
   { 0x00000000, 0x00000000, 0x00060000, 0xffff80fe, 0xffff8001, 0xfffffffe },
 };
-static const TestResult kReferenceSel[] = {
+const TestResult kReferenceSel[] = {
   {
     ARRAY_SIZE(kOutputs_Sel_GE_al_r9_r2_r10),
     kOutputs_Sel_GE_al_r9_r2_r10,

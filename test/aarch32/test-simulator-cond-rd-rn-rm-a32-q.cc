@@ -118,6 +118,15 @@ namespace aarch32 {
   M(Qsub)
 
 
+// The following definitions are defined again in each generated test, therefore
+// we need to place them in an anomymous namespace. It expresses that they are
+// local to this file only, and the compiler is not allowed to share these types
+// across test files during template instantiation. Specifically, `Operands` and
+// `Inputs` have various layouts across generated tests so they absolutely
+// cannot be shared.
+
+namespace {
+
 // Values to be passed to the assembler to produce the instruction under test.
 struct Operands {
   Condition cond;
@@ -355,11 +364,11 @@ static const Inputs kQOutput[] =
 
 
 // A loop will be generated for each element of this array.
-static const TestLoopData kTests[] = {{{al, r0, r9, r10},
-                                       "al r0 r9 r10",
-                                       "QOutput_al_r0_r9_r10",
-                                       ARRAY_SIZE(kQOutput),
-                                       kQOutput}};
+const TestLoopData kTests[] = {{{al, r0, r9, r10},
+                                "al r0 r9 r10",
+                                "QOutput_al_r0_r9_r10",
+                                ARRAY_SIZE(kQOutput),
+                                kQOutput}};
 
 // We record all inputs to the instructions as outputs. This way, we also check
 // that what shouldn't change didn't change.
@@ -377,7 +386,7 @@ struct TestResult {
 
 
 // The maximum number of errors to report in detail for each test.
-static const unsigned kErrorReportLimit = 8;
+const unsigned kErrorReportLimit = 8;
 
 typedef void (MacroAssembler::*Fn)(Condition cond,
                                    Register rd,
@@ -516,7 +525,7 @@ static void TestHelper(Fn instruction,
   if (Test::generate_test_trace()) {
     // Print the results.
     for (size_t i = 0; i < ARRAY_SIZE(kTests); i++) {
-      printf("static const Inputs kOutputs_%s_%s[] = {\n",
+      printf("const Inputs kOutputs_%s_%s[] = {\n",
              mnemonic,
              kTests[i].identifier);
       for (size_t j = 0; j < results[i]->output_size; j++) {
@@ -536,7 +545,7 @@ static void TestHelper(Fn instruction,
       }
       printf("};\n");
     }
-    printf("static const TestResult kReference%s[] = {\n", mnemonic);
+    printf("const TestResult kReference%s[] = {\n", mnemonic);
     for (size_t i = 0; i < ARRAY_SIZE(kTests); i++) {
       printf("  {\n");
       printf("    ARRAY_SIZE(kOutputs_%s_%s),\n",
@@ -645,14 +654,15 @@ static void TestHelper(Fn instruction,
 
 // Instantiate tests for each instruction in the list.
 #define TEST(mnemonic)                                                      \
-  static void Test_##mnemonic() {                                           \
+  void Test_##mnemonic() {                                                  \
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
   }                                                                         \
-  static Test                                                               \
-      test_##mnemonic("AARCH32_SIMULATOR_COND_RD_RN_RM_A32_Q_" #mnemonic,   \
-                      &Test_##mnemonic);
+  Test test_##mnemonic("AARCH32_SIMULATOR_COND_RD_RN_RM_A32_Q_" #mnemonic,  \
+                       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST
 
-}  // aarch32
-}  // vixl
+}  // namespace
+
+}  // namespace aarch32
+}  // namespace vixl

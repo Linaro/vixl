@@ -34,7 +34,7 @@
 #ifndef VIXL_SIMULATOR_COND_RD_RN_OPERAND_CONST_T32_ADC_H_
 #define VIXL_SIMULATOR_COND_RD_RN_OPERAND_CONST_T32_ADC_H_
 
-static const Inputs kOutputs_Adc_RdIsRn_al_r5_r5_0x00001560[] = {
+const Inputs kOutputs_Adc_RdIsRn_al_r5_r5_0x00001560[] = {
   { 0x00000000, 0x00001560, 0x00001560 },
   { 0x00000000, 0x00001561, 0x00001561 },
   { 0x00000000, 0x00001562, 0x00001562 },
@@ -67,7 +67,7 @@ static const Inputs kOutputs_Adc_RdIsRn_al_r5_r5_0x00001560[] = {
   { 0x00000000, 0x0000155e, 0x0000155e },
   { 0x00000000, 0x0000155f, 0x0000155f },
 };
-static const Inputs kOutputs_Adc_RdIsRn_al_r0_r0_0x00007f80[] = {
+const Inputs kOutputs_Adc_RdIsRn_al_r0_r0_0x00007f80[] = {
   { 0x00000000, 0x00007f80, 0x00007f80 },
   { 0x00000000, 0x00007f81, 0x00007f81 },
   { 0x00000000, 0x00007f82, 0x00007f82 },
@@ -100,7 +100,7 @@ static const Inputs kOutputs_Adc_RdIsRn_al_r0_r0_0x00007f80[] = {
   { 0x00000000, 0x00007f7e, 0x00007f7e },
   { 0x00000000, 0x00007f7f, 0x00007f7f },
 };
-static const Inputs kOutputs_Adc_RdIsRn_al_r1_r1_0x002ac000[] = {
+const Inputs kOutputs_Adc_RdIsRn_al_r1_r1_0x002ac000[] = {
   { 0x00000000, 0x002ac000, 0x002ac000 },
   { 0x00000000, 0x002ac001, 0x002ac001 },
   { 0x00000000, 0x002ac002, 0x002ac002 },
@@ -133,7 +133,7 @@ static const Inputs kOutputs_Adc_RdIsRn_al_r1_r1_0x002ac000[] = {
   { 0x00000000, 0x002abffe, 0x002abffe },
   { 0x00000000, 0x002abfff, 0x002abfff },
 };
-static const Inputs kOutputs_Adc_RdIsRn_al_r10_r10_0x15600000[] = {
+const Inputs kOutputs_Adc_RdIsRn_al_r10_r10_0x15600000[] = {
   { 0x00000000, 0x15600000, 0x15600000 },
   { 0x00000000, 0x15600001, 0x15600001 },
   { 0x00000000, 0x15600002, 0x15600002 },
@@ -166,7 +166,7 @@ static const Inputs kOutputs_Adc_RdIsRn_al_r10_r10_0x15600000[] = {
   { 0x00000000, 0x155ffffe, 0x155ffffe },
   { 0x00000000, 0x155fffff, 0x155fffff },
 };
-static const Inputs kOutputs_Adc_RdIsRn_al_r2_r2_0x00001fe0[] = {
+const Inputs kOutputs_Adc_RdIsRn_al_r2_r2_0x00001fe0[] = {
   { 0x00000000, 0x00001fe0, 0x00001fe0 },
   { 0x00000000, 0x00001fe1, 0x00001fe1 },
   { 0x00000000, 0x00001fe2, 0x00001fe2 },
@@ -199,7 +199,7 @@ static const Inputs kOutputs_Adc_RdIsRn_al_r2_r2_0x00001fe0[] = {
   { 0x00000000, 0x00001fde, 0x00001fde },
   { 0x00000000, 0x00001fdf, 0x00001fdf },
 };
-static const Inputs kOutputs_Adc_RdIsRn_al_r12_r12_0x2ac00000[] = {
+const Inputs kOutputs_Adc_RdIsRn_al_r12_r12_0x2ac00000[] = {
   { 0x00000000, 0x2ac00000, 0x2ac00000 },
   { 0x00000000, 0x2ac00001, 0x2ac00001 },
   { 0x00000000, 0x2ac00002, 0x2ac00002 },
@@ -232,7 +232,7 @@ static const Inputs kOutputs_Adc_RdIsRn_al_r12_r12_0x2ac00000[] = {
   { 0x00000000, 0x2abffffe, 0x2abffffe },
   { 0x00000000, 0x2abfffff, 0x2abfffff },
 };
-static const Inputs kOutputs_Adc_RdIsRn_al_r8_r8_0x00001fe0[] = {
+const Inputs kOutputs_Adc_RdIsRn_al_r8_r8_0x00001fe0[] = {
   { 0x00000000, 0x00001fe0, 0x00001fe0 },
   { 0x00000000, 0x00001fe1, 0x00001fe1 },
   { 0x00000000, 0x00001fe2, 0x00001fe2 },
@@ -265,7 +265,7 @@ static const Inputs kOutputs_Adc_RdIsRn_al_r8_r8_0x00001fe0[] = {
   { 0x00000000, 0x00001fde, 0x00001fde },
   { 0x00000000, 0x00001fdf, 0x00001fdf },
 };
-static const Inputs kOutputs_Adc_RdIsRn_al_r4_r4_0x00ff0000[] = {
+const Inputs kOutputs_Adc_RdIsRn_al_r4_r4_0x00ff0000[] = {
   { 0x00000000, 0x00ff0000, 0x00ff0000 },
   { 0x00000000, 0x00ff0001, 0x00ff0001 },
   { 0x00000000, 0x00ff0002, 0x00ff0002 },
@@ -298,7 +298,7 @@ static const Inputs kOutputs_Adc_RdIsRn_al_r4_r4_0x00ff0000[] = {
   { 0x00000000, 0x00fefffe, 0x00fefffe },
   { 0x00000000, 0x00feffff, 0x00feffff },
 };
-static const Inputs kOutputs_Adc_RdIsRn_al_r8_r8_0x0007f800[] = {
+const Inputs kOutputs_Adc_RdIsRn_al_r8_r8_0x0007f800[] = {
   { 0x00000000, 0x0007f800, 0x0007f800 },
   { 0x00000000, 0x0007f801, 0x0007f801 },
   { 0x00000000, 0x0007f802, 0x0007f802 },
@@ -331,7 +331,7 @@ static const Inputs kOutputs_Adc_RdIsRn_al_r8_r8_0x0007f800[] = {
   { 0x00000000, 0x0007f7fe, 0x0007f7fe },
   { 0x00000000, 0x0007f7ff, 0x0007f7ff },
 };
-static const Inputs kOutputs_Adc_RdIsRn_al_r6_r6_0x00005580[] = {
+const Inputs kOutputs_Adc_RdIsRn_al_r6_r6_0x00005580[] = {
   { 0x00000000, 0x00005580, 0x00005580 },
   { 0x00000000, 0x00005581, 0x00005581 },
   { 0x00000000, 0x00005582, 0x00005582 },
@@ -364,7 +364,7 @@ static const Inputs kOutputs_Adc_RdIsRn_al_r6_r6_0x00005580[] = {
   { 0x00000000, 0x0000557e, 0x0000557e },
   { 0x00000000, 0x0000557f, 0x0000557f },
 };
-static const Inputs kOutputs_Adc_RdIsNotRn_al_r5_r8_0x0000ab00[] = {
+const Inputs kOutputs_Adc_RdIsNotRn_al_r5_r8_0x0000ab00[] = {
   { 0x00000000, 0x0000ab00, 0x00000000 },
   { 0x00000000, 0x0000ab01, 0x00000001 },
   { 0x00000000, 0x0000ab02, 0x00000002 },
@@ -1327,7 +1327,7 @@ static const Inputs kOutputs_Adc_RdIsNotRn_al_r5_r8_0x0000ab00[] = {
   { 0x00000000, 0x0000aafe, 0xfffffffe },
   { 0x00000000, 0x0000aaff, 0xffffffff },
 };
-static const Inputs kOutputs_Adc_RdIsNotRn_al_r0_r4_0x00005580[] = {
+const Inputs kOutputs_Adc_RdIsNotRn_al_r0_r4_0x00005580[] = {
   { 0x00000000, 0x00005580, 0x00000000 },
   { 0x00000000, 0x00005581, 0x00000001 },
   { 0x00000000, 0x00005582, 0x00000002 },
@@ -2290,7 +2290,7 @@ static const Inputs kOutputs_Adc_RdIsNotRn_al_r0_r4_0x00005580[] = {
   { 0x00000000, 0x0000557e, 0xfffffffe },
   { 0x00000000, 0x0000557f, 0xffffffff },
 };
-static const Inputs kOutputs_Adc_RdIsNotRn_al_r9_r5_0x0002ac00[] = {
+const Inputs kOutputs_Adc_RdIsNotRn_al_r9_r5_0x0002ac00[] = {
   { 0x00000000, 0x0002ac00, 0x00000000 },
   { 0x00000000, 0x0002ac01, 0x00000001 },
   { 0x00000000, 0x0002ac02, 0x00000002 },
@@ -3253,7 +3253,7 @@ static const Inputs kOutputs_Adc_RdIsNotRn_al_r9_r5_0x0002ac00[] = {
   { 0x00000000, 0x0002abfe, 0xfffffffe },
   { 0x00000000, 0x0002abff, 0xffffffff },
 };
-static const Inputs kOutputs_Adc_RdIsNotRn_al_r5_r14_0x000002ac[] = {
+const Inputs kOutputs_Adc_RdIsNotRn_al_r5_r14_0x000002ac[] = {
   { 0x00000000, 0x000002ac, 0x00000000 },
   { 0x00000000, 0x000002ad, 0x00000001 },
   { 0x00000000, 0x000002ae, 0x00000002 },
@@ -4216,7 +4216,7 @@ static const Inputs kOutputs_Adc_RdIsNotRn_al_r5_r14_0x000002ac[] = {
   { 0x00000000, 0x000002aa, 0xfffffffe },
   { 0x00000000, 0x000002ab, 0xffffffff },
 };
-static const Inputs kOutputs_Adc_RdIsNotRn_al_r10_r7_0x0002ac00[] = {
+const Inputs kOutputs_Adc_RdIsNotRn_al_r10_r7_0x0002ac00[] = {
   { 0x00000000, 0x0002ac00, 0x00000000 },
   { 0x00000000, 0x0002ac01, 0x00000001 },
   { 0x00000000, 0x0002ac02, 0x00000002 },
@@ -5179,7 +5179,7 @@ static const Inputs kOutputs_Adc_RdIsNotRn_al_r10_r7_0x0002ac00[] = {
   { 0x00000000, 0x0002abfe, 0xfffffffe },
   { 0x00000000, 0x0002abff, 0xffffffff },
 };
-static const Inputs kOutputs_Adc_RdIsNotRn_al_r3_r5_0x00ff00ff[] = {
+const Inputs kOutputs_Adc_RdIsNotRn_al_r3_r5_0x00ff00ff[] = {
   { 0x00000000, 0x00ff00ff, 0x00000000 },
   { 0x00000000, 0x00ff0100, 0x00000001 },
   { 0x00000000, 0x00ff0101, 0x00000002 },
@@ -6142,7 +6142,7 @@ static const Inputs kOutputs_Adc_RdIsNotRn_al_r3_r5_0x00ff00ff[] = {
   { 0x00000000, 0x00ff00fd, 0xfffffffe },
   { 0x00000000, 0x00ff00fe, 0xffffffff },
 };
-static const Inputs kOutputs_Adc_RdIsNotRn_al_r1_r3_0x02ac0000[] = {
+const Inputs kOutputs_Adc_RdIsNotRn_al_r1_r3_0x02ac0000[] = {
   { 0x00000000, 0x02ac0000, 0x00000000 },
   { 0x00000000, 0x02ac0001, 0x00000001 },
   { 0x00000000, 0x02ac0002, 0x00000002 },
@@ -7105,7 +7105,7 @@ static const Inputs kOutputs_Adc_RdIsNotRn_al_r1_r3_0x02ac0000[] = {
   { 0x00000000, 0x02abfffe, 0xfffffffe },
   { 0x00000000, 0x02abffff, 0xffffffff },
 };
-static const Inputs kOutputs_Adc_RdIsNotRn_al_r1_r10_0x00558000[] = {
+const Inputs kOutputs_Adc_RdIsNotRn_al_r1_r10_0x00558000[] = {
   { 0x00000000, 0x00558000, 0x00000000 },
   { 0x00000000, 0x00558001, 0x00000001 },
   { 0x00000000, 0x00558002, 0x00000002 },
@@ -8068,7 +8068,7 @@ static const Inputs kOutputs_Adc_RdIsNotRn_al_r1_r10_0x00558000[] = {
   { 0x00000000, 0x00557ffe, 0xfffffffe },
   { 0x00000000, 0x00557fff, 0xffffffff },
 };
-static const Inputs kOutputs_Adc_RdIsNotRn_al_r14_r9_0x01560000[] = {
+const Inputs kOutputs_Adc_RdIsNotRn_al_r14_r9_0x01560000[] = {
   { 0x00000000, 0x01560000, 0x00000000 },
   { 0x00000000, 0x01560001, 0x00000001 },
   { 0x00000000, 0x01560002, 0x00000002 },
@@ -9031,7 +9031,7 @@ static const Inputs kOutputs_Adc_RdIsNotRn_al_r14_r9_0x01560000[] = {
   { 0x00000000, 0x0155fffe, 0xfffffffe },
   { 0x00000000, 0x0155ffff, 0xffffffff },
 };
-static const Inputs kOutputs_Adc_RdIsNotRn_al_r8_r0_0x00002ac0[] = {
+const Inputs kOutputs_Adc_RdIsNotRn_al_r8_r0_0x00002ac0[] = {
   { 0x00000000, 0x00002ac0, 0x00000000 },
   { 0x00000000, 0x00002ac1, 0x00000001 },
   { 0x00000000, 0x00002ac2, 0x00000002 },
@@ -9994,7 +9994,7 @@ static const Inputs kOutputs_Adc_RdIsNotRn_al_r8_r0_0x00002ac0[] = {
   { 0x00000000, 0x00002abe, 0xfffffffe },
   { 0x00000000, 0x00002abf, 0xffffffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000001fe[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000001fe[] = {
   { 0x00000000, 0x000001fe, 0x000001fe },
   { 0x00000000, 0x000001ff, 0x000001ff },
   { 0x00000000, 0x00000200, 0x00000200 },
@@ -10027,7 +10027,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000001fe[] = {
   { 0x00000000, 0x000001fc, 0x000001fc },
   { 0x00000000, 0x000001fd, 0x000001fd },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000003fc[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000003fc[] = {
   { 0x00000000, 0x000003fc, 0x000003fc },
   { 0x00000000, 0x000003fd, 0x000003fd },
   { 0x00000000, 0x000003fe, 0x000003fe },
@@ -10060,7 +10060,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000003fc[] = {
   { 0x00000000, 0x000003fa, 0x000003fa },
   { 0x00000000, 0x000003fb, 0x000003fb },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000007f8[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000007f8[] = {
   { 0x00000000, 0x000007f8, 0x000007f8 },
   { 0x00000000, 0x000007f9, 0x000007f9 },
   { 0x00000000, 0x000007fa, 0x000007fa },
@@ -10093,7 +10093,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000007f8[] = {
   { 0x00000000, 0x000007f6, 0x000007f6 },
   { 0x00000000, 0x000007f7, 0x000007f7 },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00000ff0[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00000ff0[] = {
   { 0x00000000, 0x00000ff0, 0x00000ff0 },
   { 0x00000000, 0x00000ff1, 0x00000ff1 },
   { 0x00000000, 0x00000ff2, 0x00000ff2 },
@@ -10126,7 +10126,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00000ff0[] = {
   { 0x00000000, 0x00000fee, 0x00000fee },
   { 0x00000000, 0x00000fef, 0x00000fef },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00001fe0[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00001fe0[] = {
   { 0x00000000, 0x00001fe0, 0x00001fe0 },
   { 0x00000000, 0x00001fe1, 0x00001fe1 },
   { 0x00000000, 0x00001fe2, 0x00001fe2 },
@@ -10159,7 +10159,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00001fe0[] = {
   { 0x00000000, 0x00001fde, 0x00001fde },
   { 0x00000000, 0x00001fdf, 0x00001fdf },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00003fc0[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00003fc0[] = {
   { 0x00000000, 0x00003fc0, 0x00003fc0 },
   { 0x00000000, 0x00003fc1, 0x00003fc1 },
   { 0x00000000, 0x00003fc2, 0x00003fc2 },
@@ -10192,7 +10192,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00003fc0[] = {
   { 0x00000000, 0x00003fbe, 0x00003fbe },
   { 0x00000000, 0x00003fbf, 0x00003fbf },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00007f80[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00007f80[] = {
   { 0x00000000, 0x00007f80, 0x00007f80 },
   { 0x00000000, 0x00007f81, 0x00007f81 },
   { 0x00000000, 0x00007f82, 0x00007f82 },
@@ -10225,7 +10225,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00007f80[] = {
   { 0x00000000, 0x00007f7e, 0x00007f7e },
   { 0x00000000, 0x00007f7f, 0x00007f7f },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0000ff00[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0000ff00[] = {
   { 0x00000000, 0x0000ff00, 0x0000ff00 },
   { 0x00000000, 0x0000ff01, 0x0000ff01 },
   { 0x00000000, 0x0000ff02, 0x0000ff02 },
@@ -10258,7 +10258,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0000ff00[] = {
   { 0x00000000, 0x0000fefe, 0x0000fefe },
   { 0x00000000, 0x0000feff, 0x0000feff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0001fe00[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0001fe00[] = {
   { 0x00000000, 0x0001fe00, 0x0001fe00 },
   { 0x00000000, 0x0001fe01, 0x0001fe01 },
   { 0x00000000, 0x0001fe02, 0x0001fe02 },
@@ -10291,7 +10291,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0001fe00[] = {
   { 0x00000000, 0x0001fdfe, 0x0001fdfe },
   { 0x00000000, 0x0001fdff, 0x0001fdff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0003fc00[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0003fc00[] = {
   { 0x00000000, 0x0003fc00, 0x0003fc00 },
   { 0x00000000, 0x0003fc01, 0x0003fc01 },
   { 0x00000000, 0x0003fc02, 0x0003fc02 },
@@ -10324,7 +10324,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0003fc00[] = {
   { 0x00000000, 0x0003fbfe, 0x0003fbfe },
   { 0x00000000, 0x0003fbff, 0x0003fbff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0007f800[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0007f800[] = {
   { 0x00000000, 0x0007f800, 0x0007f800 },
   { 0x00000000, 0x0007f801, 0x0007f801 },
   { 0x00000000, 0x0007f802, 0x0007f802 },
@@ -10357,7 +10357,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0007f800[] = {
   { 0x00000000, 0x0007f7fe, 0x0007f7fe },
   { 0x00000000, 0x0007f7ff, 0x0007f7ff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000ff000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000ff000[] = {
   { 0x00000000, 0x000ff000, 0x000ff000 },
   { 0x00000000, 0x000ff001, 0x000ff001 },
   { 0x00000000, 0x000ff002, 0x000ff002 },
@@ -10390,7 +10390,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000ff000[] = {
   { 0x00000000, 0x000feffe, 0x000feffe },
   { 0x00000000, 0x000fefff, 0x000fefff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x001fe000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x001fe000[] = {
   { 0x00000000, 0x001fe000, 0x001fe000 },
   { 0x00000000, 0x001fe001, 0x001fe001 },
   { 0x00000000, 0x001fe002, 0x001fe002 },
@@ -10423,7 +10423,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x001fe000[] = {
   { 0x00000000, 0x001fdffe, 0x001fdffe },
   { 0x00000000, 0x001fdfff, 0x001fdfff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x003fc000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x003fc000[] = {
   { 0x00000000, 0x003fc000, 0x003fc000 },
   { 0x00000000, 0x003fc001, 0x003fc001 },
   { 0x00000000, 0x003fc002, 0x003fc002 },
@@ -10456,7 +10456,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x003fc000[] = {
   { 0x00000000, 0x003fbffe, 0x003fbffe },
   { 0x00000000, 0x003fbfff, 0x003fbfff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x007f8000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x007f8000[] = {
   { 0x00000000, 0x007f8000, 0x007f8000 },
   { 0x00000000, 0x007f8001, 0x007f8001 },
   { 0x00000000, 0x007f8002, 0x007f8002 },
@@ -10489,7 +10489,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x007f8000[] = {
   { 0x00000000, 0x007f7ffe, 0x007f7ffe },
   { 0x00000000, 0x007f7fff, 0x007f7fff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00ff0000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00ff0000[] = {
   { 0x00000000, 0x00ff0000, 0x00ff0000 },
   { 0x00000000, 0x00ff0001, 0x00ff0001 },
   { 0x00000000, 0x00ff0002, 0x00ff0002 },
@@ -10522,7 +10522,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00ff0000[] = {
   { 0x00000000, 0x00fefffe, 0x00fefffe },
   { 0x00000000, 0x00feffff, 0x00feffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x01fe0000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x01fe0000[] = {
   { 0x00000000, 0x01fe0000, 0x01fe0000 },
   { 0x00000000, 0x01fe0001, 0x01fe0001 },
   { 0x00000000, 0x01fe0002, 0x01fe0002 },
@@ -10555,7 +10555,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x01fe0000[] = {
   { 0x00000000, 0x01fdfffe, 0x01fdfffe },
   { 0x00000000, 0x01fdffff, 0x01fdffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x03fc0000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x03fc0000[] = {
   { 0x00000000, 0x03fc0000, 0x03fc0000 },
   { 0x00000000, 0x03fc0001, 0x03fc0001 },
   { 0x00000000, 0x03fc0002, 0x03fc0002 },
@@ -10588,7 +10588,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x03fc0000[] = {
   { 0x00000000, 0x03fbfffe, 0x03fbfffe },
   { 0x00000000, 0x03fbffff, 0x03fbffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x07f80000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x07f80000[] = {
   { 0x00000000, 0x07f80000, 0x07f80000 },
   { 0x00000000, 0x07f80001, 0x07f80001 },
   { 0x00000000, 0x07f80002, 0x07f80002 },
@@ -10621,7 +10621,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x07f80000[] = {
   { 0x00000000, 0x07f7fffe, 0x07f7fffe },
   { 0x00000000, 0x07f7ffff, 0x07f7ffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0ff00000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0ff00000[] = {
   { 0x00000000, 0x0ff00000, 0x0ff00000 },
   { 0x00000000, 0x0ff00001, 0x0ff00001 },
   { 0x00000000, 0x0ff00002, 0x0ff00002 },
@@ -10654,7 +10654,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0ff00000[] = {
   { 0x00000000, 0x0feffffe, 0x0feffffe },
   { 0x00000000, 0x0fefffff, 0x0fefffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x1fe00000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x1fe00000[] = {
   { 0x00000000, 0x1fe00000, 0x1fe00000 },
   { 0x00000000, 0x1fe00001, 0x1fe00001 },
   { 0x00000000, 0x1fe00002, 0x1fe00002 },
@@ -10687,7 +10687,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x1fe00000[] = {
   { 0x00000000, 0x1fdffffe, 0x1fdffffe },
   { 0x00000000, 0x1fdfffff, 0x1fdfffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x3fc00000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x3fc00000[] = {
   { 0x00000000, 0x3fc00000, 0x3fc00000 },
   { 0x00000000, 0x3fc00001, 0x3fc00001 },
   { 0x00000000, 0x3fc00002, 0x3fc00002 },
@@ -10720,7 +10720,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x3fc00000[] = {
   { 0x00000000, 0x3fbffffe, 0x3fbffffe },
   { 0x00000000, 0x3fbfffff, 0x3fbfffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x7f800000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x7f800000[] = {
   { 0x00000000, 0x7f800000, 0x7f800000 },
   { 0x00000000, 0x7f800001, 0x7f800001 },
   { 0x00000000, 0x7f800002, 0x7f800002 },
@@ -10753,7 +10753,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x7f800000[] = {
   { 0x00000000, 0x7f7ffffe, 0x7f7ffffe },
   { 0x00000000, 0x7f7fffff, 0x7f7fffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xff000000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xff000000[] = {
   { 0x00000000, 0xff000000, 0xff000000 },
   { 0x00000000, 0xff000001, 0xff000001 },
   { 0x00000000, 0xff000002, 0xff000002 },
@@ -10786,7 +10786,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xff000000[] = {
   { 0x00000000, 0xfefffffe, 0xfefffffe },
   { 0x00000000, 0xfeffffff, 0xfeffffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000000ff[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000000ff[] = {
   { 0x00000000, 0x000000ff, 0x000000ff },
   { 0x00000000, 0x00000100, 0x00000100 },
   { 0x00000000, 0x00000101, 0x00000101 },
@@ -10819,7 +10819,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000000ff[] = {
   { 0x00000000, 0x000000fd, 0x000000fd },
   { 0x00000000, 0x000000fe, 0x000000fe },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00ff00ff[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00ff00ff[] = {
   { 0x00000000, 0x00ff00ff, 0x00ff00ff },
   { 0x00000000, 0x00ff0100, 0x00ff0100 },
   { 0x00000000, 0x00ff0101, 0x00ff0101 },
@@ -10852,7 +10852,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00ff00ff[] = {
   { 0x00000000, 0x00ff00fd, 0x00ff00fd },
   { 0x00000000, 0x00ff00fe, 0x00ff00fe },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xff00ff00[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xff00ff00[] = {
   { 0x00000000, 0xff00ff00, 0xff00ff00 },
   { 0x00000000, 0xff00ff01, 0xff00ff01 },
   { 0x00000000, 0xff00ff02, 0xff00ff02 },
@@ -10885,7 +10885,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xff00ff00[] = {
   { 0x00000000, 0xff00fefe, 0xff00fefe },
   { 0x00000000, 0xff00feff, 0xff00feff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xffffffff[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xffffffff[] = {
   { 0x00000000, 0xffffffff, 0xffffffff },
   { 0x00000000, 0x00000000, 0x00000000 },
   { 0x00000000, 0x00000001, 0x00000001 },
@@ -10918,7 +10918,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xffffffff[] = {
   { 0x00000000, 0xfffffffd, 0xfffffffd },
   { 0x00000000, 0xfffffffe, 0xfffffffe },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00000156[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00000156[] = {
   { 0x00000000, 0x00000156, 0x00000156 },
   { 0x00000000, 0x00000157, 0x00000157 },
   { 0x00000000, 0x00000158, 0x00000158 },
@@ -10951,7 +10951,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00000156[] = {
   { 0x00000000, 0x00000154, 0x00000154 },
   { 0x00000000, 0x00000155, 0x00000155 },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000002ac[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000002ac[] = {
   { 0x00000000, 0x000002ac, 0x000002ac },
   { 0x00000000, 0x000002ad, 0x000002ad },
   { 0x00000000, 0x000002ae, 0x000002ae },
@@ -10984,7 +10984,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000002ac[] = {
   { 0x00000000, 0x000002aa, 0x000002aa },
   { 0x00000000, 0x000002ab, 0x000002ab },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00000558[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00000558[] = {
   { 0x00000000, 0x00000558, 0x00000558 },
   { 0x00000000, 0x00000559, 0x00000559 },
   { 0x00000000, 0x0000055a, 0x0000055a },
@@ -11017,7 +11017,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00000558[] = {
   { 0x00000000, 0x00000556, 0x00000556 },
   { 0x00000000, 0x00000557, 0x00000557 },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00000ab0[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00000ab0[] = {
   { 0x00000000, 0x00000ab0, 0x00000ab0 },
   { 0x00000000, 0x00000ab1, 0x00000ab1 },
   { 0x00000000, 0x00000ab2, 0x00000ab2 },
@@ -11050,7 +11050,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00000ab0[] = {
   { 0x00000000, 0x00000aae, 0x00000aae },
   { 0x00000000, 0x00000aaf, 0x00000aaf },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00001560[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00001560[] = {
   { 0x00000000, 0x00001560, 0x00001560 },
   { 0x00000000, 0x00001561, 0x00001561 },
   { 0x00000000, 0x00001562, 0x00001562 },
@@ -11083,7 +11083,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00001560[] = {
   { 0x00000000, 0x0000155e, 0x0000155e },
   { 0x00000000, 0x0000155f, 0x0000155f },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00002ac0[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00002ac0[] = {
   { 0x00000000, 0x00002ac0, 0x00002ac0 },
   { 0x00000000, 0x00002ac1, 0x00002ac1 },
   { 0x00000000, 0x00002ac2, 0x00002ac2 },
@@ -11116,7 +11116,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00002ac0[] = {
   { 0x00000000, 0x00002abe, 0x00002abe },
   { 0x00000000, 0x00002abf, 0x00002abf },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00005580[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00005580[] = {
   { 0x00000000, 0x00005580, 0x00005580 },
   { 0x00000000, 0x00005581, 0x00005581 },
   { 0x00000000, 0x00005582, 0x00005582 },
@@ -11149,7 +11149,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00005580[] = {
   { 0x00000000, 0x0000557e, 0x0000557e },
   { 0x00000000, 0x0000557f, 0x0000557f },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0000ab00[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0000ab00[] = {
   { 0x00000000, 0x0000ab00, 0x0000ab00 },
   { 0x00000000, 0x0000ab01, 0x0000ab01 },
   { 0x00000000, 0x0000ab02, 0x0000ab02 },
@@ -11182,7 +11182,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0000ab00[] = {
   { 0x00000000, 0x0000aafe, 0x0000aafe },
   { 0x00000000, 0x0000aaff, 0x0000aaff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00015600[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00015600[] = {
   { 0x00000000, 0x00015600, 0x00015600 },
   { 0x00000000, 0x00015601, 0x00015601 },
   { 0x00000000, 0x00015602, 0x00015602 },
@@ -11215,7 +11215,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00015600[] = {
   { 0x00000000, 0x000155fe, 0x000155fe },
   { 0x00000000, 0x000155ff, 0x000155ff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0002ac00[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0002ac00[] = {
   { 0x00000000, 0x0002ac00, 0x0002ac00 },
   { 0x00000000, 0x0002ac01, 0x0002ac01 },
   { 0x00000000, 0x0002ac02, 0x0002ac02 },
@@ -11248,7 +11248,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0002ac00[] = {
   { 0x00000000, 0x0002abfe, 0x0002abfe },
   { 0x00000000, 0x0002abff, 0x0002abff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00055800[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00055800[] = {
   { 0x00000000, 0x00055800, 0x00055800 },
   { 0x00000000, 0x00055801, 0x00055801 },
   { 0x00000000, 0x00055802, 0x00055802 },
@@ -11281,7 +11281,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00055800[] = {
   { 0x00000000, 0x000557fe, 0x000557fe },
   { 0x00000000, 0x000557ff, 0x000557ff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000ab000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000ab000[] = {
   { 0x00000000, 0x000ab000, 0x000ab000 },
   { 0x00000000, 0x000ab001, 0x000ab001 },
   { 0x00000000, 0x000ab002, 0x000ab002 },
@@ -11314,7 +11314,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000ab000[] = {
   { 0x00000000, 0x000aaffe, 0x000aaffe },
   { 0x00000000, 0x000aafff, 0x000aafff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00156000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00156000[] = {
   { 0x00000000, 0x00156000, 0x00156000 },
   { 0x00000000, 0x00156001, 0x00156001 },
   { 0x00000000, 0x00156002, 0x00156002 },
@@ -11347,7 +11347,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00156000[] = {
   { 0x00000000, 0x00155ffe, 0x00155ffe },
   { 0x00000000, 0x00155fff, 0x00155fff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x002ac000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x002ac000[] = {
   { 0x00000000, 0x002ac000, 0x002ac000 },
   { 0x00000000, 0x002ac001, 0x002ac001 },
   { 0x00000000, 0x002ac002, 0x002ac002 },
@@ -11380,7 +11380,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x002ac000[] = {
   { 0x00000000, 0x002abffe, 0x002abffe },
   { 0x00000000, 0x002abfff, 0x002abfff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00558000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00558000[] = {
   { 0x00000000, 0x00558000, 0x00558000 },
   { 0x00000000, 0x00558001, 0x00558001 },
   { 0x00000000, 0x00558002, 0x00558002 },
@@ -11413,7 +11413,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00558000[] = {
   { 0x00000000, 0x00557ffe, 0x00557ffe },
   { 0x00000000, 0x00557fff, 0x00557fff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00ab0000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00ab0000[] = {
   { 0x00000000, 0x00ab0000, 0x00ab0000 },
   { 0x00000000, 0x00ab0001, 0x00ab0001 },
   { 0x00000000, 0x00ab0002, 0x00ab0002 },
@@ -11446,7 +11446,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00ab0000[] = {
   { 0x00000000, 0x00aafffe, 0x00aafffe },
   { 0x00000000, 0x00aaffff, 0x00aaffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x01560000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x01560000[] = {
   { 0x00000000, 0x01560000, 0x01560000 },
   { 0x00000000, 0x01560001, 0x01560001 },
   { 0x00000000, 0x01560002, 0x01560002 },
@@ -11479,7 +11479,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x01560000[] = {
   { 0x00000000, 0x0155fffe, 0x0155fffe },
   { 0x00000000, 0x0155ffff, 0x0155ffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x02ac0000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x02ac0000[] = {
   { 0x00000000, 0x02ac0000, 0x02ac0000 },
   { 0x00000000, 0x02ac0001, 0x02ac0001 },
   { 0x00000000, 0x02ac0002, 0x02ac0002 },
@@ -11512,7 +11512,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x02ac0000[] = {
   { 0x00000000, 0x02abfffe, 0x02abfffe },
   { 0x00000000, 0x02abffff, 0x02abffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x05580000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x05580000[] = {
   { 0x00000000, 0x05580000, 0x05580000 },
   { 0x00000000, 0x05580001, 0x05580001 },
   { 0x00000000, 0x05580002, 0x05580002 },
@@ -11545,7 +11545,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x05580000[] = {
   { 0x00000000, 0x0557fffe, 0x0557fffe },
   { 0x00000000, 0x0557ffff, 0x0557ffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0ab00000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0ab00000[] = {
   { 0x00000000, 0x0ab00000, 0x0ab00000 },
   { 0x00000000, 0x0ab00001, 0x0ab00001 },
   { 0x00000000, 0x0ab00002, 0x0ab00002 },
@@ -11578,7 +11578,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x0ab00000[] = {
   { 0x00000000, 0x0aaffffe, 0x0aaffffe },
   { 0x00000000, 0x0aafffff, 0x0aafffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x15600000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x15600000[] = {
   { 0x00000000, 0x15600000, 0x15600000 },
   { 0x00000000, 0x15600001, 0x15600001 },
   { 0x00000000, 0x15600002, 0x15600002 },
@@ -11611,7 +11611,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x15600000[] = {
   { 0x00000000, 0x155ffffe, 0x155ffffe },
   { 0x00000000, 0x155fffff, 0x155fffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x2ac00000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x2ac00000[] = {
   { 0x00000000, 0x2ac00000, 0x2ac00000 },
   { 0x00000000, 0x2ac00001, 0x2ac00001 },
   { 0x00000000, 0x2ac00002, 0x2ac00002 },
@@ -11644,7 +11644,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x2ac00000[] = {
   { 0x00000000, 0x2abffffe, 0x2abffffe },
   { 0x00000000, 0x2abfffff, 0x2abfffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x55800000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x55800000[] = {
   { 0x00000000, 0x55800000, 0x55800000 },
   { 0x00000000, 0x55800001, 0x55800001 },
   { 0x00000000, 0x55800002, 0x55800002 },
@@ -11677,7 +11677,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x55800000[] = {
   { 0x00000000, 0x557ffffe, 0x557ffffe },
   { 0x00000000, 0x557fffff, 0x557fffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xab000000[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xab000000[] = {
   { 0x00000000, 0xab000000, 0xab000000 },
   { 0x00000000, 0xab000001, 0xab000001 },
   { 0x00000000, 0xab000002, 0xab000002 },
@@ -11710,7 +11710,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xab000000[] = {
   { 0x00000000, 0xaafffffe, 0xaafffffe },
   { 0x00000000, 0xaaffffff, 0xaaffffff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000000ab[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000000ab[] = {
   { 0x00000000, 0x000000ab, 0x000000ab },
   { 0x00000000, 0x000000ac, 0x000000ac },
   { 0x00000000, 0x000000ad, 0x000000ad },
@@ -11743,7 +11743,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x000000ab[] = {
   { 0x00000000, 0x000000a9, 0x000000a9 },
   { 0x00000000, 0x000000aa, 0x000000aa },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00ab00ab[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00ab00ab[] = {
   { 0x00000000, 0x00ab00ab, 0x00ab00ab },
   { 0x00000000, 0x00ab00ac, 0x00ab00ac },
   { 0x00000000, 0x00ab00ad, 0x00ab00ad },
@@ -11776,7 +11776,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0x00ab00ab[] = {
   { 0x00000000, 0x00ab00a9, 0x00ab00a9 },
   { 0x00000000, 0x00ab00aa, 0x00ab00aa },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xab00ab00[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xab00ab00[] = {
   { 0x00000000, 0xab00ab00, 0xab00ab00 },
   { 0x00000000, 0xab00ab01, 0xab00ab01 },
   { 0x00000000, 0xab00ab02, 0xab00ab02 },
@@ -11809,7 +11809,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xab00ab00[] = {
   { 0x00000000, 0xab00aafe, 0xab00aafe },
   { 0x00000000, 0xab00aaff, 0xab00aaff },
 };
-static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xabababab[] = {
+const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xabababab[] = {
   { 0x00000000, 0xabababab, 0xabababab },
   { 0x00000000, 0xabababac, 0xabababac },
   { 0x00000000, 0xabababad, 0xabababad },
@@ -11842,7 +11842,7 @@ static const Inputs kOutputs_Adc_ModifiedImmediate_al_r0_r0_0xabababab[] = {
   { 0x00000000, 0xabababa9, 0xabababa9 },
   { 0x00000000, 0xabababaa, 0xabababaa },
 };
-static const TestResult kReferenceAdc[] = {
+const TestResult kReferenceAdc[] = {
   {
     ARRAY_SIZE(kOutputs_Adc_RdIsRn_al_r5_r5_0x00001560),
     kOutputs_Adc_RdIsRn_al_r5_r5_0x00001560,

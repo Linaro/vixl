@@ -58,6 +58,14 @@ namespace aarch32 {
   M(rrxs)
 
 
+// The following definitions are defined again in each generated test, therefore
+// we need to place them in an anomymous namespace. It expresses that they are
+// local to this file only, and the compiler is not allowed to share these types
+// across test files during template instantiation. Specifically, `Operands` has
+// various layouts across generated tests so it absolutely cannot be shared.
+
+namespace {
+
 // Values to be passed to the assembler to produce the instruction under test.
 struct Operands {
   Condition cond;
@@ -88,7 +96,7 @@ struct TestResult {
 };
 
 // Each element of this array produce one instruction encoding.
-static const TestData kTests[] =
+const TestData kTests[] =
     {{{al, r0, r0}, false, al, "al r0 r0", "al_r0_r0"},
      {{al, r0, r1}, false, al, "al r0 r1", "al_r0_r1"},
      {{al, r0, r2}, false, al, "al r0 r2", "al_r0_r2"},
@@ -327,13 +335,13 @@ static const TestData kTests[] =
 
 
 // The maximum number of errors to report in detail for each test.
-static const unsigned kErrorReportLimit = 8;
+const unsigned kErrorReportLimit = 8;
 
 typedef void (MacroAssembler::*Fn)(Condition cond, Register rd, Register rn);
 
-static void TestHelper(Fn instruction,
-                       const char* mnemonic,
-                       const TestResult reference[]) {
+void TestHelper(Fn instruction,
+                const char* mnemonic,
+                const TestResult reference[]) {
   unsigned total_error_count = 0;
   MacroAssembler masm(BUF_SIZE);
 
@@ -366,7 +374,7 @@ static void TestHelper(Fn instruction,
 
     if (Test::generate_test_trace()) {
       // Print the result bytes.
-      printf("static const byte kInstruction_%s_%s[] = {\n",
+      printf("const byte kInstruction_%s_%s[] = {\n",
              mnemonic,
              kTests[i].identifier);
       for (uint32_t j = 0; j < result_size; j++) {
@@ -424,7 +432,7 @@ static void TestHelper(Fn instruction,
   if (Test::generate_test_trace()) {
     // Finalize the trace file by writing the final `TestResult` array
     // which links all generated instruction encodings.
-    printf("static const TestResult kReference%s[] = {\n", mnemonic);
+    printf("const TestResult kReference%s[] = {\n", mnemonic);
     for (unsigned i = 0; i < ARRAY_SIZE(kTests); i++) {
       printf("  {\n");
       printf("    ARRAY_SIZE(kInstruction_%s_%s),\n",
@@ -445,14 +453,16 @@ static void TestHelper(Fn instruction,
 }
 
 // Instantiate tests for each instruction in the list.
-#define TEST(mnemonic)                                                       \
-  static void Test_##mnemonic() {                                            \
-    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic);  \
-  }                                                                          \
-  static Test test_##mnemonic("AARCH32_ASSEMBLER_COND_RD_RN_T32_" #mnemonic, \
-                              &Test_##mnemonic);
+#define TEST(mnemonic)                                                      \
+  void Test_##mnemonic() {                                                  \
+    TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
+  }                                                                         \
+  Test test_##mnemonic("AARCH32_ASSEMBLER_COND_RD_RN_T32_" #mnemonic,       \
+                       &Test_##mnemonic);
 FOREACH_INSTRUCTION(TEST)
 #undef TEST
 
-}  // aarch32
-}  // vixl
+}  // namespace
+
+}  // namespace aarch32
+}  // namespace vixl

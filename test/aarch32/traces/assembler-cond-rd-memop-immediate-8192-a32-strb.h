@@ -34,2107 +34,2107 @@
 #ifndef VIXL_ASSEMBLER_COND_RD_MEMOP_IMMEDIATE_8192_A32_STRB_H_
 #define VIXL_ASSEMBLER_COND_RD_MEMOP_IMMEDIATE_8192_A32_STRB_H_
 
-static const byte kInstruction_strb_pl_r13_r0_plus_0_Offset[] = {
+const byte kInstruction_strb_pl_r13_r0_plus_0_Offset[] = {
   0x00, 0xd0, 0xc0, 0x55 // strb pl r13 r0 plus 0 Offset
 };
-static const byte kInstruction_strb_ge_r5_r3_plus_0_Offset[] = {
+const byte kInstruction_strb_ge_r5_r3_plus_0_Offset[] = {
   0x00, 0x50, 0xc3, 0xa5 // strb ge r5 r3 plus 0 Offset
 };
-static const byte kInstruction_strb_cc_r0_r4_plus_0_Offset[] = {
+const byte kInstruction_strb_cc_r0_r4_plus_0_Offset[] = {
   0x00, 0x00, 0xc4, 0x35 // strb cc r0 r4 plus 0 Offset
 };
-static const byte kInstruction_strb_ge_r0_r0_plus_0_Offset[] = {
+const byte kInstruction_strb_ge_r0_r0_plus_0_Offset[] = {
   0x00, 0x00, 0xc0, 0xa5 // strb ge r0 r0 plus 0 Offset
 };
-static const byte kInstruction_strb_eq_r12_r3_plus_0_Offset[] = {
+const byte kInstruction_strb_eq_r12_r3_plus_0_Offset[] = {
   0x00, 0xc0, 0xc3, 0x05 // strb eq r12 r3 plus 0 Offset
 };
-static const byte kInstruction_strb_al_r4_r13_plus_0_Offset[] = {
+const byte kInstruction_strb_al_r4_r13_plus_0_Offset[] = {
   0x00, 0x40, 0xcd, 0xe5 // strb al r4 r13 plus 0 Offset
 };
-static const byte kInstruction_strb_mi_r8_r2_plus_0_Offset[] = {
+const byte kInstruction_strb_mi_r8_r2_plus_0_Offset[] = {
   0x00, 0x80, 0xc2, 0x45 // strb mi r8 r2 plus 0 Offset
 };
-static const byte kInstruction_strb_mi_r6_r9_plus_0_Offset[] = {
+const byte kInstruction_strb_mi_r6_r9_plus_0_Offset[] = {
   0x00, 0x60, 0xc9, 0x45 // strb mi r6 r9 plus 0 Offset
 };
-static const byte kInstruction_strb_gt_r13_r11_plus_0_Offset[] = {
+const byte kInstruction_strb_gt_r13_r11_plus_0_Offset[] = {
   0x00, 0xd0, 0xcb, 0xc5 // strb gt r13 r11 plus 0 Offset
 };
-static const byte kInstruction_strb_cs_r0_r7_plus_0_Offset[] = {
+const byte kInstruction_strb_cs_r0_r7_plus_0_Offset[] = {
   0x00, 0x00, 0xc7, 0x25 // strb cs r0 r7 plus 0 Offset
 };
-static const byte kInstruction_strb_ge_r7_r11_plus_0_Offset[] = {
+const byte kInstruction_strb_ge_r7_r11_plus_0_Offset[] = {
   0x00, 0x70, 0xcb, 0xa5 // strb ge r7 r11 plus 0 Offset
 };
-static const byte kInstruction_strb_pl_r11_r12_plus_0_Offset[] = {
+const byte kInstruction_strb_pl_r11_r12_plus_0_Offset[] = {
   0x00, 0xb0, 0xcc, 0x55 // strb pl r11 r12 plus 0 Offset
 };
-static const byte kInstruction_strb_cs_r2_r12_plus_0_Offset[] = {
+const byte kInstruction_strb_cs_r2_r12_plus_0_Offset[] = {
   0x00, 0x20, 0xcc, 0x25 // strb cs r2 r12 plus 0 Offset
 };
-static const byte kInstruction_strb_vc_r2_r14_plus_0_Offset[] = {
+const byte kInstruction_strb_vc_r2_r14_plus_0_Offset[] = {
   0x00, 0x20, 0xce, 0x75 // strb vc r2 r14 plus 0 Offset
 };
-static const byte kInstruction_strb_le_r13_r6_plus_0_Offset[] = {
+const byte kInstruction_strb_le_r13_r6_plus_0_Offset[] = {
   0x00, 0xd0, 0xc6, 0xd5 // strb le r13 r6 plus 0 Offset
 };
-static const byte kInstruction_strb_ls_r1_r2_plus_0_Offset[] = {
+const byte kInstruction_strb_ls_r1_r2_plus_0_Offset[] = {
   0x00, 0x10, 0xc2, 0x95 // strb ls r1 r2 plus 0 Offset
 };
-static const byte kInstruction_strb_cc_r1_r6_plus_0_Offset[] = {
+const byte kInstruction_strb_cc_r1_r6_plus_0_Offset[] = {
   0x00, 0x10, 0xc6, 0x35 // strb cc r1 r6 plus 0 Offset
 };
-static const byte kInstruction_strb_al_r10_r3_plus_0_Offset[] = {
+const byte kInstruction_strb_al_r10_r3_plus_0_Offset[] = {
   0x00, 0xa0, 0xc3, 0xe5 // strb al r10 r3 plus 0 Offset
 };
-static const byte kInstruction_strb_al_r7_r9_plus_0_Offset[] = {
+const byte kInstruction_strb_al_r7_r9_plus_0_Offset[] = {
   0x00, 0x70, 0xc9, 0xe5 // strb al r7 r9 plus 0 Offset
 };
-static const byte kInstruction_strb_vs_r5_r3_plus_0_Offset[] = {
+const byte kInstruction_strb_vs_r5_r3_plus_0_Offset[] = {
   0x00, 0x50, 0xc3, 0x65 // strb vs r5 r3 plus 0 Offset
 };
-static const byte kInstruction_strb_pl_r4_r4_plus_0_Offset[] = {
+const byte kInstruction_strb_pl_r4_r4_plus_0_Offset[] = {
   0x00, 0x40, 0xc4, 0x55 // strb pl r4 r4 plus 0 Offset
 };
-static const byte kInstruction_strb_ne_r11_r9_plus_0_Offset[] = {
+const byte kInstruction_strb_ne_r11_r9_plus_0_Offset[] = {
   0x00, 0xb0, 0xc9, 0x15 // strb ne r11 r9 plus 0 Offset
 };
-static const byte kInstruction_strb_cc_r7_r14_plus_0_Offset[] = {
+const byte kInstruction_strb_cc_r7_r14_plus_0_Offset[] = {
   0x00, 0x70, 0xce, 0x35 // strb cc r7 r14 plus 0 Offset
 };
-static const byte kInstruction_strb_ne_r9_r3_plus_0_Offset[] = {
+const byte kInstruction_strb_ne_r9_r3_plus_0_Offset[] = {
   0x00, 0x90, 0xc3, 0x15 // strb ne r9 r3 plus 0 Offset
 };
-static const byte kInstruction_strb_cc_r6_r14_plus_0_Offset[] = {
+const byte kInstruction_strb_cc_r6_r14_plus_0_Offset[] = {
   0x00, 0x60, 0xce, 0x35 // strb cc r6 r14 plus 0 Offset
 };
-static const byte kInstruction_strb_ne_r14_r14_plus_0_Offset[] = {
+const byte kInstruction_strb_ne_r14_r14_plus_0_Offset[] = {
   0x00, 0xe0, 0xce, 0x15 // strb ne r14 r14 plus 0 Offset
 };
-static const byte kInstruction_strb_al_r13_r14_plus_0_Offset[] = {
+const byte kInstruction_strb_al_r13_r14_plus_0_Offset[] = {
   0x00, 0xd0, 0xce, 0xe5 // strb al r13 r14 plus 0 Offset
 };
-static const byte kInstruction_strb_cc_r3_r1_plus_0_Offset[] = {
+const byte kInstruction_strb_cc_r3_r1_plus_0_Offset[] = {
   0x00, 0x30, 0xc1, 0x35 // strb cc r3 r1 plus 0 Offset
 };
-static const byte kInstruction_strb_ge_r1_r2_plus_0_Offset[] = {
+const byte kInstruction_strb_ge_r1_r2_plus_0_Offset[] = {
   0x00, 0x10, 0xc2, 0xa5 // strb ge r1 r2 plus 0 Offset
 };
-static const byte kInstruction_strb_eq_r3_r4_plus_0_Offset[] = {
+const byte kInstruction_strb_eq_r3_r4_plus_0_Offset[] = {
   0x00, 0x30, 0xc4, 0x05 // strb eq r3 r4 plus 0 Offset
 };
-static const byte kInstruction_strb_al_r5_r10_plus_0_Offset[] = {
+const byte kInstruction_strb_al_r5_r10_plus_0_Offset[] = {
   0x00, 0x50, 0xca, 0xe5 // strb al r5 r10 plus 0 Offset
 };
-static const byte kInstruction_strb_mi_r1_r3_plus_0_Offset[] = {
+const byte kInstruction_strb_mi_r1_r3_plus_0_Offset[] = {
   0x00, 0x10, 0xc3, 0x45 // strb mi r1 r3 plus 0 Offset
 };
-static const byte kInstruction_strb_gt_r1_r4_plus_0_Offset[] = {
+const byte kInstruction_strb_gt_r1_r4_plus_0_Offset[] = {
   0x00, 0x10, 0xc4, 0xc5 // strb gt r1 r4 plus 0 Offset
 };
-static const byte kInstruction_strb_al_r7_r12_plus_0_Offset[] = {
+const byte kInstruction_strb_al_r7_r12_plus_0_Offset[] = {
   0x00, 0x70, 0xcc, 0xe5 // strb al r7 r12 plus 0 Offset
 };
-static const byte kInstruction_strb_ge_r14_r2_plus_0_Offset[] = {
+const byte kInstruction_strb_ge_r14_r2_plus_0_Offset[] = {
   0x00, 0xe0, 0xc2, 0xa5 // strb ge r14 r2 plus 0 Offset
 };
-static const byte kInstruction_strb_le_r9_r7_plus_0_Offset[] = {
+const byte kInstruction_strb_le_r9_r7_plus_0_Offset[] = {
   0x00, 0x90, 0xc7, 0xd5 // strb le r9 r7 plus 0 Offset
 };
-static const byte kInstruction_strb_al_r9_r14_plus_0_Offset[] = {
+const byte kInstruction_strb_al_r9_r14_plus_0_Offset[] = {
   0x00, 0x90, 0xce, 0xe5 // strb al r9 r14 plus 0 Offset
 };
-static const byte kInstruction_strb_hi_r10_r12_plus_0_Offset[] = {
+const byte kInstruction_strb_hi_r10_r12_plus_0_Offset[] = {
   0x00, 0xa0, 0xcc, 0x85 // strb hi r10 r12 plus 0 Offset
 };
-static const byte kInstruction_strb_le_r6_r5_plus_0_Offset[] = {
+const byte kInstruction_strb_le_r6_r5_plus_0_Offset[] = {
   0x00, 0x60, 0xc5, 0xd5 // strb le r6 r5 plus 0 Offset
 };
-static const byte kInstruction_strb_cs_r14_r12_plus_0_Offset[] = {
+const byte kInstruction_strb_cs_r14_r12_plus_0_Offset[] = {
   0x00, 0xe0, 0xcc, 0x25 // strb cs r14 r12 plus 0 Offset
 };
-static const byte kInstruction_strb_vc_r6_r9_plus_0_Offset[] = {
+const byte kInstruction_strb_vc_r6_r9_plus_0_Offset[] = {
   0x00, 0x60, 0xc9, 0x75 // strb vc r6 r9 plus 0 Offset
 };
-static const byte kInstruction_strb_ne_r3_r9_plus_0_Offset[] = {
+const byte kInstruction_strb_ne_r3_r9_plus_0_Offset[] = {
   0x00, 0x30, 0xc9, 0x15 // strb ne r3 r9 plus 0 Offset
 };
-static const byte kInstruction_strb_lt_r2_r9_plus_0_Offset[] = {
+const byte kInstruction_strb_lt_r2_r9_plus_0_Offset[] = {
   0x00, 0x20, 0xc9, 0xb5 // strb lt r2 r9 plus 0 Offset
 };
-static const byte kInstruction_strb_vc_r5_r11_plus_0_Offset[] = {
+const byte kInstruction_strb_vc_r5_r11_plus_0_Offset[] = {
   0x00, 0x50, 0xcb, 0x75 // strb vc r5 r11 plus 0 Offset
 };
-static const byte kInstruction_strb_gt_r5_r1_plus_0_Offset[] = {
+const byte kInstruction_strb_gt_r5_r1_plus_0_Offset[] = {
   0x00, 0x50, 0xc1, 0xc5 // strb gt r5 r1 plus 0 Offset
 };
-static const byte kInstruction_strb_al_r12_r4_plus_0_Offset[] = {
+const byte kInstruction_strb_al_r12_r4_plus_0_Offset[] = {
   0x00, 0xc0, 0xc4, 0xe5 // strb al r12 r4 plus 0 Offset
 };
-static const byte kInstruction_strb_ls_r11_r10_plus_0_Offset[] = {
+const byte kInstruction_strb_ls_r11_r10_plus_0_Offset[] = {
   0x00, 0xb0, 0xca, 0x95 // strb ls r11 r10 plus 0 Offset
 };
-static const byte kInstruction_strb_eq_r14_r7_plus_0_Offset[] = {
+const byte kInstruction_strb_eq_r14_r7_plus_0_Offset[] = {
   0x00, 0xe0, 0xc7, 0x05 // strb eq r14 r7 plus 0 Offset
 };
-static const byte kInstruction_strb_vc_r7_r0_plus_0_Offset[] = {
+const byte kInstruction_strb_vc_r7_r0_plus_0_Offset[] = {
   0x00, 0x70, 0xc0, 0x75 // strb vc r7 r0 plus 0 Offset
 };
-static const byte kInstruction_strb_le_r2_r6_plus_0_Offset[] = {
+const byte kInstruction_strb_le_r2_r6_plus_0_Offset[] = {
   0x00, 0x20, 0xc6, 0xd5 // strb le r2 r6 plus 0 Offset
 };
-static const byte kInstruction_strb_gt_r2_r6_plus_0_Offset[] = {
+const byte kInstruction_strb_gt_r2_r6_plus_0_Offset[] = {
   0x00, 0x20, 0xc6, 0xc5 // strb gt r2 r6 plus 0 Offset
 };
-static const byte kInstruction_strb_al_r6_r6_plus_0_Offset[] = {
+const byte kInstruction_strb_al_r6_r6_plus_0_Offset[] = {
   0x00, 0x60, 0xc6, 0xe5 // strb al r6 r6 plus 0 Offset
 };
-static const byte kInstruction_strb_ls_r10_r8_plus_0_Offset[] = {
+const byte kInstruction_strb_ls_r10_r8_plus_0_Offset[] = {
   0x00, 0xa0, 0xc8, 0x95 // strb ls r10 r8 plus 0 Offset
 };
-static const byte kInstruction_strb_lt_r5_r8_plus_0_Offset[] = {
+const byte kInstruction_strb_lt_r5_r8_plus_0_Offset[] = {
   0x00, 0x50, 0xc8, 0xb5 // strb lt r5 r8 plus 0 Offset
 };
-static const byte kInstruction_strb_vs_r13_r14_plus_0_Offset[] = {
+const byte kInstruction_strb_vs_r13_r14_plus_0_Offset[] = {
   0x00, 0xd0, 0xce, 0x65 // strb vs r13 r14 plus 0 Offset
 };
-static const byte kInstruction_strb_gt_r9_r7_plus_0_Offset[] = {
+const byte kInstruction_strb_gt_r9_r7_plus_0_Offset[] = {
   0x00, 0x90, 0xc7, 0xc5 // strb gt r9 r7 plus 0 Offset
 };
-static const byte kInstruction_strb_cc_r8_r9_plus_0_Offset[] = {
+const byte kInstruction_strb_cc_r8_r9_plus_0_Offset[] = {
   0x00, 0x80, 0xc9, 0x35 // strb cc r8 r9 plus 0 Offset
 };
-static const byte kInstruction_strb_le_r2_r7_plus_0_Offset[] = {
+const byte kInstruction_strb_le_r2_r7_plus_0_Offset[] = {
   0x00, 0x20, 0xc7, 0xd5 // strb le r2 r7 plus 0 Offset
 };
-static const byte kInstruction_strb_ge_r0_r1_plus_0_Offset[] = {
+const byte kInstruction_strb_ge_r0_r1_plus_0_Offset[] = {
   0x00, 0x00, 0xc1, 0xa5 // strb ge r0 r1 plus 0 Offset
 };
-static const byte kInstruction_strb_eq_r10_r14_plus_0_Offset[] = {
+const byte kInstruction_strb_eq_r10_r14_plus_0_Offset[] = {
   0x00, 0xa0, 0xce, 0x05 // strb eq r10 r14 plus 0 Offset
 };
-static const byte kInstruction_strb_ls_r3_r3_plus_0_Offset[] = {
+const byte kInstruction_strb_ls_r3_r3_plus_0_Offset[] = {
   0x00, 0x30, 0xc3, 0x95 // strb ls r3 r3 plus 0 Offset
 };
-static const byte kInstruction_strb_mi_r11_r6_plus_0_Offset[] = {
+const byte kInstruction_strb_mi_r11_r6_plus_0_Offset[] = {
   0x00, 0xb0, 0xc6, 0x45 // strb mi r11 r6 plus 0 Offset
 };
-static const byte kInstruction_strb_ne_r14_r12_plus_0_Offset[] = {
+const byte kInstruction_strb_ne_r14_r12_plus_0_Offset[] = {
   0x00, 0xe0, 0xcc, 0x15 // strb ne r14 r12 plus 0 Offset
 };
-static const byte kInstruction_strb_vs_r1_r12_plus_0_Offset[] = {
+const byte kInstruction_strb_vs_r1_r12_plus_0_Offset[] = {
   0x00, 0x10, 0xcc, 0x65 // strb vs r1 r12 plus 0 Offset
 };
-static const byte kInstruction_strb_ls_r0_r0_plus_0_Offset[] = {
+const byte kInstruction_strb_ls_r0_r0_plus_0_Offset[] = {
   0x00, 0x00, 0xc0, 0x95 // strb ls r0 r0 plus 0 Offset
 };
-static const byte kInstruction_strb_lt_r12_r14_plus_0_Offset[] = {
+const byte kInstruction_strb_lt_r12_r14_plus_0_Offset[] = {
   0x00, 0xc0, 0xce, 0xb5 // strb lt r12 r14 plus 0 Offset
 };
-static const byte kInstruction_strb_lt_r13_r9_plus_0_Offset[] = {
+const byte kInstruction_strb_lt_r13_r9_plus_0_Offset[] = {
   0x00, 0xd0, 0xc9, 0xb5 // strb lt r13 r9 plus 0 Offset
 };
-static const byte kInstruction_strb_ge_r13_r9_plus_0_Offset[] = {
+const byte kInstruction_strb_ge_r13_r9_plus_0_Offset[] = {
   0x00, 0xd0, 0xc9, 0xa5 // strb ge r13 r9 plus 0 Offset
 };
-static const byte kInstruction_strb_cs_r11_r0_plus_0_Offset[] = {
+const byte kInstruction_strb_cs_r11_r0_plus_0_Offset[] = {
   0x00, 0xb0, 0xc0, 0x25 // strb cs r11 r0 plus 0 Offset
 };
-static const byte kInstruction_strb_hi_r13_r11_plus_0_Offset[] = {
+const byte kInstruction_strb_hi_r13_r11_plus_0_Offset[] = {
   0x00, 0xd0, 0xcb, 0x85 // strb hi r13 r11 plus 0 Offset
 };
-static const byte kInstruction_strb_cs_r13_r9_plus_0_Offset[] = {
+const byte kInstruction_strb_cs_r13_r9_plus_0_Offset[] = {
   0x00, 0xd0, 0xc9, 0x25 // strb cs r13 r9 plus 0 Offset
 };
-static const byte kInstruction_strb_ne_r10_r10_plus_0_Offset[] = {
+const byte kInstruction_strb_ne_r10_r10_plus_0_Offset[] = {
   0x00, 0xa0, 0xca, 0x15 // strb ne r10 r10 plus 0 Offset
 };
-static const byte kInstruction_strb_vc_r13_r9_plus_0_Offset[] = {
+const byte kInstruction_strb_vc_r13_r9_plus_0_Offset[] = {
   0x00, 0xd0, 0xc9, 0x75 // strb vc r13 r9 plus 0 Offset
 };
-static const byte kInstruction_strb_vc_r9_r3_plus_0_Offset[] = {
+const byte kInstruction_strb_vc_r9_r3_plus_0_Offset[] = {
   0x00, 0x90, 0xc3, 0x75 // strb vc r9 r3 plus 0 Offset
 };
-static const byte kInstruction_strb_cc_r10_r4_plus_0_Offset[] = {
+const byte kInstruction_strb_cc_r10_r4_plus_0_Offset[] = {
   0x00, 0xa0, 0xc4, 0x35 // strb cc r10 r4 plus 0 Offset
 };
-static const byte kInstruction_strb_hi_r6_r6_plus_0_Offset[] = {
+const byte kInstruction_strb_hi_r6_r6_plus_0_Offset[] = {
   0x00, 0x60, 0xc6, 0x85 // strb hi r6 r6 plus 0 Offset
 };
-static const byte kInstruction_strb_le_r11_r1_plus_0_Offset[] = {
+const byte kInstruction_strb_le_r11_r1_plus_0_Offset[] = {
   0x00, 0xb0, 0xc1, 0xd5 // strb le r11 r1 plus 0 Offset
 };
-static const byte kInstruction_strb_gt_r3_r5_plus_0_Offset[] = {
+const byte kInstruction_strb_gt_r3_r5_plus_0_Offset[] = {
   0x00, 0x30, 0xc5, 0xc5 // strb gt r3 r5 plus 0 Offset
 };
-static const byte kInstruction_strb_lt_r0_r10_plus_0_Offset[] = {
+const byte kInstruction_strb_lt_r0_r10_plus_0_Offset[] = {
   0x00, 0x00, 0xca, 0xb5 // strb lt r0 r10 plus 0 Offset
 };
-static const byte kInstruction_strb_vs_r6_r0_plus_0_Offset[] = {
+const byte kInstruction_strb_vs_r6_r0_plus_0_Offset[] = {
   0x00, 0x60, 0xc0, 0x65 // strb vs r6 r0 plus 0 Offset
 };
-static const byte kInstruction_strb_vs_r8_r9_plus_0_Offset[] = {
+const byte kInstruction_strb_vs_r8_r9_plus_0_Offset[] = {
   0x00, 0x80, 0xc9, 0x65 // strb vs r8 r9 plus 0 Offset
 };
-static const byte kInstruction_strb_mi_r9_r7_plus_0_Offset[] = {
+const byte kInstruction_strb_mi_r9_r7_plus_0_Offset[] = {
   0x00, 0x90, 0xc7, 0x45 // strb mi r9 r7 plus 0 Offset
 };
-static const byte kInstruction_strb_vs_r12_r11_plus_0_Offset[] = {
+const byte kInstruction_strb_vs_r12_r11_plus_0_Offset[] = {
   0x00, 0xc0, 0xcb, 0x65 // strb vs r12 r11 plus 0 Offset
 };
-static const byte kInstruction_strb_vc_r11_r7_plus_0_Offset[] = {
+const byte kInstruction_strb_vc_r11_r7_plus_0_Offset[] = {
   0x00, 0xb0, 0xc7, 0x75 // strb vc r11 r7 plus 0 Offset
 };
-static const byte kInstruction_strb_hi_r11_r5_plus_0_Offset[] = {
+const byte kInstruction_strb_hi_r11_r5_plus_0_Offset[] = {
   0x00, 0xb0, 0xc5, 0x85 // strb hi r11 r5 plus 0 Offset
 };
-static const byte kInstruction_strb_lt_r0_r11_plus_0_Offset[] = {
+const byte kInstruction_strb_lt_r0_r11_plus_0_Offset[] = {
   0x00, 0x00, 0xcb, 0xb5 // strb lt r0 r11 plus 0 Offset
 };
-static const byte kInstruction_strb_ne_r11_r1_plus_0_Offset[] = {
+const byte kInstruction_strb_ne_r11_r1_plus_0_Offset[] = {
   0x00, 0xb0, 0xc1, 0x15 // strb ne r11 r1 plus 0 Offset
 };
-static const byte kInstruction_strb_ls_r5_r13_plus_0_Offset[] = {
+const byte kInstruction_strb_ls_r5_r13_plus_0_Offset[] = {
   0x00, 0x50, 0xcd, 0x95 // strb ls r5 r13 plus 0 Offset
 };
-static const byte kInstruction_strb_gt_r13_r3_plus_0_Offset[] = {
+const byte kInstruction_strb_gt_r13_r3_plus_0_Offset[] = {
   0x00, 0xd0, 0xc3, 0xc5 // strb gt r13 r3 plus 0 Offset
 };
-static const byte kInstruction_strb_vs_r12_r12_plus_0_Offset[] = {
+const byte kInstruction_strb_vs_r12_r12_plus_0_Offset[] = {
   0x00, 0xc0, 0xcc, 0x65 // strb vs r12 r12 plus 0 Offset
 };
-static const byte kInstruction_strb_mi_r12_r7_plus_0_Offset[] = {
+const byte kInstruction_strb_mi_r12_r7_plus_0_Offset[] = {
   0x00, 0xc0, 0xc7, 0x45 // strb mi r12 r7 plus 0 Offset
 };
-static const byte kInstruction_strb_le_r3_r4_plus_0_Offset[] = {
+const byte kInstruction_strb_le_r3_r4_plus_0_Offset[] = {
   0x00, 0x30, 0xc4, 0xd5 // strb le r3 r4 plus 0 Offset
 };
-static const byte kInstruction_strb_ne_r11_r10_plus_0_Offset[] = {
+const byte kInstruction_strb_ne_r11_r10_plus_0_Offset[] = {
   0x00, 0xb0, 0xca, 0x15 // strb ne r11 r10 plus 0 Offset
 };
-static const byte kInstruction_strb_gt_r6_r13_plus_0_Offset[] = {
+const byte kInstruction_strb_gt_r6_r13_plus_0_Offset[] = {
   0x00, 0x60, 0xcd, 0xc5 // strb gt r6 r13 plus 0 Offset
 };
-static const byte kInstruction_strb_hi_r4_r8_plus_0_Offset[] = {
+const byte kInstruction_strb_hi_r4_r8_plus_0_Offset[] = {
   0x00, 0x40, 0xc8, 0x85 // strb hi r4 r8 plus 0 Offset
 };
-static const byte kInstruction_strb_ge_r14_r5_plus_0_Offset[] = {
+const byte kInstruction_strb_ge_r14_r5_plus_0_Offset[] = {
   0x00, 0xe0, 0xc5, 0xa5 // strb ge r14 r5 plus 0 Offset
 };
-static const byte kInstruction_strb_vc_r9_r6_plus_0_Offset[] = {
+const byte kInstruction_strb_vc_r9_r6_plus_0_Offset[] = {
   0x00, 0x90, 0xc6, 0x75 // strb vc r9 r6 plus 0 Offset
 };
-static const byte kInstruction_strb_le_r2_r9_plus_0_Offset[] = {
+const byte kInstruction_strb_le_r2_r9_plus_0_Offset[] = {
   0x00, 0x20, 0xc9, 0xd5 // strb le r2 r9 plus 0 Offset
 };
-static const byte kInstruction_strb_ne_r10_r4_plus_0_Offset[] = {
+const byte kInstruction_strb_ne_r10_r4_plus_0_Offset[] = {
   0x00, 0xa0, 0xc4, 0x15 // strb ne r10 r4 plus 0 Offset
 };
-static const byte kInstruction_strb_vs_r10_r14_plus_0_Offset[] = {
+const byte kInstruction_strb_vs_r10_r14_plus_0_Offset[] = {
   0x00, 0xa0, 0xce, 0x65 // strb vs r10 r14 plus 0 Offset
 };
-static const byte kInstruction_strb_al_r0_r11_minus_2628_Offset[] = {
+const byte kInstruction_strb_al_r0_r11_minus_2628_Offset[] = {
   0x44, 0x0a, 0x4b, 0xe5 // strb al r0 r11 minus 2628 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_minus_136_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_minus_136_Offset[] = {
   0x88, 0x00, 0x49, 0xe5 // strb al r0 r9 minus 136 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_plus_2323_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_plus_2323_Offset[] = {
   0x13, 0x09, 0xc9, 0xe5 // strb al r0 r9 plus 2323 Offset
 };
-static const byte kInstruction_strb_al_r0_r12_plus_138_Offset[] = {
+const byte kInstruction_strb_al_r0_r12_plus_138_Offset[] = {
   0x8a, 0x00, 0xcc, 0xe5 // strb al r0 r12 plus 138 Offset
 };
-static const byte kInstruction_strb_al_r0_r13_plus_3266_Offset[] = {
+const byte kInstruction_strb_al_r0_r13_plus_3266_Offset[] = {
   0xc2, 0x0c, 0xcd, 0xe5 // strb al r0 r13 plus 3266 Offset
 };
-static const byte kInstruction_strb_al_r0_r8_minus_2052_Offset[] = {
+const byte kInstruction_strb_al_r0_r8_minus_2052_Offset[] = {
   0x04, 0x08, 0x48, 0xe5 // strb al r0 r8 minus 2052 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_minus_1922_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_minus_1922_Offset[] = {
   0x82, 0x07, 0x49, 0xe5 // strb al r0 r9 minus 1922 Offset
 };
-static const byte kInstruction_strb_al_r0_r13_minus_3659_Offset[] = {
+const byte kInstruction_strb_al_r0_r13_minus_3659_Offset[] = {
   0x4b, 0x0e, 0x4d, 0xe5 // strb al r0 r13 minus 3659 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_minus_1043_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_minus_1043_Offset[] = {
   0x13, 0x04, 0x4e, 0xe5 // strb al r0 r14 minus 1043 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_minus_3772_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_minus_3772_Offset[] = {
   0xbc, 0x0e, 0x45, 0xe5 // strb al r0 r5 minus 3772 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_plus_188_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_plus_188_Offset[] = {
   0xbc, 0x00, 0xc0, 0xe5 // strb al r0 r0 plus 188 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_plus_1407_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_plus_1407_Offset[] = {
   0x7f, 0x05, 0xc0, 0xe5 // strb al r0 r0 plus 1407 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_plus_872_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_plus_872_Offset[] = {
   0x68, 0x03, 0xc7, 0xe5 // strb al r0 r7 plus 872 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_minus_3109_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_minus_3109_Offset[] = {
   0x25, 0x0c, 0x44, 0xe5 // strb al r0 r4 minus 3109 Offset
 };
-static const byte kInstruction_strb_al_r0_r13_plus_1665_Offset[] = {
+const byte kInstruction_strb_al_r0_r13_plus_1665_Offset[] = {
   0x81, 0x06, 0xcd, 0xe5 // strb al r0 r13 plus 1665 Offset
 };
-static const byte kInstruction_strb_al_r0_r1_plus_3636_Offset[] = {
+const byte kInstruction_strb_al_r0_r1_plus_3636_Offset[] = {
   0x34, 0x0e, 0xc1, 0xe5 // strb al r0 r1 plus 3636 Offset
 };
-static const byte kInstruction_strb_al_r0_r6_minus_770_Offset[] = {
+const byte kInstruction_strb_al_r0_r6_minus_770_Offset[] = {
   0x02, 0x03, 0x46, 0xe5 // strb al r0 r6 minus 770 Offset
 };
-static const byte kInstruction_strb_al_r0_r11_minus_2703_Offset[] = {
+const byte kInstruction_strb_al_r0_r11_minus_2703_Offset[] = {
   0x8f, 0x0a, 0x4b, 0xe5 // strb al r0 r11 minus 2703 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_minus_3504_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_minus_3504_Offset[] = {
   0xb0, 0x0d, 0x49, 0xe5 // strb al r0 r9 minus 3504 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_minus_3425_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_minus_3425_Offset[] = {
   0x61, 0x0d, 0x45, 0xe5 // strb al r0 r5 minus 3425 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_minus_138_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_minus_138_Offset[] = {
   0x8a, 0x00, 0x42, 0xe5 // strb al r0 r2 minus 138 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_minus_470_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_minus_470_Offset[] = {
   0xd6, 0x01, 0x40, 0xe5 // strb al r0 r0 minus 470 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_plus_1472_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_plus_1472_Offset[] = {
   0xc0, 0x05, 0xce, 0xe5 // strb al r0 r14 plus 1472 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_plus_4058_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_plus_4058_Offset[] = {
   0xda, 0x0f, 0xce, 0xe5 // strb al r0 r14 plus 4058 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_plus_513_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_plus_513_Offset[] = {
   0x01, 0x02, 0xc5, 0xe5 // strb al r0 r5 plus 513 Offset
 };
-static const byte kInstruction_strb_al_r0_r11_minus_791_Offset[] = {
+const byte kInstruction_strb_al_r0_r11_minus_791_Offset[] = {
   0x17, 0x03, 0x4b, 0xe5 // strb al r0 r11 minus 791 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_minus_441_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_minus_441_Offset[] = {
   0xb9, 0x01, 0x45, 0xe5 // strb al r0 r5 minus 441 Offset
 };
-static const byte kInstruction_strb_al_r0_r11_plus_1266_Offset[] = {
+const byte kInstruction_strb_al_r0_r11_plus_1266_Offset[] = {
   0xf2, 0x04, 0xcb, 0xe5 // strb al r0 r11 plus 1266 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_plus_2901_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_plus_2901_Offset[] = {
   0x55, 0x0b, 0xc4, 0xe5 // strb al r0 r4 plus 2901 Offset
 };
-static const byte kInstruction_strb_al_r0_r12_minus_1394_Offset[] = {
+const byte kInstruction_strb_al_r0_r12_minus_1394_Offset[] = {
   0x72, 0x05, 0x4c, 0xe5 // strb al r0 r12 minus 1394 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_plus_1651_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_plus_1651_Offset[] = {
   0x73, 0x06, 0xc7, 0xe5 // strb al r0 r7 plus 1651 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_plus_2710_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_plus_2710_Offset[] = {
   0x96, 0x0a, 0xc9, 0xe5 // strb al r0 r9 plus 2710 Offset
 };
-static const byte kInstruction_strb_al_r0_r12_plus_1845_Offset[] = {
+const byte kInstruction_strb_al_r0_r12_plus_1845_Offset[] = {
   0x35, 0x07, 0xcc, 0xe5 // strb al r0 r12 plus 1845 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_minus_2247_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_minus_2247_Offset[] = {
   0xc7, 0x08, 0x45, 0xe5 // strb al r0 r5 minus 2247 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_plus_3739_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_plus_3739_Offset[] = {
   0x9b, 0x0e, 0xc7, 0xe5 // strb al r0 r7 plus 3739 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_plus_3117_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_plus_3117_Offset[] = {
   0x2d, 0x0c, 0xc0, 0xe5 // strb al r0 r0 plus 3117 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_minus_3078_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_minus_3078_Offset[] = {
   0x06, 0x0c, 0x42, 0xe5 // strb al r0 r2 minus 3078 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_plus_2427_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_plus_2427_Offset[] = {
   0x7b, 0x09, 0xc4, 0xe5 // strb al r0 r4 plus 2427 Offset
 };
-static const byte kInstruction_strb_al_r0_r3_minus_2137_Offset[] = {
+const byte kInstruction_strb_al_r0_r3_minus_2137_Offset[] = {
   0x59, 0x08, 0x43, 0xe5 // strb al r0 r3 minus 2137 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_plus_3425_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_plus_3425_Offset[] = {
   0x61, 0x0d, 0xce, 0xe5 // strb al r0 r14 plus 3425 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_plus_3728_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_plus_3728_Offset[] = {
   0x90, 0x0e, 0xc2, 0xe5 // strb al r0 r2 plus 3728 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_plus_1835_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_plus_1835_Offset[] = {
   0x2b, 0x07, 0xce, 0xe5 // strb al r0 r14 plus 1835 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_minus_3438_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_minus_3438_Offset[] = {
   0x6e, 0x0d, 0x49, 0xe5 // strb al r0 r9 minus 3438 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_minus_2381_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_minus_2381_Offset[] = {
   0x4d, 0x09, 0x44, 0xe5 // strb al r0 r4 minus 2381 Offset
 };
-static const byte kInstruction_strb_al_r0_r3_plus_1740_Offset[] = {
+const byte kInstruction_strb_al_r0_r3_plus_1740_Offset[] = {
   0xcc, 0x06, 0xc3, 0xe5 // strb al r0 r3 plus 1740 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_minus_4056_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_minus_4056_Offset[] = {
   0xd8, 0x0f, 0x45, 0xe5 // strb al r0 r5 minus 4056 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_minus_1479_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_minus_1479_Offset[] = {
   0xc7, 0x05, 0x47, 0xe5 // strb al r0 r7 minus 1479 Offset
 };
-static const byte kInstruction_strb_al_r0_r10_plus_1899_Offset[] = {
+const byte kInstruction_strb_al_r0_r10_plus_1899_Offset[] = {
   0x6b, 0x07, 0xca, 0xe5 // strb al r0 r10 plus 1899 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_plus_2183_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_plus_2183_Offset[] = {
   0x87, 0x08, 0xc5, 0xe5 // strb al r0 r5 plus 2183 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_minus_371_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_minus_371_Offset[] = {
   0x73, 0x01, 0x42, 0xe5 // strb al r0 r2 minus 371 Offset
 };
-static const byte kInstruction_strb_al_r0_r12_minus_348_Offset[] = {
+const byte kInstruction_strb_al_r0_r12_minus_348_Offset[] = {
   0x5c, 0x01, 0x4c, 0xe5 // strb al r0 r12 minus 348 Offset
 };
-static const byte kInstruction_strb_al_r0_r13_minus_3397_Offset[] = {
+const byte kInstruction_strb_al_r0_r13_minus_3397_Offset[] = {
   0x45, 0x0d, 0x4d, 0xe5 // strb al r0 r13 minus 3397 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_minus_1168_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_minus_1168_Offset[] = {
   0x90, 0x04, 0x45, 0xe5 // strb al r0 r5 minus 1168 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_minus_2040_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_minus_2040_Offset[] = {
   0xf8, 0x07, 0x40, 0xe5 // strb al r0 r0 minus 2040 Offset
 };
-static const byte kInstruction_strb_al_r0_r6_plus_663_Offset[] = {
+const byte kInstruction_strb_al_r0_r6_plus_663_Offset[] = {
   0x97, 0x02, 0xc6, 0xe5 // strb al r0 r6 plus 663 Offset
 };
-static const byte kInstruction_strb_al_r0_r10_minus_1050_Offset[] = {
+const byte kInstruction_strb_al_r0_r10_minus_1050_Offset[] = {
   0x1a, 0x04, 0x4a, 0xe5 // strb al r0 r10 minus 1050 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_plus_2726_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_plus_2726_Offset[] = {
   0xa6, 0x0a, 0xc4, 0xe5 // strb al r0 r4 plus 2726 Offset
 };
-static const byte kInstruction_strb_al_r0_r12_plus_3963_Offset[] = {
+const byte kInstruction_strb_al_r0_r12_plus_3963_Offset[] = {
   0x7b, 0x0f, 0xcc, 0xe5 // strb al r0 r12 plus 3963 Offset
 };
-static const byte kInstruction_strb_al_r0_r3_plus_2069_Offset[] = {
+const byte kInstruction_strb_al_r0_r3_plus_2069_Offset[] = {
   0x15, 0x08, 0xc3, 0xe5 // strb al r0 r3 plus 2069 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_minus_669_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_minus_669_Offset[] = {
   0x9d, 0x02, 0x45, 0xe5 // strb al r0 r5 minus 669 Offset
 };
-static const byte kInstruction_strb_al_r0_r13_minus_3117_Offset[] = {
+const byte kInstruction_strb_al_r0_r13_minus_3117_Offset[] = {
   0x2d, 0x0c, 0x4d, 0xe5 // strb al r0 r13 minus 3117 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_minus_783_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_minus_783_Offset[] = {
   0x0f, 0x03, 0x44, 0xe5 // strb al r0 r4 minus 783 Offset
 };
-static const byte kInstruction_strb_al_r0_r6_plus_4093_Offset[] = {
+const byte kInstruction_strb_al_r0_r6_plus_4093_Offset[] = {
   0xfd, 0x0f, 0xc6, 0xe5 // strb al r0 r6 plus 4093 Offset
 };
-static const byte kInstruction_strb_al_r0_r10_minus_1438_Offset[] = {
+const byte kInstruction_strb_al_r0_r10_minus_1438_Offset[] = {
   0x9e, 0x05, 0x4a, 0xe5 // strb al r0 r10 minus 1438 Offset
 };
-static const byte kInstruction_strb_al_r0_r1_plus_3975_Offset[] = {
+const byte kInstruction_strb_al_r0_r1_plus_3975_Offset[] = {
   0x87, 0x0f, 0xc1, 0xe5 // strb al r0 r1 plus 3975 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_minus_1732_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_minus_1732_Offset[] = {
   0xc4, 0x06, 0x4e, 0xe5 // strb al r0 r14 minus 1732 Offset
 };
-static const byte kInstruction_strb_al_r0_r3_plus_3907_Offset[] = {
+const byte kInstruction_strb_al_r0_r3_plus_3907_Offset[] = {
   0x43, 0x0f, 0xc3, 0xe5 // strb al r0 r3 plus 3907 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_plus_3626_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_plus_3626_Offset[] = {
   0x2a, 0x0e, 0xc0, 0xe5 // strb al r0 r0 plus 3626 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_minus_1769_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_minus_1769_Offset[] = {
   0xe9, 0x06, 0x42, 0xe5 // strb al r0 r2 minus 1769 Offset
 };
-static const byte kInstruction_strb_al_r0_r10_plus_3975_Offset[] = {
+const byte kInstruction_strb_al_r0_r10_plus_3975_Offset[] = {
   0x87, 0x0f, 0xca, 0xe5 // strb al r0 r10 plus 3975 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_plus_1475_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_plus_1475_Offset[] = {
   0xc3, 0x05, 0xc7, 0xe5 // strb al r0 r7 plus 1475 Offset
 };
-static const byte kInstruction_strb_al_r0_r13_minus_2768_Offset[] = {
+const byte kInstruction_strb_al_r0_r13_minus_2768_Offset[] = {
   0xd0, 0x0a, 0x4d, 0xe5 // strb al r0 r13 minus 2768 Offset
 };
-static const byte kInstruction_strb_al_r0_r13_minus_766_Offset[] = {
+const byte kInstruction_strb_al_r0_r13_minus_766_Offset[] = {
   0xfe, 0x02, 0x4d, 0xe5 // strb al r0 r13 minus 766 Offset
 };
-static const byte kInstruction_strb_al_r0_r13_plus_2026_Offset[] = {
+const byte kInstruction_strb_al_r0_r13_plus_2026_Offset[] = {
   0xea, 0x07, 0xcd, 0xe5 // strb al r0 r13 plus 2026 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_plus_582_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_plus_582_Offset[] = {
   0x46, 0x02, 0xc9, 0xe5 // strb al r0 r9 plus 582 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_minus_2208_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_minus_2208_Offset[] = {
   0xa0, 0x08, 0x49, 0xe5 // strb al r0 r9 minus 2208 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_plus_3772_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_plus_3772_Offset[] = {
   0xbc, 0x0e, 0xc5, 0xe5 // strb al r0 r5 plus 3772 Offset
 };
-static const byte kInstruction_strb_al_r0_r13_minus_3405_Offset[] = {
+const byte kInstruction_strb_al_r0_r13_minus_3405_Offset[] = {
   0x4d, 0x0d, 0x4d, 0xe5 // strb al r0 r13 minus 3405 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_plus_470_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_plus_470_Offset[] = {
   0xd6, 0x01, 0xc4, 0xe5 // strb al r0 r4 plus 470 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_plus_2933_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_plus_2933_Offset[] = {
   0x75, 0x0b, 0xc4, 0xe5 // strb al r0 r4 plus 2933 Offset
 };
-static const byte kInstruction_strb_al_r0_r6_minus_3608_Offset[] = {
+const byte kInstruction_strb_al_r0_r6_minus_3608_Offset[] = {
   0x18, 0x0e, 0x46, 0xe5 // strb al r0 r6 minus 3608 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_plus_2098_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_plus_2098_Offset[] = {
   0x32, 0x08, 0xc2, 0xe5 // strb al r0 r2 plus 2098 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_plus_2026_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_plus_2026_Offset[] = {
   0xea, 0x07, 0xc9, 0xe5 // strb al r0 r9 plus 2026 Offset
 };
-static const byte kInstruction_strb_al_r0_r1_minus_3899_Offset[] = {
+const byte kInstruction_strb_al_r0_r1_minus_3899_Offset[] = {
   0x3b, 0x0f, 0x41, 0xe5 // strb al r0 r1 minus 3899 Offset
 };
-static const byte kInstruction_strb_al_r0_r10_minus_4056_Offset[] = {
+const byte kInstruction_strb_al_r0_r10_minus_4056_Offset[] = {
   0xd8, 0x0f, 0x4a, 0xe5 // strb al r0 r10 minus 4056 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_plus_932_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_plus_932_Offset[] = {
   0xa4, 0x03, 0xc4, 0xe5 // strb al r0 r4 plus 932 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_plus_2976_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_plus_2976_Offset[] = {
   0xa0, 0x0b, 0xc2, 0xe5 // strb al r0 r2 plus 2976 Offset
 };
-static const byte kInstruction_strb_al_r0_r10_minus_3702_Offset[] = {
+const byte kInstruction_strb_al_r0_r10_minus_3702_Offset[] = {
   0x76, 0x0e, 0x4a, 0xe5 // strb al r0 r10 minus 3702 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_minus_1394_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_minus_1394_Offset[] = {
   0x72, 0x05, 0x42, 0xe5 // strb al r0 r2 minus 1394 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_plus_831_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_plus_831_Offset[] = {
   0x3f, 0x03, 0xc2, 0xe5 // strb al r0 r2 plus 831 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_minus_3685_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_minus_3685_Offset[] = {
   0x65, 0x0e, 0x40, 0xe5 // strb al r0 r0 minus 3685 Offset
 };
-static const byte kInstruction_strb_al_r0_r12_plus_2619_Offset[] = {
+const byte kInstruction_strb_al_r0_r12_plus_2619_Offset[] = {
   0x3b, 0x0a, 0xcc, 0xe5 // strb al r0 r12 plus 2619 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_plus_3063_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_plus_3063_Offset[] = {
   0xf7, 0x0b, 0xc4, 0xe5 // strb al r0 r4 plus 3063 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_plus_1479_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_plus_1479_Offset[] = {
   0xc7, 0x05, 0xc0, 0xe5 // strb al r0 r0 plus 1479 Offset
 };
-static const byte kInstruction_strb_al_r0_r6_plus_2091_Offset[] = {
+const byte kInstruction_strb_al_r0_r6_plus_2091_Offset[] = {
   0x2b, 0x08, 0xc6, 0xe5 // strb al r0 r6 plus 2091 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_plus_2721_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_plus_2721_Offset[] = {
   0xa1, 0x0a, 0xc9, 0xe5 // strb al r0 r9 plus 2721 Offset
 };
-static const byte kInstruction_strb_al_r0_r10_minus_3343_Offset[] = {
+const byte kInstruction_strb_al_r0_r10_minus_3343_Offset[] = {
   0x0f, 0x0d, 0x4a, 0xe5 // strb al r0 r10 minus 3343 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_plus_3413_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_plus_3413_Offset[] = {
   0x55, 0x0d, 0xc2, 0xe5 // strb al r0 r2 plus 3413 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_plus_1740_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_plus_1740_Offset[] = {
   0xcc, 0x06, 0xc9, 0xe5 // strb al r0 r9 plus 1740 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_plus_831_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_plus_831_Offset[] = {
   0x3f, 0x03, 0xc7, 0xe5 // strb al r0 r7 plus 831 Offset
 };
-static const byte kInstruction_strb_al_r0_r13_plus_3384_Offset[] = {
+const byte kInstruction_strb_al_r0_r13_plus_3384_Offset[] = {
   0x38, 0x0d, 0xcd, 0xe5 // strb al r0 r13 plus 3384 Offset
 };
-static const byte kInstruction_strb_al_r0_r13_plus_3978_Offset[] = {
+const byte kInstruction_strb_al_r0_r13_plus_3978_Offset[] = {
   0x8a, 0x0f, 0xcd, 0xe5 // strb al r0 r13 plus 3978 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_minus_1860_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_minus_1860_Offset[] = {
   0x44, 0x07, 0x40, 0xe5 // strb al r0 r0 minus 1860 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_plus_2047_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_plus_2047_Offset[] = {
   0xff, 0x07, 0xc9, 0xe5 // strb al r0 r9 plus 2047 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_plus_2519_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_plus_2519_Offset[] = {
   0xd7, 0x09, 0xc9, 0xe5 // strb al r0 r9 plus 2519 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_minus_1666_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_minus_1666_Offset[] = {
   0x82, 0x06, 0x45, 0xe5 // strb al r0 r5 minus 1666 Offset
 };
-static const byte kInstruction_strb_al_r0_r8_minus_496_Offset[] = {
+const byte kInstruction_strb_al_r0_r8_minus_496_Offset[] = {
   0xf0, 0x01, 0x48, 0xe5 // strb al r0 r8 minus 496 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_minus_484_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_minus_484_Offset[] = {
   0xe4, 0x01, 0x47, 0xe5 // strb al r0 r7 minus 484 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_minus_1527_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_minus_1527_Offset[] = {
   0xf7, 0x05, 0x42, 0xe5 // strb al r0 r2 minus 1527 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_minus_2454_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_minus_2454_Offset[] = {
   0x96, 0x09, 0x47, 0xe5 // strb al r0 r7 minus 2454 Offset
 };
-static const byte kInstruction_strb_al_r0_r8_plus_1712_Offset[] = {
+const byte kInstruction_strb_al_r0_r8_plus_1712_Offset[] = {
   0xb0, 0x06, 0xc8, 0xe5 // strb al r0 r8 plus 1712 Offset
 };
-static const byte kInstruction_strb_al_r0_r6_plus_3079_Offset[] = {
+const byte kInstruction_strb_al_r0_r6_plus_3079_Offset[] = {
   0x07, 0x0c, 0xc6, 0xe5 // strb al r0 r6 plus 3079 Offset
 };
-static const byte kInstruction_strb_al_r0_r8_minus_510_Offset[] = {
+const byte kInstruction_strb_al_r0_r8_minus_510_Offset[] = {
   0xfe, 0x01, 0x48, 0xe5 // strb al r0 r8 minus 510 Offset
 };
-static const byte kInstruction_strb_al_r0_r1_plus_3194_Offset[] = {
+const byte kInstruction_strb_al_r0_r1_plus_3194_Offset[] = {
   0x7a, 0x0c, 0xc1, 0xe5 // strb al r0 r1 plus 3194 Offset
 };
-static const byte kInstruction_strb_al_r0_r12_plus_1027_Offset[] = {
+const byte kInstruction_strb_al_r0_r12_plus_1027_Offset[] = {
   0x03, 0x04, 0xcc, 0xe5 // strb al r0 r12 plus 1027 Offset
 };
-static const byte kInstruction_strb_al_r0_r3_minus_3438_Offset[] = {
+const byte kInstruction_strb_al_r0_r3_minus_3438_Offset[] = {
   0x6e, 0x0d, 0x43, 0xe5 // strb al r0 r3 minus 3438 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_minus_612_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_minus_612_Offset[] = {
   0x64, 0x02, 0x4e, 0xe5 // strb al r0 r14 minus 612 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_minus_251_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_minus_251_Offset[] = {
   0xfb, 0x00, 0x44, 0xe5 // strb al r0 r4 minus 251 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_plus_2728_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_plus_2728_Offset[] = {
   0xa8, 0x0a, 0xc9, 0xe5 // strb al r0 r9 plus 2728 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_plus_1017_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_plus_1017_Offset[] = {
   0xf9, 0x03, 0xce, 0xe5 // strb al r0 r14 plus 1017 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_plus_1050_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_plus_1050_Offset[] = {
   0x1a, 0x04, 0xce, 0xe5 // strb al r0 r14 plus 1050 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_minus_2464_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_minus_2464_Offset[] = {
   0xa0, 0x09, 0x47, 0xe5 // strb al r0 r7 minus 2464 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_plus_2247_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_plus_2247_Offset[] = {
   0xc7, 0x08, 0xc0, 0xe5 // strb al r0 r0 plus 2247 Offset
 };
-static const byte kInstruction_strb_al_r0_r3_plus_1357_Offset[] = {
+const byte kInstruction_strb_al_r0_r3_plus_1357_Offset[] = {
   0x4d, 0x05, 0xc3, 0xe5 // strb al r0 r3 plus 1357 Offset
 };
-static const byte kInstruction_strb_al_r0_r1_plus_2701_Offset[] = {
+const byte kInstruction_strb_al_r0_r1_plus_2701_Offset[] = {
   0x8d, 0x0a, 0xc1, 0xe5 // strb al r0 r1 plus 2701 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_minus_22_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_minus_22_Offset[] = {
   0x16, 0x00, 0x45, 0xe5 // strb al r0 r5 minus 22 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_minus_3015_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_minus_3015_Offset[] = {
   0xc7, 0x0b, 0x47, 0xe5 // strb al r0 r7 minus 3015 Offset
 };
-static const byte kInstruction_strb_al_r0_r3_plus_3517_Offset[] = {
+const byte kInstruction_strb_al_r0_r3_plus_3517_Offset[] = {
   0xbd, 0x0d, 0xc3, 0xe5 // strb al r0 r3 plus 3517 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_minus_1309_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_minus_1309_Offset[] = {
   0x1d, 0x05, 0x42, 0xe5 // strb al r0 r2 minus 1309 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_plus_2381_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_plus_2381_Offset[] = {
   0x4d, 0x09, 0xc9, 0xe5 // strb al r0 r9 plus 2381 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_minus_663_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_minus_663_Offset[] = {
   0x97, 0x02, 0x45, 0xe5 // strb al r0 r5 minus 663 Offset
 };
-static const byte kInstruction_strb_al_r0_r10_minus_3867_Offset[] = {
+const byte kInstruction_strb_al_r0_r10_minus_3867_Offset[] = {
   0x1b, 0x0f, 0x4a, 0xe5 // strb al r0 r10 minus 3867 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_plus_1655_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_plus_1655_Offset[] = {
   0x77, 0x06, 0xc0, 0xe5 // strb al r0 r0 plus 1655 Offset
 };
-static const byte kInstruction_strb_al_r0_r6_plus_513_Offset[] = {
+const byte kInstruction_strb_al_r0_r6_plus_513_Offset[] = {
   0x01, 0x02, 0xc6, 0xe5 // strb al r0 r6 plus 513 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_plus_233_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_plus_233_Offset[] = {
   0xe9, 0x00, 0xc9, 0xe5 // strb al r0 r9 plus 233 Offset
 };
-static const byte kInstruction_strb_al_r0_r8_minus_22_Offset[] = {
+const byte kInstruction_strb_al_r0_r8_minus_22_Offset[] = {
   0x16, 0x00, 0x48, 0xe5 // strb al r0 r8 minus 22 Offset
 };
-static const byte kInstruction_strb_al_r0_r12_plus_470_Offset[] = {
+const byte kInstruction_strb_al_r0_r12_plus_470_Offset[] = {
   0xd6, 0x01, 0xcc, 0xe5 // strb al r0 r12 plus 470 Offset
 };
-static const byte kInstruction_strb_al_r0_r11_plus_2945_Offset[] = {
+const byte kInstruction_strb_al_r0_r11_plus_2945_Offset[] = {
   0x81, 0x0b, 0xcb, 0xe5 // strb al r0 r11 plus 2945 Offset
 };
-static const byte kInstruction_strb_al_r0_r8_plus_2245_Offset[] = {
+const byte kInstruction_strb_al_r0_r8_plus_2245_Offset[] = {
   0xc5, 0x08, 0xc8, 0xe5 // strb al r0 r8 plus 2245 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_minus_1916_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_minus_1916_Offset[] = {
   0x7c, 0x07, 0x4e, 0xe5 // strb al r0 r14 minus 1916 Offset
 };
-static const byte kInstruction_strb_al_r0_r3_minus_3487_Offset[] = {
+const byte kInstruction_strb_al_r0_r3_minus_3487_Offset[] = {
   0x9f, 0x0d, 0x43, 0xe5 // strb al r0 r3 minus 3487 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_minus_960_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_minus_960_Offset[] = {
   0xc0, 0x03, 0x45, 0xe5 // strb al r0 r5 minus 960 Offset
 };
-static const byte kInstruction_strb_al_r0_r8_minus_3660_Offset[] = {
+const byte kInstruction_strb_al_r0_r8_minus_3660_Offset[] = {
   0x4c, 0x0e, 0x48, 0xe5 // strb al r0 r8 minus 3660 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_plus_2627_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_plus_2627_Offset[] = {
   0x43, 0x0a, 0xc0, 0xe5 // strb al r0 r0 plus 2627 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_minus_1892_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_minus_1892_Offset[] = {
   0x64, 0x07, 0x45, 0xe5 // strb al r0 r5 minus 1892 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_plus_1712_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_plus_1712_Offset[] = {
   0xb0, 0x06, 0xc7, 0xe5 // strb al r0 r7 plus 1712 Offset
 };
-static const byte kInstruction_strb_al_r0_r3_minus_3880_Offset[] = {
+const byte kInstruction_strb_al_r0_r3_minus_3880_Offset[] = {
   0x28, 0x0f, 0x43, 0xe5 // strb al r0 r3 minus 3880 Offset
 };
-static const byte kInstruction_strb_al_r0_r13_plus_188_Offset[] = {
+const byte kInstruction_strb_al_r0_r13_plus_188_Offset[] = {
   0xbc, 0x00, 0xcd, 0xe5 // strb al r0 r13 plus 188 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_minus_2314_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_minus_2314_Offset[] = {
   0x0a, 0x09, 0x40, 0xe5 // strb al r0 r0 minus 2314 Offset
 };
-static const byte kInstruction_strb_al_r0_r3_plus_999_Offset[] = {
+const byte kInstruction_strb_al_r0_r3_plus_999_Offset[] = {
   0xe7, 0x03, 0xc3, 0xe5 // strb al r0 r3 plus 999 Offset
 };
-static const byte kInstruction_strb_al_r0_r1_minus_2559_Offset[] = {
+const byte kInstruction_strb_al_r0_r1_minus_2559_Offset[] = {
   0xff, 0x09, 0x41, 0xe5 // strb al r0 r1 minus 2559 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_plus_3570_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_plus_3570_Offset[] = {
   0xf2, 0x0d, 0xc4, 0xe5 // strb al r0 r4 plus 3570 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_plus_2710_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_plus_2710_Offset[] = {
   0x96, 0x0a, 0xc2, 0xe5 // strb al r0 r2 plus 2710 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_minus_3952_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_minus_3952_Offset[] = {
   0x70, 0x0f, 0x44, 0xe5 // strb al r0 r4 minus 3952 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_minus_2546_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_minus_2546_Offset[] = {
   0xf2, 0x09, 0x49, 0xe5 // strb al r0 r9 minus 2546 Offset
 };
-static const byte kInstruction_strb_al_r0_r11_plus_3449_Offset[] = {
+const byte kInstruction_strb_al_r0_r11_plus_3449_Offset[] = {
   0x79, 0x0d, 0xcb, 0xe5 // strb al r0 r11 plus 3449 Offset
 };
-static const byte kInstruction_strb_al_r0_r12_minus_670_Offset[] = {
+const byte kInstruction_strb_al_r0_r12_minus_670_Offset[] = {
   0x9e, 0x02, 0x4c, 0xe5 // strb al r0 r12 minus 670 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_plus_2703_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_plus_2703_Offset[] = {
   0x8f, 0x0a, 0xc7, 0xe5 // strb al r0 r7 plus 2703 Offset
 };
-static const byte kInstruction_strb_al_r0_r10_plus_3139_Offset[] = {
+const byte kInstruction_strb_al_r0_r10_plus_3139_Offset[] = {
   0x43, 0x0c, 0xca, 0xe5 // strb al r0 r10 plus 3139 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_minus_2052_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_minus_2052_Offset[] = {
   0x04, 0x08, 0x44, 0xe5 // strb al r0 r4 minus 2052 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_plus_481_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_plus_481_Offset[] = {
   0xe1, 0x01, 0xc2, 0xe5 // strb al r0 r2 plus 481 Offset
 };
-static const byte kInstruction_strb_al_r0_r13_minus_2796_Offset[] = {
+const byte kInstruction_strb_al_r0_r13_minus_2796_Offset[] = {
   0xec, 0x0a, 0x4d, 0xe5 // strb al r0 r13 minus 2796 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_minus_322_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_minus_322_Offset[] = {
   0x42, 0x01, 0x4e, 0xe5 // strb al r0 r14 minus 322 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_plus_1455_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_plus_1455_Offset[] = {
   0xaf, 0x05, 0xce, 0xe5 // strb al r0 r14 plus 1455 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_plus_1458_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_plus_1458_Offset[] = {
   0xb2, 0x05, 0xc5, 0xe5 // strb al r0 r5 plus 1458 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_minus_371_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_minus_371_Offset[] = {
   0x73, 0x01, 0x40, 0xe5 // strb al r0 r0 minus 371 Offset
 };
-static const byte kInstruction_strb_al_r0_r12_minus_2366_Offset[] = {
+const byte kInstruction_strb_al_r0_r12_minus_2366_Offset[] = {
   0x3e, 0x09, 0x4c, 0xe5 // strb al r0 r12 minus 2366 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_plus_2796_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_plus_2796_Offset[] = {
   0xec, 0x0a, 0xc2, 0xe5 // strb al r0 r2 plus 2796 Offset
 };
-static const byte kInstruction_strb_al_r0_r1_plus_3041_Offset[] = {
+const byte kInstruction_strb_al_r0_r1_plus_3041_Offset[] = {
   0xe1, 0x0b, 0xc1, 0xe5 // strb al r0 r1 plus 3041 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_plus_688_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_plus_688_Offset[] = {
   0xb0, 0x02, 0xc2, 0xe5 // strb al r0 r2 plus 688 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_minus_371_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_minus_371_Offset[] = {
   0x73, 0x01, 0x47, 0xe5 // strb al r0 r7 minus 371 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_plus_1498_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_plus_1498_Offset[] = {
   0xda, 0x05, 0xc5, 0xe5 // strb al r0 r5 plus 1498 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_plus_4091_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_plus_4091_Offset[] = {
   0xfb, 0x0f, 0xc7, 0xe5 // strb al r0 r7 plus 4091 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_minus_2208_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_minus_2208_Offset[] = {
   0xa0, 0x08, 0x44, 0xe5 // strb al r0 r4 minus 2208 Offset
 };
-static const byte kInstruction_strb_al_r0_r3_plus_1823_Offset[] = {
+const byte kInstruction_strb_al_r0_r3_plus_1823_Offset[] = {
   0x1f, 0x07, 0xc3, 0xe5 // strb al r0 r3 plus 1823 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_minus_2175_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_minus_2175_Offset[] = {
   0x7f, 0x08, 0x40, 0xe5 // strb al r0 r0 minus 2175 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_plus_2532_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_plus_2532_Offset[] = {
   0xe4, 0x09, 0xce, 0xe5 // strb al r0 r14 plus 2532 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_plus_2768_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_plus_2768_Offset[] = {
   0xd0, 0x0a, 0xc7, 0xe5 // strb al r0 r7 plus 2768 Offset
 };
-static const byte kInstruction_strb_al_r0_r8_minus_778_Offset[] = {
+const byte kInstruction_strb_al_r0_r8_minus_778_Offset[] = {
   0x0a, 0x03, 0x48, 0xe5 // strb al r0 r8 minus 778 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_minus_1804_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_minus_1804_Offset[] = {
   0x0c, 0x07, 0x40, 0xe5 // strb al r0 r0 minus 1804 Offset
 };
-static const byte kInstruction_strb_al_r0_r4_minus_4076_Offset[] = {
+const byte kInstruction_strb_al_r0_r4_minus_4076_Offset[] = {
   0xec, 0x0f, 0x44, 0xe5 // strb al r0 r4 minus 4076 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_minus_2906_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_minus_2906_Offset[] = {
   0x5a, 0x0b, 0x4e, 0xe5 // strb al r0 r14 minus 2906 Offset
 };
-static const byte kInstruction_strb_al_r0_r14_minus_1097_Offset[] = {
+const byte kInstruction_strb_al_r0_r14_minus_1097_Offset[] = {
   0x49, 0x04, 0x4e, 0xe5 // strb al r0 r14 minus 1097 Offset
 };
-static const byte kInstruction_strb_al_r0_r12_plus_210_Offset[] = {
+const byte kInstruction_strb_al_r0_r12_plus_210_Offset[] = {
   0xd2, 0x00, 0xcc, 0xe5 // strb al r0 r12 plus 210 Offset
 };
-static const byte kInstruction_strb_al_r0_r3_minus_3918_Offset[] = {
+const byte kInstruction_strb_al_r0_r3_minus_3918_Offset[] = {
   0x4e, 0x0f, 0x43, 0xe5 // strb al r0 r3 minus 3918 Offset
 };
-static const byte kInstruction_strb_al_r0_r8_minus_3566_Offset[] = {
+const byte kInstruction_strb_al_r0_r8_minus_3566_Offset[] = {
   0xee, 0x0d, 0x48, 0xe5 // strb al r0 r8 minus 3566 Offset
 };
-static const byte kInstruction_strb_al_r0_r0_plus_2119_Offset[] = {
+const byte kInstruction_strb_al_r0_r0_plus_2119_Offset[] = {
   0x47, 0x08, 0xc0, 0xe5 // strb al r0 r0 plus 2119 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_plus_806_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_plus_806_Offset[] = {
   0x26, 0x03, 0xc5, 0xe5 // strb al r0 r5 plus 806 Offset
 };
-static const byte kInstruction_strb_al_r0_r12_plus_1922_Offset[] = {
+const byte kInstruction_strb_al_r0_r12_plus_1922_Offset[] = {
   0x82, 0x07, 0xcc, 0xe5 // strb al r0 r12 plus 1922 Offset
 };
-static const byte kInstruction_strb_al_r0_r1_plus_132_Offset[] = {
+const byte kInstruction_strb_al_r0_r1_plus_132_Offset[] = {
   0x84, 0x00, 0xc1, 0xe5 // strb al r0 r1 plus 132 Offset
 };
-static const byte kInstruction_strb_al_r0_r3_minus_2183_Offset[] = {
+const byte kInstruction_strb_al_r0_r3_minus_2183_Offset[] = {
   0x87, 0x08, 0x43, 0xe5 // strb al r0 r3 minus 2183 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_minus_2721_Offset[] = {
+const byte kInstruction_strb_al_r0_r2_minus_2721_Offset[] = {
   0xa1, 0x0a, 0x42, 0xe5 // strb al r0 r2 minus 2721 Offset
 };
-static const byte kInstruction_strb_al_r0_r6_plus_2224_Offset[] = {
+const byte kInstruction_strb_al_r0_r6_plus_2224_Offset[] = {
   0xb0, 0x08, 0xc6, 0xe5 // strb al r0 r6 plus 2224 Offset
 };
-static const byte kInstruction_strb_al_r0_r9_plus_4037_Offset[] = {
+const byte kInstruction_strb_al_r0_r9_plus_4037_Offset[] = {
   0xc5, 0x0f, 0xc9, 0xe5 // strb al r0 r9 plus 4037 Offset
 };
-static const byte kInstruction_strb_al_r0_r7_minus_3078_Offset[] = {
+const byte kInstruction_strb_al_r0_r7_minus_3078_Offset[] = {
   0x06, 0x0c, 0x47, 0xe5 // strb al r0 r7 minus 3078 Offset
 };
-static const byte kInstruction_strb_al_r0_r5_plus_3069_Offset[] = {
+const byte kInstruction_strb_al_r0_r5_plus_3069_Offset[] = {
   0xfd, 0x0b, 0xc5, 0xe5 // strb al r0 r5 plus 3069 Offset
 };
-static const byte kInstruction_strb_al_r0_r1_plus_791_Offset[] = {
+const byte kInstruction_strb_al_r0_r1_plus_791_Offset[] = {
   0x17, 0x03, 0xc1, 0xe5 // strb al r0 r1 plus 791 Offset
 };
-static const byte kInstruction_strb_al_r0_r8_plus_3028_Offset[] = {
+const byte kInstruction_strb_al_r0_r8_plus_3028_Offset[] = {
   0xd4, 0x0b, 0xc8, 0xe5 // strb al r0 r8 plus 3028 Offset
 };
-static const byte kInstruction_strb_al_r0_r12_minus_1175_Offset[] = {
+const byte kInstruction_strb_al_r0_r12_minus_1175_Offset[] = {
   0x97, 0x04, 0x4c, 0xe5 // strb al r0 r12 minus 1175 Offset
 };
-static const byte kInstruction_strb_al_r0_r6_minus_3417_Offset[] = {
+const byte kInstruction_strb_al_r0_r6_minus_3417_Offset[] = {
   0x59, 0x0d, 0x46, 0xe5 // strb al r0 r6 minus 3417 Offset
 };
-static const byte kInstruction_strb_al_r0_r2_minus_3194_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r2_minus_3194_PreIndex[] = {
   0x7a, 0x0c, 0x62, 0xe5 // strb al r0 r2 minus 3194 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r12_plus_1804_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r12_plus_1804_PostIndex[] = {
   0x0c, 0x77, 0xcc, 0xe4 // strb al r7 r12 plus 1804 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r6_plus_1437_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r6_plus_1437_PreIndex[] = {
   0x9d, 0x55, 0xe6, 0xe5 // strb al r5 r6 plus 1437 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r8_minus_4_PostIndex[] = {
+const byte kInstruction_strb_al_r0_r8_minus_4_PostIndex[] = {
   0x04, 0x00, 0x48, 0xe4 // strb al r0 r8 minus 4 PostIndex
 };
-static const byte kInstruction_strb_al_r14_r2_plus_1635_PostIndex[] = {
+const byte kInstruction_strb_al_r14_r2_plus_1635_PostIndex[] = {
   0x63, 0xe6, 0xc2, 0xe4 // strb al r14 r2 plus 1635 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r0_plus_1066_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r0_plus_1066_PreIndex[] = {
   0x2a, 0x54, 0xe0, 0xe5 // strb al r5 r0 plus 1066 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r6_minus_3069_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r6_minus_3069_PreIndex[] = {
   0xfd, 0xbb, 0x66, 0xe5 // strb al r11 r6 minus 3069 PreIndex
 };
-static const byte kInstruction_strb_al_r12_r3_plus_595_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r3_plus_595_PreIndex[] = {
   0x53, 0xc2, 0xe3, 0xe5 // strb al r12 r3 plus 595 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r2_minus_4093_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r2_minus_4093_PreIndex[] = {
   0xfd, 0x7f, 0x62, 0xe5 // strb al r7 r2 minus 4093 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r7_plus_1872_PreIndex[] = {
+const byte kInstruction_strb_al_r8_r7_plus_1872_PreIndex[] = {
   0x50, 0x87, 0xe7, 0xe5 // strb al r8 r7 plus 1872 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r4_plus_2792_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r4_plus_2792_PreIndex[] = {
   0xe8, 0x0a, 0xe4, 0xe5 // strb al r0 r4 plus 2792 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r6_minus_2948_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r6_minus_2948_PreIndex[] = {
   0x84, 0xbb, 0x66, 0xe5 // strb al r11 r6 minus 2948 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r10_plus_1459_PostIndex[] = {
+const byte kInstruction_strb_al_r13_r10_plus_1459_PostIndex[] = {
   0xb3, 0xd5, 0xca, 0xe4 // strb al r13 r10 plus 1459 PostIndex
 };
-static const byte kInstruction_strb_al_r11_r12_plus_2490_PostIndex[] = {
+const byte kInstruction_strb_al_r11_r12_plus_2490_PostIndex[] = {
   0xba, 0xb9, 0xcc, 0xe4 // strb al r11 r12 plus 2490 PostIndex
 };
-static const byte kInstruction_strb_al_r7_r9_plus_2026_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r9_plus_2026_PostIndex[] = {
   0xea, 0x77, 0xc9, 0xe4 // strb al r7 r9 plus 2026 PostIndex
 };
-static const byte kInstruction_strb_al_r0_r13_minus_3397_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r13_minus_3397_PreIndex[] = {
   0x45, 0x0d, 0x6d, 0xe5 // strb al r0 r13 minus 3397 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r3_plus_2800_PreIndex[] = {
+const byte kInstruction_strb_al_r2_r3_plus_2800_PreIndex[] = {
   0xf0, 0x2a, 0xe3, 0xe5 // strb al r2 r3 plus 2800 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r11_minus_2183_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r11_minus_2183_PreIndex[] = {
   0x87, 0x58, 0x6b, 0xe5 // strb al r5 r11 minus 2183 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r7_plus_2217_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r7_plus_2217_PreIndex[] = {
   0xa9, 0x58, 0xe7, 0xe5 // strb al r5 r7 plus 2217 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r0_plus_1455_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r0_plus_1455_PreIndex[] = {
   0xaf, 0xb5, 0xe0, 0xe5 // strb al r11 r0 plus 1455 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r2_plus_1159_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r2_plus_1159_PreIndex[] = {
   0x87, 0x04, 0xe2, 0xe5 // strb al r0 r2 plus 1159 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r0_minus_1526_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r0_minus_1526_PostIndex[] = {
   0xf6, 0x25, 0x40, 0xe4 // strb al r2 r0 minus 1526 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r8_plus_3139_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r8_plus_3139_PreIndex[] = {
   0x43, 0xac, 0xe8, 0xe5 // strb al r10 r8 plus 3139 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r12_minus_3963_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r12_minus_3963_PreIndex[] = {
   0x7b, 0xbf, 0x6c, 0xe5 // strb al r11 r12 minus 3963 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r7_plus_2628_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r7_plus_2628_PreIndex[] = {
   0x44, 0x5a, 0xe7, 0xe5 // strb al r5 r7 plus 2628 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r1_plus_1665_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r1_plus_1665_PreIndex[] = {
   0x81, 0x76, 0xe1, 0xe5 // strb al r7 r1 plus 1665 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r9_minus_53_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r9_minus_53_PreIndex[] = {
   0x35, 0x00, 0x69, 0xe5 // strb al r0 r9 minus 53 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r11_minus_4095_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r11_minus_4095_PostIndex[] = {
   0xff, 0x6f, 0x4b, 0xe4 // strb al r6 r11 minus 4095 PostIndex
 };
-static const byte kInstruction_strb_al_r0_r2_plus_459_PostIndex[] = {
+const byte kInstruction_strb_al_r0_r2_plus_459_PostIndex[] = {
   0xcb, 0x01, 0xc2, 0xe4 // strb al r0 r2 plus 459 PostIndex
 };
-static const byte kInstruction_strb_al_r9_r7_plus_2994_PreIndex[] = {
+const byte kInstruction_strb_al_r9_r7_plus_2994_PreIndex[] = {
   0xb2, 0x9b, 0xe7, 0xe5 // strb al r9 r7 plus 2994 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r3_minus_3585_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r3_minus_3585_PreIndex[] = {
   0x01, 0xbe, 0x63, 0xe5 // strb al r11 r3 minus 3585 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r12_plus_3811_PreIndex[] = {
+const byte kInstruction_strb_al_r2_r12_plus_3811_PreIndex[] = {
   0xe3, 0x2e, 0xec, 0xe5 // strb al r2 r12 plus 3811 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r13_plus_342_PostIndex[] = {
+const byte kInstruction_strb_al_r3_r13_plus_342_PostIndex[] = {
   0x56, 0x31, 0xcd, 0xe4 // strb al r3 r13 plus 342 PostIndex
 };
-static const byte kInstruction_strb_al_r1_r4_minus_3529_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r4_minus_3529_PreIndex[] = {
   0xc9, 0x1d, 0x64, 0xe5 // strb al r1 r4 minus 3529 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r3_plus_322_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r3_plus_322_PreIndex[] = {
   0x42, 0xd1, 0xe3, 0xe5 // strb al r13 r3 plus 322 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r9_plus_2628_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r9_plus_2628_PreIndex[] = {
   0x44, 0xda, 0xe9, 0xe5 // strb al r13 r9 plus 2628 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r13_plus_3105_PostIndex[] = {
+const byte kInstruction_strb_al_r9_r13_plus_3105_PostIndex[] = {
   0x21, 0x9c, 0xcd, 0xe4 // strb al r9 r13 plus 3105 PostIndex
 };
-static const byte kInstruction_strb_al_r1_r14_minus_2311_PostIndex[] = {
+const byte kInstruction_strb_al_r1_r14_minus_2311_PostIndex[] = {
   0x07, 0x19, 0x4e, 0xe4 // strb al r1 r14 minus 2311 PostIndex
 };
-static const byte kInstruction_strb_al_r0_r13_minus_1050_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r13_minus_1050_PreIndex[] = {
   0x1a, 0x04, 0x6d, 0xe5 // strb al r0 r13 minus 1050 PreIndex
 };
-static const byte kInstruction_strb_al_r14_r3_minus_1892_PostIndex[] = {
+const byte kInstruction_strb_al_r14_r3_minus_1892_PostIndex[] = {
   0x64, 0xe7, 0x43, 0xe4 // strb al r14 r3 minus 1892 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r4_minus_915_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r4_minus_915_PostIndex[] = {
   0x93, 0x23, 0x44, 0xe4 // strb al r2 r4 minus 915 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r3_minus_3918_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r3_minus_3918_PostIndex[] = {
   0x4e, 0x2f, 0x43, 0xe4 // strb al r2 r3 minus 3918 PostIndex
 };
-static const byte kInstruction_strb_al_r0_r13_minus_2901_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r13_minus_2901_PreIndex[] = {
   0x55, 0x0b, 0x6d, 0xe5 // strb al r0 r13 minus 2901 PreIndex
 };
-static const byte kInstruction_strb_al_r14_r8_minus_960_PreIndex[] = {
+const byte kInstruction_strb_al_r14_r8_minus_960_PreIndex[] = {
   0xc0, 0xe3, 0x68, 0xe5 // strb al r14 r8 minus 960 PreIndex
 };
-static const byte kInstruction_strb_al_r10_r2_minus_3425_PostIndex[] = {
+const byte kInstruction_strb_al_r10_r2_minus_3425_PostIndex[] = {
   0x61, 0xad, 0x42, 0xe4 // strb al r10 r2 minus 3425 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r0_minus_210_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r0_minus_210_PostIndex[] = {
   0xd2, 0x20, 0x40, 0xe4 // strb al r2 r0 minus 210 PostIndex
 };
-static const byte kInstruction_strb_al_r4_r5_minus_2052_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r5_minus_2052_PreIndex[] = {
   0x04, 0x48, 0x65, 0xe5 // strb al r4 r5 minus 2052 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r0_minus_1922_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r0_minus_1922_PostIndex[] = {
   0x82, 0x57, 0x40, 0xe4 // strb al r5 r0 minus 1922 PostIndex
 };
-static const byte kInstruction_strb_al_r7_r8_minus_3256_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r8_minus_3256_PostIndex[] = {
   0xb8, 0x7c, 0x48, 0xe4 // strb al r7 r8 minus 3256 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r13_plus_1695_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r13_plus_1695_PostIndex[] = {
   0x9f, 0x56, 0xcd, 0xe4 // strb al r5 r13 plus 1695 PostIndex
 };
-static const byte kInstruction_strb_al_r3_r14_plus_844_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r14_plus_844_PreIndex[] = {
   0x4c, 0x33, 0xee, 0xe5 // strb al r3 r14 plus 844 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r7_minus_3914_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r7_minus_3914_PreIndex[] = {
   0x4a, 0x3f, 0x67, 0xe5 // strb al r3 r7 minus 3914 PreIndex
 };
-static const byte kInstruction_strb_al_r4_r6_minus_3256_PostIndex[] = {
+const byte kInstruction_strb_al_r4_r6_minus_3256_PostIndex[] = {
   0xb8, 0x4c, 0x46, 0xe4 // strb al r4 r6 minus 3256 PostIndex
 };
-static const byte kInstruction_strb_al_r11_r12_minus_2338_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r12_minus_2338_PreIndex[] = {
   0x22, 0xb9, 0x6c, 0xe5 // strb al r11 r12 minus 2338 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r10_minus_3117_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r10_minus_3117_PostIndex[] = {
   0x2d, 0x2c, 0x4a, 0xe4 // strb al r2 r10 minus 3117 PostIndex
 };
-static const byte kInstruction_strb_al_r0_r12_minus_2046_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r12_minus_2046_PreIndex[] = {
   0xfe, 0x07, 0x6c, 0xe5 // strb al r0 r12 minus 2046 PreIndex
 };
-static const byte kInstruction_strb_al_r14_r8_plus_3660_PostIndex[] = {
+const byte kInstruction_strb_al_r14_r8_plus_3660_PostIndex[] = {
   0x4c, 0xee, 0xc8, 0xe4 // strb al r14 r8 plus 3660 PostIndex
 };
-static const byte kInstruction_strb_al_r6_r10_minus_3739_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r10_minus_3739_PostIndex[] = {
   0x9b, 0x6e, 0x4a, 0xe4 // strb al r6 r10 minus 3739 PostIndex
 };
-static const byte kInstruction_strb_al_r7_r1_minus_3633_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r1_minus_3633_PreIndex[] = {
   0x31, 0x7e, 0x61, 0xe5 // strb al r7 r1 minus 3633 PreIndex
 };
-static const byte kInstruction_strb_al_r10_r6_plus_2358_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r6_plus_2358_PreIndex[] = {
   0x36, 0xa9, 0xe6, 0xe5 // strb al r10 r6 plus 2358 PreIndex
 };
-static const byte kInstruction_strb_al_r4_r6_plus_3139_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r6_plus_3139_PreIndex[] = {
   0x43, 0x4c, 0xe6, 0xe5 // strb al r4 r6 plus 3139 PreIndex
 };
-static const byte kInstruction_strb_al_r14_r2_plus_398_PreIndex[] = {
+const byte kInstruction_strb_al_r14_r2_plus_398_PreIndex[] = {
   0x8e, 0xe1, 0xe2, 0xe5 // strb al r14 r2 plus 398 PreIndex
 };
-static const byte kInstruction_strb_al_r1_r9_plus_1438_PostIndex[] = {
+const byte kInstruction_strb_al_r1_r9_plus_1438_PostIndex[] = {
   0x9e, 0x15, 0xc9, 0xe4 // strb al r1 r9 plus 1438 PostIndex
 };
-static const byte kInstruction_strb_al_r13_r7_plus_1867_PostIndex[] = {
+const byte kInstruction_strb_al_r13_r7_plus_1867_PostIndex[] = {
   0x4b, 0xd7, 0xc7, 0xe4 // strb al r13 r7 plus 1867 PostIndex
 };
-static const byte kInstruction_strb_al_r6_r7_plus_831_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r7_plus_831_PostIndex[] = {
   0x3f, 0x63, 0xc7, 0xe4 // strb al r6 r7 plus 831 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r6_plus_4_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r6_plus_4_PreIndex[] = {
   0x04, 0xa0, 0xe6, 0xe5 // strb al r10 r6 plus 4 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r0_plus_1835_PreIndex[] = {
+const byte kInstruction_strb_al_r9_r0_plus_1835_PreIndex[] = {
   0x2b, 0x97, 0xe0, 0xe5 // strb al r9 r0 plus 1835 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r2_minus_1438_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r2_minus_1438_PreIndex[] = {
   0x9e, 0x05, 0x62, 0xe5 // strb al r0 r2 minus 1438 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r2_plus_3522_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r2_plus_3522_PreIndex[] = {
   0xc2, 0x6d, 0xe2, 0xe5 // strb al r6 r2 plus 3522 PreIndex
 };
-static const byte kInstruction_strb_al_r1_r4_minus_3069_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r4_minus_3069_PreIndex[] = {
   0xfd, 0x1b, 0x64, 0xe5 // strb al r1 r4 minus 3069 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r5_plus_1348_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r5_plus_1348_PreIndex[] = {
   0x44, 0x05, 0xe5, 0xe5 // strb al r0 r5 plus 1348 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r5_plus_2224_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r5_plus_2224_PreIndex[] = {
   0xb0, 0xb8, 0xe5, 0xe5 // strb al r11 r5 plus 2224 PreIndex
 };
-static const byte kInstruction_strb_al_r4_r14_minus_1537_PostIndex[] = {
+const byte kInstruction_strb_al_r4_r14_minus_1537_PostIndex[] = {
   0x01, 0x46, 0x4e, 0xe4 // strb al r4 r14 minus 1537 PostIndex
 };
-static const byte kInstruction_strb_al_r9_r7_plus_213_PostIndex[] = {
+const byte kInstruction_strb_al_r9_r7_plus_213_PostIndex[] = {
   0xd5, 0x90, 0xc7, 0xe4 // strb al r9 r7 plus 213 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r3_minus_2402_PreIndex[] = {
+const byte kInstruction_strb_al_r2_r3_minus_2402_PreIndex[] = {
   0x62, 0x29, 0x63, 0xe5 // strb al r2 r3 minus 2402 PreIndex
 };
-static const byte kInstruction_strb_al_r4_r1_plus_3771_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r1_plus_3771_PreIndex[] = {
   0xbb, 0x4e, 0xe1, 0xe5 // strb al r4 r1 plus 3771 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r4_minus_2139_PostIndex[] = {
+const byte kInstruction_strb_al_r0_r4_minus_2139_PostIndex[] = {
   0x5b, 0x08, 0x44, 0xe4 // strb al r0 r4 minus 2139 PostIndex
 };
-static const byte kInstruction_strb_al_r1_r4_minus_2016_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r4_minus_2016_PreIndex[] = {
   0xe0, 0x17, 0x64, 0xe5 // strb al r1 r4 minus 2016 PreIndex
 };
-static const byte kInstruction_strb_al_r4_r12_minus_1241_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r12_minus_1241_PreIndex[] = {
   0xd9, 0x44, 0x6c, 0xe5 // strb al r4 r12 minus 1241 PreIndex
 };
-static const byte kInstruction_strb_al_r10_r5_minus_3391_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r5_minus_3391_PreIndex[] = {
   0x3f, 0xad, 0x65, 0xe5 // strb al r10 r5 minus 3391 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r4_plus_2689_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r4_plus_2689_PreIndex[] = {
   0x81, 0x0a, 0xe4, 0xe5 // strb al r0 r4 plus 2689 PreIndex
 };
-static const byte kInstruction_strb_al_r14_r12_plus_2588_PostIndex[] = {
+const byte kInstruction_strb_al_r14_r12_plus_2588_PostIndex[] = {
   0x1c, 0xea, 0xcc, 0xe4 // strb al r14 r12 plus 2588 PostIndex
 };
-static const byte kInstruction_strb_al_r11_r14_minus_1234_PostIndex[] = {
+const byte kInstruction_strb_al_r11_r14_minus_1234_PostIndex[] = {
   0xd2, 0xb4, 0x4e, 0xe4 // strb al r11 r14 minus 1234 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r0_minus_1699_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r0_minus_1699_PostIndex[] = {
   0xa3, 0x26, 0x40, 0xe4 // strb al r2 r0 minus 1699 PostIndex
 };
-static const byte kInstruction_strb_al_r9_r10_minus_3399_PreIndex[] = {
+const byte kInstruction_strb_al_r9_r10_minus_3399_PreIndex[] = {
   0x47, 0x9d, 0x6a, 0xe5 // strb al r9 r10 minus 3399 PreIndex
 };
-static const byte kInstruction_strb_al_r10_r8_minus_132_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r8_minus_132_PreIndex[] = {
   0x84, 0xa0, 0x68, 0xe5 // strb al r10 r8 minus 132 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r6_plus_496_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r6_plus_496_PreIndex[] = {
   0xf0, 0xd1, 0xe6, 0xe5 // strb al r13 r6 plus 496 PreIndex
 };
-static const byte kInstruction_strb_al_r12_r9_minus_188_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r9_minus_188_PreIndex[] = {
   0xbc, 0xc0, 0x69, 0xe5 // strb al r12 r9 minus 188 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r2_minus_612_PostIndex[] = {
+const byte kInstruction_strb_al_r9_r2_minus_612_PostIndex[] = {
   0x64, 0x92, 0x42, 0xe4 // strb al r9 r2 minus 612 PostIndex
 };
-static const byte kInstruction_strb_al_r8_r13_minus_2929_PreIndex[] = {
+const byte kInstruction_strb_al_r8_r13_minus_2929_PreIndex[] = {
   0x71, 0x8b, 0x6d, 0xe5 // strb al r8 r13 minus 2929 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r12_plus_1372_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r12_plus_1372_PreIndex[] = {
   0x5c, 0x65, 0xec, 0xe5 // strb al r6 r12 plus 1372 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r10_plus_1967_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r10_plus_1967_PreIndex[] = {
   0xaf, 0x37, 0xea, 0xe5 // strb al r3 r10 plus 1967 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r0_plus_3728_PostIndex[] = {
+const byte kInstruction_strb_al_r3_r0_plus_3728_PostIndex[] = {
   0x90, 0x3e, 0xc0, 0xe4 // strb al r3 r0 plus 3728 PostIndex
 };
-static const byte kInstruction_strb_al_r12_r13_minus_2726_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r13_minus_2726_PreIndex[] = {
   0xa6, 0xca, 0x6d, 0xe5 // strb al r12 r13 minus 2726 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r12_plus_542_PreIndex[] = {
+const byte kInstruction_strb_al_r2_r12_plus_542_PreIndex[] = {
   0x1e, 0x22, 0xec, 0xe5 // strb al r2 r12 plus 542 PreIndex
 };
-static const byte kInstruction_strb_al_r4_r12_minus_3989_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r12_minus_3989_PreIndex[] = {
   0x95, 0x4f, 0x6c, 0xe5 // strb al r4 r12 minus 3989 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r14_plus_2311_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r14_plus_2311_PostIndex[] = {
   0x07, 0x89, 0xce, 0xe4 // strb al r8 r14 plus 2311 PostIndex
 };
-static const byte kInstruction_strb_al_r8_r11_minus_1479_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r11_minus_1479_PostIndex[] = {
   0xc7, 0x85, 0x4b, 0xe4 // strb al r8 r11 minus 1479 PostIndex
 };
-static const byte kInstruction_strb_al_r4_r3_plus_988_PostIndex[] = {
+const byte kInstruction_strb_al_r4_r3_plus_988_PostIndex[] = {
   0xdc, 0x43, 0xc3, 0xe4 // strb al r4 r3 plus 988 PostIndex
 };
-static const byte kInstruction_strb_al_r9_r6_minus_1017_PostIndex[] = {
+const byte kInstruction_strb_al_r9_r6_minus_1017_PostIndex[] = {
   0xf9, 0x93, 0x46, 0xe4 // strb al r9 r6 minus 1017 PostIndex
 };
-static const byte kInstruction_strb_al_r13_r10_plus_2038_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r10_plus_2038_PreIndex[] = {
   0xf6, 0xd7, 0xea, 0xe5 // strb al r13 r10 plus 2038 PreIndex
 };
-static const byte kInstruction_strb_al_r10_r0_plus_999_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r0_plus_999_PreIndex[] = {
   0xe7, 0xa3, 0xe0, 0xe5 // strb al r10 r0 plus 999 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r1_minus_1870_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r1_minus_1870_PostIndex[] = {
   0x4e, 0x27, 0x41, 0xe4 // strb al r2 r1 minus 1870 PostIndex
 };
-static const byte kInstruction_strb_al_r1_r3_plus_188_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r3_plus_188_PreIndex[] = {
   0xbc, 0x10, 0xe3, 0xe5 // strb al r1 r3 plus 188 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r10_minus_459_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r10_minus_459_PreIndex[] = {
   0xcb, 0x31, 0x6a, 0xe5 // strb al r3 r10 minus 459 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r6_minus_2245_PostIndex[] = {
+const byte kInstruction_strb_al_r13_r6_minus_2245_PostIndex[] = {
   0xc5, 0xd8, 0x46, 0xe4 // strb al r13 r6 minus 2245 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r11_minus_3397_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r11_minus_3397_PostIndex[] = {
   0x45, 0x2d, 0x4b, 0xe4 // strb al r2 r11 minus 3397 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r6_plus_2025_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r6_plus_2025_PreIndex[] = {
   0xe9, 0x57, 0xe6, 0xe5 // strb al r5 r6 plus 2025 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r2_minus_479_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r2_minus_479_PreIndex[] = {
   0xdf, 0xd1, 0x62, 0xe5 // strb al r13 r2 minus 479 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r7_minus_3069_PreIndex[] = {
+const byte kInstruction_strb_al_r9_r7_minus_3069_PreIndex[] = {
   0xfd, 0x9b, 0x67, 0xe5 // strb al r9 r7 minus 3069 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r6_plus_462_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r6_plus_462_PostIndex[] = {
   0xce, 0x21, 0xc6, 0xe4 // strb al r2 r6 plus 462 PostIndex
 };
-static const byte kInstruction_strb_al_r4_r7_minus_2026_PostIndex[] = {
+const byte kInstruction_strb_al_r4_r7_minus_2026_PostIndex[] = {
   0xea, 0x47, 0x47, 0xe4 // strb al r4 r7 minus 2026 PostIndex
 };
-static const byte kInstruction_strb_al_r1_r5_minus_969_PostIndex[] = {
+const byte kInstruction_strb_al_r1_r5_minus_969_PostIndex[] = {
   0xc9, 0x13, 0x45, 0xe4 // strb al r1 r5 minus 969 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r4_minus_3752_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r4_minus_3752_PostIndex[] = {
   0xa8, 0x2e, 0x44, 0xe4 // strb al r2 r4 minus 3752 PostIndex
 };
-static const byte kInstruction_strb_al_r6_r2_plus_3583_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r2_plus_3583_PreIndex[] = {
   0xff, 0x6d, 0xe2, 0xe5 // strb al r6 r2 plus 3583 PreIndex
 };
-static const byte kInstruction_strb_al_r12_r10_plus_2906_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r10_plus_2906_PreIndex[] = {
   0x5a, 0xcb, 0xea, 0xe5 // strb al r12 r10 plus 2906 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r1_minus_3752_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r1_minus_3752_PostIndex[] = {
   0xa8, 0x6e, 0x41, 0xe4 // strb al r6 r1 minus 3752 PostIndex
 };
-static const byte kInstruction_strb_al_r4_r14_minus_2490_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r14_minus_2490_PreIndex[] = {
   0xba, 0x49, 0x6e, 0xe5 // strb al r4 r14 minus 2490 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r3_minus_4093_PostIndex[] = {
+const byte kInstruction_strb_al_r13_r3_minus_4093_PostIndex[] = {
   0xfd, 0xdf, 0x43, 0xe4 // strb al r13 r3 minus 4093 PostIndex
 };
-static const byte kInstruction_strb_al_r14_r4_plus_932_PostIndex[] = {
+const byte kInstruction_strb_al_r14_r4_plus_932_PostIndex[] = {
   0xa4, 0xe3, 0xc4, 0xe4 // strb al r14 r4 plus 932 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r4_plus_774_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r4_plus_774_PreIndex[] = {
   0x06, 0x53, 0xe4, 0xe5 // strb al r5 r4 plus 774 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r12_plus_2175_PostIndex[] = {
+const byte kInstruction_strb_al_r3_r12_plus_2175_PostIndex[] = {
   0x7f, 0x38, 0xcc, 0xe4 // strb al r3 r12 plus 2175 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r5_minus_1567_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r5_minus_1567_PostIndex[] = {
   0x1f, 0x26, 0x45, 0xe4 // strb al r2 r5 minus 1567 PostIndex
 };
-static const byte kInstruction_strb_al_r13_r9_plus_3963_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r9_plus_3963_PreIndex[] = {
   0x7b, 0xdf, 0xe9, 0xe5 // strb al r13 r9 plus 3963 PreIndex
 };
-static const byte kInstruction_strb_al_r14_r9_minus_2381_PostIndex[] = {
+const byte kInstruction_strb_al_r14_r9_minus_2381_PostIndex[] = {
   0x4d, 0xe9, 0x49, 0xe4 // strb al r14 r9 minus 2381 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r14_minus_3663_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r14_minus_3663_PreIndex[] = {
   0x4f, 0xae, 0x6e, 0xe5 // strb al r10 r14 minus 3663 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r7_plus_2453_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r7_plus_2453_PreIndex[] = {
   0x95, 0x39, 0xe7, 0xe5 // strb al r3 r7 plus 2453 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r11_minus_1922_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r11_minus_1922_PreIndex[] = {
   0x82, 0x07, 0x6b, 0xe5 // strb al r0 r11 minus 1922 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r3_plus_2651_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r3_plus_2651_PreIndex[] = {
   0x5b, 0x7a, 0xe3, 0xe5 // strb al r7 r3 plus 2651 PreIndex
 };
-static const byte kInstruction_strb_al_r12_r10_minus_1740_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r10_minus_1740_PreIndex[] = {
   0xcc, 0xc6, 0x6a, 0xe5 // strb al r12 r10 minus 1740 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r14_plus_1399_PreIndex[] = {
+const byte kInstruction_strb_al_r8_r14_plus_1399_PreIndex[] = {
   0x77, 0x85, 0xee, 0xe5 // strb al r8 r14 plus 1399 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r2_minus_3541_PreIndex[] = {
+const byte kInstruction_strb_al_r8_r2_minus_3541_PreIndex[] = {
   0xd5, 0x8d, 0x62, 0xe5 // strb al r8 r2 minus 3541 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r6_plus_3138_PostIndex[] = {
+const byte kInstruction_strb_al_r9_r6_plus_3138_PostIndex[] = {
   0x42, 0x9c, 0xc6, 0xe4 // strb al r9 r6 plus 3138 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r0_minus_1804_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r0_minus_1804_PreIndex[] = {
   0x0c, 0xa7, 0x60, 0xe5 // strb al r10 r0 minus 1804 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r4_plus_1652_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r4_plus_1652_PostIndex[] = {
   0x74, 0x56, 0xc4, 0xe4 // strb al r5 r4 plus 1652 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r10_plus_1860_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r10_plus_1860_PostIndex[] = {
   0x44, 0x27, 0xca, 0xe4 // strb al r2 r10 plus 1860 PostIndex
 };
-static const byte kInstruction_strb_al_r3_r0_minus_828_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r0_minus_828_PreIndex[] = {
   0x3c, 0x33, 0x60, 0xe5 // strb al r3 r0 minus 828 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r0_plus_429_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r0_plus_429_PreIndex[] = {
   0xad, 0xb1, 0xe0, 0xe5 // strb al r11 r0 plus 429 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r12_plus_3028_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r12_plus_3028_PostIndex[] = {
   0xd4, 0x7b, 0xcc, 0xe4 // strb al r7 r12 plus 3028 PostIndex
 };
-static const byte kInstruction_strb_al_r11_r12_minus_2775_PostIndex[] = {
+const byte kInstruction_strb_al_r11_r12_minus_2775_PostIndex[] = {
   0xd7, 0xba, 0x4c, 0xe4 // strb al r11 r12 minus 2775 PostIndex
 };
-static const byte kInstruction_strb_al_r4_r10_minus_2689_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r10_minus_2689_PreIndex[] = {
   0x81, 0x4a, 0x6a, 0xe5 // strb al r4 r10 minus 2689 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r12_plus_462_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r12_plus_462_PostIndex[] = {
   0xce, 0x81, 0xcc, 0xe4 // strb al r8 r12 plus 462 PostIndex
 };
-static const byte kInstruction_strb_al_r13_r14_plus_2792_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r14_plus_2792_PreIndex[] = {
   0xe8, 0xda, 0xee, 0xe5 // strb al r13 r14 plus 2792 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r9_plus_2338_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r9_plus_2338_PostIndex[] = {
   0x22, 0x79, 0xc9, 0xe4 // strb al r7 r9 plus 2338 PostIndex
 };
-static const byte kInstruction_strb_al_r13_r5_minus_766_PostIndex[] = {
+const byte kInstruction_strb_al_r13_r5_minus_766_PostIndex[] = {
   0xfe, 0xd2, 0x45, 0xe4 // strb al r13 r5 minus 766 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r1_minus_2794_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r1_minus_2794_PreIndex[] = {
   0xea, 0x5a, 0x61, 0xe5 // strb al r5 r1 minus 2794 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r4_plus_2800_PreIndex[] = {
+const byte kInstruction_strb_al_r9_r4_plus_2800_PreIndex[] = {
   0xf0, 0x9a, 0xe4, 0xe5 // strb al r9 r4 plus 2800 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r8_minus_523_PostIndex[] = {
+const byte kInstruction_strb_al_r0_r8_minus_523_PostIndex[] = {
   0x0b, 0x02, 0x48, 0xe4 // strb al r0 r8 minus 523 PostIndex
 };
-static const byte kInstruction_strb_al_r9_r8_minus_2507_PostIndex[] = {
+const byte kInstruction_strb_al_r9_r8_minus_2507_PostIndex[] = {
   0xcb, 0x99, 0x48, 0xe4 // strb al r9 r8 minus 2507 PostIndex
 };
-static const byte kInstruction_strb_al_r0_r1_minus_3696_PostIndex[] = {
+const byte kInstruction_strb_al_r0_r1_minus_3696_PostIndex[] = {
   0x70, 0x0e, 0x41, 0xe4 // strb al r0 r1 minus 3696 PostIndex
 };
-static const byte kInstruction_strb_al_r3_r2_plus_2617_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r2_plus_2617_PreIndex[] = {
   0x39, 0x3a, 0xe2, 0xe5 // strb al r3 r2 plus 2617 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r4_plus_4095_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r4_plus_4095_PostIndex[] = {
   0xff, 0x5f, 0xc4, 0xe4 // strb al r5 r4 plus 4095 PostIndex
 };
-static const byte kInstruction_strb_al_r7_r8_minus_955_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r8_minus_955_PreIndex[] = {
   0xbb, 0x73, 0x68, 0xe5 // strb al r7 r8 minus 955 PreIndex
 };
-static const byte kInstruction_strb_al_r4_r9_minus_3079_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r9_minus_3079_PreIndex[] = {
   0x07, 0x4c, 0x69, 0xe5 // strb al r4 r9 minus 3079 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r1_minus_1017_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r1_minus_1017_PostIndex[] = {
   0xf9, 0x73, 0x41, 0xe4 // strb al r7 r1 minus 1017 PostIndex
 };
-static const byte kInstruction_strb_al_r3_r1_minus_1437_PostIndex[] = {
+const byte kInstruction_strb_al_r3_r1_minus_1437_PostIndex[] = {
   0x9d, 0x35, 0x41, 0xe4 // strb al r3 r1 minus 1437 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r12_plus_3529_PostIndex[] = {
+const byte kInstruction_strb_al_r10_r12_plus_3529_PostIndex[] = {
   0xc9, 0xad, 0xcc, 0xe4 // strb al r10 r12 plus 3529 PostIndex
 };
-static const byte kInstruction_strb_al_r4_r6_minus_565_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r6_minus_565_PreIndex[] = {
   0x35, 0x42, 0x66, 0xe5 // strb al r4 r6 minus 565 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r6_plus_264_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r6_plus_264_PostIndex[] = {
   0x08, 0x51, 0xc6, 0xe4 // strb al r5 r6 plus 264 PostIndex
 };
-static const byte kInstruction_strb_al_r11_r3_minus_2810_PostIndex[] = {
+const byte kInstruction_strb_al_r11_r3_minus_2810_PostIndex[] = {
   0xfa, 0xba, 0x43, 0xe4 // strb al r11 r3 minus 2810 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r10_minus_669_PreIndex[] = {
+const byte kInstruction_strb_al_r2_r10_minus_669_PreIndex[] = {
   0x9d, 0x22, 0x6a, 0xe5 // strb al r2 r10 minus 669 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r13_minus_3867_PreIndex[] = {
+const byte kInstruction_strb_al_r2_r13_minus_3867_PreIndex[] = {
   0x1b, 0x2f, 0x6d, 0xe5 // strb al r2 r13 minus 3867 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r10_plus_3610_PreIndex[] = {
+const byte kInstruction_strb_al_r8_r10_plus_3610_PreIndex[] = {
   0x1a, 0x8e, 0xea, 0xe5 // strb al r8 r10 plus 3610 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r2_minus_969_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r2_minus_969_PreIndex[] = {
   0xc9, 0x33, 0x62, 0xe5 // strb al r3 r2 minus 969 PreIndex
 };
-static const byte kInstruction_strb_al_r12_r4_plus_1585_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r4_plus_1585_PreIndex[] = {
   0x31, 0xc6, 0xe4, 0xe5 // strb al r12 r4 plus 1585 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r14_plus_3256_PreIndex[] = {
+const byte kInstruction_strb_al_r9_r14_plus_3256_PreIndex[] = {
   0xb8, 0x9c, 0xee, 0xe5 // strb al r9 r14 plus 3256 PreIndex
 };
-static const byte kInstruction_strb_al_r12_r2_plus_844_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r2_plus_844_PreIndex[] = {
   0x4c, 0xc3, 0xe2, 0xe5 // strb al r12 r2 plus 844 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r14_plus_3142_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r14_plus_3142_PreIndex[] = {
   0x46, 0x6c, 0xee, 0xe5 // strb al r6 r14 plus 3142 PreIndex
 };
-static const byte kInstruction_strb_al_r4_r2_plus_1999_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r2_plus_1999_PreIndex[] = {
   0xcf, 0x47, 0xe2, 0xe5 // strb al r4 r2 plus 1999 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r3_minus_3170_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r3_minus_3170_PreIndex[] = {
   0x62, 0x5c, 0x63, 0xe5 // strb al r5 r3 minus 3170 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r0_minus_2703_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r0_minus_2703_PostIndex[] = {
   0x8f, 0x7a, 0x40, 0xe4 // strb al r7 r0 minus 2703 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r3_plus_1445_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r3_plus_1445_PreIndex[] = {
   0xa5, 0xa5, 0xe3, 0xe5 // strb al r10 r3 plus 1445 PreIndex
 };
-static const byte kInstruction_strb_al_r12_r13_minus_565_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r13_minus_565_PreIndex[] = {
   0x35, 0xc2, 0x6d, 0xe5 // strb al r12 r13 minus 565 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r7_minus_2665_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r7_minus_2665_PreIndex[] = {
   0x69, 0x3a, 0x67, 0xe5 // strb al r3 r7 minus 2665 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r0_plus_4_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r0_plus_4_PreIndex[] = {
   0x04, 0xd0, 0xe0, 0xe5 // strb al r13 r0 plus 4 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r6_plus_2703_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r6_plus_2703_PostIndex[] = {
   0x8f, 0x5a, 0xc6, 0xe4 // strb al r5 r6 plus 2703 PostIndex
 };
-static const byte kInstruction_strb_al_r12_r13_minus_2281_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r13_minus_2281_PreIndex[] = {
   0xe9, 0xc8, 0x6d, 0xe5 // strb al r12 r13 minus 2281 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r12_minus_3899_PostIndex[] = {
+const byte kInstruction_strb_al_r9_r12_minus_3899_PostIndex[] = {
   0x3b, 0x9f, 0x4c, 0xe4 // strb al r9 r12 minus 3899 PostIndex
 };
-static const byte kInstruction_strb_al_r1_r3_plus_871_PostIndex[] = {
+const byte kInstruction_strb_al_r1_r3_plus_871_PostIndex[] = {
   0x67, 0x13, 0xc3, 0xe4 // strb al r1 r3 plus 871 PostIndex
 };
-static const byte kInstruction_strb_al_r7_r3_plus_3195_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r3_plus_3195_PostIndex[] = {
   0x7b, 0x7c, 0xc3, 0xe4 // strb al r7 r3 plus 3195 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r14_plus_227_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r14_plus_227_PostIndex[] = {
   0xe3, 0x50, 0xce, 0xe4 // strb al r5 r14 plus 227 PostIndex
 };
-static const byte kInstruction_strb_al_r1_r8_plus_3566_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r8_plus_3566_PreIndex[] = {
   0xee, 0x1d, 0xe8, 0xe5 // strb al r1 r8 plus 3566 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r10_plus_2948_PreIndex[] = {
+const byte kInstruction_strb_al_r9_r10_plus_2948_PreIndex[] = {
   0x84, 0x9b, 0xea, 0xe5 // strb al r9 r10 plus 2948 PreIndex
 };
-static const byte kInstruction_strb_al_r1_r10_plus_582_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r10_plus_582_PreIndex[] = {
   0x46, 0x12, 0xea, 0xe5 // strb al r1 r10 plus 582 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r13_plus_3472_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r13_plus_3472_PreIndex[] = {
   0x90, 0x6d, 0xed, 0xe5 // strb al r6 r13 plus 3472 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r7_minus_1872_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r7_minus_1872_PostIndex[] = {
   0x50, 0x27, 0x47, 0xe4 // strb al r2 r7 minus 1872 PostIndex
 };
-static const byte kInstruction_strb_al_r12_r9_plus_3425_PostIndex[] = {
+const byte kInstruction_strb_al_r12_r9_plus_3425_PostIndex[] = {
   0x61, 0xcd, 0xc9, 0xe4 // strb al r12 r9 plus 3425 PostIndex
 };
-static const byte kInstruction_strb_al_r8_r7_minus_3771_PreIndex[] = {
+const byte kInstruction_strb_al_r8_r7_minus_3771_PreIndex[] = {
   0xbb, 0x8e, 0x67, 0xe5 // strb al r8 r7 minus 3771 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r12_plus_3548_PostIndex[] = {
+const byte kInstruction_strb_al_r9_r12_plus_3548_PostIndex[] = {
   0xdc, 0x9d, 0xcc, 0xe4 // strb al r9 r12 plus 3548 PostIndex
 };
-static const byte kInstruction_strb_al_r9_r3_minus_270_PostIndex[] = {
+const byte kInstruction_strb_al_r9_r3_minus_270_PostIndex[] = {
   0x0e, 0x91, 0x43, 0xe4 // strb al r9 r3 minus 270 PostIndex
 };
-static const byte kInstruction_strb_al_r6_r4_plus_1505_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r4_plus_1505_PreIndex[] = {
   0xe1, 0x65, 0xe4, 0xe5 // strb al r6 r4 plus 1505 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r3_minus_4_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r3_minus_4_PreIndex[] = {
   0x04, 0xb0, 0x63, 0xe5 // strb al r11 r3 minus 4 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r12_minus_1428_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r12_minus_1428_PostIndex[] = {
   0x94, 0x85, 0x4c, 0xe4 // strb al r8 r12 minus 1428 PostIndex
 };
-static const byte kInstruction_strb_al_r1_r4_minus_969_PostIndex[] = {
+const byte kInstruction_strb_al_r1_r4_minus_969_PostIndex[] = {
   0xc9, 0x13, 0x44, 0xe4 // strb al r1 r4 minus 969 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r13_minus_932_PostIndex[] = {
+const byte kInstruction_strb_al_r10_r13_minus_932_PostIndex[] = {
   0xa4, 0xa3, 0x4d, 0xe4 // strb al r10 r13 minus 932 PostIndex
 };
-static const byte kInstruction_strb_al_r9_r6_plus_2012_PostIndex[] = {
+const byte kInstruction_strb_al_r9_r6_plus_2012_PostIndex[] = {
   0xdc, 0x97, 0xc6, 0xe4 // strb al r9 r6 plus 2012 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r1_minus_2453_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r1_minus_2453_PreIndex[] = {
   0x95, 0xa9, 0x61, 0xe5 // strb al r10 r1 minus 2453 PreIndex
 };
-static const byte kInstruction_strb_al_r4_r0_plus_1999_PostIndex[] = {
+const byte kInstruction_strb_al_r4_r0_plus_1999_PostIndex[] = {
   0xcf, 0x47, 0xc0, 0xe4 // strb al r4 r0 plus 1999 PostIndex
 };
-static const byte kInstruction_strb_al_r3_r1_plus_3522_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r1_plus_3522_PreIndex[] = {
   0xc2, 0x3d, 0xe1, 0xe5 // strb al r3 r1 plus 3522 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r3_minus_2523_PreIndex[] = {
+const byte kInstruction_strb_al_r8_r3_minus_2523_PreIndex[] = {
   0xdb, 0x89, 0x63, 0xe5 // strb al r8 r3 minus 2523 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r12_plus_2775_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r12_plus_2775_PostIndex[] = {
   0xd7, 0x7a, 0xcc, 0xe4 // strb al r7 r12 plus 2775 PostIndex
 };
-static const byte kInstruction_strb_al_r14_r0_minus_2590_PreIndex[] = {
+const byte kInstruction_strb_al_r14_r0_minus_2590_PreIndex[] = {
   0x1e, 0xea, 0x60, 0xe5 // strb al r14 r0 minus 2590 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r14_minus_3472_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r14_minus_3472_PreIndex[] = {
   0x90, 0x3d, 0x6e, 0xe5 // strb al r3 r14 minus 3472 PreIndex
 };
-static const byte kInstruction_strb_al_r14_r1_plus_2462_PostIndex[] = {
+const byte kInstruction_strb_al_r14_r1_plus_2462_PostIndex[] = {
   0x9e, 0xe9, 0xc1, 0xe4 // strb al r14 r1 plus 2462 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r5_plus_1472_PreIndex[] = {
+const byte kInstruction_strb_al_r2_r5_plus_1472_PreIndex[] = {
   0xc0, 0x25, 0xe5, 0xe5 // strb al r2 r5 plus 1472 PreIndex
 };
-static const byte kInstruction_strb_al_r1_r3_minus_1652_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r3_minus_1652_PreIndex[] = {
   0x74, 0x16, 0x63, 0xe5 // strb al r1 r3 minus 1652 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r1_plus_1999_PostIndex[] = {
+const byte kInstruction_strb_al_r0_r1_plus_1999_PostIndex[] = {
   0xcf, 0x07, 0xc1, 0xe4 // strb al r0 r1 plus 1999 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r0_minus_3254_PreIndex[] = {
+const byte kInstruction_strb_al_r2_r0_minus_3254_PreIndex[] = {
   0xb6, 0x2c, 0x60, 0xe5 // strb al r2 r0 minus 3254 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r8_plus_3405_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r8_plus_3405_PreIndex[] = {
   0x4d, 0xbd, 0xe8, 0xe5 // strb al r11 r8 plus 3405 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r14_plus_2963_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r14_plus_2963_PostIndex[] = {
   0x93, 0x5b, 0xce, 0xe4 // strb al r5 r14 plus 2963 PostIndex
 };
-static const byte kInstruction_strb_al_r12_r14_minus_2545_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r14_minus_2545_PreIndex[] = {
   0xf1, 0xc9, 0x6e, 0xe5 // strb al r12 r14 minus 2545 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r14_plus_1660_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r14_plus_1660_PostIndex[] = {
   0x7c, 0x86, 0xce, 0xe4 // strb al r8 r14 plus 1660 PostIndex
 };
-static const byte kInstruction_strb_al_r13_r14_plus_2403_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r14_plus_2403_PreIndex[] = {
   0x63, 0xd9, 0xee, 0xe5 // strb al r13 r14 plus 2403 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r2_plus_19_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r2_plus_19_PreIndex[] = {
   0x13, 0x30, 0xe2, 0xe5 // strb al r3 r2 plus 19 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r11_plus_2821_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r11_plus_2821_PostIndex[] = {
   0x05, 0x8b, 0xcb, 0xe4 // strb al r8 r11 plus 2821 PostIndex
 };
-static const byte kInstruction_strb_al_r8_r3_minus_1999_PreIndex[] = {
+const byte kInstruction_strb_al_r8_r3_minus_1999_PreIndex[] = {
   0xcf, 0x87, 0x63, 0xe5 // strb al r8 r3 minus 1999 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r5_plus_1991_PreIndex[] = {
+const byte kInstruction_strb_al_r2_r5_plus_1991_PreIndex[] = {
   0xc7, 0x27, 0xe5, 0xe5 // strb al r2 r5 plus 1991 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r14_minus_188_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r14_minus_188_PreIndex[] = {
   0xbc, 0xd0, 0x6e, 0xe5 // strb al r13 r14 minus 188 PreIndex
 };
-static const byte kInstruction_strb_al_r4_r8_plus_4095_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r8_plus_4095_PreIndex[] = {
   0xff, 0x4f, 0xe8, 0xe5 // strb al r4 r8 plus 4095 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r3_minus_3057_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r3_minus_3057_PreIndex[] = {
   0xf1, 0xbb, 0x63, 0xe5 // strb al r11 r3 minus 3057 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r5_plus_1699_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r5_plus_1699_PreIndex[] = {
   0xa3, 0x66, 0xe5, 0xe5 // strb al r6 r5 plus 1699 PreIndex
 };
-static const byte kInstruction_strb_al_r14_r6_plus_1537_PreIndex[] = {
+const byte kInstruction_strb_al_r14_r6_plus_1537_PreIndex[] = {
   0x01, 0xe6, 0xe6, 0xe5 // strb al r14 r6 plus 1537 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r7_minus_3625_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r7_minus_3625_PreIndex[] = {
   0x29, 0x5e, 0x67, 0xe5 // strb al r5 r7 minus 3625 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r4_minus_3142_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r4_minus_3142_PreIndex[] = {
   0x46, 0x7c, 0x64, 0xe5 // strb al r7 r4 minus 3142 PreIndex
 };
-static const byte kInstruction_strb_al_r14_r12_minus_525_PreIndex[] = {
+const byte kInstruction_strb_al_r14_r12_minus_525_PreIndex[] = {
   0x0d, 0xe2, 0x6c, 0xe5 // strb al r14 r12 minus 525 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r14_plus_53_PreIndex[] = {
+const byte kInstruction_strb_al_r8_r14_plus_53_PreIndex[] = {
   0x35, 0x80, 0xee, 0xe5 // strb al r8 r14 plus 53 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r1_plus_3109_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r1_plus_3109_PreIndex[] = {
   0x25, 0xdc, 0xe1, 0xe5 // strb al r13 r1 plus 3109 PreIndex
 };
-static const byte kInstruction_strb_al_r4_r1_minus_2086_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r1_minus_2086_PreIndex[] = {
   0x26, 0x48, 0x61, 0xe5 // strb al r4 r1 minus 2086 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r13_plus_3072_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r13_plus_3072_PreIndex[] = {
   0x00, 0x3c, 0xed, 0xe5 // strb al r3 r13 plus 3072 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r14_plus_2669_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r14_plus_2669_PreIndex[] = {
   0x6d, 0x6a, 0xee, 0xe5 // strb al r6 r14 plus 2669 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r12_plus_1999_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r12_plus_1999_PostIndex[] = {
   0xcf, 0x67, 0xcc, 0xe4 // strb al r6 r12 plus 1999 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r7_plus_1035_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r7_plus_1035_PostIndex[] = {
   0x0b, 0x24, 0xc7, 0xe4 // strb al r2 r7 plus 1035 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r14_minus_2281_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r14_minus_2281_PreIndex[] = {
   0xe9, 0xa8, 0x6e, 0xe5 // strb al r10 r14 minus 2281 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r10_plus_1536_PostIndex[] = {
+const byte kInstruction_strb_al_r11_r10_plus_1536_PostIndex[] = {
   0x00, 0xb6, 0xca, 0xe4 // strb al r11 r10 plus 1536 PostIndex
 };
-static const byte kInstruction_strb_al_r1_r11_plus_2483_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r11_plus_2483_PreIndex[] = {
   0xb3, 0x19, 0xeb, 0xe5 // strb al r1 r11 plus 2483 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r5_minus_2224_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r5_minus_2224_PostIndex[] = {
   0xb0, 0x88, 0x45, 0xe4 // strb al r8 r5 minus 2224 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r13_minus_4090_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r13_minus_4090_PreIndex[] = {
   0xfa, 0x5f, 0x6d, 0xe5 // strb al r5 r13 minus 4090 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r6_minus_1455_PostIndex[] = {
+const byte kInstruction_strb_al_r11_r6_minus_1455_PostIndex[] = {
   0xaf, 0xb5, 0x46, 0xe4 // strb al r11 r6 minus 1455 PostIndex
 };
-static const byte kInstruction_strb_al_r3_r6_plus_2546_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r6_plus_2546_PreIndex[] = {
   0xf2, 0x39, 0xe6, 0xe5 // strb al r3 r6 plus 2546 PreIndex
 };
-static const byte kInstruction_strb_al_r1_r5_minus_53_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r5_minus_53_PreIndex[] = {
   0x35, 0x10, 0x65, 0xe5 // strb al r1 r5 minus 53 PreIndex
 };
-static const byte kInstruction_strb_al_r1_r7_plus_3450_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r7_plus_3450_PreIndex[] = {
   0x7a, 0x1d, 0xe7, 0xe5 // strb al r1 r7 plus 3450 PreIndex
 };
-static const byte kInstruction_strb_al_r1_r14_minus_2047_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r14_minus_2047_PreIndex[] = {
   0xff, 0x17, 0x6e, 0xe5 // strb al r1 r14 minus 2047 PreIndex
 };
-static const byte kInstruction_strb_al_r4_r6_minus_1759_PostIndex[] = {
+const byte kInstruction_strb_al_r4_r6_minus_1759_PostIndex[] = {
   0xdf, 0x46, 0x46, 0xe4 // strb al r4 r6 minus 1759 PostIndex
 };
-static const byte kInstruction_strb_al_r7_r5_plus_3662_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r5_plus_3662_PreIndex[] = {
   0x4e, 0x7e, 0xe5, 0xe5 // strb al r7 r5 plus 3662 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r9_minus_2290_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r9_minus_2290_PostIndex[] = {
   0xf2, 0x68, 0x49, 0xe4 // strb al r6 r9 minus 2290 PostIndex
 };
-static const byte kInstruction_strb_al_r7_r9_plus_2208_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r9_plus_2208_PreIndex[] = {
   0xa0, 0x78, 0xe9, 0xe5 // strb al r7 r9 plus 2208 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r0_minus_1601_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r0_minus_1601_PostIndex[] = {
   0x41, 0x66, 0x40, 0xe4 // strb al r6 r0 minus 1601 PostIndex
 };
-static const byte kInstruction_strb_al_r4_r3_plus_2202_PostIndex[] = {
+const byte kInstruction_strb_al_r4_r3_plus_2202_PostIndex[] = {
   0x9a, 0x48, 0xc3, 0xe4 // strb al r4 r3 plus 2202 PostIndex
 };
-static const byte kInstruction_strb_al_r12_r10_minus_3688_PostIndex[] = {
+const byte kInstruction_strb_al_r12_r10_minus_3688_PostIndex[] = {
   0x68, 0xce, 0x4a, 0xe4 // strb al r12 r10 minus 3688 PostIndex
 };
-static const byte kInstruction_strb_al_r11_r12_minus_1455_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r12_minus_1455_PreIndex[] = {
   0xaf, 0xb5, 0x6c, 0xe5 // strb al r11 r12 minus 1455 PreIndex
 };
-static const byte kInstruction_strb_al_r1_r11_plus_2929_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r11_plus_2929_PreIndex[] = {
   0x71, 0x1b, 0xeb, 0xe5 // strb al r1 r11 plus 2929 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r0_plus_582_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r0_plus_582_PostIndex[] = {
   0x46, 0x52, 0xc0, 0xe4 // strb al r5 r0 plus 582 PostIndex
 };
-static const byte kInstruction_strb_al_r4_r13_minus_3603_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r13_minus_3603_PreIndex[] = {
   0x13, 0x4e, 0x6d, 0xe5 // strb al r4 r13 minus 3603 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r5_plus_525_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r5_plus_525_PostIndex[] = {
   0x0d, 0x82, 0xc5, 0xe4 // strb al r8 r5 plus 525 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r4_minus_2810_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r4_minus_2810_PostIndex[] = {
   0xfa, 0x5a, 0x44, 0xe4 // strb al r5 r4 minus 2810 PostIndex
 };
-static const byte kInstruction_strb_al_r7_r3_plus_3344_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r3_plus_3344_PreIndex[] = {
   0x10, 0x7d, 0xe3, 0xe5 // strb al r7 r3 plus 3344 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r0_minus_797_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r0_minus_797_PostIndex[] = {
   0x1d, 0x73, 0x40, 0xe4 // strb al r7 r0 minus 797 PostIndex
 };
-static const byte kInstruction_strb_al_r11_r12_minus_2669_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r12_minus_2669_PreIndex[] = {
   0x6d, 0xba, 0x6c, 0xe5 // strb al r11 r12 minus 2669 PreIndex
 };
-static const byte kInstruction_strb_al_r1_r7_plus_2098_PostIndex[] = {
+const byte kInstruction_strb_al_r1_r7_plus_2098_PostIndex[] = {
   0x32, 0x18, 0xc7, 0xe4 // strb al r1 r7 plus 2098 PostIndex
 };
-static const byte kInstruction_strb_al_r6_r7_plus_670_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r7_plus_670_PreIndex[] = {
   0x9e, 0x62, 0xe7, 0xe5 // strb al r6 r7 plus 670 PreIndex
 };
-static const byte kInstruction_strb_al_r14_r7_minus_1171_PreIndex[] = {
+const byte kInstruction_strb_al_r14_r7_minus_1171_PreIndex[] = {
   0x93, 0xe4, 0x67, 0xe5 // strb al r14 r7 minus 1171 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r7_minus_2810_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r7_minus_2810_PostIndex[] = {
   0xfa, 0x6a, 0x47, 0xe4 // strb al r6 r7 minus 2810 PostIndex
 };
-static const byte kInstruction_strb_al_r13_r11_minus_3105_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r11_minus_3105_PreIndex[] = {
   0x21, 0xdc, 0x6b, 0xe5 // strb al r13 r11 minus 3105 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r3_minus_2703_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r3_minus_2703_PreIndex[] = {
   0x8f, 0xda, 0x63, 0xe5 // strb al r13 r3 minus 2703 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r7_minus_1665_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r7_minus_1665_PreIndex[] = {
   0x81, 0xd6, 0x67, 0xe5 // strb al r13 r7 minus 1665 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r6_minus_2800_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r6_minus_2800_PostIndex[] = {
   0xf0, 0x7a, 0x46, 0xe4 // strb al r7 r6 minus 2800 PostIndex
 };
-static const byte kInstruction_strb_al_r13_r5_plus_1175_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r5_plus_1175_PreIndex[] = {
   0x97, 0xd4, 0xe5, 0xe5 // strb al r13 r5 plus 1175 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r5_plus_2523_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r5_plus_2523_PreIndex[] = {
   0xdb, 0xd9, 0xe5, 0xe5 // strb al r13 r5 plus 2523 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r0_plus_198_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r0_plus_198_PostIndex[] = {
   0xc6, 0x20, 0xc0, 0xe4 // strb al r2 r0 plus 198 PostIndex
 };
-static const byte kInstruction_strb_al_r7_r4_minus_1635_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r4_minus_1635_PostIndex[] = {
   0x63, 0x76, 0x44, 0xe4 // strb al r7 r4 minus 1635 PostIndex
 };
-static const byte kInstruction_strb_al_r7_r5_plus_3449_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r5_plus_3449_PostIndex[] = {
   0x79, 0x7d, 0xc5, 0xe4 // strb al r7 r5 plus 3449 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r14_plus_1556_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r14_plus_1556_PostIndex[] = {
   0x14, 0x56, 0xce, 0xe4 // strb al r5 r14 plus 1556 PostIndex
 };
-static const byte kInstruction_strb_al_r14_r8_plus_2403_PostIndex[] = {
+const byte kInstruction_strb_al_r14_r8_plus_2403_PostIndex[] = {
   0x63, 0xe9, 0xc8, 0xe4 // strb al r14 r8 plus 2403 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r8_minus_2546_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r8_minus_2546_PostIndex[] = {
   0xf2, 0x29, 0x48, 0xe4 // strb al r2 r8 minus 2546 PostIndex
 };
-static const byte kInstruction_strb_al_r11_r5_plus_2948_PostIndex[] = {
+const byte kInstruction_strb_al_r11_r5_plus_2948_PostIndex[] = {
   0x84, 0xbb, 0xc5, 0xe4 // strb al r11 r5 plus 2948 PostIndex
 };
-static const byte kInstruction_strb_al_r3_r9_plus_1999_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r9_plus_1999_PreIndex[] = {
   0xcf, 0x37, 0xe9, 0xe5 // strb al r3 r9 plus 1999 PreIndex
 };
-static const byte kInstruction_strb_al_r10_r7_plus_198_PostIndex[] = {
+const byte kInstruction_strb_al_r10_r7_plus_198_PostIndex[] = {
   0xc6, 0xa0, 0xc7, 0xe4 // strb al r10 r7 plus 198 PostIndex
 };
-static const byte kInstruction_strb_al_r13_r10_plus_2021_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r10_plus_2021_PreIndex[] = {
   0xe5, 0xd7, 0xea, 0xe5 // strb al r13 r10 plus 2021 PreIndex
 };
-static const byte kInstruction_strb_al_r1_r3_minus_3570_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r3_minus_3570_PreIndex[] = {
   0xf2, 0x1d, 0x63, 0xe5 // strb al r1 r3 minus 3570 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r5_plus_1892_PostIndex[] = {
+const byte kInstruction_strb_al_r11_r5_plus_1892_PostIndex[] = {
   0x64, 0xb7, 0xc5, 0xe4 // strb al r11 r5 plus 1892 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r6_plus_3438_PostIndex[] = {
+const byte kInstruction_strb_al_r10_r6_plus_3438_PostIndex[] = {
   0x6e, 0xad, 0xc6, 0xe4 // strb al r10 r6 plus 3438 PostIndex
 };
-static const byte kInstruction_strb_al_r6_r13_minus_2982_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r13_minus_2982_PostIndex[] = {
   0xa6, 0x6b, 0x4d, 0xe4 // strb al r6 r13 minus 2982 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r11_plus_1732_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r11_plus_1732_PreIndex[] = {
   0xc4, 0xa6, 0xeb, 0xe5 // strb al r10 r11 plus 1732 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r10_minus_490_PreIndex[] = {
+const byte kInstruction_strb_al_r2_r10_minus_490_PreIndex[] = {
   0xea, 0x21, 0x6a, 0xe5 // strb al r2 r10 minus 490 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r14_plus_2545_PostIndex[] = {
+const byte kInstruction_strb_al_r13_r14_plus_2545_PostIndex[] = {
   0xf1, 0xd9, 0xce, 0xe4 // strb al r13 r14 plus 2545 PostIndex
 };
-static const byte kInstruction_strb_al_r13_r10_minus_48_PostIndex[] = {
+const byte kInstruction_strb_al_r13_r10_minus_48_PostIndex[] = {
   0x30, 0xd0, 0x4a, 0xe4 // strb al r13 r10 minus 48 PostIndex
 };
-static const byte kInstruction_strb_al_r11_r3_plus_2233_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r3_plus_2233_PreIndex[] = {
   0xb9, 0xb8, 0xe3, 0xe5 // strb al r11 r3 plus 2233 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r9_plus_3366_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r9_plus_3366_PostIndex[] = {
   0x26, 0x6d, 0xc9, 0xe4 // strb al r6 r9 plus 3366 PostIndex
 };
-static const byte kInstruction_strb_al_r13_r0_plus_875_PostIndex[] = {
+const byte kInstruction_strb_al_r13_r0_plus_875_PostIndex[] = {
   0x6b, 0xd3, 0xc0, 0xe4 // strb al r13 r0 plus 875 PostIndex
 };
-static const byte kInstruction_strb_al_r9_r7_minus_2651_PreIndex[] = {
+const byte kInstruction_strb_al_r9_r7_minus_2651_PreIndex[] = {
   0x5b, 0x9a, 0x67, 0xe5 // strb al r9 r7 minus 2651 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r7_plus_3438_PreIndex[] = {
+const byte kInstruction_strb_al_r2_r7_plus_3438_PreIndex[] = {
   0x6e, 0x2d, 0xe7, 0xe5 // strb al r2 r7 plus 3438 PreIndex
 };
-static const byte kInstruction_strb_al_r14_r1_minus_1948_PreIndex[] = {
+const byte kInstruction_strb_al_r14_r1_minus_1948_PreIndex[] = {
   0x9c, 0xe7, 0x61, 0xe5 // strb al r14 r1 minus 1948 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r14_minus_83_PostIndex[] = {
+const byte kInstruction_strb_al_r0_r14_minus_83_PostIndex[] = {
   0x53, 0x00, 0x4e, 0xe4 // strb al r0 r14 minus 83 PostIndex
 };
-static const byte kInstruction_strb_al_r8_r10_plus_580_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r10_plus_580_PostIndex[] = {
   0x44, 0x82, 0xca, 0xe4 // strb al r8 r10 plus 580 PostIndex
 };
-static const byte kInstruction_strb_al_r6_r4_plus_3717_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r4_plus_3717_PostIndex[] = {
   0x85, 0x6e, 0xc4, 0xe4 // strb al r6 r4 plus 3717 PostIndex
 };
-static const byte kInstruction_strb_al_r3_r5_minus_3597_PostIndex[] = {
+const byte kInstruction_strb_al_r3_r5_minus_3597_PostIndex[] = {
   0x0d, 0x3e, 0x45, 0xe4 // strb al r3 r5 minus 3597 PostIndex
 };
-static const byte kInstruction_strb_al_r11_r14_plus_1860_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r14_plus_1860_PreIndex[] = {
   0x44, 0xb7, 0xee, 0xe5 // strb al r11 r14 plus 1860 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r3_minus_3071_PostIndex[] = {
+const byte kInstruction_strb_al_r9_r3_minus_3071_PostIndex[] = {
   0xff, 0x9b, 0x43, 0xe4 // strb al r9 r3 minus 3071 PostIndex
 };
-static const byte kInstruction_strb_al_r11_r3_minus_2454_PostIndex[] = {
+const byte kInstruction_strb_al_r11_r3_minus_2454_PostIndex[] = {
   0x96, 0xb9, 0x43, 0xe4 // strb al r11 r3 minus 2454 PostIndex
 };
-static const byte kInstruction_strb_al_r7_r6_plus_3391_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r6_plus_3391_PreIndex[] = {
   0x3f, 0x7d, 0xe6, 0xe5 // strb al r7 r6 plus 3391 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r7_minus_732_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r7_minus_732_PostIndex[] = {
   0xdc, 0x82, 0x47, 0xe4 // strb al r8 r7 minus 732 PostIndex
 };
-static const byte kInstruction_strb_al_r6_r7_minus_3978_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r7_minus_3978_PostIndex[] = {
   0x8a, 0x6f, 0x47, 0xe4 // strb al r6 r7 minus 3978 PostIndex
 };
-static const byte kInstruction_strb_al_r4_r3_plus_2016_PostIndex[] = {
+const byte kInstruction_strb_al_r4_r3_plus_2016_PostIndex[] = {
   0xe0, 0x47, 0xc3, 0xe4 // strb al r4 r3 plus 2016 PostIndex
 };
-static const byte kInstruction_strb_al_r13_r1_minus_3425_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r1_minus_3425_PreIndex[] = {
   0x61, 0xdd, 0x61, 0xe5 // strb al r13 r1 minus 3425 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r6_minus_496_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r6_minus_496_PreIndex[] = {
   0xf0, 0xb1, 0x66, 0xe5 // strb al r11 r6 minus 496 PreIndex
 };
-static const byte kInstruction_strb_al_r4_r0_minus_3308_PostIndex[] = {
+const byte kInstruction_strb_al_r4_r0_minus_3308_PostIndex[] = {
   0xec, 0x4c, 0x40, 0xe4 // strb al r4 r0 minus 3308 PostIndex
 };
-static const byte kInstruction_strb_al_r14_r3_plus_524_PreIndex[] = {
+const byte kInstruction_strb_al_r14_r3_plus_524_PreIndex[] = {
   0x0c, 0xe2, 0xe3, 0xe5 // strb al r14 r3 plus 524 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r12_plus_3325_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r12_plus_3325_PostIndex[] = {
   0xfd, 0x5c, 0xcc, 0xe4 // strb al r5 r12 plus 3325 PostIndex
 };
-static const byte kInstruction_strb_al_r6_r14_plus_2792_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r14_plus_2792_PostIndex[] = {
   0xe8, 0x6a, 0xce, 0xe4 // strb al r6 r14 plus 2792 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r0_plus_2119_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r0_plus_2119_PreIndex[] = {
   0x47, 0xa8, 0xe0, 0xe5 // strb al r10 r0 plus 2119 PreIndex
 };
-static const byte kInstruction_strb_al_r12_r1_minus_4090_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r1_minus_4090_PreIndex[] = {
   0xfa, 0xcf, 0x61, 0xe5 // strb al r12 r1 minus 4090 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r5_minus_2532_PostIndex[] = {
+const byte kInstruction_strb_al_r11_r5_minus_2532_PostIndex[] = {
   0xe4, 0xb9, 0x45, 0xe4 // strb al r11 r5 minus 2532 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r14_plus_510_PreIndex[] = {
+const byte kInstruction_strb_al_r2_r14_plus_510_PreIndex[] = {
   0xfe, 0x21, 0xee, 0xe5 // strb al r2 r14 plus 510 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r12_minus_3585_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r12_minus_3585_PreIndex[] = {
   0x01, 0x6e, 0x6c, 0xe5 // strb al r6 r12 minus 3585 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r2_minus_3752_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r2_minus_3752_PreIndex[] = {
   0xa8, 0xde, 0x62, 0xe5 // strb al r13 r2 minus 3752 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r9_plus_1537_PostIndex[] = {
+const byte kInstruction_strb_al_r0_r9_plus_1537_PostIndex[] = {
   0x01, 0x06, 0xc9, 0xe4 // strb al r0 r9 plus 1537 PostIndex
 };
-static const byte kInstruction_strb_al_r9_r10_minus_3449_PreIndex[] = {
+const byte kInstruction_strb_al_r9_r10_minus_3449_PreIndex[] = {
   0x79, 0x9d, 0x6a, 0xe5 // strb al r9 r10 minus 3449 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r7_minus_1428_PostIndex[] = {
+const byte kInstruction_strb_al_r11_r7_minus_1428_PostIndex[] = {
   0x94, 0xb5, 0x47, 0xe4 // strb al r11 r7 minus 1428 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r7_plus_580_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r7_plus_580_PostIndex[] = {
   0x44, 0x52, 0xc7, 0xe4 // strb al r5 r7 plus 580 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r0_plus_3607_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r0_plus_3607_PreIndex[] = {
   0x17, 0x5e, 0xe0, 0xe5 // strb al r5 r0 plus 3607 PreIndex
 };
-static const byte kInstruction_strb_al_r12_r5_minus_1168_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r5_minus_1168_PreIndex[] = {
   0x90, 0xc4, 0x65, 0xe5 // strb al r12 r5 minus 1168 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r4_plus_679_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r4_plus_679_PostIndex[] = {
   0xa7, 0x82, 0xc4, 0xe4 // strb al r8 r4 plus 679 PostIndex
 };
-static const byte kInstruction_strb_al_r12_r6_minus_1835_PostIndex[] = {
+const byte kInstruction_strb_al_r12_r6_minus_1835_PostIndex[] = {
   0x2b, 0xc7, 0x46, 0xe4 // strb al r12 r6 minus 1835 PostIndex
 };
-static const byte kInstruction_strb_al_r12_r0_plus_2650_PostIndex[] = {
+const byte kInstruction_strb_al_r12_r0_plus_2650_PostIndex[] = {
   0x5a, 0xca, 0xc0, 0xe4 // strb al r12 r0 plus 2650 PostIndex
 };
-static const byte kInstruction_strb_al_r12_r13_minus_1536_PostIndex[] = {
+const byte kInstruction_strb_al_r12_r13_minus_1536_PostIndex[] = {
   0x00, 0xc6, 0x4d, 0xe4 // strb al r12 r13 minus 1536 PostIndex
 };
-static const byte kInstruction_strb_al_r0_r9_minus_2792_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r9_minus_2792_PreIndex[] = {
   0xe8, 0x0a, 0x69, 0xe5 // strb al r0 r9 minus 2792 PreIndex
 };
-static const byte kInstruction_strb_al_r12_r6_plus_2254_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r6_plus_2254_PreIndex[] = {
   0xce, 0xc8, 0xe6, 0xe5 // strb al r12 r6 plus 2254 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r4_plus_1526_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r4_plus_1526_PostIndex[] = {
   0xf6, 0x55, 0xc4, 0xe4 // strb al r5 r4 plus 1526 PostIndex
 };
-static const byte kInstruction_strb_al_r8_r10_minus_282_PreIndex[] = {
+const byte kInstruction_strb_al_r8_r10_minus_282_PreIndex[] = {
   0x1a, 0x81, 0x6a, 0xe5 // strb al r8 r10 minus 282 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r10_minus_2839_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r10_minus_2839_PreIndex[] = {
   0x17, 0x7b, 0x6a, 0xe5 // strb al r7 r10 minus 2839 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r0_plus_3138_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r0_plus_3138_PostIndex[] = {
   0x42, 0x8c, 0xc0, 0xe4 // strb al r8 r0 plus 3138 PostIndex
 };
-static const byte kInstruction_strb_al_r6_r4_plus_1892_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r4_plus_1892_PreIndex[] = {
   0x64, 0x67, 0xe4, 0xe5 // strb al r6 r4 plus 1892 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r12_plus_2290_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r12_plus_2290_PostIndex[] = {
   0xf2, 0x78, 0xcc, 0xe4 // strb al r7 r12 plus 2290 PostIndex
 };
-static const byte kInstruction_strb_al_r0_r9_minus_199_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r9_minus_199_PreIndex[] = {
   0xc7, 0x00, 0x69, 0xe5 // strb al r0 r9 minus 199 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r1_minus_2523_PreIndex[] = {
+const byte kInstruction_strb_al_r9_r1_minus_2523_PreIndex[] = {
   0xdb, 0x99, 0x61, 0xe5 // strb al r9 r1 minus 2523 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r13_plus_2464_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r13_plus_2464_PreIndex[] = {
   0xa0, 0x79, 0xed, 0xe5 // strb al r7 r13 plus 2464 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r4_minus_496_PostIndex[] = {
+const byte kInstruction_strb_al_r0_r4_minus_496_PostIndex[] = {
   0xf0, 0x01, 0x44, 0xe4 // strb al r0 r4 minus 496 PostIndex
 };
-static const byte kInstruction_strb_al_r7_r4_plus_1009_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r4_plus_1009_PostIndex[] = {
   0xf1, 0x73, 0xc4, 0xe4 // strb al r7 r4 plus 1009 PostIndex
 };
-static const byte kInstruction_strb_al_r4_r11_minus_2119_PostIndex[] = {
+const byte kInstruction_strb_al_r4_r11_minus_2119_PostIndex[] = {
   0x47, 0x48, 0x4b, 0xe4 // strb al r4 r11 minus 2119 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r2_plus_783_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r2_plus_783_PreIndex[] = {
   0x0f, 0x53, 0xe2, 0xe5 // strb al r5 r2 plus 783 PreIndex
 };
-static const byte kInstruction_strb_al_r10_r6_minus_998_PostIndex[] = {
+const byte kInstruction_strb_al_r10_r6_minus_998_PostIndex[] = {
   0xe6, 0xa3, 0x46, 0xe4 // strb al r10 r6 minus 998 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r2_plus_1348_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r2_plus_1348_PreIndex[] = {
   0x44, 0xa5, 0xe2, 0xe5 // strb al r10 r2 plus 1348 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r2_minus_794_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r2_minus_794_PreIndex[] = {
   0x1a, 0x33, 0x62, 0xe5 // strb al r3 r2 minus 794 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r5_minus_4092_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r5_minus_4092_PostIndex[] = {
   0xfc, 0x6f, 0x45, 0xe4 // strb al r6 r5 minus 4092 PostIndex
 };
-static const byte kInstruction_strb_al_r12_r10_plus_484_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r10_plus_484_PreIndex[] = {
   0xe4, 0xc1, 0xea, 0xe5 // strb al r12 r10 plus 484 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r12_minus_2792_PostIndex[] = {
+const byte kInstruction_strb_al_r3_r12_minus_2792_PostIndex[] = {
   0xe8, 0x3a, 0x4c, 0xe4 // strb al r3 r12 minus 2792 PostIndex
 };
-static const byte kInstruction_strb_al_r0_r12_plus_1234_PostIndex[] = {
+const byte kInstruction_strb_al_r0_r12_plus_1234_PostIndex[] = {
   0xd2, 0x04, 0xcc, 0xe4 // strb al r0 r12 plus 1234 PostIndex
 };
-static const byte kInstruction_strb_al_r9_r8_plus_3529_PostIndex[] = {
+const byte kInstruction_strb_al_r9_r8_plus_3529_PostIndex[] = {
   0xc9, 0x9d, 0xc8, 0xe4 // strb al r9 r8 plus 3529 PostIndex
 };
-static const byte kInstruction_strb_al_r12_r4_minus_3907_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r4_minus_3907_PreIndex[] = {
   0x43, 0xcf, 0x64, 0xe5 // strb al r12 r4 minus 3907 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r10_plus_547_PreIndex[] = {
+const byte kInstruction_strb_al_r9_r10_plus_547_PreIndex[] = {
   0x23, 0x92, 0xea, 0xe5 // strb al r9 r10 plus 547 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r9_minus_2281_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r9_minus_2281_PreIndex[] = {
   0xe9, 0xb8, 0x69, 0xe5 // strb al r11 r9 minus 2281 PreIndex
 };
-static const byte kInstruction_strb_al_r10_r11_plus_2011_PostIndex[] = {
+const byte kInstruction_strb_al_r10_r11_plus_2011_PostIndex[] = {
   0xdb, 0xa7, 0xcb, 0xe4 // strb al r10 r11 plus 2011 PostIndex
 };
-static const byte kInstruction_strb_al_r8_r9_plus_1740_PreIndex[] = {
+const byte kInstruction_strb_al_r8_r9_plus_1740_PreIndex[] = {
   0xcc, 0x86, 0xe9, 0xe5 // strb al r8 r9 plus 1740 PreIndex
 };
-static const byte kInstruction_strb_al_r0_r11_minus_1485_PostIndex[] = {
+const byte kInstruction_strb_al_r0_r11_minus_1485_PostIndex[] = {
   0xcd, 0x05, 0x4b, 0xe4 // strb al r0 r11 minus 1485 PostIndex
 };
-static const byte kInstruction_strb_al_r3_r4_plus_774_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r4_plus_774_PreIndex[] = {
   0x06, 0x33, 0xe4, 0xe5 // strb al r3 r4 plus 774 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r1_plus_2906_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r1_plus_2906_PostIndex[] = {
   0x5a, 0x7b, 0xc1, 0xe4 // strb al r7 r1 plus 2906 PostIndex
 };
-static const byte kInstruction_strb_al_r11_r6_minus_3564_PostIndex[] = {
+const byte kInstruction_strb_al_r11_r6_minus_3564_PostIndex[] = {
   0xec, 0xbd, 0x46, 0xe4 // strb al r11 r6 minus 3564 PostIndex
 };
-static const byte kInstruction_strb_al_r7_r11_minus_3413_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r11_minus_3413_PreIndex[] = {
   0x55, 0x7d, 0x6b, 0xe5 // strb al r7 r11 minus 3413 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r4_plus_22_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r4_plus_22_PreIndex[] = {
   0x16, 0x50, 0xe4, 0xe5 // strb al r5 r4 plus 22 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r8_plus_2175_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r8_plus_2175_PreIndex[] = {
   0x7f, 0x68, 0xe8, 0xe5 // strb al r6 r8 plus 2175 PreIndex
 };
-static const byte kInstruction_strb_al_r11_r1_minus_3880_PostIndex[] = {
+const byte kInstruction_strb_al_r11_r1_minus_3880_PostIndex[] = {
   0x28, 0xbf, 0x41, 0xe4 // strb al r11 r1 minus 3880 PostIndex
 };
-static const byte kInstruction_strb_al_r8_r14_plus_2453_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r14_plus_2453_PostIndex[] = {
   0x95, 0x89, 0xce, 0xe4 // strb al r8 r14 plus 2453 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r6_plus_3660_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r6_plus_3660_PreIndex[] = {
   0x4c, 0xae, 0xe6, 0xe5 // strb al r10 r6 plus 3660 PreIndex
 };
-static const byte kInstruction_strb_al_r1_r4_plus_2519_PostIndex[] = {
+const byte kInstruction_strb_al_r1_r4_plus_2519_PostIndex[] = {
   0xd7, 0x19, 0xc4, 0xe4 // strb al r1 r4 plus 2519 PostIndex
 };
-static const byte kInstruction_strb_al_r6_r9_minus_2183_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r9_minus_2183_PostIndex[] = {
   0x87, 0x68, 0x49, 0xe4 // strb al r6 r9 minus 2183 PostIndex
 };
-static const byte kInstruction_strb_al_r12_r3_minus_1750_PostIndex[] = {
+const byte kInstruction_strb_al_r12_r3_minus_1750_PostIndex[] = {
   0xd6, 0xc6, 0x43, 0xe4 // strb al r12 r3 minus 1750 PostIndex
 };
-static const byte kInstruction_strb_al_r6_r12_plus_998_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r12_plus_998_PreIndex[] = {
   0xe6, 0x63, 0xec, 0xe5 // strb al r6 r12 plus 998 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r11_minus_1740_PreIndex[] = {
+const byte kInstruction_strb_al_r2_r11_minus_1740_PreIndex[] = {
   0xcc, 0x26, 0x6b, 0xe5 // strb al r2 r11 minus 1740 PreIndex
 };
-static const byte kInstruction_strb_al_r12_r14_plus_3138_PreIndex[] = {
+const byte kInstruction_strb_al_r12_r14_plus_3138_PreIndex[] = {
   0x42, 0xcc, 0xee, 0xe5 // strb al r12 r14 plus 3138 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r5_plus_3771_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r5_plus_3771_PreIndex[] = {
   0xbb, 0x6e, 0xe5, 0xe5 // strb al r6 r5 plus 3771 PreIndex
 };
-static const byte kInstruction_strb_al_r1_r6_minus_3663_PreIndex[] = {
+const byte kInstruction_strb_al_r1_r6_minus_3663_PreIndex[] = {
   0x4f, 0x1e, 0x66, 0xe5 // strb al r1 r6 minus 3663 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r9_minus_2662_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r9_minus_2662_PostIndex[] = {
   0x66, 0x2a, 0x49, 0xe4 // strb al r2 r9 minus 2662 PostIndex
 };
-static const byte kInstruction_strb_al_r14_r1_minus_3076_PostIndex[] = {
+const byte kInstruction_strb_al_r14_r1_minus_3076_PostIndex[] = {
   0x04, 0xec, 0x41, 0xe4 // strb al r14 r1 minus 3076 PostIndex
 };
-static const byte kInstruction_strb_al_r2_r9_plus_1542_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r9_plus_1542_PostIndex[] = {
   0x06, 0x26, 0xc9, 0xe4 // strb al r2 r9 plus 1542 PostIndex
 };
-static const byte kInstruction_strb_al_r14_r7_plus_2016_PreIndex[] = {
+const byte kInstruction_strb_al_r14_r7_plus_2016_PreIndex[] = {
   0xe0, 0xe7, 0xe7, 0xe5 // strb al r14 r7 plus 2016 PreIndex
 };
-static const byte kInstruction_strb_al_r3_r5_minus_1981_PreIndex[] = {
+const byte kInstruction_strb_al_r3_r5_minus_1981_PreIndex[] = {
   0xbd, 0x37, 0x65, 0xe5 // strb al r3 r5 minus 1981 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r3_plus_2233_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r3_plus_2233_PostIndex[] = {
   0xb9, 0x78, 0xc3, 0xe4 // strb al r7 r3 plus 2233 PostIndex
 };
-static const byte kInstruction_strb_al_r8_r5_minus_4095_PostIndex[] = {
+const byte kInstruction_strb_al_r8_r5_minus_4095_PostIndex[] = {
   0xff, 0x8f, 0x45, 0xe4 // strb al r8 r5 minus 4095 PostIndex
 };
-static const byte kInstruction_strb_al_r0_r8_minus_662_PostIndex[] = {
+const byte kInstruction_strb_al_r0_r8_minus_662_PostIndex[] = {
   0x96, 0x02, 0x48, 0xe4 // strb al r0 r8 minus 662 PostIndex
 };
-static const byte kInstruction_strb_al_r9_r5_minus_4046_PostIndex[] = {
+const byte kInstruction_strb_al_r9_r5_minus_4046_PostIndex[] = {
   0xce, 0x9f, 0x45, 0xe4 // strb al r9 r5 minus 4046 PostIndex
 };
-static const byte kInstruction_strb_al_r10_r4_plus_2245_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r4_plus_2245_PreIndex[] = {
   0xc5, 0xa8, 0xe4, 0xe5 // strb al r10 r4 plus 2245 PreIndex
 };
-static const byte kInstruction_strb_al_r2_r1_plus_2036_PostIndex[] = {
+const byte kInstruction_strb_al_r2_r1_plus_2036_PostIndex[] = {
   0xf4, 0x27, 0xc1, 0xe4 // strb al r2 r1 plus 2036 PostIndex
 };
-static const byte kInstruction_strb_al_r0_r1_minus_1159_PreIndex[] = {
+const byte kInstruction_strb_al_r0_r1_minus_1159_PreIndex[] = {
   0x87, 0x04, 0x61, 0xe5 // strb al r0 r1 minus 1159 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r9_minus_3109_PostIndex[] = {
+const byte kInstruction_strb_al_r7_r9_minus_3109_PostIndex[] = {
   0x25, 0x7c, 0x49, 0xe4 // strb al r7 r9 minus 3109 PostIndex
 };
-static const byte kInstruction_strb_al_r5_r6_plus_1655_PreIndex[] = {
+const byte kInstruction_strb_al_r5_r6_plus_1655_PreIndex[] = {
   0x77, 0x56, 0xe6, 0xe5 // strb al r5 r6 plus 1655 PreIndex
 };
-static const byte kInstruction_strb_al_r10_r12_minus_3094_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r12_minus_3094_PreIndex[] = {
   0x16, 0xac, 0x6c, 0xe5 // strb al r10 r12 minus 3094 PreIndex
 };
-static const byte kInstruction_strb_al_r7_r6_plus_1241_PreIndex[] = {
+const byte kInstruction_strb_al_r7_r6_plus_1241_PreIndex[] = {
   0xd9, 0x74, 0xe6, 0xe5 // strb al r7 r6 plus 1241 PreIndex
 };
-static const byte kInstruction_strb_al_r13_r3_plus_1824_PreIndex[] = {
+const byte kInstruction_strb_al_r13_r3_plus_1824_PreIndex[] = {
   0x20, 0xd7, 0xe3, 0xe5 // strb al r13 r3 plus 1824 PreIndex
 };
-static const byte kInstruction_strb_al_r10_r12_minus_1159_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r12_minus_1159_PreIndex[] = {
   0x87, 0xa4, 0x6c, 0xe5 // strb al r10 r12 minus 1159 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r10_minus_2948_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r10_minus_2948_PreIndex[] = {
   0x84, 0x6b, 0x6a, 0xe5 // strb al r6 r10 minus 2948 PreIndex
 };
-static const byte kInstruction_strb_al_r9_r6_plus_496_PreIndex[] = {
+const byte kInstruction_strb_al_r9_r6_plus_496_PreIndex[] = {
   0xf0, 0x91, 0xe6, 0xe5 // strb al r9 r6 plus 496 PreIndex
 };
-static const byte kInstruction_strb_al_r10_r9_plus_213_PreIndex[] = {
+const byte kInstruction_strb_al_r10_r9_plus_213_PreIndex[] = {
   0xd5, 0xa0, 0xe9, 0xe5 // strb al r10 r9 plus 213 PreIndex
 };
-static const byte kInstruction_strb_al_r14_r1_minus_2642_PreIndex[] = {
+const byte kInstruction_strb_al_r14_r1_minus_2642_PreIndex[] = {
   0x52, 0xea, 0x61, 0xe5 // strb al r14 r1 minus 2642 PreIndex
 };
-static const byte kInstruction_strb_al_r6_r12_plus_3529_PostIndex[] = {
+const byte kInstruction_strb_al_r6_r12_plus_3529_PostIndex[] = {
   0xc9, 0x6d, 0xcc, 0xe4 // strb al r6 r12 plus 3529 PostIndex
 };
-static const byte kInstruction_strb_al_r4_r9_minus_3625_PreIndex[] = {
+const byte kInstruction_strb_al_r4_r9_minus_3625_PreIndex[] = {
   0x29, 0x4e, 0x69, 0xe5 // strb al r4 r9 minus 3625 PreIndex
 };
-static const byte kInstruction_strb_al_r8_r0_minus_2046_PreIndex[] = {
+const byte kInstruction_strb_al_r8_r0_minus_2046_PreIndex[] = {
   0xfe, 0x87, 0x60, 0xe5 // strb al r8 r0 minus 2046 PreIndex
 };
-static const byte kInstruction_strb_al_r5_r4_minus_365_PostIndex[] = {
+const byte kInstruction_strb_al_r5_r4_minus_365_PostIndex[] = {
   0x6d, 0x51, 0x44, 0xe4 // strb al r5 r4 minus 365 PostIndex
 };
-static const byte kInstruction_strb_al_r11_r13_minus_1389_PreIndex[] = {
+const byte kInstruction_strb_al_r11_r13_minus_1389_PreIndex[] = {
   0x6d, 0xb5, 0x6d, 0xe5 // strb al r11 r13 minus 1389 PreIndex
 };
-static const byte kInstruction_strb_al_r1_r3_minus_251_PostIndex[] = {
+const byte kInstruction_strb_al_r1_r3_minus_251_PostIndex[] = {
   0xfb, 0x10, 0x43, 0xe4 // strb al r1 r3 minus 251 PostIndex
 };
-static const byte kInstruction_strb_al_r6_r0_plus_2617_PreIndex[] = {
+const byte kInstruction_strb_al_r6_r0_plus_2617_PreIndex[] = {
   0x39, 0x6a, 0xe0, 0xe5 // strb al r6 r0 plus 2617 PreIndex
 };
-static const TestResult kReferencestrb[] = {
+const TestResult kReferencestrb[] = {
   {
     ARRAY_SIZE(kInstruction_strb_pl_r13_r0_plus_0_Offset),
     kInstruction_strb_pl_r13_r0_plus_0_Offset,

@@ -34,7 +34,7 @@
 #ifndef VIXL_SIMULATOR_COND_RD_RN_RM_T32_Q_QDSUB_H_
 #define VIXL_SIMULATOR_COND_RD_RN_RM_T32_Q_QDSUB_H_
 
-static const Inputs kOutputs_Qdsub_QOutput_al_r0_r9_r10[] = {
+const Inputs kOutputs_Qdsub_QOutput_al_r0_r9_r10[] = {
   { 0x00000000, 0x08000000, 0x00000000, 0xfffffe82, 0xffffff80, 0x0000007f },
   { 0x00000000, 0x08000000, 0x00000000, 0x0000ffff, 0x00000001, 0xffff8001 },
   { 0x00000000, 0x08000000, 0x00000000, 0xffff0081, 0x0000007f, 0x00007fff },
@@ -236,7 +236,7 @@ static const Inputs kOutputs_Qdsub_QOutput_al_r0_r9_r10[] = {
   { 0x00000000, 0x00000000, 0x00000000, 0xffff7fc0, 0xffff8000, 0x00000020 },
   { 0x00000000, 0x08000000, 0x00000000, 0xffff7fc0, 0xffff8000, 0x00000020 },
 };
-static const TestResult kReferenceQdsub[] = {
+const TestResult kReferenceQdsub[] = {
   {
     ARRAY_SIZE(kOutputs_Qdsub_QOutput_al_r0_r9_r10),
     kOutputs_Qdsub_QOutput_al_r0_r9_r10,

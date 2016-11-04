@@ -34,7 +34,7 @@
 #ifndef VIXL_SIMULATOR_COND_RD_RN_RM_A32_GE_SSAX_H_
 #define VIXL_SIMULATOR_COND_RD_RN_RM_A32_GE_SSAX_H_
 
-static const Inputs kOutputs_Ssax_GE_al_r12_r0_r10[] = {
+const Inputs kOutputs_Ssax_GE_al_r12_r0_r10[] = {
   { 0x00000000, 0x00000000, 0x00030000, 0x80017ffe, 0x00007ffe, 0x00007fff },
   { 0x00000000, 0x00000000, 0x000f0000, 0x007d0000, 0x00000001, 0xffffff83 },
   { 0x00000000, 0x00000000, 0x00000000, 0x8002ff80, 0xffffff80, 0x00007ffd },
@@ -236,7 +236,7 @@ static const Inputs kOutputs_Ssax_GE_al_r12_r0_r10[] = {
   { 0x00000000, 0x00000000, 0x000c0000, 0x4cc9cccb, 0xcccccccc, 0xffff8003 },
   { 0x00000000, 0x00000000, 0x00030000, 0xff83007d, 0x0000007d, 0x0000007d },
 };
-static const TestResult kReferenceSsax[] = {
+const TestResult kReferenceSsax[] = {
   {
     ARRAY_SIZE(kOutputs_Ssax_GE_al_r12_r0_r10),
     kOutputs_Ssax_GE_al_r12_r0_r10,

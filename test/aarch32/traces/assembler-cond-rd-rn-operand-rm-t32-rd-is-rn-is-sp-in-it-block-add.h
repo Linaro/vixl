@@ -34,637 +34,637 @@
 #ifndef VIXL_ASSEMBLER_COND_RD_RN_OPERAND_RM_T32_RD_IS_RN_IS_SP_IN_IT_BLOCK_ADD_H_
 #define VIXL_ASSEMBLER_COND_RD_RN_OPERAND_RM_T32_RD_IS_RN_IS_SP_IN_IT_BLOCK_ADD_H_
 
-static const byte kInstruction_add_eq_r13_r13_r0[] = {
+const byte kInstruction_add_eq_r13_r13_r0[] = {
   0x08, 0xbf, 0x85, 0x44 // It eq; add eq r13 r13 r0
 };
-static const byte kInstruction_add_eq_r13_r13_r1[] = {
+const byte kInstruction_add_eq_r13_r13_r1[] = {
   0x08, 0xbf, 0x8d, 0x44 // It eq; add eq r13 r13 r1
 };
-static const byte kInstruction_add_eq_r13_r13_r2[] = {
+const byte kInstruction_add_eq_r13_r13_r2[] = {
   0x08, 0xbf, 0x95, 0x44 // It eq; add eq r13 r13 r2
 };
-static const byte kInstruction_add_eq_r13_r13_r3[] = {
+const byte kInstruction_add_eq_r13_r13_r3[] = {
   0x08, 0xbf, 0x9d, 0x44 // It eq; add eq r13 r13 r3
 };
-static const byte kInstruction_add_eq_r13_r13_r4[] = {
+const byte kInstruction_add_eq_r13_r13_r4[] = {
   0x08, 0xbf, 0xa5, 0x44 // It eq; add eq r13 r13 r4
 };
-static const byte kInstruction_add_eq_r13_r13_r5[] = {
+const byte kInstruction_add_eq_r13_r13_r5[] = {
   0x08, 0xbf, 0xad, 0x44 // It eq; add eq r13 r13 r5
 };
-static const byte kInstruction_add_eq_r13_r13_r6[] = {
+const byte kInstruction_add_eq_r13_r13_r6[] = {
   0x08, 0xbf, 0xb5, 0x44 // It eq; add eq r13 r13 r6
 };
-static const byte kInstruction_add_eq_r13_r13_r7[] = {
+const byte kInstruction_add_eq_r13_r13_r7[] = {
   0x08, 0xbf, 0xbd, 0x44 // It eq; add eq r13 r13 r7
 };
-static const byte kInstruction_add_eq_r13_r13_r8[] = {
+const byte kInstruction_add_eq_r13_r13_r8[] = {
   0x08, 0xbf, 0xc5, 0x44 // It eq; add eq r13 r13 r8
 };
-static const byte kInstruction_add_eq_r13_r13_r9[] = {
+const byte kInstruction_add_eq_r13_r13_r9[] = {
   0x08, 0xbf, 0xcd, 0x44 // It eq; add eq r13 r13 r9
 };
-static const byte kInstruction_add_eq_r13_r13_r10[] = {
+const byte kInstruction_add_eq_r13_r13_r10[] = {
   0x08, 0xbf, 0xd5, 0x44 // It eq; add eq r13 r13 r10
 };
-static const byte kInstruction_add_eq_r13_r13_r11[] = {
+const byte kInstruction_add_eq_r13_r13_r11[] = {
   0x08, 0xbf, 0xdd, 0x44 // It eq; add eq r13 r13 r11
 };
-static const byte kInstruction_add_eq_r13_r13_r12[] = {
+const byte kInstruction_add_eq_r13_r13_r12[] = {
   0x08, 0xbf, 0xe5, 0x44 // It eq; add eq r13 r13 r12
 };
-static const byte kInstruction_add_eq_r13_r13_r13[] = {
+const byte kInstruction_add_eq_r13_r13_r13[] = {
   0x08, 0xbf, 0xed, 0x44 // It eq; add eq r13 r13 r13
 };
-static const byte kInstruction_add_eq_r13_r13_r14[] = {
+const byte kInstruction_add_eq_r13_r13_r14[] = {
   0x08, 0xbf, 0xf5, 0x44 // It eq; add eq r13 r13 r14
 };
-static const byte kInstruction_add_ne_r13_r13_r0[] = {
+const byte kInstruction_add_ne_r13_r13_r0[] = {
   0x18, 0xbf, 0x85, 0x44 // It ne; add ne r13 r13 r0
 };
-static const byte kInstruction_add_ne_r13_r13_r1[] = {
+const byte kInstruction_add_ne_r13_r13_r1[] = {
   0x18, 0xbf, 0x8d, 0x44 // It ne; add ne r13 r13 r1
 };
-static const byte kInstruction_add_ne_r13_r13_r2[] = {
+const byte kInstruction_add_ne_r13_r13_r2[] = {
   0x18, 0xbf, 0x95, 0x44 // It ne; add ne r13 r13 r2
 };
-static const byte kInstruction_add_ne_r13_r13_r3[] = {
+const byte kInstruction_add_ne_r13_r13_r3[] = {
   0x18, 0xbf, 0x9d, 0x44 // It ne; add ne r13 r13 r3
 };
-static const byte kInstruction_add_ne_r13_r13_r4[] = {
+const byte kInstruction_add_ne_r13_r13_r4[] = {
   0x18, 0xbf, 0xa5, 0x44 // It ne; add ne r13 r13 r4
 };
-static const byte kInstruction_add_ne_r13_r13_r5[] = {
+const byte kInstruction_add_ne_r13_r13_r5[] = {
   0x18, 0xbf, 0xad, 0x44 // It ne; add ne r13 r13 r5
 };
-static const byte kInstruction_add_ne_r13_r13_r6[] = {
+const byte kInstruction_add_ne_r13_r13_r6[] = {
   0x18, 0xbf, 0xb5, 0x44 // It ne; add ne r13 r13 r6
 };
-static const byte kInstruction_add_ne_r13_r13_r7[] = {
+const byte kInstruction_add_ne_r13_r13_r7[] = {
   0x18, 0xbf, 0xbd, 0x44 // It ne; add ne r13 r13 r7
 };
-static const byte kInstruction_add_ne_r13_r13_r8[] = {
+const byte kInstruction_add_ne_r13_r13_r8[] = {
   0x18, 0xbf, 0xc5, 0x44 // It ne; add ne r13 r13 r8
 };
-static const byte kInstruction_add_ne_r13_r13_r9[] = {
+const byte kInstruction_add_ne_r13_r13_r9[] = {
   0x18, 0xbf, 0xcd, 0x44 // It ne; add ne r13 r13 r9
 };
-static const byte kInstruction_add_ne_r13_r13_r10[] = {
+const byte kInstruction_add_ne_r13_r13_r10[] = {
   0x18, 0xbf, 0xd5, 0x44 // It ne; add ne r13 r13 r10
 };
-static const byte kInstruction_add_ne_r13_r13_r11[] = {
+const byte kInstruction_add_ne_r13_r13_r11[] = {
   0x18, 0xbf, 0xdd, 0x44 // It ne; add ne r13 r13 r11
 };
-static const byte kInstruction_add_ne_r13_r13_r12[] = {
+const byte kInstruction_add_ne_r13_r13_r12[] = {
   0x18, 0xbf, 0xe5, 0x44 // It ne; add ne r13 r13 r12
 };
-static const byte kInstruction_add_ne_r13_r13_r13[] = {
+const byte kInstruction_add_ne_r13_r13_r13[] = {
   0x18, 0xbf, 0xed, 0x44 // It ne; add ne r13 r13 r13
 };
-static const byte kInstruction_add_ne_r13_r13_r14[] = {
+const byte kInstruction_add_ne_r13_r13_r14[] = {
   0x18, 0xbf, 0xf5, 0x44 // It ne; add ne r13 r13 r14
 };
-static const byte kInstruction_add_cs_r13_r13_r0[] = {
+const byte kInstruction_add_cs_r13_r13_r0[] = {
   0x28, 0xbf, 0x85, 0x44 // It cs; add cs r13 r13 r0
 };
-static const byte kInstruction_add_cs_r13_r13_r1[] = {
+const byte kInstruction_add_cs_r13_r13_r1[] = {
   0x28, 0xbf, 0x8d, 0x44 // It cs; add cs r13 r13 r1
 };
-static const byte kInstruction_add_cs_r13_r13_r2[] = {
+const byte kInstruction_add_cs_r13_r13_r2[] = {
   0x28, 0xbf, 0x95, 0x44 // It cs; add cs r13 r13 r2
 };
-static const byte kInstruction_add_cs_r13_r13_r3[] = {
+const byte kInstruction_add_cs_r13_r13_r3[] = {
   0x28, 0xbf, 0x9d, 0x44 // It cs; add cs r13 r13 r3
 };
-static const byte kInstruction_add_cs_r13_r13_r4[] = {
+const byte kInstruction_add_cs_r13_r13_r4[] = {
   0x28, 0xbf, 0xa5, 0x44 // It cs; add cs r13 r13 r4
 };
-static const byte kInstruction_add_cs_r13_r13_r5[] = {
+const byte kInstruction_add_cs_r13_r13_r5[] = {
   0x28, 0xbf, 0xad, 0x44 // It cs; add cs r13 r13 r5
 };
-static const byte kInstruction_add_cs_r13_r13_r6[] = {
+const byte kInstruction_add_cs_r13_r13_r6[] = {
   0x28, 0xbf, 0xb5, 0x44 // It cs; add cs r13 r13 r6
 };
-static const byte kInstruction_add_cs_r13_r13_r7[] = {
+const byte kInstruction_add_cs_r13_r13_r7[] = {
   0x28, 0xbf, 0xbd, 0x44 // It cs; add cs r13 r13 r7
 };
-static const byte kInstruction_add_cs_r13_r13_r8[] = {
+const byte kInstruction_add_cs_r13_r13_r8[] = {
   0x28, 0xbf, 0xc5, 0x44 // It cs; add cs r13 r13 r8
 };
-static const byte kInstruction_add_cs_r13_r13_r9[] = {
+const byte kInstruction_add_cs_r13_r13_r9[] = {
   0x28, 0xbf, 0xcd, 0x44 // It cs; add cs r13 r13 r9
 };
-static const byte kInstruction_add_cs_r13_r13_r10[] = {
+const byte kInstruction_add_cs_r13_r13_r10[] = {
   0x28, 0xbf, 0xd5, 0x44 // It cs; add cs r13 r13 r10
 };
-static const byte kInstruction_add_cs_r13_r13_r11[] = {
+const byte kInstruction_add_cs_r13_r13_r11[] = {
   0x28, 0xbf, 0xdd, 0x44 // It cs; add cs r13 r13 r11
 };
-static const byte kInstruction_add_cs_r13_r13_r12[] = {
+const byte kInstruction_add_cs_r13_r13_r12[] = {
   0x28, 0xbf, 0xe5, 0x44 // It cs; add cs r13 r13 r12
 };
-static const byte kInstruction_add_cs_r13_r13_r13[] = {
+const byte kInstruction_add_cs_r13_r13_r13[] = {
   0x28, 0xbf, 0xed, 0x44 // It cs; add cs r13 r13 r13
 };
-static const byte kInstruction_add_cs_r13_r13_r14[] = {
+const byte kInstruction_add_cs_r13_r13_r14[] = {
   0x28, 0xbf, 0xf5, 0x44 // It cs; add cs r13 r13 r14
 };
-static const byte kInstruction_add_cc_r13_r13_r0[] = {
+const byte kInstruction_add_cc_r13_r13_r0[] = {
   0x38, 0xbf, 0x85, 0x44 // It cc; add cc r13 r13 r0
 };
-static const byte kInstruction_add_cc_r13_r13_r1[] = {
+const byte kInstruction_add_cc_r13_r13_r1[] = {
   0x38, 0xbf, 0x8d, 0x44 // It cc; add cc r13 r13 r1
 };
-static const byte kInstruction_add_cc_r13_r13_r2[] = {
+const byte kInstruction_add_cc_r13_r13_r2[] = {
   0x38, 0xbf, 0x95, 0x44 // It cc; add cc r13 r13 r2
 };
-static const byte kInstruction_add_cc_r13_r13_r3[] = {
+const byte kInstruction_add_cc_r13_r13_r3[] = {
   0x38, 0xbf, 0x9d, 0x44 // It cc; add cc r13 r13 r3
 };
-static const byte kInstruction_add_cc_r13_r13_r4[] = {
+const byte kInstruction_add_cc_r13_r13_r4[] = {
   0x38, 0xbf, 0xa5, 0x44 // It cc; add cc r13 r13 r4
 };
-static const byte kInstruction_add_cc_r13_r13_r5[] = {
+const byte kInstruction_add_cc_r13_r13_r5[] = {
   0x38, 0xbf, 0xad, 0x44 // It cc; add cc r13 r13 r5
 };
-static const byte kInstruction_add_cc_r13_r13_r6[] = {
+const byte kInstruction_add_cc_r13_r13_r6[] = {
   0x38, 0xbf, 0xb5, 0x44 // It cc; add cc r13 r13 r6
 };
-static const byte kInstruction_add_cc_r13_r13_r7[] = {
+const byte kInstruction_add_cc_r13_r13_r7[] = {
   0x38, 0xbf, 0xbd, 0x44 // It cc; add cc r13 r13 r7
 };
-static const byte kInstruction_add_cc_r13_r13_r8[] = {
+const byte kInstruction_add_cc_r13_r13_r8[] = {
   0x38, 0xbf, 0xc5, 0x44 // It cc; add cc r13 r13 r8
 };
-static const byte kInstruction_add_cc_r13_r13_r9[] = {
+const byte kInstruction_add_cc_r13_r13_r9[] = {
   0x38, 0xbf, 0xcd, 0x44 // It cc; add cc r13 r13 r9
 };
-static const byte kInstruction_add_cc_r13_r13_r10[] = {
+const byte kInstruction_add_cc_r13_r13_r10[] = {
   0x38, 0xbf, 0xd5, 0x44 // It cc; add cc r13 r13 r10
 };
-static const byte kInstruction_add_cc_r13_r13_r11[] = {
+const byte kInstruction_add_cc_r13_r13_r11[] = {
   0x38, 0xbf, 0xdd, 0x44 // It cc; add cc r13 r13 r11
 };
-static const byte kInstruction_add_cc_r13_r13_r12[] = {
+const byte kInstruction_add_cc_r13_r13_r12[] = {
   0x38, 0xbf, 0xe5, 0x44 // It cc; add cc r13 r13 r12
 };
-static const byte kInstruction_add_cc_r13_r13_r13[] = {
+const byte kInstruction_add_cc_r13_r13_r13[] = {
   0x38, 0xbf, 0xed, 0x44 // It cc; add cc r13 r13 r13
 };
-static const byte kInstruction_add_cc_r13_r13_r14[] = {
+const byte kInstruction_add_cc_r13_r13_r14[] = {
   0x38, 0xbf, 0xf5, 0x44 // It cc; add cc r13 r13 r14
 };
-static const byte kInstruction_add_mi_r13_r13_r0[] = {
+const byte kInstruction_add_mi_r13_r13_r0[] = {
   0x48, 0xbf, 0x85, 0x44 // It mi; add mi r13 r13 r0
 };
-static const byte kInstruction_add_mi_r13_r13_r1[] = {
+const byte kInstruction_add_mi_r13_r13_r1[] = {
   0x48, 0xbf, 0x8d, 0x44 // It mi; add mi r13 r13 r1
 };
-static const byte kInstruction_add_mi_r13_r13_r2[] = {
+const byte kInstruction_add_mi_r13_r13_r2[] = {
   0x48, 0xbf, 0x95, 0x44 // It mi; add mi r13 r13 r2
 };
-static const byte kInstruction_add_mi_r13_r13_r3[] = {
+const byte kInstruction_add_mi_r13_r13_r3[] = {
   0x48, 0xbf, 0x9d, 0x44 // It mi; add mi r13 r13 r3
 };
-static const byte kInstruction_add_mi_r13_r13_r4[] = {
+const byte kInstruction_add_mi_r13_r13_r4[] = {
   0x48, 0xbf, 0xa5, 0x44 // It mi; add mi r13 r13 r4
 };
-static const byte kInstruction_add_mi_r13_r13_r5[] = {
+const byte kInstruction_add_mi_r13_r13_r5[] = {
   0x48, 0xbf, 0xad, 0x44 // It mi; add mi r13 r13 r5
 };
-static const byte kInstruction_add_mi_r13_r13_r6[] = {
+const byte kInstruction_add_mi_r13_r13_r6[] = {
   0x48, 0xbf, 0xb5, 0x44 // It mi; add mi r13 r13 r6
 };
-static const byte kInstruction_add_mi_r13_r13_r7[] = {
+const byte kInstruction_add_mi_r13_r13_r7[] = {
   0x48, 0xbf, 0xbd, 0x44 // It mi; add mi r13 r13 r7
 };
-static const byte kInstruction_add_mi_r13_r13_r8[] = {
+const byte kInstruction_add_mi_r13_r13_r8[] = {
   0x48, 0xbf, 0xc5, 0x44 // It mi; add mi r13 r13 r8
 };
-static const byte kInstruction_add_mi_r13_r13_r9[] = {
+const byte kInstruction_add_mi_r13_r13_r9[] = {
   0x48, 0xbf, 0xcd, 0x44 // It mi; add mi r13 r13 r9
 };
-static const byte kInstruction_add_mi_r13_r13_r10[] = {
+const byte kInstruction_add_mi_r13_r13_r10[] = {
   0x48, 0xbf, 0xd5, 0x44 // It mi; add mi r13 r13 r10
 };
-static const byte kInstruction_add_mi_r13_r13_r11[] = {
+const byte kInstruction_add_mi_r13_r13_r11[] = {
   0x48, 0xbf, 0xdd, 0x44 // It mi; add mi r13 r13 r11
 };
-static const byte kInstruction_add_mi_r13_r13_r12[] = {
+const byte kInstruction_add_mi_r13_r13_r12[] = {
   0x48, 0xbf, 0xe5, 0x44 // It mi; add mi r13 r13 r12
 };
-static const byte kInstruction_add_mi_r13_r13_r13[] = {
+const byte kInstruction_add_mi_r13_r13_r13[] = {
   0x48, 0xbf, 0xed, 0x44 // It mi; add mi r13 r13 r13
 };
-static const byte kInstruction_add_mi_r13_r13_r14[] = {
+const byte kInstruction_add_mi_r13_r13_r14[] = {
   0x48, 0xbf, 0xf5, 0x44 // It mi; add mi r13 r13 r14
 };
-static const byte kInstruction_add_pl_r13_r13_r0[] = {
+const byte kInstruction_add_pl_r13_r13_r0[] = {
   0x58, 0xbf, 0x85, 0x44 // It pl; add pl r13 r13 r0
 };
-static const byte kInstruction_add_pl_r13_r13_r1[] = {
+const byte kInstruction_add_pl_r13_r13_r1[] = {
   0x58, 0xbf, 0x8d, 0x44 // It pl; add pl r13 r13 r1
 };
-static const byte kInstruction_add_pl_r13_r13_r2[] = {
+const byte kInstruction_add_pl_r13_r13_r2[] = {
   0x58, 0xbf, 0x95, 0x44 // It pl; add pl r13 r13 r2
 };
-static const byte kInstruction_add_pl_r13_r13_r3[] = {
+const byte kInstruction_add_pl_r13_r13_r3[] = {
   0x58, 0xbf, 0x9d, 0x44 // It pl; add pl r13 r13 r3
 };
-static const byte kInstruction_add_pl_r13_r13_r4[] = {
+const byte kInstruction_add_pl_r13_r13_r4[] = {
   0x58, 0xbf, 0xa5, 0x44 // It pl; add pl r13 r13 r4
 };
-static const byte kInstruction_add_pl_r13_r13_r5[] = {
+const byte kInstruction_add_pl_r13_r13_r5[] = {
   0x58, 0xbf, 0xad, 0x44 // It pl; add pl r13 r13 r5
 };
-static const byte kInstruction_add_pl_r13_r13_r6[] = {
+const byte kInstruction_add_pl_r13_r13_r6[] = {
   0x58, 0xbf, 0xb5, 0x44 // It pl; add pl r13 r13 r6
 };
-static const byte kInstruction_add_pl_r13_r13_r7[] = {
+const byte kInstruction_add_pl_r13_r13_r7[] = {
   0x58, 0xbf, 0xbd, 0x44 // It pl; add pl r13 r13 r7
 };
-static const byte kInstruction_add_pl_r13_r13_r8[] = {
+const byte kInstruction_add_pl_r13_r13_r8[] = {
   0x58, 0xbf, 0xc5, 0x44 // It pl; add pl r13 r13 r8
 };
-static const byte kInstruction_add_pl_r13_r13_r9[] = {
+const byte kInstruction_add_pl_r13_r13_r9[] = {
   0x58, 0xbf, 0xcd, 0x44 // It pl; add pl r13 r13 r9
 };
-static const byte kInstruction_add_pl_r13_r13_r10[] = {
+const byte kInstruction_add_pl_r13_r13_r10[] = {
   0x58, 0xbf, 0xd5, 0x44 // It pl; add pl r13 r13 r10
 };
-static const byte kInstruction_add_pl_r13_r13_r11[] = {
+const byte kInstruction_add_pl_r13_r13_r11[] = {
   0x58, 0xbf, 0xdd, 0x44 // It pl; add pl r13 r13 r11
 };
-static const byte kInstruction_add_pl_r13_r13_r12[] = {
+const byte kInstruction_add_pl_r13_r13_r12[] = {
   0x58, 0xbf, 0xe5, 0x44 // It pl; add pl r13 r13 r12
 };
-static const byte kInstruction_add_pl_r13_r13_r13[] = {
+const byte kInstruction_add_pl_r13_r13_r13[] = {
   0x58, 0xbf, 0xed, 0x44 // It pl; add pl r13 r13 r13
 };
-static const byte kInstruction_add_pl_r13_r13_r14[] = {
+const byte kInstruction_add_pl_r13_r13_r14[] = {
   0x58, 0xbf, 0xf5, 0x44 // It pl; add pl r13 r13 r14
 };
-static const byte kInstruction_add_vs_r13_r13_r0[] = {
+const byte kInstruction_add_vs_r13_r13_r0[] = {
   0x68, 0xbf, 0x85, 0x44 // It vs; add vs r13 r13 r0
 };
-static const byte kInstruction_add_vs_r13_r13_r1[] = {
+const byte kInstruction_add_vs_r13_r13_r1[] = {
   0x68, 0xbf, 0x8d, 0x44 // It vs; add vs r13 r13 r1
 };
-static const byte kInstruction_add_vs_r13_r13_r2[] = {
+const byte kInstruction_add_vs_r13_r13_r2[] = {
   0x68, 0xbf, 0x95, 0x44 // It vs; add vs r13 r13 r2
 };
-static const byte kInstruction_add_vs_r13_r13_r3[] = {
+const byte kInstruction_add_vs_r13_r13_r3[] = {
   0x68, 0xbf, 0x9d, 0x44 // It vs; add vs r13 r13 r3
 };
-static const byte kInstruction_add_vs_r13_r13_r4[] = {
+const byte kInstruction_add_vs_r13_r13_r4[] = {
   0x68, 0xbf, 0xa5, 0x44 // It vs; add vs r13 r13 r4
 };
-static const byte kInstruction_add_vs_r13_r13_r5[] = {
+const byte kInstruction_add_vs_r13_r13_r5[] = {
   0x68, 0xbf, 0xad, 0x44 // It vs; add vs r13 r13 r5
 };
-static const byte kInstruction_add_vs_r13_r13_r6[] = {
+const byte kInstruction_add_vs_r13_r13_r6[] = {
   0x68, 0xbf, 0xb5, 0x44 // It vs; add vs r13 r13 r6
 };
-static const byte kInstruction_add_vs_r13_r13_r7[] = {
+const byte kInstruction_add_vs_r13_r13_r7[] = {
   0x68, 0xbf, 0xbd, 0x44 // It vs; add vs r13 r13 r7
 };
-static const byte kInstruction_add_vs_r13_r13_r8[] = {
+const byte kInstruction_add_vs_r13_r13_r8[] = {
   0x68, 0xbf, 0xc5, 0x44 // It vs; add vs r13 r13 r8
 };
-static const byte kInstruction_add_vs_r13_r13_r9[] = {
+const byte kInstruction_add_vs_r13_r13_r9[] = {
   0x68, 0xbf, 0xcd, 0x44 // It vs; add vs r13 r13 r9
 };
-static const byte kInstruction_add_vs_r13_r13_r10[] = {
+const byte kInstruction_add_vs_r13_r13_r10[] = {
   0x68, 0xbf, 0xd5, 0x44 // It vs; add vs r13 r13 r10
 };
-static const byte kInstruction_add_vs_r13_r13_r11[] = {
+const byte kInstruction_add_vs_r13_r13_r11[] = {
   0x68, 0xbf, 0xdd, 0x44 // It vs; add vs r13 r13 r11
 };
-static const byte kInstruction_add_vs_r13_r13_r12[] = {
+const byte kInstruction_add_vs_r13_r13_r12[] = {
   0x68, 0xbf, 0xe5, 0x44 // It vs; add vs r13 r13 r12
 };
-static const byte kInstruction_add_vs_r13_r13_r13[] = {
+const byte kInstruction_add_vs_r13_r13_r13[] = {
   0x68, 0xbf, 0xed, 0x44 // It vs; add vs r13 r13 r13
 };
-static const byte kInstruction_add_vs_r13_r13_r14[] = {
+const byte kInstruction_add_vs_r13_r13_r14[] = {
   0x68, 0xbf, 0xf5, 0x44 // It vs; add vs r13 r13 r14
 };
-static const byte kInstruction_add_vc_r13_r13_r0[] = {
+const byte kInstruction_add_vc_r13_r13_r0[] = {
   0x78, 0xbf, 0x85, 0x44 // It vc; add vc r13 r13 r0
 };
-static const byte kInstruction_add_vc_r13_r13_r1[] = {
+const byte kInstruction_add_vc_r13_r13_r1[] = {
   0x78, 0xbf, 0x8d, 0x44 // It vc; add vc r13 r13 r1
 };
-static const byte kInstruction_add_vc_r13_r13_r2[] = {
+const byte kInstruction_add_vc_r13_r13_r2[] = {
   0x78, 0xbf, 0x95, 0x44 // It vc; add vc r13 r13 r2
 };
-static const byte kInstruction_add_vc_r13_r13_r3[] = {
+const byte kInstruction_add_vc_r13_r13_r3[] = {
   0x78, 0xbf, 0x9d, 0x44 // It vc; add vc r13 r13 r3
 };
-static const byte kInstruction_add_vc_r13_r13_r4[] = {
+const byte kInstruction_add_vc_r13_r13_r4[] = {
   0x78, 0xbf, 0xa5, 0x44 // It vc; add vc r13 r13 r4
 };
-static const byte kInstruction_add_vc_r13_r13_r5[] = {
+const byte kInstruction_add_vc_r13_r13_r5[] = {
   0x78, 0xbf, 0xad, 0x44 // It vc; add vc r13 r13 r5
 };
-static const byte kInstruction_add_vc_r13_r13_r6[] = {
+const byte kInstruction_add_vc_r13_r13_r6[] = {
   0x78, 0xbf, 0xb5, 0x44 // It vc; add vc r13 r13 r6
 };
-static const byte kInstruction_add_vc_r13_r13_r7[] = {
+const byte kInstruction_add_vc_r13_r13_r7[] = {
   0x78, 0xbf, 0xbd, 0x44 // It vc; add vc r13 r13 r7
 };
-static const byte kInstruction_add_vc_r13_r13_r8[] = {
+const byte kInstruction_add_vc_r13_r13_r8[] = {
   0x78, 0xbf, 0xc5, 0x44 // It vc; add vc r13 r13 r8
 };
-static const byte kInstruction_add_vc_r13_r13_r9[] = {
+const byte kInstruction_add_vc_r13_r13_r9[] = {
   0x78, 0xbf, 0xcd, 0x44 // It vc; add vc r13 r13 r9
 };
-static const byte kInstruction_add_vc_r13_r13_r10[] = {
+const byte kInstruction_add_vc_r13_r13_r10[] = {
   0x78, 0xbf, 0xd5, 0x44 // It vc; add vc r13 r13 r10
 };
-static const byte kInstruction_add_vc_r13_r13_r11[] = {
+const byte kInstruction_add_vc_r13_r13_r11[] = {
   0x78, 0xbf, 0xdd, 0x44 // It vc; add vc r13 r13 r11
 };
-static const byte kInstruction_add_vc_r13_r13_r12[] = {
+const byte kInstruction_add_vc_r13_r13_r12[] = {
   0x78, 0xbf, 0xe5, 0x44 // It vc; add vc r13 r13 r12
 };
-static const byte kInstruction_add_vc_r13_r13_r13[] = {
+const byte kInstruction_add_vc_r13_r13_r13[] = {
   0x78, 0xbf, 0xed, 0x44 // It vc; add vc r13 r13 r13
 };
-static const byte kInstruction_add_vc_r13_r13_r14[] = {
+const byte kInstruction_add_vc_r13_r13_r14[] = {
   0x78, 0xbf, 0xf5, 0x44 // It vc; add vc r13 r13 r14
 };
-static const byte kInstruction_add_hi_r13_r13_r0[] = {
+const byte kInstruction_add_hi_r13_r13_r0[] = {
   0x88, 0xbf, 0x85, 0x44 // It hi; add hi r13 r13 r0
 };
-static const byte kInstruction_add_hi_r13_r13_r1[] = {
+const byte kInstruction_add_hi_r13_r13_r1[] = {
   0x88, 0xbf, 0x8d, 0x44 // It hi; add hi r13 r13 r1
 };
-static const byte kInstruction_add_hi_r13_r13_r2[] = {
+const byte kInstruction_add_hi_r13_r13_r2[] = {
   0x88, 0xbf, 0x95, 0x44 // It hi; add hi r13 r13 r2
 };
-static const byte kInstruction_add_hi_r13_r13_r3[] = {
+const byte kInstruction_add_hi_r13_r13_r3[] = {
   0x88, 0xbf, 0x9d, 0x44 // It hi; add hi r13 r13 r3
 };
-static const byte kInstruction_add_hi_r13_r13_r4[] = {
+const byte kInstruction_add_hi_r13_r13_r4[] = {
   0x88, 0xbf, 0xa5, 0x44 // It hi; add hi r13 r13 r4
 };
-static const byte kInstruction_add_hi_r13_r13_r5[] = {
+const byte kInstruction_add_hi_r13_r13_r5[] = {
   0x88, 0xbf, 0xad, 0x44 // It hi; add hi r13 r13 r5
 };
-static const byte kInstruction_add_hi_r13_r13_r6[] = {
+const byte kInstruction_add_hi_r13_r13_r6[] = {
   0x88, 0xbf, 0xb5, 0x44 // It hi; add hi r13 r13 r6
 };
-static const byte kInstruction_add_hi_r13_r13_r7[] = {
+const byte kInstruction_add_hi_r13_r13_r7[] = {
   0x88, 0xbf, 0xbd, 0x44 // It hi; add hi r13 r13 r7
 };
-static const byte kInstruction_add_hi_r13_r13_r8[] = {
+const byte kInstruction_add_hi_r13_r13_r8[] = {
   0x88, 0xbf, 0xc5, 0x44 // It hi; add hi r13 r13 r8
 };
-static const byte kInstruction_add_hi_r13_r13_r9[] = {
+const byte kInstruction_add_hi_r13_r13_r9[] = {
   0x88, 0xbf, 0xcd, 0x44 // It hi; add hi r13 r13 r9
 };
-static const byte kInstruction_add_hi_r13_r13_r10[] = {
+const byte kInstruction_add_hi_r13_r13_r10[] = {
   0x88, 0xbf, 0xd5, 0x44 // It hi; add hi r13 r13 r10
 };
-static const byte kInstruction_add_hi_r13_r13_r11[] = {
+const byte kInstruction_add_hi_r13_r13_r11[] = {
   0x88, 0xbf, 0xdd, 0x44 // It hi; add hi r13 r13 r11
 };
-static const byte kInstruction_add_hi_r13_r13_r12[] = {
+const byte kInstruction_add_hi_r13_r13_r12[] = {
   0x88, 0xbf, 0xe5, 0x44 // It hi; add hi r13 r13 r12
 };
-static const byte kInstruction_add_hi_r13_r13_r13[] = {
+const byte kInstruction_add_hi_r13_r13_r13[] = {
   0x88, 0xbf, 0xed, 0x44 // It hi; add hi r13 r13 r13
 };
-static const byte kInstruction_add_hi_r13_r13_r14[] = {
+const byte kInstruction_add_hi_r13_r13_r14[] = {
   0x88, 0xbf, 0xf5, 0x44 // It hi; add hi r13 r13 r14
 };
-static const byte kInstruction_add_ls_r13_r13_r0[] = {
+const byte kInstruction_add_ls_r13_r13_r0[] = {
   0x98, 0xbf, 0x85, 0x44 // It ls; add ls r13 r13 r0
 };
-static const byte kInstruction_add_ls_r13_r13_r1[] = {
+const byte kInstruction_add_ls_r13_r13_r1[] = {
   0x98, 0xbf, 0x8d, 0x44 // It ls; add ls r13 r13 r1
 };
-static const byte kInstruction_add_ls_r13_r13_r2[] = {
+const byte kInstruction_add_ls_r13_r13_r2[] = {
   0x98, 0xbf, 0x95, 0x44 // It ls; add ls r13 r13 r2
 };
-static const byte kInstruction_add_ls_r13_r13_r3[] = {
+const byte kInstruction_add_ls_r13_r13_r3[] = {
   0x98, 0xbf, 0x9d, 0x44 // It ls; add ls r13 r13 r3
 };
-static const byte kInstruction_add_ls_r13_r13_r4[] = {
+const byte kInstruction_add_ls_r13_r13_r4[] = {
   0x98, 0xbf, 0xa5, 0x44 // It ls; add ls r13 r13 r4
 };
-static const byte kInstruction_add_ls_r13_r13_r5[] = {
+const byte kInstruction_add_ls_r13_r13_r5[] = {
   0x98, 0xbf, 0xad, 0x44 // It ls; add ls r13 r13 r5
 };
-static const byte kInstruction_add_ls_r13_r13_r6[] = {
+const byte kInstruction_add_ls_r13_r13_r6[] = {
   0x98, 0xbf, 0xb5, 0x44 // It ls; add ls r13 r13 r6
 };
-static const byte kInstruction_add_ls_r13_r13_r7[] = {
+const byte kInstruction_add_ls_r13_r13_r7[] = {
   0x98, 0xbf, 0xbd, 0x44 // It ls; add ls r13 r13 r7
 };
-static const byte kInstruction_add_ls_r13_r13_r8[] = {
+const byte kInstruction_add_ls_r13_r13_r8[] = {
   0x98, 0xbf, 0xc5, 0x44 // It ls; add ls r13 r13 r8
 };
-static const byte kInstruction_add_ls_r13_r13_r9[] = {
+const byte kInstruction_add_ls_r13_r13_r9[] = {
   0x98, 0xbf, 0xcd, 0x44 // It ls; add ls r13 r13 r9
 };
-static const byte kInstruction_add_ls_r13_r13_r10[] = {
+const byte kInstruction_add_ls_r13_r13_r10[] = {
   0x98, 0xbf, 0xd5, 0x44 // It ls; add ls r13 r13 r10
 };
-static const byte kInstruction_add_ls_r13_r13_r11[] = {
+const byte kInstruction_add_ls_r13_r13_r11[] = {
   0x98, 0xbf, 0xdd, 0x44 // It ls; add ls r13 r13 r11
 };
-static const byte kInstruction_add_ls_r13_r13_r12[] = {
+const byte kInstruction_add_ls_r13_r13_r12[] = {
   0x98, 0xbf, 0xe5, 0x44 // It ls; add ls r13 r13 r12
 };
-static const byte kInstruction_add_ls_r13_r13_r13[] = {
+const byte kInstruction_add_ls_r13_r13_r13[] = {
   0x98, 0xbf, 0xed, 0x44 // It ls; add ls r13 r13 r13
 };
-static const byte kInstruction_add_ls_r13_r13_r14[] = {
+const byte kInstruction_add_ls_r13_r13_r14[] = {
   0x98, 0xbf, 0xf5, 0x44 // It ls; add ls r13 r13 r14
 };
-static const byte kInstruction_add_ge_r13_r13_r0[] = {
+const byte kInstruction_add_ge_r13_r13_r0[] = {
   0xa8, 0xbf, 0x85, 0x44 // It ge; add ge r13 r13 r0
 };
-static const byte kInstruction_add_ge_r13_r13_r1[] = {
+const byte kInstruction_add_ge_r13_r13_r1[] = {
   0xa8, 0xbf, 0x8d, 0x44 // It ge; add ge r13 r13 r1
 };
-static const byte kInstruction_add_ge_r13_r13_r2[] = {
+const byte kInstruction_add_ge_r13_r13_r2[] = {
   0xa8, 0xbf, 0x95, 0x44 // It ge; add ge r13 r13 r2
 };
-static const byte kInstruction_add_ge_r13_r13_r3[] = {
+const byte kInstruction_add_ge_r13_r13_r3[] = {
   0xa8, 0xbf, 0x9d, 0x44 // It ge; add ge r13 r13 r3
 };
-static const byte kInstruction_add_ge_r13_r13_r4[] = {
+const byte kInstruction_add_ge_r13_r13_r4[] = {
   0xa8, 0xbf, 0xa5, 0x44 // It ge; add ge r13 r13 r4
 };
-static const byte kInstruction_add_ge_r13_r13_r5[] = {
+const byte kInstruction_add_ge_r13_r13_r5[] = {
   0xa8, 0xbf, 0xad, 0x44 // It ge; add ge r13 r13 r5
 };
-static const byte kInstruction_add_ge_r13_r13_r6[] = {
+const byte kInstruction_add_ge_r13_r13_r6[] = {
   0xa8, 0xbf, 0xb5, 0x44 // It ge; add ge r13 r13 r6
 };
-static const byte kInstruction_add_ge_r13_r13_r7[] = {
+const byte kInstruction_add_ge_r13_r13_r7[] = {
   0xa8, 0xbf, 0xbd, 0x44 // It ge; add ge r13 r13 r7
 };
-static const byte kInstruction_add_ge_r13_r13_r8[] = {
+const byte kInstruction_add_ge_r13_r13_r8[] = {
   0xa8, 0xbf, 0xc5, 0x44 // It ge; add ge r13 r13 r8
 };
-static const byte kInstruction_add_ge_r13_r13_r9[] = {
+const byte kInstruction_add_ge_r13_r13_r9[] = {
   0xa8, 0xbf, 0xcd, 0x44 // It ge; add ge r13 r13 r9
 };
-static const byte kInstruction_add_ge_r13_r13_r10[] = {
+const byte kInstruction_add_ge_r13_r13_r10[] = {
   0xa8, 0xbf, 0xd5, 0x44 // It ge; add ge r13 r13 r10
 };
-static const byte kInstruction_add_ge_r13_r13_r11[] = {
+const byte kInstruction_add_ge_r13_r13_r11[] = {
   0xa8, 0xbf, 0xdd, 0x44 // It ge; add ge r13 r13 r11
 };
-static const byte kInstruction_add_ge_r13_r13_r12[] = {
+const byte kInstruction_add_ge_r13_r13_r12[] = {
   0xa8, 0xbf, 0xe5, 0x44 // It ge; add ge r13 r13 r12
 };
-static const byte kInstruction_add_ge_r13_r13_r13[] = {
+const byte kInstruction_add_ge_r13_r13_r13[] = {
   0xa8, 0xbf, 0xed, 0x44 // It ge; add ge r13 r13 r13
 };
-static const byte kInstruction_add_ge_r13_r13_r14[] = {
+const byte kInstruction_add_ge_r13_r13_r14[] = {
   0xa8, 0xbf, 0xf5, 0x44 // It ge; add ge r13 r13 r14
 };
-static const byte kInstruction_add_lt_r13_r13_r0[] = {
+const byte kInstruction_add_lt_r13_r13_r0[] = {
   0xb8, 0xbf, 0x85, 0x44 // It lt; add lt r13 r13 r0
 };
-static const byte kInstruction_add_lt_r13_r13_r1[] = {
+const byte kInstruction_add_lt_r13_r13_r1[] = {
   0xb8, 0xbf, 0x8d, 0x44 // It lt; add lt r13 r13 r1
 };
-static const byte kInstruction_add_lt_r13_r13_r2[] = {
+const byte kInstruction_add_lt_r13_r13_r2[] = {
   0xb8, 0xbf, 0x95, 0x44 // It lt; add lt r13 r13 r2
 };
-static const byte kInstruction_add_lt_r13_r13_r3[] = {
+const byte kInstruction_add_lt_r13_r13_r3[] = {
   0xb8, 0xbf, 0x9d, 0x44 // It lt; add lt r13 r13 r3
 };
-static const byte kInstruction_add_lt_r13_r13_r4[] = {
+const byte kInstruction_add_lt_r13_r13_r4[] = {
   0xb8, 0xbf, 0xa5, 0x44 // It lt; add lt r13 r13 r4
 };
-static const byte kInstruction_add_lt_r13_r13_r5[] = {
+const byte kInstruction_add_lt_r13_r13_r5[] = {
   0xb8, 0xbf, 0xad, 0x44 // It lt; add lt r13 r13 r5
 };
-static const byte kInstruction_add_lt_r13_r13_r6[] = {
+const byte kInstruction_add_lt_r13_r13_r6[] = {
   0xb8, 0xbf, 0xb5, 0x44 // It lt; add lt r13 r13 r6
 };
-static const byte kInstruction_add_lt_r13_r13_r7[] = {
+const byte kInstruction_add_lt_r13_r13_r7[] = {
   0xb8, 0xbf, 0xbd, 0x44 // It lt; add lt r13 r13 r7
 };
-static const byte kInstruction_add_lt_r13_r13_r8[] = {
+const byte kInstruction_add_lt_r13_r13_r8[] = {
   0xb8, 0xbf, 0xc5, 0x44 // It lt; add lt r13 r13 r8
 };
-static const byte kInstruction_add_lt_r13_r13_r9[] = {
+const byte kInstruction_add_lt_r13_r13_r9[] = {
   0xb8, 0xbf, 0xcd, 0x44 // It lt; add lt r13 r13 r9
 };
-static const byte kInstruction_add_lt_r13_r13_r10[] = {
+const byte kInstruction_add_lt_r13_r13_r10[] = {
   0xb8, 0xbf, 0xd5, 0x44 // It lt; add lt r13 r13 r10
 };
-static const byte kInstruction_add_lt_r13_r13_r11[] = {
+const byte kInstruction_add_lt_r13_r13_r11[] = {
   0xb8, 0xbf, 0xdd, 0x44 // It lt; add lt r13 r13 r11
 };
-static const byte kInstruction_add_lt_r13_r13_r12[] = {
+const byte kInstruction_add_lt_r13_r13_r12[] = {
   0xb8, 0xbf, 0xe5, 0x44 // It lt; add lt r13 r13 r12
 };
-static const byte kInstruction_add_lt_r13_r13_r13[] = {
+const byte kInstruction_add_lt_r13_r13_r13[] = {
   0xb8, 0xbf, 0xed, 0x44 // It lt; add lt r13 r13 r13
 };
-static const byte kInstruction_add_lt_r13_r13_r14[] = {
+const byte kInstruction_add_lt_r13_r13_r14[] = {
   0xb8, 0xbf, 0xf5, 0x44 // It lt; add lt r13 r13 r14
 };
-static const byte kInstruction_add_gt_r13_r13_r0[] = {
+const byte kInstruction_add_gt_r13_r13_r0[] = {
   0xc8, 0xbf, 0x85, 0x44 // It gt; add gt r13 r13 r0
 };
-static const byte kInstruction_add_gt_r13_r13_r1[] = {
+const byte kInstruction_add_gt_r13_r13_r1[] = {
   0xc8, 0xbf, 0x8d, 0x44 // It gt; add gt r13 r13 r1
 };
-static const byte kInstruction_add_gt_r13_r13_r2[] = {
+const byte kInstruction_add_gt_r13_r13_r2[] = {
   0xc8, 0xbf, 0x95, 0x44 // It gt; add gt r13 r13 r2
 };
-static const byte kInstruction_add_gt_r13_r13_r3[] = {
+const byte kInstruction_add_gt_r13_r13_r3[] = {
   0xc8, 0xbf, 0x9d, 0x44 // It gt; add gt r13 r13 r3
 };
-static const byte kInstruction_add_gt_r13_r13_r4[] = {
+const byte kInstruction_add_gt_r13_r13_r4[] = {
   0xc8, 0xbf, 0xa5, 0x44 // It gt; add gt r13 r13 r4
 };
-static const byte kInstruction_add_gt_r13_r13_r5[] = {
+const byte kInstruction_add_gt_r13_r13_r5[] = {
   0xc8, 0xbf, 0xad, 0x44 // It gt; add gt r13 r13 r5
 };
-static const byte kInstruction_add_gt_r13_r13_r6[] = {
+const byte kInstruction_add_gt_r13_r13_r6[] = {
   0xc8, 0xbf, 0xb5, 0x44 // It gt; add gt r13 r13 r6
 };
-static const byte kInstruction_add_gt_r13_r13_r7[] = {
+const byte kInstruction_add_gt_r13_r13_r7[] = {
   0xc8, 0xbf, 0xbd, 0x44 // It gt; add gt r13 r13 r7
 };
-static const byte kInstruction_add_gt_r13_r13_r8[] = {
+const byte kInstruction_add_gt_r13_r13_r8[] = {
   0xc8, 0xbf, 0xc5, 0x44 // It gt; add gt r13 r13 r8
 };
-static const byte kInstruction_add_gt_r13_r13_r9[] = {
+const byte kInstruction_add_gt_r13_r13_r9[] = {
   0xc8, 0xbf, 0xcd, 0x44 // It gt; add gt r13 r13 r9
 };
-static const byte kInstruction_add_gt_r13_r13_r10[] = {
+const byte kInstruction_add_gt_r13_r13_r10[] = {
   0xc8, 0xbf, 0xd5, 0x44 // It gt; add gt r13 r13 r10
 };
-static const byte kInstruction_add_gt_r13_r13_r11[] = {
+const byte kInstruction_add_gt_r13_r13_r11[] = {
   0xc8, 0xbf, 0xdd, 0x44 // It gt; add gt r13 r13 r11
 };
-static const byte kInstruction_add_gt_r13_r13_r12[] = {
+const byte kInstruction_add_gt_r13_r13_r12[] = {
   0xc8, 0xbf, 0xe5, 0x44 // It gt; add gt r13 r13 r12
 };
-static const byte kInstruction_add_gt_r13_r13_r13[] = {
+const byte kInstruction_add_gt_r13_r13_r13[] = {
   0xc8, 0xbf, 0xed, 0x44 // It gt; add gt r13 r13 r13
 };
-static const byte kInstruction_add_gt_r13_r13_r14[] = {
+const byte kInstruction_add_gt_r13_r13_r14[] = {
   0xc8, 0xbf, 0xf5, 0x44 // It gt; add gt r13 r13 r14
 };
-static const byte kInstruction_add_le_r13_r13_r0[] = {
+const byte kInstruction_add_le_r13_r13_r0[] = {
   0xd8, 0xbf, 0x85, 0x44 // It le; add le r13 r13 r0
 };
-static const byte kInstruction_add_le_r13_r13_r1[] = {
+const byte kInstruction_add_le_r13_r13_r1[] = {
   0xd8, 0xbf, 0x8d, 0x44 // It le; add le r13 r13 r1
 };
-static const byte kInstruction_add_le_r13_r13_r2[] = {
+const byte kInstruction_add_le_r13_r13_r2[] = {
   0xd8, 0xbf, 0x95, 0x44 // It le; add le r13 r13 r2
 };
-static const byte kInstruction_add_le_r13_r13_r3[] = {
+const byte kInstruction_add_le_r13_r13_r3[] = {
   0xd8, 0xbf, 0x9d, 0x44 // It le; add le r13 r13 r3
 };
-static const byte kInstruction_add_le_r13_r13_r4[] = {
+const byte kInstruction_add_le_r13_r13_r4[] = {
   0xd8, 0xbf, 0xa5, 0x44 // It le; add le r13 r13 r4
 };
-static const byte kInstruction_add_le_r13_r13_r5[] = {
+const byte kInstruction_add_le_r13_r13_r5[] = {
   0xd8, 0xbf, 0xad, 0x44 // It le; add le r13 r13 r5
 };
-static const byte kInstruction_add_le_r13_r13_r6[] = {
+const byte kInstruction_add_le_r13_r13_r6[] = {
   0xd8, 0xbf, 0xb5, 0x44 // It le; add le r13 r13 r6
 };
-static const byte kInstruction_add_le_r13_r13_r7[] = {
+const byte kInstruction_add_le_r13_r13_r7[] = {
   0xd8, 0xbf, 0xbd, 0x44 // It le; add le r13 r13 r7
 };
-static const byte kInstruction_add_le_r13_r13_r8[] = {
+const byte kInstruction_add_le_r13_r13_r8[] = {
   0xd8, 0xbf, 0xc5, 0x44 // It le; add le r13 r13 r8
 };
-static const byte kInstruction_add_le_r13_r13_r9[] = {
+const byte kInstruction_add_le_r13_r13_r9[] = {
   0xd8, 0xbf, 0xcd, 0x44 // It le; add le r13 r13 r9
 };
-static const byte kInstruction_add_le_r13_r13_r10[] = {
+const byte kInstruction_add_le_r13_r13_r10[] = {
   0xd8, 0xbf, 0xd5, 0x44 // It le; add le r13 r13 r10
 };
-static const byte kInstruction_add_le_r13_r13_r11[] = {
+const byte kInstruction_add_le_r13_r13_r11[] = {
   0xd8, 0xbf, 0xdd, 0x44 // It le; add le r13 r13 r11
 };
-static const byte kInstruction_add_le_r13_r13_r12[] = {
+const byte kInstruction_add_le_r13_r13_r12[] = {
   0xd8, 0xbf, 0xe5, 0x44 // It le; add le r13 r13 r12
 };
-static const byte kInstruction_add_le_r13_r13_r13[] = {
+const byte kInstruction_add_le_r13_r13_r13[] = {
   0xd8, 0xbf, 0xed, 0x44 // It le; add le r13 r13 r13
 };
-static const byte kInstruction_add_le_r13_r13_r14[] = {
+const byte kInstruction_add_le_r13_r13_r14[] = {
   0xd8, 0xbf, 0xf5, 0x44 // It le; add le r13 r13 r14
 };
-static const TestResult kReferenceadd[] = {
+const TestResult kReferenceadd[] = {
   {
     ARRAY_SIZE(kInstruction_add_eq_r13_r13_r0),
     kInstruction_add_eq_r13_r13_r0,
