@@ -963,9 +963,10 @@ class Condition {
   uint32_t condition_;
   static const uint32_t kNever = 15;
   static const uint32_t kMask = 0xf;
+  static const uint32_t kNone = 0x10 | al;
 
  public:
-  static const ConditionType kNone = static_cast<ConditionType>(0x10 | al);
+  static const Condition None() { return Condition(kNone); }
   explicit Condition(uint32_t condition) : condition_(condition) {
     VIXL_ASSERT(condition <= kNone);
   }
