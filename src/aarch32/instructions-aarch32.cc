@@ -710,10 +710,11 @@ bool ImmediateA32::IsImmediateA32(uint32_t imm) {
 
 
 uint32_t ImmediateA32::Decode(uint32_t value) {
-  int rotation = value >> 8;
-  VIXL_ASSERT(rotation <= 15);
-  rotation *= 2;
+  int rotation = (value >> 8) * 2;
+  VIXL_ASSERT(rotation >= 0);
+  VIXL_ASSERT(rotation <= 30);
   value &= 0xff;
+  if (rotation == 0) return value;
   return (value >> rotation) | (value << (32 - rotation));
 }
 
