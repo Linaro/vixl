@@ -308,6 +308,8 @@ class MacroAssembler : public Assembler {
       }
     }
 
+    bool IsEmpty() const { return GetLiteralPoolSize() == 0; }
+
    private:
     MacroAssembler* const masm_;
     LiteralPool literal_pool_;
@@ -322,6 +324,7 @@ class MacroAssembler : public Assembler {
    public:
     explicit VeneerPoolManager(MacroAssembler* masm)
         : masm_(masm), checkpoint_(Label::kMaxOffset) {}
+    bool IsEmpty() const { return checkpoint_ == Label::kMaxOffset; }
     Label::Offset GetCheckpoint() const {
       // Make room for a branch over the pools.
       return checkpoint_ - kMaxInstructionSizeInBytes;
@@ -490,11 +493,8 @@ class MacroAssembler : public Assembler {
     return literal_pool_manager_.GetCheckpoint() - GetCursorOffset();
   }
 
-  bool VeneerPoolIsEmpty() const {
-    return veneer_pool_manager_.GetCheckpoint() == Label::kMaxOffset;
-  }
-
-  bool LiteralPoolIsEmpty() const { return GetLiteralPoolSize() == 0; }
+  bool VeneerPoolIsEmpty() const { return veneer_pool_manager_.IsEmpty(); }
+  bool LiteralPoolIsEmpty() const { return literal_pool_manager_.IsEmpty(); }
 
   void EnsureEmitFor(uint32_t size) {
     Label::Offset target = AlignUp(GetCursorOffset() + size, 4);
