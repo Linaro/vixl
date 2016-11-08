@@ -488,6 +488,25 @@ void MacroAssembler::HandleOutOfBoundsImmediate(Condition cond,
 }
 
 
+void MacroAssembler::PadToMinimumBranchRange(Label* label) {
+  const Label::ForwardReference* last_reference = label->GetForwardRefBack();
+  if ((last_reference != NULL) && last_reference->IsUsingT32()) {
+    uint32_t location = last_reference->GetLocation();
+    if (location + k16BitT32InstructionSizeInBytes ==
+        static_cast<uint32_t>(GetCursorOffset())) {
+      uint16_t* instr_ptr = buffer_.GetOffsetAddress<uint16_t*>(location);
+      if ((instr_ptr[0] & kCbzCbnzMask) == kCbzCbnzValue) {
+        VIXL_ASSERT(!InITBlock());
+        // A Cbz or a Cbnz can't jump immediately after the instruction. If the
+        // target is immediately after the Cbz or Cbnz, we insert a nop to
+        // avoid that.
+        EmitT32_16(k16BitT32NopOpcode);
+      }
+    }
+  }
+}
+
+
 HARDFLOAT void PrintfTrampolineRRRR(
     const char* format, uint32_t a, uint32_t b, uint32_t c, uint32_t d) {
   printf(format, a, b, c, d);

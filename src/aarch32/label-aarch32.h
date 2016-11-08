@@ -162,6 +162,10 @@ class Label {
 
   ForwardRefList::iterator GetFirstForwardRef() { return forward_.begin(); }
   ForwardRefList::iterator GetEndForwardRef() { return forward_.end(); }
+  const ForwardReference* GetForwardRefBack() const {
+    if (forward_.empty()) return NULL;
+    return &forward_.back();
+  }
   // Erase an item in the list. We don't have to recompute the checkpoint as
   // the caller does it.
   ForwardRefList::iterator Erase(ForwardRefList::iterator ref) {

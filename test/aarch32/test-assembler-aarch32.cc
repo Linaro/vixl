@@ -1325,6 +1325,77 @@ TEST(too_far_cbz) {
 }
 
 
+TEST(close_cbz) {
+  SETUP();
+
+  START_T32();
+  Label first;
+  Label second;
+  __ Mov(r0, 0);
+  __ Mov(r1, 0);
+  __ Mov(r2, 0);
+  __ Cbz(r0, &first);
+  __ Bind(&first);
+  __ Mov(r1, 1);
+  __ Cbnz(r0, &second);
+  __ Bind(&second);
+  __ Mov(r2, 2);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0, r0);
+  ASSERT_EQUAL_32(1, r1);
+  ASSERT_EQUAL_32(2, r2);
+}
+
+
+TEST(close_cbz2) {
+  SETUP();
+
+  START_T32();
+  Label first;
+  Label second;
+  __ Mov(r0, 0);
+  __ Mov(r1, 0);
+  __ Mov(r2, 0);
+  __ Cmp(r0, 0);
+  __ B(ne, &first);
+  __ B(gt, &second);
+  __ Cbz(r0, &first);
+  __ Bind(&first);
+  __ Mov(r1, 1);
+  __ Cbnz(r0, &second);
+  __ Bind(&second);
+  __ Mov(r2, 2);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0, r0);
+  ASSERT_EQUAL_32(1, r1);
+  ASSERT_EQUAL_32(2, r2);
+}
+
+
+TEST(not_close_cbz) {
+  SETUP();
+
+  START_T32();
+  Label first;
+  Label second;
+  __ Cbz(r0, &first);
+  __ B(ne, &first);
+  __ Bind(&first);
+  __ Cbnz(r0, &second);
+  __ B(gt, &second);
+  __ Bind(&second);
+  END();
+
+  RUN();
+}
+
+
 TEST(veneers) {
   SETUP();
 

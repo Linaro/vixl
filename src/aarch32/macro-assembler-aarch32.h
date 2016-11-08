@@ -368,6 +368,7 @@ class MacroAssembler : public Assembler {
 
  protected:
   void HandleOutOfBoundsImmediate(Condition cond, Register tmp, uint32_t imm);
+  void PadToMinimumBranchRange(Label* label);
 
   // Generate the instruction and if it's not possible revert the whole thing.
   // emit the literal pool and regenerate the instruction.
@@ -469,6 +470,7 @@ class MacroAssembler : public Assembler {
 
   void Bind(Label* label) {
     VIXL_ASSERT(allow_macro_instructions_);
+    PadToMinimumBranchRange(label);
     BindHelper(label);
     if (label->IsInVeneerPool()) veneer_pool_manager_.RemoveLabel(label);
   }
