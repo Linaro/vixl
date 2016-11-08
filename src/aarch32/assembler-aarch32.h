@@ -68,7 +68,6 @@ class Assembler : public internal::AssemblerBase {
   uint32_t Link(uint32_t instr,
                 Label* label,
                 const Label::LabelEmitOperator& op);
-  void EncodeLabelFor(const Label::ForwardReference& forward, Label* label);
 
  public:
   explicit Assembler(InstructionSet isa = A32)
@@ -133,7 +132,6 @@ class Assembler : public internal::AssemblerBase {
   uint32_t GetArchitectureStatePCOffset() const { return IsUsingT32() ? 4 : 8; }
   void bind(Label* label) {
     VIXL_ASSERT(AllowAssembler());
-    VIXL_ASSERT(!label->IsInVeneerPool());
     BindHelper(label);
   }
   void place(RawLiteral* literal) {
@@ -145,6 +143,8 @@ class Assembler : public internal::AssemblerBase {
     VIXL_ASSERT(label->IsBound());
     return buffer_.GetOffsetFrom(label->GetLocation());
   }
+
+  void EncodeLabelFor(const Label::ForwardReference& forward, Label* label);
 
   // Helpers for it instruction.
   void it(Condition cond) { it(cond, 0x8); }

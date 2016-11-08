@@ -337,45 +337,6 @@ class MacroAssembler : public Assembler {
     Label::Offset checkpoint_;
   };
 
-  class VeneerPoolManager {
-   public:
-    explicit VeneerPoolManager(MacroAssembler* masm)
-        : masm_(masm), checkpoint_(Label::kMaxOffset) {}
-    bool IsEmpty() const { return checkpoint_ == Label::kMaxOffset; }
-    Label::Offset GetCheckpoint() const {
-      // Make room for a branch over the pools.
-      return checkpoint_ - kMaxInstructionSizeInBytes;
-    }
-    size_t GetMaxSize() const {
-      return labels_.size() * kMaxInstructionSizeInBytes;
-    }
-    void AddLabel(Label* label) {
-      if (!label->IsInVeneerPool()) {
-        label->SetInVeneerPool();
-        labels_.push_back(label);
-      }
-      Label::ForwardReference& back = label->GetBackForwardRef();
-      back.SetIsBranch();
-      label->UpdateCheckpoint();
-      Label::Offset tmp = label->GetCheckpoint();
-      if (checkpoint_ > tmp) {
-        checkpoint_ = tmp;
-        masm_->ComputeCheckpoint();
-      }
-    }
-    void RemoveLabel(Label* label);
-    void Emit(Label::Offset target);
-
-   private:
-    MacroAssembler* masm_;
-    // List of all unbound labels which are used by a branch instruction.
-    std::list<Label*> labels_;
-    // Max offset in the code buffer where the veneer needs to be emitted.
-    // A default value of Label::kMaxOffset means that the checkpoint is
-    // invalid.
-    Label::Offset checkpoint_;
-  };
-
   void PerformEnsureEmit(Label::Offset target, uint32_t extra_size);
 
  protected:
@@ -484,7 +445,6 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(allow_macro_instructions_);
     PadToMinimumBranchRange(label);
     BindHelper(label);
-    if (label->IsInVeneerPool()) veneer_pool_manager_.RemoveLabel(label);
   }
 
   void AddBranchLabel(Label* label) {

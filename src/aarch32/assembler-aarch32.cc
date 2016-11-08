@@ -88,6 +88,9 @@ void Assembler::BindHelper(Label* label) {
        ref++) {
     EncodeLabelFor(*ref, label);
   }
+  if (label->IsInVeneerPool()) {
+    label->GetVeneerPoolManager()->RemoveLabel(label);
+  }
 }
 
 

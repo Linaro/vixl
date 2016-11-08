@@ -174,8 +174,24 @@ void UseScratchRegisterScope::ExcludeAll() {
 }
 
 
-void MacroAssembler::VeneerPoolManager::RemoveLabel(Label* label) {
-  label->ResetInVeneerPool();
+void VeneerPoolManager::AddLabel(Label* label) {
+  if (!label->IsInVeneerPool()) {
+    label->SetVeneerPoolManager(this);
+    labels_.push_back(label);
+  }
+  Label::ForwardReference& back = label->GetBackForwardRef();
+  back.SetIsBranch();
+  label->UpdateCheckpoint();
+  Label::Offset tmp = label->GetCheckpoint();
+  if (checkpoint_ > tmp) {
+    checkpoint_ = tmp;
+    masm_->ComputeCheckpoint();
+  }
+}
+
+
+void VeneerPoolManager::RemoveLabel(Label* label) {
+  label->ClearVeneerPoolManager();
   if (label->GetCheckpoint() == checkpoint_) {
     // We have to compute checkpoint again.
     checkpoint_ = Label::kMaxOffset;
@@ -202,7 +218,7 @@ void MacroAssembler::VeneerPoolManager::RemoveLabel(Label* label) {
 }
 
 
-void MacroAssembler::VeneerPoolManager::Emit(Label::Offset target) {
+void VeneerPoolManager::Emit(Label::Offset target) {
   checkpoint_ = Label::kMaxOffset;
   // Sort labels (regarding their checkpoint) to avoid that a veneer
   // becomes out of range.

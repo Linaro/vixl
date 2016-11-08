@@ -1495,6 +1495,28 @@ TEST_T32(veneers_labels_sort) {
   ASSERT_EQUAL_32(2, r0);
 }
 
+// Check that a label bound within the assembler is effectively removed from
+// the veneer pool.
+TEST_T32(veneer_bind) {
+  SETUP();
+  Label target;
+  __ Cbz(r0, &target);
+  __ Nop();
+
+  {
+    // Bind the target label using the `Assembler`.
+    AssemblerAccurateScope aas(&masm,
+                               kMaxInstructionSizeInBytes,
+                               CodeBufferCheckScope::kMaximumSize);
+    __ bind(&target);
+    __ nop();
+  }
+
+  VIXL_CHECK(target.IsBound());
+  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+
+  END();
+}
 
 // This test check that we can update a Literal after usage.
 TEST(literal_update) {
