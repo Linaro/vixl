@@ -619,6 +619,7 @@ import test_generator.parser
 default_config_files = [
     # A32 and T32 tests
     'test/aarch32/config/rd-rn-rm.json',
+    'test/aarch32/config/cond-dt-drt-drd-drn-drm-float.json',
 
     # A32 specific tests
     'test/aarch32/config/cond-rd-rn-operand-const-a32.json',

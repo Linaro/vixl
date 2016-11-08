@@ -140,6 +140,19 @@ def ConvertToLLVMFormat(vixl_instruction, triple):
   and the following elements are operands.
   """
 
+  def DtUntypedToLLVM(matches):
+    dt = ""
+    if matches[1] == "untyped8":
+      dt = "8"
+    elif matches[1] == "untyped16":
+      dt = "16"
+    elif matches[1] == "untyped32":
+      dt = "32"
+    else:
+      raise Exception()
+
+    return "{}.{} {}, {}, {}".format(matches[0], dt, matches[2], matches[3], matches[4])
+
   # Dictionnary of patterns. The key is an identifier used in
   # `llvm_mc_instruction_converters` below. The value needs to be a capturing
   # regular expression.
@@ -152,6 +165,9 @@ def ConvertToLLVMFormat(vixl_instruction, triple):
           "(r0|r1|r2|r3|r4|r5|r6|r7|r8|r9|r10|r11|r12|r13|r14|r15|pc|sp|lr)",
       "immediate": "(0x[0-9a-f]+|[0-9]+)",
       "shift": "(lsl|lsr|asr|ror)",
+      "dregister": "(d[0-9]|d[12][0-9]|d3[01])",
+      "dt": "(s8|s16|s32|s64|u8|u16|u32|u64|f16|f32|f64|i8|i16|i32|i64|p8|p64)",
+      "dt_untyped": "(untyped8|untyped16|untyped32)"
   }
 
   # List of converters. Each of them represents an instruction form and what to
@@ -233,6 +249,9 @@ def ConvertToLLVMFormat(vixl_instruction, triple):
       ("{mnemonic} {condition} {register} {register} minus {register} {shift} "
            "{immediate} preindex",
        "{}{} {}, [{}, -{}, {} #{}]!"),
+      ("{mnemonic} {dt} {dregister} {dregister} {dregister}",
+       "{}.{} {}, {}, {}"),
+      ("{mnemonic} {dt_untyped} {dregister} {dregister} {dregister}", DtUntypedToLLVM)
   ]
 
   # Work around issues in LLVM 3.8.

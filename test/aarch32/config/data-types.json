@@ -1616,6 +1616,55 @@
         "PostIndex"
       ],
       "default": "Offset"
+    },
+    {
+      "identifier": "DataTypeFloat",
+      "type": "DataType",
+      "variants": [
+        "F16",
+        "F32",
+        "F64"
+      ],
+      "default": "F32"
+    },
+    {
+      "identifier": "DRegister",
+      "type": "DRegister",
+      "variants": [
+        "d0",
+        "d1",
+        "d2",
+        "d3",
+        "d4",
+        "d5",
+        "d6",
+        "d7",
+        "d8",
+        "d9",
+        "d10",
+        "d11",
+        "d12",
+        "d13",
+        "d14",
+        "d15",
+        "d16",
+        "d17",
+        "d18",
+        "d19",
+        "d20",
+        "d21",
+        "d22",
+        "d23",
+        "d24",
+        "d25",
+        "d26",
+        "d27",
+        "d28",
+        "d29",
+        "d30",
+        "d31"
+      ],
+      "default": "d0"
     }
   ],
   // List of input types. They describe what can be fed to an instruction at
@@ -1681,6 +1730,14 @@
         "GE0123Flag"
       ],
       "default": "NoFlag"
+    },
+    {
+      "identifier": "FPSCR",
+      "type": "FPSCR",
+      "values": [
+        "0x0"
+      ],
+      "default": "0x0"
     },
     {
       "identifier": "Register",
@@ -2270,6 +2327,65 @@
         "32"
       ],
       "default": "0"
+    },
+    {
+      "identifier": "DRegisterF64",
+      "type": "DRegisterF64",
+      "values": [
+        // Simple values.
+        "0x0000000000000000",   // 0.0
+        "0x0010000000000000",   // The smallest normal value.
+        "0x3fdfffffffffffff",   // The value just below 0.5.
+        "0x3fe0000000000000",   // 0.5
+        "0x3fe0000000000001",   // The value just above 0.5.
+        "0x3fefffffffffffff",   // The value just below 1.0.
+        "0x3ff0000000000000",   // 1.0
+        "0x3ff0000000000001",   // The value just above 1.0.
+        "0x3ff8000000000000",   // 1.5
+        "0x4024000000000000",   // 10
+        "0x7fefffffffffffff",   // The largest finite value.
+
+        // Infinity.
+        "0x7ff0000000000000",
+
+        // NaNs.
+        //  - Quiet NaNs
+        "0x7ff923456789abcd",
+        "0x7ff8000000000000",
+        //  - Signalling NaNs
+        "0x7ff123456789abcd",
+        "0x7ff0000000000000",
+
+        // Subnormals.
+        //  - A recognisable bit pattern.
+        "0x000123456789abcd",
+        //  - The largest subnormal value.
+        "0x000fffffffffffff",
+        //  - The smallest subnormal value.
+        "0x0000000000000001",
+
+        // The same values again, but negated.
+        "0x8000000000000000",
+        "0x8010000000000000",
+        "0xbfdfffffffffffff",
+        "0xbfe0000000000000",
+        "0xbfe0000000000001",
+        "0xbfefffffffffffff",
+        "0xbff0000000000000",
+        "0xbff0000000000001",
+        "0xbff8000000000000",
+        "0xc024000000000000",
+        "0xffefffffffffffff",
+        "0xfff0000000000000",
+        "0xfff923456789abcd",
+        "0xfff8000000000000",
+        "0xfff123456789abcd",
+        "0xfff0000000000000",
+        "0x800123456789abcd",
+        "0x800fffffffffffff",
+        "0x8000000000000001"
+      ],
+      "default": "0x0000000000000000"
     },
     {
       "identifier": "MemOperand",

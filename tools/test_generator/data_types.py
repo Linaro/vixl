@@ -360,6 +360,25 @@ class U32(Scalar):
     return 8
 
 
+class F64(Scalar):
+  @staticmethod
+  def TypeName():
+    return "uint64_t"
+
+  @staticmethod
+  def Pri():
+    return "PRIx64"
+
+  @staticmethod
+  def NDigit():
+    return 16
+
+  def PrintInput(self, suffix = ""):
+    code = "printf(\"0x%0{n_digit}\" {pri} \"(%g)\", {name}, RawbitsToDouble({name}));"
+    return code.format(n_digit=self.NDigit(), pri=self.Pri(),
+                       name=self.name + suffix)
+
+
 class Register(U32):
   """
   Description of a Register input. The `Prologue` and `Epilogue` methods
@@ -373,6 +392,16 @@ class Register(U32):
 
   def Epilogue(self):
     code = "__ Str({name}, MemOperand(result_ptr, offsetof(Inputs, {name})));"
+    return code.format(name=self.name)
+
+
+class DRegisterF64(F64):
+  def Prologue(self):
+    code = "__ Vldr({name}, MemOperand(input_ptr, offsetof(Inputs, {name})));"
+    return code.format(name=self.name)
+
+  def Epilogue(self):
+    code = "__ Vstr({name}, MemOperand(result_ptr, offsetof(Inputs, {name})));"
     return code.format(name=self.name)
 
 
@@ -466,8 +495,7 @@ class GE(U32):
   """
 
   def Prologue(self):
-    # We need a scratch register to load the `GE` flags. It may alias a register
-    # used by the instruction so we save it on the stack.
+    # We need a scratch register to load the `GE` flags.
     code = """{{
           UseScratchRegisterScope temp_registers(&masm);
           Register ge_bits = temp_registers.Acquire();
@@ -485,6 +513,29 @@ class GE(U32):
           // Only record the GE bits.
           __ And(ge_bits, ge_bits, GEFlags);
           __ Str(ge_bits, MemOperand(result_ptr, offsetof(Inputs, {})));
+        }}
+        """
+    return code.format(self.name)
+
+
+class FPSCR(U32):
+  def Prologue(self):
+    # We need a scratch register to load the `FPCSR` flags.
+    code = """{{
+          UseScratchRegisterScope temp_registers(&masm);
+          Register fpsr_bits = temp_registers.Acquire();
+          __ Ldr(fpsr_bits, MemOperand(input_ptr, offsetof(Inputs, {})));
+          __ Vmsr(FPSCR, fpsr_bits);
+        }}
+        """
+    return code.format(self.name)
+
+  def Epilogue(self):
+    code = """{{
+          UseScratchRegisterScope temp_registers(&masm);
+          Register fpsr_bits = temp_registers.Acquire();
+          __ Vmrs(RegisterOrAPSR_nzcv(fpsr_bits.GetCode()), FPSCR);
+          __ Str(fpsr_bits, MemOperand(result_ptr, offsetof(Inputs, {})));
         }}
         """
     return code.format(self.name)
