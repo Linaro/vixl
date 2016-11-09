@@ -180,6 +180,8 @@ class MacroAssembler : public Assembler {
         } else {
           // The usage of IT is deprecated for the instruction.
           // We generate a conditional branch and an unconditional instruction.
+          // TODO: Use a scope utility with a size check. To do that, we'd need
+          // one with Open() and Close() implemented.
           masm_->EnsureEmitFor(k16BitT32InstructionSizeInBytes +
                                kMaxT32MacroInstructionSizeInBytes);
           // Generate the branch.
