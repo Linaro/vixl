@@ -115,13 +115,11 @@ void CodeBuffer::UpdateData(size_t offset, const void* data, size_t size) {
 
 void CodeBuffer::Align() {
   byte* end = AlignUp(cursor_, 4);
-  VIXL_ASSERT(end >= cursor_);
   const size_t padding_size = end - cursor_;
-  VIXL_ASSERT(HasSpaceFor(padding_size));
   VIXL_ASSERT(padding_size <= 4);
-  const byte padding[] = {0, 0, 0, 0};
+  EnsureSpaceFor(padding_size);
   dirty_ = true;
-  memcpy(cursor_, padding, padding_size);
+  memset(cursor_, 0, padding_size);
   cursor_ = end;
 }
 

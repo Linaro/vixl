@@ -449,7 +449,11 @@ T AlignUp(T pointer, size_t alignment) {
   size_t align_step = (alignment - pointer_raw) % alignment;
   VIXL_ASSERT((pointer_raw + align_step) % alignment == 0);
 
-  return (T)(pointer_raw + align_step);
+  T result = (T)(pointer_raw + align_step);
+
+  VIXL_ASSERT(result >= pointer);
+
+  return result;
 }
 
 // Decrement a pointer (up to 64 bits) until it has the specified alignment.
