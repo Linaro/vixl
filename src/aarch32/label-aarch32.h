@@ -80,7 +80,12 @@ class Label {
     void SetIsBranch() { is_branch_ = true; }
     const LabelEmitOperator& GetEmitOperator() const { return op_; }
     Offset GetCheckpoint() const {
-      return GetMaxForwardDistance() + (GetLocation() + GetStatePCOffset());
+      // The load instructions align down PC before adding the offset.
+      // The alignment is only needed for T32 as A32 instructions are always
+      // 4 byte aligned.
+      int32_t pc = GetLocation() + GetStatePCOffset();
+      return GetMaxForwardDistance() +
+             ((IsUsingT32() && !IsBranch()) ? AlignDown(pc, 4) : pc);
     }
 
    private:

@@ -1145,39 +1145,77 @@ TEST(emit_single_literal) {
 }
 
 
-// TODO: fix this test in T32.
-TEST_A32(emit_literal) {
-  SETUP();
+#undef __
+#define __ masm->
 
-  START();
-  // Make sure the pool is empty.
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+
+void EmitLdrdLiteralTest(MacroAssembler* masm) {
+  const int ldrd_range = masm->IsUsingA32() ? 255 : 1020;
+  // We want to emit code up to the maximum literal load range and ensure the
+  // pool has not been emitted. Compute the limit (end).
+  ptrdiff_t end =
+      AlignDown(
+          // Align down the PC to 4 bytes as the instruction does when it's
+          // executed.
+          // The PC will be the cursor offset plus the architecture state PC
+          // offset.
+          AlignDown(masm->GetBuffer()->GetCursorOffset() +
+                    masm->GetArchitectureStatePCOffset(), 4) +
+          // Maximum range allowed to access the constant.
+          ldrd_range -
+          // A branch will be generated before the pool.
+          kMaxInstructionSizeInBytes,
+          // AlignDown to 4 byte as the literals will be 4 byte aligned.
+          4);
 
   // Create one literal pool entry.
   __ Ldrd(r0, r1, 0x1234567890abcdef);
   ASSERT_LITERAL_POOL_SIZE(8);
 
-  // Emit code up to the maximum literal load range and ensure the pool
-  // has not been emitted.
-  static const int ldrd_size = 255 - 4;
-  ptrdiff_t end = masm.GetBuffer()->GetCursorOffset() + ldrd_size;
-  while (masm.GetBuffer()->GetCursorOffset() < end) {
-    // Random instruction that does not affect the test, ie
-    // an instruction that does not depend on a literal.
-    // Avoid Nop as it can be skipped by the macro-assembler.
-    __ Mov(r5, 0);
+  // Even if, in T32, we generate 16 bit instructions, the macro-assembler
+  // which doesn't know if the generated instruction will 16 or 32 bits,
+  // reserves 4 bytes before emitting an instruction
+  // (kMaxInstructionSizeInBytes).
+  // That means that we can generate nops without generating the literal pool
+  // while it remains at least 4 bytes. For T32, as nops are 16 bits, it
+  // would be possible to generate an extra nop before the pool but, as the
+  // macro-assembler always reserve 4 bytes before an instruction, we lose
+  // 2 bytes of range.
+  while (masm->GetBuffer()->GetCursorOffset() + kMaxInstructionSizeInBytes <=
+         end) {
+    __ Nop();
   }
   // Check that the pool has not been emited along the way.
   ASSERT_LITERAL_POOL_SIZE(8);
   // This extra instruction should trigger an emit of the pool.
-  __ Mov(r5, 0);
+  __ Nop();
   // The pool should have been emitted.
   ASSERT_LITERAL_POOL_SIZE(0);
+}
 
-  StringLiteral big_literal(std::string(260, 'x').c_str());
+
+#undef __
+#define __ masm.
+
+
+TEST(emit_literal) {
+  SETUP();
+
+  START();
+
+  // Make sure the pool is empty.
+  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  EmitLdrdLiteralTest(&masm);
+
+  const int ldrd_range = masm.IsUsingA32() ? 255 : 1020;
+  const int string_size = AlignUp(ldrd_range + kMaxInstructionSizeInBytes, 4);
+  StringLiteral big_literal(std::string(string_size, 'x').c_str());
   __ Adr(r4, &big_literal);
   // This add will overflow the literal pool and force a rewind.
+  // That means that the string will be generated then, then Ldrd and the
+  // ldrd's value will be alone in the pool.
   __ Ldrd(r2, r3, 0xcafebeefdeadbaba);
   ASSERT_LITERAL_POOL_SIZE(8);
 
@@ -1194,6 +1232,31 @@ TEST_A32(emit_literal) {
   ASSERT_EQUAL_32(0xdeadbaba, r2);
   ASSERT_EQUAL_32(0xcafebeef, r3);
   ASSERT_EQUAL_32(0x78787878, r4);
+
+  TEARDOWN();
+}
+
+TEST_T32(emit_literal_unaligned) {
+  SETUP();
+
+  START();
+
+  // Make sure the pool is empty.
+  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  // Generate a nop to break the 4 bytes alignment.
+  __ Nop();
+
+  EmitLdrdLiteralTest(&masm);
+
+  END();
+
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0x90abcdef, r0);
+  ASSERT_EQUAL_32(0x12345678, r1);
 
   TEARDOWN();
 }

@@ -329,8 +329,10 @@ void MacroAssembler::ComputeCheckpoint() {
   if (literal_pool_manager_.GetCheckpoint() != Label::kMaxOffset) {
     size_t veneer_max_size = veneer_pool_manager_.GetMaxSize();
     VIXL_ASSERT(IsInt32(veneer_max_size));
+    // We must be able to generate the pool and a branch over the pool.
     Label::Offset tmp = literal_pool_manager_.GetCheckpoint() -
-                        static_cast<Label::Offset>(veneer_max_size);
+                        static_cast<Label::Offset>(veneer_max_size +
+                                                   kMaxInstructionSizeInBytes);
     VIXL_ASSERT(tmp >= 0);
     checkpoint_ = std::min(checkpoint_, tmp);
   }
