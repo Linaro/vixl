@@ -255,7 +255,7 @@ def ConfigureEnvironmentForCompiler(env):
     env.Append(CPPFLAGS = ['-Wimplicit-fallthrough', '-Wshorten-64-to-32'])
 
     # The '-Wunreachable-code' flag breaks builds for clang 3.4.
-    if compiler == 'clang-3.4':
+    if compiler != 'clang-3.4':
       env.Append(CPPFLAGS = ['-Wunreachable-code'])
 
   # GCC 4.8 has a bug which produces a warning saying that an anonymous Operand
