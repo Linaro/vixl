@@ -915,23 +915,17 @@ void MacroAssembler::Delegate(InstructionType type,
             tst(cond, rn, rn);
           }
           return;
-        } else {
+        } else if (type == kMov) {
+          VIXL_ASSERT(IsUsingA32() || cond.Is(al));
           // Immediate is too large and using PC, so handle using a temporary
           // register.
           UseScratchRegisterScope temps(this);
           Register scratch = temps.Acquire();
-          HandleOutOfBoundsImmediate(cond, scratch, imm);
-          // TODO: A bit of nonsense here! But should we fix 'mov pc, imm'
-          // anyway?
-          if (type == kMovs) {
-            // TODO: I think this requires 2 instructions, but no existing test
-            // hits that.
-            EnsureEmitFor(kMaxInstructionSizeInBytes);
-            return movs(cond, pc, scratch);
-          }
+          HandleOutOfBoundsImmediate(al, scratch, imm);
           EnsureEmitFor(kMaxInstructionSizeInBytes);
-          return mov(cond, pc, scratch);
+          return bx(cond, scratch);
         }
+        break;
       case kCmn:
       case kCmp:
         if (IsUsingA32() || !rn.IsPC()) {
@@ -944,7 +938,7 @@ void MacroAssembler::Delegate(InstructionType type,
         break;
       case kMvn:
       case kMvns:
-        if (IsUsingA32() || !rn.IsPC()) {
+        if (!rn.IsPC()) {
           UseScratchRegisterScope temps(this);
           Register scratch = temps.Acquire();
           HandleOutOfBoundsImmediate(cond, scratch, imm);

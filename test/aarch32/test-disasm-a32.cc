@@ -374,22 +374,54 @@ TEST(macro_assembler_t32_register_shift_register) {
 TEST(macro_assembler_wide_immediate) {
   SETUP();
 
-  COMPARE_A32(Adc(r0, r1, 0xbadbeef),
+  COMPARE_BOTH(Adc(r0, r1, 0xbadbeef),
               "mov r0, #48879\n"
               "movt r0, #2989\n"
               "adc r0, r1, r0\n");
-  COMPARE_T32(Adc(r0, r1, 0xbadbeef),
-              "mov r0, #48879\n"
-              "movt r0, #2989\n"
-              "adc r0, r1, r0\n");
-  COMPARE_A32(Add(r0, r0, 0xbadbeef),
+
+  COMPARE_BOTH(Add(r0, r0, 0xbadbeef),
               "mov ip, #48879\n"
               "movt ip, #2989\n"
               "add r0, ip\n");
-  COMPARE_T32(Adds(r0, r0, 0xbadbeef),
+
+  COMPARE_BOTH(Mov(r0, 0xbadbeef),
+              "mov r0, #48879\n"
+              "movt r0, #2989\n");
+  COMPARE_A32(Mov(eq, r0, 0xbadbeef),
+              "moveq r0, #48879\n"
+              "movteq r0, #2989\n");
+  COMPARE_T32(Mov(eq, r0, 0xbadbeef),
+              "bne 0x0000000a\n"
+              "mov r0, #48879\n"
+              "movt r0, #2989\n");
+
+  COMPARE_BOTH(Movs(r0, 0xbadbeef),
+              "mov r0, #48879\n"
+              "movt r0, #2989\n"
+              "tst r0, r0\n");
+  COMPARE_A32(Movs(eq, r0, 0xbadbeef),
+              "moveq r0, #48879\n"
+              "movteq r0, #2989\n"
+              "tsteq r0, r0\n");
+  COMPARE_T32(Movs(eq, r0, 0xbadbeef),
+              "bne 0x0000000c\n"
+              "mov r0, #48879\n"
+              "movt r0, #2989\n"
+              "tst r0, r0\n");
+
+  COMPARE_BOTH(Mov(pc, 0xbadbeef),
               "mov ip, #48879\n"
               "movt ip, #2989\n"
-              "adds r0, ip\n");
+              "bx ip\n");
+  COMPARE_A32(Mov(eq, pc, 0xbadbeef),
+              "mov ip, #48879\n"
+              "movt ip, #2989\n"
+              "bxeq ip\n");
+  COMPARE_T32(Mov(eq, pc, 0xbadbeef),
+              "bne 0x0000000c\n"
+              "mov ip, #48879\n"
+              "movt ip, #2989\n"
+              "bx ip\n");
 
   CLEANUP();
 }
