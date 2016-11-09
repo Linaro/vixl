@@ -455,9 +455,18 @@ class MacroAssembler : public Assembler {
   void Place(RawLiteral* literal) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(literal->IsManuallyPlaced());
-    size_t literal_size = literal->GetSize();
-    VIXL_ASSERT(IsUint32(literal_size));
-    EnsureEmitFor(static_cast<uint32_t>(literal_size));
+    // We have two calls to `GetBuffer()->Align()` below, that aligns on word
+    // (4 bytes) boundaries. Only one is taken into account in
+    // `GetAlignedSize()`.
+    static const size_t kMaxAlignSize = 3;
+    size_t size = literal->GetAlignedSize() + kMaxAlignSize;
+    VIXL_ASSERT(IsUint32(size));
+    // TODO: We should use a scope here to check the size of data emitted.  We
+    // currently cannot because `aarch32::CodeBufferCheckScope` currently checks
+    // for pools, so that could lead to an infinite loop.
+    EnsureEmitFor(static_cast<uint32_t>(size));
+    // Literals must be emitted aligned on word (4 bytes) boundaries.
+    GetBuffer()->Align();
     PlaceHelper(literal);
     GetBuffer()->Align();
   }
@@ -476,7 +485,7 @@ class MacroAssembler : public Assembler {
   bool LiteralPoolIsEmpty() const { return literal_pool_manager_.IsEmpty(); }
 
   void EnsureEmitFor(uint32_t size) {
-    Label::Offset target = AlignUp(GetCursorOffset() + size, 4);
+    Label::Offset target = GetCursorOffset() + size;
     if (target <= checkpoint_) return;
     PerformEnsureEmit(target, size);
   }
