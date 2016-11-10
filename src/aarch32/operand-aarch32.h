@@ -53,13 +53,13 @@ class Operand {
   // where <immediate> is uint32_t.
   // This is allowed to be an implicit constructor because Operand is
   // a wrapper class that doesn't normally perform any type conversion.
-  Operand(uint32_t immediate)  // NOLINT
+  Operand(uint32_t immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         rm_(NoReg),
         shift_(LSL),
         amount_(0),
         rs_(NoReg) {}
-  Operand(int32_t immediate)  // NOLINT
+  Operand(int32_t immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         rm_(NoReg),
         shift_(LSL),
@@ -70,7 +70,7 @@ class Operand {
   // where rm is the base register
   // This is allowed to be an implicit constructor because Operand is
   // a wrapper class that doesn't normally perform any type conversion.
-  Operand(Register rm)  // NOLINT
+  Operand(Register rm)  // NOLINT(runtime/explicit)
       : imm_(0),
         rm_(rm),
         shift_(LSL),
@@ -193,15 +193,15 @@ class Operand {
 // Forbid implicitely creating operands around types that cannot be encoded
 // into a uint32_t without loss.
 #if __cplusplus >= 201103L
-  Operand(int64_t) = delete;   // NOLINT
-  Operand(uint64_t) = delete;  // NOLINT
-  Operand(float) = delete;     // NOLINT
-  Operand(double) = delete;    // NOLINT
+  Operand(int64_t) = delete;   // NOLINT(runtime/explicit)
+  Operand(uint64_t) = delete;  // NOLINT(runtime/explicit)
+  Operand(float) = delete;     // NOLINT(runtime/explicit)
+  Operand(double) = delete;    // NOLINT(runtime/explicit)
 #else
-  Operand(int64_t) VIXL_NO_RETURN_IN_DEBUG_MODE {  // NOLINT
+  Operand(int64_t) VIXL_NO_RETURN_IN_DEBUG_MODE {  // NOLINT(runtime/explicit)
     VIXL_UNREACHABLE();
   }
-  Operand(uint64_t) VIXL_NO_RETURN_IN_DEBUG_MODE {  // NOLINT
+  Operand(uint64_t) VIXL_NO_RETURN_IN_DEBUG_MODE {  // NOLINT(runtime/explicit)
     VIXL_UNREACHABLE();
   }
   Operand(float) VIXL_NO_RETURN_IN_DEBUG_MODE {  // NOLINT
@@ -232,10 +232,10 @@ class NeonImmediate {
   // where <immediate> is 32 bit number.
   // This is allowed to be an implicit constructor because NeonImmediate is
   // a wrapper class that doesn't normally perform any type conversion.
-  NeonImmediate(uint32_t immediate)  // NOLINT
+  NeonImmediate(uint32_t immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         immediate_type_(I32) {}
-  NeonImmediate(int immediate)  // NOLINT
+  NeonImmediate(int immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         immediate_type_(I32) {}
 
@@ -243,10 +243,10 @@ class NeonImmediate {
   // where <immediate> is a 64 bit number
   // This is allowed to be an implicit constructor because NeonImmediate is
   // a wrapper class that doesn't normally perform any type conversion.
-  NeonImmediate(int64_t immediate)  // NOLINT
+  NeonImmediate(int64_t immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         immediate_type_(I64) {}
-  NeonImmediate(uint64_t immediate)  // NOLINT
+  NeonImmediate(uint64_t immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         immediate_type_(I64) {}
 
@@ -255,10 +255,10 @@ class NeonImmediate {
   // as an 8 bit floating point (checked by the constructor).
   // This is allowed to be an implicit constructor because NeonImmediate is
   // a wrapper class that doesn't normally perform any type conversion.
-  NeonImmediate(float immediate)  // NOLINT
+  NeonImmediate(float immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         immediate_type_(F32) {}
-  NeonImmediate(double immediate)  // NOLINT
+  NeonImmediate(double immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         immediate_type_(F64) {}
 
@@ -356,28 +356,28 @@ std::ostream& operator<<(std::ostream& os, const NeonImmediate& operand);
 
 class NeonOperand {
  public:
-  NeonOperand(int32_t immediate)  // NOLINT
+  NeonOperand(int32_t immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         rm_(NoDReg) {}
-  NeonOperand(uint32_t immediate)  // NOLINT
+  NeonOperand(uint32_t immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         rm_(NoDReg) {}
-  NeonOperand(int64_t immediate)  // NOLINT
+  NeonOperand(int64_t immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         rm_(NoDReg) {}
-  NeonOperand(uint64_t immediate)  // NOLINT
+  NeonOperand(uint64_t immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         rm_(NoDReg) {}
-  NeonOperand(float immediate)  // NOLINT
+  NeonOperand(float immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         rm_(NoDReg) {}
-  NeonOperand(double immediate)  // NOLINT
+  NeonOperand(double immediate)  // NOLINT(runtime/explicit)
       : imm_(immediate),
         rm_(NoDReg) {}
-  NeonOperand(const NeonImmediate& imm)  // NOLINT
+  NeonOperand(const NeonImmediate& imm)  // NOLINT(runtime/explicit)
       : imm_(imm),
         rm_(NoDReg) {}
-  NeonOperand(const CPURegister& rm)  // NOLINT
+  NeonOperand(const CPURegister& rm)  // NOLINT(runtime/explicit)
       : imm_(0),
         rm_(rm) {
     VIXL_ASSERT(rm_.IsValid());
@@ -402,13 +402,13 @@ class SOperand : public NeonOperand {
   // where <immediate> is 32bit int
   // This is allowed to be an implicit constructor because SOperand is
   // a wrapper class that doesn't normally perform any type conversion.
-  SOperand(int32_t immediate)  // NOLINT
+  SOperand(int32_t immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
-  SOperand(uint32_t immediate)  // NOLINT
+  SOperand(uint32_t immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
   // #<immediate>
   // where <immediate> is 32bit float
-  SOperand(float immediate)  // NOLINT
+  SOperand(float immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
 
   SOperand(const NeonImmediate& imm)  // NOLINT(runtime/explicit)
@@ -417,7 +417,7 @@ class SOperand : public NeonOperand {
   // rm
   // This is allowed to be an implicit constructor because SOperand is
   // a wrapper class that doesn't normally perform any type conversion.
-  SOperand(SRegister rm)  // NOLINT
+  SOperand(SRegister rm)  // NOLINT(runtime/explicit)
       : NeonOperand(rm) {}
   SRegister GetRegister() const {
     VIXL_ASSERT(IsRegister() && (rm_.GetType() == CPURegister::kSRegister));
@@ -434,13 +434,13 @@ class DOperand : public NeonOperand {
   // where <immediate> is uint32_t.
   // This is allowed to be an implicit constructor because DOperand is
   // a wrapper class that doesn't normally perform any type conversion.
-  DOperand(int32_t immediate)  // NOLINT
+  DOperand(int32_t immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
-  DOperand(uint32_t immediate)  // NOLINT
+  DOperand(uint32_t immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
-  DOperand(int64_t immediate)  // NOLINT
+  DOperand(int64_t immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
-  DOperand(uint64_t immediate)  // NOLINT
+  DOperand(uint64_t immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
 
   // #<immediate>
@@ -448,9 +448,9 @@ class DOperand : public NeonOperand {
   // as an 8 bit floating point (checked by the constructor).
   // This is allowed to be an implicit constructor because DOperand is
   // a wrapper class that doesn't normally perform any type conversion.
-  DOperand(float immediate)  // NOLINT
+  DOperand(float immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
-  DOperand(double immediate)  // NOLINT
+  DOperand(double immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
 
   DOperand(const NeonImmediate& imm)  // NOLINT(runtime/explicit)
@@ -458,7 +458,7 @@ class DOperand : public NeonOperand {
   // rm
   // This is allowed to be an implicit constructor because DOperand is
   // a wrapper class that doesn't normally perform any type conversion.
-  DOperand(DRegister rm)  // NOLINT
+  DOperand(DRegister rm)  // NOLINT(runtime/explicit)
       : NeonOperand(rm) {}
 
   DRegister GetRegister() const {
@@ -476,17 +476,17 @@ class QOperand : public NeonOperand {
   // where <immediate> is uint32_t.
   // This is allowed to be an implicit constructor because QOperand is
   // a wrapper class that doesn't normally perform any type conversion.
-  QOperand(int32_t immediate)  // NOLINT
+  QOperand(int32_t immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
-  QOperand(uint32_t immediate)  // NOLINT
+  QOperand(uint32_t immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
-  QOperand(int64_t immediate)  // NOLINT
+  QOperand(int64_t immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
-  QOperand(uint64_t immediate)  // NOLINT
+  QOperand(uint64_t immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
-  QOperand(float immediate)  // NOLINT
+  QOperand(float immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
-  QOperand(double immediate)  // NOLINT
+  QOperand(double immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
 
   QOperand(const NeonImmediate& imm)  // NOLINT(runtime/explicit)
@@ -495,7 +495,7 @@ class QOperand : public NeonOperand {
   // rm
   // This is allowed to be an implicit constructor because QOperand is
   // a wrapper class that doesn't normally perform any type conversion.
-  QOperand(QRegister rm)  // NOLINT
+  QOperand(QRegister rm)  // NOLINT(runtime/explicit)
       : NeonOperand(rm) {
     VIXL_ASSERT(rm_.IsValid());
   }

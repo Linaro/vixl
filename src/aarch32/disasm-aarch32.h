@@ -163,8 +163,7 @@ class Disassembler {
     InstructionAttribute current_instruction_attributes_;
 
    public:
-    explicit DisassemblerStream(
-        std::ostream& os)  // NOLINT [runtime/references]
+    explicit DisassemblerStream(std::ostream& os)  // NOLINT(runtime/references)
         : os_(os),
           current_instruction_type_(kUndefInstructionType),
           current_instruction_attributes_(kNoAttribute) {}
@@ -414,15 +413,13 @@ class Disassembler {
   uint32_t code_address_;
 
  public:
-  explicit Disassembler(std::ostream& os, uint32_t code_address = 0)  // NOLINT
+  explicit Disassembler(std::ostream& os,  // NOLINT(runtime/references)
+                        uint32_t code_address = 0)
       : os_(new DisassemblerStream(os)),
         owns_os_(true),
         code_address_(code_address) {}
-  explicit Disassembler(DisassemblerStream* os,
-                        uint32_t code_address = 0)  // NOLINT
-      : os_(os),
-        owns_os_(false),
-        code_address_(code_address) {}
+  explicit Disassembler(DisassemblerStream* os, uint32_t code_address = 0)
+      : os_(os), owns_os_(false), code_address_(code_address) {}
   virtual ~Disassembler() {
     if (owns_os_) {
       delete os_;

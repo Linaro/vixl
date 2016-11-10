@@ -276,8 +276,8 @@ class DataType {
   DataTypeValue value_;
 
  public:
-  DataType(DataTypeValue value) : value_(value) {}  // NOLINT
-  DataType(uint32_t size)                           // NOLINT
+  DataType(DataTypeValue value) : value_(value) {}  // NOLINT(runtime/explicit)
+  DataType(uint32_t size)                           // NOLINT(runtime/explicit)
       : value_(static_cast<DataTypeValue>(kDataTypeUntyped | size)) {
     VIXL_ASSERT((size == 8) || (size == 16) || (size == 32) || (size == 64));
   }
@@ -445,7 +445,8 @@ const QRegister NoQReg;
 class RegisterList {
  public:
   RegisterList() : list_(0) {}
-  RegisterList(Register reg) : list_(RegisterToList(reg)) {}  // NOLINT
+  RegisterList(Register reg)  // NOLINT(runtime/explicit)
+      : list_(RegisterToList(reg)) {}
   RegisterList(Register reg1, Register reg2)
       : list_(RegisterToList(reg1) | RegisterToList(reg2)) {}
   RegisterList(Register reg1, Register reg2, Register reg3)
@@ -740,7 +741,8 @@ class SpecialRegister {
 
  public:
   explicit SpecialRegister(uint32_t reg) : reg_(reg) {}
-  SpecialRegister(SpecialRegisterType reg) : reg_(reg) {}  // NOLINT
+  SpecialRegister(SpecialRegisterType reg)  // NOLINT(runtime/explicit)
+      : reg_(reg) {}
   uint32_t GetReg() const { return reg_; }
   const char* GetName() const;
   bool Is(SpecialRegister value) const { return reg_ == value.reg_; }
@@ -793,7 +795,8 @@ class BankedRegister {
 
  public:
   explicit BankedRegister(unsigned reg) : reg_(reg) {}
-  BankedRegister(BankedRegisterType reg) : reg_(reg) {}  // NOLINT
+  BankedRegister(BankedRegisterType reg)  // NOLINT(runtime/explicit)
+      : reg_(reg) {}
   uint32_t GetCode() const { return reg_; }
   const char* GetName() const;
 };
@@ -845,7 +848,8 @@ class MaskedSpecialRegister {
   explicit MaskedSpecialRegister(uint32_t reg) : reg_(reg) {
     VIXL_ASSERT(reg <= SPSR_fsxc);
   }
-  MaskedSpecialRegister(MaskedSpecialRegisterType reg)  // NOLINT
+  MaskedSpecialRegister(
+      MaskedSpecialRegisterType reg)  // NOLINT(runtime/explicit)
       : reg_(reg) {}
   uint32_t GetReg() const { return reg_; }
   const char* GetName() const;
@@ -886,7 +890,8 @@ class SpecialFPRegister {
     }
 #endif
   }
-  SpecialFPRegister(SpecialFPRegisterType reg) : reg_(reg) {}  // NOLINT
+  SpecialFPRegister(SpecialFPRegisterType reg)  // NOLINT(runtime/explicit)
+      : reg_(reg) {}
   uint32_t GetReg() const { return reg_; }
   const char* GetName() const;
   bool Is(SpecialFPRegister value) const { return reg_ == value.reg_; }
@@ -928,7 +933,7 @@ class Coprocessor {
 
  public:
   explicit Coprocessor(uint32_t coproc) : coproc_(coproc) {}
-  Coprocessor(CoprocessorName coproc)  // NOLINT
+  Coprocessor(CoprocessorName coproc)  // NOLINT(runtime/explicit)
       : coproc_(static_cast<uint32_t>(coproc)) {}
   bool Is(Coprocessor coproc) const { return coproc_ == coproc.coproc_; }
   bool Is(CoprocessorName coproc) const { return coproc_ == coproc; }
@@ -970,7 +975,8 @@ class Condition {
   explicit Condition(uint32_t condition) : condition_(condition) {
     VIXL_ASSERT(condition <= kNone);
   }
-  Condition(ConditionType condition) : condition_(condition) {}  // NOLINT
+  Condition(ConditionType condition)  // NOLINT(runtime/explicit)
+      : condition_(condition) {}
   uint32_t GetCondition() const { return condition_ & kMask; }
   bool IsNone() const { return condition_ == kNone; }
   const char* GetName() const;
@@ -994,7 +1000,7 @@ enum SignType { plus, minus };
 class Sign {
  public:
   Sign() : sign_(plus) {}
-  Sign(SignType sign) : sign_(sign) {}  // NOLINT
+  Sign(SignType sign) : sign_(sign) {}  // NOLINT(runtime/explicit)
   const char* GetName() const { return (IsPlus() ? "" : "-"); }
   bool IsPlus() const { return sign_ == plus; }
   bool IsMinus() const { return sign_ == minus; }
@@ -1013,7 +1019,7 @@ enum ShiftType { LSL = 0x0, LSR = 0x1, ASR = 0x2, ROR = 0x3, RRX = 0x4 };
 class Shift {
  public:
   Shift() : shift_(LSL) {}
-  Shift(ShiftType shift) : shift_(shift) {}  // NOLINT
+  Shift(ShiftType shift) : shift_(shift) {}  // NOLINT(runtime/explicit)
   explicit Shift(uint32_t shift) : shift_(static_cast<ShiftType>(shift)) {}
   const Shift& GetShift() const { return *this; }
   ShiftType GetType() const { return shift_; }
@@ -1115,7 +1121,8 @@ class EncodingSize {
 
  public:
   explicit EncodingSize(uint32_t size) : size_(size) {}
-  EncodingSize(EncodingSizeType size) : size_(size) {}  // NOLINT
+  EncodingSize(EncodingSizeType size)  // NOLINT(runtime/explicit)
+      : size_(size) {}
   uint32_t GetSize() const { return size_; }
   const char* GetName() const;
   bool IsBest() const { return size_ == Best; }
@@ -1133,7 +1140,8 @@ class WriteBack {
   WriteBackValue value_;
 
  public:
-  WriteBack(WriteBackValue value) : value_(value) {}  // NOLINT
+  WriteBack(WriteBackValue value)  // NOLINT(runtime/explicit)
+      : value_(value) {}
   explicit WriteBack(int value)
       : value_((value == 0) ? NO_WRITE_BACK : WRITE_BACK) {}
   uint32_t GetWriteBackUint32() const { return (value_ == WRITE_BACK) ? 1 : 0; }
@@ -1211,8 +1219,9 @@ class MemoryBarrier {
   MemoryBarrierType type_;
 
  public:
-  MemoryBarrier(MemoryBarrierType type) : type_(type) {}  // NOLINT
-  MemoryBarrier(uint32_t type)                            // NOLINT
+  MemoryBarrier(MemoryBarrierType type)  // NOLINT(runtime/explicit)
+      : type_(type) {}
+  MemoryBarrier(uint32_t type)  // NOLINT(runtime/explicit)
       : type_(static_cast<MemoryBarrierType>(type)) {
     VIXL_ASSERT((type & 0x3) != 0);
   }
@@ -1238,8 +1247,9 @@ class InterruptFlags {
   InterruptFlagsType type_;
 
  public:
-  InterruptFlags(InterruptFlagsType type) : type_(type) {}  // NOLINT
-  InterruptFlags(uint32_t type)                             // NOLINT
+  InterruptFlags(InterruptFlagsType type)  // NOLINT(runtime/explicit)
+      : type_(type) {}
+  InterruptFlags(uint32_t type)  // NOLINT(runtime/explicit)
       : type_(static_cast<InterruptFlagsType>(type)) {
     VIXL_ASSERT(type <= 7);
   }
@@ -1257,8 +1267,8 @@ class Endianness {
   EndiannessType type_;
 
  public:
-  Endianness(EndiannessType type) : type_(type) {}  // NOLINT
-  Endianness(uint32_t type)                         // NOLINT
+  Endianness(EndiannessType type) : type_(type) {}  // NOLINT(runtime/explicit)
+  Endianness(uint32_t type)                         // NOLINT(runtime/explicit)
       : type_(static_cast<EndiannessType>(type)) {
     VIXL_ASSERT(type <= 1);
   }

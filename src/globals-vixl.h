@@ -151,7 +151,7 @@ inline void USE(const T1&, const T2&, const T3&, const T4&) {}
 // Note: This option is only available for Clang. And will only be enabled for
 // C++11(201103L).
 #if __has_warning("-Wimplicit-fallthrough") && __cplusplus >= 201103L
-#define VIXL_FALLTHROUGH() [[clang::fallthrough]]  // NOLINT
+#define VIXL_FALLTHROUGH() [[clang::fallthrough]]
 #else
 #define VIXL_FALLTHROUGH() \
   do {                     \
@@ -159,7 +159,7 @@ inline void USE(const T1&, const T2&, const T3&, const T4&) {}
 #endif
 
 #if __cplusplus >= 201103L
-#define VIXL_NO_RETURN [[noreturn]]  // NOLINT
+#define VIXL_NO_RETURN [[noreturn]]
 #else
 #define VIXL_NO_RETURN __attribute__((noreturn))
 #endif

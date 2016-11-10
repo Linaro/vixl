@@ -63,7 +63,7 @@ uint32_t CPU::GetCacheType() {
 #ifdef __aarch64__
   uint64_t cache_type_register;
   // Copy the content of the cache type register to a core register.
-  __asm__ __volatile__("mrs %[ctr], ctr_el0"  // NOLINT
+  __asm__ __volatile__("mrs %[ctr], ctr_el0"  // NOLINT(runtime/references)
                        : [ctr] "=r"(cache_type_register));
   VIXL_ASSERT(IsUint32(cache_type_register));
   return static_cast<uint32_t>(cache_type_register);

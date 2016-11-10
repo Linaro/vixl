@@ -33,7 +33,7 @@ extern "C" {
 #include <cstdlib>
 #include <cstring>
 #include <iomanip>
-#include <iostream>  // NOLINT
+#include <iostream>
 
 #include "utils-vixl.h"
 #include "aarch32/constants-aarch32.h"

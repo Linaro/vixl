@@ -32,7 +32,7 @@ extern "C" {
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>  // NOLINT
+#include <iostream>
 
 #include "utils-vixl.h"
 #include "aarch32/constants-aarch32.h"
@@ -102,7 +102,8 @@ Register RegisterList::GetFirstAvailableRegister() const {
 }
 
 
-std::ostream& PrintRegisterList(std::ostream& os, uint32_t list) {  // NOLINT
+std::ostream& PrintRegisterList(std::ostream& os,  // NOLINT(runtime/references)
+                                uint32_t list) {
   os << "{";
   bool first = true;
   int code = 0;

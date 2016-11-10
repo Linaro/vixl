@@ -478,7 +478,9 @@ inline Td ExtractBits(Ts value, int least_significant_bit, Td mask) {
 }
 
 template <typename Ts, typename Td>
-inline void AssignBit(Td& dst, int bit, Ts value) {  // NOLINT
+inline void AssignBit(Td& dst,  // NOLINT(runtime/references)
+                      int bit,
+                      Ts value) {
   VIXL_ASSERT((value == Ts(0)) || (value == Ts(1)));
   VIXL_ASSERT(bit >= 0);
   VIXL_ASSERT(bit < static_cast<int>(sizeof(Td) * 8));
@@ -488,7 +490,7 @@ inline void AssignBit(Td& dst, int bit, Ts value) {  // NOLINT
 }
 
 template <typename Td, typename Ts>
-inline void AssignBits(Td& dst,  // NOLINT
+inline void AssignBits(Td& dst,  // NOLINT(runtime/references)
                        int least_significant_bit,
                        Ts mask,
                        Ts value) {

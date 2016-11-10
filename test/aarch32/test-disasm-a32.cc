@@ -90,7 +90,7 @@ namespace aarch32 {
 
 class TestDisassembler : public PrintDisassembler {
  public:
-  TestDisassembler(std::ostream& os, uint32_t pc)  // NOLINT
+  TestDisassembler(std::ostream& os, uint32_t pc)  // NOLINT(runtime/references)
       : PrintDisassembler(os, pc) {
   }
 

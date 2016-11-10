@@ -359,7 +359,8 @@ typedef SimRegisterBase<kQRegSizeInBytes> SimVRegister;  // v0-v31
 // and additional information to represent lane state.
 class LogicVRegister {
  public:
-  inline LogicVRegister(SimVRegister& other)  // NOLINT
+  inline LogicVRegister(
+      SimVRegister& other)  // NOLINT(runtime/references)(runtime/explicit)
       : register_(other) {
     for (unsigned i = 0; i < sizeof(saturated_) / sizeof(saturated_[0]); i++) {
       saturated_[i] = kNotSaturated;
