@@ -154,6 +154,9 @@ class MacroAssembler : public Assembler {
     static const uint32_t kMaxRecursion = 5;
   };
 
+  // This scope is used at each Delegate entry to avoid infinite recursion of
+  // Delegate calls. The limit is defined by
+  // MacroAssemblerContext::kMaxRecursion.
   class ContextScope {
    public:
     explicit ContextScope(MacroAssembler* const masm) : masm_(masm) {
