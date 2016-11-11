@@ -1262,6 +1262,254 @@ TEST_T32(emit_literal_unaligned) {
   TEARDOWN();
 }
 
+
+TEST(literal_multiple_uses) {
+  SETUP();
+
+  START();
+  Literal<int32_t> lit(42);
+  __ Ldr(r0, &lit);
+  ASSERT_LITERAL_POOL_SIZE(4);
+
+  // Multiple uses of the same literal object should not make the
+  // pool grow.
+  __ Ldrb(r1, &lit);
+  __ Ldrsb(r2, &lit);
+  __ Ldrh(r3, &lit);
+  __ Ldrsh(r4, &lit);
+  ASSERT_LITERAL_POOL_SIZE(4);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(42, r0);
+  ASSERT_EQUAL_32(42, r1);
+  ASSERT_EQUAL_32(42, r2);
+  ASSERT_EQUAL_32(42, r3);
+  ASSERT_EQUAL_32(42, r4);
+
+  TEARDOWN();
+}
+
+
+// A test with two loads literal which go out of range at the same time.
+TEST_A32(ldr_literal_range_same_time) {
+  SETUP();
+
+  START();
+  const int ldrd_range = 255;
+  // We need to take into account the jump over the pool.
+  const int ldrd_padding = ldrd_range - kA32InstructionSizeInBytes;
+  const int ldr_range = 4095;
+  // We need to take into account the ldrd padding and the ldrd instruction.
+  const int ldr_padding = ldr_range - ldrd_padding - kA32InstructionSizeInBytes;
+
+  __ Ldr(r1, 0x12121212);
+  ASSERT_LITERAL_POOL_SIZE(4);
+
+  for (unsigned int i = 0; i < ldr_padding / kA32InstructionSizeInBytes; ++i) {
+    __ Mov(r0, 0);
+  }
+
+  __ Ldrd(r2, r3, 0x1234567890abcdef);
+  ASSERT_LITERAL_POOL_SIZE(12);
+
+  for (unsigned int i = 0; i < ldrd_padding / kA32InstructionSizeInBytes; ++i) {
+    __ Mov(r0, 0);
+  }
+  ASSERT_LITERAL_POOL_SIZE(12);
+
+  // This mov will put the two loads literal out of range and will force
+  // the literal pool emission.
+  __ Mov(r0, 0);
+  ASSERT_LITERAL_POOL_SIZE(0);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0x12121212, r1);
+  ASSERT_EQUAL_32(0x90abcdef, r2);
+  ASSERT_EQUAL_32(0x12345678, r3);
+
+  TEARDOWN();
+}
+
+
+TEST(ldr_literal_mix_types) {
+  SETUP();
+
+  START();
+  Literal<uint64_t> l0(0x1234567890abcdef);
+  Literal<int32_t> l1(0x12345678);
+  Literal<uint16_t> l2(1234);
+  Literal<int16_t> l3(-678);
+  Literal<uint8_t> l4(42);
+  Literal<int8_t> l5(-12);
+
+  __ Ldrd(r0, r1, &l0);
+  __ Ldr(r2, &l1);
+  __ Ldrh(r3, &l2);
+  __ Ldrsh(r4, &l3);
+  __ Ldrb(r5, &l4);
+  __ Ldrsb(r6, &l5);
+  ASSERT_LITERAL_POOL_SIZE(28);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0x90abcdef, r0);
+  ASSERT_EQUAL_32(0x12345678, r1);
+  ASSERT_EQUAL_32(0x12345678, r2);
+  ASSERT_EQUAL_32(1234, r3);
+  ASSERT_EQUAL_32(-678, r4);
+  ASSERT_EQUAL_32(42, r5);
+  ASSERT_EQUAL_32(-12, r6);
+
+  TEARDOWN();
+}
+
+
+struct LdrLiteralRangeTest {
+  void (MacroAssembler::*instruction)(Register, RawLiteral*);
+  Register result_reg;
+  int a32_range;
+  int t32_range;
+  uint32_t literal_value;
+  uint32_t test_value;
+};
+
+
+const LdrLiteralRangeTest kLdrLiteralRangeTestData[] = {
+  {&MacroAssembler::Ldr, r1, 4095, 4095, 0x12345678, 0x12345678 },
+  {&MacroAssembler::Ldrh, r2, 255, 4095, 0xabcdefff, 0x0000efff },
+  {&MacroAssembler::Ldrsh, r3, 255, 4095, 0x00008765, 0xffff8765 },
+  {&MacroAssembler::Ldrb, r4, 4095, 4095, 0x12345678, 0x00000078 },
+  {&MacroAssembler::Ldrsb, r5, 255, 4095, 0x00000087, 0xffffff87 }
+};
+
+
+void GenerateLdrLiteralTriggerPoolEmission(InstructionSet isa,
+                                           bool unaligned_ldr) {
+  SETUP();
+
+  for (size_t i = 0; i < ARRAY_SIZE(kLdrLiteralRangeTestData); ++i) {
+    const LdrLiteralRangeTest& test = kLdrLiteralRangeTestData[i];
+
+    START();
+
+    if (unaligned_ldr) {
+      // Generate a nop to break the 4-byte alignment.
+      __ Nop();
+      VIXL_ASSERT((masm.GetBuffer()->GetCursorOffset() % 4) == 2);
+    }
+
+    __ Ldr(r6, 0x12345678);
+    ASSERT_LITERAL_POOL_SIZE(4);
+
+    // In A32 mode we can fit one more instruction before being forced to emit
+    // the pool. However the newly added literal will be to far for the ldr
+    // instruction forcing the pool to be emitted earlier. So we need to make sure
+    // that we need to stop one instruction before the margin on A32 for this test
+    // to work as expected.
+    int32_t margin_offset = masm.IsUsingA32() ? kA32InstructionSizeInBytes : 0;
+
+    size_t expected_pool_size = 4;
+    while ((masm.GetMarginBeforePoolEmission() - margin_offset) >=
+	   static_cast<int32_t>(kMaxInstructionSizeInBytes)) {
+      __ Ldr(r7, 0x90abcdef);
+      // Each ldr instruction will force a new literal value to be added
+      // to the pool. Check that the literal pool grows accordingly.
+      expected_pool_size += 4;
+      ASSERT_LITERAL_POOL_SIZE(expected_pool_size);
+    }
+
+    // This ldr will force the literal pool to be emitted before emitting
+    // the load and will create a new pool for the new literal used by this ldr.
+    Literal<uint32_t> literal(test.literal_value);
+    (masm.*test.instruction)(test.result_reg, &literal);
+    ASSERT_LITERAL_POOL_SIZE(4);
+
+    END();
+
+    RUN();
+
+    ASSERT_EQUAL_32(0x12345678, r6);
+    ASSERT_EQUAL_32(0x90abcdef, r7);
+    ASSERT_EQUAL_32(test.test_value, test.result_reg);
+  }
+
+  TEARDOWN();
+}
+
+
+TEST(ldr_literal_trigger_pool_emission) {
+  GenerateLdrLiteralTriggerPoolEmission(isa, false);
+}
+
+
+TEST_T32(ldr_literal_trigger_pool_emission_unaligned) {
+  GenerateLdrLiteralTriggerPoolEmission(isa, true);
+}
+
+
+void GenerateLdrLiteralRangeTest(InstructionSet isa, bool unaligned_ldr) {
+  SETUP();
+
+  for (size_t i = 0; i < ARRAY_SIZE(kLdrLiteralRangeTestData); ++i) {
+    const LdrLiteralRangeTest& test = kLdrLiteralRangeTestData[i];
+
+    START();
+
+    // Make sure the pool is empty.
+    masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+    ASSERT_LITERAL_POOL_SIZE(0);
+
+    if (unaligned_ldr) {
+      // Generate a nop to break the 4-byte alignment.
+      __ Nop();
+      VIXL_ASSERT((masm.GetBuffer()->GetCursorOffset() % 4) == 2);
+    }
+
+    Literal<uint32_t> literal(test.literal_value);
+    (masm.*test.instruction)(test.result_reg, &literal);
+    ASSERT_LITERAL_POOL_SIZE(4);
+
+    // Generate enough instruction so that we go out of range for the load
+    // literal we just emitted.
+    ptrdiff_t end =
+        masm.GetBuffer()->GetCursorOffset() +
+        ((masm.IsUsingA32()) ? test.a32_range : test.t32_range);
+    while (masm.GetBuffer()->GetCursorOffset() < end) {
+      __ Mov(r0, 0);
+    }
+
+    // The literal pool should have been emitted now.
+    VIXL_CHECK(literal.IsBound());
+    ASSERT_LITERAL_POOL_SIZE(0);
+
+    END();
+
+    RUN();
+
+    ASSERT_EQUAL_32(test.test_value, test.result_reg);
+  }
+
+  TEARDOWN();
+}
+
+
+TEST(ldr_literal_range) {
+  GenerateLdrLiteralRangeTest(isa, false);
+}
+
+
+TEST_T32(ldr_literal_range_unaligned) {
+  GenerateLdrLiteralRangeTest(isa, true);
+}
+
+
 TEST(string_literal) {
   SETUP();
 
