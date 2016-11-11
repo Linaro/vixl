@@ -1945,75 +1945,130 @@ void MacroAssembler::Delegate(InstructionType type,
     const Register& rn = operand.GetBaseRegister();
     AddrMode addrmode = operand.GetAddrMode();
     int32_t offset = operand.GetOffsetImmediate();
-    switch (addrmode) {
-      case PreIndex:
-        // Pre-Indexed case:
-        // ldr r0, [r1, 12345]! will translate into
-        //   add r1, r1, 12345
-        //   ldr r0, [r1]
-        {
-          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          if (operand.GetSign().IsPlus()) {
-            add(cond, rn, rn, offset);
-          } else {
-            sub(cond, rn, rn, offset);
-          }
+    bool ok = true;
+    uint32_t mask = 0;
+    switch (type) {
+      case kLdr:
+      case kLdrb:
+      case kStr:
+      case kStrb:
+        if (IsUsingA32() || (addrmode == Offset)) {
+          mask = 0xfff;
+        } else {
+          mask = 0xff;
         }
-        {
-          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          (this->*instruction)(cond, size, rd, MemOperand(rn, Offset));
+        break;
+      case kLdrsb:
+      case kLdrh:
+      case kLdrsh:
+      case kStrh:
+        if (IsUsingT32() && (addrmode == Offset)) {
+          mask = 0xfff;
+        } else {
+          mask = 0xff;
         }
-        return;
-      case Offset: {
-        UseScratchRegisterScope temps(this);
-        // Allow using the destination as a scratch register if possible.
-        if ((type != kStr) && (type != kStrb) && (type != kStrh) &&
-            !rd.Is(rn)) {
-          temps.Include(rd);
-        }
-        Register scratch = temps.Acquire();
-        // Offset case:
-        // ldr r0, [r1, 12345] will translate into
-        //   add r0, r1, 12345
-        //   ldr r0, [r0]
-        {
-          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          if (operand.GetSign().IsPlus()) {
-            add(cond, scratch, rn, offset);
-          } else {
-            sub(cond, scratch, rn, offset);
-          }
-        }
-        {
-          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          (this->*instruction)(cond, size, rd, MemOperand(scratch, Offset));
-        }
-        return;
+        break;
+      default:
+        ok = false;
+        break;
+    }
+    if (ok) {
+      bool negative;
+      // Try to maximize the offset use by the MemOperand (load_store_offset).
+      // Add or subtract the part which can't be used by the MemOperand
+      // (add_sub_offset).
+      int32_t add_sub_offset;
+      int32_t load_store_offset;
+      load_store_offset = offset & mask;
+      if (offset >= 0) {
+        negative = false;
+        add_sub_offset = offset & ~mask;
+      } else {
+        negative = true;
+        add_sub_offset = -offset & ~mask;
+        if (load_store_offset > 0) add_sub_offset += mask + 1;
       }
-      case PostIndex:
-        // Avoid the unpredictable case 'ldr r0, [r0], imm'
-        if (!rn.Is(rd)) {
-          // Post-indexed case:
-          // ldr r0. [r1], imm32 will translate into
+      switch (addrmode) {
+        case PreIndex:
+          // Pre-Indexed case:
+          // ldr r0, [r1, 12345]! will translate into
+          //   add r1, r1, 12345
           //   ldr r0, [r1]
-          //   movw ip. imm32 & 0xffffffff
-          //   movt ip, imm32 >> 16
-          //   add r1, r1, ip
           {
-            CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-            (this->*instruction)(cond, size, rd, MemOperand(rn, Offset));
+            CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+            if (negative) {
+              sub(cond, rn, rn, add_sub_offset);
+            } else {
+              add(cond, rn, rn, add_sub_offset);
+            }
           }
           {
             CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-            if (operand.GetSign().IsPlus()) {
-              add(cond, rn, rn, offset);
+            (this->*instruction)(cond,
+                                 size,
+                                 rd,
+                                 MemOperand(rn, load_store_offset, PreIndex));
+          }
+          return;
+        case Offset: {
+          UseScratchRegisterScope temps(this);
+          // Allow using the destination as a scratch register if possible.
+          if ((type != kStr) && (type != kStrb) && (type != kStrh) &&
+              !rd.Is(rn)) {
+            temps.Include(rd);
+          }
+          Register scratch = temps.Acquire();
+          // Offset case:
+          // ldr r0, [r1, 12345] will translate into
+          //   add r0, r1, 12345
+          //   ldr r0, [r0]
+          {
+            CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+            if (negative) {
+              sub(cond, scratch, rn, add_sub_offset);
             } else {
-              sub(cond, rn, rn, offset);
+              add(cond, scratch, rn, add_sub_offset);
             }
+          }
+          {
+            CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
+            (this->*instruction)(cond,
+                                 size,
+                                 rd,
+                                 MemOperand(scratch, load_store_offset));
           }
           return;
         }
-        break;
+        case PostIndex:
+          // Avoid the unpredictable case 'ldr r0, [r0], imm'
+          if (!rn.Is(rd)) {
+            // Post-indexed case:
+            // ldr r0. [r1], imm32 will translate into
+            //   ldr r0, [r1]
+            //   movw ip. imm32 & 0xffffffff
+            //   movt ip, imm32 >> 16
+            //   add r1, r1, ip
+            {
+              CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
+              (this->*instruction)(cond,
+                                   size,
+                                   rd,
+                                   MemOperand(rn,
+                                              load_store_offset,
+                                              PostIndex));
+            }
+            {
+              CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+              if (negative) {
+                sub(cond, rn, rn, add_sub_offset);
+              } else {
+                add(cond, rn, rn, add_sub_offset);
+              }
+            }
+            return;
+          }
+          break;
+      }
     }
   }
   if (operand.IsPlainRegister()) {

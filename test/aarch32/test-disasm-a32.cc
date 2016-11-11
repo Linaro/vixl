@@ -371,6 +371,77 @@ TEST(macro_assembler_t32_register_shift_register) {
 }
 
 
+TEST(macro_assembler_big_offset) {
+  SETUP();
+
+  COMPARE_BOTH(Ldr(r0, MemOperand(r1, 0xfff123)),
+               "mov r0, #61440\n"  // #0xf000
+               "movt r0, #255\n"   // #0x00ff
+               "add r0, r1, r0\n"
+               "ldr r0, [r0, #291]\n");  // #0x123
+  COMPARE_BOTH(Ldr(r0, MemOperand(r1, 0xff123)),
+               "add r0, r1, #1044480\n"  // #0xff000
+               "ldr r0, [r0, #291]\n");  // #0x123
+  COMPARE_BOTH(Ldr(r0, MemOperand(r1, -0xff123)),
+               "sub r0, r1, #1048576\n"  // #0x100000
+               "ldr r0, [r0, #3805]\n");  // #0xedd
+
+  COMPARE_A32(Ldr(r0, MemOperand(r1, 0xfff123, PreIndex)),
+              "mov ip, #61440\n"  // #0xf000
+              "movt ip, #255\n"   // #0x00ff
+              "add r1, ip\n"
+              "ldr r0, [r1, #291]!\n");  // #0x123
+  COMPARE_A32(Ldr(r0, MemOperand(r1, 0xff123, PreIndex)),
+              "add r1, #1044480\n"  // #0xff000
+              "ldr r0, [r1, #291]!\n");  // #0x123
+  COMPARE_A32(Ldr(r0, MemOperand(r1, -0xff123, PreIndex)),
+              "sub r1, #1048576\n"  // #0x100000
+              "ldr r0, [r1, #3805]!\n");  // #0xedd
+
+  COMPARE_T32(Ldr(r0, MemOperand(r1, 0xfff12, PreIndex)),
+              "mov ip, #65280\n"  // #0xff00
+              "movt ip, #15\n"   // #0x000f
+              "add r1, ip\n"
+              "ldr r0, [r1, #18]!\n");  // #0x12
+  COMPARE_T32(Ldr(r0, MemOperand(r1, 0xff12, PreIndex)),
+              "add r1, #65280\n"  // #0xff00
+              "ldr r0, [r1, #18]!\n");  // #0x12
+  COMPARE_T32(Ldr(r0, MemOperand(r1, -0xff12, PreIndex)),
+              "sub r1, #65536\n"  // #0x10000
+              "ldr r0, [r1, #238]!\n");  // #0xee
+  COMPARE_A32(Ldr(r0, MemOperand(r1, 0xfff123, PreIndex)),
+              "mov ip, #61440\n"  // #0xf000
+              "movt ip, #255\n"   // #0x00ff
+              "add r1, ip\n"
+              "ldr r0, [r1, #291]!\n");  // #0x123
+
+  COMPARE_A32(Ldr(r0, MemOperand(r1, 0xfff123, PostIndex)),
+              "ldr r0, [r1], #291\n"  // #0x123
+              "mov ip, #61440\n"  // #0xf000
+              "movt ip, #255\n"   // #0x00ff
+              "add r1, ip\n");
+  COMPARE_A32(Ldr(r0, MemOperand(r1, 0xff123, PostIndex)),
+              "ldr r0, [r1], #291\n"  // #0x123
+              "add r1, #1044480\n");  // #0xff000
+  COMPARE_A32(Ldr(r0, MemOperand(r1, -0xff123, PostIndex)),
+              "ldr r0, [r1], #3805\n"  // #0xedd
+              "sub r1, #1048576\n");  // #0x100000
+
+  COMPARE_T32(Ldr(r0, MemOperand(r1, 0xfff12, PostIndex)),
+              "ldr r0, [r1], #18\n"  // #0x12
+              "mov ip, #65280\n"  // #0xff00
+              "movt ip, #15\n"   // #0x000f
+              "add r1, ip\n");
+  COMPARE_T32(Ldr(r0, MemOperand(r1, 0xff12, PostIndex)),
+              "ldr r0, [r1], #18\n"  // #0x12
+              "add r1, #65280\n");  // #0xff00
+  COMPARE_T32(Ldr(r0, MemOperand(r1, -0xff12, PostIndex)),
+              "ldr r0, [r1], #238\n"  // #0xee
+              "sub r1, #65536\n");  // #0x10000
+  CLEANUP();
+}
+
+
 TEST(macro_assembler_wide_immediate) {
   SETUP();
 
