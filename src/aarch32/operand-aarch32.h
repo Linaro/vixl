@@ -165,6 +165,13 @@ class Operand {
     return imm_;
   }
 
+  int32_t GetSignedImmediate() const {
+    VIXL_ASSERT(IsImmediate());
+    int32_t result;
+    memcpy(&result, &imm_, sizeof(result));
+    return result;
+  }
+
   Register GetBaseRegister() const {
     VIXL_ASSERT(IsImmediateShiftedRegister() || IsRegisterShiftedRegister());
     return rm_;

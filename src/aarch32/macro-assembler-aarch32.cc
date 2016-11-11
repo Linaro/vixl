@@ -818,7 +818,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               Condition cond,
                               Register rn,
                               const Operand& operand) {
-  // add, movt, movw, sub, sxtbl16, teq, uxtb16
+  // add, movt, movw, sub, sxtb16, teq, uxtb16
   ContextScope context(this);
   if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
     InstructionCondRROp shiftop = NULL;
@@ -946,7 +946,7 @@ void MacroAssembler::Delegate(InstructionType type,
         }
       case kCmn:
       case kCmp:
-        if (!rn.IsPC()) {
+        if (IsUsingA32() || !rn.IsPC()) {
           UseScratchRegisterScope temps(this);
           Register scratch = temps.Acquire();
           HandleOutOfBoundsImmediate(cond, scratch, imm);
@@ -964,13 +964,15 @@ void MacroAssembler::Delegate(InstructionType type,
           return (this->*instruction)(cond, size, rn, scratch);
         }
         break;
-      case kTst: {
-        UseScratchRegisterScope temps(this);
-        Register scratch = temps.Acquire();
-        HandleOutOfBoundsImmediate(cond, scratch, imm);
-        CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-        return (this->*instruction)(cond, size, rn, scratch);
-      }
+      case kTst:
+        if (IsUsingA32() || !rn.IsPC()) {
+          UseScratchRegisterScope temps(this);
+          Register scratch = temps.Acquire();
+          HandleOutOfBoundsImmediate(cond, scratch, imm);
+          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
+          return (this->*instruction)(cond, size, rn, scratch);
+        }
+        break;
       default:  // kSxtb, Sxth, Uxtb, Uxth
         break;
     }
@@ -1078,7 +1080,7 @@ void MacroAssembler::Delegate(InstructionType type,
     return orr(cond, rd, rn, scratch);
   }
   if (operand.IsImmediate()) {
-    int32_t imm = operand.GetImmediate();
+    int32_t imm = operand.GetSignedImmediate();
     if (ImmediateT32::IsImmediateT32(~imm)) {
       CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
       if (IsUsingT32()) {
@@ -1172,7 +1174,7 @@ void MacroAssembler::Delegate(InstructionType type,
     }
   }
   if (operand.IsImmediate()) {
-    int32_t imm = operand.GetImmediate();
+    int32_t imm = operand.GetSignedImmediate();
     if (ImmediateT32::IsImmediateT32(~imm)) {
       if (IsUsingT32()) {
         switch (type) {
