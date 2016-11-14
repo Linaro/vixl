@@ -26,13 +26,7 @@
 
 {
   "mnemonics" : [
-    "Clz",   // CLZ{<c>}{<q>} <Rd>, <Rm> ; A1
-    "Rbit",  // RBIT{<c>}{<q>} <Rd>, <Rm> ; A1
-    "Rev",   // REV{<c>}{<q>} <Rd>, <Rm> ; A1
-    "Rev16", // REV16{<c>}{<q>} <Rd>, <Rm> ; A1
-    "Revsh", // REVSH{<c>}{<q>} <Rd>, <Rm> ; A1
-    "Rrx",   // RRX{<c>}{<q>} {<Rd>}, <Rm> ; A1
-    "Rrxs"   // RRXS{<c>}{<q>} {<Rd>}, <Rm> ; A1
+    "Rrx"   // RRX{<c>}{<q>} {<Rd>}, <Rm> ; A1
   ],
   "description" : {
     "operands": [
@@ -42,41 +36,16 @@
       },
       {
         "name": "rd",
-        "type": "AllRegistersButPC"
+        "type": "AllRegisters"
       },
       {
         "name": "rn",
-        "type": "AllRegistersButPC"
+        "type": "AllRegisters"
       }
     ],
-    "inputs": [
-      {
-        "name": "apsr",
-        "type": "NZCV"
-      },
-      {
-        "name": "rd",
-        "type": "Register"
-      },
-      {
-        "name": "rn",
-        "type": "Register"
-      }
-    ]
+    "inputs": []
   },
   "test-files": [
-    {
-      "type": "assembler",
-      "test-cases": [
-        {
-          "name": "Operands",
-          "operands": [
-            "cond", "rd", "rn"
-          ],
-          "operand-limit": 500
-        }
-      ]
-    },
     {
       "type": "macro-assembler",
       "test-cases": [
@@ -84,46 +53,9 @@
           "name": "Operands",
           "operands": [
             "cond", "rd", "rn"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "simulator",
-      "test-cases": [
-        {
-          "name": "Condition",
-          "operands": [
-            "cond"
           ],
-          "inputs": [
-            "apsr"
-          ]
-        },
-        // Test combinations of registers values with rd == rn.
-        {
-          "name": "RdIsRn",
-          "operands": [
-            "rd", "rn"
-          ],
-          "inputs": [
-            "rd", "rn"
-          ],
-          "operand-filter": "rd == rn",
-          "input-filter": "rd == rn"
-        },
-        // Test combinations of registers values with rd != rn.
-        {
-          "name": "RdIsNotRn",
-          "operands": [
-            "rd", "rn"
-          ],
-          "inputs": [
-            "rd", "rn"
-          ],
-          "operand-filter": "rd != rn",
-          "operand-limit": 10,
-          "input-filter": "rd != rn"
+          // Other cases are covered by cond-rd-rn-a32.json.
+          "operand-filter": "(rd == 'r15') or (rn == 'r15')"
         }
       ]
     }

@@ -380,11 +380,13 @@ pattern.
   - "test/aarch32/test-simulator-{configuration name}-a32.cc"
 
 The "type" field describes the kind of testing we want to do, these types are
-recognized by the generator and, at the moment, can be one of "simulator" or
-"assembler". Simulator tests will run each instruction and record the
-changes while assembler tests will only record the code buffer and never execute
-anything. Because you may want to generate more than one test of the same type,
-as we are doing in the example, we need a way to differentiate them. You may use
+recognized by the generator and, at the moment, can be one of "simulator",
+"assembler" and "macro-assembler". Simulator tests will run each instruction and
+record the changes while assembler tests will only record the code buffer and
+never execute anything. MacroAssembler tests currently only generate code to
+check that the MacroAssembler does not crash; the output itself is not yet
+tested. Because you may want to generate more than one test of the same type, as
+we are doing in the example, we need a way to differentiate them. You may use
 the optional "name" field for this.
 
 Finally, we describe how to test the instruction by declaring a list of test
@@ -621,6 +623,7 @@ default_config_files = [
     'test/aarch32/config/cond-rd-rn-operand-rm-shift-rs-a32.json',
     'test/aarch32/config/cond-rd-rn-operand-rm-ror-amount-a32.json',
     'test/aarch32/config/cond-rd-rn-a32.json',
+    'test/aarch32/config/cond-rd-rn-pc-a32.json',
     'test/aarch32/config/cond-rd-rn-rm-a32.json',
     'test/aarch32/config/cond-rd-operand-const-a32.json',
     'test/aarch32/config/cond-rd-operand-rn-a32.json',
@@ -664,6 +667,7 @@ default_config_files = [
 template_files = {
     'simulator': "test/aarch32/config/template-simulator-aarch32.cc.in",
     'assembler': "test/aarch32/config/template-assembler-aarch32.cc.in",
+    'macro-assembler': "test/aarch32/config/template-macro-assembler-aarch32.cc.in",
 }
 
 

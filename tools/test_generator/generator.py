@@ -327,7 +327,7 @@ class Generator(object):
       self.operands = operands
 
   def MnemonicToMethodName(self, mnemonic):
-    if self.test_type == "simulator":
+    if self.test_type in ["simulator", "macro-assembler"]:
       # Return a MacroAssembler method name
       return mnemonic.capitalize()
     else:
@@ -459,10 +459,24 @@ class Generator(object):
       ]
       return ",\n".join(test_cases)
 
+    def MacroAssemblerTestCaseDefinition(test_case):
+      test_cases = [
+          """{{ {{ {operands} }},
+             "{operands_description}",
+             "{identifier}" }}
+              """.format(operands=",".join(operand),
+                         operands_description=", ".join(operand),
+                         identifier="_".join(operand))
+          for operand, _, _ in test_case.GenerateOperands(self.operands)
+      ]
+      return ",\n".join(test_cases)
+
     if self.test_type == "simulator":
       return ",\n".join(map(SimulatorTestCaseDefinition, self.test_cases))
     elif self.test_type == "assembler":
       return ",\n".join(map(AssemblerTestCaseDefinition, self.test_cases))
+    elif self.test_type == "macro-assembler":
+      return ",\n".join(map(MacroAssemblerTestCaseDefinition, self.test_cases))
     else:
       raise Exception("Unrecognized test type \"{}\".".format(self.test_type))
 
@@ -509,11 +523,14 @@ class Generator(object):
     ~~~
     """
     code = "".join([operand.Instantiate() for operand in self.operands])
-    if self.test_type == "simulator":
+    if self.test_type in ["simulator", "macro-assembler"]:
       # Simulator tests need scratch registers to function and uses
       # `UseScratchRegisterScope` to dynamically allocate them. We need to
       # exclude all register operands from the list of available scratch
       # registers.
+      # MacroAssembler test also need to ensure that they don't try to run tests
+      # with registers that are scratch registers; the MacroAssembler contains
+      # assertions to protect against such usage.
       excluded_registers = [
           "scratch_registers.Exclude({});".format(operand.name)
           for operand in self.operands.unwrap()
@@ -650,7 +667,7 @@ class Generator(object):
     SIMULATOR_COND_RD_RN_RM_...
     ~~~
     """
-    return self.test_type.upper() + "_" + \
+    return self.test_type.replace("-", "_").upper() + "_" + \
         self.test_name.replace("-", "_").upper()
 
   def GetTraceFileName(self, mnemonic):
@@ -665,6 +682,9 @@ class Generator(object):
     Write out empty trace files so we can compile the new test cases.
     """
     for mnemonic in self.mnemonics:
+      # The MacroAssembler tests have no traces.
+      if self.test_type == "macro-assembler": continue
+
       with open(os.path.join(output_directory, self.GetTraceFileName(mnemonic)),
                 "w") as f:
         code = "static const TestResult *kReference{} = NULL;\n"
