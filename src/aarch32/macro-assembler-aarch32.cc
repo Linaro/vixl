@@ -824,14 +824,9 @@ void MacroAssembler::Delegate(InstructionType type,
                               Condition cond,
                               Register rn,
                               const Operand& operand) {
-  // movt, movw, sxtb16, teq, uxtb16
-  VIXL_ASSERT((type == kMovt) || (type == kMovw) || (type == kSxtb16) ||
-              (type == kTeq) || (type == kUxtb16));
-
-  if (type == kMovw) {
-    VIXL_ABORT_WITH_MSG(
-        "Use `Mov` instead of `Movw` when using the MacroAssembler.");
-  }
+  // movt, sxtb16, teq, uxtb16
+  VIXL_ASSERT((type == kMovt) || (type == kSxtb16) || (type == kTeq) ||
+              (type == kUxtb16));
 
   if (type == kMovt) {
     VIXL_ABORT_WITH_MSG("`Movt` expects a 16-bit immediate.");
@@ -964,8 +959,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               Register rd,
                               Register rn,
                               const Operand& operand) {
-  // addw orn orns pkhbt pkhtb rsc rscs subw sxtab sxtab16 sxtah uxtab uxtab16
-  // uxtah
+  // orn orns pkhbt pkhtb rsc rscs sxtab sxtab16 sxtah uxtab uxtab16 uxtah
   CONTEXT_SCOPE;
   if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
     InstructionCondRROp shiftop = NULL;
@@ -1071,33 +1065,12 @@ void MacroAssembler::Delegate(InstructionType type,
         }
       }
     }
-    if (imm < 0) {
-      CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-      switch (type) {
-        case kAddw:
-          return subw(cond, rd, rn, -imm);
-        case kSubw:
-          return addw(cond, rd, rn, -imm);
-        default:
-          break;
-      }
-    }
     UseScratchRegisterScope temps(this);
     // Allow using the destination as a scratch register if possible.
     if (!rd.Is(rn)) temps.Include(rd);
     Register scratch = temps.Acquire();
-    CodeBufferCheckScope scope(this, 2 * kMaxInstructionSizeInBytes);
-    switch (type) {
-      case kAddw:
-        mov(cond, scratch, imm);
-        return add(cond, rd, rn, scratch);
-      case kSubw:
-        mov(cond, scratch, imm);
-        return sub(cond, rd, rn, scratch);
-      default:
-        break;
-    }
-    mov(cond, scratch, imm);
+    HandleOutOfBoundsImmediate(cond, scratch, imm);
+    CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
     return (this->*instruction)(cond, rd, rn, scratch);
   }
   Assembler::Delegate(type, instruction, cond, rd, rn, operand);

@@ -981,16 +981,6 @@ class MacroAssembler : public Assembler {
     Adds(al, rd, rn, operand);
   }
 
-  void Addw(Condition cond, Register rd, Register rn, const Operand& operand) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
-    ITScope it_scope(this, &cond);
-    addw(cond, rd, rn, operand);
-  }
-  void Addw(Register rd, Register rn, const Operand& operand) {
-    Addw(al, rd, rn, operand);
-  }
 
   void Adr(Condition cond, Register rd, Label* label) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -2234,14 +2224,6 @@ class MacroAssembler : public Assembler {
   }
   void Movt(Register rd, const Operand& operand) { Movt(al, rd, operand); }
 
-  void Movw(Condition cond, Register rd, const Operand& operand) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
-    ITScope it_scope(this, &cond);
-    movw(cond, rd, operand);
-  }
-  void Movw(Register rd, const Operand& operand) { Movw(al, rd, operand); }
 
   void Mrs(Condition cond, Register rd, SpecialRegister spec_reg) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -3984,16 +3966,6 @@ class MacroAssembler : public Assembler {
     Subs(al, rd, rn, operand);
   }
 
-  void Subw(Condition cond, Register rd, Register rn, const Operand& operand) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
-    ITScope it_scope(this, &cond);
-    subw(cond, rd, rn, operand);
-  }
-  void Subw(Register rd, Register rn, const Operand& operand) {
-    Subw(al, rd, rn, operand);
-  }
 
   void Svc(Condition cond, uint32_t imm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -4067,23 +4039,6 @@ class MacroAssembler : public Assembler {
   }
   void Sxth(Register rd, const Operand& operand) { Sxth(al, rd, operand); }
 
-  void Tbb(Condition cond, Register rn, Register rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
-    ITScope it_scope(this, &cond);
-    tbb(cond, rn, rm);
-  }
-  void Tbb(Register rn, Register rm) { Tbb(al, rn, rm); }
-
-  void Tbh(Condition cond, Register rn, Register rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
-    ITScope it_scope(this, &cond);
-    tbh(cond, rn, rm);
-  }
-  void Tbh(Register rn, Register rm) { Tbh(al, rn, rm); }
 
   void Teq(Condition cond, Register rn, const Operand& operand) {
     VIXL_ASSERT(allow_macro_instructions_);

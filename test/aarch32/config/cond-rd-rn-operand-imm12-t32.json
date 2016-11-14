@@ -90,6 +90,12 @@
     },
     {
       "type": "simulator",
+      "mnemonics" : [
+        "Add",  // ADD{<c>}{<q>} {<Rd>}, <Rn>, #<imm12> ; T4
+                // ADD{<c>}{<q>} {<Rd>}, SP, #<imm12> ; T4
+        "Sub"   // SUB{<c>}{<q>} {<Rd>}, <Rn>, #<imm12> ; T4
+                // SUB{<c>}{<q>} {<Rd>}, SP, #<imm12> ; T3
+      ],
       "test-cases": [
         {
           "name": "RdIsRn",

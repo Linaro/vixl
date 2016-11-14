@@ -80,6 +80,10 @@
     },
     {
       "type": "simulator",
+      "mnemonics" : [
+        "Mov",  // MOV{<c>}{<q>} <Rd>, #<imm16> ; T3
+        "Movt"  // MOVT{<c>}{<q>} <Rd>, #<imm16> ; T1
+      ],
       "test-cases": [
         {
           "name": "Condition",

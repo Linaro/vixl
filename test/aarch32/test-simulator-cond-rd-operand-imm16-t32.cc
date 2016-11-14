@@ -113,8 +113,7 @@ namespace aarch32 {
 // List of instruction encodings:
 #define FOREACH_INSTRUCTION(M) \
   M(Mov)                       \
-  M(Movt)                      \
-  M(Movw)
+  M(Movt)
 
 
 // The following definitions are defined again in each generated test, therefore
@@ -421,7 +420,6 @@ struct TestResult {
 // values. The reference arrays are names `kReference{mnemonic}`.
 #include "aarch32/traces/simulator-cond-rd-operand-imm16-t32-mov.h"
 #include "aarch32/traces/simulator-cond-rd-operand-imm16-t32-movt.h"
-#include "aarch32/traces/simulator-cond-rd-operand-imm16-t32-movw.h"
 
 
 // The maximum number of errors to report in detail for each test.

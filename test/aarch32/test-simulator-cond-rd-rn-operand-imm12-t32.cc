@@ -113,9 +113,7 @@ namespace aarch32 {
 // List of instruction encodings:
 #define FOREACH_INSTRUCTION(M) \
   M(Add)                       \
-  M(Addw)                      \
-  M(Sub)                       \
-  M(Subw)
+  M(Sub)
 
 
 // The following definitions are defined again in each generated test, therefore
@@ -1395,9 +1393,7 @@ struct TestResult {
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
 #include "aarch32/traces/simulator-cond-rd-rn-operand-imm12-t32-add.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-imm12-t32-addw.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-imm12-t32-sub.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-imm12-t32-subw.h"
 
 
 // The maximum number of errors to report in detail for each test.
