@@ -38,9 +38,47 @@
 namespace vixl {
 namespace aarch32 {
 
-#define __ masm.
-#define TEST(name)  TEST_(AARCH32_ASM_##name)
+#define STRINGIFY(x) #x
 
+// Tests declared with this macro will be run twice: once targeting A32 and
+// once targeting T32.
+#define TEST(Name)                                             \
+void Test##Name##Impl(InstructionSet isa);                     \
+void Test##Name() {                                            \
+  Test##Name##Impl(A32);                                       \
+  printf(" > A32 done\n");                                     \
+  Test##Name##Impl(T32);                                       \
+  printf(" > T32 done\n");                                     \
+}                                                              \
+Test test_##Name(STRINGIFY(AARCH32_ASM_##Name), &Test##Name);  \
+void Test##Name##Impl(InstructionSet isa)
+
+// Test declared with this macro will only target A32.
+#define TEST_A32(Name)                                         \
+void Test##Name##Impl(InstructionSet isa);                     \
+void Test##Name() {                                            \
+  Test##Name##Impl(A32);                                       \
+}                                                              \
+Test test_##Name(STRINGIFY(AARCH32_A32_##Name), &Test##Name);  \
+void Test##Name##Impl(InstructionSet isa)
+
+// Tests declared with this macro will only target T32.
+#define TEST_T32(Name)                                         \
+void Test##Name##Impl(InstructionSet isa);                     \
+void Test##Name() {                                            \
+  Test##Name##Impl(T32);                                       \
+}                                                              \
+Test test_##Name(STRINGIFY(AARCH32_T32_##Name), &Test##Name);  \
+void Test##Name##Impl(InstructionSet isa)
+
+// Tests declared with this macro are not expected to use any provided test
+// helpers such as SETUP, RUN, etc.
+#define TEST_NOASM(Name)                                   \
+void Test##Name();                                         \
+Test test_##Name(STRINGIFY(AARCH32_##Name), &Test##Name);  \
+void Test##Name()
+
+#define __ masm.
 #define BUF_SIZE (4096)
 
 #define ASSERT_LITERAL_POOL_SIZE(size) \
@@ -49,8 +87,8 @@ namespace aarch32 {
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 // No simulator yet.
 
-#define SETUP() \
-  MacroAssembler masm(BUF_SIZE);
+#define SETUP()                                             \
+  MacroAssembler masm(BUF_SIZE, isa);                       \
 
 #define START() \
   masm.GetBuffer()->Reset();
@@ -68,7 +106,7 @@ namespace aarch32 {
 
 #define SETUP()                                                                \
   RegisterDump core;                                                           \
-  MacroAssembler masm(BUF_SIZE);
+  MacroAssembler masm(BUF_SIZE, isa);                                          \
 
 #define START()                                                                \
   masm.GetBuffer()->Reset();                                                   \
@@ -115,10 +153,6 @@ namespace aarch32 {
 #define TEARDOWN()
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
-
-#define START_T32()                                                            \
-  __ UseT32();                                                                 \
-  START();
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 // No simulator yet. We can't test the results.
@@ -616,7 +650,8 @@ TEST(ands) {
 }
 
 
-TEST(adr) {
+// TODO: fix this test in T32.
+TEST_A32(adr) {
   SETUP();
 
   Label label_1, label_2, label_3, label_4;
@@ -1009,10 +1044,10 @@ TEST(bics) {
 // The Mov(r1, 0x7ff80000) can't be emitted with only one instruction.
 // Only one instruction doesn't, here, emit the veneer. Therefore, the
 // veneer emission is only triggered when we are in the Delegate.
-TEST(mov_and_veneer) {
+TEST_T32(mov_and_veneer) {
   SETUP();
 
-  START_T32();
+  START();
   Label end;
   __ Mov(r0, 1);
   __ Cbz(r0, &end);
@@ -1110,7 +1145,8 @@ TEST(emit_single_literal) {
 }
 
 
-TEST(emit_literal) {
+// TODO: fix this test in T32.
+TEST_A32(emit_literal) {
   SETUP();
 
   START();
@@ -1300,10 +1336,10 @@ TEST(emit_big_pool) {
 }
 
 
-TEST(too_far_cbz) {
+TEST_T32(too_far_cbz) {
   SETUP();
 
-  START_T32();
+  START();
   Label start;
   Label end;
   Label exit;
@@ -1325,10 +1361,10 @@ TEST(too_far_cbz) {
 }
 
 
-TEST(close_cbz) {
+TEST_T32(close_cbz) {
   SETUP();
 
-  START_T32();
+  START();
   Label first;
   Label second;
   __ Mov(r0, 0);
@@ -1350,10 +1386,10 @@ TEST(close_cbz) {
 }
 
 
-TEST(close_cbz2) {
+TEST_T32(close_cbz2) {
   SETUP();
 
-  START_T32();
+  START();
   Label first;
   Label second;
   __ Mov(r0, 0);
@@ -1378,10 +1414,10 @@ TEST(close_cbz2) {
 }
 
 
-TEST(not_close_cbz) {
+TEST_T32(not_close_cbz) {
   SETUP();
 
-  START_T32();
+  START();
   Label first;
   Label second;
   __ Cbz(r0, &first);
@@ -1396,10 +1432,10 @@ TEST(not_close_cbz) {
 }
 
 
-TEST(veneers) {
+TEST_T32(veneers) {
   SETUP();
 
-  START_T32();
+  START();
   Label zero;
   Label exit;
   __ Mov(r0, 0);
@@ -1429,10 +1465,10 @@ TEST(veneers) {
 // This test checks that veneers are sorted. If not, the test failed as the
 // veneer for "exit" is emitted before the veneer for "zero" and the "zero"
 // veneer is out of range for Cbz.
-TEST(veneers_labels_sort) {
+TEST_T32(veneers_labels_sort) {
   SETUP();
 
-  START_T32();
+  START();
   Label start;
   Label zero;
   Label exit;
@@ -1501,14 +1537,10 @@ TEST(literal_update) {
 
 
 void SwitchCase(JumpTableBase* switch_, uint32_t case_index,
-                bool is_using_t32) {
+                InstructionSet isa) {
   SETUP();
 
-  if (is_using_t32) {
-    START_T32();
-  } else {
-    START();
-  }
+  START();
 
   __ Mov(r1, case_index);
   __ Switch(r1, switch_);
@@ -1547,50 +1579,26 @@ void SwitchCase(JumpTableBase* switch_, uint32_t case_index,
 }
 
 
-TEST(switch_case_a32_8) {
-  for (int i = 0; i < 8; i++) {
-    JumpTable8bitOffset switch_(6);
-    SwitchCase(&switch_, i, false);
-  }
-}
-
-
-TEST(switch_case_a32_16) {
-  for (int i = 0; i < 5; i++) {
-    JumpTable16bitOffset switch_(5);
-    SwitchCase(&switch_, i, false);
-  }
-}
-
-
-TEST(switch_case_a32_32) {
-  for (int i = 0; i < 5; i++) {
-    JumpTable32bitOffset switch_(5);
-    SwitchCase(&switch_, i, false);
-  }
-}
-
-
-TEST(switch_case_t32_8) {
+TEST(switch_case_8) {
   for (int i = 0; i < 5; i++) {
     JumpTable8bitOffset switch_(5);
-    SwitchCase(&switch_, i, true);
+    SwitchCase(&switch_, i, isa);
   }
 }
 
 
-TEST(switch_case_t32_16) {
+TEST(switch_case_16) {
   for (int i = 0; i < 5; i++) {
     JumpTable16bitOffset switch_(5);
-    SwitchCase(&switch_, i, true);
+    SwitchCase(&switch_, i, isa);
   }
 }
 
 
-TEST(switch_case_t32_32) {
+TEST(switch_case_32) {
   for (int i = 0; i < 5; i++) {
     JumpTable32bitOffset switch_(5);
-    SwitchCase(&switch_, i, true);
+    SwitchCase(&switch_, i, isa);
   }
 }
 
@@ -1633,7 +1641,7 @@ TEST(claim_peek_poke) {
 TEST(msr_i) {
   SETUP();
 
-  START_T32();
+  START();
   __ Mov(r0, 0xdead);
   __ Mov(r1, 0xdead);
   __ Mov(r2, 0xdead);
@@ -1851,7 +1859,7 @@ void CheckInstructionSetT32(const T& assm) {
 }
 
 
-TEST(set_isa_constructors) {
+TEST_NOASM(set_isa_constructors) {
   byte buffer[1024];
 
   // A32 by default.
@@ -1882,7 +1890,7 @@ TEST(set_isa_constructors) {
 }
 
 
-TEST(set_isa_empty) {
+TEST_NOASM(set_isa_empty) {
   // It is possible to change the instruction set if no instructions have yet
   // been generated.
   Assembler assm;
@@ -1909,7 +1917,7 @@ TEST(set_isa_empty) {
 }
 
 
-TEST(set_isa_noop) {
+TEST_NOASM(set_isa_noop) {
   // It is possible to call a no-op UseA32/T32 or UseInstructionSet even if
   // one or more instructions have been generated.
   {
