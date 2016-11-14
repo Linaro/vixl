@@ -824,57 +824,28 @@ void MacroAssembler::Delegate(InstructionType type,
                               Condition cond,
                               Register rn,
                               const Operand& operand) {
-  // add, movt, movw, sub, sxtb16, teq, uxtb16
-  CONTEXT_SCOPE;
-  if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
-    InstructionCondRROp shiftop = NULL;
-    switch (operand.GetShift().GetType()) {
-      case LSL:
-        shiftop = &Assembler::lsl;
-        break;
-      case LSR:
-        shiftop = &Assembler::lsr;
-        break;
-      case ASR:
-        shiftop = &Assembler::asr;
-        break;
-      case RRX:
-        break;
-      case ROR:
-        shiftop = &Assembler::ror;
-        break;
-      default:
-        VIXL_UNREACHABLE();
-    }
-    if (shiftop != NULL) {
-      UseScratchRegisterScope temps(this);
-      Register scratch = temps.Acquire();
-      CodeBufferCheckScope scope(this, 2 * kMaxInstructionSizeInBytes);
-      (this->*shiftop)(cond,
-                       scratch,
-                       operand.GetBaseRegister(),
-                       operand.GetShiftRegister());
-      return (this->*instruction)(cond, rn, scratch);
-    }
+  // movt, movw, sxtb16, teq, uxtb16
+  VIXL_ASSERT((type == kMovt) || (type == kMovw) || (type == kSxtb16) ||
+              (type == kTeq) || (type == kUxtb16));
+
+  if (type == kMovw) {
+    VIXL_ABORT_WITH_MSG(
+        "Use `Mov` instead of `Movw` when using the MacroAssembler.");
   }
-  if (operand.IsImmediate()) {
-    switch (type) {
-      case kTeq: {
-        UseScratchRegisterScope temps(this);
-        Register scratch = temps.Acquire();
-        HandleOutOfBoundsImmediate(cond, scratch, operand.GetImmediate());
-        CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-        teq(cond, rn, scratch);
-        return;
-      }
-      case kMovt:
-      case kMovw:
-      case kSxtb16:
-      case kUxtb16:
-        break;
-      default:
-        VIXL_UNREACHABLE();
-    }
+
+  if (type == kMovt) {
+    VIXL_ABORT_WITH_MSG("`Movt` expects a 16-bit immediate.");
+  }
+
+  // This delegate only supports teq with immediates.
+  CONTEXT_SCOPE;
+  if ((type == kTeq) && operand.IsImmediate()) {
+    UseScratchRegisterScope temps(this);
+    Register scratch = temps.Acquire();
+    HandleOutOfBoundsImmediate(cond, scratch, operand.GetImmediate());
+    CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
+    teq(cond, rn, scratch);
+    return;
   }
   Assembler::Delegate(type, instruction, cond, rn, operand);
 }

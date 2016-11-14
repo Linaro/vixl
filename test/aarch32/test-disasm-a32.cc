@@ -419,5 +419,17 @@ TEST(macro_assembler_InstructionCondSizeRROp) {
 }
 
 
+TEST(macro_assembler_InstructionCondRO) {
+  SETUP();
+
+  COMPARE_BOTH(Teq(r0, 0xbadbeef),
+               "mov ip, #48879\n"
+               "movt ip, #2989\n"
+               "teq r0, ip\n");
+
+  CLEANUP();
+}
+
+
 }  // namespace aarch32
 }  // namespace vixl
