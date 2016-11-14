@@ -140,9 +140,19 @@ class MacroAssembler : public Assembler {
     MacroAssemblerContext() : count_(0) {}
     ~MacroAssemblerContext() {}
     unsigned GetRecursiveCount() const { return count_; }
-    void Up() {
+    void Up(const char* loc) {
+      location_stack_[count_] = loc;
       count_++;
-      VIXL_CHECK(count_ < kMaxRecursion);
+      if (count_ >= kMaxRecursion) {
+        printf(
+            "Recursion limit reached; unable to resolve macro assembler "
+            "call.\n");
+        printf("Macro assembler context stack:\n");
+        for (unsigned i = 0; i < kMaxRecursion; i++) {
+          printf("%10s %s\n", (i == 0) ? "oldest -> " : "", location_stack_[i]);
+        }
+        VIXL_ABORT();
+      }
     }
     void Down() {
       VIXL_ASSERT((count_ > 0) && (count_ < kMaxRecursion));
@@ -152,6 +162,7 @@ class MacroAssembler : public Assembler {
    private:
     unsigned count_;
     static const uint32_t kMaxRecursion = 5;
+    const char* location_stack_[kMaxRecursion];
   };
 
   // This scope is used at each Delegate entry to avoid infinite recursion of
@@ -159,9 +170,10 @@ class MacroAssembler : public Assembler {
   // MacroAssemblerContext::kMaxRecursion.
   class ContextScope {
    public:
-    explicit ContextScope(MacroAssembler* const masm) : masm_(masm) {
+    explicit ContextScope(MacroAssembler* const masm, const char* loc)
+        : masm_(masm) {
       VIXL_ASSERT(masm_->AllowMacroInstructions());
-      masm_->GetContext()->Up();
+      masm_->GetContext()->Up(loc);
     }
     ~ContextScope() { masm_->GetContext()->Down(); }
 

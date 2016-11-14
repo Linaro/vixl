@@ -27,6 +27,12 @@
 
 #include "aarch32/macro-assembler-aarch32.h"
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
+#define CONTEXT_SCOPE \
+  ContextScope context(this, __FILE__ ":" TOSTRING(__LINE__))
+
 namespace vixl {
 namespace aarch32 {
 
@@ -819,7 +825,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               Register rn,
                               const Operand& operand) {
   // add, movt, movw, sub, sxtb16, teq, uxtb16
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
     InstructionCondRROp shiftop = NULL;
     switch (operand.GetShift().GetType()) {
@@ -881,7 +887,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               Register rn,
                               const Operand& operand) {
   // cmn cmp mov movs mvn mvns sxtb sxth tst uxtb uxth
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   VIXL_ASSERT(size.IsBest());
   if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
     InstructionCondRROp shiftop = NULL;
@@ -989,7 +995,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               const Operand& operand) {
   // addw orn orns pkhbt pkhtb rsc rscs subw sxtab sxtab16 sxtah uxtab uxtab16
   // uxtah
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
     InstructionCondRROp shiftop = NULL;
     switch (operand.GetShift().GetType()) {
@@ -1136,7 +1142,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               const Operand& operand) {
   // adc adcs add adds and_ ands asr asrs bic bics eor eors lsl lsls lsr lsrs
   // orr orrs ror rors rsb rsbs sbc sbcs sub subs
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   VIXL_ASSERT(size.IsBest());
   if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
     InstructionCondRROp shiftop = NULL;
@@ -1241,7 +1247,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               Register rn,
                               Label* label) {
   // cbz cbnz
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   CodeBufferCheckScope scope(this, 2 * kMaxInstructionSizeInBytes);
   if (IsUsingT32() && rn.IsLow()) {
     switch (type) {
@@ -1354,7 +1360,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               DataType dt,
                               SRegister rd,
                               const SOperand& operand) {
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   if (type == kVmov) {
     if (operand.IsImmediate() && dt.Is(F32)) {
       const NeonImmediate& neon_imm = operand.GetNeonImmediate();
@@ -1384,7 +1390,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               DataType dt,
                               DRegister rd,
                               const DOperand& operand) {
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   if (type == kVmov) {
     if (operand.IsImmediate()) {
       const NeonImmediate& neon_imm = operand.GetNeonImmediate();
@@ -1525,7 +1531,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               DataType dt,
                               QRegister rd,
                               const QOperand& operand) {
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   if (type == kVmov) {
     if (operand.IsImmediate()) {
       const NeonImmediate& neon_imm = operand.GetNeonImmediate();
@@ -1660,7 +1666,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               Condition cond,
                               const MemOperand& operand) {
   // pld pldw pli
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   if (operand.IsImmediate()) {
     const Register& rn = operand.GetBaseRegister();
     AddrMode addrmode = operand.GetAddrMode();
@@ -1798,7 +1804,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               const MemOperand& operand) {
   // lda ldab ldaex ldaexb ldaexh ldah ldrbt ldrex ldrexb ldrexh ldrht ldrsbt
   // ldrsht ldrt stl stlb stlh strbt strht strt
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   if (operand.IsImmediate()) {
     const Register& rn = operand.GetBaseRegister();
     AddrMode addrmode = operand.GetAddrMode();
@@ -1958,7 +1964,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               Register rd,
                               const MemOperand& operand) {
   // ldr ldrb ldrh ldrsb ldrsh str strb strh
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   VIXL_ASSERT(size.IsBest());
   if (operand.IsImmediate()) {
     const Register& rn = operand.GetBaseRegister();
@@ -2119,7 +2125,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               Register rt2,
                               const MemOperand& operand) {
   // ldaexd, ldrd, ldrexd, stlex, stlexb, stlexh, strd, strex, strexb, strexh
-  ContextScope context(this);
+  CONTEXT_SCOPE;
 
   bool can_delegate = true;
   if (((type == kLdrd) || (type == kStrd) || (type == kLdaexd) ||
@@ -2297,7 +2303,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               SRegister rd,
                               const MemOperand& operand) {
   // vldr.32 vstr.32
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   if (operand.IsImmediate()) {
     const Register& rn = operand.GetBaseRegister();
     AddrMode addrmode = operand.GetAddrMode();
@@ -2376,7 +2382,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               Register rt2,
                               const MemOperand& operand) {
   // stlexd strexd
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   if (IsUsingT32() ||
       (((rt.GetCode() & 1) == 0) && !rt.Is(lr) &&
        (((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()))) {
@@ -2468,7 +2474,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               DRegister rd,
                               const MemOperand& operand) {
   // vldr.64 vstr.64
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   if (operand.IsImmediate()) {
     const Register& rn = operand.GetBaseRegister();
     AddrMode addrmode = operand.GetAddrMode();
@@ -2546,7 +2552,7 @@ void MacroAssembler::Delegate(InstructionType type,
                               const NeonRegisterList& nreglist,
                               const MemOperand& operand) {
   // vld3 vst3
-  ContextScope context(this);
+  CONTEXT_SCOPE;
   const Register& rn = operand.GetBaseRegister();
 
   bool can_delegate = !rn.Is(pc) && (nreglist.GetLength() == 3) &&
@@ -2642,6 +2648,10 @@ void MacroAssembler::Delegate(InstructionType type,
   CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
   msr(cond, spec_reg, scratch);
 }
+
+#undef CONTEXT_SCOPE
+#undef TOSTRING
+#undef STRINGIFY
 
 // Start of generated code.
 // End of generated code.
