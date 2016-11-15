@@ -834,12 +834,6 @@ class MacroAssembler : public Assembler {
                         DRegister rd,
                         const MemOperand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
-                        InstructionCondDtNrlMop instruction,
-                        Condition cond,
-                        DataType dt,
-                        const NeonRegisterList& reglist,
-                        const MemOperand& operand) VIXL_OVERRIDE;
-  virtual void Delegate(InstructionType type,
                         InstructionCondMsrOp instruction,
                         Condition cond,
                         MaskedSpecialRegister spec_reg,
