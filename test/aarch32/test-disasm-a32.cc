@@ -886,5 +886,119 @@ TEST(macro_assembler_Vstr_s) {
 
 #undef TEST_VMEMOP
 
+
+#define TEST_SHIFT_T32(Inst, name, offset)       \
+  COMPARE_T32(Inst(r0, Operand(r1, LSL, r2)),    \
+              "lsl ip, r1, r2\n"                 \
+              name " r0, ip\n");                 \
+  COMPARE_T32(Inst(r0, Operand(r1, LSR, r2)),    \
+              "lsr ip, r1, r2\n"                 \
+              name " r0, ip\n");                 \
+  COMPARE_T32(Inst(r0, Operand(r1, ASR, r2)),    \
+              "asr ip, r1, r2\n"                 \
+              name " r0, ip\n");                 \
+  COMPARE_T32(Inst(r0, Operand(r1, ROR, r2)),    \
+              "ror ip, r1, r2\n"                 \
+              name " r0, ip\n");                 \
+  COMPARE_T32(Inst(eq, r0, Operand(r1, LSL, r2)),\
+              "bne "#offset"\n"                  \
+              "lsl ip, r1, r2\n"                 \
+              name " r0, ip\n");                 \
+  COMPARE_T32(Inst(le, r0, Operand(r1, LSL, r2)),\
+              "bgt "#offset"\n"                  \
+              "lsl ip, r1, r2\n"                 \
+              name " r0, ip\n");
+
+#define TEST_MOV_SHIFT_T32(Inst, s, offset)      \
+  COMPARE_T32(Inst(r0, Operand(r1, LSL, r2)),    \
+              "lsl" s " r0, r1, r2\n");          \
+  COMPARE_T32(Inst(r0, Operand(r1, LSR, r2)),    \
+              "lsr" s " r0, r1, r2\n");          \
+  COMPARE_T32(Inst(r0, Operand(r1, ASR, r2)),    \
+              "asr" s " r0, r1, r2\n");          \
+  COMPARE_T32(Inst(r0, Operand(r1, ROR, r2)),    \
+              "ror" s " r0, r1, r2\n");          \
+  COMPARE_T32(Inst(eq, r0, Operand(r1, LSL, r2)),\
+              "bne "#offset"\n"                  \
+              "lsl" s " r0, r1, r2\n");          \
+  COMPARE_T32(Inst(le, r0, Operand(r1, LSL, r2)),\
+              "bgt "#offset"\n"                  \
+              "lsl" s " r0, r1, r2\n");
+
+#define TEST_WIDE_IMMEDIATE(Inst, name, offset)  \
+  COMPARE_BOTH(Inst(r0, 0xbadbeef),              \
+              "mov ip, #48879\n"                 \
+              "movt ip, #2989\n"                 \
+              name " r0, ip\n");                 \
+  COMPARE_A32(Inst(eq, r0, 0xbadbeef),           \
+              "moveq ip, #48879\n"               \
+              "movteq ip, #2989\n"               \
+              name "eq r0, ip\n");               \
+  COMPARE_T32(Inst(eq, r0, 0xbadbeef),           \
+              "bne "#offset"\n"                  \
+              "mov ip, #48879\n"                 \
+              "movt ip, #2989\n"                 \
+              name " r0, ip\n");
+
+#define TEST_WIDE_IMMEDIATE_PC(Inst, name, offset) \
+  COMPARE_A32(Inst(pc, 0xbadbeef),                 \
+              "mov ip, #48879\n"                   \
+              "movt ip, #2989\n"                   \
+              name " pc, ip\n");                   \
+  COMPARE_A32(Inst(eq, pc, 0xbadbeef),             \
+              "moveq ip, #48879\n"                 \
+              "movteq ip, #2989\n"                 \
+              name "eq pc, ip\n");                 \
+  MUST_FAIL_TEST_T32(Inst(pc, 0xbadbeef),          \
+                     "Unimplemented delegate\n");  \
+  MUST_FAIL_TEST_T32(Inst(eq, pc, 0xbadbeef),      \
+                     "Unimplemented delegate\n");
+
+TEST(macro_assembler_InstructionCondSizeROp) {
+  SETUP();
+
+  // T32 register shifted register.
+  TEST_SHIFT_T32(Cmn,"cmn", 0x0000000a)
+  TEST_SHIFT_T32(Cmp,"cmp", 0x00000008)
+  TEST_SHIFT_T32(Mvn,"mvn", 0x0000000a)
+  TEST_SHIFT_T32(Mvns,"mvns", 0x0000000a)
+  TEST_SHIFT_T32(Sxtb,"sxtb", 0x0000000a)
+  TEST_SHIFT_T32(Sxth,"sxth", 0x0000000a)
+  TEST_SHIFT_T32(Tst,"tst", 0x0000000a)
+  TEST_SHIFT_T32(Uxtb,"uxtb", 0x0000000a)
+  TEST_SHIFT_T32(Uxth,"uxth", 0x0000000a)
+
+  TEST_MOV_SHIFT_T32(Mov, "", 0x00000006)
+  TEST_MOV_SHIFT_T32(Movs, "s", 0x00000006)
+
+  // Wide immediates (Mov and Movs are tested in "macro_assembler_wide_immediate").
+  TEST_WIDE_IMMEDIATE(Cmp, "cmp", 0x0000000c);
+  TEST_WIDE_IMMEDIATE(Cmn, "cmn", 0x0000000e);
+  TEST_WIDE_IMMEDIATE(Tst, "tst", 0x0000000e);
+  TEST_WIDE_IMMEDIATE_PC(Cmp, "cmp", 0x0000000c);
+  TEST_WIDE_IMMEDIATE_PC(Cmn, "cmn", 0x0000000e);
+  TEST_WIDE_IMMEDIATE_PC(Tst, "tst", 0x0000000e);
+
+  // For Mvn and Mvns, we don't allow PC as a destination.
+  TEST_WIDE_IMMEDIATE(Mvn, "mvn", 0x0000000e);
+  TEST_WIDE_IMMEDIATE(Mvns, "mvns", 0x0000000e);
+  MUST_FAIL_TEST_BOTH(Mvn(pc, 0xbadbeef), "Unimplemented delegate\n");
+  MUST_FAIL_TEST_BOTH(Mvn(eq, pc, 0xbadbeef), "Unimplemented delegate\n");
+  MUST_FAIL_TEST_BOTH(Mvns(pc, 0xbadbeef), "Unimplemented delegate\n");
+  MUST_FAIL_TEST_BOTH(Mvns(eq, pc, 0xbadbeef), "Unimplemented delegate\n");
+
+  MUST_FAIL_TEST_BOTH(Sxtb(r0, 0x1), "Unimplemented delegate\n");
+  MUST_FAIL_TEST_BOTH(Sxth(r0, 0x1), "Unimplemented delegate\n");
+  MUST_FAIL_TEST_BOTH(Uxtb(r0, 0x1), "Unimplemented delegate\n");
+  MUST_FAIL_TEST_BOTH(Uxth(r0, 0x1), "Unimplemented delegate\n");
+
+  CLEANUP();
+}
+
+#undef TEST_SHIFT_T32
+#undef TEST_MOV_SHIFT_T32
+#undef TEST_WIDE_IMMEDIATE
+#undef TEST_WIDE_IMMEDIATE_PC
+
 }  // namespace aarch32
 }  // namespace vixl

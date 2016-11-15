@@ -871,7 +871,12 @@ void MacroAssembler::Delegate(InstructionType type,
   // cmn cmp mov movs mvn mvns sxtb sxth tst uxtb uxth
   CONTEXT_SCOPE;
   VIXL_ASSERT(size.IsBest());
+  VIXL_ASSERT((type == kCmn) || (type == kCmp) || (type == kMov) ||
+              (type == kMovs) || (type == kMvn) || (type == kMvns) ||
+              (type == kSxtb) || (type == kSxth) || (type == kTst) ||
+              (type == kUxtb) || (type == kUxth));
   if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
+    VIXL_ASSERT((type != kMov) || (type != kMovs));
     InstructionCondRROp shiftop = NULL;
     switch (operand.GetShift().GetType()) {
       case LSL:
@@ -884,6 +889,8 @@ void MacroAssembler::Delegate(InstructionType type,
         shiftop = &Assembler::asr;
         break;
       case RRX:
+        // A RegisterShiftedRegister operand cannot have a shift of type RRX.
+        VIXL_UNREACHABLE();
         break;
       case ROR:
         shiftop = &Assembler::ror;
