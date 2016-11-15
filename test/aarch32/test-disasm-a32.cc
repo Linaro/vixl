@@ -168,9 +168,9 @@ TEST(t32_disassembler_limit1) {
 
   masm.UseT32();
   START_COMPARE()
-  masm.Add(r10, r11, r12);
+  masm.Add(r9, r10, r11);
   masm.GetBuffer()->Emit16(kLowestT32_32Opcode >> 16);
-  END_COMPARE("add r10, r11, ip\n"
+  END_COMPARE("add r9, r10, r11\n"
               "?\n");
 
   CLEANUP();
@@ -182,9 +182,9 @@ TEST(t32_disassembler_limit2) {
 
   masm.UseT32();
   START_COMPARE()
-  masm.Add(r10, r11, r12);
+  masm.Add(r9, r10, r11);
   masm.Add(r0, r0, r1);
-  END_COMPARE("add r10, r11, ip\n"
+  END_COMPARE("add r9, r10, r11\n"
               "add r0, r1\n");
 
   CLEANUP();

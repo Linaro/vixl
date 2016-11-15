@@ -1742,20 +1742,28 @@ TEST(printf) {
   __ Vldr(d29, 29.999);
   __ Vldr(d30, 30.000);
   __ Vldr(d31, 31.111);
-  __ Mov(r12, 0xdeadcccc);
-  __ Printf("%% r0=%x r1=%x str=<%.*s>\n", r0, r1, r3, r2);
-  __ Printf("r0=%d r1=%d str=<%s>\n", r0, r1, r2);
-  __ Printf("d0=%g\n", d0);
-  __ Printf("s4=%g\n", s4);
-  __ Printf("d0=%g d1=%g s4=%g s5=%g\n", d0, d1, s4, s5);
-  __ Printf("d0=%g r0=%x s4=%g r1=%x\n", d0, r0, s4, r1);
-  __ Printf("r0=%x d0=%g r1=%x s4=%g\n", r0, d0, r1, s4);
-  __ Mov(r0, sp);
-  __ Printf("sp=%x\n", r0);
-  __ Mrs(r0, APSR);
-  // Only keep R/W fields.
-  __ Mov(r2, 0xf80f0200);
-  __ And(r0, r0, r2);
+  {
+    UseScratchRegisterScope temps(&masm);
+    // For effective use as an inspection tool, Printf must work without any
+    // scratch registers.
+    VIXL_CHECK(r12.Is(temps.Acquire()));
+    __ Mov(r12, 0xdeadcccc);
+    VIXL_CHECK(masm.GetScratchRegisterList()->IsEmpty());
+
+    __ Printf("%% r0=%x r1=%x str=<%.*s>\n", r0, r1, r3, r2);
+    __ Printf("r0=%d r1=%d str=<%s>\n", r0, r1, r2);
+    __ Printf("d0=%g\n", d0);
+    __ Printf("s4=%g\n", s4);
+    __ Printf("d0=%g d1=%g s4=%g s5=%g\n", d0, d1, s4, s5);
+    __ Printf("d0=%g r0=%x s4=%g r1=%x\n", d0, r0, s4, r1);
+    __ Printf("r0=%x d0=%g r1=%x s4=%g\n", r0, d0, r1, s4);
+    __ Mov(r0, sp);
+    __ Printf("sp=%x\n", r0);
+    __ Mrs(r0, APSR);
+    // Only keep R/W fields.
+    __ Mov(r2, 0xf80f0200);
+    __ And(r0, r0, r2);
+  }
   END();
 
   RUN();
@@ -2082,6 +2090,98 @@ TEST(logical_arithmetic_identities) {
   ASSERT_EQUAL_32(0xffffffff, r4);
   ASSERT_EQUAL_32(0xffffffff, r5);
 
+  TEARDOWN();
+}
+
+
+TEST(scratch_register_checks) {
+  // It is unsafe for users to use registers that the MacroAssembler is also
+  // using as scratch registers. This test checks the MacroAssembler's checking
+  // mechanism itself.
+  SETUP();
+  {
+    UseScratchRegisterScope temps(&masm);
+    // 'ip' is a scratch register by default.
+    VIXL_CHECK(masm.GetScratchRegisterList()->GetList() == (1u << ip.GetCode()));
+    VIXL_CHECK(temps.IsAvailable(ip));
+
+    // Integer registers have no complicated aliasing so
+    // masm.AliasesAvailableScratchRegister(reg) == temps.IsAvailable(reg).
+    for (unsigned i = 0; i < kNumberOfRegisters; i++) {
+      Register reg(i);
+      VIXL_CHECK(masm.AliasesAvailableScratchRegister(reg) ==
+                 temps.IsAvailable(reg));
+    }
+  }
+  TEARDOWN();
+}
+
+
+TEST(scratch_register_checks_v) {
+  // It is unsafe for users to use registers that the MacroAssembler is also
+  // using as scratch registers. This test checks the MacroAssembler's checking
+  // mechanism itself.
+  SETUP();
+  {
+    UseScratchRegisterScope temps(&masm);
+    // There is no default floating-point scratch register. Add temps of various
+    // sizes to check handling of aliased registers.
+    VIXL_CHECK(masm.GetScratchVRegisterList()->GetList() == 0);
+    temps.Include(q15);
+    temps.Include(d15);
+    temps.Include(s15);
+    temps.Include(d4);
+    temps.Include(d5);
+    temps.Include(s24);
+    temps.Include(s25);
+    temps.Include(s26);
+    temps.Include(s27);
+    temps.Include(q0);
+    // See VRegisterList for details of the list encoding.
+    VIXL_CHECK(masm.GetScratchVRegisterList()->GetList() ==
+               UINT64_C(0xf0000000cf008f0f));
+    //                    |       ||  || |
+    //                   q15    d15|  || q0
+    //                        s24-s27 |d4-d5
+    //                               s15
+
+    // Simple checks: Included registers are available.
+    VIXL_CHECK(temps.IsAvailable(q15));
+    VIXL_CHECK(temps.IsAvailable(d15));
+    VIXL_CHECK(temps.IsAvailable(s15));
+    VIXL_CHECK(temps.IsAvailable(d4));
+    VIXL_CHECK(temps.IsAvailable(d5));
+    VIXL_CHECK(temps.IsAvailable(s24));
+    VIXL_CHECK(temps.IsAvailable(s25));
+    VIXL_CHECK(temps.IsAvailable(s26));
+    VIXL_CHECK(temps.IsAvailable(s27));
+    VIXL_CHECK(temps.IsAvailable(q0));
+
+    // Each available S register should mark the corresponding D and Q registers
+    // as aliasing an available scratch register.
+    for (unsigned s = 0; s < kNumberOfSRegisters; s++) {
+      if (temps.IsAvailable(SRegister(s))) {
+        VIXL_CHECK(masm.AliasesAvailableScratchRegister(SRegister(s)));
+        VIXL_CHECK(masm.AliasesAvailableScratchRegister(DRegister(s / 2)));
+        VIXL_CHECK(masm.AliasesAvailableScratchRegister(QRegister(s / 4)));
+      } else {
+        // AliasesAvailableScratchRegiters == IsAvailable for S registers.
+        VIXL_CHECK(!masm.AliasesAvailableScratchRegister(SRegister(s)));
+      }
+    }
+
+    // Similar checks for high D registers.
+    unsigned first_high_d_register = kNumberOfSRegisters / 2;
+    for (unsigned d = first_high_d_register; d < kMaxNumberOfDRegisters; d++) {
+      if (temps.IsAvailable(DRegister(d))) {
+        VIXL_CHECK(masm.AliasesAvailableScratchRegister(DRegister(d)));
+        VIXL_CHECK(masm.AliasesAvailableScratchRegister(QRegister(d / 2)));
+      } else {
+        // AliasesAvailableScratchRegiters == IsAvailable for high D registers.
+        VIXL_CHECK(!masm.AliasesAvailableScratchRegister(DRegister(d)));
+      }
+    }
+  }
   TEARDOWN();
 }
 

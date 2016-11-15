@@ -384,7 +384,7 @@ class NeonOperand {
   NeonOperand(const NeonImmediate& imm)  // NOLINT(runtime/explicit)
       : imm_(imm),
         rm_(NoDReg) {}
-  NeonOperand(const CPURegister& rm)  // NOLINT(runtime/explicit)
+  NeonOperand(const VRegister& rm)  // NOLINT(runtime/explicit)
       : imm_(0),
         rm_(rm) {
     VIXL_ASSERT(rm_.IsValid());
@@ -395,9 +395,14 @@ class NeonOperand {
 
   const NeonImmediate& GetNeonImmediate() const { return imm_; }
 
+  VRegister GetRegister() const {
+    VIXL_ASSERT(IsRegister());
+    return rm_;
+  }
+
  protected:
   NeonImmediate imm_;
-  CPURegister rm_;
+  VRegister rm_;
 };
 
 std::ostream& operator<<(std::ostream& os, const NeonOperand& operand);
