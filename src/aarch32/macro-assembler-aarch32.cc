@@ -960,6 +960,21 @@ void MacroAssembler::Delegate(InstructionType type,
                               Register rn,
                               const Operand& operand) {
   // orn orns pkhbt pkhtb rsc rscs sxtab sxtab16 sxtah uxtab uxtab16 uxtah
+
+  if ((type == kSxtab) || (type == kSxtab16) || (type == kSxtah) ||
+      (type == kUxtab) || (type == kUxtab16) || (type == kUxtah) ||
+      (type == kPkhbt) || (type == kPkhtb)) {
+    // TODO: It would be good to be able to convert "type" to a string, so we
+    // can tell the user which instruction is not valid.
+    VIXL_ABORT_WITH_MSG(
+        "The MacroAssembler does not convert "
+        "Sxtab, Sxtab16, Sxtah, Uxtab, Uxtab16, Uxtah, Pkhbt and Pkhtb "
+        "instructions.");
+  }
+
+  // This delegate only handles the following instructions.
+  VIXL_ASSERT((type == kOrn) || (type == kOrns) || (type == kRsc) ||
+              (type == kRscs));
   CONTEXT_SCOPE;
   if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
     InstructionCondRROp shiftop = NULL;
@@ -974,6 +989,8 @@ void MacroAssembler::Delegate(InstructionType type,
         shiftop = &Assembler::asr;
         break;
       case RRX:
+        // A RegisterShiftedRegister operand cannot have a shift of type RRX.
+        VIXL_UNREACHABLE();
         break;
       case ROR:
         shiftop = &Assembler::ror;
@@ -1019,7 +1036,9 @@ void MacroAssembler::Delegate(InstructionType type,
       CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
       return adc(cond, rd, negated_rn, operand);
     }
-    CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
+    // TODO: We shouldn't have to specify how much space the next instruction
+    // needs.
+    CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
     return adcs(cond, rd, negated_rn, operand);
   }
   if (IsUsingA32() && ((type == kOrn) || (type == kOrns))) {
@@ -1040,7 +1059,9 @@ void MacroAssembler::Delegate(InstructionType type,
     }
     scratch = temps.Acquire();
     {
-      CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
+      // TODO: We shouldn't have to specify how much space the next instruction
+      // needs.
+      CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
       mvn(cond, scratch, operand);
     }
     if (type == kOrns) {

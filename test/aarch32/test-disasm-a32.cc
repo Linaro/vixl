@@ -151,6 +151,13 @@ TEST(t32_disassembler_limit2) {
 TEST(macro_assembler_orn) {
   SETUP();
 
+  // - Identities.
+
+  COMPARE_BOTH(Orn(r0, r1, 0),
+               "mvn r0, #0\n");
+  COMPARE_BOTH(Orn(r0, r0, 0xffffffff),
+               "");
+
   // - Immediate form. This form does not need macro-assembler support
   //   for T32.
 
@@ -162,6 +169,26 @@ TEST(macro_assembler_orn) {
   COMPARE_A32(Orn(r0, r0, 1),
               "mvn ip, #1\n"
               "orr r0, ip\n");
+
+  //  - Too large immediate form.
+
+  // TODO: optimize this.
+  COMPARE_A32(Orn(r0, r1, 0x00ffffff),
+              "mvn ip, #4278190080\n"
+              "mvn r0, ip\n"
+              "orr r0, r1, r0\n");
+  COMPARE_T32(Orn(r0, r1, 0x00ffffff),
+              "orr r0, r1, #0xff000000\n");
+
+  COMPARE_A32(Orn(r0, r1, 0xabcd2345),
+              "mov ip, #9029\n"
+              "movt ip, #43981\n"
+              "mvn r0, ip\n"
+              "orr r0, r1, r0\n");
+  COMPARE_T32(Orn(r0, r1, 0xabcd2345),
+              "mov r0, #9029\n"
+              "movt r0, #43981\n"
+              "orn r0, r1, r0\n");
 
   // - Plain register form. This form does not need macro-assembler
   //   support for T32.
@@ -236,9 +263,30 @@ TEST(macro_assembler_t32_rsc) {
               "mvn r0, r0\n"
               "adcs r0, #2\n");
 
+  //  - Too large immediate form.
+
+  // TODO: optimize this.
+  COMPARE_A32(Rsc(r0, r1, 0x00ffffff),
+              "mvn r0, #4278190080\n"
+              "rsc r0, r1, r0\n");
+  COMPARE_T32(Rscs(r0, r1, 0x00ffffff),
+              "mvn r1, r1\n"
+              "mvn r0, #4278190080\n"
+              "adcs r0, r1, r0\n");
+
+  COMPARE_A32(Rsc(r0, r1, 0xabcd2345),
+              "mov r0, #9029\n"
+              "movt r0, #43981\n"
+              "rsc r0, r1, r0\n");
+  COMPARE_T32(Rscs(r0, r1, 0xabcd2345),
+              "mvn r1, r1\n"
+              "mov r0, #9029\n"
+              "movt r0, #43981\n"
+              "adcs r0, r1, r0\n");
+
   // - Plain register form.
 
-  // No need for temporay registers.
+  // No need for temporary registers.
   COMPARE_T32(Rscs(r0, r1, r2),
               "mvn r1, r1\n"
               "adcs r0, r1, r2\n");
@@ -371,18 +419,6 @@ TEST(macro_assembler_Bic) {
 }
 
 
-TEST(macro_assembler_Orn) {
-  SETUP();
-
-  // Identities.
-  COMPARE_BOTH(Orn(r0, r1, 0),
-               "mvn r0, #0\n");
-  COMPARE_BOTH(Orn(r0, r0, 0xffffffff),
-               "");
-  CLEANUP();
-}
-
-
 TEST(macro_assembler_Orr) {
   SETUP();
 
@@ -391,18 +427,6 @@ TEST(macro_assembler_Orr) {
                "mvn r0, #0\n");
   COMPARE_BOTH(Orr(r0, r0, 0),
                "");
-  CLEANUP();
-}
-
-
-TEST(macro_assembler_InstructionCondRROp) {
-  SETUP();
-
-  // Negate the immediate.
-  COMPARE_T32(Orn(r0, r1, 0x00ffffff),
-              "orr r0, r1, #0xff000000\n");
-  COMPARE_T32(Orns(r0, r1, 0x00ffffff),
-              "orrs r0, r1, #0xff000000\n");
   CLEANUP();
 }
 
