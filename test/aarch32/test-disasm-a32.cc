@@ -91,35 +91,43 @@ namespace aarch32 {
   COMPARE_A32(ASM, EXP)                                                        \
   COMPARE_T32(ASM, EXP)
 
-#define NEGATIVE_TEST(ASM, EXP)                                                \
+#ifdef VIXL_NEGATIVE_TESTING
+#define NEGATIVE_TEST(ASM, EXP, TEMPORARILY_ACCEPTED)                          \
   {                                                                            \
     try {                                                                      \
       masm.ASM;                                                                \
       masm.FinalizeCode();                                                     \
-      printf("\nNo exception raised. Expected:\n%s", EXP);                     \
-      abort();                                                                 \
+      if (!TEMPORARILY_ACCEPTED) {                                             \
+        printf("\nNo exception raised. Expected:\n%s", EXP);                   \
+        abort();                                                               \
+      }                                                                        \
     } catch (std::runtime_error e) {                                           \
       const char *msg = e.what();                                              \
-      if (std::strcmp(EXP, msg) != 0) {                                        \
+      if (TEMPORARILY_ACCEPTED) {                                              \
+        printf("\nNegative MacroAssembler test that was temporarily "          \
+               "assembling a deprecated or unpredictable instruction is now "  \
+               "correctly raising an exception. Please update the "            \
+               "test to reflect this.\n");                                     \
+        abort();                                                               \
+      } else if (std::strcmp(EXP, msg) != 0) {                                 \
         printf("\nFound:\n%sExpected:\n%s", msg, EXP);                         \
         abort();                                                               \
       }                                                                        \
     }                                                                          \
   }
 
-#ifdef VIXL_NEGATIVE_TESTING
-#define MUST_FAIL_TEST_A32(ASM, EXP)                                            \
+#define MUST_FAIL_TEST_A32(ASM, EXP)                                           \
   masm.UseA32();                                                               \
-  NEGATIVE_TEST(ASM, EXP)                                                      \
+  NEGATIVE_TEST(ASM, EXP, false)                                               \
   masm.GetBuffer()->Reset();
 
-#define MUST_FAIL_TEST_T32(ASM, EXP)                                            \
+#define MUST_FAIL_TEST_T32(ASM, EXP)                                           \
   masm.UseT32();                                                               \
-  NEGATIVE_TEST(ASM, EXP)                                                      \
+  NEGATIVE_TEST(ASM, EXP, false)                                               \
   masm.GetBuffer()->Reset();
 
-#define MUST_FAIL_TEST_BOTH(ASM, EXP)                                           \
-  MUST_FAIL_TEST_A32(ASM, EXP)                                                  \
+#define MUST_FAIL_TEST_BOTH(ASM, EXP)                                          \
+  MUST_FAIL_TEST_A32(ASM, EXP)                                                 \
   MUST_FAIL_TEST_T32(ASM, EXP)
 #else
 // Skip negative tests.
@@ -990,7 +998,6 @@ TEST(macro_assembler_A32_Vstr_s) {
 
 #undef TEST_VMEMOP
 
-
 #define TEST_SHIFT_T32(Inst, name, offset)       \
   COMPARE_T32(Inst(r0, Operand(r1, LSL, r2)),    \
               "lsl ip, r1, r2\n"                 \
@@ -1124,6 +1131,142 @@ TEST(macro_assembler_Msr) {
 
   CLEANUP();
 }
+
+#ifdef VIXL_NEGATIVE_TESTING
+#define SHOULD_FAIL_TEST_A32(ASM) \
+  masm.UseA32();                  \
+  NEGATIVE_TEST(ASM, "", true)    \
+  masm.GetBuffer()->Reset();
+
+#define SHOULD_FAIL_TEST_T32(ASM) \
+  masm.UseT32();                  \
+  NEGATIVE_TEST(ASM, "", true)    \
+  masm.GetBuffer()->Reset();
+
+#define SHOULD_FAIL_TEST_BOTH(ASM) \
+  SHOULD_FAIL_TEST_A32(ASM)        \
+  SHOULD_FAIL_TEST_T32(ASM)
+#else
+#define SHOULD_FAIL_TEST_A32(ASM) \
+  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
+#define SHOULD_FAIL_TEST_T32(ASM) \
+  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
+#define SHOULD_FAIL_TEST_BOTH(ASM) \
+  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
+#endif
+
+TEST(macro_assembler_PushRegisterList) {
+  SETUP();
+
+  // Allow the test to use all registers.
+  UseScratchRegisterScope temps(&masm);
+  temps.ExcludeAll();
+
+  COMPARE_BOTH(Push(RegisterList(0x1111)),
+               "push {r0,r4,r8,ip}\n");
+
+  COMPARE_BOTH(Push(RegisterList(0x1fff)),
+               "push {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,ip}\n");
+
+  COMPARE_BOTH(Push(RegisterList(0x5fff)),
+               "push {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,ip,lr}\n");
+
+  COMPARE_A32(Push(ne, RegisterList(0x1fff)),
+              "pushne {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,ip}\n");
+
+  COMPARE_T32(Push(ne, RegisterList(0x1fff)),
+              "beq 0x00000006\n"
+              "push {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,ip}\n");
+
+  COMPARE_A32(Push(RegisterList(sp)), "stmdb sp!, {sp}\n");
+
+  // TODO: Clarify behaviour of MacroAssembler vs Assembler with respect to
+  //       deprecated and unpredictable instructions. The tests reflect the
+  //       current behaviour and will need to be updated.
+
+  // Deprecated, but accepted:
+  SHOULD_FAIL_TEST_A32(Push(RegisterList(pc)));
+  // Whereas we don't accept the single-register version:
+  MUST_FAIL_TEST_A32(Push(pc), "Unpredictable instruction\n");
+
+  // For T32, pushing the PC is allowed:
+  COMPARE_T32(Push(pc), "push {pc}\n");
+
+  // Accepted, but stores UNKNOWN value for the SP:
+  SHOULD_FAIL_TEST_A32(Push(RegisterList(r0, sp)));
+
+  // The following use the T1 and A1 encodings for T32 and A32 respectively, and
+  // hence have different preferred disassembly.
+  COMPARE_T32(Push(RegisterList(r0)), "push {r0}\n");
+  COMPARE_A32(Push(RegisterList(r0)), "stmdb sp!, {r0}\n");
+  COMPARE_T32(Push(RegisterList(r7)), "push {r7}\n");
+  COMPARE_A32(Push(RegisterList(r7)), "stmdb sp!, {r7}\n");
+  COMPARE_T32(Push(RegisterList(lr)), "push {lr}\n");
+  COMPARE_A32(Push(RegisterList(lr)), "stmdb sp!, {lr}\n");
+
+  // T2 and A1 encodings, with the same preferred disassembly:
+  COMPARE_BOTH(Push(RegisterList(r8)), "stmdb sp!, {r8}\n");
+
+  // Cannot push the sp and pc in T32 when using a register list.
+  MUST_FAIL_TEST_T32(Push(RegisterList(sp)), "Unimplemented delegate\n");
+  MUST_FAIL_TEST_T32(Push(RegisterList(pc)), "Unimplemented delegate\n");
+
+  CLEANUP();
+}
+
+TEST(macro_assembler_PopRegisterList) {
+  SETUP();
+
+  // Allow the test to use all registers.
+  UseScratchRegisterScope temps(&masm);
+  temps.ExcludeAll();
+
+  COMPARE_BOTH(Pop(RegisterList(0x1111)),
+               "pop {r0,r4,r8,ip}\n");
+
+  COMPARE_BOTH(Pop(RegisterList(0x1fff)),
+               "pop {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,ip}\n");
+
+  COMPARE_BOTH(Pop(RegisterList(0x5fff)),
+               "pop {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,ip,lr}\n");
+
+  COMPARE_A32(Pop(ne, RegisterList(0x1fff)),
+              "popne {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,ip}\n");
+
+  COMPARE_T32(Pop(ne, RegisterList(0x1fff)),
+              "beq 0x00000006\n"
+              "pop {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,ip}\n");
+
+  // TODO: Accepted, but value of SP after the instruction is UNKNOWN:
+  SHOULD_FAIL_TEST_A32(Pop(RegisterList(sp)));
+
+  // Cannot pop the sp in T32 when using a register list.
+  MUST_FAIL_TEST_T32(Pop(RegisterList(sp)), "Unimplemented delegate\n");
+
+  // The following use the T1 and A1 encodings for T32 and A32 respectively, and
+  // hence have different preferred disassembly.
+  COMPARE_T32(Pop(RegisterList(pc)), "pop {pc}\n");
+  COMPARE_A32(Pop(RegisterList(pc)), "ldm sp!, {pc}\n");
+  COMPARE_T32(Pop(RegisterList(r0)), "pop {r0}\n");
+  COMPARE_A32(Pop(RegisterList(r0)), "ldm sp!, {r0}\n");
+  COMPARE_T32(Pop(RegisterList(r7)), "pop {r7}\n");
+  COMPARE_A32(Pop(RegisterList(r7)), "ldm sp!, {r7}\n");
+
+  // T2 and A1 encodings, with the same preferred disassembly:
+  COMPARE_BOTH(Pop(RegisterList(r8)), "ldm sp!, {r8}\n");
+  COMPARE_BOTH(Pop(RegisterList(lr)), "ldm sp!, {lr}\n");
+
+  // TODO: Pushing both the lr and pc should not be allowed by the
+  //       MacroAssembler (deprecated for A32, for T32 they shouldn't both
+  //       be in the list).
+  SHOULD_FAIL_TEST_BOTH(Pop(RegisterList(lr, pc)));
+
+  CLEANUP();
+}
+
+#undef SHOULD_FAIL_TEST_A32
+#undef SHOULD_FAIL_TEST_T32
+#undef SHOULD_FAIL_TEST_BOTH
 
 }  // namespace aarch32
 }  // namespace vixl
