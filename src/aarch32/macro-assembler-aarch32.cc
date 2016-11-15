@@ -1222,9 +1222,17 @@ void MacroAssembler::Delegate(InstructionType type,
                               Register rn,
                               Label* label) {
   // cbz cbnz
+  VIXL_ASSERT((type == kCbz) || (type == kCbnz));
+
   CONTEXT_SCOPE;
   CodeBufferCheckScope scope(this, 2 * kMaxInstructionSizeInBytes);
-  if (IsUsingT32() && rn.IsLow()) {
+  if (IsUsingA32()) {
+    if (type == kCbz) {
+      VIXL_ABORT_WITH_MSG("Cbz is only available for T32.\n");
+    } else {
+      VIXL_ABORT_WITH_MSG("Cbnz is only available for T32.\n");
+    }
+  } else if (rn.IsLow()) {
     switch (type) {
       case kCbnz: {
         Label done;
@@ -1240,23 +1248,6 @@ void MacroAssembler::Delegate(InstructionType type,
         Bind(&done);
         return;
       }
-      default:
-        break;
-    }
-  } else {
-    switch (type) {
-      case kCbnz:
-        // cmp rn, #0
-        // b.ne label
-        cmp(rn, 0);
-        b(ne, label);
-        return;
-      case kCbz:
-        // cmp rn, #0
-        // b.eq label
-        cmp(rn, 0);
-        b(eq, label);
-        return;
       default:
         break;
     }

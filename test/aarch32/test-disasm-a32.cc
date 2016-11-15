@@ -610,5 +610,61 @@ TEST(macro_assembler_too_large_immediate) {
   CLEANUP();
 }
 
+TEST(macro_assembler_Cbz) {
+  SETUP();
+
+  // Cbz/Cbnz are not available in A32 mode.
+  Label label_64(__ GetCursorOffset() + __ GetArchitectureStatePCOffset(), 64);
+  MUST_FAIL_TEST_A32(Cbz(r0, &label_64), "Cbz is only available for T32.\n");
+  MUST_FAIL_TEST_A32(Cbnz(r0, &label_64), "Cbnz is only available for T32.\n");
+
+  // Make sure GetArchitectureStatePCOffset() returns the correct value.
+  __ UseT32();
+  // Largest encodable offset.
+  Label label_126(__ GetCursorOffset() + __ GetArchitectureStatePCOffset(), 126);
+  COMPARE_T32(Cbz(r0, &label_126),
+              "cbz r0, 0x00000082\n");
+  COMPARE_T32(Cbnz(r0, &label_126),
+              "cbnz r0, 0x00000082\n");
+
+  // Offset cannot be encoded.
+  Label label_128(__ GetCursorOffset() + __ GetArchitectureStatePCOffset(), 128);
+  COMPARE_T32(Cbz(r0, &label_128),
+              "cbnz r0, 0x00000004\n"
+              "b 0x00000084\n");
+  COMPARE_T32(Cbnz(r0, &label_128),
+              "cbz r0, 0x00000004\n"
+              "b 0x00000084\n");
+
+  // Offset that cannot be encoded and needs 32-bit branch instruction.
+  Label label_8192(__ GetCursorOffset() + __ GetArchitectureStatePCOffset(), 8192);
+  COMPARE_T32(Cbz(r0, &label_8192),
+              "cbnz r0, 0x00000006\n"
+              "b 0x00002004\n");
+  COMPARE_T32(Cbnz(r0, &label_8192),
+              "cbz r0, 0x00000006\n"
+              "b 0x00002004\n");
+
+  // Negative offset.
+  Label label_neg(__ GetCursorOffset() + __ GetArchitectureStatePCOffset(), -8);
+  COMPARE_T32(Cbz(r0, &label_neg),
+              "cbnz r0, 0x00000004\n"
+              "b 0xfffffffc\n");
+  COMPARE_T32(Cbnz(r0, &label_neg),
+              "cbz r0, 0x00000004\n"
+              "b 0xfffffffc\n");
+
+  // Large negative offset.
+  Label label_neg128(__ GetCursorOffset() + __ GetArchitectureStatePCOffset(), -128);
+  COMPARE_T32(Cbz(r0, &label_neg128),
+              "cbnz r0, 0x00000004\n"
+              "b 0xffffff84\n");
+  COMPARE_T32(Cbnz(r0, &label_neg128),
+              "cbz r0, 0x00000004\n"
+              "b 0xffffff84\n");
+
+  CLEANUP();
+}
+
 }  // namespace aarch32
 }  // namespace vixl
