@@ -323,9 +323,9 @@ TEST(macro_assembler_t32_rsc) {
               "rsc r0, r1, r0\n");
   COMPARE_T32(Rscs(r0, r1, 0xabcd2345),
               "mvn r1, r1\n"
-              "mov r0, #9029\n"
-              "movt r0, #43981\n"
-              "adcs r0, r1, r0\n");
+              "mov r0, #56506\n"
+              "movt r0, #21554\n"
+              "sbcs r0, r1, r0\n");
 
   // - Plain register form.
 
@@ -580,11 +580,119 @@ TEST(macro_assembler_Orr) {
 TEST(macro_assembler_InstructionCondSizeRROp) {
   SETUP();
 
-  // Negate the immediate.
+  // Special case for Orr <-> Orn correspondance.
+
   COMPARE_T32(Orr(r0, r1, 0x00ffffff),
               "orn r0, r1, #0xff000000\n");
   COMPARE_T32(Orrs(r0, r1, 0x00ffffff),
               "orns r0, r1, #0xff000000\n");
+
+  // Encodable immediates.
+
+  COMPARE_A32(Add(r0, r1, -1),
+              "sub r0, r1, #1\n");
+  COMPARE_A32(Adds(r0, r1, -1),
+              "subs r0, r1, #1\n");
+  // 0xffffffff is encodable in a T32 ADD.
+  COMPARE_T32(Add(r0, r1, -1),
+              "add r0, r1, #4294967295\n");
+  COMPARE_T32(Adds(r0, r1, -1),
+              "adds r0, r1, #4294967295\n");
+
+  COMPARE_BOTH(Add(r0, r1, -4),
+              "sub r0, r1, #4\n");
+  COMPARE_BOTH(Adds(r0, r1, -4),
+              "subs r0, r1, #4\n");
+
+  COMPARE_BOTH(Adc(r0, r1, -2),
+              "sbc r0, r1, #1\n");
+  COMPARE_BOTH(Adcs(r0, r1, -2),
+              "sbcs r0, r1, #1\n");
+
+  COMPARE_A32(Sub(r0, r1, -1),
+              "add r0, r1, #1\n");
+  COMPARE_A32(Subs(r0, r1, -1),
+              "adds r0, r1, #1\n");
+  // 0xffffffff is encodable in a T32 SUB.
+  COMPARE_T32(Sub(r0, r1, -1),
+              "sub r0, r1, #4294967295\n");
+  COMPARE_T32(Subs(r0, r1, -1),
+              "subs r0, r1, #4294967295\n");
+
+  COMPARE_BOTH(Sub(r0, r1, -4),
+              "add r0, r1, #4\n");
+  COMPARE_BOTH(Subs(r0, r1, -4),
+              "adds r0, r1, #4\n");
+
+  COMPARE_BOTH(Sbc(r0, r1, -5),
+              "adc r0, r1, #4\n");
+  COMPARE_BOTH(Sbcs(r0, r1, -5),
+              "adcs r0, r1, #4\n");
+
+  // Non-encodable immediates
+
+  COMPARE_BOTH(Adc(r0, r1, 0xabcd),
+               "mov r0, #43981\n"
+               "adc r0, r1, r0\n");
+
+  COMPARE_BOTH(Adc(r0, r1, -0xabcd),
+               "mov r0, #43980\n" // This represents #0xabcd - 1.
+               "sbc r0, r1, r0\n");
+
+  COMPARE_BOTH(Adc(r0, r1, 0x1234abcd),
+               "mov r0, #43981\n"
+               "movt r0, #4660\n"
+               "adc r0, r1, r0\n");
+
+  COMPARE_BOTH(Adc(r0, r1, -0x1234abcd),
+               "mov r0, #43980\n" // This represents #0x1234abcd - 1.
+               "movt r0, #4660\n"
+               "sbc r0, r1, r0\n");
+
+  // Non-encodable immediates with the same source and destination registers.
+
+  COMPARE_BOTH(Sbc(r0, r0, 0xabcd),
+               "mov ip, #43981\n"
+               "sbc r0, ip\n");
+
+  COMPARE_BOTH(Sbc(r0, r0, -0xabcd),
+               "mov ip, #43980\n" // This represents #0xabcd - 1.
+               "adc r0, ip\n");
+
+  COMPARE_BOTH(Sbc(r0, r0, 0x1234abcd),
+               "mov ip, #43981\n"
+               "movt ip, #4660\n"
+               "sbc r0, ip\n");
+
+  COMPARE_BOTH(Sbc(r0, r0, -0x1234abcd),
+               "mov ip, #43980\n" // This represents #0x1234abcd - 1.
+               "movt ip, #4660\n"
+               "adc r0, ip\n");
+
+
+  // Test that we can pass a register shifted register operand in T32.
+
+  COMPARE_T32(Adc(r0, r1, Operand(r2, LSL, r3)),
+              "lsl r0, r2, r3\n"
+              "adc r0, r1, r0\n");
+
+  COMPARE_T32(Add(r3, r2, Operand(r2, ASR, r3)),
+              "asr r3, r2, r3\n"
+              "add r3, r2, r3\n");
+
+  COMPARE_T32(Ands(r3, r2, Operand(r2, LSR, r2)),
+              "lsr r3, r2, r2\n"
+              "ands r3, r2, r3\n");
+
+  COMPARE_T32(Asr(r2, r2, Operand(r2, ROR, r2)),
+              "ror ip, r2, r2\n"
+              "asr r2, ip\n");
+
+  COMPARE_T32(Asr(r2, r2, Operand(r2, ROR, r2)),
+              "ror ip, r2, r2\n"
+              "asr r2, ip\n");
+
+
   CLEANUP();
 }
 

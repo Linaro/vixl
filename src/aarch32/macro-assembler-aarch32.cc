@@ -1117,6 +1117,16 @@ void MacroAssembler::Delegate(InstructionType type,
                               const Operand& operand) {
   // adc adcs add adds and_ ands asr asrs bic bics eor eors lsl lsls lsr lsrs
   // orr orrs ror rors rsb rsbs sbc sbcs sub subs
+
+  VIXL_ASSERT(
+      (type == kAdc) || (type == kAdcs) || (type == kAdd) || (type == kAdds) ||
+      (type == kAnd) || (type == kAnds) || (type == kAsr) || (type == kAsrs) ||
+      (type == kBic) || (type == kBics) || (type == kEor) || (type == kEors) ||
+      (type == kLsl) || (type == kLsls) || (type == kLsr) || (type == kLsrs) ||
+      (type == kOrr) || (type == kOrrs) || (type == kRor) || (type == kRors) ||
+      (type == kRsb) || (type == kRsbs) || (type == kSbc) || (type == kSbcs) ||
+      (type == kSub) || (type == kSubs));
+
   CONTEXT_SCOPE;
   VIXL_ASSERT(size.IsBest());
   if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
@@ -1132,6 +1142,8 @@ void MacroAssembler::Delegate(InstructionType type,
         shiftop = &Assembler::asr;
         break;
       case RRX:
+        // A RegisterShiftedRegister operand cannot have a shift of type RRX.
+        VIXL_UNREACHABLE();
         break;
       case ROR:
         shiftop = &Assembler::ror;
@@ -1170,14 +1182,14 @@ void MacroAssembler::Delegate(InstructionType type,
     }
     if (imm < 0) {
       InstructionCondSizeRROp asmcb = NULL;
+      // Add and sub are equivalent using an arithmetic negation:
+      //   add rd, rn, #imm <-> sub rd, rn, - #imm
+      // Add and sub with carry are equivalent using a bitwise NOT:
+      //   adc rd, rn, #imm <-> sbc rd, rn, NOT #imm
       switch (type) {
         case kAdd:
           asmcb = &Assembler::sub;
           imm = -imm;
-          break;
-        case kAdc:
-          asmcb = &Assembler::sbc;
-          imm = ~imm;
           break;
         case kAdds:
           asmcb = &Assembler::subs;
@@ -1187,13 +1199,25 @@ void MacroAssembler::Delegate(InstructionType type,
           asmcb = &Assembler::add;
           imm = -imm;
           break;
+        case kSubs:
+          asmcb = &Assembler::adds;
+          imm = -imm;
+          break;
+        case kAdc:
+          asmcb = &Assembler::sbc;
+          imm = ~imm;
+          break;
+        case kAdcs:
+          asmcb = &Assembler::sbcs;
+          imm = ~imm;
+          break;
         case kSbc:
           asmcb = &Assembler::adc;
           imm = ~imm;
           break;
-        case kSubs:
-          asmcb = &Assembler::adds;
-          imm = -imm;
+        case kSbcs:
+          asmcb = &Assembler::adcs;
+          imm = ~imm;
           break;
         default:
           break;
