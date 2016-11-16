@@ -639,10 +639,13 @@ class SRegisterList {
       : first_(first.GetCode()), length_(length) {
     VIXL_ASSERT(length >= 0);
   }
-  const SRegister& GetFirstSRegister() const { return first_; }
-  const SRegister GetLastSRegister() const {
-    return SRegister((first_.GetCode() + length_ - 1) % kNumberOfSRegisters);
+  SRegister GetSRegister(int n) const {
+    VIXL_ASSERT(n >= 0);
+    VIXL_ASSERT(n < length_);
+    return SRegister((first_.GetCode() + n) % kNumberOfSRegisters);
   }
+  const SRegister& GetFirstSRegister() const { return first_; }
+  SRegister GetLastSRegister() const { return GetSRegister(length_ - 1); }
   int GetLength() const { return length_; }
 };
 
@@ -658,10 +661,13 @@ class DRegisterList {
       : first_(first.GetCode()), length_(length) {
     VIXL_ASSERT(length >= 0);
   }
-  const DRegister& GetFirstDRegister() const { return first_; }
-  const DRegister GetLastDRegister() const {
-    return DRegister((first_.GetCode() + length_ - 1) % kMaxNumberOfDRegisters);
+  DRegister GetDRegister(int n) const {
+    VIXL_ASSERT(n >= 0);
+    VIXL_ASSERT(n < length_);
+    return DRegister((first_.GetCode() + n) % kMaxNumberOfDRegisters);
   }
+  const DRegister& GetFirstDRegister() const { return first_; }
+  DRegister GetLastDRegister() const { return GetDRegister(length_ - 1); }
   int GetLength() const { return length_; }
 };
 
@@ -672,66 +678,70 @@ enum SpacingType { kSingle, kDouble };
 enum TransferType { kMultipleLanes, kOneLane, kAllLanes };
 
 class NeonRegisterList {
-  DRegister first_, last_;
+  DRegister first_;
   SpacingType spacing_;
   TransferType type_;
   int lane_;
+  int length_;
 
  public:
   NeonRegisterList(DRegister reg, TransferType type)
       : first_(reg.GetCode()),
-        last_(reg.GetCode()),
         spacing_(kSingle),
         type_(type),
-        lane_(-1) {
+        lane_(-1),
+        length_(1) {
     VIXL_ASSERT(type_ != kOneLane);
   }
   NeonRegisterList(DRegister reg, int lane)
       : first_(reg.GetCode()),
-        last_(reg.GetCode()),
         spacing_(kSingle),
         type_(kOneLane),
-        lane_(lane) {
+        lane_(lane),
+        length_(1) {
     VIXL_ASSERT((lane_ >= 0) && (lane_ < 4));
   }
   NeonRegisterList(DRegister first,
                    DRegister last,
                    SpacingType spacing,
                    TransferType type)
-      : first_(first.GetCode()),
-        last_(last.GetCode()),
-        spacing_(spacing),
-        type_(type),
-        lane_(-1) {
-    VIXL_ASSERT(type_ != kOneLane);
-    VIXL_ASSERT(first_.GetCode() <= last_.GetCode());
-    VIXL_ASSERT(GetLength() <= 4);
-    VIXL_ASSERT((spacing_ == kSingle) ||
-                (((last_.GetCode() - first_.GetCode()) & 1) == 0));
+      : first_(first.GetCode()), spacing_(spacing), type_(type), lane_(-1) {
+    VIXL_ASSERT(type != kOneLane);
+    VIXL_ASSERT(first.GetCode() <= last.GetCode());
+
+    int range = last.GetCode() - first.GetCode();
+    VIXL_ASSERT(IsSingleSpaced() || IsMultiple(range, 2));
+    length_ = (IsDoubleSpaced() ? (range / 2) : range) + 1;
+
+    VIXL_ASSERT(length_ <= 4);
   }
   NeonRegisterList(DRegister first,
                    DRegister last,
                    SpacingType spacing,
                    int lane)
       : first_(first.GetCode()),
-        last_(last.GetCode()),
         spacing_(spacing),
         type_(kOneLane),
         lane_(lane) {
-    VIXL_ASSERT((lane_ >= 0) && (lane_ < 4));
-    VIXL_ASSERT(first_.GetCode() <= last_.GetCode());
-    VIXL_ASSERT(GetLength() <= 4);
-    VIXL_ASSERT((spacing_ == kSingle) ||
-                (((last_.GetCode() - first_.GetCode()) & 1) == 0));
+    VIXL_ASSERT((lane >= 0) && (lane < 4));
+    VIXL_ASSERT(first.GetCode() <= last.GetCode());
+
+    int range = last.GetCode() - first.GetCode();
+    VIXL_ASSERT(IsSingleSpaced() || IsMultiple(range, 2));
+    length_ = (IsDoubleSpaced() ? (range / 2) : range) + 1;
+
+    VIXL_ASSERT(length_ <= 4);
+  }
+  DRegister GetDRegister(int n) const {
+    VIXL_ASSERT(n >= 0);
+    VIXL_ASSERT(n < length_);
+    unsigned code = first_.GetCode() + (IsDoubleSpaced() ? (2 * n) : n);
+    VIXL_ASSERT(code < kMaxNumberOfDRegisters);
+    return DRegister(code);
   }
   const DRegister& GetFirstDRegister() const { return first_; }
-  const DRegister& GetLastDRegister() const { return last_; }
-  uint32_t GetLength() const {
-    uint32_t length =
-        (last_.GetCode() - first_.GetCode()) % kMaxNumberOfDRegisters;
-    if (spacing_ == kDouble) length /= 2;
-    return 1 + length;
-  }
+  DRegister GetLastDRegister() const { return GetDRegister(length_ - 1); }
+  int GetLength() const { return length_; }
   bool IsSingleSpaced() const { return spacing_ == kSingle; }
   bool IsDoubleSpaced() const { return spacing_ == kDouble; }
   bool IsTransferAllLanes() const { return type_ == kAllLanes; }
