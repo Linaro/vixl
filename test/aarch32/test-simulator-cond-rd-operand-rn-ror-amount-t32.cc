@@ -683,9 +683,9 @@ typedef void (MacroAssembler::*Fn)(Condition cond,
                                    Register rd,
                                    const Operand& op);
 
-static void TestHelper(Fn instruction,
-                       const char* mnemonic,
-                       const TestResult reference[]) {
+void TestHelper(Fn instruction,
+                const char* mnemonic,
+                const TestResult reference[]) {
   SETUP();
   masm.UseT32();
   START();
@@ -874,6 +874,8 @@ static void TestHelper(Fn instruction,
 }
 
 // Instantiate tests for each instruction in the list.
+// TODO: Remove this limitation by having a sandboxing mechanism.
+#if defined(VIXL_HOST_POINTER_32)
 #define TEST(mnemonic)                                                      \
   void Test_##mnemonic() {                                                  \
     TestHelper(&MacroAssembler::mnemonic, #mnemonic, kReference##mnemonic); \
@@ -881,6 +883,17 @@ static void TestHelper(Fn instruction,
   Test test_##mnemonic(                                                     \
       "AARCH32_SIMULATOR_COND_RD_OPERAND_RN_ROR_AMOUNT_T32_" #mnemonic,     \
       &Test_##mnemonic);
+#else
+#define TEST(mnemonic)                                                  \
+  void Test_##mnemonic() {                                              \
+    VIXL_WARNING("This test can only run on a 32-bit host.\n");         \
+    USE(TestHelper);                                                    \
+  }                                                                     \
+  Test test_##mnemonic(                                                 \
+      "AARCH32_SIMULATOR_COND_RD_OPERAND_RN_ROR_AMOUNT_T32_" #mnemonic, \
+      &Test_##mnemonic);
+#endif
+
 FOREACH_INSTRUCTION(TEST)
 #undef TEST
 
