@@ -547,7 +547,13 @@ class VRegisterList {
   explicit VRegisterList(uint64_t list) : list_(list) {}
   uint64_t GetList() const { return list_; }
   void SetList(uint64_t list) { list_ = list; }
-  bool Includes(const VRegister& reg) const {
+  // Because differently-sized V registers overlap with one another, there is no
+  // way to implement a single 'Includes' function in a way that is unsurprising
+  // for all existing uses.
+  bool IncludesAllOf(const VRegister& reg) const {
+    return (list_ & RegisterToList(reg)) == RegisterToList(reg);
+  }
+  bool IncludesAliasOf(const VRegister& reg) const {
     return (list_ & RegisterToList(reg)) != 0;
   }
   void Combine(const VRegisterList& other) { list_ |= other.GetList(); }
@@ -615,9 +621,11 @@ class VRegisterList {
   // Bitfield representation of all registers in the list.
   // (0x3 for d0, 0xc0 for d1, 0x30 for d2, ...). We have one, two or four bits
   // per register according to their size. This way we can make sure that we
-  // account for overlapping registers. A register is included in this list if
-  // any of its bits are set.  For example, adding s3 to the list implies d1 and
-  // q0.
+  // account for overlapping registers.
+  // A register is wholly included in this list only if all of its bits are set.
+  // A register is aliased by the list if at least one of its bits are set.
+  // The IncludesAllOf and IncludesAliasOf helpers are provided to make this
+  // distinction clear.
   uint64_t list_;
 };
 

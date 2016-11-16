@@ -1827,40 +1827,60 @@ TEST(printf2) {
 
 TEST(use_scratch_register_scope_v_registers) {
   SETUP();
-
-  START();
   {
     UseScratchRegisterScope temps(&masm);
     temps.Include(VRegisterList(q0, q1, q2, q3));
 
-    QRegister should_be_q0 = temps.AcquireQ();
-    VRegister should_be_d2 = temps.AcquireV(64);
-    SRegister should_be_s6 = temps.AcquireS();
-    VRegister should_be_q2 = temps.AcquireV(128);
-    DRegister should_be_d6 = temps.AcquireD();
+    // This test assumes that low-numbered registers are allocated first. The
+    // implementation is allowed to use a different strategy; if it does, the
+    // test will need to be updated.
+    // TODO: Write more flexible (and thorough) tests.
 
-    __ Mov(r0, 0x12);
-    __ Mov(r1, 0x34);
-    __ Mov(r2, 0x56);
-    __ Mov(r3, 0x78);
-    __ Mov(r4, 0x9a);
+    VIXL_CHECK(q0.Is(temps.AcquireQ()));
+    VIXL_CHECK(!temps.IsAvailable(q0));
+    VIXL_CHECK(!temps.IsAvailable(d0));
+    VIXL_CHECK(!temps.IsAvailable(d1));
+    VIXL_CHECK(!temps.IsAvailable(s0));
+    VIXL_CHECK(!temps.IsAvailable(s1));
+    VIXL_CHECK(!temps.IsAvailable(s2));
+    VIXL_CHECK(!temps.IsAvailable(s3));
 
-    __ Vdup(Untyped32, should_be_q0, r0);
-    __ Vdup(Untyped32, should_be_d2.D(), r1);
-    __ Vmov(should_be_s6, r2);
-    __ Vdup(Untyped32, should_be_q2.Q(), r3);
-    __ Vdup(Untyped32, should_be_d6, r4);
+    VIXL_CHECK(d2.Is(temps.AcquireV(64)));
+    VIXL_CHECK(!temps.IsAvailable(q1));
+    VIXL_CHECK(!temps.IsAvailable(d2));
+    VIXL_CHECK(temps.IsAvailable(d3));
+    VIXL_CHECK(!temps.IsAvailable(s4));
+    VIXL_CHECK(!temps.IsAvailable(s5));
+    VIXL_CHECK(temps.IsAvailable(s6));
+    VIXL_CHECK(temps.IsAvailable(s7));
+
+    VIXL_CHECK(s6.Is(temps.AcquireS()));
+    VIXL_CHECK(!temps.IsAvailable(d3));
+    VIXL_CHECK(!temps.IsAvailable(s6));
+    VIXL_CHECK(temps.IsAvailable(s7));
+
+    VIXL_CHECK(q2.Is(temps.AcquireV(128)));
+    VIXL_CHECK(!temps.IsAvailable(q2));
+    VIXL_CHECK(!temps.IsAvailable(d4));
+    VIXL_CHECK(!temps.IsAvailable(d5));
+    VIXL_CHECK(!temps.IsAvailable(s8));
+    VIXL_CHECK(!temps.IsAvailable(s9));
+    VIXL_CHECK(!temps.IsAvailable(s10));
+    VIXL_CHECK(!temps.IsAvailable(s11));
+    VIXL_CHECK(temps.IsAvailable(s7));
+
+    VIXL_CHECK(d6.Is(temps.AcquireD()));
+    VIXL_CHECK(!temps.IsAvailable(q3));
+    VIXL_CHECK(!temps.IsAvailable(d6));
+    VIXL_CHECK(temps.IsAvailable(d7));
+    VIXL_CHECK(!temps.IsAvailable(s12));
+    VIXL_CHECK(!temps.IsAvailable(s13));
+    VIXL_CHECK(temps.IsAvailable(s14));
+    VIXL_CHECK(temps.IsAvailable(s15));
+    VIXL_CHECK(temps.IsAvailable(s7));
+
+    VIXL_CHECK(s7.Is(temps.AcquireS()));
   }
-  END();
-
-  RUN();
-
-  ASSERT_EQUAL_128(0x0000001200000012, 0x0000001200000012, q0);
-  ASSERT_EQUAL_64(0x0000003400000034, d2);
-  ASSERT_EQUAL_32(0x00000056, s6);
-  ASSERT_EQUAL_128(0x0000007800000078, 0x0000007800000078, q2);
-  ASSERT_EQUAL_64(0x0000009a0000009a, d6);
-
   TEARDOWN();
 }
 

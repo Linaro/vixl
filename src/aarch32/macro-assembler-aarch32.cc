@@ -67,7 +67,7 @@ bool UseScratchRegisterScope::IsAvailable(const Register& reg) const {
 bool UseScratchRegisterScope::IsAvailable(const VRegister& reg) const {
   VIXL_ASSERT(available_vfp_ != NULL);
   VIXL_ASSERT(reg.IsValid());
-  return available_vfp_->Includes(reg);
+  return available_vfp_->IncludesAllOf(reg);
 }
 
 
@@ -133,7 +133,7 @@ void UseScratchRegisterScope::Release(const Register& reg) {
 void UseScratchRegisterScope::Release(const VRegister& reg) {
   VIXL_ASSERT(available_vfp_ != NULL);
   VIXL_ASSERT(reg.IsValid());
-  VIXL_ASSERT(!available_vfp_->Includes(reg));
+  VIXL_ASSERT(!available_vfp_->IncludesAliasOf(reg));
   available_vfp_->Combine(reg);
 }
 
