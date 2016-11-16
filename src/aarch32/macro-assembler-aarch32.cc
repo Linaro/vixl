@@ -390,7 +390,7 @@ void MacroAssembler::Switch(Register reg, JumpTableBase* table) {
         Ldr(scratch, MemOperand(scratch));
         break;
       default:
-        VIXL_ABORT_WITH_MSG("Unsupported jump table size");
+        VIXL_ABORT_WITH_MSG("Unsupported jump table size.\n");
     }
     // Emit whatever needs to be emitted if we want to
     // correctly rescord the position of the branch instruction
@@ -1199,7 +1199,7 @@ void MacroAssembler::Delegate(InstructionType type,
           break;
       }
       if (asmcb != NULL) {
-        CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
+        CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
         return (this->*asmcb)(cond, size, rd, rn, Operand(imm));
       }
     }
@@ -2329,19 +2329,22 @@ void MacroAssembler::Delegate(InstructionType type,
     const Register& rn = operand.GetBaseRegister();
     AddrMode addrmode = operand.GetAddrMode();
     int32_t offset = operand.GetOffsetImmediate();
+    VIXL_ASSERT(((offset > 0) && operand.GetSign().IsPlus()) ||
+                ((offset < 0) && operand.GetSign().IsMinus()) || (offset == 0));
+    if (rn.IsPC()) {
+      VIXL_ABORT_WITH_MSG(
+          "The MacroAssembler does not convert vldr or vstr with a PC base "
+          "register.\n");
+    }
     switch (addrmode) {
       case PreIndex:
         // Pre-Indexed case:
         // vldr.32 s0, [r1, 12345]! will translate into
         //   add r1, 12345
         //   vldr.32 s0, [r1]
-        {
-          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          if (operand.GetSign().IsPlus()) {
-            add(cond, rn, rn, offset);
-          } else {
-            sub(cond, rn, rn, offset);
-          }
+        if (offset != 0) {
+          CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+          add(cond, rn, rn, offset);
         }
         {
           CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
@@ -2356,12 +2359,9 @@ void MacroAssembler::Delegate(InstructionType type,
         //   add ip, r1, 12345
         //   vldr.32 s0, [ip]
         {
-          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          if (operand.GetSign().IsPlus()) {
-            add(cond, scratch, rn, offset);
-          } else {
-            sub(cond, scratch, rn, offset);
-          }
+          VIXL_ASSERT(offset != 0);
+          CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+          add(cond, scratch, rn, offset);
         }
         {
           CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
@@ -2380,13 +2380,9 @@ void MacroAssembler::Delegate(InstructionType type,
           CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
           (this->*instruction)(cond, dt, rd, MemOperand(rn, Offset));
         }
-        {
-          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          if (operand.GetSign().IsPlus()) {
-            add(cond, rn, rn, offset);
-          } else {
-            sub(cond, rn, rn, offset);
-          }
+        if (offset != 0) {
+          CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+          add(cond, rn, rn, offset);
         }
         return;
     }
@@ -2500,19 +2496,22 @@ void MacroAssembler::Delegate(InstructionType type,
     const Register& rn = operand.GetBaseRegister();
     AddrMode addrmode = operand.GetAddrMode();
     int32_t offset = operand.GetOffsetImmediate();
+    VIXL_ASSERT(((offset > 0) && operand.GetSign().IsPlus()) ||
+                ((offset < 0) && operand.GetSign().IsMinus()) || (offset == 0));
+    if (rn.IsPC()) {
+      VIXL_ABORT_WITH_MSG(
+          "The MacroAssembler does not convert vldr or vstr with a PC base "
+          "register.\n");
+    }
     switch (addrmode) {
       case PreIndex:
         // Pre-Indexed case:
         // vldr.64 d0, [r1, 12345]! will translate into
         //   add r1, 12345
         //   vldr.64 d0, [r1]
-        {
-          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          if (operand.GetSign().IsPlus()) {
-            add(cond, rn, rn, offset);
-          } else {
-            sub(cond, rn, rn, offset);
-          }
+        if (offset != 0) {
+          CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+          add(cond, rn, rn, offset);
         }
         {
           CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
@@ -2527,12 +2526,9 @@ void MacroAssembler::Delegate(InstructionType type,
         //   add ip, r1, 12345
         //   vldr.32 s0, [ip]
         {
-          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          if (operand.GetSign().IsPlus()) {
-            add(cond, scratch, rn, offset);
-          } else {
-            sub(cond, scratch, rn, offset);
-          }
+          VIXL_ASSERT(offset != 0);
+          CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+          add(cond, scratch, rn, offset);
         }
         {
           CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
@@ -2551,13 +2547,9 @@ void MacroAssembler::Delegate(InstructionType type,
           CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
           (this->*instruction)(cond, dt, rd, MemOperand(rn, Offset));
         }
-        {
-          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          if (operand.GetSign().IsPlus()) {
-            add(cond, rn, rn, offset);
-          } else {
-            sub(cond, rn, rn, offset);
-          }
+        if (offset != 0) {
+          CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+          add(cond, rn, rn, offset);
         }
         return;
     }

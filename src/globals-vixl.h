@@ -94,10 +94,10 @@ const int kBitsPerByte = 8;
     throw std::runtime_error("Check failed"); \
   }
 #else
-#define VIXL_ABORT()                              \
-  do {                                            \
-    printf("in %s, line %i", __FILE__, __LINE__); \
-    abort();                                      \
+#define VIXL_ABORT()                                \
+  do {                                              \
+    printf("in %s, line %i\n", __FILE__, __LINE__); \
+    abort();                                        \
   } while (false)
 #define VIXL_ABORT_WITH_MSG(msg) \
   {                              \
