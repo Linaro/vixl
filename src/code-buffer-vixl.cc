@@ -43,12 +43,16 @@ CodeBuffer::CodeBuffer(size_t capacity)
   if (capacity_ == 0) {
     return;
   }
+#ifdef __APPLE__
+  buffer_ = reinterpret_cast<byte*>(malloc(capacity_));
+#else
   buffer_ = reinterpret_cast<byte*>(mmap(NULL,
                                          capacity,
                                          PROT_READ | PROT_WRITE,
                                          MAP_PRIVATE | MAP_ANONYMOUS,
                                          -1,
                                          0));
+#endif
   VIXL_CHECK(buffer_ != NULL);
   // Aarch64 instructions must be word aligned, we assert the default allocator
   // always returns word align memory.
@@ -71,7 +75,11 @@ CodeBuffer::CodeBuffer(byte* buffer, size_t capacity)
 CodeBuffer::~CodeBuffer() {
   VIXL_ASSERT(!IsDirty());
   if (managed_) {
+#ifdef __APPLE__
+    free(buffer_);
+#else
     munmap(buffer_, capacity_);
+#endif
   }
 }
 
@@ -140,8 +148,13 @@ void CodeBuffer::Grow(size_t new_capacity) {
   VIXL_ASSERT(managed_);
   VIXL_ASSERT(new_capacity > capacity_);
   ptrdiff_t cursor_offset = GetCursorOffset();
+#ifdef __APPLE__
+  buffer_ = static_cast<byte*>(realloc(buffer_, new_capacity));
+  VIXL_CHECK(buffer_ != NULL);
+#else
   buffer_ = static_cast<byte*>(
       mremap(buffer_, capacity_, new_capacity, MREMAP_MAYMOVE));
+#endif
   VIXL_CHECK(buffer_ != MAP_FAILED);
 
   cursor_ = buffer_ + cursor_offset;
