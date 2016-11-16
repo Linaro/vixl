@@ -34,6 +34,10 @@
 #include "aarch32/macro-assembler-aarch32.h"
 #include "aarch32/disasm-aarch32.h"
 
+#ifdef VIXL_NEGATIVE_TESTING
+#include <stdexcept>
+#endif
+
 namespace vixl {
 namespace aarch32 {
 
@@ -87,6 +91,45 @@ namespace aarch32 {
   COMPARE_A32(ASM, EXP)                                                        \
   COMPARE_T32(ASM, EXP)
 
+#define NEGATIVE_TEST(ASM, EXP)                                                \
+  {                                                                            \
+    try {                                                                      \
+      masm.ASM;                                                                \
+      masm.FinalizeCode();                                                     \
+      printf("\nNo exception raised. Expected:\n%s", EXP);                     \
+      abort();                                                                 \
+    } catch (std::runtime_error e) {                                           \
+      const char *msg = e.what();                                              \
+      if (std::strcmp(EXP, msg) != 0) {                                        \
+        printf("\nFound:\n%sExpected:\n%s", msg, EXP);                         \
+        abort();                                                               \
+      }                                                                        \
+    }                                                                          \
+  }
+
+#ifdef VIXL_NEGATIVE_TESTING
+#define MUST_FAIL_TEST_A32(ASM, EXP)                                            \
+  masm.UseA32();                                                               \
+  NEGATIVE_TEST(ASM, EXP)                                                      \
+  masm.GetBuffer()->Reset();
+
+#define MUST_FAIL_TEST_T32(ASM, EXP)                                            \
+  masm.UseT32();                                                               \
+  NEGATIVE_TEST(ASM, EXP)                                                      \
+  masm.GetBuffer()->Reset();
+
+#define MUST_FAIL_TEST_BOTH(ASM, EXP)                                           \
+  MUST_FAIL_TEST_A32(ASM, EXP)                                                  \
+  MUST_FAIL_TEST_T32(ASM, EXP)
+#else
+// Skip negative tests.
+#define MUST_FAIL_TEST_A32(ASM, EXP) \
+  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
+#define MUST_FAIL_TEST_T32(ASM, EXP) \
+  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
+#define MUST_FAIL_TEST_BOTH(ASM, EXP) \
+  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
+#endif
 
 class TestDisassembler : public PrintDisassembler {
  public:
@@ -557,6 +600,15 @@ TEST(macro_assembler_InstructionCondRO) {
   CLEANUP();
 }
 
+
+TEST(macro_assembler_too_large_immediate) {
+  SETUP();
+
+  // Attempting to use a 17-bit immediate with movt.
+  MUST_FAIL_TEST_BOTH(Movt(r0, 0x10000), "`Movt` expects a 16-bit immediate.");
+
+  CLEANUP();
+}
 
 }  // namespace aarch32
 }  // namespace vixl

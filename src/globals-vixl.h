@@ -53,6 +53,9 @@ extern "C" {
 
 #include "platform-vixl.h"
 
+#ifdef VIXL_NEGATIVE_TESTING
+#include <stdexcept>
+#endif
 
 namespace vixl {
 
@@ -68,6 +71,20 @@ const int kBitsPerByte = 8;
 
 }  // namespace vixl
 
+#ifdef VIXL_NEGATIVE_TESTING
+#define VIXL_ABORT()                      \
+  do {                                    \
+    throw std::runtime_error("Aborting"); \
+  } while (false)
+#define VIXL_ABORT_WITH_MSG(msg)   \
+  do {                             \
+    throw std::runtime_error(msg); \
+  } while (false)
+#define VIXL_CHECK(condition)                 \
+  if (!(condition)) {                         \
+    throw std::runtime_error("Check failed"); \
+  }
+#else
 #define VIXL_ABORT()                              \
   do {                                            \
     printf("in %s, line %i", __FILE__, __LINE__); \
@@ -83,6 +100,7 @@ const int kBitsPerByte = 8;
     printf("Assertion: " #condition " in %s, line %i\n", __FILE__, __LINE__); \
     abort();                                                                  \
   }
+#endif
 #ifdef VIXL_DEBUG
 #define VIXL_ASSERT(condition) assert(condition)
 #define VIXL_UNIMPLEMENTED()            \

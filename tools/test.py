@@ -404,8 +404,11 @@ if __name__ == '__main__':
   def ListCombinations(args, options):
     opts_list = map(lambda opt : opt.ArgList(args.__dict__[opt.name]), options)
     return list(itertools.product(*opts_list))
+  # TODO: We should refine the configurations we test by default, instead of
+  #       always testing all possible combinations.
   test_env_combinations = ListCombinations(args, test_environment_options)
   test_build_combinations = ListCombinations(args, test_build_options)
+  test_build_combinations.append(('mode=debug', 'std=c++11', 'negative_testing=on'))
   test_runtime_combinations = ListCombinations(args, test_runtime_options)
 
   for environment_options in test_env_combinations:

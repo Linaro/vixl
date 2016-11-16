@@ -110,6 +110,9 @@ options = {
       'CCFLAGS' : ['-g'],
       'LINKFLAGS' : ['-g']
       },
+    'negative_testing:on' : {
+      'CCFLAGS' : ['-DVIXL_NEGATIVE_TESTING']
+      }
     }
 
 
@@ -183,6 +186,8 @@ vars = Variables()
 vars.AddVariables(
     EnumVariable('mode', 'Build mode',
                  'release', allowed_values=config.build_options_modes),
+    EnumVariable('negative_testing', 'Enable negative testing (needs exceptions)',
+                 'off', allowed_values=['on', 'off']),
     DefaultVariable('symbols', 'Include debugging symbols in the binaries',
                     ['on', 'off']),
     DefaultVariable('target_arch', 'Target architecture',
@@ -197,7 +202,7 @@ vars.AddVariables(
 # set. These are the options that should be reflected in the build directory
 # path.
 options_influencing_build_path = [
-  'target_arch', 'mode', 'symbols', 'CXX', 'std', 'simulator'
+  'target_arch', 'mode', 'symbols', 'CXX', 'std', 'simulator', 'negative_testing'
 ]
 
 
