@@ -516,6 +516,371 @@ TEST(macro_assembler_big_offset) {
 }
 
 
+TEST(macro_assembler_ldrd) {
+  SETUP();
+
+  // - Tests with no offset.
+
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r3)),
+               "ldrd r0, r1, [r3]\n");
+  // Destination registers need to start with a even numbered register on A32.
+  MUST_FAIL_TEST_A32(Ldrd(r1, r2, MemOperand(r3)),
+                     "Unpredictable instruction.\n");
+  COMPARE_T32(Ldrd(r1, r2, MemOperand(r3)),
+              "ldrd r1, r2, [r3]\n");
+  // Registers need to be adjacent on A32.
+  MUST_FAIL_TEST_A32(Ldrd(r0, r2, MemOperand(r1)),
+                     "Ill-formed 'ldrd' instruction.\n");
+  COMPARE_T32(Ldrd(r0, r2, MemOperand(r1)),
+              "ldrd r0, r2, [r1]\n");
+
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2)),
+               "ldrd r0, r1, [r2]\n");
+
+  // - Tests with immediate offsets.
+
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, 1020)),
+               "add r0, r2, #1020\n"
+               "ldrd r0, r1, [r0]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, 1020)),
+               "ldrd r0, r1, [r2, #1020]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, -1020)),
+               "sub r0, r2, #1020\n"
+               "ldrd r0, r1, [r0]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, -1020)),
+               "ldrd r0, r1, [r2, #-1020]\n");
+
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, 0xabcd)),
+               "mov r0, #43981\n"
+               "add r0, r2, r0\n"
+               "ldrd r0, r1, [r0]\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, -0xabcd)),
+               "mov r0, #43981\n"
+               "sub r0, r2, r0\n"
+               "ldrd r0, r1, [r0]\n");
+
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, 0xabcdef)),
+              "mov r0, #52719\n"
+              "movt r0, #171\n"
+              "add r0, r2, r0\n"
+              "ldrd r0, r1, [r0]\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, -0xabcdef)),
+              "mov r0, #52719\n"
+              "movt r0, #171\n"
+              "sub r0, r2, r0\n"
+              "ldrd r0, r1, [r0]\n");
+
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r0, 0xabcd)),
+               "mov r1, #43981\n"
+               "add r1, r0, r1\n"
+               "ldrd r0, r1, [r1]\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r0, -0xabcd)),
+               "mov r1, #43981\n"
+               "sub r1, r0, r1\n"
+               "ldrd r0, r1, [r1]\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r0, 0xabcdef)),
+               "mov r1, #52719\n"
+               "movt r1, #171\n"
+               "add r1, r0, r1\n"
+               "ldrd r0, r1, [r1]\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r0, -0xabcdef)),
+               "mov r1, #52719\n"
+               "movt r1, #171\n"
+               "sub r1, r0, r1\n"
+               "ldrd r0, r1, [r1]\n");
+
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, 0xabcd)),
+               "mov r0, #43981\n"
+               "add r0, r1, r0\n"
+               "ldrd r0, r1, [r0]\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, -0xabcd)),
+               "mov r0, #43981\n"
+               "sub r0, r1, r0\n"
+               "ldrd r0, r1, [r0]\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, 0xabcdef)),
+               "mov r0, #52719\n"
+               "movt r0, #171\n"
+               "add r0, r1, r0\n"
+               "ldrd r0, r1, [r0]\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, -0xabcdef)),
+               "mov r0, #52719\n"
+               "movt r0, #171\n"
+               "sub r0, r1, r0\n"
+               "ldrd r0, r1, [r0]\n");
+
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, 0xabcd, PostIndex)),
+               "ldrd r0, r1, [r2]\n"
+               "mov ip, #43981\n"
+               "add r2, ip\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, -0xabcd, PostIndex)),
+               "ldrd r0, r1, [r2]\n"
+               "mov ip, #43981\n"
+               "sub r2, ip\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, 0xabcdef, PostIndex)),
+               "ldrd r0, r1, [r2]\n"
+               "mov ip, #52719\n"
+               "movt ip, #171\n"
+               "add r2, ip\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, -0xabcdef, PostIndex)),
+               "ldrd r0, r1, [r2]\n"
+               "mov ip, #52719\n"
+               "movt ip, #171\n"
+               "sub r2, ip\n");
+
+  // PostIndex with the same register as base and destination is invalid.
+  MUST_FAIL_TEST_BOTH(Ldrd(r0, r1, MemOperand(r0, 0xabcd, PostIndex)),
+                      "Ill-formed 'ldrd' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Ldrd(r0, r1, MemOperand(r1, 0xabcdef, PostIndex)),
+                      "Ill-formed 'ldrd' instruction.\n");
+
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r0, 0xabcd, PreIndex)),
+               "mov r1, #43981\n"
+               "add r0, r1\n"
+               "ldrd r0, r1, [r0]\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r0, -0xabcd, PreIndex)),
+               "mov r1, #43981\n"
+               "sub r0, r1\n"
+               "ldrd r0, r1, [r0]\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, 0xabcdef, PreIndex)),
+               "mov r0, #52719\n"
+               "movt r0, #171\n"
+               "add r1, r0\n"
+               "ldrd r0, r1, [r1]\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, -0xabcdef, PreIndex)),
+               "mov r0, #52719\n"
+               "movt r0, #171\n"
+               "sub r1, r0\n"
+               "ldrd r0, r1, [r1]\n");
+
+  // - Tests with register offsets.
+
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, r3)),
+              "ldrd r0, r1, [r2, r3]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, r3)),
+              "add r0, r2, r3\n"
+              "ldrd r0, r1, [r0]\n");
+
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, minus, r3)),
+              "ldrd r0, r1, [r2, -r3]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, minus, r3)),
+              "sub r0, r2, r3\n"
+              "ldrd r0, r1, [r0]\n");
+
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, r3, PostIndex)),
+              "ldrd r0, r1, [r2], r3\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, r3, PostIndex)),
+              "ldrd r0, r1, [r2]\n"
+              "add r2, r3\n");
+
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, minus, r3, PostIndex)),
+              "ldrd r0, r1, [r2], -r3\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, minus, r3, PostIndex)),
+              "ldrd r0, r1, [r2]\n"
+              "sub r2, r3\n");
+
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, r3, PreIndex)),
+              "ldrd r0, r1, [r2, r3]!\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, r3, PreIndex)),
+              "add r2, r3\n"
+              "ldrd r0, r1, [r2]\n");
+
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, minus, r3, PreIndex)),
+              "ldrd r0, r1, [r2, -r3]!\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, minus, r3, PreIndex)),
+              "sub r2, r3\n"
+              "ldrd r0, r1, [r2]\n");
+
+  // - We do not support register shifted base register operands with LDRD.
+
+  MUST_FAIL_TEST_BOTH(Ldrd(r0, r1, MemOperand(r2, r3, LSL, 4)),
+                      "Ill-formed 'ldrd' instruction.\n");
+
+
+  CLEANUP();
+}
+
+TEST(macro_assembler_strd) {
+  SETUP();
+
+  // - Tests with no offset.
+
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r3)),
+               "strd r0, r1, [r3]\n");
+  // Destination registers need to start with a even numbered register on A32.
+  MUST_FAIL_TEST_A32(Strd(r1, r2, MemOperand(r3)),
+                     "Unpredictable instruction.\n");
+  COMPARE_T32(Strd(r1, r2, MemOperand(r3)),
+              "strd r1, r2, [r3]\n");
+  // Registers need to be adjacent on A32.
+  MUST_FAIL_TEST_A32(Strd(r0, r2, MemOperand(r1)),
+                     "Ill-formed 'strd' instruction.\n");
+  COMPARE_T32(Strd(r0, r2, MemOperand(r1)),
+              "strd r0, r2, [r1]\n");
+
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2)),
+               "strd r0, r1, [r2]\n");
+
+  // - Tests with immediate offsets.
+
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, 1020)),
+              "add ip, r2, #1020\n"
+              "strd r0, r1, [ip]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, 1020)),
+              "strd r0, r1, [r2, #1020]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, -1020)),
+              "sub ip, r2, #1020\n"
+              "strd r0, r1, [ip]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, -1020)),
+              "strd r0, r1, [r2, #-1020]\n");
+
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, 0xabcd)),
+               "mov ip, #43981\n"
+               "add ip, r2, ip\n"
+               "strd r0, r1, [ip]\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, -0xabcd)),
+               "mov ip, #43981\n"
+               "sub ip, r2, ip\n"
+               "strd r0, r1, [ip]\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, 0xabcdef)),
+               "mov ip, #52719\n"
+               "movt ip, #171\n"
+               "add ip, r2, ip\n"
+               "strd r0, r1, [ip]\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, -0xabcdef)),
+               "mov ip, #52719\n"
+               "movt ip, #171\n"
+               "sub ip, r2, ip\n"
+               "strd r0, r1, [ip]\n");
+
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r0, 0xabcd)),
+               "mov ip, #43981\n"
+               "add ip, r0, ip\n"
+               "strd r0, r1, [ip]\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r0, -0xabcd)),
+               "mov ip, #43981\n"
+               "sub ip, r0, ip\n"
+               "strd r0, r1, [ip]\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r0, 0xabcdef)),
+               "mov ip, #52719\n"
+               "movt ip, #171\n"
+               "add ip, r0, ip\n"
+               "strd r0, r1, [ip]\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r0, -0xabcdef)),
+               "mov ip, #52719\n"
+               "movt ip, #171\n"
+               "sub ip, r0, ip\n"
+               "strd r0, r1, [ip]\n");
+
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, 0xabcd)),
+               "mov ip, #43981\n"
+               "add ip, r1, ip\n"
+               "strd r0, r1, [ip]\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, -0xabcd)),
+               "mov ip, #43981\n"
+               "sub ip, r1, ip\n"
+               "strd r0, r1, [ip]\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, 0xabcdef)),
+               "mov ip, #52719\n"
+               "movt ip, #171\n"
+               "add ip, r1, ip\n"
+               "strd r0, r1, [ip]\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, -0xabcdef)),
+               "mov ip, #52719\n"
+               "movt ip, #171\n"
+               "sub ip, r1, ip\n"
+               "strd r0, r1, [ip]\n");
+
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, 0xabcd, PostIndex)),
+               "strd r0, r1, [r2]\n"
+               "mov ip, #43981\n"
+               "add r2, ip\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, -0xabcd, PostIndex)),
+               "strd r0, r1, [r2]\n"
+               "mov ip, #43981\n"
+               "sub r2, ip\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, 0xabcdef, PostIndex)),
+               "strd r0, r1, [r2]\n"
+               "mov ip, #52719\n"
+               "movt ip, #171\n"
+               "add r2, ip\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, -0xabcdef, PostIndex)),
+               "strd r0, r1, [r2]\n"
+               "mov ip, #52719\n"
+               "movt ip, #171\n"
+               "sub r2, ip\n");
+
+  // PostIndex with the same register as base and source is invalid.
+  MUST_FAIL_TEST_BOTH(Strd(r0, r1, MemOperand(r0, 0xabcd, PostIndex)),
+                      "Ill-formed 'strd' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Strd(r0, r1, MemOperand(r1, 0xabcdef, PostIndex)),
+                      "Ill-formed 'strd' instruction.\n");
+
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r0, 0xabcd, PreIndex)),
+               "mov ip, #43981\n"
+               "add r0, ip\n"
+               "strd r0, r1, [r0]\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r0, -0xabcd, PreIndex)),
+               "mov ip, #43981\n"
+               "sub r0, ip\n"
+               "strd r0, r1, [r0]\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, 0xabcdef, PreIndex)),
+               "mov ip, #52719\n"
+               "movt ip, #171\n"
+               "add r1, ip\n"
+               "strd r0, r1, [r1]\n");
+  COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, -0xabcdef, PreIndex)),
+               "mov ip, #52719\n"
+               "movt ip, #171\n"
+               "sub r1, ip\n"
+               "strd r0, r1, [r1]\n");
+
+  // - Tests with register offsets.
+
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, r3)),
+              "strd r0, r1, [r2, r3]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, r3)),
+              "add ip, r2, r3\n"
+              "strd r0, r1, [ip]\n");
+
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, minus, r3)),
+              "strd r0, r1, [r2, -r3]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, minus, r3)),
+              "sub ip, r2, r3\n"
+              "strd r0, r1, [ip]\n");
+
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, r3, PostIndex)),
+              "strd r0, r1, [r2], r3\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, r3, PostIndex)),
+              "strd r0, r1, [r2]\n"
+              "add r2, r3\n");
+
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, minus, r3, PostIndex)),
+              "strd r0, r1, [r2], -r3\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, minus, r3, PostIndex)),
+              "strd r0, r1, [r2]\n"
+              "sub r2, r3\n");
+
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, r3, PreIndex)),
+              "strd r0, r1, [r2, r3]!\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, r3, PreIndex)),
+              "add r2, r3\n"
+              "strd r0, r1, [r2]\n");
+
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, minus, r3, PreIndex)),
+              "strd r0, r1, [r2, -r3]!\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, minus, r3, PreIndex)),
+              "sub r2, r3\n"
+              "strd r0, r1, [r2]\n");
+
+  // - We do not support register shifted base register operands with LDRD.
+
+  MUST_FAIL_TEST_BOTH(Strd(r0, r1, MemOperand(r2, r3, LSL, 4)),
+                      "Ill-formed 'strd' instruction.\n");
+
+  CLEANUP();
+}
+
+
 TEST(macro_assembler_wide_immediate) {
   SETUP();
 
