@@ -775,7 +775,6 @@ TEST(macro_assembler_Cbz) {
 }
 
 
-// TODO: Add ARM tests to this.
 #define TEST_VMEMOP(MACRO_OP, STRING_OP, DST_REG)                       \
   SETUP();                                                              \
                                                                         \
@@ -868,19 +867,124 @@ TEST(macro_assembler_Cbz) {
               "sub r10, ip\n");                                         \
   CLEANUP();
 
-TEST(macro_assembler_Vldr_d) {
+TEST(macro_assembler_T32_Vldr_d) {
   TEST_VMEMOP(Vldr, "vldr ", d0);
 }
 
-TEST(macro_assembler_Vstr_d) {
+TEST(macro_assembler_T32_Vstr_d) {
   TEST_VMEMOP(Vstr, "vstr ", d1);
 }
 
-TEST(macro_assembler_Vldr_s) {
+TEST(macro_assembler_T32_Vldr_s) {
   TEST_VMEMOP(Vldr, "vldr ", s2);
 }
 
-TEST(macro_assembler_Vstr_s) {
+TEST(macro_assembler_T32_Vstr_s) {
+  TEST_VMEMOP(Vstr, "vstr ", s3);
+}
+
+#undef TEST_VMEMOP
+
+#define TEST_VMEMOP(MACRO_OP, STRING_OP, DST_REG)                       \
+  SETUP();                                                              \
+                                                                        \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r8, 137)),                   \
+              "add ip, r8, #137\n"                                      \
+              STRING_OP # DST_REG ", [ip]\n");                          \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r8, 274)),                   \
+              "mov ip, #274\n"                                          \
+              "add ip, r8, ip\n"                                        \
+              STRING_OP # DST_REG ", [ip]\n");                          \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r8, 65623)),                 \
+              "mov ip, #87\n"                                           \
+              "movt ip, #1\n"                                           \
+              "add ip, r8, ip\n"                                        \
+              STRING_OP # DST_REG ", [ip]\n");                          \
+                                                                        \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r8, -137)),                  \
+              "sub ip, r8, #137\n"                                      \
+              STRING_OP # DST_REG ", [ip]\n");                          \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r8, -274)),                  \
+              "mov ip, #274\n"                                          \
+              "sub ip, r8, ip\n"                                        \
+              STRING_OP # DST_REG ", [ip]\n");                          \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r8, -65623)),                \
+              "mov ip, #87\n"                                           \
+              "movt ip, #1\n"                                           \
+              "sub ip, r8, ip\n"                                        \
+              STRING_OP # DST_REG ", [ip]\n");                          \
+                                                                        \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r9, 0, PreIndex)),           \
+              STRING_OP # DST_REG ", [r9]\n");                          \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r9, 137, PreIndex)),         \
+              "add r9, #137\n"                                          \
+              STRING_OP # DST_REG ", [r9]\n");                          \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r9, 274, PreIndex)),         \
+              "mov ip, #274\n"                                          \
+              "add r9, ip\n"                                            \
+              STRING_OP # DST_REG ", [r9]\n");                          \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r9, 65623, PreIndex)),       \
+              "mov ip, #87\n"                                           \
+              "movt ip, #1\n"                                           \
+              "add r9, ip\n"                                            \
+              STRING_OP # DST_REG ", [r9]\n");                          \
+                                                                        \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r9, -137, PreIndex)),        \
+              "sub r9, #137\n"                                          \
+              STRING_OP # DST_REG ", [r9]\n");                          \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r9, -274, PreIndex)),        \
+              "mov ip, #274\n"                                          \
+              "sub r9, ip\n"                                            \
+              STRING_OP # DST_REG ", [r9]\n");                          \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r9, -65623, PreIndex)),      \
+              "mov ip, #87\n"                                           \
+              "movt ip, #1\n"                                           \
+              "sub r9, ip\n"                                            \
+              STRING_OP # DST_REG ", [r9]\n");                          \
+                                                                        \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r10, 0, PostIndex)),         \
+              STRING_OP # DST_REG ", [r10]\n");                         \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r10, 137, PostIndex)),       \
+              STRING_OP # DST_REG ", [r10]\n"                           \
+              "add r10, #137\n");                                       \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r10, 274, PostIndex)),       \
+              STRING_OP # DST_REG ", [r10]\n"                           \
+              "mov ip, #274\n"                                          \
+              "add r10, ip\n");                                         \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r10, 65623, PostIndex)),     \
+              STRING_OP # DST_REG ", [r10]\n"                           \
+              "mov ip, #87\n"                                           \
+              "movt ip, #1\n"                                           \
+              "add r10, ip\n");                                         \
+                                                                        \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r10, -137, PostIndex)),      \
+              STRING_OP # DST_REG ", [r10]\n"                           \
+              "sub r10, #137\n");                                       \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r10, -274, PostIndex)),      \
+              STRING_OP # DST_REG ", [r10]\n"                           \
+              "mov ip, #274\n"                                          \
+              "sub r10, ip\n");                                         \
+  COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r10, -65623, PostIndex)),    \
+              STRING_OP # DST_REG ", [r10]\n"                           \
+              "mov ip, #87\n"                                           \
+              "movt ip, #1\n"                                           \
+              "sub r10, ip\n");                                         \
+  CLEANUP();
+
+
+TEST(macro_assembler_A32_Vldr_d) {
+  TEST_VMEMOP(Vldr, "vldr ", d0);
+}
+
+TEST(macro_assembler_A32_Vstr_d) {
+  TEST_VMEMOP(Vstr, "vstr ", d1);
+}
+
+TEST(macro_assembler_A32_Vldr_s) {
+  TEST_VMEMOP(Vldr, "vldr ", s2);
+}
+
+TEST(macro_assembler_A32_Vstr_s) {
   TEST_VMEMOP(Vstr, "vstr ", s3);
 }
 
