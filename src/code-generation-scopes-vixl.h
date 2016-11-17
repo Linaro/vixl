@@ -256,9 +256,7 @@ class ExactAssemblyScope : public EmissionCheckScope {
 
   virtual ~ExactAssemblyScope() {
 #ifdef VIXL_DEBUG
-    MacroAssemblerInterface* masm =
-        dynamic_cast<MacroAssemblerInterface*>(assembler_);
-    masm->SetAllowMacroInstructions(previous_allow_macro_assembler_);
+    masm_->SetAllowMacroInstructions(previous_allow_macro_assembler_);
 #endif
   }
 
