@@ -7367,7 +7367,8 @@ void Assembler::pld(Condition cond, const MemOperand& operand) {
     int32_t offset = operand.GetOffsetImmediate();
     if (IsUsingT32()) {
       // PLD{<c>}{<q>} [PC, #<_plusminus_><imm>] ; T1
-      if ((offset >= -4095) && (offset <= 4095) && rn.Is(pc)) {
+      if ((offset >= -4095) && (offset <= 4095) && rn.Is(pc) &&
+          operand.IsOffset()) {
         uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
         uint32_t offset_ = abs(offset);
         EmitT32_32(0xf81ff000U | offset_ | (sign << 23));
@@ -7376,7 +7377,8 @@ void Assembler::pld(Condition cond, const MemOperand& operand) {
       }
     } else {
       // PLD{<c>}{<q>} [PC, #<_plusminus_><imm_1>] ; A1
-      if ((offset >= -4095) && (offset <= 4095) && rn.Is(pc)) {
+      if ((offset >= -4095) && (offset <= 4095) && rn.Is(pc) &&
+          operand.IsOffset()) {
         if (cond.Is(al)) {
           uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
           uint32_t offset_ = abs(offset);
@@ -7564,7 +7566,8 @@ void Assembler::pli(Condition cond, const MemOperand& operand) {
     int32_t offset = operand.GetOffsetImmediate();
     if (IsUsingT32()) {
       // PLI{<c>}{<q>} [PC, #<_plusminus_><imm_2>] ; T3
-      if ((offset >= -4095) && (offset <= 4095) && rn.Is(pc)) {
+      if ((offset >= -4095) && (offset <= 4095) && rn.Is(pc) &&
+          operand.IsOffset()) {
         uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
         uint32_t offset_ = abs(offset);
         EmitT32_32(0xf91ff000U | offset_ | (sign << 23));
@@ -7573,7 +7576,8 @@ void Assembler::pli(Condition cond, const MemOperand& operand) {
       }
     } else {
       // PLI{<c>}{<q>} [PC, #<_plusminus_><imm_3>] ; A1
-      if ((offset >= -4095) && (offset <= 4095) && rn.Is(pc)) {
+      if ((offset >= -4095) && (offset <= 4095) && rn.Is(pc) &&
+          operand.IsOffset()) {
         if (cond.Is(al)) {
           uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
           uint32_t offset_ = abs(offset);
