@@ -1128,7 +1128,79 @@ TEST(macro_assembler_Msr) {
   // Other types of operands are not handled.
   MUST_FAIL_TEST_BOTH(Msr(APSR_nzcvq, Operand(r0, LSR, r1)),
                       "Unimplemented delegate\n");
+  CLEANUP();
+}
 
+
+TEST(macro_assembler_Vmov_imm) {
+  SETUP();
+
+  COMPARE_BOTH(Vmov(s0, 0.0f),
+               "mov ip, #0\n"
+               "vmov s0, ip\n");
+  COMPARE_BOTH(Vmov(s1, 1.0f),
+               "vmov.f32 s1, #1\n");
+  COMPARE_BOTH(Vmov(s2, RawbitsToFloat(0x0000db6c)),
+               "mov ip, #56172\n"
+               "vmov s2, ip\n");
+  COMPARE_BOTH(Vmov(s3, RawbitsToFloat(0x327b23c6)),
+               "mov ip, #9158\n"
+               "movt ip, #12923\n"
+               "vmov s3, ip\n");
+  COMPARE_BOTH(Vmov(s4, RawbitsToFloat(0xffcc7fff)),
+               "mvn ip, #3375104\n"
+               "vmov s4, ip\n");
+  COMPARE_BOTH(Vmov(s5, RawbitsToFloat(0xb72df575)),
+               "mov ip, #62837\n"
+               "movt ip, #46893\n"
+               "vmov s5, ip\n");
+
+  COMPARE_BOTH(Vmov(d6, 0.0),
+               "vmov.i64 d6, #0x0000000000000000\n");
+  COMPARE_BOTH(Vmov(d7, 1.0),
+               "vmov.f64 d7, #1\n");
+  COMPARE_BOTH(Vmov(d8, RawbitsToDouble(0x000000000000af8e)),
+               "mov ip, #44942\n"
+               "vdup.32 d8, ip\n"
+               "mov ip, #0\n"
+               "vmov.32 d8[1], ip\n");
+  COMPARE_BOTH(Vmov(d9, RawbitsToDouble(0x000070210000af8e)),
+               "mov ip, #44942\n"
+               "vdup.32 d9, ip\n"
+               "mov ip, #28705\n"
+               "vmov.32 d9[1], ip\n");
+  COMPARE_BOTH(Vmov(d10, RawbitsToDouble(0x7021000000000000)),
+               "mov ip, #0\n"
+               "vdup.32 d10, ip\n"
+               "mov ip, #0\n"
+               "movt ip, #28705\n"
+               "vmov.32 d10[1], ip\n");
+  COMPARE_BOTH(Vmov(d11, RawbitsToDouble(0x7021da4b0000af8e)),
+               "mov ip, #44942\n"
+               "vdup.32 d11, ip\n"
+               "mov ip, #55883\n"
+               "movt ip, #28705\n"
+               "vmov.32 d11[1], ip\n");
+  COMPARE_BOTH(Vmov(d12, RawbitsToDouble(0x0cff553204ec4a3f)),
+               "mov ip, #19007\n"
+               "movt ip, #1260\n"
+               "vdup.32 d12, ip\n"
+               "mov ip, #21810\n"
+               "movt ip, #3327\n"
+               "vmov.32 d12[1], ip\n");
+  COMPARE_BOTH(Vmov(d13, RawbitsToDouble(0xa2037ad20000f592)),
+               "mov ip, #62866\n"
+               "vdup.32 d13, ip\n"
+               "mov ip, #31442\n"
+               "movt ip, #41475\n"
+               "vmov.32 d13[1], ip\n");
+  COMPARE_BOTH(Vmov(d14, RawbitsToDouble(0xe62556c325a59470)),
+               "mov ip, #38000\n"
+               "movt ip, #9637\n"
+               "vdup.32 d14, ip\n"
+               "mov ip, #22211\n"
+               "movt ip, #58917\n"
+               "vmov.32 d14[1], ip\n");
   CLEANUP();
 }
 
