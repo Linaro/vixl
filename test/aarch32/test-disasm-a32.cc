@@ -139,6 +139,29 @@ namespace aarch32 {
   printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
 #endif
 
+#ifdef VIXL_NEGATIVE_TESTING
+#define SHOULD_FAIL_TEST_A32(ASM) \
+  masm.UseA32();                  \
+  NEGATIVE_TEST(ASM, "", true)    \
+  masm.GetBuffer()->Reset();
+
+#define SHOULD_FAIL_TEST_T32(ASM) \
+  masm.UseT32();                  \
+  NEGATIVE_TEST(ASM, "", true)    \
+  masm.GetBuffer()->Reset();
+
+#define SHOULD_FAIL_TEST_BOTH(ASM) \
+  SHOULD_FAIL_TEST_A32(ASM)        \
+  SHOULD_FAIL_TEST_T32(ASM)
+#else
+#define SHOULD_FAIL_TEST_A32(ASM) \
+  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
+#define SHOULD_FAIL_TEST_T32(ASM) \
+  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
+#define SHOULD_FAIL_TEST_BOTH(ASM) \
+  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
+#endif
+
 class TestDisassembler : public PrintDisassembler {
  public:
   TestDisassembler(std::ostream& os, uint32_t pc)  // NOLINT(runtime/references)
@@ -1051,19 +1074,19 @@ TEST(macro_assembler_A32_Vstr_s) {
               "movt ip, #2989\n"                 \
               name " r0, ip\n");
 
-#define TEST_WIDE_IMMEDIATE_PC(Inst, name, offset) \
-  COMPARE_A32(Inst(pc, 0xbadbeef),                 \
-              "mov ip, #48879\n"                   \
-              "movt ip, #2989\n"                   \
-              name " pc, ip\n");                   \
-  COMPARE_A32(Inst(eq, pc, 0xbadbeef),             \
-              "moveq ip, #48879\n"                 \
-              "movteq ip, #2989\n"                 \
-              name "eq pc, ip\n");                 \
-  MUST_FAIL_TEST_T32(Inst(pc, 0xbadbeef),          \
-                     "Unimplemented delegate\n");  \
-  MUST_FAIL_TEST_T32(Inst(eq, pc, 0xbadbeef),      \
-                     "Unimplemented delegate\n");
+#define TEST_WIDE_IMMEDIATE_PC(Inst, name, offset)            \
+  COMPARE_A32(Inst(pc, 0xbadbeef),                            \
+              "mov ip, #48879\n"                              \
+              "movt ip, #2989\n"                              \
+              name " pc, ip\n");                              \
+  COMPARE_A32(Inst(eq, pc, 0xbadbeef),                        \
+              "moveq ip, #48879\n"                            \
+              "movteq ip, #2989\n"                            \
+              name "eq pc, ip\n");                            \
+  MUST_FAIL_TEST_T32(Inst(pc, 0xbadbeef),                     \
+                     "Ill-formed '" name "' instruction.\n"); \
+  MUST_FAIL_TEST_T32(Inst(eq, pc, 0xbadbeef),                 \
+                     "Ill-formed '" name "' instruction.\n"); \
 
 TEST(macro_assembler_InstructionCondSizeROp) {
   SETUP();
@@ -1093,15 +1116,15 @@ TEST(macro_assembler_InstructionCondSizeROp) {
   // For Mvn and Mvns, we don't allow PC as a destination.
   TEST_WIDE_IMMEDIATE(Mvn, "mvn", 0x0000000e);
   TEST_WIDE_IMMEDIATE(Mvns, "mvns", 0x0000000e);
-  MUST_FAIL_TEST_BOTH(Mvn(pc, 0xbadbeef), "Unimplemented delegate\n");
-  MUST_FAIL_TEST_BOTH(Mvn(eq, pc, 0xbadbeef), "Unimplemented delegate\n");
-  MUST_FAIL_TEST_BOTH(Mvns(pc, 0xbadbeef), "Unimplemented delegate\n");
-  MUST_FAIL_TEST_BOTH(Mvns(eq, pc, 0xbadbeef), "Unimplemented delegate\n");
+  MUST_FAIL_TEST_BOTH(Mvn(pc, 0xbadbeef), "Ill-formed 'mvn' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Mvn(eq, pc, 0xbadbeef), "Ill-formed 'mvn' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Mvns(pc, 0xbadbeef), "Ill-formed 'mvns' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Mvns(eq, pc, 0xbadbeef), "Ill-formed 'mvns' instruction.\n");
 
-  MUST_FAIL_TEST_BOTH(Sxtb(r0, 0x1), "Unimplemented delegate\n");
-  MUST_FAIL_TEST_BOTH(Sxth(r0, 0x1), "Unimplemented delegate\n");
-  MUST_FAIL_TEST_BOTH(Uxtb(r0, 0x1), "Unimplemented delegate\n");
-  MUST_FAIL_TEST_BOTH(Uxth(r0, 0x1), "Unimplemented delegate\n");
+  MUST_FAIL_TEST_BOTH(Sxtb(r0, 0x1), "Ill-formed 'sxtb' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Sxth(r0, 0x1), "Ill-formed 'sxth' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Uxtb(r0, 0x1), "Ill-formed 'uxtb' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Uxth(r0, 0x1), "Ill-formed 'uxth' instruction.\n");
 
   CLEANUP();
 }
@@ -1127,7 +1150,7 @@ TEST(macro_assembler_Msr) {
 
   // Other types of operands are not handled.
   MUST_FAIL_TEST_BOTH(Msr(APSR_nzcvq, Operand(r0, LSR, r1)),
-                      "Unimplemented delegate\n");
+                      "Ill-formed 'msr' instruction.\n");
   CLEANUP();
 }
 
@@ -1204,29 +1227,6 @@ TEST(macro_assembler_Vmov_imm) {
   CLEANUP();
 }
 
-#ifdef VIXL_NEGATIVE_TESTING
-#define SHOULD_FAIL_TEST_A32(ASM) \
-  masm.UseA32();                  \
-  NEGATIVE_TEST(ASM, "", true)    \
-  masm.GetBuffer()->Reset();
-
-#define SHOULD_FAIL_TEST_T32(ASM) \
-  masm.UseT32();                  \
-  NEGATIVE_TEST(ASM, "", true)    \
-  masm.GetBuffer()->Reset();
-
-#define SHOULD_FAIL_TEST_BOTH(ASM) \
-  SHOULD_FAIL_TEST_A32(ASM)        \
-  SHOULD_FAIL_TEST_T32(ASM)
-#else
-#define SHOULD_FAIL_TEST_A32(ASM) \
-  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
-#define SHOULD_FAIL_TEST_T32(ASM) \
-  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
-#define SHOULD_FAIL_TEST_BOTH(ASM) \
-  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
-#endif
-
 TEST(macro_assembler_PushRegisterList) {
   SETUP();
 
@@ -1259,7 +1259,7 @@ TEST(macro_assembler_PushRegisterList) {
   // Deprecated, but accepted:
   SHOULD_FAIL_TEST_A32(Push(RegisterList(pc)));
   // Whereas we don't accept the single-register version:
-  MUST_FAIL_TEST_A32(Push(pc), "Unpredictable instruction\n");
+  MUST_FAIL_TEST_A32(Push(pc), "Unpredictable instruction.\n");
 
   // For T32, pushing the PC is allowed:
   COMPARE_T32(Push(pc), "push {pc}\n");
@@ -1280,8 +1280,8 @@ TEST(macro_assembler_PushRegisterList) {
   COMPARE_BOTH(Push(RegisterList(r8)), "stmdb sp!, {r8}\n");
 
   // Cannot push the sp and pc in T32 when using a register list.
-  MUST_FAIL_TEST_T32(Push(RegisterList(sp)), "Unimplemented delegate\n");
-  MUST_FAIL_TEST_T32(Push(RegisterList(pc)), "Unimplemented delegate\n");
+  MUST_FAIL_TEST_T32(Push(RegisterList(sp)), "Ill-formed 'push' instruction.\n");
+  MUST_FAIL_TEST_T32(Push(RegisterList(pc)), "Ill-formed 'push' instruction.\n");
 
   CLEANUP();
 }
@@ -1313,7 +1313,7 @@ TEST(macro_assembler_PopRegisterList) {
   SHOULD_FAIL_TEST_A32(Pop(RegisterList(sp)));
 
   // Cannot pop the sp in T32 when using a register list.
-  MUST_FAIL_TEST_T32(Pop(RegisterList(sp)), "Unimplemented delegate\n");
+  MUST_FAIL_TEST_T32(Pop(RegisterList(sp)), "Ill-formed 'pop' instruction.\n");
 
   // The following use the T1 and A1 encodings for T32 and A32 respectively, and
   // hence have different preferred disassembly.
@@ -1336,9 +1336,96 @@ TEST(macro_assembler_PopRegisterList) {
   CLEANUP();
 }
 
-#undef SHOULD_FAIL_TEST_A32
-#undef SHOULD_FAIL_TEST_T32
-#undef SHOULD_FAIL_TEST_BOTH
+TEST(macro_assembler_unsupported) {
+  SETUP();
+
+  MUST_FAIL_TEST_BOTH(Sxtab(r0, r1, Operand(r2, ROR, 1)),
+                      "Ill-formed 'sxtab' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Sxtab16(r0, r1, Operand(r0, ASR, 2)),
+                      "Ill-formed 'sxtab16' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Sxtah(r0, r1, Operand(r0, LSL, r1)),
+                      "Ill-formed 'sxtah' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Uxtab(r0, r1, Operand(r0, LSR, r2)),
+                      "Ill-formed 'uxtab' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Uxtab16(r0, r1, Operand(r0, ROR, 1)),
+                      "Ill-formed 'uxtab16' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Uxtah(r0, r1, Operand(r0, ASR, 2)),
+                      "Ill-formed 'uxtah' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Pkhbt(r0, r1, Operand(r0, LSL, r1)),
+                      "Ill-formed 'pkhbt' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Pkhtb(r0, r1, Operand(r0, LSR, r2)),
+                      "Ill-formed 'pkhtb' instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(Pld(MemOperand(r0, 1, PreIndex)),
+                      "Ill-formed 'pld' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Pldw(MemOperand(r0, 1, PostIndex)),
+                      "Ill-formed 'pldw' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Pli(MemOperand(r0, 1, PreIndex)),
+                      "Ill-formed 'pli' instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(Pld(MemOperand(r0, r0, PreIndex)),
+                      "Ill-formed 'pld' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Pldw(MemOperand(r0, r1, PostIndex)),
+                      "Ill-formed 'pldw' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Pli(MemOperand(r0, r2, PreIndex)),
+                      "Ill-formed 'pli' instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(Pld(MemOperand(r0, r0, LSL, 1, PreIndex)),
+                      "Ill-formed 'pld' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Pldw(MemOperand(r0, r1, LSR, 2, PostIndex)),
+                      "Ill-formed 'pldw' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Pli(MemOperand(r0, r2, ASR, 3, PreIndex)),
+                      "Ill-formed 'pli' instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(Lda(r0, MemOperand(r0, 1)),
+                      "Ill-formed 'lda' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Ldab(r0, MemOperand(r0, 1)),
+                      "Ill-formed 'ldab' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Ldaex(r0, MemOperand(r0, 1)),
+                      "Ill-formed 'ldaex' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Ldaexb(r0, MemOperand(r0, 1)),
+                      "Ill-formed 'ldaexb' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Ldaexh(r0, MemOperand(r0, 1)),
+                      "Ill-formed 'ldaexh' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Ldah(r0, MemOperand(r0, 1)),
+                      "Ill-formed 'ldah' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Ldrex(r0, MemOperand(r0, 1)),
+                      "Ill-formed 'ldrex' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Ldrexb(r0, MemOperand(r0, 1)),
+                      "Ill-formed 'ldrexb' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Ldrexh(r0, MemOperand(r0, 1)),
+                      "Ill-formed 'ldrexh' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Stl(r0, MemOperand(r0, 1)),
+                      "Ill-formed 'stl' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Stlb(r0, MemOperand(r0, 1)),
+                      "Ill-formed 'stlb' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Stlh(r0, MemOperand(r0, 1)),
+                      "Ill-formed 'stlh' instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(Ldaexd(r0, r1, MemOperand(r0, 1)),
+                      "Ill-formed 'ldaexd' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Ldrexd(r0, r1, MemOperand(r0, 1)),
+                      "Ill-formed 'ldrexd' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Stlex(r0, r1, MemOperand(r0, 1)),
+                      "Ill-formed 'stlex' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Stlexb(r0, r1, MemOperand(r0, 1)),
+                      "Ill-formed 'stlexb' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Stlexh(r0, r1, MemOperand(r0, 1)),
+                      "Ill-formed 'stlexh' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Strex(r0, r1, MemOperand(r0, 1)),
+                      "Ill-formed 'strex' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Strexb(r0, r1, MemOperand(r0, 1)),
+                      "Ill-formed 'strexb' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Strexh(r0, r1, MemOperand(r0, 1)),
+                      "Ill-formed 'strexh' instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(Stlexd(r0, r1, r2, MemOperand(r0, 1)),
+                      "Ill-formed 'stlexd' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Strexd(r0, r1, r2, MemOperand(r0, 1)),
+                      "Ill-formed 'strexd' instruction.\n");
+
+  CLEANUP();
+}
 
 }  // namespace aarch32
 }  // namespace vixl

@@ -5635,16 +5635,19 @@ class Assembler : public internal::AssemblerBase {
   void yield(Condition cond) { yield(cond, Best); }
   void yield(EncodingSize size) { yield(al, size); }
   // End of generated code.
-  virtual void UnimplementedDelegate(InstructionType /*type*/) {
-    VIXL_ABORT_WITH_MSG("Unimplemented delegate\n");
+  virtual void UnimplementedDelegate(InstructionType type) {
+    std::string error_message(std::string("Ill-formed '") +
+                              std::string(ToCString(type)) +
+                              std::string("' instruction.\n"));
+    VIXL_ABORT_WITH_MSG(error_message.c_str());
   }
   virtual bool AllowUnpredictable() {
-    VIXL_ABORT_WITH_MSG("Unpredictable instruction\n");
+    VIXL_ABORT_WITH_MSG("Unpredictable instruction.\n");
     return false;
   }
   virtual bool AllowStronglyDiscouraged() {
     VIXL_ABORT_WITH_MSG(
-        "ARM strongly recommends to not use this instruction\n");
+        "ARM strongly recommends to not use this instruction.\n");
     return false;
   }
 };

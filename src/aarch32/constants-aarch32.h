@@ -504,6 +504,8 @@ enum InstructionType {
   kVzip,
   kYield
 };
+
+const char* ToCString(InstructionType type);
 // End of generated code.
 
 inline InstructionAttribute operator|(InstructionAttribute left,
