@@ -2590,20 +2590,24 @@ void MacroAssembler::Delegate(InstructionType type,
 
 
 void MacroAssembler::Delegate(InstructionType type,
-                              InstructionCondMsrOp /*instruction*/,
+                              InstructionCondMsrOp instruction,
                               Condition cond,
                               MaskedSpecialRegister spec_reg,
                               const Operand& operand) {
   USE(type);
   VIXL_ASSERT(type == kMsr);
-  UseScratchRegisterScope temps(this);
-  Register scratch = temps.Acquire();
-  {
+  if (operand.IsImmediate()) {
+    UseScratchRegisterScope temps(this);
+    Register scratch = temps.Acquire();
+    {
+      CodeBufferCheckScope scope(this, 2 * kMaxInstructionSizeInBytes);
+      mov(cond, scratch, operand);
+    }
     CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-    mov(cond, scratch, operand);
+    msr(cond, spec_reg, scratch);
+    return;
   }
-  CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-  msr(cond, spec_reg, scratch);
+  Assembler::Delegate(type, instruction, cond, spec_reg, operand);
 }
 
 #undef CONTEXT_SCOPE

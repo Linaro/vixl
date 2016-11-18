@@ -1673,7 +1673,8 @@ TEST(msr_i) {
   __ Msr(APSR_nzcvqg, 0xffffffff);
   __ Mrs(r1, APSR);
   // Only modify nzcvq => keep previous g.
-  __ Msr(APSR_nzcvq, Operand(r3, LSL, 28));
+  __ Lsl(r4, r3, 28);
+  __ Msr(APSR_nzcvq, r4);
   __ Mrs(r2, APSR);
   END();
 

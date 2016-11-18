@@ -1104,5 +1104,26 @@ TEST(macro_assembler_InstructionCondSizeROp) {
 #undef TEST_WIDE_IMMEDIATE
 #undef TEST_WIDE_IMMEDIATE_PC
 
+TEST(macro_assembler_Msr) {
+  SETUP();
+
+  // Msr with immediate for T32.
+  COMPARE_T32(Msr(APSR_nzcvq, 0x0),
+              "mov ip, #0\n"
+              "msr APSR_nzcvq, ip\n");
+
+  // Wide immediate.
+  COMPARE_BOTH(Msr(APSR_nzcvq, 0xbadbeef),
+              "mov ip, #48879\n"
+              "movt ip, #2989\n"
+              "msr APSR_nzcvq, ip\n");
+
+  // Other types of operands are not handled.
+  MUST_FAIL_TEST_BOTH(Msr(APSR_nzcvq, Operand(r0, LSR, r1)),
+                      "Unimplemented delegate\n");
+
+  CLEANUP();
+}
+
 }  // namespace aarch32
 }  // namespace vixl
