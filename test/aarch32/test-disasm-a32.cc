@@ -514,6 +514,237 @@ TEST(macro_assembler_big_offset) {
   COMPARE_T32(Ldr(r0, MemOperand(r1, -0xff12, PostIndex)),
               "ldr r0, [r1], #238\n"  // #0xee
               "sub r1, #65536\n");  // #0x10000
+
+  COMPARE_T32(Ldrh(r0, MemOperand(r1, 0xfff123)),
+              "mov r0, #61440\n"  // #0xf000
+              "movt r0, #255\n"   // #0x00ff
+              "add r0, r1, r0\n"
+              "ldrh r0, [r0, #291]\n");  // #0x123
+  COMPARE_A32(Ldrh(r0, MemOperand(r1, 0xfff123)),
+              "mov r0, #61696\n"  // #0xf100
+              "movt r0, #255\n"   // #0x00ff
+              "add r0, r1, r0\n"
+              "ldrh r0, [r0, #35]\n");  // #0x23
+
+  COMPARE_T32(Ldrh(r0, MemOperand(r1, 0xff123)),
+              "add r0, r1, #1044480\n"  // #0xff000
+              "ldrh r0, [r0, #291]\n"); // #0x123
+  COMPARE_A32(Ldrh(r0, MemOperand(r1, 0xff123)),
+               "mov r0, #61696\n"       // #0xf100
+               "movt r0, #15\n"         // #0xf
+               "add r0, r1, r0\n"
+               "ldrh r0, [r0, #35]\n"); // #0x23
+  COMPARE_T32(Ldrh(r0, MemOperand(r1, -0xff123)),
+              "sub r0, r1, #1048576\n"   // #0x100000
+              "ldrh r0, [r0, #3805]\n"); // #0xedd
+  COMPARE_A32(Ldrh(r0, MemOperand(r1, -0xff123)),
+               "mov r0, #61952\n"        // #0xf200
+               "movt r0, #15\n"          // #0xf
+               "sub r0, r1, r0\n"
+               "ldrh r0, [r0, #221]\n"); // #0xdd
+
+  MUST_FAIL_TEST_BOTH(Ldr(r0, MemOperand(r0, 0xfff12, PreIndex)),
+                      "Ill-formed 'ldr' instruction.\n");
+  MUST_FAIL_TEST_BOTH(Ldr(r0, MemOperand(r0, 0xfff12, PostIndex)),
+                      "Ill-formed 'ldr' instruction.\n");
+  CLEANUP();
+}
+
+
+TEST(macro_assembler_load) {
+  SETUP();
+
+  // Register base and offset that we can encode in both A1 and T1.
+  COMPARE_BOTH(Ldr(r0, MemOperand(r1, r8, Offset)),
+               "ldr r0, [r1, r8]\n");
+
+  // Negative register offset. Use the destination as a scratch register,
+  // regardless of the values of the base and offset register.
+  COMPARE_T32(Ldr(r0, MemOperand(r0, minus, r0, Offset)),
+              "sub r0, r0\n"
+              "ldr r0, [r0]\n");
+
+  COMPARE_T32(Ldr(r0, MemOperand(r0, minus, r1, Offset)),
+              "sub r0, r1\n"
+              "ldr r0, [r0]\n");
+
+  COMPARE_T32(Ldr(r0, MemOperand(r1, minus, r0, Offset)),
+              "sub r0, r1, r0\n"
+              "ldr r0, [r0]\n");
+
+  COMPARE_T32(Ldr(r0, MemOperand(r1, minus, r2, Offset)),
+              "sub r0, r1, r2\n"
+              "ldr r0, [r0]\n");
+
+  // Pre-index negative offset.
+  COMPARE_T32(Ldr(r0, MemOperand(r1, minus, r2, PreIndex)),
+              "sub r1, r2\n"
+              "ldr r0, [r1]\n");
+
+  // Post-index negative offset.
+  COMPARE_T32(Ldr(r0, MemOperand(r1, minus, r2, PostIndex)),
+              "ldr r0, [r1]\n"
+              "sub r1, r2\n");
+
+  // SP is allowed as base, offset and destination.
+  COMPARE_BOTH(Ldr(sp, MemOperand(sp, sp, Offset)),
+               "ldr sp, [sp, sp]\n");
+
+  // PC is allowed as destination - make sure it is not used as a temporary
+  // register.
+  COMPARE_BOTH(Ldr(pc, MemOperand(r0, r0, Offset)),
+               "ldr pc, [r0, r0]\n");
+  COMPARE_A32(Ldr(pc, MemOperand(r0, r0, PreIndex)),
+              "ldr pc, [r0, r0]!\n");
+  COMPARE_T32(Ldr(pc, MemOperand(r0, r0, PreIndex)),
+              "add r0, r0\n"
+              "ldr pc, [r0]\n");
+  COMPARE_A32(Ldr(pc, MemOperand(r0, r0, PostIndex)),
+              "ldr pc, [r0], r0\n");
+  COMPARE_T32(Ldr(pc, MemOperand(r0, r0, PostIndex)),
+              "ldr pc, [r0]\n"
+              "add r0, r0\n");
+
+  // PC is allowed as register base in the offset variant.
+  COMPARE_A32(Ldr(r0, MemOperand(pc, r0, Offset)),
+              "ldr r0, [pc, r0]\n");
+  COMPARE_T32(Ldr(r0, MemOperand(pc, r0, Offset)),
+              "add r0, pc, r0\n"
+              "ldr r0, [r0]\n");
+
+  // PC is not allowed as register base in the pre-index and post-index variants.
+  MUST_FAIL_TEST_T32(Ldr(r0, MemOperand(pc, r0, PreIndex)),
+                     "The MacroAssembler does not convert loads and stores "
+                     "with a PC base register in pre-index or post-index mode.\n");
+  MUST_FAIL_TEST_T32(Ldr(r0, MemOperand(pc, r0, PostIndex)),
+                     "The MacroAssembler does not convert loads and stores "
+                     "with a PC base register in pre-index or post-index mode.\n");
+
+  // We don't convert loads with PC as the register offset.
+  MUST_FAIL_TEST_T32(Ldr(r0, MemOperand(r0, minus, pc, Offset)),
+                     "The MacroAssembler does not convert loads and stores "
+                     "with a PC offset register.\n");
+  MUST_FAIL_TEST_T32(Ldr(r0, MemOperand(r0, pc, PreIndex)),
+                     "The MacroAssembler does not convert loads and stores "
+                     "with a PC offset register.\n");
+  MUST_FAIL_TEST_T32(Ldr(r0, MemOperand(r0, pc,  PostIndex)),
+                     "The MacroAssembler does not convert loads and stores "
+                     "with a PC offset register.\n");
+
+  // TODO: PC should not be allowed as register offset (unpredictable).
+  SHOULD_FAIL_TEST_BOTH(Ldr(r0, MemOperand(r0, Sign(plus), pc, Offset)));
+
+  // TODO: PC should not be allowed as register base in A32 with pre-index
+  //       and post-index (unpredictable).
+  SHOULD_FAIL_TEST_A32(Ldr(r0, MemOperand(pc, r0, PreIndex)));
+  SHOULD_FAIL_TEST_A32(Ldr(r0, MemOperand(pc, r0, PostIndex)));
+
+  // TODO: load with the same register used as base and as destination
+  //       should fail to assemble (unpredictable).
+  SHOULD_FAIL_TEST_A32(Ldr(r0, MemOperand(r0, r1, PreIndex)));
+  SHOULD_FAIL_TEST_A32(Ldr(r0, MemOperand(r0, r1, PostIndex)));
+  MUST_FAIL_TEST_T32(Ldr(r0, MemOperand(r0, r1, PreIndex)),
+                      "Ill-formed 'ldr' instruction.\n");
+  MUST_FAIL_TEST_T32(Ldr(r0, MemOperand(r0, r1, PostIndex)),
+                      "Ill-formed 'ldr' instruction.\n");
+
+  CLEANUP();
+}
+
+
+TEST(macro_assembler_store) {
+  SETUP();
+
+  // Register base and offset that we can encode in both A1 and T1.
+  COMPARE_BOTH(Str(r0, MemOperand(r1, r8, Offset)),
+               "str r0, [r1, r8]\n");
+
+  // Negative register offset.
+  COMPARE_T32(Str(r0, MemOperand(r0, minus, r0, Offset)),
+              "sub ip, r0, r0\n"
+              "str r0, [ip]\n");
+
+  COMPARE_T32(Str(r0, MemOperand(r0, minus, r1, Offset)),
+              "sub ip, r0, r1\n"
+              "str r0, [ip]\n");
+
+  COMPARE_T32(Str(r0, MemOperand(r1, minus, r0, Offset)),
+              "sub ip, r1, r0\n"
+              "str r0, [ip]\n");
+
+  COMPARE_T32(Str(r0, MemOperand(r1, minus, r2, Offset)),
+              "sub ip, r1, r2\n"
+              "str r0, [ip]\n");
+
+  // Pre-index negative offset.
+  COMPARE_T32(Str(r0, MemOperand(r1, minus, r2, PreIndex)),
+              "sub r1, r2\n"
+              "str r0, [r1]\n");
+
+  // Post-index negative offset.
+  COMPARE_T32(Str(r0, MemOperand(r1, minus, r2, PostIndex)),
+              "str r0, [r1]\n"
+              "sub r1, r2\n");
+
+  // SP is allowed as base, offset and source.
+  COMPARE_BOTH(Str(sp, MemOperand(sp, sp, Offset)),
+               "str sp, [sp, sp]\n");
+
+  // TODO: PC is allowed as the value we are storing for A32, but
+  //       should not be allowed for T32 (unpredictable).
+  COMPARE_A32(Str(pc, MemOperand(r0, r0, Offset)),
+              "str pc, [r0, r0]\n");
+  COMPARE_A32(Str(pc, MemOperand(r0, r0, PreIndex)),
+              "str pc, [r0, r0]!\n");
+  COMPARE_A32(Str(pc, MemOperand(r0, r0, PostIndex)),
+              "str pc, [r0], r0\n");
+  SHOULD_FAIL_TEST_T32(Str(pc, MemOperand(r0, r0, Offset)));
+  SHOULD_FAIL_TEST_T32(Str(pc, MemOperand(r0, r0, PreIndex)));
+  SHOULD_FAIL_TEST_T32(Str(pc, MemOperand(r0, r0, PostIndex)));
+
+  // PC is allowed as register base in the offset variant.
+  COMPARE_A32(Str(r0, MemOperand(pc, r0, Offset)),
+              "str r0, [pc, r0]\n");
+  COMPARE_T32(Str(r0, MemOperand(pc, r0, Offset)),
+              "add ip, pc, r0\n"
+              "str r0, [ip]\n");
+
+  // PC is not allowed as register base in the pre-index and post-index variants.
+  MUST_FAIL_TEST_T32(Str(r0, MemOperand(pc, r0, PreIndex)),
+                     "The MacroAssembler does not convert loads and stores "
+                     "with a PC base register in pre-index or post-index mode.\n");
+  MUST_FAIL_TEST_T32(Str(r0, MemOperand(pc, r0, PostIndex)),
+                     "The MacroAssembler does not convert loads and stores "
+                     "with a PC base register in pre-index or post-index mode.\n");
+
+  // We don't convert loads with PC as the register offset.
+  MUST_FAIL_TEST_T32(Str(r0, MemOperand(r0, minus, pc, Offset)),
+                     "The MacroAssembler does not convert loads and stores "
+                     "with a PC offset register.\n");
+  MUST_FAIL_TEST_T32(Str(r0, MemOperand(r0, pc, PreIndex)),
+                     "The MacroAssembler does not convert loads and stores "
+                     "with a PC offset register.\n");
+  MUST_FAIL_TEST_T32(Str(r0, MemOperand(r0, pc,  PostIndex)),
+                     "The MacroAssembler does not convert loads and stores "
+                     "with a PC offset register.\n");
+
+  // TODO: PC should not be allowed as register offset (unpredictable).
+  SHOULD_FAIL_TEST_BOTH(Str(r0, MemOperand(r0, Sign(plus), pc, Offset)));
+
+  // TODO: PC should not be allowed as register base in A32 with pre-index
+  //       and post-index (unpredictable).
+  SHOULD_FAIL_TEST_A32(Str(r0, MemOperand(pc, r0, PreIndex)));
+  SHOULD_FAIL_TEST_A32(Str(r0, MemOperand(pc, r0, PostIndex)));
+
+  // TODO: store with the same register used as base and as source
+  //       should fail to assemble (unpredictable).
+  SHOULD_FAIL_TEST_A32(Str(r0, MemOperand(r0, r1, PreIndex)));
+  SHOULD_FAIL_TEST_A32(Str(r0, MemOperand(r0, r1, PostIndex)));
+  MUST_FAIL_TEST_T32(Str(r0, MemOperand(r0, r1, PreIndex)),
+                      "Ill-formed 'str' instruction.\n");
+  MUST_FAIL_TEST_T32(Str(r0, MemOperand(r0, r1, PostIndex)),
+                      "Ill-formed 'str' instruction.\n");
+
   CLEANUP();
 }
 
