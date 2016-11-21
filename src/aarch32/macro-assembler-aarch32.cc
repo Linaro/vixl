@@ -996,6 +996,8 @@ void MacroAssembler::Delegate(InstructionType type,
   VIXL_ASSERT((type == kOrn) || (type == kOrns) || (type == kRsc) ||
               (type == kRscs));
   CONTEXT_SCOPE;
+
+  // T32 does not support register shifted register operands, emulate it.
   if (IsUsingT32() && operand.IsRegisterShiftedRegister()) {
     InstructionCondRROp shiftop = NULL;
     switch (operand.GetShift().GetType()) {
@@ -1036,6 +1038,10 @@ void MacroAssembler::Delegate(InstructionType type,
       return;
     }
   }
+
+  // T32 does not have a Rsc instruction, negate the lhs input and turn it into
+  // an Adc. Adc and Rsc are equivalent using a bitwise NOT:
+  //   adc rd, rn, operand <-> rsc rd, NOT(rn), operand
   if (IsUsingT32() && ((type == kRsc) || (type == kRscs))) {
     // The RegisterShiftRegister case should have been handled above.
     VIXL_ASSERT(!operand.IsRegisterShiftedRegister());
@@ -1064,6 +1070,9 @@ void MacroAssembler::Delegate(InstructionType type,
     adcs(cond, rd, negated_rn, operand);
     return;
   }
+
+  // A32 does not have a Orn instruction, negate the rhs input and turn it into
+  // a Orr.
   if (IsUsingA32() && ((type == kOrn) || (type == kOrns))) {
     // TODO: orn r0, r1, imm -> orr r0, r1, neg(imm) if doable
     //  mvn r0, r2
@@ -1098,29 +1107,35 @@ void MacroAssembler::Delegate(InstructionType type,
   }
   if (operand.IsImmediate()) {
     int32_t imm = operand.GetSignedImmediate();
-    if (ImmediateT32::IsImmediateT32(~imm)) {
+
+    // If the immediate can be encoded when inverted, turn Orn into Orr.
+    // Otherwise rely on HandleOutOfBoundsImmediate to generate a series of
+    // mov.
+    if (IsUsingT32() && ((type == kOrn) || (type == kOrns)) &&
+        ImmediateT32::IsImmediateT32(~imm)) {
+      VIXL_ASSERT((type == kOrn) || (type == kOrns));
       CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-      if (IsUsingT32()) {
-        switch (type) {
-          case kOrn:
-            orr(cond, rd, rn, ~imm);
-            return;
-          case kOrns:
-            orrs(cond, rd, rn, ~imm);
-            return;
-          default:
-            break;
-        }
+      switch (type) {
+        case kOrn:
+          orr(cond, rd, rn, ~imm);
+          return;
+        case kOrns:
+          orrs(cond, rd, rn, ~imm);
+          return;
+        default:
+          VIXL_UNREACHABLE();
+          break;
       }
+    } else {
+      UseScratchRegisterScope temps(this);
+      // Allow using the destination as a scratch register if possible.
+      if (!rd.Is(rn)) temps.Include(rd);
+      Register scratch = temps.Acquire();
+      HandleOutOfBoundsImmediate(cond, scratch, imm);
+      CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
+      (this->*instruction)(cond, rd, rn, scratch);
+      return;
     }
-    UseScratchRegisterScope temps(this);
-    // Allow using the destination as a scratch register if possible.
-    if (!rd.Is(rn)) temps.Include(rd);
-    Register scratch = temps.Acquire();
-    HandleOutOfBoundsImmediate(cond, scratch, imm);
-    CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-    (this->*instruction)(cond, rd, rn, scratch);
-    return;
   }
   Assembler::Delegate(type, instruction, cond, rd, rn, operand);
 }

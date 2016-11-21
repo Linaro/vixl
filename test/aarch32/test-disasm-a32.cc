@@ -240,9 +240,9 @@ TEST(macro_assembler_orn) {
               "mvn r0, #1\n"
               "orr r0, r1, r0\n");
   // Use ip as the temporary register.
-  COMPARE_A32(Orn(r0, r0, 1),
+  COMPARE_A32(Orns(r0, r0, 1),
               "mvn ip, #1\n"
-              "orr r0, ip\n");
+              "orrs r0, ip\n");
 
   //  - Too large immediate form.
 
@@ -251,14 +251,16 @@ TEST(macro_assembler_orn) {
               "mvn ip, #4278190080\n"
               "mvn r0, ip\n"
               "orr r0, r1, r0\n");
-  COMPARE_T32(Orn(r0, r1, 0x00ffffff),
-              "orr r0, r1, #0xff000000\n");
+  COMPARE_T32(Orn(r0, r1, 0xff00ffff),
+              "orr r0, r1, #0xff0000\n");
+  COMPARE_T32(Orns(r0, r1, 0x00ffffff),
+              "orrs r0, r1, #0xff000000\n");
 
-  COMPARE_A32(Orn(r0, r1, 0xabcd2345),
+  COMPARE_A32(Orns(r0, r1, 0xabcd2345),
               "mov ip, #9029\n"
               "movt ip, #43981\n"
               "mvn r0, ip\n"
-              "orr r0, r1, r0\n");
+              "orrs r0, r1, r0\n");
   COMPARE_T32(Orn(r0, r1, 0xabcd2345),
               "mov r0, #9029\n"
               "movt r0, #43981\n"
