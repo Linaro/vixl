@@ -1211,7 +1211,8 @@ TEST(emit_literal) {
 
   const int ldrd_range = masm.IsUsingA32() ? 255 : 1020;
   const int string_size = AlignUp(ldrd_range + kMaxInstructionSizeInBytes, 4);
-  StringLiteral big_literal(std::string(string_size, 'x').c_str());
+  std::string test_string(string_size, 'x');
+  StringLiteral big_literal(test_string.c_str());
   __ Adr(r4, &big_literal);
   // This add will overflow the literal pool and force a rewind.
   // That means that the string will be generated then, then Ldrd and the
