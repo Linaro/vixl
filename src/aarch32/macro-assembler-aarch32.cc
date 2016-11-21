@@ -908,7 +908,8 @@ void MacroAssembler::Delegate(InstructionType type,
                        scratch,
                        operand.GetBaseRegister(),
                        operand.GetShiftRegister());
-      return (this->*instruction)(cond, size, rn, scratch);
+      (this->*instruction)(cond, size, rn, scratch);
+      return;
     }
   }
   if (operand.IsImmediate()) {
@@ -932,7 +933,8 @@ void MacroAssembler::Delegate(InstructionType type,
           Register scratch = temps.Acquire();
           HandleOutOfBoundsImmediate(al, scratch, imm);
           EnsureEmitFor(kMaxInstructionSizeInBytes);
-          return bx(cond, scratch);
+          bx(cond, scratch);
+          return;
         }
         break;
       case kCmn:
@@ -942,7 +944,8 @@ void MacroAssembler::Delegate(InstructionType type,
           Register scratch = temps.Acquire();
           HandleOutOfBoundsImmediate(cond, scratch, imm);
           CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          return (this->*instruction)(cond, size, rn, scratch);
+          (this->*instruction)(cond, size, rn, scratch);
+          return;
         }
         break;
       case kMvn:
@@ -952,7 +955,8 @@ void MacroAssembler::Delegate(InstructionType type,
           Register scratch = temps.Acquire();
           HandleOutOfBoundsImmediate(cond, scratch, imm);
           CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          return (this->*instruction)(cond, size, rn, scratch);
+          (this->*instruction)(cond, size, rn, scratch);
+          return;
         }
         break;
       case kTst:
@@ -961,7 +965,8 @@ void MacroAssembler::Delegate(InstructionType type,
           Register scratch = temps.Acquire();
           HandleOutOfBoundsImmediate(cond, scratch, imm);
           CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          return (this->*instruction)(cond, size, rn, scratch);
+          (this->*instruction)(cond, size, rn, scratch);
+          return;
         }
         break;
       default:  // kSxtb, Sxth, Uxtb, Uxth
@@ -983,7 +988,8 @@ void MacroAssembler::Delegate(InstructionType type,
   if ((type == kSxtab) || (type == kSxtab16) || (type == kSxtah) ||
       (type == kUxtab) || (type == kUxtab16) || (type == kUxtah) ||
       (type == kPkhbt) || (type == kPkhtb)) {
-    return UnimplementedDelegate(type);
+    UnimplementedDelegate(type);
+    return;
   }
 
   // This delegate only handles the following instructions.
@@ -1026,7 +1032,8 @@ void MacroAssembler::Delegate(InstructionType type,
       // worst-case size and add targetted tests.
       CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
       (this->*shiftop)(cond, scratch, rm, rs);
-      return (this->*instruction)(cond, rd, rn, scratch);
+      (this->*instruction)(cond, rd, rn, scratch);
+      return;
     }
   }
   if (IsUsingT32() && ((type == kRsc) || (type == kRscs))) {
@@ -1048,12 +1055,14 @@ void MacroAssembler::Delegate(InstructionType type,
     }
     if (type == kRsc) {
       CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-      return adc(cond, rd, negated_rn, operand);
+      adc(cond, rd, negated_rn, operand);
+      return;
     }
     // TODO: We shouldn't have to specify how much space the next instruction
     // needs.
     CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
-    return adcs(cond, rd, negated_rn, operand);
+    adcs(cond, rd, negated_rn, operand);
+    return;
   }
   if (IsUsingA32() && ((type == kOrn) || (type == kOrns))) {
     // TODO: orn r0, r1, imm -> orr r0, r1, neg(imm) if doable
@@ -1080,10 +1089,12 @@ void MacroAssembler::Delegate(InstructionType type,
     }
     if (type == kOrns) {
       CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-      return orrs(cond, rd, rn, scratch);
+      orrs(cond, rd, rn, scratch);
+      return;
     }
     CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-    return orr(cond, rd, rn, scratch);
+    orr(cond, rd, rn, scratch);
+    return;
   }
   if (operand.IsImmediate()) {
     int32_t imm = operand.GetSignedImmediate();
@@ -1092,9 +1103,11 @@ void MacroAssembler::Delegate(InstructionType type,
       if (IsUsingT32()) {
         switch (type) {
           case kOrn:
-            return orr(cond, rd, rn, ~imm);
+            orr(cond, rd, rn, ~imm);
+            return;
           case kOrns:
-            return orrs(cond, rd, rn, ~imm);
+            orrs(cond, rd, rn, ~imm);
+            return;
           default:
             break;
         }
@@ -1106,7 +1119,8 @@ void MacroAssembler::Delegate(InstructionType type,
     Register scratch = temps.Acquire();
     HandleOutOfBoundsImmediate(cond, scratch, imm);
     CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-    return (this->*instruction)(cond, rd, rn, scratch);
+    (this->*instruction)(cond, rd, rn, scratch);
+    return;
   }
   Assembler::Delegate(type, instruction, cond, rd, rn, operand);
 }
@@ -1167,7 +1181,8 @@ void MacroAssembler::Delegate(InstructionType type,
       Register scratch = temps.Acquire();
       CodeBufferCheckScope scope(this, 2 * kMaxInstructionSizeInBytes);
       (this->*shiftop)(cond, scratch, rm, rs);
-      return (this->*instruction)(cond, size, rd, rn, scratch);
+      (this->*instruction)(cond, size, rd, rn, scratch);
+      return;
     }
   }
   if (operand.IsImmediate()) {
@@ -1176,9 +1191,11 @@ void MacroAssembler::Delegate(InstructionType type,
       if (IsUsingT32()) {
         switch (type) {
           case kOrr:
-            return orn(cond, rd, rn, ~imm);
+            orn(cond, rd, rn, ~imm);
+            return;
           case kOrrs:
-            return orns(cond, rd, rn, ~imm);
+            orns(cond, rd, rn, ~imm);
+            return;
           default:
             break;
         }
@@ -1228,7 +1245,8 @@ void MacroAssembler::Delegate(InstructionType type,
       }
       if (asmcb != NULL) {
         CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
-        return (this->*asmcb)(cond, size, rd, rn, Operand(imm));
+        (this->*asmcb)(cond, size, rd, rn, Operand(imm));
+        return;
       }
     }
     UseScratchRegisterScope temps(this);
@@ -1239,7 +1257,8 @@ void MacroAssembler::Delegate(InstructionType type,
     // worst-case size and add targetted tests.
     CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
     mov(cond, scratch, operand.GetImmediate());
-    return (this->*instruction)(cond, size, rd, rn, scratch);
+    (this->*instruction)(cond, size, rd, rn, scratch);
+    return;
   }
   Assembler::Delegate(type, instruction, cond, size, rd, rn, operand);
 }
@@ -1370,7 +1389,8 @@ void MacroAssembler::Delegate(InstructionType type,
         // worst-case size and add targetted tests.
         CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
         mov(cond, scratch, FloatToRawbits(f));
-        return vmov(cond, rd, scratch);
+        vmov(cond, rd, scratch);
+        return;
       }
     }
   }
@@ -1395,19 +1415,22 @@ void MacroAssembler::Delegate(InstructionType type,
             // vmov.i32 d0, 0xabababab will translate into vmov.i8 d0, 0xab
             if (IsI8BitPattern(imm)) {
               CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-              return vmov(cond, I8, rd, imm & 0xff);
+              vmov(cond, I8, rd, imm & 0xff);
+              return;
             }
             // vmov.i32 d0, 0xff0000ff will translate into
             // vmov.i64 d0, 0xff0000ffff0000ff
             if (IsI64BitPattern(imm)) {
               CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-              return vmov(cond, I64, rd, replicate<uint64_t>(imm));
+              vmov(cond, I64, rd, replicate<uint64_t>(imm));
+              return;
             }
             // vmov.i32 d0, 0xffab0000 will translate into
             // vmvn.i32 d0, 0x0054ffff
             if (cond.Is(al) && CanBeInverted(imm)) {
               CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-              return vmvn(I32, rd, ~imm);
+              vmvn(I32, rd, ~imm);
+              return;
             }
           }
           break;
@@ -1417,7 +1440,8 @@ void MacroAssembler::Delegate(InstructionType type,
             // vmov.i16 d0, 0xabab will translate into vmov.i8 d0, 0xab
             if (IsI8BitPattern(imm)) {
               CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-              return vmov(cond, I8, rd, imm & 0xff);
+              vmov(cond, I8, rd, imm & 0xff);
+              return;
             }
           }
           break;
@@ -1427,7 +1451,8 @@ void MacroAssembler::Delegate(InstructionType type,
             // vmov.i64 d0, -1 will translate into vmov.i8 d0, 0xff
             if (IsI8BitPattern(imm)) {
               CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-              return vmov(cond, I8, rd, imm & 0xff);
+              vmov(cond, I8, rd, imm & 0xff);
+              return;
             }
             // mov ip, lo(imm64)
             // vdup d0, ip
@@ -1494,7 +1519,8 @@ void MacroAssembler::Delegate(InstructionType type,
             VIXL_UNREACHABLE();
         }
         CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-        return vdup(cond, vdup_dt, rd, scratch);
+        vdup(cond, vdup_dt, rd, scratch);
+        return;
       }
       if (dt.Is(F32) && neon_imm.CanConvert<float>()) {
         float f = neon_imm.GetImmediate<float>();
@@ -1502,7 +1528,8 @@ void MacroAssembler::Delegate(InstructionType type,
         // TODO: The scope length was guessed based on the double case below. We
         // should analyse the worst-case size and add targetted tests.
         CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
-        return vmov(cond, I32, rd, FloatToRawbits(f));
+        vmov(cond, I32, rd, FloatToRawbits(f));
+        return;
       }
       if (dt.Is(F64) && neon_imm.CanConvert<double>()) {
         // Punt to vmov.i64
@@ -1511,7 +1538,8 @@ void MacroAssembler::Delegate(InstructionType type,
         // the
         // worst-case size and add targetted tests.
         CodeBufferCheckScope scope(this, 6 * kMaxInstructionSizeInBytes);
-        return vmov(cond, I64, rd, DoubleToRawbits(d));
+        vmov(cond, I64, rd, DoubleToRawbits(d));
+        return;
       }
     }
   }
@@ -1536,19 +1564,22 @@ void MacroAssembler::Delegate(InstructionType type,
             // vmov.i32 d0, 0xabababab will translate into vmov.i8 d0, 0xab
             if (IsI8BitPattern(imm)) {
               CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-              return vmov(cond, I8, rd, imm & 0xff);
+              vmov(cond, I8, rd, imm & 0xff);
+              return;
             }
             // vmov.i32 d0, 0xff0000ff will translate into
             // vmov.i64 d0, 0xff0000ffff0000ff
             if (IsI64BitPattern(imm)) {
               CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-              return vmov(cond, I64, rd, replicate<uint64_t>(imm));
+              vmov(cond, I64, rd, replicate<uint64_t>(imm));
+              return;
             }
             // vmov.i32 d0, 0xffab0000 will translate into
             // vmvn.i32 d0, 0x0054ffff
             if (CanBeInverted(imm)) {
               CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-              return vmvn(cond, I32, rd, ~imm);
+              vmvn(cond, I32, rd, ~imm);
+              return;
             }
           }
           break;
@@ -1558,7 +1589,8 @@ void MacroAssembler::Delegate(InstructionType type,
             // vmov.i16 d0, 0xabab will translate into vmov.i8 d0, 0xab
             if (IsI8BitPattern(imm)) {
               CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-              return vmov(cond, I8, rd, imm & 0xff);
+              vmov(cond, I8, rd, imm & 0xff);
+              return;
             }
           }
           break;
@@ -1568,7 +1600,8 @@ void MacroAssembler::Delegate(InstructionType type,
             // vmov.i64 d0, -1 will translate into vmov.i8 d0, 0xff
             if (IsI8BitPattern(imm)) {
               CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-              return vmov(cond, I8, rd, imm & 0xff);
+              vmov(cond, I8, rd, imm & 0xff);
+              return;
             }
             // mov ip, lo(imm64)
             // vdup q0, ip
@@ -1635,19 +1668,22 @@ void MacroAssembler::Delegate(InstructionType type,
             VIXL_UNREACHABLE();
         }
         CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-        return vdup(cond, vdup_dt, rd, scratch);
+        vdup(cond, vdup_dt, rd, scratch);
+        return;
       }
       if (dt.Is(F32) && neon_imm.CanConvert<float>()) {
         // Punt to vmov.i64
         float f = neon_imm.GetImmediate<float>();
         CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-        return vmov(cond, I32, rd, FloatToRawbits(f));
+        vmov(cond, I32, rd, FloatToRawbits(f));
+        return;
       }
       if (dt.Is(F64) && neon_imm.CanConvert<double>()) {
         // Punt to vmov.i64
         double d = neon_imm.GetImmediate<double>();
         CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-        return vmov(cond, I64, rd, DoubleToRawbits(d));
+        vmov(cond, I64, rd, DoubleToRawbits(d));
+        return;
       }
     }
   }
@@ -1882,7 +1918,8 @@ void MacroAssembler::Delegate(InstructionType type,
   if ((type == kLdaexd) || (type == kLdrexd) || (type == kStlex) ||
       (type == kStlexb) || (type == kStlexh) || (type == kStrex) ||
       (type == kStrexb) || (type == kStrexh)) {
-    return UnimplementedDelegate(type);
+    UnimplementedDelegate(type);
+    return;
   }
 
   VIXL_ASSERT((type == kLdrd) || (type == kStrd));
