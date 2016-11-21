@@ -1096,10 +1096,15 @@ TEST(macro_assembler_InstructionCondSizeRROp) {
 TEST(macro_assembler_InstructionCondRO) {
   SETUP();
 
+  COMPARE_BOTH(Teq(r0, 0xbad),
+               "mov ip, #2989\n"
+               "teq r0, ip\n");
   COMPARE_BOTH(Teq(r0, 0xbadbeef),
                "mov ip, #48879\n"
                "movt ip, #2989\n"
                "teq r0, ip\n");
+  MUST_FAIL_TEST_T32(Teq(r0, Operand(r1, LSL, r2)),
+                     "Ill-formed 'teq' instruction.\n");
 
   CLEANUP();
 }
