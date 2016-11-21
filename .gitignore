@@ -1,5 +1,6 @@
 # ignore python compiled object
 *.pyc
+*.html
 .sconsign.dblite
 log/
 obj/

@@ -47,7 +47,7 @@ See README.md for documentation and details about the build system.
 
 
 # We track top-level targets to automatically generate help and alias them.
-class TopLevelTargets:
+class VIXLTargets:
   def __init__(self):
     self.targets = []
     self.help_messages = []
@@ -64,7 +64,7 @@ class TopLevelTargets:
         len(' : ') + max(map(len, self.help_messages)))
     return res
 
-top_level_targets = TopLevelTargets()
+top_level_targets = VIXLTargets()
 
 
 
@@ -365,7 +365,11 @@ def VIXLLibraryTarget(env):
 # Build ------------------------------------------------------------------------
 
 # The VIXL library, built by default.
-env = Environment(variables = vars)
+env = Environment(variables = vars,
+                  BUILDERS = {
+                      'Markdown': Builder(action = 'markdown $SOURCE > $TARGET',
+                                          suffix = '.html')
+                  })
 # Abort the build if any command line option is unknown or invalid.
 unknown_build_options = vars.UnknownVariables()
 if unknown_build_options:
@@ -469,3 +473,24 @@ env.Alias('all', top_level_targets.targets)
 top_level_targets.Add('all', 'Build all the targets above.')
 
 Help('\n\nAvailable top level targets:\n' + top_level_targets.Help())
+
+extra_targets = VIXLTargets()
+
+# Build documentation
+doc = [
+    env.Markdown('README.md'),
+    env.Markdown('doc/changelog.md'),
+    env.Markdown('doc/aarch32/getting-started-aarch32.md'),
+    env.Markdown('doc/aarch32/design/code-generation-aarch32.md'),
+    env.Markdown('doc/aarch32/design/literal-pool-aarch32.md'),
+    env.Markdown('doc/aarch64/supported-instructions-aarch64.md'),
+    env.Markdown('doc/aarch64/getting-started-aarch64.md'),
+    env.Markdown('doc/aarch64/topics/ycm.md'),
+    env.Markdown('doc/aarch64/topics/extending-the-disassembler.md'),
+    env.Markdown('doc/aarch64/topics/index.md'),
+]
+env.Alias('doc', doc)
+extra_targets.Add('doc', 'Convert documentation to HTML (requires the '
+                         '`markdown` program).')
+
+Help('\nAvailable extra targets:\n' + extra_targets.Help())
