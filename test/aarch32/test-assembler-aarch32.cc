@@ -42,34 +42,34 @@ namespace aarch32 {
 
 // Tests declared with this macro will be run twice: once targeting A32 and
 // once targeting T32.
-#define TEST(Name)                                             \
-void Test##Name##Impl(InstructionSet isa);                     \
-void Test##Name() {                                            \
-  Test##Name##Impl(A32);                                       \
-  printf(" > A32 done\n");                                     \
-  Test##Name##Impl(T32);                                       \
-  printf(" > T32 done\n");                                     \
-}                                                              \
-Test test_##Name(STRINGIFY(AARCH32_ASM_##Name), &Test##Name);  \
-void Test##Name##Impl(InstructionSet isa)
+#define TEST(Name)                                                \
+void Test##Name##Impl(InstructionSet isa);                        \
+void Test##Name() {                                               \
+  Test##Name##Impl(A32);                                          \
+  printf(" > A32 done\n");                                        \
+  Test##Name##Impl(T32);                                          \
+  printf(" > T32 done\n");                                        \
+}                                                                 \
+Test test_##Name(STRINGIFY(AARCH32_ASM_##Name), &Test##Name);     \
+void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
 
 // Test declared with this macro will only target A32.
-#define TEST_A32(Name)                                         \
-void Test##Name##Impl(InstructionSet isa);                     \
-void Test##Name() {                                            \
-  Test##Name##Impl(A32);                                       \
-}                                                              \
-Test test_##Name(STRINGIFY(AARCH32_A32_##Name), &Test##Name);  \
-void Test##Name##Impl(InstructionSet isa)
+#define TEST_A32(Name)                                            \
+void Test##Name##Impl(InstructionSet isa);                        \
+void Test##Name() {                                               \
+  Test##Name##Impl(A32);                                          \
+}                                                                 \
+Test test_##Name(STRINGIFY(AARCH32_A32_##Name), &Test##Name);     \
+void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
 
 // Tests declared with this macro will only target T32.
-#define TEST_T32(Name)                                         \
-void Test##Name##Impl(InstructionSet isa);                     \
-void Test##Name() {                                            \
-  Test##Name##Impl(T32);                                       \
-}                                                              \
-Test test_##Name(STRINGIFY(AARCH32_T32_##Name), &Test##Name);  \
-void Test##Name##Impl(InstructionSet isa)
+#define TEST_T32(Name)                                            \
+void Test##Name##Impl(InstructionSet isa);                        \
+void Test##Name() {                                               \
+  Test##Name##Impl(T32);                                          \
+}                                                                 \
+Test test_##Name(STRINGIFY(AARCH32_T32_##Name), &Test##Name);     \
+void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
 
 // Tests declared with this macro are not expected to use any provided test
 // helpers such as SETUP, RUN, etc.
