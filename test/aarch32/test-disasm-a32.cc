@@ -928,6 +928,27 @@ TEST(macro_assembler_ldrd) {
   MUST_FAIL_TEST_BOTH(Ldrd(r0, r1, MemOperand(r2, r3, LSL, 4)),
                       "Ill-formed 'ldrd' instruction.\n");
 
+  // First register is odd - rejected by the Assembler.
+  MUST_FAIL_TEST_A32(Ldrd(r1, r2, MemOperand(r0)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Ldrd(r1, r2, MemOperand(r0, r0, PreIndex)),
+                     "Unpredictable instruction.\n");
+  // First register is odd - rejected by the MacroAssembler.
+  MUST_FAIL_TEST_A32(Ldrd(r1, r2, MemOperand(r0, 0xabcd, PreIndex)),
+                     "Ill-formed 'ldrd' instruction.\n");
+
+  // First register is lr - rejected by the Assembler.
+  MUST_FAIL_TEST_A32(Ldrd(lr, pc, MemOperand(r0)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Ldrd(lr, pc, MemOperand(r0, r0, PreIndex)),
+                     "Unpredictable instruction.\n");
+  // First register is lr - rejected by the MacroAssembler.
+  MUST_FAIL_TEST_A32(Ldrd(lr, pc, MemOperand(r0, 0xabcd, PreIndex)),
+                     "Ill-formed 'ldrd' instruction.\n");
+
+  // Non-adjacent registers.
+  MUST_FAIL_TEST_A32(Ldrd(r0, r2, MemOperand(r0)),
+                     "Ill-formed 'ldrd' instruction.\n");
 
   CLEANUP();
 }
@@ -1109,6 +1130,28 @@ TEST(macro_assembler_strd) {
 
   MUST_FAIL_TEST_BOTH(Strd(r0, r1, MemOperand(r2, r3, LSL, 4)),
                       "Ill-formed 'strd' instruction.\n");
+
+  // First register is odd - rejected by the Assembler.
+  MUST_FAIL_TEST_A32(Strd(r1, r2, MemOperand(r0)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Strd(r1, r2, MemOperand(r0, r0, PreIndex)),
+                     "Unpredictable instruction.\n");
+  // First register is odd - rejected by the MacroAssembler.
+  MUST_FAIL_TEST_A32(Strd(r1, r2, MemOperand(r0, 0xabcd, PreIndex)),
+                     "Ill-formed 'strd' instruction.\n");
+
+  // First register is lr - rejected by the Assembler.
+  MUST_FAIL_TEST_A32(Strd(lr, pc, MemOperand(r0)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Strd(lr, pc, MemOperand(r0, r0, PreIndex)),
+                     "Unpredictable instruction.\n");
+  // First register is lr - rejected by the MacroAssembler.
+  MUST_FAIL_TEST_A32(Strd(lr, pc, MemOperand(r0, 0xabcd, PreIndex)),
+                     "Ill-formed 'strd' instruction.\n");
+
+  // Non-adjacent registers.
+  MUST_FAIL_TEST_A32(Strd(r0, r2, MemOperand(r0)),
+                     "Ill-formed 'strd' instruction.\n");
 
   CLEANUP();
 }
@@ -1628,6 +1671,39 @@ TEST(macro_assembler_A32_Vstr_s) {
 }
 
 #undef TEST_VMEMOP
+
+TEST(macro_assembler_Vldr_Vstr_negative) {
+  SETUP();
+
+  MUST_FAIL_TEST_BOTH(Vldr(s0, MemOperand(pc, 1, PreIndex)),
+                      "The MacroAssembler does not convert vldr or vstr"
+                      " with a PC base register.\n");
+
+  MUST_FAIL_TEST_BOTH(Vldr(s0, MemOperand(pc, r0, PreIndex)),
+                      "Ill-formed 'vldr' instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(Vstr(s0, MemOperand(pc, 1, PreIndex)),
+                      "The MacroAssembler does not convert vldr or vstr"
+                      " with a PC base register.\n");
+
+  MUST_FAIL_TEST_BOTH(Vstr(s0, MemOperand(pc, r0, PreIndex)),
+                      "Ill-formed 'vstr' instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(Vldr(d0, MemOperand(pc, 1, PreIndex)),
+                      "The MacroAssembler does not convert vldr or vstr"
+                      " with a PC base register.\n");
+
+  MUST_FAIL_TEST_BOTH(Vldr(d0, MemOperand(pc, r0, PreIndex)),
+                      "Ill-formed 'vldr' instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(Vstr(d0, MemOperand(pc, 1, PreIndex)),
+                      "The MacroAssembler does not convert vldr or vstr"
+                      " with a PC base register.\n");
+
+  MUST_FAIL_TEST_BOTH(Vstr(d0, MemOperand(pc, r0, PreIndex)),
+                      "Ill-formed 'vstr' instruction.\n");
+  CLEANUP();
+}
 
 #define TEST_SHIFT_T32(Inst, name, offset)       \
   COMPARE_T32(Inst(r0, Operand(r1, LSL, r2)),    \
