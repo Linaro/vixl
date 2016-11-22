@@ -920,6 +920,11 @@ TEST(macro_assembler_wide_immediate) {
               "mov r0, #48879\n"
               "movt r0, #2989\n"
               "tst r0, r0\n");
+  // TODO: Movs with PC is not allowed but we do allow it, unless the immediate
+  // is not encodable.
+  SHOULD_FAIL_TEST_BOTH(Movs(pc, 0x1));
+  MUST_FAIL_TEST_BOTH(Movs(pc, 0xbadbeed),
+                      "Ill-formed 'movs' instruction.\n");
 
   COMPARE_BOTH(Mov(pc, 0xbadbeef),
               "mov ip, #48879\n"
@@ -1476,6 +1481,11 @@ TEST(macro_assembler_InstructionCondSizeROp) {
 
   TEST_MOV_SHIFT_T32(Mov, "", 0x00000006)
   TEST_MOV_SHIFT_T32(Movs, "s", 0x00000006)
+
+  // TODO: Movs with PC is not allowed but we do allow it.
+  SHOULD_FAIL_TEST_BOTH(Movs(pc, r0));
+  SHOULD_FAIL_TEST_BOTH(Movs(pc, Operand(r0, LSL, 0x4)));
+  SHOULD_FAIL_TEST_BOTH(Movs(pc, Operand(r0, ASR, r2)));
 
   // Wide immediates (Mov and Movs are tested in "macro_assembler_wide_immediate").
   TEST_WIDE_IMMEDIATE(Cmp, "cmp", 0x0000000c);
