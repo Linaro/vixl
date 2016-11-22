@@ -287,6 +287,7 @@ void MacroAssembler::PerformEnsureEmit(Label::Offset target, uint32_t size) {
     bool save_assembler_state = AllowAssembler();
     SetAllowAssembler(true);
 #endif
+    GetBuffer()->EnsureSpaceFor(kMaxInstructionSizeInBytes);
     b(&after_pools);
 #ifdef VIXL_DEBUG
     SetAllowAssembler(false);

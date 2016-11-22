@@ -2655,5 +2655,51 @@ TEST(code_buffer_precise_growth) {
 }
 
 
+TEST_T32(out_of_space_immediately_before_PerformEnsureEmit) {
+  static const int kBaseBufferSize = 16;
+  MacroAssembler masm(kBaseBufferSize, T32);
+
+  VIXL_CHECK(masm.GetBuffer()->GetCapacity() == kBaseBufferSize);
+
+  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+
+  // Create a veneer.
+  Label target;
+  __ Cbz(r0, &target);
+
+  VIXL_CHECK(!masm.VeneerPoolIsEmpty());
+
+  VIXL_CHECK(IsUint32(masm.GetBuffer()->GetRemainingBytes()));
+  uint32_t space = static_cast<uint32_t>(masm.GetBuffer()->GetRemainingBytes());
+  {
+    // Fill the buffer with nops.
+    AssemblerAccurateScope scope(&masm,
+                                 space,
+                                 CodeBufferCheckScope::kExactSize);
+    for (uint32_t i = 0; i < space; i += k16BitT32InstructionSizeInBytes) {
+      __ nop();
+    }
+  }
+
+  VIXL_CHECK(!masm.VeneerPoolIsEmpty());
+
+  // The buffer should not have grown yet, and there should be no space left.
+  VIXL_CHECK(masm.GetBuffer()->GetCapacity() == kBaseBufferSize);
+  VIXL_CHECK(masm.GetBuffer()->GetRemainingBytes() == 0);
+
+  // Force emission of the veneer, at a point where there is no space available
+  // in the buffer.
+  int32_t past_cbz_range = masm.GetMarginBeforeVeneerEmission() + 1;
+  masm.EnsureEmitFor(past_cbz_range);
+
+  __ Bind(&target);
+
+  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+
+  masm.FinalizeCode();
+}
+
+
 }  // namespace aarch32
 }  // namespace vixl
