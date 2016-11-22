@@ -1806,7 +1806,8 @@ void Assembler::adc(Condition cond,
     if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // ADC{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
-      if (!size.IsNarrow() && immediate_t32.IsValid()) {
+      if (!size.IsNarrow() && immediate_t32.IsValid() &&
+          ((!rd.IsPC() && !rn.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf1400000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                    (immediate_t32.GetEncodingValue() & 0xff) |
                    ((immediate_t32.GetEncodingValue() & 0x700) << 4) |
@@ -1842,7 +1843,8 @@ void Assembler::adc(Condition cond,
     uint32_t amount = operand.GetShiftAmount();
     if (IsUsingT32()) {
       // ADC{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
-      if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
+      if (!size.IsNarrow() && shift.IsValidAmount(amount) &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
         uint32_t amount_ = amount % 32;
         EmitT32_32(0xeb400000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                    rm.GetCode() | (operand.GetTypeEncodingValue() << 4) |
@@ -1866,7 +1868,9 @@ void Assembler::adc(Condition cond,
     Shift shift = operand.GetShift();
     if (IsUsingA32()) {
       // ADC{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever()) {
+      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
+                                 !operand.GetShiftRegister().IsPC()) ||
+                                AllowUnpredictable())) {
         EmitA32(0x00a00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
                 (shift.GetType() << 5) |
@@ -1890,7 +1894,8 @@ void Assembler::adcs(Condition cond,
     if (IsUsingT32()) {
       ImmediateT32 immediate_t32(imm);
       // ADCS{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T1
-      if (!size.IsNarrow() && immediate_t32.IsValid()) {
+      if (!size.IsNarrow() && immediate_t32.IsValid() &&
+          ((!rd.IsPC() && !rn.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf1500000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                    (immediate_t32.GetEncodingValue() & 0xff) |
                    ((immediate_t32.GetEncodingValue() & 0x700) << 4) |
@@ -1926,7 +1931,8 @@ void Assembler::adcs(Condition cond,
     uint32_t amount = operand.GetShiftAmount();
     if (IsUsingT32()) {
       // ADCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T2
-      if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
+      if (!size.IsNarrow() && shift.IsValidAmount(amount) &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
         uint32_t amount_ = amount % 32;
         EmitT32_32(0xeb500000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                    rm.GetCode() | (operand.GetTypeEncodingValue() << 4) |
@@ -1950,7 +1956,9 @@ void Assembler::adcs(Condition cond,
     Shift shift = operand.GetShift();
     if (IsUsingA32()) {
       // ADCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever()) {
+      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
+                                 !operand.GetShiftRegister().IsPC()) ||
+                                AllowUnpredictable())) {
         EmitA32(0x00b00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
                 (shift.GetType() << 5) |
@@ -2012,14 +2020,16 @@ void Assembler::add(Condition cond,
         return;
       }
       // ADD{<c>}{<q>} <Rd>, PC, #<imm12> ; T3
-      if (!size.IsNarrow() && rn.Is(pc) && (imm <= 4095)) {
+      if (!size.IsNarrow() && rn.Is(pc) && (imm <= 4095) &&
+          ((!rd.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf20f0000U | (rd.GetCode() << 8) | (imm & 0xff) |
                    ((imm & 0x700) << 4) | ((imm & 0x800) << 15));
         AdvanceIT();
         return;
       }
       // ADD{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T3
-      if (!size.IsNarrow() && immediate_t32.IsValid() && !rn.Is(sp)) {
+      if (!size.IsNarrow() && immediate_t32.IsValid() && !rn.Is(sp) &&
+          ((!rd.IsPC() && !rn.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf1000000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                    (immediate_t32.GetEncodingValue() & 0xff) |
                    ((immediate_t32.GetEncodingValue() & 0x700) << 4) |
@@ -2028,14 +2038,16 @@ void Assembler::add(Condition cond,
         return;
       }
       // ADD{<c>}{<q>} {<Rd>}, <Rn>, #<imm12> ; T4
-      if (!size.IsNarrow() && (imm <= 4095) && ((rn.GetCode() & 0xd) != 0xd)) {
+      if (!size.IsNarrow() && (imm <= 4095) && ((rn.GetCode() & 0xd) != 0xd) &&
+          ((!rd.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf2000000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                    (imm & 0xff) | ((imm & 0x700) << 4) | ((imm & 0x800) << 15));
         AdvanceIT();
         return;
       }
       // ADD{<c>}{<q>} {<Rd>}, SP, #<const> ; T3
-      if (!size.IsNarrow() && rn.Is(sp) && immediate_t32.IsValid()) {
+      if (!size.IsNarrow() && rn.Is(sp) && immediate_t32.IsValid() &&
+          ((!rd.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf10d0000U | (rd.GetCode() << 8) |
                    (immediate_t32.GetEncodingValue() & 0xff) |
                    ((immediate_t32.GetEncodingValue() & 0x700) << 4) |
@@ -2044,7 +2056,8 @@ void Assembler::add(Condition cond,
         return;
       }
       // ADD{<c>}{<q>} {<Rd>}, SP, #<imm12> ; T4
-      if (!size.IsNarrow() && rn.Is(sp) && (imm <= 4095)) {
+      if (!size.IsNarrow() && rn.Is(sp) && (imm <= 4095) &&
+          ((!rd.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf20d0000U | (rd.GetCode() << 8) | (imm & 0xff) |
                    ((imm & 0x700) << 4) | ((imm & 0x800) << 15));
         AdvanceIT();
@@ -2087,14 +2100,19 @@ void Assembler::add(Condition cond,
           return;
         }
         // ADD{<c>}{<q>} {<Rdn>}, <Rdn>, <Rm> ; T2
-        if (!size.IsWide() && rd.Is(rn) && !rm.Is(sp)) {
+        if (!size.IsWide() && rd.Is(rn) && !rm.Is(sp) &&
+            (((!rd.IsPC() || OutsideITBlockAndAlOrLast(cond)) &&
+              (!rd.IsPC() || !rm.IsPC())) ||
+             AllowUnpredictable())) {
           EmitT32_16(0x4400 | (rd.GetCode() & 0x7) |
                      ((rd.GetCode() & 0x8) << 4) | (rm.GetCode() << 3));
           AdvanceIT();
           return;
         }
         // ADD{<c>}{<q>} {<Rdm>}, SP, <Rdm> ; T1
-        if (!size.IsWide() && rd.Is(rm) && rn.Is(sp)) {
+        if (!size.IsWide() && rd.Is(rm) && rn.Is(sp) &&
+            (((!rd.IsPC() || OutsideITBlockAndAlOrLast(cond))) ||
+             AllowUnpredictable())) {
           EmitT32_16(0x4468 | (rd.GetCode() & 0x7) |
                      ((rd.GetCode() & 0x8) << 4));
           AdvanceIT();
@@ -2112,7 +2130,8 @@ void Assembler::add(Condition cond,
     uint32_t amount = operand.GetShiftAmount();
     if (IsUsingT32()) {
       // ADD{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T3
-      if (!size.IsNarrow() && shift.IsValidAmount(amount) && !rn.Is(sp)) {
+      if (!size.IsNarrow() && shift.IsValidAmount(amount) && !rn.Is(sp) &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
         uint32_t amount_ = amount % 32;
         EmitT32_32(0xeb000000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                    rm.GetCode() | (operand.GetTypeEncodingValue() << 4) |
@@ -2121,7 +2140,8 @@ void Assembler::add(Condition cond,
         return;
       }
       // ADD{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift> #<amount> } ; T3
-      if (!size.IsNarrow() && rn.Is(sp) && shift.IsValidAmount(amount)) {
+      if (!size.IsNarrow() && rn.Is(sp) && shift.IsValidAmount(amount) &&
+          ((!rd.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
         uint32_t amount_ = amount % 32;
         EmitT32_32(0xeb0d0000U | (rd.GetCode() << 8) | rm.GetCode() |
                    (operand.GetTypeEncodingValue() << 4) |
@@ -2153,7 +2173,9 @@ void Assembler::add(Condition cond,
     Shift shift = operand.GetShift();
     if (IsUsingA32()) {
       // ADD{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever()) {
+      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
+                                 !operand.GetShiftRegister().IsPC()) ||
+                                AllowUnpredictable())) {
         EmitA32(0x00800010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
                 (shift.GetType() << 5) |
@@ -2183,7 +2205,10 @@ void Assembler::add(Condition cond, Register rd, const Operand& operand) {
     Register rm = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // ADD<c>{<q>} <Rdn>, <Rm> ; T2
-      if (InITBlock() && !rm.Is(sp)) {
+      if (InITBlock() && !rm.Is(sp) &&
+          (((!rd.IsPC() || OutsideITBlockAndAlOrLast(cond)) &&
+            (!rd.IsPC() || !rm.IsPC())) ||
+           AllowUnpredictable())) {
         EmitT32_16(0x4400 | (rd.GetCode() & 0x7) | ((rd.GetCode() & 0x8) << 4) |
                    (rm.GetCode() << 3));
         AdvanceIT();
@@ -2221,7 +2246,7 @@ void Assembler::adds(Condition cond,
       }
       // ADDS{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T3
       if (!size.IsNarrow() && immediate_t32.IsValid() && !rn.Is(sp) &&
-          !rd.Is(pc)) {
+          !rd.Is(pc) && ((!rn.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf1100000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                    (immediate_t32.GetEncodingValue() & 0xff) |
                    ((immediate_t32.GetEncodingValue() & 0x700) << 4) |
@@ -2275,7 +2300,7 @@ void Assembler::adds(Condition cond,
     if (IsUsingT32()) {
       // ADDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm> {, <shift> #<amount> } ; T3
       if (!size.IsNarrow() && shift.IsValidAmount(amount) && !rn.Is(sp) &&
-          !rd.Is(pc)) {
+          !rd.Is(pc) && ((!rn.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
         uint32_t amount_ = amount % 32;
         EmitT32_32(0xeb100000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                    rm.GetCode() | (operand.GetTypeEncodingValue() << 4) |
@@ -2285,7 +2310,7 @@ void Assembler::adds(Condition cond,
       }
       // ADDS{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift> #<amount> } ; T3
       if (!size.IsNarrow() && rn.Is(sp) && shift.IsValidAmount(amount) &&
-          !rd.Is(pc)) {
+          !rd.Is(pc) && ((!rm.IsPC()) || AllowUnpredictable())) {
         uint32_t amount_ = amount % 32;
         EmitT32_32(0xeb1d0000U | (rd.GetCode() << 8) | rm.GetCode() |
                    (operand.GetTypeEncodingValue() << 4) |
@@ -2317,7 +2342,9 @@ void Assembler::adds(Condition cond,
     Shift shift = operand.GetShift();
     if (IsUsingA32()) {
       // ADDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever()) {
+      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
+                                 !operand.GetShiftRegister().IsPC()) ||
+                                AllowUnpredictable())) {
         EmitA32(0x00900010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
                 (shift.GetType() << 5) |
@@ -2356,21 +2383,24 @@ void Assembler::addw(Condition cond,
     uint32_t imm = operand.GetImmediate();
     if (IsUsingT32()) {
       // ADDW{<c>}{<q>} <Rd>, PC, #<imm12> ; T3
-      if (rn.Is(pc) && (imm <= 4095)) {
+      if (rn.Is(pc) && (imm <= 4095) &&
+          ((!rd.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf20f0000U | (rd.GetCode() << 8) | (imm & 0xff) |
                    ((imm & 0x700) << 4) | ((imm & 0x800) << 15));
         AdvanceIT();
         return;
       }
       // ADDW{<c>}{<q>} {<Rd>}, <Rn>, #<imm12> ; T4
-      if ((imm <= 4095) && ((rn.GetCode() & 0xd) != 0xd)) {
+      if ((imm <= 4095) && ((rn.GetCode() & 0xd) != 0xd) &&
+          ((!rd.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf2000000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                    (imm & 0xff) | ((imm & 0x700) << 4) | ((imm & 0x800) << 15));
         AdvanceIT();
         return;
       }
       // ADDW{<c>}{<q>} {<Rd>}, SP, #<imm12> ; T4
-      if (rn.Is(sp) && (imm <= 4095)) {
+      if (rn.Is(sp) && (imm <= 4095) &&
+          ((!rd.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf20d0000U | (rd.GetCode() << 8) | (imm & 0xff) |
                    ((imm & 0x700) << 4) | ((imm & 0x800) << 15));
         AdvanceIT();
@@ -2418,7 +2448,7 @@ void Assembler::adr(Condition cond,
     }
     // ADR{<c>}{<q>} <Rd>, <label> ; T2
     if (!size.IsNarrow() && label->IsBound() && (neg_offset > 0) &&
-        (neg_offset <= 4095)) {
+        (neg_offset <= 4095) && ((!rd.IsPC()) || AllowUnpredictable())) {
       EmitT32_32(0xf2af0000U | (rd.GetCode() << 8) | (neg_offset & 0xff) |
                  ((neg_offset & 0x700) << 4) | ((neg_offset & 0x800) << 15));
       AdvanceIT();
@@ -2426,7 +2456,8 @@ void Assembler::adr(Condition cond,
     }
     // ADR{<c>}{<q>} <Rd>, <label> ; T3
     if (!size.IsNarrow() &&
-        (!label->IsBound() || ((offset >= 0) && (offset <= 4095)))) {
+        (!label->IsBound() || ((offset >= 0) && (offset <= 4095))) &&
+        ((!rd.IsPC()) || AllowUnpredictable())) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(0, 4095) {}
@@ -6479,7 +6510,8 @@ void Assembler::mov(Condition cond,
         return;
       }
       // MOV{<c>}{<q>} <Rd>, #<const> ; T2
-      if (!size.IsNarrow() && immediate_t32.IsValid()) {
+      if (!size.IsNarrow() && immediate_t32.IsValid() &&
+          ((!rd.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf04f0000U | (rd.GetCode() << 8) |
                    (immediate_t32.GetEncodingValue() & 0xff) |
                    ((immediate_t32.GetEncodingValue() & 0x700) << 4) |
@@ -6488,7 +6520,8 @@ void Assembler::mov(Condition cond,
         return;
       }
       // MOV{<c>}{<q>} <Rd>, #<imm16> ; T3
-      if (!size.IsNarrow() && (imm <= 65535)) {
+      if (!size.IsNarrow() && (imm <= 65535) &&
+          ((!rd.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf2400000U | (rd.GetCode() << 8) | (imm & 0xff) |
                    ((imm & 0x700) << 4) | ((imm & 0x800) << 15) |
                    ((imm & 0xf000) << 4));
@@ -6504,7 +6537,8 @@ void Assembler::mov(Condition cond,
         return;
       }
       // MOV{<c>}{<q>} <Rd>, #<imm16> ; A2
-      if ((imm <= 65535) && cond.IsNotNever()) {
+      if ((imm <= 65535) && cond.IsNotNever() &&
+          ((!rd.IsPC()) || AllowUnpredictable())) {
         EmitA32(0x03000000U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (imm & 0xfff) | ((imm & 0xf000) << 4));
         return;
@@ -6620,7 +6654,8 @@ void Assembler::movs(Condition cond,
         return;
       }
       // MOVS{<c>}{<q>} <Rd>, #<const> ; T2
-      if (!size.IsNarrow() && immediate_t32.IsValid()) {
+      if (!size.IsNarrow() && immediate_t32.IsValid() &&
+          ((!rd.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf05f0000U | (rd.GetCode() << 8) |
                    (immediate_t32.GetEncodingValue() & 0xff) |
                    ((immediate_t32.GetEncodingValue() & 0x700) << 4) |
@@ -6674,7 +6709,7 @@ void Assembler::movw(Condition cond, Register rd, const Operand& operand) {
     uint32_t imm = operand.GetImmediate();
     if (IsUsingT32()) {
       // MOVW{<c>}{<q>} <Rd>, #<imm16> ; T3
-      if ((imm <= 65535)) {
+      if ((imm <= 65535) && ((!rd.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xf2400000U | (rd.GetCode() << 8) | (imm & 0xff) |
                    ((imm & 0x700) << 4) | ((imm & 0x800) << 15) |
                    ((imm & 0xf000) << 4));
@@ -6683,7 +6718,8 @@ void Assembler::movw(Condition cond, Register rd, const Operand& operand) {
       }
     } else {
       // MOVW{<c>}{<q>} <Rd>, #<imm16> ; A2
-      if ((imm <= 65535) && cond.IsNotNever()) {
+      if ((imm <= 65535) && cond.IsNotNever() &&
+          ((!rd.IsPC()) || AllowUnpredictable())) {
         EmitA32(0x03000000U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (imm & 0xfff) | ((imm & 0xf000) << 4));
         return;

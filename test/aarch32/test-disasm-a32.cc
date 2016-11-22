@@ -51,6 +51,39 @@ namespace aarch32 {
 
 #define CLEANUP()
 
+#ifdef VIXL_NEGATIVE_TESTING
+#define START_COMPARE()                                                        \
+  {                                                                            \
+    try {                                                                      \
+      int32_t start = masm.GetCursorOffset();
+
+#define END_COMPARE(EXP)                                                       \
+      int32_t end = masm.GetCursorOffset();                                    \
+      masm.FinalizeCode();                                                     \
+      std::ostringstream ss;                                                   \
+      TestDisassembler disassembler(ss, 0);                                    \
+      if (masm.IsUsingT32()) {                                                 \
+        disassembler.DisassembleT32(*masm.GetBuffer(), start, end);            \
+      } else {                                                                 \
+        disassembler.DisassembleA32(*masm.GetBuffer(), start, end);            \
+      }                                                                        \
+      masm.GetBuffer()->Reset();                                               \
+      if (Test::disassemble()) {                                               \
+        printf("%s", ss.str().c_str());                                        \
+      }                                                                        \
+      if (std::string(EXP) != ss.str()) {                                      \
+        printf("\n%s:%d:%s\nFound:\n%sExpected:\n%s", __FILE__, __LINE__,      \
+              masm.IsUsingT32() ? "T32" : "A32", ss.str().c_str(), EXP);       \
+        abort();                                                               \
+      }                                                                        \
+    } catch (std::runtime_error e) {                                           \
+      const char *msg = e.what();                                              \
+      printf("\n%s:%d:%s\nFound:\n%sExpected:\n%s", __FILE__, __LINE__,        \
+             masm.IsUsingT32() ? "T32" : "A32", msg, EXP);                     \
+      abort();                                                                 \
+    }                                                                          \
+  }
+#else
 #define START_COMPARE()                                                        \
   {                                                                            \
     int32_t start = masm.GetCursorOffset();
@@ -70,10 +103,12 @@ namespace aarch32 {
       printf("%s", ss.str().c_str());                                          \
     }                                                                          \
     if (std::string(EXP) != ss.str()) {                                        \
-      printf("\nFound:\n%sExpected:\n%s", ss.str().c_str(), EXP);              \
+      printf("\n%s:%d:%s\nFound:\n%sExpected:\n%s", __FILE__, __LINE__,        \
+             masm.IsUsingT32() ? "T32" : "A32", ss.str().c_str(), EXP);        \
       abort();                                                                 \
     }                                                                          \
   }
+#endif
 
 #define COMPARE_A32(ASM, EXP)                                                  \
   masm.UseA32();                                                               \
@@ -95,10 +130,25 @@ namespace aarch32 {
 #define NEGATIVE_TEST(ASM, EXP, TEMPORARILY_ACCEPTED)                          \
   {                                                                            \
     try {                                                                      \
+      int32_t start = masm.GetCursorOffset();                                  \
       masm.ASM;                                                                \
+      int32_t end = masm.GetCursorOffset();                                    \
       masm.FinalizeCode();                                                     \
       if (!TEMPORARILY_ACCEPTED) {                                             \
-        printf("\nNo exception raised. Expected:\n%s", EXP);                   \
+        std::ostringstream ss;                                                 \
+        PrintDisassembler disassembler(ss, 0);                                 \
+        if (masm.IsUsingT32()) {                                               \
+          disassembler.DisassembleT32Buffer(                                   \
+              masm.GetBuffer()->GetOffsetAddress<uint16_t*>(start), end);      \
+        } else {                                                               \
+          disassembler.DisassembleA32Buffer(                                   \
+            masm.GetBuffer()->GetOffsetAddress<uint32_t*>(start), end);        \
+        }                                                                      \
+        printf("\n%s:%d:%s\nNo exception raised.\n",                           \
+               __FILE__,                                                       \
+               __LINE__,                                                       \
+               masm.IsUsingT32() ? "T32" : "A32");                             \
+        printf("Found:\n%sExpected:\n%s", ss.str().c_str(), EXP);              \
         abort();                                                               \
       }                                                                        \
     } catch (std::runtime_error e) {                                           \
@@ -110,7 +160,10 @@ namespace aarch32 {
                "test to reflect this.\n");                                     \
         abort();                                                               \
       } else if (std::strcmp(EXP, msg) != 0) {                                 \
-        printf("\nFound:\n%sExpected:\n%s", msg, EXP);                         \
+        printf("\n%s:%d:%s\nFound:\n%sExpected:\n%s",                          \
+               __FILE__,                                                       \
+               __LINE__,                                                       \
+               masm.IsUsingT32() ? "T32" : "A32", msg, EXP);                   \
         abort();                                                               \
       }                                                                        \
     }                                                                          \
@@ -605,12 +658,12 @@ TEST(macro_assembler_load) {
               "ldr pc, [r0]\n"
               "add r0, r0\n");
 
-  // PC is allowed as register base in the offset variant.
+  // PC is allowed as register base in the offset variant only for A32.
   COMPARE_A32(Ldr(r0, MemOperand(pc, r0, Offset)),
               "ldr r0, [pc, r0]\n");
-  COMPARE_T32(Ldr(r0, MemOperand(pc, r0, Offset)),
-              "add r0, pc, r0\n"
-              "ldr r0, [r0]\n");
+  MUST_FAIL_TEST_T32(Ldr(r0, MemOperand(pc, r0, Offset)),
+                     "The MacroAssembler does not convert loads and stores with"
+                     " a PC base register for T32.\n");
 
   // PC is not allowed as register base in the pre-index and post-index variants.
   MUST_FAIL_TEST_T32(Ldr(r0, MemOperand(pc, r0, PreIndex)),
@@ -702,12 +755,12 @@ TEST(macro_assembler_store) {
   SHOULD_FAIL_TEST_T32(Str(pc, MemOperand(r0, r0, PreIndex)));
   SHOULD_FAIL_TEST_T32(Str(pc, MemOperand(r0, r0, PostIndex)));
 
-  // PC is allowed as register base in the offset variant.
+  // PC is allowed as register base in the offset variant only for A32.
   COMPARE_A32(Str(r0, MemOperand(pc, r0, Offset)),
               "str r0, [pc, r0]\n");
-  COMPARE_T32(Str(r0, MemOperand(pc, r0, Offset)),
-              "add ip, pc, r0\n"
-              "str r0, [ip]\n");
+  MUST_FAIL_TEST_T32(Str(r0, MemOperand(pc, r0, Offset)),
+                     "The MacroAssembler does not convert loads and stores with"
+                     " a PC base register for T32.\n");
 
   // PC is not allowed as register base in the pre-index and post-index variants.
   MUST_FAIL_TEST_T32(Str(r0, MemOperand(pc, r0, PreIndex)),
@@ -1194,9 +1247,9 @@ TEST(macro_assembler_wide_immediate) {
               "mov r0, #48879\n"
               "movt r0, #2989\n"
               "tst r0, r0\n");
-  // TODO: Movs with PC is not allowed but we do allow it, unless the immediate
-  // is not encodable.
-  SHOULD_FAIL_TEST_BOTH(Movs(pc, 0x1));
+  COMPARE_A32(Movs(pc, 0x1),
+              "movs pc, #1\n");
+  MUST_FAIL_TEST_T32(Movs(pc, 0x1), "Unpredictable instruction.\n");
   MUST_FAIL_TEST_BOTH(Movs(pc, 0xbadbeed),
                       "Ill-formed 'movs' instruction.\n");
 
@@ -2024,6 +2077,168 @@ TEST(macro_assembler_PopRegisterList) {
 
   CLEANUP();
 }
+
+
+TEST(macro_assembler_unpredictable) {
+  SETUP();
+
+  // ADC, ADCS (immediate).
+  COMPARE_A32(Adc(pc, r0, 1), "adc pc, r0, #1\n");
+  COMPARE_A32(Adc(r0, pc, 1), "adc r0, pc, #1\n");
+  MUST_FAIL_TEST_T32(Adc(pc, r0, 1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Adc(r0, pc, 1),
+                     "Unpredictable instruction.\n");
+  COMPARE_A32(Adcs(pc, r0, 1), "adcs pc, r0, #1\n");
+  COMPARE_A32(Adcs(r0, pc, 1), "adcs r0, pc, #1\n");
+  MUST_FAIL_TEST_T32(Adcs(pc, r0, 1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Adcs(r0, pc, 1),
+                     "Unpredictable instruction.\n");
+
+  // ADC, ADCS (register).
+  COMPARE_A32(Adc(pc, r0, r1), "adc pc, r0, r1\n");
+  COMPARE_A32(Adc(r0, pc, r1), "adc r0, pc, r1\n");
+  COMPARE_A32(Adc(r0, r1, pc), "adc r0, r1, pc\n");
+  MUST_FAIL_TEST_T32(Adc(pc, r0, r1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Adc(r0, pc, r1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Adc(r0, r1, pc),
+                     "Unpredictable instruction.\n");
+  COMPARE_A32(Adcs(pc, r0, r1), "adcs pc, r0, r1\n");
+  COMPARE_A32(Adcs(r0, pc, r1), "adcs r0, pc, r1\n");
+  COMPARE_A32(Adcs(r0, r1, pc), "adcs r0, r1, pc\n");
+  MUST_FAIL_TEST_T32(Adcs(pc, r0, r1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Adcs(r0, pc, r1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Adcs(r0, r1, pc),
+                     "Unpredictable instruction.\n");
+
+  // ADC, ADCS (register-shifted register).
+  MUST_FAIL_TEST_A32(Adc(pc, r0, Operand(r1, LSL, r2)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Adc(r0, pc, Operand(r1, LSL, r2)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Adc(r0, r1, Operand(pc, LSL, r2)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Adc(r0, r1, Operand(r2, LSL, pc)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Adcs(pc, r0, Operand(r1, LSL, r2)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Adcs(r0, pc, Operand(r1, LSL, r2)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Adcs(r0, r1, Operand(pc, LSL, r2)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Adcs(r0, r1, Operand(r2, LSL, pc)),
+                     "Unpredictable instruction.\n");
+
+  // ADD (immediate, to PC).
+  COMPARE_A32(Add(r0, pc, 1), "adr r0, 0x00000009\n");
+  COMPARE_T32(Add(r0, pc, 1), "adr r0, 0x00000005\n");
+  COMPARE_A32(Add(pc, pc, 1), "adr pc, 0x00000009\n");
+  MUST_FAIL_TEST_T32(Add(pc, pc, 1),
+                     "Unpredictable instruction.\n");
+
+  // ADD, ADDS (immediate).
+  COMPARE_A32(Add(pc, r0, 1), "add pc, r0, #1\n");
+  MUST_FAIL_TEST_T32(Add(pc, r0, 1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Add(pc, r0, 0x123),
+                     "Unpredictable instruction.\n");
+  COMPARE_A32(Adds(pc, r0, 1), "adds pc, r0, #1\n");
+  COMPARE_A32(Adds(r0, pc, 1), "adds r0, pc, #1\n");
+  MUST_FAIL_TEST_T32(Adds(r0, pc, 1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Adds(r0, pc, 0x123),
+                     "Unpredictable instruction.\n");
+
+  // ADD, ADDS (register).
+  COMPARE_A32(Add(pc, r0, r1), "add pc, r0, r1\n");
+  COMPARE_A32(Add(r0, pc, r1), "add r0, pc, r1\n");
+  COMPARE_A32(Add(r0, r1, pc), "add r0, r1, pc\n");
+  COMPARE_T32(Add(r0, r0, pc), "add r0, pc\n");
+  COMPARE_T32(Add(pc, pc, r0), "add pc, r0\n");
+  MUST_FAIL_TEST_T32(Add(pc, pc, pc),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Add(pc, r0, r1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Add(r0, pc, r1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Add(r0, r1, pc),
+                     "Unpredictable instruction.\n");
+  COMPARE_A32(Adds(pc, r0, r1), "adds pc, r0, r1\n");
+  COMPARE_A32(Adds(r0, pc, r1), "adds r0, pc, r1\n");
+  COMPARE_A32(Adds(r0, r1, pc), "adds r0, r1, pc\n");
+  MUST_FAIL_TEST_T32(Adds(r0, pc, r1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Adds(r0, r1, pc),
+                     "Unpredictable instruction.\n");
+
+  // ADD, ADDS (register-shifted register)
+  MUST_FAIL_TEST_A32(Add(pc, r0, Operand(r1, LSL, r2)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Add(r0, pc, Operand(r1, LSL, r2)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Add(r0, r1, Operand(pc, LSL, r2)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Add(r0, r1, Operand(r2, LSL, pc)),
+                     "Unpredictable instruction.\n");
+  COMPARE_A32(Add(pc, sp, 1), "add pc, sp, #1\n");
+  MUST_FAIL_TEST_T32(Add(pc, sp, 1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Adds(pc, r0, Operand(r1, LSL, r2)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Adds(r0, pc, Operand(r1, LSL, r2)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Adds(r0, r1, Operand(pc, LSL, r2)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_A32(Adds(r0, r1, Operand(r2, LSL, pc)),
+                     "Unpredictable instruction.\n");
+
+  // ADD, ADDS (SP plus immediate).
+  COMPARE_A32(Add(pc, sp, 1), "add pc, sp, #1\n");
+  MUST_FAIL_TEST_T32(Add(pc, sp, 1),
+                      "Unpredictable instruction.\n");
+  COMPARE_A32(Adds(pc, sp, 1), "adds pc, sp, #1\n");
+  MUST_FAIL_TEST_T32(Adds(pc, sp, 1),
+                      "Ill-formed 'adds' instruction.\n");
+
+  // ADD, ADDS (SP plus register).
+  COMPARE_A32(Add(pc, sp, r0), "add pc, sp, r0\n");
+  MUST_FAIL_TEST_T32(Add(pc, sp, r0),
+                     "Unpredictable instruction.\n");
+  COMPARE_A32(Add(r0, sp, pc), "add r0, sp, pc\n");
+  MUST_FAIL_TEST_T32(Add(r0, sp, pc),
+                     "Unpredictable instruction.\n");
+  COMPARE_BOTH(Add(pc, sp, pc), "add pc, sp, pc\n");
+  COMPARE_BOTH(Add(sp, sp, pc), "add sp, pc\n");
+  COMPARE_A32(Adds(pc, sp, r0), "adds pc, sp, r0\n");
+  MUST_FAIL_TEST_T32(Adds(pc, sp, r0),
+                      "Ill-formed 'adds' instruction.\n");
+  COMPARE_A32(Adds(r0, sp, pc), "adds r0, sp, pc\n");
+  MUST_FAIL_TEST_T32(Adds(r0, sp, pc),
+                     "Unpredictable instruction.\n");
+  COMPARE_A32(Adds(pc, sp, pc), "adds pc, sp, pc\n");
+  MUST_FAIL_TEST_T32(Adds(pc, sp, pc),
+                      "Ill-formed 'adds' instruction.\n");
+  COMPARE_A32(Adds(sp, sp, pc), "adds sp, pc\n");
+  MUST_FAIL_TEST_T32(Adds(sp, sp, pc),
+                     "Unpredictable instruction.\n");
+
+  // ADR.
+  {
+    Label label;
+    masm.Bind(&label);
+    COMPARE_A32(Adr(pc, &label), "adr pc, 0x00000000\n");
+    MUST_FAIL_TEST_T32(Adr(pc, &label),
+                       "Unpredictable instruction.\n");
+  }
+
+  CLEANUP();
+}
+
 
 TEST(macro_assembler_unsupported) {
   SETUP();

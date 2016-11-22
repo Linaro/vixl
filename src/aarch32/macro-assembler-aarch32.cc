@@ -1854,10 +1854,18 @@ void MacroAssembler::Delegate(InstructionType type,
           "The MacroAssembler does not convert loads and stores with a PC "
           "offset register.\n");
     }
-    if (rn.IsPC() && addrmode != Offset) {
-      VIXL_ABORT_WITH_MSG(
-          "The MacroAssembler does not convert loads and stores with a PC "
-          "base register in pre-index or post-index mode.\n");
+    if (rn.IsPC()) {
+      if (addrmode == Offset) {
+        if (IsUsingT32()) {
+          VIXL_ABORT_WITH_MSG(
+              "The MacroAssembler does not convert loads and stores with a PC "
+              "base register for T32.\n");
+        }
+      } else {
+        VIXL_ABORT_WITH_MSG(
+            "The MacroAssembler does not convert loads and stores with a PC "
+            "base register in pre-index or post-index mode.\n");
+      }
     }
     switch (addrmode) {
       case PreIndex:
