@@ -1039,33 +1039,56 @@ TEST(bics) {
 }
 
 
-// This test will emit the veneer in the middle of a macro-assembler
-// instruction.
-// The Mov(r1, 0x7ff80000) can't be emitted with only one instruction.
-// Only one instruction doesn't, here, emit the veneer. Therefore, the
-// veneer emission is only triggered when we are in the Delegate.
-TEST_T32(mov_and_veneer) {
+TEST_T32(veneer_pool_in_delegate) {
   SETUP();
 
   START();
+
   Label end;
+
+  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+
   __ Mov(r0, 1);
   __ Cbz(r0, &end);
-  // Generate enough instructions to have, after this loop, only one more
-  // instruction that can be generated (Mov(r1, 0x7ff80000) needs two assembler
-  // instructions).
-  while (masm.GetMarginBeforeVeneerEmission() >
-         static_cast<int32_t>(kMaxInstructionSizeInBytes)) {
-    VIXL_CHECK(!masm.VeneerPoolIsEmpty());
-    __ Mov(r1, r0);
-  }
+
   VIXL_CHECK(!masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+
+  // Generate enough code to have, after the loop, a margin of only one 16-bit
+  // instruction that can be generated before we need to generate the veneer
+  // pool.
+  // Use `CodeBufferCheckScope` and the assembler to generate the code.
+  int32_t space =
+      masm.GetMarginBeforeVeneerEmission() - k16BitT32InstructionSizeInBytes;
+  {
+    AssemblerAccurateScope scope(&masm,
+                                 space,
+                                 CodeBufferCheckScope::kExactSize);
+    while (space > 0) {
+      __ nop();
+      space -= k16BitT32InstructionSizeInBytes;
+    }
+  }
+
+  // We should not have emitted the veneer pool at this point.
+  VIXL_CHECK(!masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(
+      masm.GetMarginBeforeVeneerEmission() == k16BitT32InstructionSizeInBytes);
+
+  // Now generate `Mov(r1, 0x12345678)`. It needs to 16-bit assembler
+  // instructions, so it has to go through the `MacroAssembler` delegate. Since
+  // there is only margin for one instruction to be generated, the pool will
+  // have to be generated from within the `MacroAssembler` delegate. That should
+  // not fire.
   Label check;
   __ Bind(&check);
   __ Mov(r1, 0x12345678);
   VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&check) >
              2 * kMaxInstructionSizeInBytes);
   __ Bind(&end);
+
   END();
 
   RUN();
@@ -1076,38 +1099,65 @@ TEST_T32(mov_and_veneer) {
 }
 
 
-// This test will emit the literal pool in the middle of a macro-assembler
-// instruction.
-// The Mov(r2, 0x7ff80000) can't be emitted with only one instruction.
-// Only one instruction doesn't, here, emit the pool. Therefore, the
-// pool emission is only triggered when we are in the Delegate.
-TEST(mov_and_literal) {
+TEST_T32(literal_pool_in_delegate) {
   SETUP();
 
   START();
+
+  PrintDisassembler disasm(std::cout);
+
+  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+
   __ Ldrd(r0, r1, 0x1234567890abcdef);
-  // Generate enough instructions to have, after this loop, only one more
-  // instruction that can be generated (Mov(r2, 0x7ff80000) needs two assembler
-  // instructions).
-  while (masm.GetMarginBeforeLiteralEmission() >
-         static_cast<int32_t>(kMaxInstructionSizeInBytes)) {
-    VIXL_CHECK(!masm.LiteralPoolIsEmpty());
-    __ Mov(r2, r0);
-  }
+
+  VIXL_CHECK(masm.VeneerPoolIsEmpty());
   VIXL_CHECK(!masm.LiteralPoolIsEmpty());
+
+  // Generate enough code to have, after the loop, a margin of only one 16-bit
+  // instruction that can be generated before we need to generate the literal
+  // pool.
+  // Use `CodeBufferCheckScope` and the assembler to generate the code.
+  int32_t space = masm.GetMarginBeforeLiteralEmission() -
+      2 * k16BitT32InstructionSizeInBytes;
+  {
+    AssemblerAccurateScope scope(&masm,
+                                 space,
+                                 CodeBufferCheckScope::kExactSize);
+    while (space > 0) {
+      __ nop();
+      space -= k16BitT32InstructionSizeInBytes;
+    }
+  }
+
+  // We should not have emitted the literal pool at this point.
+  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(!masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(masm.GetMarginBeforeLiteralEmission() ==
+             2 * k16BitT32InstructionSizeInBytes);
+
+  // Now generate `Mov(r1, 0x12345678)`. It needs to 16-bit assembler
+  // instructions, so it has to go through the `MacroAssembler` delegate. Since
+  // there is only margin for one instruction to be generated, the pool will
+  // have to be generated from within the `MacroAssembler` delegate. That should
+  // not fire.
   Label check;
   __ Bind(&check);
-  __ Mov(r2, 0x7ff80000);
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  __ Mov(r1, 0x12345678);
   VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&check) >
              2 * kMaxInstructionSizeInBytes);
+
+  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+
   END();
+
+  disasm.DisassembleT32Buffer(masm.GetBuffer()->GetStartAddress<uint16_t*>(),
+                              masm.GetCursorOffset());
 
   RUN();
 
-  ASSERT_EQUAL_32(0x90abcdef, r0);
   ASSERT_EQUAL_32(0x12345678, r1);
-  ASSERT_EQUAL_32(0x7ff80000, r2);
 
   TEARDOWN();
 }
