@@ -1410,9 +1410,9 @@ void GenerateLdrLiteralTriggerPoolEmission(InstructionSet isa,
 
     // In A32 mode we can fit one more instruction before being forced to emit
     // the pool. However the newly added literal will be to far for the ldr
-    // instruction forcing the pool to be emitted earlier. So we need to make sure
-    // that we need to stop one instruction before the margin on A32 for this test
-    // to work as expected.
+    // instruction forcing the pool to be emitted earlier. So we need to make
+    // sure that we need to stop one instruction before the margin on A32 for
+    // this test to work as expected.
     int32_t margin_offset = masm.IsUsingA32() ? kA32InstructionSizeInBytes : 0;
 
     size_t expected_pool_size = 4;
@@ -2415,7 +2415,8 @@ TEST(scratch_register_checks) {
   {
     UseScratchRegisterScope temps(&masm);
     // 'ip' is a scratch register by default.
-    VIXL_CHECK(masm.GetScratchRegisterList()->GetList() == (1u << ip.GetCode()));
+    VIXL_CHECK(
+        masm.GetScratchRegisterList()->GetList() == (1u << ip.GetCode()));
     VIXL_CHECK(temps.IsAvailable(ip));
 
     // Integer registers have no complicated aliasing so
@@ -2495,6 +2496,23 @@ TEST(scratch_register_checks_v) {
       }
     }
   }
+  TEARDOWN();
+}
+
+
+TEST(nop) {
+  SETUP();
+
+  Label start;
+  __ Bind(&start);
+  __ Nop();
+  size_t nop_size = (isa == T32) ? k16BitT32InstructionSizeInBytes
+                                 : kA32InstructionSizeInBytes;
+  // `MacroAssembler::Nop` must generate at least one nop.
+  VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&start) >= nop_size);
+
+  masm.FinalizeCode();
+
   TEARDOWN();
 }
 

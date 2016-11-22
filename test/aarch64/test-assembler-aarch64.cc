@@ -22596,17 +22596,30 @@ TEST(optimised_mov_register) {
   Label start;
   __ Bind(&start);
   __ Mov(x0, x0);
-  VIXL_CHECK(__ GetSizeOfCodeGeneratedSince(&start) == 0);
+  VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&start) == 0);
   __ Mov(w0, w0, kDiscardForSameWReg);
-  VIXL_CHECK(__ GetSizeOfCodeGeneratedSince(&start) == 0);
+  VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&start) == 0);
   __ Mov(w0, w0);
-  VIXL_CHECK(__ GetSizeOfCodeGeneratedSince(&start) == kInstructionSize);
+  VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&start) == kInstructionSize);
 
   END();
 
   RUN();
 
   TEARDOWN();
+}
+
+
+TEST(nop) {
+  MacroAssembler masm;
+
+  Label start;
+  __ Bind(&start);
+  __ Nop();
+  // `MacroAssembler::Nop` must generate at least one nop.
+  VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&start) >= kInstructionSize);
+
+  masm.FinalizeCode();
 }
 
 
