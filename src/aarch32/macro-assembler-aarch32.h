@@ -477,7 +477,7 @@ class MacroAssembler : public Assembler {
     return veneer_pool_manager_.GetCheckpoint() - GetCursorOffset();
   }
 
-  int32_t GetMarginBeforePoolEmission() const {
+  int32_t GetMarginBeforeLiteralEmission() const {
     return literal_pool_manager_.GetCheckpoint() - GetCursorOffset();
   }
 
