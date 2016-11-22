@@ -1181,8 +1181,8 @@ void EmitLdrdLiteralTest(MacroAssembler* masm) {
   // would be possible to generate an extra nop before the pool but, as the
   // macro-assembler always reserve 4 bytes before an instruction, we lose
   // 2 bytes of range.
-  while (masm->GetBuffer()->GetCursorOffset() + kMaxInstructionSizeInBytes <=
-         end) {
+  while ((masm->GetBuffer()->GetCursorOffset() +
+          static_cast<int32_t>(kMaxInstructionSizeInBytes)) <= end) {
     __ Nop();
   }
   // Check that the pool has not been emited along the way.
