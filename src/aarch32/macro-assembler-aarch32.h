@@ -498,6 +498,11 @@ class MacroAssembler : public Assembler {
     return GetScratchRegisterList()->Includes(reg);
   }
 
+  bool AliasesAvailableScratchRegister(RegisterOrAPSR_nzcv reg) {
+    if (reg.IsAPSR_nzcv()) return false;
+    return GetScratchRegisterList()->Includes(reg.AsRegister());
+  }
+
   bool AliasesAvailableScratchRegister(VRegister reg) {
     return GetScratchVRegisterList()->IncludesAliasOf(reg);
   }

@@ -150,15 +150,25 @@ class Register : public CPURegister {
 
 std::ostream& operator<<(std::ostream& os, const Register reg);
 
-class RegisterOrAPSR_nzcv : public Register {
+class RegisterOrAPSR_nzcv {
+  uint32_t code_;
+
  public:
-  explicit RegisterOrAPSR_nzcv(uint32_t code) : Register(code) {}
+  explicit RegisterOrAPSR_nzcv(uint32_t code) : code_(code) {
+    VIXL_ASSERT(code_ < kNumberOfRegisters);
+  }
+  bool IsAPSR_nzcv() const { return code_ == kPcCode; }
+  uint32_t GetCode() const { return code_; }
+  Register AsRegister() const {
+    VIXL_ASSERT(!IsAPSR_nzcv());
+    return Register(code_);
+  }
 };
 
 inline std::ostream& operator<<(std::ostream& os,
                                 const RegisterOrAPSR_nzcv reg) {
-  if (reg.IsPC()) return os << "APSR_nzcv";
-  return os << Register(reg.GetCode());
+  if (reg.IsAPSR_nzcv()) return os << "APSR_nzcv";
+  return os << reg.AsRegister();
 }
 
 class SRegister;
