@@ -2962,12 +2962,9 @@ class MacroAssembler : public Assembler {
     VIXL_ASSERT(OutsideITBlock());
     AllowAssemblerEmissionScope allow_scope(this, kMaxInstructionSizeInBytes);
     bool can_use_it =
-        // ROR<c>{<q>} {<Rd>,} <Rm>, #<imm> ; T2
-        (operand.IsImmediate() && (operand.GetImmediate() >= 1) &&
-         (operand.GetImmediate() <= 31) && rd.IsLow() && rm.IsLow()) ||
         // ROR<c>{<q>} {<Rdm>,} <Rdm>, <Rs> ; T1
-        (operand.IsPlainRegister() && rd.Is(rm) && rd.IsLow() &&
-         operand.GetBaseRegister().IsLow());
+        operand.IsPlainRegister() && rd.Is(rm) && rd.IsLow() &&
+        operand.GetBaseRegister().IsLow();
     ITScope it_scope(this, &cond, can_use_it);
     ror(cond, rd, rm, operand);
   }

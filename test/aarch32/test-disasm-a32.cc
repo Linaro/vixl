@@ -2310,5 +2310,510 @@ TEST(macro_assembler_Vmov_neon_immediate) {
   CLEANUP();
 }
 
+TEST(macro_assembler_T32_IT) {
+  SETUP();
+
+  // ADC (register) T1
+  COMPARE_T32(Adc(eq, r0, r0, r1),
+              "it eq\n"
+              "adceq r0, r1\n");
+
+  COMPARE_T32(Adc(eq, r0, r1, r2),
+              "bne 0x00000006\n"
+              "adc r0, r1, r2\n");
+
+  // ADD (immediate) T1
+  COMPARE_T32(Add(eq, r0, r1, 0x1),
+              "it eq\n"
+              "addeq r0, r1, #1\n");
+
+  COMPARE_T32(Add(eq, r0, r1, 0x8),
+              "bne 0x00000006\n"
+              "add r0, r1, #8\n");
+
+  // ADD (immediate) T2
+  COMPARE_T32(Add(eq, r0, r0, 0xff),
+              "it eq\n"
+              "addeq r0, #255\n");
+
+  // ADD (register) T1
+  COMPARE_T32(Add(eq, r0, r1, r7),
+              "it eq\n"
+              "addeq r0, r1, r7\n");
+
+  // ADD (register) T2
+  COMPARE_T32(Add(eq, r5, r5, r8),
+              "it eq\n"
+              "addeq r5, r8\n");
+
+  // ADD (SP plus immediate) T1
+  COMPARE_T32(Add(eq, r7, sp, 508),
+              "it eq\n"
+              "addeq r7, sp, #508\n");
+
+  COMPARE_T32(Add(eq, r7, sp, 1),
+              "bne 0x00000006\n"
+              "add r7, sp, #1\n");
+
+  COMPARE_T32(Add(eq, r7, sp, 512),
+              "bne 0x00000004\n"
+              "add r7, sp, #512\n");
+
+  COMPARE_T32(Add(eq, sp, sp, 32),
+              "bne 0x00000004\n"
+              "add sp, #32\n");
+
+  // ADD (SP plus register) T1
+  COMPARE_T32(Add(eq, r7, sp, r7),
+              "it eq\n"
+              "addeq r7, sp, r7\n");
+
+  // ADD (SP plus register) T2
+  COMPARE_T32(Add(eq, sp, sp, r10),
+              "it eq\n"
+              "addeq sp, r10\n");
+
+  COMPARE_T32(Add(eq, r5, r5, sp),
+              "bne 0x00000006\n"
+              "add.w r5, sp\n");
+
+  // AND (register) T1
+  COMPARE_T32(And(eq, r7, r7, r0),
+              "it eq\n"
+              "andeq r7, r0\n");
+
+  COMPARE_T32(And(eq, r8, r8, r0),
+              "bne 0x00000006\n"
+              "and r8, r0\n");
+
+  // ASR (immediate) T2
+  COMPARE_T32(Asr(eq, r0, r1, 16),
+              "it eq\n"
+              "asreq r0, r1, #16\n");
+
+  COMPARE_T32(Asr(eq, r0, r1, 32),
+              "it eq\n"
+              "asreq r0, r1, #32\n");
+
+  COMPARE_T32(Asr(eq, r0, r1, 0),
+              "bne 0x0000000a\n"
+              "mov r0, #0\n"
+              "asr r0, r1, r0\n");
+
+  // ASR (register) T1
+  COMPARE_T32(Asr(eq, r7, r7, r3),
+              "it eq\n"
+              "asreq r7, r3\n");
+
+  COMPARE_T32(Asr(eq, r8, r8, r3),
+              "bne 0x00000006\n"
+              "asr r8, r3\n");
+
+  // BIC (register) T1
+  COMPARE_T32(Bic(eq, r7, r7, r6),
+              "it eq\n"
+              "biceq r7, r6\n");
+
+  COMPARE_T32(Bic(eq, r8, r8, r6),
+              "bne 0x00000006\n"
+              "bic r8, r6\n");
+
+  Label l;
+  __ Bind(&l);
+
+  // BLX (register) T1
+  COMPARE_T32(Blx(eq, lr),
+              "it eq\n"
+              "blxeq lr\n");
+  COMPARE_T32(Blx(eq, &l),
+              "bne 0x00000006\n"
+              "blx 0x00000000\n");
+
+  // BX (register) T1
+  COMPARE_T32(Bx(eq, lr),
+              "it eq\n"
+              "bxeq lr\n");
+
+  // CMN (register) T1
+  COMPARE_T32(Cmn(eq, r0, r1),
+              "it eq\n"
+              "cmneq r0, r1\n");
+
+  COMPARE_T32(Cmn(eq, r0, r8),
+              "bne 0x00000006\n"
+              "cmn r0, r8\n");
+
+  // CMP (immediate) T1
+  COMPARE_T32(Cmp(eq, r7, 0xff),
+              "it eq\n"
+              "cmpeq r7, #255\n");
+
+  // CMP (register) T1
+  COMPARE_T32(Cmp(eq, r6, r7),
+              "it eq\n"
+              "cmpeq r6, r7\n");
+
+  // CMP (register) T2
+  COMPARE_T32(Cmp(eq, r9, r10),
+              "it eq\n"
+              "cmpeq r9, r10\n");
+
+  COMPARE_T32(Cmp(eq, r0, 0x100),
+              "bne 0x00000006\n"
+              "cmp r0, #256\n");
+
+  // EOR (register) T1
+  COMPARE_T32(Eor(eq, r0, r0, r7),
+              "it eq\n"
+              "eoreq r0, r7\n");
+
+  COMPARE_T32(Eor(eq, r0, r0, 0x1),
+              "bne 0x00000006\n"
+              "eor r0, #0x1\n");
+
+  // LDR (immediate) T1
+  COMPARE_T32(Ldr(eq, r4, MemOperand(r7, 124)),
+              "it eq\n"
+              "ldreq r4, [r7, #124]\n");
+
+  COMPARE_T32(Ldr(eq, r4, MemOperand(r7, 1)),
+              "bne 0x00000006\n"
+              "ldr r4, [r7, #1]\n");
+
+  COMPARE_T32(Ldr(eq, r4, MemOperand(r7, 128)),
+              "bne 0x00000006\n"
+              "ldr r4, [r7, #128]\n");
+
+  // LDR (immediate) T2
+  COMPARE_T32(Ldr(eq, r4, MemOperand(sp, 1020)),
+              "it eq\n"
+              "ldreq r4, [sp, #1020]\n");
+
+  COMPARE_T32(Ldr(eq, r4, MemOperand(sp, 1)),
+              "bne 0x00000006\n"
+              "ldr r4, [sp, #1]\n");
+
+  COMPARE_T32(Ldr(eq, r4, MemOperand(sp, 1024)),
+              "bne 0x00000006\n"
+              "ldr r4, [sp, #1024]\n");
+
+  // LDR (register) T1
+  COMPARE_T32(Ldr(eq, r5, MemOperand(r6, r7)),
+              "it eq\n"
+              "ldreq r5, [r6, r7]\n");
+
+  COMPARE_T32(Ldr(eq, r5, MemOperand(r6, r8)),
+              "bne 0x00000006\n"
+              "ldr r5, [r6, r8]\n");
+
+  // LDRB (immediate) T1
+  COMPARE_T32(Ldrb(eq, r6, MemOperand(r7, 31)),
+              "it eq\n"
+              "ldrbeq r6, [r7, #31]\n");
+
+  COMPARE_T32(Ldrb(eq, r6, MemOperand(r7, 32)),
+              "bne 0x00000006\n"
+              "ldrb r6, [r7, #32]\n");
+
+  // LDRB (register) T1
+  COMPARE_T32(Ldrb(eq, r5, MemOperand(r6, r7)),
+              "it eq\n"
+              "ldrbeq r5, [r6, r7]\n");
+
+  COMPARE_T32(Ldrb(eq, r6, MemOperand(r9)),
+              "bne 0x00000006\n"
+              "ldrb r6, [r9]\n");
+
+  // LDRH (immediate) T1
+  COMPARE_T32(Ldrh(eq, r6, MemOperand(r7, 62)),
+              "it eq\n"
+              "ldrheq r6, [r7, #62]\n");
+
+  COMPARE_T32(Ldrh(eq, r6, MemOperand(r7, 64)),
+              "bne 0x00000006\n"
+              "ldrh r6, [r7, #64]\n");
+
+  COMPARE_T32(Ldrh(eq, r6, MemOperand(r7, 1)),
+              "bne 0x00000006\n"
+              "ldrh r6, [r7, #1]\n");
+
+  // LDRH (register) T1
+  COMPARE_T32(Ldrh(eq, r5, MemOperand(r6, r7)),
+              "it eq\n"
+              "ldrheq r5, [r6, r7]\n");
+
+  COMPARE_T32(Ldrh(eq, r6, MemOperand(r9)),
+              "bne 0x00000006\n"
+              "ldrh r6, [r9]\n");
+
+  // LDRSB (register) T1
+  COMPARE_T32(Ldrsb(eq, r5, MemOperand(r6, r7)),
+              "it eq\n"
+              "ldrsbeq r5, [r6, r7]\n");
+
+  COMPARE_T32(Ldrsb(eq, r6, MemOperand(r9)),
+              "bne 0x00000006\n"
+              "ldrsb r6, [r9]\n");
+
+  // LDRSH (register) T1
+  COMPARE_T32(Ldrsh(eq, r5, MemOperand(r6, r7)),
+              "it eq\n"
+              "ldrsheq r5, [r6, r7]\n");
+
+  COMPARE_T32(Ldrsh(eq, r6, MemOperand(r9)),
+              "bne 0x00000006\n"
+              "ldrsh r6, [r9]\n");
+
+  // LSL (immediate) T2
+  COMPARE_T32(Lsl(eq, r0, r1, 16),
+              "it eq\n"
+              "lsleq r0, r1, #16\n");
+
+  COMPARE_T32(Lsl(eq, r0, r1, 0),
+              "bne 0x0000000a\n"
+              "mov r0, #0\n"
+              "lsl r0, r1, r0\n");
+
+  COMPARE_T32(Lsl(eq, r0, r1, 32),
+              "bne 0x0000000a\n"
+              "mov r0, #32\n"
+              "lsl r0, r1, r0\n");
+
+  // LSL (register) T1
+  COMPARE_T32(Lsl(eq, r7, r7, r3),
+              "it eq\n"
+              "lsleq r7, r3\n");
+
+  COMPARE_T32(Lsl(eq, r8, r8, r3),
+              "bne 0x00000006\n"
+              "lsl r8, r3\n");
+
+  // LSR (immediate) T2
+  COMPARE_T32(Lsr(eq, r0, r1, 16),
+              "it eq\n"
+              "lsreq r0, r1, #16\n");
+
+  COMPARE_T32(Lsr(eq, r0, r1, 32),
+              "it eq\n"
+              "lsreq r0, r1, #32\n");
+
+  COMPARE_T32(Lsr(eq, r0, r1, 0),
+              "bne 0x0000000a\n"
+              "mov r0, #0\n"
+              "lsr r0, r1, r0\n");
+
+  // LSR (register) T1
+  COMPARE_T32(Lsr(eq, r7, r7, r3),
+              "it eq\n"
+              "lsreq r7, r3\n");
+
+  COMPARE_T32(Lsr(eq, r8, r8, r3),
+              "bne 0x00000006\n"
+              "lsr r8, r3\n");
+
+  // MOV (immediate) T1
+  COMPARE_T32(Mov(eq, r7, 0xff),
+              "it eq\n"
+              "moveq r7, #255\n");
+
+  // MOV (register) T1
+  COMPARE_T32(Mov(eq, r9, r8),
+              "it eq\n"
+              "moveq r9, r8\n");
+
+  // MOV (register) T2
+  COMPARE_T32(Mov(eq, r0, Operand(r1, LSR, 16)),
+              "it eq\n"
+              "lsreq r0, r1, #16\n");
+
+  COMPARE_T32(Mov(eq, r0, Operand(r1, ROR, 16)),
+              "bne 0x00000006\n"
+              "ror r0, r1, #16\n");
+
+  // MOV (register-shifted register) T1
+  COMPARE_T32(Mov(eq, r0, Operand(r0, LSR, r1)),
+              "it eq\n"
+              "lsreq r0, r1\n");
+
+  COMPARE_T32(Mov(eq, r0, Operand(r1, LSR, r2)),
+              "bne 0x00000006\n"
+              "lsr r0, r1, r2\n");
+
+  // MUL (T1)
+  COMPARE_T32(Mul(eq, r0, r1, r0),
+              "it eq\n"
+              "muleq r0, r1, r0\n");
+
+  COMPARE_T32(Mul(eq, r0, r1, r2),
+              "bne 0x00000006\n"
+              "mul r0, r1, r2\n");
+
+  // MVN (register) T1
+  COMPARE_T32(Mvn(eq, r4, r6),
+              "it eq\n"
+              "mvneq r4, r6\n");
+
+  COMPARE_T32(Mvn(eq, r8, r6),
+              "bne 0x00000006\n"
+              "mvn r8, r6\n");
+
+  // ORR (register) T1
+  COMPARE_T32(Orr(eq, r0, r0, r1),
+              "it eq\n"
+              "orreq r0, r1\n");
+
+  COMPARE_T32(Orr(eq, r0, r1, r2),
+              "bne 0x00000006\n"
+              "orr r0, r1, r2\n");
+
+  // ROR (register) T1
+  COMPARE_T32(Ror(eq, r7, r7, r3),
+              "it eq\n"
+              "roreq r7, r3\n");
+
+  COMPARE_T32(Ror(eq, r8, r8, r3),
+              "bne 0x00000006\n"
+              "ror r8, r3\n");
+
+  COMPARE_T32(Ror(eq, r0, r1, 16),
+              "bne 0x00000006\n"
+              "ror r0, r1, #16\n");
+
+  // RSB (immediate) T1
+  COMPARE_T32(Rsb(eq, r0, r1, 0),
+              "it eq\n"
+              "rsbeq r0, r1, #0\n");
+
+  COMPARE_T32(Rsb(eq, r0, r1, 1),
+              "bne 0x00000006\n"
+              "rsb r0, r1, #1\n");
+
+  // SBC (register) T1
+  COMPARE_T32(Sbc(eq, r0, r0, r1),
+              "it eq\n"
+              "sbceq r0, r1\n");
+
+  COMPARE_T32(Sbc(eq, r0, r1, r2),
+              "bne 0x00000006\n"
+              "sbc r0, r1, r2\n");
+
+  // STR (immediate) T1
+  COMPARE_T32(Str(eq, r4, MemOperand(r7, 124)),
+              "it eq\n"
+              "streq r4, [r7, #124]\n");
+
+  COMPARE_T32(Str(eq, r4, MemOperand(r7, 1)),
+              "bne 0x00000006\n"
+              "str r4, [r7, #1]\n");
+
+  COMPARE_T32(Str(eq, r4, MemOperand(r7, 128)),
+              "bne 0x00000006\n"
+              "str r4, [r7, #128]\n");
+
+  // STR (immediate) T2
+  COMPARE_T32(Str(eq, r4, MemOperand(sp, 1020)),
+              "it eq\n"
+              "streq r4, [sp, #1020]\n");
+
+  COMPARE_T32(Str(eq, r4, MemOperand(sp, 1)),
+              "bne 0x00000006\n"
+              "str r4, [sp, #1]\n");
+
+  COMPARE_T32(Str(eq, r4, MemOperand(sp, 1024)),
+              "bne 0x00000006\n"
+              "str r4, [sp, #1024]\n");
+
+  // STR (register) T1
+  COMPARE_T32(Str(eq, r5, MemOperand(r6, r7)),
+              "it eq\n"
+              "streq r5, [r6, r7]\n");
+
+  COMPARE_T32(Str(eq, r5, MemOperand(r6, r8)),
+              "bne 0x00000006\n"
+              "str r5, [r6, r8]\n");
+
+  // STRB (immediate) T1
+  COMPARE_T32(Strb(eq, r6, MemOperand(r7, 31)),
+              "it eq\n"
+              "strbeq r6, [r7, #31]\n");
+
+  COMPARE_T32(Strb(eq, r6, MemOperand(r7, 32)),
+              "bne 0x00000006\n"
+              "strb r6, [r7, #32]\n");
+
+  // STRB (register) T1
+  COMPARE_T32(Strb(eq, r5, MemOperand(r6, r7)),
+              "it eq\n"
+              "strbeq r5, [r6, r7]\n");
+
+  COMPARE_T32(Strb(eq, r6, MemOperand(r9)),
+              "bne 0x00000006\n"
+              "strb r6, [r9]\n");
+
+  // STRH (immediate) T1
+  COMPARE_T32(Strh(eq, r6, MemOperand(r7, 62)),
+              "it eq\n"
+              "strheq r6, [r7, #62]\n");
+
+  COMPARE_T32(Strh(eq, r6, MemOperand(r7, 64)),
+              "bne 0x00000006\n"
+              "strh r6, [r7, #64]\n");
+
+  COMPARE_T32(Strh(eq, r6, MemOperand(r7, 1)),
+              "bne 0x00000006\n"
+              "strh r6, [r7, #1]\n");
+
+  // STRH (register) T1
+  COMPARE_T32(Strh(eq, r5, MemOperand(r6, r7)),
+              "it eq\n"
+              "strheq r5, [r6, r7]\n");
+
+  COMPARE_T32(Strh(eq, r6, MemOperand(r9)),
+              "bne 0x00000006\n"
+              "strh r6, [r9]\n");
+
+  // SUB (immediate) T1
+  COMPARE_T32(Sub(eq, r0, r1, 0x1),
+              "it eq\n"
+              "subeq r0, r1, #1\n");
+
+  COMPARE_T32(Sub(eq, r0, r1, 0x8),
+              "bne 0x00000006\n"
+              "sub r0, r1, #8\n");
+
+  // SUB (immediate) T2
+  COMPARE_T32(Sub(eq, r0, r0, 0xff),
+              "it eq\n"
+              "subeq r0, #255\n");
+
+  // SUB (register) T1
+  COMPARE_T32(Sub(eq, r0, r1, r7),
+              "it eq\n"
+              "subeq r0, r1, r7\n");
+
+  COMPARE_T32(Sub(eq, r5, r5, r8),
+              "bne 0x00000006\n"
+              "sub r5, r8\n");
+
+  COMPARE_T32(Sub(eq, r7, sp, 1),
+              "bne 0x00000006\n"
+              "sub r7, sp, #1\n");
+
+  COMPARE_T32(Sub(eq, pc, pc, 0),
+              "bne 0x00000006\n"
+              "sub pc, #0\n");
+
+  // TST (register) T1
+  COMPARE_T32(Tst(eq, r0, r1),
+              "it eq\n"
+              "tsteq r0, r1\n");
+
+  COMPARE_T32(Tst(eq, r8, r9),
+              "bne 0x00000006\n"
+              "tst r8, r9\n");
+
+  CLEANUP();
+}
+
 }  // namespace aarch32
 }  // namespace vixl
