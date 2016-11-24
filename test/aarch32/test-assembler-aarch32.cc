@@ -1152,9 +1152,6 @@ TEST_T32(literal_pool_in_delegate) {
 
   END();
 
-  disasm.DisassembleT32Buffer(masm.GetBuffer()->GetStartAddress<uint16_t*>(),
-                              masm.GetCursorOffset());
-
   RUN();
 
   ASSERT_EQUAL_32(0x12345678, r1);
