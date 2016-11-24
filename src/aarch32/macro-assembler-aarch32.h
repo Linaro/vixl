@@ -31,7 +31,7 @@
 #include "utils-vixl.h"
 #include "aarch32/instructions-aarch32.h"
 #include "aarch32/assembler-aarch32.h"
-#include "aarch32/operand-aarch32.h"
+#include "aarch32/operands-aarch32.h"
 
 namespace vixl {
 namespace aarch32 {

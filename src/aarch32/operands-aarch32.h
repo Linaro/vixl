@@ -25,8 +25,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef VIXL_AARCH32_OPERAND_AARCH32_H_
-#define VIXL_AARCH32_OPERAND_AARCH32_H_
+#ifndef VIXL_AARCH32_OPERANDS_AARCH32_H_
+#define VIXL_AARCH32_OPERANDS_AARCH32_H_
 
 #include "aarch32/instructions-aarch32.h"
 
@@ -907,4 +907,4 @@ std::ostream& operator<<(std::ostream& os, const AlignedMemOperand& operand);
 }  // namespace aarch32
 }  // namespace vixl
 
-#endif  // VIXL_AARCH32_OPERAND_AARCH32_H_
+#endif  // VIXL_AARCH32_OPERANDS_AARCH32_H_

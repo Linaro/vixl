@@ -38,7 +38,7 @@ extern "C" {
 #include "utils-vixl.h"
 #include "aarch32/constants-aarch32.h"
 #include "aarch32/instructions-aarch32.h"
-#include "aarch32/operand-aarch32.h"
+#include "aarch32/operands-aarch32.h"
 #include "aarch32/disasm-aarch32.h"
 
 namespace vixl {
