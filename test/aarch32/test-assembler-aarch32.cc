@@ -119,11 +119,13 @@ void Test##Name()
   __ Push(r10);                                                                \
   __ Push(r11);                                                                \
   __ Push(r12);                                                                \
+  __ Push(lr);                                                                 \
   __ Mov(r0, 0);                                                               \
   __ Msr(APSR_nzcvq, r0);
 
 #define END()                                                                  \
   core.Dump(&masm);                                                            \
+  __ Pop(lr);                                                                  \
   __ Pop(r12);                                                                 \
   __ Pop(r11);                                                                 \
   __ Pop(r10);                                                                 \
@@ -1635,37 +1637,129 @@ TEST(custom_literal_place) {
   masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
   ASSERT_LITERAL_POOL_SIZE(0);
 
-  Label past_literal0;
-  Literal<uint32_t> literal0(static_cast<uint32_t>(0x12345678),
-                             RawLiteral::kManuallyPlaced);
-  __ Ldr(r0, &literal0);
-  __ B(&past_literal0);
-  __ Place(&literal0);
-  __ Bind(&past_literal0);
-  __ Ldr(r1, &literal0);
+  Literal<uint64_t> l0(0xcafebeefdeadbaba, RawLiteral::kManuallyPlaced);
+  Literal<int32_t> l1(0x12345678, RawLiteral::kManuallyPlaced);
+  Literal<uint16_t>l2(4567, RawLiteral::kManuallyPlaced);
+  Literal<int16_t> l3(-4567, RawLiteral::kManuallyPlaced);
+  Literal<uint8_t> l4(123, RawLiteral::kManuallyPlaced);
+  Literal<int8_t> l5(-123, RawLiteral::kManuallyPlaced);
+
+  __ Ldrd(r0, r1, &l0);
+  __ Ldr(r2, &l1);
+  __ Ldrh(r3, &l2);
+  __ Ldrsh(r4, &l3);
+  __ Ldrb(r5, &l4);
+  __ Ldrsb(r6, &l5);
 
   ASSERT_LITERAL_POOL_SIZE(0);
 
-  Label past_literal1;
-  Literal<uint64_t> cafebeefdeadbaba(0xcafebeefdeadbaba,
-                                     RawLiteral::kManuallyPlaced);
-  __ B(&past_literal1);
-  __ Place(&cafebeefdeadbaba);
-  __ Bind(&past_literal1);
-  __ Ldrd(r8, r9, &cafebeefdeadbaba);
-  __ Ldrd(r2, r3, &cafebeefdeadbaba);
+  // Manually generate a literal pool.
+  Label after_pool;
+  __ B(&after_pool);
+  __ Place(&l0);
+  __ Place(&l1);
+  __ Place(&l2);
+  __ Place(&l3);
+  __ Place(&l4);
+  __ Place(&l5);
+  __ Bind(&after_pool);
+
+  UseScratchRegisterScope temps(&masm);
+  Register temp = temps.Acquire();
+  VIXL_CHECK(temp.Is(r12));
+
+  __ Ldrd(r8, r9, &l0);
+  __ Ldr(r7, &l1);
+  __ Ldrh(r10, &l2);
+  __ Ldrsh(r11, &l3);
+  __ Ldrb(temp, &l4);
+  // We don't use any function call so we can use lr as an extra register.
+  __ Ldrsb(lr, &l5);
+
   ASSERT_LITERAL_POOL_SIZE(0);
+
   END();
 
   RUN();
 
   // Check that the literals loaded correctly.
-  ASSERT_EQUAL_32(0x12345678, r0);
-  ASSERT_EQUAL_32(0x12345678, r1);
-  ASSERT_EQUAL_32(0xdeadbaba, r2);
-  ASSERT_EQUAL_32(0xcafebeef, r3);
+  ASSERT_EQUAL_32(0xdeadbaba, r0);
+  ASSERT_EQUAL_32(0xcafebeef, r1);
+  ASSERT_EQUAL_32(0x12345678, r2);
+  ASSERT_EQUAL_32(4567, r3);
+  ASSERT_EQUAL_32(-4567, r4);
+  ASSERT_EQUAL_32(123, r5);
+  ASSERT_EQUAL_32(-123, r6);
+
   ASSERT_EQUAL_32(0xdeadbaba, r8);
   ASSERT_EQUAL_32(0xcafebeef, r9);
+  ASSERT_EQUAL_32(0x12345678, r7);
+  ASSERT_EQUAL_32(4567, r10);
+  ASSERT_EQUAL_32(-4567, r11);
+  ASSERT_EQUAL_32(123, temp);
+  ASSERT_EQUAL_32(-123, lr);
+
+  TEARDOWN();
+}
+
+
+TEST(custom_literal_place_shared) {
+  SETUP();
+
+  for (size_t i = 0; i < ARRAY_SIZE(kLdrLiteralRangeTestData); ++i) {
+    const LdrLiteralRangeTest& test = kLdrLiteralRangeTestData[i];
+
+    START();
+
+    // Make sure the pool is empty.
+    masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+    ASSERT_LITERAL_POOL_SIZE(0);
+
+    Literal<uint32_t> before(test.literal_value, RawLiteral::kManuallyPlaced);
+    Literal<uint32_t> after(test.literal_value, RawLiteral::kManuallyPlaced);
+
+    VIXL_CHECK(!before.IsBound());
+    VIXL_CHECK(!after.IsBound());
+
+    // Manually generate a pool.
+    Label end_of_pool_before;
+    __ B(&end_of_pool_before);
+    __ Place(&before);
+    __ Bind(&end_of_pool_before);
+
+    ASSERT_LITERAL_POOL_SIZE(0);
+    VIXL_CHECK(before.IsBound());
+    VIXL_CHECK(!after.IsBound());
+
+  // Load the entries several times to test that literals can be shared.
+    for (int i = 0; i < 20; i++) {
+      (masm.*test.instruction)(r0, &before);
+      (masm.*test.instruction)(r1, &after);
+    }
+
+    ASSERT_LITERAL_POOL_SIZE(0);
+    VIXL_CHECK(before.IsBound());
+    VIXL_CHECK(!after.IsBound());
+
+    // Manually generate a pool.
+    Label end_of_pool_after;
+    __ B(&end_of_pool_after);
+    __ Place(&after);
+    __ Bind(&end_of_pool_after);
+
+    ASSERT_LITERAL_POOL_SIZE(0);
+    VIXL_CHECK(before.IsBound());
+    VIXL_CHECK(after.IsBound());
+
+    END();
+
+    RUN();
+
+    ASSERT_EQUAL_32(test.test_value, r0);
+    ASSERT_EQUAL_32(test.test_value, r1);
+  }
+
+  TEARDOWN();
 }
 
 
