@@ -2254,6 +2254,119 @@ TEST(use_scratch_register_scope_v_registers) {
 }
 
 
+TEST(scratch_register_scope_include_exclude) {
+  SETUP();
+  {
+    UseScratchRegisterScope temps(&masm);
+    temps.Include(r0, r1, r2, r3);
+    temps.Include(s0, s1, d1, q1);
+
+    VIXL_CHECK(temps.IsAvailable(r0));
+    VIXL_CHECK(temps.IsAvailable(r1));
+    VIXL_CHECK(temps.IsAvailable(r2));
+    VIXL_CHECK(temps.IsAvailable(r3));
+
+    VIXL_CHECK(temps.IsAvailable(s0));
+
+    VIXL_CHECK(temps.IsAvailable(s1));
+
+    VIXL_CHECK(temps.IsAvailable(d1));
+    VIXL_CHECK(temps.IsAvailable(s2));
+    VIXL_CHECK(temps.IsAvailable(s3));
+
+    VIXL_CHECK(temps.IsAvailable(q1));
+    VIXL_CHECK(temps.IsAvailable(d2));
+    VIXL_CHECK(temps.IsAvailable(d3));
+    VIXL_CHECK(temps.IsAvailable(s4));
+    VIXL_CHECK(temps.IsAvailable(s5));
+    VIXL_CHECK(temps.IsAvailable(s6));
+    VIXL_CHECK(temps.IsAvailable(s7));
+
+    // Test local exclusion.
+    {
+      UseScratchRegisterScope local_temps(&masm);
+      local_temps.Exclude(r1, r2);
+      local_temps.Exclude(s1, q1);
+
+      VIXL_CHECK(temps.IsAvailable(r0));
+      VIXL_CHECK(!temps.IsAvailable(r1));
+      VIXL_CHECK(!temps.IsAvailable(r2));
+      VIXL_CHECK(temps.IsAvailable(r3));
+
+      VIXL_CHECK(temps.IsAvailable(s0));
+
+      VIXL_CHECK(!temps.IsAvailable(s1));
+
+      VIXL_CHECK(temps.IsAvailable(d1));
+      VIXL_CHECK(temps.IsAvailable(s2));
+      VIXL_CHECK(temps.IsAvailable(s3));
+
+      VIXL_CHECK(!temps.IsAvailable(q1));
+      VIXL_CHECK(!temps.IsAvailable(d2));
+      VIXL_CHECK(!temps.IsAvailable(d3));
+      VIXL_CHECK(!temps.IsAvailable(s4));
+      VIXL_CHECK(!temps.IsAvailable(s5));
+      VIXL_CHECK(!temps.IsAvailable(s6));
+      VIXL_CHECK(!temps.IsAvailable(s7));
+    }
+
+    // This time, exclude part of included registers, making sure the entire
+    // register gets excluded.
+    {
+      UseScratchRegisterScope local_temps(&masm);
+      local_temps.Exclude(s2, d3);
+
+      VIXL_CHECK(temps.IsAvailable(r0));
+      VIXL_CHECK(temps.IsAvailable(r1));
+      VIXL_CHECK(temps.IsAvailable(r2));
+      VIXL_CHECK(temps.IsAvailable(r3));
+
+      VIXL_CHECK(temps.IsAvailable(s0));
+
+      VIXL_CHECK(temps.IsAvailable(s1));
+
+      // Excluding s2 should exclude d1 but not s3.
+      VIXL_CHECK(!temps.IsAvailable(d1));
+      VIXL_CHECK(!temps.IsAvailable(s2));
+      VIXL_CHECK(temps.IsAvailable(s3));
+
+      // Excluding d3 should exclude q1, s7 and s6 but not d2, s5, s4.
+      VIXL_CHECK(!temps.IsAvailable(q1));
+      VIXL_CHECK(temps.IsAvailable(d2));
+      VIXL_CHECK(!temps.IsAvailable(d3));
+      VIXL_CHECK(temps.IsAvailable(s4));
+      VIXL_CHECK(temps.IsAvailable(s5));
+      VIXL_CHECK(!temps.IsAvailable(s6));
+      VIXL_CHECK(!temps.IsAvailable(s7));
+    }
+
+    // Make sure the initial state was restored.
+
+    VIXL_CHECK(temps.IsAvailable(r0));
+    VIXL_CHECK(temps.IsAvailable(r1));
+    VIXL_CHECK(temps.IsAvailable(r2));
+    VIXL_CHECK(temps.IsAvailable(r3));
+
+    VIXL_CHECK(temps.IsAvailable(s0));
+
+    VIXL_CHECK(temps.IsAvailable(s1));
+
+    VIXL_CHECK(temps.IsAvailable(d1));
+    VIXL_CHECK(temps.IsAvailable(s2));
+    VIXL_CHECK(temps.IsAvailable(s3));
+
+    VIXL_CHECK(temps.IsAvailable(q1));
+    VIXL_CHECK(temps.IsAvailable(d2));
+    VIXL_CHECK(temps.IsAvailable(d3));
+    VIXL_CHECK(temps.IsAvailable(s4));
+    VIXL_CHECK(temps.IsAvailable(s5));
+    VIXL_CHECK(temps.IsAvailable(s6));
+    VIXL_CHECK(temps.IsAvailable(s7));
+  }
+  TEARDOWN();
+}
+
+
 template<typename T>
 void CheckInstructionSetA32(const T& assm) {
   VIXL_CHECK(assm.IsUsingA32());

@@ -160,7 +160,7 @@ void UseScratchRegisterScope::Exclude(const RegisterList& list) {
 
 void UseScratchRegisterScope::Exclude(const VRegisterList& list) {
   VIXL_ASSERT(available_vfp_ != NULL);
-  available_vfp_->SetList(available_->GetList() & ~list.GetList());
+  available_vfp_->SetList(available_vfp_->GetList() & ~list.GetList());
 }
 
 
