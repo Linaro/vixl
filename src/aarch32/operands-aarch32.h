@@ -135,7 +135,12 @@ class Operand {
                                "An integral type is required to build an "
                                "immediate operand.");
 #endif
-    VIXL_ASSERT(IsUint32(immediate));
+    // Allow both a signed or unsigned 32 bit integer to be passed, but store it
+    // as a uint32_t. The signedness information will be lost. We have to add a
+    // static_cast to make sure the compiler does not complain about implicit 64
+    // to 32 narrowing. It's perfectly acceptable for the user to pass a 64-bit
+    // value, as long as it can be encoded in 32 bits.
+    VIXL_ASSERT(IsInt32(immediate) || IsUint32(immediate));
     return Operand(static_cast<uint32_t>(immediate));
   }
 

@@ -66,6 +66,22 @@ namespace vixl {
 #endif
 
 // Check number width.
+// TODO: Refactor these using templates.
+inline bool IsIntN(unsigned n, uint32_t x) {
+  VIXL_ASSERT((0 < n) && (n < 32));
+  uint32_t limit = UINT32_C(1) << (n - 1);
+  return x < limit;
+}
+inline bool IsIntN(unsigned n, int32_t x) {
+  VIXL_ASSERT((0 < n) && (n < 32));
+  int32_t limit = INT32_C(1) << (n - 1);
+  return (-limit <= x) && (x < limit);
+}
+inline bool IsIntN(unsigned n, uint64_t x) {
+  VIXL_ASSERT((0 < n) && (n < 64));
+  uint64_t limit = UINT64_C(1) << (n - 1);
+  return x < limit;
+}
 inline bool IsIntN(unsigned n, int64_t x) {
   VIXL_ASSERT((0 < n) && (n < 64));
   int64_t limit = INT64_C(1) << (n - 1);
@@ -75,9 +91,23 @@ VIXL_DEPRECATED("IsIntN", inline bool is_intn(unsigned n, int64_t x)) {
   return IsIntN(n, x);
 }
 
-inline bool IsUintN(unsigned n, int64_t x) {
+inline bool IsUintN(unsigned n, uint32_t x) {
+  VIXL_ASSERT((0 < n) && (n < 32));
+  return !(x >> n);
+}
+inline bool IsUintN(unsigned n, int32_t x) {
+  VIXL_ASSERT((0 < n) && (n < 32));
+  // Convert to an unsigned integer to avoid implementation-defined behavior.
+  return !(static_cast<uint32_t>(x) >> n);
+}
+inline bool IsUintN(unsigned n, uint64_t x) {
   VIXL_ASSERT((0 < n) && (n < 64));
   return !(x >> n);
+}
+inline bool IsUintN(unsigned n, int64_t x) {
+  VIXL_ASSERT((0 < n) && (n < 64));
+  // Convert to an unsigned integer to avoid implementation-defined behavior.
+  return !(static_cast<uint64_t>(x) >> n);
 }
 VIXL_DEPRECATED("IsUintN", inline bool is_uintn(unsigned n, int64_t x)) {
   return IsUintN(n, x);
