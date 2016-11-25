@@ -226,10 +226,22 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 #endif
     }
     ~ITScope() {
-      if (!cond_.Is(al) && masm_->IsUsingT32() && !can_use_it_) {
+      if (label_.IsReferenced()) {
+        // We only use the label for conditional T32 instructions for which we
+        // cannot use IT.
+        VIXL_ASSERT(!cond_.Is(al));
+        VIXL_ASSERT(masm_->IsUsingT32());
+        VIXL_ASSERT(!can_use_it_);
         VIXL_ASSERT(masm_->GetCursorOffset() - initial_cursor_offset_ <=
                     kMaxT32MacroInstructionSizeInBytes);
         masm_->BindHelper(&label_);
+      } else if (masm_->IsUsingT32() && !cond_.Is(al)) {
+        // If we've generated a conditional T32 instruction but haven't used the
+        // label, we must have used IT. Check that we did not generate a
+        // deprecated sequence.
+        VIXL_ASSERT(can_use_it_);
+        VIXL_ASSERT(masm_->GetCursorOffset() - initial_cursor_offset_ <=
+                    k16BitT32InstructionSizeInBytes);
       }
     }
 
