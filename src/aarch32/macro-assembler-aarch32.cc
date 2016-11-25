@@ -375,7 +375,7 @@ void MacroAssembler::Switch(Register reg, JumpTableBase* table) {
   Register scratch = temps.Acquire();
   int table_size = AlignUp(table->GetTableSizeInBytes(), 4);
 
-  // Jumpt to default if reg is not in [0, table->GetLength()[
+  // Jump to default if reg is not in [0, table->GetLength()[
   Cmp(reg, table->GetLength());
   B(ge, table->GetDefaultLabel());
 
@@ -396,7 +396,7 @@ void MacroAssembler::Switch(Register reg, JumpTableBase* table) {
         VIXL_ABORT_WITH_MSG("Unsupported jump table size.\n");
     }
     // Emit whatever needs to be emitted if we want to
-    // correctly rescord the position of the branch instruction
+    // correctly record the position of the branch instruction
     uint32_t branch_location = GetCursorOffset();
     table->SetBranchLocation(branch_location + GetArchitectureStatePCOffset());
     AssemblerAccurateScope scope(this,
@@ -417,7 +417,7 @@ void MacroAssembler::Switch(Register reg, JumpTableBase* table) {
       // so let's do the shift before
       Lsl(scratch, scratch, 1);
       // Emit whatever needs to be emitted if we want to
-      // correctly rescord the position of the branch instruction
+      // correctly record the position of the branch instruction
       uint32_t branch_location = GetCursorOffset();
       table->SetBranchLocation(branch_location +
                                GetArchitectureStatePCOffset());
@@ -433,7 +433,7 @@ void MacroAssembler::Switch(Register reg, JumpTableBase* table) {
       VIXL_ASSERT((table->GetOffsetShift() == 0) ||
                   (table->GetOffsetShift() == 1));
       // Emit whatever needs to be emitted if we want to
-      // correctly rescord the position of the branch instruction
+      // correctly record the position of the branch instruction
       uint32_t branch_location = GetCursorOffset();
       table->SetBranchLocation(branch_location +
                                GetArchitectureStatePCOffset());

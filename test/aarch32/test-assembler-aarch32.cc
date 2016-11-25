@@ -2013,11 +2013,12 @@ TEST(literal_update) {
 
 
 void SwitchCase(JumpTableBase* switch_, uint32_t case_index,
-                InstructionSet isa) {
+                InstructionSet isa, bool bind_default = true) {
   SETUP();
 
   START();
 
+  __ Mov(r0, case_index);
   __ Mov(r1, case_index);
   __ Switch(r1, switch_);
 
@@ -2037,8 +2038,10 @@ void SwitchCase(JumpTableBase* switch_, uint32_t case_index,
   __ Mov(r0, 8);
   __ Break(switch_);
 
-  __ Default(switch_);
-  __ Mov(r0, -1);
+  if (bind_default) {
+    __ Default(switch_);
+    __ Mov(r0, -1);
+  }
 
   __ EndSwitch(switch_);
 
@@ -2049,8 +2052,10 @@ void SwitchCase(JumpTableBase* switch_, uint32_t case_index,
 
   if (case_index < 4) {
     ASSERT_EQUAL_32(1 << case_index, r0);
-  } else {
+  } else if (bind_default) {
     ASSERT_EQUAL_32(-1, r0);
+  } else {
+    ASSERT_EQUAL_32(case_index, r0);
   }
 }
 
@@ -2078,6 +2083,29 @@ TEST(switch_case_32) {
   }
 }
 
+
+TEST(switch_case_8_omit_default) {
+  for (int i = 0; i < 5; i++) {
+    JumpTable8bitOffset switch_(5);
+    SwitchCase(&switch_, i, isa, false);
+  }
+}
+
+
+TEST(switch_case_16_omit_default) {
+  for (int i = 0; i < 5; i++) {
+    JumpTable16bitOffset switch_(5);
+    SwitchCase(&switch_, i, isa, false);
+  }
+}
+
+
+TEST(switch_case_32_omit_default) {
+  for (int i = 0; i < 5; i++) {
+    JumpTable32bitOffset switch_(5);
+    SwitchCase(&switch_, i, isa, false);
+  }
+}
 
 TEST(claim_peek_poke) {
   SETUP();
