@@ -1510,18 +1510,21 @@ void MacroAssembler::Delegate(InstructionType type,
         default:
           break;
       }
-      VIXL_ASSERT(!dt.Is(I8));  // I8 cases should have been handled already.
-      if ((dt.Is(I16) || dt.Is(I32)) && neon_imm.CanConvert<uint32_t>()) {
+      if ((dt.Is(I8) || dt.Is(I16) || dt.Is(I32)) &&
+          neon_imm.CanConvert<uint32_t>()) {
         // mov ip, imm32
-        // vdup.16 d0, ip
+        // vdup.8 d0, ip
         UseScratchRegisterScope temps(this);
         Register scratch = temps.Acquire();
         {
-          CodeBufferCheckScope scope(this, 2 * kMaxInstructionSizeInBytes);
+          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
           mov(cond, scratch, neon_imm.GetImmediate<uint32_t>());
         }
         DataTypeValue vdup_dt = Untyped32;
         switch (dt.GetValue()) {
+          case I8:
+            vdup_dt = Untyped8;
+            break;
           case I16:
             vdup_dt = Untyped16;
             break;
@@ -1624,8 +1627,7 @@ void MacroAssembler::Delegate(InstructionType type,
               UseScratchRegisterScope temps(this);
               Register scratch = temps.Acquire();
               {
-                CodeBufferCheckScope scope(this,
-                                           2 * kMaxInstructionSizeInBytes);
+                CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
                 mov(cond, scratch, static_cast<uint32_t>(imm & 0xffffffff));
               }
               CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
@@ -1638,8 +1640,7 @@ void MacroAssembler::Delegate(InstructionType type,
               UseScratchRegisterScope temps(this);
               Register scratch = temps.Acquire();
               {
-                CodeBufferCheckScope scope(this,
-                                           2 * kMaxInstructionSizeInBytes);
+                CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
                 mov(cond, scratch, static_cast<uint32_t>(imm >> 32));
               }
               {
@@ -1658,18 +1659,21 @@ void MacroAssembler::Delegate(InstructionType type,
         default:
           break;
       }
-      VIXL_ASSERT(!dt.Is(I8));  // I8 cases should have been handled already.
-      if ((dt.Is(I16) || dt.Is(I32)) && neon_imm.CanConvert<uint32_t>()) {
+      if ((dt.Is(I8) || dt.Is(I16) || dt.Is(I32)) &&
+          neon_imm.CanConvert<uint32_t>()) {
         // mov ip, imm32
-        // vdup.16 d0, ip
+        // vdup.8 d0, ip
         UseScratchRegisterScope temps(this);
         Register scratch = temps.Acquire();
         {
-          CodeBufferCheckScope scope(this, 2 * kMaxInstructionSizeInBytes);
+          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
           mov(cond, scratch, neon_imm.GetImmediate<uint32_t>());
         }
         DataTypeValue vdup_dt = Untyped32;
         switch (dt.GetValue()) {
+          case I8:
+            vdup_dt = Untyped8;
+            break;
           case I16:
             vdup_dt = Untyped16;
             break;
@@ -1686,17 +1690,15 @@ void MacroAssembler::Delegate(InstructionType type,
       if (dt.Is(F32) && neon_imm.CanConvert<float>()) {
         // Punt to vmov.i64
         float f = neon_imm.GetImmediate<float>();
-        CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+        CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
         vmov(cond, I32, rd, FloatToRawbits(f));
         return;
       }
       if (dt.Is(F64) && neon_imm.CanConvert<double>()) {
-        // Use vmov to create the double in the low D register, then duplicate
-        // it into the high D register.
+        // Punt to vmov.i64
         double d = neon_imm.GetImmediate<double>();
-        CodeBufferCheckScope scope(this, 7 * kMaxInstructionSizeInBytes);
-        vmov(cond, F64, rd.GetLowDRegister(), d);
-        vmov(cond, F64, rd.GetHighDRegister(), rd.GetLowDRegister());
+        CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
+        vmov(cond, I64, rd, DoubleToRawbits(d));
         return;
       }
     }
