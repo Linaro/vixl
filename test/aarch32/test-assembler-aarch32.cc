@@ -2909,7 +2909,7 @@ TEST(veneer_pool_margin) {
 }
 
 
-TEST(code_buffer_precise_growth) {
+TEST_NOASM(code_buffer_precise_growth) {
   static const int kBaseBufferSize = 16;
   MacroAssembler masm(kBaseBufferSize, T32);
 
@@ -2937,7 +2937,7 @@ TEST(code_buffer_precise_growth) {
 }
 
 
-TEST_T32(out_of_space_immediately_before_PerformEnsureEmit) {
+TEST_NOASM(out_of_space_immediately_before_PerformEnsureEmit) {
   static const int kBaseBufferSize = 16;
   MacroAssembler masm(kBaseBufferSize, T32);
 
