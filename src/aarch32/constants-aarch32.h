@@ -81,6 +81,8 @@ const uint16_t k16BitT32NopOpcode = 0xbf00;
 const uint16_t kCbzCbnzMask = 0xf500;
 const uint16_t kCbzCbnzValue = 0xb100;
 
+const int32_t kCbzCbnzRange = 126;
+
 enum SystemFunctionsOpcodes { kPrintfCode };
 
 // Start of generated code.

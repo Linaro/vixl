@@ -186,55 +186,120 @@ void UseScratchRegisterScope::ExcludeAll() {
 
 
 void VeneerPoolManager::AddLabel(Label* label) {
-  if (!label->IsInVeneerPool()) {
-    label->SetVeneerPoolManager(this);
-    labels_.push_back(label);
+  if (last_label_reference_offset_ != 0) {
+    // If the pool grows faster than the instruction stream, we must adjust
+    // the checkpoint to compensate. The veneer pool entries take 32 bits, so
+    // this can only occur when two consecutive 16-bit instructions add veneer
+    // pool entries.
+    // This is typically the case for cbz and cbnz (other forward branches
+    // have a 32 bit variant which is always used).
+    if (last_label_reference_offset_ + 2 * k16BitT32InstructionSizeInBytes ==
+        static_cast<uint32_t>(masm_->GetCursorOffset())) {
+      // We found two 16 bit forward branches generated one after the other.
+      // That means that the pool will grow by one 32-bit branch when
+      // the cursor offset will move forward by only one 16-bit branch.
+      // Update the cbz/cbnz checkpoint to manage the difference.
+      near_checkpoint_ -=
+          k32BitT32InstructionSizeInBytes - k16BitT32InstructionSizeInBytes;
+    }
   }
   Label::ForwardReference& back = label->GetBackForwardRef();
+  VIXL_ASSERT(back.GetMaxForwardDistance() >= kCbzCbnzRange);
+  if (!label->IsInVeneerPool()) {
+    if (back.GetMaxForwardDistance() == kCbzCbnzRange) {
+      near_labels_.push_back(label);
+      label->SetVeneerPoolManager(this, true);
+    } else {
+      far_labels_.push_back(label);
+      label->SetVeneerPoolManager(this, false);
+    }
+  } else if (back.GetMaxForwardDistance() == kCbzCbnzRange) {
+    if (!label->IsNear()) {
+      far_labels_.remove(label);
+      near_labels_.push_back(label);
+      label->SetVeneerPoolManager(this, true);
+    }
+  }
+
   back.SetIsBranch();
+  last_label_reference_offset_ = back.GetLocation();
   label->UpdateCheckpoint();
   Label::Offset tmp = label->GetCheckpoint();
-  if (checkpoint_ > tmp) {
-    checkpoint_ = tmp;
-    masm_->ComputeCheckpoint();
+  if (label->IsNear()) {
+    if (near_checkpoint_ > tmp) near_checkpoint_ = tmp;
+  } else {
+    if (far_checkpoint_ > tmp) far_checkpoint_ = tmp;
   }
+  // Always compute the global checkpoint as, adding veneers shorten the
+  // literals' checkpoint.
+  masm_->ComputeCheckpoint();
 }
 
 
 void VeneerPoolManager::RemoveLabel(Label* label) {
   label->ClearVeneerPoolManager();
-  if (label->GetCheckpoint() == checkpoint_) {
+  std::list<Label*>& list = label->IsNear() ? near_labels_ : far_labels_;
+  Label::Offset* checkpoint_reference =
+      label->IsNear() ? &near_checkpoint_ : &far_checkpoint_;
+  if (label->GetCheckpoint() == *checkpoint_reference) {
     // We have to compute checkpoint again.
-    checkpoint_ = Label::kMaxOffset;
-    for (std::list<Label*>::iterator it = labels_.begin();
-         it != labels_.end();) {
+    *checkpoint_reference = Label::kMaxOffset;
+    for (std::list<Label*>::iterator it = list.begin(); it != list.end();) {
       if (*it == label) {
-        it = labels_.erase(it);
+        it = list.erase(it);
       } else {
-        checkpoint_ = std::min(checkpoint_, (*it)->GetCheckpoint());
+        *checkpoint_reference =
+            std::min(*checkpoint_reference, (*it)->GetCheckpoint());
         ++it;
       }
     }
     masm_->ComputeCheckpoint();
   } else {
     // We only have to remove the label from the list.
-    for (std::list<Label*>::iterator it = labels_.begin();; ++it) {
-      VIXL_ASSERT(it != labels_.end());
-      if (*it == label) {
-        labels_.erase(it);
-        break;
+    list.remove(label);
+  }
+}
+
+
+void VeneerPoolManager::EmitLabel(Label* label, Label::Offset emitted_target) {
+  // Define the veneer.
+  Label veneer;
+  masm_->Bind(&veneer);
+  Label::Offset label_checkpoint = Label::kMaxOffset;
+  // Check all uses of this label.
+  for (Label::ForwardRefList::iterator ref = label->GetFirstForwardRef();
+       ref != label->GetEndForwardRef();) {
+    if (ref->IsBranch()) {
+      if (ref->GetCheckpoint() <= emitted_target) {
+        // Use the veneer.
+        masm_->EncodeLabelFor(*ref, &veneer);
+        ref = label->Erase(ref);
+      } else {
+        // Don't use the veneer => update checkpoint.
+        label_checkpoint = std::min(label_checkpoint, ref->GetCheckpoint());
+        ++ref;
       }
+    } else {
+      ++ref;
     }
   }
+  label->SetCheckpoint(label_checkpoint);
+  if (label->IsNear()) {
+    near_checkpoint_ = std::min(near_checkpoint_, label_checkpoint);
+  } else {
+    far_checkpoint_ = std::min(far_checkpoint_, label_checkpoint);
+  }
+  // Generate the veneer.
+  masm_->B(label);
 }
 
 
 void VeneerPoolManager::Emit(Label::Offset target) {
   VIXL_ASSERT(!IsBlocked());
-  checkpoint_ = Label::kMaxOffset;
   // Sort labels (regarding their checkpoint) to avoid that a veneer
-  // becomes out of range.
-  labels_.sort(Label::CompareLabels);
+  // becomes out of range. Near labels are always sorted as it holds only one
+  // range.
+  far_labels_.sort(Label::CompareLabels);
   // To avoid too many veneers, generate veneers which will be necessary soon.
   static const size_t kVeneerEmissionMargin = 1 * KBytes;
   // To avoid too many veneers, use generated veneers for other not too far
@@ -242,47 +307,46 @@ void VeneerPoolManager::Emit(Label::Offset target) {
   static const size_t kVeneerEmittedMargin = 2 * KBytes;
   Label::Offset emitted_target = target + kVeneerEmittedMargin;
   target += kVeneerEmissionMargin;
-  // Reset the checkpoint. It will be computed again in the loop.
-  checkpoint_ = Label::kMaxOffset;
-  for (std::list<Label*>::iterator it = labels_.begin(); it != labels_.end();) {
+  // Reset the checkpoints. They will be computed again in the loop.
+  near_checkpoint_ = Label::kMaxOffset;
+  far_checkpoint_ = Label::kMaxOffset;
+  for (std::list<Label*>::iterator it = near_labels_.begin();
+       it != near_labels_.end();) {
+    Label* label = *it;
+    // Move the label from the near list to the far list as it will be needed in
+    // the far list (as the veneer will generate a far branch).
+    // The label is pushed at the end of the list. The list remains sorted as
+    // we use an unconditional jump which has the biggest range. However, it
+    // wouldn't be a problem if the items at the end of the list were not
+    // sorted as they won't be used by this generation (their range will be
+    // greater than kVeneerEmittedMargin).
+    it = near_labels_.erase(it);
+    far_labels_.push_back(label);
+    label->SetVeneerPoolManager(this, false);
+    EmitLabel(label, emitted_target);
+  }
+  for (std::list<Label*>::iterator it = far_labels_.begin();
+       it != far_labels_.end();) {
     // The labels are sorted. As soon as a veneer is not needed, we can stop.
     if ((*it)->GetCheckpoint() > target) {
-      checkpoint_ = std::min(checkpoint_, (*it)->GetCheckpoint());
+      far_checkpoint_ = std::min(far_checkpoint_, (*it)->GetCheckpoint());
       break;
-    }
-    // Define the veneer.
-    Label veneer;
-    masm_->Bind(&veneer);
-    Label::Offset label_checkpoint = Label::kMaxOffset;
-    // Check all uses of this label.
-    for (Label::ForwardRefList::iterator ref = (*it)->GetFirstForwardRef();
-         ref != (*it)->GetEndForwardRef();) {
-      if (ref->IsBranch()) {
-        if (ref->GetCheckpoint() <= emitted_target) {
-          // Use the veneer.
-          masm_->EncodeLabelFor(*ref, &veneer);
-          ref = (*it)->Erase(ref);
-        } else {
-          // Don't use the veneer => update checkpoint.
-          label_checkpoint = std::min(label_checkpoint, ref->GetCheckpoint());
-          ++ref;
-        }
-      } else {
-        ++ref;
-      }
     }
     // Even if we no longer have use of this label, we can keep it in the list
     // as the next "B" would add it back.
-    (*it)->SetCheckpoint(label_checkpoint);
-    checkpoint_ = std::min(checkpoint_, label_checkpoint);
-    // Generate the veneer.
-    masm_->B(*it);
+    EmitLabel(*it, emitted_target);
     ++it;
   }
 #ifdef VIXL_DEBUG
-  for (std::list<Label*>::iterator it = labels_.begin(); it != labels_.end();
+  for (std::list<Label*>::iterator it = near_labels_.begin();
+       it != near_labels_.end();
        ++it) {
-    VIXL_ASSERT((*it)->GetCheckpoint() >= checkpoint_);
+    VIXL_ASSERT((*it)->GetCheckpoint() >= near_checkpoint_);
+  }
+  for (std::list<Label*>::iterator it = far_labels_.begin();
+       it != far_labels_.end();
+       ++it) {
+    VIXL_ASSERT((*it)->GetCheckpoint() >= far_checkpoint_);
   }
 #endif
   masm_->ComputeCheckpoint();
@@ -338,7 +402,7 @@ void MacroAssembler::PerformEnsureEmit(Label::Offset target, uint32_t size) {
     Label::Offset veneers_target =
         target + static_cast<Label::Offset>(literal_pool_size);
     VIXL_ASSERT(veneers_target >= 0);
-    if (veneers_target >= veneer_pool_manager_.GetCheckpoint()) {
+    if (veneers_target > veneer_pool_manager_.GetCheckpoint()) {
       veneer_pool_manager_.Emit(veneers_target);
     }
     EmitLiteralPool(option);

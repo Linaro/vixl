@@ -126,6 +126,7 @@ class Label {
         is_t32_(false),
         referenced_(false),
         veneer_pool_manager_(NULL),
+        is_near_(false),
         checkpoint_(kMaxOffset) {}
   explicit Label(Offset offset, uint32_t pc_offset, bool minus_zero = false)
       : imm_offset_(offset),
@@ -135,6 +136,7 @@ class Label {
         is_t32_(false),
         referenced_(false),
         veneer_pool_manager_(NULL),
+        is_near_(false),
         checkpoint_(kMaxOffset) {}
   ~Label() VIXL_THROW_IN_NEGATIVE_TESTING_MODE(std::runtime_error) {
 #ifdef VIXL_DEBUG
@@ -170,10 +172,13 @@ class Label {
   VeneerPoolManager* GetVeneerPoolManager() const {
     return veneer_pool_manager_;
   }
-  void SetVeneerPoolManager(VeneerPoolManager* veneer_pool_manager) {
+  void SetVeneerPoolManager(VeneerPoolManager* veneer_pool_manager,
+                            bool is_near) {
     veneer_pool_manager_ = veneer_pool_manager;
+    is_near_ = is_near;
   }
   void ClearVeneerPoolManager() { veneer_pool_manager_ = NULL; }
+  bool IsNear() const { return is_near_; }
   void SetCheckpoint(Offset checkpoint) { checkpoint_ = checkpoint; }
   Offset GetCheckpoint() const { return checkpoint_; }
   Offset GetAlignedCheckpoint(int byte_align) const {
@@ -260,6 +265,8 @@ class Label {
   bool referenced_;
   // Not null if the label is currently inserted in the veneer pool.
   VeneerPoolManager* veneer_pool_manager_;
+  // True if the label is inserted in the near_labels_ list.
+  bool is_near_;
   // Contains the references to the unbound label
   ForwardRefList forward_;
   // Max offset in the code buffer. Must be emitted before this checkpoint.
@@ -269,17 +276,33 @@ class Label {
 class VeneerPoolManager {
  public:
   explicit VeneerPoolManager(MacroAssembler* masm)
-      : masm_(masm), checkpoint_(Label::kMaxOffset), monitor_(0) {}
-  bool IsEmpty() const { return checkpoint_ == Label::kMaxOffset; }
+      : masm_(masm),
+        near_checkpoint_(Label::kMaxOffset),
+        far_checkpoint_(Label::kMaxOffset),
+        last_label_reference_offset_(0),
+        monitor_(0) {}
+  bool IsEmpty() const {
+    return (near_labels_.size() + far_labels_.size()) == 0;
+  }
   Label::Offset GetCheckpoint() const {
+    // For the far labels, we subtract the veneer size. This way avoids problems
+    // when two label have the same checkpoint. In the usual case, we lose some
+    // range but, as the minimum range for far labels is 1 mega byte, it's not
+    // very important.
+    size_t veneer_max_size = GetMaxSize();
+    VIXL_ASSERT(IsInt32(veneer_max_size));
+    Label::Offset tmp =
+        far_checkpoint_ - static_cast<Label::Offset>(veneer_max_size);
     // Make room for a branch over the pools.
-    return checkpoint_ - kMaxInstructionSizeInBytes;
+    return std::min(near_checkpoint_, tmp) - kMaxInstructionSizeInBytes;
   }
   size_t GetMaxSize() const {
-    return labels_.size() * kMaxInstructionSizeInBytes;
+    return (near_labels_.size() + far_labels_.size()) *
+           kMaxInstructionSizeInBytes;
   }
   void AddLabel(Label* label);
   void RemoveLabel(Label* label);
+  void EmitLabel(Label* label, Label::Offset emitted_target);
   void Emit(Label::Offset target);
 
   void Block() { monitor_++; }
@@ -288,12 +311,16 @@ class VeneerPoolManager {
 
  private:
   MacroAssembler* masm_;
-  // List of all unbound labels which are used by a branch instruction.
-  std::list<Label*> labels_;
+  // Lists of all unbound labels which are used by a branch instruction.
+  std::list<Label*> near_labels_;
+  std::list<Label*> far_labels_;
   // Max offset in the code buffer where the veneer needs to be emitted.
   // A default value of Label::kMaxOffset means that the checkpoint is
   // invalid.
-  Label::Offset checkpoint_;
+  Label::Offset near_checkpoint_;
+  Label::Offset far_checkpoint_;
+  // Offset where the last reference to a label has been added to the pool.
+  Label::Offset last_label_reference_offset_;
   // Indicates whether the emission of this pool is blocked.
   int monitor_;
 };
