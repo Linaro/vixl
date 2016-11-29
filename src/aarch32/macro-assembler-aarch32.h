@@ -315,12 +315,27 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
     // Checks if the insertion of the literal will put the forward reference
     // too far in the literal pool.
+    // This function is called after generating an instruction with a literal.
+    // We want to know if the literal can be reached by the instruction.
+    // If not, we will unwind the instruction, generate the pool (without the
+    // last literal) and generate the instruction again.
+    // "literal" is the literal we want to insert into the pool.
+    // "from" is the location where the instruction which uses the literal has
+    // been generated.
     bool IsInsertTooFar(RawLiteral* literal, uint32_t from) const {
+      // Last accessible location for the instruction which uses the literal.
       uint32_t checkpoint = from + literal->GetLastInsertForwardDistance();
       checkpoint =
           std::min(checkpoint, static_cast<uint32_t>(literal->GetCheckpoint()));
-      bool too_far = AlignDown(checkpoint, 4) < from + literal_pool_.GetSize() +
-                                                    kMaxInstructionSizeInBytes;
+      // Compare the checkpoint to the location where the literal should be
+      // added.
+      // We add space for two instructions: one branch and one potential veneer
+      // which may be added after the check. In this particular use case, no
+      // veneer can be added but, this way, we are consistent with all the
+      // literal pool checks.
+      bool too_far =
+          AlignDown(checkpoint, 4) <
+          from + literal_pool_.GetSize() + 2 * kMaxInstructionSizeInBytes;
       return too_far;
     }
 
@@ -404,7 +419,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
         veneer_pool_manager_(this),
-        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE) {
+        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE),
+        doing_veneer_pool_generation_(false) {
 #ifdef VIXL_DEBUG
     SetAllowMacroInstructions(true);
 #else
@@ -419,7 +435,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
         veneer_pool_manager_(this),
-        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE) {
+        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE),
+        doing_veneer_pool_generation_(false) {
 #ifdef VIXL_DEBUG
     SetAllowMacroInstructions(true);
 #endif
@@ -431,7 +448,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
         veneer_pool_manager_(this),
-        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE) {
+        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE),
+        doing_veneer_pool_generation_(false) {
 #ifdef VIXL_DEBUG
     SetAllowMacroInstructions(true);
 #endif
@@ -553,8 +571,28 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     return veneer_pool_manager_.GetCheckpoint() - GetCursorOffset();
   }
 
+  Label::Offset GetTargetForLiteralEmission() const {
+    if (literal_pool_manager_.IsEmpty()) return Label::kMaxOffset;
+    // We add an instruction to the size as the instruction which calls this
+    // function may add a veneer and, without this extra instruction, could put
+    // the literals out of range. For example, it's the case for a "B"
+    // instruction. At the beginning of the instruction we call EnsureEmitFor
+    // which calls this function. However, the target of the branch hasn't been
+    // inserted yet in the veneer pool.
+    size_t veneer_max_size =
+        veneer_pool_manager_.GetMaxSize() + kMaxInstructionSizeInBytes;
+    VIXL_ASSERT(IsInt32(veneer_max_size));
+    // We must be able to generate the veneer pool first.
+    Label::Offset tmp = literal_pool_manager_.GetCheckpoint() -
+                        static_cast<Label::Offset>(veneer_max_size);
+    VIXL_ASSERT(tmp >= 0);
+    return tmp;
+  }
+
   int32_t GetMarginBeforeLiteralEmission() const {
-    return literal_pool_manager_.GetCheckpoint() - GetCursorOffset();
+    Label::Offset tmp = GetTargetForLiteralEmission();
+    VIXL_ASSERT(tmp >= GetCursorOffset());
+    return tmp - GetCursorOffset();
   }
 
   bool VeneerPoolIsEmpty() const { return veneer_pool_manager_.IsEmpty(); }
@@ -10754,6 +10792,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   VeneerPoolManager veneer_pool_manager_;
   bool generate_simulator_code_;
   bool allow_macro_instructions_;
+  bool doing_veneer_pool_generation_;
 };
 
 // This scope utility allows scratch registers to be managed safely. The

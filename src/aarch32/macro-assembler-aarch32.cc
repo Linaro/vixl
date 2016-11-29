@@ -376,38 +376,46 @@ class ExactAssemblyScopeWithoutPoolsCheck : public ExactAssemblyScope {
 
 
 void MacroAssembler::PerformEnsureEmit(Label::Offset target, uint32_t size) {
-  EmitOption option = kBranchRequired;
-  Label after_pools;
-  if (target > veneer_pool_manager_.GetCheckpoint()) {
-    {
-      ExactAssemblyScopeWithoutPoolsCheck
-          guard(this,
-                kMaxInstructionSizeInBytes,
-                ExactAssemblyScope::kMaximumSize);
-      b(&after_pools);
+  if (!doing_veneer_pool_generation_) {
+    EmitOption option = kBranchRequired;
+    Label after_pools;
+    Label::Offset literal_target = GetTargetForLiteralEmission();
+    VIXL_ASSERT(literal_target >= 0);
+    bool generate_veneers = target > veneer_pool_manager_.GetCheckpoint();
+    if (target > literal_target) {
+      // We will generate the literal pool. Generate all the veneers which
+      // would become out of range.
+      size_t literal_pool_size = literal_pool_manager_.GetLiteralPoolSize() +
+                                 kMaxInstructionSizeInBytes;
+      VIXL_ASSERT(IsInt32(literal_pool_size));
+      Label::Offset veneers_target =
+          AlignUp(target + static_cast<Label::Offset>(literal_pool_size), 4);
+      VIXL_ASSERT(veneers_target >= 0);
+      if (veneers_target > veneer_pool_manager_.GetCheckpoint()) {
+        generate_veneers = true;
+      }
     }
-    veneer_pool_manager_.Emit(target);
-    option = kNoBranchRequired;
-  }
-  // Check if the macro-assembler's internal literal pool should be emitted
-  // to avoid any overflow. If we already generated the veneers, we can
-  // emit the pool (the branch is already done).
-  VIXL_ASSERT(GetCursorOffset() <= literal_pool_manager_.GetCheckpoint());
-  if ((target > literal_pool_manager_.GetCheckpoint()) ||
-      (option == kNoBranchRequired)) {
-    // We will generate the literal pool. Generate all the veneers which
-    // would become out of range.
-    size_t literal_pool_size = literal_pool_manager_.GetLiteralPoolSize();
-    VIXL_ASSERT(IsInt32(literal_pool_size));
-    Label::Offset veneers_target =
-        target + static_cast<Label::Offset>(literal_pool_size);
-    VIXL_ASSERT(veneers_target >= 0);
-    if (veneers_target > veneer_pool_manager_.GetCheckpoint()) {
-      veneer_pool_manager_.Emit(veneers_target);
+    if (generate_veneers) {
+      {
+        ExactAssemblyScopeWithoutPoolsCheck
+            guard(this,
+                  kMaxInstructionSizeInBytes,
+                  ExactAssemblyScope::kMaximumSize);
+        b(&after_pools);
+      }
+      doing_veneer_pool_generation_ = true;
+      veneer_pool_manager_.Emit(target);
+      doing_veneer_pool_generation_ = false;
+      option = kNoBranchRequired;
     }
-    EmitLiteralPool(option);
+    // Check if the macro-assembler's internal literal pool should be emitted
+    // to avoid any overflow. If we already generated the veneers, we can
+    // emit the pool (the branch is already done).
+    if ((target > literal_target) || (option == kNoBranchRequired)) {
+      EmitLiteralPool(option);
+    }
+    BindHelper(&after_pools);
   }
-  BindHelper(&after_pools);
   if (GetBuffer()->IsManaged()) {
     bool grow_requested;
     GetBuffer()->EnsureSpaceFor(size, &grow_requested);
@@ -417,17 +425,9 @@ void MacroAssembler::PerformEnsureEmit(Label::Offset target, uint32_t size) {
 
 
 void MacroAssembler::ComputeCheckpoint() {
-  checkpoint_ = veneer_pool_manager_.GetCheckpoint();
-  if (literal_pool_manager_.GetCheckpoint() != Label::kMaxOffset) {
-    size_t veneer_max_size = veneer_pool_manager_.GetMaxSize();
-    VIXL_ASSERT(IsInt32(veneer_max_size));
-    // We must be able to generate the pool and a branch over the pool.
-    Label::Offset tmp = literal_pool_manager_.GetCheckpoint() -
-                        static_cast<Label::Offset>(veneer_max_size +
-                                                   kMaxInstructionSizeInBytes);
-    VIXL_ASSERT(tmp >= 0);
-    checkpoint_ = std::min(checkpoint_, tmp);
-  }
+  checkpoint_ = AlignDown(std::min(veneer_pool_manager_.GetCheckpoint(),
+                                   GetTargetForLiteralEmission()),
+                          4);
   size_t buffer_size = GetBuffer()->GetCapacity();
   VIXL_ASSERT(IsInt32(buffer_size));
   Label::Offset buffer_checkpoint = static_cast<Label::Offset>(buffer_size);

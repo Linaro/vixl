@@ -1208,8 +1208,8 @@ void EmitLdrdLiteralTest(MacroAssembler* masm) {
                     masm->GetArchitectureStatePCOffset(), 4) +
           // Maximum range allowed to access the constant.
           ldrd_range -
-          // A branch will be generated before the pool.
-          kMaxInstructionSizeInBytes,
+          // The literal pool has a two instruction margin.
+          2 * kMaxInstructionSizeInBytes,
           // AlignDown to 4 byte as the literals will be 4 byte aligned.
           4);
 
@@ -1344,10 +1344,10 @@ TEST_A32(ldr_literal_range_same_time) {
   START();
   const int ldrd_range = 255;
   // We need to take into account the jump over the pool.
-  const int ldrd_padding = ldrd_range - kA32InstructionSizeInBytes;
+  const int ldrd_padding = ldrd_range - 2 * kA32InstructionSizeInBytes;
   const int ldr_range = 4095;
   // We need to take into account the ldrd padding and the ldrd instruction.
-  const int ldr_padding = ldr_range - ldrd_padding - kA32InstructionSizeInBytes;
+  const int ldr_padding = ldr_range - ldrd_padding - 2 * kA32InstructionSizeInBytes;
 
   __ Ldr(r1, 0x12121212);
   ASSERT_LITERAL_POOL_SIZE(4);
@@ -3787,6 +3787,314 @@ TEST_T32(veneer_simultaneous_one_label) {
   __ Nop();
 
   __ Bind(&target);
+
+  END();
+
+  TEARDOWN();
+}
+
+
+// The literal pool will be emitted early because we keep a margin to always be
+// able to generate the veneers before the literal.
+TEST_T32(veneer_and_literal) {
+  SETUP();
+
+  START();
+
+  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+
+  const uint32_t ldrd_range = 1020;
+  const uint32_t cbz_range = 126;
+  const uint32_t kLabelsCount = 20;
+  Label labels[kLabelsCount];
+
+  // Create one literal pool entry.
+  __ Ldrd(r0, r1, 0x1234567890abcdef);
+
+  // Generate some nops.
+  uint32_t i = 0;
+  for (; i < ldrd_range - cbz_range - 40;
+       i += k16BitT32InstructionSizeInBytes) {
+    __ Nop();
+  }
+
+  // At this point, it remains cbz_range + 40 => 166 bytes before ldrd becomes
+  // out of range.
+  // We generate kLabelsCount * 4 => 80 bytes. We shouldn't generate the
+  // literal pool.
+  for (uint32_t j = 0; j < kLabelsCount; j++) {
+    __ Cbz(r0, &labels[j]);
+    __ Nop();
+    i += 2 * k16BitT32InstructionSizeInBytes;
+  }
+
+  // However as we have pending veneer, the range is shrinken and the literal
+  // pool is generated.
+  VIXL_ASSERT(masm.LiteralPoolIsEmpty());
+  // However, we didn't generate the veneer pool.
+  VIXL_ASSERT(masm.GetMarginBeforeVeneerEmission() <
+              static_cast<int32_t>(cbz_range));
+
+  // We generate a few more instructions.
+  for (; i < ldrd_range - 4 * kA32InstructionSizeInBytes;
+       i += k16BitT32InstructionSizeInBytes) {
+    __ Nop();
+  }
+
+  // And a veneer pool has been generated.
+  VIXL_ASSERT(masm.GetMarginBeforeVeneerEmission() >
+              static_cast<int32_t>(cbz_range));
+
+  // Bind all the used labels.
+  for (uint32_t j = 0; j < kLabelsCount; j++) {
+    __ Bind(&labels[j]);
+    __ Nop();
+  }
+
+  // Now that all the labels have been bound, we have no more veneer.
+  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+
+  END();
+
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0x90abcdef, r0);
+  ASSERT_EQUAL_32(0x12345678, r1);
+
+  TEARDOWN();
+}
+
+
+// The literal pool will be emitted early and, as the emission of the literal
+// pool would have put veneer out of range, the veneers are emitted first.
+TEST_T32(veneer_and_literal2) {
+  SETUP();
+
+  START();
+
+  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+
+  const uint32_t ldrd_range = 1020;
+  const uint32_t cbz_range = 126;
+  const uint32_t kLabelsCount = 20;
+  const int32_t kTypicalMacroInstructionMaxSize =
+      8 * kMaxInstructionSizeInBytes;
+  Label labels[kLabelsCount];
+
+  // Create one literal pool entry.
+  __ Ldrd(r0, r1, 0x1234567890abcdef);
+
+  for (uint32_t i = 0; i < ldrd_range - cbz_range - 4 * kLabelsCount;
+       i += k16BitT32InstructionSizeInBytes) {
+    __ Nop();
+  }
+
+  // Add entries to the veneer pool.
+  for (uint32_t i = 0; i < kLabelsCount; i++) {
+    __ Cbz(r0, &labels[i]);
+    __ Nop();
+  }
+
+  // Generate nops up to the literal pool limit.
+  while (masm.GetMarginBeforeLiteralEmission() >=
+         kTypicalMacroInstructionMaxSize) {
+    __ Nop();
+  }
+
+  // At this point, no literals and no veneers have been generated.
+  VIXL_ASSERT(!masm.LiteralPoolIsEmpty());
+  VIXL_ASSERT(masm.GetMarginBeforeVeneerEmission() <
+              static_cast<int32_t>(cbz_range));
+  // The literal pool needs to be generated.
+  VIXL_ASSERT(masm.GetMarginBeforeLiteralEmission() <
+              kTypicalMacroInstructionMaxSize);
+  // But not the veneer pool.
+  VIXL_ASSERT(masm.GetMarginBeforeVeneerEmission() >=
+              kTypicalMacroInstructionMaxSize);
+  // However, as the literal emission would put veneers out of range.
+  VIXL_ASSERT(masm.GetMarginBeforeVeneerEmission() <
+              kTypicalMacroInstructionMaxSize +
+              static_cast<int32_t>(masm.GetLiteralPoolSize()));
+
+  // This extra Nop will generate the literal pool and before that the veneer
+  // pool.
+  __ Nop();
+  // Now the literal pool has been generated.
+  VIXL_ASSERT(masm.LiteralPoolIsEmpty());
+  // And also the veneer pool.
+  VIXL_ASSERT(masm.GetMarginBeforeVeneerEmission() > 1000);
+
+  // Bind all the used labels.
+  for (uint32_t j = 0; j < kLabelsCount; j++) {
+    __ Bind(&labels[j]);
+    __ Nop();
+  }
+
+  // Now that all the labels have been bound, we have no more veneer.
+  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+
+  END();
+
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0x90abcdef, r0);
+  ASSERT_EQUAL_32(0x12345678, r1);
+
+  TEARDOWN();
+}
+
+
+// Use a literal when we already have a veneer pool potential size greater than
+// the literal range => generate the literal immediately (not optimum but it
+// works).
+TEST_T32(veneer_and_literal3) {
+  SETUP();
+
+  START();
+
+  static const int kLabelsCount = 1000;
+
+  Label labels[kLabelsCount];
+
+  for (int i = 0; i < kLabelsCount; i++) {
+    __ B(&labels[i]);
+  }
+
+  // Create one literal pool entry.
+  __ Ldrd(r0, r1, 0x1234567890abcdef);
+
+  for (int i = 0; i < 10; i++) {
+    __ Nop();
+  }
+
+  for (int i = 0; i < kLabelsCount; i++) {
+    __ Bind(&labels[i]);
+  }
+
+  END();
+
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0x90abcdef, r0);
+  ASSERT_EQUAL_32(0x12345678, r1);
+
+  TEARDOWN();
+}
+
+
+// Literal has to be generated sooner than veneers. However, as the literal
+// pool generation would make the veneers out of range, generate the veneers
+// first.
+TEST_T32(veneer_and_literal4) {
+  SETUP();
+
+  START();
+
+  Label end;
+  __ B(&end);
+
+  uint32_t value = 0x1234567;
+  vixl::aarch32::Literal<uint32_t>* literal =
+      new Literal<uint32_t>(value, RawLiteral::kPlacedWhenUsed, RawLiteral::kDeletedOnPoolDestruction);
+
+  __ Ldr(r11, literal);
+
+  // The range for ldr is 4095, the range for cbz is 127. Generate nops
+  // to have the ldr becomming out of range just before the cbz.
+  const int NUM_NOPS = 2044;
+  const int NUM_RANGE = 58;
+
+  const int NUM1 = NUM_NOPS - NUM_RANGE;
+  const int NUM2 = NUM_RANGE ;
+
+  {
+    ExactAssemblyScope aas(&masm,
+                           2 * NUM1,
+                           CodeBufferCheckScope::kMaximumSize);
+    for (int i = 0; i < NUM1; i++) {
+      __ nop();
+    }
+  }
+
+  __ Cbz(r1, &end);
+
+  {
+    ExactAssemblyScope aas(&masm,
+                           2 * NUM2,
+                           CodeBufferCheckScope::kMaximumSize);
+    for (int i = 0; i < NUM2; i++) {
+      __ nop();
+    }
+  }
+
+  {
+    ExactAssemblyScope aas(&masm,
+                           4,
+                           CodeBufferCheckScope::kMaximumSize);
+    __ add(r1, r1, 3);
+  }
+  __ Bind(&end);
+
+  END();
+
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0x1234567, r11);
+
+  TEARDOWN();
+}
+
+
+// Literal has to be generated sooner than veneers. However, as the literal
+// pool generation would make the veneers out of range, generate the veneers
+// first.
+TEST_T32(veneer_and_literal5) {
+  SETUP();
+
+  START();
+
+  static const int kTestCount = 100;
+  Label labels[kTestCount];
+
+  int first_test = 2000;
+  // Test on both sizes of the Adr range which is 4095.
+  for (int test = 0; test < kTestCount; test++) {
+
+    const int string_size = 1000;  // A lot more than the cbz range.
+    std::string test_string(string_size, 'x');
+    StringLiteral big_literal(test_string.c_str());
+
+    __ Adr(r11, &big_literal);
+
+    {
+      int num_nops = first_test + test;
+      ExactAssemblyScope aas(&masm,
+                             2 * num_nops,
+                             CodeBufferCheckScope::kMaximumSize);
+      for (int i = 0; i < num_nops; i++) {
+        __ nop();
+      }
+    }
+
+    __ Cbz(r1, &labels[test]);
+
+    {
+      ExactAssemblyScope aas(&masm,
+                             4,
+                             CodeBufferCheckScope::kMaximumSize);
+      __ add(r1, r1, 3);
+    }
+    __ Bind(&labels[test]);
+    // Emit the literal pool if it has not beeen emitted (it's the case for
+    // the lower values of test).
+    __ EmitLiteralPool(MacroAssembler::kBranchRequired);
+  }
 
   END();
 
