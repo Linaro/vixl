@@ -3064,5 +3064,63 @@ TEST_NOASM(out_of_space_immediately_before_PerformEnsureEmit) {
 }
 
 
+TEST_T32(two_distant_literal_references) {
+  SETUP();
+  START();
+
+  Label end;
+
+  vixl::aarch32::Literal<uint64_t>* literal =
+      new Literal<uint64_t>(UINT64_C(0x0123456789abcdef),
+                            RawLiteral::kPlacedWhenUsed,
+                            RawLiteral::kDeletedOnPoolDestruction);
+  // Refer to the literal so that it is emitted early.
+  __ Ldr(r0, literal);
+
+  // Add enough nops to exceed the range of both loads.
+  int space = 5000;
+  {
+    ExactAssemblyScope scope(&masm,
+                             space,
+                             CodeBufferCheckScope::kExactSize);
+    int nop_size = masm.IsUsingT32() ? k16BitT32InstructionSizeInBytes
+                                     : kA32InstructionSizeInBytes;
+    for (int i = 0; i < space; i += nop_size) {
+      __ nop();
+    }
+  }
+
+  __ Bind(&end);
+
+  // The literal has already been emitted, and is out of range of all of these
+  // instructions. The delegates must generate fix-up code.
+  __ Ldr(r1, literal);
+  __ Ldrb(r2, literal);
+  __ Ldrsb(r3, literal);
+  __ Ldrh(r4, literal);
+  __ Ldrsh(r5, literal);
+  __ Ldrd(r6, r7, literal);
+  __ Vldr(d0, literal);
+  __ Vldr(s3, literal);
+
+  END();
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0x89abcdef, r0);
+  ASSERT_EQUAL_32(0x89abcdef, r1);
+  ASSERT_EQUAL_32(0xef, r2);
+  ASSERT_EQUAL_32(0xffffffef, r3);
+  ASSERT_EQUAL_32(0xcdef, r4);
+  ASSERT_EQUAL_32(0xffffcdef, r5);
+  ASSERT_EQUAL_32(0x89abcdef, r6);
+  ASSERT_EQUAL_32(0x01234567, r7);
+  ASSERT_EQUAL_FP64(RawbitsToDouble(0x0123456789abcdef), d0);
+  ASSERT_EQUAL_FP64(RawbitsToFloat(0x89abcdef), s3);
+
+  TEARDOWN();
+}
+
+
 }  // namespace aarch32
 }  // namespace vixl

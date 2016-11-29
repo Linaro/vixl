@@ -3106,5 +3106,71 @@ TEST(unbound_label) {
 }
 
 
+
+TEST(macro_assembler_AddressComputationHelper) {
+  SETUP();
+
+  // Simple cases: the address fits in the mask.
+  COMPARE_A32(Ldr(r0, masm.MemOperandComputationHelper(r1, r1, 0xfff, 0xfff)),
+              "ldr r0, [r1, #4095]\n");
+  COMPARE_A32(Ldr(r0, masm.MemOperandComputationHelper(r1, r1, 1, 0xfff)),
+              "ldr r0, [r1, #1]\n");
+  COMPARE_A32(Ldr(r0, masm.MemOperandComputationHelper(r1, r1, 0, 0xfff)),
+              "ldr r0, [r1]\n");
+
+  // Similar, but the base register must be preserved. (This has no effect for
+  // encodable cases.)
+  COMPARE_A32(Ldr(r0, masm.MemOperandComputationHelper(r2, r1, 0xfff, 0xfff)),
+              "ldr r0, [r1, #4095]\n");
+
+  // Cases where the extra offset has to be aligned.
+  COMPARE_A32(Vldr(d0, masm.MemOperandComputationHelper(r1, r1, 0x3fc, 0x3fc)),
+              "vldr d0, [r1, #1020]\n");
+
+  // Out-of-range offsets.
+  COMPARE_A32(Ldr(r0, masm.MemOperandComputationHelper(r1, r1, 0x1000, 0xfff)),
+              "add r1, #4096\n"
+              "ldr r0, [r1]\n");
+  COMPARE_A32(Ldr(r0, masm.MemOperandComputationHelper(r2, r1, 0x1000, 0xfff)),
+              "add r2, r1, #4096\n"
+              "ldr r0, [r2]\n");
+  COMPARE_A32(Ldr(r0, masm.MemOperandComputationHelper(r2,
+                                                       r1,
+                                                       0xffffffff,
+                                                       0xfff)),
+              "sub r2, r1, #4096\n"
+              "ldr r0, [r2, #4095]\n");
+
+  // TODO: Improve the code generation for these cases.
+
+  COMPARE_A32(Ldr(r0, masm.MemOperandComputationHelper(r2,
+                                                       r1,
+                                                       0x12345678,
+                                                       0xfff)),
+              "mov r2, #20480\n"
+              "movt r2, #4660\n"
+              "add r2, r1, r2\n"
+              "ldr r0, [r2, #1656]\n");
+  COMPARE_A32(Ldr(r0, masm.MemOperandComputationHelper(r2,
+                                                       r1,
+                                                       0x7fffffff,
+                                                       0xfff)),
+              "mov r2, #61440\n"
+              "movt r2, #32767\n"
+              "add r2, r1, r2\n"
+              "ldr r0, [r2, #4095]\n");
+  COMPARE_A32(Ldr(r0, masm.MemOperandComputationHelper(r2,
+                                                       r1,
+                                                       0xffcba000,
+                                                       0xfff)),
+              "mov r2, #24576\n"
+              "movt r2, #52\n"
+              "sub r2, r1, r2\n"
+              "ldr r0, [r2]\n");
+
+  CLEANUP();
+}
+
+
 }  // namespace aarch32
 }  // namespace vixl

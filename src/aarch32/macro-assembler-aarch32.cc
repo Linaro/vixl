@@ -597,6 +597,70 @@ void MacroAssembler::PadToMinimumBranchRange(Label* label) {
 }
 
 
+MemOperand MacroAssembler::MemOperandComputationHelper(
+    Condition cond,
+    Register scratch,
+    Register base,
+    uint32_t offset,
+    uint32_t extra_offset_mask) {
+  VIXL_ASSERT(!AliasesAvailableScratchRegister(scratch));
+  VIXL_ASSERT(!AliasesAvailableScratchRegister(base));
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(OutsideITBlock());
+
+  // Check for the simple pass-through case.
+  if ((offset & extra_offset_mask) == offset) return MemOperand(base, offset);
+
+  MacroEmissionCheckScope guard(this);
+  ITScope it_scope(this, &cond);
+
+  uint32_t load_store_offset = offset & extra_offset_mask;
+  uint32_t add_sub_offset = offset & ~extra_offset_mask;
+
+  add(cond, scratch, base, add_sub_offset);
+
+  return MemOperand(scratch, load_store_offset);
+}
+
+
+uint32_t MacroAssembler::GetOffsetMask(InstructionType type,
+                                       AddrMode addrmode) {
+  switch (type) {
+    case kLdr:
+    case kLdrb:
+    case kStr:
+    case kStrb:
+      if (IsUsingA32() || (addrmode == Offset)) {
+        return 0xfff;
+      } else {
+        return 0xff;
+      }
+    case kLdrsb:
+    case kLdrh:
+    case kLdrsh:
+    case kStrh:
+      if (IsUsingT32() && (addrmode == Offset)) {
+        return 0xfff;
+      } else {
+        return 0xff;
+      }
+    case kVldr:
+    case kVstr:
+      return 0x3fc;
+    case kLdrd:
+    case kStrd:
+      if (IsUsingA32()) {
+        return 0xff;
+      } else {
+        return 0x3fc;
+      }
+    default:
+      VIXL_UNREACHABLE();
+      return 0;
+  }
+}
+
+
 HARDFLOAT void PrintfTrampolineRRRR(
     const char* format, uint32_t a, uint32_t b, uint32_t c, uint32_t d) {
   printf(format, a, b, c, d);
@@ -1195,6 +1259,30 @@ void MacroAssembler::Delegate(InstructionType type,
 
 
 void MacroAssembler::Delegate(InstructionType type,
+                              InstructionCondSizeRL instruction,
+                              Condition cond,
+                              EncodingSize size,
+                              Register rd,
+                              Label* label) {
+  VIXL_ASSERT((type == kLdr) || (type == kAdr));
+
+  CONTEXT_SCOPE;
+  VIXL_ASSERT(size.IsBest());
+
+  if ((type == kLdr) && label->IsBound()) {
+    CodeBufferCheckScope scope(this, 4 * kMaxInstructionSizeInBytes);
+    UseScratchRegisterScope temps(this);
+    temps.Include(rd);
+    uint32_t mask = GetOffsetMask(type, Offset);
+    ldr(rd, MemOperandComputationHelper(cond, temps.Acquire(), label, mask));
+    return;
+  }
+
+  Assembler::Delegate(type, instruction, cond, size, rd, label);
+}
+
+
+void MacroAssembler::Delegate(InstructionType type,
                               InstructionCondSizeRROp instruction,
                               Condition cond,
                               EncodingSize size,
@@ -1756,6 +1844,69 @@ void MacroAssembler::Delegate(InstructionType type,
 
 
 void MacroAssembler::Delegate(InstructionType type,
+                              InstructionCondRL instruction,
+                              Condition cond,
+                              Register rt,
+                              Label* label) {
+  VIXL_ASSERT((type == kLdrb) || (type == kLdrh) || (type == kLdrsb) ||
+              (type == kLdrsh));
+
+  CONTEXT_SCOPE;
+
+  if (label->IsBound()) {
+    CodeBufferCheckScope scope(this, 4 * kMaxInstructionSizeInBytes);
+    UseScratchRegisterScope temps(this);
+    temps.Include(rt);
+    Register scratch = temps.Acquire();
+    uint32_t mask = GetOffsetMask(type, Offset);
+    switch (type) {
+      case kLdrb:
+        ldrb(rt, MemOperandComputationHelper(cond, scratch, label, mask));
+        return;
+      case kLdrh:
+        ldrh(rt, MemOperandComputationHelper(cond, scratch, label, mask));
+        return;
+      case kLdrsb:
+        ldrsb(rt, MemOperandComputationHelper(cond, scratch, label, mask));
+        return;
+      case kLdrsh:
+        ldrsh(rt, MemOperandComputationHelper(cond, scratch, label, mask));
+        return;
+      default:
+        VIXL_UNREACHABLE();
+    }
+    return;
+  }
+
+  Assembler::Delegate(type, instruction, cond, rt, label);
+}
+
+
+void MacroAssembler::Delegate(InstructionType type,
+                              InstructionCondRRL instruction,
+                              Condition cond,
+                              Register rt,
+                              Register rt2,
+                              Label* label) {
+  VIXL_ASSERT(type == kLdrd);
+
+  CONTEXT_SCOPE;
+
+  if (label->IsBound()) {
+    CodeBufferCheckScope scope(this, 4 * kMaxInstructionSizeInBytes);
+    UseScratchRegisterScope temps(this);
+    temps.Include(rt, rt2);
+    Register scratch = temps.Acquire();
+    uint32_t mask = GetOffsetMask(type, Offset);
+    ldrd(rt, rt2, MemOperandComputationHelper(cond, scratch, label, mask));
+    return;
+  }
+
+  Assembler::Delegate(type, instruction, cond, rt, rt2, label);
+}
+
+
+void MacroAssembler::Delegate(InstructionType type,
                               InstructionCondSizeRMop instruction,
                               Condition cond,
                               EncodingSize size,
@@ -1771,32 +1922,7 @@ void MacroAssembler::Delegate(InstructionType type,
     const Register& rn = operand.GetBaseRegister();
     AddrMode addrmode = operand.GetAddrMode();
     int32_t offset = operand.GetOffsetImmediate();
-    uint32_t mask = 0;
-    switch (type) {
-      case kLdr:
-      case kLdrb:
-      case kStr:
-      case kStrb:
-        if (IsUsingA32() || (addrmode == Offset)) {
-          mask = 0xfff;
-        } else {
-          mask = 0xff;
-        }
-        break;
-      case kLdrsb:
-      case kLdrh:
-      case kLdrsh:
-      case kStrh:
-        if (IsUsingT32() && (addrmode == Offset)) {
-          mask = 0xfff;
-        } else {
-          mask = 0xff;
-        }
-        break;
-      default:
-        VIXL_UNREACHABLE();
-        return;
-    }
+    uint32_t mask = GetOffsetMask(type, addrmode);
     bool negative;
     // Try to maximize the offset use by the MemOperand (load_store_offset).
     // Add or subtract the part which can't be used by the MemOperand
@@ -2344,6 +2470,53 @@ void MacroAssembler::Delegate(InstructionType type,
   }
   Assembler::Delegate(type, instruction, cond, spec_reg, operand);
 }
+
+
+void MacroAssembler::Delegate(InstructionType type,
+                              InstructionCondDtDL instruction,
+                              Condition cond,
+                              DataType dt,
+                              DRegister rd,
+                              Label* label) {
+  VIXL_ASSERT(type == kVldr);
+
+  CONTEXT_SCOPE;
+
+  if (label->IsBound()) {
+    CodeBufferCheckScope scope(this, 4 * kMaxInstructionSizeInBytes);
+    UseScratchRegisterScope temps(this);
+    Register scratch = temps.Acquire();
+    uint32_t mask = GetOffsetMask(type, Offset);
+    vldr(dt, rd, MemOperandComputationHelper(cond, scratch, label, mask));
+    return;
+  }
+
+  Assembler::Delegate(type, instruction, cond, dt, rd, label);
+}
+
+
+void MacroAssembler::Delegate(InstructionType type,
+                              InstructionCondDtSL instruction,
+                              Condition cond,
+                              DataType dt,
+                              SRegister rd,
+                              Label* label) {
+  VIXL_ASSERT(type == kVldr);
+
+  CONTEXT_SCOPE;
+
+  if (label->IsBound()) {
+    CodeBufferCheckScope scope(this, 4 * kMaxInstructionSizeInBytes);
+    UseScratchRegisterScope temps(this);
+    Register scratch = temps.Acquire();
+    uint32_t mask = GetOffsetMask(type, Offset);
+    vldr(dt, rd, MemOperandComputationHelper(cond, scratch, label, mask));
+    return;
+  }
+
+  Assembler::Delegate(type, instruction, cond, dt, rd, label);
+}
+
 
 #undef CONTEXT_SCOPE
 #undef TOSTRING

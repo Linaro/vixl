@@ -377,12 +377,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void GenerateInstruction(T instr_callback, RawLiteral* const literal) {
     int32_t cursor = GetCursorOffset();
     uint32_t where = cursor + GetArchitectureStatePCOffset();
+    bool already_bound = literal->IsBound();
     // Emit the instruction, via the assembler
     {
       MacroEmissionCheckScope guard(this);
       instr_callback.emit(this, literal);
     }
-    if (!literal->IsManuallyPlaced()) {
+    if (!literal->IsManuallyPlaced() && !already_bound) {
       if (IsInsertTooFar(literal, where)) {
         // The instruction's data is too far: revert the emission
         GetBuffer()->Rewind(cursor);
@@ -456,6 +457,54 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   RegisterList* GetScratchRegisterList() { return &available_; }
   VRegisterList* GetScratchVRegisterList() { return &available_vfp_; }
+
+  // Given an address calculation (Register + immediate), generate code to
+  // partially compute the address. The returned MemOperand will perform any
+  // remaining computation in a subsequent load or store instruction.
+  //
+  // TODO: Improve the handling of negative offsets. They are not implemented
+  // precisely for now because they only have a marginal benefit for the
+  // existing uses (in delegates).
+  MemOperand MemOperandComputationHelper(Condition cond,
+                                         Register scratch,
+                                         Register base,
+                                         uint32_t offset,
+                                         uint32_t extra_offset_mask = 0);
+
+  MemOperand MemOperandComputationHelper(Register scratch,
+                                         Register base,
+                                         uint32_t offset,
+                                         uint32_t extra_offset_mask = 0) {
+    return MemOperandComputationHelper(al,
+                                       scratch,
+                                       base,
+                                       offset,
+                                       extra_offset_mask);
+  }
+  MemOperand MemOperandComputationHelper(Condition cond,
+                                         Register scratch,
+                                         Label* label,
+                                         uint32_t extra_offset_mask = 0) {
+    // Check for buffer space _before_ calculating the offset, in case we
+    // generate a pool that affects the offset calculation.
+    CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+    Label::Offset offset =
+        label->GetLocation() -
+        AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4);
+    return MemOperandComputationHelper(cond,
+                                       scratch,
+                                       pc,
+                                       offset,
+                                       extra_offset_mask);
+  }
+  MemOperand MemOperandComputationHelper(Register scratch,
+                                         Label* label,
+                                         uint32_t extra_offset_mask = 0) {
+    return MemOperandComputationHelper(al, scratch, label, extra_offset_mask);
+  }
+
+  // Determine the appropriate mask to pass into MemOperandComputationHelper.
+  uint32_t GetOffsetMask(InstructionType type, AddrMode addrmode);
 
   // State and type helpers.
   bool IsModifiedImmediate(uint32_t imm) {
@@ -779,6 +828,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                         Register rn,
                         const Operand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
+                        InstructionCondSizeRL instruction,
+                        Condition cond,
+                        EncodingSize size,
+                        Register rd,
+                        Label* label) VIXL_OVERRIDE;
+  virtual void Delegate(InstructionType type,
                         InstructionCondSizeRROp instruction,
                         Condition cond,
                         EncodingSize size,
@@ -814,6 +869,17 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                         Register rd,
                         const MemOperand& operand) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
+                        InstructionCondRL instruction,
+                        Condition cond,
+                        Register rt,
+                        Label* label) VIXL_OVERRIDE;
+  virtual void Delegate(InstructionType type,
+                        InstructionCondRRL instruction,
+                        Condition cond,
+                        Register rt,
+                        Register rt2,
+                        Label* label) VIXL_OVERRIDE;
+  virtual void Delegate(InstructionType type,
                         InstructionCondRRMop instruction,
                         Condition cond,
                         Register rt,
@@ -836,6 +902,18 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                         Condition cond,
                         MaskedSpecialRegister spec_reg,
                         const Operand& operand) VIXL_OVERRIDE;
+  virtual void Delegate(InstructionType type,
+                        InstructionCondDtDL instruction,
+                        Condition cond,
+                        DataType dt,
+                        DRegister rd,
+                        Label* label) VIXL_OVERRIDE;
+  virtual void Delegate(InstructionType type,
+                        InstructionCondDtSL instruction,
+                        Condition cond,
+                        DataType dt,
+                        SRegister rd,
+                        Label* label) VIXL_OVERRIDE;
 
   // Start of generated code.
 
