@@ -24,29 +24,20 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef VIXL_MACRO_ASSEMBLER_INTERFACE_H
-#define VIXL_MACRO_ASSEMBLER_INTERFACE_H
 
-#include "assembler-base-vixl.h"
+#include "label-aarch32.h"
+#include "macro-assembler-aarch32.h"
 
 namespace vixl {
+namespace aarch32 {
 
-class MacroAssemblerInterface {
- public:
-  virtual internal::AssemblerBase* AsAssemblerBase() = 0;
+void VeneerPoolManager::Release() {
+  VIXL_ASSERT(IsBlocked());
+  if (--monitor_ == 0) {
+    // Ensure the pool has not been blocked for too long.
+    VIXL_ASSERT(masm_->GetCursorOffset() <= checkpoint_);
+  }
+}
 
-  virtual ~MacroAssemblerInterface() {}
-
-#ifdef VIXL_DEBUG
-  virtual bool AllowMacroInstructions() const = 0;
-  virtual void SetAllowMacroInstructions(bool allow) = 0;
-#endif
-
-  virtual void BlockPools() = 0;
-  virtual void ReleasePools() = 0;
-  virtual void EnsureEmitPoolsFor(size_t size) = 0;
-};
-
+}  // namespace aarch32
 }  // namespace vixl
-
-#endif  // VIXL_MACRO_ASSEMBLER_INTERFACE_H

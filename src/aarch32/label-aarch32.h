@@ -38,6 +38,8 @@ extern "C" {
 
 #include "utils-vixl.h"
 
+#include "constants-aarch32.h"
+
 namespace vixl {
 namespace aarch32 {
 
@@ -254,7 +256,7 @@ class Label {
 class VeneerPoolManager {
  public:
   explicit VeneerPoolManager(MacroAssembler* masm)
-      : masm_(masm), checkpoint_(Label::kMaxOffset) {}
+      : masm_(masm), checkpoint_(Label::kMaxOffset), monitor_(0) {}
   bool IsEmpty() const { return checkpoint_ == Label::kMaxOffset; }
   Label::Offset GetCheckpoint() const {
     // Make room for a branch over the pools.
@@ -267,6 +269,10 @@ class VeneerPoolManager {
   void RemoveLabel(Label* label);
   void Emit(Label::Offset target);
 
+  void Block() { monitor_++; }
+  void Release();
+  bool IsBlocked() const { return monitor_ != 0; }
+
  private:
   MacroAssembler* masm_;
   // List of all unbound labels which are used by a branch instruction.
@@ -275,6 +281,8 @@ class VeneerPoolManager {
   // A default value of Label::kMaxOffset means that the checkpoint is
   // invalid.
   Label::Offset checkpoint_;
+  // Indicates whether the emission of this pool is blocked.
+  int monitor_;
 };
 
 }  // namespace aarch32

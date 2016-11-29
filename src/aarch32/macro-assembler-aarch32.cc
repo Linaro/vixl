@@ -219,6 +219,7 @@ void VeneerPoolManager::RemoveLabel(Label* label) {
 
 
 void VeneerPoolManager::Emit(Label::Offset target) {
+  VIXL_ASSERT(!IsBlocked());
   checkpoint_ = Label::kMaxOffset;
   // Sort labels (regarding their checkpoint) to avoid that a veneer
   // becomes out of range.

@@ -40,8 +40,6 @@ class Assembler : public internal::AssemblerBase {
   Condition first_condition_;
   uint16_t it_mask_;
   bool has_32_dregs_;
-  // True if we can use the assembler instructions.
-  bool allow_assembler_;
   bool allow_unpredictable_;
   bool allow_strongly_discouraged_;
 
@@ -102,7 +100,6 @@ class Assembler : public internal::AssemblerBase {
         first_condition_(al),
         it_mask_(0),
         has_32_dregs_(true),
-        allow_assembler_(true),
         allow_unpredictable_(false),
         allow_strongly_discouraged_(false) {}
   explicit Assembler(size_t capacity, InstructionSet isa = A32)
@@ -111,7 +108,6 @@ class Assembler : public internal::AssemblerBase {
         first_condition_(al),
         it_mask_(0),
         has_32_dregs_(true),
-        allow_assembler_(true),
         allow_unpredictable_(false),
         allow_strongly_discouraged_(false) {}
   Assembler(byte* buffer, size_t capacity, InstructionSet isa = A32)
@@ -120,7 +116,6 @@ class Assembler : public internal::AssemblerBase {
         first_condition_(al),
         it_mask_(0),
         has_32_dregs_(true),
-        allow_assembler_(true),
         allow_unpredictable_(false),
         allow_strongly_discouraged_(false) {}
   virtual ~Assembler() {}
@@ -138,10 +133,6 @@ class Assembler : public internal::AssemblerBase {
     first_condition_ = first_condition;
     it_mask_ = it_mask;
   }
-  void SetAllowAssembler(bool allow_assembler) {
-    allow_assembler_ = allow_assembler;
-  }
-  bool AllowAssembler() const { return allow_assembler_; }
   bool Is16BitEncoding(uint16_t instr) const {
     VIXL_ASSERT(IsUsingT32());
     return instr < 0xe800;

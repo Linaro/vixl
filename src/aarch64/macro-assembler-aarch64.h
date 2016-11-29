@@ -576,7 +576,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                  PositionIndependentCodeOption pic = PositionIndependentCode);
   ~MacroAssembler();
 
-  AssemblerBase* GetAssemblerBase() VIXL_OVERRIDE { return this; }
+  AssemblerBase* AsAssemblerBase() VIXL_OVERRIDE { return this; }
 
   // Start generating code from the beginning of the buffer, discarding any code
   // and data that has already been emitted into the buffer.

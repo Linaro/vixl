@@ -1358,15 +1358,29 @@ TEST_A32(ldr_literal_range_same_time) {
   __ Ldr(r1, 0x12121212);
   ASSERT_LITERAL_POOL_SIZE(4);
 
-  for (unsigned int i = 0; i < ldr_padding / kA32InstructionSizeInBytes; ++i) {
-    __ Mov(r0, 0);
+  {
+    int space = AlignDown(ldr_padding, kA32InstructionSizeInBytes);
+    AssemblerAccurateScope scope(&masm,
+                                 space,
+                                 CodeBufferCheckScope::kExactSize);
+    int32_t end = masm.GetCursorOffset() + space;
+    while (masm.GetCursorOffset() < end) {
+      __ nop();
+    }
   }
 
   __ Ldrd(r2, r3, 0x1234567890abcdef);
   ASSERT_LITERAL_POOL_SIZE(12);
 
-  for (unsigned int i = 0; i < ldrd_padding / kA32InstructionSizeInBytes; ++i) {
-    __ Mov(r0, 0);
+  {
+    int space = AlignDown(ldrd_padding, kA32InstructionSizeInBytes);
+    AssemblerAccurateScope scope(&masm,
+                                 space,
+                                 CodeBufferCheckScope::kExactSize);
+    for (int32_t end = masm.GetCursorOffset() + space;
+         masm.GetCursorOffset() < end;) {
+      __ nop();
+    }
   }
   ASSERT_LITERAL_POOL_SIZE(12);
 
@@ -1458,15 +1472,13 @@ void GenerateLdrLiteralTriggerPoolEmission(InstructionSet isa,
     __ Ldr(r6, 0x12345678);
     ASSERT_LITERAL_POOL_SIZE(4);
 
-    // In A32 mode we can fit one more instruction before being forced to emit
-    // the pool. However the newly added literal will be to far for the ldr
-    // instruction forcing the pool to be emitted earlier. So we need to make
-    // sure that we need to stop one instruction before the margin on A32 for
-    // this test to work as expected.
-    int32_t margin_offset = masm.IsUsingA32() ? kA32InstructionSizeInBytes : 0;
-
+    // TODO: The MacroAssembler currently checks for more space than required
+    // when emitting macro instructions, triggering emission of the pool before
+    // absolutely required. For now we keep a buffer. Fix this test when the
+    // MacroAssembler becomes precise again.
+    int masm_check_margin = 10 * kMaxInstructionSizeInBytes;
     size_t expected_pool_size = 4;
-    while ((masm.GetMarginBeforeLiteralEmission() - margin_offset) >=
+    while ((masm.GetMarginBeforeLiteralEmission() - masm_check_margin) >=
 	   static_cast<int32_t>(kMaxInstructionSizeInBytes)) {
       __ Ldr(r7, 0x90abcdef);
       // Each ldr instruction will force a new literal value to be added
@@ -1475,8 +1487,21 @@ void GenerateLdrLiteralTriggerPoolEmission(InstructionSet isa,
       ASSERT_LITERAL_POOL_SIZE(expected_pool_size);
     }
 
+    int space = masm.GetMarginBeforeLiteralEmission();
+    int end = masm.GetCursorOffset() + space;
+    {
+      // Generate nops precisely to fill the buffer.
+      AssemblerAccurateScope accurate_scope(&masm, space);
+      // This should not trigger emission of the pool.
+      VIXL_CHECK(!masm.LiteralPoolIsEmpty());
+      while (masm.GetCursorOffset() < end) {
+        __ nop();
+      }
+    }
+
     // This ldr will force the literal pool to be emitted before emitting
     // the load and will create a new pool for the new literal used by this ldr.
+    VIXL_CHECK(!masm.LiteralPoolIsEmpty());
     Literal<uint32_t> literal(test.literal_value);
     (masm.*test.instruction)(test.result_reg, &literal);
     ASSERT_LITERAL_POOL_SIZE(4);
@@ -2569,6 +2594,7 @@ TEST_NOASM(set_isa_noop) {
   {
     Assembler assm(A32);
     CheckInstructionSetA32(assm);
+    CodeBufferCheckScope scope(&assm, kMaxInstructionSizeInBytes);
     assm.bx(lr);
     VIXL_ASSERT(assm.GetCursorOffset() > 0);
     CheckInstructionSetA32(assm);
@@ -2581,6 +2607,7 @@ TEST_NOASM(set_isa_noop) {
   {
     Assembler assm(T32);
     CheckInstructionSetT32(assm);
+    CodeBufferCheckScope scope(&assm, kMaxInstructionSizeInBytes);
     assm.bx(lr);
     VIXL_ASSERT(assm.GetCursorOffset() > 0);
     CheckInstructionSetT32(assm);
@@ -2938,7 +2965,7 @@ TEST_NOASM(code_buffer_precise_growth) {
 
 
 TEST_NOASM(out_of_space_immediately_before_PerformEnsureEmit) {
-  static const int kBaseBufferSize = 16;
+  static const int kBaseBufferSize = 64;
   MacroAssembler masm(kBaseBufferSize, T32);
 
   VIXL_CHECK(masm.GetBuffer()->GetCapacity() == kBaseBufferSize);

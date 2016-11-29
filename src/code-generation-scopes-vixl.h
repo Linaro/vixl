@@ -207,7 +207,7 @@ class EmissionCheckScope : public CodeBufferCheckScope {
       masm->BlockPools();
     }
     // The buffer should be checked *after* we emit the pools.
-    CodeBufferCheckScope::Open(masm->GetAssemblerBase(),
+    CodeBufferCheckScope::Open(masm->AsAssemblerBase(),
                                size,
                                kReserveBufferSpace,
                                size_policy);
