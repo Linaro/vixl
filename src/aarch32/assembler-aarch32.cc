@@ -2022,7 +2022,7 @@ void Assembler::add(Condition cond,
       }
       // ADD{<c>}{<q>} <Rd>, PC, #<imm12> ; T3
       if (!size.IsNarrow() && rn.Is(pc) && (imm <= 4095) &&
-          ((!rd.IsPC()) || AllowUnpredictable())) {
+          (!rd.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xf20f0000U | (rd.GetCode() << 8) | (imm & 0xff) |
                    ((imm & 0x700) << 4) | ((imm & 0x800) << 15));
         AdvanceIT();
@@ -2040,7 +2040,7 @@ void Assembler::add(Condition cond,
       }
       // ADD{<c>}{<q>} {<Rd>}, <Rn>, #<imm12> ; T4
       if (!size.IsNarrow() && (imm <= 4095) && ((rn.GetCode() & 0xd) != 0xd) &&
-          ((!rd.IsPC()) || AllowUnpredictable())) {
+          (!rd.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xf2000000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                    (imm & 0xff) | ((imm & 0x700) << 4) | ((imm & 0x800) << 15));
         AdvanceIT();
@@ -2048,7 +2048,7 @@ void Assembler::add(Condition cond,
       }
       // ADD{<c>}{<q>} {<Rd>}, SP, #<const> ; T3
       if (!size.IsNarrow() && rn.Is(sp) && immediate_t32.IsValid() &&
-          ((!rd.IsPC()) || AllowUnpredictable())) {
+          (!rd.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xf10d0000U | (rd.GetCode() << 8) |
                    (immediate_t32.GetEncodingValue() & 0xff) |
                    ((immediate_t32.GetEncodingValue() & 0x700) << 4) |
@@ -2058,7 +2058,7 @@ void Assembler::add(Condition cond,
       }
       // ADD{<c>}{<q>} {<Rd>}, SP, #<imm12> ; T4
       if (!size.IsNarrow() && rn.Is(sp) && (imm <= 4095) &&
-          ((!rd.IsPC()) || AllowUnpredictable())) {
+          (!rd.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xf20d0000U | (rd.GetCode() << 8) | (imm & 0xff) |
                    ((imm & 0x700) << 4) | ((imm & 0x800) << 15));
         AdvanceIT();
@@ -2112,7 +2112,7 @@ void Assembler::add(Condition cond,
         }
         // ADD{<c>}{<q>} {<Rdm>}, SP, <Rdm> ; T1
         if (!size.IsWide() && rd.Is(rm) && rn.Is(sp) &&
-            (((!rd.IsPC() || OutsideITBlockAndAlOrLast(cond))) ||
+            ((!rd.IsPC() || OutsideITBlockAndAlOrLast(cond)) ||
              AllowUnpredictable())) {
           EmitT32_16(0x4468 | (rd.GetCode() & 0x7) |
                      ((rd.GetCode() & 0x8) << 4));
@@ -2247,7 +2247,7 @@ void Assembler::adds(Condition cond,
       }
       // ADDS{<c>}{<q>} {<Rd>}, <Rn>, #<const> ; T3
       if (!size.IsNarrow() && immediate_t32.IsValid() && !rn.Is(sp) &&
-          !rd.Is(pc) && ((!rn.IsPC()) || AllowUnpredictable())) {
+          !rd.Is(pc) && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xf1100000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                    (immediate_t32.GetEncodingValue() & 0xff) |
                    ((immediate_t32.GetEncodingValue() & 0x700) << 4) |
@@ -2311,7 +2311,7 @@ void Assembler::adds(Condition cond,
       }
       // ADDS{<c>}{<q>} {<Rd>}, SP, <Rm> {, <shift> #<amount> } ; T3
       if (!size.IsNarrow() && rn.Is(sp) && shift.IsValidAmount(amount) &&
-          !rd.Is(pc) && ((!rm.IsPC()) || AllowUnpredictable())) {
+          !rd.Is(pc) && (!rm.IsPC() || AllowUnpredictable())) {
         uint32_t amount_ = amount % 32;
         EmitT32_32(0xeb1d0000U | (rd.GetCode() << 8) | rm.GetCode() |
                    (operand.GetTypeEncodingValue() << 4) |
@@ -2384,8 +2384,7 @@ void Assembler::addw(Condition cond,
     uint32_t imm = operand.GetImmediate();
     if (IsUsingT32()) {
       // ADDW{<c>}{<q>} <Rd>, PC, #<imm12> ; T3
-      if (rn.Is(pc) && (imm <= 4095) &&
-          ((!rd.IsPC()) || AllowUnpredictable())) {
+      if (rn.Is(pc) && (imm <= 4095) && (!rd.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xf20f0000U | (rd.GetCode() << 8) | (imm & 0xff) |
                    ((imm & 0x700) << 4) | ((imm & 0x800) << 15));
         AdvanceIT();
@@ -2393,15 +2392,14 @@ void Assembler::addw(Condition cond,
       }
       // ADDW{<c>}{<q>} {<Rd>}, <Rn>, #<imm12> ; T4
       if ((imm <= 4095) && ((rn.GetCode() & 0xd) != 0xd) &&
-          ((!rd.IsPC()) || AllowUnpredictable())) {
+          (!rd.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xf2000000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                    (imm & 0xff) | ((imm & 0x700) << 4) | ((imm & 0x800) << 15));
         AdvanceIT();
         return;
       }
       // ADDW{<c>}{<q>} {<Rd>}, SP, #<imm12> ; T4
-      if (rn.Is(sp) && (imm <= 4095) &&
-          ((!rd.IsPC()) || AllowUnpredictable())) {
+      if (rn.Is(sp) && (imm <= 4095) && (!rd.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xf20d0000U | (rd.GetCode() << 8) | (imm & 0xff) |
                    ((imm & 0x700) << 4) | ((imm & 0x800) << 15));
         AdvanceIT();
@@ -2449,7 +2447,7 @@ void Assembler::adr(Condition cond,
     }
     // ADR{<c>}{<q>} <Rd>, <label> ; T2
     if (!size.IsNarrow() && label->IsBound() && (neg_offset > 0) &&
-        (neg_offset <= 4095) && ((!rd.IsPC()) || AllowUnpredictable())) {
+        (neg_offset <= 4095) && (!rd.IsPC() || AllowUnpredictable())) {
       EmitT32_32(0xf2af0000U | (rd.GetCode() << 8) | (neg_offset & 0xff) |
                  ((neg_offset & 0x700) << 4) | ((neg_offset & 0x800) << 15));
       AdvanceIT();
@@ -2458,7 +2456,7 @@ void Assembler::adr(Condition cond,
     // ADR{<c>}{<q>} <Rd>, <label> ; T3
     if (!size.IsNarrow() &&
         (!label->IsBound() || ((offset >= 0) && (offset <= 4095))) &&
-        ((!rd.IsPC()) || AllowUnpredictable())) {
+        (!rd.IsPC() || AllowUnpredictable())) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(0, 4095) {}
@@ -4218,7 +4216,7 @@ void Assembler::lda(Condition cond, Register rt, const MemOperand& operand) {
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // LDA{<c>}{<q>} <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8d00fafU | (rt.GetCode() << 12) | (rn.GetCode() << 16));
         AdvanceIT();
         return;
@@ -4226,7 +4224,7 @@ void Assembler::lda(Condition cond, Register rt, const MemOperand& operand) {
     } else {
       // LDA{<c>}{<q>} <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01900c9fU | (cond.GetCondition() << 28) |
                 (rt.GetCode() << 12) | (rn.GetCode() << 16));
         return;
@@ -4243,7 +4241,7 @@ void Assembler::ldab(Condition cond, Register rt, const MemOperand& operand) {
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // LDAB{<c>}{<q>} <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8d00f8fU | (rt.GetCode() << 12) | (rn.GetCode() << 16));
         AdvanceIT();
         return;
@@ -4251,7 +4249,7 @@ void Assembler::ldab(Condition cond, Register rt, const MemOperand& operand) {
     } else {
       // LDAB{<c>}{<q>} <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01d00c9fU | (cond.GetCondition() << 28) |
                 (rt.GetCode() << 12) | (rn.GetCode() << 16));
         return;
@@ -4268,7 +4266,7 @@ void Assembler::ldaex(Condition cond, Register rt, const MemOperand& operand) {
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // LDAEX{<c>}{<q>} <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8d00fefU | (rt.GetCode() << 12) | (rn.GetCode() << 16));
         AdvanceIT();
         return;
@@ -4276,7 +4274,7 @@ void Assembler::ldaex(Condition cond, Register rt, const MemOperand& operand) {
     } else {
       // LDAEX{<c>}{<q>} <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01900e9fU | (cond.GetCondition() << 28) |
                 (rt.GetCode() << 12) | (rn.GetCode() << 16));
         return;
@@ -4293,7 +4291,7 @@ void Assembler::ldaexb(Condition cond, Register rt, const MemOperand& operand) {
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // LDAEXB{<c>}{<q>} <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8d00fcfU | (rt.GetCode() << 12) | (rn.GetCode() << 16));
         AdvanceIT();
         return;
@@ -4301,7 +4299,7 @@ void Assembler::ldaexb(Condition cond, Register rt, const MemOperand& operand) {
     } else {
       // LDAEXB{<c>}{<q>} <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01d00e9fU | (cond.GetCondition() << 28) |
                 (rt.GetCode() << 12) | (rn.GetCode() << 16));
         return;
@@ -4321,7 +4319,7 @@ void Assembler::ldaexd(Condition cond,
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // LDAEXD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8d000ffU | (rt.GetCode() << 12) | (rt2.GetCode() << 8) |
                    (rn.GetCode() << 16));
         AdvanceIT();
@@ -4349,7 +4347,7 @@ void Assembler::ldaexh(Condition cond, Register rt, const MemOperand& operand) {
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // LDAEXH{<c>}{<q>} <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8d00fdfU | (rt.GetCode() << 12) | (rn.GetCode() << 16));
         AdvanceIT();
         return;
@@ -4357,7 +4355,7 @@ void Assembler::ldaexh(Condition cond, Register rt, const MemOperand& operand) {
     } else {
       // LDAEXH{<c>}{<q>} <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01f00e9fU | (cond.GetCondition() << 28) |
                 (rt.GetCode() << 12) | (rn.GetCode() << 16));
         return;
@@ -4374,7 +4372,7 @@ void Assembler::ldah(Condition cond, Register rt, const MemOperand& operand) {
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // LDAH{<c>}{<q>} <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8d00f9fU | (rt.GetCode() << 12) | (rn.GetCode() << 16));
         AdvanceIT();
         return;
@@ -4382,7 +4380,7 @@ void Assembler::ldah(Condition cond, Register rt, const MemOperand& operand) {
     } else {
       // LDAH{<c>}{<q>} <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01f00c9fU | (cond.GetCondition() << 28) |
                 (rt.GetCode() << 12) | (rn.GetCode() << 16));
         return;
@@ -5345,7 +5343,7 @@ void Assembler::ldrexb(Condition cond, Register rt, const MemOperand& operand) {
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // LDREXB{<c>}{<q>} <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8d00f4fU | (rt.GetCode() << 12) | (rn.GetCode() << 16));
         AdvanceIT();
         return;
@@ -5353,7 +5351,7 @@ void Assembler::ldrexb(Condition cond, Register rt, const MemOperand& operand) {
     } else {
       // LDREXB{<c>}{<q>} <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01d00f9fU | (cond.GetCondition() << 28) |
                 (rt.GetCode() << 12) | (rn.GetCode() << 16));
         return;
@@ -5373,7 +5371,7 @@ void Assembler::ldrexd(Condition cond,
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // LDREXD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8d0007fU | (rt.GetCode() << 12) | (rt2.GetCode() << 8) |
                    (rn.GetCode() << 16));
         AdvanceIT();
@@ -5401,7 +5399,7 @@ void Assembler::ldrexh(Condition cond, Register rt, const MemOperand& operand) {
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // LDREXH{<c>}{<q>} <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8d00f5fU | (rt.GetCode() << 12) | (rn.GetCode() << 16));
         AdvanceIT();
         return;
@@ -5409,7 +5407,7 @@ void Assembler::ldrexh(Condition cond, Register rt, const MemOperand& operand) {
     } else {
       // LDREXH{<c>}{<q>} <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01f00f9fU | (cond.GetCondition() << 28) |
                 (rt.GetCode() << 12) | (rn.GetCode() << 16));
         return;
@@ -6405,7 +6403,9 @@ void Assembler::mov(Condition cond,
     if (operand.IsPlainRegister()) {
       if (IsUsingT32()) {
         // MOV{<c>}{<q>} <Rd>, <Rm> ; T1
-        if (!size.IsWide()) {
+        if (!size.IsWide() &&
+            ((!rd.IsPC() || OutsideITBlockAndAlOrLast(cond)) ||
+             AllowUnpredictable())) {
           EmitT32_16(0x4600 | (rd.GetCode() & 0x7) |
                      ((rd.GetCode() & 0x8) << 4) | (rm.GetCode() << 3));
           AdvanceIT();
@@ -6419,7 +6419,8 @@ void Assembler::mov(Condition cond,
       // MOV<c>{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T2
       if (InITBlock() && !size.IsWide() && rd.IsLow() &&
           shift.IsValidAmount(amount) && rm.IsLow() &&
-          (shift.Is(LSL) || shift.Is(LSR) || shift.Is(ASR))) {
+          (shift.Is(LSL) || shift.Is(LSR) || shift.Is(ASR)) &&
+          ((!shift.Is(LSL) || (amount != 0)) || AllowUnpredictable())) {
         uint32_t amount_ = amount % 32;
         EmitT32_16(0x0000 | rd.GetCode() | (rm.GetCode() << 3) |
                    (operand.GetTypeEncodingValue() << 11) | (amount_ << 6));
@@ -6427,7 +6428,8 @@ void Assembler::mov(Condition cond,
         return;
       }
       // MOV{<c>}{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T3
-      if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
+      if (!size.IsNarrow() && shift.IsValidAmount(amount) &&
+          ((!rd.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
         uint32_t amount_ = amount % 32;
         EmitT32_32(0xea4f0000U | (rd.GetCode() << 8) | rm.GetCode() |
                    (operand.GetTypeEncodingValue() << 4) |
@@ -6483,7 +6485,9 @@ void Assembler::mov(Condition cond,
         return;
       }
       // MOV{<c>}{<q>} <Rd>, <Rm>, <shift> <Rs> ; T2
-      if (!size.IsNarrow()) {
+      if (!size.IsNarrow() &&
+          ((!rd.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
+           AllowUnpredictable())) {
         EmitT32_32(0xfa00f000U | (rd.GetCode() << 8) | (rm.GetCode() << 16) |
                    (shift.GetType() << 21) |
                    operand.GetShiftRegister().GetCode());
@@ -6492,7 +6496,9 @@ void Assembler::mov(Condition cond,
       }
     } else {
       // MOV{<c>}{<q>} <Rd>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever()) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x01a00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rm.GetCode() | (shift.GetType() << 5) |
                 (operand.GetShiftRegister().GetCode() << 8));
@@ -6512,7 +6518,7 @@ void Assembler::mov(Condition cond,
       }
       // MOV{<c>}{<q>} <Rd>, #<const> ; T2
       if (!size.IsNarrow() && immediate_t32.IsValid() &&
-          ((!rd.IsPC()) || AllowUnpredictable())) {
+          (!rd.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xf04f0000U | (rd.GetCode() << 8) |
                    (immediate_t32.GetEncodingValue() & 0xff) |
                    ((immediate_t32.GetEncodingValue() & 0x700) << 4) |
@@ -6522,7 +6528,7 @@ void Assembler::mov(Condition cond,
       }
       // MOV{<c>}{<q>} <Rd>, #<imm16> ; T3
       if (!size.IsNarrow() && (imm <= 65535) &&
-          ((!rd.IsPC()) || AllowUnpredictable())) {
+          (!rd.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xf2400000U | (rd.GetCode() << 8) | (imm & 0xff) |
                    ((imm & 0x700) << 4) | ((imm & 0x800) << 15) |
                    ((imm & 0xf000) << 4));
@@ -6539,7 +6545,7 @@ void Assembler::mov(Condition cond,
       }
       // MOV{<c>}{<q>} <Rd>, #<imm16> ; A2
       if ((imm <= 65535) && cond.IsNotNever() &&
-          ((!rd.IsPC()) || AllowUnpredictable())) {
+          (!rd.IsPC() || AllowUnpredictable())) {
         EmitA32(0x03000000U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (imm & 0xfff) | ((imm & 0xf000) << 4));
         return;
@@ -6571,7 +6577,8 @@ void Assembler::movs(Condition cond,
         return;
       }
       // MOVS{<c>}{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T3
-      if (!size.IsNarrow() && shift.IsValidAmount(amount)) {
+      if (!size.IsNarrow() && shift.IsValidAmount(amount) &&
+          ((!rd.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
         uint32_t amount_ = amount % 32;
         EmitT32_32(0xea5f0000U | (rd.GetCode() << 8) | rm.GetCode() |
                    (operand.GetTypeEncodingValue() << 4) |
@@ -6581,7 +6588,8 @@ void Assembler::movs(Condition cond,
       }
     } else {
       // MOVS{<c>}{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; A1
-      if (shift.IsValidAmount(amount) && cond.IsNotNever()) {
+      if (shift.IsValidAmount(amount) && cond.IsNotNever() &&
+          (!rd.IsPC() || AllowUnpredictable())) {
         uint32_t amount_ = amount % 32;
         EmitA32(0x01b00000U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rm.GetCode() |
@@ -6627,7 +6635,9 @@ void Assembler::movs(Condition cond,
         return;
       }
       // MOVS{<c>}{<q>} <Rd>, <Rm>, <shift> <Rs> ; T2
-      if (!size.IsNarrow()) {
+      if (!size.IsNarrow() &&
+          ((!rd.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
+           AllowUnpredictable())) {
         EmitT32_32(0xfa10f000U | (rd.GetCode() << 8) | (rm.GetCode() << 16) |
                    (shift.GetType() << 21) |
                    operand.GetShiftRegister().GetCode());
@@ -6636,7 +6646,9 @@ void Assembler::movs(Condition cond,
       }
     } else {
       // MOVS{<c>}{<q>} <Rd>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever()) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x01b00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rm.GetCode() | (shift.GetType() << 5) |
                 (operand.GetShiftRegister().GetCode() << 8));
@@ -6656,7 +6668,7 @@ void Assembler::movs(Condition cond,
       }
       // MOVS{<c>}{<q>} <Rd>, #<const> ; T2
       if (!size.IsNarrow() && immediate_t32.IsValid() &&
-          ((!rd.IsPC()) || AllowUnpredictable())) {
+          (!rd.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xf05f0000U | (rd.GetCode() << 8) |
                    (immediate_t32.GetEncodingValue() & 0xff) |
                    ((immediate_t32.GetEncodingValue() & 0x700) << 4) |
@@ -6684,7 +6696,7 @@ void Assembler::movt(Condition cond, Register rd, const Operand& operand) {
     uint32_t imm = operand.GetImmediate();
     if (IsUsingT32()) {
       // MOVT{<c>}{<q>} <Rd>, #<imm16> ; T1
-      if ((imm <= 65535)) {
+      if ((imm <= 65535) && (!rd.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xf2c00000U | (rd.GetCode() << 8) | (imm & 0xff) |
                    ((imm & 0x700) << 4) | ((imm & 0x800) << 15) |
                    ((imm & 0xf000) << 4));
@@ -6693,7 +6705,8 @@ void Assembler::movt(Condition cond, Register rd, const Operand& operand) {
       }
     } else {
       // MOVT{<c>}{<q>} <Rd>, #<imm16> ; A1
-      if ((imm <= 65535) && cond.IsNotNever()) {
+      if ((imm <= 65535) && cond.IsNotNever() &&
+          (!rd.IsPC() || AllowUnpredictable())) {
         EmitA32(0x03400000U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (imm & 0xfff) | ((imm & 0xf000) << 4));
         return;
@@ -6710,7 +6723,7 @@ void Assembler::movw(Condition cond, Register rd, const Operand& operand) {
     uint32_t imm = operand.GetImmediate();
     if (IsUsingT32()) {
       // MOVW{<c>}{<q>} <Rd>, #<imm16> ; T3
-      if ((imm <= 65535) && ((!rd.IsPC()) || AllowUnpredictable())) {
+      if ((imm <= 65535) && (!rd.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xf2400000U | (rd.GetCode() << 8) | (imm & 0xff) |
                    ((imm & 0x700) << 4) | ((imm & 0x800) << 15) |
                    ((imm & 0xf000) << 4));
@@ -6720,7 +6733,7 @@ void Assembler::movw(Condition cond, Register rd, const Operand& operand) {
     } else {
       // MOVW{<c>}{<q>} <Rd>, #<imm16> ; A2
       if ((imm <= 65535) && cond.IsNotNever() &&
-          ((!rd.IsPC()) || AllowUnpredictable())) {
+          (!rd.IsPC() || AllowUnpredictable())) {
         EmitA32(0x03000000U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (imm & 0xfff) | ((imm & 0xf000) << 4));
         return;
@@ -7820,7 +7833,7 @@ void Assembler::push(Condition cond, EncodingSize size, Register rt) {
     }
   } else {
     // PUSH{<c>}{<q>} <single_register_list> ; A1
-    if (cond.IsNotNever() && ((!rt.IsPC()) || AllowUnpredictable())) {
+    if (cond.IsNotNever() && (!rt.IsPC() || AllowUnpredictable())) {
       EmitA32(0x052d0004U | (cond.GetCondition() << 28) | (rt.GetCode() << 12));
       return;
     }
@@ -9929,7 +9942,7 @@ void Assembler::stl(Condition cond, Register rt, const MemOperand& operand) {
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // STL{<c>}{<q>} <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8c00fafU | (rt.GetCode() << 12) | (rn.GetCode() << 16));
         AdvanceIT();
         return;
@@ -9937,7 +9950,7 @@ void Assembler::stl(Condition cond, Register rt, const MemOperand& operand) {
     } else {
       // STL{<c>}{<q>} <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x0180fc90U | (cond.GetCondition() << 28) | rt.GetCode() |
                 (rn.GetCode() << 16));
         return;
@@ -9954,7 +9967,7 @@ void Assembler::stlb(Condition cond, Register rt, const MemOperand& operand) {
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // STLB{<c>}{<q>} <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8c00f8fU | (rt.GetCode() << 12) | (rn.GetCode() << 16));
         AdvanceIT();
         return;
@@ -9962,7 +9975,7 @@ void Assembler::stlb(Condition cond, Register rt, const MemOperand& operand) {
     } else {
       // STLB{<c>}{<q>} <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01c0fc90U | (cond.GetCondition() << 28) | rt.GetCode() |
                 (rn.GetCode() << 16));
         return;
@@ -9982,7 +9995,7 @@ void Assembler::stlex(Condition cond,
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // STLEX{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8c00fe0U | rd.GetCode() | (rt.GetCode() << 12) |
                    (rn.GetCode() << 16));
         AdvanceIT();
@@ -9991,7 +10004,7 @@ void Assembler::stlex(Condition cond,
     } else {
       // STLEX{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01800e90U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rt.GetCode() | (rn.GetCode() << 16));
         return;
@@ -10011,7 +10024,7 @@ void Assembler::stlexb(Condition cond,
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // STLEXB{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8c00fc0U | rd.GetCode() | (rt.GetCode() << 12) |
                    (rn.GetCode() << 16));
         AdvanceIT();
@@ -10020,7 +10033,7 @@ void Assembler::stlexb(Condition cond,
     } else {
       // STLEXB{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01c00e90U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rt.GetCode() | (rn.GetCode() << 16));
         return;
@@ -10041,7 +10054,7 @@ void Assembler::stlexd(Condition cond,
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // STLEXD{<c>}{<q>} <Rd>, <Rt>, <Rt2>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8c000f0U | rd.GetCode() | (rt.GetCode() << 12) |
                    (rt2.GetCode() << 8) | (rn.GetCode() << 16));
         AdvanceIT();
@@ -10072,7 +10085,7 @@ void Assembler::stlexh(Condition cond,
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // STLEXH{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8c00fd0U | rd.GetCode() | (rt.GetCode() << 12) |
                    (rn.GetCode() << 16));
         AdvanceIT();
@@ -10081,7 +10094,7 @@ void Assembler::stlexh(Condition cond,
     } else {
       // STLEXH{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01e00e90U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rt.GetCode() | (rn.GetCode() << 16));
         return;
@@ -10098,7 +10111,7 @@ void Assembler::stlh(Condition cond, Register rt, const MemOperand& operand) {
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // STLH{<c>}{<q>} <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8c00f9fU | (rt.GetCode() << 12) | (rn.GetCode() << 16));
         AdvanceIT();
         return;
@@ -10106,7 +10119,7 @@ void Assembler::stlh(Condition cond, Register rt, const MemOperand& operand) {
     } else {
       // STLH{<c>}{<q>} <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01e0fc90U | (cond.GetCondition() << 28) | rt.GetCode() |
                 (rn.GetCode() << 16));
         return;
@@ -10813,7 +10826,7 @@ void Assembler::strexb(Condition cond,
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // STREXB{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8c00f40U | rd.GetCode() | (rt.GetCode() << 12) |
                    (rn.GetCode() << 16));
         AdvanceIT();
@@ -10822,7 +10835,7 @@ void Assembler::strexb(Condition cond,
     } else {
       // STREXB{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01c00f90U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rt.GetCode() | (rn.GetCode() << 16));
         return;
@@ -10843,7 +10856,7 @@ void Assembler::strexd(Condition cond,
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // STREXD{<c>}{<q>} <Rd>, <Rt>, <Rt2>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8c00070U | rd.GetCode() | (rt.GetCode() << 12) |
                    (rt2.GetCode() << 8) | (rn.GetCode() << 16));
         AdvanceIT();
@@ -10874,7 +10887,7 @@ void Assembler::strexh(Condition cond,
     Register rn = operand.GetBaseRegister();
     if (IsUsingT32()) {
       // STREXH{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; T1
-      if (operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+      if (operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         EmitT32_32(0xe8c00f50U | rd.GetCode() | (rt.GetCode() << 12) |
                    (rn.GetCode() << 16));
         AdvanceIT();
@@ -10883,7 +10896,7 @@ void Assembler::strexh(Condition cond,
     } else {
       // STREXH{<c>}{<q>} <Rd>, <Rt>, [<Rn>] ; A1
       if (operand.IsOffset() && cond.IsNotNever() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         EmitA32(0x01e00f90U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rt.GetCode() | (rn.GetCode() << 16));
         return;
@@ -11667,7 +11680,7 @@ void Assembler::tbb(Condition cond, Register rn, Register rm) {
   if (IsUsingT32()) {
     // TBB{<c>}{<q>} [<Rn>, <Rm>] ; T1
     if (OutsideITBlockAndAlOrLast(cond) &&
-        ((!rm.IsPC()) || AllowUnpredictable())) {
+        (!rm.IsPC() || AllowUnpredictable())) {
       EmitT32_32(0xe8d0f000U | (rn.GetCode() << 16) | rm.GetCode());
       AdvanceIT();
       return;
@@ -11682,7 +11695,7 @@ void Assembler::tbh(Condition cond, Register rn, Register rm) {
   if (IsUsingT32()) {
     // TBH{<c>}{<q>} [<Rn>, <Rm>, LSL #1] ; T1
     if (OutsideITBlockAndAlOrLast(cond) &&
-        ((!rm.IsPC()) || AllowUnpredictable())) {
+        (!rm.IsPC() || AllowUnpredictable())) {
       EmitT32_32(0xe8d0f010U | (rn.GetCode() << 16) | rm.GetCode());
       AdvanceIT();
       return;
@@ -16810,7 +16823,7 @@ void Assembler::vld1(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -16842,7 +16855,7 @@ void Assembler::vld1(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -16874,7 +16887,7 @@ void Assembler::vld1(Condition cond,
       if (encoded_dt_2.IsValid() && nreglist.IsTransferAllLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 2) &&
           operand.IsOffset() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.GetLength() - 1;
@@ -16890,7 +16903,7 @@ void Assembler::vld1(Condition cond,
       if (encoded_dt_2.IsValid() && nreglist.IsTransferAllLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 2) &&
           operand.IsPostIndex() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.GetLength() - 1;
@@ -16905,7 +16918,7 @@ void Assembler::vld1(Condition cond,
       // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1
       if (encoded_dt_2.IsValid() && nreglist.IsTransferOneLane() &&
           (nreglist.GetLength() == 1) && operand.IsOffset() &&
-          encoded_align_3.IsValid() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          encoded_align_3.IsValid() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf9a0000fU | (encoded_dt_2.GetEncodingValue() << 10) |
@@ -16918,7 +16931,7 @@ void Assembler::vld1(Condition cond,
       // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1
       if (encoded_dt_2.IsValid() && nreglist.IsTransferOneLane() &&
           (nreglist.GetLength() == 1) && operand.IsPostIndex() &&
-          encoded_align_3.IsValid() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          encoded_align_3.IsValid() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf9a0000dU | (encoded_dt_2.GetEncodingValue() << 10) |
@@ -16933,7 +16946,7 @@ void Assembler::vld1(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -16964,7 +16977,7 @@ void Assembler::vld1(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -16995,7 +17008,7 @@ void Assembler::vld1(Condition cond,
       if (encoded_dt_2.IsValid() && nreglist.IsTransferAllLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 2) &&
           operand.IsOffset() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.GetLength() - 1;
@@ -17010,7 +17023,7 @@ void Assembler::vld1(Condition cond,
       if (encoded_dt_2.IsValid() && nreglist.IsTransferAllLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 2) &&
           operand.IsPostIndex() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.GetLength() - 1;
@@ -17024,7 +17037,7 @@ void Assembler::vld1(Condition cond,
       // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; A1
       if (encoded_dt_2.IsValid() && nreglist.IsTransferOneLane() &&
           (nreglist.GetLength() == 1) && operand.IsOffset() &&
-          encoded_align_3.IsValid() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          encoded_align_3.IsValid() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf4a0000fU | (encoded_dt_2.GetEncodingValue() << 10) |
@@ -17036,7 +17049,7 @@ void Assembler::vld1(Condition cond,
       // VLD1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1
       if (encoded_dt_2.IsValid() && nreglist.IsTransferOneLane() &&
           (nreglist.GetLength() == 1) && operand.IsPostIndex() &&
-          encoded_align_3.IsValid() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          encoded_align_3.IsValid() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf4a0000dU | (encoded_dt_2.GetEncodingValue() << 10) |
@@ -17197,7 +17210,7 @@ void Assembler::vld2(Condition cond,
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -17224,7 +17237,7 @@ void Assembler::vld2(Condition cond,
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -17250,7 +17263,7 @@ void Assembler::vld2(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2))) &&
           operand.IsOffset() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -17267,7 +17280,7 @@ void Assembler::vld2(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2))) &&
           operand.IsPostIndex() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -17284,7 +17297,7 @@ void Assembler::vld2(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2))) &&
           operand.IsOffset() && encoded_align_3.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf9a0010fU | (encoded_dt.GetEncodingValue() << 10) |
@@ -17299,7 +17312,7 @@ void Assembler::vld2(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2))) &&
           operand.IsPostIndex() && encoded_align_3.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf9a0010dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -17316,7 +17329,7 @@ void Assembler::vld2(Condition cond,
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -17342,7 +17355,7 @@ void Assembler::vld2(Condition cond,
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -17367,7 +17380,7 @@ void Assembler::vld2(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2))) &&
           operand.IsOffset() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -17383,7 +17396,7 @@ void Assembler::vld2(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2))) &&
           operand.IsPostIndex() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -17399,7 +17412,7 @@ void Assembler::vld2(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2))) &&
           operand.IsOffset() && encoded_align_3.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf4a0010fU | (encoded_dt.GetEncodingValue() << 10) |
@@ -17413,7 +17426,7 @@ void Assembler::vld2(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2))) &&
           operand.IsPostIndex() && encoded_align_3.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf4a0010dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -17566,7 +17579,7 @@ void Assembler::vld3(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x4 : 0x5;
@@ -17583,7 +17596,7 @@ void Assembler::vld3(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x4 : 0x5;
@@ -17601,7 +17614,7 @@ void Assembler::vld3(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x4 : 0x5;
@@ -17617,7 +17630,7 @@ void Assembler::vld3(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x4 : 0x5;
@@ -17689,7 +17702,7 @@ void Assembler::vld3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferAllLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -17704,7 +17717,7 @@ void Assembler::vld3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferAllLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsPreIndex() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          operand.IsPreIndex() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -17719,7 +17732,7 @@ void Assembler::vld3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf9a0020fU | (encoded_dt.GetEncodingValue() << 10) |
@@ -17733,7 +17746,7 @@ void Assembler::vld3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsPreIndex() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          operand.IsPreIndex() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf9a0020dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -17748,7 +17761,7 @@ void Assembler::vld3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferAllLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -17762,7 +17775,7 @@ void Assembler::vld3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferAllLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsPreIndex() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          operand.IsPreIndex() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -17776,7 +17789,7 @@ void Assembler::vld3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf4a0020fU | (encoded_dt.GetEncodingValue() << 10) |
@@ -17789,7 +17802,7 @@ void Assembler::vld3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsPreIndex() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          operand.IsPreIndex() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf4a0020dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -17890,7 +17903,7 @@ void Assembler::vld4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -17907,7 +17920,7 @@ void Assembler::vld4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -17924,7 +17937,7 @@ void Assembler::vld4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -17941,7 +17954,7 @@ void Assembler::vld4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -17958,7 +17971,7 @@ void Assembler::vld4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_3.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf9a0030fU | (encoded_dt.GetEncodingValue() << 10) |
@@ -17973,7 +17986,7 @@ void Assembler::vld4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_3.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf9a0030dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -17989,7 +18002,7 @@ void Assembler::vld4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -18005,7 +18018,7 @@ void Assembler::vld4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -18021,7 +18034,7 @@ void Assembler::vld4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -18037,7 +18050,7 @@ void Assembler::vld4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -18053,7 +18066,7 @@ void Assembler::vld4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_3.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf4a0030fU | (encoded_dt.GetEncodingValue() << 10) |
@@ -18067,7 +18080,7 @@ void Assembler::vld4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_3.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf4a0030dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -18194,7 +18207,7 @@ void Assembler::vldm(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1
-    if ((((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+    if (((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xec900b00U | (rn.GetCode() << 16) |
@@ -18206,7 +18219,7 @@ void Assembler::vldm(Condition cond,
   } else {
     // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; A1
     if (cond.IsNotNever() &&
-        (((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0c900b00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -18260,7 +18273,7 @@ void Assembler::vldmdb(Condition cond,
   if (IsUsingT32()) {
     // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; T1
     if (write_back.DoesWriteBack() &&
-        (((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xed300b00U | (rn.GetCode() << 16) | dreg.Encode(22, 12) |
@@ -18271,7 +18284,7 @@ void Assembler::vldmdb(Condition cond,
   } else {
     // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; A1
     if (write_back.DoesWriteBack() && cond.IsNotNever() &&
-        (((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0d300b00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -18323,7 +18336,7 @@ void Assembler::vldmia(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VLDMIA{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1
-    if ((((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+    if (((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xec900b00U | (rn.GetCode() << 16) |
@@ -18335,7 +18348,7 @@ void Assembler::vldmia(Condition cond,
   } else {
     // VLDMIA{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; A1
     if (cond.IsNotNever() &&
-        (((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0c900b00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -21132,7 +21145,7 @@ void Assembler::vpop(Condition cond, DataType dt, DRegisterList dreglist) {
   USE(dt);
   if (IsUsingT32()) {
     // VPOP{<c>}{<q>}{.<size>} <dreglist> ; T1
-    if ((((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+    if (((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xecbd0b00U | dreg.Encode(22, 12) | (len & 0xff));
@@ -21142,7 +21155,7 @@ void Assembler::vpop(Condition cond, DataType dt, DRegisterList dreglist) {
   } else {
     // VPOP{<c>}{<q>}{.<size>} <dreglist> ; A1
     if (cond.IsNotNever() &&
-        (((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0cbd0b00U | (cond.GetCondition() << 28) | dreg.Encode(22, 12) |
@@ -21183,7 +21196,7 @@ void Assembler::vpush(Condition cond, DataType dt, DRegisterList dreglist) {
   USE(dt);
   if (IsUsingT32()) {
     // VPUSH{<c>}{<q>}{.<size>} <dreglist> ; T1
-    if ((((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+    if (((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xed2d0b00U | dreg.Encode(22, 12) | (len & 0xff));
@@ -21193,7 +21206,7 @@ void Assembler::vpush(Condition cond, DataType dt, DRegisterList dreglist) {
   } else {
     // VPUSH{<c>}{<q>}{.<size>} <dreglist> ; A1
     if (cond.IsNotNever() &&
-        (((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0d2d0b00U | (cond.GetCondition() << 28) | dreg.Encode(22, 12) |
@@ -24708,7 +24721,7 @@ void Assembler::vst1(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -24740,7 +24753,7 @@ void Assembler::vst1(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -24771,7 +24784,7 @@ void Assembler::vst1(Condition cond,
       // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; T1
       if (encoded_dt_2.IsValid() && nreglist.IsTransferOneLane() &&
           (nreglist.GetLength() == 1) && operand.IsOffset() &&
-          encoded_align_2.IsValid() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          encoded_align_2.IsValid() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf980000fU | (encoded_dt_2.GetEncodingValue() << 10) |
@@ -24784,7 +24797,7 @@ void Assembler::vst1(Condition cond,
       // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; T1
       if (encoded_dt_2.IsValid() && nreglist.IsTransferOneLane() &&
           (nreglist.GetLength() == 1) && operand.IsPostIndex() &&
-          encoded_align_2.IsValid() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          encoded_align_2.IsValid() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf980000dU | (encoded_dt_2.GetEncodingValue() << 10) |
@@ -24799,7 +24812,7 @@ void Assembler::vst1(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -24830,7 +24843,7 @@ void Assembler::vst1(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferMultipleLanes() &&
           (nreglist.IsSingleSpaced()) && (nreglist.GetLength() <= 4) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -24860,7 +24873,7 @@ void Assembler::vst1(Condition cond,
       // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}] ; A1
       if (encoded_dt_2.IsValid() && nreglist.IsTransferOneLane() &&
           (nreglist.GetLength() == 1) && operand.IsOffset() &&
-          encoded_align_2.IsValid() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          encoded_align_2.IsValid() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf480000fU | (encoded_dt_2.GetEncodingValue() << 10) |
@@ -24872,7 +24885,7 @@ void Assembler::vst1(Condition cond,
       // VST1{<c>}{<q>}.<dt> <list>, [<Rn>{:<align>}]! ; A1
       if (encoded_dt_2.IsValid() && nreglist.IsTransferOneLane() &&
           (nreglist.GetLength() == 1) && operand.IsPostIndex() &&
-          encoded_align_2.IsValid() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          encoded_align_2.IsValid() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf480000dU | (encoded_dt_2.GetEncodingValue() << 10) |
@@ -25002,7 +25015,7 @@ void Assembler::vst2(Condition cond,
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -25029,7 +25042,7 @@ void Assembler::vst2(Condition cond,
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -25055,7 +25068,7 @@ void Assembler::vst2(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2))) &&
           operand.IsOffset() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf980010fU | (encoded_dt.GetEncodingValue() << 10) |
@@ -25070,7 +25083,7 @@ void Assembler::vst2(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2))) &&
           operand.IsPostIndex() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf980010dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -25087,7 +25100,7 @@ void Assembler::vst2(Condition cond,
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -25113,7 +25126,7 @@ void Assembler::vst2(Condition cond,
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding;
@@ -25138,7 +25151,7 @@ void Assembler::vst2(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2))) &&
           operand.IsOffset() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf480010fU | (encoded_dt.GetEncodingValue() << 10) |
@@ -25152,7 +25165,7 @@ void Assembler::vst2(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 2)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 2))) &&
           operand.IsPostIndex() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf480010dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -25273,7 +25286,7 @@ void Assembler::vst3(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x4 : 0x5;
@@ -25290,7 +25303,7 @@ void Assembler::vst3(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x4 : 0x5;
@@ -25308,7 +25321,7 @@ void Assembler::vst3(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x4 : 0x5;
@@ -25324,7 +25337,7 @@ void Assembler::vst3(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x4 : 0x5;
@@ -25396,7 +25409,7 @@ void Assembler::vst3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf980020fU | (encoded_dt.GetEncodingValue() << 10) |
@@ -25410,7 +25423,7 @@ void Assembler::vst3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsPreIndex() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          operand.IsPreIndex() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf980020dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -25425,7 +25438,7 @@ void Assembler::vst3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsOffset() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          operand.IsOffset() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf480020fU | (encoded_dt.GetEncodingValue() << 10) |
@@ -25438,7 +25451,7 @@ void Assembler::vst3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsPreIndex() && ((!rn.IsPC()) || AllowUnpredictable())) {
+          operand.IsPreIndex() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf480020dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -25508,7 +25521,7 @@ void Assembler::vst4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -25525,7 +25538,7 @@ void Assembler::vst4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -25542,7 +25555,7 @@ void Assembler::vst4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf980030fU | (encoded_dt.GetEncodingValue() << 10) |
@@ -25557,7 +25570,7 @@ void Assembler::vst4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf980030dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -25573,7 +25586,7 @@ void Assembler::vst4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -25589,7 +25602,7 @@ void Assembler::vst4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_1.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -25605,7 +25618,7 @@ void Assembler::vst4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsOffset() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf480030fU | (encoded_dt.GetEncodingValue() << 10) |
@@ -25619,7 +25632,7 @@ void Assembler::vst4(Condition cond,
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 4)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 4))) &&
           operand.IsPostIndex() && encoded_align_2.IsValid() &&
-          ((!rn.IsPC()) || AllowUnpredictable())) {
+          (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf480030dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -25713,7 +25726,7 @@ void Assembler::vstm(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1
-    if ((((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+    if (((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xec800b00U | (rn.GetCode() << 16) |
@@ -25725,7 +25738,7 @@ void Assembler::vstm(Condition cond,
   } else {
     // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; A1
     if (cond.IsNotNever() &&
-        (((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0c800b00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -25779,7 +25792,7 @@ void Assembler::vstmdb(Condition cond,
   if (IsUsingT32()) {
     // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; T1
     if (write_back.DoesWriteBack() &&
-        (((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xed200b00U | (rn.GetCode() << 16) | dreg.Encode(22, 12) |
@@ -25790,7 +25803,7 @@ void Assembler::vstmdb(Condition cond,
   } else {
     // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; A1
     if (write_back.DoesWriteBack() && cond.IsNotNever() &&
-        (((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0d200b00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -25842,7 +25855,7 @@ void Assembler::vstmia(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VSTMIA{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1
-    if ((((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+    if (((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xec800b00U | (rn.GetCode() << 16) |
@@ -25854,7 +25867,7 @@ void Assembler::vstmia(Condition cond,
   } else {
     // VSTMIA{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; A1
     if (cond.IsNotNever() &&
-        (((dreglist.GetLength() <= 16)) || AllowUnpredictable())) {
+        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0c800b00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |

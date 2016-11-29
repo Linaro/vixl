@@ -179,6 +179,10 @@ namespace aarch32 {
                "assembling a deprecated or unpredictable instruction is now "  \
                "correctly raising an exception. Please update the "            \
                "test to reflect this.\n");                                     \
+        printf("at: %s:%d:%s\n",                                               \
+               __FILE__,                                                       \
+               __LINE__,                                                       \
+               masm.IsUsingT32() ? "T32" : "A32");                             \
         abort();                                                               \
       } else if (std::strncmp(EXP, msg, exp_len) != 0) {                       \
         printf("\n%s:%d:%s\nFound:\n%sExpected:\n%s...",                       \
@@ -1895,10 +1899,12 @@ TEST(macro_assembler_InstructionCondSizeROp) {
   TEST_MOV_SHIFT_T32(Mov, "", 0x00000006)
   TEST_MOV_SHIFT_T32(Movs, "s", 0x00000006)
 
-  // TODO: Movs with PC is not allowed but we do allow it.
-  SHOULD_FAIL_TEST_BOTH(Movs(pc, r0));
-  SHOULD_FAIL_TEST_BOTH(Movs(pc, Operand(r0, LSL, 0x4)));
-  SHOULD_FAIL_TEST_BOTH(Movs(pc, Operand(r0, ASR, r2)));
+  MUST_FAIL_TEST_BOTH(Movs(pc, r0),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(Movs(pc, Operand(r0, LSL, 0x4)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(Movs(pc, Operand(r0, ASR, r2)),
+                      "Unpredictable instruction.\n");
 
   // Wide immediates (Mov and Movs are tested in "macro_assembler_wide_immediate").
   TEST_WIDE_IMMEDIATE(Cmp, "cmp", 0x0000000c);
@@ -2289,6 +2295,47 @@ TEST(macro_assembler_unpredictable) {
     MUST_FAIL_TEST_T32(Adr(pc, &label),
                        "Unpredictable instruction.\n");
   }
+
+  // MOV, MOVS (immediate).
+  COMPARE_A32(Mov(pc, 1), "mov pc, #1\n");
+  MUST_FAIL_TEST_T32(Mov(pc, 1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(Mov(pc, 0xfff),
+                      "Unpredictable instruction.\n");
+  COMPARE_A32(Mov(pc, 0xf000), "mov pc, #61440\n");
+  MUST_FAIL_TEST_T32(Mov(pc, 0xf000),
+                     "Unpredictable instruction.\n");
+  COMPARE_A32(Movs(pc, 1), "movs pc, #1\n");
+  MUST_FAIL_TEST_T32(Movs(pc, 1),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(Movs(pc, 0xfff),
+                      "Ill-formed 'movs' instruction.\n");
+  COMPARE_A32(Movs(pc, 0xf000), "movs pc, #61440\n");
+  MUST_FAIL_TEST_T32(Movs(pc, 0xf000),
+                     "Unpredictable instruction.\n");
+
+  // MOV, MOVS (register).
+  COMPARE_BOTH(Mov(pc, r0), "mov pc, r0\n");
+  COMPARE_BOTH(Mov(r0, pc), "mov r0, pc\n");
+  MUST_FAIL_TEST_BOTH(Movs(pc, r0),
+                      "Unpredictable instruction.\n");
+  COMPARE_A32(Movs(r0, pc), "movs r0, pc\n");
+  MUST_FAIL_TEST_T32(Movs(r0, pc),
+                     "Unpredictable instruction.\n");
+
+  // MOV, MOVS (register-shifted register).
+  MUST_FAIL_TEST_BOTH(Mov(pc, Operand(r0, ASR, r1)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(Mov(r0, Operand(pc, ASR, r1)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(Mov(r0, Operand(r1, ASR, pc)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(Movs(pc, Operand(r0, ASR, r1)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(Movs(r0, Operand(pc, ASR, r1)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(Movs(r0, Operand(r1, ASR, pc)),
+                      "Unpredictable instruction.\n");
 
   CLEANUP();
 }
