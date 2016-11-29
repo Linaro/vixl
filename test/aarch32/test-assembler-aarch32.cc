@@ -2053,9 +2053,9 @@ TEST_T32(veneer_bind) {
 
   {
     // Bind the target label using the `Assembler`.
-    ExactAssemblyScope aas(&masm,
-                           kMaxInstructionSizeInBytes,
-                           ExactAssemblyScope::kMaximumSize);
+    ExactAssemblyScope scope(&masm,
+                             kMaxInstructionSizeInBytes,
+                             ExactAssemblyScope::kMaximumSize);
     __ bind(&target);
     __ nop();
   }
@@ -2065,6 +2065,48 @@ TEST_T32(veneer_bind) {
 
   END();
 }
+
+
+TEST_T32(unaligned_branch_after_literal) {
+  SETUP();
+
+  START();
+
+  // This test manually places a 32-bit literal after a 16-bit branch
+  // which branches over the literal to an unaligned PC.
+  Literal<int32_t> l0(0x01234567, RawLiteral::kManuallyPlaced);
+
+  __ Ldr(r0, &l0);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  // Manually generate a literal pool.
+  {
+    Label after_pool;
+    ExactAssemblyScope scope(&masm,
+                             k16BitT32InstructionSizeInBytes + sizeof(int32_t),
+                             CodeBufferCheckScope::kMaximumSize);
+    __ b(Narrow, &after_pool);
+    __ place(&l0);
+    VIXL_ASSERT((masm.GetBuffer()->GetCursorOffset() % 4) == 2);
+    __ bind(&after_pool);
+  }
+
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  END();
+
+  RUN();
+
+  // Check that the literal was loaded correctly.
+  ASSERT_EQUAL_32(0x01234567, r0);
+
+  TEARDOWN();
+}
+
+
 
 // This test check that we can update a Literal after usage.
 TEST(literal_update) {
