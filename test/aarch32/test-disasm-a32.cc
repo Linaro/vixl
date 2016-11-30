@@ -69,6 +69,7 @@ namespace aarch32 {
       }                                                                        \
       masm.GetBuffer()->Reset();                                               \
       if (Test::disassemble()) {                                               \
+        printf("----\n");                                                      \
         printf("%s", ss.str().c_str());                                        \
       }                                                                        \
       if (std::string(EXP) != ss.str()) {                                      \
@@ -100,6 +101,7 @@ namespace aarch32 {
     }                                                                          \
     masm.GetBuffer()->Reset();                                                 \
     if (Test::disassemble()) {                                                 \
+      printf("----\n");                                                        \
       printf("%s", ss.str().c_str());                                          \
     }                                                                          \
     if (std::string(EXP) != ss.str()) {                                        \
