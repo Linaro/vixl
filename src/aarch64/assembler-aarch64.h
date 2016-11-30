@@ -45,8 +45,8 @@ class Label {
  public:
   Label() : location_(kLocationUnbound) {}
   ~Label() {
-    // If the label has been linked to, it needs to be bound to a target.
-    VIXL_ASSERT(!IsLinked() || IsBound());
+    // All links to a label must have been resolved before it is destructed.
+    VIXL_ASSERT(!IsLinked());
   }
 
   bool IsBound() const { return location_ >= 0; }
