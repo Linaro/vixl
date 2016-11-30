@@ -1777,6 +1777,81 @@ TEST(custom_literal_place_shared) {
 }
 
 
+TEST(custom_literal_place_range) {
+  SETUP();
+
+  for (size_t i = 0; i < ARRAY_SIZE(kLdrLiteralRangeTestData); ++i) {
+    const LdrLiteralRangeTest& test = kLdrLiteralRangeTestData[i];
+    const int nop_size = masm.IsUsingA32() ? kA32InstructionSizeInBytes
+                                           : k16BitT32InstructionSizeInBytes;
+    const int range = masm.IsUsingA32() ? test.a32_range : test.t32_range;
+    // On T32 the PC will be 4-byte aligned to compute the range. The
+    // MacroAssembler might also need to align the code buffer before emitting
+    // the literal when placing it. We keep a margin to account for this.
+    const int margin = masm.IsUsingT32() ? 4 : 0;
+
+    // Take PC offset into account and make sure the literal is in the range.
+    const int padding_before =
+        range - masm.GetArchitectureStatePCOffset() - sizeof(uint32_t) - margin;
+
+    // The margin computation below is correct because the ranges are not
+    // 4-byte aligned. Otherwise this test would insert the exact number of
+    // instructions to cover the range and the literal would end up being
+    // placed outside the range.
+    VIXL_ASSERT((range % 4) != 0);
+
+    // The range is extended by the PC offset but we need to consider the ldr
+    // instruction itself and the branch over the pool.
+    const int padding_after = range + masm.GetArchitectureStatePCOffset() -
+                              (2 * kMaxInstructionSizeInBytes) - margin;
+    START();
+
+    Literal<uint32_t> before(test.literal_value, RawLiteral::kManuallyPlaced);
+    Literal<uint32_t> after(test.literal_value, RawLiteral::kManuallyPlaced);
+
+    Label test_start;
+    __ B(&test_start);
+    __ Place(&before);
+
+    {
+      int space = AlignDown(padding_before, nop_size);
+      AssemblerAccurateScope scope(&masm, space, CodeBufferCheckScope::kExactSize);
+      for (int32_t end = masm.GetCursorOffset() + space;
+           masm.GetCursorOffset() < end;) {
+        __ nop();
+      }
+    }
+
+    __ Bind(&test_start);
+    (masm.*test.instruction)(r0, &before);
+    (masm.*test.instruction)(r1, &after);
+
+    {
+      int space = AlignDown(padding_after, nop_size);
+      AssemblerAccurateScope scope(&masm, space, CodeBufferCheckScope::kExactSize);
+      for (int32_t end = masm.GetCursorOffset() + space;
+           masm.GetCursorOffset() < end;) {
+        __ nop();
+      }
+    }
+
+    Label after_pool;
+    __ B(&after_pool);
+    __ Place(&after);
+    __ Bind(&after_pool);
+
+    END();
+
+    RUN();
+
+    ASSERT_EQUAL_32(test.test_value, r0);
+    ASSERT_EQUAL_32(test.test_value, r1);
+  }
+
+  TEARDOWN();
+}
+
+
 TEST(emit_big_pool) {
   SETUP();
 
