@@ -1398,7 +1398,7 @@ void MacroAssembler::Delegate(InstructionType type,
           break;
       }
       if (asmcb != NULL) {
-        CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+        CodeBufferCheckScope scope(this, 4 * kMaxInstructionSizeInBytes);
         (this->*asmcb)(cond, size, rd, rn, Operand(imm));
         return;
       }
@@ -1406,13 +1406,58 @@ void MacroAssembler::Delegate(InstructionType type,
     UseScratchRegisterScope temps(this);
     // Allow using the destination as a scratch register if possible.
     if (!rd.Is(rn)) temps.Include(rd);
-    Register scratch = temps.Acquire();
-    // TODO: The scope length was measured empirically. We should analyse the
-    // worst-case size and add targetted tests.
-    CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
-    mov(cond, scratch, operand.GetImmediate());
-    (this->*instruction)(cond, size, rd, rn, scratch);
-    return;
+
+    if (rn.IsPC()) {
+      // If we're reading the PC, we need to do it in the first instruction,
+      // otherwise we'll read the wrong value. We rely on this to handle the
+      // long-range PC-relative MemOperands which can result from user-managed
+      // literals.
+
+      // Only handle negative offsets. The correct way to handle positive
+      // offsets isn't clear; does the user want the offset from the start of
+      // the macro, or from the end (to allow a certain amount of space)?
+      bool offset_is_negative_or_zero = (imm <= 0);
+      switch (type) {
+        case kAdd:
+        case kAdds:
+          offset_is_negative_or_zero = (imm <= 0);
+          break;
+        case kSub:
+        case kSubs:
+          offset_is_negative_or_zero = (imm >= 0);
+          break;
+        case kAdc:
+        case kAdcs:
+          offset_is_negative_or_zero = (imm < 0);
+          break;
+        case kSbc:
+        case kSbcs:
+          offset_is_negative_or_zero = (imm > 0);
+          break;
+        default:
+          break;
+      }
+      if (offset_is_negative_or_zero) {
+        {
+          rn = temps.Acquire();
+          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
+          mov(cond, rn, pc);
+        }
+        // Recurse rather than falling through, to try to get the immediate into
+        // a single instruction.
+        CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+        (this->*instruction)(cond, size, rd, rn, operand);
+        return;
+      }
+    } else {
+      Register scratch = temps.Acquire();
+      // TODO: The scope length was measured empirically. We should analyse the
+      // worst-case size and add targetted tests.
+      CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+      mov(cond, scratch, operand.GetImmediate());
+      (this->*instruction)(cond, size, rd, rn, scratch);
+      return;
+    }
   }
   Assembler::Delegate(type, instruction, cond, size, rd, rn, operand);
 }

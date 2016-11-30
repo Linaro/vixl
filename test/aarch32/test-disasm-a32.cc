@@ -2187,10 +2187,11 @@ TEST(macro_assembler_unpredictable) {
                      "Unpredictable instruction.\n");
   COMPARE_A32(Adds(pc, r0, 1), "adds pc, r0, #1\n");
   COMPARE_A32(Adds(r0, pc, 1), "adds r0, pc, #1\n");
+  // TODO: Try to make these error messages more consistent.
   MUST_FAIL_TEST_T32(Adds(r0, pc, 1),
                      "Unpredictable instruction.\n");
   MUST_FAIL_TEST_T32(Adds(r0, pc, 0x123),
-                     "Unpredictable instruction.\n");
+                     "Ill-formed 'adds' instruction.\n");
 
   // ADD, ADDS (register).
   COMPARE_A32(Add(pc, r0, r1), "add pc, r0, r1\n");
@@ -2274,6 +2275,144 @@ TEST(macro_assembler_unpredictable) {
                        "Unpredictable instruction.\n");
   }
 
+  CLEANUP();
+}
+
+
+TEST(macro_assembler_pc_rel_A32) {
+  SETUP();
+  // Simple cases alias adr.
+  COMPARE_A32(Add(r0, pc, -8), "adr r0, 0x00000000\n");
+  COMPARE_A32(Add(r0, pc, 255), "adr r0, 0x00000107\n");
+  COMPARE_A32(Add(r0, pc, 256), "adr r0, 0x00000108\n");
+  COMPARE_A32(Add(r0, pc, 1024), "adr r0, 0x00000408\n");
+  COMPARE_A32(Add(r0, pc, -9), "adr r0, 0xffffffff\n");
+  COMPARE_A32(Add(r0, pc, -1024), "adr r0, 0xfffffc08\n");
+  COMPARE_A32(Add(r0, pc, UINT32_C(0x80000000)), "adr r0, 0x80000008\n");
+  COMPARE_A32(Add(r0, pc, -0x7fffffff), "adr r0, 0x80000009\n");
+
+  COMPARE_A32(Sub(r0, pc, 8), "adr r0, 0x00000000\n");
+  COMPARE_A32(Sub(r0, pc, -255), "adr r0, 0x00000107\n");
+  COMPARE_A32(Sub(r0, pc, -256), "adr r0, 0x00000108\n");
+  COMPARE_A32(Sub(r0, pc, -1024), "adr r0, 0x00000408\n");
+  COMPARE_A32(Sub(r0, pc, 9), "adr r0, 0xffffffff\n");
+  COMPARE_A32(Sub(r0, pc, 1024), "adr r0, 0xfffffc08\n");
+  COMPARE_A32(Sub(r0, pc, UINT32_C(0x80000000)), "adr r0, 0x80000008\n");
+  COMPARE_A32(Sub(r0, pc, -0x7fffffff), "adr r0, 0x80000007\n");
+
+  // Cases out of range.
+  // Only negative offsets are supported, because the proper behaviour for
+  // positive offsets is not clear.
+  MUST_FAIL_TEST_A32(Add(r0, pc, 1025), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_A32(Add(r0, pc, 0xffff), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_A32(Add(r0, pc, 0x10001), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_A32(Add(r0, pc, 0x12345678), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_A32(Add(r0, pc, 0x7fffffff), "Ill-formed 'add' instruction.\n");
+  COMPARE_A32(Add(r0, pc, -1025), "mov r0, pc\n"
+                                  "mov ip, #1025\n"
+                                  "sub r0, ip\n");
+  COMPARE_A32(Add(r0, pc, -0xffff), "mov r0, pc\n"
+                                    "mov ip, #65535\n"
+                                    "sub r0, ip\n");
+  COMPARE_A32(Add(r0, pc, -0x10001), "mov r0, pc\n"
+                                     "mov ip, #1\n"
+                                     "movt ip, #1\n"
+                                     "sub r0, ip\n");
+  COMPARE_A32(Add(r0, pc, -0x12345678), "mov r0, pc\n"
+                                        "mov ip, #22136\n"
+                                        "movt ip, #4660\n"
+                                        "sub r0, ip\n");
+
+  MUST_FAIL_TEST_A32(Sub(r0, pc, -1025), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_A32(Sub(r0, pc, -0xffff), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_A32(Sub(r0, pc, -0x10001), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_A32(Sub(r0, pc, -0x12345678), "Ill-formed 'add' instruction.\n");
+  COMPARE_A32(Sub(r0, pc, 1025), "mov r0, pc\n"
+                                 "mov ip, #1025\n"
+                                 "sub r0, ip\n");
+  COMPARE_A32(Sub(r0, pc, 0xffff), "mov r0, pc\n"
+                                   "mov ip, #65535\n"
+                                   "sub r0, ip\n");
+  COMPARE_A32(Sub(r0, pc, 0x10001), "mov r0, pc\n"
+                                    "mov ip, #1\n"
+                                    "movt ip, #1\n"
+                                    "sub r0, ip\n");
+  COMPARE_A32(Sub(r0, pc, 0x12345678), "mov r0, pc\n"
+                                       "mov ip, #22136\n"
+                                       "movt ip, #4660\n"
+                                       "sub r0, ip\n");
+  COMPARE_A32(Sub(r0, pc, 0x7fffffff), "mov r0, pc\n"
+                                       "mvn ip, #2147483648\n"
+                                       "sub r0, ip\n");
+
+  CLEANUP();
+}
+
+
+TEST(macro_assembler_pc_rel_T32) {
+  SETUP();
+  // Simple cases alias adr.
+  COMPARE_T32(Add(r0, pc, -4), "adr r0, 0x00000000\n");     // T1
+  COMPARE_T32(Add(r0, pc, 1020), "adr r0, 0x00000400\n");   // T1
+  COMPARE_T32(Add(r0, pc, -5), "adr r0, 0xffffffff\n");     // T2
+  COMPARE_T32(Add(r0, pc, -4095), "adr r0, 0xfffff005\n");  // T2
+  COMPARE_T32(Add(r0, pc, -3), "adr r0, 0x00000001\n");     // T3
+  COMPARE_T32(Add(r0, pc, 1021), "adr r0, 0x00000401\n");   // T3
+  COMPARE_T32(Add(r0, pc, 1019), "adr r0, 0x000003ff\n");   // T3
+  COMPARE_T32(Add(r0, pc, 4095), "adr r0, 0x00001003\n");   // T3
+
+  COMPARE_T32(Sub(r0, pc, 4), "adr r0, 0x00000000\n");      // T1
+  COMPARE_T32(Sub(r0, pc, -1020), "adr r0, 0x00000400\n");  // T1
+  COMPARE_T32(Sub(r0, pc, 5), "adr r0, 0xffffffff\n");      // T2
+  COMPARE_T32(Sub(r0, pc, 4095), "adr r0, 0xfffff005\n");   // T2
+  COMPARE_T32(Sub(r0, pc, 3), "adr r0, 0x00000001\n");      // T3
+  COMPARE_T32(Sub(r0, pc, -1021), "adr r0, 0x00000401\n");  // T3
+  COMPARE_T32(Sub(r0, pc, -1019), "adr r0, 0x000003ff\n");  // T3
+  COMPARE_T32(Sub(r0, pc, -4095), "adr r0, 0x00001003\n");  // T3
+
+  // Cases out of range.
+  // Only negative offsets are supported, because the proper behaviour for
+  // positive offsets is not clear.
+
+  MUST_FAIL_TEST_T32(Add(r0, pc, 4096), "Unpredictable instruction.\n");
+
+  // TODO: This case is incorrect; the instruction is unpredictable. The test
+  // must be updated once the bug is fixed.
+  COMPARE_T32(Add(r0, pc, -4096), "sub r0, pc, #4096\n");
+
+  MUST_FAIL_TEST_T32(Add(r0, pc, 0xffff), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_T32(Add(r0, pc, 0x10002), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_T32(Add(r0, pc, 0x12345678), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_T32(Add(r0, pc, 0x7fffffff), "Ill-formed 'add' instruction.\n");
+  COMPARE_T32(Add(r0, pc, -0x12345678), "mov r0, pc\n"
+                                        "mov ip, #22136\n"
+                                        "movt ip, #4660\n"
+                                        "sub r0, ip\n");
+  COMPARE_T32(Add(r0, pc, -0x7fffffff), "mov r0, pc\n"
+                                        "mvn ip, #2147483648\n"
+                                        "sub r0, ip\n");
+
+  // TODO: This test aborts in the Assembler (with unpredictable instruction
+  // errors) before the MacroAssembler gets a chance to do something
+  // predictable.
+  // COMPARE_T32(Sub(r0, pc, -4096), "mov r0, pc\n"
+  //                                 "add r0, #4096\n");
+
+  // TODO: This case is incorrect; the instruction is unpredictable. The test
+  // must be updated once the bug is fixed.
+  COMPARE_T32(Sub(r0, pc, 4096), "sub r0, pc, #4096\n");
+
+  MUST_FAIL_TEST_T32(Sub(r0, pc, -0xffff), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_T32(Sub(r0, pc, -0x10002), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_T32(Sub(r0, pc, -0x12345678), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_T32(Sub(r0, pc, -0x7fffffff), "Ill-formed 'add' instruction.\n");
+  COMPARE_T32(Sub(r0, pc, 0x12345678), "mov r0, pc\n"
+                                       "mov ip, #22136\n"
+                                       "movt ip, #4660\n"
+                                       "sub r0, ip\n");
+  COMPARE_T32(Sub(r0, pc, 0x7fffffff), "mov r0, pc\n"
+                                       "mvn ip, #2147483648\n"
+                                       "sub r0, ip\n");
   CLEANUP();
 }
 
