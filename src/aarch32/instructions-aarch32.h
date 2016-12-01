@@ -1357,7 +1357,11 @@ class RawLiteral : public Label {
         size_(size),
         position_(kMaxOffset),
         manually_placed_(placement_policy == kManuallyPlaced),
-        deletion_policy_(deletion_policy) {}
+        deletion_policy_(deletion_policy) {
+    // We can't have manually placed literals that are not manually deleted.
+    VIXL_ASSERT(!IsManuallyPlaced() ||
+                (GetDeletionPolicy() == kManuallyDeleted));
+  }
   RawLiteral(const void* addr, size_t size, DeletionPolicy deletion_policy)
       : addr_(addr),
         size_(size),

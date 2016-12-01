@@ -64,6 +64,8 @@ class LiteralPool {
 
   // Add a literal to the literal container.
   void AddLiteral(RawLiteral* literal) {
+    // Manually placed literals can't be added to a literal pool.
+    VIXL_ASSERT(!literal->IsManuallyPlaced());
     if (literal->GetPositionInPool() == Label::kMaxOffset) {
       uint32_t position = GetSize();
       literal->SetPositionInPool(position);

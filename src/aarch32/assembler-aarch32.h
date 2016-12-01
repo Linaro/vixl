@@ -160,6 +160,7 @@ class Assembler : public internal::AssemblerBase {
   }
   void place(RawLiteral* literal) {
     VIXL_ASSERT(AllowAssembler());
+    VIXL_ASSERT(literal->IsManuallyPlaced());
     PlaceHelper(literal);
   }
 
