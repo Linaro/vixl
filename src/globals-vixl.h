@@ -93,6 +93,7 @@ const int kBitsPerByte = 8;
   if (!(condition)) {                         \
     throw std::runtime_error("Check failed"); \
   }
+#define VIXL_THROW_IN_NEGATIVE_TESTING_MODE(error) throw(error)
 #else
 #define VIXL_ABORT()                                \
   do {                                              \
@@ -109,6 +110,7 @@ const int kBitsPerByte = 8;
     printf("Assertion: " #condition " in %s, line %i\n", __FILE__, __LINE__); \
     abort();                                                                  \
   }
+#define VIXL_THROW_IN_NEGATIVE_TESTING_MODE(error)
 #endif
 #ifdef VIXL_DEBUG
 #define VIXL_ASSERT(condition) assert(condition)

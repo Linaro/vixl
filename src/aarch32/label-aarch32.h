@@ -107,7 +107,7 @@ class Label {
   }
 
   Offset GetNextCheckpoint() {
-    if (IsReferenced()) {
+    if (HasForwardReference()) {
       ForwardRefList::iterator min_checkpoint =
           std::min_element(forward_.begin(),
                            forward_.end(),
@@ -124,6 +124,7 @@ class Label {
         is_bound_(false),
         minus_zero_(false),
         is_t32_(false),
+        referenced_(false),
         veneer_pool_manager_(NULL),
         checkpoint_(kMaxOffset) {}
   explicit Label(Offset offset, uint32_t pc_offset, bool minus_zero = false)
@@ -132,11 +133,18 @@ class Label {
         is_bound_(true),
         minus_zero_(minus_zero),
         is_t32_(false),
+        referenced_(false),
         veneer_pool_manager_(NULL),
         checkpoint_(kMaxOffset) {}
-  ~Label() {}
+  ~Label() VIXL_THROW_IN_NEGATIVE_TESTING_MODE(std::runtime_error) {
+#ifdef VIXL_DEBUG
+    if (referenced_ && !is_bound_) {
+      VIXL_ABORT_WITH_MSG("Label used but not bound.\n");
+    }
+#endif
+  }
   bool IsBound() const { return is_bound_; }
-  bool IsReferenced() const { return !forward_.empty(); }
+  bool HasForwardReference() const { return !forward_.empty(); }
   void Bind(Offset offset, bool isT32) {
     VIXL_ASSERT(!IsBound());
     imm_offset_ = offset;
@@ -156,6 +164,8 @@ class Label {
     VIXL_ASSERT(IsBound());
     return minus_zero_;
   }
+  void SetReferenced() { referenced_ = true; }
+  bool IsReferenced() const { return referenced_; }
   bool IsInVeneerPool() const { return veneer_pool_manager_ != NULL; }
   VeneerPoolManager* GetVeneerPoolManager() const {
     return veneer_pool_manager_;
@@ -172,6 +182,7 @@ class Label {
   void AddForwardRef(int32_t instr_location,
                      bool isT32,
                      const LabelEmitOperator& op) {
+    VIXL_ASSERT(referenced_);
     forward_.push_back(ForwardReference(instr_location, op, isT32));
   }
 
@@ -189,7 +200,7 @@ class Label {
   ForwardReference& GetBackForwardRef() { return forward_.back(); }
 
   Offset GetLastInsertForwardDistance() const {
-    if (IsReferenced()) {
+    if (HasForwardReference()) {
       return forward_.back().GetMaxForwardDistance();
     }
     return kMaxOffset;
@@ -206,7 +217,7 @@ class Label {
   void InvalidateLastForwardReference(
       UpdateCheckpointOption update_checkpoint = kRecomputeCheckpoint) {
     if (!IsBound()) {
-      VIXL_ASSERT(IsReferenced());
+      VIXL_ASSERT(HasForwardReference());
       forward_.pop_back();
     }
     VIXL_ASSERT((update_checkpoint == kNoUpdateNecessary) &&
@@ -224,7 +235,7 @@ class Label {
   // The last forward reference is assumed to be the one freshly
   // added regarding this literal.
   void UpdateCheckpoint() {
-    if (IsReferenced()) {
+    if (HasForwardReference()) {
       const ForwardReference& ref = forward_.back();
       checkpoint_ = std::min(checkpoint_, ref.GetCheckpoint());
     }
@@ -245,6 +256,8 @@ class Label {
   bool minus_zero_;
   // Is the label in T32 state.
   bool is_t32_;
+  // True if the label has been used at least once.
+  bool referenced_;
   // Not null if the label is currently inserted in the veneer pool.
   VeneerPoolManager* veneer_pool_manager_;
   // Contains the references to the unbound label

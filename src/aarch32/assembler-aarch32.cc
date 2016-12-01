@@ -97,6 +97,7 @@ void Assembler::BindHelper(Label* label) {
 uint32_t Assembler::Link(uint32_t instr,
                          Label* label,
                          const Label::LabelEmitOperator& op) {
+  label->SetReferenced();
   if (label->IsBound()) {
     return op.Encode(instr,
                      GetCursorOffset() + GetArchitectureStatePCOffset(),

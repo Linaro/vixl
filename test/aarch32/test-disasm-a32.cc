@@ -131,7 +131,7 @@ namespace aarch32 {
   {                                                                            \
     try {                                                                      \
       int32_t start = masm.GetCursorOffset();                                  \
-      masm.ASM;                                                                \
+      ASM                                                                      \
       int32_t end = masm.GetCursorOffset();                                    \
       masm.FinalizeCode();                                                     \
       if (!TEMPORARILY_ACCEPTED) {                                             \
@@ -171,17 +171,31 @@ namespace aarch32 {
 
 #define MUST_FAIL_TEST_A32(ASM, EXP)                                           \
   masm.UseA32();                                                               \
-  NEGATIVE_TEST(ASM, EXP, false)                                               \
+  NEGATIVE_TEST({ masm.ASM; }, EXP, false)                                     \
   masm.GetBuffer()->Reset();
 
 #define MUST_FAIL_TEST_T32(ASM, EXP)                                           \
   masm.UseT32();                                                               \
-  NEGATIVE_TEST(ASM, EXP, false)                                               \
+  NEGATIVE_TEST({ masm.ASM; }, EXP, false)                                     \
   masm.GetBuffer()->Reset();
 
 #define MUST_FAIL_TEST_BOTH(ASM, EXP)                                          \
   MUST_FAIL_TEST_A32(ASM, EXP)                                                 \
   MUST_FAIL_TEST_T32(ASM, EXP)
+
+#define MUST_FAIL_TEST_A32_BLOCK(ASM, EXP)                                     \
+  masm.UseA32();                                                               \
+  NEGATIVE_TEST(ASM, EXP, false)                                               \
+  masm.GetBuffer()->Reset();
+
+#define MUST_FAIL_TEST_T32_BLOCK(ASM, EXP)                                     \
+  masm.UseT32();                                                               \
+  NEGATIVE_TEST(ASM, EXP, false)                                               \
+  masm.GetBuffer()->Reset();
+
+#define MUST_FAIL_TEST_BOTH_BLOCK(ASM, EXP)                                    \
+  MUST_FAIL_TEST_A32_BLOCK(ASM, EXP)                                           \
+  MUST_FAIL_TEST_T32_BLOCK(ASM, EXP)
 #else
 // Skip negative tests.
 #define MUST_FAIL_TEST_A32(ASM, EXP) \
@@ -190,17 +204,23 @@ namespace aarch32 {
   printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
 #define MUST_FAIL_TEST_BOTH(ASM, EXP) \
   printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
+#define MUST_FAIL_TEST_A32_BLOCK(ASM, EXP) \
+  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
+#define MUST_FAIL_TEST_T32_BLOCK(ASM, EXP) \
+  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
+#define MUST_FAIL_TEST_BOTH_BLOCK(ASM, EXP) \
+  printf("Skipping negative tests. To enable them, build with 'negative_testing=on'.\n");
 #endif
 
 #ifdef VIXL_NEGATIVE_TESTING
-#define SHOULD_FAIL_TEST_A32(ASM) \
-  masm.UseA32();                  \
-  NEGATIVE_TEST(ASM, "", true)    \
+#define SHOULD_FAIL_TEST_A32(ASM)        \
+  masm.UseA32();                         \
+  NEGATIVE_TEST({ masm.ASM; }, "", true) \
   masm.GetBuffer()->Reset();
 
-#define SHOULD_FAIL_TEST_T32(ASM) \
-  masm.UseT32();                  \
-  NEGATIVE_TEST(ASM, "", true)    \
+#define SHOULD_FAIL_TEST_T32(ASM)        \
+  masm.UseT32();                         \
+  NEGATIVE_TEST({ masm.ASM; }, "", true) \
   masm.GetBuffer()->Reset();
 
 #define SHOULD_FAIL_TEST_BOTH(ASM) \
@@ -3029,6 +3049,44 @@ TEST(macro_assembler_T32_IT) {
 
   CLEANUP();
 }
+
+
+TEST(unbound_label) {
+  SETUP();
+
+#ifdef VIXL_DEBUG
+  MUST_FAIL_TEST_BOTH_BLOCK(
+    {
+      Label label;
+      masm.B(&label);
+    },
+    "Label used but not bound.\n")
+
+  MUST_FAIL_TEST_BOTH_BLOCK(
+    {
+      Label label;
+      masm.B(eq, &label);
+    },
+    "Label used but not bound.\n")
+
+  MUST_FAIL_TEST_T32_BLOCK(
+    {
+      Label label;
+      masm.Cbz(r0, &label);
+    },
+    "Label used but not bound.\n")
+
+  MUST_FAIL_TEST_T32_BLOCK(
+    {
+      Label label;
+      masm.Cbnz(r1, &label);
+    },
+    "Label used but not bound.\n")
+#endif
+
+  CLEANUP();
+}
+
 
 }  // namespace aarch32
 }  // namespace vixl
