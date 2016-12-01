@@ -1090,11 +1090,9 @@ void MacroAssembler::Delegate(InstructionType type,
       UseScratchRegisterScope temps(this);
       Register rm = operand.GetBaseRegister();
       Register rs = operand.GetShiftRegister();
-      // If different from `rn`, we can make use of either `rd`, `rm` or `rs` as
-      // a scratch register.
+      // Try to use rd as a scratch register. We can do this if it aliases rs or
+      // rm (because we read them in the first instruction), but not rn.
       if (!rd.Is(rn)) temps.Include(rd);
-      if (!rm.Is(rn)) temps.Include(rm);
-      if (!rs.Is(rn)) temps.Include(rs);
       Register scratch = temps.Acquire();
       // TODO: The scope length was measured empirically. We should analyse the
       // worst-case size and add targetted tests.
@@ -1112,15 +1110,11 @@ void MacroAssembler::Delegate(InstructionType type,
     // The RegisterShiftRegister case should have been handled above.
     VIXL_ASSERT(!operand.IsRegisterShiftedRegister());
     UseScratchRegisterScope temps(this);
-    Register negated_rn;
-    if (operand.IsImmediate() || !operand.GetBaseRegister().Is(rn)) {
-      // In this case, we can just negate `rn` instead of using a temporary
-      // register.
-      negated_rn = rn;
-    } else {
-      if (!rd.Is(rn)) temps.Include(rd);
-      negated_rn = temps.Acquire();
-    }
+    // Try to use rd as a scratch register. We can do this if it aliases rn
+    // (because we read it in the first instruction), but not rm.
+    temps.Include(rd);
+    temps.Exclude(operand);
+    Register negated_rn = temps.Acquire();
     {
       CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
       mvn(cond, negated_rn, rn);
@@ -1145,16 +1139,9 @@ void MacroAssembler::Delegate(InstructionType type,
     //  orr r0, r1, r0
     Register scratch;
     UseScratchRegisterScope temps(this);
-    // If different from `rn`, we can make use of source and destination
-    // registers as a scratch register.
+    // Try to use rd as a scratch register. We can do this if it aliases rs or
+    // rm (because we read them in the first instruction), but not rn.
     if (!rd.Is(rn)) temps.Include(rd);
-    if (!operand.IsImmediate() && !operand.GetBaseRegister().Is(rn)) {
-      temps.Include(operand.GetBaseRegister());
-    }
-    if (operand.IsRegisterShiftedRegister() &&
-        !operand.GetShiftRegister().Is(rn)) {
-      temps.Include(operand.GetShiftRegister());
-    }
     scratch = temps.Acquire();
     {
       // TODO: We shouldn't have to specify how much space the next instruction
@@ -1254,11 +1241,9 @@ void MacroAssembler::Delegate(InstructionType type,
       UseScratchRegisterScope temps(this);
       Register rm = operand.GetBaseRegister();
       Register rs = operand.GetShiftRegister();
-      // If different from `rn`, we can make use of either `rd`, `rm` or `rs` as
-      // a scratch register.
+      // Try to use rd as a scratch register. We can do this if it aliases rs or
+      // rm (because we read them in the first instruction), but not rn.
       if (!rd.Is(rn)) temps.Include(rd);
-      if (!rm.Is(rn)) temps.Include(rm);
-      if (!rs.Is(rn)) temps.Include(rs);
       Register scratch = temps.Acquire();
       CodeBufferCheckScope scope(this, 2 * kMaxInstructionSizeInBytes);
       (this->*shiftop)(cond, scratch, rm, rs);

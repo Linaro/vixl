@@ -346,10 +346,10 @@ TEST(macro_assembler_orn) {
   COMPARE_A32(Orn(r0, r1, r2),
               "mvn r0, r2\n"
               "orr r0, r1, r0\n");
-  // Use r1 as the temporary register.
+  // Use ip as the temporary register.
   COMPARE_A32(Orn(r0, r0, r1),
-              "mvn r1, r1\n"
-              "orr r0, r1\n");
+              "mvn ip, r1\n"
+              "orr r0, ip\n");
   // Use r0 as the temporary register.
   COMPARE_A32(Orn(r0, r1, r0),
               "mvn r0, r0\n"
@@ -366,10 +366,10 @@ TEST(macro_assembler_orn) {
   COMPARE_A32(Orn(r0, r1, Operand(r2, LSL, 1)),
               "mvn r0, r2, lsl #1\n"
               "orr r0, r1, r0\n");
-  // Use r2 as the temporary register.
+  // Use ip as the temporary register.
   COMPARE_A32(Orns(r0, r0, Operand(r2, LSR, 2)),
-              "mvn r2, r2, lsr #2\n"
-              "orrs r0, r2\n");
+              "mvn ip, r2, lsr #2\n"
+              "orrs r0, ip\n");
 
   // - Register shifted register form.
 
@@ -380,20 +380,20 @@ TEST(macro_assembler_orn) {
   COMPARE_T32(Orn(r0, r1, Operand(r2, LSL, r3)),
               "lsl r0, r2, r3\n"
               "orn r0, r1, r0\n");
-  // Use r2 as the temporary register.
+  // Use ip as the temporary register.
   COMPARE_A32(Orns(r0, r0, Operand(r2, LSR, r3)),
-              "mvn r2, r2, lsr r3\n"
-              "orrs r0, r2\n");
+              "mvn ip, r2, lsr r3\n"
+              "orrs r0, ip\n");
   COMPARE_T32(Orns(r0, r0, Operand(r2, LSR, r3)),
-              "lsr r2, r3\n"
-              "orns r0, r2\n");
-  // Use r3 as the temporary register.
+              "lsr ip, r2, r3\n"
+              "orns r0, ip\n");
+  // Use ip as the temporary register.
   COMPARE_A32(Orn(r0, r0, Operand(r0, ASR, r3)),
-              "mvn r3, r0, asr r3\n"
-              "orr r0, r3\n");
+              "mvn ip, r0, asr r3\n"
+              "orr r0, ip\n");
   COMPARE_T32(Orn(r0, r0, Operand(r0, ASR, r3)),
-              "asr r3, r0, r3\n"
-              "orn r0, r3\n");
+              "asr ip, r0, r3\n"
+              "orn r0, ip\n");
   CLEANUP();
 }
 
@@ -405,8 +405,8 @@ TEST(macro_assembler_t32_rsc) {
 
   // No need for temporay registers.
   COMPARE_T32(Rsc(r0, r1, 1),
-              "mvn r1, r1\n"
-              "adc r0, r1, #1\n");
+              "mvn r0, r1\n"
+              "adc r0, #1\n");
   // No need for temporay registers.
   COMPARE_T32(Rscs(r0, r0, 2),
               "mvn r0, r0\n"
@@ -419,26 +419,42 @@ TEST(macro_assembler_t32_rsc) {
               "mvn r0, #4278190080\n"
               "rsc r0, r1, r0\n");
   COMPARE_T32(Rscs(r0, r1, 0x00ffffff),
-              "mvn r1, r1\n"
-              "mvn r0, #4278190080\n"
-              "adcs r0, r1, r0\n");
+              "mvn r0, r1\n"
+              "mvn ip, #4278190080\n"
+              "adcs r0, ip\n");
+  COMPARE_A32(Rsc(r0, r0, 0x00ffffff),
+              "mvn ip, #4278190080\n"
+              "rsc r0, ip\n");
+  COMPARE_T32(Rscs(r0, r0, 0x00ffffff),
+              "mvn r0, r0\n"
+              "mvn ip, #4278190080\n"
+              "adcs r0, ip\n");
 
   COMPARE_A32(Rsc(r0, r1, 0xabcd2345),
               "mov r0, #9029\n"
               "movt r0, #43981\n"
               "rsc r0, r1, r0\n");
   COMPARE_T32(Rscs(r0, r1, 0xabcd2345),
-              "mvn r1, r1\n"
-              "mov r0, #56506\n"
-              "movt r0, #21554\n"
-              "sbcs r0, r1, r0\n");
+              "mvn r0, r1\n"
+              "mov ip, #56506\n"
+              "movt ip, #21554\n"
+              "sbcs r0, ip\n");
+  COMPARE_A32(Rsc(r0, r0, 0xabcd2345),
+              "mov ip, #9029\n"
+              "movt ip, #43981\n"
+              "rsc r0, ip\n");
+  COMPARE_T32(Rscs(r0, r0, 0xabcd2345),
+              "mvn r0, r0\n"
+              "mov ip, #56506\n"
+              "movt ip, #21554\n"
+              "sbcs r0, ip\n");
 
   // - Plain register form.
 
   // No need for temporary registers.
   COMPARE_T32(Rscs(r0, r1, r2),
-              "mvn r1, r1\n"
-              "adcs r0, r1, r2\n");
+              "mvn r0, r1\n"
+              "adcs r0, r2\n");
   // Use r0 as the temporary register.
   COMPARE_T32(Rscs(r0, r1, r1),
               "mvn r0, r1\n"
@@ -452,12 +468,12 @@ TEST(macro_assembler_t32_rsc) {
 
   // No need for temporay registers.
   COMPARE_T32(Rsc(r0, r1, Operand(r2, LSL, 1)),
-              "mvn r1, r1\n"
-              "adc r0, r1, r2, lsl #1\n");
-  // No need for temporay registers.
+              "mvn r0, r1\n"
+              "adc r0, r2, lsl #1\n");
+  // Use ip as the temporary register.
   COMPARE_T32(Rscs(r0, r1, Operand(r0, LSR, 2)),
-              "mvn r1, r1\n"
-              "adcs r0, r1, r0, lsr #2\n");
+              "mvn ip, r1\n"
+              "adcs r0, ip, r0, lsr #2\n");
   // Use r0 as the temporary register.
   COMPARE_T32(Rsc(r0, r1, Operand(r1, ASR, 3)),
               "mvn r0, r1\n"
@@ -473,24 +489,24 @@ TEST(macro_assembler_t32_rsc) {
 
   COMPARE_T32(Rsc(r0, r1, Operand(r2, LSL, r3)),
               "lsl r0, r2, r3\n"
-              "mvn r1, r1\n"
-              "adc r0, r1, r0\n");
-  // Use r0 as the temporary register.
+              "mvn ip, r1\n"
+              "adc r0, ip, r0\n");
+  // Use r0 and ip as the temporary register.
   COMPARE_T32(Rscs(r0, r1, Operand(r1, LSR, r3)),
               "lsr r0, r1, r3\n"
-              "mvn r1, r1\n"
-              "adcs r0, r1, r0\n");
-  // Use r2 as the temporary register.
+              "mvn ip, r1\n"
+              "adcs r0, ip, r0\n");
+  // Use ip and r0 as the temporary register.
   COMPARE_T32(Rsc(r0, r0, Operand(r2, ASR, r3)),
-              "asr r2, r3\n"
+              "asr ip, r2, r3\n"
               "mvn r0, r0\n"
-              "adc r0, r2\n");
-  // Use r3 as the temporary register.
+              "adc r0, ip\n");
+  // Use ip and r0 as the temporary register.
   COMPARE_T32(Rscs(r0, r0, Operand(r0, ROR, r3)),
-              "ror r3, r0, r3\n"
+              "ror ip, r0, r3\n"
               "mvn r0, r0\n"
-              "adcs r0, r3\n");
-  // Use ip as the temporary register.
+              "adcs r0, ip\n");
+  // Use ip and r0 as the temporary register.
   COMPARE_T32(Rsc(r0, r0, Operand(r0, LSL, r0)),
               "lsl ip, r0, r0\n"
               "mvn r0, r0\n"
@@ -507,11 +523,11 @@ TEST(macro_assembler_t32_register_shift_register) {
               "lsl r0, r2, r3\n"
               "adc r0, r1, r0\n");
   COMPARE_T32(Adcs(r0, r0, Operand(r2, LSR, r3)),
-              "lsr r2, r3\n"
-              "adcs r0, r2\n");
+              "lsr ip, r2, r3\n"
+              "adcs r0, ip\n");
   COMPARE_T32(Add(r0, r0, Operand(r0, ASR, r3)),
-              "asr r3, r0, r3\n"
-              "add r0, r3\n");
+              "asr ip, r0, r3\n"
+              "add r0, ip\n");
   COMPARE_T32(Adds(r0, r0, Operand(r0, ROR, r0)),
               "ror ip, r0, r0\n"
               "adds r0, ip\n");
