@@ -164,6 +164,17 @@ void UseScratchRegisterScope::Exclude(const VRegisterList& list) {
 }
 
 
+void UseScratchRegisterScope::Exclude(const Operand& operand) {
+  if (operand.IsImmediateShiftedRegister()) {
+    Exclude(operand.GetBaseRegister());
+  } else if (operand.IsRegisterShiftedRegister()) {
+    Exclude(operand.GetBaseRegister(), operand.GetShiftRegister());
+  } else {
+    VIXL_ASSERT(operand.IsImmediate());
+  }
+}
+
+
 void UseScratchRegisterScope::ExcludeAll() {
   if (available_ != NULL) {
     available_->SetList(0);

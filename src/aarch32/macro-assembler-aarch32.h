@@ -10761,6 +10761,9 @@ class UseScratchRegisterScope {
     Exclude(VRegisterList(reg1, reg2, reg3, reg4));
   }
 
+  // A convenience helper to exclude any registers used by the operand.
+  void Exclude(const Operand& operand);
+
   // Prevent any scratch registers from being used in this scope.
   void ExcludeAll();
 
