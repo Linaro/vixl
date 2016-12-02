@@ -1815,7 +1815,7 @@ TEST(custom_literal_place_range) {
 
     {
       int space = AlignDown(padding_before, nop_size);
-      AssemblerAccurateScope scope(&masm, space, CodeBufferCheckScope::kExactSize);
+      ExactAssemblyScope scope(&masm, space, ExactAssemblyScope::kExactSize);
       for (int32_t end = masm.GetCursorOffset() + space;
            masm.GetCursorOffset() < end;) {
         __ nop();
@@ -1828,7 +1828,7 @@ TEST(custom_literal_place_range) {
 
     {
       int space = AlignDown(padding_after, nop_size);
-      AssemblerAccurateScope scope(&masm, space, CodeBufferCheckScope::kExactSize);
+      ExactAssemblyScope scope(&masm, space, ExactAssemblyScope::kExactSize);
       for (int32_t end = masm.GetCursorOffset() + space;
            masm.GetCursorOffset() < end;) {
         __ nop();
