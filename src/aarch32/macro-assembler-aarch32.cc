@@ -1073,7 +1073,6 @@ void MacroAssembler::Delegate(InstructionType type,
                               Condition cond,
                               Register rn,
                               const Operand& operand) {
-  // movt, sxtb16, teq, uxtb16
   VIXL_ASSERT((type == kMovt) || (type == kSxtb16) || (type == kTeq) ||
               (type == kUxtb16));
 
@@ -1101,7 +1100,6 @@ void MacroAssembler::Delegate(InstructionType type,
                               EncodingSize size,
                               Register rn,
                               const Operand& operand) {
-  // cmn cmp mov movs mvn mvns sxtb sxth tst uxtb uxth
   CONTEXT_SCOPE;
   VIXL_ASSERT(size.IsBest());
   VIXL_ASSERT((type == kCmn) || (type == kCmp) || (type == kMov) ||
@@ -1214,8 +1212,6 @@ void MacroAssembler::Delegate(InstructionType type,
                               Register rd,
                               Register rn,
                               const Operand& operand) {
-  // orn orns pkhbt pkhtb rsc rscs sxtab sxtab16 sxtah uxtab uxtab16 uxtah
-
   if ((type == kSxtab) || (type == kSxtab16) || (type == kSxtah) ||
       (type == kUxtab) || (type == kUxtab16) || (type == kUxtah) ||
       (type == kPkhbt) || (type == kPkhtb)) {
@@ -1390,9 +1386,6 @@ void MacroAssembler::Delegate(InstructionType type,
                               Register rd,
                               Register rn,
                               const Operand& operand) {
-  // adc adcs add adds and_ ands asr asrs bic bics eor eors lsl lsls lsr lsrs
-  // orr orrs ror rors rsb rsbs sbc sbcs sub subs
-
   VIXL_ASSERT(
       (type == kAdc) || (type == kAdcs) || (type == kAdd) || (type == kAdds) ||
       (type == kAnd) || (type == kAnds) || (type == kAsr) || (type == kAsrs) ||
@@ -1568,7 +1561,6 @@ void MacroAssembler::Delegate(InstructionType type,
                               InstructionRL instruction,
                               Register rn,
                               Label* label) {
-  // cbz cbnz
   VIXL_ASSERT((type == kCbz) || (type == kCbnz));
 
   CONTEXT_SCOPE;
@@ -2058,7 +2050,6 @@ void MacroAssembler::Delegate(InstructionType type,
                               EncodingSize size,
                               Register rd,
                               const MemOperand& operand) {
-  // ldr ldrb ldrh ldrsb ldrsh str strb strh
   CONTEXT_SCOPE;
   VIXL_ASSERT(size.IsBest());
   VIXL_ASSERT((type == kLdr) || (type == kLdrb) || (type == kLdrh) ||
@@ -2274,8 +2265,6 @@ void MacroAssembler::Delegate(InstructionType type,
                               Register rt,
                               Register rt2,
                               const MemOperand& operand) {
-  // ldaexd, ldrd, ldrexd, stlex, stlexb, stlexh, strd, strex, strexb, strexh
-
   if ((type == kLdaexd) || (type == kLdrexd) || (type == kStlex) ||
       (type == kStlexb) || (type == kStlexh) || (type == kStrex) ||
       (type == kStrexb) || (type == kStrexh)) {
@@ -2454,7 +2443,6 @@ void MacroAssembler::Delegate(InstructionType type,
                               DataType dt,
                               SRegister rd,
                               const MemOperand& operand) {
-  // vldr.32 vstr.32
   CONTEXT_SCOPE;
   if (operand.IsImmediate()) {
     const Register& rn = operand.GetBaseRegister();
@@ -2528,7 +2516,6 @@ void MacroAssembler::Delegate(InstructionType type,
                               DataType dt,
                               DRegister rd,
                               const MemOperand& operand) {
-  // vldr.64 vstr.64
   CONTEXT_SCOPE;
   if (operand.IsImmediate()) {
     const Register& rn = operand.GetBaseRegister();

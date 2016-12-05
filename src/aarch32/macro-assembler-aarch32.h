@@ -865,23 +865,29 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                              int* vfp_count,
                              uint32_t* printf_type);
   // Handlers for cases not handled by the assembler.
+  // ADD, MOVT, MOVW, SUB, SXTB16, TEQ, UXTB16
   virtual void Delegate(InstructionType type,
                         InstructionCondROp instruction,
                         Condition cond,
                         Register rn,
                         const Operand& operand) VIXL_OVERRIDE;
+  // CMN, CMP, MOV, MOVS, MVN, MVNS, SXTB, SXTH, TST, UXTB, UXTH
   virtual void Delegate(InstructionType type,
                         InstructionCondSizeROp instruction,
                         Condition cond,
                         EncodingSize size,
                         Register rn,
                         const Operand& operand) VIXL_OVERRIDE;
+  // ADDW, ORN, ORNS, PKHBT, PKHTB, RSC, RSCS, SUBW, SXTAB, SXTAB16, SXTAH,
+  // UXTAB, UXTAB16, UXTAH
   virtual void Delegate(InstructionType type,
                         InstructionCondRROp instruction,
                         Condition cond,
                         Register rd,
                         Register rn,
                         const Operand& operand) VIXL_OVERRIDE;
+  // ADC, ADCS, ADD, ADDS, AND, ANDS, ASR, ASRS, BIC, BICS, EOR, EORS, LSL,
+  // LSLS, LSR, LSRS, ORR, ORRS, ROR, RORS, RSB, RSBS, SBC, SBCS, SUB, SUBS
   virtual void Delegate(InstructionType type,
                         InstructionCondSizeRL instruction,
                         Condition cond,
@@ -895,34 +901,40 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                         Register rd,
                         Register rn,
                         const Operand& operand) VIXL_OVERRIDE;
+  // CBNZ, CBZ
   virtual void Delegate(InstructionType type,
                         InstructionRL instruction,
                         Register rn,
                         Label* label) VIXL_OVERRIDE;
+  // VMOV
   virtual void Delegate(InstructionType type,
                         InstructionCondDtSSop instruction,
                         Condition cond,
                         DataType dt,
                         SRegister rd,
                         const SOperand& operand) VIXL_OVERRIDE;
+  // VMOV, VMVN
   virtual void Delegate(InstructionType type,
                         InstructionCondDtDDop instruction,
                         Condition cond,
                         DataType dt,
                         DRegister rd,
                         const DOperand& operand) VIXL_OVERRIDE;
+  // VMOV, VMVN
   virtual void Delegate(InstructionType type,
                         InstructionCondDtQQop instruction,
                         Condition cond,
                         DataType dt,
                         QRegister rd,
                         const QOperand& operand) VIXL_OVERRIDE;
+  // LDR, LDRB, LDRH, LDRSB, LDRSH, STR, STRB, STRH
   virtual void Delegate(InstructionType type,
                         InstructionCondSizeRMop instruction,
                         Condition cond,
                         EncodingSize size,
                         Register rd,
                         const MemOperand& operand) VIXL_OVERRIDE;
+  // LDAEXD, LDRD, LDREXD, STLEX, STLEXB, STLEXH, STRD, STREX, STREXB, STREXH
   virtual void Delegate(InstructionType type,
                         InstructionCondRL instruction,
                         Condition cond,
@@ -940,18 +952,21 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                         Register rt,
                         Register rt2,
                         const MemOperand& operand) VIXL_OVERRIDE;
+  // VLDR, VSTR
   virtual void Delegate(InstructionType type,
                         InstructionCondDtSMop instruction,
                         Condition cond,
                         DataType dt,
                         SRegister rd,
                         const MemOperand& operand) VIXL_OVERRIDE;
+  // VLDR, VSTR
   virtual void Delegate(InstructionType type,
                         InstructionCondDtDMop instruction,
                         Condition cond,
                         DataType dt,
                         DRegister rd,
                         const MemOperand& operand) VIXL_OVERRIDE;
+  // MSR
   virtual void Delegate(InstructionType type,
                         InstructionCondMsrOp instruction,
                         Condition cond,
@@ -1131,6 +1146,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Adds(Register rd, Register rn, const Operand& operand) {
     Adds(al, rd, rn, operand);
   }
+
 
   void Adr(Condition cond, Register rd, Label* label) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
@@ -2536,6 +2552,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     movt(cond, rd, operand);
   }
   void Movt(Register rd, const Operand& operand) { Movt(al, rd, operand); }
+
 
   void Mrs(Condition cond, Register rd, SpecialRegister spec_reg) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
@@ -4647,6 +4664,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     Subs(al, rd, rn, operand);
   }
 
+
   void Svc(Condition cond, uint32_t imm) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
@@ -4733,6 +4751,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     sxth(cond, rd, operand);
   }
   void Sxth(Register rd, const Operand& operand) { Sxth(al, rd, operand); }
+
 
   void Teq(Condition cond, Register rn, const Operand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rn));

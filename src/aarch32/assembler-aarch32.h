@@ -583,6 +583,16 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rd*/,
                         Register /*rn*/,
                         const Operand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kAdc) || (type == kAdcs) || (type == kAdd) ||
+                (type == kAdds) || (type == kAnd) || (type == kAnds) ||
+                (type == kAsr) || (type == kAsrs) || (type == kBic) ||
+                (type == kBics) || (type == kEor) || (type == kEors) ||
+                (type == kLsl) || (type == kLsls) || (type == kLsr) ||
+                (type == kLsrs) || (type == kOrr) || (type == kOrrs) ||
+                (type == kRor) || (type == kRors) || (type == kRsb) ||
+                (type == kRsbs) || (type == kSbc) || (type == kSbcs) ||
+                (type == kSub) || (type == kSubs));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -590,12 +600,18 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         Register /*rd*/,
                         const Operand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kAdd) || (type == kMovt) || (type == kMovw) ||
+                (type == kSub) || (type == kSxtb16) || (type == kTeq) ||
+                (type == kUxtb16));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
                         InstructionROp /*instruction*/,
                         Register /*rd*/,
                         const Operand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kAdds) || (type == kSubs));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -604,6 +620,12 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rd*/,
                         Register /*rn*/,
                         const Operand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kAddw) || (type == kOrn) || (type == kOrns) ||
+                (type == kPkhbt) || (type == kPkhtb) || (type == kRsc) ||
+                (type == kRscs) || (type == kSubw) || (type == kSxtab) ||
+                (type == kSxtab16) || (type == kSxtah) || (type == kUxtab) ||
+                (type == kUxtab16) || (type == kUxtah));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -612,6 +634,8 @@ class Assembler : public internal::AssemblerBase {
                         EncodingSize /*size*/,
                         Register /*rd*/,
                         Label* /*label*/) {
+    USE(type);
+    VIXL_ASSERT((type == kAdr) || (type == kLdr));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -619,6 +643,8 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         EncodingSize /*size*/,
                         Label* /*label*/) {
+    USE(type);
+    VIXL_ASSERT((type == kB));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -627,6 +653,8 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rd*/,
                         uint32_t /*lsb*/,
                         const Operand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kBfc) || (type == kSsat) || (type == kUsat));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -636,35 +664,49 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rn*/,
                         uint32_t /*lsb*/,
                         const Operand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kBfi) || (type == kSbfx) || (type == kUbfx));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
                         InstructionCondI /*instruction*/,
                         Condition /*cond*/,
                         uint32_t /*imm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kBkpt) || (type == kHlt) || (type == kHvc) ||
+                (type == kSvc));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
                         InstructionCondL /*instruction*/,
                         Condition /*cond*/,
                         Label* /*label*/) {
+    USE(type);
+    VIXL_ASSERT((type == kBl) || (type == kBlx) || (type == kPld) ||
+                (type == kPli));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
                         InstructionCondR /*instruction*/,
                         Condition /*cond*/,
                         Register /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kBlx) || (type == kBx) || (type == kBxj));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
                         InstructionRL /*instruction*/,
                         Register /*rn*/,
                         Label* /*label*/) {
+    USE(type);
+    VIXL_ASSERT((type == kCbnz) || (type == kCbz));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
                         InstructionCond /*instruction*/,
                         Condition /*cond*/) {
+    USE(type);
+    VIXL_ASSERT((type == kClrex));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -672,6 +714,9 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         Register /*rd*/,
                         Register /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kClz) || (type == kRbit) || (type == kRrx) ||
+                (type == kRrxs));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -680,6 +725,11 @@ class Assembler : public internal::AssemblerBase {
                         EncodingSize /*size*/,
                         Register /*rn*/,
                         const Operand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kCmn) || (type == kCmp) || (type == kMov) ||
+                (type == kMovs) || (type == kMvn) || (type == kMvns) ||
+                (type == kSxtb) || (type == kSxth) || (type == kTst) ||
+                (type == kUxtb) || (type == kUxth));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -688,12 +738,36 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rd*/,
                         Register /*rn*/,
                         Register /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kCrc32b) || (type == kCrc32cb) || (type == kCrc32ch) ||
+                (type == kCrc32cw) || (type == kCrc32h) || (type == kCrc32w) ||
+                (type == kMuls) || (type == kQadd) || (type == kQadd16) ||
+                (type == kQadd8) || (type == kQasx) || (type == kQdadd) ||
+                (type == kQdsub) || (type == kQsax) || (type == kQsub) ||
+                (type == kQsub16) || (type == kQsub8) || (type == kSadd16) ||
+                (type == kSadd8) || (type == kSasx) || (type == kSdiv) ||
+                (type == kSel) || (type == kShadd16) || (type == kShadd8) ||
+                (type == kShasx) || (type == kShsax) || (type == kShsub16) ||
+                (type == kShsub8) || (type == kSmmul) || (type == kSmmulr) ||
+                (type == kSmuad) || (type == kSmuadx) || (type == kSmulbb) ||
+                (type == kSmulbt) || (type == kSmultb) || (type == kSmultt) ||
+                (type == kSmulwb) || (type == kSmulwt) || (type == kSmusd) ||
+                (type == kSmusdx) || (type == kSsax) || (type == kSsub16) ||
+                (type == kSsub8) || (type == kUadd16) || (type == kUadd8) ||
+                (type == kUasx) || (type == kUdiv) || (type == kUhadd16) ||
+                (type == kUhadd8) || (type == kUhasx) || (type == kUhsax) ||
+                (type == kUhsub16) || (type == kUhsub8) || (type == kUqadd16) ||
+                (type == kUqadd8) || (type == kUqasx) || (type == kUqsax) ||
+                (type == kUqsub16) || (type == kUqsub8) || (type == kUsad8) ||
+                (type == kUsax) || (type == kUsub16) || (type == kUsub8));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
                         InstructionCondBa /*instruction*/,
                         Condition /*cond*/,
                         MemoryBarrier /*option*/) {
+    USE(type);
+    VIXL_ASSERT((type == kDmb) || (type == kDsb) || (type == kIsb));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -702,6 +776,9 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rn*/,
                         WriteBack /*write_back*/,
                         DRegisterList /*dreglist*/) {
+    USE(type);
+    VIXL_ASSERT((type == kFldmdbx) || (type == kFldmiax) ||
+                (type == kFstmdbx) || (type == kFstmiax));
     UnimplementedDelegate(type);
   }
   virtual void DelegateIt(Condition /*cond*/, uint16_t /*mask*/) {
@@ -712,6 +789,11 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         Register /*rt*/,
                         const MemOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kLda) || (type == kLdab) || (type == kLdaex) ||
+                (type == kLdaexb) || (type == kLdaexh) || (type == kLdah) ||
+                (type == kLdrex) || (type == kLdrexb) || (type == kLdrexh) ||
+                (type == kStl) || (type == kStlb) || (type == kStlh));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -720,6 +802,11 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rt*/,
                         Register /*rt2*/,
                         const MemOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kLdaexd) || (type == kLdrd) || (type == kLdrexd) ||
+                (type == kStlex) || (type == kStlexb) || (type == kStlexh) ||
+                (type == kStrd) || (type == kStrex) || (type == kStrexb) ||
+                (type == kStrexh));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -729,6 +816,9 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rn*/,
                         WriteBack /*write_back*/,
                         RegisterList /*registers*/) {
+    USE(type);
+    VIXL_ASSERT((type == kLdm) || (type == kLdmfd) || (type == kStm) ||
+                (type == kStmdb) || (type == kStmea));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -737,6 +827,11 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rn*/,
                         WriteBack /*write_back*/,
                         RegisterList /*registers*/) {
+    USE(type);
+    VIXL_ASSERT((type == kLdmda) || (type == kLdmdb) || (type == kLdmea) ||
+                (type == kLdmed) || (type == kLdmfa) || (type == kLdmib) ||
+                (type == kStmda) || (type == kStmed) || (type == kStmfa) ||
+                (type == kStmfd) || (type == kStmib));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -745,6 +840,10 @@ class Assembler : public internal::AssemblerBase {
                         EncodingSize /*size*/,
                         Register /*rt*/,
                         const MemOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kLdr) || (type == kLdrb) || (type == kLdrh) ||
+                (type == kLdrsb) || (type == kLdrsh) || (type == kStr) ||
+                (type == kStrb) || (type == kStrh));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -752,6 +851,9 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         Register /*rt*/,
                         Label* /*label*/) {
+    USE(type);
+    VIXL_ASSERT((type == kLdrb) || (type == kLdrh) || (type == kLdrsb) ||
+                (type == kLdrsh));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -760,6 +862,8 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rt*/,
                         Register /*rt2*/,
                         Label* /*label*/) {
+    USE(type);
+    VIXL_ASSERT((type == kLdrd));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -769,6 +873,19 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rn*/,
                         Register /*rm*/,
                         Register /*ra*/) {
+    USE(type);
+    VIXL_ASSERT((type == kMla) || (type == kMlas) || (type == kMls) ||
+                (type == kSmlabb) || (type == kSmlabt) || (type == kSmlad) ||
+                (type == kSmladx) || (type == kSmlal) || (type == kSmlalbb) ||
+                (type == kSmlalbt) || (type == kSmlald) || (type == kSmlaldx) ||
+                (type == kSmlals) || (type == kSmlaltb) || (type == kSmlaltt) ||
+                (type == kSmlatb) || (type == kSmlatt) || (type == kSmlawb) ||
+                (type == kSmlawt) || (type == kSmlsd) || (type == kSmlsdx) ||
+                (type == kSmlsld) || (type == kSmlsldx) || (type == kSmmla) ||
+                (type == kSmmlar) || (type == kSmmls) || (type == kSmmlsr) ||
+                (type == kSmull) || (type == kSmulls) || (type == kUmaal) ||
+                (type == kUmlal) || (type == kUmlals) || (type == kUmull) ||
+                (type == kUmulls) || (type == kUsada8));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -776,6 +893,8 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         Register /*rd*/,
                         SpecialRegister /*spec_reg*/) {
+    USE(type);
+    VIXL_ASSERT((type == kMrs));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -783,6 +902,8 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         MaskedSpecialRegister /*spec_reg*/,
                         const Operand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kMsr));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -792,18 +913,24 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rd*/,
                         Register /*rn*/,
                         Register /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kMul));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
                         InstructionCondSize /*instruction*/,
                         Condition /*cond*/,
                         EncodingSize /*size*/) {
+    USE(type);
+    VIXL_ASSERT((type == kNop) || (type == kYield));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
                         InstructionCondMop /*instruction*/,
                         Condition /*cond*/,
                         const MemOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kPld) || (type == kPldw) || (type == kPli));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -811,6 +938,8 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         EncodingSize /*size*/,
                         RegisterList /*registers*/) {
+    USE(type);
+    VIXL_ASSERT((type == kPop) || (type == kPush));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -818,6 +947,8 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         EncodingSize /*size*/,
                         Register /*rt*/) {
+    USE(type);
+    VIXL_ASSERT((type == kPop) || (type == kPush));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -826,6 +957,8 @@ class Assembler : public internal::AssemblerBase {
                         EncodingSize /*size*/,
                         Register /*rd*/,
                         Register /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kRev) || (type == kRev16) || (type == kRevsh));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -834,6 +967,8 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rd*/,
                         QRegister /*rn*/,
                         QRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmaxnm) || (type == kVminnm));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -842,6 +977,8 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rd*/,
                         uint32_t /*imm*/,
                         Register /*rn*/) {
+    USE(type);
+    VIXL_ASSERT((type == kSsat16) || (type == kUsat16));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -851,6 +988,8 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rt*/,
                         Register /*rt2*/,
                         const MemOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kStlexd) || (type == kStrexd));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -858,6 +997,8 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         EncodingSize /*size*/,
                         uint32_t /*imm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kUdf));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -867,6 +1008,22 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rd*/,
                         DRegister /*rn*/,
                         DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVaba) || (type == kVabd) || (type == kVacge) ||
+                (type == kVacgt) || (type == kVacle) || (type == kVaclt) ||
+                (type == kVadd) || (type == kVbif) || (type == kVbit) ||
+                (type == kVbsl) || (type == kVceq) || (type == kVcge) ||
+                (type == kVcgt) || (type == kVcle) || (type == kVclt) ||
+                (type == kVdiv) || (type == kVeor) || (type == kVfma) ||
+                (type == kVfms) || (type == kVfnma) || (type == kVfnms) ||
+                (type == kVhadd) || (type == kVhsub) || (type == kVmax) ||
+                (type == kVmin) || (type == kVmla) || (type == kVmls) ||
+                (type == kVmul) || (type == kVnmla) || (type == kVnmls) ||
+                (type == kVnmul) || (type == kVpadd) || (type == kVpmax) ||
+                (type == kVpmin) || (type == kVqadd) || (type == kVqdmulh) ||
+                (type == kVqrdmulh) || (type == kVqrshl) || (type == kVqsub) ||
+                (type == kVrecps) || (type == kVrhadd) || (type == kVrshl) ||
+                (type == kVrsqrts) || (type == kVsub) || (type == kVtst));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -876,6 +1033,19 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rd*/,
                         QRegister /*rn*/,
                         QRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVaba) || (type == kVabd) || (type == kVacge) ||
+                (type == kVacgt) || (type == kVacle) || (type == kVaclt) ||
+                (type == kVadd) || (type == kVbif) || (type == kVbit) ||
+                (type == kVbsl) || (type == kVceq) || (type == kVcge) ||
+                (type == kVcgt) || (type == kVcle) || (type == kVclt) ||
+                (type == kVeor) || (type == kVfma) || (type == kVfms) ||
+                (type == kVhadd) || (type == kVhsub) || (type == kVmax) ||
+                (type == kVmin) || (type == kVmla) || (type == kVmls) ||
+                (type == kVmul) || (type == kVqadd) || (type == kVqdmulh) ||
+                (type == kVqrdmulh) || (type == kVqrshl) || (type == kVqsub) ||
+                (type == kVrecps) || (type == kVrhadd) || (type == kVrshl) ||
+                (type == kVrsqrts) || (type == kVsub) || (type == kVtst));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -885,6 +1055,11 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rd*/,
                         DRegister /*rn*/,
                         DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVabal) || (type == kVabdl) || (type == kVaddl) ||
+                (type == kVmlal) || (type == kVmlsl) || (type == kVmull) ||
+                (type == kVqdmlal) || (type == kVqdmlsl) ||
+                (type == kVqdmull) || (type == kVsubl));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -893,6 +1068,14 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         DRegister /*rd*/,
                         DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVabs) || (type == kVcls) || (type == kVclz) ||
+                (type == kVcmp) || (type == kVcmpe) || (type == kVcnt) ||
+                (type == kVneg) || (type == kVpadal) || (type == kVpaddl) ||
+                (type == kVqabs) || (type == kVqneg) || (type == kVrecpe) ||
+                (type == kVrev16) || (type == kVrev32) || (type == kVrev64) ||
+                (type == kVrsqrte) || (type == kVsqrt) || (type == kVswp) ||
+                (type == kVtrn) || (type == kVuzp) || (type == kVzip));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -901,6 +1084,13 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         QRegister /*rd*/,
                         QRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVabs) || (type == kVcls) || (type == kVclz) ||
+                (type == kVcnt) || (type == kVneg) || (type == kVpadal) ||
+                (type == kVpaddl) || (type == kVqabs) || (type == kVqneg) ||
+                (type == kVrecpe) || (type == kVrev16) || (type == kVrev32) ||
+                (type == kVrev64) || (type == kVrsqrte) || (type == kVswp) ||
+                (type == kVtrn) || (type == kVuzp) || (type == kVzip));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -909,6 +1099,9 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         SRegister /*rd*/,
                         SRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVabs) || (type == kVcmp) || (type == kVcmpe) ||
+                (type == kVneg) || (type == kVsqrt));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -918,6 +1111,12 @@ class Assembler : public internal::AssemblerBase {
                         SRegister /*rd*/,
                         SRegister /*rn*/,
                         SRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVadd) || (type == kVdiv) || (type == kVfma) ||
+                (type == kVfms) || (type == kVfnma) || (type == kVfnms) ||
+                (type == kVmla) || (type == kVmls) || (type == kVmul) ||
+                (type == kVnmla) || (type == kVnmls) || (type == kVnmul) ||
+                (type == kVsub));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -927,6 +1126,9 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rd*/,
                         QRegister /*rn*/,
                         QRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVaddhn) || (type == kVraddhn) || (type == kVrsubhn) ||
+                (type == kVsubhn));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -936,6 +1138,8 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rd*/,
                         QRegister /*rn*/,
                         DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVaddw) || (type == kVsubw));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -945,6 +1149,13 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rd*/,
                         DRegister /*rn*/,
                         const DOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVand) || (type == kVbic) || (type == kVceq) ||
+                (type == kVcge) || (type == kVcgt) || (type == kVcle) ||
+                (type == kVclt) || (type == kVorn) || (type == kVorr) ||
+                (type == kVqshl) || (type == kVqshlu) || (type == kVrshr) ||
+                (type == kVrsra) || (type == kVshl) || (type == kVshr) ||
+                (type == kVsli) || (type == kVsra) || (type == kVsri));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -954,6 +1165,13 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rd*/,
                         QRegister /*rn*/,
                         const QOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVand) || (type == kVbic) || (type == kVceq) ||
+                (type == kVcge) || (type == kVcgt) || (type == kVcle) ||
+                (type == kVclt) || (type == kVorn) || (type == kVorr) ||
+                (type == kVqshl) || (type == kVqshlu) || (type == kVrshr) ||
+                (type == kVrsra) || (type == kVshl) || (type == kVshr) ||
+                (type == kVsli) || (type == kVsra) || (type == kVsri));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -962,6 +1180,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         SRegister /*rd*/,
                         double /*imm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcmp) || (type == kVcmpe));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -970,6 +1190,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         DRegister /*rd*/,
                         double /*imm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcmp) || (type == kVcmpe));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -979,6 +1201,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt2*/,
                         DRegister /*rd*/,
                         SRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvt) || (type == kVcvtb) || (type == kVcvtt));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -988,6 +1212,9 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt2*/,
                         SRegister /*rd*/,
                         DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvt) || (type == kVcvtb) || (type == kVcvtr) ||
+                (type == kVcvtt));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -998,6 +1225,8 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rd*/,
                         DRegister /*rm*/,
                         int32_t /*fbits*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvt));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1008,6 +1237,8 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rd*/,
                         QRegister /*rm*/,
                         int32_t /*fbits*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvt));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1018,6 +1249,8 @@ class Assembler : public internal::AssemblerBase {
                         SRegister /*rd*/,
                         SRegister /*rm*/,
                         int32_t /*fbits*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvt));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1027,6 +1260,9 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt2*/,
                         DRegister /*rd*/,
                         DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvt) || (type == kVrintr) || (type == kVrintx) ||
+                (type == kVrintz));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1036,6 +1272,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt2*/,
                         QRegister /*rd*/,
                         QRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvt));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1045,6 +1283,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt2*/,
                         DRegister /*rd*/,
                         QRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvt));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1054,6 +1294,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt2*/,
                         QRegister /*rd*/,
                         DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvt));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1063,6 +1305,10 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt2*/,
                         SRegister /*rd*/,
                         SRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvt) || (type == kVcvtb) || (type == kVcvtr) ||
+                (type == kVcvtt) || (type == kVrintr) || (type == kVrintx) ||
+                (type == kVrintz));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1071,6 +1317,10 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt2*/,
                         DRegister /*rd*/,
                         DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvta) || (type == kVcvtm) || (type == kVcvtn) ||
+                (type == kVcvtp) || (type == kVrinta) || (type == kVrintm) ||
+                (type == kVrintn) || (type == kVrintp));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1079,6 +1329,11 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt2*/,
                         QRegister /*rd*/,
                         QRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvta) || (type == kVcvtm) || (type == kVcvtn) ||
+                (type == kVcvtp) || (type == kVrinta) || (type == kVrintm) ||
+                (type == kVrintn) || (type == kVrintp) || (type == kVrintx) ||
+                (type == kVrintz));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1087,6 +1342,10 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt2*/,
                         SRegister /*rd*/,
                         SRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvta) || (type == kVcvtm) || (type == kVcvtn) ||
+                (type == kVcvtp) || (type == kVrinta) || (type == kVrintm) ||
+                (type == kVrintn) || (type == kVrintp));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1095,6 +1354,9 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt2*/,
                         SRegister /*rd*/,
                         DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVcvta) || (type == kVcvtm) || (type == kVcvtn) ||
+                (type == kVcvtp));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1103,6 +1365,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         QRegister /*rd*/,
                         Register /*rt*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVdup));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1111,6 +1375,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         DRegister /*rd*/,
                         Register /*rt*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVdup));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1119,6 +1385,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         DRegister /*rd*/,
                         DRegisterLane /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVdup));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1127,6 +1395,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         QRegister /*rd*/,
                         DRegisterLane /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVdup));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1137,6 +1407,8 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rn*/,
                         DRegister /*rm*/,
                         const DOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVext));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1147,6 +1419,8 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rn*/,
                         QRegister /*rm*/,
                         const QOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVext));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1155,6 +1429,10 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         const NeonRegisterList& /*nreglist*/,
                         const AlignedMemOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVld1) || (type == kVld2) || (type == kVld3) ||
+                (type == kVld4) || (type == kVst1) || (type == kVst2) ||
+                (type == kVst3) || (type == kVst4));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1163,6 +1441,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         const NeonRegisterList& /*nreglist*/,
                         const MemOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVld3) || (type == kVst3));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1172,6 +1452,9 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rn*/,
                         WriteBack /*write_back*/,
                         DRegisterList /*dreglist*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVldm) || (type == kVldmdb) || (type == kVldmia) ||
+                (type == kVstm) || (type == kVstmdb) || (type == kVstmia));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1181,6 +1464,9 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rn*/,
                         WriteBack /*write_back*/,
                         SRegisterList /*sreglist*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVldm) || (type == kVldmdb) || (type == kVldmia) ||
+                (type == kVstm) || (type == kVstmdb) || (type == kVstmia));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1189,6 +1475,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         DRegister /*rd*/,
                         Label* /*label*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVldr));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1197,6 +1485,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         DRegister /*rd*/,
                         const MemOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVldr) || (type == kVstr));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1205,6 +1495,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         SRegister /*rd*/,
                         Label* /*label*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVldr));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1213,6 +1505,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         SRegister /*rd*/,
                         const MemOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVldr) || (type == kVstr));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1221,6 +1515,9 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rd*/,
                         DRegister /*rn*/,
                         DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmaxnm) || (type == kVminnm) || (type == kVseleq) ||
+                (type == kVselge) || (type == kVselgt) || (type == kVselvs));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1229,6 +1526,9 @@ class Assembler : public internal::AssemblerBase {
                         SRegister /*rd*/,
                         SRegister /*rn*/,
                         SRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmaxnm) || (type == kVminnm) || (type == kVseleq) ||
+                (type == kVselge) || (type == kVselgt) || (type == kVselvs));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1238,6 +1538,9 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rd*/,
                         DRegister /*rn*/,
                         DRegisterLane /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmla) || (type == kVmls) || (type == kVqdmulh) ||
+                (type == kVqrdmulh));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1247,6 +1550,9 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rd*/,
                         QRegister /*rn*/,
                         DRegisterLane /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmla) || (type == kVmls) || (type == kVqdmulh) ||
+                (type == kVqrdmulh));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1256,6 +1562,8 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rd*/,
                         DRegister /*rn*/,
                         DRegisterLane /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmlal) || (type == kVmlsl) || (type == kVqdmull));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1263,6 +1571,8 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         Register /*rt*/,
                         SRegister /*rn*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmov));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1270,6 +1580,8 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         SRegister /*rn*/,
                         Register /*rt*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmov));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1278,6 +1590,8 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rt*/,
                         Register /*rt2*/,
                         DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmov));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1286,6 +1600,8 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rm*/,
                         Register /*rt*/,
                         Register /*rt2*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmov));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1295,6 +1611,8 @@ class Assembler : public internal::AssemblerBase {
                         Register /*rt2*/,
                         SRegister /*rm*/,
                         SRegister /*rm1*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmov));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1304,6 +1622,8 @@ class Assembler : public internal::AssemblerBase {
                         SRegister /*rm1*/,
                         Register /*rt*/,
                         Register /*rt2*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmov));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1312,6 +1632,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         DRegisterLane /*rd*/,
                         Register /*rt*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmov));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1320,6 +1642,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         DRegister /*rd*/,
                         const DOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmov) || (type == kVmvn));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1328,6 +1652,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         QRegister /*rd*/,
                         const QOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmov) || (type == kVmvn));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1336,6 +1662,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         SRegister /*rd*/,
                         const SOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmov));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1344,6 +1672,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         Register /*rt*/,
                         DRegisterLane /*rn*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmov));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1352,6 +1682,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         QRegister /*rd*/,
                         DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmovl));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1360,6 +1692,8 @@ class Assembler : public internal::AssemblerBase {
                         DataType /*dt*/,
                         DRegister /*rd*/,
                         QRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmovn) || (type == kVqmovn) || (type == kVqmovun));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1367,6 +1701,8 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         RegisterOrAPSR_nzcv /*rt*/,
                         SpecialFPRegister /*spec_reg*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmrs));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1374,6 +1710,8 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         SpecialFPRegister /*spec_reg*/,
                         Register /*rt*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmsr));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1384,6 +1722,8 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rn*/,
                         DRegister /*dm*/,
                         unsigned /*index*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmul));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1394,6 +1734,8 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rn*/,
                         DRegister /*dm*/,
                         unsigned /*index*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmul));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1404,6 +1746,8 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rn*/,
                         DRegister /*dm*/,
                         unsigned /*index*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVmull) || (type == kVqdmlal) || (type == kVqdmlsl));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1411,6 +1755,8 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         DataType /*dt*/,
                         DRegisterList /*dreglist*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVpop) || (type == kVpush));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1418,6 +1764,8 @@ class Assembler : public internal::AssemblerBase {
                         Condition /*cond*/,
                         DataType /*dt*/,
                         SRegisterList /*sreglist*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVpop) || (type == kVpush));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1427,6 +1775,10 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rd*/,
                         QRegister /*rm*/,
                         const QOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVqrshrn) || (type == kVqrshrun) ||
+                (type == kVqshrn) || (type == kVqshrun) || (type == kVrshrn) ||
+                (type == kVshrn));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1436,6 +1788,8 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rd*/,
                         DRegister /*rm*/,
                         const DOperand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVshll));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1445,6 +1799,8 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rd*/,
                         const NeonRegisterList& /*nreglist*/,
                         DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVtbl) || (type == kVtbx));
     UnimplementedDelegate(type);
   }
 
