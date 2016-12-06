@@ -118,7 +118,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
  public:
   enum EmitOption { kBranchRequired, kNoBranchRequired };
 
-  virtual AssemblerBase* AsAssemblerBase() VIXL_OVERRIDE { return this; }
+  virtual internal::AssemblerBase* AsAssemblerBase() VIXL_OVERRIDE {
+    return this;
+  }
 
   virtual void BlockPools() VIXL_OVERRIDE {
     literal_pool_manager_.Block();
@@ -437,17 +439,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   bool GenerateSimulatorCode() const { return generate_simulator_code_; }
 
-#ifdef VIXL_DEBUG
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number
   // of instructions is called.
-  void SetAllowMacroInstructions(bool value) VIXL_OVERRIDE {
+  virtual void SetAllowMacroInstructions(bool value) VIXL_OVERRIDE {
     allow_macro_instructions_ = value;
   }
-  bool AllowMacroInstructions() const VIXL_OVERRIDE {
+  virtual bool AllowMacroInstructions() const VIXL_OVERRIDE {
     return allow_macro_instructions_;
   }
-#endif
 
   void FinalizeCode() {
     EmitLiteralPool(kNoBranchRequired);

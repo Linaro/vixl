@@ -37,10 +37,8 @@ class MacroAssemblerInterface {
 
   virtual ~MacroAssemblerInterface() {}
 
-#ifdef VIXL_DEBUG
   virtual bool AllowMacroInstructions() const = 0;
   virtual void SetAllowMacroInstructions(bool allow) = 0;
-#endif
 
   virtual void BlockPools() = 0;
   virtual void ReleasePools() = 0;

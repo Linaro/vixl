@@ -576,7 +576,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                  PositionIndependentCodeOption pic = PositionIndependentCode);
   ~MacroAssembler();
 
-  AssemblerBase* AsAssemblerBase() VIXL_OVERRIDE { return this; }
+  virtual internal::AssemblerBase* AsAssemblerBase() VIXL_OVERRIDE {
+    return this;
+  }
 
   // Start generating code from the beginning of the buffer, discarding any code
   // and data that has already been emitted into the buffer.
@@ -2831,15 +2833,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // one instruction. Refer to the implementation for details.
   void BumpSystemStackPointer(const Operand& space);
 
-#ifdef VIXL_DEBUG
-  void SetAllowMacroInstructions(bool value) VIXL_OVERRIDE {
+  virtual void SetAllowMacroInstructions(bool value) VIXL_OVERRIDE {
     allow_macro_instructions_ = value;
   }
 
-  bool AllowMacroInstructions() const VIXL_OVERRIDE {
+  virtual bool AllowMacroInstructions() const VIXL_OVERRIDE {
     return allow_macro_instructions_;
   }
-#endif
 
   void SetGenerateSimulatorCode(bool value) {
     generate_simulator_code_ = value;
@@ -2854,12 +2854,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void ReleaseVeneerPool() { veneer_pool_.Release(); }
   bool IsVeneerPoolBlocked() const { return veneer_pool_.IsBlocked(); }
 
-  void BlockPools() VIXL_OVERRIDE {
+  virtual void BlockPools() VIXL_OVERRIDE {
     BlockLiteralPool();
     BlockVeneerPool();
   }
 
-  void ReleasePools() VIXL_OVERRIDE {
+  virtual void ReleasePools() VIXL_OVERRIDE {
     ReleaseLiteralPool();
     ReleaseVeneerPool();
   }
@@ -2918,7 +2918,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
 
   void CheckEmitPoolsFor(size_t amount);
-  void EnsureEmitPoolsFor(size_t amount) VIXL_OVERRIDE {
+  virtual void EnsureEmitPoolsFor(size_t amount) VIXL_OVERRIDE {
     ptrdiff_t offset = amount;
     ptrdiff_t max_pools_size =
         literal_pool_.GetMaxSize() + veneer_pool_.GetMaxSize();
