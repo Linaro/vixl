@@ -3122,5 +3122,138 @@ TEST_T32(two_distant_literal_references) {
 }
 
 
+TEST(barriers) {
+  // Generate all supported barriers, this is just a smoke test
+  SETUP();
+
+  START();
+
+  // DMB
+  __ Dmb(SY);
+  __ Dmb(ST);
+  __ Dmb(ISH);
+  __ Dmb(ISHST);
+  __ Dmb(NSH);
+  __ Dmb(NSHST);
+  __ Dmb(OSH);
+  __ Dmb(OSHST);
+
+  // DSB
+  __ Dsb(SY);
+  __ Dsb(ST);
+  __ Dsb(ISH);
+  __ Dsb(ISHST);
+  __ Dsb(NSH);
+  __ Dsb(NSHST);
+  __ Dsb(OSH);
+  __ Dsb(OSHST);
+
+  // ISB
+  __ Isb(SY);
+
+  END();
+
+  TEARDOWN();
+}
+
+
+TEST(preloads) {
+  // Smoke test for various pld/pli forms.
+  SETUP();
+
+  START();
+
+  // PLD immediate
+  __ Pld(MemOperand(sp, 0));
+  __ Pld(MemOperand(r0, 0));
+  __ Pld(MemOperand(r1, 123));
+  __ Pld(MemOperand(r2, 1234));
+  __ Pld(MemOperand(r3, 4095));
+  __ Pld(MemOperand(r4, -123));
+  __ Pld(MemOperand(r5, -255));
+
+  if (masm.IsUsingA32()) {
+    __ Pld(MemOperand(r6, -1234));
+    __ Pld(MemOperand(r7, -4095));
+  }
+
+
+  // PLDW immediate
+  __ Pldw(MemOperand(sp, 0));
+  __ Pldw(MemOperand(r0, 0));
+  __ Pldw(MemOperand(r1, 123));
+  __ Pldw(MemOperand(r2, 1234));
+  __ Pldw(MemOperand(r3, 4095));
+  __ Pldw(MemOperand(r4, -123));
+  __ Pldw(MemOperand(r5, -255));
+
+  if (masm.IsUsingA32()) {
+    __ Pldw(MemOperand(r6, -1234));
+    __ Pldw(MemOperand(r7, -4095));
+  }
+
+  // PLD register
+  __ Pld(MemOperand(r0, r1));
+  __ Pld(MemOperand(r0, r1, LSL, 1));
+  __ Pld(MemOperand(r0, r1, LSL, 2));
+  __ Pld(MemOperand(r0, r1, LSL, 3));
+
+  if (masm.IsUsingA32()) {
+    __ Pld(MemOperand(r0, r1, LSL, 4));
+    __ Pld(MemOperand(r0, r1, LSL, 20));
+  }
+
+  // PLDW register
+  __ Pldw(MemOperand(r0, r1));
+  __ Pldw(MemOperand(r0, r1, LSL, 1));
+  __ Pldw(MemOperand(r0, r1, LSL, 2));
+  __ Pldw(MemOperand(r0, r1, LSL, 3));
+
+  if (masm.IsUsingA32()) {
+    __ Pldw(MemOperand(r0, r1, LSL, 4));
+    __ Pldw(MemOperand(r0, r1, LSL, 20));
+  }
+
+  // PLD literal
+  Label pld_label;
+  __ Pld(&pld_label);
+  __ Bind(&pld_label);
+
+  // PLI immediate
+  __ Pli(MemOperand(sp, 0));
+  __ Pli(MemOperand(r0, 0));
+  __ Pli(MemOperand(r1, 123));
+  __ Pli(MemOperand(r2, 1234));
+  __ Pli(MemOperand(r3, 4095));
+  __ Pli(MemOperand(r4, -123));
+  __ Pli(MemOperand(r5, -255));
+
+  if (masm.IsUsingA32()) {
+    __ Pli(MemOperand(r6, -1234));
+    __ Pli(MemOperand(r7, -4095));
+  }
+
+  // PLI register
+  __ Pli(MemOperand(r0, r1));
+  __ Pli(MemOperand(r0, r1, LSL, 1));
+  __ Pli(MemOperand(r0, r1, LSL, 2));
+  __ Pli(MemOperand(r0, r1, LSL, 3));
+
+  if (masm.IsUsingA32()) {
+    __ Pli(MemOperand(r0, r1, LSL, 4));
+    __ Pli(MemOperand(r0, r1, LSL, 20));
+  }
+
+  // PLI literal
+  Label pli_label;
+  __ Pli(&pli_label);
+  __ Bind(&pli_label);
+
+  END();
+
+  TEARDOWN();
+}
+
+
 }  // namespace aarch32
 }  // namespace vixl

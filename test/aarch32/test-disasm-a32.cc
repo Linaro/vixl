@@ -3311,5 +3311,94 @@ TEST(macro_assembler_AddressComputationHelper) {
 }
 
 
+TEST(barriers) {
+  SETUP();
+
+  // DMB
+  COMPARE_BOTH(Dmb(SY), "dmb sy\n");
+  COMPARE_BOTH(Dmb(ST), "dmb st\n");
+  COMPARE_BOTH(Dmb(ISH), "dmb ish\n");
+  COMPARE_BOTH(Dmb(ISHST), "dmb ishst\n");
+  COMPARE_BOTH(Dmb(NSH), "dmb nsh\n");
+  COMPARE_BOTH(Dmb(NSHST), "dmb nshst\n");
+  COMPARE_BOTH(Dmb(OSH), "dmb osh\n");
+  COMPARE_BOTH(Dmb(OSHST), "dmb oshst\n");
+
+  // DSB
+  COMPARE_BOTH(Dsb(SY), "dsb sy\n");
+  COMPARE_BOTH(Dsb(ST), "dsb st\n");
+  COMPARE_BOTH(Dsb(ISH), "dsb ish\n");
+  COMPARE_BOTH(Dsb(ISHST), "dsb ishst\n");
+  COMPARE_BOTH(Dsb(NSH), "dsb nsh\n");
+  COMPARE_BOTH(Dsb(NSHST), "dsb nshst\n");
+  COMPARE_BOTH(Dsb(OSH), "dsb osh\n");
+  COMPARE_BOTH(Dsb(OSHST), "dsb oshst\n");
+
+  // ISB
+  COMPARE_BOTH(Isb(SY), "isb sy\n");
+
+  CLEANUP();
+}
+
+
+TEST(preloads) {
+  // Smoke test for various pld/pli forms.
+  SETUP();
+
+  // PLD immediate
+  COMPARE_BOTH(Pld(MemOperand(r0, 0)), "pld [r0]\n");
+  COMPARE_BOTH(Pld(MemOperand(r1, 123)), "pld [r1, #123]\n");
+  COMPARE_BOTH(Pld(MemOperand(r4, -123)), "pld [r4, #-123]\n");
+
+  COMPARE_A32(Pld(MemOperand(r7, -4095)), "pld [r7, #-4095]\n");
+
+  // PLDW immediate
+  COMPARE_BOTH(Pldw(MemOperand(r0, 0)), "pldw [r0]\n");
+  COMPARE_BOTH(Pldw(MemOperand(r1, 123)), "pldw [r1, #123]\n");
+  COMPARE_BOTH(Pldw(MemOperand(r4, -123)), "pldw [r4, #-123]\n");
+
+  COMPARE_A32(Pldw(MemOperand(r7, -4095)), "pldw [r7, #-4095]\n");
+
+  // PLD register
+  COMPARE_BOTH(Pld(MemOperand(r0, r1)), "pld [r0, r1]\n");
+  COMPARE_BOTH(Pld(MemOperand(r0, r1, LSL, 1)), "pld [r0, r1, lsl #1]\n");
+
+  COMPARE_A32(Pld(MemOperand(r0, r1, LSL, 20)), "pld [r0, r1, lsl #20]\n");
+
+  // PLDW register
+  COMPARE_BOTH(Pldw(MemOperand(r0, r1)), "pldw [r0, r1]\n");
+  COMPARE_BOTH(Pldw(MemOperand(r0, r1, LSL, 1)), "pldw [r0, r1, lsl #1]\n");
+
+  COMPARE_A32(Pldw(MemOperand(r0, r1, LSL, 20)), "pldw [r0, r1, lsl #20]\n");
+
+  // PLD literal
+  Label pld_label;
+  COMPARE_A32(Pld(&pld_label);, "pld [pc, #-0]\n");
+  COMPARE_T32(Pld(&pld_label);, "pld [pc, #-0]\n");
+  __ Bind(&pld_label);
+
+  // PLI immediate
+  COMPARE_BOTH(Pli(MemOperand(r0, 0)), "pli [r0]\n");
+  COMPARE_BOTH(Pli(MemOperand(r1, 123)), "pli [r1, #123]\n");
+  COMPARE_BOTH(Pli(MemOperand(r4, -123)), "pli [r4, #-123]\n");
+
+  COMPARE_A32(Pli(MemOperand(r7, -4095)), "pli [r7, #-4095]\n");
+
+  // PLI register
+  COMPARE_BOTH(Pli(MemOperand(r0, r1)), "pli [r0, r1]\n");
+  COMPARE_BOTH(Pli(MemOperand(r0, r1, LSL, 1)), "pli [r0, r1, lsl #1]\n");
+
+  COMPARE_A32(Pli(MemOperand(r0, r1, LSL, 20)), "pli [r0, r1, lsl #20]\n");
+
+  // PLI literal
+  Label pli_label;
+  COMPARE_A32(Pli(&pli_label);, "pli [pc, #-0]\n");
+  COMPARE_T32(Pli(&pli_label);, "pli [pc, #-0]\n");
+  __ Bind(&pli_label);
+
+  CLEANUP();
+}
+
+
 }  // namespace aarch32
 }  // namespace vixl
