@@ -64,7 +64,10 @@
 
 #else  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32.
 
-#define SETUP() MacroAssembler masm(BUF_SIZE);
+#define SETUP()                                   \
+  MacroAssembler masm(BUF_SIZE);                  \
+  UseScratchRegisterScope harness_scratch(&masm); \
+  harness_scratch.ExcludeAll();
 
 #define START()              \
   masm.GetBuffer()->Reset(); \
@@ -76,22 +79,23 @@
   __ Push(r9);               \
   __ Push(r10);              \
   __ Push(r11);              \
-  __ Push(r12);              \
-  __ Push(lr)
+  __ Push(lr);               \
+  harness_scratch.Include(ip);
 
-#define END()  \
-  __ Pop(lr);  \
-  __ Pop(r12); \
-  __ Pop(r11); \
-  __ Pop(r10); \
-  __ Pop(r9);  \
-  __ Pop(r8);  \
-  __ Pop(r7);  \
-  __ Pop(r6);  \
-  __ Pop(r5);  \
-  __ Pop(r4);  \
-  __ Bx(lr);   \
-  __ FinalizeCode();
+#define END()                  \
+  harness_scratch.Exclude(ip); \
+  __ Pop(lr);                  \
+  __ Pop(r11);                 \
+  __ Pop(r10);                 \
+  __ Pop(r9);                  \
+  __ Pop(r8);                  \
+  __ Pop(r7);                  \
+  __ Pop(r6);                  \
+  __ Pop(r5);                  \
+  __ Pop(r4);                  \
+  __ Bx(lr);                   \
+  __ FinalizeCode();           \
+  harness_scratch.Close();
 
 #define RUN()                                                 \
   {                                                           \

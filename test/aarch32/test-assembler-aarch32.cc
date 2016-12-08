@@ -107,6 +107,8 @@ void Test##Name()
 #define SETUP()                                                                \
   RegisterDump core;                                                           \
   MacroAssembler masm(BUF_SIZE, isa);                                          \
+  UseScratchRegisterScope harness_scratch(&masm);                              \
+  harness_scratch.ExcludeAll();
 
 #define START()                                                                \
   masm.GetBuffer()->Reset();                                                   \
@@ -118,15 +120,17 @@ void Test##Name()
   __ Push(r9);                                                                 \
   __ Push(r10);                                                                \
   __ Push(r11);                                                                \
-  __ Push(r12);                                                                \
+  __ Push(ip);                                                                 \
   __ Push(lr);                                                                 \
   __ Mov(r0, 0);                                                               \
-  __ Msr(APSR_nzcvq, r0);
+  __ Msr(APSR_nzcvq, r0);                                                      \
+  harness_scratch.Include(ip);
 
 #define END()                                                                  \
+  harness_scratch.Exclude(ip);                                                 \
   core.Dump(&masm);                                                            \
   __ Pop(lr);                                                                  \
-  __ Pop(r12);                                                                 \
+  __ Pop(ip);                                                                  \
   __ Pop(r11);                                                                 \
   __ Pop(r10);                                                                 \
   __ Pop(r9);                                                                  \
@@ -136,7 +140,8 @@ void Test##Name()
   __ Pop(r5);                                                                  \
   __ Pop(r4);                                                                  \
   __ Bx(lr);                                                                   \
-  __ FinalizeCode();
+  __ FinalizeCode();                                                           \
+  harness_scratch.Close();
 
 // Execute the generated code from the MacroAssembler's automatic code buffer.
 // Note the offset for ExecuteMemory since the PCS requires that
@@ -2816,6 +2821,7 @@ TEST(scratch_register_checks) {
   // using as scratch registers. This test checks the MacroAssembler's checking
   // mechanism itself.
   SETUP();
+  START();
   {
     UseScratchRegisterScope temps(&masm);
     // 'ip' is a scratch register by default.
@@ -2831,7 +2837,7 @@ TEST(scratch_register_checks) {
                  temps.IsAvailable(reg));
     }
   }
-
+  END();
   TEARDOWN();
 }
 

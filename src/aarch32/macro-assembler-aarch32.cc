@@ -834,6 +834,12 @@ void MacroAssembler::Printf(const char* format,
                             CPURegister reg2,
                             CPURegister reg3,
                             CPURegister reg4) {
+  // Exclude all registers from the available scratch registers, so
+  // that we are able to use ip below.
+  // TODO: Refactor this function to use UseScratchRegisterScope
+  // for temporary registers below.
+  UseScratchRegisterScope scratch(this);
+  scratch.ExcludeAll();
   if (generate_simulator_code_) {
     PushRegister(reg4);
     PushRegister(reg3);

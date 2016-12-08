@@ -35,6 +35,9 @@ namespace aarch32 {
   offsetof(type, member)
 
 void RegisterDump::Dump(MacroAssembler* masm) {
+  UseScratchRegisterScope scratch(masm);
+  scratch.ExcludeAll();
+
   // Preserve some temporary registers.
   Register dump_base = r0;
   Register tmp = r1;
