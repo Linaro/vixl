@@ -2259,6 +2259,36 @@ TEST(msr_i) {
 }
 
 
+TEST(vmrs_vmsr) {
+  SETUP();
+
+  START();
+  // Move some value to FPSCR and get them back to test vmsr/vmrs instructions.
+  __ Mov(r0, 0x2a000000);
+  __ Vmsr(FPSCR, r0);
+  __ Vmrs(RegisterOrAPSR_nzcv(r1.GetCode()), FPSCR);
+
+  __ Mov(r0, 0x5a000000);
+  __ Vmsr(FPSCR, r0);
+  __ Vmrs(RegisterOrAPSR_nzcv(r2.GetCode()), FPSCR);
+
+  // Move to APSR_nzcv.
+  __ Vmrs(RegisterOrAPSR_nzcv(pc.GetCode()), FPSCR);
+  __ Mrs(r3, APSR);
+  __ And(r3, r3, 0xf0000000);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0x2a000000, r1);
+  ASSERT_EQUAL_32(0x5a000000, r2);
+  ASSERT_EQUAL_32(0x50000000, r3);
+
+  TEARDOWN();
+}
+
+
 TEST(printf) {
   SETUP();
 

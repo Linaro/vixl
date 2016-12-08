@@ -3400,5 +3400,21 @@ TEST(preloads) {
 }
 
 
+TEST(vmrs_vmsr) {
+  SETUP();
+
+  COMPARE_BOTH(Vmsr(FPSCR, r0),
+	       "vmsr FPSCR, r0\n");
+
+  COMPARE_BOTH(Vmrs(RegisterOrAPSR_nzcv(r1.GetCode()), FPSCR),
+	       "vmrs r1, FPSCR\n");
+
+  COMPARE_BOTH(Vmrs(RegisterOrAPSR_nzcv(pc.GetCode()), FPSCR),
+	       "vmrs APSR_nzcv, FPSCR\n");
+
+  CLEANUP();
+}
+
+
 }  // namespace aarch32
 }  // namespace vixl
