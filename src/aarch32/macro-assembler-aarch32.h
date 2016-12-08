@@ -1296,14 +1296,26 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     Asrs(al, rd, rm, operand);
   }
 
-  void B(Condition cond, Label* label) {
+  void B(Condition cond, Label* label, BranchHint hint = kBranchWithoutHint) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    b(cond, label);
+    if (hint == kNear) {
+      if (label->IsBound()) {
+        b(cond, label);
+      } else {
+        b(cond, Narrow, label);
+      }
+    } else {
+      b(cond, label);
+    }
     AddBranchLabel(label);
   }
-  void B(Label* label) { B(al, label); }
+  void B(Label* label, BranchHint hint = kBranchWithoutHint) {
+    B(al, label, hint);
+  }
+  void BPreferNear(Condition cond, Label* label) { B(cond, label, kNear); }
+  void BPreferNear(Label* label) { B(al, label, kNear); }
 
   void Bfc(Condition cond, Register rd, uint32_t lsb, const Operand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));

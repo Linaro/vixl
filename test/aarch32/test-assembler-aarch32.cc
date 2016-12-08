@@ -4910,5 +4910,316 @@ TEST(blx) {
 }
 
 
+// Check that B with a near hint use a narrow branch when it can.
+TEST_T32(b_near_hint) {
+  SETUP();
+  START();
+
+  Label start;
+  Label end;
+
+  __ Bind(&start);
+  __ Nop();
+
+  {
+    // Generate a branch which should be narrow.
+    EmissionCheckScope scope(&masm,
+                             k16BitT32InstructionSizeInBytes,
+                             EmissionCheckScope::kExactSize);
+    __ B(&start, kNear);
+  }
+  {
+    ExactAssemblyScope scope(&masm,
+                             kBNarrowRange,
+                             ExactAssemblyScope::kExactSize);
+    for (int32_t i = 0; i < kBNarrowRange;
+         i += k16BitT32InstructionSizeInBytes) {
+      __ nop();
+    }
+  }
+  {
+    // Generate a branch which should be wide.
+    EmissionCheckScope scope(&masm,
+                             k32BitT32InstructionSizeInBytes,
+                             EmissionCheckScope::kExactSize);
+    __ B(&start, kNear);
+  }
+  {
+    // Generate a forward branch which should be narrow.
+    EmissionCheckScope scope(&masm,
+                             k16BitT32InstructionSizeInBytes,
+                             EmissionCheckScope::kExactSize);
+    __ B(&end, kNear);
+  }
+
+  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() < kBNarrowRange);
+
+  {
+    ExactAssemblyScope scope(&masm,
+                             kBNarrowRange,
+                             ExactAssemblyScope::kExactSize);
+    for (int32_t i = 0; i < kBNarrowRange;
+         i += k16BitT32InstructionSizeInBytes) {
+      __ nop();
+    }
+  }
+
+  // A veneer should have been generated.
+  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() > kBNarrowRange);
+
+  __ Bind(&end);
+
+  END();
+
+  DISASSEMBLE();
+
+  TEARDOWN();
+}
+
+
+// Check that B with a far hint use a narrow branch only for a near backward
+// branch.
+TEST_T32(b_far_hint) {
+  SETUP();
+  START();
+
+  Label start;
+  Label end;
+
+  __ Bind(&start);
+  __ Nop();
+
+  {
+    // Generate a branch which should be narrow.
+    EmissionCheckScope scope(&masm,
+                             k16BitT32InstructionSizeInBytes,
+                             EmissionCheckScope::kExactSize);
+    __ B(&start, kFar);
+  }
+  {
+    ExactAssemblyScope scope(&masm,
+                             kBNarrowRange,
+                             ExactAssemblyScope::kExactSize);
+    for (int32_t i = 0; i < kBNarrowRange;
+         i += k16BitT32InstructionSizeInBytes) {
+      __ nop();
+    }
+  }
+  {
+    // Generate a branch which should be wide.
+    EmissionCheckScope scope(&masm,
+                             k32BitT32InstructionSizeInBytes,
+                             EmissionCheckScope::kExactSize);
+    __ B(&start, kFar);
+  }
+  {
+    // Generate a forward branch which should be wide.
+    EmissionCheckScope scope(&masm,
+                             k32BitT32InstructionSizeInBytes,
+                             EmissionCheckScope::kExactSize);
+    __ B(&end, kFar);
+  }
+
+  __ Bind(&end);
+
+  END();
+
+  DISASSEMBLE();
+
+  TEARDOWN();
+}
+
+
+// Check that conditional B with a near hint use a narrow branch when it can.
+TEST_T32(b_conditional_near_hint) {
+  SETUP();
+  START();
+
+  Label start;
+  Label end;
+
+  __ Bind(&start);
+  __ Nop();
+  {
+    // Generate a branch which should be narrow.
+    EmissionCheckScope scope(&masm,
+                             k16BitT32InstructionSizeInBytes,
+                             EmissionCheckScope::kExactSize);
+    __ B(eq, &start, kNear);
+  }
+  {
+    ExactAssemblyScope scope(&masm,
+                             kBConditionalNarrowRange,
+                             ExactAssemblyScope::kExactSize);
+    for (int32_t i = 0; i < kBConditionalNarrowRange;
+         i += k16BitT32InstructionSizeInBytes) {
+      __ nop();
+    }
+  }
+  {
+    // Generate a branch which should be wide.
+    EmissionCheckScope scope(&masm,
+                             k32BitT32InstructionSizeInBytes,
+                             EmissionCheckScope::kExactSize);
+    __ B(eq, &start, kNear);
+  }
+  {
+    // Generate a forward branch which should be narrow.
+    EmissionCheckScope scope(&masm,
+                             k16BitT32InstructionSizeInBytes,
+                             EmissionCheckScope::kExactSize);
+    __ B(eq, &end, kNear);
+  }
+
+  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() < kBConditionalNarrowRange);
+
+  {
+    ExactAssemblyScope scope(&masm,
+                             kBConditionalNarrowRange,
+                             ExactAssemblyScope::kExactSize);
+    for (int32_t i = 0; i < kBConditionalNarrowRange;
+         i += k16BitT32InstructionSizeInBytes) {
+      __ nop();
+    }
+  }
+
+  // A veneer should have been generated.
+  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() > kBConditionalNarrowRange);
+
+  __ Bind(&end);
+
+  END();
+
+  DISASSEMBLE();
+
+  TEARDOWN();
+}
+
+
+// Check that conditional B with a far hint use a narrow branch only for a
+// near backward branch.
+TEST_T32(b_conditional_far_hint) {
+  SETUP();
+  START();
+
+  Label start;
+  Label end;
+
+  __ Bind(&start);
+  __ Nop();
+
+  {
+    // Generate a branch which should be narrow.
+    EmissionCheckScope scope(&masm,
+                             k16BitT32InstructionSizeInBytes,
+                             EmissionCheckScope::kExactSize);
+    __ B(eq, &start, kFar);
+  }
+  {
+    ExactAssemblyScope scope(&masm,
+                             kBConditionalNarrowRange,
+                             ExactAssemblyScope::kExactSize);
+    for (int32_t i = 0; i < kBConditionalNarrowRange;
+         i += k16BitT32InstructionSizeInBytes) {
+      __ nop();
+    }
+  }
+  {
+    // Generate a branch which should be wide.
+    EmissionCheckScope scope(&masm,
+                             k32BitT32InstructionSizeInBytes,
+                             EmissionCheckScope::kExactSize);
+    __ B(eq, &start, kFar);
+  }
+  {
+    // Generate a forward branch which should be wide.
+    EmissionCheckScope scope(&masm,
+                             k32BitT32InstructionSizeInBytes,
+                             EmissionCheckScope::kExactSize);
+    __ B(eq, &end, kFar);
+  }
+
+  __ Bind(&end);
+
+  END();
+
+  DISASSEMBLE();
+
+  TEARDOWN();
+}
+
+
+// Check that the veneer pool is correctly emitted even if we do a lot of narrow
+// branches.
+TEST_T32(b_narrow_many) {
+  SETUP();
+  START();
+
+  static const int kLabelsCount = kBNarrowRange / 2;
+
+  Label labels[kLabelsCount];
+
+  __ Mov(r0, 0);
+
+  for (int i = 0; i < kLabelsCount; i++) {
+    __ B(&labels[i], kNear);
+  }
+
+  __ Mov(r0, 1);
+  for (int i = 0; i < kLabelsCount; i++) {
+    __ Bind(&labels[i]);
+  }
+  __ Nop();
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0, r0);
+
+  TEARDOWN();
+}
+
+
+// Check that the veneer pool is correctly emitted even if we do a lot of narrow
+// branches and cbz.
+TEST_T32(b_narrow_and_cbz) {
+  SETUP();
+  START();
+
+  static const int kLabelsCount = kBNarrowRange / 4;
+
+  Label b_labels[kLabelsCount];
+  Label cbz_labels[kLabelsCount];
+
+  __ Mov(r0, 0);
+
+  for (int i = 0; i < kLabelsCount; i++) {
+    __ B(&b_labels[i], kNear);
+    __ Cbz(r0, &cbz_labels[i]);
+  }
+
+  __ Mov(r0, 1);
+  for (int i = 0; i < kLabelsCount; i++) {
+    __ Bind(&b_labels[i]);
+  }
+
+  __ Mov(r0, 2);
+  for (int i = 0; i < kLabelsCount; i++) {
+    __ Bind(&cbz_labels[i]);
+  }
+
+  __ Nop();
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(2, r0);
+
+  TEARDOWN();
+}
+
+
 }  // namespace aarch32
 }  // namespace vixl

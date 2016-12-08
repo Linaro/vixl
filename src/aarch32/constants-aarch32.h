@@ -82,8 +82,13 @@ const uint16_t kCbzCbnzMask = 0xf500;
 const uint16_t kCbzCbnzValue = 0xb100;
 
 const int32_t kCbzCbnzRange = 126;
+const int32_t kBConditionalNarrowRange = 254;
+const int32_t kBNarrowRange = 2046;
+const int32_t kNearLabelRange = kBNarrowRange;
 
 enum SystemFunctionsOpcodes { kPrintfCode };
+
+enum BranchHint { kNear, kFar, kBranchWithoutHint };
 
 // Start of generated code.
 enum InstructionAttribute {

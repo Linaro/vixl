@@ -206,14 +206,14 @@ void VeneerPoolManager::AddLabel(Label* label) {
   Label::ForwardReference& back = label->GetBackForwardRef();
   VIXL_ASSERT(back.GetMaxForwardDistance() >= kCbzCbnzRange);
   if (!label->IsInVeneerPool()) {
-    if (back.GetMaxForwardDistance() == kCbzCbnzRange) {
+    if (back.GetMaxForwardDistance() <= kNearLabelRange) {
       near_labels_.push_back(label);
       label->SetVeneerPoolManager(this, true);
     } else {
       far_labels_.push_back(label);
       label->SetVeneerPoolManager(this, false);
     }
-  } else if (back.GetMaxForwardDistance() == kCbzCbnzRange) {
+  } else if (back.GetMaxForwardDistance() <= kNearLabelRange) {
     if (!label->IsNear()) {
       far_labels_.remove(label);
       near_labels_.push_back(label);
