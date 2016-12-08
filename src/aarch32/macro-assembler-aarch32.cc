@@ -1371,7 +1371,7 @@ void MacroAssembler::Delegate(InstructionType type,
   VIXL_ASSERT(size.IsBest());
 
   if ((type == kLdr) && label->IsBound()) {
-    CodeBufferCheckScope scope(this, 4 * kMaxInstructionSizeInBytes);
+    CodeBufferCheckScope scope(this, 5 * kMaxInstructionSizeInBytes);
     UseScratchRegisterScope temps(this);
     temps.Include(rd);
     uint32_t mask = GetOffsetMask(type, Offset);
@@ -2000,7 +2000,7 @@ void MacroAssembler::Delegate(InstructionType type,
   CONTEXT_SCOPE;
 
   if (label->IsBound()) {
-    CodeBufferCheckScope scope(this, 4 * kMaxInstructionSizeInBytes);
+    CodeBufferCheckScope scope(this, 5 * kMaxInstructionSizeInBytes);
     UseScratchRegisterScope temps(this);
     temps.Include(rt);
     Register scratch = temps.Acquire();
@@ -2039,7 +2039,7 @@ void MacroAssembler::Delegate(InstructionType type,
   CONTEXT_SCOPE;
 
   if (label->IsBound()) {
-    CodeBufferCheckScope scope(this, 4 * kMaxInstructionSizeInBytes);
+    CodeBufferCheckScope scope(this, 6 * kMaxInstructionSizeInBytes);
     UseScratchRegisterScope temps(this);
     temps.Include(rt, rt2);
     Register scratch = temps.Acquire();
@@ -2629,7 +2629,7 @@ void MacroAssembler::Delegate(InstructionType type,
   CONTEXT_SCOPE;
 
   if (label->IsBound()) {
-    CodeBufferCheckScope scope(this, 4 * kMaxInstructionSizeInBytes);
+    CodeBufferCheckScope scope(this, 5 * kMaxInstructionSizeInBytes);
     UseScratchRegisterScope temps(this);
     Register scratch = temps.Acquire();
     uint32_t mask = GetOffsetMask(type, Offset);
@@ -2652,7 +2652,7 @@ void MacroAssembler::Delegate(InstructionType type,
   CONTEXT_SCOPE;
 
   if (label->IsBound()) {
-    CodeBufferCheckScope scope(this, 4 * kMaxInstructionSizeInBytes);
+    CodeBufferCheckScope scope(this, 5 * kMaxInstructionSizeInBytes);
     UseScratchRegisterScope temps(this);
     Register scratch = temps.Acquire();
     uint32_t mask = GetOffsetMask(type, Offset);

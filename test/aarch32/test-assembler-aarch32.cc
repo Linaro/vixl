@@ -3159,9 +3159,8 @@ TEST_T32(distant_literal_references) {
     ExactAssemblyScope scope(&masm,
                              space,
                              CodeBufferCheckScope::kExactSize);
-    int nop_size = masm.IsUsingT32() ? k16BitT32InstructionSizeInBytes
-                                     : kA32InstructionSizeInBytes;
-    for (int i = 0; i < space; i += nop_size) {
+    VIXL_ASSERT(masm.IsUsingT32());
+    for (int i = 0; i < space; i += k16BitT32InstructionSizeInBytes) {
       __ nop();
     }
   }
@@ -3234,9 +3233,8 @@ TEST_T32(distant_literal_references_unaligned_pc) {
     ExactAssemblyScope scope(&masm,
                              space,
                              CodeBufferCheckScope::kExactSize);
-    int nop_size = masm.IsUsingT32() ? k16BitT32InstructionSizeInBytes
-                                     : kA32InstructionSizeInBytes;
-    for (int i = 0; i < space; i += nop_size) {
+    VIXL_ASSERT(masm.IsUsingT32());
+    for (int i = 0; i < space; i += k16BitT32InstructionSizeInBytes) {
       __ nop();
     }
   }
@@ -3446,6 +3444,83 @@ TEST_T32(distant_literal_references_short_range_unaligned_pc) {
 
   // Check that the literals loaded correctly.
   ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s4);
+  ASSERT_EQUAL_32(0x89abcdef, r1);
+  ASSERT_EQUAL_32(0xef, r2);
+  ASSERT_EQUAL_32(0xffffffef, r3);
+  ASSERT_EQUAL_32(0xcdef, r4);
+  ASSERT_EQUAL_32(0xffffcdef, r5);
+  ASSERT_EQUAL_32(0x89abcdef, r6);
+  ASSERT_EQUAL_32(0x01234567, r7);
+  ASSERT_EQUAL_FP64(RawbitsToDouble(0x0123456789abcdef), d0);
+  ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s3);
+
+  TEARDOWN();
+}
+
+
+TEST_T32(distant_literal_references_long_range) {
+  SETUP();
+  START();
+
+  Literal<uint64_t>* literal =
+      new Literal<uint64_t>(UINT64_C(0x0123456789abcdef),
+                            RawLiteral::kPlacedWhenUsed,
+                            RawLiteral::kDeletedOnPoolDestruction);
+  // Refer to the literal so that it is emitted early.
+  __ Ldr(r0, literal);
+
+#define PAD_WITH_NOPS(space) do {                                      \
+  {                                                                    \
+    ExactAssemblyScope scope(&masm,                                    \
+                             space,                                    \
+                             CodeBufferCheckScope::kExactSize);        \
+    VIXL_ASSERT(masm.IsUsingT32());                                    \
+    for (int i = 0; i < space; i += k16BitT32InstructionSizeInBytes) { \
+      __ nop();                                                        \
+    }                                                                  \
+  }                                                                    \
+} while(0)
+
+  // Add enough nops to exceed the range of all loads.
+  PAD_WITH_NOPS(5000);
+
+  // The literal has already been emitted, and is out of range of all of these
+  // instructions. The delegates must generate fix-up code.
+  __ Ldr(r1, literal);
+  __ Ldrb(r2, literal);
+  __ Ldrsb(r3, literal);
+  __ Ldrh(r4, literal);
+  __ Ldrsh(r5, literal);
+  __ Ldrd(r6, r7, literal);
+  __ Vldr(d0, literal);
+  __ Vldr(s3, literal);
+
+  // Add enough nops to exceed the range of the adr+sub sequence.
+  PAD_WITH_NOPS(0x421000);
+
+  __ Ldr(r1, literal);
+  __ Ldrb(r2, literal);
+  __ Ldrsb(r3, literal);
+  __ Ldrh(r4, literal);
+  __ Ldrsh(r5, literal);
+  __ Ldrd(r6, r7, literal);
+  {
+    // TODO: We currently require an extra scratch register for these cases. We
+    // should be able to optimise the code generation to avoid this requirement
+    // (and in many cases avoid a 32-bit instruction).
+    UseScratchRegisterScope temps(&masm);
+    temps.Include(r8);
+    __ Vldr(d0, literal);
+    __ Vldr(s3, literal);
+  }
+
+#undef PAD_WITH_NOPS
+
+  END();
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0x89abcdef, r0);
   ASSERT_EQUAL_32(0x89abcdef, r1);
   ASSERT_EQUAL_32(0xef, r2);
   ASSERT_EQUAL_32(0xffffffef, r3);

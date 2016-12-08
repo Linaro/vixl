@@ -522,7 +522,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                          uint32_t extra_offset_mask = 0) {
     // Check for buffer space _before_ calculating the offset, in case we
     // generate a pool that affects the offset calculation.
-    CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
+    CodeBufferCheckScope scope(this, 4 * kMaxInstructionSizeInBytes);
     Label::Offset offset =
         label->GetLocation() -
         AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4);
