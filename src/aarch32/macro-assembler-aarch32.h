@@ -66,6 +66,7 @@ class LiteralPool {
   void AddLiteral(RawLiteral* literal) {
     // Manually placed literals can't be added to a literal pool.
     VIXL_ASSERT(!literal->IsManuallyPlaced());
+    VIXL_ASSERT(!literal->IsBound());
     if (literal->GetPositionInPool() == Label::kMaxOffset) {
       uint32_t position = GetSize();
       literal->SetPositionInPool(position);
@@ -392,13 +393,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void GenerateInstruction(T instr_callback, RawLiteral* const literal) {
     int32_t cursor = GetCursorOffset();
     uint32_t where = cursor + GetArchitectureStatePCOffset();
-    bool already_bound = literal->IsBound();
     // Emit the instruction, via the assembler
     {
       MacroEmissionCheckScope guard(this);
       instr_callback.emit(this, literal);
     }
-    if (!literal->IsManuallyPlaced() && !already_bound) {
+    if (!literal->IsManuallyPlaced() && !literal->IsBound()) {
       if (IsInsertTooFar(literal, where)) {
         // The instruction's data is too far: revert the emission
         GetBuffer()->Rewind(cursor);

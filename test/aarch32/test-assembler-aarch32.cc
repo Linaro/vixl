@@ -4102,5 +4102,47 @@ TEST_T32(veneer_and_literal5) {
 }
 
 
+// Check that a label which is just bound during the MacroEmissionCheckScope
+// can be used.
+TEST(ldr_label_bound_during_scope) {
+  SETUP();
+  START();
+
+  const int32_t kTypicalMacroInstructionMaxSize =
+      8 * kMaxInstructionSizeInBytes;
+
+  vixl::aarch32::Literal<uint64_t>* literal =
+      new Literal<uint64_t>(UINT64_C(0x1234567890abcdef),
+                            RawLiteral::kPlacedWhenUsed,
+                            RawLiteral::kDeletedOnPoolDestruction);
+  __ Ldrd(r0, r1, literal);
+
+  while (masm.GetMarginBeforeLiteralEmission() >=
+         kTypicalMacroInstructionMaxSize) {
+    __ Nop();
+  }
+
+  VIXL_ASSERT(!masm.LiteralPoolIsEmpty());
+
+  // This Ldrd will first generate the pool and then use literal which has just
+  // been bound.
+  __ Ldrd(r2, r3, literal);
+
+  VIXL_ASSERT(masm.LiteralPoolIsEmpty());
+
+  END();
+
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0x90abcdef, r0);
+  ASSERT_EQUAL_32(0x12345678, r1);
+  ASSERT_EQUAL_32(0x90abcdef, r2);
+  ASSERT_EQUAL_32(0x12345678, r3);
+
+  TEARDOWN();
+}
+
+
 }  // namespace aarch32
 }  // namespace vixl
