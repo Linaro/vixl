@@ -462,6 +462,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // partially compute the address. The returned MemOperand will perform any
   // remaining computation in a subsequent load or store instruction.
   //
+  // The offset provided should be the offset that would be used in a load or
+  // store instruction (if it had sufficient range). This only matters where
+  // base.Is(pc), since load and store instructions align the pc before
+  // dereferencing it.
+  //
   // TODO: Improve the handling of negative offsets. They are not implemented
   // precisely for now because they only have a marginal benefit for the
   // existing uses (in delegates).

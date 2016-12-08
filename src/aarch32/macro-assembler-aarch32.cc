@@ -611,6 +611,14 @@ MemOperand MacroAssembler::MemOperandComputationHelper(
   // Check for the simple pass-through case.
   if ((offset & extra_offset_mask) == offset) return MemOperand(base, offset);
 
+  // If the base register is pc, the offset must be adjusted to account for the
+  // Align(pc, 4) in the original offset calculation. This alignment does not
+  // occur when the pc is read in 'add'.
+  if (base.IsPC() && !IsMultiple<4>(GetCursorOffset())) {
+    VIXL_ASSERT(IsMultiple<2>(GetCursorOffset()));
+    offset -= 2;
+  }
+
   MacroEmissionCheckScope guard(this);
   ITScope it_scope(this, &cond);
 

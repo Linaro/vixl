@@ -3092,16 +3092,136 @@ TEST_T32(two_distant_literal_references) {
 
   __ Bind(&end);
 
+#define ENSURE_ALIGNED() do {                                                 \
+  if (!IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())) { \
+    ExactAssemblyScope scope(&masm, k16BitT32InstructionSizeInBytes,          \
+                             ExactAssemblyScope::kExactSize);                 \
+    __ nop();                                                                 \
+  }                                                                           \
+  VIXL_ASSERT(IsMultiple<k32BitT32InstructionSizeInBytes>(                    \
+      masm.GetCursorOffset()));                                               \
+} while(0)
+
   // The literal has already been emitted, and is out of range of all of these
   // instructions. The delegates must generate fix-up code.
+  ENSURE_ALIGNED();
   __ Ldr(r1, literal);
+  ENSURE_ALIGNED();
   __ Ldrb(r2, literal);
+  ENSURE_ALIGNED();
   __ Ldrsb(r3, literal);
+  ENSURE_ALIGNED();
   __ Ldrh(r4, literal);
+  ENSURE_ALIGNED();
   __ Ldrsh(r5, literal);
+  ENSURE_ALIGNED();
   __ Ldrd(r6, r7, literal);
+  ENSURE_ALIGNED();
   __ Vldr(d0, literal);
+  ENSURE_ALIGNED();
   __ Vldr(s3, literal);
+
+#undef ENSURE_ALIGNED
+
+  END();
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0x89abcdef, r0);
+  ASSERT_EQUAL_32(0x89abcdef, r1);
+  ASSERT_EQUAL_32(0xef, r2);
+  ASSERT_EQUAL_32(0xffffffef, r3);
+  ASSERT_EQUAL_32(0xcdef, r4);
+  ASSERT_EQUAL_32(0xffffcdef, r5);
+  ASSERT_EQUAL_32(0x89abcdef, r6);
+  ASSERT_EQUAL_32(0x01234567, r7);
+  ASSERT_EQUAL_FP64(RawbitsToDouble(0x0123456789abcdef), d0);
+  ASSERT_EQUAL_FP64(RawbitsToFloat(0x89abcdef), s3);
+
+  TEARDOWN();
+}
+
+
+TEST_T32(two_distant_literal_references_unaligned_pc) {
+  SETUP();
+  START();
+
+  Label end;
+
+  vixl::aarch32::Literal<uint64_t>* literal =
+      new Literal<uint64_t>(UINT64_C(0x0123456789abcdef),
+                            RawLiteral::kPlacedWhenUsed,
+                            RawLiteral::kDeletedOnPoolDestruction);
+  // Refer to the literal so that it is emitted early.
+  __ Ldr(r0, literal);
+
+  // Add enough nops to exceed the range of both loads, leaving the PC aligned
+  // to only a two-byte boundary.
+  int space = 5002;
+  {
+    ExactAssemblyScope scope(&masm,
+                             space,
+                             CodeBufferCheckScope::kExactSize);
+    int nop_size = masm.IsUsingT32() ? k16BitT32InstructionSizeInBytes
+                                     : kA32InstructionSizeInBytes;
+    for (int i = 0; i < space; i += nop_size) {
+      __ nop();
+    }
+  }
+
+  __ Bind(&end);
+
+#define ENSURE_NOT_ALIGNED() do {                                            \
+  if (IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())) { \
+    ExactAssemblyScope scope(&masm, k16BitT32InstructionSizeInBytes,         \
+                             ExactAssemblyScope::kExactSize);                \
+    __ nop();                                                                \
+  }                                                                          \
+  VIXL_ASSERT(!IsMultiple<k32BitT32InstructionSizeInBytes>(                  \
+      masm.GetCursorOffset()));                                              \
+} while(0)
+
+  // The literal has already been emitted, and is out of range of all of these
+  // instructions. The delegates must generate fix-up code.
+  ENSURE_NOT_ALIGNED();
+  __ Ldr(r1, literal);
+  ENSURE_NOT_ALIGNED();
+  __ Ldrb(r2, literal);
+  ENSURE_NOT_ALIGNED();
+  __ Ldrsb(r3, literal);
+  ENSURE_NOT_ALIGNED();
+  __ Ldrh(r4, literal);
+  ENSURE_NOT_ALIGNED();
+  __ Ldrsh(r5, literal);
+  ENSURE_NOT_ALIGNED();
+  __ Ldrd(r6, r7, literal);
+  {
+    // TODO: We currently require an extra scratch register for these cases
+    // because MemOperandComputationHelper isn't able to fit add_sub_offset into
+    // a single 'sub' instruction, so 'pc' gets preserved first. The same
+    // problem technically exists for the other loads, but vldr is particularly
+    // badly affected because vldr cannot set the low bits in its offset mask,
+    // so the add/sub operand is likely to be difficult to encode.
+    //
+    // At the moment, we get this:
+    //     mov r8, pc
+    //     mov ip, #5118
+    //     sub r8, pc
+    //     vldr d0, [r8, #48]
+    //
+    // We should be able to generate something like this:
+    //     sub ip, pc, #0x1300    // 5118 & 0xff00
+    //     sub ip, #0xfe          // 5118 & 0x00ff
+    //     vldr d0, [ip, #48]
+    UseScratchRegisterScope temps(&masm);
+    temps.Include(r8);
+    ENSURE_NOT_ALIGNED();
+    __ Vldr(d0, literal);
+    ENSURE_NOT_ALIGNED();
+    __ Vldr(s3, literal);
+  }
+
+#undef ENSURE_NOT_ALIGNED
 
   END();
   RUN();
