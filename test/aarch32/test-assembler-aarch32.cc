@@ -3142,20 +3142,18 @@ TEST_NOASM(out_of_space_immediately_before_PerformEnsureEmit) {
 }
 
 
-TEST_T32(two_distant_literal_references) {
+TEST_T32(distant_literal_references) {
   SETUP();
   START();
 
-  Label end;
-
-  vixl::aarch32::Literal<uint64_t>* literal =
+  Literal<uint64_t>* literal =
       new Literal<uint64_t>(UINT64_C(0x0123456789abcdef),
                             RawLiteral::kPlacedWhenUsed,
                             RawLiteral::kDeletedOnPoolDestruction);
   // Refer to the literal so that it is emitted early.
   __ Ldr(r0, literal);
 
-  // Add enough nops to exceed the range of both loads.
+  // Add enough nops to exceed the range of all loads.
   int space = 5000;
   {
     ExactAssemblyScope scope(&masm,
@@ -3167,8 +3165,6 @@ TEST_T32(two_distant_literal_references) {
       __ nop();
     }
   }
-
-  __ Bind(&end);
 
 #define ENSURE_ALIGNED() do {                                                 \
   if (!IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())) { \
@@ -3220,20 +3216,18 @@ TEST_T32(two_distant_literal_references) {
 }
 
 
-TEST_T32(two_distant_literal_references_unaligned_pc) {
+TEST_T32(distant_literal_references_unaligned_pc) {
   SETUP();
   START();
 
-  Label end;
-
-  vixl::aarch32::Literal<uint64_t>* literal =
+  Literal<uint64_t>* literal =
       new Literal<uint64_t>(UINT64_C(0x0123456789abcdef),
                             RawLiteral::kPlacedWhenUsed,
                             RawLiteral::kDeletedOnPoolDestruction);
   // Refer to the literal so that it is emitted early.
   __ Ldr(r0, literal);
 
-  // Add enough nops to exceed the range of both loads, leaving the PC aligned
+  // Add enough nops to exceed the range of all loads, leaving the PC aligned
   // to only a two-byte boundary.
   int space = 5002;
   {
@@ -3246,8 +3240,6 @@ TEST_T32(two_distant_literal_references_unaligned_pc) {
       __ nop();
     }
   }
-
-  __ Bind(&end);
 
 #define ENSURE_NOT_ALIGNED() do {                                            \
   if (IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())) { \
@@ -3306,6 +3298,154 @@ TEST_T32(two_distant_literal_references_unaligned_pc) {
 
   // Check that the literals loaded correctly.
   ASSERT_EQUAL_32(0x89abcdef, r0);
+  ASSERT_EQUAL_32(0x89abcdef, r1);
+  ASSERT_EQUAL_32(0xef, r2);
+  ASSERT_EQUAL_32(0xffffffef, r3);
+  ASSERT_EQUAL_32(0xcdef, r4);
+  ASSERT_EQUAL_32(0xffffcdef, r5);
+  ASSERT_EQUAL_32(0x89abcdef, r6);
+  ASSERT_EQUAL_32(0x01234567, r7);
+  ASSERT_EQUAL_FP64(RawbitsToDouble(0x0123456789abcdef), d0);
+  ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s3);
+
+  TEARDOWN();
+}
+
+
+TEST_T32(distant_literal_references_short_range) {
+  SETUP();
+  START();
+
+  Literal<uint64_t>* literal =
+      new Literal<uint64_t>(UINT64_C(0x0123456789abcdef),
+                            RawLiteral::kPlacedWhenUsed,
+                            RawLiteral::kDeletedOnPoolDestruction);
+  // Refer to the literal so that it is emitted early.
+  __ Vldr(s4, literal);
+
+  // Add enough nops to exceed the range of the loads, but not the adr that will
+  // be generated to read the PC.
+  int space = 4000;
+  {
+    ExactAssemblyScope scope(&masm,
+                             space,
+                             CodeBufferCheckScope::kExactSize);
+    VIXL_ASSERT(masm.IsUsingT32());
+    for (int i = 0; i < space; i += k16BitT32InstructionSizeInBytes) {
+      __ nop();
+    }
+  }
+
+#define ENSURE_ALIGNED() do {                                                 \
+  if (!IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())) { \
+    ExactAssemblyScope scope(&masm, k16BitT32InstructionSizeInBytes,          \
+                             ExactAssemblyScope::kExactSize);                 \
+    __ nop();                                                                 \
+  }                                                                           \
+  VIXL_ASSERT(IsMultiple<k32BitT32InstructionSizeInBytes>(                    \
+      masm.GetCursorOffset()));                                               \
+} while(0)
+
+  // The literal has already been emitted, and is out of range of all of these
+  // instructions. The delegates must generate fix-up code.
+  ENSURE_ALIGNED();
+  __ Ldr(r1, literal);
+  ENSURE_ALIGNED();
+  __ Ldrb(r2, literal);
+  ENSURE_ALIGNED();
+  __ Ldrsb(r3, literal);
+  ENSURE_ALIGNED();
+  __ Ldrh(r4, literal);
+  ENSURE_ALIGNED();
+  __ Ldrsh(r5, literal);
+  ENSURE_ALIGNED();
+  __ Ldrd(r6, r7, literal);
+  ENSURE_ALIGNED();
+  __ Vldr(d0, literal);
+  ENSURE_ALIGNED();
+  __ Vldr(s3, literal);
+
+#undef ENSURE_ALIGNED
+
+  END();
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s4);
+  ASSERT_EQUAL_32(0x89abcdef, r1);
+  ASSERT_EQUAL_32(0xef, r2);
+  ASSERT_EQUAL_32(0xffffffef, r3);
+  ASSERT_EQUAL_32(0xcdef, r4);
+  ASSERT_EQUAL_32(0xffffcdef, r5);
+  ASSERT_EQUAL_32(0x89abcdef, r6);
+  ASSERT_EQUAL_32(0x01234567, r7);
+  ASSERT_EQUAL_FP64(RawbitsToDouble(0x0123456789abcdef), d0);
+  ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s3);
+
+  TEARDOWN();
+}
+
+
+TEST_T32(distant_literal_references_short_range_unaligned_pc) {
+  SETUP();
+  START();
+
+  Literal<uint64_t>* literal =
+      new Literal<uint64_t>(UINT64_C(0x0123456789abcdef),
+                            RawLiteral::kPlacedWhenUsed,
+                            RawLiteral::kDeletedOnPoolDestruction);
+  // Refer to the literal so that it is emitted early.
+  __ Vldr(s4, literal);
+
+  // Add enough nops to exceed the range of the loads, but not the adr that will
+  // be generated to read the PC.
+  int space = 4000;
+  {
+    ExactAssemblyScope scope(&masm,
+                             space,
+                             CodeBufferCheckScope::kExactSize);
+    VIXL_ASSERT(masm.IsUsingT32());
+    for (int i = 0; i < space; i += k16BitT32InstructionSizeInBytes) {
+      __ nop();
+    }
+  }
+
+#define ENSURE_NOT_ALIGNED() do {                                            \
+  if (IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())) { \
+    ExactAssemblyScope scope(&masm, k16BitT32InstructionSizeInBytes,         \
+                             ExactAssemblyScope::kExactSize);                \
+    __ nop();                                                                \
+  }                                                                          \
+  VIXL_ASSERT(!IsMultiple<k32BitT32InstructionSizeInBytes>(                  \
+      masm.GetCursorOffset()));                                              \
+} while(0)
+
+  // The literal has already been emitted, and is out of range of all of these
+  // instructions. The delegates must generate fix-up code.
+  ENSURE_NOT_ALIGNED();
+  __ Ldr(r1, literal);
+  ENSURE_NOT_ALIGNED();
+  __ Ldrb(r2, literal);
+  ENSURE_NOT_ALIGNED();
+  __ Ldrsb(r3, literal);
+  ENSURE_NOT_ALIGNED();
+  __ Ldrh(r4, literal);
+  ENSURE_NOT_ALIGNED();
+  __ Ldrsh(r5, literal);
+  ENSURE_NOT_ALIGNED();
+  __ Ldrd(r6, r7, literal);
+  ENSURE_NOT_ALIGNED();
+  __ Vldr(d0, literal);
+  ENSURE_NOT_ALIGNED();
+  __ Vldr(s3, literal);
+
+#undef ENSURE_NOT_ALIGNED
+
+  END();
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s4);
   ASSERT_EQUAL_32(0x89abcdef, r1);
   ASSERT_EQUAL_32(0xef, r2);
   ASSERT_EQUAL_32(0xffffffef, r3);
@@ -4083,7 +4223,7 @@ TEST_T32(veneer_and_literal4) {
   __ B(ne, &end);
 
   uint32_t value = 0x1234567;
-  vixl::aarch32::Literal<uint32_t>* literal =
+  Literal<uint32_t>* literal =
       new Literal<uint32_t>(value, RawLiteral::kPlacedWhenUsed, RawLiteral::kDeletedOnPoolDestruction);
 
   __ Ldr(r11, literal);
@@ -4195,7 +4335,7 @@ TEST(ldr_label_bound_during_scope) {
   const int32_t kTypicalMacroInstructionMaxSize =
       8 * kMaxInstructionSizeInBytes;
 
-  vixl::aarch32::Literal<uint64_t>* literal =
+  Literal<uint64_t>* literal =
       new Literal<uint64_t>(UINT64_C(0x1234567890abcdef),
                             RawLiteral::kPlacedWhenUsed,
                             RawLiteral::kDeletedOnPoolDestruction);

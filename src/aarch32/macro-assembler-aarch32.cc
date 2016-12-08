@@ -675,22 +675,45 @@ MemOperand MacroAssembler::MemOperandComputationHelper(
   // Check for the simple pass-through case.
   if ((offset & extra_offset_mask) == offset) return MemOperand(base, offset);
 
-  // If the base register is pc, the offset must be adjusted to account for the
-  // Align(pc, 4) in the original offset calculation. This alignment does not
-  // occur when the pc is read in 'add'.
-  if (base.IsPC() && !IsMultiple<4>(GetCursorOffset())) {
-    VIXL_ASSERT(IsMultiple<2>(GetCursorOffset()));
-    offset -= 2;
-  }
-
   MacroEmissionCheckScope guard(this);
   ITScope it_scope(this, &cond);
 
   uint32_t load_store_offset = offset & extra_offset_mask;
-  uint32_t add_sub_offset = offset & ~extra_offset_mask;
+  uint32_t add_offset = offset & ~extra_offset_mask;
 
-  add(cond, scratch, base, add_sub_offset);
+  if (base.IsPC()) {
+    // Special handling for PC bases. We must read the PC in the first
+    // instruction (and only in that instruction), and we must also take care to
+    // keep the same address calculation as loads and stores. For T32, that
+    // means using something like ADR, which uses AlignDown(PC, 4).
 
+    // We don't handle positive offsets from PC because the intention is not
+    // clear; does the user expect the offset from the current
+    // GetCursorOffset(), or to allow a certain amount of space after the
+    // instruction?
+    VIXL_ASSERT((offset & 0x80000000) != 0);
+    if (IsUsingT32()) {
+      // T32: make the first instruction "SUB (immediate, from PC)" -- an alias
+      // of ADR -- to get behaviour like loads and stores. This ADR can handle
+      // at least as much offset as the load_store_offset so it can replace it.
+
+      uint32_t sub_pc_offset = (-offset) & 0xfff;
+      load_store_offset = (offset + sub_pc_offset) & extra_offset_mask;
+      add_offset = (offset + sub_pc_offset) & ~extra_offset_mask;
+
+      ExactAssemblyScope scope(this, k32BitT32InstructionSizeInBytes);
+      sub(cond, scratch, base, sub_pc_offset);
+
+      if (add_offset == 0) return MemOperand(scratch, load_store_offset);
+
+      // The rest of the offset can be generated in the usual way.
+      base = scratch;
+    }
+    // A32 can use any SUB instruction, so we don't have to do anything special
+    // here except to ensure that we read the PC first.
+  }
+
+  add(cond, scratch, base, add_offset);
   return MemOperand(scratch, load_store_offset);
 }
 
