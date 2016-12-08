@@ -94,8 +94,7 @@
   __ Pop(r5);                  \
   __ Pop(r4);                  \
   __ Bx(lr);                   \
-  __ FinalizeCode();           \
-  harness_scratch.Close();
+  __ FinalizeCode();
 
 #define RUN()                                                 \
   {                                                           \
@@ -107,7 +106,7 @@
     masm.GetBuffer()->SetWritable();                          \
   }
 
-#define TEARDOWN()
+#define TEARDOWN() harness_scratch.Close();
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 

@@ -140,8 +140,7 @@ void Test##Name()
   __ Pop(r5);                                                                  \
   __ Pop(r4);                                                                  \
   __ Bx(lr);                                                                   \
-  __ FinalizeCode();                                                           \
-  harness_scratch.Close();
+  __ FinalizeCode();
 
 // Execute the generated code from the MacroAssembler's automatic code buffer.
 // Note the offset for ExecuteMemory since the PCS requires that
@@ -157,7 +156,8 @@ void Test##Name()
     masm.GetBuffer()->SetWritable();                                           \
   }
 
-#define TEARDOWN()
+#define TEARDOWN() \
+  harness_scratch.Close();
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 
