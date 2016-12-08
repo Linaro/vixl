@@ -4180,5 +4180,205 @@ TEST(ldr_label_bound_during_scope) {
 }
 
 
+// TODO: Remove this limitation by having a sandboxing mechanism.
+#if defined(VIXL_HOST_POINTER_32)
+TEST(ldm_stm_no_writeback) {
+  SETUP();
+
+  START();
+
+  const uint32_t src[4] = { 0x12345678, 0x09abcdef, 0xc001c0de, 0xdeadbeef };
+  uint32_t dst1[4] = { 0x00000000, 0x00000000, 0x00000000, 0x00000000 };
+  uint32_t dst2[4] = { 0x00000000, 0x00000000, 0x00000000, 0x00000000 };
+
+  __ Mov(r0, reinterpret_cast<uintptr_t>(src));
+  __ Ldm(r0, NO_WRITE_BACK, RegisterList(r1, r2, r3, r4));;
+  __ Ldm(r0, NO_WRITE_BACK, RegisterList(r5, r6, r9, r11));
+
+  __ Mov(r0, reinterpret_cast<uintptr_t>(dst1));
+  __ Stm(r0, NO_WRITE_BACK, RegisterList(r1, r2, r3, r4));;
+
+  __ Mov(r0, reinterpret_cast<uintptr_t>(dst2));
+  __ Stm(r0, NO_WRITE_BACK, RegisterList(r5, r6, r9, r11));
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0x12345678, r1);
+  ASSERT_EQUAL_32(0x09abcdef, r2);
+  ASSERT_EQUAL_32(0xc001c0de, r3);
+  ASSERT_EQUAL_32(0xdeadbeef, r4);
+
+  ASSERT_EQUAL_32(0x12345678, r5);
+  ASSERT_EQUAL_32(0x09abcdef, r6);
+  ASSERT_EQUAL_32(0xc001c0de, r9);
+  ASSERT_EQUAL_32(0xdeadbeef, r11);
+
+  ASSERT_EQUAL_32(0x12345678, dst1[0]);
+  ASSERT_EQUAL_32(0x09abcdef, dst1[1]);
+  ASSERT_EQUAL_32(0xc001c0de, dst1[2]);
+  ASSERT_EQUAL_32(0xdeadbeef, dst1[3]);
+
+  ASSERT_EQUAL_32(0x12345678, dst2[0]);
+  ASSERT_EQUAL_32(0x09abcdef, dst2[1]);
+  ASSERT_EQUAL_32(0xc001c0de, dst2[2]);
+  ASSERT_EQUAL_32(0xdeadbeef, dst2[3]);
+
+  TEARDOWN();
+}
+
+
+TEST(ldm_stm_writeback) {
+  SETUP();
+
+  START();
+
+  const uint32_t src[4] = { 0x12345678, 0x09abcdef, 0xc001c0de, 0xdeadbeef };
+  uint32_t dst[8] = { 0x00000000, 0x00000000, 0x00000000, 0x00000000,
+		      0x00000000, 0x00000000, 0x00000000, 0x00000000 };
+
+  __ Mov(r0, reinterpret_cast<uintptr_t>(src));
+  __ Ldm(r0, WRITE_BACK, RegisterList(r2, r3));;
+  __ Ldm(r0, WRITE_BACK, RegisterList(r4, r5));;
+
+  __ Mov(r1, reinterpret_cast<uintptr_t>(dst));
+  __ Stm(r1, WRITE_BACK, RegisterList(r2, r3, r4, r5));
+  __ Stm(r1, WRITE_BACK, RegisterList(r2, r3, r4, r5));
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(reinterpret_cast<uintptr_t>(src + 4), r0);
+  ASSERT_EQUAL_32(reinterpret_cast<uintptr_t>(dst + 8), r1);
+
+  ASSERT_EQUAL_32(0x12345678, r2);
+  ASSERT_EQUAL_32(0x09abcdef, r3);
+  ASSERT_EQUAL_32(0xc001c0de, r4);
+  ASSERT_EQUAL_32(0xdeadbeef, r5);
+
+  ASSERT_EQUAL_32(0x12345678, dst[0]);
+  ASSERT_EQUAL_32(0x09abcdef, dst[1]);
+  ASSERT_EQUAL_32(0xc001c0de, dst[2]);
+  ASSERT_EQUAL_32(0xdeadbeef, dst[3]);
+  ASSERT_EQUAL_32(0x12345678, dst[4]);
+  ASSERT_EQUAL_32(0x09abcdef, dst[5]);
+  ASSERT_EQUAL_32(0xc001c0de, dst[6]);
+  ASSERT_EQUAL_32(0xdeadbeef, dst[7]);
+
+  TEARDOWN();
+}
+
+
+TEST_A32(ldm_stm_da_ib) {
+  SETUP();
+
+  START();
+
+  const uint32_t src1[4] = { 0x33333333, 0x44444444, 0x11111111, 0x22222222 };
+  const uint32_t src2[4] = { 0x11111111, 0x22222222, 0x33333333, 0x44444444 };
+
+  uint32_t dst1[4] = { 0x00000000, 0x00000000, 0x00000000, 0x00000000 };
+  uint32_t dst2[4] = { 0x00000000, 0x00000000, 0x00000000, 0x00000000 };
+
+  __ Mov(r11, reinterpret_cast<uintptr_t>(src1 + 3));
+  __ Ldmda(r11, WRITE_BACK, RegisterList(r0, r1));
+  __ Ldmda(r11, NO_WRITE_BACK, RegisterList(r2, r3));
+
+  __ Mov(r10, reinterpret_cast<uintptr_t>(src2 - 1));
+  __ Ldmib(r10, WRITE_BACK, RegisterList(r4, r5));
+  __ Ldmib(r10, NO_WRITE_BACK, RegisterList(r6, r7));
+
+  __ Mov(r9, reinterpret_cast<uintptr_t>(dst1 + 3));
+  __ Stmda(r9, WRITE_BACK, RegisterList(r0, r1));
+  __ Stmda(r9, NO_WRITE_BACK, RegisterList(r2, r3));
+
+  __ Mov(r8, reinterpret_cast<uintptr_t>(dst2 - 1));
+  __ Stmib(r8, WRITE_BACK, RegisterList(r4, r5));
+  __ Stmib(r8, NO_WRITE_BACK, RegisterList(r6, r7));
+
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(reinterpret_cast<uintptr_t>(src1 + 1), r11);
+  ASSERT_EQUAL_32(reinterpret_cast<uintptr_t>(src2  + 1), r10);
+  ASSERT_EQUAL_32(reinterpret_cast<uintptr_t>(dst1 + 1), r9);
+  ASSERT_EQUAL_32(reinterpret_cast<uintptr_t>(dst2 + 1), r8);
+
+  ASSERT_EQUAL_32(0x11111111, r0);
+  ASSERT_EQUAL_32(0x22222222, r1);
+  ASSERT_EQUAL_32(0x33333333, r2);
+  ASSERT_EQUAL_32(0x44444444, r3);
+
+  ASSERT_EQUAL_32(0x11111111, r4);
+  ASSERT_EQUAL_32(0x22222222, r5);
+  ASSERT_EQUAL_32(0x33333333, r6);
+  ASSERT_EQUAL_32(0x44444444, r7);
+
+  ASSERT_EQUAL_32(0x33333333, dst1[0]);
+  ASSERT_EQUAL_32(0x44444444, dst1[1]);
+  ASSERT_EQUAL_32(0x11111111, dst1[2]);
+  ASSERT_EQUAL_32(0x22222222, dst1[3]);
+
+  ASSERT_EQUAL_32(0x11111111, dst2[0]);
+  ASSERT_EQUAL_32(0x22222222, dst2[1]);
+  ASSERT_EQUAL_32(0x33333333, dst2[2]);
+  ASSERT_EQUAL_32(0x44444444, dst2[3]);
+
+  TEARDOWN();
+}
+
+
+TEST(ldmdb_stmdb) {
+  SETUP();
+
+  START();
+
+  const uint32_t src[6] = { 0x55555555, 0x66666666,
+			    0x33333333, 0x44444444,
+			    0x11111111, 0x22222222 };
+
+  uint32_t dst[6] = { 0x00000000, 0x00000000, 0x00000000,
+		      0x00000000, 0x00000000, 0x00000000 };
+
+  __ Mov(r11, reinterpret_cast<uintptr_t>(src + 6));
+  __ Ldmdb(r11, WRITE_BACK, RegisterList(r1, r2));
+  __ Ldmdb(r11, WRITE_BACK, RegisterList(r3, r4));
+  __ Ldmdb(r11, NO_WRITE_BACK, RegisterList(r5, r6));
+
+  __ Mov(r10, reinterpret_cast<uintptr_t>(dst + 6));
+  __ Stmdb(r10, WRITE_BACK, RegisterList(r5, r6));
+  __ Stmdb(r10, WRITE_BACK, RegisterList(r3, r4));
+  __ Stmdb(r10, NO_WRITE_BACK, RegisterList(r1, r2));
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(reinterpret_cast<uintptr_t>(src + 2), r11);
+  ASSERT_EQUAL_32(reinterpret_cast<uintptr_t>(dst + 2), r10);
+
+  ASSERT_EQUAL_32(0x11111111, r1);
+  ASSERT_EQUAL_32(0x22222222, r2);
+  ASSERT_EQUAL_32(0x33333333, r3);
+  ASSERT_EQUAL_32(0x44444444, r4);
+  ASSERT_EQUAL_32(0x55555555, r5);
+  ASSERT_EQUAL_32(0x66666666, r6);
+
+  ASSERT_EQUAL_32(0x11111111, dst[0]);
+  ASSERT_EQUAL_32(0x22222222, dst[1]);
+  ASSERT_EQUAL_32(0x33333333, dst[2]);
+  ASSERT_EQUAL_32(0x44444444, dst[3]);
+  ASSERT_EQUAL_32(0x55555555, dst[4]);
+  ASSERT_EQUAL_32(0x66666666, dst[5]);
+
+  TEARDOWN();
+}
+#endif
+
+
 }  // namespace aarch32
 }  // namespace vixl

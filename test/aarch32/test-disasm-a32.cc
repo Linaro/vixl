@@ -3416,5 +3416,67 @@ TEST(vmrs_vmsr) {
 }
 
 
+TEST(ldm_stm) {
+  SETUP();
+
+  // ldm/stm
+  COMPARE_BOTH(Ldm(r0, NO_WRITE_BACK, RegisterList(r1)),
+	       "ldm r0, {r1}\n");
+
+  COMPARE_BOTH(Ldm(r1, NO_WRITE_BACK, RegisterList(r2, r5, r9, r10)),
+	       "ldm r1, {r2,r5,r9,r10}\n");
+
+  COMPARE_BOTH(Ldm(r0, WRITE_BACK, RegisterList(r1, r2)),
+	       "ldm r0!, {r1,r2}\n");
+
+  COMPARE_BOTH(Stm(r1, NO_WRITE_BACK, RegisterList(r2, r5, r9, r10)),
+	       "stm r1, {r2,r5,r9,r10}\n");
+
+  COMPARE_BOTH(Stm(r0, WRITE_BACK, RegisterList(r1, r2)),
+	       "stm r0!, {r1,r2}\n");
+
+  // ldmda/stmda
+  COMPARE_A32(Ldmda(r11, WRITE_BACK, RegisterList(r0, r1)),
+	      "ldmda r11!, {r0,r1}\n");
+
+  COMPARE_A32(Ldmda(r11, NO_WRITE_BACK, RegisterList(r2, r3)),
+	      "ldmda r11, {r2,r3}\n");
+
+  COMPARE_A32(Stmda(r11, WRITE_BACK, RegisterList(r0, r1)),
+	      "stmda r11!, {r0,r1}\n");
+
+  COMPARE_A32(Stmda(r11, NO_WRITE_BACK, RegisterList(r2, r3)),
+	      "stmda r11, {r2,r3}\n");
+
+  // ldmib/stmib
+  COMPARE_A32(Ldmib(r11, WRITE_BACK, RegisterList(r0, r1)),
+	      "ldmib r11!, {r0,r1}\n");
+
+  COMPARE_A32(Ldmib(r11, NO_WRITE_BACK, RegisterList(r2, r3)),
+	      "ldmib r11, {r2,r3}\n");
+
+  COMPARE_A32(Stmib(r11, WRITE_BACK, RegisterList(r0, r1)),
+	      "stmib r11!, {r0,r1}\n");
+
+  COMPARE_A32(Stmib(r11, NO_WRITE_BACK, RegisterList(r2, r3)),
+	      "stmib r11, {r2,r3}\n");
+
+  // ldmdb/stmdb
+  COMPARE_BOTH(Ldmdb(r11, WRITE_BACK, RegisterList(r0, r1)),
+	       "ldmdb r11!, {r0,r1}\n");
+
+  COMPARE_BOTH(Ldmdb(r11, NO_WRITE_BACK, RegisterList(r2, r3)),
+	       "ldmdb r11, {r2,r3}\n");
+
+  COMPARE_BOTH(Stmdb(r11, WRITE_BACK, RegisterList(r0, r1)),
+	       "stmdb r11!, {r0,r1}\n");
+
+  COMPARE_BOTH(Stmdb(r11, NO_WRITE_BACK, RegisterList(r2, r3)),
+	       "stmdb r11, {r2,r3}\n");
+
+  CLEANUP();
+}
+
+
 }  // namespace aarch32
 }  // namespace vixl
