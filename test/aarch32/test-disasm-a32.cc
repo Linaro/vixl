@@ -57,7 +57,7 @@ namespace aarch32 {
     try {                                                                      \
       int32_t start = masm.GetCursorOffset();
 
-#define END_COMPARE(EXP)                                                       \
+#define END_COMPARE_CHECK_SIZE(EXP,SIZE)                                       \
       int32_t end = masm.GetCursorOffset();                                    \
       masm.FinalizeCode();                                                     \
       std::ostringstream ss;                                                   \
@@ -77,6 +77,11 @@ namespace aarch32 {
               masm.IsUsingT32() ? "T32" : "A32", ss.str().c_str(), EXP);       \
         abort();                                                               \
       }                                                                        \
+      if ((SIZE) != -1 && ((end - start) != (SIZE))) {                         \
+        printf("\nExpected %d bits, found %d bits\n",                          \
+               8 * (SIZE), 8 * (end - start));                                 \
+        abort();                                                               \
+      }                                                                        \
     } catch (std::runtime_error e) {                                           \
       const char *msg = e.what();                                              \
       printf("\n%s:%d:%s\nFound:\n%sExpected:\n%s", __FILE__, __LINE__,        \
@@ -89,7 +94,7 @@ namespace aarch32 {
   {                                                                            \
     int32_t start = masm.GetCursorOffset();
 
-#define END_COMPARE(EXP)                                                       \
+#define END_COMPARE_CHECK_SIZE(EXP,SIZE)                                       \
     int32_t end = masm.GetCursorOffset();                                      \
     masm.FinalizeCode();                                                       \
     std::ostringstream ss;                                                     \
@@ -109,8 +114,15 @@ namespace aarch32 {
              masm.IsUsingT32() ? "T32" : "A32", ss.str().c_str(), EXP);        \
       abort();                                                                 \
     }                                                                          \
+    if ((SIZE) != -1 && ((end - start) != (SIZE))) {                           \
+      printf("\nExpected %d bits, found %d bits\n",                            \
+             8 * (SIZE), 8 * (end - start));                                   \
+      abort();                                                                 \
+    }                                                                          \
   }
 #endif
+
+#define END_COMPARE(EXP) END_COMPARE_CHECK_SIZE(EXP,-1)
 
 #define COMPARE_A32(ASM, EXP)                                                  \
   masm.UseA32();                                                               \
@@ -123,6 +135,12 @@ namespace aarch32 {
   START_COMPARE()                                                              \
   masm.ASM;                                                                    \
   END_COMPARE(EXP)
+
+#define COMPARE_T32_CHECK_SIZE(ASM, EXP, SIZE)                                 \
+  masm.UseT32();                                                               \
+  START_COMPARE()                                                              \
+  masm.ASM;                                                                    \
+  END_COMPARE_CHECK_SIZE(EXP, SIZE)
 
 #define COMPARE_BOTH(ASM, EXP)                                                 \
   COMPARE_A32(ASM, EXP)                                                        \
@@ -2739,17 +2757,17 @@ TEST(macro_assembler_T32_IT) {
               "addeq r5, r8\n");
 
   // ADD (SP plus immediate) T1
-  COMPARE_T32(Add(eq, r7, sp, 508),
+  COMPARE_T32(Add(eq, r7, sp, 1020),
               "it eq\n"
-              "addeq r7, sp, #508\n");
+              "addeq r7, sp, #1020\n");
 
   COMPARE_T32(Add(eq, r7, sp, 1),
               "bne 0x00000006\n"
               "add r7, sp, #1\n");
 
-  COMPARE_T32(Add(eq, r7, sp, 512),
-              "bne 0x00000004\n"
-              "add r7, sp, #512\n");
+  COMPARE_T32(Add(eq, r7, sp, 1024),
+              "bne 0x00000006\n"
+              "add r7, sp, #1024\n");
 
   COMPARE_T32(Add(eq, sp, sp, 32),
               "bne 0x00000004\n"
@@ -3477,6 +3495,300 @@ TEST(ldm_stm) {
   CLEANUP();
 }
 
+#define CHECK_T32_16(ASM, EXP) COMPARE_T32_CHECK_SIZE(ASM, EXP, 2)
+// For instructions inside an IT block, we need to account for the IT
+// instruction as well (another 16 bits).
+#define CHECK_T32_16_IT_BLOCK(ASM, EXP) COMPARE_T32_CHECK_SIZE(ASM, EXP, 4)
+
+TEST(macro_assembler_T32_16bit) {
+  SETUP();
+
+  // Allow the test to use all registers.
+  UseScratchRegisterScope temps(&masm);
+  temps.ExcludeAll();
+
+  CHECK_T32_16(Adc(DontCare, r7, r7, r6),
+               "adcs r7, r6\n");
+
+  CHECK_T32_16_IT_BLOCK(Adc(DontCare, eq, r7, r7, r6),
+                        "it eq\n"
+                        "adceq r7, r6\n");
+
+  CHECK_T32_16(Add(DontCare, r6, r7, 7),
+               "adds r6, r7, #7\n");
+
+  CHECK_T32_16_IT_BLOCK(Add(DontCare, lt, r6, r7, 7),
+                        "it lt\n"
+                        "addlt r6, r7, #7\n");
+
+  CHECK_T32_16(Add(DontCare, r5, r5, 255),
+               "adds r5, #255\n");
+
+  CHECK_T32_16_IT_BLOCK(Add(DontCare, lt, r5, r5, 255),
+                        "it lt\n"
+                        "addlt r5, #255\n");
+
+  CHECK_T32_16(Add(DontCare, r1, r2, r7),
+               "adds r1, r2, r7\n");
+
+  CHECK_T32_16_IT_BLOCK(Add(DontCare, lt, r1, r2, r7),
+                        "it lt\n"
+                        "addlt r1, r2, r7\n");
+
+  CHECK_T32_16(Add(DontCare, r4, r4, r12),
+               "add r4, ip\n");
+
+  CHECK_T32_16_IT_BLOCK(Add(DontCare, eq, r4, r4, r12),
+                        "it eq\n"
+                        "addeq r4, ip\n");
+
+  CHECK_T32_16(Add(DontCare, r0, sp, 1020),
+               "add r0, sp, #1020\n");
+
+  CHECK_T32_16_IT_BLOCK(Add(DontCare, ge, r0, sp, 1020),
+                        "it ge\n"
+                        "addge r0, sp, #1020\n");
+
+  // The equivalent inside an IT block is deprecated.
+  CHECK_T32_16(Add(DontCare, sp, sp, 508),
+               "add sp, #508\n");
+
+  CHECK_T32_16(Add(DontCare, r7, sp, r7),
+               "add r7, sp, r7\n");
+
+  CHECK_T32_16_IT_BLOCK(Add(DontCare, eq, r7, sp, r7),
+                        "it eq\n"
+                        "addeq r7, sp, r7\n");
+
+  CHECK_T32_16(Add(DontCare, sp, sp, r10),
+               "add sp, r10\n");
+
+  CHECK_T32_16_IT_BLOCK(Add(DontCare, eq, sp, sp, r10),
+                        "it eq\n"
+                        "addeq sp, r10\n");
+
+  CHECK_T32_16(And(DontCare, r7, r7, r6),
+               "ands r7, r6\n");
+
+  CHECK_T32_16_IT_BLOCK(And(DontCare, eq, r7, r7, r6),
+                        "it eq\n"
+                        "andeq r7, r6\n");
+
+  CHECK_T32_16(Asr(DontCare, r0, r1, 32),
+               "asrs r0, r1, #32\n");
+
+  CHECK_T32_16_IT_BLOCK(Asr(DontCare, eq, r0, r1, 32),
+                        "it eq\n"
+                        "asreq r0, r1, #32\n");
+
+  CHECK_T32_16(Asr(DontCare, r0, r0, r1),
+               "asrs r0, r1\n");
+
+  CHECK_T32_16_IT_BLOCK(Asr(DontCare, eq, r0, r0, r1),
+                        "it eq\n"
+                        "asreq r0, r1\n");
+
+  CHECK_T32_16(Bic(DontCare, r7, r7, r6),
+               "bics r7, r6\n");
+
+  CHECK_T32_16_IT_BLOCK(Bic(DontCare, eq, r7, r7, r6),
+                        "it eq\n"
+                        "biceq r7, r6\n");
+
+  CHECK_T32_16(Eor(DontCare, r7, r7, r6),
+               "eors r7, r6\n");
+
+  CHECK_T32_16_IT_BLOCK(Eor(DontCare, eq, r7, r7, r6),
+                        "it eq\n"
+                        "eoreq r7, r6\n");
+
+  CHECK_T32_16(Lsl(DontCare, r0, r1, 31),
+               "lsls r0, r1, #31\n");
+
+  CHECK_T32_16_IT_BLOCK(Lsl(DontCare, eq, r0, r1, 31),
+                        "it eq\n"
+                        "lsleq r0, r1, #31\n");
+
+  CHECK_T32_16(Lsl(DontCare, r0, r0, r1),
+               "lsls r0, r1\n");
+
+  CHECK_T32_16_IT_BLOCK(Lsl(DontCare, eq, r0, r0, r1),
+                        "it eq\n"
+                        "lsleq r0, r1\n");
+
+  CHECK_T32_16(Lsr(DontCare, r0, r1, 32),
+               "lsrs r0, r1, #32\n");
+
+  CHECK_T32_16_IT_BLOCK(Lsr(DontCare, eq, r0, r1, 32),
+                        "it eq\n"
+                        "lsreq r0, r1, #32\n");
+
+  CHECK_T32_16(Lsr(DontCare, r0, r0, r1),
+               "lsrs r0, r1\n");
+
+  CHECK_T32_16_IT_BLOCK(Lsr(DontCare, eq, r0, r0, r1),
+                        "it eq\n"
+                        "lsreq r0, r1\n");
+
+  CHECK_T32_16(Mov(DontCare, r7, 255),
+               "movs r7, #255\n");
+
+  CHECK_T32_16_IT_BLOCK(Mov(DontCare, eq, r7, 255),
+                        "it eq\n"
+                        "moveq r7, #255\n");
+
+  CHECK_T32_16(Mov(DontCare, r9, r8),
+               "mov r9, r8\n");
+
+  // Check that we don't try to pick the MOVS register-shifted register variant.
+  CHECK_T32_16(Mov(DontCare, r5, r6),
+               "mov r5, r6\n");
+
+  CHECK_T32_16_IT_BLOCK(Mov(DontCare, eq, r9, r8),
+                        "it eq\n"
+                        "moveq r9, r8\n");
+
+  CHECK_T32_16(Mov(DontCare, r5, Operand(r6, ASR, 1)),
+               "asrs r5, r6, #1\n");
+
+  CHECK_T32_16(Mov(DontCare, r5, Operand(r6, ASR, 32)),
+               "asrs r5, r6, #32\n");
+
+  CHECK_T32_16(Mov(DontCare, r5, Operand(r6, LSR, 1)),
+               "lsrs r5, r6, #1\n");
+
+  CHECK_T32_16(Mov(DontCare, r5, Operand(r6, LSR, 32)),
+               "lsrs r5, r6, #32\n");
+
+  CHECK_T32_16(Mov(DontCare, r5, Operand(r6, LSL, 1)),
+               "lsls r5, r6, #1\n");
+
+  CHECK_T32_16(Mov(DontCare, r5, Operand(r6, LSL, 31)),
+               "lsls r5, r6, #31\n");
+
+  CHECK_T32_16_IT_BLOCK(Mov(DontCare, eq, r5, Operand(r6, ASR, 1)),
+                        "it eq\n"
+                        "asreq r5, r6, #1\n");
+
+  CHECK_T32_16_IT_BLOCK(Mov(DontCare, eq, r5, Operand(r6, ASR, 32)),
+                        "it eq\n"
+                        "asreq r5, r6, #32\n");
+
+  CHECK_T32_16_IT_BLOCK(Mov(DontCare, eq, r5, Operand(r6, LSR, 1)),
+                        "it eq\n"
+                        "lsreq r5, r6, #1\n");
+
+  CHECK_T32_16_IT_BLOCK(Mov(DontCare, eq, r5, Operand(r6, LSR, 32)),
+                        "it eq\n"
+                        "lsreq r5, r6, #32\n");
+
+  CHECK_T32_16_IT_BLOCK(Mov(DontCare, eq, r5, Operand(r6, LSL, 1)),
+                        "it eq\n"
+                        "lsleq r5, r6, #1\n");
+
+  CHECK_T32_16_IT_BLOCK(Mov(DontCare, eq, r5, Operand(r6, LSL, 31)),
+                        "it eq\n"
+                        "lsleq r5, r6, #31\n");
+
+  CHECK_T32_16(Mov(DontCare, r7, Operand(r7, ASR, r6)),
+               "asrs r7, r6\n");
+
+  CHECK_T32_16_IT_BLOCK(Mov(DontCare, eq, r7, Operand(r7, ASR, r6)),
+                        "it eq\n"
+                        "asreq r7, r6\n");
+
+  CHECK_T32_16(Mov(DontCare, r7, Operand(r7, LSR, r6)),
+               "lsrs r7, r6\n");
+
+  CHECK_T32_16_IT_BLOCK(Mov(DontCare, eq, r7, Operand(r7, LSR, r6)),
+                        "it eq\n"
+                        "lsreq r7, r6\n");
+
+  CHECK_T32_16(Mov(DontCare, r7, Operand(r7, LSL, r6)),
+               "lsls r7, r6\n");
+
+  CHECK_T32_16_IT_BLOCK(Mov(DontCare, eq, r7, Operand(r7, LSL, r6)),
+                        "it eq\n"
+                        "lsleq r7, r6\n");
+
+  CHECK_T32_16(Mov(DontCare, r7, Operand(r7, ROR, r6)),
+               "rors r7, r6\n");
+
+  CHECK_T32_16_IT_BLOCK(Mov(DontCare, eq, r7, Operand(r7, ROR, r6)),
+                        "it eq\n"
+                        "roreq r7, r6\n");
+
+  CHECK_T32_16(Mul(DontCare, r0, r1, r0),
+               "muls r0, r1, r0\n");
+
+  CHECK_T32_16_IT_BLOCK(Mul(DontCare, eq, r0, r1, r0),
+                        "it eq\n"
+                        "muleq r0, r1, r0\n");
+
+  CHECK_T32_16(Mvn(DontCare, r6, r7),
+               "mvns r6, r7\n");
+
+  CHECK_T32_16_IT_BLOCK(Mvn(DontCare, eq, r6, r7),
+                        "it eq\n"
+                        "mvneq r6, r7\n");
+
+  CHECK_T32_16(Orr(DontCare, r7, r7, r6),
+               "orrs r7, r6\n");
+
+  CHECK_T32_16_IT_BLOCK(Orr(DontCare, eq, r7, r7, r6),
+                        "it eq\n"
+                        "orreq r7, r6\n");
+
+  CHECK_T32_16(Ror(DontCare, r0, r0, r1),
+               "rors r0, r1\n");
+
+  CHECK_T32_16_IT_BLOCK(Ror(DontCare, eq, r0, r0, r1),
+                        "it eq\n"
+                        "roreq r0, r1\n");
+
+  CHECK_T32_16(Rsb(DontCare, r7, r6, 0),
+               "rsbs r7, r6, #0\n");
+
+  CHECK_T32_16_IT_BLOCK(Rsb(DontCare, eq, r7, r6, 0),
+                        "it eq\n"
+                        "rsbeq r7, r6, #0\n");
+
+  CHECK_T32_16(Sbc(DontCare, r7, r7, r6),
+               "sbcs r7, r6\n");
+
+  CHECK_T32_16_IT_BLOCK(Sbc(DontCare, eq, r7, r7, r6),
+                        "it eq\n"
+                        "sbceq r7, r6\n");
+
+  CHECK_T32_16(Sub(DontCare, r6, r7, 7),
+               "subs r6, r7, #7\n");
+
+  CHECK_T32_16_IT_BLOCK(Sub(DontCare, lt, r6, r7, 7),
+                        "it lt\n"
+                        "sublt r6, r7, #7\n");
+
+  CHECK_T32_16(Sub(DontCare, r5, r5, 255),
+               "subs r5, #255\n");
+
+  CHECK_T32_16_IT_BLOCK(Sub(DontCare, lt, r5, r5, 255),
+                        "it lt\n"
+                        "sublt r5, #255\n");
+
+  CHECK_T32_16(Sub(DontCare, r1, r2, r7),
+               "subs r1, r2, r7\n");
+
+  CHECK_T32_16_IT_BLOCK(Sub(DontCare, lt, r1, r2, r7),
+                        "it lt\n"
+                        "sublt r1, r2, r7\n");
+
+  // The equivalent inside an IT block is deprecated.
+  CHECK_T32_16(Sub(DontCare, sp, sp, 508),
+               "sub sp, #508\n");
+
+  CLEANUP();
+}
+#undef CHECK_T32_16
+#undef CHECK_T32_16_IT_BLOCK
 
 }  // namespace aarch32
 }  // namespace vixl
