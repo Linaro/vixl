@@ -3236,7 +3236,7 @@ TEST_T32(two_distant_literal_references_unaligned_pc) {
   ASSERT_EQUAL_32(0x89abcdef, r6);
   ASSERT_EQUAL_32(0x01234567, r7);
   ASSERT_EQUAL_FP64(RawbitsToDouble(0x0123456789abcdef), d0);
-  ASSERT_EQUAL_FP64(RawbitsToFloat(0x89abcdef), s3);
+  ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s3);
 
   TEARDOWN();
 }
