@@ -4401,6 +4401,93 @@ TEST_T32(veneer_and_literal5) {
 }
 
 
+// Check that veneer and literals are well generated when they are out of
+// range at the same time.
+TEST_T32(veneer_and_literal6) {
+  SETUP();
+
+  START();
+
+  Label t1, t2, t3, t4, t5;
+  static const int kLdrdRange = 1020;
+  static const int kSizeForCbz = k16BitT32InstructionSizeInBytes;
+
+  __ Ldrd(r0, r1, 0x1111111111111111);
+  __ Ldrd(r2, r3, 0x2222222222222222);
+  __ Ldrd(r4, r5, 0x3333333333333333);
+  __ Ldrd(r6, r7, 0x4444444444444444);
+  __ Ldrd(r8, r9, 0x5555555555555555);
+  __ Ldrd(r10, r11, 0x6666666666666666);
+  __ Ldrd(r10, r11, 0x1234567890abcdef);
+
+  // Ldrd has a bigger range that cbz. Generate some nops before the cbzs in
+  // order to reach the maximum range of ldrd and cbz at the same time.
+  {
+    int nop_size = kLdrdRange - kCbzCbnzRange - 5 * kSizeForCbz;
+    ExactAssemblyScope scope(&masm,
+                             nop_size,
+                             CodeBufferCheckScope::kExactSize);
+    for (int i = 0; i < nop_size; i += k16BitT32InstructionSizeInBytes) {
+      __ nop();
+    }
+  }
+
+  __ Cbz(r2, &t1);
+  __ Cbz(r2, &t2);
+  __ Cbz(r2, &t3);
+  __ Cbz(r2, &t4);
+  __ Cbz(r2, &t5);
+
+  // At this point, the ldrds are not out of range. It remains a kCbzCbnzRange
+  // margin (minus the size of the veneers).
+
+  // At this point, the literal and the veneer pools are not emitted.
+  VIXL_CHECK(masm.GetLiteralPoolSize() > 0);
+  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() < kCbzCbnzRange);
+
+  // This scope will generate both veneers (they are both out of range).
+  {
+    int nop_size = kCbzCbnzRange;
+    ExactAssemblyScope scope(&masm,
+                             nop_size,
+                             CodeBufferCheckScope::kExactSize);
+    for (int i = 0; i < nop_size; i += k16BitT32InstructionSizeInBytes) {
+      __ nop();
+    }
+  }
+
+  // Check that both veneers have been emitted.
+  VIXL_CHECK(masm.GetLiteralPoolSize() == 0);
+  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() > kCbzCbnzRange);
+
+  __ Bind(&t1);
+  __ Bind(&t2);
+  __ Bind(&t3);
+  __ Bind(&t4);
+  __ Bind(&t5);
+
+  END();
+
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0x11111111, r0);
+  ASSERT_EQUAL_32(0x11111111, r1);
+  ASSERT_EQUAL_32(0x22222222, r2);
+  ASSERT_EQUAL_32(0x22222222, r3);
+  ASSERT_EQUAL_32(0x33333333, r4);
+  ASSERT_EQUAL_32(0x33333333, r5);
+  ASSERT_EQUAL_32(0x44444444, r6);
+  ASSERT_EQUAL_32(0x44444444, r7);
+  ASSERT_EQUAL_32(0x55555555, r8);
+  ASSERT_EQUAL_32(0x55555555, r9);
+  ASSERT_EQUAL_32(0x90abcdef, r10);
+  ASSERT_EQUAL_32(0x12345678, r11);
+
+  TEARDOWN();
+}
+
+
 // Check that a label which is just bound during the MacroEmissionCheckScope
 // can be used.
 TEST(ldr_label_bound_during_scope) {
