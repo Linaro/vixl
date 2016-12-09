@@ -1474,7 +1474,7 @@ void GenerateLdrLiteralTriggerPoolEmission(InstructionSet isa,
     int masm_check_margin = 10 * kMaxInstructionSizeInBytes;
     size_t expected_pool_size = 4;
     while ((masm.GetMarginBeforeLiteralEmission() - masm_check_margin) >=
-	   static_cast<int32_t>(kMaxInstructionSizeInBytes)) {
+           static_cast<int32_t>(kMaxInstructionSizeInBytes)) {
       __ Ldr(r7, 0x90abcdef);
       // Each ldr instruction will force a new literal value to be added
       // to the pool. Check that the literal pool grows accordingly.
