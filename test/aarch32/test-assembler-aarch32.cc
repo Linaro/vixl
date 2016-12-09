@@ -4038,8 +4038,11 @@ TEST_T32(veneer_and_literal3) {
 
   Label labels[kLabelsCount];
 
+  // Set the Z flag so that the following branches are not taken.
+  __ Movs(r0, 0);
+
   for (int i = 0; i < kLabelsCount; i++) {
-    __ B(&labels[i]);
+    __ B(ne, &labels[i]);
   }
 
   // Create one literal pool entry.
@@ -4074,7 +4077,10 @@ TEST_T32(veneer_and_literal4) {
   START();
 
   Label end;
-  __ B(&end);
+
+  // Set the Z flag so that the following branch is not taken.
+  __ Movs(r0, 0);
+  __ B(ne, &end);
 
   uint32_t value = 0x1234567;
   vixl::aarch32::Literal<uint32_t>* literal =
