@@ -95,39 +95,78 @@ class Assembler : public internal::AssemblerBase {
     }
   };
 
-  explicit Assembler(InstructionSet isa = A32)
+  explicit Assembler(InstructionSet isa = kDefaultISA)
       : isa_(isa),
         first_condition_(al),
         it_mask_(0),
         has_32_dregs_(true),
         allow_unpredictable_(false),
-        allow_strongly_discouraged_(false) {}
-  explicit Assembler(size_t capacity, InstructionSet isa = A32)
+        allow_strongly_discouraged_(false) {
+#if defined(VIXL_INCLUDE_TARGET_A32_ONLY)
+    // Avoid compiler warning.
+    USE(isa_);
+    VIXL_ASSERT(isa == A32);
+#elif defined(VIXL_INCLUDE_TARGET_T32_ONLY)
+    USE(isa_);
+    VIXL_ASSERT(isa == T32);
+#endif
+  }
+  explicit Assembler(size_t capacity, InstructionSet isa = kDefaultISA)
       : AssemblerBase(capacity),
         isa_(isa),
         first_condition_(al),
         it_mask_(0),
         has_32_dregs_(true),
         allow_unpredictable_(false),
-        allow_strongly_discouraged_(false) {}
-  Assembler(byte* buffer, size_t capacity, InstructionSet isa = A32)
+        allow_strongly_discouraged_(false) {
+#if defined(VIXL_INCLUDE_TARGET_A32_ONLY)
+    VIXL_ASSERT(isa == A32);
+#elif defined(VIXL_INCLUDE_TARGET_T32_ONLY)
+    VIXL_ASSERT(isa == T32);
+#endif
+  }
+  Assembler(byte* buffer, size_t capacity, InstructionSet isa = kDefaultISA)
       : AssemblerBase(buffer, capacity),
         isa_(isa),
         first_condition_(al),
         it_mask_(0),
         has_32_dregs_(true),
         allow_unpredictable_(false),
-        allow_strongly_discouraged_(false) {}
+        allow_strongly_discouraged_(false) {
+#if defined(VIXL_INCLUDE_TARGET_A32_ONLY)
+    VIXL_ASSERT(isa == A32);
+#elif defined(VIXL_INCLUDE_TARGET_T32_ONLY)
+    VIXL_ASSERT(isa == T32);
+#endif
+  }
   virtual ~Assembler() {}
+
   void UseInstructionSet(InstructionSet isa) {
+#if defined(VIXL_INCLUDE_TARGET_A32_ONLY)
+    USE(isa);
+    VIXL_ASSERT(isa == A32);
+#elif defined(VIXL_INCLUDE_TARGET_T32_ONLY)
+    USE(isa);
+    VIXL_ASSERT(isa == T32);
+#else
     VIXL_ASSERT((isa_ == isa) || (GetCursorOffset() == 0));
     isa_ = isa;
+#endif
   }
+
+#if defined(VIXL_INCLUDE_TARGET_A32_ONLY)
+  InstructionSet GetInstructionSetInUse() const { return A32; }
+#elif defined(VIXL_INCLUDE_TARGET_T32_ONLY)
+  InstructionSet GetInstructionSetInUse() const { return T32; }
+#else
   InstructionSet GetInstructionSetInUse() const { return isa_; }
+#endif
+
   void UseT32() { UseInstructionSet(T32); }
   void UseA32() { UseInstructionSet(A32); }
   bool IsUsingT32() const { return GetInstructionSetInUse() == T32; }
   bool IsUsingA32() const { return GetInstructionSetInUse() == A32; }
+
   void SetIT(Condition first_condition, uint16_t it_mask) {
     VIXL_ASSERT(it_mask_ == 0);
     first_condition_ = first_condition;

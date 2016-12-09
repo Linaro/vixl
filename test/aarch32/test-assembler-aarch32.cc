@@ -40,8 +40,41 @@ namespace aarch32 {
 
 #define STRINGIFY(x) #x
 
+#ifdef VIXL_INCLUDE_TARGET_A32_ONLY
+#define TEST_T32(Name)                                            \
+void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
+#else
+// Tests declared with this macro will only target T32.
+#define TEST_T32(Name)                                            \
+void Test##Name##Impl(InstructionSet isa);                        \
+void Test##Name() {                                               \
+  Test##Name##Impl(T32);                                          \
+}                                                                 \
+Test test_##Name(STRINGIFY(AARCH32_T32_##Name), &Test##Name);     \
+void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
+#endif
+
+#ifdef VIXL_INCLUDE_TARGET_T32_ONLY
+#define TEST_A32(Name)                                            \
+void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
+#else
+// Test declared with this macro will only target A32.
+#define TEST_A32(Name)                                            \
+void Test##Name##Impl(InstructionSet isa);                        \
+void Test##Name() {                                               \
+  Test##Name##Impl(A32);                                          \
+}                                                                 \
+Test test_##Name(STRINGIFY(AARCH32_A32_##Name), &Test##Name);     \
+void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
+#endif
+
 // Tests declared with this macro will be run twice: once targeting A32 and
 // once targeting T32.
+#if defined(VIXL_INCLUDE_TARGET_A32_ONLY)
+#define TEST(Name)  TEST_A32(Name)
+#elif defined(VIXL_INCLUDE_TARGET_T32_ONLY)
+#define TEST(Name)  TEST_T32(Name)
+#else
 #define TEST(Name)                                                \
 void Test##Name##Impl(InstructionSet isa);                        \
 void Test##Name() {                                               \
@@ -52,24 +85,7 @@ void Test##Name() {                                               \
 }                                                                 \
 Test test_##Name(STRINGIFY(AARCH32_ASM_##Name), &Test##Name);     \
 void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
-
-// Test declared with this macro will only target A32.
-#define TEST_A32(Name)                                            \
-void Test##Name##Impl(InstructionSet isa);                        \
-void Test##Name() {                                               \
-  Test##Name##Impl(A32);                                          \
-}                                                                 \
-Test test_##Name(STRINGIFY(AARCH32_A32_##Name), &Test##Name);     \
-void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
-
-// Tests declared with this macro will only target T32.
-#define TEST_T32(Name)                                            \
-void Test##Name##Impl(InstructionSet isa);                        \
-void Test##Name() {                                               \
-  Test##Name##Impl(T32);                                          \
-}                                                                 \
-Test test_##Name(STRINGIFY(AARCH32_T32_##Name), &Test##Name);     \
-void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
+#endif
 
 // Tests declared with this macro are not expected to use any provided test
 // helpers such as SETUP, RUN, etc.
@@ -3082,37 +3098,55 @@ void CheckInstructionSetT32(const T& assm) {
 TEST_NOASM(set_isa_constructors) {
   byte buffer[1024];
 
+#ifndef VIXL_INCLUDE_TARGET_T32_ONLY
   // A32 by default.
   CheckInstructionSetA32(Assembler());
   CheckInstructionSetA32(Assembler(1024));
   CheckInstructionSetA32(Assembler(buffer, sizeof(buffer)));
+
+  CheckInstructionSetA32(MacroAssembler());
+  CheckInstructionSetA32(MacroAssembler(1024));
+  CheckInstructionSetA32(MacroAssembler(buffer, sizeof(buffer)));
+#else
+  // T32 by default.
+  CheckInstructionSetT32(Assembler());
+  CheckInstructionSetT32(Assembler(1024));
+  CheckInstructionSetT32(Assembler(buffer, sizeof(buffer)));
+
+  CheckInstructionSetT32(MacroAssembler());
+  CheckInstructionSetT32(MacroAssembler(1024));
+  CheckInstructionSetT32(MacroAssembler(buffer, sizeof(buffer)));
+#endif
+
+#ifdef VIXL_INCLUDE_TARGET_A32
   // Explicit A32.
   CheckInstructionSetA32(Assembler(A32));
   CheckInstructionSetA32(Assembler(1024, A32));
   CheckInstructionSetA32(Assembler(buffer, sizeof(buffer), A32));
+
+  CheckInstructionSetA32(MacroAssembler(A32));
+  CheckInstructionSetA32(MacroAssembler(1024, A32));
+  CheckInstructionSetA32(MacroAssembler(buffer, sizeof(buffer), A32));
+#endif
+
+#ifdef VIXL_INCLUDE_TARGET_T32
   // Explicit T32.
   CheckInstructionSetT32(Assembler(T32));
   CheckInstructionSetT32(Assembler(1024, T32));
   CheckInstructionSetT32(Assembler(buffer, sizeof(buffer), T32));
 
-  // A32 by default.
-  CheckInstructionSetA32(MacroAssembler());
-  CheckInstructionSetA32(MacroAssembler(1024));
-  CheckInstructionSetA32(MacroAssembler(buffer, sizeof(buffer)));
-  // Explicit A32.
-  CheckInstructionSetA32(MacroAssembler(A32));
-  CheckInstructionSetA32(MacroAssembler(1024, A32));
-  CheckInstructionSetA32(MacroAssembler(buffer, sizeof(buffer), A32));
-  // Explicit T32.
   CheckInstructionSetT32(MacroAssembler(T32));
   CheckInstructionSetT32(MacroAssembler(1024, T32));
   CheckInstructionSetT32(MacroAssembler(buffer, sizeof(buffer), T32));
+#endif
 }
 
 
 TEST_NOASM(set_isa_empty) {
   // It is possible to change the instruction set if no instructions have yet
-  // been generated.
+  // been generated. This test only makes sense when both A32 and T32 are
+  // supported.
+#ifdef VIXL_INCLUDE_TARGET_AARCH32
   Assembler assm;
   CheckInstructionSetA32(assm);
   assm.UseT32();
@@ -3134,12 +3168,14 @@ TEST_NOASM(set_isa_empty) {
   CheckInstructionSetT32(masm);
   masm.UseInstructionSet(A32);
   CheckInstructionSetA32(masm);
+#endif
 }
 
 
 TEST_NOASM(set_isa_noop) {
   // It is possible to call a no-op UseA32/T32 or UseInstructionSet even if
   // one or more instructions have been generated.
+#ifdef VIXL_INCLUDE_TARGET_A32
   {
     Assembler assm(A32);
     CheckInstructionSetA32(assm);
@@ -3154,6 +3190,21 @@ TEST_NOASM(set_isa_noop) {
     assm.FinalizeCode();
   }
   {
+    MacroAssembler masm(A32);
+    CheckInstructionSetA32(masm);
+    masm.Bx(lr);
+    VIXL_ASSERT(masm.GetCursorOffset() > 0);
+    CheckInstructionSetA32(masm);
+    masm.UseA32();
+    CheckInstructionSetA32(masm);
+    masm.UseInstructionSet(A32);
+    CheckInstructionSetA32(masm);
+    masm.FinalizeCode();
+  }
+#endif
+
+#ifdef VIXL_INCLUDE_TARGET_T32
+  {
     Assembler assm(T32);
     CheckInstructionSetT32(assm);
     CodeBufferCheckScope scope(&assm, kMaxInstructionSizeInBytes);
@@ -3167,18 +3218,6 @@ TEST_NOASM(set_isa_noop) {
     assm.FinalizeCode();
   }
   {
-    MacroAssembler masm(A32);
-    CheckInstructionSetA32(masm);
-    masm.Bx(lr);
-    VIXL_ASSERT(masm.GetCursorOffset() > 0);
-    CheckInstructionSetA32(masm);
-    masm.UseA32();
-    CheckInstructionSetA32(masm);
-    masm.UseInstructionSet(A32);
-    CheckInstructionSetA32(masm);
-    masm.FinalizeCode();
-  }
-  {
     MacroAssembler masm(T32);
     CheckInstructionSetT32(masm);
     masm.Bx(lr);
@@ -3190,6 +3229,7 @@ TEST_NOASM(set_isa_noop) {
     CheckInstructionSetT32(masm);
     masm.FinalizeCode();
   }
+#endif
 }
 
 
@@ -3568,6 +3608,7 @@ TEST_T32(near_branch_fuzz) {
 }
 
 
+#ifdef VIXL_INCLUDE_TARGET_T32
 TEST_NOASM(code_buffer_precise_growth) {
   static const int kBaseBufferSize = 16;
   MacroAssembler masm(kBaseBufferSize, T32);
@@ -3592,8 +3633,10 @@ TEST_NOASM(code_buffer_precise_growth) {
 
   masm.FinalizeCode();
 }
+#endif
 
 
+#ifdef VIXL_INCLUDE_TARGET_T32
 TEST_NOASM(out_of_space_immediately_before_PerformEnsureEmit) {
   static const int kBaseBufferSize = 64;
   MacroAssembler masm(kBaseBufferSize, T32);
@@ -3636,6 +3679,7 @@ TEST_NOASM(out_of_space_immediately_before_PerformEnsureEmit) {
 
   masm.FinalizeCode();
 }
+#endif
 
 
 TEST_T32(distant_literal_references) {

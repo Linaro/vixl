@@ -44,6 +44,18 @@ namespace aarch32 {
 #define __ masm.
 #define TEST(name)  TEST_(AARCH32_DISASM_##name)
 
+#ifdef VIXL_INCLUDE_TARGET_T32
+#define TEST_T32(name)  TEST_(AARCH32_DISASM_##name)
+#else
+#define TEST_T32(name)  void Test##name()
+#endif
+
+#ifdef VIXL_INCLUDE_TARGET_A32
+#define TEST_A32(name)  TEST_(AARCH32_DISASM_##name)
+#else
+#define TEST_A32(name)  void Test##name()
+#endif
+
 #define BUF_SIZE (4096)
 
 #define SETUP()                   \
@@ -124,23 +136,35 @@ namespace aarch32 {
 
 #define END_COMPARE(EXP) END_COMPARE_CHECK_SIZE(EXP,-1)
 
+#ifdef VIXL_INCLUDE_TARGET_A32
 #define COMPARE_A32(ASM, EXP)                                                  \
   masm.UseA32();                                                               \
   START_COMPARE()                                                              \
   masm.ASM;                                                                    \
   END_COMPARE(EXP)
+#else
+#define COMPARE_A32(ASM, EXP)
+#endif
 
+#ifdef VIXL_INCLUDE_TARGET_T32
 #define COMPARE_T32(ASM, EXP)                                                  \
   masm.UseT32();                                                               \
   START_COMPARE()                                                              \
   masm.ASM;                                                                    \
   END_COMPARE(EXP)
+#else
+#define COMPARE_T32(ASM, EXP)
+#endif
 
+#ifdef VIXL_INCLUDE_TARGET_T32
 #define COMPARE_T32_CHECK_SIZE(ASM, EXP, SIZE)                                 \
   masm.UseT32();                                                               \
   START_COMPARE()                                                              \
   masm.ASM;                                                                    \
   END_COMPARE_CHECK_SIZE(EXP, SIZE)
+#else
+#define COMPARE_T32_CHECK_SIZE(ASM, EXP, SIZE)
+#endif
 
 #define COMPARE_BOTH(ASM, EXP)                                                 \
   COMPARE_A32(ASM, EXP)                                                        \
@@ -194,29 +218,45 @@ namespace aarch32 {
     }                                                                          \
   }
 
+#ifdef VIXL_INCLUDE_TARGET_A32
 #define MUST_FAIL_TEST_A32(ASM, EXP)                                           \
   masm.UseA32();                                                               \
   NEGATIVE_TEST({ masm.ASM; }, EXP, false)                                     \
   masm.GetBuffer()->Reset();
+#else
+#define MUST_FAIL_TEST_A32(ASM, EXP)
+#endif
 
+#ifdef VIXL_INCLUDE_TARGET_T32
 #define MUST_FAIL_TEST_T32(ASM, EXP)                                           \
   masm.UseT32();                                                               \
   NEGATIVE_TEST({ masm.ASM; }, EXP, false)                                     \
   masm.GetBuffer()->Reset();
+#else
+#define MUST_FAIL_TEST_T32(ASM, EXP)
+#endif
 
 #define MUST_FAIL_TEST_BOTH(ASM, EXP)                                          \
   MUST_FAIL_TEST_A32(ASM, EXP)                                                 \
   MUST_FAIL_TEST_T32(ASM, EXP)
 
+#ifdef VIXL_INCLUDE_TARGET_A32
 #define MUST_FAIL_TEST_A32_BLOCK(ASM, EXP)                                     \
   masm.UseA32();                                                               \
   NEGATIVE_TEST(ASM, EXP, false)                                               \
   masm.GetBuffer()->Reset();
+#else
+#define MUST_FAIL_TEST_A32_BLOCK(ASM, EXP)
+#endif
 
+#ifdef VIXL_INCLUDE_TARGET_T32
 #define MUST_FAIL_TEST_T32_BLOCK(ASM, EXP)                                     \
   masm.UseT32();                                                               \
   NEGATIVE_TEST(ASM, EXP, false)                                               \
   masm.GetBuffer()->Reset();
+#else
+#define MUST_FAIL_TEST_T32_BLOCK(ASM, EXP)
+#endif
 
 #define MUST_FAIL_TEST_BOTH_BLOCK(ASM, EXP)                                    \
   MUST_FAIL_TEST_A32_BLOCK(ASM, EXP)                                           \
@@ -238,15 +278,23 @@ namespace aarch32 {
 #endif
 
 #ifdef VIXL_NEGATIVE_TESTING
+#ifdef VIXL_INCLUDE_TARGET_A32
 #define SHOULD_FAIL_TEST_A32(ASM)        \
   masm.UseA32();                         \
   NEGATIVE_TEST({ masm.ASM; }, "", true) \
   masm.GetBuffer()->Reset();
+#else
+#define SHOULD_FAIL_TEST_A32(ASM)
+#endif
 
+#ifdef VIXL_INCLUDE_TARGET_T32
 #define SHOULD_FAIL_TEST_T32(ASM)        \
   masm.UseT32();                         \
   NEGATIVE_TEST({ masm.ASM; }, "", true) \
   masm.GetBuffer()->Reset();
+#else
+#define SHOULD_FAIL_TEST_T32(ASM)
+#endif
 
 #define SHOULD_FAIL_TEST_BOTH(ASM) \
   SHOULD_FAIL_TEST_A32(ASM)        \
@@ -292,7 +340,7 @@ class TestDisassembler : public PrintDisassembler {
 };
 
 
-TEST(t32_disassembler_limit1) {
+TEST_T32(t32_disassembler_limit1) {
   SETUP();
 
   masm.UseT32();
@@ -306,7 +354,7 @@ TEST(t32_disassembler_limit1) {
 }
 
 
-TEST(t32_disassembler_limit2) {
+TEST_T32(t32_disassembler_limit2) {
   SETUP();
 
   masm.UseT32();
@@ -1598,11 +1646,16 @@ TEST(macro_assembler_too_large_immediate) {
 TEST(macro_assembler_Cbz) {
   SETUP();
 
+#ifdef VIXL_INCLUDE_TARGET_A32
   // Cbz/Cbnz are not available in A32 mode.
+  // Make sure GetArchitectureStatePCOffset() returns the correct value.
+  __ UseA32();
   Label label_64(__ GetCursorOffset() + __ GetArchitectureStatePCOffset(), 64);
   MUST_FAIL_TEST_A32(Cbz(r0, &label_64), "Cbz is only available for T32.\n");
   MUST_FAIL_TEST_A32(Cbnz(r0, &label_64), "Cbnz is only available for T32.\n");
+#endif
 
+#ifdef VIXL_INCLUDE_TARGET_T32
   // Make sure GetArchitectureStatePCOffset() returns the correct value.
   __ UseT32();
   // Largest encodable offset.
@@ -1647,6 +1700,7 @@ TEST(macro_assembler_Cbz) {
   COMPARE_T32(Cbnz(r0, &label_neg128),
               "cbz r0, 0x00000004\n"
               "b 0xffffff84\n");
+#endif
 
   CLEANUP();
 }
@@ -3604,6 +3658,7 @@ TEST(ldm_stm) {
 
   CLEANUP();
 }
+
 
 #define CHECK_T32_16(ASM, EXP) COMPARE_T32_CHECK_SIZE(ASM, EXP, 2)
 // For instructions inside an IT block, we need to account for the IT

@@ -25,6 +25,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import glob
+import itertools
 import os
 from os.path import join
 import platform
@@ -81,7 +82,6 @@ options = {
                    '-Wextra',
                    '-Wredundant-decls',
                    '-pedantic',
-                   '-Wmissing-noreturn',
                    '-Wwrite-strings',
                    '-Wunused'],
       'CPPPATH' : [config.dir_src_vixl]
@@ -94,16 +94,6 @@ options = {
       },
     'mode:release' : {
       'CCFLAGS' : ['-O3'],
-      },
-    'target_arch:aarch32' : {
-      'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH32']
-      },
-    'target_arch:aarch64' : {
-      'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH64']
-      },
-    'target_arch:both' : {
-      'CCFLAGS' : ['-DVIXL_INCLUDE_TARGET_AARCH32',
-                   '-DVIXL_INCLUDE_TARGET_AARCH64']
       },
     'simulator:aarch64' : {
       'CCFLAGS' : ['-DVIXL_INCLUDE_SIMULATOR_AARCH64'],
@@ -142,25 +132,20 @@ def Is32BitHost(env):
 def IsAArch64Host(env):
   return env['host_arch'] == 'aarch64'
 
+def CanTargetA32(env):
+  return 'a32' in env['target']
+
+def CanTargetT32(env):
+  return 't32' in env['target']
+
 def CanTargetAArch32(env):
-  return env['target_arch'] in ['aarch32', 'both']
+  return CanTargetA32(env) or CanTargetT32(env)
+
+def CanTargetA64(env):
+  return 'a64' in env['target']
 
 def CanTargetAArch64(env):
-  return env['target_arch'] in ['aarch64', 'both']
-
-
-# The architecture targeted by default will depend on the compiler being
-# used. 'host_arch' is extracted from the compiler while 'target_arch' can be
-# set by the user.
-# By default, we target both AArch32 and AArch64 unless the compiler targets a
-# 32-bit architecture. At the moment, we cannot build VIXL's AArch64 support on
-# a 32-bit platform.
-# TODO: Port VIXL to build on a 32-bit platform.
-def target_arch_handler(env):
-  if Is32BitHost(env):
-    env['target_arch'] = 'aarch32'
-  else:
-    env['target_arch'] = 'both'
+  return CanTargetA64(env)
 
 
 # By default, include the simulator only if AArch64 is targeted and we are not
@@ -186,17 +171,10 @@ def default_validator(env):
   pass
 
 
-def target_arch_validator(env):
-  # TODO: Port VIXL64 to work on a 32-bit platform.
-  if Is32BitHost(env) and CanTargetAArch64(env):
-    raise UserError('Building VIXL for AArch64 in 32-bit is not supported. Set '
-                    '`target_arch` to `aarch32`')
-
-
 def simulator_validator(env):
   if env['simulator'] == 'aarch64' and not CanTargetAArch64(env):
     raise UserError('Building an AArch64 simulator implies that VIXL targets '
-                    'AArch64. Set `target_arch` to `aarch64` or `both`.')
+                    'AArch64. Set `target` to include `aarch64` or `a64`.')
 
 
 # Default variables may depend on each other, therefore we need this dictionnary
@@ -205,9 +183,6 @@ vars_default_handlers = OrderedDict({
     # variable_name    : [ 'default val', 'handler', 'validator']
     'symbols'          : [ 'mode==debug', symbols_handler, default_validator ],
     'modifiable_flags' : [ 'mode==debug', modifiable_flags_handler, default_validator],
-    'target_arch'      : [ 'AArch32 only if the host compiler targets a 32-bit '
-                           'architecture - otherwise both', target_arch_handler,
-                           target_arch_validator],
     'simulator'        : [ 'on if the target architectures include AArch64 but '
                            'the host is not AArch64, else off',
                            simulator_handler, simulator_validator ],
@@ -227,9 +202,37 @@ def DefaultVariable(name, help, allowed_values):
   return (name, help, default_value, validator)
 
 
+def AliasedListVariable(name, help, default_value, allowed_values, aliasing):
+  help = '%s (all|auto|comma-separated list) (any combination from [%s])' % \
+         (help, ', '.join(allowed_values))
+
+  def validator(name, value, env):
+    # Here list has been converted to space separated strings.
+    if value == '': return  # auto
+    for v in value.split():
+      if v not in allowed_values:
+        raise UserError('Invalid value for %s: %s' % (name, value))
+
+  def converter(value):
+    if value == 'auto': return []
+    if value == 'all':
+      translated = [aliasing[v] for v in allowed_values]
+      return list(set(itertools.chain.from_iterable(translated)))
+    # The validator is run later hence the get.
+    translated = [aliasing.get(v, v) for v in value.split(',')]
+    return list(set(itertools.chain.from_iterable(translated)))
+
+  return (name, help, default_value, validator, converter)
+
+
 vars = Variables()
 # Define command line build options.
 vars.AddVariables(
+    AliasedListVariable('target', 'Target ISA/Architecture', 'auto',
+                        ['aarch32', 'a32', 't32', 'aarch64', 'a64'],
+                        {'aarch32' : ['a32', 't32'],
+                         'a32' : ['a32'], 't32' : ['t32'],
+                         'aarch64' : ['a64'], 'a64' : ['a64']}),
     EnumVariable('mode', 'Build mode',
                  'release', allowed_values=config.build_options_modes),
     EnumVariable('negative_testing',
@@ -237,8 +240,6 @@ vars.AddVariables(
                  'off', allowed_values=['on', 'off']),
     DefaultVariable('symbols', 'Include debugging symbols in the binaries',
                     ['on', 'off']),
-    DefaultVariable('target_arch', 'Target architecture',
-                    ['aarch32', 'aarch64', 'both']),
     DefaultVariable('simulator', 'Simulators to include', ['aarch64', 'none']),
     DefaultVariable('code_buffer_allocator',
                     'Configure the allocation mechanism in the CodeBuffer',
@@ -252,8 +253,8 @@ vars.AddVariables(
 # set. These are the options that should be reflected in the build directory
 # path.
 options_influencing_build_path = [
-  'target_arch', 'mode', 'symbols', 'CXX', 'std', 'simulator',
-  'negative_testing', 'code_buffer_allocator'
+  'target', 'mode', 'symbols', 'CXX', 'std', 'simulator', 'negative_testing',
+  'code_buffer_allocator'
 ]
 
 
@@ -274,6 +275,41 @@ def RetrieveEnvironmentVariables(env):
   env['ENV']['TERM'] = os.getenv('TERM')
 
 
+# The architecture targeted by default will depend on the compiler being
+# used. 'host_arch' is extracted from the compiler while 'target' can be
+# set by the user.
+# By default, we target both AArch32 and AArch64 unless the compiler targets a
+# 32-bit architecture. At the moment, we cannot build VIXL's AArch64 support on
+# a 32-bit platform.
+# TODO: Port VIXL to build on a 32-bit platform.
+def target_handler(env):
+  # Auto detect
+  if Is32BitHost(env):
+    # We use list(set(...)) to keep the same order as if it was specify as
+    # an option.
+    env['target'] = list(set(['a32', 't32']))
+  else:
+    env['target'] = list(set(['a64', 'a32', 't32']))
+
+
+def target_validator(env):
+  # TODO: Port VIXL64 to work on a 32-bit platform.
+  if Is32BitHost(env) and CanTargetAArch64(env):
+    raise UserError('Building VIXL for AArch64 in 32-bit is not supported. Set '
+                    '`target` to `aarch32`')
+
+
+# The target option is handled differently from the rest.
+def ProcessTargetOption(env):
+  if env['target'] == []: target_handler(env)
+
+  if 'a32' in env['target']: env['CCFLAGS'] += ['-DVIXL_INCLUDE_TARGET_A32']
+  if 't32' in env['target']: env['CCFLAGS'] += ['-DVIXL_INCLUDE_TARGET_T32']
+  if 'a64' in env['target']: env['CCFLAGS'] += ['-DVIXL_INCLUDE_TARGET_A64']
+
+  target_validator(env)
+
+
 def ProcessBuildOptions(env):
   # 'all' is unconditionally processed.
   if 'all' in options:
@@ -282,6 +318,10 @@ def ProcessBuildOptions(env):
         env[var] += options['all'][var]
       else:
         env[var] = options['all'][var]
+
+  # The target option *must* be processed before the options defined in
+  # vars_default_handlers.
+  ProcessTargetOption(env)
 
   # Other build options must match 'option:value'
   env_dict = env.Dictionary()
@@ -307,6 +347,11 @@ def ProcessBuildOptions(env):
 
 
 def ConfigureEnvironmentForCompiler(env):
+  if CanTargetA32(env) and CanTargetT32(env):
+    # When building for only one aarch32 isa, fixing the no-return is not worth
+    # the effort.
+    env.Append(CPPFLAGS = ['-Wmissing-noreturn'])
+
   compiler = util.CompilerInformation(env)
   if compiler == 'clang':
     # These warnings only work for Clang.
@@ -353,7 +398,7 @@ def TargetBuildDir(env):
   # full build when an option changes.
   build_dir = config.dir_build
   for option in options_influencing_build_path:
-    option_value = env[option] if option in env else ''
+    option_value = ''.join(env[option]) if option in env else ''
     build_dir = join(build_dir, option + '_'+ option_value)
   return build_dir
 
@@ -374,10 +419,10 @@ def VIXLLibraryTarget(env):
   # Source files are in `src` and in `src/aarch64/`.
   variant_dir_vixl = PrepareVariantDir(join('src'), build_dir)
   sources = [Glob(join(variant_dir_vixl, '*.cc'))]
-  if env['target_arch'] in ['aarch32', 'both']:
+  if CanTargetAArch32(env):
     variant_dir_aarch32 = PrepareVariantDir(join('src', 'aarch32'), build_dir)
     sources.append(Glob(join(variant_dir_aarch32, '*.cc')))
-  if env['target_arch'] in ['aarch64', 'both']:
+  if CanTargetAArch64(env):
     variant_dir_aarch64 = PrepareVariantDir(join('src', 'aarch64'), build_dir)
     sources.append(Glob(join(variant_dir_aarch64, '*.cc')))
   return env.Library(join(build_dir, 'vixl'), sources)
@@ -411,7 +456,7 @@ test_build_dir = PrepareVariantDir('test', TargetBuildDir(env))
 test_objects = [env.Object(Glob(join(test_build_dir, '*.cc')))]
 
 # AArch32 support
-if env['target_arch'] in ['aarch32', 'both']:
+if CanTargetAArch32(env):
   # The examples.
   aarch32_example_names = util.ListCCFilesWithoutExt(config.dir_aarch32_examples)
   aarch32_examples_build_dir = PrepareVariantDir('examples/aarch32', TargetBuildDir(env))
@@ -443,7 +488,7 @@ if env['target_arch'] in ['aarch32', 'both']:
       CPPPATH = env['CPPPATH'] + [config.dir_tests]))
 
 # AArch64 support
-if env['target_arch'] in ['aarch64', 'both']:
+if CanTargetAArch64(env):
   # The benchmarks.
   aarch64_benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch64_benchmarks)
   aarch64_benchmarks_build_dir = PrepareVariantDir('benchmarks/aarch64', TargetBuildDir(env))

@@ -32,8 +32,16 @@ extern "C" {
 #include <stdint.h>
 }
 
+
 namespace vixl {
 namespace aarch32 {
+
+enum InstructionSet { A32, T32 };
+#ifdef VIXL_INCLUDE_TARGET_T32_ONLY
+const InstructionSet kDefaultISA = T32;
+#else
+const InstructionSet kDefaultISA = A32;
+#endif
 
 const unsigned kRegSizeInBits = 32;
 const unsigned kRegSizeInBytes = kRegSizeInBits / 8;

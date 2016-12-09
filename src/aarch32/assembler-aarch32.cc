@@ -81,7 +81,7 @@ void Assembler::PerformCheckIT(Condition condition) {
 
 void Assembler::BindHelper(Label* label) {
   VIXL_ASSERT(!label->IsBound());
-  label->Bind(GetCursorOffset(), IsUsingT32());
+  label->Bind(GetCursorOffset(), GetInstructionSetInUse());
 
   for (Label::ForwardRefList::iterator ref = label->GetFirstForwardRef();
        ref != label->GetEndForwardRef();
@@ -103,7 +103,7 @@ uint32_t Assembler::Link(uint32_t instr,
                      GetCursorOffset() + GetArchitectureStatePCOffset(),
                      label);
   }
-  label->AddForwardRef(GetCursorOffset(), IsUsingT32(), op);
+  label->AddForwardRef(GetCursorOffset(), GetInstructionSetInUse(), op);
   return instr;
 }
 

@@ -64,6 +64,7 @@ namespace aarch32 {
 // across test files during template instantiation. Specifically, `Operands` has
 // various layouts across generated tests so it absolutely cannot be shared.
 
+#ifdef VIXL_INCLUDE_TARGET_A32
 namespace {
 
 // Values to be passed to the assembler to produce the instruction under test.
@@ -736,6 +737,7 @@ FOREACH_INSTRUCTION(TEST)
 #undef TEST
 
 }  // namespace
+#endif
 
 }  // namespace aarch32
 }  // namespace vixl

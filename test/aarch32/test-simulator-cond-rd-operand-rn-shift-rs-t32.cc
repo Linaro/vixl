@@ -126,6 +126,7 @@ namespace aarch32 {
 // `Inputs` have various layouts across generated tests so they absolutely
 // cannot be shared.
 
+#ifdef VIXL_INCLUDE_TARGET_T32
 namespace {
 
 // Values to be passed to the assembler to produce the instruction under test.
@@ -1901,6 +1902,7 @@ FOREACH_INSTRUCTION(TEST)
 #undef TEST
 
 }  // namespace
+#endif
 
 }  // namespace aarch32
 }  // namespace vixl

@@ -455,7 +455,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
 
  public:
-  explicit MacroAssembler(InstructionSet isa = A32)
+  explicit MacroAssembler(InstructionSet isa = kDefaultISA)
       : Assembler(isa),
         available_(r12),
         current_scratch_scope_(NULL),
@@ -471,7 +471,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 #endif
     ComputeCheckpoint();
   }
-  explicit MacroAssembler(size_t size, InstructionSet isa = A32)
+  explicit MacroAssembler(size_t size, InstructionSet isa = kDefaultISA)
       : Assembler(size, isa),
         available_(r12),
         current_scratch_scope_(NULL),
@@ -484,7 +484,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 #endif
     ComputeCheckpoint();
   }
-  MacroAssembler(byte* buffer, size_t size, InstructionSet isa = A32)
+  MacroAssembler(byte* buffer, size_t size, InstructionSet isa = kDefaultISA)
       : Assembler(buffer, size, isa),
         available_(r12),
         current_scratch_scope_(NULL),

@@ -751,7 +751,8 @@ def GenerateTest(generator, clang_format, skip_traces):
       'check_print_expected': generator.CheckPrintExpected(),
       'check_print_found': generator.CheckPrintFound(),
 
-      'test_name': generator.TestName()
+      'test_name': generator.TestName(),
+      'isa_guard': generator.GetIsaGuard()
     })
   # Create the test case and pipe it through `clang-format` before writing it.
   with open(

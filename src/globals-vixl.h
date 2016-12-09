@@ -256,4 +256,18 @@ inline void USE(const T1&, const T2&, const T3&, const T4&) {}
 #error "Please see the release notes for USE_SIMULATOR."
 #endif
 
+// Target Architecture/ISA
+#ifdef VIXL_INCLUDE_TARGET_A64
+#define VIXL_INCLUDE_TARGET_AARCH64
+#endif
+
+#if defined(VIXL_INCLUDE_TARGET_A32) && defined(VIXL_INCLUDE_TARGET_T32)
+#define VIXL_INCLUDE_TARGET_AARCH32
+#elif defined(VIXL_INCLUDE_TARGET_A32)
+#define VIXL_INCLUDE_TARGET_A32_ONLY
+#else
+#define VIXL_INCLUDE_TARGET_T32_ONLY
+#endif
+
+
 #endif  // VIXL_GLOBALS_H

@@ -689,3 +689,14 @@ class Generator(object):
                 "w") as f:
         code = "static const TestResult *kReference{} = NULL;\n"
         f.write(code.format(self.MnemonicToMethodName(mnemonic)))
+
+  def GetIsaGuard(self):
+    """
+    This guard ensure the ISA of the test is enabled.
+    """
+    if 'A32' in self.TestName():
+      return 'VIXL_INCLUDE_TARGET_A32'
+    else:
+      assert 'T32' in self.TestName()
+      return 'VIXL_INCLUDE_TARGET_T32'
+

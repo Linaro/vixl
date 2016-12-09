@@ -56,7 +56,6 @@ class MemOperand;
 class AlignedMemOperand;
 
 enum AddrMode { Offset = 0, PreIndex = 1, PostIndex = 2 };
-enum InstructionSet { A32, T32 };
 
 class CPURegister {
  public:

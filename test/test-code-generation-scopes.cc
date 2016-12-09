@@ -35,6 +35,14 @@
 #endif
 
 #define TEST(name)  TEST_(SCOPES_##name)
+
+#ifdef VIXL_INCLUDE_TARGET_A32
+#define TEST_A32(name)  TEST(name)
+#else
+// Do not add this test to the harness.
+#define TEST_A32(name)  void Test##name()
+#endif
+
 #define __ masm.
 
 namespace vixl {
@@ -332,7 +340,7 @@ TEST(EmissionCheckScope_Open_Close_64) {
 #define ASSERT_LITERAL_POOL_SIZE_32(expected)                                  \
   VIXL_CHECK((expected) == masm.GetLiteralPoolSize())
 
-TEST(EmissionCheckScope_emit_pool_32) {
+TEST_A32(EmissionCheckScope_emit_pool_32) {
   aarch32::MacroAssembler masm;
 
   // Make sure the pool is empty;
@@ -408,7 +416,7 @@ TEST(EmissionCheckScope_emit_pool_64) {
 
 
 #ifdef VIXL_INCLUDE_TARGET_AARCH32
-TEST(EmissionCheckScope_emit_pool_on_Open_32) {
+TEST_A32(EmissionCheckScope_emit_pool_on_Open_32) {
   aarch32::MacroAssembler masm;
 
   // Make sure the pool is empty;
@@ -481,7 +489,7 @@ TEST(EmissionCheckScope_emit_pool_on_Open_64) {
 
 
 #ifdef VIXL_INCLUDE_TARGET_AARCH32
-TEST(ExactAssemblyScope_basic_32) {
+TEST_A32(ExactAssemblyScope_basic_32) {
   aarch32::MacroAssembler masm;
 
   {
@@ -509,7 +517,7 @@ TEST(ExactAssemblyScope_basic_64) {
 
 
 #ifdef VIXL_INCLUDE_TARGET_AARCH32
-TEST(ExactAssemblyScope_Open_32) {
+TEST_A32(ExactAssemblyScope_Open_32) {
   aarch32::MacroAssembler masm;
 
   {
@@ -541,7 +549,7 @@ TEST(ExactAssemblyScope_Open_64) {
 
 
 #ifdef VIXL_INCLUDE_TARGET_AARCH32
-TEST(ExactAssemblyScope_Close_32) {
+TEST_A32(ExactAssemblyScope_Close_32) {
   aarch32::MacroAssembler masm;
 
   {
@@ -573,7 +581,7 @@ TEST(ExactAssemblyScope_Close_64) {
 
 
 #ifdef VIXL_INCLUDE_TARGET_AARCH32
-TEST(ExactAssemblyScope_Open_Close_32) {
+TEST_A32(ExactAssemblyScope_Open_Close_32) {
   aarch32::MacroAssembler masm;
 
   {
@@ -609,7 +617,7 @@ TEST(ExactAssemblyScope_Open_Close_64) {
 
 
 #ifdef VIXL_INCLUDE_TARGET_AARCH32
-TEST(ExactAssemblyScope_32) {
+TEST_A32(ExactAssemblyScope_32) {
   aarch32::MacroAssembler masm;
 
   // By default macro instructions are allowed.
@@ -669,7 +677,7 @@ TEST(ExactAssemblyScope_64) {
 
 
 #ifdef VIXL_INCLUDE_TARGET_AARCH32
-TEST(ExactAssemblyScope_scope_with_pools_32) {
+TEST_A32(ExactAssemblyScope_scope_with_pools_32) {
   aarch32::MacroAssembler masm;
 
   ASSERT_LITERAL_POOL_SIZE_32(0);

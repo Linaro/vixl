@@ -160,9 +160,9 @@ build_option_standard = \
   BuildOption('std', 'Test with the specified C++ standard.',
               val_test_choices=['all'] + config.tested_cpp_standards,
               strict_choices = False)
-build_option_target_arch = \
-  BuildOption('target_arch', 'Test with the specified architectures enabled.',
-              val_test_choices=['all'] + config.build_options_target_arch,
+build_option_target = \
+  BuildOption('target', 'Test with the specified isa enabled.',
+              val_test_choices=['all'] + config.build_options_target,
               strict_choices = False, test_independently = True)
 build_option_negative_testing = \
   BuildOption('negative_testing', 'Test with negative testing enabled.',
@@ -171,7 +171,7 @@ build_option_negative_testing = \
 test_build_options = [
   build_option_mode,
   build_option_standard,
-  build_option_target_arch,
+  build_option_target,
   build_option_negative_testing
 ]
 
@@ -351,15 +351,52 @@ def BuildAll(build_options, jobs):
   return RunCommand(scons_command, list(environment_options))
 
 
-def RunBenchmarks(args):
+# Work out if the given options or args allow to run on the specified arch.
+#  * arches is a list of ISA/architecture (a64, aarch32, etc)
+#  * options are test.py's command line options if any.
+#  * args are the arguments given to the build script.
+def CanRunOn(arches, options, args):
+  # First we check in the build specific options.
+  for option in options:
+    if 'target' in option:
+      # The option format is 'target=x,y,z'.
+      for target in (option.split('='))[1].split(','):
+        if target in arches:
+          return True
+
+      # There was a target build option but it didn't include the target arch.
+      return False
+
+  # No specific build option, check the script arguments.
+  # The meaning of 'all' will depend on the platform, e.g. 32-bit compilers
+  # cannot handle Aarch64 while 64-bit compiler can handle Aarch32. To avoid
+  # any issues no benchmarks are run for target='all'.
+  if args.target == 'all': return False
+
+  for target in args.target[0].split(','):
+    if target in arches:
+      return True
+
+  return False
+
+
+def CanRunAarch64(options, args):
+  return CanRunOn(['aarch64', 'a64'], options, args)
+
+
+def CanRunAarch32(options, args):
+  return CanRunOn(['aarch32', 'a32', 't32'], options, args)
+
+
+def RunBenchmarks(options, args):
   rc = 0
-  if args.target_arch in ['both', 'aarch32']:
+  if CanRunAarch32(options, args):
     benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch32_benchmarks)
     for bench in benchmark_names:
       rc |= RunCommand(
         [os.path.realpath(
           join(config.dir_build_latest, 'benchmarks/aarch32', bench))])
-  if args.target_arch in ['both', 'aarch64']:
+  if CanRunAarch64(options, args):
     benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch64_benchmarks)
     for bench in benchmark_names:
       rc |= RunCommand(
@@ -469,7 +506,7 @@ if __name__ == '__main__':
           MaybeExitEarly(rc)
 
       if not args.nobench:
-        rc |= RunBenchmarks(args)
+        rc |= RunBenchmarks(build_options, args)
         MaybeExitEarly(rc)
 
   PrintStatus(rc == 0)
