@@ -3072,6 +3072,89 @@ TEST(veneer_pool_margin) {
 }
 
 
+TEST_T32(cbz_fuzz) {
+  SETUP();
+  START();
+
+  uint16_t seed[3] = {1, 2, 3};
+  seed48(seed);
+
+  const int label_count = 31;
+  bool allbound;
+  Label* l;
+
+  // Use multiple iterations, as each produces a different predictably random
+  // sequence.
+  const int iterations = 32;
+
+  int loop_count = 0;
+  __ Mov(r1, 0);
+
+  // Gradually increasing the number of cases effectively increases the
+  // probability of nops being emitted in the sequence. The branch-to-bind
+  // ratio in the sequence is fixed at 4:1 by the ratio of cases.
+  for (int case_count = 6; case_count < 37; case_count++) {
+    for (int iter = 0; iter < iterations; iter++) {
+
+      // Reset local state.
+      allbound = false;
+      l = new Label[label_count];
+
+      // Set r0 != 0 to force no branches to be taken. Also acts as a marker
+      // between each iteration in the disassembly.
+      __ Mov(r0, 1);
+
+      for (;;) {
+        uint32_t inst_case = static_cast<uint32_t>(mrand48()) % case_count;
+        uint32_t label_index = static_cast<uint32_t>(mrand48()) % label_count;
+
+        switch (inst_case) {
+          case 0: // Bind.
+            if (!l[label_index].IsBound()) {
+              __ Bind(&l[label_index]);
+
+              // We should hit each label exactly once (because the branches are
+              // never taken). Keep a counter to verify this.
+              loop_count++;
+              __ Add(r1, r1, 1);
+            }
+            break;
+          case 1: // Branch.
+          case 2:
+          case 3:
+          case 4:
+            __ Cbz(r0, &l[label_index]);
+            break;
+          default: // Nop.
+            __ Nop();
+            break;
+        }
+
+        // If all labels have been bound, exit the inner loop and finalise the
+        // code.
+        allbound = true;
+        for (int i = 0; i < label_count; i++) {
+          allbound = allbound && l[i].IsBound();
+        }
+        if (allbound) break;
+      }
+
+      // Ensure that the veneer pools are emitted, to keep each case
+      // independent.
+      masm.FinalizeCode();
+      delete[] l;
+    }
+  }
+
+  END();
+  RUN();
+
+  ASSERT_EQUAL_32(loop_count, r1);
+
+  TEARDOWN();
+}
+
+
 TEST_NOASM(code_buffer_precise_growth) {
   static const int kBaseBufferSize = 16;
   MacroAssembler masm(kBaseBufferSize, T32);
