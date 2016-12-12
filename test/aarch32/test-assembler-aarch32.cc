@@ -4730,5 +4730,54 @@ TEST(ldmdb_stmdb) {
 #endif
 
 
+TEST(blx) {
+  SETUP();
+
+  START();
+
+  // TODO(all): Ideally this test should jump back and forth between ARM and
+  // Thumb mode and should also cover BLX immediate. Update this test if we
+  // allow VIXL assembler to change ISA anywhere in the code buffer.
+
+  Label test_start;
+  Label func1;
+  Label func2;
+
+  __ B(&test_start);
+
+  __ Bind(&func1);
+  __ Mov(r0, 0x11111111);
+  __ Push(lr);
+  __ Adr(r11, &func2);
+  if (masm.IsUsingT32()) {
+    // The jump target needs to have its least significant bit set to indicate
+    // that we are jumping into thumb mode.
+    __ Orr(r11, r11, 1);
+  }
+  __ Blx(r11);
+  __ Pop(lr);
+  __ Bx(lr);
+
+  __ Bind(&func2);
+  __ Mov(r1, 0x22222222);
+  __ Bx(lr);
+
+  __ Bind(&test_start);
+  __ Mov(r0, 0xdeadc0de);
+  __ Mov(r1, 0xdeadc0de);
+  __ Bl(&func1);
+
+  END();
+
+  RUN();
+
+  // Really basic test to check that we reached the different parts of the test.
+  ASSERT_EQUAL_32(0x11111111, r0);
+  ASSERT_EQUAL_32(0x22222222, r1);
+
+  TEARDOWN();
+}
+
+
 }  // namespace aarch32
 }  // namespace vixl
