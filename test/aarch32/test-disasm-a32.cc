@@ -3785,6 +3785,39 @@ TEST(macro_assembler_T32_16bit) {
   CHECK_T32_16(Sub(DontCare, sp, sp, 508),
                "sub sp, #508\n");
 
+  // Generate SUBS for ADD.
+  CHECK_T32_16(Add(DontCare, r0, r1, -1),
+               "subs r0, r1, #1\n");
+
+  CHECK_T32_16(Add(DontCare, r0, r1, -7),
+               "subs r0, r1, #7\n");
+
+  CHECK_T32_16(Add(DontCare, r6, r6, -1),
+               "subs r6, #1\n");
+
+  CHECK_T32_16(Add(DontCare, r6, r6, -255),
+               "subs r6, #255\n");
+
+  // Generate ADDS for SUB.
+  CHECK_T32_16(Sub(DontCare, r0, r1, -1),
+               "adds r0, r1, #1\n");
+
+  CHECK_T32_16(Sub(DontCare, r0, r1, -7),
+               "adds r0, r1, #7\n");
+
+  CHECK_T32_16(Sub(DontCare, r6, r6, -1),
+               "adds r6, #1\n");
+
+  CHECK_T32_16(Sub(DontCare, r6, r6, -255),
+               "adds r6, #255\n");
+
+  // Check that we don't change the opcode for INT_MIN.
+  COMPARE_T32(Add(DontCare, r6, r6, 0x80000000),
+              "add r6, #2147483648\n");
+
+  COMPARE_T32(Sub(DontCare, r6, r6, 0x80000000),
+              "sub r6, #2147483648\n");
+
   CLEANUP();
 }
 #undef CHECK_T32_16

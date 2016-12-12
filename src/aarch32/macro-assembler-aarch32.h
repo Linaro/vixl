@@ -1096,7 +1096,17 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         if (setflags_is_smaller) {
           Adds(cond, rd, rn, operand);
         } else {
-          Add(cond, rd, rn, operand);
+          bool changed_op_is_smaller =
+              operand.IsImmediate() && (operand.GetSignedImmediate() < 0) &&
+              ((rd.IsLow() && rn.IsLow() &&
+                (operand.GetSignedImmediate() >= -7)) ||
+               (rd.IsLow() && rn.Is(rd) &&
+                (operand.GetSignedImmediate() >= -255)));
+          if (changed_op_is_smaller) {
+            Subs(cond, rd, rn, -operand.GetSignedImmediate());
+          } else {
+            Add(cond, rd, rn, operand);
+          }
         }
         break;
     }
@@ -4601,7 +4611,17 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         if (setflags_is_smaller) {
           Subs(cond, rd, rn, operand);
         } else {
-          Sub(cond, rd, rn, operand);
+          bool changed_op_is_smaller =
+              operand.IsImmediate() && (operand.GetSignedImmediate() < 0) &&
+              ((rd.IsLow() && rn.IsLow() &&
+                (operand.GetSignedImmediate() >= -7)) ||
+               (rd.IsLow() && rn.Is(rd) &&
+                (operand.GetSignedImmediate() >= -255)));
+          if (changed_op_is_smaller) {
+            Adds(cond, rd, rn, -operand.GetSignedImmediate());
+          } else {
+            Sub(cond, rd, rn, operand);
+          }
         }
         break;
     }
