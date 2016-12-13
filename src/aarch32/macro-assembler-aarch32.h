@@ -1246,6 +1246,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
+    if (rd.Is(rn) && operand.IsPlainRegister() &&
+        rd.Is(operand.GetBaseRegister())) {
+      return;
+    }
     if (cond.Is(al) && operand.IsImmediate()) {
       uint32_t immediate = operand.GetImmediate();
       if (immediate == 0) {
@@ -1279,6 +1283,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         Ands(cond, rd, rn, operand);
         break;
       case DontCare:
+        if (operand.IsPlainRegister() && rd.Is(rn) &&
+            rd.Is(operand.GetBaseRegister())) {
+          return;
+        }
         bool setflags_is_smaller = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
                                    rn.Is(rd) && operand.IsPlainRegister() &&
                                    operand.GetBaseRegister().IsLow();
@@ -2559,6 +2567,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
+    if (operand.IsPlainRegister() && rd.Is(operand.GetBaseRegister())) {
+      return;
+    }
     bool can_use_it =
         // MOV<c>{<q>} <Rd>, #<imm8> ; T1
         (operand.IsImmediate() && rd.IsLow() &&
@@ -2596,6 +2607,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         Movs(cond, rd, operand);
         break;
       case DontCare:
+        if (operand.IsPlainRegister() && rd.Is(operand.GetBaseRegister())) {
+          return;
+        }
         bool setflags_is_smaller =
             IsUsingT32() && cond.Is(al) &&
             ((operand.IsImmediateShiftedRegister() && rd.IsLow() &&
@@ -2852,6 +2866,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
+    if (rd.Is(rn) && operand.IsPlainRegister() &&
+        rd.Is(operand.GetBaseRegister())) {
+      return;
+    }
     if (cond.Is(al) && operand.IsImmediate()) {
       uint32_t immediate = operand.GetImmediate();
       if ((immediate == 0) && rd.Is(rn)) {
@@ -2885,6 +2903,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         Orrs(cond, rd, rn, operand);
         break;
       case DontCare:
+        if (operand.IsPlainRegister() && rd.Is(rn) &&
+            rd.Is(operand.GetBaseRegister())) {
+          return;
+        }
         bool setflags_is_smaller = IsUsingT32() && cond.Is(al) && rd.IsLow() &&
                                    rn.Is(rd) && operand.IsPlainRegister() &&
                                    operand.GetBaseRegister().IsLow();

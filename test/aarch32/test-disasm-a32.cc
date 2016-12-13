@@ -3825,5 +3825,23 @@ TEST(macro_assembler_T32_16bit) {
 #undef CHECK_T32_16
 #undef CHECK_T32_16_IT_BLOCK
 
+
+TEST(nop_code) {
+  SETUP();
+
+  COMPARE_BOTH(Nop(), "nop\n");
+
+  COMPARE_BOTH(And(r0, r0, r0), "");
+  COMPARE_BOTH(And(DontCare, r0, r0, r0), "");
+
+  COMPARE_BOTH(Mov(r0, r0), "");
+  COMPARE_BOTH(Mov(DontCare, r0, r0), "");
+
+  COMPARE_BOTH(Orr(r0, r0, r0), "");
+  COMPARE_BOTH(Orr(DontCare, r0, r0, r0), "");
+
+  CLEANUP();
+}
+
 }  // namespace aarch32
 }  // namespace vixl
