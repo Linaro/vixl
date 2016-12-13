@@ -334,20 +334,39 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     // "literal" is the literal we want to insert into the pool.
     // "from" is the location where the instruction which uses the literal has
     // been generated.
-    bool IsInsertTooFar(RawLiteral* literal, uint32_t from) const {
-      // Last accessible location for the instruction which uses the literal.
-      uint32_t checkpoint = from + literal->GetLastInsertForwardDistance();
-      checkpoint =
-          std::min(checkpoint, static_cast<uint32_t>(literal->GetCheckpoint()));
+    bool WasInsertedTooFar(RawLiteral* literal) const {
+      // Last accessible location for the instruction we just generated, which
+      // uses the literal.
+      Label::ForwardReference& reference = literal->GetBackForwardRef();
+      Label::Offset new_checkpoint = AlignDown(reference.GetCheckpoint(), 4);
+
+      // TODO: We should not need to get the min of new_checkpoint and the
+      // existing checkpoint. The existing checkpoint should already have
+      // been checked when reserving space for this load literal instruction.
+      // The assertion below asserts that we don't need the min operation here.
+      Label::Offset checkpoint =
+          std::min(new_checkpoint, literal->GetAlignedCheckpoint(4));
+      bool literal_in_pool =
+          (literal->GetPositionInPool() != Label::kMaxOffset);
+      Label::Offset position_in_pool = literal_in_pool
+                                           ? literal->GetPositionInPool()
+                                           : literal_pool_.GetSize();
       // Compare the checkpoint to the location where the literal should be
       // added.
       // We add space for two instructions: one branch and one potential veneer
       // which may be added after the check. In this particular use case, no
       // veneer can be added but, this way, we are consistent with all the
       // literal pool checks.
+      int32_t from =
+          reference.GetLocation() + masm_->GetArchitectureStatePCOffset();
       bool too_far =
-          AlignDown(checkpoint, 4) <
-          from + literal_pool_.GetSize() + 2 * kMaxInstructionSizeInBytes;
+          checkpoint < from + position_in_pool +
+                           2 * static_cast<int32_t>(kMaxInstructionSizeInBytes);
+      // Assert if the literal is already in the pool and the existing
+      // checkpoint triggers a rewind here, as this means the pool should
+      // already have been emitted (perhaps we have not reserved enough space
+      // for the instruction we are about to rewind).
+      VIXL_ASSERT(!(too_far && (literal->GetCheckpoint() < new_checkpoint)));
       return too_far;
     }
 
@@ -403,14 +422,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   template <typename T>
   void GenerateInstruction(T instr_callback, RawLiteral* const literal) {
     int32_t cursor = GetCursorOffset();
-    uint32_t where = cursor + GetArchitectureStatePCOffset();
     // Emit the instruction, via the assembler
     {
       MacroEmissionCheckScope guard(this);
       instr_callback.emit(this, literal);
     }
     if (!literal->IsManuallyPlaced() && !literal->IsBound()) {
-      if (IsInsertTooFar(literal, where)) {
+      if (WasInsertedTooFar(literal)) {
         // The instruction's data is too far: revert the emission
         GetBuffer()->Rewind(cursor);
         literal->InvalidateLastForwardReference(RawLiteral::kNoUpdateNecessary);
@@ -619,8 +637,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     PerformEnsureEmit(target, size);
   }
 
-  bool IsInsertTooFar(RawLiteral* literal, uint32_t where) {
-    return literal_pool_manager_.IsInsertTooFar(literal, where);
+  bool WasInsertedTooFar(RawLiteral* literal) {
+    return literal_pool_manager_.WasInsertedTooFar(literal);
   }
 
   bool AliasesAvailableScratchRegister(Register reg) {

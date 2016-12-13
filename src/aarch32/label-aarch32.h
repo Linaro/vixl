@@ -204,13 +204,6 @@ class Label {
   }
   ForwardReference& GetBackForwardRef() { return forward_.back(); }
 
-  Offset GetLastInsertForwardDistance() const {
-    if (HasForwardReference()) {
-      return forward_.back().GetMaxForwardDistance();
-    }
-    return kMaxOffset;
-  }
-
   void ClearForwardRef() { forward_.clear(); }
 
   // Only used by the literal pool.

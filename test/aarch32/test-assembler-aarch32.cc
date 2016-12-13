@@ -1157,11 +1157,8 @@ TEST(emit_reused_load_literal_rewind) {
 
 
 TEST(emit_reused_load_literal_should_not_rewind) {
-  // TODO: This test should check that we are not conservative when rewinding a
-  // load of a literal that is already in the literal pool. At the moment we are
-  // being conservative and emitting the pool before the Ldrd, but we should
-  // update this behaviour and add a check that the pool has not been emitted
-  // conservatively.
+  // This test checks that we are not conservative when rewinding a load of a
+  // literal that is already in the literal pool.
   SETUP();
 
   START();
@@ -1184,8 +1181,7 @@ TEST(emit_reused_load_literal_should_not_rewind) {
   __ Adr(r4, &big_literal);
   __ Ldrd(r2, r3, &l1);
 
-  // TODO: Uncomment when behaviour is not conservative.
-  // ASSERT_LITERAL_POOL_SIZE(AlignUp(string_size + 1, 4) + l1.GetSize());
+  ASSERT_LITERAL_POOL_SIZE(AlignUp(string_size + 1, 4) + l1.GetSize());
 
   // Make sure the pool is emitted.
   masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
@@ -1201,6 +1197,64 @@ TEST(emit_reused_load_literal_should_not_rewind) {
   ASSERT_EQUAL_32(0xdeadbaba, r2);
   ASSERT_EQUAL_32(0xcafebeef, r3);
   ASSERT_EQUAL_32(0x78787878, r4);
+
+  TEARDOWN();
+}
+
+
+TEST(emit_reused_load_literal_stress) {
+  // This test stresses loading a literal that is already in the literal pool, for
+  // various positionings on the existing load from that literal. We try to exercise
+  // cases where the two loads result in similar checkpoints for the literal pool.
+  SETUP();
+
+  const int ldrd_range = masm.IsUsingA32() ? 255 : 1020;
+  const int ldr_range = 4095;
+  const int nop_size = masm.IsUsingA32() ? 4 : 2;
+  const int nops = (ldr_range - ldrd_range) / nop_size;
+
+  for (int n = nops - 10; n < nops + 10; ++n) {
+    START();
+
+    // Make sure the pool is empty.
+    masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+    ASSERT_LITERAL_POOL_SIZE(0);
+
+    // Add a large string to the pool, which will force the Ldrd below to rewind
+    // (if the pool is not already emitted due to the Ldr).
+    const int string_size = AlignUp(ldrd_range + kMaxInstructionSizeInBytes, 4);
+    std::string test_string(string_size, 'x');
+    StringLiteral big_literal(test_string.c_str());
+    __ Ldr(r4, &big_literal);
+
+    // This load has a wider range than the Ldrd used below for the same
+    // literal.
+    Literal<uint64_t> l1(0xcafebeefdeadbaba);
+    __ Ldr(r0, &l1);
+
+    // Generate nops, in order to bring the checkpoints of the Ldr and Ldrd closer.
+    {
+      ExactAssemblyScope scope(&masm, n * nop_size, ExactAssemblyScope::kExactSize);
+      for (int i = 0; i < n; ++i) {
+        __ nop();
+      }
+    }
+
+    __ Ldrd(r2, r3, &l1);
+    // At this point, the pool will be emitted either because Ldrd needed to
+    // rewind, or because Ldr reached its range.
+    ASSERT_LITERAL_POOL_SIZE(0);
+
+    END();
+
+    RUN();
+
+    // Check that the literals loaded correctly.
+    ASSERT_EQUAL_32(0xdeadbaba, r0);
+    ASSERT_EQUAL_32(0xdeadbaba, r2);
+    ASSERT_EQUAL_32(0xcafebeef, r3);
+    ASSERT_EQUAL_32(0x78787878, r4);
+  }
 
   TEARDOWN();
 }
