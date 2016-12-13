@@ -4530,6 +4530,54 @@ TEST(ldr_label_bound_during_scope) {
 }
 
 
+TEST_T32(test_it_scope_and_literal_pool) {
+  // This test stresses the EnsureEmitFor check inside ITScope to make sure the
+  // number of bytes it tries to ensure we can emit is in sync with the
+  // MacroEmissionCheckScope that is usually around it.
+  SETUP();
+
+  START();
+
+  // Make sure the pool is empty.
+  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  Literal<uint64_t> l0(0xcafebeefdeadbaba);
+  __ Ldrd(r0, r1, &l0);
+  // Leave exactly as many bytes between cursor and pool emission checkpoint as
+  // the typical macro instruction needs (and MacroEmissionCheckScope allows
+  // for).
+  const int32_t kTypicalMacroInstructionMaxSize =
+      8 * kMaxInstructionSizeInBytes;
+  int32_t margin = masm.GetMarginBeforeLiteralEmission()
+                       - kTypicalMacroInstructionMaxSize;
+  int32_t end = masm.GetCursorOffset() + margin;
+
+  {
+    ExactAssemblyScope scope(&masm, margin, ExactAssemblyScope::kExactSize);
+    while (masm.GetCursorOffset() < end) {
+      __ nop();
+    }
+  }
+  VIXL_CHECK(masm.GetMarginBeforeLiteralEmission()
+             == kTypicalMacroInstructionMaxSize);
+
+  // We cannot use an IT block for this instruction, hence ITScope will
+  // generate a branch over it.
+  __ Add(ne, r8, r9, 256);
+
+  END();
+
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0xdeadbaba, r0);
+  ASSERT_EQUAL_32(0xcafebeef, r1);
+
+  TEARDOWN();
+}
+
+
 // TODO: Remove this limitation by having a sandboxing mechanism.
 #if defined(VIXL_HOST_POINTER_32)
 TEST(ldm_stm_no_writeback) {

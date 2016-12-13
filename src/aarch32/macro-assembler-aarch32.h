@@ -211,8 +211,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
           // We generate a conditional branch and an unconditional instruction.
           // TODO: Use a scope utility with a size check. To do that, we'd need
           // one with Open() and Close() implemented.
-          masm_->EnsureEmitFor(k16BitT32InstructionSizeInBytes +
-                               kMaxT32MacroInstructionSizeInBytes);
+          masm_->EnsureEmitFor(kMaxT32MacroInstructionSizeInBytes);
           // Generate the branch.
           masm_->b(cond_.Negate(), Narrow, &label_);
           // Tell the macro-assembler to generate unconditional instructions.
