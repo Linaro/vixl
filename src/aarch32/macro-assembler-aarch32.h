@@ -418,8 +418,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         MacroEmissionCheckScope guard(this);
         instr_callback.emit(this, literal);
       }
-      literal_pool_manager_.GetLiteralPool()->AddLiteral(literal);
-      literal_pool_manager_.UpdateCheckpoint(literal);
+      // The literal pool above might have included the literal - in which
+      // case it will now be bound.
+      if (!literal->IsBound()) {
+        literal_pool_manager_.GetLiteralPool()->AddLiteral(literal);
+        literal_pool_manager_.UpdateCheckpoint(literal);
+      }
     }
   }
 

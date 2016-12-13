@@ -1111,6 +1111,101 @@ TEST_T32(veneer_pool_generated_by_macro_instruction) {
   TEARDOWN();
 }
 
+
+TEST(emit_reused_load_literal_rewind) {
+  // This test generates an Ldrd that needs to be rewinded and loads a literal
+  // that already is in the pool (hence it will be part of the pool that gets
+  // emitted as part of the rewind).
+  SETUP();
+
+  START();
+
+  // Make sure the pool is empty.
+  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  const int ldrd_range = masm.IsUsingA32() ? 255 : 1020;
+  const int string_size = AlignUp(ldrd_range + kMaxInstructionSizeInBytes, 4);
+  std::string test_string(string_size, 'x');
+  StringLiteral big_literal(test_string.c_str());
+  __ Adr(r4, &big_literal);
+
+  // This load has a wider range than the Ldrd used below for the same
+  // literal.
+  Literal<uint64_t> l1(0xcafebeefdeadbaba);
+  __ Ldr(r0, &l1);
+
+  // This Ldrd will be emitted and then rewinded, forcing the pool to be
+  // emitted before we regenerate the instruction, so l1 will be bound and the
+  // literal pool empty afterwards.
+  __ Ldrd(r2, r3, &l1);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  __ Ldr(r4, MemOperand(r4));  // Load the first 4 characters in r4.
+  END();
+
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0xdeadbaba, r0);
+  ASSERT_EQUAL_32(0xdeadbaba, r2);
+  ASSERT_EQUAL_32(0xcafebeef, r3);
+  ASSERT_EQUAL_32(0x78787878, r4);
+
+  TEARDOWN();
+}
+
+
+TEST(emit_reused_load_literal_should_not_rewind) {
+  // TODO: This test should check that we are not conservative when rewinding a
+  // load of a literal that is already in the literal pool. At the moment we are
+  // being conservative and emitting the pool before the Ldrd, but we should
+  // update this behaviour and add a check that the pool has not been emitted
+  // conservatively.
+  SETUP();
+
+  START();
+
+  // Make sure the pool is empty.
+  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  // This load has a wider range than the Ldrd used below for the same
+  // literal.
+  Literal<uint64_t> l1(0xcafebeefdeadbaba);
+  __ Ldr(r0, &l1);
+
+  // Add a large string to the literal pool, but only *after* l1, so the
+  // Ldrd below should not need to rewind.
+  const int ldrd_range = masm.IsUsingA32() ? 255 : 1020;
+  const int string_size = AlignUp(ldrd_range + kMaxInstructionSizeInBytes, 4);
+  std::string test_string(string_size, 'x');
+  StringLiteral big_literal(test_string.c_str());
+  __ Adr(r4, &big_literal);
+  __ Ldrd(r2, r3, &l1);
+
+  // TODO: Uncomment when behaviour is not conservative.
+  // ASSERT_LITERAL_POOL_SIZE(AlignUp(string_size + 1, 4) + l1.GetSize());
+
+  // Make sure the pool is emitted.
+  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  __ Ldr(r4, MemOperand(r4));  // Load the first 4 characters in r4.
+  END();
+
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0xdeadbaba, r0);
+  ASSERT_EQUAL_32(0xdeadbaba, r2);
+  ASSERT_EQUAL_32(0xcafebeef, r3);
+  ASSERT_EQUAL_32(0x78787878, r4);
+
+  TEARDOWN();
+}
+
+
 TEST(test_many_loads_from_same_literal) {
   // This test generates multiple loads from the same literal in order to
   // test that the delegate recursion limit is appropriate for Ldrd with
