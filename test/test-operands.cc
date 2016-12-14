@@ -31,13 +31,13 @@
 
 #ifdef VIXL_INCLUDE_TARGET_AARCH32
 #include "aarch32/operands-aarch32.h"
-#define TEST_AARCH32(name)  TEST_(AARCH32_OPERANDS_##name)
-#else
-#define TEST_AARCH32(name)
 #endif
+
+#define TEST_AARCH32(name)  TEST_(AARCH32_OPERANDS_##name)
 
 namespace vixl {
 
+#ifdef VIXL_INCLUDE_TARGET_AARCH32
 TEST_AARCH32(operand_from) {
   // Test signed and unsigned values.
   {
@@ -113,5 +113,6 @@ TEST_AARCH32(operand_from) {
   }
 #endif
 }
+#endif  // VIXL_INCLUDE_TARGET_AARCH32
 
 }  // namespace vixl
