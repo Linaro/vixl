@@ -2111,17 +2111,19 @@ TEST(custom_literal_place) {
   __ Place(&l5);
   __ Bind(&after_pool);
 
-  UseScratchRegisterScope temps(&masm);
-  Register temp = temps.Acquire();
-  VIXL_CHECK(temp.Is(r12));
+  {
+    UseScratchRegisterScope temps(&masm);
+    Register temp = temps.Acquire();
+    VIXL_CHECK(temp.Is(r12));
 
-  __ Ldrd(r8, r9, &l0);
-  __ Ldr(r7, &l1);
-  __ Ldrh(r10, &l2);
-  __ Ldrsh(r11, &l3);
-  __ Ldrb(temp, &l4);
-  // We don't use any function call so we can use lr as an extra register.
-  __ Ldrsb(lr, &l5);
+    __ Ldrd(r8, r9, &l0);
+    __ Ldr(r7, &l1);
+    __ Ldrh(r10, &l2);
+    __ Ldrsh(r11, &l3);
+    __ Ldrb(temp, &l4);
+    // We don't use any function call so we can use lr as an extra register.
+    __ Ldrsb(lr, &l5);
+  }
 
   ASSERT_LITERAL_POOL_SIZE(0);
 
@@ -2143,7 +2145,7 @@ TEST(custom_literal_place) {
   ASSERT_EQUAL_32(0x12345678, r7);
   ASSERT_EQUAL_32(4567, r10);
   ASSERT_EQUAL_32(-4567, r11);
-  ASSERT_EQUAL_32(123, temp);
+  ASSERT_EQUAL_32(123, r12);
   ASSERT_EQUAL_32(-123, lr);
 
   TEARDOWN();

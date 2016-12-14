@@ -37,45 +37,54 @@ namespace vixl {
 namespace aarch32 {
 
 void UseScratchRegisterScope::Open(MacroAssembler* masm) {
-  VIXL_ASSERT((available_ == NULL) && (available_vfp_ == NULL));
-  available_ = masm->GetScratchRegisterList();
-  old_available_ = available_->GetList();
-  available_vfp_ = masm->GetScratchVRegisterList();
-  old_available_vfp_ = available_vfp_->GetList();
+  VIXL_ASSERT(masm_ == NULL);
+  VIXL_ASSERT(masm != NULL);
+  masm_ = masm;
+
+  old_available_ = masm_->GetScratchRegisterList()->GetList();
+  old_available_vfp_ = masm_->GetScratchVRegisterList()->GetList();
+
+  parent_ = masm->GetCurrentScratchRegisterScope();
+  masm->SetCurrentScratchRegisterScope(this);
 }
 
 
 void UseScratchRegisterScope::Close() {
-  if (available_ != NULL) {
-    available_->SetList(old_available_);
-    available_ = NULL;
-  }
-  if (available_vfp_ != NULL) {
-    available_vfp_->SetList(old_available_vfp_);
-    available_vfp_ = NULL;
+  if (masm_ != NULL) {
+    // Ensure that scopes nest perfectly, and do not outlive their parents.
+    // This is a run-time check because the order of destruction of objects in
+    // the _same_ scope is implementation-defined, and is likely to change in
+    // optimised builds.
+    VIXL_CHECK(masm_->GetCurrentScratchRegisterScope() == this);
+    masm_->SetCurrentScratchRegisterScope(parent_);
+
+    masm_->GetScratchRegisterList()->SetList(old_available_);
+    masm_->GetScratchVRegisterList()->SetList(old_available_vfp_);
+
+    masm_ = NULL;
   }
 }
 
 
 bool UseScratchRegisterScope::IsAvailable(const Register& reg) const {
-  VIXL_ASSERT(available_ != NULL);
+  VIXL_ASSERT(masm_ != NULL);
   VIXL_ASSERT(reg.IsValid());
-  return available_->Includes(reg);
+  return masm_->GetScratchRegisterList()->Includes(reg);
 }
 
 
 bool UseScratchRegisterScope::IsAvailable(const VRegister& reg) const {
-  VIXL_ASSERT(available_vfp_ != NULL);
+  VIXL_ASSERT(masm_ != NULL);
   VIXL_ASSERT(reg.IsValid());
-  return available_vfp_->IncludesAllOf(reg);
+  return masm_->GetScratchVRegisterList()->IncludesAllOf(reg);
 }
 
 
 Register UseScratchRegisterScope::Acquire() {
-  VIXL_ASSERT(available_ != NULL);
-  VIXL_CHECK(!available_->IsEmpty());
-  Register reg = available_->GetFirstAvailableRegister();
-  available_->Remove(reg);
+  VIXL_ASSERT(masm_ != NULL);
+  Register reg = masm_->GetScratchRegisterList()->GetFirstAvailableRegister();
+  VIXL_CHECK(reg.IsValid());
+  masm_->GetScratchRegisterList()->Remove(reg);
   return reg;
 }
 
@@ -96,71 +105,78 @@ VRegister UseScratchRegisterScope::AcquireV(unsigned size_in_bits) {
 
 
 QRegister UseScratchRegisterScope::AcquireQ() {
-  VIXL_ASSERT(available_vfp_ != NULL);
-  VIXL_CHECK(!available_vfp_->IsEmpty());
-  QRegister reg = available_vfp_->GetFirstAvailableQRegister();
-  available_vfp_->Remove(reg);
+  VIXL_ASSERT(masm_ != NULL);
+  QRegister reg =
+      masm_->GetScratchVRegisterList()->GetFirstAvailableQRegister();
+  VIXL_CHECK(reg.IsValid());
+  masm_->GetScratchVRegisterList()->Remove(reg);
   return reg;
 }
 
 
 DRegister UseScratchRegisterScope::AcquireD() {
-  VIXL_ASSERT(available_vfp_ != NULL);
-  VIXL_CHECK(!available_vfp_->IsEmpty());
-  DRegister reg = available_vfp_->GetFirstAvailableDRegister();
-  available_vfp_->Remove(reg);
+  VIXL_ASSERT(masm_ != NULL);
+  DRegister reg =
+      masm_->GetScratchVRegisterList()->GetFirstAvailableDRegister();
+  VIXL_CHECK(reg.IsValid());
+  masm_->GetScratchVRegisterList()->Remove(reg);
   return reg;
 }
 
 
 SRegister UseScratchRegisterScope::AcquireS() {
-  VIXL_ASSERT(available_vfp_ != NULL);
-  VIXL_CHECK(!available_vfp_->IsEmpty());
-  SRegister reg = available_vfp_->GetFirstAvailableSRegister();
-  available_vfp_->Remove(reg);
+  VIXL_ASSERT(masm_ != NULL);
+  SRegister reg =
+      masm_->GetScratchVRegisterList()->GetFirstAvailableSRegister();
+  VIXL_CHECK(reg.IsValid());
+  masm_->GetScratchVRegisterList()->Remove(reg);
   return reg;
 }
 
 
 void UseScratchRegisterScope::Release(const Register& reg) {
-  VIXL_ASSERT(available_ != NULL);
+  VIXL_ASSERT(masm_ != NULL);
   VIXL_ASSERT(reg.IsValid());
-  VIXL_ASSERT(!available_->Includes(reg));
-  available_->Combine(reg);
+  VIXL_ASSERT(!masm_->GetScratchRegisterList()->Includes(reg));
+  masm_->GetScratchRegisterList()->Combine(reg);
 }
 
 
 void UseScratchRegisterScope::Release(const VRegister& reg) {
-  VIXL_ASSERT(available_vfp_ != NULL);
+  VIXL_ASSERT(masm_ != NULL);
   VIXL_ASSERT(reg.IsValid());
-  VIXL_ASSERT(!available_vfp_->IncludesAliasOf(reg));
-  available_vfp_->Combine(reg);
+  VIXL_ASSERT(!masm_->GetScratchVRegisterList()->IncludesAliasOf(reg));
+  masm_->GetScratchVRegisterList()->Combine(reg);
 }
 
 
 void UseScratchRegisterScope::Include(const RegisterList& list) {
-  VIXL_ASSERT(available_ != NULL);
+  VIXL_ASSERT(masm_ != NULL);
   RegisterList excluded_registers(sp, lr, pc);
   uint32_t mask = list.GetList() & ~excluded_registers.GetList();
-  available_->SetList(available_->GetList() | mask);
+  RegisterList* available = masm_->GetScratchRegisterList();
+  available->SetList(available->GetList() | mask);
 }
 
 
 void UseScratchRegisterScope::Include(const VRegisterList& list) {
-  VIXL_ASSERT(available_vfp_ != NULL);
-  available_vfp_->SetList(available_vfp_->GetList() | list.GetList());
+  VIXL_ASSERT(masm_ != NULL);
+  VRegisterList* available = masm_->GetScratchVRegisterList();
+  available->SetList(available->GetList() | list.GetList());
 }
 
 
 void UseScratchRegisterScope::Exclude(const RegisterList& list) {
-  VIXL_ASSERT(available_ != NULL);
-  available_->SetList(available_->GetList() & ~list.GetList());
+  VIXL_ASSERT(masm_ != NULL);
+  RegisterList* available = masm_->GetScratchRegisterList();
+  available->SetList(available->GetList() & ~list.GetList());
 }
 
 
 void UseScratchRegisterScope::Exclude(const VRegisterList& list) {
-  VIXL_ASSERT(available_vfp_ != NULL);
-  available_vfp_->SetList(available_vfp_->GetList() & ~list.GetList());
+  VIXL_ASSERT(masm_ != NULL);
+  VRegisterList* available = masm_->GetScratchVRegisterList();
+  available->SetList(available->GetList() & ~list.GetList());
 }
 
 
@@ -176,12 +192,9 @@ void UseScratchRegisterScope::Exclude(const Operand& operand) {
 
 
 void UseScratchRegisterScope::ExcludeAll() {
-  if (available_ != NULL) {
-    available_->SetList(0);
-  }
-  if (available_vfp_ != NULL) {
-    available_vfp_->SetList(0);
-  }
+  VIXL_ASSERT(masm_ != NULL);
+  masm_->GetScratchRegisterList()->SetList(0);
+  masm_->GetScratchVRegisterList()->SetList(0);
 }
 
 

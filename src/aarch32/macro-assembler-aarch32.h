@@ -40,6 +40,7 @@ namespace vixl {
 namespace aarch32 {
 
 class JumpTableBase;
+class UseScratchRegisterScope;
 
 enum FlagsUpdate { LeaveFlags = 0, SetFlags = 1, DontCare = 2 };
 
@@ -457,6 +458,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   explicit MacroAssembler(InstructionSet isa = A32)
       : Assembler(isa),
         available_(r12),
+        current_scratch_scope_(NULL),
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
         veneer_pool_manager_(this),
@@ -473,6 +475,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   explicit MacroAssembler(size_t size, InstructionSet isa = A32)
       : Assembler(size, isa),
         available_(r12),
+        current_scratch_scope_(NULL),
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
         veneer_pool_manager_(this),
@@ -486,6 +489,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   MacroAssembler(byte* buffer, size_t size, InstructionSet isa = A32)
       : Assembler(buffer, size, isa),
         available_(r12),
+        current_scratch_scope_(NULL),
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
         veneer_pool_manager_(this),
@@ -516,6 +520,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   RegisterList* GetScratchRegisterList() { return &available_; }
   VRegisterList* GetScratchVRegisterList() { return &available_vfp_; }
+
+  // Get or set the current (most-deeply-nested) UseScratchRegisterScope.
+  void SetCurrentScratchRegisterScope(UseScratchRegisterScope* scope) {
+    current_scratch_scope_ = scope;
+  }
+  UseScratchRegisterScope* GetCurrentScratchRegisterScope() {
+    return current_scratch_scope_;
+  }
 
   // Given an address calculation (Register + immediate), generate code to
   // partially compute the address. The returned MemOperand will perform any
@@ -10926,6 +10938,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
  private:
   RegisterList available_;
   VRegisterList available_vfp_;
+  UseScratchRegisterScope* current_scratch_scope_;
   MacroAssemblerContext context_;
   Label::Offset checkpoint_;
   LiteralPoolManager literal_pool_manager_;
@@ -10942,25 +10955,24 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 //
 // When the scope ends, the MacroAssembler's lists will be restored to their
 // original state, even if the lists were modified by some other means.
+//
+// Scopes must nest perfectly. That is, they must be destructed in reverse
+// construction order. Otherwise, it is not clear how to handle cases where one
+// scope acquires a register that was included in a now-closing scope. With
+// perfect nesting, this cannot occur.
 class UseScratchRegisterScope {
  public:
   // This constructor implicitly calls the `Open` function to initialise the
   // scope, so it is ready to use immediately after it has been constructed.
   explicit UseScratchRegisterScope(MacroAssembler* masm)
-      : available_(NULL),
-        available_vfp_(NULL),
-        old_available_(0),
-        old_available_vfp_(0) {
+      : masm_(NULL), parent_(NULL), old_available_(0), old_available_vfp_(0) {
     Open(masm);
   }
   // This constructor allows deferred and optional initialisation of the scope.
   // The user is required to explicitly call the `Open` function before using
   // the scope.
   UseScratchRegisterScope()
-      : available_(NULL),
-        available_vfp_(NULL),
-        old_available_(0),
-        old_available_vfp_(0) {}
+      : masm_(NULL), parent_(NULL), old_available_(0), old_available_vfp_(0) {}
 
   // This function performs the actual initialisation work.
   void Open(MacroAssembler* masm);
@@ -11030,9 +11042,11 @@ class UseScratchRegisterScope {
   void ExcludeAll();
 
  private:
-  // Available scratch registers.
-  RegisterList* available_;       // kRRegister
-  VRegisterList* available_vfp_;  // kVRegister
+  // The MacroAssembler maintains a list of available scratch registers, and
+  // also keeps track of the most recently-opened scope so that on destruction
+  // we can check that scopes do not outlive their parents.
+  MacroAssembler* masm_;
+  UseScratchRegisterScope* parent_;
 
   // The state of the available lists at the start of this scope.
   uint32_t old_available_;      // kRRegister

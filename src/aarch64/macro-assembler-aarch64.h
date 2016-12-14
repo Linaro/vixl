@@ -2948,6 +2948,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     return GetScratchFPRegisterList();
   }
 
+  // Get or set the current (most-deeply-nested) UseScratchRegisterScope.
+  void SetCurrentScratchRegisterScope(UseScratchRegisterScope* scope) {
+    current_scratch_scope_ = scope;
+  }
+  UseScratchRegisterScope* GetCurrentScratchRegisterScope() {
+    return current_scratch_scope_;
+  }
+
   // Like printf, but print at run-time from generated code.
   //
   // The caller must ensure that arguments for floating-point placeholders
@@ -3135,6 +3143,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   CPURegList tmp_list_;
   CPURegList fptmp_list_;
 
+  UseScratchRegisterScope* current_scratch_scope_;
+
   LiteralPool literal_pool_;
   VeneerPool veneer_pool_;
 
@@ -3222,16 +3232,22 @@ class UseScratchRegisterScope {
   // This constructor implicitly calls `Open` to initialise the scope (`masm`
   // must not be `NULL`), so it is ready to use immediately after it has been
   // constructed.
-  explicit UseScratchRegisterScope(MacroAssembler* masm);
+  explicit UseScratchRegisterScope(MacroAssembler* masm)
+      : masm_(NULL), parent_(NULL), old_available_(0), old_availablefp_(0) {
+    Open(masm);
+  }
   // This constructor does not implicitly initialise the scope. Instead, the
   // user is required to explicitly call the `Open` function before using the
   // scope.
-  UseScratchRegisterScope();
+  UseScratchRegisterScope()
+      : masm_(NULL), parent_(NULL), old_available_(0), old_availablefp_(0) {}
+
   // This function performs the actual initialisation work.
   void Open(MacroAssembler* masm);
 
   // The destructor always implicitly calls the `Close` function.
-  ~UseScratchRegisterScope();
+  ~UseScratchRegisterScope() { Close(); }
+
   // This function performs the cleaning-up work. It must succeed even if the
   // scope has not been opened. It is safe to call multiple times.
   void Close();
@@ -3242,10 +3258,18 @@ class UseScratchRegisterScope {
 
   // Take a register from the appropriate temps list. It will be returned
   // automatically when the scope ends.
-  Register AcquireW() { return AcquireNextAvailable(available_).W(); }
-  Register AcquireX() { return AcquireNextAvailable(available_).X(); }
-  VRegister AcquireS() { return AcquireNextAvailable(availablefp_).S(); }
-  VRegister AcquireD() { return AcquireNextAvailable(availablefp_).D(); }
+  Register AcquireW() {
+    return AcquireNextAvailable(masm_->GetScratchRegisterList()).W();
+  }
+  Register AcquireX() {
+    return AcquireNextAvailable(masm_->GetScratchRegisterList()).X();
+  }
+  VRegister AcquireS() {
+    return AcquireNextAvailable(masm_->GetScratchFPRegisterList()).S();
+  }
+  VRegister AcquireD() {
+    return AcquireNextAvailable(masm_->GetScratchFPRegisterList()).D();
+  }
 
 
   Register AcquireRegisterOfSize(int size_in_bits);
@@ -3257,7 +3281,7 @@ class UseScratchRegisterScope {
     return AcquireVRegisterOfSize(reg.GetSizeInBits());
   }
   CPURegister AcquireCPURegisterOfSize(int size_in_bits) {
-    return available_->IsEmpty()
+    return masm_->GetScratchRegisterList()->IsEmpty()
                ? CPURegister(AcquireVRegisterOfSize(size_in_bits))
                : CPURegister(AcquireRegisterOfSize(size_in_bits));
   }
@@ -3313,14 +3337,15 @@ class UseScratchRegisterScope {
 
   static void ExcludeByRegList(CPURegList* available, RegList exclude);
 
-  // Available scratch registers.
-  CPURegList* available_;    // kRegister
-  CPURegList* availablefp_;  // kVRegister
+  // The MacroAssembler maintains a list of available scratch registers, and
+  // also keeps track of the most recently-opened scope so that on destruction
+  // we can check that scopes do not outlive their parents.
+  MacroAssembler* masm_;
+  UseScratchRegisterScope* parent_;
 
   // The state of the available lists at the start of this scope.
   RegList old_available_;    // kRegister
   RegList old_availablefp_;  // kVRegister
-  bool initialised_;
 
   // Disallow copy constructor and operator=.
   VIXL_DEBUG_NO_RETURN UseScratchRegisterScope(const UseScratchRegisterScope&) {

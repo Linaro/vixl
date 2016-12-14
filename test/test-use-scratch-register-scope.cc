@@ -69,8 +69,10 @@ class PerfectNestingTestHelper {
     seed48(seed);
   }
   void Run() {
+    UseScratchRegisterScope* top_scope = masm_->GetCurrentScratchRegisterScope();
     int descendents = 0;
     while (descendents < kMinimumDescendentScopeCount) descendents += Run(0);
+    VIXL_CHECK(masm_->GetCurrentScratchRegisterScope() == top_scope);
   }
 
  private:
@@ -82,7 +84,9 @@ class PerfectNestingTestHelper {
     int descendents = children;
     while (children-- > 0) {
       UseScratchRegisterScope scope(masm_);
+      VIXL_CHECK(masm_->GetCurrentScratchRegisterScope() == &scope);
       descendents += Run(depth + 1);
+      VIXL_CHECK(masm_->GetCurrentScratchRegisterScope() == &scope);
     }
     return descendents;
   }

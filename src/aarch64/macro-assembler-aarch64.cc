@@ -315,6 +315,7 @@ MacroAssembler::MacroAssembler(PositionIndependentCodeOption pic)
       sp_(sp),
       tmp_list_(ip0, ip1),
       fptmp_list_(d31),
+      current_scratch_scope_(NULL),
       literal_pool_(this),
       veneer_pool_(this),
       recommended_checkpoint_(Pool::kNoCheckpointRequired) {
@@ -335,6 +336,7 @@ MacroAssembler::MacroAssembler(size_t capacity,
       sp_(sp),
       tmp_list_(ip0, ip1),
       fptmp_list_(d31),
+      current_scratch_scope_(NULL),
       literal_pool_(this),
       veneer_pool_(this),
       recommended_checkpoint_(Pool::kNoCheckpointRequired) {
@@ -353,6 +355,7 @@ MacroAssembler::MacroAssembler(byte* buffer,
       sp_(sp),
       tmp_list_(ip0, ip1),
       fptmp_list_(d31),
+      current_scratch_scope_(NULL),
       literal_pool_(this),
       veneer_pool_(this),
       recommended_checkpoint_(Pool::kNoCheckpointRequired) {
@@ -2639,81 +2642,63 @@ void MacroAssembler::AnnotateInstrumentation(const char* marker_name) {
 
 
 void UseScratchRegisterScope::Open(MacroAssembler* masm) {
-  VIXL_ASSERT(!initialised_);
+  VIXL_ASSERT(masm_ == NULL);
   VIXL_ASSERT(masm != NULL);
-  available_ = masm->GetScratchRegisterList();
-  availablefp_ = masm->GetScratchFPRegisterList();
-  old_available_ = available_->GetList();
-  old_availablefp_ = availablefp_->GetList();
-  VIXL_ASSERT(available_->GetType() == CPURegister::kRegister);
-  VIXL_ASSERT(availablefp_->GetType() == CPURegister::kVRegister);
-#ifdef VIXL_DEBUG
-  initialised_ = true;
-#endif
+  masm_ = masm;
+
+  CPURegList* available = masm->GetScratchRegisterList();
+  CPURegList* available_fp = masm->GetScratchFPRegisterList();
+  old_available_ = available->GetList();
+  old_availablefp_ = available_fp->GetList();
+  VIXL_ASSERT(available->GetType() == CPURegister::kRegister);
+  VIXL_ASSERT(available_fp->GetType() == CPURegister::kVRegister);
+
+  parent_ = masm->GetCurrentScratchRegisterScope();
+  masm->SetCurrentScratchRegisterScope(this);
 }
 
 
 void UseScratchRegisterScope::Close() {
-  if (available_) {
-    available_->SetList(old_available_);
-    available_ = NULL;
+  if (masm_ != NULL) {
+    // Ensure that scopes nest perfectly, and do not outlive their parents.
+    // This is a run-time check because the order of destruction of objects in
+    // the _same_ scope is implementation-defined, and is likely to change in
+    // optimised builds.
+    VIXL_CHECK(masm_->GetCurrentScratchRegisterScope() == this);
+    masm_->SetCurrentScratchRegisterScope(parent_);
+
+    masm_->GetScratchRegisterList()->SetList(old_available_);
+    masm_->GetScratchFPRegisterList()->SetList(old_availablefp_);
+
+    masm_ = NULL;
   }
-  if (availablefp_) {
-    availablefp_->SetList(old_availablefp_);
-    availablefp_ = NULL;
-  }
-#ifdef VIXL_DEBUG
-  initialised_ = false;
-#endif
 }
-
-
-UseScratchRegisterScope::UseScratchRegisterScope(MacroAssembler* masm) {
-#ifdef VIXL_DEBUG
-  initialised_ = false;
-#else
-  USE(initialised_);
-#endif
-  Open(masm);
-}
-
-// This allows deferred (and optional) initialisation of the scope.
-UseScratchRegisterScope::UseScratchRegisterScope()
-    : available_(NULL),
-      availablefp_(NULL),
-      old_available_(0),
-      old_availablefp_(0) {
-#ifdef VIXL_DEBUG
-  initialised_ = false;
-#endif
-}
-
-UseScratchRegisterScope::~UseScratchRegisterScope() { Close(); }
 
 
 bool UseScratchRegisterScope::IsAvailable(const CPURegister& reg) const {
-  return available_->IncludesAliasOf(reg) || availablefp_->IncludesAliasOf(reg);
+  return masm_->GetScratchRegisterList()->IncludesAliasOf(reg) ||
+         masm_->GetScratchFPRegisterList()->IncludesAliasOf(reg);
 }
 
 
 Register UseScratchRegisterScope::AcquireRegisterOfSize(int size_in_bits) {
-  int code = AcquireNextAvailable(available_).GetCode();
+  int code = AcquireNextAvailable(masm_->GetScratchRegisterList()).GetCode();
   return Register(code, size_in_bits);
 }
 
 
 FPRegister UseScratchRegisterScope::AcquireVRegisterOfSize(int size_in_bits) {
-  int code = AcquireNextAvailable(availablefp_).GetCode();
+  int code = AcquireNextAvailable(masm_->GetScratchFPRegisterList()).GetCode();
   return FPRegister(code, size_in_bits);
 }
 
 
 void UseScratchRegisterScope::Release(const CPURegister& reg) {
-  VIXL_ASSERT(initialised_);
+  VIXL_ASSERT(masm_ != NULL);
   if (reg.IsRegister()) {
-    ReleaseByCode(available_, reg.GetCode());
+    ReleaseByCode(masm_->GetScratchRegisterList(), reg.GetCode());
   } else if (reg.IsFPRegister()) {
-    ReleaseByCode(availablefp_, reg.GetCode());
+    ReleaseByCode(masm_->GetScratchFPRegisterList(), reg.GetCode());
   } else {
     VIXL_ASSERT(reg.IsNone());
   }
@@ -2721,14 +2706,14 @@ void UseScratchRegisterScope::Release(const CPURegister& reg) {
 
 
 void UseScratchRegisterScope::Include(const CPURegList& list) {
-  VIXL_ASSERT(initialised_);
+  VIXL_ASSERT(masm_ != NULL);
   if (list.GetType() == CPURegister::kRegister) {
     // Make sure that neither sp nor xzr are included the list.
-    IncludeByRegList(available_,
+    IncludeByRegList(masm_->GetScratchRegisterList(),
                      list.GetList() & ~(xzr.GetBit() | sp.GetBit()));
   } else {
     VIXL_ASSERT(list.GetType() == CPURegister::kVRegister);
-    IncludeByRegList(availablefp_, list.GetList());
+    IncludeByRegList(masm_->GetScratchFPRegisterList(), list.GetList());
   }
 }
 
@@ -2737,13 +2722,13 @@ void UseScratchRegisterScope::Include(const Register& reg1,
                                       const Register& reg2,
                                       const Register& reg3,
                                       const Register& reg4) {
-  VIXL_ASSERT(initialised_);
+  VIXL_ASSERT(masm_ != NULL);
   RegList include =
       reg1.GetBit() | reg2.GetBit() | reg3.GetBit() | reg4.GetBit();
   // Make sure that neither sp nor xzr are included the list.
   include &= ~(xzr.GetBit() | sp.GetBit());
 
-  IncludeByRegList(available_, include);
+  IncludeByRegList(masm_->GetScratchRegisterList(), include);
 }
 
 
@@ -2753,16 +2738,16 @@ void UseScratchRegisterScope::Include(const FPRegister& reg1,
                                       const FPRegister& reg4) {
   RegList include =
       reg1.GetBit() | reg2.GetBit() | reg3.GetBit() | reg4.GetBit();
-  IncludeByRegList(availablefp_, include);
+  IncludeByRegList(masm_->GetScratchFPRegisterList(), include);
 }
 
 
 void UseScratchRegisterScope::Exclude(const CPURegList& list) {
   if (list.GetType() == CPURegister::kRegister) {
-    ExcludeByRegList(available_, list.GetList());
+    ExcludeByRegList(masm_->GetScratchRegisterList(), list.GetList());
   } else {
     VIXL_ASSERT(list.GetType() == CPURegister::kVRegister);
-    ExcludeByRegList(availablefp_, list.GetList());
+    ExcludeByRegList(masm_->GetScratchFPRegisterList(), list.GetList());
   }
 }
 
@@ -2773,7 +2758,7 @@ void UseScratchRegisterScope::Exclude(const Register& reg1,
                                       const Register& reg4) {
   RegList exclude =
       reg1.GetBit() | reg2.GetBit() | reg3.GetBit() | reg4.GetBit();
-  ExcludeByRegList(available_, exclude);
+  ExcludeByRegList(masm_->GetScratchRegisterList(), exclude);
 }
 
 
@@ -2783,7 +2768,7 @@ void UseScratchRegisterScope::Exclude(const FPRegister& reg1,
                                       const FPRegister& reg4) {
   RegList excludefp =
       reg1.GetBit() | reg2.GetBit() | reg3.GetBit() | reg4.GetBit();
-  ExcludeByRegList(availablefp_, excludefp);
+  ExcludeByRegList(masm_->GetScratchFPRegisterList(), excludefp);
 }
 
 
@@ -2806,14 +2791,16 @@ void UseScratchRegisterScope::Exclude(const CPURegister& reg1,
     }
   }
 
-  ExcludeByRegList(available_, exclude);
-  ExcludeByRegList(availablefp_, excludefp);
+  ExcludeByRegList(masm_->GetScratchRegisterList(), exclude);
+  ExcludeByRegList(masm_->GetScratchFPRegisterList(), excludefp);
 }
 
 
 void UseScratchRegisterScope::ExcludeAll() {
-  ExcludeByRegList(available_, available_->GetList());
-  ExcludeByRegList(availablefp_, availablefp_->GetList());
+  ExcludeByRegList(masm_->GetScratchRegisterList(),
+                   masm_->GetScratchRegisterList()->GetList());
+  ExcludeByRegList(masm_->GetScratchFPRegisterList(),
+                   masm_->GetScratchFPRegisterList()->GetList());
 }
 
 
