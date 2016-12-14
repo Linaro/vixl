@@ -76,10 +76,16 @@ def relrealpath(path, start=os.getcwd()):
 
 # Query the compiler about its preprocessor directives and return all of them as
 # a dictionnary.
-def GetCompilerDirectives(cxx):
+def GetCompilerDirectives(env):
+  args = [env['CXX']]
+  # Pass the CXXFLAGS varables to the compile, in case we've used "-m32" to
+  # compile for i386.
+  if env['CXXFLAGS']:
+    args.append(str(env['CXXFLAGS']))
+  args += ['-E', '-dM', '-']
+
   # Instruct the compiler to dump all its preprocessor macros.
-  dump = subprocess.Popen([cxx, '-E', '-dM', '-'], stdin=subprocess.PIPE,
-                          stdout=subprocess.PIPE)
+  dump = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
   out, _ = dump.communicate()
   return {
     # Extract the macro name as key and value as element.
@@ -100,6 +106,8 @@ def GetHostArch(cxx):
   directives = GetCompilerDirectives(cxx)
   if "__x86_64__" in directives:
     return "x86_64"
+  elif "__i386__" in directives:
+    return "i386"
   elif "__arm__" in directives:
     return "aarch32"
   elif "__aarch64__" in directives:

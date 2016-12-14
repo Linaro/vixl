@@ -37,6 +37,8 @@ sys.path.insert(0, join(root_dir, 'tools'))
 import config
 import util
 
+from SCons.Errors import UserError
+
 
 Help('''
 Build system for the VIXL project.
@@ -128,16 +130,28 @@ def modifiable_flags_handler(env):
 def symbols_handler(env):
   env['symbols'] = 'on' if 'mode' in env and env['mode'] == 'debug' else 'off'
 
+def Is32BitHost(env):
+  return env['host_arch'] in ['aarch32', 'i386']
+
+def IsAArch64Host(env):
+  return env['host_arch'] == 'aarch64'
+
+def CanTargetAArch32(env):
+  return env['target_arch'] in ['aarch32', 'both']
+
+def CanTargetAArch64(env):
+  return env['target_arch'] in ['aarch64', 'both']
+
 
 # The architecture targeted by default will depend on the compiler being
 # used. 'host_arch' is extracted from the compiler while 'target_arch' can be
 # set by the user.
-# By default, we target both AArch32 and AArch64 unless the compiler
-# targets AArch32. At the moment, we cannot build VIXL's AArch64 support on a 32
-# bit platform.
-# TODO: Port VIXL to build on a 32 bit platform.
+# By default, we target both AArch32 and AArch64 unless the compiler targets a
+# 32-bit architecture. At the moment, we cannot build VIXL's AArch64 support on
+# a 32-bit platform.
+# TODO: Port VIXL to build on a 32-bit platform.
 def target_arch_handler(env):
-  if env['host_arch'] == 'aarch32':
+  if Is32BitHost(env):
     env['target_arch'] = 'aarch32'
   else:
     env['target_arch'] = 'both'
@@ -146,25 +160,42 @@ def target_arch_handler(env):
 # By default, include the simulator only if AArch64 is targeted and we are not
 # building VIXL natively for AArch64.
 def simulator_handler(env):
-  if env['host_arch'] != 'aarch64' and \
-     env['target_arch'] in ['aarch64', 'both']:
+  if not IsAArch64Host(env) and CanTargetAArch64(env):
     env['simulator'] = 'aarch64'
   else:
     env['simulator'] = 'none'
 
 
+# A validator checks the consistency of provided options against the environment.
+def default_validator(env):
+  pass
+
+
+def target_arch_validator(env):
+  # TODO: Port VIXL64 to work on a 32-bit platform.
+  if Is32BitHost(env) and CanTargetAArch64(env):
+    raise UserError('Building VIXL for AArch64 in 32-bit is not supported. Set '
+                    '`target_arch` to `aarch32`')
+
+
+def simulator_validator(env):
+  if env['simulator'] == 'aarch64' and not CanTargetAArch64(env):
+    raise UserError('Building an AArch64 simulator implies that VIXL targets '
+                    'AArch64. Set `target_arch` to `aarch64` or `both`.')
+
+
 # Default variables may depend on each other, therefore we need this dictionnary
 # to be ordered.
 vars_default_handlers = OrderedDict({
-    # variable_name    : [ 'default val', 'handler'                ]
-    'symbols'          : [ 'mode==debug', symbols_handler          ],
-    'modifiable_flags' : [ 'mode==debug', modifiable_flags_handler ],
-    'target_arch'      : [ 'same as host architecture if running on AArch32 - '
-                           'otherwise both',
-                           target_arch_handler ],
+    # variable_name    : [ 'default val', 'handler', 'validator']
+    'symbols'          : [ 'mode==debug', symbols_handler, default_validator ],
+    'modifiable_flags' : [ 'mode==debug', modifiable_flags_handler, default_validator],
+    'target_arch'      : [ 'AArch32 only if the host compiler targets a 32-bit '
+                           'architecture - otherwise both', target_arch_handler,
+                           target_arch_validator],
     'simulator'        : ['on if the target architectures include AArch64 but '
                            'the host is not AArch64, else off',
-                           simulator_handler ]
+                           simulator_handler, simulator_validator ]
     })
 
 
@@ -173,11 +204,9 @@ def DefaultVariable(name, help, allowed_values):
   default_value = vars_default_handlers[name][0]
   def validator(name, value, env):
     if value != default_value and value not in allowed_values:
-        raise SCons.Errors.UserError(
-            'Invalid value for option {name}: {value}.  '
-            'Valid values are: {allowed_values}'.format(name,
-                                                        value,
-                                                        allowed_values))
+        raise UserError('Invalid value for option {name}: {value}.  '
+                        'Valid values are: {allowed_values}'.format(
+                            name, value, allowed_values))
   return (name, help, default_value, validator)
 
 
@@ -242,6 +271,11 @@ def ProcessBuildOptions(env):
     if env_dict.get(key) == default:
       handler(env_dict)
 
+  # Second, run the series of validators, to check for errors.
+  for _, value in vars_default_handlers.items():
+    validator = value[2]
+    validator(env)
+
   for key in env_dict.keys():
     # Then update the environment according to the value of the variable.
     key_val_couple = key + ':%s' % env_dict[key]
@@ -251,7 +285,7 @@ def ProcessBuildOptions(env):
 
 
 def ConfigureEnvironmentForCompiler(env):
-  compiler = util.CompilerInformation(env['CXX'])
+  compiler = util.CompilerInformation(env)
   if compiler == 'clang':
     # These warnings only work for Clang.
     # -Wimplicit-fallthrough only works when compiling the code base as C++11 or
@@ -284,7 +318,7 @@ def ConfigureEnvironmentForCompiler(env):
 
 def ConfigureEnvironment(env):
   RetrieveEnvironmentVariables(env)
-  env['host_arch'] = util.GetHostArch(env['CXX'])
+  env['host_arch'] = util.GetHostArch(env)
   ProcessBuildOptions(env)
   if 'std' in env:
     env.Append(CPPFLAGS = ['-std=' + env['std']])
