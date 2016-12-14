@@ -561,9 +561,8 @@ TEST(macro_assembler_big_offset) {
   SETUP();
 
   COMPARE_BOTH(Ldr(r0, MemOperand(r1, 0xfff123)),
-               "mov r0, #61440\n"  // #0xf000
-               "movt r0, #255\n"   // #0x00ff
-               "add r0, r1, r0\n"
+               "add r0, r1, #1044480\n"  // #0xff000
+               "add r0, #15728640\n"   // #0x00f00000
                "ldr r0, [r0, #291]\n");  // #0x123
   COMPARE_BOTH(Ldr(r0, MemOperand(r1, 0xff123)),
                "add r0, r1, #1044480\n"  // #0xff000
@@ -573,9 +572,8 @@ TEST(macro_assembler_big_offset) {
                "ldr r0, [r0, #3805]\n");  // #0xedd
 
   COMPARE_A32(Ldr(r0, MemOperand(r1, 0xfff123, PreIndex)),
-              "mov ip, #61440\n"  // #0xf000
-              "movt ip, #255\n"   // #0x00ff
-              "add r1, ip\n"
+              "add r1, #1044480\n"  // #0xff000
+              "add r1, #15728640\n"  // #0x00f00000
               "ldr r0, [r1, #291]!\n");  // #0x123
   COMPARE_A32(Ldr(r0, MemOperand(r1, 0xff123, PreIndex)),
               "add r1, #1044480\n"  // #0xff000
@@ -585,9 +583,8 @@ TEST(macro_assembler_big_offset) {
               "ldr r0, [r1, #3805]!\n");  // #0xedd
 
   COMPARE_T32(Ldr(r0, MemOperand(r1, 0xfff12, PreIndex)),
-              "mov ip, #65280\n"  // #0xff00
-              "movt ip, #15\n"   // #0x000f
-              "add r1, ip\n"
+              "add r1, #65280\n"  // #0xff00
+              "add r1, #983040\n"  // #0x000f0000
               "ldr r0, [r1, #18]!\n");  // #0x12
   COMPARE_T32(Ldr(r0, MemOperand(r1, 0xff12, PreIndex)),
               "add r1, #65280\n"  // #0xff00
@@ -595,17 +592,11 @@ TEST(macro_assembler_big_offset) {
   COMPARE_T32(Ldr(r0, MemOperand(r1, -0xff12, PreIndex)),
               "sub r1, #65536\n"  // #0x10000
               "ldr r0, [r1, #238]!\n");  // #0xee
-  COMPARE_A32(Ldr(r0, MemOperand(r1, 0xfff123, PreIndex)),
-              "mov ip, #61440\n"  // #0xf000
-              "movt ip, #255\n"   // #0x00ff
-              "add r1, ip\n"
-              "ldr r0, [r1, #291]!\n");  // #0x123
 
   COMPARE_A32(Ldr(r0, MemOperand(r1, 0xfff123, PostIndex)),
               "ldr r0, [r1], #291\n"  // #0x123
-              "mov ip, #61440\n"  // #0xf000
-              "movt ip, #255\n"   // #0x00ff
-              "add r1, ip\n");
+              "add r1, #1044480\n"  // #0xff000
+              "add r1, #15728640\n");  // #0x00f00000
   COMPARE_A32(Ldr(r0, MemOperand(r1, 0xff123, PostIndex)),
               "ldr r0, [r1], #291\n"  // #0x123
               "add r1, #1044480\n");  // #0xff000
@@ -615,9 +606,8 @@ TEST(macro_assembler_big_offset) {
 
   COMPARE_T32(Ldr(r0, MemOperand(r1, 0xfff12, PostIndex)),
               "ldr r0, [r1], #18\n"  // #0x12
-              "mov ip, #65280\n"  // #0xff00
-              "movt ip, #15\n"   // #0x000f
-              "add r1, ip\n");
+              "add r1, #65280\n"  // #0xff00
+              "add r1, #983040\n");  // #0x000f0000
   COMPARE_T32(Ldr(r0, MemOperand(r1, 0xff12, PostIndex)),
               "ldr r0, [r1], #18\n"  // #0x12
               "add r1, #65280\n");  // #0xff00
@@ -625,33 +615,29 @@ TEST(macro_assembler_big_offset) {
               "ldr r0, [r1], #238\n"  // #0xee
               "sub r1, #65536\n");  // #0x10000
 
-  COMPARE_T32(Ldrh(r0, MemOperand(r1, 0xfff123)),
-              "mov r0, #61440\n"  // #0xf000
-              "movt r0, #255\n"   // #0x00ff
-              "add r0, r1, r0\n"
-              "ldrh r0, [r0, #291]\n");  // #0x123
   COMPARE_A32(Ldrh(r0, MemOperand(r1, 0xfff123)),
-              "mov r0, #61696\n"  // #0xf100
-              "movt r0, #255\n"   // #0x00ff
-              "add r0, r1, r0\n"
+              "add r0, r1, #61696\n"  // #0xf100
+              "add r0, #16711680\n"  // #0x00ff0000
               "ldrh r0, [r0, #35]\n");  // #0x23
+  COMPARE_T32(Ldrh(r0, MemOperand(r1, 0xfff123)),
+              "add r0, r1, #1044480\n"  // #0xff000
+              "add r0, #15728640\n"  // #0x00f00000
+              "ldrh r0, [r0, #291]\n");  // #0x123
 
+  COMPARE_A32(Ldrh(r0, MemOperand(r1, 0xff123)),
+              "add r0, r1, #61696\n"  // #0xf100
+              "add r0, #983040\n"  // #0x000f0000
+              "ldrh r0, [r0, #35]\n"); // #0x23
   COMPARE_T32(Ldrh(r0, MemOperand(r1, 0xff123)),
               "add r0, r1, #1044480\n"  // #0xff000
               "ldrh r0, [r0, #291]\n"); // #0x123
-  COMPARE_A32(Ldrh(r0, MemOperand(r1, 0xff123)),
-               "mov r0, #61696\n"       // #0xf100
-               "movt r0, #15\n"         // #0xf
-               "add r0, r1, r0\n"
-               "ldrh r0, [r0, #35]\n"); // #0x23
+  COMPARE_A32(Ldrh(r0, MemOperand(r1, -0xff123)),
+              "sub r0, r1, #61952\n"  // #0xf200
+              "sub r0, #983040\n"  // #0x000f0000
+              "ldrh r0, [r0, #221]\n"); // #0xdd
   COMPARE_T32(Ldrh(r0, MemOperand(r1, -0xff123)),
               "sub r0, r1, #1048576\n"   // #0x100000
               "ldrh r0, [r0, #3805]\n"); // #0xedd
-  COMPARE_A32(Ldrh(r0, MemOperand(r1, -0xff123)),
-               "mov r0, #61952\n"        // #0xf200
-               "movt r0, #15\n"          // #0xf
-               "sub r0, r1, r0\n"
-               "ldrh r0, [r0, #221]\n"); // #0xdd
 
   MUST_FAIL_TEST_BOTH(Ldr(r0, MemOperand(r0, 0xfff12, PreIndex)),
                       "Ill-formed 'ldr' instruction.\n");
@@ -893,14 +879,22 @@ TEST(macro_assembler_ldrd) {
   COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, -1020)),
                "ldrd r0, r1, [r2, #-1020]\n");
 
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, 0xabcd)),
-               "mov r0, #43981\n"
-               "add r0, r2, r0\n"
-               "ldrd r0, r1, [r0]\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, -0xabcd)),
-               "mov r0, #43981\n"
-               "sub r0, r2, r0\n"
-               "ldrd r0, r1, [r0]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, 0xabcd)),
+              "add r0, r2, #205\n"
+              "add r0, #43776\n"
+              "ldrd r0, r1, [r0]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, 0xabcd)),
+              "add r0, r2, #3021\n"
+              "add r0, #40960\n"
+              "ldrd r0, r1, [r0]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, -0xabcd)),
+              "sub r0, r2, #205\n"
+              "sub r0, #43776\n"
+              "ldrd r0, r1, [r0]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, -0xabcd)),
+              "sub r0, r2, #3021\n"
+              "sub r0, #40960\n"
+              "ldrd r0, r1, [r0]\n");
 
   COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, 0xabcdef)),
               "mov r0, #52719\n"
@@ -913,14 +907,22 @@ TEST(macro_assembler_ldrd) {
               "sub r0, r2, r0\n"
               "ldrd r0, r1, [r0]\n");
 
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r0, 0xabcd)),
-               "mov r1, #43981\n"
-               "add r1, r0, r1\n"
-               "ldrd r0, r1, [r1]\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r0, -0xabcd)),
-               "mov r1, #43981\n"
-               "sub r1, r0, r1\n"
-               "ldrd r0, r1, [r1]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r0, 0xabcd)),
+              "add r1, r0, #205\n"
+              "add r1, #43776\n"
+              "ldrd r0, r1, [r1]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r0, 0xabcd)),
+              "add r1, r0, #3021\n"
+              "add r1, #40960\n"
+              "ldrd r0, r1, [r1]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r0, -0xabcd)),
+              "sub r1, r0, #205\n"
+              "sub r1, #43776\n"
+              "ldrd r0, r1, [r1]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r0, -0xabcd)),
+              "sub r1, r0, #3021\n"
+              "sub r1, #40960\n"
+              "ldrd r0, r1, [r1]\n");
   COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r0, 0xabcdef)),
                "mov r1, #52719\n"
                "movt r1, #171\n"
@@ -932,14 +934,22 @@ TEST(macro_assembler_ldrd) {
                "sub r1, r0, r1\n"
                "ldrd r0, r1, [r1]\n");
 
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, 0xabcd)),
-               "mov r0, #43981\n"
-               "add r0, r1, r0\n"
-               "ldrd r0, r1, [r0]\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, -0xabcd)),
-               "mov r0, #43981\n"
-               "sub r0, r1, r0\n"
-               "ldrd r0, r1, [r0]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r1, 0xabcd)),
+              "add r0, r1, #205\n"
+              "add r0, #43776\n"
+              "ldrd r0, r1, [r0]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r1, 0xabcd)),
+              "add r0, r1, #3021\n"
+              "add r0, #40960\n"
+              "ldrd r0, r1, [r0]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r1, -0xabcd)),
+              "sub r0, r1, #205\n"
+              "sub r0, #43776\n"
+              "ldrd r0, r1, [r0]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r1, -0xabcd)),
+              "sub r0, r1, #3021\n"
+              "sub r0, #40960\n"
+              "ldrd r0, r1, [r0]\n");
   COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, 0xabcdef)),
                "mov r0, #52719\n"
                "movt r0, #171\n"
@@ -951,14 +961,22 @@ TEST(macro_assembler_ldrd) {
                "sub r0, r1, r0\n"
                "ldrd r0, r1, [r0]\n");
 
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, 0xabcd, PostIndex)),
-               "ldrd r0, r1, [r2]\n"
-               "mov ip, #43981\n"
-               "add r2, ip\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, -0xabcd, PostIndex)),
-               "ldrd r0, r1, [r2]\n"
-               "mov ip, #43981\n"
-               "sub r2, ip\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, 0xabcd, PostIndex)),
+              "ldrd r0, r1, [r2]\n"
+              "add r2, #205\n"
+              "add r2, #43776\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, 0xabcd, PostIndex)),
+              "ldrd r0, r1, [r2]\n"
+              "add r2, #3021\n"
+              "add r2, #40960\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, -0xabcd, PostIndex)),
+              "ldrd r0, r1, [r2]\n"
+              "sub r2, #205\n"
+              "sub r2, #43776\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, -0xabcd, PostIndex)),
+              "ldrd r0, r1, [r2]\n"
+              "sub r2, #3021\n"
+              "sub r2, #40960\n");
   COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, 0xabcdef, PostIndex)),
                "ldrd r0, r1, [r2]\n"
                "mov ip, #52719\n"
@@ -976,14 +994,22 @@ TEST(macro_assembler_ldrd) {
   MUST_FAIL_TEST_BOTH(Ldrd(r0, r1, MemOperand(r1, 0xabcdef, PostIndex)),
                       "Ill-formed 'ldrd' instruction.\n");
 
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r0, 0xabcd, PreIndex)),
-               "mov r1, #43981\n"
-               "add r0, r1\n"
-               "ldrd r0, r1, [r0]\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r0, -0xabcd, PreIndex)),
-               "mov r1, #43981\n"
-               "sub r0, r1\n"
-               "ldrd r0, r1, [r0]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r0, 0xabcd, PreIndex)),
+              "add r0, #205\n"
+              "add r0, #43776\n"
+              "ldrd r0, r1, [r0]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r0, 0xabcd, PreIndex)),
+              "add r0, #3021\n"
+              "add r0, #40960\n"
+              "ldrd r0, r1, [r0]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r0, -0xabcd, PreIndex)),
+              "sub r0, #205\n"
+              "sub r0, #43776\n"
+              "ldrd r0, r1, [r0]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r0, -0xabcd, PreIndex)),
+              "sub r0, #3021\n"
+              "sub r0, #40960\n"
+              "ldrd r0, r1, [r0]\n");
   COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, 0xabcdef, PreIndex)),
                "mov r0, #52719\n"
                "movt r0, #171\n"
@@ -1097,14 +1123,22 @@ TEST(macro_assembler_strd) {
   COMPARE_T32(Strd(r0, r1, MemOperand(r2, -1020)),
               "strd r0, r1, [r2, #-1020]\n");
 
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, 0xabcd)),
-               "mov ip, #43981\n"
-               "add ip, r2, ip\n"
-               "strd r0, r1, [ip]\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, -0xabcd)),
-               "mov ip, #43981\n"
-               "sub ip, r2, ip\n"
-               "strd r0, r1, [ip]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, 0xabcd)),
+              "add ip, r2, #205\n"
+              "add ip, #43776\n"
+              "strd r0, r1, [ip]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, 0xabcd)),
+              "add ip, r2, #3021\n"
+              "add ip, #40960\n"
+              "strd r0, r1, [ip]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, -0xabcd)),
+              "sub ip, r2, #205\n"
+              "sub ip, #43776\n"
+              "strd r0, r1, [ip]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, -0xabcd)),
+              "sub ip, r2, #3021\n"
+              "sub ip, #40960\n"
+              "strd r0, r1, [ip]\n");
   COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, 0xabcdef)),
                "mov ip, #52719\n"
                "movt ip, #171\n"
@@ -1116,14 +1150,22 @@ TEST(macro_assembler_strd) {
                "sub ip, r2, ip\n"
                "strd r0, r1, [ip]\n");
 
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r0, 0xabcd)),
-               "mov ip, #43981\n"
-               "add ip, r0, ip\n"
-               "strd r0, r1, [ip]\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r0, -0xabcd)),
-               "mov ip, #43981\n"
-               "sub ip, r0, ip\n"
-               "strd r0, r1, [ip]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r0, 0xabcd)),
+              "add ip, r0, #205\n"
+              "add ip, #43776\n"
+              "strd r0, r1, [ip]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r0, 0xabcd)),
+              "add ip, r0, #3021\n"
+              "add ip, #40960\n"
+              "strd r0, r1, [ip]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r0, -0xabcd)),
+              "sub ip, r0, #205\n"
+              "sub ip, #43776\n"
+              "strd r0, r1, [ip]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r0, -0xabcd)),
+              "sub ip, r0, #3021\n"
+              "sub ip, #40960\n"
+              "strd r0, r1, [ip]\n");
   COMPARE_BOTH(Strd(r0, r1, MemOperand(r0, 0xabcdef)),
                "mov ip, #52719\n"
                "movt ip, #171\n"
@@ -1135,14 +1177,22 @@ TEST(macro_assembler_strd) {
                "sub ip, r0, ip\n"
                "strd r0, r1, [ip]\n");
 
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, 0xabcd)),
-               "mov ip, #43981\n"
-               "add ip, r1, ip\n"
-               "strd r0, r1, [ip]\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, -0xabcd)),
-               "mov ip, #43981\n"
-               "sub ip, r1, ip\n"
-               "strd r0, r1, [ip]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r1, 0xabcd)),
+              "add ip, r1, #205\n"
+              "add ip, #43776\n"
+              "strd r0, r1, [ip]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r1, 0xabcd)),
+              "add ip, r1, #3021\n"
+              "add ip, #40960\n"
+              "strd r0, r1, [ip]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r1, -0xabcd)),
+              "sub ip, r1, #205\n"
+              "sub ip, #43776\n"
+              "strd r0, r1, [ip]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r1, -0xabcd)),
+              "sub ip, r1, #3021\n"
+              "sub ip, #40960\n"
+              "strd r0, r1, [ip]\n");
   COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, 0xabcdef)),
                "mov ip, #52719\n"
                "movt ip, #171\n"
@@ -1154,14 +1204,22 @@ TEST(macro_assembler_strd) {
                "sub ip, r1, ip\n"
                "strd r0, r1, [ip]\n");
 
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, 0xabcd, PostIndex)),
-               "strd r0, r1, [r2]\n"
-               "mov ip, #43981\n"
-               "add r2, ip\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, -0xabcd, PostIndex)),
-               "strd r0, r1, [r2]\n"
-               "mov ip, #43981\n"
-               "sub r2, ip\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, 0xabcd, PostIndex)),
+              "strd r0, r1, [r2]\n"
+              "add r2, #205\n"
+              "add r2, #43776\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, 0xabcd, PostIndex)),
+              "strd r0, r1, [r2]\n"
+              "add r2, #3021\n"
+              "add r2, #40960\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, -0xabcd, PostIndex)),
+              "strd r0, r1, [r2]\n"
+              "sub r2, #205\n"
+              "sub r2, #43776\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, -0xabcd, PostIndex)),
+              "strd r0, r1, [r2]\n"
+              "sub r2, #3021\n"
+              "sub r2, #40960\n");
   COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, 0xabcdef, PostIndex)),
                "strd r0, r1, [r2]\n"
                "mov ip, #52719\n"
@@ -1179,14 +1237,22 @@ TEST(macro_assembler_strd) {
   MUST_FAIL_TEST_BOTH(Strd(r0, r1, MemOperand(r1, 0xabcdef, PostIndex)),
                       "Ill-formed 'strd' instruction.\n");
 
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r0, 0xabcd, PreIndex)),
-               "mov ip, #43981\n"
-               "add r0, ip\n"
-               "strd r0, r1, [r0]\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r0, -0xabcd, PreIndex)),
-               "mov ip, #43981\n"
-               "sub r0, ip\n"
-               "strd r0, r1, [r0]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r0, 0xabcd, PreIndex)),
+              "add r0, #205\n"
+              "add r0, #43776\n"
+              "strd r0, r1, [r0]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r0, 0xabcd, PreIndex)),
+              "add r0, #3021\n"
+              "add r0, #40960\n"
+              "strd r0, r1, [r0]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r0, -0xabcd, PreIndex)),
+              "sub r0, #205\n"
+              "sub r0, #43776\n"
+              "strd r0, r1, [r0]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r0, -0xabcd, PreIndex)),
+              "sub r0, #3021\n"
+              "sub r0, #40960\n"
+              "strd r0, r1, [r0]\n");
   COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, 0xabcdef, PreIndex)),
                "mov ip, #52719\n"
                "movt ip, #171\n"
@@ -1577,13 +1643,12 @@ TEST(macro_assembler_Cbz) {
               "add ip, r8, #1371\n"                                     \
               STRING_OP # DST_REG ", [ip]\n");                          \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r8, 4113)),                  \
-              "mov ip, #4113\n"                                         \
-              "add ip, r8, ip\n"                                        \
+              "add ip, r8, #17\n"                                       \
+              "add ip, #4096\n"                                         \
               STRING_OP # DST_REG ", [ip]\n");                          \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r8, 65808)),                 \
-              "mov ip, #272\n"                                          \
-              "movt ip, #1\n"                                           \
-              "add ip, r8, ip\n"                                        \
+              "add ip, r8, #272\n"                                      \
+              "add ip, #65536\n"                                        \
               STRING_OP # DST_REG ", [ip]\n");                          \
                                                                         \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r8, -1024)),                 \
@@ -1593,13 +1658,12 @@ TEST(macro_assembler_Cbz) {
               "sub ip, r8, #1371\n"                                     \
               STRING_OP # DST_REG ", [ip]\n");                          \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r8, -4113)),                 \
-              "mov ip, #4113\n"                                         \
-              "sub ip, r8, ip\n"                                        \
+              "sub ip, r8, #17\n"                                       \
+              "sub ip, #4096\n"                                         \
               STRING_OP # DST_REG ", [ip]\n");                          \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r8, -65808)),                \
-              "mov ip, #272\n"                                          \
-              "movt ip, #1\n"                                           \
-              "sub ip, r8, ip\n"                                        \
+              "sub ip, r8, #272\n"                                      \
+              "sub ip, #65536\n"                                        \
               STRING_OP # DST_REG ", [ip]\n");                          \
                                                                         \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r9, 0, PreIndex)),           \
@@ -1608,26 +1672,24 @@ TEST(macro_assembler_Cbz) {
               "add r9, #137\n"                                          \
               STRING_OP # DST_REG ", [r9]\n");                          \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r9, 4110, PreIndex)),        \
-              "mov ip, #4110\n"                                         \
-              "add r9, ip\n"                                            \
+              "add r9, #14\n"                                           \
+              "add r9, #4096\n"                                         \
               STRING_OP # DST_REG ", [r9]\n");                          \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r9, 65623, PreIndex)),       \
-              "mov ip, #87\n"                                           \
-              "movt ip, #1\n"                                           \
-              "add r9, ip\n"                                            \
+              "add r9, #87\n"                                           \
+              "add r9, #65536\n"                                        \
               STRING_OP # DST_REG ", [r9]\n");                          \
                                                                         \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r9, -137, PreIndex)),        \
               "sub r9, #137\n"                                          \
               STRING_OP # DST_REG ", [r9]\n");                          \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r9, -4110, PreIndex)),       \
-              "mov ip, #4110\n"                                         \
-              "sub r9, ip\n"                                            \
+              "sub r9, #14\n"                                           \
+              "sub r9, #4096\n"                                         \
               STRING_OP # DST_REG ", [r9]\n");                          \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r9, -65623, PreIndex)),      \
-              "mov ip, #87\n"                                           \
-              "movt ip, #1\n"                                           \
-              "sub r9, ip\n"                                            \
+              "sub r9, #87\n"                                           \
+              "sub r9, #65536\n"                                        \
               STRING_OP # DST_REG ", [r9]\n");                          \
                                                                         \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r10, 0, PostIndex)),         \
@@ -1637,26 +1699,24 @@ TEST(macro_assembler_Cbz) {
               "add r10, #137\n");                                       \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r10, 4110, PostIndex)),      \
               STRING_OP # DST_REG ", [r10]\n"                           \
-              "mov ip, #4110\n"                                         \
-              "add r10, ip\n");                                         \
+              "add r10, #14\n"                                          \
+              "add r10, #4096\n");                                      \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r10, 65623, PostIndex)),     \
               STRING_OP # DST_REG ", [r10]\n"                           \
-              "mov ip, #87\n"                                           \
-              "movt ip, #1\n"                                           \
-              "add r10, ip\n");                                         \
+              "add r10, #87\n"                                          \
+              "add r10, #65536\n");                                     \
                                                                         \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r10, -137, PostIndex)),      \
               STRING_OP # DST_REG ", [r10]\n"                           \
               "sub r10, #137\n");                                       \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r10, -4110, PostIndex)),     \
               STRING_OP # DST_REG ", [r10]\n"                           \
-              "mov ip, #4110\n"                                         \
-              "sub r10, ip\n");                                         \
+              "sub r10, #14\n"                                          \
+              "sub r10, #4096\n");                                      \
   COMPARE_T32(MACRO_OP(DST_REG, MemOperand(r10, -65623, PostIndex)),    \
               STRING_OP # DST_REG ", [r10]\n"                           \
-              "mov ip, #87\n"                                           \
-              "movt ip, #1\n"                                           \
-              "sub r10, ip\n");                                         \
+              "sub r10, #87\n"                                          \
+              "sub r10, #65536\n");                                     \
   CLEANUP();
 
 TEST(macro_assembler_T32_Vldr_d) {
@@ -1684,26 +1744,24 @@ TEST(macro_assembler_T32_Vstr_s) {
               "add ip, r8, #137\n"                                      \
               STRING_OP # DST_REG ", [ip]\n");                          \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r8, 274)),                   \
-              "mov ip, #274\n"                                          \
-              "add ip, r8, ip\n"                                        \
+              "add ip, r8, #18\n"                                       \
+              "add ip, #256\n"                                          \
               STRING_OP # DST_REG ", [ip]\n");                          \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r8, 65623)),                 \
-              "mov ip, #87\n"                                           \
-              "movt ip, #1\n"                                           \
-              "add ip, r8, ip\n"                                        \
+              "add ip, r8, #87\n"                                       \
+              "add ip, #65536\n"                                        \
               STRING_OP # DST_REG ", [ip]\n");                          \
                                                                         \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r8, -137)),                  \
               "sub ip, r8, #137\n"                                      \
               STRING_OP # DST_REG ", [ip]\n");                          \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r8, -274)),                  \
-              "mov ip, #274\n"                                          \
-              "sub ip, r8, ip\n"                                        \
+              "sub ip, r8, #18\n"                                       \
+              "sub ip, #256\n"                                          \
               STRING_OP # DST_REG ", [ip]\n");                          \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r8, -65623)),                \
-              "mov ip, #87\n"                                           \
-              "movt ip, #1\n"                                           \
-              "sub ip, r8, ip\n"                                        \
+              "sub ip, r8, #87\n"                                       \
+              "sub ip, #65536\n"                                        \
               STRING_OP # DST_REG ", [ip]\n");                          \
                                                                         \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r9, 0, PreIndex)),           \
@@ -1712,26 +1770,24 @@ TEST(macro_assembler_T32_Vstr_s) {
               "add r9, #137\n"                                          \
               STRING_OP # DST_REG ", [r9]\n");                          \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r9, 274, PreIndex)),         \
-              "mov ip, #274\n"                                          \
-              "add r9, ip\n"                                            \
+              "add r9, #18\n"                                           \
+              "add r9, #256\n"                                          \
               STRING_OP # DST_REG ", [r9]\n");                          \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r9, 65623, PreIndex)),       \
-              "mov ip, #87\n"                                           \
-              "movt ip, #1\n"                                           \
-              "add r9, ip\n"                                            \
+              "add r9, #87\n"                                           \
+              "add r9, #65536\n"                                        \
               STRING_OP # DST_REG ", [r9]\n");                          \
                                                                         \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r9, -137, PreIndex)),        \
               "sub r9, #137\n"                                          \
               STRING_OP # DST_REG ", [r9]\n");                          \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r9, -274, PreIndex)),        \
-              "mov ip, #274\n"                                          \
-              "sub r9, ip\n"                                            \
+              "sub r9, #18\n"                                           \
+              "sub r9, #256\n"                                          \
               STRING_OP # DST_REG ", [r9]\n");                          \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r9, -65623, PreIndex)),      \
-              "mov ip, #87\n"                                           \
-              "movt ip, #1\n"                                           \
-              "sub r9, ip\n"                                            \
+              "sub r9, #87\n"                                           \
+              "sub r9, #65536\n"                                        \
               STRING_OP # DST_REG ", [r9]\n");                          \
                                                                         \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r10, 0, PostIndex)),         \
@@ -1741,26 +1797,24 @@ TEST(macro_assembler_T32_Vstr_s) {
               "add r10, #137\n");                                       \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r10, 274, PostIndex)),       \
               STRING_OP # DST_REG ", [r10]\n"                           \
-              "mov ip, #274\n"                                          \
-              "add r10, ip\n");                                         \
+              "add r10, #18\n"                                          \
+              "add r10, #256\n");                                       \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r10, 65623, PostIndex)),     \
               STRING_OP # DST_REG ", [r10]\n"                           \
-              "mov ip, #87\n"                                           \
-              "movt ip, #1\n"                                           \
-              "add r10, ip\n");                                         \
+              "add r10, #87\n"                                          \
+              "add r10, #65536\n");                                     \
                                                                         \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r10, -137, PostIndex)),      \
               STRING_OP # DST_REG ", [r10]\n"                           \
               "sub r10, #137\n");                                       \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r10, -274, PostIndex)),      \
               STRING_OP # DST_REG ", [r10]\n"                           \
-              "mov ip, #274\n"                                          \
-              "sub r10, ip\n");                                         \
+              "sub r10, #18\n"                                          \
+              "sub r10, #256\n");                                       \
   COMPARE_A32(MACRO_OP(DST_REG, MemOperand(r10, -65623, PostIndex)),    \
               STRING_OP # DST_REG ", [r10]\n"                           \
-              "mov ip, #87\n"                                           \
-              "movt ip, #1\n"                                           \
-              "sub r10, ip\n");                                         \
+              "sub r10, #87\n"                                          \
+              "sub r10, #65536\n");                                     \
   CLEANUP();
 
 
@@ -2302,30 +2356,23 @@ TEST(macro_assembler_unpredictable) {
 
   // MOV, MOVS (immediate).
   COMPARE_A32(Mov(pc, 1), "mov pc, #1\n");
-  MUST_FAIL_TEST_T32(Mov(pc, 1),
-                     "Unpredictable instruction.\n");
-  MUST_FAIL_TEST_BOTH(Mov(pc, 0xfff),
-                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Mov(pc, 1), "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Mov(pc, 0xfff), "Unpredictable instruction.\n");
   COMPARE_A32(Mov(pc, 0xf000), "mov pc, #61440\n");
-  MUST_FAIL_TEST_T32(Mov(pc, 0xf000),
-                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Mov(pc, 0xf000), "Unpredictable instruction.\n");
   COMPARE_A32(Movs(pc, 1), "movs pc, #1\n");
-  MUST_FAIL_TEST_T32(Movs(pc, 1),
-                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Movs(pc, 1), "Unpredictable instruction.\n");
   MUST_FAIL_TEST_BOTH(Movs(pc, 0xfff),
                       "Ill-formed 'movs' instruction.\n");
   COMPARE_A32(Movs(pc, 0xf000), "movs pc, #61440\n");
-  MUST_FAIL_TEST_T32(Movs(pc, 0xf000),
-                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Movs(pc, 0xf000), "Unpredictable instruction.\n");
 
   // MOV, MOVS (register).
   COMPARE_BOTH(Mov(pc, r0), "mov pc, r0\n");
   COMPARE_BOTH(Mov(r0, pc), "mov r0, pc\n");
-  MUST_FAIL_TEST_BOTH(Movs(pc, r0),
-                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(Movs(pc, r0), "Unpredictable instruction.\n");
   COMPARE_A32(Movs(r0, pc), "movs r0, pc\n");
-  MUST_FAIL_TEST_T32(Movs(r0, pc),
-                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Movs(r0, pc), "Unpredictable instruction.\n");
 
   // MOV, MOVS (register-shifted register).
   MUST_FAIL_TEST_BOTH(Mov(pc, Operand(r0, ASR, r1)),
@@ -2374,18 +2421,17 @@ TEST(macro_assembler_pc_rel_A32) {
   MUST_FAIL_TEST_A32(Add(r0, pc, 0x10001), "Ill-formed 'add' instruction.\n");
   MUST_FAIL_TEST_A32(Add(r0, pc, 0x12345678), "Ill-formed 'add' instruction.\n");
   MUST_FAIL_TEST_A32(Add(r0, pc, 0x7fffffff), "Ill-formed 'add' instruction.\n");
-  COMPARE_A32(Add(r0, pc, -1025), "mov r0, pc\n"
-                                  "mov ip, #1025\n"
-                                  "sub r0, ip\n");
-  COMPARE_A32(Add(r0, pc, -0xffff), "mov r0, pc\n"
-                                    "mov ip, #65535\n"
-                                    "sub r0, ip\n");
-  COMPARE_A32(Add(r0, pc, -0x10001), "mov r0, pc\n"
-                                     "mov ip, #1\n"
-                                     "movt ip, #1\n"
-                                     "sub r0, ip\n");
-  COMPARE_A32(Add(r0, pc, -0x12345678), "mov r0, pc\n"
-                                        "mov ip, #22136\n"
+  COMPARE_A32(Add(r0, pc, -1025), "adr r0, 0x00000007\n"
+                                  "sub r0, #1024\n");
+  COMPARE_A32(Add(r0, pc, -0xffff), "adr r0, 0xffffff09\n"
+                                    "sub r0, #65280\n");
+  COMPARE_A32(Add(r0, pc, -0x10001), "adr r0, 0x00000007\n"
+                                     "sub r0, #65536\n");
+  COMPARE_A32(Add(r0, pc, -0x2345678), "adr r0, 0xfffffd90\n"
+                                       "sub r0, #21504\n"
+                                       "sub r0, #36962304\n");
+  COMPARE_A32(Add(r0, pc, -0x12345678), "adr r0, 0xfffffd90\n"
+                                        "mov ip, #21504\n"
                                         "movt ip, #4660\n"
                                         "sub r0, ip\n");
 
@@ -2393,23 +2439,22 @@ TEST(macro_assembler_pc_rel_A32) {
   MUST_FAIL_TEST_A32(Sub(r0, pc, -0xffff), "Ill-formed 'add' instruction.\n");
   MUST_FAIL_TEST_A32(Sub(r0, pc, -0x10001), "Ill-formed 'add' instruction.\n");
   MUST_FAIL_TEST_A32(Sub(r0, pc, -0x12345678), "Ill-formed 'add' instruction.\n");
-  COMPARE_A32(Sub(r0, pc, 1025), "mov r0, pc\n"
-                                 "mov ip, #1025\n"
-                                 "sub r0, ip\n");
-  COMPARE_A32(Sub(r0, pc, 0xffff), "mov r0, pc\n"
-                                   "mov ip, #65535\n"
-                                   "sub r0, ip\n");
-  COMPARE_A32(Sub(r0, pc, 0x10001), "mov r0, pc\n"
-                                    "mov ip, #1\n"
-                                    "movt ip, #1\n"
-                                    "sub r0, ip\n");
-  COMPARE_A32(Sub(r0, pc, 0x12345678), "mov r0, pc\n"
-                                       "mov ip, #22136\n"
+  COMPARE_A32(Sub(r0, pc, 1025), "adr r0, 0x00000007\n"
+                                 "sub r0, #1024\n");
+  COMPARE_A32(Sub(r0, pc, 0xffff), "adr r0, 0xffffff09\n"
+                                   "sub r0, #65280\n");
+  COMPARE_A32(Sub(r0, pc, 0x10001), "adr r0, 0x00000007\n"
+                                    "sub r0, #65536\n");
+  COMPARE_A32(Sub(r0, pc, 0x2345678), "adr r0, 0xfffffd90\n"
+                                      "sub r0, #21504\n"
+                                      "sub r0, #36962304\n");
+  COMPARE_A32(Sub(r0, pc, 0x12345678), "adr r0, 0xfffffd90\n"
+                                       "mov ip, #21504\n"
                                        "movt ip, #4660\n"
                                        "sub r0, ip\n");
-  COMPARE_A32(Sub(r0, pc, 0x7fffffff), "mov r0, pc\n"
-                                       "mvn ip, #2147483648\n"
-                                       "sub r0, ip\n");
+  COMPARE_A32(Sub(r0, pc, 0x7fffffff), "adr r0, 0xffffff09\n"
+                                       "add r0, #256\n"
+                                       "add r0, #2147483648\n");
 
   CLEANUP();
 }
@@ -2455,8 +2500,8 @@ TEST(macro_assembler_pc_rel_T32) {
                                         "movt ip, #4660\n"
                                         "sub r0, ip\n");
   COMPARE_T32(Add(r0, pc, -0x7fffffff), "mov r0, pc\n"
-                                        "mvn ip, #2147483648\n"
-                                        "sub r0, ip\n");
+                                        "add r0, #1\n"
+                                        "add r0, #2147483648\n");
 
   // TODO: This test aborts in the Assembler (with unpredictable instruction
   // errors) before the MacroAssembler gets a chance to do something
@@ -2477,8 +2522,8 @@ TEST(macro_assembler_pc_rel_T32) {
                                        "movt ip, #4660\n"
                                        "sub r0, ip\n");
   COMPARE_T32(Sub(r0, pc, 0x7fffffff), "mov r0, pc\n"
-                                       "mvn ip, #2147483648\n"
-                                       "sub r0, ip\n");
+                                       "add r0, #1\n"
+                                       "add r0, #2147483648\n");
   CLEANUP();
 }
 
@@ -3360,17 +3405,15 @@ TEST(macro_assembler_AddressComputationHelper) {
                                                        r1,
                                                        0x7fffffff,
                                                        0xfff)),
-              "mov r2, #61440\n"
-              "movt r2, #32767\n"
-              "add r2, r1, r2\n"
+              "sub r2, r1, #4096\n"
+              "sub r2, #2147483648\n"
               "ldr r0, [r2, #4095]\n");
   COMPARE_A32(Ldr(r0, masm.MemOperandComputationHelper(r2,
                                                        r1,
                                                        0xffcba000,
                                                        0xfff)),
-              "mov r2, #24576\n"
-              "movt r2, #52\n"
-              "sub r2, r1, r2\n"
+              "sub r2, r1, #286720\n"
+              "sub r2, #3145728\n"
               "ldr r0, [r2]\n");
 
   CLEANUP();
@@ -3889,6 +3932,63 @@ TEST(nop_code) {
 
   COMPARE_BOTH(Orr(r0, r0, r0), "");
   COMPARE_BOTH(Orr(DontCare, r0, r0, r0), "");
+
+  CLEANUP();
+}
+
+
+TEST(big_add_sub) {
+  SETUP();
+
+  COMPARE_A32(Add(r0, r1, 0x4321),
+              "add r0, r1, #33\n"
+              "add r0, #17152\n");
+  COMPARE_T32(Add(r0, r1, 0x4321),
+              "add r0, r1, #801\n"
+              "add r0, #16384\n");
+  COMPARE_BOTH(Add(r0, r1, 0x432100),
+               "add r0, r1, #8448\n"
+               "add r0, #4390912\n");
+  COMPARE_BOTH(Add(r0, r1, 0x43000210),
+               "add r0, r1, #528\n"
+               "add r0, #1124073472\n");
+  COMPARE_BOTH(Add(r0, r1, 0x30c00210),
+               "add r0, r1, #528\n"
+               "add r0, #817889280\n");
+  COMPARE_BOTH(Add(r0, r1, 0x43000021),
+               "add r0, r1, #33\n"
+               "add r0, #1124073472\n");
+  COMPARE_T32(Add(r0, r1, 0x54321),
+               "add r0, r1, #801\n"
+               "add r0, #344064\n");
+  COMPARE_T32(Add(r0, r1, 0x54000321),
+               "add r0, r1, #801\n"
+               "add r0, #1409286144\n");
+
+  COMPARE_A32(Sub(r0, r1, 0x4321),
+              "sub r0, r1, #33\n"
+              "sub r0, #17152\n");
+  COMPARE_T32(Sub(r0, r1, 0x4321),
+              "sub r0, r1, #801\n"
+              "sub r0, #16384\n");
+  COMPARE_BOTH(Sub(r0, r1, 0x432100),
+               "sub r0, r1, #8448\n"
+               "sub r0, #4390912\n");
+  COMPARE_BOTH(Sub(r0, r1, 0x43000210),
+               "sub r0, r1, #528\n"
+               "sub r0, #1124073472\n");
+  COMPARE_BOTH(Sub(r0, r1, 0x30c00210),
+               "sub r0, r1, #528\n"
+               "sub r0, #817889280\n");
+  COMPARE_BOTH(Sub(r0, r1, 0x43000021),
+               "sub r0, r1, #33\n"
+               "sub r0, #1124073472\n");
+  COMPARE_T32(Sub(r0, r1, 0x54321),
+               "sub r0, r1, #801\n"
+               "sub r0, #344064\n");
+  COMPARE_T32(Sub(r0, r1, 0x54000321),
+               "sub r0, r1, #801\n"
+               "sub r0, #1409286144\n");
 
   CLEANUP();
 }

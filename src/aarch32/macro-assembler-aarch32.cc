@@ -1404,6 +1404,29 @@ void MacroAssembler::Delegate(InstructionType type,
 }
 
 
+bool MacroAssembler::GenerateSplitInstruction(
+    InstructionCondSizeRROp instruction,
+    Condition cond,
+    Register rd,
+    Register rn,
+    uint32_t imm,
+    uint32_t mask) {
+  uint32_t high = imm & ~mask;
+  if (!IsModifiedImmediate(high) && !rn.IsPC()) return false;
+  // If high is a modified immediate, we can perform the operation with
+  // only 2 instructions.
+  // Else, if rn is PC, we want to avoid moving PC into a temporary.
+  // Therefore, we also use the pattern even if the second call may
+  // generate 3 instructions.
+  uint32_t low = imm & mask;
+  CodeBufferCheckScope scope(this,
+                             (rn.IsPC() ? 4 : 2) * kMaxInstructionSizeInBytes);
+  (this->*instruction)(cond, Best, rd, rn, low);
+  (this->*instruction)(cond, Best, rd, rd, high);
+  return true;
+}
+
+
 void MacroAssembler::Delegate(InstructionType type,
                               InstructionCondSizeRROp instruction,
                               Condition cond,
@@ -1522,10 +1545,45 @@ void MacroAssembler::Delegate(InstructionType type,
         return;
       }
     }
+
+    // When rn is PC, only handle negative offsets. The correct way to handle
+    // positive offsets isn't clear; does the user want the offset from the
+    // start of the macro, or from the end (to allow a certain amount of space)?
+    // When type is Add or Sub, imm is always positive (imm < 0 has just been
+    // handled and imm == 0 would have been generated without the need of a
+    // delegate). Therefore, only add to PC is forbidden here.
+    if ((((type == kAdd) && !rn.IsPC()) || (type == kSub)) &&
+        (IsUsingA32() || (!rd.IsPC() && !rn.IsPC()))) {
+      VIXL_ASSERT(imm > 0);
+      // Try to break the constant into two modified immediates.
+      // For T32 also try to break the constant into one imm12 and one modified
+      // immediate. Count the trailing zeroes and get the biggest even value.
+      int trailing_zeroes = CountTrailingZeros(imm) & ~1u;
+      uint32_t mask = ((trailing_zeroes < 4) && IsUsingT32())
+                          ? 0xfff
+                          : (0xff << trailing_zeroes);
+      if (GenerateSplitInstruction(instruction, cond, rd, rn, imm, mask)) {
+        return;
+      }
+      InstructionCondSizeRROp asmcb = NULL;
+      switch (type) {
+        case kAdd:
+          asmcb = &Assembler::sub;
+          break;
+        case kSub:
+          asmcb = &Assembler::add;
+          break;
+        default:
+          VIXL_UNREACHABLE();
+      }
+      if (GenerateSplitInstruction(asmcb, cond, rd, rn, -imm, mask)) {
+        return;
+      }
+    }
+
     UseScratchRegisterScope temps(this);
     // Allow using the destination as a scratch register if possible.
     if (!rd.Is(rn)) temps.Include(rd);
-
     if (rn.IsPC()) {
       // If we're reading the PC, we need to do it in the first instruction,
       // otherwise we'll read the wrong value. We rely on this to handle the

@@ -976,6 +976,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                         EncodingSize size,
                         Register rd,
                         Label* label) VIXL_OVERRIDE;
+  bool GenerateSplitInstruction(InstructionCondSizeRROp instruction,
+                                Condition cond,
+                                Register rd,
+                                Register rn,
+                                uint32_t imm,
+                                uint32_t mask);
   virtual void Delegate(InstructionType type,
                         InstructionCondSizeRROp instruction,
                         Condition cond,
