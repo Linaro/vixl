@@ -43,6 +43,11 @@ dir_aarch32_traces     = os.path.join(dir_tests, 'aarch32', 'traces')
 
 # The full list of available build modes.
 build_options_modes = ['release', 'debug']
+# The list of target_arch options to test with. Do not list 'both' as an option
+# since it is the default.
+build_options_target_arch = ['aarch32', 'aarch64']
+# Negative testing is off by default, so do not list 'off' as an option.
+build_options_negative_testing = ['on']
 # The list of C++ standard to test for.
 tested_cpp_standards = ['c++98', 'c++11']
 # The list of compilers tested.

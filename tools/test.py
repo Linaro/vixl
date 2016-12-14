@@ -72,12 +72,13 @@ class TestOption(object):
   def __init__(self, option_type, name, help,
                val_test_choices, val_test_default = None,
                # If unset, the user can pass any value.
-               strict_choices = True):
+               strict_choices = True, test_independently = False):
     self.name = name
     self.option_type = option_type
     self.help = help
     self.val_test_choices = val_test_choices
     self.strict_choices = strict_choices
+    self.test_independently = test_independently
     if val_test_default is not None:
       self.val_test_default = val_test_default
     else:
@@ -115,13 +116,14 @@ class BuildOption(TestOption):
   option_type = TestOption.type_build
   def __init__(self, name, help,
                val_test_choices, val_test_default = None,
-               strict_choices = True):
+               strict_choices = True, test_independently = False):
     super(BuildOption, self).__init__(BuildOption.option_type,
                                       name,
                                       help,
                                       val_test_choices,
                                       val_test_default,
-                                      strict_choices = strict_choices)
+                                      strict_choices = strict_choices,
+                                      test_independently = test_independently)
   def GetOptionString(self, value):
     return self.name + '=' + value
 
@@ -158,9 +160,19 @@ build_option_standard = \
   BuildOption('std', 'Test with the specified C++ standard.',
               val_test_choices=['all'] + config.tested_cpp_standards,
               strict_choices = False)
+build_option_target_arch = \
+  BuildOption('target_arch', 'Test with the specified architectures enabled.',
+              val_test_choices=['all'] + config.build_options_target_arch,
+              strict_choices = False, test_independently = True)
+build_option_negative_testing = \
+  BuildOption('negative_testing', 'Test with negative testing enabled.',
+              val_test_choices=['all'] + config.build_options_negative_testing,
+              strict_choices = False, test_independently = True)
 test_build_options = [
   build_option_mode,
-  build_option_standard
+  build_option_standard,
+  build_option_target_arch,
+  build_option_negative_testing
 ]
 
 runtime_option_debugger = \
@@ -339,18 +351,20 @@ def BuildAll(build_options, jobs):
   return RunCommand(scons_command, list(environment_options))
 
 
-def RunBenchmarks():
+def RunBenchmarks(args):
   rc = 0
-  benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch32_benchmarks)
-  for bench in benchmark_names:
-    rc |= RunCommand(
-      [os.path.realpath(
+  if args.target_arch in ['both', 'aarch32']:
+    benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch32_benchmarks)
+    for bench in benchmark_names:
+      rc |= RunCommand(
+        [os.path.realpath(
           join(config.dir_build_latest, 'benchmarks/aarch32', bench))])
-  benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch64_benchmarks)
-  for bench in benchmark_names:
-    rc |= RunCommand(
-      [util.relrealpath(
-          join(config.dir_build_latest, 'benchmarks/aarch64', bench))])
+  if args.target_arch in ['both', 'aarch64']:
+    benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch64_benchmarks)
+    for bench in benchmark_names:
+      rc |= RunCommand(
+        [util.relrealpath(
+            join(config.dir_build_latest, 'benchmarks/aarch64', bench))])
   return rc
 
 
@@ -402,13 +416,25 @@ if __name__ == '__main__':
 
   # List all combinations of options that will be tested.
   def ListCombinations(args, options):
-    opts_list = map(lambda opt : opt.ArgList(args.__dict__[opt.name]), options)
+    opts_list = [
+        opt.ArgList(args.__dict__[opt.name])
+        for opt in options
+        if not opt.test_independently
+    ]
     return list(itertools.product(*opts_list))
+  # List combinations of options that should only be tested independently.
+  def ListIndependentCombinations(args, options):
+    n = []
+    for opt in options:
+      if opt.test_independently:
+        for o in opt.ArgList(args.__dict__[opt.name]):
+          n.append((o,))
+    return n
   # TODO: We should refine the configurations we test by default, instead of
   #       always testing all possible combinations.
   test_env_combinations = ListCombinations(args, test_environment_options)
   test_build_combinations = ListCombinations(args, test_build_options)
-  test_build_combinations.append(('mode=debug', 'std=c++11', 'negative_testing=on'))
+  test_build_combinations.extend(ListIndependentCombinations(args, test_build_options))
   test_runtime_combinations = ListCombinations(args, test_runtime_options)
 
   for environment_options in test_env_combinations:
@@ -443,7 +469,7 @@ if __name__ == '__main__':
           MaybeExitEarly(rc)
 
       if not args.nobench:
-        rc |= RunBenchmarks()
+        rc |= RunBenchmarks(args)
         MaybeExitEarly(rc)
 
   PrintStatus(rc == 0)
