@@ -175,7 +175,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
    private:
     unsigned count_;
-    static const uint32_t kMaxRecursion = 5;
+    static const uint32_t kMaxRecursion = 6;
     const char* location_stack_[kMaxRecursion];
   };
 

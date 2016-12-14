@@ -1103,6 +1103,44 @@ TEST_T32(veneer_pool_in_delegate) {
   TEARDOWN();
 }
 
+TEST(test_many_loads_from_same_literal) {
+  // This test generates multiple loads from the same literal in order to
+  // test that the delegate recursion limit is appropriate for Ldrd with
+  // large negative offsets.
+  SETUP();
+
+  START();
+
+  // Make sure the pool is empty.
+  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  Literal<uint64_t> l0(0xcafebeefdeadbaba);
+  __ Ldrd(r0, r1, &l0);
+  for (int i = 0; i < 10000; ++i) {
+    __ Add (r2, r2, i);
+    __ Ldrd(r4, r5, &l0);
+  }
+
+  __ Ldrd(r2, r3, &l0);
+
+  END();
+
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0xdeadbaba, r0);
+  ASSERT_EQUAL_32(0xcafebeef, r1);
+  ASSERT_EQUAL_32(0xdeadbaba, r2);
+  ASSERT_EQUAL_32(0xcafebeef, r3);
+  ASSERT_EQUAL_32(0xdeadbaba, r4);
+  ASSERT_EQUAL_32(0xcafebeef, r5);
+
+  TEARDOWN();
+}
+
+
+
 
 TEST_T32(literal_pool_in_delegate) {
   SETUP();
