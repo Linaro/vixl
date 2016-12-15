@@ -255,14 +255,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   template <Assembler::InstructionCondDtDL asmfn>
   class EmitLiteralCondDtDL {
    public:
-    EmitLiteralCondDtDL(Condition cond, DataType dt, DRegister rt)
-        : cond_(cond), dt_(dt), rt_(rt) {}
-    void emit(MacroAssembler* const masm, RawLiteral* const literal) {
-      (masm->*asmfn)(cond_, dt_, rt_, literal);
+    EmitLiteralCondDtDL(DataType dt, DRegister rt) : dt_(dt), rt_(rt) {}
+    void emit(MacroAssembler* const masm,
+              Condition cond,
+              RawLiteral* const literal) {
+      (masm->*asmfn)(cond, dt_, rt_, literal);
     }
 
    private:
-    Condition cond_;
     DataType dt_;
     DRegister rt_;
   };
@@ -270,14 +270,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   template <Assembler::InstructionCondDtSL asmfn>
   class EmitLiteralCondDtSL {
    public:
-    EmitLiteralCondDtSL(Condition cond, DataType dt, SRegister rt)
-        : cond_(cond), dt_(dt), rt_(rt) {}
-    void emit(MacroAssembler* const masm, RawLiteral* const literal) {
-      (masm->*asmfn)(cond_, dt_, rt_, literal);
+    EmitLiteralCondDtSL(DataType dt, SRegister rt) : dt_(dt), rt_(rt) {}
+    void emit(MacroAssembler* const masm,
+              Condition cond,
+              RawLiteral* const literal) {
+      (masm->*asmfn)(cond, dt_, rt_, literal);
     }
 
    private:
-    Condition cond_;
     DataType dt_;
     SRegister rt_;
   };
@@ -285,27 +285,28 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   template <Assembler::InstructionCondRL asmfn>
   class EmitLiteralCondRL {
    public:
-    EmitLiteralCondRL(Condition cond, Register rt) : cond_(cond), rt_(rt) {}
-    void emit(MacroAssembler* const masm, RawLiteral* const literal) {
-      (masm->*asmfn)(cond_, rt_, literal);
+    explicit EmitLiteralCondRL(Register rt) : rt_(rt) {}
+    void emit(MacroAssembler* const masm,
+              Condition cond,
+              RawLiteral* const literal) {
+      (masm->*asmfn)(cond, rt_, literal);
     }
 
    private:
-    Condition cond_;
     Register rt_;
   };
 
   template <Assembler::InstructionCondRRL asmfn>
   class EmitLiteralCondRRL {
    public:
-    EmitLiteralCondRRL(Condition cond, Register rt, Register rt2)
-        : cond_(cond), rt_(rt), rt2_(rt2) {}
-    void emit(MacroAssembler* const masm, RawLiteral* const literal) {
-      (masm->*asmfn)(cond_, rt_, rt2_, literal);
+    EmitLiteralCondRRL(Register rt, Register rt2) : rt_(rt), rt2_(rt2) {}
+    void emit(MacroAssembler* const masm,
+              Condition cond,
+              RawLiteral* const literal) {
+      (masm->*asmfn)(cond, rt_, rt2_, literal);
     }
 
    private:
-    Condition cond_;
     Register rt_, rt2_;
   };
 
@@ -420,12 +421,18 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // Note: The instruction is generated via
   // void T::emit(MacroAssembler* const, RawLiteral* const)
   template <typename T>
-  void GenerateInstruction(T instr_callback, RawLiteral* const literal) {
+  void GenerateInstruction(Condition cond,
+                           T instr_callback,
+                           RawLiteral* const literal) {
     int32_t cursor = GetCursorOffset();
     // Emit the instruction, via the assembler
     {
       MacroEmissionCheckScope guard(this);
-      instr_callback.emit(this, literal);
+      // The ITScope can change the condition and we want to be able to revert
+      // this.
+      Condition c(cond);
+      ITScope it_scope(this, &c);
+      instr_callback.emit(this, c, literal);
     }
     if (!literal->IsManuallyPlaced() && !literal->IsBound()) {
       if (WasInsertedTooFar(literal)) {
@@ -434,7 +441,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         literal->InvalidateLastForwardReference(RawLiteral::kNoUpdateNecessary);
         EmitLiteralPool(kBranchRequired);
         MacroEmissionCheckScope guard(this);
-        instr_callback.emit(this, literal);
+        ITScope it_scope(this, &cond);
+        instr_callback.emit(this, cond, literal);
       }
       // The literal pool above might have included the literal - in which
       // case it will now be bound.
@@ -716,54 +724,79 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // Adr with a literal already constructed. Add the literal to the pool if it
   // is not already done.
   void Adr(Condition cond, Register rd, RawLiteral* literal) {
-    EmitLiteralCondRL<&Assembler::adr> emit_helper(cond, rd);
-    GenerateInstruction(emit_helper, literal);
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
+    EmitLiteralCondRL<&Assembler::adr> emit_helper(rd);
+    GenerateInstruction(cond, emit_helper, literal);
   }
   void Adr(Register rd, RawLiteral* literal) { Adr(al, rd, literal); }
 
   // Loads with literals already constructed. Add the literal to the pool
   // if it is not already done.
   void Ldr(Condition cond, Register rt, RawLiteral* literal) {
-    EmitLiteralCondRL<&Assembler::ldr> emit_helper(cond, rt);
-    GenerateInstruction(emit_helper, literal);
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
+    EmitLiteralCondRL<&Assembler::ldr> emit_helper(rt);
+    GenerateInstruction(cond, emit_helper, literal);
   }
   void Ldr(Register rt, RawLiteral* literal) { Ldr(al, rt, literal); }
 
   void Ldrb(Condition cond, Register rt, RawLiteral* literal) {
-    EmitLiteralCondRL<&Assembler::ldrb> emit_helper(cond, rt);
-    GenerateInstruction(emit_helper, literal);
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
+    EmitLiteralCondRL<&Assembler::ldrb> emit_helper(rt);
+    GenerateInstruction(cond, emit_helper, literal);
   }
   void Ldrb(Register rt, RawLiteral* literal) { Ldrb(al, rt, literal); }
 
   void Ldrd(Condition cond, Register rt, Register rt2, RawLiteral* literal) {
-    EmitLiteralCondRRL<&Assembler::ldrd> emit_helper(cond, rt, rt2);
-    GenerateInstruction(emit_helper, literal);
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt2));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
+    EmitLiteralCondRRL<&Assembler::ldrd> emit_helper(rt, rt2);
+    GenerateInstruction(cond, emit_helper, literal);
   }
   void Ldrd(Register rt, Register rt2, RawLiteral* literal) {
     Ldrd(al, rt, rt2, literal);
   }
 
   void Ldrh(Condition cond, Register rt, RawLiteral* literal) {
-    EmitLiteralCondRL<&Assembler::ldrh> emit_helper(cond, rt);
-    GenerateInstruction(emit_helper, literal);
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
+    EmitLiteralCondRL<&Assembler::ldrh> emit_helper(rt);
+    GenerateInstruction(cond, emit_helper, literal);
   }
   void Ldrh(Register rt, RawLiteral* literal) { Ldrh(al, rt, literal); }
 
   void Ldrsb(Condition cond, Register rt, RawLiteral* literal) {
-    EmitLiteralCondRL<&Assembler::ldrsb> emit_helper(cond, rt);
-    GenerateInstruction(emit_helper, literal);
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
+    EmitLiteralCondRL<&Assembler::ldrsb> emit_helper(rt);
+    GenerateInstruction(cond, emit_helper, literal);
   }
   void Ldrsb(Register rt, RawLiteral* literal) { Ldrsb(al, rt, literal); }
 
   void Ldrsh(Condition cond, Register rt, RawLiteral* literal) {
-    EmitLiteralCondRL<&Assembler::ldrsh> emit_helper(cond, rt);
-    GenerateInstruction(emit_helper, literal);
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
+    EmitLiteralCondRL<&Assembler::ldrsh> emit_helper(rt);
+    GenerateInstruction(cond, emit_helper, literal);
   }
   void Ldrsh(Register rt, RawLiteral* literal) { Ldrsh(al, rt, literal); }
 
   void Vldr(Condition cond, DataType dt, DRegister rd, RawLiteral* literal) {
-    EmitLiteralCondDtDL<&Assembler::vldr> emit_helper(cond, dt, rd);
-    GenerateInstruction(emit_helper, literal);
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
+    EmitLiteralCondDtDL<&Assembler::vldr> emit_helper(dt, rd);
+    GenerateInstruction(cond, emit_helper, literal);
   }
   void Vldr(DataType dt, DRegister rd, RawLiteral* literal) {
     Vldr(al, dt, rd, literal);
@@ -776,8 +809,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
 
   void Vldr(Condition cond, DataType dt, SRegister rd, RawLiteral* literal) {
-    EmitLiteralCondDtSL<&Assembler::vldr> emit_helper(cond, dt, rd);
-    GenerateInstruction(emit_helper, literal);
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
+    EmitLiteralCondDtSL<&Assembler::vldr> emit_helper(dt, rd);
+    GenerateInstruction(cond, emit_helper, literal);
   }
   void Vldr(DataType dt, SRegister rd, RawLiteral* literal) {
     Vldr(al, dt, rd, literal);
@@ -791,10 +827,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   // Generic Ldr(register, data)
   void Ldr(Condition cond, Register rt, uint32_t v) {
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
     RawLiteral* literal =
         new Literal<uint32_t>(v, RawLiteral::kDeletedOnPlacementByPool);
-    EmitLiteralCondRL<&Assembler::ldr> emit_helper(cond, rt);
-    GenerateInstruction(emit_helper, literal);
+    EmitLiteralCondRL<&Assembler::ldr> emit_helper(rt);
+    GenerateInstruction(cond, emit_helper, literal);
   }
   template <typename T>
   void Ldr(Register rt, T v) {
@@ -803,10 +842,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   // Generic Ldrd(rt, rt2, data)
   void Ldrd(Condition cond, Register rt, Register rt2, uint64_t v) {
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt2));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
     RawLiteral* literal =
         new Literal<uint64_t>(v, RawLiteral::kDeletedOnPlacementByPool);
-    EmitLiteralCondRRL<&Assembler::ldrd> emit_helper(cond, rt, rt2);
-    GenerateInstruction(emit_helper, literal);
+    EmitLiteralCondRRL<&Assembler::ldrd> emit_helper(rt, rt2);
+    GenerateInstruction(cond, emit_helper, literal);
   }
   template <typename T>
   void Ldrd(Register rt, Register rt2, T v) {
@@ -814,18 +857,24 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
 
   void Vldr(Condition cond, SRegister rd, float v) {
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
     RawLiteral* literal =
         new Literal<float>(v, RawLiteral::kDeletedOnPlacementByPool);
-    EmitLiteralCondDtSL<&Assembler::vldr> emit_helper(cond, Untyped32, rd);
-    GenerateInstruction(emit_helper, literal);
+    EmitLiteralCondDtSL<&Assembler::vldr> emit_helper(Untyped32, rd);
+    GenerateInstruction(cond, emit_helper, literal);
   }
   void Vldr(SRegister rd, float v) { Vldr(al, rd, v); }
 
   void Vldr(Condition cond, DRegister rd, double v) {
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
     RawLiteral* literal =
         new Literal<double>(v, RawLiteral::kDeletedOnPlacementByPool);
-    EmitLiteralCondDtDL<&Assembler::vldr> emit_helper(cond, Untyped64, rd);
-    GenerateInstruction(emit_helper, literal);
+    EmitLiteralCondDtDL<&Assembler::vldr> emit_helper(Untyped64, rd);
+    GenerateInstruction(cond, emit_helper, literal);
   }
   void Vldr(DRegister rd, double v) { Vldr(al, rd, v); }
 

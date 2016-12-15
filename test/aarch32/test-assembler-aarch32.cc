@@ -1202,7 +1202,7 @@ TEST(emit_reused_load_literal_should_not_rewind) {
 }
 
 
-TEST(emit_reused_load_literal_stress) {
+void EmitReusedLoadLiteralStressTest(InstructionSet isa, bool conditional) {
   // This test stresses loading a literal that is already in the literal pool, for
   // various positionings on the existing load from that literal. We try to exercise
   // cases where the two loads result in similar checkpoints for the literal pool.
@@ -1219,6 +1219,11 @@ TEST(emit_reused_load_literal_stress) {
     // Make sure the pool is empty.
     masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
     ASSERT_LITERAL_POOL_SIZE(0);
+
+    if (conditional) {
+      __ Mov(r1, 0);
+      __ Cmp(r1, 0);
+    }
 
     // Add a large string to the pool, which will force the Ldrd below to rewind
     // (if the pool is not already emitted due to the Ldr).
@@ -1240,7 +1245,11 @@ TEST(emit_reused_load_literal_stress) {
       }
     }
 
-    __ Ldrd(r2, r3, &l1);
+    if (conditional) {
+      __ Ldrd(eq, r2, r3, &l1);
+    } else {
+      __ Ldrd(r2, r3, &l1);
+    }
     // At this point, the pool will be emitted either because Ldrd needed to
     // rewind, or because Ldr reached its range.
     ASSERT_LITERAL_POOL_SIZE(0);
@@ -1257,6 +1266,16 @@ TEST(emit_reused_load_literal_stress) {
   }
 
   TEARDOWN();
+}
+
+
+TEST(emit_reused_load_literal_stress) {
+  EmitReusedLoadLiteralStressTest(isa, false /*conditional*/);
+}
+
+
+TEST(emit_reused_conditional_load_literal_stress) {
+  EmitReusedLoadLiteralStressTest(isa, true /*conditional*/);
 }
 
 
@@ -1443,7 +1462,7 @@ void EmitLdrdLiteralTest(MacroAssembler* masm) {
 #define __ masm.
 
 
-TEST(emit_literal) {
+TEST(emit_literal_rewind) {
   SETUP();
 
   START();
@@ -1459,9 +1478,9 @@ TEST(emit_literal) {
   std::string test_string(string_size, 'x');
   StringLiteral big_literal(test_string.c_str());
   __ Adr(r4, &big_literal);
-  // This add will overflow the literal pool and force a rewind.
+  // This adr will overflow the literal pool and force a rewind.
   // That means that the string will be generated then, then Ldrd and the
-  // ldrd's value will be alone in the pool.
+  // Ldrd's value will be alone in the pool.
   __ Ldrd(r2, r3, 0xcafebeefdeadbaba);
   ASSERT_LITERAL_POOL_SIZE(8);
 
@@ -1481,6 +1500,156 @@ TEST(emit_literal) {
 
   TEARDOWN();
 }
+
+TEST(emit_literal_conditional_rewind) {
+  SETUP();
+
+  START();
+
+  // This test is almost identical to the test above, but the Ldrd instruction
+  // is conditional and there is a second conditional Ldrd instruction that will
+  // not be executed. This is to check that reverting the emission of a load
+  // literal instruction, rewinding, emitting the literal pool and then emitting
+  // the instruction again works correctly when the load is conditional.
+
+  // Make sure the pool is empty.
+  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+  ASSERT_LITERAL_POOL_SIZE(0);
+
+  const int ldrd_range = masm.IsUsingA32() ? 255 : 1020;
+  const int string_size = AlignUp(ldrd_range + kMaxInstructionSizeInBytes, 4);
+  std::string test_string(string_size, 'x');
+  StringLiteral big_literal(test_string.c_str());
+  __ Adr(r2, &big_literal);
+  // This adr will overflow the literal pool and force a rewind.
+  // That means that the string will be generated then, then Ldrd and the
+  // Ldrd's value will be alone in the pool.
+  __ Mov(r0, 0);
+  __ Mov(r1, 0);
+  __ Mov(r3, 1);
+  __ Cmp(r3, 1);
+  __ Ldrd(eq, r0, r1, 0xcafebeefdeadbaba);
+  __ Ldrd(ne, r0, r1, 0xdeadcafebeefbaba);
+  ASSERT_LITERAL_POOL_SIZE(16);
+
+  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+  ASSERT_LITERAL_POOL_SIZE(0);
+  __ Ldr(r2, MemOperand(r2));  // Load the first 4 characters in r2.
+  END();
+
+  RUN();
+
+  // Check that the literals loaded correctly.
+  ASSERT_EQUAL_32(0xdeadbaba, r0);
+  ASSERT_EQUAL_32(0xcafebeef, r1);
+  ASSERT_EQUAL_32(0x78787878, r2);
+
+  TEARDOWN();
+}
+
+enum LiteralStressTestMode {
+  kUnconditional,
+  kConditionalTrue,
+  kConditionalFalse,
+  kConditionalBoth
+};
+
+// Test loading a literal when the size of the literal pool is close to the
+// maximum range of the load, with varying PC values (and alignment, for T32).
+// This test is similar to the tests above, with the difference that we allow
+// an extra offset to the string size in order to make sure that various pool
+// sizes close to the maximum supported offset will produce code that executes
+// correctly. As the Ldrd might or might not be rewinded, we do not assert on
+// the size of the literal pool in this test.
+void EmitLdrdLiteralStressTest(InstructionSet isa, bool unaligned,
+                               LiteralStressTestMode test_mode) {
+  SETUP();
+
+  for (int offset = -10; offset <= 10; ++offset) {
+    START();
+
+    if (unaligned) {
+      __ Nop();
+      VIXL_ASSERT((masm.GetBuffer()->GetCursorOffset() % 4) == 2);
+    }
+
+    // Make sure the pool is empty.
+    masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+    ASSERT_LITERAL_POOL_SIZE(0);
+
+    const int ldrd_range = masm.IsUsingA32() ? 255 : 1020;
+    const int string_size = ldrd_range + offset;
+    std::string test_string(string_size - 1, 'x');
+    StringLiteral big_literal(test_string.c_str());
+    __ Adr(r2, &big_literal);
+    __ Mov(r0, 0);
+    __ Mov(r1, 0);
+    switch (test_mode) {
+      case kUnconditional:
+        __ Ldrd(r0, r1, 0xcafebeefdeadbaba);
+        break;
+      case kConditionalTrue:
+        __ Mov(r0, 0xffffffff);
+        __ Mov(r1, r0);
+        __ Mov(r3, 1);
+        __ Cmp(r3, 1);
+        __ Ldrd(eq, r0, r1, 0xcafebeefdeadbaba);
+        break;
+      case kConditionalFalse:
+        __ Mov(r0, 0xdeadbaba);
+        __ Mov(r1, 0xcafebeef);
+        __ Mov(r3, 1);
+        __ Cmp(r3, 1);
+        __ Ldrd(ne, r0, r1, 0xdeadcafebeefbaba);
+        break;
+      case kConditionalBoth:
+        __ Mov(r3, 1);
+        __ Cmp(r3, 1);
+        __ Ldrd(eq, r0, r1, 0xcafebeefdeadbaba);
+        __ Ldrd(ne, r0, r1, 0xdeadcafebeefbaba);
+        break;
+    }
+
+    masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+    ASSERT_LITERAL_POOL_SIZE(0);
+    __ Ldr(r2, MemOperand(r2));  // Load the first 4 characters in r2.
+    END();
+
+    RUN();
+
+    // Check that the literals loaded correctly.
+    ASSERT_EQUAL_32(0xdeadbaba, r0);
+    ASSERT_EQUAL_32(0xcafebeef, r1);
+    ASSERT_EQUAL_32(0x78787878, r2);
+  }
+
+  TEARDOWN();
+}
+
+
+TEST(emit_literal_rewind_stress) {
+  EmitLdrdLiteralStressTest(isa, false /*unaligned*/, kUnconditional);
+}
+
+
+TEST_T32(emit_literal_rewind_stress_unaligned) {
+  EmitLdrdLiteralStressTest(isa, true /*unaligned*/, kUnconditional);
+}
+
+
+TEST(emit_literal_conditional_rewind_stress) {
+  EmitLdrdLiteralStressTest(isa, false /*unaligned*/, kConditionalTrue);
+  EmitLdrdLiteralStressTest(isa, false /*unaligned*/, kConditionalFalse);
+  EmitLdrdLiteralStressTest(isa, false /*unaligned*/, kConditionalBoth);
+}
+
+
+TEST_T32(emit_literal_conditional_rewind_stress_unaligned) {
+  EmitLdrdLiteralStressTest(isa, true /*unaligned*/, kConditionalTrue);
+  EmitLdrdLiteralStressTest(isa, true /*unaligned*/, kConditionalFalse);
+  EmitLdrdLiteralStressTest(isa, true /*unaligned*/, kConditionalBoth);
+}
+
 
 TEST_T32(emit_literal_unaligned) {
   SETUP();
@@ -1621,6 +1790,69 @@ TEST(ldr_literal_mix_types) {
   ASSERT_EQUAL_32(-678, r4);
   ASSERT_EQUAL_32(42, r5);
   ASSERT_EQUAL_32(-12, r6);
+
+  TEARDOWN();
+}
+
+
+TEST(ldr_literal_conditional) {
+  SETUP();
+
+  START();
+  Literal<uint64_t> l0(0x1234567890abcdef);
+  Literal<uint64_t> l0_not_taken(0x90abcdef12345678);
+  Literal<int32_t> l1(0x12345678);
+  Literal<int32_t> l1_not_taken(0x56781234);
+  Literal<uint16_t> l2(1234);
+  Literal<uint16_t> l2_not_taken(3412);
+  Literal<int16_t> l3(-678);
+  Literal<int16_t> l3_not_taken(678);
+  Literal<uint8_t> l4(42);
+  Literal<uint8_t> l4_not_taken(-42);
+  Literal<int8_t> l5(-12);
+  Literal<int8_t> l5_not_taken(12);
+  Literal<float> l6(1.2345f);
+  Literal<float> l6_not_taken(0.0f);
+  Literal<double> l7(1.3333);
+  Literal<double> l7_not_taken(0.0);
+
+  // Check that conditionally loading literals of different types works
+  // correctly for both A32 and T32.
+  __ Mov(r7, 1);
+  __ Cmp(r7, 1);
+  __ Ldrd(eq, r0, r1, &l0);
+  __ Ldrd(ne, r0, r1, &l0_not_taken);
+  __ Cmp(r7, 0);
+  __ Ldr(gt, r2, &l1);
+  __ Ldr(le, r2, &l1_not_taken);
+  __ Cmp(r7, 2);
+  __ Ldrh(lt, r3, &l2);
+  __ Ldrh(ge, r3, &l2_not_taken);
+  __ Ldrsh(le, r4, &l3);
+  __ Ldrsh(gt, r4, &l3_not_taken);
+  __ Cmp(r7, 1);
+  __ Ldrb(ge, r5, &l4);
+  __ Ldrb(lt, r5, &l4_not_taken);
+  __ Ldrsb(eq, r6, &l5);
+  __ Ldrsb(ne, r6, &l5_not_taken);
+  __ Vldr(Condition(eq), s0, &l6);
+  __ Vldr(Condition(ne), s0, &l6_not_taken);
+  __ Vldr(Condition(eq), d1, &l7);
+  __ Vldr(Condition(ne), d1, &l7_not_taken);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0x90abcdef, r0);
+  ASSERT_EQUAL_32(0x12345678, r1);
+  ASSERT_EQUAL_32(0x12345678, r2);
+  ASSERT_EQUAL_32(1234, r3);
+  ASSERT_EQUAL_32(-678, r4);
+  ASSERT_EQUAL_32(42, r5);
+  ASSERT_EQUAL_32(-12, r6);
+  ASSERT_EQUAL_FP32(1.2345f, s0);
+  ASSERT_EQUAL_FP64(1.3333, d1);
 
   TEARDOWN();
 }
