@@ -55,11 +55,11 @@
       },
       {
         "name": "rd",
-        "type": "AllRegistersButPC"
+        "type": "AllRegisters"
       },
       {
         "name": "rn",
-        "type": "AllRegistersButPC"
+        "type": "AllRegisters"
       },
       {
         "name": "op",
@@ -67,7 +67,7 @@
         "operands": [
           {
             "name": "rm",
-            "type": "AllRegistersButPC"
+            "type": "AllRegisters"
           },
           {
             "name": "shift",
@@ -75,7 +75,7 @@
           },
           {
             "name": "rs",
-            "type": "AllRegistersButPC"
+            "type": "AllRegisters"
           }
         ]
       }
@@ -112,7 +112,21 @@
           "operands": [
             "cond", "rd", "rn", "rm", "shift", "rs"
           ],
-          "operand-limit": 1000
+          "operand-limit": 1000,
+          "operand-filter": "(rd != 'r15') and (rn != 'r15') and (rm != 'r15') and (rs != 'r15')"
+        }
+      ]
+    },
+    {
+      "type": "assembler-negative",
+      "test-cases": [
+        {
+          "name": "Operands",
+          "operands": [
+            "cond", "rd", "rn", "rm", "shift", "rs"
+          ],
+          "operand-limit": 1000,
+          "operand-filter": "(rd == 'r15') or (rn == 'r15') or (rm == 'r15') or (rs == 'r15')"
         }
       ]
     },

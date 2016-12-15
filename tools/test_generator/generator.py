@@ -478,6 +478,8 @@ class Generator(object):
       return ",\n".join(map(AssemblerTestCaseDefinition, self.test_cases))
     elif self.test_type == "macro-assembler":
       return ",\n".join(map(MacroAssemblerTestCaseDefinition, self.test_cases))
+    elif self.test_type == "assembler-negative":
+      return ",\n".join(map(MacroAssemblerTestCaseDefinition, self.test_cases))
     else:
       raise Exception("Unrecognized test type \"{}\".".format(self.test_type))
 
@@ -529,7 +531,7 @@ class Generator(object):
       # `UseScratchRegisterScope` to dynamically allocate them. We need to
       # exclude all register operands from the list of available scratch
       # registers.
-      # MacroAssembler test also need to ensure that they don't try to run tests
+      # MacroAssembler tests also need to ensure that they don't try to run tests
       # with registers that are scratch registers; the MacroAssembler contains
       # assertions to protect against such usage.
       excluded_registers = [
@@ -686,8 +688,8 @@ class Generator(object):
     Write out empty trace files so we can compile the new test cases.
     """
     for mnemonic in self.mnemonics:
-      # The MacroAssembler tests have no traces.
-      if self.test_type == "macro-assembler": continue
+      # The MacroAssembler and negative assembler tests have no traces.
+      if self.test_type in ["macro-assembler", "assembler-negative"]: continue
 
       with open(os.path.join(output_directory, self.GetTraceFileName(mnemonic)),
                 "w") as f:

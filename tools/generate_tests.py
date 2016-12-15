@@ -381,13 +381,15 @@ pattern.
 
 The "type" field describes the kind of testing we want to do, these types are
 recognized by the generator and, at the moment, can be one of "simulator",
-"assembler" and "macro-assembler". Simulator tests will run each instruction and
-record the changes while assembler tests will only record the code buffer and
-never execute anything. MacroAssembler tests currently only generate code to
-check that the MacroAssembler does not crash; the output itself is not yet
-tested. Because you may want to generate more than one test of the same type, as
-we are doing in the example, we need a way to differentiate them. You may use
-the optional "name" field for this.
+"assembler", "macro-assembler" and "assembler-negative". Simulator tests will
+run each instruction and record the changes while assembler tests will only
+record the code buffer and never execute anything. MacroAssembler tests
+currently only generate code to check that the MacroAssembler does not crash;
+the output itself is not yet tested. Because you may want to generate more than
+one test of the same type, as we are doing in the example, we need a way to
+differentiate them. You may use the optional "name" field for this. Negative
+assembler tests check that the instructions described are not allowed, which
+means that an exception is raised when VIXL is built in negative testing mode.
 
 Finally, we describe how to test the instruction by declaring a list of test
 cases with the "test-cases" field.
@@ -671,6 +673,7 @@ template_files = {
     'simulator': "test/aarch32/config/template-simulator-aarch32.cc.in",
     'assembler': "test/aarch32/config/template-assembler-aarch32.cc.in",
     'macro-assembler': "test/aarch32/config/template-macro-assembler-aarch32.cc.in",
+    'assembler-negative': "test/aarch32/config/template-assembler-negative-aarch32.cc.in",
 }
 
 

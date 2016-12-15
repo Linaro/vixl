@@ -188,7 +188,8 @@ if __name__ == '__main__':
 
     # Find the AArch32 tests.
     tests = sorted(filter(
-        lambda t: 'AARCH32_SIMULATOR_' in t or 'AARCH32_ASSEMBLER_' in t,
+        lambda t: 'AARCH32_SIMULATOR_' in t or ('AARCH32_ASSEMBLER_' in t
+            and not 'AARCH32_ASSEMBLER_NEGATIVE_' in t),
         test_list.split()))
 
     for test in tests:
