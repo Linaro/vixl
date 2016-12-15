@@ -1090,7 +1090,7 @@ void MacroAssembler::Delegate(InstructionType type,
               (type == kUxtb16));
 
   if (type == kMovt) {
-    VIXL_ABORT_WITH_MSG("`Movt` expects a 16-bit immediate.");
+    VIXL_ABORT_WITH_MSG("`Movt` expects a 16-bit immediate.\n");
   }
 
   // This delegate only supports teq with immediates.

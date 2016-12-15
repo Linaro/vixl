@@ -173,14 +173,15 @@ namespace aarch32 {
       }                                                                        \
     } catch (std::runtime_error e) {                                           \
       const char *msg = e.what();                                              \
+      size_t exp_len = strlen(EXP);                                            \
       if (TEMPORARILY_ACCEPTED) {                                              \
         printf("\nNegative MacroAssembler test that was temporarily "          \
                "assembling a deprecated or unpredictable instruction is now "  \
                "correctly raising an exception. Please update the "            \
                "test to reflect this.\n");                                     \
         abort();                                                               \
-      } else if (std::strcmp(EXP, msg) != 0) {                                 \
-        printf("\n%s:%d:%s\nFound:\n%sExpected:\n%s",                          \
+      } else if (std::strncmp(EXP, msg, exp_len) != 0) {                       \
+        printf("\n%s:%d:%s\nFound:\n%sExpected:\n%s...",                       \
                __FILE__,                                                       \
                __LINE__,                                                       \
                masm.IsUsingT32() ? "T32" : "A32", msg, EXP);                   \

@@ -854,8 +854,8 @@ class MemOperand {
     if ((shift_amount_ == 0) && !shift_.IsLSL()) {
       VIXL_ABORT_WITH_MSG(
           "A shift by 0 is only accepted in "
-          "the case of lsl and will be considered a "
-          "No shift");
+          "the case of lsl and will be treated as "
+          "no shift.\n");
     }
     switch (shift_.GetType()) {
       case LSL:
