@@ -684,6 +684,8 @@ def BuildOptions():
   result.add_argument('--jobs', '-j', type=int, metavar='N',
                       default=multiprocessing.cpu_count(),
                       help='Allow N jobs at once')
+  result.add_argument('--skip-traces', action='store_true',
+                      help='Skip generation of dummy traces.')
   return result.parse_args()
 
 
@@ -697,7 +699,7 @@ def DoNotEditComment(template_file):
 // -----------------------------------------------------------------------------
     """.format(template_file)
 
-def GenerateTest(generator, clang_format):
+def GenerateTest(generator, clang_format, skip_traces):
   template_file = template_files[generator.test_type]
   generated_file = ""
   with open(template_file, "r") as f:
@@ -759,8 +761,9 @@ def GenerateTest(generator, clang_format):
                             stdout=subprocess.PIPE)
     out, _ = proc.communicate(generated_file.encode())
     f.write(out.decode())
-  # Write dummy trace files into 'test/aarch32/traces/'.
-  generator.WriteEmptyTraces("test/aarch32/traces/")
+  if not skip_traces:
+    # Write dummy trace files into 'test/aarch32/traces/'.
+    generator.WriteEmptyTraces("test/aarch32/traces/")
   print("Generated {} test for \"{}\".".format(generator.test_type, generator.test_name))
 
 
@@ -774,5 +777,6 @@ if __name__ == '__main__':
   # Call the `GenerateTest` function for each generator object in parallel. This
   # will use as many processes as defined by `-jN`, which defaults to 1.
   with multiprocessing.Pool(processes=args.jobs) as pool:
-    pool.map(functools.partial(GenerateTest, clang_format=args.clang_format),
+    pool.map(functools.partial(GenerateTest, clang_format=args.clang_format,
+                                             skip_traces=args.skip_traces),
              generators)
