@@ -572,8 +572,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   // State and type helpers.
   bool IsModifiedImmediate(uint32_t imm) {
-    return (IsUsingT32() && ImmediateT32(imm).IsValid()) ||
-           ImmediateA32(imm).IsValid();
+    return IsUsingT32() ? ImmediateT32::IsImmediateT32(imm)
+                        : ImmediateA32::IsImmediateA32(imm);
   }
 
   void Bind(Label* label) {

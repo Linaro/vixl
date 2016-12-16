@@ -338,16 +338,12 @@ TEST(macro_assembler_orn) {
               "orrs r0, ip\n");
 
   //  - Too large immediate form.
-
-  // TODO: optimize this.
-  COMPARE_A32(Orn(r0, r1, 0x00ffffff),
-              "mvn ip, #4278190080\n"
-              "mvn r0, ip\n"
-              "orr r0, r1, r0\n");
-  COMPARE_T32(Orn(r0, r1, 0xff00ffff),
-              "orr r0, r1, #0xff0000\n");
-  COMPARE_T32(Orns(r0, r1, 0x00ffffff),
-              "orrs r0, r1, #0xff000000\n");
+  COMPARE_BOTH(Orn(r0, r1, 0x00ffffff),
+               "orr r0, r1, #0xff000000\n");
+  COMPARE_BOTH(Orn(r0, r1, 0xff00ffff),
+               "orr r0, r1, #0xff0000\n");
+  COMPARE_BOTH(Orns(r0, r1, 0x00ffffff),
+               "orrs r0, r1, #0xff000000\n");
 
   COMPARE_A32(Orns(r0, r1, 0xabcd2345),
               "mov ip, #9029\n"

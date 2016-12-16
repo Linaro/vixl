@@ -1292,6 +1292,27 @@ void MacroAssembler::Delegate(InstructionType type,
     return;
   }
 
+  if (operand.IsImmediate()) {
+    // If the immediate can be encoded when inverted, turn Orn into Orr.
+    // Otherwise rely on HandleOutOfBoundsImmediate to generate a series of
+    // mov.
+    int32_t imm = operand.GetSignedImmediate();
+    if (((type == kOrn) || (type == kOrns)) && IsModifiedImmediate(~imm)) {
+      CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
+      switch (type) {
+        case kOrn:
+          orr(cond, rd, rn, ~imm);
+          return;
+        case kOrns:
+          orrs(cond, rd, rn, ~imm);
+          return;
+        default:
+          VIXL_UNREACHABLE();
+          break;
+      }
+    }
+  }
+
   // A32 does not have a Orn instruction, negate the rhs input and turn it into
   // a Orr.
   if (IsUsingA32() && ((type == kOrn) || (type == kOrns))) {
@@ -1319,37 +1340,17 @@ void MacroAssembler::Delegate(InstructionType type,
     orr(cond, rd, rn, scratch);
     return;
   }
-  if (operand.IsImmediate()) {
-    int32_t imm = operand.GetSignedImmediate();
 
-    // If the immediate can be encoded when inverted, turn Orn into Orr.
-    // Otherwise rely on HandleOutOfBoundsImmediate to generate a series of
-    // mov.
-    if (IsUsingT32() && ((type == kOrn) || (type == kOrns)) &&
-        ImmediateT32::IsImmediateT32(~imm)) {
-      VIXL_ASSERT((type == kOrn) || (type == kOrns));
-      CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-      switch (type) {
-        case kOrn:
-          orr(cond, rd, rn, ~imm);
-          return;
-        case kOrns:
-          orrs(cond, rd, rn, ~imm);
-          return;
-        default:
-          VIXL_UNREACHABLE();
-          break;
-      }
-    } else {
-      UseScratchRegisterScope temps(this);
-      // Allow using the destination as a scratch register if possible.
-      if (!rd.Is(rn)) temps.Include(rd);
-      Register scratch = temps.Acquire();
-      HandleOutOfBoundsImmediate(cond, scratch, imm);
-      CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-      (this->*instruction)(cond, rd, rn, scratch);
-      return;
-    }
+  if (operand.IsImmediate()) {
+    UseScratchRegisterScope temps(this);
+    // Allow using the destination as a scratch register if possible.
+    if (!rd.Is(rn)) temps.Include(rd);
+    Register scratch = temps.Acquire();
+    int32_t imm = operand.GetSignedImmediate();
+    HandleOutOfBoundsImmediate(cond, scratch, imm);
+    CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
+    (this->*instruction)(cond, rd, rn, scratch);
+    return;
   }
   Assembler::Delegate(type, instruction, cond, rd, rn, operand);
 }
