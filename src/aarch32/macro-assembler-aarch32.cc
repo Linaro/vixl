@@ -704,6 +704,11 @@ MemOperand MacroAssembler::MemOperandComputationHelper(
 
   uint32_t load_store_offset = offset & extra_offset_mask;
   uint32_t add_offset = offset & ~extra_offset_mask;
+  if ((add_offset != 0) &&
+      (IsModifiedImmediate(offset) || IsModifiedImmediate(-offset))) {
+    load_store_offset = 0;
+    add_offset = offset;
+  }
 
   if (base.IsPC()) {
     // Special handling for PC bases. We must read the PC in the first
@@ -2142,21 +2147,15 @@ void MacroAssembler::Delegate(InstructionType type,
     const Register& rn = operand.GetBaseRegister();
     AddrMode addrmode = operand.GetAddrMode();
     int32_t offset = operand.GetOffsetImmediate();
-    uint32_t mask = GetOffsetMask(type, addrmode);
-    bool negative;
-    // Try to maximize the offset use by the MemOperand (load_store_offset).
-    // Add or subtract the part which can't be used by the MemOperand
-    // (add_sub_offset).
-    int32_t add_sub_offset;
-    int32_t load_store_offset;
-    load_store_offset = offset & mask;
-    if (offset >= 0) {
-      negative = false;
-      add_sub_offset = offset & ~mask;
-    } else {
-      negative = true;
-      add_sub_offset = -offset & ~mask;
-      if (load_store_offset > 0) add_sub_offset += mask + 1;
+    uint32_t extra_offset_mask = GetOffsetMask(type, addrmode);
+    // Try to maximize the offset used by the MemOperand (load_store_offset).
+    // Add the part which can't be used by the MemOperand (add_offset).
+    uint32_t load_store_offset = offset & extra_offset_mask;
+    uint32_t add_offset = offset & ~extra_offset_mask;
+    if ((add_offset != 0) &&
+        (IsModifiedImmediate(offset) || IsModifiedImmediate(-offset))) {
+      load_store_offset = 0;
+      add_offset = offset;
     }
     switch (addrmode) {
       case PreIndex:
@@ -2168,11 +2167,7 @@ void MacroAssembler::Delegate(InstructionType type,
           //   ldr r0, [r1]
           {
             CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
-            if (negative) {
-              sub(cond, rn, rn, add_sub_offset);
-            } else {
-              add(cond, rn, rn, add_sub_offset);
-            }
+            add(cond, rn, rn, add_offset);
           }
           {
             CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
@@ -2198,11 +2193,7 @@ void MacroAssembler::Delegate(InstructionType type,
         //   ldr r0, [r0]
         {
           CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
-          if (negative) {
-            sub(cond, scratch, rn, add_sub_offset);
-          } else {
-            add(cond, scratch, rn, add_sub_offset);
-          }
+          add(cond, scratch, rn, add_offset);
         }
         {
           CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
@@ -2231,11 +2222,7 @@ void MacroAssembler::Delegate(InstructionType type,
           }
           {
             CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
-            if (negative) {
-              sub(cond, rn, rn, add_sub_offset);
-            } else {
-              add(cond, rn, rn, add_sub_offset);
-            }
+            add(cond, rn, rn, add_offset);
           }
           return;
         }
@@ -2382,6 +2369,16 @@ void MacroAssembler::Delegate(InstructionType type,
     const Register& rn = operand.GetBaseRegister();
     AddrMode addrmode = operand.GetAddrMode();
     int32_t offset = operand.GetOffsetImmediate();
+    uint32_t extra_offset_mask = GetOffsetMask(type, addrmode);
+    // Try to maximize the offset used by the MemOperand (load_store_offset).
+    // Add the part which can't be used by the MemOperand (add_offset).
+    uint32_t load_store_offset = offset & extra_offset_mask;
+    uint32_t add_offset = offset & ~extra_offset_mask;
+    if ((add_offset != 0) &&
+        (IsModifiedImmediate(offset) || IsModifiedImmediate(-offset))) {
+      load_store_offset = 0;
+      add_offset = offset;
+    }
     switch (addrmode) {
       case PreIndex: {
         // Allow using the destinations as a scratch registers if possible.
@@ -2397,11 +2394,14 @@ void MacroAssembler::Delegate(InstructionType type,
         //   ldrd r0, r1, [r2]
         {
           CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
-          add(cond, rn, rn, offset);
+          add(cond, rn, rn, add_offset);
         }
         {
           CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          (this->*instruction)(cond, rt, rt2, MemOperand(rn, Offset));
+          (this->*instruction)(cond,
+                               rt,
+                               rt2,
+                               MemOperand(rn, load_store_offset, PreIndex));
         }
         return;
       }
@@ -2419,11 +2419,14 @@ void MacroAssembler::Delegate(InstructionType type,
         //   ldrd r0, r1, [r0]
         {
           CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
-          add(cond, scratch, rn, offset);
+          add(cond, scratch, rn, add_offset);
         }
         {
           CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-          (this->*instruction)(cond, rt, rt2, MemOperand(scratch, Offset));
+          (this->*instruction)(cond,
+                               rt,
+                               rt2,
+                               MemOperand(scratch, load_store_offset));
         }
         return;
       }
@@ -2438,11 +2441,14 @@ void MacroAssembler::Delegate(InstructionType type,
           //   add r2, ip
           {
             CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
-            (this->*instruction)(cond, rt, rt2, MemOperand(rn, Offset));
+            (this->*instruction)(cond,
+                                 rt,
+                                 rt2,
+                                 MemOperand(rn, load_store_offset, PostIndex));
           }
           {
             CodeBufferCheckScope scope(this, 3 * kMaxInstructionSizeInBytes);
-            add(cond, rn, rn, offset);
+            add(cond, rn, rn, add_offset);
           }
           return;
         }

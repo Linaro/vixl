@@ -879,114 +879,121 @@ TEST(macro_assembler_ldrd) {
   COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, -1020)),
                "ldrd r0, r1, [r2, #-1020]\n");
 
-  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, 0xabcd)),
-              "add r0, r2, #205\n"
-              "add r0, #43776\n"
-              "ldrd r0, r1, [r0]\n");
-  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, 0xabcd)),
-              "add r0, r2, #3021\n"
-              "add r0, #40960\n"
-              "ldrd r0, r1, [r0]\n");
-  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, -0xabcd)),
-              "sub r0, r2, #205\n"
-              "sub r0, #43776\n"
-              "ldrd r0, r1, [r0]\n");
-  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, -0xabcd)),
-              "sub r0, r2, #3021\n"
-              "sub r0, #40960\n"
-              "ldrd r0, r1, [r0]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, 0xabcc)),
+              "add r0, r2, #43776\n"
+              "ldrd r0, r1, [r0, #204]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, 0xabcc)),
+              "add r0, r2, #43008\n"
+              "ldrd r0, r1, [r0, #972]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, -0xabcc)),
+              "sub r0, r2, #44032\n"
+              "ldrd r0, r1, [r0, #52]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, -0xabcc)),
+              "sub r0, r2, #44032\n"
+              "ldrd r0, r1, [r0, #52]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, 0xabcdec)),
+              "add r0, r2, #52480\n"
+              "add r0, #11206656\n"
+              "ldrd r0, r1, [r0, #236]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, 0xabcdec)),
+              "add r0, r2, #248832\n"
+              "add r0, #11010048\n"
+              "ldrd r0, r1, [r0, #492]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, -0xabcdec)),
+              "sub r0, r2, #52736\n"
+              "sub r0, #11206656\n"
+              "ldrd r0, r1, [r0, #20]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, -0xabcdec)),
+              "sub r0, r2, #774144\n"
+              "sub r0, #10485760\n"
+              "ldrd r0, r1, [r0, #532]\n");
 
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, 0xabcdef)),
-              "mov r0, #52719\n"
-              "movt r0, #171\n"
-              "add r0, r2, r0\n"
-              "ldrd r0, r1, [r0]\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, -0xabcdef)),
-              "mov r0, #52719\n"
-              "movt r0, #171\n"
-              "sub r0, r2, r0\n"
-              "ldrd r0, r1, [r0]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r0, 0xabcc)),
+              "add r1, r0, #43776\n"
+              "ldrd r0, r1, [r1, #204]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r0, 0xabcc)),
+              "add r1, r0, #43008\n"
+              "ldrd r0, r1, [r1, #972]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r0, -0xabcc)),
+              "sub r1, r0, #44032\n"
+              "ldrd r0, r1, [r1, #52]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r0, -0xabcc)),
+              "sub r1, r0, #44032\n"
+              "ldrd r0, r1, [r1, #52]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r0, 0xabcdec)),
+              "add r1, r0, #52480\n"
+              "add r1, #11206656\n"
+              "ldrd r0, r1, [r1, #236]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r0, 0xabcdec)),
+              "add r1, r0, #248832\n"
+              "add r1, #11010048\n"
+              "ldrd r0, r1, [r1, #492]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r0, -0xabcdec)),
+              "sub r1, r0, #52736\n"
+              "sub r1, #11206656\n"
+              "ldrd r0, r1, [r1, #20]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r0, -0xabcdec)),
+              "sub r1, r0, #774144\n"
+              "sub r1, #10485760\n"
+              "ldrd r0, r1, [r1, #532]\n");
 
-  COMPARE_A32(Ldrd(r0, r1, MemOperand(r0, 0xabcd)),
-              "add r1, r0, #205\n"
-              "add r1, #43776\n"
-              "ldrd r0, r1, [r1]\n");
-  COMPARE_T32(Ldrd(r0, r1, MemOperand(r0, 0xabcd)),
-              "add r1, r0, #3021\n"
-              "add r1, #40960\n"
-              "ldrd r0, r1, [r1]\n");
-  COMPARE_A32(Ldrd(r0, r1, MemOperand(r0, -0xabcd)),
-              "sub r1, r0, #205\n"
-              "sub r1, #43776\n"
-              "ldrd r0, r1, [r1]\n");
-  COMPARE_T32(Ldrd(r0, r1, MemOperand(r0, -0xabcd)),
-              "sub r1, r0, #3021\n"
-              "sub r1, #40960\n"
-              "ldrd r0, r1, [r1]\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r0, 0xabcdef)),
-               "mov r1, #52719\n"
-               "movt r1, #171\n"
-               "add r1, r0, r1\n"
-               "ldrd r0, r1, [r1]\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r0, -0xabcdef)),
-               "mov r1, #52719\n"
-               "movt r1, #171\n"
-               "sub r1, r0, r1\n"
-               "ldrd r0, r1, [r1]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r1, 0xabcc)),
+              "add r0, r1, #43776\n"
+              "ldrd r0, r1, [r0, #204]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r1, 0xabcc)),
+              "add r0, r1, #43008\n"
+              "ldrd r0, r1, [r0, #972]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r1, -0xabcc)),
+              "sub r0, r1, #44032\n"
+              "ldrd r0, r1, [r0, #52]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r1, -0xabcc)),
+              "sub r0, r1, #44032\n"
+              "ldrd r0, r1, [r0, #52]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r1, 0xabcdec)),
+              "add r0, r1, #52480\n"
+              "add r0, #11206656\n"
+              "ldrd r0, r1, [r0, #236]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r1, 0xabcdec)),
+              "add r0, r1, #248832\n"
+              "add r0, #11010048\n"
+              "ldrd r0, r1, [r0, #492]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r1, -0xabcdec)),
+              "sub r0, r1, #52736\n"
+              "sub r0, #11206656\n"
+              "ldrd r0, r1, [r0, #20]\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r1, -0xabcdec)),
+              "sub r0, r1, #774144\n"
+              "sub r0, #10485760\n"
+              "ldrd r0, r1, [r0, #532]\n");
 
-  COMPARE_A32(Ldrd(r0, r1, MemOperand(r1, 0xabcd)),
-              "add r0, r1, #205\n"
-              "add r0, #43776\n"
-              "ldrd r0, r1, [r0]\n");
-  COMPARE_T32(Ldrd(r0, r1, MemOperand(r1, 0xabcd)),
-              "add r0, r1, #3021\n"
-              "add r0, #40960\n"
-              "ldrd r0, r1, [r0]\n");
-  COMPARE_A32(Ldrd(r0, r1, MemOperand(r1, -0xabcd)),
-              "sub r0, r1, #205\n"
-              "sub r0, #43776\n"
-              "ldrd r0, r1, [r0]\n");
-  COMPARE_T32(Ldrd(r0, r1, MemOperand(r1, -0xabcd)),
-              "sub r0, r1, #3021\n"
-              "sub r0, #40960\n"
-              "ldrd r0, r1, [r0]\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, 0xabcdef)),
-               "mov r0, #52719\n"
-               "movt r0, #171\n"
-               "add r0, r1, r0\n"
-               "ldrd r0, r1, [r0]\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, -0xabcdef)),
-               "mov r0, #52719\n"
-               "movt r0, #171\n"
-               "sub r0, r1, r0\n"
-               "ldrd r0, r1, [r0]\n");
-
-  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, 0xabcd, PostIndex)),
-              "ldrd r0, r1, [r2]\n"
-              "add r2, #205\n"
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, 0xabcc, PostIndex)),
+              "ldrd r0, r1, [r2], #204\n"
               "add r2, #43776\n");
-  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, 0xabcd, PostIndex)),
-              "ldrd r0, r1, [r2]\n"
-              "add r2, #3021\n"
-              "add r2, #40960\n");
-  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, -0xabcd, PostIndex)),
-              "ldrd r0, r1, [r2]\n"
-              "sub r2, #205\n"
-              "sub r2, #43776\n");
-  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, -0xabcd, PostIndex)),
-              "ldrd r0, r1, [r2]\n"
-              "sub r2, #3021\n"
-              "sub r2, #40960\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, 0xabcdef, PostIndex)),
-               "ldrd r0, r1, [r2]\n"
-               "mov ip, #52719\n"
-               "movt ip, #171\n"
-               "add r2, ip\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r2, -0xabcdef, PostIndex)),
-               "ldrd r0, r1, [r2]\n"
-               "mov ip, #52719\n"
-               "movt ip, #171\n"
-               "sub r2, ip\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, 0xabcc, PostIndex)),
+              "ldrd r0, r1, [r2], #972\n"
+              "add r2, #43008\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, -0xabcc, PostIndex)),
+              "ldrd r0, r1, [r2], #52\n"
+              "sub r2, #44032\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, -0xabcc, PostIndex)),
+              "ldrd r0, r1, [r2], #52\n"
+              "sub r2, #44032\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, 0xabcdec, PostIndex)),
+              "ldrd r0, r1, [r2], #236\n"
+              "add r2, #52480\n"
+              "add r2, #11206656\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, 0xabcdec, PostIndex)),
+              "ldrd r0, r1, [r2], #492\n"
+              "add r2, #248832\n"
+              "add r2, #11010048\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, -0xabcdec, PostIndex)),
+              "ldrd r0, r1, [r2], #20\n"
+              "sub r2, #52736\n"
+              "sub r2, #11206656\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, -0xabcdec, PostIndex)),
+              "ldrd r0, r1, [r2], #532\n"
+              "sub r2, #774144\n"
+              "sub r2, #10485760\n");
 
   // PostIndex with the same register as base and destination is invalid.
   MUST_FAIL_TEST_BOTH(Ldrd(r0, r1, MemOperand(r0, 0xabcd, PostIndex)),
@@ -994,32 +1001,34 @@ TEST(macro_assembler_ldrd) {
   MUST_FAIL_TEST_BOTH(Ldrd(r0, r1, MemOperand(r1, 0xabcdef, PostIndex)),
                       "Ill-formed 'ldrd' instruction.\n");
 
-  COMPARE_A32(Ldrd(r0, r1, MemOperand(r0, 0xabcd, PreIndex)),
-              "add r0, #205\n"
-              "add r0, #43776\n"
-              "ldrd r0, r1, [r0]\n");
-  COMPARE_T32(Ldrd(r0, r1, MemOperand(r0, 0xabcd, PreIndex)),
-              "add r0, #3021\n"
-              "add r0, #40960\n"
-              "ldrd r0, r1, [r0]\n");
-  COMPARE_A32(Ldrd(r0, r1, MemOperand(r0, -0xabcd, PreIndex)),
-              "sub r0, #205\n"
-              "sub r0, #43776\n"
-              "ldrd r0, r1, [r0]\n");
-  COMPARE_T32(Ldrd(r0, r1, MemOperand(r0, -0xabcd, PreIndex)),
-              "sub r0, #3021\n"
-              "sub r0, #40960\n"
-              "ldrd r0, r1, [r0]\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, 0xabcdef, PreIndex)),
-               "mov r0, #52719\n"
-               "movt r0, #171\n"
-               "add r1, r0\n"
-               "ldrd r0, r1, [r1]\n");
-  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(r1, -0xabcdef, PreIndex)),
-               "mov r0, #52719\n"
-               "movt r0, #171\n"
-               "sub r1, r0\n"
-               "ldrd r0, r1, [r1]\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, 0xabcc, PreIndex)),
+              "add r2, #43776\n"
+              "ldrd r0, r1, [r2, #204]!\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, 0xabcc, PreIndex)),
+              "add r2, #43008\n"
+              "ldrd r0, r1, [r2, #972]!\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, -0xabcc, PreIndex)),
+              "sub r2, #44032\n"
+              "ldrd r0, r1, [r2, #52]!\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, -0xabcc, PreIndex)),
+              "sub r2, #44032\n"
+              "ldrd r0, r1, [r2, #52]!\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, 0xabcdec, PreIndex)),
+              "add r2, #52480\n"
+              "add r2, #11206656\n"
+              "ldrd r0, r1, [r2, #236]!\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, 0xabcdec, PreIndex)),
+              "add r2, #248832\n"
+              "add r2, #11010048\n"
+              "ldrd r0, r1, [r2, #492]!\n");
+  COMPARE_A32(Ldrd(r0, r1, MemOperand(r2, -0xabcdec, PreIndex)),
+              "sub r2, #52736\n"
+              "sub r2, #11206656\n"
+              "ldrd r0, r1, [r2, #20]!\n");
+  COMPARE_T32(Ldrd(r0, r1, MemOperand(r2, -0xabcdec, PreIndex)),
+              "sub r2, #774144\n"
+              "sub r2, #10485760\n"
+              "ldrd r0, r1, [r2, #532]!\n");
 
   // - Tests with register offsets.
 
@@ -1123,113 +1132,121 @@ TEST(macro_assembler_strd) {
   COMPARE_T32(Strd(r0, r1, MemOperand(r2, -1020)),
               "strd r0, r1, [r2, #-1020]\n");
 
-  COMPARE_A32(Strd(r0, r1, MemOperand(r2, 0xabcd)),
-              "add ip, r2, #205\n"
-              "add ip, #43776\n"
-              "strd r0, r1, [ip]\n");
-  COMPARE_T32(Strd(r0, r1, MemOperand(r2, 0xabcd)),
-              "add ip, r2, #3021\n"
-              "add ip, #40960\n"
-              "strd r0, r1, [ip]\n");
-  COMPARE_A32(Strd(r0, r1, MemOperand(r2, -0xabcd)),
-              "sub ip, r2, #205\n"
-              "sub ip, #43776\n"
-              "strd r0, r1, [ip]\n");
-  COMPARE_T32(Strd(r0, r1, MemOperand(r2, -0xabcd)),
-              "sub ip, r2, #3021\n"
-              "sub ip, #40960\n"
-              "strd r0, r1, [ip]\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, 0xabcdef)),
-               "mov ip, #52719\n"
-               "movt ip, #171\n"
-               "add ip, r2, ip\n"
-               "strd r0, r1, [ip]\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, -0xabcdef)),
-               "mov ip, #52719\n"
-               "movt ip, #171\n"
-               "sub ip, r2, ip\n"
-               "strd r0, r1, [ip]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, 0xabcc)),
+              "add ip, r2, #43776\n"
+              "strd r0, r1, [ip, #204]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, 0xabcc)),
+              "add ip, r2, #43008\n"
+              "strd r0, r1, [ip, #972]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, -0xabcc)),
+              "sub ip, r2, #44032\n"
+              "strd r0, r1, [ip, #52]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, -0xabcc)),
+              "sub ip, r2, #44032\n"
+              "strd r0, r1, [ip, #52]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, 0xabcdec)),
+              "add ip, r2, #52480\n"
+              "add ip, #11206656\n"
+              "strd r0, r1, [ip, #236]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, 0xabcdec)),
+              "add ip, r2, #248832\n"
+              "add ip, #11010048\n"
+              "strd r0, r1, [ip, #492]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, -0xabcdec)),
+              "sub ip, r2, #52736\n"
+              "sub ip, #11206656\n"
+              "strd r0, r1, [ip, #20]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, -0xabcdec)),
+              "sub ip, r2, #774144\n"
+              "sub ip, #10485760\n"
+              "strd r0, r1, [ip, #532]\n");
 
-  COMPARE_A32(Strd(r0, r1, MemOperand(r0, 0xabcd)),
-              "add ip, r0, #205\n"
-              "add ip, #43776\n"
-              "strd r0, r1, [ip]\n");
-  COMPARE_T32(Strd(r0, r1, MemOperand(r0, 0xabcd)),
-              "add ip, r0, #3021\n"
-              "add ip, #40960\n"
-              "strd r0, r1, [ip]\n");
-  COMPARE_A32(Strd(r0, r1, MemOperand(r0, -0xabcd)),
-              "sub ip, r0, #205\n"
-              "sub ip, #43776\n"
-              "strd r0, r1, [ip]\n");
-  COMPARE_T32(Strd(r0, r1, MemOperand(r0, -0xabcd)),
-              "sub ip, r0, #3021\n"
-              "sub ip, #40960\n"
-              "strd r0, r1, [ip]\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r0, 0xabcdef)),
-               "mov ip, #52719\n"
-               "movt ip, #171\n"
-               "add ip, r0, ip\n"
-               "strd r0, r1, [ip]\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r0, -0xabcdef)),
-               "mov ip, #52719\n"
-               "movt ip, #171\n"
-               "sub ip, r0, ip\n"
-               "strd r0, r1, [ip]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r0, 0xabcc)),
+              "add ip, r0, #43776\n"
+              "strd r0, r1, [ip, #204]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r0, 0xabcc)),
+              "add ip, r0, #43008\n"
+              "strd r0, r1, [ip, #972]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r0, -0xabcc)),
+              "sub ip, r0, #44032\n"
+              "strd r0, r1, [ip, #52]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r0, -0xabcc)),
+              "sub ip, r0, #44032\n"
+              "strd r0, r1, [ip, #52]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r0, 0xabcdec)),
+              "add ip, r0, #52480\n"
+              "add ip, #11206656\n"
+              "strd r0, r1, [ip, #236]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r0, 0xabcdec)),
+              "add ip, r0, #248832\n"
+              "add ip, #11010048\n"
+              "strd r0, r1, [ip, #492]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r0, -0xabcdec)),
+              "sub ip, r0, #52736\n"
+              "sub ip, #11206656\n"
+              "strd r0, r1, [ip, #20]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r0, -0xabcdec)),
+              "sub ip, r0, #774144\n"
+              "sub ip, #10485760\n"
+              "strd r0, r1, [ip, #532]\n");
 
-  COMPARE_A32(Strd(r0, r1, MemOperand(r1, 0xabcd)),
-              "add ip, r1, #205\n"
-              "add ip, #43776\n"
-              "strd r0, r1, [ip]\n");
-  COMPARE_T32(Strd(r0, r1, MemOperand(r1, 0xabcd)),
-              "add ip, r1, #3021\n"
-              "add ip, #40960\n"
-              "strd r0, r1, [ip]\n");
-  COMPARE_A32(Strd(r0, r1, MemOperand(r1, -0xabcd)),
-              "sub ip, r1, #205\n"
-              "sub ip, #43776\n"
-              "strd r0, r1, [ip]\n");
-  COMPARE_T32(Strd(r0, r1, MemOperand(r1, -0xabcd)),
-              "sub ip, r1, #3021\n"
-              "sub ip, #40960\n"
-              "strd r0, r1, [ip]\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, 0xabcdef)),
-               "mov ip, #52719\n"
-               "movt ip, #171\n"
-               "add ip, r1, ip\n"
-               "strd r0, r1, [ip]\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, -0xabcdef)),
-               "mov ip, #52719\n"
-               "movt ip, #171\n"
-               "sub ip, r1, ip\n"
-               "strd r0, r1, [ip]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r1, 0xabcc)),
+              "add ip, r1, #43776\n"
+              "strd r0, r1, [ip, #204]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r1, 0xabcc)),
+              "add ip, r1, #43008\n"
+              "strd r0, r1, [ip, #972]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r1, -0xabcc)),
+              "sub ip, r1, #44032\n"
+              "strd r0, r1, [ip, #52]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r1, -0xabcc)),
+              "sub ip, r1, #44032\n"
+              "strd r0, r1, [ip, #52]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r1, 0xabcdec)),
+              "add ip, r1, #52480\n"
+              "add ip, #11206656\n"
+              "strd r0, r1, [ip, #236]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r1, 0xabcdec)),
+              "add ip, r1, #248832\n"
+              "add ip, #11010048\n"
+              "strd r0, r1, [ip, #492]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r1, -0xabcdec)),
+              "sub ip, r1, #52736\n"
+              "sub ip, #11206656\n"
+              "strd r0, r1, [ip, #20]\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r1, -0xabcdec)),
+              "sub ip, r1, #774144\n"
+              "sub ip, #10485760\n"
+              "strd r0, r1, [ip, #532]\n");
 
-  COMPARE_A32(Strd(r0, r1, MemOperand(r2, 0xabcd, PostIndex)),
-              "strd r0, r1, [r2]\n"
-              "add r2, #205\n"
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, 0xabcc, PostIndex)),
+              "strd r0, r1, [r2], #204\n"
               "add r2, #43776\n");
-  COMPARE_T32(Strd(r0, r1, MemOperand(r2, 0xabcd, PostIndex)),
-              "strd r0, r1, [r2]\n"
-              "add r2, #3021\n"
-              "add r2, #40960\n");
-  COMPARE_A32(Strd(r0, r1, MemOperand(r2, -0xabcd, PostIndex)),
-              "strd r0, r1, [r2]\n"
-              "sub r2, #205\n"
-              "sub r2, #43776\n");
-  COMPARE_T32(Strd(r0, r1, MemOperand(r2, -0xabcd, PostIndex)),
-              "strd r0, r1, [r2]\n"
-              "sub r2, #3021\n"
-              "sub r2, #40960\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, 0xabcdef, PostIndex)),
-               "strd r0, r1, [r2]\n"
-               "mov ip, #52719\n"
-               "movt ip, #171\n"
-               "add r2, ip\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r2, -0xabcdef, PostIndex)),
-               "strd r0, r1, [r2]\n"
-               "mov ip, #52719\n"
-               "movt ip, #171\n"
-               "sub r2, ip\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, 0xabcc, PostIndex)),
+              "strd r0, r1, [r2], #972\n"
+              "add r2, #43008\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, -0xabcc, PostIndex)),
+              "strd r0, r1, [r2], #52\n"
+              "sub r2, #44032\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, -0xabcc, PostIndex)),
+              "strd r0, r1, [r2], #52\n"
+              "sub r2, #44032\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, 0xabcdec, PostIndex)),
+              "strd r0, r1, [r2], #236\n"
+              "add r2, #52480\n"
+              "add r2, #11206656\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, 0xabcdec, PostIndex)),
+              "strd r0, r1, [r2], #492\n"
+              "add r2, #248832\n"
+              "add r2, #11010048\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, -0xabcdec, PostIndex)),
+              "strd r0, r1, [r2], #20\n"
+              "sub r2, #52736\n"
+              "sub r2, #11206656\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, -0xabcdec, PostIndex)),
+              "strd r0, r1, [r2], #532\n"
+              "sub r2, #774144\n"
+              "sub r2, #10485760\n");
 
   // PostIndex with the same register as base and source is invalid.
   MUST_FAIL_TEST_BOTH(Strd(r0, r1, MemOperand(r0, 0xabcd, PostIndex)),
@@ -1237,32 +1254,34 @@ TEST(macro_assembler_strd) {
   MUST_FAIL_TEST_BOTH(Strd(r0, r1, MemOperand(r1, 0xabcdef, PostIndex)),
                       "Ill-formed 'strd' instruction.\n");
 
-  COMPARE_A32(Strd(r0, r1, MemOperand(r0, 0xabcd, PreIndex)),
-              "add r0, #205\n"
-              "add r0, #43776\n"
-              "strd r0, r1, [r0]\n");
-  COMPARE_T32(Strd(r0, r1, MemOperand(r0, 0xabcd, PreIndex)),
-              "add r0, #3021\n"
-              "add r0, #40960\n"
-              "strd r0, r1, [r0]\n");
-  COMPARE_A32(Strd(r0, r1, MemOperand(r0, -0xabcd, PreIndex)),
-              "sub r0, #205\n"
-              "sub r0, #43776\n"
-              "strd r0, r1, [r0]\n");
-  COMPARE_T32(Strd(r0, r1, MemOperand(r0, -0xabcd, PreIndex)),
-              "sub r0, #3021\n"
-              "sub r0, #40960\n"
-              "strd r0, r1, [r0]\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, 0xabcdef, PreIndex)),
-               "mov ip, #52719\n"
-               "movt ip, #171\n"
-               "add r1, ip\n"
-               "strd r0, r1, [r1]\n");
-  COMPARE_BOTH(Strd(r0, r1, MemOperand(r1, -0xabcdef, PreIndex)),
-               "mov ip, #52719\n"
-               "movt ip, #171\n"
-               "sub r1, ip\n"
-               "strd r0, r1, [r1]\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, 0xabcc, PreIndex)),
+              "add r2, #43776\n"
+              "strd r0, r1, [r2, #204]!\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, 0xabcc, PreIndex)),
+              "add r2, #43008\n"
+              "strd r0, r1, [r2, #972]!\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, -0xabcc, PreIndex)),
+              "sub r2, #44032\n"
+              "strd r0, r1, [r2, #52]!\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, -0xabcc, PreIndex)),
+              "sub r2, #44032\n"
+              "strd r0, r1, [r2, #52]!\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, 0xabcdec, PreIndex)),
+              "add r2, #52480\n"
+              "add r2, #11206656\n"
+              "strd r0, r1, [r2, #236]!\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, 0xabcdec, PreIndex)),
+              "add r2, #248832\n"
+              "add r2, #11010048\n"
+              "strd r0, r1, [r2, #492]!\n");
+  COMPARE_A32(Strd(r0, r1, MemOperand(r2, -0xabcdec, PreIndex)),
+              "sub r2, #52736\n"
+              "sub r2, #11206656\n"
+              "strd r0, r1, [r2, #20]!\n");
+  COMPARE_T32(Strd(r0, r1, MemOperand(r2, -0xabcdec, PreIndex)),
+              "sub r2, #774144\n"
+              "sub r2, #10485760\n"
+              "strd r0, r1, [r2, #532]!\n");
 
   // - Tests with register offsets.
 
@@ -3388,8 +3407,8 @@ TEST(macro_assembler_AddressComputationHelper) {
                                                        r1,
                                                        0xffffffff,
                                                        0xfff)),
-              "sub r2, r1, #4096\n"
-              "ldr r0, [r2, #4095]\n");
+              "sub r2, r1, #1\n"
+              "ldr r0, [r2]\n");
 
   // TODO: Improve the code generation for these cases.
 
@@ -3405,9 +3424,9 @@ TEST(macro_assembler_AddressComputationHelper) {
                                                        r1,
                                                        0x7fffffff,
                                                        0xfff)),
-              "sub r2, r1, #4096\n"
+              "sub r2, r1, #1\n"
               "sub r2, #2147483648\n"
-              "ldr r0, [r2, #4095]\n");
+              "ldr r0, [r2]\n");
   COMPARE_A32(Ldr(r0, masm.MemOperandComputationHelper(r2,
                                                        r1,
                                                        0xffcba000,
