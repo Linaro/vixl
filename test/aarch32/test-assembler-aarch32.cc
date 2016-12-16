@@ -5478,5 +5478,226 @@ TEST_T32(b_narrow_and_cbz) {
 }
 
 
+#define CHECK_SIZE_MATCH(ASM1, ASM2)                                  \
+  {                                                                   \
+    MacroAssembler masm1(BUF_SIZE);                                   \
+    masm1.UseInstructionSet(isa);                                     \
+    VIXL_ASSERT(masm1.GetCursorOffset() == 0);                        \
+    masm1.ASM1;                                                       \
+    masm1.FinalizeCode();                                             \
+    int size1 = masm1.GetCursorOffset();                              \
+                                                                      \
+    MacroAssembler masm2(BUF_SIZE);                                   \
+    masm2.UseInstructionSet(isa);                                     \
+    VIXL_ASSERT(masm2.GetCursorOffset() == 0);                        \
+    masm2.ASM2;                                                       \
+    masm2.FinalizeCode();                                             \
+    int size2 = masm2.GetCursorOffset();                              \
+                                                                      \
+    bool disassemble = Test::disassemble();                           \
+    if (size1 != size2) {                                             \
+      printf("Sizes did not match:\n");                               \
+      disassemble = true;                                             \
+    }                                                                 \
+    if (disassemble) {                                                \
+      PrintDisassembler dis(std::cout, 0);                            \
+      printf("// " #ASM1 "\n");                                       \
+      if (masm1.IsUsingT32()) {                                       \
+        dis.DisassembleT32Buffer(                                     \
+            masm1.GetBuffer()->GetStartAddress<uint16_t*>(), size1);  \
+      } else {                                                        \
+        dis.DisassembleA32Buffer(                                     \
+            masm1.GetBuffer()->GetStartAddress<uint32_t*>(), size1);  \
+      }                                                               \
+      printf("\n");                                                   \
+                                                                      \
+      dis.SetCodeAddress(0);                                          \
+      printf("// " #ASM2 "\n");                                       \
+      if (masm2.IsUsingT32()) {                                       \
+        dis.DisassembleT32Buffer(                                     \
+            masm2.GetBuffer()->GetStartAddress<uint16_t*>(), size2);  \
+      } else {                                                        \
+        dis.DisassembleA32Buffer(                                     \
+            masm2.GetBuffer()->GetStartAddress<uint32_t*>(), size2);  \
+      }                                                               \
+      printf("\n");                                                   \
+    }                                                                 \
+    VIXL_CHECK(size1 == size2);                                       \
+  }
+
+
+TEST_T32(macro_assembler_commute) {
+  // Test that the MacroAssembler will commute operands if it means it can use a
+  // 16-bit instruction with the same effect.
+
+  // TODO: The commented-out tests should pass, but don't. When they are fixed,
+  // we should update this test.
+
+  // CHECK_SIZE_MATCH(Adc(DontCare, r7, r6, r7),
+  //                  Adc(DontCare, r7, r7, r6));
+
+  // CHECK_SIZE_MATCH(Adc(DontCare, eq, r7, r6, r7),
+  //                  Adc(DontCare, eq, r7, r7, r6));
+
+  CHECK_SIZE_MATCH(Add(DontCare, r1, r2, r7),
+                   Add(DontCare, r1, r7, r2));
+
+  CHECK_SIZE_MATCH(Add(DontCare, lt, r1, r2, r7),
+                   Add(DontCare, lt, r1, r7, r2));
+
+  // CHECK_SIZE_MATCH(Add(DontCare, r4, r4, r10),
+  //                  Add(DontCare, r4, r10, r4));
+
+  // CHECK_SIZE_MATCH(Add(DontCare, eq, r4, r4, r10),
+  //                  Add(DontCare, eq, r4, r10, r4));
+
+  // CHECK_SIZE_MATCH(Add(DontCare, r7, sp, r7),
+  //                  Add(DontCare, r7, r7, sp));
+
+  // CHECK_SIZE_MATCH(Add(DontCare, eq, r7, sp, r7),
+  //                  Add(DontCare, eq, r7, r7, sp));
+
+  // CHECK_SIZE_MATCH(Add(DontCare, sp, sp, r10),
+  //                  Add(DontCare, sp, r10, sp));
+
+  // CHECK_SIZE_MATCH(Add(DontCare, eq, sp, sp, r10),
+  //                  Add(DontCare, eq, sp, r10, sp));
+
+  // CHECK_SIZE_MATCH(And(DontCare, r7, r7, r6),
+  //                  And(DontCare, r7, r6, r7));
+
+  // CHECK_SIZE_MATCH(And(DontCare, eq, r7, r7, r6),
+  //                  And(DontCare, eq, r7, r6, r7));
+
+  // CHECK_SIZE_MATCH(Eor(DontCare, r7, r7, r6),
+  //                  Eor(DontCare, r7, r6, r7));
+
+  // CHECK_SIZE_MATCH(Eor(DontCare, eq, r7, r7, r6),
+  //                  Eor(DontCare, eq, r7, r6, r7));
+
+  // CHECK_SIZE_MATCH(Mul(DontCare, r0, r1, r0),
+  //                  Mul(DontCare, r0, r0, r1));
+
+  // CHECK_SIZE_MATCH(Mul(DontCare, eq, r0, r1, r0),
+  //                  Mul(DontCare, eq, r0, r0, r1));
+
+  // CHECK_SIZE_MATCH(Orr(DontCare, r7, r7, r6),
+  //                  Orr(DontCare, r7, r6, r7));
+
+  // CHECK_SIZE_MATCH(Orr(DontCare, eq, r7, r7, r6),
+  //                  Orr(DontCare, eq, r7, r6, r7));
+
+
+  CHECK_SIZE_MATCH(Adc(r7, r6, r7),
+                   Adc(r7, r7, r6));
+
+  // CHECK_SIZE_MATCH(Adc(eq, r7, r6, r7),
+  //                  Adc(eq, r7, r7, r6));
+
+  CHECK_SIZE_MATCH(Add(r1, r2, r7),
+                   Add(r1, r7, r2));
+
+  CHECK_SIZE_MATCH(Add(lt, r1, r2, r7),
+                   Add(lt, r1, r7, r2));
+
+  // CHECK_SIZE_MATCH(Add(r4, r4, r10),
+  //                  Add(r4, r10, r4));
+
+  // CHECK_SIZE_MATCH(Add(eq, r4, r4, r10),
+  //                  Add(eq, r4, r10, r4));
+
+  // CHECK_SIZE_MATCH(Add(r7, sp, r7),
+  //                  Add(r7, r7, sp));
+
+  // CHECK_SIZE_MATCH(Add(eq, r7, sp, r7),
+  //                  Add(eq, r7, r7, sp));
+
+  // CHECK_SIZE_MATCH(Add(sp, sp, r10),
+  //                  Add(sp, r10, sp));
+
+  // CHECK_SIZE_MATCH(Add(eq, sp, sp, r10),
+  //                  Add(eq, sp, r10, sp));
+
+  CHECK_SIZE_MATCH(And(r7, r7, r6),
+                   And(r7, r6, r7));
+
+  // CHECK_SIZE_MATCH(And(eq, r7, r7, r6),
+  //                  And(eq, r7, r6, r7));
+
+  CHECK_SIZE_MATCH(Eor(r7, r7, r6),
+                   Eor(r7, r6, r7));
+
+  // CHECK_SIZE_MATCH(Eor(eq, r7, r7, r6),
+  //                  Eor(eq, r7, r6, r7));
+
+  CHECK_SIZE_MATCH(Mul(r0, r1, r0),
+                   Mul(r0, r0, r1));
+
+  // CHECK_SIZE_MATCH(Mul(eq, r0, r1, r0),
+  //                  Mul(eq, r0, r0, r1));
+
+  CHECK_SIZE_MATCH(Orr(r7, r7, r6),
+                   Orr(r7, r6, r7));
+
+  // CHECK_SIZE_MATCH(Orr(eq, r7, r7, r6),
+  //                  Orr(eq, r7, r6, r7));
+
+
+  // CHECK_SIZE_MATCH(Adcs(r7, r6, r7),
+  //                  Adcs(r7, r7, r6));
+
+  // CHECK_SIZE_MATCH(Adcs(eq, r7, r6, r7),
+  //                  Adcs(eq, r7, r7, r6));
+
+  CHECK_SIZE_MATCH(Adds(r1, r2, r7),
+                   Adds(r1, r7, r2));
+
+  CHECK_SIZE_MATCH(Adds(lt, r1, r2, r7),
+                   Adds(lt, r1, r7, r2));
+
+  CHECK_SIZE_MATCH(Adds(r4, r4, r10),
+                   Adds(r4, r10, r4));
+
+  CHECK_SIZE_MATCH(Adds(eq, r4, r4, r10),
+                   Adds(eq, r4, r10, r4));
+
+  CHECK_SIZE_MATCH(Adds(r7, sp, r7),
+                   Adds(r7, r7, sp));
+
+  CHECK_SIZE_MATCH(Adds(eq, r7, sp, r7),
+                   Adds(eq, r7, r7, sp));
+
+  CHECK_SIZE_MATCH(Adds(sp, sp, r10),
+                   Adds(sp, r10, sp));
+
+  CHECK_SIZE_MATCH(Adds(eq, sp, sp, r10),
+                   Adds(eq, sp, r10, sp));
+
+  // CHECK_SIZE_MATCH(Ands(r7, r7, r6),
+  //                  Ands(r7, r6, r7));
+
+  // CHECK_SIZE_MATCH(Ands(eq, r7, r7, r6),
+  //                  Ands(eq, r7, r6, r7));
+
+  // CHECK_SIZE_MATCH(Eors(r7, r7, r6),
+  //                  Eors(r7, r6, r7));
+
+  // CHECK_SIZE_MATCH(Eors(eq, r7, r7, r6),
+  //                  Eors(eq, r7, r6, r7));
+
+  // CHECK_SIZE_MATCH(Muls(r0, r1, r0),
+  //                  Muls(r0, r0, r1));
+
+  // CHECK_SIZE_MATCH(Muls(eq, r0, r1, r0),
+  //                  Muls(eq, r0, r0, r1));
+
+  // CHECK_SIZE_MATCH(Orrs(r7, r7, r6),
+  //                  Orrs(r7, r6, r7));
+
+  // CHECK_SIZE_MATCH(Orrs(eq, r7, r7, r6),
+  //                  Orrs(eq, r7, r6, r7));
+}
+
+
 }  // namespace aarch32
 }  // namespace vixl
