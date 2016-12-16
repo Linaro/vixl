@@ -3524,6 +3524,11 @@ TEST(macro_assembler_T32_16bit) {
                         "it lt\n"
                         "addlt r5, #255\n");
 
+  // Make sure we select the non flag-setting version here, since
+  // this can have two potential encodings.
+  CHECK_T32_16(Add(DontCare, r1, r1, r2),
+               "add r1, r2\n");
+
   CHECK_T32_16(Add(DontCare, r1, r2, r7),
                "adds r1, r2, r7\n");
 

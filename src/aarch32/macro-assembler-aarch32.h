@@ -1174,7 +1174,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         bool setflags_is_smaller =
             IsUsingT32() && cond.Is(al) &&
             ((operand.IsPlainRegister() && rd.IsLow() && rn.IsLow() &&
-              operand.GetBaseRegister().IsLow()) ||
+              !rd.Is(rn) && operand.GetBaseRegister().IsLow()) ||
              (operand.IsImmediate() &&
               ((rd.IsLow() && rn.IsLow() && (operand.GetImmediate() < 8)) ||
                (rd.IsLow() && rn.Is(rd) && (operand.GetImmediate() < 256)))));
@@ -1216,7 +1216,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Adds(Register rd, Register rn, const Operand& operand) {
     Adds(al, rd, rn, operand);
   }
-
 
   void Adr(Condition cond, Register rd, Label* label) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
@@ -2634,7 +2633,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     movt(cond, rd, operand);
   }
   void Movt(Register rd, const Operand& operand) { Movt(al, rd, operand); }
-
 
   void Mrs(Condition cond, Register rd, SpecialRegister spec_reg) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
@@ -4746,7 +4744,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     Subs(al, rd, rn, operand);
   }
 
-
   void Svc(Condition cond, uint32_t imm) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
@@ -4833,7 +4830,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     sxth(cond, rd, operand);
   }
   void Sxth(Register rd, const Operand& operand) { Sxth(al, rd, operand); }
-
 
   void Teq(Condition cond, Register rn, const Operand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rn));
