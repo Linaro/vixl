@@ -102,8 +102,8 @@ def GetCompilerDirectives(env):
 # Query the target architecture of the compiler. The 'target' architecture of
 # the compiler used to build VIXL is considered to be the 'host' architecture of
 # VIXL itself.
-def GetHostArch(cxx):
-  directives = GetCompilerDirectives(cxx)
+def GetHostArch(env):
+  directives = GetCompilerDirectives(env)
   if "__x86_64__" in directives:
     return "x86_64"
   elif "__i386__" in directives:
@@ -117,8 +117,8 @@ def GetHostArch(cxx):
 
 # Class representing the compiler toolchain and version.
 class CompilerInformation(object):
-  def __init__(self, cxx):
-    directives = GetCompilerDirectives(cxx)
+  def __init__(self, env):
+    directives = GetCompilerDirectives(env)
     if '__llvm__' in directives:
       major = int(directives['__clang_major__'])
       minor = int(directives['__clang_minor__'])

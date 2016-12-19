@@ -114,6 +114,12 @@ options = {
       },
     'negative_testing:on' : {
       'CCFLAGS' : ['-DVIXL_NEGATIVE_TESTING']
+      },
+    'code_buffer_allocator:mmap' : {
+      'CCFLAGS' : ['-DVIXL_CODE_BUFFER_MMAP']
+      },
+    'code_buffer_allocator:malloc' : {
+      'CCFLAGS' : ['-DVIXL_CODE_BUFFER_MALLOC']
       }
     }
 
@@ -166,6 +172,15 @@ def simulator_handler(env):
     env['simulator'] = 'none'
 
 
+# 'mmap' is required for use with 'mprotect', which is needed for the tests
+# (when running natively), so we use it by default where we can.
+def code_buffer_allocator_handler(env):
+  directives = util.GetCompilerDirectives(env)
+  if '__linux__' in directives:
+    env['code_buffer_allocator'] = 'mmap'
+  else:
+    env['code_buffer_allocator'] = 'malloc'
+
 # A validator checks the consistency of provided options against the environment.
 def default_validator(env):
   pass
@@ -193,9 +208,11 @@ vars_default_handlers = OrderedDict({
     'target_arch'      : [ 'AArch32 only if the host compiler targets a 32-bit '
                            'architecture - otherwise both', target_arch_handler,
                            target_arch_validator],
-    'simulator'        : ['on if the target architectures include AArch64 but '
+    'simulator'        : [ 'on if the target architectures include AArch64 but '
                            'the host is not AArch64, else off',
-                           simulator_handler, simulator_validator ]
+                           simulator_handler, simulator_validator ],
+    'code_buffer_allocator' : [ 'mmap with __linux__, malloc otherwise',
+                                code_buffer_allocator_handler, default_validator ]
     })
 
 
@@ -215,13 +232,17 @@ vars = Variables()
 vars.AddVariables(
     EnumVariable('mode', 'Build mode',
                  'release', allowed_values=config.build_options_modes),
-    EnumVariable('negative_testing', 'Enable negative testing (needs exceptions)',
+    EnumVariable('negative_testing',
+                  'Enable negative testing (needs exceptions)',
                  'off', allowed_values=['on', 'off']),
     DefaultVariable('symbols', 'Include debugging symbols in the binaries',
                     ['on', 'off']),
     DefaultVariable('target_arch', 'Target architecture',
                     ['aarch32', 'aarch64', 'both']),
     DefaultVariable('simulator', 'Simulators to include', ['aarch64', 'none']),
+    DefaultVariable('code_buffer_allocator',
+                    'Configure the allocation mechanism in the CodeBuffer',
+                    ['malloc', 'mmap']),
     ('std', 'C++ standard. The standards tested are: %s.' % \
                                          ', '.join(config.tested_cpp_standards))
     )
@@ -231,7 +252,8 @@ vars.AddVariables(
 # set. These are the options that should be reflected in the build directory
 # path.
 options_influencing_build_path = [
-  'target_arch', 'mode', 'symbols', 'CXX', 'std', 'simulator', 'negative_testing'
+  'target_arch', 'mode', 'symbols', 'CXX', 'std', 'simulator',
+  'negative_testing', 'code_buffer_allocator'
 ]
 
 
