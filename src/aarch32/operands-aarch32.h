@@ -210,16 +210,16 @@ class Operand {
   Operand(float) = delete;     // NOLINT(runtime/explicit)
   Operand(double) = delete;    // NOLINT(runtime/explicit)
 #else
-  Operand(int64_t) VIXL_NO_RETURN_IN_DEBUG_MODE {  // NOLINT(runtime/explicit)
+  VIXL_NO_RETURN_IN_DEBUG_MODE Operand(int64_t) {  // NOLINT(runtime/explicit)
     VIXL_UNREACHABLE();
   }
-  Operand(uint64_t) VIXL_NO_RETURN_IN_DEBUG_MODE {  // NOLINT(runtime/explicit)
+  VIXL_NO_RETURN_IN_DEBUG_MODE Operand(uint64_t) {  // NOLINT(runtime/explicit)
     VIXL_UNREACHABLE();
   }
-  Operand(float) VIXL_NO_RETURN_IN_DEBUG_MODE {  // NOLINT
+  VIXL_NO_RETURN_IN_DEBUG_MODE Operand(float) {  // NOLINT
     VIXL_UNREACHABLE();
   }
-  Operand(double) VIXL_NO_RETURN_IN_DEBUG_MODE {  // NOLINT
+  VIXL_NO_RETURN_IN_DEBUG_MODE Operand(double) {  // NOLINT
     VIXL_UNREACHABLE();
   }
 #endif
