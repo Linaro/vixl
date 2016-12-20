@@ -44,8 +44,15 @@ class CodeBuffer {
 
   void Reset();
 
+#ifdef VIXL_CODE_BUFFER_MMAP
   void SetExecutable();
   void SetWritable();
+#else
+  // These require page-aligned memory blocks, which we can only guarantee with
+  // mmap.
+  void SetExecutable() VIXL_NO_RETURN_IN_DEBUG_MODE { VIXL_UNREACHABLE(); }
+  void SetWritable() VIXL_NO_RETURN_IN_DEBUG_MODE { VIXL_UNREACHABLE(); }
+#endif
 
   ptrdiff_t GetOffsetFrom(ptrdiff_t offset) const {
     ptrdiff_t cursor_offset = cursor_ - buffer_;
