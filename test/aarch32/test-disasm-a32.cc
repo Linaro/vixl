@@ -2296,6 +2296,10 @@ TEST(macro_assembler_unpredictable) {
                        "Unpredictable instruction.\n");
   }
 
+  // CLZ.
+  MUST_FAIL_TEST_BOTH(Clz(pc, r0), "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(Clz(r0, pc), "Unpredictable instruction.\n");
+
   // MOV, MOVS (immediate).
   COMPARE_A32(Mov(pc, 1), "mov pc, #1\n");
   MUST_FAIL_TEST_T32(Mov(pc, 1),
@@ -3871,7 +3875,6 @@ TEST(macro_assembler_T32_16bit) {
 }
 #undef CHECK_T32_16
 #undef CHECK_T32_16_IT_BLOCK
-
 
 TEST(nop_code) {
   SETUP();

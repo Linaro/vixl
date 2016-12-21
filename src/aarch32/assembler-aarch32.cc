@@ -3477,13 +3477,16 @@ void Assembler::clz(Condition cond, Register rd, Register rm) {
   CheckIT(cond);
   if (IsUsingT32()) {
     // CLZ{<c>}{<q>} <Rd>, <Rm> ; T1
-    EmitT32_32(0xfab0f080U | (rd.GetCode() << 8) | rm.GetCode() |
-               (rm.GetCode() << 16));
-    AdvanceIT();
-    return;
+    if (((!rd.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
+      EmitT32_32(0xfab0f080U | (rd.GetCode() << 8) | rm.GetCode() |
+                 (rm.GetCode() << 16));
+      AdvanceIT();
+      return;
+    }
   } else {
     // CLZ{<c>}{<q>} <Rd>, <Rm> ; A1
-    if (cond.IsNotNever()) {
+    if (cond.IsNotNever() &&
+        ((!rd.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
       EmitA32(0x016f0f10U | (cond.GetCondition() << 28) | (rd.GetCode() << 12) |
               rm.GetCode());
       return;
