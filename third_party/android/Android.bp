@@ -83,13 +83,19 @@ cc_defaults {
 cc_defaults {
     name: "vixl-arm",
     defaults: ["vixl-common"],
+    cppflags: [
+        "-DVIXL_CODE_BUFFER_MALLOC",
+        ],
     srcs: ["src/aarch32/*.cc"],
 }
 
 cc_defaults {
     name: "vixl-arm64",
     defaults: ["vixl-common"],
-    cppflags: ["-DVIXL_INCLUDE_SIMULATOR_AARCH64"],
+    cppflags: [
+        "-DVIXL_INCLUDE_SIMULATOR_AARCH64",
+        "-DVIXL_CODE_BUFFER_MMAP",
+        ],
     srcs: ["src/aarch64/*.cc"],
 }
 
