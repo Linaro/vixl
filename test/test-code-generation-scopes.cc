@@ -735,66 +735,6 @@ TEST(ExactAssemblyScope_scope_with_pools_64) {
 }
 #endif  // VIXL_INCLUDE_TARGET_AARCH64
 
-#ifdef VIXL_INCLUDE_TARGET_AARCH32
-TEST(AssemblerAllowUnpredictable_32) {
-  aarch32::Assembler assembler(aarch32::T32);
-
-  {
-    CodeBufferCheckScope scope(&assembler,
-                               aarch32::k16BitT32InstructionSizeInBytes);
-    aarch32::AllowUnpredictableScope allow_broken_code(&assembler);
-    // This instruction is UNPREDICTABLE
-    assembler.add(aarch32::pc, aarch32::pc, aarch32::pc);
-  }
-
-  assembler.FinalizeCode();
-}
-
-TEST(MacroAssemblerAllowUnpredictable_32) {
-  aarch32::MacroAssembler masm(aarch32::T32);
-
-  {
-    ExactAssemblyScope scope(&masm, aarch32::k16BitT32InstructionSizeInBytes);
-    aarch32::AllowUnpredictableScope allow_broken_code(&masm);
-    // This instruction is UNPREDICTABLE
-    __ add(aarch32::pc, aarch32::pc, aarch32::pc);
-  }
-
-  masm.FinalizeCode();
-}
-
-TEST(AssemblerAllowStronglyDiscouraged_32) {
-  aarch32::Assembler assembler(aarch32::T32);
-
-  {
-    CodeBufferCheckScope scope(&assembler, 6);
-    aarch32::AllowStronglyDiscouragedScope allow_discouraged(&assembler);
-    // Conditional T32 NEON instructions are discouraged.
-    assembler.it(aarch32::ne);
-    assembler.vadd(aarch32::ne,
-                   aarch32::F32,
-                   aarch32::d0,
-                   aarch32::d1,
-                   aarch32::d2);
-  }
-
-  assembler.FinalizeCode();
-}
-
-TEST(MacroAssemblerAllowStronglyDiscouraged_32) {
-  aarch32::MacroAssembler masm(aarch32::T32);
-
-  {
-    ExactAssemblyScope scope(&masm, 6);
-    aarch32::AllowStronglyDiscouragedScope allow_discouraged(&masm);
-    // Conditional T32 NEON instructions are discouraged.
-    __ it(aarch32::ne);
-    __ vadd(aarch32::ne, aarch32::F32, aarch32::d0, aarch32::d1, aarch32::d2);
-  }
-
-  masm.FinalizeCode();
-}
-#endif
 
 }  // namespace vixl
 

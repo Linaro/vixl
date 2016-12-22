@@ -868,7 +868,7 @@ TEST(macro_assembler_ldrd) {
                "ldrd r0, r1, [r3]\n");
   // Destination registers need to start with a even numbered register on A32.
   MUST_FAIL_TEST_A32(Ldrd(r1, r2, MemOperand(r3)),
-                     "Ill-formed 'ldrd' instruction.\n");
+                     "Unpredictable instruction.\n");
   COMPARE_T32(Ldrd(r1, r2, MemOperand(r3)),
               "ldrd r1, r2, [r3]\n");
   // Registers need to be adjacent on A32.
@@ -1040,18 +1040,18 @@ TEST(macro_assembler_ldrd) {
 
   // First register is odd - rejected by the Assembler.
   MUST_FAIL_TEST_A32(Ldrd(r1, r2, MemOperand(r0)),
-                     "Ill-formed 'ldrd' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Ldrd(r1, r2, MemOperand(r0, r0, PreIndex)),
-                     "Ill-formed 'ldrd' instruction.\n");
+                     "Unpredictable instruction.\n");
   // First register is odd - rejected by the MacroAssembler.
   MUST_FAIL_TEST_A32(Ldrd(r1, r2, MemOperand(r0, 0xabcd, PreIndex)),
                      "Ill-formed 'ldrd' instruction.\n");
 
   // First register is lr - rejected by the Assembler.
   MUST_FAIL_TEST_A32(Ldrd(lr, pc, MemOperand(r0)),
-                     "Ill-formed 'ldrd' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Ldrd(lr, pc, MemOperand(r0, r0, PreIndex)),
-                     "Ill-formed 'ldrd' instruction.\n");
+                     "Unpredictable instruction.\n");
   // First register is lr - rejected by the MacroAssembler.
   MUST_FAIL_TEST_A32(Ldrd(lr, pc, MemOperand(r0, 0xabcd, PreIndex)),
                      "Ill-formed 'ldrd' instruction.\n");
@@ -1072,7 +1072,7 @@ TEST(macro_assembler_strd) {
                "strd r0, r1, [r3]\n");
   // Destination registers need to start with a even numbered register on A32.
   MUST_FAIL_TEST_A32(Strd(r1, r2, MemOperand(r3)),
-                     "Ill-formed 'strd' instruction.\n");
+                     "Unpredictable instruction.\n");
   COMPARE_T32(Strd(r1, r2, MemOperand(r3)),
               "strd r1, r2, [r3]\n");
   // Registers need to be adjacent on A32.
@@ -1243,18 +1243,18 @@ TEST(macro_assembler_strd) {
 
   // First register is odd - rejected by the Assembler.
   MUST_FAIL_TEST_A32(Strd(r1, r2, MemOperand(r0)),
-                     "Ill-formed 'strd' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Strd(r1, r2, MemOperand(r0, r0, PreIndex)),
-                     "Ill-formed 'strd' instruction.\n");
+                     "Unpredictable instruction.\n");
   // First register is odd - rejected by the MacroAssembler.
   MUST_FAIL_TEST_A32(Strd(r1, r2, MemOperand(r0, 0xabcd, PreIndex)),
                      "Ill-formed 'strd' instruction.\n");
 
   // First register is lr - rejected by the Assembler.
   MUST_FAIL_TEST_A32(Strd(lr, pc, MemOperand(r0)),
-                     "Ill-formed 'strd' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Strd(lr, pc, MemOperand(r0, r0, PreIndex)),
-                     "Ill-formed 'strd' instruction.\n");
+                     "Unpredictable instruction.\n");
   // First register is lr - rejected by the MacroAssembler.
   MUST_FAIL_TEST_A32(Strd(lr, pc, MemOperand(r0, 0xabcd, PreIndex)),
                      "Ill-formed 'strd' instruction.\n");
@@ -1306,7 +1306,7 @@ TEST(macro_assembler_wide_immediate) {
               "tst r0, r0\n");
   COMPARE_A32(Movs(pc, 0x1),
               "movs pc, #1\n");
-  MUST_FAIL_TEST_T32(Movs(pc, 0x1), "Ill-formed 'movs' instruction.\n");
+  MUST_FAIL_TEST_T32(Movs(pc, 0x1), "Unpredictable instruction.\n");
   MUST_FAIL_TEST_BOTH(Movs(pc, 0xbadbeed),
                       "Ill-formed 'movs' instruction.\n");
 
@@ -2060,7 +2060,7 @@ TEST(macro_assembler_PushRegisterList) {
   // Deprecated, but accepted:
   SHOULD_FAIL_TEST_A32(Push(RegisterList(pc)));
   // Whereas we don't accept the single-register version:
-  MUST_FAIL_TEST_A32(Push(pc), "Ill-formed 'push' instruction.\n");
+  MUST_FAIL_TEST_A32(Push(pc), "Unpredictable instruction.\n");
 
   // For T32, pushing the PC is allowed:
   COMPARE_T32(Push(pc), "push {pc}\n");
@@ -2145,72 +2145,72 @@ TEST(macro_assembler_unpredictable) {
   COMPARE_A32(Adc(pc, r0, 1), "adc pc, r0, #1\n");
   COMPARE_A32(Adc(r0, pc, 1), "adc r0, pc, #1\n");
   MUST_FAIL_TEST_T32(Adc(pc, r0, 1),
-                     "Ill-formed 'adc' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_T32(Adc(r0, pc, 1),
-                     "Ill-formed 'adc' instruction.\n");
+                     "Unpredictable instruction.\n");
   COMPARE_A32(Adcs(pc, r0, 1), "adcs pc, r0, #1\n");
   COMPARE_A32(Adcs(r0, pc, 1), "adcs r0, pc, #1\n");
   MUST_FAIL_TEST_T32(Adcs(pc, r0, 1),
-                     "Ill-formed 'adcs' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_T32(Adcs(r0, pc, 1),
-                     "Ill-formed 'adcs' instruction.\n");
+                     "Unpredictable instruction.\n");
 
   // ADC, ADCS (register).
   COMPARE_A32(Adc(pc, r0, r1), "adc pc, r0, r1\n");
   COMPARE_A32(Adc(r0, pc, r1), "adc r0, pc, r1\n");
   COMPARE_A32(Adc(r0, r1, pc), "adc r0, r1, pc\n");
   MUST_FAIL_TEST_T32(Adc(pc, r0, r1),
-                     "Ill-formed 'adc' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_T32(Adc(r0, pc, r1),
-                     "Ill-formed 'adc' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_T32(Adc(r0, r1, pc),
-                     "Ill-formed 'adc' instruction.\n");
+                     "Unpredictable instruction.\n");
   COMPARE_A32(Adcs(pc, r0, r1), "adcs pc, r0, r1\n");
   COMPARE_A32(Adcs(r0, pc, r1), "adcs r0, pc, r1\n");
   COMPARE_A32(Adcs(r0, r1, pc), "adcs r0, r1, pc\n");
   MUST_FAIL_TEST_T32(Adcs(pc, r0, r1),
-                     "Ill-formed 'adcs' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_T32(Adcs(r0, pc, r1),
-                     "Ill-formed 'adcs' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_T32(Adcs(r0, r1, pc),
-                     "Ill-formed 'adcs' instruction.\n");
+                     "Unpredictable instruction.\n");
 
   // ADC, ADCS (register-shifted register).
   MUST_FAIL_TEST_A32(Adc(pc, r0, Operand(r1, LSL, r2)),
-                     "Ill-formed 'adc' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Adc(r0, pc, Operand(r1, LSL, r2)),
-                     "Ill-formed 'adc' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Adc(r0, r1, Operand(pc, LSL, r2)),
-                     "Ill-formed 'adc' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Adc(r0, r1, Operand(r2, LSL, pc)),
-                     "Ill-formed 'adc' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Adcs(pc, r0, Operand(r1, LSL, r2)),
-                     "Ill-formed 'adcs' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Adcs(r0, pc, Operand(r1, LSL, r2)),
-                     "Ill-formed 'adcs' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Adcs(r0, r1, Operand(pc, LSL, r2)),
-                     "Ill-formed 'adcs' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Adcs(r0, r1, Operand(r2, LSL, pc)),
-                     "Ill-formed 'adcs' instruction.\n");
+                     "Unpredictable instruction.\n");
 
   // ADD (immediate, to PC).
   COMPARE_A32(Add(r0, pc, 1), "adr r0, 0x00000009\n");
   COMPARE_T32(Add(r0, pc, 1), "adr r0, 0x00000005\n");
   COMPARE_A32(Add(pc, pc, 1), "adr pc, 0x00000009\n");
   MUST_FAIL_TEST_T32(Add(pc, pc, 1),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
 
   // ADD, ADDS (immediate).
   COMPARE_A32(Add(pc, r0, 1), "add pc, r0, #1\n");
   MUST_FAIL_TEST_T32(Add(pc, r0, 1),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_T32(Add(pc, r0, 0x123),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
   COMPARE_A32(Adds(pc, r0, 1), "adds pc, r0, #1\n");
   COMPARE_A32(Adds(r0, pc, 1), "adds r0, pc, #1\n");
   // TODO: Try to make these error messages more consistent.
   MUST_FAIL_TEST_T32(Adds(r0, pc, 1),
-                     "Ill-formed 'adds' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_T32(Adds(r0, pc, 0x123),
                      "Ill-formed 'adds' instruction.\n");
 
@@ -2221,46 +2221,46 @@ TEST(macro_assembler_unpredictable) {
   COMPARE_T32(Add(r0, r0, pc), "add r0, pc\n");
   COMPARE_T32(Add(pc, pc, r0), "add pc, r0\n");
   MUST_FAIL_TEST_T32(Add(pc, pc, pc),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_T32(Add(pc, r0, r1),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_T32(Add(r0, pc, r1),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_T32(Add(r0, r1, pc),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
   COMPARE_A32(Adds(pc, r0, r1), "adds pc, r0, r1\n");
   COMPARE_A32(Adds(r0, pc, r1), "adds r0, pc, r1\n");
   COMPARE_A32(Adds(r0, r1, pc), "adds r0, r1, pc\n");
   MUST_FAIL_TEST_T32(Adds(r0, pc, r1),
-                     "Ill-formed 'adds' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_T32(Adds(r0, r1, pc),
-                     "Ill-formed 'adds' instruction.\n");
+                     "Unpredictable instruction.\n");
 
   // ADD, ADDS (register-shifted register)
   MUST_FAIL_TEST_A32(Add(pc, r0, Operand(r1, LSL, r2)),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Add(r0, pc, Operand(r1, LSL, r2)),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Add(r0, r1, Operand(pc, LSL, r2)),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Add(r0, r1, Operand(r2, LSL, pc)),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
   COMPARE_A32(Add(pc, sp, 1), "add pc, sp, #1\n");
   MUST_FAIL_TEST_T32(Add(pc, sp, 1),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Adds(pc, r0, Operand(r1, LSL, r2)),
-                     "Ill-formed 'adds' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Adds(r0, pc, Operand(r1, LSL, r2)),
-                     "Ill-formed 'adds' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Adds(r0, r1, Operand(pc, LSL, r2)),
-                     "Ill-formed 'adds' instruction.\n");
+                     "Unpredictable instruction.\n");
   MUST_FAIL_TEST_A32(Adds(r0, r1, Operand(r2, LSL, pc)),
-                     "Ill-formed 'adds' instruction.\n");
+                     "Unpredictable instruction.\n");
 
   // ADD, ADDS (SP plus immediate).
   COMPARE_A32(Add(pc, sp, 1), "add pc, sp, #1\n");
   MUST_FAIL_TEST_T32(Add(pc, sp, 1),
-                      "Ill-formed 'add' instruction.\n");
+                      "Unpredictable instruction.\n");
   COMPARE_A32(Adds(pc, sp, 1), "adds pc, sp, #1\n");
   MUST_FAIL_TEST_T32(Adds(pc, sp, 1),
                       "Ill-formed 'adds' instruction.\n");
@@ -2268,10 +2268,10 @@ TEST(macro_assembler_unpredictable) {
   // ADD, ADDS (SP plus register).
   COMPARE_A32(Add(pc, sp, r0), "add pc, sp, r0\n");
   MUST_FAIL_TEST_T32(Add(pc, sp, r0),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
   COMPARE_A32(Add(r0, sp, pc), "add r0, sp, pc\n");
   MUST_FAIL_TEST_T32(Add(r0, sp, pc),
-                     "Ill-formed 'add' instruction.\n");
+                     "Unpredictable instruction.\n");
   COMPARE_BOTH(Add(pc, sp, pc), "add pc, sp, pc\n");
   COMPARE_BOTH(Add(sp, sp, pc), "add sp, pc\n");
   COMPARE_A32(Adds(pc, sp, r0), "adds pc, sp, r0\n");
@@ -2279,13 +2279,13 @@ TEST(macro_assembler_unpredictable) {
                       "Ill-formed 'adds' instruction.\n");
   COMPARE_A32(Adds(r0, sp, pc), "adds r0, sp, pc\n");
   MUST_FAIL_TEST_T32(Adds(r0, sp, pc),
-                     "Ill-formed 'adds' instruction.\n");
+                     "Unpredictable instruction.\n");
   COMPARE_A32(Adds(pc, sp, pc), "adds pc, sp, pc\n");
   MUST_FAIL_TEST_T32(Adds(pc, sp, pc),
                       "Ill-formed 'adds' instruction.\n");
   COMPARE_A32(Adds(sp, sp, pc), "adds sp, pc\n");
   MUST_FAIL_TEST_T32(Adds(sp, sp, pc),
-                     "Ill-formed 'adds' instruction.\n");
+                     "Unpredictable instruction.\n");
 
   // ADR.
   {
@@ -2293,7 +2293,7 @@ TEST(macro_assembler_unpredictable) {
     masm.Bind(&label);
     COMPARE_A32(Adr(pc, &label), "adr pc, 0x00000000\n");
     MUST_FAIL_TEST_T32(Adr(pc, &label),
-                       "Ill-formed 'adr' instruction.\n");
+                       "Unpredictable instruction.\n");
   }
 
   // MOV, MOVS (immediate).
@@ -2436,7 +2436,7 @@ TEST(macro_assembler_pc_rel_T32) {
   // Only negative offsets are supported, because the proper behaviour for
   // positive offsets is not clear.
 
-  MUST_FAIL_TEST_T32(Add(r0, pc, 4096), "Ill-formed 'add' instruction.\n");
+  MUST_FAIL_TEST_T32(Add(r0, pc, 4096), "Unpredictable instruction.\n");
 
   // TODO: This case is incorrect; the instruction is unpredictable. The test
   // must be updated once the bug is fixed.
@@ -2454,7 +2454,11 @@ TEST(macro_assembler_pc_rel_T32) {
                                         "mvn ip, #2147483648\n"
                                         "sub r0, ip\n");
 
-  MUST_FAIL_TEST_T32(Sub(r0, pc, -4096), "Ill-formed 'add' instruction.\n");
+  // TODO: This test aborts in the Assembler (with unpredictable instruction
+  // errors) before the MacroAssembler gets a chance to do something
+  // predictable.
+  // COMPARE_T32(Sub(r0, pc, -4096), "mov r0, pc\n"
+  //                                 "add r0, #4096\n");
 
   // TODO: This case is incorrect; the instruction is unpredictable. The test
   // must be updated once the bug is fixed.

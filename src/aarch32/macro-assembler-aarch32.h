@@ -10947,6 +10947,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Vsub(VRegister rd, VRegister rn, VRegister rm) { Vsub(al, rd, rn, rm); }
   // End of generated code.
 
+  virtual bool AllowUnpredictable() VIXL_OVERRIDE {
+    VIXL_ABORT_WITH_MSG("Unpredictable instruction.\n");
+    return false;
+  }
+  virtual bool AllowStronglyDiscouraged() VIXL_OVERRIDE {
+    VIXL_ABORT_WITH_MSG(
+        "ARM strongly recommends to not use this instruction.\n");
+    return false;
+  }
+
  private:
   RegisterList available_;
   VRegisterList available_vfp_;

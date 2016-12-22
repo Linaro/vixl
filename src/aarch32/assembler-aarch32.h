@@ -70,6 +70,31 @@ class Assembler : public internal::AssemblerBase {
                 const Label::LabelEmitOperator& op);
 
  public:
+  class AllowUnpredictableScope {
+    Assembler* assembler_;
+    bool old_;
+
+   public:
+    explicit AllowUnpredictableScope(Assembler* assembler)
+        : assembler_(assembler), old_(assembler->allow_unpredictable_) {
+      assembler_->allow_unpredictable_ = true;
+    }
+    ~AllowUnpredictableScope() { assembler_->allow_unpredictable_ = old_; }
+  };
+  class AllowStronglyDiscouragedScope {
+    Assembler* assembler_;
+    bool old_;
+
+   public:
+    explicit AllowStronglyDiscouragedScope(Assembler* assembler)
+        : assembler_(assembler), old_(assembler->allow_strongly_discouraged_) {
+      assembler_->allow_strongly_discouraged_ = true;
+    }
+    ~AllowStronglyDiscouragedScope() {
+      assembler_->allow_strongly_discouraged_ = old_;
+    }
+  };
+
   explicit Assembler(InstructionSet isa = A32)
       : isa_(isa),
         first_condition_(al),
@@ -5997,45 +6022,9 @@ class Assembler : public internal::AssemblerBase {
                               std::string("' instruction.\n"));
     VIXL_ABORT_WITH_MSG(error_message.c_str());
   }
-  bool AllowUnpredictable() { return allow_unpredictable_; }
-  bool AllowStronglyDiscouraged() { return allow_strongly_discouraged_; }
-
-  // Allow the following scopes to modify the internal allow_unpredictable_ and
-  // allow_strongly_discouraged_ members.
-  friend class AllowUnpredictableScope;
-  friend class AllowStronglyDiscouragedScope;
-};
-
-// Temporarily allow generating UNPREDICTABLE instruction. Using this scope is
-// only allowed when using the assembler directly.
-class AllowUnpredictableScope {
-  Assembler* assembler_;
-  bool old_;
-
- public:
-  explicit AllowUnpredictableScope(Assembler* assembler)
-      : assembler_(assembler), old_(assembler->allow_unpredictable_) {
-    VIXL_ASSERT(assembler_->AllowAssembler());
-    assembler_->allow_unpredictable_ = true;
-  }
-  ~AllowUnpredictableScope() { assembler_->allow_unpredictable_ = old_; }
-};
-
-// Temporarily allow generating strongly discouraged instructions. For example,
-// this includes T32 conditional instructions that are not otherwise conditional
-// in A32. Using this scope is only allowed when using the assembler directly.
-class AllowStronglyDiscouragedScope {
-  Assembler* assembler_;
-  bool old_;
-
- public:
-  explicit AllowStronglyDiscouragedScope(Assembler* assembler)
-      : assembler_(assembler), old_(assembler->allow_strongly_discouraged_) {
-    VIXL_ASSERT(assembler_->AllowAssembler());
-    assembler_->allow_strongly_discouraged_ = true;
-  }
-  ~AllowStronglyDiscouragedScope() {
-    assembler_->allow_strongly_discouraged_ = old_;
+  virtual bool AllowUnpredictable() { return allow_unpredictable_; }
+  virtual bool AllowStronglyDiscouraged() {
+    return allow_strongly_discouraged_;
   }
 };
 
