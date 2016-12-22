@@ -84,7 +84,8 @@
           "name": "Operands",
           "operands": [
             "cond", "rd", "rn"
-          ]
+          ],
+          "operand-limit": 500
         }
       ]
     },
