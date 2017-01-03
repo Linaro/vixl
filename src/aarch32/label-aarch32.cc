@@ -35,8 +35,7 @@ void VeneerPoolManager::Release() {
   VIXL_ASSERT(IsBlocked());
   if (--monitor_ == 0) {
     // Ensure the pool has not been blocked for too long.
-    VIXL_ASSERT(masm_->GetCursorOffset() <= near_checkpoint_);
-    VIXL_ASSERT(masm_->GetCursorOffset() <= far_checkpoint_);
+    VIXL_ASSERT(masm_->GetCursorOffset() <= GetCheckpoint());
   }
 }
 

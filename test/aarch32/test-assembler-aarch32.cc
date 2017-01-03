@@ -2497,6 +2497,122 @@ TEST_T32(veneer_bind) {
 }
 
 
+// Check that the veneer pool is correctly emitted even if we do enough narrow
+// branches before a cbz so that the cbz needs its veneer emitted first in the
+// pool in order to work.
+TEST_T32(b_narrow_and_cbz_sort) {
+  SETUP();
+  START();
+
+  const int kLabelsCount = 40;
+  const int kNops = 30;
+  Label b_labels[kLabelsCount];
+  Label cbz_label;
+
+  __ Nop();
+
+  __ Mov(r0, 0);
+  __ Cmp(r0, 0);
+
+  for (int i = 0; i < kLabelsCount; ++i) {
+    __ B(ne, &b_labels[i], kNear);
+  }
+
+  {
+    ExactAssemblyScope scope(&masm,
+                             k16BitT32InstructionSizeInBytes * kNops,
+                             ExactAssemblyScope::kExactSize);
+    for (int i = 0; i < kNops; i++) {
+      __ nop();
+    }
+  }
+
+  // The pool should not be emitted here.
+  __ Cbz(r0, &cbz_label);
+
+  // Force pool emission. If the labels are not sorted, the cbz will be out
+  // of range.
+  int32_t margin = masm.GetMarginBeforeVeneerEmission();
+  int32_t end = masm.GetCursorOffset() + margin;
+
+  {
+    ExactAssemblyScope scope(&masm, margin, ExactAssemblyScope::kExactSize);
+    while (masm.GetCursorOffset() < end) {
+      __ nop();
+    }
+  }
+
+  __ Mov(r0, 1);
+
+  for (int i = 0; i < kLabelsCount; ++i) {
+    __ Bind(&b_labels[i]);
+  }
+
+  __ Bind(&cbz_label);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0, r0);
+
+  TEARDOWN();
+}
+
+
+TEST_T32(b_narrow_and_cbz_sort_2) {
+  SETUP();
+  START();
+
+  const int kLabelsCount = 40;
+  const int kNops = 30;
+  Label b_labels[kLabelsCount];
+  Label cbz_label;
+
+  __ Mov(r0, 0);
+  __ Cmp(r0, 0);
+
+  for (int i = 0; i < kLabelsCount; ++i) {
+    __ B(ne, &b_labels[i], kNear);
+  }
+
+  {
+    ExactAssemblyScope scope(&masm,
+                             k16BitT32InstructionSizeInBytes * kNops,
+                             ExactAssemblyScope::kExactSize);
+    for (int i = 0; i < kNops; i++) {
+      __ nop();
+    }
+  }
+
+  // The pool should not be emitted here.
+  __ Cbz(r0, &cbz_label);
+
+  // Force pool emission. If the labels are not sorted, the cbz will be out
+  // of range.
+  int32_t margin = masm.GetMarginBeforeVeneerEmission();
+  int32_t end = masm.GetCursorOffset() + margin;
+
+  while (masm.GetCursorOffset() < end) __ Nop();
+
+  __ Mov(r0, 1);
+
+  for (int i = 0; i < kLabelsCount; ++i) {
+    __ Bind(&b_labels[i]);
+  }
+
+  __ Bind(&cbz_label);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0, r0);
+
+  TEARDOWN();
+}
+
+
 TEST_T32(unaligned_branch_after_literal) {
   SETUP();
 

@@ -272,6 +272,8 @@ class VeneerPoolManager {
       : masm_(masm),
         near_checkpoint_(Label::kMaxOffset),
         far_checkpoint_(Label::kMaxOffset),
+        max_near_checkpoint_(0),
+        near_checkpoint_margin_(0),
         last_label_reference_offset_(0),
         monitor_(0) {}
   bool IsEmpty() const {
@@ -287,7 +289,8 @@ class VeneerPoolManager {
     Label::Offset tmp =
         far_checkpoint_ - static_cast<Label::Offset>(veneer_max_size);
     // Make room for a branch over the pools.
-    return std::min(near_checkpoint_, tmp) - kMaxInstructionSizeInBytes;
+    return std::min(near_checkpoint_, tmp) - kMaxInstructionSizeInBytes -
+           near_checkpoint_margin_;
   }
   size_t GetMaxSize() const {
     return (near_labels_.size() + far_labels_.size()) *
@@ -307,11 +310,17 @@ class VeneerPoolManager {
   // Lists of all unbound labels which are used by a branch instruction.
   std::list<Label*> near_labels_;
   std::list<Label*> far_labels_;
-  // Max offset in the code buffer where the veneer needs to be emitted.
+  // Offset in the code buffer after which the veneer needs to be emitted.
+  // It's the lowest checkpoint value in the associated list.
   // A default value of Label::kMaxOffset means that the checkpoint is
-  // invalid.
+  // invalid (no entry in the list).
   Label::Offset near_checkpoint_;
   Label::Offset far_checkpoint_;
+  // Highest checkpoint value for the near list.
+  Label::Offset max_near_checkpoint_;
+  // Margin we have to take to ensure that 16 bit branch instructions will be
+  // able to generate 32 bit veneers.
+  uint32_t near_checkpoint_margin_;
   // Offset where the last reference to a label has been added to the pool.
   Label::Offset last_label_reference_offset_;
   // Indicates whether the emission of this pool is blocked.

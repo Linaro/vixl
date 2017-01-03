@@ -211,8 +211,8 @@ void VeneerPoolManager::AddLabel(Label* label) {
       // We found two 16 bit forward branches generated one after the other.
       // That means that the pool will grow by one 32-bit branch when
       // the cursor offset will move forward by only one 16-bit branch.
-      // Update the cbz/cbnz checkpoint to manage the difference.
-      near_checkpoint_ -=
+      // Update the near checkpoint margin to manage the difference.
+      near_checkpoint_margin_ +=
           k32BitT32InstructionSizeInBytes - k16BitT32InstructionSizeInBytes;
     }
   }
@@ -240,6 +240,15 @@ void VeneerPoolManager::AddLabel(Label* label) {
   Label::Offset tmp = label->GetCheckpoint();
   if (label->IsNear()) {
     if (near_checkpoint_ > tmp) near_checkpoint_ = tmp;
+    if (max_near_checkpoint_ >= tmp) {
+      // This checkpoint is before some already in the near list. That means
+      // that the veneer (if needed) will be emitted before some of the veneers
+      // already in the list. We adjust the margin with the size of a veneer
+      // branch.
+      near_checkpoint_margin_ += k32BitT32InstructionSizeInBytes;
+    } else {
+      max_near_checkpoint_ = tmp;
+    }
   } else {
     if (far_checkpoint_ > tmp) far_checkpoint_ = tmp;
   }
@@ -310,8 +319,8 @@ void VeneerPoolManager::EmitLabel(Label* label, Label::Offset emitted_target) {
 void VeneerPoolManager::Emit(Label::Offset target) {
   VIXL_ASSERT(!IsBlocked());
   // Sort labels (regarding their checkpoint) to avoid that a veneer
-  // becomes out of range. Near labels are always sorted as it holds only one
-  // range.
+  // becomes out of range.
+  near_labels_.sort(Label::CompareLabels);
   far_labels_.sort(Label::CompareLabels);
   // To avoid too many veneers, generate veneers which will be necessary soon.
   static const size_t kVeneerEmissionMargin = 1 * KBytes;
@@ -323,6 +332,8 @@ void VeneerPoolManager::Emit(Label::Offset target) {
   // Reset the checkpoints. They will be computed again in the loop.
   near_checkpoint_ = Label::kMaxOffset;
   far_checkpoint_ = Label::kMaxOffset;
+  max_near_checkpoint_ = 0;
+  near_checkpoint_margin_ = 0;
   for (std::list<Label*>::iterator it = near_labels_.begin();
        it != near_labels_.end();) {
     Label* label = *it;
