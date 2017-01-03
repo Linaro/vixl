@@ -50,8 +50,8 @@ class CodeBuffer {
 #else
   // These require page-aligned memory blocks, which we can only guarantee with
   // mmap.
-  VIXL_NO_RETURN_IN_DEBUG_MODE void SetExecutable() { VIXL_UNREACHABLE(); }
-  VIXL_NO_RETURN_IN_DEBUG_MODE void SetWritable() { VIXL_UNREACHABLE(); }
+  VIXL_NO_RETURN_IN_DEBUG_MODE void SetExecutable() { VIXL_UNIMPLEMENTED(); }
+  VIXL_NO_RETURN_IN_DEBUG_MODE void SetWritable() { VIXL_UNIMPLEMENTED(); }
 #endif
 
   ptrdiff_t GetOffsetFrom(ptrdiff_t offset) const {
