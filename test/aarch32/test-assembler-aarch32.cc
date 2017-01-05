@@ -3445,7 +3445,7 @@ TEST(veneer_pool_margin) {
 }
 
 
-TEST_T32(cbz_fuzz) {
+TEST_T32(near_branch_fuzz) {
   SETUP();
   START();
 
@@ -3458,10 +3458,13 @@ TEST_T32(cbz_fuzz) {
 
   // Use multiple iterations, as each produces a different predictably random
   // sequence.
-  const int iterations = 32;
+  const int iterations = 64;
 
   int loop_count = 0;
   __ Mov(r1, 0);
+
+  // Initialise the status flags to Z set.
+  __ Cmp(r1, r1);
 
   // Gradually increasing the number of cases effectively increases the
   // probability of nops being emitted in the sequence. The branch-to-bind
@@ -3492,11 +3495,13 @@ TEST_T32(cbz_fuzz) {
               __ Add(r1, r1, 1);
             }
             break;
-          case 1: // Branch.
+          case 1: // Compare and branch if zero (untaken as r0 == 1).
           case 2:
-          case 3:
-          case 4:
             __ Cbz(r0, &l[label_index]);
+            break;
+          case 3: // Conditional branch (untaken as Z set) preferred near.
+          case 4:
+            __ BPreferNear(ne, &l[label_index]);
             break;
           default: // Nop.
             __ Nop();
@@ -3512,7 +3517,7 @@ TEST_T32(cbz_fuzz) {
         if (allbound) break;
       }
 
-      // Ensure that the veneer pools are emitted, to keep each case
+      // Ensure that the veneer pools are emitted, to keep each branch/bind test
       // independent.
       masm.FinalizeCode();
       delete[] l;
