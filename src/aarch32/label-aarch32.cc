@@ -35,7 +35,9 @@ void VeneerPoolManager::Release() {
   VIXL_ASSERT(IsBlocked());
   if (--monitor_ == 0) {
     // Ensure the pool has not been blocked for too long.
-    VIXL_ASSERT(masm_->GetCursorOffset() <= GetCheckpoint());
+    // This may generate some veneers if some labels has been added by the code
+    // which used Block/Release.
+    masm_->EnsureEmitFor(0);
   }
 }
 

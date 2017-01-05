@@ -462,8 +462,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
         veneer_pool_manager_(this),
-        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE),
-        doing_veneer_pool_generation_(false) {
+        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE) {
 #ifdef VIXL_DEBUG
     SetAllowMacroInstructions(true);
 #else
@@ -479,8 +478,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
         veneer_pool_manager_(this),
-        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE),
-        doing_veneer_pool_generation_(false) {
+        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE) {
 #ifdef VIXL_DEBUG
     SetAllowMacroInstructions(true);
 #endif
@@ -493,8 +491,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
         checkpoint_(Label::kMaxOffset),
         literal_pool_manager_(this),
         veneer_pool_manager_(this),
-        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE),
-        doing_veneer_pool_generation_(false) {
+        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE) {
 #ifdef VIXL_DEBUG
     SetAllowMacroInstructions(true);
 #endif
@@ -10973,7 +10970,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   VeneerPoolManager veneer_pool_manager_;
   bool generate_simulator_code_;
   bool allow_macro_instructions_;
-  bool doing_veneer_pool_generation_;
 };
 
 // This scope utility allows scratch registers to be managed safely. The

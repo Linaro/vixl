@@ -36,6 +36,24 @@
 namespace vixl {
 namespace aarch32 {
 
+// We use a subclass to access the protected `ExactAssemblyScope` constructor
+// giving us control over the pools, and make the constructor private to limit
+// usage to code paths emitting pools.
+class ExactAssemblyScopeWithoutPoolsCheck : public ExactAssemblyScope {
+ private:
+  ExactAssemblyScopeWithoutPoolsCheck(MacroAssembler* masm,
+                                      size_t size,
+                                      SizePolicy size_policy = kExactSize)
+      : ExactAssemblyScope(masm,
+                           size,
+                           size_policy,
+                           ExactAssemblyScope::kIgnorePools) {}
+
+  friend class MacroAssembler;
+  friend class VeneerPoolManager;
+};
+
+
 void UseScratchRegisterScope::Open(MacroAssembler* masm) {
   VIXL_ASSERT(masm_ == NULL);
   VIXL_ASSERT(masm != NULL);
@@ -312,7 +330,11 @@ void VeneerPoolManager::EmitLabel(Label* label, Label::Offset emitted_target) {
     far_checkpoint_ = std::min(far_checkpoint_, label_checkpoint);
   }
   // Generate the veneer.
-  masm_->B(label);
+  ExactAssemblyScopeWithoutPoolsCheck guard(masm_,
+                                            kMaxInstructionSizeInBytes,
+                                            ExactAssemblyScope::kMaximumSize);
+  masm_->b(label);
+  masm_->AddBranchLabel(label);
 }
 
 
@@ -323,6 +345,7 @@ void VeneerPoolManager::Emit(Label::Offset target) {
   near_labels_.sort(Label::CompareLabels);
   far_labels_.sort(Label::CompareLabels);
   // To avoid too many veneers, generate veneers which will be necessary soon.
+  target += static_cast<int>(GetMaxSize()) + near_checkpoint_margin_;
   static const size_t kVeneerEmissionMargin = 1 * KBytes;
   // To avoid too many veneers, use generated veneers for other not too far
   // uses.
@@ -377,69 +400,43 @@ void VeneerPoolManager::Emit(Label::Offset target) {
 }
 
 
-// We use a subclass to access the protected `ExactAssemblyScope` constructor
-// giving us control over the pools, and make the constructor private to limit
-// usage to code paths emitting pools.
-class ExactAssemblyScopeWithoutPoolsCheck : public ExactAssemblyScope {
- private:
-  ExactAssemblyScopeWithoutPoolsCheck(MacroAssembler* masm,
-                                      size_t size,
-                                      SizePolicy size_policy = kExactSize)
-      : ExactAssemblyScope(masm,
-                           size,
-                           size_policy,
-                           ExactAssemblyScope::kIgnorePools) {}
-
-  friend void MacroAssembler::EmitLiteralPool(LiteralPool* const literal_pool,
-                                              EmitOption option);
-
-  // TODO: `PerformEnsureEmit` is `private`, so we have to make the
-  // `MacroAssembler` a friend.
-  friend class MacroAssembler;
-};
-
-
 void MacroAssembler::PerformEnsureEmit(Label::Offset target, uint32_t size) {
-  if (!doing_veneer_pool_generation_) {
-    EmitOption option = kBranchRequired;
-    Label after_pools;
-    Label::Offset literal_target = GetTargetForLiteralEmission();
-    VIXL_ASSERT(literal_target >= 0);
-    bool generate_veneers = target > veneer_pool_manager_.GetCheckpoint();
-    if (target > literal_target) {
-      // We will generate the literal pool. Generate all the veneers which
-      // would become out of range.
-      size_t literal_pool_size = literal_pool_manager_.GetLiteralPoolSize() +
-                                 kMaxInstructionSizeInBytes;
-      VIXL_ASSERT(IsInt32(literal_pool_size));
-      Label::Offset veneers_target =
-          AlignUp(target + static_cast<Label::Offset>(literal_pool_size), 4);
-      VIXL_ASSERT(veneers_target >= 0);
-      if (veneers_target > veneer_pool_manager_.GetCheckpoint()) {
-        generate_veneers = true;
-      }
+  EmitOption option = kBranchRequired;
+  Label after_pools;
+  Label::Offset literal_target = GetTargetForLiteralEmission();
+  VIXL_ASSERT(literal_target >= 0);
+  bool generate_veneers = target > veneer_pool_manager_.GetCheckpoint();
+  if (target > literal_target) {
+    // We will generate the literal pool. Generate all the veneers which
+    // would become out of range.
+    size_t literal_pool_size =
+        literal_pool_manager_.GetLiteralPoolSize() + kMaxInstructionSizeInBytes;
+    VIXL_ASSERT(IsInt32(literal_pool_size));
+    Label::Offset veneers_target =
+        AlignUp(target + static_cast<Label::Offset>(literal_pool_size), 4);
+    VIXL_ASSERT(veneers_target >= 0);
+    if (veneers_target > veneer_pool_manager_.GetCheckpoint()) {
+      generate_veneers = true;
     }
-    if (generate_veneers) {
-      {
-        ExactAssemblyScopeWithoutPoolsCheck
-            guard(this,
-                  kMaxInstructionSizeInBytes,
-                  ExactAssemblyScope::kMaximumSize);
-        b(&after_pools);
-      }
-      doing_veneer_pool_generation_ = true;
-      veneer_pool_manager_.Emit(target);
-      doing_veneer_pool_generation_ = false;
-      option = kNoBranchRequired;
-    }
-    // Check if the macro-assembler's internal literal pool should be emitted
-    // to avoid any overflow. If we already generated the veneers, we can
-    // emit the pool (the branch is already done).
-    if ((target > literal_target) || (option == kNoBranchRequired)) {
-      EmitLiteralPool(option);
-    }
-    BindHelper(&after_pools);
   }
+  if (generate_veneers) {
+    {
+      ExactAssemblyScopeWithoutPoolsCheck
+          guard(this,
+                kMaxInstructionSizeInBytes,
+                ExactAssemblyScope::kMaximumSize);
+      b(&after_pools);
+    }
+    veneer_pool_manager_.Emit(target);
+    option = kNoBranchRequired;
+  }
+  // Check if the macro-assembler's internal literal pool should be emitted
+  // to avoid any overflow. If we already generated the veneers, we can
+  // emit the pool (the branch is already done).
+  if ((target > literal_target) || (option == kNoBranchRequired)) {
+    EmitLiteralPool(option);
+  }
+  BindHelper(&after_pools);
   if (GetBuffer()->IsManaged()) {
     bool grow_requested;
     GetBuffer()->EnsureSpaceFor(size, &grow_requested);

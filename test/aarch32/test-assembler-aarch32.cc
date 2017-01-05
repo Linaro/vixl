@@ -2613,6 +2613,41 @@ TEST_T32(b_narrow_and_cbz_sort_2) {
 }
 
 
+TEST_T32(long_branch) {
+  SETUP();
+  START();
+
+  for (int label_count = 128; label_count < 2048; label_count *= 2) {
+    Label* l = new Label[label_count];
+
+    for (int i = 0; i < label_count; i++) {
+      __ B(&l[i]);
+    }
+
+    for (int i = 0; i < label_count; i++) {
+      __ B(ne, &l[i]);
+    }
+
+    for (int i = 0; i < 261625; i++) {
+      __ Clz(r0, r0);
+    }
+
+    for (int i = label_count - 1; i >= 0; i--) {
+      __ Bind(&l[i]);
+      __ Nop();
+    }
+
+    delete[] l;
+  }
+
+  masm.FinalizeCode();
+
+  END();
+  RUN();
+  TEARDOWN();
+}
+
+
 TEST_T32(unaligned_branch_after_literal) {
   SETUP();
 
