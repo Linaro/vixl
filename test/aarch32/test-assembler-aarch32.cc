@@ -3571,12 +3571,24 @@ TEST_T32(near_branch_fuzz) {
             }
             break;
           case 1: // Compare and branch if zero (untaken as r0 == 1).
-          case 2:
             __ Cbz(r0, &l[label_index]);
             break;
-          case 3: // Conditional branch (untaken as Z set) preferred near.
-          case 4:
-            __ BPreferNear(ne, &l[label_index]);
+          case 2: { // Compare and branch if not zero.
+            Label past_branch;
+            __ B(eq, &past_branch, kNear);
+            __ Cbnz(r0, &l[label_index]);
+            __ Bind(&past_branch);
+            break;
+          }
+          case 3: { // Unconditional branch preferred near.
+            Label past_branch;
+            __ B(eq, &past_branch, kNear);
+            __ B(&l[label_index], kNear);
+            __ Bind(&past_branch);
+            break;
+          }
+          case 4: // Conditional branch (untaken as Z set) preferred near.
+            __ B(ne, &l[label_index], kNear);
             break;
           default: // Nop.
             __ Nop();
