@@ -179,10 +179,13 @@ class EmissionCheckScope : public CodeBufferCheckScope {
       // Nothing to do.
       return;
     }
+    // Perform the opposite of `Open`, which is:
+    //   - Check the code generation limit was not exceeded.
+    //   - Release the pools.
+    CodeBufferCheckScope::Close();
     if (pool_policy_ == kCheckPools) {
       masm_->ReleasePools();
     }
-    CodeBufferCheckScope::Close();
     VIXL_ASSERT(!initialised_);
   }
 
