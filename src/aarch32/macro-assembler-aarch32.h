@@ -118,6 +118,10 @@ class LiteralPool {
 class MacroAssembler : public Assembler, public MacroAssemblerInterface {
  public:
   enum EmitOption { kBranchRequired, kNoBranchRequired };
+  enum FinalizeOption {
+    kFallThrough,  // There may be more code to execute after calling Finalize.
+    kUnreachable   // Anything generated after calling Finalize is unreachable.
+  };
 
   virtual internal::AssemblerBase* AsAssemblerBase() VIXL_OVERRIDE {
     return this;
@@ -524,8 +528,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     return allow_macro_instructions_;
   }
 
-  void FinalizeCode() {
-    EmitLiteralPool(kNoBranchRequired);
+  void FinalizeCode(FinalizeOption option = kUnreachable) {
+    EmitLiteralPool(option == kUnreachable ? kNoBranchRequired
+                                           : kBranchRequired);
     Assembler::FinalizeCode();
   }
 

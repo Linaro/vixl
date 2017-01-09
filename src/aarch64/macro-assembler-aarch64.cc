@@ -379,8 +379,13 @@ void MacroAssembler::Reset() {
 }
 
 
-void MacroAssembler::FinalizeCode() {
-  if (!literal_pool_.IsEmpty()) literal_pool_.Emit();
+void MacroAssembler::FinalizeCode(FinalizeOption option) {
+  if (!literal_pool_.IsEmpty()) {
+    // The user may decide to emit more code after Finalize, emit a branch if
+    // that's the case.
+    literal_pool_.Emit(option == kUnreachable ? Pool::kNoBranchRequired
+                                              : Pool::kBranchRequired);
+  }
   VIXL_ASSERT(veneer_pool_.IsEmpty());
 
   Assembler::FinalizeCode();

@@ -577,6 +577,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                  PositionIndependentCodeOption pic = PositionIndependentCode);
   ~MacroAssembler();
 
+  enum FinalizeOption {
+    kFallThrough,  // There may be more code to execute after calling Finalize.
+    kUnreachable   // Anything generated after calling Finalize is unreachable.
+  };
+
   virtual vixl::internal::AssemblerBase* AsAssemblerBase() VIXL_OVERRIDE {
     return this;
   }
@@ -589,8 +594,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Reset();
 
   // Finalize a code buffer of generated instructions. This function must be
-  // called before executing or copying code from the buffer.
-  void FinalizeCode();
+  // called before executing or copying code from the buffer. By default,
+  // anything generated after this should not be reachable (the last instruction
+  // generated is an unconditional branch). If you need to generate more code,
+  // then set `option` to kFallThrough.
+  void FinalizeCode(FinalizeOption option = kUnreachable);
 
 
   // Constant generation helpers.

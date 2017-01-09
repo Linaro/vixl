@@ -3532,8 +3532,8 @@ TEST_T32(near_branch_fuzz) {
       }
 
       // Ensure that the veneer pools are emitted, to keep each branch/bind test
-      // independent.
-      masm.FinalizeCode();
+      // independent. We will generate more code following this.
+      masm.FinalizeCode(MacroAssembler::kFallThrough);
       delete[] l;
     }
   }
