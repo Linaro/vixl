@@ -37,7 +37,13 @@ void VeneerPoolManager::Release() {
     // Ensure the pool has not been blocked for too long.
     // This may generate some veneers if some labels has been added by the code
     // which used Block/Release.
-    masm_->EnsureEmitFor(0);
+
+    // TODO: This check is _temporarily_ disabled to work around some usage in
+    // ART, which assumes that pools will not be generated immediately after
+    // macros or ExactAssemblyScopes. The next instruction that is generated
+    // will perform this check anyway, but in a place less convenient for
+    // debugging.
+    // masm_->EnsureEmitFor(0);
   }
 }
 
