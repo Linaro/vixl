@@ -435,7 +435,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
       ITScope it_scope(this, &c);
       instr_callback.emit(this, c, literal);
     }
-    if (!literal->IsManuallyPlaced() && !literal->IsBound()) {
+    if (!literal->IsManuallyPlaced() && !literal->IsBound() &&
+        !literal_pool_manager_.IsBlocked()) {
       if (WasInsertedTooFar(literal)) {
         // The instruction's data is too far: revert the emission
         GetBuffer()->Rewind(cursor);

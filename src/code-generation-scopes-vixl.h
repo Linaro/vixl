@@ -163,12 +163,21 @@ class EmissionCheckScope : public CodeBufferCheckScope {
 
   virtual ~EmissionCheckScope() { Close(); }
 
-  enum PoolPolicy { kIgnorePools, kCheckPools };
+  enum PoolPolicy {
+    // Do not forbid pool emission inside the scope. Pools will not be emitted
+    // on `Open` either.
+    kIgnorePools,
+    // Force pools to be generated on `Open` if necessary and block their
+    // emission inside the scope.
+    kBlockPools,
+    // Deprecated, but kept for backward compatibility.
+    kCheckPools = kBlockPools
+  };
 
   void Open(MacroAssemblerInterface* masm,
             size_t size,
             SizePolicy size_policy = kMaximumSize) {
-    Open(masm, size, size_policy, kCheckPools);
+    Open(masm, size, size_policy, kBlockPools);
   }
 
   void Close() {
@@ -183,7 +192,7 @@ class EmissionCheckScope : public CodeBufferCheckScope {
     //   - Check the code generation limit was not exceeded.
     //   - Release the pools.
     CodeBufferCheckScope::Close();
-    if (pool_policy_ == kCheckPools) {
+    if (pool_policy_ == kBlockPools) {
       masm_->ReleasePools();
     }
     VIXL_ASSERT(!initialised_);
@@ -202,7 +211,7 @@ class EmissionCheckScope : public CodeBufferCheckScope {
     }
     masm_ = masm;
     pool_policy_ = pool_policy;
-    if (pool_policy_ == kCheckPools) {
+    if (pool_policy_ == kBlockPools) {
       // To avoid duplicating the work to check that enough space is available
       // in the buffer, do not use the more generic `EnsureEmitFor()`. It is
       // done below when opening `CodeBufferCheckScope`.

@@ -302,6 +302,7 @@ void VeneerPoolManager::RemoveLabel(Label* label) {
 
 
 void VeneerPoolManager::EmitLabel(Label* label, Label::Offset emitted_target) {
+  VIXL_ASSERT(!IsBlocked());
   // Define the veneer.
   Label veneer;
   masm_->Bind(&veneer);
@@ -419,7 +420,7 @@ void MacroAssembler::PerformEnsureEmit(Label::Offset target, uint32_t size) {
       generate_veneers = true;
     }
   }
-  if (generate_veneers) {
+  if (!veneer_pool_manager_.IsBlocked() && generate_veneers) {
     {
       ExactAssemblyScopeWithoutPoolsCheck
           guard(this,
@@ -433,7 +434,8 @@ void MacroAssembler::PerformEnsureEmit(Label::Offset target, uint32_t size) {
   // Check if the macro-assembler's internal literal pool should be emitted
   // to avoid any overflow. If we already generated the veneers, we can
   // emit the pool (the branch is already done).
-  if ((target > literal_target) || (option == kNoBranchRequired)) {
+  if (!literal_pool_manager_.IsBlocked() &&
+      ((target > literal_target) || (option == kNoBranchRequired))) {
     EmitLiteralPool(option);
   }
   BindHelper(&after_pools);
@@ -458,6 +460,7 @@ void MacroAssembler::ComputeCheckpoint() {
 
 void MacroAssembler::EmitLiteralPool(LiteralPool* const literal_pool,
                                      EmitOption option) {
+  VIXL_ASSERT(!literal_pool_manager_.IsBlocked());
   if (literal_pool->GetSize() > 0) {
 #ifdef VIXL_DEBUG
     for (LiteralPool::RawLiteralListIterator literal_it =
