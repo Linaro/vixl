@@ -250,15 +250,8 @@ class ExactAssemblyScope : public EmissionCheckScope {
   // constructed.
   ExactAssemblyScope(MacroAssemblerInterface* masm,
                      size_t size,
-                     SizePolicy assert_policy = kExactSize)
-      : EmissionCheckScope(masm, size, assert_policy) {
-    VIXL_ASSERT(assert_policy != kNoAssert);
-#ifdef VIXL_DEBUG
-    previous_allow_macro_assembler_ = masm->AllowMacroInstructions();
-    masm->SetAllowMacroInstructions(false);
-#else
-    USE(previous_allow_macro_assembler_);
-#endif
+                     SizePolicy size_policy = kExactSize) {
+    Open(masm, size, size_policy);
   }
 
   // This constructor does not implicitly initialise the scope. Instead, the
@@ -266,10 +259,28 @@ class ExactAssemblyScope : public EmissionCheckScope {
   // scope.
   ExactAssemblyScope() {}
 
-  virtual ~ExactAssemblyScope() {
+  virtual ~ExactAssemblyScope() { Close(); }
+
+  void Open(MacroAssemblerInterface* masm,
+            size_t size,
+            SizePolicy size_policy = kExactSize) {
+    Open(masm, size, size_policy, kBlockPools);
+  }
+
+  void Close() {
+    if (!initialised_) {
+      return;
+    }
+    if (masm_ == NULL) {
+      // Nothing to do.
+      return;
+    }
 #ifdef VIXL_DEBUG
     masm_->SetAllowMacroInstructions(previous_allow_macro_assembler_);
+#else
+    USE(previous_allow_macro_assembler_);
 #endif
+    EmissionCheckScope::Close();
   }
 
  protected:
@@ -279,9 +290,22 @@ class ExactAssemblyScope : public EmissionCheckScope {
   ExactAssemblyScope(MacroAssemblerInterface* masm,
                      size_t size,
                      SizePolicy assert_policy,
-                     PoolPolicy pool_policy)
-      : EmissionCheckScope(masm, size, assert_policy, pool_policy) {
-    VIXL_ASSERT(assert_policy != kNoAssert);
+                     PoolPolicy pool_policy) {
+    Open(masm, size, assert_policy, pool_policy);
+  }
+
+  void Open(MacroAssemblerInterface* masm,
+            size_t size,
+            SizePolicy size_policy,
+            PoolPolicy pool_policy) {
+    VIXL_ASSERT(size_policy != kNoAssert);
+    if (masm == NULL) {
+      // Nothing to do.
+      return;
+    }
+    // Rely on EmissionCheckScope::Open to initialise `masm_` and
+    // `pool_policy_`.
+    EmissionCheckScope::Open(masm, size, size_policy, pool_policy);
 #ifdef VIXL_DEBUG
     previous_allow_macro_assembler_ = masm->AllowMacroInstructions();
     masm->SetAllowMacroInstructions(false);

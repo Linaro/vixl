@@ -553,7 +553,7 @@ TEST_A32(ExactAssemblyScope_Close_32) {
   aarch32::MacroAssembler masm;
 
   {
-    CodeBufferCheckScope scope(&masm, aarch32::kA32InstructionSizeInBytes);
+    ExactAssemblyScope scope(&masm, aarch32::kA32InstructionSizeInBytes);
     __ mov(aarch32::r0, 0);
     scope.Close();
     __ Mov(aarch32::r1, 1);
@@ -569,7 +569,7 @@ TEST(ExactAssemblyScope_Close_64) {
   aarch64::MacroAssembler masm;
 
   {
-    CodeBufferCheckScope scope(&masm, aarch64::kInstructionSize);
+    ExactAssemblyScope scope(&masm, aarch64::kInstructionSize);
     __ movz(aarch64::x0, 0);
     scope.Close();
     __ Mov(aarch64::x1, 1);
