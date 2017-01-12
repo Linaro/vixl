@@ -1638,7 +1638,7 @@ TEST(macro_assembler_Cbz) {
   // Cbz/Cbnz are not available in A32 mode.
   // Make sure GetArchitectureStatePCOffset() returns the correct value.
   __ UseA32();
-  Label label_64(__ GetCursorOffset() + __ GetArchitectureStatePCOffset(), 64);
+  Label label_64(__ GetCursorOffset() + __ GetArchitectureStatePCOffset() + 64);
   MUST_FAIL_TEST_A32(Cbz(r0, &label_64), "Cbz is only available for T32.\n");
   MUST_FAIL_TEST_A32(Cbnz(r0, &label_64), "Cbnz is only available for T32.\n");
 #endif
@@ -1647,13 +1647,13 @@ TEST(macro_assembler_Cbz) {
   // Make sure GetArchitectureStatePCOffset() returns the correct value.
   __ UseT32();
   // Largest encodable offset.
-  Label label_126(__ GetCursorOffset() + __ GetArchitectureStatePCOffset(),
+  Label label_126(__ GetCursorOffset() + __ GetArchitectureStatePCOffset() +
                   126);
   COMPARE_T32(Cbz(r0, &label_126), "cbz r0, 0x00000082\n");
   COMPARE_T32(Cbnz(r0, &label_126), "cbnz r0, 0x00000082\n");
 
   // Offset cannot be encoded.
-  Label label_128(__ GetCursorOffset() + __ GetArchitectureStatePCOffset(),
+  Label label_128(__ GetCursorOffset() + __ GetArchitectureStatePCOffset() +
                   128);
   COMPARE_T32(Cbz(r0, &label_128),
               "cbnz r0, 0x00000004\n"
@@ -1663,7 +1663,7 @@ TEST(macro_assembler_Cbz) {
               "b 0x00000084\n");
 
   // Offset that cannot be encoded and needs 32-bit branch instruction.
-  Label label_8192(__ GetCursorOffset() + __ GetArchitectureStatePCOffset(),
+  Label label_8192(__ GetCursorOffset() + __ GetArchitectureStatePCOffset() +
                    8192);
   COMPARE_T32(Cbz(r0, &label_8192),
               "cbnz r0, 0x00000006\n"
@@ -1673,7 +1673,8 @@ TEST(macro_assembler_Cbz) {
               "b 0x00002004\n");
 
   // Negative offset.
-  Label label_neg(__ GetCursorOffset() + __ GetArchitectureStatePCOffset(), -8);
+  Label label_neg(__ GetCursorOffset() + __ GetArchitectureStatePCOffset() +
+                  -8);
   COMPARE_T32(Cbz(r0, &label_neg),
               "cbnz r0, 0x00000004\n"
               "b 0xfffffffc\n");
@@ -1682,7 +1683,7 @@ TEST(macro_assembler_Cbz) {
               "b 0xfffffffc\n");
 
   // Large negative offset.
-  Label label_neg128(__ GetCursorOffset() + __ GetArchitectureStatePCOffset(),
+  Label label_neg128(__ GetCursorOffset() + __ GetArchitectureStatePCOffset() +
                      -128);
   COMPARE_T32(Cbz(r0, &label_neg128),
               "cbnz r0, 0x00000004\n"
@@ -3852,6 +3853,29 @@ TEST(nop_code) {
 
   COMPARE_BOTH(Orr(r0, r0, r0), "");
   COMPARE_BOTH(Orr(DontCare, r0, r0, r0), "");
+
+  CLEANUP();
+}
+
+
+TEST(minus_zero_offsets) {
+  SETUP();
+
+  COMPARE_A32(Ldr(r0, MemOperand(pc, minus, 0)), "ldr r0, [pc, #-0]\n");
+  COMPARE_T32(Ldr(r0, MemOperand(pc, minus, 0)), "ldr.w r0, [pc, #-0]\n");
+  COMPARE_BOTH(Ldrb(r0, MemOperand(pc, minus, 0)), "ldrb r0, [pc, #-0]\n");
+  COMPARE_BOTH(Ldrh(r0, MemOperand(pc, minus, 0)), "ldrh r0, [pc, #-0]\n");
+  COMPARE_BOTH(Ldrd(r0, r1, MemOperand(pc, minus, 0)),
+               "ldrd r0, r1, [pc, #-0]\n");
+  COMPARE_BOTH(Ldrsb(r0, MemOperand(pc, minus, 0)), "ldrsb r0, [pc, #-0]\n");
+  COMPARE_BOTH(Ldrsh(r0, MemOperand(pc, minus, 0)), "ldrsh r0, [pc, #-0]\n");
+  COMPARE_BOTH(Pld(MemOperand(pc, minus, 0)), "pld [pc, #-0]\n");
+  COMPARE_BOTH(Pli(MemOperand(pc, minus, 0)), "pli [pc, #-0]\n");
+  COMPARE_BOTH(Vldr(s0, MemOperand(pc, minus, 0)), "vldr s0, [pc, #-0]\n");
+  COMPARE_BOTH(Vldr(d0, MemOperand(pc, minus, 0)), "vldr d0, [pc, #-0]\n");
+
+  // This is an alias of ADR with a minus zero offset.
+  COMPARE_BOTH(Sub(r0, pc, 0), "sub r0, pc, #0\n");
 
   CLEANUP();
 }

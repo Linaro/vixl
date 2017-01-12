@@ -32,7 +32,6 @@ extern "C" {
 }
 
 #include "aarch32/constants-aarch32.h"
-#include "aarch32/label-aarch32.h"
 #include "aarch32/operands-aarch32.h"
 
 namespace vixl {
@@ -110,29 +109,48 @@ class Disassembler {
     }
   };
 
+  // TODO: Merge this class with PrintLabel below. This Label class represents
+  // a PC-relative offset, not an address.
+  class Label {
+   public:
+    typedef int32_t Offset;
+
+    Label(Offset immediate, Offset pc_offset)
+        : immediate_(immediate), pc_offset_(pc_offset) {}
+    Offset GetImmediate() const { return immediate_; }
+    Offset GetPCOffset() const { return pc_offset_; }
+
+   private:
+    Offset immediate_;
+    Offset pc_offset_;
+  };
+
   class PrintLabel {
     LocationType location_type_;
-    Label* label_;
-    Label::Offset position_;
+    Label::Offset immediate_;
+    Label::Offset location_;
 
    public:
-    PrintLabel(LocationType location_type, Label* label, Label::Offset position)
-        : location_type_(location_type), label_(label), position_(position) {}
+    PrintLabel(LocationType location_type,
+               Label* offset,
+               Label::Offset position)
+        : location_type_(location_type),
+          immediate_(offset->GetImmediate()),
+          location_(offset->GetPCOffset() + offset->GetImmediate() + position) {
+    }
+
     LocationType GetLocationType() const { return location_type_; }
-    Label* GetLabel() const { return label_; }
-    Label::Offset GetPosition() const { return position_; }
+    Label::Offset GetLocation() const { return location_; }
+    Label::Offset GetImmediate() const { return immediate_; }
+
     friend inline std::ostream& operator<<(std::ostream& os,
                                            const PrintLabel& label) {
-      if (label.label_->IsMinusZero()) {
-        os << "[pc, #-0]";
-      } else {
-        os << "0x" << std::hex << std::setw(8) << std::setfill('0')
-           << static_cast<int32_t>(label.label_->GetLocation() +
-                                   label.position_) << std::dec;
-      }
+      os << "0x" << std::hex << std::setw(8) << std::setfill('0')
+         << label.GetLocation() << std::dec;
       return os;
     }
   };
+
 
   class PrintMemOperand {
     LocationType location_type_;

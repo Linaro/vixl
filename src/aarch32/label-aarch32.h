@@ -137,21 +137,15 @@ class Label {
 
  public:
   Label()
-      : imm_offset_(kMaxOffset),
-        pc_offset_(0),
+      : location_(kMaxOffset),
         is_bound_(false),
-        minus_zero_(false),
-        isa_(kDefaultISA),
         referenced_(false),
         veneer_pool_manager_(NULL),
         is_near_(false),
         checkpoint_(kMaxOffset) {}
-  explicit Label(Offset offset, uint32_t pc_offset, bool minus_zero = false)
-      : imm_offset_(offset),
-        pc_offset_(pc_offset),
+  explicit Label(Offset location)
+      : location_(location),
         is_bound_(true),
-        minus_zero_(minus_zero),
-        isa_(kDefaultISA),
         referenced_(false),
         veneer_pool_manager_(NULL),
         is_near_(false),
@@ -168,38 +162,14 @@ class Label {
 
   bool IsBound() const { return is_bound_; }
   bool HasForwardReference() const { return !forward_.empty(); }
-  void Bind(Offset offset, InstructionSet isa) {
+  void Bind(Offset offset) {
     VIXL_ASSERT(!IsBound());
-    USE(isa);
-    USE(isa_);
-    imm_offset_ = offset;
+    location_ = offset;
     is_bound_ = true;
-#if defined(VIXL_INCLUDE_TARGET_A32_ONLY)
-    VIXL_ASSERT(isa == A32);
-#elif defined(VIXL_INCLUDE_TARGET_T32_ONLY)
-    VIXL_ASSERT(isa == T32);
-#else
-    isa_ = isa;
-#endif
   }
-  uint32_t GetPcOffset() const { return pc_offset_; }
   Offset GetLocation() const {
     VIXL_ASSERT(IsBound());
-    return imm_offset_ + static_cast<Offset>(pc_offset_);
-  }
-  bool IsUsingT32() const {
-    VIXL_ASSERT(IsBound());  // Must be bound to know its ISA.
-#if defined(VIXL_INCLUDE_TARGET_A32_ONLY)
-    return false;
-#elif defined(VIXL_INCLUDE_TARGET_T32_ONLY)
-    return true;
-#else
-    return isa_ == T32;
-#endif
-  }
-  bool IsMinusZero() const {
-    VIXL_ASSERT(IsBound());
-    return minus_zero_;
+    return location_;
   }
   void SetReferenced() { referenced_ = true; }
   bool IsReferenced() const { return referenced_; }
@@ -281,14 +251,9 @@ class Label {
 
  private:
   // Once bound, location of this label in the code buffer.
-  Offset imm_offset_;
-  uint32_t pc_offset_;
+  Offset location_;
   // Is the label bound.
   bool is_bound_;
-  // Special flag for 'pc - 0'.
-  bool minus_zero_;
-  // Which ISA is the label in.
-  InstructionSet isa_;
   // True if the label has been used at least once.
   bool referenced_;
   // Not null if the label is currently inserted in the veneer pool.

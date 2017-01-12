@@ -81,7 +81,7 @@ void Assembler::PerformCheckIT(Condition condition) {
 
 void Assembler::BindHelper(Label* label) {
   VIXL_ASSERT(!label->IsBound());
-  label->Bind(GetCursorOffset(), GetInstructionSetInUse());
+  label->Bind(GetCursorOffset());
 
   for (Label::ForwardRefList::iterator ref = label->GetFirstForwardRef();
        ref != label->GetEndForwardRef();
@@ -2465,7 +2465,7 @@ void Assembler::adr(Condition cond,
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           int32_t target;
-          if ((offset >= 0) && (offset <= 4095) && !label->IsMinusZero()) {
+          if ((offset >= 0) && (offset <= 4095)) {
             target = offset;
           } else {
             target = -offset;
@@ -4838,7 +4838,7 @@ void Assembler::ldr(Condition cond,
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
-          uint32_t U = (offset >= 0) && !label->IsMinusZero();
+          uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
@@ -4860,7 +4860,7 @@ void Assembler::ldr(Condition cond,
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
-          uint32_t U = (offset >= 0) && !label->IsMinusZero();
+          uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
@@ -5068,7 +5068,7 @@ void Assembler::ldrb(Condition cond, Register rt, Label* label) {
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
-          uint32_t U = (offset >= 0) && !label->IsMinusZero();
+          uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
@@ -5090,7 +5090,7 @@ void Assembler::ldrb(Condition cond, Register rt, Label* label) {
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
-          uint32_t U = (offset >= 0) && !label->IsMinusZero();
+          uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
@@ -5269,7 +5269,7 @@ void Assembler::ldrd(Condition cond, Register rt, Register rt2, Label* label) {
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
-          uint32_t U = (target >= 0) && !label->IsMinusZero();
+          uint32_t U = (target >= 0);
           target = abs(target) | (U << 8);
           return instr | (target & 0xff) | ((target & 0x100) << 15);
         }
@@ -5295,7 +5295,7 @@ void Assembler::ldrd(Condition cond, Register rt, Register rt2, Label* label) {
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
-          uint32_t U = (offset >= 0) && !label->IsMinusZero();
+          uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 8);
           return instr | (target & 0xf) | ((target & 0xf0) << 4) |
                  ((target & 0x100) << 15);
@@ -5608,7 +5608,7 @@ void Assembler::ldrh(Condition cond, Register rt, Label* label) {
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
-          uint32_t U = (offset >= 0) && !label->IsMinusZero();
+          uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
@@ -5630,7 +5630,7 @@ void Assembler::ldrh(Condition cond, Register rt, Label* label) {
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
-          uint32_t U = (offset >= 0) && !label->IsMinusZero();
+          uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 8);
           return instr | (target & 0xf) | ((target & 0xf0) << 4) |
                  ((target & 0x100) << 15);
@@ -5825,7 +5825,7 @@ void Assembler::ldrsb(Condition cond, Register rt, Label* label) {
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
-          uint32_t U = (offset >= 0) && !label->IsMinusZero();
+          uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
@@ -5847,7 +5847,7 @@ void Assembler::ldrsb(Condition cond, Register rt, Label* label) {
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
-          uint32_t U = (offset >= 0) && !label->IsMinusZero();
+          uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 8);
           return instr | (target & 0xf) | ((target & 0xf0) << 4) |
                  ((target & 0x100) << 15);
@@ -6042,7 +6042,7 @@ void Assembler::ldrsh(Condition cond, Register rt, Label* label) {
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
-          uint32_t U = (offset >= 0) && !label->IsMinusZero();
+          uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
@@ -6064,7 +6064,7 @@ void Assembler::ldrsh(Condition cond, Register rt, Label* label) {
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
-          uint32_t U = (offset >= 0) && !label->IsMinusZero();
+          uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 8);
           return instr | (target & 0xf) | ((target & 0xf0) << 4) |
                  ((target & 0x100) << 15);
@@ -7377,7 +7377,7 @@ void Assembler::pld(Condition cond, Label* label) {
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
-          uint32_t U = (offset >= 0) && !label->IsMinusZero();
+          uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
@@ -7399,7 +7399,7 @@ void Assembler::pld(Condition cond, Label* label) {
                                   const Label* label) const VIXL_OVERRIDE {
             Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
             VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
-            uint32_t U = (offset >= 0) && !label->IsMinusZero();
+            uint32_t U = (offset >= 0);
             int32_t target = abs(offset) | (U << 12);
             return instr | (target & 0xfff) | ((target & 0x1000) << 11);
           }
@@ -7706,7 +7706,7 @@ void Assembler::pli(Condition cond, Label* label) {
                                 const Label* label) const VIXL_OVERRIDE {
           Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
-          uint32_t U = (offset >= 0) && !label->IsMinusZero();
+          uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
@@ -7728,7 +7728,7 @@ void Assembler::pli(Condition cond, Label* label) {
                                   const Label* label) const VIXL_OVERRIDE {
             Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
             VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
-            uint32_t U = (offset >= 0) && !label->IsMinusZero();
+            uint32_t U = (offset >= 0);
             int32_t target = abs(offset) | (U << 12);
             return instr | (target & 0xfff) | ((target & 0x1000) << 11);
           }
@@ -18418,7 +18418,7 @@ void Assembler::vldr(Condition cond, DataType dt, DRegister rd, Label* label) {
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
-          uint32_t U = (target >= 0) && !label->IsMinusZero();
+          uint32_t U = (target >= 0);
           target = abs(target) | (U << 8);
           return instr | (target & 0xff) | ((target & 0x100) << 15);
         }
@@ -18444,7 +18444,7 @@ void Assembler::vldr(Condition cond, DataType dt, DRegister rd, Label* label) {
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
-          uint32_t U = (target >= 0) && !label->IsMinusZero();
+          uint32_t U = (target >= 0);
           target = abs(target) | (U << 8);
           return instr | (target & 0xff) | ((target & 0x100) << 15);
         }
@@ -18539,7 +18539,7 @@ void Assembler::vldr(Condition cond, DataType dt, SRegister rd, Label* label) {
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
-          uint32_t U = (target >= 0) && !label->IsMinusZero();
+          uint32_t U = (target >= 0);
           target = abs(target) | (U << 8);
           return instr | (target & 0xff) | ((target & 0x100) << 15);
         }
@@ -18565,7 +18565,7 @@ void Assembler::vldr(Condition cond, DataType dt, SRegister rd, Label* label) {
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
-          uint32_t U = (target >= 0) && !label->IsMinusZero();
+          uint32_t U = (target >= 0);
           target = abs(target) | (U << 8);
           return instr | (target & 0xff) | ((target & 0x100) << 15);
         }

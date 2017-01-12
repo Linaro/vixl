@@ -10588,12 +10588,19 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               imm <<= 2;
                               if (U == 0) imm = -imm;
                               bool minus_zero = (imm == 0) && (U == 0);
-                              Label label(imm, kT32PcDelta, minus_zero);
+                              Label label(imm, kT32PcDelta);
                               // LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; T1
-                              ldrd(CurrentCond(),
-                                   Register(rt),
-                                   Register(rt2),
-                                   &label);
+                              if (minus_zero) {
+                                ldrd(CurrentCond(),
+                                     Register(rt),
+                                     Register(rt2),
+                                     MemOperand(pc, minus, 0));
+                              } else {
+                                ldrd(CurrentCond(),
+                                     Register(rt),
+                                     Register(rt2),
+                                     &label);
+                              }
                               if (((instr & 0xff7f0000) != 0xe95f0000)) {
                                 UnpredictableT32(instr);
                               }
@@ -10639,12 +10646,19 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               imm <<= 2;
                               if (U == 0) imm = -imm;
                               bool minus_zero = (imm == 0) && (U == 0);
-                              Label label(imm, kT32PcDelta, minus_zero);
+                              Label label(imm, kT32PcDelta);
                               // LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; T1
-                              ldrd(CurrentCond(),
-                                   Register(rt),
-                                   Register(rt2),
-                                   &label);
+                              if (minus_zero) {
+                                ldrd(CurrentCond(),
+                                     Register(rt),
+                                     Register(rt2),
+                                     MemOperand(pc, minus, 0));
+                              } else {
+                                ldrd(CurrentCond(),
+                                     Register(rt),
+                                     Register(rt2),
+                                     &label);
+                              }
                               if (((instr & 0xff7f0000) != 0xe95f0000)) {
                                 UnpredictableT32(instr);
                               }
@@ -10690,12 +10704,19 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               imm <<= 2;
                               if (U == 0) imm = -imm;
                               bool minus_zero = (imm == 0) && (U == 0);
-                              Label label(imm, kT32PcDelta, minus_zero);
+                              Label label(imm, kT32PcDelta);
                               // LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; T1
-                              ldrd(CurrentCond(),
-                                   Register(rt),
-                                   Register(rt2),
-                                   &label);
+                              if (minus_zero) {
+                                ldrd(CurrentCond(),
+                                     Register(rt),
+                                     Register(rt2),
+                                     MemOperand(pc, minus, 0));
+                              } else {
+                                ldrd(CurrentCond(),
+                                     Register(rt),
+                                     Register(rt2),
+                                     &label);
+                              }
                               if (((instr & 0xff7f0000) != 0xe95f0000)) {
                                 UnpredictableT32(instr);
                               }
@@ -16822,9 +16843,13 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               int32_t imm = instr & 0xfff;
                               if (U == 0) imm = -imm;
                               bool minus_zero = (imm == 0) && (U == 0);
-                              Label label(imm, kT32PcDelta, minus_zero);
+                              Label label(imm, kT32PcDelta);
                               // PLD{<c>}{<q>} <label> ; T1
-                              pld(CurrentCond(), &label);
+                              if (minus_zero) {
+                                pld(CurrentCond(), MemOperand(pc, minus, 0));
+                              } else {
+                                pld(CurrentCond(), &label);
+                              }
                               if (((instr & 0xff7ff000) != 0xf81ff000)) {
                                 UnpredictableT32(instr);
                               }
@@ -16843,9 +16868,16 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   int32_t imm = instr & 0xfff;
                                   if (U == 0) imm = -imm;
                                   bool minus_zero = (imm == 0) && (U == 0);
-                                  Label label(imm, kT32PcDelta, minus_zero);
+                                  Label label(imm, kT32PcDelta);
                                   // LDRB{<c>}{<q>} <Rt>, <label> ; T1
-                                  ldrb(CurrentCond(), Register(rt), &label);
+                                  if (minus_zero) {
+                                    ldrb(CurrentCond(),
+                                         Best,
+                                         Register(rt),
+                                         MemOperand(pc, minus, 0));
+                                  } else {
+                                    ldrb(CurrentCond(), Register(rt), &label);
+                                  }
                                   break;
                                 }
                                 case 0x00200000: {
@@ -16859,9 +16891,16 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   int32_t imm = instr & 0xfff;
                                   if (U == 0) imm = -imm;
                                   bool minus_zero = (imm == 0) && (U == 0);
-                                  Label label(imm, kT32PcDelta, minus_zero);
+                                  Label label(imm, kT32PcDelta);
                                   // LDRH{<c>}{<q>} <Rt>, <label> ; T1
-                                  ldrh(CurrentCond(), Register(rt), &label);
+                                  if (minus_zero) {
+                                    ldrh(CurrentCond(),
+                                         Best,
+                                         Register(rt),
+                                         MemOperand(pc, minus, 0));
+                                  } else {
+                                    ldrh(CurrentCond(), Register(rt), &label);
+                                  }
                                   break;
                                 }
                               }
@@ -17368,16 +17407,36 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               int32_t imm = instr & 0xfff;
                               if (U == 0) imm = -imm;
                               bool minus_zero = (imm == 0) && (U == 0);
-                              Label label(imm, kT32PcDelta, minus_zero);
+                              Label label(imm, kT32PcDelta);
                               if ((imm >= -4095) && (imm <= 4095) &&
                                   ((rt < kNumberOfT32LowRegisters) &&
                                    (imm >= 0) && (imm <= 1020) &&
                                    ((imm & 3) == 0))) {
                                 // LDR{<c>}.W <Rt>, <label> ; T2
-                                ldr(CurrentCond(), Wide, Register(rt), &label);
+                                if (minus_zero) {
+                                  ldr(CurrentCond(),
+                                      Wide,
+                                      Register(rt),
+                                      MemOperand(pc, minus, 0));
+                                } else {
+                                  ldr(CurrentCond(),
+                                      Wide,
+                                      Register(rt),
+                                      &label);
+                                }
                               } else {
                                 // LDR{<c>}{<q>} <Rt>, <label> ; T2
-                                ldr(CurrentCond(), Best, Register(rt), &label);
+                                if (minus_zero) {
+                                  ldr(CurrentCond(),
+                                      Best,
+                                      Register(rt),
+                                      MemOperand(pc, minus, 0));
+                                } else {
+                                  ldr(CurrentCond(),
+                                      Best,
+                                      Register(rt),
+                                      &label);
+                                }
                               }
                               break;
                             }
@@ -17598,9 +17657,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   int32_t imm = instr & 0xfff;
                                   if (U == 0) imm = -imm;
                                   bool minus_zero = (imm == 0) && (U == 0);
-                                  Label label(imm, kT32PcDelta, minus_zero);
+                                  Label label(imm, kT32PcDelta);
                                   // PLI{<c>}{<q>} <label> ; T3
-                                  pli(CurrentCond(), &label);
+                                  if (minus_zero) {
+                                    pli(CurrentCond(),
+                                        MemOperand(pc, minus, 0));
+                                  } else {
+                                    pli(CurrentCond(), &label);
+                                  }
                                   break;
                                 }
                                 default: {
@@ -17613,9 +17677,16 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   int32_t imm = instr & 0xfff;
                                   if (U == 0) imm = -imm;
                                   bool minus_zero = (imm == 0) && (U == 0);
-                                  Label label(imm, kT32PcDelta, minus_zero);
+                                  Label label(imm, kT32PcDelta);
                                   // LDRSB{<c>}{<q>} <Rt>, <label> ; T1
-                                  ldrsb(CurrentCond(), Register(rt), &label);
+                                  if (minus_zero) {
+                                    ldrsb(CurrentCond(),
+                                          Best,
+                                          Register(rt),
+                                          MemOperand(pc, minus, 0));
+                                  } else {
+                                    ldrsb(CurrentCond(), Register(rt), &label);
+                                  }
                                   break;
                                 }
                               }
@@ -17882,9 +17953,16 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               int32_t imm = instr & 0xfff;
                               if (U == 0) imm = -imm;
                               bool minus_zero = (imm == 0) && (U == 0);
-                              Label label(imm, kT32PcDelta, minus_zero);
+                              Label label(imm, kT32PcDelta);
                               // LDRSH{<c>}{<q>} <Rt>, <label> ; T1
-                              ldrsh(CurrentCond(), Register(rt), &label);
+                              if (minus_zero) {
+                                ldrsh(CurrentCond(),
+                                      Best,
+                                      Register(rt),
+                                      MemOperand(pc, minus, 0));
+                              } else {
+                                ldrsh(CurrentCond(), Register(rt), &label);
+                              }
                               break;
                             }
                             default: {
@@ -23032,12 +23110,19 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   imm <<= 2;
                                   if (U == 0) imm = -imm;
                                   bool minus_zero = (imm == 0) && (U == 0);
-                                  Label label(imm, kT32PcDelta, minus_zero);
+                                  Label label(imm, kT32PcDelta);
                                   // VLDR{<c>}{<q>}{.32} <Sd>, <label> ; T2
-                                  vldr(CurrentCond(),
-                                       kDataTypeValueNone,
-                                       SRegister(rd),
-                                       &label);
+                                  if (minus_zero) {
+                                    vldr(CurrentCond(),
+                                         kDataTypeValueNone,
+                                         SRegister(rd),
+                                         MemOperand(pc, minus, 0));
+                                  } else {
+                                    vldr(CurrentCond(),
+                                         kDataTypeValueNone,
+                                         SRegister(rd),
+                                         &label);
+                                  }
                                   break;
                                 }
                                 case 0x00000100: {
@@ -23048,12 +23133,19 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   imm <<= 2;
                                   if (U == 0) imm = -imm;
                                   bool minus_zero = (imm == 0) && (U == 0);
-                                  Label label(imm, kT32PcDelta, minus_zero);
+                                  Label label(imm, kT32PcDelta);
                                   // VLDR{<c>}{<q>}{.64} <Dd>, <label> ; T1
-                                  vldr(CurrentCond(),
-                                       kDataTypeValueNone,
-                                       DRegister(rd),
-                                       &label);
+                                  if (minus_zero) {
+                                    vldr(CurrentCond(),
+                                         kDataTypeValueNone,
+                                         DRegister(rd),
+                                         MemOperand(pc, minus, 0));
+                                  } else {
+                                    vldr(CurrentCond(),
+                                         kDataTypeValueNone,
+                                         DRegister(rd),
+                                         &label);
+                                  }
                                   break;
                                 }
                               }
@@ -52228,9 +52320,13 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     int32_t imm = instr & 0xfff;
                     if (U == 0) imm = -imm;
                     bool minus_zero = (imm == 0) && (U == 0);
-                    Label label(imm, kA32PcDelta, minus_zero);
+                    Label label(imm, kA32PcDelta);
                     // PLI{<c>}{<q>} <label> ; A1
-                    pli(al, &label);
+                    if (minus_zero) {
+                      pli(al, MemOperand(pc, minus, 0));
+                    } else {
+                      pli(al, &label);
+                    }
                     if (((instr & 0xff7ff000) != 0xf45ff000)) {
                       UnpredictableA32(instr);
                     }
@@ -55201,9 +55297,13 @@ void Disassembler::DecodeA32(uint32_t instr) {
                 int32_t imm = instr & 0xfff;
                 if (U == 0) imm = -imm;
                 bool minus_zero = (imm == 0) && (U == 0);
-                Label label(imm, kA32PcDelta, minus_zero);
+                Label label(imm, kA32PcDelta);
                 // PLD{<c>}{<q>} <label> ; A1
-                pld(al, &label);
+                if (minus_zero) {
+                  pld(al, MemOperand(pc, minus, 0));
+                } else {
+                  pld(al, &label);
+                }
                 if (((instr & 0xff7ff000) != 0xf55ff000)) {
                   UnpredictableA32(instr);
                 }
@@ -58748,9 +58848,19 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         int32_t imm = (instr & 0xf) | ((instr >> 4) & 0xf0);
                         if (U == 0) imm = -imm;
                         bool minus_zero = (imm == 0) && (U == 0);
-                        Label label(imm, kA32PcDelta, minus_zero);
+                        Label label(imm, kA32PcDelta);
                         // LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; A1
-                        ldrd(condition, Register(rt), Register(rt + 1), &label);
+                        if (minus_zero) {
+                          ldrd(condition,
+                               Register(rt),
+                               Register(rt + 1),
+                               MemOperand(pc, minus, 0));
+                        } else {
+                          ldrd(condition,
+                               Register(rt),
+                               Register(rt + 1),
+                               &label);
+                        }
                         if (((instr & 0xf7f00f0) != 0x14f00d0)) {
                           UnpredictableA32(instr);
                         }
@@ -60885,9 +60995,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int32_t imm = (instr & 0xf) | ((instr >> 4) & 0xf0);
                             if (U == 0) imm = -imm;
                             bool minus_zero = (imm == 0) && (U == 0);
-                            Label label(imm, kA32PcDelta, minus_zero);
+                            Label label(imm, kA32PcDelta);
                             // LDRH{<c>}{<q>} <Rt>, <label> ; A1
-                            ldrh(condition, Register(rt), &label);
+                            if (minus_zero) {
+                              ldrh(condition,
+                                   Best,
+                                   Register(rt),
+                                   MemOperand(pc, minus, 0));
+                            } else {
+                              ldrh(condition, Register(rt), &label);
+                            }
                             if (((instr & 0xf7f00f0) != 0x15f00b0)) {
                               UnpredictableA32(instr);
                             }
@@ -60944,9 +61061,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int32_t imm = (instr & 0xf) | ((instr >> 4) & 0xf0);
                             if (U == 0) imm = -imm;
                             bool minus_zero = (imm == 0) && (U == 0);
-                            Label label(imm, kA32PcDelta, minus_zero);
+                            Label label(imm, kA32PcDelta);
                             // LDRH{<c>}{<q>} <Rt>, <label> ; A1
-                            ldrh(condition, Register(rt), &label);
+                            if (minus_zero) {
+                              ldrh(condition,
+                                   Best,
+                                   Register(rt),
+                                   MemOperand(pc, minus, 0));
+                            } else {
+                              ldrh(condition, Register(rt), &label);
+                            }
                             if (((instr & 0xf7f00f0) != 0x15f00b0)) {
                               UnpredictableA32(instr);
                             }
@@ -60994,9 +61118,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int32_t imm = (instr & 0xf) | ((instr >> 4) & 0xf0);
                             if (U == 0) imm = -imm;
                             bool minus_zero = (imm == 0) && (U == 0);
-                            Label label(imm, kA32PcDelta, minus_zero);
+                            Label label(imm, kA32PcDelta);
                             // LDRH{<c>}{<q>} <Rt>, <label> ; A1
-                            ldrh(condition, Register(rt), &label);
+                            if (minus_zero) {
+                              ldrh(condition,
+                                   Best,
+                                   Register(rt),
+                                   MemOperand(pc, minus, 0));
+                            } else {
+                              ldrh(condition, Register(rt), &label);
+                            }
                             if (((instr & 0xf7f00f0) != 0x15f00b0)) {
                               UnpredictableA32(instr);
                             }
@@ -61050,9 +61181,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int32_t imm = (instr & 0xf) | ((instr >> 4) & 0xf0);
                             if (U == 0) imm = -imm;
                             bool minus_zero = (imm == 0) && (U == 0);
-                            Label label(imm, kA32PcDelta, minus_zero);
+                            Label label(imm, kA32PcDelta);
                             // LDRSB{<c>}{<q>} <Rt>, <label> ; A1
-                            ldrsb(condition, Register(rt), &label);
+                            if (minus_zero) {
+                              ldrsb(condition,
+                                    Best,
+                                    Register(rt),
+                                    MemOperand(pc, minus, 0));
+                            } else {
+                              ldrsb(condition, Register(rt), &label);
+                            }
                             if (((instr & 0xf7f00f0) != 0x15f00d0)) {
                               UnpredictableA32(instr);
                             }
@@ -61109,9 +61247,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int32_t imm = (instr & 0xf) | ((instr >> 4) & 0xf0);
                             if (U == 0) imm = -imm;
                             bool minus_zero = (imm == 0) && (U == 0);
-                            Label label(imm, kA32PcDelta, minus_zero);
+                            Label label(imm, kA32PcDelta);
                             // LDRSB{<c>}{<q>} <Rt>, <label> ; A1
-                            ldrsb(condition, Register(rt), &label);
+                            if (minus_zero) {
+                              ldrsb(condition,
+                                    Best,
+                                    Register(rt),
+                                    MemOperand(pc, minus, 0));
+                            } else {
+                              ldrsb(condition, Register(rt), &label);
+                            }
                             if (((instr & 0xf7f00f0) != 0x15f00d0)) {
                               UnpredictableA32(instr);
                             }
@@ -61159,9 +61304,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int32_t imm = (instr & 0xf) | ((instr >> 4) & 0xf0);
                             if (U == 0) imm = -imm;
                             bool minus_zero = (imm == 0) && (U == 0);
-                            Label label(imm, kA32PcDelta, minus_zero);
+                            Label label(imm, kA32PcDelta);
                             // LDRSB{<c>}{<q>} <Rt>, <label> ; A1
-                            ldrsb(condition, Register(rt), &label);
+                            if (minus_zero) {
+                              ldrsb(condition,
+                                    Best,
+                                    Register(rt),
+                                    MemOperand(pc, minus, 0));
+                            } else {
+                              ldrsb(condition, Register(rt), &label);
+                            }
                             if (((instr & 0xf7f00f0) != 0x15f00d0)) {
                               UnpredictableA32(instr);
                             }
@@ -61215,9 +61367,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int32_t imm = (instr & 0xf) | ((instr >> 4) & 0xf0);
                             if (U == 0) imm = -imm;
                             bool minus_zero = (imm == 0) && (U == 0);
-                            Label label(imm, kA32PcDelta, minus_zero);
+                            Label label(imm, kA32PcDelta);
                             // LDRSH{<c>}{<q>} <Rt>, <label> ; A1
-                            ldrsh(condition, Register(rt), &label);
+                            if (minus_zero) {
+                              ldrsh(condition,
+                                    Best,
+                                    Register(rt),
+                                    MemOperand(pc, minus, 0));
+                            } else {
+                              ldrsh(condition, Register(rt), &label);
+                            }
                             if (((instr & 0xf7f00f0) != 0x15f00f0)) {
                               UnpredictableA32(instr);
                             }
@@ -61274,9 +61433,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int32_t imm = (instr & 0xf) | ((instr >> 4) & 0xf0);
                             if (U == 0) imm = -imm;
                             bool minus_zero = (imm == 0) && (U == 0);
-                            Label label(imm, kA32PcDelta, minus_zero);
+                            Label label(imm, kA32PcDelta);
                             // LDRSH{<c>}{<q>} <Rt>, <label> ; A1
-                            ldrsh(condition, Register(rt), &label);
+                            if (minus_zero) {
+                              ldrsh(condition,
+                                    Best,
+                                    Register(rt),
+                                    MemOperand(pc, minus, 0));
+                            } else {
+                              ldrsh(condition, Register(rt), &label);
+                            }
                             if (((instr & 0xf7f00f0) != 0x15f00f0)) {
                               UnpredictableA32(instr);
                             }
@@ -61324,9 +61490,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int32_t imm = (instr & 0xf) | ((instr >> 4) & 0xf0);
                             if (U == 0) imm = -imm;
                             bool minus_zero = (imm == 0) && (U == 0);
-                            Label label(imm, kA32PcDelta, minus_zero);
+                            Label label(imm, kA32PcDelta);
                             // LDRSH{<c>}{<q>} <Rt>, <label> ; A1
-                            ldrsh(condition, Register(rt), &label);
+                            if (minus_zero) {
+                              ldrsh(condition,
+                                    Best,
+                                    Register(rt),
+                                    MemOperand(pc, minus, 0));
+                            } else {
+                              ldrsh(condition, Register(rt), &label);
+                            }
                             if (((instr & 0xf7f00f0) != 0x15f00f0)) {
                               UnpredictableA32(instr);
                             }
@@ -62245,9 +62418,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     int32_t imm = instr & 0xfff;
                     if (U == 0) imm = -imm;
                     bool minus_zero = (imm == 0) && (U == 0);
-                    Label label(imm, kA32PcDelta, minus_zero);
+                    Label label(imm, kA32PcDelta);
                     // LDR{<c>}{<q>} <Rt>, <label> ; A1
-                    ldr(condition, Best, Register(rt), &label);
+                    if (minus_zero) {
+                      ldr(condition,
+                          Best,
+                          Register(rt),
+                          MemOperand(pc, minus, 0));
+                    } else {
+                      ldr(condition, Best, Register(rt), &label);
+                    }
                     if (((instr & 0xf7f0000) != 0x51f0000)) {
                       UnpredictableA32(instr);
                     }
@@ -62311,9 +62491,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     int32_t imm = instr & 0xfff;
                     if (U == 0) imm = -imm;
                     bool minus_zero = (imm == 0) && (U == 0);
-                    Label label(imm, kA32PcDelta, minus_zero);
+                    Label label(imm, kA32PcDelta);
                     // LDR{<c>}{<q>} <Rt>, <label> ; A1
-                    ldr(condition, Best, Register(rt), &label);
+                    if (minus_zero) {
+                      ldr(condition,
+                          Best,
+                          Register(rt),
+                          MemOperand(pc, minus, 0));
+                    } else {
+                      ldr(condition, Best, Register(rt), &label);
+                    }
                     if (((instr & 0xf7f0000) != 0x51f0000)) {
                       UnpredictableA32(instr);
                     }
@@ -62356,9 +62543,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     int32_t imm = instr & 0xfff;
                     if (U == 0) imm = -imm;
                     bool minus_zero = (imm == 0) && (U == 0);
-                    Label label(imm, kA32PcDelta, minus_zero);
+                    Label label(imm, kA32PcDelta);
                     // LDR{<c>}{<q>} <Rt>, <label> ; A1
-                    ldr(condition, Best, Register(rt), &label);
+                    if (minus_zero) {
+                      ldr(condition,
+                          Best,
+                          Register(rt),
+                          MemOperand(pc, minus, 0));
+                    } else {
+                      ldr(condition, Best, Register(rt), &label);
+                    }
                     if (((instr & 0xf7f0000) != 0x51f0000)) {
                       UnpredictableA32(instr);
                     }
@@ -62476,9 +62670,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     int32_t imm = instr & 0xfff;
                     if (U == 0) imm = -imm;
                     bool minus_zero = (imm == 0) && (U == 0);
-                    Label label(imm, kA32PcDelta, minus_zero);
+                    Label label(imm, kA32PcDelta);
                     // LDRB{<c>}{<q>} <Rt>, <label> ; A1
-                    ldrb(condition, Register(rt), &label);
+                    if (minus_zero) {
+                      ldrb(condition,
+                           Best,
+                           Register(rt),
+                           MemOperand(pc, minus, 0));
+                    } else {
+                      ldrb(condition, Register(rt), &label);
+                    }
                     if (((instr & 0xf7f0000) != 0x55f0000)) {
                       UnpredictableA32(instr);
                     }
@@ -62530,9 +62731,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     int32_t imm = instr & 0xfff;
                     if (U == 0) imm = -imm;
                     bool minus_zero = (imm == 0) && (U == 0);
-                    Label label(imm, kA32PcDelta, minus_zero);
+                    Label label(imm, kA32PcDelta);
                     // LDRB{<c>}{<q>} <Rt>, <label> ; A1
-                    ldrb(condition, Register(rt), &label);
+                    if (minus_zero) {
+                      ldrb(condition,
+                           Best,
+                           Register(rt),
+                           MemOperand(pc, minus, 0));
+                    } else {
+                      ldrb(condition, Register(rt), &label);
+                    }
                     if (((instr & 0xf7f0000) != 0x55f0000)) {
                       UnpredictableA32(instr);
                     }
@@ -62575,9 +62783,16 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     int32_t imm = instr & 0xfff;
                     if (U == 0) imm = -imm;
                     bool minus_zero = (imm == 0) && (U == 0);
-                    Label label(imm, kA32PcDelta, minus_zero);
+                    Label label(imm, kA32PcDelta);
                     // LDRB{<c>}{<q>} <Rt>, <label> ; A1
-                    ldrb(condition, Register(rt), &label);
+                    if (minus_zero) {
+                      ldrb(condition,
+                           Best,
+                           Register(rt),
+                           MemOperand(pc, minus, 0));
+                    } else {
+                      ldrb(condition, Register(rt), &label);
+                    }
                     if (((instr & 0xf7f0000) != 0x55f0000)) {
                       UnpredictableA32(instr);
                     }
@@ -65778,12 +65993,19 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             imm <<= 2;
                             if (U == 0) imm = -imm;
                             bool minus_zero = (imm == 0) && (U == 0);
-                            Label label(imm, kA32PcDelta, minus_zero);
+                            Label label(imm, kA32PcDelta);
                             // VLDR{<c>}{<q>}{.32} <Sd>, <label> ; A2
-                            vldr(condition,
-                                 kDataTypeValueNone,
-                                 SRegister(rd),
-                                 &label);
+                            if (minus_zero) {
+                              vldr(condition,
+                                   kDataTypeValueNone,
+                                   SRegister(rd),
+                                   MemOperand(pc, minus, 0));
+                            } else {
+                              vldr(condition,
+                                   kDataTypeValueNone,
+                                   SRegister(rd),
+                                   &label);
+                            }
                             break;
                           }
                           case 0x00000100: {
@@ -65799,12 +66021,19 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             imm <<= 2;
                             if (U == 0) imm = -imm;
                             bool minus_zero = (imm == 0) && (U == 0);
-                            Label label(imm, kA32PcDelta, minus_zero);
+                            Label label(imm, kA32PcDelta);
                             // VLDR{<c>}{<q>}{.64} <Dd>, <label> ; A1
-                            vldr(condition,
-                                 kDataTypeValueNone,
-                                 DRegister(rd),
-                                 &label);
+                            if (minus_zero) {
+                              vldr(condition,
+                                   kDataTypeValueNone,
+                                   DRegister(rd),
+                                   MemOperand(pc, minus, 0));
+                            } else {
+                              vldr(condition,
+                                   kDataTypeValueNone,
+                                   DRegister(rd),
+                                   &label);
+                            }
                             break;
                           }
                         }

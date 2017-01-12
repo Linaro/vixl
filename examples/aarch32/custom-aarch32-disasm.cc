@@ -49,7 +49,7 @@ class CustomStream : public Disassembler::DisassemblerStream {
   virtual DisassemblerStream& operator<<(const Disassembler::PrintLabel& label)
       VIXL_OVERRIDE {
     std::map<Label::Offset, const char*>::iterator symbol =
-        symbols_.find(label.GetLabel()->GetLocation() + label.GetPosition());
+        symbols_.find(label.GetLocation());
     // If the label was named, print the name instead of the address.
     if (symbol != symbols_.end()) {
       os() << symbol->second;
