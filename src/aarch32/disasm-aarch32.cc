@@ -8186,10 +8186,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       }
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -8239,10 +8238,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       revsh(CurrentCond(), Best, Register(rd), Register(rm));
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -8318,10 +8316,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               UnimplementedT32_16("SEVL", instr);
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -9481,10 +9478,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       }
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -9575,10 +9571,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                   instr);
                                               break;
                                             }
-                                            default: {
+                                            default:
                                               UnallocatedT32(instr);
                                               break;
-                                            }
                                           }
                                           break;
                                         }
@@ -9587,10 +9582,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           UnimplementedT32_32("DBG", instr);
                                           break;
                                         }
-                                        default: {
+                                        default:
                                           UnallocatedT32(instr);
                                           break;
-                                        }
                                       }
                                       break;
                                     }
@@ -9631,10 +9625,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       UnimplementedT32_32("CPSID", instr);
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
@@ -9684,10 +9677,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       }
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
@@ -9781,10 +9773,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   UnimplementedT32_32("DCPS3", instr);
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -9817,17 +9808,15 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   }
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -10149,10 +10138,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                          MemOperand(Register(rn), Offset));
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -10575,10 +10563,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   }
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -10998,10 +10985,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               MemOperand(Register(rn), sign, offset, PreIndex));
                           break;
                         }
-                        default: {
+                        default:
                           UnallocatedT32(instr);
                           break;
-                        }
                       }
                       break;
                     }
@@ -11126,10 +11112,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           PreIndex));
                           break;
                         }
-                        default: {
+                        default:
                           UnallocatedT32(instr);
                           break;
-                        }
                       }
                       break;
                     }
@@ -11837,10 +11822,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                          PostIndex));
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -12442,10 +12426,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                          Offset));
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -13070,10 +13053,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                      PostIndex));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -13676,10 +13658,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                          PostIndex));
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -14273,10 +14254,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                          Offset));
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -14899,10 +14879,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                      PostIndex));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -16355,10 +16334,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   }
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -16968,10 +16946,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       }
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
@@ -17073,10 +17050,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   PreIndex));
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -17154,10 +17130,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       }
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
@@ -17259,10 +17234,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   PreIndex));
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -17554,10 +17528,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                      PreIndex));
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
@@ -17604,10 +17577,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           }
                           break;
                         }
-                        default: {
+                        default:
                           UnallocatedT32(instr);
                           break;
-                        }
                       }
                       break;
                     }
@@ -17734,10 +17706,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           break;
                                         }
-                                        default: {
+                                        default:
                                           UnallocatedT32(instr);
                                           break;
-                                        }
                                       }
                                       break;
                                     }
@@ -17844,10 +17815,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                        PreIndex));
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
@@ -18046,10 +18016,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                        PreIndex));
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
@@ -18082,10 +18051,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       }
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -19284,17 +19252,15 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           }
                           break;
                         }
-                        default: {
+                        default:
                           UnallocatedT32(instr);
                           break;
-                        }
                       }
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -19418,10 +19384,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       }
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -19708,10 +19673,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       }
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -20039,10 +20003,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       }
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -20232,10 +20195,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       }
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -20478,10 +20440,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       }
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -20765,17 +20726,15 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           }
                           break;
                         }
-                        default: {
+                        default:
                           UnallocatedT32(instr);
                           break;
-                        }
                       }
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -21060,17 +21019,15 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           }
                           break;
                         }
-                        default: {
+                        default:
                           UnallocatedT32(instr);
                           break;
-                        }
                       }
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -21461,10 +21418,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                             Register(rm));
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -21741,10 +21697,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               Register(rm));
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -21980,10 +21935,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                              Register(ra));
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -22305,10 +22259,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       }
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -22469,10 +22422,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                             Register(rm));
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -22537,10 +22489,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               Register(rm));
                       break;
                     }
-                    default: {
+                    default:
                       UnallocatedT32(instr);
                       break;
-                    }
                   }
                   break;
                 }
@@ -23041,10 +22992,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               }
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -23254,10 +23204,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               }
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -24593,10 +24542,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               }
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -24884,10 +24832,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   vcvtm(dt, F32, SRegister(rd), SRegister(rm));
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -25014,17 +24961,15 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   vcvtm(dt, F64, SRegister(rd), DRegister(rm));
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -25168,10 +25113,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   }
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -25238,10 +25182,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   }
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -26105,10 +26048,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               UnimplementedT32_32("SHA256SU1", instr);
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -26167,10 +26109,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                    DRegister(rm));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -26252,10 +26193,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                    QRegister(rm));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -26314,10 +26254,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               }
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -26412,10 +26351,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               }
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -26474,10 +26412,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                     DRegister(rm));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -26534,17 +26471,15 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                    QRegister(rm));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
-                        default: {
+                        default:
                           UnallocatedT32(instr);
                           break;
-                        }
                       }
                       break;
                     }
@@ -26933,10 +26868,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           }
                                           break;
                                         }
-                                        default: {
+                                        default:
                                           UnallocatedT32(instr);
                                           break;
-                                        }
                                       }
                                       break;
                                     }
@@ -27559,10 +27493,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                QRegister(rm));
                                           break;
                                         }
-                                        default: {
+                                        default:
                                           UnallocatedT32(instr);
                                           break;
-                                        }
                                       }
                                       break;
                                     }
@@ -28062,10 +27995,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                   instr);
                                               break;
                                             }
-                                            default: {
+                                            default:
                                               UnallocatedT32(instr);
                                               break;
-                                            }
                                           }
                                           break;
                                         }
@@ -28133,10 +28065,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                      QRegister(rm));
                                               break;
                                             }
-                                            default: {
+                                            default:
                                               UnallocatedT32(instr);
                                               break;
-                                            }
                                           }
                                           break;
                                         }
@@ -28204,10 +28135,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                      QRegister(rm));
                                               break;
                                             }
-                                            default: {
+                                            default:
                                               UnallocatedT32(instr);
                                               break;
-                                            }
                                           }
                                           break;
                                         }
@@ -28264,10 +28194,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                     DRegister(rm));
                                               break;
                                             }
-                                            default: {
+                                            default:
                                               UnallocatedT32(instr);
                                               break;
-                                            }
                                           }
                                           break;
                                         }
@@ -28334,10 +28263,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                     QRegister(rm));
                                               break;
                                             }
-                                            default: {
+                                            default:
                                               UnallocatedT32(instr);
                                               break;
-                                            }
                                           }
                                           break;
                                         }
@@ -28643,10 +28571,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                QRegister(rm));
                                           break;
                                         }
-                                        default: {
+                                        default:
                                           UnallocatedT32(instr);
                                           break;
-                                        }
                                       }
                                       break;
                                     }
@@ -29971,10 +29898,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                            DRegisterLane(rm, lane));
                                   break;
                                 }
-                                default: {
+                                default:
                                   UnallocatedT32(instr);
                                   break;
-                                }
                               }
                               break;
                             }
@@ -30385,10 +30311,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                    DRegister(rm));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -30434,10 +30359,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                    DRegister(rm));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -30470,10 +30394,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                     DRegister(rm));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -30530,10 +30453,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      DRegister(rm));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -31142,10 +31064,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                    QRegister(rm));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -31227,10 +31148,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                    QRegister(rm));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -31287,10 +31207,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                     QRegister(rm));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -31395,17 +31314,15 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      QRegister(rm));
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
-                        default: {
+                        default:
                           UnallocatedT32(instr);
                           break;
-                        }
                       }
                       break;
                     }
@@ -32311,10 +32228,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             imm);
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
@@ -32455,10 +32371,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             imm);
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
@@ -32599,10 +32514,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             imm);
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
@@ -32743,10 +32657,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                             imm);
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
@@ -35413,10 +35326,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                     imm);
                                               break;
                                             }
-                                            default: {
+                                            default:
                                               UnallocatedT32(instr);
                                               break;
-                                            }
                                           }
                                           break;
                                         }
@@ -35460,20 +35372,18 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       }
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
                               }
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -36417,10 +36327,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                        imm);
                                                   break;
                                                 }
-                                                default: {
+                                                default:
                                                   UnallocatedT32(instr);
                                                   break;
-                                                }
                                               }
                                               break;
                                             }
@@ -36472,10 +36381,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       }
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
@@ -36519,10 +36427,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               }
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -37516,20 +37423,18 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                               imm);
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
                               }
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -38576,10 +38481,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                        imm);
                                                   break;
                                                 }
-                                                default: {
+                                                default:
                                                   UnallocatedT32(instr);
                                                   break;
-                                                }
                                               }
                                               break;
                                             }
@@ -38635,10 +38539,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                       }
                                       break;
                                     }
-                                    default: {
+                                    default:
                                       UnallocatedT32(instr);
                                       break;
-                                    }
                                   }
                                   break;
                                 }
@@ -38690,10 +38593,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               }
                               break;
                             }
-                            default: {
+                            default:
                               UnallocatedT32(instr);
                               break;
-                            }
                           }
                           break;
                         }
@@ -38762,10 +38664,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                 UnimplementedA32("CPSID", instr);
                 break;
               }
-              default: {
+              default:
                 UnallocatedA32(instr);
                 break;
-              }
             }
             break;
           }
@@ -38778,10 +38679,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
             }
             break;
           }
-          default: {
+          default:
             UnallocatedA32(instr);
             break;
-          }
         }
         break;
       }
@@ -39472,10 +39372,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     UnimplementedA32("SHA256SU1", instr);
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -39518,10 +39417,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     vabd(al, F32, DRegister(rd), DRegister(rn), DRegister(rm));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -39591,10 +39489,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     vabd(al, F32, QRegister(rd), QRegister(rn), QRegister(rm));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -39649,10 +39546,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -39743,10 +39639,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -39789,10 +39684,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     vpmin(al, F32, DRegister(rd), DRegister(rn), DRegister(rm));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -39841,17 +39735,15 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     vmin(al, F32, QRegister(rd), QRegister(rn), QRegister(rm));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
-              default: {
+              default:
                 UnallocatedA32(instr);
                 break;
-              }
             }
             break;
           }
@@ -40692,10 +40584,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     vfms(al, F32, DRegister(rd), DRegister(rn), DRegister(rm));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -40744,10 +40635,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     vfms(al, F32, QRegister(rd), QRegister(rn), QRegister(rm));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -40781,10 +40671,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     vmul(al, F32, DRegister(rd), DRegister(rn), DRegister(rm));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -40854,10 +40743,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     vmul(al, F32, QRegister(rd), QRegister(rn), QRegister(rm));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -40882,10 +40770,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     vacgt(al, F32, DRegister(rd), DRegister(rn), DRegister(rm));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -40934,10 +40821,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     vacgt(al, F32, QRegister(rd), QRegister(rn), QRegister(rm));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -40988,10 +40874,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     vminnm(F32, DRegister(rd), DRegister(rn), DRegister(rm));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -41090,17 +40975,15 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     vminnm(F32, QRegister(rd), QRegister(rn), QRegister(rm));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
-              default: {
+              default:
                 UnallocatedA32(instr);
                 break;
-              }
             }
             break;
           }
@@ -41427,10 +41310,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 }
                                 break;
                               }
-                              default: {
+                              default:
                                 UnallocatedA32(instr);
                                 break;
-                              }
                             }
                             break;
                           }
@@ -41960,10 +41842,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 vneg(al, dt, QRegister(rd), QRegister(rm));
                                 break;
                               }
-                              default: {
+                              default:
                                 UnallocatedA32(instr);
                                 break;
-                              }
                             }
                             break;
                           }
@@ -42382,10 +42263,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                     UnimplementedA32("SHA256SU0", instr);
                                     break;
                                   }
-                                  default: {
+                                  default:
                                     UnallocatedA32(instr);
                                     break;
-                                  }
                                 }
                                 break;
                               }
@@ -42444,10 +42324,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                            QRegister(rm));
                                     break;
                                   }
-                                  default: {
+                                  default:
                                     UnallocatedA32(instr);
                                     break;
-                                  }
                                 }
                                 break;
                               }
@@ -42506,10 +42385,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                            QRegister(rm));
                                     break;
                                   }
-                                  default: {
+                                  default:
                                     UnallocatedA32(instr);
                                     break;
-                                  }
                                 }
                                 break;
                               }
@@ -42558,10 +42436,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                           DRegister(rm));
                                     break;
                                   }
-                                  default: {
+                                  default:
                                     UnallocatedA32(instr);
                                     break;
-                                  }
                                 }
                                 break;
                               }
@@ -42620,10 +42497,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                           QRegister(rm));
                                     break;
                                   }
-                                  default: {
+                                  default:
                                     UnallocatedA32(instr);
                                     break;
-                                  }
                                 }
                                 break;
                               }
@@ -42893,10 +42769,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                      QRegister(rm));
                                 break;
                               }
-                              default: {
+                              default:
                                 UnallocatedA32(instr);
                                 break;
-                              }
                             }
                             break;
                           }
@@ -44099,10 +43974,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                  DRegisterLane(rm, lane));
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -44884,10 +44758,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                       imm);
                                 break;
                               }
-                              default: {
+                              default:
                                 UnallocatedA32(instr);
                                 break;
-                              }
                             }
                             break;
                           }
@@ -45020,10 +44893,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                       imm);
                                 break;
                               }
-                              default: {
+                              default:
                                 UnallocatedA32(instr);
                                 break;
-                              }
                             }
                             break;
                           }
@@ -45156,10 +45028,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                       imm);
                                 break;
                               }
-                              default: {
+                              default:
                                 UnallocatedA32(instr);
                                 break;
-                              }
                             }
                             break;
                           }
@@ -45292,10 +45163,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                       imm);
                                 break;
                               }
-                              default: {
+                              default:
                                 UnallocatedA32(instr);
                                 break;
-                              }
                             }
                             break;
                           }
@@ -47405,10 +47275,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                               imm);
                                         break;
                                       }
-                                      default: {
+                                      default:
                                         UnallocatedA32(instr);
                                         break;
-                                      }
                                     }
                                     break;
                                   }
@@ -47447,20 +47316,18 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 }
                                 break;
                               }
-                              default: {
+                              default:
                                 UnallocatedA32(instr);
                                 break;
-                              }
                             }
                             break;
                           }
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -48119,10 +47986,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             vmov(al, dt, DRegister(rd), imm);
                                             break;
                                           }
-                                          default: {
+                                          default:
                                             UnallocatedA32(instr);
                                             break;
-                                          }
                                         }
                                         break;
                                       }
@@ -48162,10 +48028,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 }
                                 break;
                               }
-                              default: {
+                              default:
                                 UnallocatedA32(instr);
                                 break;
-                              }
                             }
                             break;
                           }
@@ -48205,10 +48070,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -49071,20 +48935,18 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                         imm);
                                 break;
                               }
-                              default: {
+                              default:
                                 UnallocatedA32(instr);
                                 break;
-                              }
                             }
                             break;
                           }
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -49827,10 +49689,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             vmov(al, dt, QRegister(rd), imm);
                                             break;
                                           }
-                                          default: {
+                                          default:
                                             UnallocatedA32(instr);
                                             break;
-                                          }
                                         }
                                         break;
                                       }
@@ -49874,10 +49735,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 }
                                 break;
                               }
-                              default: {
+                              default:
                                 UnallocatedA32(instr);
                                 break;
-                              }
                             }
                             break;
                           }
@@ -49925,10 +49785,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -50522,10 +50381,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                    PostIndex));
                             break;
                           }
-                          default: {
+                          default:
                             UnallocatedA32(instr);
                             break;
-                          }
                         }
                         break;
                       }
@@ -51098,10 +50956,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                    Offset));
                             break;
                           }
-                          default: {
+                          default:
                             UnallocatedA32(instr);
                             break;
-                          }
                         }
                         break;
                       }
@@ -51708,10 +51565,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                PostIndex));
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -52398,10 +52254,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                 }
                 break;
               }
-              default: {
+              default:
                 UnallocatedA32(instr);
                 break;
-              }
             }
             break;
           }
@@ -52975,10 +52830,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                    PostIndex));
                             break;
                           }
-                          default: {
+                          default:
                             UnallocatedA32(instr);
                             break;
-                          }
                         }
                         break;
                       }
@@ -53543,10 +53397,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                    Offset));
                             break;
                           }
-                          default: {
+                          default:
                             UnallocatedA32(instr);
                             break;
-                          }
                         }
                         break;
                       }
@@ -54151,10 +54004,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                PostIndex));
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -54893,10 +54745,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             }
                             break;
                           }
-                          default: {
+                          default:
                             UnallocatedA32(instr);
                             break;
-                          }
                         }
                         break;
                       }
@@ -55440,17 +55291,15 @@ void Disassembler::DecodeA32(uint32_t instr) {
                 }
                 break;
               }
-              default: {
+              default:
                 UnallocatedA32(instr);
                 break;
-              }
             }
             break;
           }
-          default: {
+          default:
             UnallocatedA32(instr);
             break;
-          }
         }
         break;
       }
@@ -55616,10 +55465,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
             }
             break;
           }
-          default: {
+          default:
             UnallocatedA32(instr);
             break;
-          }
         }
         break;
       }
@@ -55666,10 +55514,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
             UnimplementedA32("SRSIB", instr);
             break;
           }
-          default: {
+          default:
             UnallocatedA32(instr);
             break;
-          }
         }
         break;
       }
@@ -56070,10 +55917,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         vcvtm(dt, F32, SRegister(rd), SRegister(rm));
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -56180,17 +56026,15 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         vcvtm(dt, F64, SRegister(rd), DRegister(rm));
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -56229,10 +56073,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
             }
             break;
           }
-          default: {
+          default:
             UnallocatedA32(instr);
             break;
-          }
         }
         break;
       }
@@ -57031,10 +56874,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -57129,10 +56971,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -57748,10 +57589,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         hlt(al, imm);
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -58169,10 +58009,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -58296,10 +58135,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -58378,10 +58216,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -58501,10 +58338,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         hvc(al, imm);
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -58556,10 +58392,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         UnimplementedA32("SMC", instr);
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -58750,10 +58585,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             }
                             break;
                           }
-                          default: {
+                          default:
                             UnallocatedA32(instr);
                             break;
-                          }
                         }
                         break;
                       }
@@ -58818,17 +58652,15 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             }
                             break;
                           }
-                          default: {
+                          default:
                             UnallocatedA32(instr);
                             break;
-                          }
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -58998,10 +58830,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                             PreIndex));
                             break;
                           }
-                          default: {
+                          default:
                             UnallocatedA32(instr);
                             break;
-                          }
                         }
                         break;
                       }
@@ -59065,10 +58896,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                              MemOperand(Register(rn), sign, offset, PreIndex));
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -60486,10 +60316,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -60609,10 +60438,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -60963,10 +60791,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             }
                             break;
                           }
-                          default: {
+                          default:
                             UnallocatedA32(instr);
                             break;
-                          }
                         }
                         break;
                       }
@@ -61027,17 +60854,15 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             }
                             break;
                           }
-                          default: {
+                          default:
                             UnallocatedA32(instr);
                             break;
-                          }
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -62093,10 +61918,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         UnimplementedA32("SEVL", instr);
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -62109,10 +61933,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     UnimplementedA32("DBG", instr);
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -63086,17 +62909,15 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
-              default: {
+              default:
                 UnallocatedA32(instr);
                 break;
-              }
             }
             break;
           }
@@ -63241,10 +63062,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -63285,10 +63105,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -63439,10 +63258,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -63562,10 +63380,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -63787,10 +63604,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                 }
                 break;
               }
-              default: {
+              default:
                 UnallocatedA32(instr);
                 break;
-              }
             }
             break;
           }
@@ -63938,10 +63754,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -63982,10 +63797,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -64139,10 +63953,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -64262,10 +64075,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -64553,10 +64365,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                 }
                 break;
               }
-              default: {
+              default:
                 UnallocatedA32(instr);
                 break;
-              }
             }
             break;
           }
@@ -64666,10 +64477,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                 sbfx(condition, Register(rd), Register(rn), lsb, width);
                 break;
               }
-              default: {
+              default:
                 UnallocatedA32(instr);
                 break;
-              }
             }
             break;
           }
@@ -64806,10 +64616,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -64877,10 +64686,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                     }
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -64925,10 +64733,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                           Register(ra));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -64973,10 +64780,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                            Register(ra));
                     break;
                   }
-                  default: {
+                  default:
                     UnallocatedA32(instr);
                     break;
-                  }
                 }
                 break;
               }
@@ -65017,10 +64823,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                 }
                 break;
               }
-              default: {
+              default:
                 UnallocatedA32(instr);
                 break;
-              }
             }
             break;
           }
@@ -65120,10 +64925,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                 }
                 break;
               }
-              default: {
+              default:
                 UnallocatedA32(instr);
                 break;
-              }
             }
             break;
           }
@@ -65928,10 +65732,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -66169,10 +65972,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -67613,10 +67415,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         }
                         break;
                       }
-                      default: {
+                      default:
                         UnallocatedA32(instr);
                         break;
-                      }
                     }
                     break;
                   }
@@ -67780,10 +67581,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 }
                                 break;
                               }
-                              default: {
+                              default:
                                 UnallocatedA32(instr);
                                 break;
-                              }
                             }
                             break;
                           }
@@ -67858,10 +67658,9 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 }
                                 break;
                               }
-                              default: {
+                              default:
                                 UnallocatedA32(instr);
                                 break;
-                              }
                             }
                             break;
                           }
