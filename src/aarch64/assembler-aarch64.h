@@ -400,7 +400,7 @@ enum LoadStoreScalingOption {
 
 
 // Assembler.
-class Assembler : public internal::AssemblerBase {
+class Assembler : public vixl::internal::AssemblerBase {
  public:
   explicit Assembler(
       PositionIndependentCodeOption pic = PositionIndependentCode)
@@ -3081,8 +3081,8 @@ class Assembler : public internal::AssemblerBase {
            (GetPic() == PositionDependentCode);
   }
 
-  static const Register& AppropriateZeroRegFor(const CPURegister& reg) {
-    return reg.Is64Bits() ? xzr : wzr;
+  static Register AppropriateZeroRegFor(const CPURegister& reg) {
+    return reg.Is64Bits() ? Register(xzr) : Register(wzr);
   }
 
  protected:

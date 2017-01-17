@@ -821,7 +821,7 @@ static void TestFPToFixed_Helper(TestFPToFixedHelper_t helper,
   const int n_index_shift =
       (n_size == kDRegSize) ? kDRegSizeInBytesLog2 : kSRegSizeInBytesLog2;
 
-  Register rd = (d_size == kXRegSize) ? x10 : w10;
+  Register rd = (d_size == kXRegSize) ? Register(x10) : Register(w10);
   FPRegister fn = (n_size == kDRegSize) ? d1 : s1;
 
   __ Mov(out, results);
@@ -870,7 +870,7 @@ static void TestFPToInt_Helper(TestFPToIntHelper_t helper, uintptr_t inputs,
   const int n_index_shift =
       (n_size == kDRegSize) ? kDRegSizeInBytesLog2 : kSRegSizeInBytesLog2;
 
-  Register rd = (d_size == kXRegSize) ? x10 : w10;
+  Register rd = (d_size == kXRegSize) ? Register(x10) : Register(w10);
   FPRegister fn = (n_size == kDRegSize) ? d1 : s1;
 
   __ Mov(out, results);

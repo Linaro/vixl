@@ -266,6 +266,38 @@ class Register : public CPURegister {
 };
 
 
+namespace internal {
+
+template <int size_in_bits>
+class FixedSizeRegister : public Register {
+ public:
+  FixedSizeRegister() : Register() {}
+  explicit FixedSizeRegister(unsigned code) : Register(code, size_in_bits) {
+    VIXL_ASSERT(IsValidRegister());
+  }
+  explicit FixedSizeRegister(const Register& other)
+      : Register(other.GetCode(), size_in_bits) {
+    VIXL_ASSERT(other.GetSizeInBits() == size_in_bits);
+    VIXL_ASSERT(IsValidRegister());
+  }
+  explicit FixedSizeRegister(const CPURegister& other)
+      : Register(other.GetCode(), other.GetSizeInBits()) {
+    VIXL_ASSERT(other.GetType() == kRegister);
+    VIXL_ASSERT(other.GetSizeInBits() == size_in_bits);
+    VIXL_ASSERT(IsValidRegister());
+  }
+
+  bool IsValid() const {
+    return Register::IsValid() && (GetSizeInBits() == size_in_bits);
+  }
+};
+
+}  // namespace internal
+
+typedef internal::FixedSizeRegister<kXRegSize> XRegister;
+typedef internal::FixedSizeRegister<kWRegSize> WRegister;
+
+
 class VRegister : public CPURegister {
  public:
   VRegister() : CPURegister(), lanes_(1) {}
@@ -409,13 +441,13 @@ const FPRegister NoFPReg;  // For backward compatibility.
 const CPURegister NoCPUReg;
 
 
-#define DEFINE_REGISTERS(N)          \
-  const Register w##N(N, kWRegSize); \
-  const Register x##N(N, kXRegSize);
+#define DEFINE_REGISTERS(N) \
+  const WRegister w##N(N);  \
+  const XRegister x##N(N);
 AARCH64_REGISTER_CODE_LIST(DEFINE_REGISTERS)
 #undef DEFINE_REGISTERS
-const Register wsp(kSPRegInternalCode, kWRegSize);
-const Register sp(kSPRegInternalCode, kXRegSize);
+const WRegister wsp(kSPRegInternalCode);
+const XRegister sp(kSPRegInternalCode);
 
 
 #define DEFINE_VREGISTERS(N)          \
@@ -429,12 +461,12 @@ AARCH64_REGISTER_CODE_LIST(DEFINE_VREGISTERS)
 #undef DEFINE_VREGISTERS
 
 
-// Registers aliases.
-const Register ip0 = x16;
-const Register ip1 = x17;
-const Register lr = x30;
-const Register xzr = x31;
-const Register wzr = w31;
+// Register aliases.
+const XRegister ip0 = x16;
+const XRegister ip1 = x17;
+const XRegister lr = x30;
+const XRegister xzr = x31;
+const WRegister wzr = w31;
 
 
 // AreAliased returns true if any of the named registers overlap. Arguments

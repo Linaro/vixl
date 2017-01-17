@@ -576,7 +576,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                  PositionIndependentCodeOption pic = PositionIndependentCode);
   ~MacroAssembler();
 
-  virtual internal::AssemblerBase* AsAssemblerBase() VIXL_OVERRIDE {
+  virtual vixl::internal::AssemblerBase* AsAssemblerBase() VIXL_OVERRIDE {
     return this;
   }
 
@@ -1304,7 +1304,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fminnm(vd, vn, vm);
   }
-  void Fmov(VRegister vd, VRegister vn) {
+  void Fmov(const VRegister& vd, const VRegister& vn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     // Only emit an instruction if vd and vn are different, and they are both D
@@ -1315,11 +1315,17 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
       fmov(vd, vn);
     }
   }
-  void Fmov(VRegister vd, Register rn) {
+  void Fmov(const VRegister& vd, const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rn.IsZero());
     SingleEmissionCheckScope guard(this);
     fmov(vd, rn);
+  }
+  void Fmov(const VRegister& vd, const XRegister& xn) {
+    Fmov(vd, Register(xn));
+  }
+  void Fmov(const VRegister& vd, const WRegister& wn) {
+    Fmov(vd, Register(wn));
   }
   void Fmov(const VRegister& vd, int index, const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);

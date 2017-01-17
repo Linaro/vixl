@@ -7091,9 +7091,9 @@ template <typename T>
 void LoadIntValueHelper(T values[], int card) {
   SETUP();
 
-  const bool is_32bits = (sizeof(T) == 4);
-  const Register& tgt1 = is_32bits ? w1 : x1;
-  const Register& tgt2 = is_32bits ? w2 : x2;
+  const bool is_32bit = (sizeof(T) == 4);
+  Register tgt1 = is_32bit ? Register(w1) : Register(x1);
+  Register tgt2 = is_32bit ? Register(w2) : Register(x2);
 
   START();
   __ Mov(x0, 0);
@@ -7142,8 +7142,8 @@ void LoadFPValueHelper(T values[], int card) {
 
   const bool is_32bits = (sizeof(T) == 4);
   const FPRegister& fp_tgt = is_32bits ? s2 : d2;
-  const Register& tgt1 = is_32bits ? w1 : x1;
-  const Register& tgt2 = is_32bits ? w2 : x2;
+  const Register& tgt1 = is_32bits ? Register(w1) : Register(x1);
+  const Register& tgt2 = is_32bits ? Register(w2) : Register(x2);
 
   START();
   __ Mov(x0, 0);
@@ -22621,6 +22621,45 @@ TEST(nop) {
   VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&start) >= kInstructionSize);
 
   masm.FinalizeCode();
+}
+
+
+TEST(static_register_types) {
+  SETUP();
+  START();
+
+  // [WX]Register implicitly casts to Register.
+  XRegister x_x0(0);
+  WRegister w_w0(0);
+  Register r_x0 = x_x0;
+  Register r_w0 = w_w0;
+  VIXL_CHECK(r_x0.Is(x_x0));
+  VIXL_CHECK(x_x0.Is(r_x0));
+  VIXL_CHECK(r_w0.Is(w_w0));
+  VIXL_CHECK(w_w0.Is(r_w0));
+
+  // Register explicitly casts to [WX]Register.
+  Register r_x1(1, kXRegSize);
+  Register r_w1(1, kWRegSize);
+  XRegister x_x1(r_x1);
+  WRegister w_w1(r_w1);
+  VIXL_CHECK(r_x1.Is(x_x1));
+  VIXL_CHECK(x_x1.Is(r_x1));
+  VIXL_CHECK(r_w1.Is(w_w1));
+  VIXL_CHECK(w_w1.Is(r_w1));
+
+  // [WX]Register implicitly casts to CPURegister.
+  XRegister x_x2(2);
+  WRegister w_w2(2);
+  CPURegister cpu_x2 = x_x2;
+  CPURegister cpu_w2 = w_w2;
+  VIXL_CHECK(cpu_x2.Is(x_x2));
+  VIXL_CHECK(x_x2.Is(cpu_x2));
+  VIXL_CHECK(cpu_w2.Is(w_w2));
+  VIXL_CHECK(w_w2.Is(cpu_w2));
+
+  END();
+  TEARDOWN();
 }
 
 
