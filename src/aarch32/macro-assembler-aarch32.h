@@ -1225,16 +1225,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     Adds(al, rd, rn, operand);
   }
 
-  void Adr(Condition cond, Register rd, Label* label) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    adr(cond, rd, label);
-  }
-  void Adr(Register rd, Label* label) { Adr(al, rd, label); }
-
   void And(Condition cond, Register rd, Register rn, const Operand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rn));

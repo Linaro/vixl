@@ -2416,10 +2416,11 @@ TEST(macro_assembler_unpredictable) {
 
   // ADR.
   {
-    Label label;
-    masm.Bind(&label);
-    COMPARE_A32(Adr(pc, &label), "adr pc, 0x00000000\n");
-    MUST_FAIL_TEST_T32(Adr(pc, &label),
+    Literal<uint32_t> literal(0x12345678);
+    // The address is 0x4 and not 0x0 because of the branch over the literal.
+    // TODO: Consider disallowing this instruction.
+    COMPARE_A32(Adr(pc, &literal), "adr pc, 0x00000004\n");
+    MUST_FAIL_TEST_T32(Adr(pc, &literal),
                        "Unpredictable instruction.\n");
   }
 

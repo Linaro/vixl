@@ -673,41 +673,66 @@ TEST(ands) {
 }
 
 
-// TODO: fix this test in T32.
-TEST_A32(adr) {
+TEST(adr_in_range) {
   SETUP();
 
   Label label_1, label_2, label_3, label_4;
 
   START();
-  __ Mov(r0, 0x0);
-  __ Adr(r1, &label_3);   // Set to zero to indicate success.
+  {
+    size_t size_of_generated_code;
+    if (masm.IsUsingA32()) {
+      size_of_generated_code = 18 * kA32InstructionSizeInBytes;
+    } else {
+      size_of_generated_code = 18 * k32BitT32InstructionSizeInBytes +
+                               3 * k16BitT32InstructionSizeInBytes;
+    }
+    ExactAssemblyScope scope(&masm, size_of_generated_code,
+                             ExactAssemblyScope::kExactSize);
 
-  __ Adr(r2, &label_1);   // Multiple forward references to the same label.
-  __ Adr(r3, &label_1);
-  __ Adr(r4, &label_1);
+    __ mov(r0, 0x0); // Set to zero to indicate success.
+    __ adr(r1, &label_3);
 
-  __ Bind(&label_2);
-  __ Eor(r5, r2, r3);  // Ensure that r2,r3 and r4 are identical.
-  __ Eor(r6, r2, r4);
-  __ Mov(r0, r5);
-  __ Mov(r0, r6);
-  __ Bx(r2);  // label_1, label_3
+    __ adr(r2, &label_1);   // Multiple forward references to the same label.
+    __ adr(r3, &label_1);
+    __ adr(r4, &label_1);
 
-  __ Bind(&label_3);
-  __ Adr(r2, &label_3);   // Self-reference (offset 0).
-  __ Eor(r1, r1, r2);
-  __ Adr(r2, &label_4);   // Simple forward reference.
-  __ Bx(r2);  // label_4
+    __ bind(&label_2);
+    __ eor(r5, r2, r3);  // Ensure that r2, r3 and r4 are identical.
+    __ eor(r6, r2, r4);
+    __ orr(r0, r5, r6);
+    if (masm.IsUsingT32()) {
+      // The jump target needs to have its least significant bit set to indicate
+      // that we are jumping into thumb mode.
+      __ orr(r2, r2, 1);
+    }
+    __ bx(r2);  // label_1, label_3
 
-  __ Bind(&label_1);
-  __ Adr(r2, &label_3);   // Multiple reverse references to the same label.
-  __ Adr(r3, &label_3);
-  __ Adr(r4, &label_3);
-  __ Adr(r5, &label_2);   // Simple reverse reference.
-  __ Bx(r5);  // label_2
+    __ bind(&label_3);
+    __ adr(r2, &label_3);   // Self-reference (offset 0).
+    __ eor(r1, r1, r2);
+    __ adr(r2, &label_4);   // Simple forward reference.
+    if (masm.IsUsingT32()) {
+      // The jump target needs to have its least significant bit set to indicate
+      // that we are jumping into thumb mode.
+      __ orr(r2, r2, 1);
+    }
+    __ bx(r2);  // label_4
 
-  __ Bind(&label_4);
+    __ bind(&label_1);
+    __ adr(r2, &label_3);   // Multiple reverse references to the same label.
+    __ adr(r3, &label_3);
+    __ adr(r4, &label_3);
+    __ adr(r5, &label_2);   // Simple reverse reference.
+    if (masm.IsUsingT32()) {
+      // The jump target needs to have its least significant bit set to indicate
+      // that we are jumping into thumb mode.
+      __ orr(r5, r5, 1);
+    }
+    __ bx(r5);  // label_2
+
+    __ bind(&label_4);
+  }
   END();
 
   RUN();
@@ -5253,19 +5278,31 @@ TEST(blx) {
   __ Bind(&func1);
   __ Mov(r0, 0x11111111);
   __ Push(lr);
-  __ Adr(r11, &func2);
-  if (masm.IsUsingT32()) {
-    // The jump target needs to have its least significant bit set to indicate
-    // that we are jumping into thumb mode.
-    __ Orr(r11, r11, 1);
-  }
-  __ Blx(r11);
-  __ Pop(lr);
-  __ Bx(lr);
+  {
+    size_t size_of_generated_code;
+    if (masm.IsUsingA32()) {
+      size_of_generated_code = 7 * kA32InstructionSizeInBytes;
+    } else {
+      size_of_generated_code = 5 * k32BitT32InstructionSizeInBytes +
+                               3 * k16BitT32InstructionSizeInBytes;
+    }
+    ExactAssemblyScope scope(&masm, size_of_generated_code,
+                             ExactAssemblyScope::kExactSize);
+    __ adr(r11, &func2);
+    if (masm.IsUsingT32()) {
+      // The jump target needs to have its least significant bit set to indicate
+      // that we are jumping into thumb mode.
+      __ orr(r11, r11, 1);
+    }
+    __ blx(r11);
+    __ pop(lr);
+    __ bx(lr);
 
-  __ Bind(&func2);
-  __ Mov(r1, 0x22222222);
-  __ Bx(lr);
+    __ bind(&func2);
+    __ movw(r1, 0x2222);
+    __ movt(r1, 0x2222);
+    __ bx(lr);
+  }
 
   __ Bind(&test_start);
   __ Mov(r0, 0xdeadc0de);
