@@ -464,18 +464,22 @@ if __name__ == '__main__':
     ]
     return list(itertools.product(*opts_list))
   # List combinations of options that should only be tested independently.
-  def ListIndependentCombinations(args, options):
+  def ListIndependentCombinations(args, options, base):
     n = []
     for opt in options:
       if opt.test_independently:
         for o in opt.ArgList(args.__dict__[opt.name]):
-          n.append((o,))
+          n.append(base + (o,))
     return n
   # TODO: We should refine the configurations we test by default, instead of
   #       always testing all possible combinations.
   test_env_combinations = ListCombinations(args, test_environment_options)
   test_build_combinations = ListCombinations(args, test_build_options)
-  test_build_combinations.extend(ListIndependentCombinations(args, test_build_options))
+  if not args.fast:
+    test_build_combinations.extend(
+        ListIndependentCombinations(args,
+                                    test_build_options,
+                                    test_build_combinations[0]))
   test_runtime_combinations = ListCombinations(args, test_runtime_options)
 
   for environment_options in test_env_combinations:
