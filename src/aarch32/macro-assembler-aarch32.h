@@ -39,7 +39,6 @@
 namespace vixl {
 namespace aarch32 {
 
-class JumpTableBase;
 class UseScratchRegisterScope;
 
 enum FlagsUpdate { LeaveFlags = 0, SetFlags = 1, DontCare = 2 };
@@ -892,13 +891,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Vmov(DRegister rt, double v) { Vmov(al, F64, rt, v); }
   void Vmov(Condition cond, SRegister rt, float v) { Vmov(cond, F32, rt, v); }
   void Vmov(SRegister rt, float v) { Vmov(al, F32, rt, v); }
-
-  void Switch(Register reg, JumpTableBase* table);
-  void GenerateSwitchTable(JumpTableBase* table, int table_size);
-  void Case(JumpTableBase* table, int case_index);
-  void Break(JumpTableBase* table);
-  void Default(JumpTableBase* table);
-  void EndSwitch(JumpTableBase* table);
 
   // Claim memory on the stack.
   // Note that the Claim, Drop, and Peek helpers below ensure that offsets used
@@ -11085,111 +11077,6 @@ class UseScratchRegisterScope {
   }
 };
 
-class JumpTableBase {
- protected:
-  JumpTableBase(int len, int offset_size)
-      : table_location_(Label::kMaxOffset),
-        branch_location_(Label::kMaxOffset),
-        length_(len),
-        offset_shift_(WhichPowerOf2(offset_size)),
-        presence_(length_) {
-    VIXL_ASSERT((length_ >= 0) && (offset_size <= 4));
-  }
-  virtual ~JumpTableBase() {}
-
- public:
-  int GetTableSizeInBytes() const { return length_ * (1 << offset_shift_); }
-  int GetOffsetShift() const { return offset_shift_; }
-  int GetLength() const { return length_; }
-  Label* GetDefaultLabel() { return &default_; }
-  Label* GetEndLabel() { return &end_; }
-  void SetBranchLocation(uint32_t branch_location) {
-    branch_location_ = branch_location;
-  }
-  uint32_t GetBranchLocation() const { return branch_location_; }
-  void BindTable(uint32_t location) { table_location_ = location; }
-  virtual void Link(MacroAssembler* masm,
-                    int case_index,
-                    uint32_t location) = 0;
-
-  uint32_t GetLocationForCase(int i) {
-    VIXL_ASSERT((i >= 0) && (i < length_));
-    return table_location_ + (i * (1 << offset_shift_));
-  }
-  void SetPresenceBitForCase(int i) {
-    VIXL_ASSERT((i >= 0) && (i < length_));
-    presence_.Set(i);
-  }
-
-  void Finalize(MacroAssembler* masm) {
-    if (!default_.IsBound()) {
-      masm->Bind(&default_);
-    }
-    masm->Bind(&end_);
-
-    presence_.ForEachBitNotSet(LinkIt(this, masm, default_.GetLocation()));
-  }
-
- private:
-  uint32_t table_location_;
-  uint32_t branch_location_;
-  const int length_;
-  const int offset_shift_;
-  BitField presence_;
-  Label default_;
-  Label end_;
-  struct LinkIt {
-    JumpTableBase* table_;
-    MacroAssembler* const masm_;
-    const uint32_t location_;
-    LinkIt(JumpTableBase* table, MacroAssembler* const masm, uint32_t location)
-        : table_(table), masm_(masm), location_(location) {}
-    bool execute(int id) const {
-      VIXL_ASSERT(id < table_->GetLength());
-      table_->Link(masm_, static_cast<int>(id), location_);
-      return true;
-    }
-  };
-};
-
-// JumpTable<T>(len): Helper to describe a jump table
-// len here describes the number of possible case. Values in [0, n[ can have a
-// jump offset. Any other value will assert.
-template <typename T>
-class JumpTable : public JumpTableBase {
- protected:
-  explicit JumpTable(int length) : JumpTableBase(length, sizeof(T)) {}
-
- public:
-  virtual void Link(MacroAssembler* masm,
-                    int case_index,
-                    uint32_t location) VIXL_OVERRIDE {
-    uint32_t position_in_table = GetLocationForCase(case_index);
-    uint32_t from = GetBranchLocation();
-    int offset = location - from;
-    T* case_offset = masm->GetBuffer()->GetOffsetAddress<T*>(position_in_table);
-    if (masm->IsUsingT32()) {
-      *case_offset = offset >> 1;
-    } else {
-      *case_offset = offset >> 2;
-    }
-  }
-};
-
-class JumpTable8bitOffset : public JumpTable<uint8_t> {
- public:
-  explicit JumpTable8bitOffset(int length) : JumpTable<uint8_t>(length) {}
-};
-
-class JumpTable16bitOffset : public JumpTable<uint16_t> {
- public:
-  explicit JumpTable16bitOffset(int length) : JumpTable<uint16_t>(length) {}
-};
-
-class JumpTable32bitOffset : public JumpTable<uint32_t> {
- public:
-  explicit JumpTable32bitOffset(int length) : JumpTable<uint32_t>(length) {}
-};
 
 }  // namespace aarch32
 }  // namespace vixl
