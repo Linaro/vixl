@@ -321,6 +321,11 @@ TEST(add_immediate) {
   COMPARE(cmn(sp, Operand(24)), "cmn sp, #0x18 (24)");
   COMPARE(adds(wzr, wsp, Operand(9)), "cmn wsp, #0x9 (9)");
 
+  // Instructions in the add/sub immediate space, but unallocated due to shift
+  // value out of range.
+  COMPARE(dci(0x11800400), "unallocated (Unallocated)");
+  COMPARE(dci(0x11c00400), "unallocated (Unallocated)");
+
   CLEANUP();
 }
 
