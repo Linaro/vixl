@@ -42,6 +42,7 @@ class MacroAssemblerInterface {
 
   virtual void BlockPools() = 0;
   virtual void ReleasePools() = 0;
+  virtual bool ArePoolsBlocked() const = 0;
   virtual void EnsureEmitPoolsFor(size_t size) = 0;
 };
 

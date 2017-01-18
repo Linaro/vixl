@@ -621,18 +621,28 @@ TEST_A32(ExactAssemblyScope_32) {
   aarch32::MacroAssembler masm;
 
   // By default macro instructions are allowed.
+  VIXL_CHECK(!masm.ArePoolsBlocked());
+  VIXL_ASSERT(!masm.AllowAssembler());
   VIXL_ASSERT(masm.AllowMacroInstructions());
   {
     ExactAssemblyScope scope1(&masm, 2 * aarch32::kA32InstructionSizeInBytes);
+    VIXL_CHECK(masm.ArePoolsBlocked());
+    VIXL_ASSERT(masm.AllowAssembler());
     VIXL_ASSERT(!masm.AllowMacroInstructions());
     __ nop();
     {
       ExactAssemblyScope scope2(&masm, 1 * aarch32::kA32InstructionSizeInBytes);
+      VIXL_CHECK(masm.ArePoolsBlocked());
+      VIXL_ASSERT(masm.AllowAssembler());
       VIXL_ASSERT(!masm.AllowMacroInstructions());
       __ nop();
     }
+    VIXL_CHECK(masm.ArePoolsBlocked());
+    VIXL_ASSERT(masm.AllowAssembler());
     VIXL_ASSERT(!masm.AllowMacroInstructions());
   }
+  VIXL_CHECK(!masm.ArePoolsBlocked());
+  VIXL_ASSERT(!masm.AllowAssembler());
   VIXL_ASSERT(masm.AllowMacroInstructions());
 
   {
@@ -651,18 +661,28 @@ TEST(ExactAssemblyScope_64) {
   aarch64::MacroAssembler masm;
 
   // By default macro instructions are allowed.
+  VIXL_CHECK(!masm.ArePoolsBlocked());
+  VIXL_ASSERT(!masm.AllowAssembler());
   VIXL_ASSERT(masm.AllowMacroInstructions());
   {
     ExactAssemblyScope scope1(&masm, 2 * aarch64::kInstructionSize);
+    VIXL_CHECK(masm.ArePoolsBlocked());
+    VIXL_ASSERT(masm.AllowAssembler());
     VIXL_ASSERT(!masm.AllowMacroInstructions());
     __ nop();
     {
       ExactAssemblyScope scope2(&masm, 1 * aarch64::kInstructionSize);
+      VIXL_CHECK(masm.ArePoolsBlocked());
+      VIXL_ASSERT(masm.AllowAssembler());
       VIXL_ASSERT(!masm.AllowMacroInstructions());
       __ nop();
     }
+    VIXL_CHECK(masm.ArePoolsBlocked());
+    VIXL_ASSERT(masm.AllowAssembler());
     VIXL_ASSERT(!masm.AllowMacroInstructions());
   }
+  VIXL_CHECK(!masm.ArePoolsBlocked());
+  VIXL_ASSERT(!masm.AllowAssembler());
   VIXL_ASSERT(masm.AllowMacroInstructions());
 
   {

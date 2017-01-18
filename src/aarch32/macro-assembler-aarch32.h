@@ -124,12 +124,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
 
   virtual void BlockPools() VIXL_OVERRIDE {
-    literal_pool_manager_.Block();
-    veneer_pool_manager_.Block();
+    BlockLiteralPool();
+    BlockVeneerPool();
   }
   virtual void ReleasePools() VIXL_OVERRIDE {
-    literal_pool_manager_.Release();
-    veneer_pool_manager_.Release();
+    ReleaseLiteralPool();
+    ReleaseVeneerPool();
+  }
+  virtual bool ArePoolsBlocked() const VIXL_OVERRIDE {
+    return IsLiteralPoolBlocked() && IsVeneerPoolBlocked();
   }
   virtual void EnsureEmitPoolsFor(size_t size) VIXL_OVERRIDE {
     // TODO: Optimise this. It also checks that there is space in the buffer,
@@ -413,6 +416,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void PerformEnsureEmit(Label::Offset target, uint32_t extra_size);
 
  protected:
+  void BlockLiteralPool() { literal_pool_manager_.Block(); }
+  void ReleaseLiteralPool() { literal_pool_manager_.Release(); }
+  bool IsLiteralPoolBlocked() const {
+    return literal_pool_manager_.IsBlocked();
+  }
+  void BlockVeneerPool() { veneer_pool_manager_.Block(); }
+  void ReleaseVeneerPool() { veneer_pool_manager_.Release(); }
+  bool IsVeneerPoolBlocked() const { return veneer_pool_manager_.IsBlocked(); }
+
   void HandleOutOfBoundsImmediate(Condition cond, Register tmp, uint32_t imm);
   void PadToMinimumBranchRange(Label* label);
 
@@ -435,7 +447,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
       instr_callback.emit(this, c, literal);
     }
     if (!literal->IsManuallyPlaced() && !literal->IsBound() &&
-        !literal_pool_manager_.IsBlocked()) {
+        !IsLiteralPoolBlocked()) {
       if (WasInsertedTooFar(literal)) {
         // The instruction's data is too far: revert the emission
         GetBuffer()->Rewind(cursor);
@@ -720,7 +732,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // delete'd.
   void EmitLiteralPool(LiteralPool* const literal_pool, EmitOption option);
   void EmitLiteralPool(EmitOption option = kBranchRequired) {
-    VIXL_ASSERT(!literal_pool_manager_.IsBlocked());
+    VIXL_ASSERT(!IsLiteralPoolBlocked());
     EmitLiteralPool(literal_pool_manager_.GetLiteralPool(), option);
     literal_pool_manager_.ResetCheckpoint();
     ComputeCheckpoint();

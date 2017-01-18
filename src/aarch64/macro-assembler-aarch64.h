@@ -2870,6 +2870,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     ReleaseVeneerPool();
   }
 
+  virtual bool ArePoolsBlocked() const VIXL_OVERRIDE {
+    return IsLiteralPoolBlocked() && IsVeneerPoolBlocked();
+  }
+
   size_t GetLiteralPoolSize() const { return literal_pool_.GetSize(); }
   VIXL_DEPRECATED("GetLiteralPoolSize", size_t LiteralPoolSize() const) {
     return GetLiteralPoolSize();
