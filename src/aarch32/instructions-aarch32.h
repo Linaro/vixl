@@ -285,11 +285,13 @@ class DataType {
   DataTypeValue value_;
 
  public:
-  DataType(DataTypeValue value) : value_(value) {}  // NOLINT(runtime/explicit)
-  DataType(uint32_t size)                           // NOLINT(runtime/explicit)
+  explicit DataType(uint32_t size)
       : value_(static_cast<DataTypeValue>(kDataTypeUntyped | size)) {
     VIXL_ASSERT((size == 8) || (size == 16) || (size == 32) || (size == 64));
   }
+  // Users should be able to use "S8", "S6" and so forth to instantiate this
+  // class.
+  DataType(DataTypeValue value) : value_(value) {}  // NOLINT(runtime/explicit)
   DataTypeValue GetValue() const { return value_; }
   DataTypeType GetType() const {
     return static_cast<DataTypeType>(value_ & kDataTypeTypeMask);
@@ -1002,6 +1004,8 @@ class Condition {
   explicit Condition(uint32_t condition) : condition_(condition) {
     VIXL_ASSERT(condition <= kNone);
   }
+  // Users should be able to use "eq", "ne" and so forth to instantiate this
+  // class.
   Condition(ConditionType condition)  // NOLINT(runtime/explicit)
       : condition_(condition) {}
   uint32_t GetCondition() const { return condition_ & kMask; }
