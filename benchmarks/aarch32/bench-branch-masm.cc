@@ -87,8 +87,12 @@ int main(int argc, char* argv[]) {
       exit(1);
   }
 
+#ifdef VIXL_INCLUDE_TARGET_A32
   benchmark(iterations, A32);
+#endif
+#ifdef VIXL_INCLUDE_TARGET_T32
   benchmark(iterations, T32);
+#endif
 
   return 0;
 }
