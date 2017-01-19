@@ -38,12 +38,19 @@ class MacroAssemblerInterface {
   virtual ~MacroAssemblerInterface() {}
 
   virtual bool AllowMacroInstructions() const = 0;
+  virtual bool ArePoolsBlocked() const = 0;
+
+ protected:
   virtual void SetAllowMacroInstructions(bool allow) = 0;
 
   virtual void BlockPools() = 0;
   virtual void ReleasePools() = 0;
-  virtual bool ArePoolsBlocked() const = 0;
   virtual void EnsureEmitPoolsFor(size_t size) = 0;
+
+  // The following scopes need access to the above method in order to implement
+  // pool blocking and temporarily disable the macro-assembler.
+  friend class ExactAssemblyScope;
+  friend class EmissionCheckScope;
 };
 
 }  // namespace vixl

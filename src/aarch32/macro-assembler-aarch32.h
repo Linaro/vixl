@@ -123,22 +123,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     return this;
   }
 
-  virtual void BlockPools() VIXL_OVERRIDE {
-    BlockLiteralPool();
-    BlockVeneerPool();
-  }
-  virtual void ReleasePools() VIXL_OVERRIDE {
-    ReleaseLiteralPool();
-    ReleaseVeneerPool();
-  }
   virtual bool ArePoolsBlocked() const VIXL_OVERRIDE {
     return IsLiteralPoolBlocked() && IsVeneerPoolBlocked();
-  }
-  virtual void EnsureEmitPoolsFor(size_t size) VIXL_OVERRIDE {
-    // TODO: Optimise this. It also checks that there is space in the buffer,
-    // which we do not need to do here.
-    VIXL_ASSERT(IsUint32(size));
-    EnsureEmitFor(static_cast<uint32_t>(size));
   }
 
  private:
@@ -416,6 +402,28 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void PerformEnsureEmit(Label::Offset target, uint32_t extra_size);
 
  protected:
+  virtual void BlockPools() VIXL_OVERRIDE {
+    BlockLiteralPool();
+    BlockVeneerPool();
+  }
+  virtual void ReleasePools() VIXL_OVERRIDE {
+    ReleaseLiteralPool();
+    ReleaseVeneerPool();
+  }
+  virtual void EnsureEmitPoolsFor(size_t size) VIXL_OVERRIDE {
+    // TODO: Optimise this. It also checks that there is space in the buffer,
+    // which we do not need to do here.
+    VIXL_ASSERT(IsUint32(size));
+    EnsureEmitFor(static_cast<uint32_t>(size));
+  }
+
+  // Tell whether any of the macro instruction can be used. When false the
+  // MacroAssembler will assert if a method which can emit a variable number
+  // of instructions is called.
+  virtual void SetAllowMacroInstructions(bool value) VIXL_OVERRIDE {
+    allow_macro_instructions_ = value;
+  }
+
   void BlockLiteralPool() { literal_pool_manager_.Block(); }
   void ReleaseLiteralPool() { literal_pool_manager_.Release(); }
   bool IsLiteralPoolBlocked() const {
@@ -512,12 +520,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   bool GenerateSimulatorCode() const { return generate_simulator_code_; }
 
-  // Tell whether any of the macro instruction can be used. When false the
-  // MacroAssembler will assert if a method which can emit a variable number
-  // of instructions is called.
-  virtual void SetAllowMacroInstructions(bool value) VIXL_OVERRIDE {
-    allow_macro_instructions_ = value;
-  }
   virtual bool AllowMacroInstructions() const VIXL_OVERRIDE {
     return allow_macro_instructions_;
   }

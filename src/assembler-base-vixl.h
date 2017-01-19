@@ -30,6 +30,9 @@
 #include "code-buffer-vixl.h"
 
 namespace vixl {
+
+class CodeBufferCheckScope;
+
 namespace internal {
 
 class AssemblerBase {
@@ -61,9 +64,13 @@ class AssemblerBase {
   CodeBuffer* GetBuffer() { return &buffer_; }
   const CodeBuffer& GetBuffer() const { return buffer_; }
   bool AllowAssembler() const { return allow_assembler_; }
-  void SetAllowAssembler(bool allow) { allow_assembler_ = allow; }
 
  protected:
+  void SetAllowAssembler(bool allow) { allow_assembler_ = allow; }
+
+  // CodeBufferCheckScope must be able to temporarily allow the assembler.
+  friend class vixl::CodeBufferCheckScope;
+
   // Buffer where the code is emitted.
   CodeBuffer buffer_;
 
