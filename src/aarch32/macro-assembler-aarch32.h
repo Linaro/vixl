@@ -2145,15 +2145,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Ldr(Register rt, const MemOperand& operand) { Ldr(al, rt, operand); }
 
-  void Ldr(Condition cond, Register rt, Label* label) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    ldr(cond, rt, label);
-  }
-  void Ldr(Register rt, Label* label) { Ldr(al, rt, label); }
 
   void Ldrb(Condition cond, Register rt, const MemOperand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
@@ -2177,15 +2168,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Ldrb(Register rt, const MemOperand& operand) { Ldrb(al, rt, operand); }
 
-  void Ldrb(Condition cond, Register rt, Label* label) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    ldrb(cond, rt, label);
-  }
-  void Ldrb(Register rt, Label* label) { Ldrb(al, rt, label); }
 
   void Ldrd(Condition cond,
             Register rt,
@@ -2204,18 +2186,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     Ldrd(al, rt, rt2, operand);
   }
 
-  void Ldrd(Condition cond, Register rt, Register rt2, Label* label) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt2));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    ldrd(cond, rt, rt2, label);
-  }
-  void Ldrd(Register rt, Register rt2, Label* label) {
-    Ldrd(al, rt, rt2, label);
-  }
 
   void Ldrex(Condition cond, Register rt, const MemOperand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
@@ -2293,15 +2263,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Ldrh(Register rt, const MemOperand& operand) { Ldrh(al, rt, operand); }
 
-  void Ldrh(Condition cond, Register rt, Label* label) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    ldrh(cond, rt, label);
-  }
-  void Ldrh(Register rt, Label* label) { Ldrh(al, rt, label); }
 
   void Ldrsb(Condition cond, Register rt, const MemOperand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
@@ -2320,15 +2281,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Ldrsb(Register rt, const MemOperand& operand) { Ldrsb(al, rt, operand); }
 
-  void Ldrsb(Condition cond, Register rt, Label* label) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    ldrsb(cond, rt, label);
-  }
-  void Ldrsb(Register rt, Label* label) { Ldrsb(al, rt, label); }
 
   void Ldrsh(Condition cond, Register rt, const MemOperand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
@@ -2347,15 +2299,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Ldrsh(Register rt, const MemOperand& operand) { Ldrsh(al, rt, operand); }
 
-  void Ldrsh(Condition cond, Register rt, Label* label) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    ldrsh(cond, rt, label);
-  }
-  void Ldrsh(Register rt, Label* label) { Ldrsh(al, rt, label); }
 
   void Lsl(Condition cond, Register rd, Register rm, const Operand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
@@ -7478,21 +7421,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     Vldmia(al, kDataTypeValueNone, rn, write_back, sreglist);
   }
 
-  void Vldr(Condition cond, DataType dt, DRegister rd, Label* label) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    vldr(cond, dt, rd, label);
-  }
-  void Vldr(DataType dt, DRegister rd, Label* label) {
-    Vldr(al, dt, rd, label);
-  }
-  void Vldr(Condition cond, DRegister rd, Label* label) {
-    Vldr(cond, Untyped64, rd, label);
-  }
-  void Vldr(DRegister rd, Label* label) { Vldr(al, Untyped64, rd, label); }
 
   void Vldr(Condition cond,
             DataType dt,
@@ -7516,21 +7444,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     Vldr(al, Untyped64, rd, operand);
   }
 
-  void Vldr(Condition cond, DataType dt, SRegister rd, Label* label) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    vldr(cond, dt, rd, label);
-  }
-  void Vldr(DataType dt, SRegister rd, Label* label) {
-    Vldr(al, dt, rd, label);
-  }
-  void Vldr(Condition cond, SRegister rd, Label* label) {
-    Vldr(cond, Untyped32, rd, label);
-  }
-  void Vldr(SRegister rd, Label* label) { Vldr(al, Untyped32, rd, label); }
 
   void Vldr(Condition cond,
             DataType dt,
