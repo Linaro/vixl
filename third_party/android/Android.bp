@@ -85,6 +85,7 @@ cc_defaults {
     defaults: ["vixl-common"],
     cppflags: [
         "-DVIXL_CODE_BUFFER_MALLOC",
+        "-DVIXL_INCLUDE_TARGET_T32",
         ],
     srcs: ["src/aarch32/*.cc"],
 }
@@ -95,6 +96,7 @@ cc_defaults {
     cppflags: [
         "-DVIXL_INCLUDE_SIMULATOR_AARCH64",
         "-DVIXL_CODE_BUFFER_MMAP",
+        "-DVIXL_INCLUDE_TARGET_A64",
         ],
     srcs: ["src/aarch64/*.cc"],
 }
