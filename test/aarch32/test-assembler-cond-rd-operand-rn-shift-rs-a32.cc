@@ -2196,8 +2196,12 @@ const TestData kTests[] = {
     {{vc, r9, r9, LSL, r7}, false, al, "vc r9 r9 LSL r7", "vc_r9_r9_LSL_r7"},
     {{mi, r7, r0, LSL, r4}, false, al, "mi r7 r0 LSL r4", "mi_r7_r0_LSL_r4"},
     {{cc, r2, r10, ASR, r7}, false, al, "cc r2 r10 ASR r7", "cc_r2_r10_ASR_r7"},
-    {{cs, r5, r10, LSR, r9}, false, al, "cs r5 r10 LSR r9", "cs_r5_r10_LSR_"
-                                                            "r9"}};
+    {{cs, r5, r10, LSR, r9},
+     false,
+     al,
+     "cs r5 r10 LSR r9",
+     "cs_r5_r10_LSR_"
+     "r9"}};
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.

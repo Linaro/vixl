@@ -47,127 +47,127 @@ struct UintIntTest {
 // Test IsUintN() and IsIntN() against various values and integral types.
 TEST(IsUint_IsInt) {
   UintIntTest<uint32_t> test_little_values_unsigned[] = {
-    { true,  true,  1, UINT32_C(0x0) },
-    { true,  false, 1, UINT32_C(0x1) },
-    { false, false, 1, UINT32_C(0x2) },
-    { false, false, 1, UINT32_C(0x3) },
-    { false, false, 1, UINT32_C(0x4) },
-    { false, false, 1, UINT32_C(0x5) },
-    { false, false, 1, UINT32_C(0x6) },
-    { false, false, 1, UINT32_C(0x7) },
-    { false, false, 1, UINT32_C(0x8) },
-    { false, false, 1, UINT32_C(0x9) },
-    { false, false, 1, UINT32_C(0xa) },
-    { false, false, 1, UINT32_C(0xb) },
-    { false, false, 1, UINT32_C(0xc) },
-    { false, false, 1, UINT32_C(0xd) },
-    { false, false, 1, UINT32_C(0xe) },
-    { false, false, 1, UINT32_C(0xf) },
+      {true, true, 1, UINT32_C(0x0)},
+      {true, false, 1, UINT32_C(0x1)},
+      {false, false, 1, UINT32_C(0x2)},
+      {false, false, 1, UINT32_C(0x3)},
+      {false, false, 1, UINT32_C(0x4)},
+      {false, false, 1, UINT32_C(0x5)},
+      {false, false, 1, UINT32_C(0x6)},
+      {false, false, 1, UINT32_C(0x7)},
+      {false, false, 1, UINT32_C(0x8)},
+      {false, false, 1, UINT32_C(0x9)},
+      {false, false, 1, UINT32_C(0xa)},
+      {false, false, 1, UINT32_C(0xb)},
+      {false, false, 1, UINT32_C(0xc)},
+      {false, false, 1, UINT32_C(0xd)},
+      {false, false, 1, UINT32_C(0xe)},
+      {false, false, 1, UINT32_C(0xf)},
 
-    { true,  true,  2, UINT32_C(0x0) },
-    { true,  true,  2, UINT32_C(0x1) },
-    { true,  false, 2, UINT32_C(0x2) },
-    { true,  false, 2, UINT32_C(0x3) },
-    { false, false, 2, UINT32_C(0x4) },
-    { false, false, 2, UINT32_C(0x5) },
-    { false, false, 2, UINT32_C(0x6) },
-    { false, false, 2, UINT32_C(0x7) },
-    { false, false, 2, UINT32_C(0x8) },
-    { false, false, 2, UINT32_C(0x9) },
-    { false, false, 2, UINT32_C(0xa) },
-    { false, false, 2, UINT32_C(0xb) },
-    { false, false, 2, UINT32_C(0xc) },
-    { false, false, 2, UINT32_C(0xd) },
-    { false, false, 2, UINT32_C(0xe) },
-    { false, false, 2, UINT32_C(0xf) },
+      {true, true, 2, UINT32_C(0x0)},
+      {true, true, 2, UINT32_C(0x1)},
+      {true, false, 2, UINT32_C(0x2)},
+      {true, false, 2, UINT32_C(0x3)},
+      {false, false, 2, UINT32_C(0x4)},
+      {false, false, 2, UINT32_C(0x5)},
+      {false, false, 2, UINT32_C(0x6)},
+      {false, false, 2, UINT32_C(0x7)},
+      {false, false, 2, UINT32_C(0x8)},
+      {false, false, 2, UINT32_C(0x9)},
+      {false, false, 2, UINT32_C(0xa)},
+      {false, false, 2, UINT32_C(0xb)},
+      {false, false, 2, UINT32_C(0xc)},
+      {false, false, 2, UINT32_C(0xd)},
+      {false, false, 2, UINT32_C(0xe)},
+      {false, false, 2, UINT32_C(0xf)},
   };
 
   UintIntTest<int32_t> test_little_values_signed[] = {
-    { true,  true,  1, INT32_C(0)  },
-    { true,  false, 1, INT32_C(1)  },
-    { false, false, 1, INT32_C(2)  },
-    { false, false, 1, INT32_C(3)  },
-    { false, false, 1, INT32_C(4)  },
-    { false, false, 1, INT32_C(5)  },
-    { false, false, 1, INT32_C(6)  },
-    { false, false, 1, INT32_C(7)  },
-    { false, true,  1, INT32_C(-1) },
-    { false, false, 1, INT32_C(-2) },
-    { false, false, 1, INT32_C(-3) },
-    { false, false, 1, INT32_C(-4) },
-    { false, false, 1, INT32_C(-5) },
-    { false, false, 1, INT32_C(-6) },
-    { false, false, 1, INT32_C(-7) },
-    { false, false, 1, INT32_C(-8) },
+      {true, true, 1, INT32_C(0)},
+      {true, false, 1, INT32_C(1)},
+      {false, false, 1, INT32_C(2)},
+      {false, false, 1, INT32_C(3)},
+      {false, false, 1, INT32_C(4)},
+      {false, false, 1, INT32_C(5)},
+      {false, false, 1, INT32_C(6)},
+      {false, false, 1, INT32_C(7)},
+      {false, true, 1, INT32_C(-1)},
+      {false, false, 1, INT32_C(-2)},
+      {false, false, 1, INT32_C(-3)},
+      {false, false, 1, INT32_C(-4)},
+      {false, false, 1, INT32_C(-5)},
+      {false, false, 1, INT32_C(-6)},
+      {false, false, 1, INT32_C(-7)},
+      {false, false, 1, INT32_C(-8)},
 
-    { true,  true,  2, INT32_C(0)  },
-    { true,  true,  2, INT32_C(1)  },
-    { true,  false, 2, INT32_C(2)  },
-    { true,  false, 2, INT32_C(3)  },
-    { false, false, 2, INT32_C(4)  },
-    { false, false, 2, INT32_C(5)  },
-    { false, false, 2, INT32_C(6)  },
-    { false, false, 2, INT32_C(7)  },
-    { false, true,  2, INT32_C(-1) },
-    { false, true,  2, INT32_C(-2) },
-    { false, false, 2, INT32_C(-3) },
-    { false, false, 2, INT32_C(-4) },
-    { false, false, 2, INT32_C(-5) },
-    { false, false, 2, INT32_C(-6) },
-    { false, false, 2, INT32_C(-7) },
-    { false, false, 2, INT32_C(-8) },
+      {true, true, 2, INT32_C(0)},
+      {true, true, 2, INT32_C(1)},
+      {true, false, 2, INT32_C(2)},
+      {true, false, 2, INT32_C(3)},
+      {false, false, 2, INT32_C(4)},
+      {false, false, 2, INT32_C(5)},
+      {false, false, 2, INT32_C(6)},
+      {false, false, 2, INT32_C(7)},
+      {false, true, 2, INT32_C(-1)},
+      {false, true, 2, INT32_C(-2)},
+      {false, false, 2, INT32_C(-3)},
+      {false, false, 2, INT32_C(-4)},
+      {false, false, 2, INT32_C(-5)},
+      {false, false, 2, INT32_C(-6)},
+      {false, false, 2, INT32_C(-7)},
+      {false, false, 2, INT32_C(-8)},
   };
 
   UintIntTest<uint32_t> test_u16[] = {
-    { true,  true,  16, UINT32_C(0x0)        },
-    { true,  false, 16, UINT32_C(0xabcd)     },
-    { true,  false, 16, UINT32_C(0x8000)     },
-    { true,  false, 16, UINT32_C(0xffff)     },
-    { false, false, 16, UINT32_C(0x10000)    },
-    { false, false, 16, UINT32_C(0xffff0000) },
-    { false, false, 16, UINT32_C(0xffff8000) },
-    { false, false, 16, UINT32_C(0xffffffff) },
+      {true, true, 16, UINT32_C(0x0)},
+      {true, false, 16, UINT32_C(0xabcd)},
+      {true, false, 16, UINT32_C(0x8000)},
+      {true, false, 16, UINT32_C(0xffff)},
+      {false, false, 16, UINT32_C(0x10000)},
+      {false, false, 16, UINT32_C(0xffff0000)},
+      {false, false, 16, UINT32_C(0xffff8000)},
+      {false, false, 16, UINT32_C(0xffffffff)},
   };
 
   UintIntTest<int32_t> test_i16[] = {
-    { true,  true,  16, INT32_C(0x0)     },
-    { true,  false, 16, INT32_C(0xabcd)  },
-    { true,  false, 16, INT32_C(0x8000)  },
-    { true,  false, 16, INT32_C(0xffff)  },
-    { false, false, 16, INT32_C(0x10000) },
-    { true,  true,  16, INT32_C(42)      },
-    { false, true,  16, INT32_C(-42)     },
-    { false, true,  16, INT32_C(-1)      },
+      {true, true, 16, INT32_C(0x0)},
+      {true, false, 16, INT32_C(0xabcd)},
+      {true, false, 16, INT32_C(0x8000)},
+      {true, false, 16, INT32_C(0xffff)},
+      {false, false, 16, INT32_C(0x10000)},
+      {true, true, 16, INT32_C(42)},
+      {false, true, 16, INT32_C(-42)},
+      {false, true, 16, INT32_C(-1)},
   };
 
   UintIntTest<uint64_t> test_u32[] = {
-    { true,  true,  32, UINT64_C(0x0)        },
-    { true,  false, 32, UINT64_C(0xabcdabcd) },
-    { true,  false, 32, UINT64_C(0x80000000) },
-    { true,  false, 32, UINT64_C(0xffffffff) },
+      {true, true, 32, UINT64_C(0x0)},
+      {true, false, 32, UINT64_C(0xabcdabcd)},
+      {true, false, 32, UINT64_C(0x80000000)},
+      {true, false, 32, UINT64_C(0xffffffff)},
   };
 
   UintIntTest<int64_t> test_i32[] = {
-    { true,  true,  32, INT64_C(0)           },
-    { true,  true,  32, INT64_C(42)          },
-    { false, true,  32, INT64_C(-42)         },
-    { false, true,  32, INT64_C(-1)          },
-    { true,  true,  32, INT64_C(2147483647)  }, // (1 << (32 - 1)) - 1
-    { false, true,  32, INT64_C(-2147483648) }, // -(1 << (32 - 1))
+      {true, true, 32, INT64_C(0)},
+      {true, true, 32, INT64_C(42)},
+      {false, true, 32, INT64_C(-42)},
+      {false, true, 32, INT64_C(-1)},
+      {true, true, 32, INT64_C(2147483647)},    // (1 << (32 - 1)) - 1
+      {false, true, 32, INT64_C(-2147483648)},  // -(1 << (32 - 1))
   };
 
   UintIntTest<uint64_t> test_unsigned_higher_than_32[] = {
-    { false, false, 54, UINT64_C(0xabcdef9012345678) },
-    { true,  false, 33, UINT64_C(0x100000000)        },
-    { true,  false, 62, UINT64_C(0x3fffffffffffffff) },
-    { true,  false, 63, UINT64_C(0x7fffffffffffffff) },
+      {false, false, 54, UINT64_C(0xabcdef9012345678)},
+      {true, false, 33, UINT64_C(0x100000000)},
+      {true, false, 62, UINT64_C(0x3fffffffffffffff)},
+      {true, false, 63, UINT64_C(0x7fffffffffffffff)},
   };
 
   UintIntTest<int64_t> test_signed_higher_than_32[] = {
-    { true,  true,  54, INT64_C(9007199254740991) }, // (1 << (54 - 1)) - 1
-    { true,  false, 54, INT64_C(9007199254740992) }, // 1 << (54 - 1)
-    { true,  true,  33, INT64_C(4294967295)       }, // (1 << (33 - 1) - 1)
-    { false, true,  33, INT64_C(-4294967296)      }, // -(1 << (33 - 1))
+      {true, true, 54, INT64_C(9007199254740991)},   // (1 << (54 - 1)) - 1
+      {true, false, 54, INT64_C(9007199254740992)},  // 1 << (54 - 1)
+      {true, true, 33, INT64_C(4294967295)},         // (1 << (33 - 1) - 1)
+      {false, true, 33, INT64_C(-4294967296)},       // -(1 << (33 - 1))
   };
 
 #define TEST_LIST(M)              \
@@ -181,7 +181,7 @@ TEST(IsUint_IsInt) {
   M(test_signed_higher_than_32)
 
 
-#define TEST_UINT(test_vector) \
+#define TEST_UINT(test_vector)                                  \
   for (unsigned i = 0; i < ARRAY_SIZE(test_vector); i++) {      \
     if (test_vector[i].is_uintn) {                              \
       VIXL_CHECK(IsUintN(test_vector[i].n, test_vector[i].x));  \
@@ -190,17 +190,17 @@ TEST(IsUint_IsInt) {
     }                                                           \
   }
 
-#define TEST_INT(test_vector) \
-  for (unsigned i = 0; i < ARRAY_SIZE(test_vector); i++) {      \
-    if (test_vector[i].is_intn) {                               \
-      VIXL_CHECK(IsIntN(test_vector[i].n, test_vector[i].x));   \
-    } else {                                                    \
-      VIXL_CHECK(!IsIntN(test_vector[i].n, test_vector[i].x));  \
-    }                                                           \
+#define TEST_INT(test_vector)                                  \
+  for (unsigned i = 0; i < ARRAY_SIZE(test_vector); i++) {     \
+    if (test_vector[i].is_intn) {                              \
+      VIXL_CHECK(IsIntN(test_vector[i].n, test_vector[i].x));  \
+    } else {                                                   \
+      VIXL_CHECK(!IsIntN(test_vector[i].n, test_vector[i].x)); \
+    }                                                          \
   }
 
-TEST_LIST(TEST_UINT)
-TEST_LIST(TEST_INT)
+  TEST_LIST(TEST_UINT)
+  TEST_LIST(TEST_INT)
 
 #undef TEST_UINT
 #undef TEST_INT

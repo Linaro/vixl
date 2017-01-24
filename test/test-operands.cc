@@ -33,7 +33,7 @@
 #include "aarch32/operands-aarch32.h"
 #endif
 
-#define TEST_AARCH32(name)  TEST_(AARCH32_OPERANDS_##name)
+#define TEST_AARCH32(name) TEST_(AARCH32_OPERANDS_##name)
 
 namespace vixl {
 

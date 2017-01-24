@@ -42,8 +42,7 @@ namespace aarch64 {
 
 // This value is a signalling NaN as both a double and as a float (taking the
 // least-significant word).
-const double kFP64SignallingNaN =
-    RawbitsToDouble(UINT64_C(0x7ff000007f800001));
+const double kFP64SignallingNaN = RawbitsToDouble(UINT64_C(0x7ff000007f800001));
 const float kFP32SignallingNaN = RawbitsToFloat(0x7f800001);
 
 // A similar value, but as a quiet NaN.
@@ -54,7 +53,8 @@ const float kFP32QuietNaN = RawbitsToFloat(0x7fc00001);
 bool Equal32(uint32_t expected, const RegisterDump*, uint32_t result) {
   if (result != expected) {
     printf("Expected 0x%08" PRIx32 "\t Found 0x%08" PRIx32 "\n",
-           expected, result);
+           expected,
+           result);
   }
 
   return expected == result;
@@ -64,7 +64,8 @@ bool Equal32(uint32_t expected, const RegisterDump*, uint32_t result) {
 bool Equal64(uint64_t expected, const RegisterDump*, uint64_t result) {
   if (result != expected) {
     printf("Expected 0x%016" PRIx64 "\t Found 0x%016" PRIx64 "\n",
-           expected, result);
+           expected,
+           result);
   }
 
   return expected == result;
@@ -73,9 +74,13 @@ bool Equal64(uint64_t expected, const RegisterDump*, uint64_t result) {
 
 bool Equal128(vec128_t expected, const RegisterDump*, vec128_t result) {
   if ((result.h != expected.h) || (result.l != expected.l)) {
-    printf("Expected 0x%016" PRIx64 "%016" PRIx64 "\t "
+    printf("Expected 0x%016" PRIx64 "%016" PRIx64
+           "\t "
            "Found 0x%016" PRIx64 "%016" PRIx64 "\n",
-           expected.h, expected.l, result.h, result.l);
+           expected.h,
+           expected.l,
+           result.h,
+           result.l);
   }
 
   return ((expected.h == result.h) && (expected.l == result.l));
@@ -88,12 +93,16 @@ bool EqualFP32(float expected, const RegisterDump*, float result) {
   } else {
     if (std::isnan(expected) || (expected == 0.0)) {
       printf("Expected 0x%08" PRIx32 "\t Found 0x%08" PRIx32 "\n",
-             FloatToRawbits(expected), FloatToRawbits(result));
+             FloatToRawbits(expected),
+             FloatToRawbits(result));
     } else {
-      printf("Expected %.9f (0x%08" PRIx32 ")\t "
+      printf("Expected %.9f (0x%08" PRIx32
+             ")\t "
              "Found %.9f (0x%08" PRIx32 ")\n",
-             expected, FloatToRawbits(expected),
-             result, FloatToRawbits(result));
+             expected,
+             FloatToRawbits(expected),
+             result,
+             FloatToRawbits(result));
     }
     return false;
   }
@@ -107,12 +116,16 @@ bool EqualFP64(double expected, const RegisterDump*, double result) {
 
   if (std::isnan(expected) || (expected == 0.0)) {
     printf("Expected 0x%016" PRIx64 "\t Found 0x%016" PRIx64 "\n",
-           DoubleToRawbits(expected), DoubleToRawbits(result));
+           DoubleToRawbits(expected),
+           DoubleToRawbits(result));
   } else {
-    printf("Expected %.17f (0x%016" PRIx64 ")\t "
+    printf("Expected %.17f (0x%016" PRIx64
+           ")\t "
            "Found %.17f (0x%016" PRIx64 ")\n",
-           expected, DoubleToRawbits(expected),
-           result, DoubleToRawbits(result));
+           expected,
+           DoubleToRawbits(expected),
+           result,
+           DoubleToRawbits(result));
   }
   return false;
 }
@@ -125,7 +138,8 @@ bool Equal32(uint32_t expected, const RegisterDump* core, const Register& reg) {
   int64_t result_x = core->xreg(reg.GetCode());
   if ((result_x & 0xffffffff00000000) != 0) {
     printf("Expected 0x%08" PRIx32 "\t Found 0x%016" PRIx64 "\n",
-           expected, result_x);
+           expected,
+           result_x);
     return false;
   }
   uint32_t result_w = core->wreg(reg.GetCode());
@@ -160,7 +174,9 @@ bool EqualFP32(float expected,
   uint64_t result_64 = core->dreg_bits(fpreg.GetCode());
   if ((result_64 & 0xffffffff00000000) != 0) {
     printf("Expected 0x%08" PRIx32 " (%f)\t Found 0x%016" PRIx64 "\n",
-           FloatToRawbits(expected), expected, result_64);
+           FloatToRawbits(expected),
+           expected,
+           result_64);
     return false;
   }
 
@@ -195,24 +211,16 @@ bool Equal64(uint64_t expected,
 }
 
 
-static char FlagN(uint32_t flags) {
-  return (flags & NFlag) ? 'N' : 'n';
-}
+static char FlagN(uint32_t flags) { return (flags & NFlag) ? 'N' : 'n'; }
 
 
-static char FlagZ(uint32_t flags) {
-  return (flags & ZFlag) ? 'Z' : 'z';
-}
+static char FlagZ(uint32_t flags) { return (flags & ZFlag) ? 'Z' : 'z'; }
 
 
-static char FlagC(uint32_t flags) {
-  return (flags & CFlag) ? 'C' : 'c';
-}
+static char FlagC(uint32_t flags) { return (flags & CFlag) ? 'C' : 'c'; }
 
 
-static char FlagV(uint32_t flags) {
-  return (flags & VFlag) ? 'V' : 'v';
-}
+static char FlagV(uint32_t flags) { return (flags & VFlag) ? 'V' : 'v'; }
 
 
 bool EqualNzcv(uint32_t expected, uint32_t result) {
@@ -220,8 +228,14 @@ bool EqualNzcv(uint32_t expected, uint32_t result) {
   VIXL_ASSERT((result & ~NZCVFlag) == 0);
   if (result != expected) {
     printf("Expected: %c%c%c%c\t Found: %c%c%c%c\n",
-        FlagN(expected), FlagZ(expected), FlagC(expected), FlagV(expected),
-        FlagN(result), FlagZ(result), FlagC(result), FlagV(result));
+           FlagN(expected),
+           FlagZ(expected),
+           FlagC(expected),
+           FlagV(expected),
+           FlagN(result),
+           FlagZ(result),
+           FlagC(result),
+           FlagV(result));
     return false;
   }
 
@@ -233,7 +247,9 @@ bool EqualRegisters(const RegisterDump* a, const RegisterDump* b) {
   for (unsigned i = 0; i < kNumberOfRegisters; i++) {
     if (a->xreg(i) != b->xreg(i)) {
       printf("x%d\t Expected 0x%016" PRIx64 "\t Found 0x%016" PRIx64 "\n",
-             i, a->xreg(i), b->xreg(i));
+             i,
+             a->xreg(i),
+             b->xreg(i));
       return false;
     }
   }
@@ -243,7 +259,9 @@ bool EqualRegisters(const RegisterDump* a, const RegisterDump* b) {
     uint64_t b_bits = b->dreg_bits(i);
     if (a_bits != b_bits) {
       printf("d%d\t Expected 0x%016" PRIx64 "\t Found 0x%016" PRIx64 "\n",
-             i, a_bits, b_bits);
+             i,
+             a_bits,
+             b_bits);
       return false;
     }
   }
@@ -252,8 +270,12 @@ bool EqualRegisters(const RegisterDump* a, const RegisterDump* b) {
 }
 
 
-RegList PopulateRegisterArray(Register* w, Register* x, Register* r,
-                              int reg_size, int reg_count, RegList allowed) {
+RegList PopulateRegisterArray(Register* w,
+                              Register* x,
+                              Register* r,
+                              int reg_size,
+                              int reg_count,
+                              RegList allowed) {
   RegList list = 0;
   int i = 0;
   for (unsigned n = 0; (n < kNumberOfRegisters) && (i < reg_count); n++) {
@@ -279,8 +301,12 @@ RegList PopulateRegisterArray(Register* w, Register* x, Register* r,
 }
 
 
-RegList PopulateFPRegisterArray(FPRegister* s, FPRegister* d, FPRegister* v,
-                                int reg_size, int reg_count, RegList allowed) {
+RegList PopulateFPRegisterArray(FPRegister* s,
+                                FPRegister* d,
+                                FPRegister* v,
+                                int reg_size,
+                                int reg_count,
+                                RegList allowed) {
   RegList list = 0;
   int i = 0;
   for (unsigned n = 0; (n < kNumberOfFPRegisters) && (i < reg_count); n++) {
@@ -403,35 +429,40 @@ void RegisterDump::Dump(MacroAssembler* masm) {
   // Dump X registers.
   __ Add(dump, dump_base, x_offset);
   for (unsigned i = 0; i < kNumberOfRegisters; i += 2) {
-    __ Stp(Register::GetXRegFromCode(i), Register::GetXRegFromCode(i + 1),
+    __ Stp(Register::GetXRegFromCode(i),
+           Register::GetXRegFromCode(i + 1),
            MemOperand(dump, i * kXRegSizeInBytes));
   }
 
   // Dump W registers.
   __ Add(dump, dump_base, w_offset);
   for (unsigned i = 0; i < kNumberOfRegisters; i += 2) {
-    __ Stp(Register::GetWRegFromCode(i), Register::GetWRegFromCode(i + 1),
+    __ Stp(Register::GetWRegFromCode(i),
+           Register::GetWRegFromCode(i + 1),
            MemOperand(dump, i * kWRegSizeInBytes));
   }
 
   // Dump D registers.
   __ Add(dump, dump_base, d_offset);
   for (unsigned i = 0; i < kNumberOfFPRegisters; i += 2) {
-    __ Stp(FPRegister::GetDRegFromCode(i), FPRegister::GetDRegFromCode(i + 1),
+    __ Stp(FPRegister::GetDRegFromCode(i),
+           FPRegister::GetDRegFromCode(i + 1),
            MemOperand(dump, i * kDRegSizeInBytes));
   }
 
   // Dump S registers.
   __ Add(dump, dump_base, s_offset);
   for (unsigned i = 0; i < kNumberOfFPRegisters; i += 2) {
-    __ Stp(FPRegister::GetSRegFromCode(i), FPRegister::GetSRegFromCode(i + 1),
+    __ Stp(FPRegister::GetSRegFromCode(i),
+           FPRegister::GetSRegFromCode(i + 1),
            MemOperand(dump, i * kSRegSizeInBytes));
   }
 
   // Dump Q registers.
   __ Add(dump, dump_base, q_offset);
   for (unsigned i = 0; i < kNumberOfVRegisters; i += 2) {
-    __ Stp(VRegister::GetQRegFromCode(i), VRegister::GetQRegFromCode(i + 1),
+    __ Stp(VRegister::GetQRegFromCode(i),
+           VRegister::GetQRegFromCode(i + 1),
            MemOperand(dump, i * kQRegSizeInBytes));
   }
 

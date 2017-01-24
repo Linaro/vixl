@@ -34,7 +34,7 @@ namespace vixl {
 // Each actual test is represented by a Test instance.
 // Tests are appended to a static linked list upon creation.
 class Test {
-  typedef void (TestFunction)();
+  typedef void(TestFunction)();
 
  public:
   Test(const char* name, TestFunction* callback);
@@ -90,10 +90,10 @@ class Test {
 
 // Macro to register a test. It instantiates a Test and registers its
 // callback function.
-#define TEST_(Name)                                                            \
-void Test##Name();                                                             \
-Test test_##Name(#Name, &Test##Name);                                          \
-void Test##Name()
+#define TEST_(Name)                     \
+  void Test##Name();                    \
+  Test test_##Name(#Name, &Test##Name); \
+  void Test##Name()
 }  // namespace vixl
 
 #endif  // TEST_TEST_H_

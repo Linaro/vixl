@@ -41,139 +41,133 @@ namespace aarch32 {
 #define STRINGIFY(x) #x
 
 #ifdef VIXL_INCLUDE_TARGET_A32_ONLY
-#define TEST_T32(Name)                                            \
-void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
+#define TEST_T32(Name) \
+  void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
 #else
 // Tests declared with this macro will only target T32.
-#define TEST_T32(Name)                                            \
-void Test##Name##Impl(InstructionSet isa);                        \
-void Test##Name() {                                               \
-  Test##Name##Impl(T32);                                          \
-}                                                                 \
-Test test_##Name(STRINGIFY(AARCH32_T32_##Name), &Test##Name);     \
-void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
+#define TEST_T32(Name)                                          \
+  void Test##Name##Impl(InstructionSet isa);                    \
+  void Test##Name() { Test##Name##Impl(T32); }                  \
+  Test test_##Name(STRINGIFY(AARCH32_T32_##Name), &Test##Name); \
+  void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
 #endif
 
 #ifdef VIXL_INCLUDE_TARGET_T32_ONLY
-#define TEST_A32(Name)                                            \
-void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
+#define TEST_A32(Name) \
+  void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
 #else
 // Test declared with this macro will only target A32.
-#define TEST_A32(Name)                                            \
-void Test##Name##Impl(InstructionSet isa);                        \
-void Test##Name() {                                               \
-  Test##Name##Impl(A32);                                          \
-}                                                                 \
-Test test_##Name(STRINGIFY(AARCH32_A32_##Name), &Test##Name);     \
-void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
+#define TEST_A32(Name)                                          \
+  void Test##Name##Impl(InstructionSet isa);                    \
+  void Test##Name() { Test##Name##Impl(A32); }                  \
+  Test test_##Name(STRINGIFY(AARCH32_A32_##Name), &Test##Name); \
+  void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
 #endif
 
 // Tests declared with this macro will be run twice: once targeting A32 and
 // once targeting T32.
 #if defined(VIXL_INCLUDE_TARGET_A32_ONLY)
-#define TEST(Name)  TEST_A32(Name)
+#define TEST(Name) TEST_A32(Name)
 #elif defined(VIXL_INCLUDE_TARGET_T32_ONLY)
-#define TEST(Name)  TEST_T32(Name)
+#define TEST(Name) TEST_T32(Name)
 #else
-#define TEST(Name)                                                \
-void Test##Name##Impl(InstructionSet isa);                        \
-void Test##Name() {                                               \
-  Test##Name##Impl(A32);                                          \
-  printf(" > A32 done\n");                                        \
-  Test##Name##Impl(T32);                                          \
-  printf(" > T32 done\n");                                        \
-}                                                                 \
-Test test_##Name(STRINGIFY(AARCH32_ASM_##Name), &Test##Name);     \
-void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
+#define TEST(Name)                                              \
+  void Test##Name##Impl(InstructionSet isa);                    \
+  void Test##Name() {                                           \
+    Test##Name##Impl(A32);                                      \
+    printf(" > A32 done\n");                                    \
+    Test##Name##Impl(T32);                                      \
+    printf(" > T32 done\n");                                    \
+  }                                                             \
+  Test test_##Name(STRINGIFY(AARCH32_ASM_##Name), &Test##Name); \
+  void Test##Name##Impl(InstructionSet isa __attribute__((unused)))
 #endif
 
 // Tests declared with this macro are not expected to use any provided test
 // helpers such as SETUP, RUN, etc.
-#define TEST_NOASM(Name)                                   \
-void Test##Name();                                         \
-Test test_##Name(STRINGIFY(AARCH32_##Name), &Test##Name);  \
-void Test##Name()
+#define TEST_NOASM(Name)                                    \
+  void Test##Name();                                        \
+  Test test_##Name(STRINGIFY(AARCH32_##Name), &Test##Name); \
+  void Test##Name()
 
 #define __ masm.
 #define BUF_SIZE (4096)
 
-#define ASSERT_LITERAL_POOL_SIZE(size) \
-    do { VIXL_CHECK(__ GetLiteralPoolSize() == size); } while (false)
+#define ASSERT_LITERAL_POOL_SIZE(size)           \
+  do {                                           \
+    VIXL_CHECK(__ GetLiteralPoolSize() == size); \
+  } while (false)
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 // No simulator yet.
 
-#define SETUP()                                             \
-  MacroAssembler masm(BUF_SIZE, isa);                       \
+#define SETUP() MacroAssembler masm(BUF_SIZE, isa);
 
-#define START() \
-  masm.GetBuffer()->Reset();
+#define START() masm.GetBuffer()->Reset();
 
-#define END()                                                                  \
-  __ Hlt(0);                                                                   \
+#define END() \
+  __ Hlt(0);  \
   __ FinalizeCode();
 
-#define RUN()                                                                  \
-  DISASSEMBLE();
+#define RUN() DISASSEMBLE();
 
 #define TEARDOWN()
 
 #else  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32.
 
-#define SETUP()                                                                \
-  RegisterDump core;                                                           \
-  MacroAssembler masm(BUF_SIZE, isa);                                          \
-  UseScratchRegisterScope harness_scratch(&masm);                              \
+#define SETUP()                                   \
+  RegisterDump core;                              \
+  MacroAssembler masm(BUF_SIZE, isa);             \
+  UseScratchRegisterScope harness_scratch(&masm); \
   harness_scratch.ExcludeAll();
 
-#define START()                                                                \
-  masm.GetBuffer()->Reset();                                                   \
-  __ Push(r4);                                                                 \
-  __ Push(r5);                                                                 \
-  __ Push(r6);                                                                 \
-  __ Push(r7);                                                                 \
-  __ Push(r8);                                                                 \
-  __ Push(r9);                                                                 \
-  __ Push(r10);                                                                \
-  __ Push(r11);                                                                \
-  __ Push(ip);                                                                 \
-  __ Push(lr);                                                                 \
-  __ Mov(r0, 0);                                                               \
-  __ Msr(APSR_nzcvq, r0);                                                      \
+#define START()              \
+  masm.GetBuffer()->Reset(); \
+  __ Push(r4);               \
+  __ Push(r5);               \
+  __ Push(r6);               \
+  __ Push(r7);               \
+  __ Push(r8);               \
+  __ Push(r9);               \
+  __ Push(r10);              \
+  __ Push(r11);              \
+  __ Push(ip);               \
+  __ Push(lr);               \
+  __ Mov(r0, 0);             \
+  __ Msr(APSR_nzcvq, r0);    \
   harness_scratch.Include(ip);
 
-#define END()                                                                  \
-  harness_scratch.Exclude(ip);                                                 \
-  core.Dump(&masm);                                                            \
-  __ Pop(lr);                                                                  \
-  __ Pop(ip);                                                                  \
-  __ Pop(r11);                                                                 \
-  __ Pop(r10);                                                                 \
-  __ Pop(r9);                                                                  \
-  __ Pop(r8);                                                                  \
-  __ Pop(r7);                                                                  \
-  __ Pop(r6);                                                                  \
-  __ Pop(r5);                                                                  \
-  __ Pop(r4);                                                                  \
-  __ Bx(lr);                                                                   \
+#define END()                  \
+  harness_scratch.Exclude(ip); \
+  core.Dump(&masm);            \
+  __ Pop(lr);                  \
+  __ Pop(ip);                  \
+  __ Pop(r11);                 \
+  __ Pop(r10);                 \
+  __ Pop(r9);                  \
+  __ Pop(r8);                  \
+  __ Pop(r7);                  \
+  __ Pop(r6);                  \
+  __ Pop(r5);                  \
+  __ Pop(r4);                  \
+  __ Bx(lr);                   \
   __ FinalizeCode();
 
 // Execute the generated code from the MacroAssembler's automatic code buffer.
 // Note the offset for ExecuteMemory since the PCS requires that
 // the address be odd in the case of branching to T32 code.
-#define RUN()                                                                  \
-  DISASSEMBLE();                                                               \
-  {                                                                            \
-    int pcs_offset = masm.IsUsingT32() ? 1 : 0;                                \
-    masm.GetBuffer()->SetExecutable();                                         \
-    ExecuteMemory(masm.GetBuffer()->GetStartAddress<byte*>(),                  \
-                  masm.GetSizeOfCodeGenerated(),                               \
-                  pcs_offset);                                                 \
-    masm.GetBuffer()->SetWritable();                                           \
+#define RUN()                                                 \
+  DISASSEMBLE();                                              \
+  {                                                           \
+    int pcs_offset = masm.IsUsingT32() ? 1 : 0;               \
+    masm.GetBuffer()->SetExecutable();                        \
+    ExecuteMemory(masm.GetBuffer()->GetStartAddress<byte*>(), \
+                  masm.GetSizeOfCodeGenerated(),              \
+                  pcs_offset);                                \
+    masm.GetBuffer()->SetWritable();                          \
   }
 
-#define TEARDOWN() \
-  harness_scratch.Close();
+#define TEARDOWN() harness_scratch.Close();
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 
@@ -194,27 +188,27 @@ void Test##Name()
 
 #else
 
-#define ASSERT_EQUAL_32(expected, result)                                      \
+#define ASSERT_EQUAL_32(expected, result) \
   VIXL_CHECK(Equal32(expected, &core, result))
 
-#define ASSERT_EQUAL_64(expected, result)                                      \
+#define ASSERT_EQUAL_64(expected, result) \
   VIXL_CHECK(Equal64(expected, &core, result))
 
-#define ASSERT_EQUAL_128(expected_h, expected_l, result)                       \
+#define ASSERT_EQUAL_128(expected_h, expected_l, result) \
   VIXL_CHECK(Equal128(expected_h, expected_l, &core, result))
 
-#define ASSERT_EQUAL_FP32(expected, result)                                    \
+#define ASSERT_EQUAL_FP32(expected, result) \
   VIXL_CHECK(EqualFP32(expected, &core, result))
 
-#define ASSERT_EQUAL_FP64(expected, result)                                    \
+#define ASSERT_EQUAL_FP64(expected, result) \
   VIXL_CHECK(EqualFP64(expected, &core, result))
 
-#define ASSERT_EQUAL_NZCV(expected)                                            \
+#define ASSERT_EQUAL_NZCV(expected) \
   VIXL_CHECK(EqualNzcv(expected, core.flags_nzcv()))
 
 #endif
 
-#define DISASSEMBLE() \
+#define DISASSEMBLE()                                                          \
   if (Test::disassemble()) {                                                   \
     PrintDisassembler dis(std::cout, 0);                                       \
     if (masm.IsUsingT32()) {                                                   \
@@ -687,13 +681,14 @@ TEST(adr_in_range) {
       size_of_generated_code = 18 * k32BitT32InstructionSizeInBytes +
                                3 * k16BitT32InstructionSizeInBytes;
     }
-    ExactAssemblyScope scope(&masm, size_of_generated_code,
+    ExactAssemblyScope scope(&masm,
+                             size_of_generated_code,
                              ExactAssemblyScope::kExactSize);
 
-    __ mov(r0, 0x0); // Set to zero to indicate success.
+    __ mov(r0, 0x0);  // Set to zero to indicate success.
     __ adr(r1, &label_3);
 
-    __ adr(r2, &label_1);   // Multiple forward references to the same label.
+    __ adr(r2, &label_1);  // Multiple forward references to the same label.
     __ adr(r3, &label_1);
     __ adr(r4, &label_1);
 
@@ -709,9 +704,9 @@ TEST(adr_in_range) {
     __ bx(r2);  // label_1, label_3
 
     __ bind(&label_3);
-    __ adr(r2, &label_3);   // Self-reference (offset 0).
+    __ adr(r2, &label_3);  // Self-reference (offset 0).
     __ eor(r1, r1, r2);
-    __ adr(r2, &label_4);   // Simple forward reference.
+    __ adr(r2, &label_4);  // Simple forward reference.
     if (masm.IsUsingT32()) {
       // The jump target needs to have its least significant bit set to indicate
       // that we are jumping into thumb mode.
@@ -720,10 +715,10 @@ TEST(adr_in_range) {
     __ bx(r2);  // label_4
 
     __ bind(&label_1);
-    __ adr(r2, &label_3);   // Multiple reverse references to the same label.
+    __ adr(r2, &label_3);  // Multiple reverse references to the same label.
     __ adr(r3, &label_3);
     __ adr(r4, &label_3);
-    __ adr(r5, &label_2);   // Simple reverse reference.
+    __ adr(r5, &label_2);  // Simple reverse reference.
     if (masm.IsUsingT32()) {
       // The jump target needs to have its least significant bit set to indicate
       // that we are jumping into thumb mode.
@@ -1244,9 +1239,12 @@ TEST(emit_reused_load_literal_should_not_rewind) {
 
 
 void EmitReusedLoadLiteralStressTest(InstructionSet isa, bool conditional) {
-  // This test stresses loading a literal that is already in the literal pool, for
-  // various positionings on the existing load from that literal. We try to exercise
-  // cases where the two loads result in similar checkpoints for the literal pool.
+  // This test stresses loading a literal that is already in the literal pool,
+  // for
+  // various positionings on the existing load from that literal. We try to
+  // exercise
+  // cases where the two loads result in similar checkpoints for the literal
+  // pool.
   SETUP();
 
   const int ldrd_range = masm.IsUsingA32() ? 255 : 1020;
@@ -1278,9 +1276,12 @@ void EmitReusedLoadLiteralStressTest(InstructionSet isa, bool conditional) {
     Literal<uint64_t> l1(0xcafebeefdeadbaba);
     __ Ldr(r0, &l1);
 
-    // Generate nops, in order to bring the checkpoints of the Ldr and Ldrd closer.
+    // Generate nops, in order to bring the checkpoints of the Ldr and Ldrd
+    // closer.
     {
-      ExactAssemblyScope scope(&masm, n * nop_size, ExactAssemblyScope::kExactSize);
+      ExactAssemblyScope scope(&masm,
+                               n * nop_size,
+                               ExactAssemblyScope::kExactSize);
       for (int i = 0; i < n; ++i) {
         __ nop();
       }
@@ -1335,7 +1336,7 @@ TEST(test_many_loads_from_same_literal) {
   Literal<uint64_t> l0(0xcafebeefdeadbaba);
   __ Ldrd(r0, r1, &l0);
   for (int i = 0; i < 10000; ++i) {
-    __ Add (r2, r2, i);
+    __ Add(r2, r2, i);
     __ Ldrd(r4, r5, &l0);
   }
 
@@ -1355,8 +1356,6 @@ TEST(test_many_loads_from_same_literal) {
 
   TEARDOWN();
 }
-
-
 
 
 // Make sure calling a macro-assembler instruction will generate literal pools
@@ -1459,20 +1458,20 @@ void EmitLdrdLiteralTest(MacroAssembler* masm) {
   const int ldrd_range = masm->IsUsingA32() ? 255 : 1020;
   // We want to emit code up to the maximum literal load range and ensure the
   // pool has not been emitted. Compute the limit (end).
-  ptrdiff_t end =
-      AlignDown(
-          // Align down the PC to 4 bytes as the instruction does when it's
-          // executed.
-          // The PC will be the cursor offset plus the architecture state PC
-          // offset.
-          AlignDown(masm->GetBuffer()->GetCursorOffset() +
-                    masm->GetArchitectureStatePCOffset(), 4) +
+  ptrdiff_t end = AlignDown(
+      // Align down the PC to 4 bytes as the instruction does when it's
+      // executed.
+      // The PC will be the cursor offset plus the architecture state PC
+      // offset.
+      AlignDown(masm->GetBuffer()->GetCursorOffset() +
+                    masm->GetArchitectureStatePCOffset(),
+                4) +
           // Maximum range allowed to access the constant.
           ldrd_range -
           // The literal pool has a two instruction margin.
           2 * kMaxInstructionSizeInBytes,
-          // AlignDown to 4 byte as the literals will be 4 byte aligned.
-          4);
+      // AlignDown to 4 byte as the literals will be 4 byte aligned.
+      4);
 
   // Create one literal pool entry.
   __ Ldrd(r0, r1, 0x1234567890abcdef);
@@ -1602,7 +1601,8 @@ enum LiteralStressTestMode {
 // sizes close to the maximum supported offset will produce code that executes
 // correctly. As the Ldrd might or might not be rewinded, we do not assert on
 // the size of the literal pool in this test.
-void EmitLdrdLiteralStressTest(InstructionSet isa, bool unaligned,
+void EmitLdrdLiteralStressTest(InstructionSet isa,
+                               bool unaligned,
                                LiteralStressTestMode test_mode) {
   SETUP();
 
@@ -1758,7 +1758,8 @@ TEST_A32(ldr_literal_range_same_time) {
   const int ldrd_padding = ldrd_range - 2 * kA32InstructionSizeInBytes;
   const int ldr_range = 4095;
   // We need to take into account the ldrd padding and the ldrd instruction.
-  const int ldr_padding = ldr_range - ldrd_padding - 2 * kA32InstructionSizeInBytes;
+  const int ldr_padding =
+      ldr_range - ldrd_padding - 2 * kA32InstructionSizeInBytes;
 
   __ Ldr(r1, 0x12121212);
   ASSERT_LITERAL_POOL_SIZE(4);
@@ -1909,13 +1910,12 @@ struct LdrLiteralRangeTest {
 };
 
 
-const LdrLiteralRangeTest kLdrLiteralRangeTestData[] = {
-  {&MacroAssembler::Ldr, r1, 4095, 4095, 0x12345678, 0x12345678 },
-  {&MacroAssembler::Ldrh, r2, 255, 4095, 0xabcdefff, 0x0000efff },
-  {&MacroAssembler::Ldrsh, r3, 255, 4095, 0x00008765, 0xffff8765 },
-  {&MacroAssembler::Ldrb, r4, 4095, 4095, 0x12345678, 0x00000078 },
-  {&MacroAssembler::Ldrsb, r5, 255, 4095, 0x00000087, 0xffffff87 }
-};
+const LdrLiteralRangeTest kLdrLiteralRangeTestData[] =
+    {{&MacroAssembler::Ldr, r1, 4095, 4095, 0x12345678, 0x12345678},
+     {&MacroAssembler::Ldrh, r2, 255, 4095, 0xabcdefff, 0x0000efff},
+     {&MacroAssembler::Ldrsh, r3, 255, 4095, 0x00008765, 0xffff8765},
+     {&MacroAssembler::Ldrb, r4, 4095, 4095, 0x12345678, 0x00000078},
+     {&MacroAssembler::Ldrsb, r5, 255, 4095, 0x00000087, 0xffffff87}};
 
 
 void GenerateLdrLiteralTriggerPoolEmission(InstructionSet isa,
@@ -1955,7 +1955,9 @@ void GenerateLdrLiteralTriggerPoolEmission(InstructionSet isa,
     int end = masm.GetCursorOffset() + space;
     {
       // Generate nops precisely to fill the buffer.
-      ExactAssemblyScope accurate_scope(&masm, space); // This should not trigger emission of the pool.
+      ExactAssemblyScope accurate_scope(&masm, space);  // This should not
+                                                        // trigger emission of
+                                                        // the pool.
       VIXL_CHECK(!masm.LiteralPoolIsEmpty());
       while (masm.GetCursorOffset() < end) {
         __ nop();
@@ -2016,9 +2018,8 @@ void GenerateLdrLiteralRangeTest(InstructionSet isa, bool unaligned_ldr) {
 
     // Generate enough instruction so that we go out of range for the load
     // literal we just emitted.
-    ptrdiff_t end =
-        masm.GetBuffer()->GetCursorOffset() +
-        ((masm.IsUsingA32()) ? test.a32_range : test.t32_range);
+    ptrdiff_t end = masm.GetBuffer()->GetCursorOffset() +
+                    ((masm.IsUsingA32()) ? test.a32_range : test.t32_range);
     while (masm.GetBuffer()->GetCursorOffset() < end) {
       __ Mov(r0, 0);
     }
@@ -2038,9 +2039,7 @@ void GenerateLdrLiteralRangeTest(InstructionSet isa, bool unaligned_ldr) {
 }
 
 
-TEST(ldr_literal_range) {
-  GenerateLdrLiteralRangeTest(isa, false);
-}
+TEST(ldr_literal_range) { GenerateLdrLiteralRangeTest(isa, false); }
 
 
 TEST_T32(ldr_literal_range_unaligned) {
@@ -2127,7 +2126,7 @@ TEST(custom_literal_place) {
 
   Literal<uint64_t> l0(0xcafebeefdeadbaba, RawLiteral::kManuallyPlaced);
   Literal<int32_t> l1(0x12345678, RawLiteral::kManuallyPlaced);
-  Literal<uint16_t>l2(4567, RawLiteral::kManuallyPlaced);
+  Literal<uint16_t> l2(4567, RawLiteral::kManuallyPlaced);
   Literal<int16_t> l3(-4567, RawLiteral::kManuallyPlaced);
   Literal<uint8_t> l4(123, RawLiteral::kManuallyPlaced);
   Literal<int8_t> l5(-123, RawLiteral::kManuallyPlaced);
@@ -2221,7 +2220,7 @@ TEST(custom_literal_place_shared) {
     VIXL_CHECK(before.IsBound());
     VIXL_CHECK(!after.IsBound());
 
-  // Load the entries several times to test that literals can be shared.
+    // Load the entries several times to test that literals can be shared.
     for (int i = 0; i < 20; i++) {
       (masm.*test.instruction)(r0, &before);
       (masm.*test.instruction)(r1, &after);
@@ -2729,7 +2728,6 @@ TEST_T32(unaligned_branch_after_literal) {
 }
 
 
-
 // This test check that we can update a Literal after usage.
 TEST(literal_update) {
   SETUP();
@@ -2739,16 +2737,16 @@ TEST(literal_update) {
   Literal<uint32_t>* a32 =
       new Literal<uint32_t>(0xabcdef01, RawLiteral::kDeletedOnPoolDestruction);
   Literal<uint64_t>* a64 =
-      new Literal<uint64_t>(
-          UINT64_C(0xabcdef01abcdef01), RawLiteral::kDeletedOnPoolDestruction);
+      new Literal<uint64_t>(UINT64_C(0xabcdef01abcdef01),
+                            RawLiteral::kDeletedOnPoolDestruction);
   __ Ldr(r0, a32);
   __ Ldrd(r2, r3, a64);
   __ EmitLiteralPool();
   Literal<uint32_t>* b32 =
       new Literal<uint32_t>(0x10fedcba, RawLiteral::kDeletedOnPoolDestruction);
   Literal<uint64_t>* b64 =
-      new Literal<uint64_t>(
-          UINT64_C(0x10fedcba10fedcba), RawLiteral::kDeletedOnPoolDestruction);
+      new Literal<uint64_t>(UINT64_C(0x10fedcba10fedcba),
+                            RawLiteral::kDeletedOnPoolDestruction);
   __ Ldr(r1, b32);
   __ Ldrd(r4, r5, b64);
   // Update literals' values. "a32" and "a64" are already emitted. "b32" and
@@ -2871,7 +2869,7 @@ TEST(printf) {
   __ Msr(APSR_nzcvqg, r0);
   __ Mov(r0, sp);
   __ Printf("sp=%x\n", r0);
-//  __ Printf("Hello world!\n");
+  //  __ Printf("Hello world!\n");
   __ Mov(r0, 0x1234);
   __ Mov(r1, 0x5678);
   StringLiteral literal("extra string");
@@ -3009,7 +3007,7 @@ TEST(printf2) {
 }
 
 
-template<typename T>
+template <typename T>
 void CheckInstructionSetA32(const T& assm) {
   VIXL_CHECK(assm.IsUsingA32());
   VIXL_CHECK(!assm.IsUsingT32());
@@ -3017,7 +3015,7 @@ void CheckInstructionSetA32(const T& assm) {
 }
 
 
-template<typename T>
+template <typename T>
 void CheckInstructionSetT32(const T& assm) {
   VIXL_CHECK(assm.IsUsingT32());
   VIXL_CHECK(!assm.IsUsingA32());
@@ -3073,9 +3071,9 @@ TEST_NOASM(set_isa_constructors) {
 
 
 TEST_NOASM(set_isa_empty) {
-  // It is possible to change the instruction set if no instructions have yet
-  // been generated. This test only makes sense when both A32 and T32 are
-  // supported.
+// It is possible to change the instruction set if no instructions have yet
+// been generated. This test only makes sense when both A32 and T32 are
+// supported.
 #ifdef VIXL_INCLUDE_TARGET_AARCH32
   Assembler assm;
   CheckInstructionSetA32(assm);
@@ -3103,8 +3101,8 @@ TEST_NOASM(set_isa_empty) {
 
 
 TEST_NOASM(set_isa_noop) {
-  // It is possible to call a no-op UseA32/T32 or UseInstructionSet even if
-  // one or more instructions have been generated.
+// It is possible to call a no-op UseA32/T32 or UseInstructionSet even if
+// one or more instructions have been generated.
 #ifdef VIXL_INCLUDE_TARGET_A32
   {
     Assembler assm(A32);
@@ -3245,8 +3243,8 @@ TEST(scratch_register_checks) {
   {
     UseScratchRegisterScope temps(&masm);
     // 'ip' is a scratch register by default.
-    VIXL_CHECK(
-        masm.GetScratchRegisterList()->GetList() == (1u << ip.GetCode()));
+    VIXL_CHECK(masm.GetScratchRegisterList()->GetList() ==
+               (1u << ip.GetCode()));
     VIXL_CHECK(temps.IsAvailable(ip));
 
     // Integer registers have no complicated aliasing so
@@ -3476,7 +3474,6 @@ TEST_T32(near_branch_fuzz) {
   // ratio in the sequence is fixed at 4:1 by the ratio of cases.
   for (int case_count = 6; case_count < 37; case_count++) {
     for (int iter = 0; iter < iterations; iter++) {
-
       // Reset local state.
       allbound = false;
       l = new Label[label_count];
@@ -3490,7 +3487,7 @@ TEST_T32(near_branch_fuzz) {
         uint32_t label_index = static_cast<uint32_t>(mrand48()) % label_count;
 
         switch (inst_case) {
-          case 0: // Bind.
+          case 0:  // Bind.
             if (!l[label_index].IsBound()) {
               __ Bind(&l[label_index]);
 
@@ -3500,27 +3497,27 @@ TEST_T32(near_branch_fuzz) {
               __ Add(r1, r1, 1);
             }
             break;
-          case 1: // Compare and branch if zero (untaken as r0 == 1).
+          case 1:  // Compare and branch if zero (untaken as r0 == 1).
             __ Cbz(r0, &l[label_index]);
             break;
-          case 2: { // Compare and branch if not zero.
+          case 2: {  // Compare and branch if not zero.
             Label past_branch;
             __ B(eq, &past_branch, kNear);
             __ Cbnz(r0, &l[label_index]);
             __ Bind(&past_branch);
             break;
           }
-          case 3: { // Unconditional branch preferred near.
+          case 3: {  // Unconditional branch preferred near.
             Label past_branch;
             __ B(eq, &past_branch, kNear);
             __ B(&l[label_index], kNear);
             __ Bind(&past_branch);
             break;
           }
-          case 4: // Conditional branch (untaken as Z set) preferred near.
+          case 4:  // Conditional branch (untaken as Z set) preferred near.
             __ B(ne, &l[label_index], kNear);
             break;
-          default: // Nop.
+          default:  // Nop.
             __ Nop();
             break;
         }
@@ -3559,7 +3556,9 @@ TEST_NOASM(code_buffer_precise_growth) {
 
   {
     // Fill the buffer with nops.
-    ExactAssemblyScope scope(&masm, kBaseBufferSize, ExactAssemblyScope::kExactSize);
+    ExactAssemblyScope scope(&masm,
+                             kBaseBufferSize,
+                             ExactAssemblyScope::kExactSize);
     for (int i = 0; i < kBaseBufferSize; i += k16BitT32InstructionSizeInBytes) {
       __ nop();
     }
@@ -3638,24 +3637,25 @@ TEST_T32(distant_literal_references) {
   // Add enough nops to exceed the range of all loads.
   int space = 5000;
   {
-    ExactAssemblyScope scope(&masm,
-                             space,
-                             CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, space, CodeBufferCheckScope::kExactSize);
     VIXL_ASSERT(masm.IsUsingT32());
     for (int i = 0; i < space; i += k16BitT32InstructionSizeInBytes) {
       __ nop();
     }
   }
 
-#define ENSURE_ALIGNED() do {                                                 \
-  if (!IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())) { \
-    ExactAssemblyScope scope(&masm, k16BitT32InstructionSizeInBytes,          \
-                             ExactAssemblyScope::kExactSize);                 \
-    __ nop();                                                                 \
-  }                                                                           \
-  VIXL_ASSERT(IsMultiple<k32BitT32InstructionSizeInBytes>(                    \
-      masm.GetCursorOffset()));                                               \
-} while(0)
+#define ENSURE_ALIGNED()                                                      \
+  do {                                                                        \
+    if (!IsMultiple<k32BitT32InstructionSizeInBytes>(                         \
+            masm.GetCursorOffset())) {                                        \
+      ExactAssemblyScope scope(&masm,                                         \
+                               k16BitT32InstructionSizeInBytes,               \
+                               ExactAssemblyScope::kExactSize);               \
+      __ nop();                                                               \
+    }                                                                         \
+    VIXL_ASSERT(                                                              \
+        IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())); \
+  } while (0)
 
   // The literal has already been emitted, and is out of range of all of these
   // instructions. The delegates must generate fix-up code.
@@ -3712,24 +3712,24 @@ TEST_T32(distant_literal_references_unaligned_pc) {
   // to only a two-byte boundary.
   int space = 5002;
   {
-    ExactAssemblyScope scope(&masm,
-                             space,
-                             CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, space, CodeBufferCheckScope::kExactSize);
     VIXL_ASSERT(masm.IsUsingT32());
     for (int i = 0; i < space; i += k16BitT32InstructionSizeInBytes) {
       __ nop();
     }
   }
 
-#define ENSURE_NOT_ALIGNED() do {                                            \
-  if (IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())) { \
-    ExactAssemblyScope scope(&masm, k16BitT32InstructionSizeInBytes,         \
-                             ExactAssemblyScope::kExactSize);                \
-    __ nop();                                                                \
-  }                                                                          \
-  VIXL_ASSERT(!IsMultiple<k32BitT32InstructionSizeInBytes>(                  \
-      masm.GetCursorOffset()));                                              \
-} while(0)
+#define ENSURE_NOT_ALIGNED()                                                   \
+  do {                                                                         \
+    if (IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())) { \
+      ExactAssemblyScope scope(&masm,                                          \
+                               k16BitT32InstructionSizeInBytes,                \
+                               ExactAssemblyScope::kExactSize);                \
+      __ nop();                                                                \
+    }                                                                          \
+    VIXL_ASSERT(                                                               \
+        !IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())); \
+  } while (0)
 
   // The literal has already been emitted, and is out of range of all of these
   // instructions. The delegates must generate fix-up code.
@@ -3807,24 +3807,25 @@ TEST_T32(distant_literal_references_short_range) {
   // be generated to read the PC.
   int space = 4000;
   {
-    ExactAssemblyScope scope(&masm,
-                             space,
-                             CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, space, CodeBufferCheckScope::kExactSize);
     VIXL_ASSERT(masm.IsUsingT32());
     for (int i = 0; i < space; i += k16BitT32InstructionSizeInBytes) {
       __ nop();
     }
   }
 
-#define ENSURE_ALIGNED() do {                                                 \
-  if (!IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())) { \
-    ExactAssemblyScope scope(&masm, k16BitT32InstructionSizeInBytes,          \
-                             ExactAssemblyScope::kExactSize);                 \
-    __ nop();                                                                 \
-  }                                                                           \
-  VIXL_ASSERT(IsMultiple<k32BitT32InstructionSizeInBytes>(                    \
-      masm.GetCursorOffset()));                                               \
-} while(0)
+#define ENSURE_ALIGNED()                                                      \
+  do {                                                                        \
+    if (!IsMultiple<k32BitT32InstructionSizeInBytes>(                         \
+            masm.GetCursorOffset())) {                                        \
+      ExactAssemblyScope scope(&masm,                                         \
+                               k16BitT32InstructionSizeInBytes,               \
+                               ExactAssemblyScope::kExactSize);               \
+      __ nop();                                                               \
+    }                                                                         \
+    VIXL_ASSERT(                                                              \
+        IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())); \
+  } while (0)
 
   // The literal has already been emitted, and is out of range of all of these
   // instructions. The delegates must generate fix-up code.
@@ -3881,24 +3882,24 @@ TEST_T32(distant_literal_references_short_range_unaligned_pc) {
   // be generated to read the PC.
   int space = 4000;
   {
-    ExactAssemblyScope scope(&masm,
-                             space,
-                             CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, space, CodeBufferCheckScope::kExactSize);
     VIXL_ASSERT(masm.IsUsingT32());
     for (int i = 0; i < space; i += k16BitT32InstructionSizeInBytes) {
       __ nop();
     }
   }
 
-#define ENSURE_NOT_ALIGNED() do {                                            \
-  if (IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())) { \
-    ExactAssemblyScope scope(&masm, k16BitT32InstructionSizeInBytes,         \
-                             ExactAssemblyScope::kExactSize);                \
-    __ nop();                                                                \
-  }                                                                          \
-  VIXL_ASSERT(!IsMultiple<k32BitT32InstructionSizeInBytes>(                  \
-      masm.GetCursorOffset()));                                              \
-} while(0)
+#define ENSURE_NOT_ALIGNED()                                                   \
+  do {                                                                         \
+    if (IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())) { \
+      ExactAssemblyScope scope(&masm,                                          \
+                               k16BitT32InstructionSizeInBytes,                \
+                               ExactAssemblyScope::kExactSize);                \
+      __ nop();                                                                \
+    }                                                                          \
+    VIXL_ASSERT(                                                               \
+        !IsMultiple<k32BitT32InstructionSizeInBytes>(masm.GetCursorOffset())); \
+  } while (0)
 
   // The literal has already been emitted, and is out of range of all of these
   // instructions. The delegates must generate fix-up code.
@@ -3951,17 +3952,18 @@ TEST_T32(distant_literal_references_long_range) {
   // Refer to the literal so that it is emitted early.
   __ Ldr(r0, literal);
 
-#define PAD_WITH_NOPS(space) do {                                      \
-  {                                                                    \
-    ExactAssemblyScope scope(&masm,                                    \
-                             space,                                    \
-                             CodeBufferCheckScope::kExactSize);        \
-    VIXL_ASSERT(masm.IsUsingT32());                                    \
-    for (int i = 0; i < space; i += k16BitT32InstructionSizeInBytes) { \
-      __ nop();                                                        \
-    }                                                                  \
-  }                                                                    \
-} while(0)
+#define PAD_WITH_NOPS(space)                                             \
+  do {                                                                   \
+    {                                                                    \
+      ExactAssemblyScope scope(&masm,                                    \
+                               space,                                    \
+                               CodeBufferCheckScope::kExactSize);        \
+      VIXL_ASSERT(masm.IsUsingT32());                                    \
+      for (int i = 0; i < space; i += k16BitT32InstructionSizeInBytes) { \
+        __ nop();                                                        \
+      }                                                                  \
+    }                                                                    \
+  } while (0)
 
   // Add enough nops to exceed the range of all loads.
   PAD_WITH_NOPS(5000);
@@ -4692,7 +4694,7 @@ TEST_T32(veneer_and_literal2) {
   // However, as the literal emission would put veneers out of range.
   VIXL_ASSERT(masm.GetMarginBeforeVeneerEmission() <
               kTypicalMacroInstructionMaxSize +
-              static_cast<int32_t>(masm.GetLiteralPoolSize()));
+                  static_cast<int32_t>(masm.GetLiteralPoolSize()));
 
   // This extra Nop will generate the literal pool and before that the veneer
   // pool.
@@ -4781,7 +4783,9 @@ TEST_T32(veneer_and_literal4) {
 
   uint32_t value = 0x1234567;
   Literal<uint32_t>* literal =
-      new Literal<uint32_t>(value, RawLiteral::kPlacedWhenUsed, RawLiteral::kDeletedOnPoolDestruction);
+      new Literal<uint32_t>(value,
+                            RawLiteral::kPlacedWhenUsed,
+                            RawLiteral::kDeletedOnPoolDestruction);
 
   __ Ldr(r11, literal);
 
@@ -4791,12 +4795,10 @@ TEST_T32(veneer_and_literal4) {
   const int NUM_RANGE = 58;
 
   const int NUM1 = NUM_NOPS - NUM_RANGE;
-  const int NUM2 = NUM_RANGE ;
+  const int NUM2 = NUM_RANGE;
 
   {
-    ExactAssemblyScope aas(&masm,
-                           2 * NUM1,
-                           CodeBufferCheckScope::kMaximumSize);
+    ExactAssemblyScope aas(&masm, 2 * NUM1, CodeBufferCheckScope::kMaximumSize);
     for (int i = 0; i < NUM1; i++) {
       __ nop();
     }
@@ -4805,18 +4807,14 @@ TEST_T32(veneer_and_literal4) {
   __ Cbz(r1, &end);
 
   {
-    ExactAssemblyScope aas(&masm,
-                           2 * NUM2,
-                           CodeBufferCheckScope::kMaximumSize);
+    ExactAssemblyScope aas(&masm, 2 * NUM2, CodeBufferCheckScope::kMaximumSize);
     for (int i = 0; i < NUM2; i++) {
       __ nop();
     }
   }
 
   {
-    ExactAssemblyScope aas(&masm,
-                           4,
-                           CodeBufferCheckScope::kMaximumSize);
+    ExactAssemblyScope aas(&masm, 4, CodeBufferCheckScope::kMaximumSize);
     __ add(r1, r1, 3);
   }
   __ Bind(&end);
@@ -4846,7 +4844,6 @@ TEST_T32(veneer_and_literal5) {
   int first_test = 2000;
   // Test on both sizes of the Adr range which is 4095.
   for (int test = 0; test < kTestCount; test++) {
-
     const int string_size = 1000;  // A lot more than the cbz range.
     std::string test_string(string_size, 'x');
     StringLiteral big_literal(test_string.c_str());
@@ -4866,9 +4863,7 @@ TEST_T32(veneer_and_literal5) {
     __ Cbz(r1, &labels[test]);
 
     {
-      ExactAssemblyScope aas(&masm,
-                             4,
-                             CodeBufferCheckScope::kMaximumSize);
+      ExactAssemblyScope aas(&masm, 4, CodeBufferCheckScope::kMaximumSize);
       __ add(r1, r1, 3);
     }
     __ Bind(&labels[test]);
@@ -4906,9 +4901,7 @@ TEST_T32(veneer_and_literal6) {
   // order to reach the maximum range of ldrd and cbz at the same time.
   {
     int nop_size = kLdrdRange - kCbzCbnzRange - 5 * kSizeForCbz;
-    ExactAssemblyScope scope(&masm,
-                             nop_size,
-                             CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, nop_size, CodeBufferCheckScope::kExactSize);
     for (int i = 0; i < nop_size; i += k16BitT32InstructionSizeInBytes) {
       __ nop();
     }
@@ -4930,9 +4923,7 @@ TEST_T32(veneer_and_literal6) {
   // This scope will generate both veneers (they are both out of range).
   {
     int nop_size = kCbzCbnzRange;
-    ExactAssemblyScope scope(&masm,
-                             nop_size,
-                             CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, nop_size, CodeBufferCheckScope::kExactSize);
     for (int i = 0; i < nop_size; i += k16BitT32InstructionSizeInBytes) {
       __ nop();
     }
@@ -5031,8 +5022,8 @@ TEST_T32(test_it_scope_and_literal_pool) {
   // for).
   const int32_t kTypicalMacroInstructionMaxSize =
       8 * kMaxInstructionSizeInBytes;
-  int32_t margin = masm.GetMarginBeforeLiteralEmission()
-                       - kTypicalMacroInstructionMaxSize;
+  int32_t margin =
+      masm.GetMarginBeforeLiteralEmission() - kTypicalMacroInstructionMaxSize;
   int32_t end = masm.GetCursorOffset() + margin;
 
   {
@@ -5041,8 +5032,8 @@ TEST_T32(test_it_scope_and_literal_pool) {
       __ nop();
     }
   }
-  VIXL_CHECK(masm.GetMarginBeforeLiteralEmission()
-             == kTypicalMacroInstructionMaxSize);
+  VIXL_CHECK(masm.GetMarginBeforeLiteralEmission() ==
+             kTypicalMacroInstructionMaxSize);
 
   // We cannot use an IT block for this instruction, hence ITScope will
   // generate a branch over it.
@@ -5067,16 +5058,18 @@ TEST(ldm_stm_no_writeback) {
 
   START();
 
-  const uint32_t src[4] = { 0x12345678, 0x09abcdef, 0xc001c0de, 0xdeadbeef };
-  uint32_t dst1[4] = { 0x00000000, 0x00000000, 0x00000000, 0x00000000 };
-  uint32_t dst2[4] = { 0x00000000, 0x00000000, 0x00000000, 0x00000000 };
+  const uint32_t src[4] = {0x12345678, 0x09abcdef, 0xc001c0de, 0xdeadbeef};
+  uint32_t dst1[4] = {0x00000000, 0x00000000, 0x00000000, 0x00000000};
+  uint32_t dst2[4] = {0x00000000, 0x00000000, 0x00000000, 0x00000000};
 
   __ Mov(r0, reinterpret_cast<uintptr_t>(src));
-  __ Ldm(r0, NO_WRITE_BACK, RegisterList(r1, r2, r3, r4));;
+  __ Ldm(r0, NO_WRITE_BACK, RegisterList(r1, r2, r3, r4));
+  ;
   __ Ldm(r0, NO_WRITE_BACK, RegisterList(r5, r6, r9, r11));
 
   __ Mov(r0, reinterpret_cast<uintptr_t>(dst1));
-  __ Stm(r0, NO_WRITE_BACK, RegisterList(r1, r2, r3, r4));;
+  __ Stm(r0, NO_WRITE_BACK, RegisterList(r1, r2, r3, r4));
+  ;
 
   __ Mov(r0, reinterpret_cast<uintptr_t>(dst2));
   __ Stm(r0, NO_WRITE_BACK, RegisterList(r5, r6, r9, r11));
@@ -5114,13 +5107,21 @@ TEST(ldm_stm_writeback) {
 
   START();
 
-  const uint32_t src[4] = { 0x12345678, 0x09abcdef, 0xc001c0de, 0xdeadbeef };
-  uint32_t dst[8] = { 0x00000000, 0x00000000, 0x00000000, 0x00000000,
-		      0x00000000, 0x00000000, 0x00000000, 0x00000000 };
+  const uint32_t src[4] = {0x12345678, 0x09abcdef, 0xc001c0de, 0xdeadbeef};
+  uint32_t dst[8] = {0x00000000,
+                     0x00000000,
+                     0x00000000,
+                     0x00000000,
+                     0x00000000,
+                     0x00000000,
+                     0x00000000,
+                     0x00000000};
 
   __ Mov(r0, reinterpret_cast<uintptr_t>(src));
-  __ Ldm(r0, WRITE_BACK, RegisterList(r2, r3));;
-  __ Ldm(r0, WRITE_BACK, RegisterList(r4, r5));;
+  __ Ldm(r0, WRITE_BACK, RegisterList(r2, r3));
+  ;
+  __ Ldm(r0, WRITE_BACK, RegisterList(r4, r5));
+  ;
 
   __ Mov(r1, reinterpret_cast<uintptr_t>(dst));
   __ Stm(r1, WRITE_BACK, RegisterList(r2, r3, r4, r5));
@@ -5156,11 +5157,11 @@ TEST_A32(ldm_stm_da_ib) {
 
   START();
 
-  const uint32_t src1[4] = { 0x33333333, 0x44444444, 0x11111111, 0x22222222 };
-  const uint32_t src2[4] = { 0x11111111, 0x22222222, 0x33333333, 0x44444444 };
+  const uint32_t src1[4] = {0x33333333, 0x44444444, 0x11111111, 0x22222222};
+  const uint32_t src2[4] = {0x11111111, 0x22222222, 0x33333333, 0x44444444};
 
-  uint32_t dst1[4] = { 0x00000000, 0x00000000, 0x00000000, 0x00000000 };
-  uint32_t dst2[4] = { 0x00000000, 0x00000000, 0x00000000, 0x00000000 };
+  uint32_t dst1[4] = {0x00000000, 0x00000000, 0x00000000, 0x00000000};
+  uint32_t dst2[4] = {0x00000000, 0x00000000, 0x00000000, 0x00000000};
 
   __ Mov(r11, reinterpret_cast<uintptr_t>(src1 + 3));
   __ Ldmda(r11, WRITE_BACK, RegisterList(r0, r1));
@@ -5184,7 +5185,7 @@ TEST_A32(ldm_stm_da_ib) {
   RUN();
 
   ASSERT_EQUAL_32(reinterpret_cast<uintptr_t>(src1 + 1), r11);
-  ASSERT_EQUAL_32(reinterpret_cast<uintptr_t>(src2  + 1), r10);
+  ASSERT_EQUAL_32(reinterpret_cast<uintptr_t>(src2 + 1), r10);
   ASSERT_EQUAL_32(reinterpret_cast<uintptr_t>(dst1 + 1), r9);
   ASSERT_EQUAL_32(reinterpret_cast<uintptr_t>(dst2 + 1), r8);
 
@@ -5217,12 +5218,11 @@ TEST(ldmdb_stmdb) {
 
   START();
 
-  const uint32_t src[6] = { 0x55555555, 0x66666666,
-			    0x33333333, 0x44444444,
-			    0x11111111, 0x22222222 };
+  const uint32_t src[6] =
+      {0x55555555, 0x66666666, 0x33333333, 0x44444444, 0x11111111, 0x22222222};
 
-  uint32_t dst[6] = { 0x00000000, 0x00000000, 0x00000000,
-		      0x00000000, 0x00000000, 0x00000000 };
+  uint32_t dst[6] =
+      {0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000};
 
   __ Mov(r11, reinterpret_cast<uintptr_t>(src + 6));
   __ Ldmdb(r11, WRITE_BACK, RegisterList(r1, r2));
@@ -5286,7 +5286,8 @@ TEST(blx) {
       size_of_generated_code = 5 * k32BitT32InstructionSizeInBytes +
                                3 * k16BitT32InstructionSizeInBytes;
     }
-    ExactAssemblyScope scope(&masm, size_of_generated_code,
+    ExactAssemblyScope scope(&masm,
+                             size_of_generated_code,
                              ExactAssemblyScope::kExactSize);
     __ adr(r11, &func2);
     if (masm.IsUsingT32()) {
@@ -5632,51 +5633,55 @@ TEST_T32(b_narrow_and_cbz) {
 }
 
 
-#define CHECK_SIZE_MATCH(ASM1, ASM2)                                  \
-  {                                                                   \
-    MacroAssembler masm1(BUF_SIZE);                                   \
-    masm1.UseInstructionSet(isa);                                     \
-    VIXL_ASSERT(masm1.GetCursorOffset() == 0);                        \
-    masm1.ASM1;                                                       \
-    masm1.FinalizeCode();                                             \
-    int size1 = masm1.GetCursorOffset();                              \
-                                                                      \
-    MacroAssembler masm2(BUF_SIZE);                                   \
-    masm2.UseInstructionSet(isa);                                     \
-    VIXL_ASSERT(masm2.GetCursorOffset() == 0);                        \
-    masm2.ASM2;                                                       \
-    masm2.FinalizeCode();                                             \
-    int size2 = masm2.GetCursorOffset();                              \
-                                                                      \
-    bool disassemble = Test::disassemble();                           \
-    if (size1 != size2) {                                             \
-      printf("Sizes did not match:\n");                               \
-      disassemble = true;                                             \
-    }                                                                 \
-    if (disassemble) {                                                \
-      PrintDisassembler dis(std::cout, 0);                            \
-      printf("// " #ASM1 "\n");                                       \
-      if (masm1.IsUsingT32()) {                                       \
-        dis.DisassembleT32Buffer(                                     \
-            masm1.GetBuffer()->GetStartAddress<uint16_t*>(), size1);  \
-      } else {                                                        \
-        dis.DisassembleA32Buffer(                                     \
-            masm1.GetBuffer()->GetStartAddress<uint32_t*>(), size1);  \
-      }                                                               \
-      printf("\n");                                                   \
-                                                                      \
-      dis.SetCodeAddress(0);                                          \
-      printf("// " #ASM2 "\n");                                       \
-      if (masm2.IsUsingT32()) {                                       \
-        dis.DisassembleT32Buffer(                                     \
-            masm2.GetBuffer()->GetStartAddress<uint16_t*>(), size2);  \
-      } else {                                                        \
-        dis.DisassembleA32Buffer(                                     \
-            masm2.GetBuffer()->GetStartAddress<uint32_t*>(), size2);  \
-      }                                                               \
-      printf("\n");                                                   \
-    }                                                                 \
-    VIXL_CHECK(size1 == size2);                                       \
+#define CHECK_SIZE_MATCH(ASM1, ASM2)                                 \
+  {                                                                  \
+    MacroAssembler masm1(BUF_SIZE);                                  \
+    masm1.UseInstructionSet(isa);                                    \
+    VIXL_ASSERT(masm1.GetCursorOffset() == 0);                       \
+    masm1.ASM1;                                                      \
+    masm1.FinalizeCode();                                            \
+    int size1 = masm1.GetCursorOffset();                             \
+                                                                     \
+    MacroAssembler masm2(BUF_SIZE);                                  \
+    masm2.UseInstructionSet(isa);                                    \
+    VIXL_ASSERT(masm2.GetCursorOffset() == 0);                       \
+    masm2.ASM2;                                                      \
+    masm2.FinalizeCode();                                            \
+    int size2 = masm2.GetCursorOffset();                             \
+                                                                     \
+    bool disassemble = Test::disassemble();                          \
+    if (size1 != size2) {                                            \
+      printf("Sizes did not match:\n");                              \
+      disassemble = true;                                            \
+    }                                                                \
+    if (disassemble) {                                               \
+      PrintDisassembler dis(std::cout, 0);                           \
+      printf("// " #ASM1 "\n");                                      \
+      if (masm1.IsUsingT32()) {                                      \
+        dis.DisassembleT32Buffer(masm1.GetBuffer()                   \
+                                     ->GetStartAddress<uint16_t*>(), \
+                                 size1);                             \
+      } else {                                                       \
+        dis.DisassembleA32Buffer(masm1.GetBuffer()                   \
+                                     ->GetStartAddress<uint32_t*>(), \
+                                 size1);                             \
+      }                                                              \
+      printf("\n");                                                  \
+                                                                     \
+      dis.SetCodeAddress(0);                                         \
+      printf("// " #ASM2 "\n");                                      \
+      if (masm2.IsUsingT32()) {                                      \
+        dis.DisassembleT32Buffer(masm2.GetBuffer()                   \
+                                     ->GetStartAddress<uint16_t*>(), \
+                                 size2);                             \
+      } else {                                                       \
+        dis.DisassembleA32Buffer(masm2.GetBuffer()                   \
+                                     ->GetStartAddress<uint32_t*>(), \
+                                 size2);                             \
+      }                                                              \
+      printf("\n");                                                  \
+    }                                                                \
+    VIXL_CHECK(size1 == size2);                                      \
   }
 
 
@@ -5693,8 +5698,7 @@ TEST_T32(macro_assembler_commute) {
   // CHECK_SIZE_MATCH(Adc(DontCare, eq, r7, r6, r7),
   //                  Adc(DontCare, eq, r7, r7, r6));
 
-  CHECK_SIZE_MATCH(Add(DontCare, r1, r2, r7),
-                   Add(DontCare, r1, r7, r2));
+  CHECK_SIZE_MATCH(Add(DontCare, r1, r2, r7), Add(DontCare, r1, r7, r2));
 
   CHECK_SIZE_MATCH(Add(DontCare, lt, r1, r2, r7),
                    Add(DontCare, lt, r1, r7, r2));
@@ -5742,17 +5746,14 @@ TEST_T32(macro_assembler_commute) {
   //                  Orr(DontCare, eq, r7, r6, r7));
 
 
-  CHECK_SIZE_MATCH(Adc(r7, r6, r7),
-                   Adc(r7, r7, r6));
+  CHECK_SIZE_MATCH(Adc(r7, r6, r7), Adc(r7, r7, r6));
 
   // CHECK_SIZE_MATCH(Adc(eq, r7, r6, r7),
   //                  Adc(eq, r7, r7, r6));
 
-  CHECK_SIZE_MATCH(Add(r1, r2, r7),
-                   Add(r1, r7, r2));
+  CHECK_SIZE_MATCH(Add(r1, r2, r7), Add(r1, r7, r2));
 
-  CHECK_SIZE_MATCH(Add(lt, r1, r2, r7),
-                   Add(lt, r1, r7, r2));
+  CHECK_SIZE_MATCH(Add(lt, r1, r2, r7), Add(lt, r1, r7, r2));
 
   // CHECK_SIZE_MATCH(Add(r4, r4, r10),
   //                  Add(r4, r10, r4));
@@ -5772,26 +5773,22 @@ TEST_T32(macro_assembler_commute) {
   // CHECK_SIZE_MATCH(Add(eq, sp, sp, r10),
   //                  Add(eq, sp, r10, sp));
 
-  CHECK_SIZE_MATCH(And(r7, r7, r6),
-                   And(r7, r6, r7));
+  CHECK_SIZE_MATCH(And(r7, r7, r6), And(r7, r6, r7));
 
   // CHECK_SIZE_MATCH(And(eq, r7, r7, r6),
   //                  And(eq, r7, r6, r7));
 
-  CHECK_SIZE_MATCH(Eor(r7, r7, r6),
-                   Eor(r7, r6, r7));
+  CHECK_SIZE_MATCH(Eor(r7, r7, r6), Eor(r7, r6, r7));
 
   // CHECK_SIZE_MATCH(Eor(eq, r7, r7, r6),
   //                  Eor(eq, r7, r6, r7));
 
-  CHECK_SIZE_MATCH(Mul(r0, r1, r0),
-                   Mul(r0, r0, r1));
+  CHECK_SIZE_MATCH(Mul(r0, r1, r0), Mul(r0, r0, r1));
 
   // CHECK_SIZE_MATCH(Mul(eq, r0, r1, r0),
   //                  Mul(eq, r0, r0, r1));
 
-  CHECK_SIZE_MATCH(Orr(r7, r7, r6),
-                   Orr(r7, r6, r7));
+  CHECK_SIZE_MATCH(Orr(r7, r7, r6), Orr(r7, r6, r7));
 
   // CHECK_SIZE_MATCH(Orr(eq, r7, r7, r6),
   //                  Orr(eq, r7, r6, r7));
@@ -5803,29 +5800,21 @@ TEST_T32(macro_assembler_commute) {
   // CHECK_SIZE_MATCH(Adcs(eq, r7, r6, r7),
   //                  Adcs(eq, r7, r7, r6));
 
-  CHECK_SIZE_MATCH(Adds(r1, r2, r7),
-                   Adds(r1, r7, r2));
+  CHECK_SIZE_MATCH(Adds(r1, r2, r7), Adds(r1, r7, r2));
 
-  CHECK_SIZE_MATCH(Adds(lt, r1, r2, r7),
-                   Adds(lt, r1, r7, r2));
+  CHECK_SIZE_MATCH(Adds(lt, r1, r2, r7), Adds(lt, r1, r7, r2));
 
-  CHECK_SIZE_MATCH(Adds(r4, r4, r10),
-                   Adds(r4, r10, r4));
+  CHECK_SIZE_MATCH(Adds(r4, r4, r10), Adds(r4, r10, r4));
 
-  CHECK_SIZE_MATCH(Adds(eq, r4, r4, r10),
-                   Adds(eq, r4, r10, r4));
+  CHECK_SIZE_MATCH(Adds(eq, r4, r4, r10), Adds(eq, r4, r10, r4));
 
-  CHECK_SIZE_MATCH(Adds(r7, sp, r7),
-                   Adds(r7, r7, sp));
+  CHECK_SIZE_MATCH(Adds(r7, sp, r7), Adds(r7, r7, sp));
 
-  CHECK_SIZE_MATCH(Adds(eq, r7, sp, r7),
-                   Adds(eq, r7, r7, sp));
+  CHECK_SIZE_MATCH(Adds(eq, r7, sp, r7), Adds(eq, r7, r7, sp));
 
-  CHECK_SIZE_MATCH(Adds(sp, sp, r10),
-                   Adds(sp, r10, sp));
+  CHECK_SIZE_MATCH(Adds(sp, sp, r10), Adds(sp, r10, sp));
 
-  CHECK_SIZE_MATCH(Adds(eq, sp, sp, r10),
-                   Adds(eq, sp, r10, sp));
+  CHECK_SIZE_MATCH(Adds(eq, sp, sp, r10), Adds(eq, sp, r10, sp));
 
   // CHECK_SIZE_MATCH(Ands(r7, r7, r6),
   //                  Ands(r7, r6, r7));

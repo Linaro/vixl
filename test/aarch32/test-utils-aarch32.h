@@ -45,40 +45,40 @@ static const bool kCheckSimulatorTestResults = false;
 
 // Helper constants used to check for condition code combinations.  These are
 // not part of instruction definitions as no instruction uses them directly.
-const uint32_t NoFlag   = 0x0;
-const uint32_t NFlag    = 0x80000000;
-const uint32_t ZFlag    = 0x40000000;
-const uint32_t CFlag    = 0x20000000;
-const uint32_t VFlag    = 0x10000000;
-const uint32_t NZFlag   = NFlag | ZFlag;
-const uint32_t NCFlag   = NFlag | CFlag;
-const uint32_t NVFlag   = NFlag | VFlag;
-const uint32_t ZCFlag   = ZFlag | CFlag;
-const uint32_t ZVFlag   = ZFlag | VFlag;
-const uint32_t CVFlag   = CFlag | VFlag;
-const uint32_t NZCFlag  = NFlag | ZFlag | CFlag;
-const uint32_t NZVFlag  = NFlag | ZFlag | VFlag;
-const uint32_t NCVFlag  = NFlag | CFlag | VFlag;
-const uint32_t ZCVFlag  = ZFlag | CFlag | VFlag;
+const uint32_t NoFlag = 0x0;
+const uint32_t NFlag = 0x80000000;
+const uint32_t ZFlag = 0x40000000;
+const uint32_t CFlag = 0x20000000;
+const uint32_t VFlag = 0x10000000;
+const uint32_t NZFlag = NFlag | ZFlag;
+const uint32_t NCFlag = NFlag | CFlag;
+const uint32_t NVFlag = NFlag | VFlag;
+const uint32_t ZCFlag = ZFlag | CFlag;
+const uint32_t ZVFlag = ZFlag | VFlag;
+const uint32_t CVFlag = CFlag | VFlag;
+const uint32_t NZCFlag = NFlag | ZFlag | CFlag;
+const uint32_t NZVFlag = NFlag | ZFlag | VFlag;
+const uint32_t NCVFlag = NFlag | CFlag | VFlag;
+const uint32_t ZCVFlag = ZFlag | CFlag | VFlag;
 const uint32_t NZCVFlag = NFlag | ZFlag | CFlag | VFlag;
-const uint32_t QFlag    = 0x08000000;
+const uint32_t QFlag = 0x08000000;
 
-const uint32_t GE0Flag    = 0x00010000;
-const uint32_t GE1Flag    = 0x00020000;
-const uint32_t GE2Flag    = 0x00040000;
-const uint32_t GE3Flag    = 0x00080000;
-const uint32_t GE01Flag   = GE0Flag | GE1Flag;
-const uint32_t GE02Flag   = GE0Flag | GE2Flag;
-const uint32_t GE03Flag   = GE0Flag | GE3Flag;
-const uint32_t GE12Flag   = GE1Flag | GE2Flag;
-const uint32_t GE13Flag   = GE1Flag | GE3Flag;
-const uint32_t GE23Flag   = GE2Flag | GE3Flag;
-const uint32_t GE012Flag  = GE0Flag | GE1Flag | GE2Flag;
-const uint32_t GE013Flag  = GE0Flag | GE1Flag | GE3Flag;
-const uint32_t GE023Flag  = GE0Flag | GE2Flag | GE3Flag;
-const uint32_t GE123Flag  = GE1Flag | GE2Flag | GE3Flag;
+const uint32_t GE0Flag = 0x00010000;
+const uint32_t GE1Flag = 0x00020000;
+const uint32_t GE2Flag = 0x00040000;
+const uint32_t GE3Flag = 0x00080000;
+const uint32_t GE01Flag = GE0Flag | GE1Flag;
+const uint32_t GE02Flag = GE0Flag | GE2Flag;
+const uint32_t GE03Flag = GE0Flag | GE3Flag;
+const uint32_t GE12Flag = GE1Flag | GE2Flag;
+const uint32_t GE13Flag = GE1Flag | GE3Flag;
+const uint32_t GE23Flag = GE2Flag | GE3Flag;
+const uint32_t GE012Flag = GE0Flag | GE1Flag | GE2Flag;
+const uint32_t GE013Flag = GE0Flag | GE1Flag | GE3Flag;
+const uint32_t GE023Flag = GE0Flag | GE2Flag | GE3Flag;
+const uint32_t GE123Flag = GE1Flag | GE2Flag | GE3Flag;
 const uint32_t GE0123Flag = GE0Flag | GE1Flag | GE2Flag | GE3Flag;
-const uint32_t GEFlags    = GE0123Flag;
+const uint32_t GEFlags = GE0123Flag;
 
 struct vec128_t {
   uint64_t l;
@@ -112,10 +112,7 @@ class RegisterDump {
   vec128_t GetQRegisterBits(unsigned code) const {
     VIXL_ASSERT(IsComplete());
     VIXL_ASSERT(code < kNumberOfQRegisters);
-    vec128_t content = {
-      dump_.d_[code * 2],
-      dump_.d_[(code * 2) + 1]
-    };
+    vec128_t content = {dump_.d_[code * 2], dump_.d_[(code * 2) + 1]};
     return content;
   }
 
@@ -140,9 +137,7 @@ class RegisterDump {
   }
 
   // Stack pointer accessors.
-  int32_t spreg() const {
-    return reg(kSPRegNum);
-  }
+  int32_t spreg() const { return reg(kSPRegNum); }
 
   // Flags accessors.
   uint32_t flags_nzcv() const {
@@ -150,9 +145,7 @@ class RegisterDump {
     return dump_.flags_ & NZCVFlag;
   }
 
-  bool IsComplete() const {
-    return completed_;
-  }
+  bool IsComplete() const { return completed_; }
 
  private:
   // Indicate whether the dump operation has been completed.
@@ -176,15 +169,17 @@ class RegisterDump {
 
 bool Equal32(uint32_t expected, const RegisterDump* core, const Register& reg);
 bool Equal32(uint32_t expected, const RegisterDump* core, uint32_t result);
-bool Equal32(uint32_t expected, const RegisterDump* core,
+bool Equal32(uint32_t expected,
+             const RegisterDump* core,
              const SRegister& sreg);
-bool Equal64(uint64_t expected, const RegisterDump* core,
+bool Equal64(uint64_t expected,
+             const RegisterDump* core,
              const DRegister& dreg);
-bool Equal128(uint64_t expected_h, uint64_t expected_l,
-              const RegisterDump* core, const QRegister& qreg);
-bool EqualFP32(float expected,
-               const RegisterDump* core,
-               const SRegister& dreg);
+bool Equal128(uint64_t expected_h,
+              uint64_t expected_l,
+              const RegisterDump* core,
+              const QRegister& qreg);
+bool EqualFP32(float expected, const RegisterDump* core, const SRegister& dreg);
 bool EqualFP64(double expected,
                const RegisterDump* core,
                const DRegister& dreg);

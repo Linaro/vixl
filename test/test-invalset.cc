@@ -31,7 +31,7 @@ namespace vixl {
 
 // This file contains tests for the `InvalSet` and `InvalSetIterator` classes.
 
-#define TEST(name)  TEST_(INVALSET_##name)
+#define TEST(name) TEST_(INVALSET_##name)
 
 typedef ptrdiff_t KeyType;
 typedef ptrdiff_t ValType;
@@ -48,16 +48,14 @@ class Obj {
     return (key_ == other.key_) && (val_ == other.val_);
   }
   bool operator<(const Obj& other) const {
-    return (key_ < other.key_) ||
-        ((key_ == other.key_) && (val_ < other.val_));
+    return (key_ < other.key_) || ((key_ == other.key_) && (val_ < other.val_));
   }
   bool operator<=(const Obj& other) const {
     return (key_ <= other.key_) ||
-        ((key_ == other.key_) && (val_ <= other.val_));
+           ((key_ == other.key_) && (val_ <= other.val_));
   }
   bool operator>(const Obj& other) const {
-    return (key_ > other.key_) ||
-        ((key_ == other.key_) && (val_ > other.val_));
+    return (key_ > other.key_) || ((key_ == other.key_) && (val_ > other.val_));
   }
 };
 
@@ -73,7 +71,7 @@ typedef InvalSet<Obj,
                  kReclaimFrom,
                  kReclaimFactor> TestSet;
 
-template<>
+template <>
 inline KeyType InvalSet<Obj,
                         kNPreallocatedElements,
                         KeyType,
@@ -82,7 +80,7 @@ inline KeyType InvalSet<Obj,
                         kReclaimFactor>::GetKey(const Obj& obj) {
   return obj.key_;
 }
-template<>
+template <>
 inline void InvalSet<Obj,
                      kNPreallocatedElements,
                      KeyType,
@@ -234,8 +232,7 @@ TEST(iterator) {
   VIXL_CHECK(total == expected_total);
 
   // Test with more elements.
-  for (unsigned i = kNPreallocatedElements;
-       i < 4 * kNPreallocatedElements;
+  for (unsigned i = kNPreallocatedElements; i < 4 * kNPreallocatedElements;
        i++) {
     set.insert(Obj(i, i));
     expected_total += i;
@@ -304,8 +301,7 @@ TEST(iterator_cxx11) {
   VIXL_CHECK(total == expected_total);
 
   // Test with more elements.
-  for (unsigned i = kNPreallocatedElements;
-       i < 4 * kNPreallocatedElements;
+  for (unsigned i = kNPreallocatedElements; i < 4 * kNPreallocatedElements;
        i++) {
     set.insert(Obj(i, i));
     expected_total += i;
@@ -355,10 +351,10 @@ TEST(iterator_cxx11) {
 
 TEST(stl_forward_iterator) {
   {
-    TestSet::iterator default_it;               // Default-constructible.
-    TestSet::iterator copy_it(default_it);      // Copy-constructible.
-    copy_it = default_it;                       // Copy-assignable.
-  }                                             // Destructible.
+    TestSet::iterator default_it;           // Default-constructible.
+    TestSet::iterator copy_it(default_it);  // Copy-constructible.
+    copy_it = default_it;                   // Copy-assignable.
+  }                                         // Destructible.
 
   TestSet set1;
   VIXL_CHECK(set1.empty() && (set1.size() == 0));

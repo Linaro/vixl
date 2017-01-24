@@ -159,7 +159,7 @@ def ClangFormatFiles(files, in_place = False, jobs = 1, progress_prefix = ''):
   return rc
 
 
-def Find(path, filters = ['*']):
+def Find(path, filters = ['*'], excluded_dir = ""):
   files_found = []
 
   def NameMatchesAnyFilter(name, ff):
@@ -169,8 +169,14 @@ def Find(path, filters = ['*']):
     return False
 
   for root, dirs, files in os.walk(path):
-    files_found += [os.path.relpath(os.path.join(root, fn))
-                    for fn in files if NameMatchesAnyFilter(fn, filters)]
+    files_found += [
+        os.path.join(root, fn)
+        for fn in files
+        # Include files which names match "filters".
+        # Exclude files for which the base directory is "excluded_dir".
+        if NameMatchesAnyFilter(os.path.relpath(fn), filters) and \
+            not os.path.dirname(os.path.join(root, fn)).endswith(excluded_dir)
+    ]
   return files_found
 
 
@@ -180,9 +186,10 @@ def GetCppSourceFilesToFormat():
                  config.dir_aarch32_examples,
                  config.dir_aarch64_benchmarks,
                  config.dir_aarch64_examples,
+                 config.dir_tests,
                  config.dir_src_vixl ]
   for directory in source_dirs:
-    sources += Find(directory, ['*.h', '*.cc'])
+    sources += Find(directory, ['*.h', '*.cc'], 'traces')
   return sources
 
 

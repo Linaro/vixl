@@ -37,21 +37,24 @@
 
 namespace vixl {
 
-#define TEST(name, code, expected_prefix)                               \
-    TEST_(ABORTS_##name) {                                              \
-      try {                                                             \
-        code;                                                           \
-        printf("\n%s:%d\nNo exception raised.\n", __FILE__, __LINE__);  \
-        abort();                                                        \
-      } catch (std::runtime_error e) {                                  \
-        size_t prefix_length = strlen(expected_prefix);                 \
-        if (strncmp(expected_prefix, e.what(), prefix_length) != 0) {   \
-          printf("\n%s:%d\nFound:\n%sExpected:\n%s...\n",               \
-                 __FILE__, __LINE__, e.what(), expected_prefix);        \
-          abort();                                                      \
-        }                                                               \
-      }                                                                 \
-    }
+#define TEST(name, code, expected_prefix)                            \
+  TEST_(ABORTS_##name) {                                             \
+    try {                                                            \
+      code;                                                          \
+      printf("\n%s:%d\nNo exception raised.\n", __FILE__, __LINE__); \
+      abort();                                                       \
+    } catch (std::runtime_error e) {                                 \
+      size_t prefix_length = strlen(expected_prefix);                \
+      if (strncmp(expected_prefix, e.what(), prefix_length) != 0) {  \
+        printf("\n%s:%d\nFound:\n%sExpected:\n%s...\n",              \
+               __FILE__,                                             \
+               __LINE__,                                             \
+               e.what(),                                             \
+               expected_prefix);                                     \
+        abort();                                                     \
+      }                                                              \
+    }                                                                \
+  }
 
 TEST(abort, VIXL_ABORT(), "Aborting in ")
 TEST(abort_with_msg, VIXL_ABORT_WITH_MSG("message\n"), "message\nin ")

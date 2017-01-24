@@ -58,7 +58,7 @@ void ExecuteMemory(byte* buffer, size_t size, int offset) {
 #if defined(__aarch64__) && defined(VIXL_INCLUDE_TARGET_AARCH64)
   aarch64::CPU::EnsureIAndDCacheCoherency(buffer, size);
 #elif defined(__arm__) && \
-      (defined(VIXL_INCLUDE_TARGET_A32) || defined(VIXL_INCLUDE_TARGET_T32))
+    (defined(VIXL_INCLUDE_TARGET_A32) || defined(VIXL_INCLUDE_TARGET_T32))
   // TODO: Do not use __builtin___clear_cache and instead implement
   // `CPU::EnsureIAndDCacheCoherency` for aarch32.
   __builtin___clear_cache(buffer, reinterpret_cast<char*>(buffer) + size);

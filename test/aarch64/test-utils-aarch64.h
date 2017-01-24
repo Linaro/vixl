@@ -113,9 +113,7 @@ class RegisterDump {
     return RawbitsToDouble(dreg_bits(code));
   }
 
-  inline vec128_t qreg(unsigned code) const {
-    return dump_.q_[code];
-  }
+  inline vec128_t qreg(unsigned code) const { return dump_.q_[code]; }
 
   // Stack pointer accessors.
   inline int64_t spreg() const {
@@ -135,9 +133,7 @@ class RegisterDump {
     return dump_.flags_ & Flags_mask;
   }
 
-  inline bool IsComplete() const {
-    return completed_;
-  }
+  inline bool IsComplete() const { return completed_; }
 
  private:
   // Indicate whether the dump operation has been completed.
@@ -202,17 +198,24 @@ bool EqualFP64(double expected, const RegisterDump*, double result);
 
 bool Equal32(uint32_t expected, const RegisterDump* core, const Register& reg);
 bool Equal64(uint64_t expected, const RegisterDump* core, const Register& reg);
-bool Equal64(uint64_t expected, const RegisterDump* core, const VRegister& vreg);
+bool Equal64(uint64_t expected,
+             const RegisterDump* core,
+             const VRegister& vreg);
 
-bool EqualFP32(float expected, const RegisterDump* core,
+bool EqualFP32(float expected,
+               const RegisterDump* core,
                const FPRegister& fpreg);
-bool EqualFP64(double expected, const RegisterDump* core,
+bool EqualFP64(double expected,
+               const RegisterDump* core,
                const FPRegister& fpreg);
 
-bool Equal64(const Register& reg0, const RegisterDump* core,
+bool Equal64(const Register& reg0,
+             const RegisterDump* core,
              const Register& reg1);
-bool Equal128(uint64_t expected_h, uint64_t expected_l,
-              const RegisterDump* core, const VRegister& reg);
+bool Equal128(uint64_t expected_h,
+              uint64_t expected_l,
+              const RegisterDump* core,
+              const VRegister& reg);
 
 bool EqualNzcv(uint32_t expected, uint32_t result);
 
@@ -228,12 +231,20 @@ bool EqualRegisters(const RegisterDump* a, const RegisterDump* b);
 // Any of w, x, or r can be NULL if they are not required.
 //
 // The return value is a RegList indicating which registers were allocated.
-RegList PopulateRegisterArray(Register* w, Register* x, Register* r,
-                              int reg_size, int reg_count, RegList allowed);
+RegList PopulateRegisterArray(Register* w,
+                              Register* x,
+                              Register* r,
+                              int reg_size,
+                              int reg_count,
+                              RegList allowed);
 
 // As PopulateRegisterArray, but for floating-point registers.
-RegList PopulateFPRegisterArray(FPRegister* s, FPRegister* d, FPRegister* v,
-                                int reg_size, int reg_count, RegList allowed);
+RegList PopulateFPRegisterArray(FPRegister* s,
+                                FPRegister* d,
+                                FPRegister* v,
+                                int reg_size,
+                                int reg_count,
+                                RegList allowed);
 
 // Ovewrite the contents of the specified registers. This enables tests to
 // check that register contents are written in cases where it's likely that the
@@ -243,11 +254,13 @@ RegList PopulateFPRegisterArray(FPRegister* s, FPRegister* d, FPRegister* v,
 // registers, a subsequent write into an aliased W register should clear the
 // top word anyway, so clobbering the full X registers should make tests more
 // rigorous.
-void Clobber(MacroAssembler* masm, RegList reg_list,
+void Clobber(MacroAssembler* masm,
+             RegList reg_list,
              uint64_t const value = 0xfedcba9876543210);
 
 // As Clobber, but for FP registers.
-void ClobberFP(MacroAssembler* masm, RegList reg_list,
+void ClobberFP(MacroAssembler* masm,
+               RegList reg_list,
                double const value = kFP64SignallingNaN);
 
 // As Clobber, but for a CPURegList with either FP or integer registers. When

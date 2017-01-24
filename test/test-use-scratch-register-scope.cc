@@ -38,21 +38,25 @@
 
 #define STRINGIFY(x) #x
 
-#define TEST_AARCH32(Name)                                                    \
-  namespace aarch32 { void Test_##Name##_AArch32_Impl(); }                    \
-  void Test_##Name##_AArch32() { aarch32::Test_##Name##_AArch32_Impl(); }     \
-  Test test_##Name##_AArch32(STRINGIFY(AARCH32_SCRATCH_##Name),               \
-                                       &Test_##Name##_AArch32);               \
+#define TEST_AARCH32(Name)                                                \
+  namespace aarch32 {                                                     \
+  void Test_##Name##_AArch32_Impl();                                      \
+  }                                                                       \
+  void Test_##Name##_AArch32() { aarch32::Test_##Name##_AArch32_Impl(); } \
+  Test test_##Name##_AArch32(STRINGIFY(AARCH32_SCRATCH_##Name),           \
+                             &Test_##Name##_AArch32);                     \
   void aarch32::Test_##Name##_AArch32_Impl()
 
-#define TEST_AARCH64(Name)                                                    \
-  namespace aarch64 { void Test_##Name##_AArch64_Impl(); }                    \
-  void Test_##Name##_AArch64() { aarch64::Test_##Name##_AArch64_Impl(); }     \
-  Test test_##Name##_AArch64(STRINGIFY(AARCH64_SCRATCH_##Name),               \
-                                       &Test_##Name##_AArch64);               \
+#define TEST_AARCH64(Name)                                                \
+  namespace aarch64 {                                                     \
+  void Test_##Name##_AArch64_Impl();                                      \
+  }                                                                       \
+  void Test_##Name##_AArch64() { aarch64::Test_##Name##_AArch64_Impl(); } \
+  Test test_##Name##_AArch64(STRINGIFY(AARCH64_SCRATCH_##Name),           \
+                             &Test_##Name##_AArch64);                     \
   void aarch64::Test_##Name##_AArch64_Impl()
 
-#define SETUP()  MacroAssembler masm
+#define SETUP() MacroAssembler masm
 #define TEARDOWN()
 
 #define __ masm.
@@ -61,7 +65,7 @@ namespace vixl {
 
 // UseScratchRegisterScopes must be able to nest perfectly. That is, they may
 // nest, but nested scopes must not outlive less-nested scopes.
-template<typename MacroAssembler, typename UseScratchRegisterScope>
+template <typename MacroAssembler, typename UseScratchRegisterScope>
 class PerfectNestingTestHelper {
  public:
   explicit PerfectNestingTestHelper(MacroAssembler* masm) : masm_(masm) {
@@ -69,7 +73,8 @@ class PerfectNestingTestHelper {
     seed48(seed);
   }
   void Run() {
-    UseScratchRegisterScope* top_scope = masm_->GetCurrentScratchRegisterScope();
+    UseScratchRegisterScope* top_scope =
+        masm_->GetCurrentScratchRegisterScope();
     int descendents = 0;
     while (descendents < kMinimumDescendentScopeCount) descendents += Run(0);
     VIXL_CHECK(masm_->GetCurrentScratchRegisterScope() == top_scope);
@@ -99,8 +104,8 @@ class PerfectNestingTestHelper {
 #ifdef VIXL_INCLUDE_TARGET_AARCH32
 TEST_AARCH32(perfect_nesting) {
   SETUP();
-  PerfectNestingTestHelper<MacroAssembler,
-                           UseScratchRegisterScope>(&masm).Run();
+  PerfectNestingTestHelper<MacroAssembler, UseScratchRegisterScope>(&masm)
+      .Run();
   TEARDOWN();
 }
 #endif  // VIXL_INCLUDE_TARGET_AARCH32
@@ -108,8 +113,8 @@ TEST_AARCH32(perfect_nesting) {
 #ifdef VIXL_INCLUDE_TARGET_AARCH64
 TEST_AARCH64(perfect_nesting) {
   SETUP();
-  PerfectNestingTestHelper<MacroAssembler,
-                           UseScratchRegisterScope>(&masm).Run();
+  PerfectNestingTestHelper<MacroAssembler, UseScratchRegisterScope>(&masm)
+      .Run();
   TEARDOWN();
 }
 #endif  // VIXL_INCLUDE_TARGET_AARCH64

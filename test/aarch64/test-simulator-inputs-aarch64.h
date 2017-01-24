@@ -41,6 +41,7 @@ extern "C" {
 #endif
 #define VIXL_AARCH64_TEST_SIMULATOR_INPUTS_AARCH64_H_
 
+// clang-format off
 
 // Double values, stored as uint64_t representations. This ensures exact bit
 // representation, and avoids the loss of NaNs and suchlike through C++ casts.
@@ -849,137 +850,100 @@ extern "C" {
   0xfffffffffffffffe,                                                         \
   0xffffffffffffffff
 
+// clang-format on
 
 // For most 2- and 3-op instructions, use only basic inputs. Because every
 // combination is tested, the length of the output trace is very sensitive to
 // the length of this list.
-static const uint64_t kInputDoubleBasic[] = { INPUT_DOUBLE_BASIC };
-static const uint32_t kInputFloatBasic[] = { INPUT_FLOAT_BASIC };
+static const uint64_t kInputDoubleBasic[] = {INPUT_DOUBLE_BASIC};
+static const uint32_t kInputFloatBasic[] = {INPUT_FLOAT_BASIC};
 
 // TODO: Define different values when the traces file is split.
 #define INPUT_DOUBLE_ACC_DESTINATION INPUT_DOUBLE_BASIC
 #define INPUT_FLOAT_ACC_DESTINATION INPUT_FLOAT_BASIC
 
 static const uint64_t kInputDoubleAccDestination[] = {
-  INPUT_DOUBLE_ACC_DESTINATION
-};
+    INPUT_DOUBLE_ACC_DESTINATION};
 
 static const uint32_t kInputFloatAccDestination[] = {
-  INPUT_FLOAT_ACC_DESTINATION
-};
+    INPUT_FLOAT_ACC_DESTINATION};
 
 // For conversions, include several extra inputs.
 static const uint64_t kInputDoubleConversions[] = {
-  INPUT_DOUBLE_BASIC
-  INPUT_DOUBLE_CONVERSIONS
-};
+    INPUT_DOUBLE_BASIC INPUT_DOUBLE_CONVERSIONS};
 
 static const uint32_t kInputFloatConversions[] = {
-  INPUT_FLOAT_BASIC
-  INPUT_FLOAT_CONVERSIONS
-};
+    INPUT_FLOAT_BASIC INPUT_FLOAT_CONVERSIONS};
 
-static const uint64_t kInput64bitsFixedPointConversions[] = {
-  INPUT_64BITS_BASIC,
-  INPUT_64BITS_FIXEDPOINT_CONVERSIONS
-};
+static const uint64_t kInput64bitsFixedPointConversions[] =
+    {INPUT_64BITS_BASIC, INPUT_64BITS_FIXEDPOINT_CONVERSIONS};
 
-static const uint32_t kInput32bitsFixedPointConversions[] = {
-  INPUT_32BITS_BASIC,
-  INPUT_32BITS_FIXEDPOINT_CONVERSIONS
-};
+static const uint32_t kInput32bitsFixedPointConversions[] =
+    {INPUT_32BITS_BASIC, INPUT_32BITS_FIXEDPOINT_CONVERSIONS};
 
 static const uint16_t kInputFloat16Conversions[] = {
-  INPUT_FLOAT16_BASIC
-  INPUT_FLOAT16_CONVERSIONS
-};
+    INPUT_FLOAT16_BASIC INPUT_FLOAT16_CONVERSIONS};
 
-static const uint8_t kInput8bitsBasic[] = {
-  INPUT_8BITS_BASIC
-};
+static const uint8_t kInput8bitsBasic[] = {INPUT_8BITS_BASIC};
 
-static const uint16_t kInput16bitsBasic[] = {
-  INPUT_16BITS_BASIC
-};
+static const uint16_t kInput16bitsBasic[] = {INPUT_16BITS_BASIC};
 
-static const uint32_t kInput32bitsBasic[] = {
-  INPUT_32BITS_BASIC
-};
+static const uint32_t kInput32bitsBasic[] = {INPUT_32BITS_BASIC};
 
-static const uint64_t kInput64bitsBasic[] = {
-  INPUT_64BITS_BASIC
-};
+static const uint64_t kInput64bitsBasic[] = {INPUT_64BITS_BASIC};
 
-static const int kInput8bitsImmTypeWidth[] = {
-  INPUT_8BITS_IMM_TYPEWIDTH
-};
+static const int kInput8bitsImmTypeWidth[] = {INPUT_8BITS_IMM_TYPEWIDTH};
 
-static const int kInput16bitsImmTypeWidth[] = {
-  INPUT_16BITS_IMM_TYPEWIDTH
-};
+static const int kInput16bitsImmTypeWidth[] = {INPUT_16BITS_IMM_TYPEWIDTH};
 
-static const int kInput32bitsImmTypeWidth[] = {
-  INPUT_32BITS_IMM_TYPEWIDTH
-};
+static const int kInput32bitsImmTypeWidth[] = {INPUT_32BITS_IMM_TYPEWIDTH};
 
-static const int kInput64bitsImmTypeWidth[] = {
-  INPUT_64BITS_IMM_TYPEWIDTH
-};
+static const int kInput64bitsImmTypeWidth[] = {INPUT_64BITS_IMM_TYPEWIDTH};
 
 static const int kInput8bitsImmTypeWidthFromZero[] = {
-  INPUT_8BITS_IMM_TYPEWIDTH_FROMZERO
-};
+    INPUT_8BITS_IMM_TYPEWIDTH_FROMZERO};
 
 static const int kInput16bitsImmTypeWidthFromZero[] = {
-  INPUT_16BITS_IMM_TYPEWIDTH_FROMZERO
-};
+    INPUT_16BITS_IMM_TYPEWIDTH_FROMZERO};
 
 static const int kInput32bitsImmTypeWidthFromZero[] = {
-  INPUT_32BITS_IMM_TYPEWIDTH_FROMZERO
-};
+    INPUT_32BITS_IMM_TYPEWIDTH_FROMZERO};
 
 static const int kInput64bitsImmTypeWidthFromZero[] = {
-  INPUT_64BITS_IMM_TYPEWIDTH_FROMZERO
-};
+    INPUT_64BITS_IMM_TYPEWIDTH_FROMZERO};
 
 static const int kInput32bitsImmTypeWidthFromZeroToWidth[] = {
-  INPUT_32BITS_IMM_TYPEWIDTH_FROMZERO_TOWIDTH
-};
+    INPUT_32BITS_IMM_TYPEWIDTH_FROMZERO_TOWIDTH};
 
 static const int kInput64bitsImmTypeWidthFromZeroToWidth[] = {
-  INPUT_64BITS_IMM_TYPEWIDTH_FROMZERO_TOWIDTH
-};
+    INPUT_64BITS_IMM_TYPEWIDTH_FROMZERO_TOWIDTH};
 
 // These immediate values are used only in 'shll{2}' tests.
-static const int kInput8bitsImmSHLL[] = { 8 };
-static const int kInput16bitsImmSHLL[] = { 16 };
-static const int kInput32bitsImmSHLL[] = { 32 };
+static const int kInput8bitsImmSHLL[] = {8};
+static const int kInput16bitsImmSHLL[] = {16};
+static const int kInput32bitsImmSHLL[] = {32};
 
-static const double kInputDoubleImmZero[] = { 0.0 };
+static const double kInputDoubleImmZero[] = {0.0};
 
-static const int kInput8bitsImmZero[] = { 0 };
+static const int kInput8bitsImmZero[] = {0};
 
-static const int kInput16bitsImmZero[] = { 0 };
+static const int kInput16bitsImmZero[] = {0};
 
-static const int kInput32bitsImmZero[] = { 0 };
+static const int kInput32bitsImmZero[] = {0};
 
-static const int kInput64bitsImmZero[] = { 0 };
+static const int kInput64bitsImmZero[] = {0};
 
 static const int kInput8bitsImmLaneCountFromZero[] = {
-  INPUT_8BITS_IMM_LANECOUNT_FROMZERO
-};
+    INPUT_8BITS_IMM_LANECOUNT_FROMZERO};
 
 static const int kInput16bitsImmLaneCountFromZero[] = {
-  INPUT_16BITS_IMM_LANECOUNT_FROMZERO
-};
+    INPUT_16BITS_IMM_LANECOUNT_FROMZERO};
 
 static const int kInput32bitsImmLaneCountFromZero[] = {
-  INPUT_32BITS_IMM_LANECOUNT_FROMZERO
-};
+    INPUT_32BITS_IMM_LANECOUNT_FROMZERO};
 
 static const int kInput64bitsImmLaneCountFromZero[] = {
-  INPUT_64BITS_IMM_LANECOUNT_FROMZERO
-};
+    INPUT_64BITS_IMM_LANECOUNT_FROMZERO};
 
 // TODO: Define different values when the traces file is split.
 #define INPUT_8BITS_ACC_DESTINATION INPUT_8BITS_BASIC
@@ -988,30 +952,19 @@ static const int kInput64bitsImmLaneCountFromZero[] = {
 #define INPUT_64BITS_ACC_DESTINATION INPUT_64BITS_BASIC
 
 static const uint8_t kInput8bitsAccDestination[] = {
-  INPUT_8BITS_ACC_DESTINATION
-};
+    INPUT_8BITS_ACC_DESTINATION};
 
 static const uint16_t kInput16bitsAccDestination[] = {
-  INPUT_16BITS_ACC_DESTINATION
-};
+    INPUT_16BITS_ACC_DESTINATION};
 
 static const uint32_t kInput32bitsAccDestination[] = {
-  INPUT_32BITS_ACC_DESTINATION
-};
+    INPUT_32BITS_ACC_DESTINATION};
 
 static const uint64_t kInput64bitsAccDestination[] = {
-  INPUT_64BITS_ACC_DESTINATION
-};
+    INPUT_64BITS_ACC_DESTINATION};
 
-static const int kInputHIndices[] = {
-  0, 1, 2, 3,
-  4, 5, 6, 7
-};
+static const int kInputHIndices[] = {0, 1, 2, 3, 4, 5, 6, 7};
 
-static const int kInputSIndices[] = {
-  0, 1, 2, 3
-};
+static const int kInputSIndices[] = {0, 1, 2, 3};
 
-static const int kInputDIndices[] = {
-  0, 1
-};
+static const int kInputDIndices[] = {0, 1};

@@ -31,7 +31,7 @@
 #include "aarch64/decoder-aarch64.h"
 #include "aarch64/disasm-aarch64.h"
 
-#define TEST(name)  TEST_(AARCH64_FUZZ_##name)
+#define TEST(name) TEST_(AARCH64_FUZZ_##name)
 
 
 namespace vixl {
@@ -117,5 +117,5 @@ TEST(disasm_pedantic) {
 }
 #endif
 
-}   // namespace aarch64
-}   // namespace vixl
+}  // namespace aarch64
+}  // namespace vixl

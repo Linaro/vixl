@@ -57,7 +57,7 @@ bool vixl::Test::generate_test_trace_ = false;
 
 // Instantiate a Test and append it to the linked list.
 vixl::Test::Test(const char* name, TestFunction* callback)
-  : name_(name), callback_(callback), next_(NULL) {
+    : name_(name), callback_(callback), next_(NULL) {
   // Append this test to the linked list.
   if (first_ == NULL) {
     VIXL_ASSERT(last_ == NULL);
@@ -86,11 +86,11 @@ static bool IsOption(const char* arg) {
 }
 
 
-static void NormalizeOption(char * arg) {
+static void NormalizeOption(char* arg) {
   // Squash all '_' characters in options. This allows --trace_sim and
   // --trace-sim to be handled in the same way, for example.
   VIXL_ASSERT(IsOption(arg));
-  for (char * c = arg; *c != '\0'; c++) {
+  for (char* c = arg; *c != '\0'; c++) {
     if (*c == '_') {
       *c = '-';
     }
@@ -99,7 +99,8 @@ static void NormalizeOption(char * arg) {
 
 
 static void PrintHelpMessage() {
-  printf("Usage:  ./test [options] [test names]\n"
+  printf(
+      "Usage:  ./test [options] [test names]\n"
       "Run all tests specified on the command line.\n"
       "--help                 Print this help message.\n"
       "--list                 List all available tests.\n"
@@ -225,4 +226,3 @@ int main(int argc, char* argv[]) {
 
   return EXIT_SUCCESS;
 }
-

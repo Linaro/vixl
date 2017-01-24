@@ -53,76 +53,75 @@ namespace aarch64 {
 // test-simulator-traces-aarch64.h.
 
 #define __ masm.
-#define TEST(name)  TEST_(AARCH64_SIM_##name)
+#define TEST(name) TEST_(AARCH64_SIM_##name)
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
-#define SETUP()                                                               \
-  MacroAssembler masm;                                                        \
-  Decoder decoder;                                                            \
-  Simulator* simulator = Test::run_debugger() ? new Debugger(&decoder)        \
-                                              : new Simulator(&decoder);      \
-  simulator->SetColouredTrace(Test::coloured_trace());                        \
-  simulator->SetInstructionStats(Test::instruction_stats());                  \
+#define SETUP()                                                                \
+  MacroAssembler masm;                                                         \
+  Decoder decoder;                                                             \
+  Simulator* simulator =                                                       \
+      Test::run_debugger() ? new Debugger(&decoder) : new Simulator(&decoder); \
+  simulator->SetColouredTrace(Test::coloured_trace());                         \
+  simulator->SetInstructionStats(Test::instruction_stats());
 
-#define START()                                                               \
-  masm.Reset();                                                               \
-  simulator->ResetState();                                                    \
-  __ PushCalleeSavedRegisters();                                              \
-  if (Test::trace_reg()) {                                                    \
-    __ Trace(LOG_STATE, TRACE_ENABLE);                                        \
-  }                                                                           \
-  if (Test::trace_write()) {                                                  \
-    __ Trace(LOG_WRITE, TRACE_ENABLE);                                        \
-  }                                                                           \
-  if (Test::trace_sim()) {                                                    \
-    __ Trace(LOG_DISASM, TRACE_ENABLE);                                       \
-  }                                                                           \
-  if (Test::instruction_stats()) {                                            \
-    __ EnableInstrumentation();                                               \
+#define START()                         \
+  masm.Reset();                         \
+  simulator->ResetState();              \
+  __ PushCalleeSavedRegisters();        \
+  if (Test::trace_reg()) {              \
+    __ Trace(LOG_STATE, TRACE_ENABLE);  \
+  }                                     \
+  if (Test::trace_write()) {            \
+    __ Trace(LOG_WRITE, TRACE_ENABLE);  \
+  }                                     \
+  if (Test::trace_sim()) {              \
+    __ Trace(LOG_DISASM, TRACE_ENABLE); \
+  }                                     \
+  if (Test::instruction_stats()) {      \
+    __ EnableInstrumentation();         \
   }
 
-#define END()                                                                 \
-  if (Test::instruction_stats()) {                                            \
-    __ DisableInstrumentation();                                              \
-  }                                                                           \
-  __ Trace(LOG_ALL, TRACE_DISABLE);                                           \
-  __ PopCalleeSavedRegisters();                                               \
-  __ Ret();                                                                   \
+#define END()                       \
+  if (Test::instruction_stats()) {  \
+    __ DisableInstrumentation();    \
+  }                                 \
+  __ Trace(LOG_ALL, TRACE_DISABLE); \
+  __ PopCalleeSavedRegisters();     \
+  __ Ret();                         \
   masm.FinalizeCode()
 
-#define RUN()                                                                 \
+#define RUN() \
   simulator->RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>())
 
-#define TEARDOWN()                                                            \
-  delete simulator;
+#define TEARDOWN() delete simulator;
 
-#else     // VIXL_INCLUDE_SIMULATOR_AARCH64
+#else  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
-#define SETUP()                                                               \
-  MacroAssembler masm;                                                        \
+#define SETUP()        \
+  MacroAssembler masm; \
   CPU::SetUp()
 
-#define START()                                                               \
-  masm.Reset();                                                               \
+#define START() \
+  masm.Reset(); \
   __ PushCalleeSavedRegisters()
 
-#define END()                                                                 \
-  __ PopCalleeSavedRegisters();                                               \
-  __ Ret();                                                                   \
+#define END()                   \
+  __ PopCalleeSavedRegisters(); \
+  __ Ret();                     \
   masm.FinalizeCode()
 
-#define RUN()                                                                 \
-  {                                                                           \
-    masm.GetBuffer()->SetExecutable();                                        \
-    ExecuteMemory(masm.GetBuffer()->GetStartAddress<byte*>(),                 \
-                  masm.GetSizeOfCodeGenerated());                             \
-    masm.GetBuffer()->SetWritable();                                          \
+#define RUN()                                                 \
+  {                                                           \
+    masm.GetBuffer()->SetExecutable();                        \
+    ExecuteMemory(masm.GetBuffer()->GetStartAddress<byte*>(), \
+                  masm.GetSizeOfCodeGenerated());             \
+    masm.GetBuffer()->SetWritable();                          \
   }
 
 #define TEARDOWN()
 
-#endif    // VIXL_INCLUDE_SIMULATOR_AARCH64
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
 
 // The maximum number of errors to report in detail for each test.
@@ -131,13 +130,9 @@ static const unsigned kErrorReportLimit = 8;
 
 // Overloaded versions of RawbitsToDouble and RawbitsToFloat for use in the
 // templated test functions.
-static float rawbits_to_fp(uint32_t bits) {
-  return RawbitsToFloat(bits);
-}
+static float rawbits_to_fp(uint32_t bits) { return RawbitsToFloat(bits); }
 
-static double rawbits_to_fp(uint64_t bits) {
-  return RawbitsToDouble(bits);
-}
+static double rawbits_to_fp(uint64_t bits) { return RawbitsToDouble(bits); }
 
 
 // MacroAssembler member function pointers to pass to the test dispatchers.
@@ -164,22 +159,26 @@ typedef void (MacroAssembler::*TestFixedToFPHelper_t)(const FPRegister& fd,
                                                       int fbits);
 // TODO: 'Test2OpNEONHelper_t' and 'Test2OpFPHelper_t' can be
 //       consolidated into one routine.
-typedef void (MacroAssembler::*Test1OpNEONHelper_t)(
-  const VRegister& vd, const VRegister& vn);
-typedef void (MacroAssembler::*Test2OpNEONHelper_t)(
-  const VRegister& vd, const VRegister& vn, const VRegister& vm);
-typedef void (MacroAssembler::*TestByElementNEONHelper_t)(
-  const VRegister& vd, const VRegister& vn, const VRegister& vm, int vm_index);
+typedef void (MacroAssembler::*Test1OpNEONHelper_t)(const VRegister& vd,
+                                                    const VRegister& vn);
+typedef void (MacroAssembler::*Test2OpNEONHelper_t)(const VRegister& vd,
+                                                    const VRegister& vn,
+                                                    const VRegister& vm);
+typedef void (MacroAssembler::*TestByElementNEONHelper_t)(const VRegister& vd,
+                                                          const VRegister& vn,
+                                                          const VRegister& vm,
+                                                          int vm_index);
 typedef void (MacroAssembler::*TestOpImmOpImmVdUpdateNEONHelper_t)(
-  const VRegister& vd, int imm1, const VRegister& vn, int imm2);
+    const VRegister& vd, int imm1, const VRegister& vn, int imm2);
 
 // This helps using the same typename for both the function pointer
 // and the array of immediates passed to helper routines.
 template <typename T>
 class Test2OpImmediateNEONHelper_t {
  public:
-    typedef void (MacroAssembler::*mnemonic)(
-      const VRegister& vd, const VRegister& vn, T imm);
+  typedef void (MacroAssembler::*mnemonic)(const VRegister& vd,
+                                           const VRegister& vn,
+                                           T imm);
 };
 
 
@@ -195,9 +194,12 @@ static unsigned MaxHexCharCount() {
 // Standard test dispatchers.
 
 
-static void Test1Op_Helper(Test1OpFPHelper_t helper, uintptr_t inputs,
-                           unsigned inputs_length, uintptr_t results,
-                           unsigned d_size, unsigned n_size) {
+static void Test1Op_Helper(Test1OpFPHelper_t helper,
+                           uintptr_t inputs,
+                           unsigned inputs_length,
+                           uintptr_t results,
+                           unsigned d_size,
+                           unsigned n_size) {
   VIXL_ASSERT((d_size == kDRegSize) || (d_size == kSRegSize));
   VIXL_ASSERT((n_size == kDRegSize) || (n_size == kSRegSize));
 
@@ -246,26 +248,34 @@ static void Test1Op_Helper(Test1OpFPHelper_t helper, uintptr_t inputs,
 // rawbits representations of doubles or floats. This ensures that exact bit
 // comparisons can be performed.
 template <typename Tn, typename Td>
-static void Test1Op(const char * name, Test1OpFPHelper_t helper,
-                    const Tn inputs[], unsigned inputs_length,
-                    const Td expected[], unsigned expected_length) {
+static void Test1Op(const char* name,
+                    Test1OpFPHelper_t helper,
+                    const Tn inputs[],
+                    unsigned inputs_length,
+                    const Td expected[],
+                    unsigned expected_length) {
   VIXL_ASSERT(inputs_length > 0);
 
   const unsigned results_length = inputs_length;
-  Td * results = new Td[results_length];
+  Td* results = new Td[results_length];
 
   const unsigned d_bits = sizeof(Td) * 8;
   const unsigned n_bits = sizeof(Tn) * 8;
 
-  Test1Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
-                 reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
+  Test1Op_Helper(helper,
+                 reinterpret_cast<uintptr_t>(inputs),
+                 inputs_length,
+                 reinterpret_cast<uintptr_t>(results),
+                 d_bits,
+                 n_bits);
 
   if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_%s[] = {\n", d_bits, name);
     for (unsigned d = 0; d < results_length; d++) {
       printf("  0x%0*" PRIx64 ",\n",
-             d_bits / 4, static_cast<uint64_t>(results[d]));
+             d_bits / 4,
+             static_cast<uint64_t>(results[d]));
     }
     printf("};\n");
     printf("const unsigned kExpectedCount_%s = %u;\n", name, results_length);
@@ -279,13 +289,18 @@ static void Test1Op(const char * name, Test1OpFPHelper_t helper,
         if (++error_count > kErrorReportLimit) continue;
 
         printf("%s 0x%0*" PRIx64 " (%s %g):\n",
-               name, n_bits / 4, static_cast<uint64_t>(inputs[n]),
-               name, rawbits_to_fp(inputs[n]));
+               name,
+               n_bits / 4,
+               static_cast<uint64_t>(inputs[n]),
+               name,
+               rawbits_to_fp(inputs[n]));
         printf("  Expected: 0x%0*" PRIx64 " (%g)\n",
-               d_bits / 4, static_cast<uint64_t>(expected[d]),
+               d_bits / 4,
+               static_cast<uint64_t>(expected[d]),
                rawbits_to_fp(expected[d]));
         printf("  Found:    0x%0*" PRIx64 " (%g)\n",
-               d_bits / 4, static_cast<uint64_t>(results[d]),
+               d_bits / 4,
+               static_cast<uint64_t>(results[d]),
                rawbits_to_fp(results[d]));
         printf("\n");
       }
@@ -301,8 +316,10 @@ static void Test1Op(const char * name, Test1OpFPHelper_t helper,
 
 
 static void Test2Op_Helper(Test2OpFPHelper_t helper,
-                           uintptr_t inputs, unsigned inputs_length,
-                           uintptr_t results, unsigned reg_size) {
+                           uintptr_t inputs,
+                           unsigned inputs_length,
+                           uintptr_t results,
+                           unsigned reg_size) {
   VIXL_ASSERT((reg_size == kDRegSize) || (reg_size == kSRegSize));
 
   SETUP();
@@ -341,7 +358,7 @@ static void Test2Op_Helper(Test2OpFPHelper_t helper,
     SingleEmissionCheckScope guard(&masm);
     (masm.*helper)(fd, fn, fm);
   }
-    __ Str(fd, MemOperand(out, fd.GetSizeInBytes(), PostIndex));
+  __ Str(fd, MemOperand(out, fd.GetSizeInBytes(), PostIndex));
 
   __ Add(index_m, index_m, 1);
   __ Cmp(index_m, inputs_length);
@@ -361,25 +378,32 @@ static void Test2Op_Helper(Test2OpFPHelper_t helper,
 // rawbits representations of doubles or floats. This ensures that exact bit
 // comparisons can be performed.
 template <typename T>
-static void Test2Op(const char * name, Test2OpFPHelper_t helper,
-                    const T inputs[], unsigned inputs_length,
-                    const T expected[], unsigned expected_length) {
+static void Test2Op(const char* name,
+                    Test2OpFPHelper_t helper,
+                    const T inputs[],
+                    unsigned inputs_length,
+                    const T expected[],
+                    unsigned expected_length) {
   VIXL_ASSERT(inputs_length > 0);
 
   const unsigned results_length = inputs_length * inputs_length;
-  T * results = new T[results_length];
+  T* results = new T[results_length];
 
   const unsigned bits = sizeof(T) * 8;
 
-  Test2Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
-                 reinterpret_cast<uintptr_t>(results), bits);
+  Test2Op_Helper(helper,
+                 reinterpret_cast<uintptr_t>(inputs),
+                 inputs_length,
+                 reinterpret_cast<uintptr_t>(results),
+                 bits);
 
   if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_%s[] = {\n", bits, name);
     for (unsigned d = 0; d < results_length; d++) {
       printf("  0x%0*" PRIx64 ",\n",
-             bits / 4, static_cast<uint64_t>(results[d]));
+             bits / 4,
+             static_cast<uint64_t>(results[d]));
     }
     printf("};\n");
     printf("const unsigned kExpectedCount_%s = %u;\n", name, results_length);
@@ -395,16 +419,20 @@ static void Test2Op(const char * name, Test2OpFPHelper_t helper,
 
           printf("%s 0x%0*" PRIx64 ", 0x%0*" PRIx64 " (%s %g %g):\n",
                  name,
-                 bits / 4, static_cast<uint64_t>(inputs[n]),
-                 bits / 4, static_cast<uint64_t>(inputs[m]),
+                 bits / 4,
+                 static_cast<uint64_t>(inputs[n]),
+                 bits / 4,
+                 static_cast<uint64_t>(inputs[m]),
                  name,
                  rawbits_to_fp(inputs[n]),
                  rawbits_to_fp(inputs[m]));
           printf("  Expected: 0x%0*" PRIx64 " (%g)\n",
-                 bits / 4, static_cast<uint64_t>(expected[d]),
+                 bits / 4,
+                 static_cast<uint64_t>(expected[d]),
                  rawbits_to_fp(expected[d]));
           printf("  Found:    0x%0*" PRIx64 " (%g)\n",
-                 bits / 4, static_cast<uint64_t>(results[d]),
+                 bits / 4,
+                 static_cast<uint64_t>(results[d]),
                  rawbits_to_fp(results[d]));
           printf("\n");
         }
@@ -421,8 +449,10 @@ static void Test2Op(const char * name, Test2OpFPHelper_t helper,
 
 
 static void Test3Op_Helper(Test3OpFPHelper_t helper,
-                           uintptr_t inputs, unsigned inputs_length,
-                           uintptr_t results, unsigned reg_size) {
+                           uintptr_t inputs,
+                           unsigned inputs_length,
+                           uintptr_t results,
+                           unsigned reg_size) {
   VIXL_ASSERT((reg_size == kDRegSize) || (reg_size == kSRegSize));
 
   SETUP();
@@ -491,25 +521,32 @@ static void Test3Op_Helper(Test3OpFPHelper_t helper,
 // rawbits representations of doubles or floats. This ensures that exact bit
 // comparisons can be performed.
 template <typename T>
-static void Test3Op(const char * name, Test3OpFPHelper_t helper,
-                    const T inputs[], unsigned inputs_length,
-                    const T expected[], unsigned expected_length) {
+static void Test3Op(const char* name,
+                    Test3OpFPHelper_t helper,
+                    const T inputs[],
+                    unsigned inputs_length,
+                    const T expected[],
+                    unsigned expected_length) {
   VIXL_ASSERT(inputs_length > 0);
 
   const unsigned results_length = inputs_length * inputs_length * inputs_length;
-  T * results = new T[results_length];
+  T* results = new T[results_length];
 
   const unsigned bits = sizeof(T) * 8;
 
-  Test3Op_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
-                 reinterpret_cast<uintptr_t>(results), bits);
+  Test3Op_Helper(helper,
+                 reinterpret_cast<uintptr_t>(inputs),
+                 inputs_length,
+                 reinterpret_cast<uintptr_t>(results),
+                 bits);
 
   if (Test::generate_test_trace()) {
     // Print the results.
     printf("const uint%u_t kExpected_%s[] = {\n", bits, name);
     for (unsigned d = 0; d < results_length; d++) {
       printf("  0x%0*" PRIx64 ",\n",
-             bits / 4, static_cast<uint64_t>(results[d]));
+             bits / 4,
+             static_cast<uint64_t>(results[d]));
     }
     printf("};\n");
     printf("const unsigned kExpectedCount_%s = %u;\n", name, results_length);
@@ -527,18 +564,23 @@ static void Test3Op(const char * name, Test3OpFPHelper_t helper,
             printf("%s 0x%0*" PRIx64 ", 0x%0*" PRIx64 ", 0x%0*" PRIx64
                    " (%s %g %g %g):\n",
                    name,
-                   bits / 4, static_cast<uint64_t>(inputs[n]),
-                   bits / 4, static_cast<uint64_t>(inputs[m]),
-                   bits / 4, static_cast<uint64_t>(inputs[a]),
+                   bits / 4,
+                   static_cast<uint64_t>(inputs[n]),
+                   bits / 4,
+                   static_cast<uint64_t>(inputs[m]),
+                   bits / 4,
+                   static_cast<uint64_t>(inputs[a]),
                    name,
                    rawbits_to_fp(inputs[n]),
                    rawbits_to_fp(inputs[m]),
                    rawbits_to_fp(inputs[a]));
             printf("  Expected: 0x%0*" PRIx64 " (%g)\n",
-                   bits / 4, static_cast<uint64_t>(expected[d]),
+                   bits / 4,
+                   static_cast<uint64_t>(expected[d]),
                    rawbits_to_fp(expected[d]));
             printf("  Found:    0x%0*" PRIx64 " (%g)\n",
-                   bits / 4, static_cast<uint64_t>(results[d]),
+                   bits / 4,
+                   static_cast<uint64_t>(results[d]),
                    rawbits_to_fp(results[d]));
             printf("\n");
           }
@@ -556,8 +598,10 @@ static void Test3Op(const char * name, Test3OpFPHelper_t helper,
 
 
 static void TestCmp_Helper(TestFPCmpHelper_t helper,
-                           uintptr_t inputs, unsigned inputs_length,
-                           uintptr_t results, unsigned reg_size) {
+                           uintptr_t inputs,
+                           unsigned inputs_length,
+                           uintptr_t results,
+                           unsigned reg_size) {
   VIXL_ASSERT((reg_size == kDRegSize) || (reg_size == kSRegSize));
 
   SETUP();
@@ -618,18 +662,24 @@ static void TestCmp_Helper(TestFPCmpHelper_t helper,
 // rawbits representations of doubles or floats. This ensures that exact bit
 // comparisons can be performed.
 template <typename T>
-static void TestCmp(const char * name, TestFPCmpHelper_t helper,
-                    const T inputs[], unsigned inputs_length,
-                    const uint8_t expected[], unsigned expected_length) {
+static void TestCmp(const char* name,
+                    TestFPCmpHelper_t helper,
+                    const T inputs[],
+                    unsigned inputs_length,
+                    const uint8_t expected[],
+                    unsigned expected_length) {
   VIXL_ASSERT(inputs_length > 0);
 
   const unsigned results_length = inputs_length * inputs_length;
-  uint8_t * results = new uint8_t[results_length];
+  uint8_t* results = new uint8_t[results_length];
 
   const unsigned bits = sizeof(T) * 8;
 
-  TestCmp_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
-                 reinterpret_cast<uintptr_t>(results), bits);
+  TestCmp_Helper(helper,
+                 reinterpret_cast<uintptr_t>(inputs),
+                 inputs_length,
+                 reinterpret_cast<uintptr_t>(results),
+                 bits);
 
   if (Test::generate_test_trace()) {
     // Print the results.
@@ -653,8 +703,10 @@ static void TestCmp(const char * name, TestFPCmpHelper_t helper,
 
           printf("%s 0x%0*" PRIx64 ", 0x%0*" PRIx64 " (%s %g %g):\n",
                  name,
-                 bits / 4, static_cast<uint64_t>(inputs[n]),
-                 bits / 4, static_cast<uint64_t>(inputs[m]),
+                 bits / 4,
+                 static_cast<uint64_t>(inputs[n]),
+                 bits / 4,
+                 static_cast<uint64_t>(inputs[m]),
                  name,
                  rawbits_to_fp(inputs[n]),
                  rawbits_to_fp(inputs[m]));
@@ -685,8 +737,10 @@ static void TestCmp(const char * name, TestFPCmpHelper_t helper,
 
 
 static void TestCmpZero_Helper(TestFPCmpZeroHelper_t helper,
-                               uintptr_t inputs, unsigned inputs_length,
-                               uintptr_t results, unsigned reg_size) {
+                               uintptr_t inputs,
+                               unsigned inputs_length,
+                               uintptr_t results,
+                               unsigned reg_size) {
   VIXL_ASSERT((reg_size == kDRegSize) || (reg_size == kSRegSize));
 
   SETUP();
@@ -737,18 +791,24 @@ static void TestCmpZero_Helper(TestFPCmpZeroHelper_t helper,
 // rawbits representations of doubles or floats. This ensures that exact bit
 // comparisons can be performed.
 template <typename T>
-static void TestCmpZero(const char * name, TestFPCmpZeroHelper_t helper,
-                        const T inputs[], unsigned inputs_length,
-                        const uint8_t expected[], unsigned expected_length) {
+static void TestCmpZero(const char* name,
+                        TestFPCmpZeroHelper_t helper,
+                        const T inputs[],
+                        unsigned inputs_length,
+                        const uint8_t expected[],
+                        unsigned expected_length) {
   VIXL_ASSERT(inputs_length > 0);
 
   const unsigned results_length = inputs_length;
-  uint8_t * results = new uint8_t[results_length];
+  uint8_t* results = new uint8_t[results_length];
 
   const unsigned bits = sizeof(T) * 8;
 
-  TestCmpZero_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
-                     reinterpret_cast<uintptr_t>(results), bits);
+  TestCmpZero_Helper(helper,
+                     reinterpret_cast<uintptr_t>(inputs),
+                     inputs_length,
+                     reinterpret_cast<uintptr_t>(results),
+                     bits);
 
   if (Test::generate_test_trace()) {
     // Print the results.
@@ -771,8 +831,10 @@ static void TestCmpZero(const char * name, TestFPCmpZeroHelper_t helper,
 
         printf("%s 0x%0*" PRIx64 ", 0x%0*u (%s %g #0.0):\n",
                name,
-               bits / 4, static_cast<uint64_t>(inputs[n]),
-               bits / 4, 0,
+               bits / 4,
+               static_cast<uint64_t>(inputs[n]),
+               bits / 4,
+               0,
                name,
                rawbits_to_fp(inputs[n]));
         printf("  Expected: %c%c%c%c (0x%" PRIx8 ")\n",
@@ -801,9 +863,11 @@ static void TestCmpZero(const char * name, TestFPCmpZeroHelper_t helper,
 
 
 static void TestFPToFixed_Helper(TestFPToFixedHelper_t helper,
-                                 uintptr_t inputs, unsigned inputs_length,
+                                 uintptr_t inputs,
+                                 unsigned inputs_length,
                                  uintptr_t results,
-                                 unsigned d_size, unsigned n_size) {
+                                 unsigned d_size,
+                                 unsigned n_size) {
   VIXL_ASSERT((d_size == kXRegSize) || (d_size == kWRegSize));
   VIXL_ASSERT((n_size == kDRegSize) || (n_size == kSRegSize));
 
@@ -850,9 +914,12 @@ static void TestFPToFixed_Helper(TestFPToFixedHelper_t helper,
 }
 
 
-static void TestFPToInt_Helper(TestFPToIntHelper_t helper, uintptr_t inputs,
-                               unsigned inputs_length, uintptr_t results,
-                               unsigned d_size, unsigned n_size) {
+static void TestFPToInt_Helper(TestFPToIntHelper_t helper,
+                               uintptr_t inputs,
+                               unsigned inputs_length,
+                               uintptr_t results,
+                               unsigned d_size,
+                               unsigned n_size) {
   VIXL_ASSERT((d_size == kXRegSize) || (d_size == kWRegSize));
   VIXL_ASSERT((n_size == kDRegSize) || (n_size == kSRegSize));
 
@@ -903,19 +970,26 @@ static void TestFPToInt_Helper(TestFPToIntHelper_t helper, uintptr_t inputs,
 //    performed.
 //  - The expected[] array should be an array of signed integers.
 template <typename Tn, typename Td>
-static void TestFPToS(const char * name, TestFPToIntHelper_t helper,
-                      const Tn inputs[], unsigned inputs_length,
-                      const Td expected[], unsigned expected_length) {
+static void TestFPToS(const char* name,
+                      TestFPToIntHelper_t helper,
+                      const Tn inputs[],
+                      unsigned inputs_length,
+                      const Td expected[],
+                      unsigned expected_length) {
   VIXL_ASSERT(inputs_length > 0);
 
   const unsigned results_length = inputs_length;
-  Td * results = new Td[results_length];
+  Td* results = new Td[results_length];
 
   const unsigned d_bits = sizeof(Td) * 8;
   const unsigned n_bits = sizeof(Tn) * 8;
 
-  TestFPToInt_Helper(helper, reinterpret_cast<uintptr_t>(inputs), inputs_length,
-                     reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
+  TestFPToInt_Helper(helper,
+                     reinterpret_cast<uintptr_t>(inputs),
+                     inputs_length,
+                     reinterpret_cast<uintptr_t>(results),
+                     d_bits,
+                     n_bits);
 
   if (Test::generate_test_trace()) {
     // Print the results.
@@ -925,7 +999,7 @@ static void TestFPToS(const char * name, TestFPToIntHelper_t helper,
     // Deriving int_d_min in this way (rather than just checking INT64_MIN and
     // the like) avoids warnings about comparing values with differing ranges.
     const int64_t int_d_max = (UINT64_C(1) << (d_bits - 1)) - 1;
-    const int64_t int_d_min = -(int_d_max) - 1;
+    const int64_t int_d_min = -(int_d_max)-1;
     for (unsigned d = 0; d < results_length; d++) {
       if (results[d] == int_d_min) {
         printf("  -INT%u_C(%" PRId64 ") - 1,\n", d_bits, int_d_max);
@@ -953,13 +1027,18 @@ static void TestFPToS(const char * name, TestFPToIntHelper_t helper,
         if (++error_count > kErrorReportLimit) continue;
 
         printf("%s 0x%0*" PRIx64 " (%s %g):\n",
-               name, n_bits / 4, static_cast<uint64_t>(inputs[n]),
-               name, rawbits_to_fp(inputs[n]));
+               name,
+               n_bits / 4,
+               static_cast<uint64_t>(inputs[n]),
+               name,
+               rawbits_to_fp(inputs[n]));
         printf("  Expected: 0x%0*" PRIx64 " (%" PRId64 ")\n",
-               d_bits / 4, static_cast<uint64_t>(expected[d]),
+               d_bits / 4,
+               static_cast<uint64_t>(expected[d]),
                static_cast<int64_t>(expected[d]));
         printf("  Found:    0x%0*" PRIx64 " (%" PRId64 ")\n",
-               d_bits / 4, static_cast<uint64_t>(results[d]),
+               d_bits / 4,
+               static_cast<uint64_t>(results[d]),
                static_cast<int64_t>(results[d]));
         printf("\n");
       }
@@ -980,20 +1059,26 @@ static void TestFPToS(const char * name, TestFPToIntHelper_t helper,
 //    performed.
 //  - The expected[] array should be an array of unsigned integers.
 template <typename Tn, typename Td>
-static void TestFPToU(const char * name, TestFPToIntHelper_t helper,
-                      const Tn inputs[], unsigned inputs_length,
-                      const Td expected[], unsigned expected_length) {
+static void TestFPToU(const char* name,
+                      TestFPToIntHelper_t helper,
+                      const Tn inputs[],
+                      unsigned inputs_length,
+                      const Td expected[],
+                      unsigned expected_length) {
   VIXL_ASSERT(inputs_length > 0);
 
   const unsigned results_length = inputs_length;
-  Td * results = new Td[results_length];
+  Td* results = new Td[results_length];
 
   const unsigned d_bits = sizeof(Td) * 8;
   const unsigned n_bits = sizeof(Tn) * 8;
 
   TestFPToInt_Helper(helper,
-                     reinterpret_cast<uintptr_t>(inputs), inputs_length,
-                     reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
+                     reinterpret_cast<uintptr_t>(inputs),
+                     inputs_length,
+                     reinterpret_cast<uintptr_t>(results),
+                     d_bits,
+                     n_bits);
 
   if (Test::generate_test_trace()) {
     // Print the results.
@@ -1013,13 +1098,18 @@ static void TestFPToU(const char * name, TestFPToIntHelper_t helper,
         if (++error_count > kErrorReportLimit) continue;
 
         printf("%s 0x%0*" PRIx64 " (%s %g):\n",
-               name, n_bits / 4, static_cast<uint64_t>(inputs[n]),
-               name, rawbits_to_fp(inputs[n]));
+               name,
+               n_bits / 4,
+               static_cast<uint64_t>(inputs[n]),
+               name,
+               rawbits_to_fp(inputs[n]));
         printf("  Expected: 0x%0*" PRIx64 " (%" PRIu64 ")\n",
-               d_bits / 4, static_cast<uint64_t>(expected[d]),
+               d_bits / 4,
+               static_cast<uint64_t>(expected[d]),
                static_cast<uint64_t>(expected[d]));
         printf("  Found:    0x%0*" PRIx64 " (%" PRIu64 ")\n",
-               d_bits / 4, static_cast<uint64_t>(results[d]),
+               d_bits / 4,
+               static_cast<uint64_t>(results[d]),
                static_cast<uint64_t>(results[d]));
         printf("\n");
       }
@@ -1040,20 +1130,26 @@ static void TestFPToU(const char * name, TestFPToIntHelper_t helper,
 //    performed.
 //  - The expected[] array should be an array of signed integers.
 template <typename Tn, typename Td>
-static void TestFPToFixedS(const char * name, TestFPToFixedHelper_t helper,
-                           const Tn inputs[], unsigned inputs_length,
-                           const Td expected[], unsigned expected_length) {
+static void TestFPToFixedS(const char* name,
+                           TestFPToFixedHelper_t helper,
+                           const Tn inputs[],
+                           unsigned inputs_length,
+                           const Td expected[],
+                           unsigned expected_length) {
   VIXL_ASSERT(inputs_length > 0);
 
   const unsigned d_bits = sizeof(Td) * 8;
   const unsigned n_bits = sizeof(Tn) * 8;
 
   const unsigned results_length = inputs_length * (d_bits + 1);
-  Td * results = new Td[results_length];
+  Td* results = new Td[results_length];
 
   TestFPToFixed_Helper(helper,
-                       reinterpret_cast<uintptr_t>(inputs), inputs_length,
-                       reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
+                       reinterpret_cast<uintptr_t>(inputs),
+                       inputs_length,
+                       reinterpret_cast<uintptr_t>(results),
+                       d_bits,
+                       n_bits);
 
   if (Test::generate_test_trace()) {
     // Print the results.
@@ -1063,7 +1159,7 @@ static void TestFPToFixedS(const char * name, TestFPToFixedHelper_t helper,
     // Deriving int_d_min in this way (rather than just checking INT64_MIN and
     // the like) avoids warnings about comparing values with differing ranges.
     const int64_t int_d_max = (UINT64_C(1) << (d_bits - 1)) - 1;
-    const int64_t int_d_min = -(int_d_max) - 1;
+    const int64_t int_d_min = -(int_d_max)-1;
     for (unsigned d = 0; d < results_length; d++) {
       if (results[d] == int_d_min) {
         printf("  -INT%u_C(%" PRId64 ") - 1,\n", d_bits, int_d_max);
@@ -1092,13 +1188,20 @@ static void TestFPToFixedS(const char * name, TestFPToFixedHelper_t helper,
           if (++error_count > kErrorReportLimit) continue;
 
           printf("%s 0x%0*" PRIx64 " #%d (%s %g #%d):\n",
-                 name, n_bits / 4, static_cast<uint64_t>(inputs[n]), fbits,
-                 name, rawbits_to_fp(inputs[n]), fbits);
+                 name,
+                 n_bits / 4,
+                 static_cast<uint64_t>(inputs[n]),
+                 fbits,
+                 name,
+                 rawbits_to_fp(inputs[n]),
+                 fbits);
           printf("  Expected: 0x%0*" PRIx64 " (%" PRId64 ")\n",
-                 d_bits / 4, static_cast<uint64_t>(expected[d]),
+                 d_bits / 4,
+                 static_cast<uint64_t>(expected[d]),
                  static_cast<int64_t>(expected[d]));
           printf("  Found:    0x%0*" PRIx64 " (%" PRId64 ")\n",
-                 d_bits / 4, static_cast<uint64_t>(results[d]),
+                 d_bits / 4,
+                 static_cast<uint64_t>(results[d]),
                  static_cast<int64_t>(results[d]));
           printf("\n");
         }
@@ -1120,20 +1223,26 @@ static void TestFPToFixedS(const char * name, TestFPToFixedHelper_t helper,
 //    performed.
 //  - The expected[] array should be an array of unsigned integers.
 template <typename Tn, typename Td>
-static void TestFPToFixedU(const char * name, TestFPToFixedHelper_t helper,
-                           const Tn inputs[], unsigned inputs_length,
-                           const Td expected[], unsigned expected_length) {
+static void TestFPToFixedU(const char* name,
+                           TestFPToFixedHelper_t helper,
+                           const Tn inputs[],
+                           unsigned inputs_length,
+                           const Td expected[],
+                           unsigned expected_length) {
   VIXL_ASSERT(inputs_length > 0);
 
   const unsigned d_bits = sizeof(Td) * 8;
   const unsigned n_bits = sizeof(Tn) * 8;
 
   const unsigned results_length = inputs_length * (d_bits + 1);
-  Td * results = new Td[results_length];
+  Td* results = new Td[results_length];
 
   TestFPToFixed_Helper(helper,
-                       reinterpret_cast<uintptr_t>(inputs), inputs_length,
-                       reinterpret_cast<uintptr_t>(results), d_bits, n_bits);
+                       reinterpret_cast<uintptr_t>(inputs),
+                       inputs_length,
+                       reinterpret_cast<uintptr_t>(results),
+                       d_bits,
+                       n_bits);
 
   if (Test::generate_test_trace()) {
     // Print the results.
@@ -1154,13 +1263,20 @@ static void TestFPToFixedU(const char * name, TestFPToFixedHelper_t helper,
           if (++error_count > kErrorReportLimit) continue;
 
           printf("%s 0x%0*" PRIx64 " #%d (%s %g #%d):\n",
-                 name, n_bits / 4, static_cast<uint64_t>(inputs[n]), fbits,
-                 name, rawbits_to_fp(inputs[n]), fbits);
+                 name,
+                 n_bits / 4,
+                 static_cast<uint64_t>(inputs[n]),
+                 fbits,
+                 name,
+                 rawbits_to_fp(inputs[n]),
+                 fbits);
           printf("  Expected: 0x%0*" PRIx64 " (%" PRIu64 ")\n",
-                 d_bits / 4, static_cast<uint64_t>(expected[d]),
+                 d_bits / 4,
+                 static_cast<uint64_t>(expected[d]),
                  static_cast<uint64_t>(expected[d]));
           printf("  Found:    0x%0*" PRIx64 " (%" PRIu64 ")\n",
-                 d_bits / 4, static_cast<uint64_t>(results[d]),
+                 d_bits / 4,
+                 static_cast<uint64_t>(results[d]),
                  static_cast<uint64_t>(results[d]));
           printf("\n");
         }
@@ -1180,7 +1296,8 @@ static void TestFPToFixedU(const char * name, TestFPToFixedHelper_t helper,
 
 
 static void Test1OpNEON_Helper(Test1OpNEONHelper_t helper,
-                               uintptr_t inputs_n, unsigned inputs_n_length,
+                               uintptr_t inputs_n,
+                               unsigned inputs_n_length,
                                uintptr_t results,
                                VectorFormat vd_form,
                                VectorFormat vn_form) {
@@ -1233,8 +1350,8 @@ static void Test1OpNEON_Helper(Test1OpNEONHelper_t helper,
   __ Mov(index_n, 0);
   __ Bind(&loop_n);
 
-  __ Ldr(vntmp_single, MemOperand(inputs_n_base, index_n, LSL,
-                                  vn_lane_bytes_log2));
+  __ Ldr(vntmp_single,
+         MemOperand(inputs_n_base, index_n, LSL, vn_lane_bytes_log2));
   __ Ext(vn, vn, vntmp, vn_lane_bytes);
 
   // Set the destination to zero.
@@ -1263,9 +1380,12 @@ static void Test1OpNEON_Helper(Test1OpNEONHelper_t helper,
 // arrays of rawbit representation of input values. This ensures that
 // exact bit comparisons can be performed.
 template <typename Td, typename Tn>
-static void Test1OpNEON(const char * name, Test1OpNEONHelper_t helper,
-                        const Tn inputs_n[], unsigned inputs_n_length,
-                        const Td expected[], unsigned expected_length,
+static void Test1OpNEON(const char* name,
+                        Test1OpNEONHelper_t helper,
+                        const Tn inputs_n[],
+                        unsigned inputs_n_length,
+                        const Td expected[],
+                        unsigned expected_length,
                         VectorFormat vd_form,
                         VectorFormat vn_form) {
   VIXL_ASSERT(inputs_n_length > 0);
@@ -1283,7 +1403,8 @@ static void Test1OpNEON(const char * name, Test1OpNEONHelper_t helper,
                      reinterpret_cast<uintptr_t>(inputs_n),
                      inputs_n_length,
                      reinterpret_cast<uintptr_t>(results),
-                     vd_form, vn_form);
+                     vd_form,
+                     vn_form);
 
   if (Test::generate_test_trace()) {
     // Print the results.
@@ -1326,27 +1447,29 @@ static void Test1OpNEON(const char * name, Test1OpNEONHelper_t helper,
       if (error_in_vector && (++error_count <= kErrorReportLimit)) {
         printf("%s\n", name);
         printf(" Vn%.*s| Vd%.*s| Expected\n",
-                lane_len_in_hex+1, padding,
-                lane_len_in_hex+1, padding);
+               lane_len_in_hex + 1,
+               padding,
+               lane_len_in_hex + 1,
+               padding);
 
         const unsigned first_index_n =
-          inputs_n_length - (16 / vn_lane_bytes) + n + 1;
+            inputs_n_length - (16 / vn_lane_bytes) + n + 1;
 
-        for (unsigned lane = 0;
-             lane < std::max(vd_lane_count, vn_lane_count);
+        for (unsigned lane = 0; lane < std::max(vd_lane_count, vn_lane_count);
              lane++) {
           unsigned output_index = (n * vd_lane_count) + lane;
           unsigned input_index_n = (first_index_n + lane) % inputs_n_length;
 
-          printf("%c0x%0*" PRIx64 " | 0x%0*" PRIx64 " "
-                  "| 0x%0*" PRIx64 "\n",
-                  results[output_index] != expected[output_index] ? '*' : ' ',
-                  lane_len_in_hex,
-                  static_cast<uint64_t>(inputs_n[input_index_n]),
-                  lane_len_in_hex,
-                  static_cast<uint64_t>(results[output_index]),
-                  lane_len_in_hex,
-                  static_cast<uint64_t>(expected[output_index]));
+          printf("%c0x%0*" PRIx64 " | 0x%0*" PRIx64
+                 " "
+                 "| 0x%0*" PRIx64 "\n",
+                 results[output_index] != expected[output_index] ? '*' : ' ',
+                 lane_len_in_hex,
+                 static_cast<uint64_t>(inputs_n[input_index_n]),
+                 lane_len_in_hex,
+                 static_cast<uint64_t>(results[output_index]),
+                 lane_len_in_hex,
+                 static_cast<uint64_t>(expected[output_index]));
         }
       }
     }
@@ -1432,8 +1555,8 @@ static void Test1OpAcrossNEON_Helper(Test1OpNEONHelper_t helper,
   __ Mov(index_n, 0);
   __ Bind(&loop_n);
 
-  __ Ldr(vntmp_single, MemOperand(inputs_n_base, index_n, LSL,
-                                  vn_lane_bytes_log2));
+  __ Ldr(vntmp_single,
+         MemOperand(inputs_n_base, index_n, LSL, vn_lane_bytes_log2));
   __ Ext(vn_ext, vn_ext, vntmp_ext, vn_lane_bytes);
 
   if (destructive) {
@@ -1460,9 +1583,12 @@ static void Test1OpAcrossNEON_Helper(Test1OpNEONHelper_t helper,
 // arrays of rawbit representation of input values. This ensures that
 // exact bit comparisons can be performed.
 template <typename Td, typename Tn>
-static void Test1OpAcrossNEON(const char * name, Test1OpNEONHelper_t helper,
-                              const Tn inputs_n[], unsigned inputs_n_length,
-                              const Td expected[], unsigned expected_length,
+static void Test1OpAcrossNEON(const char* name,
+                              Test1OpNEONHelper_t helper,
+                              const Tn inputs_n[],
+                              unsigned inputs_n_length,
+                              const Td expected[],
+                              unsigned expected_length,
                               VectorFormat vd_form,
                               VectorFormat vn_form) {
   VIXL_ASSERT(inputs_n_length > 0);
@@ -1479,7 +1605,8 @@ static void Test1OpAcrossNEON(const char * name, Test1OpNEONHelper_t helper,
                            reinterpret_cast<uintptr_t>(inputs_n),
                            inputs_n_length,
                            reinterpret_cast<uintptr_t>(results),
-                           vd_form, vn_form);
+                           vd_form,
+                           vn_form);
 
   if (Test::generate_test_trace()) {
     // Print the results.
@@ -1534,8 +1661,10 @@ static void Test1OpAcrossNEON(const char * name, Test1OpNEONHelper_t helper,
 
         printf("%s\n", name);
         printf(" Vn%.*s| Vd%.*s| Expected\n",
-                lane_len_in_hex + 1, padding,
-                lane_len_in_hex + 1, padding);
+               lane_len_in_hex + 1,
+               padding,
+               lane_len_in_hex + 1,
+               padding);
 
         // TODO: In case of an error, all tests print out as many elements as
         //       there are lanes in the output or input vectors. This way
@@ -1546,9 +1675,11 @@ static void Test1OpAcrossNEON(const char * name, Test1OpNEONHelper_t helper,
         //       This output for the 'Across' category has the required
         //       modifications.
         for (unsigned lane = 0; lane < vn_lane_count; lane++) {
-          unsigned results_index = (n * vd_lanes_per_q) + ((vn_lane_count - 1)  - lane);
-          unsigned input_index_n = (inputs_n_length - vn_lane_count +
-              n + 1 + lane) % inputs_n_length;
+          unsigned results_index =
+              (n * vd_lanes_per_q) + ((vn_lane_count - 1) - lane);
+          unsigned input_index_n =
+              (inputs_n_length - vn_lane_count + n + 1 + lane) %
+              inputs_n_length;
 
           Td expect = 0;
           if ((vn_lane_count - 1) == lane) {
@@ -1584,8 +1715,10 @@ static void Test1OpAcrossNEON(const char * name, Test1OpNEONHelper_t helper,
 
 static void Test2OpNEON_Helper(Test2OpNEONHelper_t helper,
                                uintptr_t inputs_d,
-                               uintptr_t inputs_n, unsigned inputs_n_length,
-                               uintptr_t inputs_m, unsigned inputs_m_length,
+                               uintptr_t inputs_n,
+                               unsigned inputs_n_length,
+                               uintptr_t inputs_m,
+                               unsigned inputs_m_length,
                                uintptr_t results,
                                VectorFormat vd_form,
                                VectorFormat vn_form,
@@ -1659,15 +1792,15 @@ static void Test2OpNEON_Helper(Test2OpNEONHelper_t helper,
   __ Mov(index_n, 0);
   __ Bind(&loop_n);
 
-  __ Ldr(vntmp_single, MemOperand(inputs_n_base, index_n, LSL,
-                                  vn_lane_bytes_log2));
+  __ Ldr(vntmp_single,
+         MemOperand(inputs_n_base, index_n, LSL, vn_lane_bytes_log2));
   __ Ext(vn, vn, vntmp, vn_lane_bytes);
 
   __ Mov(index_m, 0);
   __ Bind(&loop_m);
 
-  __ Ldr(vmtmp_single, MemOperand(inputs_m_base, index_m, LSL,
-                                  vm_lane_bytes_log2));
+  __ Ldr(vmtmp_single,
+         MemOperand(inputs_m_base, index_m, LSL, vm_lane_bytes_log2));
   __ Ext(vm, vm, vmtmp, vm_lane_bytes);
 
   __ Mov(vres, vd);
@@ -1695,11 +1828,15 @@ static void Test2OpNEON_Helper(Test2OpNEONHelper_t helper,
 // arrays of rawbit representation of input values. This ensures that
 // exact bit comparisons can be performed.
 template <typename Td, typename Tn, typename Tm>
-static void Test2OpNEON(const char * name, Test2OpNEONHelper_t helper,
+static void Test2OpNEON(const char* name,
+                        Test2OpNEONHelper_t helper,
                         const Td inputs_d[],
-                        const Tn inputs_n[], unsigned inputs_n_length,
-                        const Tm inputs_m[], unsigned inputs_m_length,
-                        const Td expected[], unsigned expected_length,
+                        const Tn inputs_n[],
+                        unsigned inputs_n_length,
+                        const Tm inputs_m[],
+                        unsigned inputs_m_length,
+                        const Td expected[],
+                        unsigned expected_length,
                         VectorFormat vd_form,
                         VectorFormat vn_form,
                         VectorFormat vm_form) {
@@ -1714,10 +1851,14 @@ static void Test2OpNEON(const char * name, Test2OpNEONHelper_t helper,
 
   Test2OpNEON_Helper(helper,
                      reinterpret_cast<uintptr_t>(inputs_d),
-                     reinterpret_cast<uintptr_t>(inputs_n), inputs_n_length,
-                     reinterpret_cast<uintptr_t>(inputs_m), inputs_m_length,
+                     reinterpret_cast<uintptr_t>(inputs_n),
+                     inputs_n_length,
+                     reinterpret_cast<uintptr_t>(inputs_m),
+                     inputs_m_length,
                      reinterpret_cast<uintptr_t>(results),
-                     vd_form, vn_form, vm_form);
+                     vd_form,
+                     vn_form,
+                     vm_form);
 
   if (Test::generate_test_trace()) {
     // Print the results.
@@ -1751,7 +1892,7 @@ static void Test2OpNEON(const char * name, Test2OpNEONHelper_t helper,
 
         for (unsigned lane = 0; lane < vd_lane_count; lane++) {
           unsigned output_index = (n * inputs_m_length * vd_lane_count) +
-              (m * vd_lane_count) + lane;
+                                  (m * vd_lane_count) + lane;
 
           if (results[output_index] != expected[output_index]) {
             error_in_vector = true;
@@ -1762,20 +1903,27 @@ static void Test2OpNEON(const char * name, Test2OpNEONHelper_t helper,
         if (error_in_vector && (++error_count <= kErrorReportLimit)) {
           printf("%s\n", name);
           printf(" Vd%.*s| Vn%.*s| Vm%.*s| Vd%.*s| Expected\n",
-                 lane_len_in_hex+1, padding,
-                 lane_len_in_hex+1, padding,
-                 lane_len_in_hex+1, padding,
-                 lane_len_in_hex+1, padding);
+                 lane_len_in_hex + 1,
+                 padding,
+                 lane_len_in_hex + 1,
+                 padding,
+                 lane_len_in_hex + 1,
+                 padding,
+                 lane_len_in_hex + 1,
+                 padding);
 
           for (unsigned lane = 0; lane < vd_lane_count; lane++) {
             unsigned output_index = (n * inputs_m_length * vd_lane_count) +
-                (m * vd_lane_count) + lane;
-            unsigned input_index_n = (inputs_n_length - vd_lane_count +
-                n + 1 + lane) % inputs_n_length;
-            unsigned input_index_m = (inputs_m_length - vd_lane_count +
-                m + 1 + lane) % inputs_m_length;
+                                    (m * vd_lane_count) + lane;
+            unsigned input_index_n =
+                (inputs_n_length - vd_lane_count + n + 1 + lane) %
+                inputs_n_length;
+            unsigned input_index_m =
+                (inputs_m_length - vd_lane_count + m + 1 + lane) %
+                inputs_m_length;
 
-            printf("%c0x%0*" PRIx64 " | 0x%0*" PRIx64 " | 0x%0*" PRIx64 " "
+            printf("%c0x%0*" PRIx64 " | 0x%0*" PRIx64 " | 0x%0*" PRIx64
+                   " "
                    "| 0x%0*" PRIx64 " | 0x%0*" PRIx64 "\n",
                    results[output_index] != expected[output_index] ? '*' : ' ',
                    lane_len_in_hex,
@@ -1885,15 +2033,15 @@ static void TestByElementNEON_Helper(TestByElementNEONHelper_t helper,
   __ Mov(index_n, 0);
   __ Bind(&loop_n);
 
-  __ Ldr(vntmp_single, MemOperand(inputs_n_base, index_n, LSL,
-                                  vn_lane_bytes_log2));
+  __ Ldr(vntmp_single,
+         MemOperand(inputs_n_base, index_n, LSL, vn_lane_bytes_log2));
   __ Ext(vn, vn, vntmp, vn_lane_bytes);
 
   __ Mov(index_m, 0);
   __ Bind(&loop_m);
 
-  __ Ldr(vmtmp_single, MemOperand(inputs_m_base, index_m, LSL,
-                                  vm_lane_bytes_log2));
+  __ Ldr(vmtmp_single,
+         MemOperand(inputs_m_base, index_m, LSL, vm_lane_bytes_log2));
   __ Ext(vm, vm, vmtmp, vm_lane_bytes);
 
   __ Mov(vres, vd);
@@ -1921,18 +2069,21 @@ static void TestByElementNEON_Helper(TestByElementNEONHelper_t helper,
 }
 
 
-
 // Test NEON instructions. The inputs_*[] and expected[] arrays should be
 // arrays of rawbit representation of input values. This ensures that
 // exact bit comparisons can be performed.
 template <typename Td, typename Tn, typename Tm>
-static void TestByElementNEON(const char *name,
+static void TestByElementNEON(const char* name,
                               TestByElementNEONHelper_t helper,
                               const Td inputs_d[],
-                              const Tn inputs_n[], unsigned inputs_n_length,
-                              const Tm inputs_m[], unsigned inputs_m_length,
-                              const int indices[], unsigned indices_length,
-                              const Td expected[], unsigned expected_length,
+                              const Tn inputs_n[],
+                              unsigned inputs_n_length,
+                              const Tm inputs_m[],
+                              unsigned inputs_m_length,
+                              const int indices[],
+                              unsigned indices_length,
+                              const Td expected[],
+                              unsigned expected_length,
                               VectorFormat vd_form,
                               VectorFormat vn_form,
                               VectorFormat vm_form) {
@@ -1942,19 +2093,24 @@ static void TestByElementNEON(const char *name,
 
   const unsigned vd_lane_count = MaxLaneCountFromFormat(vd_form);
 
-  const unsigned results_length = inputs_n_length * inputs_m_length *
-                                  indices_length;
+  const unsigned results_length =
+      inputs_n_length * inputs_m_length * indices_length;
   Td* results = new Td[results_length * vd_lane_count];
   const unsigned lane_bit = sizeof(Td) * 8;
   const unsigned lane_len_in_hex = MaxHexCharCount<Td, Tm>();
 
   TestByElementNEON_Helper(helper,
-    reinterpret_cast<uintptr_t>(inputs_d),
-    reinterpret_cast<uintptr_t>(inputs_n), inputs_n_length,
-    reinterpret_cast<uintptr_t>(inputs_m), inputs_m_length,
-    indices, indices_length,
-    reinterpret_cast<uintptr_t>(results),
-    vd_form, vn_form, vm_form);
+                           reinterpret_cast<uintptr_t>(inputs_d),
+                           reinterpret_cast<uintptr_t>(inputs_n),
+                           inputs_n_length,
+                           reinterpret_cast<uintptr_t>(inputs_m),
+                           inputs_m_length,
+                           indices,
+                           indices_length,
+                           reinterpret_cast<uintptr_t>(results),
+                           vd_form,
+                           vn_form,
+                           vm_form);
 
   if (Test::generate_test_trace()) {
     // Print the results.
@@ -1990,8 +2146,8 @@ static void TestByElementNEON(const char *name,
           for (unsigned lane = 0; lane < vd_lane_count; lane++) {
             unsigned output_index =
                 (n * inputs_m_length * indices_length * vd_lane_count) +
-                (m * indices_length * vd_lane_count) +
-                (index * vd_lane_count) + lane;
+                (m * indices_length * vd_lane_count) + (index * vd_lane_count) +
+                lane;
 
             if (results[output_index] != expected[output_index]) {
               error_in_vector = true;
@@ -2002,35 +2158,43 @@ static void TestByElementNEON(const char *name,
           if (error_in_vector && (++error_count <= kErrorReportLimit)) {
             printf("%s\n", name);
             printf(" Vd%.*s| Vn%.*s| Vm%.*s| Index | Vd%.*s| Expected\n",
-                  lane_len_in_hex+1, padding,
-                  lane_len_in_hex+1, padding,
-                  lane_len_in_hex+1, padding,
-                  lane_len_in_hex+1, padding);
+                   lane_len_in_hex + 1,
+                   padding,
+                   lane_len_in_hex + 1,
+                   padding,
+                   lane_len_in_hex + 1,
+                   padding,
+                   lane_len_in_hex + 1,
+                   padding);
 
             for (unsigned lane = 0; lane < vd_lane_count; lane++) {
               unsigned output_index =
                   (n * inputs_m_length * indices_length * vd_lane_count) +
                   (m * indices_length * vd_lane_count) +
                   (index * vd_lane_count) + lane;
-              unsigned input_index_n = (inputs_n_length - vd_lane_count +
-                  n + 1 + lane) % inputs_n_length;
-              unsigned input_index_m = (inputs_m_length - vd_lane_count +
-                  m + 1 + lane) % inputs_m_length;
+              unsigned input_index_n =
+                  (inputs_n_length - vd_lane_count + n + 1 + lane) %
+                  inputs_n_length;
+              unsigned input_index_m =
+                  (inputs_m_length - vd_lane_count + m + 1 + lane) %
+                  inputs_m_length;
 
-              printf("%c0x%0*" PRIx64 " | 0x%0*" PRIx64 " | 0x%0*" PRIx64 " "
-                "| [%3d] | 0x%0*" PRIx64 " | 0x%0*" PRIx64 "\n",
-                results[output_index] != expected[output_index] ? '*' : ' ',
-                lane_len_in_hex,
-                static_cast<uint64_t>(inputs_d[lane]),
-                lane_len_in_hex,
-                static_cast<uint64_t>(inputs_n[input_index_n]),
-                lane_len_in_hex,
-                static_cast<uint64_t>(inputs_m[input_index_m]),
-                indices[index],
-                lane_len_in_hex,
-                static_cast<uint64_t>(results[output_index]),
-                lane_len_in_hex,
-                static_cast<uint64_t>(expected[output_index]));
+              printf("%c0x%0*" PRIx64 " | 0x%0*" PRIx64 " | 0x%0*" PRIx64
+                     " "
+                     "| [%3d] | 0x%0*" PRIx64 " | 0x%0*" PRIx64 "\n",
+                     results[output_index] != expected[output_index] ? '*'
+                                                                     : ' ',
+                     lane_len_in_hex,
+                     static_cast<uint64_t>(inputs_d[lane]),
+                     lane_len_in_hex,
+                     static_cast<uint64_t>(inputs_n[input_index_n]),
+                     lane_len_in_hex,
+                     static_cast<uint64_t>(inputs_m[input_index_m]),
+                     indices[index],
+                     lane_len_in_hex,
+                     static_cast<uint64_t>(results[output_index]),
+                     lane_len_in_hex,
+                     static_cast<uint64_t>(expected[output_index]));
             }
           }
         }
@@ -2059,8 +2223,7 @@ void Test2OpImmNEON_Helper(
     uintptr_t results,
     VectorFormat vd_form,
     VectorFormat vn_form) {
-  VIXL_ASSERT(vd_form != kFormatUndefined &&
-              vn_form != kFormatUndefined);
+  VIXL_ASSERT(vd_form != kFormatUndefined && vn_form != kFormatUndefined);
 
   SETUP();
   START();
@@ -2108,8 +2271,8 @@ void Test2OpImmNEON_Helper(
   __ Mov(index_n, 0);
   __ Bind(&loop_n);
 
-  __ Ldr(vntmp_single, MemOperand(inputs_n_base, index_n, LSL,
-                                  vn_lane_bytes_log2));
+  __ Ldr(vntmp_single,
+         MemOperand(inputs_n_base, index_n, LSL, vn_lane_bytes_log2));
   __ Ext(vn, vn, vntmp, vn_lane_bytes);
 
   // Set the destination to zero for tests such as '[r]shrn2'.
@@ -2142,11 +2305,14 @@ void Test2OpImmNEON_Helper(
 // exact bit comparisons can be performed.
 template <typename Td, typename Tn, typename Tm>
 static void Test2OpImmNEON(
-    const char * name,
+    const char* name,
     typename Test2OpImmediateNEONHelper_t<Tm>::mnemonic helper,
-    const Tn inputs_n[], unsigned inputs_n_length,
-    const Tm inputs_m[], unsigned inputs_m_length,
-    const Td expected[], unsigned expected_length,
+    const Tn inputs_n[],
+    unsigned inputs_n_length,
+    const Tm inputs_m[],
+    unsigned inputs_m_length,
+    const Td expected[],
+    unsigned expected_length,
     VectorFormat vd_form,
     VectorFormat vn_form) {
   VIXL_ASSERT(inputs_n_length > 0 && inputs_m_length > 0);
@@ -2161,10 +2327,13 @@ static void Test2OpImmNEON(
   const unsigned lane_len_in_hex = MaxHexCharCount<Td, Tn>();
 
   Test2OpImmNEON_Helper(helper,
-                        reinterpret_cast<uintptr_t>(inputs_n), inputs_n_length,
-                        inputs_m, inputs_m_length,
+                        reinterpret_cast<uintptr_t>(inputs_n),
+                        inputs_n_length,
+                        inputs_m,
+                        inputs_m_length,
                         reinterpret_cast<uintptr_t>(results),
-                        vd_form, vn_form);
+                        vd_form,
+                        vn_form);
 
   if (Test::generate_test_trace()) {
     // Print the results.
@@ -2198,7 +2367,7 @@ static void Test2OpImmNEON(
 
         for (unsigned lane = 0; lane < vd_lane_count; lane++) {
           unsigned output_index = (n * inputs_m_length * vd_lane_count) +
-              (m * vd_lane_count) + lane;
+                                  (m * vd_lane_count) + lane;
 
           if (results[output_index] != expected[output_index]) {
             error_in_vector = true;
@@ -2209,22 +2378,25 @@ static void Test2OpImmNEON(
         if (error_in_vector && (++error_count <= kErrorReportLimit)) {
           printf("%s\n", name);
           printf(" Vn%.*s| Imm%.*s| Vd%.*s| Expected\n",
-                 lane_len_in_hex+1, padding,
-                 lane_len_in_hex, padding,
-                 lane_len_in_hex+1, padding);
+                 lane_len_in_hex + 1,
+                 padding,
+                 lane_len_in_hex,
+                 padding,
+                 lane_len_in_hex + 1,
+                 padding);
 
-        const unsigned first_index_n =
-          inputs_n_length - (16 / vn_lane_bytes) + n + 1;
+          const unsigned first_index_n =
+              inputs_n_length - (16 / vn_lane_bytes) + n + 1;
 
-        for (unsigned lane = 0;
-             lane < std::max(vd_lane_count, vn_lane_count);
-             lane++) {
+          for (unsigned lane = 0; lane < std::max(vd_lane_count, vn_lane_count);
+               lane++) {
             unsigned output_index = (n * inputs_m_length * vd_lane_count) +
-                (m * vd_lane_count) + lane;
+                                    (m * vd_lane_count) + lane;
             unsigned input_index_n = (first_index_n + lane) % inputs_n_length;
             unsigned input_index_m = m;
 
-            printf("%c0x%0*" PRIx64 " | 0x%0*" PRIx64 " "
+            printf("%c0x%0*" PRIx64 " | 0x%0*" PRIx64
+                   " "
                    "| 0x%0*" PRIx64 " | 0x%0*" PRIx64 "\n",
                    results[output_index] != expected[output_index] ? '*' : ' ',
                    lane_len_in_hex,
@@ -2252,14 +2424,17 @@ static void Test2OpImmNEON(
 // ==== Tests for instructions of the form <INST> VReg, #Imm, VReg, #Imm. ====
 
 
-static void TestOpImmOpImmNEON_Helper(
-  TestOpImmOpImmVdUpdateNEONHelper_t helper,
-  uintptr_t inputs_d,
-  const int inputs_imm1[], unsigned inputs_imm1_length,
-  uintptr_t inputs_n, unsigned inputs_n_length,
-  const int inputs_imm2[], unsigned inputs_imm2_length,
-  uintptr_t results,
-  VectorFormat vd_form, VectorFormat vn_form) {
+static void TestOpImmOpImmNEON_Helper(TestOpImmOpImmVdUpdateNEONHelper_t helper,
+                                      uintptr_t inputs_d,
+                                      const int inputs_imm1[],
+                                      unsigned inputs_imm1_length,
+                                      uintptr_t inputs_n,
+                                      unsigned inputs_n_length,
+                                      const int inputs_imm2[],
+                                      unsigned inputs_imm2_length,
+                                      uintptr_t results,
+                                      VectorFormat vd_form,
+                                      VectorFormat vn_form) {
   VIXL_ASSERT(vd_form != kFormatUndefined);
   VIXL_ASSERT(vn_form != kFormatUndefined);
 
@@ -2318,13 +2493,14 @@ static void TestOpImmOpImmNEON_Helper(
   __ Mov(index_n, 0);
   __ Bind(&loop_n);
 
-  __ Ldr(vntmp_single, MemOperand(inputs_n_base, index_n, LSL,
-                                  vn_lane_bytes_log2));
+  __ Ldr(vntmp_single,
+         MemOperand(inputs_n_base, index_n, LSL, vn_lane_bytes_log2));
   __ Ext(vn_ext, vn_ext, vntmp_ext, vn_lane_bytes);
 
   {
     EmissionCheckScope guard(&masm,
-        kInstructionSize * inputs_imm1_length * inputs_imm2_length * 3);
+                             kInstructionSize * inputs_imm1_length *
+                                 inputs_imm2_length * 3);
     for (unsigned i = 0; i < inputs_imm1_length; i++) {
       for (unsigned j = 0; j < inputs_imm2_length; j++) {
         __ Mov(vres, vd);
@@ -2348,7 +2524,7 @@ static void TestOpImmOpImmNEON_Helper(
 // arrays of rawbit representation of input values. This ensures that
 // exact bit comparisons can be performed.
 template <typename Td, typename Tn>
-static void TestOpImmOpImmNEON(const char * name,
+static void TestOpImmOpImmNEON(const char* name,
                                TestOpImmOpImmVdUpdateNEONHelper_t helper,
                                const Td inputs_d[],
                                const int inputs_imm1[],
@@ -2367,8 +2543,8 @@ static void TestOpImmOpImmNEON(const char * name,
 
   const unsigned vd_lane_count = LaneCountFromFormat(vd_form);
 
-  const unsigned results_length = inputs_n_length *
-      inputs_imm1_length * inputs_imm2_length;
+  const unsigned results_length =
+      inputs_n_length * inputs_imm1_length * inputs_imm2_length;
 
   Td* results = new Td[results_length * vd_lane_count];
   const unsigned lane_bit = sizeof(Td) * 8;
@@ -2383,7 +2559,8 @@ static void TestOpImmOpImmNEON(const char * name,
                             inputs_imm2,
                             inputs_imm2_length,
                             reinterpret_cast<uintptr_t>(results),
-                            vd_form, vn_form);
+                            vd_form,
+                            vn_form);
 
   if (Test::generate_test_trace()) {
     // Print the results.
@@ -2420,8 +2597,7 @@ static void TestOpImmOpImmNEON(const char * name,
 
           for (unsigned lane = 0; lane < vd_lane_count; lane++) {
             unsigned output_index =
-                (n * inputs_imm1_length *
-                 inputs_imm2_length * vd_lane_count) +
+                (n * inputs_imm1_length * inputs_imm2_length * vd_lane_count) +
                 (imm1 * inputs_imm2_length * vd_lane_count) +
                 (imm2 * vd_lane_count) + lane;
 
@@ -2434,39 +2610,46 @@ static void TestOpImmOpImmNEON(const char * name,
           if (error_in_vector && (++error_count <= kErrorReportLimit)) {
             printf("%s\n", name);
             printf(" Vd%.*s| Imm%.*s| Vn%.*s| Imm%.*s| Vd%.*s| Expected\n",
-                   lane_len_in_hex+1, padding,
-                   lane_len_in_hex, padding,
-                   lane_len_in_hex+1, padding,
-                   lane_len_in_hex, padding,
-                   lane_len_in_hex+1, padding);
+                   lane_len_in_hex + 1,
+                   padding,
+                   lane_len_in_hex,
+                   padding,
+                   lane_len_in_hex + 1,
+                   padding,
+                   lane_len_in_hex,
+                   padding,
+                   lane_len_in_hex + 1,
+                   padding);
 
             for (unsigned lane = 0; lane < vd_lane_count; lane++) {
               unsigned output_index =
-                (n * inputs_imm1_length *
-                 inputs_imm2_length * vd_lane_count) +
-                (imm1 * inputs_imm2_length * vd_lane_count) +
-                (imm2 * vd_lane_count) + lane;
-              unsigned input_index_n = (inputs_n_length - vd_lane_count +
-                  n + 1 + lane) % inputs_n_length;
+                  (n * inputs_imm1_length * inputs_imm2_length *
+                   vd_lane_count) +
+                  (imm1 * inputs_imm2_length * vd_lane_count) +
+                  (imm2 * vd_lane_count) + lane;
+              unsigned input_index_n =
+                  (inputs_n_length - vd_lane_count + n + 1 + lane) %
+                  inputs_n_length;
               unsigned input_index_imm1 = imm1;
               unsigned input_index_imm2 = imm2;
 
-              printf("%c0x%0*" PRIx64 " | 0x%0*" PRIx64 " | 0x%0*" PRIx64 " "
-                "| 0x%0*" PRIx64 " | 0x%0*" PRIx64 " | 0x%0*" PRIx64 "\n",
-                results[output_index] !=
-                  expected[output_index] ? '*' : ' ',
-                lane_len_in_hex,
-                static_cast<uint64_t>(inputs_d[lane]),
-                lane_len_in_hex,
-                static_cast<uint64_t>(inputs_imm1[input_index_imm1]),
-                lane_len_in_hex,
-                static_cast<uint64_t>(inputs_n[input_index_n]),
-                lane_len_in_hex,
-                static_cast<uint64_t>(inputs_imm2[input_index_imm2]),
-                lane_len_in_hex,
-                static_cast<uint64_t>(results[output_index]),
-                lane_len_in_hex,
-                static_cast<uint64_t>(expected[output_index]));
+              printf("%c0x%0*" PRIx64 " | 0x%0*" PRIx64 " | 0x%0*" PRIx64
+                     " "
+                     "| 0x%0*" PRIx64 " | 0x%0*" PRIx64 " | 0x%0*" PRIx64 "\n",
+                     results[output_index] != expected[output_index] ? '*'
+                                                                     : ' ',
+                     lane_len_in_hex,
+                     static_cast<uint64_t>(inputs_d[lane]),
+                     lane_len_in_hex,
+                     static_cast<uint64_t>(inputs_imm1[input_index_imm1]),
+                     lane_len_in_hex,
+                     static_cast<uint64_t>(inputs_n[input_index_n]),
+                     lane_len_in_hex,
+                     static_cast<uint64_t>(inputs_imm2[input_index_imm2]),
+                     lane_len_in_hex,
+                     static_cast<uint64_t>(results[output_index]),
+                     lane_len_in_hex,
+                     static_cast<uint64_t>(expected[output_index]));
             }
           }
         }
@@ -2489,20 +2672,21 @@ static void TestOpImmOpImmNEON(const char * name,
 // operations.
 #define STRINGIFY(s) #s
 
-#define CALL_TEST_FP_HELPER(mnemonic, variant, type, input)         \
-    Test##type(STRINGIFY(mnemonic) "_" STRINGIFY(variant),          \
-               &MacroAssembler::mnemonic,                           \
-               input, sizeof(input) / sizeof(input[0]),             \
-               kExpected_##mnemonic##_##variant,                    \
-               kExpectedCount_##mnemonic##_##variant)
+#define CALL_TEST_FP_HELPER(mnemonic, variant, type, input) \
+  Test##type(STRINGIFY(mnemonic) "_" STRINGIFY(variant),    \
+             &MacroAssembler::mnemonic,                     \
+             input,                                         \
+             sizeof(input) / sizeof(input[0]),              \
+             kExpected_##mnemonic##_##variant,              \
+             kExpectedCount_##mnemonic##_##variant)
 
-#define DEFINE_TEST_FP(mnemonic, type, input)                       \
-    TEST(mnemonic##_d) {                                            \
-      CALL_TEST_FP_HELPER(mnemonic, d, type, kInputDouble##input);  \
-    }                                                               \
-    TEST(mnemonic##_s) {                                            \
-      CALL_TEST_FP_HELPER(mnemonic, s, type, kInputFloat##input);   \
-    }
+#define DEFINE_TEST_FP(mnemonic, type, input)                    \
+  TEST(mnemonic##_d) {                                           \
+    CALL_TEST_FP_HELPER(mnemonic, d, type, kInputDouble##input); \
+  }                                                              \
+  TEST(mnemonic##_s) {                                           \
+    CALL_TEST_FP_HELPER(mnemonic, s, type, kInputFloat##input);  \
+  }
 
 // TODO: Test with a newer version of valgrind.
 //
@@ -2544,19 +2728,19 @@ TEST(fcmp_sz) { CALL_TEST_FP_HELPER(fcmp, sz, CmpZero, kInputFloatBasic); }
 TEST(fcvt_sd) { CALL_TEST_FP_HELPER(fcvt, sd, 1Op, kInputDoubleConversions); }
 TEST(fcvt_ds) { CALL_TEST_FP_HELPER(fcvt, ds, 1Op, kInputFloatConversions); }
 
-#define DEFINE_TEST_FP_TO_INT(mnemonic, type, input)                \
-    TEST(mnemonic##_xd) {                                           \
-      CALL_TEST_FP_HELPER(mnemonic, xd, type, kInputDouble##input); \
-    }                                                               \
-    TEST(mnemonic##_xs) {                                           \
-      CALL_TEST_FP_HELPER(mnemonic, xs, type, kInputFloat##input);  \
-    }                                                               \
-    TEST(mnemonic##_wd) {                                           \
-      CALL_TEST_FP_HELPER(mnemonic, wd, type, kInputDouble##input); \
-    }                                                               \
-    TEST(mnemonic##_ws) {                                           \
-      CALL_TEST_FP_HELPER(mnemonic, ws, type, kInputFloat##input);  \
-    }
+#define DEFINE_TEST_FP_TO_INT(mnemonic, type, input)              \
+  TEST(mnemonic##_xd) {                                           \
+    CALL_TEST_FP_HELPER(mnemonic, xd, type, kInputDouble##input); \
+  }                                                               \
+  TEST(mnemonic##_xs) {                                           \
+    CALL_TEST_FP_HELPER(mnemonic, xs, type, kInputFloat##input);  \
+  }                                                               \
+  TEST(mnemonic##_wd) {                                           \
+    CALL_TEST_FP_HELPER(mnemonic, wd, type, kInputDouble##input); \
+  }                                                               \
+  TEST(mnemonic##_ws) {                                           \
+    CALL_TEST_FP_HELPER(mnemonic, ws, type, kInputFloat##input);  \
+  }
 
 DEFINE_TEST_FP_TO_INT(fcvtas, FPToS, Conversions)
 DEFINE_TEST_FP_TO_INT(fcvtau, FPToU, Conversions)
@@ -2578,1139 +2762,1307 @@ DEFINE_TEST_FP_TO_INT(fcvtzu, FPToFixedU, Conversions)
 
 // ==== NEON Tests. ====
 
-#define CALL_TEST_NEON_HELPER_1Op(mnemonic,                                  \
-                                  vdform, vnform,                            \
-                                  input_n)                                   \
-    Test1OpNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform),                   \
-                &MacroAssembler::mnemonic,                                   \
-                input_n,                                                     \
-                (sizeof(input_n) / sizeof(input_n[0])),                      \
-                kExpected_NEON_##mnemonic##_##vdform,                        \
-                kExpectedCount_NEON_##mnemonic##_##vdform,                   \
-                kFormat##vdform,                                             \
-                kFormat##vnform)
-
-#define CALL_TEST_NEON_HELPER_1OpAcross(mnemonic,                            \
-                                        vdform, vnform,                      \
-                                        input_n)                             \
-    Test1OpAcrossNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform)              \
-                                          "_" STRINGIFY(vnform),             \
-                      &MacroAssembler::mnemonic,                             \
-                      input_n,                                               \
-                      (sizeof(input_n) / sizeof(input_n[0])),                \
-                      kExpected_NEON_##mnemonic##_##vdform##_##vnform,       \
-                      kExpectedCount_NEON_##mnemonic##_##vdform##_##vnform,  \
-                      kFormat##vdform,                                       \
-                      kFormat##vnform)
-
-#define CALL_TEST_NEON_HELPER_2Op(mnemonic,                                  \
-                                  vdform, vnform, vmform,                    \
-                                  input_d, input_n, input_m)                 \
-    Test2OpNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform),                   \
-                &MacroAssembler::mnemonic,                                   \
-                input_d,                                                     \
-                input_n,                                                     \
-                (sizeof(input_n) / sizeof(input_n[0])),                      \
-                input_m,                                                     \
-                (sizeof(input_m) / sizeof(input_m[0])),                      \
-                kExpected_NEON_##mnemonic##_##vdform,                        \
-                kExpectedCount_NEON_##mnemonic##_##vdform,                   \
-                kFormat##vdform,                                             \
-                kFormat##vnform,                                             \
-                kFormat##vmform)
-
-#define CALL_TEST_NEON_HELPER_2OpImm(mnemonic,                               \
-                                     vdform, vnform,                         \
-                                     input_n, input_m)                       \
-    Test2OpImmNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform) "_2OPIMM",      \
-                   &MacroAssembler::mnemonic,                                \
-                   input_n,                                                  \
-                   (sizeof(input_n) / sizeof(input_n[0])),                   \
-                   input_m,                                                  \
-                   (sizeof(input_m) / sizeof(input_m[0])),                   \
-                   kExpected_NEON_##mnemonic##_##vdform##_2OPIMM,            \
-                   kExpectedCount_NEON_##mnemonic##_##vdform##_2OPIMM,       \
-                   kFormat##vdform,                                          \
-                   kFormat##vnform)
-
-#define CALL_TEST_NEON_HELPER_ByElement(mnemonic,                            \
-                                        vdform, vnform, vmform,              \
-                                        input_d, input_n, input_m, indices)  \
-    TestByElementNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform)              \
-        "_" STRINGIFY(vnform) "_" STRINGIFY(vmform),                         \
-        &MacroAssembler::mnemonic,                                           \
-        input_d,                                                             \
-        input_n,                                                             \
-        (sizeof(input_n) / sizeof(input_n[0])),                              \
-        input_m,                                                             \
-        (sizeof(input_m) / sizeof(input_m[0])),                              \
-        indices,                                                             \
-        (sizeof(indices) / sizeof(indices[0])),                              \
-        kExpected_NEON_##mnemonic##_##vdform##_##vnform##_##vmform,          \
-        kExpectedCount_NEON_##mnemonic##_##vdform##_##vnform##_##vmform,     \
-        kFormat##vdform,                                                     \
-        kFormat##vnform,                                                     \
-        kFormat##vmform)
-
-#define CALL_TEST_NEON_HELPER_OpImmOpImm(helper,                             \
-                                         mnemonic,                           \
-                                         vdform, vnform,                     \
-                                         input_d, input_imm1,                \
-                                         input_n, input_imm2)                \
-    TestOpImmOpImmNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform),            \
-                       helper,                                               \
-                       input_d,                                              \
-                       input_imm1,                                           \
-                       (sizeof(input_imm1) / sizeof(input_imm1[0])),         \
-                       input_n,                                              \
-                       (sizeof(input_n) / sizeof(input_n[0])),               \
-                       input_imm2,                                           \
-                       (sizeof(input_imm2) / sizeof(input_imm2[0])),         \
-                       kExpected_NEON_##mnemonic##_##vdform,                 \
-                       kExpectedCount_NEON_##mnemonic##_##vdform,            \
-                       kFormat##vdform,                                      \
-                       kFormat##vnform)
-
-#define CALL_TEST_NEON_HELPER_2SAME(mnemonic, variant, input)                \
-    CALL_TEST_NEON_HELPER_1Op(mnemonic,                                      \
-                              variant, variant,                              \
-                              input)
-
-#define DEFINE_TEST_NEON_2SAME_8B_16B(mnemonic, input)                       \
-    TEST(mnemonic##_8B) {                                                    \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, 8B, kInput8bits##input);         \
-    }                                                                        \
-    TEST(mnemonic##_16B) {                                                   \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, 16B, kInput8bits##input);        \
-    }
-
-#define DEFINE_TEST_NEON_2SAME_4H_8H(mnemonic, input)                        \
-    TEST(mnemonic##_4H) {                                                    \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, 4H, kInput16bits##input);        \
-    }                                                                        \
-    TEST(mnemonic##_8H) {                                                    \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, 8H, kInput16bits##input);        \
-    }
-
-#define DEFINE_TEST_NEON_2SAME_2S_4S(mnemonic, input)                        \
-    TEST(mnemonic##_2S) {                                                    \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, 2S, kInput32bits##input);        \
-    }                                                                        \
-    TEST(mnemonic##_4S) {                                                    \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, 4S, kInput32bits##input);        \
-    }
-
-#define DEFINE_TEST_NEON_2SAME_BH(mnemonic, input)                           \
-    DEFINE_TEST_NEON_2SAME_8B_16B(mnemonic, input)                           \
-    DEFINE_TEST_NEON_2SAME_4H_8H(mnemonic, input)
-
-#define DEFINE_TEST_NEON_2SAME_NO2D(mnemonic, input)                         \
-    DEFINE_TEST_NEON_2SAME_BH(mnemonic, input)                               \
-    DEFINE_TEST_NEON_2SAME_2S_4S(mnemonic, input)
-
-#define DEFINE_TEST_NEON_2SAME(mnemonic, input)                              \
-    DEFINE_TEST_NEON_2SAME_NO2D(mnemonic, input)                             \
-    TEST(mnemonic##_2D) {                                                    \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, 2D, kInput64bits##input);        \
-    }
-#define DEFINE_TEST_NEON_2SAME_SD(mnemonic, input)                           \
-    DEFINE_TEST_NEON_2SAME_2S_4S(mnemonic, input)                            \
-    TEST(mnemonic##_2D) {                                                    \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, 2D, kInput64bits##input);        \
-    }
-
-#define DEFINE_TEST_NEON_2SAME_FP(mnemonic, input)                           \
-    TEST(mnemonic##_2S) {                                                    \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, 2S, kInputFloat##input);         \
-    }                                                                        \
-    TEST(mnemonic##_4S) {                                                    \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, 4S, kInputFloat##input);         \
-    }                                                                        \
-    TEST(mnemonic##_2D) {                                                    \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, 2D, kInputDouble##input);        \
-    }
-
-#define DEFINE_TEST_NEON_2SAME_FP_SCALAR(mnemonic, input)                    \
-    TEST(mnemonic##_S) {                                                     \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, S, kInputFloat##input);          \
-    }                                                                        \
-    TEST(mnemonic##_D) {                                                     \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, D, kInputDouble##input);         \
-    }
-
-#define DEFINE_TEST_NEON_2SAME_SCALAR_B(mnemonic, input)                     \
-    TEST(mnemonic##_B) {                                                     \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, B, kInput8bits##input);          \
-    }
-#define DEFINE_TEST_NEON_2SAME_SCALAR_H(mnemonic, input)                     \
-    TEST(mnemonic##_H) {                                                     \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, H, kInput16bits##input);         \
-    }
-#define DEFINE_TEST_NEON_2SAME_SCALAR_S(mnemonic, input)                     \
-    TEST(mnemonic##_S) {                                                     \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, S, kInput32bits##input);         \
-    }
-#define DEFINE_TEST_NEON_2SAME_SCALAR_D(mnemonic, input)                     \
-    TEST(mnemonic##_D) {                                                     \
-      CALL_TEST_NEON_HELPER_2SAME(mnemonic, D, kInput64bits##input);         \
-    }
-
-#define DEFINE_TEST_NEON_2SAME_SCALAR(mnemonic, input)                       \
-    DEFINE_TEST_NEON_2SAME_SCALAR_B(mnemonic, input)                         \
-    DEFINE_TEST_NEON_2SAME_SCALAR_H(mnemonic, input)                         \
-    DEFINE_TEST_NEON_2SAME_SCALAR_S(mnemonic, input)                         \
-    DEFINE_TEST_NEON_2SAME_SCALAR_D(mnemonic, input)
-
-#define DEFINE_TEST_NEON_2SAME_SCALAR_SD(mnemonic, input)                    \
-    DEFINE_TEST_NEON_2SAME_SCALAR_S(mnemonic, input)                         \
-    DEFINE_TEST_NEON_2SAME_SCALAR_D(mnemonic, input)
-
-
-#define CALL_TEST_NEON_HELPER_ACROSS(mnemonic, vd_form, vn_form, input_n)    \
-    CALL_TEST_NEON_HELPER_1OpAcross(mnemonic,                                \
-                                    vd_form, vn_form,                        \
-                                    input_n)
-
-#define DEFINE_TEST_NEON_ACROSS(mnemonic, input)                             \
-    TEST(mnemonic##_B_8B) {                                                  \
-      CALL_TEST_NEON_HELPER_ACROSS(mnemonic, B, 8B, kInput8bits##input);     \
-    }                                                                        \
-    TEST(mnemonic##_B_16B) {                                                 \
-      CALL_TEST_NEON_HELPER_ACROSS(mnemonic, B, 16B, kInput8bits##input);    \
-    }                                                                        \
-    TEST(mnemonic##_H_4H) {                                                  \
-      CALL_TEST_NEON_HELPER_ACROSS(mnemonic, H, 4H, kInput16bits##input);    \
-    }                                                                        \
-    TEST(mnemonic##_H_8H) {                                                  \
-      CALL_TEST_NEON_HELPER_ACROSS(mnemonic, H, 8H, kInput16bits##input);    \
-    }                                                                        \
-    TEST(mnemonic##_S_4S) {                                                  \
-      CALL_TEST_NEON_HELPER_ACROSS(mnemonic, S, 4S, kInput32bits##input);    \
-    }
-
-#define DEFINE_TEST_NEON_ACROSS_LONG(mnemonic, input)                        \
-    TEST(mnemonic##_H_8B) {                                                  \
-      CALL_TEST_NEON_HELPER_ACROSS(mnemonic, H, 8B, kInput8bits##input);     \
-    }                                                                        \
-    TEST(mnemonic##_H_16B) {                                                 \
-      CALL_TEST_NEON_HELPER_ACROSS(mnemonic, H, 16B, kInput8bits##input);    \
-    }                                                                        \
-    TEST(mnemonic##_S_4H) {                                                  \
-      CALL_TEST_NEON_HELPER_ACROSS(mnemonic, S, 4H, kInput16bits##input);    \
-    }                                                                        \
-    TEST(mnemonic##_S_8H) {                                                  \
-      CALL_TEST_NEON_HELPER_ACROSS(mnemonic, S, 8H, kInput16bits##input);    \
-    }                                                                        \
-    TEST(mnemonic##_D_4S) {                                                  \
-      CALL_TEST_NEON_HELPER_ACROSS(mnemonic, D, 4S, kInput32bits##input);    \
-    }
-
-#define DEFINE_TEST_NEON_ACROSS_FP(mnemonic, input)                          \
-    TEST(mnemonic##_S_4S) {                                                  \
-      CALL_TEST_NEON_HELPER_ACROSS(mnemonic, S, 4S, kInputFloat##input);     \
-    }
-
-#define CALL_TEST_NEON_HELPER_2DIFF(mnemonic,                                \
-                                    vdform, vnform,                          \
-                                    input_n)                                 \
-    CALL_TEST_NEON_HELPER_1Op(mnemonic,                                      \
-                              vdform, vnform,                                \
-                              input_n)
-
-#define DEFINE_TEST_NEON_2DIFF_LONG(mnemonic, input)                         \
-    TEST(mnemonic##_4H) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 4H, 8B, kInput8bits##input);     \
-    }                                                                        \
-    TEST(mnemonic##_8H) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 8H, 16B, kInput8bits##input);    \
-    }                                                                        \
-    TEST(mnemonic##_2S) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 2S, 4H, kInput16bits##input);    \
-    }                                                                        \
-    TEST(mnemonic##_4S) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 4S, 8H, kInput16bits##input);    \
-    }                                                                        \
-    TEST(mnemonic##_1D) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 1D, 2S, kInput32bits##input);    \
-    }                                                                        \
-    TEST(mnemonic##_2D) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 2D, 4S, kInput32bits##input);    \
-    }
-
-#define DEFINE_TEST_NEON_2DIFF_NARROW(mnemonic, input)                       \
-    TEST(mnemonic##_8B) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 8B, 8H, kInput16bits##input);    \
-    }                                                                        \
-    TEST(mnemonic##_4H) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 4H, 4S, kInput32bits##input);    \
-    }                                                                        \
-    TEST(mnemonic##_2S) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 2S, 2D, kInput64bits##input);    \
-    }                                                                        \
-    TEST(mnemonic##2_16B) {                                                  \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 16B, 8H, kInput16bits##input);\
-    }                                                                        \
-    TEST(mnemonic##2_8H) {                                                   \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 8H, 4S, kInput32bits##input); \
-    }                                                                        \
-    TEST(mnemonic##2_4S) {                                                   \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 4S, 2D, kInput64bits##input); \
-    }
-
-#define DEFINE_TEST_NEON_2DIFF_FP_LONG(mnemonic, input)                      \
-    TEST(mnemonic##_4S) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 4S, 4H, kInputFloat16##input);   \
-    }                                                                        \
-    TEST(mnemonic##_2D) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 2D, 2S, kInputFloat##input);     \
-    }                                                                        \
-    TEST(mnemonic##2_4S) {                                                   \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 4S, 8H, kInputFloat16##input);\
-    }                                                                        \
-    TEST(mnemonic##2_2D) {                                                   \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 2D, 4S, kInputFloat##input);  \
-    }
-
-#define DEFINE_TEST_NEON_2DIFF_FP_NARROW(mnemonic, input)                    \
-    TEST(mnemonic##_4H) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 4H, 4S, kInputFloat##input);     \
-    }                                                                        \
-    TEST(mnemonic##_2S) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 2S, 2D, kInputDouble##input);    \
-    }                                                                        \
-    TEST(mnemonic##2_8H) {                                                   \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 8H, 4S, kInputFloat##input);  \
-    }                                                                        \
-    TEST(mnemonic##2_4S) {                                                   \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 4S, 2D, kInputDouble##input); \
-    }
-
-#define DEFINE_TEST_NEON_2DIFF_FP_NARROW_2S(mnemonic, input)                 \
-    TEST(mnemonic##_2S) {                                                    \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 2S, 2D, kInputDouble##input);    \
-    }                                                                        \
-    TEST(mnemonic##2_4S) {                                                   \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 4S, 2D, kInputDouble##input); \
-    }
-
-#define DEFINE_TEST_NEON_2DIFF_SCALAR_NARROW(mnemonic, input)                \
-    TEST(mnemonic##_B) {                                                     \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, B, H, kInput16bits##input);      \
-    }                                                                        \
-    TEST(mnemonic##_H) {                                                     \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, H, S, kInput32bits##input);      \
-    }                                                                        \
-    TEST(mnemonic##_S) {                                                     \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, S, D, kInput64bits##input);      \
-    }
-
-#define DEFINE_TEST_NEON_2DIFF_FP_SCALAR_SD(mnemonic, input)                 \
-    TEST(mnemonic##_S) {                                                     \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, S, 2S, kInputFloat##input);      \
-    }                                                                        \
-    TEST(mnemonic##_D) {                                                     \
-      CALL_TEST_NEON_HELPER_2DIFF(mnemonic, D, 2D, kInputDouble##input);     \
-    }
-
-#define CALL_TEST_NEON_HELPER_3SAME(mnemonic, variant, input_d, input_nm) {  \
-    CALL_TEST_NEON_HELPER_2Op(mnemonic,                                      \
-                              variant, variant, variant,                     \
-                              input_d, input_nm, input_nm);                  \
-    }
-
-#define DEFINE_TEST_NEON_3SAME_8B_16B(mnemonic, input)                       \
-    TEST(mnemonic##_8B) {                                                    \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, 8B,                              \
-                                  kInput8bitsAccDestination,                 \
-                                  kInput8bits##input);                       \
-    }                                                                        \
-    TEST(mnemonic##_16B) {                                                   \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, 16B,                             \
-                                  kInput8bitsAccDestination,                 \
-                                  kInput8bits##input);                       \
-    }                                                                        \
-
-#define DEFINE_TEST_NEON_3SAME_HS(mnemonic, input)                           \
-    TEST(mnemonic##_4H) {                                                    \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, 4H,                              \
-                                  kInput16bitsAccDestination,                \
-                                  kInput16bits##input);                      \
-    }                                                                        \
-    TEST(mnemonic##_8H) {                                                    \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, 8H,                              \
-                                  kInput16bitsAccDestination,                \
-                                  kInput16bits##input);                      \
-    }                                                                        \
-    TEST(mnemonic##_2S) {                                                    \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, 2S,                              \
-                                  kInput32bitsAccDestination,                \
-                                  kInput32bits##input);                      \
-    }                                                                        \
-    TEST(mnemonic##_4S) {                                                    \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, 4S,                              \
-                                  kInput32bitsAccDestination,                \
-                                  kInput32bits##input);                      \
-    }
-
-#define DEFINE_TEST_NEON_3SAME_NO2D(mnemonic, input)                         \
-    DEFINE_TEST_NEON_3SAME_8B_16B(mnemonic, input)                           \
-    DEFINE_TEST_NEON_3SAME_HS(mnemonic, input)
-
-#define DEFINE_TEST_NEON_3SAME(mnemonic, input)                              \
-    DEFINE_TEST_NEON_3SAME_NO2D(mnemonic, input)                             \
-    TEST(mnemonic##_2D) {                                                    \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, 2D,                              \
-                                  kInput64bitsAccDestination,                \
-                                  kInput64bits##input);                      \
-    }
-
-#define DEFINE_TEST_NEON_3SAME_FP(mnemonic, input)                           \
-    TEST(mnemonic##_2S) {                                                    \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, 2S,                              \
-                                  kInputFloatAccDestination,                 \
-                                  kInputFloat##input);                       \
-    }                                                                        \
-    TEST(mnemonic##_4S) {                                                    \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, 4S,                              \
-                                  kInputFloatAccDestination,                 \
-                                  kInputFloat##input);                       \
-    }                                                                        \
-    TEST(mnemonic##_2D) {                                                    \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, 2D,                              \
-                                  kInputDoubleAccDestination,                \
-                                  kInputDouble##input);                      \
-    }
-
-#define DEFINE_TEST_NEON_3SAME_SCALAR_D(mnemonic, input)                     \
-    TEST(mnemonic##_D) {                                                     \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, D,                               \
-                                  kInput64bitsAccDestination,                \
-                                  kInput64bits##input);                      \
-    }
-
-#define DEFINE_TEST_NEON_3SAME_SCALAR_HS(mnemonic, input)                    \
-    TEST(mnemonic##_H) {                                                     \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, H,                               \
-                                  kInput16bitsAccDestination,                \
-                                  kInput16bits##input);                      \
-    }                                                                        \
-    TEST(mnemonic##_S) {                                                     \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, S,                               \
-                                  kInput32bitsAccDestination,                \
-                                  kInput32bits##input);                      \
-    }                                                                        \
-
-#define DEFINE_TEST_NEON_3SAME_SCALAR(mnemonic, input)                       \
-    TEST(mnemonic##_B) {                                                     \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, B,                               \
-                                  kInput8bitsAccDestination,                 \
-                                  kInput8bits##input);                       \
-    }                                                                        \
-    TEST(mnemonic##_H) {                                                     \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, H,                               \
-                                  kInput16bitsAccDestination,                \
-                                  kInput16bits##input);                      \
-    }                                                                        \
-    TEST(mnemonic##_S) {                                                     \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, S,                               \
-                                  kInput32bitsAccDestination,                \
-                                  kInput32bits##input);                      \
-    }                                                                        \
-    TEST(mnemonic##_D) {                                                     \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, D,                               \
-                                  kInput64bitsAccDestination,                \
-                                  kInput64bits##input);                      \
-    }
-
-#define DEFINE_TEST_NEON_3SAME_FP_SCALAR(mnemonic, input)                    \
-    TEST(mnemonic##_S) {                                                     \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, S,                               \
-                                  kInputFloatAccDestination,                 \
-                                  kInputFloat##input);                       \
-    }                                                                        \
-    TEST(mnemonic##_D) {                                                     \
-      CALL_TEST_NEON_HELPER_3SAME(mnemonic, D,                               \
-                                  kInputDoubleAccDestination,                \
-                                  kInputDouble##input);                      \
-    }
-
-#define CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                                \
-                                    vdform, vnform, vmform,                  \
-                                    input_d, input_n, input_m) {             \
-    CALL_TEST_NEON_HELPER_2Op(mnemonic,                                      \
-                              vdform, vnform, vmform,                        \
-                              input_d, input_n, input_m);                    \
-    }
-
-#define DEFINE_TEST_NEON_3DIFF_LONG_8H(mnemonic, input)                      \
-    TEST(mnemonic##_8H) {                                                    \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic, 8H, 8B, 8B,                      \
-                                  kInput16bitsAccDestination,                \
-                                  kInput8bits##input, kInput8bits##input);   \
-    }                                                                        \
-    TEST(mnemonic##2_8H) {                                                   \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2, 8H, 16B, 16B,                 \
-                                  kInput16bitsAccDestination,                \
-                                  kInput8bits##input, kInput8bits##input);   \
-    }
-
-#define DEFINE_TEST_NEON_3DIFF_LONG_4S(mnemonic, input)                      \
-    TEST(mnemonic##_4S) {                                                    \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic, 4S, 4H, 4H,                      \
-                                  kInput32bitsAccDestination,                \
-                                  kInput16bits##input, kInput16bits##input); \
-    }                                                                        \
-    TEST(mnemonic##2_4S) {                                                   \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2, 4S, 8H, 8H,                   \
-                                  kInput32bitsAccDestination,                \
-                                  kInput16bits##input, kInput16bits##input); \
-    }
-
-#define DEFINE_TEST_NEON_3DIFF_LONG_2D(mnemonic, input)                      \
-    TEST(mnemonic##_2D) {                                                    \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic, 2D, 2S, 2S,                      \
-                                  kInput64bitsAccDestination,                \
-                                  kInput32bits##input, kInput32bits##input); \
-    }                                                                        \
-    TEST(mnemonic##2_2D) {                                                   \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2, 2D, 4S, 4S,                   \
-                                  kInput64bitsAccDestination,                \
-                                  kInput32bits##input, kInput32bits##input); \
-    }
-
-#define DEFINE_TEST_NEON_3DIFF_LONG_SD(mnemonic, input)                      \
-    DEFINE_TEST_NEON_3DIFF_LONG_4S(mnemonic, input)                          \
-    DEFINE_TEST_NEON_3DIFF_LONG_2D(mnemonic, input)
-
-#define DEFINE_TEST_NEON_3DIFF_LONG(mnemonic, input)                         \
-    DEFINE_TEST_NEON_3DIFF_LONG_8H(mnemonic, input)                          \
-    DEFINE_TEST_NEON_3DIFF_LONG_4S(mnemonic, input)                          \
-    DEFINE_TEST_NEON_3DIFF_LONG_2D(mnemonic, input)
-
-#define DEFINE_TEST_NEON_3DIFF_SCALAR_LONG_S(mnemonic, input)                \
-    TEST(mnemonic##_S) {                                                     \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic, S, H, H,                         \
-                                  kInput32bitsAccDestination,                \
-                                  kInput16bits##input,                       \
-                                  kInput16bits##input);                      \
-    }
-
-#define DEFINE_TEST_NEON_3DIFF_SCALAR_LONG_D(mnemonic, input)                \
-    TEST(mnemonic##_D) {                                                     \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic, D, S, S,                         \
-                                  kInput64bitsAccDestination,                \
-                                  kInput32bits##input,                       \
-                                  kInput32bits##input);                      \
-    }
-
-#define DEFINE_TEST_NEON_3DIFF_SCALAR_LONG_SD(mnemonic, input)               \
-    DEFINE_TEST_NEON_3DIFF_SCALAR_LONG_S(mnemonic, input)                    \
-    DEFINE_TEST_NEON_3DIFF_SCALAR_LONG_D(mnemonic, input)
-
-#define DEFINE_TEST_NEON_3DIFF_WIDE(mnemonic, input)                         \
-    TEST(mnemonic##_8H) {                                                    \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic, 8H, 8H, 8B,                      \
-                                  kInput16bitsAccDestination,                \
-                                  kInput16bits##input, kInput8bits##input);  \
-    }                                                                        \
-    TEST(mnemonic##_4S) {                                                    \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic, 4S, 4S, 4H,                      \
-                                  kInput32bitsAccDestination,                \
-                                  kInput32bits##input, kInput16bits##input); \
-    }                                                                        \
-    TEST(mnemonic##_2D) {                                                    \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic, 2D, 2D, 2S,                      \
-                                  kInput64bitsAccDestination,                \
-                                  kInput64bits##input, kInput32bits##input); \
-    }                                                                        \
-    TEST(mnemonic##2_8H) {                                                   \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2, 8H, 8H, 16B,                  \
-                                  kInput16bitsAccDestination,                \
-                                  kInput16bits##input, kInput8bits##input);  \
-    }                                                                        \
-    TEST(mnemonic##2_4S) {                                                   \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2, 4S, 4S, 8H,                   \
-                                  kInput32bitsAccDestination,                \
-                                  kInput32bits##input, kInput16bits##input); \
-    }                                                                        \
-    TEST(mnemonic##2_2D) {                                                   \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2, 2D, 2D, 4S,                   \
-                                  kInput64bitsAccDestination,                \
-                                  kInput64bits##input, kInput32bits##input); \
-    }
-
-#define DEFINE_TEST_NEON_3DIFF_NARROW(mnemonic, input)                       \
-    TEST(mnemonic##_8B) {                                                    \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic, 8B, 8H, 8H,                      \
-                                  kInput8bitsAccDestination,                 \
-                                  kInput16bits##input, kInput16bits##input); \
-    }                                                                        \
-    TEST(mnemonic##_4H) {                                                    \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic, 4H, 4S, 4S,                      \
-                                  kInput16bitsAccDestination,                \
-                                  kInput32bits##input, kInput32bits##input); \
-    }                                                                        \
-    TEST(mnemonic##_2S) {                                                    \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic, 2S, 2D, 2D,                      \
-                                  kInput32bitsAccDestination,                \
-                                  kInput64bits##input, kInput64bits##input); \
-    }                                                                        \
-    TEST(mnemonic##2_16B) {                                                  \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2, 16B, 8H, 8H,                  \
-                                  kInput8bitsAccDestination,                 \
-                                  kInput16bits##input, kInput16bits##input); \
-    }                                                                        \
-    TEST(mnemonic##2_8H) {                                                   \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2, 8H, 4S, 4S,                   \
-                                  kInput16bitsAccDestination,                \
-                                  kInput32bits##input, kInput32bits##input); \
-    }                                                                        \
-    TEST(mnemonic##2_4S) {                                                   \
-      CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2, 4S, 2D, 2D,                   \
-                                  kInput32bitsAccDestination,                \
-                                  kInput64bits##input, kInput64bits##input); \
-    }
-
-#define CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                               \
-                                     vdform, vnform,                         \
-                                     input_n,                                \
-                                     input_imm) {                            \
-    CALL_TEST_NEON_HELPER_2OpImm(mnemonic,                                   \
-                                 vdform, vnform,                             \
-                                 input_n, input_imm);                        \
-    }
-
-#define DEFINE_TEST_NEON_2OPIMM(mnemonic, input, input_imm)                  \
-    TEST(mnemonic##_8B_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   8B, 8B,                                   \
-                                   kInput8bits##input,                       \
-                                   kInput8bitsImm##input_imm);               \
-    }                                                                        \
-    TEST(mnemonic##_16B_2OPIMM) {                                            \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   16B, 16B,                                 \
-                                   kInput8bits##input,                       \
-                                   kInput8bitsImm##input_imm);               \
-    }                                                                        \
-    TEST(mnemonic##_4H_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   4H, 4H,                                   \
-                                   kInput16bits##input,                      \
-                                   kInput16bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##_8H_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   8H, 8H,                                   \
-                                   kInput16bits##input,                      \
-                                   kInput16bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##_2S_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   2S, 2S,                                   \
-                                   kInput32bits##input,                      \
-                                   kInput32bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##_4S_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   4S, 4S,                                   \
-                                   kInput32bits##input,                      \
-                                   kInput32bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##_2D_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   2D, 2D,                                   \
-                                   kInput64bits##input,                      \
-                                   kInput64bitsImm##input_imm);              \
-    }
-
-#define DEFINE_TEST_NEON_2OPIMM_COPY(mnemonic, input, input_imm)             \
-    TEST(mnemonic##_8B_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   8B, B,                                    \
-                                   kInput8bits##input,                       \
-                                   kInput8bitsImm##input_imm);               \
-    }                                                                        \
-    TEST(mnemonic##_16B_2OPIMM) {                                            \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   16B, B,                                   \
-                                   kInput8bits##input,                       \
-                                   kInput8bitsImm##input_imm);               \
-    }                                                                        \
-    TEST(mnemonic##_4H_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   4H, H,                                    \
-                                   kInput16bits##input,                      \
-                                   kInput16bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##_8H_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   8H, H,                                    \
-                                   kInput16bits##input,                      \
-                                   kInput16bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##_2S_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   2S, S,                                    \
-                                   kInput32bits##input,                      \
-                                   kInput32bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##_4S_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   4S, S,                                    \
-                                   kInput32bits##input,                      \
-                                   kInput32bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##_2D_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   2D, D,                                    \
-                                   kInput64bits##input,                      \
-                                   kInput64bitsImm##input_imm);              \
-    }
-
-#define DEFINE_TEST_NEON_2OPIMM_NARROW(mnemonic, input, input_imm)           \
-    TEST(mnemonic##_8B_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   8B, 8H,                                   \
-                                   kInput16bits##input,                      \
-                                   kInput8bitsImm##input_imm);               \
-    }                                                                        \
-    TEST(mnemonic##_4H_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   4H, 4S,                                   \
-                                   kInput32bits##input,                      \
-                                   kInput16bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##_2S_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   2S, 2D,                                   \
-                                   kInput64bits##input,                      \
-                                   kInput32bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##2_16B_2OPIMM) {                                           \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic##2,                              \
-                                   16B, 8H,                                  \
-                                   kInput16bits##input,                      \
-                                   kInput8bitsImm##input_imm);               \
-    }                                                                        \
-    TEST(mnemonic##2_8H_2OPIMM) {                                            \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic##2,                              \
-                                   8H, 4S,                                   \
-                                   kInput32bits##input,                      \
-                                   kInput16bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##2_4S_2OPIMM) {                                            \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic##2,                              \
-                                   4S, 2D,                                   \
-                                   kInput64bits##input,                      \
-                                   kInput32bitsImm##input_imm);              \
-    }
-
-#define DEFINE_TEST_NEON_2OPIMM_SCALAR_NARROW(mnemonic, input, input_imm)    \
-    TEST(mnemonic##_B_2OPIMM) {                                              \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   B, H,                                     \
-                                   kInput16bits##input,                      \
-                                   kInput8bitsImm##input_imm);               \
-    }                                                                        \
-    TEST(mnemonic##_H_2OPIMM) {                                              \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   H, S,                                     \
-                                   kInput32bits##input,                      \
-                                   kInput16bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##_S_2OPIMM) {                                              \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   S, D,                                     \
-                                   kInput64bits##input,                      \
-                                   kInput32bitsImm##input_imm);              \
-    }
-
-#define DEFINE_TEST_NEON_2OPIMM_FCMP_ZERO(mnemonic, input, input_imm)        \
-    TEST(mnemonic##_2S_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(                                          \
-          mnemonic,                                                          \
-          2S, 2S,                                                            \
-          kInputFloat##Basic,                                                \
-          kInputDoubleImm##input_imm)                                        \
-    }                                                                        \
-    TEST(mnemonic##_4S_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(                                          \
-          mnemonic,                                                          \
-          4S, 4S,                                                            \
-          kInputFloat##input,                                                \
-          kInputDoubleImm##input_imm);                                       \
-    }                                                                        \
-    TEST(mnemonic##_2D_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(                                          \
-          mnemonic,                                                          \
-          2D, 2D,                                                            \
-          kInputDouble##input,                                               \
-          kInputDoubleImm##input_imm);                                       \
-    }
-
-#define DEFINE_TEST_NEON_2OPIMM_FP(mnemonic, input, input_imm)               \
-    TEST(mnemonic##_2S_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(                                          \
-          mnemonic,                                                          \
-          2S, 2S,                                                            \
-          kInputFloat##Basic,                                                \
-          kInput32bitsImm##input_imm)                                        \
-    }                                                                        \
-    TEST(mnemonic##_4S_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(                                          \
-          mnemonic,                                                          \
-          4S, 4S,                                                            \
-          kInputFloat##input,                                                \
-          kInput32bitsImm##input_imm)                                        \
-    }                                                                        \
-    TEST(mnemonic##_2D_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(                                          \
-          mnemonic,                                                          \
-          2D, 2D,                                                            \
-          kInputDouble##input,                                               \
-          kInput64bitsImm##input_imm)                                        \
-    }
-
-#define DEFINE_TEST_NEON_2OPIMM_FP_SCALAR(mnemonic, input, input_imm)        \
-    TEST(mnemonic##_S_2OPIMM) {                                              \
-      CALL_TEST_NEON_HELPER_2OPIMM(                                          \
-          mnemonic,                                                          \
-          S, S,                                                              \
-          kInputFloat##Basic,                                                \
-          kInput32bitsImm##input_imm)                                        \
-    }                                                                        \
-    TEST(mnemonic##_D_2OPIMM) {                                              \
-      CALL_TEST_NEON_HELPER_2OPIMM(                                          \
-          mnemonic,                                                          \
-          D, D,                                                              \
-          kInputDouble##input,                                               \
-          kInput64bitsImm##input_imm)                                        \
-    }
-
-#define DEFINE_TEST_NEON_2OPIMM_SD(mnemonic, input, input_imm)               \
-    TEST(mnemonic##_2S_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   2S, 2S,                                   \
-                                   kInput32bits##input,                      \
-                                   kInput32bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##_4S_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   4S, 4S,                                   \
-                                   kInput32bits##input,                      \
-                                   kInput32bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##_2D_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   2D, 2D,                                   \
-                                   kInput64bits##input,                      \
-                                   kInput64bitsImm##input_imm);              \
-    }
-
-#define DEFINE_TEST_NEON_2OPIMM_SCALAR_D(mnemonic, input, input_imm)         \
-    TEST(mnemonic##_D_2OPIMM) {                                              \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   D, D,                                     \
-                                   kInput64bits##input,                      \
-                                   kInput64bitsImm##input_imm);              \
-    }
-
-#define DEFINE_TEST_NEON_2OPIMM_SCALAR_SD(mnemonic, input, input_imm)        \
-    TEST(mnemonic##_S_2OPIMM) {                                              \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   S, S,                                     \
-                                   kInput32bits##input,                      \
-                                   kInput32bitsImm##input_imm);              \
-    }                                                                        \
-    DEFINE_TEST_NEON_2OPIMM_SCALAR_D(mnemonic, input, input_imm)
-
-#define DEFINE_TEST_NEON_2OPIMM_FP_SCALAR_D(mnemonic, input, input_imm)      \
-    TEST(mnemonic##_D_2OPIMM) {                                              \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   D, D,                                     \
-                                   kInputDouble##input,                      \
-                                   kInputDoubleImm##input_imm);              \
-    }
-
-#define DEFINE_TEST_NEON_2OPIMM_FP_SCALAR_SD(mnemonic, input, input_imm)     \
-    TEST(mnemonic##_S_2OPIMM) {                                              \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   S, S,                                     \
-                                   kInputFloat##input,                       \
-                                   kInputDoubleImm##input_imm);              \
-    }                                                                        \
-    DEFINE_TEST_NEON_2OPIMM_FP_SCALAR_D(mnemonic, input, input_imm)
-
-#define DEFINE_TEST_NEON_2OPIMM_SCALAR(mnemonic, input, input_imm)           \
-    TEST(mnemonic##_B_2OPIMM) {                                              \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   B, B,                                     \
-                                   kInput8bits##input,                       \
-                                   kInput8bitsImm##input_imm);               \
-    }                                                                        \
-    TEST(mnemonic##_H_2OPIMM) {                                              \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   H, H,                                     \
-                                   kInput16bits##input,                      \
-                                   kInput16bitsImm##input_imm);              \
-    }                                                                        \
-    DEFINE_TEST_NEON_2OPIMM_SCALAR_SD(mnemonic, input, input_imm)
-
-#define DEFINE_TEST_NEON_2OPIMM_LONG(mnemonic, input, input_imm)             \
-    TEST(mnemonic##_8H_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   8H, 8B,                                   \
-                                   kInput8bits##input,                       \
-                                   kInput8bitsImm##input_imm);               \
-    }                                                                        \
-    TEST(mnemonic##_4S_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   4S, 4H,                                   \
-                                   kInput16bits##input,                      \
-                                   kInput16bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##_2D_2OPIMM) {                                             \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                 \
-                                   2D, 2S,                                   \
-                                   kInput32bits##input,                      \
-                                   kInput32bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##2_8H_2OPIMM) {                                            \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic##2,                              \
-                                   8H, 16B,                                  \
-                                   kInput8bits##input,                       \
-                                   kInput8bitsImm##input_imm);               \
-    }                                                                        \
-    TEST(mnemonic##2_4S_2OPIMM) {                                            \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic##2,                              \
-                                   4S, 8H,                                   \
-                                   kInput16bits##input,                      \
-                                   kInput16bitsImm##input_imm);              \
-    }                                                                        \
-    TEST(mnemonic##2_2D_2OPIMM) {                                            \
-      CALL_TEST_NEON_HELPER_2OPIMM(mnemonic##2,                              \
-                                   2D, 4S,                                   \
-                                   kInput32bits##input,                      \
-                                   kInput32bitsImm##input_imm);              \
-    }
-
-#define CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                            \
-                                        vdform, vnform, vmform,              \
-                                        input_d, input_n,                    \
-                                        input_m, indices) {                  \
-    CALL_TEST_NEON_HELPER_ByElement(mnemonic,                                \
-                                    vdform, vnform, vmform,                  \
-                                    input_d, input_n,                        \
-                                    input_m, indices);                       \
-    }
-
-#define DEFINE_TEST_NEON_BYELEMENT(mnemonic, input_d, input_n, input_m)      \
-    TEST(mnemonic##_4H_4H_H) {                                               \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      4H, 4H, H,                             \
-                                      kInput16bits##input_d,                 \
-                                      kInput16bits##input_n,                 \
-                                      kInput16bits##input_m,                 \
-                                      kInputHIndices);                       \
-    }                                                                        \
-    TEST(mnemonic##_8H_8H_H) {                                               \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      8H, 8H, H,                             \
-                                      kInput16bits##input_d,                 \
-                                      kInput16bits##input_n,                 \
-                                      kInput16bits##input_m,                 \
-                                      kInputHIndices);                       \
-    }                                                                        \
-    TEST(mnemonic##_2S_2S_S) {                                               \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      2S, 2S, S,                             \
-                                      kInput32bits##input_d,                 \
-                                      kInput32bits##input_n,                 \
-                                      kInput32bits##input_m,                 \
-                                      kInputSIndices);                       \
-    }                                                                        \
-    TEST(mnemonic##_4S_4S_S) {                                               \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      4S, 4S, S,                             \
-                                      kInput32bits##input_d,                 \
-                                      kInput32bits##input_n,                 \
-                                      kInput32bits##input_m,                 \
-                                      kInputSIndices);                       \
-    }
-
-#define DEFINE_TEST_NEON_BYELEMENT_SCALAR(mnemonic,                          \
-                                          input_d, input_n, input_m)         \
-    TEST(mnemonic##_H_H_H) {                                                 \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      H, H, H,                               \
-                                      kInput16bits##input_d,                 \
-                                      kInput16bits##input_n,                 \
-                                      kInput16bits##input_m,                 \
-                                      kInputHIndices);                       \
-    }                                                                        \
-    TEST(mnemonic##_S_S_S) {                                                 \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      S, S, S,                               \
-                                      kInput32bits##input_d,                 \
-                                      kInput32bits##input_n,                 \
-                                      kInput32bits##input_m,                 \
-                                      kInputSIndices);                       \
-    }
-
-#define DEFINE_TEST_NEON_FP_BYELEMENT(mnemonic, input_d, input_n, input_m)   \
-    TEST(mnemonic##_2S_2S_S) {                                               \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      2S, 2S, S,                             \
-                                      kInputFloat##input_d,                  \
-                                      kInputFloat##input_n,                  \
-                                      kInputFloat##input_m,                  \
-                                      kInputSIndices);                       \
-    }                                                                        \
-    TEST(mnemonic##_4S_4S_S) {                                               \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      4S, 4S, S,                             \
-                                      kInputFloat##input_d,                  \
-                                      kInputFloat##input_n,                  \
-                                      kInputFloat##input_m,                  \
-                                      kInputSIndices);                       \
-    }                                                                        \
-    TEST(mnemonic##_2D_2D_D) {                                               \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      2D, 2D, D,                             \
-                                      kInputDouble##input_d,                 \
-                                      kInputDouble##input_n,                 \
-                                      kInputDouble##input_m,                 \
-                                      kInputDIndices);                       \
-    }                                                                        \
-
-#define DEFINE_TEST_NEON_FP_BYELEMENT_SCALAR(mnemonic, inp_d, inp_n, inp_m)  \
-    TEST(mnemonic##_S_S_S) {                                                 \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      S, S, S,                               \
-                                      kInputFloat##inp_d,                    \
-                                      kInputFloat##inp_n,                    \
-                                      kInputFloat##inp_m,                    \
-                                      kInputSIndices);                       \
-    }                                                                        \
-    TEST(mnemonic##_D_D_D) {                                                 \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      D, D, D,                               \
-                                      kInputDouble##inp_d,                   \
-                                      kInputDouble##inp_n,                   \
-                                      kInputDouble##inp_m,                   \
-                                      kInputDIndices);                       \
-    }                                                                        \
+#define CALL_TEST_NEON_HELPER_1Op(mnemonic, vdform, vnform, input_n) \
+  Test1OpNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform),             \
+              &MacroAssembler::mnemonic,                             \
+              input_n,                                               \
+              (sizeof(input_n) / sizeof(input_n[0])),                \
+              kExpected_NEON_##mnemonic##_##vdform,                  \
+              kExpectedCount_NEON_##mnemonic##_##vdform,             \
+              kFormat##vdform,                                       \
+              kFormat##vnform)
+
+#define CALL_TEST_NEON_HELPER_1OpAcross(mnemonic, vdform, vnform, input_n)   \
+  Test1OpAcrossNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform) "_" STRINGIFY( \
+                        vnform),                                             \
+                    &MacroAssembler::mnemonic,                               \
+                    input_n,                                                 \
+                    (sizeof(input_n) / sizeof(input_n[0])),                  \
+                    kExpected_NEON_##mnemonic##_##vdform##_##vnform,         \
+                    kExpectedCount_NEON_##mnemonic##_##vdform##_##vnform,    \
+                    kFormat##vdform,                                         \
+                    kFormat##vnform)
+
+#define CALL_TEST_NEON_HELPER_2Op(                               \
+    mnemonic, vdform, vnform, vmform, input_d, input_n, input_m) \
+  Test2OpNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform),         \
+              &MacroAssembler::mnemonic,                         \
+              input_d,                                           \
+              input_n,                                           \
+              (sizeof(input_n) / sizeof(input_n[0])),            \
+              input_m,                                           \
+              (sizeof(input_m) / sizeof(input_m[0])),            \
+              kExpected_NEON_##mnemonic##_##vdform,              \
+              kExpectedCount_NEON_##mnemonic##_##vdform,         \
+              kFormat##vdform,                                   \
+              kFormat##vnform,                                   \
+              kFormat##vmform)
+
+#define CALL_TEST_NEON_HELPER_2OpImm(                                 \
+    mnemonic, vdform, vnform, input_n, input_m)                       \
+  Test2OpImmNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform) "_2OPIMM", \
+                 &MacroAssembler::mnemonic,                           \
+                 input_n,                                             \
+                 (sizeof(input_n) / sizeof(input_n[0])),              \
+                 input_m,                                             \
+                 (sizeof(input_m) / sizeof(input_m[0])),              \
+                 kExpected_NEON_##mnemonic##_##vdform##_2OPIMM,       \
+                 kExpectedCount_NEON_##mnemonic##_##vdform##_2OPIMM,  \
+                 kFormat##vdform,                                     \
+                 kFormat##vnform)
+
+#define CALL_TEST_NEON_HELPER_ByElement(                                  \
+    mnemonic, vdform, vnform, vmform, input_d, input_n, input_m, indices) \
+  TestByElementNEON(                                                      \
+      STRINGIFY(mnemonic) "_" STRINGIFY(vdform) "_" STRINGIFY(            \
+          vnform) "_" STRINGIFY(vmform),                                  \
+      &MacroAssembler::mnemonic,                                          \
+      input_d,                                                            \
+      input_n,                                                            \
+      (sizeof(input_n) / sizeof(input_n[0])),                             \
+      input_m,                                                            \
+      (sizeof(input_m) / sizeof(input_m[0])),                             \
+      indices,                                                            \
+      (sizeof(indices) / sizeof(indices[0])),                             \
+      kExpected_NEON_##mnemonic##_##vdform##_##vnform##_##vmform,         \
+      kExpectedCount_NEON_##mnemonic##_##vdform##_##vnform##_##vmform,    \
+      kFormat##vdform,                                                    \
+      kFormat##vnform,                                                    \
+      kFormat##vmform)
+
+#define CALL_TEST_NEON_HELPER_OpImmOpImm(helper,                   \
+                                         mnemonic,                 \
+                                         vdform,                   \
+                                         vnform,                   \
+                                         input_d,                  \
+                                         input_imm1,               \
+                                         input_n,                  \
+                                         input_imm2)               \
+  TestOpImmOpImmNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform),    \
+                     helper,                                       \
+                     input_d,                                      \
+                     input_imm1,                                   \
+                     (sizeof(input_imm1) / sizeof(input_imm1[0])), \
+                     input_n,                                      \
+                     (sizeof(input_n) / sizeof(input_n[0])),       \
+                     input_imm2,                                   \
+                     (sizeof(input_imm2) / sizeof(input_imm2[0])), \
+                     kExpected_NEON_##mnemonic##_##vdform,         \
+                     kExpectedCount_NEON_##mnemonic##_##vdform,    \
+                     kFormat##vdform,                              \
+                     kFormat##vnform)
+
+#define CALL_TEST_NEON_HELPER_2SAME(mnemonic, variant, input) \
+  CALL_TEST_NEON_HELPER_1Op(mnemonic, variant, variant, input)
+
+#define DEFINE_TEST_NEON_2SAME_8B_16B(mnemonic, input)              \
+  TEST(mnemonic##_8B) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, 8B, kInput8bits##input);  \
+  }                                                                 \
+  TEST(mnemonic##_16B) {                                            \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, 16B, kInput8bits##input); \
+  }
+
+#define DEFINE_TEST_NEON_2SAME_4H_8H(mnemonic, input)               \
+  TEST(mnemonic##_4H) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, 4H, kInput16bits##input); \
+  }                                                                 \
+  TEST(mnemonic##_8H) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, 8H, kInput16bits##input); \
+  }
+
+#define DEFINE_TEST_NEON_2SAME_2S_4S(mnemonic, input)               \
+  TEST(mnemonic##_2S) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, 2S, kInput32bits##input); \
+  }                                                                 \
+  TEST(mnemonic##_4S) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, 4S, kInput32bits##input); \
+  }
+
+#define DEFINE_TEST_NEON_2SAME_BH(mnemonic, input) \
+  DEFINE_TEST_NEON_2SAME_8B_16B(mnemonic, input)   \
+  DEFINE_TEST_NEON_2SAME_4H_8H(mnemonic, input)
+
+#define DEFINE_TEST_NEON_2SAME_NO2D(mnemonic, input) \
+  DEFINE_TEST_NEON_2SAME_BH(mnemonic, input)         \
+  DEFINE_TEST_NEON_2SAME_2S_4S(mnemonic, input)
+
+#define DEFINE_TEST_NEON_2SAME(mnemonic, input)                     \
+  DEFINE_TEST_NEON_2SAME_NO2D(mnemonic, input)                      \
+  TEST(mnemonic##_2D) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, 2D, kInput64bits##input); \
+  }
+#define DEFINE_TEST_NEON_2SAME_SD(mnemonic, input)                  \
+  DEFINE_TEST_NEON_2SAME_2S_4S(mnemonic, input)                     \
+  TEST(mnemonic##_2D) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, 2D, kInput64bits##input); \
+  }
+
+#define DEFINE_TEST_NEON_2SAME_FP(mnemonic, input)                  \
+  TEST(mnemonic##_2S) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, 2S, kInputFloat##input);  \
+  }                                                                 \
+  TEST(mnemonic##_4S) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, 4S, kInputFloat##input);  \
+  }                                                                 \
+  TEST(mnemonic##_2D) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, 2D, kInputDouble##input); \
+  }
+
+#define DEFINE_TEST_NEON_2SAME_FP_SCALAR(mnemonic, input)          \
+  TEST(mnemonic##_S) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, S, kInputFloat##input);  \
+  }                                                                \
+  TEST(mnemonic##_D) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, D, kInputDouble##input); \
+  }
+
+#define DEFINE_TEST_NEON_2SAME_SCALAR_B(mnemonic, input)          \
+  TEST(mnemonic##_B) {                                            \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, B, kInput8bits##input); \
+  }
+#define DEFINE_TEST_NEON_2SAME_SCALAR_H(mnemonic, input)           \
+  TEST(mnemonic##_H) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, H, kInput16bits##input); \
+  }
+#define DEFINE_TEST_NEON_2SAME_SCALAR_S(mnemonic, input)           \
+  TEST(mnemonic##_S) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, S, kInput32bits##input); \
+  }
+#define DEFINE_TEST_NEON_2SAME_SCALAR_D(mnemonic, input)           \
+  TEST(mnemonic##_D) {                                             \
+    CALL_TEST_NEON_HELPER_2SAME(mnemonic, D, kInput64bits##input); \
+  }
+
+#define DEFINE_TEST_NEON_2SAME_SCALAR(mnemonic, input) \
+  DEFINE_TEST_NEON_2SAME_SCALAR_B(mnemonic, input)     \
+  DEFINE_TEST_NEON_2SAME_SCALAR_H(mnemonic, input)     \
+  DEFINE_TEST_NEON_2SAME_SCALAR_S(mnemonic, input)     \
+  DEFINE_TEST_NEON_2SAME_SCALAR_D(mnemonic, input)
+
+#define DEFINE_TEST_NEON_2SAME_SCALAR_SD(mnemonic, input) \
+  DEFINE_TEST_NEON_2SAME_SCALAR_S(mnemonic, input)        \
+  DEFINE_TEST_NEON_2SAME_SCALAR_D(mnemonic, input)
+
+
+#define CALL_TEST_NEON_HELPER_ACROSS(mnemonic, vd_form, vn_form, input_n) \
+  CALL_TEST_NEON_HELPER_1OpAcross(mnemonic, vd_form, vn_form, input_n)
+
+#define DEFINE_TEST_NEON_ACROSS(mnemonic, input)                        \
+  TEST(mnemonic##_B_8B) {                                               \
+    CALL_TEST_NEON_HELPER_ACROSS(mnemonic, B, 8B, kInput8bits##input);  \
+  }                                                                     \
+  TEST(mnemonic##_B_16B) {                                              \
+    CALL_TEST_NEON_HELPER_ACROSS(mnemonic, B, 16B, kInput8bits##input); \
+  }                                                                     \
+  TEST(mnemonic##_H_4H) {                                               \
+    CALL_TEST_NEON_HELPER_ACROSS(mnemonic, H, 4H, kInput16bits##input); \
+  }                                                                     \
+  TEST(mnemonic##_H_8H) {                                               \
+    CALL_TEST_NEON_HELPER_ACROSS(mnemonic, H, 8H, kInput16bits##input); \
+  }                                                                     \
+  TEST(mnemonic##_S_4S) {                                               \
+    CALL_TEST_NEON_HELPER_ACROSS(mnemonic, S, 4S, kInput32bits##input); \
+  }
+
+#define DEFINE_TEST_NEON_ACROSS_LONG(mnemonic, input)                   \
+  TEST(mnemonic##_H_8B) {                                               \
+    CALL_TEST_NEON_HELPER_ACROSS(mnemonic, H, 8B, kInput8bits##input);  \
+  }                                                                     \
+  TEST(mnemonic##_H_16B) {                                              \
+    CALL_TEST_NEON_HELPER_ACROSS(mnemonic, H, 16B, kInput8bits##input); \
+  }                                                                     \
+  TEST(mnemonic##_S_4H) {                                               \
+    CALL_TEST_NEON_HELPER_ACROSS(mnemonic, S, 4H, kInput16bits##input); \
+  }                                                                     \
+  TEST(mnemonic##_S_8H) {                                               \
+    CALL_TEST_NEON_HELPER_ACROSS(mnemonic, S, 8H, kInput16bits##input); \
+  }                                                                     \
+  TEST(mnemonic##_D_4S) {                                               \
+    CALL_TEST_NEON_HELPER_ACROSS(mnemonic, D, 4S, kInput32bits##input); \
+  }
+
+#define DEFINE_TEST_NEON_ACROSS_FP(mnemonic, input)                    \
+  TEST(mnemonic##_S_4S) {                                              \
+    CALL_TEST_NEON_HELPER_ACROSS(mnemonic, S, 4S, kInputFloat##input); \
+  }
+
+#define CALL_TEST_NEON_HELPER_2DIFF(mnemonic, vdform, vnform, input_n) \
+  CALL_TEST_NEON_HELPER_1Op(mnemonic, vdform, vnform, input_n)
+
+#define DEFINE_TEST_NEON_2DIFF_LONG(mnemonic, input)                    \
+  TEST(mnemonic##_4H) {                                                 \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 4H, 8B, kInput8bits##input);  \
+  }                                                                     \
+  TEST(mnemonic##_8H) {                                                 \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 8H, 16B, kInput8bits##input); \
+  }                                                                     \
+  TEST(mnemonic##_2S) {                                                 \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 2S, 4H, kInput16bits##input); \
+  }                                                                     \
+  TEST(mnemonic##_4S) {                                                 \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 4S, 8H, kInput16bits##input); \
+  }                                                                     \
+  TEST(mnemonic##_1D) {                                                 \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 1D, 2S, kInput32bits##input); \
+  }                                                                     \
+  TEST(mnemonic##_2D) {                                                 \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 2D, 4S, kInput32bits##input); \
+  }
+
+#define DEFINE_TEST_NEON_2DIFF_NARROW(mnemonic, input)                      \
+  TEST(mnemonic##_8B) {                                                     \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 8B, 8H, kInput16bits##input);     \
+  }                                                                         \
+  TEST(mnemonic##_4H) {                                                     \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 4H, 4S, kInput32bits##input);     \
+  }                                                                         \
+  TEST(mnemonic##_2S) {                                                     \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 2S, 2D, kInput64bits##input);     \
+  }                                                                         \
+  TEST(mnemonic##2_16B) {                                                   \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 16B, 8H, kInput16bits##input); \
+  }                                                                         \
+  TEST(mnemonic##2_8H) {                                                    \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 8H, 4S, kInput32bits##input);  \
+  }                                                                         \
+  TEST(mnemonic##2_4S) {                                                    \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 4S, 2D, kInput64bits##input);  \
+  }
+
+#define DEFINE_TEST_NEON_2DIFF_FP_LONG(mnemonic, input)                     \
+  TEST(mnemonic##_4S) {                                                     \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 4S, 4H, kInputFloat16##input);    \
+  }                                                                         \
+  TEST(mnemonic##_2D) {                                                     \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 2D, 2S, kInputFloat##input);      \
+  }                                                                         \
+  TEST(mnemonic##2_4S) {                                                    \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 4S, 8H, kInputFloat16##input); \
+  }                                                                         \
+  TEST(mnemonic##2_2D) {                                                    \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 2D, 4S, kInputFloat##input);   \
+  }
+
+#define DEFINE_TEST_NEON_2DIFF_FP_NARROW(mnemonic, input)                  \
+  TEST(mnemonic##_4H) {                                                    \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 4H, 4S, kInputFloat##input);     \
+  }                                                                        \
+  TEST(mnemonic##_2S) {                                                    \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 2S, 2D, kInputDouble##input);    \
+  }                                                                        \
+  TEST(mnemonic##2_8H) {                                                   \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 8H, 4S, kInputFloat##input);  \
+  }                                                                        \
+  TEST(mnemonic##2_4S) {                                                   \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 4S, 2D, kInputDouble##input); \
+  }
+
+#define DEFINE_TEST_NEON_2DIFF_FP_NARROW_2S(mnemonic, input)               \
+  TEST(mnemonic##_2S) {                                                    \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, 2S, 2D, kInputDouble##input);    \
+  }                                                                        \
+  TEST(mnemonic##2_4S) {                                                   \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic##2, 4S, 2D, kInputDouble##input); \
+  }
+
+#define DEFINE_TEST_NEON_2DIFF_SCALAR_NARROW(mnemonic, input)         \
+  TEST(mnemonic##_B) {                                                \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, B, H, kInput16bits##input); \
+  }                                                                   \
+  TEST(mnemonic##_H) {                                                \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, H, S, kInput32bits##input); \
+  }                                                                   \
+  TEST(mnemonic##_S) {                                                \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, S, D, kInput64bits##input); \
+  }
+
+#define DEFINE_TEST_NEON_2DIFF_FP_SCALAR_SD(mnemonic, input)           \
+  TEST(mnemonic##_S) {                                                 \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, S, 2S, kInputFloat##input);  \
+  }                                                                    \
+  TEST(mnemonic##_D) {                                                 \
+    CALL_TEST_NEON_HELPER_2DIFF(mnemonic, D, 2D, kInputDouble##input); \
+  }
+
+#define CALL_TEST_NEON_HELPER_3SAME(mnemonic, variant, input_d, input_nm) \
+  {                                                                       \
+    CALL_TEST_NEON_HELPER_2Op(mnemonic,                                   \
+                              variant,                                    \
+                              variant,                                    \
+                              variant,                                    \
+                              input_d,                                    \
+                              input_nm,                                   \
+                              input_nm);                                  \
+  }
+
+#define DEFINE_TEST_NEON_3SAME_8B_16B(mnemonic, input)     \
+  TEST(mnemonic##_8B) {                                    \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                  \
+                                8B,                        \
+                                kInput8bitsAccDestination, \
+                                kInput8bits##input);       \
+  }                                                        \
+  TEST(mnemonic##_16B) {                                   \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                  \
+                                16B,                       \
+                                kInput8bitsAccDestination, \
+                                kInput8bits##input);       \
+  }
+
+#define DEFINE_TEST_NEON_3SAME_HS(mnemonic, input)          \
+  TEST(mnemonic##_4H) {                                     \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                4H,                         \
+                                kInput16bitsAccDestination, \
+                                kInput16bits##input);       \
+  }                                                         \
+  TEST(mnemonic##_8H) {                                     \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                8H,                         \
+                                kInput16bitsAccDestination, \
+                                kInput16bits##input);       \
+  }                                                         \
+  TEST(mnemonic##_2S) {                                     \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                2S,                         \
+                                kInput32bitsAccDestination, \
+                                kInput32bits##input);       \
+  }                                                         \
+  TEST(mnemonic##_4S) {                                     \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                4S,                         \
+                                kInput32bitsAccDestination, \
+                                kInput32bits##input);       \
+  }
+
+#define DEFINE_TEST_NEON_3SAME_NO2D(mnemonic, input) \
+  DEFINE_TEST_NEON_3SAME_8B_16B(mnemonic, input)     \
+  DEFINE_TEST_NEON_3SAME_HS(mnemonic, input)
+
+#define DEFINE_TEST_NEON_3SAME(mnemonic, input)             \
+  DEFINE_TEST_NEON_3SAME_NO2D(mnemonic, input)              \
+  TEST(mnemonic##_2D) {                                     \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                2D,                         \
+                                kInput64bitsAccDestination, \
+                                kInput64bits##input);       \
+  }
+
+#define DEFINE_TEST_NEON_3SAME_FP(mnemonic, input)          \
+  TEST(mnemonic##_2S) {                                     \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                2S,                         \
+                                kInputFloatAccDestination,  \
+                                kInputFloat##input);        \
+  }                                                         \
+  TEST(mnemonic##_4S) {                                     \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                4S,                         \
+                                kInputFloatAccDestination,  \
+                                kInputFloat##input);        \
+  }                                                         \
+  TEST(mnemonic##_2D) {                                     \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                2D,                         \
+                                kInputDoubleAccDestination, \
+                                kInputDouble##input);       \
+  }
+
+#define DEFINE_TEST_NEON_3SAME_SCALAR_D(mnemonic, input)    \
+  TEST(mnemonic##_D) {                                      \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                D,                          \
+                                kInput64bitsAccDestination, \
+                                kInput64bits##input);       \
+  }
+
+#define DEFINE_TEST_NEON_3SAME_SCALAR_HS(mnemonic, input)   \
+  TEST(mnemonic##_H) {                                      \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                H,                          \
+                                kInput16bitsAccDestination, \
+                                kInput16bits##input);       \
+  }                                                         \
+  TEST(mnemonic##_S) {                                      \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                S,                          \
+                                kInput32bitsAccDestination, \
+                                kInput32bits##input);       \
+  }
+
+#define DEFINE_TEST_NEON_3SAME_SCALAR(mnemonic, input)      \
+  TEST(mnemonic##_B) {                                      \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                B,                          \
+                                kInput8bitsAccDestination,  \
+                                kInput8bits##input);        \
+  }                                                         \
+  TEST(mnemonic##_H) {                                      \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                H,                          \
+                                kInput16bitsAccDestination, \
+                                kInput16bits##input);       \
+  }                                                         \
+  TEST(mnemonic##_S) {                                      \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                S,                          \
+                                kInput32bitsAccDestination, \
+                                kInput32bits##input);       \
+  }                                                         \
+  TEST(mnemonic##_D) {                                      \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                D,                          \
+                                kInput64bitsAccDestination, \
+                                kInput64bits##input);       \
+  }
+
+#define DEFINE_TEST_NEON_3SAME_FP_SCALAR(mnemonic, input)   \
+  TEST(mnemonic##_S) {                                      \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                S,                          \
+                                kInputFloatAccDestination,  \
+                                kInputFloat##input);        \
+  }                                                         \
+  TEST(mnemonic##_D) {                                      \
+    CALL_TEST_NEON_HELPER_3SAME(mnemonic,                   \
+                                D,                          \
+                                kInputDoubleAccDestination, \
+                                kInputDouble##input);       \
+  }
+
+#define CALL_TEST_NEON_HELPER_3DIFF(                             \
+    mnemonic, vdform, vnform, vmform, input_d, input_n, input_m) \
+  {                                                              \
+    CALL_TEST_NEON_HELPER_2Op(mnemonic,                          \
+                              vdform,                            \
+                              vnform,                            \
+                              vmform,                            \
+                              input_d,                           \
+                              input_n,                           \
+                              input_m);                          \
+  }
+
+#define DEFINE_TEST_NEON_3DIFF_LONG_8H(mnemonic, input)     \
+  TEST(mnemonic##_8H) {                                     \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                   \
+                                8H,                         \
+                                8B,                         \
+                                8B,                         \
+                                kInput16bitsAccDestination, \
+                                kInput8bits##input,         \
+                                kInput8bits##input);        \
+  }                                                         \
+  TEST(mnemonic##2_8H) {                                    \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2,                \
+                                8H,                         \
+                                16B,                        \
+                                16B,                        \
+                                kInput16bitsAccDestination, \
+                                kInput8bits##input,         \
+                                kInput8bits##input);        \
+  }
+
+#define DEFINE_TEST_NEON_3DIFF_LONG_4S(mnemonic, input)     \
+  TEST(mnemonic##_4S) {                                     \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                   \
+                                4S,                         \
+                                4H,                         \
+                                4H,                         \
+                                kInput32bitsAccDestination, \
+                                kInput16bits##input,        \
+                                kInput16bits##input);       \
+  }                                                         \
+  TEST(mnemonic##2_4S) {                                    \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2,                \
+                                4S,                         \
+                                8H,                         \
+                                8H,                         \
+                                kInput32bitsAccDestination, \
+                                kInput16bits##input,        \
+                                kInput16bits##input);       \
+  }
+
+#define DEFINE_TEST_NEON_3DIFF_LONG_2D(mnemonic, input)     \
+  TEST(mnemonic##_2D) {                                     \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                   \
+                                2D,                         \
+                                2S,                         \
+                                2S,                         \
+                                kInput64bitsAccDestination, \
+                                kInput32bits##input,        \
+                                kInput32bits##input);       \
+  }                                                         \
+  TEST(mnemonic##2_2D) {                                    \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2,                \
+                                2D,                         \
+                                4S,                         \
+                                4S,                         \
+                                kInput64bitsAccDestination, \
+                                kInput32bits##input,        \
+                                kInput32bits##input);       \
+  }
+
+#define DEFINE_TEST_NEON_3DIFF_LONG_SD(mnemonic, input) \
+  DEFINE_TEST_NEON_3DIFF_LONG_4S(mnemonic, input)       \
+  DEFINE_TEST_NEON_3DIFF_LONG_2D(mnemonic, input)
+
+#define DEFINE_TEST_NEON_3DIFF_LONG(mnemonic, input) \
+  DEFINE_TEST_NEON_3DIFF_LONG_8H(mnemonic, input)    \
+  DEFINE_TEST_NEON_3DIFF_LONG_4S(mnemonic, input)    \
+  DEFINE_TEST_NEON_3DIFF_LONG_2D(mnemonic, input)
+
+#define DEFINE_TEST_NEON_3DIFF_SCALAR_LONG_S(mnemonic, input) \
+  TEST(mnemonic##_S) {                                        \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                     \
+                                S,                            \
+                                H,                            \
+                                H,                            \
+                                kInput32bitsAccDestination,   \
+                                kInput16bits##input,          \
+                                kInput16bits##input);         \
+  }
+
+#define DEFINE_TEST_NEON_3DIFF_SCALAR_LONG_D(mnemonic, input) \
+  TEST(mnemonic##_D) {                                        \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                     \
+                                D,                            \
+                                S,                            \
+                                S,                            \
+                                kInput64bitsAccDestination,   \
+                                kInput32bits##input,          \
+                                kInput32bits##input);         \
+  }
+
+#define DEFINE_TEST_NEON_3DIFF_SCALAR_LONG_SD(mnemonic, input) \
+  DEFINE_TEST_NEON_3DIFF_SCALAR_LONG_S(mnemonic, input)        \
+  DEFINE_TEST_NEON_3DIFF_SCALAR_LONG_D(mnemonic, input)
+
+#define DEFINE_TEST_NEON_3DIFF_WIDE(mnemonic, input)        \
+  TEST(mnemonic##_8H) {                                     \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                   \
+                                8H,                         \
+                                8H,                         \
+                                8B,                         \
+                                kInput16bitsAccDestination, \
+                                kInput16bits##input,        \
+                                kInput8bits##input);        \
+  }                                                         \
+  TEST(mnemonic##_4S) {                                     \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                   \
+                                4S,                         \
+                                4S,                         \
+                                4H,                         \
+                                kInput32bitsAccDestination, \
+                                kInput32bits##input,        \
+                                kInput16bits##input);       \
+  }                                                         \
+  TEST(mnemonic##_2D) {                                     \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                   \
+                                2D,                         \
+                                2D,                         \
+                                2S,                         \
+                                kInput64bitsAccDestination, \
+                                kInput64bits##input,        \
+                                kInput32bits##input);       \
+  }                                                         \
+  TEST(mnemonic##2_8H) {                                    \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2,                \
+                                8H,                         \
+                                8H,                         \
+                                16B,                        \
+                                kInput16bitsAccDestination, \
+                                kInput16bits##input,        \
+                                kInput8bits##input);        \
+  }                                                         \
+  TEST(mnemonic##2_4S) {                                    \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2,                \
+                                4S,                         \
+                                4S,                         \
+                                8H,                         \
+                                kInput32bitsAccDestination, \
+                                kInput32bits##input,        \
+                                kInput16bits##input);       \
+  }                                                         \
+  TEST(mnemonic##2_2D) {                                    \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2,                \
+                                2D,                         \
+                                2D,                         \
+                                4S,                         \
+                                kInput64bitsAccDestination, \
+                                kInput64bits##input,        \
+                                kInput32bits##input);       \
+  }
+
+#define DEFINE_TEST_NEON_3DIFF_NARROW(mnemonic, input)      \
+  TEST(mnemonic##_8B) {                                     \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                   \
+                                8B,                         \
+                                8H,                         \
+                                8H,                         \
+                                kInput8bitsAccDestination,  \
+                                kInput16bits##input,        \
+                                kInput16bits##input);       \
+  }                                                         \
+  TEST(mnemonic##_4H) {                                     \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                   \
+                                4H,                         \
+                                4S,                         \
+                                4S,                         \
+                                kInput16bitsAccDestination, \
+                                kInput32bits##input,        \
+                                kInput32bits##input);       \
+  }                                                         \
+  TEST(mnemonic##_2S) {                                     \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                   \
+                                2S,                         \
+                                2D,                         \
+                                2D,                         \
+                                kInput32bitsAccDestination, \
+                                kInput64bits##input,        \
+                                kInput64bits##input);       \
+  }                                                         \
+  TEST(mnemonic##2_16B) {                                   \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2,                \
+                                16B,                        \
+                                8H,                         \
+                                8H,                         \
+                                kInput8bitsAccDestination,  \
+                                kInput16bits##input,        \
+                                kInput16bits##input);       \
+  }                                                         \
+  TEST(mnemonic##2_8H) {                                    \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2,                \
+                                8H,                         \
+                                4S,                         \
+                                4S,                         \
+                                kInput16bitsAccDestination, \
+                                kInput32bits##input,        \
+                                kInput32bits##input);       \
+  }                                                         \
+  TEST(mnemonic##2_4S) {                                    \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic##2,                \
+                                4S,                         \
+                                2D,                         \
+                                2D,                         \
+                                kInput32bitsAccDestination, \
+                                kInput64bits##input,        \
+                                kInput64bits##input);       \
+  }
+
+#define CALL_TEST_NEON_HELPER_2OPIMM(             \
+    mnemonic, vdform, vnform, input_n, input_imm) \
+  {                                               \
+    CALL_TEST_NEON_HELPER_2OpImm(mnemonic,        \
+                                 vdform,          \
+                                 vnform,          \
+                                 input_n,         \
+                                 input_imm);      \
+  }
+
+#define DEFINE_TEST_NEON_2OPIMM(mnemonic, input, input_imm)   \
+  TEST(mnemonic##_8B_2OPIMM) {                                \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                    \
+                                 8B,                          \
+                                 8B,                          \
+                                 kInput8bits##input,          \
+                                 kInput8bitsImm##input_imm);  \
+  }                                                           \
+  TEST(mnemonic##_16B_2OPIMM) {                               \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                    \
+                                 16B,                         \
+                                 16B,                         \
+                                 kInput8bits##input,          \
+                                 kInput8bitsImm##input_imm);  \
+  }                                                           \
+  TEST(mnemonic##_4H_2OPIMM) {                                \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                    \
+                                 4H,                          \
+                                 4H,                          \
+                                 kInput16bits##input,         \
+                                 kInput16bitsImm##input_imm); \
+  }                                                           \
+  TEST(mnemonic##_8H_2OPIMM) {                                \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                    \
+                                 8H,                          \
+                                 8H,                          \
+                                 kInput16bits##input,         \
+                                 kInput16bitsImm##input_imm); \
+  }                                                           \
+  TEST(mnemonic##_2S_2OPIMM) {                                \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                    \
+                                 2S,                          \
+                                 2S,                          \
+                                 kInput32bits##input,         \
+                                 kInput32bitsImm##input_imm); \
+  }                                                           \
+  TEST(mnemonic##_4S_2OPIMM) {                                \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                    \
+                                 4S,                          \
+                                 4S,                          \
+                                 kInput32bits##input,         \
+                                 kInput32bitsImm##input_imm); \
+  }                                                           \
+  TEST(mnemonic##_2D_2OPIMM) {                                \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                    \
+                                 2D,                          \
+                                 2D,                          \
+                                 kInput64bits##input,         \
+                                 kInput64bitsImm##input_imm); \
+  }
+
+#define DEFINE_TEST_NEON_2OPIMM_COPY(mnemonic, input, input_imm) \
+  TEST(mnemonic##_8B_2OPIMM) {                                   \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                       \
+                                 8B,                             \
+                                 B,                              \
+                                 kInput8bits##input,             \
+                                 kInput8bitsImm##input_imm);     \
+  }                                                              \
+  TEST(mnemonic##_16B_2OPIMM) {                                  \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                       \
+                                 16B,                            \
+                                 B,                              \
+                                 kInput8bits##input,             \
+                                 kInput8bitsImm##input_imm);     \
+  }                                                              \
+  TEST(mnemonic##_4H_2OPIMM) {                                   \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                       \
+                                 4H,                             \
+                                 H,                              \
+                                 kInput16bits##input,            \
+                                 kInput16bitsImm##input_imm);    \
+  }                                                              \
+  TEST(mnemonic##_8H_2OPIMM) {                                   \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                       \
+                                 8H,                             \
+                                 H,                              \
+                                 kInput16bits##input,            \
+                                 kInput16bitsImm##input_imm);    \
+  }                                                              \
+  TEST(mnemonic##_2S_2OPIMM) {                                   \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                       \
+                                 2S,                             \
+                                 S,                              \
+                                 kInput32bits##input,            \
+                                 kInput32bitsImm##input_imm);    \
+  }                                                              \
+  TEST(mnemonic##_4S_2OPIMM) {                                   \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                       \
+                                 4S,                             \
+                                 S,                              \
+                                 kInput32bits##input,            \
+                                 kInput32bitsImm##input_imm);    \
+  }                                                              \
+  TEST(mnemonic##_2D_2OPIMM) {                                   \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                       \
+                                 2D,                             \
+                                 D,                              \
+                                 kInput64bits##input,            \
+                                 kInput64bitsImm##input_imm);    \
+  }
+
+#define DEFINE_TEST_NEON_2OPIMM_NARROW(mnemonic, input, input_imm) \
+  TEST(mnemonic##_8B_2OPIMM) {                                     \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                         \
+                                 8B,                               \
+                                 8H,                               \
+                                 kInput16bits##input,              \
+                                 kInput8bitsImm##input_imm);       \
+  }                                                                \
+  TEST(mnemonic##_4H_2OPIMM) {                                     \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                         \
+                                 4H,                               \
+                                 4S,                               \
+                                 kInput32bits##input,              \
+                                 kInput16bitsImm##input_imm);      \
+  }                                                                \
+  TEST(mnemonic##_2S_2OPIMM) {                                     \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                         \
+                                 2S,                               \
+                                 2D,                               \
+                                 kInput64bits##input,              \
+                                 kInput32bitsImm##input_imm);      \
+  }                                                                \
+  TEST(mnemonic##2_16B_2OPIMM) {                                   \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic##2,                      \
+                                 16B,                              \
+                                 8H,                               \
+                                 kInput16bits##input,              \
+                                 kInput8bitsImm##input_imm);       \
+  }                                                                \
+  TEST(mnemonic##2_8H_2OPIMM) {                                    \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic##2,                      \
+                                 8H,                               \
+                                 4S,                               \
+                                 kInput32bits##input,              \
+                                 kInput16bitsImm##input_imm);      \
+  }                                                                \
+  TEST(mnemonic##2_4S_2OPIMM) {                                    \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic##2,                      \
+                                 4S,                               \
+                                 2D,                               \
+                                 kInput64bits##input,              \
+                                 kInput32bitsImm##input_imm);      \
+  }
+
+#define DEFINE_TEST_NEON_2OPIMM_SCALAR_NARROW(mnemonic, input, input_imm) \
+  TEST(mnemonic##_B_2OPIMM) {                                             \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                \
+                                 B,                                       \
+                                 H,                                       \
+                                 kInput16bits##input,                     \
+                                 kInput8bitsImm##input_imm);              \
+  }                                                                       \
+  TEST(mnemonic##_H_2OPIMM) {                                             \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                \
+                                 H,                                       \
+                                 S,                                       \
+                                 kInput32bits##input,                     \
+                                 kInput16bitsImm##input_imm);             \
+  }                                                                       \
+  TEST(mnemonic##_S_2OPIMM) {                                             \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                                \
+                                 S,                                       \
+                                 D,                                       \
+                                 kInput64bits##input,                     \
+                                 kInput32bitsImm##input_imm);             \
+  }
+
+#define DEFINE_TEST_NEON_2OPIMM_FCMP_ZERO(mnemonic, input, input_imm) \
+  TEST(mnemonic##_2S_2OPIMM) {                                        \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                            \
+                                 2S,                                  \
+                                 2S,                                  \
+                                 kInputFloat##Basic,                  \
+                                 kInputDoubleImm##input_imm)          \
+  }                                                                   \
+  TEST(mnemonic##_4S_2OPIMM) {                                        \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                            \
+                                 4S,                                  \
+                                 4S,                                  \
+                                 kInputFloat##input,                  \
+                                 kInputDoubleImm##input_imm);         \
+  }                                                                   \
+  TEST(mnemonic##_2D_2OPIMM) {                                        \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                            \
+                                 2D,                                  \
+                                 2D,                                  \
+                                 kInputDouble##input,                 \
+                                 kInputDoubleImm##input_imm);         \
+  }
+
+#define DEFINE_TEST_NEON_2OPIMM_FP(mnemonic, input, input_imm) \
+  TEST(mnemonic##_2S_2OPIMM) {                                 \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                     \
+                                 2S,                           \
+                                 2S,                           \
+                                 kInputFloat##Basic,           \
+                                 kInput32bitsImm##input_imm)   \
+  }                                                            \
+  TEST(mnemonic##_4S_2OPIMM) {                                 \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                     \
+                                 4S,                           \
+                                 4S,                           \
+                                 kInputFloat##input,           \
+                                 kInput32bitsImm##input_imm)   \
+  }                                                            \
+  TEST(mnemonic##_2D_2OPIMM) {                                 \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                     \
+                                 2D,                           \
+                                 2D,                           \
+                                 kInputDouble##input,          \
+                                 kInput64bitsImm##input_imm)   \
+  }
+
+#define DEFINE_TEST_NEON_2OPIMM_FP_SCALAR(mnemonic, input, input_imm) \
+  TEST(mnemonic##_S_2OPIMM) {                                         \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                            \
+                                 S,                                   \
+                                 S,                                   \
+                                 kInputFloat##Basic,                  \
+                                 kInput32bitsImm##input_imm)          \
+  }                                                                   \
+  TEST(mnemonic##_D_2OPIMM) {                                         \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                            \
+                                 D,                                   \
+                                 D,                                   \
+                                 kInputDouble##input,                 \
+                                 kInput64bitsImm##input_imm)          \
+  }
+
+#define DEFINE_TEST_NEON_2OPIMM_SD(mnemonic, input, input_imm) \
+  TEST(mnemonic##_2S_2OPIMM) {                                 \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                     \
+                                 2S,                           \
+                                 2S,                           \
+                                 kInput32bits##input,          \
+                                 kInput32bitsImm##input_imm);  \
+  }                                                            \
+  TEST(mnemonic##_4S_2OPIMM) {                                 \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                     \
+                                 4S,                           \
+                                 4S,                           \
+                                 kInput32bits##input,          \
+                                 kInput32bitsImm##input_imm);  \
+  }                                                            \
+  TEST(mnemonic##_2D_2OPIMM) {                                 \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                     \
+                                 2D,                           \
+                                 2D,                           \
+                                 kInput64bits##input,          \
+                                 kInput64bitsImm##input_imm);  \
+  }
+
+#define DEFINE_TEST_NEON_2OPIMM_SCALAR_D(mnemonic, input, input_imm) \
+  TEST(mnemonic##_D_2OPIMM) {                                        \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                           \
+                                 D,                                  \
+                                 D,                                  \
+                                 kInput64bits##input,                \
+                                 kInput64bitsImm##input_imm);        \
+  }
+
+#define DEFINE_TEST_NEON_2OPIMM_SCALAR_SD(mnemonic, input, input_imm) \
+  TEST(mnemonic##_S_2OPIMM) {                                         \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                            \
+                                 S,                                   \
+                                 S,                                   \
+                                 kInput32bits##input,                 \
+                                 kInput32bitsImm##input_imm);         \
+  }                                                                   \
+  DEFINE_TEST_NEON_2OPIMM_SCALAR_D(mnemonic, input, input_imm)
+
+#define DEFINE_TEST_NEON_2OPIMM_FP_SCALAR_D(mnemonic, input, input_imm) \
+  TEST(mnemonic##_D_2OPIMM) {                                           \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                              \
+                                 D,                                     \
+                                 D,                                     \
+                                 kInputDouble##input,                   \
+                                 kInputDoubleImm##input_imm);           \
+  }
+
+#define DEFINE_TEST_NEON_2OPIMM_FP_SCALAR_SD(mnemonic, input, input_imm) \
+  TEST(mnemonic##_S_2OPIMM) {                                            \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                               \
+                                 S,                                      \
+                                 S,                                      \
+                                 kInputFloat##input,                     \
+                                 kInputDoubleImm##input_imm);            \
+  }                                                                      \
+  DEFINE_TEST_NEON_2OPIMM_FP_SCALAR_D(mnemonic, input, input_imm)
+
+#define DEFINE_TEST_NEON_2OPIMM_SCALAR(mnemonic, input, input_imm) \
+  TEST(mnemonic##_B_2OPIMM) {                                      \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                         \
+                                 B,                                \
+                                 B,                                \
+                                 kInput8bits##input,               \
+                                 kInput8bitsImm##input_imm);       \
+  }                                                                \
+  TEST(mnemonic##_H_2OPIMM) {                                      \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                         \
+                                 H,                                \
+                                 H,                                \
+                                 kInput16bits##input,              \
+                                 kInput16bitsImm##input_imm);      \
+  }                                                                \
+  DEFINE_TEST_NEON_2OPIMM_SCALAR_SD(mnemonic, input, input_imm)
+
+#define DEFINE_TEST_NEON_2OPIMM_LONG(mnemonic, input, input_imm) \
+  TEST(mnemonic##_8H_2OPIMM) {                                   \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                       \
+                                 8H,                             \
+                                 8B,                             \
+                                 kInput8bits##input,             \
+                                 kInput8bitsImm##input_imm);     \
+  }                                                              \
+  TEST(mnemonic##_4S_2OPIMM) {                                   \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                       \
+                                 4S,                             \
+                                 4H,                             \
+                                 kInput16bits##input,            \
+                                 kInput16bitsImm##input_imm);    \
+  }                                                              \
+  TEST(mnemonic##_2D_2OPIMM) {                                   \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                       \
+                                 2D,                             \
+                                 2S,                             \
+                                 kInput32bits##input,            \
+                                 kInput32bitsImm##input_imm);    \
+  }                                                              \
+  TEST(mnemonic##2_8H_2OPIMM) {                                  \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic##2,                    \
+                                 8H,                             \
+                                 16B,                            \
+                                 kInput8bits##input,             \
+                                 kInput8bitsImm##input_imm);     \
+  }                                                              \
+  TEST(mnemonic##2_4S_2OPIMM) {                                  \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic##2,                    \
+                                 4S,                             \
+                                 8H,                             \
+                                 kInput16bits##input,            \
+                                 kInput16bitsImm##input_imm);    \
+  }                                                              \
+  TEST(mnemonic##2_2D_2OPIMM) {                                  \
+    CALL_TEST_NEON_HELPER_2OPIMM(mnemonic##2,                    \
+                                 2D,                             \
+                                 4S,                             \
+                                 kInput32bits##input,            \
+                                 kInput32bitsImm##input_imm);    \
+  }
+
+#define CALL_TEST_NEON_HELPER_BYELEMENT(                                  \
+    mnemonic, vdform, vnform, vmform, input_d, input_n, input_m, indices) \
+  {                                                                       \
+    CALL_TEST_NEON_HELPER_ByElement(mnemonic,                             \
+                                    vdform,                               \
+                                    vnform,                               \
+                                    vmform,                               \
+                                    input_d,                              \
+                                    input_n,                              \
+                                    input_m,                              \
+                                    indices);                             \
+  }
+
+#define DEFINE_TEST_NEON_BYELEMENT(mnemonic, input_d, input_n, input_m) \
+  TEST(mnemonic##_4H_4H_H) {                                            \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                           \
+                                    4H,                                 \
+                                    4H,                                 \
+                                    H,                                  \
+                                    kInput16bits##input_d,              \
+                                    kInput16bits##input_n,              \
+                                    kInput16bits##input_m,              \
+                                    kInputHIndices);                    \
+  }                                                                     \
+  TEST(mnemonic##_8H_8H_H) {                                            \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                           \
+                                    8H,                                 \
+                                    8H,                                 \
+                                    H,                                  \
+                                    kInput16bits##input_d,              \
+                                    kInput16bits##input_n,              \
+                                    kInput16bits##input_m,              \
+                                    kInputHIndices);                    \
+  }                                                                     \
+  TEST(mnemonic##_2S_2S_S) {                                            \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                           \
+                                    2S,                                 \
+                                    2S,                                 \
+                                    S,                                  \
+                                    kInput32bits##input_d,              \
+                                    kInput32bits##input_n,              \
+                                    kInput32bits##input_m,              \
+                                    kInputSIndices);                    \
+  }                                                                     \
+  TEST(mnemonic##_4S_4S_S) {                                            \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                           \
+                                    4S,                                 \
+                                    4S,                                 \
+                                    S,                                  \
+                                    kInput32bits##input_d,              \
+                                    kInput32bits##input_n,              \
+                                    kInput32bits##input_m,              \
+                                    kInputSIndices);                    \
+  }
+
+#define DEFINE_TEST_NEON_BYELEMENT_SCALAR(mnemonic, input_d, input_n, input_m) \
+  TEST(mnemonic##_H_H_H) {                                                     \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                                  \
+                                    H,                                         \
+                                    H,                                         \
+                                    H,                                         \
+                                    kInput16bits##input_d,                     \
+                                    kInput16bits##input_n,                     \
+                                    kInput16bits##input_m,                     \
+                                    kInputHIndices);                           \
+  }                                                                            \
+  TEST(mnemonic##_S_S_S) {                                                     \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                                  \
+                                    S,                                         \
+                                    S,                                         \
+                                    S,                                         \
+                                    kInput32bits##input_d,                     \
+                                    kInput32bits##input_n,                     \
+                                    kInput32bits##input_m,                     \
+                                    kInputSIndices);                           \
+  }
+
+#define DEFINE_TEST_NEON_FP_BYELEMENT(mnemonic, input_d, input_n, input_m) \
+  TEST(mnemonic##_2S_2S_S) {                                               \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
+                                    2S,                                    \
+                                    2S,                                    \
+                                    S,                                     \
+                                    kInputFloat##input_d,                  \
+                                    kInputFloat##input_n,                  \
+                                    kInputFloat##input_m,                  \
+                                    kInputSIndices);                       \
+  }                                                                        \
+  TEST(mnemonic##_4S_4S_S) {                                               \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
+                                    4S,                                    \
+                                    4S,                                    \
+                                    S,                                     \
+                                    kInputFloat##input_d,                  \
+                                    kInputFloat##input_n,                  \
+                                    kInputFloat##input_m,                  \
+                                    kInputSIndices);                       \
+  }                                                                        \
+  TEST(mnemonic##_2D_2D_D) {                                               \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
+                                    2D,                                    \
+                                    2D,                                    \
+                                    D,                                     \
+                                    kInputDouble##input_d,                 \
+                                    kInputDouble##input_n,                 \
+                                    kInputDouble##input_m,                 \
+                                    kInputDIndices);                       \
+  }
+
+#define DEFINE_TEST_NEON_FP_BYELEMENT_SCALAR(mnemonic, inp_d, inp_n, inp_m) \
+  TEST(mnemonic##_S_S_S) {                                                  \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                               \
+                                    S,                                      \
+                                    S,                                      \
+                                    S,                                      \
+                                    kInputFloat##inp_d,                     \
+                                    kInputFloat##inp_n,                     \
+                                    kInputFloat##inp_m,                     \
+                                    kInputSIndices);                        \
+  }                                                                         \
+  TEST(mnemonic##_D_D_D) {                                                  \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                               \
+                                    D,                                      \
+                                    D,                                      \
+                                    D,                                      \
+                                    kInputDouble##inp_d,                    \
+                                    kInputDouble##inp_n,                    \
+                                    kInputDouble##inp_m,                    \
+                                    kInputDIndices);                        \
+  }
 
 
 #define DEFINE_TEST_NEON_BYELEMENT_DIFF(mnemonic, input_d, input_n, input_m) \
-    TEST(mnemonic##_4S_4H_H) {                                               \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      4S, 4H, H,                             \
-                                      kInput32bits##input_d,                 \
-                                      kInput16bits##input_n,                 \
-                                      kInput16bits##input_m,                 \
-                                      kInputHIndices);                       \
-    }                                                                        \
-    TEST(mnemonic##2_4S_8H_H) {                                              \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic##2,                           \
-                                      4S, 8H, H,                             \
-                                      kInput32bits##input_d,                 \
-                                      kInput16bits##input_n,                 \
-                                      kInput16bits##input_m,                 \
-                                      kInputHIndices);                       \
-    }                                                                        \
-    TEST(mnemonic##_2D_2S_S) {                                               \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      2D, 2S, S,                             \
-                                      kInput64bits##input_d,                 \
-                                      kInput32bits##input_n,                 \
-                                      kInput32bits##input_m,                 \
-                                      kInputSIndices);                       \
-    }                                                                        \
-    TEST(mnemonic##2_2D_4S_S) {                                              \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic##2,                           \
-                                      2D, 4S, S,                             \
-                                      kInput64bits##input_d,                 \
-                                      kInput32bits##input_n,                 \
-                                      kInput32bits##input_m,                 \
-                                      kInputSIndices);                       \
-    }
-
-#define DEFINE_TEST_NEON_BYELEMENT_DIFF_SCALAR(mnemonic,                     \
-                                               input_d, input_n, input_m)    \
-    TEST(mnemonic##_S_H_H) {                                                 \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      S, H, H,                               \
-                                      kInput32bits##input_d,                 \
-                                      kInput16bits##input_n,                 \
-                                      kInput16bits##input_m,                 \
-                                      kInputHIndices);                       \
-    }                                                                        \
-    TEST(mnemonic##_D_S_S) {                                                 \
-      CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                              \
-                                      D, S, S,                               \
-                                      kInput64bits##input_d,                 \
-                                      kInput32bits##input_n,                 \
-                                      kInput32bits##input_m,                 \
-                                      kInputSIndices);                       \
-    }
-
-
-#define CALL_TEST_NEON_HELPER_2OP2IMM(mnemonic,                              \
-                                      variant,                               \
-                                      input_d,                               \
-                                      input_imm1,                            \
-                                      input_n,                               \
-                                      input_imm2) {                          \
-    CALL_TEST_NEON_HELPER_OpImmOpImm(&MacroAssembler::mnemonic,              \
-                                     mnemonic,                               \
-                                     variant, variant,                       \
-                                     input_d, input_imm1,                    \
-                                     input_n, input_imm2);                   \
-    }
-
-#define DEFINE_TEST_NEON_2OP2IMM(mnemonic,                                   \
-                                 input_d, input_imm1,                        \
-                                 input_n, input_imm2)                        \
-    TEST(mnemonic##_B) {                                                     \
-      CALL_TEST_NEON_HELPER_2OP2IMM(mnemonic,                                \
-                                    16B,                                     \
-                                    kInput8bits##input_d,                    \
-                                    kInput8bitsImm##input_imm1,              \
-                                    kInput8bits##input_n,                    \
-                                    kInput8bitsImm##input_imm2);             \
-    }                                                                        \
-    TEST(mnemonic##_H) {                                                     \
-      CALL_TEST_NEON_HELPER_2OP2IMM(mnemonic,                                \
-                                    8H,                                      \
-                                    kInput16bits##input_d,                   \
-                                    kInput16bitsImm##input_imm1,             \
-                                    kInput16bits##input_n,                   \
-                                    kInput16bitsImm##input_imm2);            \
-    }                                                                        \
-    TEST(mnemonic##_S) {                                                     \
-      CALL_TEST_NEON_HELPER_2OP2IMM(mnemonic,                                \
+  TEST(mnemonic##_4S_4H_H) {                                                 \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                                \
                                     4S,                                      \
+                                    4H,                                      \
+                                    H,                                       \
                                     kInput32bits##input_d,                   \
-                                    kInput32bitsImm##input_imm1,             \
-                                    kInput32bits##input_n,                   \
-                                    kInput32bitsImm##input_imm2);            \
-    }                                                                        \
-    TEST(mnemonic##_D) {                                                     \
-      CALL_TEST_NEON_HELPER_2OP2IMM(mnemonic,                                \
+                                    kInput16bits##input_n,                   \
+                                    kInput16bits##input_m,                   \
+                                    kInputHIndices);                         \
+  }                                                                          \
+  TEST(mnemonic##2_4S_8H_H) {                                                \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic##2,                             \
+                                    4S,                                      \
+                                    8H,                                      \
+                                    H,                                       \
+                                    kInput32bits##input_d,                   \
+                                    kInput16bits##input_n,                   \
+                                    kInput16bits##input_m,                   \
+                                    kInputHIndices);                         \
+  }                                                                          \
+  TEST(mnemonic##_2D_2S_S) {                                                 \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                                \
                                     2D,                                      \
+                                    2S,                                      \
+                                    S,                                       \
                                     kInput64bits##input_d,                   \
-                                    kInput64bitsImm##input_imm1,             \
-                                    kInput64bits##input_n,                   \
-                                    kInput64bitsImm##input_imm2);            \
-    }
+                                    kInput32bits##input_n,                   \
+                                    kInput32bits##input_m,                   \
+                                    kInputSIndices);                         \
+  }                                                                          \
+  TEST(mnemonic##2_2D_4S_S) {                                                \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic##2,                             \
+                                    2D,                                      \
+                                    4S,                                      \
+                                    S,                                       \
+                                    kInput64bits##input_d,                   \
+                                    kInput32bits##input_n,                   \
+                                    kInput32bits##input_m,                   \
+                                    kInputSIndices);                         \
+  }
+
+#define DEFINE_TEST_NEON_BYELEMENT_DIFF_SCALAR(            \
+    mnemonic, input_d, input_n, input_m)                   \
+  TEST(mnemonic##_S_H_H) {                                 \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,              \
+                                    S,                     \
+                                    H,                     \
+                                    H,                     \
+                                    kInput32bits##input_d, \
+                                    kInput16bits##input_n, \
+                                    kInput16bits##input_m, \
+                                    kInputHIndices);       \
+  }                                                        \
+  TEST(mnemonic##_D_S_S) {                                 \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,              \
+                                    D,                     \
+                                    S,                     \
+                                    S,                     \
+                                    kInput64bits##input_d, \
+                                    kInput32bits##input_n, \
+                                    kInput32bits##input_m, \
+                                    kInputSIndices);       \
+  }
+
+
+#define CALL_TEST_NEON_HELPER_2OP2IMM(                           \
+    mnemonic, variant, input_d, input_imm1, input_n, input_imm2) \
+  {                                                              \
+    CALL_TEST_NEON_HELPER_OpImmOpImm(&MacroAssembler::mnemonic,  \
+                                     mnemonic,                   \
+                                     variant,                    \
+                                     variant,                    \
+                                     input_d,                    \
+                                     input_imm1,                 \
+                                     input_n,                    \
+                                     input_imm2);                \
+  }
+
+#define DEFINE_TEST_NEON_2OP2IMM(                               \
+    mnemonic, input_d, input_imm1, input_n, input_imm2)         \
+  TEST(mnemonic##_B) {                                          \
+    CALL_TEST_NEON_HELPER_2OP2IMM(mnemonic,                     \
+                                  16B,                          \
+                                  kInput8bits##input_d,         \
+                                  kInput8bitsImm##input_imm1,   \
+                                  kInput8bits##input_n,         \
+                                  kInput8bitsImm##input_imm2);  \
+  }                                                             \
+  TEST(mnemonic##_H) {                                          \
+    CALL_TEST_NEON_HELPER_2OP2IMM(mnemonic,                     \
+                                  8H,                           \
+                                  kInput16bits##input_d,        \
+                                  kInput16bitsImm##input_imm1,  \
+                                  kInput16bits##input_n,        \
+                                  kInput16bitsImm##input_imm2); \
+  }                                                             \
+  TEST(mnemonic##_S) {                                          \
+    CALL_TEST_NEON_HELPER_2OP2IMM(mnemonic,                     \
+                                  4S,                           \
+                                  kInput32bits##input_d,        \
+                                  kInput32bitsImm##input_imm1,  \
+                                  kInput32bits##input_n,        \
+                                  kInput32bitsImm##input_imm2); \
+  }                                                             \
+  TEST(mnemonic##_D) {                                          \
+    CALL_TEST_NEON_HELPER_2OP2IMM(mnemonic,                     \
+                                  2D,                           \
+                                  kInput64bits##input_d,        \
+                                  kInput64bitsImm##input_imm1,  \
+                                  kInput64bits##input_n,        \
+                                  kInput64bitsImm##input_imm2); \
+  }
 
 
 // Advanced SIMD copy.
-DEFINE_TEST_NEON_2OP2IMM(ins,
-                         Basic, LaneCountFromZero,
-                         Basic, LaneCountFromZero)
+DEFINE_TEST_NEON_2OP2IMM(
+    ins, Basic, LaneCountFromZero, Basic, LaneCountFromZero)
 DEFINE_TEST_NEON_2OPIMM_COPY(dup, Basic, LaneCountFromZero)
 
 
@@ -3890,7 +4242,8 @@ DEFINE_TEST_NEON_2OPIMM_NARROW(rshrn, Basic, TypeWidth)
 DEFINE_TEST_NEON_2OPIMM_NARROW(sqshrn, Basic, TypeWidth)
 DEFINE_TEST_NEON_2OPIMM_NARROW(sqrshrn, Basic, TypeWidth)
 DEFINE_TEST_NEON_2OPIMM_LONG(sshll, Basic, TypeWidthFromZero)
-DEFINE_TEST_NEON_2OPIMM_SD(scvtf, FixedPointConversions, \
+DEFINE_TEST_NEON_2OPIMM_SD(scvtf,
+                           FixedPointConversions,
                            TypeWidthFromZeroToWidth)
 DEFINE_TEST_NEON_2OPIMM_FP(fcvtzs, Conversions, TypeWidthFromZeroToWidth)
 DEFINE_TEST_NEON_2OPIMM(ushr, Basic, TypeWidth)
@@ -3906,7 +4259,8 @@ DEFINE_TEST_NEON_2OPIMM_NARROW(sqrshrun, Basic, TypeWidth)
 DEFINE_TEST_NEON_2OPIMM_NARROW(uqshrn, Basic, TypeWidth)
 DEFINE_TEST_NEON_2OPIMM_NARROW(uqrshrn, Basic, TypeWidth)
 DEFINE_TEST_NEON_2OPIMM_LONG(ushll, Basic, TypeWidthFromZero)
-DEFINE_TEST_NEON_2OPIMM_SD(ucvtf, FixedPointConversions, \
+DEFINE_TEST_NEON_2OPIMM_SD(ucvtf,
+                           FixedPointConversions,
                            TypeWidthFromZeroToWidth)
 DEFINE_TEST_NEON_2OPIMM_FP(fcvtzu, Conversions, TypeWidthFromZeroToWidth)
 
@@ -3920,7 +4274,8 @@ DEFINE_TEST_NEON_2OPIMM_SCALAR_D(shl, Basic, TypeWidthFromZero)
 DEFINE_TEST_NEON_2OPIMM_SCALAR(sqshl, Basic, TypeWidthFromZero)
 DEFINE_TEST_NEON_2OPIMM_SCALAR_NARROW(sqshrn, Basic, TypeWidth)
 DEFINE_TEST_NEON_2OPIMM_SCALAR_NARROW(sqrshrn, Basic, TypeWidth)
-DEFINE_TEST_NEON_2OPIMM_SCALAR_SD(scvtf, FixedPointConversions, \
+DEFINE_TEST_NEON_2OPIMM_SCALAR_SD(scvtf,
+                                  FixedPointConversions,
                                   TypeWidthFromZeroToWidth)
 DEFINE_TEST_NEON_2OPIMM_FP_SCALAR(fcvtzs, Conversions, TypeWidthFromZeroToWidth)
 DEFINE_TEST_NEON_2OPIMM_SCALAR_D(ushr, Basic, TypeWidth)
@@ -3935,7 +4290,8 @@ DEFINE_TEST_NEON_2OPIMM_SCALAR_NARROW(sqshrun, Basic, TypeWidth)
 DEFINE_TEST_NEON_2OPIMM_SCALAR_NARROW(sqrshrun, Basic, TypeWidth)
 DEFINE_TEST_NEON_2OPIMM_SCALAR_NARROW(uqshrn, Basic, TypeWidth)
 DEFINE_TEST_NEON_2OPIMM_SCALAR_NARROW(uqrshrn, Basic, TypeWidth)
-DEFINE_TEST_NEON_2OPIMM_SCALAR_SD(ucvtf, FixedPointConversions, \
+DEFINE_TEST_NEON_2OPIMM_SCALAR_SD(ucvtf,
+                                  FixedPointConversions,
                                   TypeWidthFromZeroToWidth)
 DEFINE_TEST_NEON_2OPIMM_FP_SCALAR(fcvtzu, Conversions, TypeWidthFromZeroToWidth)
 

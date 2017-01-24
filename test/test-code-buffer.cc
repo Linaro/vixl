@@ -30,7 +30,7 @@
 
 namespace vixl {
 
-#define TEST(name)  TEST_(CODE_BUFFER_##name)
+#define TEST(name) TEST_(CODE_BUFFER_##name)
 
 TEST(align_grow) {
   CodeBuffer code_buffer(2);

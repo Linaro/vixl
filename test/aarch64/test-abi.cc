@@ -35,7 +35,7 @@
 
 #ifdef VIXL_HAS_ABI_SUPPORT
 
-#define TEST(name)  TEST_(AARCH64_ABI_##name)
+#define TEST(name) TEST_(AARCH64_ABI_##name)
 
 namespace vixl {
 namespace aarch64 {
@@ -51,7 +51,9 @@ TEST(abi) {
   VIXL_CHECK(abi.GetReturnGenericOperand<char>().Equals(GenericOperand(w0)));
   VIXL_CHECK(abi.GetReturnGenericOperand<int8_t>().Equals(GenericOperand(w0)));
   VIXL_CHECK(abi.GetReturnGenericOperand<uint8_t>().Equals(GenericOperand(w0)));
-  VIXL_CHECK(abi.GetReturnGenericOperand<short>().Equals(GenericOperand(w0)));  // NOLINT(runtime/int)
+  VIXL_CHECK(
+      abi.GetReturnGenericOperand<short>().Equals(  // NOLINT(runtime/int)
+          GenericOperand(w0)));
   VIXL_CHECK(abi.GetReturnGenericOperand<int16_t>().Equals(GenericOperand(w0)));
   VIXL_CHECK(
       abi.GetReturnGenericOperand<uint16_t>().Equals(GenericOperand(w0)));
@@ -68,45 +70,46 @@ TEST(abi) {
 
   GenericOperand found(NoReg);
   GenericOperand expected(NoReg);
-#define CHECK_NEXT_PARAMETER_REG(type, reg)       \
-    found = abi.GetNextParameterGenericOperand<type>(); \
-    expected = GenericOperand(reg);                     \
-    VIXL_CHECK(found.Equals(expected))
-  // Slots on the stack are always 8 bytes.
-#define CHECK_NEXT_PARAMETER_MEM(type, mem_op, size) \
-    found = abi.GetNextParameterGenericOperand<type>();    \
-    expected = GenericOperand(mem_op, size);               \
-    VIXL_CHECK(found.Equals(expected))
+#define CHECK_NEXT_PARAMETER_REG(type, reg)           \
+  found = abi.GetNextParameterGenericOperand<type>(); \
+  expected = GenericOperand(reg);                     \
+  VIXL_CHECK(found.Equals(expected))
+// Slots on the stack are always 8 bytes.
+#define CHECK_NEXT_PARAMETER_MEM(type, mem_op, size)  \
+  found = abi.GetNextParameterGenericOperand<type>(); \
+  expected = GenericOperand(mem_op, size);            \
+  VIXL_CHECK(found.Equals(expected))
 
   abi.Reset();
-  CHECK_NEXT_PARAMETER_REG(int,      w0);
-  CHECK_NEXT_PARAMETER_REG(char,     w1);
-  CHECK_NEXT_PARAMETER_REG(bool,     w2);
-  CHECK_NEXT_PARAMETER_REG(float,    s0);
-  CHECK_NEXT_PARAMETER_REG(double,   d1);
-  CHECK_NEXT_PARAMETER_REG(double,   d2);
-  CHECK_NEXT_PARAMETER_REG(float,    s3);
-  CHECK_NEXT_PARAMETER_REG(int64_t,  x3);
+  CHECK_NEXT_PARAMETER_REG(int, w0);
+  CHECK_NEXT_PARAMETER_REG(char, w1);
+  CHECK_NEXT_PARAMETER_REG(bool, w2);
+  CHECK_NEXT_PARAMETER_REG(float, s0);
+  CHECK_NEXT_PARAMETER_REG(double, d1);
+  CHECK_NEXT_PARAMETER_REG(double, d2);
+  CHECK_NEXT_PARAMETER_REG(float, s3);
+  CHECK_NEXT_PARAMETER_REG(int64_t, x3);
   CHECK_NEXT_PARAMETER_REG(uint64_t, x4);
-  CHECK_NEXT_PARAMETER_REG(void*,    x5);
+  CHECK_NEXT_PARAMETER_REG(void*, x5);
   CHECK_NEXT_PARAMETER_REG(uint32_t, w6);
   typedef short my_type;  // NOLINT(runtime/int)
-  CHECK_NEXT_PARAMETER_REG(my_type,  w7);
-  CHECK_NEXT_PARAMETER_MEM(int,      MemOperand(sp, 0), kWRegSizeInBytes);
-  CHECK_NEXT_PARAMETER_MEM(int,      MemOperand(sp, 8), kWRegSizeInBytes);
-  CHECK_NEXT_PARAMETER_REG(double,   d4);
-  CHECK_NEXT_PARAMETER_REG(double,   d5);
-  CHECK_NEXT_PARAMETER_REG(double,   d6);
-  CHECK_NEXT_PARAMETER_REG(double,   d7);
-  CHECK_NEXT_PARAMETER_MEM(double,   MemOperand(sp, 16), kDRegSizeInBytes);
-  CHECK_NEXT_PARAMETER_MEM(bool,     MemOperand(sp, 24), kWRegSizeInBytes);
-  CHECK_NEXT_PARAMETER_MEM(short,    MemOperand(sp, 32), kWRegSizeInBytes);  // NOLINT(runtime/int)
-  CHECK_NEXT_PARAMETER_MEM(float,    MemOperand(sp, 40), kSRegSizeInBytes);
-  CHECK_NEXT_PARAMETER_MEM(float,    MemOperand(sp, 48), kSRegSizeInBytes);
+  CHECK_NEXT_PARAMETER_REG(my_type, w7);
+  CHECK_NEXT_PARAMETER_MEM(int, MemOperand(sp, 0), kWRegSizeInBytes);
+  CHECK_NEXT_PARAMETER_MEM(int, MemOperand(sp, 8), kWRegSizeInBytes);
+  CHECK_NEXT_PARAMETER_REG(double, d4);
+  CHECK_NEXT_PARAMETER_REG(double, d5);
+  CHECK_NEXT_PARAMETER_REG(double, d6);
+  CHECK_NEXT_PARAMETER_REG(double, d7);
+  CHECK_NEXT_PARAMETER_MEM(double, MemOperand(sp, 16), kDRegSizeInBytes);
+  CHECK_NEXT_PARAMETER_MEM(bool, MemOperand(sp, 24), kWRegSizeInBytes);
+  CHECK_NEXT_PARAMETER_MEM(short,  // NOLINT(runtime/int)
+                           MemOperand(sp, 32),
+                           kWRegSizeInBytes);
+  CHECK_NEXT_PARAMETER_MEM(float, MemOperand(sp, 40), kSRegSizeInBytes);
+  CHECK_NEXT_PARAMETER_MEM(float, MemOperand(sp, 48), kSRegSizeInBytes);
   VIXL_CHECK(abi.GetStackSpaceRequired() == 56);
 }
-
-
-}}  // namespace vixl::aarch64
+}
+}  // namespace vixl::aarch64
 
 #endif  // VIXL_ABI_SUPORT

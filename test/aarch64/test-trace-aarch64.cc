@@ -775,9 +775,15 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ ext(v1.V16B(), v26.V16B(), v6.V16B(), 1);
   __ ext(v2.V8B(), v30.V8B(), v1.V8B(), 1);
   __ ld1(v18.V16B(), v19.V16B(), v20.V16B(), v21.V16B(), MemOperand(x0));
-  __ ld1(v23.V16B(), v24.V16B(), v25.V16B(), v26.V16B(),
+  __ ld1(v23.V16B(),
+         v24.V16B(),
+         v25.V16B(),
+         v26.V16B(),
          MemOperand(x1, x2, PostIndex));
-  __ ld1(v5.V16B(), v6.V16B(), v7.V16B(), v8.V16B(),
+  __ ld1(v5.V16B(),
+         v6.V16B(),
+         v7.V16B(),
+         v8.V16B(),
          MemOperand(x1, 64, PostIndex));
   __ ld1(v18.V16B(), v19.V16B(), v20.V16B(), MemOperand(x0));
   __ ld1(v13.V16B(), v14.V16B(), v15.V16B(), MemOperand(x1, x2, PostIndex));
@@ -789,9 +795,15 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ ld1(v21.V16B(), MemOperand(x1, x2, PostIndex));
   __ ld1(v4.V16B(), MemOperand(x1, 16, PostIndex));
   __ ld1(v4.V1D(), v5.V1D(), v6.V1D(), v7.V1D(), MemOperand(x0));
-  __ ld1(v17.V1D(), v18.V1D(), v19.V1D(), v20.V1D(),
+  __ ld1(v17.V1D(),
+         v18.V1D(),
+         v19.V1D(),
+         v20.V1D(),
          MemOperand(x1, x2, PostIndex));
-  __ ld1(v28.V1D(), v29.V1D(), v30.V1D(), v31.V1D(),
+  __ ld1(v28.V1D(),
+         v29.V1D(),
+         v30.V1D(),
+         v31.V1D(),
          MemOperand(x1, 32, PostIndex));
   __ ld1(v20.V1D(), v21.V1D(), v22.V1D(), MemOperand(x0));
   __ ld1(v19.V1D(), v20.V1D(), v21.V1D(), MemOperand(x1, x2, PostIndex));
@@ -803,9 +815,15 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ ld1(v11.V1D(), MemOperand(x1, x2, PostIndex));
   __ ld1(v29.V1D(), MemOperand(x1, 8, PostIndex));
   __ ld1(v28.V2D(), v29.V2D(), v30.V2D(), v31.V2D(), MemOperand(x0));
-  __ ld1(v8.V2D(), v9.V2D(), v10.V2D(), v11.V2D(),
+  __ ld1(v8.V2D(),
+         v9.V2D(),
+         v10.V2D(),
+         v11.V2D(),
          MemOperand(x1, x2, PostIndex));
-  __ ld1(v14.V2D(), v15.V2D(), v16.V2D(), v17.V2D(),
+  __ ld1(v14.V2D(),
+         v15.V2D(),
+         v16.V2D(),
+         v17.V2D(),
          MemOperand(x1, 64, PostIndex));
   __ ld1(v26.V2D(), v27.V2D(), v28.V2D(), MemOperand(x0));
   __ ld1(v5.V2D(), v6.V2D(), v7.V2D(), MemOperand(x1, x2, PostIndex));
@@ -817,9 +835,15 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ ld1(v6.V2D(), MemOperand(x1, x2, PostIndex));
   __ ld1(v15.V2D(), MemOperand(x1, 16, PostIndex));
   __ ld1(v30.V2S(), v31.V2S(), v0.V2S(), v1.V2S(), MemOperand(x0));
-  __ ld1(v24.V2S(), v25.V2S(), v26.V2S(), v27.V2S(),
+  __ ld1(v24.V2S(),
+         v25.V2S(),
+         v26.V2S(),
+         v27.V2S(),
          MemOperand(x1, x2, PostIndex));
-  __ ld1(v27.V2S(), v28.V2S(), v29.V2S(), v30.V2S(),
+  __ ld1(v27.V2S(),
+         v28.V2S(),
+         v29.V2S(),
+         v30.V2S(),
          MemOperand(x1, 32, PostIndex));
   __ ld1(v11.V2S(), v12.V2S(), v13.V2S(), MemOperand(x0));
   __ ld1(v8.V2S(), v9.V2S(), v10.V2S(), MemOperand(x1, x2, PostIndex));
@@ -831,7 +855,10 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ ld1(v0.V2S(), MemOperand(x1, x2, PostIndex));
   __ ld1(v11.V2S(), MemOperand(x1, 8, PostIndex));
   __ ld1(v16.V4H(), v17.V4H(), v18.V4H(), v19.V4H(), MemOperand(x0));
-  __ ld1(v24.V4H(), v25.V4H(), v26.V4H(), v27.V4H(),
+  __ ld1(v24.V4H(),
+         v25.V4H(),
+         v26.V4H(),
+         v27.V4H(),
          MemOperand(x1, x2, PostIndex));
   __ ld1(v1.V4H(), v2.V4H(), v3.V4H(), v4.V4H(), MemOperand(x1, 32, PostIndex));
   __ ld1(v30.V4H(), v31.V4H(), v0.V4H(), MemOperand(x0));
@@ -844,7 +871,10 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ ld1(v1.V4H(), MemOperand(x1, x2, PostIndex));
   __ ld1(v14.V4H(), MemOperand(x1, 8, PostIndex));
   __ ld1(v26.V4S(), v27.V4S(), v28.V4S(), v29.V4S(), MemOperand(x0));
-  __ ld1(v28.V4S(), v29.V4S(), v30.V4S(), v31.V4S(),
+  __ ld1(v28.V4S(),
+         v29.V4S(),
+         v30.V4S(),
+         v31.V4S(),
          MemOperand(x1, x2, PostIndex));
   __ ld1(v4.V4S(), v5.V4S(), v6.V4S(), v7.V4S(), MemOperand(x1, 64, PostIndex));
   __ ld1(v2.V4S(), v3.V4S(), v4.V4S(), MemOperand(x0));
@@ -858,7 +888,10 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ ld1(v0.V4S(), MemOperand(x1, 16, PostIndex));
   __ ld1(v17.V8B(), v18.V8B(), v19.V8B(), v20.V8B(), MemOperand(x0));
   __ ld1(v5.V8B(), v6.V8B(), v7.V8B(), v8.V8B(), MemOperand(x1, x2, PostIndex));
-  __ ld1(v9.V8B(), v10.V8B(), v11.V8B(), v12.V8B(),
+  __ ld1(v9.V8B(),
+         v10.V8B(),
+         v11.V8B(),
+         v12.V8B(),
          MemOperand(x1, 32, PostIndex));
   __ ld1(v4.V8B(), v5.V8B(), v6.V8B(), MemOperand(x0));
   __ ld1(v2.V8B(), v3.V8B(), v4.V8B(), MemOperand(x1, x2, PostIndex));
@@ -871,7 +904,10 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ ld1(v28.V8B(), MemOperand(x1, 8, PostIndex));
   __ ld1(v5.V8H(), v6.V8H(), v7.V8H(), v8.V8H(), MemOperand(x0));
   __ ld1(v2.V8H(), v3.V8H(), v4.V8H(), v5.V8H(), MemOperand(x1, x2, PostIndex));
-  __ ld1(v10.V8H(), v11.V8H(), v12.V8H(), v13.V8H(),
+  __ ld1(v10.V8H(),
+         v11.V8H(),
+         v12.V8H(),
+         v13.V8H(),
          MemOperand(x1, 64, PostIndex));
   __ ld1(v26.V8H(), v27.V8H(), v28.V8H(), MemOperand(x0));
   __ ld1(v3.V8H(), v4.V8H(), v5.V8H(), MemOperand(x1, x2, PostIndex));
@@ -1033,34 +1069,61 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ ld3r(v29.V8H(), v30.V8H(), v31.V8H(), MemOperand(x1, x2, PostIndex));
   __ ld3r(v7.V8H(), v8.V8H(), v9.V8H(), MemOperand(x1, 6, PostIndex));
   __ ld4(v3.V16B(), v4.V16B(), v5.V16B(), v6.V16B(), MemOperand(x0));
-  __ ld4(v2.V16B(), v3.V16B(), v4.V16B(), v5.V16B(),
+  __ ld4(v2.V16B(),
+         v3.V16B(),
+         v4.V16B(),
+         v5.V16B(),
          MemOperand(x1, x2, PostIndex));
-  __ ld4(v5.V16B(), v6.V16B(), v7.V16B(), v8.V16B(),
+  __ ld4(v5.V16B(),
+         v6.V16B(),
+         v7.V16B(),
+         v8.V16B(),
          MemOperand(x1, 64, PostIndex));
   __ ld4(v18.V2D(), v19.V2D(), v20.V2D(), v21.V2D(), MemOperand(x0));
   __ ld4(v4.V2D(), v5.V2D(), v6.V2D(), v7.V2D(), MemOperand(x1, x2, PostIndex));
-  __ ld4(v29.V2D(), v30.V2D(), v31.V2D(), v0.V2D(),
+  __ ld4(v29.V2D(),
+         v30.V2D(),
+         v31.V2D(),
+         v0.V2D(),
          MemOperand(x1, 64, PostIndex));
   __ ld4(v27.V2S(), v28.V2S(), v29.V2S(), v30.V2S(), MemOperand(x0));
-  __ ld4(v24.V2S(), v25.V2S(), v26.V2S(), v27.V2S(),
+  __ ld4(v24.V2S(),
+         v25.V2S(),
+         v26.V2S(),
+         v27.V2S(),
          MemOperand(x1, x2, PostIndex));
   __ ld4(v4.V2S(), v5.V2S(), v6.V2S(), v7.V2S(), MemOperand(x1, 32, PostIndex));
   __ ld4(v16.V4H(), v17.V4H(), v18.V4H(), v19.V4H(), MemOperand(x0));
-  __ ld4(v23.V4H(), v24.V4H(), v25.V4H(), v26.V4H(),
+  __ ld4(v23.V4H(),
+         v24.V4H(),
+         v25.V4H(),
+         v26.V4H(),
          MemOperand(x1, x2, PostIndex));
   __ ld4(v2.V4H(), v3.V4H(), v4.V4H(), v5.V4H(), MemOperand(x1, 32, PostIndex));
   __ ld4(v7.V4S(), v8.V4S(), v9.V4S(), v10.V4S(), MemOperand(x0));
-  __ ld4(v28.V4S(), v29.V4S(), v30.V4S(), v31.V4S(),
+  __ ld4(v28.V4S(),
+         v29.V4S(),
+         v30.V4S(),
+         v31.V4S(),
          MemOperand(x1, x2, PostIndex));
-  __ ld4(v29.V4S(), v30.V4S(), v31.V4S(), v0.V4S(),
+  __ ld4(v29.V4S(),
+         v30.V4S(),
+         v31.V4S(),
+         v0.V4S(),
          MemOperand(x1, 64, PostIndex));
   __ ld4(v15.V8B(), v16.V8B(), v17.V8B(), v18.V8B(), MemOperand(x0));
-  __ ld4(v27.V8B(), v28.V8B(), v29.V8B(), v30.V8B(),
+  __ ld4(v27.V8B(),
+         v28.V8B(),
+         v29.V8B(),
+         v30.V8B(),
          MemOperand(x1, x2, PostIndex));
   __ ld4(v5.V8B(), v6.V8B(), v7.V8B(), v8.V8B(), MemOperand(x1, 32, PostIndex));
   __ ld4(v25.V8H(), v26.V8H(), v27.V8H(), v28.V8H(), MemOperand(x0));
   __ ld4(v2.V8H(), v3.V8H(), v4.V8H(), v5.V8H(), MemOperand(x1, x2, PostIndex));
-  __ ld4(v20.V8H(), v21.V8H(), v22.V8H(), v23.V8H(),
+  __ ld4(v20.V8H(),
+         v21.V8H(),
+         v22.V8H(),
+         v23.V8H(),
          MemOperand(x1, 64, PostIndex));
   __ ld4(v20.B(), v21.B(), v22.B(), v23.B(), 3, MemOperand(x0));
   __ ld4(v12.B(), v13.B(), v14.B(), v15.B(), 3, MemOperand(x1, x2, PostIndex));
@@ -1075,44 +1138,92 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ ld4(v25.S(), v26.S(), v27.S(), v28.S(), 2, MemOperand(x1, x2, PostIndex));
   __ ld4(v8.S(), v9.S(), v10.S(), v11.S(), 3, MemOperand(x1, 16, PostIndex));
   __ ld4r(v14.V16B(), v15.V16B(), v16.V16B(), v17.V16B(), MemOperand(x0));
-  __ ld4r(v13.V16B(), v14.V16B(), v15.V16B(), v16.V16B(),
+  __ ld4r(v13.V16B(),
+          v14.V16B(),
+          v15.V16B(),
+          v16.V16B(),
           MemOperand(x1, x2, PostIndex));
-  __ ld4r(v9.V16B(), v10.V16B(), v11.V16B(), v12.V16B(),
+  __ ld4r(v9.V16B(),
+          v10.V16B(),
+          v11.V16B(),
+          v12.V16B(),
           MemOperand(x1, 4, PostIndex));
   __ ld4r(v8.V1D(), v9.V1D(), v10.V1D(), v11.V1D(), MemOperand(x0));
-  __ ld4r(v4.V1D(), v5.V1D(), v6.V1D(), v7.V1D(),
+  __ ld4r(v4.V1D(),
+          v5.V1D(),
+          v6.V1D(),
+          v7.V1D(),
           MemOperand(x1, x2, PostIndex));
-  __ ld4r(v26.V1D(), v27.V1D(), v28.V1D(), v29.V1D(),
+  __ ld4r(v26.V1D(),
+          v27.V1D(),
+          v28.V1D(),
+          v29.V1D(),
           MemOperand(x1, 32, PostIndex));
   __ ld4r(v19.V2D(), v20.V2D(), v21.V2D(), v22.V2D(), MemOperand(x0));
-  __ ld4r(v28.V2D(), v29.V2D(), v30.V2D(), v31.V2D(),
+  __ ld4r(v28.V2D(),
+          v29.V2D(),
+          v30.V2D(),
+          v31.V2D(),
           MemOperand(x1, x2, PostIndex));
-  __ ld4r(v15.V2D(), v16.V2D(), v17.V2D(), v18.V2D(),
+  __ ld4r(v15.V2D(),
+          v16.V2D(),
+          v17.V2D(),
+          v18.V2D(),
           MemOperand(x1, 32, PostIndex));
   __ ld4r(v31.V2S(), v0.V2S(), v1.V2S(), v2.V2S(), MemOperand(x0));
-  __ ld4r(v28.V2S(), v29.V2S(), v30.V2S(), v31.V2S(),
+  __ ld4r(v28.V2S(),
+          v29.V2S(),
+          v30.V2S(),
+          v31.V2S(),
           MemOperand(x1, x2, PostIndex));
-  __ ld4r(v11.V2S(), v12.V2S(), v13.V2S(), v14.V2S(),
+  __ ld4r(v11.V2S(),
+          v12.V2S(),
+          v13.V2S(),
+          v14.V2S(),
           MemOperand(x1, 16, PostIndex));
   __ ld4r(v19.V4H(), v20.V4H(), v21.V4H(), v22.V4H(), MemOperand(x0));
-  __ ld4r(v22.V4H(), v23.V4H(), v24.V4H(), v25.V4H(),
+  __ ld4r(v22.V4H(),
+          v23.V4H(),
+          v24.V4H(),
+          v25.V4H(),
           MemOperand(x1, x2, PostIndex));
-  __ ld4r(v20.V4H(), v21.V4H(), v22.V4H(), v23.V4H(),
+  __ ld4r(v20.V4H(),
+          v21.V4H(),
+          v22.V4H(),
+          v23.V4H(),
           MemOperand(x1, 8, PostIndex));
   __ ld4r(v16.V4S(), v17.V4S(), v18.V4S(), v19.V4S(), MemOperand(x0));
-  __ ld4r(v25.V4S(), v26.V4S(), v27.V4S(), v28.V4S(),
+  __ ld4r(v25.V4S(),
+          v26.V4S(),
+          v27.V4S(),
+          v28.V4S(),
           MemOperand(x1, x2, PostIndex));
-  __ ld4r(v23.V4S(), v24.V4S(), v25.V4S(), v26.V4S(),
+  __ ld4r(v23.V4S(),
+          v24.V4S(),
+          v25.V4S(),
+          v26.V4S(),
           MemOperand(x1, 16, PostIndex));
   __ ld4r(v22.V8B(), v23.V8B(), v24.V8B(), v25.V8B(), MemOperand(x0));
-  __ ld4r(v27.V8B(), v28.V8B(), v29.V8B(), v30.V8B(),
+  __ ld4r(v27.V8B(),
+          v28.V8B(),
+          v29.V8B(),
+          v30.V8B(),
           MemOperand(x1, x2, PostIndex));
-  __ ld4r(v29.V8B(), v30.V8B(), v31.V8B(), v0.V8B(),
+  __ ld4r(v29.V8B(),
+          v30.V8B(),
+          v31.V8B(),
+          v0.V8B(),
           MemOperand(x1, 4, PostIndex));
   __ ld4r(v28.V8H(), v29.V8H(), v30.V8H(), v31.V8H(), MemOperand(x0));
-  __ ld4r(v25.V8H(), v26.V8H(), v27.V8H(), v28.V8H(),
+  __ ld4r(v25.V8H(),
+          v26.V8H(),
+          v27.V8H(),
+          v28.V8H(),
           MemOperand(x1, x2, PostIndex));
-  __ ld4r(v22.V8H(), v23.V8H(), v24.V8H(), v25.V8H(),
+  __ ld4r(v22.V8H(),
+          v23.V8H(),
+          v24.V8H(),
+          v25.V8H(),
           MemOperand(x1, 8, PostIndex));
   __ mla(v29.V16B(), v7.V16B(), v26.V16B());
   __ mla(v6.V2S(), v4.V2S(), v14.V2S());
@@ -1675,9 +1786,15 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ ssubw2(v31.V4S(), v11.V4S(), v15.V8H());
   __ ssubw2(v4.V8H(), v8.V8H(), v16.V16B());
   __ st1(v18.V16B(), v19.V16B(), v20.V16B(), v21.V16B(), MemOperand(x0));
-  __ st1(v10.V16B(), v11.V16B(), v12.V16B(), v13.V16B(),
+  __ st1(v10.V16B(),
+         v11.V16B(),
+         v12.V16B(),
+         v13.V16B(),
          MemOperand(x1, x2, PostIndex));
-  __ st1(v27.V16B(), v28.V16B(), v29.V16B(), v30.V16B(),
+  __ st1(v27.V16B(),
+         v28.V16B(),
+         v29.V16B(),
+         v30.V16B(),
          MemOperand(x1, 64, PostIndex));
   __ st1(v16.V16B(), v17.V16B(), v18.V16B(), MemOperand(x0));
   __ st1(v21.V16B(), v22.V16B(), v23.V16B(), MemOperand(x1, x2, PostIndex));
@@ -1689,9 +1806,15 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ st1(v28.V16B(), MemOperand(x1, x2, PostIndex));
   __ st1(v2.V16B(), MemOperand(x1, 16, PostIndex));
   __ st1(v29.V1D(), v30.V1D(), v31.V1D(), v0.V1D(), MemOperand(x0));
-  __ st1(v12.V1D(), v13.V1D(), v14.V1D(), v15.V1D(),
+  __ st1(v12.V1D(),
+         v13.V1D(),
+         v14.V1D(),
+         v15.V1D(),
          MemOperand(x1, x2, PostIndex));
-  __ st1(v30.V1D(), v31.V1D(), v0.V1D(), v1.V1D(),
+  __ st1(v30.V1D(),
+         v31.V1D(),
+         v0.V1D(),
+         v1.V1D(),
          MemOperand(x1, 32, PostIndex));
   __ st1(v16.V1D(), v17.V1D(), v18.V1D(), MemOperand(x0));
   __ st1(v3.V1D(), v4.V1D(), v5.V1D(), MemOperand(x1, x2, PostIndex));
@@ -1703,9 +1826,15 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ st1(v27.V1D(), MemOperand(x1, x2, PostIndex));
   __ st1(v23.V1D(), MemOperand(x1, 8, PostIndex));
   __ st1(v2.V2D(), v3.V2D(), v4.V2D(), v5.V2D(), MemOperand(x0));
-  __ st1(v22.V2D(), v23.V2D(), v24.V2D(), v25.V2D(),
+  __ st1(v22.V2D(),
+         v23.V2D(),
+         v24.V2D(),
+         v25.V2D(),
          MemOperand(x1, x2, PostIndex));
-  __ st1(v28.V2D(), v29.V2D(), v30.V2D(), v31.V2D(),
+  __ st1(v28.V2D(),
+         v29.V2D(),
+         v30.V2D(),
+         v31.V2D(),
          MemOperand(x1, 64, PostIndex));
   __ st1(v17.V2D(), v18.V2D(), v19.V2D(), MemOperand(x0));
   __ st1(v16.V2D(), v17.V2D(), v18.V2D(), MemOperand(x1, x2, PostIndex));
@@ -1717,9 +1846,15 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ st1(v29.V2D(), MemOperand(x1, x2, PostIndex));
   __ st1(v20.V2D(), MemOperand(x1, 16, PostIndex));
   __ st1(v22.V2S(), v23.V2S(), v24.V2S(), v25.V2S(), MemOperand(x0));
-  __ st1(v8.V2S(), v9.V2S(), v10.V2S(), v11.V2S(),
+  __ st1(v8.V2S(),
+         v9.V2S(),
+         v10.V2S(),
+         v11.V2S(),
          MemOperand(x1, x2, PostIndex));
-  __ st1(v15.V2S(), v16.V2S(), v17.V2S(), v18.V2S(),
+  __ st1(v15.V2S(),
+         v16.V2S(),
+         v17.V2S(),
+         v18.V2S(),
          MemOperand(x1, 32, PostIndex));
   __ st1(v2.V2S(), v3.V2S(), v4.V2S(), MemOperand(x0));
   __ st1(v23.V2S(), v24.V2S(), v25.V2S(), MemOperand(x1, x2, PostIndex));
@@ -1731,9 +1866,15 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ st1(v11.V2S(), MemOperand(x1, x2, PostIndex));
   __ st1(v17.V2S(), MemOperand(x1, 8, PostIndex));
   __ st1(v6.V4H(), v7.V4H(), v8.V4H(), v9.V4H(), MemOperand(x0));
-  __ st1(v9.V4H(), v10.V4H(), v11.V4H(), v12.V4H(),
+  __ st1(v9.V4H(),
+         v10.V4H(),
+         v11.V4H(),
+         v12.V4H(),
          MemOperand(x1, x2, PostIndex));
-  __ st1(v25.V4H(), v26.V4H(), v27.V4H(), v28.V4H(),
+  __ st1(v25.V4H(),
+         v26.V4H(),
+         v27.V4H(),
+         v28.V4H(),
          MemOperand(x1, 32, PostIndex));
   __ st1(v11.V4H(), v12.V4H(), v13.V4H(), MemOperand(x0));
   __ st1(v10.V4H(), v11.V4H(), v12.V4H(), MemOperand(x1, x2, PostIndex));
@@ -1745,7 +1886,10 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ st1(v8.V4H(), MemOperand(x1, x2, PostIndex));
   __ st1(v30.V4H(), MemOperand(x1, 8, PostIndex));
   __ st1(v3.V4S(), v4.V4S(), v5.V4S(), v6.V4S(), MemOperand(x0));
-  __ st1(v25.V4S(), v26.V4S(), v27.V4S(), v28.V4S(),
+  __ st1(v25.V4S(),
+         v26.V4S(),
+         v27.V4S(),
+         v28.V4S(),
          MemOperand(x1, x2, PostIndex));
   __ st1(v5.V4S(), v6.V4S(), v7.V4S(), v8.V4S(), MemOperand(x1, 64, PostIndex));
   __ st1(v31.V4S(), v0.V4S(), v1.V4S(), MemOperand(x0));
@@ -1758,9 +1902,15 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ st1(v15.V4S(), MemOperand(x1, x2, PostIndex));
   __ st1(v13.V4S(), MemOperand(x1, 16, PostIndex));
   __ st1(v26.V8B(), v27.V8B(), v28.V8B(), v29.V8B(), MemOperand(x0));
-  __ st1(v10.V8B(), v11.V8B(), v12.V8B(), v13.V8B(),
+  __ st1(v10.V8B(),
+         v11.V8B(),
+         v12.V8B(),
+         v13.V8B(),
          MemOperand(x1, x2, PostIndex));
-  __ st1(v15.V8B(), v16.V8B(), v17.V8B(), v18.V8B(),
+  __ st1(v15.V8B(),
+         v16.V8B(),
+         v17.V8B(),
+         v18.V8B(),
          MemOperand(x1, 32, PostIndex));
   __ st1(v19.V8B(), v20.V8B(), v21.V8B(), MemOperand(x0));
   __ st1(v31.V8B(), v0.V8B(), v1.V8B(), MemOperand(x1, x2, PostIndex));
@@ -1773,7 +1923,10 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ st1(v31.V8B(), MemOperand(x1, 8, PostIndex));
   __ st1(v4.V8H(), v5.V8H(), v6.V8H(), v7.V8H(), MemOperand(x0));
   __ st1(v3.V8H(), v4.V8H(), v5.V8H(), v6.V8H(), MemOperand(x1, x2, PostIndex));
-  __ st1(v26.V8H(), v27.V8H(), v28.V8H(), v29.V8H(),
+  __ st1(v26.V8H(),
+         v27.V8H(),
+         v28.V8H(),
+         v29.V8H(),
          MemOperand(x1, 64, PostIndex));
   __ st1(v10.V8H(), v11.V8H(), v12.V8H(), MemOperand(x0));
   __ st1(v21.V8H(), v22.V8H(), v23.V8H(), MemOperand(x1, x2, PostIndex));
@@ -1863,37 +2016,73 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ st3(v11.S(), v12.S(), v13.S(), 1, MemOperand(x1, x2, PostIndex));
   __ st3(v15.S(), v16.S(), v17.S(), 0, MemOperand(x1, 12, PostIndex));
   __ st4(v22.V16B(), v23.V16B(), v24.V16B(), v25.V16B(), MemOperand(x0));
-  __ st4(v24.V16B(), v25.V16B(), v26.V16B(), v27.V16B(),
+  __ st4(v24.V16B(),
+         v25.V16B(),
+         v26.V16B(),
+         v27.V16B(),
          MemOperand(x1, x2, PostIndex));
-  __ st4(v15.V16B(), v16.V16B(), v17.V16B(), v18.V16B(),
+  __ st4(v15.V16B(),
+         v16.V16B(),
+         v17.V16B(),
+         v18.V16B(),
          MemOperand(x1, 64, PostIndex));
   __ st4(v16.V2D(), v17.V2D(), v18.V2D(), v19.V2D(), MemOperand(x0));
-  __ st4(v17.V2D(), v18.V2D(), v19.V2D(), v20.V2D(),
+  __ st4(v17.V2D(),
+         v18.V2D(),
+         v19.V2D(),
+         v20.V2D(),
          MemOperand(x1, x2, PostIndex));
-  __ st4(v9.V2D(), v10.V2D(), v11.V2D(), v12.V2D(),
+  __ st4(v9.V2D(),
+         v10.V2D(),
+         v11.V2D(),
+         v12.V2D(),
          MemOperand(x1, 64, PostIndex));
   __ st4(v23.V2S(), v24.V2S(), v25.V2S(), v26.V2S(), MemOperand(x0));
-  __ st4(v15.V2S(), v16.V2S(), v17.V2S(), v18.V2S(),
+  __ st4(v15.V2S(),
+         v16.V2S(),
+         v17.V2S(),
+         v18.V2S(),
          MemOperand(x1, x2, PostIndex));
-  __ st4(v24.V2S(), v25.V2S(), v26.V2S(), v27.V2S(),
+  __ st4(v24.V2S(),
+         v25.V2S(),
+         v26.V2S(),
+         v27.V2S(),
          MemOperand(x1, 32, PostIndex));
   __ st4(v14.V4H(), v15.V4H(), v16.V4H(), v17.V4H(), MemOperand(x0));
-  __ st4(v18.V4H(), v19.V4H(), v20.V4H(), v21.V4H(),
+  __ st4(v18.V4H(),
+         v19.V4H(),
+         v20.V4H(),
+         v21.V4H(),
          MemOperand(x1, x2, PostIndex));
   __ st4(v1.V4H(), v2.V4H(), v3.V4H(), v4.V4H(), MemOperand(x1, 32, PostIndex));
   __ st4(v13.V4S(), v14.V4S(), v15.V4S(), v16.V4S(), MemOperand(x0));
   __ st4(v6.V4S(), v7.V4S(), v8.V4S(), v9.V4S(), MemOperand(x1, x2, PostIndex));
-  __ st4(v15.V4S(), v16.V4S(), v17.V4S(), v18.V4S(),
+  __ st4(v15.V4S(),
+         v16.V4S(),
+         v17.V4S(),
+         v18.V4S(),
          MemOperand(x1, 64, PostIndex));
   __ st4(v26.V8B(), v27.V8B(), v28.V8B(), v29.V8B(), MemOperand(x0));
-  __ st4(v25.V8B(), v26.V8B(), v27.V8B(), v28.V8B(),
+  __ st4(v25.V8B(),
+         v26.V8B(),
+         v27.V8B(),
+         v28.V8B(),
          MemOperand(x1, x2, PostIndex));
-  __ st4(v19.V8B(), v20.V8B(), v21.V8B(), v22.V8B(),
+  __ st4(v19.V8B(),
+         v20.V8B(),
+         v21.V8B(),
+         v22.V8B(),
          MemOperand(x1, 32, PostIndex));
   __ st4(v19.V8H(), v20.V8H(), v21.V8H(), v22.V8H(), MemOperand(x0));
-  __ st4(v15.V8H(), v16.V8H(), v17.V8H(), v18.V8H(),
+  __ st4(v15.V8H(),
+         v16.V8H(),
+         v17.V8H(),
+         v18.V8H(),
          MemOperand(x1, x2, PostIndex));
-  __ st4(v31.V8H(), v0.V8H(), v1.V8H(), v2.V8H(),
+  __ st4(v31.V8H(),
+         v0.V8H(),
+         v1.V8H(),
+         v2.V8H(),
          MemOperand(x1, 64, PostIndex));
   __ st4(v0.B(), v1.B(), v2.B(), v3.B(), 13, MemOperand(x0));
   __ st4(v4.B(), v5.B(), v6.B(), v7.B(), 10, MemOperand(x1, x2, PostIndex));
@@ -1938,7 +2127,11 @@ static void GenerateTestSequenceNEON(MacroAssembler* masm) {
   __ sxtl2(v6.V2D(), v7.V4S());
   __ sxtl2(v9.V4S(), v27.V8H());
   __ sxtl2(v16.V8H(), v16.V16B());
-  __ tbl(v25.V16B(), v17.V16B(), v18.V16B(), v19.V16B(), v20.V16B(),
+  __ tbl(v25.V16B(),
+         v17.V16B(),
+         v18.V16B(),
+         v19.V16B(),
+         v20.V16B(),
          v22.V16B());
   __ tbl(v28.V16B(), v13.V16B(), v14.V16B(), v15.V16B(), v4.V16B());
   __ tbl(v3.V16B(), v0.V16B(), v1.V16B(), v2.V16B());
@@ -2539,9 +2732,9 @@ static void GenerateTestSequenceNEONFP(MacroAssembler* masm) {
 
 
 static void MaskAddresses(const char* trace) {
-  // Hexadecimal expressions of the form `\xab` do not work out-of-the box with
-  // BSD `sed`. So we use ANSI-C quoting to have the regular expressions below
-  // work both on Linux and BSD (and macOS).
+// Hexadecimal expressions of the form `\xab` do not work out-of-the box with
+// BSD `sed`. So we use ANSI-C quoting to have the regular expressions below
+// work both on Linux and BSD (and macOS).
 #ifdef __APPLE__
 #define MAYBE_ANSI_C_QUOTE "$"
 #define HEX(val) "\\x" #val
@@ -2557,26 +2750,29 @@ static void MaskAddresses(const char* trace) {
   struct {
     const char* search;
     const char* replace;
-  } patterns[] = {
-      // Mask registers that hold addresses that change from run to run.
-      {"((x0|x1|x2|sp): " COLOUR "0x)[0-9a-f]{16}", ESCAPE(1) "~~~~~~~~~~~~~~~~"},
-      // Mask accessed memory addresses.
-      {"((<-|->) " COLOUR "0x)[0-9a-f]{16}", ESCAPE(1) "~~~~~~~~~~~~~~~~"},
-      // Mask instruction addresses.
-      {"^0x[0-9a-f]{16}", "0x~~~~~~~~~~~~~~~~"},
-      // Mask branch targets.
-      {"(Branch" COLOUR " to 0x)[0-9a-f]{16}", ESCAPE(1) "~~~~~~~~~~~~~~~~"},
-      {"addr 0x[0-9a-f]+", "addr 0x~~~~~~~~~~~~~~~~"}
-  };
+  } patterns[] =
+      {// Mask registers that hold addresses that change from run to run.
+       {"((x0|x1|x2|sp): " COLOUR "0x)[0-9a-f]{16}",
+        ESCAPE(1) "~~~~~~~~~~~~~~~~"},
+       // Mask accessed memory addresses.
+       {"((<-|->) " COLOUR "0x)[0-9a-f]{16}", ESCAPE(1) "~~~~~~~~~~~~~~~~"},
+       // Mask instruction addresses.
+       {"^0x[0-9a-f]{16}", "0x~~~~~~~~~~~~~~~~"},
+       // Mask branch targets.
+       {"(Branch" COLOUR " to 0x)[0-9a-f]{16}", ESCAPE(1) "~~~~~~~~~~~~~~~~"},
+       {"addr 0x[0-9a-f]+", "addr 0x~~~~~~~~~~~~~~~~"}};
   const size_t patterns_length = sizeof(patterns) / sizeof(patterns[0]);
   // Rewrite `trace`, masking addresses and other values that legitimately vary
   // from run to run.
   char command[1024];
   for (size_t i = 0; i < patterns_length; i++) {
-    size_t length =
-        snprintf(command, sizeof(command),
-                 "sed %s " MAYBE_ANSI_C_QUOTE "'s/%s/%s/' '%s'",
-                 sed_options, patterns[i].search, patterns[i].replace, trace);
+    size_t length = snprintf(command,
+                             sizeof(command),
+                             "sed %s " MAYBE_ANSI_C_QUOTE "'s/%s/%s/' '%s'",
+                             sed_options,
+                             patterns[i].search,
+                             patterns[i].replace,
+                             trace);
     VIXL_CHECK(length < sizeof(command));
     VIXL_CHECK(system(command) == 0);
   }
@@ -2601,8 +2797,7 @@ static void TraceTestHelper(bool coloured_trace,
   const int kScratchSize = 64 * KBytes;
   const int kScratchGuardSize = 128;
   char scratch_buffer[kScratchSize + kScratchGuardSize];
-  for (size_t i = 0;
-       i < (sizeof(scratch_buffer) / sizeof(scratch_buffer[0]));
+  for (size_t i = 0; i < (sizeof(scratch_buffer) / sizeof(scratch_buffer[0]));
        i++) {
     scratch_buffer[i] = i & 0xff;
   }
@@ -2611,7 +2806,7 @@ static void TraceTestHelper(bool coloured_trace,
   // Used for pre-/post-index addressing.
   simulator.WriteRegister(1, scratch_buffer);
 
-  const int kPostIndexRegisterStep = 13;         // Arbitrary interesting value.
+  const int kPostIndexRegisterStep = 13;  // Arbitrary interesting value.
   // Used for post-index offsets.
   simulator.WriteRegister(2, kPostIndexRegisterStep);
 
@@ -2666,8 +2861,11 @@ static void TraceTestHelper(bool coloured_trace,
   } else {
     // Check trace_stream against ref_file.
     char command[1024];
-    size_t length = snprintf(command, sizeof(command),
-                             "diff -u %s %s", ref_file, trace_stream_filename);
+    size_t length = snprintf(command,
+                             sizeof(command),
+                             "diff -u %s %s",
+                             ref_file,
+                             trace_stream_filename);
     VIXL_CHECK(length < sizeof(command));
     trace_matched_reference = (system(command) == 0);
   }
@@ -2687,44 +2885,24 @@ static void TraceTestHelper(bool coloured_trace,
 #define REF(name) "test/test-trace-reference/" name
 
 // Test individual options.
-TEST(disasm) {
-  TraceTestHelper(false, LOG_DISASM, REF("log-disasm"));
-}
-TEST(regs) {
-  TraceTestHelper(false, LOG_REGS, REF("log-regs"));
-}
-TEST(vregs) {
-  TraceTestHelper(false, LOG_VREGS, REF("log-vregs"));
-}
-TEST(sysregs) {
-  TraceTestHelper(false, LOG_SYSREGS, REF("log-sysregs"));
-}
-TEST(write) {
-  TraceTestHelper(false, LOG_WRITE, REF("log-write"));
-}
-TEST(branch) {
-  TraceTestHelper(false, LOG_WRITE, REF("log-branch"));
-}
+TEST(disasm) { TraceTestHelper(false, LOG_DISASM, REF("log-disasm")); }
+TEST(regs) { TraceTestHelper(false, LOG_REGS, REF("log-regs")); }
+TEST(vregs) { TraceTestHelper(false, LOG_VREGS, REF("log-vregs")); }
+TEST(sysregs) { TraceTestHelper(false, LOG_SYSREGS, REF("log-sysregs")); }
+TEST(write) { TraceTestHelper(false, LOG_WRITE, REF("log-write")); }
+TEST(branch) { TraceTestHelper(false, LOG_WRITE, REF("log-branch")); }
 
 // Test standard combinations.
-TEST(none) {
-  TraceTestHelper(false, LOG_NONE, REF("log-none"));
-}
-TEST(state) {
-  TraceTestHelper(false, LOG_STATE, REF("log-state"));
-}
-TEST(all) {
-  TraceTestHelper(false, LOG_ALL, REF("log-all"));
-}
+TEST(none) { TraceTestHelper(false, LOG_NONE, REF("log-none")); }
+TEST(state) { TraceTestHelper(false, LOG_STATE, REF("log-state")); }
+TEST(all) { TraceTestHelper(false, LOG_ALL, REF("log-all")); }
 
 
 // Test individual options (with colour).
 TEST(disasm_colour) {
   TraceTestHelper(true, LOG_DISASM, REF("log-disasm-colour"));
 }
-TEST(regs_colour) {
-  TraceTestHelper(true, LOG_REGS, REF("log-regs-colour"));
-}
+TEST(regs_colour) { TraceTestHelper(true, LOG_REGS, REF("log-regs-colour")); }
 TEST(vregs_colour) {
   TraceTestHelper(true, LOG_VREGS, REF("log-vregs-colour"));
 }
@@ -2739,15 +2917,11 @@ TEST(branch_colour) {
 }
 
 // Test standard combinations (with colour).
-TEST(none_colour) {
-  TraceTestHelper(true, LOG_NONE, REF("log-none-colour"));
-}
+TEST(none_colour) { TraceTestHelper(true, LOG_NONE, REF("log-none-colour")); }
 TEST(state_colour) {
   TraceTestHelper(true, LOG_STATE, REF("log-state-colour"));
 }
-TEST(all_colour) {
-  TraceTestHelper(true, LOG_ALL, REF("log-all-colour"));
-}
+TEST(all_colour) { TraceTestHelper(true, LOG_ALL, REF("log-all-colour")); }
 
 
 #endif  // VIXL_INCLUDE_SIMULATOR_AARCH64

@@ -49,10 +49,10 @@ extern "C" {
 // ---------------------------------------------------------------------
 // ADD DUMMY ARRAYS FOR NEW SIMULATOR TEST HERE.
 // ---------------------------------------------------------------------
-const uint64_t kExpected_dummy_64[] = { 0 };
+const uint64_t kExpected_dummy_64[] = {0};
 const size_t kExpectedCount_dummy_64 = 0;
 
-const uint32_t kExpected_dummy_32[] = { 0 };
+const uint32_t kExpected_dummy_32[] = {0};
 const size_t kExpectedCount_dummy_32 = 0;
 
 // ---------------------------------------------------------------------

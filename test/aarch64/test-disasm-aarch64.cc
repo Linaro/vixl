@@ -34,26 +34,26 @@
 #include "aarch64/disasm-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 
-#define TEST(name)  TEST_(AARCH64_DISASM_##name)
+#define TEST(name) TEST_(AARCH64_DISASM_##name)
 
-#define SETUP_CLASS(ASMCLASS)                                                  \
-  uint32_t encoding = 0;                                                       \
-  ASMCLASS masm;                                                               \
-  Decoder decoder;                                                             \
-  Disassembler disasm;                                                         \
+#define SETUP_CLASS(ASMCLASS) \
+  uint32_t encoding = 0;      \
+  ASMCLASS masm;              \
+  Decoder decoder;            \
+  Disassembler disasm;        \
   decoder.AppendVisitor(&disasm)
 
 #define SETUP() SETUP_CLASS(Assembler)
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 // Run tests with the simulator.
-#define SETUP_MACRO()                                                          \
-  SETUP_CLASS(MacroAssembler);                                                 \
+#define SETUP_MACRO()          \
+  SETUP_CLASS(MacroAssembler); \
   masm.SetGenerateSimulatorCode(true)
 
 #else  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
-#define SETUP_MACRO()                                                          \
-  SETUP_CLASS(MacroAssembler);                                                 \
+#define SETUP_MACRO()          \
+  SETUP_CLASS(MacroAssembler); \
   masm.SetGenerateSimulatorCode(false)
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
@@ -62,80 +62,84 @@
 // tests.
 #define MAX_SIZE_GENERATED 1024
 
-#define COMPARE(ASM, EXP)                                                      \
-  masm.Reset();                                                                \
-  {                                                                            \
-    CodeBufferCheckScope guard(&masm, MAX_SIZE_GENERATED);                     \
-    masm.ASM;                                                                  \
-  }                                                                            \
-  masm.FinalizeCode();                                                         \
-  decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>());           \
-  encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>();                  \
-  if (strcmp(disasm.GetOutput(), EXP) != 0) {                                  \
-    printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",          \
-           encoding, EXP, disasm.GetOutput());                                 \
-    abort();                                                                   \
-  }                                                                            \
-  if (Test::disassemble()) {                                                   \
-    printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());               \
+#define COMPARE(ASM, EXP)                                             \
+  masm.Reset();                                                       \
+  {                                                                   \
+    CodeBufferCheckScope guard(&masm, MAX_SIZE_GENERATED);            \
+    masm.ASM;                                                         \
+  }                                                                   \
+  masm.FinalizeCode();                                                \
+  decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>());  \
+  encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>();         \
+  if (strcmp(disasm.GetOutput(), EXP) != 0) {                         \
+    printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n", \
+           encoding,                                                  \
+           EXP,                                                       \
+           disasm.GetOutput());                                       \
+    abort();                                                          \
+  }                                                                   \
+  if (Test::disassemble()) {                                          \
+    printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());      \
   }
 
-#define COMPARE_PREFIX(ASM, EXP)                                               \
-  masm.Reset();                                                                \
-  {                                                                            \
-    CodeBufferCheckScope guard(&masm, MAX_SIZE_GENERATED);                     \
-    masm.ASM;                                                                  \
-  }                                                                            \
-  masm.FinalizeCode();                                                         \
-  decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>());           \
-  encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>();                  \
-  if (strncmp(disasm.GetOutput(), EXP, strlen(EXP)) != 0) {                    \
-    printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",          \
-           encoding, EXP, disasm.GetOutput());                                 \
-    abort();                                                                   \
-  }                                                                            \
-  if (Test::disassemble()) {                                                   \
-    printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());               \
+#define COMPARE_PREFIX(ASM, EXP)                                      \
+  masm.Reset();                                                       \
+  {                                                                   \
+    CodeBufferCheckScope guard(&masm, MAX_SIZE_GENERATED);            \
+    masm.ASM;                                                         \
+  }                                                                   \
+  masm.FinalizeCode();                                                \
+  decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>());  \
+  encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>();         \
+  if (strncmp(disasm.GetOutput(), EXP, strlen(EXP)) != 0) {           \
+    printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n", \
+           encoding,                                                  \
+           EXP,                                                       \
+           disasm.GetOutput());                                       \
+    abort();                                                          \
+  }                                                                   \
+  if (Test::disassemble()) {                                          \
+    printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());      \
   }
 
-#define COMPARE_MACRO_BASE(ASM, EXP)                                           \
-  masm.Reset();                                                                \
-  masm.ASM;                                                                    \
-  masm.FinalizeCode();                                                         \
-  std::string res;                                                             \
-                                                                               \
-  Instruction* instruction =                                                   \
-      masm.GetBuffer()->GetStartAddress<Instruction*>();                       \
-  Instruction* end = masm.GetCursorAddress<Instruction*>();                    \
-  while (instruction != end) {                                                 \
-    decoder.Decode(instruction);                                               \
-    res.append(disasm.GetOutput());                                            \
-    if (Test::disassemble()) {                                                 \
-      encoding = *reinterpret_cast<uint32_t*>(instruction);                    \
-      printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());             \
-    }                                                                          \
-    instruction += kInstructionSize;                                           \
-    if (instruction != end) {                                                  \
-      res.append("\n");                                                        \
-    }                                                                          \
+#define COMPARE_MACRO_BASE(ASM, EXP)                               \
+  masm.Reset();                                                    \
+  masm.ASM;                                                        \
+  masm.FinalizeCode();                                             \
+  std::string res;                                                 \
+                                                                   \
+  Instruction* instruction =                                       \
+      masm.GetBuffer()->GetStartAddress<Instruction*>();           \
+  Instruction* end = masm.GetCursorAddress<Instruction*>();        \
+  while (instruction != end) {                                     \
+    decoder.Decode(instruction);                                   \
+    res.append(disasm.GetOutput());                                \
+    if (Test::disassemble()) {                                     \
+      encoding = *reinterpret_cast<uint32_t*>(instruction);        \
+      printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput()); \
+    }                                                              \
+    instruction += kInstructionSize;                               \
+    if (instruction != end) {                                      \
+      res.append("\n");                                            \
+    }                                                              \
   }
 
-#define COMPARE_MACRO(ASM, EXP)                                                \
-  {                                                                            \
-    COMPARE_MACRO_BASE(ASM, EXP)                                               \
-    if (strcmp(res.c_str(), EXP) != 0) {                                       \
-      printf("Expected: %s\nFound:    %s\n", EXP, res.c_str());                \
-      abort();                                                                 \
-    }                                                                          \
+#define COMPARE_MACRO(ASM, EXP)                                 \
+  {                                                             \
+    COMPARE_MACRO_BASE(ASM, EXP)                                \
+    if (strcmp(res.c_str(), EXP) != 0) {                        \
+      printf("Expected: %s\nFound:    %s\n", EXP, res.c_str()); \
+      abort();                                                  \
+    }                                                           \
   }
 
-#define COMPARE_MACRO_PREFIX(ASM, EXP)                                         \
-  {                                                                            \
-    COMPARE_MACRO_BASE(ASM, EXP)                                               \
-    if (strncmp(res.c_str(), EXP, strlen(EXP)) != 0) {                         \
-      printf("Expected (prefix): %s\nFound:    %s\n", EXP, res.c_str());       \
-      abort();                                                                 \
-    }                                                                          \
+#define COMPARE_MACRO_PREFIX(ASM, EXP)                                   \
+  {                                                                      \
+    COMPARE_MACRO_BASE(ASM, EXP)                                         \
+    if (strncmp(res.c_str(), EXP, strlen(EXP)) != 0) {                   \
+      printf("Expected (prefix): %s\nFound:    %s\n", EXP, res.c_str()); \
+      abort();                                                           \
+    }                                                                    \
   }
 
 #define CLEANUP()
@@ -711,7 +715,7 @@ TEST(extract) {
 
 TEST(logical_immediate) {
   SETUP();
-  #define RESULT_SIZE (256)
+#define RESULT_SIZE (256)
 
   char result[RESULT_SIZE];
 
@@ -775,33 +779,25 @@ TEST(logical_immediate) {
           "and w0, w0, #0x55555555");  // 2-bit pattern.
 
   // Test other instructions.
-  COMPARE(tst(w1, Operand(0x11111111)),
-          "tst w1, #0x11111111");
-  COMPARE(tst(x2, Operand(0x8888888888888888)),
-          "tst x2, #0x8888888888888888");
-  COMPARE(orr(w7, w8, Operand(0xaaaaaaaa)),
-          "orr w7, w8, #0xaaaaaaaa");
+  COMPARE(tst(w1, Operand(0x11111111)), "tst w1, #0x11111111");
+  COMPARE(tst(x2, Operand(0x8888888888888888)), "tst x2, #0x8888888888888888");
+  COMPARE(orr(w7, w8, Operand(0xaaaaaaaa)), "orr w7, w8, #0xaaaaaaaa");
   COMPARE(orr(x9, x10, Operand(0x5555555555555555)),
           "orr x9, x10, #0x5555555555555555");
-  COMPARE(eor(w15, w16, Operand(0x00000001)),
-          "eor w15, w16, #0x1");
-  COMPARE(eor(x17, x18, Operand(0x0000000000000003)),
-          "eor x17, x18, #0x3");
+  COMPARE(eor(w15, w16, Operand(0x00000001)), "eor w15, w16, #0x1");
+  COMPARE(eor(x17, x18, Operand(0x0000000000000003)), "eor x17, x18, #0x3");
   COMPARE(ands(w23, w24, Operand(0x0000000f)), "ands w23, w24, #0xf");
   COMPARE(ands(x25, x26, Operand(0x800000000000000f)),
           "ands x25, x26, #0x800000000000000f");
 
   // Test inverse.
-  COMPARE(bic(w3, w4, Operand(0x20202020)),
-          "and w3, w4, #0xdfdfdfdf");
+  COMPARE(bic(w3, w4, Operand(0x20202020)), "and w3, w4, #0xdfdfdfdf");
   COMPARE(bic(x5, x6, Operand(0x4040404040404040)),
           "and x5, x6, #0xbfbfbfbfbfbfbfbf");
-  COMPARE(orn(w11, w12, Operand(0x40004000)),
-          "orr w11, w12, #0xbfffbfff");
+  COMPARE(orn(w11, w12, Operand(0x40004000)), "orr w11, w12, #0xbfffbfff");
   COMPARE(orn(x13, x14, Operand(0x8181818181818181)),
           "orr x13, x14, #0x7e7e7e7e7e7e7e7e");
-  COMPARE(eon(w19, w20, Operand(0x80000001)),
-          "eor w19, w20, #0x7ffffffe");
+  COMPARE(eon(w19, w20, Operand(0x80000001)), "eor w19, w20, #0x7ffffffe");
   COMPARE(eon(x21, x22, Operand(0xc000000000000003)),
           "eor x21, x22, #0x3ffffffffffffffc");
   COMPARE(bics(w27, w28, Operand(0xfffffff7)), "ands w27, w28, #0x8");
@@ -956,7 +952,7 @@ TEST(adrp) {
 TEST(branch) {
   SETUP();
 
-  #define INST_OFF(x) (INT64_C(x) >> kInstructionSizeLog2)
+#define INST_OFF(x) (INT64_C(x) >> kInstructionSizeLog2)
   COMPARE_PREFIX(b(INST_OFF(0x4)), "b #+0x4");
   COMPARE_PREFIX(b(INST_OFF(-0x4)), "b #-0x4");
   COMPARE_PREFIX(b(INST_OFF(0x7fffffc)), "b #+0x7fffffc");
@@ -1521,12 +1517,10 @@ TEST(load_store_unscaled_option) {
   SETUP();
 
   // Just like load_store_unscaled, but specify the scaling option explicitly.
-  LoadStoreScalingOption options[] = {
-    PreferUnscaledOffset,
-    RequireUnscaledOffset
-  };
+  LoadStoreScalingOption options[] = {PreferUnscaledOffset,
+                                      RequireUnscaledOffset};
 
-  for (size_t i = 0; i < sizeof(options)/sizeof(options[0]); i++) {
+  for (size_t i = 0; i < sizeof(options) / sizeof(options[0]); i++) {
     LoadStoreScalingOption option = options[i];
 
     // If an unscaled-offset instruction is requested, it is used, even if the
@@ -1753,8 +1747,7 @@ TEST(load_store_pair) {
           "stp x18, x19, [sp, #-8]!");
   COMPARE(ldp(s30, s31, MemOperand(sp, 12, PostIndex)),
           "ldp s30, s31, [sp], #12");
-  COMPARE(stp(d30, d31, MemOperand(sp, -16)),
-          "stp d30, d31, [sp, #-16]");
+  COMPARE(stp(d30, d31, MemOperand(sp, -16)), "stp d30, d31, [sp, #-16]");
   COMPARE(ldp(q30, q31, MemOperand(sp, 32, PostIndex)),
           "ldp q30, q31, [sp], #32");
 
@@ -1897,10 +1890,10 @@ TEST(load_literal_macro) {
   //    ldr   xzr, pc+12              // Pool marker.
   //    .word64 #0x1234567890abcdef   // Test literal.
 
-  COMPARE_PREFIX(Ldr(x10, 0x1234567890abcdef),  "ldr x10, pc+8");
-  COMPARE_PREFIX(Ldr(w20, 0xfedcba09),  "ldr w20, pc+8");
-  COMPARE_PREFIX(Ldr(d11, 1.234),  "ldr d11, pc+8");
-  COMPARE_PREFIX(Ldr(s22, 2.5f),  "ldr s22, pc+8");
+  COMPARE_PREFIX(Ldr(x10, 0x1234567890abcdef), "ldr x10, pc+8");
+  COMPARE_PREFIX(Ldr(w20, 0xfedcba09), "ldr w20, pc+8");
+  COMPARE_PREFIX(Ldr(d11, 1.234), "ldr d11, pc+8");
+  COMPARE_PREFIX(Ldr(s22, 2.5f), "ldr s22, pc+8");
   COMPARE_PREFIX(Ldrsw(x21, 0x80000000), "ldrsw x21, pc+8");
 
   CLEANUP();
@@ -1945,38 +1938,17 @@ TEST(prfm_operations) {
 
   // Test every encodable prefetch operation.
   const char* expected[] = {
-    "prfm pldl1keep, ",
-    "prfm pldl1strm, ",
-    "prfm pldl2keep, ",
-    "prfm pldl2strm, ",
-    "prfm pldl3keep, ",
-    "prfm pldl3strm, ",
-    "prfm #0b00110, ",
-    "prfm #0b00111, ",
-    "prfm plil1keep, ",
-    "prfm plil1strm, ",
-    "prfm plil2keep, ",
-    "prfm plil2strm, ",
-    "prfm plil3keep, ",
-    "prfm plil3strm, ",
-    "prfm #0b01110, ",
-    "prfm #0b01111, ",
-    "prfm pstl1keep, ",
-    "prfm pstl1strm, ",
-    "prfm pstl2keep, ",
-    "prfm pstl2strm, ",
-    "prfm pstl3keep, ",
-    "prfm pstl3strm, ",
-    "prfm #0b10110, ",
-    "prfm #0b10111, ",
-    "prfm #0b11000, ",
-    "prfm #0b11001, ",
-    "prfm #0b11010, ",
-    "prfm #0b11011, ",
-    "prfm #0b11100, ",
-    "prfm #0b11101, ",
-    "prfm #0b11110, ",
-    "prfm #0b11111, ",
+      "prfm pldl1keep, ", "prfm pldl1strm, ", "prfm pldl2keep, ",
+      "prfm pldl2strm, ", "prfm pldl3keep, ", "prfm pldl3strm, ",
+      "prfm #0b00110, ",  "prfm #0b00111, ",  "prfm plil1keep, ",
+      "prfm plil1strm, ", "prfm plil2keep, ", "prfm plil2strm, ",
+      "prfm plil3keep, ", "prfm plil3strm, ", "prfm #0b01110, ",
+      "prfm #0b01111, ",  "prfm pstl1keep, ", "prfm pstl1strm, ",
+      "prfm pstl2keep, ", "prfm pstl2strm, ", "prfm pstl3keep, ",
+      "prfm pstl3strm, ", "prfm #0b10110, ",  "prfm #0b10111, ",
+      "prfm #0b11000, ",  "prfm #0b11001, ",  "prfm #0b11010, ",
+      "prfm #0b11011, ",  "prfm #0b11100, ",  "prfm #0b11101, ",
+      "prfm #0b11110, ",  "prfm #0b11111, ",
   };
   const int expected_count = sizeof(expected) / sizeof(expected[0]);
   VIXL_STATIC_ASSERT((1 << ImmPrefetchOperation_width) == expected_count);
@@ -1997,38 +1969,17 @@ TEST(prfum_operations) {
 
   // Test every encodable prefetch operation.
   const char* expected[] = {
-    "prfum pldl1keep, ",
-    "prfum pldl1strm, ",
-    "prfum pldl2keep, ",
-    "prfum pldl2strm, ",
-    "prfum pldl3keep, ",
-    "prfum pldl3strm, ",
-    "prfum #0b00110, ",
-    "prfum #0b00111, ",
-    "prfum plil1keep, ",
-    "prfum plil1strm, ",
-    "prfum plil2keep, ",
-    "prfum plil2strm, ",
-    "prfum plil3keep, ",
-    "prfum plil3strm, ",
-    "prfum #0b01110, ",
-    "prfum #0b01111, ",
-    "prfum pstl1keep, ",
-    "prfum pstl1strm, ",
-    "prfum pstl2keep, ",
-    "prfum pstl2strm, ",
-    "prfum pstl3keep, ",
-    "prfum pstl3strm, ",
-    "prfum #0b10110, ",
-    "prfum #0b10111, ",
-    "prfum #0b11000, ",
-    "prfum #0b11001, ",
-    "prfum #0b11010, ",
-    "prfum #0b11011, ",
-    "prfum #0b11100, ",
-    "prfum #0b11101, ",
-    "prfum #0b11110, ",
-    "prfum #0b11111, ",
+      "prfum pldl1keep, ", "prfum pldl1strm, ", "prfum pldl2keep, ",
+      "prfum pldl2strm, ", "prfum pldl3keep, ", "prfum pldl3strm, ",
+      "prfum #0b00110, ",  "prfum #0b00111, ",  "prfum plil1keep, ",
+      "prfum plil1strm, ", "prfum plil2keep, ", "prfum plil2strm, ",
+      "prfum plil3keep, ", "prfum plil3strm, ", "prfum #0b01110, ",
+      "prfum #0b01111, ",  "prfum pstl1keep, ", "prfum pstl1strm, ",
+      "prfum pstl2keep, ", "prfum pstl2strm, ", "prfum pstl3keep, ",
+      "prfum pstl3strm, ", "prfum #0b10110, ",  "prfum #0b10111, ",
+      "prfum #0b11000, ",  "prfum #0b11001, ",  "prfum #0b11010, ",
+      "prfum #0b11011, ",  "prfum #0b11100, ",  "prfum #0b11101, ",
+      "prfum #0b11110, ",  "prfum #0b11111, ",
   };
   const int expected_count = sizeof(expected) / sizeof(expected[0]);
   VIXL_STATIC_ASSERT((1 << ImmPrefetchOperation_width) == expected_count);
@@ -2238,154 +2189,212 @@ TEST(cond_select_macro) {
   bool synthesises_right = false;
 
   COMPARE(Csel(w0, w1, -1, eq), "csinv w0, w1, wzr, eq");
-  MacroAssembler::GetCselSynthesisInformation(w0, w1, -1,
+  MacroAssembler::GetCselSynthesisInformation(w0,
+                                              w1,
+                                              -1,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
   COMPARE(Csel(w2, w3, 0, ne), "csel w2, w3, wzr, ne");
-  MacroAssembler::GetCselSynthesisInformation(w2, w3, wzr,
+  MacroAssembler::GetCselSynthesisInformation(w2,
+                                              w3,
+                                              wzr,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
   COMPARE(Csel(w4, w5, 1, hs), "csinc w4, w5, wzr, hs");
-  MacroAssembler::GetCselSynthesisInformation(w4, w5, 1,
+  MacroAssembler::GetCselSynthesisInformation(w4,
+                                              w5,
+                                              1,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
   COMPARE(Csel(x6, x7, -1, lo), "csinv x6, x7, xzr, lo");
-  MacroAssembler::GetCselSynthesisInformation(x6, x7, xzr,
+  MacroAssembler::GetCselSynthesisInformation(x6,
+                                              x7,
+                                              xzr,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
   COMPARE(Csel(x8, x9, 0, mi), "csel x8, x9, xzr, mi");
-  MacroAssembler::GetCselSynthesisInformation(x8, x9, xzr,
+  MacroAssembler::GetCselSynthesisInformation(x8,
+                                              x9,
+                                              xzr,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
   COMPARE(Csel(x10, x11, 1, pl), "csinc x10, x11, xzr, pl");
-  MacroAssembler::GetCselSynthesisInformation(x10, x11, xzr,
+  MacroAssembler::GetCselSynthesisInformation(x10,
+                                              x11,
+                                              xzr,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
-  COMPARE_MACRO(Csel(x12,     0,     0, eq), "mov x12, #0x0");
-  MacroAssembler::GetCselSynthesisInformation(x12, 0, 0,
+  COMPARE_MACRO(Csel(x12, 0, 0, eq), "mov x12, #0x0");
+  MacroAssembler::GetCselSynthesisInformation(x12,
+                                              0,
+                                              0,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
-  COMPARE_MACRO(Csel(w13,     0,     1, eq), "cset w13, ne");
-  MacroAssembler::GetCselSynthesisInformation(w13, 0, 1,
+  COMPARE_MACRO(Csel(w13, 0, 1, eq), "cset w13, ne");
+  MacroAssembler::GetCselSynthesisInformation(w13,
+                                              0,
+                                              1,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
-  COMPARE_MACRO(Csel(x14,     1,     0, eq), "cset x14, eq");
-  MacroAssembler::GetCselSynthesisInformation(x14, 1, 0,
+  COMPARE_MACRO(Csel(x14, 1, 0, eq), "cset x14, eq");
+  MacroAssembler::GetCselSynthesisInformation(x14,
+                                              1,
+                                              0,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
-  COMPARE_MACRO(Csel(w15,     0,    -1, eq), "csetm w15, ne");
-  MacroAssembler::GetCselSynthesisInformation(w15, 0, -1,
+  COMPARE_MACRO(Csel(w15, 0, -1, eq), "csetm w15, ne");
+  MacroAssembler::GetCselSynthesisInformation(w15,
+                                              0,
+                                              -1,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
-  COMPARE_MACRO(Csel(x18,    -1,     0, eq), "csetm x18, eq");
-  MacroAssembler::GetCselSynthesisInformation(x18, -1, 0,
+  COMPARE_MACRO(Csel(x18, -1, 0, eq), "csetm x18, eq");
+  MacroAssembler::GetCselSynthesisInformation(x18,
+                                              -1,
+                                              0,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
-  COMPARE_MACRO(Csel(w19,    -1,     1, eq), "mov w19, #0x1\n"
-                                             "cneg w19, w19, eq");
-  MacroAssembler::GetCselSynthesisInformation(w19, -1, 1,
+  COMPARE_MACRO(Csel(w19, -1, 1, eq),
+                "mov w19, #0x1\n"
+                "cneg w19, w19, eq");
+  MacroAssembler::GetCselSynthesisInformation(w19,
+                                              -1,
+                                              1,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && synthesises_right);
 
-  COMPARE_MACRO(Csel(x20,     1,    -1, eq), "mov x20, #0xffffffffffffffff\n"
-                                             "cneg x20, x20, eq");
-  MacroAssembler::GetCselSynthesisInformation(x20, 1, -1,
+  COMPARE_MACRO(Csel(x20, 1, -1, eq),
+                "mov x20, #0xffffffffffffffff\n"
+                "cneg x20, x20, eq");
+  MacroAssembler::GetCselSynthesisInformation(x20,
+                                              1,
+                                              -1,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && synthesises_right);
 
-  COMPARE_MACRO(Csel(w21,  0xaa,  0xbb, eq), "mov w16, #0xaa\n"
-                                             "mov w17, #0xbb\n"
-                                             "csel w21, w16, w17, eq");
-  MacroAssembler::GetCselSynthesisInformation(w21, 0xaa, 0xbb,
+  COMPARE_MACRO(Csel(w21, 0xaa, 0xbb, eq),
+                "mov w16, #0xaa\n"
+                "mov w17, #0xbb\n"
+                "csel w21, w16, w17, eq");
+  MacroAssembler::GetCselSynthesisInformation(w21,
+                                              0xaa,
+                                              0xbb,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(synthesises_left && synthesises_right);
 
-  COMPARE_MACRO(Csel(x22,  0xaa, -0xbb, eq), "mov x16, #0xaa\n"
-                                             "mov x17, #0xffffffffffffff45\n"
-                                             "csel x22, x16, x17, eq");
-  MacroAssembler::GetCselSynthesisInformation(x22, 0xaa, -0xbb,
+  COMPARE_MACRO(Csel(x22, 0xaa, -0xbb, eq),
+                "mov x16, #0xaa\n"
+                "mov x17, #0xffffffffffffff45\n"
+                "csel x22, x16, x17, eq");
+  MacroAssembler::GetCselSynthesisInformation(x22,
+                                              0xaa,
+                                              -0xbb,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(synthesises_left && synthesises_right);
 
-  COMPARE_MACRO(Csel(w23,     0,  0xaa, eq), "mov w16, #0xaa\n"
-                                             "csel w23, w16, wzr, ne");
-  MacroAssembler::GetCselSynthesisInformation(w23, 0, 0xaa,
+  COMPARE_MACRO(Csel(w23, 0, 0xaa, eq),
+                "mov w16, #0xaa\n"
+                "csel w23, w16, wzr, ne");
+  MacroAssembler::GetCselSynthesisInformation(w23,
+                                              0,
+                                              0xaa,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && synthesises_right);
 
-  COMPARE_MACRO(Csel(x24, -0xaa,     0, eq), "mov x16, #0xffffffffffffff56\n"
-                                             "csel x24, x16, xzr, eq");
-  MacroAssembler::GetCselSynthesisInformation(x24, -0xaa, 0,
+  COMPARE_MACRO(Csel(x24, -0xaa, 0, eq),
+                "mov x16, #0xffffffffffffff56\n"
+                "csel x24, x16, xzr, eq");
+  MacroAssembler::GetCselSynthesisInformation(x24,
+                                              -0xaa,
+                                              0,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(synthesises_left && !synthesises_right);
 
-  COMPARE_MACRO(Csel(w25,  0xcc, -0xcc, eq), "mov w25, #0xffffff34\n"
-                                             "cneg w25, w25, eq");
-  MacroAssembler::GetCselSynthesisInformation(w25, 0xcc, -0xcc,
+  COMPARE_MACRO(Csel(w25, 0xcc, -0xcc, eq),
+                "mov w25, #0xffffff34\n"
+                "cneg w25, w25, eq");
+  MacroAssembler::GetCselSynthesisInformation(w25,
+                                              0xcc,
+                                              -0xcc,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && synthesises_right);
 
-  COMPARE_MACRO(Csel(x26, -0xcc,  0xcc, eq), "mov x26, #0xcc\n"
-                                             "cneg x26, x26, eq");
-  MacroAssembler::GetCselSynthesisInformation(w25, -0xcc, 0xcc,
+  COMPARE_MACRO(Csel(x26, -0xcc, 0xcc, eq),
+                "mov x26, #0xcc\n"
+                "cneg x26, x26, eq");
+  MacroAssembler::GetCselSynthesisInformation(w25,
+                                              -0xcc,
+                                              0xcc,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && synthesises_right);
 
   // Test with `Operand` inputs.
-  COMPARE_MACRO(Csel(x0, x1, Operand(x2, LSL, 3), eq), "lsl x16, x2, #3\n"
-                                                       "csel x0, x1, x16, eq");
-  MacroAssembler::GetCselSynthesisInformation(x0, x1,  Operand(x2, LSL, 3),
+  COMPARE_MACRO(Csel(x0, x1, Operand(x2, LSL, 3), eq),
+                "lsl x16, x2, #3\n"
+                "csel x0, x1, x16, eq");
+  MacroAssembler::GetCselSynthesisInformation(x0,
+                                              x1,
+                                              Operand(x2, LSL, 3),
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && synthesises_right);
 
-  COMPARE_MACRO(Csel(x3, x4, Operand(x5, SXTH), eq), "sxth x16, w5\n"
-                                                     "csel x3, x4, x16, eq");
-  MacroAssembler::GetCselSynthesisInformation(x3, x4,  Operand(x5, SXTH),
+  COMPARE_MACRO(Csel(x3, x4, Operand(x5, SXTH), eq),
+                "sxth x16, w5\n"
+                "csel x3, x4, x16, eq");
+  MacroAssembler::GetCselSynthesisInformation(x3,
+                                              x4,
+                                              Operand(x5, SXTH),
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && synthesises_right);
 
-  COMPARE_MACRO(Csel(x6, Operand(x7, LSL, 7), x8, eq), "lsl x16, x7, #7\n"
-                                                       "csel x6, x16, x8, eq");
-  MacroAssembler::GetCselSynthesisInformation(x6, Operand(x7, LSL, 7), x8,
+  COMPARE_MACRO(Csel(x6, Operand(x7, LSL, 7), x8, eq),
+                "lsl x16, x7, #7\n"
+                "csel x6, x16, x8, eq");
+  MacroAssembler::GetCselSynthesisInformation(x6,
+                                              Operand(x7, LSL, 7),
+                                              x8,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(synthesises_left && !synthesises_right);
 
-  COMPARE_MACRO(Csel(x9, Operand(x10, SXTH), x11, eq), "sxth x16, w10\n"
-                                                       "csel x9, x16, x11, eq");
-  MacroAssembler::GetCselSynthesisInformation(x9, Operand(x10, SXTH), x11,
+  COMPARE_MACRO(Csel(x9, Operand(x10, SXTH), x11, eq),
+                "sxth x16, w10\n"
+                "csel x9, x16, x11, eq");
+  MacroAssembler::GetCselSynthesisInformation(x9,
+                                              Operand(x10, SXTH),
+                                              x11,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(synthesises_left && !synthesises_right);
@@ -2404,38 +2413,50 @@ TEST(cond_select_macro) {
   COMPARE_MACRO(Csel(x15, 0, Operand(x18, LSR, 18), eq),
                 "lsr x16, x18, #18\n"
                 "csel x15, x16, xzr, ne");
-  MacroAssembler::GetCselSynthesisInformation(x15, 0, Operand(x18, LSR, 18),
+  MacroAssembler::GetCselSynthesisInformation(x15,
+                                              0,
+                                              Operand(x18, LSR, 18),
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && synthesises_right);
 
   // Test with the zero register.
   COMPARE_MACRO(Csel(w19, wzr, wzr, eq), "mov w19, #0x0");
-  MacroAssembler::GetCselSynthesisInformation(w19, wzr, wzr,
+  MacroAssembler::GetCselSynthesisInformation(w19,
+                                              wzr,
+                                              wzr,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
   COMPARE_MACRO(Csel(x20, x21, xzr, eq), "csel x20, x21, xzr, eq");
-  MacroAssembler::GetCselSynthesisInformation(x20, x21, xzr,
+  MacroAssembler::GetCselSynthesisInformation(x20,
+                                              x21,
+                                              xzr,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
   COMPARE_MACRO(Csel(w22, wzr, w23, eq), "csel w22, w23, wzr, ne");
-  MacroAssembler::GetCselSynthesisInformation(w22, wzr, w23,
+  MacroAssembler::GetCselSynthesisInformation(w22,
+                                              wzr,
+                                              w23,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
   COMPARE_MACRO(Csel(x24, xzr, 0, eq), "mov x24, #0x0");
-  MacroAssembler::GetCselSynthesisInformation(x24, xzr, 0,
+  MacroAssembler::GetCselSynthesisInformation(x24,
+                                              xzr,
+                                              0,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
 
   COMPARE_MACRO(Csel(w25, wzr, 1, eq), "cset w25, ne");
-  MacroAssembler::GetCselSynthesisInformation(w25, wzr, 1,
+  MacroAssembler::GetCselSynthesisInformation(w25,
+                                              wzr,
+                                              1,
                                               &synthesises_left,
                                               &synthesises_right);
   VIXL_CHECK(!synthesises_left && !synthesises_right);
@@ -2688,14 +2709,14 @@ TEST(fcvt_scvtf_ucvtf) {
   COMPARE(fcvtzu(w18, s19), "fcvtzu w18, s19");
   COMPARE(fcvtzs(x20, s21), "fcvtzs x20, s21");
   COMPARE(fcvtzs(w22, s23), "fcvtzs w22, s23");
-  COMPARE(fcvtzs(w2, d1, 1),  "fcvtzs w2, d1, #1");
-  COMPARE(fcvtzs(w2, s1, 1),  "fcvtzs w2, s1, #1");
+  COMPARE(fcvtzs(w2, d1, 1), "fcvtzs w2, d1, #1");
+  COMPARE(fcvtzs(w2, s1, 1), "fcvtzs w2, s1, #1");
   COMPARE(fcvtzs(x4, d3, 15), "fcvtzs x4, d3, #15");
   COMPARE(fcvtzs(x4, s3, 15), "fcvtzs x4, s3, #15");
   COMPARE(fcvtzs(w6, d5, 32), "fcvtzs w6, d5, #32");
   COMPARE(fcvtzs(w6, s5, 32), "fcvtzs w6, s5, #32");
-  COMPARE(fcvtzu(w2, d1, 1),  "fcvtzu w2, d1, #1");
-  COMPARE(fcvtzu(w2, s1, 1),  "fcvtzu w2, s1, #1");
+  COMPARE(fcvtzu(w2, d1, 1), "fcvtzu w2, d1, #1");
+  COMPARE(fcvtzu(w2, s1, 1), "fcvtzu w2, s1, #1");
   COMPARE(fcvtzu(x4, d3, 15), "fcvtzu x4, d3, #15");
   COMPARE(fcvtzu(x4, s3, 15), "fcvtzu x4, s3, #15");
   COMPARE(fcvtzu(w6, d5, 32), "fcvtzu w6, d5, #32");
@@ -3036,132 +3057,143 @@ TEST(barriers) {
 
 
 #define VLIST2(v) \
-            v, VRegister((v.GetCode()+1)%32, v.GetSizeInBits(), v.GetLanes())
-#define VLIST3(v) VLIST2(v), \
-                  VRegister((v.GetCode()+2)%32, v.GetSizeInBits(), v.GetLanes())
-#define VLIST4(v) VLIST3(v), \
-                  VRegister((v.GetCode()+3)%32, v.GetSizeInBits(), v.GetLanes())
+  v, VRegister((v.GetCode() + 1) % 32, v.GetSizeInBits(), v.GetLanes())
+#define VLIST3(v) \
+  VLIST2(v), VRegister((v.GetCode() + 2) % 32, v.GetSizeInBits(), v.GetLanes())
+#define VLIST4(v) \
+  VLIST3(v), VRegister((v.GetCode() + 3) % 32, v.GetSizeInBits(), v.GetLanes())
 
 
-#define NEON_FORMAT_LIST(V)       \
-  V(V8B(), "8b")                  \
-  V(V16B(), "16b")                \
-  V(V4H(), "4h")                  \
-  V(V8H(), "8h")                  \
-  V(V2S(), "2s")                  \
-  V(V4S(), "4s")                  \
+#define NEON_FORMAT_LIST(V) \
+  V(V8B(), "8b")            \
+  V(V16B(), "16b")          \
+  V(V4H(), "4h")            \
+  V(V8H(), "8h")            \
+  V(V2S(), "2s")            \
+  V(V4S(), "4s")            \
   V(V2D(), "2d")
 
-#define NEON_FORMAT_LIST_LP(V)    \
-  V(V4H(), "4h", V8B(), "8b")     \
-  V(V2S(), "2s", V4H(), "4h")     \
-  V(V1D(), "1d", V2S(), "2s")     \
-  V(V8H(), "8h", V16B(), "16b")   \
-  V(V4S(), "4s", V8H(), "8h")     \
+#define NEON_FORMAT_LIST_LP(V)  \
+  V(V4H(), "4h", V8B(), "8b")   \
+  V(V2S(), "2s", V4H(), "4h")   \
+  V(V1D(), "1d", V2S(), "2s")   \
+  V(V8H(), "8h", V16B(), "16b") \
+  V(V4S(), "4s", V8H(), "8h")   \
   V(V2D(), "2d", V4S(), "4s")
 
-#define NEON_FORMAT_LIST_LW(V)    \
-  V(V8H(), "8h", V8B(), "8b")     \
-  V(V4S(), "4s", V4H(), "4h")     \
+#define NEON_FORMAT_LIST_LW(V) \
+  V(V8H(), "8h", V8B(), "8b")  \
+  V(V4S(), "4s", V4H(), "4h")  \
   V(V2D(), "2d", V2S(), "2s")
 
-#define NEON_FORMAT_LIST_LW2(V)   \
-  V(V8H(), "8h", V16B(), "16b")   \
-  V(V4S(), "4s", V8H(), "8h")     \
+#define NEON_FORMAT_LIST_LW2(V) \
+  V(V8H(), "8h", V16B(), "16b") \
+  V(V4S(), "4s", V8H(), "8h")   \
   V(V2D(), "2d", V4S(), "4s")
 
-#define NEON_FORMAT_LIST_BHS(V)   \
-  V(V8B(), "8b")                  \
-  V(V16B(), "16b")                \
-  V(V4H(), "4h")                  \
-  V(V8H(), "8h")                  \
-  V(V2S(), "2s")                  \
+#define NEON_FORMAT_LIST_BHS(V) \
+  V(V8B(), "8b")                \
+  V(V16B(), "16b")              \
+  V(V4H(), "4h")                \
+  V(V8H(), "8h")                \
+  V(V2S(), "2s")                \
   V(V4S(), "4s")
 
-#define NEON_FORMAT_LIST_HS(V)    \
-  V(V4H(), "4h")                  \
-  V(V8H(), "8h")                  \
-  V(V2S(), "2s")                  \
+#define NEON_FORMAT_LIST_HS(V) \
+  V(V4H(), "4h")               \
+  V(V8H(), "8h")               \
+  V(V2S(), "2s")               \
   V(V4S(), "4s")
 
 TEST(neon_load_store_vector) {
   SETUP_MACRO();
 
-  #define DISASM_INST(M, S)                                       \
-  COMPARE(Ld1(v0.M, MemOperand(x15)),                             \
-      "ld1 {v0." S "}, [x15]");                                   \
+#define DISASM_INST(M, S)                                         \
+  COMPARE(Ld1(v0.M, MemOperand(x15)), "ld1 {v0." S "}, [x15]");   \
   COMPARE(Ld1(v1.M, v2.M, MemOperand(x16)),                       \
-      "ld1 {v1." S ", v2." S "}, [x16]");                         \
+          "ld1 {v1." S ", v2." S "}, [x16]");                     \
   COMPARE(Ld1(v3.M, v4.M, v5.M, MemOperand(x17)),                 \
-      "ld1 {v3." S ", v4." S ", v5." S "}, [x17]");               \
+          "ld1 {v3." S ", v4." S ", v5." S "}, [x17]");           \
   COMPARE(Ld1(v6.M, v7.M, v8.M, v9.M, MemOperand(x18)),           \
-      "ld1 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18]")      \
+          "ld1 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18]")  \
   COMPARE(Ld1(v30.M, v31.M, v0.M, v1.M, MemOperand(sp)),          \
-      "ld1 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp]")     \
+          "ld1 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp]") \
   COMPARE(Ld2(v1.M, v2.M, MemOperand(x16)),                       \
-      "ld2 {v1." S ", v2." S "}, [x16]");                         \
+          "ld2 {v1." S ", v2." S "}, [x16]");                     \
   COMPARE(Ld3(v3.M, v4.M, v5.M, MemOperand(x17)),                 \
-      "ld3 {v3." S ", v4." S ", v5." S "}, [x17]");               \
+          "ld3 {v3." S ", v4." S ", v5." S "}, [x17]");           \
   COMPARE(Ld4(v6.M, v7.M, v8.M, v9.M, MemOperand(x18)),           \
-      "ld4 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18]")      \
+          "ld4 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18]")  \
   COMPARE(Ld4(v30.M, v31.M, v0.M, v1.M, MemOperand(sp)),          \
-      "ld4 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp]")     \
+          "ld4 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp]") \
   NEON_FORMAT_LIST(DISASM_INST);
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)                                               \
-  COMPARE(Ld1(v0.M, MemOperand(x15, x20, PostIndex)),                     \
-      "ld1 {v0." S "}, [x15], x20");                                      \
-  COMPARE(Ld1(v1.M, v2.M, MemOperand(x16, x21, PostIndex)),               \
-      "ld1 {v1." S ", v2." S "}, [x16], x21");                            \
-  COMPARE(Ld1(v3.M, v4.M, v5.M, MemOperand(x17, x22, PostIndex)),         \
-      "ld1 {v3." S ", v4." S ", v5." S "}, [x17], x22");                  \
-  COMPARE(Ld1(v6.M, v7.M, v8.M, v9.M, MemOperand(x18, x23, PostIndex)),   \
-      "ld1 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18], x23")         \
-  COMPARE(Ld1(v30.M, v31.M, v0.M, v1.M, MemOperand(sp, x24, PostIndex)),  \
-      "ld1 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp], x24")        \
-  COMPARE(Ld2(v1.M, v2.M, MemOperand(x16, x21, PostIndex)),               \
-      "ld2 {v1." S ", v2." S "}, [x16], x21");                            \
-  COMPARE(Ld3(v3.M, v4.M, v5.M, MemOperand(x17, x22, PostIndex)),         \
-      "ld3 {v3." S ", v4." S ", v5." S "}, [x17], x22");                  \
-  COMPARE(Ld4(v6.M, v7.M, v8.M, v9.M, MemOperand(x18, x23, PostIndex)),   \
-      "ld4 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18], x23")         \
-  COMPARE(Ld4(v30.M, v31.M, v0.M, v1.M, MemOperand(sp, x24, PostIndex)),  \
-      "ld4 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp], x24")        \
+#define DISASM_INST(M, S)                                                \
+  COMPARE(Ld1(v0.M, MemOperand(x15, x20, PostIndex)),                    \
+          "ld1 {v0." S "}, [x15], x20");                                 \
+  COMPARE(Ld1(v1.M, v2.M, MemOperand(x16, x21, PostIndex)),              \
+          "ld1 {v1." S ", v2." S "}, [x16], x21");                       \
+  COMPARE(Ld1(v3.M, v4.M, v5.M, MemOperand(x17, x22, PostIndex)),        \
+          "ld1 {v3." S ", v4." S ", v5." S "}, [x17], x22");             \
+  COMPARE(Ld1(v6.M, v7.M, v8.M, v9.M, MemOperand(x18, x23, PostIndex)),  \
+          "ld1 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18], x23")    \
+  COMPARE(Ld1(v30.M, v31.M, v0.M, v1.M, MemOperand(sp, x24, PostIndex)), \
+          "ld1 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp], x24")   \
+  COMPARE(Ld2(v1.M, v2.M, MemOperand(x16, x21, PostIndex)),              \
+          "ld2 {v1." S ", v2." S "}, [x16], x21");                       \
+  COMPARE(Ld3(v3.M, v4.M, v5.M, MemOperand(x17, x22, PostIndex)),        \
+          "ld3 {v3." S ", v4." S ", v5." S "}, [x17], x22");             \
+  COMPARE(Ld4(v6.M, v7.M, v8.M, v9.M, MemOperand(x18, x23, PostIndex)),  \
+          "ld4 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18], x23")    \
+  COMPARE(Ld4(v30.M, v31.M, v0.M, v1.M, MemOperand(sp, x24, PostIndex)), \
+          "ld4 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp], x24")   \
   NEON_FORMAT_LIST(DISASM_INST);
-  #undef DISASM_INST
+#undef DISASM_INST
 
   COMPARE(Ld1(v0.V8B(), MemOperand(x15, 8, PostIndex)),
-      "ld1 {v0.8b}, [x15], #8");
+          "ld1 {v0.8b}, [x15], #8");
   COMPARE(Ld1(v1.V16B(), MemOperand(x16, 16, PostIndex)),
-      "ld1 {v1.16b}, [x16], #16");
+          "ld1 {v1.16b}, [x16], #16");
   COMPARE(Ld1(v2.V4H(), v3.V4H(), MemOperand(x17, 16, PostIndex)),
-      "ld1 {v2.4h, v3.4h}, [x17], #16");
+          "ld1 {v2.4h, v3.4h}, [x17], #16");
   COMPARE(Ld1(v4.V8H(), v5.V8H(), MemOperand(x18, 32, PostIndex)),
-      "ld1 {v4.8h, v5.8h}, [x18], #32");
+          "ld1 {v4.8h, v5.8h}, [x18], #32");
   COMPARE(Ld1(v16.V2S(), v17.V2S(), v18.V2S(), MemOperand(x19, 24, PostIndex)),
-      "ld1 {v16.2s, v17.2s, v18.2s}, [x19], #24");
+          "ld1 {v16.2s, v17.2s, v18.2s}, [x19], #24");
   COMPARE(Ld1(v16.V4S(), v17.V4S(), v18.V4S(), MemOperand(x19, 48, PostIndex)),
-      "ld1 {v16.4s, v17.4s, v18.4s}, [x19], #48");
-  COMPARE(Ld1(v19.V2S(), v20.V2S(), v21.V2S(), v22.V2S(),
+          "ld1 {v16.4s, v17.4s, v18.4s}, [x19], #48");
+  COMPARE(Ld1(v19.V2S(),
+              v20.V2S(),
+              v21.V2S(),
+              v22.V2S(),
               MemOperand(x20, 32, PostIndex)),
           "ld1 {v19.2s, v20.2s, v21.2s, v22.2s}, [x20], #32");
-  COMPARE(Ld1(v23.V2D(), v24.V2D(), v25.V2D(), v26.V2D(),
+  COMPARE(Ld1(v23.V2D(),
+              v24.V2D(),
+              v25.V2D(),
+              v26.V2D(),
               MemOperand(x21, 64, PostIndex)),
           "ld1 {v23.2d, v24.2d, v25.2d, v26.2d}, [x21], #64");
 
   COMPARE(Ld2(v2.V4H(), v3.V4H(), MemOperand(x17, 16, PostIndex)),
-      "ld2 {v2.4h, v3.4h}, [x17], #16");
+          "ld2 {v2.4h, v3.4h}, [x17], #16");
   COMPARE(Ld2(v4.V8H(), v5.V8H(), MemOperand(x18, 32, PostIndex)),
-      "ld2 {v4.8h, v5.8h}, [x18], #32");
+          "ld2 {v4.8h, v5.8h}, [x18], #32");
   COMPARE(Ld3(v16.V2S(), v17.V2S(), v18.V2S(), MemOperand(x19, 24, PostIndex)),
-      "ld3 {v16.2s, v17.2s, v18.2s}, [x19], #24");
+          "ld3 {v16.2s, v17.2s, v18.2s}, [x19], #24");
   COMPARE(Ld3(v16.V4S(), v17.V4S(), v18.V4S(), MemOperand(x19, 48, PostIndex)),
-      "ld3 {v16.4s, v17.4s, v18.4s}, [x19], #48");
-  COMPARE(Ld4(v19.V2S(), v20.V2S(), v21.V2S(), v22.V2S(),
+          "ld3 {v16.4s, v17.4s, v18.4s}, [x19], #48");
+  COMPARE(Ld4(v19.V2S(),
+              v20.V2S(),
+              v21.V2S(),
+              v22.V2S(),
               MemOperand(x20, 32, PostIndex)),
           "ld4 {v19.2s, v20.2s, v21.2s, v22.2s}, [x20], #32");
-  COMPARE(Ld4(v23.V2D(), v24.V2D(), v25.V2D(), v26.V2D(),
+  COMPARE(Ld4(v23.V2D(),
+              v24.V2D(),
+              v25.V2D(),
+              v26.V2D(),
               MemOperand(x21, 64, PostIndex)),
           "ld4 {v23.2d, v24.2d, v25.2d, v26.2d}, [x21], #64");
 
@@ -3170,70 +3202,78 @@ TEST(neon_load_store_vector) {
           "ld1 {v1.1d, v2.1d}, [x17], #16");
   COMPARE(Ld1(v3.V1D(), v4.V1D(), v5.V1D(), MemOperand(x18, x19, PostIndex)),
           "ld1 {v3.1d, v4.1d, v5.1d}, [x18], x19");
-  COMPARE(Ld1(v30.V1D(), v31.V1D(), v0.V1D(), v1.V1D(),
+  COMPARE(Ld1(v30.V1D(),
+              v31.V1D(),
+              v0.V1D(),
+              v1.V1D(),
               MemOperand(x20, 32, PostIndex)),
           "ld1 {v30.1d, v31.1d, v0.1d, v1.1d}, [x20], #32");
   COMPARE(Ld1(d30, d31, d0, d1, MemOperand(x21, x22, PostIndex)),
           "ld1 {v30.1d, v31.1d, v0.1d, v1.1d}, [x21], x22");
 
-  #define DISASM_INST(M, S)                                       \
-  COMPARE(St1(v20.M, MemOperand(x15)),                            \
-      "st1 {v20." S "}, [x15]");                                  \
-  COMPARE(St1(v21.M, v22.M, MemOperand(x16)),                     \
-      "st1 {v21." S ", v22." S "}, [x16]");                       \
-  COMPARE(St1(v23.M, v24.M, v25.M, MemOperand(x17)),              \
-      "st1 {v23." S ", v24." S ", v25." S "}, [x17]");            \
-  COMPARE(St1(v26.M, v27.M, v28.M, v29.M, MemOperand(x18)),       \
-      "st1 {v26." S ", v27." S ", v28." S ", v29." S "}, [x18]")  \
-  COMPARE(St1(v30.M, v31.M, v0.M, v1.M, MemOperand(sp)),          \
-      "st1 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp]")     \
-  COMPARE(St2(VLIST2(v21.M), MemOperand(x16)),                     \
-      "st2 {v21." S ", v22." S "}, [x16]");                       \
-  COMPARE(St3(v23.M, v24.M, v25.M, MemOperand(x17)),              \
-      "st3 {v23." S ", v24." S ", v25." S "}, [x17]");            \
-  COMPARE(St4(v30.M, v31.M, v0.M, v1.M, MemOperand(sp)),          \
-      "st4 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp]")
+#define DISASM_INST(M, S)                                            \
+  COMPARE(St1(v20.M, MemOperand(x15)), "st1 {v20." S "}, [x15]");    \
+  COMPARE(St1(v21.M, v22.M, MemOperand(x16)),                        \
+          "st1 {v21." S ", v22." S "}, [x16]");                      \
+  COMPARE(St1(v23.M, v24.M, v25.M, MemOperand(x17)),                 \
+          "st1 {v23." S ", v24." S ", v25." S "}, [x17]");           \
+  COMPARE(St1(v26.M, v27.M, v28.M, v29.M, MemOperand(x18)),          \
+          "st1 {v26." S ", v27." S ", v28." S ", v29." S "}, [x18]") \
+  COMPARE(St1(v30.M, v31.M, v0.M, v1.M, MemOperand(sp)),             \
+          "st1 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp]")    \
+  COMPARE(St2(VLIST2(v21.M), MemOperand(x16)),                       \
+          "st2 {v21." S ", v22." S "}, [x16]");                      \
+  COMPARE(St3(v23.M, v24.M, v25.M, MemOperand(x17)),                 \
+          "st3 {v23." S ", v24." S ", v25." S "}, [x17]");           \
+  COMPARE(St4(v30.M, v31.M, v0.M, v1.M, MemOperand(sp)),             \
+          "st4 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp]")
   NEON_FORMAT_LIST(DISASM_INST);
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)                                               \
-  COMPARE(St1(v0.M, MemOperand(x15, x20, PostIndex)),                     \
-      "st1 {v0." S "}, [x15], x20");                                      \
-  COMPARE(St1(v1.M, v2.M, MemOperand(x16, x21, PostIndex)),               \
-      "st1 {v1." S ", v2." S "}, [x16], x21");                            \
-  COMPARE(St1(v3.M, v4.M, v5.M, MemOperand(x17, x22, PostIndex)),         \
-      "st1 {v3." S ", v4." S ", v5." S "}, [x17], x22");                  \
-  COMPARE(St1(v6.M, v7.M, v8.M, v9.M, MemOperand(x18, x23, PostIndex)),   \
-      "st1 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18], x23")         \
-  COMPARE(St1(v30.M, v31.M, v0.M, v1.M, MemOperand(sp, x24, PostIndex)),  \
-      "st1 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp], x24")        \
-  COMPARE(St2(v1.M, v2.M, MemOperand(x16, x21, PostIndex)),               \
-      "st2 {v1." S ", v2." S "}, [x16], x21");                            \
-  COMPARE(St3(v3.M, v4.M, v5.M, MemOperand(x17, x22, PostIndex)),         \
-      "st3 {v3." S ", v4." S ", v5." S "}, [x17], x22");                  \
-  COMPARE(St4(v6.M, v7.M, v8.M, v9.M, MemOperand(x18, x23, PostIndex)),   \
-      "st4 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18], x23")         \
-  COMPARE(St4(v30.M, v31.M, v0.M, v1.M, MemOperand(sp, x24, PostIndex)),  \
-      "st4 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp], x24")
+#define DISASM_INST(M, S)                                                \
+  COMPARE(St1(v0.M, MemOperand(x15, x20, PostIndex)),                    \
+          "st1 {v0." S "}, [x15], x20");                                 \
+  COMPARE(St1(v1.M, v2.M, MemOperand(x16, x21, PostIndex)),              \
+          "st1 {v1." S ", v2." S "}, [x16], x21");                       \
+  COMPARE(St1(v3.M, v4.M, v5.M, MemOperand(x17, x22, PostIndex)),        \
+          "st1 {v3." S ", v4." S ", v5." S "}, [x17], x22");             \
+  COMPARE(St1(v6.M, v7.M, v8.M, v9.M, MemOperand(x18, x23, PostIndex)),  \
+          "st1 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18], x23")    \
+  COMPARE(St1(v30.M, v31.M, v0.M, v1.M, MemOperand(sp, x24, PostIndex)), \
+          "st1 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp], x24")   \
+  COMPARE(St2(v1.M, v2.M, MemOperand(x16, x21, PostIndex)),              \
+          "st2 {v1." S ", v2." S "}, [x16], x21");                       \
+  COMPARE(St3(v3.M, v4.M, v5.M, MemOperand(x17, x22, PostIndex)),        \
+          "st3 {v3." S ", v4." S ", v5." S "}, [x17], x22");             \
+  COMPARE(St4(v6.M, v7.M, v8.M, v9.M, MemOperand(x18, x23, PostIndex)),  \
+          "st4 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18], x23")    \
+  COMPARE(St4(v30.M, v31.M, v0.M, v1.M, MemOperand(sp, x24, PostIndex)), \
+          "st4 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp], x24")
   NEON_FORMAT_LIST(DISASM_INST);
-  #undef DISASM_INST
+#undef DISASM_INST
 
   COMPARE(St1(v0.V8B(), MemOperand(x15, 8, PostIndex)),
-      "st1 {v0.8b}, [x15], #8");
+          "st1 {v0.8b}, [x15], #8");
   COMPARE(St1(v1.V16B(), MemOperand(x16, 16, PostIndex)),
-      "st1 {v1.16b}, [x16], #16");
+          "st1 {v1.16b}, [x16], #16");
   COMPARE(St1(v2.V4H(), v3.V4H(), MemOperand(x17, 16, PostIndex)),
-      "st1 {v2.4h, v3.4h}, [x17], #16");
+          "st1 {v2.4h, v3.4h}, [x17], #16");
   COMPARE(St1(v4.V8H(), v5.V8H(), MemOperand(x18, 32, PostIndex)),
-      "st1 {v4.8h, v5.8h}, [x18], #32");
+          "st1 {v4.8h, v5.8h}, [x18], #32");
   COMPARE(St1(v16.V2S(), v17.V2S(), v18.V2S(), MemOperand(x19, 24, PostIndex)),
-      "st1 {v16.2s, v17.2s, v18.2s}, [x19], #24");
+          "st1 {v16.2s, v17.2s, v18.2s}, [x19], #24");
   COMPARE(St1(v16.V4S(), v17.V4S(), v18.V4S(), MemOperand(x19, 48, PostIndex)),
-      "st1 {v16.4s, v17.4s, v18.4s}, [x19], #48");
-  COMPARE(St1(v19.V2S(), v20.V2S(), v21.V2S(), v22.V2S(),
+          "st1 {v16.4s, v17.4s, v18.4s}, [x19], #48");
+  COMPARE(St1(v19.V2S(),
+              v20.V2S(),
+              v21.V2S(),
+              v22.V2S(),
               MemOperand(x20, 32, PostIndex)),
           "st1 {v19.2s, v20.2s, v21.2s, v22.2s}, [x20], #32");
-  COMPARE(St1(v23.V2D(), v24.V2D(), v25.V2D(), v26.V2D(),
+  COMPARE(St1(v23.V2D(),
+              v24.V2D(),
+              v25.V2D(),
+              v26.V2D(),
               MemOperand(x21, 64, PostIndex)),
           "st1 {v23.2d, v24.2d, v25.2d, v26.2d}, [x21], #64");
   COMPARE(St2(v1.V16B(), v2.V16B(), MemOperand(x16, 32, PostIndex)),
@@ -3242,16 +3282,20 @@ TEST(neon_load_store_vector) {
           "st2 {v2.4h, v3.4h}, [x17], #16");
   COMPARE(St2(v4.V8H(), v5.V8H(), MemOperand(x18, 32, PostIndex)),
           "st2 {v4.8h, v5.8h}, [x18], #32");
-  COMPARE(St3(v16.V2S(), v17.V2S(), v18.V2S(),
-              MemOperand(x19, 24, PostIndex)),
+  COMPARE(St3(v16.V2S(), v17.V2S(), v18.V2S(), MemOperand(x19, 24, PostIndex)),
           "st3 {v16.2s, v17.2s, v18.2s}, [x19], #24");
-  COMPARE(St3(v16.V4S(), v17.V4S(), v18.V4S(),
-              MemOperand(x19, 48, PostIndex)),
+  COMPARE(St3(v16.V4S(), v17.V4S(), v18.V4S(), MemOperand(x19, 48, PostIndex)),
           "st3 {v16.4s, v17.4s, v18.4s}, [x19], #48");
-  COMPARE(St4(v19.V2S(), v20.V2S(), v21.V2S(), v22.V2S(),
+  COMPARE(St4(v19.V2S(),
+              v20.V2S(),
+              v21.V2S(),
+              v22.V2S(),
               MemOperand(x20, 32, PostIndex)),
           "st4 {v19.2s, v20.2s, v21.2s, v22.2s}, [x20], #32");
-  COMPARE(St4(v23.V2D(), v24.V2D(), v25.V2D(), v26.V2D(),
+  COMPARE(St4(v23.V2D(),
+              v24.V2D(),
+              v25.V2D(),
+              v26.V2D(),
               MemOperand(x21, 64, PostIndex)),
           "st4 {v23.2d, v24.2d, v25.2d, v26.2d}, [x21], #64");
 
@@ -3260,7 +3304,10 @@ TEST(neon_load_store_vector) {
           "st1 {v1.1d, v2.1d}, [x17], #16");
   COMPARE(St1(v3.V1D(), v4.V1D(), v5.V1D(), MemOperand(x18, x19, PostIndex)),
           "st1 {v3.1d, v4.1d, v5.1d}, [x18], x19");
-  COMPARE(St1(v30.V1D(), v31.V1D(), v0.V1D(), v1.V1D(),
+  COMPARE(St1(v30.V1D(),
+              v31.V1D(),
+              v0.V1D(),
+              v1.V1D(),
               MemOperand(x20, 32, PostIndex)),
           "st1 {v30.1d, v31.1d, v0.1d, v1.1d}, [x20], #32");
   COMPARE(St1(d30, d31, d0, d1, MemOperand(x21, x22, PostIndex)),
@@ -3386,237 +3433,275 @@ TEST(neon_load_store_lane) {
   COMPARE(Ld1(v13.D(), 1, MemOperand(sp, 8, PostIndex)),
           "ld1 {v13.d}[1], [sp], #8");
 
-  COMPARE(Ld2(v0.V8B(),  v1.V8B(),  0, MemOperand(x15)),
-      "ld2 {v0.b, v1.b}[0], [x15]");
+  COMPARE(Ld2(v0.V8B(), v1.V8B(), 0, MemOperand(x15)),
+          "ld2 {v0.b, v1.b}[0], [x15]");
   COMPARE(Ld2(v1.V16B(), v2.V16B(), 1, MemOperand(x16)),
-      "ld2 {v1.b, v2.b}[1], [x16]");
-  COMPARE(Ld2(v2.V4H(),  v3.V4H(),  2, MemOperand(x17)),
-      "ld2 {v2.h, v3.h}[2], [x17]");
-  COMPARE(Ld2(v3.V8H(),  v4.V8H(),  3, MemOperand(x18)),
-      "ld2 {v3.h, v4.h}[3], [x18]");
-  COMPARE(Ld2(v4.V2S(),  v5.V2S(),  0, MemOperand(x19)),
-      "ld2 {v4.s, v5.s}[0], [x19]");
-  COMPARE(Ld2(v5.V4S(),  v6.V4S(),  1, MemOperand(x20)),
-      "ld2 {v5.s, v6.s}[1], [x20]");
-  COMPARE(Ld2(v6.V2D(),  v7.V2D(),  0, MemOperand(x21)),
-      "ld2 {v6.d, v7.d}[0], [x21]");
-  COMPARE(Ld2(v7.B(),    v8.B(),    7, MemOperand(x22)),
-      "ld2 {v7.b, v8.b}[7], [x22]");
-  COMPARE(Ld2(v8.B(),    v9.B(),   15, MemOperand(x23)),
-      "ld2 {v8.b, v9.b}[15], [x23]");
-  COMPARE(Ld2(v9.H(),    v10.H(),   3, MemOperand(x24)),
-      "ld2 {v9.h, v10.h}[3], [x24]");
-  COMPARE(Ld2(v10.H(),   v11.H(),   7, MemOperand(x25)),
-      "ld2 {v10.h, v11.h}[7], [x25]");
-  COMPARE(Ld2(v11.S(),   v12.S(),   1, MemOperand(x26)),
-      "ld2 {v11.s, v12.s}[1], [x26]");
-  COMPARE(Ld2(v12.S(),   v13.S(),   3, MemOperand(x27)),
-      "ld2 {v12.s, v13.s}[3], [x27]");
-  COMPARE(Ld2(v13.D(),   v14.D(),   1, MemOperand(sp)),
-      "ld2 {v13.d, v14.d}[1], [sp]");
+          "ld2 {v1.b, v2.b}[1], [x16]");
+  COMPARE(Ld2(v2.V4H(), v3.V4H(), 2, MemOperand(x17)),
+          "ld2 {v2.h, v3.h}[2], [x17]");
+  COMPARE(Ld2(v3.V8H(), v4.V8H(), 3, MemOperand(x18)),
+          "ld2 {v3.h, v4.h}[3], [x18]");
+  COMPARE(Ld2(v4.V2S(), v5.V2S(), 0, MemOperand(x19)),
+          "ld2 {v4.s, v5.s}[0], [x19]");
+  COMPARE(Ld2(v5.V4S(), v6.V4S(), 1, MemOperand(x20)),
+          "ld2 {v5.s, v6.s}[1], [x20]");
+  COMPARE(Ld2(v6.V2D(), v7.V2D(), 0, MemOperand(x21)),
+          "ld2 {v6.d, v7.d}[0], [x21]");
+  COMPARE(Ld2(v7.B(), v8.B(), 7, MemOperand(x22)),
+          "ld2 {v7.b, v8.b}[7], [x22]");
+  COMPARE(Ld2(v8.B(), v9.B(), 15, MemOperand(x23)),
+          "ld2 {v8.b, v9.b}[15], [x23]");
+  COMPARE(Ld2(v9.H(), v10.H(), 3, MemOperand(x24)),
+          "ld2 {v9.h, v10.h}[3], [x24]");
+  COMPARE(Ld2(v10.H(), v11.H(), 7, MemOperand(x25)),
+          "ld2 {v10.h, v11.h}[7], [x25]");
+  COMPARE(Ld2(v11.S(), v12.S(), 1, MemOperand(x26)),
+          "ld2 {v11.s, v12.s}[1], [x26]");
+  COMPARE(Ld2(v12.S(), v13.S(), 3, MemOperand(x27)),
+          "ld2 {v12.s, v13.s}[3], [x27]");
+  COMPARE(Ld2(v13.D(), v14.D(), 1, MemOperand(sp)),
+          "ld2 {v13.d, v14.d}[1], [sp]");
 
-  COMPARE(Ld2(v0.V8B(), v1.V8B(),  0, MemOperand(x15, x0, PostIndex)),
-      "ld2 {v0.b, v1.b}[0], [x15], x0");
+  COMPARE(Ld2(v0.V8B(), v1.V8B(), 0, MemOperand(x15, x0, PostIndex)),
+          "ld2 {v0.b, v1.b}[0], [x15], x0");
   COMPARE(Ld2(v1.V16B(), v2.V16B(), 1, MemOperand(x16, 2, PostIndex)),
-      "ld2 {v1.b, v2.b}[1], [x16], #2");
-  COMPARE(Ld2(v2.V4H(), v3.V4H(),  2, MemOperand(x17, 4, PostIndex)),
-      "ld2 {v2.h, v3.h}[2], [x17], #4");
-  COMPARE(Ld2(v3.V8H(), v4.V8H(),  3, MemOperand(x18, x1, PostIndex)),
-      "ld2 {v3.h, v4.h}[3], [x18], x1");
-  COMPARE(Ld2(v4.V2S(), v5.V2S(),  0, MemOperand(x19, x2, PostIndex)),
-      "ld2 {v4.s, v5.s}[0], [x19], x2");
-  COMPARE(Ld2(v5.V4S(), v6.V4S(),  1, MemOperand(x20, 8, PostIndex)),
-      "ld2 {v5.s, v6.s}[1], [x20], #8");
-  COMPARE(Ld2(v6.V2D(), v7.V2D(),  0, MemOperand(x21, 16, PostIndex)),
-      "ld2 {v6.d, v7.d}[0], [x21], #16");
-  COMPARE(Ld2(v7.B(),   v8.B(),    7, MemOperand(x22, 2, PostIndex)),
-      "ld2 {v7.b, v8.b}[7], [x22], #2");
-  COMPARE(Ld2(v8.B(),   v9.B(),   15, MemOperand(x23, x3, PostIndex)),
-      "ld2 {v8.b, v9.b}[15], [x23], x3");
-  COMPARE(Ld2(v9.H(),   v10.H(),   3, MemOperand(x24, x4, PostIndex)),
-      "ld2 {v9.h, v10.h}[3], [x24], x4");
-  COMPARE(Ld2(v10.H(),  v11.H(),   7, MemOperand(x25, 4, PostIndex)),
-      "ld2 {v10.h, v11.h}[7], [x25], #4");
-  COMPARE(Ld2(v11.S(),  v12.S(),   1, MemOperand(x26, 8, PostIndex)),
-      "ld2 {v11.s, v12.s}[1], [x26], #8");
-  COMPARE(Ld2(v12.S(),  v13.S(),   3, MemOperand(x27, x5, PostIndex)),
-      "ld2 {v12.s, v13.s}[3], [x27], x5");
-  COMPARE(Ld2(v11.S(),  v12.S(),   3, MemOperand(x26, 8, PostIndex)),
-      "ld2 {v11.s, v12.s}[3], [x26], #8");
-  COMPARE(Ld2(v13.D(),  v14.D(),   1, MemOperand(sp, x6, PostIndex)),
-      "ld2 {v13.d, v14.d}[1], [sp], x6");
-  COMPARE(Ld2(v13.D(),  v14.D(),   1, MemOperand(sp, 16, PostIndex)),
-      "ld2 {v13.d, v14.d}[1], [sp], #16");
+          "ld2 {v1.b, v2.b}[1], [x16], #2");
+  COMPARE(Ld2(v2.V4H(), v3.V4H(), 2, MemOperand(x17, 4, PostIndex)),
+          "ld2 {v2.h, v3.h}[2], [x17], #4");
+  COMPARE(Ld2(v3.V8H(), v4.V8H(), 3, MemOperand(x18, x1, PostIndex)),
+          "ld2 {v3.h, v4.h}[3], [x18], x1");
+  COMPARE(Ld2(v4.V2S(), v5.V2S(), 0, MemOperand(x19, x2, PostIndex)),
+          "ld2 {v4.s, v5.s}[0], [x19], x2");
+  COMPARE(Ld2(v5.V4S(), v6.V4S(), 1, MemOperand(x20, 8, PostIndex)),
+          "ld2 {v5.s, v6.s}[1], [x20], #8");
+  COMPARE(Ld2(v6.V2D(), v7.V2D(), 0, MemOperand(x21, 16, PostIndex)),
+          "ld2 {v6.d, v7.d}[0], [x21], #16");
+  COMPARE(Ld2(v7.B(), v8.B(), 7, MemOperand(x22, 2, PostIndex)),
+          "ld2 {v7.b, v8.b}[7], [x22], #2");
+  COMPARE(Ld2(v8.B(), v9.B(), 15, MemOperand(x23, x3, PostIndex)),
+          "ld2 {v8.b, v9.b}[15], [x23], x3");
+  COMPARE(Ld2(v9.H(), v10.H(), 3, MemOperand(x24, x4, PostIndex)),
+          "ld2 {v9.h, v10.h}[3], [x24], x4");
+  COMPARE(Ld2(v10.H(), v11.H(), 7, MemOperand(x25, 4, PostIndex)),
+          "ld2 {v10.h, v11.h}[7], [x25], #4");
+  COMPARE(Ld2(v11.S(), v12.S(), 1, MemOperand(x26, 8, PostIndex)),
+          "ld2 {v11.s, v12.s}[1], [x26], #8");
+  COMPARE(Ld2(v12.S(), v13.S(), 3, MemOperand(x27, x5, PostIndex)),
+          "ld2 {v12.s, v13.s}[3], [x27], x5");
+  COMPARE(Ld2(v11.S(), v12.S(), 3, MemOperand(x26, 8, PostIndex)),
+          "ld2 {v11.s, v12.s}[3], [x26], #8");
+  COMPARE(Ld2(v13.D(), v14.D(), 1, MemOperand(sp, x6, PostIndex)),
+          "ld2 {v13.d, v14.d}[1], [sp], x6");
+  COMPARE(Ld2(v13.D(), v14.D(), 1, MemOperand(sp, 16, PostIndex)),
+          "ld2 {v13.d, v14.d}[1], [sp], #16");
 
-  COMPARE(Ld3(v0.V8B(),  v1.V8B(),  v2.V8B(),   0, MemOperand(x15)),
-      "ld3 {v0.b, v1.b, v2.b}[0], [x15]");
-  COMPARE(Ld3(v1.V16B(), v2.V16B(), v3.V16B(),  1, MemOperand(x16)),
-      "ld3 {v1.b, v2.b, v3.b}[1], [x16]");
-  COMPARE(Ld3(v2.V4H(),  v3.V4H(),  v4.V4H(),   2, MemOperand(x17)),
-      "ld3 {v2.h, v3.h, v4.h}[2], [x17]");
-  COMPARE(Ld3(v3.V8H(),  v4.V8H(),  v5.V8H(),   3, MemOperand(x18)),
-      "ld3 {v3.h, v4.h, v5.h}[3], [x18]");
-  COMPARE(Ld3(v4.V2S(),  v5.V2S(),  v6.V2S(),   0, MemOperand(x19)),
-      "ld3 {v4.s, v5.s, v6.s}[0], [x19]");
-  COMPARE(Ld3(v5.V4S(),  v6.V4S(),  v7.V4S(),   1, MemOperand(x20)),
-      "ld3 {v5.s, v6.s, v7.s}[1], [x20]");
-  COMPARE(Ld3(v6.V2D(),  v7.V2D(),  v8.V2D(),   0, MemOperand(x21)),
-      "ld3 {v6.d, v7.d, v8.d}[0], [x21]");
-  COMPARE(Ld3(v7.B(),    v8.B(),    v9.B(),     7, MemOperand(x22)),
-      "ld3 {v7.b, v8.b, v9.b}[7], [x22]");
-  COMPARE(Ld3(v8.B(),    v9.B(),    v10.B(),    15, MemOperand(x23)),
-      "ld3 {v8.b, v9.b, v10.b}[15], [x23]");
-  COMPARE(Ld3(v9.H(),    v10.H(),   v11.H(),    3, MemOperand(x24)),
-      "ld3 {v9.h, v10.h, v11.h}[3], [x24]");
-  COMPARE(Ld3(v10.H(),   v11.H(),   v12.H(),    7, MemOperand(x25)),
-      "ld3 {v10.h, v11.h, v12.h}[7], [x25]");
-  COMPARE(Ld3(v11.S(),   v12.S(),   v13.S(),    1, MemOperand(x26)),
-      "ld3 {v11.s, v12.s, v13.s}[1], [x26]");
-  COMPARE(Ld3(v12.S(),   v13.S(),   v14.S(),    3, MemOperand(x27)),
-      "ld3 {v12.s, v13.s, v14.s}[3], [x27]");
-  COMPARE(Ld3(v13.D(),   v14.D(),   v15.D(),    1, MemOperand(sp)),
-      "ld3 {v13.d, v14.d, v15.d}[1], [sp]");
+  COMPARE(Ld3(v0.V8B(), v1.V8B(), v2.V8B(), 0, MemOperand(x15)),
+          "ld3 {v0.b, v1.b, v2.b}[0], [x15]");
+  COMPARE(Ld3(v1.V16B(), v2.V16B(), v3.V16B(), 1, MemOperand(x16)),
+          "ld3 {v1.b, v2.b, v3.b}[1], [x16]");
+  COMPARE(Ld3(v2.V4H(), v3.V4H(), v4.V4H(), 2, MemOperand(x17)),
+          "ld3 {v2.h, v3.h, v4.h}[2], [x17]");
+  COMPARE(Ld3(v3.V8H(), v4.V8H(), v5.V8H(), 3, MemOperand(x18)),
+          "ld3 {v3.h, v4.h, v5.h}[3], [x18]");
+  COMPARE(Ld3(v4.V2S(), v5.V2S(), v6.V2S(), 0, MemOperand(x19)),
+          "ld3 {v4.s, v5.s, v6.s}[0], [x19]");
+  COMPARE(Ld3(v5.V4S(), v6.V4S(), v7.V4S(), 1, MemOperand(x20)),
+          "ld3 {v5.s, v6.s, v7.s}[1], [x20]");
+  COMPARE(Ld3(v6.V2D(), v7.V2D(), v8.V2D(), 0, MemOperand(x21)),
+          "ld3 {v6.d, v7.d, v8.d}[0], [x21]");
+  COMPARE(Ld3(v7.B(), v8.B(), v9.B(), 7, MemOperand(x22)),
+          "ld3 {v7.b, v8.b, v9.b}[7], [x22]");
+  COMPARE(Ld3(v8.B(), v9.B(), v10.B(), 15, MemOperand(x23)),
+          "ld3 {v8.b, v9.b, v10.b}[15], [x23]");
+  COMPARE(Ld3(v9.H(), v10.H(), v11.H(), 3, MemOperand(x24)),
+          "ld3 {v9.h, v10.h, v11.h}[3], [x24]");
+  COMPARE(Ld3(v10.H(), v11.H(), v12.H(), 7, MemOperand(x25)),
+          "ld3 {v10.h, v11.h, v12.h}[7], [x25]");
+  COMPARE(Ld3(v11.S(), v12.S(), v13.S(), 1, MemOperand(x26)),
+          "ld3 {v11.s, v12.s, v13.s}[1], [x26]");
+  COMPARE(Ld3(v12.S(), v13.S(), v14.S(), 3, MemOperand(x27)),
+          "ld3 {v12.s, v13.s, v14.s}[3], [x27]");
+  COMPARE(Ld3(v13.D(), v14.D(), v15.D(), 1, MemOperand(sp)),
+          "ld3 {v13.d, v14.d, v15.d}[1], [sp]");
 
-  COMPARE(Ld3(v0.V8B(),  v1.V8B(),  v2.V8B(),  0,
-              MemOperand(x15, x0, PostIndex)),
-      "ld3 {v0.b, v1.b, v2.b}[0], [x15], x0");
-  COMPARE(Ld3(v1.V16B(), v2.V16B(), v3.V16B(), 1,
+  COMPARE(Ld3(v0.V8B(), v1.V8B(), v2.V8B(), 0, MemOperand(x15, x0, PostIndex)),
+          "ld3 {v0.b, v1.b, v2.b}[0], [x15], x0");
+  COMPARE(Ld3(v1.V16B(),
+              v2.V16B(),
+              v3.V16B(),
+              1,
               MemOperand(x16, 3, PostIndex)),
-      "ld3 {v1.b, v2.b, v3.b}[1], [x16], #3");
-  COMPARE(Ld3(v2.V4H(),  v3.V4H(),  v4.V4H(),  2,
-              MemOperand(x17, 6, PostIndex)),
-      "ld3 {v2.h, v3.h, v4.h}[2], [x17], #6");
-  COMPARE(Ld3(v3.V8H(),  v4.V8H(),  v5.V8H(),  3,
-              MemOperand(x18, x1, PostIndex)),
-      "ld3 {v3.h, v4.h, v5.h}[3], [x18], x1");
-  COMPARE(Ld3(v4.V2S(),  v5.V2S(),  v6.V2S(),  0,
-              MemOperand(x19, x2, PostIndex)),
-      "ld3 {v4.s, v5.s, v6.s}[0], [x19], x2");
-  COMPARE(Ld3(v5.V4S(),  v6.V4S(),  v7.V4S(),  1,
-              MemOperand(x20, 12, PostIndex)),
-      "ld3 {v5.s, v6.s, v7.s}[1], [x20], #12");
-  COMPARE(Ld3(v6.V2D(),  v7.V2D(),  v8.V2D(),  0,
-              MemOperand(x21, 24, PostIndex)),
-      "ld3 {v6.d, v7.d, v8.d}[0], [x21], #24");
-  COMPARE(Ld3(v7.B(),    v8.B(),    v9.B(),    7,
-              MemOperand(x22, 3, PostIndex)),
-      "ld3 {v7.b, v8.b, v9.b}[7], [x22], #3");
-  COMPARE(Ld3(v8.B(),    v9.B(),    v10.B(),   15,
-              MemOperand(x23, x3, PostIndex)),
-      "ld3 {v8.b, v9.b, v10.b}[15], [x23], x3");
-  COMPARE(Ld3(v9.H(),    v10.H(),   v11.H(),   3,
-              MemOperand(x24, x4, PostIndex)),
-      "ld3 {v9.h, v10.h, v11.h}[3], [x24], x4");
-  COMPARE(Ld3(v10.H(),   v11.H(),   v12.H(),   7,
-              MemOperand(x25, 6, PostIndex)),
-      "ld3 {v10.h, v11.h, v12.h}[7], [x25], #6");
-  COMPARE(Ld3(v11.S(),   v12.S(),   v13.S(),   1,
-              MemOperand(x26, 12, PostIndex)),
-      "ld3 {v11.s, v12.s, v13.s}[1], [x26], #12");
-  COMPARE(Ld3(v12.S(),   v13.S(),   v14.S(),   3,
-              MemOperand(x27, x5, PostIndex)),
-      "ld3 {v12.s, v13.s, v14.s}[3], [x27], x5");
-  COMPARE(Ld3(v12.S(),   v13.S(),   v14.S(),   3,
-              MemOperand(x27, 12, PostIndex)),
-      "ld3 {v12.s, v13.s, v14.s}[3], [x27], #12");
-  COMPARE(Ld3(v13.D(),   v14.D(),   v15.D(),   1,
-              MemOperand(sp, x6, PostIndex)),
-      "ld3 {v13.d, v14.d, v15.d}[1], [sp], x6");
-  COMPARE(Ld3(v13.D(),   v14.D(),   v15.D(),   1,
-              MemOperand(sp, 24, PostIndex)),
-      "ld3 {v13.d, v14.d, v15.d}[1], [sp], #24");
+          "ld3 {v1.b, v2.b, v3.b}[1], [x16], #3");
+  COMPARE(Ld3(v2.V4H(), v3.V4H(), v4.V4H(), 2, MemOperand(x17, 6, PostIndex)),
+          "ld3 {v2.h, v3.h, v4.h}[2], [x17], #6");
+  COMPARE(Ld3(v3.V8H(), v4.V8H(), v5.V8H(), 3, MemOperand(x18, x1, PostIndex)),
+          "ld3 {v3.h, v4.h, v5.h}[3], [x18], x1");
+  COMPARE(Ld3(v4.V2S(), v5.V2S(), v6.V2S(), 0, MemOperand(x19, x2, PostIndex)),
+          "ld3 {v4.s, v5.s, v6.s}[0], [x19], x2");
+  COMPARE(Ld3(v5.V4S(), v6.V4S(), v7.V4S(), 1, MemOperand(x20, 12, PostIndex)),
+          "ld3 {v5.s, v6.s, v7.s}[1], [x20], #12");
+  COMPARE(Ld3(v6.V2D(), v7.V2D(), v8.V2D(), 0, MemOperand(x21, 24, PostIndex)),
+          "ld3 {v6.d, v7.d, v8.d}[0], [x21], #24");
+  COMPARE(Ld3(v7.B(), v8.B(), v9.B(), 7, MemOperand(x22, 3, PostIndex)),
+          "ld3 {v7.b, v8.b, v9.b}[7], [x22], #3");
+  COMPARE(Ld3(v8.B(), v9.B(), v10.B(), 15, MemOperand(x23, x3, PostIndex)),
+          "ld3 {v8.b, v9.b, v10.b}[15], [x23], x3");
+  COMPARE(Ld3(v9.H(), v10.H(), v11.H(), 3, MemOperand(x24, x4, PostIndex)),
+          "ld3 {v9.h, v10.h, v11.h}[3], [x24], x4");
+  COMPARE(Ld3(v10.H(), v11.H(), v12.H(), 7, MemOperand(x25, 6, PostIndex)),
+          "ld3 {v10.h, v11.h, v12.h}[7], [x25], #6");
+  COMPARE(Ld3(v11.S(), v12.S(), v13.S(), 1, MemOperand(x26, 12, PostIndex)),
+          "ld3 {v11.s, v12.s, v13.s}[1], [x26], #12");
+  COMPARE(Ld3(v12.S(), v13.S(), v14.S(), 3, MemOperand(x27, x5, PostIndex)),
+          "ld3 {v12.s, v13.s, v14.s}[3], [x27], x5");
+  COMPARE(Ld3(v12.S(), v13.S(), v14.S(), 3, MemOperand(x27, 12, PostIndex)),
+          "ld3 {v12.s, v13.s, v14.s}[3], [x27], #12");
+  COMPARE(Ld3(v13.D(), v14.D(), v15.D(), 1, MemOperand(sp, x6, PostIndex)),
+          "ld3 {v13.d, v14.d, v15.d}[1], [sp], x6");
+  COMPARE(Ld3(v13.D(), v14.D(), v15.D(), 1, MemOperand(sp, 24, PostIndex)),
+          "ld3 {v13.d, v14.d, v15.d}[1], [sp], #24");
 
-  COMPARE(Ld4(v0.V8B(),   v1.V8B(),  v2.V8B(),   v3.V8B(),  0,
-              MemOperand(x15)),
-      "ld4 {v0.b, v1.b, v2.b, v3.b}[0], [x15]");
-  COMPARE(Ld4(v1.V16B(),  v2.V16B(), v3.V16B(),  v4.V16B(), 1,
-              MemOperand(x16)),
-      "ld4 {v1.b, v2.b, v3.b, v4.b}[1], [x16]");
-  COMPARE(Ld4(v2.V4H(),   v3.V4H(),  v4.V4H(),   v5.V4H(),  2,
-              MemOperand(x17)),
-      "ld4 {v2.h, v3.h, v4.h, v5.h}[2], [x17]");
-  COMPARE(Ld4(v3.V8H(),   v4.V8H(),  v5.V8H(),   v6.V8H(),  3,
-              MemOperand(x18)),
-      "ld4 {v3.h, v4.h, v5.h, v6.h}[3], [x18]");
-  COMPARE(Ld4(v4.V2S(),   v5.V2S(),  v6.V2S(),   v7.V2S(),  0,
-              MemOperand(x19)),
-      "ld4 {v4.s, v5.s, v6.s, v7.s}[0], [x19]");
-  COMPARE(Ld4(v5.V4S(),   v6.V4S(),  v7.V4S(),   v8.V4S(),  1,
-              MemOperand(x20)),
-      "ld4 {v5.s, v6.s, v7.s, v8.s}[1], [x20]");
-  COMPARE(Ld4(v6.V2D(),   v7.V2D(),  v8.V2D(),   v9.V2D(),  0,
-              MemOperand(x21)),
-      "ld4 {v6.d, v7.d, v8.d, v9.d}[0], [x21]");
-  COMPARE(Ld4(v7.B(),     v8.B(),    v9.B(),    v10.B(),    7,
-              MemOperand(x22)),
-      "ld4 {v7.b, v8.b, v9.b, v10.b}[7], [x22]");
-  COMPARE(Ld4(v8.B(),     v9.B(),    v10.B(),   v11.B(),   15,
-              MemOperand(x23)),
-      "ld4 {v8.b, v9.b, v10.b, v11.b}[15], [x23]");
-  COMPARE(Ld4(v9.H(),    v10.H(),   v11.H(),    v12.H(),    3,
-              MemOperand(x24)),
-      "ld4 {v9.h, v10.h, v11.h, v12.h}[3], [x24]");
-  COMPARE(Ld4(v10.H(),   v11.H(),   v12.H(),    v13.H(),    7,
-              MemOperand(x25)),
-      "ld4 {v10.h, v11.h, v12.h, v13.h}[7], [x25]");
-  COMPARE(Ld4(v11.S(),   v12.S(),   v13.S(),    v14.S(),    1,
-              MemOperand(x26)),
-      "ld4 {v11.s, v12.s, v13.s, v14.s}[1], [x26]");
-  COMPARE(Ld4(v12.S(),   v13.S(),   v14.S(),    v15.S(),    3,
-              MemOperand(x27)),
-      "ld4 {v12.s, v13.s, v14.s, v15.s}[3], [x27]");
-  COMPARE(Ld4(v13.D(),   v14.D(),   v15.D(),    v16.D(),    1,
-              MemOperand(sp)),
-      "ld4 {v13.d, v14.d, v15.d, v16.d}[1], [sp]");
+  COMPARE(Ld4(v0.V8B(), v1.V8B(), v2.V8B(), v3.V8B(), 0, MemOperand(x15)),
+          "ld4 {v0.b, v1.b, v2.b, v3.b}[0], [x15]");
+  COMPARE(Ld4(v1.V16B(), v2.V16B(), v3.V16B(), v4.V16B(), 1, MemOperand(x16)),
+          "ld4 {v1.b, v2.b, v3.b, v4.b}[1], [x16]");
+  COMPARE(Ld4(v2.V4H(), v3.V4H(), v4.V4H(), v5.V4H(), 2, MemOperand(x17)),
+          "ld4 {v2.h, v3.h, v4.h, v5.h}[2], [x17]");
+  COMPARE(Ld4(v3.V8H(), v4.V8H(), v5.V8H(), v6.V8H(), 3, MemOperand(x18)),
+          "ld4 {v3.h, v4.h, v5.h, v6.h}[3], [x18]");
+  COMPARE(Ld4(v4.V2S(), v5.V2S(), v6.V2S(), v7.V2S(), 0, MemOperand(x19)),
+          "ld4 {v4.s, v5.s, v6.s, v7.s}[0], [x19]");
+  COMPARE(Ld4(v5.V4S(), v6.V4S(), v7.V4S(), v8.V4S(), 1, MemOperand(x20)),
+          "ld4 {v5.s, v6.s, v7.s, v8.s}[1], [x20]");
+  COMPARE(Ld4(v6.V2D(), v7.V2D(), v8.V2D(), v9.V2D(), 0, MemOperand(x21)),
+          "ld4 {v6.d, v7.d, v8.d, v9.d}[0], [x21]");
+  COMPARE(Ld4(v7.B(), v8.B(), v9.B(), v10.B(), 7, MemOperand(x22)),
+          "ld4 {v7.b, v8.b, v9.b, v10.b}[7], [x22]");
+  COMPARE(Ld4(v8.B(), v9.B(), v10.B(), v11.B(), 15, MemOperand(x23)),
+          "ld4 {v8.b, v9.b, v10.b, v11.b}[15], [x23]");
+  COMPARE(Ld4(v9.H(), v10.H(), v11.H(), v12.H(), 3, MemOperand(x24)),
+          "ld4 {v9.h, v10.h, v11.h, v12.h}[3], [x24]");
+  COMPARE(Ld4(v10.H(), v11.H(), v12.H(), v13.H(), 7, MemOperand(x25)),
+          "ld4 {v10.h, v11.h, v12.h, v13.h}[7], [x25]");
+  COMPARE(Ld4(v11.S(), v12.S(), v13.S(), v14.S(), 1, MemOperand(x26)),
+          "ld4 {v11.s, v12.s, v13.s, v14.s}[1], [x26]");
+  COMPARE(Ld4(v12.S(), v13.S(), v14.S(), v15.S(), 3, MemOperand(x27)),
+          "ld4 {v12.s, v13.s, v14.s, v15.s}[3], [x27]");
+  COMPARE(Ld4(v13.D(), v14.D(), v15.D(), v16.D(), 1, MemOperand(sp)),
+          "ld4 {v13.d, v14.d, v15.d, v16.d}[1], [sp]");
 
-  COMPARE(Ld4(v0.V8B(),   v1.V8B(),  v2.V8B(),  v3.V8B(),  0,
+  COMPARE(Ld4(v0.V8B(),
+              v1.V8B(),
+              v2.V8B(),
+              v3.V8B(),
+              0,
               MemOperand(x15, x0, PostIndex)),
-      "ld4 {v0.b, v1.b, v2.b, v3.b}[0], [x15], x0");
-  COMPARE(Ld4(v1.V16B(),  v2.V16B(), v3.V16B(), v4.V16B(), 1,
+          "ld4 {v0.b, v1.b, v2.b, v3.b}[0], [x15], x0");
+  COMPARE(Ld4(v1.V16B(),
+              v2.V16B(),
+              v3.V16B(),
+              v4.V16B(),
+              1,
               MemOperand(x16, 4, PostIndex)),
-      "ld4 {v1.b, v2.b, v3.b, v4.b}[1], [x16], #4");
-  COMPARE(Ld4(v2.V4H(),   v3.V4H(),  v4.V4H(),  v5.V4H(),  2,
+          "ld4 {v1.b, v2.b, v3.b, v4.b}[1], [x16], #4");
+  COMPARE(Ld4(v2.V4H(),
+              v3.V4H(),
+              v4.V4H(),
+              v5.V4H(),
+              2,
               MemOperand(x17, 8, PostIndex)),
-      "ld4 {v2.h, v3.h, v4.h, v5.h}[2], [x17], #8");
-  COMPARE(Ld4(v3.V8H(),   v4.V8H(),  v5.V8H(),  v6.V8H(),  3,
+          "ld4 {v2.h, v3.h, v4.h, v5.h}[2], [x17], #8");
+  COMPARE(Ld4(v3.V8H(),
+              v4.V8H(),
+              v5.V8H(),
+              v6.V8H(),
+              3,
               MemOperand(x18, x1, PostIndex)),
-      "ld4 {v3.h, v4.h, v5.h, v6.h}[3], [x18], x1");
-  COMPARE(Ld4(v4.V2S(),   v5.V2S(),  v6.V2S(),  v7.V2S(),  0,
+          "ld4 {v3.h, v4.h, v5.h, v6.h}[3], [x18], x1");
+  COMPARE(Ld4(v4.V2S(),
+              v5.V2S(),
+              v6.V2S(),
+              v7.V2S(),
+              0,
               MemOperand(x19, x2, PostIndex)),
-      "ld4 {v4.s, v5.s, v6.s, v7.s}[0], [x19], x2");
-  COMPARE(Ld4(v5.V4S(),   v6.V4S(),  v7.V4S(),  v8.V4S(),  1,
+          "ld4 {v4.s, v5.s, v6.s, v7.s}[0], [x19], x2");
+  COMPARE(Ld4(v5.V4S(),
+              v6.V4S(),
+              v7.V4S(),
+              v8.V4S(),
+              1,
               MemOperand(x20, 16, PostIndex)),
-      "ld4 {v5.s, v6.s, v7.s, v8.s}[1], [x20], #16");
-  COMPARE(Ld4(v6.V2D(),   v7.V2D(),  v8.V2D(),  v9.V2D(),  0,
+          "ld4 {v5.s, v6.s, v7.s, v8.s}[1], [x20], #16");
+  COMPARE(Ld4(v6.V2D(),
+              v7.V2D(),
+              v8.V2D(),
+              v9.V2D(),
+              0,
               MemOperand(x21, 32, PostIndex)),
-      "ld4 {v6.d, v7.d, v8.d, v9.d}[0], [x21], #32");
-  COMPARE(Ld4(v7.B(),     v8.B(),    v9.B(),   v10.B(),    7,
+          "ld4 {v6.d, v7.d, v8.d, v9.d}[0], [x21], #32");
+  COMPARE(Ld4(v7.B(),
+              v8.B(),
+              v9.B(),
+              v10.B(),
+              7,
               MemOperand(x22, 4, PostIndex)),
-      "ld4 {v7.b, v8.b, v9.b, v10.b}[7], [x22], #4");
-  COMPARE(Ld4(v8.B(),     v9.B(),   v10.B(),   v11.B(),   15,
+          "ld4 {v7.b, v8.b, v9.b, v10.b}[7], [x22], #4");
+  COMPARE(Ld4(v8.B(),
+              v9.B(),
+              v10.B(),
+              v11.B(),
+              15,
               MemOperand(x23, x3, PostIndex)),
-      "ld4 {v8.b, v9.b, v10.b, v11.b}[15], [x23], x3");
-  COMPARE(Ld4(v9.H(),    v10.H(),   v11.H(),   v12.H(),    3,
+          "ld4 {v8.b, v9.b, v10.b, v11.b}[15], [x23], x3");
+  COMPARE(Ld4(v9.H(),
+              v10.H(),
+              v11.H(),
+              v12.H(),
+              3,
               MemOperand(x24, x4, PostIndex)),
-      "ld4 {v9.h, v10.h, v11.h, v12.h}[3], [x24], x4");
-  COMPARE(Ld4(v10.H(),   v11.H(),   v12.H(),   v13.H(),    7,
+          "ld4 {v9.h, v10.h, v11.h, v12.h}[3], [x24], x4");
+  COMPARE(Ld4(v10.H(),
+              v11.H(),
+              v12.H(),
+              v13.H(),
+              7,
               MemOperand(x25, 8, PostIndex)),
-      "ld4 {v10.h, v11.h, v12.h, v13.h}[7], [x25], #8");
-  COMPARE(Ld4(v11.S(),   v12.S(),   v13.S(),   v14.S(),    1,
+          "ld4 {v10.h, v11.h, v12.h, v13.h}[7], [x25], #8");
+  COMPARE(Ld4(v11.S(),
+              v12.S(),
+              v13.S(),
+              v14.S(),
+              1,
               MemOperand(x26, 16, PostIndex)),
-      "ld4 {v11.s, v12.s, v13.s, v14.s}[1], [x26], #16");
-  COMPARE(Ld4(v12.S(),   v13.S(),   v14.S(),   v15.S(),    3,
+          "ld4 {v11.s, v12.s, v13.s, v14.s}[1], [x26], #16");
+  COMPARE(Ld4(v12.S(),
+              v13.S(),
+              v14.S(),
+              v15.S(),
+              3,
               MemOperand(x27, x5, PostIndex)),
-      "ld4 {v12.s, v13.s, v14.s, v15.s}[3], [x27], x5");
-  COMPARE(Ld4(v11.S(),   v12.S(),   v13.S(),   v14.S(),    3,
+          "ld4 {v12.s, v13.s, v14.s, v15.s}[3], [x27], x5");
+  COMPARE(Ld4(v11.S(),
+              v12.S(),
+              v13.S(),
+              v14.S(),
+              3,
               MemOperand(x26, 16, PostIndex)),
-      "ld4 {v11.s, v12.s, v13.s, v14.s}[3], [x26], #16");
-  COMPARE(Ld4(v13.D(),   v14.D(),   v15.D(),   v16.D(),    1,
+          "ld4 {v11.s, v12.s, v13.s, v14.s}[3], [x26], #16");
+  COMPARE(Ld4(v13.D(),
+              v14.D(),
+              v15.D(),
+              v16.D(),
+              1,
               MemOperand(sp, x6, PostIndex)),
-      "ld4 {v13.d, v14.d, v15.d, v16.d}[1], [sp], x6");
-  COMPARE(Ld4(v13.D(),   v14.D(),   v15.D(),   v16.D(),    1,
+          "ld4 {v13.d, v14.d, v15.d, v16.d}[1], [sp], x6");
+  COMPARE(Ld4(v13.D(),
+              v14.D(),
+              v15.D(),
+              v16.D(),
+              1,
               MemOperand(sp, 32, PostIndex)),
-      "ld4 {v13.d, v14.d, v15.d, v16.d}[1], [sp], #32");
+          "ld4 {v13.d, v14.d, v15.d, v16.d}[1], [sp], #32");
 
   COMPARE(St1(v0.V8B(), 0, MemOperand(x15)), "st1 {v0.b}[0], [x15]");
   COMPARE(St1(v1.V16B(), 1, MemOperand(x16)), "st1 {v1.b}[1], [x16]");
@@ -3661,90 +3746,90 @@ TEST(neon_load_store_lane) {
           "st1 {v12.s}[3], [x27], x5");
   COMPARE(St1(v13.D(), 1, MemOperand(sp, x6, PostIndex)),
           "st1 {v13.d}[1], [sp], x6");
-  COMPARE(St2(v0.V8B(),  v1.V8B(),  0, MemOperand(x15, x0, PostIndex)),
+  COMPARE(St2(v0.V8B(), v1.V8B(), 0, MemOperand(x15, x0, PostIndex)),
           "st2 {v0.b, v1.b}[0], [x15], x0");
   COMPARE(St2(v1.V16B(), v2.V16B(), 1, MemOperand(x16, 2, PostIndex)),
           "st2 {v1.b, v2.b}[1], [x16], #2");
-  COMPARE(St2(v2.V4H(),  v3.V4H(),  2, MemOperand(x17, 4, PostIndex)),
+  COMPARE(St2(v2.V4H(), v3.V4H(), 2, MemOperand(x17, 4, PostIndex)),
           "st2 {v2.h, v3.h}[2], [x17], #4");
-  COMPARE(St2(v3.V8H(),  v4.V8H(),  3, MemOperand(x18, x1, PostIndex)),
+  COMPARE(St2(v3.V8H(), v4.V8H(), 3, MemOperand(x18, x1, PostIndex)),
           "st2 {v3.h, v4.h}[3], [x18], x1");
-  COMPARE(St2(v4.V2S(),  v5.V2S(),  0, MemOperand(x19, x2, PostIndex)),
+  COMPARE(St2(v4.V2S(), v5.V2S(), 0, MemOperand(x19, x2, PostIndex)),
           "st2 {v4.s, v5.s}[0], [x19], x2");
-  COMPARE(St2(v5.V4S(),  v6.V4S(),  1, MemOperand(x20, 8, PostIndex)),
+  COMPARE(St2(v5.V4S(), v6.V4S(), 1, MemOperand(x20, 8, PostIndex)),
           "st2 {v5.s, v6.s}[1], [x20], #8");
-  COMPARE(St2(v6.V2D(),  v7.V2D(),  0, MemOperand(x21, 16, PostIndex)),
+  COMPARE(St2(v6.V2D(), v7.V2D(), 0, MemOperand(x21, 16, PostIndex)),
           "st2 {v6.d, v7.d}[0], [x21], #16");
-  COMPARE(St2(v7.B(),    v8.B(),    7, MemOperand(x22, 2, PostIndex)),
+  COMPARE(St2(v7.B(), v8.B(), 7, MemOperand(x22, 2, PostIndex)),
           "st2 {v7.b, v8.b}[7], [x22], #2");
-  COMPARE(St2(v8.B(),    v9.B(),  15, MemOperand(x23, x3, PostIndex)),
+  COMPARE(St2(v8.B(), v9.B(), 15, MemOperand(x23, x3, PostIndex)),
           "st2 {v8.b, v9.b}[15], [x23], x3");
-  COMPARE(St2(v9.H(),    v10.H(),    3, MemOperand(x24, x4, PostIndex)),
+  COMPARE(St2(v9.H(), v10.H(), 3, MemOperand(x24, x4, PostIndex)),
           "st2 {v9.h, v10.h}[3], [x24], x4");
-  COMPARE(St2(v10.H(),   v11.H(),   7, MemOperand(x25, 4, PostIndex)),
+  COMPARE(St2(v10.H(), v11.H(), 7, MemOperand(x25, 4, PostIndex)),
           "st2 {v10.h, v11.h}[7], [x25], #4");
-  COMPARE(St2(v11.S(),   v12.S(),   1, MemOperand(x26, 8, PostIndex)),
+  COMPARE(St2(v11.S(), v12.S(), 1, MemOperand(x26, 8, PostIndex)),
           "st2 {v11.s, v12.s}[1], [x26], #8");
-  COMPARE(St2(v12.S(),   v13.S(),   3, MemOperand(x27, x5, PostIndex)),
+  COMPARE(St2(v12.S(), v13.S(), 3, MemOperand(x27, x5, PostIndex)),
           "st2 {v12.s, v13.s}[3], [x27], x5");
-  COMPARE(St2(v13.D(),   v14.D(),   1, MemOperand(sp, x6, PostIndex)),
+  COMPARE(St2(v13.D(), v14.D(), 1, MemOperand(sp, x6, PostIndex)),
           "st2 {v13.d, v14.d}[1], [sp], x6");
-  COMPARE(St3(VLIST3(v0.V8B()),  0, MemOperand(x15, x0, PostIndex)),
+  COMPARE(St3(VLIST3(v0.V8B()), 0, MemOperand(x15, x0, PostIndex)),
           "st3 {v0.b, v1.b, v2.b}[0], [x15], x0");
   COMPARE(St3(VLIST3(v1.V16B()), 1, MemOperand(x16, 3, PostIndex)),
           "st3 {v1.b, v2.b, v3.b}[1], [x16], #3");
-  COMPARE(St3(VLIST3(v2.V4H()),  2, MemOperand(x17, 6, PostIndex)),
+  COMPARE(St3(VLIST3(v2.V4H()), 2, MemOperand(x17, 6, PostIndex)),
           "st3 {v2.h, v3.h, v4.h}[2], [x17], #6");
-  COMPARE(St3(VLIST3(v3.V8H()),  3, MemOperand(x18, x1, PostIndex)),
+  COMPARE(St3(VLIST3(v3.V8H()), 3, MemOperand(x18, x1, PostIndex)),
           "st3 {v3.h, v4.h, v5.h}[3], [x18], x1");
-  COMPARE(St3(VLIST3(v4.V2S()),  0, MemOperand(x19, x2, PostIndex)),
+  COMPARE(St3(VLIST3(v4.V2S()), 0, MemOperand(x19, x2, PostIndex)),
           "st3 {v4.s, v5.s, v6.s}[0], [x19], x2");
-  COMPARE(St3(VLIST3(v5.V4S()),  1, MemOperand(x20, 12, PostIndex)),
+  COMPARE(St3(VLIST3(v5.V4S()), 1, MemOperand(x20, 12, PostIndex)),
           "st3 {v5.s, v6.s, v7.s}[1], [x20], #12");
-  COMPARE(St3(VLIST3(v6.V2D()),  0, MemOperand(x21, 24, PostIndex)),
+  COMPARE(St3(VLIST3(v6.V2D()), 0, MemOperand(x21, 24, PostIndex)),
           "st3 {v6.d, v7.d, v8.d}[0], [x21], #24");
-  COMPARE(St3(VLIST3(v7.B()),    7, MemOperand(x22, 3, PostIndex)),
+  COMPARE(St3(VLIST3(v7.B()), 7, MemOperand(x22, 3, PostIndex)),
           "st3 {v7.b, v8.b, v9.b}[7], [x22], #3");
-  COMPARE(St3(VLIST3(v8.B()),   15, MemOperand(x23, x3, PostIndex)),
+  COMPARE(St3(VLIST3(v8.B()), 15, MemOperand(x23, x3, PostIndex)),
           "st3 {v8.b, v9.b, v10.b}[15], [x23], x3");
-  COMPARE(St3(VLIST3(v9.H()),    3, MemOperand(x24, x4, PostIndex)),
+  COMPARE(St3(VLIST3(v9.H()), 3, MemOperand(x24, x4, PostIndex)),
           "st3 {v9.h, v10.h, v11.h}[3], [x24], x4");
-  COMPARE(St3(VLIST3(v10.H()),   7, MemOperand(x25, 6, PostIndex)),
+  COMPARE(St3(VLIST3(v10.H()), 7, MemOperand(x25, 6, PostIndex)),
           "st3 {v10.h, v11.h, v12.h}[7], [x25], #6");
-  COMPARE(St3(VLIST3(v11.S()),   1, MemOperand(x26, 12, PostIndex)),
+  COMPARE(St3(VLIST3(v11.S()), 1, MemOperand(x26, 12, PostIndex)),
           "st3 {v11.s, v12.s, v13.s}[1], [x26], #12");
-  COMPARE(St3(VLIST3(v12.S()),   3, MemOperand(x27, x5, PostIndex)),
+  COMPARE(St3(VLIST3(v12.S()), 3, MemOperand(x27, x5, PostIndex)),
           "st3 {v12.s, v13.s, v14.s}[3], [x27], x5");
-  COMPARE(St3(VLIST3(v13.D()),   1, MemOperand(sp, x6, PostIndex)),
-        "st3 {v13.d, v14.d, v15.d}[1], [sp], x6");
+  COMPARE(St3(VLIST3(v13.D()), 1, MemOperand(sp, x6, PostIndex)),
+          "st3 {v13.d, v14.d, v15.d}[1], [sp], x6");
 
-  COMPARE(St4(VLIST4(v0.V8B()),  0, MemOperand(x15, x0, PostIndex)),
+  COMPARE(St4(VLIST4(v0.V8B()), 0, MemOperand(x15, x0, PostIndex)),
           "st4 {v0.b, v1.b, v2.b, v3.b}[0], [x15], x0");
   COMPARE(St4(VLIST4(v1.V16B()), 1, MemOperand(x16, 4, PostIndex)),
           "st4 {v1.b, v2.b, v3.b, v4.b}[1], [x16], #4");
-  COMPARE(St4(VLIST4(v2.V4H()),  2, MemOperand(x17, 8, PostIndex)),
+  COMPARE(St4(VLIST4(v2.V4H()), 2, MemOperand(x17, 8, PostIndex)),
           "st4 {v2.h, v3.h, v4.h, v5.h}[2], [x17], #8");
-  COMPARE(St4(VLIST4(v3.V8H()),  3, MemOperand(x18, x1, PostIndex)),
+  COMPARE(St4(VLIST4(v3.V8H()), 3, MemOperand(x18, x1, PostIndex)),
           "st4 {v3.h, v4.h, v5.h, v6.h}[3], [x18], x1");
-  COMPARE(St4(VLIST4(v4.V2S()),  0, MemOperand(x19, x2, PostIndex)),
+  COMPARE(St4(VLIST4(v4.V2S()), 0, MemOperand(x19, x2, PostIndex)),
           "st4 {v4.s, v5.s, v6.s, v7.s}[0], [x19], x2");
-  COMPARE(St4(VLIST4(v5.V4S()),  1, MemOperand(x20, 16, PostIndex)),
+  COMPARE(St4(VLIST4(v5.V4S()), 1, MemOperand(x20, 16, PostIndex)),
           "st4 {v5.s, v6.s, v7.s, v8.s}[1], [x20], #16");
-  COMPARE(St4(VLIST4(v6.V2D()),  0, MemOperand(x21, 32, PostIndex)),
+  COMPARE(St4(VLIST4(v6.V2D()), 0, MemOperand(x21, 32, PostIndex)),
           "st4 {v6.d, v7.d, v8.d, v9.d}[0], [x21], #32");
-  COMPARE(St4(VLIST4(v7.B()),    7, MemOperand(x22, 4, PostIndex)),
+  COMPARE(St4(VLIST4(v7.B()), 7, MemOperand(x22, 4, PostIndex)),
           "st4 {v7.b, v8.b, v9.b, v10.b}[7], [x22], #4");
-  COMPARE(St4(VLIST4(v8.B()),   15, MemOperand(x23, x3, PostIndex)),
+  COMPARE(St4(VLIST4(v8.B()), 15, MemOperand(x23, x3, PostIndex)),
           "st4 {v8.b, v9.b, v10.b, v11.b}[15], [x23], x3");
-  COMPARE(St4(VLIST4(v9.H()),    3, MemOperand(x24, x4, PostIndex)),
+  COMPARE(St4(VLIST4(v9.H()), 3, MemOperand(x24, x4, PostIndex)),
           "st4 {v9.h, v10.h, v11.h, v12.h}[3], [x24], x4");
-  COMPARE(St4(VLIST4(v10.H()),   7, MemOperand(x25, 8, PostIndex)),
+  COMPARE(St4(VLIST4(v10.H()), 7, MemOperand(x25, 8, PostIndex)),
           "st4 {v10.h, v11.h, v12.h, v13.h}[7], [x25], #8");
-  COMPARE(St4(VLIST4(v11.S()),   1, MemOperand(x26, 16, PostIndex)),
+  COMPARE(St4(VLIST4(v11.S()), 1, MemOperand(x26, 16, PostIndex)),
           "st4 {v11.s, v12.s, v13.s, v14.s}[1], [x26], #16");
-  COMPARE(St4(VLIST4(v12.S()),   3, MemOperand(x27, x5, PostIndex)),
-         "st4 {v12.s, v13.s, v14.s, v15.s}[3], [x27], x5");
-  COMPARE(St4(VLIST4(v13.D()),   1, MemOperand(sp, x6, PostIndex)),
+  COMPARE(St4(VLIST4(v12.S()), 3, MemOperand(x27, x5, PostIndex)),
+          "st4 {v12.s, v13.s, v14.s, v15.s}[3], [x27], x5");
+  COMPARE(St4(VLIST4(v13.D()), 1, MemOperand(sp, x6, PostIndex)),
           "st4 {v13.d, v14.d, v15.d, v16.d}[1], [sp], x6");
 
   CLEANUP();
@@ -3855,118 +3940,124 @@ TEST(neon_load_all_lanes) {
   COMPARE(Ld1r(v29.V1D(), MemOperand(x13, 8, PostIndex)),
           "ld1r {v29.1d}, [x13], #8");
 
-  COMPARE(Ld2r(v14.V8B(),  v15.V8B(),  MemOperand(x0)),
+  COMPARE(Ld2r(v14.V8B(), v15.V8B(), MemOperand(x0)),
           "ld2r {v14.8b, v15.8b}, [x0]");
   COMPARE(Ld2r(v15.V16B(), v16.V16B(), MemOperand(x1)),
           "ld2r {v15.16b, v16.16b}, [x1]");
-  COMPARE(Ld2r(v16.V4H(),  v17.V4H(),  MemOperand(x2)),
+  COMPARE(Ld2r(v16.V4H(), v17.V4H(), MemOperand(x2)),
           "ld2r {v16.4h, v17.4h}, [x2]");
-  COMPARE(Ld2r(v17.V8H(),  v18.V8H(),  MemOperand(x3)),
+  COMPARE(Ld2r(v17.V8H(), v18.V8H(), MemOperand(x3)),
           "ld2r {v17.8h, v18.8h}, [x3]");
-  COMPARE(Ld2r(v18.V2S(),  v19.V2S(),  MemOperand(x4)),
+  COMPARE(Ld2r(v18.V2S(), v19.V2S(), MemOperand(x4)),
           "ld2r {v18.2s, v19.2s}, [x4]");
-  COMPARE(Ld2r(v19.V4S(),  v20.V4S(),  MemOperand(x5)),
+  COMPARE(Ld2r(v19.V4S(), v20.V4S(), MemOperand(x5)),
           "ld2r {v19.4s, v20.4s}, [x5]");
-  COMPARE(Ld2r(v20.V2D(),  v21.V2D(),  MemOperand(sp)),
+  COMPARE(Ld2r(v20.V2D(), v21.V2D(), MemOperand(sp)),
           "ld2r {v20.2d, v21.2d}, [sp]");
-  COMPARE(Ld2r(v21.V8B(),  v22.V8B(),  MemOperand(x6, 2, PostIndex)),
+  COMPARE(Ld2r(v21.V8B(), v22.V8B(), MemOperand(x6, 2, PostIndex)),
           "ld2r {v21.8b, v22.8b}, [x6], #2");
   COMPARE(Ld2r(v22.V16B(), v23.V16B(), MemOperand(x7, x16, PostIndex)),
           "ld2r {v22.16b, v23.16b}, [x7], x16");
-  COMPARE(Ld2r(v23.V4H(),  v24.V4H(),  MemOperand(x8, x17, PostIndex)),
+  COMPARE(Ld2r(v23.V4H(), v24.V4H(), MemOperand(x8, x17, PostIndex)),
           "ld2r {v23.4h, v24.4h}, [x8], x17");
-  COMPARE(Ld2r(v24.V8H(),  v25.V8H(),  MemOperand(x9, 4, PostIndex)),
+  COMPARE(Ld2r(v24.V8H(), v25.V8H(), MemOperand(x9, 4, PostIndex)),
           "ld2r {v24.8h, v25.8h}, [x9], #4");
-  COMPARE(Ld2r(v25.V2S(),  v26.V2S(),  MemOperand(x10, 8, PostIndex)),
+  COMPARE(Ld2r(v25.V2S(), v26.V2S(), MemOperand(x10, 8, PostIndex)),
           "ld2r {v25.2s, v26.2s}, [x10], #8");
-  COMPARE(Ld2r(v26.V4S(),  v27.V4S(),  MemOperand(x11, x18, PostIndex)),
+  COMPARE(Ld2r(v26.V4S(), v27.V4S(), MemOperand(x11, x18, PostIndex)),
           "ld2r {v26.4s, v27.4s}, [x11], x18");
-  COMPARE(Ld2r(v27.V2D(),  v28.V2D(),  MemOperand(x12, 16, PostIndex)),
+  COMPARE(Ld2r(v27.V2D(), v28.V2D(), MemOperand(x12, 16, PostIndex)),
           "ld2r {v27.2d, v28.2d}, [x12], #16");
 
-  COMPARE(Ld3r(v14.V8B(),  v15.V8B(),  v16.V8B(),
-               MemOperand(x0)),
+  COMPARE(Ld3r(v14.V8B(), v15.V8B(), v16.V8B(), MemOperand(x0)),
           "ld3r {v14.8b, v15.8b, v16.8b}, [x0]");
-  COMPARE(Ld3r(v15.V16B(), v16.V16B(), v17.V16B(),
-               MemOperand(x1)),
+  COMPARE(Ld3r(v15.V16B(), v16.V16B(), v17.V16B(), MemOperand(x1)),
           "ld3r {v15.16b, v16.16b, v17.16b}, [x1]");
-  COMPARE(Ld3r(v16.V4H(),  v17.V4H(),  v18.V4H(),
-               MemOperand(x2)),
+  COMPARE(Ld3r(v16.V4H(), v17.V4H(), v18.V4H(), MemOperand(x2)),
           "ld3r {v16.4h, v17.4h, v18.4h}, [x2]");
-  COMPARE(Ld3r(v17.V8H(),  v18.V8H(),  v19.V8H(),
-               MemOperand(x3)),
+  COMPARE(Ld3r(v17.V8H(), v18.V8H(), v19.V8H(), MemOperand(x3)),
           "ld3r {v17.8h, v18.8h, v19.8h}, [x3]");
-  COMPARE(Ld3r(v18.V2S(),  v19.V2S(),  v20.V2S(),
-               MemOperand(x4)),
+  COMPARE(Ld3r(v18.V2S(), v19.V2S(), v20.V2S(), MemOperand(x4)),
           "ld3r {v18.2s, v19.2s, v20.2s}, [x4]");
-  COMPARE(Ld3r(v19.V4S(),  v20.V4S(),  v21.V4S(),
-               MemOperand(x5)),
+  COMPARE(Ld3r(v19.V4S(), v20.V4S(), v21.V4S(), MemOperand(x5)),
           "ld3r {v19.4s, v20.4s, v21.4s}, [x5]");
-  COMPARE(Ld3r(v20.V2D(),  v21.V2D(),  v22.V2D(),
-               MemOperand(sp)),
+  COMPARE(Ld3r(v20.V2D(), v21.V2D(), v22.V2D(), MemOperand(sp)),
           "ld3r {v20.2d, v21.2d, v22.2d}, [sp]");
-  COMPARE(Ld3r(v21.V8B(),  v22.V8B(),  v23.V8B(),
-               MemOperand(x6, 3, PostIndex)),
+  COMPARE(Ld3r(v21.V8B(), v22.V8B(), v23.V8B(), MemOperand(x6, 3, PostIndex)),
           "ld3r {v21.8b, v22.8b, v23.8b}, [x6], #3");
-  COMPARE(Ld3r(v22.V16B(), v23.V16B(), v24.V16B(),
+  COMPARE(Ld3r(v22.V16B(),
+               v23.V16B(),
+               v24.V16B(),
                MemOperand(x7, x16, PostIndex)),
           "ld3r {v22.16b, v23.16b, v24.16b}, [x7], x16");
-  COMPARE(Ld3r(v23.V4H(),  v24.V4H(),  v25.V4H(),
-               MemOperand(x8, x17, PostIndex)),
+  COMPARE(Ld3r(v23.V4H(), v24.V4H(), v25.V4H(), MemOperand(x8, x17, PostIndex)),
           "ld3r {v23.4h, v24.4h, v25.4h}, [x8], x17");
-  COMPARE(Ld3r(v24.V8H(),  v25.V8H(),  v26.V8H(),
-               MemOperand(x9, 6, PostIndex)),
+  COMPARE(Ld3r(v24.V8H(), v25.V8H(), v26.V8H(), MemOperand(x9, 6, PostIndex)),
           "ld3r {v24.8h, v25.8h, v26.8h}, [x9], #6");
-  COMPARE(Ld3r(v25.V2S(),  v26.V2S(),  v27.V2S(),
-               MemOperand(x10, 12, PostIndex)),
+  COMPARE(Ld3r(v25.V2S(), v26.V2S(), v27.V2S(), MemOperand(x10, 12, PostIndex)),
           "ld3r {v25.2s, v26.2s, v27.2s}, [x10], #12");
-  COMPARE(Ld3r(v26.V4S(),  v27.V4S(),  v28.V4S(),
+  COMPARE(Ld3r(v26.V4S(),
+               v27.V4S(),
+               v28.V4S(),
                MemOperand(x11, x18, PostIndex)),
           "ld3r {v26.4s, v27.4s, v28.4s}, [x11], x18");
-  COMPARE(Ld3r(v27.V2D(),  v28.V2D(),  v29.V2D(),
-               MemOperand(x12, 24, PostIndex)),
+  COMPARE(Ld3r(v27.V2D(), v28.V2D(), v29.V2D(), MemOperand(x12, 24, PostIndex)),
           "ld3r {v27.2d, v28.2d, v29.2d}, [x12], #24");
 
-  COMPARE(Ld4r(v14.V8B(),  v15.V8B(),  v16.V8B(),  v17.V8B(),
-               MemOperand(x0)),
+  COMPARE(Ld4r(v14.V8B(), v15.V8B(), v16.V8B(), v17.V8B(), MemOperand(x0)),
           "ld4r {v14.8b, v15.8b, v16.8b, v17.8b}, [x0]");
-  COMPARE(Ld4r(v15.V16B(), v16.V16B(), v17.V16B(), v18.V16B(),
-               MemOperand(x1)),
+  COMPARE(Ld4r(v15.V16B(), v16.V16B(), v17.V16B(), v18.V16B(), MemOperand(x1)),
           "ld4r {v15.16b, v16.16b, v17.16b, v18.16b}, [x1]");
-  COMPARE(Ld4r(v16.V4H(),  v17.V4H(),  v18.V4H(),  v19.V4H(),
-               MemOperand(x2)),
+  COMPARE(Ld4r(v16.V4H(), v17.V4H(), v18.V4H(), v19.V4H(), MemOperand(x2)),
           "ld4r {v16.4h, v17.4h, v18.4h, v19.4h}, [x2]");
-  COMPARE(Ld4r(v17.V8H(),  v18.V8H(),  v19.V8H(),  v20.V8H(),
-               MemOperand(x3)),
+  COMPARE(Ld4r(v17.V8H(), v18.V8H(), v19.V8H(), v20.V8H(), MemOperand(x3)),
           "ld4r {v17.8h, v18.8h, v19.8h, v20.8h}, [x3]");
-  COMPARE(Ld4r(v18.V2S(),  v19.V2S(),  v20.V2S(),  v21.V2S(),
-               MemOperand(x4)),
+  COMPARE(Ld4r(v18.V2S(), v19.V2S(), v20.V2S(), v21.V2S(), MemOperand(x4)),
           "ld4r {v18.2s, v19.2s, v20.2s, v21.2s}, [x4]");
-  COMPARE(Ld4r(v19.V4S(),  v20.V4S(),  v21.V4S(),  v22.V4S(),
-               MemOperand(x5)),
+  COMPARE(Ld4r(v19.V4S(), v20.V4S(), v21.V4S(), v22.V4S(), MemOperand(x5)),
           "ld4r {v19.4s, v20.4s, v21.4s, v22.4s}, [x5]");
-  COMPARE(Ld4r(v20.V2D(),  v21.V2D(),  v22.V2D(),  v23.V2D(),
-               MemOperand(sp)),
+  COMPARE(Ld4r(v20.V2D(), v21.V2D(), v22.V2D(), v23.V2D(), MemOperand(sp)),
           "ld4r {v20.2d, v21.2d, v22.2d, v23.2d}, [sp]");
-  COMPARE(Ld4r(v21.V8B(),  v22.V8B(),  v23.V8B(),  v24.V8B(),
+  COMPARE(Ld4r(v21.V8B(),
+               v22.V8B(),
+               v23.V8B(),
+               v24.V8B(),
                MemOperand(x6, 4, PostIndex)),
           "ld4r {v21.8b, v22.8b, v23.8b, v24.8b}, [x6], #4");
-  COMPARE(Ld4r(v22.V16B(), v23.V16B(), v24.V16B(), v25.V16B(),
+  COMPARE(Ld4r(v22.V16B(),
+               v23.V16B(),
+               v24.V16B(),
+               v25.V16B(),
                MemOperand(x7, x16, PostIndex)),
           "ld4r {v22.16b, v23.16b, v24.16b, v25.16b}, [x7], x16");
-  COMPARE(Ld4r(v23.V4H(),  v24.V4H(),  v25.V4H(),  v26.V4H(),
+  COMPARE(Ld4r(v23.V4H(),
+               v24.V4H(),
+               v25.V4H(),
+               v26.V4H(),
                MemOperand(x8, x17, PostIndex)),
           "ld4r {v23.4h, v24.4h, v25.4h, v26.4h}, [x8], x17");
-  COMPARE(Ld4r(v24.V8H(),  v25.V8H(),  v26.V8H(),  v27.V8H(),
+  COMPARE(Ld4r(v24.V8H(),
+               v25.V8H(),
+               v26.V8H(),
+               v27.V8H(),
                MemOperand(x9, 8, PostIndex)),
           "ld4r {v24.8h, v25.8h, v26.8h, v27.8h}, [x9], #8");
-  COMPARE(Ld4r(v25.V2S(),  v26.V2S(),  v27.V2S(),  v28.V2S(),
+  COMPARE(Ld4r(v25.V2S(),
+               v26.V2S(),
+               v27.V2S(),
+               v28.V2S(),
                MemOperand(x10, 16, PostIndex)),
           "ld4r {v25.2s, v26.2s, v27.2s, v28.2s}, [x10], #16");
-  COMPARE(Ld4r(v26.V4S(),  v27.V4S(),  v28.V4S(),  v29.V4S(),
+  COMPARE(Ld4r(v26.V4S(),
+               v27.V4S(),
+               v28.V4S(),
+               v29.V4S(),
                MemOperand(x11, x18, PostIndex)),
           "ld4r {v26.4s, v27.4s, v28.4s, v29.4s}, [x11], x18");
-  COMPARE(Ld4r(v27.V2D(),  v28.V2D(),  v29.V2D(),  v30.V2D(),
+  COMPARE(Ld4r(v27.V2D(),
+               v28.V2D(),
+               v29.V2D(),
+               v30.V2D(),
                MemOperand(x12, 32, PostIndex)),
           "ld4r {v27.2d, v28.2d, v29.2d, v30.2d}, [x12], #32");
 
@@ -4012,399 +4103,408 @@ TEST(neon_load_all_lanes_unallocated) {
 TEST(neon_3same) {
   SETUP_MACRO();
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Cmeq(v0.M, v1.M, v2.M), "cmeq v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Cmge(v0.M, v1.M, v2.M), "cmge v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Cmgt(v0.M, v1.M, v2.M), "cmgt v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Cmhi(v0.M, v1.M, v2.M), "cmhi v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Cmhs(v0.M, v1.M, v2.M), "cmhs v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Cmtst(v0.M, v1.M, v2.M), "cmtst v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Add(v0.M, v1.M, v2.M), "add v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Sub(v3.M, v4.M, v5.M), "sub v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Sabd(v3.M, v4.M, v5.M), "sabd v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Uabd(v3.M, v4.M, v5.M), "uabd v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Saba(v3.M, v4.M, v5.M), "saba v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Uaba(v3.M, v4.M, v5.M), "uaba v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Smax(v3.M, v4.M, v5.M), "smax v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Smin(v3.M, v4.M, v5.M), "smin v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Umax(v3.M, v4.M, v5.M), "umax v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Umin(v3.M, v4.M, v5.M), "umin v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Smaxp(v3.M, v4.M, v5.M), "smaxp v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Sminp(v3.M, v4.M, v5.M), "sminp v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Umaxp(v3.M, v4.M, v5.M), "umaxp v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Uminp(v3.M, v4.M, v5.M), "uminp v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Uqadd(v6.M, v7.M, v8.M), "uqadd v6." S ", v7." S ", v8." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Sqadd(v9.M, v10.M, v11.M), "sqadd v9." S ", v10." S ", v11." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Uqsub(v6.M, v7.M, v8.M), "uqsub v6." S ", v7." S ", v8." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Sqsub(v9.M, v10.M, v11.M), "sqsub v9." S ", v10." S ", v11." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Sshl(v12.M, v13.M, v14.M), "sshl v12." S ", v13." S ", v14." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Ushl(v15.M, v16.M, v17.M), "ushl v15." S ", v16." S ", v17." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Sqshl(v18.M, v19.M, v20.M), "sqshl v18." S ", v19." S ", v20." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Uqshl(v21.M, v22.M, v23.M), "uqshl v21." S ", v22." S ", v23." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Srshl(v24.M, v25.M, v26.M), "srshl v24." S ", v25." S ", v26." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Urshl(v27.M, v28.M, v29.M), "urshl v27." S ", v28." S ", v29." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Sqrshl(v30.M, v31.M, v0.M), "sqrshl v30." S ", v31." S ", v0." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Uqrshl(v1.M, v2.M, v3.M), "uqrshl v1." S ", v2." S ", v3." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Shadd(v4.M, v5.M, v6.M), "shadd v4." S ", v5." S ", v6." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Uhadd(v7.M, v8.M, v9.M), "uhadd v7." S ", v8." S ", v9." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Srhadd(v10.M, v11.M, v12.M), "srhadd v10." S ", v11." S ", v12." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Urhadd(v13.M, v14.M, v15.M), "urhadd v13." S ", v14." S ", v15." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Shsub(v16.M, v17.M, v18.M), "shsub v16." S ", v17." S ", v18." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Uhsub(v19.M, v20.M, v21.M), "uhsub v19." S ", v20." S ", v21." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Addp(v19.M, v20.M, v21.M), "addp v19." S ", v20." S ", v21." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Mla(v19.M, v20.M, v21.M), "mla v19." S ", v20." S ", v21." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Mls(v19.M, v20.M, v21.M), "mls v19." S ", v20." S ", v21." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Mul(v19.M, v20.M, v21.M), "mul v19." S ", v20." S ", v21." S);
   NEON_FORMAT_LIST_BHS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Sqdmulh(v1.M, v2.M, v3.M), "sqdmulh v1." S ", v2." S ", v3." S);
   NEON_FORMAT_LIST_HS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Sqrdmulh(v1.M, v2.M, v3.M), "sqrdmulh v1." S ", v2." S ", v3." S);
   NEON_FORMAT_LIST_HS(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  COMPARE(And(v6.V8B(), v7.V8B(), v8.V8B()),    "and v6.8b, v7.8b, v8.8b");
+  COMPARE(And(v6.V8B(), v7.V8B(), v8.V8B()), "and v6.8b, v7.8b, v8.8b");
   COMPARE(And(v6.V16B(), v7.V16B(), v8.V16B()), "and v6.16b, v7.16b, v8.16b");
 
-  COMPARE(Bic(v6.V8B(), v7.V8B(), v8.V8B()),    "bic v6.8b, v7.8b, v8.8b");
+  COMPARE(Bic(v6.V8B(), v7.V8B(), v8.V8B()), "bic v6.8b, v7.8b, v8.8b");
   COMPARE(Bic(v6.V16B(), v7.V16B(), v8.V16B()), "bic v6.16b, v7.16b, v8.16b");
 
-  COMPARE(Orr(v6.V8B(), v7.V8B(), v8.V8B()),    "orr v6.8b, v7.8b, v8.8b");
+  COMPARE(Orr(v6.V8B(), v7.V8B(), v8.V8B()), "orr v6.8b, v7.8b, v8.8b");
   COMPARE(Orr(v6.V16B(), v7.V16B(), v8.V16B()), "orr v6.16b, v7.16b, v8.16b");
 
-  COMPARE(Orr(v6.V8B(), v7.V8B(), v7.V8B()),    "mov v6.8b, v7.8b");
+  COMPARE(Orr(v6.V8B(), v7.V8B(), v7.V8B()), "mov v6.8b, v7.8b");
   COMPARE(Orr(v6.V16B(), v7.V16B(), v7.V16B()), "mov v6.16b, v7.16b");
 
-  COMPARE(Mov(v6.V8B(), v8.V8B()),              "mov v6.8b, v8.8b");
-  COMPARE(Mov(v6.V16B(), v8.V16B()),            "mov v6.16b, v8.16b");
+  COMPARE(Mov(v6.V8B(), v8.V8B()), "mov v6.8b, v8.8b");
+  COMPARE(Mov(v6.V16B(), v8.V16B()), "mov v6.16b, v8.16b");
 
-  COMPARE(Orn(v6.V8B(), v7.V8B(), v8.V8B()),    "orn v6.8b, v7.8b, v8.8b");
+  COMPARE(Orn(v6.V8B(), v7.V8B(), v8.V8B()), "orn v6.8b, v7.8b, v8.8b");
   COMPARE(Orn(v6.V16B(), v7.V16B(), v8.V16B()), "orn v6.16b, v7.16b, v8.16b");
 
-  COMPARE(Eor(v6.V8B(), v7.V8B(), v8.V8B()),    "eor v6.8b, v7.8b, v8.8b");
+  COMPARE(Eor(v6.V8B(), v7.V8B(), v8.V8B()), "eor v6.8b, v7.8b, v8.8b");
   COMPARE(Eor(v6.V16B(), v7.V16B(), v8.V16B()), "eor v6.16b, v7.16b, v8.16b");
 
-  COMPARE(Bif(v6.V8B(), v7.V8B(), v8.V8B()),    "bif v6.8b, v7.8b, v8.8b");
+  COMPARE(Bif(v6.V8B(), v7.V8B(), v8.V8B()), "bif v6.8b, v7.8b, v8.8b");
   COMPARE(Bif(v6.V16B(), v7.V16B(), v8.V16B()), "bif v6.16b, v7.16b, v8.16b");
 
-  COMPARE(Bit(v6.V8B(), v7.V8B(), v8.V8B()),    "bit v6.8b, v7.8b, v8.8b");
+  COMPARE(Bit(v6.V8B(), v7.V8B(), v8.V8B()), "bit v6.8b, v7.8b, v8.8b");
   COMPARE(Bit(v6.V16B(), v7.V16B(), v8.V16B()), "bit v6.16b, v7.16b, v8.16b");
 
-  COMPARE(Bsl(v6.V8B(), v7.V8B(), v8.V8B()),    "bsl v6.8b, v7.8b, v8.8b");
+  COMPARE(Bsl(v6.V8B(), v7.V8B(), v8.V8B()), "bsl v6.8b, v7.8b, v8.8b");
   COMPARE(Bsl(v6.V16B(), v7.V16B(), v8.V16B()), "bsl v6.16b, v7.16b, v8.16b");
 
-  COMPARE(Pmul(v6.V8B(), v7.V8B(), v8.V8B()),    "pmul v6.8b, v7.8b, v8.8b");
+  COMPARE(Pmul(v6.V8B(), v7.V8B(), v8.V8B()), "pmul v6.8b, v7.8b, v8.8b");
   COMPARE(Pmul(v6.V16B(), v7.V16B(), v8.V16B()), "pmul v6.16b, v7.16b, v8.16b");
 
   CLEANUP();
 }
 
 
-#define NEON_FORMAT_LIST_FP(V)  \
-  V(V2S(), "2s")                \
-  V(V4S(), "4s")                \
+#define NEON_FORMAT_LIST_FP(V) \
+  V(V2S(), "2s")               \
+  V(V4S(), "4s")               \
   V(V2D(), "2d")
 
 TEST(neon_fp_3same) {
   SETUP_MACRO();
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fadd(v0.M, v1.M, v2.M), "fadd v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fsub(v3.M, v4.M, v5.M), "fsub v3." S ", v4." S ", v5." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fmul(v6.M, v7.M, v8.M), "fmul v6." S ", v7." S ", v8." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fdiv(v9.M, v10.M, v11.M), "fdiv v9." S ", v10." S ", v11." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fmin(v12.M, v13.M, v14.M), "fmin v12." S ", v13." S ", v14." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fminnm(v15.M, v16.M, v17.M), "fminnm v15." S ", v16." S ", v17." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fmax(v18.M, v19.M, v20.M), "fmax v18." S ", v19." S ", v20." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fmaxnm(v21.M, v22.M, v23.M), "fmaxnm v21." S ", v22." S ", v23." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Frecps(v24.M, v25.M, v26.M), "frecps v24." S ", v25." S ", v26." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
-  COMPARE(Frsqrts(v27.M, v28.M, v29.M), "frsqrts v27." S ", v28." S ", v29." S);
+#define DISASM_INST(M, S)               \
+  COMPARE(Frsqrts(v27.M, v28.M, v29.M), \
+          "frsqrts v27." S ", v28." S   \
+          ", "                          \
+          "v29." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fmulx(v30.M, v31.M, v0.M), "fmulx v30." S ", v31." S ", v0." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fmla(v1.M, v2.M, v3.M), "fmla v1." S ", v2." S ", v3." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fmls(v4.M, v5.M, v6.M), "fmls v4." S ", v5." S ", v6." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fabd(v7.M, v8.M, v9.M), "fabd v7." S ", v8." S ", v9." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Faddp(v10.M, v11.M, v12.M), "faddp v10." S ", v11." S ", v12." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fmaxp(v13.M, v14.M, v15.M), "fmaxp v13." S ", v14." S ", v15." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fminp(v16.M, v17.M, v18.M), "fminp v16." S ", v17." S ", v18." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
-  COMPARE(Fmaxnmp(v19.M, v20.M, v21.M), "fmaxnmp v19." S ", v20." S ", v21." S);
+#define DISASM_INST(M, S)               \
+  COMPARE(Fmaxnmp(v19.M, v20.M, v21.M), \
+          "fmaxnmp v19." S ", v20." S   \
+          ", "                          \
+          "v21." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
-  COMPARE(Fminnmp(v22.M, v23.M, v24.M), "fminnmp v22." S ", v23." S ", v24." S);
+#define DISASM_INST(M, S)               \
+  COMPARE(Fminnmp(v22.M, v23.M, v24.M), \
+          "fminnmp v22." S ", v23." S   \
+          ", "                          \
+          "v24." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fcmeq(v25.M, v26.M, v27.M), "fcmeq v25." S ", v26." S ", v27." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fcmge(v25.M, v26.M, v27.M), "fcmge v25." S ", v26." S ", v27." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fcmgt(v25.M, v26.M, v27.M), "fcmgt v25." S ", v26." S ", v27." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Facge(v25.M, v26.M, v27.M), "facge v25." S ", v26." S ", v27." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Facgt(v25.M, v26.M, v27.M), "facgt v25." S ", v26." S ", v27." S);
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
   CLEANUP();
 }
 
 
-#define NEON_SCALAR_FORMAT_LIST(V)  \
-  V(B(), "b")                       \
-  V(H(), "h")                       \
-  V(S(), "s")                       \
+#define NEON_SCALAR_FORMAT_LIST(V) \
+  V(B(), "b")                      \
+  V(H(), "h")                      \
+  V(S(), "s")                      \
   V(D(), "d")
 
 TEST(neon_scalar_3same) {
@@ -4448,45 +4548,45 @@ TEST(neon_scalar_3same) {
   COMPARE(Sqrdmulh(v12.S(), v13.S(), v14.S()), "sqrdmulh s12, s13, s14");
   COMPARE(Sqrdmulh(v15.H(), v16.H(), v17.H()), "sqrdmulh h15, h16, h17");
 
-  #define DISASM_INST(M, R)  \
+#define DISASM_INST(M, R) \
   COMPARE(Uqadd(v6.M, v7.M, v8.M), "uqadd " R "6, " R "7, " R "8");
   NEON_SCALAR_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, R)  \
+#define DISASM_INST(M, R) \
   COMPARE(Uqsub(v9.M, v10.M, v11.M), "uqsub " R "9, " R "10, " R "11");
   NEON_SCALAR_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, R)  \
+#define DISASM_INST(M, R) \
   COMPARE(Sqadd(v12.M, v13.M, v14.M), "sqadd " R "12, " R "13, " R "14");
   NEON_SCALAR_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, R)  \
+#define DISASM_INST(M, R) \
   COMPARE(Sqsub(v15.M, v16.M, v17.M), "sqsub " R "15, " R "16, " R "17");
   NEON_SCALAR_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, R)  \
+#define DISASM_INST(M, R) \
   COMPARE(Uqshl(v18.M, v19.M, v20.M), "uqshl " R "18, " R "19, " R "20");
   NEON_SCALAR_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, R)  \
+#define DISASM_INST(M, R) \
   COMPARE(Sqshl(v21.M, v22.M, v23.M), "sqshl " R "21, " R "22, " R "23");
   NEON_SCALAR_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, R)  \
+#define DISASM_INST(M, R) \
   COMPARE(Uqrshl(v30.M, v31.M, v0.M), "uqrshl " R "30, " R "31, " R "0");
   NEON_SCALAR_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, R)  \
+#define DISASM_INST(M, R) \
   COMPARE(Sqrshl(v1.M, v2.M, v3.M), "sqrshl " R "1, " R "2, " R "3");
   NEON_SCALAR_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
   CLEANUP();
 }
@@ -4560,10 +4660,10 @@ TEST(neon_byelement) {
   COMPARE(Umlal2(v2.V2D(), v3.V4S(), v4.S(), 3),
           "umlal2 v2.2d, v3.4s, v4.s[3]");
 
-  COMPARE(Smlsl(v0.V4S(), v1.V4H(), v2.H(), 0),  "smlsl v0.4s, v1.4h, v2.h[0]");
+  COMPARE(Smlsl(v0.V4S(), v1.V4H(), v2.H(), 0), "smlsl v0.4s, v1.4h, v2.h[0]");
   COMPARE(Smlsl2(v2.V4S(), v3.V8H(), v4.H(), 7),
           "smlsl2 v2.4s, v3.8h, v4.h[7]");
-  COMPARE(Smlsl(v0.V2D(), v1.V2S(), v2.S(), 0),  "smlsl v0.2d, v1.2s, v2.s[0]");
+  COMPARE(Smlsl(v0.V2D(), v1.V2S(), v2.S(), 0), "smlsl v0.2d, v1.2s, v2.s[0]");
   COMPARE(Smlsl2(v2.V2D(), v3.V4S(), v4.S(), 3),
           "smlsl2 v2.2d, v3.4s, v4.s[3]");
 
@@ -4575,7 +4675,7 @@ TEST(neon_byelement) {
           "umlsl2 v2.2d, v3.4s, v4.s[3]");
 
   COMPARE(Sqdmull(v0.V4S(), v1.V4H(), v2.H(), 0),
-         "sqdmull v0.4s, v1.4h, v2.h[0]");
+          "sqdmull v0.4s, v1.4h, v2.h[0]");
   COMPARE(Sqdmull2(v2.V4S(), v3.V8H(), v4.H(), 7),
           "sqdmull2 v2.4s, v3.8h, v4.h[7]");
   COMPARE(Sqdmull(v0.V2D(), v1.V2S(), v2.S(), 0),
@@ -4645,203 +4745,257 @@ TEST(neon_fp_byelement) {
 TEST(neon_3different) {
   SETUP_MACRO();
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Uaddl(v0.TA, v1.TB, v2.TB), "uaddl v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Uaddl(v0.TA, v1.TB, v2.TB), \
+          "uaddl v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Uaddl2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Uaddl2(v0.TA, v1.TB, v2.TB), \
           "uaddl2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Uaddw(v0.TA, v1.TA, v2.TB), "uaddw v0." TAS ", v1." TAS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Uaddw(v0.TA, v1.TA, v2.TB), \
+          "uaddw v0." TAS ", v1." TAS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Uaddw2(v0.TA, v1.TA, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Uaddw2(v0.TA, v1.TA, v2.TB), \
           "uaddw2 v0." TAS ", v1." TAS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Saddl(v0.TA, v1.TB, v2.TB), "saddl v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Saddl(v0.TA, v1.TB, v2.TB), \
+          "saddl v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Saddl2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Saddl2(v0.TA, v1.TB, v2.TB), \
           "saddl2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Saddw(v0.TA, v1.TA, v2.TB), "saddw v0." TAS ", v1." TAS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Saddw(v0.TA, v1.TA, v2.TB), \
+          "saddw v0." TAS ", v1." TAS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Saddw2(v0.TA, v1.TA, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Saddw2(v0.TA, v1.TA, v2.TB), \
           "saddw2 v0." TAS ", v1." TAS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Usubl(v0.TA, v1.TB, v2.TB), "usubl v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Usubl(v0.TA, v1.TB, v2.TB), \
+          "usubl v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Usubl2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Usubl2(v0.TA, v1.TB, v2.TB), \
           "usubl2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Usubw(v0.TA, v1.TA, v2.TB), "usubw v0." TAS ", v1." TAS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Usubw(v0.TA, v1.TA, v2.TB), \
+          "usubw v0." TAS ", v1." TAS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Usubw2(v0.TA, v1.TA, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Usubw2(v0.TA, v1.TA, v2.TB), \
           "usubw2 v0." TAS ", v1." TAS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Ssubl(v0.TA, v1.TB, v2.TB), "ssubl v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Ssubl(v0.TA, v1.TB, v2.TB), \
+          "ssubl v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Ssubl2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Ssubl2(v0.TA, v1.TB, v2.TB), \
           "ssubl2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Ssubw(v0.TA, v1.TA, v2.TB), "ssubw v0." TAS ", v1." TAS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Ssubw(v0.TA, v1.TA, v2.TB), \
+          "ssubw v0." TAS ", v1." TAS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Ssubw2(v0.TA, v1.TA, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Ssubw2(v0.TA, v1.TA, v2.TB), \
           "ssubw2 v0." TAS ", v1." TAS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Sabal(v0.TA, v1.TB, v2.TB), "sabal v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Sabal(v0.TA, v1.TB, v2.TB), \
+          "sabal v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Sabal2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Sabal2(v0.TA, v1.TB, v2.TB), \
           "sabal2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Uabal(v0.TA, v1.TB, v2.TB), "uabal v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Uabal(v0.TA, v1.TB, v2.TB), \
+          "uabal v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Uabal2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Uabal2(v0.TA, v1.TB, v2.TB), \
           "uabal2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Sabdl(v0.TA, v1.TB, v2.TB), "sabdl v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Sabdl(v0.TA, v1.TB, v2.TB), \
+          "sabdl v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Sabdl2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Sabdl2(v0.TA, v1.TB, v2.TB), \
           "sabdl2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Uabdl(v0.TA, v1.TB, v2.TB), "uabdl v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Uabdl(v0.TA, v1.TB, v2.TB), \
+          "uabdl v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Uabdl2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Uabdl2(v0.TA, v1.TB, v2.TB), \
           "uabdl2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Smlal(v0.TA, v1.TB, v2.TB), "smlal v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Smlal(v0.TA, v1.TB, v2.TB), \
+          "smlal v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Smlal2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Smlal2(v0.TA, v1.TB, v2.TB), \
           "smlal2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Umlsl(v0.TA, v1.TB, v2.TB), "umlsl v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Umlsl(v0.TA, v1.TB, v2.TB), \
+          "umlsl v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Umlsl2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Umlsl2(v0.TA, v1.TB, v2.TB), \
           "umlsl2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Smlsl(v0.TA, v1.TB, v2.TB), "smlsl v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Smlsl(v0.TA, v1.TB, v2.TB), \
+          "smlsl v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Smlsl2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Smlsl2(v0.TA, v1.TB, v2.TB), \
           "smlsl2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Umlsl(v0.TA, v1.TB, v2.TB), "umlsl v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Umlsl(v0.TA, v1.TB, v2.TB), \
+          "umlsl v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Umlsl2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Umlsl2(v0.TA, v1.TB, v2.TB), \
           "umlsl2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Smull(v0.TA, v1.TB, v2.TB), "smull v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Smull(v0.TA, v1.TB, v2.TB), \
+          "smull v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Smull2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Smull2(v0.TA, v1.TB, v2.TB), \
           "smull2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Umull(v0.TA, v1.TB, v2.TB), "umull v0." TAS ", v1." TBS ", v2." TBS);
+#define DISASM_INST(TA, TAS, TB, TBS) \
+  COMPARE(Umull(v0.TA, v1.TB, v2.TB), \
+          "umull v0." TAS ", v1." TBS \
+          ", "                        \
+          "v2." TBS);
   NEON_FORMAT_LIST_LW(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
-  COMPARE(Umull2(v0.TA, v1.TB, v2.TB),   \
+#define DISASM_INST(TA, TAS, TB, TBS)  \
+  COMPARE(Umull2(v0.TA, v1.TB, v2.TB), \
           "umull2 v0." TAS ", v1." TBS ", v2." TBS);
   NEON_FORMAT_LIST_LW2(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
   COMPARE(Sqdmull(v0.V4S(), v1.V4H(), v2.V4H()), "sqdmull v0.4s, v1.4h, v2.4h");
   COMPARE(Sqdmull(v1.V2D(), v2.V2S(), v3.V2S()), "sqdmull v1.2d, v2.2s, v3.2s");
@@ -4895,7 +5049,7 @@ TEST(neon_3different) {
   COMPARE(Rsubhn(v1.V4H(), v2.V4S(), v3.V4S()), "rsubhn v1.4h, v2.4s, v3.4s");
   COMPARE(Rsubhn(v2.V2S(), v3.V2D(), v4.V2D()), "rsubhn v2.2s, v3.2d, v4.2d");
   COMPARE(Rsubhn2(v0.V16B(), v1.V8H(), v5.V8H()),
-         "rsubhn2 v0.16b, v1.8h, v5.8h");
+          "rsubhn2 v0.16b, v1.8h, v5.8h");
   COMPARE(Rsubhn2(v1.V8H(), v2.V4S(), v6.V4S()), "rsubhn2 v1.8h, v2.4s, v6.4s");
   COMPARE(Rsubhn2(v2.V4S(), v3.V2D(), v7.V2D()), "rsubhn2 v2.4s, v3.2d, v7.2d");
 
@@ -4910,35 +5064,35 @@ TEST(neon_3different) {
 TEST(neon_perm) {
   SETUP_MACRO();
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Trn1(v0.M, v1.M, v2.M), "trn1 v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Trn2(v0.M, v1.M, v2.M), "trn2 v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Uzp1(v0.M, v1.M, v2.M), "uzp1 v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Uzp2(v0.M, v1.M, v2.M), "uzp2 v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Zip1(v0.M, v1.M, v2.M), "zip1 v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Zip2(v0.M, v1.M, v2.M), "zip2 v0." S ", v1." S ", v2." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
   CLEANUP();
 }
@@ -4948,121 +5102,121 @@ TEST(neon_copy) {
   SETUP_MACRO();
 
   COMPARE(Ins(v1.V16B(), 4, v5.V16B(), 0), "mov v1.b[4], v5.b[0]");
-  COMPARE(Ins(v2.V8B(),  5, v6.V8B(),  1), "mov v2.b[5], v6.b[1]");
-  COMPARE(Ins(v3.B(),    6, v7.B(),    2), "mov v3.b[6], v7.b[2]");
-  COMPARE(Ins(v4.V8H(),  7, v8.V8H(),  3), "mov v4.h[7], v8.h[3]");
-  COMPARE(Ins(v5.V4H(),  3, v9.V4H(),  0), "mov v5.h[3], v9.h[0]");
-  COMPARE(Ins(v6.H(),    6, v1.H(),    1), "mov v6.h[6], v1.h[1]");
-  COMPARE(Ins(v7.V4S(),  2, v2.V4S(),  2), "mov v7.s[2], v2.s[2]");
-  COMPARE(Ins(v8.V2S(),  1, v3.V2S(),  0), "mov v8.s[1], v3.s[0]");
-  COMPARE(Ins(v9.S(),    0, v4.S(),    1), "mov v9.s[0], v4.s[1]");
-  COMPARE(Ins(v1.V2D(),  1, v5.V2D(),  0), "mov v1.d[1], v5.d[0]");
-  COMPARE(Ins(v2.D(),    0, v6.D(),    1), "mov v2.d[0], v6.d[1]");
+  COMPARE(Ins(v2.V8B(), 5, v6.V8B(), 1), "mov v2.b[5], v6.b[1]");
+  COMPARE(Ins(v3.B(), 6, v7.B(), 2), "mov v3.b[6], v7.b[2]");
+  COMPARE(Ins(v4.V8H(), 7, v8.V8H(), 3), "mov v4.h[7], v8.h[3]");
+  COMPARE(Ins(v5.V4H(), 3, v9.V4H(), 0), "mov v5.h[3], v9.h[0]");
+  COMPARE(Ins(v6.H(), 6, v1.H(), 1), "mov v6.h[6], v1.h[1]");
+  COMPARE(Ins(v7.V4S(), 2, v2.V4S(), 2), "mov v7.s[2], v2.s[2]");
+  COMPARE(Ins(v8.V2S(), 1, v3.V2S(), 0), "mov v8.s[1], v3.s[0]");
+  COMPARE(Ins(v9.S(), 0, v4.S(), 1), "mov v9.s[0], v4.s[1]");
+  COMPARE(Ins(v1.V2D(), 1, v5.V2D(), 0), "mov v1.d[1], v5.d[0]");
+  COMPARE(Ins(v2.D(), 0, v6.D(), 1), "mov v2.d[0], v6.d[1]");
 
   COMPARE(Mov(v3.V16B(), 4, v7.V16B(), 0), "mov v3.b[4], v7.b[0]");
-  COMPARE(Mov(v4.V8B(),  5, v8.V8B(),  1), "mov v4.b[5], v8.b[1]");
-  COMPARE(Mov(v5.B(),    6, v9.B(),    2), "mov v5.b[6], v9.b[2]");
-  COMPARE(Mov(v6.V8H(),  7, v1.V8H(),  3), "mov v6.h[7], v1.h[3]");
-  COMPARE(Mov(v7.V4H(),  0, v2.V4H(),  0), "mov v7.h[0], v2.h[0]");
-  COMPARE(Mov(v8.H(),    1, v3.H(),    1), "mov v8.h[1], v3.h[1]");
-  COMPARE(Mov(v9.V4S(),  2, v4.V4S(),  2), "mov v9.s[2], v4.s[2]");
-  COMPARE(Mov(v1.V2S(),  3, v5.V2S(),  0), "mov v1.s[3], v5.s[0]");
-  COMPARE(Mov(v2.S(),    0, v6.S(),    1), "mov v2.s[0], v6.s[1]");
-  COMPARE(Mov(v3.V2D(),  1, v7.V2D(),  0), "mov v3.d[1], v7.d[0]");
-  COMPARE(Mov(v4.D(),    0, v8.D(),    1), "mov v4.d[0], v8.d[1]");
+  COMPARE(Mov(v4.V8B(), 5, v8.V8B(), 1), "mov v4.b[5], v8.b[1]");
+  COMPARE(Mov(v5.B(), 6, v9.B(), 2), "mov v5.b[6], v9.b[2]");
+  COMPARE(Mov(v6.V8H(), 7, v1.V8H(), 3), "mov v6.h[7], v1.h[3]");
+  COMPARE(Mov(v7.V4H(), 0, v2.V4H(), 0), "mov v7.h[0], v2.h[0]");
+  COMPARE(Mov(v8.H(), 1, v3.H(), 1), "mov v8.h[1], v3.h[1]");
+  COMPARE(Mov(v9.V4S(), 2, v4.V4S(), 2), "mov v9.s[2], v4.s[2]");
+  COMPARE(Mov(v1.V2S(), 3, v5.V2S(), 0), "mov v1.s[3], v5.s[0]");
+  COMPARE(Mov(v2.S(), 0, v6.S(), 1), "mov v2.s[0], v6.s[1]");
+  COMPARE(Mov(v3.V2D(), 1, v7.V2D(), 0), "mov v3.d[1], v7.d[0]");
+  COMPARE(Mov(v4.D(), 0, v8.D(), 1), "mov v4.d[0], v8.d[1]");
 
   COMPARE(Ins(v1.V16B(), 4, w0), "mov v1.b[4], w0");
-  COMPARE(Ins(v2.V8B(),  5, w1), "mov v2.b[5], w1");
-  COMPARE(Ins(v3.B(),    6, w2), "mov v3.b[6], w2");
-  COMPARE(Ins(v4.V8H(),  7, w3), "mov v4.h[7], w3");
-  COMPARE(Ins(v5.V4H(),  3, w0), "mov v5.h[3], w0");
-  COMPARE(Ins(v6.H(),    6, w1), "mov v6.h[6], w1");
-  COMPARE(Ins(v7.V4S(),  2, w2), "mov v7.s[2], w2");
-  COMPARE(Ins(v8.V2S(),  1, w0), "mov v8.s[1], w0");
-  COMPARE(Ins(v9.S(),    0, w1), "mov v9.s[0], w1");
-  COMPARE(Ins(v1.V2D(),  1, x0), "mov v1.d[1], x0");
-  COMPARE(Ins(v2.D(),    0, x1), "mov v2.d[0], x1");
+  COMPARE(Ins(v2.V8B(), 5, w1), "mov v2.b[5], w1");
+  COMPARE(Ins(v3.B(), 6, w2), "mov v3.b[6], w2");
+  COMPARE(Ins(v4.V8H(), 7, w3), "mov v4.h[7], w3");
+  COMPARE(Ins(v5.V4H(), 3, w0), "mov v5.h[3], w0");
+  COMPARE(Ins(v6.H(), 6, w1), "mov v6.h[6], w1");
+  COMPARE(Ins(v7.V4S(), 2, w2), "mov v7.s[2], w2");
+  COMPARE(Ins(v8.V2S(), 1, w0), "mov v8.s[1], w0");
+  COMPARE(Ins(v9.S(), 0, w1), "mov v9.s[0], w1");
+  COMPARE(Ins(v1.V2D(), 1, x0), "mov v1.d[1], x0");
+  COMPARE(Ins(v2.D(), 0, x1), "mov v2.d[0], x1");
 
   COMPARE(Mov(v1.V16B(), 4, w0), "mov v1.b[4], w0");
-  COMPARE(Mov(v2.V8B(),  5, w1), "mov v2.b[5], w1");
-  COMPARE(Mov(v3.B(),    6, w2), "mov v3.b[6], w2");
-  COMPARE(Mov(v4.V8H(),  7, w3), "mov v4.h[7], w3");
-  COMPARE(Mov(v5.V4H(),  3, w0), "mov v5.h[3], w0");
-  COMPARE(Mov(v6.H(),    6, w1), "mov v6.h[6], w1");
-  COMPARE(Mov(v7.V4S(),  2, w2), "mov v7.s[2], w2");
-  COMPARE(Mov(v8.V2S(),  1, w0), "mov v8.s[1], w0");
-  COMPARE(Mov(v9.S(),    0, w1), "mov v9.s[0], w1");
-  COMPARE(Mov(v1.V2D(),  1, x0), "mov v1.d[1], x0");
-  COMPARE(Mov(v2.D(),    0, x1), "mov v2.d[0], x1");
+  COMPARE(Mov(v2.V8B(), 5, w1), "mov v2.b[5], w1");
+  COMPARE(Mov(v3.B(), 6, w2), "mov v3.b[6], w2");
+  COMPARE(Mov(v4.V8H(), 7, w3), "mov v4.h[7], w3");
+  COMPARE(Mov(v5.V4H(), 3, w0), "mov v5.h[3], w0");
+  COMPARE(Mov(v6.H(), 6, w1), "mov v6.h[6], w1");
+  COMPARE(Mov(v7.V4S(), 2, w2), "mov v7.s[2], w2");
+  COMPARE(Mov(v8.V2S(), 1, w0), "mov v8.s[1], w0");
+  COMPARE(Mov(v9.S(), 0, w1), "mov v9.s[0], w1");
+  COMPARE(Mov(v1.V2D(), 1, x0), "mov v1.d[1], x0");
+  COMPARE(Mov(v2.D(), 0, x1), "mov v2.d[0], x1");
 
-  COMPARE(Dup(v5.V8B(), v9.V8B(), 6),   "dup v5.8b, v9.b[6]");
+  COMPARE(Dup(v5.V8B(), v9.V8B(), 6), "dup v5.8b, v9.b[6]");
   COMPARE(Dup(v6.V16B(), v1.V16B(), 5), "dup v6.16b, v1.b[5]");
-  COMPARE(Dup(v7.V4H(), v2.V4H(), 4),   "dup v7.4h, v2.h[4]");
-  COMPARE(Dup(v8.V8H(), v3.V8H(), 3),   "dup v8.8h, v3.h[3]");
-  COMPARE(Dup(v9.V2S(), v4.V2S(), 2),   "dup v9.2s, v4.s[2]");
-  COMPARE(Dup(v1.V4S(), v5.V4S(), 1),   "dup v1.4s, v5.s[1]");
-  COMPARE(Dup(v2.V2D(), v6.V2D(), 0),   "dup v2.2d, v6.d[0]");
+  COMPARE(Dup(v7.V4H(), v2.V4H(), 4), "dup v7.4h, v2.h[4]");
+  COMPARE(Dup(v8.V8H(), v3.V8H(), 3), "dup v8.8h, v3.h[3]");
+  COMPARE(Dup(v9.V2S(), v4.V2S(), 2), "dup v9.2s, v4.s[2]");
+  COMPARE(Dup(v1.V4S(), v5.V4S(), 1), "dup v1.4s, v5.s[1]");
+  COMPARE(Dup(v2.V2D(), v6.V2D(), 0), "dup v2.2d, v6.d[0]");
 
-  COMPARE(Dup(v5.B(), v9.B(), 6),   "mov b5, v9.b[6]");
-  COMPARE(Dup(v7.H(), v2.H(), 4),   "mov h7, v2.h[4]");
-  COMPARE(Dup(v9.S(), v4.S(), 2),   "mov s9, v4.s[2]");
-  COMPARE(Dup(v2.D(), v6.D(), 0),   "mov d2, v6.d[0]");
+  COMPARE(Dup(v5.B(), v9.B(), 6), "mov b5, v9.b[6]");
+  COMPARE(Dup(v7.H(), v2.H(), 4), "mov h7, v2.h[4]");
+  COMPARE(Dup(v9.S(), v4.S(), 2), "mov s9, v4.s[2]");
+  COMPARE(Dup(v2.D(), v6.D(), 0), "mov d2, v6.d[0]");
 
-  COMPARE(Mov(v5.B(), v9.B(), 6),   "mov b5, v9.b[6]");
-  COMPARE(Mov(v7.H(), v2.H(), 4),   "mov h7, v2.h[4]");
-  COMPARE(Mov(v9.S(), v4.S(), 2),   "mov s9, v4.s[2]");
-  COMPARE(Mov(v2.D(), v6.D(), 0),   "mov d2, v6.d[0]");
+  COMPARE(Mov(v5.B(), v9.B(), 6), "mov b5, v9.b[6]");
+  COMPARE(Mov(v7.H(), v2.H(), 4), "mov h7, v2.h[4]");
+  COMPARE(Mov(v9.S(), v4.S(), 2), "mov s9, v4.s[2]");
+  COMPARE(Mov(v2.D(), v6.D(), 0), "mov d2, v6.d[0]");
 
-  COMPARE(Mov(v0.B(), v1.V8B(), 7),   "mov b0, v1.b[7]");
-  COMPARE(Mov(b2, v3.V16B(), 15),     "mov b2, v3.b[15]");
-  COMPARE(Mov(v4.H(), v5.V4H(), 3),   "mov h4, v5.h[3]");
-  COMPARE(Mov(h6, v7.V8H(), 7),       "mov h6, v7.h[7]");
-  COMPARE(Mov(v8.S(), v9.V2S(), 1),   "mov s8, v9.s[1]");
-  COMPARE(Mov(s10, v11.V4S(), 3),     "mov s10, v11.s[3]");
+  COMPARE(Mov(v0.B(), v1.V8B(), 7), "mov b0, v1.b[7]");
+  COMPARE(Mov(b2, v3.V16B(), 15), "mov b2, v3.b[15]");
+  COMPARE(Mov(v4.H(), v5.V4H(), 3), "mov h4, v5.h[3]");
+  COMPARE(Mov(h6, v7.V8H(), 7), "mov h6, v7.h[7]");
+  COMPARE(Mov(v8.S(), v9.V2S(), 1), "mov s8, v9.s[1]");
+  COMPARE(Mov(s10, v11.V4S(), 3), "mov s10, v11.s[3]");
   COMPARE(Mov(v12.D(), v13.V2D(), 1), "mov d12, v13.d[1]");
 
-  COMPARE(Dup(v5.V8B(),  w0), "dup v5.8b, w0");
+  COMPARE(Dup(v5.V8B(), w0), "dup v5.8b, w0");
   COMPARE(Dup(v6.V16B(), w1), "dup v6.16b, w1");
-  COMPARE(Dup(v7.V4H(),  w2), "dup v7.4h, w2");
-  COMPARE(Dup(v8.V8H(),  w3), "dup v8.8h, w3");
-  COMPARE(Dup(v9.V2S(),  w4), "dup v9.2s, w4");
-  COMPARE(Dup(v1.V4S(),  w5), "dup v1.4s, w5");
-  COMPARE(Dup(v2.V2D(),  x6), "dup v2.2d, x6");
+  COMPARE(Dup(v7.V4H(), w2), "dup v7.4h, w2");
+  COMPARE(Dup(v8.V8H(), w3), "dup v8.8h, w3");
+  COMPARE(Dup(v9.V2S(), w4), "dup v9.2s, w4");
+  COMPARE(Dup(v1.V4S(), w5), "dup v1.4s, w5");
+  COMPARE(Dup(v2.V2D(), x6), "dup v2.2d, x6");
 
   COMPARE(Smov(w0, v1.V16B(), 4), "smov w0, v1.b[4]");
-  COMPARE(Smov(w1, v2.V8B(),  5), "smov w1, v2.b[5]");
-  COMPARE(Smov(w2, v3.B(),    6), "smov w2, v3.b[6]");
-  COMPARE(Smov(w3, v4.V8H(),  7), "smov w3, v4.h[7]");
-  COMPARE(Smov(w0, v5.V4H(),  3), "smov w0, v5.h[3]");
-  COMPARE(Smov(w1, v6.H(),    6), "smov w1, v6.h[6]");
+  COMPARE(Smov(w1, v2.V8B(), 5), "smov w1, v2.b[5]");
+  COMPARE(Smov(w2, v3.B(), 6), "smov w2, v3.b[6]");
+  COMPARE(Smov(w3, v4.V8H(), 7), "smov w3, v4.h[7]");
+  COMPARE(Smov(w0, v5.V4H(), 3), "smov w0, v5.h[3]");
+  COMPARE(Smov(w1, v6.H(), 6), "smov w1, v6.h[6]");
 
   COMPARE(Smov(x0, v1.V16B(), 4), "smov x0, v1.b[4]");
-  COMPARE(Smov(x1, v2.V8B(),  5), "smov x1, v2.b[5]");
-  COMPARE(Smov(x2, v3.B(),    6), "smov x2, v3.b[6]");
-  COMPARE(Smov(x3, v4.V8H(),  7), "smov x3, v4.h[7]");
-  COMPARE(Smov(x0, v5.V4H(),  3), "smov x0, v5.h[3]");
-  COMPARE(Smov(x1, v6.H(),    6), "smov x1, v6.h[6]");
-  COMPARE(Smov(x2, v7.V4S(),  2), "smov x2, v7.s[2]");
-  COMPARE(Smov(x0, v8.V2S(),  1), "smov x0, v8.s[1]");
-  COMPARE(Smov(x1, v9.S(),    0), "smov x1, v9.s[0]");
+  COMPARE(Smov(x1, v2.V8B(), 5), "smov x1, v2.b[5]");
+  COMPARE(Smov(x2, v3.B(), 6), "smov x2, v3.b[6]");
+  COMPARE(Smov(x3, v4.V8H(), 7), "smov x3, v4.h[7]");
+  COMPARE(Smov(x0, v5.V4H(), 3), "smov x0, v5.h[3]");
+  COMPARE(Smov(x1, v6.H(), 6), "smov x1, v6.h[6]");
+  COMPARE(Smov(x2, v7.V4S(), 2), "smov x2, v7.s[2]");
+  COMPARE(Smov(x0, v8.V2S(), 1), "smov x0, v8.s[1]");
+  COMPARE(Smov(x1, v9.S(), 0), "smov x1, v9.s[0]");
 
   COMPARE(Umov(w0, v1.V16B(), 4), "umov w0, v1.b[4]");
-  COMPARE(Umov(w1, v2.V8B(),  5), "umov w1, v2.b[5]");
-  COMPARE(Umov(w2, v3.B(),    6), "umov w2, v3.b[6]");
-  COMPARE(Umov(w3, v4.V8H(),  7), "umov w3, v4.h[7]");
-  COMPARE(Umov(w0, v5.V4H(),  3), "umov w0, v5.h[3]");
-  COMPARE(Umov(w1, v6.H(),    6), "umov w1, v6.h[6]");
-  COMPARE(Umov(w2, v7.V4S(),  2), "mov w2, v7.s[2]");
-  COMPARE(Umov(w0, v8.V2S(),  1), "mov w0, v8.s[1]");
-  COMPARE(Umov(w1, v9.S(),    0), "mov w1, v9.s[0]");
-  COMPARE(Umov(x0, v1.V2D(),  1), "mov x0, v1.d[1]");
-  COMPARE(Umov(x1, v2.D(),    0), "mov x1, v2.d[0]");
+  COMPARE(Umov(w1, v2.V8B(), 5), "umov w1, v2.b[5]");
+  COMPARE(Umov(w2, v3.B(), 6), "umov w2, v3.b[6]");
+  COMPARE(Umov(w3, v4.V8H(), 7), "umov w3, v4.h[7]");
+  COMPARE(Umov(w0, v5.V4H(), 3), "umov w0, v5.h[3]");
+  COMPARE(Umov(w1, v6.H(), 6), "umov w1, v6.h[6]");
+  COMPARE(Umov(w2, v7.V4S(), 2), "mov w2, v7.s[2]");
+  COMPARE(Umov(w0, v8.V2S(), 1), "mov w0, v8.s[1]");
+  COMPARE(Umov(w1, v9.S(), 0), "mov w1, v9.s[0]");
+  COMPARE(Umov(x0, v1.V2D(), 1), "mov x0, v1.d[1]");
+  COMPARE(Umov(x1, v2.D(), 0), "mov x1, v2.d[0]");
 
-  COMPARE(Mov(w2, v7.V4S(),  2), "mov w2, v7.s[2]");
-  COMPARE(Mov(w0, v8.V2S(),  1), "mov w0, v8.s[1]");
-  COMPARE(Mov(w1, v9.S(),    0), "mov w1, v9.s[0]");
-  COMPARE(Mov(x0, v1.V2D(),  1), "mov x0, v1.d[1]");
-  COMPARE(Mov(x1, v2.D(),    0), "mov x1, v2.d[0]");
+  COMPARE(Mov(w2, v7.V4S(), 2), "mov w2, v7.s[2]");
+  COMPARE(Mov(w0, v8.V2S(), 1), "mov w0, v8.s[1]");
+  COMPARE(Mov(w1, v9.S(), 0), "mov w1, v9.s[0]");
+  COMPARE(Mov(x0, v1.V2D(), 1), "mov x0, v1.d[1]");
+  COMPARE(Mov(x1, v2.D(), 0), "mov x1, v2.d[0]");
 
   CLEANUP();
 }
@@ -5076,14 +5230,25 @@ TEST(neon_table) {
           "tbl v3.8b, {v4.16b, v5.16b}, v6.8b");
   COMPARE(Tbl(v7.V8B(), v8.V16B(), v9.V16B(), v10.V16B(), v11.V8B()),
           "tbl v7.8b, {v8.16b, v9.16b, v10.16b}, v11.8b");
-  COMPARE(Tbl(v12.V8B(), v13.V16B(), v14.V16B(), v15.V16B(), v16.V16B(), v17.V8B()),
+  COMPARE(Tbl(v12.V8B(),
+              v13.V16B(),
+              v14.V16B(),
+              v15.V16B(),
+              v16.V16B(),
+              v17.V8B()),
           "tbl v12.8b, {v13.16b, v14.16b, v15.16b, v16.16b}, v17.8b");
-  COMPARE(Tbl(v18.V16B(), v19.V16B(), v20.V16B()), "tbl v18.16b, {v19.16b}, v20.16b");
+  COMPARE(Tbl(v18.V16B(), v19.V16B(), v20.V16B()),
+          "tbl v18.16b, {v19.16b}, v20.16b");
   COMPARE(Tbl(v21.V16B(), v22.V16B(), v23.V16B(), v24.V16B()),
           "tbl v21.16b, {v22.16b, v23.16b}, v24.16b");
   COMPARE(Tbl(v25.V16B(), v26.V16B(), v27.V16B(), v28.V16B(), v29.V16B()),
           "tbl v25.16b, {v26.16b, v27.16b, v28.16b}, v29.16b");
-  COMPARE(Tbl(v30.V16B(), v31.V16B(), v0.V16B(), v1.V16B(), v2.V16B(), v3.V16B()),
+  COMPARE(Tbl(v30.V16B(),
+              v31.V16B(),
+              v0.V16B(),
+              v1.V16B(),
+              v2.V16B(),
+              v3.V16B()),
           "tbl v30.16b, {v31.16b, v0.16b, v1.16b, v2.16b}, v3.16b");
 
   COMPARE(Tbx(v0.V8B(), v1.V16B(), v2.V8B()), "tbx v0.8b, {v1.16b}, v2.8b");
@@ -5091,14 +5256,25 @@ TEST(neon_table) {
           "tbx v3.8b, {v4.16b, v5.16b}, v6.8b");
   COMPARE(Tbx(v7.V8B(), v8.V16B(), v9.V16B(), v10.V16B(), v11.V8B()),
           "tbx v7.8b, {v8.16b, v9.16b, v10.16b}, v11.8b");
-  COMPARE(Tbx(v12.V8B(), v13.V16B(), v14.V16B(), v15.V16B(), v16.V16B(), v17.V8B()),
+  COMPARE(Tbx(v12.V8B(),
+              v13.V16B(),
+              v14.V16B(),
+              v15.V16B(),
+              v16.V16B(),
+              v17.V8B()),
           "tbx v12.8b, {v13.16b, v14.16b, v15.16b, v16.16b}, v17.8b");
-  COMPARE(Tbx(v18.V16B(), v19.V16B(), v20.V16B()), "tbx v18.16b, {v19.16b}, v20.16b");
+  COMPARE(Tbx(v18.V16B(), v19.V16B(), v20.V16B()),
+          "tbx v18.16b, {v19.16b}, v20.16b");
   COMPARE(Tbx(v21.V16B(), v22.V16B(), v23.V16B(), v24.V16B()),
           "tbx v21.16b, {v22.16b, v23.16b}, v24.16b");
   COMPARE(Tbx(v25.V16B(), v26.V16B(), v27.V16B(), v28.V16B(), v29.V16B()),
           "tbx v25.16b, {v26.16b, v27.16b, v28.16b}, v29.16b");
-  COMPARE(Tbx(v30.V16B(), v31.V16B(), v0.V16B(), v1.V16B(), v2.V16B(), v3.V16B()),
+  COMPARE(Tbx(v30.V16B(),
+              v31.V16B(),
+              v0.V16B(),
+              v1.V16B(),
+              v2.V16B(),
+              v3.V16B()),
           "tbx v30.16b, {v31.16b, v0.16b, v1.16b, v2.16b}, v3.16b");
 
   CLEANUP();
@@ -5148,7 +5324,7 @@ TEST(neon_modimm) {
   COMPARE(Mvni(v4.V4S(), 0xaa, MSL, 8), "mvni v4.4s, #0xaa, msl #8");
   COMPARE(Mvni(v1.V4S(), 0xcc, MSL, 16), "mvni v1.4s, #0xcc, msl #16");
 
-  COMPARE(Movi(v4.V8B(),  0xaa), "movi v4.8b, #0xaa");
+  COMPARE(Movi(v4.V8B(), 0xaa), "movi v4.8b, #0xaa");
   COMPARE(Movi(v1.V16B(), 0xcc), "movi v1.16b, #0xcc");
 
   COMPARE(Movi(v4.V4H(), 0xaa, LSL, 0), "movi v4.4h, #0xaa, lsl #0");
@@ -5164,7 +5340,7 @@ TEST(neon_modimm) {
   COMPARE(Movi(v4.V4S(), 0xaa, MSL, 8), "movi v4.4s, #0xaa, msl #8");
   COMPARE(Movi(v1.V4S(), 0xcc, MSL, 16), "movi v1.4s, #0xcc, msl #16");
 
-  COMPARE(Movi(d2,       0xffff0000ffffff), "movi d2, #0xffff0000ffffff");
+  COMPARE(Movi(d2, 0xffff0000ffffff), "movi d2, #0xffff0000ffffff");
   COMPARE(Movi(v1.V2D(), 0xffff0000ffffff), "movi v1.2d, #0xffff0000ffffff");
 
   COMPARE(Fmov(v0.V2S(), 1.0f), "fmov v0.2s, #0x70 (1.0000)");
@@ -5184,42 +5360,42 @@ TEST(neon_modimm) {
 TEST(neon_2regmisc) {
   SETUP_MACRO();
 
-  COMPARE(Shll(v1.V8H(),  v8.V8B(),  8), "shll v1.8h, v8.8b, #8");
-  COMPARE(Shll(v3.V4S(),  v1.V4H(),  16), "shll v3.4s, v1.4h, #16");
-  COMPARE(Shll(v5.V2D(),  v3.V2S(),  32), "shll v5.2d, v3.2s, #32");
+  COMPARE(Shll(v1.V8H(), v8.V8B(), 8), "shll v1.8h, v8.8b, #8");
+  COMPARE(Shll(v3.V4S(), v1.V4H(), 16), "shll v3.4s, v1.4h, #16");
+  COMPARE(Shll(v5.V2D(), v3.V2S(), 32), "shll v5.2d, v3.2s, #32");
   COMPARE(Shll2(v2.V8H(), v9.V16B(), 8), "shll2 v2.8h, v9.16b, #8");
-  COMPARE(Shll2(v4.V4S(), v2.V8H(),  16), "shll2 v4.4s, v2.8h, #16");
-  COMPARE(Shll2(v6.V2D(), v4.V4S(),  32), "shll2 v6.2d, v4.4s, #32");
+  COMPARE(Shll2(v4.V4S(), v2.V8H(), 16), "shll2 v4.4s, v2.8h, #16");
+  COMPARE(Shll2(v6.V2D(), v4.V4S(), 32), "shll2 v6.2d, v4.4s, #32");
 
   // An unallocated form of shll.
   COMPARE(dci(0x2ee13bff), "unallocated (NEON2RegMisc)");
   // An unallocated form of shll2.
   COMPARE(dci(0x6ee13bff), "unallocated (NEON2RegMisc)");
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Cmeq(v0.M, v1.M, 0), "cmeq v0." S ", v1." S ", #0");
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Cmge(v0.M, v1.M, 0), "cmge v0." S ", v1." S ", #0");
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Cmgt(v0.M, v1.M, 0), "cmgt v0." S ", v1." S ", #0");
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Cmle(v0.M, v1.M, 0), "cmle v0." S ", v1." S ", #0");
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Cmlt(v0.M, v1.M, 0), "cmlt v0." S ", v1." S ", #0");
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
   COMPARE(Cmeq(v0.D(), v1.D(), 0), "cmeq d0, d1, #0");
   COMPARE(Cmge(v3.D(), v4.D(), 0), "cmge d3, d4, #0");
@@ -5227,99 +5403,93 @@ TEST(neon_2regmisc) {
   COMPARE(Cmle(v0.D(), v1.D(), 0), "cmle d0, d1, #0");
   COMPARE(Cmlt(v3.D(), v4.D(), 0), "cmlt d3, d4, #0");
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fcmeq(v0.M, v1.M, 0), "fcmeq v0." S ", v1." S ", #0.0");
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
   COMPARE(Fcmeq(v0.S(), v1.S(), 0), "fcmeq s0, s1, #0.0");
   COMPARE(Fcmeq(v0.D(), v1.D(), 0), "fcmeq d0, d1, #0.0");
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fcmge(v0.M, v1.M, 0), "fcmge v0." S ", v1." S ", #0.0");
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
   COMPARE(Fcmge(v0.S(), v1.S(), 0), "fcmge s0, s1, #0.0");
   COMPARE(Fcmge(v0.D(), v1.D(), 0), "fcmge d0, d1, #0.0");
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fcmgt(v0.M, v1.M, 0), "fcmgt v0." S ", v1." S ", #0.0");
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
   COMPARE(Fcmgt(v0.S(), v1.S(), 0), "fcmgt s0, s1, #0.0");
   COMPARE(Fcmgt(v0.D(), v1.D(), 0), "fcmgt d0, d1, #0.0");
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fcmle(v0.M, v1.M, 0), "fcmle v0." S ", v1." S ", #0.0");
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
   COMPARE(Fcmle(v0.S(), v1.S(), 0), "fcmle s0, s1, #0.0");
   COMPARE(Fcmle(v0.D(), v1.D(), 0), "fcmle d0, d1, #0.0");
 
-  #define DISASM_INST(M, S)  \
+#define DISASM_INST(M, S) \
   COMPARE(Fcmlt(v0.M, v1.M, 0), "fcmlt v0." S ", v1." S ", #0.0");
   NEON_FORMAT_LIST_FP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
   COMPARE(Fcmlt(v0.S(), v1.S(), 0), "fcmlt s0, s1, #0.0");
   COMPARE(Fcmlt(v0.D(), v1.D(), 0), "fcmlt d0, d1, #0.0");
 
-  #define DISASM_INST(M, S)  \
-  COMPARE(Neg(v0.M, v1.M), "neg v0." S ", v1." S);
+#define DISASM_INST(M, S) COMPARE(Neg(v0.M, v1.M), "neg v0." S ", v1." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  COMPARE(Neg(v0.D(), v1.D()),    "neg d0, d1");
+  COMPARE(Neg(v0.D(), v1.D()), "neg d0, d1");
 
-  #define DISASM_INST(M, S)  \
-  COMPARE(Sqneg(v0.M, v1.M), "sqneg v0." S ", v1." S);
+#define DISASM_INST(M, S) COMPARE(Sqneg(v0.M, v1.M), "sqneg v0." S ", v1." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  COMPARE(Sqneg(b0, b1),  "sqneg b0, b1");
-  COMPARE(Sqneg(h1, h2),  "sqneg h1, h2");
-  COMPARE(Sqneg(s2, s3),  "sqneg s2, s3");
-  COMPARE(Sqneg(d3, d4),  "sqneg d3, d4");
+  COMPARE(Sqneg(b0, b1), "sqneg b0, b1");
+  COMPARE(Sqneg(h1, h2), "sqneg h1, h2");
+  COMPARE(Sqneg(s2, s3), "sqneg s2, s3");
+  COMPARE(Sqneg(d3, d4), "sqneg d3, d4");
 
-  #define DISASM_INST(M, S)  \
-  COMPARE(Abs(v0.M, v1.M), "abs v0." S ", v1." S);
+#define DISASM_INST(M, S) COMPARE(Abs(v0.M, v1.M), "abs v0." S ", v1." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  COMPARE(Abs(v0.D(), v1.D()),    "abs d0, d1");
+  COMPARE(Abs(v0.D(), v1.D()), "abs d0, d1");
 
-  #define DISASM_INST(M, S)  \
-  COMPARE(Sqabs(v0.M, v1.M), "sqabs v0." S ", v1." S);
+#define DISASM_INST(M, S) COMPARE(Sqabs(v0.M, v1.M), "sqabs v0." S ", v1." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  COMPARE(Sqabs(b0, b1),  "sqabs b0, b1");
-  COMPARE(Sqabs(h1, h2),  "sqabs h1, h2");
-  COMPARE(Sqabs(s2, s3),  "sqabs s2, s3");
-  COMPARE(Sqabs(d3, d4),  "sqabs d3, d4");
+  COMPARE(Sqabs(b0, b1), "sqabs b0, b1");
+  COMPARE(Sqabs(h1, h2), "sqabs h1, h2");
+  COMPARE(Sqabs(s2, s3), "sqabs s2, s3");
+  COMPARE(Sqabs(d3, d4), "sqabs d3, d4");
 
-  #define DISASM_INST(M, S)  \
-  COMPARE(Suqadd(v0.M, v1.M), "suqadd v0." S ", v1." S);
+#define DISASM_INST(M, S) COMPARE(Suqadd(v0.M, v1.M), "suqadd v0." S ", v1." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  COMPARE(Suqadd(b0, b1),  "suqadd b0, b1");
-  COMPARE(Suqadd(h1, h2),  "suqadd h1, h2");
-  COMPARE(Suqadd(s2, s3),  "suqadd s2, s3");
-  COMPARE(Suqadd(d3, d4),  "suqadd d3, d4");
+  COMPARE(Suqadd(b0, b1), "suqadd b0, b1");
+  COMPARE(Suqadd(h1, h2), "suqadd h1, h2");
+  COMPARE(Suqadd(s2, s3), "suqadd s2, s3");
+  COMPARE(Suqadd(d3, d4), "suqadd d3, d4");
 
-  #define DISASM_INST(M, S)  \
-  COMPARE(Usqadd(v0.M, v1.M), "usqadd v0." S ", v1." S);
+#define DISASM_INST(M, S) COMPARE(Usqadd(v0.M, v1.M), "usqadd v0." S ", v1." S);
   NEON_FORMAT_LIST(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  COMPARE(Usqadd(b0, b1),  "usqadd b0, b1");
-  COMPARE(Usqadd(h1, h2),  "usqadd h1, h2");
-  COMPARE(Usqadd(s2, s3),  "usqadd s2, s3");
-  COMPARE(Usqadd(d3, d4),  "usqadd d3, d4");
+  COMPARE(Usqadd(b0, b1), "usqadd b0, b1");
+  COMPARE(Usqadd(h1, h2), "usqadd h1, h2");
+  COMPARE(Usqadd(s2, s3), "usqadd s2, s3");
+  COMPARE(Usqadd(d3, d4), "usqadd d3, d4");
 
   COMPARE(Xtn(v0.V8B(), v1.V8H()), "xtn v0.8b, v1.8h");
   COMPARE(Xtn(v1.V4H(), v2.V4S()), "xtn v1.4h, v2.4s");
@@ -5335,7 +5505,7 @@ TEST(neon_2regmisc) {
   COMPARE(Sqxtn2(v1.V8H(), v2.V4S()), "sqxtn2 v1.8h, v2.4s");
   COMPARE(Sqxtn2(v2.V4S(), v3.V2D()), "sqxtn2 v2.4s, v3.2d");
   COMPARE(Sqxtn(b19, h0), "sqxtn b19, h0");
-  COMPARE(Sqxtn(h20, s0), "sqxtn h20, s0") ;
+  COMPARE(Sqxtn(h20, s0), "sqxtn h20, s0");
   COMPARE(Sqxtn(s21, d0), "sqxtn s21, d0");
 
   COMPARE(Uqxtn(v0.V8B(), v1.V8H()), "uqxtn v0.8b, v1.8h");
@@ -5345,7 +5515,7 @@ TEST(neon_2regmisc) {
   COMPARE(Uqxtn2(v1.V8H(), v2.V4S()), "uqxtn2 v1.8h, v2.4s");
   COMPARE(Uqxtn2(v2.V4S(), v3.V2D()), "uqxtn2 v2.4s, v3.2d");
   COMPARE(Uqxtn(b19, h0), "uqxtn b19, h0");
-  COMPARE(Uqxtn(h20, s0), "uqxtn h20, s0") ;
+  COMPARE(Uqxtn(h20, s0), "uqxtn h20, s0");
   COMPARE(Uqxtn(s21, d0), "uqxtn s21, d0");
 
   COMPARE(Sqxtun(v0.V8B(), v1.V8H()), "sqxtun v0.8b, v1.8h");
@@ -5355,24 +5525,24 @@ TEST(neon_2regmisc) {
   COMPARE(Sqxtun2(v1.V8H(), v2.V4S()), "sqxtun2 v1.8h, v2.4s");
   COMPARE(Sqxtun2(v2.V4S(), v3.V2D()), "sqxtun2 v2.4s, v3.2d");
   COMPARE(Sqxtun(b19, h0), "sqxtun b19, h0");
-  COMPARE(Sqxtun(h20, s0), "sqxtun h20, s0") ;
+  COMPARE(Sqxtun(h20, s0), "sqxtun h20, s0");
   COMPARE(Sqxtun(s21, d0), "sqxtun s21, d0");
 
-  COMPARE(Cls(v1.V8B(),  v8.V8B()),  "cls v1.8b, v8.8b");
+  COMPARE(Cls(v1.V8B(), v8.V8B()), "cls v1.8b, v8.8b");
   COMPARE(Cls(v2.V16B(), v9.V16B()), "cls v2.16b, v9.16b");
-  COMPARE(Cls(v3.V4H(),  v1.V4H()),  "cls v3.4h, v1.4h");
-  COMPARE(Cls(v4.V8H(),  v2.V8H()),  "cls v4.8h, v2.8h");
-  COMPARE(Cls(v5.V2S(),  v3.V2S()),  "cls v5.2s, v3.2s");
-  COMPARE(Cls(v6.V4S(),  v4.V4S()),  "cls v6.4s, v4.4s");
+  COMPARE(Cls(v3.V4H(), v1.V4H()), "cls v3.4h, v1.4h");
+  COMPARE(Cls(v4.V8H(), v2.V8H()), "cls v4.8h, v2.8h");
+  COMPARE(Cls(v5.V2S(), v3.V2S()), "cls v5.2s, v3.2s");
+  COMPARE(Cls(v6.V4S(), v4.V4S()), "cls v6.4s, v4.4s");
 
-  COMPARE(Clz(v1.V8B(),  v8.V8B()),  "clz v1.8b, v8.8b");
+  COMPARE(Clz(v1.V8B(), v8.V8B()), "clz v1.8b, v8.8b");
   COMPARE(Clz(v2.V16B(), v9.V16B()), "clz v2.16b, v9.16b");
-  COMPARE(Clz(v3.V4H(),  v1.V4H()),  "clz v3.4h, v1.4h");
-  COMPARE(Clz(v4.V8H(),  v2.V8H()),  "clz v4.8h, v2.8h");
-  COMPARE(Clz(v5.V2S(),  v3.V2S()),  "clz v5.2s, v3.2s");
-  COMPARE(Clz(v6.V4S(),  v4.V4S()),  "clz v6.4s, v4.4s");
+  COMPARE(Clz(v3.V4H(), v1.V4H()), "clz v3.4h, v1.4h");
+  COMPARE(Clz(v4.V8H(), v2.V8H()), "clz v4.8h, v2.8h");
+  COMPARE(Clz(v5.V2S(), v3.V2S()), "clz v5.2s, v3.2s");
+  COMPARE(Clz(v6.V4S(), v4.V4S()), "clz v6.4s, v4.4s");
 
-  COMPARE(Cnt(v1.V8B(),  v8.V8B()),  "cnt v1.8b, v8.8b");
+  COMPARE(Cnt(v1.V8B(), v8.V8B()), "cnt v1.8b, v8.8b");
   COMPARE(Cnt(v2.V16B(), v9.V16B()), "cnt v2.16b, v9.16b");
 
   COMPARE(Mvn(v4.V8B(), v5.V8B()), "mvn v4.8b, v5.8b");
@@ -5381,116 +5551,116 @@ TEST(neon_2regmisc) {
   COMPARE(Not(v4.V8B(), v5.V8B()), "mvn v4.8b, v5.8b");
   COMPARE(Not(v4.V16B(), v5.V16B()), "mvn v4.16b, v5.16b");
 
-  COMPARE(Rev64(v1.V8B(),  v8.V8B()),  "rev64 v1.8b, v8.8b");
+  COMPARE(Rev64(v1.V8B(), v8.V8B()), "rev64 v1.8b, v8.8b");
   COMPARE(Rev64(v2.V16B(), v9.V16B()), "rev64 v2.16b, v9.16b");
-  COMPARE(Rev64(v3.V4H(),  v1.V4H()),  "rev64 v3.4h, v1.4h");
-  COMPARE(Rev64(v4.V8H(),  v2.V8H()),  "rev64 v4.8h, v2.8h");
-  COMPARE(Rev64(v5.V2S(),  v3.V2S()),  "rev64 v5.2s, v3.2s");
-  COMPARE(Rev64(v6.V4S(),  v4.V4S()),  "rev64 v6.4s, v4.4s");
+  COMPARE(Rev64(v3.V4H(), v1.V4H()), "rev64 v3.4h, v1.4h");
+  COMPARE(Rev64(v4.V8H(), v2.V8H()), "rev64 v4.8h, v2.8h");
+  COMPARE(Rev64(v5.V2S(), v3.V2S()), "rev64 v5.2s, v3.2s");
+  COMPARE(Rev64(v6.V4S(), v4.V4S()), "rev64 v6.4s, v4.4s");
 
-  COMPARE(Rev32(v1.V8B(),  v8.V8B()),  "rev32 v1.8b, v8.8b");
+  COMPARE(Rev32(v1.V8B(), v8.V8B()), "rev32 v1.8b, v8.8b");
   COMPARE(Rev32(v2.V16B(), v9.V16B()), "rev32 v2.16b, v9.16b");
-  COMPARE(Rev32(v3.V4H(),  v1.V4H()),  "rev32 v3.4h, v1.4h");
-  COMPARE(Rev32(v4.V8H(),  v2.V8H()),  "rev32 v4.8h, v2.8h");
+  COMPARE(Rev32(v3.V4H(), v1.V4H()), "rev32 v3.4h, v1.4h");
+  COMPARE(Rev32(v4.V8H(), v2.V8H()), "rev32 v4.8h, v2.8h");
 
-  COMPARE(Rev16(v1.V8B(),  v8.V8B()),  "rev16 v1.8b, v8.8b");
+  COMPARE(Rev16(v1.V8B(), v8.V8B()), "rev16 v1.8b, v8.8b");
   COMPARE(Rev16(v2.V16B(), v9.V16B()), "rev16 v2.16b, v9.16b");
 
-  COMPARE(Rbit(v1.V8B(),  v8.V8B()),  "rbit v1.8b, v8.8b");
+  COMPARE(Rbit(v1.V8B(), v8.V8B()), "rbit v1.8b, v8.8b");
   COMPARE(Rbit(v2.V16B(), v9.V16B()), "rbit v2.16b, v9.16b");
 
-  COMPARE(Ursqrte(v2.V2S(), v9.V2S()),   "ursqrte v2.2s, v9.2s");
+  COMPARE(Ursqrte(v2.V2S(), v9.V2S()), "ursqrte v2.2s, v9.2s");
   COMPARE(Ursqrte(v16.V4S(), v23.V4S()), "ursqrte v16.4s, v23.4s");
 
-  COMPARE(Urecpe(v2.V2S(), v9.V2S()),   "urecpe v2.2s, v9.2s");
+  COMPARE(Urecpe(v2.V2S(), v9.V2S()), "urecpe v2.2s, v9.2s");
   COMPARE(Urecpe(v16.V4S(), v23.V4S()), "urecpe v16.4s, v23.4s");
 
-  COMPARE(Frsqrte(v2.V2S(), v9.V2S()),   "frsqrte v2.2s, v9.2s");
+  COMPARE(Frsqrte(v2.V2S(), v9.V2S()), "frsqrte v2.2s, v9.2s");
   COMPARE(Frsqrte(v16.V4S(), v23.V4S()), "frsqrte v16.4s, v23.4s");
-  COMPARE(Frsqrte(v2.V2D(), v9.V2D()),   "frsqrte v2.2d, v9.2d");
+  COMPARE(Frsqrte(v2.V2D(), v9.V2D()), "frsqrte v2.2d, v9.2d");
   COMPARE(Frsqrte(v0.S(), v1.S()), "frsqrte s0, s1");
   COMPARE(Frsqrte(v0.D(), v1.D()), "frsqrte d0, d1");
 
-  COMPARE(Frecpe(v2.V2S(), v9.V2S()),   "frecpe v2.2s, v9.2s");
+  COMPARE(Frecpe(v2.V2S(), v9.V2S()), "frecpe v2.2s, v9.2s");
   COMPARE(Frecpe(v16.V4S(), v23.V4S()), "frecpe v16.4s, v23.4s");
-  COMPARE(Frecpe(v2.V2D(), v9.V2D()),   "frecpe v2.2d, v9.2d");
+  COMPARE(Frecpe(v2.V2D(), v9.V2D()), "frecpe v2.2d, v9.2d");
   COMPARE(Frecpe(v0.S(), v1.S()), "frecpe s0, s1");
   COMPARE(Frecpe(v0.D(), v1.D()), "frecpe d0, d1");
 
-  COMPARE(Fabs(v2.V2S(), v9.V2S()),   "fabs v2.2s, v9.2s");
+  COMPARE(Fabs(v2.V2S(), v9.V2S()), "fabs v2.2s, v9.2s");
   COMPARE(Fabs(v16.V4S(), v23.V4S()), "fabs v16.4s, v23.4s");
   COMPARE(Fabs(v31.V2D(), v30.V2D()), "fabs v31.2d, v30.2d");
 
-  COMPARE(Fneg(v2.V2S(), v9.V2S()),   "fneg v2.2s, v9.2s");
+  COMPARE(Fneg(v2.V2S(), v9.V2S()), "fneg v2.2s, v9.2s");
   COMPARE(Fneg(v16.V4S(), v23.V4S()), "fneg v16.4s, v23.4s");
   COMPARE(Fneg(v31.V2D(), v30.V2D()), "fneg v31.2d, v30.2d");
 
-  COMPARE(Frintn(v2.V2S(), v9.V2S()),   "frintn v2.2s, v9.2s");
+  COMPARE(Frintn(v2.V2S(), v9.V2S()), "frintn v2.2s, v9.2s");
   COMPARE(Frintn(v16.V4S(), v23.V4S()), "frintn v16.4s, v23.4s");
   COMPARE(Frintn(v31.V2D(), v30.V2D()), "frintn v31.2d, v30.2d");
 
-  COMPARE(Frinta(v2.V2S(), v9.V2S()),   "frinta v2.2s, v9.2s");
+  COMPARE(Frinta(v2.V2S(), v9.V2S()), "frinta v2.2s, v9.2s");
   COMPARE(Frinta(v16.V4S(), v23.V4S()), "frinta v16.4s, v23.4s");
   COMPARE(Frinta(v31.V2D(), v30.V2D()), "frinta v31.2d, v30.2d");
 
-  COMPARE(Frintp(v2.V2S(), v9.V2S()),   "frintp v2.2s, v9.2s");
+  COMPARE(Frintp(v2.V2S(), v9.V2S()), "frintp v2.2s, v9.2s");
   COMPARE(Frintp(v16.V4S(), v23.V4S()), "frintp v16.4s, v23.4s");
   COMPARE(Frintp(v31.V2D(), v30.V2D()), "frintp v31.2d, v30.2d");
 
-  COMPARE(Frintm(v2.V2S(), v9.V2S()),   "frintm v2.2s, v9.2s");
+  COMPARE(Frintm(v2.V2S(), v9.V2S()), "frintm v2.2s, v9.2s");
   COMPARE(Frintm(v16.V4S(), v23.V4S()), "frintm v16.4s, v23.4s");
   COMPARE(Frintm(v31.V2D(), v30.V2D()), "frintm v31.2d, v30.2d");
 
-  COMPARE(Frintx(v2.V2S(), v9.V2S()),   "frintx v2.2s, v9.2s");
+  COMPARE(Frintx(v2.V2S(), v9.V2S()), "frintx v2.2s, v9.2s");
   COMPARE(Frintx(v16.V4S(), v23.V4S()), "frintx v16.4s, v23.4s");
   COMPARE(Frintx(v31.V2D(), v30.V2D()), "frintx v31.2d, v30.2d");
 
-  COMPARE(Frintz(v2.V2S(), v9.V2S()),   "frintz v2.2s, v9.2s");
+  COMPARE(Frintz(v2.V2S(), v9.V2S()), "frintz v2.2s, v9.2s");
   COMPARE(Frintz(v16.V4S(), v23.V4S()), "frintz v16.4s, v23.4s");
   COMPARE(Frintz(v31.V2D(), v30.V2D()), "frintz v31.2d, v30.2d");
 
-  COMPARE(Frinti(v2.V2S(), v9.V2S()),   "frinti v2.2s, v9.2s");
+  COMPARE(Frinti(v2.V2S(), v9.V2S()), "frinti v2.2s, v9.2s");
   COMPARE(Frinti(v16.V4S(), v23.V4S()), "frinti v16.4s, v23.4s");
   COMPARE(Frinti(v31.V2D(), v30.V2D()), "frinti v31.2d, v30.2d");
 
-  COMPARE(Fsqrt(v3.V2S(), v10.V2S()),  "fsqrt v3.2s, v10.2s");
+  COMPARE(Fsqrt(v3.V2S(), v10.V2S()), "fsqrt v3.2s, v10.2s");
   COMPARE(Fsqrt(v22.V4S(), v11.V4S()), "fsqrt v22.4s, v11.4s");
-  COMPARE(Fsqrt(v31.V2D(), v0.V2D()),  "fsqrt v31.2d, v0.2d");
+  COMPARE(Fsqrt(v31.V2D(), v0.V2D()), "fsqrt v31.2d, v0.2d");
 
-  COMPARE(Fcvtns(v4.V2S(), v11.V2S()),  "fcvtns v4.2s, v11.2s");
+  COMPARE(Fcvtns(v4.V2S(), v11.V2S()), "fcvtns v4.2s, v11.2s");
   COMPARE(Fcvtns(v23.V4S(), v12.V4S()), "fcvtns v23.4s, v12.4s");
-  COMPARE(Fcvtns(v30.V2D(), v1.V2D()),  "fcvtns v30.2d, v1.2d");
-  COMPARE(Fcvtnu(v4.V2S(), v11.V2S()),  "fcvtnu v4.2s, v11.2s");
+  COMPARE(Fcvtns(v30.V2D(), v1.V2D()), "fcvtns v30.2d, v1.2d");
+  COMPARE(Fcvtnu(v4.V2S(), v11.V2S()), "fcvtnu v4.2s, v11.2s");
   COMPARE(Fcvtnu(v23.V4S(), v12.V4S()), "fcvtnu v23.4s, v12.4s");
-  COMPARE(Fcvtnu(v30.V2D(), v1.V2D()),  "fcvtnu v30.2d, v1.2d");
+  COMPARE(Fcvtnu(v30.V2D(), v1.V2D()), "fcvtnu v30.2d, v1.2d");
 
-  COMPARE(Fcvtps(v4.V2S(), v11.V2S()),  "fcvtps v4.2s, v11.2s");
+  COMPARE(Fcvtps(v4.V2S(), v11.V2S()), "fcvtps v4.2s, v11.2s");
   COMPARE(Fcvtps(v23.V4S(), v12.V4S()), "fcvtps v23.4s, v12.4s");
-  COMPARE(Fcvtps(v30.V2D(), v1.V2D()),  "fcvtps v30.2d, v1.2d");
-  COMPARE(Fcvtpu(v4.V2S(), v11.V2S()),  "fcvtpu v4.2s, v11.2s");
+  COMPARE(Fcvtps(v30.V2D(), v1.V2D()), "fcvtps v30.2d, v1.2d");
+  COMPARE(Fcvtpu(v4.V2S(), v11.V2S()), "fcvtpu v4.2s, v11.2s");
   COMPARE(Fcvtpu(v23.V4S(), v12.V4S()), "fcvtpu v23.4s, v12.4s");
-  COMPARE(Fcvtpu(v30.V2D(), v1.V2D()),  "fcvtpu v30.2d, v1.2d");
+  COMPARE(Fcvtpu(v30.V2D(), v1.V2D()), "fcvtpu v30.2d, v1.2d");
 
-  COMPARE(Fcvtms(v4.V2S(), v11.V2S()),  "fcvtms v4.2s, v11.2s");
+  COMPARE(Fcvtms(v4.V2S(), v11.V2S()), "fcvtms v4.2s, v11.2s");
   COMPARE(Fcvtms(v23.V4S(), v12.V4S()), "fcvtms v23.4s, v12.4s");
-  COMPARE(Fcvtms(v30.V2D(), v1.V2D()),  "fcvtms v30.2d, v1.2d");
-  COMPARE(Fcvtmu(v4.V2S(), v11.V2S()),  "fcvtmu v4.2s, v11.2s");
+  COMPARE(Fcvtms(v30.V2D(), v1.V2D()), "fcvtms v30.2d, v1.2d");
+  COMPARE(Fcvtmu(v4.V2S(), v11.V2S()), "fcvtmu v4.2s, v11.2s");
   COMPARE(Fcvtmu(v23.V4S(), v12.V4S()), "fcvtmu v23.4s, v12.4s");
-  COMPARE(Fcvtmu(v30.V2D(), v1.V2D()),  "fcvtmu v30.2d, v1.2d");
+  COMPARE(Fcvtmu(v30.V2D(), v1.V2D()), "fcvtmu v30.2d, v1.2d");
 
-  COMPARE(Fcvtzs(v4.V2S(), v11.V2S()),  "fcvtzs v4.2s, v11.2s");
+  COMPARE(Fcvtzs(v4.V2S(), v11.V2S()), "fcvtzs v4.2s, v11.2s");
   COMPARE(Fcvtzs(v23.V4S(), v12.V4S()), "fcvtzs v23.4s, v12.4s");
-  COMPARE(Fcvtzs(v30.V2D(), v1.V2D()),  "fcvtzs v30.2d, v1.2d");
-  COMPARE(Fcvtzu(v4.V2S(), v11.V2S()),  "fcvtzu v4.2s, v11.2s");
+  COMPARE(Fcvtzs(v30.V2D(), v1.V2D()), "fcvtzs v30.2d, v1.2d");
+  COMPARE(Fcvtzu(v4.V2S(), v11.V2S()), "fcvtzu v4.2s, v11.2s");
   COMPARE(Fcvtzu(v23.V4S(), v12.V4S()), "fcvtzu v23.4s, v12.4s");
-  COMPARE(Fcvtzu(v30.V2D(), v1.V2D()),  "fcvtzu v30.2d, v1.2d");
+  COMPARE(Fcvtzu(v30.V2D(), v1.V2D()), "fcvtzu v30.2d, v1.2d");
 
-  COMPARE(Fcvtas(v4.V2S(), v11.V2S()),  "fcvtas v4.2s, v11.2s");
+  COMPARE(Fcvtas(v4.V2S(), v11.V2S()), "fcvtas v4.2s, v11.2s");
   COMPARE(Fcvtas(v23.V4S(), v12.V4S()), "fcvtas v23.4s, v12.4s");
-  COMPARE(Fcvtas(v30.V2D(), v1.V2D()),  "fcvtas v30.2d, v1.2d");
-  COMPARE(Fcvtau(v4.V2S(), v11.V2S()),  "fcvtau v4.2s, v11.2s");
+  COMPARE(Fcvtas(v30.V2D(), v1.V2D()), "fcvtas v30.2d, v1.2d");
+  COMPARE(Fcvtau(v4.V2S(), v11.V2S()), "fcvtau v4.2s, v11.2s");
   COMPARE(Fcvtau(v23.V4S(), v12.V4S()), "fcvtau v23.4s, v12.4s");
-  COMPARE(Fcvtau(v30.V2D(), v1.V2D()),  "fcvtau v30.2d, v1.2d");
+  COMPARE(Fcvtau(v30.V2D(), v1.V2D()), "fcvtau v30.2d, v1.2d");
 
   COMPARE(Fcvtns(s0, s1), "fcvtns s0, s1");
   COMPARE(Fcvtns(d2, d3), "fcvtns d2, d3");
@@ -5535,34 +5705,34 @@ TEST(neon_2regmisc) {
   COMPARE(Scvtf(v5.V2S(), v3.V2S()), "scvtf v5.2s, v3.2s");
   COMPARE(Scvtf(v6.V4S(), v4.V4S()), "scvtf v6.4s, v4.4s");
   COMPARE(Scvtf(v7.V2D(), v5.V2D()), "scvtf v7.2d, v5.2d");
-  COMPARE(Scvtf(s8, s6),             "scvtf s8, s6");
-  COMPARE(Scvtf(d8, d6),             "scvtf d8, d6");
+  COMPARE(Scvtf(s8, s6), "scvtf s8, s6");
+  COMPARE(Scvtf(d8, d6), "scvtf d8, d6");
 
   COMPARE(Ucvtf(v5.V2S(), v3.V2S()), "ucvtf v5.2s, v3.2s");
   COMPARE(Ucvtf(v6.V4S(), v4.V4S()), "ucvtf v6.4s, v4.4s");
   COMPARE(Ucvtf(v7.V2D(), v5.V2D()), "ucvtf v7.2d, v5.2d");
-  COMPARE(Ucvtf(s8, s6),             "ucvtf s8, s6");
-  COMPARE(Ucvtf(d8, d6),             "ucvtf d8, d6");
+  COMPARE(Ucvtf(s8, s6), "ucvtf s8, s6");
+  COMPARE(Ucvtf(d8, d6), "ucvtf d8, d6");
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
+#define DISASM_INST(TA, TAS, TB, TBS) \
   COMPARE(Saddlp(v0.TA, v1.TB), "saddlp v0." TAS ", v1." TBS);
   NEON_FORMAT_LIST_LP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
+#define DISASM_INST(TA, TAS, TB, TBS) \
   COMPARE(Uaddlp(v0.TA, v1.TB), "uaddlp v0." TAS ", v1." TBS);
   NEON_FORMAT_LIST_LP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
+#define DISASM_INST(TA, TAS, TB, TBS) \
   COMPARE(Sadalp(v0.TA, v1.TB), "sadalp v0." TAS ", v1." TBS);
   NEON_FORMAT_LIST_LP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
-  #define DISASM_INST(TA, TAS, TB, TBS)  \
+#define DISASM_INST(TA, TAS, TB, TBS) \
   COMPARE(Uadalp(v0.TA, v1.TB), "uadalp v0." TAS ", v1." TBS);
   NEON_FORMAT_LIST_LP(DISASM_INST)
-  #undef DISASM_INST
+#undef DISASM_INST
 
   CLEANUP();
 }
@@ -5570,47 +5740,47 @@ TEST(neon_2regmisc) {
 TEST(neon_acrosslanes) {
   SETUP_MACRO();
 
-  COMPARE(Smaxv(b4, v5.V8B()),  "smaxv b4, v5.8b");
+  COMPARE(Smaxv(b4, v5.V8B()), "smaxv b4, v5.8b");
   COMPARE(Smaxv(b4, v5.V16B()), "smaxv b4, v5.16b");
-  COMPARE(Smaxv(h4, v5.V4H()),  "smaxv h4, v5.4h");
-  COMPARE(Smaxv(h4, v5.V8H()),  "smaxv h4, v5.8h");
-  COMPARE(Smaxv(s4, v5.V4S()),  "smaxv s4, v5.4s");
+  COMPARE(Smaxv(h4, v5.V4H()), "smaxv h4, v5.4h");
+  COMPARE(Smaxv(h4, v5.V8H()), "smaxv h4, v5.8h");
+  COMPARE(Smaxv(s4, v5.V4S()), "smaxv s4, v5.4s");
 
-  COMPARE(Sminv(b4, v5.V8B()),  "sminv b4, v5.8b");
+  COMPARE(Sminv(b4, v5.V8B()), "sminv b4, v5.8b");
   COMPARE(Sminv(b4, v5.V16B()), "sminv b4, v5.16b");
-  COMPARE(Sminv(h4, v5.V4H()),  "sminv h4, v5.4h");
-  COMPARE(Sminv(h4, v5.V8H()),  "sminv h4, v5.8h");
-  COMPARE(Sminv(s4, v5.V4S()),  "sminv s4, v5.4s");
+  COMPARE(Sminv(h4, v5.V4H()), "sminv h4, v5.4h");
+  COMPARE(Sminv(h4, v5.V8H()), "sminv h4, v5.8h");
+  COMPARE(Sminv(s4, v5.V4S()), "sminv s4, v5.4s");
 
-  COMPARE(Umaxv(b4, v5.V8B()),  "umaxv b4, v5.8b");
+  COMPARE(Umaxv(b4, v5.V8B()), "umaxv b4, v5.8b");
   COMPARE(Umaxv(b4, v5.V16B()), "umaxv b4, v5.16b");
-  COMPARE(Umaxv(h4, v5.V4H()),  "umaxv h4, v5.4h");
-  COMPARE(Umaxv(h4, v5.V8H()),  "umaxv h4, v5.8h");
-  COMPARE(Umaxv(s4, v5.V4S()),  "umaxv s4, v5.4s");
+  COMPARE(Umaxv(h4, v5.V4H()), "umaxv h4, v5.4h");
+  COMPARE(Umaxv(h4, v5.V8H()), "umaxv h4, v5.8h");
+  COMPARE(Umaxv(s4, v5.V4S()), "umaxv s4, v5.4s");
 
-  COMPARE(Uminv(b4, v5.V8B()),  "uminv b4, v5.8b");
+  COMPARE(Uminv(b4, v5.V8B()), "uminv b4, v5.8b");
   COMPARE(Uminv(b4, v5.V16B()), "uminv b4, v5.16b");
-  COMPARE(Uminv(h4, v5.V4H()),  "uminv h4, v5.4h");
-  COMPARE(Uminv(h4, v5.V8H()),  "uminv h4, v5.8h");
-  COMPARE(Uminv(s4, v5.V4S()),  "uminv s4, v5.4s");
+  COMPARE(Uminv(h4, v5.V4H()), "uminv h4, v5.4h");
+  COMPARE(Uminv(h4, v5.V8H()), "uminv h4, v5.8h");
+  COMPARE(Uminv(s4, v5.V4S()), "uminv s4, v5.4s");
 
-  COMPARE(Addv(b4, v5.V8B()),  "addv b4, v5.8b");
+  COMPARE(Addv(b4, v5.V8B()), "addv b4, v5.8b");
   COMPARE(Addv(b4, v5.V16B()), "addv b4, v5.16b");
-  COMPARE(Addv(h4, v5.V4H()),  "addv h4, v5.4h");
-  COMPARE(Addv(h4, v5.V8H()),  "addv h4, v5.8h");
-  COMPARE(Addv(s4, v5.V4S()),  "addv s4, v5.4s");
+  COMPARE(Addv(h4, v5.V4H()), "addv h4, v5.4h");
+  COMPARE(Addv(h4, v5.V8H()), "addv h4, v5.8h");
+  COMPARE(Addv(s4, v5.V4S()), "addv s4, v5.4s");
 
-  COMPARE(Saddlv(h4, v5.V8B()),  "saddlv h4, v5.8b");
+  COMPARE(Saddlv(h4, v5.V8B()), "saddlv h4, v5.8b");
   COMPARE(Saddlv(h4, v5.V16B()), "saddlv h4, v5.16b");
-  COMPARE(Saddlv(s4, v5.V4H()),  "saddlv s4, v5.4h");
-  COMPARE(Saddlv(s4, v5.V8H()),  "saddlv s4, v5.8h");
-  COMPARE(Saddlv(d4, v5.V4S()),  "saddlv d4, v5.4s");
+  COMPARE(Saddlv(s4, v5.V4H()), "saddlv s4, v5.4h");
+  COMPARE(Saddlv(s4, v5.V8H()), "saddlv s4, v5.8h");
+  COMPARE(Saddlv(d4, v5.V4S()), "saddlv d4, v5.4s");
 
-  COMPARE(Uaddlv(h4, v5.V8B()),  "uaddlv h4, v5.8b");
+  COMPARE(Uaddlv(h4, v5.V8B()), "uaddlv h4, v5.8b");
   COMPARE(Uaddlv(h4, v5.V16B()), "uaddlv h4, v5.16b");
-  COMPARE(Uaddlv(s4, v5.V4H()),  "uaddlv s4, v5.4h");
-  COMPARE(Uaddlv(s4, v5.V8H()),  "uaddlv s4, v5.8h");
-  COMPARE(Uaddlv(d4, v5.V4S()),  "uaddlv d4, v5.4s");
+  COMPARE(Uaddlv(s4, v5.V4H()), "uaddlv s4, v5.4h");
+  COMPARE(Uaddlv(s4, v5.V8H()), "uaddlv s4, v5.8h");
+  COMPARE(Uaddlv(d4, v5.V4S()), "uaddlv d4, v5.4s");
 
   COMPARE(Fmaxv(s4, v5.V4S()), "fmaxv s4, v5.4s");
   COMPARE(Fminv(s4, v5.V4S()), "fminv s4, v5.4s");
@@ -5640,238 +5810,238 @@ TEST(neon_scalar_pairwise) {
 TEST(neon_shift_immediate) {
   SETUP_MACRO();
 
-  COMPARE(Sshr(v0.V8B(), v1.V8B(), 1),  "sshr v0.8b, v1.8b, #1");
-  COMPARE(Sshr(v2.V8B(), v3.V8B(), 8),  "sshr v2.8b, v3.8b, #8");
-  COMPARE(Sshr(v4.V16B(), v5.V16B(), 1),  "sshr v4.16b, v5.16b, #1");
-  COMPARE(Sshr(v6.V16B(), v7.V16B(), 8),  "sshr v6.16b, v7.16b, #8");
-  COMPARE(Sshr(v8.V4H(), v9.V4H(), 1),  "sshr v8.4h, v9.4h, #1");
-  COMPARE(Sshr(v10.V4H(), v11.V4H(), 16),  "sshr v10.4h, v11.4h, #16");
-  COMPARE(Sshr(v12.V8H(), v13.V8H(), 1),  "sshr v12.8h, v13.8h, #1");
-  COMPARE(Sshr(v14.V8H(), v15.V8H(), 16),  "sshr v14.8h, v15.8h, #16");
-  COMPARE(Sshr(v16.V2S(), v17.V2S(), 1),  "sshr v16.2s, v17.2s, #1");
-  COMPARE(Sshr(v18.V2S(), v19.V2S(), 32),  "sshr v18.2s, v19.2s, #32");
-  COMPARE(Sshr(v20.V4S(), v21.V4S(), 1),  "sshr v20.4s, v21.4s, #1");
-  COMPARE(Sshr(v22.V4S(), v23.V4S(), 32),  "sshr v22.4s, v23.4s, #32");
-  COMPARE(Sshr(v28.V2D(), v29.V2D(), 1),  "sshr v28.2d, v29.2d, #1");
-  COMPARE(Sshr(v30.V2D(), v31.V2D(), 64),  "sshr v30.2d, v31.2d, #64");
+  COMPARE(Sshr(v0.V8B(), v1.V8B(), 1), "sshr v0.8b, v1.8b, #1");
+  COMPARE(Sshr(v2.V8B(), v3.V8B(), 8), "sshr v2.8b, v3.8b, #8");
+  COMPARE(Sshr(v4.V16B(), v5.V16B(), 1), "sshr v4.16b, v5.16b, #1");
+  COMPARE(Sshr(v6.V16B(), v7.V16B(), 8), "sshr v6.16b, v7.16b, #8");
+  COMPARE(Sshr(v8.V4H(), v9.V4H(), 1), "sshr v8.4h, v9.4h, #1");
+  COMPARE(Sshr(v10.V4H(), v11.V4H(), 16), "sshr v10.4h, v11.4h, #16");
+  COMPARE(Sshr(v12.V8H(), v13.V8H(), 1), "sshr v12.8h, v13.8h, #1");
+  COMPARE(Sshr(v14.V8H(), v15.V8H(), 16), "sshr v14.8h, v15.8h, #16");
+  COMPARE(Sshr(v16.V2S(), v17.V2S(), 1), "sshr v16.2s, v17.2s, #1");
+  COMPARE(Sshr(v18.V2S(), v19.V2S(), 32), "sshr v18.2s, v19.2s, #32");
+  COMPARE(Sshr(v20.V4S(), v21.V4S(), 1), "sshr v20.4s, v21.4s, #1");
+  COMPARE(Sshr(v22.V4S(), v23.V4S(), 32), "sshr v22.4s, v23.4s, #32");
+  COMPARE(Sshr(v28.V2D(), v29.V2D(), 1), "sshr v28.2d, v29.2d, #1");
+  COMPARE(Sshr(v30.V2D(), v31.V2D(), 64), "sshr v30.2d, v31.2d, #64");
   COMPARE(Sshr(d0, d1, 7), "sshr d0, d1, #7");
 
-  COMPARE(Ushr(v0.V8B(), v1.V8B(), 1),  "ushr v0.8b, v1.8b, #1");
-  COMPARE(Ushr(v2.V8B(), v3.V8B(), 8),  "ushr v2.8b, v3.8b, #8");
-  COMPARE(Ushr(v4.V16B(), v5.V16B(), 1),  "ushr v4.16b, v5.16b, #1");
-  COMPARE(Ushr(v6.V16B(), v7.V16B(), 8),  "ushr v6.16b, v7.16b, #8");
-  COMPARE(Ushr(v8.V4H(), v9.V4H(), 1),  "ushr v8.4h, v9.4h, #1");
-  COMPARE(Ushr(v10.V4H(), v11.V4H(), 16),  "ushr v10.4h, v11.4h, #16");
-  COMPARE(Ushr(v12.V8H(), v13.V8H(), 1),  "ushr v12.8h, v13.8h, #1");
-  COMPARE(Ushr(v14.V8H(), v15.V8H(), 16),  "ushr v14.8h, v15.8h, #16");
-  COMPARE(Ushr(v16.V2S(), v17.V2S(), 1),  "ushr v16.2s, v17.2s, #1");
-  COMPARE(Ushr(v18.V2S(), v19.V2S(), 32),  "ushr v18.2s, v19.2s, #32");
-  COMPARE(Ushr(v20.V4S(), v21.V4S(), 1),  "ushr v20.4s, v21.4s, #1");
-  COMPARE(Ushr(v22.V4S(), v23.V4S(), 32),  "ushr v22.4s, v23.4s, #32");
-  COMPARE(Ushr(v28.V2D(), v29.V2D(), 1),  "ushr v28.2d, v29.2d, #1");
-  COMPARE(Ushr(v30.V2D(), v31.V2D(), 64),  "ushr v30.2d, v31.2d, #64");
+  COMPARE(Ushr(v0.V8B(), v1.V8B(), 1), "ushr v0.8b, v1.8b, #1");
+  COMPARE(Ushr(v2.V8B(), v3.V8B(), 8), "ushr v2.8b, v3.8b, #8");
+  COMPARE(Ushr(v4.V16B(), v5.V16B(), 1), "ushr v4.16b, v5.16b, #1");
+  COMPARE(Ushr(v6.V16B(), v7.V16B(), 8), "ushr v6.16b, v7.16b, #8");
+  COMPARE(Ushr(v8.V4H(), v9.V4H(), 1), "ushr v8.4h, v9.4h, #1");
+  COMPARE(Ushr(v10.V4H(), v11.V4H(), 16), "ushr v10.4h, v11.4h, #16");
+  COMPARE(Ushr(v12.V8H(), v13.V8H(), 1), "ushr v12.8h, v13.8h, #1");
+  COMPARE(Ushr(v14.V8H(), v15.V8H(), 16), "ushr v14.8h, v15.8h, #16");
+  COMPARE(Ushr(v16.V2S(), v17.V2S(), 1), "ushr v16.2s, v17.2s, #1");
+  COMPARE(Ushr(v18.V2S(), v19.V2S(), 32), "ushr v18.2s, v19.2s, #32");
+  COMPARE(Ushr(v20.V4S(), v21.V4S(), 1), "ushr v20.4s, v21.4s, #1");
+  COMPARE(Ushr(v22.V4S(), v23.V4S(), 32), "ushr v22.4s, v23.4s, #32");
+  COMPARE(Ushr(v28.V2D(), v29.V2D(), 1), "ushr v28.2d, v29.2d, #1");
+  COMPARE(Ushr(v30.V2D(), v31.V2D(), 64), "ushr v30.2d, v31.2d, #64");
   COMPARE(Ushr(d0, d1, 7), "ushr d0, d1, #7");
 
-  COMPARE(Srshr(v0.V8B(), v1.V8B(), 1),  "srshr v0.8b, v1.8b, #1");
-  COMPARE(Srshr(v2.V8B(), v3.V8B(), 8),  "srshr v2.8b, v3.8b, #8");
-  COMPARE(Srshr(v4.V16B(), v5.V16B(), 1),  "srshr v4.16b, v5.16b, #1");
-  COMPARE(Srshr(v6.V16B(), v7.V16B(), 8),  "srshr v6.16b, v7.16b, #8");
-  COMPARE(Srshr(v8.V4H(), v9.V4H(), 1),  "srshr v8.4h, v9.4h, #1");
-  COMPARE(Srshr(v10.V4H(), v11.V4H(), 16),  "srshr v10.4h, v11.4h, #16");
-  COMPARE(Srshr(v12.V8H(), v13.V8H(), 1),  "srshr v12.8h, v13.8h, #1");
-  COMPARE(Srshr(v14.V8H(), v15.V8H(), 16),  "srshr v14.8h, v15.8h, #16");
-  COMPARE(Srshr(v16.V2S(), v17.V2S(), 1),  "srshr v16.2s, v17.2s, #1");
-  COMPARE(Srshr(v18.V2S(), v19.V2S(), 32),  "srshr v18.2s, v19.2s, #32");
-  COMPARE(Srshr(v20.V4S(), v21.V4S(), 1),  "srshr v20.4s, v21.4s, #1");
-  COMPARE(Srshr(v22.V4S(), v23.V4S(), 32),  "srshr v22.4s, v23.4s, #32");
-  COMPARE(Srshr(v28.V2D(), v29.V2D(), 1),  "srshr v28.2d, v29.2d, #1");
-  COMPARE(Srshr(v30.V2D(), v31.V2D(), 64),  "srshr v30.2d, v31.2d, #64");
+  COMPARE(Srshr(v0.V8B(), v1.V8B(), 1), "srshr v0.8b, v1.8b, #1");
+  COMPARE(Srshr(v2.V8B(), v3.V8B(), 8), "srshr v2.8b, v3.8b, #8");
+  COMPARE(Srshr(v4.V16B(), v5.V16B(), 1), "srshr v4.16b, v5.16b, #1");
+  COMPARE(Srshr(v6.V16B(), v7.V16B(), 8), "srshr v6.16b, v7.16b, #8");
+  COMPARE(Srshr(v8.V4H(), v9.V4H(), 1), "srshr v8.4h, v9.4h, #1");
+  COMPARE(Srshr(v10.V4H(), v11.V4H(), 16), "srshr v10.4h, v11.4h, #16");
+  COMPARE(Srshr(v12.V8H(), v13.V8H(), 1), "srshr v12.8h, v13.8h, #1");
+  COMPARE(Srshr(v14.V8H(), v15.V8H(), 16), "srshr v14.8h, v15.8h, #16");
+  COMPARE(Srshr(v16.V2S(), v17.V2S(), 1), "srshr v16.2s, v17.2s, #1");
+  COMPARE(Srshr(v18.V2S(), v19.V2S(), 32), "srshr v18.2s, v19.2s, #32");
+  COMPARE(Srshr(v20.V4S(), v21.V4S(), 1), "srshr v20.4s, v21.4s, #1");
+  COMPARE(Srshr(v22.V4S(), v23.V4S(), 32), "srshr v22.4s, v23.4s, #32");
+  COMPARE(Srshr(v28.V2D(), v29.V2D(), 1), "srshr v28.2d, v29.2d, #1");
+  COMPARE(Srshr(v30.V2D(), v31.V2D(), 64), "srshr v30.2d, v31.2d, #64");
   COMPARE(Srshr(d0, d1, 7), "srshr d0, d1, #7");
 
-  COMPARE(Urshr(v0.V8B(), v1.V8B(), 1),  "urshr v0.8b, v1.8b, #1");
-  COMPARE(Urshr(v2.V8B(), v3.V8B(), 8),  "urshr v2.8b, v3.8b, #8");
-  COMPARE(Urshr(v4.V16B(), v5.V16B(), 1),  "urshr v4.16b, v5.16b, #1");
-  COMPARE(Urshr(v6.V16B(), v7.V16B(), 8),  "urshr v6.16b, v7.16b, #8");
-  COMPARE(Urshr(v8.V4H(), v9.V4H(), 1),  "urshr v8.4h, v9.4h, #1");
-  COMPARE(Urshr(v10.V4H(), v11.V4H(), 16),  "urshr v10.4h, v11.4h, #16");
-  COMPARE(Urshr(v12.V8H(), v13.V8H(), 1),  "urshr v12.8h, v13.8h, #1");
-  COMPARE(Urshr(v14.V8H(), v15.V8H(), 16),  "urshr v14.8h, v15.8h, #16");
-  COMPARE(Urshr(v16.V2S(), v17.V2S(), 1),  "urshr v16.2s, v17.2s, #1");
-  COMPARE(Urshr(v18.V2S(), v19.V2S(), 32),  "urshr v18.2s, v19.2s, #32");
-  COMPARE(Urshr(v20.V4S(), v21.V4S(), 1),  "urshr v20.4s, v21.4s, #1");
-  COMPARE(Urshr(v22.V4S(), v23.V4S(), 32),  "urshr v22.4s, v23.4s, #32");
-  COMPARE(Urshr(v28.V2D(), v29.V2D(), 1),  "urshr v28.2d, v29.2d, #1");
-  COMPARE(Urshr(v30.V2D(), v31.V2D(), 64),  "urshr v30.2d, v31.2d, #64");
+  COMPARE(Urshr(v0.V8B(), v1.V8B(), 1), "urshr v0.8b, v1.8b, #1");
+  COMPARE(Urshr(v2.V8B(), v3.V8B(), 8), "urshr v2.8b, v3.8b, #8");
+  COMPARE(Urshr(v4.V16B(), v5.V16B(), 1), "urshr v4.16b, v5.16b, #1");
+  COMPARE(Urshr(v6.V16B(), v7.V16B(), 8), "urshr v6.16b, v7.16b, #8");
+  COMPARE(Urshr(v8.V4H(), v9.V4H(), 1), "urshr v8.4h, v9.4h, #1");
+  COMPARE(Urshr(v10.V4H(), v11.V4H(), 16), "urshr v10.4h, v11.4h, #16");
+  COMPARE(Urshr(v12.V8H(), v13.V8H(), 1), "urshr v12.8h, v13.8h, #1");
+  COMPARE(Urshr(v14.V8H(), v15.V8H(), 16), "urshr v14.8h, v15.8h, #16");
+  COMPARE(Urshr(v16.V2S(), v17.V2S(), 1), "urshr v16.2s, v17.2s, #1");
+  COMPARE(Urshr(v18.V2S(), v19.V2S(), 32), "urshr v18.2s, v19.2s, #32");
+  COMPARE(Urshr(v20.V4S(), v21.V4S(), 1), "urshr v20.4s, v21.4s, #1");
+  COMPARE(Urshr(v22.V4S(), v23.V4S(), 32), "urshr v22.4s, v23.4s, #32");
+  COMPARE(Urshr(v28.V2D(), v29.V2D(), 1), "urshr v28.2d, v29.2d, #1");
+  COMPARE(Urshr(v30.V2D(), v31.V2D(), 64), "urshr v30.2d, v31.2d, #64");
   COMPARE(Urshr(d0, d1, 7), "urshr d0, d1, #7");
 
-  COMPARE(Srsra(v0.V8B(), v1.V8B(), 1),  "srsra v0.8b, v1.8b, #1");
-  COMPARE(Srsra(v2.V8B(), v3.V8B(), 8),  "srsra v2.8b, v3.8b, #8");
-  COMPARE(Srsra(v4.V16B(), v5.V16B(), 1),  "srsra v4.16b, v5.16b, #1");
-  COMPARE(Srsra(v6.V16B(), v7.V16B(), 8),  "srsra v6.16b, v7.16b, #8");
-  COMPARE(Srsra(v8.V4H(), v9.V4H(), 1),  "srsra v8.4h, v9.4h, #1");
-  COMPARE(Srsra(v10.V4H(), v11.V4H(), 16),  "srsra v10.4h, v11.4h, #16");
-  COMPARE(Srsra(v12.V8H(), v13.V8H(), 1),  "srsra v12.8h, v13.8h, #1");
-  COMPARE(Srsra(v14.V8H(), v15.V8H(), 16),  "srsra v14.8h, v15.8h, #16");
-  COMPARE(Srsra(v16.V2S(), v17.V2S(), 1),  "srsra v16.2s, v17.2s, #1");
-  COMPARE(Srsra(v18.V2S(), v19.V2S(), 32),  "srsra v18.2s, v19.2s, #32");
-  COMPARE(Srsra(v20.V4S(), v21.V4S(), 1),  "srsra v20.4s, v21.4s, #1");
-  COMPARE(Srsra(v22.V4S(), v23.V4S(), 32),  "srsra v22.4s, v23.4s, #32");
-  COMPARE(Srsra(v28.V2D(), v29.V2D(), 1),  "srsra v28.2d, v29.2d, #1");
-  COMPARE(Srsra(v30.V2D(), v31.V2D(), 64),  "srsra v30.2d, v31.2d, #64");
+  COMPARE(Srsra(v0.V8B(), v1.V8B(), 1), "srsra v0.8b, v1.8b, #1");
+  COMPARE(Srsra(v2.V8B(), v3.V8B(), 8), "srsra v2.8b, v3.8b, #8");
+  COMPARE(Srsra(v4.V16B(), v5.V16B(), 1), "srsra v4.16b, v5.16b, #1");
+  COMPARE(Srsra(v6.V16B(), v7.V16B(), 8), "srsra v6.16b, v7.16b, #8");
+  COMPARE(Srsra(v8.V4H(), v9.V4H(), 1), "srsra v8.4h, v9.4h, #1");
+  COMPARE(Srsra(v10.V4H(), v11.V4H(), 16), "srsra v10.4h, v11.4h, #16");
+  COMPARE(Srsra(v12.V8H(), v13.V8H(), 1), "srsra v12.8h, v13.8h, #1");
+  COMPARE(Srsra(v14.V8H(), v15.V8H(), 16), "srsra v14.8h, v15.8h, #16");
+  COMPARE(Srsra(v16.V2S(), v17.V2S(), 1), "srsra v16.2s, v17.2s, #1");
+  COMPARE(Srsra(v18.V2S(), v19.V2S(), 32), "srsra v18.2s, v19.2s, #32");
+  COMPARE(Srsra(v20.V4S(), v21.V4S(), 1), "srsra v20.4s, v21.4s, #1");
+  COMPARE(Srsra(v22.V4S(), v23.V4S(), 32), "srsra v22.4s, v23.4s, #32");
+  COMPARE(Srsra(v28.V2D(), v29.V2D(), 1), "srsra v28.2d, v29.2d, #1");
+  COMPARE(Srsra(v30.V2D(), v31.V2D(), 64), "srsra v30.2d, v31.2d, #64");
   COMPARE(Srsra(d0, d1, 7), "srsra d0, d1, #7");
 
-  COMPARE(Ssra(v0.V8B(), v1.V8B(), 1),  "ssra v0.8b, v1.8b, #1");
-  COMPARE(Ssra(v2.V8B(), v3.V8B(), 8),  "ssra v2.8b, v3.8b, #8");
-  COMPARE(Ssra(v4.V16B(), v5.V16B(), 1),  "ssra v4.16b, v5.16b, #1");
-  COMPARE(Ssra(v6.V16B(), v7.V16B(), 8),  "ssra v6.16b, v7.16b, #8");
-  COMPARE(Ssra(v8.V4H(), v9.V4H(), 1),  "ssra v8.4h, v9.4h, #1");
-  COMPARE(Ssra(v10.V4H(), v11.V4H(), 16),  "ssra v10.4h, v11.4h, #16");
-  COMPARE(Ssra(v12.V8H(), v13.V8H(), 1),  "ssra v12.8h, v13.8h, #1");
-  COMPARE(Ssra(v14.V8H(), v15.V8H(), 16),  "ssra v14.8h, v15.8h, #16");
-  COMPARE(Ssra(v16.V2S(), v17.V2S(), 1),  "ssra v16.2s, v17.2s, #1");
-  COMPARE(Ssra(v18.V2S(), v19.V2S(), 32),  "ssra v18.2s, v19.2s, #32");
-  COMPARE(Ssra(v20.V4S(), v21.V4S(), 1),  "ssra v20.4s, v21.4s, #1");
-  COMPARE(Ssra(v22.V4S(), v23.V4S(), 32),  "ssra v22.4s, v23.4s, #32");
-  COMPARE(Ssra(v28.V2D(), v29.V2D(), 1),  "ssra v28.2d, v29.2d, #1");
-  COMPARE(Ssra(v30.V2D(), v31.V2D(), 64),  "ssra v30.2d, v31.2d, #64");
+  COMPARE(Ssra(v0.V8B(), v1.V8B(), 1), "ssra v0.8b, v1.8b, #1");
+  COMPARE(Ssra(v2.V8B(), v3.V8B(), 8), "ssra v2.8b, v3.8b, #8");
+  COMPARE(Ssra(v4.V16B(), v5.V16B(), 1), "ssra v4.16b, v5.16b, #1");
+  COMPARE(Ssra(v6.V16B(), v7.V16B(), 8), "ssra v6.16b, v7.16b, #8");
+  COMPARE(Ssra(v8.V4H(), v9.V4H(), 1), "ssra v8.4h, v9.4h, #1");
+  COMPARE(Ssra(v10.V4H(), v11.V4H(), 16), "ssra v10.4h, v11.4h, #16");
+  COMPARE(Ssra(v12.V8H(), v13.V8H(), 1), "ssra v12.8h, v13.8h, #1");
+  COMPARE(Ssra(v14.V8H(), v15.V8H(), 16), "ssra v14.8h, v15.8h, #16");
+  COMPARE(Ssra(v16.V2S(), v17.V2S(), 1), "ssra v16.2s, v17.2s, #1");
+  COMPARE(Ssra(v18.V2S(), v19.V2S(), 32), "ssra v18.2s, v19.2s, #32");
+  COMPARE(Ssra(v20.V4S(), v21.V4S(), 1), "ssra v20.4s, v21.4s, #1");
+  COMPARE(Ssra(v22.V4S(), v23.V4S(), 32), "ssra v22.4s, v23.4s, #32");
+  COMPARE(Ssra(v28.V2D(), v29.V2D(), 1), "ssra v28.2d, v29.2d, #1");
+  COMPARE(Ssra(v30.V2D(), v31.V2D(), 64), "ssra v30.2d, v31.2d, #64");
   COMPARE(Ssra(d0, d1, 7), "ssra d0, d1, #7");
 
-  COMPARE(Ursra(v0.V8B(), v1.V8B(), 1),  "ursra v0.8b, v1.8b, #1");
-  COMPARE(Ursra(v2.V8B(), v3.V8B(), 8),  "ursra v2.8b, v3.8b, #8");
-  COMPARE(Ursra(v4.V16B(), v5.V16B(), 1),  "ursra v4.16b, v5.16b, #1");
-  COMPARE(Ursra(v6.V16B(), v7.V16B(), 8),  "ursra v6.16b, v7.16b, #8");
-  COMPARE(Ursra(v8.V4H(), v9.V4H(), 1),  "ursra v8.4h, v9.4h, #1");
-  COMPARE(Ursra(v10.V4H(), v11.V4H(), 16),  "ursra v10.4h, v11.4h, #16");
-  COMPARE(Ursra(v12.V8H(), v13.V8H(), 1),  "ursra v12.8h, v13.8h, #1");
-  COMPARE(Ursra(v14.V8H(), v15.V8H(), 16),  "ursra v14.8h, v15.8h, #16");
-  COMPARE(Ursra(v16.V2S(), v17.V2S(), 1),  "ursra v16.2s, v17.2s, #1");
-  COMPARE(Ursra(v18.V2S(), v19.V2S(), 32),  "ursra v18.2s, v19.2s, #32");
-  COMPARE(Ursra(v20.V4S(), v21.V4S(), 1),  "ursra v20.4s, v21.4s, #1");
-  COMPARE(Ursra(v22.V4S(), v23.V4S(), 32),  "ursra v22.4s, v23.4s, #32");
-  COMPARE(Ursra(v28.V2D(), v29.V2D(), 1),  "ursra v28.2d, v29.2d, #1");
-  COMPARE(Ursra(v30.V2D(), v31.V2D(), 64),  "ursra v30.2d, v31.2d, #64");
+  COMPARE(Ursra(v0.V8B(), v1.V8B(), 1), "ursra v0.8b, v1.8b, #1");
+  COMPARE(Ursra(v2.V8B(), v3.V8B(), 8), "ursra v2.8b, v3.8b, #8");
+  COMPARE(Ursra(v4.V16B(), v5.V16B(), 1), "ursra v4.16b, v5.16b, #1");
+  COMPARE(Ursra(v6.V16B(), v7.V16B(), 8), "ursra v6.16b, v7.16b, #8");
+  COMPARE(Ursra(v8.V4H(), v9.V4H(), 1), "ursra v8.4h, v9.4h, #1");
+  COMPARE(Ursra(v10.V4H(), v11.V4H(), 16), "ursra v10.4h, v11.4h, #16");
+  COMPARE(Ursra(v12.V8H(), v13.V8H(), 1), "ursra v12.8h, v13.8h, #1");
+  COMPARE(Ursra(v14.V8H(), v15.V8H(), 16), "ursra v14.8h, v15.8h, #16");
+  COMPARE(Ursra(v16.V2S(), v17.V2S(), 1), "ursra v16.2s, v17.2s, #1");
+  COMPARE(Ursra(v18.V2S(), v19.V2S(), 32), "ursra v18.2s, v19.2s, #32");
+  COMPARE(Ursra(v20.V4S(), v21.V4S(), 1), "ursra v20.4s, v21.4s, #1");
+  COMPARE(Ursra(v22.V4S(), v23.V4S(), 32), "ursra v22.4s, v23.4s, #32");
+  COMPARE(Ursra(v28.V2D(), v29.V2D(), 1), "ursra v28.2d, v29.2d, #1");
+  COMPARE(Ursra(v30.V2D(), v31.V2D(), 64), "ursra v30.2d, v31.2d, #64");
   COMPARE(Ursra(d0, d1, 7), "ursra d0, d1, #7");
 
-  COMPARE(Usra(v0.V8B(), v1.V8B(), 1),  "usra v0.8b, v1.8b, #1");
-  COMPARE(Usra(v2.V8B(), v3.V8B(), 8),  "usra v2.8b, v3.8b, #8");
-  COMPARE(Usra(v4.V16B(), v5.V16B(), 1),  "usra v4.16b, v5.16b, #1");
-  COMPARE(Usra(v6.V16B(), v7.V16B(), 8),  "usra v6.16b, v7.16b, #8");
-  COMPARE(Usra(v8.V4H(), v9.V4H(), 1),  "usra v8.4h, v9.4h, #1");
-  COMPARE(Usra(v10.V4H(), v11.V4H(), 16),  "usra v10.4h, v11.4h, #16");
-  COMPARE(Usra(v12.V8H(), v13.V8H(), 1),  "usra v12.8h, v13.8h, #1");
-  COMPARE(Usra(v14.V8H(), v15.V8H(), 16),  "usra v14.8h, v15.8h, #16");
-  COMPARE(Usra(v16.V2S(), v17.V2S(), 1),  "usra v16.2s, v17.2s, #1");
-  COMPARE(Usra(v18.V2S(), v19.V2S(), 32),  "usra v18.2s, v19.2s, #32");
-  COMPARE(Usra(v20.V4S(), v21.V4S(), 1),  "usra v20.4s, v21.4s, #1");
-  COMPARE(Usra(v22.V4S(), v23.V4S(), 32),  "usra v22.4s, v23.4s, #32");
-  COMPARE(Usra(v28.V2D(), v29.V2D(), 1),  "usra v28.2d, v29.2d, #1");
-  COMPARE(Usra(v30.V2D(), v31.V2D(), 64),  "usra v30.2d, v31.2d, #64");
+  COMPARE(Usra(v0.V8B(), v1.V8B(), 1), "usra v0.8b, v1.8b, #1");
+  COMPARE(Usra(v2.V8B(), v3.V8B(), 8), "usra v2.8b, v3.8b, #8");
+  COMPARE(Usra(v4.V16B(), v5.V16B(), 1), "usra v4.16b, v5.16b, #1");
+  COMPARE(Usra(v6.V16B(), v7.V16B(), 8), "usra v6.16b, v7.16b, #8");
+  COMPARE(Usra(v8.V4H(), v9.V4H(), 1), "usra v8.4h, v9.4h, #1");
+  COMPARE(Usra(v10.V4H(), v11.V4H(), 16), "usra v10.4h, v11.4h, #16");
+  COMPARE(Usra(v12.V8H(), v13.V8H(), 1), "usra v12.8h, v13.8h, #1");
+  COMPARE(Usra(v14.V8H(), v15.V8H(), 16), "usra v14.8h, v15.8h, #16");
+  COMPARE(Usra(v16.V2S(), v17.V2S(), 1), "usra v16.2s, v17.2s, #1");
+  COMPARE(Usra(v18.V2S(), v19.V2S(), 32), "usra v18.2s, v19.2s, #32");
+  COMPARE(Usra(v20.V4S(), v21.V4S(), 1), "usra v20.4s, v21.4s, #1");
+  COMPARE(Usra(v22.V4S(), v23.V4S(), 32), "usra v22.4s, v23.4s, #32");
+  COMPARE(Usra(v28.V2D(), v29.V2D(), 1), "usra v28.2d, v29.2d, #1");
+  COMPARE(Usra(v30.V2D(), v31.V2D(), 64), "usra v30.2d, v31.2d, #64");
   COMPARE(Usra(d0, d1, 7), "usra d0, d1, #7");
 
-  COMPARE(Sli(v1.V8B(),  v8.V8B(),  1), "sli v1.8b, v8.8b, #1");
+  COMPARE(Sli(v1.V8B(), v8.V8B(), 1), "sli v1.8b, v8.8b, #1");
   COMPARE(Sli(v2.V16B(), v9.V16B(), 2), "sli v2.16b, v9.16b, #2");
-  COMPARE(Sli(v3.V4H(),  v1.V4H(),  3), "sli v3.4h, v1.4h, #3");
-  COMPARE(Sli(v4.V8H(),  v2.V8H(),  4), "sli v4.8h, v2.8h, #4");
-  COMPARE(Sli(v5.V2S(),  v3.V2S(),  5), "sli v5.2s, v3.2s, #5");
-  COMPARE(Sli(v6.V4S(),  v4.V4S(),  6), "sli v6.4s, v4.4s, #6");
-  COMPARE(Sli(v7.V2D(),  v5.V2D(),  7), "sli v7.2d, v5.2d, #7");
-  COMPARE(Sli(d8,  d6,  8),             "sli d8, d6, #8");
+  COMPARE(Sli(v3.V4H(), v1.V4H(), 3), "sli v3.4h, v1.4h, #3");
+  COMPARE(Sli(v4.V8H(), v2.V8H(), 4), "sli v4.8h, v2.8h, #4");
+  COMPARE(Sli(v5.V2S(), v3.V2S(), 5), "sli v5.2s, v3.2s, #5");
+  COMPARE(Sli(v6.V4S(), v4.V4S(), 6), "sli v6.4s, v4.4s, #6");
+  COMPARE(Sli(v7.V2D(), v5.V2D(), 7), "sli v7.2d, v5.2d, #7");
+  COMPARE(Sli(d8, d6, 8), "sli d8, d6, #8");
 
-  COMPARE(Shl(v1.V8B(),  v8.V8B(),  1), "shl v1.8b, v8.8b, #1");
+  COMPARE(Shl(v1.V8B(), v8.V8B(), 1), "shl v1.8b, v8.8b, #1");
   COMPARE(Shl(v2.V16B(), v9.V16B(), 2), "shl v2.16b, v9.16b, #2");
-  COMPARE(Shl(v3.V4H(),  v1.V4H(),  3), "shl v3.4h, v1.4h, #3");
-  COMPARE(Shl(v4.V8H(),  v2.V8H(),  4), "shl v4.8h, v2.8h, #4");
-  COMPARE(Shl(v5.V2S(),  v3.V2S(),  5), "shl v5.2s, v3.2s, #5");
-  COMPARE(Shl(v6.V4S(),  v4.V4S(),  6), "shl v6.4s, v4.4s, #6");
-  COMPARE(Shl(v7.V2D(),  v5.V2D(),  7), "shl v7.2d, v5.2d, #7");
-  COMPARE(Shl(d8,  d6,  8),             "shl d8, d6, #8");
+  COMPARE(Shl(v3.V4H(), v1.V4H(), 3), "shl v3.4h, v1.4h, #3");
+  COMPARE(Shl(v4.V8H(), v2.V8H(), 4), "shl v4.8h, v2.8h, #4");
+  COMPARE(Shl(v5.V2S(), v3.V2S(), 5), "shl v5.2s, v3.2s, #5");
+  COMPARE(Shl(v6.V4S(), v4.V4S(), 6), "shl v6.4s, v4.4s, #6");
+  COMPARE(Shl(v7.V2D(), v5.V2D(), 7), "shl v7.2d, v5.2d, #7");
+  COMPARE(Shl(d8, d6, 8), "shl d8, d6, #8");
 
-  COMPARE(Sqshl(v1.V8B(),  v8.V8B(),  1), "sqshl v1.8b, v8.8b, #1");
+  COMPARE(Sqshl(v1.V8B(), v8.V8B(), 1), "sqshl v1.8b, v8.8b, #1");
   COMPARE(Sqshl(v2.V16B(), v9.V16B(), 2), "sqshl v2.16b, v9.16b, #2");
-  COMPARE(Sqshl(v3.V4H(),  v1.V4H(),  3), "sqshl v3.4h, v1.4h, #3");
-  COMPARE(Sqshl(v4.V8H(),  v2.V8H(),  4), "sqshl v4.8h, v2.8h, #4");
-  COMPARE(Sqshl(v5.V2S(),  v3.V2S(),  5), "sqshl v5.2s, v3.2s, #5");
-  COMPARE(Sqshl(v6.V4S(),  v4.V4S(),  6), "sqshl v6.4s, v4.4s, #6");
-  COMPARE(Sqshl(v7.V2D(),  v5.V2D(),  7), "sqshl v7.2d, v5.2d, #7");
-  COMPARE(Sqshl(b8, b7, 1),               "sqshl b8, b7, #1");
-  COMPARE(Sqshl(h9, h8, 2),               "sqshl h9, h8, #2");
-  COMPARE(Sqshl(s10, s9, 3),              "sqshl s10, s9, #3");
-  COMPARE(Sqshl(d11, d10, 4),             "sqshl d11, d10, #4");
+  COMPARE(Sqshl(v3.V4H(), v1.V4H(), 3), "sqshl v3.4h, v1.4h, #3");
+  COMPARE(Sqshl(v4.V8H(), v2.V8H(), 4), "sqshl v4.8h, v2.8h, #4");
+  COMPARE(Sqshl(v5.V2S(), v3.V2S(), 5), "sqshl v5.2s, v3.2s, #5");
+  COMPARE(Sqshl(v6.V4S(), v4.V4S(), 6), "sqshl v6.4s, v4.4s, #6");
+  COMPARE(Sqshl(v7.V2D(), v5.V2D(), 7), "sqshl v7.2d, v5.2d, #7");
+  COMPARE(Sqshl(b8, b7, 1), "sqshl b8, b7, #1");
+  COMPARE(Sqshl(h9, h8, 2), "sqshl h9, h8, #2");
+  COMPARE(Sqshl(s10, s9, 3), "sqshl s10, s9, #3");
+  COMPARE(Sqshl(d11, d10, 4), "sqshl d11, d10, #4");
 
-  COMPARE(Sqshlu(v1.V8B(),  v8.V8B(),  1), "sqshlu v1.8b, v8.8b, #1");
+  COMPARE(Sqshlu(v1.V8B(), v8.V8B(), 1), "sqshlu v1.8b, v8.8b, #1");
   COMPARE(Sqshlu(v2.V16B(), v9.V16B(), 2), "sqshlu v2.16b, v9.16b, #2");
-  COMPARE(Sqshlu(v3.V4H(),  v1.V4H(),  3), "sqshlu v3.4h, v1.4h, #3");
-  COMPARE(Sqshlu(v4.V8H(),  v2.V8H(),  4), "sqshlu v4.8h, v2.8h, #4");
-  COMPARE(Sqshlu(v5.V2S(),  v3.V2S(),  5), "sqshlu v5.2s, v3.2s, #5");
-  COMPARE(Sqshlu(v6.V4S(),  v4.V4S(),  6), "sqshlu v6.4s, v4.4s, #6");
-  COMPARE(Sqshlu(v7.V2D(),  v5.V2D(),  7), "sqshlu v7.2d, v5.2d, #7");
-  COMPARE(Sqshlu(b8, b7, 1),               "sqshlu b8, b7, #1");
-  COMPARE(Sqshlu(h9, h8, 2),               "sqshlu h9, h8, #2");
-  COMPARE(Sqshlu(s10, s9, 3),              "sqshlu s10, s9, #3");
-  COMPARE(Sqshlu(d11, d10, 4),             "sqshlu d11, d10, #4");
+  COMPARE(Sqshlu(v3.V4H(), v1.V4H(), 3), "sqshlu v3.4h, v1.4h, #3");
+  COMPARE(Sqshlu(v4.V8H(), v2.V8H(), 4), "sqshlu v4.8h, v2.8h, #4");
+  COMPARE(Sqshlu(v5.V2S(), v3.V2S(), 5), "sqshlu v5.2s, v3.2s, #5");
+  COMPARE(Sqshlu(v6.V4S(), v4.V4S(), 6), "sqshlu v6.4s, v4.4s, #6");
+  COMPARE(Sqshlu(v7.V2D(), v5.V2D(), 7), "sqshlu v7.2d, v5.2d, #7");
+  COMPARE(Sqshlu(b8, b7, 1), "sqshlu b8, b7, #1");
+  COMPARE(Sqshlu(h9, h8, 2), "sqshlu h9, h8, #2");
+  COMPARE(Sqshlu(s10, s9, 3), "sqshlu s10, s9, #3");
+  COMPARE(Sqshlu(d11, d10, 4), "sqshlu d11, d10, #4");
 
-  COMPARE(Uqshl(v1.V8B(),  v8.V8B(),  1), "uqshl v1.8b, v8.8b, #1");
+  COMPARE(Uqshl(v1.V8B(), v8.V8B(), 1), "uqshl v1.8b, v8.8b, #1");
   COMPARE(Uqshl(v2.V16B(), v9.V16B(), 2), "uqshl v2.16b, v9.16b, #2");
-  COMPARE(Uqshl(v3.V4H(),  v1.V4H(),  3), "uqshl v3.4h, v1.4h, #3");
-  COMPARE(Uqshl(v4.V8H(),  v2.V8H(),  4), "uqshl v4.8h, v2.8h, #4");
-  COMPARE(Uqshl(v5.V2S(),  v3.V2S(),  5), "uqshl v5.2s, v3.2s, #5");
-  COMPARE(Uqshl(v6.V4S(),  v4.V4S(),  6), "uqshl v6.4s, v4.4s, #6");
-  COMPARE(Uqshl(v7.V2D(),  v5.V2D(),  7), "uqshl v7.2d, v5.2d, #7");
-  COMPARE(Uqshl(b8, b7, 1),               "uqshl b8, b7, #1");
-  COMPARE(Uqshl(h9, h8, 2),               "uqshl h9, h8, #2");
-  COMPARE(Uqshl(s10, s9, 3),              "uqshl s10, s9, #3");
-  COMPARE(Uqshl(d11, d10, 4),             "uqshl d11, d10, #4");
+  COMPARE(Uqshl(v3.V4H(), v1.V4H(), 3), "uqshl v3.4h, v1.4h, #3");
+  COMPARE(Uqshl(v4.V8H(), v2.V8H(), 4), "uqshl v4.8h, v2.8h, #4");
+  COMPARE(Uqshl(v5.V2S(), v3.V2S(), 5), "uqshl v5.2s, v3.2s, #5");
+  COMPARE(Uqshl(v6.V4S(), v4.V4S(), 6), "uqshl v6.4s, v4.4s, #6");
+  COMPARE(Uqshl(v7.V2D(), v5.V2D(), 7), "uqshl v7.2d, v5.2d, #7");
+  COMPARE(Uqshl(b8, b7, 1), "uqshl b8, b7, #1");
+  COMPARE(Uqshl(h9, h8, 2), "uqshl h9, h8, #2");
+  COMPARE(Uqshl(s10, s9, 3), "uqshl s10, s9, #3");
+  COMPARE(Uqshl(d11, d10, 4), "uqshl d11, d10, #4");
 
-  COMPARE(Sshll(v1.V8H(),  v8.V8B(),  1), "sshll v1.8h, v8.8b, #1");
-  COMPARE(Sshll(v3.V4S(),  v1.V4H(),  3), "sshll v3.4s, v1.4h, #3");
-  COMPARE(Sshll(v5.V2D(),  v3.V2S(),  5), "sshll v5.2d, v3.2s, #5");
+  COMPARE(Sshll(v1.V8H(), v8.V8B(), 1), "sshll v1.8h, v8.8b, #1");
+  COMPARE(Sshll(v3.V4S(), v1.V4H(), 3), "sshll v3.4s, v1.4h, #3");
+  COMPARE(Sshll(v5.V2D(), v3.V2S(), 5), "sshll v5.2d, v3.2s, #5");
   COMPARE(Sshll2(v2.V8H(), v9.V16B(), 2), "sshll2 v2.8h, v9.16b, #2");
-  COMPARE(Sshll2(v4.V4S(), v2.V8H(),  4), "sshll2 v4.4s, v2.8h, #4");
-  COMPARE(Sshll2(v6.V2D(), v4.V4S(),  6), "sshll2 v6.2d, v4.4s, #6");
+  COMPARE(Sshll2(v4.V4S(), v2.V8H(), 4), "sshll2 v4.4s, v2.8h, #4");
+  COMPARE(Sshll2(v6.V2D(), v4.V4S(), 6), "sshll2 v6.2d, v4.4s, #6");
 
-  COMPARE(Sshll(v1.V8H(),  v8.V8B(),  0), "sxtl v1.8h, v8.8b");
-  COMPARE(Sshll(v3.V4S(),  v1.V4H(),  0), "sxtl v3.4s, v1.4h");
-  COMPARE(Sshll(v5.V2D(),  v3.V2S(),  0), "sxtl v5.2d, v3.2s");
+  COMPARE(Sshll(v1.V8H(), v8.V8B(), 0), "sxtl v1.8h, v8.8b");
+  COMPARE(Sshll(v3.V4S(), v1.V4H(), 0), "sxtl v3.4s, v1.4h");
+  COMPARE(Sshll(v5.V2D(), v3.V2S(), 0), "sxtl v5.2d, v3.2s");
   COMPARE(Sshll2(v2.V8H(), v9.V16B(), 0), "sxtl2 v2.8h, v9.16b");
-  COMPARE(Sshll2(v4.V4S(), v2.V8H(),  0), "sxtl2 v4.4s, v2.8h");
-  COMPARE(Sshll2(v6.V2D(), v4.V4S(),  0), "sxtl2 v6.2d, v4.4s");
+  COMPARE(Sshll2(v4.V4S(), v2.V8H(), 0), "sxtl2 v4.4s, v2.8h");
+  COMPARE(Sshll2(v6.V2D(), v4.V4S(), 0), "sxtl2 v6.2d, v4.4s");
 
-  COMPARE(Sxtl(v1.V8H(),  v8.V8B()),  "sxtl v1.8h, v8.8b");
-  COMPARE(Sxtl(v3.V4S(),  v1.V4H()),  "sxtl v3.4s, v1.4h");
-  COMPARE(Sxtl(v5.V2D(),  v3.V2S()),  "sxtl v5.2d, v3.2s");
+  COMPARE(Sxtl(v1.V8H(), v8.V8B()), "sxtl v1.8h, v8.8b");
+  COMPARE(Sxtl(v3.V4S(), v1.V4H()), "sxtl v3.4s, v1.4h");
+  COMPARE(Sxtl(v5.V2D(), v3.V2S()), "sxtl v5.2d, v3.2s");
   COMPARE(Sxtl2(v2.V8H(), v9.V16B()), "sxtl2 v2.8h, v9.16b");
-  COMPARE(Sxtl2(v4.V4S(), v2.V8H()),  "sxtl2 v4.4s, v2.8h");
-  COMPARE(Sxtl2(v6.V2D(), v4.V4S()),  "sxtl2 v6.2d, v4.4s");
+  COMPARE(Sxtl2(v4.V4S(), v2.V8H()), "sxtl2 v4.4s, v2.8h");
+  COMPARE(Sxtl2(v6.V2D(), v4.V4S()), "sxtl2 v6.2d, v4.4s");
 
-  COMPARE(Ushll(v1.V8H(),  v8.V8B(),  1), "ushll v1.8h, v8.8b, #1");
-  COMPARE(Ushll(v3.V4S(),  v1.V4H(),  3), "ushll v3.4s, v1.4h, #3");
-  COMPARE(Ushll(v5.V2D(),  v3.V2S(),  5), "ushll v5.2d, v3.2s, #5");
+  COMPARE(Ushll(v1.V8H(), v8.V8B(), 1), "ushll v1.8h, v8.8b, #1");
+  COMPARE(Ushll(v3.V4S(), v1.V4H(), 3), "ushll v3.4s, v1.4h, #3");
+  COMPARE(Ushll(v5.V2D(), v3.V2S(), 5), "ushll v5.2d, v3.2s, #5");
   COMPARE(Ushll2(v2.V8H(), v9.V16B(), 2), "ushll2 v2.8h, v9.16b, #2");
-  COMPARE(Ushll2(v4.V4S(), v2.V8H(),  4), "ushll2 v4.4s, v2.8h, #4");
-  COMPARE(Ushll2(v6.V2D(), v4.V4S(),  6), "ushll2 v6.2d, v4.4s, #6");
+  COMPARE(Ushll2(v4.V4S(), v2.V8H(), 4), "ushll2 v4.4s, v2.8h, #4");
+  COMPARE(Ushll2(v6.V2D(), v4.V4S(), 6), "ushll2 v6.2d, v4.4s, #6");
 
-  COMPARE(Ushll(v1.V8H(),  v8.V8B(),  0), "uxtl v1.8h, v8.8b");
-  COMPARE(Ushll(v3.V4S(),  v1.V4H(),  0), "uxtl v3.4s, v1.4h");
-  COMPARE(Ushll(v5.V2D(),  v3.V2S(),  0), "uxtl v5.2d, v3.2s");
+  COMPARE(Ushll(v1.V8H(), v8.V8B(), 0), "uxtl v1.8h, v8.8b");
+  COMPARE(Ushll(v3.V4S(), v1.V4H(), 0), "uxtl v3.4s, v1.4h");
+  COMPARE(Ushll(v5.V2D(), v3.V2S(), 0), "uxtl v5.2d, v3.2s");
   COMPARE(Ushll2(v2.V8H(), v9.V16B(), 0), "uxtl2 v2.8h, v9.16b");
-  COMPARE(Ushll2(v4.V4S(), v2.V8H(),  0), "uxtl2 v4.4s, v2.8h");
-  COMPARE(Ushll2(v6.V2D(), v4.V4S(),  0), "uxtl2 v6.2d, v4.4s");
+  COMPARE(Ushll2(v4.V4S(), v2.V8H(), 0), "uxtl2 v4.4s, v2.8h");
+  COMPARE(Ushll2(v6.V2D(), v4.V4S(), 0), "uxtl2 v6.2d, v4.4s");
 
-  COMPARE(Uxtl(v1.V8H(),  v8.V8B()),  "uxtl v1.8h, v8.8b");
-  COMPARE(Uxtl(v3.V4S(),  v1.V4H()),  "uxtl v3.4s, v1.4h");
-  COMPARE(Uxtl(v5.V2D(),  v3.V2S()),  "uxtl v5.2d, v3.2s");
+  COMPARE(Uxtl(v1.V8H(), v8.V8B()), "uxtl v1.8h, v8.8b");
+  COMPARE(Uxtl(v3.V4S(), v1.V4H()), "uxtl v3.4s, v1.4h");
+  COMPARE(Uxtl(v5.V2D(), v3.V2S()), "uxtl v5.2d, v3.2s");
   COMPARE(Uxtl2(v2.V8H(), v9.V16B()), "uxtl2 v2.8h, v9.16b");
-  COMPARE(Uxtl2(v4.V4S(), v2.V8H()),  "uxtl2 v4.4s, v2.8h");
-  COMPARE(Uxtl2(v6.V2D(), v4.V4S()),  "uxtl2 v6.2d, v4.4s");
+  COMPARE(Uxtl2(v4.V4S(), v2.V8H()), "uxtl2 v4.4s, v2.8h");
+  COMPARE(Uxtl2(v6.V2D(), v4.V4S()), "uxtl2 v6.2d, v4.4s");
 
-  COMPARE(Sri(v1.V8B(),  v8.V8B(),  1), "sri v1.8b, v8.8b, #1");
+  COMPARE(Sri(v1.V8B(), v8.V8B(), 1), "sri v1.8b, v8.8b, #1");
   COMPARE(Sri(v2.V16B(), v9.V16B(), 2), "sri v2.16b, v9.16b, #2");
-  COMPARE(Sri(v3.V4H(),  v1.V4H(),  3), "sri v3.4h, v1.4h, #3");
-  COMPARE(Sri(v4.V8H(),  v2.V8H(),  4), "sri v4.8h, v2.8h, #4");
-  COMPARE(Sri(v5.V2S(),  v3.V2S(),  5), "sri v5.2s, v3.2s, #5");
-  COMPARE(Sri(v6.V4S(),  v4.V4S(),  6), "sri v6.4s, v4.4s, #6");
-  COMPARE(Sri(v7.V2D(),  v5.V2D(),  7), "sri v7.2d, v5.2d, #7");
-  COMPARE(Sri(d8,  d6,  8),             "sri d8, d6, #8");
+  COMPARE(Sri(v3.V4H(), v1.V4H(), 3), "sri v3.4h, v1.4h, #3");
+  COMPARE(Sri(v4.V8H(), v2.V8H(), 4), "sri v4.8h, v2.8h, #4");
+  COMPARE(Sri(v5.V2S(), v3.V2S(), 5), "sri v5.2s, v3.2s, #5");
+  COMPARE(Sri(v6.V4S(), v4.V4S(), 6), "sri v6.4s, v4.4s, #6");
+  COMPARE(Sri(v7.V2D(), v5.V2D(), 7), "sri v7.2d, v5.2d, #7");
+  COMPARE(Sri(d8, d6, 8), "sri d8, d6, #8");
 
   COMPARE(Shrn(v0.V8B(), v1.V8H(), 1), "shrn v0.8b, v1.8h, #1");
   COMPARE(Shrn(v1.V4H(), v2.V4S(), 2), "shrn v1.4h, v2.4s, #2");
