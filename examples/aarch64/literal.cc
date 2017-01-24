@@ -42,10 +42,9 @@ int64_t LiteralExample(int64_t a, int64_t b) {
   Label start;
   masm.Bind(&start);
   {
-    CodeBufferCheckScope scope(&masm,
-                               kInstructionSize + sizeof(int64_t),
-                               CodeBufferCheckScope::kCheck,
-                               CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm,
+                             kInstructionSize + sizeof(int64_t),
+                             ExactAssemblyScope::kExactSize);
     Label over_literal;
     __ b(&over_literal);
     __ place(&manually_placed_literal);

@@ -121,11 +121,6 @@ namespace aarch64 {
   disassembler_decoder.AppendVisitor(&disasm);                    \
   RegisterDump core
 
-// This is a convenience macro to avoid creating a scope for every assembler
-// function called. It will still assert the buffer hasn't been exceeded.
-#define ALLOW_ASM() \
-  CodeBufferCheckScope guard(&masm, masm.GetBuffer()->GetCapacity())
-
 #define START()                                                               \
   masm.Reset();                                                               \
   simulator->ResetState();                                                    \
@@ -193,11 +188,6 @@ namespace aarch64 {
   masm.SetGenerateSimulatorCode(false);        \
   RegisterDump core;                           \
   CPU::SetUp()
-
-// This is a convenience macro to avoid creating a scope for every assembler
-// function called. It will still assert the buffer hasn't been exceeded.
-#define ALLOW_ASM() \
-  CodeBufferCheckScope guard(&masm, masm.GetBuffer()->GetCapacity())
 
 #define START() \
   masm.Reset(); \
@@ -465,7 +455,6 @@ TEST(mov_imm_x) {
 
 TEST(mov) {
   SETUP();
-  ALLOW_ASM();
 
   START();
   __ Mov(x0, 0xffffffffffffffff);
@@ -475,9 +464,12 @@ TEST(mov) {
 
   __ Mov(x0, 0x0123456789abcdef);
 
-  __ movz(x1, UINT64_C(0xabcd) << 16);
-  __ movk(x2, UINT64_C(0xabcd) << 32);
-  __ movn(x3, UINT64_C(0xabcd) << 48);
+  {
+    ExactAssemblyScope scope(&masm, 3 * kInstructionSize);
+    __ movz(x1, UINT64_C(0xabcd) << 16);
+    __ movk(x2, UINT64_C(0xabcd) << 32);
+    __ movn(x3, UINT64_C(0xabcd) << 48);
+  }
 
   __ Mov(x4, 0x0123456789abcdef);
   __ Mov(x5, x4);
@@ -2032,7 +2024,6 @@ TEST(adrp_offset) {
 
 TEST(branch_cond) {
   SETUP();
-  ALLOW_ASM();
 
   Label done, wrong;
 
@@ -2098,13 +2089,19 @@ TEST(branch_cond) {
 
   // The MacroAssembler does not allow al as a branch condition.
   Label ok_5;
-  __ b(&ok_5, al);
+  {
+    ExactAssemblyScope scope(&masm, kInstructionSize);
+    __ b(&ok_5, al);
+  }
   __ Mov(x0, 0x0);
   __ Bind(&ok_5);
 
   // The MacroAssembler does not allow nv as a branch condition.
   Label ok_6;
-  __ b(&ok_6, nv);
+  {
+    ExactAssemblyScope scope(&masm, kInstructionSize);
+    __ b(&ok_6, nv);
+  }
   __ Mov(x0, 0x0);
   __ Bind(&ok_6);
 
@@ -7312,16 +7309,19 @@ TEST(ldr_literal_values_s) {
 
 TEST(ldr_literal_custom) {
   SETUP();
-  ALLOW_ASM();
 
   Label end_of_pool_before;
   Label end_of_pool_after;
+
+  const size_t kSizeOfPoolInBytes = 44;
+
   Literal<uint64_t> before_x(0x1234567890abcdef);
   Literal<uint32_t> before_w(0xfedcba09);
   Literal<uint32_t> before_sx(0x80000000);
   Literal<uint64_t> before_q(0x1234000056780000, 0xabcd0000ef000000);
   Literal<double> before_d(1.234);
   Literal<float> before_s(2.5);
+
   Literal<uint64_t> after_x(0x1234567890abcdef);
   Literal<uint32_t> after_w(0xfedcba09);
   Literal<uint32_t> after_sx(0x80000000);
@@ -7333,36 +7333,45 @@ TEST(ldr_literal_custom) {
 
   // Manually generate a pool.
   __ B(&end_of_pool_before);
-  __ place(&before_x);
-  __ place(&before_w);
-  __ place(&before_sx);
-  __ place(&before_q);
-  __ place(&before_d);
-  __ place(&before_s);
+  {
+    ExactAssemblyScope scope(&masm, kSizeOfPoolInBytes);
+    __ place(&before_x);
+    __ place(&before_w);
+    __ place(&before_sx);
+    __ place(&before_q);
+    __ place(&before_d);
+    __ place(&before_s);
+  }
   __ Bind(&end_of_pool_before);
 
-  __ ldr(x2, &before_x);
-  __ ldr(w3, &before_w);
-  __ ldrsw(x5, &before_sx);
-  __ ldr(q11, &before_q);
-  __ ldr(d13, &before_d);
-  __ ldr(s25, &before_s);
+  {
+    ExactAssemblyScope scope(&masm, 12 * kInstructionSize);
+    __ ldr(x2, &before_x);
+    __ ldr(w3, &before_w);
+    __ ldrsw(x5, &before_sx);
+    __ ldr(q11, &before_q);
+    __ ldr(d13, &before_d);
+    __ ldr(s25, &before_s);
 
-  __ ldr(x6, &after_x);
-  __ ldr(w7, &after_w);
-  __ ldrsw(x8, &after_sx);
-  __ ldr(q18, &after_q);
-  __ ldr(d14, &after_d);
-  __ ldr(s26, &after_s);
+    __ ldr(x6, &after_x);
+    __ ldr(w7, &after_w);
+    __ ldrsw(x8, &after_sx);
+    __ ldr(q18, &after_q);
+    __ ldr(d14, &after_d);
+    __ ldr(s26, &after_s);
+  }
 
   // Manually generate a pool.
   __ B(&end_of_pool_after);
-  __ place(&after_x);
-  __ place(&after_w);
-  __ place(&after_sx);
-  __ place(&after_q);
-  __ place(&after_d);
-  __ place(&after_s);
+  {
+    ExactAssemblyScope scope(&masm, kSizeOfPoolInBytes);
+    __ place(&after_x);
+    __ place(&after_w);
+    __ place(&after_sx);
+    __ place(&after_q);
+    __ place(&after_d);
+    __ place(&after_s);
+  }
   __ Bind(&end_of_pool_after);
 
   END();
@@ -7389,15 +7398,18 @@ TEST(ldr_literal_custom) {
 
 TEST(ldr_literal_custom_shared) {
   SETUP();
-  ALLOW_ASM();
 
   Label end_of_pool_before;
   Label end_of_pool_after;
+
+  const size_t kSizeOfPoolInBytes = 40;
+
   Literal<uint64_t> before_x(0x1234567890abcdef);
   Literal<uint32_t> before_w(0xfedcba09);
   Literal<uint64_t> before_q(0x1234000056780000, 0xabcd0000ef000000);
   Literal<double> before_d(1.234);
   Literal<float> before_s(2.5);
+
   Literal<uint64_t> after_x(0x1234567890abcdef);
   Literal<uint32_t> after_w(0xfedcba09);
   Literal<uint64_t> after_q(0x1234000056780000, 0xabcd0000ef000000);
@@ -7408,15 +7420,19 @@ TEST(ldr_literal_custom_shared) {
 
   // Manually generate a pool.
   __ B(&end_of_pool_before);
-  __ place(&before_x);
-  __ place(&before_w);
-  __ place(&before_q);
-  __ place(&before_d);
-  __ place(&before_s);
+  {
+    ExactAssemblyScope scope(&masm, kSizeOfPoolInBytes);
+    __ place(&before_x);
+    __ place(&before_w);
+    __ place(&before_q);
+    __ place(&before_d);
+    __ place(&before_s);
+  }
   __ Bind(&end_of_pool_before);
 
   // Load the entries several times to test that literals can be shared.
   for (int i = 0; i < 50; i++) {
+    ExactAssemblyScope scope(&masm, 12 * kInstructionSize);
     __ ldr(x2, &before_x);
     __ ldr(w3, &before_w);
     __ ldrsw(x5, &before_w);  // Re-use before_w.
@@ -7434,11 +7450,14 @@ TEST(ldr_literal_custom_shared) {
 
   // Manually generate a pool.
   __ B(&end_of_pool_after);
-  __ place(&after_x);
-  __ place(&after_w);
-  __ place(&after_q);
-  __ place(&after_d);
-  __ place(&after_s);
+  {
+    ExactAssemblyScope scope(&masm, kSizeOfPoolInBytes);
+    __ place(&after_x);
+    __ place(&after_w);
+    __ place(&after_q);
+    __ place(&after_d);
+    __ place(&after_s);
+  }
   __ Bind(&end_of_pool_after);
 
   END();
@@ -7542,13 +7561,13 @@ TEST(prfm_regoffset) {
 
 TEST(prfm_literal_imm19) {
   SETUP();
-  ALLOW_ASM();
   START();
 
   for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
     // Unallocated prefetch operations are ignored, so test all of them.
     PrefetchOperation op = static_cast<PrefetchOperation>(i);
 
+    ExactAssemblyScope scope(&masm, 7 * kInstructionSize);
     // The address used in prfm doesn't have to be valid.
     __ prfm(op, INT64_C(0));
     __ prfm(op, 1);
@@ -7567,7 +7586,6 @@ TEST(prfm_literal_imm19) {
 
 TEST(prfm_literal) {
   SETUP();
-  ALLOW_ASM();
 
   Label end_of_pool_before;
   Label end_of_pool_after;
@@ -7578,21 +7596,27 @@ TEST(prfm_literal) {
 
   // Manually generate a pool.
   __ B(&end_of_pool_before);
-  __ place(&before);
+  {
+    ExactAssemblyScope scope(&masm, before.GetSize());
+    __ place(&before);
+  }
   __ Bind(&end_of_pool_before);
 
   for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
     // Unallocated prefetch operations are ignored, so test all of them.
     PrefetchOperation op = static_cast<PrefetchOperation>(i);
 
-    CodeBufferCheckScope guard(&masm, 2 * kInstructionSize);
+    ExactAssemblyScope guard(&masm, 2 * kInstructionSize);
     __ prfm(op, &before);
     __ prfm(op, &after);
   }
 
   // Manually generate a pool.
   __ B(&end_of_pool_after);
-  __ place(&after);
+  {
+    ExactAssemblyScope scope(&masm, after.GetSize());
+    __ place(&after);
+  }
   __ Bind(&end_of_pool_after);
 
   END();
@@ -7627,10 +7651,12 @@ TEST(prfm_wide) {
 TEST(load_prfm_literal) {
   // Test literals shared between both prfm and ldr.
   SETUP();
-  ALLOW_ASM();
 
   Label end_of_pool_before;
   Label end_of_pool_after;
+
+  const size_t kSizeOfPoolInBytes = 28;
+
   Literal<uint64_t> before_x(0x1234567890abcdef);
   Literal<uint32_t> before_w(0xfedcba09);
   Literal<uint32_t> before_sx(0x80000000);
@@ -7646,16 +7672,20 @@ TEST(load_prfm_literal) {
 
   // Manually generate a pool.
   __ B(&end_of_pool_before);
-  __ place(&before_x);
-  __ place(&before_w);
-  __ place(&before_sx);
-  __ place(&before_d);
-  __ place(&before_s);
+  {
+    ExactAssemblyScope scope(&masm, kSizeOfPoolInBytes);
+    __ place(&before_x);
+    __ place(&before_w);
+    __ place(&before_sx);
+    __ place(&before_d);
+    __ place(&before_s);
+  }
   __ Bind(&end_of_pool_before);
 
   for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
     // Unallocated prefetch operations are ignored, so test all of them.
     PrefetchOperation op = static_cast<PrefetchOperation>(i);
+    ExactAssemblyScope scope(&masm, 10 * kInstructionSize);
 
     __ prfm(op, &before_x);
     __ prfm(op, &before_w);
@@ -7670,25 +7700,31 @@ TEST(load_prfm_literal) {
     __ prfm(op, &after_s);
   }
 
-  __ ldr(x2, &before_x);
-  __ ldr(w3, &before_w);
-  __ ldrsw(x5, &before_sx);
-  __ ldr(d13, &before_d);
-  __ ldr(s25, &before_s);
+  {
+    ExactAssemblyScope scope(&masm, 10 * kInstructionSize);
+    __ ldr(x2, &before_x);
+    __ ldr(w3, &before_w);
+    __ ldrsw(x5, &before_sx);
+    __ ldr(d13, &before_d);
+    __ ldr(s25, &before_s);
 
-  __ ldr(x6, &after_x);
-  __ ldr(w7, &after_w);
-  __ ldrsw(x8, &after_sx);
-  __ ldr(d14, &after_d);
-  __ ldr(s26, &after_s);
+    __ ldr(x6, &after_x);
+    __ ldr(w7, &after_w);
+    __ ldrsw(x8, &after_sx);
+    __ ldr(d14, &after_d);
+    __ ldr(s26, &after_s);
+  }
 
   // Manually generate a pool.
   __ B(&end_of_pool_after);
-  __ place(&after_x);
-  __ place(&after_w);
-  __ place(&after_sx);
-  __ place(&after_d);
-  __ place(&after_s);
+  {
+    ExactAssemblyScope scope(&masm, kSizeOfPoolInBytes);
+    __ place(&after_x);
+    __ place(&after_w);
+    __ place(&after_sx);
+    __ place(&after_d);
+    __ place(&after_s);
+  }
   __ Bind(&end_of_pool_after);
 
   END();
@@ -8957,7 +8993,6 @@ TEST(cmp_extend) {
 
 TEST(ccmp) {
   SETUP();
-  ALLOW_ASM();
 
   START();
   __ Mov(w16, 0);
@@ -8979,11 +9014,17 @@ TEST(ccmp) {
   __ Mrs(x3, NZCV);
 
   // The MacroAssembler does not allow al as a condition.
-  __ ccmp(x16, x16, NZCVFlag, al);
+  {
+    ExactAssemblyScope scope(&masm, kInstructionSize);
+    __ ccmp(x16, x16, NZCVFlag, al);
+  }
   __ Mrs(x4, NZCV);
 
   // The MacroAssembler does not allow nv as a condition.
-  __ ccmp(x16, x16, NZCVFlag, nv);
+  {
+    ExactAssemblyScope scope(&masm, kInstructionSize);
+    __ ccmp(x16, x16, NZCVFlag, nv);
+  }
   __ Mrs(x5, NZCV);
 
   END();
@@ -9070,7 +9111,6 @@ TEST(ccmp_shift_extend) {
 
 TEST(csel_reg) {
   SETUP();
-  ALLOW_ASM();
 
   START();
   __ Mov(x16, 0);
@@ -9084,8 +9124,11 @@ TEST(csel_reg) {
   __ Csinc(w3, w24, w25, pl);
 
   // The MacroAssembler does not allow al or nv as a condition.
-  __ csel(w13, w24, w25, al);
-  __ csel(x14, x24, x25, nv);
+  {
+    ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+    __ csel(w13, w24, w25, al);
+    __ csel(x14, x24, x25, nv);
+  }
 
   __ Cmp(x16, Operand(1));
   __ Csinv(x4, x24, x25, gt);
@@ -9100,8 +9143,11 @@ TEST(csel_reg) {
   __ Cneg(x12, x24, ne);
 
   // The MacroAssembler does not allow al or nv as a condition.
-  __ csel(w15, w24, w25, al);
-  __ csel(x17, x24, x25, nv);
+  {
+    ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+    __ csel(w15, w24, w25, al);
+    __ csel(x17, x24, x25, nv);
+  }
 
   END();
 
@@ -9218,7 +9264,6 @@ TEST(csel_mixed) {
 
 TEST(lslv) {
   SETUP();
-  ALLOW_ASM();
 
   uint64_t value = 0x0123456789abcdef;
   int shift[] = {1, 3, 5, 9, 17, 33};
@@ -9233,7 +9278,10 @@ TEST(lslv) {
   __ Mov(w6, shift[5]);
 
   // The MacroAssembler does not allow zr as an argument.
-  __ lslv(x0, x0, xzr);
+  {
+    ExactAssemblyScope scope(&masm, kInstructionSize);
+    __ lslv(x0, x0, xzr);
+  }
 
   __ Lsl(x16, x0, x1);
   __ Lsl(x17, x0, x2);
@@ -9272,7 +9320,6 @@ TEST(lslv) {
 
 TEST(lsrv) {
   SETUP();
-  ALLOW_ASM();
 
   uint64_t value = 0x0123456789abcdef;
   int shift[] = {1, 3, 5, 9, 17, 33};
@@ -9287,7 +9334,10 @@ TEST(lsrv) {
   __ Mov(w6, shift[5]);
 
   // The MacroAssembler does not allow zr as an argument.
-  __ lsrv(x0, x0, xzr);
+  {
+    ExactAssemblyScope scope(&masm, kInstructionSize);
+    __ lsrv(x0, x0, xzr);
+  }
 
   __ Lsr(x16, x0, x1);
   __ Lsr(x17, x0, x2);
@@ -9328,7 +9378,6 @@ TEST(lsrv) {
 
 TEST(asrv) {
   SETUP();
-  ALLOW_ASM();
 
   int64_t value = 0xfedcba98fedcba98;
   int shift[] = {1, 3, 5, 9, 17, 33};
@@ -9343,7 +9392,10 @@ TEST(asrv) {
   __ Mov(w6, shift[5]);
 
   // The MacroAssembler does not allow zr as an argument.
-  __ asrv(x0, x0, xzr);
+  {
+    ExactAssemblyScope scope(&masm, kInstructionSize);
+    __ asrv(x0, x0, xzr);
+  }
 
   __ Asr(x16, x0, x1);
   __ Asr(x17, x0, x2);
@@ -9384,7 +9436,6 @@ TEST(asrv) {
 
 TEST(rorv) {
   SETUP();
-  ALLOW_ASM();
 
   uint64_t value = 0x0123456789abcdef;
   int shift[] = {4, 8, 12, 16, 24, 36};
@@ -9399,7 +9450,10 @@ TEST(rorv) {
   __ Mov(w6, shift[5]);
 
   // The MacroAssembler does not allow zr as an argument.
-  __ rorv(x0, x0, xzr);
+  {
+    ExactAssemblyScope scope(&masm, kInstructionSize);
+    __ rorv(x0, x0, xzr);
+  }
 
   __ Ror(x16, x0, x1);
   __ Ror(x17, x0, x2);
@@ -9438,7 +9492,6 @@ TEST(rorv) {
 
 TEST(bfm) {
   SETUP();
-  ALLOW_ASM();
 
   START();
   __ Mov(x1, 0x0123456789abcdef);
@@ -9450,7 +9503,6 @@ TEST(bfm) {
   __ Mov(w20, 0x88888888);
   __ Mov(w21, 0x88888888);
 
-  // There are no macro instruction for bfm.
   __ Bfm(x10, x1, 16, 31);
   __ Bfm(x11, x1, 32, 15);
 
@@ -9480,13 +9532,11 @@ TEST(bfm) {
 
 TEST(sbfm) {
   SETUP();
-  ALLOW_ASM();
 
   START();
   __ Mov(x1, 0x0123456789abcdef);
   __ Mov(x2, 0xfedcba9876543210);
 
-  // There are no macro instruction for sbfm.
   __ Sbfm(x10, x1, 16, 31);
   __ Sbfm(x11, x1, 32, 15);
   __ Sbfm(x12, x1, 32, 47);
@@ -9544,7 +9594,6 @@ TEST(sbfm) {
 
 TEST(ubfm) {
   SETUP();
-  ALLOW_ASM();
 
   START();
   __ Mov(x1, 0x0123456789abcdef);
@@ -9553,7 +9602,6 @@ TEST(ubfm) {
   __ Mov(x10, 0x8888888888888888);
   __ Mov(x11, 0x8888888888888888);
 
-  // There are no macro instruction for ubfm.
   __ Ubfm(x10, x1, 16, 31);
   __ Ubfm(x11, x1, 32, 15);
   __ Ubfm(x12, x1, 32, 47);
@@ -10576,7 +10624,6 @@ TEST(fmax_fmin_s) {
 
 TEST(fccmp) {
   SETUP();
-  ALLOW_ASM();
 
   START();
   __ Fmov(s16, 0.0);
@@ -10622,10 +10669,16 @@ TEST(fccmp) {
   __ Mrs(x7, NZCV);
 
   // The Macro Assembler does not allow al or nv as condition.
-  __ fccmp(s16, s16, NFlag, al);
+  {
+    ExactAssemblyScope scope(&masm, kInstructionSize);
+    __ fccmp(s16, s16, NFlag, al);
+  }
   __ Mrs(x8, NZCV);
 
-  __ fccmp(d18, d18, NFlag, nv);
+  {
+    ExactAssemblyScope scope(&masm, kInstructionSize);
+    __ fccmp(d18, d18, NFlag, nv);
+  }
   __ Mrs(x9, NZCV);
 
   __ Cmp(x20, 0);
@@ -10767,7 +10820,6 @@ TEST(fcmp) {
 
 TEST(fcsel) {
   SETUP();
-  ALLOW_ASM();
 
   START();
   __ Mov(x16, 0);
@@ -10782,8 +10834,11 @@ TEST(fcsel) {
   __ Fcsel(d2, d18, d19, eq);
   __ Fcsel(d3, d18, d19, ne);
   // The Macro Assembler does not allow al or nv as condition.
-  __ fcsel(s4, s16, s17, al);
-  __ fcsel(d5, d18, d19, nv);
+  {
+    ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+    __ fcsel(s4, s16, s17, al);
+    __ fcsel(d5, d18, d19, nv);
+  }
   END();
 
   RUN();
@@ -13168,7 +13223,6 @@ TEST(system_nop) {
 
 TEST(zero_dest) {
   SETUP();
-  ALLOW_ASM();
   RegisterDump before;
 
   START();
@@ -13185,33 +13239,36 @@ TEST(zero_dest) {
 
   // All of these instructions should be NOPs in these forms, but have
   // alternate forms which can write into the stack pointer.
-  __ add(xzr, x0, x1);
-  __ add(xzr, x1, xzr);
-  __ add(xzr, xzr, x1);
+  {
+    ExactAssemblyScope scope(&masm, 3 * 7 * kInstructionSize);
+    __ add(xzr, x0, x1);
+    __ add(xzr, x1, xzr);
+    __ add(xzr, xzr, x1);
 
-  __ and_(xzr, x0, x2);
-  __ and_(xzr, x2, xzr);
-  __ and_(xzr, xzr, x2);
+    __ and_(xzr, x0, x2);
+    __ and_(xzr, x2, xzr);
+    __ and_(xzr, xzr, x2);
 
-  __ bic(xzr, x0, x3);
-  __ bic(xzr, x3, xzr);
-  __ bic(xzr, xzr, x3);
+    __ bic(xzr, x0, x3);
+    __ bic(xzr, x3, xzr);
+    __ bic(xzr, xzr, x3);
 
-  __ eon(xzr, x0, x4);
-  __ eon(xzr, x4, xzr);
-  __ eon(xzr, xzr, x4);
+    __ eon(xzr, x0, x4);
+    __ eon(xzr, x4, xzr);
+    __ eon(xzr, xzr, x4);
 
-  __ eor(xzr, x0, x5);
-  __ eor(xzr, x5, xzr);
-  __ eor(xzr, xzr, x5);
+    __ eor(xzr, x0, x5);
+    __ eor(xzr, x5, xzr);
+    __ eor(xzr, xzr, x5);
 
-  __ orr(xzr, x0, x6);
-  __ orr(xzr, x6, xzr);
-  __ orr(xzr, xzr, x6);
+    __ orr(xzr, x0, x6);
+    __ orr(xzr, x6, xzr);
+    __ orr(xzr, xzr, x6);
 
-  __ sub(xzr, x0, x7);
-  __ sub(xzr, x7, xzr);
-  __ sub(xzr, xzr, x7);
+    __ sub(xzr, x0, x7);
+    __ sub(xzr, x7, xzr);
+    __ sub(xzr, xzr, x7);
+  }
 
   // Swap the saved stack pointer with the real one. If sp was written
   // during the test, it will show up in x30. This is done because the test
@@ -13235,7 +13292,6 @@ TEST(zero_dest) {
 
 TEST(zero_dest_setflags) {
   SETUP();
-  ALLOW_ASM();
   RegisterDump before;
 
   START();
@@ -13252,31 +13308,43 @@ TEST(zero_dest_setflags) {
 
   // All of these instructions should only write to the flags in these forms,
   // but have alternate forms which can write into the stack pointer.
-  __ adds(xzr, x0, Operand(x1, UXTX));
-  __ adds(xzr, x1, Operand(xzr, UXTX));
-  __ adds(xzr, x1, 1234);
-  __ adds(xzr, x0, x1);
-  __ adds(xzr, x1, xzr);
-  __ adds(xzr, xzr, x1);
+  {
+    ExactAssemblyScope scope(&masm, 6 * kInstructionSize);
+    __ adds(xzr, x0, Operand(x1, UXTX));
+    __ adds(xzr, x1, Operand(xzr, UXTX));
+    __ adds(xzr, x1, 1234);
+    __ adds(xzr, x0, x1);
+    __ adds(xzr, x1, xzr);
+    __ adds(xzr, xzr, x1);
+  }
 
-  __ ands(xzr, x2, ~0xf);
-  __ ands(xzr, xzr, ~0xf);
-  __ ands(xzr, x0, x2);
-  __ ands(xzr, x2, xzr);
-  __ ands(xzr, xzr, x2);
+  {
+    ExactAssemblyScope scope(&masm, 5 * kInstructionSize);
+    __ ands(xzr, x2, ~0xf);
+    __ ands(xzr, xzr, ~0xf);
+    __ ands(xzr, x0, x2);
+    __ ands(xzr, x2, xzr);
+    __ ands(xzr, xzr, x2);
+  }
 
-  __ bics(xzr, x3, ~0xf);
-  __ bics(xzr, xzr, ~0xf);
-  __ bics(xzr, x0, x3);
-  __ bics(xzr, x3, xzr);
-  __ bics(xzr, xzr, x3);
+  {
+    ExactAssemblyScope scope(&masm, 5 * kInstructionSize);
+    __ bics(xzr, x3, ~0xf);
+    __ bics(xzr, xzr, ~0xf);
+    __ bics(xzr, x0, x3);
+    __ bics(xzr, x3, xzr);
+    __ bics(xzr, xzr, x3);
+  }
 
-  __ subs(xzr, x0, Operand(x3, UXTX));
-  __ subs(xzr, x3, Operand(xzr, UXTX));
-  __ subs(xzr, x3, 1234);
-  __ subs(xzr, x0, x3);
-  __ subs(xzr, x3, xzr);
-  __ subs(xzr, xzr, x3);
+  {
+    ExactAssemblyScope scope(&masm, 6 * kInstructionSize);
+    __ subs(xzr, x0, Operand(x3, UXTX));
+    __ subs(xzr, x3, Operand(xzr, UXTX));
+    __ subs(xzr, x3, 1234);
+    __ subs(xzr, x0, x3);
+    __ subs(xzr, x3, xzr);
+    __ subs(xzr, xzr, x3);
+  }
 
   // Swap the saved stack pointer with the real one. If sp was written
   // during the test, it will show up in x30. This is done because the test
@@ -16340,7 +16408,6 @@ TEST(load_store_tagged_immediate_offset) {
       memset(dst, 0, kMaxDataLength);
 
       SETUP();
-      ALLOW_ASM();
       START();
 
       __ Mov(x0, src_tagged);
@@ -16349,94 +16416,160 @@ TEST(load_store_tagged_immediate_offset) {
       int offset = 0;
 
       // Scaled-immediate offsets.
-      __ ldp(q0, q1, MemOperand(x0, offset));
-      __ stp(q0, q1, MemOperand(x1, offset));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(q0, q1, MemOperand(x0, offset));
+        __ stp(q0, q1, MemOperand(x1, offset));
+      }
       offset += 2 * kQRegSizeInBytes;
 
-      __ ldp(x2, x3, MemOperand(x0, offset));
-      __ stp(x2, x3, MemOperand(x1, offset));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(x2, x3, MemOperand(x0, offset));
+        __ stp(x2, x3, MemOperand(x1, offset));
+      }
       offset += 2 * kXRegSizeInBytes;
 
-      __ ldpsw(x2, x3, MemOperand(x0, offset));
-      __ stp(w2, w3, MemOperand(x1, offset));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldpsw(x2, x3, MemOperand(x0, offset));
+        __ stp(w2, w3, MemOperand(x1, offset));
+      }
       offset += 2 * kWRegSizeInBytes;
 
-      __ ldp(d0, d1, MemOperand(x0, offset));
-      __ stp(d0, d1, MemOperand(x1, offset));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(d0, d1, MemOperand(x0, offset));
+        __ stp(d0, d1, MemOperand(x1, offset));
+      }
       offset += 2 * kDRegSizeInBytes;
 
-      __ ldp(w2, w3, MemOperand(x0, offset));
-      __ stp(w2, w3, MemOperand(x1, offset));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(w2, w3, MemOperand(x0, offset));
+        __ stp(w2, w3, MemOperand(x1, offset));
+      }
       offset += 2 * kWRegSizeInBytes;
 
-      __ ldp(s0, s1, MemOperand(x0, offset));
-      __ stp(s0, s1, MemOperand(x1, offset));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(s0, s1, MemOperand(x0, offset));
+        __ stp(s0, s1, MemOperand(x1, offset));
+      }
       offset += 2 * kSRegSizeInBytes;
 
-      __ ldr(x2, MemOperand(x0, offset), RequireScaledOffset);
-      __ str(x2, MemOperand(x1, offset), RequireScaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldr(x2, MemOperand(x0, offset), RequireScaledOffset);
+        __ str(x2, MemOperand(x1, offset), RequireScaledOffset);
+      }
       offset += kXRegSizeInBytes;
 
-      __ ldr(d0, MemOperand(x0, offset), RequireScaledOffset);
-      __ str(d0, MemOperand(x1, offset), RequireScaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldr(d0, MemOperand(x0, offset), RequireScaledOffset);
+        __ str(d0, MemOperand(x1, offset), RequireScaledOffset);
+      }
       offset += kDRegSizeInBytes;
 
-      __ ldr(w2, MemOperand(x0, offset), RequireScaledOffset);
-      __ str(w2, MemOperand(x1, offset), RequireScaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldr(w2, MemOperand(x0, offset), RequireScaledOffset);
+        __ str(w2, MemOperand(x1, offset), RequireScaledOffset);
+      }
       offset += kWRegSizeInBytes;
 
-      __ ldr(s0, MemOperand(x0, offset), RequireScaledOffset);
-      __ str(s0, MemOperand(x1, offset), RequireScaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldr(s0, MemOperand(x0, offset), RequireScaledOffset);
+        __ str(s0, MemOperand(x1, offset), RequireScaledOffset);
+      }
       offset += kSRegSizeInBytes;
 
-      __ ldrh(w2, MemOperand(x0, offset), RequireScaledOffset);
-      __ strh(w2, MemOperand(x1, offset), RequireScaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldrh(w2, MemOperand(x0, offset), RequireScaledOffset);
+        __ strh(w2, MemOperand(x1, offset), RequireScaledOffset);
+      }
       offset += 2;
 
-      __ ldrsh(w2, MemOperand(x0, offset), RequireScaledOffset);
-      __ strh(w2, MemOperand(x1, offset), RequireScaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldrsh(w2, MemOperand(x0, offset), RequireScaledOffset);
+        __ strh(w2, MemOperand(x1, offset), RequireScaledOffset);
+      }
       offset += 2;
 
-      __ ldrb(w2, MemOperand(x0, offset), RequireScaledOffset);
-      __ strb(w2, MemOperand(x1, offset), RequireScaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldrb(w2, MemOperand(x0, offset), RequireScaledOffset);
+        __ strb(w2, MemOperand(x1, offset), RequireScaledOffset);
+      }
       offset += 1;
 
-      __ ldrsb(w2, MemOperand(x0, offset), RequireScaledOffset);
-      __ strb(w2, MemOperand(x1, offset), RequireScaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldrsb(w2, MemOperand(x0, offset), RequireScaledOffset);
+        __ strb(w2, MemOperand(x1, offset), RequireScaledOffset);
+      }
       offset += 1;
 
       // Unscaled-immediate offsets.
 
-      __ ldur(x2, MemOperand(x0, offset), RequireUnscaledOffset);
-      __ stur(x2, MemOperand(x1, offset), RequireUnscaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldur(x2, MemOperand(x0, offset), RequireUnscaledOffset);
+        __ stur(x2, MemOperand(x1, offset), RequireUnscaledOffset);
+      }
       offset += kXRegSizeInBytes;
 
-      __ ldur(d0, MemOperand(x0, offset), RequireUnscaledOffset);
-      __ stur(d0, MemOperand(x1, offset), RequireUnscaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldur(d0, MemOperand(x0, offset), RequireUnscaledOffset);
+        __ stur(d0, MemOperand(x1, offset), RequireUnscaledOffset);
+      }
       offset += kDRegSizeInBytes;
 
-      __ ldur(w2, MemOperand(x0, offset), RequireUnscaledOffset);
-      __ stur(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldur(w2, MemOperand(x0, offset), RequireUnscaledOffset);
+        __ stur(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      }
       offset += kWRegSizeInBytes;
 
-      __ ldur(s0, MemOperand(x0, offset), RequireUnscaledOffset);
-      __ stur(s0, MemOperand(x1, offset), RequireUnscaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldur(s0, MemOperand(x0, offset), RequireUnscaledOffset);
+        __ stur(s0, MemOperand(x1, offset), RequireUnscaledOffset);
+      }
       offset += kSRegSizeInBytes;
 
-      __ ldurh(w2, MemOperand(x0, offset), RequireUnscaledOffset);
-      __ sturh(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldurh(w2, MemOperand(x0, offset), RequireUnscaledOffset);
+        __ sturh(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      }
       offset += 2;
 
-      __ ldursh(w2, MemOperand(x0, offset), RequireUnscaledOffset);
-      __ sturh(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldursh(w2, MemOperand(x0, offset), RequireUnscaledOffset);
+        __ sturh(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      }
       offset += 2;
 
-      __ ldurb(w2, MemOperand(x0, offset), RequireUnscaledOffset);
-      __ sturb(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldurb(w2, MemOperand(x0, offset), RequireUnscaledOffset);
+        __ sturb(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      }
       offset += 1;
 
-      __ ldursb(w2, MemOperand(x0, offset), RequireUnscaledOffset);
-      __ sturb(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldursb(w2, MemOperand(x0, offset), RequireUnscaledOffset);
+        __ sturb(w2, MemOperand(x1, offset), RequireUnscaledOffset);
+      }
       offset += 1;
 
       // Extract the tag (so we can test that it was preserved correctly).
@@ -16488,7 +16621,6 @@ TEST(load_store_tagged_immediate_preindex) {
       }
 
       SETUP();
-      ALLOW_ASM();
       START();
 
       // Each MemOperand must apply a pre-index equal to the size of the
@@ -16501,73 +16633,115 @@ TEST(load_store_tagged_immediate_preindex) {
       __ Mov(x0, src_tagged - preindex);
       __ Mov(x1, dst_tagged - preindex);
 
-      __ ldp(q0, q1, MemOperand(x0, preindex, PreIndex));
-      __ stp(q0, q1, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(q0, q1, MemOperand(x0, preindex, PreIndex));
+        __ stp(q0, q1, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = 2 * kQRegSizeInBytes;
       data_length = preindex;
 
-      __ ldp(x2, x3, MemOperand(x0, preindex, PreIndex));
-      __ stp(x2, x3, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(x2, x3, MemOperand(x0, preindex, PreIndex));
+        __ stp(x2, x3, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = 2 * kXRegSizeInBytes;
       data_length += preindex;
 
-      __ ldpsw(x2, x3, MemOperand(x0, preindex, PreIndex));
-      __ stp(w2, w3, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldpsw(x2, x3, MemOperand(x0, preindex, PreIndex));
+        __ stp(w2, w3, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = 2 * kWRegSizeInBytes;
       data_length += preindex;
 
-      __ ldp(d0, d1, MemOperand(x0, preindex, PreIndex));
-      __ stp(d0, d1, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(d0, d1, MemOperand(x0, preindex, PreIndex));
+        __ stp(d0, d1, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = 2 * kDRegSizeInBytes;
       data_length += preindex;
 
-      __ ldp(w2, w3, MemOperand(x0, preindex, PreIndex));
-      __ stp(w2, w3, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(w2, w3, MemOperand(x0, preindex, PreIndex));
+        __ stp(w2, w3, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = 2 * kWRegSizeInBytes;
       data_length += preindex;
 
-      __ ldp(s0, s1, MemOperand(x0, preindex, PreIndex));
-      __ stp(s0, s1, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(s0, s1, MemOperand(x0, preindex, PreIndex));
+        __ stp(s0, s1, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = 2 * kSRegSizeInBytes;
       data_length += preindex;
 
-      __ ldr(x2, MemOperand(x0, preindex, PreIndex));
-      __ str(x2, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldr(x2, MemOperand(x0, preindex, PreIndex));
+        __ str(x2, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = kXRegSizeInBytes;
       data_length += preindex;
 
-      __ ldr(d0, MemOperand(x0, preindex, PreIndex));
-      __ str(d0, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldr(d0, MemOperand(x0, preindex, PreIndex));
+        __ str(d0, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = kDRegSizeInBytes;
       data_length += preindex;
 
-      __ ldr(w2, MemOperand(x0, preindex, PreIndex));
-      __ str(w2, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldr(w2, MemOperand(x0, preindex, PreIndex));
+        __ str(w2, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = kWRegSizeInBytes;
       data_length += preindex;
 
-      __ ldr(s0, MemOperand(x0, preindex, PreIndex));
-      __ str(s0, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldr(s0, MemOperand(x0, preindex, PreIndex));
+        __ str(s0, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = kSRegSizeInBytes;
       data_length += preindex;
 
-      __ ldrh(w2, MemOperand(x0, preindex, PreIndex));
-      __ strh(w2, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldrh(w2, MemOperand(x0, preindex, PreIndex));
+        __ strh(w2, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = 2;
       data_length += preindex;
 
-      __ ldrsh(w2, MemOperand(x0, preindex, PreIndex));
-      __ strh(w2, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldrsh(w2, MemOperand(x0, preindex, PreIndex));
+        __ strh(w2, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = 2;
       data_length += preindex;
 
-      __ ldrb(w2, MemOperand(x0, preindex, PreIndex));
-      __ strb(w2, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldrb(w2, MemOperand(x0, preindex, PreIndex));
+        __ strb(w2, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = 1;
       data_length += preindex;
 
-      __ ldrsb(w2, MemOperand(x0, preindex, PreIndex));
-      __ strb(w2, MemOperand(x1, preindex, PreIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldrsb(w2, MemOperand(x0, preindex, PreIndex));
+        __ strb(w2, MemOperand(x1, preindex, PreIndex));
+      }
       preindex = 1;
       data_length += preindex;
 
@@ -16618,7 +16792,6 @@ TEST(load_store_tagged_immediate_postindex) {
       }
 
       SETUP();
-      ALLOW_ASM();
       START();
 
       int postindex = 2 * kXRegSizeInBytes;
@@ -16627,73 +16800,115 @@ TEST(load_store_tagged_immediate_postindex) {
       __ Mov(x0, src_tagged);
       __ Mov(x1, dst_tagged);
 
-      __ ldp(x2, x3, MemOperand(x0, postindex, PostIndex));
-      __ stp(x2, x3, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(x2, x3, MemOperand(x0, postindex, PostIndex));
+        __ stp(x2, x3, MemOperand(x1, postindex, PostIndex));
+      }
       data_length = postindex;
 
       postindex = 2 * kQRegSizeInBytes;
-      __ ldp(q0, q1, MemOperand(x0, postindex, PostIndex));
-      __ stp(q0, q1, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(q0, q1, MemOperand(x0, postindex, PostIndex));
+        __ stp(q0, q1, MemOperand(x1, postindex, PostIndex));
+      }
       data_length += postindex;
 
       postindex = 2 * kWRegSizeInBytes;
-      __ ldpsw(x2, x3, MemOperand(x0, postindex, PostIndex));
-      __ stp(w2, w3, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldpsw(x2, x3, MemOperand(x0, postindex, PostIndex));
+        __ stp(w2, w3, MemOperand(x1, postindex, PostIndex));
+      }
       data_length += postindex;
 
       postindex = 2 * kDRegSizeInBytes;
-      __ ldp(d0, d1, MemOperand(x0, postindex, PostIndex));
-      __ stp(d0, d1, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(d0, d1, MemOperand(x0, postindex, PostIndex));
+        __ stp(d0, d1, MemOperand(x1, postindex, PostIndex));
+      }
       data_length += postindex;
 
       postindex = 2 * kWRegSizeInBytes;
-      __ ldp(w2, w3, MemOperand(x0, postindex, PostIndex));
-      __ stp(w2, w3, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(w2, w3, MemOperand(x0, postindex, PostIndex));
+        __ stp(w2, w3, MemOperand(x1, postindex, PostIndex));
+      }
       data_length += postindex;
 
       postindex = 2 * kSRegSizeInBytes;
-      __ ldp(s0, s1, MemOperand(x0, postindex, PostIndex));
-      __ stp(s0, s1, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldp(s0, s1, MemOperand(x0, postindex, PostIndex));
+        __ stp(s0, s1, MemOperand(x1, postindex, PostIndex));
+      }
       data_length += postindex;
 
       postindex = kXRegSizeInBytes;
-      __ ldr(x2, MemOperand(x0, postindex, PostIndex));
-      __ str(x2, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldr(x2, MemOperand(x0, postindex, PostIndex));
+        __ str(x2, MemOperand(x1, postindex, PostIndex));
+      }
       data_length += postindex;
 
       postindex = kDRegSizeInBytes;
-      __ ldr(d0, MemOperand(x0, postindex, PostIndex));
-      __ str(d0, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldr(d0, MemOperand(x0, postindex, PostIndex));
+        __ str(d0, MemOperand(x1, postindex, PostIndex));
+      }
       data_length += postindex;
 
       postindex = kWRegSizeInBytes;
-      __ ldr(w2, MemOperand(x0, postindex, PostIndex));
-      __ str(w2, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldr(w2, MemOperand(x0, postindex, PostIndex));
+        __ str(w2, MemOperand(x1, postindex, PostIndex));
+      }
       data_length += postindex;
 
       postindex = kSRegSizeInBytes;
-      __ ldr(s0, MemOperand(x0, postindex, PostIndex));
-      __ str(s0, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldr(s0, MemOperand(x0, postindex, PostIndex));
+        __ str(s0, MemOperand(x1, postindex, PostIndex));
+      }
       data_length += postindex;
 
       postindex = 2;
-      __ ldrh(w2, MemOperand(x0, postindex, PostIndex));
-      __ strh(w2, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldrh(w2, MemOperand(x0, postindex, PostIndex));
+        __ strh(w2, MemOperand(x1, postindex, PostIndex));
+      }
       data_length += postindex;
 
       postindex = 2;
-      __ ldrsh(w2, MemOperand(x0, postindex, PostIndex));
-      __ strh(w2, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldrsh(w2, MemOperand(x0, postindex, PostIndex));
+        __ strh(w2, MemOperand(x1, postindex, PostIndex));
+      }
       data_length += postindex;
 
       postindex = 1;
-      __ ldrb(w2, MemOperand(x0, postindex, PostIndex));
-      __ strb(w2, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldrb(w2, MemOperand(x0, postindex, PostIndex));
+        __ strb(w2, MemOperand(x1, postindex, PostIndex));
+      }
       data_length += postindex;
 
       postindex = 1;
-      __ ldrsb(w2, MemOperand(x0, postindex, PostIndex));
-      __ strb(w2, MemOperand(x1, postindex, PostIndex));
+      {
+        ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+        __ ldrsb(w2, MemOperand(x0, postindex, PostIndex));
+        __ strb(w2, MemOperand(x1, postindex, PostIndex));
+      }
       data_length += postindex;
 
       VIXL_ASSERT(kMaxDataLength >= data_length);
@@ -16748,50 +16963,73 @@ TEST(load_store_tagged_register_offset) {
         }
 
         SETUP();
-        ALLOW_ASM();
         START();
 
         __ Mov(x0, src_tagged);
         __ Mov(x1, dst_tagged);
 
         __ Mov(x10, offset_base + data_length);
-        __ ldr(x2, MemOperand(x0, x10));
-        __ str(x2, MemOperand(x1, x10));
+        {
+          ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+          __ ldr(x2, MemOperand(x0, x10));
+          __ str(x2, MemOperand(x1, x10));
+        }
         data_length += kXRegSizeInBytes;
 
         __ Mov(x10, offset_base + data_length);
-        __ ldr(d0, MemOperand(x0, x10));
-        __ str(d0, MemOperand(x1, x10));
+        {
+          ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+          __ ldr(d0, MemOperand(x0, x10));
+          __ str(d0, MemOperand(x1, x10));
+        }
         data_length += kDRegSizeInBytes;
 
         __ Mov(x10, offset_base + data_length);
-        __ ldr(w2, MemOperand(x0, x10));
-        __ str(w2, MemOperand(x1, x10));
+        {
+          ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+          __ ldr(w2, MemOperand(x0, x10));
+          __ str(w2, MemOperand(x1, x10));
+        }
         data_length += kWRegSizeInBytes;
 
         __ Mov(x10, offset_base + data_length);
-        __ ldr(s0, MemOperand(x0, x10));
-        __ str(s0, MemOperand(x1, x10));
+        {
+          ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+          __ ldr(s0, MemOperand(x0, x10));
+          __ str(s0, MemOperand(x1, x10));
+        }
         data_length += kSRegSizeInBytes;
 
         __ Mov(x10, offset_base + data_length);
-        __ ldrh(w2, MemOperand(x0, x10));
-        __ strh(w2, MemOperand(x1, x10));
+        {
+          ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+          __ ldrh(w2, MemOperand(x0, x10));
+          __ strh(w2, MemOperand(x1, x10));
+        }
         data_length += 2;
 
         __ Mov(x10, offset_base + data_length);
-        __ ldrsh(w2, MemOperand(x0, x10));
-        __ strh(w2, MemOperand(x1, x10));
+        {
+          ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+          __ ldrsh(w2, MemOperand(x0, x10));
+          __ strh(w2, MemOperand(x1, x10));
+        }
         data_length += 2;
 
         __ Mov(x10, offset_base + data_length);
-        __ ldrb(w2, MemOperand(x0, x10));
-        __ strb(w2, MemOperand(x1, x10));
+        {
+          ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+          __ ldrb(w2, MemOperand(x0, x10));
+          __ strb(w2, MemOperand(x1, x10));
+        }
         data_length += 1;
 
         __ Mov(x10, offset_base + data_length);
-        __ ldrsb(w2, MemOperand(x0, x10));
-        __ strb(w2, MemOperand(x1, x10));
+        {
+          ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+          __ ldrsb(w2, MemOperand(x0, x10));
+          __ strb(w2, MemOperand(x1, x10));
+        }
         data_length += 1;
 
         VIXL_ASSERT(kMaxDataLength >= data_length);
@@ -22617,10 +22855,7 @@ TEST(ldr_literal_explicit) {
   Literal<int64_t> automatically_placed_literal(1, masm.GetLiteralPool());
   Literal<int64_t> manually_placed_literal(2);
   {
-    CodeBufferCheckScope scope(&masm,
-                               kInstructionSize + sizeof(int64_t),
-                               CodeBufferCheckScope::kReserveBufferSpace,
-                               CodeBufferCheckScope::kExactSize);
+    ExactAssemblyScope scope(&masm, kInstructionSize + sizeof(int64_t));
     Label over_literal;
     __ b(&over_literal);
     __ place(&manually_placed_literal);
