@@ -589,6 +589,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     return this;
   }
 
+  // TODO(pools): implement these functions.
+  virtual void EmitPoolHeader() VIXL_OVERRIDE {}
+  virtual void EmitPoolFooter() VIXL_OVERRIDE {}
+  virtual void EmitPaddingBytes(int n) VIXL_OVERRIDE { USE(n); }
+  virtual void EmitNopBytes(int n) VIXL_OVERRIDE { USE(n); }
+
   // Start generating code from the beginning of the buffer, discarding any code
   // and data that has already been emitted into the buffer.
   //

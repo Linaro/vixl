@@ -131,6 +131,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     return IsLiteralPoolBlocked() && IsVeneerPoolBlocked();
   }
 
+  // TODO(pools): implement these functions.
+  virtual void EmitPoolHeader() VIXL_OVERRIDE {}
+  virtual void EmitPoolFooter() VIXL_OVERRIDE {}
+  virtual void EmitPaddingBytes(int n) VIXL_OVERRIDE { USE(n); }
+  virtual void EmitNopBytes(int n) VIXL_OVERRIDE { USE(n); }
+
  private:
   class MacroEmissionCheckScope : public EmissionCheckScope {
    public:

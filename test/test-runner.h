@@ -44,6 +44,8 @@ class Test {
   static Test* first() { return first_; }
   static Test* last() { return last_; }
   Test* next() { return next_; }
+  static bool verbose() { return verbose_; }
+  static void set_verbose(bool value) { verbose_ = value; }
   static bool debug() { return debug_; }
   static void set_debug(bool value) { debug_ = value; }
   static bool trace_sim() { return trace_sim_; }
@@ -75,6 +77,7 @@ class Test {
   static Test* first_;
   static Test* last_;
   Test* next_;
+  static bool verbose_;
   static bool debug_;
   static bool trace_sim_;
   static bool trace_reg_;

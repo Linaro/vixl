@@ -451,15 +451,20 @@ inline bool IsMultiple(T value, unsigned multiple) {
   return (value & (multiple - 1)) == 0;
 }
 
+template <typename T>
+inline bool IsAligned(T pointer, int alignment) {
+  VIXL_ASSERT(IsPowerOf2(alignment));
+  return (pointer & (alignment - 1)) == 0;
+}
+
 // Pointer alignment
 // TODO: rename/refactor to make it specific to instructions.
 template <unsigned ALIGN, typename T>
 inline bool IsAligned(T pointer) {
   VIXL_ASSERT(sizeof(pointer) == sizeof(intptr_t));  // NOLINT(runtime/sizeof)
-  VIXL_ASSERT(IsPowerOf2(ALIGN));
   // Use C-style casts to get static_cast behaviour for integral types (T), and
   // reinterpret_cast behaviour for other types.
-  return ((intptr_t)(pointer) & (ALIGN - 1)) == 0;
+  return IsAligned((intptr_t)(pointer), ALIGN);
 }
 
 template <typename T>

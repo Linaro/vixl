@@ -47,10 +47,27 @@ class MacroAssemblerInterface {
   virtual void ReleasePools() = 0;
   virtual void EnsureEmitPoolsFor(size_t size) = 0;
 
+  // Emit the branch over a literal/veneer pool, and any necessary padding
+  // before it.
+  virtual void EmitPoolHeader() = 0;
+  // When this is called, the label used for branching over the pool is bound.
+  // This can also generate additional padding, which must correspond to the
+  // alignment_ value passed to the PoolManager (which needs to keep track of
+  // the exact size of the generated pool).
+  virtual void EmitPoolFooter() = 0;
+
+  // Emit n bytes of padding that does not have to be executable.
+  virtual void EmitPaddingBytes(int n) = 0;
+  // Emit n bytes of padding that has to be executable. Implementations must
+  // make sure this is a multiple of the instruction size.
+  virtual void EmitNopBytes(int n) = 0;
+
   // The following scopes need access to the above method in order to implement
   // pool blocking and temporarily disable the macro-assembler.
   friend class ExactAssemblyScope;
   friend class EmissionCheckScope;
+  template <typename T>
+  friend class PoolManager;
 };
 
 }  // namespace vixl

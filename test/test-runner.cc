@@ -34,6 +34,8 @@
 vixl::Test* vixl::Test::first_ = NULL;
 vixl::Test* vixl::Test::last_ = NULL;
 
+bool vixl::Test::verbose_ = false;
+
 // No debugger to start with.
 bool vixl::Test::debug_ = false;
 
@@ -105,6 +107,7 @@ static void PrintHelpMessage() {
       "--help                 Print this help message.\n"
       "--list                 List all available tests.\n"
       "--run_all              Run all available tests.\n"
+      "--verbose              Print verbose output when available.\n"
       "--debugger             Run in the debugger.\n"
       "--trace_all            "
       "Enable all trace options, plus --coloured_trace.\n"
@@ -146,6 +149,10 @@ int main(int argc, char* argv[]) {
 
   if (IsInArgs("--coloured-trace", argc, argv)) {
     vixl::Test::set_coloured_trace(true);
+  }
+
+  if (IsInArgs("--verbose", argc, argv)) {
+    vixl::Test::set_verbose(true);
   }
 
   if (IsInArgs("--debugger", argc, argv)) {
