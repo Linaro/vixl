@@ -401,7 +401,13 @@ void VeneerPoolManager::Emit(Label::Offset target) {
 }
 
 
-void MacroAssembler::PerformEnsureEmit(Label::Offset target, uint32_t size) {
+void MacroAssembler::EnsureEmitPoolsFor(size_t size_arg) {
+  VIXL_ASSERT(IsUint32(size_arg));
+  uint32_t size = static_cast<uint32_t>(size_arg);
+
+  Label::Offset target = GetCursorOffset() + size;
+  if (target <= checkpoint_) return;
+
   EmitOption option = kBranchRequired;
   Label after_pools;
   Label::Offset literal_target = GetTargetForLiteralEmission();
@@ -439,11 +445,6 @@ void MacroAssembler::PerformEnsureEmit(Label::Offset target, uint32_t size) {
     EmitLiteralPool(option);
   }
   BindHelper(&after_pools);
-  if (GetBuffer()->IsManaged()) {
-    bool grow_requested;
-    GetBuffer()->EnsureSpaceFor(size, &grow_requested);
-    if (grow_requested) ComputeCheckpoint();
-  }
 }
 
 
@@ -451,10 +452,6 @@ void MacroAssembler::ComputeCheckpoint() {
   checkpoint_ = AlignDown(std::min(veneer_pool_manager_.GetCheckpoint(),
                                    GetTargetForLiteralEmission()),
                           4);
-  size_t buffer_size = GetBuffer()->GetCapacity();
-  VIXL_ASSERT(IsInt32(buffer_size));
-  Label::Offset buffer_checkpoint = static_cast<Label::Offset>(buffer_size);
-  checkpoint_ = std::min(checkpoint_, buffer_checkpoint);
 }
 
 
@@ -558,7 +555,7 @@ MemOperand MacroAssembler::MemOperandComputationHelper(
   if ((offset & extra_offset_mask) == offset) return MemOperand(base, offset);
 
   MacroEmissionCheckScope guard(this);
-  ITScope it_scope(this, &cond);
+  ITScope it_scope(this, &cond, guard);
 
   uint32_t load_store_offset = offset & extra_offset_mask;
   uint32_t add_offset = offset & ~extra_offset_mask;
@@ -1048,7 +1045,7 @@ void MacroAssembler::Delegate(InstructionType type,
           UseScratchRegisterScope temps(this);
           Register scratch = temps.Acquire();
           HandleOutOfBoundsImmediate(al, scratch, imm);
-          EnsureEmitFor(kMaxInstructionSizeInBytes);
+          CodeBufferCheckScope scope(this, kMaxInstructionSizeInBytes);
           bx(cond, scratch);
           return;
         }

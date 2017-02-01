@@ -3867,9 +3867,8 @@ TEST_NOASM(code_buffer_precise_growth) {
 }
 #endif
 
-
 #ifdef VIXL_INCLUDE_TARGET_T32
-TEST_NOASM(out_of_space_immediately_before_PerformEnsureEmit) {
+TEST_NOASM(out_of_space_immediately_before_EnsureEmitFor) {
   static const int kBaseBufferSize = 64;
   MacroAssembler masm(kBaseBufferSize, T32);
 
@@ -3913,6 +3912,35 @@ TEST_NOASM(out_of_space_immediately_before_PerformEnsureEmit) {
 }
 #endif
 
+
+TEST_NOASM(EnsureEmitFor) {
+  static const int kBaseBufferSize = 32;
+  MacroAssembler masm(kBaseBufferSize);
+
+  VIXL_CHECK(masm.GetBuffer()->GetCapacity() == kBaseBufferSize);
+
+  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+
+  VIXL_CHECK(IsUint32(masm.GetBuffer()->GetRemainingBytes()));
+  int32_t space = static_cast<int32_t>(masm.GetBuffer()->GetRemainingBytes());
+  int32_t end = __ GetCursorOffset() + space;
+  {
+    // Fill the buffer with nops.
+    ExactAssemblyScope scope(&masm, space, ExactAssemblyScope::kExactSize);
+    while (__ GetCursorOffset() != end) {
+      __ nop();
+    }
+  }
+
+  // Test that EnsureEmitFor works.
+  VIXL_CHECK(!masm.GetBuffer()->HasSpaceFor(4));
+  masm.EnsureEmitFor(4);
+  VIXL_CHECK(masm.GetBuffer()->HasSpaceFor(4));
+  __ Nop();
+
+  masm.FinalizeCode();
+}
 
 TEST_T32(distant_literal_references) {
   SETUP();
@@ -5249,9 +5277,8 @@ TEST(ldr_label_bound_during_scope) {
 
 
 TEST_T32(test_it_scope_and_literal_pool) {
-  // This test stresses the EnsureEmitFor check inside ITScope to make sure the
-  // number of bytes it tries to ensure we can emit is in sync with the
-  // MacroEmissionCheckScope that is usually around it.
+  // This test stresses the ITScope to make sure the number of bytes it tries
+  // to emit is in sync with the MacroEmissionCheckScope that is around it.
   SETUP();
 
   START();

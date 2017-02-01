@@ -43,7 +43,7 @@ void VeneerPoolManager::Release() {
     // macros or ExactAssemblyScopes. The next instruction that is generated
     // will perform this check anyway, but in a place less convenient for
     // debugging.
-    // masm_->EnsureEmitFor(0);
+    // masm_->EnsureEmitPoolsFor(0);
   }
 }
 
