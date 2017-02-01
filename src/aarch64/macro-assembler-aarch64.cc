@@ -769,7 +769,7 @@ void MacroAssembler::LogicalMacro(const Register& rd,
   UseScratchRegisterScope temps(this);
 
   if (operand.IsImmediate()) {
-    int64_t immediate = operand.GetImmediate();
+    uint64_t immediate = operand.GetImmediate();
     unsigned reg_size = rd.GetSizeInBits();
 
     // If the operation is NOT, invert the operation and immediate.
@@ -782,7 +782,7 @@ void MacroAssembler::LogicalMacro(const Register& rd,
     if (rd.Is32Bits()) {
       // Check that the top 32 bits are consistent.
       VIXL_ASSERT(((immediate >> kWRegSize) == 0) ||
-                  ((immediate >> kWRegSize) == -1));
+                  ((immediate >> kWRegSize) == 0xffffffff));
       immediate &= kWRegMask;
     }
 
@@ -806,8 +806,8 @@ void MacroAssembler::LogicalMacro(const Register& rd,
         default:
           VIXL_UNREACHABLE();
       }
-    } else if ((rd.Is64Bits() && (immediate == -1)) ||
-               (rd.Is32Bits() && (immediate == 0xffffffff))) {
+    } else if ((rd.Is64Bits() && (immediate == UINT64_C(0xffffffffffffffff))) ||
+               (rd.Is32Bits() && (immediate == UINT64_C(0x00000000ffffffff)))) {
       switch (op) {
         case AND:
           Mov(rd, rn);
