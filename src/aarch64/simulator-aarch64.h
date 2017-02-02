@@ -798,6 +798,63 @@ class Simulator : public DecoderVisitor {
   virtual void Run();
   void RunFrom(const Instruction* first);
 
+
+#if defined(VIXL_HAS_ABI_SUPPORT) && __cplusplus >= 201103L && \
+    (defined(__clang__) || GCC_VERSION_OR_NEWER(4, 9, 1))
+  // Templated `RunFrom` version taking care of passing arguments and returning
+  // the result value.
+  // This allows code like:
+  //    int32_t res = simulator.RunFrom<int32_t, int32_t>(GenerateCode(),
+  //                                                      0x123);
+  // It requires VIXL's ABI features, and C++11 or greater.
+  // Also, the initialisation of tuples is incorrect in GCC before 4.9.1:
+  // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=51253
+  template <typename R, typename... P>
+  R RunFrom(const Instruction* code, P... arguments) {
+    return RunFromStructHelper<R, P...>::Wrapper(this, code, arguments...);
+  }
+
+  template <typename R, typename... P>
+  struct RunFromStructHelper {
+    static R Wrapper(Simulator* simulator,
+                     const Instruction* code,
+                     P... arguments) {
+      ABI abi;
+      std::tuple<P...> unused_tuple{
+          // TODO: We currently do not support arguments passed on the stack. We
+          // could do so by using `WriteGenericOperand()` here, but may need to
+          // add features to handle situations where the stack is or is not set
+          // up.
+          (simulator->WriteCPURegister(abi.GetNextParameterGenericOperand<P>()
+                                           .GetCPURegister(),
+                                       arguments),
+           arguments)...};
+      simulator->RunFrom(code);
+      return simulator->ReadGenericOperand<R>(abi.GetReturnGenericOperand<R>());
+    }
+  };
+
+  // Partial specialization when the return type is `void`.
+  template <typename... P>
+  struct RunFromStructHelper<void, P...> {
+    static void Wrapper(Simulator* simulator,
+                        const Instruction* code,
+                        P... arguments) {
+      ABI abi;
+      std::tuple<P...> unused_tuple{
+          // TODO: We currently do not support arguments passed on the stack. We
+          // could do so by using `WriteGenericOperand()` here, but may need to
+          // add features to handle situations where the stack is or is not set
+          // up.
+          (simulator->WriteCPURegister(abi.GetNextParameterGenericOperand<P>()
+                                           .GetCPURegister(),
+                                       arguments),
+           arguments)...};
+      simulator->RunFrom(code);
+    }
+  };
+#endif
+
   // Execution ends when the PC hits this address.
   static const Instruction* kEndOfSimAddress;
 

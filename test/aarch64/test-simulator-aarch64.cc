@@ -4456,5 +4456,139 @@ DEFINE_TEST_NEON_FP_BYELEMENT_SCALAR(fmls, Basic, Basic, Basic)
 DEFINE_TEST_NEON_FP_BYELEMENT_SCALAR(fmul, Basic, Basic, Basic)
 DEFINE_TEST_NEON_FP_BYELEMENT_SCALAR(fmulx, Basic, Basic, Basic)
 
+
+#undef __
+#define __ masm->
+
+#if defined(VIXL_INCLUDE_SIMULATOR_AARCH64) &&                 \
+    defined(VIXL_HAS_ABI_SUPPORT) && __cplusplus >= 201103L && \
+    (defined(__clang__) || GCC_VERSION_OR_NEWER(4, 9, 1))
+
+// Generate a function that stores zero to a hard-coded address.
+Instruction* GenerateStoreZero(MacroAssembler* masm, int32_t* target) {
+  masm->Reset();
+
+  UseScratchRegisterScope temps(masm);
+  Register temp = temps.AcquireX();
+  __ Mov(temp, reinterpret_cast<intptr_t>(target));
+  __ Str(wzr, MemOperand(temp));
+  __ Ret();
+
+  masm->FinalizeCode();
+  return masm->GetBuffer()->GetStartAddress<Instruction*>();
+}
+
+
+// Generate a function that stores the `int32_t` argument to a hard-coded
+// address.
+// In this example and the other below, we use the `abi` object to retrieve
+// argument and return locations even though we could easily hard code them.
+// This mirrors how more generic code (e.g. templated) user would use these
+// mechanisms.
+Instruction* GenerateStoreInput(MacroAssembler* masm, int32_t* target) {
+  masm->Reset();
+
+  ABI abi;
+  Register input =
+      Register(abi.GetNextParameterGenericOperand<int32_t>().GetCPURegister());
+
+  UseScratchRegisterScope temps(masm);
+  Register temp = temps.AcquireX();
+  __ Mov(temp, reinterpret_cast<intptr_t>(target));
+  __ Str(input, MemOperand(temp));
+  __ Ret();
+
+  masm->FinalizeCode();
+  return masm->GetBuffer()->GetStartAddress<Instruction*>();
+}
+
+
+// A minimal implementation of a `pow` function.
+Instruction* GeneratePow(MacroAssembler* masm, unsigned pow) {
+  masm->Reset();
+
+  ABI abi;
+  Register input =
+      Register(abi.GetNextParameterGenericOperand<int64_t>().GetCPURegister());
+  Register result =
+      Register(abi.GetReturnGenericOperand<int64_t>().GetCPURegister());
+  UseScratchRegisterScope temps(masm);
+  Register temp = temps.AcquireX();
+
+  __ Mov(temp, 1);
+  for (unsigned i = 0; i < pow; i++) {
+    __ Mul(temp, temp, input);
+  }
+  __ Mov(result, temp);
+  __ Ret();
+
+  masm->FinalizeCode();
+  return masm->GetBuffer()->GetStartAddress<Instruction*>();
+}
+
+
+Instruction* GenerateSum(MacroAssembler* masm) {
+  masm->Reset();
+
+  ABI abi;
+  FPRegister input_1 =
+      FPRegister(abi.GetNextParameterGenericOperand<float>().GetCPURegister());
+  Register input_2 =
+      Register(abi.GetNextParameterGenericOperand<int64_t>().GetCPURegister());
+  FPRegister input_3 =
+      FPRegister(abi.GetNextParameterGenericOperand<double>().GetCPURegister());
+  FPRegister result =
+      FPRegister(abi.GetReturnGenericOperand<double>().GetCPURegister());
+
+  UseScratchRegisterScope temps(masm);
+  FPRegister temp = temps.AcquireD();
+
+  __ Fcvt(input_1.D(), input_1);
+  __ Scvtf(temp, input_2);
+  __ Fadd(temp, temp, input_1.D());
+  __ Fadd(result, temp, input_3);
+  __ Ret();
+
+  masm->FinalizeCode();
+  return masm->GetBuffer()->GetStartAddress<Instruction*>();
+}
+
+
+TEST(RunFrom) {
+  SETUP();
+
+  // Run a function returning `void` and taking no argument.
+  int32_t value = 0xbad;
+  simulator->RunFrom(GenerateStoreZero(&masm, &value));
+  VIXL_CHECK(value == 0);
+
+  // Run a function returning `void` and taking one argument.
+  int32_t argument = 0xf00d;
+  simulator->RunFrom<void, int32_t>(GenerateStoreInput(&masm, &value),
+                                    argument);
+  VIXL_CHECK(value == 0xf00d);
+
+  // Run a function taking one argument and returning a value.
+  int64_t res_int64_t;
+  res_int64_t =
+      simulator->RunFrom<int64_t, int64_t>(GeneratePow(&masm, 0), 0xbad);
+  VIXL_CHECK(res_int64_t == 1);
+  res_int64_t =
+      simulator->RunFrom<int64_t, int64_t>(GeneratePow(&masm, 1), 123);
+  VIXL_CHECK(res_int64_t == 123);
+  res_int64_t = simulator->RunFrom<int64_t, int64_t>(GeneratePow(&masm, 10), 2);
+  VIXL_CHECK(res_int64_t == 1024);
+
+  // Run a function taking multiple arguments in registers.
+  double res_double =
+      simulator->RunFrom<double, float, int64_t, double>(GenerateSum(&masm),
+                                                         1.0,
+                                                         2,
+                                                         3.0);
+  VIXL_CHECK(res_double == 6.0);
+}
+#endif
+
+
 }  // namespace aarch64
 }  // namespace vixl
