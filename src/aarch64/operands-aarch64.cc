@@ -332,8 +332,14 @@ bool Operand::IsPlainRegister() const {
           // No-op shifts.
           ((shift_ != NO_SHIFT) && (shift_amount_ == 0)) ||
           // No-op extend operations.
-          ((extend_ == UXTX) || (extend_ == SXTX) ||
-           (reg_.IsW() && ((extend_ == UXTW) || (extend_ == SXTW)))));
+          // We can't include [US]XTW here without knowing more about the
+          // context; they are only no-ops for 32-bit operations.
+          //
+          // For example, this operand could be replaced with w1:
+          //   __ Add(w0, w0, Operand(w1, UXTW));
+          // However, no plain register can replace it in this context:
+          //   __ Add(x0, x0, Operand(w1, UXTW));
+          (((extend_ == UXTX) || (extend_ == SXTX)) && (shift_amount_ == 0)));
 }
 
 

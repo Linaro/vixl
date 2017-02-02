@@ -23316,5 +23316,44 @@ TEST(static_register_types) {
 }
 
 
+TEST(is_plain_register) {
+  SETUP();
+
+  VIXL_CHECK(Operand(x0).IsPlainRegister());
+  VIXL_CHECK(Operand(x1, LSL, 0).IsPlainRegister());
+  VIXL_CHECK(Operand(x2, LSR, 0).IsPlainRegister());
+  VIXL_CHECK(Operand(x3, ASR, 0).IsPlainRegister());
+  VIXL_CHECK(Operand(x4, ROR, 0).IsPlainRegister());
+  VIXL_CHECK(Operand(x5, UXTX).IsPlainRegister());
+  VIXL_CHECK(Operand(x6, SXTX).IsPlainRegister());
+  VIXL_CHECK(Operand(w7).IsPlainRegister());
+  VIXL_CHECK(Operand(w8, LSL, 0).IsPlainRegister());
+  VIXL_CHECK(Operand(w9, LSR, 0).IsPlainRegister());
+  VIXL_CHECK(Operand(w10, ASR, 0).IsPlainRegister());
+  VIXL_CHECK(Operand(w11, ROR, 0).IsPlainRegister());
+
+  VIXL_CHECK(!Operand(x0, LSL, 1).IsPlainRegister());
+  VIXL_CHECK(!Operand(x1, LSR, 2).IsPlainRegister());
+  VIXL_CHECK(!Operand(x2, ASR, 3).IsPlainRegister());
+  VIXL_CHECK(!Operand(x3, ROR, 4).IsPlainRegister());
+  VIXL_CHECK(!Operand(x5, UXTX, 1).IsPlainRegister());
+  VIXL_CHECK(!Operand(x6, SXTX, 2).IsPlainRegister());
+  VIXL_CHECK(!Operand(w7, LSL, 1).IsPlainRegister());
+  VIXL_CHECK(!Operand(w8, LSR, 2).IsPlainRegister());
+  VIXL_CHECK(!Operand(w9, ASR, 3).IsPlainRegister());
+  VIXL_CHECK(!Operand(w10, ROR, 4).IsPlainRegister());
+  VIXL_CHECK(!Operand(w11, UXTB).IsPlainRegister());
+  VIXL_CHECK(!Operand(w12, SXTB).IsPlainRegister());
+  VIXL_CHECK(!Operand(w13, UXTH).IsPlainRegister());
+  VIXL_CHECK(!Operand(w14, SXTH).IsPlainRegister());
+  // UXTW and SXTW could be treated as plain registers in 32-bit contexts, but
+  // the Operand class doesn't know the context so it has to return false.
+  VIXL_CHECK(!Operand(w15, UXTW).IsPlainRegister());
+  VIXL_CHECK(!Operand(w16, SXTW).IsPlainRegister());
+
+  TEARDOWN();
+}
+
+
 }  // namespace aarch64
 }  // namespace vixl
