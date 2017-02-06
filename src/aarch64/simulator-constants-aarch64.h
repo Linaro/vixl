@@ -141,14 +141,16 @@ const unsigned kLogParamsOffset = 1 * kInstructionSize;
 const unsigned kLogLength = 2 * kInstructionSize;
 
 // Runtime call simulation - kRuntimeCall
+enum RuntimeCallType { kCallRuntime, kTailCallRuntime };
+
 const unsigned kRuntimeCallWrapperOffset = 1 * kInstructionSize;
 // The size of a pointer on host.
 const unsigned kRuntimeCallAddressSize = sizeof(uintptr_t);
 const unsigned kRuntimeCallFunctionOffset =
     kRuntimeCallWrapperOffset + kRuntimeCallAddressSize;
-const unsigned kRuntimeCallLength =
+const unsigned kRuntimeCallTypeOffset =
     kRuntimeCallFunctionOffset + kRuntimeCallAddressSize;
-
+const unsigned kRuntimeCallLength = kRuntimeCallTypeOffset + sizeof(uint32_t);
 }  // namespace aarch64
 }  // namespace vixl
 

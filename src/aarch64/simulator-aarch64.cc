@@ -5377,10 +5377,18 @@ void Simulator::DoRuntimeCall(const Instruction* instr) {
       Memory::Read<uintptr_t>(instr + kRuntimeCallWrapperOffset);
   uintptr_t function_address =
       Memory::Read<uintptr_t>(instr + kRuntimeCallFunctionOffset);
+  RuntimeCallType call_type = static_cast<RuntimeCallType>(
+      Memory::Read<uint32_t>(instr + kRuntimeCallTypeOffset));
   auto runtime_call_wrapper =
       reinterpret_cast<void (*)(Simulator*, uintptr_t)>(call_wrapper_address);
+
+  if (call_type == kCallRuntime) {
+    WriteRegister(kLinkRegCode,
+                  instr->GetInstructionAtOffset(kRuntimeCallLength));
+  }
   runtime_call_wrapper(this, function_address);
-  WritePc(instr->GetInstructionAtOffset(kRuntimeCallLength));
+  // Read the return address from `lr` and write it into `pc`.
+  WritePc(ReadRegister<Instruction*>(kLinkRegCode));
 }
 #else
 void Simulator::DoRuntimeCall(const Instruction* instr) {

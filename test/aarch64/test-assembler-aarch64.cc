@@ -23258,6 +23258,9 @@ TEST(runtime_calls) {
 #endif
 
   START();
+
+  // Test `CallRuntime`.
+
   __ Mov(w0, 0);
   __ CallRuntime(runtime_call_add_one);
   __ Mov(w20, w0);
@@ -23281,6 +23284,27 @@ TEST(runtime_calls) {
   __ Fmov(d21, d0);
   __ Pop(d1, d0);
 
+  // Test `TailCallRuntime`.
+
+  Label function, after_function;
+  __ B(&after_function);
+  __ Bind(&function);
+  __ Mov(x22, 0);
+  __ Mov(w0, 123);
+  __ TailCallRuntime(runtime_call_add_one);
+  // Control should not fall through.
+  __ Mov(x22, 0xbad);
+  __ Ret();
+  __ Bind(&after_function);
+
+  // Call our dummy function, taking care to preserve the link register.
+  __ Push(ip0, lr);
+  __ Bl(&function);
+  __ Pop(lr, ip0);
+  // Save the result.
+  __ Mov(w23, w0);
+
+
   int64_t value = 0xbadbeef;
   __ Mov(x0, reinterpret_cast<uint64_t>(&value));
   __ CallRuntime(runtime_call_store_at_address);
@@ -23296,6 +23320,8 @@ TEST(runtime_calls) {
   ASSERT_EQUAL_64(0x123, x21);
   ASSERT_EQUAL_FP64(310.0, d21);
   VIXL_CHECK(value == 0xf00d);
+  ASSERT_EQUAL_64(0, x22);
+  ASSERT_EQUAL_32(124, w23);
 #endif  // #if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) || ...
 
   TEARDOWN();
