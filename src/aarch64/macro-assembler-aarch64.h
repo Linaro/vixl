@@ -187,13 +187,13 @@ class VeneerPool : public Pool {
   class BranchInfo {
    public:
     BranchInfo()
-        : max_reachable_pc_(0),
+        : first_unreacheable_pc_(0),
           pc_offset_(0),
           label_(NULL),
           branch_type_(UnknownBranchType) {}
     BranchInfo(ptrdiff_t offset, Label* label, ImmBranchType branch_type)
         : pc_offset_(offset), label_(label), branch_type_(branch_type) {
-      max_reachable_pc_ =
+      first_unreacheable_pc_ =
           pc_offset_ + Instruction::GetImmBranchForwardRange(branch_type_);
     }
 
@@ -209,9 +209,9 @@ class VeneerPool : public Pool {
       // the operators may also be used to *search* for a branch info in the
       // set.
       bool same_offsets = (branch_1.pc_offset_ == branch_2.pc_offset_);
-      return (!same_offsets ||
-              ((branch_1.label_ == branch_2.label_) &&
-               (branch_1.max_reachable_pc_ == branch_2.max_reachable_pc_)));
+      return (!same_offsets || ((branch_1.label_ == branch_2.label_) &&
+                                (branch_1.first_unreacheable_pc_ ==
+                                 branch_2.first_unreacheable_pc_)));
     }
 
     // We must provide comparison operators to work with InvalSet.
@@ -232,8 +232,9 @@ class VeneerPool : public Pool {
       return pc_offset_ > other.pc_offset_;
     }
 
-    // Maximum position reachable by the branch using a positive branch offset.
-    ptrdiff_t max_reachable_pc_;
+    // First instruction position that is not reachable by the branch using a
+    // positive branch offset.
+    ptrdiff_t first_unreacheable_pc_;
     // Offset of the branch in the code generation buffer.
     ptrdiff_t pc_offset_;
     // The label branched to.
@@ -250,7 +251,7 @@ class VeneerPool : public Pool {
                                 ImmBranchType branch_type);
   void DeleteUnresolvedBranchInfoForLabel(Label* label);
 
-  bool ShouldEmitVeneer(int64_t max_reachable_pc, size_t amount);
+  bool ShouldEmitVeneer(int64_t first_unreacheable_pc, size_t amount);
   bool ShouldEmitVeneers(size_t amount) {
     return ShouldEmitVeneer(unresolved_branches_.GetFirstLimit(), amount);
   }
@@ -3429,7 +3430,7 @@ inline ptrdiff_t InvalSet<aarch64::VeneerPool::BranchInfo,
                           aarch64::VeneerPool::kReclaimFrom,
                           aarch64::VeneerPool::kReclaimFactor>::
     GetKey(const aarch64::VeneerPool::BranchInfo& branch_info) {
-  return branch_info.max_reachable_pc_;
+  return branch_info.first_unreacheable_pc_;
 }
 template <>
 inline void InvalSet<aarch64::VeneerPool::BranchInfo,
@@ -3439,7 +3440,7 @@ inline void InvalSet<aarch64::VeneerPool::BranchInfo,
                      aarch64::VeneerPool::kReclaimFrom,
                      aarch64::VeneerPool::kReclaimFactor>::
     SetKey(aarch64::VeneerPool::BranchInfo* branch_info, ptrdiff_t key) {
-  branch_info->max_reachable_pc_ = key;
+  branch_info->first_unreacheable_pc_ = key;
 }
 
 }  // namespace vixl

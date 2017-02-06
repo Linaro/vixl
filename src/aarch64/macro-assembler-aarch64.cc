@@ -232,17 +232,19 @@ void VeneerPool::DeleteUnresolvedBranchInfoForLabel(Label* label) {
 }
 
 
-bool VeneerPool::ShouldEmitVeneer(int64_t max_reachable_pc, size_t amount) {
+bool VeneerPool::ShouldEmitVeneer(int64_t first_unreacheable_pc,
+                                  size_t amount) {
   ptrdiff_t offset =
       kPoolNonVeneerCodeSize + amount + GetMaxSize() + GetOtherPoolsMaxSize();
-  return (masm_->GetCursorOffset() + offset) > max_reachable_pc;
+  return (masm_->GetCursorOffset() + offset) > first_unreacheable_pc;
 }
 
 
 void VeneerPool::CheckEmitFor(size_t amount, EmitOption option) {
   if (IsEmpty()) return;
 
-  VIXL_ASSERT(masm_->GetCursorOffset() < unresolved_branches_.GetFirstLimit());
+  VIXL_ASSERT(masm_->GetCursorOffset() + kPoolNonVeneerCodeSize <
+              unresolved_branches_.GetFirstLimit());
 
   if (IsBlocked()) return;
 
@@ -272,7 +274,7 @@ void VeneerPool::Emit(EmitOption option, size_t amount) {
 
   for (BranchInfoSetIterator it(&unresolved_branches_); !it.Done();) {
     BranchInfo* branch_info = it.Current();
-    if (ShouldEmitVeneer(branch_info->max_reachable_pc_,
+    if (ShouldEmitVeneer(branch_info->first_unreacheable_pc_,
                          amount + kVeneerEmissionMargin)) {
       CodeBufferCheckScope scope(masm_,
                                  kVeneerCodeSize,
