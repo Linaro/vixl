@@ -551,13 +551,10 @@ class Disassembler {
 
   void b(Condition cond, EncodingSize size, Label* label);
 
-  void bfc(Condition cond, Register rd, uint32_t lsb, const Operand& operand);
+  void bfc(Condition cond, Register rd, uint32_t lsb, uint32_t width);
 
-  void bfi(Condition cond,
-           Register rd,
-           Register rn,
-           uint32_t lsb,
-           const Operand& operand);
+  void bfi(
+      Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width);
 
   void bic(Condition cond,
            EncodingSize size,
@@ -952,11 +949,8 @@ class Disassembler {
             Register rn,
             const Operand& operand);
 
-  void sbfx(Condition cond,
-            Register rd,
-            Register rn,
-            uint32_t lsb,
-            const Operand& operand);
+  void sbfx(
+      Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width);
 
   void sdiv(Condition cond, Register rd, Register rn, Register rm);
 
@@ -1255,11 +1249,8 @@ class Disassembler {
 
   void uasx(Condition cond, Register rd, Register rn, Register rm);
 
-  void ubfx(Condition cond,
-            Register rd,
-            Register rn,
-            uint32_t lsb,
-            const Operand& operand);
+  void ubfx(
+      Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width);
 
   void udf(Condition cond, EncodingSize size, uint32_t imm);
 

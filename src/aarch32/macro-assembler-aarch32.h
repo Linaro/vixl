@@ -1412,35 +1412,30 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void BPreferNear(Condition cond, Label* label) { B(cond, label, kNear); }
   void BPreferNear(Label* label) { B(al, label, kNear); }
 
-  void Bfc(Condition cond, Register rd, uint32_t lsb, const Operand& operand) {
+  void Bfc(Condition cond, Register rd, uint32_t lsb, uint32_t width) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(operand));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond);
-    bfc(cond, rd, lsb, operand);
+    bfc(cond, rd, lsb, width);
   }
-  void Bfc(Register rd, uint32_t lsb, const Operand& operand) {
-    Bfc(al, rd, lsb, operand);
+  void Bfc(Register rd, uint32_t lsb, uint32_t width) {
+    Bfc(al, rd, lsb, width);
   }
 
-  void Bfi(Condition cond,
-           Register rd,
-           Register rn,
-           uint32_t lsb,
-           const Operand& operand) {
+  void Bfi(
+      Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rn));
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(operand));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond);
-    bfi(cond, rd, rn, lsb, operand);
+    bfi(cond, rd, rn, lsb, width);
   }
-  void Bfi(Register rd, Register rn, uint32_t lsb, const Operand& operand) {
-    Bfi(al, rd, rn, lsb, operand);
+  void Bfi(Register rd, Register rn, uint32_t lsb, uint32_t width) {
+    Bfi(al, rd, rn, lsb, width);
   }
 
   void Bic(Condition cond, Register rd, Register rn, const Operand& operand) {
@@ -3478,22 +3473,18 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     Sbcs(al, rd, rn, operand);
   }
 
-  void Sbfx(Condition cond,
-            Register rd,
-            Register rn,
-            uint32_t lsb,
-            const Operand& operand) {
+  void Sbfx(
+      Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rn));
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(operand));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond);
-    sbfx(cond, rd, rn, lsb, operand);
+    sbfx(cond, rd, rn, lsb, width);
   }
-  void Sbfx(Register rd, Register rn, uint32_t lsb, const Operand& operand) {
-    Sbfx(al, rd, rn, lsb, operand);
+  void Sbfx(Register rd, Register rn, uint32_t lsb, uint32_t width) {
+    Sbfx(al, rd, rn, lsb, width);
   }
 
   void Sdiv(Condition cond, Register rd, Register rn, Register rm) {
@@ -4875,22 +4866,18 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Uasx(Register rd, Register rn, Register rm) { Uasx(al, rd, rn, rm); }
 
-  void Ubfx(Condition cond,
-            Register rd,
-            Register rn,
-            uint32_t lsb,
-            const Operand& operand) {
+  void Ubfx(
+      Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rn));
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(operand));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond);
-    ubfx(cond, rd, rn, lsb, operand);
+    ubfx(cond, rd, rn, lsb, width);
   }
-  void Ubfx(Register rd, Register rn, uint32_t lsb, const Operand& operand) {
-    Ubfx(al, rd, rn, lsb, operand);
+  void Ubfx(Register rd, Register rn, uint32_t lsb, uint32_t width) {
+    Ubfx(al, rd, rn, lsb, width);
   }
 
   void Udf(Condition cond, uint32_t imm) {

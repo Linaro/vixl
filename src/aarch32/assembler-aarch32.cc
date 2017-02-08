@@ -2957,69 +2957,57 @@ void Assembler::b(Condition cond, EncodingSize size, Label* label) {
   Delegate(kB, &Assembler::b, cond, size, label);
 }
 
-void Assembler::bfc(Condition cond,
-                    Register rd,
-                    uint32_t lsb,
-                    const Operand& operand) {
+void Assembler::bfc(Condition cond, Register rd, uint32_t lsb, uint32_t width) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  if (operand.IsImmediate()) {
-    uint32_t width = operand.GetImmediate();
-    if (IsUsingT32()) {
-      // BFC{<c>}{<q>} <Rd>, #<lsb>, #<width> ; T1
-      if ((lsb <= 31) &&
-          (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
-        uint32_t msb = lsb + width - 1;
-        EmitT32_32(0xf36f0000U | (rd.GetCode() << 8) | ((lsb & 0x3) << 6) |
-                   ((lsb & 0x1c) << 10) | msb);
-        AdvanceIT();
-        return;
-      }
-    } else {
-      // BFC{<c>}{<q>} <Rd>, #<lsb>, #<width> ; A1
-      if ((lsb <= 31) && cond.IsNotNever() &&
-          (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
-        uint32_t msb = lsb + width - 1;
-        EmitA32(0x07c0001fU | (cond.GetCondition() << 28) |
-                (rd.GetCode() << 12) | (lsb << 7) | (msb << 16));
-        return;
-      }
+  if (IsUsingT32()) {
+    // BFC{<c>}{<q>} <Rd>, #<lsb>, #<width> ; T1
+    if ((lsb <= 31) &&
+        (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
+      uint32_t msb = lsb + width - 1;
+      EmitT32_32(0xf36f0000U | (rd.GetCode() << 8) | ((lsb & 0x3) << 6) |
+                 ((lsb & 0x1c) << 10) | msb);
+      AdvanceIT();
+      return;
+    }
+  } else {
+    // BFC{<c>}{<q>} <Rd>, #<lsb>, #<width> ; A1
+    if ((lsb <= 31) && cond.IsNotNever() &&
+        (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
+      uint32_t msb = lsb + width - 1;
+      EmitA32(0x07c0001fU | (cond.GetCondition() << 28) | (rd.GetCode() << 12) |
+              (lsb << 7) | (msb << 16));
+      return;
     }
   }
-  Delegate(kBfc, &Assembler::bfc, cond, rd, lsb, operand);
+  Delegate(kBfc, &Assembler::bfc, cond, rd, lsb, width);
 }
 
-void Assembler::bfi(Condition cond,
-                    Register rd,
-                    Register rn,
-                    uint32_t lsb,
-                    const Operand& operand) {
+void Assembler::bfi(
+    Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  if (operand.IsImmediate()) {
-    uint32_t width = operand.GetImmediate();
-    if (IsUsingT32()) {
-      // BFI{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; T1
-      if ((lsb <= 31) && !rn.Is(pc) &&
-          (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
-        uint32_t msb = lsb + width - 1;
-        EmitT32_32(0xf3600000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
-                   ((lsb & 0x3) << 6) | ((lsb & 0x1c) << 10) | msb);
-        AdvanceIT();
-        return;
-      }
-    } else {
-      // BFI{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; A1
-      if ((lsb <= 31) && cond.IsNotNever() && !rn.Is(pc) &&
-          (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
-        uint32_t msb = lsb + width - 1;
-        EmitA32(0x07c00010U | (cond.GetCondition() << 28) |
-                (rd.GetCode() << 12) | rn.GetCode() | (lsb << 7) | (msb << 16));
-        return;
-      }
+  if (IsUsingT32()) {
+    // BFI{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; T1
+    if ((lsb <= 31) && !rn.Is(pc) &&
+        (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
+      uint32_t msb = lsb + width - 1;
+      EmitT32_32(0xf3600000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
+                 ((lsb & 0x3) << 6) | ((lsb & 0x1c) << 10) | msb);
+      AdvanceIT();
+      return;
+    }
+  } else {
+    // BFI{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; A1
+    if ((lsb <= 31) && cond.IsNotNever() && !rn.Is(pc) &&
+        (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
+      uint32_t msb = lsb + width - 1;
+      EmitA32(0x07c00010U | (cond.GetCondition() << 28) | (rd.GetCode() << 12) |
+              rn.GetCode() | (lsb << 7) | (msb << 16));
+      return;
     }
   }
-  Delegate(kBfi, &Assembler::bfi, cond, rd, rn, lsb, operand);
+  Delegate(kBfi, &Assembler::bfi, cond, rd, rn, lsb, width);
 }
 
 void Assembler::bic(Condition cond,
@@ -8795,38 +8783,31 @@ void Assembler::sbcs(Condition cond,
   Delegate(kSbcs, &Assembler::sbcs, cond, size, rd, rn, operand);
 }
 
-void Assembler::sbfx(Condition cond,
-                     Register rd,
-                     Register rn,
-                     uint32_t lsb,
-                     const Operand& operand) {
+void Assembler::sbfx(
+    Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  if (operand.IsImmediate()) {
-    uint32_t width = operand.GetImmediate();
-    if (IsUsingT32()) {
-      // SBFX{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; T1
-      if ((lsb <= 31) &&
-          (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
-        uint32_t widthm1 = width - 1;
-        EmitT32_32(0xf3400000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
-                   ((lsb & 0x3) << 6) | ((lsb & 0x1c) << 10) | widthm1);
-        AdvanceIT();
-        return;
-      }
-    } else {
-      // SBFX{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; A1
-      if ((lsb <= 31) && cond.IsNotNever() &&
-          (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
-        uint32_t widthm1 = width - 1;
-        EmitA32(0x07a00050U | (cond.GetCondition() << 28) |
-                (rd.GetCode() << 12) | rn.GetCode() | (lsb << 7) |
-                (widthm1 << 16));
-        return;
-      }
+  if (IsUsingT32()) {
+    // SBFX{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; T1
+    if ((lsb <= 31) &&
+        (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
+      uint32_t widthm1 = width - 1;
+      EmitT32_32(0xf3400000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
+                 ((lsb & 0x3) << 6) | ((lsb & 0x1c) << 10) | widthm1);
+      AdvanceIT();
+      return;
+    }
+  } else {
+    // SBFX{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; A1
+    if ((lsb <= 31) && cond.IsNotNever() &&
+        (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
+      uint32_t widthm1 = width - 1;
+      EmitA32(0x07a00050U | (cond.GetCondition() << 28) | (rd.GetCode() << 12) |
+              rn.GetCode() | (lsb << 7) | (widthm1 << 16));
+      return;
     }
   }
-  Delegate(kSbfx, &Assembler::sbfx, cond, rd, rn, lsb, operand);
+  Delegate(kSbfx, &Assembler::sbfx, cond, rd, rn, lsb, width);
 }
 
 void Assembler::sdiv(Condition cond, Register rd, Register rn, Register rm) {
@@ -11914,38 +11895,31 @@ void Assembler::uasx(Condition cond, Register rd, Register rn, Register rm) {
   Delegate(kUasx, &Assembler::uasx, cond, rd, rn, rm);
 }
 
-void Assembler::ubfx(Condition cond,
-                     Register rd,
-                     Register rn,
-                     uint32_t lsb,
-                     const Operand& operand) {
+void Assembler::ubfx(
+    Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  if (operand.IsImmediate()) {
-    uint32_t width = operand.GetImmediate();
-    if (IsUsingT32()) {
-      // UBFX{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; T1
-      if ((lsb <= 31) &&
-          (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
-        uint32_t widthm1 = width - 1;
-        EmitT32_32(0xf3c00000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
-                   ((lsb & 0x3) << 6) | ((lsb & 0x1c) << 10) | widthm1);
-        AdvanceIT();
-        return;
-      }
-    } else {
-      // UBFX{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; A1
-      if ((lsb <= 31) && cond.IsNotNever() &&
-          (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
-        uint32_t widthm1 = width - 1;
-        EmitA32(0x07e00050U | (cond.GetCondition() << 28) |
-                (rd.GetCode() << 12) | rn.GetCode() | (lsb << 7) |
-                (widthm1 << 16));
-        return;
-      }
+  if (IsUsingT32()) {
+    // UBFX{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; T1
+    if ((lsb <= 31) &&
+        (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
+      uint32_t widthm1 = width - 1;
+      EmitT32_32(0xf3c00000U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
+                 ((lsb & 0x3) << 6) | ((lsb & 0x1c) << 10) | widthm1);
+      AdvanceIT();
+      return;
+    }
+  } else {
+    // UBFX{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width> ; A1
+    if ((lsb <= 31) && cond.IsNotNever() &&
+        (((width >= 1) && (width <= 32 - lsb)) || AllowUnpredictable())) {
+      uint32_t widthm1 = width - 1;
+      EmitA32(0x07e00050U | (cond.GetCondition() << 28) | (rd.GetCode() << 12) |
+              rn.GetCode() | (lsb << 7) | (widthm1 << 16));
+      return;
     }
   }
-  Delegate(kUbfx, &Assembler::ubfx, cond, rd, rn, lsb, operand);
+  Delegate(kUbfx, &Assembler::ubfx, cond, rd, rn, lsb, width);
 }
 
 void Assembler::udf(Condition cond, EncodingSize size, uint32_t imm) {

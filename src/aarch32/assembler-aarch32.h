@@ -249,15 +249,12 @@ class Assembler : public internal::AssemblerBase {
   typedef void (Assembler::*InstructionCondSizeL)(Condition cond,
                                                   EncodingSize size,
                                                   Label* label);
-  typedef void (Assembler::*InstructionCondRIOp)(Condition cond,
-                                                 Register rd,
-                                                 uint32_t lsb,
-                                                 const Operand& operand);
-  typedef void (Assembler::*InstructionCondRRIOp)(Condition cond,
-                                                  Register rd,
-                                                  Register rn,
-                                                  uint32_t lsb,
-                                                  const Operand& operand);
+  typedef void (Assembler::*InstructionCondRII)(Condition cond,
+                                                Register rd,
+                                                uint32_t lsb,
+                                                uint32_t width);
+  typedef void (Assembler::*InstructionCondRRII)(
+      Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width);
   typedef void (Assembler::*InstructionCondI)(Condition cond, uint32_t imm);
   typedef void (Assembler::*InstructionCondL)(Condition cond, Label* label);
   typedef void (Assembler::*InstructionCondR)(Condition cond, Register rm);
@@ -334,6 +331,10 @@ class Assembler : public internal::AssemblerBase {
                                               QRegister rd,
                                               QRegister rn,
                                               QRegister rm);
+  typedef void (Assembler::*InstructionCondRIOp)(Condition cond,
+                                                 Register rd,
+                                                 uint32_t imm,
+                                                 const Operand& operand);
   typedef void (Assembler::*InstructionCondRIR)(Condition cond,
                                                 Register rd,
                                                 uint32_t imm,
@@ -687,22 +688,22 @@ class Assembler : public internal::AssemblerBase {
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
-                        InstructionCondRIOp /*instruction*/,
+                        InstructionCondRII /*instruction*/,
                         Condition /*cond*/,
                         Register /*rd*/,
                         uint32_t /*lsb*/,
-                        const Operand& /*operand*/) {
+                        uint32_t /*width*/) {
     USE(type);
-    VIXL_ASSERT((type == kBfc) || (type == kSsat) || (type == kUsat));
+    VIXL_ASSERT((type == kBfc));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
-                        InstructionCondRRIOp /*instruction*/,
+                        InstructionCondRRII /*instruction*/,
                         Condition /*cond*/,
                         Register /*rd*/,
                         Register /*rn*/,
                         uint32_t /*lsb*/,
-                        const Operand& /*operand*/) {
+                        uint32_t /*width*/) {
     USE(type);
     VIXL_ASSERT((type == kBfi) || (type == kSbfx) || (type == kUbfx));
     UnimplementedDelegate(type);
@@ -1008,6 +1009,16 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rm*/) {
     USE(type);
     VIXL_ASSERT((type == kVmaxnm) || (type == kVminnm));
+    UnimplementedDelegate(type);
+  }
+  virtual void Delegate(InstructionType type,
+                        InstructionCondRIOp /*instruction*/,
+                        Condition /*cond*/,
+                        Register /*rd*/,
+                        uint32_t /*imm*/,
+                        const Operand& /*operand*/) {
+    USE(type);
+    VIXL_ASSERT((type == kSsat) || (type == kUsat));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -2011,18 +2022,15 @@ class Assembler : public internal::AssemblerBase {
   void b(Condition cond, Label* label) { b(cond, Best, label); }
   void b(EncodingSize size, Label* label) { b(al, size, label); }
 
-  void bfc(Condition cond, Register rd, uint32_t lsb, const Operand& operand);
-  void bfc(Register rd, uint32_t lsb, const Operand& operand) {
-    bfc(al, rd, lsb, operand);
+  void bfc(Condition cond, Register rd, uint32_t lsb, uint32_t width);
+  void bfc(Register rd, uint32_t lsb, uint32_t width) {
+    bfc(al, rd, lsb, width);
   }
 
-  void bfi(Condition cond,
-           Register rd,
-           Register rn,
-           uint32_t lsb,
-           const Operand& operand);
-  void bfi(Register rd, Register rn, uint32_t lsb, const Operand& operand) {
-    bfi(al, rd, rn, lsb, operand);
+  void bfi(
+      Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width);
+  void bfi(Register rd, Register rn, uint32_t lsb, uint32_t width) {
+    bfi(al, rd, rn, lsb, width);
   }
 
   void bic(Condition cond,
@@ -2932,13 +2940,10 @@ class Assembler : public internal::AssemblerBase {
     sbcs(al, size, rd, rn, operand);
   }
 
-  void sbfx(Condition cond,
-            Register rd,
-            Register rn,
-            uint32_t lsb,
-            const Operand& operand);
-  void sbfx(Register rd, Register rn, uint32_t lsb, const Operand& operand) {
-    sbfx(al, rd, rn, lsb, operand);
+  void sbfx(
+      Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width);
+  void sbfx(Register rd, Register rn, uint32_t lsb, uint32_t width) {
+    sbfx(al, rd, rn, lsb, width);
   }
 
   void sdiv(Condition cond, Register rd, Register rn, Register rm);
@@ -3542,13 +3547,10 @@ class Assembler : public internal::AssemblerBase {
   void uasx(Condition cond, Register rd, Register rn, Register rm);
   void uasx(Register rd, Register rn, Register rm) { uasx(al, rd, rn, rm); }
 
-  void ubfx(Condition cond,
-            Register rd,
-            Register rn,
-            uint32_t lsb,
-            const Operand& operand);
-  void ubfx(Register rd, Register rn, uint32_t lsb, const Operand& operand) {
-    ubfx(al, rd, rn, lsb, operand);
+  void ubfx(
+      Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width);
+  void ubfx(Register rd, Register rn, uint32_t lsb, uint32_t width) {
+    ubfx(al, rd, rn, lsb, width);
   }
 
   void udf(Condition cond, EncodingSize size, uint32_t imm);

@@ -1267,22 +1267,21 @@ void Disassembler::b(Condition cond, EncodingSize size, Label* label) {
 void Disassembler::bfc(Condition cond,
                        Register rd,
                        uint32_t lsb,
-                       const Operand& operand) {
+                       uint32_t width) {
   os().SetCurrentInstruction(kBfc, kShift);
   os() << ToCString(kBfc) << ConditionPrinter(it_block_, cond) << " " << rd
        << ", "
-       << "#" << lsb << ", " << operand;
+       << "#" << lsb << ", "
+       << "#" << width;
 }
 
-void Disassembler::bfi(Condition cond,
-                       Register rd,
-                       Register rn,
-                       uint32_t lsb,
-                       const Operand& operand) {
+void Disassembler::bfi(
+    Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width) {
   os().SetCurrentInstruction(kBfi, kShift);
   os() << ToCString(kBfi) << ConditionPrinter(it_block_, cond) << " " << rd
        << ", " << rn << ", "
-       << "#" << lsb << ", " << operand;
+       << "#" << lsb << ", "
+       << "#" << width;
 }
 
 void Disassembler::bic(Condition cond,
@@ -2438,15 +2437,13 @@ void Disassembler::sbcs(Condition cond,
   os() << rn << ", " << operand;
 }
 
-void Disassembler::sbfx(Condition cond,
-                        Register rd,
-                        Register rn,
-                        uint32_t lsb,
-                        const Operand& operand) {
+void Disassembler::sbfx(
+    Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width) {
   os().SetCurrentInstruction(kSbfx, kShift);
   os() << ToCString(kSbfx) << ConditionPrinter(it_block_, cond) << " " << rd
        << ", " << rn << ", "
-       << "#" << lsb << ", " << operand;
+       << "#" << lsb << ", "
+       << "#" << width;
 }
 
 void Disassembler::sdiv(Condition cond, Register rd, Register rn, Register rm) {
@@ -3348,15 +3345,13 @@ void Disassembler::uasx(Condition cond, Register rd, Register rn, Register rm) {
   os() << rn << ", " << rm;
 }
 
-void Disassembler::ubfx(Condition cond,
-                        Register rd,
-                        Register rn,
-                        uint32_t lsb,
-                        const Operand& operand) {
+void Disassembler::ubfx(
+    Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width) {
   os().SetCurrentInstruction(kUbfx, kShift);
   os() << ToCString(kUbfx) << ConditionPrinter(it_block_, cond) << " " << rd
        << ", " << rn << ", "
-       << "#" << lsb << ", " << operand;
+       << "#" << lsb << ", "
+       << "#" << width;
 }
 
 void Disassembler::udf(Condition cond, EncodingSize size, uint32_t imm) {
