@@ -3547,6 +3547,275 @@ TEST_T32(near_branch_fuzz) {
 }
 
 
+TEST_T32(near_branch_and_literal_fuzz) {
+  SETUP();
+  START();
+
+  uint16_t seed[3] = {1, 2, 3};
+  seed48(seed);
+
+  const int label_count = 15;
+  const int literal_count = 31;
+  bool allbound;
+  Label* labels;
+  uint64_t* literal_values;
+  Literal<uint64_t>* literals[literal_count];
+
+  // Use multiple iterations, as each produces a different predictably random
+  // sequence.
+  const int iterations = 128;
+  const int n_cases = 20;
+
+  int loop_count = 0;
+  __ Mov(r1, 0);
+
+  // If the value of r4 changes then the test fails.
+  __ Mov(r4, 42);
+
+  // This test generates a mix of 20 different code sequences (see switch case
+  // below). The cases are split in 4 groups:
+  //
+  //   - 0..3: Generate various amount of nops.
+  //   - 4..7: Generate various load intstructions with literals.
+  //   - 8..14: Generate various branch instructions.
+  //   - 15..19: Generate various amount of nops.
+  //
+  // The idea behind this is that we can have a window of size N which we can
+  // slide across these cases. And as a result, randomly generate sequences with
+  // a different ratio of:
+  //   - "nops vs literals"
+  //   - "literal vs veneers"
+  //   - "veneers vs nops"
+  //
+  // In this test, we grow a window from 5 to 14, and then slide this window
+  // across all cases each time. We call this sliding a "ratio", which is in
+  // fact an offset from the first case of the switch.
+
+  for (uint32_t window = 5; window < 14; window++) {
+    for (uint32_t ratio = 0; ratio < static_cast<uint32_t>(n_cases - window);
+         ratio++) {
+      for (int iter = 0; iter < iterations; iter++) {
+        Label fail;
+        Label end;
+
+        // Reset local state.
+        allbound = false;
+        labels = new Label[label_count];
+
+        // Create new literal values.
+        literal_values = new uint64_t[literal_count];
+        for (int lit = 0; lit < literal_count; lit++) {
+          // TODO: Generate pseudo-random data for literals. At the moment, the
+          // disassembler breaks if we do this.
+          literal_values[lit] = lit;
+          literals[lit] = new Literal<uint64_t>(literal_values[lit]);
+        }
+
+        for (;;) {
+          uint32_t inst_case =
+              (static_cast<uint32_t>(mrand48()) % window) + ratio;
+          uint32_t label_index = static_cast<uint32_t>(mrand48()) % label_count;
+          uint32_t literal_index =
+              static_cast<uint32_t>(mrand48()) % literal_count;
+
+          if (inst_case == ratio) {
+            if (!labels[label_index].IsBound()) {
+              __ Bind(&labels[label_index]);
+
+              // We should hit each label exactly once (because the branches are
+              // never taken). Keep a counter to verify this.
+              loop_count++;
+              __ Add(r1, r1, 1);
+              continue;
+            }
+          }
+
+          switch (inst_case) {
+            case 0:
+              __ Nop();
+              break;
+            case 1:
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              break;
+            case 2:
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              break;
+            case 3:
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              break;
+            case 4:
+              __ Ldr(r2, literals[literal_index]);
+              __ Cmp(r2, static_cast<uint32_t>(literal_values[literal_index]));
+              __ B(ne, &fail);
+              __ Mov(r2, 0);
+              break;
+            case 5:
+              __ Ldrb(r2, literals[literal_index]);
+              __ Cmp(r2,
+                     static_cast<uint32_t>(literal_values[literal_index]) &
+                         0xff);
+              __ B(ne, &fail);
+              __ Mov(r2, 0);
+              break;
+            case 6:
+              __ Ldrd(r2, r3, literals[literal_index]);
+              __ Cmp(r2, static_cast<uint32_t>(literal_values[literal_index]));
+              __ B(ne, &fail);
+              __ Mov(r2, 0);
+              __ Cmp(r3,
+                     static_cast<uint32_t>(literal_values[literal_index] >>
+                                           32));
+              __ B(ne, &fail);
+              __ Mov(r3, 0);
+              break;
+            case 7:
+              __ Vldr(s0, literals[literal_index]);
+              __ Vmov(s1, static_cast<uint32_t>(literal_values[literal_index]));
+              __ Vcmp(s0, s1);
+              __ B(ne, &fail);
+              __ Vmov(s0, 0);
+              break;
+            case 8: {
+              Label past_branch;
+              __ B(&past_branch, kNear);
+              __ Cbz(r0, &labels[label_index]);
+              __ Bind(&past_branch);
+              break;
+            }
+            case 9: {
+              Label past_branch;
+              __ B(&past_branch, kNear);
+              __ Cbnz(r0, &labels[label_index]);
+              __ Bind(&past_branch);
+              break;
+            }
+            case 10: {
+              Label past_branch;
+              __ B(&past_branch, kNear);
+              __ B(ne, &labels[label_index], kNear);
+              __ Bind(&past_branch);
+              break;
+            }
+            case 11: {
+              Label past_branch;
+              __ B(&past_branch, kNear);
+              __ B(&labels[label_index], kNear);
+              __ Bind(&past_branch);
+              break;
+            }
+            case 12: {
+              Label past_branch;
+              __ B(&past_branch, kNear);
+              __ B(ne, &labels[label_index]);
+              __ Bind(&past_branch);
+              break;
+            }
+            case 13: {
+              Label past_branch;
+              __ B(&past_branch, kNear);
+              __ B(&labels[label_index]);
+              __ Bind(&past_branch);
+              break;
+            }
+            case 14: {
+              Label past_branch;
+              __ B(&past_branch, kNear);
+              __ Bl(&labels[label_index]);
+              __ Bind(&past_branch);
+              break;
+            }
+            case 15:
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              break;
+            case 16:
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              break;
+            case 17:
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              break;
+            case 18:
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              __ Nop();
+              break;
+            case 19:
+              __ Nop();
+              __ Nop();
+              break;
+            default:
+              VIXL_UNREACHABLE();
+              break;
+          }
+
+          // If all labels have been bound, exit the inner loop and finalise the
+          // code.
+          allbound = true;
+          for (int i = 0; i < label_count; i++) {
+            allbound = allbound && labels[i].IsBound();
+          }
+          if (allbound) break;
+        }
+
+        __ B(&end);
+        __ Bind(&fail);
+        __ Mov(r4, 0);
+        __ Bind(&end);
+
+        // Ensure that the veneer pools are emitted, to keep each branch/bind
+        // test
+        // independent.
+        masm.FinalizeCode(MacroAssembler::kFallThrough);
+        delete[] labels;
+        for (int lit = 0; lit < literal_count; lit++) {
+          delete literals[lit];
+        }
+      }
+    }
+  }
+
+  END();
+  RUN();
+
+  ASSERT_EQUAL_32(loop_count, r1);
+  ASSERT_EQUAL_32(42, r4);
+
+  TEARDOWN();
+}
+
+
 #ifdef VIXL_INCLUDE_TARGET_T32
 TEST_NOASM(code_buffer_precise_growth) {
   static const int kBaseBufferSize = 16;
