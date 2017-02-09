@@ -62,9 +62,9 @@ class ExecutableMemory {
   ~ExecutableMemory() { munmap(buffer_, size_); }
 
   template <typename T>
-  T GetEntryPoint(const Label& entry_point) const {
+  T GetEntryPoint(const Label& entry_point, InstructionSet isa) const {
     int32_t location = entry_point.GetLocation();
-    if (entry_point.IsUsingT32()) location += 1;
+    if (isa == T32) location += 1;
     return GetOffsetAddress<T>(location);
   }
 

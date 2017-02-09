@@ -57,7 +57,8 @@ int main() {
   ExecutableMemory memory(code, code_size);
   // Run the example function.
   int32_t (*abs_function)(int32_t) =
-      memory.GetEntryPoint<int32_t (*)(int32_t)>(abs);
+      memory.GetEntryPoint<int32_t (*)(int32_t)>(abs,
+                                                 masm.GetInstructionSetInUse());
   int32_t input_value = -42;
   int32_t output_value = (*abs_function)(input_value);
   printf("native: abs(%d) = %d\n", input_value, output_value);

@@ -96,7 +96,8 @@ int main() {
   ExecutableMemory memory(code, code_size);
   // Run the example function.
   double (*pi_function)(uint32_t) =
-      memory.GetEntryPoint<double (*)(uint32_t)>(pi_approx);
+      memory.GetEntryPoint<double (*)(uint32_t)>(pi_approx,
+                                                 masm.GetInstructionSetInUse());
   uint32_t repeat = 10000000;
   double output_value = (*pi_function)(repeat);
   printf("native: pi_approx(%u) = %3.10f\n", repeat, output_value);
