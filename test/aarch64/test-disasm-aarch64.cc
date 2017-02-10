@@ -79,6 +79,7 @@
     abort();                                                          \
   }                                                                   \
   if (Test::disassemble()) {                                          \
+    printf("----\n");                                                 \
     printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());      \
   }
 
@@ -101,6 +102,7 @@
     abort();                                                          \
   }                                                                   \
   if (Test::disassemble()) {                                          \
+    printf("----\n");                                                 \
     printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());      \
   }
 
@@ -113,6 +115,9 @@
   Instruction* instruction =                                       \
       masm.GetBuffer()->GetStartAddress<Instruction*>();           \
   Instruction* end = masm.GetCursorAddress<Instruction*>();        \
+  if (Test::disassemble()) {                                       \
+    printf("----\n");                                              \
+  }                                                                \
   while (instruction != end) {                                     \
     decoder.Decode(instruction);                                   \
     res.append(disasm.GetOutput());                                \
