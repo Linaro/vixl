@@ -1643,6 +1643,66 @@ TEST(rbit_rev) {
   TEARDOWN();
 }
 
+typedef void (MacroAssembler::*TestBranchSignature)(const Register& rt,
+                                                    unsigned bit_pos,
+                                                    Label* label);
+
+static void TbzRangePoolLimitHelper(TestBranchSignature test_branch) {
+  const int kTbzRange = 32768;
+  const int kNumLdrLiteral = kTbzRange / 4;
+  const int fuzzRange = 2;
+  for (int n = kNumLdrLiteral - fuzzRange; n <= kNumLdrLiteral + fuzzRange;
+       ++n) {
+    for (int margin = -32; margin < 32; margin += 4) {
+      SETUP();
+
+      START();
+
+      // Emit 32KB of literals (equal to the range of TBZ).
+      for (int i = 0; i < n; ++i) {
+        __ Ldr(w0, 0x12345678);
+      }
+
+      const int kLiteralMargin = 128 * KBytes;
+
+      // Emit enough NOPs to be just about to emit the literal pool.
+      ptrdiff_t end =
+          masm.GetCursorOffset() + (kLiteralMargin - n * 4 + margin);
+      while (masm.GetCursorOffset() < end) {
+        __ Nop();
+      }
+
+      // Add a TBZ instruction.
+      Label label;
+
+      (masm.*test_branch)(x0, 2, &label);
+
+      // Add enough NOPs to surpass its range, to make sure we can encode the
+      // veneer.
+      end = masm.GetCursorOffset() + (kTbzRange - 4);
+      {
+        ExactAssemblyScope scope(&masm,
+                                 kTbzRange,
+                                 ExactAssemblyScope::kMaximumSize);
+        while (masm.GetCursorOffset() < end) __ nop();
+      }
+
+      // Finally, bind the label.
+      __ Bind(&label);
+
+      END();
+
+      RUN();
+
+      TEARDOWN();
+    }
+  }
+}
+
+TEST(test_branch_limits_literal_pool_size) {
+  TbzRangePoolLimitHelper(&MacroAssembler::Tbz);
+  TbzRangePoolLimitHelper(&MacroAssembler::Tbnz);
+}
 
 TEST(clz_cls) {
   SETUP();

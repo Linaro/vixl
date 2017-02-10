@@ -123,6 +123,9 @@ class LiteralPool : public Pool {
   }
 
   void CheckEmitFor(size_t amount, EmitOption option = kBranchRequired);
+  // Check whether we need to emit the literal pool in order to be able to
+  // safely emit a branch with a given range.
+  void CheckEmitForBranch(size_t range);
   void Emit(EmitOption option = kNoBranchRequired);
 
   void SetNextRecommendedCheckpoint(ptrdiff_t offset);

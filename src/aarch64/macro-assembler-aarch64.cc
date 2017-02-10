@@ -90,6 +90,11 @@ void LiteralPool::CheckEmitFor(size_t amount, EmitOption option) {
 }
 
 
+void LiteralPool::CheckEmitForBranch(size_t range) {
+  if (IsEmpty() || IsBlocked()) return;
+  if (GetMaxSize() >= range) Emit();
+}
+
 // We use a subclass to access the protected `ExactAssemblyScope` constructor
 // giving us control over the pools. This allows us to use this scope within
 // code emitting pools without creating a circular dependency.
@@ -569,12 +574,22 @@ void MacroAssembler::B(Label* label, BranchType type, Register reg, int bit) {
 
 
 void MacroAssembler::B(Label* label) {
+  // We don't need to check the size of the literal pool, because the size of
+  // the literal pool is already bounded by the literal range, which is smaller
+  // than the range of this branch.
+  VIXL_ASSERT(Instruction::GetImmBranchForwardRange(UncondBranchType) >
+              Instruction::kLoadLiteralRange);
   SingleEmissionCheckScope guard(this);
   b(label);
 }
 
 
 void MacroAssembler::B(Label* label, Condition cond) {
+  // We don't need to check the size of the literal pool, because the size of
+  // the literal pool is already bounded by the literal range, which is smaller
+  // than the range of this branch.
+  VIXL_ASSERT(Instruction::GetImmBranchForwardRange(CondBranchType) >
+              Instruction::kLoadLiteralRange);
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT((cond != al) && (cond != nv));
   EmissionCheckScope guard(this, 2 * kInstructionSize);
@@ -596,6 +611,11 @@ void MacroAssembler::B(Label* label, Condition cond) {
 
 
 void MacroAssembler::Cbnz(const Register& rt, Label* label) {
+  // We don't need to check the size of the literal pool, because the size of
+  // the literal pool is already bounded by the literal range, which is smaller
+  // than the range of this branch.
+  VIXL_ASSERT(Instruction::GetImmBranchForwardRange(CompareBranchType) >
+              Instruction::kLoadLiteralRange);
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(!rt.IsZero());
   EmissionCheckScope guard(this, 2 * kInstructionSize);
@@ -617,6 +637,11 @@ void MacroAssembler::Cbnz(const Register& rt, Label* label) {
 
 
 void MacroAssembler::Cbz(const Register& rt, Label* label) {
+  // We don't need to check the size of the literal pool, because the size of
+  // the literal pool is already bounded by the literal range, which is smaller
+  // than the range of this branch.
+  VIXL_ASSERT(Instruction::GetImmBranchForwardRange(CompareBranchType) >
+              Instruction::kLoadLiteralRange);
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(!rt.IsZero());
   EmissionCheckScope guard(this, 2 * kInstructionSize);
@@ -638,6 +663,10 @@ void MacroAssembler::Cbz(const Register& rt, Label* label) {
 
 
 void MacroAssembler::Tbnz(const Register& rt, unsigned bit_pos, Label* label) {
+  // This is to avoid a situation where emitting a veneer for a TBZ/TBNZ branch
+  // can become impossible because we emit the literal pool first.
+  literal_pool_.CheckEmitForBranch(
+      Instruction::GetImmBranchForwardRange(TestBranchType));
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(!rt.IsZero());
   EmissionCheckScope guard(this, 2 * kInstructionSize);
@@ -659,6 +688,10 @@ void MacroAssembler::Tbnz(const Register& rt, unsigned bit_pos, Label* label) {
 
 
 void MacroAssembler::Tbz(const Register& rt, unsigned bit_pos, Label* label) {
+  // This is to avoid a situation where emitting a veneer for a TBZ/TBNZ branch
+  // can become impossible because we emit the literal pool first.
+  literal_pool_.CheckEmitForBranch(
+      Instruction::GetImmBranchForwardRange(TestBranchType));
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(!rt.IsZero());
   EmissionCheckScope guard(this, 2 * kInstructionSize);
