@@ -3236,7 +3236,8 @@ void Assembler::bl(Condition cond, Label* label) {
     // BL{<c>}{<q>} <label> ; T1
     if (((label->IsBound() && (offset >= -16777216) && (offset <= 16777214) &&
           ((offset & 0x1) == 0)) ||
-         !label->IsBound())) {
+         !label->IsBound()) &&
+        (OutsideITBlockAndAlOrLast(cond) || AllowUnpredictable())) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-16777216, 16777214) {}
@@ -3296,7 +3297,8 @@ void Assembler::blx(Condition cond, Label* label) {
     // BLX{<c>}{<q>} <label> ; T2
     if (((label->IsBound() && (offset >= -16777216) && (offset <= 16777212) &&
           ((offset & 0x3) == 0)) ||
-         !label->IsBound())) {
+         !label->IsBound()) &&
+        (OutsideITBlockAndAlOrLast(cond) || AllowUnpredictable())) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-16777216, 16777212) {}
@@ -3350,7 +3352,8 @@ void Assembler::blx(Condition cond, Register rm) {
   CheckIT(cond);
   if (IsUsingT32()) {
     // BLX{<c>}{<q>} <Rm> ; T1
-    if ((!rm.IsPC() || AllowUnpredictable())) {
+    if (((!rm.IsPC() && OutsideITBlockAndAlOrLast(cond)) ||
+         AllowUnpredictable())) {
       EmitT32_16(0x4780 | (rm.GetCode() << 3));
       AdvanceIT();
       return;
@@ -3370,9 +3373,11 @@ void Assembler::bx(Condition cond, Register rm) {
   CheckIT(cond);
   if (IsUsingT32()) {
     // BX{<c>}{<q>} <Rm> ; T1
-    EmitT32_16(0x4700 | (rm.GetCode() << 3));
-    AdvanceIT();
-    return;
+    if ((OutsideITBlockAndAlOrLast(cond) || AllowUnpredictable())) {
+      EmitT32_16(0x4700 | (rm.GetCode() << 3));
+      AdvanceIT();
+      return;
+    }
   } else {
     // BX{<c>}{<q>} <Rm> ; A1
     if (cond.IsNotNever()) {
@@ -3388,7 +3393,8 @@ void Assembler::bxj(Condition cond, Register rm) {
   CheckIT(cond);
   if (IsUsingT32()) {
     // BXJ{<c>}{<q>} <Rm> ; T1
-    if ((!rm.IsPC() || AllowUnpredictable())) {
+    if (((!rm.IsPC() && OutsideITBlockAndAlOrLast(cond)) ||
+         AllowUnpredictable())) {
       EmitT32_32(0xf3c08f00U | (rm.GetCode() << 16));
       AdvanceIT();
       return;
@@ -11775,7 +11781,8 @@ void Assembler::subs(Condition cond,
         return;
       }
       // SUBS{<c>}{<q>} PC, LR, #<imm8> ; T5
-      if (!size.IsNarrow() && rd.Is(pc) && rn.Is(lr) && (imm <= 255)) {
+      if (!size.IsNarrow() && rd.Is(pc) && rn.Is(lr) && (imm <= 255) &&
+          (OutsideITBlockAndAlOrLast(cond) || AllowUnpredictable())) {
         EmitT32_32(0xf3de8f00U | imm);
         AdvanceIT();
         return;
