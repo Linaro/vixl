@@ -804,8 +804,8 @@ TEST(macro_assembler_load) {
                      "The MacroAssembler does not convert loads and stores "
                      "with a PC offset register.\n");
 
-  // TODO: PC should not be allowed as register offset (unpredictable).
-  SHOULD_FAIL_TEST_BOTH(Ldr(r0, MemOperand(r0, Sign(plus), pc, Offset)));
+  MUST_FAIL_TEST_BOTH(Ldr(r0, MemOperand(r0, Sign(plus), pc, Offset)),
+                      "Unpredictable instruction.\n");
 
   // TODO: PC should not be allowed as register base in A32 with pre-index
   //       and post-index (unpredictable).
@@ -861,14 +861,15 @@ TEST(macro_assembler_store) {
   // SP is allowed as base, offset and source.
   COMPARE_BOTH(Str(sp, MemOperand(sp, sp, Offset)), "str sp, [sp, sp]\n");
 
-  // TODO: PC is allowed as the value we are storing for A32, but
-  //       should not be allowed for T32 (unpredictable).
   COMPARE_A32(Str(pc, MemOperand(r0, r0, Offset)), "str pc, [r0, r0]\n");
   COMPARE_A32(Str(pc, MemOperand(r0, r0, PreIndex)), "str pc, [r0, r0]!\n");
   COMPARE_A32(Str(pc, MemOperand(r0, r0, PostIndex)), "str pc, [r0], r0\n");
-  SHOULD_FAIL_TEST_T32(Str(pc, MemOperand(r0, r0, Offset)));
-  SHOULD_FAIL_TEST_T32(Str(pc, MemOperand(r0, r0, PreIndex)));
-  SHOULD_FAIL_TEST_T32(Str(pc, MemOperand(r0, r0, PostIndex)));
+  MUST_FAIL_TEST_T32(Str(pc, MemOperand(r0, r0, Offset)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Str(pc, MemOperand(r0, r0, PreIndex)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Str(pc, MemOperand(r0, r0, PostIndex)),
+                     "Unpredictable instruction.\n");
 
   // PC is allowed as register base in the offset variant only for A32.
   COMPARE_A32(Str(r0, MemOperand(pc, r0, Offset)), "str r0, [pc, r0]\n");
@@ -898,8 +899,8 @@ TEST(macro_assembler_store) {
                      "The MacroAssembler does not convert loads and stores "
                      "with a PC offset register.\n");
 
-  // TODO: PC should not be allowed as register offset (unpredictable).
-  SHOULD_FAIL_TEST_BOTH(Str(r0, MemOperand(r0, Sign(plus), pc, Offset)));
+  MUST_FAIL_TEST_BOTH(Str(r0, MemOperand(r0, Sign(plus), pc, Offset)),
+                      "Unpredictable instruction.\n");
 
   // TODO: PC should not be allowed as register base in A32 with pre-index
   //       and post-index (unpredictable).
@@ -2493,9 +2494,7 @@ TEST(macro_assembler_pc_rel_T32) {
 
   MUST_FAIL_TEST_T32(Add(r0, pc, 4096), "Unpredictable instruction.\n");
 
-  // TODO: This case is incorrect; the instruction is unpredictable. The test
-  // must be updated once the bug is fixed.
-  COMPARE_T32(Add(r0, pc, -4096), "sub r0, pc, #4096\n");
+  MUST_FAIL_TEST_T32(Add(r0, pc, -4096), "Unpredictable instruction.\n");
 
   MUST_FAIL_TEST_T32(Add(r0, pc, 0xffff), "Ill-formed 'add' instruction.\n");
   MUST_FAIL_TEST_T32(Add(r0, pc, 0x10002), "Ill-formed 'add' instruction.\n");
@@ -2519,9 +2518,7 @@ TEST(macro_assembler_pc_rel_T32) {
   // COMPARE_T32(Sub(r0, pc, -4096), "mov r0, pc\n"
   //                                 "add r0, #4096\n");
 
-  // TODO: This case is incorrect; the instruction is unpredictable. The test
-  // must be updated once the bug is fixed.
-  COMPARE_T32(Sub(r0, pc, 4096), "sub r0, pc, #4096\n");
+  MUST_FAIL_TEST_T32(Sub(r0, pc, 4096), "Unpredictable instruction.\n");
 
   MUST_FAIL_TEST_T32(Sub(r0, pc, -0xffff), "Ill-formed 'add' instruction.\n");
   MUST_FAIL_TEST_T32(Sub(r0, pc, -0x10002), "Ill-formed 'add' instruction.\n");
