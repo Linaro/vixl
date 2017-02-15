@@ -1867,15 +1867,15 @@ void Assembler::adc(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // ADC{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00a00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -1955,15 +1955,15 @@ void Assembler::adcs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // ADCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00b00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -2172,15 +2172,15 @@ void Assembler::add(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // ADD{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00800010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -2341,15 +2341,15 @@ void Assembler::adds(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // ADDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00900010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -2597,15 +2597,15 @@ void Assembler::and_(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // AND{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00000010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -2685,15 +2685,15 @@ void Assembler::ands(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // ANDS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00100010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -3093,15 +3093,15 @@ void Assembler::bic(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // BIC{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x01c00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -3181,15 +3181,15 @@ void Assembler::bics(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // BICS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x01d00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -3575,14 +3575,14 @@ void Assembler::cmn(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // CMN{<c>}{<q>} <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever() &&
-          ((!rn.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
-           AllowUnpredictable())) {
+          ((!rn.IsPC() && !rm.IsPC() && !rs.IsPC()) || AllowUnpredictable())) {
         EmitA32(0x01700010U | (cond.GetCondition() << 28) |
                 (rn.GetCode() << 16) | rm.GetCode() | (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (rs.GetCode() << 8));
         return;
       }
     }
@@ -3673,14 +3673,14 @@ void Assembler::cmp(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // CMP{<c>}{<q>} <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever() &&
-          ((!rn.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
-           AllowUnpredictable())) {
+          ((!rn.IsPC() && !rm.IsPC() && !rs.IsPC()) || AllowUnpredictable())) {
         EmitA32(0x01500010U | (cond.GetCondition() << 28) |
                 (rn.GetCode() << 16) | rm.GetCode() | (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (rs.GetCode() << 8));
         return;
       }
     }
@@ -3934,15 +3934,15 @@ void Assembler::eor(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // EOR{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00200010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -4022,15 +4022,15 @@ void Assembler::eors(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // EORS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00300010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -6592,57 +6592,51 @@ void Assembler::mov(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingT32()) {
       // MOV<c>{<q>} <Rdm>, <Rdm>, ASR <Rs> ; T1
       if (InITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
-          shift.IsASR() && operand.GetShiftRegister().IsLow()) {
-        EmitT32_16(0x4100 | rd.GetCode() |
-                   (operand.GetShiftRegister().GetCode() << 3));
+          shift.IsASR() && rs.IsLow()) {
+        EmitT32_16(0x4100 | rd.GetCode() | (rs.GetCode() << 3));
         AdvanceIT();
         return;
       }
       // MOV<c>{<q>} <Rdm>, <Rdm>, LSL <Rs> ; T1
       if (InITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
-          shift.IsLSL() && operand.GetShiftRegister().IsLow()) {
-        EmitT32_16(0x4080 | rd.GetCode() |
-                   (operand.GetShiftRegister().GetCode() << 3));
+          shift.IsLSL() && rs.IsLow()) {
+        EmitT32_16(0x4080 | rd.GetCode() | (rs.GetCode() << 3));
         AdvanceIT();
         return;
       }
       // MOV<c>{<q>} <Rdm>, <Rdm>, LSR <Rs> ; T1
       if (InITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
-          shift.IsLSR() && operand.GetShiftRegister().IsLow()) {
-        EmitT32_16(0x40c0 | rd.GetCode() |
-                   (operand.GetShiftRegister().GetCode() << 3));
+          shift.IsLSR() && rs.IsLow()) {
+        EmitT32_16(0x40c0 | rd.GetCode() | (rs.GetCode() << 3));
         AdvanceIT();
         return;
       }
       // MOV<c>{<q>} <Rdm>, <Rdm>, ROR <Rs> ; T1
       if (InITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
-          shift.IsROR() && operand.GetShiftRegister().IsLow()) {
-        EmitT32_16(0x41c0 | rd.GetCode() |
-                   (operand.GetShiftRegister().GetCode() << 3));
+          shift.IsROR() && rs.IsLow()) {
+        EmitT32_16(0x41c0 | rd.GetCode() | (rs.GetCode() << 3));
         AdvanceIT();
         return;
       }
       // MOV{<c>}{<q>} <Rd>, <Rm>, <shift> <Rs> ; T2
       if (!size.IsNarrow() &&
-          ((!rd.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
-           AllowUnpredictable())) {
+          ((!rd.IsPC() && !rm.IsPC() && !rs.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xfa00f000U | (rd.GetCode() << 8) | (rm.GetCode() << 16) |
-                   (shift.GetType() << 21) |
-                   operand.GetShiftRegister().GetCode());
+                   (shift.GetType() << 21) | rs.GetCode());
         AdvanceIT();
         return;
       }
     } else {
       // MOV{<c>}{<q>} <Rd>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever() &&
-          ((!rd.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
-           AllowUnpredictable())) {
+          ((!rd.IsPC() && !rm.IsPC() && !rs.IsPC()) || AllowUnpredictable())) {
         EmitA32(0x01a00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rm.GetCode() | (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (rs.GetCode() << 8));
         return;
       }
     }
@@ -6742,57 +6736,51 @@ void Assembler::movs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingT32()) {
       // MOVS{<q>} <Rdm>, <Rdm>, ASR <Rs> ; T1
       if (OutsideITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
-          shift.IsASR() && operand.GetShiftRegister().IsLow()) {
-        EmitT32_16(0x4100 | rd.GetCode() |
-                   (operand.GetShiftRegister().GetCode() << 3));
+          shift.IsASR() && rs.IsLow()) {
+        EmitT32_16(0x4100 | rd.GetCode() | (rs.GetCode() << 3));
         AdvanceIT();
         return;
       }
       // MOVS{<q>} <Rdm>, <Rdm>, LSL <Rs> ; T1
       if (OutsideITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
-          shift.IsLSL() && operand.GetShiftRegister().IsLow()) {
-        EmitT32_16(0x4080 | rd.GetCode() |
-                   (operand.GetShiftRegister().GetCode() << 3));
+          shift.IsLSL() && rs.IsLow()) {
+        EmitT32_16(0x4080 | rd.GetCode() | (rs.GetCode() << 3));
         AdvanceIT();
         return;
       }
       // MOVS{<q>} <Rdm>, <Rdm>, LSR <Rs> ; T1
       if (OutsideITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
-          shift.IsLSR() && operand.GetShiftRegister().IsLow()) {
-        EmitT32_16(0x40c0 | rd.GetCode() |
-                   (operand.GetShiftRegister().GetCode() << 3));
+          shift.IsLSR() && rs.IsLow()) {
+        EmitT32_16(0x40c0 | rd.GetCode() | (rs.GetCode() << 3));
         AdvanceIT();
         return;
       }
       // MOVS{<q>} <Rdm>, <Rdm>, ROR <Rs> ; T1
       if (OutsideITBlock() && !size.IsWide() && rd.Is(rm) && rm.IsLow() &&
-          shift.IsROR() && operand.GetShiftRegister().IsLow()) {
-        EmitT32_16(0x41c0 | rd.GetCode() |
-                   (operand.GetShiftRegister().GetCode() << 3));
+          shift.IsROR() && rs.IsLow()) {
+        EmitT32_16(0x41c0 | rd.GetCode() | (rs.GetCode() << 3));
         AdvanceIT();
         return;
       }
       // MOVS{<c>}{<q>} <Rd>, <Rm>, <shift> <Rs> ; T2
       if (!size.IsNarrow() &&
-          ((!rd.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
-           AllowUnpredictable())) {
+          ((!rd.IsPC() && !rm.IsPC() && !rs.IsPC()) || AllowUnpredictable())) {
         EmitT32_32(0xfa10f000U | (rd.GetCode() << 8) | (rm.GetCode() << 16) |
-                   (shift.GetType() << 21) |
-                   operand.GetShiftRegister().GetCode());
+                   (shift.GetType() << 21) | rs.GetCode());
         AdvanceIT();
         return;
       }
     } else {
       // MOVS{<c>}{<q>} <Rd>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever() &&
-          ((!rd.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
-           AllowUnpredictable())) {
+          ((!rd.IsPC() && !rm.IsPC() && !rs.IsPC()) || AllowUnpredictable())) {
         EmitA32(0x01b00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rm.GetCode() | (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (rs.GetCode() << 8));
         return;
       }
     }
@@ -7070,14 +7058,14 @@ void Assembler::mvn(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // MVN{<c>}{<q>} <Rd>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever() &&
-          ((!rd.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
-           AllowUnpredictable())) {
+          ((!rd.IsPC() && !rm.IsPC() && !rs.IsPC()) || AllowUnpredictable())) {
         EmitA32(0x01e00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rm.GetCode() | (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (rs.GetCode() << 8));
         return;
       }
     }
@@ -7154,14 +7142,14 @@ void Assembler::mvns(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // MVNS{<c>}{<q>} <Rd>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever() &&
-          ((!rd.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
-           AllowUnpredictable())) {
+          ((!rd.IsPC() && !rm.IsPC() && !rs.IsPC()) || AllowUnpredictable())) {
         EmitA32(0x01f00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rm.GetCode() | (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (rs.GetCode() << 8));
         return;
       }
     }
@@ -7351,15 +7339,15 @@ void Assembler::orr(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // ORR{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x01800010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -7439,15 +7427,15 @@ void Assembler::orrs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // ORRS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x01900010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -8590,15 +8578,15 @@ void Assembler::rsb(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // RSB{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00600010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -8674,15 +8662,15 @@ void Assembler::rsbs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // RSBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00700010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -8727,15 +8715,15 @@ void Assembler::rsc(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // RSC{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00e00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -8780,15 +8768,15 @@ void Assembler::rscs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // RSCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00f00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -8937,15 +8925,15 @@ void Assembler::sbc(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // SBC{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00c00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -9025,15 +9013,15 @@ void Assembler::sbcs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // SBCS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00d00010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -11688,15 +11676,15 @@ void Assembler::sub(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // SUB{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00400010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -11848,15 +11836,15 @@ void Assembler::subs(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // SUBS{<c>}{<q>} {<Rd>}, <Rn>, <Rm>, <shift> <Rs> ; A1
-      if (cond.IsNotNever() && ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() &&
-                                 !operand.GetShiftRegister().IsPC()) ||
-                                AllowUnpredictable())) {
+      if (cond.IsNotNever() &&
+          ((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && !rs.IsPC()) ||
+           AllowUnpredictable())) {
         EmitA32(0x00500010U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | (rn.GetCode() << 16) | rm.GetCode() |
-                (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (shift.GetType() << 5) | (rs.GetCode() << 8));
         return;
       }
     }
@@ -12251,14 +12239,14 @@ void Assembler::teq(Condition cond, Register rn, const Operand& operand) {
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // TEQ{<c>}{<q>} <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever() &&
-          ((!rn.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
-           AllowUnpredictable())) {
+          ((!rn.IsPC() && !rm.IsPC() && !rs.IsPC()) || AllowUnpredictable())) {
         EmitA32(0x01300010U | (cond.GetCondition() << 28) |
                 (rn.GetCode() << 16) | rm.GetCode() | (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (rs.GetCode() << 8));
         return;
       }
     }
@@ -12335,14 +12323,14 @@ void Assembler::tst(Condition cond,
   if (operand.IsRegisterShiftedRegister()) {
     Register rm = operand.GetBaseRegister();
     Shift shift = operand.GetShift();
+    Register rs = operand.GetShiftRegister();
     if (IsUsingA32()) {
       // TST{<c>}{<q>} <Rn>, <Rm>, <shift> <Rs> ; A1
       if (cond.IsNotNever() &&
-          ((!rn.IsPC() && !rm.IsPC() && !operand.GetShiftRegister().IsPC()) ||
-           AllowUnpredictable())) {
+          ((!rn.IsPC() && !rm.IsPC() && !rs.IsPC()) || AllowUnpredictable())) {
         EmitA32(0x01100010U | (cond.GetCondition() << 28) |
                 (rn.GetCode() << 16) | rm.GetCode() | (shift.GetType() << 5) |
-                (operand.GetShiftRegister().GetCode() << 8));
+                (rs.GetCode() << 8));
         return;
       }
     }
