@@ -2137,10 +2137,7 @@ TEST(macro_assembler_PushRegisterList) {
   // Deprecated, but accepted:
   SHOULD_FAIL_TEST_A32(Push(RegisterList(pc)));
   // Whereas we don't accept the single-register version:
-  MUST_FAIL_TEST_A32(Push(pc), "Unpredictable instruction.\n");
-
-  // For T32, pushing the PC is allowed:
-  COMPARE_T32(Push(pc), "push {pc}\n");
+  MUST_FAIL_TEST_BOTH(Push(pc), "Unpredictable instruction.\n");
 
   // Accepted, but stores UNKNOWN value for the SP:
   SHOULD_FAIL_TEST_A32(Push(RegisterList(r0, sp)));
@@ -3292,9 +3289,7 @@ TEST(macro_assembler_T32_IT) {
               "bne 0x00000006\n"
               "sub r7, sp, #1\n");
 
-  COMPARE_T32(Sub(eq, pc, pc, 0),
-              "bne 0x00000006\n"
-              "sub pc, #0\n");
+  MUST_FAIL_TEST_T32(Sub(eq, pc, pc, 0), "Unpredictable instruction.\n");
 
   // TST (register) T1
   COMPARE_T32(Tst(eq, r0, r1),
