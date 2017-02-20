@@ -4395,8 +4395,7 @@ void Assembler::ldaexd(Condition cond,
       // LDAEXD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>] ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           operand.IsOffset() && cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC() &&
-            !rn.IsPC()) ||
+          ((((rt.GetCode() & 1) == 0) && !rt2.IsPC() && !rn.IsPC()) ||
            AllowUnpredictable())) {
         EmitA32(0x01b00e9fU | (cond.GetCondition() << 28) |
                 (rt.GetCode() << 12) | (rn.GetCode() << 16));
@@ -5258,7 +5257,7 @@ void Assembler::ldrd(Condition cond,
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           (offset >= -255) && (offset <= 255) && operand.IsOffset() &&
           cond.IsNotNever() && ((rn.GetCode() & 0xf) != 0xf) &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
+          ((((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
            AllowUnpredictable())) {
         uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
         uint32_t offset_ = abs(offset);
@@ -5271,7 +5270,7 @@ void Assembler::ldrd(Condition cond,
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           (offset >= -255) && (offset <= 255) && operand.IsPostIndex() &&
           cond.IsNotNever() && ((rn.GetCode() & 0xf) != 0xf) &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
+          ((((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
            AllowUnpredictable())) {
         uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
         uint32_t offset_ = abs(offset);
@@ -5284,7 +5283,7 @@ void Assembler::ldrd(Condition cond,
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           (offset >= -255) && (offset <= 255) && operand.IsPreIndex() &&
           cond.IsNotNever() && ((rn.GetCode() & 0xf) != 0xf) &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
+          ((((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
            AllowUnpredictable())) {
         uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
         uint32_t offset_ = abs(offset);
@@ -5297,7 +5296,7 @@ void Assembler::ldrd(Condition cond,
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           (offset >= -255) && (offset <= 255) && rn.Is(pc) &&
           operand.IsOffset() && cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
+          ((((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
            AllowUnpredictable())) {
         uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
         uint32_t offset_ = abs(offset);
@@ -5316,8 +5315,7 @@ void Assembler::ldrd(Condition cond,
       // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>, #{+/-}<Rm>] ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           operand.IsOffset() && cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC() &&
-            !rm.IsPC()) ||
+          ((((rt.GetCode() & 1) == 0) && !rt2.IsPC() && !rm.IsPC()) ||
            AllowUnpredictable())) {
         uint32_t sign_ = sign.IsPlus() ? 1 : 0;
         EmitA32(0x010000d0U | (cond.GetCondition() << 28) |
@@ -5328,8 +5326,7 @@ void Assembler::ldrd(Condition cond,
       // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>], #{+/-}<Rm> ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           operand.IsPostIndex() && cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC() &&
-            !rm.IsPC()) ||
+          ((((rt.GetCode() & 1) == 0) && !rt2.IsPC() && !rm.IsPC()) ||
            AllowUnpredictable())) {
         uint32_t sign_ = sign.IsPlus() ? 1 : 0;
         EmitA32(0x000000d0U | (cond.GetCondition() << 28) |
@@ -5340,8 +5337,7 @@ void Assembler::ldrd(Condition cond,
       // LDRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>, #{+/-}<Rm>]! ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           operand.IsPreIndex() && cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC() &&
-            !rm.IsPC()) ||
+          ((((rt.GetCode() & 1) == 0) && !rt2.IsPC() && !rm.IsPC()) ||
            AllowUnpredictable())) {
         uint32_t sign_ = sign.IsPlus() ? 1 : 0;
         EmitA32(0x012000d0U | (cond.GetCondition() << 28) |
@@ -5395,8 +5391,7 @@ void Assembler::ldrd(Condition cond, Register rt, Register rt2, Label* label) {
         ((label->IsBound() && (offset >= -255) && (offset <= 255)) ||
          !label->IsBound()) &&
         cond.IsNotNever() &&
-        ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
-         AllowUnpredictable())) {
+        ((((rt.GetCode() & 1) == 0) && !rt2.IsPC()) || AllowUnpredictable())) {
       static class EmitOp : public Label::LabelEmitOperator {
        public:
         EmitOp() : Label::LabelEmitOperator(-255, 255) {}
@@ -5498,8 +5493,7 @@ void Assembler::ldrexd(Condition cond,
       // LDREXD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>] ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           operand.IsOffset() && cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC() &&
-            !rn.IsPC()) ||
+          ((((rt.GetCode() & 1) == 0) && !rt2.IsPC() && !rn.IsPC()) ||
            AllowUnpredictable())) {
         EmitA32(0x01b00f9fU | (cond.GetCondition() << 28) |
                 (rt.GetCode() << 12) | (rn.GetCode() << 16));
@@ -10506,8 +10500,8 @@ void Assembler::stlexd(Condition cond,
       // STLEXD{<c>}{<q>} <Rd>, <Rt>, <Rt2>, [<Rn>] ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           operand.IsOffset() && cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rd.IsPC() &&
-            !rt2.IsPC() && !rn.IsPC()) ||
+          ((!rd.IsPC() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC() &&
+            !rn.IsPC()) ||
            AllowUnpredictable())) {
         EmitA32(0x01a00e90U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rt.GetCode() | (rn.GetCode() << 16));
@@ -11178,9 +11172,8 @@ void Assembler::strd(Condition cond,
       // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm_1>}] ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           (offset >= -255) && (offset <= 255) && operand.IsOffset() &&
-          cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
-           AllowUnpredictable())) {
+          cond.IsNotNever() && ((((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
+                                AllowUnpredictable())) {
         uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
         uint32_t offset_ = abs(offset);
         EmitA32(0x014000f0U | (cond.GetCondition() << 28) |
@@ -11191,9 +11184,8 @@ void Assembler::strd(Condition cond,
       // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>], #{+/-}<imm_1> ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           (offset >= -255) && (offset <= 255) && operand.IsPostIndex() &&
-          cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
-           AllowUnpredictable())) {
+          cond.IsNotNever() && ((((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
+                                AllowUnpredictable())) {
         uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
         uint32_t offset_ = abs(offset);
         EmitA32(0x004000f0U | (cond.GetCondition() << 28) |
@@ -11204,9 +11196,8 @@ void Assembler::strd(Condition cond,
       // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>{, #{+/-}<imm_1>}]! ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           (offset >= -255) && (offset <= 255) && operand.IsPreIndex() &&
-          cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
-           AllowUnpredictable())) {
+          cond.IsNotNever() && ((((rt.GetCode() & 1) == 0) && !rt2.IsPC()) ||
+                                AllowUnpredictable())) {
         uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
         uint32_t offset_ = abs(offset);
         EmitA32(0x016000f0U | (cond.GetCondition() << 28) |
@@ -11224,8 +11215,7 @@ void Assembler::strd(Condition cond,
       // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>, #{+/-}<Rm>] ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           operand.IsOffset() && cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC() &&
-            !rm.IsPC()) ||
+          ((((rt.GetCode() & 1) == 0) && !rt2.IsPC() && !rm.IsPC()) ||
            AllowUnpredictable())) {
         uint32_t sign_ = sign.IsPlus() ? 1 : 0;
         EmitA32(0x010000f0U | (cond.GetCondition() << 28) |
@@ -11236,8 +11226,7 @@ void Assembler::strd(Condition cond,
       // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>], #{+/-}<Rm> ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           operand.IsPostIndex() && cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC() &&
-            !rm.IsPC()) ||
+          ((((rt.GetCode() & 1) == 0) && !rt2.IsPC() && !rm.IsPC()) ||
            AllowUnpredictable())) {
         uint32_t sign_ = sign.IsPlus() ? 1 : 0;
         EmitA32(0x000000f0U | (cond.GetCondition() << 28) |
@@ -11248,8 +11237,7 @@ void Assembler::strd(Condition cond,
       // STRD{<c>}{<q>} <Rt>, <Rt2>, [<Rn>, #{+/-}<Rm>]! ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           operand.IsPreIndex() && cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC() &&
-            !rm.IsPC()) ||
+          ((((rt.GetCode() & 1) == 0) && !rt2.IsPC() && !rm.IsPC()) ||
            AllowUnpredictable())) {
         uint32_t sign_ = sign.IsPlus() ? 1 : 0;
         EmitA32(0x012000f0U | (cond.GetCondition() << 28) |
@@ -11348,8 +11336,8 @@ void Assembler::strexd(Condition cond,
       // STREXD{<c>}{<q>} <Rd>, <Rt>, <Rt2>, [<Rn>] ; A1
       if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
           operand.IsOffset() && cond.IsNotNever() &&
-          ((!rt.IsLR() && ((rt.GetCode() & 1) == 0) && !rd.IsPC() &&
-            !rt2.IsPC() && !rn.IsPC()) ||
+          ((!rd.IsPC() && ((rt.GetCode() & 1) == 0) && !rt2.IsPC() &&
+            !rn.IsPC()) ||
            AllowUnpredictable())) {
         EmitA32(0x01a00f90U | (cond.GetCondition() << 28) |
                 (rd.GetCode() << 12) | rt.GetCode() | (rn.GetCode() << 16));
