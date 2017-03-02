@@ -1,4 +1,4 @@
-// Copyright 2015, VIXL authors
+// Copyright 2017, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@
 
 #include "code-generation-scopes-vixl.h"
 #include "macro-assembler-interface.h"
+#include "pool-manager.h"
+#include "pool-manager-impl.h"
 #include "utils-vixl.h"
 
 #include "aarch32/instructions-aarch32.h"
@@ -37,87 +39,28 @@
 #include "aarch32/operands-aarch32.h"
 
 namespace vixl {
+
 namespace aarch32 {
 
 class UseScratchRegisterScope;
 
 enum FlagsUpdate { LeaveFlags = 0, SetFlags = 1, DontCare = 2 };
 
-// LiteralPool class, defined as a container for literals
-class LiteralPool {
- public:
-  typedef std::list<RawLiteral*>::iterator RawLiteralListIterator;
-
- public:
-  LiteralPool() : size_(0) {}
-  ~LiteralPool() {
-    VIXL_ASSERT(literals_.empty() && (size_ == 0));
-    for (RawLiteralListIterator literal_it = keep_until_delete_.begin();
-         literal_it != keep_until_delete_.end();
-         literal_it++) {
-      delete *literal_it;
-    }
-    keep_until_delete_.clear();
-  }
-
-  unsigned GetSize() const { return size_; }
-
-  // Add a literal to the literal container.
-  void AddLiteral(RawLiteral* literal) {
-    // Manually placed literals can't be added to a literal pool.
-    VIXL_ASSERT(!literal->IsManuallyPlaced());
-    VIXL_ASSERT(!literal->IsBound());
-    if (literal->GetPositionInPool() == Label::kMaxOffset) {
-      uint32_t position = GetSize();
-      literal->SetPositionInPool(position);
-      literals_.push_back(literal);
-      size_ += literal->GetAlignedSize();
-    }
-  }
-
-  // First literal to be emitted.
-  RawLiteralListIterator GetFirst() { return literals_.begin(); }
-
-  // Mark the end of the literal container.
-  RawLiteralListIterator GetEnd() { return literals_.end(); }
-
-  // Remove all the literals from the container.
-  // If the literal's memory management has been delegated to the container
-  // it will be delete'd.
-  void Clear() {
-    for (RawLiteralListIterator literal_it = GetFirst(); literal_it != GetEnd();
-         literal_it++) {
-      RawLiteral* literal = *literal_it;
-      switch (literal->GetDeletionPolicy()) {
-        case RawLiteral::kDeletedOnPlacementByPool:
-          delete literal;
-          break;
-        case RawLiteral::kDeletedOnPoolDestruction:
-          keep_until_delete_.push_back(literal);
-          break;
-        case RawLiteral::kManuallyDeleted:
-          break;
-      }
-    }
-    literals_.clear();
-    size_ = 0;
-  }
-
+// We use a subclass to access the protected `ExactAssemblyScope` constructor
+// giving us control over the pools, and make the constructor private to limit
+// usage to code paths emitting pools.
+class ExactAssemblyScopeWithoutPoolsCheck : public ExactAssemblyScope {
  private:
-  // Size (in bytes and including alignments) of the literal pool.
-  unsigned size_;
+  ExactAssemblyScopeWithoutPoolsCheck(MacroAssembler* masm,
+                                      size_t size,
+                                      SizePolicy size_policy = kExactSize);
 
-  // Literal container.
-  std::list<RawLiteral*> literals_;
-  // Already bound Literal container the app requested this pool to keep.
-  std::list<RawLiteral*> keep_until_delete_;
+  friend class MacroAssembler;
+  friend class Label;
 };
-
-
 // Macro assembler for aarch32 instruction set.
 class MacroAssembler : public Assembler, public MacroAssemblerInterface {
  public:
-  enum EmitOption { kBranchRequired, kNoBranchRequired };
   enum FinalizeOption {
     kFallThrough,  // There may be more code to execute after calling Finalize.
     kUnreachable   // Anything generated after calling Finalize is unreachable.
@@ -128,20 +71,59 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
 
   virtual bool ArePoolsBlocked() const VIXL_OVERRIDE {
-    return IsLiteralPoolBlocked() && IsVeneerPoolBlocked();
+    return pool_manager_.IsBlocked();
   }
 
-  // TODO(pools): implement these functions.
-  virtual void EmitPoolHeader() VIXL_OVERRIDE {}
-  virtual void EmitPoolFooter() VIXL_OVERRIDE {}
-  virtual void EmitPaddingBytes(int n) VIXL_OVERRIDE { USE(n); }
-  virtual void EmitNopBytes(int n) VIXL_OVERRIDE { USE(n); }
+  virtual void EmitPoolHeader() VIXL_OVERRIDE {
+    // Check that we have the correct alignment.
+    if (IsUsingT32()) {
+      VIXL_ASSERT(GetBuffer()->Is16bitAligned());
+    } else {
+      VIXL_ASSERT(GetBuffer()->Is32bitAligned());
+    }
+    VIXL_ASSERT(pool_end_ == NULL);
+    pool_end_ = new Label();
+    ExactAssemblyScopeWithoutPoolsCheck guard(this,
+                                              kMaxInstructionSizeInBytes,
+                                              ExactAssemblyScope::kMaximumSize);
+    b(pool_end_);
+  }
+  virtual void EmitPoolFooter() VIXL_OVERRIDE {
+    // Align buffer to 4 bytes.
+    GetBuffer()->Align();
+    if (pool_end_ != NULL) {
+      Bind(pool_end_);
+      delete pool_end_;
+      pool_end_ = NULL;
+    }
+  }
+  virtual void EmitPaddingBytes(int n) VIXL_OVERRIDE {
+    GetBuffer()->EmitZeroedBytes(n);
+  }
+  virtual void EmitNopBytes(int n) VIXL_OVERRIDE {
+    int nops = 0;
+    int nop_size = IsUsingT32() ? k16BitT32InstructionSizeInBytes
+                                : kA32InstructionSizeInBytes;
+    VIXL_ASSERT(n % nop_size == 0);
+    nops = n / nop_size;
+    ExactAssemblyScopeWithoutPoolsCheck guard(this,
+                                              n,
+                                              ExactAssemblyScope::kExactSize);
+    for (int i = 0; i < nops; ++i) {
+      nop();
+    }
+  }
+
 
  private:
   class MacroEmissionCheckScope : public EmissionCheckScope {
    public:
-    explicit MacroEmissionCheckScope(MacroAssemblerInterface* masm)
-        : EmissionCheckScope(masm, kTypicalMacroInstructionMaxSize) {}
+    explicit MacroEmissionCheckScope(MacroAssemblerInterface* masm,
+                                     PoolPolicy pool_policy = kBlockPools)
+        : EmissionCheckScope(masm,
+                             kTypicalMacroInstructionMaxSize,
+                             kMaximumSize,
+                             pool_policy) {}
 
    private:
     static const size_t kTypicalMacroInstructionMaxSize =
@@ -256,172 +238,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     uint32_t initial_cursor_offset_;
   };
 
-  template <Assembler::InstructionCondDtDL asmfn>
-  class EmitLiteralCondDtDL {
-   public:
-    EmitLiteralCondDtDL(DataType dt, DRegister rt) : dt_(dt), rt_(rt) {}
-    void emit(MacroAssembler* const masm,
-              Condition cond,
-              RawLiteral* const literal) {
-      (masm->*asmfn)(cond, dt_, rt_, literal);
-    }
-
-   private:
-    DataType dt_;
-    DRegister rt_;
-  };
-
-  template <Assembler::InstructionCondDtSL asmfn>
-  class EmitLiteralCondDtSL {
-   public:
-    EmitLiteralCondDtSL(DataType dt, SRegister rt) : dt_(dt), rt_(rt) {}
-    void emit(MacroAssembler* const masm,
-              Condition cond,
-              RawLiteral* const literal) {
-      (masm->*asmfn)(cond, dt_, rt_, literal);
-    }
-
-   private:
-    DataType dt_;
-    SRegister rt_;
-  };
-
-  template <Assembler::InstructionCondRL asmfn>
-  class EmitLiteralCondRL {
-   public:
-    explicit EmitLiteralCondRL(Register rt) : rt_(rt) {}
-    void emit(MacroAssembler* const masm,
-              Condition cond,
-              RawLiteral* const literal) {
-      (masm->*asmfn)(cond, rt_, literal);
-    }
-
-   private:
-    Register rt_;
-  };
-
-  template <Assembler::InstructionCondRRL asmfn>
-  class EmitLiteralCondRRL {
-   public:
-    EmitLiteralCondRRL(Register rt, Register rt2) : rt_(rt), rt2_(rt2) {}
-    void emit(MacroAssembler* const masm,
-              Condition cond,
-              RawLiteral* const literal) {
-      (masm->*asmfn)(cond, rt_, rt2_, literal);
-    }
-
-   private:
-    Register rt_, rt2_;
-  };
-
-  class LiteralPoolManager {
-   public:
-    explicit LiteralPoolManager(MacroAssembler* const masm)
-        : masm_(masm), monitor_(0) {
-      ResetCheckpoint();
-    }
-
-    void ResetCheckpoint() { checkpoint_ = Label::kMaxOffset; }
-
-    LiteralPool* GetLiteralPool() { return &literal_pool_; }
-    Label::Offset GetCheckpoint() const {
-      // Make room for a branch over the pools.
-      return checkpoint_ - kMaxInstructionSizeInBytes;
-    }
-    size_t GetLiteralPoolSize() const { return literal_pool_.GetSize(); }
-
-    // Checks if the insertion of the literal will put the forward reference
-    // too far in the literal pool.
-    // This function is called after generating an instruction with a literal.
-    // We want to know if the literal can be reached by the instruction.
-    // If not, we will unwind the instruction, generate the pool (without the
-    // last literal) and generate the instruction again.
-    // "literal" is the literal we want to insert into the pool.
-    // "from" is the location where the instruction which uses the literal has
-    // been generated.
-    bool WasInsertedTooFar(RawLiteral* literal) const {
-      // Last accessible location for the instruction we just generated, which
-      // uses the literal.
-      Label::ForwardReference& reference = literal->GetBackForwardRef();
-      Label::Offset new_checkpoint = AlignDown(reference.GetCheckpoint(), 4);
-
-      // TODO: We should not need to get the min of new_checkpoint and the
-      // existing checkpoint. The existing checkpoint should already have
-      // been checked when reserving space for this load literal instruction.
-      // The assertion below asserts that we don't need the min operation here.
-      Label::Offset checkpoint =
-          std::min(new_checkpoint, literal->GetAlignedCheckpoint(4));
-      bool literal_in_pool =
-          (literal->GetPositionInPool() != Label::kMaxOffset);
-      Label::Offset position_in_pool = literal_in_pool
-                                           ? literal->GetPositionInPool()
-                                           : literal_pool_.GetSize();
-      // Compare the checkpoint to the location where the literal should be
-      // added.
-      // We add space for two instructions: one branch and one potential veneer
-      // which may be added after the check. In this particular use case, no
-      // veneer can be added but, this way, we are consistent with all the
-      // literal pool checks.
-      int32_t from =
-          reference.GetLocation() + masm_->GetArchitectureStatePCOffset();
-      bool too_far =
-          checkpoint < from + position_in_pool +
-                           2 * static_cast<int32_t>(kMaxInstructionSizeInBytes);
-      // Assert if the literal is already in the pool and the existing
-      // checkpoint triggers a rewind here, as this means the pool should
-      // already have been emitted (perhaps we have not reserved enough space
-      // for the instruction we are about to rewind).
-      VIXL_ASSERT(!(too_far && (literal->GetCheckpoint() < new_checkpoint)));
-      return too_far;
-    }
-
-    // Set the different checkpoints where the literal pool has to be emited.
-    void UpdateCheckpoint(RawLiteral* literal) {
-      // The literal should have been placed somewhere in the literal pool
-      VIXL_ASSERT(literal->GetPositionInPool() != Label::kMaxOffset);
-      // TODO(all): Consider AddForwardRef as a  virtual so the checkpoint is
-      //   updated when inserted. Or move checkpoint_ into Label,
-      literal->UpdateCheckpoint();
-      Label::Offset tmp =
-          literal->GetAlignedCheckpoint(4) - literal->GetPositionInPool();
-      if (checkpoint_ > tmp) {
-        checkpoint_ = tmp;
-        masm_->ComputeCheckpoint();
-      }
-    }
-
-    bool IsEmpty() const { return GetLiteralPoolSize() == 0; }
-
-    void Block() { monitor_++; }
-    void Release() {
-      VIXL_ASSERT(IsBlocked());
-      if (--monitor_ == 0) {
-        // Ensure the pool has not been blocked for too long.
-        VIXL_ASSERT(masm_->GetCursorOffset() <= checkpoint_);
-      }
-    }
-    bool IsBlocked() const { return monitor_ != 0; }
-
-   private:
-    MacroAssembler* const masm_;
-    LiteralPool literal_pool_;
-
-    // Max offset in the code buffer where the literal needs to be
-    // emitted. A default value of Label::kMaxOffset means that the checkpoint
-    // is invalid.
-    Label::Offset checkpoint_;
-    // Indicates whether the emission of this pool is blocked.
-    int monitor_;
-  };
-
  protected:
-  virtual void BlockPools() VIXL_OVERRIDE {
-    BlockLiteralPool();
-    BlockVeneerPool();
-  }
+  virtual void BlockPools() VIXL_OVERRIDE { pool_manager_.Block(); }
   virtual void ReleasePools() VIXL_OVERRIDE {
-    ReleaseLiteralPool();
-    ReleaseVeneerPool();
+    pool_manager_.Release(GetCursorOffset());
   }
   virtual void EnsureEmitPoolsFor(size_t size) VIXL_OVERRIDE;
 
@@ -432,98 +252,52 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     allow_macro_instructions_ = value;
   }
 
-  void BlockLiteralPool() { literal_pool_manager_.Block(); }
-  void ReleaseLiteralPool() { literal_pool_manager_.Release(); }
-  bool IsLiteralPoolBlocked() const {
-    return literal_pool_manager_.IsBlocked();
-  }
-  void BlockVeneerPool() { veneer_pool_manager_.Block(); }
-  void ReleaseVeneerPool() { veneer_pool_manager_.Release(); }
-  bool IsVeneerPoolBlocked() const { return veneer_pool_manager_.IsBlocked(); }
-
   void HandleOutOfBoundsImmediate(Condition cond, Register tmp, uint32_t imm);
-  void PadToMinimumBranchRange(Label* label);
-
-  // Generate the instruction and if it's not possible revert the whole thing.
-  // emit the literal pool and regenerate the instruction.
-  // Note: The instruction is generated via
-  // void T::emit(MacroAssembler* const, RawLiteral* const)
-  template <typename T>
-  void GenerateInstruction(Condition cond,
-                           T instr_callback,
-                           RawLiteral* const literal) {
-    int32_t cursor = GetCursorOffset();
-    // Emit the instruction, via the assembler
-    {
-      MacroEmissionCheckScope guard(this);
-      // The ITScope can change the condition and we want to be able to revert
-      // this.
-      Condition c(cond);
-      ITScope it_scope(this, &c, guard);
-      instr_callback.emit(this, c, literal);
-    }
-    if (!literal->IsManuallyPlaced() && !literal->IsBound() &&
-        !IsLiteralPoolBlocked()) {
-      if (WasInsertedTooFar(literal)) {
-        // The instruction's data is too far: revert the emission
-        GetBuffer()->Rewind(cursor);
-        literal->InvalidateLastForwardReference(RawLiteral::kNoUpdateNecessary);
-        EmitLiteralPool(kBranchRequired);
-        MacroEmissionCheckScope guard(this);
-        ITScope it_scope(this, &cond, guard);
-        instr_callback.emit(this, cond, literal);
-      }
-      // The literal pool above might have included the literal - in which
-      // case it will now be bound.
-      if (!literal->IsBound()) {
-        literal_pool_manager_.GetLiteralPool()->AddLiteral(literal);
-        literal_pool_manager_.UpdateCheckpoint(literal);
-      }
-    }
-  }
 
  public:
+  // TODO: If we change the MacroAssembler to disallow setting a different ISA,
+  // we can change the alignment of the pool in the pool manager constructor to
+  // be 2 bytes for T32.
   explicit MacroAssembler(InstructionSet isa = kDefaultISA)
       : Assembler(isa),
         available_(r12),
         current_scratch_scope_(NULL),
-        checkpoint_(Label::kMaxOffset),
-        literal_pool_manager_(this),
-        veneer_pool_manager_(this),
-        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE) {
+        pool_manager_(4 /*header_size*/,
+                      4 /*alignment*/,
+                      4 /*buffer_alignment*/),
+        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE),
+        pool_end_(NULL) {
 #ifdef VIXL_DEBUG
     SetAllowMacroInstructions(true);
 #else
-    USE(literal_pool_manager_);
     USE(allow_macro_instructions_);
 #endif
-    ComputeCheckpoint();
   }
   explicit MacroAssembler(size_t size, InstructionSet isa = kDefaultISA)
       : Assembler(size, isa),
         available_(r12),
         current_scratch_scope_(NULL),
-        checkpoint_(Label::kMaxOffset),
-        literal_pool_manager_(this),
-        veneer_pool_manager_(this),
-        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE) {
+        pool_manager_(4 /*header_size*/,
+                      4 /*alignment*/,
+                      4 /*buffer_alignment*/),
+        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE),
+        pool_end_(NULL) {
 #ifdef VIXL_DEBUG
     SetAllowMacroInstructions(true);
 #endif
-    ComputeCheckpoint();
   }
   MacroAssembler(byte* buffer, size_t size, InstructionSet isa = kDefaultISA)
       : Assembler(buffer, size, isa),
         available_(r12),
         current_scratch_scope_(NULL),
-        checkpoint_(Label::kMaxOffset),
-        literal_pool_manager_(this),
-        veneer_pool_manager_(this),
-        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE) {
+        pool_manager_(4 /*header_size*/,
+                      4 /*alignment*/,
+                      4 /*buffer_alignment*/),
+        generate_simulator_code_(VIXL_AARCH32_GENERATE_SIMULATOR_CODE),
+        pool_end_(NULL) {
 #ifdef VIXL_DEBUG
     SetAllowMacroInstructions(true);
 #endif
-    ComputeCheckpoint();
   }
 
   bool GenerateSimulatorCode() const { return generate_simulator_code_; }
@@ -533,8 +307,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
 
   void FinalizeCode(FinalizeOption option = kUnreachable) {
-    EmitLiteralPool(option == kUnreachable ? kNoBranchRequired
-                                           : kBranchRequired);
+    EmitLiteralPool(option == kUnreachable
+                        ? PoolManager<int32_t>::kNoBranchRequired
+                        : PoolManager<int32_t>::kBranchRequired);
     Assembler::FinalizeCode();
   }
 
@@ -613,73 +388,107 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   void Bind(Label* label) {
     VIXL_ASSERT(allow_macro_instructions_);
-    PadToMinimumBranchRange(label);
     BindHelper(label);
   }
 
-  void AddBranchLabel(Label* label) {
-    if (label->IsBound()) return;
-    veneer_pool_manager_.AddLabel(label);
+  virtual void BindHelper(Label* label) VIXL_OVERRIDE {
+    // Assert that we have the correct buffer alignment.
+    if (IsUsingT32()) {
+      VIXL_ASSERT(GetBuffer()->Is16bitAligned());
+    } else {
+      VIXL_ASSERT(GetBuffer()->Is32bitAligned());
+    }
+    // If we need to add padding, check if we have to emit the pool.
+    const int32_t pc = GetCursorOffset();
+    if (label->Needs16BitPadding(pc)) {
+      const int kPaddingBytes = 2;
+      if (pool_manager_.MustEmit(pc, kPaddingBytes)) {
+        int32_t new_pc = pool_manager_.Emit(this, pc, kPaddingBytes);
+        USE(new_pc);
+        VIXL_ASSERT(new_pc == GetCursorOffset());
+      }
+    }
+    pool_manager_.Bind(this, label, GetCursorOffset());
+  }
+
+  void RegisterLiteralReference(RawLiteral* literal) {
+    if (literal->IsManuallyPlaced()) return;
+    RegisterForwardReference(literal);
+  }
+
+  void RegisterForwardReference(Location* location) {
+    if (location->IsBound()) return;
+    VIXL_ASSERT(location->HasForwardReferences());
+    const Location::ForwardRef& reference = location->GetLastForwardReference();
+    pool_manager_.AddObjectReference(&reference, location);
+  }
+
+  void CheckEmitPoolForInstruction(const ReferenceInfo* info,
+                                   Location* location,
+                                   Condition* cond = NULL) {
+    int size = info->size;
+    int32_t pc = GetCursorOffset();
+    // If we need to emit a branch over the instruction, take this into account.
+    if ((cond != NULL) && NeedBranch(cond)) {
+      size += kBranchSize;
+      pc += kBranchSize;
+    }
+    int32_t from = pc;
+    from += IsUsingT32() ? kT32PcDelta : kA32PcDelta;
+    if (info->pc_needs_aligning) from = AlignDown(from, 4);
+    int32_t min = from + info->min_offset;
+    int32_t max = from + info->max_offset;
+    ForwardReference<int32_t> temp_ref(pc,
+                                       info->size,
+                                       min,
+                                       max,
+                                       info->alignment);
+    if (pool_manager_.MustEmit(GetCursorOffset(), size, &temp_ref, location)) {
+      int32_t new_pc = pool_manager_.Emit(this,
+                                          GetCursorOffset(),
+                                          info->size,
+                                          &temp_ref,
+                                          location);
+      USE(new_pc);
+      VIXL_ASSERT(new_pc == GetCursorOffset());
+    }
   }
 
   void Place(RawLiteral* literal) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(literal->IsManuallyPlaced());
-    // We have two calls to `GetBuffer()->Align()` below, that aligns on word
-    // (4 bytes) boundaries. Only one is taken into account in
-    // `GetAlignedSize()`.
-    static const size_t kMaxAlignSize = 3;
-    size_t size = literal->GetAlignedSize() + kMaxAlignSize;
-    VIXL_ASSERT(IsUint32(size));
-    // Check if we need to emit the pools or grow the code buffer.
-    EmissionCheckScope(this, size);
-    // Literals must be emitted aligned on word (4 bytes) boundaries.
+    // Check if we need to emit the pools. Take the alignment of the literal
+    // into account, as well as potential 16-bit padding needed to reach the
+    // minimum accessible location.
+    int alignment = literal->GetMaxAlignment();
+    int32_t pc = GetCursorOffset();
+    int total_size = AlignUp(pc, alignment) - pc + literal->GetSize();
+    if (literal->Needs16BitPadding(pc)) total_size += 2;
+    if (pool_manager_.MustEmit(pc, total_size)) {
+      int32_t new_pc = pool_manager_.Emit(this, pc, total_size);
+      USE(new_pc);
+      VIXL_ASSERT(new_pc == GetCursorOffset());
+    }
+    pool_manager_.Bind(this, literal, GetCursorOffset());
+    literal->EmitPoolObject(this);
+    // Align the buffer, to be ready to generate instructions right after
+    // this.
     GetBuffer()->Align();
-    PlaceHelper(literal);
-    GetBuffer()->Align();
   }
 
-  void ComputeCheckpoint();
-
-  int32_t GetMarginBeforeVeneerEmission() const {
-    return veneer_pool_manager_.GetCheckpoint() - GetCursorOffset();
+  void EmitLiteralPool(PoolManager<int32_t>::EmitOption option =
+                           PoolManager<int32_t>::kBranchRequired) {
+    VIXL_ASSERT(!ArePoolsBlocked());
+    int32_t new_pc =
+        pool_manager_.Emit(this, GetCursorOffset(), 0, NULL, NULL, option);
+    VIXL_ASSERT(new_pc == GetCursorOffset());
+    USE(new_pc);
   }
-
-  Label::Offset GetTargetForLiteralEmission() const {
-    if (literal_pool_manager_.IsEmpty()) return Label::kMaxOffset;
-    // We add an instruction to the size as the instruction which calls this
-    // function may add a veneer and, without this extra instruction, could put
-    // the literals out of range. For example, it's the case for a "B"
-    // instruction. At the beginning of the instruction we call
-    // EnsureEmitPoolsFor which calls this function. However, the target of the
-    // branch hasn't been inserted yet in the veneer pool.
-    size_t veneer_max_size =
-        veneer_pool_manager_.GetMaxSize() + kMaxInstructionSizeInBytes;
-    VIXL_ASSERT(IsInt32(veneer_max_size));
-    // We must be able to generate the veneer pool first.
-    Label::Offset tmp = literal_pool_manager_.GetCheckpoint() -
-                        static_cast<Label::Offset>(veneer_max_size);
-    VIXL_ASSERT(tmp >= 0);
-    return tmp;
-  }
-
-  int32_t GetMarginBeforeLiteralEmission() const {
-    Label::Offset tmp = GetTargetForLiteralEmission();
-    VIXL_ASSERT(tmp >= GetCursorOffset());
-    return tmp - GetCursorOffset();
-  }
-
-  bool VeneerPoolIsEmpty() const { return veneer_pool_manager_.IsEmpty(); }
-  bool LiteralPoolIsEmpty() const { return literal_pool_manager_.IsEmpty(); }
 
   void EnsureEmitFor(uint32_t size) {
     EnsureEmitPoolsFor(size);
     VIXL_ASSERT(GetBuffer()->HasSpaceFor(size) || GetBuffer()->IsManaged());
     GetBuffer()->EnsureSpaceFor(size);
-  }
-
-  bool WasInsertedTooFar(RawLiteral* literal) {
-    return literal_pool_manager_.WasInsertedTooFar(literal);
   }
 
   bool AliasesAvailableScratchRegister(Register reg) {
@@ -738,30 +547,26 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             AliasesAvailableScratchRegister(operand.GetOffsetRegister()));
   }
 
-  // Emit the literal pool in the code buffer.
-  // Every literal is placed on a 32bit boundary
-  // All the literals in the pool will be removed from the pool and potentially
-  // delete'd.
-  void EmitLiteralPool(LiteralPool* const literal_pool, EmitOption option);
-  void EmitLiteralPool(EmitOption option = kBranchRequired) {
-    VIXL_ASSERT(!IsLiteralPoolBlocked());
-    EmitLiteralPool(literal_pool_manager_.GetLiteralPool(), option);
-    literal_pool_manager_.ResetCheckpoint();
-    ComputeCheckpoint();
-  }
-
-  size_t GetLiteralPoolSize() const {
-    return literal_pool_manager_.GetLiteralPoolSize();
-  }
-
   // Adr with a literal already constructed. Add the literal to the pool if it
   // is not already done.
   void Adr(Condition cond, Register rd, RawLiteral* literal) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    EmitLiteralCondRL<&Assembler::adr> emit_helper(rd);
-    GenerateInstruction(cond, emit_helper, literal);
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!literal->IsBound()) {
+      const ReferenceInfo* info;
+      bool can_encode = adr_info(cond, Best, rd, literal, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, literal, &cond);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
+    }
+    MacroEmissionCheckScope guard(this, pool_policy);
+    ITScope it_scope(this, &cond, guard);
+    adr(cond, Best, rd, literal);
+    RegisterLiteralReference(literal);
   }
   void Adr(Register rd, RawLiteral* literal) { Adr(al, rd, literal); }
 
@@ -771,8 +576,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    EmitLiteralCondRL<&Assembler::ldr> emit_helper(rt);
-    GenerateInstruction(cond, emit_helper, literal);
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!literal->IsBound()) {
+      const ReferenceInfo* info;
+      bool can_encode = ldr_info(cond, Best, rt, literal, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, literal, &cond);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
+    }
+    MacroEmissionCheckScope guard(this, pool_policy);
+    ITScope it_scope(this, &cond, guard);
+    ldr(cond, rt, literal);
+    RegisterLiteralReference(literal);
   }
   void Ldr(Register rt, RawLiteral* literal) { Ldr(al, rt, literal); }
 
@@ -780,8 +597,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    EmitLiteralCondRL<&Assembler::ldrb> emit_helper(rt);
-    GenerateInstruction(cond, emit_helper, literal);
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!literal->IsBound()) {
+      const ReferenceInfo* info;
+      bool can_encode = ldrb_info(cond, rt, literal, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, literal, &cond);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
+    }
+    MacroEmissionCheckScope guard(this, pool_policy);
+    ITScope it_scope(this, &cond, guard);
+    ldrb(cond, rt, literal);
+    RegisterLiteralReference(literal);
   }
   void Ldrb(Register rt, RawLiteral* literal) { Ldrb(al, rt, literal); }
 
@@ -790,8 +619,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rt2));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    EmitLiteralCondRRL<&Assembler::ldrd> emit_helper(rt, rt2);
-    GenerateInstruction(cond, emit_helper, literal);
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!literal->IsBound()) {
+      const ReferenceInfo* info;
+      bool can_encode = ldrd_info(cond, rt, rt2, literal, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, literal, &cond);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
+    }
+    MacroEmissionCheckScope guard(this, pool_policy);
+    ITScope it_scope(this, &cond, guard);
+    ldrd(cond, rt, rt2, literal);
+    RegisterLiteralReference(literal);
   }
   void Ldrd(Register rt, Register rt2, RawLiteral* literal) {
     Ldrd(al, rt, rt2, literal);
@@ -801,8 +642,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    EmitLiteralCondRL<&Assembler::ldrh> emit_helper(rt);
-    GenerateInstruction(cond, emit_helper, literal);
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!literal->IsBound()) {
+      const ReferenceInfo* info;
+      bool can_encode = ldrh_info(cond, rt, literal, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, literal, &cond);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
+    }
+    MacroEmissionCheckScope guard(this, pool_policy);
+    ITScope it_scope(this, &cond, guard);
+    ldrh(cond, rt, literal);
+    RegisterLiteralReference(literal);
   }
   void Ldrh(Register rt, RawLiteral* literal) { Ldrh(al, rt, literal); }
 
@@ -810,8 +663,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    EmitLiteralCondRL<&Assembler::ldrsb> emit_helper(rt);
-    GenerateInstruction(cond, emit_helper, literal);
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!literal->IsBound()) {
+      const ReferenceInfo* info;
+      bool can_encode = ldrsb_info(cond, rt, literal, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, literal, &cond);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
+    }
+    MacroEmissionCheckScope guard(this, pool_policy);
+    ITScope it_scope(this, &cond, guard);
+    ldrsb(cond, rt, literal);
+    RegisterLiteralReference(literal);
   }
   void Ldrsb(Register rt, RawLiteral* literal) { Ldrsb(al, rt, literal); }
 
@@ -819,8 +684,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rt));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    EmitLiteralCondRL<&Assembler::ldrsh> emit_helper(rt);
-    GenerateInstruction(cond, emit_helper, literal);
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!literal->IsBound()) {
+      const ReferenceInfo* info;
+      bool can_encode = ldrsh_info(cond, rt, literal, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, literal, &cond);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
+    }
+    MacroEmissionCheckScope guard(this, pool_policy);
+    ITScope it_scope(this, &cond, guard);
+    ldrsh(cond, rt, literal);
+    RegisterLiteralReference(literal);
   }
   void Ldrsh(Register rt, RawLiteral* literal) { Ldrsh(al, rt, literal); }
 
@@ -828,8 +705,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    EmitLiteralCondDtDL<&Assembler::vldr> emit_helper(dt, rd);
-    GenerateInstruction(cond, emit_helper, literal);
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!literal->IsBound()) {
+      const ReferenceInfo* info;
+      bool can_encode = vldr_info(cond, dt, rd, literal, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, literal, &cond);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
+    }
+    MacroEmissionCheckScope guard(this, pool_policy);
+    ITScope it_scope(this, &cond, guard);
+    vldr(cond, dt, rd, literal);
+    RegisterLiteralReference(literal);
   }
   void Vldr(DataType dt, DRegister rd, RawLiteral* literal) {
     Vldr(al, dt, rd, literal);
@@ -845,8 +734,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    EmitLiteralCondDtSL<&Assembler::vldr> emit_helper(dt, rd);
-    GenerateInstruction(cond, emit_helper, literal);
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!literal->IsBound()) {
+      const ReferenceInfo* info;
+      bool can_encode = vldr_info(cond, dt, rd, literal, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, literal, &cond);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
+    }
+    MacroEmissionCheckScope guard(this, pool_policy);
+    ITScope it_scope(this, &cond, guard);
+    vldr(cond, dt, rd, literal);
+    RegisterLiteralReference(literal);
   }
   void Vldr(DataType dt, SRegister rd, RawLiteral* literal) {
     Vldr(al, dt, rd, literal);
@@ -865,8 +766,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(OutsideITBlock());
     RawLiteral* literal =
         new Literal<uint32_t>(v, RawLiteral::kDeletedOnPlacementByPool);
-    EmitLiteralCondRL<&Assembler::ldr> emit_helper(rt);
-    GenerateInstruction(cond, emit_helper, literal);
+    Ldr(cond, rt, literal);
   }
   template <typename T>
   void Ldr(Register rt, T v) {
@@ -881,8 +781,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(OutsideITBlock());
     RawLiteral* literal =
         new Literal<uint64_t>(v, RawLiteral::kDeletedOnPlacementByPool);
-    EmitLiteralCondRRL<&Assembler::ldrd> emit_helper(rt, rt2);
-    GenerateInstruction(cond, emit_helper, literal);
+    Ldrd(cond, rt, rt2, literal);
   }
   template <typename T>
   void Ldrd(Register rt, Register rt2, T v) {
@@ -895,8 +794,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(OutsideITBlock());
     RawLiteral* literal =
         new Literal<float>(v, RawLiteral::kDeletedOnPlacementByPool);
-    EmitLiteralCondDtSL<&Assembler::vldr> emit_helper(Untyped32, rd);
-    GenerateInstruction(cond, emit_helper, literal);
+    Vldr(cond, rd, literal);
   }
   void Vldr(SRegister rd, float v) { Vldr(al, rd, v); }
 
@@ -906,8 +804,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(OutsideITBlock());
     RawLiteral* literal =
         new Literal<double>(v, RawLiteral::kDeletedOnPlacementByPool);
-    EmitLiteralCondDtDL<&Assembler::vldr> emit_helper(Untyped64, rd);
-    GenerateInstruction(cond, emit_helper, literal);
+    Vldr(cond, rd, literal);
   }
   void Vldr(DRegister rd, double v) { Vldr(al, rd, v); }
 
@@ -1399,17 +1296,21 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void B(Condition cond, Label* label, BranchHint hint = kBranchWithoutHint) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    if (hint == kNear) {
-      if (label->IsBound()) {
-        b(cond, label);
-      } else {
-        b(cond, Narrow, label);
-      }
-    } else {
-      b(cond, label);
+    EncodingSize size = Best;
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!label->IsBound()) {
+      if (hint == kNear) size = Narrow;
+      const ReferenceInfo* info;
+      bool can_encode = b_info(cond, size, label, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, label, &cond);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
     }
-    AddBranchLabel(label);
+    MacroEmissionCheckScope guard(this, pool_policy);
+    b(cond, size, label);
+    RegisterForwardReference(label);
   }
   void B(Label* label, BranchHint hint = kBranchWithoutHint) {
     B(al, label, hint);
@@ -1527,20 +1428,40 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Bl(Condition cond, Label* label) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!label->IsBound()) {
+      const ReferenceInfo* info;
+      bool can_encode = bl_info(cond, label, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, label, &cond);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
+    }
+    MacroEmissionCheckScope guard(this, pool_policy);
     ITScope it_scope(this, &cond, guard);
     bl(cond, label);
-    AddBranchLabel(label);
+    RegisterForwardReference(label);
   }
   void Bl(Label* label) { Bl(al, label); }
 
   void Blx(Condition cond, Label* label) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!label->IsBound()) {
+      const ReferenceInfo* info;
+      bool can_encode = blx_info(cond, label, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, label, &cond);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
+    }
+    MacroEmissionCheckScope guard(this, pool_policy);
     ITScope it_scope(this, &cond, guard);
     blx(cond, label);
-    AddBranchLabel(label);
+    RegisterForwardReference(label);
   }
   void Blx(Label* label) { Blx(al, label); }
 
@@ -1584,18 +1505,38 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rn));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!label->IsBound()) {
+      const ReferenceInfo* info;
+      bool can_encode = cbnz_info(rn, label, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, label);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
+    }
+    MacroEmissionCheckScope guard(this, pool_policy);
     cbnz(rn, label);
-    AddBranchLabel(label);
+    RegisterForwardReference(label);
   }
 
   void Cbz(Register rn, Label* label) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rn));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
+    MacroEmissionCheckScope::PoolPolicy pool_policy =
+        MacroEmissionCheckScope::kBlockPools;
+    if (!label->IsBound()) {
+      const ReferenceInfo* info;
+      bool can_encode = cbz_info(rn, label, &info);
+      VIXL_CHECK(can_encode);
+      CheckEmitPoolForInstruction(info, label);
+      // We have already checked for pool emission.
+      pool_policy = MacroEmissionCheckScope::kIgnorePools;
+    }
+    MacroEmissionCheckScope guard(this, pool_policy);
     cbz(rn, label);
-    AddBranchLabel(label);
+    RegisterForwardReference(label);
   }
 
   void Clrex(Condition cond) {
@@ -10832,15 +10773,19 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
 
  private:
+  bool NeedBranch(Condition* cond) { return !cond->Is(al) && IsUsingT32(); }
+  static const int kBranchSize = kMaxInstructionSizeInBytes;
+
   RegisterList available_;
   VRegisterList available_vfp_;
   UseScratchRegisterScope* current_scratch_scope_;
   MacroAssemblerContext context_;
-  Label::Offset checkpoint_;
-  LiteralPoolManager literal_pool_manager_;
-  VeneerPoolManager veneer_pool_manager_;
+  PoolManager<int32_t> pool_manager_;
   bool generate_simulator_code_;
   bool allow_macro_instructions_;
+  Label* pool_end_;
+
+  friend class TestMacroAssembler;
 };
 
 // This scope utility allows scratch registers to be managed safely. The

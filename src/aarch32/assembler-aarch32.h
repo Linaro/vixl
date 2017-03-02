@@ -1,4 +1,4 @@
-// Copyright 2015, VIXL authors
+// Copyright 2017, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 #include "assembler-base-vixl.h"
 
 #include "aarch32/instructions-aarch32.h"
-#include "aarch32/label-aarch32.h"
+#include "aarch32/location-aarch32.h"
 
 namespace vixl {
 namespace aarch32 {
@@ -42,9 +42,6 @@ class Assembler : public internal::AssemblerBase {
   bool has_32_dregs_;
   bool allow_unpredictable_;
   bool allow_strongly_discouraged_;
-
- public:
-  struct ReferenceInfo;
 
  protected:
   void EmitT32_16(uint16_t instr);
@@ -63,12 +60,10 @@ class Assembler : public internal::AssemblerBase {
   void PerformCheckIT(Condition condition);
 #endif
   void AdvanceIT() { it_mask_ = (it_mask_ << 1) & 0xf; }
-  void BindHelper(Label* label);
-  void BindLocationHelper(Location* location);
-  void PlaceHelper(RawLiteral* literal) {
-    BindLocationHelper(literal);
-    GetBuffer()->EmitData(literal->GetDataAddress(), literal->GetSize());
-  }
+  // Virtual, in order to be overridden by the MacroAssembler, which needs to
+  // notify the pool manager.
+  virtual void BindHelper(Label* label);
+
   uint32_t Link(uint32_t instr,
                 Location* location,
                 const Location::EmitOperator& op,
@@ -177,10 +172,6 @@ class Assembler : public internal::AssemblerBase {
     first_condition_ = first_condition;
     it_mask_ = it_mask;
   }
-  bool Is16BitEncoding(uint16_t instr) const {
-    VIXL_ASSERT(IsUsingT32());
-    return instr < 0xe800;
-  }
   bool InITBlock() { return it_mask_ != 0; }
   bool OutsideITBlock() { return it_mask_ == 0; }
   bool OutsideITBlockOrLast() { return (it_mask_ == 0) || (it_mask_ == 0x8); }
@@ -198,23 +189,35 @@ class Assembler : public internal::AssemblerBase {
   }
 
   uint32_t GetArchitectureStatePCOffset() const { return IsUsingT32() ? 4 : 8; }
+
+  // Bind a raw Location that will never be tracked by the pool manager.
+  void bind(Location* location) {
+    VIXL_ASSERT(AllowAssembler());
+    VIXL_ASSERT(!location->IsBound());
+    location->SetLocation(this, GetCursorOffset());
+    location->MarkBound();
+  }
+
+  // Bind a Label, which may be tracked by the pool manager in the presence of a
+  // MacroAssembler.
   void bind(Label* label) {
     VIXL_ASSERT(AllowAssembler());
     BindHelper(label);
   }
+
   void place(RawLiteral* literal) {
     VIXL_ASSERT(AllowAssembler());
     VIXL_ASSERT(literal->IsManuallyPlaced());
-    PlaceHelper(literal);
+    literal->SetLocation(this, GetCursorOffset());
+    literal->MarkBound();
+    GetBuffer()->EnsureSpaceFor(literal->GetSize());
+    GetBuffer()->EmitData(literal->GetDataAddress(), literal->GetSize());
   }
 
   size_t GetSizeOfCodeGeneratedSince(Label* label) const {
     VIXL_ASSERT(label->IsBound());
     return buffer_.GetOffsetFrom(label->GetLocation());
   }
-
-  void EncodeLocationFor(const Location::ForwardReference& forward,
-                         Location* location);
 
   // Helpers for it instruction.
   void it(Condition cond) { it(cond, 0x8); }
@@ -1832,14 +1835,6 @@ class Assembler : public internal::AssemblerBase {
     VIXL_ASSERT((type == kVtbl) || (type == kVtbx));
     UnimplementedDelegate(type);
   }
-  // Structure containing information on forward references.
-  struct ReferenceInfo {
-    int size;
-    int min_offset;
-    int max_offset;
-    int alignment;  // As a power of two.
-    enum { kAlignPc, kDontAlignPc } pc_needs_aligning;
-  };
 
   void adc(Condition cond,
            EncodingSize size,

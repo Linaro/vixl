@@ -43,7 +43,7 @@ namespace vixl {
 class TestPoolManager;
 
 // There are four classes declared in this header file:
-// PoolManager, PoolObject, ForwardReference and LabelBase.
+// PoolManager, PoolObject, ForwardReference and LocationBase.
 
 // The PoolManager manages both literal and veneer pools, and is designed to be
 // shared between AArch32 and AArch64. A pool is represented as an abstract
@@ -51,14 +51,14 @@ class TestPoolManager;
 // architecture-specific details about literals and veneers; the actual
 // emission of the pool objects is delegated.
 //
-// Literal and Label will derive from LabelBase. The MacroAssembler will create
-// these objects as instructions that reference pool objects are encountered,
-// and ask the PoolManager to track them. The PoolManager will create an
-// internal PoolObject object for each object derived from LabelBase.  Some of
-// these PoolObject objects will be deleted when placed (e.g. the ones
-// corresponding to Literals), whereas others will be updated with a new range
-// when placed (e.g.  Veneers) and deleted when Bind() is called on the
-// PoolManager with their corresponding object as a parameter.
+// Literal and Label will derive from LocationBase. The MacroAssembler will
+// create these objects as instructions that reference pool objects are
+// encountered, and ask the PoolManager to track them. The PoolManager will
+// create an internal PoolObject object for each object derived from
+// LocationBase.  Some of these PoolObject objects will be deleted when placed
+// (e.g. the ones corresponding to Literals), whereas others will be updated
+// with a new range when placed (e.g.  Veneers) and deleted when Bind() is
+// called on the PoolManager with their corresponding object as a parameter.
 //
 // A ForwardReference represents a reference to a PoolObject that will be
 // placed later in the instruction stream. Each ForwardReference may only refer
@@ -66,15 +66,15 @@ class TestPoolManager;
 // object.
 //
 // A PoolObject represents an object that has not yet been placed.  The final
-// location of a PoolObject (and hence the LabelBase object to which it
+// location of a PoolObject (and hence the LocationBase object to which it
 // corresponds) is constrained mostly by the instructions that refer to it, but
 // PoolObjects can also have inherent constraints, such as alignment.
 //
-// LabelBase objects, unlike PoolObject objects, can be used outside of the
+// LocationBase objects, unlike PoolObject objects, can be used outside of the
 // pool manager (e.g. as manually placed literals, which may still have
 // forward references that need to be resolved).
 //
-// At the moment, each LabelBase will have at most one PoolObject that keeps
+// At the moment, each LocationBase will have at most one PoolObject that keeps
 // the relevant information for placing this object in the pool. When that
 // object is placed, all forward references of the object are resolved. For
 // that reason, we do not need to keep track of the ForwardReference objects in
@@ -91,16 +91,16 @@ template <typename T>
 class PoolManager;
 
 // Represents an object that has a size and alignment, and either has a known
-// location or has not been placed yet. An object of a subclass of LabelBase
+// location or has not been placed yet. An object of a subclass of LocationBase
 // will typically keep track of a number of ForwardReferences when it has not
-// yet been placed, but LabelBase does not assume or implement that
-// functionality.  LabelBase provides virtual methods for emitting the object,
-// updating all the forward references, and giving the PoolManager information
-// on the lifetime of this object and the corresponding PoolObject.
+// yet been placed, but LocationBase does not assume or implement that
+// functionality.  LocationBase provides virtual methods for emitting the
+// object, updating all the forward references, and giving the PoolManager
+// information on the lifetime of this object and the corresponding PoolObject.
 template <typename T>
-class LabelBase {
+class LocationBase {
  public:
-  // The size of a LabelBase object is restricted to 4KB, in order to avoid
+  // The size of a LocationBase object is restricted to 4KB, in order to avoid
   // situations where the size of the pool becomes larger than the range of
   // an unconditional branch. This cannot happen without having large objects,
   // as typically the range of an unconditional branch is the larger range
@@ -109,8 +109,8 @@ class LabelBase {
   // another template parameter.
   static const int kMaxObjectSize = 4 * KBytes;
 
-  // By default, LabelBase objects are aligned naturally to their size.
-  LabelBase(uint32_t type, int size)
+  // By default, LocationBase objects are aligned naturally to their size.
+  LocationBase(uint32_t type, int size)
       : pool_object_size_(size),
         pool_object_alignment_(size),
         pool_object_type_(type),
@@ -122,7 +122,7 @@ class LabelBase {
   }
 
   // Allow alignment to be specified, as long as it is smaller than the size.
-  LabelBase(uint32_t type, int size, int alignment)
+  LocationBase(uint32_t type, int size, int alignment)
       : pool_object_size_(size),
         pool_object_alignment_(alignment),
         pool_object_type_(type),
@@ -135,15 +135,15 @@ class LabelBase {
   }
 
   // Constructor for locations that are already bound.
-  explicit LabelBase(T location)
+  explicit LocationBase(T location)
       : pool_object_size_(-1),
         pool_object_alignment_(-1),
         pool_object_type_(0),
         is_bound_(true),
         location_(location) {}
 
-  virtual ~LabelBase() VIXL_THROW_IN_NEGATIVE_TESTING_MODE(std::runtime_error) {
-  }
+  virtual ~LocationBase()
+      VIXL_THROW_IN_NEGATIVE_TESTING_MODE(std::runtime_error) {}
 
   // The PoolManager should assume ownership of some objects, and delete them
   // after they have been placed. This can happen for example for literals that
@@ -163,13 +163,13 @@ class LabelBase {
   // Resolve the references to this object. Will encode the necessary offset
   // in the instruction corresponding to each reference and then delete it.
   // TODO: An alternative here would be to provide a ResolveReference()
-  // method that only asks the LabelBase to resolve a specific reference (thus
-  // allowing the pool manager to resolve some of the references only). This
-  // would mean we need to have some kind of API to get all the references to
-  // a LabelObject.
+  // method that only asks the LocationBase to resolve a specific reference
+  // (thus allowing the pool manager to resolve some of the references only).
+  // This would mean we need to have some kind of API to get all the references
+  // to a LabelObject.
   virtual void ResolveReferences(internal::AssemblerBase* assembler) = 0;
 
-  // Returns true when the PoolObject corresponding to this LabelBase object
+  // Returns true when the PoolObject corresponding to this LocationBase object
   // needs to be removed from the pool once placed, and false if it needs to
   // be updated instead (in which case UpdatePoolObject will be called).
   virtual bool ShouldDeletePoolObjectOnPlacement() const { return true; }
@@ -246,7 +246,7 @@ template <typename T>
 class PoolObject {
  public:
   // By default, PoolObjects have no inherent position constraints.
-  explicit PoolObject(LabelBase<T>* parent)
+  explicit PoolObject(LocationBase<T>* parent)
       : label_base_(parent),
         min_location_(0),
         max_location_(std::numeric_limits<T>::max()),
@@ -258,7 +258,7 @@ class PoolObject {
   }
 
   // Reset the minimum and maximum location and the alignment of the object.
-  // This function is public in order to allow the LabelBase corresponding to
+  // This function is public in order to allow the LocationBase corresponding to
   // this PoolObject to update the PoolObject when placed, e.g. in the case of
   // veneers. The size and type of the object cannot be modified.
   void Update(T min, T max, int alignment) {
@@ -292,8 +292,8 @@ class PoolObject {
     }
   }
 
-  // The LabelBase that this pool object represents.
-  LabelBase<T>* label_base_;
+  // The LocationBase that this pool object represents.
+  LocationBase<T>* label_base_;
 
   // Hard, precise location constraints for the start location of the object.
   // They are both inclusive, that is the start location of the object can be
@@ -322,8 +322,8 @@ class PoolObject {
 };
 
 // Class that represents a forward reference. It is the responsibility of
-// LabelBase objects to keep track of forward references and patch them when an
-// object is placed - this class is only used by the PoolManager in order to
+// LocationBase objects to keep track of forward references and patch them when
+// an object is placed - this class is only used by the PoolManager in order to
 // restrict the requirements on PoolObjects it is tracking.
 template <typename T>
 class ForwardReference {
@@ -352,6 +352,9 @@ class ForwardReference {
   T GetMinLocation() const { return min_object_location_; }
   T GetMaxLocation() const { return max_object_location_; }
   int GetAlignment() const { return object_alignment_; }
+
+  // Needed for InvalSet.
+  void SetLocationToInvalidateOnly(T location) { location_ = location; }
 
  private:
   // The location of the thing that contains the reference. For example, this
@@ -404,7 +407,7 @@ class PoolManager {
   bool MustEmit(T pc,
                 int num_bytes = 0,
                 ForwardReference<T>* reference = NULL,
-                LabelBase<T>* object = NULL) const;
+                LocationBase<T>* object = NULL) const;
 
   enum EmitOption { kBranchRequired, kNoBranchRequired };
 
@@ -421,21 +424,21 @@ class PoolManager {
          T pc,
          int num_bytes = 0,
          ForwardReference<T>* new_reference = NULL,
-         LabelBase<T>* new_object = NULL,
+         LocationBase<T>* new_object = NULL,
          EmitOption option = kBranchRequired);
 
   // Add 'reference' to 'object'. Should not be preceded by a call to MustEmit()
   // that returned true, unless Emit() has been successfully afterwards.
   void AddObjectReference(const ForwardReference<T>* reference,
-                          LabelBase<T>* object);
+                          LocationBase<T>* object);
 
-  // This is to notify the pool that a LabelBase has been bound to a location
+  // This is to notify the pool that a LocationBase has been bound to a location
   // and does not need to be tracked anymore.
   // This will happen, for example, for Labels, which are manually bound by the
   // user.
   // This can potentially add some padding bytes in order to meet the object
   // requirements, and will return the new location.
-  T Bind(MacroAssemblerInterface* masm, LabelBase<T>* object, T location);
+  T Bind(MacroAssemblerInterface* masm, LocationBase<T>* object, T location);
 
   // Functions for blocking and releasing the pools.
   void Block() { monitor_++; }
@@ -447,12 +450,12 @@ class PoolManager {
   typedef
       typename std::vector<PoolObject<T> >::const_iterator const_objects_iter;
 
-  PoolObject<T>* GetObjectIfTracked(LabelBase<T>* label) {
+  PoolObject<T>* GetObjectIfTracked(LocationBase<T>* label) {
     return const_cast<PoolObject<T>*>(
         static_cast<const PoolManager<T>*>(this)->GetObjectIfTracked(label));
   }
 
-  const PoolObject<T>* GetObjectIfTracked(LabelBase<T>* label) const {
+  const PoolObject<T>* GetObjectIfTracked(LocationBase<T>* label) const {
     for (const_objects_iter iter = objects_.begin(); iter != objects_.end();
          ++iter) {
       const PoolObject<T>& current = *iter;
@@ -481,7 +484,7 @@ class PoolManager {
   void Insert(const PoolObject<T>& new_object);
 
   // Helper functions to remove an object from objects_ and delete the
-  // corresponding LabelBase object, if necessary. This will be called
+  // corresponding LocationBase object, if necessary. This will be called
   // either after placing the object, or when Bind() is called.
   void RemoveAndDelete(PoolObject<T>* object);
   objects_iter RemoveAndDelete(objects_iter iter);
@@ -491,7 +494,7 @@ class PoolManager {
                         T pc,
                         int num_bytes,
                         ForwardReference<T>* new_reference,
-                        LabelBase<T>* new_object,
+                        LocationBase<T>* new_object,
                         PoolObject<T>* existing_object) const;
 
   // Used only for debugging.
@@ -510,7 +513,7 @@ class PoolManager {
   std::vector<PoolObject<T> > objects_;
 
   // Objects to be deleted on pool destruction.
-  std::vector<LabelBase<T>*> delete_on_destruction_;
+  std::vector<LocationBase<T>*> delete_on_destruction_;
 
   // The header_size_ and alignment_ values are hardcoded for each instance of
   // PoolManager. The PoolManager does not know how to emit the header, and

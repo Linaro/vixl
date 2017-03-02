@@ -1,4 +1,4 @@
-// Copyright 2015, VIXL authors
+// Copyright 2017, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -80,64 +80,21 @@ void Assembler::PerformCheckIT(Condition condition) {
 
 
 void Assembler::BindHelper(Label* label) {
-  BindLocationHelper(label);
-
-  if (label->IsInVeneerPool()) {
-    label->GetVeneerPoolManager()->RemoveLabel(label);
-  }
+  VIXL_ASSERT(!label->IsBound());
+  label->SetLocation(this, GetCursorOffset());
+  label->MarkBound();
 }
-
-
-void Assembler::BindLocationHelper(Location* location) {
-  VIXL_ASSERT(!location->IsBound());
-  location->Bind(GetCursorOffset());
-
-  for (Location::ForwardRefList::iterator ref = location->GetFirstForwardRef();
-       ref != location->GetEndForwardRef();
-       ref++) {
-    EncodeLocationFor(*ref, location);
-  }
-}
-
 
 uint32_t Assembler::Link(uint32_t instr,
                          Location* location,
                          const Location::EmitOperator& op,
-                         const struct ReferenceInfo* info) {
+                         const ReferenceInfo* info) {
   location->SetReferenced();
   if (location->IsBound()) {
     return op.Encode(instr, GetCursorOffset(), location);
   }
-  location->AddForwardRef(GetCursorOffset(), op, info->max_offset);
+  location->AddForwardRef(GetCursorOffset(), op, info);
   return instr;
-}
-
-
-void Assembler::EncodeLocationFor(const Location::ForwardReference& forward,
-                                  Location* location) {
-  const uint32_t from = forward.GetLocation();
-  const Location::EmitOperator& encoder = forward.GetEmitOperator();
-  if (encoder.IsUsingT32()) {
-    uint16_t* instr_ptr = buffer_.GetOffsetAddress<uint16_t*>(from);
-    if (Is16BitEncoding(instr_ptr[0])) {
-      // The Encode methods always deals with uint32_t types so we need
-      // to explicitely cast it.
-      uint32_t instr = static_cast<uint32_t>(instr_ptr[0]);
-      instr = encoder.Encode(instr, from, location);
-      // The Encode method should not ever set the top 16 bits.
-      VIXL_ASSERT((instr & ~0xffff) == 0);
-      instr_ptr[0] = static_cast<uint16_t>(instr);
-    } else {
-      uint32_t instr =
-          instr_ptr[1] | (static_cast<uint32_t>(instr_ptr[0]) << 16);
-      instr = encoder.Encode(instr, from, location);
-      instr_ptr[0] = static_cast<uint16_t>(instr >> 16);
-      instr_ptr[1] = static_cast<uint16_t>(instr);
-    }
-  } else {
-    uint32_t* instr_ptr = buffer_.GetOffsetAddress<uint32_t*>(from);
-    instr_ptr[0] = encoder.Encode(instr_ptr[0], from, location);
-  }
 }
 
 
@@ -1798,216 +1755,189 @@ Align_align_5::Align_align_5(Alignment align,
   }
 }
 
-static const struct Assembler::ReferenceInfo kAdrT1Info =
-    {k16BitT32InstructionSizeInBytes,
-     0,     // Min offset.
-     1020,  // Max offset.
-     4,     // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kAdrT3Info =
-    {k32BitT32InstructionSizeInBytes,
-     -4095,  // Min offset.
-     4095,   // Max offset.
-     1,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kAdrA1Info =
-    {kA32InstructionSizeInBytes,
-     -256,  // Min offset.
-     256,   // Max offset.
-     1,     // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kBT1Info =
-    {k16BitT32InstructionSizeInBytes,
-     -256,  // Min offset.
-     254,   // Max offset.
-     2,     // Alignment.
-     Assembler::ReferenceInfo::kDontAlignPc};
-static const struct Assembler::ReferenceInfo kBT2Info =
-    {k16BitT32InstructionSizeInBytes,
-     -2048,  // Min offset.
-     2046,   // Max offset.
-     2,      // Alignment.
-     Assembler::ReferenceInfo::kDontAlignPc};
-static const struct Assembler::ReferenceInfo kBT3Info =
-    {k32BitT32InstructionSizeInBytes,
-     -1048576,  // Min offset.
-     1048574,   // Max offset.
-     2,         // Alignment.
-     Assembler::ReferenceInfo::kDontAlignPc};
-static const struct Assembler::ReferenceInfo kBT4Info =
-    {k32BitT32InstructionSizeInBytes,
-     -16777216,  // Min offset.
-     16777214,   // Max offset.
-     2,          // Alignment.
-     Assembler::ReferenceInfo::kDontAlignPc};
-static const struct Assembler::ReferenceInfo kBA1Info =
-    {kA32InstructionSizeInBytes,
-     -33554432,  // Min offset.
-     33554428,   // Max offset.
-     4,          // Alignment.
-     Assembler::ReferenceInfo::kDontAlignPc};
-static const struct Assembler::ReferenceInfo kBlT1Info =
-    {k32BitT32InstructionSizeInBytes,
-     -16777216,  // Min offset.
-     16777214,   // Max offset.
-     2,          // Alignment.
-     Assembler::ReferenceInfo::kDontAlignPc};
-static const struct Assembler::ReferenceInfo kBlA1Info =
-    {kA32InstructionSizeInBytes,
-     -33554432,  // Min offset.
-     33554428,   // Max offset.
-     4,          // Alignment.
-     Assembler::ReferenceInfo::kDontAlignPc};
-static const struct Assembler::ReferenceInfo kBlxT2Info =
-    {k32BitT32InstructionSizeInBytes,
-     -16777216,  // Min offset.
-     16777212,   // Max offset.
-     4,          // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kBlxA2Info =
-    {kA32InstructionSizeInBytes,
-     -33554432,  // Min offset.
-     33554430,   // Max offset.
-     2,          // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kCbnzT1Info =
+static const struct ReferenceInfo kAdrT1Info = {k16BitT32InstructionSizeInBytes,
+                                                0,     // Min offset.
+                                                1020,  // Max offset.
+                                                4,     // Alignment.
+                                                ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kAdrT3Info = {k32BitT32InstructionSizeInBytes,
+                                                -4095,  // Min offset.
+                                                4095,   // Max offset.
+                                                1,      // Alignment.
+                                                ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kAdrA1Info = {kA32InstructionSizeInBytes,
+                                                -256,  // Min offset.
+                                                256,   // Max offset.
+                                                1,     // Alignment.
+                                                ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kBT1Info = {k16BitT32InstructionSizeInBytes,
+                                              -256,  // Min offset.
+                                              254,   // Max offset.
+                                              2,     // Alignment.
+                                              ReferenceInfo::kDontAlignPc};
+static const struct ReferenceInfo kBT2Info = {k16BitT32InstructionSizeInBytes,
+                                              -2048,  // Min offset.
+                                              2046,   // Max offset.
+                                              2,      // Alignment.
+                                              ReferenceInfo::kDontAlignPc};
+static const struct ReferenceInfo kBT3Info = {k32BitT32InstructionSizeInBytes,
+                                              -1048576,  // Min offset.
+                                              1048574,   // Max offset.
+                                              2,         // Alignment.
+                                              ReferenceInfo::kDontAlignPc};
+static const struct ReferenceInfo kBT4Info = {k32BitT32InstructionSizeInBytes,
+                                              -16777216,  // Min offset.
+                                              16777214,   // Max offset.
+                                              2,          // Alignment.
+                                              ReferenceInfo::kDontAlignPc};
+static const struct ReferenceInfo kBA1Info = {kA32InstructionSizeInBytes,
+                                              -33554432,  // Min offset.
+                                              33554428,   // Max offset.
+                                              4,          // Alignment.
+                                              ReferenceInfo::kDontAlignPc};
+static const struct ReferenceInfo kBlT1Info = {k32BitT32InstructionSizeInBytes,
+                                               -16777216,  // Min offset.
+                                               16777214,   // Max offset.
+                                               2,          // Alignment.
+                                               ReferenceInfo::kDontAlignPc};
+static const struct ReferenceInfo kBlA1Info = {kA32InstructionSizeInBytes,
+                                               -33554432,  // Min offset.
+                                               33554428,   // Max offset.
+                                               4,          // Alignment.
+                                               ReferenceInfo::kDontAlignPc};
+static const struct ReferenceInfo kBlxT2Info = {k32BitT32InstructionSizeInBytes,
+                                                -16777216,  // Min offset.
+                                                16777212,   // Max offset.
+                                                4,          // Alignment.
+                                                ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kBlxA2Info = {kA32InstructionSizeInBytes,
+                                                -33554432,  // Min offset.
+                                                33554430,   // Max offset.
+                                                2,          // Alignment.
+                                                ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kCbnzT1Info =
     {k16BitT32InstructionSizeInBytes,
      0,    // Min offset.
      126,  // Max offset.
      2,    // Alignment.
-     Assembler::ReferenceInfo::kDontAlignPc};
-static const struct Assembler::ReferenceInfo kCbzT1Info =
-    {k16BitT32InstructionSizeInBytes,
-     0,    // Min offset.
-     126,  // Max offset.
-     2,    // Alignment.
-     Assembler::ReferenceInfo::kDontAlignPc};
-static const struct Assembler::ReferenceInfo kLdrT1Info =
-    {k16BitT32InstructionSizeInBytes,
-     0,     // Min offset.
-     1020,  // Max offset.
-     4,     // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kLdrT2Info =
+     ReferenceInfo::kDontAlignPc};
+static const struct ReferenceInfo kCbzT1Info = {k16BitT32InstructionSizeInBytes,
+                                                0,    // Min offset.
+                                                126,  // Max offset.
+                                                2,    // Alignment.
+                                                ReferenceInfo::kDontAlignPc};
+static const struct ReferenceInfo kLdrT1Info = {k16BitT32InstructionSizeInBytes,
+                                                0,     // Min offset.
+                                                1020,  // Max offset.
+                                                4,     // Alignment.
+                                                ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kLdrT2Info = {k32BitT32InstructionSizeInBytes,
+                                                -4095,  // Min offset.
+                                                4095,   // Max offset.
+                                                1,      // Alignment.
+                                                ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kLdrA1Info = {kA32InstructionSizeInBytes,
+                                                -4095,  // Min offset.
+                                                4095,   // Max offset.
+                                                1,      // Alignment.
+                                                ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kLdrbT1Info =
     {k32BitT32InstructionSizeInBytes,
      -4095,  // Min offset.
      4095,   // Max offset.
      1,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kLdrA1Info =
-    {kA32InstructionSizeInBytes,
-     -4095,  // Min offset.
-     4095,   // Max offset.
-     1,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kLdrbT1Info =
-    {k32BitT32InstructionSizeInBytes,
-     -4095,  // Min offset.
-     4095,   // Max offset.
-     1,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kLdrbA1Info =
-    {kA32InstructionSizeInBytes,
-     -4095,  // Min offset.
-     4095,   // Max offset.
-     1,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kLdrdT1Info =
+     ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kLdrbA1Info = {kA32InstructionSizeInBytes,
+                                                 -4095,  // Min offset.
+                                                 4095,   // Max offset.
+                                                 1,      // Alignment.
+                                                 ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kLdrdT1Info =
     {k32BitT32InstructionSizeInBytes,
      -1020,  // Min offset.
      1020,   // Max offset.
      4,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kLdrdA1Info =
-    {kA32InstructionSizeInBytes,
-     -255,  // Min offset.
-     255,   // Max offset.
-     1,     // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kLdrhT1Info =
+     ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kLdrdA1Info = {kA32InstructionSizeInBytes,
+                                                 -255,  // Min offset.
+                                                 255,   // Max offset.
+                                                 1,     // Alignment.
+                                                 ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kLdrhT1Info =
     {k32BitT32InstructionSizeInBytes,
      -4095,  // Min offset.
      4095,   // Max offset.
      1,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kLdrhA1Info =
-    {kA32InstructionSizeInBytes,
-     -255,  // Min offset.
-     255,   // Max offset.
-     1,     // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kLdrsbT1Info =
+     ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kLdrhA1Info = {kA32InstructionSizeInBytes,
+                                                 -255,  // Min offset.
+                                                 255,   // Max offset.
+                                                 1,     // Alignment.
+                                                 ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kLdrsbT1Info =
     {k32BitT32InstructionSizeInBytes,
      -4095,  // Min offset.
      4095,   // Max offset.
      1,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kLdrsbA1Info =
-    {kA32InstructionSizeInBytes,
-     -255,  // Min offset.
-     255,   // Max offset.
-     1,     // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kLdrshT1Info =
+     ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kLdrsbA1Info = {kA32InstructionSizeInBytes,
+                                                  -255,  // Min offset.
+                                                  255,   // Max offset.
+                                                  1,     // Alignment.
+                                                  ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kLdrshT1Info =
     {k32BitT32InstructionSizeInBytes,
      -4095,  // Min offset.
      4095,   // Max offset.
      1,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kLdrshA1Info =
-    {kA32InstructionSizeInBytes,
-     -255,  // Min offset.
-     255,   // Max offset.
-     1,     // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kPldT1Info =
-    {k32BitT32InstructionSizeInBytes,
-     -4095,  // Min offset.
-     4095,   // Max offset.
-     1,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kPldA1Info =
-    {kA32InstructionSizeInBytes,
-     -4095,  // Min offset.
-     4095,   // Max offset.
-     1,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kPliT3Info =
-    {k32BitT32InstructionSizeInBytes,
-     -4095,  // Min offset.
-     4095,   // Max offset.
-     1,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kPliA1Info =
-    {kA32InstructionSizeInBytes,
-     -4095,  // Min offset.
-     4095,   // Max offset.
-     1,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kVldrT1Info =
+     ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kLdrshA1Info = {kA32InstructionSizeInBytes,
+                                                  -255,  // Min offset.
+                                                  255,   // Max offset.
+                                                  1,     // Alignment.
+                                                  ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kPldT1Info = {k32BitT32InstructionSizeInBytes,
+                                                -4095,  // Min offset.
+                                                4095,   // Max offset.
+                                                1,      // Alignment.
+                                                ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kPldA1Info = {kA32InstructionSizeInBytes,
+                                                -4095,  // Min offset.
+                                                4095,   // Max offset.
+                                                1,      // Alignment.
+                                                ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kPliT3Info = {k32BitT32InstructionSizeInBytes,
+                                                -4095,  // Min offset.
+                                                4095,   // Max offset.
+                                                1,      // Alignment.
+                                                ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kPliA1Info = {kA32InstructionSizeInBytes,
+                                                -4095,  // Min offset.
+                                                4095,   // Max offset.
+                                                1,      // Alignment.
+                                                ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kVldrT1Info =
     {k32BitT32InstructionSizeInBytes,
      -1020,  // Min offset.
      1020,   // Max offset.
      4,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kVldrA1Info =
-    {kA32InstructionSizeInBytes,
-     -1020,  // Min offset.
-     1020,   // Max offset.
-     4,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kVldrT2Info =
+     ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kVldrA1Info = {kA32InstructionSizeInBytes,
+                                                 -1020,  // Min offset.
+                                                 1020,   // Max offset.
+                                                 4,      // Alignment.
+                                                 ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kVldrT2Info =
     {k32BitT32InstructionSizeInBytes,
      -1020,  // Min offset.
      1020,   // Max offset.
      4,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
-static const struct Assembler::ReferenceInfo kVldrA2Info =
-    {kA32InstructionSizeInBytes,
-     -1020,  // Min offset.
-     1020,   // Max offset.
-     4,      // Alignment.
-     Assembler::ReferenceInfo::kAlignPc};
+     ReferenceInfo::kAlignPc};
+static const struct ReferenceInfo kVldrA2Info = {kA32InstructionSizeInBytes,
+                                                 -1020,  // Min offset.
+                                                 1020,   // Max offset.
+                                                 4,      // Alignment.
+                                                 ReferenceInfo::kAlignPc};
 
 
 void Assembler::adc(Condition cond,

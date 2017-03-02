@@ -1,4 +1,4 @@
-// Copyright 2015, VIXL authors
+// Copyright 2017, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -36,23 +36,12 @@
 namespace vixl {
 namespace aarch32 {
 
-// We use a subclass to access the protected `ExactAssemblyScope` constructor
-// giving us control over the pools, and make the constructor private to limit
-// usage to code paths emitting pools.
-class ExactAssemblyScopeWithoutPoolsCheck : public ExactAssemblyScope {
- private:
-  ExactAssemblyScopeWithoutPoolsCheck(MacroAssembler* masm,
-                                      size_t size,
-                                      SizePolicy size_policy = kExactSize)
-      : ExactAssemblyScope(masm,
-                           size,
-                           size_policy,
-                           ExactAssemblyScope::kIgnorePools) {}
-
-  friend class MacroAssembler;
-  friend class VeneerPoolManager;
-};
-
+ExactAssemblyScopeWithoutPoolsCheck::ExactAssemblyScopeWithoutPoolsCheck(
+    MacroAssembler* masm, size_t size, SizePolicy size_policy)
+    : ExactAssemblyScope(masm,
+                         size,
+                         size_policy,
+                         ExactAssemblyScope::kIgnorePools) {}
 
 void UseScratchRegisterScope::Open(MacroAssembler* masm) {
   VIXL_ASSERT(masm_ == NULL);
@@ -216,280 +205,17 @@ void UseScratchRegisterScope::ExcludeAll() {
 }
 
 
-void VeneerPoolManager::AddLabel(Label* label) {
-  if (last_label_reference_offset_ != 0) {
-    // If the pool grows faster than the instruction stream, we must adjust
-    // the checkpoint to compensate. The veneer pool entries take 32 bits, so
-    // this can only occur when two consecutive 16-bit instructions add veneer
-    // pool entries.
-    // This is typically the case for cbz and cbnz (other forward branches
-    // have a 32 bit variant which is always used).
-    if (last_label_reference_offset_ + 2 * k16BitT32InstructionSizeInBytes ==
-        static_cast<uint32_t>(masm_->GetCursorOffset())) {
-      // We found two 16 bit forward branches generated one after the other.
-      // That means that the pool will grow by one 32-bit branch when
-      // the cursor offset will move forward by only one 16-bit branch.
-      // Update the near checkpoint margin to manage the difference.
-      near_checkpoint_margin_ +=
-          k32BitT32InstructionSizeInBytes - k16BitT32InstructionSizeInBytes;
-    }
-  }
-  Label::ForwardReference& back = label->GetBackForwardRef();
-  VIXL_ASSERT(back.GetMaxForwardDistance() >= kCbzCbnzRange);
-  if (!label->IsInVeneerPool()) {
-    if (back.GetMaxForwardDistance() <= kNearLabelRange) {
-      near_labels_.push_back(label);
-      label->SetVeneerPoolManager(this, true);
-    } else {
-      far_labels_.push_back(label);
-      label->SetVeneerPoolManager(this, false);
-    }
-  } else if (back.GetMaxForwardDistance() <= kNearLabelRange) {
-    if (!label->IsNear()) {
-      far_labels_.remove(label);
-      near_labels_.push_back(label);
-      label->SetVeneerPoolManager(this, true);
-    }
-  }
-
-  back.SetIsBranch();
-  last_label_reference_offset_ = back.GetLocation();
-  label->UpdateCheckpoint();
-  Label::Offset tmp = label->GetCheckpoint();
-  if (label->IsNear()) {
-    if (near_checkpoint_ > tmp) near_checkpoint_ = tmp;
-    if (max_near_checkpoint_ >= tmp) {
-      // This checkpoint is before some already in the near list. That means
-      // that the veneer (if needed) will be emitted before some of the veneers
-      // already in the list. We adjust the margin with the size of a veneer
-      // branch.
-      near_checkpoint_margin_ += k32BitT32InstructionSizeInBytes;
-    } else {
-      max_near_checkpoint_ = tmp;
-    }
-  } else {
-    if (far_checkpoint_ > tmp) far_checkpoint_ = tmp;
-  }
-  // Always compute the global checkpoint as, adding veneers shorten the
-  // literals' checkpoint.
-  masm_->ComputeCheckpoint();
-}
-
-
-void VeneerPoolManager::RemoveLabel(Label* label) {
-  label->ClearVeneerPoolManager();
-  std::list<Label*>& list = label->IsNear() ? near_labels_ : far_labels_;
-  Label::Offset* checkpoint_reference =
-      label->IsNear() ? &near_checkpoint_ : &far_checkpoint_;
-  if (label->GetCheckpoint() == *checkpoint_reference) {
-    // We have to compute checkpoint again.
-    *checkpoint_reference = Label::kMaxOffset;
-    for (std::list<Label*>::iterator it = list.begin(); it != list.end();) {
-      if (*it == label) {
-        it = list.erase(it);
-      } else {
-        *checkpoint_reference =
-            std::min(*checkpoint_reference, (*it)->GetCheckpoint());
-        ++it;
-      }
-    }
-    masm_->ComputeCheckpoint();
-  } else {
-    // We only have to remove the label from the list.
-    list.remove(label);
-  }
-}
-
-
-void VeneerPoolManager::EmitLabel(Label* label, Label::Offset emitted_target) {
-  VIXL_ASSERT(!IsBlocked());
-  // Define the veneer.
-  Label veneer;
-  masm_->Bind(&veneer);
-  Label::Offset label_checkpoint = Label::kMaxOffset;
-  // Check all uses of this label.
-  for (Label::ForwardRefList::iterator ref = label->GetFirstForwardRef();
-       ref != label->GetEndForwardRef();) {
-    if (ref->IsBranch()) {
-      if (ref->GetCheckpoint() <= emitted_target) {
-        // Use the veneer.
-        masm_->EncodeLocationFor(*ref, &veneer);
-        ref = label->Erase(ref);
-      } else {
-        // Don't use the veneer => update checkpoint.
-        label_checkpoint = std::min(label_checkpoint, ref->GetCheckpoint());
-        ++ref;
-      }
-    } else {
-      ++ref;
-    }
-  }
-  label->SetCheckpoint(label_checkpoint);
-  if (label->IsNear()) {
-    near_checkpoint_ = std::min(near_checkpoint_, label_checkpoint);
-  } else {
-    far_checkpoint_ = std::min(far_checkpoint_, label_checkpoint);
-  }
-  // Generate the veneer.
-  ExactAssemblyScopeWithoutPoolsCheck guard(masm_,
-                                            kMaxInstructionSizeInBytes,
-                                            ExactAssemblyScope::kMaximumSize);
-  masm_->b(label);
-  masm_->AddBranchLabel(label);
-}
-
-
-void VeneerPoolManager::Emit(Label::Offset target) {
-  VIXL_ASSERT(!IsBlocked());
-  // Sort labels (regarding their checkpoint) to avoid that a veneer
-  // becomes out of range.
-  near_labels_.sort(Label::CompareLabels);
-  far_labels_.sort(Label::CompareLabels);
-  // To avoid too many veneers, generate veneers which will be necessary soon.
-  target += static_cast<int>(GetMaxSize()) + near_checkpoint_margin_;
-  static const size_t kVeneerEmissionMargin = 1 * KBytes;
-  // To avoid too many veneers, use generated veneers for other not too far
-  // uses.
-  static const size_t kVeneerEmittedMargin = 2 * KBytes;
-  Label::Offset emitted_target = target + kVeneerEmittedMargin;
-  target += kVeneerEmissionMargin;
-  // Reset the checkpoints. They will be computed again in the loop.
-  near_checkpoint_ = Label::kMaxOffset;
-  far_checkpoint_ = Label::kMaxOffset;
-  max_near_checkpoint_ = 0;
-  near_checkpoint_margin_ = 0;
-  for (std::list<Label*>::iterator it = near_labels_.begin();
-       it != near_labels_.end();) {
-    Label* label = *it;
-    // Move the label from the near list to the far list as it will be needed in
-    // the far list (as the veneer will generate a far branch).
-    // The label is pushed at the end of the list. The list remains sorted as
-    // we use an unconditional jump which has the biggest range. However, it
-    // wouldn't be a problem if the items at the end of the list were not
-    // sorted as they won't be used by this generation (their range will be
-    // greater than kVeneerEmittedMargin).
-    it = near_labels_.erase(it);
-    far_labels_.push_back(label);
-    label->SetVeneerPoolManager(this, false);
-    EmitLabel(label, emitted_target);
-  }
-  for (std::list<Label*>::iterator it = far_labels_.begin();
-       it != far_labels_.end();) {
-    // The labels are sorted. As soon as a veneer is not needed, we can stop.
-    if ((*it)->GetCheckpoint() > target) {
-      far_checkpoint_ = std::min(far_checkpoint_, (*it)->GetCheckpoint());
-      break;
-    }
-    // Even if we no longer have use of this label, we can keep it in the list
-    // as the next "B" would add it back.
-    EmitLabel(*it, emitted_target);
-    ++it;
-  }
-#ifdef VIXL_DEBUG
-  for (std::list<Label*>::iterator it = near_labels_.begin();
-       it != near_labels_.end();
-       ++it) {
-    VIXL_ASSERT((*it)->GetCheckpoint() >= near_checkpoint_);
-  }
-  for (std::list<Label*>::iterator it = far_labels_.begin();
-       it != far_labels_.end();
-       ++it) {
-    VIXL_ASSERT((*it)->GetCheckpoint() >= far_checkpoint_);
-  }
-#endif
-  masm_->ComputeCheckpoint();
-}
-
-
 void MacroAssembler::EnsureEmitPoolsFor(size_t size_arg) {
+  // We skip the check when the pools are blocked.
+  if (ArePoolsBlocked()) return;
+
   VIXL_ASSERT(IsUint32(size_arg));
   uint32_t size = static_cast<uint32_t>(size_arg);
 
-  Label::Offset target = GetCursorOffset() + size;
-  if (target <= checkpoint_) return;
-
-  EmitOption option = kBranchRequired;
-  Label after_pools;
-  Label::Offset literal_target = GetTargetForLiteralEmission();
-  VIXL_ASSERT(literal_target >= 0);
-  bool generate_veneers = target > veneer_pool_manager_.GetCheckpoint();
-  if (target > literal_target) {
-    // We will generate the literal pool. Generate all the veneers which
-    // would become out of range.
-    size_t literal_pool_size =
-        literal_pool_manager_.GetLiteralPoolSize() + kMaxInstructionSizeInBytes;
-    VIXL_ASSERT(IsInt32(literal_pool_size));
-    Label::Offset veneers_target =
-        AlignUp(target + static_cast<Label::Offset>(literal_pool_size), 4);
-    VIXL_ASSERT(veneers_target >= 0);
-    if (veneers_target > veneer_pool_manager_.GetCheckpoint()) {
-      generate_veneers = true;
-    }
-  }
-  if (!IsVeneerPoolBlocked() && generate_veneers) {
-    {
-      ExactAssemblyScopeWithoutPoolsCheck
-          guard(this,
-                kMaxInstructionSizeInBytes,
-                ExactAssemblyScope::kMaximumSize);
-      b(&after_pools);
-    }
-    veneer_pool_manager_.Emit(target);
-    option = kNoBranchRequired;
-  }
-  // Check if the macro-assembler's internal literal pool should be emitted
-  // to avoid any overflow. If we already generated the veneers, we can
-  // emit the pool (the branch is already done).
-  if (!IsLiteralPoolBlocked() &&
-      ((target > literal_target) || (option == kNoBranchRequired))) {
-    EmitLiteralPool(option);
-  }
-  BindHelper(&after_pools);
-}
-
-
-void MacroAssembler::ComputeCheckpoint() {
-  checkpoint_ = AlignDown(std::min(veneer_pool_manager_.GetCheckpoint(),
-                                   GetTargetForLiteralEmission()),
-                          4);
-}
-
-
-void MacroAssembler::EmitLiteralPool(LiteralPool* const literal_pool,
-                                     EmitOption option) {
-  VIXL_ASSERT(!IsLiteralPoolBlocked());
-  if (literal_pool->GetSize() > 0) {
-#ifdef VIXL_DEBUG
-    for (LiteralPool::RawLiteralListIterator literal_it =
-             literal_pool->GetFirst();
-         literal_it != literal_pool->GetEnd();
-         literal_it++) {
-      RawLiteral* literal = *literal_it;
-      VIXL_ASSERT(GetCursorOffset() < literal->GetCheckpoint());
-    }
-#endif
-    Label after_literal;
-    if (option == kBranchRequired) {
-      GetBuffer()->EnsureSpaceFor(kMaxInstructionSizeInBytes);
-      VIXL_ASSERT(!AllowAssembler());
-      {
-        ExactAssemblyScopeWithoutPoolsCheck
-            guard(this,
-                  kMaxInstructionSizeInBytes,
-                  ExactAssemblyScope::kMaximumSize);
-        b(&after_literal);
-      }
-    }
-    GetBuffer()->Align();
-    GetBuffer()->EnsureSpaceFor(literal_pool->GetSize());
-    for (LiteralPool::RawLiteralListIterator it = literal_pool->GetFirst();
-         it != literal_pool->GetEnd();
-         it++) {
-      PlaceHelper(*it);
-      GetBuffer()->Align();
-    }
-    if (option == kBranchRequired) BindHelper(&after_literal);
-    literal_pool->Clear();
+  if (pool_manager_.MustEmit(GetCursorOffset(), size)) {
+    int32_t new_pc = pool_manager_.Emit(this, GetCursorOffset(), size);
+    VIXL_ASSERT(new_pc == GetCursorOffset());
+    USE(new_pc);
   }
 }
 
@@ -518,25 +244,6 @@ void MacroAssembler::HandleOutOfBoundsImmediate(Condition cond,
   CodeBufferCheckScope scope(this, 2 * kMaxInstructionSizeInBytes);
   mov(cond, tmp, imm & 0xffff);
   movt(cond, tmp, imm >> 16);
-}
-
-
-void MacroAssembler::PadToMinimumBranchRange(Label* label) {
-  const Label::ForwardReference* last_reference = label->GetForwardRefBack();
-  if ((last_reference != NULL) && last_reference->IsUsingT32()) {
-    uint32_t location = last_reference->GetLocation();
-    if (location + k16BitT32InstructionSizeInBytes ==
-        static_cast<uint32_t>(GetCursorOffset())) {
-      uint16_t* instr_ptr = buffer_.GetOffsetAddress<uint16_t*>(location);
-      if ((instr_ptr[0] & kCbzCbnzMask) == kCbzCbnzValue) {
-        VIXL_ASSERT(!InITBlock());
-        // A Cbz or a Cbnz can't jump immediately after the instruction. If the
-        // target is immediately after the Cbz or Cbnz, we insert a nop to
-        // avoid that.
-        EmitT32_16(k16BitT32NopOpcode);
-      }
-    }
-  }
 }
 
 

@@ -1,4 +1,4 @@
-// Copyright 2016, VIXL authors
+// Copyright 2017, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -133,6 +133,9 @@ class CodeBuffer {
 
   // Align to 32bit.
   void Align();
+
+  // Ensure there is enough space for and emit 'n' zero bytes.
+  void EmitZeroedBytes(int n);
 
   bool Is16bitAligned() const { return IsAligned<2>(cursor_); }
 

@@ -1,4 +1,4 @@
-// Copyright 2016, VIXL authors
+// Copyright 2017, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -101,7 +101,7 @@ class NamedLabel : public Label {
  public:
   NamedLabel(CustomStream* stream, const char* name)
       : stream_(stream), name_(name) {}
-  ~NamedLabel() {
+  ~NamedLabel() VIXL_THROW_IN_NEGATIVE_TESTING_MODE(std::runtime_error) {
     if (IsBound()) {
       stream_->GetSymbols().insert(
           std::pair<Location::Offset, const char*>(GetLocation(), name_));

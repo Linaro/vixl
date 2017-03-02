@@ -1,4 +1,4 @@
-// Copyright 2015, VIXL authors
+// Copyright 2017, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -91,17 +91,20 @@ namespace aarch32 {
   void Test##Name()
 
 #define __ masm.
+#define __TESTOBJ test.
 #define BUF_SIZE (4096)
 
-#define ASSERT_LITERAL_POOL_SIZE(size)           \
+#define CHECK_POOL_SIZE(size)                    \
   do {                                           \
-    VIXL_CHECK(__ GetLiteralPoolSize() == size); \
+    VIXL_CHECK(__TESTOBJ GetPoolSize() == size); \
   } while (false)
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 // No simulator yet.
 
-#define SETUP() MacroAssembler masm(BUF_SIZE, isa);
+#define SETUP()                       \
+  MacroAssembler masm(BUF_SIZE, isa); \
+  TestMacroAssembler test(&masm);
 
 #define START() masm.GetBuffer()->Reset();
 
@@ -116,6 +119,7 @@ namespace aarch32 {
 #define SETUP()                       \
   RegisterDump core;                  \
   MacroAssembler masm(BUF_SIZE, isa); \
+  TestMacroAssembler test(&masm);     \
   UseScratchRegisterScope harness_scratch;
 
 #define START()                 \
@@ -218,6 +222,7 @@ namespace aarch32 {
                                masm.GetCursorOffset());                        \
     }                                                                          \
   }
+
 
 // TODO: Add SBC to the ADC tests.
 
@@ -726,29 +731,30 @@ TEST(adr_in_range) {
 TEST(adr_unaligned) {
   SETUP();
 
-  Label label_0, label_1, label_2, label_3, label_end;
+  Label label_end;
 
   START();
   {
+    Location label_0, label_1, label_2, label_3;
     // 5 instructions.
     ExactAssemblyScope scope(&masm,
-                             5 * kA32InstructionSizeInBytes,
+                             5 * kA32InstructionSizeInBytes + 4,
                              ExactAssemblyScope::kExactSize);
     __ adr(Wide, r0, &label_0);
     __ adr(Wide, r1, &label_1);
     __ adr(Wide, r2, &label_2);
     __ adr(Wide, r3, &label_3);
     __ b(Wide, &label_end);
+    __ bind(&label_0);
+    __ GetBuffer()->EmitData("a", 1);
+    __ bind(&label_1);
+    __ GetBuffer()->EmitData("b", 1);
+    __ bind(&label_2);
+    __ GetBuffer()->EmitData("c", 1);
+    __ bind(&label_3);
+    __ GetBuffer()->EmitData("d", 1);
   }
   {
-    __ Bind(&label_0);
-    __ GetBuffer()->EmitData("a", 1);
-    __ Bind(&label_1);
-    __ GetBuffer()->EmitData("b", 1);
-    __ Bind(&label_2);
-    __ GetBuffer()->EmitData("c", 1);
-    __ Bind(&label_3);
-    __ GetBuffer()->EmitData("d", 1);
     __ Bind(&label_end);
     __ Ldrb(r0, MemOperand(r0));
     __ Ldrb(r1, MemOperand(r1));
@@ -1096,7 +1102,6 @@ TEST(bics) {
   ASSERT_EQUAL_32(0x80000000, r0);
 }
 
-
 // Make sure calling a macro-assembler instruction will generate literal pools
 // if needed.
 TEST_T32(veneer_pool_generated_by_macro_instruction) {
@@ -1106,21 +1111,19 @@ TEST_T32(veneer_pool_generated_by_macro_instruction) {
 
   Label start, end;
 
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(test.PoolIsEmpty());
 
   __ Mov(r0, 1);
 
   __ Bind(&start);
   __ Cbz(r0, &end);
 
-  VIXL_CHECK(!masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(!test.PoolIsEmpty());
 
   // Generate enough code so that, after the loop, no instruction can be
   // generated before we need to generate the veneer pool.
   // Use `ExactAssemblyScope` and the assembler to generate the code.
-  int32_t space = masm.GetMarginBeforeVeneerEmission();
+  int32_t space = test.GetPoolCheckpoint() - masm.GetCursorOffset();
   {
     ExactAssemblyScope scope(&masm, space, ExactAssemblyScope::kExactSize);
     while (space > 0) {
@@ -1129,10 +1132,9 @@ TEST_T32(veneer_pool_generated_by_macro_instruction) {
     }
   }
 
-  // We should not have emitted the veneer pool at this point.
-  VIXL_CHECK(!masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
-  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() == 0);
+  // We should not have emitted the pool at this point.
+  VIXL_CHECK(!test.PoolIsEmpty());
+  VIXL_CHECK(test.GetPoolCheckpoint() == masm.GetCursorOffset());
 
   // Now the pool will need to be generated before we can emit anything.
   Label check;
@@ -1150,8 +1152,7 @@ TEST_T32(veneer_pool_generated_by_macro_instruction) {
   __ B(&start);
   __ Bind(&end);
 
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(test.PoolIsEmpty());
 
   END();
 
@@ -1160,18 +1161,17 @@ TEST_T32(veneer_pool_generated_by_macro_instruction) {
   ASSERT_EQUAL_32(0, r0);
 }
 
-
-TEST(emit_reused_load_literal_rewind) {
-  // This test generates an Ldrd that needs to be rewinded and loads a literal
-  // that already is in the pool (hence it will be part of the pool that gets
-  // emitted as part of the rewind).
+// NOTE: This test has needed modifications for the new pool manager, as it
+// was testing a corner case of the previous pool managers. We keep it as
+// another testcase.
+TEST(emit_reused_load_literal) {
   SETUP();
 
   START();
 
   // Make sure the pool is empty.
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   const int ldrd_range = masm.IsUsingA32() ? 255 : 1020;
   const int string_size = AlignUp(ldrd_range + kMaxInstructionSizeInBytes, 4);
@@ -1184,11 +1184,10 @@ TEST(emit_reused_load_literal_rewind) {
   Literal<uint64_t> l1(0xcafebeefdeadbaba);
   __ Ldr(r0, &l1);
 
-  // This Ldrd will be emitted and then rewinded, forcing the pool to be
-  // emitted before we regenerate the instruction, so l1 will be bound and the
-  // literal pool empty afterwards.
+  // With the old pool manager, this Ldrd used to force pool emission before
+  // being generated. Now, 'l1' and 'big_literal' can be reordered in the pool,
+  // and pool emission is not triggered anymore.
   __ Ldrd(r2, r3, &l1);
-  ASSERT_LITERAL_POOL_SIZE(0);
 
   __ Ldr(r4, MemOperand(r4));  // Load the first 4 characters in r4.
   END();
@@ -1202,7 +1201,9 @@ TEST(emit_reused_load_literal_rewind) {
   ASSERT_EQUAL_32(0x78787878, r4);
 }
 
-
+// NOTE: This test has needed modifications for the new pool manager, as it
+// was testing a corner case of the previous pool managers. We keep it as
+// another testcase.
 TEST(emit_reused_load_literal_should_not_rewind) {
   // This test checks that we are not conservative when rewinding a load of a
   // literal that is already in the literal pool.
@@ -1211,8 +1212,8 @@ TEST(emit_reused_load_literal_should_not_rewind) {
   START();
 
   // Make sure the pool is empty.
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   // This load has a wider range than the Ldrd used below for the same
   // literal.
@@ -1228,11 +1229,12 @@ TEST(emit_reused_load_literal_should_not_rewind) {
   __ Adr(r4, &big_literal);
   __ Ldrd(r2, r3, &l1);
 
-  ASSERT_LITERAL_POOL_SIZE(AlignUp(string_size + 1, 4) + l1.GetSize());
+  // Here we used to check the pool size, which can now be zero as we emit the
+  // literals in a different order.
 
   // Make sure the pool is emitted.
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   __ Ldr(r4, MemOperand(r4));  // Load the first 4 characters in r4.
   END();
@@ -1249,11 +1251,9 @@ TEST(emit_reused_load_literal_should_not_rewind) {
 
 void EmitReusedLoadLiteralStressTest(InstructionSet isa, bool conditional) {
   // This test stresses loading a literal that is already in the literal pool,
-  // for
-  // various positionings on the existing load from that literal. We try to
-  // exercise
-  // cases where the two loads result in similar checkpoints for the literal
-  // pool.
+  // for various positionings on the existing load from that literal. We try to
+  // exercise cases where the two loads result in similar checkpoints for the
+  // literal pool.
   SETUP();
 
   const int ldrd_range = masm.IsUsingA32() ? 255 : 1020;
@@ -1265,16 +1265,16 @@ void EmitReusedLoadLiteralStressTest(InstructionSet isa, bool conditional) {
     START();
 
     // Make sure the pool is empty.
-    masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-    ASSERT_LITERAL_POOL_SIZE(0);
+    masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+    VIXL_CHECK(test.PoolIsEmpty());
 
     if (conditional) {
       __ Mov(r1, 0);
       __ Cmp(r1, 0);
     }
 
-    // Add a large string to the pool, which will force the Ldrd below to rewind
-    // (if the pool is not already emitted due to the Ldr).
+    // Add a large string to the pool, which will stress corner cases with the
+    // Ldrd below (if the pool is not already emitted due to the Ldr).
     const int string_size = AlignUp(ldrd_range + kMaxInstructionSizeInBytes, 4);
     std::string test_string(string_size, 'x');
     StringLiteral big_literal(test_string.c_str());
@@ -1301,9 +1301,11 @@ void EmitReusedLoadLiteralStressTest(InstructionSet isa, bool conditional) {
     } else {
       __ Ldrd(r2, r3, &l1);
     }
-    // At this point, the pool will be emitted either because Ldrd needed to
-    // rewind, or because Ldr reached its range.
-    ASSERT_LITERAL_POOL_SIZE(0);
+
+    // Here we used to check that the pool is empty. Since the new pool manager
+    // allows reordering of literals in the pool, this will not always be the
+    // case. 'l1' can now be emitted before 'big_literal', allowing the pool to
+    // be emitted after the ldrd when the number of nops is small enough.
 
     END();
 
@@ -1337,8 +1339,8 @@ TEST(test_many_loads_from_same_literal) {
   START();
 
   // Make sure the pool is empty.
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   Literal<uint64_t> l0(0xcafebeefdeadbaba);
   __ Ldrd(r0, r1, &l0);
@@ -1370,18 +1372,16 @@ TEST_T32(literal_pool_generated_by_macro_instruction) {
 
   START();
 
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(test.PoolIsEmpty());
 
   __ Ldrd(r0, r1, 0x1234567890abcdef);
 
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(!masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(!test.PoolIsEmpty());
 
   // Generate enough code so that, after the loop, no instruction can be
   // generated before we need to generate the literal pool.
   // Use `ExactAssemblyScope` and the assembler to generate the code.
-  int32_t space = masm.GetMarginBeforeLiteralEmission();
+  int32_t space = test.GetPoolCheckpoint() - masm.GetCursorOffset();
   {
     ExactAssemblyScope scope(&masm, space, ExactAssemblyScope::kExactSize);
     while (space > 0) {
@@ -1391,9 +1391,8 @@ TEST_T32(literal_pool_generated_by_macro_instruction) {
   }
 
   // We should not have emitted the literal pool at this point.
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(!masm.LiteralPoolIsEmpty());
-  VIXL_CHECK(masm.GetMarginBeforeLiteralEmission() == 0);
+  VIXL_CHECK(!test.PoolIsEmpty());
+  VIXL_CHECK(test.GetPoolCheckpoint() == masm.GetCursorOffset());
 
   // Now the pool will need to be generated before we emit anything.
   Label check;
@@ -1408,8 +1407,7 @@ TEST_T32(literal_pool_generated_by_macro_instruction) {
   VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&check) ==
              (3 * k32BitT32InstructionSizeInBytes + 8));
 
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(test.PoolIsEmpty());
 
   END();
 
@@ -1420,23 +1418,22 @@ TEST_T32(literal_pool_generated_by_macro_instruction) {
   ASSERT_EQUAL_32(0x12345678, r2);
 }
 
-
 TEST(emit_single_literal) {
   SETUP();
 
   START();
   // Make sure the pool is empty.
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   // Create one literal pool entry.
   __ Ldrd(r0, r1, 0x1234567890abcdef);
-  ASSERT_LITERAL_POOL_SIZE(8);
+  CHECK_POOL_SIZE(8);
   __ Vldr(s0, 1.0);
   __ Vldr(d1, 2.0);
   __ Vmov(d2, 4.1);
   __ Vmov(s8, 8.2);
-  ASSERT_LITERAL_POOL_SIZE(20);
+  CHECK_POOL_SIZE(20);
   END();
 
   RUN();
@@ -1452,10 +1449,12 @@ TEST(emit_single_literal) {
 
 
 #undef __
+#undef __TESTOBJ
 #define __ masm->
+#define __TESTOBJ test->
 
 
-void EmitLdrdLiteralTest(MacroAssembler* masm) {
+void EmitLdrdLiteralTest(MacroAssembler* masm, TestMacroAssembler* test) {
   const int ldrd_range = masm->IsUsingA32() ? 255 : 1020;
   // We want to emit code up to the maximum literal load range and ensure the
   // pool has not been emitted. Compute the limit (end).
@@ -1469,21 +1468,22 @@ void EmitLdrdLiteralTest(MacroAssembler* masm) {
                 4) +
           // Maximum range allowed to access the constant.
           ldrd_range -
-          // The literal pool has a two instruction margin.
-          2 * kMaxInstructionSizeInBytes,
+          // Take into account the branch over the pool.
+          kMaxInstructionSizeInBytes,
       // AlignDown to 4 byte as the literals will be 4 byte aligned.
       4);
 
   // Create one literal pool entry.
   __ Ldrd(r0, r1, 0x1234567890abcdef);
-  ASSERT_LITERAL_POOL_SIZE(8);
+  CHECK_POOL_SIZE(8);
 
-  int32_t margin = masm->GetMarginBeforeLiteralEmission();
+  int32_t margin = test->GetPoolCheckpoint() - masm->GetCursorOffset();
+  VIXL_ASSERT(end == test->GetPoolCheckpoint());
   {
     ExactAssemblyScope scope(masm, margin, ExactAssemblyScope::kExactSize);
     // Opening the scope should not have triggered the emission of the literal
     // pool.
-    VIXL_CHECK(!masm->LiteralPoolIsEmpty());
+    VIXL_CHECK(!test->PoolIsEmpty());
     while (masm->GetCursorOffset() < end) {
       __ nop();
     }
@@ -1491,42 +1491,46 @@ void EmitLdrdLiteralTest(MacroAssembler* masm) {
   }
 
   // Check that the pool has not been emited along the way.
-  ASSERT_LITERAL_POOL_SIZE(8);
+  CHECK_POOL_SIZE(8);
   // This extra instruction should trigger an emit of the pool.
   __ Nop();
   // The pool should have been emitted.
-  ASSERT_LITERAL_POOL_SIZE(0);
+  VIXL_CHECK(test->PoolIsEmpty());
 }
 
-
 #undef __
+#undef __TESTOBJ
 #define __ masm.
+#define __TESTOBJ test.
 
-
+// NOTE: This test has needed modifications for the new pool manager, as it
+// was testing a corner case of the previous pool managers. We keep it as
+// another testcase.
 TEST(emit_literal_rewind) {
   SETUP();
 
   START();
 
   // Make sure the pool is empty.
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
 
-  EmitLdrdLiteralTest(&masm);
+  EmitLdrdLiteralTest(&masm, &test);
 
   const int ldrd_range = masm.IsUsingA32() ? 255 : 1020;
   const int string_size = AlignUp(ldrd_range + kMaxInstructionSizeInBytes, 4);
   std::string test_string(string_size, 'x');
   StringLiteral big_literal(test_string.c_str());
   __ Adr(r4, &big_literal);
-  // This adr will overflow the literal pool and force a rewind.
-  // That means that the string will be generated then, then Ldrd and the
-  // Ldrd's value will be alone in the pool.
   __ Ldrd(r2, r3, 0xcafebeefdeadbaba);
-  ASSERT_LITERAL_POOL_SIZE(8);
+  // With the old pool manager, the adr above would overflow the literal pool
+  // and force a rewind and pool emission.
+  // Here we used to check the pool size to confirm that 'big_literal' had
+  // already been emitted. This does not have to be the case now, as we can
+  // emit the literals in a different order.
 
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
   __ Ldr(r4, MemOperand(r4));  // Load the first 4 characters in r4.
   END();
 
@@ -1540,6 +1544,10 @@ TEST(emit_literal_rewind) {
   ASSERT_EQUAL_32(0x78787878, r4);
 }
 
+
+// NOTE: This test has needed modifications for the new pool manager, as it
+// was testing a corner case of the previous pool managers. We keep it as
+// another testcase.
 TEST(emit_literal_conditional_rewind) {
   SETUP();
 
@@ -1547,32 +1555,31 @@ TEST(emit_literal_conditional_rewind) {
 
   // This test is almost identical to the test above, but the Ldrd instruction
   // is conditional and there is a second conditional Ldrd instruction that will
-  // not be executed. This is to check that reverting the emission of a load
-  // literal instruction, rewinding, emitting the literal pool and then emitting
-  // the instruction again works correctly when the load is conditional.
+  // not be executed.
 
   // Make sure the pool is empty.
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   const int ldrd_range = masm.IsUsingA32() ? 255 : 1020;
   const int string_size = AlignUp(ldrd_range + kMaxInstructionSizeInBytes, 4);
   std::string test_string(string_size, 'x');
   StringLiteral big_literal(test_string.c_str());
   __ Adr(r2, &big_literal);
-  // This adr will overflow the literal pool and force a rewind.
-  // That means that the string will be generated then, then Ldrd and the
-  // Ldrd's value will be alone in the pool.
   __ Mov(r0, 0);
   __ Mov(r1, 0);
   __ Mov(r3, 1);
   __ Cmp(r3, 1);
   __ Ldrd(eq, r0, r1, 0xcafebeefdeadbaba);
   __ Ldrd(ne, r0, r1, 0xdeadcafebeefbaba);
-  ASSERT_LITERAL_POOL_SIZE(16);
+  // With the old pool manager, the adr above would overflow the literal pool
+  // and force a rewind and pool emission.
+  // Here we used to check the pool size to confirm that 'big_literal' had
+  // already been emitted. This does not have to be the case now, as we can
+  // emit the literals in a different order.
 
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
   __ Ldr(r2, MemOperand(r2));  // Load the first 4 characters in r2.
   END();
 
@@ -1596,8 +1603,8 @@ enum LiteralStressTestMode {
 // This test is similar to the tests above, with the difference that we allow
 // an extra offset to the string size in order to make sure that various pool
 // sizes close to the maximum supported offset will produce code that executes
-// correctly. As the Ldrd might or might not be rewinded, we do not assert on
-// the size of the literal pool in this test.
+// correctly. As the Ldrd might or might not be emitted before the pool, we do
+// not assert on the size of the literal pool in this test.
 void EmitLdrdLiteralStressTest(InstructionSet isa,
                                bool unaligned,
                                LiteralStressTestMode test_mode) {
@@ -1612,8 +1619,8 @@ void EmitLdrdLiteralStressTest(InstructionSet isa,
     }
 
     // Make sure the pool is empty.
-    masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-    ASSERT_LITERAL_POOL_SIZE(0);
+    masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+    VIXL_CHECK(test.PoolIsEmpty());
 
     const int ldrd_range = masm.IsUsingA32() ? 255 : 1020;
     const int string_size = ldrd_range + offset;
@@ -1648,8 +1655,8 @@ void EmitLdrdLiteralStressTest(InstructionSet isa,
         break;
     }
 
-    masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-    ASSERT_LITERAL_POOL_SIZE(0);
+    masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+    VIXL_CHECK(test.PoolIsEmpty());
     __ Ldr(r2, MemOperand(r2));  // Load the first 4 characters in r2.
     END();
 
@@ -1663,29 +1670,28 @@ void EmitLdrdLiteralStressTest(InstructionSet isa,
 }
 
 
-TEST(emit_literal_rewind_stress) {
+TEST(emit_literal_stress) {
   EmitLdrdLiteralStressTest(isa, false /*unaligned*/, kUnconditional);
 }
 
 
-TEST_T32(emit_literal_rewind_stress_unaligned) {
+TEST_T32(emit_literal_stress_unaligned) {
   EmitLdrdLiteralStressTest(isa, true /*unaligned*/, kUnconditional);
 }
 
 
-TEST(emit_literal_conditional_rewind_stress) {
+TEST(emit_literal_conditional_stress) {
   EmitLdrdLiteralStressTest(isa, false /*unaligned*/, kConditionalTrue);
   EmitLdrdLiteralStressTest(isa, false /*unaligned*/, kConditionalFalse);
   EmitLdrdLiteralStressTest(isa, false /*unaligned*/, kConditionalBoth);
 }
 
 
-TEST_T32(emit_literal_conditional_rewind_stress_unaligned) {
+TEST_T32(emit_literal_conditional_stress_unaligned) {
   EmitLdrdLiteralStressTest(isa, true /*unaligned*/, kConditionalTrue);
   EmitLdrdLiteralStressTest(isa, true /*unaligned*/, kConditionalFalse);
   EmitLdrdLiteralStressTest(isa, true /*unaligned*/, kConditionalBoth);
 }
-
 
 TEST_T32(emit_literal_unaligned) {
   SETUP();
@@ -1693,13 +1699,13 @@ TEST_T32(emit_literal_unaligned) {
   START();
 
   // Make sure the pool is empty.
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   // Generate a nop to break the 4 bytes alignment.
   __ Nop();
 
-  EmitLdrdLiteralTest(&masm);
+  EmitLdrdLiteralTest(&masm, &test);
 
   END();
 
@@ -1710,14 +1716,13 @@ TEST_T32(emit_literal_unaligned) {
   ASSERT_EQUAL_32(0x12345678, r1);
 }
 
-
 TEST(literal_multiple_uses) {
   SETUP();
 
   START();
   Literal<int32_t> lit(42);
   __ Ldr(r0, &lit);
-  ASSERT_LITERAL_POOL_SIZE(4);
+  CHECK_POOL_SIZE(4);
 
   // Multiple uses of the same literal object should not make the
   // pool grow.
@@ -1725,7 +1730,7 @@ TEST(literal_multiple_uses) {
   __ Ldrsb(r2, &lit);
   __ Ldrh(r3, &lit);
   __ Ldrsh(r4, &lit);
-  ASSERT_LITERAL_POOL_SIZE(4);
+  CHECK_POOL_SIZE(4);
 
   END();
 
@@ -1753,7 +1758,7 @@ TEST_A32(ldr_literal_range_same_time) {
       ldr_range - ldrd_padding - 2 * kA32InstructionSizeInBytes;
 
   __ Ldr(r1, 0x12121212);
-  ASSERT_LITERAL_POOL_SIZE(4);
+  CHECK_POOL_SIZE(4);
 
   {
     int space = AlignDown(ldr_padding, kA32InstructionSizeInBytes);
@@ -1765,7 +1770,7 @@ TEST_A32(ldr_literal_range_same_time) {
   }
 
   __ Ldrd(r2, r3, 0x1234567890abcdef);
-  ASSERT_LITERAL_POOL_SIZE(12);
+  CHECK_POOL_SIZE(12);
 
   {
     int space = AlignDown(ldrd_padding, kA32InstructionSizeInBytes);
@@ -1775,12 +1780,12 @@ TEST_A32(ldr_literal_range_same_time) {
       __ nop();
     }
   }
-  ASSERT_LITERAL_POOL_SIZE(12);
+  CHECK_POOL_SIZE(12);
 
   // This mov will put the two loads literal out of range and will force
   // the literal pool emission.
   __ Mov(r0, 0);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  VIXL_CHECK(test.PoolIsEmpty());
   END();
 
   RUN();
@@ -1808,7 +1813,8 @@ TEST(ldr_literal_mix_types) {
   __ Ldrsh(r4, &l3);
   __ Ldrb(r5, &l4);
   __ Ldrsb(r6, &l5);
-  ASSERT_LITERAL_POOL_SIZE(28);
+  // The pool size does not include padding.
+  CHECK_POOL_SIZE(18);
 
   END();
 
@@ -1908,7 +1914,7 @@ void GenerateLdrLiteralTriggerPoolEmission(InstructionSet isa,
   SETUP();
 
   for (size_t i = 0; i < ARRAY_SIZE(kLdrLiteralRangeTestData); ++i) {
-    const LdrLiteralRangeTest& test = kLdrLiteralRangeTestData[i];
+    const LdrLiteralRangeTest& test_case = kLdrLiteralRangeTestData[i];
 
     START();
 
@@ -1919,31 +1925,32 @@ void GenerateLdrLiteralTriggerPoolEmission(InstructionSet isa,
     }
 
     __ Ldr(r6, 0x12345678);
-    ASSERT_LITERAL_POOL_SIZE(4);
+    CHECK_POOL_SIZE(4);
 
     // TODO: The MacroAssembler currently checks for more space than required
     // when emitting macro instructions, triggering emission of the pool before
     // absolutely required. For now we keep a buffer. Fix this test when the
     // MacroAssembler becomes precise again.
     int masm_check_margin = 10 * kMaxInstructionSizeInBytes;
-    size_t expected_pool_size = 4;
-    while ((masm.GetMarginBeforeLiteralEmission() - masm_check_margin) >=
+    int expected_pool_size = 4;
+    while ((test.GetPoolCheckpoint() - masm.GetCursorOffset() -
+            masm_check_margin) >=
            static_cast<int32_t>(kMaxInstructionSizeInBytes)) {
       __ Ldr(r7, 0x90abcdef);
       // Each ldr instruction will force a new literal value to be added
       // to the pool. Check that the literal pool grows accordingly.
       expected_pool_size += 4;
-      ASSERT_LITERAL_POOL_SIZE(expected_pool_size);
+      CHECK_POOL_SIZE(expected_pool_size);
     }
 
-    int space = masm.GetMarginBeforeLiteralEmission();
+    int space = test.GetPoolCheckpoint() - masm.GetCursorOffset();
     int end = masm.GetCursorOffset() + space;
     {
       // Generate nops precisely to fill the buffer.
       ExactAssemblyScope accurate_scope(&masm, space);  // This should not
                                                         // trigger emission of
                                                         // the pool.
-      VIXL_CHECK(!masm.LiteralPoolIsEmpty());
+      VIXL_CHECK(!test.PoolIsEmpty());
       while (masm.GetCursorOffset() < end) {
         __ nop();
       }
@@ -1951,10 +1958,10 @@ void GenerateLdrLiteralTriggerPoolEmission(InstructionSet isa,
 
     // This ldr will force the literal pool to be emitted before emitting
     // the load and will create a new pool for the new literal used by this ldr.
-    VIXL_CHECK(!masm.LiteralPoolIsEmpty());
-    Literal<uint32_t> literal(test.literal_value);
-    (masm.*test.instruction)(test.result_reg, &literal);
-    ASSERT_LITERAL_POOL_SIZE(4);
+    VIXL_CHECK(!test.PoolIsEmpty());
+    Literal<uint32_t> literal(test_case.literal_value);
+    (masm.*test_case.instruction)(test_case.result_reg, &literal);
+    CHECK_POOL_SIZE(4);
 
     END();
 
@@ -1962,7 +1969,7 @@ void GenerateLdrLiteralTriggerPoolEmission(InstructionSet isa,
 
     ASSERT_EQUAL_32(0x12345678, r6);
     ASSERT_EQUAL_32(0x90abcdef, r7);
-    ASSERT_EQUAL_32(test.test_value, test.result_reg);
+    ASSERT_EQUAL_32(test_case.test_value, test_case.result_reg);
   }
 }
 
@@ -1976,18 +1983,17 @@ TEST_T32(ldr_literal_trigger_pool_emission_unaligned) {
   GenerateLdrLiteralTriggerPoolEmission(isa, true);
 }
 
-
 void GenerateLdrLiteralRangeTest(InstructionSet isa, bool unaligned_ldr) {
   SETUP();
 
   for (size_t i = 0; i < ARRAY_SIZE(kLdrLiteralRangeTestData); ++i) {
-    const LdrLiteralRangeTest& test = kLdrLiteralRangeTestData[i];
+    const LdrLiteralRangeTest& test_case = kLdrLiteralRangeTestData[i];
 
     START();
 
     // Make sure the pool is empty.
-    masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-    ASSERT_LITERAL_POOL_SIZE(0);
+    masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+    VIXL_CHECK(test.PoolIsEmpty());
 
     if (unaligned_ldr) {
       // Generate a nop to break the 4-byte alignment.
@@ -1995,27 +2001,28 @@ void GenerateLdrLiteralRangeTest(InstructionSet isa, bool unaligned_ldr) {
       VIXL_ASSERT((masm.GetBuffer()->GetCursorOffset() % 4) == 2);
     }
 
-    Literal<uint32_t> literal(test.literal_value);
-    (masm.*test.instruction)(test.result_reg, &literal);
-    ASSERT_LITERAL_POOL_SIZE(4);
+    Literal<uint32_t> literal(test_case.literal_value);
+    (masm.*test_case.instruction)(test_case.result_reg, &literal);
+    CHECK_POOL_SIZE(4);
 
     // Generate enough instruction so that we go out of range for the load
     // literal we just emitted.
-    ptrdiff_t end = masm.GetBuffer()->GetCursorOffset() +
-                    ((masm.IsUsingA32()) ? test.a32_range : test.t32_range);
+    ptrdiff_t end =
+        masm.GetBuffer()->GetCursorOffset() +
+        ((masm.IsUsingA32()) ? test_case.a32_range : test_case.t32_range);
     while (masm.GetBuffer()->GetCursorOffset() < end) {
       __ Mov(r0, 0);
     }
 
     // The literal pool should have been emitted now.
     VIXL_CHECK(literal.IsBound());
-    ASSERT_LITERAL_POOL_SIZE(0);
+    VIXL_CHECK(test.PoolIsEmpty());
 
     END();
 
     RUN();
 
-    ASSERT_EQUAL_32(test.test_value, test.result_reg);
+    ASSERT_EQUAL_32(test_case.test_value, test_case.result_reg);
   }
 }
 
@@ -2033,8 +2040,8 @@ TEST(string_literal) {
 
   START();
   // Make sure the pool is empty.
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   StringLiteral hello_string("hello");
 
@@ -2056,20 +2063,20 @@ TEST(custom_literal_in_pool) {
 
   START();
   // Make sure the pool is empty.
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   Literal<uint32_t> l0(static_cast<uint32_t>(0x12345678));
   __ Ldr(r0, &l0);
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
   __ Ldr(r1, &l0);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   Literal<uint64_t> cafebeefdeadbaba(0xcafebeefdeadbaba);
   __ Ldrd(r8, r9, &cafebeefdeadbaba);
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
   __ Ldrd(r2, r3, &cafebeefdeadbaba);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   Literal<uint32_t> l1(0x09abcdef);
   __ Adr(r4, &l1);
@@ -2077,7 +2084,7 @@ TEST(custom_literal_in_pool) {
   masm.EmitLiteralPool();
   __ Adr(r5, &l1);
   __ Ldr(r5, MemOperand(r5));
-  ASSERT_LITERAL_POOL_SIZE(0);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   END();
 
@@ -2100,8 +2107,8 @@ TEST(custom_literal_place) {
 
   START();
   // Make sure the pool is empty.
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   Literal<uint64_t> l0(0xcafebeefdeadbaba, RawLiteral::kManuallyPlaced);
   Literal<int32_t> l1(0x12345678, RawLiteral::kManuallyPlaced);
@@ -2117,7 +2124,7 @@ TEST(custom_literal_place) {
   __ Ldrb(r5, &l4);
   __ Ldrsb(r6, &l5);
 
-  ASSERT_LITERAL_POOL_SIZE(0);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   // Manually generate a literal pool.
   Label after_pool;
@@ -2144,7 +2151,7 @@ TEST(custom_literal_place) {
     __ Ldrsb(lr, &l5);
   }
 
-  ASSERT_LITERAL_POOL_SIZE(0);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   END();
 
@@ -2173,16 +2180,18 @@ TEST(custom_literal_place_shared) {
   SETUP();
 
   for (size_t i = 0; i < ARRAY_SIZE(kLdrLiteralRangeTestData); ++i) {
-    const LdrLiteralRangeTest& test = kLdrLiteralRangeTestData[i];
+    const LdrLiteralRangeTest& test_case = kLdrLiteralRangeTestData[i];
 
     START();
 
     // Make sure the pool is empty.
-    masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-    ASSERT_LITERAL_POOL_SIZE(0);
+    masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+    VIXL_CHECK(test.PoolIsEmpty());
 
-    Literal<uint32_t> before(test.literal_value, RawLiteral::kManuallyPlaced);
-    Literal<uint32_t> after(test.literal_value, RawLiteral::kManuallyPlaced);
+    Literal<uint32_t> before(test_case.literal_value,
+                             RawLiteral::kManuallyPlaced);
+    Literal<uint32_t> after(test_case.literal_value,
+                            RawLiteral::kManuallyPlaced);
 
     VIXL_CHECK(!before.IsBound());
     VIXL_CHECK(!after.IsBound());
@@ -2193,17 +2202,17 @@ TEST(custom_literal_place_shared) {
     __ Place(&before);
     __ Bind(&end_of_pool_before);
 
-    ASSERT_LITERAL_POOL_SIZE(0);
+    VIXL_CHECK(test.PoolIsEmpty());
     VIXL_CHECK(before.IsBound());
     VIXL_CHECK(!after.IsBound());
 
     // Load the entries several times to test that literals can be shared.
     for (int i = 0; i < 20; i++) {
-      (masm.*test.instruction)(r0, &before);
-      (masm.*test.instruction)(r1, &after);
+      (masm.*test_case.instruction)(r0, &before);
+      (masm.*test_case.instruction)(r1, &after);
     }
 
-    ASSERT_LITERAL_POOL_SIZE(0);
+    VIXL_CHECK(test.PoolIsEmpty());
     VIXL_CHECK(before.IsBound());
     VIXL_CHECK(!after.IsBound());
 
@@ -2213,7 +2222,7 @@ TEST(custom_literal_place_shared) {
     __ Place(&after);
     __ Bind(&end_of_pool_after);
 
-    ASSERT_LITERAL_POOL_SIZE(0);
+    VIXL_CHECK(test.PoolIsEmpty());
     VIXL_CHECK(before.IsBound());
     VIXL_CHECK(after.IsBound());
 
@@ -2221,8 +2230,8 @@ TEST(custom_literal_place_shared) {
 
     RUN();
 
-    ASSERT_EQUAL_32(test.test_value, r0);
-    ASSERT_EQUAL_32(test.test_value, r1);
+    ASSERT_EQUAL_32(test_case.test_value, r0);
+    ASSERT_EQUAL_32(test_case.test_value, r1);
   }
 }
 
@@ -2231,10 +2240,11 @@ TEST(custom_literal_place_range) {
   SETUP();
 
   for (size_t i = 0; i < ARRAY_SIZE(kLdrLiteralRangeTestData); ++i) {
-    const LdrLiteralRangeTest& test = kLdrLiteralRangeTestData[i];
+    const LdrLiteralRangeTest& test_case = kLdrLiteralRangeTestData[i];
     const int nop_size = masm.IsUsingA32() ? kA32InstructionSizeInBytes
                                            : k16BitT32InstructionSizeInBytes;
-    const int range = masm.IsUsingA32() ? test.a32_range : test.t32_range;
+    const int range =
+        masm.IsUsingA32() ? test_case.a32_range : test_case.t32_range;
     // On T32 the PC will be 4-byte aligned to compute the range. The
     // MacroAssembler might also need to align the code buffer before emitting
     // the literal when placing it. We keep a margin to account for this.
@@ -2256,8 +2266,10 @@ TEST(custom_literal_place_range) {
                               (2 * kMaxInstructionSizeInBytes) - margin;
     START();
 
-    Literal<uint32_t> before(test.literal_value, RawLiteral::kManuallyPlaced);
-    Literal<uint32_t> after(test.literal_value, RawLiteral::kManuallyPlaced);
+    Literal<uint32_t> before(test_case.literal_value,
+                             RawLiteral::kManuallyPlaced);
+    Literal<uint32_t> after(test_case.literal_value,
+                            RawLiteral::kManuallyPlaced);
 
     Label test_start;
     __ B(&test_start);
@@ -2273,8 +2285,8 @@ TEST(custom_literal_place_range) {
     }
 
     __ Bind(&test_start);
-    (masm.*test.instruction)(r0, &before);
-    (masm.*test.instruction)(r1, &after);
+    (masm.*test_case.instruction)(r0, &before);
+    (masm.*test_case.instruction)(r1, &after);
 
     {
       int space = AlignDown(padding_after, nop_size);
@@ -2294,8 +2306,8 @@ TEST(custom_literal_place_range) {
 
     RUN();
 
-    ASSERT_EQUAL_32(test.test_value, r0);
-    ASSERT_EQUAL_32(test.test_value, r1);
+    ASSERT_EQUAL_32(test_case.test_value, r0);
+    ASSERT_EQUAL_32(test_case.test_value, r1);
   }
 }
 
@@ -2305,7 +2317,7 @@ TEST(emit_big_pool) {
 
   START();
   // Make sure the pool is empty.
-  ASSERT_LITERAL_POOL_SIZE(0);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   Label start;
   __ Bind(&start);
@@ -2315,7 +2327,7 @@ TEST(emit_big_pool) {
 
   VIXL_ASSERT(masm.GetSizeOfCodeGeneratedSince(&start) == 4000);
 
-  ASSERT_LITERAL_POOL_SIZE(4000);
+  CHECK_POOL_SIZE(4000);
   END();
 
   RUN();
@@ -2430,15 +2442,16 @@ TEST_T32(veneers) {
   __ Mov(r0, 0);
   // Create one literal pool entry.
   __ Ldr(r1, 0x12345678);
-  ASSERT_LITERAL_POOL_SIZE(4);
+  CHECK_POOL_SIZE(4);
   __ Cbz(r0, &zero);
   __ Mov(r0, 1);
   __ B(&exit);
   for (int i = 32; i > 0; i--) {
     __ Mov(r1, 0);
   }
-  // Assert that the literal pool has been generated with the veneers.
-  ASSERT_LITERAL_POOL_SIZE(0);
+  // Assert that the pool contains only the two veneers.
+  const int kVeneerSize = 4;
+  CHECK_POOL_SIZE(2 * kVeneerSize);
   __ Bind(&zero);
   __ Mov(r0, 2);
   __ Bind(&exit);
@@ -2504,7 +2517,7 @@ TEST_T32(veneer_bind) {
   }
 
   VIXL_CHECK(target.IsBound());
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(test.PoolIsEmpty());
 
   END();
 }
@@ -2545,8 +2558,8 @@ TEST_T32(b_narrow_and_cbz_sort) {
 
   // Force pool emission. If the labels are not sorted, the cbz will be out
   // of range.
-  int32_t margin = masm.GetMarginBeforeVeneerEmission();
-  int32_t end = masm.GetCursorOffset() + margin;
+  int32_t end = test.GetPoolCheckpoint();
+  int32_t margin = end - masm.GetCursorOffset();
 
   {
     ExactAssemblyScope scope(&masm, margin, ExactAssemblyScope::kExactSize);
@@ -2601,8 +2614,7 @@ TEST_T32(b_narrow_and_cbz_sort_2) {
 
   // Force pool emission. If the labels are not sorted, the cbz will be out
   // of range.
-  int32_t margin = masm.GetMarginBeforeVeneerEmission();
-  int32_t end = masm.GetCursorOffset() + margin;
+  int32_t end = test.GetPoolCheckpoint();
 
   while (masm.GetCursorOffset() < end) __ Nop();
 
@@ -2666,10 +2678,10 @@ TEST_T32(unaligned_branch_after_literal) {
   Literal<int32_t> l0(0x01234567, RawLiteral::kManuallyPlaced);
 
   __ Ldr(r0, &l0);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  VIXL_CHECK(test.PoolIsEmpty());
 
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   // Manually generate a literal pool.
   {
@@ -2683,7 +2695,7 @@ TEST_T32(unaligned_branch_after_literal) {
     __ bind(&after_pool);
   }
 
-  ASSERT_LITERAL_POOL_SIZE(0);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   END();
 
@@ -3419,30 +3431,28 @@ TEST(nop) {
   masm.FinalizeCode();
 }
 
-
-// Check that `GetMarginBeforeLiteralEmission()` is precise.
+// Check that `GetPoolCheckpoint()` is precise.
 TEST(literal_pool_margin) {
   SETUP();
 
   START();
 
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(test.PoolIsEmpty());
 
   // Create a single literal.
   __ Ldrd(r0, r1, 0x1234567890abcdef);
 
-  VIXL_CHECK(!masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(!test.PoolIsEmpty());
 
   // Generate code to fill all the margin we have before generating the literal
   // pool.
-  int32_t margin = masm.GetMarginBeforeLiteralEmission();
-  int32_t end = masm.GetCursorOffset() + margin;
+  int32_t margin = test.GetPoolCheckpoint() - masm.GetCursorOffset();
+  int32_t end = test.GetPoolCheckpoint();
   {
     ExactAssemblyScope scope(&masm, margin, ExactAssemblyScope::kExactSize);
     // Opening the scope should not have triggered the emission of the literal
     // pool.
-    VIXL_CHECK(!masm.LiteralPoolIsEmpty());
+    VIXL_CHECK(!test.PoolIsEmpty());
     while (masm.GetCursorOffset() < end) {
       __ nop();
     }
@@ -3450,12 +3460,12 @@ TEST(literal_pool_margin) {
   }
 
   // There should be no margin left to emit the literal pool.
-  VIXL_CHECK(!masm.LiteralPoolIsEmpty());
-  VIXL_CHECK(masm.GetMarginBeforeLiteralEmission() == 0);
+  VIXL_CHECK(!test.PoolIsEmpty());
+  VIXL_CHECK(test.GetPoolCheckpoint() == masm.GetCursorOffset());
 
   // So emitting a single instruction should force emission of the pool.
   __ Nop();
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(test.PoolIsEmpty());
   END();
 
   RUN();
@@ -3466,37 +3476,36 @@ TEST(literal_pool_margin) {
 }
 
 
-// Check that `GetMarginBeforeVeneerEmission()` is precise.
+// Check that `GetPoolCheckpoint()` is precise.
 TEST(veneer_pool_margin) {
   SETUP();
 
   START();
 
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(test.PoolIsEmpty());
 
   // Create a single veneer.
   Label target;
   __ B(eq, &target);
 
-  VIXL_CHECK(!masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(!test.PoolIsEmpty());
 
   // Generate code to fill all the margin we have before generating the veneer
   // pool.
-  int32_t margin = masm.GetMarginBeforeVeneerEmission();
-  int32_t end = masm.GetCursorOffset() + margin;
+  int32_t margin = test.GetPoolCheckpoint() - masm.GetCursorOffset();
+  int32_t end = test.GetPoolCheckpoint();
   {
     ExactAssemblyScope scope(&masm, margin, ExactAssemblyScope::kExactSize);
     // Opening the scope should not have triggered the emission of the veneer
     // pool.
-    VIXL_CHECK(!masm.VeneerPoolIsEmpty());
+    VIXL_CHECK(!test.PoolIsEmpty());
     while (masm.GetCursorOffset() < end) {
       __ nop();
     }
     VIXL_CHECK(masm.GetCursorOffset() == end);
   }
   // There should be no margin left to emit the veneer pool.
-  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() == 0);
+  VIXL_CHECK(test.GetPoolCheckpoint() == masm.GetCursorOffset());
 
   // So emitting a single instruction should force emission of the pool.
   // We cannot simply check that the veneer pool is empty, because the veneer
@@ -3510,13 +3519,12 @@ TEST(veneer_pool_margin) {
   }
   VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&check) > 0);
   __ Bind(&target);
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(test.PoolIsEmpty());
 
   END();
 
   RUN();
 }
-
 
 TEST_T32(near_branch_fuzz) {
   SETUP();
@@ -3915,17 +3923,17 @@ TEST_NOASM(code_buffer_precise_growth) {
 TEST_NOASM(out_of_space_immediately_before_EnsureEmitFor) {
   static const int kBaseBufferSize = 64;
   MacroAssembler masm(kBaseBufferSize, T32);
+  TestMacroAssembler test(&masm);
 
   VIXL_CHECK(masm.GetBuffer()->GetCapacity() == kBaseBufferSize);
 
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(test.PoolIsEmpty());
 
   // Create a veneer.
   Label target;
   __ Cbz(r0, &target);
 
-  VIXL_CHECK(!masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(!test.PoolIsEmpty());
 
   VIXL_CHECK(IsUint32(masm.GetBuffer()->GetRemainingBytes()));
   uint32_t space = static_cast<uint32_t>(masm.GetBuffer()->GetRemainingBytes());
@@ -3937,7 +3945,7 @@ TEST_NOASM(out_of_space_immediately_before_EnsureEmitFor) {
     }
   }
 
-  VIXL_CHECK(!masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(!test.PoolIsEmpty());
 
   // The buffer should not have grown yet, and there should be no space left.
   VIXL_CHECK(masm.GetBuffer()->GetCapacity() == kBaseBufferSize);
@@ -3945,12 +3953,13 @@ TEST_NOASM(out_of_space_immediately_before_EnsureEmitFor) {
 
   // Force emission of the veneer, at a point where there is no space available
   // in the buffer.
-  int32_t past_cbz_range = masm.GetMarginBeforeVeneerEmission() + 1;
+  int32_t past_cbz_range =
+      test.GetPoolCheckpoint() - masm.GetCursorOffset() + 1;
   masm.EnsureEmitFor(past_cbz_range);
 
   __ Bind(&target);
 
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+  VIXL_CHECK(test.PoolIsEmpty());
 
   masm.FinalizeCode();
 }
@@ -3962,9 +3971,6 @@ TEST_NOASM(EnsureEmitFor) {
   MacroAssembler masm(kBaseBufferSize);
 
   VIXL_CHECK(masm.GetBuffer()->GetCapacity() == kBaseBufferSize);
-
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
 
   VIXL_CHECK(IsUint32(masm.GetBuffer()->GetRemainingBytes()));
   int32_t space = static_cast<int32_t>(masm.GetBuffer()->GetRemainingBytes());
@@ -4901,16 +4907,15 @@ TEST_T32(veneer_simultaneous_one_label) {
   END();
 }
 
-
-// The literal pool will be emitted early because we keep a margin to always be
-// able to generate the veneers before the literal.
+// NOTE: This test has needed modifications for the new pool manager, as it
+// was testing a corner case of the previous pool managers. We keep it as
+// another testcase.
 TEST_T32(veneer_and_literal) {
   SETUP();
 
   START();
 
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(test.PoolIsEmpty());
 
   const uint32_t ldrd_range = 1020;
   const uint32_t cbz_range = 126;
@@ -4937,22 +4942,11 @@ TEST_T32(veneer_and_literal) {
     i += 2 * k16BitT32InstructionSizeInBytes;
   }
 
-  // However as we have pending veneer, the range is shrinken and the literal
-  // pool is generated.
-  VIXL_ASSERT(masm.LiteralPoolIsEmpty());
-  // However, we didn't generate the veneer pool.
-  VIXL_ASSERT(masm.GetMarginBeforeVeneerEmission() <
-              static_cast<int32_t>(cbz_range));
-
   // We generate a few more instructions.
   for (; i < ldrd_range - 4 * kA32InstructionSizeInBytes;
        i += k16BitT32InstructionSizeInBytes) {
     __ Nop();
   }
-
-  // And a veneer pool has been generated.
-  VIXL_ASSERT(masm.GetMarginBeforeVeneerEmission() >
-              static_cast<int32_t>(cbz_range));
 
   // Bind all the used labels.
   for (uint32_t j = 0; j < kLabelsCount; j++) {
@@ -4960,8 +4954,8 @@ TEST_T32(veneer_and_literal) {
     __ Nop();
   }
 
-  // Now that all the labels have been bound, we have no more veneer.
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+  // Now that all the labels have been bound, we have no more veneers.
+  VIXL_CHECK(test.PoolIsEmpty());
 
   END();
 
@@ -4972,16 +4966,15 @@ TEST_T32(veneer_and_literal) {
   ASSERT_EQUAL_32(0x12345678, r1);
 }
 
-
-// The literal pool will be emitted early and, as the emission of the literal
-// pool would have put veneer out of range, the veneers are emitted first.
+// NOTE: This test has needed modifications for the new pool manager, as it
+// was testing a corner case of the previous pool managers. We keep it as
+// another testcase.
 TEST_T32(veneer_and_literal2) {
   SETUP();
 
   START();
 
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
-  VIXL_CHECK(masm.LiteralPoolIsEmpty());
+  VIXL_CHECK(test.PoolIsEmpty());
 
   const uint32_t ldrd_range = 1020;
   const uint32_t cbz_range = 126;
@@ -5005,33 +4998,19 @@ TEST_T32(veneer_and_literal2) {
   }
 
   // Generate nops up to the literal pool limit.
-  while (masm.GetMarginBeforeLiteralEmission() >=
+  while (test.GetPoolCheckpoint() - masm.GetCursorOffset() >=
          kTypicalMacroInstructionMaxSize) {
     __ Nop();
   }
 
   // At this point, no literals and no veneers have been generated.
-  VIXL_ASSERT(!masm.LiteralPoolIsEmpty());
-  VIXL_ASSERT(masm.GetMarginBeforeVeneerEmission() <
-              static_cast<int32_t>(cbz_range));
+  VIXL_ASSERT(!test.PoolIsEmpty());
   // The literal pool needs to be generated.
-  VIXL_ASSERT(masm.GetMarginBeforeLiteralEmission() <
+  VIXL_ASSERT(test.GetPoolCheckpoint() - masm.GetCursorOffset() <
               kTypicalMacroInstructionMaxSize);
-  // But not the veneer pool.
-  VIXL_ASSERT(masm.GetMarginBeforeVeneerEmission() >=
-              kTypicalMacroInstructionMaxSize);
-  // However, as the literal emission would put veneers out of range.
-  VIXL_ASSERT(masm.GetMarginBeforeVeneerEmission() <
-              kTypicalMacroInstructionMaxSize +
-                  static_cast<int32_t>(masm.GetLiteralPoolSize()));
 
-  // This extra Nop will generate the literal pool and before that the veneer
-  // pool.
+  // This extra Nop will generate the pools.
   __ Nop();
-  // Now the literal pool has been generated.
-  VIXL_ASSERT(masm.LiteralPoolIsEmpty());
-  // And also the veneer pool.
-  VIXL_ASSERT(masm.GetMarginBeforeVeneerEmission() > 1000);
 
   // Bind all the used labels.
   for (uint32_t j = 0; j < kLabelsCount; j++) {
@@ -5039,8 +5018,8 @@ TEST_T32(veneer_and_literal2) {
     __ Nop();
   }
 
-  // Now that all the labels have been bound, we have no more veneer.
-  VIXL_CHECK(masm.VeneerPoolIsEmpty());
+  // Now that all the labels have been bound, we have no more veneers.
+  VIXL_CHECK(test.PoolIsEmpty());
 
   END();
 
@@ -5192,12 +5171,11 @@ TEST_T32(veneer_and_literal5) {
     __ Bind(&labels[test]);
     // Emit the literal pool if it has not beeen emitted (it's the case for
     // the lower values of test).
-    __ EmitLiteralPool(MacroAssembler::kBranchRequired);
+    __ EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
   }
 
   END();
 }
-
 
 // Check that veneer and literals are well generated when they are out of
 // range at the same time.
@@ -5238,8 +5216,10 @@ TEST_T32(veneer_and_literal6) {
   // margin (minus the size of the veneers).
 
   // At this point, the literal and the veneer pools are not emitted.
-  VIXL_CHECK(masm.GetLiteralPoolSize() > 0);
-  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() < kCbzCbnzRange);
+  const int kLdrdLiteralSize = 8;
+  const int kVeneerSize = 4;
+  CHECK_POOL_SIZE(7 * kLdrdLiteralSize + 5 * kVeneerSize);
+  VIXL_CHECK(test.GetPoolCheckpoint() - masm.GetCursorOffset() < kCbzCbnzRange);
 
   // This scope will generate both veneers (they are both out of range).
   {
@@ -5250,15 +5230,17 @@ TEST_T32(veneer_and_literal6) {
     }
   }
 
-  // Check that both veneers have been emitted.
-  VIXL_CHECK(masm.GetLiteralPoolSize() == 0);
-  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() > kCbzCbnzRange);
+  // Check that both literals and veneers have been emitted.
+  CHECK_POOL_SIZE(5 * kVeneerSize);
+  VIXL_CHECK(test.GetPoolCheckpoint() - masm.GetCursorOffset() > kCbzCbnzRange);
 
   __ Bind(&t1);
   __ Bind(&t2);
   __ Bind(&t3);
   __ Bind(&t4);
   __ Bind(&t5);
+
+  CHECK_POOL_SIZE(0);
 
   END();
 
@@ -5279,15 +5261,11 @@ TEST_T32(veneer_and_literal6) {
   ASSERT_EQUAL_32(0x12345678, r11);
 }
 
-
 // Check that a label which is just bound during the MacroEmissionCheckScope
 // can be used.
 TEST(ldr_label_bound_during_scope) {
   SETUP();
   START();
-
-  const int32_t kTypicalMacroInstructionMaxSize =
-      8 * kMaxInstructionSizeInBytes;
 
   Literal<uint64_t>* literal =
       new Literal<uint64_t>(UINT64_C(0x1234567890abcdef),
@@ -5295,18 +5273,21 @@ TEST(ldr_label_bound_during_scope) {
                             RawLiteral::kDeletedOnPoolDestruction);
   __ Ldrd(r0, r1, literal);
 
-  while (masm.GetMarginBeforeLiteralEmission() >=
-         kTypicalMacroInstructionMaxSize) {
-    __ Nop();
+  const int nop_size = masm.IsUsingA32() ? 4 : 2;
+  while (test.GetPoolCheckpoint() >=
+         (masm.GetCursorOffset() +
+          static_cast<int32_t>(kMaxInstructionSizeInBytes))) {
+    ExactAssemblyScope scope(&masm, nop_size, ExactAssemblyScope::kExactSize);
+    __ nop();
   }
 
-  VIXL_ASSERT(!masm.LiteralPoolIsEmpty());
+  VIXL_ASSERT(!test.PoolIsEmpty());
 
   // This Ldrd will first generate the pool and then use literal which has just
   // been bound.
   __ Ldrd(r2, r3, literal);
 
-  VIXL_ASSERT(masm.LiteralPoolIsEmpty());
+  VIXL_ASSERT(test.PoolIsEmpty());
 
   END();
 
@@ -5328,8 +5309,8 @@ TEST_T32(test_it_scope_and_literal_pool) {
   START();
 
   // Make sure the pool is empty.
-  masm.EmitLiteralPool(MacroAssembler::kBranchRequired);
-  ASSERT_LITERAL_POOL_SIZE(0);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
+  VIXL_CHECK(test.PoolIsEmpty());
 
   Literal<uint64_t> l0(0xcafebeefdeadbaba);
   __ Ldrd(r0, r1, &l0);
@@ -5338,8 +5319,8 @@ TEST_T32(test_it_scope_and_literal_pool) {
   // for).
   const int32_t kTypicalMacroInstructionMaxSize =
       8 * kMaxInstructionSizeInBytes;
-  int32_t margin =
-      masm.GetMarginBeforeLiteralEmission() - kTypicalMacroInstructionMaxSize;
+  int32_t margin = test.GetPoolCheckpoint() - masm.GetCursorOffset() -
+                   kTypicalMacroInstructionMaxSize;
   int32_t end = masm.GetCursorOffset() + margin;
 
   {
@@ -5348,7 +5329,7 @@ TEST_T32(test_it_scope_and_literal_pool) {
       __ nop();
     }
   }
-  VIXL_CHECK(masm.GetMarginBeforeLiteralEmission() ==
+  VIXL_CHECK((test.GetPoolCheckpoint() - masm.GetCursorOffset()) ==
              kTypicalMacroInstructionMaxSize);
 
   // We cannot use an IT block for this instruction, hence ITScope will
@@ -5621,7 +5602,6 @@ TEST(blx) {
   ASSERT_EQUAL_32(0x22222222, r1);
 }
 
-
 // Check that B with a near hint use a narrow branch when it can.
 TEST_T32(b_near_hint) {
   SETUP();
@@ -5664,7 +5644,8 @@ TEST_T32(b_near_hint) {
     __ B(&end, kNear);
   }
 
-  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() < kBNarrowRange);
+  int32_t margin = test.GetPoolCheckpoint() - masm.GetCursorOffset();
+  VIXL_CHECK(margin < kBNarrowRange);
 
   {
     ExactAssemblyScope scope(&masm,
@@ -5677,7 +5658,8 @@ TEST_T32(b_near_hint) {
   }
 
   // A veneer should have been generated.
-  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() > kBNarrowRange);
+  margin = test.GetPoolCheckpoint() - masm.GetCursorOffset();
+  VIXL_CHECK(margin > kBNarrowRange);
 
   __ Bind(&end);
 
@@ -5685,7 +5667,6 @@ TEST_T32(b_near_hint) {
 
   DISASSEMBLE();
 }
-
 
 // Check that B with a far hint use a narrow branch only for a near backward
 // branch.
@@ -5737,7 +5718,6 @@ TEST_T32(b_far_hint) {
   DISASSEMBLE();
 }
 
-
 // Check that conditional B with a near hint use a narrow branch when it can.
 TEST_T32(b_conditional_near_hint) {
   SETUP();
@@ -5779,7 +5759,8 @@ TEST_T32(b_conditional_near_hint) {
     __ B(eq, &end, kNear);
   }
 
-  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() < kBConditionalNarrowRange);
+  int32_t margin = test.GetPoolCheckpoint() - masm.GetCursorOffset();
+  VIXL_CHECK(margin < kBConditionalNarrowRange);
 
   {
     ExactAssemblyScope scope(&masm,
@@ -5792,7 +5773,8 @@ TEST_T32(b_conditional_near_hint) {
   }
 
   // A veneer should have been generated.
-  VIXL_CHECK(masm.GetMarginBeforeVeneerEmission() > kBConditionalNarrowRange);
+  margin = test.GetPoolCheckpoint() - masm.GetCursorOffset();
+  VIXL_CHECK(margin > kBConditionalNarrowRange);
 
   __ Bind(&end);
 
@@ -5800,7 +5782,6 @@ TEST_T32(b_conditional_near_hint) {
 
   DISASSEMBLE();
 }
-
 
 // Check that conditional B with a far hint use a narrow branch only for a
 // near backward branch.
@@ -6129,6 +6110,345 @@ TEST_T32(macro_assembler_commute) {
   //                  Orrs(eq, r7, r6, r7));
 }
 
+TEST(emit_pool_when_manually_placing_literal) {
+  SETUP();
+  START();
+
+  // Literal that will be manually placed.
+  Literal<uint64_t> l0(0xcafebeefdeadbaba, RawLiteral::kManuallyPlaced);
+
+  // Create one literal pool entry.
+  __ Ldrd(r0, r1, 0x1234567890abcdef);
+
+  // Branch using the assembler, to avoid introducing a veneer.
+  Label over_literal;
+  const int kBranchSize = 4;
+  {
+    ExactAssemblyScope scope(&masm,
+                             kBranchSize,
+                             ExactAssemblyScope::kExactSize);
+    __ b(&over_literal);
+  }
+
+  // Almost reach the pool checkpoint.
+  int32_t margin =
+      test.GetPoolCheckpoint() - masm.GetCursorOffset() - l0.GetSize() / 2;
+  int32_t end = masm.GetCursorOffset() + margin;
+  {
+    ExactAssemblyScope scope(&masm, margin, ExactAssemblyScope::kExactSize);
+    while (masm.GetCursorOffset() < end) {
+      __ nop();
+    }
+  }
+
+  VIXL_CHECK(!test.PoolIsEmpty());
+  __ Place(&l0);
+  // The pool must now have been emitted.
+  VIXL_CHECK(test.PoolIsEmpty());
+
+  __ Bind(&over_literal);
+
+  __ Ldrd(r2, r3, &l0);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0x90abcdef, r0);
+  ASSERT_EQUAL_32(0x12345678, r1);
+  ASSERT_EQUAL_32(0xdeadbaba, r2);
+  ASSERT_EQUAL_32(0xcafebeef, r3);
+}
+
+
+// The addition of padding only happens for T32.
+TEST_T32(emit_pool_when_adding_padding_due_to_bind) {
+  SETUP();
+  START();
+
+  // Make sure we start with a 4-byte aligned address, in order for the
+  // location where we will call Bind() to be 4-byte aligned.
+  {
+    ExactAssemblyScope scope(&masm,
+                             k16BitT32InstructionSizeInBytes,
+                             ExactAssemblyScope::kMaximumSize);
+    while (masm.GetCursorOffset() % 4 != 0) {
+      __ nop();
+    }
+  }
+
+  // Create one literal pool entry.
+  __ Ldrd(r0, r1, 0x1234567890abcdef);
+
+  // Almost reach the pool checkpoint.
+  const int kPaddingBytes = 2;
+  int32_t margin =
+      test.GetPoolCheckpoint() - masm.GetCursorOffset() - kPaddingBytes;
+  int32_t end = masm.GetCursorOffset() + margin;
+  {
+    ExactAssemblyScope scope(&masm, margin, ExactAssemblyScope::kExactSize);
+    while (masm.GetCursorOffset() < end) {
+      __ nop();
+    }
+  }
+
+  Label label;
+  __ Cbz(r0, &label);
+
+  VIXL_CHECK(!test.PoolIsEmpty());
+  // In order to hit the case where binding the label needs to add padding,
+  // we need this to be a 4-byte aligned address.
+  VIXL_ASSERT((masm.GetBuffer()->GetCursorOffset() % 4) == 0);
+
+  __ Bind(&label);
+  // The pool must now have been emitted.
+  VIXL_CHECK(test.PoolIsEmpty());
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0x90abcdef, r0);
+  ASSERT_EQUAL_32(0x12345678, r1);
+}
+
+static void AddBranchesAndGetCloseToCheckpoint(MacroAssembler* masm,
+                                               TestMacroAssembler* test,
+                                               const int kLabelsCount,
+                                               Label b_labels[],
+                                               int32_t margin) {
+  // Add many veneers to the pool.
+  for (int i = 0; i < kLabelsCount; i++) {
+    masm->B(&b_labels[i]);
+  }
+
+  // Get close to the veneer emission margin (considering the heuristic).
+  // Use add instead of nop to make viewing the disassembled code easier.
+  const int kAddSize = masm->IsUsingT32() ? k16BitT32InstructionSizeInBytes
+                                          : kA32InstructionSizeInBytes;
+  int32_t end = test->GetPoolCheckpoint();
+  int32_t space = end - masm->GetCursorOffset() - margin;
+  {
+    ExactAssemblyScope scope(masm, space, ExactAssemblyScope::kExactSize);
+    while (space > 0) {
+      masm->add(r0, r0, r0);
+      space -= kAddSize;
+    }
+  }
+
+  // Make sure the veneers have not yet been emitted.
+  const int kVeneerSize = 4;
+  VIXL_CHECK(test->GetPoolSize() == kLabelsCount * kVeneerSize);
+}
+
+static void EmitIndividualNops(MacroAssembler* masm, const int kNops) {
+  for (int i = 0; i < kNops; ++i) {
+    masm->Nop();
+  }
+}
+
+static void EmitNopsInExactAssemblyScope(MacroAssembler* masm,
+                                         const int kNops) {
+  const int kNopSize = masm->IsUsingT32() ? k16BitT32InstructionSizeInBytes
+                                          : kA32InstructionSizeInBytes;
+  {
+    ExactAssemblyScope scope(masm,
+                             kNops * kNopSize,
+                             ExactAssemblyScope::kExactSize);
+    for (int i = 0; i < kNops; i++) {
+      masm->nop();
+    }
+  }
+}
+
+TEST_A32(literal_and_veneer_interaction_1) {
+  SETUP();
+  START();
+
+  static const int kLabelsCount = 100;
+
+  Label b_labels[kLabelsCount];
+
+  AddBranchesAndGetCloseToCheckpoint(&masm,
+                                     &test,
+                                     kLabelsCount,
+                                     b_labels,
+                                     1 * KBytes);
+
+  // Emit a load of a large string. In the past, we have attempted to emit
+  // the literal load without emitting the veneers, which meant that we were
+  // left with an impossible scheduling problem for the pool objects (due to
+  // the short range of the ldrd).
+  std::string test_string(2 * KBytes, 'x');
+  StringLiteral big_literal(test_string.c_str());
+  __ Ldrd(r0, r1, &big_literal);
+
+  EmitIndividualNops(&masm, 1000);
+
+  // We can now safely bind the labels.
+  for (int i = 0; i < kLabelsCount; i++) {
+    __ Bind(&b_labels[i]);
+  }
+
+  END();
+
+  RUN();
+}
+
+
+TEST_A32(literal_and_veneer_interaction_2) {
+  SETUP();
+  START();
+
+  static const int kLabelsCount = 100;
+
+  Label b_labels[kLabelsCount];
+
+  AddBranchesAndGetCloseToCheckpoint(&masm,
+                                     &test,
+                                     kLabelsCount,
+                                     b_labels,
+                                     1 * KBytes);
+
+  // This is similar to the test above. The Ldr instruction can be emitted with
+  // no problems. The Ldrd used to force emission of the literal pool, pushing
+  // the veneers out of range - we make sure this does not happen anymore.
+  std::string test_string(2 * KBytes, 'z');
+  StringLiteral big_literal(test_string.c_str());
+  __ Ldr(r2, &big_literal);
+
+  const int kVeneerSize = 4;
+  CHECK_POOL_SIZE(kLabelsCount * kVeneerSize + big_literal.GetSize());
+
+  std::string test_string2(2 * KBytes, 'x');
+  StringLiteral big_literal2(test_string.c_str());
+  __ Ldrd(r0, r1, &big_literal2);
+
+  EmitIndividualNops(&masm, 1000);
+
+  for (int i = 0; i < kLabelsCount; i++) {
+    __ Bind(&b_labels[i]);
+  }
+
+  END();
+
+  RUN();
+}
+
+
+TEST_A32(literal_and_veneer_interaction_3) {
+  SETUP();
+  START();
+
+  static const int kLabelsCount = 100;
+  Label b_labels[kLabelsCount];
+
+  AddBranchesAndGetCloseToCheckpoint(&masm,
+                                     &test,
+                                     kLabelsCount,
+                                     b_labels,
+                                     1 * KBytes);
+
+  // Here, we used to emit the Ldrd instruction and then emit the veneers
+  // before the literal is emitted, hence pushing the Ldrd out of range.
+  // Make sure this does not happen anymore.
+  __ Ldrd(r2, r3, 0x12345678);
+
+  // The issue would only appear when emitting the nops in a single scope.
+  EmitNopsInExactAssemblyScope(&masm, 4096);
+
+  for (int i = 0; i < kLabelsCount; i++) {
+    __ Bind(&b_labels[i]);
+  }
+
+  END();
+
+  RUN();
+}
+
+
+// Equivalent to literal_and_veneer_interaction_1, but for T32.
+TEST_T32(literal_and_veneer_interaction_4) {
+  SETUP();
+  START();
+
+  static const int kLabelsCount = 550;
+
+  Label b_labels[kLabelsCount];
+
+  AddBranchesAndGetCloseToCheckpoint(&masm,
+                                     &test,
+                                     kLabelsCount,
+                                     b_labels,
+                                     KBytes / 2);
+
+  std::string test_string(3 * KBytes, 'x');
+  StringLiteral big_literal(test_string.c_str());
+  __ Ldrd(r0, r1, &big_literal);
+
+  EmitIndividualNops(&masm, 2000);
+
+  for (int i = 0; i < kLabelsCount; i++) {
+    __ Bind(&b_labels[i]);
+  }
+
+  END();
+
+  RUN();
+}
+
+// Equivalent to literal_and_veneer_interaction_3, but for T32.
+TEST_T32(literal_and_veneer_interaction_5) {
+  SETUP();
+  START();
+
+  static const int kLabelsCount = 550;
+  Label b_labels[kLabelsCount];
+
+  AddBranchesAndGetCloseToCheckpoint(&masm,
+                                     &test,
+                                     kLabelsCount,
+                                     b_labels,
+                                     1 * KBytes);
+
+  __ Ldrd(r2, r3, 0x12345678);
+
+  EmitNopsInExactAssemblyScope(&masm, 4096);
+
+  for (int i = 0; i < kLabelsCount; i++) {
+    __ Bind(&b_labels[i]);
+  }
+
+  END();
+
+  RUN();
+}
+
+TEST_T32(assembler_bind_label) {
+  SETUP();
+  START();
+
+  Label label;
+  __ B(eq, &label, kNear);
+
+  // At this point we keep track of the veneer in the pool.
+  VIXL_CHECK(!test.PoolIsEmpty());
+
+  {
+    // Bind the label with the assembler.
+    ExactAssemblyScope scope(&masm, 2, ExactAssemblyScope::kMaximumSize);
+    __ bind(&label);
+  }
+
+  // Make sure the pool is now empty.
+  VIXL_CHECK(test.PoolIsEmpty());
+
+  EmitNopsInExactAssemblyScope(&masm, 4096);
+
+  END();
+
+  RUN();
+}
 
 #define TEST_FORWARD_REFERENCE_INFO(INST, INFO, ASM)                         \
   can_encode = masm.INFO;                                                    \
@@ -6138,7 +6458,7 @@ TEST_T32(macro_assembler_commute) {
                              info->size,                                     \
                              ExactAssemblyScope::kExactSize);                \
     int32_t pc = masm.GetCursorOffset() + __ GetArchitectureStatePCOffset(); \
-    if (info->pc_needs_aligning == Assembler::ReferenceInfo::kAlignPc) {     \
+    if (info->pc_needs_aligning == ReferenceInfo::kAlignPc) {                \
       pc = AlignDown(pc, 4);                                                 \
     }                                                                        \
     Label label(pc + info->min_offset);                                      \
@@ -6149,7 +6469,7 @@ TEST_T32(macro_assembler_commute) {
                              info->size,                                     \
                              ExactAssemblyScope::kExactSize);                \
     int32_t pc = masm.GetCursorOffset() + __ GetArchitectureStatePCOffset(); \
-    if (info->pc_needs_aligning == Assembler::ReferenceInfo::kAlignPc) {     \
+    if (info->pc_needs_aligning == ReferenceInfo::kAlignPc) {                \
       pc = AlignDown(pc, 4);                                                 \
     }                                                                        \
     Label label(pc + info->max_offset);                                      \
@@ -6164,7 +6484,7 @@ TEST_T32(macro_assembler_commute) {
                              info->size,                                     \
                              ExactAssemblyScope::kMaximumSize);              \
     int32_t pc = masm.GetCursorOffset() + __ GetArchitectureStatePCOffset(); \
-    if (info->pc_needs_aligning == Assembler::ReferenceInfo::kAlignPc) {     \
+    if (info->pc_needs_aligning == ReferenceInfo::kAlignPc) {                \
       pc = AlignDown(pc, 4);                                                 \
     }                                                                        \
     Label label(pc + info->max_offset + info->alignment);                    \
@@ -6178,7 +6498,7 @@ TEST_T32(macro_assembler_commute) {
                              info->size,                                     \
                              ExactAssemblyScope::kMaximumSize);              \
     int32_t pc = masm.GetCursorOffset() + __ GetArchitectureStatePCOffset(); \
-    if (info->pc_needs_aligning == Assembler::ReferenceInfo::kAlignPc) {     \
+    if (info->pc_needs_aligning == ReferenceInfo::kAlignPc) {                \
       pc = AlignDown(pc, 4);                                                 \
     }                                                                        \
     Label label(pc + info->min_offset - info->alignment);                    \
@@ -6195,7 +6515,7 @@ TEST_T32(forward_reference_info_T32) {
   MacroAssembler masm(BUF_SIZE, T32);
 
   Label unbound;
-  const Assembler::ReferenceInfo* info;
+  const ReferenceInfo* info;
   bool can_encode;
 
   // clang-format off
@@ -6333,7 +6653,7 @@ TEST_T32(forward_reference_info_T32) {
 TEST_A32(forward_reference_info_A32) {
   MacroAssembler masm(BUF_SIZE, A32);
   Label unbound;
-  const Assembler::ReferenceInfo* info;
+  const ReferenceInfo* info;
   bool can_encode;
 
   // clang-format off

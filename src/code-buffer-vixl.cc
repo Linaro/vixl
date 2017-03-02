@@ -1,4 +1,4 @@
-// Copyright 2014, VIXL authors
+// Copyright 2017, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -133,12 +133,15 @@ void CodeBuffer::Align() {
   byte* end = AlignUp(cursor_, 4);
   const size_t padding_size = end - cursor_;
   VIXL_ASSERT(padding_size <= 4);
-  EnsureSpaceFor(padding_size);
-  dirty_ = true;
-  memset(cursor_, 0, padding_size);
-  cursor_ = end;
+  EmitZeroedBytes(static_cast<int>(padding_size));
 }
 
+void CodeBuffer::EmitZeroedBytes(int n) {
+  EnsureSpaceFor(n);
+  dirty_ = true;
+  memset(cursor_, 0, n);
+  cursor_ += n;
+}
 
 void CodeBuffer::Reset() {
 #ifdef VIXL_DEBUG

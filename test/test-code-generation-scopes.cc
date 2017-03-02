@@ -1,4 +1,4 @@
-// Copyright 2016, VIXL authors
+// Copyright 2017, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,7 @@
 #include "test-runner.h"
 
 #ifdef VIXL_INCLUDE_TARGET_AARCH32
+#include "aarch32/test-utils-aarch32.h"
 #include "aarch32/macro-assembler-aarch32.h"
 #endif
 
@@ -337,14 +338,17 @@ TEST(EmissionCheckScope_Open_Close_64) {
 
 #ifdef VIXL_INCLUDE_TARGET_AARCH32
 
-#define ASSERT_LITERAL_POOL_SIZE_32(expected) \
-  VIXL_CHECK((expected) == masm.GetLiteralPoolSize())
+#define ASSERT_LITERAL_POOL_SIZE_32(expected)     \
+  {                                               \
+    aarch32::TestMacroAssembler test(&masm);      \
+    VIXL_CHECK((expected) == test.GetPoolSize()); \
+  }
 
 TEST_A32(EmissionCheckScope_emit_pool_32) {
   aarch32::MacroAssembler masm;
 
   // Make sure the pool is empty;
-  masm.EmitLiteralPool(aarch32::MacroAssembler::kBranchRequired);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
   ASSERT_LITERAL_POOL_SIZE_32(0);
 
   __ Ldrd(aarch32::r0, aarch32::r1, 0x1234567890abcdef);
@@ -420,7 +424,7 @@ TEST_A32(EmissionCheckScope_emit_pool_on_Open_32) {
   aarch32::MacroAssembler masm;
 
   // Make sure the pool is empty;
-  masm.EmitLiteralPool(aarch32::MacroAssembler::kBranchRequired);
+  masm.EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
   ASSERT_LITERAL_POOL_SIZE_32(0);
 
   __ Ldrd(aarch32::r0, aarch32::r1, 0x1234567890abcdef);

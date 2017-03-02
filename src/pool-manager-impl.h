@@ -40,7 +40,7 @@ T PoolManager<T>::Emit(MacroAssemblerInterface* masm,
                        T pc,
                        int num_bytes,
                        ForwardReference<T>* new_reference,
-                       LabelBase<T>* new_object,
+                       LocationBase<T>* new_object,
                        EmitOption option) {
   // Make sure that the buffer still has the alignment we think it does.
   VIXL_ASSERT(IsAligned(masm->AsAssemblerBase()
@@ -90,7 +90,7 @@ T PoolManager<T>::Emit(MacroAssemblerInterface* masm,
       ++iter;
       continue;
     }
-    LabelBase<T>* label_base = current.label_base_;
+    LocationBase<T>* label_base = current.label_base_;
     T aligned_pc = AlignUp(pc, current.alignment_);
     masm->EmitPaddingBytes(aligned_pc - pc);
     pc = aligned_pc;
@@ -129,7 +129,7 @@ bool PoolManager<T>::ShouldSkipObject(PoolObject<T>* pool_object,
                                       T pc,
                                       int num_bytes,
                                       ForwardReference<T>* new_reference,
-                                      LabelBase<T>* new_object,
+                                      LocationBase<T>* new_object,
                                       PoolObject<T>* existing_object) const {
   // We assume that all objects before this have been skipped and all objects
   // after this will be emitted, therefore we will emit the whole pool. Add
@@ -190,7 +190,7 @@ template <typename T>
 bool PoolManager<T>::MustEmit(T pc,
                               int num_bytes,
                               ForwardReference<T>* reference,
-                              LabelBase<T>* label_base) const {
+                              LocationBase<T>* label_base) const {
   // Check if we are at or past the checkpoint.
   if (CheckCurrentPC(pc, checkpoint_)) return true;
 
@@ -361,7 +361,7 @@ bool PoolManager<T>::PoolObjectLessThan(const PoolObject<T>& a,
 
 template <typename T>
 void PoolManager<T>::AddObjectReference(const ForwardReference<T>* reference,
-                                        LabelBase<T>* label_base) {
+                                        LocationBase<T>* label_base) {
   VIXL_ASSERT(reference->object_alignment_ <= buffer_alignment_);
   VIXL_ASSERT(label_base->GetPoolObjectAlignment() <= buffer_alignment_);
 
@@ -423,9 +423,9 @@ template <typename T>
 typename PoolManager<T>::objects_iter PoolManager<T>::RemoveAndDelete(
     objects_iter iter) {
   PoolObject<T>& object = *iter;
-  LabelBase<T>* label_base = object.label_base_;
+  LocationBase<T>* label_base = object.label_base_;
 
-  // Check if we also need to delete the LabelBase object.
+  // Check if we also need to delete the LocationBase object.
   if (label_base->ShouldBeDeletedOnPoolManagerDestruction()) {
     delete_on_destruction_.push_back(label_base);
   }
@@ -439,7 +439,7 @@ typename PoolManager<T>::objects_iter PoolManager<T>::RemoveAndDelete(
 
 template <typename T>
 T PoolManager<T>::Bind(MacroAssemblerInterface* masm,
-                       LabelBase<T>* object,
+                       LocationBase<T>* object,
                        T location) {
   PoolObject<T>* existing_object = GetObjectIfTracked(object);
   int alignment;
@@ -497,7 +497,7 @@ PoolManager<T>::~PoolManager<T>() {
   }
 #endif
   // Delete objects the pool manager owns.
-  for (typename std::vector<LabelBase<T>*>::iterator
+  for (typename std::vector<LocationBase<T>*>::iterator
            iter = delete_on_destruction_.begin(),
            end = delete_on_destruction_.end();
        iter != end;

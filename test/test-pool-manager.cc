@@ -86,10 +86,10 @@ static int RandomPCIncrement() {
   return 2 * (Random() % 4 + 1);
 }
 
-class TestObject : public LabelBase<int32_t> {
+class TestObject : public LocationBase<int32_t> {
  public:
   TestObject(int size, int alignment, int id = 0)
-      : LabelBase(0 /*type*/, size, alignment), id_(id) {}
+      : LocationBase(0 /*type*/, size, alignment), id_(id) {}
 
   ~TestObject() VIXL_THROW_IN_NEGATIVE_TESTING_MODE(std::runtime_error) {}
 
@@ -141,10 +141,10 @@ class TestObject : public LabelBase<int32_t> {
   int id_;
 };
 
-class TestBranchObject : public LabelBase<int32_t> {
+class TestBranchObject : public LocationBase<int32_t> {
  public:
   TestBranchObject(int size, int alignment, int id = 0)
-      : LabelBase(1 /* type */, size, alignment), id_(id) {}
+      : LocationBase(1 /* type */, size, alignment), id_(id) {}
 
   ~TestBranchObject() VIXL_THROW_IN_NEGATIVE_TESTING_MODE(std::runtime_error) {}
 
@@ -861,7 +861,7 @@ TEST(MustEmitNewReferenceDueToSizeOfObject) {
 }
 
 template <typename ObjectType>
-void ManagedLabelBaseTestHelper() {
+void ManagedLocationBaseTestHelper() {
   TestMacroAssembler masm;
 
   PoolManager<int32_t> pool_manager(4 /*header_size*/,
@@ -892,8 +892,8 @@ class TestObjectDeletedOnPlacement : public TestObject {
   }
 };
 
-TEST(DeleteLabelBaseOnPlacement) {
-  ManagedLabelBaseTestHelper<TestObjectDeletedOnPlacement>();
+TEST(DeleteLocationBaseOnPlacement) {
+  ManagedLocationBaseTestHelper<TestObjectDeletedOnPlacement>();
 }
 
 class TestObjectDeletedOnPoolManagerDestruction : public TestObject {
@@ -909,6 +909,6 @@ class TestObjectDeletedOnPoolManagerDestruction : public TestObject {
 };
 
 
-TEST(DeleteLabelBaseOnPoolManagerDestruction) {
-  ManagedLabelBaseTestHelper<TestObjectDeletedOnPoolManagerDestruction>();
+TEST(DeleteLocationBaseOnPoolManagerDestruction) {
+  ManagedLocationBaseTestHelper<TestObjectDeletedOnPoolManagerDestruction>();
 }

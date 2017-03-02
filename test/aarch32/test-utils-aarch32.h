@@ -1,4 +1,4 @@
-// Copyright 2015, VIXL authors
+// Copyright 2017, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,27 @@
 #ifndef VIXL_AARCH32_TEST_UTILS_AARCH32_H_
 #define VIXL_AARCH32_TEST_UTILS_AARCH32_H_
 
-#include "test-runner.h"
+#include "../test-pool-manager.h"
+#include "../test-runner.h"
 #include "aarch32/constants-aarch32.h"
 #include "aarch32/instructions-aarch32.h"
 #include "aarch32/macro-assembler-aarch32.h"
 
 namespace vixl {
+
 namespace aarch32 {
+
+class TestMacroAssembler {
+ public:
+  explicit TestMacroAssembler(MacroAssembler* masm)
+      : test(&masm->pool_manager_) {}
+  int32_t GetPoolCheckpoint() const { return test.GetPoolCheckpoint(); }
+  int GetPoolSize() const { return test.GetPoolSize(); }
+  bool PoolIsEmpty() const { return test.PoolIsEmpty(); }
+
+ private:
+  TestPoolManager test;
+};
 
 // Only check the simulator tests when we can actually run them.
 // TODO: Improve this.

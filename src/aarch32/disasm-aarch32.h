@@ -1,4 +1,4 @@
-// Copyright 2015, VIXL authors
+// Copyright 2017, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@
 extern "C" {
 #include <stdint.h>
 }
+
+#include <iomanip>
 
 #include "aarch32/constants-aarch32.h"
 #include "aarch32/operands-aarch32.h"
