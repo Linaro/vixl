@@ -6069,5 +6069,293 @@ TEST_T32(macro_assembler_commute) {
 }
 
 
+#define TEST_FORWARD_REFERENCE_INFO(INST, INFO, ASM)                         \
+  can_encode = masm.INFO;                                                    \
+  VIXL_CHECK(can_encode);                                                    \
+  {                                                                          \
+    ExactAssemblyScope scope(&masm,                                          \
+                             info->size,                                     \
+                             ExactAssemblyScope::kExactSize);                \
+    int32_t pc = masm.GetCursorOffset() + __ GetArchitectureStatePCOffset(); \
+    if (info->pc_needs_aligning == Assembler::ReferenceInfo::kAlignPc) {     \
+      pc = AlignDown(pc, 4);                                                 \
+    }                                                                        \
+    Label label(pc + info->min_offset);                                      \
+    masm.ASM;                                                                \
+  }                                                                          \
+  {                                                                          \
+    ExactAssemblyScope scope(&masm,                                          \
+                             info->size,                                     \
+                             ExactAssemblyScope::kExactSize);                \
+    int32_t pc = masm.GetCursorOffset() + __ GetArchitectureStatePCOffset(); \
+    if (info->pc_needs_aligning == Assembler::ReferenceInfo::kAlignPc) {     \
+      pc = AlignDown(pc, 4);                                                 \
+    }                                                                        \
+    Label label(pc + info->max_offset);                                      \
+    masm.ASM;                                                                \
+  }                                                                          \
+  NEGATIVE_TEST_FORWARD_REFERENCE_INFO(INST, ASM)
+
+#ifdef VIXL_NEGATIVE_TESTING
+#define NEGATIVE_TEST_FORWARD_REFERENCE_INFO(INST, ASM)                      \
+  try {                                                                      \
+    ExactAssemblyScope scope(&masm,                                          \
+                             info->size,                                     \
+                             ExactAssemblyScope::kMaximumSize);              \
+    int32_t pc = masm.GetCursorOffset() + __ GetArchitectureStatePCOffset(); \
+    if (info->pc_needs_aligning == Assembler::ReferenceInfo::kAlignPc) {     \
+      pc = AlignDown(pc, 4);                                                 \
+    }                                                                        \
+    Label label(pc + info->max_offset + info->alignment);                    \
+    masm.ASM;                                                                \
+    printf("Negative test for forward reference failed for %s.\n", INST);    \
+    abort();                                                                 \
+  } catch (std::runtime_error) {                                             \
+  }                                                                          \
+  try {                                                                      \
+    ExactAssemblyScope scope(&masm,                                          \
+                             info->size,                                     \
+                             ExactAssemblyScope::kMaximumSize);              \
+    int32_t pc = masm.GetCursorOffset() + __ GetArchitectureStatePCOffset(); \
+    if (info->pc_needs_aligning == Assembler::ReferenceInfo::kAlignPc) {     \
+      pc = AlignDown(pc, 4);                                                 \
+    }                                                                        \
+    Label label(pc + info->min_offset - info->alignment);                    \
+    masm.ASM;                                                                \
+    printf("Negative test for forward reference failed for %s.\n", INST);    \
+    abort();                                                                 \
+  } catch (std::runtime_error) {                                             \
+  }
+#else
+#define NEGATIVE_TEST_FORWARD_REFERENCE_INFO(INST, ASM)
+#endif
+
+TEST_T32(forward_reference_info_T32) {
+  MacroAssembler masm(BUF_SIZE, T32);
+
+  Label unbound;
+  const Assembler::ReferenceInfo* info;
+  bool can_encode;
+
+  // clang-format off
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "adr",
+    adr_info(al, Narrow, r0, &unbound, &info),
+    adr(al, Narrow, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "adr",
+    adr_info(al, Wide, r0, &unbound, &info),
+    adr(al, Wide, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "adr",
+    adr_info(al, Best, r0, &unbound, &info),
+    adr(al, Best, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "b",
+    b_info(al, Narrow, &unbound, &info),
+    b(al, Narrow, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "b",
+    b_info(al, Wide, &unbound, &info),
+    b(al, Wide, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "b",
+    b_info(al, Best, &unbound, &info),
+    b(al, Best, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "b",
+    b_info(gt, Narrow, &unbound, &info),
+    b(gt, Narrow, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "b",
+    b_info(gt, Wide, &unbound, &info),
+    b(gt, Wide, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "b",
+    b_info(gt, Best, &unbound, &info),
+    b(gt, Best, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "bl",
+    bl_info(al, &unbound, &info),
+    bl(al, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "blx",
+    blx_info(al, &unbound, &info),
+    blx(al, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "cbnz",
+    cbnz_info(r0, &unbound, &info),
+    cbnz(r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "cbz",
+    cbz_info(r0, &unbound, &info),
+    cbz(r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldr",
+    ldr_info(al, Narrow, r0, &unbound, &info),
+    ldr(al, Narrow, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldr",
+    ldr_info(al, Wide, r0, &unbound, &info),
+    ldr(al, Wide, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldr",
+    ldr_info(al, Best, r0, &unbound, &info),
+    ldr(al, Best, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldrb",
+    ldrb_info(al, r0, &unbound, &info),
+    ldrb(al, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldrd",
+    ldrd_info(al, r0, r1, &unbound, &info),
+    ldrd(al, r0, r1, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldrh",
+    ldrh_info(al, r0, &unbound, &info),
+    ldrh(al, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldrsb",
+    ldrsb_info(al, r0, &unbound, &info),
+    ldrsb(al, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldrsh",
+    ldrsh_info(al, r0, &unbound, &info),
+    ldrsh(al, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "pld",
+    pld_info(al, &unbound, &info),
+    pld(al, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "pli",
+    pli_info(al, &unbound, &info),
+    pli(al, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "vldr",
+    vldr_info(al, Untyped64, d0, &unbound, &info),
+    vldr(al, Untyped64, d0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "vldr",
+    vldr_info(al, Untyped32, s0, &unbound, &info),
+    vldr(al, Untyped32, s0, &label));
+
+  // clang-format on
+
+  masm.FinalizeCode();
+}
+
+TEST_A32(forward_reference_info_A32) {
+  MacroAssembler masm(BUF_SIZE, A32);
+  Label unbound;
+  const Assembler::ReferenceInfo* info;
+  bool can_encode;
+
+  // clang-format off
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "adr",
+    adr_info(al, Best, r0, &unbound, &info),
+    adr(al, Best, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "b",
+    b_info(al, Best, &unbound, &info),
+    b(al, Best, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "b",
+    b_info(gt, Best, &unbound, &info),
+    b(gt, Best, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "bl",
+    bl_info(al, &unbound, &info),
+    bl(al, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "blx",
+    blx_info(al, &unbound, &info),
+    blx(al, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldr",
+    ldr_info(al, Best, r0, &unbound, &info),
+    ldr(al, Best, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldrb",
+    ldrb_info(al, r0, &unbound, &info),
+    ldrb(al, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldrd",
+    ldrd_info(al, r0, r1, &unbound, &info),
+    ldrd(al, r0, r1, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldrh",
+    ldrh_info(al, r0, &unbound, &info),
+    ldrh(al, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldrsb",
+    ldrsb_info(al, r0, &unbound, &info),
+    ldrsb(al, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "ldrsh",
+    ldrsh_info(al, r0, &unbound, &info),
+    ldrsh(al, r0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "pld",
+    pld_info(al, &unbound, &info),
+    pld(al, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "pli",
+    pli_info(al, &unbound, &info),
+    pli(al, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "vldr",
+    vldr_info(al, Untyped64, d0, &unbound, &info),
+    vldr(al, Untyped64, d0, &label));
+
+  TEST_FORWARD_REFERENCE_INFO(
+    "vldr",
+    vldr_info(al, Untyped32, s0, &unbound, &info),
+    vldr(al, Untyped32, s0, &label));
+
+  // clang-format on
+
+  masm.FinalizeCode();
+}
+
 }  // namespace aarch32
 }  // namespace vixl

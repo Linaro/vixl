@@ -1794,6 +1794,217 @@ Align_align_5::Align_align_5(Alignment align,
   }
 }
 
+static const struct Assembler::ReferenceInfo kAdrT1Info =
+    {k16BitT32InstructionSizeInBytes,
+     0,     // Min offset.
+     1020,  // Max offset.
+     4,     // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kAdrT3Info =
+    {k32BitT32InstructionSizeInBytes,
+     -4095,  // Min offset.
+     4095,   // Max offset.
+     1,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kAdrA1Info =
+    {kA32InstructionSizeInBytes,
+     -255,  // Min offset.
+     255,   // Max offset.
+     4,     // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kBT1Info =
+    {k16BitT32InstructionSizeInBytes,
+     -256,  // Min offset.
+     254,   // Max offset.
+     2,     // Alignment.
+     Assembler::ReferenceInfo::kDontAlignPc};
+static const struct Assembler::ReferenceInfo kBT2Info =
+    {k16BitT32InstructionSizeInBytes,
+     -2048,  // Min offset.
+     2046,   // Max offset.
+     2,      // Alignment.
+     Assembler::ReferenceInfo::kDontAlignPc};
+static const struct Assembler::ReferenceInfo kBT3Info =
+    {k32BitT32InstructionSizeInBytes,
+     -1048576,  // Min offset.
+     1048574,   // Max offset.
+     2,         // Alignment.
+     Assembler::ReferenceInfo::kDontAlignPc};
+static const struct Assembler::ReferenceInfo kBT4Info =
+    {k32BitT32InstructionSizeInBytes,
+     -16777216,  // Min offset.
+     16777214,   // Max offset.
+     2,          // Alignment.
+     Assembler::ReferenceInfo::kDontAlignPc};
+static const struct Assembler::ReferenceInfo kBA1Info =
+    {kA32InstructionSizeInBytes,
+     -33554432,  // Min offset.
+     33554428,   // Max offset.
+     4,          // Alignment.
+     Assembler::ReferenceInfo::kDontAlignPc};
+static const struct Assembler::ReferenceInfo kBlT1Info =
+    {k32BitT32InstructionSizeInBytes,
+     -16777216,  // Min offset.
+     16777214,   // Max offset.
+     2,          // Alignment.
+     Assembler::ReferenceInfo::kDontAlignPc};
+static const struct Assembler::ReferenceInfo kBlA1Info =
+    {kA32InstructionSizeInBytes,
+     -33554432,  // Min offset.
+     33554428,   // Max offset.
+     4,          // Alignment.
+     Assembler::ReferenceInfo::kDontAlignPc};
+static const struct Assembler::ReferenceInfo kBlxT2Info =
+    {k32BitT32InstructionSizeInBytes,
+     -16777216,  // Min offset.
+     16777212,   // Max offset.
+     4,          // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kBlxA2Info =
+    {kA32InstructionSizeInBytes,
+     -33554432,  // Min offset.
+     33554430,   // Max offset.
+     2,          // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kCbnzT1Info =
+    {k16BitT32InstructionSizeInBytes,
+     0,    // Min offset.
+     126,  // Max offset.
+     2,    // Alignment.
+     Assembler::ReferenceInfo::kDontAlignPc};
+static const struct Assembler::ReferenceInfo kCbzT1Info =
+    {k16BitT32InstructionSizeInBytes,
+     0,    // Min offset.
+     126,  // Max offset.
+     2,    // Alignment.
+     Assembler::ReferenceInfo::kDontAlignPc};
+static const struct Assembler::ReferenceInfo kLdrT1Info =
+    {k16BitT32InstructionSizeInBytes,
+     0,     // Min offset.
+     1020,  // Max offset.
+     4,     // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kLdrT2Info =
+    {k32BitT32InstructionSizeInBytes,
+     -4095,  // Min offset.
+     4095,   // Max offset.
+     1,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kLdrA1Info =
+    {kA32InstructionSizeInBytes,
+     -4095,  // Min offset.
+     4095,   // Max offset.
+     1,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kLdrbT1Info =
+    {k32BitT32InstructionSizeInBytes,
+     -4095,  // Min offset.
+     4095,   // Max offset.
+     1,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kLdrbA1Info =
+    {kA32InstructionSizeInBytes,
+     -4095,  // Min offset.
+     4095,   // Max offset.
+     1,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kLdrdT1Info =
+    {k32BitT32InstructionSizeInBytes,
+     -1020,  // Min offset.
+     1020,   // Max offset.
+     4,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kLdrdA1Info =
+    {kA32InstructionSizeInBytes,
+     -255,  // Min offset.
+     255,   // Max offset.
+     1,     // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kLdrhT1Info =
+    {k32BitT32InstructionSizeInBytes,
+     -4095,  // Min offset.
+     4095,   // Max offset.
+     1,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kLdrhA1Info =
+    {kA32InstructionSizeInBytes,
+     -255,  // Min offset.
+     255,   // Max offset.
+     1,     // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kLdrsbT1Info =
+    {k32BitT32InstructionSizeInBytes,
+     -4095,  // Min offset.
+     4095,   // Max offset.
+     1,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kLdrsbA1Info =
+    {kA32InstructionSizeInBytes,
+     -255,  // Min offset.
+     255,   // Max offset.
+     1,     // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kLdrshT1Info =
+    {k32BitT32InstructionSizeInBytes,
+     -4095,  // Min offset.
+     4095,   // Max offset.
+     1,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kLdrshA1Info =
+    {kA32InstructionSizeInBytes,
+     -255,  // Min offset.
+     255,   // Max offset.
+     1,     // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kPldT1Info =
+    {k32BitT32InstructionSizeInBytes,
+     -4095,  // Min offset.
+     4095,   // Max offset.
+     1,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kPldA1Info =
+    {kA32InstructionSizeInBytes,
+     -4095,  // Min offset.
+     4095,   // Max offset.
+     1,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kPliT3Info =
+    {k32BitT32InstructionSizeInBytes,
+     -4095,  // Min offset.
+     4095,   // Max offset.
+     1,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kPliA1Info =
+    {kA32InstructionSizeInBytes,
+     -4095,  // Min offset.
+     4095,   // Max offset.
+     1,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kVldrT1Info =
+    {k32BitT32InstructionSizeInBytes,
+     -1020,  // Min offset.
+     1020,   // Max offset.
+     4,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kVldrA1Info =
+    {kA32InstructionSizeInBytes,
+     -1020,  // Min offset.
+     1020,   // Max offset.
+     4,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kVldrT2Info =
+    {k32BitT32InstructionSizeInBytes,
+     -1020,  // Min offset.
+     1020,   // Max offset.
+     4,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+static const struct Assembler::ReferenceInfo kVldrA2Info =
+    {kA32InstructionSizeInBytes,
+     -1020,  // Min offset.
+     1020,   // Max offset.
+     4,      // Alignment.
+     Assembler::ReferenceInfo::kAlignPc};
+
 
 void Assembler::adc(Condition cond,
                     EncodingSize size,
@@ -2525,6 +2736,40 @@ void Assembler::adr(Condition cond,
   Delegate(kAdr, &Assembler::adr, cond, size, rd, label);
 }
 
+bool Assembler::adr_info(Condition cond,
+                         EncodingSize size,
+                         Register rd,
+                         Label* label,
+                         const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  if (IsUsingT32()) {
+    // ADR{<c>}{<q>} <Rd>, <label> ; T1
+    if (!size.IsWide() && rd.IsLow() && size.IsNarrow()) {
+      *info = &kAdrT1Info;
+      return true;
+    }
+    // Skipped T2, as it is a negative offset variant.
+    // The minimum offset is included in the corresponding
+    // positive variant.
+    // ADR{<c>}{<q>} <Rd>, <label> ; T3
+    if (!size.IsNarrow()) {
+      *info = &kAdrT3Info;
+      return true;
+    }
+  } else {
+    // ADR{<c>}{<q>} <Rd>, <label> ; A1
+    if (cond.IsNotNever()) {
+      *info = &kAdrA1Info;
+      return true;
+    }
+    // Skipped A2, as it is a negative offset variant.
+    // The minimum offset is included in the corresponding
+    // positive variant.
+  }
+  return false;
+}
+
 void Assembler::and_(Condition cond,
                      EncodingSize size,
                      Register rd,
@@ -2971,6 +3216,45 @@ void Assembler::b(Condition cond, EncodingSize size, Label* label) {
   Delegate(kB, &Assembler::b, cond, size, label);
 }
 
+bool Assembler::b_info(Condition cond,
+                       EncodingSize size,
+                       Label* label,
+                       const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  if (IsUsingT32()) {
+    // B<c>{<q>} <label> ; T1
+    if (OutsideITBlock() && !size.IsWide() && size.IsNarrow() && !cond.Is(al) &&
+        cond.IsNotNever()) {
+      *info = &kBT1Info;
+      return true;
+    }
+    // B{<c>}{<q>} <label> ; T2
+    if (OutsideITBlockAndAlOrLast(cond) && !size.IsWide() && size.IsNarrow()) {
+      *info = &kBT2Info;
+      return true;
+    }
+    // B<c>{<q>} <label> ; T3
+    if (OutsideITBlock() && !size.IsNarrow() && !cond.Is(al) &&
+        cond.IsNotNever()) {
+      *info = &kBT3Info;
+      return true;
+    }
+    // B{<c>}{<q>} <label> ; T4
+    if (OutsideITBlockAndAlOrLast(cond) && !size.IsNarrow()) {
+      *info = &kBT4Info;
+      return true;
+    }
+  } else {
+    // B{<c>}{<q>} <label> ; A1
+    if (cond.IsNotNever()) {
+      *info = &kBA1Info;
+      return true;
+    }
+  }
+  return false;
+}
+
 void Assembler::bfc(Condition cond, Register rd, uint32_t lsb, uint32_t width) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
@@ -3285,6 +3569,27 @@ void Assembler::bl(Condition cond, Label* label) {
   Delegate(kBl, &Assembler::bl, cond, label);
 }
 
+bool Assembler::bl_info(Condition cond,
+                        Label* label,
+                        const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  if (IsUsingT32()) {
+    // BL{<c>}{<q>} <label> ; T1
+    if (true) {
+      *info = &kBlT1Info;
+      return true;
+    }
+  } else {
+    // BL{<c>}{<q>} <label> ; A1
+    if (cond.IsNotNever()) {
+      *info = &kBlA1Info;
+      return true;
+    }
+  }
+  return false;
+}
+
 void Assembler::blx(Condition cond, Label* label) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
@@ -3345,6 +3650,28 @@ void Assembler::blx(Condition cond, Label* label) {
     }
   }
   Delegate(kBlx, &Assembler::blx, cond, label);
+}
+
+bool Assembler::blx_info(Condition cond,
+                         Label* label,
+                         const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  USE(cond);
+  if (IsUsingT32()) {
+    // BLX{<c>}{<q>} <label> ; T2
+    if (true) {
+      *info = &kBlxT2Info;
+      return true;
+    }
+  } else {
+    // BLX{<c>}{<q>} <label> ; A2
+    if (true) {
+      *info = &kBlxA2Info;
+      return true;
+    }
+  }
+  return false;
 }
 
 void Assembler::blx(Condition cond, Register rm) {
@@ -3443,6 +3770,21 @@ void Assembler::cbnz(Register rn, Label* label) {
   Delegate(kCbnz, &Assembler::cbnz, rn, label);
 }
 
+bool Assembler::cbnz_info(Register rn,
+                          Label* label,
+                          const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  if (IsUsingT32()) {
+    // CBNZ{<q>} <Rn>, <label> ; T1
+    if (rn.IsLow()) {
+      *info = &kCbnzT1Info;
+      return true;
+    }
+  }
+  return false;
+}
+
 void Assembler::cbz(Register rn, Label* label) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
@@ -3475,6 +3817,21 @@ void Assembler::cbz(Register rn, Label* label) {
     }
   }
   Delegate(kCbz, &Assembler::cbz, rn, label);
+}
+
+bool Assembler::cbz_info(Register rn,
+                         Label* label,
+                         const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  if (IsUsingT32()) {
+    // CBZ{<q>} <Rn>, <label> ; T1
+    if (rn.IsLow()) {
+      *info = &kCbzT1Info;
+      return true;
+    }
+  }
+  return false;
 }
 
 void Assembler::clrex(Condition cond) {
@@ -4960,6 +5317,34 @@ void Assembler::ldr(Condition cond,
   Delegate(kLdr, &Assembler::ldr, cond, size, rt, label);
 }
 
+bool Assembler::ldr_info(Condition cond,
+                         EncodingSize size,
+                         Register rt,
+                         Label* label,
+                         const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  if (IsUsingT32()) {
+    // LDR{<c>}{<q>} <Rt>, <label> ; T1
+    if (!size.IsWide() && rt.IsLow() && size.IsNarrow()) {
+      *info = &kLdrT1Info;
+      return true;
+    }
+    // LDR{<c>}{<q>} <Rt>, <label> ; T2
+    if (!size.IsNarrow()) {
+      *info = &kLdrT2Info;
+      return true;
+    }
+  } else {
+    // LDR{<c>}{<q>} <Rt>, <label> ; A1
+    if (cond.IsNotNever()) {
+      *info = &kLdrA1Info;
+      return true;
+    }
+  }
+  return false;
+}
+
 void Assembler::ldrb(Condition cond,
                      EncodingSize size,
                      Register rt,
@@ -5198,6 +5583,28 @@ void Assembler::ldrb(Condition cond, Register rt, Label* label) {
   Delegate(kLdrb, &Assembler::ldrb, cond, rt, label);
 }
 
+bool Assembler::ldrb_info(Condition cond,
+                          Register rt,
+                          Label* label,
+                          const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  if (IsUsingT32()) {
+    // LDRB{<c>}{<q>} <Rt>, <label> ; T1
+    if (!rt.Is(pc)) {
+      *info = &kLdrbT1Info;
+      return true;
+    }
+  } else {
+    // LDRB{<c>}{<q>} <Rt>, <label> ; A1
+    if (cond.IsNotNever()) {
+      *info = &kLdrbA1Info;
+      return true;
+    }
+  }
+  return false;
+}
+
 void Assembler::ldrd(Condition cond,
                      Register rt,
                      Register rt2,
@@ -5414,6 +5821,30 @@ void Assembler::ldrd(Condition cond, Register rt, Register rt2, Label* label) {
     }
   }
   Delegate(kLdrd, &Assembler::ldrd, cond, rt, rt2, label);
+}
+
+bool Assembler::ldrd_info(Condition cond,
+                          Register rt,
+                          Register rt2,
+                          Label* label,
+                          const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  if (IsUsingT32()) {
+    // LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; T1
+    if (true) {
+      *info = &kLdrdT1Info;
+      return true;
+    }
+  } else {
+    // LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; A1
+    if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
+        cond.IsNotNever()) {
+      *info = &kLdrdA1Info;
+      return true;
+    }
+  }
+  return false;
 }
 
 void Assembler::ldrex(Condition cond, Register rt, const MemOperand& operand) {
@@ -5764,6 +6195,28 @@ void Assembler::ldrh(Condition cond, Register rt, Label* label) {
   Delegate(kLdrh, &Assembler::ldrh, cond, rt, label);
 }
 
+bool Assembler::ldrh_info(Condition cond,
+                          Register rt,
+                          Label* label,
+                          const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  if (IsUsingT32()) {
+    // LDRH{<c>}{<q>} <Rt>, <label> ; T1
+    if (!rt.Is(pc)) {
+      *info = &kLdrhT1Info;
+      return true;
+    }
+  } else {
+    // LDRH{<c>}{<q>} <Rt>, <label> ; A1
+    if (cond.IsNotNever()) {
+      *info = &kLdrhA1Info;
+      return true;
+    }
+  }
+  return false;
+}
+
 void Assembler::ldrsb(Condition cond,
                       EncodingSize size,
                       Register rt,
@@ -5989,6 +6442,28 @@ void Assembler::ldrsb(Condition cond, Register rt, Label* label) {
   Delegate(kLdrsb, &Assembler::ldrsb, cond, rt, label);
 }
 
+bool Assembler::ldrsb_info(Condition cond,
+                           Register rt,
+                           Label* label,
+                           const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  if (IsUsingT32()) {
+    // LDRSB{<c>}{<q>} <Rt>, <label> ; T1
+    if (!rt.Is(pc)) {
+      *info = &kLdrsbT1Info;
+      return true;
+    }
+  } else {
+    // LDRSB{<c>}{<q>} <Rt>, <label> ; A1
+    if (cond.IsNotNever()) {
+      *info = &kLdrsbA1Info;
+      return true;
+    }
+  }
+  return false;
+}
+
 void Assembler::ldrsh(Condition cond,
                       EncodingSize size,
                       Register rt,
@@ -6212,6 +6687,28 @@ void Assembler::ldrsh(Condition cond, Register rt, Label* label) {
     }
   }
   Delegate(kLdrsh, &Assembler::ldrsh, cond, rt, label);
+}
+
+bool Assembler::ldrsh_info(Condition cond,
+                           Register rt,
+                           Label* label,
+                           const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  if (IsUsingT32()) {
+    // LDRSH{<c>}{<q>} <Rt>, <label> ; T1
+    if (!rt.Is(pc)) {
+      *info = &kLdrshT1Info;
+      return true;
+    }
+  } else {
+    // LDRSH{<c>}{<q>} <Rt>, <label> ; A1
+    if (cond.IsNotNever()) {
+      *info = &kLdrshA1Info;
+      return true;
+    }
+  }
+  return false;
 }
 
 void Assembler::lsl(Condition cond,
@@ -7587,6 +8084,28 @@ void Assembler::pld(Condition cond, Label* label) {
   Delegate(kPld, &Assembler::pld, cond, label);
 }
 
+bool Assembler::pld_info(Condition cond,
+                         Label* label,
+                         const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  USE(cond);
+  if (IsUsingT32()) {
+    // PLD{<c>}{<q>} <label> ; T1
+    if (true) {
+      *info = &kPldT1Info;
+      return true;
+    }
+  } else {
+    // PLD{<c>}{<q>} <label> ; A1
+    if (true) {
+      *info = &kPldA1Info;
+      return true;
+    }
+  }
+  return false;
+}
+
 void Assembler::pld(Condition cond, const MemOperand& operand) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
@@ -7923,6 +8442,28 @@ void Assembler::pli(Condition cond, Label* label) {
     }
   }
   Delegate(kPli, &Assembler::pli, cond, label);
+}
+
+bool Assembler::pli_info(Condition cond,
+                         Label* label,
+                         const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  USE(cond);
+  if (IsUsingT32()) {
+    // PLI{<c>}{<q>} <label> ; T3
+    if (true) {
+      *info = &kPliT3Info;
+      return true;
+    }
+  } else {
+    // PLI{<c>}{<q>} <label> ; A1
+    if (true) {
+      *info = &kPliA1Info;
+      return true;
+    }
+  }
+  return false;
 }
 
 void Assembler::pop(Condition cond, EncodingSize size, RegisterList registers) {
@@ -19077,6 +19618,30 @@ void Assembler::vldr(Condition cond, DataType dt, DRegister rd, Label* label) {
   Delegate(kVldr, &Assembler::vldr, cond, dt, rd, label);
 }
 
+bool Assembler::vldr_info(Condition cond,
+                          DataType dt,
+                          DRegister rd,
+                          Label* label,
+                          const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  USE(rd);
+  if (IsUsingT32()) {
+    // VLDR{<c>}{<q>}{.64} <Dd>, <label> ; T1
+    if (dt.IsNoneOr(Untyped64)) {
+      *info = &kVldrT1Info;
+      return true;
+    }
+  } else {
+    // VLDR{<c>}{<q>}{.64} <Dd>, <label> ; A1
+    if (dt.IsNoneOr(Untyped64) && cond.IsNotNever()) {
+      *info = &kVldrA1Info;
+      return true;
+    }
+  }
+  return false;
+}
+
 void Assembler::vldr(Condition cond,
                      DataType dt,
                      DRegister rd,
@@ -19196,6 +19761,30 @@ void Assembler::vldr(Condition cond, DataType dt, SRegister rd, Label* label) {
     }
   }
   Delegate(kVldr, &Assembler::vldr, cond, dt, rd, label);
+}
+
+bool Assembler::vldr_info(Condition cond,
+                          DataType dt,
+                          SRegister rd,
+                          Label* label,
+                          const struct ReferenceInfo** info) {
+  VIXL_ASSERT(!label->IsBound());
+  USE(label);
+  USE(rd);
+  if (IsUsingT32()) {
+    // VLDR{<c>}{<q>}{.32} <Sd>, <label> ; T2
+    if (dt.IsNoneOr(Untyped32)) {
+      *info = &kVldrT2Info;
+      return true;
+    }
+  } else {
+    // VLDR{<c>}{<q>}{.32} <Sd>, <label> ; A2
+    if (dt.IsNoneOr(Untyped32) && cond.IsNotNever()) {
+      *info = &kVldrA2Info;
+      return true;
+    }
+  }
+  return false;
 }
 
 void Assembler::vldr(Condition cond,

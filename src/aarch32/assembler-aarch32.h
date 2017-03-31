@@ -1825,6 +1825,14 @@ class Assembler : public internal::AssemblerBase {
     VIXL_ASSERT((type == kVtbl) || (type == kVtbx));
     UnimplementedDelegate(type);
   }
+  // Structure containing information on forward references.
+  struct ReferenceInfo {
+    int size;
+    int min_offset;
+    int max_offset;
+    int alignment;  // As a power of two.
+    enum { kAlignPc, kDontAlignPc } pc_needs_aligning;
+  };
 
   void adc(Condition cond,
            EncodingSize size,
@@ -1909,6 +1917,11 @@ class Assembler : public internal::AssemblerBase {
   }
 
   void adr(Condition cond, EncodingSize size, Register rd, Label* label);
+  bool adr_info(Condition cond,
+                EncodingSize size,
+                Register rd,
+                Label* label,
+                const struct ReferenceInfo** info);
   void adr(Register rd, Label* label) { adr(al, Best, rd, label); }
   void adr(Condition cond, Register rd, Label* label) {
     adr(cond, Best, rd, label);
@@ -1990,6 +2003,10 @@ class Assembler : public internal::AssemblerBase {
   }
 
   void b(Condition cond, EncodingSize size, Label* label);
+  bool b_info(Condition cond,
+              EncodingSize size,
+              Label* label,
+              const struct ReferenceInfo** info);
   void b(Label* label) { b(al, Best, label); }
   void b(Condition cond, Label* label) { b(cond, Best, label); }
   void b(EncodingSize size, Label* label) { b(al, size, label); }
@@ -2045,9 +2062,13 @@ class Assembler : public internal::AssemblerBase {
   void bkpt(uint32_t imm) { bkpt(al, imm); }
 
   void bl(Condition cond, Label* label);
+  bool bl_info(Condition cond, Label* label, const struct ReferenceInfo** info);
   void bl(Label* label) { bl(al, label); }
 
   void blx(Condition cond, Label* label);
+  bool blx_info(Condition cond,
+                Label* label,
+                const struct ReferenceInfo** info);
   void blx(Label* label) { blx(al, label); }
 
   void blx(Condition cond, Register rm);
@@ -2060,8 +2081,10 @@ class Assembler : public internal::AssemblerBase {
   void bxj(Register rm) { bxj(al, rm); }
 
   void cbnz(Register rn, Label* label);
+  bool cbnz_info(Register rn, Label* label, const struct ReferenceInfo** info);
 
   void cbz(Register rn, Label* label);
+  bool cbz_info(Register rn, Label* label, const struct ReferenceInfo** info);
 
   void clrex(Condition cond);
   void clrex() { clrex(al); }
@@ -2337,6 +2360,11 @@ class Assembler : public internal::AssemblerBase {
   }
 
   void ldr(Condition cond, EncodingSize size, Register rt, Label* label);
+  bool ldr_info(Condition cond,
+                EncodingSize size,
+                Register rt,
+                Label* label,
+                const struct ReferenceInfo** info);
   void ldr(Register rt, Label* label) { ldr(al, Best, rt, label); }
   void ldr(Condition cond, Register rt, Label* label) {
     ldr(cond, Best, rt, label);
@@ -2360,6 +2388,10 @@ class Assembler : public internal::AssemblerBase {
   }
 
   void ldrb(Condition cond, Register rt, Label* label);
+  bool ldrb_info(Condition cond,
+                 Register rt,
+                 Label* label,
+                 const struct ReferenceInfo** info);
   void ldrb(Register rt, Label* label) { ldrb(al, rt, label); }
 
   void ldrd(Condition cond,
@@ -2371,6 +2403,11 @@ class Assembler : public internal::AssemblerBase {
   }
 
   void ldrd(Condition cond, Register rt, Register rt2, Label* label);
+  bool ldrd_info(Condition cond,
+                 Register rt,
+                 Register rt2,
+                 Label* label,
+                 const struct ReferenceInfo** info);
   void ldrd(Register rt, Register rt2, Label* label) {
     ldrd(al, rt, rt2, label);
   }
@@ -2411,6 +2448,10 @@ class Assembler : public internal::AssemblerBase {
   }
 
   void ldrh(Condition cond, Register rt, Label* label);
+  bool ldrh_info(Condition cond,
+                 Register rt,
+                 Label* label,
+                 const struct ReferenceInfo** info);
   void ldrh(Register rt, Label* label) { ldrh(al, rt, label); }
 
   void ldrsb(Condition cond,
@@ -2428,6 +2469,10 @@ class Assembler : public internal::AssemblerBase {
   }
 
   void ldrsb(Condition cond, Register rt, Label* label);
+  bool ldrsb_info(Condition cond,
+                  Register rt,
+                  Label* label,
+                  const struct ReferenceInfo** info);
   void ldrsb(Register rt, Label* label) { ldrsb(al, rt, label); }
 
   void ldrsh(Condition cond,
@@ -2445,6 +2490,10 @@ class Assembler : public internal::AssemblerBase {
   }
 
   void ldrsh(Condition cond, Register rt, Label* label);
+  bool ldrsh_info(Condition cond,
+                  Register rt,
+                  Label* label,
+                  const struct ReferenceInfo** info);
   void ldrsh(Register rt, Label* label) { ldrsh(al, rt, label); }
 
   void lsl(Condition cond,
@@ -2677,6 +2726,9 @@ class Assembler : public internal::AssemblerBase {
   }
 
   void pld(Condition cond, Label* label);
+  bool pld_info(Condition cond,
+                Label* label,
+                const struct ReferenceInfo** info);
   void pld(Label* label) { pld(al, label); }
 
   void pld(Condition cond, const MemOperand& operand);
@@ -2689,6 +2741,9 @@ class Assembler : public internal::AssemblerBase {
   void pli(const MemOperand& operand) { pli(al, operand); }
 
   void pli(Condition cond, Label* label);
+  bool pli_info(Condition cond,
+                Label* label,
+                const struct ReferenceInfo** info);
   void pli(Label* label) { pli(al, label); }
 
   void pop(Condition cond, EncodingSize size, RegisterList registers);
@@ -4611,6 +4666,11 @@ class Assembler : public internal::AssemblerBase {
   }
 
   void vldr(Condition cond, DataType dt, DRegister rd, Label* label);
+  bool vldr_info(Condition cond,
+                 DataType dt,
+                 DRegister rd,
+                 Label* label,
+                 const struct ReferenceInfo** info);
   void vldr(DataType dt, DRegister rd, Label* label) {
     vldr(al, dt, rd, label);
   }
@@ -4634,6 +4694,11 @@ class Assembler : public internal::AssemblerBase {
   }
 
   void vldr(Condition cond, DataType dt, SRegister rd, Label* label);
+  bool vldr_info(Condition cond,
+                 DataType dt,
+                 SRegister rd,
+                 Label* label,
+                 const struct ReferenceInfo** info);
   void vldr(DataType dt, SRegister rd, Label* label) {
     vldr(al, dt, rd, label);
   }
