@@ -2517,6 +2517,8 @@ TEST_T32(veneers_labels_sort) {
 // the veneer pool.
 TEST_T32(veneer_bind) {
   SETUP();
+  START();
+
   Label target;
   __ Cbz(r0, &target);
   __ Nop();
@@ -2534,6 +2536,8 @@ TEST_T32(veneer_bind) {
   VIXL_CHECK(masm.VeneerPoolIsEmpty());
 
   END();
+
+  TEARDOWN();
 }
 
 
