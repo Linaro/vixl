@@ -63,6 +63,7 @@ TEST(check_expression, VIXL_CHECK(1 == 2), "Assertion failed (1 == 2)\nin ")
 #ifdef VIXL_DEBUG
 TEST(unimplemented, VIXL_UNIMPLEMENTED(), "UNIMPLEMENTED in ")
 TEST(unreachable, VIXL_UNREACHABLE(), "UNREACHABLE in ")
+TEST(assert, VIXL_ASSERT(false), "Assertion failed (false)\nin ")
 #endif
 
 }  // namespace vixl

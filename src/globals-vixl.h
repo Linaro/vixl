@@ -116,19 +116,20 @@ const int kBitsPerByte = 8;
     printf("%sin %s, line %i\n", (msg), __FILE__, __LINE__); \
     abort();                                                 \
   } while (false)
-#define VIXL_CHECK(condition)                                       \
-  do {                                                              \
-    if (!(condition)) {                                             \
-      printf("Assertion failed (" #condition ")\nin %s, line %i\n", \
-             __FILE__,                                              \
-             __LINE__);                                             \
-      abort();                                                      \
-    }                                                               \
+#define VIXL_CHECK(condition)                           \
+  do {                                                  \
+    if (!(condition)) {                                 \
+      printf("Assertion failed (%s)\nin %s, line %i\n", \
+             #condition,                                \
+             __FILE__,                                  \
+             __LINE__);                                 \
+      abort();                                          \
+    }                                                   \
   } while (false)
 #define VIXL_THROW_IN_NEGATIVE_TESTING_MODE(error)
 #endif
 #ifdef VIXL_DEBUG
-#define VIXL_ASSERT(condition) assert(condition)
+#define VIXL_ASSERT(condition) VIXL_CHECK(condition)
 #define VIXL_UNIMPLEMENTED()               \
   do {                                     \
     VIXL_ABORT_WITH_MSG("UNIMPLEMENTED "); \
