@@ -13931,9 +13931,9 @@ enum PushPopMethod {
 };
 
 
-// The maximum number of registers that can be used by the PushPopXReg* tests,
-// where a reg_count field is provided.
-static int const kPushPopXRegMaxRegCount = -1;
+// For the PushPop* tests, use the maximum number of registers that the test
+// supports (where a reg_count argument would otherwise be provided).
+static int const kPushPopUseMaxRegCount = -1;
 
 // Test a simple push-pop pattern:
 //  * Claim <claim> bytes to set the stack alignment.
@@ -13944,11 +13944,11 @@ static int const kPushPopXRegMaxRegCount = -1;
 //
 // Different push and pop methods can be specified independently to test for
 // proper word-endian behaviour.
-static void PushPopXRegSimpleHelper(int reg_count,
-                                    int claim,
-                                    int reg_size,
-                                    PushPopMethod push_method,
-                                    PushPopMethod pop_method) {
+static void PushPopSimpleHelper(int reg_count,
+                                int claim,
+                                int reg_size,
+                                PushPopMethod push_method,
+                                PushPopMethod pop_method) {
   SETUP();
 
   START();
@@ -13956,7 +13956,7 @@ static void PushPopXRegSimpleHelper(int reg_count,
   // Arbitrarily pick a register to use as a stack pointer.
   const Register& stack_pointer = x20;
   const RegList allowed = ~stack_pointer.GetBit();
-  if (reg_count == kPushPopXRegMaxRegCount) {
+  if (reg_count == kPushPopUseMaxRegCount) {
     reg_count = CountSetBits(allowed, kNumberOfRegisters);
   }
   // Work out which registers to use, based on reg_size.
@@ -14080,48 +14080,48 @@ static void PushPopXRegSimpleHelper(int reg_count,
 TEST(push_pop_xreg_simple_32) {
   for (int claim = 0; claim <= 8; claim++) {
     for (int count = 0; count <= 8; count++) {
-      PushPopXRegSimpleHelper(count,
-                              claim,
-                              kWRegSize,
-                              PushPopByFour,
-                              PushPopByFour);
-      PushPopXRegSimpleHelper(count,
-                              claim,
-                              kWRegSize,
-                              PushPopByFour,
-                              PushPopRegList);
-      PushPopXRegSimpleHelper(count,
-                              claim,
-                              kWRegSize,
-                              PushPopRegList,
-                              PushPopByFour);
-      PushPopXRegSimpleHelper(count,
-                              claim,
-                              kWRegSize,
-                              PushPopRegList,
-                              PushPopRegList);
+      PushPopSimpleHelper(count,
+                          claim,
+                          kWRegSize,
+                          PushPopByFour,
+                          PushPopByFour);
+      PushPopSimpleHelper(count,
+                          claim,
+                          kWRegSize,
+                          PushPopByFour,
+                          PushPopRegList);
+      PushPopSimpleHelper(count,
+                          claim,
+                          kWRegSize,
+                          PushPopRegList,
+                          PushPopByFour);
+      PushPopSimpleHelper(count,
+                          claim,
+                          kWRegSize,
+                          PushPopRegList,
+                          PushPopRegList);
     }
     // Test with the maximum number of registers.
-    PushPopXRegSimpleHelper(kPushPopXRegMaxRegCount,
-                            claim,
-                            kWRegSize,
-                            PushPopByFour,
-                            PushPopByFour);
-    PushPopXRegSimpleHelper(kPushPopXRegMaxRegCount,
-                            claim,
-                            kWRegSize,
-                            PushPopByFour,
-                            PushPopRegList);
-    PushPopXRegSimpleHelper(kPushPopXRegMaxRegCount,
-                            claim,
-                            kWRegSize,
-                            PushPopRegList,
-                            PushPopByFour);
-    PushPopXRegSimpleHelper(kPushPopXRegMaxRegCount,
-                            claim,
-                            kWRegSize,
-                            PushPopRegList,
-                            PushPopRegList);
+    PushPopSimpleHelper(kPushPopUseMaxRegCount,
+                        claim,
+                        kWRegSize,
+                        PushPopByFour,
+                        PushPopByFour);
+    PushPopSimpleHelper(kPushPopUseMaxRegCount,
+                        claim,
+                        kWRegSize,
+                        PushPopByFour,
+                        PushPopRegList);
+    PushPopSimpleHelper(kPushPopUseMaxRegCount,
+                        claim,
+                        kWRegSize,
+                        PushPopRegList,
+                        PushPopByFour);
+    PushPopSimpleHelper(kPushPopUseMaxRegCount,
+                        claim,
+                        kWRegSize,
+                        PushPopRegList,
+                        PushPopRegList);
   }
 }
 
@@ -14129,55 +14129,54 @@ TEST(push_pop_xreg_simple_32) {
 TEST(push_pop_xreg_simple_64) {
   for (int claim = 0; claim <= 8; claim++) {
     for (int count = 0; count <= 8; count++) {
-      PushPopXRegSimpleHelper(count,
-                              claim,
-                              kXRegSize,
-                              PushPopByFour,
-                              PushPopByFour);
-      PushPopXRegSimpleHelper(count,
-                              claim,
-                              kXRegSize,
-                              PushPopByFour,
-                              PushPopRegList);
-      PushPopXRegSimpleHelper(count,
-                              claim,
-                              kXRegSize,
-                              PushPopRegList,
-                              PushPopByFour);
-      PushPopXRegSimpleHelper(count,
-                              claim,
-                              kXRegSize,
-                              PushPopRegList,
-                              PushPopRegList);
+      PushPopSimpleHelper(count,
+                          claim,
+                          kXRegSize,
+                          PushPopByFour,
+                          PushPopByFour);
+      PushPopSimpleHelper(count,
+                          claim,
+                          kXRegSize,
+                          PushPopByFour,
+                          PushPopRegList);
+      PushPopSimpleHelper(count,
+                          claim,
+                          kXRegSize,
+                          PushPopRegList,
+                          PushPopByFour);
+      PushPopSimpleHelper(count,
+                          claim,
+                          kXRegSize,
+                          PushPopRegList,
+                          PushPopRegList);
     }
     // Test with the maximum number of registers.
-    PushPopXRegSimpleHelper(kPushPopXRegMaxRegCount,
-                            claim,
-                            kXRegSize,
-                            PushPopByFour,
-                            PushPopByFour);
-    PushPopXRegSimpleHelper(kPushPopXRegMaxRegCount,
-                            claim,
-                            kXRegSize,
-                            PushPopByFour,
-                            PushPopRegList);
-    PushPopXRegSimpleHelper(kPushPopXRegMaxRegCount,
-                            claim,
-                            kXRegSize,
-                            PushPopRegList,
-                            PushPopByFour);
-    PushPopXRegSimpleHelper(kPushPopXRegMaxRegCount,
-                            claim,
-                            kXRegSize,
-                            PushPopRegList,
-                            PushPopRegList);
+    PushPopSimpleHelper(kPushPopUseMaxRegCount,
+                        claim,
+                        kXRegSize,
+                        PushPopByFour,
+                        PushPopByFour);
+    PushPopSimpleHelper(kPushPopUseMaxRegCount,
+                        claim,
+                        kXRegSize,
+                        PushPopByFour,
+                        PushPopRegList);
+    PushPopSimpleHelper(kPushPopUseMaxRegCount,
+                        claim,
+                        kXRegSize,
+                        PushPopRegList,
+                        PushPopByFour);
+    PushPopSimpleHelper(kPushPopUseMaxRegCount,
+                        claim,
+                        kXRegSize,
+                        PushPopRegList,
+                        PushPopRegList);
   }
 }
 
-
-// The maximum number of registers that can be used by the PushPopFPXReg* tests,
-// where a reg_count field is provided.
-static int const kPushPopFPXRegMaxRegCount = -1;
+// For the PushPopFP* tests, use the maximum number of registers that the test
+// supports (where a reg_count argument would otherwise be provided).
+static int const kPushPopFPUseMaxRegCount = -1;
 
 // Test a simple push-pop pattern:
 //  * Claim <claim> bytes to set the stack alignment.
@@ -14188,11 +14187,11 @@ static int const kPushPopFPXRegMaxRegCount = -1;
 //
 // Different push and pop methods can be specified independently to test for
 // proper word-endian behaviour.
-static void PushPopFPXRegSimpleHelper(int reg_count,
-                                      int claim,
-                                      int reg_size,
-                                      PushPopMethod push_method,
-                                      PushPopMethod pop_method) {
+static void PushPopFPSimpleHelper(int reg_count,
+                                  int claim,
+                                  int reg_size,
+                                  PushPopMethod push_method,
+                                  PushPopMethod pop_method) {
   SETUP();
 
   START();
@@ -14200,7 +14199,7 @@ static void PushPopFPXRegSimpleHelper(int reg_count,
   // We can use any floating-point register. None of them are reserved for
   // debug code, for example.
   static RegList const allowed = ~0;
-  if (reg_count == kPushPopFPXRegMaxRegCount) {
+  if (reg_count == kPushPopFPUseMaxRegCount) {
     reg_count = CountSetBits(allowed, kNumberOfFPRegisters);
   }
   // Work out which registers to use, based on reg_size.
@@ -14332,48 +14331,48 @@ static void PushPopFPXRegSimpleHelper(int reg_count,
 TEST(push_pop_fp_xreg_simple_32) {
   for (int claim = 0; claim <= 8; claim++) {
     for (int count = 0; count <= 8; count++) {
-      PushPopFPXRegSimpleHelper(count,
-                                claim,
-                                kSRegSize,
-                                PushPopByFour,
-                                PushPopByFour);
-      PushPopFPXRegSimpleHelper(count,
-                                claim,
-                                kSRegSize,
-                                PushPopByFour,
-                                PushPopRegList);
-      PushPopFPXRegSimpleHelper(count,
-                                claim,
-                                kSRegSize,
-                                PushPopRegList,
-                                PushPopByFour);
-      PushPopFPXRegSimpleHelper(count,
-                                claim,
-                                kSRegSize,
-                                PushPopRegList,
-                                PushPopRegList);
+      PushPopFPSimpleHelper(count,
+                            claim,
+                            kSRegSize,
+                            PushPopByFour,
+                            PushPopByFour);
+      PushPopFPSimpleHelper(count,
+                            claim,
+                            kSRegSize,
+                            PushPopByFour,
+                            PushPopRegList);
+      PushPopFPSimpleHelper(count,
+                            claim,
+                            kSRegSize,
+                            PushPopRegList,
+                            PushPopByFour);
+      PushPopFPSimpleHelper(count,
+                            claim,
+                            kSRegSize,
+                            PushPopRegList,
+                            PushPopRegList);
     }
     // Test with the maximum number of registers.
-    PushPopFPXRegSimpleHelper(kPushPopFPXRegMaxRegCount,
-                              claim,
-                              kSRegSize,
-                              PushPopByFour,
-                              PushPopByFour);
-    PushPopFPXRegSimpleHelper(kPushPopFPXRegMaxRegCount,
-                              claim,
-                              kSRegSize,
-                              PushPopByFour,
-                              PushPopRegList);
-    PushPopFPXRegSimpleHelper(kPushPopFPXRegMaxRegCount,
-                              claim,
-                              kSRegSize,
-                              PushPopRegList,
-                              PushPopByFour);
-    PushPopFPXRegSimpleHelper(kPushPopFPXRegMaxRegCount,
-                              claim,
-                              kSRegSize,
-                              PushPopRegList,
-                              PushPopRegList);
+    PushPopFPSimpleHelper(kPushPopFPUseMaxRegCount,
+                          claim,
+                          kSRegSize,
+                          PushPopByFour,
+                          PushPopByFour);
+    PushPopFPSimpleHelper(kPushPopFPUseMaxRegCount,
+                          claim,
+                          kSRegSize,
+                          PushPopByFour,
+                          PushPopRegList);
+    PushPopFPSimpleHelper(kPushPopFPUseMaxRegCount,
+                          claim,
+                          kSRegSize,
+                          PushPopRegList,
+                          PushPopByFour);
+    PushPopFPSimpleHelper(kPushPopFPUseMaxRegCount,
+                          claim,
+                          kSRegSize,
+                          PushPopRegList,
+                          PushPopRegList);
   }
 }
 
@@ -14381,55 +14380,55 @@ TEST(push_pop_fp_xreg_simple_32) {
 TEST(push_pop_fp_xreg_simple_64) {
   for (int claim = 0; claim <= 8; claim++) {
     for (int count = 0; count <= 8; count++) {
-      PushPopFPXRegSimpleHelper(count,
-                                claim,
-                                kDRegSize,
-                                PushPopByFour,
-                                PushPopByFour);
-      PushPopFPXRegSimpleHelper(count,
-                                claim,
-                                kDRegSize,
-                                PushPopByFour,
-                                PushPopRegList);
-      PushPopFPXRegSimpleHelper(count,
-                                claim,
-                                kDRegSize,
-                                PushPopRegList,
-                                PushPopByFour);
-      PushPopFPXRegSimpleHelper(count,
-                                claim,
-                                kDRegSize,
-                                PushPopRegList,
-                                PushPopRegList);
+      PushPopFPSimpleHelper(count,
+                            claim,
+                            kDRegSize,
+                            PushPopByFour,
+                            PushPopByFour);
+      PushPopFPSimpleHelper(count,
+                            claim,
+                            kDRegSize,
+                            PushPopByFour,
+                            PushPopRegList);
+      PushPopFPSimpleHelper(count,
+                            claim,
+                            kDRegSize,
+                            PushPopRegList,
+                            PushPopByFour);
+      PushPopFPSimpleHelper(count,
+                            claim,
+                            kDRegSize,
+                            PushPopRegList,
+                            PushPopRegList);
     }
     // Test with the maximum number of registers.
-    PushPopFPXRegSimpleHelper(kPushPopFPXRegMaxRegCount,
-                              claim,
-                              kDRegSize,
-                              PushPopByFour,
-                              PushPopByFour);
-    PushPopFPXRegSimpleHelper(kPushPopFPXRegMaxRegCount,
-                              claim,
-                              kDRegSize,
-                              PushPopByFour,
-                              PushPopRegList);
-    PushPopFPXRegSimpleHelper(kPushPopFPXRegMaxRegCount,
-                              claim,
-                              kDRegSize,
-                              PushPopRegList,
-                              PushPopByFour);
-    PushPopFPXRegSimpleHelper(kPushPopFPXRegMaxRegCount,
-                              claim,
-                              kDRegSize,
-                              PushPopRegList,
-                              PushPopRegList);
+    PushPopFPSimpleHelper(kPushPopFPUseMaxRegCount,
+                          claim,
+                          kDRegSize,
+                          PushPopByFour,
+                          PushPopByFour);
+    PushPopFPSimpleHelper(kPushPopFPUseMaxRegCount,
+                          claim,
+                          kDRegSize,
+                          PushPopByFour,
+                          PushPopRegList);
+    PushPopFPSimpleHelper(kPushPopFPUseMaxRegCount,
+                          claim,
+                          kDRegSize,
+                          PushPopRegList,
+                          PushPopByFour);
+    PushPopFPSimpleHelper(kPushPopFPUseMaxRegCount,
+                          claim,
+                          kDRegSize,
+                          PushPopRegList,
+                          PushPopRegList);
   }
 }
 
 
 // Push and pop data using an overlapping combination of Push/Pop and
 // RegList-based methods.
-static void PushPopXRegMixedMethodsHelper(int claim, int reg_size) {
+static void PushPopMixedMethodsHelper(int claim, int reg_size) {
   SETUP();
 
   // Arbitrarily pick a register to use as a stack pointer.
@@ -14520,26 +14519,26 @@ static void PushPopXRegMixedMethodsHelper(int claim, int reg_size) {
 
 TEST(push_pop_xreg_mixed_methods_64) {
   for (int claim = 0; claim <= 8; claim++) {
-    PushPopXRegMixedMethodsHelper(claim, kXRegSize);
+    PushPopMixedMethodsHelper(claim, kXRegSize);
   }
 }
 
 
 TEST(push_pop_xreg_mixed_methods_32) {
   for (int claim = 0; claim <= 8; claim++) {
-    PushPopXRegMixedMethodsHelper(claim, kWRegSize);
+    PushPopMixedMethodsHelper(claim, kWRegSize);
   }
 }
 
 
 // Push and pop data using overlapping X- and W-sized quantities.
-static void PushPopXRegWXOverlapHelper(int reg_count, int claim) {
+static void PushPopWXOverlapHelper(int reg_count, int claim) {
   SETUP();
 
   // Arbitrarily pick a register to use as a stack pointer.
   const Register& stack_pointer = x10;
   const RegList allowed = ~stack_pointer.GetBit();
-  if (reg_count == kPushPopXRegMaxRegCount) {
+  if (reg_count == kPushPopUseMaxRegCount) {
     reg_count = CountSetBits(allowed, kNumberOfRegisters);
   }
   // Work out which registers to use, based on reg_size.
@@ -14726,10 +14725,10 @@ static void PushPopXRegWXOverlapHelper(int reg_count, int claim) {
 TEST(push_pop_xreg_wx_overlap) {
   for (int claim = 0; claim <= 8; claim++) {
     for (int count = 1; count <= 8; count++) {
-      PushPopXRegWXOverlapHelper(count, claim);
+      PushPopWXOverlapHelper(count, claim);
     }
     // Test with the maximum number of registers.
-    PushPopXRegWXOverlapHelper(kPushPopXRegMaxRegCount, claim);
+    PushPopWXOverlapHelper(kPushPopUseMaxRegCount, claim);
   }
 }
 
