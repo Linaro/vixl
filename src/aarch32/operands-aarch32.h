@@ -314,6 +314,11 @@ class NeonImmediate {
   bool IsInteger() const { return IsInteger32() | IsInteger64(); }
   bool IsFloat() const { return immediate_type_.Is(F32); }
   bool IsDouble() const { return immediate_type_.Is(F64); }
+  bool IsFloatZero() const {
+    if (immediate_type_.Is(F32)) return imm_.f_ == 0.0f;
+    if (immediate_type_.Is(F64)) return imm_.d_ == 0.0;
+    return false;
+  }
 
   template <typename T>
   bool CanConvert() const {
@@ -397,6 +402,10 @@ class NeonOperand {
 
   bool IsImmediate() const { return !rm_.IsValid(); }
   bool IsRegister() const { return rm_.IsValid(); }
+  bool IsFloatZero() const {
+    VIXL_ASSERT(IsImmediate());
+    return imm_.IsFloatZero();
+  }
 
   const NeonImmediate& GetNeonImmediate() const { return imm_; }
 
@@ -426,6 +435,9 @@ class SOperand : public NeonOperand {
   // #<immediate>
   // where <immediate> is 32bit float
   SOperand(float immediate)  // NOLINT(runtime/explicit)
+      : NeonOperand(immediate) {}
+  // where <immediate> is 64bit float
+  SOperand(double immediate)  // NOLINT(runtime/explicit)
       : NeonOperand(immediate) {}
 
   SOperand(const NeonImmediate& imm)  // NOLINT(runtime/explicit)
@@ -541,7 +553,7 @@ class ImmediateVFP : public EncodingValue {
     } else if (neon_imm.IsDouble()) {
       const double imm = neon_imm.GetImmediate<double>();
       if (VFP::IsImmFP64(imm)) {
-        SetEncodingValue(VFP::FP32ToImm8(imm));
+        SetEncodingValue(VFP::FP64ToImm8(imm));
       }
     }
   }

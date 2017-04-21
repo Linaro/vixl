@@ -1537,21 +1537,19 @@ class Disassembler {
 
   void vclz(Condition cond, DataType dt, QRegister rd, QRegister rm);
 
-  void vcmp(Condition cond, DataType dt, SRegister rd, SRegister rm);
+  void vcmp(Condition cond, DataType dt, SRegister rd, const SOperand& operand);
 
-  void vcmp(Condition cond, DataType dt, DRegister rd, DRegister rm);
+  void vcmp(Condition cond, DataType dt, DRegister rd, const DOperand& operand);
 
-  void vcmp(Condition cond, DataType dt, SRegister rd, double imm);
+  void vcmpe(Condition cond,
+             DataType dt,
+             SRegister rd,
+             const SOperand& operand);
 
-  void vcmp(Condition cond, DataType dt, DRegister rd, double imm);
-
-  void vcmpe(Condition cond, DataType dt, SRegister rd, SRegister rm);
-
-  void vcmpe(Condition cond, DataType dt, DRegister rd, DRegister rm);
-
-  void vcmpe(Condition cond, DataType dt, SRegister rd, double imm);
-
-  void vcmpe(Condition cond, DataType dt, DRegister rd, double imm);
+  void vcmpe(Condition cond,
+             DataType dt,
+             DRegister rd,
+             const DOperand& operand);
 
   void vcnt(Condition cond, DataType dt, DRegister rd, DRegister rm);
 

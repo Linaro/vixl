@@ -6256,89 +6256,69 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Vclz(DataType dt, QRegister rd, QRegister rm) { Vclz(al, dt, rd, rm); }
 
-  void Vcmp(Condition cond, DataType dt, SRegister rd, SRegister rm) {
+  void Vcmp(Condition cond,
+            DataType dt,
+            SRegister rd,
+            const SOperand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(operand));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond);
-    vcmp(cond, dt, rd, rm);
+    vcmp(cond, dt, rd, operand);
   }
-  void Vcmp(DataType dt, SRegister rd, SRegister rm) { Vcmp(al, dt, rd, rm); }
+  void Vcmp(DataType dt, SRegister rd, const SOperand& operand) {
+    Vcmp(al, dt, rd, operand);
+  }
 
-  void Vcmp(Condition cond, DataType dt, DRegister rd, DRegister rm) {
+  void Vcmp(Condition cond,
+            DataType dt,
+            DRegister rd,
+            const DOperand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(operand));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond);
-    vcmp(cond, dt, rd, rm);
+    vcmp(cond, dt, rd, operand);
   }
-  void Vcmp(DataType dt, DRegister rd, DRegister rm) { Vcmp(al, dt, rd, rm); }
+  void Vcmp(DataType dt, DRegister rd, const DOperand& operand) {
+    Vcmp(al, dt, rd, operand);
+  }
 
-  void Vcmp(Condition cond, DataType dt, SRegister rd, double imm) {
+  void Vcmpe(Condition cond,
+             DataType dt,
+             SRegister rd,
+             const SOperand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(operand));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond);
-    vcmp(cond, dt, rd, imm);
+    vcmpe(cond, dt, rd, operand);
   }
-  void Vcmp(DataType dt, SRegister rd, double imm) { Vcmp(al, dt, rd, imm); }
+  void Vcmpe(DataType dt, SRegister rd, const SOperand& operand) {
+    Vcmpe(al, dt, rd, operand);
+  }
 
-  void Vcmp(Condition cond, DataType dt, DRegister rd, double imm) {
+  void Vcmpe(Condition cond,
+             DataType dt,
+             DRegister rd,
+             const DOperand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(operand));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond);
-    vcmp(cond, dt, rd, imm);
+    vcmpe(cond, dt, rd, operand);
   }
-  void Vcmp(DataType dt, DRegister rd, double imm) { Vcmp(al, dt, rd, imm); }
-
-  void Vcmpe(Condition cond, DataType dt, SRegister rd, SRegister rm) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    vcmpe(cond, dt, rd, rm);
+  void Vcmpe(DataType dt, DRegister rd, const DOperand& operand) {
+    Vcmpe(al, dt, rd, operand);
   }
-  void Vcmpe(DataType dt, SRegister rd, SRegister rm) { Vcmpe(al, dt, rd, rm); }
-
-  void Vcmpe(Condition cond, DataType dt, DRegister rd, DRegister rm) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    vcmpe(cond, dt, rd, rm);
-  }
-  void Vcmpe(DataType dt, DRegister rd, DRegister rm) { Vcmpe(al, dt, rd, rm); }
-
-  void Vcmpe(Condition cond, DataType dt, SRegister rd, double imm) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    vcmpe(cond, dt, rd, imm);
-  }
-  void Vcmpe(DataType dt, SRegister rd, double imm) { Vcmpe(al, dt, rd, imm); }
-
-  void Vcmpe(Condition cond, DataType dt, DRegister rd, double imm) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    vcmpe(cond, dt, rd, imm);
-  }
-  void Vcmpe(DataType dt, DRegister rd, double imm) { Vcmpe(al, dt, rd, imm); }
 
   void Vcnt(Condition cond, DataType dt, DRegister rd, DRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));

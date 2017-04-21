@@ -4346,75 +4346,37 @@ void Disassembler::vclz(Condition cond,
 void Disassembler::vcmp(Condition cond,
                         DataType dt,
                         SRegister rd,
-                        SRegister rm) {
+                        const SOperand& operand) {
   os().SetCurrentInstruction(kVcmp, kFpNeon);
   os() << ToCString(kVcmp) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", " << rm;
+       << rd << ", " << operand;
 }
 
 void Disassembler::vcmp(Condition cond,
                         DataType dt,
                         DRegister rd,
-                        DRegister rm) {
+                        const DOperand& operand) {
   os().SetCurrentInstruction(kVcmp, kFpNeon);
   os() << ToCString(kVcmp) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", " << rm;
-}
-
-void Disassembler::vcmp(Condition cond, DataType dt, SRegister rd, double imm) {
-  os().SetCurrentInstruction(kVcmp, kFpNeon);
-  os() << ToCString(kVcmp) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", "
-       << "#" << std::fixed << std::setprecision(1) << imm
-       << std::resetiosflags(std::ios_base::floatfield);
-}
-
-void Disassembler::vcmp(Condition cond, DataType dt, DRegister rd, double imm) {
-  os().SetCurrentInstruction(kVcmp, kFpNeon);
-  os() << ToCString(kVcmp) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", "
-       << "#" << std::fixed << std::setprecision(1) << imm
-       << std::resetiosflags(std::ios_base::floatfield);
+       << rd << ", " << operand;
 }
 
 void Disassembler::vcmpe(Condition cond,
                          DataType dt,
                          SRegister rd,
-                         SRegister rm) {
+                         const SOperand& operand) {
   os().SetCurrentInstruction(kVcmpe, kFpNeon);
   os() << ToCString(kVcmpe) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", " << rm;
+       << rd << ", " << operand;
 }
 
 void Disassembler::vcmpe(Condition cond,
                          DataType dt,
                          DRegister rd,
-                         DRegister rm) {
+                         const DOperand& operand) {
   os().SetCurrentInstruction(kVcmpe, kFpNeon);
   os() << ToCString(kVcmpe) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", " << rm;
-}
-
-void Disassembler::vcmpe(Condition cond,
-                         DataType dt,
-                         SRegister rd,
-                         double imm) {
-  os().SetCurrentInstruction(kVcmpe, kFpNeon);
-  os() << ToCString(kVcmpe) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", "
-       << "#" << std::fixed << std::setprecision(1) << imm
-       << std::resetiosflags(std::ios_base::floatfield);
-}
-
-void Disassembler::vcmpe(Condition cond,
-                         DataType dt,
-                         DRegister rd,
-                         double imm) {
-  os().SetCurrentInstruction(kVcmpe, kFpNeon);
-  os() << ToCString(kVcmpe) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", "
-       << "#" << std::fixed << std::setprecision(1) << imm
-       << std::resetiosflags(std::ios_base::floatfield);
+       << rd << ", " << operand;
 }
 
 void Disassembler::vcnt(Condition cond,

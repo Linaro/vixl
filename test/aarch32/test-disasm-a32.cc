@@ -3477,6 +3477,23 @@ TEST(preloads) {
 }
 
 
+TEST(vcmp_vcmpe) {
+  SETUP();
+
+  COMPARE_BOTH(Vcmp(F32, s0, s1), "vcmp.f32 s0, s1\n");
+  COMPARE_BOTH(Vcmp(F64, d0, d1), "vcmp.f64 d0, d1\n");
+  COMPARE_BOTH(Vcmp(F32, s0, 0.0f), "vcmp.f32 s0, #0.0\n");
+  COMPARE_BOTH(Vcmp(F64, d0, 0.0), "vcmp.f64 d0, #0.0\n");
+
+  COMPARE_BOTH(Vcmpe(F32, s0, s1), "vcmpe.f32 s0, s1\n");
+  COMPARE_BOTH(Vcmpe(F64, d0, d1), "vcmpe.f64 d0, d1\n");
+  COMPARE_BOTH(Vcmpe(F32, s0, 0.0f), "vcmpe.f32 s0, #0.0\n");
+  COMPARE_BOTH(Vcmpe(F64, d0, 0.0), "vcmpe.f64 d0, #0.0\n");
+
+  CLEANUP();
+}
+
+
 TEST(vmrs_vmsr) {
   SETUP();
 

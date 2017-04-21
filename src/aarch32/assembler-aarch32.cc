@@ -15425,168 +15425,176 @@ void Assembler::vclz(Condition cond, DataType dt, QRegister rd, QRegister rm) {
   Delegate(kVclz, &Assembler::vclz, cond, dt, rd, rm);
 }
 
-void Assembler::vcmp(Condition cond, DataType dt, SRegister rd, SRegister rm) {
+void Assembler::vcmp(Condition cond,
+                     DataType dt,
+                     SRegister rd,
+                     const SOperand& operand) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  if (IsUsingT32()) {
-    // VCMP{<c>}{<q>}.F32 <Sd>, <Sm> ; T1
-    if (dt.Is(F32)) {
-      EmitT32_32(0xeeb40a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
-      AdvanceIT();
-      return;
-    }
-  } else {
-    // VCMP{<c>}{<q>}.F32 <Sd>, <Sm> ; A1
-    if (dt.Is(F32) && cond.IsNotNever()) {
-      EmitA32(0x0eb40a40U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
-              rm.Encode(5, 0));
-      return;
+  if (operand.IsRegister()) {
+    SRegister rm = operand.GetRegister();
+    if (IsUsingT32()) {
+      // VCMP{<c>}{<q>}.F32 <Sd>, <Sm> ; T1
+      if (dt.Is(F32)) {
+        EmitT32_32(0xeeb40a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
+        AdvanceIT();
+        return;
+      }
+    } else {
+      // VCMP{<c>}{<q>}.F32 <Sd>, <Sm> ; A1
+      if (dt.Is(F32) && cond.IsNotNever()) {
+        EmitA32(0x0eb40a40U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
+                rm.Encode(5, 0));
+        return;
+      }
     }
   }
-  Delegate(kVcmp, &Assembler::vcmp, cond, dt, rd, rm);
+  if (operand.IsImmediate()) {
+    if (IsUsingT32()) {
+      // VCMP{<c>}{<q>}.F32 <Sd>, #0.0 ; T2
+      if (dt.Is(F32) && (operand.IsFloatZero())) {
+        EmitT32_32(0xeeb50a40U | rd.Encode(22, 12));
+        AdvanceIT();
+        return;
+      }
+    } else {
+      // VCMP{<c>}{<q>}.F32 <Sd>, #0.0 ; A2
+      if (dt.Is(F32) && (operand.IsFloatZero()) && cond.IsNotNever()) {
+        EmitA32(0x0eb50a40U | (cond.GetCondition() << 28) | rd.Encode(22, 12));
+        return;
+      }
+    }
+  }
+  Delegate(kVcmp, &Assembler::vcmp, cond, dt, rd, operand);
 }
 
-void Assembler::vcmp(Condition cond, DataType dt, DRegister rd, DRegister rm) {
+void Assembler::vcmp(Condition cond,
+                     DataType dt,
+                     DRegister rd,
+                     const DOperand& operand) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  if (IsUsingT32()) {
-    // VCMP{<c>}{<q>}.F64 <Dd>, <Dm> ; T1
-    if (dt.Is(F64)) {
-      EmitT32_32(0xeeb40b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
-      AdvanceIT();
-      return;
-    }
-  } else {
-    // VCMP{<c>}{<q>}.F64 <Dd>, <Dm> ; A1
-    if (dt.Is(F64) && cond.IsNotNever()) {
-      EmitA32(0x0eb40b40U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
-              rm.Encode(5, 0));
-      return;
+  if (operand.IsRegister()) {
+    DRegister rm = operand.GetRegister();
+    if (IsUsingT32()) {
+      // VCMP{<c>}{<q>}.F64 <Dd>, <Dm> ; T1
+      if (dt.Is(F64)) {
+        EmitT32_32(0xeeb40b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
+        AdvanceIT();
+        return;
+      }
+    } else {
+      // VCMP{<c>}{<q>}.F64 <Dd>, <Dm> ; A1
+      if (dt.Is(F64) && cond.IsNotNever()) {
+        EmitA32(0x0eb40b40U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
+                rm.Encode(5, 0));
+        return;
+      }
     }
   }
-  Delegate(kVcmp, &Assembler::vcmp, cond, dt, rd, rm);
+  if (operand.IsImmediate()) {
+    if (IsUsingT32()) {
+      // VCMP{<c>}{<q>}.F64 <Dd>, #0.0 ; T2
+      if (dt.Is(F64) && (operand.IsFloatZero())) {
+        EmitT32_32(0xeeb50b40U | rd.Encode(22, 12));
+        AdvanceIT();
+        return;
+      }
+    } else {
+      // VCMP{<c>}{<q>}.F64 <Dd>, #0.0 ; A2
+      if (dt.Is(F64) && (operand.IsFloatZero()) && cond.IsNotNever()) {
+        EmitA32(0x0eb50b40U | (cond.GetCondition() << 28) | rd.Encode(22, 12));
+        return;
+      }
+    }
+  }
+  Delegate(kVcmp, &Assembler::vcmp, cond, dt, rd, operand);
 }
 
-void Assembler::vcmp(Condition cond, DataType dt, SRegister rd, double imm) {
+void Assembler::vcmpe(Condition cond,
+                      DataType dt,
+                      SRegister rd,
+                      const SOperand& operand) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  if (IsUsingT32()) {
-    // VCMP{<c>}{<q>}.F32 <Sd>, #0.0 ; T2
-    if (dt.Is(F32) && (imm == 0.0)) {
-      EmitT32_32(0xeeb50a40U | rd.Encode(22, 12));
-      AdvanceIT();
-      return;
-    }
-  } else {
-    // VCMP{<c>}{<q>}.F32 <Sd>, #0.0 ; A2
-    if (dt.Is(F32) && (imm == 0.0) && cond.IsNotNever()) {
-      EmitA32(0x0eb50a40U | (cond.GetCondition() << 28) | rd.Encode(22, 12));
-      return;
+  if (operand.IsRegister()) {
+    SRegister rm = operand.GetRegister();
+    if (IsUsingT32()) {
+      // VCMPE{<c>}{<q>}.F32 <Sd>, <Sm> ; T1
+      if (dt.Is(F32)) {
+        EmitT32_32(0xeeb40ac0U | rd.Encode(22, 12) | rm.Encode(5, 0));
+        AdvanceIT();
+        return;
+      }
+    } else {
+      // VCMPE{<c>}{<q>}.F32 <Sd>, <Sm> ; A1
+      if (dt.Is(F32) && cond.IsNotNever()) {
+        EmitA32(0x0eb40ac0U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
+                rm.Encode(5, 0));
+        return;
+      }
     }
   }
-  Delegate(kVcmp, &Assembler::vcmp, cond, dt, rd, imm);
+  if (operand.IsImmediate()) {
+    if (IsUsingT32()) {
+      // VCMPE{<c>}{<q>}.F32 <Sd>, #0.0 ; T2
+      if (dt.Is(F32) && (operand.IsFloatZero())) {
+        EmitT32_32(0xeeb50ac0U | rd.Encode(22, 12));
+        AdvanceIT();
+        return;
+      }
+    } else {
+      // VCMPE{<c>}{<q>}.F32 <Sd>, #0.0 ; A2
+      if (dt.Is(F32) && (operand.IsFloatZero()) && cond.IsNotNever()) {
+        EmitA32(0x0eb50ac0U | (cond.GetCondition() << 28) | rd.Encode(22, 12));
+        return;
+      }
+    }
+  }
+  Delegate(kVcmpe, &Assembler::vcmpe, cond, dt, rd, operand);
 }
 
-void Assembler::vcmp(Condition cond, DataType dt, DRegister rd, double imm) {
+void Assembler::vcmpe(Condition cond,
+                      DataType dt,
+                      DRegister rd,
+                      const DOperand& operand) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  if (IsUsingT32()) {
-    // VCMP{<c>}{<q>}.F64 <Dd>, #0.0 ; T2
-    if (dt.Is(F64) && (imm == 0.0)) {
-      EmitT32_32(0xeeb50b40U | rd.Encode(22, 12));
-      AdvanceIT();
-      return;
-    }
-  } else {
-    // VCMP{<c>}{<q>}.F64 <Dd>, #0.0 ; A2
-    if (dt.Is(F64) && (imm == 0.0) && cond.IsNotNever()) {
-      EmitA32(0x0eb50b40U | (cond.GetCondition() << 28) | rd.Encode(22, 12));
-      return;
-    }
-  }
-  Delegate(kVcmp, &Assembler::vcmp, cond, dt, rd, imm);
-}
-
-void Assembler::vcmpe(Condition cond, DataType dt, SRegister rd, SRegister rm) {
-  VIXL_ASSERT(AllowAssembler());
-  CheckIT(cond);
-  if (IsUsingT32()) {
-    // VCMPE{<c>}{<q>}.F32 <Sd>, <Sm> ; T1
-    if (dt.Is(F32)) {
-      EmitT32_32(0xeeb40ac0U | rd.Encode(22, 12) | rm.Encode(5, 0));
-      AdvanceIT();
-      return;
-    }
-  } else {
-    // VCMPE{<c>}{<q>}.F32 <Sd>, <Sm> ; A1
-    if (dt.Is(F32) && cond.IsNotNever()) {
-      EmitA32(0x0eb40ac0U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
-              rm.Encode(5, 0));
-      return;
+  if (operand.IsRegister()) {
+    DRegister rm = operand.GetRegister();
+    if (IsUsingT32()) {
+      // VCMPE{<c>}{<q>}.F64 <Dd>, <Dm> ; T1
+      if (dt.Is(F64)) {
+        EmitT32_32(0xeeb40bc0U | rd.Encode(22, 12) | rm.Encode(5, 0));
+        AdvanceIT();
+        return;
+      }
+    } else {
+      // VCMPE{<c>}{<q>}.F64 <Dd>, <Dm> ; A1
+      if (dt.Is(F64) && cond.IsNotNever()) {
+        EmitA32(0x0eb40bc0U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
+                rm.Encode(5, 0));
+        return;
+      }
     }
   }
-  Delegate(kVcmpe, &Assembler::vcmpe, cond, dt, rd, rm);
-}
-
-void Assembler::vcmpe(Condition cond, DataType dt, DRegister rd, DRegister rm) {
-  VIXL_ASSERT(AllowAssembler());
-  CheckIT(cond);
-  if (IsUsingT32()) {
-    // VCMPE{<c>}{<q>}.F64 <Dd>, <Dm> ; T1
-    if (dt.Is(F64)) {
-      EmitT32_32(0xeeb40bc0U | rd.Encode(22, 12) | rm.Encode(5, 0));
-      AdvanceIT();
-      return;
-    }
-  } else {
-    // VCMPE{<c>}{<q>}.F64 <Dd>, <Dm> ; A1
-    if (dt.Is(F64) && cond.IsNotNever()) {
-      EmitA32(0x0eb40bc0U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
-              rm.Encode(5, 0));
-      return;
+  if (operand.IsImmediate()) {
+    if (IsUsingT32()) {
+      // VCMPE{<c>}{<q>}.F64 <Dd>, #0.0 ; T2
+      if (dt.Is(F64) && (operand.IsFloatZero())) {
+        EmitT32_32(0xeeb50bc0U | rd.Encode(22, 12));
+        AdvanceIT();
+        return;
+      }
+    } else {
+      // VCMPE{<c>}{<q>}.F64 <Dd>, #0.0 ; A2
+      if (dt.Is(F64) && (operand.IsFloatZero()) && cond.IsNotNever()) {
+        EmitA32(0x0eb50bc0U | (cond.GetCondition() << 28) | rd.Encode(22, 12));
+        return;
+      }
     }
   }
-  Delegate(kVcmpe, &Assembler::vcmpe, cond, dt, rd, rm);
-}
-
-void Assembler::vcmpe(Condition cond, DataType dt, SRegister rd, double imm) {
-  VIXL_ASSERT(AllowAssembler());
-  CheckIT(cond);
-  if (IsUsingT32()) {
-    // VCMPE{<c>}{<q>}.F32 <Sd>, #0.0 ; T2
-    if (dt.Is(F32) && (imm == 0.0)) {
-      EmitT32_32(0xeeb50ac0U | rd.Encode(22, 12));
-      AdvanceIT();
-      return;
-    }
-  } else {
-    // VCMPE{<c>}{<q>}.F32 <Sd>, #0.0 ; A2
-    if (dt.Is(F32) && (imm == 0.0) && cond.IsNotNever()) {
-      EmitA32(0x0eb50ac0U | (cond.GetCondition() << 28) | rd.Encode(22, 12));
-      return;
-    }
-  }
-  Delegate(kVcmpe, &Assembler::vcmpe, cond, dt, rd, imm);
-}
-
-void Assembler::vcmpe(Condition cond, DataType dt, DRegister rd, double imm) {
-  VIXL_ASSERT(AllowAssembler());
-  CheckIT(cond);
-  if (IsUsingT32()) {
-    // VCMPE{<c>}{<q>}.F64 <Dd>, #0.0 ; T2
-    if (dt.Is(F64) && (imm == 0.0)) {
-      EmitT32_32(0xeeb50bc0U | rd.Encode(22, 12));
-      AdvanceIT();
-      return;
-    }
-  } else {
-    // VCMPE{<c>}{<q>}.F64 <Dd>, #0.0 ; A2
-    if (dt.Is(F64) && (imm == 0.0) && cond.IsNotNever()) {
-      EmitA32(0x0eb50bc0U | (cond.GetCondition() << 28) | rd.Encode(22, 12));
-      return;
-    }
-  }
-  Delegate(kVcmpe, &Assembler::vcmpe, cond, dt, rd, imm);
+  Delegate(kVcmpe, &Assembler::vcmpe, cond, dt, rd, operand);
 }
 
 void Assembler::vcnt(Condition cond, DataType dt, DRegister rd, DRegister rm) {
@@ -20298,7 +20306,6 @@ void Assembler::vmov(Condition cond,
   CheckIT(cond);
   if (operand.IsImmediate()) {
     ImmediateVmov encoded_dt(dt, operand.GetNeonImmediate());
-    ImmediateVFP vfp(operand.GetNeonImmediate());
     if (IsUsingT32()) {
       // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; T1
       if (encoded_dt.IsValid()) {
@@ -20313,14 +20320,6 @@ void Assembler::vmov(Condition cond,
           return;
         }
       }
-      // VMOV{<c>}{<q>}.F64 <Dd>, #<imm> ; T2
-      if (dt.Is(F64) && vfp.IsValid()) {
-        EmitT32_32(0xeeb00b00U | rd.Encode(22, 12) |
-                   (vfp.GetEncodingValue() & 0xf) |
-                   ((vfp.GetEncodingValue() & 0xf0) << 12));
-        AdvanceIT();
-        return;
-      }
     } else {
       // VMOV{<c>}{<q>}.<dt> <Dd>, #<imm> ; A1
       if (encoded_dt.IsValid()) {
@@ -20333,6 +20332,20 @@ void Assembler::vmov(Condition cond,
           return;
         }
       }
+    }
+  }
+  if (operand.IsImmediate()) {
+    ImmediateVFP vfp(operand.GetNeonImmediate());
+    if (IsUsingT32()) {
+      // VMOV{<c>}{<q>}.F64 <Dd>, #<imm> ; T2
+      if (dt.Is(F64) && vfp.IsValid()) {
+        EmitT32_32(0xeeb00b00U | rd.Encode(22, 12) |
+                   (vfp.GetEncodingValue() & 0xf) |
+                   ((vfp.GetEncodingValue() & 0xf0) << 12));
+        AdvanceIT();
+        return;
+      }
+    } else {
       // VMOV{<c>}{<q>}.F64 <Dd>, #<imm> ; A2
       if (dt.Is(F64) && vfp.IsValid() && cond.IsNotNever()) {
         EmitA32(0x0eb00b00U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |

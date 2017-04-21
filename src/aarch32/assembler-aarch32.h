@@ -381,14 +381,14 @@ class Assembler : public internal::AssemblerBase {
                                                     QRegister rd,
                                                     QRegister rn,
                                                     const QOperand& operand);
-  typedef void (Assembler::*InstructionCondDtSFi)(Condition cond,
-                                                  DataType dt,
-                                                  SRegister rd,
-                                                  double imm);
-  typedef void (Assembler::*InstructionCondDtDFi)(Condition cond,
-                                                  DataType dt,
-                                                  DRegister rd,
-                                                  double imm);
+  typedef void (Assembler::*InstructionCondDtSSop)(Condition cond,
+                                                   DataType dt,
+                                                   SRegister rd,
+                                                   const SOperand& operand);
+  typedef void (Assembler::*InstructionCondDtDDop)(Condition cond,
+                                                   DataType dt,
+                                                   DRegister rd,
+                                                   const DOperand& operand);
   typedef void (Assembler::*InstructionCondDtDtDS)(
       Condition cond, DataType dt1, DataType dt2, DRegister rd, SRegister rm);
   typedef void (Assembler::*InstructionCondDtDtSD)(
@@ -546,18 +546,10 @@ class Assembler : public internal::AssemblerBase {
                                                   DataType dt,
                                                   DRegisterLane rd,
                                                   Register rt);
-  typedef void (Assembler::*InstructionCondDtDDop)(Condition cond,
-                                                   DataType dt,
-                                                   DRegister rd,
-                                                   const DOperand& operand);
   typedef void (Assembler::*InstructionCondDtQQop)(Condition cond,
                                                    DataType dt,
                                                    QRegister rd,
                                                    const QOperand& operand);
-  typedef void (Assembler::*InstructionCondDtSSop)(Condition cond,
-                                                   DataType dt,
-                                                   SRegister rd,
-                                                   const SOperand& operand);
   typedef void (Assembler::*InstructionCondDtRDx)(Condition cond,
                                                   DataType dt,
                                                   Register rt,
@@ -1120,12 +1112,12 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rm*/) {
     USE(type);
     VIXL_ASSERT((type == kVabs) || (type == kVcls) || (type == kVclz) ||
-                (type == kVcmp) || (type == kVcmpe) || (type == kVcnt) ||
-                (type == kVneg) || (type == kVpadal) || (type == kVpaddl) ||
-                (type == kVqabs) || (type == kVqneg) || (type == kVrecpe) ||
-                (type == kVrev16) || (type == kVrev32) || (type == kVrev64) ||
-                (type == kVrsqrte) || (type == kVsqrt) || (type == kVswp) ||
-                (type == kVtrn) || (type == kVuzp) || (type == kVzip));
+                (type == kVcnt) || (type == kVneg) || (type == kVpadal) ||
+                (type == kVpaddl) || (type == kVqabs) || (type == kVqneg) ||
+                (type == kVrecpe) || (type == kVrev16) || (type == kVrev32) ||
+                (type == kVrev64) || (type == kVrsqrte) || (type == kVsqrt) ||
+                (type == kVswp) || (type == kVtrn) || (type == kVuzp) ||
+                (type == kVzip));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1150,8 +1142,7 @@ class Assembler : public internal::AssemblerBase {
                         SRegister /*rd*/,
                         SRegister /*rm*/) {
     USE(type);
-    VIXL_ASSERT((type == kVabs) || (type == kVcmp) || (type == kVcmpe) ||
-                (type == kVneg) || (type == kVsqrt));
+    VIXL_ASSERT((type == kVabs) || (type == kVneg) || (type == kVsqrt));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1225,23 +1216,24 @@ class Assembler : public internal::AssemblerBase {
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
-                        InstructionCondDtSFi /*instruction*/,
+                        InstructionCondDtSSop /*instruction*/,
                         Condition /*cond*/,
                         DataType /*dt*/,
                         SRegister /*rd*/,
-                        double /*imm*/) {
+                        const SOperand& /*operand*/) {
     USE(type);
-    VIXL_ASSERT((type == kVcmp) || (type == kVcmpe));
+    VIXL_ASSERT((type == kVcmp) || (type == kVcmpe) || (type == kVmov));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
-                        InstructionCondDtDFi /*instruction*/,
+                        InstructionCondDtDDop /*instruction*/,
                         Condition /*cond*/,
                         DataType /*dt*/,
                         DRegister /*rd*/,
-                        double /*imm*/) {
+                        const DOperand& /*operand*/) {
     USE(type);
-    VIXL_ASSERT((type == kVcmp) || (type == kVcmpe));
+    VIXL_ASSERT((type == kVcmp) || (type == kVcmpe) || (type == kVmov) ||
+                (type == kVmvn));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1687,16 +1679,6 @@ class Assembler : public internal::AssemblerBase {
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
-                        InstructionCondDtDDop /*instruction*/,
-                        Condition /*cond*/,
-                        DataType /*dt*/,
-                        DRegister /*rd*/,
-                        const DOperand& /*operand*/) {
-    USE(type);
-    VIXL_ASSERT((type == kVmov) || (type == kVmvn));
-    UnimplementedDelegate(type);
-  }
-  virtual void Delegate(InstructionType type,
                         InstructionCondDtQQop /*instruction*/,
                         Condition /*cond*/,
                         DataType /*dt*/,
@@ -1704,16 +1686,6 @@ class Assembler : public internal::AssemblerBase {
                         const QOperand& /*operand*/) {
     USE(type);
     VIXL_ASSERT((type == kVmov) || (type == kVmvn));
-    UnimplementedDelegate(type);
-  }
-  virtual void Delegate(InstructionType type,
-                        InstructionCondDtSSop /*instruction*/,
-                        Condition /*cond*/,
-                        DataType /*dt*/,
-                        SRegister /*rd*/,
-                        const SOperand& /*operand*/) {
-    USE(type);
-    VIXL_ASSERT((type == kVmov));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -4111,29 +4083,31 @@ class Assembler : public internal::AssemblerBase {
   void vclz(Condition cond, DataType dt, QRegister rd, QRegister rm);
   void vclz(DataType dt, QRegister rd, QRegister rm) { vclz(al, dt, rd, rm); }
 
-  void vcmp(Condition cond, DataType dt, SRegister rd, SRegister rm);
-  void vcmp(DataType dt, SRegister rd, SRegister rm) { vcmp(al, dt, rd, rm); }
+  void vcmp(Condition cond, DataType dt, SRegister rd, const SOperand& operand);
+  void vcmp(DataType dt, SRegister rd, const SOperand& operand) {
+    vcmp(al, dt, rd, operand);
+  }
 
-  void vcmp(Condition cond, DataType dt, DRegister rd, DRegister rm);
-  void vcmp(DataType dt, DRegister rd, DRegister rm) { vcmp(al, dt, rd, rm); }
+  void vcmp(Condition cond, DataType dt, DRegister rd, const DOperand& operand);
+  void vcmp(DataType dt, DRegister rd, const DOperand& operand) {
+    vcmp(al, dt, rd, operand);
+  }
 
-  void vcmp(Condition cond, DataType dt, SRegister rd, double imm);
-  void vcmp(DataType dt, SRegister rd, double imm) { vcmp(al, dt, rd, imm); }
+  void vcmpe(Condition cond,
+             DataType dt,
+             SRegister rd,
+             const SOperand& operand);
+  void vcmpe(DataType dt, SRegister rd, const SOperand& operand) {
+    vcmpe(al, dt, rd, operand);
+  }
 
-  void vcmp(Condition cond, DataType dt, DRegister rd, double imm);
-  void vcmp(DataType dt, DRegister rd, double imm) { vcmp(al, dt, rd, imm); }
-
-  void vcmpe(Condition cond, DataType dt, SRegister rd, SRegister rm);
-  void vcmpe(DataType dt, SRegister rd, SRegister rm) { vcmpe(al, dt, rd, rm); }
-
-  void vcmpe(Condition cond, DataType dt, DRegister rd, DRegister rm);
-  void vcmpe(DataType dt, DRegister rd, DRegister rm) { vcmpe(al, dt, rd, rm); }
-
-  void vcmpe(Condition cond, DataType dt, SRegister rd, double imm);
-  void vcmpe(DataType dt, SRegister rd, double imm) { vcmpe(al, dt, rd, imm); }
-
-  void vcmpe(Condition cond, DataType dt, DRegister rd, double imm);
-  void vcmpe(DataType dt, DRegister rd, double imm) { vcmpe(al, dt, rd, imm); }
+  void vcmpe(Condition cond,
+             DataType dt,
+             DRegister rd,
+             const DOperand& operand);
+  void vcmpe(DataType dt, DRegister rd, const DOperand& operand) {
+    vcmpe(al, dt, rd, operand);
+  }
 
   void vcnt(Condition cond, DataType dt, DRegister rd, DRegister rm);
   void vcnt(DataType dt, DRegister rd, DRegister rm) { vcnt(al, dt, rd, rm); }

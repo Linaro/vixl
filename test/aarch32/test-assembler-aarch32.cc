@@ -2835,6 +2835,126 @@ TEST(msr_i) {
 }
 
 
+TEST(vcmp_s) {
+  SETUP();
+
+  START();
+
+  __ Vmov(s0, 1.0);
+  __ Vmov(s1, 2.0);
+  __ Vmov(s2, 0.0);
+
+  __ Vcmp(F32, s1, s0);
+  __ Vmrs(RegisterOrAPSR_nzcv(r0.GetCode()), FPSCR);
+
+  __ Vcmp(F32, s0, 0.0f);
+  __ Vmrs(RegisterOrAPSR_nzcv(r1.GetCode()), FPSCR);
+
+  __ Vcmp(F32, s2, 0.0f);
+  __ Vmrs(RegisterOrAPSR_nzcv(r2.GetCode()), FPSCR);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0x20000000, r0);
+  ASSERT_EQUAL_32(0x80000000, r1);
+  ASSERT_EQUAL_32(0x60000000, r2);
+
+  TEARDOWN();
+}
+
+
+TEST(vcmp_d) {
+  SETUP();
+
+  START();
+
+  __ Vmov(d0, 1.0);
+  __ Vmov(d1, 2.0);
+  __ Vmov(d2, 0.0);
+
+  __ Vcmp(F64, d1, d0);
+  __ Vmrs(RegisterOrAPSR_nzcv(r0.GetCode()), FPSCR);
+
+  __ Vcmp(F64, d0, 0.0);
+  __ Vmrs(RegisterOrAPSR_nzcv(r1.GetCode()), FPSCR);
+
+  __ Vcmp(F64, d2, 0.0);
+  __ Vmrs(RegisterOrAPSR_nzcv(r2.GetCode()), FPSCR);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0x20000000, r0);
+  ASSERT_EQUAL_32(0x80000000, r1);
+  ASSERT_EQUAL_32(0x60000000, r2);
+
+  TEARDOWN();
+}
+
+
+TEST(vcmpe_s) {
+  SETUP();
+
+  START();
+
+  __ Vmov(s0, 1.0);
+  __ Vmov(s1, 2.0);
+  __ Vmov(s2, 0.0);
+
+  __ Vcmpe(F32, s1, s0);
+  __ Vmrs(RegisterOrAPSR_nzcv(r0.GetCode()), FPSCR);
+
+  __ Vcmpe(F32, s0, 0.0f);
+  __ Vmrs(RegisterOrAPSR_nzcv(r1.GetCode()), FPSCR);
+
+  __ Vcmpe(F32, s2, 0.0f);
+  __ Vmrs(RegisterOrAPSR_nzcv(r2.GetCode()), FPSCR);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0x20000000, r0);
+  ASSERT_EQUAL_32(0x80000000, r1);
+  ASSERT_EQUAL_32(0x60000000, r2);
+
+  TEARDOWN();
+}
+
+
+TEST(vcmpe_d) {
+  SETUP();
+
+  START();
+
+  __ Vmov(d0, 1.0);
+  __ Vmov(d1, 2.0);
+  __ Vmov(d2, 0.0);
+
+  __ Vcmpe(F64, d1, d0);
+  __ Vmrs(RegisterOrAPSR_nzcv(r0.GetCode()), FPSCR);
+
+  __ Vcmpe(F64, d0, 0.0);
+  __ Vmrs(RegisterOrAPSR_nzcv(r1.GetCode()), FPSCR);
+
+  __ Vcmpe(F64, d2, 0.0);
+  __ Vmrs(RegisterOrAPSR_nzcv(r2.GetCode()), FPSCR);
+
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32(0x20000000, r0);
+  ASSERT_EQUAL_32(0x80000000, r1);
+  ASSERT_EQUAL_32(0x60000000, r2);
+
+  TEARDOWN();
+}
+
+
 TEST(vmrs_vmsr) {
   SETUP();
 
