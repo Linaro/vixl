@@ -101,6 +101,10 @@ enum SystemFunctionsOpcodes { kPrintfCode };
 enum BranchHint { kNear, kFar, kBranchWithoutHint };
 
 // Start of generated code.
+// AArch32 version implemented by the library (v8.0).
+// The encoding for vX.Y is: (X << 8) | Y.
+#define AARCH32_VERSION 0x0800
+
 enum InstructionAttribute {
   kNoAttribute = 0,
   kArithmetic = 0x1,
