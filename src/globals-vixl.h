@@ -71,6 +71,19 @@ const int MBytes = 1024 * KBytes;
 
 const int kBitsPerByte = 8;
 
+template <int SizeInBytes>
+struct Unsigned;
+
+template <>
+struct Unsigned<4> {
+  typedef uint32_t type;
+};
+
+template <>
+struct Unsigned<8> {
+  typedef uint64_t type;
+};
+
 }  // namespace vixl
 
 // Detect the host's pointer size.

@@ -472,39 +472,41 @@ bool IsWordAligned(T pointer) {
   return IsAligned<4>(pointer);
 }
 
-// Increment a pointer (up to 64 bits) until it has the specified alignment.
+// Increment a pointer until it has the specified alignment. The alignment must
+// be a power of two.
 template <class T>
-T AlignUp(T pointer, size_t alignment) {
+T AlignUp(T pointer, typename Unsigned<sizeof(T)>::type alignment) {
+  VIXL_ASSERT(IsPowerOf2(alignment));
   // Use C-style casts to get static_cast behaviour for integral types (T), and
   // reinterpret_cast behaviour for other types.
 
-  uint64_t pointer_raw = (uint64_t)pointer;
+  typename Unsigned<sizeof(T)>::type pointer_raw =
+      (typename Unsigned<sizeof(T)>::type)pointer;
   VIXL_STATIC_ASSERT(sizeof(pointer) <= sizeof(pointer_raw));
 
-  size_t align_step = (alignment - pointer_raw) % alignment;
-  VIXL_ASSERT((pointer_raw + align_step) % alignment == 0);
-
-  T result = (T)(pointer_raw + align_step);
-
+  size_t mask = alignment - 1;
+  T result = (T)((pointer_raw + mask) & ~mask);
   VIXL_ASSERT(result >= pointer);
 
   return result;
 }
 
-// Decrement a pointer (up to 64 bits) until it has the specified alignment.
+// Decrement a pointer until it has the specified alignment. The alignment must
+// be a power of two.
 template <class T>
-T AlignDown(T pointer, size_t alignment) {
+T AlignDown(T pointer, typename Unsigned<sizeof(T)>::type alignment) {
+  VIXL_ASSERT(IsPowerOf2(alignment));
   // Use C-style casts to get static_cast behaviour for integral types (T), and
   // reinterpret_cast behaviour for other types.
 
-  uint64_t pointer_raw = (uint64_t)pointer;
+  typename Unsigned<sizeof(T)>::type pointer_raw =
+      (typename Unsigned<sizeof(T)>::type)pointer;
   VIXL_STATIC_ASSERT(sizeof(pointer) <= sizeof(pointer_raw));
 
-  size_t align_step = pointer_raw % alignment;
-  VIXL_ASSERT((pointer_raw - align_step) % alignment == 0);
-
-  return (T)(pointer_raw - align_step);
+  size_t mask = alignment - 1;
+  return (T)(pointer_raw & ~mask);
 }
+
 
 template <typename T>
 inline T ExtractBit(T value, unsigned bit) {
