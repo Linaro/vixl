@@ -2844,7 +2844,7 @@ TEST(vcmp_s) {
   __ Vmov(s1, 2.0);
   __ Vmov(s2, 0.0);
 
-  __ Vcmp(F32, s1, s0);
+  __ Vcmp(F32, s0, s1);
   __ Vmrs(RegisterOrAPSR_nzcv(r0.GetCode()), FPSCR);
 
   __ Vcmp(F32, s0, 0.0f);
@@ -2857,9 +2857,12 @@ TEST(vcmp_s) {
 
   RUN();
 
-  ASSERT_EQUAL_32(0x20000000, r0);
-  ASSERT_EQUAL_32(0x80000000, r1);
-  ASSERT_EQUAL_32(0x60000000, r2);
+  // N is for less than.
+  ASSERT_EQUAL_32(NFlag, r0);
+  // C is for greater than.
+  ASSERT_EQUAL_32(CFlag, r1);
+  // ZC is for equal.
+  ASSERT_EQUAL_32(ZCFlag, r2);
 
   TEARDOWN();
 }
@@ -2874,7 +2877,7 @@ TEST(vcmp_d) {
   __ Vmov(d1, 2.0);
   __ Vmov(d2, 0.0);
 
-  __ Vcmp(F64, d1, d0);
+  __ Vcmp(F64, d0, d1);
   __ Vmrs(RegisterOrAPSR_nzcv(r0.GetCode()), FPSCR);
 
   __ Vcmp(F64, d0, 0.0);
@@ -2887,9 +2890,12 @@ TEST(vcmp_d) {
 
   RUN();
 
-  ASSERT_EQUAL_32(0x20000000, r0);
-  ASSERT_EQUAL_32(0x80000000, r1);
-  ASSERT_EQUAL_32(0x60000000, r2);
+  // N is for less than.
+  ASSERT_EQUAL_32(NFlag, r0);
+  // C is for greater than.
+  ASSERT_EQUAL_32(CFlag, r1);
+  // ZC is for equal.
+  ASSERT_EQUAL_32(ZCFlag, r2);
 
   TEARDOWN();
 }
@@ -2904,7 +2910,7 @@ TEST(vcmpe_s) {
   __ Vmov(s1, 2.0);
   __ Vmov(s2, 0.0);
 
-  __ Vcmpe(F32, s1, s0);
+  __ Vcmpe(F32, s0, s1);
   __ Vmrs(RegisterOrAPSR_nzcv(r0.GetCode()), FPSCR);
 
   __ Vcmpe(F32, s0, 0.0f);
@@ -2917,9 +2923,12 @@ TEST(vcmpe_s) {
 
   RUN();
 
-  ASSERT_EQUAL_32(0x20000000, r0);
-  ASSERT_EQUAL_32(0x80000000, r1);
-  ASSERT_EQUAL_32(0x60000000, r2);
+  // N is for less than.
+  ASSERT_EQUAL_32(NFlag, r0);
+  // C is for greater than.
+  ASSERT_EQUAL_32(CFlag, r1);
+  // ZC is for equal.
+  ASSERT_EQUAL_32(ZCFlag, r2);
 
   TEARDOWN();
 }
@@ -2934,7 +2943,7 @@ TEST(vcmpe_d) {
   __ Vmov(d1, 2.0);
   __ Vmov(d2, 0.0);
 
-  __ Vcmpe(F64, d1, d0);
+  __ Vcmpe(F64, d0, d1);
   __ Vmrs(RegisterOrAPSR_nzcv(r0.GetCode()), FPSCR);
 
   __ Vcmpe(F64, d0, 0.0);
@@ -2947,9 +2956,12 @@ TEST(vcmpe_d) {
 
   RUN();
 
-  ASSERT_EQUAL_32(0x20000000, r0);
-  ASSERT_EQUAL_32(0x80000000, r1);
-  ASSERT_EQUAL_32(0x60000000, r2);
+  // N is for less than.
+  ASSERT_EQUAL_32(NFlag, r0);
+  // C is for greater than.
+  ASSERT_EQUAL_32(CFlag, r1);
+  // ZC is for equal.
+  ASSERT_EQUAL_32(ZCFlag, r2);
 
   TEARDOWN();
 }
