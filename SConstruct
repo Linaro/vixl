@@ -372,6 +372,17 @@ def ConfigureEnvironmentForCompiler(env):
     if compiler == 'gcc-4.8':
       env.Append(CPPFLAGS = ['-Wno-maybe-uninitialized'])
 
+  # GCC 6 and higher is able to detect throwing from inside a destructor and
+  # reports a warning. However, if negative testing is enabled then assertions
+  # will throw exceptions.
+  if env['negative_testing'] == 'on' and env['mode'] == 'debug' \
+      and compiler >= 'gcc-6':
+    env.Append(CPPFLAGS = ['-Wno-terminate'])
+    # The C++11 compatibility warning will also be triggered for this case, as
+    # the behavior of throwing from desctructors has changed.
+    if 'std' in env and env['std'] == 'c++98':
+      env.Append(CPPFLAGS = ['-Wno-c++11-compat'])
+
   # When compiling with c++98 (the default), allow long long constants.
   if 'std' not in env or env['std'] == 'c++98':
     env.Append(CPPFLAGS = ['-Wno-long-long'])
