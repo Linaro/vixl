@@ -5469,12 +5469,10 @@ TEST(ldm_stm_no_writeback) {
 
   __ Mov(r0, reinterpret_cast<uintptr_t>(src));
   __ Ldm(r0, NO_WRITE_BACK, RegisterList(r1, r2, r3, r4));
-  ;
   __ Ldm(r0, NO_WRITE_BACK, RegisterList(r5, r6, r9, r11));
 
   __ Mov(r0, reinterpret_cast<uintptr_t>(dst1));
   __ Stm(r0, NO_WRITE_BACK, RegisterList(r1, r2, r3, r4));
-  ;
 
   __ Mov(r0, reinterpret_cast<uintptr_t>(dst2));
   __ Stm(r0, NO_WRITE_BACK, RegisterList(r5, r6, r9, r11));
@@ -5524,9 +5522,7 @@ TEST(ldm_stm_writeback) {
 
   __ Mov(r0, reinterpret_cast<uintptr_t>(src));
   __ Ldm(r0, WRITE_BACK, RegisterList(r2, r3));
-  ;
   __ Ldm(r0, WRITE_BACK, RegisterList(r4, r5));
-  ;
 
   __ Mov(r1, reinterpret_cast<uintptr_t>(dst));
   __ Stm(r1, WRITE_BACK, RegisterList(r2, r3, r4, r5));
@@ -5572,7 +5568,7 @@ TEST_A32(ldm_stm_da_ib) {
   __ Ldmda(r11, WRITE_BACK, RegisterList(r0, r1));
   __ Ldmda(r11, NO_WRITE_BACK, RegisterList(r2, r3));
 
-  __ Mov(r10, reinterpret_cast<uintptr_t>(src2 - 1));
+  __ Mov(r10, reinterpret_cast<uintptr_t>(src2) - sizeof(src2[0]));
   __ Ldmib(r10, WRITE_BACK, RegisterList(r4, r5));
   __ Ldmib(r10, NO_WRITE_BACK, RegisterList(r6, r7));
 
@@ -5580,7 +5576,7 @@ TEST_A32(ldm_stm_da_ib) {
   __ Stmda(r9, WRITE_BACK, RegisterList(r0, r1));
   __ Stmda(r9, NO_WRITE_BACK, RegisterList(r2, r3));
 
-  __ Mov(r8, reinterpret_cast<uintptr_t>(dst2 - 1));
+  __ Mov(r8, reinterpret_cast<uintptr_t>(dst2) - sizeof(dst2[0]));
   __ Stmib(r8, WRITE_BACK, RegisterList(r4, r5));
   __ Stmib(r8, NO_WRITE_BACK, RegisterList(r6, r7));
 
