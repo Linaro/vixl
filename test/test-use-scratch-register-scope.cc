@@ -57,7 +57,6 @@
   void aarch64::Test_##Name##_AArch64_Impl()
 
 #define SETUP() MacroAssembler masm
-#define TEARDOWN()
 
 #define __ masm.
 
@@ -106,7 +105,6 @@ TEST_AARCH32(perfect_nesting) {
   SETUP();
   PerfectNestingTestHelper<MacroAssembler, UseScratchRegisterScope>(&masm)
       .Run();
-  TEARDOWN();
 }
 #endif  // VIXL_INCLUDE_TARGET_AARCH32
 
@@ -115,7 +113,6 @@ TEST_AARCH64(perfect_nesting) {
   SETUP();
   PerfectNestingTestHelper<MacroAssembler, UseScratchRegisterScope>(&masm)
       .Run();
-  TEARDOWN();
 }
 #endif  // VIXL_INCLUDE_TARGET_AARCH64
 
@@ -177,7 +174,6 @@ TEST_AARCH32(v_registers) {
 
     VIXL_CHECK(s7.Is(temps.AcquireS()));
   }
-  TEARDOWN();
 }
 #endif  // VIXL_INCLUDE_TARGET_AARCH32
 
@@ -292,7 +288,6 @@ TEST_AARCH32(include_exclude) {
     VIXL_CHECK(temps.IsAvailable(s6));
     VIXL_CHECK(temps.IsAvailable(s7));
   }
-  TEARDOWN();
 }
 #endif  // VIXL_INCLUDE_TARGET_AARCH32
 

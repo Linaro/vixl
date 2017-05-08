@@ -111,30 +111,29 @@ namespace aarch32 {
 
 #define RUN() DISASSEMBLE();
 
-#define TEARDOWN()
-
 #else  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32.
 
-#define SETUP()                                   \
-  RegisterDump core;                              \
-  MacroAssembler masm(BUF_SIZE, isa);             \
-  UseScratchRegisterScope harness_scratch(&masm); \
-  harness_scratch.ExcludeAll();
+#define SETUP()                       \
+  RegisterDump core;                  \
+  MacroAssembler masm(BUF_SIZE, isa); \
+  UseScratchRegisterScope harness_scratch;
 
-#define START()              \
-  masm.GetBuffer()->Reset(); \
-  __ Push(r4);               \
-  __ Push(r5);               \
-  __ Push(r6);               \
-  __ Push(r7);               \
-  __ Push(r8);               \
-  __ Push(r9);               \
-  __ Push(r10);              \
-  __ Push(r11);              \
-  __ Push(ip);               \
-  __ Push(lr);               \
-  __ Mov(r0, 0);             \
-  __ Msr(APSR_nzcvq, r0);    \
+#define START()                 \
+  harness_scratch.Open(&masm);  \
+  harness_scratch.ExcludeAll(); \
+  masm.GetBuffer()->Reset();    \
+  __ Push(r4);                  \
+  __ Push(r5);                  \
+  __ Push(r6);                  \
+  __ Push(r7);                  \
+  __ Push(r8);                  \
+  __ Push(r9);                  \
+  __ Push(r10);                 \
+  __ Push(r11);                 \
+  __ Push(ip);                  \
+  __ Push(lr);                  \
+  __ Mov(r0, 0);                \
+  __ Msr(APSR_nzcvq, r0);       \
   harness_scratch.Include(ip);
 
 #define END()                  \
@@ -151,7 +150,8 @@ namespace aarch32 {
   __ Pop(r5);                  \
   __ Pop(r4);                  \
   __ Bx(lr);                   \
-  __ FinalizeCode();
+  __ FinalizeCode();           \
+  harness_scratch.Close();
 
 // Execute the generated code from the MacroAssembler's automatic code buffer.
 // Note the offset for ExecuteMemory since the PCS requires that
@@ -166,8 +166,6 @@ namespace aarch32 {
                   pcs_offset);                                \
     masm.GetBuffer()->SetWritable();                          \
   }
-
-#define TEARDOWN() harness_scratch.Close();
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 
@@ -386,8 +384,6 @@ TEST(adc_shift) {
 
   ASSERT_EQUAL_NZCV(CFlag);
   ASSERT_EQUAL_32(1, r3);
-
-  TEARDOWN();
 }
 
 
@@ -416,8 +412,6 @@ TEST(adc_wide_imm) {
   ASSERT_EQUAL_32(0xffffffff, r2);
   ASSERT_EQUAL_32(0x12345678 + 1, r3);
   ASSERT_EQUAL_32(0, r4);
-
-  TEARDOWN();
 }
 
 
@@ -446,8 +440,6 @@ TEST(add_imm) {
   ASSERT_EQUAL_32(0x121111, r5);
   ASSERT_EQUAL_32(0xab000, r6);
   ASSERT_EQUAL_32(0x0, r7);
-
-  TEARDOWN();
 }
 
 
@@ -466,8 +458,6 @@ TEST(add_wide_imm) {
 
   ASSERT_EQUAL_32(0x12345678, r2);
   ASSERT_EQUAL_32(0x00010000, r3);
-
-  TEARDOWN();
 }
 
 
@@ -505,8 +495,6 @@ TEST(add_shifted) {
   ASSERT_EQUAL_32(0x67012344, r8);
   ASSERT_EQUAL_32(0x8091a2b2, r9);
   ASSERT_EQUAL_32(0x0091a2b2, r10);
-
-  TEARDOWN();
 }
 
 
@@ -544,8 +532,6 @@ TEST(and_) {
   ASSERT_EQUAL_32(0x000000f0, r8);
   ASSERT_EQUAL_32(0xf000007f, r9);
   ASSERT_EQUAL_32(0x7000007f, r10);
-
-  TEARDOWN();
 }
 
 
@@ -662,8 +648,6 @@ TEST(ands) {
 
   ASSERT_EQUAL_NZCV(NCFlag);
   ASSERT_EQUAL_32(0x80000000, r0);
-
-  TEARDOWN();
 }
 
 
@@ -734,8 +718,6 @@ TEST(adr_in_range) {
 
   ASSERT_EQUAL_32(0x0, r0);
   ASSERT_EQUAL_32(0x0, r1);
-
-  TEARDOWN();
 }
 
 
@@ -759,8 +741,6 @@ TEST(shift_imm) {
   ASSERT_EQUAL_32(0x00fedcba, r4);
   ASSERT_EQUAL_32(0xfffffedc, r5);
   ASSERT_EQUAL_32(0xcba98fed, r6);
-
-  TEARDOWN();
 }
 
 
@@ -801,8 +781,6 @@ TEST(shift_reg) {
   ASSERT_EQUAL_32(0xcba98fed, r6);
   ASSERT_EQUAL_32(0xff6e5d4c, r7);
   ASSERT_EQUAL_32(0x7f6e5d4c, r8);
-
-  TEARDOWN();
 }
 
 
@@ -896,8 +874,6 @@ TEST(branch_cond) {
 
   // TODO: Use r0.
   ASSERT_EQUAL_32(0x1, r3);
-
-  TEARDOWN();
 }
 
 
@@ -920,8 +896,6 @@ TEST(bfc_bfi) {
 
   ASSERT_EQUAL_32(0xffe0fff8, r0);
   ASSERT_EQUAL_32(0x45670067, r2);
-
-  TEARDOWN();
 }
 
 
@@ -959,8 +933,6 @@ TEST(bic) {
   ASSERT_EQUAL_32(0x0000ffe0, r8);
   ASSERT_EQUAL_32(0x00000080, r9);
   ASSERT_EQUAL_32(0x80000080, r10);
-
-  TEARDOWN();
 }
 
 
@@ -1077,8 +1049,6 @@ TEST(bics) {
 
   ASSERT_EQUAL_NZCV(NFlag);
   ASSERT_EQUAL_32(0x80000000, r0);
-
-  TEARDOWN();
 }
 
 
@@ -1143,8 +1113,6 @@ TEST_T32(veneer_pool_generated_by_macro_instruction) {
   RUN();
 
   ASSERT_EQUAL_32(0, r0);
-
-  TEARDOWN();
 }
 
 
@@ -1187,8 +1155,6 @@ TEST(emit_reused_load_literal_rewind) {
   ASSERT_EQUAL_32(0xdeadbaba, r2);
   ASSERT_EQUAL_32(0xcafebeef, r3);
   ASSERT_EQUAL_32(0x78787878, r4);
-
-  TEARDOWN();
 }
 
 
@@ -1233,8 +1199,6 @@ TEST(emit_reused_load_literal_should_not_rewind) {
   ASSERT_EQUAL_32(0xdeadbaba, r2);
   ASSERT_EQUAL_32(0xcafebeef, r3);
   ASSERT_EQUAL_32(0x78787878, r4);
-
-  TEARDOWN();
 }
 
 
@@ -1306,8 +1270,6 @@ void EmitReusedLoadLiteralStressTest(InstructionSet isa, bool conditional) {
     ASSERT_EQUAL_32(0xcafebeef, r3);
     ASSERT_EQUAL_32(0x78787878, r4);
   }
-
-  TEARDOWN();
 }
 
 
@@ -1353,8 +1315,6 @@ TEST(test_many_loads_from_same_literal) {
   ASSERT_EQUAL_32(0xcafebeef, r3);
   ASSERT_EQUAL_32(0xdeadbaba, r4);
   ASSERT_EQUAL_32(0xcafebeef, r5);
-
-  TEARDOWN();
 }
 
 
@@ -1413,8 +1373,6 @@ TEST_T32(literal_pool_generated_by_macro_instruction) {
   ASSERT_EQUAL_32(0x90abcdef, r0);
   ASSERT_EQUAL_32(0x12345678, r1);
   ASSERT_EQUAL_32(0x12345678, r2);
-
-  TEARDOWN();
 }
 
 
@@ -1445,8 +1403,6 @@ TEST(emit_single_literal) {
   ASSERT_EQUAL_FP64(2.0, d1);
   ASSERT_EQUAL_FP64(4.1, d2);
   ASSERT_EQUAL_FP32(8.2f, s8);
-
-  TEARDOWN();
 }
 
 
@@ -1537,8 +1493,6 @@ TEST(emit_literal_rewind) {
   ASSERT_EQUAL_32(0xdeadbaba, r2);
   ASSERT_EQUAL_32(0xcafebeef, r3);
   ASSERT_EQUAL_32(0x78787878, r4);
-
-  TEARDOWN();
 }
 
 TEST(emit_literal_conditional_rewind) {
@@ -1583,8 +1537,6 @@ TEST(emit_literal_conditional_rewind) {
   ASSERT_EQUAL_32(0xdeadbaba, r0);
   ASSERT_EQUAL_32(0xcafebeef, r1);
   ASSERT_EQUAL_32(0x78787878, r2);
-
-  TEARDOWN();
 }
 
 enum LiteralStressTestMode {
@@ -1663,8 +1615,6 @@ void EmitLdrdLiteralStressTest(InstructionSet isa,
     ASSERT_EQUAL_32(0xcafebeef, r1);
     ASSERT_EQUAL_32(0x78787878, r2);
   }
-
-  TEARDOWN();
 }
 
 
@@ -1713,8 +1663,6 @@ TEST_T32(emit_literal_unaligned) {
   // Check that the literals loaded correctly.
   ASSERT_EQUAL_32(0x90abcdef, r0);
   ASSERT_EQUAL_32(0x12345678, r1);
-
-  TEARDOWN();
 }
 
 
@@ -1743,8 +1691,6 @@ TEST(literal_multiple_uses) {
   ASSERT_EQUAL_32(42, r2);
   ASSERT_EQUAL_32(42, r3);
   ASSERT_EQUAL_32(42, r4);
-
-  TEARDOWN();
 }
 
 
@@ -1797,8 +1743,6 @@ TEST_A32(ldr_literal_range_same_time) {
   ASSERT_EQUAL_32(0x12121212, r1);
   ASSERT_EQUAL_32(0x90abcdef, r2);
   ASSERT_EQUAL_32(0x12345678, r3);
-
-  TEARDOWN();
 }
 
 
@@ -1832,8 +1776,6 @@ TEST(ldr_literal_mix_types) {
   ASSERT_EQUAL_32(-678, r4);
   ASSERT_EQUAL_32(42, r5);
   ASSERT_EQUAL_32(-12, r6);
-
-  TEARDOWN();
 }
 
 
@@ -1895,8 +1837,6 @@ TEST(ldr_literal_conditional) {
   ASSERT_EQUAL_32(-12, r6);
   ASSERT_EQUAL_FP32(1.2345f, s0);
   ASSERT_EQUAL_FP64(1.3333, d1);
-
-  TEARDOWN();
 }
 
 
@@ -1979,8 +1919,6 @@ void GenerateLdrLiteralTriggerPoolEmission(InstructionSet isa,
     ASSERT_EQUAL_32(0x90abcdef, r7);
     ASSERT_EQUAL_32(test.test_value, test.result_reg);
   }
-
-  TEARDOWN();
 }
 
 
@@ -2034,8 +1972,6 @@ void GenerateLdrLiteralRangeTest(InstructionSet isa, bool unaligned_ldr) {
 
     ASSERT_EQUAL_32(test.test_value, test.result_reg);
   }
-
-  TEARDOWN();
 }
 
 
@@ -2067,8 +2003,6 @@ TEST(string_literal) {
 
   ASSERT_EQUAL_32('h', r1);
   ASSERT_EQUAL_32('h', r2);
-
-  TEARDOWN();
 }
 
 
@@ -2187,8 +2121,6 @@ TEST(custom_literal_place) {
   ASSERT_EQUAL_32(-4567, r11);
   ASSERT_EQUAL_32(123, r12);
   ASSERT_EQUAL_32(-123, lr);
-
-  TEARDOWN();
 }
 
 
@@ -2247,8 +2179,6 @@ TEST(custom_literal_place_shared) {
     ASSERT_EQUAL_32(test.test_value, r0);
     ASSERT_EQUAL_32(test.test_value, r1);
   }
-
-  TEARDOWN();
 }
 
 
@@ -2322,8 +2252,6 @@ TEST(custom_literal_place_range) {
     ASSERT_EQUAL_32(test.test_value, r0);
     ASSERT_EQUAL_32(test.test_value, r1);
   }
-
-  TEARDOWN();
 }
 
 
@@ -2349,8 +2277,6 @@ TEST(emit_big_pool) {
 
   // Check that the literals loaded correctly.
   ASSERT_EQUAL_32(1, r0);
-
-  TEARDOWN();
 }
 
 
@@ -2536,8 +2462,6 @@ TEST_T32(veneer_bind) {
   VIXL_CHECK(masm.VeneerPoolIsEmpty());
 
   END();
-
-  TEARDOWN();
 }
 
 
@@ -2599,8 +2523,6 @@ TEST_T32(b_narrow_and_cbz_sort) {
   RUN();
 
   ASSERT_EQUAL_32(0, r0);
-
-  TEARDOWN();
 }
 
 
@@ -2652,8 +2574,6 @@ TEST_T32(b_narrow_and_cbz_sort_2) {
   RUN();
 
   ASSERT_EQUAL_32(0, r0);
-
-  TEARDOWN();
 }
 
 
@@ -2688,7 +2608,6 @@ TEST_T32(long_branch) {
 
   END();
   RUN();
-  TEARDOWN();
 }
 
 
@@ -2727,8 +2646,6 @@ TEST_T32(unaligned_branch_after_literal) {
 
   // Check that the literal was loaded correctly.
   ASSERT_EQUAL_32(0x01234567, r0);
-
-  TEARDOWN();
 }
 
 
@@ -2802,8 +2719,6 @@ TEST(claim_peek_poke) {
   ASSERT_EQUAL_32(0xcafe0001, r0);
   ASSERT_EQUAL_32(0xcafe0002, r1);
   ASSERT_EQUAL_32(0xcafe0000, r2);
-
-  TEARDOWN();
 }
 
 
@@ -2830,8 +2745,6 @@ TEST(msr_i) {
   ASSERT_EQUAL_32(0x10, r0);
   ASSERT_EQUAL_32(0xf80f0010, r1);
   ASSERT_EQUAL_32(0xb00f0010, r2);
-
-  TEARDOWN();
 }
 
 
@@ -2863,8 +2776,6 @@ TEST(vcmp_s) {
   ASSERT_EQUAL_32(CFlag, r1);
   // ZC is for equal.
   ASSERT_EQUAL_32(ZCFlag, r2);
-
-  TEARDOWN();
 }
 
 
@@ -2896,8 +2807,6 @@ TEST(vcmp_d) {
   ASSERT_EQUAL_32(CFlag, r1);
   // ZC is for equal.
   ASSERT_EQUAL_32(ZCFlag, r2);
-
-  TEARDOWN();
 }
 
 
@@ -2929,8 +2838,6 @@ TEST(vcmpe_s) {
   ASSERT_EQUAL_32(CFlag, r1);
   // ZC is for equal.
   ASSERT_EQUAL_32(ZCFlag, r2);
-
-  TEARDOWN();
 }
 
 
@@ -2962,8 +2869,6 @@ TEST(vcmpe_d) {
   ASSERT_EQUAL_32(CFlag, r1);
   // ZC is for equal.
   ASSERT_EQUAL_32(ZCFlag, r2);
-
-  TEARDOWN();
 }
 
 
@@ -2992,8 +2897,6 @@ TEST(vmrs_vmsr) {
   ASSERT_EQUAL_32(0x2a000000, r1);
   ASSERT_EQUAL_32(0x5a000000, r2);
   ASSERT_EQUAL_32(0x50000000, r3);
-
-  TEARDOWN();
 }
 
 
@@ -3122,8 +3025,6 @@ TEST(printf) {
   ASSERT_EQUAL_FP64(29.999, d29);
   ASSERT_EQUAL_FP64(30.000, d30);
   ASSERT_EQUAL_FP64(31.111, d31);
-
-  TEARDOWN();
 }
 
 TEST(printf2) {
@@ -3138,8 +3039,6 @@ TEST(printf2) {
   END();
 
   RUN();
-
-  TEARDOWN();
 }
 
 
@@ -3365,8 +3264,6 @@ TEST(logical_arithmetic_identities) {
   ASSERT_EQUAL_32(~0xbad, r3);
   ASSERT_EQUAL_32(0xffffffff, r4);
   ASSERT_EQUAL_32(0xffffffff, r5);
-
-  TEARDOWN();
 }
 
 
@@ -3392,7 +3289,6 @@ TEST(scratch_register_checks) {
     }
   }
   END();
-  TEARDOWN();
 }
 
 
@@ -3461,7 +3357,6 @@ TEST(scratch_register_checks_v) {
       }
     }
   }
-  TEARDOWN();
 }
 
 
@@ -3477,8 +3372,6 @@ TEST(nop) {
   VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&start) >= nop_size);
 
   masm.FinalizeCode();
-
-  TEARDOWN();
 }
 
 
@@ -3525,8 +3418,6 @@ TEST(literal_pool_margin) {
   // Check that the literals loaded correctly.
   ASSERT_EQUAL_32(0x90abcdef, r0);
   ASSERT_EQUAL_32(0x12345678, r1);
-
-  TEARDOWN();
 }
 
 
@@ -3579,8 +3470,6 @@ TEST(veneer_pool_margin) {
   END();
 
   RUN();
-
-  TEARDOWN();
 }
 
 
@@ -3678,8 +3567,6 @@ TEST_T32(near_branch_fuzz) {
   RUN();
 
   ASSERT_EQUAL_32(loop_count, r1);
-
-  TEARDOWN();
 }
 
 
@@ -3947,8 +3834,6 @@ TEST_T32(near_branch_and_literal_fuzz) {
 
   ASSERT_EQUAL_32(loop_count, r1);
   ASSERT_EQUAL_32(42, r4);
-
-  TEARDOWN();
 }
 
 
@@ -4097,8 +3982,6 @@ TEST_T32(distant_literal_references) {
   ASSERT_EQUAL_32(0x01234567, r7);
   ASSERT_EQUAL_FP64(RawbitsToDouble(0x0123456789abcdef), d0);
   ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s3);
-
-  TEARDOWN();
 }
 
 
@@ -4192,8 +4075,6 @@ TEST_T32(distant_literal_references_unaligned_pc) {
   ASSERT_EQUAL_32(0x01234567, r7);
   ASSERT_EQUAL_FP64(RawbitsToDouble(0x0123456789abcdef), d0);
   ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s3);
-
-  TEARDOWN();
 }
 
 
@@ -4267,8 +4148,6 @@ TEST_T32(distant_literal_references_short_range) {
   ASSERT_EQUAL_32(0x01234567, r7);
   ASSERT_EQUAL_FP64(RawbitsToDouble(0x0123456789abcdef), d0);
   ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s3);
-
-  TEARDOWN();
 }
 
 
@@ -4341,8 +4220,6 @@ TEST_T32(distant_literal_references_short_range_unaligned_pc) {
   ASSERT_EQUAL_32(0x01234567, r7);
   ASSERT_EQUAL_FP64(RawbitsToDouble(0x0123456789abcdef), d0);
   ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s3);
-
-  TEARDOWN();
 }
 
 
@@ -4419,8 +4296,6 @@ TEST_T32(distant_literal_references_long_range) {
   ASSERT_EQUAL_32(0x01234567, r7);
   ASSERT_EQUAL_FP64(RawbitsToDouble(0x0123456789abcdef), d0);
   ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s3);
-
-  TEARDOWN();
 }
 
 
@@ -4454,8 +4329,6 @@ TEST(barriers) {
   __ Isb(SY);
 
   END();
-
-  TEARDOWN();
 }
 
 
@@ -4552,8 +4425,6 @@ TEST(preloads) {
   __ Bind(&pli_label);
 
   END();
-
-  TEARDOWN();
 }
 
 
@@ -4580,8 +4451,6 @@ TEST_T32(veneer_mirrored_branches) {
   }
 
   END();
-
-  TEARDOWN();
 }
 
 
@@ -4891,8 +4760,6 @@ TEST_T32(branch_fuzz_example) {
   __ Bind(&l[5]);
 
   END();
-
-  TEARDOWN();
 }
 
 
@@ -4933,8 +4800,6 @@ TEST_T32(veneer_simultaneous) {
   __ Bind(&target_2);
 
   END();
-
-  TEARDOWN();
 }
 
 
@@ -4971,8 +4836,6 @@ TEST_T32(veneer_simultaneous_one_label) {
   __ Bind(&target);
 
   END();
-
-  TEARDOWN();
 }
 
 
@@ -5044,8 +4907,6 @@ TEST_T32(veneer_and_literal) {
   // Check that the literals loaded correctly.
   ASSERT_EQUAL_32(0x90abcdef, r0);
   ASSERT_EQUAL_32(0x12345678, r1);
-
-  TEARDOWN();
 }
 
 
@@ -5125,8 +4986,6 @@ TEST_T32(veneer_and_literal2) {
   // Check that the literals loaded correctly.
   ASSERT_EQUAL_32(0x90abcdef, r0);
   ASSERT_EQUAL_32(0x12345678, r1);
-
-  TEARDOWN();
 }
 
 
@@ -5167,8 +5026,6 @@ TEST_T32(veneer_and_literal3) {
   // Check that the literals loaded correctly.
   ASSERT_EQUAL_32(0x90abcdef, r0);
   ASSERT_EQUAL_32(0x12345678, r1);
-
-  TEARDOWN();
 }
 
 
@@ -5230,8 +5087,6 @@ TEST_T32(veneer_and_literal4) {
 
   // Check that the literals loaded correctly.
   ASSERT_EQUAL_32(0x1234567, r11);
-
-  TEARDOWN();
 }
 
 
@@ -5278,8 +5133,6 @@ TEST_T32(veneer_and_literal5) {
   }
 
   END();
-
-  TEARDOWN();
 }
 
 
@@ -5361,8 +5214,6 @@ TEST_T32(veneer_and_literal6) {
   ASSERT_EQUAL_32(0x55555555, r9);
   ASSERT_EQUAL_32(0x90abcdef, r10);
   ASSERT_EQUAL_32(0x12345678, r11);
-
-  TEARDOWN();
 }
 
 
@@ -5403,8 +5254,6 @@ TEST(ldr_label_bound_during_scope) {
   ASSERT_EQUAL_32(0x12345678, r1);
   ASSERT_EQUAL_32(0x90abcdef, r2);
   ASSERT_EQUAL_32(0x12345678, r3);
-
-  TEARDOWN();
 }
 
 
@@ -5451,8 +5300,6 @@ TEST_T32(test_it_scope_and_literal_pool) {
   // Check that the literals loaded correctly.
   ASSERT_EQUAL_32(0xdeadbaba, r0);
   ASSERT_EQUAL_32(0xcafebeef, r1);
-
-  TEARDOWN();
 }
 
 
@@ -5500,8 +5347,6 @@ TEST(ldm_stm_no_writeback) {
   ASSERT_EQUAL_32(0x09abcdef, dst2[1]);
   ASSERT_EQUAL_32(0xc001c0de, dst2[2]);
   ASSERT_EQUAL_32(0xdeadbeef, dst2[3]);
-
-  TEARDOWN();
 }
 
 
@@ -5548,8 +5393,6 @@ TEST(ldm_stm_writeback) {
   ASSERT_EQUAL_32(0x09abcdef, dst[5]);
   ASSERT_EQUAL_32(0xc001c0de, dst[6]);
   ASSERT_EQUAL_32(0xdeadbeef, dst[7]);
-
-  TEARDOWN();
 }
 
 
@@ -5609,8 +5452,6 @@ TEST_A32(ldm_stm_da_ib) {
   ASSERT_EQUAL_32(0x22222222, dst2[1]);
   ASSERT_EQUAL_32(0x33333333, dst2[2]);
   ASSERT_EQUAL_32(0x44444444, dst2[3]);
-
-  TEARDOWN();
 }
 
 
@@ -5655,8 +5496,6 @@ TEST(ldmdb_stmdb) {
   ASSERT_EQUAL_32(0x44444444, dst[3]);
   ASSERT_EQUAL_32(0x55555555, dst[4]);
   ASSERT_EQUAL_32(0x66666666, dst[5]);
-
-  TEARDOWN();
 }
 #endif
 
@@ -5718,8 +5557,6 @@ TEST(blx) {
   // Really basic test to check that we reached the different parts of the test.
   ASSERT_EQUAL_32(0x11111111, r0);
   ASSERT_EQUAL_32(0x22222222, r1);
-
-  TEARDOWN();
 }
 
 
@@ -5785,8 +5622,6 @@ TEST_T32(b_near_hint) {
   END();
 
   DISASSEMBLE();
-
-  TEARDOWN();
 }
 
 
@@ -5838,8 +5673,6 @@ TEST_T32(b_far_hint) {
   END();
 
   DISASSEMBLE();
-
-  TEARDOWN();
 }
 
 
@@ -5904,8 +5737,6 @@ TEST_T32(b_conditional_near_hint) {
   END();
 
   DISASSEMBLE();
-
-  TEARDOWN();
 }
 
 
@@ -5957,8 +5788,6 @@ TEST_T32(b_conditional_far_hint) {
   END();
 
   DISASSEMBLE();
-
-  TEARDOWN();
 }
 
 
@@ -5989,8 +5818,6 @@ TEST_T32(b_narrow_many) {
   RUN();
 
   ASSERT_EQUAL_32(0, r0);
-
-  TEARDOWN();
 }
 
 
@@ -6029,8 +5856,6 @@ TEST_T32(b_narrow_and_cbz) {
   RUN();
 
   ASSERT_EQUAL_32(2, r0);
-
-  TEARDOWN();
 }
 
 

@@ -60,26 +60,25 @@
 // TODO: Run the tests in the simulator.
 #define RUN()
 
-#define TEARDOWN()
-
 #else  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32.
 
-#define SETUP()                                   \
-  MacroAssembler masm(BUF_SIZE);                  \
-  UseScratchRegisterScope harness_scratch(&masm); \
-  harness_scratch.ExcludeAll();
+#define SETUP()                  \
+  MacroAssembler masm(BUF_SIZE); \
+  UseScratchRegisterScope harness_scratch;
 
-#define START()              \
-  masm.GetBuffer()->Reset(); \
-  __ Push(r4);               \
-  __ Push(r5);               \
-  __ Push(r6);               \
-  __ Push(r7);               \
-  __ Push(r8);               \
-  __ Push(r9);               \
-  __ Push(r10);              \
-  __ Push(r11);              \
-  __ Push(lr);               \
+#define START()                 \
+  harness_scratch.Open(&masm);  \
+  harness_scratch.ExcludeAll(); \
+  masm.GetBuffer()->Reset();    \
+  __ Push(r4);                  \
+  __ Push(r5);                  \
+  __ Push(r6);                  \
+  __ Push(r7);                  \
+  __ Push(r8);                  \
+  __ Push(r9);                  \
+  __ Push(r10);                 \
+  __ Push(r11);                 \
+  __ Push(lr);                  \
   harness_scratch.Include(ip);
 
 #define END()                  \
@@ -94,7 +93,8 @@
   __ Pop(r5);                  \
   __ Pop(r4);                  \
   __ Bx(lr);                   \
-  __ FinalizeCode();
+  __ FinalizeCode();           \
+  harness_scratch.Close();
 
 #define RUN()                                                 \
   {                                                           \
@@ -105,8 +105,6 @@
                   pcs_offset);                                \
     masm.GetBuffer()->SetWritable();                          \
   }
-
-#define TEARDOWN() harness_scratch.Close();
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 
@@ -794,8 +792,6 @@ void TestHelper(Fn instruction,
     delete results[i];
     delete[] scratch_memory_buffers[i];
   }
-
-  TEARDOWN();
 }
 
 // Instantiate tests for each instruction in the list.
