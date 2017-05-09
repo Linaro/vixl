@@ -859,3 +859,56 @@ TEST(MustEmitNewReferenceDueToSizeOfObject) {
     delete labels[i];
   }
 }
+
+template <typename ObjectType>
+void ManagedLabelBaseTestHelper() {
+  TestMacroAssembler masm;
+
+  PoolManager<int32_t> pool_manager(4 /*header_size*/,
+                                    2 /*header_alignment*/,
+                                    BUFFER_ALIGNMENT);
+  ObjectType *object1 = new ObjectType();
+  ObjectType *object2 = new ObjectType();
+  ForwardReference<int32_t> *ref_obj1 =
+      new ForwardReference<int32_t>(0 /*location*/, 2 /*size*/, 0, 200);
+  object1->AddReference(ref_obj1);
+  ForwardReference<int32_t> *ref_obj2 =
+      new ForwardReference<int32_t>(8 /*location*/, 2 /*size*/, 8, 500);
+  object2->AddReference(ref_obj2);
+
+  pool_manager.AddObjectReference(ref_obj1, object1);
+  pool_manager.AddObjectReference(ref_obj2, object2);
+
+  pool_manager.Emit(&masm, 20);
+}
+
+class TestObjectDeletedOnPlacement : public TestObject {
+ public:
+  TestObjectDeletedOnPlacement() : TestObject(4 /*size*/, 4 /*alignment*/) {}
+  // After passing ownership of this type of object to the pool manager, it is
+  // not safe to use it anymore.
+  virtual bool ShouldBeDeletedOnPlacementByPoolManager() const VIXL_OVERRIDE {
+    return true;
+  }
+};
+
+TEST(DeleteLabelBaseOnPlacement) {
+  ManagedLabelBaseTestHelper<TestObjectDeletedOnPlacement>();
+}
+
+class TestObjectDeletedOnPoolManagerDestruction : public TestObject {
+ public:
+  TestObjectDeletedOnPoolManagerDestruction()
+      : TestObject(4 /*size*/, 4 /*alignment*/) {}
+  // We can continue using this type of object after passing its ownership to
+  // the pool manager, as it will be deleted only when the pool manager is
+  // destroyed.
+  virtual bool ShouldBeDeletedOnPoolManagerDestruction() const VIXL_OVERRIDE {
+    return true;
+  }
+};
+
+
+TEST(DeleteLabelBaseOnPoolManagerDestruction) {
+  ManagedLabelBaseTestHelper<TestObjectDeletedOnPoolManagerDestruction>();
+}

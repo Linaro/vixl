@@ -100,6 +100,7 @@ T PoolManager<T>::Emit(MacroAssemblerInterface* masm,
     // call EmitPoolObject, which might add a new reference.
     label_base->SetLocation(masm->AsAssemblerBase(), pc);
     label_base->EmitPoolObject(masm);
+    int object_size = label_base->GetPoolObjectSizeInBytes();
     if (label_base->ShouldDeletePoolObjectOnPlacement()) {
       label_base->MarkBound();
       iter = RemoveAndDelete(iter);
@@ -109,7 +110,7 @@ T PoolManager<T>::Emit(MacroAssemblerInterface* masm,
       VIXL_ASSERT(current.alignment_ >= label_base->GetPoolObjectAlignment());
       ++iter;
     }
-    pc += label_base->GetPoolObjectSizeInBytes();
+    pc += object_size;
   }
 
   // Recalculate the checkpoint before emitting the footer. The footer might
