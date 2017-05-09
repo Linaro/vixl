@@ -134,6 +134,7 @@ namespace aarch32 {
   __ Push(lr);                  \
   __ Mov(r0, 0);                \
   __ Msr(APSR_nzcvq, r0);       \
+  __ Vmsr(FPSCR, r0);           \
   harness_scratch.Include(ip);
 
 #define END()                  \
