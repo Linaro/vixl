@@ -80,59 +80,63 @@ void Assembler::PerformCheckIT(Condition condition) {
 
 
 void Assembler::BindHelper(Label* label) {
-  VIXL_ASSERT(!label->IsBound());
-  label->Bind(GetCursorOffset());
+  BindLocationHelper(label);
 
-  for (Label::ForwardRefList::iterator ref = label->GetFirstForwardRef();
-       ref != label->GetEndForwardRef();
-       ref++) {
-    EncodeLabelFor(*ref, label);
-  }
   if (label->IsInVeneerPool()) {
     label->GetVeneerPoolManager()->RemoveLabel(label);
   }
 }
 
 
-uint32_t Assembler::Link(uint32_t instr,
-                         Label* label,
-                         const Label::LabelEmitOperator& op) {
-  label->SetReferenced();
-  if (label->IsBound()) {
-    return op.Encode(instr,
-                     GetCursorOffset() + GetArchitectureStatePCOffset(),
-                     label);
+void Assembler::BindLocationHelper(Location* location) {
+  VIXL_ASSERT(!location->IsBound());
+  location->Bind(GetCursorOffset());
+
+  for (Location::ForwardRefList::iterator ref = location->GetFirstForwardRef();
+       ref != location->GetEndForwardRef();
+       ref++) {
+    EncodeLocationFor(*ref, location);
   }
-  label->AddForwardRef(GetCursorOffset(), GetInstructionSetInUse(), op);
+}
+
+
+uint32_t Assembler::Link(uint32_t instr,
+                         Location* location,
+                         const Location::EmitOperator& op,
+                         const struct ReferenceInfo* info) {
+  location->SetReferenced();
+  if (location->IsBound()) {
+    return op.Encode(instr, GetCursorOffset(), location);
+  }
+  location->AddForwardRef(GetCursorOffset(), op, info->max_offset);
   return instr;
 }
 
 
-void Assembler::EncodeLabelFor(const Label::ForwardReference& forward,
-                               Label* label) {
-  const uint32_t location = forward.GetLocation();
-  const uint32_t from = location + forward.GetStatePCOffset();
-  const Label::LabelEmitOperator& encoder = forward.GetEmitOperator();
-  if (forward.IsUsingT32()) {
-    uint16_t* instr_ptr = buffer_.GetOffsetAddress<uint16_t*>(location);
+void Assembler::EncodeLocationFor(const Location::ForwardReference& forward,
+                                  Location* location) {
+  const uint32_t from = forward.GetLocation();
+  const Location::EmitOperator& encoder = forward.GetEmitOperator();
+  if (encoder.IsUsingT32()) {
+    uint16_t* instr_ptr = buffer_.GetOffsetAddress<uint16_t*>(from);
     if (Is16BitEncoding(instr_ptr[0])) {
       // The Encode methods always deals with uint32_t types so we need
       // to explicitely cast it.
       uint32_t instr = static_cast<uint32_t>(instr_ptr[0]);
-      instr = encoder.Encode(instr, from, label);
+      instr = encoder.Encode(instr, from, location);
       // The Encode method should not ever set the top 16 bits.
       VIXL_ASSERT((instr & ~0xffff) == 0);
       instr_ptr[0] = static_cast<uint16_t>(instr);
     } else {
       uint32_t instr =
           instr_ptr[1] | (static_cast<uint32_t>(instr_ptr[0]) << 16);
-      instr = encoder.Encode(instr, from, label);
+      instr = encoder.Encode(instr, from, location);
       instr_ptr[0] = static_cast<uint16_t>(instr >> 16);
       instr_ptr[1] = static_cast<uint16_t>(instr);
     }
   } else {
-    uint32_t* instr_ptr = buffer_.GetOffsetAddress<uint32_t*>(location);
-    instr_ptr[0] = encoder.Encode(instr_ptr[0], from, label);
+    uint32_t* instr_ptr = buffer_.GetOffsetAddress<uint32_t*>(from);
+    instr_ptr[0] = encoder.Encode(instr_ptr[0], from, location);
   }
 }
 
@@ -2624,40 +2628,42 @@ void Assembler::addw(Condition cond,
 void Assembler::adr(Condition cond,
                     EncodingSize size,
                     Register rd,
-                    Label* label) {
+                    Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
   if (IsUsingT32()) {
     int32_t neg_offset = -offset;
     // ADR{<c>}{<q>} <Rd>, <label> ; T1
     if (!size.IsWide() && rd.IsLow() &&
-        ((label->IsBound() && (offset >= 0) && (offset <= 1020) &&
+        ((location->IsBound() && (offset >= 0) && (offset <= 1020) &&
           ((offset & 0x3) == 0)) ||
-         (!label->IsBound() && size.IsNarrow()))) {
-      static class EmitOp : public Label::LabelEmitOperator {
+         (!location->IsBound() && size.IsNarrow()))) {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(0, 1020) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= 0) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           const int32_t target = offset >> 2;
           return instr | (target & 0xff);
         }
       } immop;
-      EmitT32_16(Link(0xa000 | (rd.GetCode() << 8), label, immop));
+      EmitT32_16(
+          Link(0xa000 | (rd.GetCode() << 8), location, immop, &kAdrT1Info));
       AdvanceIT();
       return;
     }
     // ADR{<c>}{<q>} <Rd>, <label> ; T2
-    if (!size.IsNarrow() && label->IsBound() && (neg_offset > 0) &&
+    if (!size.IsNarrow() && location->IsBound() && (neg_offset > 0) &&
         (neg_offset <= 4095) && (!rd.IsPC() || AllowUnpredictable())) {
       EmitT32_32(0xf2af0000U | (rd.GetCode() << 8) | (neg_offset & 0xff) |
                  ((neg_offset & 0x700) << 4) | ((neg_offset & 0x800) << 15));
@@ -2666,15 +2672,16 @@ void Assembler::adr(Condition cond,
     }
     // ADR{<c>}{<q>} <Rd>, <label> ; T3
     if (!size.IsNarrow() &&
-        (!label->IsBound() || ((offset >= 0) && (offset <= 4095))) &&
+        (!location->IsBound() || ((offset >= 0) && (offset <= 4095))) &&
         (!rd.IsPC() || AllowUnpredictable())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(0, 4095) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           int32_t target;
           if ((offset >= 0) && (offset <= 4095)) {
             target = offset;
@@ -2688,7 +2695,10 @@ void Assembler::adr(Condition cond,
                  ((target & 0x800) << 15);
         }
       } immop;
-      EmitT32_32(Link(0xf20f0000U | (rd.GetCode() << 8), label, immop));
+      EmitT32_32(Link(0xf20f0000U | (rd.GetCode() << 8),
+                      location,
+                      immop,
+                      &kAdrT3Info));
       AdvanceIT();
       return;
     }
@@ -2696,15 +2706,16 @@ void Assembler::adr(Condition cond,
     ImmediateA32 positive_immediate_a32(offset);
     ImmediateA32 negative_immediate_a32(-offset);
     // ADR{<c>}{<q>} <Rd>, <label> ; A1
-    if ((!label->IsBound() || positive_immediate_a32.IsValid()) &&
+    if ((!location->IsBound() || positive_immediate_a32.IsValid()) &&
         cond.IsNotNever()) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(0, 255) {}
+        EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kA32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           int32_t target;
           ImmediateA32 positive_immediate_a32(offset);
           if (positive_immediate_a32.IsValid()) {
@@ -2721,28 +2732,29 @@ void Assembler::adr(Condition cond,
       } immop;
       EmitA32(
           Link(0x028f0000U | (cond.GetCondition() << 28) | (rd.GetCode() << 12),
-               label,
-               immop));
+               location,
+               immop,
+               &kAdrA1Info));
       return;
     }
     // ADR{<c>}{<q>} <Rd>, <label> ; A2
-    if (label->IsBound() && negative_immediate_a32.IsValid() &&
+    if (location->IsBound() && negative_immediate_a32.IsValid() &&
         cond.IsNotNever()) {
       EmitA32(0x024f0000U | (cond.GetCondition() << 28) | (rd.GetCode() << 12) |
               negative_immediate_a32.GetEncodingValue());
       return;
     }
   }
-  Delegate(kAdr, &Assembler::adr, cond, size, rd, label);
+  Delegate(kAdr, &Assembler::adr, cond, size, rd, location);
 }
 
 bool Assembler::adr_info(Condition cond,
                          EncodingSize size,
                          Register rd,
-                         Label* label,
+                         Location* location,
                          const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   if (IsUsingT32()) {
     // ADR{<c>}{<q>} <Rd>, <label> ; T1
     if (!size.IsWide() && rd.IsLow() && size.IsNarrow()) {
@@ -3084,73 +3096,79 @@ void Assembler::asrs(Condition cond,
   Delegate(kAsrs, &Assembler::asrs, cond, size, rd, rm, operand);
 }
 
-void Assembler::b(Condition cond, EncodingSize size, Label* label) {
+void Assembler::b(Condition cond, EncodingSize size, Location* location) {
   VIXL_ASSERT(AllowAssembler());
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 (GetCursorOffset() + GetArchitectureStatePCOffset())
           : 0;
   if (IsUsingT32()) {
     // B<c>{<q>} <label> ; T1
     if (OutsideITBlock() && !size.IsWide() &&
-        ((label->IsBound() && (offset >= -256) && (offset <= 254) &&
+        ((location->IsBound() && (offset >= -256) && (offset <= 254) &&
           ((offset & 0x1) == 0)) ||
-         (!label->IsBound() && size.IsNarrow())) &&
+         (!location->IsBound() && size.IsNarrow())) &&
         !cond.Is(al) && cond.IsNotNever()) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-256, 254) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - pc;
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - pc;
           VIXL_ASSERT((offset >= -256) && (offset <= 254) &&
                       ((offset & 0x1) == 0));
           const int32_t target = offset >> 1;
           return instr | (target & 0xff);
         }
       } immop;
-      EmitT32_16(Link(0xd000 | (cond.GetCondition() << 8), label, immop));
+      EmitT32_16(Link(0xd000 | (cond.GetCondition() << 8),
+                      location,
+                      immop,
+                      &kBT1Info));
       AdvanceIT();
       return;
     }
     // B{<c>}{<q>} <label> ; T2
     if (OutsideITBlockAndAlOrLast(cond) && !size.IsWide() &&
-        ((label->IsBound() && (offset >= -2048) && (offset <= 2046) &&
+        ((location->IsBound() && (offset >= -2048) && (offset <= 2046) &&
           ((offset & 0x1) == 0)) ||
-         (!label->IsBound() && size.IsNarrow()))) {
+         (!location->IsBound() && size.IsNarrow()))) {
       CheckIT(cond);
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-2048, 2046) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - pc;
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - pc;
           VIXL_ASSERT((offset >= -2048) && (offset <= 2046) &&
                       ((offset & 0x1) == 0));
           const int32_t target = offset >> 1;
           return instr | (target & 0x7ff);
         }
       } immop;
-      EmitT32_16(Link(0xe000, label, immop));
+      EmitT32_16(Link(0xe000, location, immop, &kBT2Info));
       AdvanceIT();
       return;
     }
     // B<c>{<q>} <label> ; T3
     if (OutsideITBlock() && !size.IsNarrow() &&
-        ((label->IsBound() && (offset >= -1048576) && (offset <= 1048574) &&
+        ((location->IsBound() && (offset >= -1048576) && (offset <= 1048574) &&
           ((offset & 0x1) == 0)) ||
-         !label->IsBound()) &&
+         !location->IsBound()) &&
         !cond.Is(al) && cond.IsNotNever()) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-1048576, 1048574) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - pc;
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - pc;
           VIXL_ASSERT((offset >= -1048576) && (offset <= 1048574) &&
                       ((offset & 0x1) == 0));
           const int32_t target = offset >> 1;
@@ -3159,23 +3177,27 @@ void Assembler::b(Condition cond, EncodingSize size, Label* label) {
                  ((target & 0x80000) << 7);
         }
       } immop;
-      EmitT32_32(Link(0xf0008000U | (cond.GetCondition() << 22), label, immop));
+      EmitT32_32(Link(0xf0008000U | (cond.GetCondition() << 22),
+                      location,
+                      immop,
+                      &kBT3Info));
       AdvanceIT();
       return;
     }
     // B{<c>}{<q>} <label> ; T4
     if (OutsideITBlockAndAlOrLast(cond) && !size.IsNarrow() &&
-        ((label->IsBound() && (offset >= -16777216) && (offset <= 16777214) &&
-          ((offset & 0x1) == 0)) ||
-         !label->IsBound())) {
+        ((location->IsBound() && (offset >= -16777216) &&
+          (offset <= 16777214) && ((offset & 0x1) == 0)) ||
+         !location->IsBound())) {
       CheckIT(cond);
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-16777216, 16777214) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - pc;
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - pc;
           VIXL_ASSERT((offset >= -16777216) && (offset <= 16777214) &&
                       ((offset & 0x1) == 0));
           int32_t target = offset >> 1;
@@ -3186,42 +3208,46 @@ void Assembler::b(Condition cond, EncodingSize size, Label* label) {
                  ((target & 0x800000) << 3);
         }
       } immop;
-      EmitT32_32(Link(0xf0009000U, label, immop));
+      EmitT32_32(Link(0xf0009000U, location, immop, &kBT4Info));
       AdvanceIT();
       return;
     }
   } else {
     // B{<c>}{<q>} <label> ; A1
-    if (((label->IsBound() && (offset >= -33554432) && (offset <= 33554428) &&
-          ((offset & 0x3) == 0)) ||
-         !label->IsBound()) &&
+    if (((location->IsBound() && (offset >= -33554432) &&
+          (offset <= 33554428) && ((offset & 0x3) == 0)) ||
+         !location->IsBound()) &&
         cond.IsNotNever()) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-33554432, 33554428) {}
+        EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - pc;
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kA32PcDelta;
+          Location::Offset offset = location->GetLocation() - pc;
           VIXL_ASSERT((offset >= -33554432) && (offset <= 33554428) &&
                       ((offset & 0x3) == 0));
           const int32_t target = offset >> 2;
           return instr | (target & 0xffffff);
         }
       } immop;
-      EmitA32(Link(0x0a000000U | (cond.GetCondition() << 28), label, immop));
+      EmitA32(Link(0x0a000000U | (cond.GetCondition() << 28),
+                   location,
+                   immop,
+                   &kBA1Info));
       return;
     }
   }
-  Delegate(kB, &Assembler::b, cond, size, label);
+  Delegate(kB, &Assembler::b, cond, size, location);
 }
 
 bool Assembler::b_info(Condition cond,
                        EncodingSize size,
-                       Label* label,
+                       Location* location,
                        const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   if (IsUsingT32()) {
     // B<c>{<q>} <label> ; T1
     if (OutsideITBlock() && !size.IsWide() && size.IsNarrow() && !cond.Is(al) &&
@@ -3508,27 +3534,28 @@ void Assembler::bkpt(Condition cond, uint32_t imm) {
   Delegate(kBkpt, &Assembler::bkpt, cond, imm);
 }
 
-void Assembler::bl(Condition cond, Label* label) {
+void Assembler::bl(Condition cond, Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 (GetCursorOffset() + GetArchitectureStatePCOffset())
           : 0;
   if (IsUsingT32()) {
     // BL{<c>}{<q>} <label> ; T1
-    if (((label->IsBound() && (offset >= -16777216) && (offset <= 16777214) &&
-          ((offset & 0x1) == 0)) ||
-         !label->IsBound()) &&
+    if (((location->IsBound() && (offset >= -16777216) &&
+          (offset <= 16777214) && ((offset & 0x1) == 0)) ||
+         !location->IsBound()) &&
         (OutsideITBlockAndAlOrLast(cond) || AllowUnpredictable())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-16777216, 16777214) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - pc;
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - pc;
           VIXL_ASSERT((offset >= -16777216) && (offset <= 16777214) &&
                       ((offset & 0x1) == 0));
           int32_t target = offset >> 1;
@@ -3539,41 +3566,45 @@ void Assembler::bl(Condition cond, Label* label) {
                  ((target & 0x800000) << 3);
         }
       } immop;
-      EmitT32_32(Link(0xf000d000U, label, immop));
+      EmitT32_32(Link(0xf000d000U, location, immop, &kBlT1Info));
       AdvanceIT();
       return;
     }
   } else {
     // BL{<c>}{<q>} <label> ; A1
-    if (((label->IsBound() && (offset >= -33554432) && (offset <= 33554428) &&
-          ((offset & 0x3) == 0)) ||
-         !label->IsBound()) &&
+    if (((location->IsBound() && (offset >= -33554432) &&
+          (offset <= 33554428) && ((offset & 0x3) == 0)) ||
+         !location->IsBound()) &&
         cond.IsNotNever()) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-33554432, 33554428) {}
+        EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - pc;
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kA32PcDelta;
+          Location::Offset offset = location->GetLocation() - pc;
           VIXL_ASSERT((offset >= -33554432) && (offset <= 33554428) &&
                       ((offset & 0x3) == 0));
           const int32_t target = offset >> 2;
           return instr | (target & 0xffffff);
         }
       } immop;
-      EmitA32(Link(0x0b000000U | (cond.GetCondition() << 28), label, immop));
+      EmitA32(Link(0x0b000000U | (cond.GetCondition() << 28),
+                   location,
+                   immop,
+                   &kBlA1Info));
       return;
     }
   }
-  Delegate(kBl, &Assembler::bl, cond, label);
+  Delegate(kBl, &Assembler::bl, cond, location);
 }
 
 bool Assembler::bl_info(Condition cond,
-                        Label* label,
+                        Location* location,
                         const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   if (IsUsingT32()) {
     // BL{<c>}{<q>} <label> ; T1
     if (true) {
@@ -3590,27 +3621,28 @@ bool Assembler::bl_info(Condition cond,
   return false;
 }
 
-void Assembler::blx(Condition cond, Label* label) {
+void Assembler::blx(Condition cond, Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
   if (IsUsingT32()) {
     // BLX{<c>}{<q>} <label> ; T2
-    if (((label->IsBound() && (offset >= -16777216) && (offset <= 16777212) &&
-          ((offset & 0x3) == 0)) ||
-         !label->IsBound()) &&
+    if (((location->IsBound() && (offset >= -16777216) &&
+          (offset <= 16777212) && ((offset & 0x3) == 0)) ||
+         !location->IsBound()) &&
         (OutsideITBlockAndAlOrLast(cond) || AllowUnpredictable())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-16777216, 16777212) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -16777216) && (offset <= 16777212) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
@@ -3621,42 +3653,45 @@ void Assembler::blx(Condition cond, Label* label) {
                  ((target & 0x400000) << 4);
         }
       } immop;
-      EmitT32_32(Link(0xf000c000U, label, immop));
+      EmitT32_32(Link(0xf000c000U, location, immop, &kBlxT2Info));
       AdvanceIT();
       return;
     }
   } else {
     // BLX{<c>}{<q>} <label> ; A2
-    if (((label->IsBound() && (offset >= -33554432) && (offset <= 33554430) &&
-          ((offset & 0x1) == 0)) ||
-         !label->IsBound())) {
+    if (((location->IsBound() && (offset >= -33554432) &&
+          (offset <= 33554430) && ((offset & 0x1) == 0)) ||
+         !location->IsBound())) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
-        static class EmitOp : public Label::LabelEmitOperator {
+        static class EmitOp : public Location::EmitOperator {
          public:
-          EmitOp() : Label::LabelEmitOperator(-33554432, 33554430) {}
+          EmitOp() : Location::EmitOperator(A32) {}
           virtual uint32_t Encode(uint32_t instr,
-                                  Label::Offset pc,
-                                  const Label* label) const VIXL_OVERRIDE {
-            Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                  Location::Offset pc,
+                                  const Location* location) const
+              VIXL_OVERRIDE {
+            pc += kA32PcDelta;
+            Location::Offset offset =
+                location->GetLocation() - AlignDown(pc, 4);
             VIXL_ASSERT((offset >= -33554432) && (offset <= 33554430) &&
                         ((offset & 0x1) == 0));
             const int32_t target = offset >> 1;
             return instr | ((target & 0x1) << 24) | ((target & 0x1fffffe) >> 1);
           }
         } immop;
-        EmitA32(Link(0xfa000000U, label, immop));
+        EmitA32(Link(0xfa000000U, location, immop, &kBlxA2Info));
         return;
       }
     }
   }
-  Delegate(kBlx, &Assembler::blx, cond, label);
+  Delegate(kBlx, &Assembler::blx, cond, location);
 }
 
 bool Assembler::blx_info(Condition cond,
-                         Label* label,
+                         Location* location,
                          const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   USE(cond);
   if (IsUsingT32()) {
     // BLX{<c>}{<q>} <label> ; T2
@@ -3736,45 +3771,46 @@ void Assembler::bxj(Condition cond, Register rm) {
   Delegate(kBxj, &Assembler::bxj, cond, rm);
 }
 
-void Assembler::cbnz(Register rn, Label* label) {
+void Assembler::cbnz(Register rn, Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 (GetCursorOffset() + GetArchitectureStatePCOffset())
           : 0;
   if (IsUsingT32()) {
     // CBNZ{<q>} <Rn>, <label> ; T1
-    if (rn.IsLow() && ((label->IsBound() && (offset >= 0) && (offset <= 126) &&
-                        ((offset & 0x1) == 0)) ||
-                       !label->IsBound())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+    if (rn.IsLow() && ((location->IsBound() && (offset >= 0) &&
+                        (offset <= 126) && ((offset & 0x1) == 0)) ||
+                       !location->IsBound())) {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(0, 126) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - pc;
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - pc;
           VIXL_ASSERT((offset >= 0) && (offset <= 126) &&
                       ((offset & 0x1) == 0));
           const int32_t target = offset >> 1;
           return instr | ((target & 0x1f) << 3) | ((target & 0x20) << 4);
         }
       } immop;
-      EmitT32_16(Link(0xb900 | rn.GetCode(), label, immop));
+      EmitT32_16(Link(0xb900 | rn.GetCode(), location, immop, &kCbnzT1Info));
       AdvanceIT();
       return;
     }
   }
-  Delegate(kCbnz, &Assembler::cbnz, rn, label);
+  Delegate(kCbnz, &Assembler::cbnz, rn, location);
 }
 
 bool Assembler::cbnz_info(Register rn,
-                          Label* label,
+                          Location* location,
                           const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   if (IsUsingT32()) {
     // CBNZ{<q>} <Rn>, <label> ; T1
     if (rn.IsLow()) {
@@ -3785,45 +3821,46 @@ bool Assembler::cbnz_info(Register rn,
   return false;
 }
 
-void Assembler::cbz(Register rn, Label* label) {
+void Assembler::cbz(Register rn, Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 (GetCursorOffset() + GetArchitectureStatePCOffset())
           : 0;
   if (IsUsingT32()) {
     // CBZ{<q>} <Rn>, <label> ; T1
-    if (rn.IsLow() && ((label->IsBound() && (offset >= 0) && (offset <= 126) &&
-                        ((offset & 0x1) == 0)) ||
-                       !label->IsBound())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+    if (rn.IsLow() && ((location->IsBound() && (offset >= 0) &&
+                        (offset <= 126) && ((offset & 0x1) == 0)) ||
+                       !location->IsBound())) {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(0, 126) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - pc;
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - pc;
           VIXL_ASSERT((offset >= 0) && (offset <= 126) &&
                       ((offset & 0x1) == 0));
           const int32_t target = offset >> 1;
           return instr | ((target & 0x1f) << 3) | ((target & 0x20) << 4);
         }
       } immop;
-      EmitT32_16(Link(0xb100 | rn.GetCode(), label, immop));
+      EmitT32_16(Link(0xb100 | rn.GetCode(), location, immop, &kCbzT1Info));
       AdvanceIT();
       return;
     }
   }
-  Delegate(kCbz, &Assembler::cbz, rn, label);
+  Delegate(kCbz, &Assembler::cbz, rn, location);
 }
 
 bool Assembler::cbz_info(Register rn,
-                         Label* label,
+                         Location* location,
                          const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   if (IsUsingT32()) {
     // CBZ{<q>} <Rn>, <label> ; T1
     if (rn.IsLow()) {
@@ -5235,72 +5272,79 @@ void Assembler::ldr(Condition cond,
 void Assembler::ldr(Condition cond,
                     EncodingSize size,
                     Register rt,
-                    Label* label) {
+                    Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
   if (IsUsingT32()) {
     // LDR{<c>}{<q>} <Rt>, <label> ; T1
     if (!size.IsWide() && rt.IsLow() &&
-        ((label->IsBound() && (offset >= 0) && (offset <= 1020) &&
+        ((location->IsBound() && (offset >= 0) && (offset <= 1020) &&
           ((offset & 0x3) == 0)) ||
-         (!label->IsBound() && size.IsNarrow()))) {
-      static class EmitOp : public Label::LabelEmitOperator {
+         (!location->IsBound() && size.IsNarrow()))) {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(0, 1020) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= 0) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           const int32_t target = offset >> 2;
           return instr | (target & 0xff);
         }
       } immop;
-      EmitT32_16(Link(0x4800 | (rt.GetCode() << 8), label, immop));
+      EmitT32_16(
+          Link(0x4800 | (rt.GetCode() << 8), location, immop, &kLdrT1Info));
       AdvanceIT();
       return;
     }
     // LDR{<c>}{<q>} <Rt>, <label> ; T2
     if (!size.IsNarrow() &&
-        ((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
-         !label->IsBound()) &&
+        ((location->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
+         !location->IsBound()) &&
         ((!rt.IsPC() || OutsideITBlockAndAlOrLast(cond)) ||
          AllowUnpredictable())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
       } immop;
-      EmitT32_32(Link(0xf85f0000U | (rt.GetCode() << 12), label, immop));
+      EmitT32_32(Link(0xf85f0000U | (rt.GetCode() << 12),
+                      location,
+                      immop,
+                      &kLdrT2Info));
       AdvanceIT();
       return;
     }
   } else {
     // LDR{<c>}{<q>} <Rt>, <label> ; A1
-    if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
-         !label->IsBound()) &&
+    if (((location->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
+         !location->IsBound()) &&
         cond.IsNotNever()) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
+        EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kA32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
@@ -5309,21 +5353,22 @@ void Assembler::ldr(Condition cond,
       } immop;
       EmitA32(
           Link(0x051f0000U | (cond.GetCondition() << 28) | (rt.GetCode() << 12),
-               label,
-               immop));
+               location,
+               immop,
+               &kLdrA1Info));
       return;
     }
   }
-  Delegate(kLdr, &Assembler::ldr, cond, size, rt, label);
+  Delegate(kLdr, &Assembler::ldr, cond, size, rt, location);
 }
 
 bool Assembler::ldr_info(Condition cond,
                          EncodingSize size,
                          Register rt,
-                         Label* label,
+                         Location* location,
                          const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   if (IsUsingT32()) {
     // LDR{<c>}{<q>} <Rt>, <label> ; T1
     if (!size.IsWide() && rt.IsLow() && size.IsNarrow()) {
@@ -5525,48 +5570,53 @@ void Assembler::ldrb(Condition cond,
   Delegate(kLdrb, &Assembler::ldrb, cond, size, rt, operand);
 }
 
-void Assembler::ldrb(Condition cond, Register rt, Label* label) {
+void Assembler::ldrb(Condition cond, Register rt, Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
   if (IsUsingT32()) {
     // LDRB{<c>}{<q>} <Rt>, <label> ; T1
-    if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
-         !label->IsBound()) &&
+    if (((location->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
+         !location->IsBound()) &&
         !rt.Is(pc)) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
       } immop;
-      EmitT32_32(Link(0xf81f0000U | (rt.GetCode() << 12), label, immop));
+      EmitT32_32(Link(0xf81f0000U | (rt.GetCode() << 12),
+                      location,
+                      immop,
+                      &kLdrbT1Info));
       AdvanceIT();
       return;
     }
   } else {
     // LDRB{<c>}{<q>} <Rt>, <label> ; A1
-    if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
-         !label->IsBound()) &&
+    if (((location->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
+         !location->IsBound()) &&
         cond.IsNotNever() && (!rt.IsPC() || AllowUnpredictable())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
+        EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kA32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
@@ -5575,20 +5625,21 @@ void Assembler::ldrb(Condition cond, Register rt, Label* label) {
       } immop;
       EmitA32(
           Link(0x055f0000U | (cond.GetCondition() << 28) | (rt.GetCode() << 12),
-               label,
-               immop));
+               location,
+               immop,
+               &kLdrbA1Info));
       return;
     }
   }
-  Delegate(kLdrb, &Assembler::ldrb, cond, rt, label);
+  Delegate(kLdrb, &Assembler::ldrb, cond, rt, location);
 }
 
 bool Assembler::ldrb_info(Condition cond,
                           Register rt,
-                          Label* label,
+                          Location* location,
                           const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   if (IsUsingT32()) {
     // LDRB{<c>}{<q>} <Rt>, <label> ; T1
     if (!rt.Is(pc)) {
@@ -5757,27 +5808,31 @@ void Assembler::ldrd(Condition cond,
   Delegate(kLdrd, &Assembler::ldrd, cond, rt, rt2, operand);
 }
 
-void Assembler::ldrd(Condition cond, Register rt, Register rt2, Label* label) {
+void Assembler::ldrd(Condition cond,
+                     Register rt,
+                     Register rt2,
+                     Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
   if (IsUsingT32()) {
     // LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; T1
-    if (((label->IsBound() && (offset >= -1020) && (offset <= 1020) &&
+    if (((location->IsBound() && (offset >= -1020) && (offset <= 1020) &&
           ((offset & 0x3) == 0)) ||
-         !label->IsBound()) &&
+         !location->IsBound()) &&
         ((!rt.IsPC() && !rt2.IsPC()) || AllowUnpredictable())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-1020, 1020) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
@@ -5787,25 +5842,27 @@ void Assembler::ldrd(Condition cond, Register rt, Register rt2, Label* label) {
         }
       } immop;
       EmitT32_32(Link(0xe95f0000U | (rt.GetCode() << 12) | (rt2.GetCode() << 8),
-                      label,
-                      immop));
+                      location,
+                      immop,
+                      &kLdrdT1Info));
       AdvanceIT();
       return;
     }
   } else {
     // LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; A1
     if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
-        ((label->IsBound() && (offset >= -255) && (offset <= 255)) ||
-         !label->IsBound()) &&
+        ((location->IsBound() && (offset >= -255) && (offset <= 255)) ||
+         !location->IsBound()) &&
         cond.IsNotNever() &&
         ((((rt.GetCode() & 1) == 0) && !rt2.IsPC()) || AllowUnpredictable())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-255, 255) {}
+        EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kA32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 8);
@@ -5815,21 +5872,22 @@ void Assembler::ldrd(Condition cond, Register rt, Register rt2, Label* label) {
       } immop;
       EmitA32(
           Link(0x014f00d0U | (cond.GetCondition() << 28) | (rt.GetCode() << 12),
-               label,
-               immop));
+               location,
+               immop,
+               &kLdrdA1Info));
       return;
     }
   }
-  Delegate(kLdrd, &Assembler::ldrd, cond, rt, rt2, label);
+  Delegate(kLdrd, &Assembler::ldrd, cond, rt, rt2, location);
 }
 
 bool Assembler::ldrd_info(Condition cond,
                           Register rt,
                           Register rt2,
-                          Label* label,
+                          Location* location,
                           const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   if (IsUsingT32()) {
     // LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; T1
     if (true) {
@@ -6136,48 +6194,53 @@ void Assembler::ldrh(Condition cond,
   Delegate(kLdrh, &Assembler::ldrh, cond, size, rt, operand);
 }
 
-void Assembler::ldrh(Condition cond, Register rt, Label* label) {
+void Assembler::ldrh(Condition cond, Register rt, Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
   if (IsUsingT32()) {
     // LDRH{<c>}{<q>} <Rt>, <label> ; T1
-    if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
-         !label->IsBound()) &&
+    if (((location->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
+         !location->IsBound()) &&
         !rt.Is(pc)) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
       } immop;
-      EmitT32_32(Link(0xf83f0000U | (rt.GetCode() << 12), label, immop));
+      EmitT32_32(Link(0xf83f0000U | (rt.GetCode() << 12),
+                      location,
+                      immop,
+                      &kLdrhT1Info));
       AdvanceIT();
       return;
     }
   } else {
     // LDRH{<c>}{<q>} <Rt>, <label> ; A1
-    if (((label->IsBound() && (offset >= -255) && (offset <= 255)) ||
-         !label->IsBound()) &&
+    if (((location->IsBound() && (offset >= -255) && (offset <= 255)) ||
+         !location->IsBound()) &&
         cond.IsNotNever() && (!rt.IsPC() || AllowUnpredictable())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-255, 255) {}
+        EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kA32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 8);
@@ -6187,20 +6250,21 @@ void Assembler::ldrh(Condition cond, Register rt, Label* label) {
       } immop;
       EmitA32(
           Link(0x015f00b0U | (cond.GetCondition() << 28) | (rt.GetCode() << 12),
-               label,
-               immop));
+               location,
+               immop,
+               &kLdrhA1Info));
       return;
     }
   }
-  Delegate(kLdrh, &Assembler::ldrh, cond, rt, label);
+  Delegate(kLdrh, &Assembler::ldrh, cond, rt, location);
 }
 
 bool Assembler::ldrh_info(Condition cond,
                           Register rt,
-                          Label* label,
+                          Location* location,
                           const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   if (IsUsingT32()) {
     // LDRH{<c>}{<q>} <Rt>, <label> ; T1
     if (!rt.Is(pc)) {
@@ -6383,48 +6447,53 @@ void Assembler::ldrsb(Condition cond,
   Delegate(kLdrsb, &Assembler::ldrsb, cond, size, rt, operand);
 }
 
-void Assembler::ldrsb(Condition cond, Register rt, Label* label) {
+void Assembler::ldrsb(Condition cond, Register rt, Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
   if (IsUsingT32()) {
     // LDRSB{<c>}{<q>} <Rt>, <label> ; T1
-    if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
-         !label->IsBound()) &&
+    if (((location->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
+         !location->IsBound()) &&
         !rt.Is(pc)) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
       } immop;
-      EmitT32_32(Link(0xf91f0000U | (rt.GetCode() << 12), label, immop));
+      EmitT32_32(Link(0xf91f0000U | (rt.GetCode() << 12),
+                      location,
+                      immop,
+                      &kLdrsbT1Info));
       AdvanceIT();
       return;
     }
   } else {
     // LDRSB{<c>}{<q>} <Rt>, <label> ; A1
-    if (((label->IsBound() && (offset >= -255) && (offset <= 255)) ||
-         !label->IsBound()) &&
+    if (((location->IsBound() && (offset >= -255) && (offset <= 255)) ||
+         !location->IsBound()) &&
         cond.IsNotNever() && (!rt.IsPC() || AllowUnpredictable())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-255, 255) {}
+        EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kA32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 8);
@@ -6434,20 +6503,21 @@ void Assembler::ldrsb(Condition cond, Register rt, Label* label) {
       } immop;
       EmitA32(
           Link(0x015f00d0U | (cond.GetCondition() << 28) | (rt.GetCode() << 12),
-               label,
-               immop));
+               location,
+               immop,
+               &kLdrsbA1Info));
       return;
     }
   }
-  Delegate(kLdrsb, &Assembler::ldrsb, cond, rt, label);
+  Delegate(kLdrsb, &Assembler::ldrsb, cond, rt, location);
 }
 
 bool Assembler::ldrsb_info(Condition cond,
                            Register rt,
-                           Label* label,
+                           Location* location,
                            const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   if (IsUsingT32()) {
     // LDRSB{<c>}{<q>} <Rt>, <label> ; T1
     if (!rt.Is(pc)) {
@@ -6630,48 +6700,53 @@ void Assembler::ldrsh(Condition cond,
   Delegate(kLdrsh, &Assembler::ldrsh, cond, size, rt, operand);
 }
 
-void Assembler::ldrsh(Condition cond, Register rt, Label* label) {
+void Assembler::ldrsh(Condition cond, Register rt, Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
   if (IsUsingT32()) {
     // LDRSH{<c>}{<q>} <Rt>, <label> ; T1
-    if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
-         !label->IsBound()) &&
+    if (((location->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
+         !location->IsBound()) &&
         !rt.Is(pc)) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
       } immop;
-      EmitT32_32(Link(0xf93f0000U | (rt.GetCode() << 12), label, immop));
+      EmitT32_32(Link(0xf93f0000U | (rt.GetCode() << 12),
+                      location,
+                      immop,
+                      &kLdrshT1Info));
       AdvanceIT();
       return;
     }
   } else {
     // LDRSH{<c>}{<q>} <Rt>, <label> ; A1
-    if (((label->IsBound() && (offset >= -255) && (offset <= 255)) ||
-         !label->IsBound()) &&
+    if (((location->IsBound() && (offset >= -255) && (offset <= 255)) ||
+         !location->IsBound()) &&
         cond.IsNotNever() && (!rt.IsPC() || AllowUnpredictable())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-255, 255) {}
+        EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kA32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 8);
@@ -6681,20 +6756,21 @@ void Assembler::ldrsh(Condition cond, Register rt, Label* label) {
       } immop;
       EmitA32(
           Link(0x015f00f0U | (cond.GetCondition() << 28) | (rt.GetCode() << 12),
-               label,
-               immop));
+               location,
+               immop,
+               &kLdrshA1Info));
       return;
     }
   }
-  Delegate(kLdrsh, &Assembler::ldrsh, cond, rt, label);
+  Delegate(kLdrsh, &Assembler::ldrsh, cond, rt, location);
 }
 
 bool Assembler::ldrsh_info(Condition cond,
                            Register rt,
-                           Label* label,
+                           Location* location,
                            const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   if (IsUsingT32()) {
     // LDRSH{<c>}{<q>} <Rt>, <label> ; T1
     if (!rt.Is(pc)) {
@@ -8029,66 +8105,70 @@ void Assembler::pkhtb(Condition cond,
   Delegate(kPkhtb, &Assembler::pkhtb, cond, rd, rn, operand);
 }
 
-void Assembler::pld(Condition cond, Label* label) {
+void Assembler::pld(Condition cond, Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
   if (IsUsingT32()) {
     // PLD{<c>}{<q>} <label> ; T1
-    if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
-         !label->IsBound())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+    if (((location->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
+         !location->IsBound())) {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
       } immop;
-      EmitT32_32(Link(0xf81ff000U, label, immop));
+      EmitT32_32(Link(0xf81ff000U, location, immop, &kPldT1Info));
       AdvanceIT();
       return;
     }
   } else {
     // PLD{<c>}{<q>} <label> ; A1
-    if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
-         !label->IsBound())) {
+    if (((location->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
+         !location->IsBound())) {
       if (cond.Is(al)) {
-        static class EmitOp : public Label::LabelEmitOperator {
+        static class EmitOp : public Location::EmitOperator {
          public:
-          EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
+          EmitOp() : Location::EmitOperator(A32) {}
           virtual uint32_t Encode(uint32_t instr,
-                                  Label::Offset pc,
-                                  const Label* label) const VIXL_OVERRIDE {
-            Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                  Location::Offset pc,
+                                  const Location* location) const
+              VIXL_OVERRIDE {
+            pc += kA32PcDelta;
+            Location::Offset offset =
+                location->GetLocation() - AlignDown(pc, 4);
             VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
             uint32_t U = (offset >= 0);
             int32_t target = abs(offset) | (U << 12);
             return instr | (target & 0xfff) | ((target & 0x1000) << 11);
           }
         } immop;
-        EmitA32(Link(0xf55ff000U, label, immop));
+        EmitA32(Link(0xf55ff000U, location, immop, &kPldA1Info));
         return;
       }
     }
   }
-  Delegate(kPld, &Assembler::pld, cond, label);
+  Delegate(kPld, &Assembler::pld, cond, location);
 }
 
 bool Assembler::pld_info(Condition cond,
-                         Label* label,
+                         Location* location,
                          const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   USE(cond);
   if (IsUsingT32()) {
     // PLD{<c>}{<q>} <label> ; T1
@@ -8389,66 +8469,70 @@ void Assembler::pli(Condition cond, const MemOperand& operand) {
   Delegate(kPli, &Assembler::pli, cond, operand);
 }
 
-void Assembler::pli(Condition cond, Label* label) {
+void Assembler::pli(Condition cond, Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
   if (IsUsingT32()) {
     // PLI{<c>}{<q>} <label> ; T3
-    if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
-         !label->IsBound())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+    if (((location->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
+         !location->IsBound())) {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
       } immop;
-      EmitT32_32(Link(0xf91ff000U, label, immop));
+      EmitT32_32(Link(0xf91ff000U, location, immop, &kPliT3Info));
       AdvanceIT();
       return;
     }
   } else {
     // PLI{<c>}{<q>} <label> ; A1
-    if (((label->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
-         !label->IsBound())) {
+    if (((location->IsBound() && (offset >= -4095) && (offset <= 4095)) ||
+         !location->IsBound())) {
       if (cond.Is(al)) {
-        static class EmitOp : public Label::LabelEmitOperator {
+        static class EmitOp : public Location::EmitOperator {
          public:
-          EmitOp() : Label::LabelEmitOperator(-4095, 4095) {}
+          EmitOp() : Location::EmitOperator(A32) {}
           virtual uint32_t Encode(uint32_t instr,
-                                  Label::Offset pc,
-                                  const Label* label) const VIXL_OVERRIDE {
-            Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                  Location::Offset pc,
+                                  const Location* location) const
+              VIXL_OVERRIDE {
+            pc += kA32PcDelta;
+            Location::Offset offset =
+                location->GetLocation() - AlignDown(pc, 4);
             VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
             uint32_t U = (offset >= 0);
             int32_t target = abs(offset) | (U << 12);
             return instr | (target & 0xfff) | ((target & 0x1000) << 11);
           }
         } immop;
-        EmitA32(Link(0xf45ff000U, label, immop));
+        EmitA32(Link(0xf45ff000U, location, immop, &kPliA1Info));
         return;
       }
     }
   }
-  Delegate(kPli, &Assembler::pli, cond, label);
+  Delegate(kPli, &Assembler::pli, cond, location);
 }
 
 bool Assembler::pli_info(Condition cond,
-                         Label* label,
+                         Location* location,
                          const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   USE(cond);
   if (IsUsingT32()) {
     // PLI{<c>}{<q>} <label> ; T3
@@ -19553,27 +19637,31 @@ void Assembler::vldmia(Condition cond,
   Delegate(kVldmia, &Assembler::vldmia, cond, dt, rn, write_back, sreglist);
 }
 
-void Assembler::vldr(Condition cond, DataType dt, DRegister rd, Label* label) {
+void Assembler::vldr(Condition cond,
+                     DataType dt,
+                     DRegister rd,
+                     Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
   if (IsUsingT32()) {
     // VLDR{<c>}{<q>}{.64} <Dd>, <label> ; T1
     if (dt.IsNoneOr(Untyped64) &&
-        ((label->IsBound() && (offset >= -1020) && (offset <= 1020) &&
+        ((location->IsBound() && (offset >= -1020) && (offset <= 1020) &&
           ((offset & 0x3) == 0)) ||
-         !label->IsBound())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+         !location->IsBound())) {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-1020, 1020) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
@@ -19582,24 +19670,26 @@ void Assembler::vldr(Condition cond, DataType dt, DRegister rd, Label* label) {
           return instr | (target & 0xff) | ((target & 0x100) << 15);
         }
       } immop;
-      EmitT32_32(Link(0xed1f0b00U | rd.Encode(22, 12), label, immop));
+      EmitT32_32(
+          Link(0xed1f0b00U | rd.Encode(22, 12), location, immop, &kVldrT1Info));
       AdvanceIT();
       return;
     }
   } else {
     // VLDR{<c>}{<q>}{.64} <Dd>, <label> ; A1
     if (dt.IsNoneOr(Untyped64) &&
-        ((label->IsBound() && (offset >= -1020) && (offset <= 1020) &&
+        ((location->IsBound() && (offset >= -1020) && (offset <= 1020) &&
           ((offset & 0x3) == 0)) ||
-         !label->IsBound()) &&
+         !location->IsBound()) &&
         cond.IsNotNever()) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-1020, 1020) {}
+        EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kA32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
@@ -19610,21 +19700,22 @@ void Assembler::vldr(Condition cond, DataType dt, DRegister rd, Label* label) {
       } immop;
       EmitA32(
           Link(0x0d1f0b00U | (cond.GetCondition() << 28) | rd.Encode(22, 12),
-               label,
-               immop));
+               location,
+               immop,
+               &kVldrA1Info));
       return;
     }
   }
-  Delegate(kVldr, &Assembler::vldr, cond, dt, rd, label);
+  Delegate(kVldr, &Assembler::vldr, cond, dt, rd, location);
 }
 
 bool Assembler::vldr_info(Condition cond,
                           DataType dt,
                           DRegister rd,
-                          Label* label,
+                          Location* location,
                           const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   USE(rd);
   if (IsUsingT32()) {
     // VLDR{<c>}{<q>}{.64} <Dd>, <label> ; T1
@@ -19698,27 +19789,31 @@ void Assembler::vldr(Condition cond,
   Delegate(kVldr, &Assembler::vldr, cond, dt, rd, operand);
 }
 
-void Assembler::vldr(Condition cond, DataType dt, SRegister rd, Label* label) {
+void Assembler::vldr(Condition cond,
+                     DataType dt,
+                     SRegister rd,
+                     Location* location) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  Label::Offset offset =
-      label->IsBound()
-          ? label->GetLocation() -
+  Location::Offset offset =
+      location->IsBound()
+          ? location->GetLocation() -
                 AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4)
           : 0;
   if (IsUsingT32()) {
     // VLDR{<c>}{<q>}{.32} <Sd>, <label> ; T2
     if (dt.IsNoneOr(Untyped32) &&
-        ((label->IsBound() && (offset >= -1020) && (offset <= 1020) &&
+        ((location->IsBound() && (offset >= -1020) && (offset <= 1020) &&
           ((offset & 0x3) == 0)) ||
-         !label->IsBound())) {
-      static class EmitOp : public Label::LabelEmitOperator {
+         !location->IsBound())) {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-1020, 1020) {}
+        EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
@@ -19727,24 +19822,26 @@ void Assembler::vldr(Condition cond, DataType dt, SRegister rd, Label* label) {
           return instr | (target & 0xff) | ((target & 0x100) << 15);
         }
       } immop;
-      EmitT32_32(Link(0xed1f0a00U | rd.Encode(22, 12), label, immop));
+      EmitT32_32(
+          Link(0xed1f0a00U | rd.Encode(22, 12), location, immop, &kVldrT2Info));
       AdvanceIT();
       return;
     }
   } else {
     // VLDR{<c>}{<q>}{.32} <Sd>, <label> ; A2
     if (dt.IsNoneOr(Untyped32) &&
-        ((label->IsBound() && (offset >= -1020) && (offset <= 1020) &&
+        ((location->IsBound() && (offset >= -1020) && (offset <= 1020) &&
           ((offset & 0x3) == 0)) ||
-         !label->IsBound()) &&
+         !location->IsBound()) &&
         cond.IsNotNever()) {
-      static class EmitOp : public Label::LabelEmitOperator {
+      static class EmitOp : public Location::EmitOperator {
        public:
-        EmitOp() : Label::LabelEmitOperator(-1020, 1020) {}
+        EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Label::Offset pc,
-                                const Label* label) const VIXL_OVERRIDE {
-          Label::Offset offset = label->GetLocation() - AlignDown(pc, 4);
+                                Location::Offset pc,
+                                const Location* location) const VIXL_OVERRIDE {
+          pc += kA32PcDelta;
+          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
@@ -19755,21 +19852,22 @@ void Assembler::vldr(Condition cond, DataType dt, SRegister rd, Label* label) {
       } immop;
       EmitA32(
           Link(0x0d1f0a00U | (cond.GetCondition() << 28) | rd.Encode(22, 12),
-               label,
-               immop));
+               location,
+               immop,
+               &kVldrA2Info));
       return;
     }
   }
-  Delegate(kVldr, &Assembler::vldr, cond, dt, rd, label);
+  Delegate(kVldr, &Assembler::vldr, cond, dt, rd, location);
 }
 
 bool Assembler::vldr_info(Condition cond,
                           DataType dt,
                           SRegister rd,
-                          Label* label,
+                          Location* location,
                           const struct ReferenceInfo** info) {
-  VIXL_ASSERT(!label->IsBound());
-  USE(label);
+  VIXL_ASSERT(!location->IsBound());
+  USE(location);
   USE(rd);
   if (IsUsingT32()) {
     // VLDR{<c>}{<q>}{.32} <Sd>, <label> ; T2

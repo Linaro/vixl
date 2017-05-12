@@ -581,13 +581,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   MemOperand MemOperandComputationHelper(Condition cond,
                                          Register scratch,
-                                         Label* label,
+                                         Location* location,
                                          uint32_t extra_offset_mask = 0) {
     // Check for buffer space _before_ calculating the offset, in case we
     // generate a pool that affects the offset calculation.
     CodeBufferCheckScope scope(this, 4 * kMaxInstructionSizeInBytes);
     Label::Offset offset =
-        label->GetLocation() -
+        location->GetLocation() -
         AlignDown(GetCursorOffset() + GetArchitectureStatePCOffset(), 4);
     return MemOperandComputationHelper(cond,
                                        scratch,
@@ -596,9 +596,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                        extra_offset_mask);
   }
   MemOperand MemOperandComputationHelper(Register scratch,
-                                         Label* label,
+                                         Location* location,
                                          uint32_t extra_offset_mask = 0) {
-    return MemOperandComputationHelper(al, scratch, label, extra_offset_mask);
+    return MemOperandComputationHelper(al,
+                                       scratch,
+                                       location,
+                                       extra_offset_mask);
   }
 
   // Determine the appropriate mask to pass into MemOperandComputationHelper.
@@ -990,7 +993,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                         Condition cond,
                         EncodingSize size,
                         Register rd,
-                        Label* label) VIXL_OVERRIDE;
+                        Location* location) VIXL_OVERRIDE;
   bool GenerateSplitInstruction(InstructionCondSizeRROp instruction,
                                 Condition cond,
                                 Register rd,
@@ -1008,7 +1011,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   virtual void Delegate(InstructionType type,
                         InstructionRL instruction,
                         Register rn,
-                        Label* label) VIXL_OVERRIDE;
+                        Location* location) VIXL_OVERRIDE;
   // VMOV
   virtual void Delegate(InstructionType type,
                         InstructionCondDtSSop instruction,
@@ -1042,13 +1045,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                         InstructionCondRL instruction,
                         Condition cond,
                         Register rt,
-                        Label* label) VIXL_OVERRIDE;
+                        Location* location) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondRRL instruction,
                         Condition cond,
                         Register rt,
                         Register rt2,
-                        Label* label) VIXL_OVERRIDE;
+                        Location* location) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondRRMop instruction,
                         Condition cond,
@@ -1080,13 +1083,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                         Condition cond,
                         DataType dt,
                         DRegister rd,
-                        Label* label) VIXL_OVERRIDE;
+                        Location* location) VIXL_OVERRIDE;
   virtual void Delegate(InstructionType type,
                         InstructionCondDtSL instruction,
                         Condition cond,
                         DataType dt,
                         SRegister rd,
-                        Label* label) VIXL_OVERRIDE;
+                        Location* location) VIXL_OVERRIDE;
 
   // Start of generated code.
 

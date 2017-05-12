@@ -313,7 +313,7 @@ void VeneerPoolManager::EmitLabel(Label* label, Label::Offset emitted_target) {
     if (ref->IsBranch()) {
       if (ref->GetCheckpoint() <= emitted_target) {
         // Use the veneer.
-        masm_->EncodeLabelFor(*ref, &veneer);
+        masm_->EncodeLocationFor(*ref, &veneer);
         ref = label->Erase(ref);
       } else {
         // Don't use the veneer => update checkpoint.
@@ -1248,22 +1248,22 @@ void MacroAssembler::Delegate(InstructionType type,
                               Condition cond,
                               EncodingSize size,
                               Register rd,
-                              Label* label) {
+                              Location* location) {
   VIXL_ASSERT((type == kLdr) || (type == kAdr));
 
   CONTEXT_SCOPE;
   VIXL_ASSERT(size.IsBest());
 
-  if ((type == kLdr) && label->IsBound()) {
+  if ((type == kLdr) && location->IsBound()) {
     CodeBufferCheckScope scope(this, 5 * kMaxInstructionSizeInBytes);
     UseScratchRegisterScope temps(this);
     temps.Include(rd);
     uint32_t mask = GetOffsetMask(type, Offset);
-    ldr(rd, MemOperandComputationHelper(cond, temps.Acquire(), label, mask));
+    ldr(rd, MemOperandComputationHelper(cond, temps.Acquire(), location, mask));
     return;
   }
 
-  Assembler::Delegate(type, instruction, cond, size, rd, label);
+  Assembler::Delegate(type, instruction, cond, size, rd, location);
 }
 
 
@@ -1506,7 +1506,7 @@ void MacroAssembler::Delegate(InstructionType type,
 void MacroAssembler::Delegate(InstructionType type,
                               InstructionRL instruction,
                               Register rn,
-                              Label* label) {
+                              Location* location) {
   VIXL_ASSERT((type == kCbz) || (type == kCbnz));
 
   CONTEXT_SCOPE;
@@ -1522,14 +1522,14 @@ void MacroAssembler::Delegate(InstructionType type,
       case kCbnz: {
         Label done;
         cbz(rn, &done);
-        b(label);
+        b(location);
         Bind(&done);
         return;
       }
       case kCbz: {
         Label done;
         cbnz(rn, &done);
-        b(label);
+        b(location);
         Bind(&done);
         return;
       }
@@ -1537,7 +1537,7 @@ void MacroAssembler::Delegate(InstructionType type,
         break;
     }
   }
-  Assembler::Delegate(type, instruction, rn, label);
+  Assembler::Delegate(type, instruction, rn, location);
 }
 
 
@@ -1931,13 +1931,13 @@ void MacroAssembler::Delegate(InstructionType type,
                               InstructionCondRL instruction,
                               Condition cond,
                               Register rt,
-                              Label* label) {
+                              Location* location) {
   VIXL_ASSERT((type == kLdrb) || (type == kLdrh) || (type == kLdrsb) ||
               (type == kLdrsh));
 
   CONTEXT_SCOPE;
 
-  if (label->IsBound()) {
+  if (location->IsBound()) {
     CodeBufferCheckScope scope(this, 5 * kMaxInstructionSizeInBytes);
     UseScratchRegisterScope temps(this);
     temps.Include(rt);
@@ -1945,16 +1945,16 @@ void MacroAssembler::Delegate(InstructionType type,
     uint32_t mask = GetOffsetMask(type, Offset);
     switch (type) {
       case kLdrb:
-        ldrb(rt, MemOperandComputationHelper(cond, scratch, label, mask));
+        ldrb(rt, MemOperandComputationHelper(cond, scratch, location, mask));
         return;
       case kLdrh:
-        ldrh(rt, MemOperandComputationHelper(cond, scratch, label, mask));
+        ldrh(rt, MemOperandComputationHelper(cond, scratch, location, mask));
         return;
       case kLdrsb:
-        ldrsb(rt, MemOperandComputationHelper(cond, scratch, label, mask));
+        ldrsb(rt, MemOperandComputationHelper(cond, scratch, location, mask));
         return;
       case kLdrsh:
-        ldrsh(rt, MemOperandComputationHelper(cond, scratch, label, mask));
+        ldrsh(rt, MemOperandComputationHelper(cond, scratch, location, mask));
         return;
       default:
         VIXL_UNREACHABLE();
@@ -1962,7 +1962,7 @@ void MacroAssembler::Delegate(InstructionType type,
     return;
   }
 
-  Assembler::Delegate(type, instruction, cond, rt, label);
+  Assembler::Delegate(type, instruction, cond, rt, location);
 }
 
 
@@ -1971,22 +1971,22 @@ void MacroAssembler::Delegate(InstructionType type,
                               Condition cond,
                               Register rt,
                               Register rt2,
-                              Label* label) {
+                              Location* location) {
   VIXL_ASSERT(type == kLdrd);
 
   CONTEXT_SCOPE;
 
-  if (label->IsBound()) {
+  if (location->IsBound()) {
     CodeBufferCheckScope scope(this, 6 * kMaxInstructionSizeInBytes);
     UseScratchRegisterScope temps(this);
     temps.Include(rt, rt2);
     Register scratch = temps.Acquire();
     uint32_t mask = GetOffsetMask(type, Offset);
-    ldrd(rt, rt2, MemOperandComputationHelper(cond, scratch, label, mask));
+    ldrd(rt, rt2, MemOperandComputationHelper(cond, scratch, location, mask));
     return;
   }
 
-  Assembler::Delegate(type, instruction, cond, rt, rt2, label);
+  Assembler::Delegate(type, instruction, cond, rt, rt2, location);
 }
 
 
@@ -2557,21 +2557,21 @@ void MacroAssembler::Delegate(InstructionType type,
                               Condition cond,
                               DataType dt,
                               DRegister rd,
-                              Label* label) {
+                              Location* location) {
   VIXL_ASSERT(type == kVldr);
 
   CONTEXT_SCOPE;
 
-  if (label->IsBound()) {
+  if (location->IsBound()) {
     CodeBufferCheckScope scope(this, 5 * kMaxInstructionSizeInBytes);
     UseScratchRegisterScope temps(this);
     Register scratch = temps.Acquire();
     uint32_t mask = GetOffsetMask(type, Offset);
-    vldr(dt, rd, MemOperandComputationHelper(cond, scratch, label, mask));
+    vldr(dt, rd, MemOperandComputationHelper(cond, scratch, location, mask));
     return;
   }
 
-  Assembler::Delegate(type, instruction, cond, dt, rd, label);
+  Assembler::Delegate(type, instruction, cond, dt, rd, location);
 }
 
 
@@ -2580,21 +2580,21 @@ void MacroAssembler::Delegate(InstructionType type,
                               Condition cond,
                               DataType dt,
                               SRegister rd,
-                              Label* label) {
+                              Location* location) {
   VIXL_ASSERT(type == kVldr);
 
   CONTEXT_SCOPE;
 
-  if (label->IsBound()) {
+  if (location->IsBound()) {
     CodeBufferCheckScope scope(this, 5 * kMaxInstructionSizeInBytes);
     UseScratchRegisterScope temps(this);
     Register scratch = temps.Acquire();
     uint32_t mask = GetOffsetMask(type, Offset);
-    vldr(dt, rd, MemOperandComputationHelper(cond, scratch, label, mask));
+    vldr(dt, rd, MemOperandComputationHelper(cond, scratch, location, mask));
     return;
   }
 
-  Assembler::Delegate(type, instruction, cond, dt, rd, label);
+  Assembler::Delegate(type, instruction, cond, dt, rd, location);
 }
 
 

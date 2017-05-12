@@ -109,13 +109,13 @@ class Disassembler {
     }
   };
 
-  // TODO: Merge this class with PrintLabel below. This Label class represents
-  // a PC-relative offset, not an address.
-  class Label {
+  // TODO: Merge this class with PrintLabel below. This Location class
+  // represents a PC-relative offset, not an address.
+  class Location {
    public:
     typedef int32_t Offset;
 
-    Label(Offset immediate, Offset pc_offset)
+    Location(Offset immediate, Offset pc_offset)
         : immediate_(immediate), pc_offset_(pc_offset) {}
     Offset GetImmediate() const { return immediate_; }
     Offset GetPCOffset() const { return pc_offset_; }
@@ -127,21 +127,21 @@ class Disassembler {
 
   class PrintLabel {
     LocationType location_type_;
-    Label::Offset immediate_;
-    Label::Offset location_;
+    Location::Offset immediate_;
+    Location::Offset location_;
 
    public:
     PrintLabel(LocationType location_type,
-               Label* offset,
-               Label::Offset position)
+               Location* offset,
+               Location::Offset position)
         : location_type_(location_type),
           immediate_(offset->GetImmediate()),
           location_(offset->GetPCOffset() + offset->GetImmediate() + position) {
     }
 
     LocationType GetLocationType() const { return location_type_; }
-    Label::Offset GetLocation() const { return location_; }
-    Label::Offset GetImmediate() const { return immediate_; }
+    Location::Offset GetLocation() const { return location_; }
+    Location::Offset GetImmediate() const { return immediate_; }
 
     friend inline std::ostream& operator<<(std::ostream& os,
                                            const PrintLabel& label) {
@@ -523,7 +523,7 @@ class Disassembler {
 
   void addw(Condition cond, Register rd, Register rn, const Operand& operand);
 
-  void adr(Condition cond, EncodingSize size, Register rd, Label* label);
+  void adr(Condition cond, EncodingSize size, Register rd, Location* location);
 
   void and_(Condition cond,
             EncodingSize size,
@@ -549,7 +549,7 @@ class Disassembler {
             Register rm,
             const Operand& operand);
 
-  void b(Condition cond, EncodingSize size, Label* label);
+  void b(Condition cond, EncodingSize size, Location* location);
 
   void bfc(Condition cond, Register rd, uint32_t lsb, uint32_t width);
 
@@ -570,9 +570,9 @@ class Disassembler {
 
   void bkpt(Condition cond, uint32_t imm);
 
-  void bl(Condition cond, Label* label);
+  void bl(Condition cond, Location* location);
 
-  void blx(Condition cond, Label* label);
+  void blx(Condition cond, Location* location);
 
   void blx(Condition cond, Register rm);
 
@@ -580,9 +580,9 @@ class Disassembler {
 
   void bxj(Condition cond, Register rm);
 
-  void cbnz(Register rn, Label* label);
+  void cbnz(Register rn, Location* location);
 
-  void cbz(Register rn, Label* label);
+  void cbz(Register rn, Location* location);
 
   void clrex(Condition cond);
 
@@ -718,21 +718,21 @@ class Disassembler {
            Register rt,
            const MemOperand& operand);
 
-  void ldr(Condition cond, EncodingSize size, Register rt, Label* label);
+  void ldr(Condition cond, EncodingSize size, Register rt, Location* location);
 
   void ldrb(Condition cond,
             EncodingSize size,
             Register rt,
             const MemOperand& operand);
 
-  void ldrb(Condition cond, Register rt, Label* label);
+  void ldrb(Condition cond, Register rt, Location* location);
 
   void ldrd(Condition cond,
             Register rt,
             Register rt2,
             const MemOperand& operand);
 
-  void ldrd(Condition cond, Register rt, Register rt2, Label* label);
+  void ldrd(Condition cond, Register rt, Register rt2, Location* location);
 
   void ldrex(Condition cond, Register rt, const MemOperand& operand);
 
@@ -750,21 +750,21 @@ class Disassembler {
             Register rt,
             const MemOperand& operand);
 
-  void ldrh(Condition cond, Register rt, Label* label);
+  void ldrh(Condition cond, Register rt, Location* location);
 
   void ldrsb(Condition cond,
              EncodingSize size,
              Register rt,
              const MemOperand& operand);
 
-  void ldrsb(Condition cond, Register rt, Label* label);
+  void ldrsb(Condition cond, Register rt, Location* location);
 
   void ldrsh(Condition cond,
              EncodingSize size,
              Register rt,
              const MemOperand& operand);
 
-  void ldrsh(Condition cond, Register rt, Label* label);
+  void ldrsh(Condition cond, Register rt, Location* location);
 
   void lsl(Condition cond,
            EncodingSize size,
@@ -853,7 +853,7 @@ class Disassembler {
 
   void pkhtb(Condition cond, Register rd, Register rn, const Operand& operand);
 
-  void pld(Condition cond, Label* label);
+  void pld(Condition cond, Location* location);
 
   void pld(Condition cond, const MemOperand& operand);
 
@@ -861,7 +861,7 @@ class Disassembler {
 
   void pli(Condition cond, const MemOperand& operand);
 
-  void pli(Condition cond, Label* label);
+  void pli(Condition cond, Location* location);
 
   void pop(Condition cond, EncodingSize size, RegisterList registers);
 
@@ -1790,14 +1790,14 @@ class Disassembler {
               WriteBack write_back,
               SRegisterList sreglist);
 
-  void vldr(Condition cond, DataType dt, DRegister rd, Label* label);
+  void vldr(Condition cond, DataType dt, DRegister rd, Location* location);
 
   void vldr(Condition cond,
             DataType dt,
             DRegister rd,
             const MemOperand& operand);
 
-  void vldr(Condition cond, DataType dt, SRegister rd, Label* label);
+  void vldr(Condition cond, DataType dt, SRegister rd, Location* location);
 
   void vldr(Condition cond,
             DataType dt,

@@ -41,14 +41,14 @@ namespace aarch32 {
 // Example of disassembly customization.
 
 class CustomStream : public Disassembler::DisassemblerStream {
-  std::map<Label::Offset, const char*> symbols_;
+  std::map<Location::Offset, const char*> symbols_;
 
  public:
   CustomStream() : Disassembler::DisassemblerStream(std::cout) {}
-  std::map<Label::Offset, const char*>& GetSymbols() { return symbols_; }
+  std::map<Location::Offset, const char*>& GetSymbols() { return symbols_; }
   virtual DisassemblerStream& operator<<(const Disassembler::PrintLabel& label)
       VIXL_OVERRIDE {
-    std::map<Label::Offset, const char*>::iterator symbol =
+    std::map<Location::Offset, const char*>::iterator symbol =
         symbols_.find(label.GetLocation());
     // If the label was named, print the name instead of the address.
     if (symbol != symbols_.end()) {
@@ -76,7 +76,7 @@ class CustomDisassembler : public PrintDisassembler {
   virtual void PrintCodeAddress(uint32_t pc) VIXL_OVERRIDE {
     // If the address matches a label, then print the label. Otherwise, print
     // nothing.
-    std::map<Label::Offset, const char*>::iterator symbol =
+    std::map<Location::Offset, const char*>::iterator symbol =
         GetStream()->GetSymbols().find(pc);
     if (symbol != GetStream()->GetSymbols().end()) {
       os().os() << symbol->second << ":" << std::endl;
@@ -104,7 +104,7 @@ class NamedLabel : public Label {
   ~NamedLabel() {
     if (IsBound()) {
       stream_->GetSymbols().insert(
-          std::pair<Label::Offset, const char*>(GetLocation(), name_));
+          std::pair<Location::Offset, const char*>(GetLocation(), name_));
     }
   }
 };

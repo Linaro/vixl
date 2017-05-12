@@ -1341,7 +1341,7 @@ inline std::ostream& operator<<(std::ostream& os, Alignment align) {
   return os << " :" << (0x10 << static_cast<uint32_t>(align.GetType()));
 }
 
-class RawLiteral : public Label {
+class RawLiteral : public Location {
  public:
   enum PlacementPolicy { kPlacedWhenUsed, kManuallyPlaced };
 

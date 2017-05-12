@@ -3311,22 +3311,22 @@ TEST(unbound_label) {
   MUST_FAIL_TEST_BOTH_BLOCK({
     Label label;
     masm.B(&label);
-  }, "Label used but not bound.\n")
+  }, "Location, label or literal used but not bound.\n")
 
   MUST_FAIL_TEST_BOTH_BLOCK({
     Label label;
     masm.B(eq, &label);
-  }, "Label used but not bound.\n")
+  }, "Location, label or literal used but not bound.\n")
 
   MUST_FAIL_TEST_T32_BLOCK({
     Label label;
     masm.Cbz(r0, &label);
-  }, "Label used but not bound.\n")
+  }, "Location, label or literal used but not bound.\n")
 
   MUST_FAIL_TEST_T32_BLOCK({
     Label label;
     masm.Cbnz(r1, &label);
-  }, "Label used but not bound.\n")
+  }, "Location, label or literal used but not bound.\n")
 #endif
 
   CLEANUP();
