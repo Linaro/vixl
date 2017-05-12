@@ -399,13 +399,14 @@ def RunBenchmarks(options, args):
     for bench in benchmark_names:
       rc |= RunCommand(
         [os.path.realpath(
-          join(config.dir_build_latest, 'benchmarks/aarch32', bench))])
+          join(config.dir_build_latest, 'benchmarks/aarch32', bench)), '10'])
   if CanRunAarch64(options, args):
     benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch64_benchmarks)
     for bench in benchmark_names:
       rc |= RunCommand(
         [util.relrealpath(
-            join(config.dir_build_latest, 'benchmarks/aarch64', bench))])
+            join(config.dir_build_latest,
+                'benchmarks/aarch64', bench)), '10'])
   return rc
 
 

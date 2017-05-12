@@ -57,6 +57,6 @@ tested_compilers = ['clang++', 'g++']
 
 # The list of target arch/isa options to test with. Do not list 'all' as an
 # option since it is the default.
-build_options_target = ['a32', 't32', 'a32,t32', 'a64', 'a64,a32', 'a64,t32']
+build_options_target = ['a32', 't32', 'a32,t32', 'a64']
 # Negative testing is off by default, so do not list 'off' as an option.
 build_options_negative_testing = ['on']
