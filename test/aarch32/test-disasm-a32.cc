@@ -3449,10 +3449,7 @@ TEST(preloads) {
   COMPARE_A32(Pldw(MemOperand(r0, r1, LSL, 20)), "pldw [r0, r1, lsl #20]\n");
 
   // PLD literal
-  Label pld_label;
-  COMPARE_A32(Pld(&pld_label);, "pld [pc, #-0]\n");
-  COMPARE_T32(Pld(&pld_label);, "pld [pc, #-0]\n");
-  __ Bind(&pld_label);
+  COMPARE_BOTH(Pld(MemOperand(pc, minus, 0)), "pld [pc, #-0]\n");
 
   // PLI immediate
   COMPARE_BOTH(Pli(MemOperand(r0, 0)), "pli [r0]\n");
@@ -3468,10 +3465,7 @@ TEST(preloads) {
   COMPARE_A32(Pli(MemOperand(r0, r1, LSL, 20)), "pli [r0, r1, lsl #20]\n");
 
   // PLI literal
-  Label pli_label;
-  COMPARE_A32(Pli(&pli_label);, "pli [pc, #-0]\n");
-  COMPARE_T32(Pli(&pli_label);, "pli [pc, #-0]\n");
-  __ Bind(&pli_label);
+  COMPARE_BOTH(Pli(MemOperand(pc, minus, 0)), "pli [pc, #-0]\n");
 
   CLEANUP();
 }

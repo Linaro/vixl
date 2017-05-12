@@ -4390,11 +4390,6 @@ TEST(preloads) {
     __ Pldw(MemOperand(r0, r1, LSL, 20));
   }
 
-  // PLD literal
-  Label pld_label;
-  __ Pld(&pld_label);
-  __ Bind(&pld_label);
-
   // PLI immediate
   __ Pli(MemOperand(sp, 0));
   __ Pli(MemOperand(r0, 0));
@@ -4419,11 +4414,6 @@ TEST(preloads) {
     __ Pli(MemOperand(r0, r1, LSL, 4));
     __ Pli(MemOperand(r0, r1, LSL, 20));
   }
-
-  // PLI literal
-  Label pli_label;
-  __ Pli(&pli_label);
-  __ Bind(&pli_label);
 
   END();
 }

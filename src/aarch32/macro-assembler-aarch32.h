@@ -2916,14 +2916,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     Pkhtb(al, rd, rn, operand);
   }
 
-  void Pld(Condition cond, Label* label) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    pld(cond, label);
-  }
-  void Pld(Label* label) { Pld(al, label); }
 
   void Pld(Condition cond, const MemOperand& operand) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(operand));
@@ -2955,14 +2947,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Pli(const MemOperand& operand) { Pli(al, operand); }
 
-  void Pli(Condition cond, Label* label) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond);
-    pli(cond, label);
-  }
-  void Pli(Label* label) { Pli(al, label); }
 
   void Pop(Condition cond, RegisterList registers) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(registers));
