@@ -1755,188 +1755,155 @@ Align_align_5::Align_align_5(Alignment align,
   }
 }
 
-static const struct ReferenceInfo kAdrT1Info = {k16BitT32InstructionSizeInBytes,
-                                                0,     // Min offset.
-                                                1020,  // Max offset.
-                                                4,     // Alignment.
-                                                ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kAdrT3Info = {k32BitT32InstructionSizeInBytes,
-                                                -4095,  // Min offset.
-                                                4095,   // Max offset.
-                                                1,      // Alignment.
-                                                ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kAdrA1Info = {kA32InstructionSizeInBytes,
-                                                -256,  // Min offset.
-                                                256,   // Max offset.
-                                                1,     // Alignment.
-                                                ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kBT1Info = {k16BitT32InstructionSizeInBytes,
-                                              -256,  // Min offset.
-                                              254,   // Max offset.
-                                              2,     // Alignment.
-                                              ReferenceInfo::kDontAlignPc};
-static const struct ReferenceInfo kBT2Info = {k16BitT32InstructionSizeInBytes,
-                                              -2048,  // Min offset.
-                                              2046,   // Max offset.
-                                              2,      // Alignment.
-                                              ReferenceInfo::kDontAlignPc};
-static const struct ReferenceInfo kBT3Info = {k32BitT32InstructionSizeInBytes,
-                                              -1048576,  // Min offset.
-                                              1048574,   // Max offset.
-                                              2,         // Alignment.
-                                              ReferenceInfo::kDontAlignPc};
-static const struct ReferenceInfo kBT4Info = {k32BitT32InstructionSizeInBytes,
-                                              -16777216,  // Min offset.
-                                              16777214,   // Max offset.
-                                              2,          // Alignment.
-                                              ReferenceInfo::kDontAlignPc};
-static const struct ReferenceInfo kBA1Info = {kA32InstructionSizeInBytes,
-                                              -33554432,  // Min offset.
-                                              33554428,   // Max offset.
-                                              4,          // Alignment.
-                                              ReferenceInfo::kDontAlignPc};
-static const struct ReferenceInfo kBlT1Info = {k32BitT32InstructionSizeInBytes,
-                                               -16777216,  // Min offset.
-                                               16777214,   // Max offset.
-                                               2,          // Alignment.
-                                               ReferenceInfo::kDontAlignPc};
-static const struct ReferenceInfo kBlA1Info = {kA32InstructionSizeInBytes,
-                                               -33554432,  // Min offset.
-                                               33554428,   // Max offset.
-                                               4,          // Alignment.
-                                               ReferenceInfo::kDontAlignPc};
-static const struct ReferenceInfo kBlxT2Info = {k32BitT32InstructionSizeInBytes,
-                                                -16777216,  // Min offset.
-                                                16777212,   // Max offset.
-                                                4,          // Alignment.
-                                                ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kBlxA2Info = {kA32InstructionSizeInBytes,
-                                                -33554432,  // Min offset.
-                                                33554430,   // Max offset.
-                                                2,          // Alignment.
-                                                ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kCbnzT1Info =
+
+// CBNZ{<q>} <Rn>, <label> ; T1
+// CBZ{<q>} <Rn>, <label> ; T1
+static const struct ReferenceInfo kT16CbzInfo =
     {k16BitT32InstructionSizeInBytes,
      0,    // Min offset.
      126,  // Max offset.
      2,    // Alignment.
      ReferenceInfo::kDontAlignPc};
-static const struct ReferenceInfo kCbzT1Info = {k16BitT32InstructionSizeInBytes,
-                                                0,    // Min offset.
-                                                126,  // Max offset.
-                                                2,    // Alignment.
-                                                ReferenceInfo::kDontAlignPc};
-static const struct ReferenceInfo kLdrT1Info = {k16BitT32InstructionSizeInBytes,
-                                                0,     // Min offset.
-                                                1020,  // Max offset.
-                                                4,     // Alignment.
-                                                ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kLdrT2Info = {k32BitT32InstructionSizeInBytes,
-                                                -4095,  // Min offset.
-                                                4095,   // Max offset.
-                                                1,      // Alignment.
-                                                ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kLdrA1Info = {kA32InstructionSizeInBytes,
-                                                -4095,  // Min offset.
-                                                4095,   // Max offset.
-                                                1,      // Alignment.
-                                                ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kLdrbT1Info =
-    {k32BitT32InstructionSizeInBytes,
-     -4095,  // Min offset.
-     4095,   // Max offset.
-     1,      // Alignment.
+
+
+// B<c>{<q>} <label> ; T1
+static const struct ReferenceInfo kT16ConditionalBranchInfo =
+    {k16BitT32InstructionSizeInBytes,
+     -256,  // Min offset.
+     254,   // Max offset.
+     2,     // Alignment.
+     ReferenceInfo::kDontAlignPc};
+
+
+// ADR{<c>}{<q>} <Rd>, <label> ; T1
+// LDR{<c>}{<q>} <Rt>, <label> ; T1
+static const struct ReferenceInfo kT16DataInfo =
+    {k16BitT32InstructionSizeInBytes,
+     0,     // Min offset.
+     1020,  // Max offset.
+     4,     // Alignment.
      ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kLdrbA1Info = {kA32InstructionSizeInBytes,
-                                                 -4095,  // Min offset.
-                                                 4095,   // Max offset.
-                                                 1,      // Alignment.
-                                                 ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kLdrdT1Info =
+
+
+// B{<c>}{<q>} <label> ; T2
+static const struct ReferenceInfo kT16BranchInfo =
+    {k16BitT32InstructionSizeInBytes,
+     -2048,  // Min offset.
+     2046,   // Max offset.
+     2,      // Alignment.
+     ReferenceInfo::kDontAlignPc};
+
+
+// LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; T1
+// VLDR{<c>}{<q>}{.64} <Dd>, <label> ; T1
+// VLDR{<c>}{<q>}{.32} <Sd>, <label> ; T2
+static const struct ReferenceInfo kT32DataInfo =
     {k32BitT32InstructionSizeInBytes,
      -1020,  // Min offset.
      1020,   // Max offset.
      4,      // Alignment.
      ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kLdrdA1Info = {kA32InstructionSizeInBytes,
-                                                 -255,  // Min offset.
-                                                 255,   // Max offset.
+
+
+// ADR{<c>}{<q>} <Rd>, <label> ; T3
+// LDR{<c>}{<q>} <Rt>, <label> ; T2
+// LDRB{<c>}{<q>} <Rt>, <label> ; T1
+// LDRH{<c>}{<q>} <Rt>, <label> ; T1
+// LDRSB{<c>}{<q>} <Rt>, <label> ; T1
+// LDRSH{<c>}{<q>} <Rt>, <label> ; T1
+// PLD{<c>}{<q>} <label> ; T1
+// PLI{<c>}{<q>} <label> ; T3
+static const struct ReferenceInfo kT32FarDataInfo =
+    {k32BitT32InstructionSizeInBytes,
+     -4095,  // Min offset.
+     4095,   // Max offset.
+     1,      // Alignment.
+     ReferenceInfo::kAlignPc};
+
+
+// B<c>{<q>} <label> ; T3
+static const struct ReferenceInfo kT32ConditionalBranchInfo =
+    {k32BitT32InstructionSizeInBytes,
+     -1048576,  // Min offset.
+     1048574,   // Max offset.
+     2,         // Alignment.
+     ReferenceInfo::kDontAlignPc};
+
+
+// B{<c>}{<q>} <label> ; T4
+// BL{<c>}{<q>} <label> ; T1
+static const struct ReferenceInfo kT32BranchInfo =
+    {k32BitT32InstructionSizeInBytes,
+     -16777216,  // Min offset.
+     16777214,   // Max offset.
+     2,          // Alignment.
+     ReferenceInfo::kDontAlignPc};
+
+
+// BLX{<c>}{<q>} <label> ; T2
+static const struct ReferenceInfo kT32BlxInfo =
+    {k32BitT32InstructionSizeInBytes,
+     -16777216,  // Min offset.
+     16777212,   // Max offset.
+     4,          // Alignment.
+     ReferenceInfo::kAlignPc};
+
+
+// LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; A1
+// LDRH{<c>}{<q>} <Rt>, <label> ; A1
+// LDRSB{<c>}{<q>} <Rt>, <label> ; A1
+// LDRSH{<c>}{<q>} <Rt>, <label> ; A1
+static const struct ReferenceInfo kA32VeryNearDataInfo =
+    {kA32InstructionSizeInBytes,
+     -255,  // Min offset.
+     255,   // Max offset.
+     1,     // Alignment.
+     ReferenceInfo::kAlignPc};
+
+
+// ADR{<c>}{<q>} <Rd>, <label> ; A1
+static const struct ReferenceInfo kA32AdrInfo = {kA32InstructionSizeInBytes,
+                                                 -256,  // Min offset.
+                                                 256,   // Max offset.
                                                  1,     // Alignment.
                                                  ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kLdrhT1Info =
-    {k32BitT32InstructionSizeInBytes,
-     -4095,  // Min offset.
-     4095,   // Max offset.
-     1,      // Alignment.
-     ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kLdrhA1Info = {kA32InstructionSizeInBytes,
-                                                 -255,  // Min offset.
-                                                 255,   // Max offset.
-                                                 1,     // Alignment.
-                                                 ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kLdrsbT1Info =
-    {k32BitT32InstructionSizeInBytes,
-     -4095,  // Min offset.
-     4095,   // Max offset.
-     1,      // Alignment.
-     ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kLdrsbA1Info = {kA32InstructionSizeInBytes,
-                                                  -255,  // Min offset.
-                                                  255,   // Max offset.
-                                                  1,     // Alignment.
+
+
+// VLDR{<c>}{<q>}{.64} <Dd>, <label> ; A1
+// VLDR{<c>}{<q>}{.32} <Sd>, <label> ; A2
+static const struct ReferenceInfo kA32DataInfo = {kA32InstructionSizeInBytes,
+                                                  -1020,  // Min offset.
+                                                  1020,   // Max offset.
+                                                  4,      // Alignment.
                                                   ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kLdrshT1Info =
-    {k32BitT32InstructionSizeInBytes,
-     -4095,  // Min offset.
-     4095,   // Max offset.
-     1,      // Alignment.
-     ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kLdrshA1Info = {kA32InstructionSizeInBytes,
-                                                  -255,  // Min offset.
-                                                  255,   // Max offset.
-                                                  1,     // Alignment.
-                                                  ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kPldT1Info = {k32BitT32InstructionSizeInBytes,
-                                                -4095,  // Min offset.
-                                                4095,   // Max offset.
-                                                1,      // Alignment.
-                                                ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kPldA1Info = {kA32InstructionSizeInBytes,
-                                                -4095,  // Min offset.
-                                                4095,   // Max offset.
-                                                1,      // Alignment.
-                                                ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kPliT3Info = {k32BitT32InstructionSizeInBytes,
-                                                -4095,  // Min offset.
-                                                4095,   // Max offset.
-                                                1,      // Alignment.
-                                                ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kPliA1Info = {kA32InstructionSizeInBytes,
-                                                -4095,  // Min offset.
-                                                4095,   // Max offset.
-                                                1,      // Alignment.
-                                                ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kVldrT1Info =
-    {k32BitT32InstructionSizeInBytes,
-     -1020,  // Min offset.
-     1020,   // Max offset.
-     4,      // Alignment.
-     ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kVldrA1Info = {kA32InstructionSizeInBytes,
-                                                 -1020,  // Min offset.
-                                                 1020,   // Max offset.
-                                                 4,      // Alignment.
-                                                 ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kVldrT2Info =
-    {k32BitT32InstructionSizeInBytes,
-     -1020,  // Min offset.
-     1020,   // Max offset.
-     4,      // Alignment.
-     ReferenceInfo::kAlignPc};
-static const struct ReferenceInfo kVldrA2Info = {kA32InstructionSizeInBytes,
-                                                 -1020,  // Min offset.
-                                                 1020,   // Max offset.
-                                                 4,      // Alignment.
+
+
+// LDR{<c>}{<q>} <Rt>, <label> ; A1
+// LDRB{<c>}{<q>} <Rt>, <label> ; A1
+// PLD{<c>}{<q>} <label> ; A1
+// PLI{<c>}{<q>} <label> ; A1
+static const struct ReferenceInfo kA32FarDataInfo = {kA32InstructionSizeInBytes,
+                                                     -4095,  // Min offset.
+                                                     4095,   // Max offset.
+                                                     1,      // Alignment.
+                                                     ReferenceInfo::kAlignPc};
+
+
+// B{<c>}{<q>} <label> ; A1
+// BL{<c>}{<q>} <label> ; A1
+static const struct ReferenceInfo kA32BranchInfo =
+    {kA32InstructionSizeInBytes,
+     -33554432,  // Min offset.
+     33554428,   // Max offset.
+     4,          // Alignment.
+     ReferenceInfo::kDontAlignPc};
+
+
+// BLX{<c>}{<q>} <label> ; A2
+static const struct ReferenceInfo kA32BlxInfo = {kA32InstructionSizeInBytes,
+                                                 -33554432,  // Min offset.
+                                                 33554430,   // Max offset.
+                                                 2,          // Alignment.
                                                  ReferenceInfo::kAlignPc};
 
 
@@ -2588,7 +2555,7 @@ void Assembler::adr(Condition cond,
         }
       } immop;
       EmitT32_16(
-          Link(0xa000 | (rd.GetCode() << 8), location, immop, &kAdrT1Info));
+          Link(0xa000 | (rd.GetCode() << 8), location, immop, &kT16DataInfo));
       AdvanceIT();
       return;
     }
@@ -2628,7 +2595,7 @@ void Assembler::adr(Condition cond,
       EmitT32_32(Link(0xf20f0000U | (rd.GetCode() << 8),
                       location,
                       immop,
-                      &kAdrT3Info));
+                      &kT32FarDataInfo));
       AdvanceIT();
       return;
     }
@@ -2664,7 +2631,7 @@ void Assembler::adr(Condition cond,
           Link(0x028f0000U | (cond.GetCondition() << 28) | (rd.GetCode() << 12),
                location,
                immop,
-               &kAdrA1Info));
+               &kA32AdrInfo));
       return;
     }
     // ADR{<c>}{<q>} <Rd>, <label> ; A2
@@ -2688,7 +2655,7 @@ bool Assembler::adr_info(Condition cond,
   if (IsUsingT32()) {
     // ADR{<c>}{<q>} <Rd>, <label> ; T1
     if (!size.IsWide() && rd.IsLow() && size.IsNarrow()) {
-      *info = &kAdrT1Info;
+      *info = &kT16DataInfo;
       return true;
     }
     // Skipped T2, as it is a negative offset variant.
@@ -2696,13 +2663,13 @@ bool Assembler::adr_info(Condition cond,
     // positive variant.
     // ADR{<c>}{<q>} <Rd>, <label> ; T3
     if (!size.IsNarrow()) {
-      *info = &kAdrT3Info;
+      *info = &kT32FarDataInfo;
       return true;
     }
   } else {
     // ADR{<c>}{<q>} <Rd>, <label> ; A1
     if (cond.IsNotNever()) {
-      *info = &kAdrA1Info;
+      *info = &kA32AdrInfo;
       return true;
     }
     // Skipped A2, as it is a negative offset variant.
@@ -3057,7 +3024,7 @@ void Assembler::b(Condition cond, EncodingSize size, Location* location) {
       EmitT32_16(Link(0xd000 | (cond.GetCondition() << 8),
                       location,
                       immop,
-                      &kBT1Info));
+                      &kT16ConditionalBranchInfo));
       AdvanceIT();
       return;
     }
@@ -3081,7 +3048,7 @@ void Assembler::b(Condition cond, EncodingSize size, Location* location) {
           return instr | (target & 0x7ff);
         }
       } immop;
-      EmitT32_16(Link(0xe000, location, immop, &kBT2Info));
+      EmitT32_16(Link(0xe000, location, immop, &kT16BranchInfo));
       AdvanceIT();
       return;
     }
@@ -3110,7 +3077,7 @@ void Assembler::b(Condition cond, EncodingSize size, Location* location) {
       EmitT32_32(Link(0xf0008000U | (cond.GetCondition() << 22),
                       location,
                       immop,
-                      &kBT3Info));
+                      &kT32ConditionalBranchInfo));
       AdvanceIT();
       return;
     }
@@ -3138,7 +3105,7 @@ void Assembler::b(Condition cond, EncodingSize size, Location* location) {
                  ((target & 0x800000) << 3);
         }
       } immop;
-      EmitT32_32(Link(0xf0009000U, location, immop, &kBT4Info));
+      EmitT32_32(Link(0xf0009000U, location, immop, &kT32BranchInfo));
       AdvanceIT();
       return;
     }
@@ -3165,7 +3132,7 @@ void Assembler::b(Condition cond, EncodingSize size, Location* location) {
       EmitA32(Link(0x0a000000U | (cond.GetCondition() << 28),
                    location,
                    immop,
-                   &kBA1Info));
+                   &kA32BranchInfo));
       return;
     }
   }
@@ -3182,29 +3149,29 @@ bool Assembler::b_info(Condition cond,
     // B<c>{<q>} <label> ; T1
     if (OutsideITBlock() && !size.IsWide() && size.IsNarrow() && !cond.Is(al) &&
         cond.IsNotNever()) {
-      *info = &kBT1Info;
+      *info = &kT16ConditionalBranchInfo;
       return true;
     }
     // B{<c>}{<q>} <label> ; T2
     if (OutsideITBlockAndAlOrLast(cond) && !size.IsWide() && size.IsNarrow()) {
-      *info = &kBT2Info;
+      *info = &kT16BranchInfo;
       return true;
     }
     // B<c>{<q>} <label> ; T3
     if (OutsideITBlock() && !size.IsNarrow() && !cond.Is(al) &&
         cond.IsNotNever()) {
-      *info = &kBT3Info;
+      *info = &kT32ConditionalBranchInfo;
       return true;
     }
     // B{<c>}{<q>} <label> ; T4
     if (OutsideITBlockAndAlOrLast(cond) && !size.IsNarrow()) {
-      *info = &kBT4Info;
+      *info = &kT32BranchInfo;
       return true;
     }
   } else {
     // B{<c>}{<q>} <label> ; A1
     if (cond.IsNotNever()) {
-      *info = &kBA1Info;
+      *info = &kA32BranchInfo;
       return true;
     }
   }
@@ -3496,7 +3463,7 @@ void Assembler::bl(Condition cond, Location* location) {
                  ((target & 0x800000) << 3);
         }
       } immop;
-      EmitT32_32(Link(0xf000d000U, location, immop, &kBlT1Info));
+      EmitT32_32(Link(0xf000d000U, location, immop, &kT32BranchInfo));
       AdvanceIT();
       return;
     }
@@ -3523,7 +3490,7 @@ void Assembler::bl(Condition cond, Location* location) {
       EmitA32(Link(0x0b000000U | (cond.GetCondition() << 28),
                    location,
                    immop,
-                   &kBlA1Info));
+                   &kA32BranchInfo));
       return;
     }
   }
@@ -3538,13 +3505,13 @@ bool Assembler::bl_info(Condition cond,
   if (IsUsingT32()) {
     // BL{<c>}{<q>} <label> ; T1
     if (true) {
-      *info = &kBlT1Info;
+      *info = &kT32BranchInfo;
       return true;
     }
   } else {
     // BL{<c>}{<q>} <label> ; A1
     if (cond.IsNotNever()) {
-      *info = &kBlA1Info;
+      *info = &kA32BranchInfo;
       return true;
     }
   }
@@ -3583,7 +3550,7 @@ void Assembler::blx(Condition cond, Location* location) {
                  ((target & 0x400000) << 4);
         }
       } immop;
-      EmitT32_32(Link(0xf000c000U, location, immop, &kBlxT2Info));
+      EmitT32_32(Link(0xf000c000U, location, immop, &kT32BlxInfo));
       AdvanceIT();
       return;
     }
@@ -3609,7 +3576,7 @@ void Assembler::blx(Condition cond, Location* location) {
             return instr | ((target & 0x1) << 24) | ((target & 0x1fffffe) >> 1);
           }
         } immop;
-        EmitA32(Link(0xfa000000U, location, immop, &kBlxA2Info));
+        EmitA32(Link(0xfa000000U, location, immop, &kA32BlxInfo));
         return;
       }
     }
@@ -3626,13 +3593,13 @@ bool Assembler::blx_info(Condition cond,
   if (IsUsingT32()) {
     // BLX{<c>}{<q>} <label> ; T2
     if (true) {
-      *info = &kBlxT2Info;
+      *info = &kT32BlxInfo;
       return true;
     }
   } else {
     // BLX{<c>}{<q>} <label> ; A2
     if (true) {
-      *info = &kBlxA2Info;
+      *info = &kA32BlxInfo;
       return true;
     }
   }
@@ -3728,7 +3695,7 @@ void Assembler::cbnz(Register rn, Location* location) {
           return instr | ((target & 0x1f) << 3) | ((target & 0x20) << 4);
         }
       } immop;
-      EmitT32_16(Link(0xb900 | rn.GetCode(), location, immop, &kCbnzT1Info));
+      EmitT32_16(Link(0xb900 | rn.GetCode(), location, immop, &kT16CbzInfo));
       AdvanceIT();
       return;
     }
@@ -3744,7 +3711,7 @@ bool Assembler::cbnz_info(Register rn,
   if (IsUsingT32()) {
     // CBNZ{<q>} <Rn>, <label> ; T1
     if (rn.IsLow()) {
-      *info = &kCbnzT1Info;
+      *info = &kT16CbzInfo;
       return true;
     }
   }
@@ -3778,7 +3745,7 @@ void Assembler::cbz(Register rn, Location* location) {
           return instr | ((target & 0x1f) << 3) | ((target & 0x20) << 4);
         }
       } immop;
-      EmitT32_16(Link(0xb100 | rn.GetCode(), location, immop, &kCbzT1Info));
+      EmitT32_16(Link(0xb100 | rn.GetCode(), location, immop, &kT16CbzInfo));
       AdvanceIT();
       return;
     }
@@ -3794,7 +3761,7 @@ bool Assembler::cbz_info(Register rn,
   if (IsUsingT32()) {
     // CBZ{<q>} <Rn>, <label> ; T1
     if (rn.IsLow()) {
-      *info = &kCbzT1Info;
+      *info = &kT16CbzInfo;
       return true;
     }
   }
@@ -5231,7 +5198,7 @@ void Assembler::ldr(Condition cond,
         }
       } immop;
       EmitT32_16(
-          Link(0x4800 | (rt.GetCode() << 8), location, immop, &kLdrT1Info));
+          Link(0x4800 | (rt.GetCode() << 8), location, immop, &kT16DataInfo));
       AdvanceIT();
       return;
     }
@@ -5258,7 +5225,7 @@ void Assembler::ldr(Condition cond,
       EmitT32_32(Link(0xf85f0000U | (rt.GetCode() << 12),
                       location,
                       immop,
-                      &kLdrT2Info));
+                      &kT32FarDataInfo));
       AdvanceIT();
       return;
     }
@@ -5285,7 +5252,7 @@ void Assembler::ldr(Condition cond,
           Link(0x051f0000U | (cond.GetCondition() << 28) | (rt.GetCode() << 12),
                location,
                immop,
-               &kLdrA1Info));
+               &kA32FarDataInfo));
       return;
     }
   }
@@ -5302,18 +5269,18 @@ bool Assembler::ldr_info(Condition cond,
   if (IsUsingT32()) {
     // LDR{<c>}{<q>} <Rt>, <label> ; T1
     if (!size.IsWide() && rt.IsLow() && size.IsNarrow()) {
-      *info = &kLdrT1Info;
+      *info = &kT16DataInfo;
       return true;
     }
     // LDR{<c>}{<q>} <Rt>, <label> ; T2
     if (!size.IsNarrow()) {
-      *info = &kLdrT2Info;
+      *info = &kT32FarDataInfo;
       return true;
     }
   } else {
     // LDR{<c>}{<q>} <Rt>, <label> ; A1
     if (cond.IsNotNever()) {
-      *info = &kLdrA1Info;
+      *info = &kA32FarDataInfo;
       return true;
     }
   }
@@ -5530,7 +5497,7 @@ void Assembler::ldrb(Condition cond, Register rt, Location* location) {
       EmitT32_32(Link(0xf81f0000U | (rt.GetCode() << 12),
                       location,
                       immop,
-                      &kLdrbT1Info));
+                      &kT32FarDataInfo));
       AdvanceIT();
       return;
     }
@@ -5557,7 +5524,7 @@ void Assembler::ldrb(Condition cond, Register rt, Location* location) {
           Link(0x055f0000U | (cond.GetCondition() << 28) | (rt.GetCode() << 12),
                location,
                immop,
-               &kLdrbA1Info));
+               &kA32FarDataInfo));
       return;
     }
   }
@@ -5573,13 +5540,13 @@ bool Assembler::ldrb_info(Condition cond,
   if (IsUsingT32()) {
     // LDRB{<c>}{<q>} <Rt>, <label> ; T1
     if (!rt.Is(pc)) {
-      *info = &kLdrbT1Info;
+      *info = &kT32FarDataInfo;
       return true;
     }
   } else {
     // LDRB{<c>}{<q>} <Rt>, <label> ; A1
     if (cond.IsNotNever()) {
-      *info = &kLdrbA1Info;
+      *info = &kA32FarDataInfo;
       return true;
     }
   }
@@ -5774,7 +5741,7 @@ void Assembler::ldrd(Condition cond,
       EmitT32_32(Link(0xe95f0000U | (rt.GetCode() << 12) | (rt2.GetCode() << 8),
                       location,
                       immop,
-                      &kLdrdT1Info));
+                      &kT32DataInfo));
       AdvanceIT();
       return;
     }
@@ -5804,7 +5771,7 @@ void Assembler::ldrd(Condition cond,
           Link(0x014f00d0U | (cond.GetCondition() << 28) | (rt.GetCode() << 12),
                location,
                immop,
-               &kLdrdA1Info));
+               &kA32VeryNearDataInfo));
       return;
     }
   }
@@ -5821,14 +5788,14 @@ bool Assembler::ldrd_info(Condition cond,
   if (IsUsingT32()) {
     // LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; T1
     if (true) {
-      *info = &kLdrdT1Info;
+      *info = &kT32DataInfo;
       return true;
     }
   } else {
     // LDRD{<c>}{<q>} <Rt>, <Rt2>, <label> ; A1
     if ((((rt.GetCode() + 1) % kNumberOfRegisters) == rt2.GetCode()) &&
         cond.IsNotNever()) {
-      *info = &kLdrdA1Info;
+      *info = &kA32VeryNearDataInfo;
       return true;
     }
   }
@@ -6154,7 +6121,7 @@ void Assembler::ldrh(Condition cond, Register rt, Location* location) {
       EmitT32_32(Link(0xf83f0000U | (rt.GetCode() << 12),
                       location,
                       immop,
-                      &kLdrhT1Info));
+                      &kT32FarDataInfo));
       AdvanceIT();
       return;
     }
@@ -6182,7 +6149,7 @@ void Assembler::ldrh(Condition cond, Register rt, Location* location) {
           Link(0x015f00b0U | (cond.GetCondition() << 28) | (rt.GetCode() << 12),
                location,
                immop,
-               &kLdrhA1Info));
+               &kA32VeryNearDataInfo));
       return;
     }
   }
@@ -6198,13 +6165,13 @@ bool Assembler::ldrh_info(Condition cond,
   if (IsUsingT32()) {
     // LDRH{<c>}{<q>} <Rt>, <label> ; T1
     if (!rt.Is(pc)) {
-      *info = &kLdrhT1Info;
+      *info = &kT32FarDataInfo;
       return true;
     }
   } else {
     // LDRH{<c>}{<q>} <Rt>, <label> ; A1
     if (cond.IsNotNever()) {
-      *info = &kLdrhA1Info;
+      *info = &kA32VeryNearDataInfo;
       return true;
     }
   }
@@ -6407,7 +6374,7 @@ void Assembler::ldrsb(Condition cond, Register rt, Location* location) {
       EmitT32_32(Link(0xf91f0000U | (rt.GetCode() << 12),
                       location,
                       immop,
-                      &kLdrsbT1Info));
+                      &kT32FarDataInfo));
       AdvanceIT();
       return;
     }
@@ -6435,7 +6402,7 @@ void Assembler::ldrsb(Condition cond, Register rt, Location* location) {
           Link(0x015f00d0U | (cond.GetCondition() << 28) | (rt.GetCode() << 12),
                location,
                immop,
-               &kLdrsbA1Info));
+               &kA32VeryNearDataInfo));
       return;
     }
   }
@@ -6451,13 +6418,13 @@ bool Assembler::ldrsb_info(Condition cond,
   if (IsUsingT32()) {
     // LDRSB{<c>}{<q>} <Rt>, <label> ; T1
     if (!rt.Is(pc)) {
-      *info = &kLdrsbT1Info;
+      *info = &kT32FarDataInfo;
       return true;
     }
   } else {
     // LDRSB{<c>}{<q>} <Rt>, <label> ; A1
     if (cond.IsNotNever()) {
-      *info = &kLdrsbA1Info;
+      *info = &kA32VeryNearDataInfo;
       return true;
     }
   }
@@ -6660,7 +6627,7 @@ void Assembler::ldrsh(Condition cond, Register rt, Location* location) {
       EmitT32_32(Link(0xf93f0000U | (rt.GetCode() << 12),
                       location,
                       immop,
-                      &kLdrshT1Info));
+                      &kT32FarDataInfo));
       AdvanceIT();
       return;
     }
@@ -6688,7 +6655,7 @@ void Assembler::ldrsh(Condition cond, Register rt, Location* location) {
           Link(0x015f00f0U | (cond.GetCondition() << 28) | (rt.GetCode() << 12),
                location,
                immop,
-               &kLdrshA1Info));
+               &kA32VeryNearDataInfo));
       return;
     }
   }
@@ -6704,13 +6671,13 @@ bool Assembler::ldrsh_info(Condition cond,
   if (IsUsingT32()) {
     // LDRSH{<c>}{<q>} <Rt>, <label> ; T1
     if (!rt.Is(pc)) {
-      *info = &kLdrshT1Info;
+      *info = &kT32FarDataInfo;
       return true;
     }
   } else {
     // LDRSH{<c>}{<q>} <Rt>, <label> ; A1
     if (cond.IsNotNever()) {
-      *info = &kLdrshA1Info;
+      *info = &kA32VeryNearDataInfo;
       return true;
     }
   }
@@ -8061,7 +8028,7 @@ void Assembler::pld(Condition cond, Location* location) {
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
       } immop;
-      EmitT32_32(Link(0xf81ff000U, location, immop, &kPldT1Info));
+      EmitT32_32(Link(0xf81ff000U, location, immop, &kT32FarDataInfo));
       AdvanceIT();
       return;
     }
@@ -8086,7 +8053,7 @@ void Assembler::pld(Condition cond, Location* location) {
             return instr | (target & 0xfff) | ((target & 0x1000) << 11);
           }
         } immop;
-        EmitA32(Link(0xf55ff000U, location, immop, &kPldA1Info));
+        EmitA32(Link(0xf55ff000U, location, immop, &kA32FarDataInfo));
         return;
       }
     }
@@ -8103,13 +8070,13 @@ bool Assembler::pld_info(Condition cond,
   if (IsUsingT32()) {
     // PLD{<c>}{<q>} <label> ; T1
     if (true) {
-      *info = &kPldT1Info;
+      *info = &kT32FarDataInfo;
       return true;
     }
   } else {
     // PLD{<c>}{<q>} <label> ; A1
     if (true) {
-      *info = &kPldA1Info;
+      *info = &kA32FarDataInfo;
       return true;
     }
   }
@@ -8425,7 +8392,7 @@ void Assembler::pli(Condition cond, Location* location) {
           return instr | (target & 0xfff) | ((target & 0x1000) << 11);
         }
       } immop;
-      EmitT32_32(Link(0xf91ff000U, location, immop, &kPliT3Info));
+      EmitT32_32(Link(0xf91ff000U, location, immop, &kT32FarDataInfo));
       AdvanceIT();
       return;
     }
@@ -8450,7 +8417,7 @@ void Assembler::pli(Condition cond, Location* location) {
             return instr | (target & 0xfff) | ((target & 0x1000) << 11);
           }
         } immop;
-        EmitA32(Link(0xf45ff000U, location, immop, &kPliA1Info));
+        EmitA32(Link(0xf45ff000U, location, immop, &kA32FarDataInfo));
         return;
       }
     }
@@ -8467,13 +8434,13 @@ bool Assembler::pli_info(Condition cond,
   if (IsUsingT32()) {
     // PLI{<c>}{<q>} <label> ; T3
     if (true) {
-      *info = &kPliT3Info;
+      *info = &kT32FarDataInfo;
       return true;
     }
   } else {
     // PLI{<c>}{<q>} <label> ; A1
     if (true) {
-      *info = &kPliA1Info;
+      *info = &kA32FarDataInfo;
       return true;
     }
   }
@@ -19600,8 +19567,10 @@ void Assembler::vldr(Condition cond,
           return instr | (target & 0xff) | ((target & 0x100) << 15);
         }
       } immop;
-      EmitT32_32(
-          Link(0xed1f0b00U | rd.Encode(22, 12), location, immop, &kVldrT1Info));
+      EmitT32_32(Link(0xed1f0b00U | rd.Encode(22, 12),
+                      location,
+                      immop,
+                      &kT32DataInfo));
       AdvanceIT();
       return;
     }
@@ -19632,7 +19601,7 @@ void Assembler::vldr(Condition cond,
           Link(0x0d1f0b00U | (cond.GetCondition() << 28) | rd.Encode(22, 12),
                location,
                immop,
-               &kVldrA1Info));
+               &kA32DataInfo));
       return;
     }
   }
@@ -19650,13 +19619,13 @@ bool Assembler::vldr_info(Condition cond,
   if (IsUsingT32()) {
     // VLDR{<c>}{<q>}{.64} <Dd>, <label> ; T1
     if (dt.IsNoneOr(Untyped64)) {
-      *info = &kVldrT1Info;
+      *info = &kT32DataInfo;
       return true;
     }
   } else {
     // VLDR{<c>}{<q>}{.64} <Dd>, <label> ; A1
     if (dt.IsNoneOr(Untyped64) && cond.IsNotNever()) {
-      *info = &kVldrA1Info;
+      *info = &kA32DataInfo;
       return true;
     }
   }
@@ -19752,8 +19721,10 @@ void Assembler::vldr(Condition cond,
           return instr | (target & 0xff) | ((target & 0x100) << 15);
         }
       } immop;
-      EmitT32_32(
-          Link(0xed1f0a00U | rd.Encode(22, 12), location, immop, &kVldrT2Info));
+      EmitT32_32(Link(0xed1f0a00U | rd.Encode(22, 12),
+                      location,
+                      immop,
+                      &kT32DataInfo));
       AdvanceIT();
       return;
     }
@@ -19784,7 +19755,7 @@ void Assembler::vldr(Condition cond,
           Link(0x0d1f0a00U | (cond.GetCondition() << 28) | rd.Encode(22, 12),
                location,
                immop,
-               &kVldrA2Info));
+               &kA32DataInfo));
       return;
     }
   }
@@ -19802,13 +19773,13 @@ bool Assembler::vldr_info(Condition cond,
   if (IsUsingT32()) {
     // VLDR{<c>}{<q>}{.32} <Sd>, <label> ; T2
     if (dt.IsNoneOr(Untyped32)) {
-      *info = &kVldrT2Info;
+      *info = &kT32DataInfo;
       return true;
     }
   } else {
     // VLDR{<c>}{<q>}{.32} <Sd>, <label> ; A2
     if (dt.IsNoneOr(Untyped32) && cond.IsNotNever()) {
-      *info = &kVldrA2Info;
+      *info = &kA32DataInfo;
       return true;
     }
   }
