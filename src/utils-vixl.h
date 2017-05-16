@@ -475,13 +475,14 @@ bool IsWordAligned(T pointer) {
 // Increment a pointer until it has the specified alignment. The alignment must
 // be a power of two.
 template <class T>
-T AlignUp(T pointer, typename Unsigned<sizeof(T)>::type alignment) {
+T AlignUp(T pointer,
+          typename Unsigned<sizeof(T) * kBitsPerByte>::type alignment) {
   VIXL_ASSERT(IsPowerOf2(alignment));
   // Use C-style casts to get static_cast behaviour for integral types (T), and
   // reinterpret_cast behaviour for other types.
 
-  typename Unsigned<sizeof(T)>::type pointer_raw =
-      (typename Unsigned<sizeof(T)>::type)pointer;
+  typename Unsigned<sizeof(T)* kBitsPerByte>::type pointer_raw =
+      (typename Unsigned<sizeof(T) * kBitsPerByte>::type)pointer;
   VIXL_STATIC_ASSERT(sizeof(pointer) <= sizeof(pointer_raw));
 
   size_t mask = alignment - 1;
@@ -494,13 +495,14 @@ T AlignUp(T pointer, typename Unsigned<sizeof(T)>::type alignment) {
 // Decrement a pointer until it has the specified alignment. The alignment must
 // be a power of two.
 template <class T>
-T AlignDown(T pointer, typename Unsigned<sizeof(T)>::type alignment) {
+T AlignDown(T pointer,
+            typename Unsigned<sizeof(T) * kBitsPerByte>::type alignment) {
   VIXL_ASSERT(IsPowerOf2(alignment));
   // Use C-style casts to get static_cast behaviour for integral types (T), and
   // reinterpret_cast behaviour for other types.
 
-  typename Unsigned<sizeof(T)>::type pointer_raw =
-      (typename Unsigned<sizeof(T)>::type)pointer;
+  typename Unsigned<sizeof(T)* kBitsPerByte>::type pointer_raw =
+      (typename Unsigned<sizeof(T) * kBitsPerByte>::type)pointer;
   VIXL_STATIC_ASSERT(sizeof(pointer) <= sizeof(pointer_raw));
 
   size_t mask = alignment - 1;

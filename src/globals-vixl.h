@@ -71,16 +71,16 @@ const int MBytes = 1024 * KBytes;
 
 const int kBitsPerByte = 8;
 
-template <int SizeInBytes>
+template <int SizeInBits>
 struct Unsigned;
 
 template <>
-struct Unsigned<4> {
+struct Unsigned<32> {
   typedef uint32_t type;
 };
 
 template <>
-struct Unsigned<8> {
+struct Unsigned<64> {
   typedef uint64_t type;
 };
 
