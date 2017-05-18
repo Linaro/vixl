@@ -22974,6 +22974,24 @@ TEST(generic_operand) {
 }
 
 
+// Test feature detection of calls to runtime functions.
+
+// C++11 should be sufficient to provide simulated runtime calls, except for a
+// GCC bug before 4.9.1.
+#if defined(VIXL_INCLUDE_SIMULATOR_AARCH64) && (__cplusplus >= 201103L) && \
+    (defined(__clang__) || GCC_VERSION_OR_NEWER(4, 9, 1)) &&               \
+    !defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT)
+#error \
+    "C++11 should be sufficient to provide support for simulated runtime calls."
+#endif  // #if defined(VIXL_INCLUDE_SIMULATOR_AARCH64) && ...
+
+#if (__cplusplus >= 201103L) && \
+    !defined(VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT)
+#error \
+    "C++11 should be sufficient to provide support for `MacroAssembler::CallRuntime()`."
+#endif  // #if (__cplusplus >= 201103L) && ...
+
+#ifdef VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT
 int32_t runtime_call_add_one(int32_t a) { return a + 1; }
 
 double runtime_call_add_doubles(double a, double b, double c) {
@@ -23007,24 +23025,16 @@ double runtime_call_two_arguments_on_stack(int64_t arg1 __attribute__((unused)),
 
 void runtime_call_store_at_address(int64_t* address) { *address = 0xf00d; }
 
-// Test feature detection of calls to runtime functions.
+enum RuntimeCallTestEnum { Enum0 };
 
-// C++11 should be sufficient to provide simulated runtime calls, except for a
-// GCC bug before 4.9.1.
-#if defined(VIXL_INCLUDE_SIMULATOR_AARCH64) && (__cplusplus >= 201103L) && \
-    (defined(__clang__) || GCC_VERSION_OR_NEWER(4, 9, 1)) &&               \
-    !defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT)
-#error \
-    "C++11 should be sufficient to provide support for simulated runtime calls."
-#endif  // #if defined(VIXL_INCLUDE_SIMULATOR_AARCH64) && ...
+RuntimeCallTestEnum runtime_call_enum(RuntimeCallTestEnum e) { return e; }
 
-#if (__cplusplus >= 201103L) && \
-    !defined(VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT)
-#error \
-    "C++11 should be sufficient to provide support for `MacroAssembler::CallRuntime()`."
-#endif  // #if (__cplusplus >= 201103L) && ...
+enum class RuntimeCallTestEnumClass { Enum0 };
 
-#ifdef VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT
+RuntimeCallTestEnumClass runtime_call_enum_class(RuntimeCallTestEnumClass e) {
+  return e;
+}
+
 TEST(runtime_calls) {
   SETUP();
 
@@ -23064,6 +23074,12 @@ TEST(runtime_calls) {
   __ CallRuntime(runtime_call_two_arguments_on_stack);
   __ Fmov(d21, d0);
   __ Pop(d1, d0);
+
+  // Test that the template mechanisms don't break with enums.
+  __ Mov(w0, 0);
+  __ CallRuntime(runtime_call_enum);
+  __ Mov(w0, 0);
+  __ CallRuntime(runtime_call_enum_class);
 
   // Test `TailCallRuntime`.
 

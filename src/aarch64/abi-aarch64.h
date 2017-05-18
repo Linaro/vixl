@@ -85,7 +85,8 @@ class ABI {
   template <typename T>
   GenericOperand GetNextParameterGenericOperand() {
     const bool is_floating_point_type = std::is_floating_point<T>::value;
-    const bool is_integral_type = std::is_integral<T>::value;
+    const bool is_integral_type =
+        std::is_integral<T>::value || std::is_enum<T>::value;
     const bool is_pointer_type = std::is_pointer<T>::value;
     int type_alignment = std::alignment_of<T>::value;
 
