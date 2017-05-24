@@ -722,6 +722,50 @@ TEST(adr_in_range) {
 }
 
 
+// Check that we can use adr with any alignement.
+TEST(adr_unaligned) {
+  SETUP();
+
+  Label label_0, label_1, label_2, label_3, label_end;
+
+  START();
+  {
+    // 5 instructions.
+    ExactAssemblyScope scope(&masm,
+                             5 * kA32InstructionSizeInBytes,
+                             ExactAssemblyScope::kExactSize);
+    __ adr(Wide, r0, &label_0);
+    __ adr(Wide, r1, &label_1);
+    __ adr(Wide, r2, &label_2);
+    __ adr(Wide, r3, &label_3);
+    __ b(Wide, &label_end);
+  }
+  {
+    __ Bind(&label_0);
+    __ GetBuffer()->EmitData("a", 1);
+    __ Bind(&label_1);
+    __ GetBuffer()->EmitData("b", 1);
+    __ Bind(&label_2);
+    __ GetBuffer()->EmitData("c", 1);
+    __ Bind(&label_3);
+    __ GetBuffer()->EmitData("d", 1);
+    __ Bind(&label_end);
+    __ Ldrb(r0, MemOperand(r0));
+    __ Ldrb(r1, MemOperand(r1));
+    __ Ldrb(r2, MemOperand(r2));
+    __ Ldrb(r3, MemOperand(r3));
+  }
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_32('a', r0);
+  ASSERT_EQUAL_32('b', r1);
+  ASSERT_EQUAL_32('c', r2);
+  ASSERT_EQUAL_32('d', r3);
+}
+
+
 TEST(shift_imm) {
   SETUP();
 

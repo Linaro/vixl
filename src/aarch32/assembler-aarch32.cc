@@ -1812,9 +1812,9 @@ static const struct Assembler::ReferenceInfo kAdrT3Info =
      Assembler::ReferenceInfo::kAlignPc};
 static const struct Assembler::ReferenceInfo kAdrA1Info =
     {kA32InstructionSizeInBytes,
-     -255,  // Min offset.
-     255,   // Max offset.
-     4,     // Alignment.
+     -256,  // Min offset.
+     256,   // Max offset.
+     1,     // Alignment.
      Assembler::ReferenceInfo::kAlignPc};
 static const struct Assembler::ReferenceInfo kBT1Info =
     {k16BitT32InstructionSizeInBytes,
