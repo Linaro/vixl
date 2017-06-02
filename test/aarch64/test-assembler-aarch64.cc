@@ -259,6 +259,77 @@ namespace aarch64 {
   VIXL_CHECK((expected + kInstructionSize) == (masm.GetLiteralPoolSize()))
 
 
+TEST(preshift_immediates) {
+  SETUP();
+
+  START();
+  // Test operations involving immediates that could be generated using a
+  // pre-shifted encodable immediate followed by a post-shift applied to
+  // the arithmetic or logical operation.
+
+  // Save sp.
+  __ Mov(x29, sp);
+
+  // Set the registers to known values.
+  __ Mov(x0, 0x1000);
+  __ Mov(sp, 0x1004);
+
+  // Arithmetic ops.
+  __ Add(x1, x0, 0x1f7de);
+  __ Add(w2, w0, 0xffffff1);
+  __ Adds(x3, x0, 0x18001);
+  __ Adds(w4, w0, 0xffffff1);
+  __ Sub(x5, x0, 0x1f7de);
+  __ Sub(w6, w0, 0xffffff1);
+  __ Subs(x7, x0, 0x18001);
+  __ Subs(w8, w0, 0xffffff1);
+
+  // Logical ops.
+  __ And(x9, x0, 0x1f7de);
+  __ Orr(w10, w0, 0xffffff1);
+  __ Eor(x11, x0, 0x18001);
+
+  // Ops using the stack pointer.
+  __ Add(sp, sp, 0x18001);
+  __ Mov(x12, sp);
+  __ Mov(sp, 0x1004);
+
+  __ Add(sp, sp, 0x1f7de);
+  __ Mov(x13, sp);
+  __ Mov(sp, 0x1004);
+
+  __ Adds(x14, sp, 0x1f7de);
+
+  __ Orr(sp, x0, 0x1f7de);
+  __ Mov(x15, sp);
+
+  //  Restore sp.
+  __ Mov(sp, x29);
+  END();
+
+  RUN();
+
+  ASSERT_EQUAL_64(0x1000, x0);
+  ASSERT_EQUAL_64(0x207de, x1);
+  ASSERT_EQUAL_64(0x10000ff1, x2);
+  ASSERT_EQUAL_64(0x19001, x3);
+  ASSERT_EQUAL_64(0x10000ff1, x4);
+  ASSERT_EQUAL_64(0xfffffffffffe1822, x5);
+  ASSERT_EQUAL_64(0xf000100f, x6);
+  ASSERT_EQUAL_64(0xfffffffffffe8fff, x7);
+  ASSERT_EQUAL_64(0xf000100f, x8);
+  ASSERT_EQUAL_64(0x1000, x9);
+  ASSERT_EQUAL_64(0xffffff1, x10);
+  ASSERT_EQUAL_64(0x19001, x11);
+  ASSERT_EQUAL_64(0x19005, x12);
+  ASSERT_EQUAL_64(0x207e2, x13);
+  ASSERT_EQUAL_64(0x207e2, x14);
+  ASSERT_EQUAL_64(0x1f7de, x15);
+
+  TEARDOWN();
+}
+
+
 TEST(stack_ops) {
   SETUP();
 
