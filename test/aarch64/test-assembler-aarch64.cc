@@ -23106,6 +23106,11 @@ RuntimeCallTestEnumClass runtime_call_enum_class(RuntimeCallTestEnumClass e) {
   return e;
 }
 
+int8_t test_int8_t(int8_t x) { return x; }
+uint8_t test_uint8_t(uint8_t x) { return x; }
+int16_t test_int16_t(int16_t x) { return x; }
+uint16_t test_uint16_t(uint16_t x) { return x; }
+
 TEST(runtime_calls) {
   SETUP();
 
@@ -23172,6 +23177,37 @@ TEST(runtime_calls) {
   // Save the result.
   __ Mov(w23, w0);
 
+  __ Mov(x24, 0);
+  int test_values[] = {static_cast<int8_t>(-1),
+                       static_cast<uint8_t>(-1),
+                       static_cast<int16_t>(-1),
+                       static_cast<uint16_t>(-1),
+                       -256,
+                       -1,
+                       0,
+                       1,
+                       256};
+  for (size_t i = 0; i < sizeof(test_values) / sizeof(test_values[0]); ++i) {
+    Label pass_int8, pass_uint8, pass_int16, pass_uint16;
+    int x = test_values[i];
+    __ Mov(w0, static_cast<int8_t>(x));
+    __ CallRuntime(test_int8_t);
+    __ Cmp(w0, static_cast<int8_t>(x));
+    __ Cinc(x24, x24, ne);
+    __ Mov(w0, static_cast<uint8_t>(x));
+    __ CallRuntime(test_uint8_t);
+    __ Cmp(w0, static_cast<uint8_t>(x));
+    __ Cinc(x24, x24, ne);
+    __ Mov(w0, static_cast<int16_t>(x));
+    __ CallRuntime(test_int16_t);
+    __ Cmp(w0, static_cast<int16_t>(x));
+    __ Cinc(x24, x24, ne);
+    __ Mov(w0, static_cast<uint16_t>(x));
+    __ CallRuntime(test_uint16_t);
+    __ Cmp(w0, static_cast<uint16_t>(x));
+    __ Cinc(x24, x24, ne);
+  }
+
 
   int64_t value = 0xbadbeef;
   __ Mov(x0, reinterpret_cast<uint64_t>(&value));
@@ -23190,6 +23226,7 @@ TEST(runtime_calls) {
   VIXL_CHECK(value == 0xf00d);
   ASSERT_EQUAL_64(0, x22);
   ASSERT_EQUAL_32(124, w23);
+  ASSERT_EQUAL_64(0, x24);
 #endif  // #if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) || ...
 
   TEARDOWN();
