@@ -3601,8 +3601,8 @@ const TestData kTests[] = {{{pl, r13, r0, plus, 0, Offset},
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
 #include "aarch32/traces/assembler-cond-rd-memop-immediate-512-ldrh-a32.h"
-#include "aarch32/traces/assembler-cond-rd-memop-immediate-512-ldrsh-a32.h"
 #include "aarch32/traces/assembler-cond-rd-memop-immediate-512-ldrsb-a32.h"
+#include "aarch32/traces/assembler-cond-rd-memop-immediate-512-ldrsh-a32.h"
 #include "aarch32/traces/assembler-cond-rd-memop-immediate-512-strh-a32.h"
 
 

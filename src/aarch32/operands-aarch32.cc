@@ -26,8 +26,8 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 extern "C" {
-#include <stdint.h>
 #include <inttypes.h>
+#include <stdint.h>
 }
 
 #include <cassert>

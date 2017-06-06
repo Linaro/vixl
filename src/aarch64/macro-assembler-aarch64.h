@@ -303,7 +303,8 @@ class VeneerPool : public Pool {
                    ptrdiff_t,
                    kInvalidOffset,
                    kReclaimFrom,
-                   kReclaimFactor> BranchInfoTypedSetBase;
+                   kReclaimFactor>
+      BranchInfoTypedSetBase;
   typedef InvalSetIterator<BranchInfoTypedSetBase> BranchInfoTypedSetIterBase;
 
   class BranchInfoTypedSet : public BranchInfoTypedSetBase {

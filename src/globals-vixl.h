@@ -54,9 +54,9 @@ extern "C" {
 #include "platform-vixl.h"
 
 #ifdef VIXL_NEGATIVE_TESTING
+#include <sstream>
 #include <stdexcept>
 #include <string>
-#include <sstream>
 #endif
 
 namespace vixl {
@@ -89,7 +89,7 @@ struct Unsigned<64> {
 // Detect the host's pointer size.
 #if (UINTPTR_MAX == UINT32_MAX)
 #define VIXL_HOST_POINTER_32
-#elif(UINTPTR_MAX == UINT64_MAX)
+#elif (UINTPTR_MAX == UINT64_MAX)
 #define VIXL_HOST_POINTER_64
 #else
 #error "Unsupported host pointer size."

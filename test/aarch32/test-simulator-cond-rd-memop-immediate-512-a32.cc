@@ -40,8 +40,8 @@
 #include "test-utils-aarch32.h"
 
 #include "aarch32/assembler-aarch32.h"
-#include "aarch32/macro-assembler-aarch32.h"
 #include "aarch32/disasm-aarch32.h"
+#include "aarch32/macro-assembler-aarch32.h"
 
 #define __ masm.
 #define BUF_SIZE (4096)
@@ -3336,8 +3336,8 @@ struct TestResult {
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
 #include "aarch32/traces/simulator-cond-rd-memop-immediate-512-ldrh-a32.h"
-#include "aarch32/traces/simulator-cond-rd-memop-immediate-512-ldrsh-a32.h"
 #include "aarch32/traces/simulator-cond-rd-memop-immediate-512-ldrsb-a32.h"
+#include "aarch32/traces/simulator-cond-rd-memop-immediate-512-ldrsh-a32.h"
 #include "aarch32/traces/simulator-cond-rd-memop-immediate-512-strh-a32.h"
 
 

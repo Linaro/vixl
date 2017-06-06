@@ -54,7 +54,7 @@ software is also required:
 
  1. Git
  2. [Google's `cpplint.py`][cpplint]
- 3. clang-format-3.6
+ 3. clang-format-3.8
 
 Refer to the 'Usage' section for details.
 
@@ -151,8 +151,8 @@ It is possible to tell `tools/test.py` to skip the linter stage by passing
 `--nolint`. This removes the dependency on `cpplint.py` and Git. The `--nolint`
 option is implied if the VIXL project is a snapshot (with no `.git` directory).
 
-Additionally, `tools/test.py` tests code formatting using `clang-format-3.6`.
-If you don't have `clang-format-3.6`, disable the test using the
+Additionally, `tools/test.py` tests code formatting using `clang-format-3.8`.
+If you don't have `clang-format-3.8`, disable the test using the
 `--noclang-format` option.
 
 Also note that the tests for the tracing features depend upon external `diff`

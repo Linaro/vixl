@@ -26,8 +26,8 @@
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
-#include <cstring>
 #include <cmath>
+#include <cstring>
 #include <limits>
 
 #include "simulator-aarch64.h"
@@ -4940,38 +4940,14 @@ void Simulator::VisitNEONShiftImmediate(const Instruction* instr) {
   // 00010->8B, 00011->16B, 001x0->4H, 001x1->8H,
   // 01xx0->2S, 01xx1->4S, 1xxx1->2D, all others undefined.
   static const NEONFormatMap map = {{22, 21, 20, 19, 30},
-                                    {NF_UNDEF,
-                                     NF_UNDEF,
-                                     NF_8B,
-                                     NF_16B,
-                                     NF_4H,
-                                     NF_8H,
-                                     NF_4H,
-                                     NF_8H,
-                                     NF_2S,
-                                     NF_4S,
-                                     NF_2S,
-                                     NF_4S,
-                                     NF_2S,
-                                     NF_4S,
-                                     NF_2S,
-                                     NF_4S,
-                                     NF_UNDEF,
-                                     NF_2D,
-                                     NF_UNDEF,
-                                     NF_2D,
-                                     NF_UNDEF,
-                                     NF_2D,
-                                     NF_UNDEF,
-                                     NF_2D,
-                                     NF_UNDEF,
-                                     NF_2D,
-                                     NF_UNDEF,
-                                     NF_2D,
-                                     NF_UNDEF,
-                                     NF_2D,
-                                     NF_UNDEF,
-                                     NF_2D}};
+                                    {NF_UNDEF, NF_UNDEF, NF_8B,    NF_16B,
+                                     NF_4H,    NF_8H,    NF_4H,    NF_8H,
+                                     NF_2S,    NF_4S,    NF_2S,    NF_4S,
+                                     NF_2S,    NF_4S,    NF_2S,    NF_4S,
+                                     NF_UNDEF, NF_2D,    NF_UNDEF, NF_2D,
+                                     NF_UNDEF, NF_2D,    NF_UNDEF, NF_2D,
+                                     NF_UNDEF, NF_2D,    NF_UNDEF, NF_2D,
+                                     NF_UNDEF, NF_2D,    NF_UNDEF, NF_2D}};
   NEONFormatDecoder nfd(instr, &map);
   VectorFormat vf = nfd.GetVectorFormat();
 

@@ -25,8 +25,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "utils-vixl.h"
 #include "aarch32/constants-aarch32.h"
+#include "utils-vixl.h"
 
 namespace vixl {
 namespace aarch32 {

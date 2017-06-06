@@ -74,36 +74,36 @@ struct CounterDescriptor {
 };
 
 
-static const CounterDescriptor kCounterList[] = {{"Instruction", Cumulative},
+static const CounterDescriptor kCounterList[] =
+    {{"Instruction", Cumulative},
 
-                                                 {"Move Immediate", Gauge},
-                                                 {"Add/Sub DP", Gauge},
-                                                 {"Logical DP", Gauge},
-                                                 {"Other Int DP", Gauge},
-                                                 {"FP DP", Gauge},
+     {"Move Immediate", Gauge},
+     {"Add/Sub DP", Gauge},
+     {"Logical DP", Gauge},
+     {"Other Int DP", Gauge},
+     {"FP DP", Gauge},
 
-                                                 {"Conditional Select", Gauge},
-                                                 {"Conditional Compare", Gauge},
+     {"Conditional Select", Gauge},
+     {"Conditional Compare", Gauge},
 
-                                                 {"Unconditional Branch",
-                                                  Gauge},
-                                                 {"Compare and Branch", Gauge},
-                                                 {"Test and Branch", Gauge},
-                                                 {"Conditional Branch", Gauge},
+     {"Unconditional Branch", Gauge},
+     {"Compare and Branch", Gauge},
+     {"Test and Branch", Gauge},
+     {"Conditional Branch", Gauge},
 
-                                                 {"Load Integer", Gauge},
-                                                 {"Load FP", Gauge},
-                                                 {"Load Pair", Gauge},
-                                                 {"Load Literal", Gauge},
+     {"Load Integer", Gauge},
+     {"Load FP", Gauge},
+     {"Load Pair", Gauge},
+     {"Load Literal", Gauge},
 
-                                                 {"Store Integer", Gauge},
-                                                 {"Store FP", Gauge},
-                                                 {"Store Pair", Gauge},
+     {"Store Integer", Gauge},
+     {"Store FP", Gauge},
+     {"Store Pair", Gauge},
 
-                                                 {"PC Addressing", Gauge},
-                                                 {"Other", Gauge},
-                                                 {"NEON", Gauge},
-                                                 {"Crypto", Gauge}};
+     {"PC Addressing", Gauge},
+     {"Other", Gauge},
+     {"NEON", Gauge},
+     {"Crypto", Gauge}};
 
 
 Instrument::Instrument(const char* datafile, uint64_t sample_period)

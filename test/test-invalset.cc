@@ -69,7 +69,8 @@ typedef InvalSet<Obj,
                  KeyType,
                  kInvalidKey,
                  kReclaimFrom,
-                 kReclaimFactor> TestSet;
+                 kReclaimFactor>
+    TestSet;
 
 template <>
 inline KeyType InvalSet<Obj,

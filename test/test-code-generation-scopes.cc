@@ -27,8 +27,8 @@
 #include "test-runner.h"
 
 #ifdef VIXL_INCLUDE_TARGET_AARCH32
-#include "aarch32/test-utils-aarch32.h"
 #include "aarch32/macro-assembler-aarch32.h"
+#include "aarch32/test-utils-aarch32.h"
 #endif
 
 #ifdef VIXL_INCLUDE_TARGET_AARCH64

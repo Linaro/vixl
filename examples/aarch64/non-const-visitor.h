@@ -27,6 +27,9 @@
 #ifndef VIXL_EXAMPLES_NON_CONST_VISITOR_H_
 #define VIXL_EXAMPLES_NON_CONST_VISITOR_H_
 
+#include "aarch64/decoder-aarch64.h"
+#include "aarch64/macro-assembler-aarch64.h"
+
 using namespace vixl::aarch64;
 
 class SwitchAddSubRegisterSources : public DecoderVisitor {

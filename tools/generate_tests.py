@@ -34,7 +34,7 @@ From the VIXL toplevel directory run:
 
     $ ./tools/generate_tests.py
 
-The script assumes that `clang-format-3.6` is in the current path. If it isn't,
+The script assumes that `clang-format-3.8` is in the current path. If it isn't,
 you can provide your own:
 
     $ ./tools/generate_tests.py --clang-format /patch/to/clang-format
@@ -687,7 +687,7 @@ def BuildOptions():
                       metavar='FILE',
                       help='Configuration files, each will generate a test file.')
   result.add_argument('--clang-format',
-                      default='clang-format-3.6', help='Path to clang-format.')
+                      default='clang-format-3.8', help='Path to clang-format.')
   result.add_argument('--jobs', '-j', type=int, metavar='N',
                       default=multiprocessing.cpu_count(),
                       help='Allow N jobs at once')

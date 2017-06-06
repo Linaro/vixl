@@ -497,7 +497,7 @@ PoolManager<T>::~PoolManager<T>() {
   }
 #endif
   // Delete objects the pool manager owns.
-  for (typename std::vector<LocationBase<T>*>::iterator
+  for (typename std::vector<LocationBase<T> *>::iterator
            iter = delete_on_destruction_.begin(),
            end = delete_on_destruction_.end();
        iter != end;

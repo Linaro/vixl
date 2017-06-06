@@ -28,9 +28,9 @@
 #define TEST_TEST_POOL_MANAGER_H_
 
 #include <math.h>
-#include <stdlib.h>
-#include <pool-manager.h>
 #include <pool-manager-impl.h>
+#include <pool-manager.h>
+#include <stdlib.h>
 
 namespace vixl {
 class TestPoolManager {

@@ -28,8 +28,8 @@
 
 #include <stdio.h>
 
-#include "pool-manager.h"
 #include "pool-manager-impl.h"
+#include "pool-manager.h"
 #include "test-runner.h"
 
 #define TEST(Name) TEST_(POOL_MANAGER_##Name)

@@ -723,39 +723,12 @@ class NEONFormatDecoder {
   // xxx10->8B, xxx11->16B, xx100->4H, xx101->8H
   // x1000->2S, x1001->4S,  10001->2D, all others undefined.
   static const NEONFormatMap* TriangularFormatMap() {
-    static const NEONFormatMap map = {{19, 18, 17, 16, 30},
-                                      {NF_UNDEF,
-                                       NF_UNDEF,
-                                       NF_8B,
-                                       NF_16B,
-                                       NF_4H,
-                                       NF_8H,
-                                       NF_8B,
-                                       NF_16B,
-                                       NF_2S,
-                                       NF_4S,
-                                       NF_8B,
-                                       NF_16B,
-                                       NF_4H,
-                                       NF_8H,
-                                       NF_8B,
-                                       NF_16B,
-                                       NF_UNDEF,
-                                       NF_2D,
-                                       NF_8B,
-                                       NF_16B,
-                                       NF_4H,
-                                       NF_8H,
-                                       NF_8B,
-                                       NF_16B,
-                                       NF_2S,
-                                       NF_4S,
-                                       NF_8B,
-                                       NF_16B,
-                                       NF_4H,
-                                       NF_8H,
-                                       NF_8B,
-                                       NF_16B}};
+    static const NEONFormatMap map =
+        {{19, 18, 17, 16, 30},
+         {NF_UNDEF, NF_UNDEF, NF_8B, NF_16B, NF_4H, NF_8H, NF_8B, NF_16B,
+          NF_2S,    NF_4S,    NF_8B, NF_16B, NF_4H, NF_8H, NF_8B, NF_16B,
+          NF_UNDEF, NF_2D,    NF_8B, NF_16B, NF_4H, NF_8H, NF_8B, NF_16B,
+          NF_2S,    NF_4S,    NF_8B, NF_16B, NF_4H, NF_8H, NF_8B, NF_16B}};
     return &map;
   }
 

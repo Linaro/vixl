@@ -75,7 +75,7 @@ def ClangFormat(filename, in_place = False, progress_prefix = ''):
   printer.PrintOverwritableLine('Processing %s' % filename,
                                 type = printer.LINE_TYPE_LINTER)
 
-  cmd_format = ['clang-format-3.6', filename]
+  cmd_format = ['clang-format-3.8', filename]
   temp_file, temp_file_name = tempfile.mkstemp(prefix = 'clang_format_')
   cmd_format_string = '$ ' + ' '.join(cmd_format) + ' > %s' % temp_file_name
   p_format = subprocess.Popen(cmd_format,
@@ -100,7 +100,7 @@ def ClangFormat(filename, in_place = False, progress_prefix = ''):
   rc += p_diff.wait()
 
   if in_place:
-      cmd_format = ['clang-format-3.6', '-i', filename]
+      cmd_format = ['clang-format-3.8', '-i', filename]
       p_format = subprocess.Popen(cmd_format,
                                   stdout=temp_file, stderr=subprocess.STDOUT)
 
@@ -128,10 +128,10 @@ def ClangFormatWrapper(args):
 
 # Returns the total number of files incorrectly formatted.
 def ClangFormatFiles(files, in_place = False, jobs = 1, progress_prefix = ''):
-  if not util.IsCommandAvailable('clang-format-3.6'):
+  if not util.IsCommandAvailable('clang-format-3.8'):
     print(
       printer.COLOUR_RED + \
-      ("`clang-format-3.6` not found. Please ensure it is installed "
+      ("`clang-format-3.8` not found. Please ensure it is installed "
        "and in your PATH.") + \
       printer.NO_COLOUR)
     return -1

@@ -24,14 +24,14 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <string>
-#include <map>
 #include <iostream>
+#include <map>
+#include <string>
 
 #include "aarch32/constants-aarch32.h"
+#include "aarch32/disasm-aarch32.h"
 #include "aarch32/instructions-aarch32.h"
 #include "aarch32/macro-assembler-aarch32.h"
-#include "aarch32/disasm-aarch32.h"
 
 #define __ masm.
 

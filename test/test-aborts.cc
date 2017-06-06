@@ -26,8 +26,8 @@
 
 #include <stdlib.h>
 
-#include "test-runner.h"
 #include "globals-vixl.h"
+#include "test-runner.h"
 
 // These are all negative tests to check that the aborts work and print sensible
 // messages. These tests cannot check the aborts with negative_testing=off.

@@ -40,8 +40,8 @@
 #include "test-utils-aarch32.h"
 
 #include "aarch32/assembler-aarch32.h"
-#include "aarch32/macro-assembler-aarch32.h"
 #include "aarch32/disasm-aarch32.h"
+#include "aarch32/macro-assembler-aarch32.h"
 
 #define __ masm.
 #define BUF_SIZE (4096)
@@ -171,37 +171,18 @@ static const Inputs kCondition[] = {{NFlag, 0xabababab},
                                     {ZCVFlag, 0xabababab},
                                     {NZCVFlag, 0xabababab}};
 
-static const Inputs kModifiedImmediate[] = {{NoFlag, 0x00000000},
-                                            {NoFlag, 0x00000001},
-                                            {NoFlag, 0x00000002},
-                                            {NoFlag, 0x00000020},
-                                            {NoFlag, 0x0000007d},
-                                            {NoFlag, 0x0000007e},
-                                            {NoFlag, 0x0000007f},
-                                            {NoFlag, 0x00007ffd},
-                                            {NoFlag, 0x00007ffe},
-                                            {NoFlag, 0x00007fff},
-                                            {NoFlag, 0x33333333},
-                                            {NoFlag, 0x55555555},
-                                            {NoFlag, 0x7ffffffd},
-                                            {NoFlag, 0x7ffffffe},
-                                            {NoFlag, 0x7fffffff},
-                                            {NoFlag, 0x80000000},
-                                            {NoFlag, 0x80000001},
-                                            {NoFlag, 0xaaaaaaaa},
-                                            {NoFlag, 0xcccccccc},
-                                            {NoFlag, 0xffff8000},
-                                            {NoFlag, 0xffff8001},
-                                            {NoFlag, 0xffff8002},
-                                            {NoFlag, 0xffff8003},
-                                            {NoFlag, 0xffffff80},
-                                            {NoFlag, 0xffffff81},
-                                            {NoFlag, 0xffffff82},
-                                            {NoFlag, 0xffffff83},
-                                            {NoFlag, 0xffffffe0},
-                                            {NoFlag, 0xfffffffd},
-                                            {NoFlag, 0xfffffffe},
-                                            {NoFlag, 0xffffffff}};
+static const Inputs kModifiedImmediate[] =
+    {{NoFlag, 0x00000000}, {NoFlag, 0x00000001}, {NoFlag, 0x00000002},
+     {NoFlag, 0x00000020}, {NoFlag, 0x0000007d}, {NoFlag, 0x0000007e},
+     {NoFlag, 0x0000007f}, {NoFlag, 0x00007ffd}, {NoFlag, 0x00007ffe},
+     {NoFlag, 0x00007fff}, {NoFlag, 0x33333333}, {NoFlag, 0x55555555},
+     {NoFlag, 0x7ffffffd}, {NoFlag, 0x7ffffffe}, {NoFlag, 0x7fffffff},
+     {NoFlag, 0x80000000}, {NoFlag, 0x80000001}, {NoFlag, 0xaaaaaaaa},
+     {NoFlag, 0xcccccccc}, {NoFlag, 0xffff8000}, {NoFlag, 0xffff8001},
+     {NoFlag, 0xffff8002}, {NoFlag, 0xffff8003}, {NoFlag, 0xffffff80},
+     {NoFlag, 0xffffff81}, {NoFlag, 0xffffff82}, {NoFlag, 0xffffff83},
+     {NoFlag, 0xffffffe0}, {NoFlag, 0xfffffffd}, {NoFlag, 0xfffffffe},
+     {NoFlag, 0xffffffff}};
 
 
 // A loop will be generated for each element of this array.

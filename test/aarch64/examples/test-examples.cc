@@ -25,13 +25,13 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../test-runner.h"
-#include "../test-utils-aarch64.h"
 #include "custom-disassembler.h"
 #include "examples.h"
 #include "non-const-visitor.h"
+#include "../test-utils-aarch64.h"
 
-#include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/debugger-aarch64.h"
+#include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/simulator-aarch64.h"
 #define TEST(name) TEST_(EXAMPLE_##name)
 

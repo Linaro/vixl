@@ -24,15 +24,15 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <list>
 #include <sstream>
 #include <string>
-#include <list>
 
 #include "test-runner.h"
 #include "test-utils.h"
 
-#include "aarch32/macro-assembler-aarch32.h"
 #include "aarch32/disasm-aarch32.h"
+#include "aarch32/macro-assembler-aarch32.h"
 
 #ifdef VIXL_NEGATIVE_TESTING
 #include <stdexcept>
@@ -3308,25 +3308,33 @@ TEST(unbound_label) {
   SETUP();
 
 #ifdef VIXL_DEBUG
-  MUST_FAIL_TEST_BOTH_BLOCK({
-    Label label;
-    masm.B(&label);
-  }, "Location, label or literal used but not bound.\n")
+  MUST_FAIL_TEST_BOTH_BLOCK(
+      {
+        Label label;
+        masm.B(&label);
+      },
+      "Location, label or literal used but not bound.\n")
 
-  MUST_FAIL_TEST_BOTH_BLOCK({
-    Label label;
-    masm.B(eq, &label);
-  }, "Location, label or literal used but not bound.\n")
+  MUST_FAIL_TEST_BOTH_BLOCK(
+      {
+        Label label;
+        masm.B(eq, &label);
+      },
+      "Location, label or literal used but not bound.\n")
 
-  MUST_FAIL_TEST_T32_BLOCK({
-    Label label;
-    masm.Cbz(r0, &label);
-  }, "Location, label or literal used but not bound.\n")
+  MUST_FAIL_TEST_T32_BLOCK(
+      {
+        Label label;
+        masm.Cbz(r0, &label);
+      },
+      "Location, label or literal used but not bound.\n")
 
-  MUST_FAIL_TEST_T32_BLOCK({
-    Label label;
-    masm.Cbnz(r1, &label);
-  }, "Location, label or literal used but not bound.\n")
+  MUST_FAIL_TEST_T32_BLOCK(
+      {
+        Label label;
+        masm.Cbnz(r1, &label);
+      },
+      "Location, label or literal used but not bound.\n")
 #endif
 
   CLEANUP();

@@ -40,8 +40,8 @@
 #include "test-utils-aarch32.h"
 
 #include "aarch32/assembler-aarch32.h"
-#include "aarch32/macro-assembler-aarch32.h"
 #include "aarch32/disasm-aarch32.h"
+#include "aarch32/macro-assembler-aarch32.h"
 
 #define __ masm.
 #define BUF_SIZE (4096)

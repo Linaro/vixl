@@ -34,8 +34,8 @@ extern "C" {
 #include <algorithm>
 #include <ostream>
 
-#include "utils-vixl.h"
 #include "code-buffer-vixl.h"
+#include "utils-vixl.h"
 #include "aarch32/constants-aarch32.h"
 
 #ifdef __arm__

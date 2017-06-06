@@ -40,8 +40,8 @@
 #include "test-utils-aarch32.h"
 
 #include "aarch32/assembler-aarch32.h"
-#include "aarch32/macro-assembler-aarch32.h"
 #include "aarch32/disasm-aarch32.h"
+#include "aarch32/macro-assembler-aarch32.h"
 
 #define __ masm.
 #define BUF_SIZE (4096)
@@ -1431,13 +1431,21 @@ struct TestResult {
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
 #include "aarch32/traces/simulator-cond-rd-rn-rm-mul-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qadd-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-qadd16-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-qadd8-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-qasx-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qdadd-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qdsub-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-qsax-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-qsub-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-qsub16-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-qsub8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-sadd16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-sadd8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-sasx-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-sdiv-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-sel-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-shadd16-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-shadd8-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-shasx-t32.h"
@@ -1456,6 +1464,12 @@ struct TestResult {
 #include "aarch32/traces/simulator-cond-rd-rn-rm-smulwt-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-smusd-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-smusdx-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-ssax-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-ssub16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-ssub8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uadd16-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uadd8-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-rm-uasx-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-udiv-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-uhadd16-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-uhadd8-t32.h"
@@ -1470,23 +1484,9 @@ struct TestResult {
 #include "aarch32/traces/simulator-cond-rd-rn-rm-uqsub16-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-uqsub8-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-usad8-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-sadd16-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-sadd8-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-sasx-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-sel-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-ssax-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-ssub16-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-ssub8-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-uadd16-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-uadd8-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-uasx-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-usax-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-usub16-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-rm-usub8-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-qadd-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-qdadd-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-qdsub-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-rm-qsub-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.

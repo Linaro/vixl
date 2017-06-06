@@ -206,15 +206,15 @@ const TestData kTests[] =
 
 // These headers each contain an array of `TestResult` with the reference output
 // values. The reference arrays are names `kReference{mnemonic}`.
-#include "aarch32/traces/assembler-cond-dt-drt-drd-drn-drm-float-f32-only-vceq-t32.h"
-#include "aarch32/traces/assembler-cond-dt-drt-drd-drn-drm-float-f32-only-vpadd-t32.h"
 #include "aarch32/traces/assembler-cond-dt-drt-drd-drn-drm-float-f32-only-vabd-t32.h"
+#include "aarch32/traces/assembler-cond-dt-drt-drd-drn-drm-float-f32-only-vceq-t32.h"
 #include "aarch32/traces/assembler-cond-dt-drt-drd-drn-drm-float-f32-only-vcge-t32.h"
 #include "aarch32/traces/assembler-cond-dt-drt-drd-drn-drm-float-f32-only-vcgt-t32.h"
 #include "aarch32/traces/assembler-cond-dt-drt-drd-drn-drm-float-f32-only-vcle-t32.h"
 #include "aarch32/traces/assembler-cond-dt-drt-drd-drn-drm-float-f32-only-vclt-t32.h"
 #include "aarch32/traces/assembler-cond-dt-drt-drd-drn-drm-float-f32-only-vmax-t32.h"
 #include "aarch32/traces/assembler-cond-dt-drt-drd-drn-drm-float-f32-only-vmin-t32.h"
+#include "aarch32/traces/assembler-cond-dt-drt-drd-drn-drm-float-f32-only-vpadd-t32.h"
 #include "aarch32/traces/assembler-cond-dt-drt-drd-drn-drm-float-f32-only-vpmax-t32.h"
 #include "aarch32/traces/assembler-cond-dt-drt-drd-drn-drm-float-f32-only-vpmin-t32.h"
 

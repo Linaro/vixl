@@ -25,15 +25,15 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstdio>
-#include <string>
 #include <iostream>
+#include <string>
 
 #include "test-runner.h"
 #include "test-utils.h"
 #include "aarch32/test-utils-aarch32.h"
 
-#include "aarch32/macro-assembler-aarch32.h"
 #include "aarch32/disasm-aarch32.h"
+#include "aarch32/macro-assembler-aarch32.h"
 
 namespace vixl {
 namespace aarch32 {

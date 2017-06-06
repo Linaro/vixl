@@ -44,8 +44,8 @@ extern "C" {
 #include <string>
 
 #include "globals-vixl.h"
-#include "aarch32/instructions-aarch32.h"
 #include "aarch32/disasm-aarch32.h"
+#include "aarch32/instructions-aarch32.h"
 
 class Symbol {
   Elf32_Addr addr_;
@@ -193,7 +193,8 @@ class StaticSymbolVisitor {
 void usage() {
   std::cout << "usage: disasm-a32 <file>\n"
                "where <file> is an ELF ARM binaryfile, either an executable, "
-               "a shared object, or an object file." << std::endl;
+               "a shared object, or an object file."
+            << std::endl;
 }
 
 

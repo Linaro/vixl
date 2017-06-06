@@ -40,8 +40,8 @@
 #include "test-utils-aarch32.h"
 
 #include "aarch32/assembler-aarch32.h"
-#include "aarch32/macro-assembler-aarch32.h"
 #include "aarch32/disasm-aarch32.h"
+#include "aarch32/macro-assembler-aarch32.h"
 
 #define __ masm.
 #define BUF_SIZE (4096)
@@ -1054,14 +1054,22 @@ struct TestResult {
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-adds-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-and-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ands-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-asr-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-asrs-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-bic-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-bics-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-eor-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-eors-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-lsl-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-lsls-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-lsr-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-lsrs-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-orn-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-orns-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-orr-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-orrs-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-t32.h"
+#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-rors-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-rsb-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-rsbs-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-sbc-t32.h"
@@ -1074,14 +1082,6 @@ struct TestResult {
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-uxtab-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-uxtab16-t32.h"
 #include "aarch32/traces/simulator-cond-rd-rn-operand-rm-uxtah-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-asr-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-asrs-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-lsl-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-lsls-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-lsr-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-lsrs-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-ror-t32.h"
-#include "aarch32/traces/simulator-cond-rd-rn-operand-rm-rors-t32.h"
 
 
 // The maximum number of errors to report in detail for each test.

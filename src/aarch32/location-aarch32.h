@@ -36,8 +36,8 @@ extern "C" {
 #include <iomanip>
 #include <list>
 
-#include "pool-manager.h"
 #include "invalset-vixl.h"
+#include "pool-manager.h"
 #include "utils-vixl.h"
 
 #include "constants-aarch32.h"
@@ -153,7 +153,8 @@ class Location : public LocationBase<int32_t> {
                    int32_t,
                    kInvalidLinkKey,
                    kReclaimFrom,
-                   kReclaimFactor> ForwardRefListBase;
+                   kReclaimFactor>
+      ForwardRefListBase;
   typedef InvalSetIterator<ForwardRefListBase> ForwardRefListIteratorBase;
 
   class ForwardRefList : public ForwardRefListBase {

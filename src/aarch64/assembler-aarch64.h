@@ -67,7 +67,8 @@ class Label {
                    ptrdiff_t,
                    kInvalidLinkKey,
                    kReclaimFrom,
-                   kReclaimFactor> LinksSetBase;
+                   kReclaimFactor>
+      LinksSetBase;
   typedef InvalSetIterator<LinksSetBase> LabelLinksIteratorBase;
 
  private:
