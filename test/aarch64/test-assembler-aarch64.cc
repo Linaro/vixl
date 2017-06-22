@@ -255,8 +255,13 @@ namespace aarch64 {
         masm.GetBuffer()->GetOffsetAddress<Instruction*>(end_offset);   \
     while (instruction != end) {                                        \
       disassembler_decoder.Decode(instruction);                         \
-      uint32_t encoding = *reinterpret_cast<uint32_t*>(instruction);    \
-      printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());      \
+      uint32_t encoding;                                                \
+      memcpy(&encoding, instruction, sizeof(encoding));                 \
+      uint64_t address = reinterpret_cast<uintptr_t>(instruction);      \
+      printf("  %016" PRIx64 ":\t%08" PRIx32 "\t%s\n",                  \
+             address,                                                   \
+             encoding,                                                  \
+             disasm.GetOutput());                                       \
       instruction += kInstructionSize;                                  \
     }                                                                   \
   }
