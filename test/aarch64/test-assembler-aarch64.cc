@@ -120,7 +120,9 @@ namespace aarch64 {
   Disassembler disasm;                                            \
   Decoder disassembler_decoder;                                   \
   disassembler_decoder.AppendVisitor(&disasm);                    \
-  RegisterDump core
+  RegisterDump core;                                              \
+  ptrdiff_t offset_after_infrastructure_start;                    \
+  ptrdiff_t offset_before_infrastructure_end
 
 #define START()                                                               \
   masm.Reset();                                                               \
@@ -138,16 +140,22 @@ namespace aarch64 {
   }                                                                           \
   if (Test::instruction_stats()) {                                            \
     __ EnableInstrumentation();                                               \
-  }
+  }                                                                           \
+  offset_after_infrastructure_start = masm.GetCursorOffset();                 \
+  /* Avoid unused-variable warnings in case a test never calls RUN(). */      \
+  USE(offset_after_infrastructure_start)
 
-#define END()                       \
-  if (Test::instruction_stats()) {  \
-    __ DisableInstrumentation();    \
-  }                                 \
-  __ Trace(LOG_ALL, TRACE_DISABLE); \
-  core.Dump(&masm);                 \
-  __ PopCalleeSavedRegisters();     \
-  __ Ret();                         \
+#define END()                                                            \
+  offset_before_infrastructure_end = masm.GetCursorOffset();             \
+  /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
+  USE(offset_before_infrastructure_end);                                 \
+  if (Test::instruction_stats()) {                                       \
+    __ DisableInstrumentation();                                         \
+  }                                                                      \
+  __ Trace(LOG_ALL, TRACE_DISABLE);                                      \
+  core.Dump(&masm);                                                      \
+  __ PopCalleeSavedRegisters();                                          \
+  __ Ret();                                                              \
   masm.FinalizeCode()
 
 #define RUN()    \
@@ -188,16 +196,24 @@ namespace aarch64 {
   disassembler_decoder.AppendVisitor(&disasm); \
   masm.SetGenerateSimulatorCode(false);        \
   RegisterDump core;                           \
-  CPU::SetUp()
+  CPU::SetUp();                                \
+  ptrdiff_t offset_after_infrastructure_start; \
+  ptrdiff_t offset_before_infrastructure_end
 
-#define START() \
-  masm.Reset(); \
-  __ PushCalleeSavedRegisters()
+#define START()                                                          \
+  masm.Reset();                                                          \
+  __ PushCalleeSavedRegisters();                                         \
+  offset_after_infrastructure_start = masm.GetCursorOffset();            \
+  /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
+  USE(offset_after_infrastructure_start)
 
-#define END()                   \
-  core.Dump(&masm);             \
-  __ PopCalleeSavedRegisters(); \
-  __ Ret();                     \
+#define END()                                                            \
+  offset_before_infrastructure_end = masm.GetCursorOffset();             \
+  /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
+  USE(offset_before_infrastructure_end);                                 \
+  core.Dump(&masm);                                                      \
+  __ PopCalleeSavedRegisters();                                          \
+  __ Ret();                                                              \
   masm.FinalizeCode()
 
 // Execute the generated code from the memory area.
@@ -221,18 +237,28 @@ namespace aarch64 {
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
 
-#define DISASSEMBLE()                                                    \
-  if (Test::disassemble()) {                                             \
-    Instruction* instruction =                                           \
-        masm.GetBuffer()->GetStartAddress<Instruction*>();               \
-    Instruction* end = masm.GetBuffer()->GetOffsetAddress<Instruction*>( \
-        masm.GetSizeOfCodeGenerated());                                  \
-    while (instruction != end) {                                         \
-      disassembler_decoder.Decode(instruction);                          \
-      uint32_t encoding = *reinterpret_cast<uint32_t*>(instruction);     \
-      printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());       \
-      instruction += kInstructionSize;                                   \
-    }                                                                    \
+#define DISASSEMBLE()                                                   \
+  if (Test::disassemble()) {                                            \
+    ptrdiff_t start_offset = offset_after_infrastructure_start;         \
+    ptrdiff_t end_offset = offset_before_infrastructure_end;            \
+    if (Test::disassemble_infrastructure()) {                           \
+      start_offset = 0;                                                 \
+      end_offset = masm.GetSizeOfCodeGenerated();                       \
+    } else {                                                            \
+      printf(                                                           \
+          "    Warning: Omitting infrastructure code. "                 \
+          "Use --disassemble to see it.\n");                            \
+    }                                                                   \
+    Instruction* instruction =                                          \
+        masm.GetBuffer()->GetOffsetAddress<Instruction*>(start_offset); \
+    Instruction* end =                                                  \
+        masm.GetBuffer()->GetOffsetAddress<Instruction*>(end_offset);   \
+    while (instruction != end) {                                        \
+      disassembler_decoder.Decode(instruction);                         \
+      uint32_t encoding = *reinterpret_cast<uint32_t*>(instruction);    \
+      printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());      \
+      instruction += kInstructionSize;                                  \
+    }                                                                   \
   }
 
 #define ASSERT_EQUAL_NZCV(expected) \

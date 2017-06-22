@@ -58,6 +58,12 @@ class Test {
   static void set_trace_branch(bool value) { trace_branch_ = value; }
   static bool disassemble() { return disassemble_; }
   static void set_disassemble(bool value) { disassemble_ = value; }
+  static bool disassemble_infrastructure() {
+    return disassemble_infrastructure_;
+  }
+  static void set_disassemble_infrastructure(bool value) {
+    disassemble_infrastructure_ = value;
+  }
   static bool coloured_trace() { return coloured_trace_; }
   static void set_coloured_trace(bool value) { coloured_trace_ = value; }
   static bool instruction_stats() { return instruction_stats_; }
@@ -84,6 +90,7 @@ class Test {
   static bool trace_write_;
   static bool trace_branch_;
   static bool disassemble_;
+  static bool disassemble_infrastructure_;
   static bool coloured_trace_;
   static bool instruction_stats_;
   static bool generate_test_trace_;
