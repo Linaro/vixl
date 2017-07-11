@@ -130,9 +130,10 @@ V_(ImmBarrierDomain, 11, 10, ExtractBits)                                    \
 V_(ImmBarrierType, 9, 8, ExtractBits)                                        \
                                                                              \
 /* System (MRS, MSR, SYS) */                                                 \
-V_(ImmSystemRegister, 19, 5, ExtractBits)                                    \
+V_(ImmSystemRegister, 20, 5, ExtractBits)                                    \
 V_(SysO0, 19, 19, ExtractBits)                                               \
 V_(SysOp, 18, 5, ExtractBits)                                                \
+V_(SysOp0, 20, 19, ExtractBits)                                              \
 V_(SysOp1, 18, 16, ExtractBits)                                              \
 V_(SysOp2, 7, 5, ExtractBits)                                                \
 V_(CRn, 15, 12, ExtractBits)                                                 \
@@ -338,20 +339,23 @@ enum PrefetchOperation {
   PSTL3STRM = 0x15
 };
 
+template<int op0, int op1, int crn, int crm, int op2>
+class SystemRegisterEncoder {
+ public:
+  static const uint32_t value =
+      ((op0 << SysO0_offset) |
+       (op1 << SysOp1_offset) |
+       (crn << CRn_offset) |
+       (crm << CRm_offset) |
+       (op2 << SysOp2_offset)) >> ImmSystemRegister_offset;
+};
+
 // System/special register names.
 // This information is not encoded as one field but as the concatenation of
 // multiple fields (Op0<0>, Op1, Crn, Crm, Op2).
 enum SystemRegister {
-  NZCV = ((0x1 << SysO0_offset) |
-          (0x3 << SysOp1_offset) |
-          (0x4 << CRn_offset) |
-          (0x2 << CRm_offset) |
-          (0x0 << SysOp2_offset)) >> ImmSystemRegister_offset,
-  FPCR = ((0x1 << SysO0_offset) |
-          (0x3 << SysOp1_offset) |
-          (0x4 << CRn_offset) |
-          (0x4 << CRm_offset) |
-          (0x0 << SysOp2_offset)) >> ImmSystemRegister_offset
+  NZCV = SystemRegisterEncoder<3, 3, 4, 2, 0>::value,
+  FPCR = SystemRegisterEncoder<3, 3, 4, 4, 0>::value
 };
 
 enum InstructionCacheOp {

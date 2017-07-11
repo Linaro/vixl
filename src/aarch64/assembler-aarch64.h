@@ -2804,9 +2804,9 @@ class Assembler : public vixl::internal::AssemblerBase {
     return imm16 << ImmException_offset;
   }
 
-  static Instr ImmSystemRegister(int imm15) {
-    VIXL_ASSERT(IsUint15(imm15));
-    return imm15 << ImmSystemRegister_offset;
+  static Instr ImmSystemRegister(int imm16) {
+    VIXL_ASSERT(IsUint16(imm16));
+    return imm16 << ImmSystemRegister_offset;
   }
 
   static Instr ImmHint(int imm7) {

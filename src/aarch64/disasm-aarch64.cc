@@ -1740,32 +1740,12 @@ void Disassembler::VisitSystem(const Instruction *instr) {
     switch (instr->Mask(SystemSysRegMask)) {
       case MRS: {
         mnemonic = "mrs";
-        switch (instr->GetImmSystemRegister()) {
-          case NZCV:
-            form = "'Xt, nzcv";
-            break;
-          case FPCR:
-            form = "'Xt, fpcr";
-            break;
-          default:
-            form = "'Xt, (unknown)";
-            break;
-        }
+        form = "'Xt, 'IY";
         break;
       }
       case MSR: {
         mnemonic = "msr";
-        switch (instr->GetImmSystemRegister()) {
-          case NZCV:
-            form = "nzcv, 'Xt";
-            break;
-          case FPCR:
-            form = "fpcr, 'Xt";
-            break;
-          default:
-            form = "(unknown), 'Xt";
-            break;
-        }
+        form = "'IY, 'Xt";
         break;
       }
     }
@@ -4587,6 +4567,25 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
     }
     case 'X': {  // IX - CLREX instruction.
       AppendToOutput("#0x%" PRIx32, instr->GetCRm());
+      return 2;
+    }
+    case 'Y': {  // IY - system register immediate.
+      switch (instr->GetImmSystemRegister()) {
+        case NZCV:
+          AppendToOutput("nzcv");
+          break;
+        case FPCR:
+          AppendToOutput("fpcr");
+          break;
+        default:
+          AppendToOutput("S%d_%d_%d_%d_%d",
+                         instr->GetSysOp0(),
+                         instr->GetSysOp1(),
+                         instr->GetCRn(),
+                         instr->GetCRm(),
+                         instr->GetSysOp2());
+          break;
+      }
       return 2;
     }
     default: {
