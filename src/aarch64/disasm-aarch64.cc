@@ -4578,7 +4578,7 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           AppendToOutput("fpcr");
           break;
         default:
-          AppendToOutput("S%d_%d_%d_%d_%d",
+          AppendToOutput("S%d_%d_c%d_c%d_%d",
                          instr->GetSysOp0(),
                          instr->GetSysOp1(),
                          instr->GetCRn(),

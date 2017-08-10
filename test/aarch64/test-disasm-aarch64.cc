@@ -2791,8 +2791,8 @@ TEST(system_mrs) {
   COMPARE(mrs(x15, FPCR), "mrs x15, fpcr");
 
   // Test mrs that use system registers we haven't named.
-  COMPARE(dci(MRS | (0x5555 << 5)), "mrs x0, S3_2_10_10_5");
-  COMPARE(dci(0xd53e1000), "mrs x0, S3_6_1_0_0");
+  COMPARE(dci(MRS | (0x5555 << 5)), "mrs x0, S3_2_c10_c10_5");
+  COMPARE(dci(0xd53e1000), "mrs x0, S3_6_c1_c0_0");
 
   CLEANUP();
 }
@@ -2806,8 +2806,8 @@ TEST(system_msr) {
   COMPARE(msr(FPCR, x15), "msr fpcr, x15");
 
   // Test msr that use system registers we haven't named.
-  COMPARE(dci(MSR | (0x1234 << 5)), "msr S2_2_4_6_4, x0");
-  COMPARE(dci(0xd51e1000), "msr S3_6_1_0_0, x0");
+  COMPARE(dci(MSR | (0x1234 << 5)), "msr S2_2_c4_c6_4, x0");
+  COMPARE(dci(0xd51e1000), "msr S3_6_c1_c0_0, x0");
 
   CLEANUP();
 }
