@@ -111,6 +111,19 @@ class Disassembler {
     }
   };
 
+  class DtPrinter {
+    DataType dt_;
+    DataType default_dt_;
+
+   public:
+    DtPrinter(DataType dt, DataType default_dt)
+        : dt_(dt), default_dt_(default_dt) {}
+    friend std::ostream& operator<<(std::ostream& os, DtPrinter dt) {
+      if (dt.dt_.Is(dt.default_dt_)) return os;
+      return os << dt.dt_;
+    }
+  };
+
   // TODO: Merge this class with PrintLabel below. This Location class
   // represents a PC-relative offset, not an address.
   class Location {
@@ -219,6 +232,10 @@ class Disassembler {
     }
     virtual DisassemblerStream& operator<<(const EncodingSize& size) {
       os_ << size;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const DtPrinter& dt) {
+      os_ << dt;
       return *this;
     }
     virtual DisassemblerStream& operator<<(const DataType& type) {

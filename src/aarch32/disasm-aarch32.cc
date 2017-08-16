@@ -5007,10 +5007,11 @@ void Disassembler::vldr(Condition cond,
                         DRegister rd,
                         Location* location) {
   os().SetCurrentInstruction(kVldr, kFpNeon);
-  os() << ToCString(kVldr) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", " << PrintLabel(kLoadDoublePrecisionLocation,
-                                   location,
-                                   GetCodeAddress() & ~3);
+  os() << ToCString(kVldr) << ConditionPrinter(it_block_, cond)
+       << DtPrinter(dt, Untyped64) << " " << rd << ", "
+       << PrintLabel(kLoadDoublePrecisionLocation,
+                     location,
+                     GetCodeAddress() & ~3);
 }
 
 void Disassembler::vldr(Condition cond,
@@ -5018,8 +5019,9 @@ void Disassembler::vldr(Condition cond,
                         DRegister rd,
                         const MemOperand& operand) {
   os().SetCurrentInstruction(kVldr, kFpNeon);
-  os() << ToCString(kVldr) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", " << PrintMemOperand(kLoadDoublePrecisionLocation, operand);
+  os() << ToCString(kVldr) << ConditionPrinter(it_block_, cond)
+       << DtPrinter(dt, Untyped64) << " " << rd << ", "
+       << PrintMemOperand(kLoadDoublePrecisionLocation, operand);
 }
 
 void Disassembler::vldr(Condition cond,
@@ -5027,10 +5029,11 @@ void Disassembler::vldr(Condition cond,
                         SRegister rd,
                         Location* location) {
   os().SetCurrentInstruction(kVldr, kFpNeon);
-  os() << ToCString(kVldr) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", " << PrintLabel(kLoadSinglePrecisionLocation,
-                                   location,
-                                   GetCodeAddress() & ~3);
+  os() << ToCString(kVldr) << ConditionPrinter(it_block_, cond)
+       << DtPrinter(dt, Untyped32) << " " << rd << ", "
+       << PrintLabel(kLoadSinglePrecisionLocation,
+                     location,
+                     GetCodeAddress() & ~3);
 }
 
 void Disassembler::vldr(Condition cond,
@@ -5038,8 +5041,9 @@ void Disassembler::vldr(Condition cond,
                         SRegister rd,
                         const MemOperand& operand) {
   os().SetCurrentInstruction(kVldr, kFpNeon);
-  os() << ToCString(kVldr) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", " << PrintMemOperand(kLoadSinglePrecisionLocation, operand);
+  os() << ToCString(kVldr) << ConditionPrinter(it_block_, cond)
+       << DtPrinter(dt, Untyped32) << " " << rd << ", "
+       << PrintMemOperand(kLoadSinglePrecisionLocation, operand);
 }
 
 void Disassembler::vmax(
@@ -6802,8 +6806,9 @@ void Disassembler::vstr(Condition cond,
                         DRegister rd,
                         const MemOperand& operand) {
   os().SetCurrentInstruction(kVstr, kFpNeon);
-  os() << ToCString(kVstr) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", " << PrintMemOperand(kStoreDoublePrecisionLocation, operand);
+  os() << ToCString(kVstr) << ConditionPrinter(it_block_, cond)
+       << DtPrinter(dt, Untyped64) << " " << rd << ", "
+       << PrintMemOperand(kStoreDoublePrecisionLocation, operand);
 }
 
 void Disassembler::vstr(Condition cond,
@@ -6811,8 +6816,9 @@ void Disassembler::vstr(Condition cond,
                         SRegister rd,
                         const MemOperand& operand) {
   os().SetCurrentInstruction(kVstr, kFpNeon);
-  os() << ToCString(kVstr) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", " << PrintMemOperand(kStoreSinglePrecisionLocation, operand);
+  os() << ToCString(kVstr) << ConditionPrinter(it_block_, cond)
+       << DtPrinter(dt, Untyped32) << " " << rd << ", "
+       << PrintMemOperand(kStoreSinglePrecisionLocation, operand);
 }
 
 void Disassembler::vsub(
@@ -22904,7 +22910,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               int32_t offset = (instr & 0xff) << 2;
                               // VSTR{<c>}{<q>}{.32} <Sd>, [<Rn>{, #{+/-}<imm>}] ; T2 NOLINT(whitespace/line_length)
                               vstr(CurrentCond(),
-                                   kDataTypeValueNone,
+                                   Untyped32,
                                    SRegister(rd),
                                    MemOperand(Register(rn),
                                               sign,
@@ -22921,7 +22927,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                               int32_t offset = (instr & 0xff) << 2;
                               // VSTR{<c>}{<q>}{.64} <Dd>, [<Rn>{, #{+/-}<imm>}] ; T1 NOLINT(whitespace/line_length)
                               vstr(CurrentCond(),
-                                   kDataTypeValueNone,
+                                   Untyped64,
                                    DRegister(rd),
                                    MemOperand(Register(rn),
                                               sign,
@@ -23086,12 +23092,12 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   // VLDR{<c>}{<q>}{.32} <Sd>, <label> ; T2
                                   if (minus_zero) {
                                     vldr(CurrentCond(),
-                                         kDataTypeValueNone,
+                                         Untyped32,
                                          SRegister(rd),
                                          MemOperand(pc, minus, 0));
                                   } else {
                                     vldr(CurrentCond(),
-                                         kDataTypeValueNone,
+                                         Untyped32,
                                          SRegister(rd),
                                          &location);
                                   }
@@ -23109,12 +23115,12 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   // VLDR{<c>}{<q>}{.64} <Dd>, <label> ; T1
                                   if (minus_zero) {
                                     vldr(CurrentCond(),
-                                         kDataTypeValueNone,
+                                         Untyped64,
                                          DRegister(rd),
                                          MemOperand(pc, minus, 0));
                                   } else {
                                     vldr(CurrentCond(),
-                                         kDataTypeValueNone,
+                                         Untyped64,
                                          DRegister(rd),
                                          &location);
                                   }
@@ -23153,7 +23159,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   int32_t offset = (instr & 0xff) << 2;
                                   // VLDR{<c>}{<q>}{.32} <Sd>, [<Rn>{, #{+/-}<imm>}] ; T2 NOLINT(whitespace/line_length)
                                   vldr(CurrentCond(),
-                                       kDataTypeValueNone,
+                                       Untyped32,
                                        SRegister(rd),
                                        MemOperand(Register(rn),
                                                   sign,
@@ -23175,7 +23181,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   int32_t offset = (instr & 0xff) << 2;
                                   // VLDR{<c>}{<q>}{.64} <Dd>, [<Rn>{, #{+/-}<imm>}] ; T1 NOLINT(whitespace/line_length)
                                   vldr(CurrentCond(),
-                                       kDataTypeValueNone,
+                                       Untyped64,
                                        DRegister(rd),
                                        MemOperand(Register(rn),
                                                   sign,
@@ -65767,7 +65773,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         int32_t offset = (instr & 0xff) << 2;
                         // VSTR{<c>}{<q>}{.32} <Sd>, [<Rn>{, #{+/-}<imm>}] ; A2
                         vstr(condition,
-                             kDataTypeValueNone,
+                             Untyped32,
                              SRegister(rd),
                              MemOperand(Register(rn), sign, offset, Offset));
                         break;
@@ -65785,7 +65791,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         int32_t offset = (instr & 0xff) << 2;
                         // VSTR{<c>}{<q>}{.64} <Dd>, [<Rn>{, #{+/-}<imm>}] ; A1
                         vstr(condition,
-                             kDataTypeValueNone,
+                             Untyped64,
                              DRegister(rd),
                              MemOperand(Register(rn), sign, offset, Offset));
                         break;
@@ -65969,12 +65975,12 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             // VLDR{<c>}{<q>}{.32} <Sd>, <label> ; A2
                             if (minus_zero) {
                               vldr(condition,
-                                   kDataTypeValueNone,
+                                   Untyped32,
                                    SRegister(rd),
                                    MemOperand(pc, minus, 0));
                             } else {
                               vldr(condition,
-                                   kDataTypeValueNone,
+                                   Untyped32,
                                    SRegister(rd),
                                    &location);
                             }
@@ -65997,12 +66003,12 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             // VLDR{<c>}{<q>}{.64} <Dd>, <label> ; A1
                             if (minus_zero) {
                               vldr(condition,
-                                   kDataTypeValueNone,
+                                   Untyped64,
                                    DRegister(rd),
                                    MemOperand(pc, minus, 0));
                             } else {
                               vldr(condition,
-                                   kDataTypeValueNone,
+                                   Untyped64,
                                    DRegister(rd),
                                    &location);
                             }
@@ -66043,7 +66049,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int32_t offset = (instr & 0xff) << 2;
                             // VLDR{<c>}{<q>}{.32} <Sd>, [<Rn>{, #{+/-}<imm>}] ; A2 NOLINT(whitespace/line_length)
                             vldr(condition,
-                                 kDataTypeValueNone,
+                                 Untyped32,
                                  SRegister(rd),
                                  MemOperand(Register(rn),
                                             sign,
@@ -66066,7 +66072,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                             int32_t offset = (instr & 0xff) << 2;
                             // VLDR{<c>}{<q>}{.64} <Dd>, [<Rn>{, #{+/-}<imm>}] ; A1 NOLINT(whitespace/line_length)
                             vldr(condition,
-                                 kDataTypeValueNone,
+                                 Untyped64,
                                  DRegister(rd),
                                  MemOperand(Register(rn),
                                             sign,

@@ -300,6 +300,7 @@ class DataType {
     return (value_ & kDataTypeSizeMask) == size;
   }
   const char* GetName() const;
+  bool Is(DataType type) const { return value_ == type.value_; }
   bool Is(DataTypeValue value) const { return value_ == value; }
   bool Is(DataTypeType type) const { return GetType() == type; }
   bool IsNoneOr(DataTypeValue value) const {
