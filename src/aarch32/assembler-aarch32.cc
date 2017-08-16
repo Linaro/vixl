@@ -21235,7 +21235,7 @@ void Assembler::vmul(Condition cond,
     // VMUL{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm>[<index>] ; T1
     if (encoded_dt.IsValid() &&
         ((dt.Is(I16) && (index <= 3) && (dm.GetCode() <= 7)) ||
-         (!dt.Is(I16) && (index <= 1)))) {
+         (!dt.Is(I16) && (index <= 1) && (dm.GetCode() <= 15)))) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         uint32_t shift = 4;
         if (dt.Is(I16)) {
@@ -21254,7 +21254,7 @@ void Assembler::vmul(Condition cond,
     // VMUL{<c>}{<q>}.<dt> {<Dd>}, <Dn>, <Dm>[<index>] ; A1
     if (encoded_dt.IsValid() &&
         ((dt.Is(I16) && (index <= 3) && (dm.GetCode() <= 7)) ||
-         (!dt.Is(I16) && (index <= 1)))) {
+         (!dt.Is(I16) && (index <= 1) && (dm.GetCode() <= 15)))) {
       if (cond.Is(al)) {
         uint32_t shift = 4;
         if (dt.Is(I16)) {
@@ -21285,7 +21285,7 @@ void Assembler::vmul(Condition cond,
     // VMUL{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm>[<index>] ; T1
     if (encoded_dt.IsValid() &&
         ((dt.Is(I16) && (index <= 3) && (dm.GetCode() <= 7)) ||
-         (!dt.Is(I16) && (index <= 1)))) {
+         (!dt.Is(I16) && (index <= 1) && (dm.GetCode() <= 15)))) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         uint32_t shift = 4;
         if (dt.Is(I16)) {
@@ -21304,7 +21304,7 @@ void Assembler::vmul(Condition cond,
     // VMUL{<c>}{<q>}.<dt> {<Qd>}, <Qn>, <Dm>[<index>] ; A1
     if (encoded_dt.IsValid() &&
         ((dt.Is(I16) && (index <= 3) && (dm.GetCode() <= 7)) ||
-         (!dt.Is(I16) && (index <= 1)))) {
+         (!dt.Is(I16) && (index <= 1) && (dm.GetCode() <= 15)))) {
       if (cond.Is(al)) {
         uint32_t shift = 4;
         if (dt.Is(I16)) {
@@ -21465,7 +21465,8 @@ void Assembler::vmull(Condition cond,
     // VMULL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; T1
     if (encoded_dt.IsValid() &&
         (((dt.Is(S16) || dt.Is(U16)) && (index <= 3) && (dm.GetCode() <= 7)) ||
-         (!dt.Is(S16) && !dt.Is(U16) && (index <= 1)))) {
+         (!dt.Is(S16) && !dt.Is(U16) && (index <= 1) &&
+          (dm.GetCode() <= 15)))) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         uint32_t shift = 4;
         if (dt.Is(S16) || dt.Is(U16)) {
@@ -21484,7 +21485,8 @@ void Assembler::vmull(Condition cond,
     // VMULL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; A1
     if (encoded_dt.IsValid() &&
         (((dt.Is(S16) || dt.Is(U16)) && (index <= 3) && (dm.GetCode() <= 7)) ||
-         (!dt.Is(S16) && !dt.Is(U16) && (index <= 1)))) {
+         (!dt.Is(S16) && !dt.Is(U16) && (index <= 1) &&
+          (dm.GetCode() <= 15)))) {
       if (cond.Is(al)) {
         uint32_t shift = 4;
         if (dt.Is(S16) || dt.Is(U16)) {
@@ -22629,7 +22631,7 @@ void Assembler::vqdmlal(Condition cond,
     // VQDMLAL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; T2
     if (encoded_dt.IsValid() &&
         ((dt.Is(S16) && (index <= 3) && (dm.GetCode() <= 7)) ||
-         (!dt.Is(S16) && (index <= 1))) &&
+         (!dt.Is(S16) && (index <= 1) && (dm.GetCode() <= 15))) &&
         (dt.Is(S16) || dt.Is(S32))) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         uint32_t shift = 4;
@@ -22648,7 +22650,7 @@ void Assembler::vqdmlal(Condition cond,
     // VQDMLAL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; A2
     if (encoded_dt.IsValid() &&
         ((dt.Is(S16) && (index <= 3) && (dm.GetCode() <= 7)) ||
-         (!dt.Is(S16) && (index <= 1))) &&
+         (!dt.Is(S16) && (index <= 1) && (dm.GetCode() <= 15))) &&
         (dt.Is(S16) || dt.Is(S32))) {
       if (cond.Is(al)) {
         uint32_t shift = 4;
@@ -22707,7 +22709,7 @@ void Assembler::vqdmlsl(Condition cond,
     // VQDMLSL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; T2
     if (encoded_dt.IsValid() &&
         ((dt.Is(S16) && (index <= 3) && (dm.GetCode() <= 7)) ||
-         (!dt.Is(S16) && (index <= 1))) &&
+         (!dt.Is(S16) && (index <= 1) && (dm.GetCode() <= 15))) &&
         (dt.Is(S16) || dt.Is(S32))) {
       if (cond.Is(al) || AllowStronglyDiscouraged()) {
         uint32_t shift = 4;
@@ -22726,7 +22728,7 @@ void Assembler::vqdmlsl(Condition cond,
     // VQDMLSL{<c>}{<q>}.<dt> <Qd>, <Dn>, <Dm>[<index>] ; A2
     if (encoded_dt.IsValid() &&
         ((dt.Is(S16) && (index <= 3) && (dm.GetCode() <= 7)) ||
-         (!dt.Is(S16) && (index <= 1))) &&
+         (!dt.Is(S16) && (index <= 1) && (dm.GetCode() <= 15))) &&
         (dt.Is(S16) || dt.Is(S32))) {
       if (cond.Is(al)) {
         uint32_t shift = 4;
