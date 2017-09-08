@@ -27161,7 +27161,8 @@ void Assembler::vstr(Condition cond,
     if (IsUsingT32()) {
       // VSTR{<c>}{<q>}{.64} <Dd>, [<Rn>{, #{+/-}<imm>}] ; T1
       if (dt.IsNoneOr(Untyped64) && (offset >= -1020) && (offset <= 1020) &&
-          ((offset % 4) == 0) && operand.IsOffset()) {
+          ((offset % 4) == 0) && operand.IsOffset() &&
+          (!rn.IsPC() || AllowUnpredictable())) {
         uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
         uint32_t offset_ = abs(offset) >> 2;
         EmitT32_32(0xed000b00U | rd.Encode(22, 12) | (rn.GetCode() << 16) |
@@ -27196,7 +27197,8 @@ void Assembler::vstr(Condition cond,
     if (IsUsingT32()) {
       // VSTR{<c>}{<q>}{.32} <Sd>, [<Rn>{, #{+/-}<imm>}] ; T2
       if (dt.IsNoneOr(Untyped32) && (offset >= -1020) && (offset <= 1020) &&
-          ((offset % 4) == 0) && operand.IsOffset()) {
+          ((offset % 4) == 0) && operand.IsOffset() &&
+          (!rn.IsPC() || AllowUnpredictable())) {
         uint32_t sign = operand.GetSign().IsPlus() ? 1 : 0;
         uint32_t offset_ = abs(offset) >> 2;
         EmitT32_32(0xed000a00U | rd.Encode(22, 12) | (rn.GetCode() << 16) |

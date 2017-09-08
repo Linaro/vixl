@@ -1871,6 +1871,20 @@ TEST(macro_assembler_A32_Vstr_s) { TEST_VMEMOP(Vstr, "vstr ", s3); }
 
 #undef TEST_VMEMOP
 
+TEST(assembler_vstr_negative) {
+  SETUP();
+
+  ExactAssemblyScope scope(&masm, 8, CodeBufferCheckScope::kMaximumSize);
+
+  MUST_FAIL_TEST_T32(vstr(s0, MemOperand(pc, 0)),
+                     "Unpredictable instruction.\n");
+
+  MUST_FAIL_TEST_T32(vstr(d0, MemOperand(pc, 0)),
+                     "Unpredictable instruction.\n");
+
+  CLEANUP();
+}
+
 TEST(macro_assembler_Vldr_Vstr_negative) {
   SETUP();
 
