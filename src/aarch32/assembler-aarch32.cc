@@ -68,8 +68,6 @@ void Assembler::PerformCheckIT(Condition condition) {
     VIXL_ASSERT(IsUsingA32() || condition.Is(al));
   } else {
     VIXL_ASSERT(condition.Is(first_condition_));
-    first_condition_ =
-        Condition((first_condition_.GetCondition() & 0xe) | (it_mask_ >> 3));
     // For A32, AdavanceIT() is not called by the assembler. We must call it
     // in order to check that IT instructions are used consistently with
     // the following conditional instructions.
@@ -3996,7 +3994,8 @@ void Assembler::crc32b(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
   if (IsUsingT32()) {
     // CRC32B{<q>} <Rd>, <Rn>, <Rm> ; T1
-    if (((!rd.IsPC() && !rn.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
+    if (((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && OutsideITBlock()) ||
+         AllowUnpredictable())) {
       EmitT32_32(0xfac0f080U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                  rm.GetCode());
       AdvanceIT();
@@ -4019,7 +4018,8 @@ void Assembler::crc32cb(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
   if (IsUsingT32()) {
     // CRC32CB{<q>} <Rd>, <Rn>, <Rm> ; T1
-    if (((!rd.IsPC() && !rn.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
+    if (((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && OutsideITBlock()) ||
+         AllowUnpredictable())) {
       EmitT32_32(0xfad0f080U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                  rm.GetCode());
       AdvanceIT();
@@ -4042,7 +4042,8 @@ void Assembler::crc32ch(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
   if (IsUsingT32()) {
     // CRC32CH{<q>} <Rd>, <Rn>, <Rm> ; T1
-    if (((!rd.IsPC() && !rn.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
+    if (((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && OutsideITBlock()) ||
+         AllowUnpredictable())) {
       EmitT32_32(0xfad0f090U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                  rm.GetCode());
       AdvanceIT();
@@ -4065,7 +4066,8 @@ void Assembler::crc32cw(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
   if (IsUsingT32()) {
     // CRC32CW{<q>} <Rd>, <Rn>, <Rm> ; T1
-    if (((!rd.IsPC() && !rn.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
+    if (((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && OutsideITBlock()) ||
+         AllowUnpredictable())) {
       EmitT32_32(0xfad0f0a0U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                  rm.GetCode());
       AdvanceIT();
@@ -4088,7 +4090,8 @@ void Assembler::crc32h(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
   if (IsUsingT32()) {
     // CRC32H{<q>} <Rd>, <Rn>, <Rm> ; T1
-    if (((!rd.IsPC() && !rn.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
+    if (((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && OutsideITBlock()) ||
+         AllowUnpredictable())) {
       EmitT32_32(0xfac0f090U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                  rm.GetCode());
       AdvanceIT();
@@ -4111,7 +4114,8 @@ void Assembler::crc32w(Condition cond, Register rd, Register rn, Register rm) {
   CheckIT(cond);
   if (IsUsingT32()) {
     // CRC32W{<q>} <Rd>, <Rn>, <Rm> ; T1
-    if (((!rd.IsPC() && !rn.IsPC() && !rm.IsPC()) || AllowUnpredictable())) {
+    if (((!rd.IsPC() && !rn.IsPC() && !rm.IsPC() && OutsideITBlock()) ||
+         AllowUnpredictable())) {
       EmitT32_32(0xfac0f0a0U | (rd.GetCode() << 8) | (rn.GetCode() << 16) |
                  rm.GetCode());
       AdvanceIT();
@@ -4509,7 +4513,7 @@ void Assembler::hvc(Condition cond, uint32_t imm) {
   CheckIT(cond);
   if (IsUsingT32()) {
     // HVC{<q>} {#}<imm16> ; T1
-    if ((imm <= 65535)) {
+    if ((imm <= 65535) && (OutsideITBlock() || AllowUnpredictable())) {
       EmitT32_32(0xf7e08000U | (imm & 0xfff) | ((imm & 0xf000) << 4));
       AdvanceIT();
       return;

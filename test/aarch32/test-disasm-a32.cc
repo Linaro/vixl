@@ -1632,6 +1632,7 @@ TEST(macro_assembler_too_large_immediate) {
   CLEANUP();
 }
 
+
 TEST(macro_assembler_Cbz) {
   SETUP();
 
@@ -1696,6 +1697,41 @@ TEST(macro_assembler_Cbz) {
 
   CLEANUP();
 }
+
+
+#ifdef VIXL_NEGATIVE_TESTING
+TEST(assembler_crc_negative) {
+  SETUP();
+
+  ExactAssemblyScope scope(&masm, 2, CodeBufferCheckScope::kMaximumSize);
+
+  masm.it(eq);
+
+  MUST_FAIL_TEST_T32(crc32b(eq, r0, r1, r2), "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(crc32cb(eq, r0, r1, r2), "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(crc32ch(eq, r0, r1, r2), "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(crc32cw(eq, r0, r1, r2), "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(crc32h(eq, r0, r1, r2), "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(crc32w(eq, r0, r1, r2), "Unpredictable instruction.\n");
+
+  CLEANUP();
+}
+#endif
+
+
+#ifdef VIXL_NEGATIVE_TESTING
+TEST(assembler_hvc_negative) {
+  SETUP();
+
+  ExactAssemblyScope scope(&masm, 2, CodeBufferCheckScope::kMaximumSize);
+
+  masm.it(eq);
+
+  MUST_FAIL_TEST_T32(hvc(eq, 0), "Unpredictable instruction.\n");
+
+  CLEANUP();
+}
+#endif
 
 
 TEST(assembler_vldm_vstm_negative) {

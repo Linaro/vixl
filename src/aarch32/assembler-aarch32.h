@@ -59,7 +59,11 @@ class Assembler : public internal::AssemblerBase {
 #ifdef VIXL_DEBUG
   void PerformCheckIT(Condition condition);
 #endif
-  void AdvanceIT() { it_mask_ = (it_mask_ << 1) & 0xf; }
+  void AdvanceIT() {
+    first_condition_ =
+        Condition((first_condition_.GetCondition() & 0xe) | (it_mask_ >> 3));
+    it_mask_ = (it_mask_ << 1) & 0xf;
+  }
   // Virtual, in order to be overridden by the MacroAssembler, which needs to
   // notify the pool manager.
   virtual void BindHelper(Label* label);
