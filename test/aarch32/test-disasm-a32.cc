@@ -1698,6 +1698,73 @@ TEST(macro_assembler_Cbz) {
 }
 
 
+TEST(assembler_vldm_vstm_negative) {
+  SETUP();
+
+  ExactAssemblyScope scope(&masm, 0, CodeBufferCheckScope::kMaximumSize);
+
+  MUST_FAIL_TEST_BOTH(fldmdbx(pc, WRITE_BACK, DRegisterList(d0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(fldmiax(pc, WRITE_BACK, DRegisterList(d0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(fldmiax(pc, NO_WRITE_BACK, DRegisterList(d0)),
+                     "Unpredictable instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(fstmdbx(pc, WRITE_BACK, DRegisterList(d0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(fstmiax(pc, WRITE_BACK, DRegisterList(d0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(fstmiax(pc, NO_WRITE_BACK, DRegisterList(d0)),
+                     "Unpredictable instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(vldmdb(pc, WRITE_BACK, SRegisterList(s0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(vldm(pc, WRITE_BACK, SRegisterList(s0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(vldm(pc, NO_WRITE_BACK, SRegisterList(s0)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(vldmia(pc, WRITE_BACK, SRegisterList(s0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(vldmia(pc, NO_WRITE_BACK, SRegisterList(s0)),
+                     "Unpredictable instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(vldmdb(pc, WRITE_BACK, DRegisterList(d0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(vldm(pc, WRITE_BACK, DRegisterList(d0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(vldm(pc, NO_WRITE_BACK, DRegisterList(d0)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(vldmia(pc, WRITE_BACK, DRegisterList(d0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(vldmia(pc, NO_WRITE_BACK, DRegisterList(d0)),
+                     "Unpredictable instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(vstmdb(pc, WRITE_BACK, SRegisterList(s0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(vstm(pc, WRITE_BACK, SRegisterList(s0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(vstm(pc, NO_WRITE_BACK, SRegisterList(s0)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(vstmia(pc, WRITE_BACK, SRegisterList(s0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(vstmia(pc, NO_WRITE_BACK, SRegisterList(s0)),
+                     "Unpredictable instruction.\n");
+
+  MUST_FAIL_TEST_BOTH(vstmdb(pc, WRITE_BACK, DRegisterList(d0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(vstm(pc, WRITE_BACK, DRegisterList(d0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(vstm(pc, NO_WRITE_BACK, DRegisterList(d0)),
+                     "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(vstmia(pc, WRITE_BACK, DRegisterList(d0)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(vstmia(pc, NO_WRITE_BACK, DRegisterList(d0)),
+                     "Unpredictable instruction.\n");
+
+  CLEANUP();
+}
+
+
 #define TEST_VMEMOP(MACRO_OP, STRING_OP, DST_REG)                    \
   SETUP();                                                           \
                                                                      \

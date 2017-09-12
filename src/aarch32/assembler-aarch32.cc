@@ -4351,7 +4351,7 @@ void Assembler::fldmdbx(Condition cond,
     // FLDMDBX{<c>}{<q>} <Rn>!, <dreglist> ; T1
     if (write_back.DoesWriteBack() &&
         (((dreglist.GetLength() <= 16) &&
-          (dreglist.GetLastDRegister().GetCode() < 16)) ||
+          (dreglist.GetLastDRegister().GetCode() < 16) && !rn.IsPC()) ||
          AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
@@ -4364,7 +4364,7 @@ void Assembler::fldmdbx(Condition cond,
     // FLDMDBX{<c>}{<q>} <Rn>!, <dreglist> ; A1
     if (write_back.DoesWriteBack() && cond.IsNotNever() &&
         (((dreglist.GetLength() <= 16) &&
-          (dreglist.GetLastDRegister().GetCode() < 16)) ||
+          (dreglist.GetLastDRegister().GetCode() < 16) && !rn.IsPC()) ||
          AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
@@ -4385,7 +4385,7 @@ void Assembler::fldmiax(Condition cond,
   if (IsUsingT32()) {
     // FLDMIAX{<c>}{<q>} <Rn>{!}, <dreglist> ; T1
     if ((((dreglist.GetLength() <= 16) &&
-          (dreglist.GetLastDRegister().GetCode() < 16)) ||
+          (dreglist.GetLastDRegister().GetCode() < 16) && !rn.IsPC()) ||
          AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
@@ -4398,7 +4398,8 @@ void Assembler::fldmiax(Condition cond,
   } else {
     // FLDMIAX{<c>}{<q>} <Rn>{!}, <dreglist> ; A1
     if (cond.IsNotNever() && (((dreglist.GetLength() <= 16) &&
-                               (dreglist.GetLastDRegister().GetCode() < 16)) ||
+                               (dreglist.GetLastDRegister().GetCode() < 16) &&
+                               (!rn.IsPC() || !write_back.DoesWriteBack())) ||
                               AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
@@ -4421,7 +4422,7 @@ void Assembler::fstmdbx(Condition cond,
     // FSTMDBX{<c>}{<q>} <Rn>!, <dreglist> ; T1
     if (write_back.DoesWriteBack() &&
         (((dreglist.GetLength() <= 16) &&
-          (dreglist.GetLastDRegister().GetCode() < 16)) ||
+          (dreglist.GetLastDRegister().GetCode() < 16) && !rn.IsPC()) ||
          AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
@@ -4434,7 +4435,7 @@ void Assembler::fstmdbx(Condition cond,
     // FSTMDBX{<c>}{<q>} <Rn>!, <dreglist> ; A1
     if (write_back.DoesWriteBack() && cond.IsNotNever() &&
         (((dreglist.GetLength() <= 16) &&
-          (dreglist.GetLastDRegister().GetCode() < 16)) ||
+          (dreglist.GetLastDRegister().GetCode() < 16) && !rn.IsPC()) ||
          AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
@@ -4455,7 +4456,7 @@ void Assembler::fstmiax(Condition cond,
   if (IsUsingT32()) {
     // FSTMIAX{<c>}{<q>} <Rn>{!}, <dreglist> ; T1
     if ((((dreglist.GetLength() <= 16) &&
-          (dreglist.GetLastDRegister().GetCode() < 16)) ||
+          (dreglist.GetLastDRegister().GetCode() < 16) && !rn.IsPC()) ||
          AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
@@ -4468,7 +4469,8 @@ void Assembler::fstmiax(Condition cond,
   } else {
     // FSTMIAX{<c>}{<q>} <Rn>{!}, <dreglist> ; A1
     if (cond.IsNotNever() && (((dreglist.GetLength() <= 16) &&
-                               (dreglist.GetLastDRegister().GetCode() < 16)) ||
+                               (dreglist.GetLastDRegister().GetCode() < 16) &&
+                               (!rn.IsPC() || !write_back.DoesWriteBack())) ||
                               AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
@@ -19350,7 +19352,8 @@ void Assembler::vldm(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1
-    if (((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
+    if ((((dreglist.GetLength() <= 16) && !rn.IsPC()) ||
+         AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xec900b00U | (rn.GetCode() << 16) |
@@ -19361,8 +19364,9 @@ void Assembler::vldm(Condition cond,
     }
   } else {
     // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; A1
-    if (cond.IsNotNever() &&
-        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
+    if (cond.IsNotNever() && (((dreglist.GetLength() <= 16) &&
+                               (!rn.IsPC() || !write_back.DoesWriteBack())) ||
+                              AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0c900b00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -19384,16 +19388,19 @@ void Assembler::vldm(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; T2
-    const SRegister& sreg = sreglist.GetFirstSRegister();
-    unsigned len = sreglist.GetLength();
-    EmitT32_32(0xec900a00U | (rn.GetCode() << 16) |
-               (write_back.GetWriteBackUint32() << 21) | sreg.Encode(22, 12) |
-               (len & 0xff));
-    AdvanceIT();
-    return;
+    if ((!rn.IsPC() || AllowUnpredictable())) {
+      const SRegister& sreg = sreglist.GetFirstSRegister();
+      unsigned len = sreglist.GetLength();
+      EmitT32_32(0xec900a00U | (rn.GetCode() << 16) |
+                 (write_back.GetWriteBackUint32() << 21) | sreg.Encode(22, 12) |
+                 (len & 0xff));
+      AdvanceIT();
+      return;
+    }
   } else {
     // VLDM{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; A2
-    if (cond.IsNotNever()) {
+    if (cond.IsNotNever() &&
+        ((!rn.IsPC() || !write_back.DoesWriteBack()) || AllowUnpredictable())) {
       const SRegister& sreg = sreglist.GetFirstSRegister();
       unsigned len = sreglist.GetLength();
       EmitA32(0x0c900a00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -19416,7 +19423,8 @@ void Assembler::vldmdb(Condition cond,
   if (IsUsingT32()) {
     // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; T1
     if (write_back.DoesWriteBack() &&
-        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
+        (((dreglist.GetLength() <= 16) && !rn.IsPC()) ||
+         AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xed300b00U | (rn.GetCode() << 16) | dreg.Encode(22, 12) |
@@ -19427,7 +19435,8 @@ void Assembler::vldmdb(Condition cond,
   } else {
     // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; A1
     if (write_back.DoesWriteBack() && cond.IsNotNever() &&
-        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
+        (((dreglist.GetLength() <= 16) && !rn.IsPC()) ||
+         AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0d300b00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -19448,7 +19457,7 @@ void Assembler::vldmdb(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ; T2
-    if (write_back.DoesWriteBack()) {
+    if (write_back.DoesWriteBack() && (!rn.IsPC() || AllowUnpredictable())) {
       const SRegister& sreg = sreglist.GetFirstSRegister();
       unsigned len = sreglist.GetLength();
       EmitT32_32(0xed300a00U | (rn.GetCode() << 16) | sreg.Encode(22, 12) |
@@ -19458,7 +19467,8 @@ void Assembler::vldmdb(Condition cond,
     }
   } else {
     // VLDMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ; A2
-    if (write_back.DoesWriteBack() && cond.IsNotNever()) {
+    if (write_back.DoesWriteBack() && cond.IsNotNever() &&
+        (!rn.IsPC() || AllowUnpredictable())) {
       const SRegister& sreg = sreglist.GetFirstSRegister();
       unsigned len = sreglist.GetLength();
       EmitA32(0x0d300a00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -19479,7 +19489,8 @@ void Assembler::vldmia(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VLDMIA{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1
-    if (((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
+    if ((((dreglist.GetLength() <= 16) && !rn.IsPC()) ||
+         AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xec900b00U | (rn.GetCode() << 16) |
@@ -19490,8 +19501,9 @@ void Assembler::vldmia(Condition cond,
     }
   } else {
     // VLDMIA{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; A1
-    if (cond.IsNotNever() &&
-        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
+    if (cond.IsNotNever() && (((dreglist.GetLength() <= 16) &&
+                               (!rn.IsPC() || !write_back.DoesWriteBack())) ||
+                              AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0c900b00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -19513,16 +19525,19 @@ void Assembler::vldmia(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VLDMIA{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; T2
-    const SRegister& sreg = sreglist.GetFirstSRegister();
-    unsigned len = sreglist.GetLength();
-    EmitT32_32(0xec900a00U | (rn.GetCode() << 16) |
-               (write_back.GetWriteBackUint32() << 21) | sreg.Encode(22, 12) |
-               (len & 0xff));
-    AdvanceIT();
-    return;
+    if ((!rn.IsPC() || AllowUnpredictable())) {
+      const SRegister& sreg = sreglist.GetFirstSRegister();
+      unsigned len = sreglist.GetLength();
+      EmitT32_32(0xec900a00U | (rn.GetCode() << 16) |
+                 (write_back.GetWriteBackUint32() << 21) | sreg.Encode(22, 12) |
+                 (len & 0xff));
+      AdvanceIT();
+      return;
+    }
   } else {
     // VLDMIA{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; A2
-    if (cond.IsNotNever()) {
+    if (cond.IsNotNever() &&
+        ((!rn.IsPC() || !write_back.DoesWriteBack()) || AllowUnpredictable())) {
       const SRegister& sreg = sreglist.GetFirstSRegister();
       unsigned len = sreglist.GetLength();
       EmitA32(0x0c900a00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -26965,7 +26980,8 @@ void Assembler::vstm(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1
-    if (((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
+    if ((((dreglist.GetLength() <= 16) && !rn.IsPC()) ||
+         AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xec800b00U | (rn.GetCode() << 16) |
@@ -26976,8 +26992,9 @@ void Assembler::vstm(Condition cond,
     }
   } else {
     // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; A1
-    if (cond.IsNotNever() &&
-        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
+    if (cond.IsNotNever() && (((dreglist.GetLength() <= 16) &&
+                               (!rn.IsPC() || !write_back.DoesWriteBack())) ||
+                              AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0c800b00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -26999,16 +27016,19 @@ void Assembler::vstm(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; T2
-    const SRegister& sreg = sreglist.GetFirstSRegister();
-    unsigned len = sreglist.GetLength();
-    EmitT32_32(0xec800a00U | (rn.GetCode() << 16) |
-               (write_back.GetWriteBackUint32() << 21) | sreg.Encode(22, 12) |
-               (len & 0xff));
-    AdvanceIT();
-    return;
+    if ((!rn.IsPC() || AllowUnpredictable())) {
+      const SRegister& sreg = sreglist.GetFirstSRegister();
+      unsigned len = sreglist.GetLength();
+      EmitT32_32(0xec800a00U | (rn.GetCode() << 16) |
+                 (write_back.GetWriteBackUint32() << 21) | sreg.Encode(22, 12) |
+                 (len & 0xff));
+      AdvanceIT();
+      return;
+    }
   } else {
     // VSTM{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; A2
-    if (cond.IsNotNever()) {
+    if (cond.IsNotNever() &&
+        ((!rn.IsPC() || !write_back.DoesWriteBack()) || AllowUnpredictable())) {
       const SRegister& sreg = sreglist.GetFirstSRegister();
       unsigned len = sreglist.GetLength();
       EmitA32(0x0c800a00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -27031,7 +27051,8 @@ void Assembler::vstmdb(Condition cond,
   if (IsUsingT32()) {
     // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; T1
     if (write_back.DoesWriteBack() &&
-        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
+        (((dreglist.GetLength() <= 16) && !rn.IsPC()) ||
+         AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xed200b00U | (rn.GetCode() << 16) | dreg.Encode(22, 12) |
@@ -27042,7 +27063,8 @@ void Assembler::vstmdb(Condition cond,
   } else {
     // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <dreglist> ; A1
     if (write_back.DoesWriteBack() && cond.IsNotNever() &&
-        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
+        (((dreglist.GetLength() <= 16) && !rn.IsPC()) ||
+         AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0d200b00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -27063,7 +27085,7 @@ void Assembler::vstmdb(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ; T2
-    if (write_back.DoesWriteBack()) {
+    if (write_back.DoesWriteBack() && (!rn.IsPC() || AllowUnpredictable())) {
       const SRegister& sreg = sreglist.GetFirstSRegister();
       unsigned len = sreglist.GetLength();
       EmitT32_32(0xed200a00U | (rn.GetCode() << 16) | sreg.Encode(22, 12) |
@@ -27073,7 +27095,8 @@ void Assembler::vstmdb(Condition cond,
     }
   } else {
     // VSTMDB{<c>}{<q>}{.<size>} <Rn>!, <sreglist> ; A2
-    if (write_back.DoesWriteBack() && cond.IsNotNever()) {
+    if (write_back.DoesWriteBack() && cond.IsNotNever() &&
+        (!rn.IsPC() || AllowUnpredictable())) {
       const SRegister& sreg = sreglist.GetFirstSRegister();
       unsigned len = sreglist.GetLength();
       EmitA32(0x0d200a00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -27094,7 +27117,8 @@ void Assembler::vstmia(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VSTMIA{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; T1
-    if (((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
+    if ((((dreglist.GetLength() <= 16) && !rn.IsPC()) ||
+         AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitT32_32(0xec800b00U | (rn.GetCode() << 16) |
@@ -27105,8 +27129,9 @@ void Assembler::vstmia(Condition cond,
     }
   } else {
     // VSTMIA{<c>}{<q>}{.<size>} <Rn>{!}, <dreglist> ; A1
-    if (cond.IsNotNever() &&
-        ((dreglist.GetLength() <= 16) || AllowUnpredictable())) {
+    if (cond.IsNotNever() && (((dreglist.GetLength() <= 16) &&
+                               (!rn.IsPC() || !write_back.DoesWriteBack())) ||
+                              AllowUnpredictable())) {
       const DRegister& dreg = dreglist.GetFirstDRegister();
       unsigned len = dreglist.GetLength() * 2;
       EmitA32(0x0c800b00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
@@ -27128,16 +27153,19 @@ void Assembler::vstmia(Condition cond,
   USE(dt);
   if (IsUsingT32()) {
     // VSTMIA{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; T2
-    const SRegister& sreg = sreglist.GetFirstSRegister();
-    unsigned len = sreglist.GetLength();
-    EmitT32_32(0xec800a00U | (rn.GetCode() << 16) |
-               (write_back.GetWriteBackUint32() << 21) | sreg.Encode(22, 12) |
-               (len & 0xff));
-    AdvanceIT();
-    return;
+    if ((!rn.IsPC() || AllowUnpredictable())) {
+      const SRegister& sreg = sreglist.GetFirstSRegister();
+      unsigned len = sreglist.GetLength();
+      EmitT32_32(0xec800a00U | (rn.GetCode() << 16) |
+                 (write_back.GetWriteBackUint32() << 21) | sreg.Encode(22, 12) |
+                 (len & 0xff));
+      AdvanceIT();
+      return;
+    }
   } else {
     // VSTMIA{<c>}{<q>}{.<size>} <Rn>{!}, <sreglist> ; A2
-    if (cond.IsNotNever()) {
+    if (cond.IsNotNever() &&
+        ((!rn.IsPC() || !write_back.DoesWriteBack()) || AllowUnpredictable())) {
       const SRegister& sreg = sreglist.GetFirstSRegister();
       unsigned len = sreglist.GetLength();
       EmitA32(0x0c800a00U | (cond.GetCondition() << 28) | (rn.GetCode() << 16) |
