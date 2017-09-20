@@ -102,12 +102,48 @@ class Disassembler {
    public:
     ConditionPrinter(const ITBlock& it_block, Condition cond)
         : it_block_(it_block), cond_(cond) {}
+    const ITBlock& GetITBlock() const { return it_block_; }
+    Condition GetCond() const { return cond_; }
     friend std::ostream& operator<<(std::ostream& os, ConditionPrinter cond) {
       if (cond.it_block_.InITBlock() && cond.cond_.Is(al) &&
           !cond.cond_.IsNone()) {
         return os << "al";
       }
       return os << cond.cond_;
+    }
+  };
+
+  class ImmediatePrinter {
+    uint32_t imm_;
+
+   public:
+    explicit ImmediatePrinter(uint32_t imm) : imm_(imm) {}
+    uint32_t GetImm() const { return imm_; }
+    friend std::ostream& operator<<(std::ostream& os, ImmediatePrinter imm) {
+      return os << "#" << imm.GetImm();
+    }
+  };
+
+  class SignedImmediatePrinter {
+    int32_t imm_;
+
+   public:
+    explicit SignedImmediatePrinter(int32_t imm) : imm_(imm) {}
+    int32_t GetImm() const { return imm_; }
+    friend std::ostream& operator<<(std::ostream& os,
+                                    SignedImmediatePrinter imm) {
+      return os << "#" << imm.GetImm();
+    }
+  };
+
+  class RawImmediatePrinter {
+    uint32_t imm_;
+
+   public:
+    explicit RawImmediatePrinter(uint32_t imm) : imm_(imm) {}
+    uint32_t GetImm() const { return imm_; }
+    friend std::ostream& operator<<(std::ostream& os, RawImmediatePrinter imm) {
+      return os << imm.GetImm();
     }
   };
 
@@ -118,9 +154,26 @@ class Disassembler {
    public:
     DtPrinter(DataType dt, DataType default_dt)
         : dt_(dt), default_dt_(default_dt) {}
+    DataType GetDt() const { return dt_; }
+    DataType GetDefaultDt() const { return default_dt_; }
     friend std::ostream& operator<<(std::ostream& os, DtPrinter dt) {
       if (dt.dt_.Is(dt.default_dt_)) return os;
       return os << dt.dt_;
+    }
+  };
+
+  class IndexedRegisterPrinter {
+    DRegister reg_;
+    uint32_t index_;
+
+   public:
+    IndexedRegisterPrinter(DRegister reg, uint32_t index)
+        : reg_(reg), index_(index) {}
+    DRegister GetReg() const { return reg_; }
+    uint32_t GetIndex() const { return index_; }
+    friend std::ostream& operator<<(std::ostream& os,
+                                    IndexedRegisterPrinter reg) {
+      return os << reg.GetReg() << "[" << reg.GetIndex() << "]";
     }
   };
 
@@ -222,6 +275,10 @@ class Disassembler {
       os_ << value;
       return *this;
     }
+    virtual DisassemblerStream& operator<<(const char* string) {
+      os_ << string;
+      return *this;
+    }
     virtual DisassemblerStream& operator<<(const ConditionPrinter& cond) {
       os_ << cond;
       return *this;
@@ -232,6 +289,18 @@ class Disassembler {
     }
     virtual DisassemblerStream& operator<<(const EncodingSize& size) {
       os_ << size;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const ImmediatePrinter& imm) {
+      os_ << imm;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const SignedImmediatePrinter& imm) {
+      os_ << imm;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const RawImmediatePrinter& imm) {
+      os_ << imm;
       return *this;
     }
     virtual DisassemblerStream& operator<<(const DtPrinter& dt) {
@@ -282,6 +351,10 @@ class Disassembler {
       os_ << reg;
       return *this;
     }
+    virtual DisassemblerStream& operator<<(const RegisterOrAPSR_nzcv reg) {
+      os_ << reg;
+      return *this;
+    }
     virtual DisassemblerStream& operator<<(SpecialRegister reg) {
       os_ << reg;
       return *this;
@@ -312,6 +385,14 @@ class Disassembler {
     }
     virtual DisassemblerStream& operator<<(const NeonRegisterList& list) {
       os_ << list;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const DRegisterLane& reg) {
+      os_ << reg;
+      return *this;
+    }
+    virtual DisassemblerStream& operator<<(const IndexedRegisterPrinter& reg) {
+      os_ << reg;
       return *this;
     }
     virtual DisassemblerStream& operator<<(Coprocessor coproc) {
@@ -448,15 +529,23 @@ class Disassembler {
   DisassemblerStream* os_;
   bool owns_os_;
   uint32_t code_address_;
+  // True if the disassembler always output instructions with all the
+  // registers (even if two registers are identical and only one could be
+  // output).
+  bool use_short_hand_form_;
 
  public:
   explicit Disassembler(std::ostream& os,  // NOLINT(runtime/references)
                         uint32_t code_address = 0)
       : os_(new DisassemblerStream(os)),
         owns_os_(true),
-        code_address_(code_address) {}
+        code_address_(code_address),
+        use_short_hand_form_(true) {}
   explicit Disassembler(DisassemblerStream* os, uint32_t code_address = 0)
-      : os_(os), owns_os_(false), code_address_(code_address) {}
+      : os_(os),
+        owns_os_(false),
+        code_address_(code_address),
+        use_short_hand_form_(true) {}
   virtual ~Disassembler() {
     if (owns_os_) {
       delete os_;
@@ -475,6 +564,10 @@ class Disassembler {
   Condition CurrentCond() const {
     if (it_block_.OutsideITBlock()) return al;
     return it_block_.GetCurrentCondition();
+  }
+  bool UseShortHandForm() const { return use_short_hand_form_; }
+  void SetUseShortHandForm(bool use_short_hand_form) {
+    use_short_hand_form_ = use_short_hand_form;
   }
 
   virtual void UnallocatedT32(uint32_t instruction) {

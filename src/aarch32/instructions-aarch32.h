@@ -1001,6 +1001,7 @@ class Condition {
 
  public:
   static const Condition None() { return Condition(kNone); }
+  static const Condition Never() { return Condition(kNever); }
   explicit Condition(uint32_t condition) : condition_(condition) {
     VIXL_ASSERT(condition <= kNone);
   }

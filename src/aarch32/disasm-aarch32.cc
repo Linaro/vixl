@@ -1121,7 +1121,7 @@ void Disassembler::adc(Condition cond,
   os().SetCurrentInstruction(kAdc, kArithmetic);
   os() << ToCString(kAdc) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -1135,7 +1135,7 @@ void Disassembler::adcs(Condition cond,
   os().SetCurrentInstruction(kAdcs, kArithmetic);
   os() << ToCString(kAdcs) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -1149,7 +1149,7 @@ void Disassembler::add(Condition cond,
   os().SetCurrentInstruction(kAdd, kArithmetic);
   os() << ToCString(kAdd) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -1169,7 +1169,7 @@ void Disassembler::adds(Condition cond,
   os().SetCurrentInstruction(kAdds, kArithmetic);
   os() << ToCString(kAdds) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -1187,7 +1187,7 @@ void Disassembler::addw(Condition cond,
   os().SetCurrentInstruction(kAddw, kArithmetic);
   os() << ToCString(kAddw) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -1211,7 +1211,7 @@ void Disassembler::and_(Condition cond,
   os().SetCurrentInstruction(kAnd, kBitwise);
   os() << ToCString(kAnd) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -1225,7 +1225,7 @@ void Disassembler::ands(Condition cond,
   os().SetCurrentInstruction(kAnds, kBitwise);
   os() << ToCString(kAnds) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -1239,7 +1239,7 @@ void Disassembler::asr(Condition cond,
   os().SetCurrentInstruction(kAsr, kShift);
   os() << ToCString(kAsr) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -1253,7 +1253,7 @@ void Disassembler::asrs(Condition cond,
   os().SetCurrentInstruction(kAsrs, kShift);
   os() << ToCString(kAsrs) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -1271,18 +1271,15 @@ void Disassembler::bfc(Condition cond,
                        uint32_t width) {
   os().SetCurrentInstruction(kBfc, kShift);
   os() << ToCString(kBfc) << ConditionPrinter(it_block_, cond) << " " << rd
-       << ", "
-       << "#" << lsb << ", "
-       << "#" << width;
+       << ", " << ImmediatePrinter(lsb) << ", " << ImmediatePrinter(width);
 }
 
 void Disassembler::bfi(
     Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width) {
   os().SetCurrentInstruction(kBfi, kShift);
   os() << ToCString(kBfi) << ConditionPrinter(it_block_, cond) << " " << rd
-       << ", " << rn << ", "
-       << "#" << lsb << ", "
-       << "#" << width;
+       << ", " << rn << ", " << ImmediatePrinter(lsb) << ", "
+       << ImmediatePrinter(width);
 }
 
 void Disassembler::bic(Condition cond,
@@ -1293,7 +1290,7 @@ void Disassembler::bic(Condition cond,
   os().SetCurrentInstruction(kBic, kBitwise);
   os() << ToCString(kBic) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -1307,7 +1304,7 @@ void Disassembler::bics(Condition cond,
   os().SetCurrentInstruction(kBics, kBitwise);
   os() << ToCString(kBics) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -1315,7 +1312,8 @@ void Disassembler::bics(Condition cond,
 
 void Disassembler::bkpt(Condition cond, uint32_t imm) {
   os().SetCurrentInstruction(kBkpt, kSystem);
-  os() << ToCString(kBkpt) << ConditionPrinter(it_block_, cond) << " " << imm;
+  os() << ToCString(kBkpt) << ConditionPrinter(it_block_, cond) << " "
+       << RawImmediatePrinter(imm);
 }
 
 void Disassembler::bl(Condition cond, Location* location) {
@@ -1458,7 +1456,7 @@ void Disassembler::eor(Condition cond,
   os().SetCurrentInstruction(kEor, kBitwise);
   os() << ToCString(kEor) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -1472,7 +1470,7 @@ void Disassembler::eors(Condition cond,
   os().SetCurrentInstruction(kEors, kBitwise);
   os() << ToCString(kEors) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -1520,12 +1518,14 @@ void Disassembler::fstmiax(Condition cond,
 
 void Disassembler::hlt(Condition cond, uint32_t imm) {
   os().SetCurrentInstruction(kHlt, kSystem);
-  os() << ToCString(kHlt) << ConditionPrinter(it_block_, cond) << " " << imm;
+  os() << ToCString(kHlt) << ConditionPrinter(it_block_, cond) << " "
+       << RawImmediatePrinter(imm);
 }
 
 void Disassembler::hvc(Condition cond, uint32_t imm) {
   os().SetCurrentInstruction(kHvc, kSystem);
-  os() << ToCString(kHvc) << ConditionPrinter(it_block_, cond) << " " << imm;
+  os() << ToCString(kHvc) << ConditionPrinter(it_block_, cond) << " "
+       << RawImmediatePrinter(imm);
 }
 
 void Disassembler::isb(Condition cond, MemoryBarrier option) {
@@ -1836,7 +1836,7 @@ void Disassembler::lsl(Condition cond,
   os().SetCurrentInstruction(kLsl, kShift);
   os() << ToCString(kLsl) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -1850,7 +1850,7 @@ void Disassembler::lsls(Condition cond,
   os().SetCurrentInstruction(kLsls, kShift);
   os() << ToCString(kLsls) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -1864,7 +1864,7 @@ void Disassembler::lsr(Condition cond,
   os().SetCurrentInstruction(kLsr, kShift);
   os() << ToCString(kLsr) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -1878,7 +1878,7 @@ void Disassembler::lsrs(Condition cond,
   os().SetCurrentInstruction(kLsrs, kShift);
   os() << ToCString(kLsrs) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -1992,7 +1992,7 @@ void Disassembler::orn(Condition cond,
   os().SetCurrentInstruction(kOrn, kBitwise);
   os() << ToCString(kOrn) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -2005,7 +2005,7 @@ void Disassembler::orns(Condition cond,
   os().SetCurrentInstruction(kOrns, kBitwise);
   os() << ToCString(kOrns) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -2019,7 +2019,7 @@ void Disassembler::orr(Condition cond,
   os().SetCurrentInstruction(kOrr, kBitwise);
   os() << ToCString(kOrr) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -2033,7 +2033,7 @@ void Disassembler::orrs(Condition cond,
   os().SetCurrentInstruction(kOrrs, kBitwise);
   os() << ToCString(kOrrs) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -2046,7 +2046,7 @@ void Disassembler::pkhbt(Condition cond,
   os().SetCurrentInstruction(kPkhbt, kNoAttribute);
   os() << ToCString(kPkhbt) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -2059,7 +2059,7 @@ void Disassembler::pkhtb(Condition cond,
   os().SetCurrentInstruction(kPkhtb, kNoAttribute);
   os() << ToCString(kPkhtb) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -2127,7 +2127,7 @@ void Disassembler::qadd(Condition cond, Register rd, Register rm, Register rn) {
   os().SetCurrentInstruction(kQadd, kArithmetic);
   os() << ToCString(kQadd) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << rn;
@@ -2140,7 +2140,7 @@ void Disassembler::qadd16(Condition cond,
   os().SetCurrentInstruction(kQadd16, kArithmetic);
   os() << ToCString(kQadd16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2153,7 +2153,7 @@ void Disassembler::qadd8(Condition cond,
   os().SetCurrentInstruction(kQadd8, kArithmetic);
   os() << ToCString(kQadd8) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2163,7 +2163,7 @@ void Disassembler::qasx(Condition cond, Register rd, Register rn, Register rm) {
   os().SetCurrentInstruction(kQasx, kArithmetic);
   os() << ToCString(kQasx) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2176,7 +2176,7 @@ void Disassembler::qdadd(Condition cond,
   os().SetCurrentInstruction(kQdadd, kArithmetic);
   os() << ToCString(kQdadd) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << rn;
@@ -2189,7 +2189,7 @@ void Disassembler::qdsub(Condition cond,
   os().SetCurrentInstruction(kQdsub, kArithmetic);
   os() << ToCString(kQdsub) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << rn;
@@ -2199,7 +2199,7 @@ void Disassembler::qsax(Condition cond, Register rd, Register rn, Register rm) {
   os().SetCurrentInstruction(kQsax, kArithmetic);
   os() << ToCString(kQsax) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2209,7 +2209,7 @@ void Disassembler::qsub(Condition cond, Register rd, Register rm, Register rn) {
   os().SetCurrentInstruction(kQsub, kArithmetic);
   os() << ToCString(kQsub) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << rn;
@@ -2222,7 +2222,7 @@ void Disassembler::qsub16(Condition cond,
   os().SetCurrentInstruction(kQsub16, kArithmetic);
   os() << ToCString(kQsub16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2235,7 +2235,7 @@ void Disassembler::qsub8(Condition cond,
   os().SetCurrentInstruction(kQsub8, kArithmetic);
   os() << ToCString(kQsub8) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2282,7 +2282,7 @@ void Disassembler::ror(Condition cond,
   os().SetCurrentInstruction(kRor, kShift);
   os() << ToCString(kRor) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -2296,7 +2296,7 @@ void Disassembler::rors(Condition cond,
   os().SetCurrentInstruction(kRors, kShift);
   os() << ToCString(kRors) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -2306,7 +2306,7 @@ void Disassembler::rrx(Condition cond, Register rd, Register rm) {
   os().SetCurrentInstruction(kRrx, kShift);
   os() << ToCString(kRrx) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm;
@@ -2316,7 +2316,7 @@ void Disassembler::rrxs(Condition cond, Register rd, Register rm) {
   os().SetCurrentInstruction(kRrxs, kShift);
   os() << ToCString(kRrxs) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm;
@@ -2330,7 +2330,7 @@ void Disassembler::rsb(Condition cond,
   os().SetCurrentInstruction(kRsb, kArithmetic);
   os() << ToCString(kRsb) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -2344,7 +2344,7 @@ void Disassembler::rsbs(Condition cond,
   os().SetCurrentInstruction(kRsbs, kArithmetic);
   os() << ToCString(kRsbs) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -2357,7 +2357,7 @@ void Disassembler::rsc(Condition cond,
   os().SetCurrentInstruction(kRsc, kArithmetic);
   os() << ToCString(kRsc) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -2370,7 +2370,7 @@ void Disassembler::rscs(Condition cond,
   os().SetCurrentInstruction(kRscs, kArithmetic);
   os() << ToCString(kRscs) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -2383,7 +2383,7 @@ void Disassembler::sadd16(Condition cond,
   os().SetCurrentInstruction(kSadd16, kArithmetic);
   os() << ToCString(kSadd16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2396,7 +2396,7 @@ void Disassembler::sadd8(Condition cond,
   os().SetCurrentInstruction(kSadd8, kArithmetic);
   os() << ToCString(kSadd8) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2406,7 +2406,7 @@ void Disassembler::sasx(Condition cond, Register rd, Register rn, Register rm) {
   os().SetCurrentInstruction(kSasx, kArithmetic);
   os() << ToCString(kSasx) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2420,7 +2420,7 @@ void Disassembler::sbc(Condition cond,
   os().SetCurrentInstruction(kSbc, kArithmetic);
   os() << ToCString(kSbc) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -2434,7 +2434,7 @@ void Disassembler::sbcs(Condition cond,
   os().SetCurrentInstruction(kSbcs, kArithmetic);
   os() << ToCString(kSbcs) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -2444,16 +2444,15 @@ void Disassembler::sbfx(
     Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width) {
   os().SetCurrentInstruction(kSbfx, kShift);
   os() << ToCString(kSbfx) << ConditionPrinter(it_block_, cond) << " " << rd
-       << ", " << rn << ", "
-       << "#" << lsb << ", "
-       << "#" << width;
+       << ", " << rn << ", " << ImmediatePrinter(lsb) << ", "
+       << ImmediatePrinter(width);
 }
 
 void Disassembler::sdiv(Condition cond, Register rd, Register rn, Register rm) {
   os().SetCurrentInstruction(kSdiv, kArithmetic);
   os() << ToCString(kSdiv) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2463,7 +2462,7 @@ void Disassembler::sel(Condition cond, Register rd, Register rn, Register rm) {
   os().SetCurrentInstruction(kSel, kNoAttribute);
   os() << ToCString(kSel) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2476,7 +2475,7 @@ void Disassembler::shadd16(Condition cond,
   os().SetCurrentInstruction(kShadd16, kArithmetic);
   os() << ToCString(kShadd16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2489,7 +2488,7 @@ void Disassembler::shadd8(Condition cond,
   os().SetCurrentInstruction(kShadd8, kArithmetic);
   os() << ToCString(kShadd8) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2502,7 +2501,7 @@ void Disassembler::shasx(Condition cond,
   os().SetCurrentInstruction(kShasx, kArithmetic);
   os() << ToCString(kShasx) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2515,7 +2514,7 @@ void Disassembler::shsax(Condition cond,
   os().SetCurrentInstruction(kShsax, kArithmetic);
   os() << ToCString(kShsax) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2528,7 +2527,7 @@ void Disassembler::shsub16(Condition cond,
   os().SetCurrentInstruction(kShsub16, kArithmetic);
   os() << ToCString(kShsub16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2541,7 +2540,7 @@ void Disassembler::shsub8(Condition cond,
   os().SetCurrentInstruction(kShsub8, kArithmetic);
   os() << ToCString(kShsub8) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2722,7 +2721,7 @@ void Disassembler::smmul(Condition cond,
   os().SetCurrentInstruction(kSmmul, kArithmetic);
   os() << ToCString(kSmmul) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2735,7 +2734,7 @@ void Disassembler::smmulr(Condition cond,
   os().SetCurrentInstruction(kSmmulr, kArithmetic);
   os() << ToCString(kSmmulr) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2748,7 +2747,7 @@ void Disassembler::smuad(Condition cond,
   os().SetCurrentInstruction(kSmuad, kArithmetic);
   os() << ToCString(kSmuad) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2761,7 +2760,7 @@ void Disassembler::smuadx(Condition cond,
   os().SetCurrentInstruction(kSmuadx, kArithmetic);
   os() << ToCString(kSmuadx) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2774,7 +2773,7 @@ void Disassembler::smulbb(Condition cond,
   os().SetCurrentInstruction(kSmulbb, kArithmetic);
   os() << ToCString(kSmulbb) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2787,7 +2786,7 @@ void Disassembler::smulbt(Condition cond,
   os().SetCurrentInstruction(kSmulbt, kArithmetic);
   os() << ToCString(kSmulbt) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2814,7 +2813,7 @@ void Disassembler::smultb(Condition cond,
   os().SetCurrentInstruction(kSmultb, kArithmetic);
   os() << ToCString(kSmultb) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2827,7 +2826,7 @@ void Disassembler::smultt(Condition cond,
   os().SetCurrentInstruction(kSmultt, kArithmetic);
   os() << ToCString(kSmultt) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2840,7 +2839,7 @@ void Disassembler::smulwb(Condition cond,
   os().SetCurrentInstruction(kSmulwb, kArithmetic);
   os() << ToCString(kSmulwb) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2853,7 +2852,7 @@ void Disassembler::smulwt(Condition cond,
   os().SetCurrentInstruction(kSmulwt, kArithmetic);
   os() << ToCString(kSmulwt) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2866,7 +2865,7 @@ void Disassembler::smusd(Condition cond,
   os().SetCurrentInstruction(kSmusd, kArithmetic);
   os() << ToCString(kSmusd) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2879,7 +2878,7 @@ void Disassembler::smusdx(Condition cond,
   os().SetCurrentInstruction(kSmusdx, kArithmetic);
   os() << ToCString(kSmusdx) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2891,8 +2890,7 @@ void Disassembler::ssat(Condition cond,
                         const Operand& operand) {
   os().SetCurrentInstruction(kSsat, kArithmetic);
   os() << ToCString(kSsat) << ConditionPrinter(it_block_, cond) << " " << rd
-       << ", "
-       << "#" << imm << ", " << operand;
+       << ", " << ImmediatePrinter(imm) << ", " << operand;
 }
 
 void Disassembler::ssat16(Condition cond,
@@ -2901,15 +2899,14 @@ void Disassembler::ssat16(Condition cond,
                           Register rn) {
   os().SetCurrentInstruction(kSsat16, kArithmetic);
   os() << ToCString(kSsat16) << ConditionPrinter(it_block_, cond) << " " << rd
-       << ", "
-       << "#" << imm << ", " << rn;
+       << ", " << ImmediatePrinter(imm) << ", " << rn;
 }
 
 void Disassembler::ssax(Condition cond, Register rd, Register rn, Register rm) {
   os().SetCurrentInstruction(kSsax, kArithmetic);
   os() << ToCString(kSsax) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2922,7 +2919,7 @@ void Disassembler::ssub16(Condition cond,
   os().SetCurrentInstruction(kSsub16, kArithmetic);
   os() << ToCString(kSsub16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -2935,7 +2932,7 @@ void Disassembler::ssub8(Condition cond,
   os().SetCurrentInstruction(kSsub8, kArithmetic);
   os() << ToCString(kSsub8) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3161,7 +3158,7 @@ void Disassembler::sub(Condition cond,
   os().SetCurrentInstruction(kSub, kArithmetic);
   os() << ToCString(kSub) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -3181,7 +3178,7 @@ void Disassembler::subs(Condition cond,
   os().SetCurrentInstruction(kSubs, kArithmetic);
   os() << ToCString(kSubs) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -3199,7 +3196,7 @@ void Disassembler::subw(Condition cond,
   os().SetCurrentInstruction(kSubw, kArithmetic);
   os() << ToCString(kSubw) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -3207,7 +3204,8 @@ void Disassembler::subw(Condition cond,
 
 void Disassembler::svc(Condition cond, uint32_t imm) {
   os().SetCurrentInstruction(kSvc, kSystem);
-  os() << ToCString(kSvc) << ConditionPrinter(it_block_, cond) << " " << imm;
+  os() << ToCString(kSvc) << ConditionPrinter(it_block_, cond) << " "
+       << RawImmediatePrinter(imm);
 }
 
 void Disassembler::sxtab(Condition cond,
@@ -3217,7 +3215,7 @@ void Disassembler::sxtab(Condition cond,
   os().SetCurrentInstruction(kSxtab, kArithmetic);
   os() << ToCString(kSxtab) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -3230,7 +3228,7 @@ void Disassembler::sxtab16(Condition cond,
   os().SetCurrentInstruction(kSxtab16, kArithmetic);
   os() << ToCString(kSxtab16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -3243,7 +3241,7 @@ void Disassembler::sxtah(Condition cond,
   os().SetCurrentInstruction(kSxtah, kArithmetic);
   os() << ToCString(kSxtah) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -3256,7 +3254,7 @@ void Disassembler::sxtb(Condition cond,
   os().SetCurrentInstruction(kSxtb, kArithmetic);
   os() << ToCString(kSxtb) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(operand.GetBaseRegister())) {
+  if (!rd.Is(operand.GetBaseRegister()) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << operand;
@@ -3266,7 +3264,7 @@ void Disassembler::sxtb16(Condition cond, Register rd, const Operand& operand) {
   os().SetCurrentInstruction(kSxtb16, kArithmetic);
   os() << ToCString(kSxtb16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(operand.GetBaseRegister())) {
+  if (!rd.Is(operand.GetBaseRegister()) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << operand;
@@ -3279,7 +3277,7 @@ void Disassembler::sxth(Condition cond,
   os().SetCurrentInstruction(kSxth, kArithmetic);
   os() << ToCString(kSxth) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(operand.GetBaseRegister())) {
+  if (!rd.Is(operand.GetBaseRegister()) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << operand;
@@ -3319,7 +3317,7 @@ void Disassembler::uadd16(Condition cond,
   os().SetCurrentInstruction(kUadd16, kArithmetic);
   os() << ToCString(kUadd16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3332,7 +3330,7 @@ void Disassembler::uadd8(Condition cond,
   os().SetCurrentInstruction(kUadd8, kArithmetic);
   os() << ToCString(kUadd8) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3342,7 +3340,7 @@ void Disassembler::uasx(Condition cond, Register rd, Register rn, Register rm) {
   os().SetCurrentInstruction(kUasx, kArithmetic);
   os() << ToCString(kUasx) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3352,22 +3350,21 @@ void Disassembler::ubfx(
     Condition cond, Register rd, Register rn, uint32_t lsb, uint32_t width) {
   os().SetCurrentInstruction(kUbfx, kShift);
   os() << ToCString(kUbfx) << ConditionPrinter(it_block_, cond) << " " << rd
-       << ", " << rn << ", "
-       << "#" << lsb << ", "
-       << "#" << width;
+       << ", " << rn << ", " << ImmediatePrinter(lsb) << ", "
+       << ImmediatePrinter(width);
 }
 
 void Disassembler::udf(Condition cond, EncodingSize size, uint32_t imm) {
   os().SetCurrentInstruction(kUdf, kNoAttribute);
   os() << ToCString(kUdf) << ConditionPrinter(it_block_, cond) << size << " "
-       << imm;
+       << RawImmediatePrinter(imm);
 }
 
 void Disassembler::udiv(Condition cond, Register rd, Register rn, Register rm) {
   os().SetCurrentInstruction(kUdiv, kArithmetic);
   os() << ToCString(kUdiv) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3380,7 +3377,7 @@ void Disassembler::uhadd16(Condition cond,
   os().SetCurrentInstruction(kUhadd16, kArithmetic);
   os() << ToCString(kUhadd16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3393,7 +3390,7 @@ void Disassembler::uhadd8(Condition cond,
   os().SetCurrentInstruction(kUhadd8, kArithmetic);
   os() << ToCString(kUhadd8) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3406,7 +3403,7 @@ void Disassembler::uhasx(Condition cond,
   os().SetCurrentInstruction(kUhasx, kArithmetic);
   os() << ToCString(kUhasx) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3419,7 +3416,7 @@ void Disassembler::uhsax(Condition cond,
   os().SetCurrentInstruction(kUhsax, kArithmetic);
   os() << ToCString(kUhsax) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3432,7 +3429,7 @@ void Disassembler::uhsub16(Condition cond,
   os().SetCurrentInstruction(kUhsub16, kArithmetic);
   os() << ToCString(kUhsub16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3445,7 +3442,7 @@ void Disassembler::uhsub8(Condition cond,
   os().SetCurrentInstruction(kUhsub8, kArithmetic);
   os() << ToCString(kUhsub8) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3493,7 +3490,7 @@ void Disassembler::uqadd16(Condition cond,
   os().SetCurrentInstruction(kUqadd16, kArithmetic);
   os() << ToCString(kUqadd16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3506,7 +3503,7 @@ void Disassembler::uqadd8(Condition cond,
   os().SetCurrentInstruction(kUqadd8, kArithmetic);
   os() << ToCString(kUqadd8) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3519,7 +3516,7 @@ void Disassembler::uqasx(Condition cond,
   os().SetCurrentInstruction(kUqasx, kArithmetic);
   os() << ToCString(kUqasx) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3532,7 +3529,7 @@ void Disassembler::uqsax(Condition cond,
   os().SetCurrentInstruction(kUqsax, kArithmetic);
   os() << ToCString(kUqsax) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3545,7 +3542,7 @@ void Disassembler::uqsub16(Condition cond,
   os().SetCurrentInstruction(kUqsub16, kArithmetic);
   os() << ToCString(kUqsub16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3558,7 +3555,7 @@ void Disassembler::uqsub8(Condition cond,
   os().SetCurrentInstruction(kUqsub8, kArithmetic);
   os() << ToCString(kUqsub8) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3571,7 +3568,7 @@ void Disassembler::usad8(Condition cond,
   os().SetCurrentInstruction(kUsad8, kArithmetic);
   os() << ToCString(kUsad8) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3590,8 +3587,7 @@ void Disassembler::usat(Condition cond,
                         const Operand& operand) {
   os().SetCurrentInstruction(kUsat, kArithmetic);
   os() << ToCString(kUsat) << ConditionPrinter(it_block_, cond) << " " << rd
-       << ", "
-       << "#" << imm << ", " << operand;
+       << ", " << ImmediatePrinter(imm) << ", " << operand;
 }
 
 void Disassembler::usat16(Condition cond,
@@ -3600,15 +3596,14 @@ void Disassembler::usat16(Condition cond,
                           Register rn) {
   os().SetCurrentInstruction(kUsat16, kArithmetic);
   os() << ToCString(kUsat16) << ConditionPrinter(it_block_, cond) << " " << rd
-       << ", "
-       << "#" << imm << ", " << rn;
+       << ", " << ImmediatePrinter(imm) << ", " << rn;
 }
 
 void Disassembler::usax(Condition cond, Register rd, Register rn, Register rm) {
   os().SetCurrentInstruction(kUsax, kArithmetic);
   os() << ToCString(kUsax) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3621,7 +3616,7 @@ void Disassembler::usub16(Condition cond,
   os().SetCurrentInstruction(kUsub16, kArithmetic);
   os() << ToCString(kUsub16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3634,7 +3629,7 @@ void Disassembler::usub8(Condition cond,
   os().SetCurrentInstruction(kUsub8, kArithmetic);
   os() << ToCString(kUsub8) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3647,7 +3642,7 @@ void Disassembler::uxtab(Condition cond,
   os().SetCurrentInstruction(kUxtab, kArithmetic);
   os() << ToCString(kUxtab) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -3660,7 +3655,7 @@ void Disassembler::uxtab16(Condition cond,
   os().SetCurrentInstruction(kUxtab16, kArithmetic);
   os() << ToCString(kUxtab16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -3673,7 +3668,7 @@ void Disassembler::uxtah(Condition cond,
   os().SetCurrentInstruction(kUxtah, kArithmetic);
   os() << ToCString(kUxtah) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -3686,7 +3681,7 @@ void Disassembler::uxtb(Condition cond,
   os().SetCurrentInstruction(kUxtb, kArithmetic);
   os() << ToCString(kUxtb) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(operand.GetBaseRegister())) {
+  if (!rd.Is(operand.GetBaseRegister()) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << operand;
@@ -3696,7 +3691,7 @@ void Disassembler::uxtb16(Condition cond, Register rd, const Operand& operand) {
   os().SetCurrentInstruction(kUxtb16, kArithmetic);
   os() << ToCString(kUxtb16) << ConditionPrinter(it_block_, cond);
   os() << " ";
-  if (!rd.Is(operand.GetBaseRegister())) {
+  if (!rd.Is(operand.GetBaseRegister()) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << operand;
@@ -3709,7 +3704,7 @@ void Disassembler::uxth(Condition cond,
   os().SetCurrentInstruction(kUxth, kArithmetic);
   os() << ToCString(kUxth) << ConditionPrinter(it_block_, cond) << size;
   os() << " ";
-  if (!rd.Is(operand.GetBaseRegister())) {
+  if (!rd.Is(operand.GetBaseRegister()) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << operand;
@@ -3741,7 +3736,7 @@ void Disassembler::vabd(
   os().SetCurrentInstruction(kVabd, kFpNeon);
   os() << ToCString(kVabd) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3752,7 +3747,7 @@ void Disassembler::vabd(
   os().SetCurrentInstruction(kVabd, kFpNeon);
   os() << ToCString(kVabd) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3797,7 +3792,7 @@ void Disassembler::vacge(
   os().SetCurrentInstruction(kVacge, kFpNeon);
   os() << ToCString(kVacge) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3808,7 +3803,7 @@ void Disassembler::vacge(
   os().SetCurrentInstruction(kVacge, kFpNeon);
   os() << ToCString(kVacge) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3819,7 +3814,7 @@ void Disassembler::vacgt(
   os().SetCurrentInstruction(kVacgt, kFpNeon);
   os() << ToCString(kVacgt) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3830,7 +3825,7 @@ void Disassembler::vacgt(
   os().SetCurrentInstruction(kVacgt, kFpNeon);
   os() << ToCString(kVacgt) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3841,7 +3836,7 @@ void Disassembler::vacle(
   os().SetCurrentInstruction(kVacle, kFpNeon);
   os() << ToCString(kVacle) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3852,7 +3847,7 @@ void Disassembler::vacle(
   os().SetCurrentInstruction(kVacle, kFpNeon);
   os() << ToCString(kVacle) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3863,7 +3858,7 @@ void Disassembler::vaclt(
   os().SetCurrentInstruction(kVaclt, kFpNeon);
   os() << ToCString(kVaclt) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3874,7 +3869,7 @@ void Disassembler::vaclt(
   os().SetCurrentInstruction(kVaclt, kFpNeon);
   os() << ToCString(kVaclt) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3885,7 +3880,7 @@ void Disassembler::vadd(
   os().SetCurrentInstruction(kVadd, kFpNeon);
   os() << ToCString(kVadd) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3896,7 +3891,7 @@ void Disassembler::vadd(
   os().SetCurrentInstruction(kVadd, kFpNeon);
   os() << ToCString(kVadd) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3907,7 +3902,7 @@ void Disassembler::vadd(
   os().SetCurrentInstruction(kVadd, kFpNeon);
   os() << ToCString(kVadd) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3932,7 +3927,7 @@ void Disassembler::vaddw(
   os().SetCurrentInstruction(kVaddw, kFpNeon);
   os() << ToCString(kVaddw) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -3946,7 +3941,7 @@ void Disassembler::vand(Condition cond,
   os().SetCurrentInstruction(kVand, kFpNeon);
   os() << ToCString(kVand) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -3960,7 +3955,7 @@ void Disassembler::vand(Condition cond,
   os().SetCurrentInstruction(kVand, kFpNeon);
   os() << ToCString(kVand) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -3974,7 +3969,7 @@ void Disassembler::vbic(Condition cond,
   os().SetCurrentInstruction(kVbic, kFpNeon);
   os() << ToCString(kVbic) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -3988,7 +3983,7 @@ void Disassembler::vbic(Condition cond,
   os().SetCurrentInstruction(kVbic, kFpNeon);
   os() << ToCString(kVbic) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -3999,7 +3994,7 @@ void Disassembler::vbif(
   os().SetCurrentInstruction(kVbif, kFpNeon);
   os() << ToCString(kVbif) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4010,7 +4005,7 @@ void Disassembler::vbif(
   os().SetCurrentInstruction(kVbif, kFpNeon);
   os() << ToCString(kVbif) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4021,7 +4016,7 @@ void Disassembler::vbit(
   os().SetCurrentInstruction(kVbit, kFpNeon);
   os() << ToCString(kVbit) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4032,7 +4027,7 @@ void Disassembler::vbit(
   os().SetCurrentInstruction(kVbit, kFpNeon);
   os() << ToCString(kVbit) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4043,7 +4038,7 @@ void Disassembler::vbsl(
   os().SetCurrentInstruction(kVbsl, kFpNeon);
   os() << ToCString(kVbsl) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4054,7 +4049,7 @@ void Disassembler::vbsl(
   os().SetCurrentInstruction(kVbsl, kFpNeon);
   os() << ToCString(kVbsl) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4068,7 +4063,7 @@ void Disassembler::vceq(Condition cond,
   os().SetCurrentInstruction(kVceq, kFpNeon);
   os() << ToCString(kVceq) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -4082,7 +4077,7 @@ void Disassembler::vceq(Condition cond,
   os().SetCurrentInstruction(kVceq, kFpNeon);
   os() << ToCString(kVceq) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -4093,7 +4088,7 @@ void Disassembler::vceq(
   os().SetCurrentInstruction(kVceq, kFpNeon);
   os() << ToCString(kVceq) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4104,7 +4099,7 @@ void Disassembler::vceq(
   os().SetCurrentInstruction(kVceq, kFpNeon);
   os() << ToCString(kVceq) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4118,7 +4113,7 @@ void Disassembler::vcge(Condition cond,
   os().SetCurrentInstruction(kVcge, kFpNeon);
   os() << ToCString(kVcge) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -4132,7 +4127,7 @@ void Disassembler::vcge(Condition cond,
   os().SetCurrentInstruction(kVcge, kFpNeon);
   os() << ToCString(kVcge) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -4143,7 +4138,7 @@ void Disassembler::vcge(
   os().SetCurrentInstruction(kVcge, kFpNeon);
   os() << ToCString(kVcge) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4154,7 +4149,7 @@ void Disassembler::vcge(
   os().SetCurrentInstruction(kVcge, kFpNeon);
   os() << ToCString(kVcge) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4168,7 +4163,7 @@ void Disassembler::vcgt(Condition cond,
   os().SetCurrentInstruction(kVcgt, kFpNeon);
   os() << ToCString(kVcgt) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -4182,7 +4177,7 @@ void Disassembler::vcgt(Condition cond,
   os().SetCurrentInstruction(kVcgt, kFpNeon);
   os() << ToCString(kVcgt) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -4193,7 +4188,7 @@ void Disassembler::vcgt(
   os().SetCurrentInstruction(kVcgt, kFpNeon);
   os() << ToCString(kVcgt) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4204,7 +4199,7 @@ void Disassembler::vcgt(
   os().SetCurrentInstruction(kVcgt, kFpNeon);
   os() << ToCString(kVcgt) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4218,7 +4213,7 @@ void Disassembler::vcle(Condition cond,
   os().SetCurrentInstruction(kVcle, kFpNeon);
   os() << ToCString(kVcle) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -4232,7 +4227,7 @@ void Disassembler::vcle(Condition cond,
   os().SetCurrentInstruction(kVcle, kFpNeon);
   os() << ToCString(kVcle) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -4243,7 +4238,7 @@ void Disassembler::vcle(
   os().SetCurrentInstruction(kVcle, kFpNeon);
   os() << ToCString(kVcle) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4254,7 +4249,7 @@ void Disassembler::vcle(
   os().SetCurrentInstruction(kVcle, kFpNeon);
   os() << ToCString(kVcle) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4286,7 +4281,7 @@ void Disassembler::vclt(Condition cond,
   os().SetCurrentInstruction(kVclt, kFpNeon);
   os() << ToCString(kVclt) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -4300,7 +4295,7 @@ void Disassembler::vclt(Condition cond,
   os().SetCurrentInstruction(kVclt, kFpNeon);
   os() << ToCString(kVclt) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -4311,7 +4306,7 @@ void Disassembler::vclt(
   os().SetCurrentInstruction(kVclt, kFpNeon);
   os() << ToCString(kVclt) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4322,7 +4317,7 @@ void Disassembler::vclt(
   os().SetCurrentInstruction(kVclt, kFpNeon);
   os() << ToCString(kVclt) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4422,8 +4417,7 @@ void Disassembler::vcvt(Condition cond,
                         int32_t fbits) {
   os().SetCurrentInstruction(kVcvt, kFpNeon);
   os() << ToCString(kVcvt) << ConditionPrinter(it_block_, cond) << dt1 << dt2
-       << " " << rd << ", " << rm << ", "
-       << "#" << fbits;
+       << " " << rd << ", " << rm << ", " << SignedImmediatePrinter(fbits);
 }
 
 void Disassembler::vcvt(Condition cond,
@@ -4434,8 +4428,7 @@ void Disassembler::vcvt(Condition cond,
                         int32_t fbits) {
   os().SetCurrentInstruction(kVcvt, kFpNeon);
   os() << ToCString(kVcvt) << ConditionPrinter(it_block_, cond) << dt1 << dt2
-       << " " << rd << ", " << rm << ", "
-       << "#" << fbits;
+       << " " << rd << ", " << rm << ", " << SignedImmediatePrinter(fbits);
 }
 
 void Disassembler::vcvt(Condition cond,
@@ -4446,8 +4439,7 @@ void Disassembler::vcvt(Condition cond,
                         int32_t fbits) {
   os().SetCurrentInstruction(kVcvt, kFpNeon);
   os() << ToCString(kVcvt) << ConditionPrinter(it_block_, cond) << dt1 << dt2
-       << " " << rd << ", " << rm << ", "
-       << "#" << fbits;
+       << " " << rd << ", " << rm << ", " << SignedImmediatePrinter(fbits);
 }
 
 void Disassembler::vcvt(
@@ -4674,7 +4666,7 @@ void Disassembler::vdiv(
   os().SetCurrentInstruction(kVdiv, kFpNeon);
   os() << ToCString(kVdiv) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4685,7 +4677,7 @@ void Disassembler::vdiv(
   os().SetCurrentInstruction(kVdiv, kFpNeon);
   os() << ToCString(kVdiv) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4732,7 +4724,7 @@ void Disassembler::veor(
   os().SetCurrentInstruction(kVeor, kFpNeon);
   os() << ToCString(kVeor) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4743,7 +4735,7 @@ void Disassembler::veor(
   os().SetCurrentInstruction(kVeor, kFpNeon);
   os() << ToCString(kVeor) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4758,7 +4750,7 @@ void Disassembler::vext(Condition cond,
   os().SetCurrentInstruction(kVext, kFpNeon);
   os() << ToCString(kVext) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm << ", " << operand;
@@ -4773,7 +4765,7 @@ void Disassembler::vext(Condition cond,
   os().SetCurrentInstruction(kVext, kFpNeon);
   os() << ToCString(kVext) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm << ", " << operand;
@@ -4854,7 +4846,7 @@ void Disassembler::vhadd(
   os().SetCurrentInstruction(kVhadd, kFpNeon);
   os() << ToCString(kVhadd) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4865,7 +4857,7 @@ void Disassembler::vhadd(
   os().SetCurrentInstruction(kVhadd, kFpNeon);
   os() << ToCString(kVhadd) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4876,7 +4868,7 @@ void Disassembler::vhsub(
   os().SetCurrentInstruction(kVhsub, kFpNeon);
   os() << ToCString(kVhsub) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -4887,7 +4879,7 @@ void Disassembler::vhsub(
   os().SetCurrentInstruction(kVhsub, kFpNeon);
   os() << ToCString(kVhsub) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5051,7 +5043,7 @@ void Disassembler::vmax(
   os().SetCurrentInstruction(kVmax, kFpNeon);
   os() << ToCString(kVmax) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5062,7 +5054,7 @@ void Disassembler::vmax(
   os().SetCurrentInstruction(kVmax, kFpNeon);
   os() << ToCString(kVmax) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5097,7 +5089,7 @@ void Disassembler::vmin(
   os().SetCurrentInstruction(kVmin, kFpNeon);
   os() << ToCString(kVmin) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5108,7 +5100,7 @@ void Disassembler::vmin(
   os().SetCurrentInstruction(kVmin, kFpNeon);
   os() << ToCString(kVmin) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5368,10 +5360,10 @@ void Disassembler::vmul(Condition cond,
   os().SetCurrentInstruction(kVmul, kFpNeon);
   os() << ToCString(kVmul) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
-  os() << rn << ", " << dm << "[" << index << "]";
+  os() << rn << ", " << IndexedRegisterPrinter(dm, index);
 }
 
 void Disassembler::vmul(Condition cond,
@@ -5383,10 +5375,10 @@ void Disassembler::vmul(Condition cond,
   os().SetCurrentInstruction(kVmul, kFpNeon);
   os() << ToCString(kVmul) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
-  os() << rn << ", " << dm << "[" << index << "]";
+  os() << rn << ", " << IndexedRegisterPrinter(dm, index);
 }
 
 void Disassembler::vmul(
@@ -5394,7 +5386,7 @@ void Disassembler::vmul(
   os().SetCurrentInstruction(kVmul, kFpNeon);
   os() << ToCString(kVmul) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5405,7 +5397,7 @@ void Disassembler::vmul(
   os().SetCurrentInstruction(kVmul, kFpNeon);
   os() << ToCString(kVmul) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5416,7 +5408,7 @@ void Disassembler::vmul(
   os().SetCurrentInstruction(kVmul, kFpNeon);
   os() << ToCString(kVmul) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5430,7 +5422,7 @@ void Disassembler::vmull(Condition cond,
                          unsigned index) {
   os().SetCurrentInstruction(kVmull, kFpNeon);
   os() << ToCString(kVmull) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", " << rn << ", " << dm << "[" << index << "]";
+       << rd << ", " << rn << ", " << IndexedRegisterPrinter(dm, index);
 }
 
 void Disassembler::vmull(
@@ -5518,7 +5510,7 @@ void Disassembler::vnmul(
   os().SetCurrentInstruction(kVnmul, kFpNeon);
   os() << ToCString(kVnmul) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5529,7 +5521,7 @@ void Disassembler::vnmul(
   os().SetCurrentInstruction(kVnmul, kFpNeon);
   os() << ToCString(kVnmul) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5543,7 +5535,7 @@ void Disassembler::vorn(Condition cond,
   os().SetCurrentInstruction(kVorn, kFpNeon);
   os() << ToCString(kVorn) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -5557,7 +5549,7 @@ void Disassembler::vorn(Condition cond,
   os().SetCurrentInstruction(kVorn, kFpNeon);
   os() << ToCString(kVorn) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -5571,7 +5563,7 @@ void Disassembler::vorr(Condition cond,
   os().SetCurrentInstruction(kVorr, kFpNeon);
   os() << ToCString(kVorr) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -5585,7 +5577,7 @@ void Disassembler::vorr(Condition cond,
   os().SetCurrentInstruction(kVorr, kFpNeon);
   os() << ToCString(kVorr) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << operand;
@@ -5614,7 +5606,7 @@ void Disassembler::vpadd(
   os().SetCurrentInstruction(kVpadd, kFpNeon);
   os() << ToCString(kVpadd) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5643,7 +5635,7 @@ void Disassembler::vpmax(
   os().SetCurrentInstruction(kVpmax, kFpNeon);
   os() << ToCString(kVpmax) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5654,7 +5646,7 @@ void Disassembler::vpmin(
   os().SetCurrentInstruction(kVpmin, kFpNeon);
   os() << ToCString(kVpmin) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5707,7 +5699,7 @@ void Disassembler::vqadd(
   os().SetCurrentInstruction(kVqadd, kFpNeon);
   os() << ToCString(kVqadd) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5718,7 +5710,7 @@ void Disassembler::vqadd(
   os().SetCurrentInstruction(kVqadd, kFpNeon);
   os() << ToCString(kVqadd) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5739,7 +5731,7 @@ void Disassembler::vqdmlal(Condition cond,
                            unsigned index) {
   os().SetCurrentInstruction(kVqdmlal, kFpNeon);
   os() << ToCString(kVqdmlal) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", " << rn << ", " << dm << "[" << index << "]";
+       << rd << ", " << rn << ", " << IndexedRegisterPrinter(dm, index);
 }
 
 void Disassembler::vqdmlsl(
@@ -5757,7 +5749,7 @@ void Disassembler::vqdmlsl(Condition cond,
                            unsigned index) {
   os().SetCurrentInstruction(kVqdmlsl, kFpNeon);
   os() << ToCString(kVqdmlsl) << ConditionPrinter(it_block_, cond) << dt << " "
-       << rd << ", " << rn << ", " << dm << "[" << index << "]";
+       << rd << ", " << rn << ", " << IndexedRegisterPrinter(dm, index);
 }
 
 void Disassembler::vqdmulh(
@@ -5765,7 +5757,7 @@ void Disassembler::vqdmulh(
   os().SetCurrentInstruction(kVqdmulh, kFpNeon);
   os() << ToCString(kVqdmulh) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5776,7 +5768,7 @@ void Disassembler::vqdmulh(
   os().SetCurrentInstruction(kVqdmulh, kFpNeon);
   os() << ToCString(kVqdmulh) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5787,7 +5779,7 @@ void Disassembler::vqdmulh(
   os().SetCurrentInstruction(kVqdmulh, kFpNeon);
   os() << ToCString(kVqdmulh) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5798,7 +5790,7 @@ void Disassembler::vqdmulh(
   os().SetCurrentInstruction(kVqdmulh, kFpNeon);
   os() << ToCString(kVqdmulh) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5859,7 +5851,7 @@ void Disassembler::vqrdmulh(
   os().SetCurrentInstruction(kVqrdmulh, kFpNeon);
   os() << ToCString(kVqrdmulh) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5870,7 +5862,7 @@ void Disassembler::vqrdmulh(
   os().SetCurrentInstruction(kVqrdmulh, kFpNeon);
   os() << ToCString(kVqrdmulh) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5881,7 +5873,7 @@ void Disassembler::vqrdmulh(
   os().SetCurrentInstruction(kVqrdmulh, kFpNeon);
   os() << ToCString(kVqrdmulh) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5892,7 +5884,7 @@ void Disassembler::vqrdmulh(
   os().SetCurrentInstruction(kVqrdmulh, kFpNeon);
   os() << ToCString(kVqrdmulh) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -5903,7 +5895,7 @@ void Disassembler::vqrshl(
   os().SetCurrentInstruction(kVqrshl, kFpNeon);
   os() << ToCString(kVqrshl) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << rn;
@@ -5914,7 +5906,7 @@ void Disassembler::vqrshl(
   os().SetCurrentInstruction(kVqrshl, kFpNeon);
   os() << ToCString(kVqrshl) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << rn;
@@ -5948,7 +5940,7 @@ void Disassembler::vqshl(Condition cond,
   os().SetCurrentInstruction(kVqshl, kFpNeon);
   os() << ToCString(kVqshl) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -5962,7 +5954,7 @@ void Disassembler::vqshl(Condition cond,
   os().SetCurrentInstruction(kVqshl, kFpNeon);
   os() << ToCString(kVqshl) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -5976,7 +5968,7 @@ void Disassembler::vqshlu(Condition cond,
   os().SetCurrentInstruction(kVqshlu, kFpNeon);
   os() << ToCString(kVqshlu) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -5990,7 +5982,7 @@ void Disassembler::vqshlu(Condition cond,
   os().SetCurrentInstruction(kVqshlu, kFpNeon);
   os() << ToCString(kVqshlu) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6021,7 +6013,7 @@ void Disassembler::vqsub(
   os().SetCurrentInstruction(kVqsub, kFpNeon);
   os() << ToCString(kVqsub) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -6032,7 +6024,7 @@ void Disassembler::vqsub(
   os().SetCurrentInstruction(kVqsub, kFpNeon);
   os() << ToCString(kVqsub) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -6068,7 +6060,7 @@ void Disassembler::vrecps(
   os().SetCurrentInstruction(kVrecps, kFpNeon);
   os() << ToCString(kVrecps) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -6079,7 +6071,7 @@ void Disassembler::vrecps(
   os().SetCurrentInstruction(kVrecps, kFpNeon);
   os() << ToCString(kVrecps) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -6144,7 +6136,7 @@ void Disassembler::vrhadd(
   os().SetCurrentInstruction(kVrhadd, kFpNeon);
   os() << ToCString(kVrhadd) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -6155,7 +6147,7 @@ void Disassembler::vrhadd(
   os().SetCurrentInstruction(kVrhadd, kFpNeon);
   os() << ToCString(kVrhadd) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -6320,7 +6312,7 @@ void Disassembler::vrshl(
   os().SetCurrentInstruction(kVrshl, kFpNeon);
   os() << ToCString(kVrshl) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << rn;
@@ -6331,7 +6323,7 @@ void Disassembler::vrshl(
   os().SetCurrentInstruction(kVrshl, kFpNeon);
   os() << ToCString(kVrshl) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << rn;
@@ -6345,7 +6337,7 @@ void Disassembler::vrshr(Condition cond,
   os().SetCurrentInstruction(kVrshr, kFpNeon);
   os() << ToCString(kVrshr) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6359,7 +6351,7 @@ void Disassembler::vrshr(Condition cond,
   os().SetCurrentInstruction(kVrshr, kFpNeon);
   os() << ToCString(kVrshr) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6398,7 +6390,7 @@ void Disassembler::vrsqrts(
   os().SetCurrentInstruction(kVrsqrts, kFpNeon);
   os() << ToCString(kVrsqrts) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -6409,7 +6401,7 @@ void Disassembler::vrsqrts(
   os().SetCurrentInstruction(kVrsqrts, kFpNeon);
   os() << ToCString(kVrsqrts) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -6423,7 +6415,7 @@ void Disassembler::vrsra(Condition cond,
   os().SetCurrentInstruction(kVrsra, kFpNeon);
   os() << ToCString(kVrsra) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6437,7 +6429,7 @@ void Disassembler::vrsra(Condition cond,
   os().SetCurrentInstruction(kVrsra, kFpNeon);
   os() << ToCString(kVrsra) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6522,7 +6514,7 @@ void Disassembler::vshl(Condition cond,
   os().SetCurrentInstruction(kVshl, kFpNeon);
   os() << ToCString(kVshl) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6536,7 +6528,7 @@ void Disassembler::vshl(Condition cond,
   os().SetCurrentInstruction(kVshl, kFpNeon);
   os() << ToCString(kVshl) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6560,7 +6552,7 @@ void Disassembler::vshr(Condition cond,
   os().SetCurrentInstruction(kVshr, kFpNeon);
   os() << ToCString(kVshr) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6574,7 +6566,7 @@ void Disassembler::vshr(Condition cond,
   os().SetCurrentInstruction(kVshr, kFpNeon);
   os() << ToCString(kVshr) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6598,7 +6590,7 @@ void Disassembler::vsli(Condition cond,
   os().SetCurrentInstruction(kVsli, kFpNeon);
   os() << ToCString(kVsli) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6612,7 +6604,7 @@ void Disassembler::vsli(Condition cond,
   os().SetCurrentInstruction(kVsli, kFpNeon);
   os() << ToCString(kVsli) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6644,7 +6636,7 @@ void Disassembler::vsra(Condition cond,
   os().SetCurrentInstruction(kVsra, kFpNeon);
   os() << ToCString(kVsra) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6658,7 +6650,7 @@ void Disassembler::vsra(Condition cond,
   os().SetCurrentInstruction(kVsra, kFpNeon);
   os() << ToCString(kVsra) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6672,7 +6664,7 @@ void Disassembler::vsri(Condition cond,
   os().SetCurrentInstruction(kVsri, kFpNeon);
   os() << ToCString(kVsri) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6686,7 +6678,7 @@ void Disassembler::vsri(Condition cond,
   os().SetCurrentInstruction(kVsri, kFpNeon);
   os() << ToCString(kVsri) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rm)) {
+  if (!rd.Is(rm) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rm << ", " << operand;
@@ -6826,7 +6818,7 @@ void Disassembler::vsub(
   os().SetCurrentInstruction(kVsub, kFpNeon);
   os() << ToCString(kVsub) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -6837,7 +6829,7 @@ void Disassembler::vsub(
   os().SetCurrentInstruction(kVsub, kFpNeon);
   os() << ToCString(kVsub) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -6848,7 +6840,7 @@ void Disassembler::vsub(
   os().SetCurrentInstruction(kVsub, kFpNeon);
   os() << ToCString(kVsub) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -6873,7 +6865,7 @@ void Disassembler::vsubw(
   os().SetCurrentInstruction(kVsubw, kFpNeon);
   os() << ToCString(kVsubw) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -6940,7 +6932,7 @@ void Disassembler::vtst(
   os().SetCurrentInstruction(kVtst, kFpNeon);
   os() << ToCString(kVtst) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
@@ -6951,7 +6943,7 @@ void Disassembler::vtst(
   os().SetCurrentInstruction(kVtst, kFpNeon);
   os() << ToCString(kVtst) << ConditionPrinter(it_block_, cond) << dt;
   os() << " ";
-  if (!rd.Is(rn)) {
+  if (!rd.Is(rn) || !use_short_hand_form_) {
     os() << rd << ", ";
   }
   os() << rn << ", " << rm;
