@@ -108,9 +108,11 @@ class CodeBuffer {
   }
 
   // A code buffer can emit:
-  //  * 16 or 32-bit data: instruction and constant.
-  //  * 64-bit data: constant.
+  //  * 8, 16, 32 or 64-bit data: constant.
+  //  * 16 or 32-bit data: instruction.
   //  * string: debug info.
+  void Emit8(uint8_t data) { Emit(data); }
+
   void Emit16(uint16_t data) { Emit(data); }
 
   void Emit32(uint32_t data) { Emit(data); }

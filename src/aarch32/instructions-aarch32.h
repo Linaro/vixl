@@ -163,6 +163,8 @@ class RegisterOrAPSR_nzcv {
   }
 };
 
+const RegisterOrAPSR_nzcv APSR_nzcv(kPcCode);
+
 inline std::ostream& operator<<(std::ostream& os,
                                 const RegisterOrAPSR_nzcv reg) {
   if (reg.IsAPSR_nzcv()) return os << "APSR_nzcv";
