@@ -7024,7 +7024,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               if (InITBlock()) {
                 // ADD<c>{<q>} <Rd>, <Rn>, <Rm> ; T1
                 add(CurrentCond(),
-                    Best,
+                    Narrow,
                     Register(rd),
                     Register(rn),
                     Register(rm));
@@ -7032,7 +7032,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                 VIXL_ASSERT(OutsideITBlock());
                 // ADDS{<q>} {<Rd>}, <Rn>, <Rm> ; T1
                 adds(Condition::None(),
-                     Best,
+                     Narrow,
                      Register(rd),
                      Register(rn),
                      Register(rm));
@@ -7047,7 +7047,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               if (InITBlock()) {
                 // SUB<c>{<q>} <Rd>, <Rn>, <Rm> ; T1
                 sub(CurrentCond(),
-                    Best,
+                    Narrow,
                     Register(rd),
                     Register(rn),
                     Register(rm));
@@ -7055,7 +7055,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                 VIXL_ASSERT(OutsideITBlock());
                 // SUBS{<q>} {<Rd>}, <Rn>, <Rm> ; T1
                 subs(Condition::None(),
-                     Best,
+                     Narrow,
                      Register(rd),
                      Register(rn),
                      Register(rm));
@@ -7069,11 +7069,15 @@ void Disassembler::DecodeT32(uint32_t instr) {
               uint32_t imm = (instr >> 22) & 0x7;
               if (InITBlock()) {
                 // ADD<c>{<q>} <Rd>, <Rn>, #<imm3> ; T1
-                add(CurrentCond(), Best, Register(rd), Register(rn), imm);
+                add(CurrentCond(), Narrow, Register(rd), Register(rn), imm);
               } else {
                 VIXL_ASSERT(OutsideITBlock());
                 // ADDS{<q>} <Rd>, <Rn>, #<imm3> ; T1
-                adds(Condition::None(), Best, Register(rd), Register(rn), imm);
+                adds(Condition::None(),
+                     Narrow,
+                     Register(rd),
+                     Register(rn),
+                     imm);
               }
               break;
             }
@@ -7084,11 +7088,15 @@ void Disassembler::DecodeT32(uint32_t instr) {
               uint32_t imm = (instr >> 22) & 0x7;
               if (InITBlock()) {
                 // SUB<c>{<q>} <Rd>, <Rn>, #<imm3> ; T1
-                sub(CurrentCond(), Best, Register(rd), Register(rn), imm);
+                sub(CurrentCond(), Narrow, Register(rd), Register(rn), imm);
               } else {
                 VIXL_ASSERT(OutsideITBlock());
                 // SUBS{<q>} <Rd>, <Rn>, #<imm3> ; T1
-                subs(Condition::None(), Best, Register(rd), Register(rn), imm);
+                subs(Condition::None(),
+                     Narrow,
+                     Register(rd),
+                     Register(rn),
+                     imm);
               }
               break;
             }
@@ -7107,7 +7115,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
             uint32_t amount = (instr >> 22) & 0x1f;
             if (amount == 0) amount = 32;
             // ASR<c>{<q>} {<Rd>}, <Rm>, #<imm> ; T2
-            asr(CurrentCond(), Best, Register(rd), Register(rm), amount);
+            asr(CurrentCond(), Narrow, Register(rd), Register(rm), amount);
             return;
           }
           if (((Uint32((instr >> 27)) & Uint32(0x3)) == Uint32(0x2)) &&
@@ -7117,7 +7125,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
             uint32_t amount = (instr >> 22) & 0x1f;
             if (amount == 0) amount = 32;
             // ASRS{<q>} {<Rd>}, <Rm>, #<imm> ; T2
-            asrs(Condition::None(), Best, Register(rd), Register(rm), amount);
+            asrs(Condition::None(), Narrow, Register(rd), Register(rm), amount);
             return;
           }
           if (((Uint32((instr >> 27)) & Uint32(0x3)) == Uint32(0x0)) &&
@@ -7126,7 +7134,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
             unsigned rm = (instr >> 19) & 0x7;
             uint32_t amount = (instr >> 22) & 0x1f;
             // LSL<c>{<q>} {<Rd>}, <Rm>, #<imm> ; T2
-            lsl(CurrentCond(), Best, Register(rd), Register(rm), amount);
+            lsl(CurrentCond(), Narrow, Register(rd), Register(rm), amount);
             return;
           }
           if (((Uint32((instr >> 27)) & Uint32(0x3)) == Uint32(0x0)) &&
@@ -7135,7 +7143,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
             unsigned rm = (instr >> 19) & 0x7;
             uint32_t amount = (instr >> 22) & 0x1f;
             // LSLS{<q>} {<Rd>}, <Rm>, #<imm> ; T2
-            lsls(Condition::None(), Best, Register(rd), Register(rm), amount);
+            lsls(Condition::None(), Narrow, Register(rd), Register(rm), amount);
             return;
           }
           if (((Uint32((instr >> 27)) & Uint32(0x3)) == Uint32(0x1)) &&
@@ -7145,7 +7153,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
             uint32_t amount = (instr >> 22) & 0x1f;
             if (amount == 0) amount = 32;
             // LSR<c>{<q>} {<Rd>}, <Rm>, #<imm> ; T2
-            lsr(CurrentCond(), Best, Register(rd), Register(rm), amount);
+            lsr(CurrentCond(), Narrow, Register(rd), Register(rm), amount);
             return;
           }
           if (((Uint32((instr >> 27)) & Uint32(0x3)) == Uint32(0x1)) &&
@@ -7155,7 +7163,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
             uint32_t amount = (instr >> 22) & 0x1f;
             if (amount == 0) amount = 32;
             // LSRS{<q>} {<Rd>}, <Rm>, #<imm> ; T2
-            lsrs(Condition::None(), Best, Register(rd), Register(rm), amount);
+            lsrs(Condition::None(), Narrow, Register(rd), Register(rm), amount);
             return;
           }
           unsigned rd = (instr >> 16) & 0x7;
@@ -7165,7 +7173,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
           if (InITBlock()) {
             // MOV<c>{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T2
             mov(CurrentCond(),
-                Best,
+                Narrow,
                 Register(rd),
                 Operand(Register(rm),
                         shift_operand.GetType(),
@@ -7174,7 +7182,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
             VIXL_ASSERT(OutsideITBlock());
             // MOVS{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T2
             movs(Condition::None(),
-                 Best,
+                 Narrow,
                  Register(rd),
                  Operand(Register(rm),
                          shift_operand.GetType(),
@@ -7194,11 +7202,11 @@ void Disassembler::DecodeT32(uint32_t instr) {
           uint32_t imm = (instr >> 16) & 0xff;
           if (InITBlock()) {
             // MOV<c>{<q>} <Rd>, #<imm8> ; T1
-            mov(CurrentCond(), Best, Register(rd), imm);
+            mov(CurrentCond(), Narrow, Register(rd), imm);
           } else {
             VIXL_ASSERT(OutsideITBlock());
             // MOVS{<q>} <Rd>, #<imm8> ; T1
-            movs(Condition::None(), Best, Register(rd), imm);
+            movs(Condition::None(), Narrow, Register(rd), imm);
           }
           break;
         }
@@ -7207,7 +7215,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
           unsigned rn = (instr >> 24) & 0x7;
           uint32_t imm = (instr >> 16) & 0xff;
           // CMP{<c>}{<q>} <Rn>, #<imm8> ; T1
-          cmp(CurrentCond(), Best, Register(rn), imm);
+          cmp(CurrentCond(), Narrow, Register(rn), imm);
           break;
         }
         case 0x10000000: {
@@ -7219,14 +7227,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
             add(CurrentCond(), Register(rd), imm);
           } else if (InITBlock() && ((imm > 7))) {
             // ADD<c>{<q>} {<Rdn>}, <Rdn>, #<imm8> ; T2
-            add(CurrentCond(), Best, Register(rd), Register(rd), imm);
+            add(CurrentCond(), Narrow, Register(rd), Register(rd), imm);
           } else if (OutsideITBlock() && ((imm <= 7))) {
             // ADDS{<q>} <Rdn>, #<imm8> ; T2
             adds(Register(rd), imm);
           } else {
             VIXL_ASSERT(OutsideITBlock() && ((imm > 7)));
             // ADDS{<q>} {<Rdn>}, <Rdn>, #<imm8> ; T2
-            adds(Condition::None(), Best, Register(rd), Register(rd), imm);
+            adds(Condition::None(), Narrow, Register(rd), Register(rd), imm);
           }
           break;
         }
@@ -7239,14 +7247,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
             sub(CurrentCond(), Register(rd), imm);
           } else if (InITBlock() && ((imm > 7))) {
             // SUB<c>{<q>} {<Rdn>}, <Rdn>, #<imm8> ; T2
-            sub(CurrentCond(), Best, Register(rd), Register(rd), imm);
+            sub(CurrentCond(), Narrow, Register(rd), Register(rd), imm);
           } else if (OutsideITBlock() && ((imm <= 7))) {
             // SUBS{<q>} <Rdn>, #<imm8> ; T2
             subs(Register(rd), imm);
           } else {
             VIXL_ASSERT(OutsideITBlock() && ((imm > 7)));
             // SUBS{<q>} {<Rdn>}, <Rdn>, #<imm8> ; T2
-            subs(Condition::None(), Best, Register(rd), Register(rd), imm);
+            subs(Condition::None(), Narrow, Register(rd), Register(rd), imm);
           }
           break;
         }
@@ -7269,7 +7277,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   if (InITBlock()) {
                     // AND<c>{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     and_(CurrentCond(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rm));
@@ -7277,7 +7285,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     VIXL_ASSERT(OutsideITBlock());
                     // ANDS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     ands(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rm));
@@ -7291,7 +7299,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   if (InITBlock()) {
                     // EOR<c>{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     eor(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Register(rd),
                         Register(rm));
@@ -7299,7 +7307,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     VIXL_ASSERT(OutsideITBlock());
                     // EORS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     eors(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rm));
@@ -7313,7 +7321,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     unsigned rs = (instr >> 19) & 0x7;
                     // LSL<c>{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
                     lsl(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Register(rd),
                         Register(rs));
@@ -7324,7 +7332,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     unsigned rs = (instr >> 19) & 0x7;
                     // LSLS{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
                     lsls(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rs));
@@ -7336,14 +7344,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   if (InITBlock()) {
                     // MOV<c>{<q>} <Rdm>, <Rdm>, LSL <Rs> ; T1
                     mov(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Operand(Register(rm), LSL, Register(rs)));
                   } else {
                     VIXL_ASSERT(OutsideITBlock());
                     // MOVS{<q>} <Rdm>, <Rdm>, LSL <Rs> ; T1
                     movs(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Operand(Register(rm), LSL, Register(rs)));
                   }
@@ -7356,7 +7364,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     unsigned rs = (instr >> 19) & 0x7;
                     // LSR<c>{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
                     lsr(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Register(rd),
                         Register(rs));
@@ -7367,7 +7375,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     unsigned rs = (instr >> 19) & 0x7;
                     // LSRS{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
                     lsrs(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rs));
@@ -7379,14 +7387,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   if (InITBlock()) {
                     // MOV<c>{<q>} <Rdm>, <Rdm>, LSR <Rs> ; T1
                     mov(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Operand(Register(rm), LSR, Register(rs)));
                   } else {
                     VIXL_ASSERT(OutsideITBlock());
                     // MOVS{<q>} <Rdm>, <Rdm>, LSR <Rs> ; T1
                     movs(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Operand(Register(rm), LSR, Register(rs)));
                   }
@@ -7405,7 +7413,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     unsigned rs = (instr >> 19) & 0x7;
                     // ASR<c>{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
                     asr(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Register(rd),
                         Register(rs));
@@ -7416,7 +7424,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     unsigned rs = (instr >> 19) & 0x7;
                     // ASRS{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
                     asrs(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rs));
@@ -7428,14 +7436,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   if (InITBlock()) {
                     // MOV<c>{<q>} <Rdm>, <Rdm>, ASR <Rs> ; T1
                     mov(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Operand(Register(rm), ASR, Register(rs)));
                   } else {
                     VIXL_ASSERT(OutsideITBlock());
                     // MOVS{<q>} <Rdm>, <Rdm>, ASR <Rs> ; T1
                     movs(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Operand(Register(rm), ASR, Register(rs)));
                   }
@@ -7448,7 +7456,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   if (InITBlock()) {
                     // ADC<c>{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     adc(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Register(rd),
                         Register(rm));
@@ -7456,7 +7464,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     VIXL_ASSERT(OutsideITBlock());
                     // ADCS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     adcs(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rm));
@@ -7470,7 +7478,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   if (InITBlock()) {
                     // SBC<c>{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     sbc(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Register(rd),
                         Register(rm));
@@ -7478,7 +7486,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     VIXL_ASSERT(OutsideITBlock());
                     // SBCS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     sbcs(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rm));
@@ -7492,7 +7500,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     unsigned rs = (instr >> 19) & 0x7;
                     // ROR<c>{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
                     ror(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Register(rd),
                         Register(rs));
@@ -7503,7 +7511,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     unsigned rs = (instr >> 19) & 0x7;
                     // RORS{<q>} {<Rdm>}, <Rdm>, <Rs> ; T1
                     rors(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rs));
@@ -7515,14 +7523,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   if (InITBlock()) {
                     // MOV<c>{<q>} <Rdm>, <Rdm>, ROR <Rs> ; T1
                     mov(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Operand(Register(rm), ROR, Register(rs)));
                   } else {
                     VIXL_ASSERT(OutsideITBlock());
                     // MOVS{<q>} <Rdm>, <Rdm>, ROR <Rs> ; T1
                     movs(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Operand(Register(rm), ROR, Register(rs)));
                   }
@@ -7539,7 +7547,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   unsigned rn = (instr >> 16) & 0x7;
                   unsigned rm = (instr >> 19) & 0x7;
                   // TST{<c>}{<q>} <Rn>, <Rm> ; T1
-                  tst(CurrentCond(), Best, Register(rn), Register(rm));
+                  tst(CurrentCond(), Narrow, Register(rn), Register(rm));
                   break;
                 }
                 case 0x00400000: {
@@ -7549,7 +7557,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   if (InITBlock()) {
                     // RSB<c>{<q>} {<Rd>}, <Rn>, #0 ; T1
                     rsb(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Register(rn),
                         UINT32_C(0));
@@ -7557,7 +7565,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     VIXL_ASSERT(OutsideITBlock());
                     // RSBS{<q>} {<Rd>}, <Rn>, #0 ; T1
                     rsbs(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Register(rn),
                          UINT32_C(0));
@@ -7569,7 +7577,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   unsigned rn = (instr >> 16) & 0x7;
                   unsigned rm = (instr >> 19) & 0x7;
                   // CMP{<c>}{<q>} <Rn>, <Rm> ; T1
-                  cmp(CurrentCond(), Best, Register(rn), Register(rm));
+                  cmp(CurrentCond(), Narrow, Register(rn), Register(rm));
                   break;
                 }
                 case 0x00c00000: {
@@ -7577,7 +7585,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   unsigned rn = (instr >> 16) & 0x7;
                   unsigned rm = (instr >> 19) & 0x7;
                   // CMN{<c>}{<q>} <Rn>, <Rm> ; T1
-                  cmn(CurrentCond(), Best, Register(rn), Register(rm));
+                  cmn(CurrentCond(), Narrow, Register(rn), Register(rm));
                   break;
                 }
               }
@@ -7593,7 +7601,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   if (InITBlock()) {
                     // ORR<c>{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     orr(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Register(rd),
                         Register(rm));
@@ -7601,7 +7609,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     VIXL_ASSERT(OutsideITBlock());
                     // ORRS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     orrs(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rm));
@@ -7615,7 +7623,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   if (InITBlock()) {
                     // MUL<c>{<q>} <Rdm>, <Rn>, {<Rdm>} ; T1
                     mul(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Register(rn),
                         Register(rd));
@@ -7636,7 +7644,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   if (InITBlock()) {
                     // BIC<c>{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     bic(CurrentCond(),
-                        Best,
+                        Narrow,
                         Register(rd),
                         Register(rd),
                         Register(rm));
@@ -7644,7 +7652,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     VIXL_ASSERT(OutsideITBlock());
                     // BICS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     bics(Condition::None(),
-                         Best,
+                         Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rm));
@@ -7657,11 +7665,11 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   unsigned rm = (instr >> 19) & 0x7;
                   if (InITBlock()) {
                     // MVN<c>{<q>} <Rd>, <Rm> ; T1
-                    mvn(CurrentCond(), Best, Register(rd), Register(rm));
+                    mvn(CurrentCond(), Narrow, Register(rd), Register(rm));
                   } else {
                     VIXL_ASSERT(OutsideITBlock());
                     // MVNS{<q>} <Rd>, <Rm> ; T1
-                    mvns(Condition::None(), Best, Register(rd), Register(rm));
+                    mvns(Condition::None(), Narrow, Register(rd), Register(rm));
                   }
                   break;
                 }
@@ -7675,7 +7683,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   // 0x44680000
                   unsigned rd = ((instr >> 16) & 0x7) | ((instr >> 20) & 0x8);
                   // ADD{<c>}{<q>} {<Rdm>}, SP, <Rdm> ; T1
-                  add(CurrentCond(), Best, Register(rd), sp, Register(rd));
+                  add(CurrentCond(), Narrow, Register(rd), sp, Register(rd));
                   break;
                 }
                 default: {
@@ -7688,7 +7696,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       }
                       unsigned rm = (instr >> 19) & 0xf;
                       // ADD{<c>}{<q>} {SP}, SP, <Rm> ; T2
-                      add(CurrentCond(), Best, sp, sp, Register(rm));
+                      add(CurrentCond(), Narrow, sp, sp, Register(rm));
                       break;
                     }
                     default: {
@@ -7706,7 +7714,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       } else {
                         // ADD{<c>}{<q>} {<Rdn>}, <Rdn>, <Rm> ; T2
                         add(CurrentCond(),
-                            Best,
+                            Narrow,
                             Register(rd),
                             Register(rd),
                             Register(rm));
@@ -7724,7 +7732,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               unsigned rn = ((instr >> 16) & 0x7) | ((instr >> 20) & 0x8);
               unsigned rm = (instr >> 19) & 0xf;
               // CMP{<c>}{<q>} <Rn>, <Rm> ; T2
-              cmp(CurrentCond(), Best, Register(rn), Register(rm));
+              cmp(CurrentCond(), Narrow, Register(rn), Register(rm));
               break;
             }
             case 0x06000000: {
@@ -7732,7 +7740,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               unsigned rd = ((instr >> 16) & 0x7) | ((instr >> 20) & 0x8);
               unsigned rm = (instr >> 19) & 0xf;
               // MOV{<c>}{<q>} <Rd>, <Rm> ; T1
-              mov(CurrentCond(), Best, Register(rd), Register(rm));
+              mov(CurrentCond(), Narrow, Register(rd), Register(rm));
               break;
             }
             case 0x07000000: {
@@ -7770,7 +7778,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
           int32_t imm = ((instr >> 16) & 0xff) << 2;
           Location location(imm, kT32PcDelta);
           // LDR{<c>}{<q>} <Rt>, <label> ; T1
-          ldr(CurrentCond(), Best, Register(rt), &location);
+          ldr(CurrentCond(), Narrow, Register(rt), &location);
           break;
         }
         case 0x10000000: {
@@ -7785,7 +7793,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               AddrMode addrmode = Offset;
               // STR{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
               str(CurrentCond(),
-                  Best,
+                  Narrow,
                   Register(rt),
                   MemOperand(Register(rn), sign, Register(rm), addrmode));
               break;
@@ -7799,7 +7807,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               AddrMode addrmode = Offset;
               // STRH{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
               strh(CurrentCond(),
-                   Best,
+                   Narrow,
                    Register(rt),
                    MemOperand(Register(rn), sign, Register(rm), addrmode));
               break;
@@ -7813,7 +7821,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               AddrMode addrmode = Offset;
               // STRB{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
               strb(CurrentCond(),
-                   Best,
+                   Narrow,
                    Register(rt),
                    MemOperand(Register(rn), sign, Register(rm), addrmode));
               break;
@@ -7827,7 +7835,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               AddrMode addrmode = Offset;
               // LDRSB{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
               ldrsb(CurrentCond(),
-                    Best,
+                    Narrow,
                     Register(rt),
                     MemOperand(Register(rn), sign, Register(rm), addrmode));
               break;
@@ -7847,7 +7855,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               AddrMode addrmode = Offset;
               // LDR{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
               ldr(CurrentCond(),
-                  Best,
+                  Narrow,
                   Register(rt),
                   MemOperand(Register(rn), sign, Register(rm), addrmode));
               break;
@@ -7861,7 +7869,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               AddrMode addrmode = Offset;
               // LDRH{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
               ldrh(CurrentCond(),
-                   Best,
+                   Narrow,
                    Register(rt),
                    MemOperand(Register(rn), sign, Register(rm), addrmode));
               break;
@@ -7875,7 +7883,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               AddrMode addrmode = Offset;
               // LDRB{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
               ldrb(CurrentCond(),
-                   Best,
+                   Narrow,
                    Register(rt),
                    MemOperand(Register(rn), sign, Register(rm), addrmode));
               break;
@@ -7889,7 +7897,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               AddrMode addrmode = Offset;
               // LDRSH{<c>}{<q>} <Rt>, [<Rn>, #{+}<Rm>] ; T1
               ldrsh(CurrentCond(),
-                    Best,
+                    Narrow,
                     Register(rt),
                     MemOperand(Register(rn), sign, Register(rm), addrmode));
               break;
@@ -7910,7 +7918,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
           int32_t offset = ((instr >> 22) & 0x1f) << 2;
           // STR{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
           str(CurrentCond(),
-              Best,
+              Narrow,
               Register(rt),
               MemOperand(Register(rn), plus, offset, Offset));
           break;
@@ -7922,7 +7930,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
           int32_t offset = ((instr >> 22) & 0x1f) << 2;
           // LDR{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
           ldr(CurrentCond(),
-              Best,
+              Narrow,
               Register(rt),
               MemOperand(Register(rn), plus, offset, Offset));
           break;
@@ -7934,7 +7942,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
           int32_t offset = (instr >> 22) & 0x1f;
           // STRB{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
           strb(CurrentCond(),
-               Best,
+               Narrow,
                Register(rt),
                MemOperand(Register(rn), plus, offset, Offset));
           break;
@@ -7946,7 +7954,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
           int32_t offset = (instr >> 22) & 0x1f;
           // LDRB{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
           ldrb(CurrentCond(),
-               Best,
+               Narrow,
                Register(rt),
                MemOperand(Register(rn), plus, offset, Offset));
           break;
@@ -7964,7 +7972,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
           int32_t offset = ((instr >> 22) & 0x1f) << 1;
           // STRH{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
           strh(CurrentCond(),
-               Best,
+               Narrow,
                Register(rt),
                MemOperand(Register(rn), plus, offset, Offset));
           break;
@@ -7976,7 +7984,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
           int32_t offset = ((instr >> 22) & 0x1f) << 1;
           // LDRH{<c>}{<q>} <Rt>, [<Rn>{, #{+}<imm>}] ; T1
           ldrh(CurrentCond(),
-               Best,
+               Narrow,
                Register(rt),
                MemOperand(Register(rn), plus, offset, Offset));
           break;
@@ -7987,7 +7995,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
           int32_t offset = ((instr >> 16) & 0xff) << 2;
           // STR{<c>}{<q>} <Rt>, [SP{, #{+}<imm>}] ; T2
           str(CurrentCond(),
-              Best,
+              Narrow,
               Register(rt),
               MemOperand(sp, plus, offset, Offset));
           break;
@@ -7998,7 +8006,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
           int32_t offset = ((instr >> 16) & 0xff) << 2;
           // LDR{<c>}{<q>} <Rt>, [SP{, #{+}<imm>}] ; T2
           ldr(CurrentCond(),
-              Best,
+              Narrow,
               Register(rt),
               MemOperand(sp, plus, offset, Offset));
           break;
@@ -8015,7 +8023,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
           int32_t imm = ((instr >> 16) & 0xff) << 2;
           Location location(imm, kT32PcDelta);
           // ADR{<c>}{<q>} <Rd>, <label> ; T1
-          adr(CurrentCond(), Best, Register(rd), &location);
+          adr(CurrentCond(), Narrow, Register(rd), &location);
           break;
         }
         case 0x08000000: {
@@ -8023,7 +8031,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
           unsigned rd = (instr >> 24) & 0x7;
           uint32_t imm = ((instr >> 16) & 0xff) << 2;
           // ADD{<c>}{<q>} <Rd>, SP, #<imm8> ; T1
-          add(CurrentCond(), Best, Register(rd), sp, imm);
+          add(CurrentCond(), Narrow, Register(rd), sp, imm);
           break;
         }
         case 0x10000000: {
@@ -8039,14 +8047,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       // 0xb0000000
                       uint32_t imm = ((instr >> 16) & 0x7f) << 2;
                       // ADD{<c>}{<q>} {SP}, SP, #<imm7> ; T2
-                      add(CurrentCond(), Best, sp, sp, imm);
+                      add(CurrentCond(), Narrow, sp, sp, imm);
                       break;
                     }
                     case 0x00800000: {
                       // 0xb0800000
                       uint32_t imm = ((instr >> 16) & 0x7f) << 2;
                       // SUB{<c>}{<q>} {SP}, SP, #<imm7> ; T1
-                      sub(CurrentCond(), Best, sp, sp, imm);
+                      sub(CurrentCond(), Narrow, sp, sp, imm);
                       break;
                     }
                     case 0x02000000: {
@@ -8057,7 +8065,10 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           unsigned rd = (instr >> 16) & 0x7;
                           unsigned rm = (instr >> 19) & 0x7;
                           // SXTH{<c>}{<q>} {<Rd>}, <Rm> ; T1
-                          sxth(CurrentCond(), Best, Register(rd), Register(rm));
+                          sxth(CurrentCond(),
+                               Narrow,
+                               Register(rd),
+                               Register(rm));
                           break;
                         }
                         case 0x00400000: {
@@ -8065,7 +8076,10 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           unsigned rd = (instr >> 16) & 0x7;
                           unsigned rm = (instr >> 19) & 0x7;
                           // SXTB{<c>}{<q>} {<Rd>}, <Rm> ; T1
-                          sxtb(CurrentCond(), Best, Register(rd), Register(rm));
+                          sxtb(CurrentCond(),
+                               Narrow,
+                               Register(rd),
+                               Register(rm));
                           break;
                         }
                       }
@@ -8079,7 +8093,10 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           unsigned rd = (instr >> 16) & 0x7;
                           unsigned rm = (instr >> 19) & 0x7;
                           // UXTH{<c>}{<q>} {<Rd>}, <Rm> ; T1
-                          uxth(CurrentCond(), Best, Register(rd), Register(rm));
+                          uxth(CurrentCond(),
+                               Narrow,
+                               Register(rd),
+                               Register(rm));
                           break;
                         }
                         case 0x00400000: {
@@ -8087,7 +8104,10 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           unsigned rd = (instr >> 16) & 0x7;
                           unsigned rm = (instr >> 19) & 0x7;
                           // UXTB{<c>}{<q>} {<Rd>}, <Rm> ; T1
-                          uxtb(CurrentCond(), Best, Register(rd), Register(rm));
+                          uxtb(CurrentCond(),
+                               Narrow,
+                               Register(rd),
+                               Register(rm));
                           break;
                         }
                       }
@@ -8117,7 +8137,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   RegisterList registers((((instr >> 24) & 0x1) << kLRRegNum) |
                                          ((instr >> 16) & 0xff));
                   // PUSH{<c>}{<q>} <registers> ; T1
-                  push(CurrentCond(), Best, registers);
+                  push(CurrentCond(), Narrow, registers);
                   break;
                 }
                 case 0x02000000: {
@@ -8170,7 +8190,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       unsigned rd = (instr >> 16) & 0x7;
                       unsigned rm = (instr >> 19) & 0x7;
                       // REV{<c>}{<q>} <Rd>, <Rm> ; T1
-                      rev(CurrentCond(), Best, Register(rd), Register(rm));
+                      rev(CurrentCond(), Narrow, Register(rd), Register(rm));
                       break;
                     }
                     case 0x02400000: {
@@ -8178,7 +8198,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       unsigned rd = (instr >> 16) & 0x7;
                       unsigned rm = (instr >> 19) & 0x7;
                       // REV16{<c>}{<q>} <Rd>, <Rm> ; T1
-                      rev16(CurrentCond(), Best, Register(rd), Register(rm));
+                      rev16(CurrentCond(), Narrow, Register(rd), Register(rm));
                       break;
                     }
                     case 0x02800000: {
@@ -8193,7 +8213,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       unsigned rd = (instr >> 16) & 0x7;
                       unsigned rm = (instr >> 19) & 0x7;
                       // REVSH{<c>}{<q>} <Rd>, <Rm> ; T1
-                      revsh(CurrentCond(), Best, Register(rd), Register(rm));
+                      revsh(CurrentCond(), Narrow, Register(rd), Register(rm));
                       break;
                     }
                     default:
@@ -8223,7 +8243,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   RegisterList registers((((instr >> 24) & 0x1) << kPCRegNum) |
                                          ((instr >> 16) & 0xff));
                   // POP{<c>}{<q>} <registers> ; T1
-                  pop(CurrentCond(), Best, registers);
+                  pop(CurrentCond(), Narrow, registers);
                   break;
                 }
                 case 0x02000000: {
@@ -8245,13 +8265,13 @@ void Disassembler::DecodeT32(uint32_t instr) {
                             case 0x00000000: {
                               // 0xbf000000
                               // NOP{<c>}{<q>} ; T1
-                              nop(CurrentCond(), Best);
+                              nop(CurrentCond(), Narrow);
                               break;
                             }
                             case 0x00100000: {
                               // 0xbf100000
                               // YIELD{<c>}{<q>} ; T1
-                              yield(CurrentCond(), Best);
+                              yield(CurrentCond(), Narrow);
                               break;
                             }
                             case 0x00200000: {
@@ -8324,7 +8344,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               RegisterList registers(((instr >> 16) & 0xff));
               // STM{<c>}{<q>} <Rn>!, <registers> ; T1
               stm(CurrentCond(),
-                  Best,
+                  Narrow,
                   Register(rn),
                   WriteBack(WRITE_BACK),
                   registers);
@@ -8336,7 +8356,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               RegisterList registers(((instr >> 16) & 0xff));
               // LDM{<c>}{<q>} <Rn>{!}, <registers> ; T1
               ldm(CurrentCond(),
-                  Best,
+                  Narrow,
                   Register(rn),
                   WriteBack(!registers.Includes(Register(rn))),
                   registers);
@@ -8355,7 +8375,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   // 0xde000000
                   uint32_t imm = (instr >> 16) & 0xff;
                   // UDF{<c>}{<q>} {#}<imm> ; T1
-                  udf(CurrentCond(), Best, imm);
+                  udf(CurrentCond(), Narrow, imm);
                   break;
                 }
                 case 0x01000000: {
@@ -8377,7 +8397,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               int32_t imm = SignExtend<int32_t>((instr >> 16) & 0xff, 8) << 1;
               Location location(imm, kT32PcDelta);
               // B<c>{<q>} <label> ; T1
-              b(condition, Best, &location);
+              b(condition, Narrow, &location);
               break;
             }
           }
@@ -8397,7 +8417,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
               int32_t imm = SignExtend<int32_t>((instr >> 16) & 0x7ff, 11) << 1;
               Location location(imm, kT32PcDelta);
               // B{<c>}{<q>} <label> ; T2
-              b(CurrentCond(), Best, &location);
+              b(CurrentCond(), Narrow, &location);
               break;
             }
             case 0x10000000: {

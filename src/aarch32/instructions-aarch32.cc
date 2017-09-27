@@ -438,9 +438,8 @@ const char* Shift::GetName() const {
 const char* EncodingSize::GetName() const {
   switch (size_) {
     case Best:
-      return "";
     case Narrow:
-      return ".n";
+      return "";
     case Wide:
       return ".w";
   }
