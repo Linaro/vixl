@@ -6450,7 +6450,18 @@ TEST_T32(assembler_bind_label) {
   RUN();
 }
 
-#define TEST_FORWARD_REFERENCE_INFO(INST, INFO, ASM)                         \
+#ifdef VIXL_DEBUG
+#define TEST_FORWARD_REFERENCE_INFO(INST, INFO, ASM)    \
+  POSITIVE_TEST_FORWARD_REFERENCE_INFO(INST, INFO, ASM) \
+  NEGATIVE_TEST_FORWARD_REFERENCE_INFO(INST, ASM)
+#else
+// Skip the negative tests for release builds, as they require debug-only checks
+// in ExactAssemblyScope.
+#define TEST_FORWARD_REFERENCE_INFO(INST, INFO, ASM) \
+  POSITIVE_TEST_FORWARD_REFERENCE_INFO(INST, INFO, ASM)
+#endif
+
+#define POSITIVE_TEST_FORWARD_REFERENCE_INFO(INST, INFO, ASM)                \
   can_encode = masm.INFO;                                                    \
   VIXL_CHECK(can_encode);                                                    \
   {                                                                          \
@@ -6474,8 +6485,7 @@ TEST_T32(assembler_bind_label) {
     }                                                                        \
     Label label(pc + info->max_offset);                                      \
     masm.ASM;                                                                \
-  }                                                                          \
-  NEGATIVE_TEST_FORWARD_REFERENCE_INFO(INST, ASM)
+  }
 
 #ifdef VIXL_NEGATIVE_TESTING
 #define NEGATIVE_TEST_FORWARD_REFERENCE_INFO(INST, ASM)                      \
