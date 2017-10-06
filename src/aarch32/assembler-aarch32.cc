@@ -18862,7 +18862,7 @@ void Assembler::vld3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferAllLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsPreIndex() && (!rn.IsPC() || AllowUnpredictable())) {
+          operand.IsPostIndex() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -18891,7 +18891,7 @@ void Assembler::vld3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsPreIndex() && (!rn.IsPC() || AllowUnpredictable())) {
+          operand.IsPostIndex() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf9a0020dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -18920,7 +18920,7 @@ void Assembler::vld3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferAllLanes() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsPreIndex() && (!rn.IsPC() || AllowUnpredictable())) {
+          operand.IsPostIndex() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           uint32_t len_encoding = nreglist.IsSingleSpaced() ? 0x0 : 0x1;
@@ -18947,7 +18947,7 @@ void Assembler::vld3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsPreIndex() && (!rn.IsPC() || AllowUnpredictable())) {
+          operand.IsPostIndex() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf4a0020dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -26679,7 +26679,7 @@ void Assembler::vst3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsPreIndex() && (!rn.IsPC() || AllowUnpredictable())) {
+          operand.IsPostIndex() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al) || AllowStronglyDiscouraged()) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitT32_32(0xf980020dU | (encoded_dt.GetEncodingValue() << 10) |
@@ -26707,7 +26707,7 @@ void Assembler::vst3(Condition cond,
       if (encoded_dt.IsValid() && nreglist.IsTransferOneLane() &&
           ((nreglist.IsSingleSpaced() && (nreglist.GetLength() == 3)) ||
            (nreglist.IsDoubleSpaced() && (nreglist.GetLength() == 3))) &&
-          operand.IsPreIndex() && (!rn.IsPC() || AllowUnpredictable())) {
+          operand.IsPostIndex() && (!rn.IsPC() || AllowUnpredictable())) {
         if (cond.Is(al)) {
           const DRegister& first = nreglist.GetFirstDRegister();
           EmitA32(0xf480020dU | (encoded_dt.GetEncodingValue() << 10) |

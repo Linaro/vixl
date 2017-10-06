@@ -712,7 +712,7 @@ class NeonRegisterList {
         type_(kOneLane),
         lane_(lane),
         length_(1) {
-    VIXL_ASSERT((lane_ >= 0) && (lane_ < 4));
+    VIXL_ASSERT((lane_ >= 0) && (lane_ < 8));
   }
   NeonRegisterList(DRegister first,
                    DRegister last,
@@ -736,7 +736,7 @@ class NeonRegisterList {
         spacing_(spacing),
         type_(kOneLane),
         lane_(lane) {
-    VIXL_ASSERT((lane >= 0) && (lane < 4));
+    VIXL_ASSERT((lane >= 0) && (lane < 8));
     VIXL_ASSERT(first.GetCode() <= last.GetCode());
 
     int range = last.GetCode() - first.GetCode();

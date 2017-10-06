@@ -519,6 +519,7 @@ std::ostream& operator<<(std::ostream& os, const MemOperand& operand) {
   os << "[" << operand.GetBaseRegister();
   if (operand.GetAddrMode() == PostIndex) {
     os << "]";
+    if (operand.IsRegisterOnly()) return os << "!";
   }
   if (operand.IsImmediate()) {
     if ((operand.GetOffsetImmediate() != 0) || operand.GetSign().IsMinus() ||

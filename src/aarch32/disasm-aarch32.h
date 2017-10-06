@@ -463,6 +463,7 @@ class Disassembler {
       *this << "[" << operand.GetBaseRegister();
       if (operand.GetAddrMode() == PostIndex) {
         *this << "]";
+        if (operand.IsRegisterOnly()) return *this << "!";
       }
       if (operand.IsImmediate()) {
         if ((operand.GetOffsetImmediate() != 0) ||

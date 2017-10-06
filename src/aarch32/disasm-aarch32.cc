@@ -15307,7 +15307,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                             DRegister(last),
                                                             spacing,
                                                             lane),
-                                           MemOperand(Register(rn), PreIndex));
+                                           MemOperand(Register(rn), PostIndex));
                                       break;
                                     }
                                     case 0x00000002: {
@@ -16240,7 +16240,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                                 spacing,
                                                                 transfer),
                                                MemOperand(Register(rn),
-                                                          PreIndex));
+                                                          PostIndex));
                                           break;
                                         }
                                         case 0x00000002: {
@@ -16387,7 +16387,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                             DRegister(last),
                                                             spacing,
                                                             lane),
-                                           MemOperand(Register(rn), PreIndex));
+                                           MemOperand(Register(rn), PostIndex));
                                       break;
                                     }
                                     case 0x00000002: {
@@ -52048,7 +52048,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                       DRegister(last),
                                                       spacing,
                                                       lane),
-                                     MemOperand(Register(rn), PreIndex));
+                                     MemOperand(Register(rn), PostIndex));
                                 break;
                               }
                               case 0x00000002: {
@@ -54735,7 +54735,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                           DRegister(last),
                                                           spacing,
                                                           transfer),
-                                         MemOperand(Register(rn), PreIndex));
+                                         MemOperand(Register(rn), PostIndex));
                                     break;
                                   }
                                   case 0x00000002: {
@@ -54876,7 +54876,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                                       DRegister(last),
                                                       spacing,
                                                       lane),
-                                     MemOperand(Register(rn), PreIndex));
+                                     MemOperand(Register(rn), PostIndex));
                                 break;
                               }
                               case 0x00000002: {

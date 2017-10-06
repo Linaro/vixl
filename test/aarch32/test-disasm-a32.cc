@@ -1734,6 +1734,268 @@ TEST(assembler_hvc_negative) {
 #endif
 
 
+TEST(macro_assembler_vld) {
+  SETUP();
+
+  COMPARE_BOTH(Vld1(Untyped8,
+                    NeonRegisterList(d0, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vld1.8 {d0}, [r1]\n");
+  COMPARE_BOTH(Vld1(Untyped8,
+                    NeonRegisterList(d0, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vld1.8 {d0}, [r1]!\n");
+  COMPARE_BOTH(Vld1(Untyped8,
+                    NeonRegisterList(d0, kMultipleLanes),
+                    AlignedMemOperand(r8, kNoAlignment, r2, PostIndex)),
+               "vld1.8 {d0}, [r8], r2\n");
+  COMPARE_BOTH(Vld1(Untyped8,
+                    NeonRegisterList(d0, kAllLanes),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vld1.8 {d0[]}, [r1]\n");
+  COMPARE_BOTH(Vld1(Untyped8,
+                    NeonRegisterList(d0, kAllLanes),
+                    AlignedMemOperand(r9, kNoAlignment, PostIndex)),
+               "vld1.8 {d0[]}, [r9]!\n");
+  COMPARE_BOTH(Vld1(Untyped8,
+                    NeonRegisterList(d0, kAllLanes),
+                    AlignedMemOperand(r1, kNoAlignment, r2, PostIndex)),
+               "vld1.8 {d0[]}, [r1], r2\n");
+  COMPARE_BOTH(Vld1(Untyped8,
+                    NeonRegisterList(d0, 0),
+                    AlignedMemOperand(r10, kNoAlignment)),
+               "vld1.8 {d0[0]}, [r10]\n");
+  COMPARE_BOTH(Vld1(Untyped8,
+                    NeonRegisterList(d0, 1),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vld1.8 {d0[1]}, [r1]!\n");
+  COMPARE_BOTH(Vld1(Untyped8,
+                    NeonRegisterList(d0, 2),
+                    AlignedMemOperand(r1, kNoAlignment, r2, PostIndex)),
+               "vld1.8 {d0[2]}, [r1], r2\n");
+
+  COMPARE_BOTH(Vld2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vld2.8 {d0,d1}, [r1]\n");
+  COMPARE_BOTH(Vld2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vld2.8 {d0,d1}, [r1]!\n");
+  COMPARE_BOTH(Vld2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment, r8, PostIndex)),
+               "vld2.8 {d0,d1}, [r1], r8\n");
+  COMPARE_BOTH(Vld2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, kAllLanes),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vld2.8 {d0[],d1[]}, [r1]\n");
+  COMPARE_BOTH(Vld2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, kAllLanes),
+                    AlignedMemOperand(r9, kNoAlignment, PostIndex)),
+               "vld2.8 {d0[],d1[]}, [r9]!\n");
+  COMPARE_BOTH(Vld2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, kAllLanes),
+                    AlignedMemOperand(r1, kNoAlignment, r2, PostIndex)),
+               "vld2.8 {d0[],d1[]}, [r1], r2\n");
+  COMPARE_BOTH(Vld2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, 0),
+                    AlignedMemOperand(r10, kNoAlignment)),
+               "vld2.8 {d0[0],d1[0]}, [r10]\n");
+  COMPARE_BOTH(Vld2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, 1),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vld2.8 {d0[1],d1[1]}, [r1]!\n");
+  COMPARE_BOTH(Vld2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, 2),
+                    AlignedMemOperand(r1, kNoAlignment, r2, PostIndex)),
+               "vld2.8 {d0[2],d1[2]}, [r1], r2\n");
+
+  COMPARE_BOTH(Vld3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vld3.8 {d0,d1,d2}, [r1]\n");
+  COMPARE_BOTH(Vld3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vld3.8 {d0,d1,d2}, [r1]!\n");
+  COMPARE_BOTH(Vld3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r11, kNoAlignment, r2, PostIndex)),
+               "vld3.8 {d0,d1,d2}, [r11], r2\n");
+  COMPARE_BOTH(Vld3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, kAllLanes),
+                    MemOperand(r1)),
+               "vld3.8 {d0[],d1[],d2[]}, [r1]\n");
+  COMPARE_BOTH(Vld3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, kAllLanes),
+                    MemOperand(r11, PostIndex)),
+               "vld3.8 {d0[],d1[],d2[]}, [r11]!\n");
+  COMPARE_BOTH(Vld3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, kAllLanes),
+                    MemOperand(r1, r2, PostIndex)),
+               "vld3.8 {d0[],d1[],d2[]}, [r1], r2\n");
+  COMPARE_BOTH(Vld3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, 0),
+                    MemOperand(sp)),
+               "vld3.8 {d0[0],d1[0],d2[0]}, [sp]\n");
+  COMPARE_BOTH(Vld3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, 1),
+                    MemOperand(r1, PostIndex)),
+               "vld3.8 {d0[1],d1[1],d2[1]}, [r1]!\n");
+  COMPARE_BOTH(Vld3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, 2),
+                    MemOperand(r1, r2, PostIndex)),
+               "vld3.8 {d0[2],d1[2],d2[2]}, [r1], r2\n");
+
+  COMPARE_BOTH(Vld4(Untyped8,
+                    NeonRegisterList(d0, d6, kDouble, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vld4.8 {d0,d2,d4,d6}, [r1]\n");
+  COMPARE_BOTH(Vld4(Untyped8,
+                    NeonRegisterList(d0, d3, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vld4.8 {d0,d1,d2,d3}, [r1]!\n");
+  COMPARE_BOTH(Vld4(Untyped8,
+                    NeonRegisterList(d0, d3, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment, r2, PostIndex)),
+               "vld4.8 {d0,d1,d2,d3}, [r1], r2\n");
+  COMPARE_BOTH(Vld4(Untyped8,
+                    NeonRegisterList(d0, d3, kSingle, kAllLanes),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vld4.8 {d0[],d1[],d2[],d3[]}, [r1]\n");
+  COMPARE_BOTH(Vld4(Untyped8,
+                    NeonRegisterList(d0, d6, kDouble, kAllLanes),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vld4.8 {d0[],d2[],d4[],d6[]}, [r1]!\n");
+  COMPARE_BOTH(Vld4(Untyped8,
+                    NeonRegisterList(d0, d3, kSingle, kAllLanes),
+                    AlignedMemOperand(r1, kNoAlignment, r2, PostIndex)),
+               "vld4.8 {d0[],d1[],d2[],d3[]}, [r1], r2\n");
+  COMPARE_BOTH(Vld4(Untyped16,
+                    NeonRegisterList(d0, d6, kDouble, 3),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vld4.16 {d0[3],d2[3],d4[3],d6[3]}, [r1]\n");
+  COMPARE_BOTH(Vld4(Untyped8,
+                    NeonRegisterList(d0, d3, kSingle, 6),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vld4.8 {d0[6],d1[6],d2[6],d3[6]}, [r1]!\n");
+  COMPARE_BOTH(Vld4(Untyped8,
+                    NeonRegisterList(d0, d3, kSingle, 7),
+                    AlignedMemOperand(r1, kNoAlignment, r2, PostIndex)),
+               "vld4.8 {d0[7],d1[7],d2[7],d3[7]}, [r1], r2\n");
+
+  CLEANUP();
+}
+
+
+TEST(macro_assembler_vst) {
+  SETUP();
+
+  COMPARE_BOTH(Vst1(Untyped8,
+                    NeonRegisterList(d0, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vst1.8 {d0}, [r1]\n");
+  COMPARE_BOTH(Vst1(Untyped8,
+                    NeonRegisterList(d0, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vst1.8 {d0}, [r1]!\n");
+  COMPARE_BOTH(Vst1(Untyped8,
+                    NeonRegisterList(d0, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment, r2, PostIndex)),
+               "vst1.8 {d0}, [r1], r2\n");
+  COMPARE_BOTH(Vst1(Untyped8,
+                    NeonRegisterList(d0, 0),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vst1.8 {d0[0]}, [r1]\n");
+  COMPARE_BOTH(Vst1(Untyped8,
+                    NeonRegisterList(d0, 1),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vst1.8 {d0[1]}, [r1]!\n");
+  COMPARE_BOTH(Vst1(Untyped8,
+                    NeonRegisterList(d0, 2),
+                    AlignedMemOperand(r1, kNoAlignment, r2, PostIndex)),
+               "vst1.8 {d0[2]}, [r1], r2\n");
+
+  COMPARE_BOTH(Vst2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vst2.8 {d0,d1}, [r1]\n");
+  COMPARE_BOTH(Vst2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vst2.8 {d0,d1}, [r1]!\n");
+  COMPARE_BOTH(Vst2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment, r2, PostIndex)),
+               "vst2.8 {d0,d1}, [r1], r2\n");
+  COMPARE_BOTH(Vst2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, 3),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vst2.8 {d0[3],d1[3]}, [r1]\n");
+  COMPARE_BOTH(Vst2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, 4),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vst2.8 {d0[4],d1[4]}, [r1]!\n");
+  COMPARE_BOTH(Vst2(Untyped8,
+                    NeonRegisterList(d0, d1, kSingle, 5),
+                    AlignedMemOperand(r1, kNoAlignment, r2, PostIndex)),
+               "vst2.8 {d0[5],d1[5]}, [r1], r2\n");
+
+  COMPARE_BOTH(Vst3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vst3.8 {d0,d1,d2}, [r1]\n");
+  COMPARE_BOTH(Vst3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vst3.8 {d0,d1,d2}, [r1]!\n");
+  COMPARE_BOTH(Vst3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment, r2, PostIndex)),
+               "vst3.8 {d0,d1,d2}, [r1], r2\n");
+  COMPARE_BOTH(Vst3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, 0),
+                    MemOperand(r1)),
+               "vst3.8 {d0[0],d1[0],d2[0]}, [r1]\n");
+  COMPARE_BOTH(Vst3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, 6),
+                    MemOperand(r1, PostIndex)),
+               "vst3.8 {d0[6],d1[6],d2[6]}, [r1]!\n");
+  COMPARE_BOTH(Vst3(Untyped8,
+                    NeonRegisterList(d0, d2, kSingle, 7),
+                    MemOperand(r1, r2, PostIndex)),
+               "vst3.8 {d0[7],d1[7],d2[7]}, [r1], r2\n");
+
+  COMPARE_BOTH(Vst4(Untyped8,
+                    NeonRegisterList(d10, d13, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vst4.8 {d10,d11,d12,d13}, [r1]\n");
+  COMPARE_BOTH(Vst4(Untyped8,
+                    NeonRegisterList(d10, d13, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vst4.8 {d10,d11,d12,d13}, [r1]!\n");
+  COMPARE_BOTH(Vst4(Untyped8,
+                    NeonRegisterList(d0, d3, kSingle, kMultipleLanes),
+                    AlignedMemOperand(r8, kNoAlignment, r9, PostIndex)),
+               "vst4.8 {d0,d1,d2,d3}, [r8], r9\n");
+  COMPARE_BOTH(Vst4(Untyped8,
+                    NeonRegisterList(d0, d3, kSingle, 0),
+                    AlignedMemOperand(r1, kNoAlignment)),
+               "vst4.8 {d0[0],d1[0],d2[0],d3[0]}, [r1]\n");
+  COMPARE_BOTH(Vst4(Untyped8,
+                    NeonRegisterList(d0, d3, kSingle, 0),
+                    AlignedMemOperand(r1, kNoAlignment, PostIndex)),
+               "vst4.8 {d0[0],d1[0],d2[0],d3[0]}, [r1]!\n");
+  COMPARE_BOTH(Vst4(Untyped8,
+                    NeonRegisterList(d0, d3, kSingle, 0),
+                    AlignedMemOperand(r1, kNoAlignment, r2, PostIndex)),
+               "vst4.8 {d0[0],d1[0],d2[0],d3[0]}, [r1], r2\n");
+
+  CLEANUP();
+}
+
+
 TEST(assembler_vldm_vstm_negative) {
   SETUP();
 
