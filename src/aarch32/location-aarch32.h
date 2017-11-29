@@ -71,6 +71,8 @@ class Location : public LocationBase<int32_t> {
 #endif
   }
 
+  bool IsReferenced() const { return referenced_; }
+
  private:
   class EmitOperator {
    public:
@@ -189,7 +191,6 @@ class Location : public LocationBase<int32_t> {
       VIXL_OVERRIDE;
 
   void SetReferenced() { referenced_ = true; }
-  bool IsReferenced() const { return referenced_; }
 
   bool HasForwardReferences() const { return !forward_.empty(); }
 
