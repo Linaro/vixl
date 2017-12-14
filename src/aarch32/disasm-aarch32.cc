@@ -7028,15 +7028,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     Register(rd),
                     Register(rn),
                     Register(rm));
-              } else if (OutsideITBlock()) {
+              } else {
+                VIXL_ASSERT(OutsideITBlock());
                 // ADDS{<q>} {<Rd>}, <Rn>, <Rm> ; T1
                 adds(Condition::None(),
                      Narrow,
                      Register(rd),
                      Register(rn),
                      Register(rm));
-              } else {
-                UnallocatedT32(instr);
               }
               break;
             }
@@ -7052,15 +7051,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                     Register(rd),
                     Register(rn),
                     Register(rm));
-              } else if (OutsideITBlock()) {
+              } else {
+                VIXL_ASSERT(OutsideITBlock());
                 // SUBS{<q>} {<Rd>}, <Rn>, <Rm> ; T1
                 subs(Condition::None(),
                      Narrow,
                      Register(rd),
                      Register(rn),
                      Register(rm));
-              } else {
-                UnallocatedT32(instr);
               }
               break;
             }
@@ -7072,15 +7070,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
               if (InITBlock()) {
                 // ADD<c>{<q>} <Rd>, <Rn>, #<imm3> ; T1
                 add(CurrentCond(), Narrow, Register(rd), Register(rn), imm);
-              } else if (OutsideITBlock()) {
+              } else {
+                VIXL_ASSERT(OutsideITBlock());
                 // ADDS{<q>} <Rd>, <Rn>, #<imm3> ; T1
                 adds(Condition::None(),
                      Narrow,
                      Register(rd),
                      Register(rn),
                      imm);
-              } else {
-                UnallocatedT32(instr);
               }
               break;
             }
@@ -7092,15 +7089,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
               if (InITBlock()) {
                 // SUB<c>{<q>} <Rd>, <Rn>, #<imm3> ; T1
                 sub(CurrentCond(), Narrow, Register(rd), Register(rn), imm);
-              } else if (OutsideITBlock()) {
+              } else {
+                VIXL_ASSERT(OutsideITBlock());
                 // SUBS{<q>} <Rd>, <Rn>, #<imm3> ; T1
                 subs(Condition::None(),
                      Narrow,
                      Register(rd),
                      Register(rn),
                      imm);
-              } else {
-                UnallocatedT32(instr);
               }
               break;
             }
@@ -7182,7 +7178,8 @@ void Disassembler::DecodeT32(uint32_t instr) {
                 Operand(Register(rm),
                         shift_operand.GetType(),
                         shift_operand.GetAmount()));
-          } else if (OutsideITBlock()) {
+          } else {
+            VIXL_ASSERT(OutsideITBlock());
             // MOVS{<q>} <Rd>, <Rm> {, <shift> #<amount> } ; T2
             movs(Condition::None(),
                  Narrow,
@@ -7190,8 +7187,6 @@ void Disassembler::DecodeT32(uint32_t instr) {
                  Operand(Register(rm),
                          shift_operand.GetType(),
                          shift_operand.GetAmount()));
-          } else {
-            UnallocatedT32(instr);
           }
           break;
         }
@@ -7208,11 +7203,10 @@ void Disassembler::DecodeT32(uint32_t instr) {
           if (InITBlock()) {
             // MOV<c>{<q>} <Rd>, #<imm8> ; T1
             mov(CurrentCond(), Narrow, Register(rd), imm);
-          } else if (OutsideITBlock()) {
+          } else {
+            VIXL_ASSERT(OutsideITBlock());
             // MOVS{<q>} <Rd>, #<imm8> ; T1
             movs(Condition::None(), Narrow, Register(rd), imm);
-          } else {
-            UnallocatedT32(instr);
           }
           break;
         }
@@ -7289,15 +7283,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                          Register(rd),
                          Register(rd),
                          Register(rm));
-                  } else if (OutsideITBlock()) {
+                  } else {
+                    VIXL_ASSERT(OutsideITBlock());
                     // ANDS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     ands(Condition::None(),
                          Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rm));
-                  } else {
-                    UnallocatedT32(instr);
                   }
                   break;
                 }
@@ -7312,15 +7305,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                         Register(rd),
                         Register(rd),
                         Register(rm));
-                  } else if (OutsideITBlock()) {
+                  } else {
+                    VIXL_ASSERT(OutsideITBlock());
                     // EORS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     eors(Condition::None(),
                          Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rm));
-                  } else {
-                    UnallocatedT32(instr);
                   }
                   break;
                 }
@@ -7357,14 +7349,13 @@ void Disassembler::DecodeT32(uint32_t instr) {
                         Narrow,
                         Register(rd),
                         Operand(Register(rm), LSL, Register(rs)));
-                  } else if (OutsideITBlock()) {
+                  } else {
+                    VIXL_ASSERT(OutsideITBlock());
                     // MOVS{<q>} <Rdm>, <Rdm>, LSL <Rs> ; T1
                     movs(Condition::None(),
                          Narrow,
                          Register(rd),
                          Operand(Register(rm), LSL, Register(rs)));
-                  } else {
-                    UnallocatedT32(instr);
                   }
                   break;
                 }
@@ -7401,14 +7392,13 @@ void Disassembler::DecodeT32(uint32_t instr) {
                         Narrow,
                         Register(rd),
                         Operand(Register(rm), LSR, Register(rs)));
-                  } else if (OutsideITBlock()) {
+                  } else {
+                    VIXL_ASSERT(OutsideITBlock());
                     // MOVS{<q>} <Rdm>, <Rdm>, LSR <Rs> ; T1
                     movs(Condition::None(),
                          Narrow,
                          Register(rd),
                          Operand(Register(rm), LSR, Register(rs)));
-                  } else {
-                    UnallocatedT32(instr);
                   }
                   break;
                 }
@@ -7451,14 +7441,13 @@ void Disassembler::DecodeT32(uint32_t instr) {
                         Narrow,
                         Register(rd),
                         Operand(Register(rm), ASR, Register(rs)));
-                  } else if (OutsideITBlock()) {
+                  } else {
+                    VIXL_ASSERT(OutsideITBlock());
                     // MOVS{<q>} <Rdm>, <Rdm>, ASR <Rs> ; T1
                     movs(Condition::None(),
                          Narrow,
                          Register(rd),
                          Operand(Register(rm), ASR, Register(rs)));
-                  } else {
-                    UnallocatedT32(instr);
                   }
                   break;
                 }
@@ -7473,15 +7462,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                         Register(rd),
                         Register(rd),
                         Register(rm));
-                  } else if (OutsideITBlock()) {
+                  } else {
+                    VIXL_ASSERT(OutsideITBlock());
                     // ADCS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     adcs(Condition::None(),
                          Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rm));
-                  } else {
-                    UnallocatedT32(instr);
                   }
                   break;
                 }
@@ -7496,15 +7484,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                         Register(rd),
                         Register(rd),
                         Register(rm));
-                  } else if (OutsideITBlock()) {
+                  } else {
+                    VIXL_ASSERT(OutsideITBlock());
                     // SBCS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     sbcs(Condition::None(),
                          Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rm));
-                  } else {
-                    UnallocatedT32(instr);
                   }
                   break;
                 }
@@ -7541,14 +7528,13 @@ void Disassembler::DecodeT32(uint32_t instr) {
                         Narrow,
                         Register(rd),
                         Operand(Register(rm), ROR, Register(rs)));
-                  } else if (OutsideITBlock()) {
+                  } else {
+                    VIXL_ASSERT(OutsideITBlock());
                     // MOVS{<q>} <Rdm>, <Rdm>, ROR <Rs> ; T1
                     movs(Condition::None(),
                          Narrow,
                          Register(rd),
                          Operand(Register(rm), ROR, Register(rs)));
-                  } else {
-                    UnallocatedT32(instr);
                   }
                   break;
                 }
@@ -7577,15 +7563,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                         Register(rd),
                         Register(rn),
                         UINT32_C(0));
-                  } else if (OutsideITBlock()) {
+                  } else {
+                    VIXL_ASSERT(OutsideITBlock());
                     // RSBS{<q>} {<Rd>}, <Rn>, #0 ; T1
                     rsbs(Condition::None(),
                          Narrow,
                          Register(rd),
                          Register(rn),
                          UINT32_C(0));
-                  } else {
-                    UnallocatedT32(instr);
                   }
                   break;
                 }
@@ -7622,15 +7607,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                         Register(rd),
                         Register(rd),
                         Register(rm));
-                  } else if (OutsideITBlock()) {
+                  } else {
+                    VIXL_ASSERT(OutsideITBlock());
                     // ORRS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     orrs(Condition::None(),
                          Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rm));
-                  } else {
-                    UnallocatedT32(instr);
                   }
                   break;
                 }
@@ -7645,14 +7629,13 @@ void Disassembler::DecodeT32(uint32_t instr) {
                         Register(rd),
                         Register(rn),
                         Register(rd));
-                  } else if (OutsideITBlock()) {
+                  } else {
+                    VIXL_ASSERT(OutsideITBlock());
                     // MULS{<q>} <Rdm>, <Rn>, {<Rdm>} ; T1
                     muls(Condition::None(),
                          Register(rd),
                          Register(rn),
                          Register(rd));
-                  } else {
-                    UnallocatedT32(instr);
                   }
                   break;
                 }
@@ -7667,15 +7650,14 @@ void Disassembler::DecodeT32(uint32_t instr) {
                         Register(rd),
                         Register(rd),
                         Register(rm));
-                  } else if (OutsideITBlock()) {
+                  } else {
+                    VIXL_ASSERT(OutsideITBlock());
                     // BICS{<q>} {<Rdn>}, <Rdn>, <Rm> ; T1
                     bics(Condition::None(),
                          Narrow,
                          Register(rd),
                          Register(rd),
                          Register(rm));
-                  } else {
-                    UnallocatedT32(instr);
                   }
                   break;
                 }
@@ -7686,11 +7668,10 @@ void Disassembler::DecodeT32(uint32_t instr) {
                   if (InITBlock()) {
                     // MVN<c>{<q>} <Rd>, <Rm> ; T1
                     mvn(CurrentCond(), Narrow, Register(rd), Register(rm));
-                  } else if (OutsideITBlock()) {
+                  } else {
+                    VIXL_ASSERT(OutsideITBlock());
                     // MVNS{<q>} <Rd>, <Rm> ; T1
                     mvns(Condition::None(), Narrow, Register(rd), Register(rm));
-                  } else {
-                    UnallocatedT32(instr);
                   }
                   break;
                 }
