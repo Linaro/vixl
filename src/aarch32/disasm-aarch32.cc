@@ -8400,6 +8400,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
               Location location(imm, kT32PcDelta);
               // B<c>{<q>} <label> ; T1
               b(condition, Narrow, &location);
+              if (InITBlock()) {
+                UnpredictableT32(instr);
+              }
               break;
             }
           }
@@ -8420,6 +8423,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
               Location location(imm, kT32PcDelta);
               // B{<c>}{<q>} <label> ; T2
               b(CurrentCond(), Narrow, &location);
+              if (!OutsideITBlockOrLast()) {
+                UnpredictableT32(instr);
+              }
               break;
             }
             case 0x10000000: {
@@ -9833,16 +9839,22 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                                   20)
                               << 1;
                           Location location(imm, kT32PcDelta);
-                          if (OutsideITBlock() && (imm >= -1048576) &&
-                              (imm <= 1048574) && ((imm & 1) == 0) &&
+                          if ((imm >= -1048576) && (imm <= 1048574) &&
+                              ((imm & 1) == 0) &&
                               ((imm >= -256) && (imm <= 254) &&
                                ((imm & 1) == 0))) {
                             // B<c>.W <label> ; T3
                             b(condition, Wide, &location);
-                          } else if (OutsideITBlock() && (imm >= -1048576) &&
-                                     (imm <= 1048574) && ((imm & 1) == 0)) {
+                            if (InITBlock()) {
+                              UnpredictableT32(instr);
+                            }
+                          } else if ((imm >= -1048576) && (imm <= 1048574) &&
+                                     ((imm & 1) == 0)) {
                             // B<c>{<q>} <label> ; T3
                             b(condition, Best, &location);
+                            if (InITBlock()) {
+                              UnpredictableT32(instr);
+                            }
                           } else {
                             UnallocatedT32(instr);
                           }
@@ -9863,14 +9875,17 @@ void Disassembler::DecodeT32(uint32_t instr) {
                       Location location(imm, kT32PcDelta);
                       if ((imm >= -16777216) && (imm <= 16777214) &&
                           ((imm & 1) == 0) &&
-                          (OutsideITBlockOrLast() && (imm >= -2048) &&
-                           (imm <= 2046) && ((imm & 1) == 0))) {
+                          ((imm >= -2048) && (imm <= 2046) &&
+                           ((imm & 1) == 0))) {
                         // B{<c>}.W <label> ; T4
                         b(CurrentCond(), Wide, &location);
-                      } else if (OutsideITBlockOrLast() && (imm >= -16777216) &&
-                                 (imm <= 16777214) && ((imm & 1) == 0)) {
+                      } else if ((imm >= -16777216) && (imm <= 16777214) &&
+                                 ((imm & 1) == 0)) {
                         // B{<c>}{<q>} <label> ; T4
                         b(CurrentCond(), Best, &location);
+                        if (!OutsideITBlockOrLast()) {
+                          UnpredictableT32(instr);
+                        }
                       } else {
                         UnallocatedT32(instr);
                       }
@@ -10410,7 +10425,8 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   tbb(CurrentCond(),
                                       Register(rn),
                                       Register(rm));
-                                  if (((instr & 0xfff0fff0) != 0xe8d0f000)) {
+                                  if (((instr & 0xfff0fff0) != 0xe8d0f000) ||
+                                      !OutsideITBlockOrLast()) {
                                     UnpredictableT32(instr);
                                   }
                                   break;
@@ -10423,7 +10439,8 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                   tbh(CurrentCond(),
                                       Register(rn),
                                       Register(rm));
-                                  if (((instr & 0xfff0fff0) != 0xe8d0f010)) {
+                                  if (((instr & 0xfff0fff0) != 0xe8d0f010) ||
+                                      !OutsideITBlockOrLast()) {
                                     UnpredictableT32(instr);
                                   }
                                   break;
@@ -24698,6 +24715,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      SRegister(rd),
                                      SRegister(rn),
                                      SRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x00000100: {
@@ -24710,6 +24730,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      DRegister(rd),
                                      DRegister(rn),
                                      DRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x00100000: {
@@ -24722,6 +24745,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      SRegister(rd),
                                      SRegister(rn),
                                      SRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x00100100: {
@@ -24734,6 +24760,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      DRegister(rd),
                                      DRegister(rn),
                                      DRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x00200000: {
@@ -24746,6 +24775,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      SRegister(rd),
                                      SRegister(rn),
                                      SRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x00200100: {
@@ -24758,6 +24790,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      DRegister(rd),
                                      DRegister(rn),
                                      DRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x00300000: {
@@ -24770,6 +24805,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      SRegister(rd),
                                      SRegister(rn),
                                      SRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x00300100: {
@@ -24782,6 +24820,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      DRegister(rd),
                                      DRegister(rn),
                                      DRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x00800000: {
@@ -24794,6 +24835,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      SRegister(rd),
                                      SRegister(rn),
                                      SRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x00800040: {
@@ -24806,6 +24850,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      SRegister(rd),
                                      SRegister(rn),
                                      SRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x00800100: {
@@ -24818,6 +24865,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      DRegister(rd),
                                      DRegister(rn),
                                      DRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x00800140: {
@@ -24830,6 +24880,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      DRegister(rd),
                                      DRegister(rn),
                                      DRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x00b00040: {
@@ -30562,6 +30615,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      DRegister(rd),
                                      DRegister(rn),
                                      DRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x10200000: {
@@ -30574,6 +30630,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      DRegister(rd),
                                      DRegister(rn),
                                      DRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             default:
@@ -31411,6 +31470,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      QRegister(rd),
                                      QRegister(rn),
                                      QRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             case 0x10200000: {
@@ -31435,6 +31497,9 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                      QRegister(rd),
                                      QRegister(rn),
                                      QRegister(rm));
+                              if (InITBlock()) {
+                                UnpredictableT32(instr);
+                              }
                               break;
                             }
                             default:
