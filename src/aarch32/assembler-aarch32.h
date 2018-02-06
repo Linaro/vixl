@@ -259,6 +259,9 @@ class Assembler : public internal::AssemblerBase {
                                                    EncodingSize size,
                                                    Register rd,
                                                    Location* location);
+  typedef void (Assembler::*InstructionDtQQ)(DataType dt,
+                                             QRegister rd,
+                                             QRegister rm);
   typedef void (Assembler::*InstructionCondSizeL)(Condition cond,
                                                   EncodingSize size,
                                                   Location* location);
@@ -611,6 +614,12 @@ class Assembler : public internal::AssemblerBase {
                                                     DRegister rd,
                                                     QRegister rm,
                                                     const QOperand& operand);
+  typedef void (Assembler::*InstructionDtDD)(DataType dt,
+                                             DRegister rd,
+                                             DRegister rm);
+  typedef void (Assembler::*InstructionDtSS)(DataType dt,
+                                             SRegister rd,
+                                             SRegister rm);
   typedef void (Assembler::*InstructionCondDtQDDop)(Condition cond,
                                                     DataType dt,
                                                     QRegister rd,
@@ -682,6 +691,16 @@ class Assembler : public internal::AssemblerBase {
                         Location* /*location*/) {
     USE(type);
     VIXL_ASSERT((type == kAdr) || (type == kLdr));
+    UnimplementedDelegate(type);
+  }
+  virtual void Delegate(InstructionType type,
+                        InstructionDtQQ /*instruction*/,
+                        DataType /*dt*/,
+                        QRegister /*rd*/,
+                        QRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVrinta) || (type == kVrintm) || (type == kVrintn) ||
+                (type == kVrintp) || (type == kVrintx) || (type == kVrintz));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1129,7 +1148,8 @@ class Assembler : public internal::AssemblerBase {
                 (type == kVcnt) || (type == kVneg) || (type == kVpadal) ||
                 (type == kVpaddl) || (type == kVqabs) || (type == kVqneg) ||
                 (type == kVrecpe) || (type == kVrev16) || (type == kVrev32) ||
-                (type == kVrev64) || (type == kVrsqrte) || (type == kVsqrt) ||
+                (type == kVrev64) || (type == kVrintr) || (type == kVrintx) ||
+                (type == kVrintz) || (type == kVrsqrte) || (type == kVsqrt) ||
                 (type == kVswp) || (type == kVtrn) || (type == kVuzp) ||
                 (type == kVzip));
     UnimplementedDelegate(type);
@@ -1156,7 +1176,8 @@ class Assembler : public internal::AssemblerBase {
                         SRegister /*rd*/,
                         SRegister /*rm*/) {
     USE(type);
-    VIXL_ASSERT((type == kVabs) || (type == kVneg) || (type == kVsqrt));
+    VIXL_ASSERT((type == kVabs) || (type == kVneg) || (type == kVrintr) ||
+                (type == kVrintx) || (type == kVrintz) || (type == kVsqrt));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1317,8 +1338,7 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rd*/,
                         DRegister /*rm*/) {
     USE(type);
-    VIXL_ASSERT((type == kVcvt) || (type == kVrintr) || (type == kVrintx) ||
-                (type == kVrintz));
+    VIXL_ASSERT((type == kVcvt));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1363,8 +1383,7 @@ class Assembler : public internal::AssemblerBase {
                         SRegister /*rm*/) {
     USE(type);
     VIXL_ASSERT((type == kVcvt) || (type == kVcvtb) || (type == kVcvtr) ||
-                (type == kVcvtt) || (type == kVrintr) || (type == kVrintx) ||
-                (type == kVrintz));
+                (type == kVcvtt));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1375,8 +1394,7 @@ class Assembler : public internal::AssemblerBase {
                         DRegister /*rm*/) {
     USE(type);
     VIXL_ASSERT((type == kVcvta) || (type == kVcvtm) || (type == kVcvtn) ||
-                (type == kVcvtp) || (type == kVrinta) || (type == kVrintm) ||
-                (type == kVrintn) || (type == kVrintp));
+                (type == kVcvtp));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1387,9 +1405,7 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rm*/) {
     USE(type);
     VIXL_ASSERT((type == kVcvta) || (type == kVcvtm) || (type == kVcvtn) ||
-                (type == kVcvtp) || (type == kVrinta) || (type == kVrintm) ||
-                (type == kVrintn) || (type == kVrintp) || (type == kVrintx) ||
-                (type == kVrintz));
+                (type == kVcvtp));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1400,8 +1416,7 @@ class Assembler : public internal::AssemblerBase {
                         SRegister /*rm*/) {
     USE(type);
     VIXL_ASSERT((type == kVcvta) || (type == kVcvtm) || (type == kVcvtn) ||
-                (type == kVcvtp) || (type == kVrinta) || (type == kVrintm) ||
-                (type == kVrintn) || (type == kVrintp));
+                (type == kVcvtp));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1815,6 +1830,26 @@ class Assembler : public internal::AssemblerBase {
     VIXL_ASSERT((type == kVqrshrn) || (type == kVqrshrun) ||
                 (type == kVqshrn) || (type == kVqshrun) || (type == kVrshrn) ||
                 (type == kVshrn));
+    UnimplementedDelegate(type);
+  }
+  virtual void Delegate(InstructionType type,
+                        InstructionDtDD /*instruction*/,
+                        DataType /*dt*/,
+                        DRegister /*rd*/,
+                        DRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVrinta) || (type == kVrintm) || (type == kVrintn) ||
+                (type == kVrintp));
+    UnimplementedDelegate(type);
+  }
+  virtual void Delegate(InstructionType type,
+                        InstructionDtSS /*instruction*/,
+                        DataType /*dt*/,
+                        SRegister /*rd*/,
+                        SRegister /*rm*/) {
+    USE(type);
+    VIXL_ASSERT((type == kVrinta) || (type == kVrintm) || (type == kVrintn) ||
+                (type == kVrintp));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -5513,68 +5548,62 @@ class Assembler : public internal::AssemblerBase {
     vrhadd(al, dt, rd, rn, rm);
   }
 
-  void vrinta(DataType dt1, DataType dt2, DRegister rd, DRegister rm);
+  void vrinta(DataType dt, DRegister rd, DRegister rm);
 
-  void vrinta(DataType dt1, DataType dt2, QRegister rd, QRegister rm);
+  void vrinta(DataType dt, QRegister rd, QRegister rm);
 
-  void vrinta(DataType dt1, DataType dt2, SRegister rd, SRegister rm);
+  void vrinta(DataType dt, SRegister rd, SRegister rm);
 
-  void vrintm(DataType dt1, DataType dt2, DRegister rd, DRegister rm);
+  void vrintm(DataType dt, DRegister rd, DRegister rm);
 
-  void vrintm(DataType dt1, DataType dt2, QRegister rd, QRegister rm);
+  void vrintm(DataType dt, QRegister rd, QRegister rm);
 
-  void vrintm(DataType dt1, DataType dt2, SRegister rd, SRegister rm);
+  void vrintm(DataType dt, SRegister rd, SRegister rm);
 
-  void vrintn(DataType dt1, DataType dt2, DRegister rd, DRegister rm);
+  void vrintn(DataType dt, DRegister rd, DRegister rm);
 
-  void vrintn(DataType dt1, DataType dt2, QRegister rd, QRegister rm);
+  void vrintn(DataType dt, QRegister rd, QRegister rm);
 
-  void vrintn(DataType dt1, DataType dt2, SRegister rd, SRegister rm);
+  void vrintn(DataType dt, SRegister rd, SRegister rm);
 
-  void vrintp(DataType dt1, DataType dt2, DRegister rd, DRegister rm);
+  void vrintp(DataType dt, DRegister rd, DRegister rm);
 
-  void vrintp(DataType dt1, DataType dt2, QRegister rd, QRegister rm);
+  void vrintp(DataType dt, QRegister rd, QRegister rm);
 
-  void vrintp(DataType dt1, DataType dt2, SRegister rd, SRegister rm);
+  void vrintp(DataType dt, SRegister rd, SRegister rm);
 
-  void vrintr(
-      Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm);
-  void vrintr(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-    vrintr(al, dt1, dt2, rd, rm);
+  void vrintr(Condition cond, DataType dt, SRegister rd, SRegister rm);
+  void vrintr(DataType dt, SRegister rd, SRegister rm) {
+    vrintr(al, dt, rd, rm);
   }
 
-  void vrintr(
-      Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm);
-  void vrintr(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
-    vrintr(al, dt1, dt2, rd, rm);
+  void vrintr(Condition cond, DataType dt, DRegister rd, DRegister rm);
+  void vrintr(DataType dt, DRegister rd, DRegister rm) {
+    vrintr(al, dt, rd, rm);
   }
 
-  void vrintx(
-      Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm);
-  void vrintx(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
-    vrintx(al, dt1, dt2, rd, rm);
+  void vrintx(Condition cond, DataType dt, DRegister rd, DRegister rm);
+  void vrintx(DataType dt, DRegister rd, DRegister rm) {
+    vrintx(al, dt, rd, rm);
   }
 
-  void vrintx(DataType dt1, DataType dt2, QRegister rd, QRegister rm);
+  void vrintx(DataType dt, QRegister rd, QRegister rm);
 
-  void vrintx(
-      Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm);
-  void vrintx(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-    vrintx(al, dt1, dt2, rd, rm);
+  void vrintx(Condition cond, DataType dt, SRegister rd, SRegister rm);
+  void vrintx(DataType dt, SRegister rd, SRegister rm) {
+    vrintx(al, dt, rd, rm);
   }
 
-  void vrintz(
-      Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm);
-  void vrintz(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
-    vrintz(al, dt1, dt2, rd, rm);
+  void vrintz(Condition cond, DataType dt, DRegister rd, DRegister rm);
+  void vrintz(DataType dt, DRegister rd, DRegister rm) {
+    vrintz(al, dt, rd, rm);
   }
 
-  void vrintz(DataType dt1, DataType dt2, QRegister rd, QRegister rm);
+  void vrintz(DataType dt, QRegister rd, QRegister rm);
 
-  void vrintz(
-      Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm);
-  void vrintz(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-    vrintz(al, dt1, dt2, rd, rm);
+  void vrintz(Condition cond, DataType dt, SRegister rd, SRegister rm);
+  void vrintz(DataType dt, SRegister rd, SRegister rm) {
+    vrintz(al, dt, rd, rm);
   }
 
   void vrshl(

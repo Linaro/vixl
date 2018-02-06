@@ -2317,51 +2317,45 @@ class Disassembler {
   void vrhadd(
       Condition cond, DataType dt, QRegister rd, QRegister rn, QRegister rm);
 
-  void vrinta(DataType dt1, DataType dt2, DRegister rd, DRegister rm);
+  void vrinta(DataType dt, DRegister rd, DRegister rm);
 
-  void vrinta(DataType dt1, DataType dt2, QRegister rd, QRegister rm);
+  void vrinta(DataType dt, QRegister rd, QRegister rm);
 
-  void vrinta(DataType dt1, DataType dt2, SRegister rd, SRegister rm);
+  void vrinta(DataType dt, SRegister rd, SRegister rm);
 
-  void vrintm(DataType dt1, DataType dt2, DRegister rd, DRegister rm);
+  void vrintm(DataType dt, DRegister rd, DRegister rm);
 
-  void vrintm(DataType dt1, DataType dt2, QRegister rd, QRegister rm);
+  void vrintm(DataType dt, QRegister rd, QRegister rm);
 
-  void vrintm(DataType dt1, DataType dt2, SRegister rd, SRegister rm);
+  void vrintm(DataType dt, SRegister rd, SRegister rm);
 
-  void vrintn(DataType dt1, DataType dt2, DRegister rd, DRegister rm);
+  void vrintn(DataType dt, DRegister rd, DRegister rm);
 
-  void vrintn(DataType dt1, DataType dt2, QRegister rd, QRegister rm);
+  void vrintn(DataType dt, QRegister rd, QRegister rm);
 
-  void vrintn(DataType dt1, DataType dt2, SRegister rd, SRegister rm);
+  void vrintn(DataType dt, SRegister rd, SRegister rm);
 
-  void vrintp(DataType dt1, DataType dt2, DRegister rd, DRegister rm);
+  void vrintp(DataType dt, DRegister rd, DRegister rm);
 
-  void vrintp(DataType dt1, DataType dt2, QRegister rd, QRegister rm);
+  void vrintp(DataType dt, QRegister rd, QRegister rm);
 
-  void vrintp(DataType dt1, DataType dt2, SRegister rd, SRegister rm);
+  void vrintp(DataType dt, SRegister rd, SRegister rm);
 
-  void vrintr(
-      Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm);
+  void vrintr(Condition cond, DataType dt, SRegister rd, SRegister rm);
 
-  void vrintr(
-      Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm);
+  void vrintr(Condition cond, DataType dt, DRegister rd, DRegister rm);
 
-  void vrintx(
-      Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm);
+  void vrintx(Condition cond, DataType dt, DRegister rd, DRegister rm);
 
-  void vrintx(DataType dt1, DataType dt2, QRegister rd, QRegister rm);
+  void vrintx(DataType dt, QRegister rd, QRegister rm);
 
-  void vrintx(
-      Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm);
+  void vrintx(Condition cond, DataType dt, SRegister rd, SRegister rm);
 
-  void vrintz(
-      Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm);
+  void vrintz(Condition cond, DataType dt, DRegister rd, DRegister rm);
 
-  void vrintz(DataType dt1, DataType dt2, QRegister rd, QRegister rm);
+  void vrintz(DataType dt, QRegister rd, QRegister rm);
 
-  void vrintz(
-      Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm);
+  void vrintz(Condition cond, DataType dt, SRegister rd, SRegister rm);
 
   void vrshl(
       Condition cond, DataType dt, DRegister rd, DRegister rm, DRegister rn);
@@ -2682,6 +2676,7 @@ DataTypeValue Dt_size_13_Decode(uint32_t value);
 DataTypeValue Dt_size_14_Decode(uint32_t value);
 DataTypeValue Dt_size_15_Decode(uint32_t value);
 DataTypeValue Dt_size_16_Decode(uint32_t value);
+DataTypeValue Dt_size_17_Decode(uint32_t value);
 // End of generated code.
 
 class PrintDisassembler : public Disassembler {

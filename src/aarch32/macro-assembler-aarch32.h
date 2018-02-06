@@ -9187,214 +9187,208 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     Vrhadd(al, dt, rd, rn, rm);
   }
 
-  void Vrinta(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+  void Vrinta(DataType dt, DRegister rd, DRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    vrinta(dt1, dt2, rd, rm);
+    vrinta(dt, rd, rm);
   }
 
-  void Vrinta(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
+  void Vrinta(DataType dt, QRegister rd, QRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    vrinta(dt1, dt2, rd, rm);
+    vrinta(dt, rd, rm);
   }
 
-  void Vrinta(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
+  void Vrinta(DataType dt, SRegister rd, SRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    vrinta(dt1, dt2, rd, rm);
+    vrinta(dt, rd, rm);
   }
 
-  void Vrintm(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+  void Vrintm(DataType dt, DRegister rd, DRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    vrintm(dt1, dt2, rd, rm);
+    vrintm(dt, rd, rm);
   }
 
-  void Vrintm(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
+  void Vrintm(DataType dt, QRegister rd, QRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    vrintm(dt1, dt2, rd, rm);
+    vrintm(dt, rd, rm);
   }
 
-  void Vrintm(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
+  void Vrintm(DataType dt, SRegister rd, SRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    vrintm(dt1, dt2, rd, rm);
+    vrintm(dt, rd, rm);
   }
 
-  void Vrintn(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+  void Vrintn(DataType dt, DRegister rd, DRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    vrintn(dt1, dt2, rd, rm);
+    vrintn(dt, rd, rm);
   }
 
-  void Vrintn(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
+  void Vrintn(DataType dt, QRegister rd, QRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    vrintn(dt1, dt2, rd, rm);
+    vrintn(dt, rd, rm);
   }
 
-  void Vrintn(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
+  void Vrintn(DataType dt, SRegister rd, SRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    vrintn(dt1, dt2, rd, rm);
+    vrintn(dt, rd, rm);
   }
 
-  void Vrintp(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+  void Vrintp(DataType dt, DRegister rd, DRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    vrintp(dt1, dt2, rd, rm);
+    vrintp(dt, rd, rm);
   }
 
-  void Vrintp(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
+  void Vrintp(DataType dt, QRegister rd, QRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    vrintp(dt1, dt2, rd, rm);
+    vrintp(dt, rd, rm);
   }
 
-  void Vrintp(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
+  void Vrintp(DataType dt, SRegister rd, SRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    vrintp(dt1, dt2, rd, rm);
+    vrintp(dt, rd, rm);
   }
 
-  void Vrintr(
-      Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
+  void Vrintr(Condition cond, DataType dt, SRegister rd, SRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond, guard);
-    vrintr(cond, dt1, dt2, rd, rm);
+    vrintr(cond, dt, rd, rm);
   }
-  void Vrintr(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-    Vrintr(al, dt1, dt2, rd, rm);
+  void Vrintr(DataType dt, SRegister rd, SRegister rm) {
+    Vrintr(al, dt, rd, rm);
   }
 
-  void Vrintr(
-      Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+  void Vrintr(Condition cond, DataType dt, DRegister rd, DRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond, guard);
-    vrintr(cond, dt1, dt2, rd, rm);
+    vrintr(cond, dt, rd, rm);
   }
-  void Vrintr(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
-    Vrintr(al, dt1, dt2, rd, rm);
+  void Vrintr(DataType dt, DRegister rd, DRegister rm) {
+    Vrintr(al, dt, rd, rm);
   }
 
-  void Vrintx(
-      Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+  void Vrintx(Condition cond, DataType dt, DRegister rd, DRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond, guard);
-    vrintx(cond, dt1, dt2, rd, rm);
+    vrintx(cond, dt, rd, rm);
   }
-  void Vrintx(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
-    Vrintx(al, dt1, dt2, rd, rm);
+  void Vrintx(DataType dt, DRegister rd, DRegister rm) {
+    Vrintx(al, dt, rd, rm);
   }
 
-  void Vrintx(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
+  void Vrintx(DataType dt, QRegister rd, QRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
-    vrintx(dt1, dt2, rd, rm);
+    vrintx(dt, rd, rm);
   }
 
-  void Vrintx(
-      Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    ITScope it_scope(this, &cond, guard);
-    vrintx(cond, dt1, dt2, rd, rm);
-  }
-  void Vrintx(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-    Vrintx(al, dt1, dt2, rd, rm);
-  }
-
-  void Vrintz(
-      Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+  void Vrintx(Condition cond, DataType dt, SRegister rd, SRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond, guard);
-    vrintz(cond, dt1, dt2, rd, rm);
+    vrintx(cond, dt, rd, rm);
   }
-  void Vrintz(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
-    Vrintz(al, dt1, dt2, rd, rm);
-  }
-
-  void Vrintz(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
-    VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
-    VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(OutsideITBlock());
-    MacroEmissionCheckScope guard(this);
-    vrintz(dt1, dt2, rd, rm);
+  void Vrintx(DataType dt, SRegister rd, SRegister rm) {
+    Vrintx(al, dt, rd, rm);
   }
 
-  void Vrintz(
-      Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
+  void Vrintz(Condition cond, DataType dt, DRegister rd, DRegister rm) {
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
     VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond, guard);
-    vrintz(cond, dt1, dt2, rd, rm);
+    vrintz(cond, dt, rd, rm);
   }
-  void Vrintz(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
-    Vrintz(al, dt1, dt2, rd, rm);
+  void Vrintz(DataType dt, DRegister rd, DRegister rm) {
+    Vrintz(al, dt, rd, rm);
+  }
+
+  void Vrintz(DataType dt, QRegister rd, QRegister rm) {
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
+    MacroEmissionCheckScope guard(this);
+    vrintz(dt, rd, rm);
+  }
+
+  void Vrintz(Condition cond, DataType dt, SRegister rd, SRegister rm) {
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rd));
+    VIXL_ASSERT(!AliasesAvailableScratchRegister(rm));
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(OutsideITBlock());
+    MacroEmissionCheckScope guard(this);
+    ITScope it_scope(this, &cond, guard);
+    vrintz(cond, dt, rd, rm);
+  }
+  void Vrintz(DataType dt, SRegister rd, SRegister rm) {
+    Vrintz(al, dt, rd, rm);
   }
 
   void Vrshl(
@@ -10699,6 +10693,72 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Vnmul(VRegister rd, VRegister rn, VRegister rm) {
     Vnmul(al, rd, rn, rm);
   }
+  void Vrinta(VRegister rd, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vrinta(F32, rd.S(), rm.S());
+    } else {
+      Vrinta(F64, rd.D(), rm.D());
+    }
+  }
+  void Vrintm(VRegister rd, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vrintm(F32, rd.S(), rm.S());
+    } else {
+      Vrintm(F64, rd.D(), rm.D());
+    }
+  }
+  void Vrintn(VRegister rd, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vrintn(F32, rd.S(), rm.S());
+    } else {
+      Vrintn(F64, rd.D(), rm.D());
+    }
+  }
+  void Vrintp(VRegister rd, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vrintp(F32, rd.S(), rm.S());
+    } else {
+      Vrintp(F64, rd.D(), rm.D());
+    }
+  }
+  void Vrintr(Condition cond, VRegister rd, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vrintr(cond, F32, rd.S(), rm.S());
+    } else {
+      Vrintr(cond, F64, rd.D(), rm.D());
+    }
+  }
+  void Vrintr(VRegister rd, VRegister rm) { Vrintr(al, rd, rm); }
+  void Vrintx(Condition cond, VRegister rd, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vrintx(cond, F32, rd.S(), rm.S());
+    } else {
+      Vrintx(cond, F64, rd.D(), rm.D());
+    }
+  }
+  void Vrintx(VRegister rd, VRegister rm) { Vrintx(al, rd, rm); }
+  void Vrintz(Condition cond, VRegister rd, VRegister rm) {
+    VIXL_ASSERT(rd.IsS() || rd.IsD());
+    VIXL_ASSERT(rd.GetType() == rm.GetType());
+    if (rd.IsS()) {
+      Vrintz(cond, F32, rd.S(), rm.S());
+    } else {
+      Vrintz(cond, F64, rd.D(), rm.D());
+    }
+  }
+  void Vrintz(VRegister rd, VRegister rm) { Vrintz(al, rd, rm); }
   void Vseleq(VRegister rd, VRegister rn, VRegister rm) {
     VIXL_ASSERT(rd.IsS() || rd.IsD());
     VIXL_ASSERT(rd.GetType() == rn.GetType());
@@ -10770,6 +10830,224 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ABORT_WITH_MSG(
         "ARM strongly recommends to not use this instruction.\n");
     return false;
+  }
+  // Old syntax of vrint instructions.
+  VIXL_DEPRECATED(
+      "void Vrinta(DataType dt, DRegister rd, DRegister rm)",
+      void Vrinta(DataType dt1, DataType dt2, DRegister rd, DRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrinta(dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrinta(DataType dt, QRegister rd, QRegister rm)",
+      void Vrinta(DataType dt1, DataType dt2, QRegister rd, QRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrinta(dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrinta(DataType dt, SRegister rd, SRegister rm)",
+      void Vrinta(DataType dt1, DataType dt2, SRegister rd, SRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrinta(dt1, rd, rm);
+  }
+
+  VIXL_DEPRECATED(
+      "void Vrintm(DataType dt, DRegister rd, DRegister rm)",
+      void Vrintm(DataType dt1, DataType dt2, DRegister rd, DRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintm(dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrintm(DataType dt, QRegister rd, QRegister rm)",
+      void Vrintm(DataType dt1, DataType dt2, QRegister rd, QRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintm(dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrintm(DataType dt, SRegister rd, SRegister rm)",
+      void Vrintm(DataType dt1, DataType dt2, SRegister rd, SRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintm(dt1, rd, rm);
+  }
+
+  VIXL_DEPRECATED(
+      "void Vrintn(DataType dt, DRegister rd, DRegister rm)",
+      void Vrintn(DataType dt1, DataType dt2, DRegister rd, DRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintn(dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrintn(DataType dt, QRegister rd, QRegister rm)",
+      void Vrintn(DataType dt1, DataType dt2, QRegister rd, QRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintn(dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrintn(DataType dt, SRegister rd, SRegister rm)",
+      void Vrintn(DataType dt1, DataType dt2, SRegister rd, SRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintn(dt1, rd, rm);
+  }
+
+  VIXL_DEPRECATED(
+      "void Vrintp(DataType dt, DRegister rd, DRegister rm)",
+      void Vrintp(DataType dt1, DataType dt2, DRegister rd, DRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintp(dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrintp(DataType dt, QRegister rd, QRegister rm)",
+      void Vrintp(DataType dt1, DataType dt2, QRegister rd, QRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintp(dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrintp(DataType dt, SRegister rd, SRegister rm)",
+      void Vrintp(DataType dt1, DataType dt2, SRegister rd, SRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintp(dt1, rd, rm);
+  }
+
+  VIXL_DEPRECATED(
+      "void Vrintr(Condition cond, DataType dt, SRegister rd, SRegister rm)",
+      void Vrintr(Condition cond,
+                  DataType dt1,
+                  DataType dt2,
+                  SRegister rd,
+                  SRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintr(cond, dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrintr(DataType dt, SRegister rd, SRegister rm)",
+      void Vrintr(DataType dt1, DataType dt2, SRegister rd, SRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintr(dt1, rd, rm);
+  }
+
+  VIXL_DEPRECATED(
+      "void Vrintr(Condition cond, DataType dt, DRegister rd, DRegister rm)",
+      void Vrintr(Condition cond,
+                  DataType dt1,
+                  DataType dt2,
+                  DRegister rd,
+                  DRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintr(cond, dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrintr(DataType dt, DRegister rd, DRegister rm)",
+      void Vrintr(DataType dt1, DataType dt2, DRegister rd, DRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintr(dt1, rd, rm);
+  }
+
+  VIXL_DEPRECATED(
+      "void Vrintx(Condition cond, DataType dt, DRegister rd, DRegister rm)",
+      void Vrintx(Condition cond,
+                  DataType dt1,
+                  DataType dt2,
+                  DRegister rd,
+                  DRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintx(cond, dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrintx(DataType dt, DRegister rd, DRegister rm)",
+      void Vrintx(DataType dt1, DataType dt2, DRegister rd, DRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintx(dt1, rd, rm);
+  }
+
+  VIXL_DEPRECATED(
+      "void Vrintx(DataType dt, QRegister rd, QRegister rm)",
+      void Vrintx(DataType dt1, DataType dt2, QRegister rd, QRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintx(dt1, rd, rm);
+  }
+
+  VIXL_DEPRECATED(
+      "void Vrintx(Condition cond, DataType dt, SRegister rd, SRegister rm)",
+      void Vrintx(Condition cond,
+                  DataType dt1,
+                  DataType dt2,
+                  SRegister rd,
+                  SRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintx(cond, dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrintx(DataType dt, SRegister rd, SRegister rm)",
+      void Vrintx(DataType dt1, DataType dt2, SRegister rd, SRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintx(dt1, rd, rm);
+  }
+
+  VIXL_DEPRECATED(
+      "void Vrintz(Condition cond, DataType dt, DRegister rd, DRegister rm)",
+      void Vrintz(Condition cond,
+                  DataType dt1,
+                  DataType dt2,
+                  DRegister rd,
+                  DRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintz(cond, dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrintz(DataType dt, DRegister rd, DRegister rm)",
+      void Vrintz(DataType dt1, DataType dt2, DRegister rd, DRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintz(dt1, rd, rm);
+  }
+
+  VIXL_DEPRECATED(
+      "void Vrintz(DataType dt, QRegister rd, QRegister rm)",
+      void Vrintz(DataType dt1, DataType dt2, QRegister rd, QRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintz(dt1, rd, rm);
+  }
+
+  VIXL_DEPRECATED(
+      "void Vrintz(Condition cond, DataType dt, SRegister rd, SRegister rm)",
+      void Vrintz(Condition cond,
+                  DataType dt1,
+                  DataType dt2,
+                  SRegister rd,
+                  SRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintz(cond, dt1, rd, rm);
+  }
+  VIXL_DEPRECATED(
+      "void Vrintz(DataType dt, SRegister rd, SRegister rm)",
+      void Vrintz(DataType dt1, DataType dt2, SRegister rd, SRegister rm)) {
+    USE(dt2);
+    VIXL_ASSERT(dt1.Is(dt2));
+    return Vrintz(dt1, rd, rm);
   }
 
  private:

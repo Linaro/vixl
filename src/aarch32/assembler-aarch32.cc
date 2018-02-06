@@ -1310,6 +1310,21 @@ class Dt_size_16 : public EncodingValue {
 
 Dt_size_16::Dt_size_16(DataType dt) {
   switch (dt.GetValue()) {
+    case F32:
+      SetEncodingValue(0x2);
+      break;
+    default:
+      break;
+  }
+}
+
+class Dt_size_17 : public EncodingValue {
+ public:
+  explicit Dt_size_17(DataType dt);
+};
+
+Dt_size_17::Dt_size_17(DataType dt) {
+  switch (dt.GetValue()) {
     case I8:
       SetEncodingValue(0x0);
       break;
@@ -24171,482 +24186,530 @@ void Assembler::vrhadd(
   Delegate(kVrhadd, &Assembler::vrhadd, cond, dt, rd, rn, rm);
 }
 
-void Assembler::vrinta(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+void Assembler::vrinta(DataType dt, DRegister rd, DRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
+  Dt_size_16 encoded_dt(dt);
   if (IsUsingT32()) {
-    // VRINTA{<q>}.F32.F32 <Dd>, <Dm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitT32_32(0xffba0500U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTA{<q>}.<dt> <Dd>, <Dm> ; T1
+    if (encoded_dt.IsValid()) {
+      EmitT32_32(0xffb20500U | (encoded_dt.GetEncodingValue() << 18) |
+                 rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
-    // VRINTA{<q>}.F64.F64 <Dd>, <Dm> ; T1
-    if (dt1.Is(F64) && dt2.Is(F64)) {
+    // VRINTA{<q>}.F64 <Dd>, <Dm> ; T1
+    if (dt.Is(F64)) {
       EmitT32_32(0xfeb80b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTA{<q>}.F32.F32 <Dd>, <Dm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitA32(0xf3ba0500U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTA{<q>}.<dt> <Dd>, <Dm> ; A1
+    if (encoded_dt.IsValid()) {
+      EmitA32(0xf3b20500U | (encoded_dt.GetEncodingValue() << 18) |
+              rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
-    // VRINTA{<q>}.F64.F64 <Dd>, <Dm> ; A1
-    if (dt1.Is(F64) && dt2.Is(F64)) {
+    // VRINTA{<q>}.F64 <Dd>, <Dm> ; A1
+    if (dt.Is(F64)) {
       EmitA32(0xfeb80b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrinta, &Assembler::vrinta, dt1, dt2, rd, rm);
+  Delegate(kVrinta, &Assembler::vrinta, dt, rd, rm);
 }
 
-void Assembler::vrinta(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
+void Assembler::vrinta(DataType dt, QRegister rd, QRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
+  Dt_size_16 encoded_dt(dt);
   if (IsUsingT32()) {
-    // VRINTA{<q>}.F32.F32 <Qd>, <Qm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitT32_32(0xffba0540U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTA{<q>}.<dt> <Qd>, <Qm> ; T1
+    if (encoded_dt.IsValid()) {
+      EmitT32_32(0xffb20540U | (encoded_dt.GetEncodingValue() << 18) |
+                 rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTA{<q>}.F32.F32 <Qd>, <Qm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitA32(0xf3ba0540U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTA{<q>}.<dt> <Qd>, <Qm> ; A1
+    if (encoded_dt.IsValid()) {
+      EmitA32(0xf3b20540U | (encoded_dt.GetEncodingValue() << 18) |
+              rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrinta, &Assembler::vrinta, dt1, dt2, rd, rm);
+  Delegate(kVrinta, &Assembler::vrinta, dt, rd, rm);
 }
 
-void Assembler::vrinta(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
+void Assembler::vrinta(DataType dt, SRegister rd, SRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
   if (IsUsingT32()) {
-    // VRINTA{<q>}.F32.F32 <Sd>, <Sm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
+    // VRINTA{<q>}.F32 <Sd>, <Sm> ; T1
+    if (dt.Is(F32)) {
       EmitT32_32(0xfeb80a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTA{<q>}.F32.F32 <Sd>, <Sm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
+    // VRINTA{<q>}.F32 <Sd>, <Sm> ; A1
+    if (dt.Is(F32)) {
       EmitA32(0xfeb80a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrinta, &Assembler::vrinta, dt1, dt2, rd, rm);
+  Delegate(kVrinta, &Assembler::vrinta, dt, rd, rm);
 }
 
-void Assembler::vrintm(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+void Assembler::vrintm(DataType dt, DRegister rd, DRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
+  Dt_size_16 encoded_dt(dt);
   if (IsUsingT32()) {
-    // VRINTM{<q>}.F32.F32 <Dd>, <Dm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitT32_32(0xffba0680U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTM{<q>}.<dt> <Dd>, <Dm> ; T1
+    if (encoded_dt.IsValid()) {
+      EmitT32_32(0xffb20680U | (encoded_dt.GetEncodingValue() << 18) |
+                 rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
-    // VRINTM{<q>}.F64.F64 <Dd>, <Dm> ; T1
-    if (dt1.Is(F64) && dt2.Is(F64)) {
+    // VRINTM{<q>}.F64 <Dd>, <Dm> ; T1
+    if (dt.Is(F64)) {
       EmitT32_32(0xfebb0b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTM{<q>}.F32.F32 <Dd>, <Dm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitA32(0xf3ba0680U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTM{<q>}.<dt> <Dd>, <Dm> ; A1
+    if (encoded_dt.IsValid()) {
+      EmitA32(0xf3b20680U | (encoded_dt.GetEncodingValue() << 18) |
+              rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
-    // VRINTM{<q>}.F64.F64 <Dd>, <Dm> ; A1
-    if (dt1.Is(F64) && dt2.Is(F64)) {
+    // VRINTM{<q>}.F64 <Dd>, <Dm> ; A1
+    if (dt.Is(F64)) {
       EmitA32(0xfebb0b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintm, &Assembler::vrintm, dt1, dt2, rd, rm);
+  Delegate(kVrintm, &Assembler::vrintm, dt, rd, rm);
 }
 
-void Assembler::vrintm(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
+void Assembler::vrintm(DataType dt, QRegister rd, QRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
+  Dt_size_16 encoded_dt(dt);
   if (IsUsingT32()) {
-    // VRINTM{<q>}.F32.F32 <Qd>, <Qm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitT32_32(0xffba06c0U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTM{<q>}.<dt> <Qd>, <Qm> ; T1
+    if (encoded_dt.IsValid()) {
+      EmitT32_32(0xffb206c0U | (encoded_dt.GetEncodingValue() << 18) |
+                 rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTM{<q>}.F32.F32 <Qd>, <Qm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitA32(0xf3ba06c0U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTM{<q>}.<dt> <Qd>, <Qm> ; A1
+    if (encoded_dt.IsValid()) {
+      EmitA32(0xf3b206c0U | (encoded_dt.GetEncodingValue() << 18) |
+              rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintm, &Assembler::vrintm, dt1, dt2, rd, rm);
+  Delegate(kVrintm, &Assembler::vrintm, dt, rd, rm);
 }
 
-void Assembler::vrintm(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
+void Assembler::vrintm(DataType dt, SRegister rd, SRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
   if (IsUsingT32()) {
-    // VRINTM{<q>}.F32.F32 <Sd>, <Sm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
+    // VRINTM{<q>}.F32 <Sd>, <Sm> ; T1
+    if (dt.Is(F32)) {
       EmitT32_32(0xfebb0a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTM{<q>}.F32.F32 <Sd>, <Sm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
+    // VRINTM{<q>}.F32 <Sd>, <Sm> ; A1
+    if (dt.Is(F32)) {
       EmitA32(0xfebb0a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintm, &Assembler::vrintm, dt1, dt2, rd, rm);
+  Delegate(kVrintm, &Assembler::vrintm, dt, rd, rm);
 }
 
-void Assembler::vrintn(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+void Assembler::vrintn(DataType dt, DRegister rd, DRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
+  Dt_size_16 encoded_dt(dt);
   if (IsUsingT32()) {
-    // VRINTN{<q>}.F32.F32 <Dd>, <Dm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitT32_32(0xffba0400U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTN{<q>}.<dt> <Dd>, <Dm> ; T1
+    if (encoded_dt.IsValid()) {
+      EmitT32_32(0xffb20400U | (encoded_dt.GetEncodingValue() << 18) |
+                 rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
-    // VRINTN{<q>}.F64.F64 <Dd>, <Dm> ; T1
-    if (dt1.Is(F64) && dt2.Is(F64)) {
+    // VRINTN{<q>}.F64 <Dd>, <Dm> ; T1
+    if (dt.Is(F64)) {
       EmitT32_32(0xfeb90b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTN{<q>}.F32.F32 <Dd>, <Dm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitA32(0xf3ba0400U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTN{<q>}.<dt> <Dd>, <Dm> ; A1
+    if (encoded_dt.IsValid()) {
+      EmitA32(0xf3b20400U | (encoded_dt.GetEncodingValue() << 18) |
+              rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
-    // VRINTN{<q>}.F64.F64 <Dd>, <Dm> ; A1
-    if (dt1.Is(F64) && dt2.Is(F64)) {
+    // VRINTN{<q>}.F64 <Dd>, <Dm> ; A1
+    if (dt.Is(F64)) {
       EmitA32(0xfeb90b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintn, &Assembler::vrintn, dt1, dt2, rd, rm);
+  Delegate(kVrintn, &Assembler::vrintn, dt, rd, rm);
 }
 
-void Assembler::vrintn(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
+void Assembler::vrintn(DataType dt, QRegister rd, QRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
+  Dt_size_16 encoded_dt(dt);
   if (IsUsingT32()) {
-    // VRINTN{<q>}.F32.F32 <Qd>, <Qm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitT32_32(0xffba0440U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTN{<q>}.<dt> <Qd>, <Qm> ; T1
+    if (encoded_dt.IsValid()) {
+      EmitT32_32(0xffb20440U | (encoded_dt.GetEncodingValue() << 18) |
+                 rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTN{<q>}.F32.F32 <Qd>, <Qm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitA32(0xf3ba0440U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTN{<q>}.<dt> <Qd>, <Qm> ; A1
+    if (encoded_dt.IsValid()) {
+      EmitA32(0xf3b20440U | (encoded_dt.GetEncodingValue() << 18) |
+              rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintn, &Assembler::vrintn, dt1, dt2, rd, rm);
+  Delegate(kVrintn, &Assembler::vrintn, dt, rd, rm);
 }
 
-void Assembler::vrintn(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
+void Assembler::vrintn(DataType dt, SRegister rd, SRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
   if (IsUsingT32()) {
-    // VRINTN{<q>}.F32.F32 <Sd>, <Sm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
+    // VRINTN{<q>}.F32 <Sd>, <Sm> ; T1
+    if (dt.Is(F32)) {
       EmitT32_32(0xfeb90a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTN{<q>}.F32.F32 <Sd>, <Sm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
+    // VRINTN{<q>}.F32 <Sd>, <Sm> ; A1
+    if (dt.Is(F32)) {
       EmitA32(0xfeb90a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintn, &Assembler::vrintn, dt1, dt2, rd, rm);
+  Delegate(kVrintn, &Assembler::vrintn, dt, rd, rm);
 }
 
-void Assembler::vrintp(DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+void Assembler::vrintp(DataType dt, DRegister rd, DRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
+  Dt_size_16 encoded_dt(dt);
   if (IsUsingT32()) {
-    // VRINTP{<q>}.F32.F32 <Dd>, <Dm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitT32_32(0xffba0780U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTP{<q>}.<dt> <Dd>, <Dm> ; T1
+    if (encoded_dt.IsValid()) {
+      EmitT32_32(0xffb20780U | (encoded_dt.GetEncodingValue() << 18) |
+                 rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
-    // VRINTP{<q>}.F64.F64 <Dd>, <Dm> ; T1
-    if (dt1.Is(F64) && dt2.Is(F64)) {
+    // VRINTP{<q>}.F64 <Dd>, <Dm> ; T1
+    if (dt.Is(F64)) {
       EmitT32_32(0xfeba0b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTP{<q>}.F32.F32 <Dd>, <Dm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitA32(0xf3ba0780U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTP{<q>}.<dt> <Dd>, <Dm> ; A1
+    if (encoded_dt.IsValid()) {
+      EmitA32(0xf3b20780U | (encoded_dt.GetEncodingValue() << 18) |
+              rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
-    // VRINTP{<q>}.F64.F64 <Dd>, <Dm> ; A1
-    if (dt1.Is(F64) && dt2.Is(F64)) {
+    // VRINTP{<q>}.F64 <Dd>, <Dm> ; A1
+    if (dt.Is(F64)) {
       EmitA32(0xfeba0b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintp, &Assembler::vrintp, dt1, dt2, rd, rm);
+  Delegate(kVrintp, &Assembler::vrintp, dt, rd, rm);
 }
 
-void Assembler::vrintp(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
+void Assembler::vrintp(DataType dt, QRegister rd, QRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
+  Dt_size_16 encoded_dt(dt);
   if (IsUsingT32()) {
-    // VRINTP{<q>}.F32.F32 <Qd>, <Qm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitT32_32(0xffba07c0U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTP{<q>}.<dt> <Qd>, <Qm> ; T1
+    if (encoded_dt.IsValid()) {
+      EmitT32_32(0xffb207c0U | (encoded_dt.GetEncodingValue() << 18) |
+                 rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTP{<q>}.F32.F32 <Qd>, <Qm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitA32(0xf3ba07c0U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTP{<q>}.<dt> <Qd>, <Qm> ; A1
+    if (encoded_dt.IsValid()) {
+      EmitA32(0xf3b207c0U | (encoded_dt.GetEncodingValue() << 18) |
+              rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintp, &Assembler::vrintp, dt1, dt2, rd, rm);
+  Delegate(kVrintp, &Assembler::vrintp, dt, rd, rm);
 }
 
-void Assembler::vrintp(DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
+void Assembler::vrintp(DataType dt, SRegister rd, SRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
   if (IsUsingT32()) {
-    // VRINTP{<q>}.F32.F32 <Sd>, <Sm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
+    // VRINTP{<q>}.F32 <Sd>, <Sm> ; T1
+    if (dt.Is(F32)) {
       EmitT32_32(0xfeba0a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTP{<q>}.F32.F32 <Sd>, <Sm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
+    // VRINTP{<q>}.F32 <Sd>, <Sm> ; A1
+    if (dt.Is(F32)) {
       EmitA32(0xfeba0a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintp, &Assembler::vrintp, dt1, dt2, rd, rm);
+  Delegate(kVrintp, &Assembler::vrintp, dt, rd, rm);
 }
 
-void Assembler::vrintr(
-    Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
+void Assembler::vrintr(Condition cond,
+                       DataType dt,
+                       SRegister rd,
+                       SRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
   if (IsUsingT32()) {
-    // VRINTR{<c>}{<q>}.F32.F32 <Sd>, <Sm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
+    // VRINTR{<c>}{<q>}.F32 <Sd>, <Sm> ; T1
+    if (dt.Is(F32)) {
       EmitT32_32(0xeeb60a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTR{<c>}{<q>}.F32.F32 <Sd>, <Sm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32) && cond.IsNotNever()) {
+    // VRINTR{<c>}{<q>}.F32 <Sd>, <Sm> ; A1
+    if (dt.Is(F32) && cond.IsNotNever()) {
       EmitA32(0x0eb60a40U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
               rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintr, &Assembler::vrintr, cond, dt1, dt2, rd, rm);
+  Delegate(kVrintr, &Assembler::vrintr, cond, dt, rd, rm);
 }
 
-void Assembler::vrintr(
-    Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+void Assembler::vrintr(Condition cond,
+                       DataType dt,
+                       DRegister rd,
+                       DRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
   if (IsUsingT32()) {
-    // VRINTR{<c>}{<q>}.F64.F64 <Dd>, <Dm> ; T1
-    if (dt1.Is(F64) && dt2.Is(F64)) {
+    // VRINTR{<c>}{<q>}.F64 <Dd>, <Dm> ; T1
+    if (dt.Is(F64)) {
       EmitT32_32(0xeeb60b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTR{<c>}{<q>}.F64.F64 <Dd>, <Dm> ; A1
-    if (dt1.Is(F64) && dt2.Is(F64) && cond.IsNotNever()) {
+    // VRINTR{<c>}{<q>}.F64 <Dd>, <Dm> ; A1
+    if (dt.Is(F64) && cond.IsNotNever()) {
       EmitA32(0x0eb60b40U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
               rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintr, &Assembler::vrintr, cond, dt1, dt2, rd, rm);
+  Delegate(kVrintr, &Assembler::vrintr, cond, dt, rd, rm);
 }
 
-void Assembler::vrintx(
-    Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+void Assembler::vrintx(Condition cond,
+                       DataType dt,
+                       DRegister rd,
+                       DRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
+  Dt_size_16 encoded_dt(dt);
   if (IsUsingT32()) {
-    // VRINTX{<q>}.F32.F32 <Dd>, <Dm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitT32_32(0xffba0480U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTX{<q>}.<dt> <Dd>, <Dm> ; T1
+    if (encoded_dt.IsValid()) {
+      EmitT32_32(0xffb20480U | (encoded_dt.GetEncodingValue() << 18) |
+                 rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
-    // VRINTX{<c>}{<q>}.F64.F64 <Dd>, <Dm> ; T1
-    if (dt1.Is(F64) && dt2.Is(F64)) {
+    // VRINTX{<c>}{<q>}.F64 <Dd>, <Dm> ; T1
+    if (dt.Is(F64)) {
       EmitT32_32(0xeeb70b40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTX{<q>}.F32.F32 <Dd>, <Dm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitA32(0xf3ba0480U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTX{<q>}.<dt> <Dd>, <Dm> ; A1
+    if (encoded_dt.IsValid()) {
+      EmitA32(0xf3b20480U | (encoded_dt.GetEncodingValue() << 18) |
+              rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
-    // VRINTX{<c>}{<q>}.F64.F64 <Dd>, <Dm> ; A1
-    if (dt1.Is(F64) && dt2.Is(F64) && cond.IsNotNever()) {
+    // VRINTX{<c>}{<q>}.F64 <Dd>, <Dm> ; A1
+    if (dt.Is(F64) && cond.IsNotNever()) {
       EmitA32(0x0eb70b40U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
               rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintx, &Assembler::vrintx, cond, dt1, dt2, rd, rm);
+  Delegate(kVrintx, &Assembler::vrintx, cond, dt, rd, rm);
 }
 
-void Assembler::vrintx(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
+void Assembler::vrintx(DataType dt, QRegister rd, QRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
+  Dt_size_16 encoded_dt(dt);
   if (IsUsingT32()) {
-    // VRINTX{<q>}.F32.F32 <Qd>, <Qm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitT32_32(0xffba04c0U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTX{<q>}.<dt> <Qd>, <Qm> ; T1
+    if (encoded_dt.IsValid()) {
+      EmitT32_32(0xffb204c0U | (encoded_dt.GetEncodingValue() << 18) |
+                 rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTX{<q>}.F32.F32 <Qd>, <Qm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitA32(0xf3ba04c0U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTX{<q>}.<dt> <Qd>, <Qm> ; A1
+    if (encoded_dt.IsValid()) {
+      EmitA32(0xf3b204c0U | (encoded_dt.GetEncodingValue() << 18) |
+              rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintx, &Assembler::vrintx, dt1, dt2, rd, rm);
+  Delegate(kVrintx, &Assembler::vrintx, dt, rd, rm);
 }
 
-void Assembler::vrintx(
-    Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
+void Assembler::vrintx(Condition cond,
+                       DataType dt,
+                       SRegister rd,
+                       SRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
   if (IsUsingT32()) {
-    // VRINTX{<c>}{<q>}.F32.F32 <Sd>, <Sm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
+    // VRINTX{<c>}{<q>}.F32 <Sd>, <Sm> ; T1
+    if (dt.Is(F32)) {
       EmitT32_32(0xeeb70a40U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTX{<c>}{<q>}.F32.F32 <Sd>, <Sm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32) && cond.IsNotNever()) {
+    // VRINTX{<c>}{<q>}.F32 <Sd>, <Sm> ; A1
+    if (dt.Is(F32) && cond.IsNotNever()) {
       EmitA32(0x0eb70a40U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
               rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintx, &Assembler::vrintx, cond, dt1, dt2, rd, rm);
+  Delegate(kVrintx, &Assembler::vrintx, cond, dt, rd, rm);
 }
 
-void Assembler::vrintz(
-    Condition cond, DataType dt1, DataType dt2, DRegister rd, DRegister rm) {
+void Assembler::vrintz(Condition cond,
+                       DataType dt,
+                       DRegister rd,
+                       DRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
+  Dt_size_16 encoded_dt(dt);
   if (IsUsingT32()) {
-    // VRINTZ{<q>}.F32.F32 <Dd>, <Dm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitT32_32(0xffba0580U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTZ{<q>}.<dt> <Dd>, <Dm> ; T1
+    if (encoded_dt.IsValid()) {
+      EmitT32_32(0xffb20580U | (encoded_dt.GetEncodingValue() << 18) |
+                 rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
-    // VRINTZ{<c>}{<q>}.F64.F64 <Dd>, <Dm> ; T1
-    if (dt1.Is(F64) && dt2.Is(F64)) {
+    // VRINTZ{<c>}{<q>}.F64 <Dd>, <Dm> ; T1
+    if (dt.Is(F64)) {
       EmitT32_32(0xeeb60bc0U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTZ{<q>}.F32.F32 <Dd>, <Dm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitA32(0xf3ba0580U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTZ{<q>}.<dt> <Dd>, <Dm> ; A1
+    if (encoded_dt.IsValid()) {
+      EmitA32(0xf3b20580U | (encoded_dt.GetEncodingValue() << 18) |
+              rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
-    // VRINTZ{<c>}{<q>}.F64.F64 <Dd>, <Dm> ; A1
-    if (dt1.Is(F64) && dt2.Is(F64) && cond.IsNotNever()) {
+    // VRINTZ{<c>}{<q>}.F64 <Dd>, <Dm> ; A1
+    if (dt.Is(F64) && cond.IsNotNever()) {
       EmitA32(0x0eb60bc0U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
               rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintz, &Assembler::vrintz, cond, dt1, dt2, rd, rm);
+  Delegate(kVrintz, &Assembler::vrintz, cond, dt, rd, rm);
 }
 
-void Assembler::vrintz(DataType dt1, DataType dt2, QRegister rd, QRegister rm) {
+void Assembler::vrintz(DataType dt, QRegister rd, QRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(al);
+  Dt_size_16 encoded_dt(dt);
   if (IsUsingT32()) {
-    // VRINTZ{<q>}.F32.F32 <Qd>, <Qm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitT32_32(0xffba05c0U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTZ{<q>}.<dt> <Qd>, <Qm> ; T1
+    if (encoded_dt.IsValid()) {
+      EmitT32_32(0xffb205c0U | (encoded_dt.GetEncodingValue() << 18) |
+                 rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTZ{<q>}.F32.F32 <Qd>, <Qm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
-      EmitA32(0xf3ba05c0U | rd.Encode(22, 12) | rm.Encode(5, 0));
+    // VRINTZ{<q>}.<dt> <Qd>, <Qm> ; A1
+    if (encoded_dt.IsValid()) {
+      EmitA32(0xf3b205c0U | (encoded_dt.GetEncodingValue() << 18) |
+              rd.Encode(22, 12) | rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintz, &Assembler::vrintz, dt1, dt2, rd, rm);
+  Delegate(kVrintz, &Assembler::vrintz, dt, rd, rm);
 }
 
-void Assembler::vrintz(
-    Condition cond, DataType dt1, DataType dt2, SRegister rd, SRegister rm) {
+void Assembler::vrintz(Condition cond,
+                       DataType dt,
+                       SRegister rd,
+                       SRegister rm) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
   if (IsUsingT32()) {
-    // VRINTZ{<c>}{<q>}.F32.F32 <Sd>, <Sm> ; T1
-    if (dt1.Is(F32) && dt2.Is(F32)) {
+    // VRINTZ{<c>}{<q>}.F32 <Sd>, <Sm> ; T1
+    if (dt.Is(F32)) {
       EmitT32_32(0xeeb60ac0U | rd.Encode(22, 12) | rm.Encode(5, 0));
       AdvanceIT();
       return;
     }
   } else {
-    // VRINTZ{<c>}{<q>}.F32.F32 <Sd>, <Sm> ; A1
-    if (dt1.Is(F32) && dt2.Is(F32) && cond.IsNotNever()) {
+    // VRINTZ{<c>}{<q>}.F32 <Sd>, <Sm> ; A1
+    if (dt.Is(F32) && cond.IsNotNever()) {
       EmitA32(0x0eb60ac0U | (cond.GetCondition() << 28) | rd.Encode(22, 12) |
               rm.Encode(5, 0));
       return;
     }
   }
-  Delegate(kVrintz, &Assembler::vrintz, cond, dt1, dt2, rd, rm);
+  Delegate(kVrintz, &Assembler::vrintz, cond, dt, rd, rm);
 }
 
 void Assembler::vrshl(
@@ -25440,7 +25503,7 @@ void Assembler::vshll(Condition cond,
     if (operand.GetNeonImmediate().CanConvert<uint32_t>()) {
       uint32_t imm = operand.GetNeonImmediate().GetImmediate<uint32_t>();
       Dt_imm6_4 encoded_dt(dt);
-      Dt_size_16 encoded_dt_2(dt);
+      Dt_size_17 encoded_dt_2(dt);
       if (IsUsingT32()) {
         // VSHLL{<c>}{<q>}.<type><size> <Qd>, <Dm>, #<imm> ; T1
         if (encoded_dt.IsValid() && (imm >= 1) && (imm <= dt.GetSize() - 1)) {
