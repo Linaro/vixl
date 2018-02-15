@@ -1264,6 +1264,9 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Instruction synchronization barrier.
   void isb();
 
+  // Conditional speculation dependency barrier.
+  void csdb();
+
   // Alias for system instructions.
   // No-op.
   void nop() { hint(NOP); }

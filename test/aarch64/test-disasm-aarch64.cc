@@ -3068,6 +3068,9 @@ TEST(barriers) {
   // ISB
   COMPARE_MACRO(Isb(), "isb");
 
+  // CSDB
+  COMPARE_MACRO(Csdb(), "csdb");
+
   CLEANUP();
 }
 

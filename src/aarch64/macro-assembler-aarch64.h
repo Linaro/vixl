@@ -1109,6 +1109,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     cneg(rd, rn, cond);
   }
+  void Csdb() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    csdb();
+  }
   void Cset(const Register& rd, Condition cond) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rd.IsZero());

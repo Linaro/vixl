@@ -13366,13 +13366,14 @@ TEST(system_msr) {
 }
 
 
-TEST(system_nop) {
+TEST(system) {
   SETUP();
   RegisterDump before;
 
   START();
   before.Dump(&masm);
   __ Nop();
+  __ Csdb();
   END();
 
   RUN();

@@ -1752,8 +1752,13 @@ void Disassembler::VisitSystem(const Instruction *instr) {
   } else if (instr->Mask(SystemHintFMask) == SystemHintFixed) {
     switch (instr->GetImmHint()) {
       case NOP: {
-        mnemonic = "nop";
         form = NULL;
+        mnemonic = "nop";
+        break;
+      }
+      case CSDB: {
+        form = NULL;
+        mnemonic = "csdb";
         break;
       }
     }
