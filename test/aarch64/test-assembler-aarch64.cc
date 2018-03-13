@@ -19333,7 +19333,8 @@ TEST(neon_3same_extra_fcadd) {
 
   END();
 
-  #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64 // TODO: test on real hardware when available
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64  // TODO: test on real hardware when
+                                       // available
   RUN();
   ASSERT_EQUAL_128(0x4014000000000000, 0x4014000000000000, q31);
   ASSERT_EQUAL_128(0x402E000000000000, 0x402E000000000000, q30);
@@ -19341,7 +19342,7 @@ TEST(neon_3same_extra_fcadd) {
   ASSERT_EQUAL_128(0x0, 0xc67a0000489e7ae0, q28);  // (-16000i, 324567)
   ASSERT_EQUAL_128(0x4120000000000000, 0x40A0000040A00000, q27);
   ASSERT_EQUAL_128(0x0000000041200000, 0x40A0000040A00000, q26);
-  #endif
+#endif
   TEARDOWN();
 }
 
@@ -19401,7 +19402,7 @@ TEST(neon_3same_extra_fcmla) {
 
   END();
 
-  #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
 
   ASSERT_EQUAL_128(0x0, 0x4208000000000000, q31);  // (34i, 0)
@@ -19416,7 +19417,7 @@ TEST(neon_3same_extra_fcmla) {
   ASSERT_EQUAL_128(0xc41ac80045400000, 0x0000000047e040c0, q25);
   // (619.125i, -3072), (0i, -114817.5)
   ASSERT_EQUAL_128(0xc5a00000c480fc00, 0xca63d00000000000, q24);
-  #endif
+#endif
   TEARDOWN();
 }
 
@@ -19469,7 +19470,7 @@ TEST(neon_byelement_fcmla) {
 
   END();
 
-  #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
   // (34i, 0), (34i, 0)
   ASSERT_EQUAL_128(0x4208000000000000, 0x4208000000000000, q31);
@@ -19491,7 +19492,7 @@ TEST(neon_byelement_fcmla) {
   ASSERT_EQUAL_128(0x420c0000c1a80000, 0x41c80000c1700000, q23);
   // (3i, 5), (9i, 15)
   ASSERT_EQUAL_128(0x4040000040a00000, 0x4110000041700000, q22);
-  #endif
+#endif
 
   TEARDOWN();
 }
