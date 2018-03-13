@@ -2418,6 +2418,201 @@ LogicVRegister Simulator::ext(VectorFormat vform,
   return dst;
 }
 
+template <typename T>
+LogicVRegister Simulator::fcadd(VectorFormat vform,
+                                LogicVRegister dst,          // d
+                                const LogicVRegister& src1,  // n
+                                const LogicVRegister& src2,  // m
+                                int rot) {
+  int elements = LaneCountFromFormat(vform);
+
+  T element1, element3;
+  rot = (rot == 1) ? 270 : 90;
+
+  // Loop example:
+  // 2S --> (2/2 = 1 - 1 = 0) --> 1 x Complex Number (2x components: r+i)
+  // 4S --> (4/2 = 2) - 1 = 1) --> 2 x Complex Number (2x2 components: r+i)
+
+  for (int e = 0; e <= (elements / 2) - 1; e++) {
+    switch (rot) {
+      case 90:
+        element1 = FPNeg(src2.Float<T>(e * 2 + 1));
+        element3 = src2.Float<T>(e * 2);
+        break;
+      case 270:
+        element1 = src2.Float<T>(e * 2 + 1);
+        element3 = FPNeg(src2.Float<T>(e * 2));
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return dst;  // prevents "element(n) may be unintialized" errors
+    }
+    dst.ClearForWrite(vform);
+    dst.SetFloat<T>(e * 2, FPAdd(src1.Float<T>(e * 2), element1));
+    dst.SetFloat<T>(e * 2 + 1, FPAdd(src1.Float<T>(e * 2 + 1), element3));
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::fcadd(VectorFormat vform,
+                                LogicVRegister dst,          // d
+                                const LogicVRegister& src1,  // n
+                                const LogicVRegister& src2,  // m
+                                int rot) {
+  if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
+    VIXL_UNIMPLEMENTED();
+  } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
+    fcadd<float>(vform, dst, src1, src2, rot);
+  } else {
+    VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
+    fcadd<double>(vform, dst, src1, src2, rot);
+  }
+  return dst;
+}
+
+
+template <typename T>
+LogicVRegister Simulator::fcmla(VectorFormat vform,
+                                LogicVRegister dst,          // d
+                                const LogicVRegister& src1,  // n
+                                const LogicVRegister& src2,  // m
+                                int index,
+                                int rot) {
+  int elements = LaneCountFromFormat(vform);
+
+  T element1, element2, element3, element4;
+  rot *= 90;
+
+  // Loop example:
+  // 2S --> (2/2 = 1 - 1 = 0) --> 1 x Complex Number (2x components: r+i)
+  // 4S --> (4/2 = 2) - 1 = 1) --> 2 x Complex Number (2x2 components: r+i)
+
+  for (int e = 0; e <= (elements / 2) - 1; e++) {
+    switch (rot) {
+      case 0:
+        element1 = src2.Float<T>(index * 2);
+        element2 = src1.Float<T>(e * 2);
+        element3 = src2.Float<T>(index * 2 + 1);
+        element4 = src1.Float<T>(e * 2);
+        break;
+      case 90:
+        element1 = FPNeg(src2.Float<T>(index * 2 + 1));
+        element2 = src1.Float<T>(e * 2 + 1);
+        element3 = src2.Float<T>(index * 2);
+        element4 = src1.Float<T>(e * 2 + 1);
+        break;
+      case 180:
+        element1 = FPNeg(src2.Float<T>(index * 2));
+        element2 = src1.Float<T>(e * 2);
+        element3 = FPNeg(src2.Float<T>(index * 2 + 1));
+        element4 = src1.Float<T>(e * 2);
+        break;
+      case 270:
+        element1 = src2.Float<T>(index * 2 + 1);
+        element2 = src1.Float<T>(e * 2 + 1);
+        element3 = FPNeg(src2.Float<T>(index * 2));
+        element4 = src1.Float<T>(e * 2 + 1);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return dst;  // prevents "element(n) may be unintialized" errors
+    }
+    dst.ClearForWrite(vform);
+    dst.SetFloat<T>(e * 2, FPMulAdd(dst.Float<T>(e * 2), element2, element1));
+    dst.SetFloat<T>(e * 2 + 1,
+                    FPMulAdd(dst.Float<T>(e * 2 + 1), element4, element3));
+  }
+  return dst;
+}
+
+
+template <typename T>
+LogicVRegister Simulator::fcmla(VectorFormat vform,
+                                LogicVRegister dst,          // d
+                                const LogicVRegister& src1,  // n
+                                const LogicVRegister& src2,  // m
+                                int rot) {
+  int elements = LaneCountFromFormat(vform);
+
+  T element1, element2, element3, element4;
+  rot *= 90;
+
+  // Loop example:
+  // 2S --> (2/2 = 1 - 1 = 0) --> 1 x Complex Number (2x components: r+i)
+  // 4S --> (4/2 = 2) - 1 = 1) --> 2 x Complex Number (2x2 components: r+i)
+
+  for (int e = 0; e <= (elements / 2) - 1; e++) {
+    switch (rot) {
+      case 0:
+        element1 = src2.Float<T>(e * 2);
+        element2 = src1.Float<T>(e * 2);
+        element3 = src2.Float<T>(e * 2 + 1);
+        element4 = src1.Float<T>(e * 2);
+        break;
+      case 90:
+        element1 = FPNeg(src2.Float<T>(e * 2 + 1));
+        element2 = src1.Float<T>(e * 2 + 1);
+        element3 = src2.Float<T>(e * 2);
+        element4 = src1.Float<T>(e * 2 + 1);
+        break;
+      case 180:
+        element1 = FPNeg(src2.Float<T>(e * 2));
+        element2 = src1.Float<T>(e * 2);
+        element3 = FPNeg(src2.Float<T>(e * 2 + 1));
+        element4 = src1.Float<T>(e * 2);
+        break;
+      case 270:
+        element1 = src2.Float<T>(e * 2 + 1);
+        element2 = src1.Float<T>(e * 2 + 1);
+        element3 = FPNeg(src2.Float<T>(e * 2));
+        element4 = src1.Float<T>(e * 2 + 1);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return dst;  // prevents "element(n) may be unintialized" errors
+    }
+    dst.ClearForWrite(vform);
+    dst.SetFloat<T>(e * 2, FPMulAdd(dst.Float<T>(e * 2), element2, element1));
+    dst.SetFloat<T>(e * 2 + 1,
+                    FPMulAdd(dst.Float<T>(e * 2 + 1), element4, element3));
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::fcmla(VectorFormat vform,
+                                LogicVRegister dst,          // d
+                                const LogicVRegister& src1,  // n
+                                const LogicVRegister& src2,  // m
+                                int rot) {
+  if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
+    VIXL_UNIMPLEMENTED();
+  } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
+    fcmla<float>(vform, dst, src1, src2, rot);
+  } else {
+    fcmla<double>(vform, dst, src1, src2, rot);
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::fcmla(VectorFormat vform,
+                                LogicVRegister dst,          // d
+                                const LogicVRegister& src1,  // n
+                                const LogicVRegister& src2,  // m
+                                int index,
+                                int rot) {
+  if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
+    VIXL_UNIMPLEMENTED();
+  } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
+    fcmla<float>(vform, dst, src1, src2, index, rot);
+  } else {
+    fcmla<double>(vform, dst, src1, src2, index, rot);
+  }
+  return dst;
+}
+
 
 LogicVRegister Simulator::dup_element(VectorFormat vform,
                                       LogicVRegister dst,
@@ -3565,6 +3760,12 @@ LogicVRegister Simulator::uzp2(VectorFormat vform,
     dst.SetUint(vform, i, result[(2 * i) + 1]);
   }
   return dst;
+}
+
+
+template <typename T>
+T Simulator::FPNeg(T op) {
+  return -op;
 }
 
 

@@ -3507,6 +3507,29 @@ void Simulator::VisitNEON3Same(const Instruction* instr) {
 }
 
 
+void Simulator::VisitNEON3SameExtra(const Instruction* instr) {
+  NEONFormatDecoder nfd(instr);
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+  SimVRegister& rm = ReadVRegister(instr->GetRm());
+  int rot = 0;
+  VectorFormat vf = nfd.GetVectorFormat();
+  switch (instr->Mask(NEON3SameExtraMask)) {
+    case NEON_FCADD:
+      rot = instr->GetImmRotFcadd();
+      fcadd(vf, rd, rn, rm, rot);
+      break;
+    case NEON_FCMLA:
+      rot = instr->GetImmRotFcmlaVec();
+      fcmla(vf, rd, rn, rm, rot);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+
 void Simulator::VisitNEON3Different(const Instruction* instr) {
   NEONFormatDecoder nfd(instr);
   VectorFormat vf = nfd.GetVectorFormat();
@@ -3860,7 +3883,23 @@ void Simulator::VisitNEONByIndexedElement(const Instruction* instr) {
           Op = &Simulator::fmulx;
           break;
         default:
-          VIXL_UNIMPLEMENTED();
+          if (instr->GetNEONSize() == 2)
+            index = instr->GetNEONH();
+          else
+            index = (instr->GetNEONH() << 1) | instr->GetNEONL();
+          switch (instr->Mask(NEONByIndexedElementFPComplexMask)) {
+            case NEON_FCMLA_byelement:
+              vf = vf_r;
+              fcmla(vf,
+                    rd,
+                    rn,
+                    ReadVRegister(instr->GetRm()),
+                    index,
+                    instr->GetImmRotFcmlaSca());
+              return;
+            default:
+              VIXL_UNIMPLEMENTED();
+          }
       }
   }
 

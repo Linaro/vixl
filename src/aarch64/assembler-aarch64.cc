@@ -2714,7 +2714,6 @@ void Assembler::frecpx(const VRegister& vd, const VRegister& vn) {
 NEON_3SAME_LIST(DEFINE_ASM_FUNC)
 #undef DEFINE_ASM_FUNC
 
-
 // clang-format off
 #define NEON_FP3SAME_OP_LIST(V)                  \
   V(fadd,    NEON_FADD,    FADD)                 \
@@ -2795,6 +2794,44 @@ void Assembler::fmaxnmp(const VRegister& vd, const VRegister& vn) {
 void Assembler::fminnmp(const VRegister& vd, const VRegister& vn) {
   VIXL_ASSERT((vd.Is1S() && vn.Is2S()) || (vd.Is1D() && vn.Is2D()));
   Emit(FPFormat(vd) | NEON_FMINNMP_scalar | Rn(vn) | Rd(vd));
+}
+
+
+// v8.3 complex numbers - floating-point complex multiply accumulate.
+void Assembler::fcmla(const VRegister& vd,
+                      const VRegister& vn,
+                      const VRegister& vm,
+                      int vm_index,
+                      int rot) {
+  VIXL_ASSERT(vd.IsVector() && AreSameFormat(vd, vn));
+  VIXL_ASSERT((vm.IsH() && (vd.Is8H() || vd.Is4H())) ||
+              (vm.IsS() && vd.Is4S()));
+  int index_num_bits = vd.Is4S() ? 1 : 2;
+  Emit(VFormat(vd) | Rm(vm) | NEON_FCMLA_byelement |
+       ImmNEONHLM(vm_index, index_num_bits) | ImmRotFcmlaSca(rot) | Rn(vn) |
+       Rd(vd));
+}
+
+
+void Assembler::fcmla(const VRegister& vd,
+                      const VRegister& vn,
+                      const VRegister& vm,
+                      int rot) {
+  VIXL_ASSERT(AreSameFormat(vd, vn, vm));
+  VIXL_ASSERT(vd.IsVector() && !vd.IsLaneSizeB());
+  Emit(VFormat(vd) | Rm(vm) | NEON_FCMLA | ImmRotFcmlaVec(rot) | Rn(vn) |
+       Rd(vd));
+}
+
+
+// v8.3 complex numbers - floating-point complex add.
+void Assembler::fcadd(const VRegister& vd,
+                      const VRegister& vn,
+                      const VRegister& vm,
+                      int rot) {
+  VIXL_ASSERT(AreSameFormat(vd, vn, vm));
+  VIXL_ASSERT(vd.IsVector() && !vd.IsLaneSizeB());
+  Emit(VFormat(vd) | Rm(vm) | NEON_FCADD | ImmRotFcadd(rot) | Rn(vn) | Rd(vd));
 }
 
 

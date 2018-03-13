@@ -2536,6 +2536,31 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ext(vd, vn, vm, index);
   }
+  void Fcadd(const VRegister& vd,
+             const VRegister& vn,
+             const VRegister& vm,
+             int rot) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    fcadd(vd, vn, vm, rot);
+  }
+  void Fcmla(const VRegister& vd,
+             const VRegister& vn,
+             const VRegister& vm,
+             int vm_index,
+             int rot) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    fcmla(vd, vn, vm, vm_index, rot);
+  }
+  void Fcmla(const VRegister& vd,
+             const VRegister& vn,
+             const VRegister& vm,
+             int rot) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    fcmla(vd, vn, vm, rot);
+  }
   void Ins(const VRegister& vd,
            int vd_index,
            const VRegister& vn,

@@ -86,6 +86,7 @@
   V(NEON2RegMisc)                       \
   V(NEON3Different)                     \
   V(NEON3Same)                          \
+  V(NEON3SameExtra)                     \
   V(NEONAcrossLanes)                    \
   V(NEONByIndexedElement)               \
   V(NEONCopy)                           \

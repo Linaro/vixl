@@ -2329,6 +2329,28 @@ void Disassembler::VisitNEON3Same(const Instruction *instr) {
   Format(instr, mnemonic, nfd.Substitute(form));
 }
 
+void Disassembler::VisitNEON3SameExtra(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCN";
+
+  NEONFormatDecoder nfd(instr);
+
+  switch (instr->Mask(NEON3SameExtraMask)) {
+    case NEON_FCMLA:
+      mnemonic = "fcmla";
+      form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCNM";
+      break;
+    case NEON_FCADD:
+      mnemonic = "fcadd";
+      form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCNA";
+      break;
+    default:
+      form = "(NEON3SameExtra)";
+  }
+
+  Format(instr, mnemonic, nfd.Substitute(form));
+}
+
 
 void Disassembler::VisitNEON3Different(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
@@ -2506,10 +2528,15 @@ void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   bool l_instr = false;
   bool fp_instr = false;
+  bool cn_instr = false;
 
   const char *form = "'Vd.%s, 'Vn.%s, 'Ve.%s['IVByElemIndex]";
 
   static const NEONFormatMap map_ta = {{23, 22}, {NF_UNDEF, NF_4S, NF_2D}};
+  static const NEONFormatMap map_cn =
+      {{23, 22, 30},
+       {NF_UNDEF, NF_UNDEF, NF_4H, NF_8H, NF_UNDEF, NF_4S, NF_UNDEF, NF_UNDEF}};
+
   NEONFormatDecoder nfd(instr,
                         &map_ta,
                         NEONFormatDecoder::IntegerFormatMap(),
@@ -2585,13 +2612,24 @@ void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
           mnemonic = "fmulx";
           fp_instr = true;
           break;
+        default:
+          switch (instr->Mask(NEONByIndexedElementFPComplexMask)) {
+            case NEON_FCMLA_byelement:
+              mnemonic = "fcmla";
+              cn_instr = true;
+              form = "'Vd.%s, 'Vn.%s, 'Ve.%s['IVByElemIndexRot], 'ILFCNR";
+              break;
+          }
       }
   }
-
   if (l_instr) {
     Format(instr, nfd.Mnemonic(mnemonic), nfd.Substitute(form));
   } else if (fp_instr) {
     nfd.SetFormatMap(0, nfd.FPFormatMap());
+    Format(instr, mnemonic, nfd.Substitute(form));
+  } else if (cn_instr) {
+    nfd.SetFormatMap(0, &map_cn);
+    nfd.SetFormatMap(1, &map_cn);
     Format(instr, mnemonic, nfd.Substitute(form));
   } else {
     nfd.SetFormatMap(0, nfd.IntegerFormatMap());
@@ -4397,6 +4435,10 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           }
           return 3;
         }
+        case 'F': {  // ILF(CNR) - Immediate Rotation Value for Complex Numbers
+          AppendToOutput("#%" PRId32, instr->GetImmRotFcmlaSca() * 90);
+          return strlen("ILFCNR");
+        }
         default: {
           VIXL_UNIMPLEMENTED();
           return 0;
@@ -4482,17 +4524,39 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
     }
     case 'V': {  // Immediate Vector.
       switch (format[2]) {
+        case 'F': {
+          switch (format[5]) {
+            // Convert 'rot' bit encodings into equivalent angle rotation
+            case 'A':
+              AppendToOutput("#%" PRId32,
+                             instr->GetImmRotFcadd() == 1 ? 270 : 90);
+              break;
+            case 'M':
+              AppendToOutput("#%" PRId32, instr->GetImmRotFcmlaVec() * 90);
+              break;
+          }
+          return strlen("IVFCN") + 1;
+        }
         case 'E': {  // IVExtract.
           AppendToOutput("#%" PRId32, instr->GetImmNEONExt());
           return 9;
         }
         case 'B': {  // IVByElemIndex.
+          int ret = strlen("IVByElemIndex");
           int vm_index = (instr->GetNEONH() << 1) | instr->GetNEONL();
-          if (instr->GetNEONSize() == 1) {
+          if ((strncmp(format,
+                       "IVByElemIndexRot",
+                       strlen("IVByElemIndexRot")) == 0)) {
+            // FCMLA uses 'H' bit index when SIZE is 2, else H:L
+            if (instr->GetNEONSize() == 2) {
+              vm_index = instr->GetNEONH();
+            }
+            ret += 3;
+          } else if (instr->GetNEONSize() == 1) {
             vm_index = (vm_index << 1) | instr->GetNEONM();
           }
           AppendToOutput("%d", vm_index);
-          return strlen("IVByElemIndex");
+          return ret;
         }
         case 'I': {  // INS element.
           if (strncmp(format, "IVInsIndex", strlen("IVInsIndex")) == 0) {

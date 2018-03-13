@@ -754,6 +754,13 @@ void Decoder::DecodeNEONVectorDataProcessing(const Instruction* instr) {
               VisitUnallocated(instr);
             }
           }
+        } else if (instr->ExtractBit(10) == 0) {
+          VisitUnallocated(instr);
+        } else if (instr->ExtractBits(14, 11) <= 0xE &&
+                   instr->ExtractBits(14, 11) >= 0x8) {
+          VisitNEON3SameExtra(instr);
+        } else if (instr->ExtractBits(13, 11) < 0x4) {
+          VisitUnimplemented(instr);
         } else {
           VisitUnallocated(instr);
         }

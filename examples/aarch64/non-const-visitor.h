@@ -118,6 +118,7 @@ class SwitchAddSubRegisterSources : public DecoderVisitor {
   V(NEONScalar2RegMisc)                 \
   V(NEONScalar3Diff)                    \
   V(NEONScalar3Same)                    \
+  V(NEON3SameExtra)                     \
   V(NEONScalarByIndexedElement)         \
   V(NEONScalarCopy)                     \
   V(NEONScalarPairwise)                 \

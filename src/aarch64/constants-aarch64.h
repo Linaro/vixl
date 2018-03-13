@@ -158,6 +158,11 @@ V_(ImmNEONExt, 14, 11, ExtractBits)                                          \
 V_(ImmNEON5, 20, 16, ExtractBits)                                            \
 V_(ImmNEON4, 14, 11, ExtractBits)                                            \
                                                                              \
+/* NEON extra fields */                                                      \
+V_(ImmRotFcadd, 12, 12, ExtractBits)                                         \
+V_(ImmRotFcmlaVec, 12, 11, ExtractBits)                                      \
+V_(ImmRotFcmlaSca, 14, 13, ExtractBits)                                      \
+                                                                             \
 /* NEON Modified Immediate fields */                                         \
 V_(ImmNEONabc, 18, 16, ExtractBits)                                          \
 V_(ImmNEONdefgh, 9, 5, ExtractBits)                                          \
@@ -1540,6 +1545,20 @@ enum NEON3SameOp {
   NEON_BSL = NEON3SameLogicalFixed | 0x20400000
 };
 
+
+// 'Extra' NEON instructions with three same-type operands.
+enum NEON3SameExtraOp {
+  NEON3SameExtraFixed = 0x0E008400,
+  NEON3SameExtraUBit = 0x20000000,
+  NEON3SameExtraFMask = 0x0E008400,
+  NEON3SameExtraMask = 0x2E00E400,
+
+  /* v8.3 Complex Numbers */
+  NEON_FCMLA = NEON3SameExtraFixed | NEON3SameExtraUBit | 0x00004000,
+  NEON_FCADD = NEON3SameExtraFixed | NEON3SameExtraUBit | 0x00006000
+
+};
+
 // NEON instructions with three different-type operands.
 enum NEON3DifferentOp {
   NEON3DifferentFixed = 0x0E200000,
@@ -1649,7 +1668,11 @@ enum NEONByIndexedElementOp {
   NEON_FMLA_byelement  = NEONByIndexedElementFPFixed | 0x00001000,
   NEON_FMLS_byelement  = NEONByIndexedElementFPFixed | 0x00005000,
   NEON_FMUL_byelement  = NEONByIndexedElementFPFixed | 0x00009000,
-  NEON_FMULX_byelement = NEONByIndexedElementFPFixed | 0x20009000
+  NEON_FMULX_byelement = NEONByIndexedElementFPFixed | 0x20009000,
+  NEON_FCMLA_byelement = NEONByIndexedElementFixed | 0x20001000,
+
+  // Complex instruction(s) this is necessary because 'rot' encoding moves into the NEONByIndex..Mask space
+  NEONByIndexedElementFPComplexMask = 0xBF009400
 };
 
 // NEON register copy.

@@ -2553,6 +2553,27 @@ class Assembler : public vixl::internal::AssemblerBase {
   // FP pairwise minimum number scalar.
   void fminnmp(const VRegister& vd, const VRegister& vn);
 
+  // v8.3 complex numbers - note that these are only partial/helper functions
+  // and must be used in series in order to perform full CN operations.
+  // FP complex multiply accumulate (by element) [Armv8.3].
+  void fcmla(const VRegister& vd,
+             const VRegister& vn,
+             const VRegister& vm,
+             int vm_index,
+             int rot);
+
+  // FP complex multiply accumulate [Armv8.3].
+  void fcmla(const VRegister& vd,
+             const VRegister& vn,
+             const VRegister& vm,
+             int rot);
+
+  // FP complex add [Armv8.3].
+  void fcadd(const VRegister& vd,
+             const VRegister& vn,
+             const VRegister& vm,
+             int rot);
+
   // Emit generic instructions.
   // Emit raw instructions into the instruction stream.
   void dci(Instr raw_inst) { Emit(raw_inst); }
@@ -3009,6 +3030,21 @@ class Assembler : public vixl::internal::AssemblerBase {
       m = 0;
     }
     return (h << NEONH_offset) | (l << NEONL_offset) | (m << NEONM_offset);
+  }
+
+  static Instr ImmRotFcadd(int rot) {
+    VIXL_ASSERT(rot == 90 || rot == 270);
+    return (((rot == 270) ? 1 : 0) << ImmRotFcadd_offset);
+  }
+
+  static Instr ImmRotFcmlaSca(int rot) {
+    VIXL_ASSERT(rot == 0 || rot == 90 || rot == 180 || rot == 270);
+    return (rot / 90) << ImmRotFcmlaSca_offset;
+  }
+
+  static Instr ImmRotFcmlaVec(int rot) {
+    VIXL_ASSERT(rot == 0 || rot == 90 || rot == 180 || rot == 270);
+    return (rot / 90) << ImmRotFcmlaVec_offset;
   }
 
   static Instr ImmNEONExt(int imm4) {

@@ -1669,6 +1669,16 @@ FP pairwise add vector.
     void faddp(const VRegister& vd, const VRegister& vn, const VRegister& vm)
 
 
+### FCADD ###
+
+FP complex add [Armv8.3].
+
+    void fcadd(const VRegister& vd,
+               const VRegister& vn,
+               const VRegister& vm,
+               int rot)
+
+
 ### FCCMP ###
 
 FP conditional compare.
@@ -1729,6 +1739,27 @@ FP greater than zero.
 FP greater than.
 
     void fcmgt(const VRegister& vd, const VRegister& vn, const VRegister& vm)
+
+
+### FCMLA ###
+
+FP complex multiply accumulate (by element) [Armv8.3].
+
+    void fcmla(const VRegister& vd,
+               const VRegister& vn,
+               const VRegister& vm,
+               int vm_index,
+               int rot)
+
+
+### FCMLA ###
+
+FP complex multiply accumulate [Armv8.3].
+
+    void fcmla(const VRegister& vd,
+               const VRegister& vn,
+               const VRegister& vm,
+               int rot)
 
 
 ### FCMLE ###

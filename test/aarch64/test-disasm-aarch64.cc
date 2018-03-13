@@ -4549,6 +4549,31 @@ TEST(neon_3same) {
   CLEANUP();
 }
 
+TEST(neon_3same_extra_fcadd) {
+  SETUP();
+
+  COMPARE_MACRO(Fcadd(v4.V4H(), v5.V4H(), v6.V4H(), 270),
+                "fcadd v4.4h, v5.4h, v6.4h, #270")
+  COMPARE_MACRO(Fcadd(v4.V8H(), v5.V8H(), v6.V8H(), 90),
+                "fcadd v4.8h, v5.8h, v6.8h, #90");
+  COMPARE_MACRO(Fcadd(v1.V2S(), v2.V2S(), v3.V2S(), 90),
+                "fcadd v1.2s, v2.2s, v3.2s, #90");
+  COMPARE_MACRO(Fcadd(v1.V4S(), v2.V4S(), v3.V4S(), 270),
+                "fcadd v1.4s, v2.4s, v3.4s, #270");
+  COMPARE_MACRO(Fcadd(v29.V2D(), v30.V2D(), v31.V2D(), 90),
+                "fcadd v29.2d, v30.2d, v31.2d, #90");
+
+  COMPARE_MACRO(Fcmla(v4.V8H(), v5.V8H(), v6.V8H(), 270),
+                "fcmla v4.8h, v5.8h, v6.8h, #270");
+  COMPARE_MACRO(Fcmla(v9.V2S(), v8.V2S(), v7.V2S(), 180),
+                "fcmla v9.2s, v8.2s, v7.2s, #180");
+  COMPARE_MACRO(Fcmla(v11.V4S(), v12.V4S(), v13.V4S(), 90),
+                "fcmla v11.4s, v12.4s, v13.4s, #90");
+  COMPARE_MACRO(Fcmla(v21.V2D(), v22.V2D(), v23.V2D(), 0),
+                "fcmla v21.2d, v22.2d, v23.2d, #0");
+
+  CLEANUP();
+}
 
 #define NEON_FORMAT_LIST_FP(V) \
   V(V2S(), "2s")               \
@@ -4989,6 +5014,15 @@ TEST(neon_fp_byelement) {
                 "fmulx v0.2d, v1.2d, v2.d[0]");
   COMPARE_MACRO(Fmulx(d0, d1, v2.D(), 0), "fmulx d0, d1, v2.d[0]");
   COMPARE_MACRO(Fmulx(s0, s1, v2.S(), 0), "fmulx s0, s1, v2.s[0]");
+
+  COMPARE_MACRO(Fcmla(v0.V4S(), v1.V4S(), v2.S(), 0, 270),
+                "fcmla v0.4s, v1.4s, v2.s[0], #270");
+  COMPARE_MACRO(Fcmla(v0.V4S(), v1.V4S(), v2.S(), 1, 180),
+                "fcmla v0.4s, v1.4s, v2.s[1], #180");
+  COMPARE_MACRO(Fcmla(v0.V4H(), v1.V4H(), v2.H(), 2, 90),
+                "fcmla v0.4h, v1.4h, v2.h[2], #90");
+  COMPARE_MACRO(Fcmla(v0.V8H(), v1.V8H(), v2.H(), 3, 0),
+                "fcmla v0.8h, v1.8h, v2.h[3], #0");
 
   CLEANUP();
 }

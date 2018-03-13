@@ -675,6 +675,14 @@ void Instrument::VisitNEON3Same(const Instruction* instr) {
 }
 
 
+void Instrument::VisitNEON3SameExtra(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
 void Instrument::VisitNEON3Different(const Instruction* instr) {
   USE(instr);
   Update();

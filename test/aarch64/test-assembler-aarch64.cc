@@ -19298,6 +19298,205 @@ TEST(neon_3same_umin) {
 }
 
 
+TEST(neon_3same_extra_fcadd) {
+  SETUP();
+
+  START();
+  // (0i, 5) (d)
+  __ Movi(v0.V2D(), 0x0, 0x4014000000000000);
+  // (5i, 0) (d)
+  __ Movi(v1.V2D(), 0x4014000000000000, 0x0);
+  // (10i, 10) (d)
+  __ Movi(v2.V2D(), 0x4024000000000000, 0x4024000000000000);
+  // (5i, 5), (5i, 5) (f)
+  __ Movi(v3.V2D(), 0x40A0000040A00000, 0x40A0000040A00000);
+  // (5i, 5), (0i, 0) (f)
+  __ Movi(v4.V2D(), 0x40A0000040A00000, 0x0);
+  // 324567i, 16000 (f)
+  __ Movi(v5.V2D(), 0x0, 0x489E7AE0467A0000);
+
+  // Subtraction (10, 10) - (5, 5) == (5, 5)
+  __ Fcadd(v31.V2D(), v2.V2D(), v1.V2D(), 90);
+  __ Fcadd(v31.V2D(), v31.V2D(), v0.V2D(), 270);
+
+  // Addition (10, 10) + (5, 5) == (15, 15)
+  __ Fcadd(v30.V2D(), v2.V2D(), v1.V2D(), 270);
+  __ Fcadd(v30.V2D(), v30.V2D(), v0.V2D(), 90);
+
+  // 2S
+  __ Fcadd(v29.V2S(), v4.V2S(), v5.V2S(), 90);
+  __ Fcadd(v28.V2S(), v4.V2S(), v5.V2S(), 270);
+
+  // 4S
+  __ Fcadd(v27.V4S(), v3.V4S(), v4.V4S(), 90);
+  __ Fcadd(v26.V4S(), v3.V4S(), v4.V4S(), 270);
+
+  END();
+
+  #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64 // TODO: test on real hardware when available
+  RUN();
+  ASSERT_EQUAL_128(0x4014000000000000, 0x4014000000000000, q31);
+  ASSERT_EQUAL_128(0x402E000000000000, 0x402E000000000000, q30);
+  ASSERT_EQUAL_128(0x0, 0x467a0000c89e7ae0, q29);  // (16000i, -324567)
+  ASSERT_EQUAL_128(0x0, 0xc67a0000489e7ae0, q28);  // (-16000i, 324567)
+  ASSERT_EQUAL_128(0x4120000000000000, 0x40A0000040A00000, q27);
+  ASSERT_EQUAL_128(0x0000000041200000, 0x40A0000040A00000, q26);
+  #endif
+  TEARDOWN();
+}
+
+
+TEST(neon_3same_extra_fcmla) {
+  SETUP();
+
+  START();
+
+  __ Movi(v1.V2D(), 0x0, 0x40A0000040400000);  // (5i, 3) (f)
+  __ Movi(v2.V2D(), 0x0, 0x4040000040A00000);  // (3i, 5) (f)
+
+  __ Movi(v3.V2D(), 0x0, 0x4000000040400000);  // (2i, 3) (f)
+  __ Movi(v4.V2D(), 0x0, 0x40E000003F800000);  // (7i, 1) (f)
+
+  __ Movi(v5.V2D(), 0x0, 0x4000000040400000);  // (2i, 3) (f)
+  __ Movi(v6.V2D(), 0x0, 0x408000003F800000);  // (4i, 1) (f)
+
+  // (1.5i, 2.5), (31.5i, 1024) (f)
+  __ Movi(v7.V2D(), 0x3FC0000040200000, 0x41FC000044800000);
+  // (2048i, 412.75), (3645i, 0) (f)
+  __ Movi(v8.V2D(), 0x4500000043CE6000, 0x4563D00000000000);
+  // (2000i, 450,000) (d)
+  __ Movi(v9.V2D(), 0x409F400000000000, 0x411B774000000000);
+  // (30,000i, 1250) (d)
+  __ Movi(v10.V2D(), 0x40DD4C0000000000, 0x4093880000000000);
+
+  // DST
+  __ Movi(v24.V2D(), 0x0, 0x0);
+  __ Movi(v25.V2D(), 0x0, 0x0);
+  __ Movi(v26.V2D(), 0x0, 0x0);
+  __ Movi(v27.V2D(), 0x0, 0x0);
+  __ Movi(v28.V2D(), 0x0, 0x0);
+  __ Movi(v29.V2D(), 0x0, 0x0);
+  __ Movi(v30.V2D(), 0x0, 0x0);
+  __ Movi(v31.V2D(), 0x0, 0x0);
+
+  // Full calculations
+  __ Fcmla(v31.V2S(), v1.V2S(), v2.V2S(), 90);
+  __ Fcmla(v31.V2S(), v1.V2S(), v2.V2S(), 0);
+
+  __ Fcmla(v30.V2S(), v3.V2S(), v4.V2S(), 0);
+  __ Fcmla(v30.V2S(), v3.V2S(), v4.V2S(), 90);
+
+  __ Fcmla(v29.V2S(), v5.V2S(), v6.V2S(), 90);
+  __ Fcmla(v29.V2S(), v5.V2S(), v6.V2S(), 0);
+
+  __ Fcmla(v28.V2D(), v9.V2D(), v10.V2D(), 0);
+  __ Fcmla(v28.V2D(), v9.V2D(), v10.V2D(), 90);
+
+  // Partial checks
+  __ Fcmla(v27.V2S(), v1.V2S(), v2.V2S(), 0);
+  __ Fcmla(v26.V2S(), v2.V2S(), v1.V2S(), 0);
+
+  __ Fcmla(v25.V4S(), v7.V4S(), v8.V4S(), 270);
+  __ Fcmla(v24.V4S(), v7.V4S(), v8.V4S(), 180);
+
+  END();
+
+  #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x0, 0x4208000000000000, q31);  // (34i, 0)
+  ASSERT_EQUAL_128(0x0, 0x41B80000C1300000, q30);  // (23i, -11)
+  ASSERT_EQUAL_128(0x0, 0x41600000C0A00000, q29);  // (14i, -5)
+
+  // (13502500000i, 502500000)
+  ASSERT_EQUAL_128(0x4209267E65000000, 0x41BDF38AA0000000, q28);
+  ASSERT_EQUAL_128(0x0, 0x4110000041700000, q27);  //  (9i, 15)
+  ASSERT_EQUAL_128(0x0, 0x41C8000041700000, q26);  // (25i, 15)
+  // (512i, 1.031875E3), (373248i, 0)
+  ASSERT_EQUAL_128(0xc41ac80045400000, 0x0000000047e040c0, q25);
+  // (619.125i, -3072), (0i, -114817.5)
+  ASSERT_EQUAL_128(0xc5a00000c480fc00, 0xca63d00000000000, q24);
+  #endif
+  TEARDOWN();
+}
+
+
+TEST(neon_byelement_fcmla) {
+  SETUP();
+
+  START();
+
+  // (5i, 3), (5i, 3) (f)
+  __ Movi(v1.V2D(), 0x40A0000040400000, 0x40A0000040400000);
+  // (3i, 5), (3i, 5) (f)
+  __ Movi(v2.V2D(), 0x4040000040A00000, 0x4040000040A00000);
+  // (7i, 1), (5i, 3) (f)
+  __ Movi(v3.V2D(), 0x40E000003F800000, 0x40A0000040400000);
+  // (4i, 1), (3i, 5) (f)
+  __ Movi(v4.V2D(), 0x408000003F800000, 0x4040000040A00000);
+  // (4i, 1), (7i, 1) (f)
+  __ Movi(v5.V2D(), 0x408000003F800000, 0x40E000003F800000);
+  // (2i, 3), (0, 0) (f)
+  __ Movi(v6.V2D(), 0x4000000040400000, 0x0);
+
+  // DST
+  __ Movi(v22.V2D(), 0x0, 0x0);
+  __ Movi(v23.V2D(), 0x0, 0x0);
+  __ Movi(v24.V2D(), 0x0, 0x0);
+  __ Movi(v25.V2D(), 0x0, 0x0);
+  __ Movi(v26.V2D(), 0x0, 0x0);
+  __ Movi(v27.V2D(), 0x0, 0x0);
+  __ Movi(v28.V2D(), 0x0, 0x0);
+  __ Movi(v29.V2D(), 0x0, 0x0);
+  __ Movi(v30.V2D(), 0x0, 0x0);
+  __ Movi(v31.V2D(), 0x0, 0x0);
+
+  // Full calculation (pairs)
+  __ Fcmla(v31.V4S(), v1.V4S(), v2.S(), 0, 90);
+  __ Fcmla(v31.V4S(), v1.V4S(), v2.S(), 0, 0);
+  __ Fcmla(v30.V4S(), v5.V4S(), v6.S(), 1, 90);
+  __ Fcmla(v30.V4S(), v5.V4S(), v6.S(), 1, 0);
+
+  // Rotations
+  __ Fcmla(v29.V4S(), v3.V4S(), v4.S(), 1, 0);
+  __ Fcmla(v28.V4S(), v3.V4S(), v4.S(), 1, 90);
+  __ Fcmla(v27.V4S(), v3.V4S(), v4.S(), 1, 180);
+  __ Fcmla(v26.V4S(), v3.V4S(), v4.S(), 1, 270);
+  __ Fcmla(v25.V4S(), v3.V4S(), v4.S(), 0, 270);
+  __ Fcmla(v24.V4S(), v3.V4S(), v4.S(), 0, 180);
+  __ Fcmla(v23.V4S(), v3.V4S(), v4.S(), 0, 90);
+  __ Fcmla(v22.V4S(), v3.V4S(), v4.S(), 0, 0);
+
+  END();
+
+  #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  // (34i, 0), (34i, 0)
+  ASSERT_EQUAL_128(0x4208000000000000, 0x4208000000000000, q31);
+  // (14i, -5), (23i, -11)
+  ASSERT_EQUAL_128(0x41600000C0A00000, 0x41B80000C1300000, q30);
+  // (4i, 1), (12i, 3)
+  ASSERT_EQUAL_128(0x408000003f800000, 0x4140000040400000, q29);
+  // (7i, -28), (5i, -20)
+  ASSERT_EQUAL_128(0x40e00000c1e00000, 0x40a00000c1a00000, q28);
+  // (-4i, -1), (-12i, -3)
+  ASSERT_EQUAL_128(0xc0800000bf800000, 0xc1400000c0400000, q27);
+  // (-7i, 28), (-5i, 20)
+  ASSERT_EQUAL_128(0xc0e0000041e00000, 0xc0a0000041a00000, q26);
+  // (-35i, 21), (-25i, 15)
+  ASSERT_EQUAL_128(0xc20c000041a80000, 0xc1c8000041700000, q25);
+  // (-3i, -5), (-9i, -15)
+  ASSERT_EQUAL_128(0xc0400000c0a00000, 0xc1100000c1700000, q24);
+  // (35i, -21), (25i, -15)
+  ASSERT_EQUAL_128(0x420c0000c1a80000, 0x41c80000c1700000, q23);
+  // (3i, 5), (9i, 15)
+  ASSERT_EQUAL_128(0x4040000040a00000, 0x4110000041700000, q22);
+  #endif
+
+  TEARDOWN();
+}
+
+
 TEST(neon_2regmisc_mvn) {
   SETUP();
 
@@ -19348,6 +19547,7 @@ TEST(neon_2regmisc_not) {
   ASSERT_EQUAL_128(0x0, 0xff0000ffff0000ff, q17);
   TEARDOWN();
 }
+
 
 TEST(neon_2regmisc_cls_clz_cnt) {
   SETUP();

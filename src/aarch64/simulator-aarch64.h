@@ -2263,6 +2263,41 @@ class Simulator : public DecoderVisitor {
                      const LogicVRegister& src1,
                      const LogicVRegister& src2,
                      int index);
+  template <typename T>
+  LogicVRegister fcadd(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2,
+                       int rot);
+  LogicVRegister fcadd(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2,
+                       int rot);
+  template <typename T>
+  LogicVRegister fcmla(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2,
+                       int index,
+                       int rot);
+  LogicVRegister fcmla(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2,
+                       int index,
+                       int rot);
+  template <typename T>
+  LogicVRegister fcmla(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2,
+                       int rot);
+  LogicVRegister fcmla(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2,
+                       int rot);
   LogicVRegister ins_element(VectorFormat vform,
                              LogicVRegister dst,
                              int dst_index,
@@ -3007,6 +3042,9 @@ class Simulator : public DecoderVisitor {
 
   template <typename T>
   T FPAdd(T op1, T op2);
+
+  template <typename T>
+  T FPNeg(T op);
 
   template <typename T>
   T FPDiv(T op1, T op2);
