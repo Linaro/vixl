@@ -204,8 +204,9 @@ class Disassembler {
                Location::Offset position)
         : location_type_(location_type),
           immediate_(offset->GetImmediate()),
-          location_(offset->GetPCOffset() + offset->GetImmediate() + position) {
-    }
+          location_(static_cast<Location::Offset>(
+              static_cast<int64_t>(offset->GetPCOffset()) +
+              offset->GetImmediate() + position)) {}
 
     LocationType GetLocationType() const { return location_type_; }
     Location::Offset GetLocation() const { return location_; }

@@ -8377,7 +8377,7 @@ void Disassembler::DecodeT32(uint32_t instr) {
                 return;
               }
               Condition condition((instr >> 24) & 0xf);
-              int32_t imm = SignExtend<int32_t>((instr >> 16) & 0xff, 8) << 1;
+              int32_t imm = SignExtend<int32_t>(((instr >> 16) & 0xff) << 1, 9);
               Location location(imm, kT32PcDelta);
               // B<c>{<q>} <label> ; T1
               b(condition, Narrow, &location);
@@ -8400,7 +8400,8 @@ void Disassembler::DecodeT32(uint32_t instr) {
           switch (instr & 0x10000000) {
             case 0x00000000: {
               // 0xe0000000
-              int32_t imm = SignExtend<int32_t>((instr >> 16) & 0x7ff, 11) << 1;
+              int32_t imm =
+                  SignExtend<int32_t>(((instr >> 16) & 0x7ff) << 1, 12);
               Location location(imm, kT32PcDelta);
               // B{<c>}{<q>} <label> ; T2
               b(CurrentCond(), Narrow, &location);
@@ -9812,13 +9813,13 @@ void Disassembler::DecodeT32(uint32_t instr) {
                           }
                           Condition condition((instr >> 22) & 0xf);
                           int32_t imm =
-                              SignExtend<int32_t>((instr & 0x7ff) |
-                                                      ((instr >> 5) & 0x1f800) |
-                                                      ((instr << 4) & 0x20000) |
-                                                      ((instr << 7) & 0x40000) |
-                                                      ((instr >> 7) & 0x80000),
-                                                  20)
-                              << 1;
+                              SignExtend<int32_t>(((instr & 0x7ff) |
+                                                   ((instr >> 5) & 0x1f800) |
+                                                   ((instr << 4) & 0x20000) |
+                                                   ((instr << 7) & 0x40000) |
+                                                   ((instr >> 7) & 0x80000))
+                                                      << 1,
+                                                  21);
                           Location location(imm, kT32PcDelta);
                           if ((imm >= -1048576) && (imm <= 1048574) &&
                               ((imm & 1) == 0) &&
@@ -55208,10 +55209,10 @@ void Disassembler::DecodeA32(uint32_t instr) {
       }
       case 0x0a000000: {
         // 0xfa000000
-        int32_t imm = SignExtend<int32_t>(((instr >> 24) & 0x1) |
-                                              ((instr << 1) & 0x1fffffe),
-                                          25)
-                      << 1;
+        int32_t imm = SignExtend<int32_t>((((instr >> 24) & 0x1) |
+                                           ((instr << 1) & 0x1fffffe))
+                                              << 1,
+                                          26);
         Location location(imm, kA32PcDelta);
         // BLX{<c>}{<q>} <label> ; A2
         blx(al, &location);
@@ -64718,7 +64719,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
               return;
             }
             Condition condition((instr >> 28) & 0xf);
-            int32_t imm = SignExtend<int32_t>(instr & 0xffffff, 24) << 2;
+            int32_t imm = SignExtend<int32_t>((instr & 0xffffff) << 2, 26);
             Location location(imm, kA32PcDelta);
             // B{<c>}{<q>} <label> ; A1
             b(condition, Best, &location);
@@ -64731,7 +64732,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
               return;
             }
             Condition condition((instr >> 28) & 0xf);
-            int32_t imm = SignExtend<int32_t>(instr & 0xffffff, 24) << 2;
+            int32_t imm = SignExtend<int32_t>((instr & 0xffffff) << 2, 26);
             Location location(imm, kA32PcDelta);
             // BL{<c>}{<q>} <label> ; A1
             bl(condition, &location);

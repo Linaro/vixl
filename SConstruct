@@ -110,6 +110,10 @@ options = {
       },
     'code_buffer_allocator:malloc' : {
       'CCFLAGS' : ['-DVIXL_CODE_BUFFER_MALLOC']
+      },
+    'ubsan:on' : {
+      'CCFLAGS': ['-fsanitize=undefined'],
+      'LINKFLAGS': ['-fsanitize=undefined']
       }
     }
 
@@ -235,6 +239,8 @@ vars.AddVariables(
                          'aarch64' : ['a64'], 'a64' : ['a64']}),
     EnumVariable('mode', 'Build mode',
                  'release', allowed_values=config.build_options_modes),
+    EnumVariable('ubsan', 'Enable undefined behavior checks',
+                 'off', allowed_values=['on', 'off']),
     EnumVariable('negative_testing',
                   'Enable negative testing (needs exceptions)',
                  'off', allowed_values=['on', 'off']),
@@ -363,6 +369,9 @@ def ConfigureEnvironmentForCompiler(env):
     # The '-Wunreachable-code' flag breaks builds for clang 3.4.
     if compiler != 'clang-3.4':
       env.Append(CPPFLAGS = ['-Wunreachable-code'])
+
+    if env['ubsan'] == 'on':
+      env.Append(LINKFLAGS = ['-fuse-ld=lld'])
 
   # GCC 4.8 has a bug which produces a warning saying that an anonymous Operand
   # object might be used uninitialized:

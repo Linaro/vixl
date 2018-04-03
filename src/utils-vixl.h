@@ -400,8 +400,8 @@ inline T SignExtend(T val, int bitSize) {
   VIXL_ASSERT(bitSize > 0);
   T mask = (T(2) << (bitSize - 1)) - T(1);
   val &= mask;
-  T sign = -(val >> (bitSize - 1));
-  val |= (sign << bitSize);
+  T sign_bits = -((val >> (bitSize - 1)) << bitSize);
+  val |= sign_bits;
   return val;
 }
 
