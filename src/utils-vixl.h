@@ -692,6 +692,8 @@ class BitField {
   std::vector<bool> bitfield_;
 };
 
+namespace internal {
+
 typedef int64_t Int64;
 class Uint64;
 class Uint128;
@@ -883,6 +885,8 @@ Uint32::Uint32(Uint64 data) : data_(data.ToUint32().Get()) {}
 Uint64::Uint64(Uint128 data) : data_(data.ToUint64().Get()) {}
 
 Int64 BitCount(Uint32 value);
+
+}  // namespace internal
 
 }  // namespace vixl
 

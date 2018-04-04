@@ -143,8 +143,10 @@ unsigned CountClearHalfWords(uint64_t imm, unsigned reg_size) {
 
 int BitCount(uint64_t value) { return CountSetBits(value); }
 
+namespace internal {
 
 Int64 BitCount(Uint32 value) { return CountSetBits(value.Get()); }
 
+}  // namespace internal
 
 }  // namespace vixl

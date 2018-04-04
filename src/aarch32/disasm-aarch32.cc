@@ -44,6 +44,9 @@ extern "C" {
 namespace vixl {
 namespace aarch32 {
 
+using internal::Int64;
+using internal::Uint32;
+
 class T32CodeAddressIncrementer {
   uint32_t* code_address_;
   uint32_t increment_;
