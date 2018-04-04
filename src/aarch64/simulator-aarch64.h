@@ -2173,6 +2173,16 @@ class Simulator : public DecoderVisitor {
                           const LogicVRegister& src1,
                           const LogicVRegister& src2,
                           int index);
+  LogicVRegister sqrdmlah(VectorFormat vform,
+                          LogicVRegister dst,
+                          const LogicVRegister& src1,
+                          const LogicVRegister& src2,
+                          int index);
+  LogicVRegister sqrdmlsh(VectorFormat vform,
+                          LogicVRegister dst,
+                          const LogicVRegister& src1,
+                          const LogicVRegister& src2,
+                          int index);
   LogicVRegister sub(VectorFormat vform,
                      LogicVRegister dst,
                      const LogicVRegister& src1,
@@ -2751,6 +2761,22 @@ class Simulator : public DecoderVisitor {
                            const LogicVRegister& src,
                            int shift);
   LogicVRegister sqrdmulh(VectorFormat vform,
+                          LogicVRegister dst,
+                          const LogicVRegister& src1,
+                          const LogicVRegister& src2,
+                          bool round = true);
+  LogicVRegister sqrdmlash(VectorFormat vform,
+                           LogicVRegister dst,
+                           const LogicVRegister& src1,
+                           const LogicVRegister& src2,
+                           bool round = true,
+                           bool sub_op = false);
+  LogicVRegister sqrdmlah(VectorFormat vform,
+                          LogicVRegister dst,
+                          const LogicVRegister& src1,
+                          const LogicVRegister& src2,
+                          bool round = true);
+  LogicVRegister sqrdmlsh(VectorFormat vform,
                           LogicVRegister dst,
                           const LogicVRegister& src1,
                           const LogicVRegister& src2,

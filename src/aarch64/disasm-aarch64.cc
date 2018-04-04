@@ -2335,17 +2335,32 @@ void Disassembler::VisitNEON3SameExtra(const Instruction *instr) {
 
   NEONFormatDecoder nfd(instr);
 
-  switch (instr->Mask(NEON3SameExtraMask)) {
-    case NEON_FCMLA:
-      mnemonic = "fcmla";
-      form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCNM";
-      break;
-    case NEON_FCADD:
-      mnemonic = "fcadd";
-      form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCNA";
-      break;
-    default:
-      form = "(NEON3SameExtra)";
+  if (instr->Mask(NEON3SameExtraFCFMask) == NEON3SameExtraFCFixed) {
+    switch (instr->Mask(NEON3SameExtraFCMask)) {
+      case NEON_FCMLA:
+        mnemonic = "fcmla";
+        form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCNM";
+        break;
+      case NEON_FCADD:
+        mnemonic = "fcadd";
+        form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCNA";
+        break;
+      default:
+        form = "(NEON3SameExtra)";
+    }
+  } else {
+    switch (instr->Mask(NEON3SameExtraMask)) {
+      case NEON_SQRDMLAH:
+        mnemonic = "sqrdmlah";
+        form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
+        break;
+      case NEON_SQRDMLSH:
+        mnemonic = "sqrdmlsh";
+        form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
+        break;
+      default:
+        form = "(NEON3SameExtra)";
+    }
   }
 
   Format(instr, mnemonic, nfd.Substitute(form));
@@ -2594,6 +2609,12 @@ void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
     case NEON_SQRDMULH_byelement:
       mnemonic = "sqrdmulh";
       break;
+    case NEON_SQRDMLAH_byelement:
+      mnemonic = "sqrdmlah";
+      break;
+    case NEON_SQRDMLSH_byelement:
+      mnemonic = "sqrdmlsh";
+      break;
     default:
       switch (instr->Mask(NEONByIndexedElementFPMask)) {
         case NEON_FMUL_byelement:
@@ -2622,6 +2643,7 @@ void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
           }
       }
   }
+
   if (l_instr) {
     Format(instr, nfd.Mnemonic(mnemonic), nfd.Substitute(form));
   } else if (fp_instr) {
@@ -3576,6 +3598,25 @@ void Disassembler::VisitNEONScalar3Same(const Instruction *instr) {
 }
 
 
+void Disassembler::VisitNEONScalar3SameExtra(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "%sd, %sn, %sm";
+  NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
+
+  switch (instr->Mask(NEONScalar3SameExtraMask)) {
+    case NEON_SQRDMLAH_scalar:
+      mnemonic = "sqrdmlah";
+      break;
+    case NEON_SQRDMLSH_scalar:
+      mnemonic = "sqrdmlsh";
+      break;
+    default:
+      form = "(NEONScalar3SameExtra)";
+  }
+  Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
+}
+
+
 void Disassembler::VisitNEONScalarByIndexedElement(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "%sd, %sn, 'Ve.%s['IVByElemIndex]";
@@ -3600,6 +3641,12 @@ void Disassembler::VisitNEONScalarByIndexedElement(const Instruction *instr) {
       break;
     case NEON_SQRDMULH_byelement_scalar:
       mnemonic = "sqrdmulh";
+      break;
+    case NEON_SQRDMLAH_byelement_scalar:
+      mnemonic = "sqrdmlah";
+      break;
+    case NEON_SQRDMLSH_byelement_scalar:
+      mnemonic = "sqrdmlsh";
       break;
     default:
       nfd.SetFormatMap(0, nfd.FPScalarFormatMap());

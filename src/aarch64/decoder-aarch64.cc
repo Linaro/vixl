@@ -756,8 +756,9 @@ void Decoder::DecodeNEONVectorDataProcessing(const Instruction* instr) {
           }
         } else if (instr->ExtractBit(10) == 0) {
           VisitUnallocated(instr);
-        } else if (instr->ExtractBits(14, 11) <= 0xE &&
-                   instr->ExtractBits(14, 11) >= 0x8) {
+        } else if ((instr->ExtractBits(14, 11) <= 0xE &&
+                    instr->ExtractBits(14, 11) >= 0x8) ||
+                   instr->ExtractBits(14, 12) == 0x0) {
           VisitNEON3SameExtra(instr);
         } else if (instr->ExtractBits(13, 11) < 0x4) {
           VisitUnimplemented(instr);
@@ -839,7 +840,15 @@ void Decoder::DecodeNEONScalarDataProcessing(const Instruction* instr) {
           }
         }
       } else {
-        VisitUnallocated(instr);
+        if (instr->ExtractBit(29) == 0) {
+          VisitUnallocated(instr);
+        } else {
+          if (instr->ExtractBit(10) == 0) {
+            VisitUnallocated(instr);
+          } else {
+            VisitNEONScalar3SameExtra(instr);
+          }
+        }
       }
     } else {
       if (instr->ExtractBit(10) == 0) {

@@ -789,6 +789,14 @@ void Instrument::VisitNEONScalar3Same(const Instruction* instr) {
 }
 
 
+void Instrument::VisitNEONScalar3SameExtra(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
 void Instrument::VisitNEONScalarByIndexedElement(const Instruction* instr) {
   USE(instr);
   Update();

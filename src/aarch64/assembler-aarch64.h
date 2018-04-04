@@ -2415,6 +2415,14 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Signed saturating rounding doubling multiply returning high half.
   void sqrdmulh(const VRegister& vd, const VRegister& vn, const VRegister& vm);
 
+  // Signed saturating rounding doubling multiply accumulate returning high
+  // half [Armv8.1].
+  void sqrdmlah(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // Signed saturating rounding doubling multiply subtract returning high half
+  // [Armv8.1].
+  void sqrdmlsh(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
   // Signed saturating doubling multiply element returning high half.
   void sqdmulh(const VRegister& vd,
                const VRegister& vn,
@@ -2423,6 +2431,20 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Signed saturating rounding doubling multiply element returning high half.
   void sqrdmulh(const VRegister& vd,
+                const VRegister& vn,
+                const VRegister& vm,
+                int vm_index);
+
+  // Signed saturating rounding doubling multiply accumulate element returning
+  // high half [Armv8.1].
+  void sqrdmlah(const VRegister& vd,
+                const VRegister& vn,
+                const VRegister& vm,
+                int vm_index);
+
+  // Signed saturating rounding doubling multiply subtract element returning
+  // high half [Armv8.1].
+  void sqrdmlsh(const VRegister& vd,
                 const VRegister& vn,
                 const VRegister& vm,
                 int vm_index);

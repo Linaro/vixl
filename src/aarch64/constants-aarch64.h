@@ -1550,13 +1550,17 @@ enum NEON3SameOp {
 enum NEON3SameExtraOp {
   NEON3SameExtraFixed = 0x0E008400,
   NEON3SameExtraUBit = 0x20000000,
-  NEON3SameExtraFMask = 0x0E008400,
-  NEON3SameExtraMask = 0x2E00E400,
+  NEON3SameExtraFMask = 0x9E208400,
+  NEON3SameExtraMask = 0xBE20FC00,
+  NEON_SQRDMLAH = NEON3SameExtraFixed | NEON3SameExtraUBit,
+  NEON_SQRDMLSH = NEON3SameExtraFixed | NEON3SameExtraUBit | 0x00000800,
 
   /* v8.3 Complex Numbers */
-  NEON_FCMLA = NEON3SameExtraFixed | NEON3SameExtraUBit | 0x00004000,
-  NEON_FCADD = NEON3SameExtraFixed | NEON3SameExtraUBit | 0x00006000
-
+  NEON3SameExtraFCFixed = 0x2E00C400,
+  NEON3SameExtraFCFMask = 0xBE20C400,
+  NEON3SameExtraFCMask = 0xBE20E400,
+  NEON_FCMLA = NEON3SameExtraFCFixed,
+  NEON_FCADD = NEON3SameExtraFCFixed | 0x00002000
 };
 
 // NEON instructions with three different-type operands.
@@ -1670,6 +1674,8 @@ enum NEONByIndexedElementOp {
   NEON_FMUL_byelement  = NEONByIndexedElementFPFixed | 0x00009000,
   NEON_FMULX_byelement = NEONByIndexedElementFPFixed | 0x20009000,
   NEON_FCMLA_byelement = NEONByIndexedElementFixed | 0x20001000,
+  NEON_SQRDMLAH_byelement = NEONByIndexedElementFixed | 0x2000D000,
+  NEON_SQRDMLSH_byelement = NEONByIndexedElementFixed | 0x2000F000,
 
   // Complex instruction(s) this is necessary because 'rot' encoding moves into the NEONByIndex..Mask space
   NEONByIndexedElementFPComplexMask = 0xBF009400
@@ -2051,6 +2057,15 @@ enum NEONScalar3SameOp {
   NEON_FABD_scalar    = NEON_Q | NEONScalar | NEON_FABD
 };
 
+// 'Extra' NEON scalar instructions with three same-type operands.
+enum NEONScalar3SameExtraOp {
+  NEONScalar3SameExtraFixed = 0x5E008400,
+  NEONScalar3SameExtraFMask = 0xDF208400,
+  NEONScalar3SameExtraMask = 0xFF20FC00,
+  NEON_SQRDMLAH_scalar = NEON_Q | NEONScalar | NEON_SQRDMLAH,
+  NEON_SQRDMLSH_scalar = NEON_Q | NEONScalar | NEON_SQRDMLSH
+};
+
 // NEON scalar instructions with three different-type operands.
 enum NEONScalar3DiffOp {
   NEONScalar3DiffFixed = 0x5E200000,
@@ -2072,6 +2087,10 @@ enum NEONScalarByIndexedElementOp {
   NEON_SQDMULH_byelement_scalar  = NEON_Q | NEONScalar | NEON_SQDMULH_byelement,
   NEON_SQRDMULH_byelement_scalar
     = NEON_Q | NEONScalar | NEON_SQRDMULH_byelement,
+  NEON_SQRDMLAH_byelement_scalar
+    = NEON_Q | NEONScalar | NEON_SQRDMLAH_byelement,
+  NEON_SQRDMLSH_byelement_scalar
+    = NEON_Q | NEONScalar | NEON_SQRDMLSH_byelement,
 
   // Floating point instructions.
   NEONScalarByIndexedElementFPFixed

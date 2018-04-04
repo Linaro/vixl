@@ -1124,6 +1124,28 @@ LogicVRegister Simulator::sqrdmulh(VectorFormat vform,
 }
 
 
+LogicVRegister Simulator::sqrdmlah(VectorFormat vform,
+                                   LogicVRegister dst,
+                                   const LogicVRegister& src1,
+                                   const LogicVRegister& src2,
+                                   int index) {
+  SimVRegister temp;
+  VectorFormat indexform = VectorFormatFillQ(vform);
+  return sqrdmlah(vform, dst, src1, dup_element(indexform, temp, src2, index));
+}
+
+
+LogicVRegister Simulator::sqrdmlsh(VectorFormat vform,
+                                   LogicVRegister dst,
+                                   const LogicVRegister& src1,
+                                   const LogicVRegister& src2,
+                                   int index) {
+  SimVRegister temp;
+  VectorFormat indexform = VectorFormatFillQ(vform);
+  return sqrdmlsh(vform, dst, src1, dup_element(indexform, temp, src2, index));
+}
+
+
 uint16_t Simulator::PolynomialMult(uint8_t op1, uint8_t op2) const {
   uint16_t result = 0;
   uint16_t extended_op2 = op2;
@@ -3546,6 +3568,62 @@ LogicVRegister Simulator::sqrdmulh(VectorFormat vform,
     dst.SetInt(vform, i, product);
   }
   return dst;
+}
+
+
+LogicVRegister Simulator::sqrdmlash(VectorFormat vform,
+                                    LogicVRegister dst,
+                                    const LogicVRegister& src1,
+                                    const LogicVRegister& src2,
+                                    bool round,
+                                    bool sub_op) {
+  // 2 * INT_32_MIN * INT_32_MIN causes int64_t to overflow.
+  // To avoid this, we use:
+  //     (dst << (esize - 1) + src1 * src2 + 1 << (esize - 2)) >> (esize - 1)
+  // which is same as:
+  //     (dst << esize + 2 * src1 * src2 + 1 << (esize - 1)) >> esize.
+
+  int esize = LaneSizeInBitsFromFormat(vform);
+  int round_const = round ? (1 << (esize - 2)) : 0;
+  int64_t accum;
+
+  dst.ClearForWrite(vform);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    accum = dst.Int(vform, i) << (esize - 1);
+    if (sub_op) {
+      accum -= src1.Int(vform, i) * src2.Int(vform, i);
+    } else {
+      accum += src1.Int(vform, i) * src2.Int(vform, i);
+    }
+    accum += round_const;
+    accum = accum >> (esize - 1);
+
+    if (accum > MaxIntFromFormat(vform)) {
+      accum = MaxIntFromFormat(vform);
+    } else if (accum < MinIntFromFormat(vform)) {
+      accum = MinIntFromFormat(vform);
+    }
+    dst.SetInt(vform, i, accum);
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::sqrdmlah(VectorFormat vform,
+                                   LogicVRegister dst,
+                                   const LogicVRegister& src1,
+                                   const LogicVRegister& src2,
+                                   bool round) {
+  return sqrdmlash(vform, dst, src1, src2, round, false);
+}
+
+
+LogicVRegister Simulator::sqrdmlsh(VectorFormat vform,
+                                   LogicVRegister dst,
+                                   const LogicVRegister& src1,
+                                   const LogicVRegister& src2,
+                                   bool round) {
+  return sqrdmlash(vform, dst, src1, src2, round, true);
 }
 
 

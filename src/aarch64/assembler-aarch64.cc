@@ -2767,6 +2767,42 @@ void Assembler::addp(const VRegister& vd, const VRegister& vn) {
 }
 
 
+void Assembler::sqrdmlah(const VRegister& vd,
+                         const VRegister& vn,
+                         const VRegister& vm) {
+  VIXL_ASSERT(AreSameFormat(vd, vn, vm));
+  VIXL_ASSERT(vd.IsVector() || !vd.IsQ());
+
+  Instr format, op = NEON_SQRDMLAH;
+  if (vd.IsScalar()) {
+    op |= NEON_Q | NEONScalar;
+    format = SFormat(vd);
+  } else {
+    format = VFormat(vd);
+  }
+
+  Emit(format | op | Rm(vm) | Rn(vn) | Rd(vd));
+}
+
+
+void Assembler::sqrdmlsh(const VRegister& vd,
+                         const VRegister& vn,
+                         const VRegister& vm) {
+  VIXL_ASSERT(AreSameFormat(vd, vn, vm));
+  VIXL_ASSERT(vd.IsVector() || !vd.IsQ());
+
+  Instr format, op = NEON_SQRDMLSH;
+  if (vd.IsScalar()) {
+    op |= NEON_Q | NEONScalar;
+    format = SFormat(vd);
+  } else {
+    format = VFormat(vd);
+  }
+
+  Emit(format | op | Rm(vm) | Rn(vn) | Rd(vd));
+}
+
+
 void Assembler::faddp(const VRegister& vd, const VRegister& vn) {
   VIXL_ASSERT((vd.Is1S() && vn.Is2S()) || (vd.Is1D() && vn.Is2D()));
   Emit(FPFormat(vd) | NEON_FADDP_scalar | Rn(vn) | Rd(vd));
@@ -2995,7 +3031,9 @@ void Assembler::NEONByElementL(const VRegister& vd,
   V(mla,      NEON_MLA_byelement,      vn.IsVector())  \
   V(mls,      NEON_MLS_byelement,      vn.IsVector())  \
   V(sqdmulh,  NEON_SQDMULH_byelement,  true)           \
-  V(sqrdmulh, NEON_SQRDMULH_byelement, true)
+  V(sqrdmulh, NEON_SQRDMULH_byelement, true)           \
+  V(sqrdmlah, NEON_SQRDMLAH_byelement, true)           \
+  V(sqrdmlsh, NEON_SQRDMLSH_byelement, true)
 // clang-format on
 
 

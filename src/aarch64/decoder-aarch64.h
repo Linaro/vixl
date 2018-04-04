@@ -99,6 +99,7 @@
   V(NEONScalar2RegMisc)                 \
   V(NEONScalar3Diff)                    \
   V(NEONScalar3Same)                    \
+  V(NEONScalar3SameExtra)               \
   V(NEONScalarByIndexedElement)         \
   V(NEONScalarCopy)                     \
   V(NEONScalarPairwise)                 \

@@ -3514,18 +3514,32 @@ void Simulator::VisitNEON3SameExtra(const Instruction* instr) {
   SimVRegister& rm = ReadVRegister(instr->GetRm());
   int rot = 0;
   VectorFormat vf = nfd.GetVectorFormat();
-  switch (instr->Mask(NEON3SameExtraMask)) {
-    case NEON_FCADD:
-      rot = instr->GetImmRotFcadd();
-      fcadd(vf, rd, rn, rm, rot);
-      break;
-    case NEON_FCMLA:
-      rot = instr->GetImmRotFcmlaVec();
-      fcmla(vf, rd, rn, rm, rot);
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-      break;
+  if (instr->Mask(NEON3SameExtraFCFMask) == NEON3SameExtraFCFixed) {
+    switch (instr->Mask(NEON3SameExtraFCMask)) {
+      case NEON_FCADD:
+        rot = instr->GetImmRotFcadd();
+        fcadd(vf, rd, rn, rm, rot);
+        break;
+      case NEON_FCMLA:
+        rot = instr->GetImmRotFcmlaVec();
+        fcmla(vf, rd, rn, rm, rot);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  } else {
+    switch (instr->Mask(NEON3SameExtraMask)) {
+      case NEON_SQRDMLAH:
+        sqrdmlah(vf, rd, rn, rm);
+        break;
+      case NEON_SQRDMLSH:
+        sqrdmlsh(vf, rd, rn, rm);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
   }
 }
 
@@ -3796,6 +3810,14 @@ void Simulator::VisitNEONByIndexedElement(const Instruction* instr) {
       break;
     case NEON_SQRDMULH_byelement:
       Op = &Simulator::sqrdmulh;
+      vf = vf_r;
+      break;
+    case NEON_SQRDMLAH_byelement:
+      Op = &Simulator::sqrdmlah;
+      vf = vf_r;
+      break;
+    case NEON_SQRDMLSH_byelement:
+      Op = &Simulator::sqrdmlsh;
       vf = vf_r;
       break;
     case NEON_SMULL_byelement:
@@ -4753,6 +4775,26 @@ void Simulator::VisitNEONScalar3Same(const Instruction* instr) {
 }
 
 
+void Simulator::VisitNEONScalar3SameExtra(const Instruction* instr) {
+  NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
+  VectorFormat vf = nfd.GetVectorFormat();
+
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+  SimVRegister& rm = ReadVRegister(instr->GetRm());
+
+  switch (instr->Mask(NEONScalar3SameExtraMask)) {
+    case NEON_SQRDMLAH_scalar:
+      sqrdmlah(vf, rd, rn, rm);
+      break;
+    case NEON_SQRDMLSH_scalar:
+      sqrdmlsh(vf, rd, rn, rm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
 void Simulator::VisitNEONScalarByIndexedElement(const Instruction* instr) {
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LongScalarFormatMap());
   VectorFormat vf = nfd.GetVectorFormat();
@@ -4785,6 +4827,14 @@ void Simulator::VisitNEONScalarByIndexedElement(const Instruction* instr) {
       break;
     case NEON_SQRDMULH_byelement_scalar:
       Op = &Simulator::sqrdmulh;
+      vf = vf_r;
+      break;
+    case NEON_SQRDMLAH_byelement_scalar:
+      Op = &Simulator::sqrdmlah;
+      vf = vf_r;
+      break;
+    case NEON_SQRDMLSH_byelement_scalar:
+      Op = &Simulator::sqrdmlsh;
       vf = vf_r;
       break;
     default:
