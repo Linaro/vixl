@@ -2871,6 +2871,26 @@ void Assembler::sqrdmlsh(const VRegister& vd,
 }
 
 
+void Assembler::sdot(const VRegister& vd,
+                     const VRegister& vn,
+                     const VRegister& vm) {
+  VIXL_ASSERT(AreSameFormat(vn, vm));
+  VIXL_ASSERT((vd.Is2S() && vn.Is8B()) || (vd.Is4S() && vn.Is16B()));
+
+  Emit(VFormat(vd) | NEON_SDOT | Rm(vm) | Rn(vn) | Rd(vd));
+}
+
+
+void Assembler::udot(const VRegister& vd,
+                     const VRegister& vn,
+                     const VRegister& vm) {
+  VIXL_ASSERT(AreSameFormat(vn, vm));
+  VIXL_ASSERT((vd.Is2S() && vn.Is8B()) || (vd.Is4S() && vn.Is16B()));
+
+  Emit(VFormat(vd) | NEON_UDOT | Rm(vm) | Rn(vn) | Rd(vd));
+}
+
+
 void Assembler::faddp(const VRegister& vd, const VRegister& vn) {
   VIXL_ASSERT((vd.Is1S() && vn.Is2S()) || (vd.Is1D() && vn.Is2D()));
   Emit(FPFormat(vd) | NEON_FADDP_scalar | Rn(vn) | Rd(vd));
@@ -3090,6 +3110,32 @@ void Assembler::NEONByElementL(const VRegister& vd,
   }
   Emit(format | op | ImmNEONHLM(vm_index, index_num_bits) | Rm(vm) | Rn(vn) |
        Rd(vd));
+}
+
+
+void Assembler::sdot(const VRegister& vd,
+                     const VRegister& vn,
+                     const VRegister& vm,
+                     int vm_index) {
+  VIXL_ASSERT((vd.Is2S() && vn.Is8B() && vm.Is1S4B()) ||
+              (vd.Is4S() && vn.Is16B() && vm.Is1S4B()));
+
+  int index_num_bits = 2;
+  Emit(VFormat(vd) | NEON_SDOT_byelement |
+       ImmNEONHLM(vm_index, index_num_bits) | Rm(vm) | Rn(vn) | Rd(vd));
+}
+
+
+void Assembler::udot(const VRegister& vd,
+                     const VRegister& vn,
+                     const VRegister& vm,
+                     int vm_index) {
+  VIXL_ASSERT((vd.Is2S() && vn.Is8B() && vm.Is1S4B()) ||
+              (vd.Is4S() && vn.Is16B() && vm.Is1S4B()));
+
+  int index_num_bits = 2;
+  Emit(VFormat(vd) | NEON_UDOT_byelement |
+       ImmNEONHLM(vm_index, index_num_bits) | Rm(vm) | Rn(vn) | Rd(vd));
 }
 
 

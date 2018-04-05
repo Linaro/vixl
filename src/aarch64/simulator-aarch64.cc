@@ -3670,8 +3670,14 @@ void Simulator::VisitNEON3SameExtra(const Instruction* instr) {
     }
   } else {
     switch (instr->Mask(NEON3SameExtraMask)) {
+      case NEON_SDOT:
+        sdot(vf, rd, rn, rm);
+        break;
       case NEON_SQRDMLAH:
         sqrdmlah(vf, rd, rn, rm);
+        break;
+      case NEON_UDOT:
+        udot(vf, rd, rn, rm);
         break;
       case NEON_SQRDMLSH:
         sqrdmlsh(vf, rd, rn, rm);
@@ -3952,8 +3958,16 @@ void Simulator::VisitNEONByIndexedElement(const Instruction* instr) {
       Op = &Simulator::sqrdmulh;
       vf = vf_r;
       break;
+    case NEON_SDOT_byelement:
+      Op = &Simulator::sdot;
+      vf = vf_r;
+      break;
     case NEON_SQRDMLAH_byelement:
       Op = &Simulator::sqrdmlah;
+      vf = vf_r;
+      break;
+    case NEON_UDOT_byelement:
+      Op = &Simulator::udot;
       vf = vf_r;
       break;
     case NEON_SQRDMLSH_byelement:

@@ -2284,7 +2284,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(sqdmull, Sqdmull)            \
   V(sqdmull2, Sqdmull2)          \
   V(sqrdmulh, Sqrdmulh)          \
+  V(sdot, Sdot)                  \
   V(sqrdmlah, Sqrdmlah)          \
+  V(udot, Udot)                  \
   V(sqrdmlsh, Sqrdmlsh)          \
   V(sqrshl, Sqrshl)              \
   V(sqshl, Sqshl)                \
@@ -2460,7 +2462,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(mls, Mls)                        \
   V(sqdmulh, Sqdmulh)                \
   V(sqrdmulh, Sqrdmulh)              \
+  V(sdot, Sdot)                      \
   V(sqrdmlah, Sqrdmlah)              \
+  V(udot, Udot)                      \
   V(sqrdmlsh, Sqrdmlsh)              \
   V(sqdmull, Sqdmull)                \
   V(sqdmull2, Sqdmull2)              \

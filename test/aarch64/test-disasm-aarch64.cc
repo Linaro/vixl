@@ -4580,6 +4580,14 @@ TEST(neon_3same) {
   NEON_FORMAT_LIST_HS(DISASM_INST)
 #undef DISASM_INST
 
+  COMPARE_MACRO(Sdot(v1.V2S(), v2.V8B(), v3.V8B()), "sdot v1.2s, v2.8b, v3.8b");
+  COMPARE_MACRO(Sdot(v1.V4S(), v2.V16B(), v3.V16B()),
+                "sdot v1.4s, v2.16b, v3.16b");
+
+  COMPARE_MACRO(Udot(v1.V2S(), v2.V8B(), v3.V8B()), "udot v1.2s, v2.8b, v3.8b");
+  COMPARE_MACRO(Udot(v1.V4S(), v2.V16B(), v3.V16B()),
+                "udot v1.4s, v2.16b, v3.16b");
+
   COMPARE_MACRO(And(v6.V8B(), v7.V8B(), v8.V8B()), "and v6.8b, v7.8b, v8.8b");
   COMPARE_MACRO(And(v6.V16B(), v7.V16B(), v8.V16B()),
                 "and v6.16b, v7.16b, v8.16b");
@@ -4965,6 +4973,11 @@ TEST(neon_byelement) {
   COMPARE_MACRO(Sqrdmulh(h0, h1, v2.H(), 0), "sqrdmulh h0, h1, v2.h[0]");
   COMPARE_MACRO(Sqrdmulh(s0, s1, v2.S(), 0), "sqrdmulh s0, s1, v2.s[0]");
 
+  COMPARE_MACRO(Sdot(v0.V2S(), v1.V8B(), v2.S4B(), 0),
+                "sdot v0.2s, v1.8b, v2.4b[0]");
+  COMPARE_MACRO(Sdot(v2.V4S(), v3.V16B(), v15.S4B(), 3),
+                "sdot v2.4s, v3.16b, v15.4b[3]");
+
   COMPARE_MACRO(Sqrdmlah(v0.V4H(), v1.V4H(), v2.H(), 0),
                 "sqrdmlah v0.4h, v1.4h, v2.h[0]");
   COMPARE_MACRO(Sqrdmlah(v2.V8H(), v3.V8H(), v15.H(), 7),
@@ -4975,6 +4988,11 @@ TEST(neon_byelement) {
                 "sqrdmlah v2.4s, v3.4s, v15.s[3]");
   COMPARE_MACRO(Sqrdmlah(h0, h1, v2.H(), 0), "sqrdmlah h0, h1, v2.h[0]");
   COMPARE_MACRO(Sqrdmlah(s0, s1, v2.S(), 0), "sqrdmlah s0, s1, v2.s[0]");
+
+  COMPARE_MACRO(Udot(v0.V2S(), v1.V8B(), v2.S4B(), 0),
+                "udot v0.2s, v1.8b, v2.4b[0]");
+  COMPARE_MACRO(Udot(v2.V4S(), v3.V16B(), v15.S4B(), 3),
+                "udot v2.4s, v3.16b, v15.4b[3]");
 
   COMPARE_MACRO(Sqrdmlsh(v0.V4H(), v1.V4H(), v2.H(), 0),
                 "sqrdmlsh v0.4h, v1.4h, v2.h[0]");

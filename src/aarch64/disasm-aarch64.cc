@@ -2286,8 +2286,10 @@ void Disassembler::VisitNEON3Same(const Instruction *instr) {
 }
 
 void Disassembler::VisitNEON3SameExtra(const Instruction *instr) {
+  static const NEONFormatMap map_usdot = {{30}, {NF_8B, NF_16B}};
+
   const char *mnemonic = "unimplemented";
-  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCN";
+  const char *form = "(NEON3SameExtra)";
 
   NEONFormatDecoder nfd(instr);
 
@@ -2301,21 +2303,26 @@ void Disassembler::VisitNEON3SameExtra(const Instruction *instr) {
         mnemonic = "fcadd";
         form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCNA";
         break;
-      default:
-        form = "(NEON3SameExtra)";
     }
   } else {
+    form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
     switch (instr->Mask(NEON3SameExtraMask)) {
+      case NEON_SDOT:
+        mnemonic = "sdot";
+        nfd.SetFormatMap(1, &map_usdot);
+        nfd.SetFormatMap(2, &map_usdot);
+        break;
       case NEON_SQRDMLAH:
         mnemonic = "sqrdmlah";
-        form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
+        break;
+      case NEON_UDOT:
+        mnemonic = "udot";
+        nfd.SetFormatMap(1, &map_usdot);
+        nfd.SetFormatMap(2, &map_usdot);
         break;
       case NEON_SQRDMLSH:
         mnemonic = "sqrdmlsh";
-        form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
         break;
-      default:
-        form = "(NEON3SameExtra)";
     }
   }
 
@@ -2507,6 +2514,7 @@ void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
   static const NEONFormatMap map_cn =
       {{23, 22, 30},
        {NF_UNDEF, NF_UNDEF, NF_4H, NF_8H, NF_UNDEF, NF_4S, NF_UNDEF, NF_UNDEF}};
+  static const NEONFormatMap map_usdot = {{30}, {NF_8B, NF_16B}};
 
   NEONFormatDecoder nfd(instr,
                         &map_ta,
@@ -2565,8 +2573,18 @@ void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
     case NEON_SQRDMULH_byelement:
       mnemonic = "sqrdmulh";
       break;
+    case NEON_SDOT_byelement:
+      mnemonic = "sdot";
+      form = "'Vd.%s, 'Vn.%s, 'Ve.4b['IVByElemIndex]";
+      nfd.SetFormatMap(1, &map_usdot);
+      break;
     case NEON_SQRDMLAH_byelement:
       mnemonic = "sqrdmlah";
+      break;
+    case NEON_UDOT_byelement:
+      mnemonic = "udot";
+      form = "'Vd.%s, 'Vn.%s, 'Ve.4b['IVByElemIndex]";
+      nfd.SetFormatMap(1, &map_usdot);
       break;
     case NEON_SQRDMLSH_byelement:
       mnemonic = "sqrdmlsh";

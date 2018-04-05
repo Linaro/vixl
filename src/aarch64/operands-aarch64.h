@@ -207,6 +207,10 @@ class CPURegister {
   bool IsD() const { return IsV() && Is64Bits(); }
   bool IsQ() const { return IsV() && Is128Bits(); }
 
+  // Semantic type for sdot and udot instructions.
+  bool IsS4B() const { return IsS(); }
+  const VRegister& S4B() const { return S(); }
+
   const Register& W() const;
   const Register& X() const;
   const VRegister& V() const;
@@ -391,6 +395,10 @@ class VRegister : public CPURegister {
     VIXL_ASSERT(!(Is32Bits() && IsVector()));
     return Is32Bits();
   }
+
+  // Semantic type for sdot and udot instructions.
+  bool Is1S4B() const { return Is1S(); }
+
 
   bool IsLaneSizeB() const { return GetLaneSizeInBits() == kBRegSize; }
   bool IsLaneSizeH() const { return GetLaneSizeInBits() == kHRegSize; }

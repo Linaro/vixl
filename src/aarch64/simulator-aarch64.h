@@ -1985,11 +1985,21 @@ class Simulator : public DecoderVisitor {
                           const LogicVRegister& src1,
                           const LogicVRegister& src2,
                           int index);
+  LogicVRegister sdot(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2,
+                      int index);
   LogicVRegister sqrdmlah(VectorFormat vform,
                           LogicVRegister dst,
                           const LogicVRegister& src1,
                           const LogicVRegister& src2,
                           int index);
+  LogicVRegister udot(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2,
+                      int index);
   LogicVRegister sqrdmlsh(VectorFormat vform,
                           LogicVRegister dst,
                           const LogicVRegister& src1,
@@ -2577,6 +2587,19 @@ class Simulator : public DecoderVisitor {
                           const LogicVRegister& src1,
                           const LogicVRegister& src2,
                           bool round = true);
+  LogicVRegister dot(VectorFormat vform,
+                     LogicVRegister dst,
+                     const LogicVRegister& src1,
+                     const LogicVRegister& src2,
+                     bool is_signed);
+  LogicVRegister sdot(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2);
+  LogicVRegister udot(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2);
   LogicVRegister sqrdmlash(VectorFormat vform,
                            LogicVRegister dst,
                            const LogicVRegister& src1,

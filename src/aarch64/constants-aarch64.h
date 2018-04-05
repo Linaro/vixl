@@ -1587,6 +1587,8 @@ enum NEON3SameExtraOp {
   NEON3SameExtraMask = 0xBE20FC00,
   NEON_SQRDMLAH = NEON3SameExtraFixed | NEON3SameExtraUBit,
   NEON_SQRDMLSH = NEON3SameExtraFixed | NEON3SameExtraUBit | 0x00000800,
+  NEON_SDOT = NEON3SameExtraFixed | 0x00001000,
+  NEON_UDOT = NEON3SameExtraFixed | NEON3SameExtraUBit | 0x00001000,
 
   /* v8.3 Complex Numbers */
   NEON3SameExtraFCFixed = 0x2E00C400,
@@ -1698,6 +1700,10 @@ enum NEONByIndexedElementOp {
   NEON_SQDMLSL_byelement = NEONByIndexedElementFixed | 0x00007000,
   NEON_SQDMULH_byelement  = NEONByIndexedElementFixed | 0x0000C000,
   NEON_SQRDMULH_byelement = NEONByIndexedElementFixed | 0x0000D000,
+  NEON_SDOT_byelement = NEONByIndexedElementFixed | 0x0000E000,
+  NEON_SQRDMLAH_byelement = NEONByIndexedElementFixed | 0x2000D000,
+  NEON_UDOT_byelement = NEONByIndexedElementFixed | 0x2000E000,
+  NEON_SQRDMLSH_byelement = NEONByIndexedElementFixed | 0x2000F000,
 
   // Floating point instructions.
   NEONByIndexedElementFPFixed = NEONByIndexedElementFixed | 0x00800000,
@@ -1707,8 +1713,6 @@ enum NEONByIndexedElementOp {
   NEON_FMUL_byelement  = NEONByIndexedElementFPFixed | 0x00009000,
   NEON_FMULX_byelement = NEONByIndexedElementFPFixed | 0x20009000,
   NEON_FCMLA_byelement = NEONByIndexedElementFixed | 0x20001000,
-  NEON_SQRDMLAH_byelement = NEONByIndexedElementFixed | 0x2000D000,
-  NEON_SQRDMLSH_byelement = NEONByIndexedElementFixed | 0x2000F000,
 
   // Complex instruction(s) this is necessary because 'rot' encoding moves into the NEONByIndex..Mask space
   NEONByIndexedElementFPComplexMask = 0xBF009400

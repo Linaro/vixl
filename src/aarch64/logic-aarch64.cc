@@ -823,6 +823,17 @@ LogicVRegister Simulator::sqrdmulh(VectorFormat vform,
 }
 
 
+LogicVRegister Simulator::sdot(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2,
+                               int index) {
+  SimVRegister temp;
+  VectorFormat indexform = VectorFormatFillQ(vform);
+  return sdot(vform, dst, src1, dup_element(indexform, temp, src2, index));
+}
+
+
 LogicVRegister Simulator::sqrdmlah(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
@@ -831,6 +842,17 @@ LogicVRegister Simulator::sqrdmlah(VectorFormat vform,
   SimVRegister temp;
   VectorFormat indexform = VectorFormatFillQ(vform);
   return sqrdmlah(vform, dst, src1, dup_element(indexform, temp, src2, index));
+}
+
+
+LogicVRegister Simulator::udot(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2,
+                               int index) {
+  SimVRegister temp;
+  VectorFormat indexform = VectorFormatFillQ(vform);
+  return udot(vform, dst, src1, dup_element(indexform, temp, src2, index));
 }
 
 
@@ -3267,6 +3289,53 @@ LogicVRegister Simulator::sqrdmulh(VectorFormat vform,
     dst.SetInt(vform, i, product);
   }
   return dst;
+}
+
+
+LogicVRegister Simulator::dot(VectorFormat vform,
+                              LogicVRegister dst,
+                              const LogicVRegister& src1,
+                              const LogicVRegister& src2,
+                              bool is_signed) {
+  VectorFormat quarter_vform =
+      VectorFormatHalfWidthDoubleLanes(VectorFormatHalfWidthDoubleLanes(vform));
+
+  dst.ClearForWrite(vform);
+  for (int e = 0; e < LaneCountFromFormat(vform); e++) {
+    int64_t result = 0;
+    int64_t element1, element2;
+    for (int i = 0; i < 4; i++) {
+      int index = 4 * e + i;
+      if (is_signed) {
+        element1 = src1.Int(quarter_vform, index);
+        element2 = src2.Int(quarter_vform, index);
+      } else {
+        element1 = src1.Uint(quarter_vform, index);
+        element2 = src2.Uint(quarter_vform, index);
+      }
+      result += element1 * element2;
+    }
+
+    result += dst.Int(vform, e);
+    dst.SetInt(vform, e, result);
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::sdot(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2) {
+  return dot(vform, dst, src1, src2, true);
+}
+
+
+LogicVRegister Simulator::udot(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2) {
+  return dot(vform, dst, src1, src2, false);
 }
 
 
