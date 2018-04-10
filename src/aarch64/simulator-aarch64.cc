@@ -2648,22 +2648,24 @@ void Simulator::VisitFPDataProcessing1Source(const Instruction* instr) {
       LogVRegister(fd, GetPrintRegisterFormatFP(vform));
       return;
     case FCVT_ds:
-      WriteDRegister(fd, FPToDouble(ReadSRegister(fn)));
+      WriteDRegister(fd, FPToDouble(ReadSRegister(fn), ReadDN()));
       return;
     case FCVT_sd:
-      WriteSRegister(fd, FPToFloat(ReadDRegister(fn), FPTieEven));
+      WriteSRegister(fd, FPToFloat(ReadDRegister(fn), FPTieEven, ReadDN()));
       return;
     case FCVT_hs:
-      WriteHRegister(fd, FPToFloat16(ReadSRegister(fn), FPTieEven));
+      WriteHRegister(fd, FPToFloat16(ReadSRegister(fn), FPTieEven, ReadDN()));
       return;
     case FCVT_sh:
-      WriteSRegister(fd, FPToFloat(ReadHRegister(fn)));
+      WriteSRegister(fd, FPToFloat(ReadHRegister(fn), ReadDN()));
       return;
     case FCVT_dh:
-      WriteDRegister(fd, FPToDouble(FPToFloat(ReadHRegister(fn))));
+      WriteDRegister(fd,
+                     FPToDouble(FPToFloat(ReadHRegister(fn), ReadDN()),
+                                ReadDN()));
       return;
     case FCVT_hd:
-      WriteHRegister(fd, FPToFloat16(ReadDRegister(fn), FPTieEven));
+      WriteHRegister(fd, FPToFloat16(ReadDRegister(fn), FPTieEven, ReadDN()));
       return;
     case FSQRT_s:
     case FSQRT_d:
