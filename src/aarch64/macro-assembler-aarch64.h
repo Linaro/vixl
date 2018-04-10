@@ -41,6 +41,7 @@
 // is needed regardless of whether the simulator is included or not, since
 // generating simulator specific instructions is controlled at runtime.
 #include "simulator-constants-aarch64.h"
+#include "utils-aarch64.h"
 
 
 #define LS_MACRO_LIST(V)                                     \
@@ -1385,6 +1386,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // signalling NaNs to quiet NaNs when converting between float and double.
   void Fmov(VRegister vd, double imm);
   void Fmov(VRegister vd, float imm);
+  void Fmov(VRegister vd, const F16 imm);
   // Provide a template to allow other types to be converted automatically.
   template <typename T>
   void Fmov(VRegister vd, T imm) {
@@ -3442,6 +3444,9 @@ class UseScratchRegisterScope {
   }
   Register AcquireX() {
     return AcquireNextAvailable(masm_->GetScratchRegisterList()).X();
+  }
+  VRegister AcquireH() {
+    return AcquireNextAvailable(masm_->GetScratchFPRegisterList()).H();
   }
   VRegister AcquireS() {
     return AcquireNextAvailable(masm_->GetScratchFPRegisterList()).S();

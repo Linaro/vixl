@@ -288,6 +288,34 @@ float16 FPToFloat16(double value,
                     FPRounding round_mode,
                     UseDefaultNaN DN,
                     bool* exception = NULL);
+
+
+// Wrapper class for passing FP16 values through the assembler.
+// This is purely to aid with type checking/casting.
+class F16 {
+ public:
+  static F16 FromRawbits(uint16_t bits) {
+    F16 f(0.0);
+    f.rawbits_ = bits;
+    return f;
+  }
+  // This is class used to aid in the context of h registers
+  // in the assembler(s). It is only used by half-precision
+  // instructions and utilities, so shouldn't suffer from
+  // any ambiguity. Providing this constructor as implicit
+  // allows for a more transparent solution to the end user.
+  F16(double dvalue) {  // NOLINT(runtime/explicit).
+    rawbits_ = FPToFloat16(dvalue, FPTieEven, kIgnoreDefaultNaN);
+  }
+  uint16_t ToRawbits() { return rawbits_; }
+  operator double() const {
+    return FPToDouble(FPToFloat(rawbits_, kUseDefaultNaN), kUseDefaultNaN);
+  }
+
+ private:
+  uint16_t rawbits_;
+};
+
 }  // namespace aarch64
 }  // namespace vixl
 

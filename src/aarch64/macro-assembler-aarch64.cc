@@ -1484,6 +1484,11 @@ void MacroAssembler::Fmov(VRegister vd, double imm) {
   // Floating point immediates are loaded through the literal pool.
   MacroEmissionCheckScope guard(this);
 
+  if (vd.Is1H() || vd.Is4H() || vd.Is8H()) {
+    Fmov(vd, F16(imm));
+    return;
+  }
+
   if (vd.Is1S() || vd.Is2S() || vd.Is4S()) {
     Fmov(vd, static_cast<float>(imm));
     return;
@@ -1516,6 +1521,11 @@ void MacroAssembler::Fmov(VRegister vd, float imm) {
   // Floating point immediates are loaded through the literal pool.
   MacroEmissionCheckScope guard(this);
 
+  if (vd.Is1H() || vd.Is4H() || vd.Is8H()) {
+    Fmov(vd, F16(imm));
+    return;
+  }
+
   if (vd.Is1D() || vd.Is2D()) {
     Fmov(vd, static_cast<double>(imm));
     return;
@@ -1538,6 +1548,43 @@ void MacroAssembler::Fmov(VRegister vd, float imm) {
     } else {
       // TODO: consider NEON support for load literal.
       Movi(vd, rawbits);
+    }
+  }
+}
+
+
+void MacroAssembler::Fmov(VRegister vd, F16 imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  MacroEmissionCheckScope guard(this);
+
+  if (vd.Is1S() || vd.Is2S() || vd.Is4S()) {
+    Fmov(vd, static_cast<float>(imm));
+    return;
+  }
+
+  if (vd.Is1D() || vd.Is2D()) {
+    Fmov(vd, static_cast<double>(imm));
+    return;
+  }
+
+  VIXL_ASSERT(vd.Is1H() || vd.Is4H() || vd.Is8H());
+  uint16_t rawbits = imm.ToRawbits();
+  if (IsImmFP16(rawbits)) {
+    fmov(vd, imm);
+  } else {
+    if (vd.IsScalar()) {
+      if (rawbits == 0x0) {
+        fmov(vd, wzr);
+      } else {
+        // We can use movz instead of the literal pool.
+        UseScratchRegisterScope temps(this);
+        Register temp = temps.AcquireW();
+        Mov(temp, rawbits);
+        Fmov(vd, temp);
+      }
+    } else {
+      // TODO: consider NEON support for load literal.
+      Movi(vd, static_cast<uint64_t>(rawbits));
     }
   }
 }

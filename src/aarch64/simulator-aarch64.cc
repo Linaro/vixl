@@ -173,6 +173,13 @@ const char* Simulator::wreg_names[] = {"w0",  "w1",  "w2",  "w3",  "w4",  "w5",
                                        "w24", "w25", "w26", "w27", "w28", "w29",
                                        "w30", "wzr", "wsp"};
 
+const char* Simulator::hreg_names[] = {"h0",  "h1",  "h2",  "h3",  "h4",  "h5",
+                                       "h6",  "h7",  "h8",  "h9",  "h10", "h11",
+                                       "h12", "h13", "h14", "h15", "h16", "h17",
+                                       "h18", "h19", "h20", "h21", "h22", "h23",
+                                       "h24", "h25", "h26", "h27", "h28", "h29",
+                                       "h30", "h31"};
+
 const char* Simulator::sreg_names[] = {"s0",  "s1",  "s2",  "s3",  "s4",  "s5",
                                        "s6",  "s7",  "s8",  "s9",  "s10", "s11",
                                        "s12", "s13", "s14", "s15", "s16", "s17",
@@ -212,6 +219,12 @@ const char* Simulator::XRegNameForCode(unsigned code, Reg31Mode mode) {
     code = kZeroRegCode + 1;
   }
   return xreg_names[code];
+}
+
+
+const char* Simulator::HRegNameForCode(unsigned code) {
+  VIXL_ASSERT(code < kNumberOfFPRegisters);
+  return hreg_names[code];
 }
 
 
@@ -558,6 +571,10 @@ Simulator::PrintRegisterFormat Simulator::GetPrintRegisterFormatFP(
     default:
       VIXL_UNREACHABLE();
       return kPrintReg16B;
+    case kFormat8H:
+      return kPrintReg8HFP;
+    case kFormat4H:
+      return kPrintReg4HFP;
     case kFormat4S:
       return kPrintReg4SFP;
     case kFormat2S:
@@ -566,7 +583,8 @@ Simulator::PrintRegisterFormat Simulator::GetPrintRegisterFormatFP(
       return kPrintReg2DFP;
     case kFormat1D:
       return kPrintReg1DFP;
-
+    case kFormatH:
+      return kPrintReg1HFP;
     case kFormatS:
       return kPrintReg1SFP;
     case kFormatD:
@@ -752,7 +770,8 @@ void Simulator::PrintVRegisterFPHelper(unsigned code,
                                        unsigned lane_size_in_bytes,
                                        int lane_count,
                                        int rightmost_lane) {
-  VIXL_ASSERT((lane_size_in_bytes == kSRegSizeInBytes) ||
+  VIXL_ASSERT((lane_size_in_bytes == kHRegSizeInBytes) ||
+              (lane_size_in_bytes == kSRegSizeInBytes) ||
               (lane_size_in_bytes == kDRegSizeInBytes));
 
   unsigned msb = ((lane_count + rightmost_lane) * lane_size_in_bytes);
@@ -760,14 +779,30 @@ void Simulator::PrintVRegisterFPHelper(unsigned code,
 
   // For scalar types ((lane_count == 1) && (rightmost_lane == 0)), a register
   // name is used:
+  //   " (h{code}: {value})"
   //   " (s{code}: {value})"
   //   " (d{code}: {value})"
   // For vector types, "..." is used to represent one or more omitted lanes.
   //   " (..., {value}, {value}, ...)"
+  if (lane_size_in_bytes == kHRegSizeInBytes) {
+    // TODO: Trace tests will fail until we regenerate them.
+    return;
+  }
   if ((lane_count == 1) && (rightmost_lane == 0)) {
-    const char* name = (lane_size_in_bytes == kSRegSizeInBytes)
-                           ? SRegNameForCode(code)
-                           : DRegNameForCode(code);
+    const char* name;
+    switch (lane_size_in_bytes) {
+      case kHRegSizeInBytes:
+        name = HRegNameForCode(code);
+        break;
+      case kSRegSizeInBytes:
+        name = SRegNameForCode(code);
+        break;
+      case kDRegSizeInBytes:
+        name = DRegNameForCode(code);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+    }
     fprintf(stream_, " (%s%s: ", clr_vreg_name, name);
   } else {
     if (msb < (kQRegSizeInBytes - 1)) {
@@ -781,9 +816,21 @@ void Simulator::PrintVRegisterFPHelper(unsigned code,
   const char* separator = "";
   int leftmost_lane = rightmost_lane + lane_count - 1;
   for (int lane = leftmost_lane; lane >= rightmost_lane; lane--) {
-    double value = (lane_size_in_bytes == kSRegSizeInBytes)
-                       ? ReadVRegister(code).GetLane<float>(lane)
-                       : ReadVRegister(code).GetLane<double>(lane);
+    double value;
+    switch (lane_size_in_bytes) {
+      case kHRegSizeInBytes:
+        value = ReadVRegister(code).GetLane<float16>(lane);
+        break;
+      case kSRegSizeInBytes:
+        value = ReadVRegister(code).GetLane<float>(lane);
+        break;
+      case kDRegSizeInBytes:
+        value = ReadVRegister(code).GetLane<double>(lane);
+        break;
+      default:
+        value = 0.0;
+        VIXL_UNREACHABLE();
+    }
     if (std::isnan(value)) {
       // The output for NaNs is implementation defined. Always print `nan`, so
       // that traces are coherent across different implementations.
@@ -2368,9 +2415,11 @@ void Simulator::VisitExtract(const Instruction* instr) {
 
 void Simulator::VisitFPImmediate(const Instruction* instr) {
   AssertSupportedFPCR();
-
   unsigned dest = instr->GetRd();
   switch (instr->Mask(FPImmediateMask)) {
+    case FMOV_h_imm:
+      WriteHRegister(dest, instr->GetImmFP16());
+      break;
     case FMOV_s_imm:
       WriteSRegister(dest, instr->GetImmFP32());
       break;
@@ -2511,6 +2560,18 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
       break;
     case FCVTZU_xd:
       WriteXRegister(dst, FPToUInt64(ReadDRegister(src), FPZero));
+      break;
+    case FMOV_hw:
+      WriteHRegister(dst, ReadWRegister(src) & kHRegMask);
+      break;
+    case FMOV_wh:
+      WriteWRegister(dst, ReadHRegisterBits(src));
+      break;
+    case FMOV_xh:
+      WriteXRegister(dst, ReadHRegisterBits(src));
+      break;
+    case FMOV_hx:
+      WriteHRegister(dst, ReadXRegister(src) & kHRegMask);
       break;
     case FMOV_ws:
       WriteWRegister(dst, ReadSRegisterBits(src));
@@ -2766,7 +2827,15 @@ void Simulator::VisitFPDataProcessing1Source(const Instruction* instr) {
   AssertSupportedFPCR();
 
   FPRounding fpcr_rounding = static_cast<FPRounding>(ReadFpcr().GetRMode());
-  VectorFormat vform = (instr->Mask(FP64) == FP64) ? kFormatD : kFormatS;
+  VectorFormat vform;
+  if (instr->Mask(FP64) == FP64) {
+    vform = kFormatD;
+  } else if (instr->Mask(FP32) == FP32) {
+    vform = kFormatS;
+  } else {
+    VIXL_ASSERT(instr->Mask(FP16) == FP16);
+    vform = kFormatH;
+  }
   SimVRegister& rd = ReadVRegister(instr->GetRd());
   SimVRegister& rn = ReadVRegister(instr->GetRn());
   bool inexact_exception = false;
@@ -2775,6 +2844,9 @@ void Simulator::VisitFPDataProcessing1Source(const Instruction* instr) {
   unsigned fn = instr->GetRn();
 
   switch (instr->Mask(FPDataProcessing1SourceMask)) {
+    case FMOV_h:
+      WriteHRegister(fd, ReadHRegister(fn));
+      return;
     case FMOV_s:
       WriteSRegister(fd, ReadSRegister(fn));
       return;
@@ -2860,7 +2932,15 @@ void Simulator::VisitFPDataProcessing1Source(const Instruction* instr) {
 void Simulator::VisitFPDataProcessing2Source(const Instruction* instr) {
   AssertSupportedFPCR();
 
-  VectorFormat vform = (instr->Mask(FP64) == FP64) ? kFormatD : kFormatS;
+  VectorFormat vform;
+  if (instr->Mask(FP64) == FP64) {
+    vform = kFormatD;
+  } else if (instr->Mask(FP32) == FP32) {
+    vform = kFormatS;
+  } else {
+    VIXL_ASSERT(instr->Mask(FP16) == FP16);
+    vform = kFormatH;
+  }
   SimVRegister& rd = ReadVRegister(instr->GetRd());
   SimVRegister& rn = ReadVRegister(instr->GetRn());
   SimVRegister& rm = ReadVRegister(instr->GetRm());
@@ -4557,10 +4637,10 @@ void Simulator::VisitNEONModifiedImmediate(const Instruction* instr) {
   int cmode_2 = (cmode >> 2) & 1;
   int cmode_1 = (cmode >> 1) & 1;
   int cmode_0 = cmode & 1;
+  int half_enc = instr->ExtractBit(11);
   int q = instr->GetNEONQ();
   int op_bit = instr->GetNEONModImmOp();
   uint64_t imm8 = instr->GetImmNEONabcdefgh();
-
   // Find the format and immediate value
   uint64_t imm = 0;
   VectorFormat vform = kFormatUndefined;
@@ -4598,7 +4678,10 @@ void Simulator::VisitNEONModifiedImmediate(const Instruction* instr) {
           }
         }
       } else {  // cmode_0 == 1, cmode == 0xf.
-        if (op_bit == 0) {
+        if (half_enc == 1) {
+          vform = q ? kFormat8H : kFormat4H;
+          imm = instr->GetImmNEONFP16();
+        } else if (op_bit == 0) {
           vform = q ? kFormat4S : kFormat2S;
           imm = FloatToRawbits(instr->GetImmNEONFP32());
         } else if (q == 1) {

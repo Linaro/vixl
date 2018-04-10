@@ -272,6 +272,9 @@ namespace aarch64 {
 #define ASSERT_EQUAL_REGISTERS(expected) \
   VIXL_CHECK(EqualRegisters(&expected, &core))
 
+#define ASSERT_EQUAL_FP16(expected, result) \
+  VIXL_CHECK(EqualFP16(expected, &core, result))
+
 #define ASSERT_EQUAL_32(expected, result) \
   VIXL_CHECK(Equal32(static_cast<uint32_t>(expected), &core, result))
 
@@ -9850,26 +9853,74 @@ TEST(fmov_imm) {
   SETUP();
 
   START();
-  __ Fmov(s11, 1.0);
-  __ Fmov(d22, -13.0);
   __ Fmov(s1, 255.0);
   __ Fmov(d2, 12.34567);
   __ Fmov(s3, 0.0);
   __ Fmov(d4, 0.0);
   __ Fmov(s5, kFP32PositiveInfinity);
   __ Fmov(d6, kFP64NegativeInfinity);
+  __ Fmov(h7, F16::FromRawbits(0x6400U));
+  __ Fmov(h8, F16::FromRawbits(kFP16PositiveInfinity));
+  __ Fmov(s11, 1.0);
+  __ Fmov(h12, F16::FromRawbits(0x7BFF));
+  __ Fmov(h13, F16::FromRawbits(0x57F2));
+  __ Fmov(d22, -13.0);
+  __ Fmov(h23, F16::FromRawbits(0xC500U));
+  __ Fmov(h24, F16(-5.0));
+  __ Fmov(h25, F16(2049.0));
+  __ Fmov(h21, F16::FromRawbits(0x6404U));
+  __ Fmov(h26, F16::FromRawbits(0x0U));
+  __ Fmov(h27, F16::FromRawbits(0x7e00U));
   END();
-
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
 
-  ASSERT_EQUAL_FP32(1.0, s11);
-  ASSERT_EQUAL_FP64(-13.0, d22);
   ASSERT_EQUAL_FP32(255.0, s1);
   ASSERT_EQUAL_FP64(12.34567, d2);
   ASSERT_EQUAL_FP32(0.0, s3);
   ASSERT_EQUAL_FP64(0.0, d4);
   ASSERT_EQUAL_FP32(kFP32PositiveInfinity, s5);
   ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d6);
+  ASSERT_EQUAL_FP16(F16::FromRawbits(0x6400U), h7);
+  ASSERT_EQUAL_FP16(F16::FromRawbits(kFP16PositiveInfinity), h8);
+  ASSERT_EQUAL_FP32(1.0, s11);
+  ASSERT_EQUAL_FP16(F16::FromRawbits(0x7BFF), h12);
+  ASSERT_EQUAL_FP16(F16::FromRawbits(0x57F2U), h13);
+  ASSERT_EQUAL_FP16(F16::FromRawbits(0x6404), h21);
+  ASSERT_EQUAL_FP64(-13.0, d22);
+  ASSERT_EQUAL_FP16(F16(-5.0), h23);
+  ASSERT_EQUAL_FP16(F16::FromRawbits(0xC500), h24);
+  // 2049 is unpresentable.
+  ASSERT_EQUAL_FP16(F16::FromRawbits(0x6800), h25);
+  ASSERT_EQUAL_FP16(F16::FromRawbits(0x0), h26);
+  // NaN check.
+  ASSERT_EQUAL_FP16(F16::FromRawbits(0x7e00), h27);
+#endif
+
+  TEARDOWN();
+}
+
+
+TEST(fmov_vec_imm) {
+  SETUP();
+
+  START();
+
+  __ Fmov(v0.V2S(), 20.0);
+  __ Fmov(v1.V4S(), 1024.0);
+
+  __ Fmov(v2.V4H(), F16::FromRawbits(0xC500U));
+  __ Fmov(v3.V8H(), F16::FromRawbits(0x4A80U));
+
+  END();
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(0x41A0000041A00000, d0);
+  ASSERT_EQUAL_128(0x4480000044800000, 0x4480000044800000, q1);
+  ASSERT_EQUAL_64(0xC500C500C500C500, d2);
+  ASSERT_EQUAL_128(0x4A804A804A804A80, 0x4A804A804A804A80, q3);
+#endif
 
   TEARDOWN();
 }
@@ -9879,6 +9930,15 @@ TEST(fmov_reg) {
   SETUP();
 
   START();
+
+  __ Fmov(h3, F16::FromRawbits(0xCA80U));
+  __ Fmov(h7, h3);
+  __ Fmov(h8, -5.0);
+  __ Fmov(w3, h8);
+  __ Fmov(h9, w3);
+  __ Fmov(h8, F16(1024.0));
+  __ Fmov(x4, h8);
+  __ Fmov(h10, x4);
   __ Fmov(s20, 1.0);
   __ Fmov(w10, s20);
   __ Fmov(s30, w10);
@@ -9889,15 +9949,19 @@ TEST(fmov_reg) {
   __ Fmov(d4, d1);
   __ Fmov(d6, RawbitsToDouble(0x0123456789abcdef));
   __ Fmov(s6, s6);
-
   __ Fmov(d0, 0.0);
   __ Fmov(v0.D(), 1, x1);
   __ Fmov(x2, v0.D(), 1);
 
   END();
-
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
 
+  ASSERT_EQUAL_FP16(F16::FromRawbits(0xCA80U), h7);
+  ASSERT_EQUAL_FP16(F16::FromRawbits(0xC500U), h9);
+  ASSERT_EQUAL_32(0x0000C500, w3);
+  ASSERT_EQUAL_64(0x0000000000006400, x4);
+  ASSERT_EQUAL_FP16(F16::FromRawbits(0x6400), h10);
   ASSERT_EQUAL_32(FloatToRawbits(1.0), w10);
   ASSERT_EQUAL_FP32(1.0, s30);
   ASSERT_EQUAL_FP32(1.0, s5);
@@ -9907,6 +9971,8 @@ TEST(fmov_reg) {
   ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s6);
   ASSERT_EQUAL_128(DoubleToRawbits(-13.0), 0x0000000000000000, q0);
   ASSERT_EQUAL_64(DoubleToRawbits(-13.0), x2);
+#endif
+
   TEARDOWN();
 }
 

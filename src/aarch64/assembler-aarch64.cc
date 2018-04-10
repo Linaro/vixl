@@ -2211,24 +2211,59 @@ void Assembler::fmov(const VRegister& vd, float imm) {
 }
 
 
+void Assembler::fmov(const VRegister& vd, F16 imm) {
+  uint16_t rawbits = imm.ToRawbits();
+  if (vd.IsScalar()) {
+    VIXL_ASSERT(vd.Is1H());
+    Emit(FMOV_h_imm | Rd(vd) | ImmFP16(rawbits));
+  } else {
+    VIXL_ASSERT(vd.Is4H() | vd.Is8H());
+    Instr q = vd.Is8H() ? NEON_Q : 0;
+    uint32_t encoded_imm = FP16ToImm8(rawbits);
+    Emit(q | NEONModifiedImmediate_FMOV | ImmNEONabcdefgh(encoded_imm) |
+         NEONCmode(0xf) | Rd(vd));
+  }
+}
+
+
 void Assembler::fmov(const Register& rd, const VRegister& vn) {
-  VIXL_ASSERT(vn.Is1S() || vn.Is1D());
-  VIXL_ASSERT(rd.GetSizeInBits() == vn.GetSizeInBits());
-  FPIntegerConvertOp op = rd.Is32Bits() ? FMOV_ws : FMOV_xd;
+  VIXL_ASSERT(vn.Is1H() || vn.Is1S() || vn.Is1D());
+  VIXL_ASSERT((rd.GetSizeInBits() == vn.GetSizeInBits()) || vn.Is1H());
+  FPIntegerConvertOp op;
+  switch (vn.GetSizeInBits()) {
+    case 16:
+      op = rd.Is64Bits() ? FMOV_xh : FMOV_wh;
+      break;
+    case 32:
+      op = FMOV_ws;
+      break;
+    default:
+      op = FMOV_xd;
+  }
   Emit(op | Rd(rd) | Rn(vn));
 }
 
 
 void Assembler::fmov(const VRegister& vd, const Register& rn) {
-  VIXL_ASSERT(vd.Is1S() || vd.Is1D());
-  VIXL_ASSERT(vd.GetSizeInBits() == rn.GetSizeInBits());
-  FPIntegerConvertOp op = vd.Is32Bits() ? FMOV_sw : FMOV_dx;
+  VIXL_ASSERT(vd.Is1H() || vd.Is1S() || vd.Is1D());
+  VIXL_ASSERT((vd.GetSizeInBits() == rn.GetSizeInBits()) || vd.Is1H());
+  FPIntegerConvertOp op;
+  switch (vd.GetSizeInBits()) {
+    case 16:
+      op = rn.Is64Bits() ? FMOV_hx : FMOV_hw;
+      break;
+    case 32:
+      op = FMOV_sw;
+      break;
+    default:
+      op = FMOV_dx;
+  }
   Emit(op | Rd(vd) | Rn(rn));
 }
 
 
 void Assembler::fmov(const VRegister& vd, const VRegister& vn) {
-  VIXL_ASSERT(vd.Is1S() || vd.Is1D());
+  VIXL_ASSERT(vd.Is1H() || vd.Is1S() || vd.Is1D());
   VIXL_ASSERT(vd.IsSameFormat(vn));
   Emit(FPType(vd) | FMOV | Rd(vd) | Rn(vn));
 }
@@ -4077,9 +4112,29 @@ void Assembler::uqrshrn2(const VRegister& vd, const VRegister& vn, int shift) {
 
 
 // Note:
-// Below, a difference in case for the same letter indicates a
-// negated bit.
+// For all ToImm instructions below, a difference in case
+// for the same letter indicates a negated bit.
 // If b is 1, then B is 0.
+uint32_t Assembler::FP16ToImm8(float16 imm) {
+  VIXL_ASSERT(IsImmFP16(imm));
+  // Half: aBbb.cdef.gh00.0000 (16 bits)
+  uint16_t bits = Float16ToRawbits(imm);
+  // bit7: a000.0000
+  uint16_t bit7 = ((bits >> 15) & 0x1) << 7;
+  // bit6: 0b00.0000
+  uint16_t bit6 = ((bits >> 13) & 0x1) << 6;
+  // bit5_to_0: 00cd.efgh
+  uint16_t bit5_to_0 = (bits >> 6) & 0x3f;
+  uint32_t result = static_cast<uint32_t>(bit7 | bit6 | bit5_to_0);
+  return result;
+}
+
+
+Instr Assembler::ImmFP16(float16 imm) {
+  return FP16ToImm8(imm) << ImmFP_offset;
+}
+
+
 uint32_t Assembler::FP32ToImm8(float imm) {
   VIXL_ASSERT(IsImmFP32(imm));
   // bits: aBbb.bbbc.defg.h000.0000.0000.0000.0000
@@ -4561,6 +4616,30 @@ bool Assembler::IsImmAddSub(int64_t immediate) {
 
 bool Assembler::IsImmConditionalCompare(int64_t immediate) {
   return IsUint5(immediate);
+}
+
+
+bool Assembler::IsImmFP16(float16 imm) {
+  // Valid values will have the form:
+  // aBbb.cdef.gh00.000
+  uint16_t bits = Float16ToRawbits(imm);
+  // bits[6..0] are cleared.
+  if ((bits & 0x3f) != 0) {
+    return false;
+  }
+
+  // bits[13..12] are all set or all cleared.
+  uint16_t b_pattern = (bits >> 12) & 0x03;
+  if (b_pattern != 0 && b_pattern != 0x03) {
+    return false;
+  }
+
+  // bit[15] and bit[14] are opposite.
+  if (((bits ^ (bits << 1)) & 0x4000) == 0) {
+    return false;
+  }
+
+  return true;
 }
 
 

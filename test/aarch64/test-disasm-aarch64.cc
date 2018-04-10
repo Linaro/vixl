@@ -2594,6 +2594,8 @@ TEST(cond_cmp_macro) {
 TEST(fmov_imm) {
   SETUP();
 
+  COMPARE(fmov(h2, F16(-5.0)), "fmov h2, #0x94 (-5.0000)");
+  COMPARE(fmov(h30, F16(29.0)), "fmov h30, #0x3d (29.0000)");
   COMPARE(fmov(s0, 1.0f), "fmov s0, #0x70 (1.0000)");
   COMPARE(fmov(s31, -13.0f), "fmov s31, #0xaa (-13.0000)");
   COMPARE(fmov(d1, 1.0), "fmov d1, #0x70 (1.0000)");
@@ -5776,9 +5778,10 @@ TEST(neon_modimm) {
   COMPARE_MACRO(Fmov(v31.V4S(), -13.0f), "fmov v31.4s, #0xaa (-13.0000)");
   COMPARE_MACRO(Fmov(v1.V2D(), 1.0), "fmov v1.2d, #0x70 (1.0000)");
   COMPARE_MACRO(Fmov(v29.V2D(), -13.0), "fmov v29.2d, #0xaa (-13.0000)");
-
-  // An unallocated form of fmov.
-  COMPARE(dci(0x2f07ffff), "unallocated (NEONModifiedImmediate)");
+  COMPARE_MACRO(Fmov(v0.V4H(), F16(-5.0f)), "fmov v0.4h, #0x94 (-5.0000)");
+  COMPARE_MACRO(Fmov(v31.V8H(), F16(29.0f)), "fmov v31.8h, #0x3d (29.0000)");
+  COMPARE_MACRO(Fmov(v0.V4H(), F16(-5.0)), "fmov v0.4h, #0x94 (-5.0000)");
+  COMPARE_MACRO(Fmov(v31.V8H(), F16(29.0)), "fmov v31.8h, #0x3d (29.0000)");
 
   CLEANUP();
 }

@@ -971,6 +971,10 @@ class Simulator : public DecoderVisitor {
     return ReadHRegister(code);
   }
 
+  uint16_t ReadHRegisterBits(unsigned code) const {
+    return ReadVRegister<uint16_t>(code);
+  }
+
   float ReadSRegister(unsigned code) const {
     return ReadVRegister<float>(code);
   }
@@ -1274,14 +1278,15 @@ class Simulator : public DecoderVisitor {
 
     kPrintRegAsVectorMask = 3 << 3,
 
-    // Indicate floating-point format lanes. (This flag is only supported for S-
-    // and D-sized lanes.)
+    // Indicate floating-point format lanes. (This flag is only supported for
+    // S-, H-, and D-sized lanes.)
     kPrintRegAsFP = 1 << 5,
 
     // Supported combinations.
 
     kPrintXReg = kPrintRegLaneSizeX | kPrintRegAsScalar,
     kPrintWReg = kPrintRegLaneSizeW | kPrintRegAsScalar,
+    kPrintHReg = kPrintRegLaneSizeH | kPrintRegAsScalar | kPrintRegAsFP,
     kPrintSReg = kPrintRegLaneSizeS | kPrintRegAsScalar | kPrintRegAsFP,
     kPrintDReg = kPrintRegLaneSizeD | kPrintRegAsScalar | kPrintRegAsFP,
 
@@ -1294,6 +1299,9 @@ class Simulator : public DecoderVisitor {
     kPrintReg1S = kPrintRegLaneSizeS | kPrintRegAsScalar,
     kPrintReg2S = kPrintRegLaneSizeS | kPrintRegAsDVector,
     kPrintReg4S = kPrintRegLaneSizeS | kPrintRegAsQVector,
+    kPrintReg1HFP = kPrintRegLaneSizeH | kPrintRegAsScalar | kPrintRegAsFP,
+    kPrintReg4HFP = kPrintRegLaneSizeH | kPrintRegAsDVector | kPrintRegAsFP,
+    kPrintReg8HFP = kPrintRegLaneSizeH | kPrintRegAsQVector | kPrintRegAsFP,
     kPrintReg1SFP = kPrintRegLaneSizeS | kPrintRegAsScalar | kPrintRegAsFP,
     kPrintReg2SFP = kPrintRegLaneSizeS | kPrintRegAsDVector | kPrintRegAsFP,
     kPrintReg4SFP = kPrintRegLaneSizeS | kPrintRegAsQVector | kPrintRegAsFP,
@@ -1347,11 +1355,14 @@ class Simulator : public DecoderVisitor {
         return kPrintDReg;
       case kSRegSizeInBytes:
         return kPrintSReg;
+      case kHRegSizeInBytes:
+        return kPrintHReg;
     }
   }
 
   PrintRegisterFormat GetPrintRegisterFormatTryFP(PrintRegisterFormat format) {
-    if ((GetPrintRegLaneSizeInBytes(format) == kSRegSizeInBytes) ||
+    if ((GetPrintRegLaneSizeInBytes(format) == kHRegSizeInBytes) ||
+        (GetPrintRegLaneSizeInBytes(format) == kSRegSizeInBytes) ||
         (GetPrintRegLaneSizeInBytes(format) == kDRegSizeInBytes)) {
       return static_cast<PrintRegisterFormat>(format | kPrintRegAsFP);
     }
@@ -1370,6 +1381,11 @@ class Simulator : public DecoderVisitor {
 
   PrintRegisterFormat GetPrintRegisterFormat(float value) {
     VIXL_STATIC_ASSERT(sizeof(value) == kSRegSizeInBytes);
+    return GetPrintRegisterFormatForSizeFP(sizeof(value));
+  }
+
+  PrintRegisterFormat GetPrintRegisterFormat(float16 value) {
+    VIXL_STATIC_ASSERT(sizeof(value) == kHRegSizeInBytes);
     return GetPrintRegisterFormatForSizeFP(sizeof(value));
   }
 
@@ -1481,6 +1497,7 @@ class Simulator : public DecoderVisitor {
                                      Reg31Mode mode = Reg31IsZeroRegister);
   static const char* XRegNameForCode(unsigned code,
                                      Reg31Mode mode = Reg31IsZeroRegister);
+  static const char* HRegNameForCode(unsigned code);
   static const char* SRegNameForCode(unsigned code);
   static const char* DRegNameForCode(unsigned code);
   static const char* VRegNameForCode(unsigned code);
@@ -3020,6 +3037,7 @@ class Simulator : public DecoderVisitor {
 
   static const char* xreg_names[];
   static const char* wreg_names[];
+  static const char* hreg_names[];
   static const char* sreg_names[];
   static const char* dreg_names[];
   static const char* vreg_names[];

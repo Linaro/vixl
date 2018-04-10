@@ -602,8 +602,7 @@ void Decoder::DecodeFP(const Instruction* instr) {
             if (instr->ExtractBits(15, 10) == 32) {
               VisitUnallocated(instr);
             } else if (instr->ExtractBits(15, 10) == 0) {
-              if ((instr->ExtractBits(23, 22) == 0x3) ||
-                  (instr->Mask(0x000E0000) == 0x000A0000) ||
+              if ((instr->Mask(0x000E0000) == 0x000A0000) ||
                   (instr->Mask(0x000E0000) == 0x000C0000) ||
                   (instr->Mask(0x00160000) == 0x00120000) ||
                   (instr->Mask(0x00160000) == 0x00140000) ||
@@ -632,7 +631,6 @@ void Decoder::DecodeFP(const Instruction* instr) {
                   (masked_A0DF8000 == 0x00430000) ||
                   (masked_A0DF8000 == 0x00468000) ||
                   (instr->Mask(0xA0D80000) == 0x00800000) ||
-                  (instr->Mask(0xA0DE0000) == 0x00C00000) ||
                   (instr->Mask(0xA0DF0000) == 0x00C30000) ||
                   (instr->Mask(0xA0DC0000) == 0x00C40000)) {
                 VisitUnallocated(instr);
@@ -649,7 +647,9 @@ void Decoder::DecodeFP(const Instruction* instr) {
               }
             } else if (instr->ExtractBits(12, 10) == 4) {
               if ((instr->ExtractBits(9, 5) != 0) ||
-                  (instr->Mask(0x80800000) != 0x00000000)) {
+                  // Valid enc: 01d, 00s, 11h.
+                  (instr->ExtractBits(23, 22) == 0x2) ||
+                  (instr->ExtractBit(31) == 1)) {
                 VisitUnallocated(instr);
               } else {
                 VisitFPImmediate(instr);

@@ -32,8 +32,8 @@
 #include "../globals-vixl.h"
 #include "../invalset-vixl.h"
 #include "../utils-vixl.h"
-
 #include "operands-aarch64.h"
+#include "utils-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {
@@ -1359,6 +1359,9 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Move single precision immediate to FP register.
   void fmov(const VRegister& vd, float imm);
+
+  // Move half precision immediate to FP register [Armv8.2].
+  void fmov(const VRegister& vd, F16 imm);
 
   // Move FP register to register.
   void fmov(const Register& rd, const VRegister& fn);
@@ -3007,11 +3010,24 @@ class Assembler : public vixl::internal::AssemblerBase {
   }
 
   // FP Immediates.
+  static Instr ImmFP16(float16 imm);
   static Instr ImmFP32(float imm);
   static Instr ImmFP64(double imm);
 
   // FP register type.
-  static Instr FPType(FPRegister fd) { return fd.Is64Bits() ? FP64 : FP32; }
+  static Instr FPType(FPRegister fd) {
+    switch (fd.GetSizeInBits()) {
+      case 16:
+        return FP16;
+      case 32:
+        return FP32;
+      case 64:
+        return FP64;
+      default:
+        VIXL_UNREACHABLE();
+        return 0;
+    }
+  }
 
   static Instr FPScale(unsigned scale) {
     VIXL_ASSERT(IsUint6(scale));
@@ -3021,6 +3037,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Immediate field checking helpers.
   static bool IsImmAddSub(int64_t immediate);
   static bool IsImmConditionalCompare(int64_t immediate);
+  static bool IsImmFP16(float16 imm);
   static bool IsImmFP32(float imm);
   static bool IsImmFP64(double imm);
   static bool IsImmLogical(uint64_t value,
@@ -3067,21 +3084,52 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Instruction bits for vector format in floating point data processing
   // operations.
   static Instr FPFormat(VRegister vd) {
-    if (vd.GetLanes() == 1) {
-      // Floating point scalar formats.
-      VIXL_ASSERT(vd.Is32Bits() || vd.Is64Bits());
-      return vd.Is64Bits() ? FP64 : FP32;
+    switch (vd.GetLanes()) {
+      case 1:
+        // Floating point scalar formats.
+        switch (vd.GetSizeInBits()) {
+          case 16:
+            return FP16;
+          case 32:
+            return FP32;
+          case 64:
+            return FP64;
+          default:
+            VIXL_UNREACHABLE();
+        }
+        break;
+      case 2:
+        // Two lane floating point vector formats.
+        switch (vd.GetSizeInBits()) {
+          case 64:
+            return NEON_FP_2S;
+          case 128:
+            return NEON_FP_2D;
+          default:
+            VIXL_UNREACHABLE();
+        }
+        break;
+      case 4:
+        // Four lane floating point vector formats.
+        switch (vd.GetSizeInBits()) {
+          case 64:
+            return NEON_FP_4H;
+          case 128:
+            return NEON_FP_4S;
+          default:
+            VIXL_UNREACHABLE();
+        }
+        break;
+      case 8:
+        // Eight lane floating point vector format.
+        VIXL_ASSERT(vd.Is128Bits());
+        return NEON_FP_8H;
+      default:
+        VIXL_UNREACHABLE();
+        return 0;
     }
-
-    // Two lane floating point vector formats.
-    if (vd.GetLanes() == 2) {
-      VIXL_ASSERT(vd.Is64Bits() || vd.Is128Bits());
-      return vd.Is128Bits() ? NEON_FP_2D : NEON_FP_2S;
-    }
-
-    // Four lane floating point vector format.
-    VIXL_ASSERT((vd.GetLanes() == 4) && vd.Is128Bits());
-    return NEON_FP_4S;
+    VIXL_UNREACHABLE();
+    return 0;
   }
 
   // Instruction bits for vector format in load and store operations.
@@ -3343,6 +3391,7 @@ class Assembler : public vixl::internal::AssemblerBase {
 
 
  private:
+  static uint32_t FP16ToImm8(float16 imm);
   static uint32_t FP32ToImm8(float imm);
   static uint32_t FP64ToImm8(double imm);
 

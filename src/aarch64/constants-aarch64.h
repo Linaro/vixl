@@ -414,6 +414,7 @@ enum DataCacheOp {
 enum GenericInstrField {
   SixtyFourBits        = 0x80000000,
   ThirtyTwoBits        = 0x00000000,
+  FP16                 = 0x00C00000,
   FP32                 = 0x00000000,
   FP64                 = 0x00400000
 };
@@ -433,7 +434,9 @@ enum NEONFormatField {
 
 enum NEONFPFormatField {
   NEONFPFormatFieldMask = 0x40400000,
+  NEON_FP_4H            = FP16,
   NEON_FP_2S            = FP32,
+  NEON_FP_8H            = FP16 | NEON_Q,
   NEON_FP_4S            = FP32 | NEON_Q,
   NEON_FP_2D            = FP64 | NEON_Q
 };
@@ -1193,6 +1196,7 @@ enum FPImmediateOp {
   FPImmediateFixed = 0x1E201000,
   FPImmediateFMask = 0x5F201C00,
   FPImmediateMask  = 0xFFE01C00,
+  FMOV_h_imm       = FPImmediateFixed | FP16 | 0x00000000,
   FMOV_s_imm       = FPImmediateFixed | 0x00000000,
   FMOV_d_imm       = FPImmediateFixed | FP64 | 0x00000000
 };
@@ -1202,6 +1206,7 @@ enum FPDataProcessing1SourceOp {
   FPDataProcessing1SourceFixed = 0x1E204000,
   FPDataProcessing1SourceFMask = 0x5F207C00,
   FPDataProcessing1SourceMask  = 0xFFFFFC00,
+  FMOV_h   = FPDataProcessing1SourceFixed | FP16 | 0x00000000,
   FMOV_s   = FPDataProcessing1SourceFixed | 0x00000000,
   FMOV_d   = FPDataProcessing1SourceFixed | FP64 | 0x00000000,
   FMOV     = FMOV_s,
@@ -1357,6 +1362,10 @@ enum FPIntegerConvertOp {
   FCVTAU_xs = FCVTAU | SixtyFourBits,
   FCVTAU_wd = FCVTAU | FP64,
   FCVTAU_xd = FCVTAU | SixtyFourBits | FP64,
+  FMOV_wh   = FPIntegerConvertFixed | 0x00060000 | FP16,
+  FMOV_hw   = FPIntegerConvertFixed | 0x00070000 | FP16,
+  FMOV_xh   = FMOV_wh | SixtyFourBits,
+  FMOV_hx   = FMOV_hw | SixtyFourBits,
   FMOV_ws   = FPIntegerConvertFixed | 0x00060000,
   FMOV_sw   = FPIntegerConvertFixed | 0x00070000,
   FMOV_xd   = FMOV_ws | SixtyFourBits | FP64,
@@ -1943,6 +1952,7 @@ enum NEONModifiedImmediateOp {
   NEONModifiedImmediateFixed = 0x0F000400,
   NEONModifiedImmediateFMask = 0x9FF80400,
   NEONModifiedImmediateOpBit = 0x20000000,
+  NEONModifiedImmediate_FMOV = NEONModifiedImmediateFixed | 0x00000800,
   NEONModifiedImmediate_MOVI = NEONModifiedImmediateFixed | 0x00000000,
   NEONModifiedImmediate_MVNI = NEONModifiedImmediateFixed | 0x20000000,
   NEONModifiedImmediate_ORR  = NEONModifiedImmediateFixed | 0x00001000,

@@ -61,6 +61,7 @@ class RegisterDump {
   RegisterDump() : completed_(false) {
     VIXL_ASSERT(sizeof(dump_.d_[0]) == kDRegSizeInBytes);
     VIXL_ASSERT(sizeof(dump_.s_[0]) == kSRegSizeInBytes);
+    VIXL_ASSERT(sizeof(dump_.h_[0]) == kHRegSizeInBytes);
     VIXL_ASSERT(sizeof(dump_.d_[0]) == kXRegSizeInBytes);
     VIXL_ASSERT(sizeof(dump_.s_[0]) == kWRegSizeInBytes);
     VIXL_ASSERT(sizeof(dump_.x_[0]) == kXRegSizeInBytes);
@@ -95,9 +96,18 @@ class RegisterDump {
   }
 
   // FPRegister accessors.
+  inline uint16_t hreg_bits(unsigned code) const {
+    VIXL_ASSERT(FPRegAliasesMatch(code));
+    return dump_.h_[code];
+  }
+
   inline uint32_t sreg_bits(unsigned code) const {
     VIXL_ASSERT(FPRegAliasesMatch(code));
     return dump_.s_[code];
+  }
+
+  inline F16 hreg(unsigned code) const {
+    return F16::FromRawbits(hreg_bits(code));
   }
 
   inline float sreg(unsigned code) const {
@@ -158,7 +168,8 @@ class RegisterDump {
   bool FPRegAliasesMatch(unsigned code) const {
     VIXL_ASSERT(IsComplete());
     VIXL_ASSERT(code < kNumberOfFPRegisters);
-    return (dump_.d_[code] & kSRegMask) == dump_.s_[code];
+    return (((dump_.d_[code] & kSRegMask) == dump_.s_[code]) ||
+            ((dump_.s_[code] & kHRegMask) == dump_.h_[code]));
   }
 
   // Store all the dumped elements in a simple struct so the implementation can
@@ -171,6 +182,7 @@ class RegisterDump {
     // Floating-point registers, as raw bits.
     uint64_t d_[kNumberOfFPRegisters];
     uint32_t s_[kNumberOfFPRegisters];
+    uint16_t h_[kNumberOfFPRegisters];
 
     // Vector registers.
     vec128_t q_[kNumberOfVRegisters];
@@ -193,6 +205,7 @@ class RegisterDump {
 bool Equal32(uint32_t expected, const RegisterDump*, uint32_t result);
 bool Equal64(uint64_t expected, const RegisterDump*, uint64_t result);
 
+bool EqualFP16(F16 expected, const RegisterDump*, uint16_t result);
 bool EqualFP32(float expected, const RegisterDump*, float result);
 bool EqualFP64(double expected, const RegisterDump*, double result);
 
@@ -202,6 +215,7 @@ bool Equal64(uint64_t expected,
              const RegisterDump* core,
              const VRegister& vreg);
 
+bool EqualFP16(F16 expected, const RegisterDump* core, const FPRegister& fpreg);
 bool EqualFP32(float expected,
                const RegisterDump* core,
                const FPRegister& fpreg);

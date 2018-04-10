@@ -78,6 +78,7 @@ const unsigned kQRegSizeInBytes = kQRegSize / 8;
 const unsigned kQRegSizeInBytesLog2 = kQRegSizeLog2 - 3;
 const uint64_t kWRegMask = UINT64_C(0xffffffff);
 const uint64_t kXRegMask = UINT64_C(0xffffffffffffffff);
+const uint64_t kHRegMask = UINT64_C(0xffff);
 const uint64_t kSRegMask = UINT64_C(0xffffffff);
 const uint64_t kDRegMask = UINT64_C(0xffffffffffffffff);
 const uint64_t kSSignMask = UINT64_C(0x80000000);
@@ -220,11 +221,15 @@ class Instruction {
     return GetImmNEONabcdefgh();
   }
 
+  float16 GetImmFP16() const;
+
   float GetImmFP32() const;
   VIXL_DEPRECATED("GetImmFP32", float ImmFP32() const) { return GetImmFP32(); }
 
   double GetImmFP64() const;
   VIXL_DEPRECATED("GetImmFP64", double ImmFP64() const) { return GetImmFP64(); }
+
+  float16 GetImmNEONFP16() const;
 
   float GetImmNEONFP32() const;
   VIXL_DEPRECATED("GetImmNEONFP32", float ImmNEONFP32() const) {
@@ -494,6 +499,7 @@ class Instruction {
  private:
   int GetImmBranch() const;
 
+  static float16 Imm8ToFP16(uint32_t imm8);
   static float Imm8ToFP32(uint32_t imm8);
   static double Imm8ToFP64(uint32_t imm8);
 

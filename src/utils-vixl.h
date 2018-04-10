@@ -223,6 +223,9 @@ inline uint64_t RotateRight(uint64_t value,
 
 
 // Floating point representation.
+uint16_t Float16ToRawbits(float16 value);
+
+
 uint32_t FloatToRawbits(float value);
 VIXL_DEPRECATED("FloatToRawbits",
                 inline uint32_t float_to_rawbits(float value)) {
@@ -234,6 +237,8 @@ VIXL_DEPRECATED("DoubleToRawbits",
                 inline uint64_t double_to_rawbits(double value)) {
   return DoubleToRawbits(value);
 }
+
+float16 RawbitsToFloat16(uint16_t bits);
 
 float RawbitsToFloat(uint32_t bits);
 VIXL_DEPRECATED("RawbitsToFloat",
@@ -300,6 +305,11 @@ VIXL_DEPRECATED("Float16Classify", inline int float16classify(float16 value)) {
   return Float16Classify(value);
 }
 
+
+// Check for float16 (uint16_t) NaNs.
+inline bool IsNaN(float16 value) { return Float16Classify(value) == FP_NAN; }
+
+
 // NaN tests.
 inline bool IsSignallingNaN(double num) {
   const uint64_t kFP64QuietNaNMask = UINT64_C(0x0008000000000000);
@@ -323,7 +333,7 @@ inline bool IsSignallingNaN(float num) {
 
 inline bool IsSignallingNaN(float16 num) {
   const uint16_t kFP16QuietNaNMask = 0x0200;
-  return (Float16Classify(num) == FP_NAN) && ((num & kFP16QuietNaNMask) == 0);
+  return IsNaN(num) && ((num & kFP16QuietNaNMask) == 0);
 }
 
 

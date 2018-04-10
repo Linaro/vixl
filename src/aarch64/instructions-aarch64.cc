@@ -180,8 +180,21 @@ uint32_t Instruction::GetImmNEONabcdefgh() const {
 }
 
 
+float16 Instruction::Imm8ToFP16(uint32_t imm8) {
+  // Imm8: abcdefgh (8 bits)
+  // Half: aBbb.cdef.gh00.0000 (16 bits)
+  // where B is b ^ 1
+  uint32_t bits = imm8;
+  uint16_t bit7 = (bits >> 7) & 0x1;
+  uint16_t bit6 = (bits >> 6) & 0x1;
+  uint16_t bit5_to_0 = bits & 0x3f;
+  uint16_t result = (bit7 << 15) | ((4 - bit6) << 12) | (bit5_to_0 << 6);
+  return RawbitsToFloat16(result);
+}
+
+
 float Instruction::Imm8ToFP32(uint32_t imm8) {
-  //   Imm8: abcdefgh (8 bits)
+  // Imm8: abcdefgh (8 bits)
   // Single: aBbb.bbbc.defg.h000.0000.0000.0000.0000 (32 bits)
   // where B is b ^ 1
   uint32_t bits = imm8;
@@ -194,11 +207,14 @@ float Instruction::Imm8ToFP32(uint32_t imm8) {
 }
 
 
+float16 Instruction::GetImmFP16() const { return Imm8ToFP16(GetImmFP()); }
+
+
 float Instruction::GetImmFP32() const { return Imm8ToFP32(GetImmFP()); }
 
 
 double Instruction::Imm8ToFP64(uint32_t imm8) {
-  //   Imm8: abcdefgh (8 bits)
+  // Imm8: abcdefgh (8 bits)
   // Double: aBbb.bbbb.bbcd.efgh.0000.0000.0000.0000
   //         0000.0000.0000.0000.0000.0000.0000.0000 (64 bits)
   // where B is b ^ 1
@@ -213,6 +229,11 @@ double Instruction::Imm8ToFP64(uint32_t imm8) {
 
 
 double Instruction::GetImmFP64() const { return Imm8ToFP64(GetImmFP()); }
+
+
+float16 Instruction::GetImmNEONFP16() const {
+  return Imm8ToFP16(GetImmNEONabcdefgh());
+}
 
 
 float Instruction::GetImmNEONFP32() const {

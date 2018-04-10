@@ -30,6 +30,12 @@
 
 namespace vixl {
 
+uint16_t Float16ToRawbits(float16 value) {
+  uint16_t bits = 0;
+  memcpy(&bits, &value, 2);
+  return value;
+}
+
 uint32_t FloatToRawbits(float value) {
   uint32_t bits = 0;
   memcpy(&bits, &value, 4);
@@ -41,6 +47,13 @@ uint64_t DoubleToRawbits(double value) {
   uint64_t bits = 0;
   memcpy(&bits, &value, 8);
   return bits;
+}
+
+
+float16 RawbitsToFloat16(uint16_t bits) {
+  float16 value = 0x0;
+  memcpy(&value, &bits, 2);
+  return value;
 }
 
 

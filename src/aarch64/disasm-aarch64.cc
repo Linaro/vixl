@@ -27,6 +27,7 @@
 #include <cstdlib>
 
 #include "disasm-aarch64.h"
+#include "utils-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {
@@ -1415,12 +1416,20 @@ void Disassembler::VisitFPDataProcessing1Source(const Instruction *instr) {
   const char *form = "'Fd, 'Fn";
 
   switch (instr->Mask(FPDataProcessing1SourceMask)) {
+// Duplicated until half precision support for all fp instructions.
 #define FORMAT(A, B) \
+  case A##_h:        \
   case A##_s:        \
   case A##_d:        \
     mnemonic = B;    \
     break;
     FORMAT(FMOV, "fmov");
+#undef FORMAT
+#define FORMAT(A, B) \
+  case A##_s:        \
+  case A##_d:        \
+    mnemonic = B;    \
+    break;
     FORMAT(FABS, "fabs");
     FORMAT(FNEG, "fneg");
     FORMAT(FSQRT, "fsqrt");
@@ -1515,8 +1524,11 @@ void Disassembler::VisitFPDataProcessing3Source(const Instruction *instr) {
 void Disassembler::VisitFPImmediate(const Instruction *instr) {
   const char *mnemonic = "";
   const char *form = "(FPImmediate)";
-
   switch (instr->Mask(FPImmediateMask)) {
+    case FMOV_h_imm:
+      mnemonic = "fmov";
+      form = "'Hd, 'IFPHalf";
+      break;
     case FMOV_s_imm:
       mnemonic = "fmov";
       form = "'Sd, 'IFPSingle";
@@ -1539,11 +1551,15 @@ void Disassembler::VisitFPIntegerConvert(const Instruction *instr) {
   const char *form_fr = "'Fd, 'Rn";
 
   switch (instr->Mask(FPIntegerConvertMask)) {
+    case FMOV_wh:
+    case FMOV_xh:
     case FMOV_ws:
     case FMOV_xd:
       mnemonic = "fmov";
       form = form_rf;
       break;
+    case FMOV_hw:
+    case FMOV_hx:
     case FMOV_sw:
     case FMOV_dx:
       mnemonic = "fmov";
@@ -3231,6 +3247,7 @@ void Disassembler::VisitNEONModifiedImmediate(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'Vt.%s, 'IVMIImm8, lsl 'IVMIShiftAmt1";
 
+  int half_enc = instr->ExtractBit(11);
   int cmode = instr->GetNEONCmode();
   int cmode_3 = (cmode >> 3) & 1;
   int cmode_2 = (cmode >> 2) & 1;
@@ -3243,7 +3260,6 @@ void Disassembler::VisitNEONModifiedImmediate(const Instruction *instr) {
   static const NEONFormatMap map_h = {{30}, {NF_4H, NF_8H}};
   static const NEONFormatMap map_s = {{30}, {NF_2S, NF_4S}};
   NEONFormatDecoder nfd(instr, &map_b);
-
   if (cmode_3 == 0) {
     if (cmode_0 == 0) {
       mnemonic = (op == 1) ? "mvni" : "movi";
@@ -3274,7 +3290,10 @@ void Disassembler::VisitNEONModifiedImmediate(const Instruction *instr) {
           }
         } else {  // cmode<0> == '1'
           mnemonic = "fmov";
-          if (op == 0) {
+          if (half_enc == 1) {
+            form = "'Vt.%s, 'IVMIImmFPHalf";
+            nfd.SetFormatMap(0, &map_h);
+          } else if (op == 0) {
             form = "'Vt.%s, 'IVMIImmFPSingle";
             nfd.SetFormatMap(0, &map_s);
           } else {
@@ -4386,10 +4405,21 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
   CPURegister::RegisterType reg_type = CPURegister::kRegister;
   unsigned reg_size = kXRegSize;
 
-  if (reg_prefix == 'R') {
-    reg_prefix = instr->GetSixtyFourBits() ? 'X' : 'W';
-  } else if (reg_prefix == 'F') {
-    reg_prefix = ((instr->GetFPType() & 1) == 0) ? 'S' : 'D';
+  switch (reg_prefix) {
+    case 'R':
+      reg_prefix = instr->GetSixtyFourBits() ? 'X' : 'W';
+      break;
+    case 'F':
+      switch (instr->GetFPType()) {
+        case 3:
+          reg_prefix = 'H';
+          break;
+        case 0:
+          reg_prefix = 'S';
+          break;
+        default:
+          reg_prefix = 'D';
+      }
   }
 
   switch (reg_prefix) {
@@ -4510,16 +4540,22 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
       AppendToOutput("#0x%" PRIx64 " (%" PRId64 ")", imm, imm);
       return 7;
     }
-    case 'F': {                // IFPSingle, IFPDouble or IFPFBits.
+    case 'F': {                // IFPHalf, IFPSingle, IFPDouble, or IFPFBits.
       if (format[3] == 'F') {  // IFPFbits.
         AppendToOutput("#%" PRId32, 64 - instr->GetFPScale());
         return 8;
       } else {
         AppendToOutput("#0x%" PRIx32 " (%.4f)",
                        instr->GetImmFP(),
-                       format[3] == 'S' ? instr->GetImmFP32()
-                                        : instr->GetImmFP64());
-        return 9;
+                       format[3] == 'H'
+                           ? FPToFloat(instr->GetImmFP16(), kIgnoreDefaultNaN)
+                           : (format[3] == 'S') ? instr->GetImmFP32()
+                                                : instr->GetImmFP64());
+        if (format[3] == 'H') {
+          return 7;
+        } else {
+          return 9;
+        }
       }
     }
     case 'T': {  // ITri - Immediate Triangular Encoded.
@@ -4640,8 +4676,15 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           return 9;
         }
         case 'M': {  // Modified Immediate cases.
-          if (strncmp(format, "IVMIImmFPSingle", strlen("IVMIImmFPSingle")) ==
-              0) {
+          if (strncmp(format, "IVMIImmFPHalf", strlen("IVMIImmFPHalf")) == 0) {
+            AppendToOutput("#0x%" PRIx32 " (%.4f)",
+                           instr->GetImmNEONabcdefgh(),
+                           FPToFloat(instr->GetImmNEONFP16(),
+                                     kIgnoreDefaultNaN));
+            return strlen("IVMIImmFPHalf");
+          } else if (strncmp(format,
+                             "IVMIImmFPSingle",
+                             strlen("IVMIImmFPSingle")) == 0) {
             AppendToOutput("#0x%" PRIx32 " (%.4f)",
                            instr->GetImmNEONabcdefgh(),
                            instr->GetImmNEONFP32());
