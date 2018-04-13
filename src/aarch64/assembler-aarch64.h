@@ -1173,6 +1173,24 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Load-acquire register.
   void ldar(const Register& rt, const MemOperand& src);
 
+  // Store LORelease byte [Armv8.1].
+  void stllrb(const Register& rt, const MemOperand& dst);
+
+  // Store LORelease half-word [Armv8.1].
+  void stllrh(const Register& rt, const MemOperand& dst);
+
+  // Store LORelease register [Armv8.1].
+  void stllr(const Register& rt, const MemOperand& dst);
+
+  // Load LORelease byte [Armv8.1].
+  void ldlarb(const Register& rt, const MemOperand& src);
+
+  // Load LORelease half-word [Armv8.1].
+  void ldlarh(const Register& rt, const MemOperand& src);
+
+  // Load LORelease register [Armv8.1].
+  void ldlar(const Register& rt, const MemOperand& src);
+
   // Compare and Swap word or doubleword in memory [Armv8.1].
   void cas(const Register& rs, const Register& rt, const MemOperand& src);
 

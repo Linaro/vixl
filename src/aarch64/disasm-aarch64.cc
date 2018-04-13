@@ -1274,6 +1274,14 @@ void Disassembler::VisitLoadStorePairNonTemporal(const Instruction *instr) {
   V(LDARH_w,  "ldarh",  "'Wt")                        \
   V(LDAR_w,   "ldar",   "'Wt")                        \
   V(LDAR_x,   "ldar",   "'Xt")                        \
+  V(STLLRB,   "stllrb", "'Wt")                        \
+  V(STLLRH,   "stllrh", "'Wt")                        \
+  V(STLLR_w,  "stllr",  "'Wt")                        \
+  V(STLLR_x,  "stllr",  "'Xt")                        \
+  V(LDLARB,   "ldlarb", "'Wt")                        \
+  V(LDLARH,   "ldlarh", "'Wt")                        \
+  V(LDLAR_w,  "ldlar",  "'Wt")                        \
+  V(LDLAR_x,  "ldlar",  "'Xt")                        \
   V(CAS_w,    "cas",    "'Ws, 'Wt")                   \
   V(CAS_x,    "cas",    "'Xs, 'Xt")                   \
   V(CASA_w,   "casa",   "'Ws, 'Wt")                   \

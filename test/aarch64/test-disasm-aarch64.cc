@@ -1848,81 +1848,105 @@ TEST(load_store_exclusive) {
   COMPARE(stlr(w3, MemOperand(sp)), "stlr w3, [sp]");
   COMPARE(stlr(x4, MemOperand(x5)), "stlr x4, [x5]");
   COMPARE(stlr(x6, MemOperand(sp)), "stlr x6, [sp]");
-  COMPARE(ldarb(w7, MemOperand(x8)), "ldarb w7, [x8]");
-  COMPARE(ldarb(w9, MemOperand(sp)), "ldarb w9, [sp]");
-  COMPARE(ldarb(x10, MemOperand(x11)), "ldarb w10, [x11]");
-  COMPARE(ldarb(x12, MemOperand(sp)), "ldarb w12, [sp]");
-  COMPARE(ldarh(w13, MemOperand(x14)), "ldarh w13, [x14]");
-  COMPARE(ldarh(w15, MemOperand(sp)), "ldarh w15, [sp]");
-  COMPARE(ldarh(x16, MemOperand(x17)), "ldarh w16, [x17]");
-  COMPARE(ldarh(x18, MemOperand(sp)), "ldarh w18, [sp]");
-  COMPARE(ldar(w19, MemOperand(x20)), "ldar w19, [x20]");
-  COMPARE(ldar(w21, MemOperand(sp)), "ldar w21, [sp]");
-  COMPARE(ldar(x22, MemOperand(x23)), "ldar x22, [x23]");
-  COMPARE(ldar(x24, MemOperand(sp)), "ldar x24, [sp]");
+  COMPARE(stllrb(w7, MemOperand(x8)), "stllrb w7, [x8]");
+  COMPARE(stllrb(w9, MemOperand(sp)), "stllrb w9, [sp]");
+  COMPARE(stllrb(x10, MemOperand(x11)), "stllrb w10, [x11]");
+  COMPARE(stllrb(x12, MemOperand(sp)), "stllrb w12, [sp]");
+  COMPARE(stllrh(w13, MemOperand(x14)), "stllrh w13, [x14]");
+  COMPARE(stllrh(w15, MemOperand(sp)), "stllrh w15, [sp]");
+  COMPARE(stllrh(x16, MemOperand(x17)), "stllrh w16, [x17]");
+  COMPARE(stllrh(x18, MemOperand(sp)), "stllrh w18, [sp]");
+  COMPARE(stllr(w19, MemOperand(x20)), "stllr w19, [x20]");
+  COMPARE(stllr(w21, MemOperand(sp)), "stllr w21, [sp]");
+  COMPARE(stllr(x22, MemOperand(x23)), "stllr x22, [x23]");
+  COMPARE(stllr(x24, MemOperand(sp)), "stllr x24, [sp]");
+  COMPARE(ldarb(w25, MemOperand(x26)), "ldarb w25, [x26]");
+  COMPARE(ldarb(w27, MemOperand(sp)), "ldarb w27, [sp]");
+  COMPARE(ldarb(x28, MemOperand(x29)), "ldarb w28, [x29]");
+  COMPARE(ldarb(x30, MemOperand(sp)), "ldarb w30, [sp]");
+  COMPARE(ldarh(w0, MemOperand(x1)), "ldarh w0, [x1]");
+  COMPARE(ldarh(w2, MemOperand(sp)), "ldarh w2, [sp]");
+  COMPARE(ldarh(x3, MemOperand(x4)), "ldarh w3, [x4]");
+  COMPARE(ldarh(x5, MemOperand(sp)), "ldarh w5, [sp]");
+  COMPARE(ldar(w6, MemOperand(x7)), "ldar w6, [x7]");
+  COMPARE(ldar(w8, MemOperand(sp)), "ldar w8, [sp]");
+  COMPARE(ldar(x9, MemOperand(x10)), "ldar x9, [x10]");
+  COMPARE(ldar(x11, MemOperand(sp)), "ldar x11, [sp]");
+  COMPARE(ldlarb(w12, MemOperand(x13)), "ldlarb w12, [x13]");
+  COMPARE(ldlarb(w14, MemOperand(sp)), "ldlarb w14, [sp]");
+  COMPARE(ldlarb(x15, MemOperand(x16)), "ldlarb w15, [x16]");
+  COMPARE(ldlarb(x17, MemOperand(sp)), "ldlarb w17, [sp]");
+  COMPARE(ldlarh(w18, MemOperand(x19)), "ldlarh w18, [x19]");
+  COMPARE(ldlarh(w20, MemOperand(sp)), "ldlarh w20, [sp]");
+  COMPARE(ldlarh(x21, MemOperand(x22)), "ldlarh w21, [x22]");
+  COMPARE(ldlarh(x23, MemOperand(sp)), "ldlarh w23, [sp]");
+  COMPARE(ldlar(w24, MemOperand(x25)), "ldlar w24, [x25]");
+  COMPARE(ldlar(w26, MemOperand(sp)), "ldlar w26, [sp]");
+  COMPARE(ldlar(x27, MemOperand(x28)), "ldlar x27, [x28]");
+  COMPARE(ldlar(x29, MemOperand(sp)), "ldlar x29, [sp]");
 
-  COMPARE(cas(w25, w26, MemOperand(x27)), "cas w25, w26, [x27]");
-  COMPARE(cas(w28, w29, MemOperand(sp)), "cas w28, w29, [sp]");
-  COMPARE(cas(x30, x0, MemOperand(x1)), "cas x30, x0, [x1]");
-  COMPARE(cas(x2, x3, MemOperand(sp)), "cas x2, x3, [sp]");
-  COMPARE(casa(w4, w5, MemOperand(x6)), "casa w4, w5, [x6]");
-  COMPARE(casa(w7, w8, MemOperand(sp)), "casa w7, w8, [sp]");
-  COMPARE(casa(x9, x10, MemOperand(x11)), "casa x9, x10, [x11]");
-  COMPARE(casa(x12, x13, MemOperand(sp)), "casa x12, x13, [sp]");
-  COMPARE(casl(w14, w15, MemOperand(x16)), "casl w14, w15, [x16]");
-  COMPARE(casl(w17, w18, MemOperand(sp)), "casl w17, w18, [sp]");
-  COMPARE(casl(x19, x20, MemOperand(x21)), "casl x19, x20, [x21]");
-  COMPARE(casl(x22, x23, MemOperand(sp)), "casl x22, x23, [sp]");
-  COMPARE(casal(w24, w25, MemOperand(x26)), "casal w24, w25, [x26]");
-  COMPARE(casal(w27, w28, MemOperand(sp)), "casal w27, w28, [sp]");
-  COMPARE(casal(x29, x30, MemOperand(x0)), "casal x29, x30, [x0]");
-  COMPARE(casal(x1, x2, MemOperand(sp)), "casal x1, x2, [sp]");
-  COMPARE(casb(w3, w4, MemOperand(x5)), "casb w3, w4, [x5]");
-  COMPARE(casb(w6, w7, MemOperand(sp)), "casb w6, w7, [sp]");
-  COMPARE(casab(w8, w9, MemOperand(x10)), "casab w8, w9, [x10]");
-  COMPARE(casab(w11, w12, MemOperand(sp)), "casab w11, w12, [sp]");
-  COMPARE(caslb(w13, w14, MemOperand(x15)), "caslb w13, w14, [x15]");
-  COMPARE(caslb(w16, w17, MemOperand(sp)), "caslb w16, w17, [sp]");
-  COMPARE(casalb(w18, w19, MemOperand(x20)), "casalb w18, w19, [x20]");
-  COMPARE(casalb(w21, w22, MemOperand(sp)), "casalb w21, w22, [sp]");
-  COMPARE(cash(w23, w24, MemOperand(x25)), "cash w23, w24, [x25]");
-  COMPARE(cash(w26, w27, MemOperand(sp)), "cash w26, w27, [sp]");
-  COMPARE(casah(w28, w29, MemOperand(x30)), "casah w28, w29, [x30]");
-  COMPARE(casah(w0, w1, MemOperand(sp)), "casah w0, w1, [sp]");
-  COMPARE(caslh(w2, w3, MemOperand(x4)), "caslh w2, w3, [x4]");
-  COMPARE(caslh(w5, w6, MemOperand(sp)), "caslh w5, w6, [sp]");
-  COMPARE(casalh(w7, w8, MemOperand(x9)), "casalh w7, w8, [x9]");
-  COMPARE(casalh(w10, w11, MemOperand(sp)), "casalh w10, w11, [sp]");
-  COMPARE(casp(w12, w13, w14, w15, MemOperand(x16)),
-          "casp w12, w13, w14, w15, [x16]");
-  COMPARE(casp(w18, w19, w20, w21, MemOperand(sp)),
-          "casp w18, w19, w20, w21, [sp]");
-  COMPARE(casp(x22, x23, x24, x25, MemOperand(x26)),
-          "casp x22, x23, x24, x25, [x26]");
-  COMPARE(casp(x28, x29, x0, x1, MemOperand(sp)),
-          "casp x28, x29, x0, x1, [sp]");
-  COMPARE(caspa(w2, w3, w4, w5, MemOperand(x6)), "caspa w2, w3, w4, w5, [x6]");
-  COMPARE(caspa(w8, w9, w10, w11, MemOperand(sp)),
-          "caspa w8, w9, w10, w11, [sp]");
-  COMPARE(caspa(x12, x13, x14, x15, MemOperand(x16)),
-          "caspa x12, x13, x14, x15, [x16]");
-  COMPARE(caspa(x18, x19, x20, x21, MemOperand(sp)),
-          "caspa x18, x19, x20, x21, [sp]");
-  COMPARE(caspl(w22, w23, w24, w25, MemOperand(x26)),
-          "caspl w22, w23, w24, w25, [x26]");
-  COMPARE(caspl(w28, w29, w0, w1, MemOperand(sp)),
-          "caspl w28, w29, w0, w1, [sp]");
-  COMPARE(caspl(x2, x3, x4, x5, MemOperand(x6)), "caspl x2, x3, x4, x5, [x6]");
-  COMPARE(caspl(x8, x9, x10, x11, MemOperand(sp)),
-          "caspl x8, x9, x10, x11, [sp]");
-  COMPARE(caspal(w12, w13, w14, w15, MemOperand(x16)),
-          "caspal w12, w13, w14, w15, [x16]");
-  COMPARE(caspal(w18, w19, w20, w21, MemOperand(sp)),
-          "caspal w18, w19, w20, w21, [sp]");
-  COMPARE(caspal(x22, x23, x24, x25, MemOperand(x26)),
-          "caspal x22, x23, x24, x25, [x26]");
-  COMPARE(caspal(x28, x29, x0, x1, MemOperand(sp)),
-          "caspal x28, x29, x0, x1, [sp]");
+  COMPARE(cas(w30, w0, MemOperand(x1)), "cas w30, w0, [x1]");
+  COMPARE(cas(w2, w3, MemOperand(sp)), "cas w2, w3, [sp]");
+  COMPARE(cas(x4, x5, MemOperand(x6)), "cas x4, x5, [x6]");
+  COMPARE(cas(x7, x8, MemOperand(sp)), "cas x7, x8, [sp]");
+  COMPARE(casa(w9, w10, MemOperand(x11)), "casa w9, w10, [x11]");
+  COMPARE(casa(w12, w13, MemOperand(sp)), "casa w12, w13, [sp]");
+  COMPARE(casa(x14, x15, MemOperand(x16)), "casa x14, x15, [x16]");
+  COMPARE(casa(x17, x18, MemOperand(sp)), "casa x17, x18, [sp]");
+  COMPARE(casl(w19, w20, MemOperand(x21)), "casl w19, w20, [x21]");
+  COMPARE(casl(w22, w23, MemOperand(sp)), "casl w22, w23, [sp]");
+  COMPARE(casl(x24, x25, MemOperand(x26)), "casl x24, x25, [x26]");
+  COMPARE(casl(x27, x28, MemOperand(sp)), "casl x27, x28, [sp]");
+  COMPARE(casal(w29, w30, MemOperand(x0)), "casal w29, w30, [x0]");
+  COMPARE(casal(w1, w2, MemOperand(sp)), "casal w1, w2, [sp]");
+  COMPARE(casal(x3, x4, MemOperand(x5)), "casal x3, x4, [x5]");
+  COMPARE(casal(x6, x7, MemOperand(sp)), "casal x6, x7, [sp]");
+  COMPARE(casb(w8, w9, MemOperand(x10)), "casb w8, w9, [x10]");
+  COMPARE(casb(w11, w12, MemOperand(sp)), "casb w11, w12, [sp]");
+  COMPARE(casab(w13, w14, MemOperand(x15)), "casab w13, w14, [x15]");
+  COMPARE(casab(w16, w17, MemOperand(sp)), "casab w16, w17, [sp]");
+  COMPARE(caslb(w18, w19, MemOperand(x20)), "caslb w18, w19, [x20]");
+  COMPARE(caslb(w21, w22, MemOperand(sp)), "caslb w21, w22, [sp]");
+  COMPARE(casalb(w23, w24, MemOperand(x25)), "casalb w23, w24, [x25]");
+  COMPARE(casalb(w26, w27, MemOperand(sp)), "casalb w26, w27, [sp]");
+  COMPARE(cash(w28, w29, MemOperand(x30)), "cash w28, w29, [x30]");
+  COMPARE(cash(w0, w1, MemOperand(sp)), "cash w0, w1, [sp]");
+  COMPARE(casah(w2, w3, MemOperand(x4)), "casah w2, w3, [x4]");
+  COMPARE(casah(w5, w6, MemOperand(sp)), "casah w5, w6, [sp]");
+  COMPARE(caslh(w7, w8, MemOperand(x9)), "caslh w7, w8, [x9]");
+  COMPARE(caslh(w10, w11, MemOperand(sp)), "caslh w10, w11, [sp]");
+  COMPARE(casalh(w12, w13, MemOperand(x14)), "casalh w12, w13, [x14]");
+  COMPARE(casalh(w15, w16, MemOperand(sp)), "casalh w15, w16, [sp]");
+  COMPARE(casp(w18, w19, w20, w21, MemOperand(x22)),
+          "casp w18, w19, w20, w21, [x22]");
+  COMPARE(casp(w24, w25, w26, w27, MemOperand(sp)),
+          "casp w24, w25, w26, w27, [sp]");
+  COMPARE(casp(x28, x29, x0, x1, MemOperand(x2)),
+          "casp x28, x29, x0, x1, [x2]");
+  COMPARE(casp(x4, x5, x6, x7, MemOperand(sp)), "casp x4, x5, x6, x7, [sp]");
+  COMPARE(caspa(w8, w9, w10, w11, MemOperand(x12)),
+          "caspa w8, w9, w10, w11, [x12]");
+  COMPARE(caspa(w14, w15, w16, w17, MemOperand(sp)),
+          "caspa w14, w15, w16, w17, [sp]");
+  COMPARE(caspa(x18, x19, x20, x21, MemOperand(x22)),
+          "caspa x18, x19, x20, x21, [x22]");
+  COMPARE(caspa(x24, x25, x26, x27, MemOperand(sp)),
+          "caspa x24, x25, x26, x27, [sp]");
+  COMPARE(caspl(w28, w29, w0, w1, MemOperand(x2)),
+          "caspl w28, w29, w0, w1, [x2]");
+  COMPARE(caspl(w4, w5, w6, w7, MemOperand(sp)), "caspl w4, w5, w6, w7, [sp]");
+  COMPARE(caspl(x8, x9, x10, x11, MemOperand(x12)),
+          "caspl x8, x9, x10, x11, [x12]");
+  COMPARE(caspl(x14, x15, x16, x17, MemOperand(sp)),
+          "caspl x14, x15, x16, x17, [sp]");
+  COMPARE(caspal(w18, w19, w20, w21, MemOperand(x22)),
+          "caspal w18, w19, w20, w21, [x22]");
+  COMPARE(caspal(w24, w25, w26, w27, MemOperand(sp)),
+          "caspal w24, w25, w26, w27, [sp]");
+  COMPARE(caspal(x28, x29, x0, x1, MemOperand(x2)),
+          "caspal x28, x29, x0, x1, [x2]");
+  COMPARE(caspal(x4, x5, x6, x7, MemOperand(sp)),
+          "caspal x4, x5, x6, x7, [sp]");
 
 
   CLEANUP();

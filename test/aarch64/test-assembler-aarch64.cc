@@ -15890,6 +15890,63 @@ TEST(ldar_stlr) {
 }
 
 
+TEST(ldlar_stllr) {
+  // The middle value is read, modified, and written. The padding exists only to
+  // check for over-write.
+  uint8_t b[] = {0, 0x12, 0};
+  uint16_t h[] = {0, 0x1234, 0};
+  uint32_t w[] = {0, 0x12345678, 0};
+  uint64_t x[] = {0, 0x123456789abcdef0, 0};
+
+  SETUP();
+  START();
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&b[1]));
+  __ Ldlarb(w0, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Stllrb(w0, MemOperand(x10));
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&h[1]));
+  __ Ldlarh(w0, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Stllrh(w0, MemOperand(x10));
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&w[1]));
+  __ Ldlar(w0, MemOperand(x10));
+  __ Add(w0, w0, 1);
+  __ Stllr(w0, MemOperand(x10));
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(&x[1]));
+  __ Ldlar(x0, MemOperand(x10));
+  __ Add(x0, x0, 1);
+  __ Stllr(x0, MemOperand(x10));
+
+  END();
+
+// TODO: test on real hardware when available
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_32(0x13, b[1]);
+  ASSERT_EQUAL_32(0x1235, h[1]);
+  ASSERT_EQUAL_32(0x12345679, w[1]);
+  ASSERT_EQUAL_64(0x123456789abcdef1, x[1]);
+
+  // Check for over-write.
+  ASSERT_EQUAL_32(0, b[0]);
+  ASSERT_EQUAL_32(0, b[2]);
+  ASSERT_EQUAL_32(0, h[0]);
+  ASSERT_EQUAL_32(0, h[2]);
+  ASSERT_EQUAL_32(0, w[0]);
+  ASSERT_EQUAL_32(0, w[2]);
+  ASSERT_EQUAL_64(0, x[0]);
+  ASSERT_EQUAL_64(0, x[2]);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
 TEST(ldxr_stxr) {
   // The middle value is read, modified, and written. The padding exists only to
   // check for over-write.

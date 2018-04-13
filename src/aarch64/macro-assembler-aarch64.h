@@ -1474,6 +1474,21 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ldarh(rt, src);
   }
+  void Ldlar(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldlar(rt, src);
+  }
+  void Ldlarb(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldlarb(rt, src);
+  }
+  void Ldlarh(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldlarh(rt, src);
+  }
   void Ldaxp(const Register& rt, const Register& rt2, const MemOperand& src) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rt.Aliases(rt2));
@@ -1926,6 +1941,21 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     stlrh(rt, dst);
+  }
+  void Stllr(const Register& rt, const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    stllr(rt, dst);
+  }
+  void Stllrb(const Register& rt, const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    stllrb(rt, dst);
+  }
+  void Stllrh(const Register& rt, const MemOperand& dst) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    stllrh(rt, dst);
   }
   void Stlxp(const Register& rs,
              const Register& rt,

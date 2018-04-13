@@ -979,6 +979,16 @@ enum LoadStoreExclusive {
   LDAR_w   = LoadStoreExclusiveFixed | 0x80C08000,
   LDAR_x   = LoadStoreExclusiveFixed | 0xC0C08000,
 
+  // v8.1 Load/store LORegion ops
+  STLLRB   = LoadStoreExclusiveFixed | 0x00800000,
+  LDLARB   = LoadStoreExclusiveFixed | 0x00C00000,
+  STLLRH   = LoadStoreExclusiveFixed | 0x40800000,
+  LDLARH   = LoadStoreExclusiveFixed | 0x40C00000,
+  STLLR_w  = LoadStoreExclusiveFixed | 0x80800000,
+  LDLAR_w  = LoadStoreExclusiveFixed | 0x80C00000,
+  STLLR_x  = LoadStoreExclusiveFixed | 0xC0800000,
+  LDLAR_x  = LoadStoreExclusiveFixed | 0xC0C00000,
+
   // v8.1 Load/store exclusive ops
   LSEBit_l  = 0x00400000,
   LSEBit_o0 = 0x00008000,

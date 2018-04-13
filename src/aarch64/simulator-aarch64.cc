@@ -1651,8 +1651,8 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
   LoadStoreExclusive op =
       static_cast<LoadStoreExclusive>(instr->Mask(LoadStoreExclusiveMask));
 
-  bool is_acquire_release = instr->GetLdStXAcquireRelease();
   bool is_exclusive = !instr->GetLdStXNotExclusive();
+  bool is_acquire_release = !is_exclusive || instr->GetLdStXAcquireRelease();
   bool is_load = instr->GetLdStXLoad();
   bool is_pair = instr->GetLdStXPair();
 
@@ -1728,21 +1728,25 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
           case LDXRB_w:
           case LDAXRB_w:
           case LDARB_w:
+          case LDLARB:
             WriteWRegister(rt, Memory::Read<uint8_t>(address), NoRegLog);
             break;
           case LDXRH_w:
           case LDAXRH_w:
           case LDARH_w:
+          case LDLARH:
             WriteWRegister(rt, Memory::Read<uint16_t>(address), NoRegLog);
             break;
           case LDXR_w:
           case LDAXR_w:
           case LDAR_w:
+          case LDLAR_w:
             WriteWRegister(rt, Memory::Read<uint32_t>(address), NoRegLog);
             break;
           case LDXR_x:
           case LDAXR_x:
           case LDAR_x:
+          case LDLAR_x:
             WriteXRegister(rt, Memory::Read<uint64_t>(address), NoRegLog);
             break;
           case LDXP_w:
@@ -1799,21 +1803,25 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
             case STXRB_w:
             case STLXRB_w:
             case STLRB_w:
+            case STLLRB:
               Memory::Write<uint8_t>(address, ReadWRegister(rt));
               break;
             case STXRH_w:
             case STLXRH_w:
             case STLRH_w:
+            case STLLRH:
               Memory::Write<uint16_t>(address, ReadWRegister(rt));
               break;
             case STXR_w:
             case STLXR_w:
             case STLR_w:
+            case STLLR_w:
               Memory::Write<uint32_t>(address, ReadWRegister(rt));
               break;
             case STXR_x:
             case STLXR_x:
             case STLR_x:
+            case STLLR_x:
               Memory::Write<uint64_t>(address, ReadXRegister(rt));
               break;
             case STXP_w:

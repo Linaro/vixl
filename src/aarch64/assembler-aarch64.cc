@@ -1388,6 +1388,44 @@ void Assembler::ldar(const Register& rt, const MemOperand& src) {
 }
 
 
+void Assembler::stllrb(const Register& rt, const MemOperand& dst) {
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
+  Emit(STLLRB | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
+}
+
+
+void Assembler::stllrh(const Register& rt, const MemOperand& dst) {
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
+  Emit(STLLRH | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
+}
+
+
+void Assembler::stllr(const Register& rt, const MemOperand& dst) {
+  VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
+  LoadStoreExclusive op = rt.Is64Bits() ? STLLR_x : STLLR_w;
+  Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
+}
+
+
+void Assembler::ldlarb(const Register& rt, const MemOperand& src) {
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
+  Emit(LDLARB | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
+}
+
+
+void Assembler::ldlarh(const Register& rt, const MemOperand& src) {
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
+  Emit(LDLARH | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
+}
+
+
+void Assembler::ldlar(const Register& rt, const MemOperand& src) {
+  VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
+  LoadStoreExclusive op = rt.Is64Bits() ? LDLAR_x : LDLAR_w;
+  Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
+}
+
+
 // clang-format off
 #define COMPARE_AND_SWAP_W_X_LIST(V) \
   V(cas,   CAS)                      \
