@@ -494,6 +494,28 @@ bool AreSameSizeAndType(const CPURegister& reg1,
                         const CPURegister& reg7 = NoCPUReg,
                         const CPURegister& reg8 = NoCPUReg);
 
+// AreEven returns true if all of the specified registers have even register
+// indices. Arguments set to NoReg are ignored, as are any subsequent
+// arguments. At least one argument (reg1) must be valid (not NoCPUReg).
+bool AreEven(const CPURegister& reg1,
+             const CPURegister& reg2,
+             const CPURegister& reg3 = NoReg,
+             const CPURegister& reg4 = NoReg,
+             const CPURegister& reg5 = NoReg,
+             const CPURegister& reg6 = NoReg,
+             const CPURegister& reg7 = NoReg,
+             const CPURegister& reg8 = NoReg);
+
+
+// AreConsecutive returns true if all of the specified registers are
+// consecutive in the register file. Arguments set to NoReg are ignored, as are
+// any subsequent arguments. At least one argument (reg1) must be valid
+// (not NoCPUReg).
+bool AreConsecutive(const CPURegister& reg1,
+                    const CPURegister& reg2,
+                    const CPURegister& reg3 = NoCPUReg,
+                    const CPURegister& reg4 = NoCPUReg);
+
 
 // AreSameFormat returns true if all of the specified VRegisters have the same
 // vector format. Arguments set to NoReg are ignored, as are any subsequent

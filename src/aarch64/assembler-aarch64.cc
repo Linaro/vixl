@@ -1388,6 +1388,74 @@ void Assembler::ldar(const Register& rt, const MemOperand& src) {
 }
 
 
+// clang-format off
+#define COMPARE_AND_SWAP_W_X_LIST(V) \
+  V(cas,   CAS)                      \
+  V(casa,  CASA)                     \
+  V(casl,  CASL)                     \
+  V(casal, CASAL)
+// clang-format on
+
+#define DEFINE_ASM_FUNC(FN, OP)                                          \
+  void Assembler::FN(const Register& rs,                                 \
+                     const Register& rt,                                 \
+                     const MemOperand& src) {                            \
+    VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));      \
+    LoadStoreExclusive op = rt.Is64Bits() ? OP##_x : OP##_w;             \
+    Emit(op | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister())); \
+  }
+COMPARE_AND_SWAP_W_X_LIST(DEFINE_ASM_FUNC)
+#undef DEFINE_ASM_FUNC
+
+// clang-format off
+#define COMPARE_AND_SWAP_W_LIST(V) \
+  V(casb,   CASB)                  \
+  V(casab,  CASAB)                 \
+  V(caslb,  CASLB)                 \
+  V(casalb, CASALB)                \
+  V(cash,   CASH)                  \
+  V(casah,  CASAH)                 \
+  V(caslh,  CASLH)                 \
+  V(casalh, CASALH)
+// clang-format on
+
+#define DEFINE_ASM_FUNC(FN, OP)                                          \
+  void Assembler::FN(const Register& rs,                                 \
+                     const Register& rt,                                 \
+                     const MemOperand& src) {                            \
+    VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));      \
+    Emit(OP | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister())); \
+  }
+COMPARE_AND_SWAP_W_LIST(DEFINE_ASM_FUNC)
+#undef DEFINE_ASM_FUNC
+
+
+// clang-format off
+#define COMPARE_AND_SWAP_PAIR_LIST(V) \
+  V(casp,   CASP)                     \
+  V(caspa,  CASPA)                    \
+  V(caspl,  CASPL)                    \
+  V(caspal, CASPAL)
+// clang-format on
+
+#define DEFINE_ASM_FUNC(FN, OP)                                          \
+  void Assembler::FN(const Register& rs,                                 \
+                     const Register& rs1,                                \
+                     const Register& rt,                                 \
+                     const Register& rt1,                                \
+                     const MemOperand& src) {                            \
+    USE(rs1, rt1);                                                       \
+    VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));      \
+    VIXL_ASSERT(AreEven(rs, rt));                                        \
+    VIXL_ASSERT(AreConsecutive(rs, rs1));                                \
+    VIXL_ASSERT(AreConsecutive(rt, rt1));                                \
+    LoadStoreExclusive op = rt.Is64Bits() ? OP##_x : OP##_w;             \
+    Emit(op | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister())); \
+  }
+COMPARE_AND_SWAP_PAIR_LIST(DEFINE_ASM_FUNC)
+#undef DEFINE_ASM_FUNC
+
+
 void Assembler::prfm(PrefetchOperation op,
                      const MemOperand& address,
                      LoadStoreScalingOption option) {
@@ -4878,6 +4946,54 @@ bool AreSameSizeAndType(const CPURegister& reg1,
   match &= !reg7.IsValid() || reg7.IsSameSizeAndType(reg1);
   match &= !reg8.IsValid() || reg8.IsSameSizeAndType(reg1);
   return match;
+}
+
+bool AreEven(const CPURegister& reg1,
+             const CPURegister& reg2,
+             const CPURegister& reg3,
+             const CPURegister& reg4,
+             const CPURegister& reg5,
+             const CPURegister& reg6,
+             const CPURegister& reg7,
+             const CPURegister& reg8) {
+  VIXL_ASSERT(reg1.IsValid());
+  bool even = (reg1.GetCode() % 2) == 0;
+  even &= !reg2.IsValid() || ((reg2.GetCode() % 2) == 0);
+  even &= !reg3.IsValid() || ((reg3.GetCode() % 2) == 0);
+  even &= !reg4.IsValid() || ((reg4.GetCode() % 2) == 0);
+  even &= !reg5.IsValid() || ((reg5.GetCode() % 2) == 0);
+  even &= !reg6.IsValid() || ((reg6.GetCode() % 2) == 0);
+  even &= !reg7.IsValid() || ((reg7.GetCode() % 2) == 0);
+  even &= !reg8.IsValid() || ((reg8.GetCode() % 2) == 0);
+  return even;
+}
+
+
+bool AreConsecutive(const CPURegister& reg1,
+                    const CPURegister& reg2,
+                    const CPURegister& reg3,
+                    const CPURegister& reg4) {
+  VIXL_ASSERT(reg1.IsValid());
+
+  if (!reg2.IsValid()) {
+    return true;
+  } else if (reg2.GetCode() != ((reg1.GetCode() + 1) % kNumberOfRegisters)) {
+    return false;
+  }
+
+  if (!reg3.IsValid()) {
+    return true;
+  } else if (reg3.GetCode() != ((reg2.GetCode() + 1) % kNumberOfRegisters)) {
+    return false;
+  }
+
+  if (!reg4.IsValid()) {
+    return true;
+  } else if (reg4.GetCode() != ((reg3.GetCode() + 1) % kNumberOfRegisters)) {
+    return false;
+  }
+
+  return true;
 }
 
 

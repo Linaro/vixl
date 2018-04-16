@@ -977,7 +977,40 @@ enum LoadStoreExclusive {
   LDARB_w  = LoadStoreExclusiveFixed | 0x00C08000,
   LDARH_w  = LoadStoreExclusiveFixed | 0x40C08000,
   LDAR_w   = LoadStoreExclusiveFixed | 0x80C08000,
-  LDAR_x   = LoadStoreExclusiveFixed | 0xC0C08000
+  LDAR_x   = LoadStoreExclusiveFixed | 0xC0C08000,
+
+  // v8.1 Load/store exclusive ops
+  LSEBit_l  = 0x00400000,
+  LSEBit_o0 = 0x00008000,
+  LSEBit_sz = 0x40000000,
+  CASFixed  = LoadStoreExclusiveFixed | 0x80A00000,
+  CASBFixed = LoadStoreExclusiveFixed | 0x00A00000,
+  CASHFixed = LoadStoreExclusiveFixed | 0x40A00000,
+  CASPFixed = LoadStoreExclusiveFixed | 0x00200000,
+  CAS_w    = CASFixed,
+  CAS_x    = CASFixed | LSEBit_sz,
+  CASA_w   = CASFixed | LSEBit_l,
+  CASA_x   = CASFixed | LSEBit_l | LSEBit_sz,
+  CASL_w   = CASFixed | LSEBit_o0,
+  CASL_x   = CASFixed | LSEBit_o0 | LSEBit_sz,
+  CASAL_w  = CASFixed | LSEBit_l | LSEBit_o0,
+  CASAL_x  = CASFixed | LSEBit_l | LSEBit_o0 | LSEBit_sz,
+  CASB     = CASBFixed,
+  CASAB    = CASBFixed | LSEBit_l,
+  CASLB    = CASBFixed | LSEBit_o0,
+  CASALB   = CASBFixed | LSEBit_l | LSEBit_o0,
+  CASH     = CASHFixed,
+  CASAH    = CASHFixed | LSEBit_l,
+  CASLH    = CASHFixed | LSEBit_o0,
+  CASALH   = CASHFixed | LSEBit_l | LSEBit_o0,
+  CASP_w   = CASPFixed,
+  CASP_x   = CASPFixed | LSEBit_sz,
+  CASPA_w  = CASPFixed | LSEBit_l,
+  CASPA_x  = CASPFixed | LSEBit_l | LSEBit_sz,
+  CASPL_w  = CASPFixed | LSEBit_o0,
+  CASPL_x  = CASPFixed | LSEBit_o0 | LSEBit_sz,
+  CASPAL_w = CASPFixed | LSEBit_l | LSEBit_o0,
+  CASPAL_x = CASPFixed | LSEBit_l | LSEBit_o0 | LSEBit_sz
 };
 
 // Conditional compare.

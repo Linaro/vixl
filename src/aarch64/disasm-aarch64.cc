@@ -1240,143 +1240,99 @@ void Disassembler::VisitLoadStorePairNonTemporal(const Instruction *instr) {
   Format(instr, mnemonic, form);
 }
 
+// clang-format off
+#define LOAD_STORE_EXCLUSIVE_LIST(V)                  \
+  V(STXRB_w,  "stxrb",  "'Ws, 'Wt")                   \
+  V(STXRH_w,  "stxrh",  "'Ws, 'Wt")                   \
+  V(STXR_w,   "stxr",   "'Ws, 'Wt")                   \
+  V(STXR_x,   "stxr",   "'Ws, 'Xt")                   \
+  V(LDXRB_w,  "ldxrb",  "'Wt")                        \
+  V(LDXRH_w,  "ldxrh",  "'Wt")                        \
+  V(LDXR_w,   "ldxr",   "'Wt")                        \
+  V(LDXR_x,   "ldxr",   "'Xt")                        \
+  V(STXP_w,   "stxp",   "'Ws, 'Wt, 'Wt2")             \
+  V(STXP_x,   "stxp",   "'Ws, 'Xt, 'Xt2")             \
+  V(LDXP_w,   "ldxp",   "'Wt, 'Wt2")                  \
+  V(LDXP_x,   "ldxp",   "'Xt, 'Xt2")                  \
+  V(STLXRB_w, "stlxrb", "'Ws, 'Wt")                   \
+  V(STLXRH_w, "stlxrh", "'Ws, 'Wt")                   \
+  V(STLXR_w,  "stlxr",  "'Ws, 'Wt")                   \
+  V(STLXR_x,  "stlxr",  "'Ws, 'Xt")                   \
+  V(LDAXRB_w, "ldaxrb", "'Wt")                        \
+  V(LDAXRH_w, "ldaxrh", "'Wt")                        \
+  V(LDAXR_w,  "ldaxr",  "'Wt")                        \
+  V(LDAXR_x,  "ldaxr",  "'Xt")                        \
+  V(STLXP_w,  "stlxp",  "'Ws, 'Wt, 'Wt2")             \
+  V(STLXP_x,  "stlxp",  "'Ws, 'Xt, 'Xt2")             \
+  V(LDAXP_w,  "ldaxp",  "'Wt, 'Wt2")                  \
+  V(LDAXP_x,  "ldaxp",  "'Xt, 'Xt2")                  \
+  V(STLRB_w,  "stlrb",  "'Wt")                        \
+  V(STLRH_w,  "stlrh",  "'Wt")                        \
+  V(STLR_w,   "stlr",   "'Wt")                        \
+  V(STLR_x,   "stlr",   "'Xt")                        \
+  V(LDARB_w,  "ldarb",  "'Wt")                        \
+  V(LDARH_w,  "ldarh",  "'Wt")                        \
+  V(LDAR_w,   "ldar",   "'Wt")                        \
+  V(LDAR_x,   "ldar",   "'Xt")                        \
+  V(CAS_w,    "cas",    "'Ws, 'Wt")                   \
+  V(CAS_x,    "cas",    "'Xs, 'Xt")                   \
+  V(CASA_w,   "casa",   "'Ws, 'Wt")                   \
+  V(CASA_x,   "casa",   "'Xs, 'Xt")                   \
+  V(CASL_w,   "casl",   "'Ws, 'Wt")                   \
+  V(CASL_x,   "casl",   "'Xs, 'Xt")                   \
+  V(CASAL_w,  "casal",  "'Ws, 'Wt")                   \
+  V(CASAL_x,  "casal",  "'Xs, 'Xt")                   \
+  V(CASB,     "casb",   "'Ws, 'Wt")                   \
+  V(CASAB,    "casab",  "'Ws, 'Wt")                   \
+  V(CASLB,    "caslb",  "'Ws, 'Wt")                   \
+  V(CASALB,   "casalb", "'Ws, 'Wt")                   \
+  V(CASH,     "cash",   "'Ws, 'Wt")                   \
+  V(CASAH,    "casah",  "'Ws, 'Wt")                   \
+  V(CASLH,    "caslh",  "'Ws, 'Wt")                   \
+  V(CASALH,   "casalh", "'Ws, 'Wt")                   \
+  V(CASP_w,   "casp",   "'Ws, 'W(s+1), 'Wt, 'W(t+1)") \
+  V(CASP_x,   "casp",   "'Xs, 'X(s+1), 'Xt, 'X(t+1)") \
+  V(CASPA_w,  "caspa",  "'Ws, 'W(s+1), 'Wt, 'W(t+1)") \
+  V(CASPA_x,  "caspa",  "'Xs, 'X(s+1), 'Xt, 'X(t+1)") \
+  V(CASPL_w,  "caspl",  "'Ws, 'W(s+1), 'Wt, 'W(t+1)") \
+  V(CASPL_x,  "caspl",  "'Xs, 'X(s+1), 'Xt, 'X(t+1)") \
+  V(CASPAL_w, "caspal", "'Ws, 'W(s+1), 'Wt, 'W(t+1)") \
+  V(CASPAL_x, "caspal", "'Xs, 'X(s+1), 'Xt, 'X(t+1)")
+// clang-format on
+
 
 void Disassembler::VisitLoadStoreExclusive(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form;
 
   switch (instr->Mask(LoadStoreExclusiveMask)) {
-    case STXRB_w:
-      mnemonic = "stxrb";
-      form = "'Ws, 'Wt, ['Xns]";
-      break;
-    case STXRH_w:
-      mnemonic = "stxrh";
-      form = "'Ws, 'Wt, ['Xns]";
-      break;
-    case STXR_w:
-      mnemonic = "stxr";
-      form = "'Ws, 'Wt, ['Xns]";
-      break;
-    case STXR_x:
-      mnemonic = "stxr";
-      form = "'Ws, 'Xt, ['Xns]";
-      break;
-    case LDXRB_w:
-      mnemonic = "ldxrb";
-      form = "'Wt, ['Xns]";
-      break;
-    case LDXRH_w:
-      mnemonic = "ldxrh";
-      form = "'Wt, ['Xns]";
-      break;
-    case LDXR_w:
-      mnemonic = "ldxr";
-      form = "'Wt, ['Xns]";
-      break;
-    case LDXR_x:
-      mnemonic = "ldxr";
-      form = "'Xt, ['Xns]";
-      break;
-    case STXP_w:
-      mnemonic = "stxp";
-      form = "'Ws, 'Wt, 'Wt2, ['Xns]";
-      break;
-    case STXP_x:
-      mnemonic = "stxp";
-      form = "'Ws, 'Xt, 'Xt2, ['Xns]";
-      break;
-    case LDXP_w:
-      mnemonic = "ldxp";
-      form = "'Wt, 'Wt2, ['Xns]";
-      break;
-    case LDXP_x:
-      mnemonic = "ldxp";
-      form = "'Xt, 'Xt2, ['Xns]";
-      break;
-    case STLXRB_w:
-      mnemonic = "stlxrb";
-      form = "'Ws, 'Wt, ['Xns]";
-      break;
-    case STLXRH_w:
-      mnemonic = "stlxrh";
-      form = "'Ws, 'Wt, ['Xns]";
-      break;
-    case STLXR_w:
-      mnemonic = "stlxr";
-      form = "'Ws, 'Wt, ['Xns]";
-      break;
-    case STLXR_x:
-      mnemonic = "stlxr";
-      form = "'Ws, 'Xt, ['Xns]";
-      break;
-    case LDAXRB_w:
-      mnemonic = "ldaxrb";
-      form = "'Wt, ['Xns]";
-      break;
-    case LDAXRH_w:
-      mnemonic = "ldaxrh";
-      form = "'Wt, ['Xns]";
-      break;
-    case LDAXR_w:
-      mnemonic = "ldaxr";
-      form = "'Wt, ['Xns]";
-      break;
-    case LDAXR_x:
-      mnemonic = "ldaxr";
-      form = "'Xt, ['Xns]";
-      break;
-    case STLXP_w:
-      mnemonic = "stlxp";
-      form = "'Ws, 'Wt, 'Wt2, ['Xns]";
-      break;
-    case STLXP_x:
-      mnemonic = "stlxp";
-      form = "'Ws, 'Xt, 'Xt2, ['Xns]";
-      break;
-    case LDAXP_w:
-      mnemonic = "ldaxp";
-      form = "'Wt, 'Wt2, ['Xns]";
-      break;
-    case LDAXP_x:
-      mnemonic = "ldaxp";
-      form = "'Xt, 'Xt2, ['Xns]";
-      break;
-    case STLRB_w:
-      mnemonic = "stlrb";
-      form = "'Wt, ['Xns]";
-      break;
-    case STLRH_w:
-      mnemonic = "stlrh";
-      form = "'Wt, ['Xns]";
-      break;
-    case STLR_w:
-      mnemonic = "stlr";
-      form = "'Wt, ['Xns]";
-      break;
-    case STLR_x:
-      mnemonic = "stlr";
-      form = "'Xt, ['Xns]";
-      break;
-    case LDARB_w:
-      mnemonic = "ldarb";
-      form = "'Wt, ['Xns]";
-      break;
-    case LDARH_w:
-      mnemonic = "ldarh";
-      form = "'Wt, ['Xns]";
-      break;
-    case LDAR_w:
-      mnemonic = "ldar";
-      form = "'Wt, ['Xns]";
-      break;
-    case LDAR_x:
-      mnemonic = "ldar";
-      form = "'Xt, ['Xns]";
-      break;
+#define LSX(A, B, C)     \
+  case A:                \
+    mnemonic = B;        \
+    form = C ", ['Xns]"; \
+    break;
+    LOAD_STORE_EXCLUSIVE_LIST(LSX)
+#undef LSX
     default:
       form = "(LoadStoreExclusive)";
   }
+
+  switch (instr->Mask(LoadStoreExclusiveMask)) {
+    case CASP_w:
+    case CASP_x:
+    case CASPA_w:
+    case CASPA_x:
+    case CASPL_w:
+    case CASPL_x:
+    case CASPAL_w:
+    case CASPAL_x:
+      if ((instr->GetRs() % 2 == 1) || (instr->GetRt() % 2 == 1)) {
+        mnemonic = "unallocated";
+        form = "(LoadStoreExclusive)";
+      }
+      break;
+  }
+
   Format(instr, mnemonic, form);
 }
 
@@ -4367,12 +4323,37 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
         }
       }
       break;
+    case '(': {
+      switch (format[2]) {
+        case 's':
+          reg_num = instr->GetRs();
+          break;
+        case 't':
+          reg_num = instr->GetRt();
+          break;
+        default:
+          VIXL_UNREACHABLE();
+      }
+
+      VIXL_ASSERT(format[3] == '+');
+      int i = 4;
+      int addition = 0;
+      while (format[i] != ')') {
+        VIXL_ASSERT((format[i] >= '0') && (format[i] <= '9'));
+        addition *= 10;
+        addition += format[i] - '0';
+        ++i;
+      }
+      reg_num += addition;
+      field_len = i + 1;
+      break;
+    }
     default:
       VIXL_UNREACHABLE();
   }
 
   // Increase field length for registers tagged as stack.
-  if (format[2] == 's') {
+  if (format[1] != '(' && format[2] == 's') {
     field_len = 3;
   }
 

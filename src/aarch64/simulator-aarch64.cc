@@ -1545,6 +1545,100 @@ void Simulator::PrintExclusiveAccessWarning() {
   }
 }
 
+template <typename T>
+void Simulator::CompareAndSwapHelper(const Instruction* instr) {
+  unsigned rs = instr->GetRs();
+  unsigned rt = instr->GetRt();
+  unsigned rn = instr->GetRn();
+
+  unsigned element_size = sizeof(T);
+  uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
+
+  bool is_acquire = instr->ExtractBit(22) == 1;
+  bool is_release = instr->ExtractBit(15) == 1;
+
+  T comparevalue = ReadRegister<T>(rs);
+  T newvalue = ReadRegister<T>(rt);
+
+  // The architecture permits that the data read clears any exclusive monitors
+  // associated with that location, even if the compare subsequently fails.
+  local_monitor_.Clear();
+
+  T data = Memory::Read<T>(address);
+  if (is_acquire) {
+    // Approximate load-acquire by issuing a full barrier after the load.
+    __sync_synchronize();
+  }
+
+  if (data == comparevalue) {
+    if (is_release) {
+      // Approximate store-release by issuing a full barrier before the store.
+      __sync_synchronize();
+    }
+    Memory::Write<T>(address, newvalue);
+    LogWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
+  }
+  WriteRegister<T>(rs, data);
+  LogRead(address, rs, GetPrintRegisterFormatForSize(element_size));
+}
+
+template <typename T>
+void Simulator::CompareAndSwapPairHelper(const Instruction* instr) {
+  VIXL_ASSERT((sizeof(T) == 4) || (sizeof(T) == 8));
+  unsigned rs = instr->GetRs();
+  unsigned rt = instr->GetRt();
+  unsigned rn = instr->GetRn();
+
+  VIXL_ASSERT((rs % 2 == 0) && (rs % 2 == 0));
+
+  unsigned element_size = sizeof(T);
+  uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
+  uint64_t address2 = address + element_size;
+
+  bool is_acquire = instr->ExtractBit(22) == 1;
+  bool is_release = instr->ExtractBit(15) == 1;
+
+  T comparevalue_high = ReadRegister<T>(rs + 1);
+  T comparevalue_low = ReadRegister<T>(rs);
+  T newvalue_high = ReadRegister<T>(rt + 1);
+  T newvalue_low = ReadRegister<T>(rt);
+
+  // The architecture permits that the data read clears any exclusive monitors
+  // associated with that location, even if the compare subsequently fails.
+  local_monitor_.Clear();
+
+  T data_high = Memory::Read<T>(address);
+  T data_low = Memory::Read<T>(address2);
+
+  if (is_acquire) {
+    // Approximate load-acquire by issuing a full barrier after the load.
+    __sync_synchronize();
+  }
+
+  bool same =
+      (data_high == comparevalue_high) && (data_low == comparevalue_low);
+  if (same) {
+    if (is_release) {
+      // Approximate store-release by issuing a full barrier before the store.
+      __sync_synchronize();
+    }
+
+    Memory::Write<T>(address, newvalue_high);
+    Memory::Write<T>(address2, newvalue_low);
+  }
+
+  WriteRegister<T>(rs + 1, data_high);
+  WriteRegister<T>(rs, data_low);
+
+  LogRead(address, rs + 1, GetPrintRegisterFormatForSize(element_size));
+  LogRead(address2, rs, GetPrintRegisterFormatForSize(element_size));
+
+  if (same) {
+    LogWrite(address, rt + 1, GetPrintRegisterFormatForSize(element_size));
+    LogWrite(address2, rt, GetPrintRegisterFormatForSize(element_size));
+  }
+}
+
 
 void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
   PrintExclusiveAccessWarning();
@@ -1579,129 +1673,173 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
     VIXL_ALIGNMENT_EXCEPTION();
   }
 
-  if (is_load) {
-    if (is_exclusive) {
-      local_monitor_.MarkExclusive(address, access_size);
-    } else {
-      // Any non-exclusive load can clear the local monitor as a side effect. We
-      // don't need to do this, but it is useful to stress the simulated code.
-      local_monitor_.Clear();
-    }
 
-    // Use NoRegLog to suppress the register trace (LOG_REGS, LOG_FP_REGS). We
-    // will print a more detailed log.
-    switch (op) {
-      case LDXRB_w:
-      case LDAXRB_w:
-      case LDARB_w:
-        WriteWRegister(rt, Memory::Read<uint8_t>(address), NoRegLog);
-        break;
-      case LDXRH_w:
-      case LDAXRH_w:
-      case LDARH_w:
-        WriteWRegister(rt, Memory::Read<uint16_t>(address), NoRegLog);
-        break;
-      case LDXR_w:
-      case LDAXR_w:
-      case LDAR_w:
-        WriteWRegister(rt, Memory::Read<uint32_t>(address), NoRegLog);
-        break;
-      case LDXR_x:
-      case LDAXR_x:
-      case LDAR_x:
-        WriteXRegister(rt, Memory::Read<uint64_t>(address), NoRegLog);
-        break;
-      case LDXP_w:
-      case LDAXP_w:
-        WriteWRegister(rt, Memory::Read<uint32_t>(address), NoRegLog);
-        WriteWRegister(rt2,
-                       Memory::Read<uint32_t>(address + element_size),
-                       NoRegLog);
-        break;
-      case LDXP_x:
-      case LDAXP_x:
-        WriteXRegister(rt, Memory::Read<uint64_t>(address), NoRegLog);
-        WriteXRegister(rt2,
-                       Memory::Read<uint64_t>(address + element_size),
-                       NoRegLog);
-        break;
-      default:
-        VIXL_UNREACHABLE();
-    }
+  switch (op) {
+    case CAS_w:
+    case CASA_w:
+    case CASL_w:
+    case CASAL_w:
+      CompareAndSwapHelper<uint32_t>(instr);
+      break;
+    case CAS_x:
+    case CASA_x:
+    case CASL_x:
+    case CASAL_x:
+      CompareAndSwapHelper<uint64_t>(instr);
+      break;
+    case CASB:
+    case CASAB:
+    case CASLB:
+    case CASALB:
+      CompareAndSwapHelper<uint8_t>(instr);
+      break;
+    case CASH:
+    case CASAH:
+    case CASLH:
+    case CASALH:
+      CompareAndSwapHelper<uint16_t>(instr);
+      break;
+    case CASP_w:
+    case CASPA_w:
+    case CASPL_w:
+    case CASPAL_w:
+      CompareAndSwapPairHelper<uint32_t>(instr);
+      break;
+    case CASP_x:
+    case CASPA_x:
+    case CASPL_x:
+    case CASPAL_x:
+      CompareAndSwapPairHelper<uint64_t>(instr);
+      break;
+    default:
+      if (is_load) {
+        if (is_exclusive) {
+          local_monitor_.MarkExclusive(address, access_size);
+        } else {
+          // Any non-exclusive load can clear the local monitor as a side
+          // effect. We don't need to do this, but it is useful to stress the
+          // simulated code.
+          local_monitor_.Clear();
+        }
 
-    if (is_acquire_release) {
-      // Approximate load-acquire by issuing a full barrier after the load.
-      __sync_synchronize();
-    }
+        // Use NoRegLog to suppress the register trace (LOG_REGS, LOG_FP_REGS).
+        // We will print a more detailed log.
+        switch (op) {
+          case LDXRB_w:
+          case LDAXRB_w:
+          case LDARB_w:
+            WriteWRegister(rt, Memory::Read<uint8_t>(address), NoRegLog);
+            break;
+          case LDXRH_w:
+          case LDAXRH_w:
+          case LDARH_w:
+            WriteWRegister(rt, Memory::Read<uint16_t>(address), NoRegLog);
+            break;
+          case LDXR_w:
+          case LDAXR_w:
+          case LDAR_w:
+            WriteWRegister(rt, Memory::Read<uint32_t>(address), NoRegLog);
+            break;
+          case LDXR_x:
+          case LDAXR_x:
+          case LDAR_x:
+            WriteXRegister(rt, Memory::Read<uint64_t>(address), NoRegLog);
+            break;
+          case LDXP_w:
+          case LDAXP_w:
+            WriteWRegister(rt, Memory::Read<uint32_t>(address), NoRegLog);
+            WriteWRegister(rt2,
+                           Memory::Read<uint32_t>(address + element_size),
+                           NoRegLog);
+            break;
+          case LDXP_x:
+          case LDAXP_x:
+            WriteXRegister(rt, Memory::Read<uint64_t>(address), NoRegLog);
+            WriteXRegister(rt2,
+                           Memory::Read<uint64_t>(address + element_size),
+                           NoRegLog);
+            break;
+          default:
+            VIXL_UNREACHABLE();
+        }
 
-    LogRead(address, rt, GetPrintRegisterFormatForSize(element_size));
-    if (is_pair) {
-      LogRead(address + element_size,
-              rt2,
-              GetPrintRegisterFormatForSize(element_size));
-    }
-  } else {
-    if (is_acquire_release) {
-      // Approximate store-release by issuing a full barrier before the store.
-      __sync_synchronize();
-    }
+        if (is_acquire_release) {
+          // Approximate load-acquire by issuing a full barrier after the load.
+          __sync_synchronize();
+        }
 
-    bool do_store = true;
-    if (is_exclusive) {
-      do_store = local_monitor_.IsExclusive(address, access_size) &&
-                 global_monitor_.IsExclusive(address, access_size);
-      WriteWRegister(rs, do_store ? 0 : 1);
+        LogRead(address, rt, GetPrintRegisterFormatForSize(element_size));
+        if (is_pair) {
+          LogRead(address + element_size,
+                  rt2,
+                  GetPrintRegisterFormatForSize(element_size));
+        }
+      } else {
+        if (is_acquire_release) {
+          // Approximate store-release by issuing a full barrier before the
+          // store.
+          __sync_synchronize();
+        }
 
-      //  - All exclusive stores explicitly clear the local monitor.
-      local_monitor_.Clear();
-    } else {
-      //  - Any other store can clear the local monitor as a side effect.
-      local_monitor_.MaybeClear();
-    }
+        bool do_store = true;
+        if (is_exclusive) {
+          do_store = local_monitor_.IsExclusive(address, access_size) &&
+                     global_monitor_.IsExclusive(address, access_size);
+          WriteWRegister(rs, do_store ? 0 : 1);
 
-    if (do_store) {
-      switch (op) {
-        case STXRB_w:
-        case STLXRB_w:
-        case STLRB_w:
-          Memory::Write<uint8_t>(address, ReadWRegister(rt));
-          break;
-        case STXRH_w:
-        case STLXRH_w:
-        case STLRH_w:
-          Memory::Write<uint16_t>(address, ReadWRegister(rt));
-          break;
-        case STXR_w:
-        case STLXR_w:
-        case STLR_w:
-          Memory::Write<uint32_t>(address, ReadWRegister(rt));
-          break;
-        case STXR_x:
-        case STLXR_x:
-        case STLR_x:
-          Memory::Write<uint64_t>(address, ReadXRegister(rt));
-          break;
-        case STXP_w:
-        case STLXP_w:
-          Memory::Write<uint32_t>(address, ReadWRegister(rt));
-          Memory::Write<uint32_t>(address + element_size, ReadWRegister(rt2));
-          break;
-        case STXP_x:
-        case STLXP_x:
-          Memory::Write<uint64_t>(address, ReadXRegister(rt));
-          Memory::Write<uint64_t>(address + element_size, ReadXRegister(rt2));
-          break;
-        default:
-          VIXL_UNREACHABLE();
+          //  - All exclusive stores explicitly clear the local monitor.
+          local_monitor_.Clear();
+        } else {
+          //  - Any other store can clear the local monitor as a side effect.
+          local_monitor_.MaybeClear();
+        }
+
+        if (do_store) {
+          switch (op) {
+            case STXRB_w:
+            case STLXRB_w:
+            case STLRB_w:
+              Memory::Write<uint8_t>(address, ReadWRegister(rt));
+              break;
+            case STXRH_w:
+            case STLXRH_w:
+            case STLRH_w:
+              Memory::Write<uint16_t>(address, ReadWRegister(rt));
+              break;
+            case STXR_w:
+            case STLXR_w:
+            case STLR_w:
+              Memory::Write<uint32_t>(address, ReadWRegister(rt));
+              break;
+            case STXR_x:
+            case STLXR_x:
+            case STLR_x:
+              Memory::Write<uint64_t>(address, ReadXRegister(rt));
+              break;
+            case STXP_w:
+            case STLXP_w:
+              Memory::Write<uint32_t>(address, ReadWRegister(rt));
+              Memory::Write<uint32_t>(address + element_size,
+                                      ReadWRegister(rt2));
+              break;
+            case STXP_x:
+            case STLXP_x:
+              Memory::Write<uint64_t>(address, ReadXRegister(rt));
+              Memory::Write<uint64_t>(address + element_size,
+                                      ReadXRegister(rt2));
+              break;
+            default:
+              VIXL_UNREACHABLE();
+          }
+
+          LogWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
+          if (is_pair) {
+            LogWrite(address + element_size,
+                     rt2,
+                     GetPrintRegisterFormatForSize(element_size));
+          }
+        }
       }
-
-      LogWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
-      if (is_pair) {
-        LogWrite(address + element_size,
-                 rt2,
-                 GetPrintRegisterFormatForSize(element_size));
-      }
-    }
   }
 }
 

@@ -1173,6 +1173,70 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Load-acquire register.
   void ldar(const Register& rt, const MemOperand& src);
 
+  // Compare and Swap word or doubleword in memory [Armv8.1].
+  void cas(const Register& rs, const Register& rt, const MemOperand& src);
+
+  // Compare and Swap word or doubleword in memory [Armv8.1].
+  void casa(const Register& rs, const Register& rt, const MemOperand& src);
+
+  // Compare and Swap word or doubleword in memory [Armv8.1].
+  void casl(const Register& rs, const Register& rt, const MemOperand& src);
+
+  // Compare and Swap word or doubleword in memory [Armv8.1].
+  void casal(const Register& rs, const Register& rt, const MemOperand& src);
+
+  // Compare and Swap byte in memory [Armv8.1].
+  void casb(const Register& rs, const Register& rt, const MemOperand& src);
+
+  // Compare and Swap byte in memory [Armv8.1].
+  void casab(const Register& rs, const Register& rt, const MemOperand& src);
+
+  // Compare and Swap byte in memory [Armv8.1].
+  void caslb(const Register& rs, const Register& rt, const MemOperand& src);
+
+  // Compare and Swap byte in memory [Armv8.1].
+  void casalb(const Register& rs, const Register& rt, const MemOperand& src);
+
+  // Compare and Swap halfword in memory [Armv8.1].
+  void cash(const Register& rs, const Register& rt, const MemOperand& src);
+
+  // Compare and Swap halfword in memory [Armv8.1].
+  void casah(const Register& rs, const Register& rt, const MemOperand& src);
+
+  // Compare and Swap halfword in memory [Armv8.1].
+  void caslh(const Register& rs, const Register& rt, const MemOperand& src);
+
+  // Compare and Swap halfword in memory [Armv8.1].
+  void casalh(const Register& rs, const Register& rt, const MemOperand& src);
+
+  // Compare and Swap Pair of words or doublewords in memory [Armv8.1].
+  void casp(const Register& rs,
+            const Register& rs2,
+            const Register& rt,
+            const Register& rt2,
+            const MemOperand& src);
+
+  // Compare and Swap Pair of words or doublewords in memory [Armv8.1].
+  void caspa(const Register& rs,
+             const Register& rs2,
+             const Register& rt,
+             const Register& rt2,
+             const MemOperand& src);
+
+  // Compare and Swap Pair of words or doublewords in memory [Armv8.1].
+  void caspl(const Register& rs,
+             const Register& rs2,
+             const Register& rt,
+             const Register& rt2,
+             const MemOperand& src);
+
+  // Compare and Swap Pair of words or doublewords in memory [Armv8.1].
+  void caspal(const Register& rs,
+              const Register& rs2,
+              const Register& rt,
+              const Register& rt2,
+              const MemOperand& src);
+
   // Prefetch memory.
   void prfm(PrefetchOperation op,
             const MemOperand& addr,

@@ -1495,6 +1495,54 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ldaxrh(rt, src);
   }
+
+// clang-format off
+#define COMPARE_AND_SWAP_SINGLE_MACRO_LIST(V) \
+  V(cas,    Cas)                              \
+  V(casa,   Casa)                             \
+  V(casl,   Casl)                             \
+  V(casal,  Casal)                            \
+  V(casb,   Casb)                             \
+  V(casab,  Casab)                            \
+  V(caslb,  Caslb)                            \
+  V(casalb, Casalb)                           \
+  V(cash,   Cash)                             \
+  V(casah,  Casah)                            \
+  V(caslh,  Caslh)                            \
+  V(casalh, Casalh)
+// clang-format on
+
+#define DEFINE_MACRO_ASM_FUNC(ASM, MASM)                                     \
+  void MASM(const Register& rs, const Register& rt, const MemOperand& src) { \
+    VIXL_ASSERT(allow_macro_instructions_);                                  \
+    SingleEmissionCheckScope guard(this);                                    \
+    ASM(rs, rt, src);                                                        \
+  }
+  COMPARE_AND_SWAP_SINGLE_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
+#undef DEFINE_MACRO_ASM_FUNC
+
+
+// clang-format off
+#define COMPARE_AND_SWAP_PAIR_MACRO_LIST(V) \
+  V(casp,   Casp)                           \
+  V(caspa,  Caspa)                          \
+  V(caspl,  Caspl)                          \
+  V(caspal, Caspal)
+// clang-format on
+
+#define DEFINE_MACRO_ASM_FUNC(ASM, MASM)    \
+  void MASM(const Register& rs,             \
+            const Register& rs2,            \
+            const Register& rt,             \
+            const Register& rt2,            \
+            const MemOperand& src) {        \
+    VIXL_ASSERT(allow_macro_instructions_); \
+    SingleEmissionCheckScope guard(this);   \
+    ASM(rs, rs2, rt, rt2, src);             \
+  }
+  COMPARE_AND_SWAP_PAIR_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
+#undef DEFINE_MACRO_ASM_FUNC
+
   void Ldnp(const CPURegister& rt,
             const CPURegister& rt2,
             const MemOperand& src) {

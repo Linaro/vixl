@@ -1690,6 +1690,10 @@ class Simulator : public DecoderVisitor {
                        int64_t offset,
                        AddrMode addrmode);
   void LoadStorePairHelper(const Instruction* instr, AddrMode addrmode);
+  template <typename T>
+  void CompareAndSwapHelper(const Instruction* instr);
+  template <typename T>
+  void CompareAndSwapPairHelper(const Instruction* instr);
   uintptr_t AddressModeHelper(unsigned addr_reg,
                               int64_t offset,
                               AddrMode addrmode);

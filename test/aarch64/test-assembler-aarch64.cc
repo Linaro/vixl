@@ -16362,6 +16362,421 @@ TEST(ldaxr_stlxr_fail) {
 }
 #endif
 
+TEST(cas_casa_casl_casal_w) {
+  uint64_t data1[] = {0x01234567, 0};
+  uint64_t data2[] = {0x01234567, 0};
+  uint64_t data3[] = {0x01234567, 0};
+  uint64_t data4[] = {0x01234567, 0};
+  uint64_t data5[] = {0x01234567, 0};
+  uint64_t data6[] = {0x01234567, 0};
+  uint64_t data7[] = {0x01234567, 0};
+  uint64_t data8[] = {0x01234567, 0};
+
+  uint64_t* data1_aligned = AlignUp(data1, kXRegSizeInBytes * 2);
+  uint64_t* data2_aligned = AlignUp(data2, kXRegSizeInBytes * 2);
+  uint64_t* data3_aligned = AlignUp(data3, kXRegSizeInBytes * 2);
+  uint64_t* data4_aligned = AlignUp(data4, kXRegSizeInBytes * 2);
+  uint64_t* data5_aligned = AlignUp(data5, kXRegSizeInBytes * 2);
+  uint64_t* data6_aligned = AlignUp(data6, kXRegSizeInBytes * 2);
+  uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
+  uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
+
+  SETUP();
+  START();
+
+  __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
+  __ Mov(x22, reinterpret_cast<uintptr_t>(data2_aligned));
+  __ Mov(x23, reinterpret_cast<uintptr_t>(data3_aligned));
+  __ Mov(x24, reinterpret_cast<uintptr_t>(data4_aligned));
+  __ Mov(x25, reinterpret_cast<uintptr_t>(data5_aligned));
+  __ Mov(x26, reinterpret_cast<uintptr_t>(data6_aligned));
+  __ Mov(x27, reinterpret_cast<uintptr_t>(data7_aligned));
+  __ Mov(x28, reinterpret_cast<uintptr_t>(data8_aligned));
+
+  __ Mov(x0, 0xffffffff);
+
+  __ Mov(x1, 0x76543210);
+  __ Mov(x2, 0x01234567);
+  __ Mov(x3, 0x76543210);
+  __ Mov(x4, 0x01234567);
+  __ Mov(x5, 0x76543210);
+  __ Mov(x6, 0x01234567);
+  __ Mov(x7, 0x76543210);
+  __ Mov(x8, 0x01234567);
+
+  __ Cas(w1, w0, MemOperand(x21));
+  __ Cas(w2, w0, MemOperand(x22));
+  __ Casa(w3, w0, MemOperand(x23));
+  __ Casa(w4, w0, MemOperand(x24));
+  __ Casl(w5, w0, MemOperand(x25));
+  __ Casl(w6, w0, MemOperand(x26));
+  __ Casal(w7, w0, MemOperand(x27));
+  __ Casal(w8, w0, MemOperand(x28));
+
+  END();
+
+// TODO: test on real hardware when available
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(0x01234567, x1);
+  ASSERT_EQUAL_64(0x01234567, x2);
+  ASSERT_EQUAL_64(0x01234567, x3);
+  ASSERT_EQUAL_64(0x01234567, x4);
+  ASSERT_EQUAL_64(0x01234567, x5);
+  ASSERT_EQUAL_64(0x01234567, x6);
+  ASSERT_EQUAL_64(0x01234567, x7);
+  ASSERT_EQUAL_64(0x01234567, x8);
+
+  ASSERT_EQUAL_64(0x01234567, data1[0]);
+  ASSERT_EQUAL_64(0xffffffff, data2[0]);
+  ASSERT_EQUAL_64(0x01234567, data3[0]);
+  ASSERT_EQUAL_64(0xffffffff, data4[0]);
+  ASSERT_EQUAL_64(0x01234567, data5[0]);
+  ASSERT_EQUAL_64(0xffffffff, data6[0]);
+  ASSERT_EQUAL_64(0x01234567, data7[0]);
+  ASSERT_EQUAL_64(0xffffffff, data8[0]);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(cas_casa_casl_casal_x) {
+  uint64_t data1[] = {0x0123456789abcdef, 0};
+  uint64_t data2[] = {0x0123456789abcdef, 0};
+  uint64_t data3[] = {0x0123456789abcdef, 0};
+  uint64_t data4[] = {0x0123456789abcdef, 0};
+  uint64_t data5[] = {0x0123456789abcdef, 0};
+  uint64_t data6[] = {0x0123456789abcdef, 0};
+  uint64_t data7[] = {0x0123456789abcdef, 0};
+  uint64_t data8[] = {0x0123456789abcdef, 0};
+
+  uint64_t* data1_aligned = AlignUp(data1, kXRegSizeInBytes * 2);
+  uint64_t* data2_aligned = AlignUp(data2, kXRegSizeInBytes * 2);
+  uint64_t* data3_aligned = AlignUp(data3, kXRegSizeInBytes * 2);
+  uint64_t* data4_aligned = AlignUp(data4, kXRegSizeInBytes * 2);
+  uint64_t* data5_aligned = AlignUp(data5, kXRegSizeInBytes * 2);
+  uint64_t* data6_aligned = AlignUp(data6, kXRegSizeInBytes * 2);
+  uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
+  uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
+
+  SETUP();
+  START();
+
+  __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
+  __ Mov(x22, reinterpret_cast<uintptr_t>(data2_aligned));
+  __ Mov(x23, reinterpret_cast<uintptr_t>(data3_aligned));
+  __ Mov(x24, reinterpret_cast<uintptr_t>(data4_aligned));
+  __ Mov(x25, reinterpret_cast<uintptr_t>(data5_aligned));
+  __ Mov(x26, reinterpret_cast<uintptr_t>(data6_aligned));
+  __ Mov(x27, reinterpret_cast<uintptr_t>(data7_aligned));
+  __ Mov(x28, reinterpret_cast<uintptr_t>(data8_aligned));
+
+  __ Mov(x0, 0xffffffffffffffff);
+
+  __ Mov(x1, 0xfedcba9876543210);
+  __ Mov(x2, 0x0123456789abcdef);
+  __ Mov(x3, 0xfedcba9876543210);
+  __ Mov(x4, 0x0123456789abcdef);
+  __ Mov(x5, 0xfedcba9876543210);
+  __ Mov(x6, 0x0123456789abcdef);
+  __ Mov(x7, 0xfedcba9876543210);
+  __ Mov(x8, 0x0123456789abcdef);
+
+  __ Cas(x1, x0, MemOperand(x21));
+  __ Cas(x2, x0, MemOperand(x22));
+  __ Casa(x3, x0, MemOperand(x23));
+  __ Casa(x4, x0, MemOperand(x24));
+  __ Casl(x5, x0, MemOperand(x25));
+  __ Casl(x6, x0, MemOperand(x26));
+  __ Casal(x7, x0, MemOperand(x27));
+  __ Casal(x8, x0, MemOperand(x28));
+
+  END();
+
+// TODO: test on real hardware when available
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(0x0123456789abcdef, x1);
+  ASSERT_EQUAL_64(0x0123456789abcdef, x2);
+  ASSERT_EQUAL_64(0x0123456789abcdef, x3);
+  ASSERT_EQUAL_64(0x0123456789abcdef, x4);
+  ASSERT_EQUAL_64(0x0123456789abcdef, x5);
+  ASSERT_EQUAL_64(0x0123456789abcdef, x6);
+  ASSERT_EQUAL_64(0x0123456789abcdef, x7);
+  ASSERT_EQUAL_64(0x0123456789abcdef, x8);
+
+  ASSERT_EQUAL_64(0x0123456789abcdef, data1[0]);
+  ASSERT_EQUAL_64(0xffffffffffffffff, data2[0]);
+  ASSERT_EQUAL_64(0x0123456789abcdef, data3[0]);
+  ASSERT_EQUAL_64(0xffffffffffffffff, data4[0]);
+  ASSERT_EQUAL_64(0x0123456789abcdef, data5[0]);
+  ASSERT_EQUAL_64(0xffffffffffffffff, data6[0]);
+  ASSERT_EQUAL_64(0x0123456789abcdef, data7[0]);
+  ASSERT_EQUAL_64(0xffffffffffffffff, data8[0]);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(casb_casab_caslb_casalb) {
+  uint64_t data1[] = {0x01234567, 0};
+  uint64_t data2[] = {0x01234567, 0};
+  uint64_t data3[] = {0x01234567, 0};
+  uint64_t data4[] = {0x01234567, 0};
+  uint64_t data5[] = {0x01234567, 0};
+  uint64_t data6[] = {0x01234567, 0};
+  uint64_t data7[] = {0x01234567, 0};
+  uint64_t data8[] = {0x01234567, 0};
+
+  uint64_t* data1_aligned = AlignUp(data1, kXRegSizeInBytes * 2);
+  uint64_t* data2_aligned = AlignUp(data2, kXRegSizeInBytes * 2);
+  uint64_t* data3_aligned = AlignUp(data3, kXRegSizeInBytes * 2);
+  uint64_t* data4_aligned = AlignUp(data4, kXRegSizeInBytes * 2);
+  uint64_t* data5_aligned = AlignUp(data5, kXRegSizeInBytes * 2);
+  uint64_t* data6_aligned = AlignUp(data6, kXRegSizeInBytes * 2);
+  uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
+  uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
+
+  SETUP();
+  START();
+
+  __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
+  __ Mov(x22, reinterpret_cast<uintptr_t>(data2_aligned));
+  __ Mov(x23, reinterpret_cast<uintptr_t>(data3_aligned));
+  __ Mov(x24, reinterpret_cast<uintptr_t>(data4_aligned));
+  __ Mov(x25, reinterpret_cast<uintptr_t>(data5_aligned));
+  __ Mov(x26, reinterpret_cast<uintptr_t>(data6_aligned));
+  __ Mov(x27, reinterpret_cast<uintptr_t>(data7_aligned));
+  __ Mov(x28, reinterpret_cast<uintptr_t>(data8_aligned));
+
+  __ Mov(x0, 0xffffffff);
+
+  __ Mov(x1, 0x76543210);
+  __ Mov(x2, 0x01234567);
+  __ Mov(x3, 0x76543210);
+  __ Mov(x4, 0x01234567);
+  __ Mov(x5, 0x76543210);
+  __ Mov(x6, 0x01234567);
+  __ Mov(x7, 0x76543210);
+  __ Mov(x8, 0x01234567);
+
+  __ Casb(w1, w0, MemOperand(x21));
+  __ Casb(w2, w0, MemOperand(x22));
+  __ Casab(w3, w0, MemOperand(x23));
+  __ Casab(w4, w0, MemOperand(x24));
+  __ Caslb(w5, w0, MemOperand(x25));
+  __ Caslb(w6, w0, MemOperand(x26));
+  __ Casalb(w7, w0, MemOperand(x27));
+  __ Casalb(w8, w0, MemOperand(x28));
+
+  END();
+
+// TODO: test on real hardware when available
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(0x00000067, x1);
+  ASSERT_EQUAL_64(0x00000067, x2);
+  ASSERT_EQUAL_64(0x00000067, x3);
+  ASSERT_EQUAL_64(0x00000067, x4);
+  ASSERT_EQUAL_64(0x00000067, x5);
+  ASSERT_EQUAL_64(0x00000067, x6);
+  ASSERT_EQUAL_64(0x00000067, x7);
+  ASSERT_EQUAL_64(0x00000067, x8);
+
+  ASSERT_EQUAL_64(0x01234567, data1[0]);
+  ASSERT_EQUAL_64(0x012345ff, data2[0]);
+  ASSERT_EQUAL_64(0x01234567, data3[0]);
+  ASSERT_EQUAL_64(0x012345ff, data4[0]);
+  ASSERT_EQUAL_64(0x01234567, data5[0]);
+  ASSERT_EQUAL_64(0x012345ff, data6[0]);
+  ASSERT_EQUAL_64(0x01234567, data7[0]);
+  ASSERT_EQUAL_64(0x012345ff, data8[0]);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(cash_casah_caslh_casalh) {
+  uint64_t data1[] = {0x01234567, 0};
+  uint64_t data2[] = {0x01234567, 0};
+  uint64_t data3[] = {0x01234567, 0};
+  uint64_t data4[] = {0x01234567, 0};
+  uint64_t data5[] = {0x01234567, 0};
+  uint64_t data6[] = {0x01234567, 0};
+  uint64_t data7[] = {0x01234567, 0};
+  uint64_t data8[] = {0x01234567, 0};
+
+  uint64_t* data1_aligned = AlignUp(data1, kXRegSizeInBytes * 2);
+  uint64_t* data2_aligned = AlignUp(data2, kXRegSizeInBytes * 2);
+  uint64_t* data3_aligned = AlignUp(data3, kXRegSizeInBytes * 2);
+  uint64_t* data4_aligned = AlignUp(data4, kXRegSizeInBytes * 2);
+  uint64_t* data5_aligned = AlignUp(data5, kXRegSizeInBytes * 2);
+  uint64_t* data6_aligned = AlignUp(data6, kXRegSizeInBytes * 2);
+  uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
+  uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
+
+  SETUP();
+  START();
+
+  __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
+  __ Mov(x22, reinterpret_cast<uintptr_t>(data2_aligned));
+  __ Mov(x23, reinterpret_cast<uintptr_t>(data3_aligned));
+  __ Mov(x24, reinterpret_cast<uintptr_t>(data4_aligned));
+  __ Mov(x25, reinterpret_cast<uintptr_t>(data5_aligned));
+  __ Mov(x26, reinterpret_cast<uintptr_t>(data6_aligned));
+  __ Mov(x27, reinterpret_cast<uintptr_t>(data7_aligned));
+  __ Mov(x28, reinterpret_cast<uintptr_t>(data8_aligned));
+
+  __ Mov(x0, 0xffffffff);
+
+  __ Mov(x1, 0x76543210);
+  __ Mov(x2, 0x01234567);
+  __ Mov(x3, 0x76543210);
+  __ Mov(x4, 0x01234567);
+  __ Mov(x5, 0x76543210);
+  __ Mov(x6, 0x01234567);
+  __ Mov(x7, 0x76543210);
+  __ Mov(x8, 0x01234567);
+
+  __ Cash(w1, w0, MemOperand(x21));
+  __ Cash(w2, w0, MemOperand(x22));
+  __ Casah(w3, w0, MemOperand(x23));
+  __ Casah(w4, w0, MemOperand(x24));
+  __ Caslh(w5, w0, MemOperand(x25));
+  __ Caslh(w6, w0, MemOperand(x26));
+  __ Casalh(w7, w0, MemOperand(x27));
+  __ Casalh(w8, w0, MemOperand(x28));
+
+  END();
+
+// TODO: test on real hardware when available
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(0x00004567, x1);
+  ASSERT_EQUAL_64(0x00004567, x2);
+  ASSERT_EQUAL_64(0x00004567, x3);
+  ASSERT_EQUAL_64(0x00004567, x4);
+  ASSERT_EQUAL_64(0x00004567, x5);
+  ASSERT_EQUAL_64(0x00004567, x6);
+  ASSERT_EQUAL_64(0x00004567, x7);
+  ASSERT_EQUAL_64(0x00004567, x8);
+
+  ASSERT_EQUAL_64(0x01234567, data1[0]);
+  ASSERT_EQUAL_64(0x0123ffff, data2[0]);
+  ASSERT_EQUAL_64(0x01234567, data3[0]);
+  ASSERT_EQUAL_64(0x0123ffff, data4[0]);
+  ASSERT_EQUAL_64(0x01234567, data5[0]);
+  ASSERT_EQUAL_64(0x0123ffff, data6[0]);
+  ASSERT_EQUAL_64(0x01234567, data7[0]);
+  ASSERT_EQUAL_64(0x0123ffff, data8[0]);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(casp_caspa_caspl_caspal) {
+  uint64_t data1[] = {0x89abcdef01234567, 0};
+  uint64_t data2[] = {0x89abcdef01234567, 0};
+  uint64_t data3[] = {0x89abcdef01234567, 0};
+  uint64_t data4[] = {0x89abcdef01234567, 0};
+  uint64_t data5[] = {0x89abcdef01234567, 0};
+  uint64_t data6[] = {0x89abcdef01234567, 0};
+  uint64_t data7[] = {0x89abcdef01234567, 0};
+  uint64_t data8[] = {0x89abcdef01234567, 0};
+
+  uint64_t* data1_aligned = AlignUp(data1, kXRegSizeInBytes * 2);
+  uint64_t* data2_aligned = AlignUp(data2, kXRegSizeInBytes * 2);
+  uint64_t* data3_aligned = AlignUp(data3, kXRegSizeInBytes * 2);
+  uint64_t* data4_aligned = AlignUp(data4, kXRegSizeInBytes * 2);
+  uint64_t* data5_aligned = AlignUp(data5, kXRegSizeInBytes * 2);
+  uint64_t* data6_aligned = AlignUp(data6, kXRegSizeInBytes * 2);
+  uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
+  uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
+
+  SETUP();
+  START();
+
+  __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
+  __ Mov(x22, reinterpret_cast<uintptr_t>(data2_aligned));
+  __ Mov(x23, reinterpret_cast<uintptr_t>(data3_aligned));
+  __ Mov(x24, reinterpret_cast<uintptr_t>(data4_aligned));
+  __ Mov(x25, reinterpret_cast<uintptr_t>(data5_aligned));
+  __ Mov(x26, reinterpret_cast<uintptr_t>(data6_aligned));
+  __ Mov(x27, reinterpret_cast<uintptr_t>(data7_aligned));
+  __ Mov(x28, reinterpret_cast<uintptr_t>(data8_aligned));
+
+  __ Mov(x0, 0xffffffff);
+  __ Mov(x1, 0xffffffff);
+
+  __ Mov(x2, 0x76543210);
+  __ Mov(x3, 0xfedcba98);
+  __ Mov(x4, 0x89abcdef);
+  __ Mov(x5, 0x01234567);
+
+  __ Mov(x6, 0x76543210);
+  __ Mov(x7, 0xfedcba98);
+  __ Mov(x8, 0x89abcdef);
+  __ Mov(x9, 0x01234567);
+
+  __ Mov(x10, 0x76543210);
+  __ Mov(x11, 0xfedcba98);
+  __ Mov(x12, 0x89abcdef);
+  __ Mov(x13, 0x01234567);
+
+  __ Mov(x14, 0x76543210);
+  __ Mov(x15, 0xfedcba98);
+  __ Mov(x16, 0x89abcdef);
+  __ Mov(x17, 0x01234567);
+
+  __ Casp(w2, w3, w0, w1, MemOperand(x21));
+  __ Casp(w4, w5, w0, w1, MemOperand(x22));
+  __ Caspa(w6, w7, w0, w1, MemOperand(x23));
+  __ Caspa(w8, w9, w0, w1, MemOperand(x24));
+  __ Caspl(w10, w11, w0, w1, MemOperand(x25));
+  __ Caspl(w12, w13, w0, w1, MemOperand(x26));
+  __ Caspal(w14, w15, w0, w1, MemOperand(x27));
+  __ Caspal(w16, w17, w0, w1, MemOperand(x28));
+
+  END();
+
+// TODO: test on real hardware when available
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(0x89abcdef, x2);
+  ASSERT_EQUAL_64(0x01234567, x3);
+  ASSERT_EQUAL_64(0x89abcdef, x4);
+  ASSERT_EQUAL_64(0x01234567, x5);
+  ASSERT_EQUAL_64(0x89abcdef, x6);
+  ASSERT_EQUAL_64(0x01234567, x7);
+  ASSERT_EQUAL_64(0x89abcdef, x8);
+  ASSERT_EQUAL_64(0x01234567, x9);
+  ASSERT_EQUAL_64(0x89abcdef, x10);
+  ASSERT_EQUAL_64(0x01234567, x11);
+  ASSERT_EQUAL_64(0x89abcdef, x12);
+  ASSERT_EQUAL_64(0x01234567, x13);
+  ASSERT_EQUAL_64(0x89abcdef, x14);
+  ASSERT_EQUAL_64(0x01234567, x15);
+  ASSERT_EQUAL_64(0x89abcdef, x16);
+  ASSERT_EQUAL_64(0x01234567, x17);
+
+  ASSERT_EQUAL_64(0x89abcdef01234567, data1[0]);
+  ASSERT_EQUAL_64(0xffffffffffffffff, data2[0]);
+  ASSERT_EQUAL_64(0x89abcdef01234567, data3[0]);
+  ASSERT_EQUAL_64(0xffffffffffffffff, data4[0]);
+  ASSERT_EQUAL_64(0x89abcdef01234567, data5[0]);
+  ASSERT_EQUAL_64(0xffffffffffffffff, data6[0]);
+  ASSERT_EQUAL_64(0x89abcdef01234567, data7[0]);
+  ASSERT_EQUAL_64(0xffffffffffffffff, data8[0]);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
 
 TEST(load_store_tagged_immediate_offset) {
   uint64_t tags[] = {0x00, 0x1, 0x55, 0xff};
