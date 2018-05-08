@@ -27,6 +27,8 @@
 #ifndef VIXL_AARCH64_UTILS_AARCH64_H_
 #define VIXL_AARCH64_UTILS_AARCH64_H_
 
+#include <limits>
+
 #include "instructions-aarch64.h"
 
 namespace vixl {
@@ -185,6 +187,10 @@ T FPRound(int64_t sign,
     mantissa &= ~(UINT64_C(1) << highest_significant_bit);
   }
 
+  // The casts below are only well-defined for unsigned integers.
+  VIXL_STATIC_ASSERT(std::numeric_limits<T>::is_integer);
+  VIXL_STATIC_ASSERT(!std::numeric_limits<T>::is_signed);
+
   if (shift > 0) {
     if (round_mode == FPTieEven) {
       // We have to shift the mantissa to the right. Some precision is lost, so
@@ -237,11 +243,11 @@ inline double FPRoundToDouble(int64_t sign,
                               int64_t exponent,
                               uint64_t mantissa,
                               FPRounding round_mode) {
-  int64_t bits =
-      FPRound<int64_t, kDoubleExponentBits, kDoubleMantissaBits>(sign,
-                                                                 exponent,
-                                                                 mantissa,
-                                                                 round_mode);
+  uint64_t bits =
+      FPRound<uint64_t, kDoubleExponentBits, kDoubleMantissaBits>(sign,
+                                                                  exponent,
+                                                                  mantissa,
+                                                                  round_mode);
   return RawbitsToDouble(bits);
 }
 
@@ -262,11 +268,11 @@ static inline float FPRoundToFloat(int64_t sign,
                                    int64_t exponent,
                                    uint64_t mantissa,
                                    FPRounding round_mode) {
-  int32_t bits =
-      FPRound<int32_t, kFloatExponentBits, kFloatMantissaBits>(sign,
-                                                               exponent,
-                                                               mantissa,
-                                                               round_mode);
+  uint32_t bits =
+      FPRound<uint32_t, kFloatExponentBits, kFloatMantissaBits>(sign,
+                                                                exponent,
+                                                                mantissa,
+                                                                round_mode);
   return RawbitsToFloat(bits);
 }
 
