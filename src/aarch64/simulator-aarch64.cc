@@ -801,6 +801,7 @@ void Simulator::PrintVRegisterFPHelper(unsigned code,
         name = DRegNameForCode(code);
         break;
       default:
+        name = NULL;
         VIXL_UNREACHABLE();
     }
     fprintf(stream_, " (%s%s: ", clr_vreg_name, name);
