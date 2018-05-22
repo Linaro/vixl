@@ -6501,7 +6501,7 @@ TEST_T32(assembler_bind_label) {
     masm.ASM;                                                                \
     printf("Negative test for forward reference failed for %s.\n", INST);    \
     abort();                                                                 \
-  } catch (std::runtime_error) {                                             \
+  } catch (const std::runtime_error&) {                                      \
   }                                                                          \
   try {                                                                      \
     ExactAssemblyScope scope(&masm,                                          \
@@ -6515,7 +6515,7 @@ TEST_T32(assembler_bind_label) {
     masm.ASM;                                                                \
     printf("Negative test for forward reference failed for %s.\n", INST);    \
     abort();                                                                 \
-  } catch (std::runtime_error) {                                             \
+  } catch (const std::runtime_error&) {                                      \
   }
 #else
 #define NEGATIVE_TEST_FORWARD_REFERENCE_INFO(INST, ASM)

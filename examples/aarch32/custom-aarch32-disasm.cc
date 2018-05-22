@@ -101,7 +101,7 @@ class NamedLabel : public Label {
  public:
   NamedLabel(CustomStream* stream, const char* name)
       : stream_(stream), name_(name) {}
-  ~NamedLabel() VIXL_THROW_IN_NEGATIVE_TESTING_MODE(std::runtime_error) {
+  ~NamedLabel() {
     if (IsBound()) {
       stream_->GetSymbols().insert(
           std::pair<Location::Offset, const char*>(GetLocation(), name_));

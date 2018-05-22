@@ -99,7 +99,7 @@ namespace aarch32 {
     abort();                                                    \
   }                                                             \
   }                                                             \
-  catch (std::runtime_error e) {                                \
+  catch (const std::runtime_error& e) {                         \
     const char* msg = e.what();                                 \
     printf("\n%s:%d:%s\nFound:\n%sExpected:\n%s",               \
            __FILE__,                                            \
@@ -212,7 +212,7 @@ namespace aarch32 {
         printf("Found:\n%sExpected:\n%s", ss.str().c_str(), EXP);              \
         abort();                                                               \
       }                                                                        \
-    } catch (std::runtime_error e) {                                           \
+    } catch (const std::runtime_error& e) {                                    \
       const char* msg = e.what();                                              \
       size_t exp_len = strlen(EXP);                                            \
       if (TEMPORARILY_ACCEPTED) {                                              \

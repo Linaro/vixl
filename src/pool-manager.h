@@ -142,8 +142,7 @@ class LocationBase {
         is_bound_(true),
         location_(location) {}
 
-  virtual ~LocationBase()
-      VIXL_THROW_IN_NEGATIVE_TESTING_MODE(std::runtime_error) {}
+  virtual ~LocationBase() {}
 
   // The PoolManager should assume ownership of some objects, and delete them
   // after they have been placed. This can happen for example for literals that

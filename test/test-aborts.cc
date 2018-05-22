@@ -43,7 +43,7 @@ namespace vixl {
       code;                                                          \
       printf("\n%s:%d\nNo exception raised.\n", __FILE__, __LINE__); \
       abort();                                                       \
-    } catch (std::runtime_error e) {                                 \
+    } catch (const std::runtime_error& e) {                          \
       size_t prefix_length = strlen(expected_prefix);                \
       if (strncmp(expected_prefix, e.what(), prefix_length) != 0) {  \
         printf("\n%s:%d\nFound:\n%sExpected:\n%s...\n",              \

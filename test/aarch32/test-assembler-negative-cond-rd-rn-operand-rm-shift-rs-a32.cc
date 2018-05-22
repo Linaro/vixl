@@ -3136,7 +3136,7 @@ void TestHelper(Fn instruction, const char* mnemonic) {
              __LINE__,
              masm.IsUsingT32() ? "T32" : "A32");
       abort();
-    } catch (std::runtime_error) {
+    } catch (const std::runtime_error&) {
       // Nothing to do, test passed.
       // TODO: Consider checking the error message here, if possible.
     }

@@ -117,7 +117,6 @@ struct Unsigned<64> {
       throw std::runtime_error(oss.str());                   \
     }                                                        \
   } while (false)
-#define VIXL_THROW_IN_NEGATIVE_TESTING_MODE(error) throw(error)
 #else
 #define VIXL_ABORT()                                         \
   do {                                                       \
@@ -139,7 +138,6 @@ struct Unsigned<64> {
       abort();                                          \
     }                                                   \
   } while (false)
-#define VIXL_THROW_IN_NEGATIVE_TESTING_MODE(error)
 #endif
 #ifdef VIXL_DEBUG
 #define VIXL_ASSERT(condition) VIXL_CHECK(condition)

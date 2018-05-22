@@ -91,8 +91,6 @@ class TestObject : public LocationBase<int32_t> {
   TestObject(int size, int alignment, int id = 0)
       : LocationBase(0 /*type*/, size, alignment), id_(id) {}
 
-  ~TestObject() VIXL_THROW_IN_NEGATIVE_TESTING_MODE(std::runtime_error) {}
-
   void EmitPoolObject(MacroAssemblerInterface *masm) VIXL_OVERRIDE {
     USE(masm);
   }
@@ -145,9 +143,6 @@ class TestBranchObject : public LocationBase<int32_t> {
  public:
   TestBranchObject(int size, int alignment, int id = 0)
       : LocationBase(1 /* type */, size, alignment), id_(id) {}
-
-  ~TestBranchObject() VIXL_THROW_IN_NEGATIVE_TESTING_MODE(std::runtime_error) {}
-
 
   bool UsePoolObjectEmissionMargin() const VIXL_OVERRIDE { return true; }
   int32_t GetPoolObjectEmissionMargin() const VIXL_OVERRIDE {
