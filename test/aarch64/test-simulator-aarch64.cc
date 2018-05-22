@@ -1615,7 +1615,7 @@ static void Test1OpAcrossNEON(const char* name,
       printf(" ");
       // Output a separate result for each element of the result vector.
       for (unsigned lane = 0; lane < vd_lane_count; lane++) {
-        unsigned index = lane + (iteration * vd_lane_count);
+        unsigned index = lane + (iteration * vd_lanes_per_q);
         printf(" 0x%0*" PRIx64 ",",
                lane_len_in_hex,
                static_cast<uint64_t>(results[index]));

@@ -85,10 +85,10 @@ extern "C" {
 // ---------------------------------------------------------------------
 // ADD DUMMY ARRAYS FOR NEW SIMULATOR TEST HERE.
 // ---------------------------------------------------------------------
-const uint64_t kExpected_dummy_64[] = { 0 };
+const uint64_t kExpected_dummy_64[] = {0};
 const size_t kExpectedCount_dummy_64 = 0;
 
-const uint32_t kExpected_dummy_32[] = { 0 };
+const uint32_t kExpected_dummy_32[] = {0};
 const size_t kExpectedCount_dummy_32 = 0;
 
 // ---------------------------------------------------------------------
@@ -116,6 +116,7 @@ def BuildOptions(root):
   result.add_argument('--aarch64-only', action='store_true')
   result.add_argument('--out', action='store',
                       default='test/aarch64/test-simulator-traces-aarch64.h')
+  result.add_argument('--filter', action='store', help='Test regexp filter.')
   return result.parse_args()
 
 def ShouldGenerateAArch32(args):
@@ -123,6 +124,12 @@ def ShouldGenerateAArch32(args):
 
 def ShouldGenerateAArch64(args):
   return (not args.aarch32_only and not args.aarch64_only) or args.aarch64_only
+
+def GetAArch32Filename(test):
+  return test.lower().replace('_', '-') + '.h'
+
+def GetAArch64Filename(test):
+  return test.lower().replace('_', '-') + '-trace-aarch64.h'
 
 if __name__ == '__main__':
   # $ROOT/tools/generate_simulator_traces.py
@@ -148,31 +155,33 @@ if __name__ == '__main__':
     master_trace_f.write('\n\n')
 
     # Find the AArch64 simulator tests.
-    tests = sorted(filter(lambda t: 'AARCH64_SIM_' in t, test_list.split()))
+    tests = sorted(filter(lambda t: 'AARCH64_SIM_' in t, test_list.split()),
+                   key=lambda t: GetAArch64Filename(t))
 
     for test in tests:
-      # Run each test.
-      print 'Generating trace for ' + test;
       # Strip out 'AARCH64_' to get the name of the test.
       test_name = test[len('AARCH64_'):]
-      cmd = ' '.join([args.runner, '--generate_test_trace', test])
-      status, output = util.getstatusoutput(cmd)
-      if status != 0: util.abort('Failed to run ' + cmd + '.')
+      trace_filename = GetAArch64Filename(test_name)
+      if not args.filter or re.compile(args.filter).search(test):
+        # Run each test.
+        print 'Generating trace for ' + test;
+        cmd = ' '.join([args.runner, '--generate_test_trace', test])
+        status, output = util.getstatusoutput(cmd)
+        if status != 0: util.abort('Failed to run ' + cmd + '.')
 
-      # Create a new trace header file.
-      trace_filename = test_name.lower().replace('_', '-') + "-trace-aarch64.h"
-      trace_f =  open("test/aarch64/traces/" + trace_filename, 'w')
-      trace_f.write(copyright_header)
-      trace_f.write(trace_header)
-      trace_f.write('\n')
-      trace_f.write("#ifndef VIXL_" + test_name.upper() + "_TRACE_AARCH64_H_\n")
-      trace_f.write("#define VIXL_" + test_name.upper() + "_TRACE_AARCH64_H_\n")
-      trace_f.write('\n')
-      trace_f.write(output)
-      trace_f.write('\n')
-      trace_f.write('\n' + "#endif  // VIXL_"
-                    + test_name.upper() + "_TRACE_AARCH64_H_" + '\n')
-      trace_f.close()
+        # Create a new trace header file.
+        trace_f =  open("test/aarch64/traces/" + trace_filename, 'w')
+        trace_f.write(copyright_header)
+        trace_f.write(trace_header)
+        trace_f.write('\n')
+        trace_f.write("#ifndef VIXL_" + test_name.upper() + "_TRACE_AARCH64_H_\n")
+        trace_f.write("#define VIXL_" + test_name.upper() + "_TRACE_AARCH64_H_\n")
+        trace_f.write('\n')
+        trace_f.write(output)
+        trace_f.write('\n')
+        trace_f.write('\n' + "#endif  // VIXL_"
+                      + test_name.upper() + "_TRACE_AARCH64_H_" + '\n')
+        trace_f.close()
 
       # Update master trace file.
       master_trace_f.write(
@@ -187,10 +196,14 @@ if __name__ == '__main__':
     # --generate_test_trace option.
 
     # Find the AArch32 tests.
-    tests = sorted(filter(
-        lambda t: 'AARCH32_SIMULATOR_' in t or ('AARCH32_ASSEMBLER_' in t
-            and not 'AARCH32_ASSEMBLER_NEGATIVE_' in t),
-        test_list.split()))
+    tests = sorted(
+        filter(
+            lambda t: 'AARCH32_SIMULATOR_' in t or ('AARCH32_ASSEMBLER_' in t
+                and not 'AARCH32_ASSEMBLER_NEGATIVE_' in t),
+            test_list.split()),
+        key=lambda t: GetAArch32Filename(t))
+    if args.filter:
+      tests = filter(re.compile(args.filter).search, tests)
 
     for test in tests:
       # Run each test.
@@ -207,7 +220,7 @@ if __name__ == '__main__':
       if status != 0: util.abort('Failed to run ' + cmd + '.')
 
       # Create a new trace header file.
-      trace_filename = test_name.lower().replace('_', '-') + ".h"
+      trace_filename = GetAArch32Filename(test_name)
       trace_f =  open("test/aarch32/traces/" + trace_filename, 'w')
       trace_f.write(copyright_header)
       trace_f.write(trace_header)
