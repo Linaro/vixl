@@ -224,6 +224,9 @@ def BuildOptions():
     const=multiprocessing.cpu_count(),
     help='''Runs the tests using N jobs. If the option is set but no value is
     provided, the script will use as many jobs as it thinks useful.''')
+  general_arguments.add_argument('--clang-format',
+                                 default=clang_format.DEFAULT_CLANG_FORMAT,
+                                 help='Path to clang-format.')
   general_arguments.add_argument('--nobench', action='store_true',
                                  help='Do not run benchmarks.')
   general_arguments.add_argument('--nolint', action='store_true',
@@ -337,7 +340,7 @@ def RunLinter():
 
 def RunClangFormat():
   return clang_format.ClangFormatFiles(clang_format.GetCppSourceFilesToFormat(),
-                                       jobs = args.jobs,
+                                       args.clang_format, jobs = args.jobs,
                                        progress_prefix = 'clang-format: ')
 
 

@@ -30,6 +30,7 @@ import argparse
 import fnmatch
 import multiprocessing
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -40,6 +41,12 @@ import git
 import printer
 import util
 
+CLANG_FORMAT_VERSION_MAJOR = 3
+CLANG_FORMAT_VERSION_MINOR = 8
+
+DEFAULT_CLANG_FORMAT = \
+    'clang-format-{}.{}'.format(CLANG_FORMAT_VERSION_MAJOR,
+                                CLANG_FORMAT_VERSION_MINOR)
 
 is_output_redirected = not sys.stdout.isatty()
 
@@ -57,6 +64,8 @@ def BuildOptions():
     # Print default values.
     formatter_class = argparse.ArgumentDefaultsHelpFormatter)
   parser.add_argument('files', nargs = '*')
+  parser.add_argument('--clang-format', default=DEFAULT_CLANG_FORMAT,
+                      help='Path to clang-format.')
   parser.add_argument('--in-place', '-i',
                       action = 'store_true', default = False,
                       help = 'Edit files in place.')
@@ -69,13 +78,24 @@ def BuildOptions():
   return parser.parse_args()
 
 
+def ClangFormatIsAvailable(clang_format):
+  if not util.IsCommandAvailable(clang_format):
+    return False
+  version = subprocess.check_output([clang_format, '-version'])
+  m = re.search("^clang-format version (\d)\.(\d)\.\d.*$",
+                version.decode(), re.M)
+  major, minor = m.groups()
+  return int(major) == CLANG_FORMAT_VERSION_MAJOR and \
+      int(minor) == CLANG_FORMAT_VERSION_MINOR
+
+
 # Returns 0 if the file is correctly formatted, or 1 otherwise.
-def ClangFormat(filename, in_place = False, progress_prefix = ''):
+def ClangFormat(filename, clang_format, in_place = False, progress_prefix = ''):
   rc = 0
   printer.PrintOverwritableLine('Processing %s' % filename,
                                 type = printer.LINE_TYPE_LINTER)
 
-  cmd_format = ['clang-format-3.8', filename]
+  cmd_format = [clang_format, filename]
   temp_file, temp_file_name = tempfile.mkstemp(prefix = 'clang_format_')
   cmd_format_string = '$ ' + ' '.join(cmd_format) + ' > %s' % temp_file_name
   p_format = subprocess.Popen(cmd_format,
@@ -100,7 +120,7 @@ def ClangFormat(filename, in_place = False, progress_prefix = ''):
   rc += p_diff.wait()
 
   if in_place:
-      cmd_format = ['clang-format-3.8', '-i', filename]
+      cmd_format = [clang_format, '-i', filename]
       p_format = subprocess.Popen(cmd_format,
                                   stdout=temp_file, stderr=subprocess.STDOUT)
 
@@ -127,20 +147,22 @@ def ClangFormatWrapper(args):
 
 
 # Returns the total number of files incorrectly formatted.
-def ClangFormatFiles(files, in_place = False, jobs = 1, progress_prefix = ''):
-  if not util.IsCommandAvailable('clang-format-3.8'):
-    print(
-      printer.COLOUR_RED + \
-      ("`clang-format-3.8` not found. Please ensure it is installed "
-       "and in your PATH.") + \
-      printer.NO_COLOUR)
+def ClangFormatFiles(files, clang_format, in_place = False, jobs = 1,
+                     progress_prefix = ''):
+  if not ClangFormatIsAvailable(clang_format):
+    error_message = "`{}` version {}.{} not found. Please ensure it " \
+                    "is installed, in your PATH and the correct version." \
+                    .format(clang_format,
+                            CLANG_FORMAT_VERSION_MAJOR,
+                            CLANG_FORMAT_VERSION_MINOR)
+    print(printer.COLOUR_RED + error_message + printer.NO_COLOUR)
     return -1
 
   pool = multiprocessing.Pool(jobs)
   # The '.get(9999999)' is workaround to allow killing the test script with
   # ctrl+C from the shell. This bug is documented at
   # http://bugs.python.org/issue8296.
-  tasks = [(f, in_place, progress_prefix) for f in files]
+  tasks = [(f, clang_format, in_place, progress_prefix) for f in files]
   # Run under a try-catch  to avoid flooding the output when the script is
   # interrupted from the keyboard with ctrl+C.
   try:
@@ -200,5 +222,7 @@ if __name__ == '__main__':
   if not files:
     files = GetCppSourceFilesToFormat()
 
-  rc = ClangFormatFiles(files, in_place = args.in_place, jobs = args.jobs)
+  rc = ClangFormatFiles(files, clang_format = args.clang_format,
+                        in_place = args.in_place, jobs = args.jobs)
+
   sys.exit(rc)
