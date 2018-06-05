@@ -395,6 +395,7 @@ def ConfigureEnvironmentForCompiler(env):
   # When compiling with c++98 (the default), allow long long constants.
   if 'std' not in env or env['std'] == 'c++98':
     env.Append(CPPFLAGS = ['-Wno-long-long'])
+    env.Append(CPPFLAGS = ['-Wno-variadic-macros'])
   # When compiling with c++11, suggest missing override keywords on methods.
   if 'std' in env and env['std'] in ['c++11', 'c++14']:
     if compiler >= 'gcc-5':

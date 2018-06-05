@@ -103,12 +103,18 @@ namespace aarch64 {
   MacroAssembler masm; \
   SETUP_COMMON()
 
+#define SETUP_WITH_FEATURES(...) \
+  MacroAssembler masm;           \
+  SETUP_COMMON();                \
+  masm.SetCPUFeatures(CPUFeatures(__VA_ARGS__))
+
 #define SETUP_CUSTOM(size, pic)                                       \
   byte* buf = new byte[size + CodeBuffer::kDefaultCapacity];          \
   MacroAssembler masm(buf, size + CodeBuffer::kDefaultCapacity, pic); \
   SETUP_COMMON()
 
 #define SETUP_COMMON()                                      \
+  masm.SetCPUFeatures(CPUFeatures());                       \
   masm.SetGenerateSimulatorCode(true);                      \
   Decoder simulator_decoder;                                \
   Simulator simulator(&simulator_decoder);                  \
@@ -124,7 +130,11 @@ namespace aarch64 {
 #define START()                                                               \
   masm.Reset();                                                               \
   simulator.ResetState();                                                     \
-  __ PushCalleeSavedRegisters();                                              \
+  {                                                                           \
+    /* PushCalleeSavedRegisters() uses NEON stores. */                        \
+    CPUFeaturesScope cpu(&masm, CPUFeatures::kNEON);                          \
+    __ PushCalleeSavedRegisters();                                            \
+  }                                                                           \
   {                                                                           \
     int trace_parameters = 0;                                                 \
     if (Test::trace_reg()) trace_parameters |= LOG_STATE;                     \
@@ -142,17 +152,21 @@ namespace aarch64 {
   /* Avoid unused-variable warnings in case a test never calls RUN(). */      \
   USE(offset_after_infrastructure_start)
 
-#define END()                                                            \
-  offset_before_infrastructure_end = masm.GetCursorOffset();             \
-  /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
-  USE(offset_before_infrastructure_end);                                 \
-  if (Test::instruction_stats()) {                                       \
-    __ DisableInstrumentation();                                         \
-  }                                                                      \
-  __ Trace(LOG_ALL, TRACE_DISABLE);                                      \
-  core.Dump(&masm);                                                      \
-  __ PopCalleeSavedRegisters();                                          \
-  __ Ret();                                                              \
+#define END()                                                             \
+  offset_before_infrastructure_end = masm.GetCursorOffset();              \
+  /* Avoid unused-variable warnings in case a test never calls RUN(). */  \
+  USE(offset_before_infrastructure_end);                                  \
+  if (Test::instruction_stats()) {                                        \
+    __ DisableInstrumentation();                                          \
+  }                                                                       \
+  __ Trace(LOG_ALL, TRACE_DISABLE);                                       \
+  {                                                                       \
+    /* Dump() and PopCalleeSavedRegisters() use NEON loads and stores. */ \
+    CPUFeaturesScope cpu(&masm, CPUFeatures::kNEON);                      \
+    core.Dump(&masm);                                                     \
+    __ PopCalleeSavedRegisters();                                         \
+  }                                                                       \
+  __ Ret();                                                               \
   masm.FinalizeCode()
 
 #define RUN()    \
@@ -171,6 +185,11 @@ namespace aarch64 {
   MacroAssembler masm; \
   SETUP_COMMON()
 
+#define SETUP_WITH_FEATURES(...) \
+  MacroAssembler masm;           \
+  SETUP_COMMON();                \
+  masm.SetCPUFeatures(CPUFeatures(__VA_ARGS__))
+
 #define SETUP_CUSTOM(size, pic)                                         \
   byte* buffer =                                                        \
       reinterpret_cast<byte*>(mmap(NULL,                                \
@@ -183,30 +202,39 @@ namespace aarch64 {
   MacroAssembler masm(buffer, buffer_size, pic);                        \
   SETUP_COMMON()
 
-#define SETUP_COMMON()                         \
-  Disassembler disasm;                         \
-  Decoder disassembler_decoder;                \
-  disassembler_decoder.AppendVisitor(&disasm); \
-  masm.SetGenerateSimulatorCode(false);        \
-  RegisterDump core;                           \
-  CPU::SetUp();                                \
-  ptrdiff_t offset_after_infrastructure_start; \
+#define SETUP_COMMON()                               \
+  Disassembler disasm;                               \
+  Decoder disassembler_decoder;                      \
+  disassembler_decoder.AppendVisitor(&disasm);       \
+  masm.GetCPUFeatures()->Remove(CPUFeatures::All()); \
+  masm.SetGenerateSimulatorCode(false);              \
+  RegisterDump core;                                 \
+  CPU::SetUp();                                      \
+  ptrdiff_t offset_after_infrastructure_start;       \
   ptrdiff_t offset_before_infrastructure_end
 
 #define START()                                                          \
   masm.Reset();                                                          \
-  __ PushCalleeSavedRegisters();                                         \
+  {                                                                      \
+    /* PushCalleeSavedRegisters() uses NEON stores. */                   \
+    CPUFeaturesScope cpu(&masm, CPUFeatures::kNEON);                     \
+    __ PushCalleeSavedRegisters();                                       \
+  }                                                                      \
   offset_after_infrastructure_start = masm.GetCursorOffset();            \
   /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
   USE(offset_after_infrastructure_start)
 
-#define END()                                                            \
-  offset_before_infrastructure_end = masm.GetCursorOffset();             \
-  /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
-  USE(offset_before_infrastructure_end);                                 \
-  core.Dump(&masm);                                                      \
-  __ PopCalleeSavedRegisters();                                          \
-  __ Ret();                                                              \
+#define END()                                                             \
+  offset_before_infrastructure_end = masm.GetCursorOffset();              \
+  /* Avoid unused-variable warnings in case a test never calls RUN(). */  \
+  USE(offset_before_infrastructure_end);                                  \
+  {                                                                       \
+    /* Dump() and PopCalleeSavedRegisters() use NEON loads and stores. */ \
+    CPUFeaturesScope cpu(&masm, CPUFeatures::kNEON);                      \
+    core.Dump(&masm);                                                     \
+    __ PopCalleeSavedRegisters();                                         \
+  }                                                                       \
+  __ Ret();                                                               \
   masm.FinalizeCode()
 
 // Execute the generated code from the memory area.
@@ -2841,7 +2869,7 @@ TEST(load_store_regoffset) {
 
 
 TEST(load_store_float) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   float src[3] = {1.0, 2.0, 3.0};
   float dst[3] = {0.0, 0.0, 0.0};
@@ -2883,7 +2911,7 @@ TEST(load_store_float) {
 
 
 TEST(load_store_double) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   double src[3] = {1.0, 2.0, 3.0};
   double dst[3] = {0.0, 0.0, 0.0};
@@ -2925,7 +2953,7 @@ TEST(load_store_double) {
 
 
 TEST(load_store_b) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[3] = {0x12, 0x23, 0x34};
   uint8_t dst[3] = {0, 0, 0};
@@ -2967,7 +2995,7 @@ TEST(load_store_b) {
 
 
 TEST(load_store_h) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint16_t src[3] = {0x1234, 0x2345, 0x3456};
   uint16_t dst[3] = {0, 0, 0};
@@ -3009,7 +3037,7 @@ TEST(load_store_h) {
 
 
 TEST(load_store_q) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[48] = {0x10, 0x32, 0x54, 0x76, 0x98, 0xba, 0xdc, 0xfe, 0x01, 0x23,
                      0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0x21, 0x43, 0x65, 0x87,
@@ -3059,7 +3087,7 @@ TEST(load_store_q) {
 
 
 TEST(load_store_v_regoffset) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3144,7 +3172,7 @@ TEST(load_store_v_regoffset) {
 
 
 TEST(neon_ld1_d) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[32 + 5];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3194,7 +3222,7 @@ TEST(neon_ld1_d) {
 
 
 TEST(neon_ld1_d_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[32 + 5];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3263,7 +3291,7 @@ TEST(neon_ld1_d_postindex) {
 
 
 TEST(neon_ld1_q) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3306,7 +3334,7 @@ TEST(neon_ld1_q) {
 
 
 TEST(neon_ld1_q_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3363,7 +3391,7 @@ TEST(neon_ld1_q_postindex) {
 
 
 TEST(neon_ld1_lane) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3426,7 +3454,7 @@ TEST(neon_ld1_lane) {
 }
 
 TEST(neon_ld2_d) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3460,7 +3488,7 @@ TEST(neon_ld2_d) {
 }
 
 TEST(neon_ld2_d_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[32 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3505,7 +3533,7 @@ TEST(neon_ld2_d_postindex) {
 
 
 TEST(neon_ld2_q) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3544,7 +3572,7 @@ TEST(neon_ld2_q) {
 
 
 TEST(neon_ld2_q_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3591,7 +3619,7 @@ TEST(neon_ld2_q_postindex) {
 
 
 TEST(neon_ld2_lane) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3671,7 +3699,7 @@ TEST(neon_ld2_lane) {
 
 
 TEST(neon_ld2_lane_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3767,7 +3795,7 @@ TEST(neon_ld2_lane_postindex) {
 
 
 TEST(neon_ld2_alllanes) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3815,7 +3843,7 @@ TEST(neon_ld2_alllanes) {
 
 
 TEST(neon_ld2_alllanes_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3858,7 +3886,7 @@ TEST(neon_ld2_alllanes_postindex) {
 
 
 TEST(neon_ld3_d) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3897,7 +3925,7 @@ TEST(neon_ld3_d) {
 
 
 TEST(neon_ld3_d_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[32 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3948,7 +3976,7 @@ TEST(neon_ld3_d_postindex) {
 
 
 TEST(neon_ld3_q) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -3992,7 +4020,7 @@ TEST(neon_ld3_q) {
 
 
 TEST(neon_ld3_q_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -4044,7 +4072,7 @@ TEST(neon_ld3_q_postindex) {
 
 
 TEST(neon_ld3_lane) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -4130,7 +4158,7 @@ TEST(neon_ld3_lane) {
 
 
 TEST(neon_ld3_lane_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -4238,7 +4266,7 @@ TEST(neon_ld3_lane_postindex) {
 
 
 TEST(neon_ld3_alllanes) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -4293,7 +4321,7 @@ TEST(neon_ld3_alllanes) {
 
 
 TEST(neon_ld3_alllanes_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -4344,7 +4372,7 @@ TEST(neon_ld3_alllanes_postindex) {
 
 
 TEST(neon_ld4_d) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -4387,7 +4415,7 @@ TEST(neon_ld4_d) {
 
 
 TEST(neon_ld4_d_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[32 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -4463,7 +4491,7 @@ TEST(neon_ld4_d_postindex) {
 
 
 TEST(neon_ld4_q) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -4511,7 +4539,7 @@ TEST(neon_ld4_q) {
 
 
 TEST(neon_ld4_q_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 4];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -4589,7 +4617,7 @@ TEST(neon_ld4_q_postindex) {
 
 
 TEST(neon_ld4_lane) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -4696,7 +4724,7 @@ TEST(neon_ld4_lane) {
 
 
 TEST(neon_ld4_lane_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -4841,7 +4869,7 @@ TEST(neon_ld4_lane_postindex) {
 
 
 TEST(neon_ld4_alllanes) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -4905,7 +4933,7 @@ TEST(neon_ld4_alllanes) {
 
 
 TEST(neon_ld4_alllanes_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -4992,7 +5020,7 @@ TEST(neon_ld4_alllanes_postindex) {
 
 
 TEST(neon_st1_lane) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5043,7 +5071,7 @@ TEST(neon_st1_lane) {
 
 
 TEST(neon_st2_lane) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   // Struct size * addressing modes * element sizes * vector size.
   uint8_t dst[2 * 2 * 4 * 16];
@@ -5136,7 +5164,7 @@ TEST(neon_st2_lane) {
 
 
 TEST(neon_st3_lane) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   // Struct size * addressing modes * element sizes * vector size.
   uint8_t dst[3 * 2 * 4 * 16];
@@ -5235,7 +5263,7 @@ TEST(neon_st3_lane) {
 
 
 TEST(neon_st4_lane) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   // Struct size * element sizes * vector size.
   uint8_t dst[4 * 4 * 16];
@@ -5318,7 +5346,7 @@ TEST(neon_st4_lane) {
 
 
 TEST(neon_ld1_lane_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5396,7 +5424,7 @@ TEST(neon_ld1_lane_postindex) {
 
 
 TEST(neon_st1_lane_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5443,7 +5471,7 @@ TEST(neon_st1_lane_postindex) {
 
 
 TEST(neon_ld1_alllanes) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5486,7 +5514,7 @@ TEST(neon_ld1_alllanes) {
 
 
 TEST(neon_ld1_alllanes_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5522,7 +5550,7 @@ TEST(neon_ld1_alllanes_postindex) {
 
 
 TEST(neon_st1_d) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[14 * kDRegSizeInBytes];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5579,7 +5607,7 @@ TEST(neon_st1_d) {
 
 
 TEST(neon_st1_d_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 14 * kDRegSizeInBytes];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5644,7 +5672,7 @@ TEST(neon_st1_d_postindex) {
 
 
 TEST(neon_st1_q) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 160];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5696,7 +5724,7 @@ TEST(neon_st1_q) {
 
 
 TEST(neon_st1_q_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[64 + 160];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5757,7 +5785,7 @@ TEST(neon_st1_q_postindex) {
 
 
 TEST(neon_st2_d) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[4 * 16];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5797,7 +5825,7 @@ TEST(neon_st2_d) {
 
 
 TEST(neon_st2_d_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[4 * 16];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5835,7 +5863,7 @@ TEST(neon_st2_d_postindex) {
 
 
 TEST(neon_st2_q) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[5 * 16];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5876,7 +5904,7 @@ TEST(neon_st2_q) {
 
 
 TEST(neon_st2_q_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[5 * 16];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5918,7 +5946,7 @@ TEST(neon_st2_q_postindex) {
 
 
 TEST(neon_st3_d) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[3 * 16];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5956,7 +5984,7 @@ TEST(neon_st3_d) {
 
 
 TEST(neon_st3_d_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[4 * 16];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -5997,7 +6025,7 @@ TEST(neon_st3_d_postindex) {
 
 
 TEST(neon_st3_q) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[6 * 16];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -6044,7 +6072,7 @@ TEST(neon_st3_q) {
 
 
 TEST(neon_st3_q_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[7 * 16];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -6091,7 +6119,7 @@ TEST(neon_st3_q_postindex) {
 
 
 TEST(neon_st4_d) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[4 * 16];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -6134,7 +6162,7 @@ TEST(neon_st4_d) {
 
 
 TEST(neon_st4_d_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[5 * 16];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -6186,7 +6214,7 @@ TEST(neon_st4_d_postindex) {
 
 
 TEST(neon_st4_q) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[7 * 16];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -6237,7 +6265,7 @@ TEST(neon_st4_q) {
 
 
 TEST(neon_st4_q_postindex) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint8_t src[9 * 16];
   for (unsigned i = 0; i < sizeof(src); i++) {
@@ -6301,7 +6329,7 @@ TEST(neon_st4_q_postindex) {
 
 
 TEST(neon_destructive_minmaxp) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
   __ Movi(v0.V2D(), 0, 0x2222222233333333);
@@ -6367,7 +6395,7 @@ TEST(neon_destructive_minmaxp) {
 
 
 TEST(neon_destructive_tbl) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
   __ Movi(v0.V2D(), 0x0041424334353627, 0x28291a1b1c0d0e0f);
@@ -6423,7 +6451,7 @@ TEST(neon_destructive_tbl) {
 
 
 TEST(neon_destructive_tbx) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
   __ Movi(v0.V2D(), 0x0041424334353627, 0x28291a1b1c0d0e0f);
@@ -6479,7 +6507,7 @@ TEST(neon_destructive_tbx) {
 
 
 TEST(neon_destructive_fcvtl) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
   __ Movi(v0.V2D(), 0x400000003f800000, 0xbf800000c0000000);
@@ -6517,7 +6545,7 @@ TEST(neon_destructive_fcvtl) {
 
 
 TEST(ldp_stp_float) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   float src[2] = {1.0, 2.0};
   float dst[3] = {0.0, 0.0, 0.0};
@@ -6546,7 +6574,7 @@ TEST(ldp_stp_float) {
 
 
 TEST(ldp_stp_double) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   double src[2] = {1.0, 2.0};
   double dst[3] = {0.0, 0.0, 0.0};
@@ -6575,7 +6603,7 @@ TEST(ldp_stp_double) {
 
 
 TEST(ldp_stp_quad) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint64_t src[4] = {0x0123456789abcdef,
                      0xaaaaaaaa55555555,
@@ -6723,7 +6751,7 @@ TEST(ldp_stp_offset_wide) {
 
 
 TEST(ldnp_stnp_offset) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   uint64_t src[4] = {0x0011223344556677,
                      0x8899aabbccddeeff,
@@ -6801,7 +6829,7 @@ TEST(ldnp_stnp_offset) {
 
 
 TEST(ldnp_stnp_offset_float) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   float src[3] = {1.2, 2.3, 3.4};
   float dst[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -6849,7 +6877,7 @@ TEST(ldnp_stnp_offset_float) {
 
 
 TEST(ldnp_stnp_offset_double) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   double src[3] = {1.2, 2.3, 3.4};
   double dst[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
@@ -7198,8 +7226,8 @@ TEST(ldur_stur) {
 }
 
 
-TEST(ldur_stur_fp) {
-  SETUP();
+TEST(ldur_stur_neon) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   int64_t src[3] = {0x0123456789abcdef, 0x0123456789abcdef, 0x0123456789abcdef};
   int64_t dst[5] = {0, 0, 0, 0, 0};
@@ -7238,7 +7266,7 @@ TEST(ldur_stur_fp) {
 
 
 TEST(ldr_literal) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
   __ Ldr(x2, 0x1234567890abcdef);
@@ -7265,7 +7293,7 @@ TEST(ldr_literal) {
 
 
 TEST(ldr_literal_range) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
   // Make sure the pool is empty;
@@ -7326,7 +7354,7 @@ TEST(ldr_literal_range) {
 
 
 TEST(ldr_literal_values_q) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   static const uint64_t kHalfValues[] = {0x8000000000000000,
                                          0x7fffffffffffffff,
@@ -7423,7 +7451,7 @@ TEST(ldr_literal_values_w) {
 
 template <typename T>
 void LoadFPValueHelper(T values[], int card) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   const bool is_32bits = (sizeof(T) == 4);
   const FPRegister& fp_tgt = is_32bits ? s2 : d2;
@@ -7467,7 +7495,7 @@ TEST(ldr_literal_values_s) {
 
 
 TEST(ldr_literal_custom) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   Label end_of_pool_before;
   Label end_of_pool_after;
@@ -7556,7 +7584,7 @@ TEST(ldr_literal_custom) {
 
 
 TEST(ldr_literal_custom_shared) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   Label end_of_pool_before;
   Label end_of_pool_after;
@@ -7809,7 +7837,7 @@ TEST(prfm_wide) {
 
 TEST(load_prfm_literal) {
   // Test literals shared between both prfm and ldr.
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   Label end_of_pool_before;
   Label end_of_pool_after;
@@ -9843,7 +9871,7 @@ TEST(extr) {
 
 
 TEST(fmov_imm) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFPHalf);
 
   START();
   __ Fmov(s1, 255.0);
@@ -9895,7 +9923,9 @@ TEST(fmov_imm) {
 
 
 TEST(fmov_vec_imm) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kFPHalf);
 
   START();
 
@@ -9920,7 +9950,9 @@ TEST(fmov_vec_imm) {
 
 
 TEST(fmov_reg) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kFPHalf);
 
   START();
 
@@ -9971,7 +10003,7 @@ TEST(fmov_reg) {
 
 
 TEST(fadd) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s14, -0.0f);
@@ -10027,7 +10059,7 @@ TEST(fadd) {
 
 
 TEST(fsub) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s14, -0.0f);
@@ -10083,7 +10115,7 @@ TEST(fsub) {
 
 
 TEST(fmul) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s14, -0.0f);
@@ -10146,7 +10178,8 @@ static void FmaddFmsubHelper(double n,
                              double fmsub,
                              double fnmadd,
                              double fnmsub) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+
   START();
 
   __ Fmov(d0, n);
@@ -10227,7 +10260,8 @@ static void FmaddFmsubHelper(float n,
                              float fmsub,
                              float fnmadd,
                              float fnmsub) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+
   START();
 
   __ Fmov(s0, n);
@@ -10498,7 +10532,7 @@ TEST(fmadd_fmsub_float_nans) {
 
 
 TEST(fdiv) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s14, -0.0f);
@@ -10638,7 +10672,7 @@ static double MinMaxHelper(double n,
 
 static void FminFmaxDoubleHelper(
     double n, double m, double min, double max, double minnm, double maxnm) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(d0, n);
@@ -10742,7 +10776,7 @@ TEST(fmax_fmin_d) {
 
 static void FminFmaxFloatHelper(
     float n, float m, float min, float max, float minnm, float maxnm) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s0, n);
@@ -10845,7 +10879,7 @@ TEST(fmax_fmin_s) {
 
 
 TEST(fccmp) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s16, 0.0);
@@ -10942,7 +10976,7 @@ TEST(fccmp) {
 
 
 TEST(fcmp) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
 
@@ -11041,7 +11075,7 @@ TEST(fcmp) {
 
 
 TEST(fcsel) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Mov(x16, 0);
@@ -11077,7 +11111,7 @@ TEST(fcsel) {
 
 
 TEST(fneg) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s16, 1.0);
@@ -11121,7 +11155,7 @@ TEST(fneg) {
 
 
 TEST(fabs) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s16, -1.0);
@@ -11157,7 +11191,7 @@ TEST(fabs) {
 
 
 TEST(fsqrt) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s16, 0.0);
@@ -11213,7 +11247,7 @@ TEST(fsqrt) {
 
 
 TEST(frinta) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s16, 1.0);
@@ -11303,7 +11337,7 @@ TEST(frinta) {
 TEST(frinti) {
   // VIXL only supports the round-to-nearest FPCR mode, so this test has the
   // same results as frintn.
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s16, 1.0);
@@ -11391,7 +11425,7 @@ TEST(frinti) {
 
 
 TEST(frintm) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s16, 1.0);
@@ -11479,7 +11513,7 @@ TEST(frintm) {
 
 
 TEST(frintn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s16, 1.0);
@@ -11567,7 +11601,7 @@ TEST(frintn) {
 
 
 TEST(frintp) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s16, 1.0);
@@ -11657,7 +11691,7 @@ TEST(frintp) {
 TEST(frintx) {
   // VIXL only supports the round-to-nearest FPCR mode, and it doesn't support
   // FP exceptions, so this test has the same results as frintn (and frinti).
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s16, 1.0);
@@ -11745,7 +11779,7 @@ TEST(frintx) {
 
 
 TEST(frintz) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s16, 1.0);
@@ -11827,7 +11861,7 @@ TEST(frintz) {
 
 
 TEST(fcvt_ds) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s16, 1.0);
@@ -11896,7 +11930,7 @@ TEST(fcvt_sd) {
   // Test simple conversions here. Complex behaviour (such as rounding
   // specifics) are tested in the simulator tests.
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(d16, 1.0);
@@ -11962,7 +11996,7 @@ TEST(fcvt_sd) {
 
 
 TEST(fcvt_half) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   Label done;
@@ -11995,7 +12029,7 @@ TEST(fcvt_half) {
       __ Fmov(s1, w1);
       __ Fcvt(d2, h1);
       __ Fcvt(h2, d2);
-      __ Mov(w2, v2.S(), 0);
+      __ Fmov(w2, s2);
       __ Cmp(w1, w2);
       __ B(&fail, ne);
     }
@@ -12066,7 +12100,7 @@ TEST(fcvt_half) {
 
 
 TEST(fcvtas) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s0, 1.0);
@@ -12170,7 +12204,7 @@ TEST(fcvtas) {
 
 
 TEST(fcvtau) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s0, 1.0);
@@ -12269,7 +12303,7 @@ TEST(fcvtau) {
 
 
 TEST(fcvtms) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s0, 1.0);
@@ -12373,7 +12407,7 @@ TEST(fcvtms) {
 
 
 TEST(fcvtmu) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s0, 1.0);
@@ -12475,7 +12509,7 @@ TEST(fcvtmu) {
 
 
 TEST(fcvtns) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s0, 1.0);
@@ -12579,7 +12613,7 @@ TEST(fcvtns) {
 
 
 TEST(fcvtnu) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s0, 1.0);
@@ -12678,7 +12712,7 @@ TEST(fcvtnu) {
 
 
 TEST(fcvtzs) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s0, 1.0);
@@ -12781,7 +12815,7 @@ TEST(fcvtzs) {
 }
 
 TEST(fcvtzu) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
   __ Fmov(s0, 1.0);
@@ -12883,7 +12917,7 @@ TEST(fcvtzu) {
 
 
 TEST(neon_fcvtl) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
 
@@ -12922,7 +12956,7 @@ TEST(neon_fcvtl) {
 
 
 TEST(neon_fcvtn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
 
@@ -12958,7 +12992,7 @@ TEST(neon_fcvtn) {
 
 
 TEST(neon_fcvtxn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
   __ Movi(v0.V2D(), 0x3e200000be200000, 0x7f800000ff800000);
@@ -13021,7 +13055,8 @@ static void TestUScvtfHelper(uint64_t in,
   double results_scvtf_w[33];
   double results_ucvtf_w[33];
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+
   START();
 
   __ Mov(x0, reinterpret_cast<uintptr_t>(results_scvtf_x));
@@ -13175,7 +13210,8 @@ static void TestUScvtf32Helper(uint64_t in,
   float results_scvtf_w[33];
   float results_ucvtf_w[33];
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+
   START();
 
   __ Mov(x0, reinterpret_cast<uintptr_t>(results_scvtf_x));
@@ -13426,7 +13462,8 @@ TEST(system_msr) {
 
 
 TEST(system) {
-  SETUP();
+  // RegisterDump::Dump uses NEON.
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
   RegisterDump before;
 
   START();
@@ -13445,7 +13482,8 @@ TEST(system) {
 
 
 TEST(zero_dest) {
-  SETUP();
+  // RegisterDump::Dump uses NEON.
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
   RegisterDump before;
 
   START();
@@ -13514,7 +13552,8 @@ TEST(zero_dest) {
 
 
 TEST(zero_dest_setflags) {
-  SETUP();
+  // RegisterDump::Dump uses NEON.
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
   RegisterDump before;
 
   START();
@@ -13879,7 +13918,8 @@ TEST(peek_poke_mixed) {
 
 
 TEST(peek_poke_reglist) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+
   START();
 
   // Acquire all temps from the MacroAssembler. They are used arbitrarily below.
@@ -13969,7 +14009,8 @@ TEST(peek_poke_reglist) {
 
 
 TEST(load_store_reglist) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+
   START();
 
   // The literal base is chosen to have two useful properties:
@@ -14355,7 +14396,7 @@ static void PushPopFPSimpleHelper(int reg_count,
                                   int reg_size,
                                   PushPopMethod push_method,
                                   PushPopMethod pop_method) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
 
@@ -14988,7 +15029,10 @@ TEST(push_pop_sp) {
 
 
 TEST(printf) {
-  SETUP();
+  // RegisterDump::Dump uses NEON.
+  // Printf uses FP to cast FP arguments to doubles.
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
+
   START();
 
   char const* test_plain_string = "Printf with no arguments.\n";
@@ -15097,7 +15141,9 @@ TEST(printf) {
 
 
 TEST(printf_no_preserve) {
-  SETUP();
+  // PrintfNoPreserve uses FP to cast FP arguments to doubles.
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+
   START();
 
   char const* test_plain_string = "Printf with no arguments.\n";
@@ -15363,7 +15409,8 @@ TEST(process_nan_double) {
   VIXL_ASSERT(IsQuietNaN(sn_proc));
   VIXL_ASSERT(IsQuietNaN(qn_proc));
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+
   START();
 
   // Execute a number of instructions which all use ProcessNaN, and check that
@@ -15438,7 +15485,8 @@ TEST(process_nan_float) {
   VIXL_ASSERT(IsQuietNaN(sn_proc));
   VIXL_ASSERT(IsQuietNaN(qn_proc));
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+
   START();
 
   // Execute a number of instructions which all use ProcessNaN, and check that
@@ -15504,7 +15552,8 @@ static void ProcessNaNsHelper(double n, double m, double expected) {
   VIXL_ASSERT(std::isnan(n) || std::isnan(m));
   VIXL_ASSERT(std::isnan(expected));
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+
   START();
 
   // Execute a number of instructions which all use ProcessNaNs, and check that
@@ -15575,7 +15624,8 @@ static void ProcessNaNsHelper(float n, float m, float expected) {
   VIXL_ASSERT(std::isnan(n) || std::isnan(m));
   VIXL_ASSERT(std::isnan(expected));
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+
   START();
 
   // Execute a number of instructions which all use ProcessNaNs, and check that
@@ -15648,7 +15698,8 @@ static void DefaultNaNHelper(float n, float m, float a) {
   bool test_1op = std::isnan(n);
   bool test_2op = std::isnan(n) || std::isnan(m);
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+
   START();
 
   // Enable Default-NaN mode in the FPCR.
@@ -15775,7 +15826,8 @@ static void DefaultNaNHelper(double n, double m, double a) {
   bool test_1op = std::isnan(n);
   bool test_2op = std::isnan(n) || std::isnan(m);
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+
   START();
 
   // Enable Default-NaN mode in the FPCR.
@@ -15957,7 +16009,8 @@ TEST(ldlar_stllr) {
   uint32_t w[] = {0, 0x12345678, 0};
   uint64_t x[] = {0, 0x123456789abcdef0, 0};
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kLORegions);
+
   START();
 
   __ Mov(x10, reinterpret_cast<uintptr_t>(&b[1]));
@@ -16497,7 +16550,8 @@ TEST(cas_casa_casl_casal_w) {
   uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
   uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kAtomics);
+
   START();
 
   __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
@@ -16576,7 +16630,8 @@ TEST(cas_casa_casl_casal_x) {
   uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
   uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kAtomics);
+
   START();
 
   __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
@@ -16655,7 +16710,8 @@ TEST(casb_casab_caslb_casalb) {
   uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
   uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kAtomics);
+
   START();
 
   __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
@@ -16734,7 +16790,8 @@ TEST(cash_casah_caslh_casalh) {
   uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
   uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kAtomics);
+
   START();
 
   __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
@@ -16813,7 +16870,8 @@ TEST(casp_caspa_caspl_caspal) {
   uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
   uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kAtomics);
+
   START();
 
   __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
@@ -16918,7 +16976,7 @@ TEST(load_store_tagged_immediate_offset) {
 
       memset(dst, 0, kMaxDataLength);
 
-      SETUP();
+      SETUP_WITH_FEATURES(CPUFeatures::kNEON);
       START();
 
       __ Mov(x0, src_tagged);
@@ -17131,7 +17189,7 @@ TEST(load_store_tagged_immediate_preindex) {
         dst[k] = 0;
       }
 
-      SETUP();
+      SETUP_WITH_FEATURES(CPUFeatures::kNEON);
       START();
 
       // Each MemOperand must apply a pre-index equal to the size of the
@@ -17302,7 +17360,7 @@ TEST(load_store_tagged_immediate_postindex) {
         dst[k] = 0;
       }
 
-      SETUP();
+      SETUP_WITH_FEATURES(CPUFeatures::kNEON);
       START();
 
       int postindex = 2 * kXRegSizeInBytes;
@@ -17473,7 +17531,7 @@ TEST(load_store_tagged_register_offset) {
           dst[k] = 0;
         }
 
-        SETUP();
+        SETUP_WITH_FEATURES(CPUFeatures::kNEON);
         START();
 
         __ Mov(x0, src_tagged);
@@ -17572,7 +17630,8 @@ TEST(load_store_tagged_register_postindex) {
 
   for (int j = 0; j < tag_count; j++) {
     for (int i = 0; i < tag_count; i++) {
-      SETUP();
+      SETUP_WITH_FEATURES(CPUFeatures::kNEON);
+
       uint64_t src_base = reinterpret_cast<uint64_t>(src);
       uint64_t src_tagged = CPU::SetPointerTag(src_base, tags[i]);
       uint64_t offset_tagged = CPU::SetPointerTag(UINT64_C(0), tags[j]);
@@ -17704,7 +17763,7 @@ TEST(branch_tagged_and_adr_adrp) {
 }
 
 TEST(neon_3same_addp) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -17720,7 +17779,7 @@ TEST(neon_3same_addp) {
 }
 
 TEST(neon_3same_sqdmulh_sqrdmulh) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -17754,7 +17813,7 @@ TEST(neon_3same_sqdmulh_sqrdmulh) {
 }
 
 TEST(neon_byelement_sqdmulh_sqrdmulh) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -17788,7 +17847,7 @@ TEST(neon_byelement_sqdmulh_sqrdmulh) {
 }
 
 TEST(neon_3same_sqrdmlah) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kRDM);
 
   START();
 
@@ -17821,7 +17880,7 @@ TEST(neon_3same_sqrdmlah) {
 }
 
 TEST(neon_byelement_sqrdmlah) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kRDM);
 
   START();
 
@@ -17853,7 +17912,7 @@ TEST(neon_byelement_sqrdmlah) {
 }
 
 TEST(neon_3same_sqrdmlsh) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kRDM);
 
   START();
 
@@ -17885,7 +17944,7 @@ TEST(neon_3same_sqrdmlsh) {
 }
 
 TEST(neon_byelement_sqrdmlsh) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kRDM);
 
   START();
 
@@ -17917,7 +17976,7 @@ TEST(neon_byelement_sqrdmlsh) {
 }
 
 TEST(neon_3same_sdot_udot) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kDotProduct);
 
   START();
 
@@ -17950,7 +18009,7 @@ TEST(neon_3same_sdot_udot) {
 }
 
 TEST(neon_byelement_sdot_udot) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kDotProduct);
 
   START();
 
@@ -17983,7 +18042,7 @@ TEST(neon_byelement_sdot_udot) {
 
 
 TEST(neon_2regmisc_saddlp) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18011,7 +18070,7 @@ TEST(neon_2regmisc_saddlp) {
 }
 
 TEST(neon_2regmisc_uaddlp) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18039,7 +18098,7 @@ TEST(neon_2regmisc_uaddlp) {
 }
 
 TEST(neon_2regmisc_sadalp) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18077,7 +18136,7 @@ TEST(neon_2regmisc_sadalp) {
 }
 
 TEST(neon_2regmisc_uadalp) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18115,7 +18174,7 @@ TEST(neon_2regmisc_uadalp) {
 }
 
 TEST(neon_3same_mul) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18139,7 +18198,7 @@ TEST(neon_3same_mul) {
 
 
 TEST(neon_3same_absdiff) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18165,7 +18224,7 @@ TEST(neon_3same_absdiff) {
 
 
 TEST(neon_byelement_mul) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18220,7 +18279,7 @@ TEST(neon_byelement_mul) {
 
 
 TEST(neon_byelement_mull) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18277,7 +18336,7 @@ TEST(neon_byelement_mull) {
 
 
 TEST(neon_byelement_sqdmull) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18325,7 +18384,7 @@ TEST(neon_byelement_sqdmull) {
 
 
 TEST(neon_3diff_absdiff) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18353,7 +18412,7 @@ TEST(neon_3diff_absdiff) {
 
 
 TEST(neon_3diff_sqdmull) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18383,7 +18442,7 @@ TEST(neon_3diff_sqdmull) {
 
 
 TEST(neon_3diff_sqdmlal) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18420,7 +18479,7 @@ TEST(neon_3diff_sqdmlal) {
 
 
 TEST(neon_3diff_sqdmlsl) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18458,7 +18517,7 @@ TEST(neon_3diff_sqdmlsl) {
 
 
 TEST(neon_3diff_mla) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18486,7 +18545,7 @@ TEST(neon_3diff_mla) {
 
 
 TEST(neon_3diff_mls) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18514,7 +18573,7 @@ TEST(neon_3diff_mls) {
 
 
 TEST(neon_3same_compare) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18550,7 +18609,7 @@ TEST(neon_3same_compare) {
 
 
 TEST(neon_3same_scalar_compare) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18593,7 +18652,7 @@ TEST(neon_3same_scalar_compare) {
 }
 
 TEST(neon_2regmisc_fcmeq) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
 
@@ -18630,7 +18689,7 @@ TEST(neon_2regmisc_fcmeq) {
 }
 
 TEST(neon_2regmisc_fcmge) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
 
@@ -18668,7 +18727,7 @@ TEST(neon_2regmisc_fcmge) {
 
 
 TEST(neon_2regmisc_fcmgt) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
 
@@ -18705,7 +18764,7 @@ TEST(neon_2regmisc_fcmgt) {
 }
 
 TEST(neon_2regmisc_fcmle) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
 
@@ -18743,7 +18802,7 @@ TEST(neon_2regmisc_fcmle) {
 
 
 TEST(neon_2regmisc_fcmlt) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
 
@@ -18780,7 +18839,7 @@ TEST(neon_2regmisc_fcmlt) {
 }
 
 TEST(neon_2regmisc_cmeq) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18814,7 +18873,7 @@ TEST(neon_2regmisc_cmeq) {
 
 
 TEST(neon_2regmisc_cmge) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18848,7 +18907,7 @@ TEST(neon_2regmisc_cmge) {
 
 
 TEST(neon_2regmisc_cmlt) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18882,7 +18941,7 @@ TEST(neon_2regmisc_cmlt) {
 
 
 TEST(neon_2regmisc_cmle) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18916,7 +18975,7 @@ TEST(neon_2regmisc_cmle) {
 
 
 TEST(neon_2regmisc_cmgt) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18950,7 +19009,7 @@ TEST(neon_2regmisc_cmgt) {
 
 
 TEST(neon_2regmisc_neg) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -18988,7 +19047,7 @@ TEST(neon_2regmisc_neg) {
 
 
 TEST(neon_2regmisc_sqneg) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19034,7 +19093,7 @@ TEST(neon_2regmisc_sqneg) {
 
 
 TEST(neon_2regmisc_abs) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19072,7 +19131,7 @@ TEST(neon_2regmisc_abs) {
 
 
 TEST(neon_2regmisc_sqabs) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19117,7 +19176,7 @@ TEST(neon_2regmisc_sqabs) {
 }
 
 TEST(neon_2regmisc_suqadd) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19178,7 +19237,7 @@ TEST(neon_2regmisc_suqadd) {
 }
 
 TEST(neon_2regmisc_usqadd) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19300,7 +19359,7 @@ TEST(system_dc) {
 
 
 TEST(neon_2regmisc_xtn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19328,7 +19387,7 @@ TEST(neon_2regmisc_xtn) {
 
 
 TEST(neon_2regmisc_sqxtn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19362,7 +19421,7 @@ TEST(neon_2regmisc_sqxtn) {
 
 
 TEST(neon_2regmisc_uqxtn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19396,7 +19455,7 @@ TEST(neon_2regmisc_uqxtn) {
 
 
 TEST(neon_2regmisc_sqxtun) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19429,7 +19488,7 @@ TEST(neon_2regmisc_sqxtun) {
 }
 
 TEST(neon_3same_and) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19451,7 +19510,7 @@ TEST(neon_3same_and) {
 }
 
 TEST(neon_3same_bic) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19473,7 +19532,7 @@ TEST(neon_3same_bic) {
 }
 
 TEST(neon_3same_orr) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19495,7 +19554,7 @@ TEST(neon_3same_orr) {
 }
 
 TEST(neon_3same_mov) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19526,7 +19585,7 @@ TEST(neon_3same_mov) {
 }
 
 TEST(neon_3same_orn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19548,7 +19607,7 @@ TEST(neon_3same_orn) {
 }
 
 TEST(neon_3same_eor) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19570,7 +19629,7 @@ TEST(neon_3same_eor) {
 }
 
 TEST(neon_3same_bif) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19600,7 +19659,7 @@ TEST(neon_3same_bif) {
 }
 
 TEST(neon_3same_bit) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19630,7 +19689,7 @@ TEST(neon_3same_bit) {
 }
 
 TEST(neon_3same_bsl) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19661,7 +19720,7 @@ TEST(neon_3same_bsl) {
 
 
 TEST(neon_3same_smax) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19690,7 +19749,7 @@ TEST(neon_3same_smax) {
 
 
 TEST(neon_3same_smaxp) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19719,7 +19778,7 @@ TEST(neon_3same_smaxp) {
 
 
 TEST(neon_addp_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19742,7 +19801,7 @@ TEST(neon_addp_scalar) {
 }
 
 TEST(neon_acrosslanes_addv) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19770,7 +19829,7 @@ TEST(neon_acrosslanes_addv) {
 
 
 TEST(neon_acrosslanes_saddlv) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19798,7 +19857,7 @@ TEST(neon_acrosslanes_saddlv) {
 
 
 TEST(neon_acrosslanes_uaddlv) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19826,7 +19885,7 @@ TEST(neon_acrosslanes_uaddlv) {
 
 
 TEST(neon_acrosslanes_smaxv) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19854,7 +19913,7 @@ TEST(neon_acrosslanes_smaxv) {
 
 
 TEST(neon_acrosslanes_sminv) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19881,7 +19940,7 @@ TEST(neon_acrosslanes_sminv) {
 }
 
 TEST(neon_acrosslanes_umaxv) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19909,7 +19968,7 @@ TEST(neon_acrosslanes_umaxv) {
 
 
 TEST(neon_acrosslanes_uminv) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19937,7 +19996,7 @@ TEST(neon_acrosslanes_uminv) {
 
 
 TEST(neon_3same_smin) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19966,7 +20025,7 @@ TEST(neon_3same_smin) {
 
 
 TEST(neon_3same_umax) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -19995,7 +20054,7 @@ TEST(neon_3same_umax) {
 
 
 TEST(neon_3same_umin) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20024,9 +20083,10 @@ TEST(neon_3same_umin) {
 
 
 TEST(neon_3same_extra_fcadd) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP, CPUFeatures::kFcma);
 
   START();
+
   // (0i, 5) (d)
   __ Movi(v0.V2D(), 0x0, 0x4014000000000000);
   // (5i, 0) (d)
@@ -20073,7 +20133,7 @@ TEST(neon_3same_extra_fcadd) {
 
 
 TEST(neon_3same_extra_fcmla) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP, CPUFeatures::kFcma);
 
   START();
 
@@ -20148,7 +20208,7 @@ TEST(neon_3same_extra_fcmla) {
 
 
 TEST(neon_byelement_fcmla) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP, CPUFeatures::kFcma);
 
   START();
 
@@ -20224,7 +20284,7 @@ TEST(neon_byelement_fcmla) {
 
 
 TEST(neon_2regmisc_mvn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20256,7 +20316,7 @@ TEST(neon_2regmisc_mvn) {
 
 
 TEST(neon_2regmisc_not) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20276,7 +20336,7 @@ TEST(neon_2regmisc_not) {
 
 
 TEST(neon_2regmisc_cls_clz_cnt) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20325,7 +20385,7 @@ TEST(neon_2regmisc_cls_clz_cnt) {
 }
 
 TEST(neon_2regmisc_rev) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20377,7 +20437,7 @@ TEST(neon_2regmisc_rev) {
 
 
 TEST(neon_sli) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20423,7 +20483,7 @@ TEST(neon_sli) {
 
 
 TEST(neon_sri) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20469,7 +20529,7 @@ TEST(neon_sri) {
 
 
 TEST(neon_shrn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20497,7 +20557,7 @@ TEST(neon_shrn) {
 
 
 TEST(neon_rshrn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20525,7 +20585,7 @@ TEST(neon_rshrn) {
 
 
 TEST(neon_uqshrn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20560,7 +20620,7 @@ TEST(neon_uqshrn) {
 
 
 TEST(neon_uqrshrn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20595,7 +20655,7 @@ TEST(neon_uqrshrn) {
 
 
 TEST(neon_sqshrn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20630,7 +20690,7 @@ TEST(neon_sqshrn) {
 
 
 TEST(neon_sqrshrn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20665,7 +20725,7 @@ TEST(neon_sqrshrn) {
 
 
 TEST(neon_sqshrun) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20700,7 +20760,7 @@ TEST(neon_sqshrun) {
 
 
 TEST(neon_sqrshrun) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20734,7 +20794,7 @@ TEST(neon_sqrshrun) {
 }
 
 TEST(neon_modimm_bic) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20790,7 +20850,7 @@ TEST(neon_modimm_bic) {
 
 
 TEST(neon_modimm_movi_16bit_any) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20817,7 +20877,7 @@ TEST(neon_modimm_movi_16bit_any) {
 
 
 TEST(neon_modimm_movi_32bit_any) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20869,7 +20929,7 @@ TEST(neon_modimm_movi_32bit_any) {
 
 
 TEST(neon_modimm_movi_64bit_any) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20896,7 +20956,7 @@ TEST(neon_modimm_movi_64bit_any) {
 
 
 TEST(neon_modimm_movi) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -20961,7 +21021,7 @@ TEST(neon_modimm_movi) {
 
 
 TEST(neon_modimm_mvni) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21014,7 +21074,7 @@ TEST(neon_modimm_mvni) {
 
 
 TEST(neon_modimm_orr) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21071,7 +21131,7 @@ TEST(neon_modimm_orr) {
 
 // TODO: add arbitrary values once load literal to Q registers is supported.
 TEST(neon_modimm_fmov) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   // Immediates which can be encoded in the instructions.
   const float kOne = 1.0f;
@@ -21128,7 +21188,7 @@ TEST(neon_modimm_fmov) {
 
 
 TEST(neon_perm) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21158,7 +21218,7 @@ TEST(neon_perm) {
 
 
 TEST(neon_copy_dup_element) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21215,7 +21275,7 @@ TEST(neon_copy_dup_element) {
 
 
 TEST(neon_copy_dup_general) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21257,7 +21317,7 @@ TEST(neon_copy_dup_general) {
 
 
 TEST(neon_copy_ins_element) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21301,7 +21361,7 @@ TEST(neon_copy_ins_element) {
 
 
 TEST(neon_copy_mov_element) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21345,7 +21405,7 @@ TEST(neon_copy_mov_element) {
 
 
 TEST(neon_copy_smov) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21386,7 +21446,7 @@ TEST(neon_copy_smov) {
 
 
 TEST(neon_copy_umov_mov) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21416,7 +21476,7 @@ TEST(neon_copy_umov_mov) {
 
 
 TEST(neon_copy_ins_general) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21459,7 +21519,7 @@ TEST(neon_copy_ins_general) {
 
 
 TEST(neon_extract_ext) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21497,7 +21557,7 @@ TEST(neon_extract_ext) {
 
 
 TEST(neon_3different_uaddl) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21540,7 +21600,7 @@ TEST(neon_3different_uaddl) {
 
 
 TEST(neon_3different_addhn_subhn) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21571,7 +21631,7 @@ TEST(neon_3different_addhn_subhn) {
 }
 
 TEST(neon_d_only_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21620,7 +21680,7 @@ TEST(neon_d_only_scalar) {
 
 
 TEST(neon_sqshl_imm_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21677,7 +21737,7 @@ TEST(neon_sqshl_imm_scalar) {
 
 
 TEST(neon_uqshl_imm_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21734,7 +21794,7 @@ TEST(neon_uqshl_imm_scalar) {
 
 
 TEST(neon_sqshlu_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21791,7 +21851,7 @@ TEST(neon_sqshlu_scalar) {
 
 
 TEST(neon_sshll) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21822,7 +21882,7 @@ TEST(neon_sshll) {
 }
 
 TEST(neon_shll) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21853,7 +21913,7 @@ TEST(neon_shll) {
 }
 
 TEST(neon_ushll) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21885,7 +21945,7 @@ TEST(neon_ushll) {
 
 
 TEST(neon_sxtl) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21917,7 +21977,7 @@ TEST(neon_sxtl) {
 
 
 TEST(neon_uxtl) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -21949,7 +22009,7 @@ TEST(neon_uxtl) {
 
 
 TEST(neon_ssra) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22001,7 +22061,7 @@ TEST(neon_ssra) {
 }
 
 TEST(neon_srsra) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22054,7 +22114,7 @@ TEST(neon_srsra) {
 }
 
 TEST(neon_usra) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22107,7 +22167,7 @@ TEST(neon_usra) {
 }
 
 TEST(neon_ursra) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22160,7 +22220,7 @@ TEST(neon_ursra) {
 
 
 TEST(neon_uqshl_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22212,7 +22272,7 @@ TEST(neon_uqshl_scalar) {
 
 
 TEST(neon_sqshl_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22264,7 +22324,7 @@ TEST(neon_sqshl_scalar) {
 
 
 TEST(neon_urshl_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22292,7 +22352,7 @@ TEST(neon_urshl_scalar) {
 
 
 TEST(neon_srshl_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22320,7 +22380,7 @@ TEST(neon_srshl_scalar) {
 
 
 TEST(neon_uqrshl_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22372,7 +22432,7 @@ TEST(neon_uqrshl_scalar) {
 
 
 TEST(neon_sqrshl_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22424,7 +22484,7 @@ TEST(neon_sqrshl_scalar) {
 
 
 TEST(neon_uqadd_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22467,7 +22527,7 @@ TEST(neon_uqadd_scalar) {
 
 
 TEST(neon_sqadd_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22510,7 +22570,7 @@ TEST(neon_sqadd_scalar) {
 
 
 TEST(neon_uqsub_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22555,7 +22615,7 @@ TEST(neon_uqsub_scalar) {
 
 
 TEST(neon_sqsub_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
 
@@ -22600,7 +22660,7 @@ TEST(neon_sqsub_scalar) {
 
 
 TEST(neon_fmla_fmls) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
   __ Movi(v0.V2D(), 0x3f80000040000000, 0x4100000000000000);
@@ -22635,7 +22695,7 @@ TEST(neon_fmla_fmls) {
 
 
 TEST(neon_fmulx_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
   __ Fmov(s0, 2.0);
@@ -22687,7 +22747,8 @@ TEST(neon_fmulx_scalar) {
 // available.
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 TEST(crc32b) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kCRC32);
+
   START();
 
   __ Mov(w0, 0);
@@ -22729,7 +22790,8 @@ TEST(crc32b) {
 
 
 TEST(crc32h) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kCRC32);
+
   START();
 
   __ Mov(w0, 0);
@@ -22771,7 +22833,8 @@ TEST(crc32h) {
 
 
 TEST(crc32w) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kCRC32);
+
   START();
 
   __ Mov(w0, 0);
@@ -22808,7 +22871,8 @@ TEST(crc32w) {
 
 
 TEST(crc32x) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kCRC32);
+
   START();
 
   __ Mov(w0, 0);
@@ -22845,7 +22909,8 @@ TEST(crc32x) {
 
 
 TEST(crc32cb) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kCRC32);
+
   START();
 
   __ Mov(w0, 0);
@@ -22887,7 +22952,8 @@ TEST(crc32cb) {
 
 
 TEST(crc32ch) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kCRC32);
+
   START();
 
   __ Mov(w0, 0);
@@ -22929,7 +22995,8 @@ TEST(crc32ch) {
 
 
 TEST(crc32cw) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kCRC32);
+
   START();
 
   __ Mov(w0, 0);
@@ -22966,7 +23033,8 @@ TEST(crc32cw) {
 
 
 TEST(crc32cx) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kCRC32);
+
   START();
 
   __ Mov(w0, 0);
@@ -23004,7 +23072,7 @@ TEST(crc32cx) {
 
 
 TEST(neon_fabd_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
   __ Fmov(s0, 2.0);
@@ -23050,7 +23118,7 @@ TEST(neon_fabd_scalar) {
 
 
 TEST(neon_faddp_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
   __ Movi(d0, 0x3f80000040000000);
@@ -23082,7 +23150,7 @@ TEST(neon_faddp_scalar) {
 
 
 TEST(neon_fmaxp_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
   __ Movi(d0, 0x3f80000040000000);
@@ -23114,7 +23182,7 @@ TEST(neon_fmaxp_scalar) {
 
 
 TEST(neon_fmaxnmp_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
   __ Movi(d0, 0x3f80000040000000);
@@ -23146,7 +23214,7 @@ TEST(neon_fmaxnmp_scalar) {
 
 
 TEST(neon_fminp_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
   __ Movi(d0, 0x3f80000040000000);
@@ -23178,7 +23246,7 @@ TEST(neon_fminp_scalar) {
 
 
 TEST(neon_fminnmp_scalar) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
   __ Movi(d0, 0x3f80000040000000);
@@ -23210,7 +23278,7 @@ TEST(neon_fminnmp_scalar) {
 
 
 TEST(neon_tbl) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
   START();
   __ Movi(v30.V2D(), 0xbf561e188b1280e9, 0xbd542b8cbd24e8e8);
@@ -23690,7 +23758,7 @@ TEST(veneers_hanging) {
 
 
 TEST(collision_literal_veneer_pools) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
   START();
 
   // This is a code generation test. The code generated is not executed.
@@ -23781,7 +23849,7 @@ TEST(ldr_literal_explicit) {
 
 
 TEST(ldr_literal_automatically_placed) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   START();
 
@@ -23920,7 +23988,7 @@ TEST(literal_deletion_policies) {
 
 
 TEST(generic_operand) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   int32_t data_32_array[5] = {0xbadbeef,
                               0x11111111,
@@ -24071,7 +24139,7 @@ int16_t test_int16_t(int16_t x) { return x; }
 uint16_t test_uint16_t(uint16_t x) { return x; }
 
 TEST(runtime_calls) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
 #ifndef VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
   if (masm.GenerateSimulatorCode()) {

@@ -55,10 +55,13 @@ namespace aarch64 {
 #define __ masm.
 #define TEST(name) TEST_(AARCH64_SIM_##name)
 
+#define SETUP() SETUP_WITH_FEATURES(CPUFeatures())
+
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
-#define SETUP()                                       \
+#define SETUP_WITH_FEATURES(...)                      \
   MacroAssembler masm;                                \
+  masm.SetCPUFeatures(CPUFeatures(__VA_ARGS__));      \
   Decoder decoder;                                    \
   Simulator simulator(&decoder);                      \
   simulator.SetColouredTrace(Test::coloured_trace()); \
@@ -97,8 +100,9 @@ namespace aarch64 {
 
 #else  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
-#define SETUP()        \
-  MacroAssembler masm; \
+#define SETUP_WITH_FEATURES(...)                 \
+  MacroAssembler masm;                           \
+  masm.SetCPUFeatures(CPUFeatures(__VA_ARGS__)); \
   CPU::SetUp()
 
 #define START() \
@@ -202,7 +206,7 @@ static void Test1Op_Helper(Test1OpFPHelper_t helper,
   VIXL_ASSERT((d_size == kDRegSize) || (d_size == kSRegSize));
   VIXL_ASSERT((n_size == kDRegSize) || (n_size == kSRegSize));
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -321,7 +325,7 @@ static void Test2Op_Helper(Test2OpFPHelper_t helper,
                            unsigned reg_size) {
   VIXL_ASSERT((reg_size == kDRegSize) || (reg_size == kSRegSize));
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -454,7 +458,7 @@ static void Test3Op_Helper(Test3OpFPHelper_t helper,
                            unsigned reg_size) {
   VIXL_ASSERT((reg_size == kDRegSize) || (reg_size == kSRegSize));
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -603,7 +607,7 @@ static void TestCmp_Helper(TestFPCmpHelper_t helper,
                            unsigned reg_size) {
   VIXL_ASSERT((reg_size == kDRegSize) || (reg_size == kSRegSize));
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -742,7 +746,7 @@ static void TestCmpZero_Helper(TestFPCmpZeroHelper_t helper,
                                unsigned reg_size) {
   VIXL_ASSERT((reg_size == kDRegSize) || (reg_size == kSRegSize));
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -870,7 +874,7 @@ static void TestFPToFixed_Helper(TestFPToFixedHelper_t helper,
   VIXL_ASSERT((d_size == kXRegSize) || (d_size == kWRegSize));
   VIXL_ASSERT((n_size == kDRegSize) || (n_size == kSRegSize));
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -922,7 +926,7 @@ static void TestFPToInt_Helper(TestFPToIntHelper_t helper,
   VIXL_ASSERT((d_size == kXRegSize) || (d_size == kWRegSize));
   VIXL_ASSERT((n_size == kDRegSize) || (n_size == kSRegSize));
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -1303,7 +1307,7 @@ static void Test1OpNEON_Helper(Test1OpNEONHelper_t helper,
   VIXL_ASSERT(vd_form != kFormatUndefined);
   VIXL_ASSERT(vn_form != kFormatUndefined);
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -1501,7 +1505,7 @@ static void Test1OpAcrossNEON_Helper(Test1OpNEONHelper_t helper,
   VIXL_ASSERT(vd_form != kFormatUndefined);
   VIXL_ASSERT(vn_form != kFormatUndefined);
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -1726,7 +1730,7 @@ static void Test2OpNEON_Helper(Test2OpNEONHelper_t helper,
   VIXL_ASSERT(vn_form != kFormatUndefined);
   VIXL_ASSERT(vm_form != kFormatUndefined);
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -1967,7 +1971,7 @@ static void TestByElementNEON_Helper(TestByElementNEONHelper_t helper,
   VIXL_ASSERT(vn_form != kFormatUndefined);
   VIXL_ASSERT(vm_form != kFormatUndefined);
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -2224,7 +2228,7 @@ void Test2OpImmNEON_Helper(
     VectorFormat vn_form) {
   VIXL_ASSERT(vd_form != kFormatUndefined && vn_form != kFormatUndefined);
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -2437,7 +2441,7 @@ static void TestOpImmOpImmNEON_Helper(TestOpImmOpImmVdUpdateNEONHelper_t helper,
   VIXL_ASSERT(vd_form != kFormatUndefined);
   VIXL_ASSERT(vn_form != kFormatUndefined);
 
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -4554,7 +4558,7 @@ Instruction* GenerateSum(MacroAssembler* masm) {
 
 
 TEST(RunFrom) {
-  SETUP();
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   // Run a function returning `void` and taking no argument.
   int32_t value = 0xbad;

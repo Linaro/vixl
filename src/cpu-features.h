@@ -90,8 +90,8 @@ class CPUFeaturesConstIterator;
 // A representation of the set of features known to be supported by the target
 // device. Each feature is represented by a simple boolean flag.
 //
-//   - TODO: When the Assembler is asked to assemble an instruction, it should
-//     assert (in debug mode) that the necessary features are available.
+//   - When the Assembler is asked to assemble an instruction, it asserts (in
+//     debug mode) that the necessary features are available.
 //
 //   - TODO: The Simulator assumes that all features are available by default,
 //     but it should be possible to configure it to either warn or fail if the

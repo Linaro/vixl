@@ -29,6 +29,7 @@
 
 #include "../assembler-base-vixl.h"
 #include "../code-generation-scopes-vixl.h"
+#include "../cpu-features.h"
 #include "../globals-vixl.h"
 #include "../invalset-vixl.h"
 #include "../utils-vixl.h"
@@ -405,15 +406,19 @@ class Assembler : public vixl::internal::AssemblerBase {
  public:
   explicit Assembler(
       PositionIndependentCodeOption pic = PositionIndependentCode)
-      : pic_(pic) {}
+      : pic_(pic), cpu_features_(CPUFeatures::AArch64LegacyBaseline()) {}
   explicit Assembler(
       size_t capacity,
       PositionIndependentCodeOption pic = PositionIndependentCode)
-      : AssemblerBase(capacity), pic_(pic) {}
+      : AssemblerBase(capacity),
+        pic_(pic),
+        cpu_features_(CPUFeatures::AArch64LegacyBaseline()) {}
   Assembler(byte* buffer,
             size_t capacity,
             PositionIndependentCodeOption pic = PositionIndependentCode)
-      : AssemblerBase(buffer, capacity), pic_(pic) {}
+      : AssemblerBase(buffer, capacity),
+        pic_(pic),
+        cpu_features_(CPUFeatures::AArch64LegacyBaseline()) {}
 
   // Upon destruction, the code will assert that one of the following is true:
   //  * The Assembler object has not been used.
@@ -3286,6 +3291,12 @@ class Assembler : public vixl::internal::AssemblerBase {
     return GetPic();
   }
 
+  CPUFeatures* GetCPUFeatures() { return &cpu_features_; }
+
+  void SetCPUFeatures(const CPUFeatures& cpu_features) {
+    cpu_features_ = cpu_features;
+  }
+
   bool AllowPageOffsetDependentCode() const {
     return (GetPic() == PageOffsetDependentCode) ||
            (GetPic() == PositionDependentCode);
@@ -3389,6 +3400,23 @@ class Assembler : public vixl::internal::AssemblerBase {
       const CPURegister& rt, const CPURegister& rt2);
   static LoadLiteralOp LoadLiteralOpFor(const CPURegister& rt);
 
+  // Convenience pass-through for CPU feature checks.
+  bool CPUHas(CPUFeatures::Feature feature0,
+              CPUFeatures::Feature feature1 = CPUFeatures::kNone,
+              CPUFeatures::Feature feature2 = CPUFeatures::kNone,
+              CPUFeatures::Feature feature3 = CPUFeatures::kNone) const {
+    return cpu_features_.Has(feature0, feature1, feature2, feature3);
+  }
+
+  // Determine whether the target CPU has the specified registers, based on the
+  // currently-enabled CPU features. Presence of a register does not imply
+  // support for arbitrary operations on it. For example, CPUs with FP have H
+  // registers, but most half-precision operations require the FPHalf feature.
+  //
+  // These are used to check CPU features in loads and stores that have the same
+  // entry point for both integer and FP registers.
+  bool CPUHas(const CPURegister& rt) const;
+  bool CPUHas(const CPURegister& rt, const CPURegister& rt2) const;
 
  private:
   static uint32_t FP16ToImm8(float16 imm);
@@ -3552,6 +3580,8 @@ class Assembler : public vixl::internal::AssemblerBase {
   }
 
   PositionIndependentCodeOption pic_;
+
+  CPUFeatures cpu_features_;
 };
 
 

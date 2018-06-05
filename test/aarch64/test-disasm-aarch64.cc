@@ -36,11 +36,12 @@
 
 #define TEST(name) TEST_(AARCH64_DISASM_##name)
 
-#define SETUP_COMMON()   \
-  uint32_t encoding = 0; \
-  MacroAssembler masm;   \
-  Decoder decoder;       \
-  Disassembler disasm;   \
+#define SETUP_COMMON()                                \
+  uint32_t encoding = 0;                              \
+  MacroAssembler masm;                                \
+  masm.GetCPUFeatures()->Combine(CPUFeatures::All()); \
+  Decoder decoder;                                    \
+  Disassembler disasm;                                \
   decoder.AppendVisitor(&disasm)
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
