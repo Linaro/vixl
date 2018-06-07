@@ -90,10 +90,12 @@ const uint64_t kHalfWordMask = UINT64_C(0xffff);
 const uint64_t kWordMask = UINT64_C(0xffffffff);
 const uint64_t kXMaxUInt = UINT64_C(0xffffffffffffffff);
 const uint64_t kWMaxUInt = UINT64_C(0xffffffff);
+// Define k*MinInt with "-k*MaxInt - 1", because the hexadecimal representation
+// (e.g. "INT32_C(0x80000000)") has implementation-defined behaviour.
 const int64_t kXMaxInt = INT64_C(0x7fffffffffffffff);
-const int64_t kXMinInt = INT64_C(0x8000000000000000);
+const int64_t kXMinInt = -kXMaxInt - 1;
 const int32_t kWMaxInt = INT32_C(0x7fffffff);
-const int32_t kWMinInt = INT32_C(0x80000000);
+const int32_t kWMinInt = -kWMaxInt - 1;
 const unsigned kFpRegCode = 29;
 const unsigned kLinkRegCode = 30;
 const unsigned kSpRegCode = 31;
