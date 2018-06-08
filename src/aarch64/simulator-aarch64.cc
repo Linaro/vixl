@@ -2829,13 +2829,18 @@ void Simulator::VisitFPDataProcessing1Source(const Instruction* instr) {
 
   FPRounding fpcr_rounding = static_cast<FPRounding>(ReadFpcr().GetRMode());
   VectorFormat vform;
-  if (instr->Mask(FP64) == FP64) {
-    vform = kFormatD;
-  } else if (instr->Mask(FP32) == FP32) {
-    vform = kFormatS;
-  } else {
-    VIXL_ASSERT(instr->Mask(FP16) == FP16);
-    vform = kFormatH;
+  switch (instr->Mask(FPTypeMask)) {
+    default:
+      VIXL_UNREACHABLE_OR_FALLTHROUGH();
+    case FP64:
+      vform = kFormatD;
+      break;
+    case FP32:
+      vform = kFormatS;
+      break;
+    case FP16:
+      vform = kFormatH;
+      break;
   }
   SimVRegister& rd = ReadVRegister(instr->GetRd());
   SimVRegister& rn = ReadVRegister(instr->GetRn());
@@ -2934,13 +2939,15 @@ void Simulator::VisitFPDataProcessing2Source(const Instruction* instr) {
   AssertSupportedFPCR();
 
   VectorFormat vform;
-  if (instr->Mask(FP64) == FP64) {
-    vform = kFormatD;
-  } else if (instr->Mask(FP32) == FP32) {
-    vform = kFormatS;
-  } else {
-    VIXL_ASSERT(instr->Mask(FP16) == FP16);
-    vform = kFormatH;
+  switch (instr->Mask(FPTypeMask)) {
+    default:
+      VIXL_UNREACHABLE_OR_FALLTHROUGH();
+    case FP64:
+      vform = kFormatD;
+      break;
+    case FP32:
+      vform = kFormatS;
+      break;
   }
   SimVRegister& rd = ReadVRegister(instr->GetRd());
   SimVRegister& rn = ReadVRegister(instr->GetRn());

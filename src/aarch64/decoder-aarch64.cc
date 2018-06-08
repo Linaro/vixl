@@ -895,7 +895,8 @@ void Decoder::DecodeNEONScalarDataProcessing(const Instruction* instr) {
 
 #define DEFINE_VISITOR_CALLERS(A)                               \
   void Decoder::Visit##A(const Instruction* instr) {            \
-    VIXL_ASSERT(instr->Mask(A##FMask) == A##Fixed);             \
+    VIXL_ASSERT(((A##FMask == 0) && (A##Fixed == 0)) ||         \
+                (instr->Mask(A##FMask) == A##Fixed));           \
     std::list<DecoderVisitor*>::iterator it;                    \
     for (it = visitors_.begin(); it != visitors_.end(); it++) { \
       (*it)->Visit##A(instr);                                   \

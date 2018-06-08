@@ -414,6 +414,8 @@ enum DataCacheOp {
 enum GenericInstrField {
   SixtyFourBits        = 0x80000000,
   ThirtyTwoBits        = 0x00000000,
+
+  FPTypeMask           = 0x00C00000,
   FP16                 = 0x00C00000,
   FP32                 = 0x00000000,
   FP64                 = 0x00400000

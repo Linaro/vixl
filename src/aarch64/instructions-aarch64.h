@@ -194,7 +194,10 @@ class Instruction {
     return ExtractSignedBits(msb, lsb);
   }
 
-  Instr Mask(uint32_t mask) const { return GetInstructionBits() & mask; }
+  Instr Mask(uint32_t mask) const {
+    VIXL_ASSERT(mask != 0);
+    return GetInstructionBits() & mask;
+  }
 
 #define DEFINE_GETTER(Name, HighBit, LowBit, Func)                  \
   int32_t Get##Name() const { return this->Func(HighBit, LowBit); } \
