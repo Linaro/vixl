@@ -93,17 +93,28 @@ class CPUFeaturesConstIterator;
 //   - When the Assembler is asked to assemble an instruction, it asserts (in
 //     debug mode) that the necessary features are available.
 //
-//   - TODO: The Simulator assumes that all features are available by default,
-//     but it should be possible to configure it to either warn or fail if the
-//     simulated code uses features that are not enabled.
-//
-//   - TODO: The Disassembler disassembles all instructions that it knows, but
-//     it could be (optionally) configured to warn if the code uses features or
-//     instructions that are not available.
-//
 //   - TODO: The MacroAssembler relies on the Assembler's assertions, but in
 //     some cases it may be useful for macros to generate a fall-back sequence
 //     in case features are not available.
+//
+//   - The Simulator assumes by default that all features are available, but it
+//     is possible to configure it to fail if the simulated code uses features
+//     that are not enabled.
+//
+//     The Simulator also offers pseudo-instructions to allow features to be
+//     enabled and disabled dynamically. This is useful when you want to ensure
+//     that some features are constrained to certain areas of code.
+//
+//   - The base Disassembler knows nothing about CPU features, but the
+//     PrintDisassembler can be configured to annotate its output with warnings
+//     about unavailable features. The Simulator uses this feature when
+//     instruction trace is enabled.
+//
+//   - The Decoder-based components -- the Simulator and PrintDisassembler --
+//     rely on a CPUFeaturesAuditor visitor. This visitor keeps a list of
+//     features actually encountered so that a large block of code can be
+//     examined (either directly or through simulation), and the required
+//     features analysed later.
 //
 // Expected usage:
 //
@@ -227,6 +238,15 @@ class CPUFeatures {
            Feature feature1 = kNone,
            Feature feature2 = kNone,
            Feature feature3 = kNone) const;
+
+  // Return the number of enabled features.
+  size_t Count() const;
+
+  // Check for equivalence.
+  bool operator==(const CPUFeatures& other) const {
+    return Has(other) && other.Has(*this);
+  }
+  bool operator!=(const CPUFeatures& other) const { return !(*this == other); }
 
   typedef CPUFeaturesConstIterator const_iterator;
 

@@ -136,6 +136,8 @@ bool CPUFeatures::Has(Feature feature0,
   return (features_ & mask) == mask;
 }
 
+size_t CPUFeatures::Count() const { return CountSetBits(features_); }
+
 std::ostream& operator<<(std::ostream& os, CPUFeatures::Feature feature) {
   // clang-format off
   switch (feature) {

@@ -3172,6 +3172,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // the output data.
   void AnnotateInstrumentation(const char* marker_name);
 
+  // Enable or disable CPU features dynamically. This mechanism allows users to
+  // strictly check the use of CPU features in different regions of code.
+  void SetSimulatorCPUFeatures(const CPUFeatures& features);
+  void EnableSimulatorCPUFeatures(const CPUFeatures& features);
+  void DisableSimulatorCPUFeatures(const CPUFeatures& features);
+  void SaveSimulatorCPUFeatures();
+  void RestoreSimulatorCPUFeatures();
+
   LiteralPool* GetLiteralPool() { return &literal_pool_; }
 
 // Support for simulated runtime calls.
@@ -3316,6 +3324,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                             label->GetLocation() -
                                                 GetCursorOffset());
   }
+
+  void ConfigureSimulatorCPUFeaturesHelper(const CPUFeatures& features,
+                                           DebugHltOpcode action);
 
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number
@@ -3547,6 +3558,51 @@ class UseScratchRegisterScope {
     VIXL_UNREACHABLE();
   }
 };
+
+
+// Like CPUFeaturesScope, but also generate Simulation pseudo-instructions to
+// control a Simulator's CPUFeatures dynamically.
+//
+// One major difference from CPUFeaturesScope is that this scope cannot offer
+// a writable "CPUFeatures* GetCPUFeatures()", because every write to the
+// features needs a corresponding macro instruction.
+class SimulationCPUFeaturesScope {
+ public:
+  explicit SimulationCPUFeaturesScope(
+      MacroAssembler* masm,
+      CPUFeatures::Feature feature0 = CPUFeatures::kNone,
+      CPUFeatures::Feature feature1 = CPUFeatures::kNone,
+      CPUFeatures::Feature feature2 = CPUFeatures::kNone,
+      CPUFeatures::Feature feature3 = CPUFeatures::kNone)
+      : masm_(masm),
+        cpu_features_scope_(masm, feature0, feature1, feature2, feature3) {
+    masm_->SaveSimulatorCPUFeatures();
+    masm_->EnableSimulatorCPUFeatures(
+        CPUFeatures(feature0, feature1, feature2, feature3));
+  }
+
+  SimulationCPUFeaturesScope(MacroAssembler* masm, const CPUFeatures& other)
+      : masm_(masm), cpu_features_scope_(masm, other) {
+    masm_->SaveSimulatorCPUFeatures();
+    masm_->EnableSimulatorCPUFeatures(other);
+  }
+
+  ~SimulationCPUFeaturesScope() { masm_->RestoreSimulatorCPUFeatures(); }
+
+  const CPUFeatures* GetCPUFeatures() const {
+    return cpu_features_scope_.GetCPUFeatures();
+  }
+
+  void SetCPUFeatures(const CPUFeatures& cpu_features) {
+    cpu_features_scope_.SetCPUFeatures(cpu_features);
+    masm_->SetSimulatorCPUFeatures(cpu_features);
+  }
+
+ private:
+  MacroAssembler* masm_;
+  CPUFeaturesScope cpu_features_scope_;
+};
+
 
 // Variadic templating is only available from C++11.
 #ifdef VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT

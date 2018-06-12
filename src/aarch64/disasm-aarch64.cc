@@ -25,12 +25,14 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstdlib>
+#include <sstream>
 
 #include "disasm-aarch64.h"
 #include "utils-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {
+
 
 Disassembler::Disassembler() {
   buffer_size_ = 256;
@@ -5175,11 +5177,38 @@ void PrintDisassembler::DisassembleBuffer(const Instruction *start,
 
 
 void PrintDisassembler::ProcessOutput(const Instruction *instr) {
-  fprintf(stream_,
-          "0x%016" PRIx64 "  %08" PRIx32 "\t\t%s\n",
-          reinterpret_cast<uint64_t>(instr),
-          instr->GetInstructionBits(),
-          GetOutput());
+  int bytes_printed = fprintf(stream_,
+                              "0x%016" PRIx64 "  %08" PRIx32 "\t\t%s",
+                              reinterpret_cast<uint64_t>(instr),
+                              instr->GetInstructionBits(),
+                              GetOutput());
+  if (cpu_features_auditor_ != NULL) {
+    CPUFeatures needs = cpu_features_auditor_->GetInstructionFeatures();
+    needs.Remove(cpu_features_auditor_->GetAvailableFeatures());
+    if (needs != CPUFeatures::None()) {
+      // Try to align annotations. This value is arbitrary, but based on looking
+      // good with most instructions. Note that, for historical reasons, the
+      // disassembly itself is printed with tab characters, so bytes_printed is
+      // _not_ equivalent to the number of occupied screen columns. However, the
+      // prefix before the tabs is always the same length, so the annotation
+      // indentation does not change from one line to the next.
+      const int indent_to = 70;
+      // Always allow some space between the instruction and the annotation.
+      const int min_pad = 2;
+
+      int pad = std::max(min_pad, (indent_to - bytes_printed));
+      fprintf(stream_, "%*s", pad, "");
+
+      std::stringstream features;
+      features << needs;
+      fprintf(stream_,
+              "%s%s%s",
+              cpu_features_prefix_,
+              features.str().c_str(),
+              cpu_features_suffix_);
+    }
+  }
+  fprintf(stream_, "\n");
 }
 
 }  // namespace aarch64

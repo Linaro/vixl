@@ -45,16 +45,22 @@ namespace aarch64 {
 // Each debug pseudo instruction is represented by a HLT instruction. The HLT
 // immediate field is used to identify the type of debug pseudo instruction.
 
-enum DebugHltOpcodes {
+enum DebugHltOpcode {
   kUnreachableOpcode = 0xdeb0,
   kPrintfOpcode,
   kTraceOpcode,
   kLogOpcode,
   kRuntimeCallOpcode,
+  kSetCPUFeaturesOpcode,
+  kEnableCPUFeaturesOpcode,
+  kDisableCPUFeaturesOpcode,
+  kSaveCPUFeaturesOpcode,
+  kRestoreCPUFeaturesOpcode,
   // Aliases.
   kDebugHltFirstOpcode = kUnreachableOpcode,
   kDebugHltLastOpcode = kLogOpcode
 };
+VIXL_DEPRECATED("DebugHltOpcode", typedef DebugHltOpcode DebugHltOpcodes);
 
 // Each pseudo instruction uses a custom encoding for additional arguments, as
 // described below.
@@ -140,7 +146,7 @@ enum TraceCommand { TRACE_ENABLE = 1, TRACE_DISABLE = 2 };
 const unsigned kLogParamsOffset = 1 * kInstructionSize;
 const unsigned kLogLength = 2 * kInstructionSize;
 
-// Runtime call simulation - kRuntimeCall
+// Runtime call simulation - kRuntimeCallOpcode
 enum RuntimeCallType { kCallRuntime, kTailCallRuntime };
 
 const unsigned kRuntimeCallWrapperOffset = 1 * kInstructionSize;
@@ -151,6 +157,35 @@ const unsigned kRuntimeCallFunctionOffset =
 const unsigned kRuntimeCallTypeOffset =
     kRuntimeCallFunctionOffset + kRuntimeCallAddressSize;
 const unsigned kRuntimeCallLength = kRuntimeCallTypeOffset + sizeof(uint32_t);
+
+// Enable or disable CPU features - kSetCPUFeaturesOpcode
+//                                - kEnableCPUFeaturesOpcode
+//                                - kDisableCPUFeaturesOpcode
+//  - parameter[...]: A list of `CPUFeatures::Feature`s, encoded as
+//    ConfigureCPUFeaturesElementType and terminated with CPUFeatures::kNone.
+//  - [Padding to align to kInstructionSize.]
+//
+// 'Set' completely overwrites the existing CPU features.
+// 'Enable' and 'Disable' update the existing CPU features.
+//
+// These mechanisms allows users to strictly check the use of CPU features in
+// different regions of code.
+//
+// These have no effect on the set of 'seen' features (as reported by
+// CPUFeaturesAuditor::HasSeen(...)).
+typedef uint8_t ConfigureCPUFeaturesElementType;
+const unsigned kConfigureCPUFeaturesListOffset = 1 * kInstructionSize;
+
+// Save or restore CPU features - kSaveCPUFeaturesOpcode
+//                              - kRestoreCPUFeaturesOpcode
+//
+// These mechanisms provide a stack-like mechanism for preserving the CPU
+// features, or restoring the last-preserved features. These pseudo-instructions
+// take no arguments.
+//
+// These have no effect on the set of 'seen' features (as reported by
+// CPUFeaturesAuditor::HasSeen(...)).
+
 }  // namespace aarch64
 }  // namespace vixl
 

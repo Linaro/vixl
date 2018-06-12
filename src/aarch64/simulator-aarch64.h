@@ -27,10 +27,14 @@
 #ifndef VIXL_AARCH64_SIMULATOR_AARCH64_H_
 #define VIXL_AARCH64_SIMULATOR_AARCH64_H_
 
+#include <vector>
+
 #include "../globals-vixl.h"
 #include "../utils-vixl.h"
 
+#include "cpu-features.h"
 #include "abi-aarch64.h"
+#include "cpu-features-auditor-aarch64.h"
 #include "disasm-aarch64.h"
 #include "instructions-aarch64.h"
 #include "instrument-aarch64.h"
@@ -688,9 +692,18 @@ class Simulator : public DecoderVisitor {
     // The program counter should always be aligned.
     VIXL_ASSERT(IsWordAligned(pc_));
     pc_modified_ = false;
+
+    // decoder_->Decode(...) triggers at least the following visitors:
+    //  1. The CPUFeaturesAuditor (`cpu_features_auditor_`).
+    //  2. The PrintDisassembler (`print_disasm_`), if enabled.
+    //  3. The Simulator (`this`).
+    // User can add additional visitors at any point, but the Simulator requires
+    // that the ordering above is preserved.
     decoder_->Decode(pc_);
     IncrementPc();
     LogAllWrittenRegisters();
+
+    VIXL_CHECK(cpu_features_auditor_.InstructionIsAvailable());
   }
 
 // Declare all Visitor functions.
@@ -1538,6 +1551,22 @@ class Simulator : public DecoderVisitor {
   void SilenceExclusiveAccessWarning() {
     print_exclusive_access_warning_ = false;
   }
+
+  // The common CPUFeatures interface with the set of available features.
+
+  CPUFeatures* GetCPUFeatures() {
+    return cpu_features_auditor_.GetCPUFeatures();
+  }
+
+  void SetCPUFeatures(const CPUFeatures& cpu_features) {
+    cpu_features_auditor_.SetCPUFeatures(cpu_features);
+  }
+
+  // The set of features that the simulator has encountered.
+  const CPUFeatures& GetSeenFeatures() {
+    return cpu_features_auditor_.GetSeenFeatures();
+  }
+  void ResetSeenFeatures() { cpu_features_auditor_.ResetSeenFeatures(); }
 
 // Runtime call emulation support.
 // It requires VIXL's ABI features, and C++11 or greater.
@@ -2964,6 +2993,12 @@ class Simulator : public DecoderVisitor {
   // Pseudo Printf instruction
   void DoPrintf(const Instruction* instr);
 
+  // Pseudo-instructions to configure CPU features dynamically.
+  void DoConfigureCPUFeatures(const Instruction* instr);
+
+  void DoSaveCPUFeatures(const Instruction* instr);
+  void DoRestoreCPUFeatures(const Instruction* instr);
+
 // Simulate a runtime call.
 #ifndef VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
   VIXL_NO_RETURN_IN_DEBUG_MODE
@@ -3106,6 +3141,9 @@ class Simulator : public DecoderVisitor {
   // Indicates whether the exclusive-access warning has been printed.
   bool print_exclusive_access_warning_;
   void PrintExclusiveAccessWarning();
+
+  CPUFeaturesAuditor cpu_features_auditor_;
+  std::vector<CPUFeatures> saved_cpu_features_;
 };
 
 #if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) && __cplusplus < 201402L

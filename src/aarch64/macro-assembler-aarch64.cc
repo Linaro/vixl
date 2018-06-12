@@ -2753,6 +2753,79 @@ void MacroAssembler::AnnotateInstrumentation(const char* marker_name) {
 }
 
 
+void MacroAssembler::SetSimulatorCPUFeatures(const CPUFeatures& features) {
+  ConfigureSimulatorCPUFeaturesHelper(features, kSetCPUFeaturesOpcode);
+}
+
+
+void MacroAssembler::EnableSimulatorCPUFeatures(const CPUFeatures& features) {
+  ConfigureSimulatorCPUFeaturesHelper(features, kEnableCPUFeaturesOpcode);
+}
+
+
+void MacroAssembler::DisableSimulatorCPUFeatures(const CPUFeatures& features) {
+  ConfigureSimulatorCPUFeaturesHelper(features, kDisableCPUFeaturesOpcode);
+}
+
+
+void MacroAssembler::ConfigureSimulatorCPUFeaturesHelper(
+    const CPUFeatures& features, DebugHltOpcode action) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(generate_simulator_code_);
+
+  typedef ConfigureCPUFeaturesElementType ElementType;
+  VIXL_ASSERT(CPUFeatures::kNumberOfFeatures <=
+              std::numeric_limits<ElementType>::max());
+
+  size_t count = features.Count();
+
+  size_t preamble_length = kConfigureCPUFeaturesListOffset;
+  size_t list_length = (count + 1) * sizeof(ElementType);
+  size_t padding_length = AlignUp(list_length, kInstructionSize) - list_length;
+
+  size_t total_length = preamble_length + list_length + padding_length;
+
+  // Check the overall code size as well as the size of each component.
+  ExactAssemblyScope guard_total(this, total_length);
+
+  {  // Preamble: the opcode itself.
+    ExactAssemblyScope guard_preamble(this, preamble_length);
+    hlt(action);
+  }
+  {  // A kNone-terminated list of features.
+    ExactAssemblyScope guard_list(this, list_length);
+    for (CPUFeatures::const_iterator it = features.begin();
+         it != features.end();
+         ++it) {
+      dc(static_cast<ElementType>(*it));
+    }
+    dc(static_cast<ElementType>(CPUFeatures::kNone));
+  }
+  {  // Padding for instruction alignment.
+    ExactAssemblyScope guard_padding(this, padding_length);
+    for (size_t size = 0; size < padding_length; size += sizeof(ElementType)) {
+      // The exact value is arbitrary.
+      dc(static_cast<ElementType>(CPUFeatures::kNone));
+    }
+  }
+}
+
+void MacroAssembler::SaveSimulatorCPUFeatures() {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(generate_simulator_code_);
+  SingleEmissionCheckScope guard(this);
+  hlt(kSaveCPUFeaturesOpcode);
+}
+
+
+void MacroAssembler::RestoreSimulatorCPUFeatures() {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(generate_simulator_code_);
+  SingleEmissionCheckScope guard(this);
+  hlt(kRestoreCPUFeaturesOpcode);
+}
+
+
 void UseScratchRegisterScope::Open(MacroAssembler* masm) {
   VIXL_ASSERT(masm_ == NULL);
   VIXL_ASSERT(masm != NULL);

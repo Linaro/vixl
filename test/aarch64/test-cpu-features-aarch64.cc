@@ -44,9 +44,13 @@ namespace aarch64 {
 class CPUFeaturesTest {
  public:
   CPUFeaturesTest(const CPUFeatures& features, const char* description)
-      : description_(description), features_(features) {}
+      : description_(description),
+        features_(features),
+        auditor_(&decoder_, features) {}
 
-  void Run() const {
+  void Run() {
+    auditor_.ResetSeenFeatures();
+
     // Positive test: the instruction must assemble with the specified features.
     RunWithFeatures(features_);
     // Positive test: extra features are ignored.
@@ -83,6 +87,9 @@ class CPUFeaturesTest {
     // In release mode, the {Macro}Assembler doesn't check CPUFeatures.
     RunWithFeatures(CPUFeatures::None());
 #endif  // VIXL_DEBUG
+
+    // Check that the CPUFeaturesAuditor detected the correct features.
+    VIXL_CHECK(auditor_.GetSeenFeatures() == features_);
   }
 
   virtual void GenerateTestInstruction(MacroAssembler* masm) const = 0;
@@ -93,10 +100,13 @@ class CPUFeaturesTest {
  private:
   CPUFeatures features_;
 
+  Decoder decoder_;
+  CPUFeaturesAuditor auditor_;
+
   // Use a separate context (and MacroAssembler) for each test, because the
   // MacroAssembler does not guarantee any particular exception safety in
   // negative testing mode.
-  void RunWithFeatures(const CPUFeatures& features) const {
+  void RunWithFeatures(const CPUFeatures& features) {
     // Use PositionDependentCode to allow the likes of adrp.
     MacroAssembler masm(PositionDependentCode);
     masm.SetCPUFeatures(features);
@@ -105,6 +115,28 @@ class CPUFeaturesTest {
       GenerateTestInstruction(&masm);
     }
     masm.FinalizeCode();
+
+    // Pass the generated code through the CPUFeaturesAuditor.
+    VIXL_ASSERT(masm.GetBuffer()->GetSizeInBytes() == kInstructionSize);
+    decoder_.Decode(masm.GetInstructionAt(0));
+
+    // Check that the CPUFeaturesAuditor detected the correct features for this
+    // instruction. A simple assertion would do, but printing the missing or
+    // superfluous features is useful for debugging.
+    if (auditor_.GetInstructionFeatures() != features_) {
+      CPUFeatures missing =
+          features_.Without(auditor_.GetInstructionFeatures());
+      if (missing.Count() > 0) {
+        std::cout << "Error: the auditor should have detected CPUFeatures { "
+                  << missing << " }\n";
+      }
+      CPUFeatures extra = auditor_.GetInstructionFeatures().Without(features_);
+      if (extra.Count() > 0) {
+        std::cout << "Error: the auditor detected superfluous CPUFeatures { "
+                  << extra << " }\n";
+      }
+      VIXL_ABORT();
+    }
   }
 };
 

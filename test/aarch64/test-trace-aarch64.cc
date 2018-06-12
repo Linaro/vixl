@@ -40,11 +40,11 @@
 
 namespace vixl {
 namespace aarch64 {
-// Trace tests can only work with the simulator.
-#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
 #define __ masm->
 #define TEST(name) TEST_(TRACE_##name)
+
+#define REF(name) "test/test-trace-reference/" name
 
 static void GenerateTestSequenceBase(MacroAssembler* masm) {
   ExactAssemblyScope guard(masm,
@@ -2786,6 +2786,36 @@ static void MaskAddresses(const char* trace) {
 }
 
 
+static bool CheckOrGenerateTrace(const char* filename, const char* ref_file) {
+  bool trace_matched_reference;
+  if (Test::generate_test_trace()) {
+    // Copy trace_stream to stdout.
+    FILE* trace_stream = fopen(filename, "r");
+    VIXL_ASSERT(trace_stream != NULL);
+    fseek(trace_stream, 0, SEEK_SET);
+    int c;
+    while (1) {
+      c = getc(trace_stream);
+      if (c == EOF) break;
+      putc(c, stdout);
+    }
+    fclose(trace_stream);
+    trace_matched_reference = true;
+  } else {
+    // Check trace_stream against ref_file.
+    char command[1024];
+    size_t length =
+        snprintf(command, sizeof(command), "diff -u %s %s", ref_file, filename);
+    VIXL_CHECK(length < sizeof(command));
+    trace_matched_reference = (system(command) == 0);
+  }
+  return trace_matched_reference;
+}
+
+
+// Trace tests can only work with the simulator.
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+
 static void TraceTestHelper(bool coloured_trace,
                             TraceParameters trace_parameters,
                             const char* ref_file) {
@@ -2851,45 +2881,18 @@ static void TraceTestHelper(bool coloured_trace,
   fclose(trace_stream);
   MaskAddresses(trace_stream_filename);
 
-  bool trace_matched_reference;
-  if (Test::generate_test_trace()) {
-    // Copy trace_stream to stdout.
-    trace_stream = fopen(trace_stream_filename, "r");
-    VIXL_ASSERT(trace_stream != NULL);
-    fseek(trace_stream, 0, SEEK_SET);
-    int c;
-    while (1) {
-      c = getc(trace_stream);
-      if (c == EOF) break;
-      putc(c, stdout);
-    }
-    fclose(trace_stream);
-    trace_matched_reference = true;
-  } else {
-    // Check trace_stream against ref_file.
-    char command[1024];
-    size_t length = snprintf(command,
-                             sizeof(command),
-                             "diff -u %s %s",
-                             ref_file,
-                             trace_stream_filename);
-    VIXL_CHECK(length < sizeof(command));
-    trace_matched_reference = (system(command) == 0);
-  }
+  bool trace_matched_reference =
+      CheckOrGenerateTrace(trace_stream_filename, ref_file);
+  remove(trace_stream_filename);  // Clean up before checking the result.
+  VIXL_CHECK(trace_matched_reference);
 
   uint64_t offset_base = simulator.ReadRegister<uint64_t>(0);
   uint64_t index_base = simulator.ReadRegister<uint64_t>(1);
 
-  // Clean up before checking the result; VIXL_CHECK aborts.
-  remove(trace_stream_filename);
-
-  VIXL_CHECK(trace_matched_reference);
   VIXL_CHECK(index_base >= offset_base);
   VIXL_CHECK((index_base - offset_base) <= kScratchSize);
 }
 
-
-#define REF(name) "test/test-trace-reference/" name
 
 // Test individual options.
 TEST(disasm) { TraceTestHelper(false, LOG_DISASM, REF("log-disasm")); }
@@ -2930,7 +2933,62 @@ TEST(state_colour) {
 }
 TEST(all_colour) { TraceTestHelper(true, LOG_ALL, REF("log-all-colour")); }
 
-
 #endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+static void PrintDisassemblerTestHelper(const char* prefix,
+                                        const char* suffix,
+                                        const char* ref_file) {
+  MacroAssembler masm(12 * KBytes);
+
+  char trace_stream_filename[] = "/tmp/vixl-test-trace-XXXXXX";
+  FILE* trace_stream = fdopen(mkstemp(trace_stream_filename), "w");
+
+  // We don't need to execute this code so there's no need for the execution
+  // environment setup from TraceTestHelper.
+
+  GenerateTestSequenceBase(&masm);
+  GenerateTestSequenceFP(&masm);
+  GenerateTestSequenceNEON(&masm);
+  GenerateTestSequenceNEONFP(&masm);
+  masm.FinalizeCode();
+
+  Decoder decoder;
+  CPUFeaturesAuditor auditor(&decoder);
+  PrintDisassembler disasm(trace_stream);
+  if (prefix != NULL) disasm.SetCPUFeaturesPrefix(prefix);
+  if (suffix != NULL) disasm.SetCPUFeaturesSuffix(suffix);
+  disasm.RegisterCPUFeaturesAuditor(&auditor);
+  decoder.AppendVisitor(&disasm);
+
+  Instruction* instruction = masm.GetBuffer()->GetStartAddress<Instruction*>();
+  Instruction* end = masm.GetCursorAddress<Instruction*>();
+  while (instruction != end) {
+    decoder.Decode(instruction);
+    instruction += kInstructionSize;
+  }
+
+  fclose(trace_stream);
+  MaskAddresses(trace_stream_filename);
+
+  bool trace_matched_reference =
+      CheckOrGenerateTrace(trace_stream_filename, ref_file);
+  remove(trace_stream_filename);  // Clean up before checking the result.
+  VIXL_CHECK(trace_matched_reference);
+}
+
+
+// Test CPUFeatures disassembly annotations.
+TEST(cpufeatures) {
+  PrintDisassemblerTestHelper(NULL, NULL, REF("log-cpufeatures"));
+}
+TEST(cpufeatures_custom) {
+  PrintDisassemblerTestHelper("### {", "} ###", REF("log-cpufeatures-custom"));
+}
+TEST(cpufeatures_colour) {
+  // The colour chosen is arbitrary.
+  PrintDisassemblerTestHelper("\033[1;35m",  // Prefix: Bold magenta.
+                              "\033[0;m",    // Suffix: Reset colour.
+                              REF("log-cpufeatures-colour"));
+}
 }  // namespace aarch64
 }  // namespace vixl

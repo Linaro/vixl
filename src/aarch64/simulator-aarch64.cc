@@ -62,7 +62,8 @@ SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
 }
 
 
-Simulator::Simulator(Decoder* decoder, FILE* stream) {
+Simulator::Simulator(Decoder* decoder, FILE* stream)
+    : cpu_features_auditor_(decoder, CPUFeatures::All()) {
   // Ensure that shift operations act as the simulator expects.
   VIXL_ASSERT((static_cast<int32_t>(-1) >> 1) == -1);
   VIXL_ASSERT((static_cast<uint32_t>(-1) >> 1) == 0x7fffffff);
@@ -74,7 +75,17 @@ Simulator::Simulator(Decoder* decoder, FILE* stream) {
   decoder_->AppendVisitor(this);
 
   stream_ = stream;
+
   print_disasm_ = new PrintDisassembler(stream_);
+  // The Simulator and Disassembler share the same available list, held by the
+  // auditor. The Disassembler only annotates instructions with features that
+  // are _not_ available, so registering the auditor should have no effect
+  // unless the simulator is about to abort (due to missing features). In
+  // practice, this means that with trace enabled, the simulator will crash just
+  // after the disassembler prints the instruction, with the missing features
+  // enumerated.
+  print_disasm_->RegisterCPUFeaturesAuditor(&cpu_features_auditor_);
+
   SetColouredTrace(false);
   trace_parameters_ = LOG_NONE;
 
@@ -273,6 +284,14 @@ void Simulator::SetColouredTrace(bool value) {
   clr_warning_message = value ? COLOUR(YELLOW) : "";
   clr_printf = value ? COLOUR(GREEN) : "";
   clr_branch_marker = value ? COLOUR(GREY) COLOUR_HIGHLIGHT : "";
+
+  if (value) {
+    print_disasm_->SetCPUFeaturesPrefix("// Needs: " COLOUR_BOLD(RED));
+    print_disasm_->SetCPUFeaturesSuffix(COLOUR(NORMAL));
+  } else {
+    print_disasm_->SetCPUFeaturesPrefix("// Needs: ");
+    print_disasm_->SetCPUFeaturesSuffix("");
+  }
 }
 
 
@@ -3194,6 +3213,17 @@ void Simulator::VisitException(const Instruction* instr) {
         case kRuntimeCallOpcode:
           DoRuntimeCall(instr);
           return;
+        case kSetCPUFeaturesOpcode:
+        case kEnableCPUFeaturesOpcode:
+        case kDisableCPUFeaturesOpcode:
+          DoConfigureCPUFeatures(instr);
+          return;
+        case kSaveCPUFeaturesOpcode:
+          DoSaveCPUFeatures(instr);
+          return;
+        case kRestoreCPUFeaturesOpcode:
+          DoRestoreCPUFeatures(instr);
+          return;
         default:
           HostBreakpoint();
           return;
@@ -5707,6 +5737,66 @@ void Simulator::DoRuntimeCall(const Instruction* instr) {
   VIXL_UNREACHABLE();
 }
 #endif
+
+
+void Simulator::DoConfigureCPUFeatures(const Instruction* instr) {
+  VIXL_ASSERT(instr->Mask(ExceptionMask) == HLT);
+
+  typedef ConfigureCPUFeaturesElementType ElementType;
+  VIXL_ASSERT(CPUFeatures::kNumberOfFeatures <=
+              std::numeric_limits<ElementType>::max());
+
+  // k{Set,Enable,Disable}CPUFeatures have the same parameter encoding.
+
+  size_t element_size = sizeof(ElementType);
+  size_t offset = kConfigureCPUFeaturesListOffset;
+
+  // Read the kNone-terminated list of features.
+  CPUFeatures parameters;
+  while (true) {
+    ElementType feature = Memory::Read<ElementType>(instr + offset);
+    offset += element_size;
+    if (feature == CPUFeatures::kNone) break;
+    parameters.Combine(static_cast<CPUFeatures::Feature>(feature));
+  }
+
+  switch (instr->GetImmException()) {
+    case kSetCPUFeaturesOpcode:
+      SetCPUFeatures(parameters);
+      break;
+    case kEnableCPUFeaturesOpcode:
+      GetCPUFeatures()->Combine(parameters);
+      break;
+    case kDisableCPUFeaturesOpcode:
+      GetCPUFeatures()->Remove(parameters);
+      break;
+    default:
+      VIXL_UNREACHABLE();
+      break;
+  }
+
+  WritePc(instr->GetInstructionAtOffset(AlignUp(offset, kInstructionSize)));
+}
+
+
+void Simulator::DoSaveCPUFeatures(const Instruction* instr) {
+  VIXL_ASSERT((instr->Mask(ExceptionMask) == HLT) &&
+              (instr->GetImmException() == kSaveCPUFeaturesOpcode));
+  USE(instr);
+
+  saved_cpu_features_.push_back(*GetCPUFeatures());
+}
+
+
+void Simulator::DoRestoreCPUFeatures(const Instruction* instr) {
+  VIXL_ASSERT((instr->Mask(ExceptionMask) == HLT) &&
+              (instr->GetImmException() == kRestoreCPUFeaturesOpcode));
+  USE(instr);
+
+  SetCPUFeatures(saved_cpu_features_.back());
+  saved_cpu_features_.pop_back();
+}
+
 
 }  // namespace aarch64
 }  // namespace vixl

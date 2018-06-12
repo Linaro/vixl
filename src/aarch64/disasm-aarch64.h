@@ -30,6 +30,7 @@
 #include "../globals-vixl.h"
 #include "../utils-vixl.h"
 
+#include "cpu-features-auditor-aarch64.h"
 #include "decoder-aarch64.h"
 #include "instructions-aarch64.h"
 #include "operands-aarch64.h"
@@ -168,11 +169,39 @@ class Disassembler : public DecoderVisitor {
 
 class PrintDisassembler : public Disassembler {
  public:
-  explicit PrintDisassembler(FILE* stream) : stream_(stream) {}
+  explicit PrintDisassembler(FILE* stream)
+      : cpu_features_auditor_(NULL),
+        cpu_features_prefix_("// Needs: "),
+        cpu_features_suffix_(""),
+        stream_(stream) {}
   void DisassembleBuffer(const Instruction* start, uint64_t size);
+
+  // If a CPUFeaturesAuditor is specified, it will be used to annotate
+  // disassembly. The CPUFeaturesAuditor is expected to visit the instructions
+  // _before_ the disassembler, such that the CPUFeatures information is
+  // available when the disassembler is called.
+  void RegisterCPUFeaturesAuditor(CPUFeaturesAuditor const* auditor) {
+    cpu_features_auditor_ = auditor;
+  }
+
+  // Set the prefix to appear before the CPU features annotations.
+  void SetCPUFeaturesPrefix(const char* prefix) {
+    VIXL_ASSERT(prefix != NULL);
+    cpu_features_prefix_ = prefix;
+  }
+
+  // Set the suffix to appear after the CPU features annotations.
+  void SetCPUFeaturesSuffix(const char* suffix) {
+    VIXL_ASSERT(suffix != NULL);
+    cpu_features_suffix_ = suffix;
+  }
 
  protected:
   virtual void ProcessOutput(const Instruction* instr) VIXL_OVERRIDE;
+
+  CPUFeaturesAuditor const* cpu_features_auditor_;
+  const char* cpu_features_prefix_;
+  const char* cpu_features_suffix_;
 
  private:
   FILE* stream_;

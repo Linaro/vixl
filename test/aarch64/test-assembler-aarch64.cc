@@ -103,10 +103,11 @@ namespace aarch64 {
   MacroAssembler masm; \
   SETUP_COMMON()
 
-#define SETUP_WITH_FEATURES(...) \
-  MacroAssembler masm;           \
-  SETUP_COMMON();                \
-  masm.SetCPUFeatures(CPUFeatures(__VA_ARGS__))
+#define SETUP_WITH_FEATURES(...)                 \
+  MacroAssembler masm;                           \
+  SETUP_COMMON();                                \
+  masm.SetCPUFeatures(CPUFeatures(__VA_ARGS__)); \
+  simulator.SetCPUFeatures(CPUFeatures(__VA_ARGS__))
 
 #define SETUP_CUSTOM(size, pic)                                       \
   byte* buf = new byte[size + CodeBuffer::kDefaultCapacity];          \
@@ -114,12 +115,13 @@ namespace aarch64 {
   SETUP_COMMON()
 
 #define SETUP_COMMON()                                      \
-  masm.SetCPUFeatures(CPUFeatures());                       \
+  masm.SetCPUFeatures(CPUFeatures::None());                 \
   masm.SetGenerateSimulatorCode(true);                      \
   Decoder simulator_decoder;                                \
   Simulator simulator(&simulator_decoder);                  \
   simulator.SetColouredTrace(Test::coloured_trace());       \
   simulator.SetInstructionStats(Test::instruction_stats()); \
+  simulator.SetCPUFeatures(CPUFeatures::None());            \
   Disassembler disasm;                                      \
   Decoder disassembler_decoder;                             \
   disassembler_decoder.AppendVisitor(&disasm);              \
@@ -132,7 +134,7 @@ namespace aarch64 {
   simulator.ResetState();                                                     \
   {                                                                           \
     /* PushCalleeSavedRegisters() uses NEON stores. */                        \
-    CPUFeaturesScope cpu(&masm, CPUFeatures::kNEON);                          \
+    SimulationCPUFeaturesScope cpu(&masm, CPUFeatures::kNEON);                \
     __ PushCalleeSavedRegisters();                                            \
   }                                                                           \
   {                                                                           \
@@ -162,16 +164,40 @@ namespace aarch64 {
   __ Trace(LOG_ALL, TRACE_DISABLE);                                       \
   {                                                                       \
     /* Dump() and PopCalleeSavedRegisters() use NEON loads and stores. */ \
-    CPUFeaturesScope cpu(&masm, CPUFeatures::kNEON);                      \
+    SimulationCPUFeaturesScope cpu(&masm, CPUFeatures::kNEON);            \
     core.Dump(&masm);                                                     \
     __ PopCalleeSavedRegisters();                                         \
   }                                                                       \
   __ Ret();                                                               \
   masm.FinalizeCode()
 
-#define RUN()    \
-  DISASSEMBLE(); \
-  simulator.RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>())
+#define RUN()                                                                  \
+  DISASSEMBLE();                                                               \
+  simulator.RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>());        \
+  {                                                                            \
+    /* We expect the test to use all of the features it requested, plus the */ \
+    /* features that the instructure code requires.                         */ \
+    CPUFeatures const& expected =                                              \
+        simulator.GetCPUFeatures()->With(CPUFeatures::kNEON);                  \
+    CPUFeatures const& seen = simulator.GetSeenFeatures();                     \
+    /* This gives three broad categories of features that we care about:    */ \
+    /*  1. Things both expected and seen.                                   */ \
+    /*  2. Things seen, but not expected. The simulator catches these.      */ \
+    /*  3. Things expected, but not seen. We check these here.              */ \
+    /* In a valid, passing test, categories 2 and 3 should be empty.        */ \
+    if (seen != expected) {                                                    \
+      /* The Simulator should have caught anything in category 2 already.   */ \
+      VIXL_ASSERT(expected.Has(seen));                                         \
+      /* Anything left is category 3: things expected, but not seen. This   */ \
+      /* is not necessarily a bug in VIXL itself, but indicates that the    */ \
+      /* test is less strict than it could be.                              */ \
+      CPUFeatures missing = expected.Without(seen);                            \
+      VIXL_ASSERT(missing.Count() > 0);                                        \
+      std::cout << "Error: expected to see CPUFeatures { " << missing          \
+                << " }\n";                                                     \
+      VIXL_ABORT();                                                            \
+    }                                                                          \
+  }
 
 #define RUN_CUSTOM() RUN()
 
@@ -14396,7 +14422,7 @@ static void PushPopFPSimpleHelper(int reg_count,
                                   int reg_size,
                                   PushPopMethod push_method,
                                   PushPopMethod pop_method) {
-  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+  SETUP_WITH_FEATURES((reg_count == 0) ? CPUFeatures::kNone : CPUFeatures::kFP);
 
   START();
 
