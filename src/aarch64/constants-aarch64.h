@@ -364,30 +364,25 @@ enum SystemRegister {
   FPCR = SystemRegisterEncoder<3, 3, 4, 4, 0>::value
 };
 
+template<int op1, int crn, int crm, int op2>
+class CacheOpEncoder {
+ public:
+  static const uint32_t value =
+      ((op1 << SysOp1_offset) |
+       (crn << CRn_offset) |
+       (crm << CRm_offset) |
+       (op2 << SysOp2_offset)) >> SysOp_offset;
+};
+
 enum InstructionCacheOp {
-  IVAU = ((0x3 << SysOp1_offset) |
-          (0x7 << CRn_offset) |
-          (0x5 << CRm_offset) |
-          (0x1 << SysOp2_offset)) >> SysOp_offset
+  IVAU = CacheOpEncoder<3, 7, 5, 1>::value
 };
 
 enum DataCacheOp {
-  CVAC  = ((0x3 << SysOp1_offset) |
-           (0x7 << CRn_offset) |
-           (0xa << CRm_offset) |
-           (0x1 << SysOp2_offset)) >> SysOp_offset,
-  CVAU  = ((0x3 << SysOp1_offset) |
-           (0x7 << CRn_offset) |
-           (0xb << CRm_offset) |
-           (0x1 << SysOp2_offset)) >> SysOp_offset,
-  CIVAC = ((0x3 << SysOp1_offset) |
-           (0x7 << CRn_offset) |
-           (0xe << CRm_offset) |
-           (0x1 << SysOp2_offset)) >> SysOp_offset,
-  ZVA   = ((0x3 << SysOp1_offset) |
-           (0x7 << CRn_offset) |
-           (0x4 << CRm_offset) |
-           (0x1 << SysOp2_offset)) >> SysOp_offset
+  CVAC = CacheOpEncoder<3, 7, 10, 1>::value,
+  CVAU = CacheOpEncoder<3, 7, 11, 1>::value,
+  CIVAC = CacheOpEncoder<3, 7, 14, 1>::value,
+  ZVA = CacheOpEncoder<3, 7, 4, 1>::value
 };
 
 // Instruction enumerations.
