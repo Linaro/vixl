@@ -175,6 +175,10 @@ class CPUFeatures {
   // checking: `Has(...)` returns true regardless of the argument.
   static CPUFeatures All();
 
+  // Construct an empty CPUFeatures. This is equivalent to the default
+  // constructor, but is provided for symmetry and convenience.
+  static CPUFeatures None() { return CPUFeatures(); }
+
   // The presence of these features was assumed by version of VIXL before this
   // API was added, so using this set by default ensures API compatibility.
   static CPUFeatures AArch64LegacyBaseline() {

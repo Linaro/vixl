@@ -2916,7 +2916,7 @@ void Assembler::fcmlt(const VRegister& vd, const VRegister& vn, double value) {
 
 
 void Assembler::frecpx(const VRegister& vd, const VRegister& vn) {
-  VIXL_ASSERT(CPUHas(CPUFeatures::kFP));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kFP, CPUFeatures::kNEON));
   VIXL_ASSERT(vd.IsScalar());
   VIXL_ASSERT(AreSameFormat(vd, vn));
   VIXL_ASSERT(vd.Is1S() || vd.Is1D());
