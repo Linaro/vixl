@@ -27,8 +27,8 @@
 #ifndef VIXL_EXAMPLE_EXAMPLES_H_
 #define VIXL_EXAMPLE_EXAMPLES_H_
 
-#include "aarch64/debugger-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
+#include "aarch64/simulator-aarch64.h"
 
 using namespace vixl;
 using namespace vixl::aarch64;

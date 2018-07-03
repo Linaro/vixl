@@ -30,7 +30,6 @@
 #include "non-const-visitor.h"
 #include "../test-utils-aarch64.h"
 
-#include "aarch64/debugger-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/simulator-aarch64.h"
 #define TEST(name) TEST_(EXAMPLE_##name)
@@ -166,7 +165,7 @@ void GenerateTestWrapper(MacroAssembler* masm, RegisterDump* regs) {
 #define START()                                       \
   MacroAssembler masm;                                \
   Decoder decoder;                                    \
-  Debugger simulator(&decoder);                       \
+  Simulator simulator(&decoder);                      \
   simulator.SetColouredTrace(Test::coloured_trace()); \
   PrintDisassembler* pdis = NULL;                     \
   Instrument* inst = NULL;                            \

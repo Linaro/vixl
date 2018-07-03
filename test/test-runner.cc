@@ -36,9 +36,6 @@ vixl::Test* vixl::Test::last_ = NULL;
 
 bool vixl::Test::verbose_ = false;
 
-// No debugger to start with.
-bool vixl::Test::debug_ = false;
-
 // No tracing to start with.
 bool vixl::Test::trace_sim_ = false;
 bool vixl::Test::trace_reg_ = false;
@@ -109,7 +106,6 @@ static void PrintHelpMessage() {
       "--list                   List all available tests.\n"
       "--run_all                Run all available tests.\n"
       "--verbose                Print verbose output when available.\n"
-      "--debugger               Run in the debugger.\n"
       "--trace_all              "
       "Enable all trace options, plus --coloured_trace.\n"
       "--trace_sim              "
@@ -157,10 +153,6 @@ int main(int argc, char* argv[]) {
 
   if (IsInArgs("--verbose", argc, argv)) {
     vixl::Test::set_verbose(true);
-  }
-
-  if (IsInArgs("--debugger", argc, argv)) {
-    vixl::Test::set_debug(true);
   }
 
   if (IsInArgs("--trace-write", argc, argv)) {

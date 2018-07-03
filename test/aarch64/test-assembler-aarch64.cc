@@ -37,7 +37,6 @@
 #include "aarch64/test-utils-aarch64.h"
 
 #include "aarch64/cpu-aarch64.h"
-#include "aarch64/debugger-aarch64.h"
 #include "aarch64/disasm-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/simulator-aarch64.h"
@@ -109,24 +108,22 @@ namespace aarch64 {
   MacroAssembler masm(buf, size + CodeBuffer::kDefaultCapacity, pic); \
   SETUP_COMMON()
 
-#define SETUP_COMMON()                                            \
-  masm.SetGenerateSimulatorCode(true);                            \
-  Decoder simulator_decoder;                                      \
-  Simulator* simulator = Test::run_debugger()                     \
-                             ? new Debugger(&simulator_decoder)   \
-                             : new Simulator(&simulator_decoder); \
-  simulator->SetColouredTrace(Test::coloured_trace());            \
-  simulator->SetInstructionStats(Test::instruction_stats());      \
-  Disassembler disasm;                                            \
-  Decoder disassembler_decoder;                                   \
-  disassembler_decoder.AppendVisitor(&disasm);                    \
-  RegisterDump core;                                              \
-  ptrdiff_t offset_after_infrastructure_start;                    \
+#define SETUP_COMMON()                                      \
+  masm.SetGenerateSimulatorCode(true);                      \
+  Decoder simulator_decoder;                                \
+  Simulator simulator(&simulator_decoder);                  \
+  simulator.SetColouredTrace(Test::coloured_trace());       \
+  simulator.SetInstructionStats(Test::instruction_stats()); \
+  Disassembler disasm;                                      \
+  Decoder disassembler_decoder;                             \
+  disassembler_decoder.AppendVisitor(&disasm);              \
+  RegisterDump core;                                        \
+  ptrdiff_t offset_after_infrastructure_start;              \
   ptrdiff_t offset_before_infrastructure_end
 
 #define START()                                                               \
   masm.Reset();                                                               \
-  simulator->ResetState();                                                    \
+  simulator.ResetState();                                                     \
   __ PushCalleeSavedRegisters();                                              \
   {                                                                           \
     int trace_parameters = 0;                                                 \
@@ -160,17 +157,13 @@ namespace aarch64 {
 
 #define RUN()    \
   DISASSEMBLE(); \
-  simulator->RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>())
+  simulator.RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>())
 
 #define RUN_CUSTOM() RUN()
 
-#define TEARDOWN() TEARDOWN_COMMON()
+#define TEARDOWN()
 
-#define TEARDOWN_CUSTOM() \
-  delete[] buf;           \
-  TEARDOWN_COMMON()
-
-#define TEARDOWN_COMMON() delete simulator;
+#define TEARDOWN_CUSTOM() delete[] buf;
 
 #else  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
 // Run the test on real hardware or models.
@@ -10178,7 +10171,7 @@ static void FmaddFmsubHelper(double n,
 
 TEST(fmadd_fmsub_double) {
   // It's hard to check the result of fused operations because the only way to
-  // calculate the result is using fma, which is what the simulator uses anyway.
+  // calculate the result is using fma, which is what the Simulator uses anyway.
 
   // Basic operation.
   FmaddFmsubHelper(1.0, 2.0, 3.0, 5.0, 1.0, -5.0, -1.0);
@@ -15234,8 +15227,8 @@ TEST(printf_no_preserve) {
 
 #ifndef VIXL_INCLUDE_SIMULATOR_AARCH64
 TEST(trace) {
-  // The Trace helper should not generate any code unless the simulator (or
-  // debugger) is being used.
+  // The Trace helper should not generate any code unless the simulator is being
+  // used.
   SETUP();
   START();
 
@@ -15253,8 +15246,8 @@ TEST(trace) {
 
 #ifndef VIXL_INCLUDE_SIMULATOR_AARCH64
 TEST(log) {
-  // The Log helper should not generate any code unless the simulator (or
-  // debugger) is being used.
+  // The Log helper should not generate any code unless the simulator is being
+  // used.
   SETUP();
   START();
 

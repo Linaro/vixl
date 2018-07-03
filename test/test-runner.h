@@ -46,8 +46,6 @@ class Test {
   Test* next() { return next_; }
   static bool verbose() { return verbose_; }
   static void set_verbose(bool value) { verbose_ = value; }
-  static bool debug() { return debug_; }
-  static void set_debug(bool value) { debug_ = value; }
   static bool trace_sim() { return trace_sim_; }
   static void set_trace_sim(bool value) { trace_sim_ = value; }
   static bool trace_reg() { return trace_reg_; }
@@ -73,9 +71,6 @@ class Test {
     generate_test_trace_ = value;
   }
 
-  // The debugger is needed to trace register values.
-  static bool run_debugger() { return debug_; }
-
  private:
   const char* name_;
   TestFunction* callback_;
@@ -84,7 +79,6 @@ class Test {
   static Test* last_;
   Test* next_;
   static bool verbose_;
-  static bool debug_;
   static bool trace_sim_;
   static bool trace_reg_;
   static bool trace_write_;

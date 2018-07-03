@@ -35,8 +35,11 @@
 #include "../macro-assembler-interface.h"
 
 #include "assembler-aarch64.h"
-#include "debugger-aarch64.h"
 #include "instrument-aarch64.h"
+// Required for runtime call support.
+// TODO: Break this dependency. We should be able to separate out the necessary
+// parts so that we don't need to include the whole simulator header.
+#include "simulator-aarch64.h"
 // Required in order to generate debugging instructions for the simulator. This
 // is needed regardless of whether the simulator is included or not, since
 // generating simulator specific instructions is controlled at runtime.

@@ -57,17 +57,16 @@ namespace aarch64 {
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
-#define SETUP()                                                                \
-  MacroAssembler masm;                                                         \
-  Decoder decoder;                                                             \
-  Simulator* simulator =                                                       \
-      Test::run_debugger() ? new Debugger(&decoder) : new Simulator(&decoder); \
-  simulator->SetColouredTrace(Test::coloured_trace());                         \
-  simulator->SetInstructionStats(Test::instruction_stats());
+#define SETUP()                                       \
+  MacroAssembler masm;                                \
+  Decoder decoder;                                    \
+  Simulator simulator(&decoder);                      \
+  simulator.SetColouredTrace(Test::coloured_trace()); \
+  simulator.SetInstructionStats(Test::instruction_stats());
 
 #define START()                         \
   masm.Reset();                         \
-  simulator->ResetState();              \
+  simulator.ResetState();               \
   __ PushCalleeSavedRegisters();        \
   if (Test::trace_reg()) {              \
     __ Trace(LOG_STATE, TRACE_ENABLE);  \
@@ -92,9 +91,9 @@ namespace aarch64 {
   masm.FinalizeCode()
 
 #define RUN() \
-  simulator->RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>())
+  simulator.RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>())
 
-#define TEARDOWN() delete simulator;
+#define TEARDOWN()
 
 #else  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
@@ -4559,32 +4558,30 @@ TEST(RunFrom) {
 
   // Run a function returning `void` and taking no argument.
   int32_t value = 0xbad;
-  simulator->RunFrom(GenerateStoreZero(&masm, &value));
+  simulator.RunFrom(GenerateStoreZero(&masm, &value));
   VIXL_CHECK(value == 0);
 
   // Run a function returning `void` and taking one argument.
   int32_t argument = 0xf00d;
-  simulator->RunFrom<void, int32_t>(GenerateStoreInput(&masm, &value),
-                                    argument);
+  simulator.RunFrom<void, int32_t>(GenerateStoreInput(&masm, &value), argument);
   VIXL_CHECK(value == 0xf00d);
 
   // Run a function taking one argument and returning a value.
   int64_t res_int64_t;
   res_int64_t =
-      simulator->RunFrom<int64_t, int64_t>(GeneratePow(&masm, 0), 0xbad);
+      simulator.RunFrom<int64_t, int64_t>(GeneratePow(&masm, 0), 0xbad);
   VIXL_CHECK(res_int64_t == 1);
-  res_int64_t =
-      simulator->RunFrom<int64_t, int64_t>(GeneratePow(&masm, 1), 123);
+  res_int64_t = simulator.RunFrom<int64_t, int64_t>(GeneratePow(&masm, 1), 123);
   VIXL_CHECK(res_int64_t == 123);
-  res_int64_t = simulator->RunFrom<int64_t, int64_t>(GeneratePow(&masm, 10), 2);
+  res_int64_t = simulator.RunFrom<int64_t, int64_t>(GeneratePow(&masm, 10), 2);
   VIXL_CHECK(res_int64_t == 1024);
 
   // Run a function taking multiple arguments in registers.
   double res_double =
-      simulator->RunFrom<double, float, int64_t, double>(GenerateSum(&masm),
-                                                         1.0,
-                                                         2,
-                                                         3.0);
+      simulator.RunFrom<double, float, int64_t, double>(GenerateSum(&masm),
+                                                        1.0,
+                                                        2,
+                                                        3.0);
   VIXL_CHECK(res_double == 6.0);
 }
 #endif
