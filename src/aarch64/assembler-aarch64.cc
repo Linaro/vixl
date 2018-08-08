@@ -2284,13 +2284,14 @@ void Assembler::fmov(const VRegister& vd, float imm) {
 
 
 void Assembler::fmov(const VRegister& vd, F16 imm) {
-  VIXL_ASSERT(CPUHas(CPUFeatures::kFP, CPUFeatures::kFPHalf));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kFP));
   uint16_t rawbits = imm.ToRawbits();
   if (vd.IsScalar()) {
+    VIXL_ASSERT(CPUHas(CPUFeatures::kFPHalf));
     VIXL_ASSERT(vd.Is1H());
     Emit(FMOV_h_imm | Rd(vd) | ImmFP16(rawbits));
   } else {
-    VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+    VIXL_ASSERT(CPUHas(CPUFeatures::kNEON, CPUFeatures::kNEONHalf));
     VIXL_ASSERT(vd.Is4H() | vd.Is8H());
     Instr q = vd.Is8H() ? NEON_Q : 0;
     uint32_t encoded_imm = FP16ToImm8(rawbits);

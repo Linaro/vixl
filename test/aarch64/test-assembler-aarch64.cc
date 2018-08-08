@@ -9925,7 +9925,7 @@ TEST(fmov_imm) {
 TEST(fmov_vec_imm) {
   SETUP_WITH_FEATURES(CPUFeatures::kNEON,
                       CPUFeatures::kFP,
-                      CPUFeatures::kFPHalf);
+                      CPUFeatures::kNEONHalf);
 
   START();
 
