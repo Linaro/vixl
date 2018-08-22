@@ -1024,6 +1024,8 @@ TEST(load_store) {
   COMPARE(str(x18, MemOperand(x19, 8, PreIndex)), "str x18, [x19, #8]!");
   COMPARE(str(x20, MemOperand(x21, 255, PreIndex)), "str x20, [x21, #255]!");
   COMPARE(str(x22, MemOperand(x23, -256, PreIndex)), "str x22, [x23, #-256]!");
+  COMPARE(str(x24, MemOperand(x25, 0, PreIndex)), "str x24, [x25, #0]!");
+  COMPARE(str(w26, MemOperand(x27, 0, PreIndex)), "str w26, [x27, #0]!");
 
   COMPARE(ldr(w0, MemOperand(x1, 4, PostIndex)), "ldr w0, [x1], #4");
   COMPARE(ldr(w2, MemOperand(x3, 255, PostIndex)), "ldr w2, [x3], #255");
@@ -1037,6 +1039,8 @@ TEST(load_store) {
   COMPARE(str(x18, MemOperand(x19, 8, PostIndex)), "str x18, [x19], #8");
   COMPARE(str(x20, MemOperand(x21, 255, PostIndex)), "str x20, [x21], #255");
   COMPARE(str(x22, MemOperand(x23, -256, PostIndex)), "str x22, [x23], #-256");
+  COMPARE(str(x24, MemOperand(x25, 0, PostIndex)), "str x24, [x25], #0");
+  COMPARE(str(w26, MemOperand(x27, 0, PostIndex)), "str w26, [x27], #0");
 
   COMPARE(ldr(w24, MemOperand(sp)), "ldr w24, [sp]");
   COMPARE(ldr(x25, MemOperand(sp, 8)), "ldr x25, [sp, #8]");
@@ -1147,6 +1151,8 @@ TEST(load_store_byte) {
   COMPARE(ldrb(w10, MemOperand(x11, 255, PostIndex)), "ldrb w10, [x11], #255");
   COMPARE(ldrb(w12, MemOperand(x13, -256, PostIndex)),
           "ldrb w12, [x13], #-256");
+  COMPARE(ldrb(w14, MemOperand(x15, 0, PreIndex)), "ldrb w14, [x15, #0]!");
+  COMPARE(ldrb(w16, MemOperand(x17, 0, PostIndex)), "ldrb w16, [x17], #0");
   COMPARE(strb(w14, MemOperand(x15)), "strb w14, [x15]");
   COMPARE(strb(x16, MemOperand(x17)), "strb w16, [x17]");
   COMPARE(strb(w18, MemOperand(x19, 4095)), "strb w18, [x19, #4095]");
@@ -1156,12 +1162,16 @@ TEST(load_store_byte) {
   COMPARE(strb(w24, MemOperand(x25, 255, PostIndex)), "strb w24, [x25], #255");
   COMPARE(strb(w26, MemOperand(x27, -256, PostIndex)),
           "strb w26, [x27], #-256");
+  COMPARE(strb(w27, MemOperand(x28, 0, PreIndex)), "strb w27, [x28, #0]!");
+  COMPARE(strb(w29, MemOperand(x30, 0, PostIndex)), "strb w29, [x30], #0");
   COMPARE(ldrb(w28, MemOperand(sp, 3, PostIndex)), "ldrb w28, [sp], #3");
   COMPARE(strb(x29, MemOperand(sp, -42, PreIndex)), "strb w29, [sp, #-42]!");
   COMPARE(ldrsb(w0, MemOperand(x1)), "ldrsb w0, [x1]");
   COMPARE(ldrsb(x2, MemOperand(x3, 8)), "ldrsb x2, [x3, #8]");
   COMPARE(ldrsb(w4, MemOperand(x5, 42, PreIndex)), "ldrsb w4, [x5, #42]!");
   COMPARE(ldrsb(x6, MemOperand(x7, -11, PostIndex)), "ldrsb x6, [x7], #-11");
+  COMPARE(ldrsb(w8, MemOperand(x9, 0, PreIndex)), "ldrsb w8, [x9, #0]!");
+  COMPARE(ldrsb(x10, MemOperand(x11, 0, PostIndex)), "ldrsb x10, [x11], #0");
 
   CLEANUP();
 }
@@ -1178,6 +1188,8 @@ TEST(load_store_half) {
   COMPARE(ldrh(w10, MemOperand(x11, 255, PostIndex)), "ldrh w10, [x11], #255");
   COMPARE(ldrh(w12, MemOperand(x13, -256, PostIndex)),
           "ldrh w12, [x13], #-256");
+  COMPARE(ldrh(w14, MemOperand(x15, 0, PreIndex)), "ldrh w14, [x15, #0]!");
+  COMPARE(ldrh(w16, MemOperand(x17, 0, PostIndex)), "ldrh w16, [x17], #0");
   COMPARE(strh(w14, MemOperand(x15)), "strh w14, [x15]");
   COMPARE(strh(x16, MemOperand(x17)), "strh w16, [x17]");
   COMPARE(strh(w18, MemOperand(x19, 8190)), "strh w18, [x19, #8190]");
@@ -1187,6 +1199,8 @@ TEST(load_store_half) {
   COMPARE(strh(w24, MemOperand(x25, 255, PostIndex)), "strh w24, [x25], #255");
   COMPARE(strh(w26, MemOperand(x27, -256, PostIndex)),
           "strh w26, [x27], #-256");
+  COMPARE(strh(w27, MemOperand(x28, 0, PreIndex)), "strh w27, [x28, #0]!");
+  COMPARE(strh(w29, MemOperand(x30, 0, PostIndex)), "strh w29, [x30], #0");
   COMPARE(ldrh(w28, MemOperand(sp, 3, PostIndex)), "ldrh w28, [sp], #3");
   COMPARE(strh(x29, MemOperand(sp, -42, PreIndex)), "strh w29, [sp, #-42]!");
   COMPARE(ldrh(w30, MemOperand(x0, 255)), "ldurh w30, [x0, #255]");
@@ -1197,6 +1211,8 @@ TEST(load_store_half) {
   COMPARE(ldrsh(w2, MemOperand(x3, 8)), "ldrsh w2, [x3, #8]");
   COMPARE(ldrsh(w4, MemOperand(x5, 42, PreIndex)), "ldrsh w4, [x5, #42]!");
   COMPARE(ldrsh(x6, MemOperand(x7, -11, PostIndex)), "ldrsh x6, [x7], #-11");
+  COMPARE(ldrsh(w8, MemOperand(x9, 0, PreIndex)), "ldrsh w8, [x9, #0]!");
+  COMPARE(ldrsh(x10, MemOperand(x11, 0, PostIndex)), "ldrsh x10, [x11], #0");
 
   CLEANUP();
 }
@@ -1290,6 +1306,17 @@ TEST(load_store_v_pre) {
   COMPARE(str(d27, MemOperand(sp, -8, PreIndex)), "str d27, [sp, #-8]!");
   COMPARE(str(q28, MemOperand(sp, 16, PreIndex)), "str q28, [sp, #16]!");
 
+  COMPARE(ldr(b0, MemOperand(x1, 0, PreIndex)), "ldr b0, [x1, #0]!");
+  COMPARE(ldr(h2, MemOperand(x3, 0, PreIndex)), "ldr h2, [x3, #0]!");
+  COMPARE(ldr(s4, MemOperand(x5, 0, PreIndex)), "ldr s4, [x5, #0]!");
+  COMPARE(ldr(d6, MemOperand(x7, 0, PreIndex)), "ldr d6, [x7, #0]!");
+  COMPARE(ldr(q8, MemOperand(x9, 0, PreIndex)), "ldr q8, [x9, #0]!");
+  COMPARE(str(b0, MemOperand(x1, 0, PreIndex)), "str b0, [x1, #0]!");
+  COMPARE(str(h2, MemOperand(x3, 0, PreIndex)), "str h2, [x3, #0]!");
+  COMPARE(str(s4, MemOperand(x5, 0, PreIndex)), "str s4, [x5, #0]!");
+  COMPARE(str(d6, MemOperand(x7, 0, PreIndex)), "str d6, [x7, #0]!");
+  COMPARE(str(q8, MemOperand(x9, 0, PreIndex)), "str q8, [x9, #0]!");
+
   CLEANUP();
 }
 
@@ -1336,6 +1363,17 @@ TEST(load_store_v_post) {
   COMPARE(ldr(s26, MemOperand(sp, -4, PreIndex)), "ldr s26, [sp, #-4]!");
   COMPARE(ldr(d27, MemOperand(sp, 8, PreIndex)), "ldr d27, [sp, #8]!");
   COMPARE(ldr(q28, MemOperand(sp, -16, PreIndex)), "ldr q28, [sp, #-16]!");
+
+  COMPARE(ldr(b0, MemOperand(x1, 0, PostIndex)), "ldr b0, [x1], #0");
+  COMPARE(ldr(h2, MemOperand(x3, 0, PostIndex)), "ldr h2, [x3], #0");
+  COMPARE(ldr(s4, MemOperand(x5, 0, PostIndex)), "ldr s4, [x5], #0");
+  COMPARE(ldr(d6, MemOperand(x7, 0, PostIndex)), "ldr d6, [x7], #0");
+  COMPARE(ldr(q8, MemOperand(x9, 0, PostIndex)), "ldr q8, [x9], #0");
+  COMPARE(str(b0, MemOperand(x1, 0, PostIndex)), "str b0, [x1], #0");
+  COMPARE(str(h2, MemOperand(x3, 0, PostIndex)), "str h2, [x3], #0");
+  COMPARE(str(s4, MemOperand(x5, 0, PostIndex)), "str s4, [x5], #0");
+  COMPARE(str(d6, MemOperand(x7, 0, PostIndex)), "str d6, [x7], #0");
+  COMPARE(str(q8, MemOperand(x9, 0, PostIndex)), "str q8, [x9], #0");
 
   CLEANUP();
 }
@@ -1653,6 +1691,8 @@ TEST(load_store_pair) {
           "ldp w11, w12, [x13], #-256");
   COMPARE(ldp(x14, x15, MemOperand(x16, -512, PostIndex)),
           "ldp x14, x15, [x16], #-512");
+  COMPARE(ldp(x0, x1, MemOperand(x2, 0, PostIndex)), "ldp x0, x1, [x2], #0");
+  COMPARE(ldp(w3, w4, MemOperand(x5, 0, PreIndex)), "ldp w3, w4, [x5, #0]!");
 
   COMPARE(ldp(s17, s18, MemOperand(x19)), "ldp s17, s18, [x19]");
   COMPARE(ldp(s20, s21, MemOperand(x22, 252)), "ldp s20, s21, [x22, #252]");
@@ -1676,6 +1716,8 @@ TEST(load_store_pair) {
           "ldp d31, d0, [x1], #504");
   COMPARE(ldp(d2, d3, MemOperand(x4, -512, PostIndex)),
           "ldp d2, d3, [x4], #-512");
+  COMPARE(ldp(s0, s1, MemOperand(x2, 0, PostIndex)), "ldp s0, s1, [x2], #0");
+  COMPARE(ldp(d3, d4, MemOperand(x5, 0, PreIndex)), "ldp d3, d4, [x5, #0]!");
 
   COMPARE(ldp(q5, q6, MemOperand(x7)), "ldp q5, q6, [x7]");
   COMPARE(ldp(q8, q9, MemOperand(x10, 1008)), "ldp q8, q9, [x10, #1008]");
@@ -1688,6 +1730,7 @@ TEST(load_store_pair) {
           "ldp q20, q21, [x22], #1008");
   COMPARE(ldp(q23, q24, MemOperand(x25, -1024, PostIndex)),
           "ldp q23, q24, [x25], #-1024");
+  COMPARE(ldp(q6, q7, MemOperand(x8, 0, PreIndex)), "ldp q6, q7, [x8, #0]!");
 
   COMPARE(stp(w0, w1, MemOperand(x2)), "stp w0, w1, [x2]");
   COMPARE(stp(x3, x4, MemOperand(x5)), "stp x3, x4, [x5]");
@@ -1713,6 +1756,8 @@ TEST(load_store_pair) {
           "stp w11, w12, [x13], #-256");
   COMPARE(stp(x14, x15, MemOperand(x16, -512, PostIndex)),
           "stp x14, x15, [x16], #-512");
+  COMPARE(stp(x0, x1, MemOperand(x2, 0, PostIndex)), "stp x0, x1, [x2], #0");
+  COMPARE(stp(w3, w4, MemOperand(x5, 0, PreIndex)), "stp w3, w4, [x5, #0]!");
 
   COMPARE(stp(s17, s18, MemOperand(x19)), "stp s17, s18, [x19]");
   COMPARE(stp(s20, s21, MemOperand(x22, 252)), "stp s20, s21, [x22, #252]");
@@ -1736,6 +1781,8 @@ TEST(load_store_pair) {
           "stp d31, d0, [x1], #504");
   COMPARE(stp(d2, d3, MemOperand(x4, -512, PostIndex)),
           "stp d2, d3, [x4], #-512");
+  COMPARE(stp(s0, s1, MemOperand(x2, 0, PostIndex)), "stp s0, s1, [x2], #0");
+  COMPARE(stp(d3, d4, MemOperand(x5, 0, PreIndex)), "stp d3, d4, [x5, #0]!");
 
   COMPARE(stp(q5, q6, MemOperand(x7)), "stp q5, q6, [x7]");
   COMPARE(stp(q8, q9, MemOperand(x10, 1008)), "stp q8, q9, [x10, #1008]");
@@ -1748,6 +1795,7 @@ TEST(load_store_pair) {
           "stp q20, q21, [x22], #1008");
   COMPARE(stp(q23, q24, MemOperand(x25, -1024, PostIndex)),
           "stp q23, q24, [x25], #-1024");
+  COMPARE(stp(q6, q7, MemOperand(x8, 0, PreIndex)), "stp q6, q7, [x8, #0]!");
 
   COMPARE(ldp(w16, w17, MemOperand(sp, 4, PostIndex)),
           "ldp w16, w17, [sp], #4");
@@ -1765,6 +1813,10 @@ TEST(load_store_pair) {
           "ldpsw x6, x7, [x8, #-32]!");
   COMPARE(ldpsw(x9, x10, MemOperand(x11, 128, PostIndex)),
           "ldpsw x9, x10, [x11], #128");
+  COMPARE(ldpsw(x0, x1, MemOperand(x10, 0, PreIndex)),
+          "ldpsw x0, x1, [x10, #0]!");
+  COMPARE(ldpsw(x2, x3, MemOperand(x10, 0, PostIndex)),
+          "ldpsw x2, x3, [x10], #0");
 
   CLEANUP();
 }

@@ -1001,7 +1001,6 @@ void Assembler::LoadStorePair(const CPURegister& rt,
   if (addr.IsImmediateOffset()) {
     addrmodeop = LoadStorePairOffsetFixed;
   } else {
-    VIXL_ASSERT(addr.GetOffset() != 0);
     if (addr.IsPreIndex()) {
       addrmodeop = LoadStorePairPreIndexFixed;
     } else {

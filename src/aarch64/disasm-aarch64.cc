@@ -915,10 +915,10 @@ void Disassembler::VisitLoadStorePreIndex(const Instruction *instr) {
   const char *form = "(LoadStorePreIndex)";
 
   switch (instr->Mask(LoadStorePreIndexMask)) {
-#define LS_PREINDEX(A, B, C)  \
-  case A##_pre:               \
-    mnemonic = B;             \
-    form = C ", ['Xns'ILS]!"; \
+#define LS_PREINDEX(A, B, C)   \
+  case A##_pre:                \
+    mnemonic = B;              \
+    form = C ", ['Xns'ILSi]!"; \
     break;
     LOAD_STORE_LIST(LS_PREINDEX)
 #undef LS_PREINDEX
@@ -935,7 +935,7 @@ void Disassembler::VisitLoadStorePostIndex(const Instruction *instr) {
 #define LS_POSTINDEX(A, B, C) \
   case A##_post:              \
     mnemonic = B;             \
-    form = C ", ['Xns]'ILS";  \
+    form = C ", ['Xns]'ILSi"; \
     break;
     LOAD_STORE_LIST(LS_POSTINDEX)
 #undef LS_POSTINDEX
@@ -1144,10 +1144,10 @@ void Disassembler::VisitLoadStorePairPostIndex(const Instruction *instr) {
   const char *form = "(LoadStorePairPostIndex)";
 
   switch (instr->Mask(LoadStorePairPostIndexMask)) {
-#define LSP_POSTINDEX(A, B, C, D) \
-  case A##_post:                  \
-    mnemonic = B;                 \
-    form = C ", ['Xns]'ILP" D;    \
+#define LSP_POSTINDEX(A, B, C, D)  \
+  case A##_post:                   \
+    mnemonic = B;                  \
+    form = C ", ['Xns]'ILP" D "i"; \
     break;
     LOAD_STORE_PAIR_LIST(LSP_POSTINDEX)
 #undef LSP_POSTINDEX
@@ -1161,10 +1161,10 @@ void Disassembler::VisitLoadStorePairPreIndex(const Instruction *instr) {
   const char *form = "(LoadStorePairPreIndex)";
 
   switch (instr->Mask(LoadStorePairPreIndexMask)) {
-#define LSP_PREINDEX(A, B, C, D)   \
-  case A##_pre:                    \
-    mnemonic = B;                  \
-    form = C ", ['Xns'ILP" D "]!"; \
+#define LSP_PREINDEX(A, B, C, D)    \
+  case A##_pre:                     \
+    mnemonic = B;                   \
+    form = C ", ['Xns'ILP" D "i]!"; \
     break;
     LOAD_STORE_PAIR_LIST(LSP_PREINDEX)
 #undef LSP_PREINDEX
@@ -4499,18 +4499,25 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           return 9;
         }
         case 'S': {  // ILS - Immediate Load/Store.
-          if (instr->GetImmLS() != 0) {
+                     // ILSi - As above, but an index field which must not be
+                     // omitted even if it is zero.
+          bool is_index = format[3] == 'i';
+          if (is_index || (instr->GetImmLS() != 0)) {
             AppendToOutput(", #%" PRId32, instr->GetImmLS());
           }
-          return 3;
+          return is_index ? 4 : 3;
         }
         case 'P': {  // ILPx - Immediate Load/Store Pair, x = access size.
-          if (instr->GetImmLSPair() != 0) {
+                     // ILPxi - As above, but an index field which must not be
+                     // omitted even if it is zero.
+          VIXL_ASSERT((format[3] >= '0') && (format[3] <= '9'));
+          bool is_index = format[4] == 'i';
+          if (is_index || (instr->GetImmLSPair() != 0)) {
             // format[3] is the scale value. Convert to a number.
             int scale = 1 << (format[3] - '0');
             AppendToOutput(", #%" PRId32, instr->GetImmLSPair() * scale);
           }
-          return 4;
+          return is_index ? 5 : 4;
         }
         case 'U': {  // ILU - Immediate Load/Store Unsigned.
           if (instr->GetImmLSUnsigned() != 0) {
