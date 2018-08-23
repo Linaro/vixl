@@ -3556,6 +3556,30 @@ NEON_FP3SAME_OP_LIST(DEFINE_ASM_FUNC)
 #undef DEFINE_ASM_FUNC
 
 
+// clang-format off
+#define NEON_FHM_LIST(V) \
+  V(fmlal,   NEON_FMLAL)   \
+  V(fmlal2,  NEON_FMLAL2)  \
+  V(fmlsl,   NEON_FMLSL)   \
+  V(fmlsl2,  NEON_FMLSL2)
+// clang-format on
+
+#define DEFINE_ASM_FUNC(FN, VEC_OP)                         \
+  void Assembler::FN(const VRegister& vd,                   \
+                     const VRegister& vn,                   \
+                     const VRegister& vm) {                 \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kNEON,                  \
+                       CPUFeatures::kFP,                    \
+                       CPUFeatures::kNEONHalf,              \
+                       CPUFeatures::kFHM));                 \
+    VIXL_ASSERT((vd.Is2S() && vn.Is2H() && vm.Is2H()) ||    \
+                (vd.Is4S() && vn.Is4H() && vm.Is4H()));     \
+    Emit(FPFormat(vd) | VEC_OP | Rm(vm) | Rn(vn) | Rd(vd)); \
+  }
+NEON_FHM_LIST(DEFINE_ASM_FUNC)
+#undef DEFINE_ASM_FUNC
+
+
 void Assembler::addp(const VRegister& vd, const VRegister& vn) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT((vd.Is1D() && vn.Is2D()));
@@ -4033,6 +4057,35 @@ NEON_FPBYELEMENT_LIST(DEFINE_ASM_FUNC)
 NEON_BYELEMENT_LONG_LIST(DEFINE_ASM_FUNC)
 #undef DEFINE_ASM_FUNC
 
+
+// clang-format off
+#define NEON_BYELEMENT_FHM_LIST(V)    \
+  V(fmlal, NEON_FMLAL_H_byelement)    \
+  V(fmlal2, NEON_FMLAL2_H_byelement)  \
+  V(fmlsl, NEON_FMLSL_H_byelement)    \
+  V(fmlsl2, NEON_FMLSL2_H_byelement)
+// clang-format on
+
+
+#define DEFINE_ASM_FUNC(FN, OP)                                        \
+  void Assembler::FN(const VRegister& vd,                              \
+                     const VRegister& vn,                              \
+                     const VRegister& vm,                              \
+                     int vm_index) {                                   \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kNEON,                             \
+                       CPUFeatures::kFP,                               \
+                       CPUFeatures::kNEONHalf,                         \
+                       CPUFeatures::kFHM));                            \
+    VIXL_ASSERT((vd.Is2S() && vn.Is2H()) || (vd.Is4S() && vn.Is4H())); \
+    VIXL_ASSERT(vm.IsH());                                             \
+    VIXL_ASSERT((vm_index >= 0) && (vm_index < 8));                    \
+    /* Vm itself can only be in the bottom 16 registers. */            \
+    VIXL_ASSERT(vm.GetCode() < 16);                                    \
+    Emit(FPFormat(vd) | OP | Rd(vd) | Rn(vn) | Rm(vm) |                \
+         ImmNEONHLM(vm_index, 3));                                     \
+  }
+NEON_BYELEMENT_FHM_LIST(DEFINE_ASM_FUNC)
+#undef DEFINE_ASM_FUNC
 
 void Assembler::suqadd(const VRegister& vd, const VRegister& vn) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));

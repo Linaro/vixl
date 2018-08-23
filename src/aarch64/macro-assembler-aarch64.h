@@ -2557,7 +2557,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(fminnmp, Fminnmp)            \
   V(fminp, Fminp)                \
   V(fmla, Fmla)                  \
+  V(fmlal, Fmlal)                \
+  V(fmlal2, Fmlal2)              \
   V(fmls, Fmls)                  \
+  V(fmlsl, Fmlsl)                \
+  V(fmlsl2, Fmlsl2)              \
   V(fmulx, Fmulx)                \
   V(frecps, Frecps)              \
   V(frsqrts, Frsqrts)            \
@@ -2775,7 +2779,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 #define NEON_BYELEMENT_MACRO_LIST(V) \
   V(fmul, Fmul)                      \
   V(fmla, Fmla)                      \
+  V(fmlal, Fmlal)                    \
+  V(fmlal2, Fmlal2)                  \
   V(fmls, Fmls)                      \
+  V(fmlsl, Fmlsl)                    \
+  V(fmlsl2, Fmlsl2)                  \
   V(fmulx, Fmulx)                    \
   V(mul, Mul)                        \
   V(mla, Mla)                        \

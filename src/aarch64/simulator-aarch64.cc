@@ -4264,7 +4264,23 @@ void Simulator::VisitNEON3Same(const Instruction* instr) {
         fminnmp(vf, rd, rn, rm);
         break;
       default:
-        VIXL_UNIMPLEMENTED();
+        // FMLAL{2} and FMLSL{2} have special-case encodings.
+        switch (instr->Mask(NEON3SameFHMMask)) {
+          case NEON_FMLAL:
+            fmlal(vf, rd, rn, rm);
+            break;
+          case NEON_FMLAL2:
+            fmlal2(vf, rd, rn, rm);
+            break;
+          case NEON_FMLSL:
+            fmlsl(vf, rd, rn, rm);
+            break;
+          case NEON_FMLSL2:
+            fmlsl2(vf, rd, rn, rm);
+            break;
+          default:
+            VIXL_UNIMPLEMENTED();
+        }
     }
   } else {
     VectorFormat vf = nfd.GetVectorFormat();
@@ -4762,10 +4778,31 @@ void Simulator::VisitNEONByIndexedElement(const Instruction* instr) {
   ByElementOp Op = NULL;
 
   int rm_reg = instr->GetRm();
+  int rm_low_reg = instr->GetRmLow16();
   int index = (instr->GetNEONH() << 1) | instr->GetNEONL();
+  int index_hlm = (index << 1) | instr->GetNEONM();
+
+  switch (instr->Mask(NEONByIndexedElementFPLongMask)) {
+    // These are oddballs and are best handled as special cases.
+    // - Rm is encoded with only 4 bits (and must be in the lower 16 registers).
+    // - The index is always H:L:M.
+    case NEON_FMLAL_H_byelement:
+      fmlal(vf_r, rd, rn, ReadVRegister(rm_low_reg), index_hlm);
+      return;
+    case NEON_FMLAL2_H_byelement:
+      fmlal2(vf_r, rd, rn, ReadVRegister(rm_low_reg), index_hlm);
+      return;
+    case NEON_FMLSL_H_byelement:
+      fmlsl(vf_r, rd, rn, ReadVRegister(rm_low_reg), index_hlm);
+      return;
+    case NEON_FMLSL2_H_byelement:
+      fmlsl2(vf_r, rd, rn, ReadVRegister(rm_low_reg), index_hlm);
+      return;
+  }
+
   if (instr->GetNEONSize() == 1) {
-    rm_reg &= 0xf;
-    index = (index << 1) | instr->GetNEONM();
+    rm_reg = rm_low_reg;
+    index = index_hlm;
   }
 
   switch (instr->Mask(NEONByIndexedElementMask)) {
@@ -4905,10 +4942,11 @@ void Simulator::VisitNEONByIndexedElement(const Instruction* instr) {
           Op = &Simulator::fmulx;
           break;
         default:
-          if (instr->GetNEONSize() == 2)
+          if (instr->GetNEONSize() == 2) {
             index = instr->GetNEONH();
-          else
+          } else {
             index = (instr->GetNEONH() << 1) | instr->GetNEONL();
+          }
           switch (instr->Mask(NEONByIndexedElementFPComplexMask)) {
             case NEON_FCMLA_byelement:
               vf = vf_r;

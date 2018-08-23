@@ -4426,6 +4426,150 @@ LogicVRegister Simulator::fmls(VectorFormat vform,
 }
 
 
+LogicVRegister Simulator::fmlal(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicVRegister& src1,
+                                const LogicVRegister& src2) {
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kSRegSize);
+  dst.ClearForWrite(vform);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    float op1 = FPToFloat(src1.Float<SimFloat16>(i), kIgnoreDefaultNaN);
+    float op2 = FPToFloat(src2.Float<SimFloat16>(i), kIgnoreDefaultNaN);
+    float acc = dst.Float<float>(i);
+    float result = FPMulAdd(acc, op1, op2);
+    dst.SetFloat(i, result);
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::fmlal2(VectorFormat vform,
+                                 LogicVRegister dst,
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2) {
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kSRegSize);
+  dst.ClearForWrite(vform);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    int src = i + LaneCountFromFormat(vform);
+    float op1 = FPToFloat(src1.Float<SimFloat16>(src), kIgnoreDefaultNaN);
+    float op2 = FPToFloat(src2.Float<SimFloat16>(src), kIgnoreDefaultNaN);
+    float acc = dst.Float<float>(i);
+    float result = FPMulAdd(acc, op1, op2);
+    dst.SetFloat(i, result);
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::fmlsl(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicVRegister& src1,
+                                const LogicVRegister& src2) {
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kSRegSize);
+  dst.ClearForWrite(vform);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    float op1 = -FPToFloat(src1.Float<SimFloat16>(i), kIgnoreDefaultNaN);
+    float op2 = FPToFloat(src2.Float<SimFloat16>(i), kIgnoreDefaultNaN);
+    float acc = dst.Float<float>(i);
+    float result = FPMulAdd(acc, op1, op2);
+    dst.SetFloat(i, result);
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::fmlsl2(VectorFormat vform,
+                                 LogicVRegister dst,
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2) {
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kSRegSize);
+  dst.ClearForWrite(vform);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    int src = i + LaneCountFromFormat(vform);
+    float op1 = -FPToFloat(src1.Float<SimFloat16>(src), kIgnoreDefaultNaN);
+    float op2 = FPToFloat(src2.Float<SimFloat16>(src), kIgnoreDefaultNaN);
+    float acc = dst.Float<float>(i);
+    float result = FPMulAdd(acc, op1, op2);
+    dst.SetFloat(i, result);
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::fmlal(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicVRegister& src1,
+                                const LogicVRegister& src2,
+                                int index) {
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kSRegSize);
+  dst.ClearForWrite(vform);
+  float op2 = FPToFloat(src2.Float<SimFloat16>(index), kIgnoreDefaultNaN);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    float op1 = FPToFloat(src1.Float<SimFloat16>(i), kIgnoreDefaultNaN);
+    float acc = dst.Float<float>(i);
+    float result = FPMulAdd(acc, op1, op2);
+    dst.SetFloat(i, result);
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::fmlal2(VectorFormat vform,
+                                 LogicVRegister dst,
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2,
+                                 int index) {
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kSRegSize);
+  dst.ClearForWrite(vform);
+  float op2 = FPToFloat(src2.Float<SimFloat16>(index), kIgnoreDefaultNaN);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    int src = i + LaneCountFromFormat(vform);
+    float op1 = FPToFloat(src1.Float<SimFloat16>(src), kIgnoreDefaultNaN);
+    float acc = dst.Float<float>(i);
+    float result = FPMulAdd(acc, op1, op2);
+    dst.SetFloat(i, result);
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::fmlsl(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicVRegister& src1,
+                                const LogicVRegister& src2,
+                                int index) {
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kSRegSize);
+  dst.ClearForWrite(vform);
+  float op2 = FPToFloat(src2.Float<SimFloat16>(index), kIgnoreDefaultNaN);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    float op1 = -FPToFloat(src1.Float<SimFloat16>(i), kIgnoreDefaultNaN);
+    float acc = dst.Float<float>(i);
+    float result = FPMulAdd(acc, op1, op2);
+    dst.SetFloat(i, result);
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::fmlsl2(VectorFormat vform,
+                                 LogicVRegister dst,
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2,
+                                 int index) {
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kSRegSize);
+  dst.ClearForWrite(vform);
+  float op2 = FPToFloat(src2.Float<SimFloat16>(index), kIgnoreDefaultNaN);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    int src = i + LaneCountFromFormat(vform);
+    float op1 = -FPToFloat(src1.Float<SimFloat16>(src), kIgnoreDefaultNaN);
+    float acc = dst.Float<float>(i);
+    float result = FPMulAdd(acc, op1, op2);
+    dst.SetFloat(i, result);
+  }
+  return dst;
+}
+
+
 template <typename T>
 LogicVRegister Simulator::fneg(VectorFormat vform,
                                LogicVRegister dst,

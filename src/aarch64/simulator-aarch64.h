@@ -1998,11 +1998,31 @@ class Simulator : public DecoderVisitor {
                       const LogicVRegister& src1,
                       const LogicVRegister& src2,
                       int index);
+  LogicVRegister fmlal(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2,
+                       int index);
+  LogicVRegister fmlal2(VectorFormat vform,
+                        LogicVRegister dst,
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2,
+                        int index);
   LogicVRegister fmls(VectorFormat vform,
                       LogicVRegister dst,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2,
                       int index);
+  LogicVRegister fmlsl(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2,
+                       int index);
+  LogicVRegister fmlsl2(VectorFormat vform,
+                        LogicVRegister dst,
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2,
+                        int index);
   LogicVRegister fmulx(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src1,
@@ -2871,6 +2891,23 @@ class Simulator : public DecoderVisitor {
                        LogicVRegister dst,
                        const LogicVRegister& src1,
                        const LogicVRegister& src2);
+
+  LogicVRegister fmlal(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2);
+  LogicVRegister fmlal2(VectorFormat vform,
+                        LogicVRegister dst,
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2);
+  LogicVRegister fmlsl(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2);
+  LogicVRegister fmlsl2(VectorFormat vform,
+                        LogicVRegister dst,
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2);
 
   template <typename T>
   LogicVRegister fcmp(VectorFormat vform,

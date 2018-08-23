@@ -3381,8 +3381,44 @@ class Assembler : public vixl::internal::AssemblerBase {
   // FP vector multiply accumulate.
   void fmla(const VRegister& vd, const VRegister& vn, const VRegister& vm);
 
+  // FP fused multiply-add long to accumulator.
+  void fmlal(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // FP fused multiply-add long to accumulator (second part).
+  void fmlal2(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // FP fused multiply-add long to accumulator by element.
+  void fmlal(const VRegister& vd,
+             const VRegister& vn,
+             const VRegister& vm,
+             int vm_index);
+
+  // FP fused multiply-add long to accumulator by element (second part).
+  void fmlal2(const VRegister& vd,
+              const VRegister& vn,
+              const VRegister& vm,
+              int vm_index);
+
   // FP vector multiply subtract.
   void fmls(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // FP fused multiply-subtract long to accumulator.
+  void fmlsl(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // FP fused multiply-subtract long to accumulator (second part).
+  void fmlsl2(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // FP fused multiply-subtract long to accumulator by element.
+  void fmlsl(const VRegister& vd,
+             const VRegister& vn,
+             const VRegister& vm,
+             int vm_index);
+
+  // FP fused multiply-subtract long to accumulator by element (second part).
+  void fmlsl2(const VRegister& vd,
+              const VRegister& vn,
+              const VRegister& vm,
+              int vm_index);
 
   // FP vector multiply extended.
   void fmulx(const VRegister& vd, const VRegister& vn, const VRegister& vm);

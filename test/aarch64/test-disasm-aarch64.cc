@@ -5230,6 +5230,35 @@ TEST(neon_fp_3same) {
   NEON_FORMAT_LIST_FP(DISASM_INST)
 #undef DISASM_INST
 
+  // FMLAL and so on have mixed operands, but still use the NEON3Same encoding.
+  COMPARE_MACRO(Fmlal(v5.V2S(), v12.V2H(), v6.V2H()),
+                "fmlal v5.2s, v12.2h, v6.2h");
+  COMPARE_MACRO(Fmlal2(v14.V2S(), v10.V2H(), v9.V2H()),
+                "fmlal2 v14.2s, v10.2h, v9.2h");
+  COMPARE_MACRO(Fmlsl(v31.V2S(), v9.V2H(), v28.V2H()),
+                "fmlsl v31.2s, v9.2h, v28.2h");
+  COMPARE_MACRO(Fmlsl2(v21.V2S(), v22.V2H(), v2.V2H()),
+                "fmlsl2 v21.2s, v22.2h, v2.2h");
+  COMPARE_MACRO(Fmlal(v26.V4S(), v26.V4H(), v30.V4H()),
+                "fmlal v26.4s, v26.4h, v30.4h");
+  COMPARE_MACRO(Fmlal2(v15.V4S(), v18.V4H(), v25.V4H()),
+                "fmlal2 v15.4s, v18.4h, v25.4h");
+  COMPARE_MACRO(Fmlsl(v9.V4S(), v4.V4H(), v23.V4H()),
+                "fmlsl v9.4s, v4.4h, v23.4h");
+  COMPARE_MACRO(Fmlsl2(v28.V4S(), v28.V4H(), v17.V4H()),
+                "fmlsl2 v28.4s, v28.4h, v17.4h");
+
+  // Verify that unallocated encodings similar to FMLAL (and so on) are properly
+  // handled.
+  COMPARE(dci(0x0e66ed85), "unallocated (NEON3Same)");
+  COMPARE(dci(0x2e69cd4e), "unallocated (NEON3Same)");
+  COMPARE(dci(0x0efced3f), "unallocated (NEON3Same)");
+  COMPARE(dci(0x2ee2ced5), "unallocated (NEON3Same)");
+  COMPARE(dci(0x4e7eef5a), "unallocated (NEON3Same)");
+  COMPARE(dci(0x6e79ce4f), "unallocated (NEON3Same)");
+  COMPARE(dci(0x4ef7ec89), "unallocated (NEON3Same)");
+  COMPARE(dci(0x6ef1cf9c), "unallocated (NEON3Same)");
+
   CLEANUP();
 }
 
@@ -5528,6 +5557,25 @@ TEST(neon_byelement) {
                 "sqdmlsl2 v2.2d, v3.4s, v4.s[3]");
   COMPARE_MACRO(Sqdmlsl(s0, h1, v2.H(), 0), "sqdmlsl s0, h1, v2.h[0]");
   COMPARE_MACRO(Sqdmlsl(d0, s1, v2.S(), 0), "sqdmlsl d0, s1, v2.s[0]");
+
+  // FMLAL and so on are special cases in that the {2} variants operate
+  // independently from the lane count.
+  COMPARE_MACRO(Fmlal(v5.V2S(), v12.V2H(), v6.H(), 7),
+                "fmlal v5.2s, v12.2h, v6.h[7]");
+  COMPARE_MACRO(Fmlal2(v14.V2S(), v10.V2H(), v9.H(), 6),
+                "fmlal2 v14.2s, v10.2h, v9.h[6]");
+  COMPARE_MACRO(Fmlsl(v31.V2S(), v9.V2H(), v15.H(), 5),
+                "fmlsl v31.2s, v9.2h, v15.h[5]");
+  COMPARE_MACRO(Fmlsl2(v21.V2S(), v22.V2H(), v2.H(), 4),
+                "fmlsl2 v21.2s, v22.2h, v2.h[4]");
+  COMPARE_MACRO(Fmlal(v26.V4S(), v26.V4H(), v0.H(), 3),
+                "fmlal v26.4s, v26.4h, v0.h[3]");
+  COMPARE_MACRO(Fmlal2(v15.V4S(), v18.V4H(), v15.H(), 2),
+                "fmlal2 v15.4s, v18.4h, v15.h[2]");
+  COMPARE_MACRO(Fmlsl(v9.V4S(), v4.V4H(), v3.H(), 1),
+                "fmlsl v9.4s, v4.4h, v3.h[1]");
+  COMPARE_MACRO(Fmlsl2(v28.V4S(), v28.V4H(), v7.H(), 0),
+                "fmlsl2 v28.4s, v28.4h, v7.h[0]");
 
   CLEANUP();
 }

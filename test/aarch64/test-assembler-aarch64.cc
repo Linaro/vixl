@@ -25259,6 +25259,207 @@ TEST(neon_fmls_h) {
 }
 
 
+TEST(neon_fhm) {
+  // Test basic operation of fmlal{2} and fmlsl{2}. The simulator tests have
+  // more comprehensive input sets.
+  SETUP_WITH_FEATURES(CPUFeatures::kFP,
+                      CPUFeatures::kNEON,
+                      CPUFeatures::kNEONHalf,
+                      CPUFeatures::kFHM);
+
+  START();
+  // Test multiplications:
+  //        v30                               v31
+  //  [0]   65504 (max normal)          *     65504 (max normal)
+  //  [1]   -1                          *     0
+  //  [2]   2^-24 (min subnormal)       *     2^-24 (min subnormal)
+  //  [3]   -2^-24 (min subnormal)      *     65504 (max normal)
+  //  [4]   6.10e-5 (min normal)        *     0.99...
+  //  [5]   0                           *     -0
+  //  [6]   -0                          *     0
+  //  [7]   -Inf                        *     -Inf
+  __ Movi(v30.V8H(), 0xfc00800000000400, 0x80010001bc007bff);
+  __ Movi(v31.V8H(), 0xfc00000080003bff, 0x7bff000100007bff);
+
+  // Accumulators for use with Fmlal{2}:
+  // v0.S[0] = 384
+  // v0.S[1] = -0
+  __ Movi(v0.V4S(), 0xdeadbeefdeadbeef, 0x8000000043c00000);
+  // v1.S[0] = -(2^-48 + 2^-71)
+  // v1.S[1] = 0
+  __ Movi(v1.V4S(), 0xdeadbeefdeadbeef, 0x00000000a7800001);
+  // v2.S[0] = 128
+  // v2.S[1] = 0
+  // v2.S[2] = 1
+  // v2.S[3] = 1
+  __ Movi(v2.V4S(), 0x3f8000003f800000, 0x0000000043000000);
+  // v3.S[0] = 0
+  // v3.S[1] = -0
+  // v3.S[2] = -0
+  // v3.S[3] = 0
+  __ Movi(v3.V4S(), 0x0000000080000000, 0x8000000000000000);
+  // For Fmlsl{2}, we simply negate the accumulators above so that the Fmlsl{2}
+  // results are just the negation of the Fmlal{2} results.
+  __ Fneg(v4.V4S(), v0.V4S());
+  __ Fneg(v5.V4S(), v1.V4S());
+  __ Fneg(v6.V4S(), v2.V4S());
+  __ Fneg(v7.V4S(), v3.V4S());
+
+  __ Fmlal(v0.V2S(), v30.V2H(), v31.V2H());
+  __ Fmlal2(v1.V2S(), v30.V2H(), v31.V2H());
+  __ Fmlal(v2.V4S(), v30.V4H(), v31.V4H());
+  __ Fmlal2(v3.V4S(), v30.V4H(), v31.V4H());
+
+  __ Fmlsl(v4.V2S(), v30.V2H(), v31.V2H());
+  __ Fmlsl2(v5.V2S(), v30.V2H(), v31.V2H());
+  __ Fmlsl(v6.V4S(), v30.V4H(), v31.V4H());
+  __ Fmlsl2(v7.V4S(), v30.V4H(), v31.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  // Fmlal(2S)
+  // v0.S[0] = 384 + (65504 * 65504) = 4290774528 (rounded from 4290774400)
+  // v0.S[1] = -0 + (-1 * 0) = -0
+  ASSERT_EQUAL_128(0x0000000000000000, 0x800000004f7fc006, v0);
+  // Fmlal2(2S)
+  // v1.S[0] = -(2^-48 + 2^-71) + (2^-24 * 2^-24) = -2^-71
+  // v1.S[1] = 0 + (-2^-24 * 65504) = -0.003904...
+  ASSERT_EQUAL_128(0x0000000000000000, 0xbb7fe0009c000000, v1);
+  // Fmlal(4S)
+  // v2.S[0] = 128 + (65504 * 65504) = 4290774016 (rounded from 4290774144)
+  // v2.S[1] = 0 + (-1 * 0) = 0
+  // v2.S[2] = 1 + (2^-24 * 2^-24) = 1 (rounded)
+  // v2.S[3] = 1 + (-2^-24 * 65504) = 0.996...
+  ASSERT_EQUAL_128(0x3f7f00203f800000, 0x000000004f7fc004, v2);
+  // Fmlal2(4S)
+  // v3.S[0] = 0 + (6.103516e-5 * 0.99...) = 6.100535e-5
+  // v3.S[1] = -0 + (0 * -0) = -0
+  // v3.S[2] = -0 + (-0 * 0) = -0
+  // v3.S[3] = 0 + (-Inf * -Inf) = Inf
+  ASSERT_EQUAL_128(0x7f80000080000000, 0x80000000387fe000, v3);
+
+  // Fmlsl results are mostly the same, but negated.
+  ASSERT_EQUAL_128(0x0000000000000000, 0x00000000cf7fc006, v4);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x3b7fe0001c000000, v5);
+  // In this case: v6.S[1] = 0 - (0 * -0) = 0
+  ASSERT_EQUAL_128(0xbf7f0020bf800000, 0x00000000cf7fc004, v6);
+  ASSERT_EQUAL_128(0xff80000000000000, 0x00000000b87fe000, v7);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_byelement_fhm) {
+  // Test basic operation of fmlal{2} and fmlsl{2} (by element). The simulator
+  // tests have more comprehensive input sets.
+  SETUP_WITH_FEATURES(CPUFeatures::kFP,
+                      CPUFeatures::kNEON,
+                      CPUFeatures::kNEONHalf,
+                      CPUFeatures::kFHM);
+
+  START();
+  // Set up multiplication inputs.
+  //
+  // v30.H[0] = 65504 (max normal)
+  // v30.H[1] = -1
+  // v30.H[2] = 2^-24 (min subnormal)
+  // v30.H[3] = -2^-24 (min subnormal)
+  // v30.H[4] = 6.10e-5 (min normal)
+  // v30.H[5] = 0
+  // v30.H[6] = -0
+  // v30.H[7] = -Inf
+  __ Movi(v30.V8H(), 0xfc00800000000400, 0x80010001bc007bff);
+
+  // Each test instruction should only use one lane of vm, so set up unique
+  // registers with poison values in other lanes. The poison NaN avoids the
+  // default NaN (so it shouldn't be encountered accidentally), but is otherwise
+  // arbitrary.
+  VRegister poison = v29;
+  __ Movi(v29.V8H(), 0x7f417f417f417f41, 0x7f417f417f417f41);
+  // v31.H[0,2,4,...]: 0.9995117 (the value just below 1)
+  // v31.H[1,3,5,...]: 1.000977 (the value just above 1)
+  __ Movi(v31.V8H(), 0x3bff3c013bff3c01, 0x3bff3c013bff3c01);
+  // Set up [v8,v15] as vm inputs.
+  for (int i = 0; i <= 7; i++) {
+    VRegister vm = VRegister::GetVRegFromCode(i + 8);
+    __ Mov(vm, poison);
+    __ Ins(vm.V8H(), i, v31.V8H(), i);
+  }
+
+  // Accumulators for use with Fmlal{2}:
+  // v0.S[0] = 2^-8
+  // v0.S[1] = 1
+  __ Movi(v0.V4S(), 0xdeadbeefdeadbeef, 0x3f8000003b800000);
+  // v1.S[0] = -1.5 * 2^-49
+  // v1.S[1] = 0
+  __ Movi(v1.V4S(), 0xdeadbeefdeadbeef, 0x00000000a7400000);
+  // v2.S[0] = 0
+  // v2.S[1] = 2^14
+  // v2.S[2] = 1.5 * 2^-48
+  // v2.S[3] = Inf
+  __ Movi(v2.V4S(), 0x7f80000027c00000, 0xc680000000000000);
+  // v3.S[0] = 0
+  // v3.S[1] = -0
+  // v3.S[2] = -0
+  // v3.S[3] = 0
+  __ Movi(v3.V4S(), 0x0000000080000000, 0x8000000000000000);
+  // For Fmlsl{2}, we simply negate the accumulators above so that the Fmlsl{2}
+  // results are just the negation of the Fmlal{2} results.
+  __ Fneg(v4.V4S(), v0.V4S());
+  __ Fneg(v5.V4S(), v1.V4S());
+  __ Fneg(v6.V4S(), v2.V4S());
+  __ Fneg(v7.V4S(), v3.V4S());
+
+  __ Fmlal(v0.V2S(), v30.V2H(), v8.H(), 0);
+  __ Fmlal2(v1.V2S(), v30.V2H(), v9.H(), 1);
+  __ Fmlal(v2.V4S(), v30.V4H(), v10.H(), 2);
+  __ Fmlal2(v3.V4S(), v30.V4H(), v11.H(), 3);
+
+  __ Fmlsl(v4.V2S(), v30.V2H(), v12.H(), 4);
+  __ Fmlsl2(v5.V2S(), v30.V2H(), v13.H(), 5);
+  __ Fmlsl(v6.V4S(), v30.V4H(), v14.H(), 6);
+  __ Fmlsl2(v7.V4S(), v30.V4H(), v15.H(), 7);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  // Fmlal(2S)
+  // v0.S[0] = 2^-8 + (65504 * 1.000977) = 65567.96875 (rounded)
+  // v0.S[1] = 1 + (-1 * 1.000977) = -0.000976...
+  ASSERT_EQUAL_128(0x0000000000000000, 0xba80000047800ffc, v0);
+  // Fmlal2(2S)
+  // v1.S[0] = (-1.5 * 2^-49) + (2^-24 * 0.9995117) = 5.958e-8 (rounded)
+  // v1.S[1] = 0 + (-2^-24 * 0.9995117) = -5.958e-8
+  ASSERT_EQUAL_128(0x0000000000000000, 0xb37fe000337fdfff, v1);
+  // Fmlal(4S)
+  // v2.S[0] = 0 + (65504 * 1.000977) = 65566.96875
+  // v2.S[1] = 2^14 + (-1 * 1.000977) = -16385 (rounded from -16385.5)
+  // v2.S[2] = (1.5 * 2^-48) + (2^-24 * 1.000977) = 5.966e-8 (rounded up)
+  // v2.S[3] = Inf + (-2^-24 * 1.000977) = Inf
+  ASSERT_EQUAL_128(0x7f80000033802001, 0xc680020047800ffc, v2);
+  // Fmlal2(4S)
+  // v3.S[0] = 0 + (6.103516e-5 * 0.9995117) = 6.100535e-5
+  // v3.S[1] = -0 + (0 * 0.9995117) = 0
+  // v3.S[2] = -0 + (-0 * 0.9995117) = -0
+  // v3.S[3] = 0 + (-Inf * 0.9995117) = -Inf
+  ASSERT_EQUAL_128(0xff80000080000000, 0x00000000387fe000, v3);
+
+  // Fmlsl results are mostly the same, but negated.
+  ASSERT_EQUAL_128(0x0000000000000000, 0x3a800000c7800ffc, v4);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x337fe000b37fdfff, v5);
+  ASSERT_EQUAL_128(0xff800000b3802001, 0x46800200c7800ffc, v6);
+  // In this case: v7.S[2] = 0 - (-0 * 0.9995117) = 0
+  ASSERT_EQUAL_128(0x7f80000000000000, 0x00000000b87fe000, v7);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
 TEST(neon_fmulx_scalar) {
   SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 

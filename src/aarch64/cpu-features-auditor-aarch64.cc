@@ -638,6 +638,17 @@ void CPUFeaturesAuditor::VisitNEON3Same(const Instruction* instr) {
   if (instr->Mask(NEON3SameFPFMask) == NEON3SameFPFixed) {
     scope.Record(CPUFeatures::kFP);
   }
+  switch (instr->Mask(NEON3SameFHMMask)) {
+    case NEON_FMLAL:
+    case NEON_FMLAL2:
+    case NEON_FMLSL:
+    case NEON_FMLSL2:
+      scope.Record(CPUFeatures::kFP, CPUFeatures::kNEONHalf, CPUFeatures::kFHM);
+      return;
+    default:
+      // No additional features.
+      return;
+  }
 }
 
 void CPUFeaturesAuditor::VisitNEON3SameExtra(const Instruction* instr) {
@@ -699,7 +710,18 @@ void CPUFeaturesAuditor::VisitNEONByIndexedElement(const Instruction* instr) {
       scope.Record(CPUFeatures::kRDM);
       return;
     default:
-      // Fall through to check other FP instructions.
+      // Fall through to check other instructions.
+      break;
+  }
+  switch (instr->Mask(NEONByIndexedElementFPLongMask)) {
+    case NEON_FMLAL_H_byelement:
+    case NEON_FMLAL2_H_byelement:
+    case NEON_FMLSL_H_byelement:
+    case NEON_FMLSL2_H_byelement:
+      scope.Record(CPUFeatures::kFP, CPUFeatures::kNEONHalf, CPUFeatures::kFHM);
+      return;
+    default:
+      // Fall through to check other instructions.
       break;
   }
   switch (instr->Mask(NEONByIndexedElementFPMask)) {

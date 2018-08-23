@@ -1896,6 +1896,7 @@ static void Test2OpNEON_Helper(Test2OpNEONHelper_t helper,
   features.Combine(CPUFeatures::kFP);
   features.Combine(CPUFeatures::kRDM);
   features.Combine(CPUFeatures::kDotProduct);
+  features.Combine(CPUFeatures::kFHM);
   SETUP_WITH_FEATURES(features);
   START();
 
@@ -2148,6 +2149,7 @@ static void TestByElementNEON_Helper(TestByElementNEONHelper_t helper,
   features.Combine(CPUFeatures::kFP);
   features.Combine(CPUFeatures::kRDM);
   features.Combine(CPUFeatures::kDotProduct);
+  features.Combine(CPUFeatures::kFHM);
   SETUP_WITH_FEATURES(features);
 
   START();
@@ -3520,6 +3522,26 @@ DEFINE_TEST_FP_TO_JS_INT(fjcvtzs, FPToS, Conversions)
                                 kInputDouble##input);        \
   }
 
+#define DEFINE_TEST_NEON_FHM(mnemonic, input_d, input_n, input_m) \
+  TEST(mnemonic##_2S) {                                           \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                         \
+                                2S,                               \
+                                2H,                               \
+                                2H,                               \
+                                kInputFloatAccDestination,        \
+                                kInputFloat16##input_n,           \
+                                kInputFloat16##input_m);          \
+  }                                                               \
+  TEST(mnemonic##_4S) {                                           \
+    CALL_TEST_NEON_HELPER_3DIFF(mnemonic,                         \
+                                4S,                               \
+                                4H,                               \
+                                4H,                               \
+                                kInputFloatAccDestination,        \
+                                kInputFloat16##input_n,           \
+                                kInputFloat16##input_m);          \
+  }
+
 #define CALL_TEST_NEON_HELPER_3DIFF(                             \
     mnemonic, vdform, vnform, vmform, input_d, input_n, input_m) \
   {                                                              \
@@ -4354,6 +4376,28 @@ DEFINE_TEST_FP_TO_JS_INT(fjcvtzs, FPToS, Conversions)
                                     kInputDIndices);                       \
   }
 
+#define DEFINE_TEST_NEON_FHM_BYELEMENT(mnemonic, input_d, input_n, input_m) \
+  TEST(mnemonic##_2S_2H_H) {                                                \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                               \
+                                    2S,                                     \
+                                    2H,                                     \
+                                    H,                                      \
+                                    kInputFloatAccDestination,              \
+                                    kInputFloat16##input_n,                 \
+                                    kInputFloat16##input_m,                 \
+                                    kInputHIndices);                        \
+  }                                                                         \
+  TEST(mnemonic##_4S_4H_H) {                                                \
+    CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                               \
+                                    4S,                                     \
+                                    4H,                                     \
+                                    H,                                      \
+                                    kInputFloatAccDestination,              \
+                                    kInputFloat16##input_n,                 \
+                                    kInputFloat16##input_m,                 \
+                                    kInputHIndices);                        \
+  }
+
 #define DEFINE_TEST_NEON_FP_BYELEMENT_SCALAR(mnemonic, inp_d, inp_n, inp_m) \
   TEST(mnemonic##_H_H_H) {                                                  \
     CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,                               \
@@ -4630,6 +4674,15 @@ DEFINE_TEST_NEON_3SAME_FP_SCALAR(facge, Basic)
 DEFINE_TEST_NEON_3SAME_FP_SCALAR(fabd, Basic)
 DEFINE_TEST_NEON_3SAME_FP_SCALAR(fcmgt, Basic)
 DEFINE_TEST_NEON_3SAME_FP_SCALAR(facgt, Basic)
+
+
+// Advanced SIMD FHM instructions (FMLAL, FMLSL).
+// These are oddballs: they are encoded under the 3SAME group but behave
+// quite differently.
+DEFINE_TEST_NEON_FHM(fmlal, Basic, Basic, Basic)
+DEFINE_TEST_NEON_FHM(fmlal2, Basic, Basic, Basic)
+DEFINE_TEST_NEON_FHM(fmlsl, Basic, Basic, Basic)
+DEFINE_TEST_NEON_FHM(fmlsl2, Basic, Basic, Basic)
 
 
 // Advanced SIMD three different.
@@ -4909,6 +4962,12 @@ DEFINE_TEST_NEON_FP_BYELEMENT_SCALAR(fmla, Basic, Basic, Basic)
 DEFINE_TEST_NEON_FP_BYELEMENT_SCALAR(fmls, Basic, Basic, Basic)
 DEFINE_TEST_NEON_FP_BYELEMENT_SCALAR(fmul, Basic, Basic, Basic)
 DEFINE_TEST_NEON_FP_BYELEMENT_SCALAR(fmulx, Basic, Basic, Basic)
+
+
+DEFINE_TEST_NEON_FHM_BYELEMENT(fmlal, Basic, Basic, Basic)
+DEFINE_TEST_NEON_FHM_BYELEMENT(fmlal2, Basic, Basic, Basic)
+DEFINE_TEST_NEON_FHM_BYELEMENT(fmlsl, Basic, Basic, Basic)
+DEFINE_TEST_NEON_FHM_BYELEMENT(fmlsl2, Basic, Basic, Basic)
 
 
 #undef __

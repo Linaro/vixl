@@ -527,7 +527,8 @@ enum VectorFormat {
   kFormatS = NEON_S | NEONScalar,
   kFormatD = NEON_D | NEONScalar,
 
-  // A value invented solely for FP16 scalar pairwise simulator trace tests.
+  // An artificial value, used by simulator trace tests and a few oddball
+  // instructions (such as FMLAL).
   kFormat2H = 0xfffffffe
 };
 

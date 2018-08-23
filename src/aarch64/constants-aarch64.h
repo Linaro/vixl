@@ -51,13 +51,14 @@ const int kFirstCalleeSavedFPRegisterIndex = 8;
 
 #define INSTRUCTION_FIELDS_LIST(V_)                                          \
 /* Register fields */                                                        \
-V_(Rd, 4, 0, ExtractBits)                 /* Destination register.        */ \
-V_(Rn, 9, 5, ExtractBits)                 /* First source register.       */ \
-V_(Rm, 20, 16, ExtractBits)               /* Second source register.      */ \
-V_(Ra, 14, 10, ExtractBits)               /* Third source register.       */ \
-V_(Rt, 4, 0, ExtractBits)                 /* Load/store register.         */ \
-V_(Rt2, 14, 10, ExtractBits)              /* Load/store second register.  */ \
-V_(Rs, 20, 16, ExtractBits)               /* Exclusive access status.     */ \
+V_(Rd, 4, 0, ExtractBits)         /* Destination register.                */ \
+V_(Rn, 9, 5, ExtractBits)         /* First source register.               */ \
+V_(Rm, 20, 16, ExtractBits)       /* Second source register.              */ \
+V_(RmLow16, 19, 16, ExtractBits)  /* Second source register (code 0-15).  */ \
+V_(Ra, 14, 10, ExtractBits)       /* Third source register.               */ \
+V_(Rt, 4, 0, ExtractBits)         /* Load/store register.                 */ \
+V_(Rt2, 14, 10, ExtractBits)      /* Load/store second register.          */ \
+V_(Rs, 20, 16, ExtractBits)       /* Exclusive access status.             */ \
                                                                              \
 /* Common bits */                                                            \
 V_(SixtyFourBits, 31, 31, ExtractBits)                                       \
@@ -1807,7 +1808,14 @@ enum NEON3SameOp {
   NEON_BIC = NEON3SameLogicalFixed | 0x00400000,
   NEON_BIF = NEON3SameLogicalFixed | 0x20C00000,
   NEON_BIT = NEON3SameLogicalFixed | 0x20800000,
-  NEON_BSL = NEON3SameLogicalFixed | 0x20400000
+  NEON_BSL = NEON3SameLogicalFixed | 0x20400000,
+
+  // FHM (FMLAL-like) instructions have an oddball encoding scheme under 3Same.
+  NEON3SameFHMMask = 0xBFE0FC00,                // U  size  opcode
+  NEON_FMLAL   = NEON3SameFixed | 0x0000E800,   // 0    00   11101
+  NEON_FMLAL2  = NEON3SameFixed | 0x2000C800,   // 1    00   11001
+  NEON_FMLSL   = NEON3SameFixed | 0x0080E800,   // 0    10   11101
+  NEON_FMLSL2  = NEON3SameFixed | 0x2080C800    // 1    10   11001
 };
 
 
@@ -1979,6 +1987,7 @@ enum NEONByIndexedElementOp {
   NEON_SQRDMLAH_byelement = NEONByIndexedElementFixed | 0x2000D000,
   NEON_UDOT_byelement = NEONByIndexedElementFixed | 0x2000E000,
   NEON_SQRDMLSH_byelement = NEONByIndexedElementFixed | 0x2000F000,
+
   NEON_FMLA_H_byelement   = NEONByIndexedElementFixed | 0x00001000,
   NEON_FMLS_H_byelement   = NEONByIndexedElementFixed | 0x00005000,
   NEON_FMUL_H_byelement   = NEONByIndexedElementFixed | 0x00009000,
@@ -1991,10 +2000,22 @@ enum NEONByIndexedElementOp {
   NEON_FMLS_byelement  = NEONByIndexedElementFPFixed | 0x00005000,
   NEON_FMUL_byelement  = NEONByIndexedElementFPFixed | 0x00009000,
   NEON_FMULX_byelement = NEONByIndexedElementFPFixed | 0x20009000,
-  NEON_FCMLA_byelement = NEONByIndexedElementFixed | 0x20001000,
 
-  // Complex instruction(s) this is necessary because 'rot' encoding moves into the NEONByIndex..Mask space
-  NEONByIndexedElementFPComplexMask = 0xBF009400
+  // FMLAL-like instructions.
+  // For all cases: U = x, size = 10, opcode = xx00
+  NEONByIndexedElementFPLongFixed = NEONByIndexedElementFixed | 0x00800000,
+  NEONByIndexedElementFPLongFMask = NEONByIndexedElementFMask | 0x00C03000,
+  NEONByIndexedElementFPLongMask = 0xBFC0F400,
+  NEON_FMLAL_H_byelement  = NEONByIndexedElementFixed | 0x00800000,
+  NEON_FMLAL2_H_byelement = NEONByIndexedElementFixed | 0x20808000,
+  NEON_FMLSL_H_byelement  = NEONByIndexedElementFixed | 0x00804000,
+  NEON_FMLSL2_H_byelement = NEONByIndexedElementFixed | 0x2080C000,
+
+  // Complex instruction(s).
+  // This is necessary because the 'rot' encoding moves into the
+  // NEONByIndex..Mask space.
+  NEONByIndexedElementFPComplexMask = 0xBF009400,
+  NEON_FCMLA_byelement = NEONByIndexedElementFixed | 0x20001000
 };
 
 // NEON register copy.

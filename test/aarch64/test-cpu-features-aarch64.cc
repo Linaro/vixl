@@ -3669,6 +3669,22 @@ TEST_FP_NEON_NEONHALF(ucvtf_5, ucvtf(h0, h1))
                 ASM)
 TEST_PAUTH_PAUTHGENERIC(pacga_0, pacga(x0, x1, x2))
 
+#define TEST_FP_FHM_NEON_NEONHALF(NAME, ASM)         \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP,        \
+                            CPUFeatures::kFHM,       \
+                            CPUFeatures::kNEON,      \
+                            CPUFeatures::kNEONHalf), \
+                FP_FHM_NEON_NEONHalf_##NAME,         \
+                ASM)
+TEST_FP_FHM_NEON_NEONHALF(fmlal2_0, fmlal2(v0.V4S(), v1.V4H(), v2.H(), 6))
+TEST_FP_FHM_NEON_NEONHALF(fmlal_0, fmlal(v0.V4S(), v1.V4H(), v2.H(), 0))
+TEST_FP_FHM_NEON_NEONHALF(fmlal2_1, fmlal2(v0.V4S(), v1.V4H(), v2.V4H()))
+TEST_FP_FHM_NEON_NEONHALF(fmlal_1, fmlal(v0.V4S(), v1.V4H(), v2.V4H()))
+TEST_FP_FHM_NEON_NEONHALF(fmlsl2_0, fmlsl2(v0.V4S(), v1.V4H(), v2.H(), 2))
+TEST_FP_FHM_NEON_NEONHALF(fmlsl_0, fmlsl(v0.V4S(), v1.V4H(), v2.H(), 2))
+TEST_FP_FHM_NEON_NEONHALF(fmlsl2_1, fmlsl2(v0.V4S(), v1.V4H(), v2.V4H()))
+TEST_FP_FHM_NEON_NEONHALF(fmlsl_1, fmlsl(v0.V4S(), v1.V4H(), v2.V4H()))
+
 #define TEST_FP_FCMA_NEON_NEONHALF(NAME, ASM)        \
   TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP,        \
                             CPUFeatures::kFcma,      \
