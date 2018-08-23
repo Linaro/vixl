@@ -1736,9 +1736,40 @@ void Disassembler::VisitSystem(const Instruction *instr) {
         mnemonic = "nop";
         break;
       }
+      case YIELD: {
+        form = NULL;
+        mnemonic = "yield";
+        break;
+      }
+      case WFE: {
+        form = NULL;
+        mnemonic = "wfe";
+        break;
+      }
+      case WFI: {
+        form = NULL;
+        mnemonic = "wfi";
+        break;
+      }
+      case SEV: {
+        form = NULL;
+        mnemonic = "sev";
+        break;
+      }
+      case SEVL: {
+        form = NULL;
+        mnemonic = "sevl";
+        break;
+      }
       case CSDB: {
         form = NULL;
         mnemonic = "csdb";
+        break;
+      }
+      default: {
+        // Fall back to 'hint #<imm7>'.
+        form = "'IH";
+        mnemonic = "hint";
         break;
       }
     }
@@ -4559,6 +4590,10 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           return 9;
         }
       }
+    }
+    case 'H': {  // IH - ImmHint
+      AppendToOutput("#%" PRId32, instr->GetImmHint());
+      return 2;
     }
     case 'T': {  // ITri - Immediate Triangular Encoded.
       AppendToOutput("#0x%" PRIx64, instr->GetImmLogical());

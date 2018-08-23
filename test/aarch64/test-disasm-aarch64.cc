@@ -7018,5 +7018,29 @@ TEST(address_map) {
   CLEANUP();
 }
 
+TEST(hint) {
+  SETUP();
+
+  // Test that we properly disassemble named and unnamed hints.
+  COMPARE(hint(NOP), "nop");
+  COMPARE(hint(YIELD), "yield");
+  COMPARE(hint(WFE), "wfe");
+  COMPARE(hint(WFI), "wfi");
+  COMPARE(hint(SEV), "sev");
+  COMPARE(hint(SEVL), "sevl");
+  COMPARE(hint(6), "hint #6");
+  COMPARE(hint(CSDB), "csdb");
+  COMPARE(hint(42), "hint #42");
+  COMPARE(hint(127), "hint #127");
+
+  // The MacroAssembler should simply pass through to the Assembler.
+  COMPARE_MACRO(Hint(NOP), "nop");
+  COMPARE_MACRO(Hint(CSDB), "csdb");
+  COMPARE_MACRO(Hint(42), "hint #42");
+  COMPARE_MACRO(Hint(127), "hint #127");
+
+  CLEANUP();
+}
+
 }  // namespace aarch64
 }  // namespace vixl

@@ -1572,7 +1572,13 @@ void Assembler::ic(InstructionCacheOp op, const Register& rt) {
 }
 
 
-void Assembler::hint(SystemHint code) { Emit(HINT | ImmHint(code) | Rt(xzr)); }
+void Assembler::hint(SystemHint code) { hint(static_cast<int>(code)); }
+
+
+void Assembler::hint(int imm7) {
+  VIXL_ASSERT(IsUint7(imm7));
+  Emit(HINT | ImmHint(imm7) | Rt(xzr));
+}
 
 
 // NEON structure loads and stores.

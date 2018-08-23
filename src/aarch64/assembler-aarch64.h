@@ -1336,8 +1336,11 @@ class Assembler : public vixl::internal::AssemblerBase {
   // System instruction cache operation.
   void ic(InstructionCacheOp op, const Register& rt);
 
-  // System hint.
+  // System hint (named type).
   void hint(SystemHint code);
+
+  // System hint (numbered type).
+  void hint(int imm7);
 
   // Clear exclusive monitor.
   void clrex(int imm4 = 0xf);
