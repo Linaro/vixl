@@ -1608,10 +1608,14 @@ enum NEON3SameExtraOp {
 
   /* v8.3 Complex Numbers */
   NEON3SameExtraFCFixed = 0x2E00C400,
-  NEON3SameExtraFCFMask = 0xBE20C400,
-  NEON3SameExtraFCMask = 0xBE20E400,
+  NEON3SameExtraFCFMask = 0xBF20C400,
+  // FCMLA fixes opcode<3:2>, and uses opcode<1:0> to encode <rotate>.
+  NEON3SameExtraFCMLAMask = NEON3SameExtraFCFMask | 0x00006000,
   NEON_FCMLA = NEON3SameExtraFCFixed,
+  // FCADD fixes opcode<3:2, 0>, and uses opcode<1> to encode <rotate>.
+  NEON3SameExtraFCADDMask = NEON3SameExtraFCFMask | 0x00006800,
   NEON_FCADD = NEON3SameExtraFCFixed | 0x00002000
+  // Other encodings under NEON3SameExtraFCFMask are UNALLOCATED.
 };
 
 // NEON instructions with three different-type operands.

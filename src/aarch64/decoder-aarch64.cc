@@ -756,12 +756,28 @@ void Decoder::DecodeNEONVectorDataProcessing(const Instruction* instr) {
           }
         } else if (instr->ExtractBit(10) == 0) {
           VisitUnallocated(instr);
-        } else if ((instr->ExtractBits(14, 11) <= 0xE &&
-                    instr->ExtractBits(14, 11) >= 0x8) ||
-                   instr->ExtractBits(14, 11) <= 0x2) {
-          VisitNEON3SameExtra(instr);
-        } else {
+        } else if ((instr->ExtractBits(14, 11) == 0x3) ||
+                   (instr->ExtractBits(14, 13) == 0x1)) {
+          // opcode = 0b0011
+          // opcode = 0b01xx
           VisitUnallocated(instr);
+        } else if (instr->ExtractBit(29) == 0) {
+          // U == 0
+          if (instr->ExtractBits(14, 11) == 0x2) {
+            // opcode = 0b0010
+            VisitNEON3SameExtra(instr);
+          } else {
+            VisitUnallocated(instr);
+          }
+        } else {
+          // U == 1
+          if ((instr->ExtractBits(14, 11) == 0xd) ||
+              (instr->ExtractBits(14, 11) == 0xf)) {
+            // opcode = 0b11x1
+            VisitUnallocated(instr);
+          } else {
+            VisitNEON3SameExtra(instr);
+          }
         }
       } else {
         if (instr->ExtractBit(10) == 0) {

@@ -4735,6 +4735,12 @@ TEST(neon_3same_extra_fcadd) {
   COMPARE_MACRO(Fcmla(v21.V2D(), v22.V2D(), v23.V2D(), 0),
                 "fcmla v21.2d, v22.2d, v23.2d, #0");
 
+  // The FC* instructions span multiple opcodes, so they have special cases in
+  // the disassembler. Verify that similar encodings don't get disassembled as
+  // FC* instructions.
+  COMPARE(dci(0x2e00ec00), "unallocated (Unallocated)");  // opcode = 0x1101
+  COMPARE(dci(0x2e00fc00), "unallocated (Unallocated)");  // opcode = 0x1111
+
   CLEANUP();
 }
 

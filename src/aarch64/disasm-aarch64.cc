@@ -2312,22 +2312,17 @@ void Disassembler::VisitNEON3Same(const Instruction *instr) {
 void Disassembler::VisitNEON3SameExtra(const Instruction *instr) {
   static const NEONFormatMap map_usdot = {{30}, {NF_8B, NF_16B}};
 
-  const char *mnemonic = "unimplemented";
+  const char *mnemonic = "unallocated";
   const char *form = "(NEON3SameExtra)";
 
   NEONFormatDecoder nfd(instr);
 
-  if (instr->Mask(NEON3SameExtraFCFMask) == NEON3SameExtraFCFixed) {
-    switch (instr->Mask(NEON3SameExtraFCMask)) {
-      case NEON_FCMLA:
-        mnemonic = "fcmla";
-        form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCNM";
-        break;
-      case NEON_FCADD:
-        mnemonic = "fcadd";
-        form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCNA";
-        break;
-    }
+  if (instr->Mask(NEON3SameExtraFCMLAMask) == NEON_FCMLA) {
+    mnemonic = "fcmla";
+    form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCNM";
+  } else if (instr->Mask(NEON3SameExtraFCADDMask) == NEON_FCADD) {
+    mnemonic = "fcadd";
+    form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCNA";
   } else {
     form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
     switch (instr->Mask(NEON3SameExtraMask)) {

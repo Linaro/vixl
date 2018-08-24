@@ -3750,20 +3750,12 @@ void Simulator::VisitNEON3SameExtra(const Instruction* instr) {
   SimVRegister& rm = ReadVRegister(instr->GetRm());
   int rot = 0;
   VectorFormat vf = nfd.GetVectorFormat();
-  if (instr->Mask(NEON3SameExtraFCFMask) == NEON3SameExtraFCFixed) {
-    switch (instr->Mask(NEON3SameExtraFCMask)) {
-      case NEON_FCADD:
-        rot = instr->GetImmRotFcadd();
-        fcadd(vf, rd, rn, rm, rot);
-        break;
-      case NEON_FCMLA:
-        rot = instr->GetImmRotFcmlaVec();
-        fcmla(vf, rd, rn, rm, rot);
-        break;
-      default:
-        VIXL_UNIMPLEMENTED();
-        break;
-    }
+  if (instr->Mask(NEON3SameExtraFCMLAMask) == NEON_FCMLA) {
+    rot = instr->GetImmRotFcmlaVec();
+    fcmla(vf, rd, rn, rm, rot);
+  } else if (instr->Mask(NEON3SameExtraFCADDMask) == NEON_FCADD) {
+    rot = instr->GetImmRotFcadd();
+    fcadd(vf, rd, rn, rm, rot);
   } else {
     switch (instr->Mask(NEON3SameExtraMask)) {
       case NEON_SDOT:
