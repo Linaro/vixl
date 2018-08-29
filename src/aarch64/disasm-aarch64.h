@@ -174,13 +174,18 @@ class PrintDisassembler : public Disassembler {
         cpu_features_prefix_("// Needs: "),
         cpu_features_suffix_(""),
         stream_(stream) {}
+
+  // Convenience helpers for quick disassembly, without having to manually
+  // create a decoder.
   void DisassembleBuffer(const Instruction* start, uint64_t size);
+  void DisassembleBuffer(const Instruction* start, const Instruction* end);
+  void Disassemble(const Instruction* instr);
 
   // If a CPUFeaturesAuditor is specified, it will be used to annotate
   // disassembly. The CPUFeaturesAuditor is expected to visit the instructions
   // _before_ the disassembler, such that the CPUFeatures information is
   // available when the disassembler is called.
-  void RegisterCPUFeaturesAuditor(CPUFeaturesAuditor const* auditor) {
+  void RegisterCPUFeaturesAuditor(CPUFeaturesAuditor* auditor) {
     cpu_features_auditor_ = auditor;
   }
 
@@ -199,7 +204,7 @@ class PrintDisassembler : public Disassembler {
  protected:
   virtual void ProcessOutput(const Instruction* instr) VIXL_OVERRIDE;
 
-  CPUFeaturesAuditor const* cpu_features_auditor_;
+  CPUFeaturesAuditor* cpu_features_auditor_;
   const char* cpu_features_prefix_;
   const char* cpu_features_suffix_;
 

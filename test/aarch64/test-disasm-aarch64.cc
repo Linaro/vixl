@@ -37,7 +37,6 @@
 #define TEST(name) TEST_(AARCH64_DISASM_##name)
 
 #define SETUP_COMMON()                                \
-  uint32_t encoding = 0;                              \
   MacroAssembler masm;                                \
   masm.GetCPUFeatures()->Combine(CPUFeatures::All()); \
   Decoder decoder;                                    \
@@ -61,94 +60,96 @@
 // tests.
 #define MAX_SIZE_GENERATED 1024
 
-#define COMPARE(ASM, EXP)                                             \
-  masm.Reset();                                                       \
-  {                                                                   \
-    ExactAssemblyScope guard(&masm,                                   \
-                             MAX_SIZE_GENERATED,                      \
-                             ExactAssemblyScope::kMaximumSize);       \
-    masm.ASM;                                                         \
-  }                                                                   \
-  masm.FinalizeCode();                                                \
-  decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>());  \
-  encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>();         \
-  if (strcmp(disasm.GetOutput(), EXP) != 0) {                         \
-    printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n", \
-           encoding,                                                  \
-           EXP,                                                       \
-           disasm.GetOutput());                                       \
-    abort();                                                          \
-  }                                                                   \
-  if (Test::disassemble()) {                                          \
-    printf("----\n");                                                 \
-    printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());      \
-  }
+#define DISASSEMBLE()                                                       \
+  do {                                                                      \
+    printf("----\n");                                                       \
+    PrintDisassembler print_disasm(stdout);                                 \
+    Instruction* start = masm.GetBuffer()->GetStartAddress<Instruction*>(); \
+    Instruction* end = masm.GetBuffer()->GetEndAddress<Instruction*>();     \
+    print_disasm.DisassembleBuffer(start, end);                             \
+  } while (0)
 
-#define COMPARE_PREFIX(ASM, EXP)                                      \
-  masm.Reset();                                                       \
-  {                                                                   \
-    ExactAssemblyScope guard(&masm,                                   \
-                             MAX_SIZE_GENERATED,                      \
-                             ExactAssemblyScope::kMaximumSize);       \
-    masm.ASM;                                                         \
-  }                                                                   \
-  masm.FinalizeCode();                                                \
-  decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>());  \
-  encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>();         \
-  if (strncmp(disasm.GetOutput(), EXP, strlen(EXP)) != 0) {           \
-    printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n", \
-           encoding,                                                  \
-           EXP,                                                       \
-           disasm.GetOutput());                                       \
-    abort();                                                          \
-  }                                                                   \
-  if (Test::disassemble()) {                                          \
-    printf("----\n");                                                 \
-    printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput());      \
-  }
+#define COMPARE(ASM, EXP)                                                \
+  do {                                                                   \
+    masm.Reset();                                                        \
+    {                                                                    \
+      ExactAssemblyScope guard(&masm,                                    \
+                               MAX_SIZE_GENERATED,                       \
+                               ExactAssemblyScope::kMaximumSize);        \
+      masm.ASM;                                                          \
+    }                                                                    \
+    masm.FinalizeCode();                                                 \
+    decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>());   \
+    uint32_t encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>(); \
+    if (strcmp(disasm.GetOutput(), EXP) != 0) {                          \
+      printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",  \
+             encoding,                                                   \
+             EXP,                                                        \
+             disasm.GetOutput());                                        \
+      abort();                                                           \
+    }                                                                    \
+    if (Test::disassemble()) DISASSEMBLE();                              \
+  } while (0)
 
-#define COMPARE_MACRO_BASE(ASM, EXP)                               \
-  masm.Reset();                                                    \
-  masm.ASM;                                                        \
-  masm.FinalizeCode();                                             \
-  std::string res;                                                 \
-                                                                   \
-  Instruction* instruction =                                       \
-      masm.GetBuffer()->GetStartAddress<Instruction*>();           \
-  Instruction* end = masm.GetCursorAddress<Instruction*>();        \
-  if (Test::disassemble()) {                                       \
-    printf("----\n");                                              \
-  }                                                                \
-  while (instruction != end) {                                     \
-    decoder.Decode(instruction);                                   \
-    res.append(disasm.GetOutput());                                \
-    if (Test::disassemble()) {                                     \
-      encoding = *reinterpret_cast<uint32_t*>(instruction);        \
-      printf("%08" PRIx32 "\t%s\n", encoding, disasm.GetOutput()); \
-    }                                                              \
-    instruction += kInstructionSize;                               \
-    if (instruction != end) {                                      \
-      res.append("\n");                                            \
-    }                                                              \
+#define COMPARE_PREFIX(ASM, EXP)                                         \
+  do {                                                                   \
+    masm.Reset();                                                        \
+    {                                                                    \
+      ExactAssemblyScope guard(&masm,                                    \
+                               MAX_SIZE_GENERATED,                       \
+                               ExactAssemblyScope::kMaximumSize);        \
+      masm.ASM;                                                          \
+    }                                                                    \
+    masm.FinalizeCode();                                                 \
+    decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>());   \
+    uint32_t encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>(); \
+    if (strncmp(disasm.GetOutput(), EXP, strlen(EXP)) != 0) {            \
+      printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",  \
+             encoding,                                                   \
+             EXP,                                                        \
+             disasm.GetOutput());                                        \
+      abort();                                                           \
+    }                                                                    \
+    if (Test::disassemble()) DISASSEMBLE();                              \
+  } while (0)
+
+#define COMPARE_MACRO_BASE(ASM, EXP)                        \
+  masm.Reset();                                             \
+  masm.ASM;                                                 \
+  masm.FinalizeCode();                                      \
+  std::string res;                                          \
+                                                            \
+  Instruction* instruction =                                \
+      masm.GetBuffer()->GetStartAddress<Instruction*>();    \
+  Instruction* end = masm.GetCursorAddress<Instruction*>(); \
+  while (instruction != end) {                              \
+    decoder.Decode(instruction);                            \
+    res.append(disasm.GetOutput());                         \
+    instruction = instruction->GetNextInstruction();        \
+    if (instruction != end) {                               \
+      res.append("\n");                                     \
+    }                                                       \
   }
 
 #define COMPARE_MACRO(ASM, EXP)                                 \
-  {                                                             \
+  do {                                                          \
     COMPARE_MACRO_BASE(ASM, EXP)                                \
     if (strcmp(res.c_str(), EXP) != 0) {                        \
       printf("Expected: %s\nFound:    %s\n", EXP, res.c_str()); \
       abort();                                                  \
     }                                                           \
-  }
+    if (Test::disassemble()) DISASSEMBLE();                     \
+  } while (0)
 
 #define COMPARE_MACRO_PREFIX(ASM, EXP)                                   \
-  {                                                                      \
+  do {                                                                   \
     COMPARE_MACRO_BASE(ASM, EXP)                                         \
     if (strncmp(res.c_str(), EXP, strlen(EXP)) != 0) {                   \
       printf("Expected (prefix): %s\nFound:    %s\n", EXP, res.c_str()); \
       abort();                                                           \
     }                                                                    \
-  }
+    if (Test::disassemble()) DISASSEMBLE();                              \
+  } while (0)
 
 #define CLEANUP()
 
@@ -2821,7 +2822,7 @@ TEST(fp_cond_compare) {
 TEST(fp_select) {
   SETUP();
 
-  COMPARE(fcsel(s0, s1, s2, eq), "fcsel s0, s1, s2, eq")
+  COMPARE(fcsel(s0, s1, s2, eq), "fcsel s0, s1, s2, eq");
   COMPARE(fcsel(s31, s31, s30, ne), "fcsel s31, s31, s30, ne");
   COMPARE(fcsel(d0, d1, d2, mi), "fcsel d0, d1, d2, mi");
   COMPARE(fcsel(d31, d30, d31, pl), "fcsel d31, d30, d31, pl");
@@ -3388,22 +3389,22 @@ TEST(neon_load_store_vector) {
   COMPARE_MACRO(Ld1(d30, d31, d0, d1, MemOperand(x21, x22, PostIndex)),
                 "ld1 {v30.1d, v31.1d, v0.1d, v1.1d}, [x21], x22");
 
-#define DISASM_INST(M, S)                                                  \
-  COMPARE_MACRO(St1(v20.M, MemOperand(x15)), "st1 {v20." S "}, [x15]");    \
-  COMPARE_MACRO(St1(v21.M, v22.M, MemOperand(x16)),                        \
-                "st1 {v21." S ", v22." S "}, [x16]");                      \
-  COMPARE_MACRO(St1(v23.M, v24.M, v25.M, MemOperand(x17)),                 \
-                "st1 {v23." S ", v24." S ", v25." S "}, [x17]");           \
-  COMPARE_MACRO(St1(v26.M, v27.M, v28.M, v29.M, MemOperand(x18)),          \
-                "st1 {v26." S ", v27." S ", v28." S ", v29." S "}, [x18]") \
-  COMPARE_MACRO(St1(v30.M, v31.M, v0.M, v1.M, MemOperand(sp)),             \
-                "st1 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp]")    \
-  COMPARE_MACRO(St2(VLIST2(v21.M), MemOperand(x16)),                       \
-                "st2 {v21." S ", v22." S "}, [x16]");                      \
-  COMPARE_MACRO(St3(v23.M, v24.M, v25.M, MemOperand(x17)),                 \
-                "st3 {v23." S ", v24." S ", v25." S "}, [x17]");           \
-  COMPARE_MACRO(St4(v30.M, v31.M, v0.M, v1.M, MemOperand(sp)),             \
-                "st4 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp]")
+#define DISASM_INST(M, S)                                                   \
+  COMPARE_MACRO(St1(v20.M, MemOperand(x15)), "st1 {v20." S "}, [x15]");     \
+  COMPARE_MACRO(St1(v21.M, v22.M, MemOperand(x16)),                         \
+                "st1 {v21." S ", v22." S "}, [x16]");                       \
+  COMPARE_MACRO(St1(v23.M, v24.M, v25.M, MemOperand(x17)),                  \
+                "st1 {v23." S ", v24." S ", v25." S "}, [x17]");            \
+  COMPARE_MACRO(St1(v26.M, v27.M, v28.M, v29.M, MemOperand(x18)),           \
+                "st1 {v26." S ", v27." S ", v28." S ", v29." S "}, [x18]"); \
+  COMPARE_MACRO(St1(v30.M, v31.M, v0.M, v1.M, MemOperand(sp)),              \
+                "st1 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp]");    \
+  COMPARE_MACRO(St2(VLIST2(v21.M), MemOperand(x16)),                        \
+                "st2 {v21." S ", v22." S "}, [x16]");                       \
+  COMPARE_MACRO(St3(v23.M, v24.M, v25.M, MemOperand(x17)),                  \
+                "st3 {v23." S ", v24." S ", v25." S "}, [x17]");            \
+  COMPARE_MACRO(St4(v30.M, v31.M, v0.M, v1.M, MemOperand(sp)),              \
+                "st4 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp]");
   NEON_FORMAT_LIST(DISASM_INST);
 #undef DISASM_INST
 
@@ -3415,17 +3416,17 @@ TEST(neon_load_store_vector) {
   COMPARE_MACRO(St1(v3.M, v4.M, v5.M, MemOperand(x17, x22, PostIndex)),        \
                 "st1 {v3." S ", v4." S ", v5." S "}, [x17], x22");             \
   COMPARE_MACRO(St1(v6.M, v7.M, v8.M, v9.M, MemOperand(x18, x23, PostIndex)),  \
-                "st1 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18], x23")    \
+                "st1 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18], x23");   \
   COMPARE_MACRO(St1(v30.M, v31.M, v0.M, v1.M, MemOperand(sp, x24, PostIndex)), \
-                "st1 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp], x24")   \
+                "st1 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp], x24");  \
   COMPARE_MACRO(St2(v1.M, v2.M, MemOperand(x16, x21, PostIndex)),              \
                 "st2 {v1." S ", v2." S "}, [x16], x21");                       \
   COMPARE_MACRO(St3(v3.M, v4.M, v5.M, MemOperand(x17, x22, PostIndex)),        \
                 "st3 {v3." S ", v4." S ", v5." S "}, [x17], x22");             \
   COMPARE_MACRO(St4(v6.M, v7.M, v8.M, v9.M, MemOperand(x18, x23, PostIndex)),  \
-                "st4 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18], x23")    \
+                "st4 {v6." S ", v7." S ", v8." S ", v9." S "}, [x18], x23");   \
   COMPARE_MACRO(St4(v30.M, v31.M, v0.M, v1.M, MemOperand(sp, x24, PostIndex)), \
-                "st4 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp], x24")
+                "st4 {v30." S ", v31." S ", v0." S ", v1." S "}, [sp], x24");
   NEON_FORMAT_LIST(DISASM_INST);
 #undef DISASM_INST
 
@@ -4716,7 +4717,7 @@ TEST(neon_3same_extra_fcadd) {
   SETUP();
 
   COMPARE_MACRO(Fcadd(v4.V4H(), v5.V4H(), v6.V4H(), 270),
-                "fcadd v4.4h, v5.4h, v6.4h, #270")
+                "fcadd v4.4h, v5.4h, v6.4h, #270");
   COMPARE_MACRO(Fcadd(v4.V8H(), v5.V8H(), v6.V8H(), 90),
                 "fcadd v4.8h, v5.8h, v6.8h, #90");
   COMPARE_MACRO(Fcadd(v1.V2S(), v2.V2S(), v3.V2S(), 90),

@@ -96,6 +96,10 @@ namespace aarch64 {
 #define __ masm.
 #define TEST(name) TEST_(AARCH64_ASM_##name)
 
+// PushCalleeSavedRegisters(), PopCalleeSavedRegisters() and Dump() use NEON, so
+// we need to enable it in the infrastructure code for each test.
+const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
+
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 // Run tests with the simulator.
 
@@ -122,9 +126,6 @@ namespace aarch64 {
   simulator.SetColouredTrace(Test::coloured_trace());       \
   simulator.SetInstructionStats(Test::instruction_stats()); \
   simulator.SetCPUFeatures(CPUFeatures::None());            \
-  Disassembler disasm;                                      \
-  Decoder disassembler_decoder;                             \
-  disassembler_decoder.AppendVisitor(&disasm);              \
   RegisterDump core;                                        \
   ptrdiff_t offset_after_infrastructure_start;              \
   ptrdiff_t offset_before_infrastructure_end
@@ -133,8 +134,7 @@ namespace aarch64 {
   masm.Reset();                                                               \
   simulator.ResetState();                                                     \
   {                                                                           \
-    /* PushCalleeSavedRegisters() uses NEON stores. */                        \
-    SimulationCPUFeaturesScope cpu(&masm, CPUFeatures::kNEON);                \
+    SimulationCPUFeaturesScope cpu(&masm, kInfrastructureCPUFeatures);        \
     __ PushCalleeSavedRegisters();                                            \
   }                                                                           \
   {                                                                           \
@@ -154,21 +154,20 @@ namespace aarch64 {
   /* Avoid unused-variable warnings in case a test never calls RUN(). */      \
   USE(offset_after_infrastructure_start)
 
-#define END()                                                             \
-  offset_before_infrastructure_end = masm.GetCursorOffset();              \
-  /* Avoid unused-variable warnings in case a test never calls RUN(). */  \
-  USE(offset_before_infrastructure_end);                                  \
-  if (Test::instruction_stats()) {                                        \
-    __ DisableInstrumentation();                                          \
-  }                                                                       \
-  __ Trace(LOG_ALL, TRACE_DISABLE);                                       \
-  {                                                                       \
-    /* Dump() and PopCalleeSavedRegisters() use NEON loads and stores. */ \
-    SimulationCPUFeaturesScope cpu(&masm, CPUFeatures::kNEON);            \
-    core.Dump(&masm);                                                     \
-    __ PopCalleeSavedRegisters();                                         \
-  }                                                                       \
-  __ Ret();                                                               \
+#define END()                                                            \
+  offset_before_infrastructure_end = masm.GetCursorOffset();             \
+  /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
+  USE(offset_before_infrastructure_end);                                 \
+  if (Test::instruction_stats()) {                                       \
+    __ DisableInstrumentation();                                         \
+  }                                                                      \
+  __ Trace(LOG_ALL, TRACE_DISABLE);                                      \
+  {                                                                      \
+    SimulationCPUFeaturesScope cpu(&masm, kInfrastructureCPUFeatures);   \
+    core.Dump(&masm);                                                    \
+    __ PopCalleeSavedRegisters();                                        \
+  }                                                                      \
+  __ Ret();                                                              \
   masm.FinalizeCode()
 
 #define RUN()                                                                  \
@@ -229,9 +228,6 @@ namespace aarch64 {
   SETUP_COMMON()
 
 #define SETUP_COMMON()                               \
-  Disassembler disasm;                               \
-  Decoder disassembler_decoder;                      \
-  disassembler_decoder.AppendVisitor(&disasm);       \
   masm.GetCPUFeatures()->Remove(CPUFeatures::All()); \
   masm.SetGenerateSimulatorCode(false);              \
   RegisterDump core;                                 \
@@ -242,25 +238,23 @@ namespace aarch64 {
 #define START()                                                          \
   masm.Reset();                                                          \
   {                                                                      \
-    /* PushCalleeSavedRegisters() uses NEON stores. */                   \
-    CPUFeaturesScope cpu(&masm, CPUFeatures::kNEON);                     \
+    CPUFeaturesScope cpu(&masm, kInfrastructureCPUFeatures);             \
     __ PushCalleeSavedRegisters();                                       \
   }                                                                      \
   offset_after_infrastructure_start = masm.GetCursorOffset();            \
   /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
   USE(offset_after_infrastructure_start)
 
-#define END()                                                             \
-  offset_before_infrastructure_end = masm.GetCursorOffset();              \
-  /* Avoid unused-variable warnings in case a test never calls RUN(). */  \
-  USE(offset_before_infrastructure_end);                                  \
-  {                                                                       \
-    /* Dump() and PopCalleeSavedRegisters() use NEON loads and stores. */ \
-    CPUFeaturesScope cpu(&masm, CPUFeatures::kNEON);                      \
-    core.Dump(&masm);                                                     \
-    __ PopCalleeSavedRegisters();                                         \
-  }                                                                       \
-  __ Ret();                                                               \
+#define END()                                                            \
+  offset_before_infrastructure_end = masm.GetCursorOffset();             \
+  /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
+  USE(offset_before_infrastructure_end);                                 \
+  {                                                                      \
+    CPUFeaturesScope cpu(&masm, kInfrastructureCPUFeatures);             \
+    core.Dump(&masm);                                                    \
+    __ PopCalleeSavedRegisters();                                        \
+  }                                                                      \
+  __ Ret();                                                              \
   masm.FinalizeCode()
 
 // Execute the generated code from the memory area.
@@ -284,33 +278,33 @@ namespace aarch64 {
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
 
-#define DISASSEMBLE()                                                   \
-  if (Test::disassemble()) {                                            \
-    ptrdiff_t start_offset = offset_after_infrastructure_start;         \
-    ptrdiff_t end_offset = offset_before_infrastructure_end;            \
-    if (Test::disassemble_infrastructure()) {                           \
-      start_offset = 0;                                                 \
-      end_offset = masm.GetSizeOfCodeGenerated();                       \
-    } else {                                                            \
-      printf(                                                           \
-          "    Warning: Omitting infrastructure code. "                 \
-          "Use --disassemble to see it.\n");                            \
-    }                                                                   \
-    Instruction* instruction =                                          \
-        masm.GetBuffer()->GetOffsetAddress<Instruction*>(start_offset); \
-    Instruction* end =                                                  \
-        masm.GetBuffer()->GetOffsetAddress<Instruction*>(end_offset);   \
-    while (instruction != end) {                                        \
-      disassembler_decoder.Decode(instruction);                         \
-      uint32_t encoding;                                                \
-      memcpy(&encoding, instruction, sizeof(encoding));                 \
-      uint64_t address = reinterpret_cast<uintptr_t>(instruction);      \
-      printf("  %016" PRIx64 ":\t%08" PRIx32 "\t%s\n",                  \
-             address,                                                   \
-             encoding,                                                  \
-             disasm.GetOutput());                                       \
-      instruction += kInstructionSize;                                  \
-    }                                                                   \
+#define DISASSEMBLE()                                                     \
+  if (Test::disassemble()) {                                              \
+    PrintDisassembler disasm(stdout);                                     \
+    CodeBuffer* buffer = masm.GetBuffer();                                \
+    Instruction* start = buffer->GetOffsetAddress<Instruction*>(          \
+        offset_after_infrastructure_start);                               \
+    Instruction* end = buffer->GetOffsetAddress<Instruction*>(            \
+        offset_before_infrastructure_end);                                \
+                                                                          \
+    if (Test::disassemble_infrastructure()) {                             \
+      Instruction* infra_start = buffer->GetStartAddress<Instruction*>(); \
+      printf("# Infrastructure code (prologue)\n");                       \
+      disasm.DisassembleBuffer(infra_start, start);                       \
+      printf("# Test code\n");                                            \
+    } else {                                                              \
+      printf(                                                             \
+          "# Warning: Omitting infrastructure code. "                     \
+          "Use --disassemble to see it.\n");                              \
+    }                                                                     \
+                                                                          \
+    disasm.DisassembleBuffer(start, end);                                 \
+                                                                          \
+    if (Test::disassemble_infrastructure()) {                             \
+      printf("# Infrastructure code (epilogue)\n");                       \
+      Instruction* infra_end = buffer->GetEndAddress<Instruction*>();     \
+      disasm.DisassembleBuffer(end, infra_end);                           \
+    }                                                                     \
   }
 
 #define ASSERT_EQUAL_NZCV(expected) \

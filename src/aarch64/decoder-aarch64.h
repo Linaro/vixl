@@ -160,6 +160,14 @@ class Decoder {
     DecodeInstruction(const_cast<const Instruction*>(instr));
   }
 
+  // Decode all instructions from start (inclusive) to end (exclusive).
+  template <typename T>
+  void Decode(T start, T end) {
+    for (T instr = start; instr < end; instr = instr->GetNextInstruction()) {
+      Decode(instr);
+    }
+  }
+
   // Register a new visitor class with the decoder.
   // Decode() will call the corresponding visitor method from all registered
   // visitor classes when decoding reaches the leaf node of the instruction

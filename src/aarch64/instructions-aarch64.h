@@ -473,6 +473,7 @@ class Instruction {
     return GetLiteralFP64();
   }
 
+  Instruction* GetNextInstruction() { return this + kInstructionSize; }
   const Instruction* GetNextInstruction() const {
     return this + kInstructionSize;
   }

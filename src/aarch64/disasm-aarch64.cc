@@ -5164,15 +5164,28 @@ void Disassembler::AppendToOutput(const char *format, ...) {
 }
 
 
+void PrintDisassembler::Disassemble(const Instruction *instr) {
+  Decoder decoder;
+  if (cpu_features_auditor_ != NULL) {
+    decoder.AppendVisitor(cpu_features_auditor_);
+  }
+  decoder.AppendVisitor(this);
+  decoder.Decode(instr);
+}
+
+void PrintDisassembler::DisassembleBuffer(const Instruction *start,
+                                          const Instruction *end) {
+  Decoder decoder;
+  if (cpu_features_auditor_ != NULL) {
+    decoder.AppendVisitor(cpu_features_auditor_);
+  }
+  decoder.AppendVisitor(this);
+  decoder.Decode(start, end);
+}
+
 void PrintDisassembler::DisassembleBuffer(const Instruction *start,
                                           uint64_t size) {
-  Decoder decoder;
-  decoder.AppendVisitor(this);
-  const Instruction *instr_end = start + size;
-  for (const Instruction *instr = start; instr < instr_end;
-       instr += kInstructionSize) {
-    decoder.Decode(instr);
-  }
+  DisassembleBuffer(start, start + size);
 }
 
 
