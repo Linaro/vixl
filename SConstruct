@@ -545,7 +545,7 @@ if CanTargetAArch64(env):
   test_aarch64_examples_vdir = join(TargetBuildDir(env), 'test', 'aarch64', 'test_examples')
   VariantDir(test_aarch64_examples_vdir, '.')
   test_aarch64_examples_obj = env.Object(
-      [Glob(join(test_aarch64_examples_vdir, join('test', 'aarch64', 'examples/aarch64', '*.cc'))),
+      [Glob(join(test_aarch64_examples_vdir, join('test', 'aarch64', 'examples', '*.cc'))),
        Glob(join(test_aarch64_examples_vdir, join('examples/aarch64', '*.cc')))],
       CCFLAGS = env['CCFLAGS'] + ['-DTEST_EXAMPLES'],
       CPPPATH = env['CPPPATH'] + [config.dir_aarch64_examples] + [config.dir_tests])

@@ -24,10 +24,11 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "../test-runner.h"
 #include "custom-disassembler.h"
 #include "examples.h"
 #include "non-const-visitor.h"
+#include "test-runner.h"
+#include "test-utils.h"
 #include "../test-utils-aarch64.h"
 
 #include "aarch64/macro-assembler-aarch64.h"
@@ -43,8 +44,6 @@ TEST(custom_disassembler) { TestCustomDisassembler(); }
 
 // The tests below only work with the simulator.
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
-
-#define __ masm->
 
 uint64_t FactorialC(uint64_t n) {
   uint64_t result = 1;
@@ -98,91 +97,97 @@ uint32_t SumArrayC(uint8_t* array, uint32_t size) {
 }
 
 
-void GenerateTestWrapper(MacroAssembler* masm, RegisterDump* regs) {
-  __ Push(xzr, lr);
-  __ Blr(x15);
-  regs->Dump(masm);
-  __ Pop(lr, xzr);
-  __ Ret();
-}
-
-
-#define TEST_FUNCTION(Func)                                              \
-  do {                                                                   \
-    int64_t saved_xregs[13];                                             \
-    saved_xregs[0] = simulator.ReadXRegister(19);                        \
-    saved_xregs[1] = simulator.ReadXRegister(20);                        \
-    saved_xregs[2] = simulator.ReadXRegister(21);                        \
-    saved_xregs[3] = simulator.ReadXRegister(22);                        \
-    saved_xregs[4] = simulator.ReadXRegister(23);                        \
-    saved_xregs[5] = simulator.ReadXRegister(24);                        \
-    saved_xregs[6] = simulator.ReadXRegister(25);                        \
-    saved_xregs[7] = simulator.ReadXRegister(26);                        \
-    saved_xregs[8] = simulator.ReadXRegister(27);                        \
-    saved_xregs[9] = simulator.ReadXRegister(28);                        \
-    saved_xregs[10] = simulator.ReadXRegister(29);                       \
-    saved_xregs[11] = simulator.ReadXRegister(30);                       \
-    saved_xregs[12] = simulator.ReadXRegister(31);                       \
-                                                                         \
-    uint64_t saved_dregs[8];                                             \
-    saved_dregs[0] = simulator.ReadDRegisterBits(8);                     \
-    saved_dregs[1] = simulator.ReadDRegisterBits(9);                     \
-    saved_dregs[2] = simulator.ReadDRegisterBits(10);                    \
-    saved_dregs[3] = simulator.ReadDRegisterBits(11);                    \
-    saved_dregs[4] = simulator.ReadDRegisterBits(12);                    \
-    saved_dregs[5] = simulator.ReadDRegisterBits(13);                    \
-    saved_dregs[6] = simulator.ReadDRegisterBits(14);                    \
-    saved_dregs[7] = simulator.ReadDRegisterBits(15);                    \
-                                                                         \
-    simulator.WriteXRegister(15, masm.GetLabelAddress<uint64_t>(&Func)); \
-    simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&test));        \
-                                                                         \
-    VIXL_CHECK(saved_xregs[0] == simulator.ReadXRegister(19));           \
-    VIXL_CHECK(saved_xregs[1] == simulator.ReadXRegister(20));           \
-    VIXL_CHECK(saved_xregs[2] == simulator.ReadXRegister(21));           \
-    VIXL_CHECK(saved_xregs[3] == simulator.ReadXRegister(22));           \
-    VIXL_CHECK(saved_xregs[4] == simulator.ReadXRegister(23));           \
-    VIXL_CHECK(saved_xregs[5] == simulator.ReadXRegister(24));           \
-    VIXL_CHECK(saved_xregs[6] == simulator.ReadXRegister(25));           \
-    VIXL_CHECK(saved_xregs[7] == simulator.ReadXRegister(26));           \
-    VIXL_CHECK(saved_xregs[8] == simulator.ReadXRegister(27));           \
-    VIXL_CHECK(saved_xregs[9] == simulator.ReadXRegister(28));           \
-    VIXL_CHECK(saved_xregs[10] == simulator.ReadXRegister(29));          \
-    VIXL_CHECK(saved_xregs[11] == simulator.ReadXRegister(30));          \
-    VIXL_CHECK(saved_xregs[12] == simulator.ReadXRegister(31));          \
-                                                                         \
-    VIXL_CHECK(saved_dregs[0] == simulator.ReadDRegisterBits(8));        \
-    VIXL_CHECK(saved_dregs[1] == simulator.ReadDRegisterBits(9));        \
-    VIXL_CHECK(saved_dregs[2] == simulator.ReadDRegisterBits(10));       \
-    VIXL_CHECK(saved_dregs[3] == simulator.ReadDRegisterBits(11));       \
-    VIXL_CHECK(saved_dregs[4] == simulator.ReadDRegisterBits(12));       \
-    VIXL_CHECK(saved_dregs[5] == simulator.ReadDRegisterBits(13));       \
-    VIXL_CHECK(saved_dregs[6] == simulator.ReadDRegisterBits(14));       \
-    VIXL_CHECK(saved_dregs[7] == simulator.ReadDRegisterBits(15));       \
-                                                                         \
+#define TEST_FUNCTION(Func)                                                   \
+  do {                                                                        \
+    /* Record callee-saved registers, so we can check them after the test. */ \
+    int64_t saved_xregs[13];                                                  \
+    saved_xregs[0] = simulator.ReadXRegister(19);                             \
+    saved_xregs[1] = simulator.ReadXRegister(20);                             \
+    saved_xregs[2] = simulator.ReadXRegister(21);                             \
+    saved_xregs[3] = simulator.ReadXRegister(22);                             \
+    saved_xregs[4] = simulator.ReadXRegister(23);                             \
+    saved_xregs[5] = simulator.ReadXRegister(24);                             \
+    saved_xregs[6] = simulator.ReadXRegister(25);                             \
+    saved_xregs[7] = simulator.ReadXRegister(26);                             \
+    saved_xregs[8] = simulator.ReadXRegister(27);                             \
+    saved_xregs[9] = simulator.ReadXRegister(28);                             \
+    saved_xregs[10] = simulator.ReadXRegister(29);                            \
+    saved_xregs[11] = simulator.ReadXRegister(30);                            \
+    saved_xregs[12] = simulator.ReadXRegister(31);                            \
+                                                                              \
+    uint64_t saved_dregs[8];                                                  \
+    saved_dregs[0] = simulator.ReadDRegisterBits(8);                          \
+    saved_dregs[1] = simulator.ReadDRegisterBits(9);                          \
+    saved_dregs[2] = simulator.ReadDRegisterBits(10);                         \
+    saved_dregs[3] = simulator.ReadDRegisterBits(11);                         \
+    saved_dregs[4] = simulator.ReadDRegisterBits(12);                         \
+    saved_dregs[5] = simulator.ReadDRegisterBits(13);                         \
+    saved_dregs[6] = simulator.ReadDRegisterBits(14);                         \
+    saved_dregs[7] = simulator.ReadDRegisterBits(15);                         \
+                                                                              \
+    simulator.WriteXRegister(test_function_reg.GetCode(),                     \
+                             masm.GetLabelAddress<uint64_t>(&Func));          \
+    simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&test));             \
+                                                                              \
+    /* Check that callee-saved regsiters are preserved. */                    \
+    VIXL_CHECK(saved_xregs[0] == simulator.ReadXRegister(19));                \
+    VIXL_CHECK(saved_xregs[1] == simulator.ReadXRegister(20));                \
+    VIXL_CHECK(saved_xregs[2] == simulator.ReadXRegister(21));                \
+    VIXL_CHECK(saved_xregs[3] == simulator.ReadXRegister(22));                \
+    VIXL_CHECK(saved_xregs[4] == simulator.ReadXRegister(23));                \
+    VIXL_CHECK(saved_xregs[5] == simulator.ReadXRegister(24));                \
+    VIXL_CHECK(saved_xregs[6] == simulator.ReadXRegister(25));                \
+    VIXL_CHECK(saved_xregs[7] == simulator.ReadXRegister(26));                \
+    VIXL_CHECK(saved_xregs[8] == simulator.ReadXRegister(27));                \
+    VIXL_CHECK(saved_xregs[9] == simulator.ReadXRegister(28));                \
+    VIXL_CHECK(saved_xregs[10] == simulator.ReadXRegister(29));               \
+    VIXL_CHECK(saved_xregs[11] == simulator.ReadXRegister(30));               \
+    VIXL_CHECK(saved_xregs[12] == simulator.ReadXRegister(31));               \
+                                                                              \
+    VIXL_CHECK(saved_dregs[0] == simulator.ReadDRegisterBits(8));             \
+    VIXL_CHECK(saved_dregs[1] == simulator.ReadDRegisterBits(9));             \
+    VIXL_CHECK(saved_dregs[2] == simulator.ReadDRegisterBits(10));            \
+    VIXL_CHECK(saved_dregs[3] == simulator.ReadDRegisterBits(11));            \
+    VIXL_CHECK(saved_dregs[4] == simulator.ReadDRegisterBits(12));            \
+    VIXL_CHECK(saved_dregs[5] == simulator.ReadDRegisterBits(13));            \
+    VIXL_CHECK(saved_dregs[6] == simulator.ReadDRegisterBits(14));            \
+    VIXL_CHECK(saved_dregs[7] == simulator.ReadDRegisterBits(15));            \
+                                                                              \
   } while (0)
 
-#define START()                                       \
-  MacroAssembler masm;                                \
-  Decoder decoder;                                    \
-  Simulator simulator(&decoder);                      \
-  simulator.SetColouredTrace(Test::coloured_trace()); \
-  PrintDisassembler* pdis = NULL;                     \
-  Instrument* inst = NULL;                            \
-  if (Test::trace_sim()) {                            \
-    pdis = new PrintDisassembler(stdout);             \
-    decoder.PrependVisitor(pdis);                     \
-  }                                                   \
-  if (Test::instruction_stats()) {                    \
-    inst = new Instrument("vixl_stats.csv", 10);      \
-    inst->Enable();                                   \
-    decoder.AppendVisitor(inst);                      \
-  }                                                   \
-  RegisterDump regs;                                  \
-                                                      \
-  Label test;                                         \
-  masm.Bind(&test);                                   \
-  GenerateTestWrapper(&masm, &regs);                  \
+#define START()                                                          \
+  MacroAssembler masm;                                                   \
+  Decoder decoder;                                                       \
+  Simulator simulator(&decoder);                                         \
+  simulator.SetColouredTrace(Test::coloured_trace());                    \
+  RegisterDump regs;                                                     \
+                                                                         \
+  Register test_function_reg = x15;                                      \
+                                                                         \
+  Label test;                                                            \
+  masm.Bind(&test);                                                      \
+  {                                                                      \
+    int trace_parameters = 0;                                            \
+    if (Test::trace_reg()) trace_parameters |= LOG_STATE;                \
+    if (Test::trace_write()) trace_parameters |= LOG_WRITE;              \
+    if (Test::trace_sim()) trace_parameters |= LOG_DISASM;               \
+    if (Test::trace_branch()) trace_parameters |= LOG_BRANCH;            \
+    if (trace_parameters != 0) {                                         \
+      masm.Trace(static_cast<TraceParameters>(trace_parameters),         \
+                 TRACE_ENABLE);                                          \
+    }                                                                    \
+  }                                                                      \
+  if (Test::instruction_stats()) {                                       \
+    masm.EnableInstrumentation();                                        \
+  }                                                                      \
+  masm.Blr(test_function_reg);                                           \
+  if (Test::instruction_stats()) {                                       \
+    masm.DisableInstrumentation();                                       \
+  }                                                                      \
+  masm.Trace(LOG_ALL, TRACE_DISABLE);                                    \
+  regs.Dump(&masm);                                                      \
+  masm.Mov(lr, reinterpret_cast<uint64_t>(Simulator::kEndOfSimAddress)); \
+  masm.Ret();                                                            \
   masm.FinalizeCode()
 
 
@@ -588,17 +593,19 @@ TEST(literal_example) {
 }
 
 
+#ifdef VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
+
 // This is an approximation of the result that works for the ranges tested
 // below.
-#define RUNTIME_CALLS_EXPECTED(A, B) ((A + B) << 2)
+#define RUNTIME_CALLS_EXPECTED(A, B) ((A + B) * 4)
 
-#define RUNTIME_CALLS_DOTEST(A, B, R)                                  \
-  do {                                                                 \
-    simulator.ResetState();                                            \
-    simulator.WriteWRegister(0, A);                                    \
-    simulator.WriteWRegister(1, B);                                    \
-    TEST_FUNCTION(start);                                              \
-    VIXL_CHECK(regs.wreg<int32_t>(0) == RUNTIME_CALLS_EXPECTED(A, B)); \
+#define RUNTIME_CALLS_DOTEST(A, B)                            \
+  do {                                                        \
+    simulator.ResetState();                                   \
+    simulator.WriteWRegister(0, A);                           \
+    simulator.WriteWRegister(1, B);                           \
+    TEST_FUNCTION(start);                                     \
+    VIXL_CHECK(regs.wreg(0) == RUNTIME_CALLS_EXPECTED(A, B)); \
   } while (0)
 
 TEST(runtime_calls) {
@@ -613,5 +620,7 @@ TEST(runtime_calls) {
   RUNTIME_CALLS_DOTEST(1, -2);
   RUNTIME_CALLS_DOTEST(123, 456);
 }
+
+#endif  // VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
 
 #endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
