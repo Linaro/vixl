@@ -50,4 +50,117 @@ TEST(align_grow) {
   code_buffer.SetClean();
 }
 
+static void TestDefaultsHelper(const CodeBuffer& buffer) {
+  VIXL_CHECK(buffer.GetCapacity() == CodeBuffer::kDefaultCapacity);
+  VIXL_CHECK(buffer.HasSpaceFor(CodeBuffer::kDefaultCapacity));
+  VIXL_CHECK(!buffer.HasSpaceFor(CodeBuffer::kDefaultCapacity + 1));
+  VIXL_CHECK(buffer.GetCursorOffset() == 0);
+  VIXL_CHECK(buffer.GetOffsetFrom(0) == 0);
+  VIXL_CHECK(buffer.IsManaged());
+  VIXL_CHECK(!buffer.IsDirty());
+  VIXL_CHECK(buffer.GetRemainingBytes() == CodeBuffer::kDefaultCapacity);
+  VIXL_CHECK(buffer.GetSizeInBytes() == 0);
+  VIXL_CHECK(buffer.GetEndAddress<uintptr_t>() ==
+             buffer.GetStartAddress<uintptr_t>());
+}
+
+TEST(defaults) {
+  CodeBuffer buffer;
+  TestDefaultsHelper(buffer);
+}
+
+TEST(reset) {
+  CodeBuffer buffer;
+  // Update the buffer by writing to it.
+  buffer.Emit("dummy data");
+  VIXL_CHECK(buffer.IsDirty());
+  VIXL_CHECK(buffer.GetSizeInBytes() > 0);
+  // Calling Reset() should reset it back to its default state. (It does not
+  // shrink the capacity, but it should not have grown here.)
+  VIXL_ASSERT(buffer.GetCapacity() == CodeBuffer::kDefaultCapacity);
+  buffer.Reset();
+  TestDefaultsHelper(buffer);
+}
+
+TEST(ensure_space) {
+  const size_t initial_capacity = 1234;
+  CodeBuffer buffer(initial_capacity);
+
+  // Requesting less space than we already have should have no effect.
+  for (size_t space = 0; space < initial_capacity; space++) {
+    buffer.EnsureSpaceFor(space);
+    VIXL_CHECK(buffer.GetCapacity() == initial_capacity);
+  }
+
+  // Requesting more memory grows the buffer by an unspecified amount.
+  buffer.EnsureSpaceFor(initial_capacity + 1);
+  VIXL_CHECK(buffer.GetCapacity() > initial_capacity);
+}
+
+TEST(emit) {
+  CodeBuffer buffer;
+  VIXL_ASSERT(buffer.GetSizeInBytes() == 0);
+
+  uint64_t base_value = 0x0100001000100101;
+  const char* test_string = "test string";
+  size_t expected_size = 0;
+
+  // Simple emissions. This should not align or pad in any way.
+  buffer.EmitData(&base_value, 7);
+  expected_size += 7;
+
+  buffer.EmitString(test_string);
+  expected_size += strlen(test_string) + 1;  // EmitString() emits the '\0'.
+
+  buffer.Emit64(static_cast<uint64_t>(base_value * 1));
+  buffer.Emit(static_cast<uint64_t>(base_value * 2));
+  expected_size += 16;
+
+  buffer.Emit32(static_cast<uint32_t>(base_value * 3));
+  buffer.Emit(static_cast<uint32_t>(base_value * 4));
+  expected_size += 8;
+
+  buffer.Emit16(static_cast<uint16_t>(base_value * 5));
+  buffer.Emit(static_cast<uint16_t>(base_value * 6));
+  expected_size += 4;
+
+  buffer.Emit8(static_cast<uint8_t>(base_value * 7));
+  buffer.Emit(static_cast<uint8_t>(base_value * 8));
+  expected_size += 2;
+
+  VIXL_CHECK(buffer.GetSizeInBytes() == expected_size);
+
+  buffer.SetClean();
+
+  // clang-format off
+  uint8_t expected[] = {
+    // EmitData
+    0x01, 0x01, 0x10, 0x00, 0x10, 0x00, 0x00,
+    // EmitString
+    't', 'e', 's', 't', ' ', 's', 't', 'r', 'i', 'n', 'g', '\0',
+    // Emit64
+    0x01, 0x01, 0x10, 0x00, 0x10, 0x00, 0x00, 0x01,
+    // Emit<uint64_t>
+    0x02, 0x02, 0x20, 0x00, 0x20, 0x00, 0x00, 0x02,
+    // Emit32
+    0x03, 0x03, 0x30, 0x00,
+    // Emit<uint32_t>
+    0x04, 0x04, 0x40, 0x00,
+    // Emit16
+    0x05, 0x05,
+    // Emit<uint16_t>
+    0x06, 0x06,
+    // Emit8
+    0x07,
+    // Emit<uint8_t>
+    0x08
+  };
+  // clang-format on
+
+  VIXL_ASSERT(expected_size == sizeof(expected));
+  VIXL_CHECK(memcmp(buffer.GetStartAddress<const void*>(),
+                    expected,
+                    expected_size) == 0);
+}
+
 }  // namespace vixl
