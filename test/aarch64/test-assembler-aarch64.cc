@@ -171,8 +171,7 @@ const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
   masm.FinalizeCode()
 
 #define RUN()                                                                  \
-  DISASSEMBLE();                                                               \
-  simulator.RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>());        \
+  RUN_WITHOUT_SEEN_FEATURE_CHECK();                                            \
   {                                                                            \
     /* We expect the test to use all of the features it requested, plus the */ \
     /* features that the instructure code requires.                         */ \
@@ -197,6 +196,10 @@ const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
       VIXL_ABORT();                                                            \
     }                                                                          \
   }
+
+#define RUN_WITHOUT_SEEN_FEATURE_CHECK() \
+  DISASSEMBLE();                         \
+  simulator.RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>())
 
 #define RUN_CUSTOM() RUN()
 
@@ -24333,6 +24336,157 @@ TEST(scratch_scope_basic_v) {
     VIXL_CHECK(temp.Aliases(v31));
   }
 }
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+// Test the pseudo-instructions that control CPUFeatures dynamically in the
+// Simulator. These are used by the test infrastructure itself, but in a fairly
+// limited way.
+
+static void RunHelperWithFeatureCombinations(
+    void (*helper)(const CPUFeatures& base, const CPUFeatures& f)) {
+  // Iterate, testing the first n features in this list.
+  CPUFeatures::Feature features[] = {
+      // Put kNone first, so that the first iteration uses an empty feature set.
+      CPUFeatures::kNone,
+      // The remaining features used are arbitrary.
+      CPUFeatures::kIDRegisterEmulation,
+      CPUFeatures::kDCPoP,
+      CPUFeatures::kPAuth,
+      CPUFeatures::kFcma,
+      CPUFeatures::kAES,
+      CPUFeatures::kNEON,
+      CPUFeatures::kCRC32,
+      CPUFeatures::kFP,
+      CPUFeatures::kPmull1Q,
+      CPUFeatures::kSM4,
+      CPUFeatures::kSM3,
+      CPUFeatures::kDotProduct,
+  };
+  VIXL_ASSERT(CPUFeatures(CPUFeatures::kNone) == CPUFeatures::None());
+  // The features are not necessarily encoded in kInstructionSize-sized slots,
+  // so the MacroAssembler must pad the list to align the following instruction.
+  // Ensure that we have enough features in the list to cover all interesting
+  // alignment cases, even if the highest common factor of kInstructionSize and
+  // an encoded feature is one.
+  VIXL_STATIC_ASSERT(ARRAY_SIZE(features) > kInstructionSize);
+
+  CPUFeatures base = CPUFeatures::None();
+  for (size_t i = 0; i < ARRAY_SIZE(features); i++) {
+    base.Combine(features[i]);
+    CPUFeatures f = CPUFeatures::None();
+    for (size_t j = 0; j < ARRAY_SIZE(features); j++) {
+      f.Combine(features[j]);
+      helper(base, f);
+    }
+  }
+}
+
+static void SetSimulatorCPUFeaturesHelper(const CPUFeatures& base,
+                                          const CPUFeatures& f) {
+  SETUP_WITH_FEATURES(base);
+  START();
+
+  __ SetSimulatorCPUFeatures(f);
+
+  END();
+  RUN_WITHOUT_SEEN_FEATURE_CHECK();
+  VIXL_CHECK(*(simulator.GetCPUFeatures()) == f);
+  TEARDOWN();
+}
+
+TEST(configure_cpu_features_set) {
+  RunHelperWithFeatureCombinations(SetSimulatorCPUFeaturesHelper);
+}
+
+static void EnableSimulatorCPUFeaturesHelper(const CPUFeatures& base,
+                                             const CPUFeatures& f) {
+  SETUP_WITH_FEATURES(base);
+  START();
+
+  __ EnableSimulatorCPUFeatures(f);
+
+  END();
+  RUN_WITHOUT_SEEN_FEATURE_CHECK();
+  VIXL_CHECK(*(simulator.GetCPUFeatures()) == base.With(f));
+  TEARDOWN();
+}
+
+TEST(configure_cpu_features_enable) {
+  RunHelperWithFeatureCombinations(EnableSimulatorCPUFeaturesHelper);
+}
+
+static void DisableSimulatorCPUFeaturesHelper(const CPUFeatures& base,
+                                              const CPUFeatures& f) {
+  SETUP_WITH_FEATURES(base);
+  START();
+
+  __ DisableSimulatorCPUFeatures(f);
+
+  END();
+  RUN_WITHOUT_SEEN_FEATURE_CHECK();
+  VIXL_CHECK(*(simulator.GetCPUFeatures()) == base.Without(f));
+  TEARDOWN();
+}
+
+TEST(configure_cpu_features_disable) {
+  RunHelperWithFeatureCombinations(DisableSimulatorCPUFeaturesHelper);
+}
+
+static void SaveRestoreSimulatorCPUFeaturesHelper(const CPUFeatures& base,
+                                                  const CPUFeatures& f) {
+  SETUP_WITH_FEATURES(base);
+  START();
+
+  {
+    __ SaveSimulatorCPUFeatures();
+    __ SetSimulatorCPUFeatures(f);
+    {
+      __ SaveSimulatorCPUFeatures();
+      __ SetSimulatorCPUFeatures(CPUFeatures::All());
+      __ RestoreSimulatorCPUFeatures();
+    }
+    __ RestoreSimulatorCPUFeatures();
+  }
+
+  END();
+  RUN_WITHOUT_SEEN_FEATURE_CHECK();
+  VIXL_CHECK(*(simulator.GetCPUFeatures()) == base);
+  TEARDOWN();
+}
+
+TEST(configure_cpu_features_save_restore) {
+  RunHelperWithFeatureCombinations(SaveRestoreSimulatorCPUFeaturesHelper);
+}
+
+static void SimulationCPUFeaturesScopeHelper(const CPUFeatures& base,
+                                             const CPUFeatures& f) {
+  SETUP_WITH_FEATURES(base);
+  START();
+
+  {
+    SimulationCPUFeaturesScope scope_a(&masm, f);
+    {
+      SimulationCPUFeaturesScope scope_b(&masm, CPUFeatures::All());
+      {
+        SimulationCPUFeaturesScope scope_c(&masm, CPUFeatures::None());
+        // The scope arguments should combine with 'Enable', so we should be
+        // able to use any CPUFeatures here.
+        __ Fadd(v0.V4S(), v1.V4S(), v2.V4S());  // Requires {FP, NEON}.
+      }
+    }
+  }
+
+  END();
+  RUN_WITHOUT_SEEN_FEATURE_CHECK();
+  VIXL_CHECK(*(simulator.GetCPUFeatures()) == base);
+  TEARDOWN();
+}
+
+TEST(configure_cpu_features_scope) {
+  RunHelperWithFeatureCombinations(SimulationCPUFeaturesScopeHelper);
+}
+
+#endif
 
 }  // namespace aarch64
 }  // namespace vixl
