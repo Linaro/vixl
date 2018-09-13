@@ -208,7 +208,6 @@ const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
 #define TEARDOWN_CUSTOM() delete[] buf;
 
 #else  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
-// Run the test on real hardware or models.
 #define SETUP()        \
   MacroAssembler masm; \
   SETUP_COMMON()
@@ -328,6 +327,9 @@ const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
 #define ASSERT_EQUAL_64(expected, result) \
   VIXL_CHECK(Equal64(expected, &core, result))
 
+#define ASSERT_NOT_EQUAL_64(expected, result) \
+  VIXL_CHECK(!Equal64(expected, &core, result))
+
 #define ASSERT_EQUAL_FP64(expected, result) \
   VIXL_CHECK(EqualFP64(expected, &core, result))
 
@@ -336,6 +338,20 @@ const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
 
 #define ASSERT_LITERAL_POOL_SIZE(expected) \
   VIXL_CHECK((expected + kInstructionSize) == (masm.GetLiteralPoolSize()))
+
+#define MUST_FAIL_WITH_MESSAGE(code, message)                           \
+  {                                                                     \
+    bool aborted = false;                                               \
+    try {                                                               \
+      code;                                                             \
+    } catch (const std::runtime_error& e) {                             \
+      const char* expected_error = message;                             \
+      size_t error_length = strlen(expected_error);                     \
+      VIXL_CHECK(strncmp(expected_error, e.what(), error_length) == 0); \
+      aborted = true;                                                   \
+    }                                                                   \
+    VIXL_CHECK(aborted);                                                \
+  }
 
 
 TEST(preshift_immediates) {
@@ -1777,7 +1793,8 @@ TEST(rbit_rev) {
   __ Rev16(x3, x24);
   __ Rev(w4, w24);
   __ Rev32(x5, x24);
-  __ Rev(x6, x24);
+  __ Rev64(x6, x24);
+  __ Rev(x7, x24);
   END();
 
   RUN();
@@ -1789,6 +1806,7 @@ TEST(rbit_rev) {
   ASSERT_EQUAL_64(0x10325476, x4);
   ASSERT_EQUAL_64(0x98badcfe10325476, x5);
   ASSERT_EQUAL_64(0x1032547698badcfe, x6);
+  ASSERT_EQUAL_64(0x1032547698badcfe, x7);
 
   TEARDOWN();
 }
@@ -1889,6 +1907,300 @@ TEST(clz_cls) {
   ASSERT_EQUAL_64(8, x9);
   ASSERT_EQUAL_64(31, x10);
   ASSERT_EQUAL_64(63, x11);
+
+  TEARDOWN();
+}
+
+
+TEST(pacia_pacib_autia_autib) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  START();
+
+  Register pointer = x24;
+  Register modifier = x25;
+
+  __ Mov(pointer, 0x0000000012345678);
+  __ Mov(modifier, 0x477d469dec0b8760);
+
+  // Generate PACs using keys A and B.
+  __ Mov(x0, pointer);
+  __ Pacia(x0, modifier);
+
+  __ Mov(x1, pointer);
+  __ Pacib(x1, modifier);
+
+  // Authenticate the pointers above.
+  __ Mov(x2, x0);
+  __ Autia(x2, modifier);
+
+  __ Mov(x3, x1);
+  __ Autib(x3, modifier);
+
+  // Attempt to authenticate incorrect pointers.
+  __ Mov(x4, x1);
+  __ Autia(x4, modifier);
+
+  __ Mov(x5, x0);
+  __ Autib(x5, modifier);
+
+  // Mask out just the PAC code bits.
+  // TODO: use Simulator::CalculatePACMask in a nice way.
+  __ And(x0, x0, 0x007f000000000000);
+  __ And(x1, x1, 0x007f000000000000);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  // Check PAC codes have been generated and aren't equal.
+  // NOTE: with a different ComputePAC implementation, there may be a collision.
+  ASSERT_NOT_EQUAL_64(0, x0);
+  ASSERT_NOT_EQUAL_64(0, x1);
+  ASSERT_NOT_EQUAL_64(x0, x1);
+
+  // Pointers correctly authenticated.
+  ASSERT_EQUAL_64(pointer, x2);
+  ASSERT_EQUAL_64(pointer, x3);
+
+  // Pointers corrupted after failing to authenticate.
+  ASSERT_EQUAL_64(0x0020000012345678, x4);
+  ASSERT_EQUAL_64(0x0040000012345678, x5);
+#endif
+
+  TEARDOWN();
+}
+
+
+TEST(paciza_pacizb_autiza_autizb) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  START();
+
+  Register pointer = x24;
+
+  __ Mov(pointer, 0x0000000012345678);
+
+  // Generate PACs using keys A and B.
+  __ Mov(x0, pointer);
+  __ Paciza(x0);
+
+  __ Mov(x1, pointer);
+  __ Pacizb(x1);
+
+  // Authenticate the pointers above.
+  __ Mov(x2, x0);
+  __ Autiza(x2);
+
+  __ Mov(x3, x1);
+  __ Autizb(x3);
+
+  // Attempt to authenticate incorrect pointers.
+  __ Mov(x4, x1);
+  __ Autiza(x4);
+
+  __ Mov(x5, x0);
+  __ Autizb(x5);
+
+  // Mask out just the PAC code bits.
+  // TODO: use Simulator::CalculatePACMask in a nice way.
+  __ And(x0, x0, 0x007f000000000000);
+  __ And(x1, x1, 0x007f000000000000);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  // Check PAC codes have been generated and aren't equal.
+  // NOTE: with a different ComputePAC implementation, there may be a collision.
+  ASSERT_NOT_EQUAL_64(0, x0);
+  ASSERT_NOT_EQUAL_64(0, x1);
+  ASSERT_NOT_EQUAL_64(x0, x1);
+
+  // Pointers correctly authenticated.
+  ASSERT_EQUAL_64(pointer, x2);
+  ASSERT_EQUAL_64(pointer, x3);
+
+  // Pointers corrupted after failing to authenticate.
+  ASSERT_EQUAL_64(0x0020000012345678, x4);
+  ASSERT_EQUAL_64(0x0040000012345678, x5);
+#endif
+
+  TEARDOWN();
+}
+
+
+TEST(pacda_pacdb_autda_autdb) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  START();
+
+  Register pointer = x24;
+  Register modifier = x25;
+
+  __ Mov(pointer, 0x0000000012345678);
+  __ Mov(modifier, 0x477d469dec0b8760);
+
+  // Generate PACs using keys A and B.
+  __ Mov(x0, pointer);
+  __ Pacda(x0, modifier);
+
+  __ Mov(x1, pointer);
+  __ Pacdb(x1, modifier);
+
+  // Authenticate the pointers above.
+  __ Mov(x2, x0);
+  __ Autda(x2, modifier);
+
+  __ Mov(x3, x1);
+  __ Autdb(x3, modifier);
+
+  // Attempt to authenticate incorrect pointers.
+  __ Mov(x4, x1);
+  __ Autda(x4, modifier);
+
+  __ Mov(x5, x0);
+  __ Autdb(x5, modifier);
+
+  // Mask out just the PAC code bits.
+  // TODO: use Simulator::CalculatePACMask in a nice way.
+  __ And(x0, x0, 0x007f000000000000);
+  __ And(x1, x1, 0x007f000000000000);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  // Check PAC codes have been generated and aren't equal.
+  // NOTE: with a different ComputePAC implementation, there may be a collision.
+  ASSERT_NOT_EQUAL_64(0, x0);
+  ASSERT_NOT_EQUAL_64(0, x1);
+  ASSERT_NOT_EQUAL_64(x0, x1);
+
+  // Pointers correctly authenticated.
+  ASSERT_EQUAL_64(pointer, x2);
+  ASSERT_EQUAL_64(pointer, x3);
+
+  // Pointers corrupted after failing to authenticate.
+  ASSERT_EQUAL_64(0x0020000012345678, x4);
+  ASSERT_EQUAL_64(0x0040000012345678, x5);
+#endif
+
+  TEARDOWN();
+}
+
+
+TEST(pacdza_pacdzb_autdza_autdzb) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  START();
+
+  Register pointer = x24;
+
+  __ Mov(pointer, 0x0000000012345678);
+
+  // Generate PACs using keys A and B.
+  __ Mov(x0, pointer);
+  __ Pacdza(x0);
+
+  __ Mov(x1, pointer);
+  __ Pacdzb(x1);
+
+  // Authenticate the pointers above.
+  __ Mov(x2, x0);
+  __ Autdza(x2);
+
+  __ Mov(x3, x1);
+  __ Autdzb(x3);
+
+  // Attempt to authenticate incorrect pointers.
+  __ Mov(x4, x1);
+  __ Autdza(x4);
+
+  __ Mov(x5, x0);
+  __ Autdzb(x5);
+
+  // Mask out just the PAC code bits.
+  // TODO: use Simulator::CalculatePACMask in a nice way.
+  __ And(x0, x0, 0x007f000000000000);
+  __ And(x1, x1, 0x007f000000000000);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  // Check PAC codes have been generated and aren't equal.
+  // NOTE: with a different ComputePAC implementation, there may be a collision.
+  ASSERT_NOT_EQUAL_64(0, x0);
+  ASSERT_NOT_EQUAL_64(0, x1);
+  ASSERT_NOT_EQUAL_64(x0, x1);
+
+  // Pointers correctly authenticated.
+  ASSERT_EQUAL_64(pointer, x2);
+  ASSERT_EQUAL_64(pointer, x3);
+
+  // Pointers corrupted after failing to authenticate.
+  ASSERT_EQUAL_64(0x0020000012345678, x4);
+  ASSERT_EQUAL_64(0x0040000012345678, x5);
+#endif
+
+  TEARDOWN();
+}
+
+
+TEST(pacga_xpaci_xpacd) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth, CPUFeatures::kPAuthGeneric);
+
+  START();
+
+  Register pointer = x24;
+  Register modifier = x25;
+
+  __ Mov(pointer, 0x0000000012345678);
+  __ Mov(modifier, 0x477d469dec0b8760);
+
+  // Generate generic PAC.
+  __ Pacga(x0, pointer, modifier);
+
+  // Generate PACs using key A.
+  __ Mov(x1, pointer);
+  __ Mov(x2, pointer);
+  __ Pacia(x1, modifier);
+  __ Pacda(x2, modifier);
+
+  // Strip PACs.
+  __ Mov(x3, x1);
+  __ Mov(x4, x2);
+  __ Xpaci(x3);
+  __ Xpacd(x4);
+
+  // Mask out just the PAC code bits.
+  // TODO: use Simulator::CalculatePACMask in a nice way.
+  __ And(x0, x0, 0xffffffff00000000);
+  __ And(x1, x1, 0x007f000000000000);
+  __ And(x2, x2, 0x007f000000000000);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+
+  // Check PAC codes have been generated and aren't equal.
+  // NOTE: with a different ComputePAC implementation, there may be a collision.
+  ASSERT_NOT_EQUAL_64(0, x0);
+
+  ASSERT_NOT_EQUAL_64(0, x1);
+  ASSERT_NOT_EQUAL_64(0, x2);
+  ASSERT_NOT_EQUAL_64(x1, x2);
+
+  ASSERT_EQUAL_64(pointer, x3);
+  ASSERT_EQUAL_64(pointer, x4);
+#endif
 
   TEARDOWN();
 }
@@ -2352,7 +2664,7 @@ TEST(branch_to_reg) {
   __ Bl(&fn1);
 
   // Test blr.
-  Label fn2, after_fn2;
+  Label fn2, after_fn2, after_bl2;
 
   __ Mov(x2, 0);
   __ B(&after_fn2);
@@ -2364,16 +2676,244 @@ TEST(branch_to_reg) {
 
   __ Bind(&after_fn2);
   __ Bl(&fn2);
+  __ Bind(&after_bl2);
   __ Mov(x3, lr);
+  __ Adr(x4, &after_bl2);
+  __ Adr(x5, &after_fn2);
 
   __ Mov(lr, x29);
   END();
 
   RUN();
 
-  ASSERT_EQUAL_64(core.xreg(3) + kInstructionSize, x0);
+  ASSERT_EQUAL_64(x4, x0);
+  ASSERT_EQUAL_64(x5, x3);
   ASSERT_EQUAL_64(42, x1);
   ASSERT_EQUAL_64(84, x2);
+
+  TEARDOWN();
+}
+
+TEST(branch_to_reg_auth_a) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  START();
+
+  Label fn1, after_fn1;
+
+  __ Mov(x28, 0x477d469dec0b8760);
+  __ Mov(x29, lr);
+
+  __ Mov(x1, 0);
+  __ B(&after_fn1);
+
+  __ Bind(&fn1);
+  __ Mov(x0, lr);
+  __ Mov(x1, 42);
+  __ Pacia(x0, x28);
+  __ Braa(x0, x28);
+
+  __ Bind(&after_fn1);
+  __ Bl(&fn1);
+
+  Label fn2, after_fn2, after_bl2;
+
+  __ Mov(x2, 0);
+  __ B(&after_fn2);
+
+  __ Bind(&fn2);
+  __ Mov(x0, lr);
+  __ Mov(x2, 84);
+  __ Pacia(x0, x28);
+  __ Blraa(x0, x28);
+
+  __ Bind(&after_fn2);
+  __ Bl(&fn2);
+  __ Bind(&after_bl2);
+  __ Mov(x3, lr);
+  __ Adr(x4, &after_bl2);
+  __ Adr(x5, &after_fn2);
+
+  __ Xpaci(x0);
+  __ Mov(lr, x29);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(x4, x0);
+  ASSERT_EQUAL_64(x5, x3);
+  ASSERT_EQUAL_64(42, x1);
+  ASSERT_EQUAL_64(84, x2);
+#endif
+
+  TEARDOWN();
+}
+
+TEST(return_to_reg_auth) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  START();
+
+  Label fn1, after_fn1;
+
+  __ Mov(x28, sp);
+  __ Mov(x29, lr);
+  __ Mov(sp, 0x477d469dec0b8760);
+
+  __ Mov(x0, 0);
+  __ B(&after_fn1);
+
+  __ Bind(&fn1);
+  __ Mov(x0, 42);
+  __ Paciasp();
+  __ Retaa();
+
+  __ Bind(&after_fn1);
+  __ Bl(&fn1);
+
+  Label fn2, after_fn2;
+
+  __ Mov(x1, 0);
+  __ B(&after_fn2);
+
+  __ Bind(&fn2);
+  __ Mov(x1, 84);
+  __ Pacibsp();
+  __ Retab();
+
+  __ Bind(&after_fn2);
+  __ Bl(&fn2);
+
+  __ Mov(sp, x28);
+  __ Mov(lr, x29);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(42, x0);
+  ASSERT_EQUAL_64(84, x1);
+#endif
+
+  TEARDOWN();
+}
+
+#ifdef VIXL_NEGATIVE_TESTING
+TEST(branch_to_reg_auth_fail) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  START();
+
+  Label fn1, after_fn1;
+
+  __ Mov(x29, lr);
+
+  __ B(&after_fn1);
+
+  __ Bind(&fn1);
+  __ Mov(x0, lr);
+  __ Pacizb(x0);
+  __ Blraaz(x0);
+
+  __ Bind(&after_fn1);
+  __ Bl(&fn1);
+
+  __ Mov(lr, x29);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  MUST_FAIL_WITH_MESSAGE(RUN(), "Failed to authenticate pointer.");
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+#endif  // VIXL_NEGATIVE_TESTING
+
+#ifdef VIXL_NEGATIVE_TESTING
+TEST(return_to_reg_auth_fail) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  START();
+
+  Label fn1, after_fn1;
+
+  __ Mov(x28, sp);
+  __ Mov(x29, lr);
+  __ Mov(sp, 0x477d469dec0b8760);
+
+  __ B(&after_fn1);
+
+  __ Bind(&fn1);
+  __ Paciasp();
+  __ Retab();
+
+  __ Bind(&after_fn1);
+  __ Bl(&fn1);
+
+  __ Mov(sp, x28);
+  __ Mov(lr, x29);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  MUST_FAIL_WITH_MESSAGE(RUN(), "Failed to authenticate pointer.");
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+#endif  // VIXL_NEGATIVE_TESTING
+
+TEST(branch_to_reg_auth_a_zero) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  START();
+
+  Label fn1, after_fn1;
+
+  __ Mov(x29, lr);
+
+  __ Mov(x1, 0);
+  __ B(&after_fn1);
+
+  __ Bind(&fn1);
+  __ Mov(x0, lr);
+  __ Mov(x1, 42);
+  __ Paciza(x0);
+  __ Braaz(x0);
+
+  __ Bind(&after_fn1);
+  __ Bl(&fn1);
+
+  Label fn2, after_fn2, after_bl2;
+
+  __ Mov(x2, 0);
+  __ B(&after_fn2);
+
+  __ Bind(&fn2);
+  __ Mov(x0, lr);
+  __ Mov(x2, 84);
+  __ Paciza(x0);
+  __ Blraaz(x0);
+
+  __ Bind(&after_fn2);
+  __ Bl(&fn2);
+  __ Bind(&after_bl2);
+  __ Mov(x3, lr);
+  __ Adr(x4, &after_bl2);
+  __ Adr(x5, &after_fn2);
+
+  __ Xpaci(x0);
+  __ Mov(lr, x29);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(x4, x0);
+  ASSERT_EQUAL_64(x5, x3);
+  ASSERT_EQUAL_64(42, x1);
+  ASSERT_EQUAL_64(84, x2);
+#endif
 
   TEARDOWN();
 }
@@ -9710,6 +10250,7 @@ TEST(bfm) {
   __ Mov(x11, 0x8888888888888888);
   __ Mov(x12, 0x8888888888888888);
   __ Mov(x13, 0x8888888888888888);
+  __ Mov(x14, 0xffffffffffffffff);
   __ Mov(w20, 0x88888888);
   __ Mov(w21, 0x88888888);
 
@@ -9722,6 +10263,7 @@ TEST(bfm) {
   // Aliases.
   __ Bfi(x12, x1, 16, 8);
   __ Bfxil(x13, x1, 16, 8);
+  __ Bfc(x14, 16, 8);
   END();
 
   RUN();
@@ -9735,6 +10277,7 @@ TEST(bfm) {
 
   ASSERT_EQUAL_64(0x8888888888ef8888, x12);
   ASSERT_EQUAL_64(0x88888888888888ab, x13);
+  ASSERT_EQUAL_64(0xffffffffff00ffff, x14);
 
   TEARDOWN();
 }
@@ -9903,18 +10446,18 @@ TEST(fmov_imm) {
   __ Fmov(d4, 0.0);
   __ Fmov(s5, kFP32PositiveInfinity);
   __ Fmov(d6, kFP64NegativeInfinity);
-  __ Fmov(h7, F16::FromRawbits(0x6400U));
-  __ Fmov(h8, F16::FromRawbits(kFP16PositiveInfinity));
+  __ Fmov(h7, RawbitsToFloat16(0x6400U));
+  __ Fmov(h8, kFP16PositiveInfinity);
   __ Fmov(s11, 1.0);
-  __ Fmov(h12, F16::FromRawbits(0x7BFF));
-  __ Fmov(h13, F16::FromRawbits(0x57F2));
+  __ Fmov(h12, RawbitsToFloat16(0x7BFF));
+  __ Fmov(h13, RawbitsToFloat16(0x57F2));
   __ Fmov(d22, -13.0);
-  __ Fmov(h23, F16::FromRawbits(0xC500U));
-  __ Fmov(h24, F16(-5.0));
-  __ Fmov(h25, F16(2049.0));
-  __ Fmov(h21, F16::FromRawbits(0x6404U));
-  __ Fmov(h26, F16::FromRawbits(0x0U));
-  __ Fmov(h27, F16::FromRawbits(0x7e00U));
+  __ Fmov(h23, RawbitsToFloat16(0xC500U));
+  __ Fmov(h24, Float16(-5.0));
+  __ Fmov(h25, Float16(2049.0));
+  __ Fmov(h21, RawbitsToFloat16(0x6404U));
+  __ Fmov(h26, RawbitsToFloat16(0x0U));
+  __ Fmov(h27, RawbitsToFloat16(0x7e00U));
   END();
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
@@ -9925,20 +10468,20 @@ TEST(fmov_imm) {
   ASSERT_EQUAL_FP64(0.0, d4);
   ASSERT_EQUAL_FP32(kFP32PositiveInfinity, s5);
   ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d6);
-  ASSERT_EQUAL_FP16(F16::FromRawbits(0x6400U), h7);
-  ASSERT_EQUAL_FP16(F16::FromRawbits(kFP16PositiveInfinity), h8);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x6400U), h7);
+  ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h8);
   ASSERT_EQUAL_FP32(1.0, s11);
-  ASSERT_EQUAL_FP16(F16::FromRawbits(0x7BFF), h12);
-  ASSERT_EQUAL_FP16(F16::FromRawbits(0x57F2U), h13);
-  ASSERT_EQUAL_FP16(F16::FromRawbits(0x6404), h21);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x7BFF), h12);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x57F2U), h13);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x6404), h21);
   ASSERT_EQUAL_FP64(-13.0, d22);
-  ASSERT_EQUAL_FP16(F16(-5.0), h23);
-  ASSERT_EQUAL_FP16(F16::FromRawbits(0xC500), h24);
+  ASSERT_EQUAL_FP16(Float16(-5.0), h23);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xC500), h24);
   // 2049 is unpresentable.
-  ASSERT_EQUAL_FP16(F16::FromRawbits(0x6800), h25);
-  ASSERT_EQUAL_FP16(F16::FromRawbits(0x0), h26);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x6800), h25);
+  ASSERT_EQUAL_FP16(kFP16PositiveZero, h26);
   // NaN check.
-  ASSERT_EQUAL_FP16(F16::FromRawbits(0x7e00), h27);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x7e00), h27);
 #endif
 
   TEARDOWN();
@@ -9955,8 +10498,8 @@ TEST(fmov_vec_imm) {
   __ Fmov(v0.V2S(), 20.0);
   __ Fmov(v1.V4S(), 1024.0);
 
-  __ Fmov(v2.V4H(), F16::FromRawbits(0xC500U));
-  __ Fmov(v3.V8H(), F16::FromRawbits(0x4A80U));
+  __ Fmov(v2.V4H(), RawbitsToFloat16(0xC500U));
+  __ Fmov(v3.V8H(), RawbitsToFloat16(0x4A80U));
 
   END();
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
@@ -9979,12 +10522,12 @@ TEST(fmov_reg) {
 
   START();
 
-  __ Fmov(h3, F16::FromRawbits(0xCA80U));
+  __ Fmov(h3, RawbitsToFloat16(0xCA80U));
   __ Fmov(h7, h3);
   __ Fmov(h8, -5.0);
   __ Fmov(w3, h8);
   __ Fmov(h9, w3);
-  __ Fmov(h8, F16(1024.0));
+  __ Fmov(h8, Float16(1024.0));
   __ Fmov(x4, h8);
   __ Fmov(h10, x4);
   __ Fmov(s20, 1.0);
@@ -10005,11 +10548,11 @@ TEST(fmov_reg) {
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
 
-  ASSERT_EQUAL_FP16(F16::FromRawbits(0xCA80U), h7);
-  ASSERT_EQUAL_FP16(F16::FromRawbits(0xC500U), h9);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xCA80U), h7);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xC500U), h9);
   ASSERT_EQUAL_32(0x0000C500, w3);
   ASSERT_EQUAL_64(0x0000000000006400, x4);
-  ASSERT_EQUAL_FP16(F16::FromRawbits(0x6400), h10);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x6400), h10);
   ASSERT_EQUAL_32(FloatToRawbits(1.0), w10);
   ASSERT_EQUAL_FP32(1.0, s30);
   ASSERT_EQUAL_FP32(1.0, s5);
@@ -10081,6 +10624,88 @@ TEST(fadd) {
 }
 
 
+TEST(fadd_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFPHalf);
+
+  START();
+  __ Fmov(h14, -0.0f);
+  __ Fmov(h15, kFP16PositiveInfinity);
+  __ Fmov(h16, kFP16NegativeInfinity);
+  __ Fmov(h17, 3.25f);
+  __ Fmov(h18, 1.0);
+  __ Fmov(h19, 0.0f);
+  __ Fmov(h20, 5.0f);
+
+  __ Fadd(h0, h17, h18);
+  __ Fadd(h1, h18, h19);
+  __ Fadd(h2, h14, h18);
+  __ Fadd(h3, h15, h18);
+  __ Fadd(h4, h16, h18);
+  __ Fadd(h5, h15, h16);
+  __ Fadd(h6, h16, h15);
+  __ Fadd(h7, h20, h20);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(Float16(4.25), h0);
+  ASSERT_EQUAL_FP16(Float16(1.0), h1);
+  ASSERT_EQUAL_FP16(Float16(1.0), h2);
+  ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h3);
+  ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h4);
+  ASSERT_EQUAL_FP16(kFP16DefaultNaN, h5);
+  ASSERT_EQUAL_FP16(kFP16DefaultNaN, h6);
+  ASSERT_EQUAL_FP16(Float16(10.0), h7);
+  TEARDOWN();
+#endif
+}
+
+
+TEST(fadd_h_neon) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Fmov(v0.V4H(), 24.0);
+  __ Fmov(v1.V4H(), 1024.0);
+  __ Fmov(v2.V8H(), 5.5);
+  __ Fmov(v3.V8H(), 2048.0);
+  __ Fmov(v4.V8H(), kFP16PositiveInfinity);
+  __ Fmov(v5.V8H(), kFP16NegativeInfinity);
+  __ Fmov(v6.V4H(), RawbitsToFloat16(0x7c2f));
+  __ Fmov(v7.V8H(), RawbitsToFloat16(0xfe0f));
+
+  __ Fadd(v8.V4H(), v1.V4H(), v0.V4H());
+  __ Fadd(v9.V8H(), v3.V8H(), v2.V8H());
+  __ Fadd(v10.V4H(), v4.V4H(), v3.V4H());
+
+  __ Fadd(v11.V4H(), v6.V4H(), v1.V4H());
+  __ Fadd(v12.V4H(), v7.V4H(), v7.V4H());
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x0000000000000000, 0x6418641864186418, q8);
+  // 2053.5 is unrepresentable in FP16.
+  ASSERT_EQUAL_128(0x6803680368036803, 0x6803680368036803, q9);
+
+  // Note: we test NaNs here as vectors aren't covered by process_nans_half
+  // and we don't have traces for half-precision enabled hardware.
+  // Default (Signalling NaN)
+  ASSERT_EQUAL_128(0x0000000000000000, 0x7c007c007c007c00, q10);
+  // Quiet NaN from Signalling.
+  ASSERT_EQUAL_128(0x0000000000000000, 0x7e2f7e2f7e2f7e2f, q11);
+  // Quiet NaN.
+  ASSERT_EQUAL_128(0x0000000000000000, 0xfe0ffe0ffe0ffe0f, q12);
+  TEARDOWN();
+#endif
+}
+
+
 TEST(fsub) {
   SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
@@ -10137,6 +10762,87 @@ TEST(fsub) {
 }
 
 
+TEST(fsub_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFPHalf);
+
+  START();
+  __ Fmov(h14, -0.0f);
+  __ Fmov(h15, kFP16PositiveInfinity);
+  __ Fmov(h16, kFP16NegativeInfinity);
+  __ Fmov(h17, 3.25f);
+  __ Fmov(h18, 1.0f);
+  __ Fmov(h19, 0.0f);
+
+  __ Fsub(h0, h17, h18);
+  __ Fsub(h1, h18, h19);
+  __ Fsub(h2, h14, h18);
+  __ Fsub(h3, h18, h15);
+  __ Fsub(h4, h18, h16);
+  __ Fsub(h5, h15, h15);
+  __ Fsub(h6, h16, h16);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(Float16(2.25), h0);
+  ASSERT_EQUAL_FP16(Float16(1.0), h1);
+  ASSERT_EQUAL_FP16(Float16(-1.0), h2);
+  ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h3);
+  ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h4);
+  ASSERT_EQUAL_FP16(kFP16DefaultNaN, h5);
+  ASSERT_EQUAL_FP16(kFP16DefaultNaN, h6);
+  TEARDOWN();
+#endif
+}
+
+
+TEST(fsub_h_neon) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Fmov(v0.V4H(), 24.0);
+  __ Fmov(v1.V4H(), 1024.0);
+  __ Fmov(v2.V8H(), 5.5);
+  __ Fmov(v3.V8H(), 2048.0);
+  __ Fmov(v4.V4H(), kFP16PositiveInfinity);
+  __ Fmov(v5.V4H(), kFP16NegativeInfinity);
+  __ Fmov(v6.V4H(), RawbitsToFloat16(0x7c22));
+  __ Fmov(v7.V8H(), RawbitsToFloat16(0xfe02));
+
+  __ Fsub(v0.V4H(), v1.V4H(), v0.V4H());
+  __ Fsub(v8.V8H(), v3.V8H(), v2.V8H());
+  __ Fsub(v9.V4H(), v4.V4H(), v3.V4H());
+  __ Fsub(v10.V4H(), v0.V4H(), v1.V4H());
+
+  __ Fsub(v11.V4H(), v6.V4H(), v2.V4H());
+  __ Fsub(v12.V4H(), v7.V4H(), v7.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x0000000000000000, 0x63d063d063d063d0, q0);
+  // 2042.5 is unpresentable in FP16:
+  ASSERT_EQUAL_128(0x67fa67fa67fa67fa, 0x67fa67fa67fa67fa, q8);
+
+  // Note: we test NaNs here as vectors aren't covered by process_nans_half
+  // and we don't have traces for half-precision enabled hardware.
+  // Signalling (Default) NaN.
+  ASSERT_EQUAL_128(0x0000000000000000, 0x7c007c007c007c00, q9);
+  ASSERT_EQUAL_128(0x0000000000000000, 0xce00ce00ce00ce00, q10);
+  // Quiet NaN from Signalling.
+  ASSERT_EQUAL_128(0x0000000000000000, 0x7e227e227e227e22, q11);
+  // Quiet NaN.
+  ASSERT_EQUAL_128(0x0000000000000000, 0xfe02fe02fe02fe02, q12);
+
+  TEARDOWN();
+#endif
+}
+
+
 TEST(fmul) {
   SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
@@ -10189,6 +10895,114 @@ TEST(fmul) {
   ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d11);
   ASSERT_EQUAL_FP64(kFP64DefaultNaN, d12);
   ASSERT_EQUAL_FP64(kFP64DefaultNaN, d13);
+
+  TEARDOWN();
+}
+
+
+TEST(fmul_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFPHalf);
+
+  START();
+  __ Fmov(h14, -0.0f);
+  __ Fmov(h15, kFP16PositiveInfinity);
+  __ Fmov(h16, kFP16NegativeInfinity);
+  __ Fmov(h17, 3.25f);
+  __ Fmov(h18, 2.0f);
+  __ Fmov(h19, 0.0f);
+  __ Fmov(h20, -2.0f);
+
+  __ Fmul(h0, h17, h18);
+  __ Fmul(h1, h18, h19);
+  __ Fmul(h2, h14, h14);
+  __ Fmul(h3, h15, h20);
+  __ Fmul(h4, h16, h20);
+  __ Fmul(h5, h15, h19);
+  __ Fmul(h6, h19, h16);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(Float16(6.5), h0);
+  ASSERT_EQUAL_FP16(Float16(0.0), h1);
+  ASSERT_EQUAL_FP16(Float16(0.0), h2);
+  ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h3);
+  ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h4);
+  ASSERT_EQUAL_FP16(kFP16DefaultNaN, h5);
+  ASSERT_EQUAL_FP16(kFP16DefaultNaN, h6);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(fmul_h_neon) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Fmov(v0.V4H(), 24.0);
+  __ Fmov(v1.V4H(), -2.0);
+  __ Fmov(v2.V8H(), 5.5);
+  __ Fmov(v3.V8H(), 0.5);
+  __ Fmov(v4.V4H(), kFP16PositiveInfinity);
+  __ Fmov(v5.V4H(), kFP16NegativeInfinity);
+
+  __ Fmul(v6.V4H(), v1.V4H(), v0.V4H());
+  __ Fmul(v7.V8H(), v3.V8H(), v2.V8H());
+  __ Fmul(v8.V4H(), v4.V4H(), v3.V4H());
+  __ Fmul(v9.V4H(), v0.V4H(), v1.V4H());
+  __ Fmul(v10.V4H(), v5.V4H(), v0.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x0000000000000000, 0xd200d200d200d200, q6);
+  ASSERT_EQUAL_128(0x4180418041804180, 0x4180418041804180, q7);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x7c007c007c007c00, q8);
+  ASSERT_EQUAL_128(0x0000000000000000, 0xd200d200d200d200, q9);
+  ASSERT_EQUAL_128(0x0000000000000000, 0xfc00fc00fc00fc00, q10);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(fnmul_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFPHalf);
+
+  START();
+  __ Fmov(h14, -0.0f);
+  __ Fmov(h15, kFP16PositiveInfinity);
+  __ Fmov(h16, kFP16NegativeInfinity);
+  __ Fmov(h17, 3.25f);
+  __ Fmov(h18, 2.0f);
+  __ Fmov(h19, 0.0f);
+  __ Fmov(h20, -2.0f);
+
+  __ Fnmul(h0, h17, h18);
+  __ Fnmul(h1, h18, h19);
+  __ Fnmul(h2, h14, h14);
+  __ Fnmul(h3, h15, h20);
+  __ Fnmul(h4, h16, h20);
+  __ Fnmul(h5, h15, h19);
+  __ Fnmul(h6, h19, h16);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(Float16(-6.5), h0);
+  ASSERT_EQUAL_FP16(Float16(-0.0), h1);
+  ASSERT_EQUAL_FP16(Float16(-0.0), h2);
+  ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h3);
+  ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h4);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xfe00), h5);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xfe00), h6);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
   TEARDOWN();
 }
@@ -10611,6 +11425,123 @@ TEST(fdiv) {
 }
 
 
+TEST(fdiv_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFPHalf);
+
+  START();
+  __ Fmov(h14, -0.0f);
+  __ Fmov(h15, kFP16PositiveInfinity);
+  __ Fmov(h16, kFP16NegativeInfinity);
+  __ Fmov(h17, 3.25f);
+  __ Fmov(h18, 2.0f);
+  __ Fmov(h19, 2.0f);
+  __ Fmov(h20, -2.0f);
+
+  __ Fdiv(h0, h17, h18);
+  __ Fdiv(h1, h18, h19);
+  __ Fdiv(h2, h14, h18);
+  __ Fdiv(h3, h18, h15);
+  __ Fdiv(h4, h18, h16);
+  __ Fdiv(h5, h15, h16);
+  __ Fdiv(h6, h14, h14);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(Float16(1.625f), h0);
+  ASSERT_EQUAL_FP16(Float16(1.0f), h1);
+  ASSERT_EQUAL_FP16(Float16(-0.0f), h2);
+  ASSERT_EQUAL_FP16(Float16(0.0f), h3);
+  ASSERT_EQUAL_FP16(Float16(-0.0f), h4);
+  ASSERT_EQUAL_FP16(kFP16DefaultNaN, h5);
+  ASSERT_EQUAL_FP16(kFP16DefaultNaN, h6);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(fdiv_h_neon) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Fmov(v0.V4H(), 24.0);
+  __ Fmov(v1.V4H(), -2.0);
+  __ Fmov(v2.V8H(), 5.5);
+  __ Fmov(v3.V8H(), 0.5);
+  __ Fmov(v4.V4H(), kFP16PositiveInfinity);
+  __ Fmov(v5.V4H(), kFP16NegativeInfinity);
+
+  __ Fdiv(v6.V4H(), v0.V4H(), v1.V4H());
+  __ Fdiv(v7.V8H(), v2.V8H(), v3.V8H());
+  __ Fdiv(v8.V4H(), v4.V4H(), v3.V4H());
+  __ Fdiv(v9.V4H(), v1.V4H(), v0.V4H());
+  __ Fdiv(v10.V4H(), v5.V4H(), v0.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x0000000000000000, 0xca00ca00ca00ca00, q6);
+  ASSERT_EQUAL_128(0x4980498049804980, 0x4980498049804980, q7);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x7c007c007c007c00, q8);
+  // -0.083333... is unrepresentable in FP16:
+  ASSERT_EQUAL_128(0x0000000000000000, 0xad55ad55ad55ad55, q9);
+  ASSERT_EQUAL_128(0x0000000000000000, 0xfc00fc00fc00fc00, q10);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+static Float16 MinMaxHelper(Float16 n,
+                            Float16 m,
+                            bool min,
+                            Float16 quiet_nan_substitute = Float16(0.0)) {
+  const uint64_t kFP16QuietNaNMask = 0x0200;
+  uint16_t raw_n = Float16ToRawbits(n);
+  uint16_t raw_m = Float16ToRawbits(m);
+
+  if (IsSignallingNaN(n)) {
+    // n is signalling NaN.
+    return RawbitsToFloat16(raw_n | kFP16QuietNaNMask);
+  } else if (IsSignallingNaN(m)) {
+    // m is signalling NaN.
+    return RawbitsToFloat16(raw_m | kFP16QuietNaNMask);
+  } else if (IsZero(quiet_nan_substitute)) {
+    if (IsNaN(n)) {
+      // n is quiet NaN.
+      return n;
+    } else if (IsNaN(m)) {
+      // m is quiet NaN.
+      return m;
+    }
+  } else {
+    // Substitute n or m if one is quiet, but not both.
+    if (IsNaN(n) && !IsNaN(m)) {
+      // n is quiet NaN: replace with substitute.
+      n = quiet_nan_substitute;
+    } else if (!IsNaN(n) && IsNaN(m)) {
+      // m is quiet NaN: replace with substitute.
+      m = quiet_nan_substitute;
+    }
+  }
+
+  uint16_t sign_mask = 0x8000;
+  if (IsZero(n) && IsZero(m) && ((raw_n & sign_mask) != (raw_m & sign_mask))) {
+    return min ? Float16(-0.0) : Float16(0.0);
+  }
+
+  if (FPToDouble(n, kIgnoreDefaultNaN) < FPToDouble(m, kIgnoreDefaultNaN)) {
+    return min ? n : m;
+  }
+  return min ? m : n;
+}
+
+
 static float MinMaxHelper(float n,
                           float m,
                           bool min,
@@ -10619,26 +11550,26 @@ static float MinMaxHelper(float n,
   uint32_t raw_n = FloatToRawbits(n);
   uint32_t raw_m = FloatToRawbits(m);
 
-  if (std::isnan(n) && ((raw_n & kFP32QuietNaNMask) == 0)) {
+  if (IsNaN(n) && ((raw_n & kFP32QuietNaNMask) == 0)) {
     // n is signalling NaN.
     return RawbitsToFloat(raw_n | kFP32QuietNaNMask);
-  } else if (std::isnan(m) && ((raw_m & kFP32QuietNaNMask) == 0)) {
+  } else if (IsNaN(m) && ((raw_m & kFP32QuietNaNMask) == 0)) {
     // m is signalling NaN.
     return RawbitsToFloat(raw_m | kFP32QuietNaNMask);
   } else if (quiet_nan_substitute == 0.0) {
-    if (std::isnan(n)) {
+    if (IsNaN(n)) {
       // n is quiet NaN.
       return n;
-    } else if (std::isnan(m)) {
+    } else if (IsNaN(m)) {
       // m is quiet NaN.
       return m;
     }
   } else {
     // Substitute n or m if one is quiet, but not both.
-    if (std::isnan(n) && !std::isnan(m)) {
+    if (IsNaN(n) && !IsNaN(m)) {
       // n is quiet NaN: replace with substitute.
       n = quiet_nan_substitute;
-    } else if (!std::isnan(n) && std::isnan(m)) {
+    } else if (!IsNaN(n) && IsNaN(m)) {
       // m is quiet NaN: replace with substitute.
       m = quiet_nan_substitute;
     }
@@ -10660,26 +11591,26 @@ static double MinMaxHelper(double n,
   uint64_t raw_n = DoubleToRawbits(n);
   uint64_t raw_m = DoubleToRawbits(m);
 
-  if (std::isnan(n) && ((raw_n & kFP64QuietNaNMask) == 0)) {
+  if (IsNaN(n) && ((raw_n & kFP64QuietNaNMask) == 0)) {
     // n is signalling NaN.
     return RawbitsToDouble(raw_n | kFP64QuietNaNMask);
-  } else if (std::isnan(m) && ((raw_m & kFP64QuietNaNMask) == 0)) {
+  } else if (IsNaN(m) && ((raw_m & kFP64QuietNaNMask) == 0)) {
     // m is signalling NaN.
     return RawbitsToDouble(raw_m | kFP64QuietNaNMask);
   } else if (quiet_nan_substitute == 0.0) {
-    if (std::isnan(n)) {
+    if (IsNaN(n)) {
       // n is quiet NaN.
       return n;
-    } else if (std::isnan(m)) {
+    } else if (IsNaN(m)) {
       // m is quiet NaN.
       return m;
     }
   } else {
     // Substitute n or m if one is quiet, but not both.
-    if (std::isnan(n) && !std::isnan(m)) {
+    if (IsNaN(n) && !IsNaN(m)) {
       // n is quiet NaN: replace with substitute.
       n = quiet_nan_substitute;
-    } else if (!std::isnan(n) && std::isnan(m)) {
+    } else if (!IsNaN(n) && IsNaN(m)) {
       // m is quiet NaN: replace with substitute.
       m = quiet_nan_substitute;
     }
@@ -10901,6 +11832,172 @@ TEST(fmax_fmin_s) {
 }
 
 
+static uint64_t Float16ToV4H(Float16 f) {
+  uint64_t bits = static_cast<uint64_t>(Float16ToRawbits(f));
+  return (bits << 48) | (bits << 32) | (bits << 16) | bits;
+}
+
+
+static void FminFmaxFloat16Helper(Float16 n,
+                                  Float16 m,
+                                  Float16 min,
+                                  Float16 max,
+                                  Float16 minnm,
+                                  Float16 maxnm) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf,
+                      CPUFeatures::kFPHalf);
+
+  START();
+  __ Fmov(h0, n);
+  __ Fmov(h1, m);
+  __ Fmov(v0.V8H(), n);
+  __ Fmov(v1.V8H(), m);
+  __ Fmin(h28, h0, h1);
+  __ Fmin(v2.V4H(), v0.V4H(), v1.V4H());
+  __ Fmin(v3.V8H(), v0.V8H(), v1.V8H());
+  __ Fmax(h29, h0, h1);
+  __ Fmax(v4.V4H(), v0.V4H(), v1.V4H());
+  __ Fmax(v5.V8H(), v0.V8H(), v1.V8H());
+  __ Fminnm(h30, h0, h1);
+  __ Fminnm(v6.V4H(), v0.V4H(), v1.V4H());
+  __ Fminnm(v7.V8H(), v0.V8H(), v1.V8H());
+  __ Fmaxnm(h31, h0, h1);
+  __ Fmaxnm(v8.V4H(), v0.V4H(), v1.V4H());
+  __ Fmaxnm(v9.V8H(), v0.V8H(), v1.V8H());
+  END();
+
+  uint64_t min_vec = Float16ToV4H(min);
+  uint64_t max_vec = Float16ToV4H(max);
+  uint64_t minnm_vec = Float16ToV4H(minnm);
+  uint64_t maxnm_vec = Float16ToV4H(maxnm);
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(min, h28);
+  ASSERT_EQUAL_FP16(max, h29);
+  ASSERT_EQUAL_FP16(minnm, h30);
+  ASSERT_EQUAL_FP16(maxnm, h31);
+
+
+  ASSERT_EQUAL_128(0, min_vec, v2);
+  ASSERT_EQUAL_128(min_vec, min_vec, v3);
+  ASSERT_EQUAL_128(0, max_vec, v4);
+  ASSERT_EQUAL_128(max_vec, max_vec, v5);
+  ASSERT_EQUAL_128(0, minnm_vec, v6);
+  ASSERT_EQUAL_128(minnm_vec, minnm_vec, v7);
+  ASSERT_EQUAL_128(0, maxnm_vec, v8);
+  ASSERT_EQUAL_128(maxnm_vec, maxnm_vec, v9);
+#else
+  USE(min_vec, max_vec, minnm_vec, maxnm_vec);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(fmax_fmin_h) {
+  // Use non-standard NaNs to check that the payload bits are preserved.
+  Float16 snan = RawbitsToFloat16(0x7c12);
+  Float16 qnan = RawbitsToFloat16(0x7e34);
+
+  Float16 snan_processed = RawbitsToFloat16(0x7e12);
+  Float16 qnan_processed = qnan;
+
+  VIXL_ASSERT(IsSignallingNaN(snan));
+  VIXL_ASSERT(IsQuietNaN(qnan));
+  VIXL_ASSERT(IsQuietNaN(snan_processed));
+  VIXL_ASSERT(IsQuietNaN(qnan_processed));
+
+  // Bootstrap tests.
+  FminFmaxFloat16Helper(Float16(0),
+                        Float16(0),
+                        Float16(0),
+                        Float16(0),
+                        Float16(0),
+                        Float16(0));
+  FminFmaxFloat16Helper(Float16(0),
+                        Float16(1),
+                        Float16(0),
+                        Float16(1),
+                        Float16(0),
+                        Float16(1));
+  FminFmaxFloat16Helper(kFP16PositiveInfinity,
+                        kFP16NegativeInfinity,
+                        kFP16NegativeInfinity,
+                        kFP16PositiveInfinity,
+                        kFP16NegativeInfinity,
+                        kFP16PositiveInfinity);
+  FminFmaxFloat16Helper(snan,
+                        Float16(0),
+                        snan_processed,
+                        snan_processed,
+                        snan_processed,
+                        snan_processed);
+  FminFmaxFloat16Helper(Float16(0),
+                        snan,
+                        snan_processed,
+                        snan_processed,
+                        snan_processed,
+                        snan_processed);
+  FminFmaxFloat16Helper(qnan,
+                        Float16(0),
+                        qnan_processed,
+                        qnan_processed,
+                        Float16(0),
+                        Float16(0));
+  FminFmaxFloat16Helper(Float16(0),
+                        qnan,
+                        qnan_processed,
+                        qnan_processed,
+                        Float16(0),
+                        Float16(0));
+  FminFmaxFloat16Helper(qnan,
+                        snan,
+                        snan_processed,
+                        snan_processed,
+                        snan_processed,
+                        snan_processed);
+  FminFmaxFloat16Helper(snan,
+                        qnan,
+                        snan_processed,
+                        snan_processed,
+                        snan_processed,
+                        snan_processed);
+
+  // Iterate over all combinations of inputs.
+  Float16 inputs[] = {RawbitsToFloat16(0x7bff),
+                      RawbitsToFloat16(0x0400),
+                      Float16(1.0),
+                      Float16(0.0),
+                      RawbitsToFloat16(0xfbff),
+                      RawbitsToFloat16(0x8400),
+                      Float16(-1.0),
+                      Float16(-0.0),
+                      kFP16PositiveInfinity,
+                      kFP16NegativeInfinity,
+                      kFP16QuietNaN,
+                      kFP16SignallingNaN};
+
+  const int count = sizeof(inputs) / sizeof(inputs[0]);
+
+  for (int in = 0; in < count; in++) {
+    Float16 n = inputs[in];
+    for (int im = 0; im < count; im++) {
+      Float16 m = inputs[im];
+      FminFmaxFloat16Helper(n,
+                            m,
+                            MinMaxHelper(n, m, true),
+                            MinMaxHelper(n, m, false),
+                            MinMaxHelper(n, m, true, kFP16PositiveInfinity),
+                            MinMaxHelper(n, m, false, kFP16NegativeInfinity));
+    }
+  }
+}
+
+
 TEST(fccmp) {
   SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
@@ -10993,6 +12090,78 @@ TEST(fccmp) {
   ASSERT_EQUAL_32(CFlag, w11);
   ASSERT_EQUAL_32(CVFlag, w12);
   ASSERT_EQUAL_32(CVFlag, w13);
+
+  TEARDOWN();
+}
+
+
+TEST(fccmp_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFPHalf);
+
+  START();
+  __ Fmov(h16, Float16(0.0));
+  __ Fmov(h17, Float16(0.5));
+  __ Mov(x20, 0);
+  __ Fmov(h21, kFP16DefaultNaN);
+
+  __ Cmp(x20, 0);
+  __ Fccmp(h16, h16, NoFlag, eq);
+  __ Mrs(x0, NZCV);
+
+  __ Cmp(x20, 0);
+  __ Fccmp(h16, h16, VFlag, ne);
+  __ Mrs(x1, NZCV);
+
+  __ Cmp(x20, 0);
+  __ Fccmp(h16, h17, CFlag, ge);
+  __ Mrs(x2, NZCV);
+
+  __ Cmp(x20, 0);
+  __ Fccmp(h16, h17, CVFlag, lt);
+  __ Mrs(x3, NZCV);
+
+  // The Macro Assembler does not allow al or nv as condition.
+  {
+    ExactAssemblyScope scope(&masm, kInstructionSize);
+    __ fccmp(h16, h16, NFlag, al);
+  }
+  __ Mrs(x4, NZCV);
+  {
+    ExactAssemblyScope scope(&masm, kInstructionSize);
+    __ fccmp(h16, h16, NFlag, nv);
+  }
+  __ Mrs(x5, NZCV);
+
+  __ Cmp(x20, 0);
+  __ Fccmpe(h16, h16, NoFlag, eq);
+  __ Mrs(x6, NZCV);
+
+  __ Cmp(x20, 0);
+  __ Fccmpe(h16, h21, NoFlag, eq);
+  __ Mrs(x7, NZCV);
+
+  __ Cmp(x20, 0);
+  __ Fccmpe(h21, h16, NoFlag, eq);
+  __ Mrs(x8, NZCV);
+
+  __ Cmp(x20, 0);
+  __ Fccmpe(h21, h21, NoFlag, eq);
+  __ Mrs(x9, NZCV);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_32(ZCFlag, w0);
+  ASSERT_EQUAL_32(VFlag, w1);
+  ASSERT_EQUAL_32(NFlag, w2);
+  ASSERT_EQUAL_32(CVFlag, w3);
+  ASSERT_EQUAL_32(ZCFlag, w4);
+  ASSERT_EQUAL_32(ZCFlag, w5);
+  ASSERT_EQUAL_32(ZCFlag, w6);
+  ASSERT_EQUAL_32(CVFlag, w7);
+  ASSERT_EQUAL_32(CVFlag, w8);
+  ASSERT_EQUAL_32(CVFlag, w9);
+#endif
 
   TEARDOWN();
 }
@@ -11097,6 +12266,73 @@ TEST(fcmp) {
 }
 
 
+TEST(fcmp_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFPHalf);
+
+  START();
+
+  // Some of these tests require a floating-point scratch register assigned to
+  // the macro assembler, but most do not.
+  {
+    UseScratchRegisterScope temps(&masm);
+    temps.ExcludeAll();
+    temps.Include(ip0, ip1);
+
+    __ Fmov(h8, Float16(0.0));
+    __ Fmov(h9, Float16(0.5));
+    __ Fmov(h18, kFP16DefaultNaN);
+
+    __ Fcmp(h8, h8);
+    __ Mrs(x0, NZCV);
+    __ Fcmp(h8, h9);
+    __ Mrs(x1, NZCV);
+    __ Fcmp(h9, h8);
+    __ Mrs(x2, NZCV);
+    __ Fcmp(h8, h18);
+    __ Mrs(x3, NZCV);
+    __ Fcmp(h18, h18);
+    __ Mrs(x4, NZCV);
+    __ Fcmp(h8, 0.0);
+    __ Mrs(x5, NZCV);
+    temps.Include(d0);
+    __ Fcmp(h8, 255.0);
+    temps.Exclude(d0);
+    __ Mrs(x6, NZCV);
+
+    __ Fcmpe(h8, h8);
+    __ Mrs(x22, NZCV);
+    __ Fcmpe(h8, 0.0);
+    __ Mrs(x23, NZCV);
+    __ Fcmpe(h8, h18);
+    __ Mrs(x24, NZCV);
+    __ Fcmpe(h18, h8);
+    __ Mrs(x25, NZCV);
+    __ Fcmpe(h18, h18);
+    __ Mrs(x26, NZCV);
+  }
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_32(ZCFlag, w0);
+  ASSERT_EQUAL_32(NFlag, w1);
+  ASSERT_EQUAL_32(CFlag, w2);
+  ASSERT_EQUAL_32(CVFlag, w3);
+  ASSERT_EQUAL_32(CVFlag, w4);
+  ASSERT_EQUAL_32(ZCFlag, w5);
+  ASSERT_EQUAL_32(NFlag, w6);
+  ASSERT_EQUAL_32(ZCFlag, w22);
+  ASSERT_EQUAL_32(ZCFlag, w23);
+  ASSERT_EQUAL_32(CVFlag, w24);
+  ASSERT_EQUAL_32(CVFlag, w25);
+  ASSERT_EQUAL_32(CVFlag, w26);
+#endif
+
+  TEARDOWN();
+}
+
+
 TEST(fcsel) {
   SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
@@ -11128,6 +12364,37 @@ TEST(fcsel) {
   ASSERT_EQUAL_FP64(4.0, d3);
   ASSERT_EQUAL_FP32(1.0, s4);
   ASSERT_EQUAL_FP64(3.0, d5);
+
+  TEARDOWN();
+}
+
+
+TEST(fcsel_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFPHalf);
+
+  START();
+  __ Mov(x16, 0);
+  __ Fmov(h16, Float16(1.0));
+  __ Fmov(h17, Float16(2.0));
+
+  __ Cmp(x16, 0);
+  __ Fcsel(h0, h16, h17, eq);
+  __ Fcsel(h1, h16, h17, ne);
+  // The Macro Assembler does not allow al or nv as condition.
+  {
+    ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
+    __ fcsel(h4, h16, h17, al);
+    __ fcsel(h5, h16, h17, nv);
+  }
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_FP16(Float16(1.0), h0);
+  ASSERT_EQUAL_FP16(Float16(2.0), h1);
+  ASSERT_EQUAL_FP16(Float16(1.0), h4);
+  ASSERT_EQUAL_FP16(Float16(1.0), h5);
+#endif
 
   TEARDOWN();
 }
@@ -12102,16 +13369,16 @@ TEST(fcvt_half) {
   RUN();
 
   ASSERT_EQUAL_32(0, w0);  // 1 => float failed, 2 => double failed.
-  ASSERT_EQUAL_128(0, kFP16PositiveInfinity, q0);
-  ASSERT_EQUAL_128(0, kFP16NegativeInfinity, q1);
+  ASSERT_EQUAL_128(0, Float16ToRawbits(kFP16PositiveInfinity), q0);
+  ASSERT_EQUAL_128(0, Float16ToRawbits(kFP16NegativeInfinity), q1);
   ASSERT_EQUAL_128(0, 0x7bff, q2);
   ASSERT_EQUAL_128(0, 0x0400, q3);
   ASSERT_EQUAL_128(0, 0x03ff, q4);
   ASSERT_EQUAL_128(0, 0x0001, q5);
   ASSERT_EQUAL_128(0, 0, q6);
   ASSERT_EQUAL_128(0, 0x8000, q7);
-  ASSERT_EQUAL_128(0, kFP16PositiveInfinity, q20);
-  ASSERT_EQUAL_128(0, kFP16NegativeInfinity, q21);
+  ASSERT_EQUAL_128(0, Float16ToRawbits(kFP16PositiveInfinity), q20);
+  ASSERT_EQUAL_128(0, Float16ToRawbits(kFP16NegativeInfinity), q21);
   ASSERT_EQUAL_128(0, 0x7bff, q22);
   ASSERT_EQUAL_128(0, 0x0400, q23);
   ASSERT_EQUAL_128(0, 0x03ff, q24);
@@ -12837,6 +14104,114 @@ TEST(fcvtzs) {
   TEARDOWN();
 }
 
+void FjcvtzsHelper(uint64_t value, uint64_t expected, uint32_t expected_z) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kJSCVT);
+  START();
+  __ Fmov(d0, RawbitsToDouble(value));
+  __ Fjcvtzs(w0, d0);
+  __ Mrs(x1, NZCV);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_64(expected, x0);
+  ASSERT_EQUAL_32(expected_z, w1);
+#else
+  USE(expected);
+  USE(expected_z);
+#endif
+
+  TEARDOWN();
+}
+
+TEST(fjcvtzs) {
+  /* Simple values. */
+  FjcvtzsHelper(0x0000000000000000, 0, ZFlag);   // 0.0
+  FjcvtzsHelper(0x0010000000000000, 0, NoFlag);  // The smallest normal value.
+  FjcvtzsHelper(0x3fdfffffffffffff, 0, NoFlag);  // The value just below 0.5.
+  FjcvtzsHelper(0x3fe0000000000000, 0, NoFlag);  // 0.5
+  FjcvtzsHelper(0x3fe0000000000001, 0, NoFlag);  // The value just above 0.5.
+  FjcvtzsHelper(0x3fefffffffffffff, 0, NoFlag);  // The value just below 1.0.
+  FjcvtzsHelper(0x3ff0000000000000, 1, ZFlag);   // 1.0
+  FjcvtzsHelper(0x3ff0000000000001, 1, NoFlag);  // The value just above 1.0.
+  FjcvtzsHelper(0x3ff8000000000000, 1, NoFlag);  // 1.5
+  FjcvtzsHelper(0x4024000000000000, 10, ZFlag);  // 10
+  FjcvtzsHelper(0x7fefffffffffffff, 0, NoFlag);  // The largest finite value.
+
+  /* Infinity. */
+  FjcvtzsHelper(0x7ff0000000000000, 0, NoFlag);
+
+  /* NaNs. */
+  /*  - Quiet NaNs */
+  FjcvtzsHelper(0x7ff923456789abcd, 0, NoFlag);
+  FjcvtzsHelper(0x7ff8000000000000, 0, NoFlag);
+  /*  - Signalling NaNs */
+  FjcvtzsHelper(0x7ff123456789abcd, 0, NoFlag);
+  FjcvtzsHelper(0x7ff0000000000001, 0, NoFlag);
+
+  /* Subnormals. */
+  /*  - A recognisable bit pattern. */
+  FjcvtzsHelper(0x000123456789abcd, 0, NoFlag);
+  /*  - The largest subnormal value. */
+  FjcvtzsHelper(0x000fffffffffffff, 0, NoFlag);
+  /*  - The smallest subnormal value. */
+  FjcvtzsHelper(0x0000000000000001, 0, NoFlag);
+
+  /* The same values again, but negated. */
+  FjcvtzsHelper(0x8000000000000000, 0, NoFlag);
+  FjcvtzsHelper(0x8010000000000000, 0, NoFlag);
+  FjcvtzsHelper(0xbfdfffffffffffff, 0, NoFlag);
+  FjcvtzsHelper(0xbfe0000000000000, 0, NoFlag);
+  FjcvtzsHelper(0xbfe0000000000001, 0, NoFlag);
+  FjcvtzsHelper(0xbfefffffffffffff, 0, NoFlag);
+  FjcvtzsHelper(0xbff0000000000000, 0xffffffff, ZFlag);
+  FjcvtzsHelper(0xbff0000000000001, 0xffffffff, NoFlag);
+  FjcvtzsHelper(0xbff8000000000000, 0xffffffff, NoFlag);
+  FjcvtzsHelper(0xc024000000000000, 0xfffffff6, ZFlag);
+  FjcvtzsHelper(0xffefffffffffffff, 0, NoFlag);
+  FjcvtzsHelper(0xfff0000000000000, 0, NoFlag);
+  FjcvtzsHelper(0xfff923456789abcd, 0, NoFlag);
+  FjcvtzsHelper(0xfff8000000000000, 0, NoFlag);
+  FjcvtzsHelper(0xfff123456789abcd, 0, NoFlag);
+  FjcvtzsHelper(0xfff0000000000001, 0, NoFlag);
+  FjcvtzsHelper(0x800123456789abcd, 0, NoFlag);
+  FjcvtzsHelper(0x800fffffffffffff, 0, NoFlag);
+  FjcvtzsHelper(0x8000000000000001, 0, NoFlag);
+
+  // Test floating-point numbers of every possible exponent, most of the
+  // expected values are zero but there is a range of exponents where the
+  // results are shifted parts of this mantissa.
+  uint64_t mantissa = 0x0001234567890abc;
+
+  // Between an exponent of 0 and 52, only some of the top bits of the
+  // mantissa are above the decimal position of doubles so the mantissa is
+  // shifted to the right down to just those top bits. Above 52, all bits
+  // of the mantissa are shifted left above the decimal position until it
+  // reaches 52 + 64 where all the bits are shifted out of the range of 64-bit
+  // integers.
+  int first_exp_boundary = 52;
+  int second_exp_boundary = first_exp_boundary + 64;
+  for (int exponent = 0; exponent < 2048; exponent++) {
+    int e = exponent - 1023;
+
+    uint64_t expected = 0;
+    if (e < 0) {
+      expected = 0;
+    } else if (e <= first_exp_boundary) {
+      expected = (UINT64_C(1) << e) | (mantissa >> (52 - e));
+      expected &= 0xffffffff;
+    } else if (e < second_exp_boundary) {
+      expected = (mantissa << (e - 52)) & 0xffffffff;
+    } else {
+      expected = 0;
+    }
+
+    uint64_t value = (static_cast<uint64_t>(exponent) << 52) | mantissa;
+    FjcvtzsHelper(value, expected, NoFlag);
+    FjcvtzsHelper(value | kDSignMask, (-expected) & 0xffffffff, NoFlag);
+  }
+}
+
 TEST(fcvtzu) {
   SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
@@ -13484,14 +14859,263 @@ TEST(system_msr) {
 }
 
 
+TEST(system_pauth_a) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+  START();
+
+  // Exclude x16 and x17 from the scratch register list so we can use
+  // Pac/Autia1716 safely.
+  UseScratchRegisterScope temps(&masm);
+  temps.Exclude(x16, x17);
+  temps.Include(x10, x11);
+
+  // Backup stack pointer.
+  __ Mov(x20, sp);
+
+  // Modifiers
+  __ Mov(x16, 0x477d469dec0b8760);
+  __ Mov(sp, 0x477d469dec0b8760);
+
+  // Generate PACs using the 3 system instructions.
+  __ Mov(x17, 0x0000000012345678);
+  __ Pacia1716();
+  __ Mov(x0, x17);
+
+  __ Mov(lr, 0x0000000012345678);
+  __ Paciaz();
+  __ Mov(x1, lr);
+
+  __ Mov(lr, 0x0000000012345678);
+  __ Paciasp();
+  __ Mov(x2, lr);
+
+  // Authenticate the pointers above.
+  __ Mov(x17, x0);
+  __ Autia1716();
+  __ Mov(x3, x17);
+
+  __ Mov(lr, x1);
+  __ Autiaz();
+  __ Mov(x4, lr);
+
+  __ Mov(lr, x2);
+  __ Autiasp();
+  __ Mov(x5, lr);
+
+  // Attempt to authenticate incorrect pointers.
+  __ Mov(x17, x1);
+  __ Autia1716();
+  __ Mov(x6, x17);
+
+  __ Mov(lr, x0);
+  __ Autiaz();
+  __ Mov(x7, lr);
+
+  __ Mov(lr, x1);
+  __ Autiasp();
+  __ Mov(x8, lr);
+
+  // Strip the pac code from the pointer in x0.
+  __ Mov(lr, x0);
+  __ Xpaclri();
+  __ Mov(x9, lr);
+
+  // Restore stack pointer.
+  __ Mov(sp, x20);
+
+  // Mask out just the PAC code bits.
+  // TODO: use Simulator::CalculatePACMask in a nice way.
+  __ And(x0, x0, 0x007f000000000000);
+  __ And(x1, x1, 0x007f000000000000);
+  __ And(x2, x2, 0x007f000000000000);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  // Check PAC codes have been generated and aren't equal.
+  // NOTE: with a different ComputePAC implementation, there may be a collision.
+  ASSERT_NOT_EQUAL_64(0, x0);
+  ASSERT_NOT_EQUAL_64(0, x1);
+  ASSERT_NOT_EQUAL_64(0, x2);
+  ASSERT_NOT_EQUAL_64(x0, x1);
+  ASSERT_EQUAL_64(x0, x2);
+
+  // Pointers correctly authenticated.
+  ASSERT_EQUAL_64(0x0000000012345678, x3);
+  ASSERT_EQUAL_64(0x0000000012345678, x4);
+  ASSERT_EQUAL_64(0x0000000012345678, x5);
+
+  // Pointers corrupted after failing to authenticate.
+  ASSERT_EQUAL_64(0x0020000012345678, x6);
+  ASSERT_EQUAL_64(0x0020000012345678, x7);
+  ASSERT_EQUAL_64(0x0020000012345678, x8);
+
+  // Pointer with code stripped.
+  ASSERT_EQUAL_64(0x0000000012345678, x9);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(system_pauth_b) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+  START();
+
+  // Exclude x16 and x17 from the scratch register list so we can use
+  // Pac/Autia1716 safely.
+  UseScratchRegisterScope temps(&masm);
+  temps.Exclude(x16, x17);
+  temps.Include(x10, x11);
+
+  // Backup stack pointer.
+  __ Mov(x20, sp);
+
+  // Modifiers
+  __ Mov(x16, 0x477d469dec0b8760);
+  __ Mov(sp, 0x477d469dec0b8760);
+
+  // Generate PACs using the 3 system instructions.
+  __ Mov(x17, 0x0000000012345678);
+  __ Pacib1716();
+  __ Mov(x0, x17);
+
+  __ Mov(lr, 0x0000000012345678);
+  __ Pacibz();
+  __ Mov(x1, lr);
+
+  __ Mov(lr, 0x0000000012345678);
+  __ Pacibsp();
+  __ Mov(x2, lr);
+
+  // Authenticate the pointers above.
+  __ Mov(x17, x0);
+  __ Autib1716();
+  __ Mov(x3, x17);
+
+  __ Mov(lr, x1);
+  __ Autibz();
+  __ Mov(x4, lr);
+
+  __ Mov(lr, x2);
+  __ Autibsp();
+  __ Mov(x5, lr);
+
+  // Attempt to authenticate incorrect pointers.
+  __ Mov(x17, x1);
+  __ Autib1716();
+  __ Mov(x6, x17);
+
+  __ Mov(lr, x0);
+  __ Autibz();
+  __ Mov(x7, lr);
+
+  __ Mov(lr, x1);
+  __ Autibsp();
+  __ Mov(x8, lr);
+
+  // Strip the pac code from the pointer in x0.
+  __ Mov(lr, x0);
+  __ Xpaclri();
+  __ Mov(x9, lr);
+
+  // Restore stack pointer.
+  __ Mov(sp, x20);
+
+  // Mask out just the PAC code bits.
+  // TODO: use Simulator::CalculatePACMask in a nice way.
+  __ And(x0, x0, 0x007f000000000000);
+  __ And(x1, x1, 0x007f000000000000);
+  __ And(x2, x2, 0x007f000000000000);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  // Check PAC codes have been generated and aren't equal.
+  // NOTE: with a different ComputePAC implementation, there may be a collision.
+  ASSERT_NOT_EQUAL_64(0, x0);
+  ASSERT_NOT_EQUAL_64(0, x1);
+  ASSERT_NOT_EQUAL_64(0, x2);
+  ASSERT_NOT_EQUAL_64(x0, x1);
+  ASSERT_EQUAL_64(x0, x2);
+
+  // Pointers correctly authenticated.
+  ASSERT_EQUAL_64(0x0000000012345678, x3);
+  ASSERT_EQUAL_64(0x0000000012345678, x4);
+  ASSERT_EQUAL_64(0x0000000012345678, x5);
+
+  // Pointers corrupted after failing to authenticate.
+  ASSERT_EQUAL_64(0x0040000012345678, x6);
+  ASSERT_EQUAL_64(0x0040000012345678, x7);
+  ASSERT_EQUAL_64(0x0040000012345678, x8);
+
+  // Pointer with code stripped.
+  ASSERT_EQUAL_64(0x0000000012345678, x9);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+#ifdef VIXL_NEGATIVE_TESTING
+TEST(system_pauth_negative_test) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+  START();
+
+  // Test for an assert (independent of order).
+  MUST_FAIL_WITH_MESSAGE(__ Pacia1716(),
+                         "Assertion failed "
+                         "(!GetScratchRegisterList()->IncludesAliasOf(");
+
+  // Test for x16 assert.
+  {
+    UseScratchRegisterScope temps(&masm);
+    temps.Exclude(x17);
+    temps.Include(x16);
+    MUST_FAIL_WITH_MESSAGE(__ Pacia1716(),
+                           "Assertion failed "
+                           "(!GetScratchRegisterList()->IncludesAliasOf(x16))");
+  }
+
+  // Test for x17 assert.
+  {
+    UseScratchRegisterScope temps(&masm);
+    temps.Exclude(x16);
+    temps.Include(x17);
+    MUST_FAIL_WITH_MESSAGE(__ Pacia1716(),
+                           "Assertion failed "
+                           "(!GetScratchRegisterList()->IncludesAliasOf(x17))");
+  }
+
+  // Repeat first test for other 1716 instructions.
+  MUST_FAIL_WITH_MESSAGE(__ Pacib1716(),
+                         "Assertion failed "
+                         "(!GetScratchRegisterList()->IncludesAliasOf(");
+  MUST_FAIL_WITH_MESSAGE(__ Autia1716(),
+                         "Assertion failed "
+                         "(!GetScratchRegisterList()->IncludesAliasOf(");
+  MUST_FAIL_WITH_MESSAGE(__ Autib1716(),
+                         "Assertion failed "
+                         "(!GetScratchRegisterList()->IncludesAliasOf(");
+
+  END();
+  TEARDOWN();
+}
+#endif  // VIXL_NEGATIVE_TESTING
+
+
 TEST(system) {
   // RegisterDump::Dump uses NEON.
-  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kRAS);
   RegisterDump before;
 
   START();
   before.Dump(&masm);
   __ Nop();
+  __ Esb();
   __ Csdb();
   END();
 
@@ -15570,10 +17194,11 @@ TEST(process_nan_float) {
   TEARDOWN();
 }
 
+// TODO: TEST(process_nan_half) {}
 
 static void ProcessNaNsHelper(double n, double m, double expected) {
-  VIXL_ASSERT(std::isnan(n) || std::isnan(m));
-  VIXL_ASSERT(std::isnan(expected));
+  VIXL_ASSERT(IsNaN(n) || IsNaN(m));
+  VIXL_ASSERT(IsNaN(expected));
 
   SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
@@ -15644,8 +17269,8 @@ TEST(process_nans_double) {
 
 
 static void ProcessNaNsHelper(float n, float m, float expected) {
-  VIXL_ASSERT(std::isnan(n) || std::isnan(m));
-  VIXL_ASSERT(std::isnan(expected));
+  VIXL_ASSERT(IsNaN(n) || IsNaN(m));
+  VIXL_ASSERT(IsNaN(expected));
 
   SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
@@ -15715,14 +17340,92 @@ TEST(process_nans_float) {
 }
 
 
-static void DefaultNaNHelper(float n, float m, float a) {
-  VIXL_ASSERT(std::isnan(n) || std::isnan(m) || std::isnan(a));
+static void ProcessNaNsHelper(Float16 n, Float16 m, Float16 expected) {
+  VIXL_ASSERT(IsNaN(n) || IsNaN(m));
+  VIXL_ASSERT(IsNaN(expected));
 
-  bool test_1op = std::isnan(n);
-  bool test_2op = std::isnan(n) || std::isnan(m);
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFPHalf);
+
+  START();
+
+  // Execute a number of instructions which all use ProcessNaNs, and check that
+  // they all propagate NaNs correctly.
+  __ Fmov(h0, n);
+  __ Fmov(h1, m);
+
+  __ Fadd(h2, h0, h1);
+  __ Fsub(h3, h0, h1);
+
+  // TODO: Test the following instructions as support is added.
+
+  // __ Fmul(h4, h0, h1);
+  // __ Fdiv(h5, h0, h1);
+  // __ Fmax(h6, h0, h1);
+  // __ Fmin(h7, h0, h1);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_FP16(expected, h2);
+  ASSERT_EQUAL_FP16(expected, h3);
+// ASSERT_EQUAL_FP16(expected, h4);
+// ASSERT_EQUAL_FP16(expected, h5);
+// ASSERT_EQUAL_FP16(expected, h6);
+// ASSERT_EQUAL_FP16(expected, h7);
+#else
+  USE(expected);
+#endif
+
+  TEARDOWN();
+}
+
+
+TEST(process_nans_half) {
+  // Make sure that NaN propagation works correctly.
+  Float16 sn(RawbitsToFloat16(0x7c11));
+  Float16 sm(RawbitsToFloat16(0xfc22));
+  Float16 qn(RawbitsToFloat16(0x7e33));
+  Float16 qm(RawbitsToFloat16(0xfe44));
+  VIXL_ASSERT(IsSignallingNaN(sn));
+  VIXL_ASSERT(IsSignallingNaN(sm));
+  VIXL_ASSERT(IsQuietNaN(qn));
+  VIXL_ASSERT(IsQuietNaN(qm));
+
+  // The input NaNs after passing through ProcessNaN.
+  Float16 sn_proc(RawbitsToFloat16(0x7e11));
+  Float16 sm_proc(RawbitsToFloat16(0xfe22));
+  Float16 qn_proc = qn;
+  Float16 qm_proc = qm;
+  VIXL_ASSERT(IsQuietNaN(sn_proc));
+  VIXL_ASSERT(IsQuietNaN(sm_proc));
+  VIXL_ASSERT(IsQuietNaN(qn_proc));
+  VIXL_ASSERT(IsQuietNaN(qm_proc));
+
+  // Quiet NaNs are propagated.
+  ProcessNaNsHelper(qn, Float16(), qn_proc);
+  ProcessNaNsHelper(Float16(), qm, qm_proc);
+  ProcessNaNsHelper(qn, qm, qn_proc);
+
+  // Signalling NaNs are propagated, and made quiet.
+  ProcessNaNsHelper(sn, Float16(), sn_proc);
+  ProcessNaNsHelper(Float16(), sm, sm_proc);
+  ProcessNaNsHelper(sn, sm, sn_proc);
+
+  // Signalling NaNs take precedence over quiet NaNs.
+  ProcessNaNsHelper(sn, qm, sn_proc);
+  ProcessNaNsHelper(qn, sm, sm_proc);
+  ProcessNaNsHelper(sn, sm, sn_proc);
+}
+
+
+static void DefaultNaNHelper(float n, float m, float a) {
+  VIXL_ASSERT(IsNaN(n) || IsNaN(m) || IsNaN(a));
+
+  bool test_1op = IsNaN(n);
+  bool test_2op = IsNaN(n) || IsNaN(m);
 
   SETUP_WITH_FEATURES(CPUFeatures::kFP);
-
   START();
 
   // Enable Default-NaN mode in the FPCR.
@@ -15844,10 +17547,10 @@ TEST(default_nan_float) {
 
 
 static void DefaultNaNHelper(double n, double m, double a) {
-  VIXL_ASSERT(std::isnan(n) || std::isnan(m) || std::isnan(a));
+  VIXL_ASSERT(IsNaN(n) || IsNaN(m) || IsNaN(a));
 
-  bool test_1op = std::isnan(n);
-  bool test_2op = std::isnan(n) || std::isnan(m);
+  bool test_1op = IsNaN(n);
+  bool test_2op = IsNaN(n) || IsNaN(m);
 
   SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
@@ -16058,7 +17761,6 @@ TEST(ldlar_stllr) {
 
   END();
 
-// TODO: test on real hardware when available
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
 
@@ -16608,7 +18310,6 @@ TEST(cas_casa_casl_casal_w) {
 
   END();
 
-// TODO: test on real hardware when available
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
 
@@ -16688,7 +18389,6 @@ TEST(cas_casa_casl_casal_x) {
 
   END();
 
-// TODO: test on real hardware when available
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
 
@@ -16768,7 +18468,6 @@ TEST(casb_casab_caslb_casalb) {
 
   END();
 
-// TODO: test on real hardware when available
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
 
@@ -16848,7 +18547,6 @@ TEST(cash_casah_caslh_casalh) {
 
   END();
 
-// TODO: test on real hardware when available
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
 
@@ -16940,7 +18638,6 @@ TEST(casp_caspa_caspl_caspal) {
 
   END();
 
-// TODO: test on real hardware when available
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
 
@@ -16974,6 +18671,387 @@ TEST(casp_caspa_caspl_caspal) {
   TEARDOWN();
 }
 
+
+typedef void (MacroAssembler::*AtomicMemoryLoadSignature)(
+    const Register& rs, const Register& rt, const MemOperand& src);
+typedef void (MacroAssembler::*AtomicMemoryStoreSignature)(
+    const Register& rs, const MemOperand& src);
+
+void AtomicMemoryWHelper(AtomicMemoryLoadSignature* load_funcs,
+                         AtomicMemoryStoreSignature* store_funcs,
+                         uint64_t arg1,
+                         uint64_t arg2,
+                         uint64_t expected,
+                         uint64_t result_mask) {
+  uint64_t data0[] __attribute__((aligned(kXRegSizeInBytes * 2))) = {arg2, 0};
+  uint64_t data1[] __attribute__((aligned(kXRegSizeInBytes * 2))) = {arg2, 0};
+  uint64_t data2[] __attribute__((aligned(kXRegSizeInBytes * 2))) = {arg2, 0};
+  uint64_t data3[] __attribute__((aligned(kXRegSizeInBytes * 2))) = {arg2, 0};
+  uint64_t data4[] __attribute__((aligned(kXRegSizeInBytes * 2))) = {arg2, 0};
+  uint64_t data5[] __attribute__((aligned(kXRegSizeInBytes * 2))) = {arg2, 0};
+
+  SETUP_WITH_FEATURES(CPUFeatures::kAtomics);
+  START();
+
+  __ Mov(x20, reinterpret_cast<uintptr_t>(data0));
+  __ Mov(x21, reinterpret_cast<uintptr_t>(data1));
+  __ Mov(x22, reinterpret_cast<uintptr_t>(data2));
+  __ Mov(x23, reinterpret_cast<uintptr_t>(data3));
+
+  __ Mov(x0, arg1);
+  __ Mov(x1, arg1);
+  __ Mov(x2, arg1);
+  __ Mov(x3, arg1);
+
+  (masm.*(load_funcs[0]))(w0, w10, MemOperand(x20));
+  (masm.*(load_funcs[1]))(w1, w11, MemOperand(x21));
+  (masm.*(load_funcs[2]))(w2, w12, MemOperand(x22));
+  (masm.*(load_funcs[3]))(w3, w13, MemOperand(x23));
+
+  if (store_funcs != NULL) {
+    __ Mov(x24, reinterpret_cast<uintptr_t>(data4));
+    __ Mov(x25, reinterpret_cast<uintptr_t>(data5));
+    __ Mov(x4, arg1);
+    __ Mov(x5, arg1);
+
+    (masm.*(store_funcs[0]))(w4, MemOperand(x24));
+    (masm.*(store_funcs[1]))(w5, MemOperand(x25));
+  }
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  uint64_t stored_value = arg2 & result_mask;
+  ASSERT_EQUAL_64(stored_value, x10);
+  ASSERT_EQUAL_64(stored_value, x11);
+  ASSERT_EQUAL_64(stored_value, x12);
+  ASSERT_EQUAL_64(stored_value, x13);
+
+  // The data fields contain arg2 already then only the bits masked by
+  // result_mask are overwritten.
+  uint64_t final_expected = (arg2 & ~result_mask) | (expected & result_mask);
+  ASSERT_EQUAL_64(final_expected, data0[0]);
+  ASSERT_EQUAL_64(final_expected, data1[0]);
+  ASSERT_EQUAL_64(final_expected, data2[0]);
+  ASSERT_EQUAL_64(final_expected, data3[0]);
+
+  if (store_funcs != NULL) {
+    ASSERT_EQUAL_64(final_expected, data4[0]);
+    ASSERT_EQUAL_64(final_expected, data5[0]);
+  }
+#else
+  USE(expected, result_mask);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+void AtomicMemoryXHelper(AtomicMemoryLoadSignature* load_funcs,
+                         AtomicMemoryStoreSignature* store_funcs,
+                         uint64_t arg1,
+                         uint64_t arg2,
+                         uint64_t expected) {
+  uint64_t data0[] __attribute__((aligned(kXRegSizeInBytes * 2))) = {arg2, 0};
+  uint64_t data1[] __attribute__((aligned(kXRegSizeInBytes * 2))) = {arg2, 0};
+  uint64_t data2[] __attribute__((aligned(kXRegSizeInBytes * 2))) = {arg2, 0};
+  uint64_t data3[] __attribute__((aligned(kXRegSizeInBytes * 2))) = {arg2, 0};
+  uint64_t data4[] __attribute__((aligned(kXRegSizeInBytes * 2))) = {arg2, 0};
+  uint64_t data5[] __attribute__((aligned(kXRegSizeInBytes * 2))) = {arg2, 0};
+
+  SETUP_WITH_FEATURES(CPUFeatures::kAtomics);
+  START();
+
+  __ Mov(x20, reinterpret_cast<uintptr_t>(data0));
+  __ Mov(x21, reinterpret_cast<uintptr_t>(data1));
+  __ Mov(x22, reinterpret_cast<uintptr_t>(data2));
+  __ Mov(x23, reinterpret_cast<uintptr_t>(data3));
+
+  __ Mov(x0, arg1);
+  __ Mov(x1, arg1);
+  __ Mov(x2, arg1);
+  __ Mov(x3, arg1);
+
+  (masm.*(load_funcs[0]))(x0, x10, MemOperand(x20));
+  (masm.*(load_funcs[1]))(x1, x11, MemOperand(x21));
+  (masm.*(load_funcs[2]))(x2, x12, MemOperand(x22));
+  (masm.*(load_funcs[3]))(x3, x13, MemOperand(x23));
+
+  if (store_funcs != NULL) {
+    __ Mov(x24, reinterpret_cast<uintptr_t>(data4));
+    __ Mov(x25, reinterpret_cast<uintptr_t>(data5));
+    __ Mov(x4, arg1);
+    __ Mov(x5, arg1);
+
+    (masm.*(store_funcs[0]))(x4, MemOperand(x24));
+    (masm.*(store_funcs[1]))(x5, MemOperand(x25));
+  }
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(arg2, x10);
+  ASSERT_EQUAL_64(arg2, x11);
+  ASSERT_EQUAL_64(arg2, x12);
+  ASSERT_EQUAL_64(arg2, x13);
+
+  ASSERT_EQUAL_64(expected, data0[0]);
+  ASSERT_EQUAL_64(expected, data1[0]);
+  ASSERT_EQUAL_64(expected, data2[0]);
+  ASSERT_EQUAL_64(expected, data3[0]);
+
+  if (store_funcs != NULL) {
+    ASSERT_EQUAL_64(expected, data4[0]);
+    ASSERT_EQUAL_64(expected, data5[0]);
+  }
+#else
+  USE(expected);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+// clang-format off
+#define MAKE_LOADS(NAME)           \
+    {&MacroAssembler::Ld##NAME,    \
+     &MacroAssembler::Ld##NAME##a, \
+     &MacroAssembler::Ld##NAME##l, \
+     &MacroAssembler::Ld##NAME##al}
+#define MAKE_STORES(NAME) \
+    {&MacroAssembler::St##NAME, &MacroAssembler::St##NAME##l}
+
+#define MAKE_B_LOADS(NAME)          \
+    {&MacroAssembler::Ld##NAME##b,  \
+     &MacroAssembler::Ld##NAME##ab, \
+     &MacroAssembler::Ld##NAME##lb, \
+     &MacroAssembler::Ld##NAME##alb}
+#define MAKE_B_STORES(NAME) \
+    {&MacroAssembler::St##NAME##b, &MacroAssembler::St##NAME##lb}
+
+#define MAKE_H_LOADS(NAME)          \
+    {&MacroAssembler::Ld##NAME##h,  \
+     &MacroAssembler::Ld##NAME##ah, \
+     &MacroAssembler::Ld##NAME##lh, \
+     &MacroAssembler::Ld##NAME##alh}
+#define MAKE_H_STORES(NAME) \
+    {&MacroAssembler::St##NAME##h, &MacroAssembler::St##NAME##lh}
+// clang-format on
+
+TEST(atomic_memory_add) {
+  AtomicMemoryLoadSignature loads[] = MAKE_LOADS(add);
+  AtomicMemoryStoreSignature stores[] = MAKE_STORES(add);
+  AtomicMemoryLoadSignature b_loads[] = MAKE_B_LOADS(add);
+  AtomicMemoryStoreSignature b_stores[] = MAKE_B_STORES(add);
+  AtomicMemoryLoadSignature h_loads[] = MAKE_H_LOADS(add);
+  AtomicMemoryStoreSignature h_stores[] = MAKE_H_STORES(add);
+
+  // The arguments are chosen to have two useful properties:
+  //  * When multiplied by small values (such as a register index), this value
+  //    is clearly readable in the result.
+  //  * The value is not formed from repeating fixed-size smaller values, so it
+  //    can be used to detect endianness-related errors.
+  uint64_t arg1 = 0x0100001000100101;
+  uint64_t arg2 = 0x0200002000200202;
+  uint64_t expected = arg1 + arg2;
+
+  AtomicMemoryWHelper(b_loads, b_stores, arg1, arg2, expected, kByteMask);
+  AtomicMemoryWHelper(h_loads, h_stores, arg1, arg2, expected, kHalfWordMask);
+  AtomicMemoryWHelper(loads, stores, arg1, arg2, expected, kWordMask);
+  AtomicMemoryXHelper(loads, stores, arg1, arg2, expected);
+}
+
+TEST(atomic_memory_clr) {
+  AtomicMemoryLoadSignature loads[] = MAKE_LOADS(clr);
+  AtomicMemoryStoreSignature stores[] = MAKE_STORES(clr);
+  AtomicMemoryLoadSignature b_loads[] = MAKE_B_LOADS(clr);
+  AtomicMemoryStoreSignature b_stores[] = MAKE_B_STORES(clr);
+  AtomicMemoryLoadSignature h_loads[] = MAKE_H_LOADS(clr);
+  AtomicMemoryStoreSignature h_stores[] = MAKE_H_STORES(clr);
+
+  uint64_t arg1 = 0x0300003000300303;
+  uint64_t arg2 = 0x0500005000500505;
+  uint64_t expected = arg2 & ~arg1;
+
+  AtomicMemoryWHelper(b_loads, b_stores, arg1, arg2, expected, kByteMask);
+  AtomicMemoryWHelper(h_loads, h_stores, arg1, arg2, expected, kHalfWordMask);
+  AtomicMemoryWHelper(loads, stores, arg1, arg2, expected, kWordMask);
+  AtomicMemoryXHelper(loads, stores, arg1, arg2, expected);
+}
+
+TEST(atomic_memory_eor) {
+  AtomicMemoryLoadSignature loads[] = MAKE_LOADS(eor);
+  AtomicMemoryStoreSignature stores[] = MAKE_STORES(eor);
+  AtomicMemoryLoadSignature b_loads[] = MAKE_B_LOADS(eor);
+  AtomicMemoryStoreSignature b_stores[] = MAKE_B_STORES(eor);
+  AtomicMemoryLoadSignature h_loads[] = MAKE_H_LOADS(eor);
+  AtomicMemoryStoreSignature h_stores[] = MAKE_H_STORES(eor);
+
+  uint64_t arg1 = 0x0300003000300303;
+  uint64_t arg2 = 0x0500005000500505;
+  uint64_t expected = arg1 ^ arg2;
+
+  AtomicMemoryWHelper(b_loads, b_stores, arg1, arg2, expected, kByteMask);
+  AtomicMemoryWHelper(h_loads, h_stores, arg1, arg2, expected, kHalfWordMask);
+  AtomicMemoryWHelper(loads, stores, arg1, arg2, expected, kWordMask);
+  AtomicMemoryXHelper(loads, stores, arg1, arg2, expected);
+}
+
+TEST(atomic_memory_set) {
+  AtomicMemoryLoadSignature loads[] = MAKE_LOADS(set);
+  AtomicMemoryStoreSignature stores[] = MAKE_STORES(set);
+  AtomicMemoryLoadSignature b_loads[] = MAKE_B_LOADS(set);
+  AtomicMemoryStoreSignature b_stores[] = MAKE_B_STORES(set);
+  AtomicMemoryLoadSignature h_loads[] = MAKE_H_LOADS(set);
+  AtomicMemoryStoreSignature h_stores[] = MAKE_H_STORES(set);
+
+  uint64_t arg1 = 0x0300003000300303;
+  uint64_t arg2 = 0x0500005000500505;
+  uint64_t expected = arg1 | arg2;
+
+  AtomicMemoryWHelper(b_loads, b_stores, arg1, arg2, expected, kByteMask);
+  AtomicMemoryWHelper(h_loads, h_stores, arg1, arg2, expected, kHalfWordMask);
+  AtomicMemoryWHelper(loads, stores, arg1, arg2, expected, kWordMask);
+  AtomicMemoryXHelper(loads, stores, arg1, arg2, expected);
+}
+
+TEST(atomic_memory_smax) {
+  AtomicMemoryLoadSignature loads[] = MAKE_LOADS(smax);
+  AtomicMemoryStoreSignature stores[] = MAKE_STORES(smax);
+  AtomicMemoryLoadSignature b_loads[] = MAKE_B_LOADS(smax);
+  AtomicMemoryStoreSignature b_stores[] = MAKE_B_STORES(smax);
+  AtomicMemoryLoadSignature h_loads[] = MAKE_H_LOADS(smax);
+  AtomicMemoryStoreSignature h_stores[] = MAKE_H_STORES(smax);
+
+  uint64_t arg1 = 0x8100000080108181;
+  uint64_t arg2 = 0x0100001000100101;
+  uint64_t expected = 0x0100001000100101;
+
+  AtomicMemoryWHelper(b_loads, b_stores, arg1, arg2, expected, kByteMask);
+  AtomicMemoryWHelper(h_loads, h_stores, arg1, arg2, expected, kHalfWordMask);
+  AtomicMemoryWHelper(loads, stores, arg1, arg2, expected, kWordMask);
+  AtomicMemoryXHelper(loads, stores, arg1, arg2, expected);
+}
+
+TEST(atomic_memory_smin) {
+  AtomicMemoryLoadSignature loads[] = MAKE_LOADS(smin);
+  AtomicMemoryStoreSignature stores[] = MAKE_STORES(smin);
+  AtomicMemoryLoadSignature b_loads[] = MAKE_B_LOADS(smin);
+  AtomicMemoryStoreSignature b_stores[] = MAKE_B_STORES(smin);
+  AtomicMemoryLoadSignature h_loads[] = MAKE_H_LOADS(smin);
+  AtomicMemoryStoreSignature h_stores[] = MAKE_H_STORES(smin);
+
+  uint64_t arg1 = 0x8100000080108181;
+  uint64_t arg2 = 0x0100001000100101;
+  uint64_t expected = 0x8100000080108181;
+
+  AtomicMemoryWHelper(b_loads, b_stores, arg1, arg2, expected, kByteMask);
+  AtomicMemoryWHelper(h_loads, h_stores, arg1, arg2, expected, kHalfWordMask);
+  AtomicMemoryWHelper(loads, stores, arg1, arg2, expected, kWordMask);
+  AtomicMemoryXHelper(loads, stores, arg1, arg2, expected);
+}
+
+TEST(atomic_memory_umax) {
+  AtomicMemoryLoadSignature loads[] = MAKE_LOADS(umax);
+  AtomicMemoryStoreSignature stores[] = MAKE_STORES(umax);
+  AtomicMemoryLoadSignature b_loads[] = MAKE_B_LOADS(umax);
+  AtomicMemoryStoreSignature b_stores[] = MAKE_B_STORES(umax);
+  AtomicMemoryLoadSignature h_loads[] = MAKE_H_LOADS(umax);
+  AtomicMemoryStoreSignature h_stores[] = MAKE_H_STORES(umax);
+
+  uint64_t arg1 = 0x8100000080108181;
+  uint64_t arg2 = 0x0100001000100101;
+  uint64_t expected = 0x8100000080108181;
+
+  AtomicMemoryWHelper(b_loads, b_stores, arg1, arg2, expected, kByteMask);
+  AtomicMemoryWHelper(h_loads, h_stores, arg1, arg2, expected, kHalfWordMask);
+  AtomicMemoryWHelper(loads, stores, arg1, arg2, expected, kWordMask);
+  AtomicMemoryXHelper(loads, stores, arg1, arg2, expected);
+}
+
+TEST(atomic_memory_umin) {
+  AtomicMemoryLoadSignature loads[] = MAKE_LOADS(umin);
+  AtomicMemoryStoreSignature stores[] = MAKE_STORES(umin);
+  AtomicMemoryLoadSignature b_loads[] = MAKE_B_LOADS(umin);
+  AtomicMemoryStoreSignature b_stores[] = MAKE_B_STORES(umin);
+  AtomicMemoryLoadSignature h_loads[] = MAKE_H_LOADS(umin);
+  AtomicMemoryStoreSignature h_stores[] = MAKE_H_STORES(umin);
+
+  uint64_t arg1 = 0x8100000080108181;
+  uint64_t arg2 = 0x0100001000100101;
+  uint64_t expected = 0x0100001000100101;
+
+  AtomicMemoryWHelper(b_loads, b_stores, arg1, arg2, expected, kByteMask);
+  AtomicMemoryWHelper(h_loads, h_stores, arg1, arg2, expected, kHalfWordMask);
+  AtomicMemoryWHelper(loads, stores, arg1, arg2, expected, kWordMask);
+  AtomicMemoryXHelper(loads, stores, arg1, arg2, expected);
+}
+
+TEST(atomic_memory_swp) {
+  AtomicMemoryLoadSignature loads[] = {&MacroAssembler::Swp,
+                                       &MacroAssembler::Swpa,
+                                       &MacroAssembler::Swpl,
+                                       &MacroAssembler::Swpal};
+  AtomicMemoryLoadSignature b_loads[] = {&MacroAssembler::Swpb,
+                                         &MacroAssembler::Swpab,
+                                         &MacroAssembler::Swplb,
+                                         &MacroAssembler::Swpalb};
+  AtomicMemoryLoadSignature h_loads[] = {&MacroAssembler::Swph,
+                                         &MacroAssembler::Swpah,
+                                         &MacroAssembler::Swplh,
+                                         &MacroAssembler::Swpalh};
+
+  uint64_t arg1 = 0x0100001000100101;
+  uint64_t arg2 = 0x0200002000200202;
+  uint64_t expected = 0x0100001000100101;
+
+  // SWP functions have equivalent signatures to the Atomic Memory LD functions
+  // so we can use the same helper but without the ST aliases.
+  AtomicMemoryWHelper(b_loads, NULL, arg1, arg2, expected, kByteMask);
+  AtomicMemoryWHelper(h_loads, NULL, arg1, arg2, expected, kHalfWordMask);
+  AtomicMemoryWHelper(loads, NULL, arg1, arg2, expected, kWordMask);
+  AtomicMemoryXHelper(loads, NULL, arg1, arg2, expected);
+}
+
+
+TEST(ldaprb_ldaprh_ldapr) {
+  uint64_t data0[] = {0x1010101010101010, 0};
+  uint64_t data1[] = {0x1010101010101010, 0};
+  uint64_t data2[] = {0x1010101010101010, 0};
+  uint64_t data3[] = {0x1010101010101010, 0};
+
+  uint64_t* data0_aligned = AlignUp(data0, kXRegSizeInBytes * 2);
+  uint64_t* data1_aligned = AlignUp(data1, kXRegSizeInBytes * 2);
+  uint64_t* data2_aligned = AlignUp(data2, kXRegSizeInBytes * 2);
+  uint64_t* data3_aligned = AlignUp(data3, kXRegSizeInBytes * 2);
+
+  SETUP_WITH_FEATURES(CPUFeatures::kRCpc);
+  START();
+
+  __ Mov(x20, reinterpret_cast<uintptr_t>(data0_aligned));
+  __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
+  __ Mov(x22, reinterpret_cast<uintptr_t>(data2_aligned));
+  __ Mov(x23, reinterpret_cast<uintptr_t>(data3_aligned));
+
+  __ Ldaprb(w0, MemOperand(x20));
+  __ Ldaprh(w1, MemOperand(x21));
+  __ Ldapr(w2, MemOperand(x22));
+  __ Ldapr(x3, MemOperand(x23));
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_64(0x10, x0);
+  ASSERT_EQUAL_64(0x1010, x1);
+  ASSERT_EQUAL_64(0x10101010, x2);
+  ASSERT_EQUAL_64(0x1010101010101010, x3);
+#endif
+
+  TEARDOWN();
+}
 
 TEST(load_store_tagged_immediate_offset) {
   uint64_t tags[] = {0x00, 0x1, 0x55, 0xff};
@@ -17891,7 +19969,6 @@ TEST(neon_3same_sqrdmlah) {
 
   END();
 
-// TODO: test on real hardware when available
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
   ASSERT_EQUAL_128(0, 0x0000040104010000, q16);
@@ -18020,7 +20097,6 @@ TEST(neon_3same_sdot_udot) {
 
   END();
 
-// TODO: test on real hardware when available
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
   ASSERT_EQUAL_128(0x000037d8000045f8, 0x000037d8000045f8, q16);
@@ -18670,6 +20746,356 @@ TEST(neon_3same_scalar_compare) {
   ASSERT_EQUAL_128(0, 0xffffffffffffffff, q26);
   ASSERT_EQUAL_128(0, 0xffffffffffffffff, q27);
   ASSERT_EQUAL_128(0, 0x0000000000000000, q28);
+
+  TEARDOWN();
+}
+
+TEST(neon_fcmeq_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+
+  __ Movi(v0.V2D(), 0x0000000000000000, 0x0000000000000000);  // 0.
+  __ Movi(v1.V2D(), 0xffffffffffffffff, 0xffffffffffffffff);  // NaN.
+  __ Movi(v2.V2D(), 0xbc00bc00bc00bc00, 0xbc00bc00bc00bc00);  // -1.0.
+  __ Movi(v3.V2D(), 0x3c003c003c003c00, 0x3c003c003c003c00);  // 1.0.
+
+  __ Fcmeq(v4.V8H(), v0.V8H(), v0.V8H());
+  __ Fcmeq(v5.V8H(), v1.V8H(), v0.V8H());
+  __ Fcmeq(v6.V8H(), v2.V8H(), v0.V8H());
+  __ Fcmeq(v7.V8H(), v3.V8H(), v0.V8H());
+  __ Fcmeq(v8.V4H(), v0.V4H(), v0.V4H());
+  __ Fcmeq(v9.V4H(), v1.V4H(), v0.V4H());
+  __ Fcmeq(v10.V4H(), v2.V4H(), v0.V4H());
+  __ Fcmeq(v11.V4H(), v3.V4H(), v0.V4H());
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, v4);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, v5);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, v6);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, v7);
+  ASSERT_EQUAL_128(0, 0xffffffffffffffff, v8);
+  ASSERT_EQUAL_128(0, 0x0000000000000000, v9);
+  ASSERT_EQUAL_128(0, 0x0000000000000000, v10);
+  ASSERT_EQUAL_128(0, 0x0000000000000000, v11);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(neon_fcmeq_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf,
+                      CPUFeatures::kFPHalf);
+
+  START();
+
+  __ Fmov(h0, Float16(0.0));
+  __ Fmov(h1, RawbitsToFloat16(0xffff));
+  __ Fmov(h2, Float16(-1.0));
+  __ Fmov(h3, Float16(1.0));
+  __ Fcmeq(h4, h0, h0);
+  __ Fcmeq(h5, h1, h0);
+  __ Fcmeq(h6, h2, h0);
+  __ Fcmeq(h7, h3, h0);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h4);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h5);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h6);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h7);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(neon_fcmge_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+
+  __ Movi(v0.V2D(), 0x0000000000000000, 0x0000000000000000);  // 0.
+  __ Movi(v1.V2D(), 0xffffffffffffffff, 0xffffffffffffffff);  // NaN.
+  __ Movi(v2.V2D(), 0xbc00bc00bc00bc00, 0xbc00bc00bc00bc00);  // -1.0.
+  __ Movi(v3.V2D(), 0x3c003c003c003c00, 0x3c003c003c003c00);  // 1.0.
+
+  __ Fcmge(v4.V8H(), v0.V8H(), v0.V8H());
+  __ Fcmge(v5.V8H(), v1.V8H(), v0.V8H());
+  __ Fcmge(v6.V8H(), v2.V8H(), v0.V8H());
+  __ Fcmge(v7.V8H(), v3.V8H(), v0.V8H());
+  __ Fcmge(v8.V4H(), v0.V4H(), v0.V4H());
+  __ Fcmge(v9.V4H(), v1.V4H(), v0.V4H());
+  __ Fcmge(v10.V4H(), v2.V4H(), v0.V4H());
+  __ Fcmge(v11.V4H(), v3.V4H(), v0.V4H());
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, v4);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, v5);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, v6);
+  ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, v7);
+  ASSERT_EQUAL_128(0, 0xffffffffffffffff, v8);
+  ASSERT_EQUAL_128(0, 0x0000000000000000, v9);
+  ASSERT_EQUAL_128(0, 0x0000000000000000, v10);
+  ASSERT_EQUAL_128(0, 0xffffffffffffffff, v11);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(neon_fcmge_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf,
+                      CPUFeatures::kFPHalf);
+
+  START();
+
+  __ Fmov(h0, Float16(0.0));
+  __ Fmov(h1, RawbitsToFloat16(0xffff));
+  __ Fmov(h2, Float16(-1.0));
+  __ Fmov(h3, Float16(1.0));
+  __ Fcmge(h4, h0, h0);
+  __ Fcmge(h5, h1, h0);
+  __ Fcmge(h6, h2, h0);
+  __ Fcmge(h7, h3, h0);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h4);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h5);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h6);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h7);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(neon_fcmgt_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+
+  __ Movi(v0.V2D(), 0x0000000000000000, 0x0000000000000000);  // 0.
+  __ Movi(v1.V2D(), 0xffffffffffffffff, 0xffffffffffffffff);  // NaN.
+  __ Movi(v2.V2D(), 0xbc00bc00bc00bc00, 0xbc00bc00bc00bc00);  // -1.0.
+  __ Movi(v3.V2D(), 0x3c003c003c003c00, 0x3c003c003c003c00);  // 1.0.
+
+  __ Fcmgt(v4.V8H(), v0.V8H(), v0.V8H());
+  __ Fcmgt(v5.V8H(), v1.V8H(), v0.V8H());
+  __ Fcmgt(v6.V8H(), v2.V8H(), v0.V8H());
+  __ Fcmgt(v7.V8H(), v3.V8H(), v0.V8H());
+  __ Fcmgt(v8.V4H(), v0.V4H(), v0.V4H());
+  __ Fcmgt(v9.V4H(), v1.V4H(), v0.V4H());
+  __ Fcmgt(v10.V4H(), v2.V4H(), v0.V4H());
+  __ Fcmgt(v11.V4H(), v3.V4H(), v0.V4H());
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, v4);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, v5);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, v6);
+  ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, v7);
+  ASSERT_EQUAL_128(0, 0x0000000000000000, v8);
+  ASSERT_EQUAL_128(0, 0x0000000000000000, v9);
+  ASSERT_EQUAL_128(0, 0x0000000000000000, v10);
+  ASSERT_EQUAL_128(0, 0xffffffffffffffff, v11);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(neon_fcmgt_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf,
+                      CPUFeatures::kFPHalf);
+
+  START();
+
+  __ Fmov(h0, Float16(0.0));
+  __ Fmov(h1, RawbitsToFloat16(0xffff));
+  __ Fmov(h2, Float16(-1.0));
+  __ Fmov(h3, Float16(1.0));
+  __ Fcmgt(h4, h0, h0);
+  __ Fcmgt(h5, h1, h0);
+  __ Fcmgt(h6, h2, h0);
+  __ Fcmgt(h7, h3, h0);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h4);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h5);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h6);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h7);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(neon_facge_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+
+  __ Movi(v0.V2D(), 0x0000000000000000, 0x0000000000000000);  // 0.
+  __ Movi(v1.V2D(), 0xffffffffffffffff, 0xffffffffffffffff);  // NaN.
+  __ Movi(v2.V2D(), 0xbc00bc00bc00bc00, 0xbc00bc00bc00bc00);  // -1.0.
+  __ Movi(v3.V2D(), 0x3c003c003c003c00, 0x3c003c003c003c00);  // 1.0.
+
+  __ Facge(v4.V8H(), v0.V8H(), v0.V8H());
+  __ Facge(v5.V8H(), v1.V8H(), v0.V8H());
+  __ Facge(v6.V8H(), v2.V8H(), v0.V8H());
+  __ Facge(v7.V8H(), v3.V8H(), v0.V8H());
+  __ Facge(v8.V4H(), v0.V4H(), v0.V4H());
+  __ Facge(v9.V4H(), v1.V4H(), v0.V4H());
+  __ Facge(v10.V4H(), v2.V4H(), v0.V4H());
+  __ Facge(v11.V4H(), v3.V4H(), v0.V4H());
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, v4);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, v5);
+  ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, v6);
+  ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, v7);
+  ASSERT_EQUAL_128(0, 0xffffffffffffffff, v8);
+  ASSERT_EQUAL_128(0, 0x0000000000000000, v9);
+  ASSERT_EQUAL_128(0, 0xffffffffffffffff, v10);
+  ASSERT_EQUAL_128(0, 0xffffffffffffffff, v11);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(neon_facge_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf,
+                      CPUFeatures::kFPHalf);
+
+  START();
+
+  __ Fmov(h0, Float16(0.0));
+  __ Fmov(h1, RawbitsToFloat16(0xffff));
+  __ Fmov(h2, Float16(-1.0));
+  __ Fmov(h3, Float16(1.0));
+  __ Facge(h4, h0, h0);
+  __ Facge(h5, h1, h0);
+  __ Facge(h6, h2, h0);
+  __ Facge(h7, h3, h0);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h4);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h5);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h6);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h7);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(neon_facgt_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+
+  __ Movi(v0.V2D(), 0x0000000000000000, 0x0000000000000000);  // 0.
+  __ Movi(v1.V2D(), 0xffffffffffffffff, 0xffffffffffffffff);  // NaN.
+  __ Movi(v2.V2D(), 0xbc00bc00bc00bc00, 0xbc00bc00bc00bc00);  // -1.0.
+  __ Movi(v3.V2D(), 0x3c003c003c003c00, 0x3c003c003c003c00);  // 1.0.
+
+  __ Facgt(v4.V8H(), v0.V8H(), v0.V8H());
+  __ Facgt(v5.V8H(), v1.V8H(), v0.V8H());
+  __ Facgt(v6.V8H(), v2.V8H(), v0.V8H());
+  __ Facgt(v7.V8H(), v3.V8H(), v0.V8H());
+  __ Facgt(v8.V4H(), v0.V4H(), v0.V4H());
+  __ Facgt(v9.V4H(), v1.V4H(), v0.V4H());
+  __ Facgt(v10.V4H(), v2.V4H(), v0.V4H());
+  __ Facgt(v11.V4H(), v3.V4H(), v0.V4H());
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, v4);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, v5);
+  ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, v6);
+  ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, v7);
+  ASSERT_EQUAL_128(0, 0x0000000000000000, v8);
+  ASSERT_EQUAL_128(0, 0x0000000000000000, v9);
+  ASSERT_EQUAL_128(0, 0xffffffffffffffff, v10);
+  ASSERT_EQUAL_128(0, 0xffffffffffffffff, v11);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(neon_facgt_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf,
+                      CPUFeatures::kFPHalf);
+
+  START();
+
+  __ Fmov(h0, Float16(0.0));
+  __ Fmov(h1, RawbitsToFloat16(0xffff));
+  __ Fmov(h2, Float16(-1.0));
+  __ Fmov(h3, Float16(1.0));
+  __ Facgt(h4, h0, h0);
+  __ Facgt(h5, h1, h0);
+  __ Facgt(h6, h2, h0);
+  __ Facgt(h7, h3, h0);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h4);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h5);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h6);
+  ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h7);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
   TEARDOWN();
 }
@@ -20141,8 +22567,7 @@ TEST(neon_3same_extra_fcadd) {
 
   END();
 
-#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64  // TODO: test on real hardware when
-                                       // available
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   RUN();
   ASSERT_EQUAL_128(0x4014000000000000, 0x4014000000000000, q31);
   ASSERT_EQUAL_128(0x402E000000000000, 0x402E000000000000, q30);
@@ -22717,6 +25142,104 @@ TEST(neon_fmla_fmls) {
 }
 
 
+TEST(neon_fmla_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x4000400040004000, 0x4000400040004000);
+  __ Movi(v1.V2D(), 0x51a051a051a051a0, 0x51a051a051a051a0);
+  __ Movi(v2.V2D(), 0x7c007c007c007c00, 0x7c007c007c007c00);
+  __ Movi(v3.V2D(), 0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00);
+  __ Movi(v4.V2D(), 0x7e007e007e007e00, 0x7e007e007e007e00);
+  __ Movi(v5.V2D(), 0x7c017c017c017c01, 0x7c017c017c017c01);
+  __ Movi(v6.V2D(), 0x0000000000000000, 0x0000000000000000);
+  __ Mov(v16.V2D(), v0.V2D());
+  __ Mov(v17.V2D(), v0.V2D());
+  __ Mov(v18.V2D(), v4.V2D());
+  __ Mov(v19.V2D(), v5.V2D());
+  __ Mov(v20.V2D(), v0.V2D());
+  __ Mov(v21.V2D(), v0.V2D());
+  __ Mov(v22.V2D(), v4.V2D());
+  __ Mov(v23.V2D(), v5.V2D());
+
+  __ Fmla(v16.V8H(), v0.V8H(), v1.V8H());
+  __ Fmla(v17.V8H(), v2.V8H(), v3.V8H());
+  __ Fmla(v18.V8H(), v2.V8H(), v6.V8H());
+  __ Fmla(v19.V8H(), v3.V8H(), v6.V8H());
+  __ Fmla(v20.V4H(), v0.V4H(), v1.V4H());
+  __ Fmla(v21.V4H(), v2.V4H(), v3.V4H());
+  __ Fmla(v22.V4H(), v2.V4H(), v6.V4H());
+  __ Fmla(v23.V4H(), v3.V4H(), v6.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x55c055c055c055c0, 0x55c055c055c055c0, v16);
+  ASSERT_EQUAL_128(0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00, v17);
+  ASSERT_EQUAL_128(0x7e007e007e007e00, 0x7e007e007e007e00, v18);
+  ASSERT_EQUAL_128(0x7e017e017e017e01, 0x7e017e017e017e01, v19);
+  ASSERT_EQUAL_128(0, 0x55c055c055c055c0, v20);
+  ASSERT_EQUAL_128(0, 0xfc00fc00fc00fc00, v21);
+  ASSERT_EQUAL_128(0, 0x7e007e007e007e00, v22);
+  ASSERT_EQUAL_128(0, 0x7e017e017e017e01, v23);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fmls_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x4000400040004000, 0x4000400040004000);
+  __ Movi(v1.V2D(), 0x51a051a051a051a0, 0x51a051a051a051a0);
+  __ Movi(v2.V2D(), 0x7c007c007c007c00, 0x7c007c007c007c00);
+  __ Movi(v3.V2D(), 0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00);
+  __ Movi(v4.V2D(), 0x7e007e007e007e00, 0x7e007e007e007e00);
+  __ Movi(v5.V2D(), 0x7c017c017c017c01, 0x7c017c017c017c01);
+  __ Movi(v6.V2D(), 0x0000000000000000, 0x0000000000000000);
+  __ Mov(v16.V2D(), v0.V2D());
+  __ Mov(v17.V2D(), v0.V2D());
+  __ Mov(v18.V2D(), v4.V2D());
+  __ Mov(v19.V2D(), v5.V2D());
+  __ Mov(v20.V2D(), v0.V2D());
+  __ Mov(v21.V2D(), v0.V2D());
+  __ Mov(v22.V2D(), v4.V2D());
+  __ Mov(v23.V2D(), v5.V2D());
+
+  __ Fmls(v16.V8H(), v0.V8H(), v1.V8H());
+  __ Fmls(v17.V8H(), v2.V8H(), v3.V8H());
+  __ Fmls(v18.V8H(), v2.V8H(), v6.V8H());
+  __ Fmls(v19.V8H(), v3.V8H(), v6.V8H());
+  __ Fmls(v20.V4H(), v0.V4H(), v1.V4H());
+  __ Fmls(v21.V4H(), v2.V4H(), v3.V4H());
+  __ Fmls(v22.V4H(), v2.V4H(), v6.V4H());
+  __ Fmls(v23.V4H(), v3.V4H(), v6.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0xd580d580d580d580, 0xd580d580d580d580, v16);
+  ASSERT_EQUAL_128(0x7c007c007c007c00, 0x7c007c007c007c00, v17);
+  ASSERT_EQUAL_128(0x7e007e007e007e00, 0x7e007e007e007e00, v18);
+  ASSERT_EQUAL_128(0x7e017e017e017e01, 0x7e017e017e017e01, v19);
+  ASSERT_EQUAL_128(0, 0xd580d580d580d580, v20);
+  ASSERT_EQUAL_128(0, 0x7c007c007c007c00, v21);
+  ASSERT_EQUAL_128(0, 0x7e007e007e007e00, v22);
+  ASSERT_EQUAL_128(0, 0x7e017e017e017e01, v23);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
 TEST(neon_fmulx_scalar) {
   SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
@@ -22758,6 +25281,81 @@ TEST(neon_fmulx_scalar) {
   ASSERT_EQUAL_FP64(-2.0, d29);
   ASSERT_EQUAL_FP64(-2.0, d30);
   ASSERT_EQUAL_FP64(2.0, d31);
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fmulx_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x4000400040004000, 0x4000400040004000);
+  __ Movi(v1.V2D(), 0x3800380038003800, 0x3800380038003800);
+  __ Movi(v2.V2D(), 0x0000000000000000, 0x0000000000000000);
+  __ Movi(v3.V2D(), 0x8000800080008000, 0x8000800080008000);
+  __ Movi(v4.V2D(), 0x7c007c007c007c00, 0x7c007c007c007c00);
+  __ Movi(v5.V2D(), 0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00);
+  __ Fmulx(v6.V8H(), v0.V8H(), v1.V8H());
+  __ Fmulx(v7.V8H(), v2.V8H(), v4.V8H());
+  __ Fmulx(v8.V8H(), v2.V8H(), v5.V8H());
+  __ Fmulx(v9.V8H(), v3.V8H(), v4.V8H());
+  __ Fmulx(v10.V8H(), v3.V8H(), v5.V8H());
+  __ Fmulx(v11.V4H(), v0.V4H(), v1.V4H());
+  __ Fmulx(v12.V4H(), v2.V4H(), v4.V4H());
+  __ Fmulx(v13.V4H(), v2.V4H(), v5.V4H());
+  __ Fmulx(v14.V4H(), v3.V4H(), v4.V4H());
+  __ Fmulx(v15.V4H(), v3.V4H(), v5.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_128(0x3c003c003c003c00, 0x3c003c003c003c00, v6);
+  ASSERT_EQUAL_128(0x4000400040004000, 0x4000400040004000, v7);
+  ASSERT_EQUAL_128(0xc000c000c000c000, 0xc000c000c000c000, v8);
+  ASSERT_EQUAL_128(0xc000c000c000c000, 0xc000c000c000c000, v9);
+  ASSERT_EQUAL_128(0x4000400040004000, 0x4000400040004000, v10);
+  ASSERT_EQUAL_128(0, 0x3c003c003c003c00, v11);
+  ASSERT_EQUAL_128(0, 0x4000400040004000, v12);
+  ASSERT_EQUAL_128(0, 0xc000c000c000c000, v13);
+  ASSERT_EQUAL_128(0, 0xc000c000c000c000, v14);
+  ASSERT_EQUAL_128(0, 0x4000400040004000, v15);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fmulx_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf,
+                      CPUFeatures::kFPHalf);
+
+  START();
+  __ Fmov(h0, Float16(2.0));
+  __ Fmov(h1, Float16(0.5));
+  __ Fmov(h2, Float16(0.0));
+  __ Fmov(h3, Float16(-0.0));
+  __ Fmov(h4, kFP16PositiveInfinity);
+  __ Fmov(h5, kFP16NegativeInfinity);
+  __ Fmulx(h6, h0, h1);
+  __ Fmulx(h7, h2, h4);
+  __ Fmulx(h8, h2, h5);
+  __ Fmulx(h9, h3, h4);
+  __ Fmulx(h10, h3, h5);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_FP16(Float16(1.0), h6);
+  ASSERT_EQUAL_FP16(Float16(2.0), h7);
+  ASSERT_EQUAL_FP16(Float16(-2.0), h8);
+  ASSERT_EQUAL_FP16(Float16(-2.0), h9);
+  ASSERT_EQUAL_FP16(Float16(2.0), h10);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
   TEARDOWN();
 }
@@ -23094,6 +25692,83 @@ TEST(crc32cx) {
 #endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
 
+TEST(neon_fabd_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x4000400040004000, 0x4000400040004000);
+  __ Movi(v1.V2D(), 0x3800380038003800, 0x3800380038003800);
+  __ Movi(v2.V2D(), 0x0000000000000000, 0x0000000000000000);
+  __ Movi(v3.V2D(), 0x8000800080008000, 0x8000800080008000);
+  __ Movi(v4.V2D(), 0x7c007c007c007c00, 0x7c007c007c007c00);
+  __ Movi(v5.V2D(), 0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00);
+
+  __ Fabd(v6.V8H(), v1.V8H(), v0.V8H());
+  __ Fabd(v7.V8H(), v2.V8H(), v3.V8H());
+  __ Fabd(v8.V8H(), v2.V8H(), v5.V8H());
+  __ Fabd(v9.V8H(), v3.V8H(), v4.V8H());
+  __ Fabd(v10.V8H(), v3.V8H(), v5.V8H());
+  __ Fabd(v11.V4H(), v1.V4H(), v0.V4H());
+  __ Fabd(v12.V4H(), v2.V4H(), v3.V4H());
+  __ Fabd(v13.V4H(), v2.V4H(), v5.V4H());
+  __ Fabd(v14.V4H(), v3.V4H(), v4.V4H());
+  __ Fabd(v15.V4H(), v3.V4H(), v5.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x3e003e003e003e00, 0x3e003e003e003e00, v6);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, v7);
+  ASSERT_EQUAL_128(0x7c007c007c007c00, 0x7c007c007c007c00, v8);
+  ASSERT_EQUAL_128(0x7c007c007c007c00, 0x7c007c007c007c00, v9);
+  ASSERT_EQUAL_128(0x7c007c007c007c00, 0x7c007c007c007c00, v10);
+  ASSERT_EQUAL_128(0, 0x3e003e003e003e00, v11);
+  ASSERT_EQUAL_128(0, 0x0000000000000000, v12);
+  ASSERT_EQUAL_128(0, 0x7c007c007c007c00, v13);
+  ASSERT_EQUAL_128(0, 0x7c007c007c007c00, v14);
+  ASSERT_EQUAL_128(0, 0x7c007c007c007c00, v15);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fabd_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf,
+                      CPUFeatures::kFPHalf);
+
+  START();
+  __ Fmov(h0, Float16(2.0));
+  __ Fmov(h1, Float16(0.5));
+  __ Fmov(h2, Float16(0.0));
+  __ Fmov(h3, Float16(-0.0));
+  __ Fmov(h4, kFP16PositiveInfinity);
+  __ Fmov(h5, kFP16NegativeInfinity);
+  __ Fabd(h16, h1, h0);
+  __ Fabd(h17, h2, h3);
+  __ Fabd(h18, h2, h5);
+  __ Fabd(h19, h3, h4);
+  __ Fabd(h20, h3, h5);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_FP16(Float16(1.5), h16);
+  ASSERT_EQUAL_FP16(Float16(0.0), h17);
+  ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h18);
+  ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h19);
+  ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h20);
+#endif
+
+  TEARDOWN();
+}
+
+
 TEST(neon_fabd_scalar) {
   SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
@@ -23140,6 +25815,182 @@ TEST(neon_fabd_scalar) {
 }
 
 
+TEST(neon_frecps_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x4000400040004000, 0x4000400040004000);
+  __ Movi(v1.V2D(), 0xbc00bc00bc00bc00, 0xbc00bc00bc00bc00);
+  __ Movi(v2.V2D(), 0x51a051a051a051a0, 0x51a051a051a051a0);
+  __ Movi(v3.V2D(), 0x7c007c007c007c00, 0x7c007c007c007c00);
+  __ Movi(v4.V2D(), 0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00);
+
+  __ Frecps(v5.V8H(), v0.V8H(), v2.V8H());
+  __ Frecps(v6.V8H(), v1.V8H(), v2.V8H());
+  __ Frecps(v7.V8H(), v0.V8H(), v3.V8H());
+  __ Frecps(v8.V8H(), v0.V8H(), v4.V8H());
+  __ Frecps(v9.V4H(), v0.V4H(), v2.V4H());
+  __ Frecps(v10.V4H(), v1.V4H(), v2.V4H());
+  __ Frecps(v11.V4H(), v0.V4H(), v3.V4H());
+  __ Frecps(v12.V4H(), v0.V4H(), v4.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0xd580d580d580d580, 0xd580d580d580d580, v5);
+  ASSERT_EQUAL_128(0x51e051e051e051e0, 0x51e051e051e051e0, v6);
+  ASSERT_EQUAL_128(0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00, v7);
+  ASSERT_EQUAL_128(0x7c007c007c007c00, 0x7c007c007c007c00, v8);
+  ASSERT_EQUAL_128(0, 0xd580d580d580d580, v9);
+  ASSERT_EQUAL_128(0, 0x51e051e051e051e0, v10);
+  ASSERT_EQUAL_128(0, 0xfc00fc00fc00fc00, v11);
+  ASSERT_EQUAL_128(0, 0x7c007c007c007c00, v12);
+
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_frecps_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf,
+                      CPUFeatures::kFPHalf);
+
+  START();
+  __ Fmov(h0, Float16(2.0));
+  __ Fmov(h1, Float16(-1.0));
+  __ Fmov(h2, Float16(45.0));
+  __ Fmov(h3, kFP16PositiveInfinity);
+  __ Fmov(h4, kFP16NegativeInfinity);
+
+  __ Frecps(h5, h0, h2);
+  __ Frecps(h6, h1, h2);
+  __ Frecps(h7, h0, h3);
+  __ Frecps(h8, h0, h4);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(Float16(-88.0), h5);
+  ASSERT_EQUAL_FP16(Float16(47.0), h6);
+  ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h7);
+  ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h8);
+
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_frsqrts_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x4000400040004000, 0x4000400040004000);
+  __ Movi(v1.V2D(), 0xbc00bc00bc00bc00, 0xbc00bc00bc00bc00);
+  __ Movi(v2.V2D(), 0x51a051a051a051a0, 0x51a051a051a051a0);
+  __ Movi(v3.V2D(), 0x7c007c007c007c00, 0x7c007c007c007c00);
+  __ Movi(v4.V2D(), 0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00);
+
+  __ Frsqrts(v5.V8H(), v0.V8H(), v2.V8H());
+  __ Frsqrts(v6.V8H(), v1.V8H(), v2.V8H());
+  __ Frsqrts(v7.V8H(), v0.V8H(), v3.V8H());
+  __ Frsqrts(v8.V8H(), v0.V8H(), v4.V8H());
+  __ Frsqrts(v9.V4H(), v0.V4H(), v2.V4H());
+  __ Frsqrts(v10.V4H(), v1.V4H(), v2.V4H());
+  __ Frsqrts(v11.V4H(), v0.V4H(), v3.V4H());
+  __ Frsqrts(v12.V4H(), v0.V4H(), v4.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0xd170d170d170d170, 0xd170d170d170d170, v5);
+  ASSERT_EQUAL_128(0x4e004e004e004e00, 0x4e004e004e004e00, v6);
+  ASSERT_EQUAL_128(0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00, v7);
+  ASSERT_EQUAL_128(0x7c007c007c007c00, 0x7c007c007c007c00, v8);
+  ASSERT_EQUAL_128(0, 0xd170d170d170d170, v9);
+  ASSERT_EQUAL_128(0, 0x4e004e004e004e00, v10);
+  ASSERT_EQUAL_128(0, 0xfc00fc00fc00fc00, v11);
+  ASSERT_EQUAL_128(0, 0x7c007c007c007c00, v12);
+
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_frsqrts_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf,
+                      CPUFeatures::kFPHalf);
+
+  START();
+  __ Fmov(h0, Float16(2.0));
+  __ Fmov(h1, Float16(-1.0));
+  __ Fmov(h2, Float16(45.0));
+  __ Fmov(h3, kFP16PositiveInfinity);
+  __ Fmov(h4, kFP16NegativeInfinity);
+
+  __ Frsqrts(h5, h0, h2);
+  __ Frsqrts(h6, h1, h2);
+  __ Frsqrts(h7, h0, h3);
+  __ Frsqrts(h8, h0, h4);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(Float16(-43.5), h5);
+  ASSERT_EQUAL_FP16(Float16(24.0), h6);
+  ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h7);
+  ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h8);
+
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_faddp_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x3c0040003c004000, 0x3c0040003c004000);
+  __ Movi(v1.V2D(), 0xfc007c00fc007c00, 0xfc007c00fc007c00);
+  __ Movi(v2.V2D(), 0x0000800000008000, 0x0000800000008000);
+  __ Movi(v3.V2D(), 0x7e007c017e007c01, 0x7e007c017e007c01);
+
+  __ Faddp(v4.V8H(), v1.V8H(), v0.V8H());
+  __ Faddp(v5.V8H(), v3.V8H(), v2.V8H());
+  __ Faddp(v6.V4H(), v1.V4H(), v0.V4H());
+  __ Faddp(v7.V4H(), v3.V4H(), v2.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x4200420042004200, 0x7e007e007e007e00, v4);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x7e017e017e017e01, v5);
+  ASSERT_EQUAL_128(0, 0x420042007e007e00, v6);
+  ASSERT_EQUAL_128(0, 0x000000007e017e01, v7);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
 TEST(neon_faddp_scalar) {
   SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
@@ -23167,6 +26018,32 @@ TEST(neon_faddp_scalar) {
   ASSERT_EQUAL_FP64(0.0, d3);
   ASSERT_EQUAL_FP64(kFP64DefaultNaN, d4);
   ASSERT_EQUAL_FP64(0.0, d5);
+
+  TEARDOWN();
+}
+
+
+TEST(neon_faddp_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(s0, 0x3c004000);
+  __ Movi(s1, 0xfc007c00);
+  __ Movi(s2, 0x00008000);
+  __ Faddp(h0, v0.V2H());
+  __ Faddp(h1, v1.V2H());
+  __ Faddp(h2, v2.V2H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(Float16(3.0), h0);
+  ASSERT_EQUAL_FP16(kFP16DefaultNaN, h1);
+  ASSERT_EQUAL_FP16(Float16(0.0), h2);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
   TEARDOWN();
 }
@@ -23204,6 +26081,172 @@ TEST(neon_fmaxp_scalar) {
 }
 
 
+TEST(neon_fmaxp_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(s0, 0x3c004000);
+  __ Movi(s1, 0xfc007c00);
+  __ Movi(s2, 0x7e00fc00);
+  __ Fmaxp(h0, v0.V2H());
+  __ Fmaxp(h1, v1.V2H());
+  __ Fmaxp(h2, v2.V2H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(Float16(2.0), h0);
+  ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h1);
+  ASSERT_EQUAL_FP16(kFP16DefaultNaN, h2);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fmax_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x3c003c003c003c00, 0x3c003c003c003c00);
+  __ Movi(v1.V2D(), 0x4000400040004000, 0x4000400040004000);
+  __ Movi(v2.V2D(), 0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00);
+  __ Movi(v3.V2D(), 0x7c007c007c007c00, 0x7c007c007c007c00);
+  __ Movi(v4.V2D(), 0x7e007e007e007e00, 0x7e007e007e007e00);
+  __ Movi(v5.V2D(), 0x7c017c017c017c01, 0x7c017c017c017c01);
+
+  __ Fmax(v6.V8H(), v0.V8H(), v1.V8H());
+  __ Fmax(v7.V8H(), v2.V8H(), v3.V8H());
+  __ Fmax(v8.V8H(), v4.V8H(), v0.V8H());
+  __ Fmax(v9.V8H(), v5.V8H(), v1.V8H());
+  __ Fmax(v10.V4H(), v0.V4H(), v1.V4H());
+  __ Fmax(v11.V4H(), v2.V4H(), v3.V4H());
+  __ Fmax(v12.V4H(), v4.V4H(), v0.V4H());
+  __ Fmax(v13.V4H(), v5.V4H(), v1.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x4000400040004000, 0x4000400040004000, v6);
+  ASSERT_EQUAL_128(0x7c007c007c007c00, 0x7c007c007c007c00, v7);
+  ASSERT_EQUAL_128(0x7e007e007e007e00, 0x7e007e007e007e00, v8);
+  ASSERT_EQUAL_128(0x7e017e017e017e01, 0x7e017e017e017e01, v9);
+  ASSERT_EQUAL_128(0, 0x4000400040004000, v10);
+  ASSERT_EQUAL_128(0, 0x7c007c007c007c00, v11);
+  ASSERT_EQUAL_128(0, 0x7e007e007e007e00, v12);
+  ASSERT_EQUAL_128(0, 0x7e017e017e017e01, v13);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fmaxp_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x3c0040003c004000, 0x3c0040003c004000);
+  __ Movi(v1.V2D(), 0xfc007c00fc007c00, 0xfc007c00fc007c00);
+  __ Movi(v2.V2D(), 0x7e003c007e003c00, 0x7e003c007e003c00);
+  __ Movi(v3.V2D(), 0x7c0140007c014000, 0x7c0140007c014000);
+
+  __ Fmaxp(v6.V8H(), v0.V8H(), v1.V8H());
+  __ Fmaxp(v7.V8H(), v2.V8H(), v3.V8H());
+  __ Fmaxp(v8.V4H(), v0.V4H(), v1.V4H());
+  __ Fmaxp(v9.V4H(), v2.V4H(), v3.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x7c007c007c007c00, 0x4000400040004000, v6);
+  ASSERT_EQUAL_128(0x7e017e017e017e01, 0x7e007e007e007e00, v7);
+  ASSERT_EQUAL_128(0, 0x7c007c0040004000, v8);
+  ASSERT_EQUAL_128(0, 0x7e017e017e007e00, v9);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fmaxnm_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x3c003c003c003c00, 0x3c003c003c003c00);
+  __ Movi(v1.V2D(), 0x4000400040004000, 0x4000400040004000);
+  __ Movi(v2.V2D(), 0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00);
+  __ Movi(v3.V2D(), 0x7c007c007c007c00, 0x7c007c007c007c00);
+  __ Movi(v4.V2D(), 0x7e007e007e007e00, 0x7e007e007e007e00);
+  __ Movi(v5.V2D(), 0x7c017c017c017c01, 0x7c017c017c017c01);
+
+  __ Fmaxnm(v6.V8H(), v0.V8H(), v1.V8H());
+  __ Fmaxnm(v7.V8H(), v2.V8H(), v3.V8H());
+  __ Fmaxnm(v8.V8H(), v4.V8H(), v0.V8H());
+  __ Fmaxnm(v9.V8H(), v5.V8H(), v1.V8H());
+  __ Fmaxnm(v10.V4H(), v0.V4H(), v1.V4H());
+  __ Fmaxnm(v11.V4H(), v2.V4H(), v3.V4H());
+  __ Fmaxnm(v12.V4H(), v4.V4H(), v0.V4H());
+  __ Fmaxnm(v13.V4H(), v5.V4H(), v1.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x4000400040004000, 0x4000400040004000, v6);
+  ASSERT_EQUAL_128(0x7c007c007c007c00, 0x7c007c007c007c00, v7);
+  ASSERT_EQUAL_128(0x3c003c003c003c00, 0x3c003c003c003c00, v8);
+  ASSERT_EQUAL_128(0x7e017e017e017e01, 0x7e017e017e017e01, v9);
+  ASSERT_EQUAL_128(0, 0x4000400040004000, v10);
+  ASSERT_EQUAL_128(0, 0x7c007c007c007c00, v11);
+  ASSERT_EQUAL_128(0, 0x3c003c003c003c00, v12);
+  ASSERT_EQUAL_128(0, 0x7e017e017e017e01, v13);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fmaxnmp_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x3c0040003c004000, 0x3c0040003c004000);
+  __ Movi(v1.V2D(), 0xfc007c00fc007c00, 0xfc007c00fc007c00);
+  __ Movi(v2.V2D(), 0x7e003c007e003c00, 0x7e003c007e003c00);
+  __ Movi(v3.V2D(), 0x7c0140007c014000, 0x7c0140007c014000);
+
+  __ Fmaxnmp(v6.V8H(), v0.V8H(), v1.V8H());
+  __ Fmaxnmp(v7.V8H(), v2.V8H(), v3.V8H());
+  __ Fmaxnmp(v8.V4H(), v0.V4H(), v1.V4H());
+  __ Fmaxnmp(v9.V4H(), v2.V4H(), v3.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x7c007c007c007c00, 0x4000400040004000, v6);
+  ASSERT_EQUAL_128(0x7e017e017e017e01, 0x3c003c003c003c00, v7);
+  ASSERT_EQUAL_128(0, 0x7c007c0040004000, v8);
+  ASSERT_EQUAL_128(0, 0x7e017e013c003c00, v9);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
 TEST(neon_fmaxnmp_scalar) {
   SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
@@ -23231,6 +26274,32 @@ TEST(neon_fmaxnmp_scalar) {
   ASSERT_EQUAL_FP64(2.0, d3);
   ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d4);
   ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d5);
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fmaxnmp_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(s0, 0x3c004000);
+  __ Movi(s1, 0xfc007c00);
+  __ Movi(s2, 0x7e00fc00);
+  __ Fmaxnmp(h0, v0.V2H());
+  __ Fmaxnmp(h1, v1.V2H());
+  __ Fmaxnmp(h2, v2.V2H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(Float16(2.0), h0);
+  ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h1);
+  ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h2);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
   TEARDOWN();
 }
@@ -23268,6 +26337,172 @@ TEST(neon_fminp_scalar) {
 }
 
 
+TEST(neon_fminp_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(s0, 0x3c004000);
+  __ Movi(s1, 0xfc007c00);
+  __ Movi(s2, 0x7e00fc00);
+  __ Fminp(h0, v0.V2H());
+  __ Fminp(h1, v1.V2H());
+  __ Fminp(h2, v2.V2H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(Float16(1.0), h0);
+  ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h1);
+  ASSERT_EQUAL_FP16(kFP16DefaultNaN, h2);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fmin_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x3c003c003c003c00, 0x3c003c003c003c00);
+  __ Movi(v1.V2D(), 0x4000400040004000, 0x4000400040004000);
+  __ Movi(v2.V2D(), 0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00);
+  __ Movi(v3.V2D(), 0x7c007c007c007c00, 0x7c007c007c007c00);
+  __ Movi(v4.V2D(), 0x7e007e007e007e00, 0x7e007e007e007e00);
+  __ Movi(v5.V2D(), 0x7c017c017c017c01, 0x7c017c017c017c01);
+
+  __ Fmin(v6.V8H(), v0.V8H(), v1.V8H());
+  __ Fmin(v7.V8H(), v2.V8H(), v3.V8H());
+  __ Fmin(v8.V8H(), v4.V8H(), v0.V8H());
+  __ Fmin(v9.V8H(), v5.V8H(), v1.V8H());
+  __ Fmin(v10.V4H(), v0.V4H(), v1.V4H());
+  __ Fmin(v11.V4H(), v2.V4H(), v3.V4H());
+  __ Fmin(v12.V4H(), v4.V4H(), v0.V4H());
+  __ Fmin(v13.V4H(), v5.V4H(), v1.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x3c003c003c003c00, 0x3c003c003c003c00, v6);
+  ASSERT_EQUAL_128(0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00, v7);
+  ASSERT_EQUAL_128(0x7e007e007e007e00, 0x7e007e007e007e00, v8);
+  ASSERT_EQUAL_128(0x7e017e017e017e01, 0x7e017e017e017e01, v9);
+  ASSERT_EQUAL_128(0, 0x3c003c003c003c00, v10);
+  ASSERT_EQUAL_128(0, 0xfc00fc00fc00fc00, v11);
+  ASSERT_EQUAL_128(0, 0x7e007e007e007e00, v12);
+  ASSERT_EQUAL_128(0, 0x7e017e017e017e01, v13);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fminp_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x3c0040003c004000, 0x3c0040003c004000);
+  __ Movi(v1.V2D(), 0xfc007c00fc007c00, 0xfc007c00fc007c00);
+  __ Movi(v2.V2D(), 0x7e003c007e003c00, 0x7e003c007e003c00);
+  __ Movi(v3.V2D(), 0x7c0140007c014000, 0x7c0140007c014000);
+
+  __ Fminp(v6.V8H(), v0.V8H(), v1.V8H());
+  __ Fminp(v7.V8H(), v2.V8H(), v3.V8H());
+  __ Fminp(v8.V4H(), v0.V4H(), v1.V4H());
+  __ Fminp(v9.V4H(), v2.V4H(), v3.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0xfc00fc00fc00fc00, 0x3c003c003c003c00, v6);
+  ASSERT_EQUAL_128(0x7e017e017e017e01, 0x7e007e007e007e00, v7);
+  ASSERT_EQUAL_128(0, 0xfc00fc003c003c00, v8);
+  ASSERT_EQUAL_128(0, 0x7e017e017e007e00, v9);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fminnm_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x3c003c003c003c00, 0x3c003c003c003c00);
+  __ Movi(v1.V2D(), 0x4000400040004000, 0x4000400040004000);
+  __ Movi(v2.V2D(), 0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00);
+  __ Movi(v3.V2D(), 0x7c007c007c007c00, 0x7c007c007c007c00);
+  __ Movi(v4.V2D(), 0x7e007e007e007e00, 0x7e007e007e007e00);
+  __ Movi(v5.V2D(), 0x7c017c017c017c01, 0x7c017c017c017c01);
+
+  __ Fminnm(v6.V8H(), v0.V8H(), v1.V8H());
+  __ Fminnm(v7.V8H(), v2.V8H(), v3.V8H());
+  __ Fminnm(v8.V8H(), v4.V8H(), v0.V8H());
+  __ Fminnm(v9.V8H(), v5.V8H(), v1.V8H());
+  __ Fminnm(v10.V4H(), v0.V4H(), v1.V4H());
+  __ Fminnm(v11.V4H(), v2.V4H(), v3.V4H());
+  __ Fminnm(v12.V4H(), v4.V4H(), v0.V4H());
+  __ Fminnm(v13.V4H(), v5.V4H(), v1.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x3c003c003c003c00, 0x3c003c003c003c00, v6);
+  ASSERT_EQUAL_128(0xfc00fc00fc00fc00, 0xfc00fc00fc00fc00, v7);
+  ASSERT_EQUAL_128(0x3c003c003c003c00, 0x3c003c003c003c00, v8);
+  ASSERT_EQUAL_128(0x7e017e017e017e01, 0x7e017e017e017e01, v9);
+  ASSERT_EQUAL_128(0, 0x3c003c003c003c00, v10);
+  ASSERT_EQUAL_128(0, 0xfc00fc00fc00fc00, v11);
+  ASSERT_EQUAL_128(0, 0x3c003c003c003c00, v12);
+  ASSERT_EQUAL_128(0, 0x7e017e017e017e01, v13);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fminnmp_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(v0.V2D(), 0x3c0040003c004000, 0x3c0040003c004000);
+  __ Movi(v1.V2D(), 0xfc007c00fc007c00, 0xfc007c00fc007c00);
+  __ Movi(v2.V2D(), 0x7e003c007e003c00, 0x7e003c007e003c00);
+  __ Movi(v3.V2D(), 0x7c0140007c014000, 0x7c0140007c014000);
+
+  __ Fminnmp(v6.V8H(), v0.V8H(), v1.V8H());
+  __ Fminnmp(v7.V8H(), v2.V8H(), v3.V8H());
+  __ Fminnmp(v8.V4H(), v0.V4H(), v1.V4H());
+  __ Fminnmp(v9.V4H(), v2.V4H(), v3.V4H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0xfc00fc00fc00fc00, 0x3c003c003c003c00, v6);
+  ASSERT_EQUAL_128(0x7e017e017e017e01, 0x3c003c003c003c00, v7);
+  ASSERT_EQUAL_128(0, 0xfc00fc003c003c00, v8);
+  ASSERT_EQUAL_128(0, 0x7e017e013c003c00, v9);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
 TEST(neon_fminnmp_scalar) {
   SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
@@ -23295,6 +26530,32 @@ TEST(neon_fminnmp_scalar) {
   ASSERT_EQUAL_FP64(1.0, d3);
   ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d4);
   ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d5);
+
+  TEARDOWN();
+}
+
+
+TEST(neon_fminnmp_h_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf);
+
+  START();
+  __ Movi(s0, 0x3c004000);
+  __ Movi(s1, 0xfc007c00);
+  __ Movi(s2, 0x7e00fc00);
+  __ Fminnmp(h0, v0.V2H());
+  __ Fminnmp(h1, v1.V2H());
+  __ Fminnmp(h2, v2.V2H());
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP16(Float16(1.0), h0);
+  ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h1);
+  ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h2);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
   TEARDOWN();
 }

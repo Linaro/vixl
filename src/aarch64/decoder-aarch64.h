@@ -37,56 +37,54 @@
 // List macro containing all visitors needed by the decoder class.
 
 #define VISITOR_LIST_THAT_RETURN(V)     \
-  V(PCRelAddressing)                    \
-  V(AddSubImmediate)                    \
-  V(LogicalImmediate)                   \
-  V(MoveWideImmediate)                  \
-  V(Bitfield)                           \
-  V(Extract)                            \
-  V(UnconditionalBranch)                \
-  V(UnconditionalBranchToRegister)      \
-  V(CompareBranch)                      \
-  V(TestBranch)                         \
-  V(ConditionalBranch)                  \
-  V(System)                             \
-  V(Exception)                          \
-  V(LoadStorePairPostIndex)             \
-  V(LoadStorePairOffset)                \
-  V(LoadStorePairPreIndex)              \
-  V(LoadStorePairNonTemporal)           \
-  V(LoadLiteral)                        \
-  V(LoadStoreUnscaledOffset)            \
-  V(LoadStorePostIndex)                 \
-  V(LoadStorePreIndex)                  \
-  V(LoadStoreRegisterOffset)            \
-  V(LoadStoreUnsignedOffset)            \
-  V(LoadStoreExclusive)                 \
-  V(LogicalShifted)                     \
-  V(AddSubShifted)                      \
   V(AddSubExtended)                     \
+  V(AddSubImmediate)                    \
+  V(AddSubShifted)                      \
   V(AddSubWithCarry)                    \
-  V(ConditionalCompareRegister)         \
+  V(AtomicMemory)                       \
+  V(Bitfield)                           \
+  V(CompareBranch)                      \
+  V(ConditionalBranch)                  \
   V(ConditionalCompareImmediate)        \
+  V(ConditionalCompareRegister)         \
   V(ConditionalSelect)                  \
-  V(DataProcessing1Source)              \
-  V(DataProcessing2Source)              \
-  V(DataProcessing3Source)              \
-  V(FPCompare)                          \
-  V(FPConditionalCompare)               \
-  V(FPConditionalSelect)                \
-  V(FPImmediate)                        \
-  V(FPDataProcessing1Source)            \
-  V(FPDataProcessing2Source)            \
-  V(FPDataProcessing3Source)            \
-  V(FPIntegerConvert)                   \
-  V(FPFixedPointConvert)                \
   V(Crypto2RegSHA)                      \
   V(Crypto3RegSHA)                      \
   V(CryptoAES)                          \
+  V(DataProcessing1Source)              \
+  V(DataProcessing2Source)              \
+  V(DataProcessing3Source)              \
+  V(Exception)                          \
+  V(Extract)                            \
+  V(FPCompare)                          \
+  V(FPConditionalCompare)               \
+  V(FPConditionalSelect)                \
+  V(FPDataProcessing1Source)            \
+  V(FPDataProcessing2Source)            \
+  V(FPDataProcessing3Source)            \
+  V(FPFixedPointConvert)                \
+  V(FPImmediate)                        \
+  V(FPIntegerConvert)                   \
+  V(LoadLiteral)                        \
+  V(LoadStoreExclusive)                 \
+  V(LoadStorePairNonTemporal)           \
+  V(LoadStorePairOffset)                \
+  V(LoadStorePairPostIndex)             \
+  V(LoadStorePairPreIndex)              \
+  V(LoadStorePostIndex)                 \
+  V(LoadStorePreIndex)                  \
+  V(LoadStoreRegisterOffset)            \
+  V(LoadStoreUnscaledOffset)            \
+  V(LoadStoreUnsignedOffset)            \
+  V(LogicalImmediate)                   \
+  V(LogicalShifted)                     \
+  V(MoveWideImmediate)                  \
   V(NEON2RegMisc)                       \
+  V(NEON2RegMiscFP16)                   \
   V(NEON3Different)                     \
   V(NEON3Same)                          \
   V(NEON3SameExtra)                     \
+  V(NEON3SameFP16)                      \
   V(NEONAcrossLanes)                    \
   V(NEONByIndexedElement)               \
   V(NEONCopy)                           \
@@ -96,17 +94,24 @@
   V(NEONLoadStoreSingleStruct)          \
   V(NEONLoadStoreSingleStructPostIndex) \
   V(NEONModifiedImmediate)              \
+  V(NEONPerm)                           \
   V(NEONScalar2RegMisc)                 \
+  V(NEONScalar2RegMiscFP16)             \
   V(NEONScalar3Diff)                    \
   V(NEONScalar3Same)                    \
   V(NEONScalar3SameExtra)               \
+  V(NEONScalar3SameFP16)                \
   V(NEONScalarByIndexedElement)         \
   V(NEONScalarCopy)                     \
   V(NEONScalarPairwise)                 \
   V(NEONScalarShiftImmediate)           \
   V(NEONShiftImmediate)                 \
   V(NEONTable)                          \
-  V(NEONPerm)
+  V(PCRelAddressing)                    \
+  V(System)                             \
+  V(TestBranch)                         \
+  V(UnconditionalBranch)                \
+  V(UnconditionalBranchToRegister)
 
 #define VISITOR_LIST_THAT_DONT_RETURN(V) \
   V(Unallocated)                         \

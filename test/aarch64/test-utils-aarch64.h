@@ -48,6 +48,10 @@ extern const double kFP64QuietNaN;
 extern const float kFP32SignallingNaN;
 extern const float kFP32QuietNaN;
 
+// Signalling and quiet NaNs in half-precision float format.
+extern const Float16 kFP16SignallingNaN;
+extern const Float16 kFP16QuietNaN;
+
 // Structure representing Q registers in a RegisterDump.
 struct vec128_t {
   uint64_t l;
@@ -106,8 +110,8 @@ class RegisterDump {
     return dump_.s_[code];
   }
 
-  inline F16 hreg(unsigned code) const {
-    return F16::FromRawbits(hreg_bits(code));
+  inline Float16 hreg(unsigned code) const {
+    return RawbitsToFloat16(hreg_bits(code));
   }
 
   inline float sreg(unsigned code) const {
@@ -205,7 +209,7 @@ class RegisterDump {
 bool Equal32(uint32_t expected, const RegisterDump*, uint32_t result);
 bool Equal64(uint64_t expected, const RegisterDump*, uint64_t result);
 
-bool EqualFP16(F16 expected, const RegisterDump*, uint16_t result);
+bool EqualFP16(Float16 expected, const RegisterDump*, uint16_t result);
 bool EqualFP32(float expected, const RegisterDump*, float result);
 bool EqualFP64(double expected, const RegisterDump*, double result);
 
@@ -215,7 +219,9 @@ bool Equal64(uint64_t expected,
              const RegisterDump* core,
              const VRegister& vreg);
 
-bool EqualFP16(F16 expected, const RegisterDump* core, const FPRegister& fpreg);
+bool EqualFP16(Float16 expected,
+               const RegisterDump* core,
+               const FPRegister& fpreg);
 bool EqualFP32(float expected,
                const RegisterDump* core,
                const FPRegister& fpreg);

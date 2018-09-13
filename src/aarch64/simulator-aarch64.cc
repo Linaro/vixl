@@ -35,6 +35,8 @@
 namespace vixl {
 namespace aarch64 {
 
+using vixl::internal::SimFloat16;
+
 const Instruction* Simulator::kEndOfSimAddress = NULL;
 
 void SimSystemRegister::SetBits(int msb, int lsb, uint32_t bits) {
@@ -460,7 +462,7 @@ void Simulator::FPCompare(double val0, double val1, FPTrapFlags trap) {
   // TODO: This assumes that the C++ implementation handles comparisons in the
   // way that we expect (as per AssertSupportedFPCR()).
   bool process_exception = false;
-  if ((std::isnan(val0) != 0) || (std::isnan(val1) != 0)) {
+  if ((IsNaN(val0) != 0) || (IsNaN(val1) != 0)) {
     ReadNzcv().SetRawValue(FPUnorderedFlag);
     if (IsSignallingNaN(val0) || IsSignallingNaN(val1) ||
         (trap == EnableTrap)) {
@@ -839,7 +841,7 @@ void Simulator::PrintVRegisterFPHelper(unsigned code,
     double value;
     switch (lane_size_in_bytes) {
       case kHRegSizeInBytes:
-        value = ReadVRegister(code).GetLane<float16>(lane);
+        value = ReadVRegister(code).GetLane<uint16_t>(lane);
         break;
       case kSRegSizeInBytes:
         value = ReadVRegister(code).GetLane<float>(lane);
@@ -851,7 +853,7 @@ void Simulator::PrintVRegisterFPHelper(unsigned code,
         value = 0.0;
         VIXL_UNREACHABLE();
     }
-    if (std::isnan(value)) {
+    if (IsNaN(value)) {
       // The output for NaNs is implementation defined. Always print `nan`, so
       // that traces are coherent across different implementations.
       fprintf(stream_, "%s%snan%s", separator, clr_vreg_value, clr_normal);
@@ -925,7 +927,7 @@ void Simulator::PrintSystemRegister(SystemRegister id) {
                                     "0b01 (Round towards Plus Infinity)",
                                     "0b10 (Round towards Minus Infinity)",
                                     "0b11 (Round towards Zero)"};
-      VIXL_ASSERT(ReadFpcr().GetRMode() < (sizeof(rmode) / sizeof(rmode[0])));
+      VIXL_ASSERT(ReadFpcr().GetRMode() < ArrayLength(rmode));
       fprintf(stream_,
               "# %sFPCR: %sAHP:%d DN:%d FZ:%d RMode:%s%s\n",
               clr_flag_name,
@@ -1085,19 +1087,68 @@ void Simulator::VisitConditionalBranch(const Instruction* instr) {
 
 
 void Simulator::VisitUnconditionalBranchToRegister(const Instruction* instr) {
-  const Instruction* target = Instruction::Cast(ReadXRegister(instr->GetRn()));
+  bool authenticate = false;
+  bool link = false;
+  uint64_t addr = 0;
+  uint64_t context = 0;
+  Instruction* target;
 
   switch (instr->Mask(UnconditionalBranchToRegisterMask)) {
     case BLR:
-      WriteLr(instr->GetNextInstruction());
+      link = true;
       VIXL_FALLTHROUGH();
     case BR:
     case RET:
-      WritePc(target);
+      addr = ReadXRegister(instr->GetRn());
+      break;
+
+    case BLRAAZ:
+    case BLRABZ:
+      link = true;
+      VIXL_FALLTHROUGH();
+    case BRAAZ:
+    case BRABZ:
+      authenticate = true;
+      addr = ReadXRegister(instr->GetRn());
+      break;
+
+    case BLRAA:
+    case BLRAB:
+      link = true;
+      VIXL_FALLTHROUGH();
+    case BRAA:
+    case BRAB:
+      authenticate = true;
+      addr = ReadXRegister(instr->GetRn());
+      context = ReadXRegister(instr->GetRd());
+      break;
+
+    case RETAA:
+    case RETAB:
+      authenticate = true;
+      addr = ReadXRegister(kLinkRegCode);
+      context = ReadXRegister(31, Reg31IsStackPointer);
       break;
     default:
       VIXL_UNREACHABLE();
   }
+
+  if (link) {
+    WriteLr(instr->GetNextInstruction());
+  }
+
+  if (authenticate) {
+    PACKey key = (instr->ExtractBit(10) == 0) ? kPACKeyIA : kPACKeyIB;
+    addr = AuthPAC(addr, context, key, kInstructionPointer);
+
+    int error_lsb = GetTopPACBit(addr, kInstructionPointer) - 2;
+    if (((addr >> error_lsb) & 0x3) != 0x0) {
+      VIXL_ABORT_WITH_MSG("Failed to authenticate pointer.");
+    }
+  }
+
+  target = Instruction::Cast(addr);
+  WritePc(target);
 }
 
 
@@ -1427,7 +1478,7 @@ void Simulator::LoadStoreHelper(const Instruction* instr,
       Memory::Write<uint8_t>(address, ReadBRegister(srcdst));
       break;
     case STR_h:
-      Memory::Write<uint16_t>(address, ReadHRegister(srcdst));
+      Memory::Write<uint16_t>(address, ReadHRegisterBits(srcdst));
       break;
     case STR_s:
       Memory::Write<float>(address, ReadSRegister(srcdst));
@@ -1918,6 +1969,223 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
   }
 }
 
+template <typename T>
+void Simulator::AtomicMemorySimpleHelper(const Instruction* instr) {
+  unsigned rs = instr->GetRs();
+  unsigned rt = instr->GetRt();
+  unsigned rn = instr->GetRn();
+
+  bool is_acquire = (instr->ExtractBit(23) == 1) && (rt != kZeroRegCode);
+  bool is_release = instr->ExtractBit(22) == 1;
+
+  unsigned element_size = sizeof(T);
+  uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
+
+  // Verify that the address is available to the host.
+  VIXL_ASSERT(address == static_cast<uintptr_t>(address));
+
+  T value = ReadRegister<T>(rs);
+
+  T data = Memory::Read<T>(address);
+
+  if (is_acquire) {
+    // Approximate load-acquire by issuing a full barrier after the load.
+    __sync_synchronize();
+  }
+
+  T result = 0;
+  switch (instr->Mask(AtomicMemorySimpleOpMask)) {
+    case LDADDOp:
+      result = data + value;
+      break;
+    case LDCLROp:
+      VIXL_ASSERT(!std::numeric_limits<T>::is_signed);
+      result = data & ~value;
+      break;
+    case LDEOROp:
+      VIXL_ASSERT(!std::numeric_limits<T>::is_signed);
+      result = data ^ value;
+      break;
+    case LDSETOp:
+      VIXL_ASSERT(!std::numeric_limits<T>::is_signed);
+      result = data | value;
+      break;
+
+    // Signed/Unsigned difference is done via the templated type T.
+    case LDSMAXOp:
+    case LDUMAXOp:
+      result = (data > value) ? data : value;
+      break;
+    case LDSMINOp:
+    case LDUMINOp:
+      result = (data > value) ? value : data;
+      break;
+  }
+
+  if (is_release) {
+    // Approximate store-release by issuing a full barrier before the store.
+    __sync_synchronize();
+  }
+
+  Memory::Write<T>(address, result);
+  WriteRegister<T>(rt, data, NoRegLog);
+
+  LogRead(address, rt, GetPrintRegisterFormatForSize(element_size));
+  LogWrite(address, rs, GetPrintRegisterFormatForSize(element_size));
+}
+
+template <typename T>
+void Simulator::AtomicMemorySwapHelper(const Instruction* instr) {
+  unsigned rs = instr->GetRs();
+  unsigned rt = instr->GetRt();
+  unsigned rn = instr->GetRn();
+
+  bool is_acquire = (instr->ExtractBit(23) == 1) && (rt != kZeroRegCode);
+  bool is_release = instr->ExtractBit(22) == 1;
+
+  unsigned element_size = sizeof(T);
+  uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
+
+  // Verify that the address is available to the host.
+  VIXL_ASSERT(address == static_cast<uintptr_t>(address));
+
+  T data = Memory::Read<T>(address);
+  if (is_acquire) {
+    // Approximate load-acquire by issuing a full barrier after the load.
+    __sync_synchronize();
+  }
+
+  if (is_release) {
+    // Approximate store-release by issuing a full barrier before the store.
+    __sync_synchronize();
+  }
+  Memory::Write<T>(address, ReadRegister<T>(rs));
+
+  WriteRegister<T>(rt, data);
+
+  LogRead(address, rt, GetPrintRegisterFormat(element_size));
+  LogWrite(address, rs, GetPrintRegisterFormat(element_size));
+}
+
+template <typename T>
+void Simulator::LoadAcquireRCpcHelper(const Instruction* instr) {
+  unsigned rt = instr->GetRt();
+  unsigned rn = instr->GetRn();
+
+  unsigned element_size = sizeof(T);
+  uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
+
+  // Verify that the address is available to the host.
+  VIXL_ASSERT(address == static_cast<uintptr_t>(address));
+  WriteRegister<T>(rt, Memory::Read<T>(address));
+
+  // Approximate load-acquire by issuing a full barrier after the load.
+  __sync_synchronize();
+
+  LogRead(address, rt, GetPrintRegisterFormat(element_size));
+}
+
+#define ATOMIC_MEMORY_SIMPLE_UINT_LIST(V) \
+  V(LDADD)                                \
+  V(LDCLR)                                \
+  V(LDEOR)                                \
+  V(LDSET)                                \
+  V(LDUMAX)                               \
+  V(LDUMIN)
+
+#define ATOMIC_MEMORY_SIMPLE_INT_LIST(V) \
+  V(LDSMAX)                              \
+  V(LDSMIN)
+
+void Simulator::VisitAtomicMemory(const Instruction* instr) {
+  switch (instr->Mask(AtomicMemoryMask)) {
+// clang-format off
+#define SIM_FUNC_B(A) \
+    case A##B:        \
+    case A##AB:       \
+    case A##LB:       \
+    case A##ALB:
+#define SIM_FUNC_H(A) \
+    case A##H:        \
+    case A##AH:       \
+    case A##LH:       \
+    case A##ALH:
+#define SIM_FUNC_w(A) \
+    case A##_w:       \
+    case A##A_w:      \
+    case A##L_w:      \
+    case A##AL_w:
+#define SIM_FUNC_x(A) \
+    case A##_x:       \
+    case A##A_x:      \
+    case A##L_x:      \
+    case A##AL_x:
+
+    ATOMIC_MEMORY_SIMPLE_UINT_LIST(SIM_FUNC_B)
+      AtomicMemorySimpleHelper<uint8_t>(instr);
+      break;
+    ATOMIC_MEMORY_SIMPLE_INT_LIST(SIM_FUNC_B)
+      AtomicMemorySimpleHelper<int8_t>(instr);
+      break;
+    ATOMIC_MEMORY_SIMPLE_UINT_LIST(SIM_FUNC_H)
+      AtomicMemorySimpleHelper<uint16_t>(instr);
+      break;
+    ATOMIC_MEMORY_SIMPLE_INT_LIST(SIM_FUNC_H)
+      AtomicMemorySimpleHelper<int16_t>(instr);
+      break;
+    ATOMIC_MEMORY_SIMPLE_UINT_LIST(SIM_FUNC_w)
+      AtomicMemorySimpleHelper<uint32_t>(instr);
+      break;
+    ATOMIC_MEMORY_SIMPLE_INT_LIST(SIM_FUNC_w)
+      AtomicMemorySimpleHelper<int32_t>(instr);
+      break;
+    ATOMIC_MEMORY_SIMPLE_UINT_LIST(SIM_FUNC_x)
+      AtomicMemorySimpleHelper<uint64_t>(instr);
+      break;
+    ATOMIC_MEMORY_SIMPLE_INT_LIST(SIM_FUNC_x)
+      AtomicMemorySimpleHelper<int64_t>(instr);
+      break;
+    // clang-format on
+
+    case SWPB:
+    case SWPAB:
+    case SWPLB:
+    case SWPALB:
+      AtomicMemorySwapHelper<uint8_t>(instr);
+      break;
+    case SWPH:
+    case SWPAH:
+    case SWPLH:
+    case SWPALH:
+      AtomicMemorySwapHelper<uint16_t>(instr);
+      break;
+    case SWP_w:
+    case SWPA_w:
+    case SWPL_w:
+    case SWPAL_w:
+      AtomicMemorySwapHelper<uint32_t>(instr);
+      break;
+    case SWP_x:
+    case SWPA_x:
+    case SWPL_x:
+    case SWPAL_x:
+      AtomicMemorySwapHelper<uint64_t>(instr);
+      break;
+    case LDAPRB:
+      LoadAcquireRCpcHelper<uint8_t>(instr);
+      break;
+    case LDAPRH:
+      LoadAcquireRCpcHelper<uint16_t>(instr);
+      break;
+    case LDAPR_w:
+      LoadAcquireRCpcHelper<uint32_t>(instr);
+      break;
+    case LDAPR_x:
+      LoadAcquireRCpcHelper<uint64_t>(instr);
+      break;
+  }
+}
+
 
 void Simulator::VisitLoadLiteral(const Instruction* instr) {
   unsigned rt = instr->GetRt();
@@ -2072,11 +2340,44 @@ void Simulator::VisitConditionalSelect(const Instruction* instr) {
 }
 
 
+// clang-format off
+#define PAUTH_MODES(V)                                       \
+  V(IA,  ReadXRegister(src), kPACKeyIA, kInstructionPointer) \
+  V(IB,  ReadXRegister(src), kPACKeyIB, kInstructionPointer) \
+  V(IZA, 0x00000000,         kPACKeyIA, kInstructionPointer) \
+  V(IZB, 0x00000000,         kPACKeyIB, kInstructionPointer) \
+  V(DA,  ReadXRegister(src), kPACKeyDA, kDataPointer)        \
+  V(DB,  ReadXRegister(src), kPACKeyDB, kDataPointer)        \
+  V(DZA, 0x00000000,         kPACKeyDA, kDataPointer)        \
+  V(DZB, 0x00000000,         kPACKeyDB, kDataPointer)
+// clang-format on
+
 void Simulator::VisitDataProcessing1Source(const Instruction* instr) {
   unsigned dst = instr->GetRd();
   unsigned src = instr->GetRn();
 
   switch (instr->Mask(DataProcessing1SourceMask)) {
+#define DEFINE_PAUTH_FUNCS(SUFFIX, MOD, KEY, D)     \
+  case PAC##SUFFIX: {                               \
+    uint64_t ptr = ReadXRegister(dst);              \
+    WriteXRegister(dst, AddPAC(ptr, MOD, KEY, D));  \
+    break;                                          \
+  }                                                 \
+  case AUT##SUFFIX: {                               \
+    uint64_t ptr = ReadXRegister(dst);              \
+    WriteXRegister(dst, AuthPAC(ptr, MOD, KEY, D)); \
+    break;                                          \
+  }
+
+    PAUTH_MODES(DEFINE_PAUTH_FUNCS)
+#undef DEFINE_PAUTH_FUNCS
+
+    case XPACI:
+      WriteXRegister(dst, StripPAC(ReadXRegister(dst), kInstructionPointer));
+      break;
+    case XPACD:
+      WriteXRegister(dst, StripPAC(ReadXRegister(dst), kDataPointer));
+      break;
     case RBIT_w:
       WriteWRegister(dst, ReverseBits(ReadWRegister(src)));
       break;
@@ -2217,6 +2518,14 @@ void Simulator::VisitDataProcessing2Source(const Instruction* instr) {
     case RORV_x:
       shift_op = ROR;
       break;
+    case PACGA: {
+      uint64_t dst = static_cast<uint64_t>(ReadXRegister(instr->GetRn()));
+      uint64_t src = static_cast<uint64_t>(
+          ReadXRegister(instr->GetRm(), Reg31IsStackPointer));
+      uint64_t code = ComputePAC(dst, src, kPACKeyGA);
+      result = code & 0xffffffff00000000;
+      break;
+    }
     case CRC32B: {
       uint32_t acc = ReadRegister<uint32_t>(instr->GetRn());
       uint8_t val = ReadRegister<uint8_t>(instr->GetRm());
@@ -2438,7 +2747,7 @@ void Simulator::VisitFPImmediate(const Instruction* instr) {
   unsigned dest = instr->GetRd();
   switch (instr->Mask(FPImmediateMask)) {
     case FMOV_h_imm:
-      WriteHRegister(dest, instr->GetImmFP16());
+      WriteHRegister(dest, Float16ToRawbits(instr->GetImmFP16()));
       break;
     case FMOV_s_imm:
       WriteSRegister(dest, instr->GetImmFP32());
@@ -2461,6 +2770,12 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
   FPRounding round = ReadRMode();
 
   switch (instr->Mask(FPIntegerConvertMask)) {
+    case FCVTAS_wh:
+      WriteWRegister(dst, FPToInt32(ReadHRegister(src), FPTieAway));
+      break;
+    case FCVTAS_xh:
+      WriteXRegister(dst, FPToInt64(ReadHRegister(src), FPTieAway));
+      break;
     case FCVTAS_ws:
       WriteWRegister(dst, FPToInt32(ReadSRegister(src), FPTieAway));
       break;
@@ -2472,6 +2787,12 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
       break;
     case FCVTAS_xd:
       WriteXRegister(dst, FPToInt64(ReadDRegister(src), FPTieAway));
+      break;
+    case FCVTAU_wh:
+      WriteWRegister(dst, FPToUInt32(ReadHRegister(src), FPTieAway));
+      break;
+    case FCVTAU_xh:
+      WriteXRegister(dst, FPToUInt64(ReadHRegister(src), FPTieAway));
       break;
     case FCVTAU_ws:
       WriteWRegister(dst, FPToUInt32(ReadSRegister(src), FPTieAway));
@@ -2485,6 +2806,12 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
     case FCVTAU_xd:
       WriteXRegister(dst, FPToUInt64(ReadDRegister(src), FPTieAway));
       break;
+    case FCVTMS_wh:
+      WriteWRegister(dst, FPToInt32(ReadHRegister(src), FPNegativeInfinity));
+      break;
+    case FCVTMS_xh:
+      WriteXRegister(dst, FPToInt64(ReadHRegister(src), FPNegativeInfinity));
+      break;
     case FCVTMS_ws:
       WriteWRegister(dst, FPToInt32(ReadSRegister(src), FPNegativeInfinity));
       break;
@@ -2496,6 +2823,12 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
       break;
     case FCVTMS_xd:
       WriteXRegister(dst, FPToInt64(ReadDRegister(src), FPNegativeInfinity));
+      break;
+    case FCVTMU_wh:
+      WriteWRegister(dst, FPToUInt32(ReadHRegister(src), FPNegativeInfinity));
+      break;
+    case FCVTMU_xh:
+      WriteXRegister(dst, FPToUInt64(ReadHRegister(src), FPNegativeInfinity));
       break;
     case FCVTMU_ws:
       WriteWRegister(dst, FPToUInt32(ReadSRegister(src), FPNegativeInfinity));
@@ -2509,6 +2842,12 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
     case FCVTMU_xd:
       WriteXRegister(dst, FPToUInt64(ReadDRegister(src), FPNegativeInfinity));
       break;
+    case FCVTPS_wh:
+      WriteWRegister(dst, FPToInt32(ReadHRegister(src), FPPositiveInfinity));
+      break;
+    case FCVTPS_xh:
+      WriteXRegister(dst, FPToInt64(ReadHRegister(src), FPPositiveInfinity));
+      break;
     case FCVTPS_ws:
       WriteWRegister(dst, FPToInt32(ReadSRegister(src), FPPositiveInfinity));
       break;
@@ -2520,6 +2859,12 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
       break;
     case FCVTPS_xd:
       WriteXRegister(dst, FPToInt64(ReadDRegister(src), FPPositiveInfinity));
+      break;
+    case FCVTPU_wh:
+      WriteWRegister(dst, FPToUInt32(ReadHRegister(src), FPPositiveInfinity));
+      break;
+    case FCVTPU_xh:
+      WriteXRegister(dst, FPToUInt64(ReadHRegister(src), FPPositiveInfinity));
       break;
     case FCVTPU_ws:
       WriteWRegister(dst, FPToUInt32(ReadSRegister(src), FPPositiveInfinity));
@@ -2533,6 +2878,12 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
     case FCVTPU_xd:
       WriteXRegister(dst, FPToUInt64(ReadDRegister(src), FPPositiveInfinity));
       break;
+    case FCVTNS_wh:
+      WriteWRegister(dst, FPToInt32(ReadHRegister(src), FPTieEven));
+      break;
+    case FCVTNS_xh:
+      WriteXRegister(dst, FPToInt64(ReadHRegister(src), FPTieEven));
+      break;
     case FCVTNS_ws:
       WriteWRegister(dst, FPToInt32(ReadSRegister(src), FPTieEven));
       break;
@@ -2544,6 +2895,12 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
       break;
     case FCVTNS_xd:
       WriteXRegister(dst, FPToInt64(ReadDRegister(src), FPTieEven));
+      break;
+    case FCVTNU_wh:
+      WriteWRegister(dst, FPToUInt32(ReadHRegister(src), FPTieEven));
+      break;
+    case FCVTNU_xh:
+      WriteXRegister(dst, FPToUInt64(ReadHRegister(src), FPTieEven));
       break;
     case FCVTNU_ws:
       WriteWRegister(dst, FPToUInt32(ReadSRegister(src), FPTieEven));
@@ -2557,6 +2914,12 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
     case FCVTNU_xd:
       WriteXRegister(dst, FPToUInt64(ReadDRegister(src), FPTieEven));
       break;
+    case FCVTZS_wh:
+      WriteWRegister(dst, FPToInt32(ReadHRegister(src), FPZero));
+      break;
+    case FCVTZS_xh:
+      WriteXRegister(dst, FPToInt64(ReadHRegister(src), FPZero));
+      break;
     case FCVTZS_ws:
       WriteWRegister(dst, FPToInt32(ReadSRegister(src), FPZero));
       break;
@@ -2569,6 +2932,12 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
     case FCVTZS_xd:
       WriteXRegister(dst, FPToInt64(ReadDRegister(src), FPZero));
       break;
+    case FCVTZU_wh:
+      WriteWRegister(dst, FPToUInt32(ReadHRegister(src), FPZero));
+      break;
+    case FCVTZU_xh:
+      WriteXRegister(dst, FPToUInt64(ReadHRegister(src), FPZero));
+      break;
     case FCVTZU_ws:
       WriteWRegister(dst, FPToUInt32(ReadSRegister(src), FPZero));
       break;
@@ -2580,6 +2949,9 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
       break;
     case FCVTZU_xd:
       WriteXRegister(dst, FPToUInt64(ReadDRegister(src), FPZero));
+      break;
+    case FJCVTZS:
+      WriteWRegister(dst, FPToFixedJS(ReadDRegister(src)));
       break;
     case FMOV_hw:
       WriteHRegister(dst, ReadWRegister(src) & kHRegMask);
@@ -2626,9 +2998,7 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
       break;
     case UCVTF_dw: {
       WriteDRegister(dst,
-                     UFixedToDouble(static_cast<uint32_t>(ReadWRegister(src)),
-                                    0,
-                                    round));
+                     UFixedToDouble(ReadRegister<uint32_t>(src), 0, round));
       break;
     }
     case SCVTF_sx:
@@ -2641,10 +3011,21 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
       WriteSRegister(dst, UFixedToFloat(ReadXRegister(src), 0, round));
       break;
     case UCVTF_sw: {
-      WriteSRegister(dst,
-                     UFixedToFloat(static_cast<uint32_t>(ReadWRegister(src)),
-                                   0,
-                                   round));
+      WriteSRegister(dst, UFixedToFloat(ReadRegister<uint32_t>(src), 0, round));
+      break;
+    }
+    case SCVTF_hx:
+      WriteHRegister(dst, FixedToFloat16(ReadXRegister(src), 0, round));
+      break;
+    case SCVTF_hw:
+      WriteHRegister(dst, FixedToFloat16(ReadWRegister(src), 0, round));
+      break;
+    case UCVTF_hx:
+      WriteHRegister(dst, UFixedToFloat16(ReadXRegister(src), 0, round));
+      break;
+    case UCVTF_hw: {
+      WriteHRegister(dst,
+                     UFixedToFloat16(ReadRegister<uint32_t>(src), 0, round));
       break;
     }
 
@@ -2677,9 +3058,7 @@ void Simulator::VisitFPFixedPointConvert(const Instruction* instr) {
       break;
     case UCVTF_dw_fixed: {
       WriteDRegister(dst,
-                     UFixedToDouble(static_cast<uint32_t>(ReadWRegister(src)),
-                                    fbits,
-                                    round));
+                     UFixedToDouble(ReadRegister<uint32_t>(src), fbits, round));
       break;
     }
     case SCVTF_sx_fixed:
@@ -2693,9 +3072,23 @@ void Simulator::VisitFPFixedPointConvert(const Instruction* instr) {
       break;
     case UCVTF_sw_fixed: {
       WriteSRegister(dst,
-                     UFixedToFloat(static_cast<uint32_t>(ReadWRegister(src)),
-                                   fbits,
-                                   round));
+                     UFixedToFloat(ReadRegister<uint32_t>(src), fbits, round));
+      break;
+    }
+    case SCVTF_hx_fixed:
+      WriteHRegister(dst, FixedToFloat16(ReadXRegister(src), fbits, round));
+      break;
+    case SCVTF_hw_fixed:
+      WriteHRegister(dst, FixedToFloat16(ReadWRegister(src), fbits, round));
+      break;
+    case UCVTF_hx_fixed:
+      WriteHRegister(dst, UFixedToFloat16(ReadXRegister(src), fbits, round));
+      break;
+    case UCVTF_hw_fixed: {
+      WriteHRegister(dst,
+                     UFixedToFloat16(ReadRegister<uint32_t>(src),
+                                     fbits,
+                                     round));
       break;
     }
     case FCVTZS_xd_fixed:
@@ -2738,6 +3131,30 @@ void Simulator::VisitFPFixedPointConvert(const Instruction* instr) {
                      FPToUInt32(ReadSRegister(src) * std::pow(2.0f, fbits),
                                 FPZero));
       break;
+    case FCVTZS_xh_fixed: {
+      double output =
+          static_cast<double>(ReadHRegister(src)) * std::pow(2.0, fbits);
+      WriteXRegister(dst, FPToInt64(output, FPZero));
+      break;
+    }
+    case FCVTZS_wh_fixed: {
+      double output =
+          static_cast<double>(ReadHRegister(src)) * std::pow(2.0, fbits);
+      WriteWRegister(dst, FPToInt32(output, FPZero));
+      break;
+    }
+    case FCVTZU_xh_fixed: {
+      double output =
+          static_cast<double>(ReadHRegister(src)) * std::pow(2.0, fbits);
+      WriteXRegister(dst, FPToUInt64(output, FPZero));
+      break;
+    }
+    case FCVTZU_wh_fixed: {
+      double output =
+          static_cast<double>(ReadHRegister(src)) * std::pow(2.0, fbits);
+      WriteWRegister(dst, FPToUInt32(output, FPZero));
+      break;
+    }
     default:
       VIXL_UNREACHABLE();
   }
@@ -2749,6 +3166,14 @@ void Simulator::VisitFPCompare(const Instruction* instr) {
 
   FPTrapFlags trap = DisableTrap;
   switch (instr->Mask(FPCompareMask)) {
+    case FCMPE_h:
+      trap = EnableTrap;
+      VIXL_FALLTHROUGH();
+    case FCMP_h:
+      FPCompare(ReadHRegister(instr->GetRn()),
+                ReadHRegister(instr->GetRm()),
+                trap);
+      break;
     case FCMPE_s:
       trap = EnableTrap;
       VIXL_FALLTHROUGH();
@@ -2764,6 +3189,12 @@ void Simulator::VisitFPCompare(const Instruction* instr) {
       FPCompare(ReadDRegister(instr->GetRn()),
                 ReadDRegister(instr->GetRm()),
                 trap);
+      break;
+    case FCMPE_h_zero:
+      trap = EnableTrap;
+      VIXL_FALLTHROUGH();
+    case FCMP_h_zero:
+      FPCompare(ReadHRegister(instr->GetRn()), SimFloat16(0.0), trap);
       break;
     case FCMPE_s_zero:
       trap = EnableTrap;
@@ -2788,6 +3219,19 @@ void Simulator::VisitFPConditionalCompare(const Instruction* instr) {
 
   FPTrapFlags trap = DisableTrap;
   switch (instr->Mask(FPConditionalCompareMask)) {
+    case FCCMPE_h:
+      trap = EnableTrap;
+      VIXL_FALLTHROUGH();
+    case FCCMP_h:
+      if (ConditionPassed(instr->GetCondition())) {
+        FPCompare(ReadHRegister(instr->GetRn()),
+                  ReadHRegister(instr->GetRm()),
+                  trap);
+      } else {
+        ReadNzcv().SetFlags(instr->GetNzcv());
+        LogSystemRegister(NZCV);
+      }
+      break;
     case FCCMPE_s:
       trap = EnableTrap;
       VIXL_FALLTHROUGH();
@@ -2831,6 +3275,9 @@ void Simulator::VisitFPConditionalSelect(const Instruction* instr) {
   }
 
   switch (instr->Mask(FPConditionalSelectMask)) {
+    case FCSEL_h:
+      WriteHRegister(instr->GetRd(), ReadHRegister(selected));
+      break;
     case FCSEL_s:
       WriteSRegister(instr->GetRd(), ReadSRegister(selected));
       break;
@@ -2861,6 +3308,7 @@ void Simulator::VisitFPDataProcessing1Source(const Instruction* instr) {
       vform = kFormatH;
       break;
   }
+
   SimVRegister& rd = ReadVRegister(instr->GetRd());
   SimVRegister& rn = ReadVRegister(instr->GetRn());
   bool inexact_exception = false;
@@ -2878,12 +3326,14 @@ void Simulator::VisitFPDataProcessing1Source(const Instruction* instr) {
     case FMOV_d:
       WriteDRegister(fd, ReadDRegister(fn));
       return;
+    case FABS_h:
     case FABS_s:
     case FABS_d:
       fabs_(vform, ReadVRegister(fd), ReadVRegister(fn));
       // Explicitly log the register update whilst we have type information.
       LogVRegister(fd, GetPrintRegisterFormatFP(vform));
       return;
+    case FNEG_h:
     case FNEG_s:
     case FNEG_d:
       fneg(vform, ReadVRegister(fd), ReadVRegister(fn));
@@ -2897,48 +3347,58 @@ void Simulator::VisitFPDataProcessing1Source(const Instruction* instr) {
       WriteSRegister(fd, FPToFloat(ReadDRegister(fn), FPTieEven, ReadDN()));
       return;
     case FCVT_hs:
-      WriteHRegister(fd, FPToFloat16(ReadSRegister(fn), FPTieEven, ReadDN()));
+      WriteHRegister(fd,
+                     Float16ToRawbits(
+                         FPToFloat16(ReadSRegister(fn), FPTieEven, ReadDN())));
       return;
     case FCVT_sh:
       WriteSRegister(fd, FPToFloat(ReadHRegister(fn), ReadDN()));
       return;
     case FCVT_dh:
-      WriteDRegister(fd,
-                     FPToDouble(FPToFloat(ReadHRegister(fn), ReadDN()),
-                                ReadDN()));
+      WriteDRegister(fd, FPToDouble(ReadHRegister(fn), ReadDN()));
       return;
     case FCVT_hd:
-      WriteHRegister(fd, FPToFloat16(ReadDRegister(fn), FPTieEven, ReadDN()));
+      WriteHRegister(fd,
+                     Float16ToRawbits(
+                         FPToFloat16(ReadDRegister(fn), FPTieEven, ReadDN())));
       return;
+    case FSQRT_h:
     case FSQRT_s:
     case FSQRT_d:
       fsqrt(vform, rd, rn);
       // Explicitly log the register update whilst we have type information.
       LogVRegister(fd, GetPrintRegisterFormatFP(vform));
       return;
+    case FRINTI_h:
     case FRINTI_s:
     case FRINTI_d:
       break;  // Use FPCR rounding mode.
+    case FRINTX_h:
     case FRINTX_s:
     case FRINTX_d:
       inexact_exception = true;
       break;
+    case FRINTA_h:
     case FRINTA_s:
     case FRINTA_d:
       fpcr_rounding = FPTieAway;
       break;
+    case FRINTM_h:
     case FRINTM_s:
     case FRINTM_d:
       fpcr_rounding = FPNegativeInfinity;
       break;
+    case FRINTN_h:
     case FRINTN_s:
     case FRINTN_d:
       fpcr_rounding = FPTieEven;
       break;
+    case FRINTP_h:
     case FRINTP_s:
     case FRINTP_d:
       fpcr_rounding = FPPositiveInfinity;
       break;
+    case FRINTZ_h:
     case FRINTZ_s:
     case FRINTZ_d:
       fpcr_rounding = FPZero;
@@ -2967,44 +3427,56 @@ void Simulator::VisitFPDataProcessing2Source(const Instruction* instr) {
     case FP32:
       vform = kFormatS;
       break;
+    case FP16:
+      vform = kFormatH;
+      break;
   }
   SimVRegister& rd = ReadVRegister(instr->GetRd());
   SimVRegister& rn = ReadVRegister(instr->GetRn());
   SimVRegister& rm = ReadVRegister(instr->GetRm());
 
   switch (instr->Mask(FPDataProcessing2SourceMask)) {
+    case FADD_h:
     case FADD_s:
     case FADD_d:
       fadd(vform, rd, rn, rm);
       break;
+    case FSUB_h:
     case FSUB_s:
     case FSUB_d:
       fsub(vform, rd, rn, rm);
       break;
+    case FMUL_h:
     case FMUL_s:
     case FMUL_d:
       fmul(vform, rd, rn, rm);
       break;
+    case FNMUL_h:
     case FNMUL_s:
     case FNMUL_d:
       fnmul(vform, rd, rn, rm);
       break;
+    case FDIV_h:
     case FDIV_s:
     case FDIV_d:
       fdiv(vform, rd, rn, rm);
       break;
+    case FMAX_h:
     case FMAX_s:
     case FMAX_d:
       fmax(vform, rd, rn, rm);
       break;
+    case FMIN_h:
     case FMIN_s:
     case FMIN_d:
       fmin(vform, rd, rn, rm);
       break;
+    case FMAXNM_h:
     case FMAXNM_s:
     case FMAXNM_d:
       fmaxnm(vform, rd, rn, rm);
       break;
+    case FMINNM_h:
     case FMINNM_s:
     case FMINNM_d:
       fminnm(vform, rd, rn, rm);
@@ -3027,6 +3499,18 @@ void Simulator::VisitFPDataProcessing3Source(const Instruction* instr) {
 
   switch (instr->Mask(FPDataProcessing3SourceMask)) {
     // fd = fa +/- (fn * fm)
+    case FMADD_h:
+      WriteHRegister(fd,
+                     FPMulAdd(ReadHRegister(fa),
+                              ReadHRegister(fn),
+                              ReadHRegister(fm)));
+      break;
+    case FMSUB_h:
+      WriteHRegister(fd,
+                     FPMulAdd(ReadHRegister(fa),
+                              -ReadHRegister(fn),
+                              ReadHRegister(fm)));
+      break;
     case FMADD_s:
       WriteSRegister(fd,
                      FPMulAdd(ReadSRegister(fa),
@@ -3052,6 +3536,18 @@ void Simulator::VisitFPDataProcessing3Source(const Instruction* instr) {
                               ReadDRegister(fm)));
       break;
     // Negated variants of the above.
+    case FNMADD_h:
+      WriteHRegister(fd,
+                     FPMulAdd(-ReadHRegister(fa),
+                              -ReadHRegister(fn),
+                              ReadHRegister(fm)));
+      break;
+    case FNMSUB_h:
+      WriteHRegister(fd,
+                     FPMulAdd(-ReadHRegister(fa),
+                              ReadHRegister(fn),
+                              ReadHRegister(fm)));
+      break;
     case FNMADD_s:
       WriteSRegister(fd,
                      FPMulAdd(-ReadSRegister(fa),
@@ -3090,16 +3586,19 @@ bool Simulator::FPProcessNaNs(const Instruction* instr) {
 
   if (instr->Mask(FP64) == FP64) {
     double result = FPProcessNaNs(ReadDRegister(fn), ReadDRegister(fm));
-    if (std::isnan(result)) {
+    if (IsNaN(result)) {
       WriteDRegister(fd, result);
       done = true;
     }
-  } else {
+  } else if (instr->Mask(FP32) == FP32) {
     float result = FPProcessNaNs(ReadSRegister(fn), ReadSRegister(fm));
-    if (std::isnan(result)) {
+    if (IsNaN(result)) {
       WriteSRegister(fd, result);
       done = true;
     }
+  } else {
+    VIXL_ASSERT(instr->Mask(FP16) == FP16);
+    VIXL_UNIMPLEMENTED();
   }
 
   return done;
@@ -3125,11 +3624,43 @@ void Simulator::SysOp_W(int op, int64_t val) {
 }
 
 
+// clang-format off
+#define PAUTH_SYSTEM_MODES(V)                                     \
+  V(A1716, 17, ReadXRegister(16),                      kPACKeyIA) \
+  V(B1716, 17, ReadXRegister(16),                      kPACKeyIB) \
+  V(AZ,    30, 0x00000000,                             kPACKeyIA) \
+  V(BZ,    30, 0x00000000,                             kPACKeyIB) \
+  V(ASP,   30, ReadXRegister(31, Reg31IsStackPointer), kPACKeyIA) \
+  V(BSP,   30, ReadXRegister(31, Reg31IsStackPointer), kPACKeyIB)
+// clang-format on
+
+
 void Simulator::VisitSystem(const Instruction* instr) {
   // Some system instructions hijack their Op and Cp fields to represent a
   // range of immediates instead of indicating a different instruction. This
   // makes the decoding tricky.
-  if (instr->Mask(SystemExclusiveMonitorFMask) == SystemExclusiveMonitorFixed) {
+  if (instr->GetInstructionBits() == XPACLRI) {
+    WriteXRegister(30, StripPAC(ReadXRegister(30), kInstructionPointer));
+  } else if (instr->Mask(SystemPAuthFMask) == SystemPAuthFixed) {
+    switch (instr->Mask(SystemPAuthMask)) {
+#define DEFINE_PAUTH_FUNCS(SUFFIX, DST, MOD, KEY)                              \
+  case PACI##SUFFIX:                                                           \
+    WriteXRegister(DST,                                                        \
+                   AddPAC(ReadXRegister(DST), MOD, KEY, kInstructionPointer)); \
+    break;                                                                     \
+  case AUTI##SUFFIX:                                                           \
+    WriteXRegister(DST,                                                        \
+                   AuthPAC(ReadXRegister(DST),                                 \
+                           MOD,                                                \
+                           KEY,                                                \
+                           kInstructionPointer));                              \
+    break;
+
+      PAUTH_SYSTEM_MODES(DEFINE_PAUTH_FUNCS)
+#undef DEFINE_PAUTH_FUNCS
+    }
+  } else if (instr->Mask(SystemExclusiveMonitorFMask) ==
+             SystemExclusiveMonitorFixed) {
     VIXL_ASSERT(instr->Mask(SystemExclusiveMonitorMask) == CLREX);
     switch (instr->Mask(SystemExclusiveMonitorMask)) {
       case CLREX: {
@@ -3173,6 +3704,7 @@ void Simulator::VisitSystem(const Instruction* instr) {
     VIXL_ASSERT(instr->Mask(SystemHintMask) == HINT);
     switch (instr->GetImmHint()) {
       case NOP:
+      case ESB:
       case CSDB:
         break;
       default:
@@ -3514,6 +4046,111 @@ void Simulator::VisitNEON2RegMisc(const Instruction* instr) {
 }
 
 
+void Simulator::VisitNEON2RegMiscFP16(const Instruction* instr) {
+  static const NEONFormatMap map_half = {{30}, {NF_4H, NF_8H}};
+  NEONFormatDecoder nfd(instr);
+  VectorFormat fpf = nfd.GetVectorFormat(&map_half);
+
+  FPRounding fpcr_rounding = static_cast<FPRounding>(ReadFpcr().GetRMode());
+
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+
+  switch (instr->Mask(NEON2RegMiscFP16Mask)) {
+    case NEON_SCVTF_H:
+      scvtf(fpf, rd, rn, 0, fpcr_rounding);
+      return;
+    case NEON_UCVTF_H:
+      ucvtf(fpf, rd, rn, 0, fpcr_rounding);
+      return;
+    case NEON_FCVTNS_H:
+      fcvts(fpf, rd, rn, FPTieEven);
+      return;
+    case NEON_FCVTNU_H:
+      fcvtu(fpf, rd, rn, FPTieEven);
+      return;
+    case NEON_FCVTPS_H:
+      fcvts(fpf, rd, rn, FPPositiveInfinity);
+      return;
+    case NEON_FCVTPU_H:
+      fcvtu(fpf, rd, rn, FPPositiveInfinity);
+      return;
+    case NEON_FCVTMS_H:
+      fcvts(fpf, rd, rn, FPNegativeInfinity);
+      return;
+    case NEON_FCVTMU_H:
+      fcvtu(fpf, rd, rn, FPNegativeInfinity);
+      return;
+    case NEON_FCVTZS_H:
+      fcvts(fpf, rd, rn, FPZero);
+      return;
+    case NEON_FCVTZU_H:
+      fcvtu(fpf, rd, rn, FPZero);
+      return;
+    case NEON_FCVTAS_H:
+      fcvts(fpf, rd, rn, FPTieAway);
+      return;
+    case NEON_FCVTAU_H:
+      fcvtu(fpf, rd, rn, FPTieAway);
+      return;
+    case NEON_FRINTI_H:
+      frint(fpf, rd, rn, fpcr_rounding, false);
+      return;
+    case NEON_FRINTX_H:
+      frint(fpf, rd, rn, fpcr_rounding, true);
+      return;
+    case NEON_FRINTA_H:
+      frint(fpf, rd, rn, FPTieAway, false);
+      return;
+    case NEON_FRINTM_H:
+      frint(fpf, rd, rn, FPNegativeInfinity, false);
+      return;
+    case NEON_FRINTN_H:
+      frint(fpf, rd, rn, FPTieEven, false);
+      return;
+    case NEON_FRINTP_H:
+      frint(fpf, rd, rn, FPPositiveInfinity, false);
+      return;
+    case NEON_FRINTZ_H:
+      frint(fpf, rd, rn, FPZero, false);
+      return;
+    case NEON_FABS_H:
+      fabs_(fpf, rd, rn);
+      return;
+    case NEON_FNEG_H:
+      fneg(fpf, rd, rn);
+      return;
+    case NEON_FSQRT_H:
+      fsqrt(fpf, rd, rn);
+      return;
+    case NEON_FRSQRTE_H:
+      frsqrte(fpf, rd, rn);
+      return;
+    case NEON_FRECPE_H:
+      frecpe(fpf, rd, rn, fpcr_rounding);
+      return;
+    case NEON_FCMGT_H_zero:
+      fcmp_zero(fpf, rd, rn, gt);
+      return;
+    case NEON_FCMGE_H_zero:
+      fcmp_zero(fpf, rd, rn, ge);
+      return;
+    case NEON_FCMEQ_H_zero:
+      fcmp_zero(fpf, rd, rn, eq);
+      return;
+    case NEON_FCMLE_H_zero:
+      fcmp_zero(fpf, rd, rn, le);
+      return;
+    case NEON_FCMLT_H_zero:
+      fcmp_zero(fpf, rd, rn, lt);
+      return;
+    default:
+      VIXL_UNIMPLEMENTED();
+      return;
+  }
+}
+
+
 void Simulator::VisitNEON3Same(const Instruction* instr) {
   NEONFormatDecoder nfd(instr);
   SimVRegister& rd = ReadVRegister(instr->GetRd());
@@ -3773,6 +4410,59 @@ void Simulator::VisitNEON3Same(const Instruction* instr) {
 }
 
 
+void Simulator::VisitNEON3SameFP16(const Instruction* instr) {
+  NEONFormatDecoder nfd(instr);
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+  SimVRegister& rm = ReadVRegister(instr->GetRm());
+
+  VectorFormat vf = nfd.GetVectorFormat(nfd.FP16FormatMap());
+  switch (instr->Mask(NEON3SameFP16Mask)) {
+#define SIM_FUNC(A, B) \
+  case NEON_##A##_H:   \
+    B(vf, rd, rn, rm); \
+    break;
+    SIM_FUNC(FMAXNM, fmaxnm);
+    SIM_FUNC(FMLA, fmla);
+    SIM_FUNC(FADD, fadd);
+    SIM_FUNC(FMULX, fmulx);
+    SIM_FUNC(FMAX, fmax);
+    SIM_FUNC(FRECPS, frecps);
+    SIM_FUNC(FMINNM, fminnm);
+    SIM_FUNC(FMLS, fmls);
+    SIM_FUNC(FSUB, fsub);
+    SIM_FUNC(FMIN, fmin);
+    SIM_FUNC(FRSQRTS, frsqrts);
+    SIM_FUNC(FMAXNMP, fmaxnmp);
+    SIM_FUNC(FADDP, faddp);
+    SIM_FUNC(FMUL, fmul);
+    SIM_FUNC(FMAXP, fmaxp);
+    SIM_FUNC(FDIV, fdiv);
+    SIM_FUNC(FMINNMP, fminnmp);
+    SIM_FUNC(FABD, fabd);
+    SIM_FUNC(FMINP, fminp);
+#undef SIM_FUNC
+    case NEON_FCMEQ_H:
+      fcmp(vf, rd, rn, rm, eq);
+      break;
+    case NEON_FCMGE_H:
+      fcmp(vf, rd, rn, rm, ge);
+      break;
+    case NEON_FACGE_H:
+      fabscmp(vf, rd, rn, rm, ge);
+      break;
+    case NEON_FCMGT_H:
+      fcmp(vf, rd, rn, rm, gt);
+      break;
+    case NEON_FACGT_H:
+      fabscmp(vf, rd, rn, rm, gt);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
 void Simulator::VisitNEON3SameExtra(const Instruction* instr) {
   NEONFormatDecoder nfd(instr);
   SimVRegister& rd = ReadVRegister(instr->GetRd());
@@ -3983,11 +4673,31 @@ void Simulator::VisitNEON3Different(const Instruction* instr) {
 void Simulator::VisitNEONAcrossLanes(const Instruction* instr) {
   NEONFormatDecoder nfd(instr);
 
+  static const NEONFormatMap map_half = {{30}, {NF_4H, NF_8H}};
+
   SimVRegister& rd = ReadVRegister(instr->GetRd());
   SimVRegister& rn = ReadVRegister(instr->GetRn());
 
-  // The input operand's VectorFormat is passed for these instructions.
-  if (instr->Mask(NEONAcrossLanesFPFMask) == NEONAcrossLanesFPFixed) {
+  if (instr->Mask(NEONAcrossLanesFP16FMask) == NEONAcrossLanesFP16Fixed) {
+    VectorFormat vf = nfd.GetVectorFormat(&map_half);
+    switch (instr->Mask(NEONAcrossLanesFP16Mask)) {
+      case NEON_FMAXV_H:
+        fmaxv(vf, rd, rn);
+        break;
+      case NEON_FMINV_H:
+        fminv(vf, rd, rn);
+        break;
+      case NEON_FMAXNMV_H:
+        fmaxnmv(vf, rd, rn);
+        break;
+      case NEON_FMINNMV_H:
+        fminnmv(vf, rd, rn);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+    }
+  } else if (instr->Mask(NEONAcrossLanesFPFMask) == NEONAcrossLanesFPFixed) {
+    // The input operand's VectorFormat is passed for these instructions.
     VectorFormat vf = nfd.GetVectorFormat(nfd.FPFormatMap());
 
     switch (instr->Mask(NEONAcrossLanesFPMask)) {
@@ -4040,7 +4750,9 @@ void Simulator::VisitNEONAcrossLanes(const Instruction* instr) {
 
 void Simulator::VisitNEONByIndexedElement(const Instruction* instr) {
   NEONFormatDecoder nfd(instr);
+  static const NEONFormatMap map_half = {{30}, {NF_4H, NF_8H}};
   VectorFormat vf_r = nfd.GetVectorFormat();
+  VectorFormat vf_half = nfd.GetVectorFormat(&map_half);
   VectorFormat vf = nfd.GetVectorFormat(nfd.LongIntegerFormatMap());
 
   SimVRegister& rd = ReadVRegister(instr->GetRd());
@@ -4157,22 +4869,37 @@ void Simulator::VisitNEONByIndexedElement(const Instruction* instr) {
       break;
     default:
       index = instr->GetNEONH();
-      if ((instr->GetFPType() & 1) == 0) {
+      if (instr->GetFPType() == 0) {
+        rm_reg &= 0xf;
+        index = (index << 2) | (instr->GetNEONL() << 1) | instr->GetNEONM();
+      } else if ((instr->GetFPType() & 1) == 0) {
         index = (index << 1) | instr->GetNEONL();
       }
 
       vf = nfd.GetVectorFormat(nfd.FPFormatMap());
 
       switch (instr->Mask(NEONByIndexedElementFPMask)) {
+        case NEON_FMUL_H_byelement:
+          vf = vf_half;
+          VIXL_FALLTHROUGH();
         case NEON_FMUL_byelement:
           Op = &Simulator::fmul;
           break;
+        case NEON_FMLA_H_byelement:
+          vf = vf_half;
+          VIXL_FALLTHROUGH();
         case NEON_FMLA_byelement:
           Op = &Simulator::fmla;
           break;
+        case NEON_FMLS_H_byelement:
+          vf = vf_half;
+          VIXL_FALLTHROUGH();
         case NEON_FMLS_byelement:
           Op = &Simulator::fmls;
           break;
+        case NEON_FMULX_H_byelement:
+          vf = vf_half;
+          VIXL_FALLTHROUGH();
         case NEON_FMULX_byelement:
           Op = &Simulator::fmulx;
           break;
@@ -4710,7 +5437,7 @@ void Simulator::VisitNEONModifiedImmediate(const Instruction* instr) {
       } else {  // cmode_0 == 1, cmode == 0xf.
         if (half_enc == 1) {
           vform = q ? kFormat8H : kFormat4H;
-          imm = instr->GetImmNEONFP16();
+          imm = Float16ToRawbits(instr->GetImmNEONFP16());
         } else if (op_bit == 0) {
           vform = q ? kFormat4S : kFormat2S;
           imm = FloatToRawbits(instr->GetImmNEONFP32());
@@ -4911,6 +5638,78 @@ void Simulator::VisitNEONScalar2RegMisc(const Instruction* instr) {
 }
 
 
+void Simulator::VisitNEONScalar2RegMiscFP16(const Instruction* instr) {
+  VectorFormat fpf = kFormatH;
+  FPRounding fpcr_rounding = static_cast<FPRounding>(ReadFpcr().GetRMode());
+
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+
+  switch (instr->Mask(NEONScalar2RegMiscFP16Mask)) {
+    case NEON_FRECPE_H_scalar:
+      frecpe(fpf, rd, rn, fpcr_rounding);
+      break;
+    case NEON_FRECPX_H_scalar:
+      frecpx(fpf, rd, rn);
+      break;
+    case NEON_FRSQRTE_H_scalar:
+      frsqrte(fpf, rd, rn);
+      break;
+    case NEON_FCMGT_H_zero_scalar:
+      fcmp_zero(fpf, rd, rn, gt);
+      break;
+    case NEON_FCMGE_H_zero_scalar:
+      fcmp_zero(fpf, rd, rn, ge);
+      break;
+    case NEON_FCMEQ_H_zero_scalar:
+      fcmp_zero(fpf, rd, rn, eq);
+      break;
+    case NEON_FCMLE_H_zero_scalar:
+      fcmp_zero(fpf, rd, rn, le);
+      break;
+    case NEON_FCMLT_H_zero_scalar:
+      fcmp_zero(fpf, rd, rn, lt);
+      break;
+    case NEON_SCVTF_H_scalar:
+      scvtf(fpf, rd, rn, 0, fpcr_rounding);
+      break;
+    case NEON_UCVTF_H_scalar:
+      ucvtf(fpf, rd, rn, 0, fpcr_rounding);
+      break;
+    case NEON_FCVTNS_H_scalar:
+      fcvts(fpf, rd, rn, FPTieEven);
+      break;
+    case NEON_FCVTNU_H_scalar:
+      fcvtu(fpf, rd, rn, FPTieEven);
+      break;
+    case NEON_FCVTPS_H_scalar:
+      fcvts(fpf, rd, rn, FPPositiveInfinity);
+      break;
+    case NEON_FCVTPU_H_scalar:
+      fcvtu(fpf, rd, rn, FPPositiveInfinity);
+      break;
+    case NEON_FCVTMS_H_scalar:
+      fcvts(fpf, rd, rn, FPNegativeInfinity);
+      break;
+    case NEON_FCVTMU_H_scalar:
+      fcvtu(fpf, rd, rn, FPNegativeInfinity);
+      break;
+    case NEON_FCVTZS_H_scalar:
+      fcvts(fpf, rd, rn, FPZero);
+      break;
+    case NEON_FCVTZU_H_scalar:
+      fcvtu(fpf, rd, rn, FPZero);
+      break;
+    case NEON_FCVTAS_H_scalar:
+      fcvts(fpf, rd, rn, FPTieAway);
+      break;
+    case NEON_FCVTAU_H_scalar:
+      fcvtu(fpf, rd, rn, FPTieAway);
+      break;
+  }
+}
+
+
 void Simulator::VisitNEONScalar3Diff(const Instruction* instr) {
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LongScalarFormatMap());
   VectorFormat vf = nfd.GetVectorFormat();
@@ -5049,6 +5848,44 @@ void Simulator::VisitNEONScalar3Same(const Instruction* instr) {
   }
 }
 
+void Simulator::VisitNEONScalar3SameFP16(const Instruction* instr) {
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+  SimVRegister& rm = ReadVRegister(instr->GetRm());
+
+  switch (instr->Mask(NEONScalar3SameFP16Mask)) {
+    case NEON_FABD_H_scalar:
+      fabd(kFormatH, rd, rn, rm);
+      break;
+    case NEON_FMULX_H_scalar:
+      fmulx(kFormatH, rd, rn, rm);
+      break;
+    case NEON_FCMEQ_H_scalar:
+      fcmp(kFormatH, rd, rn, rm, eq);
+      break;
+    case NEON_FCMGE_H_scalar:
+      fcmp(kFormatH, rd, rn, rm, ge);
+      break;
+    case NEON_FCMGT_H_scalar:
+      fcmp(kFormatH, rd, rn, rm, gt);
+      break;
+    case NEON_FACGE_H_scalar:
+      fabscmp(kFormatH, rd, rn, rm, ge);
+      break;
+    case NEON_FACGT_H_scalar:
+      fabscmp(kFormatH, rd, rn, rm, gt);
+      break;
+    case NEON_FRECPS_H_scalar:
+      frecps(kFormatH, rd, rn, rm);
+      break;
+    case NEON_FRSQRTS_H_scalar:
+      frsqrts(kFormatH, rd, rn, rm);
+      break;
+    default:
+      VIXL_UNREACHABLE();
+  }
+}
+
 
 void Simulator::VisitNEONScalar3SameExtra(const Instruction* instr) {
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
@@ -5115,19 +5952,27 @@ void Simulator::VisitNEONScalarByIndexedElement(const Instruction* instr) {
     default:
       vf = nfd.GetVectorFormat(nfd.FPScalarFormatMap());
       index = instr->GetNEONH();
-      if ((instr->GetFPType() & 1) == 0) {
+      if (instr->GetFPType() == 0) {
+        index = (index << 2) | (instr->GetNEONL() << 1) | instr->GetNEONM();
+        rm_reg &= 0xf;
+        vf = kFormatH;
+      } else if ((instr->GetFPType() & 1) == 0) {
         index = (index << 1) | instr->GetNEONL();
       }
       switch (instr->Mask(NEONScalarByIndexedElementFPMask)) {
+        case NEON_FMUL_H_byelement_scalar:
         case NEON_FMUL_byelement_scalar:
           Op = &Simulator::fmul;
           break;
+        case NEON_FMLA_H_byelement_scalar:
         case NEON_FMLA_byelement_scalar:
           Op = &Simulator::fmla;
           break;
+        case NEON_FMLS_H_byelement_scalar:
         case NEON_FMLS_byelement_scalar:
           Op = &Simulator::fmls;
           break;
+        case NEON_FMULX_H_byelement_scalar:
         case NEON_FMULX_byelement_scalar:
           Op = &Simulator::fmulx;
           break;
@@ -5159,27 +6004,36 @@ void Simulator::VisitNEONScalarCopy(const Instruction* instr) {
 
 
 void Simulator::VisitNEONScalarPairwise(const Instruction* instr) {
-  NEONFormatDecoder nfd(instr, NEONFormatDecoder::FPScalarFormatMap());
+  NEONFormatDecoder nfd(instr, NEONFormatDecoder::FPScalarPairwiseFormatMap());
   VectorFormat vf = nfd.GetVectorFormat();
 
   SimVRegister& rd = ReadVRegister(instr->GetRd());
   SimVRegister& rn = ReadVRegister(instr->GetRn());
   switch (instr->Mask(NEONScalarPairwiseMask)) {
-    case NEON_ADDP_scalar:
-      addp(vf, rd, rn);
+    case NEON_ADDP_scalar: {
+      // All pairwise operations except ADDP use bit U to differentiate FP16
+      // from FP32/FP64 variations.
+      NEONFormatDecoder nfd_addp(instr, NEONFormatDecoder::FPScalarFormatMap());
+      addp(nfd_addp.GetVectorFormat(), rd, rn);
       break;
+    }
+    case NEON_FADDP_h_scalar:
     case NEON_FADDP_scalar:
       faddp(vf, rd, rn);
       break;
+    case NEON_FMAXP_h_scalar:
     case NEON_FMAXP_scalar:
       fmaxp(vf, rd, rn);
       break;
+    case NEON_FMAXNMP_h_scalar:
     case NEON_FMAXNMP_scalar:
       fmaxnmp(vf, rd, rn);
       break;
+    case NEON_FMINP_h_scalar:
     case NEON_FMINP_scalar:
       fminp(vf, rd, rn);
       break;
+    case NEON_FMINNMP_h_scalar:
     case NEON_FMINNMP_scalar:
       fminnmp(vf, rd, rn);
       break;

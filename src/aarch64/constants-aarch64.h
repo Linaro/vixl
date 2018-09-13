@@ -305,6 +305,7 @@ enum SystemHint {
   WFI   = 3,
   SEV   = 4,
   SEVL  = 5,
+  ESB   = 16,
   CSDB  = 20
 };
 
@@ -653,10 +654,21 @@ enum UnconditionalBranchOp {
 enum UnconditionalBranchToRegisterOp {
   UnconditionalBranchToRegisterFixed = 0xD6000000,
   UnconditionalBranchToRegisterFMask = 0xFE000000,
-  UnconditionalBranchToRegisterMask  = 0xFFFFFC1F,
+  UnconditionalBranchToRegisterMask  = 0xFFFFFC00,
   BR      = UnconditionalBranchToRegisterFixed | 0x001F0000,
   BLR     = UnconditionalBranchToRegisterFixed | 0x003F0000,
-  RET     = UnconditionalBranchToRegisterFixed | 0x005F0000
+  RET     = UnconditionalBranchToRegisterFixed | 0x005F0000,
+
+  BRAAZ  = UnconditionalBranchToRegisterFixed | 0x001F0800,
+  BRABZ  = UnconditionalBranchToRegisterFixed | 0x001F0C00,
+  BLRAAZ = UnconditionalBranchToRegisterFixed | 0x003F0800,
+  BLRABZ = UnconditionalBranchToRegisterFixed | 0x003F0C00,
+  RETAA  = UnconditionalBranchToRegisterFixed | 0x005F0800,
+  RETAB  = UnconditionalBranchToRegisterFixed | 0x005F0C00,
+  BRAA   = UnconditionalBranchToRegisterFixed | 0x011F0800,
+  BRAB   = UnconditionalBranchToRegisterFixed | 0x011F0C00,
+  BLRAA  = UnconditionalBranchToRegisterFixed | 0x013F0800,
+  BLRAB  = UnconditionalBranchToRegisterFixed | 0x013F0C00
 };
 
 // Compare and branch.
@@ -750,6 +762,28 @@ enum SystemExclusiveMonitorOp {
   SystemExclusiveMonitorFMask = 0xFFFFF0FF,
   SystemExclusiveMonitorMask  = 0xFFFFF0FF,
   CLREX                       = SystemExclusiveMonitorFixed
+};
+
+enum SystemPAuthOp {
+  SystemPAuthFixed = 0xD503211F,
+  SystemPAuthFMask = 0xFFFFFD1F,
+  SystemPAuthMask  = 0xFFFFFFFF,
+  PACIA1716 = SystemPAuthFixed | 0x00000100,
+  PACIB1716 = SystemPAuthFixed | 0x00000140,
+  AUTIA1716 = SystemPAuthFixed | 0x00000180,
+  AUTIB1716 = SystemPAuthFixed | 0x000001C0,
+  PACIAZ    = SystemPAuthFixed | 0x00000300,
+  PACIASP   = SystemPAuthFixed | 0x00000320,
+  PACIBZ    = SystemPAuthFixed | 0x00000340,
+  PACIBSP   = SystemPAuthFixed | 0x00000360,
+  AUTIAZ    = SystemPAuthFixed | 0x00000380,
+  AUTIASP   = SystemPAuthFixed | 0x000003A0,
+  AUTIBZ    = SystemPAuthFixed | 0x000003C0,
+  AUTIBSP   = SystemPAuthFixed | 0x000003E0,
+
+  // XPACLRI has the same fixed mask as System Hints and needs to be handled
+  // differently.
+  XPACLRI   = 0xD50320FF
 };
 
 // Any load or store.
@@ -1023,6 +1057,67 @@ enum LoadStoreExclusive {
   CASPAL_x = CASPFixed | LSEBit_l | LSEBit_o0 | LSEBit_sz
 };
 
+#define ATOMIC_MEMORY_SIMPLE_OPC_LIST(V) \
+  V(LDADD, 0x00000000),                  \
+  V(LDCLR, 0x00001000),                  \
+  V(LDEOR, 0x00002000),                  \
+  V(LDSET, 0x00003000),                  \
+  V(LDSMAX, 0x00004000),                 \
+  V(LDSMIN, 0x00005000),                 \
+  V(LDUMAX, 0x00006000),                 \
+  V(LDUMIN, 0x00007000)
+
+// Atomic memory.
+enum AtomicMemoryOp {
+  AtomicMemoryFixed = 0x38200000,
+  AtomicMemoryFMask = 0x3B200C00,
+  AtomicMemoryMask = 0xFFE0FC00,
+  SWPB = AtomicMemoryFixed | 0x00008000,
+  SWPAB = AtomicMemoryFixed | 0x00808000,
+  SWPLB = AtomicMemoryFixed | 0x00408000,
+  SWPALB = AtomicMemoryFixed | 0x00C08000,
+  SWPH = AtomicMemoryFixed | 0x40008000,
+  SWPAH = AtomicMemoryFixed | 0x40808000,
+  SWPLH = AtomicMemoryFixed | 0x40408000,
+  SWPALH = AtomicMemoryFixed | 0x40C08000,
+  SWP_w = AtomicMemoryFixed | 0x80008000,
+  SWPA_w = AtomicMemoryFixed | 0x80808000,
+  SWPL_w = AtomicMemoryFixed | 0x80408000,
+  SWPAL_w = AtomicMemoryFixed | 0x80C08000,
+  SWP_x = AtomicMemoryFixed | 0xC0008000,
+  SWPA_x = AtomicMemoryFixed | 0xC0808000,
+  SWPL_x = AtomicMemoryFixed | 0xC0408000,
+  SWPAL_x = AtomicMemoryFixed | 0xC0C08000,
+  LDAPRB = AtomicMemoryFixed | 0x0080C000,
+  LDAPRH = AtomicMemoryFixed | 0x4080C000,
+  LDAPR_w = AtomicMemoryFixed | 0x8080C000,
+  LDAPR_x = AtomicMemoryFixed | 0xC080C000,
+
+  AtomicMemorySimpleFMask = 0x3B208C00,
+  AtomicMemorySimpleOpMask = 0x00007000,
+#define ATOMIC_MEMORY_SIMPLE(N, OP)              \
+  N##Op = OP,                                    \
+  N##B = AtomicMemoryFixed | OP,                 \
+  N##AB = AtomicMemoryFixed | OP | 0x00800000,   \
+  N##LB = AtomicMemoryFixed | OP | 0x00400000,   \
+  N##ALB = AtomicMemoryFixed | OP | 0x00C00000,  \
+  N##H = AtomicMemoryFixed | OP | 0x40000000,    \
+  N##AH = AtomicMemoryFixed | OP | 0x40800000,   \
+  N##LH = AtomicMemoryFixed | OP | 0x40400000,   \
+  N##ALH = AtomicMemoryFixed | OP | 0x40C00000,  \
+  N##_w = AtomicMemoryFixed | OP | 0x80000000,   \
+  N##A_w = AtomicMemoryFixed | OP | 0x80800000,  \
+  N##L_w = AtomicMemoryFixed | OP | 0x80400000,  \
+  N##AL_w = AtomicMemoryFixed | OP | 0x80C00000, \
+  N##_x = AtomicMemoryFixed | OP | 0xC0000000,   \
+  N##A_x = AtomicMemoryFixed | OP | 0xC0800000,  \
+  N##L_x = AtomicMemoryFixed | OP | 0xC0400000,  \
+  N##AL_x = AtomicMemoryFixed | OP | 0xC0C00000
+
+  ATOMIC_MEMORY_SIMPLE_OPC_LIST(ATOMIC_MEMORY_SIMPLE)
+#undef ATOMIC_MEMORY_SIMPLE
+};
+
 // Conditional compare.
 enum ConditionalCompareOp {
   ConditionalCompareMask = 0x60000000,
@@ -1091,7 +1186,27 @@ enum DataProcessing1SourceOp {
   CLZ_x   = CLZ | SixtyFourBits,
   CLS     = DataProcessing1SourceFixed | 0x00001400,
   CLS_w   = CLS,
-  CLS_x   = CLS | SixtyFourBits
+  CLS_x   = CLS | SixtyFourBits,
+
+  // Pointer authentication instructions in Armv8.3.
+  PACIA  = DataProcessing1SourceFixed | 0x80010000,
+  PACIB  = DataProcessing1SourceFixed | 0x80010400,
+  PACDA  = DataProcessing1SourceFixed | 0x80010800,
+  PACDB  = DataProcessing1SourceFixed | 0x80010C00,
+  AUTIA  = DataProcessing1SourceFixed | 0x80011000,
+  AUTIB  = DataProcessing1SourceFixed | 0x80011400,
+  AUTDA  = DataProcessing1SourceFixed | 0x80011800,
+  AUTDB  = DataProcessing1SourceFixed | 0x80011C00,
+  PACIZA = DataProcessing1SourceFixed | 0x80012000,
+  PACIZB = DataProcessing1SourceFixed | 0x80012400,
+  PACDZA = DataProcessing1SourceFixed | 0x80012800,
+  PACDZB = DataProcessing1SourceFixed | 0x80012C00,
+  AUTIZA = DataProcessing1SourceFixed | 0x80013000,
+  AUTIZB = DataProcessing1SourceFixed | 0x80013400,
+  AUTDZA = DataProcessing1SourceFixed | 0x80013800,
+  AUTDZB = DataProcessing1SourceFixed | 0x80013C00,
+  XPACI  = DataProcessing1SourceFixed | 0x80014000,
+  XPACD  = DataProcessing1SourceFixed | 0x80014400
 };
 
 // Data processing 2 source.
@@ -1117,6 +1232,7 @@ enum DataProcessing2SourceOp {
   RORV_w  = DataProcessing2SourceFixed | 0x00002C00,
   RORV_x  = DataProcessing2SourceFixed | 0x80002C00,
   RORV    = RORV_w,
+  PACGA   = DataProcessing2SourceFixed | SixtyFourBits | 0x00003000,
   CRC32B  = DataProcessing2SourceFixed | 0x00004000,
   CRC32H  = DataProcessing2SourceFixed | 0x00004400,
   CRC32W  = DataProcessing2SourceFixed | 0x00004800,
@@ -1151,15 +1267,19 @@ enum FPCompareOp {
   FPCompareFixed = 0x1E202000,
   FPCompareFMask = 0x5F203C00,
   FPCompareMask  = 0xFFE0FC1F,
+  FCMP_h         = FPCompareFixed | FP16 | 0x00000000,
   FCMP_s         = FPCompareFixed | 0x00000000,
   FCMP_d         = FPCompareFixed | FP64 | 0x00000000,
   FCMP           = FCMP_s,
+  FCMP_h_zero    = FPCompareFixed | FP16 | 0x00000008,
   FCMP_s_zero    = FPCompareFixed | 0x00000008,
   FCMP_d_zero    = FPCompareFixed | FP64 | 0x00000008,
   FCMP_zero      = FCMP_s_zero,
+  FCMPE_h        = FPCompareFixed | FP16 | 0x00000010,
   FCMPE_s        = FPCompareFixed | 0x00000010,
   FCMPE_d        = FPCompareFixed | FP64 | 0x00000010,
   FCMPE          = FCMPE_s,
+  FCMPE_h_zero   = FPCompareFixed | FP16 | 0x00000018,
   FCMPE_s_zero   = FPCompareFixed | 0x00000018,
   FCMPE_d_zero   = FPCompareFixed | FP64 | 0x00000018,
   FCMPE_zero     = FCMPE_s_zero
@@ -1170,9 +1290,11 @@ enum FPConditionalCompareOp {
   FPConditionalCompareFixed = 0x1E200400,
   FPConditionalCompareFMask = 0x5F200C00,
   FPConditionalCompareMask  = 0xFFE00C10,
+  FCCMP_h                   = FPConditionalCompareFixed | FP16 | 0x00000000,
   FCCMP_s                   = FPConditionalCompareFixed | 0x00000000,
   FCCMP_d                   = FPConditionalCompareFixed | FP64 | 0x00000000,
   FCCMP                     = FCCMP_s,
+  FCCMPE_h                  = FPConditionalCompareFixed | FP16 | 0x00000010,
   FCCMPE_s                  = FPConditionalCompareFixed | 0x00000010,
   FCCMPE_d                  = FPConditionalCompareFixed | FP64 | 0x00000010,
   FCCMPE                    = FCCMPE_s
@@ -1183,6 +1305,7 @@ enum FPConditionalSelectOp {
   FPConditionalSelectFixed = 0x1E200C00,
   FPConditionalSelectFMask = 0x5F200C00,
   FPConditionalSelectMask  = 0xFFE00C00,
+  FCSEL_h                  = FPConditionalSelectFixed | FP16 | 0x00000000,
   FCSEL_s                  = FPConditionalSelectFixed | 0x00000000,
   FCSEL_d                  = FPConditionalSelectFixed | FP64 | 0x00000000,
   FCSEL                    = FCSEL_s
@@ -1207,12 +1330,15 @@ enum FPDataProcessing1SourceOp {
   FMOV_s   = FPDataProcessing1SourceFixed | 0x00000000,
   FMOV_d   = FPDataProcessing1SourceFixed | FP64 | 0x00000000,
   FMOV     = FMOV_s,
+  FABS_h   = FPDataProcessing1SourceFixed | FP16 | 0x00008000,
   FABS_s   = FPDataProcessing1SourceFixed | 0x00008000,
   FABS_d   = FPDataProcessing1SourceFixed | FP64 | 0x00008000,
   FABS     = FABS_s,
+  FNEG_h   = FPDataProcessing1SourceFixed | FP16 | 0x00010000,
   FNEG_s   = FPDataProcessing1SourceFixed | 0x00010000,
   FNEG_d   = FPDataProcessing1SourceFixed | FP64 | 0x00010000,
   FNEG     = FNEG_s,
+  FSQRT_h  = FPDataProcessing1SourceFixed | FP16 | 0x00018000,
   FSQRT_s  = FPDataProcessing1SourceFixed | 0x00018000,
   FSQRT_d  = FPDataProcessing1SourceFixed | FP64 | 0x00018000,
   FSQRT    = FSQRT_s,
@@ -1222,24 +1348,31 @@ enum FPDataProcessing1SourceOp {
   FCVT_hd  = FPDataProcessing1SourceFixed | FP64 | 0x00038000,
   FCVT_sh  = FPDataProcessing1SourceFixed | 0x00C20000,
   FCVT_dh  = FPDataProcessing1SourceFixed | 0x00C28000,
+  FRINTN_h = FPDataProcessing1SourceFixed | FP16 | 0x00040000,
   FRINTN_s = FPDataProcessing1SourceFixed | 0x00040000,
   FRINTN_d = FPDataProcessing1SourceFixed | FP64 | 0x00040000,
   FRINTN   = FRINTN_s,
+  FRINTP_h = FPDataProcessing1SourceFixed | FP16 | 0x00048000,
   FRINTP_s = FPDataProcessing1SourceFixed | 0x00048000,
   FRINTP_d = FPDataProcessing1SourceFixed | FP64 | 0x00048000,
   FRINTP   = FRINTP_s,
+  FRINTM_h = FPDataProcessing1SourceFixed | FP16 | 0x00050000,
   FRINTM_s = FPDataProcessing1SourceFixed | 0x00050000,
   FRINTM_d = FPDataProcessing1SourceFixed | FP64 | 0x00050000,
   FRINTM   = FRINTM_s,
+  FRINTZ_h = FPDataProcessing1SourceFixed | FP16 | 0x00058000,
   FRINTZ_s = FPDataProcessing1SourceFixed | 0x00058000,
   FRINTZ_d = FPDataProcessing1SourceFixed | FP64 | 0x00058000,
   FRINTZ   = FRINTZ_s,
+  FRINTA_h = FPDataProcessing1SourceFixed | FP16 | 0x00060000,
   FRINTA_s = FPDataProcessing1SourceFixed | 0x00060000,
   FRINTA_d = FPDataProcessing1SourceFixed | FP64 | 0x00060000,
   FRINTA   = FRINTA_s,
+  FRINTX_h = FPDataProcessing1SourceFixed | FP16 | 0x00070000,
   FRINTX_s = FPDataProcessing1SourceFixed | 0x00070000,
   FRINTX_d = FPDataProcessing1SourceFixed | FP64 | 0x00070000,
   FRINTX   = FRINTX_s,
+  FRINTI_h = FPDataProcessing1SourceFixed | FP16 | 0x00078000,
   FRINTI_s = FPDataProcessing1SourceFixed | 0x00078000,
   FRINTI_d = FPDataProcessing1SourceFixed | FP64 | 0x00078000,
   FRINTI   = FRINTI_s
@@ -1251,30 +1384,39 @@ enum FPDataProcessing2SourceOp {
   FPDataProcessing2SourceFMask = 0x5F200C00,
   FPDataProcessing2SourceMask  = 0xFFE0FC00,
   FMUL     = FPDataProcessing2SourceFixed | 0x00000000,
+  FMUL_h   = FMUL | FP16,
   FMUL_s   = FMUL,
   FMUL_d   = FMUL | FP64,
   FDIV     = FPDataProcessing2SourceFixed | 0x00001000,
+  FDIV_h   = FDIV | FP16,
   FDIV_s   = FDIV,
   FDIV_d   = FDIV | FP64,
   FADD     = FPDataProcessing2SourceFixed | 0x00002000,
+  FADD_h   = FADD | FP16,
   FADD_s   = FADD,
   FADD_d   = FADD | FP64,
   FSUB     = FPDataProcessing2SourceFixed | 0x00003000,
+  FSUB_h   = FSUB | FP16,
   FSUB_s   = FSUB,
   FSUB_d   = FSUB | FP64,
   FMAX     = FPDataProcessing2SourceFixed | 0x00004000,
+  FMAX_h   = FMAX | FP16,
   FMAX_s   = FMAX,
   FMAX_d   = FMAX | FP64,
   FMIN     = FPDataProcessing2SourceFixed | 0x00005000,
+  FMIN_h   = FMIN | FP16,
   FMIN_s   = FMIN,
   FMIN_d   = FMIN | FP64,
   FMAXNM   = FPDataProcessing2SourceFixed | 0x00006000,
+  FMAXNM_h = FMAXNM | FP16,
   FMAXNM_s = FMAXNM,
   FMAXNM_d = FMAXNM | FP64,
   FMINNM   = FPDataProcessing2SourceFixed | 0x00007000,
+  FMINNM_h = FMINNM | FP16,
   FMINNM_s = FMINNM,
   FMINNM_d = FMINNM | FP64,
   FNMUL    = FPDataProcessing2SourceFixed | 0x00008000,
+  FNMUL_h  = FNMUL | FP16,
   FNMUL_s  = FNMUL,
   FNMUL_d  = FNMUL | FP64
 };
@@ -1284,6 +1426,10 @@ enum FPDataProcessing3SourceOp {
   FPDataProcessing3SourceFixed = 0x1F000000,
   FPDataProcessing3SourceFMask = 0x5F000000,
   FPDataProcessing3SourceMask  = 0xFFE08000,
+  FMADD_h                      = FPDataProcessing3SourceFixed | 0x00C00000,
+  FMSUB_h                      = FPDataProcessing3SourceFixed | 0x00C08000,
+  FNMADD_h                     = FPDataProcessing3SourceFixed | 0x00E00000,
+  FNMSUB_h                     = FPDataProcessing3SourceFixed | 0x00E08000,
   FMADD_s                      = FPDataProcessing3SourceFixed | 0x00000000,
   FMSUB_s                      = FPDataProcessing3SourceFixed | 0x00008000,
   FNMADD_s                     = FPDataProcessing3SourceFixed | 0x00200000,
@@ -1300,61 +1446,85 @@ enum FPIntegerConvertOp {
   FPIntegerConvertFMask = 0x5F20FC00,
   FPIntegerConvertMask  = 0xFFFFFC00,
   FCVTNS    = FPIntegerConvertFixed | 0x00000000,
+  FCVTNS_wh = FCVTNS | FP16,
+  FCVTNS_xh = FCVTNS | SixtyFourBits | FP16,
   FCVTNS_ws = FCVTNS,
   FCVTNS_xs = FCVTNS | SixtyFourBits,
   FCVTNS_wd = FCVTNS | FP64,
   FCVTNS_xd = FCVTNS | SixtyFourBits | FP64,
   FCVTNU    = FPIntegerConvertFixed | 0x00010000,
+  FCVTNU_wh = FCVTNU | FP16,
+  FCVTNU_xh = FCVTNU | SixtyFourBits | FP16,
   FCVTNU_ws = FCVTNU,
   FCVTNU_xs = FCVTNU | SixtyFourBits,
   FCVTNU_wd = FCVTNU | FP64,
   FCVTNU_xd = FCVTNU | SixtyFourBits | FP64,
   FCVTPS    = FPIntegerConvertFixed | 0x00080000,
+  FCVTPS_wh = FCVTPS | FP16,
+  FCVTPS_xh = FCVTPS | SixtyFourBits | FP16,
   FCVTPS_ws = FCVTPS,
   FCVTPS_xs = FCVTPS | SixtyFourBits,
   FCVTPS_wd = FCVTPS | FP64,
   FCVTPS_xd = FCVTPS | SixtyFourBits | FP64,
   FCVTPU    = FPIntegerConvertFixed | 0x00090000,
+  FCVTPU_wh = FCVTPU | FP16,
+  FCVTPU_xh = FCVTPU | SixtyFourBits | FP16,
   FCVTPU_ws = FCVTPU,
   FCVTPU_xs = FCVTPU | SixtyFourBits,
   FCVTPU_wd = FCVTPU | FP64,
   FCVTPU_xd = FCVTPU | SixtyFourBits | FP64,
   FCVTMS    = FPIntegerConvertFixed | 0x00100000,
+  FCVTMS_wh = FCVTMS | FP16,
+  FCVTMS_xh = FCVTMS | SixtyFourBits | FP16,
   FCVTMS_ws = FCVTMS,
   FCVTMS_xs = FCVTMS | SixtyFourBits,
   FCVTMS_wd = FCVTMS | FP64,
   FCVTMS_xd = FCVTMS | SixtyFourBits | FP64,
   FCVTMU    = FPIntegerConvertFixed | 0x00110000,
+  FCVTMU_wh = FCVTMU | FP16,
+  FCVTMU_xh = FCVTMU | SixtyFourBits | FP16,
   FCVTMU_ws = FCVTMU,
   FCVTMU_xs = FCVTMU | SixtyFourBits,
   FCVTMU_wd = FCVTMU | FP64,
   FCVTMU_xd = FCVTMU | SixtyFourBits | FP64,
   FCVTZS    = FPIntegerConvertFixed | 0x00180000,
+  FCVTZS_wh = FCVTZS | FP16,
+  FCVTZS_xh = FCVTZS | SixtyFourBits | FP16,
   FCVTZS_ws = FCVTZS,
   FCVTZS_xs = FCVTZS | SixtyFourBits,
   FCVTZS_wd = FCVTZS | FP64,
   FCVTZS_xd = FCVTZS | SixtyFourBits | FP64,
   FCVTZU    = FPIntegerConvertFixed | 0x00190000,
+  FCVTZU_wh = FCVTZU | FP16,
+  FCVTZU_xh = FCVTZU | SixtyFourBits | FP16,
   FCVTZU_ws = FCVTZU,
   FCVTZU_xs = FCVTZU | SixtyFourBits,
   FCVTZU_wd = FCVTZU | FP64,
   FCVTZU_xd = FCVTZU | SixtyFourBits | FP64,
   SCVTF     = FPIntegerConvertFixed | 0x00020000,
+  SCVTF_hw  = SCVTF | FP16,
+  SCVTF_hx  = SCVTF | SixtyFourBits | FP16,
   SCVTF_sw  = SCVTF,
   SCVTF_sx  = SCVTF | SixtyFourBits,
   SCVTF_dw  = SCVTF | FP64,
   SCVTF_dx  = SCVTF | SixtyFourBits | FP64,
   UCVTF     = FPIntegerConvertFixed | 0x00030000,
+  UCVTF_hw  = UCVTF | FP16,
+  UCVTF_hx  = UCVTF | SixtyFourBits | FP16,
   UCVTF_sw  = UCVTF,
   UCVTF_sx  = UCVTF | SixtyFourBits,
   UCVTF_dw  = UCVTF | FP64,
   UCVTF_dx  = UCVTF | SixtyFourBits | FP64,
   FCVTAS    = FPIntegerConvertFixed | 0x00040000,
+  FCVTAS_wh = FCVTAS | FP16,
+  FCVTAS_xh = FCVTAS | SixtyFourBits | FP16,
   FCVTAS_ws = FCVTAS,
   FCVTAS_xs = FCVTAS | SixtyFourBits,
   FCVTAS_wd = FCVTAS | FP64,
   FCVTAS_xd = FCVTAS | SixtyFourBits | FP64,
   FCVTAU    = FPIntegerConvertFixed | 0x00050000,
+  FCVTAU_wh = FCVTAU | FP16,
+  FCVTAU_xh = FCVTAU | SixtyFourBits | FP16,
   FCVTAU_ws = FCVTAU,
   FCVTAU_xs = FCVTAU | SixtyFourBits,
   FCVTAU_wd = FCVTAU | FP64,
@@ -1368,7 +1538,8 @@ enum FPIntegerConvertOp {
   FMOV_xd   = FMOV_ws | SixtyFourBits | FP64,
   FMOV_dx   = FMOV_sw | SixtyFourBits | FP64,
   FMOV_d1_x = FPIntegerConvertFixed | SixtyFourBits | 0x008F0000,
-  FMOV_x_d1 = FPIntegerConvertFixed | SixtyFourBits | 0x008E0000
+  FMOV_x_d1 = FPIntegerConvertFixed | SixtyFourBits | 0x008E0000,
+  FJCVTZS   = FPIntegerConvertFixed | FP64 | 0x001E0000
 };
 
 // Conversion between fixed point and floating point.
@@ -1377,21 +1548,29 @@ enum FPFixedPointConvertOp {
   FPFixedPointConvertFMask = 0x5F200000,
   FPFixedPointConvertMask  = 0xFFFF0000,
   FCVTZS_fixed    = FPFixedPointConvertFixed | 0x00180000,
+  FCVTZS_wh_fixed = FCVTZS_fixed | FP16,
+  FCVTZS_xh_fixed = FCVTZS_fixed | SixtyFourBits | FP16,
   FCVTZS_ws_fixed = FCVTZS_fixed,
   FCVTZS_xs_fixed = FCVTZS_fixed | SixtyFourBits,
   FCVTZS_wd_fixed = FCVTZS_fixed | FP64,
   FCVTZS_xd_fixed = FCVTZS_fixed | SixtyFourBits | FP64,
   FCVTZU_fixed    = FPFixedPointConvertFixed | 0x00190000,
+  FCVTZU_wh_fixed = FCVTZU_fixed | FP16,
+  FCVTZU_xh_fixed = FCVTZU_fixed | SixtyFourBits | FP16,
   FCVTZU_ws_fixed = FCVTZU_fixed,
   FCVTZU_xs_fixed = FCVTZU_fixed | SixtyFourBits,
   FCVTZU_wd_fixed = FCVTZU_fixed | FP64,
   FCVTZU_xd_fixed = FCVTZU_fixed | SixtyFourBits | FP64,
   SCVTF_fixed     = FPFixedPointConvertFixed | 0x00020000,
+  SCVTF_hw_fixed  = SCVTF_fixed | FP16,
+  SCVTF_hx_fixed  = SCVTF_fixed | SixtyFourBits | FP16,
   SCVTF_sw_fixed  = SCVTF_fixed,
   SCVTF_sx_fixed  = SCVTF_fixed | SixtyFourBits,
   SCVTF_dw_fixed  = SCVTF_fixed | FP64,
   SCVTF_dx_fixed  = SCVTF_fixed | SixtyFourBits | FP64,
   UCVTF_fixed     = FPFixedPointConvertFixed | 0x00030000,
+  UCVTF_hw_fixed  = UCVTF_fixed | FP16,
+  UCVTF_hx_fixed  = UCVTF_fixed | SixtyFourBits | FP16,
   UCVTF_sw_fixed  = UCVTF_fixed,
   UCVTF_sx_fixed  = UCVTF_fixed | SixtyFourBits,
   UCVTF_dw_fixed  = UCVTF_fixed | FP64,
@@ -1498,6 +1677,42 @@ enum NEON2RegMiscOp {
   NEON_FCVTN_opcode = NEON_FCVTN & NEON2RegMiscOpcode
 };
 
+// NEON instructions with two register operands (FP16).
+enum NEON2RegMiscFP16Op {
+  NEON2RegMiscFP16Fixed = 0x0E780800,
+  NEON2RegMiscFP16FMask = 0x9F7E0C00,
+  NEON2RegMiscFP16Mask  = 0xBFFFFC00,
+  NEON_FRINTN_H     = NEON2RegMiscFP16Fixed | 0x00018000,
+  NEON_FRINTM_H     = NEON2RegMiscFP16Fixed | 0x00019000,
+  NEON_FCVTNS_H     = NEON2RegMiscFP16Fixed | 0x0001A000,
+  NEON_FCVTMS_H     = NEON2RegMiscFP16Fixed | 0x0001B000,
+  NEON_FCVTAS_H     = NEON2RegMiscFP16Fixed | 0x0001C000,
+  NEON_SCVTF_H      = NEON2RegMiscFP16Fixed | 0x0001D000,
+  NEON_FCMGT_H_zero = NEON2RegMiscFP16Fixed | 0x0080C000,
+  NEON_FCMEQ_H_zero = NEON2RegMiscFP16Fixed | 0x0080D000,
+  NEON_FCMLT_H_zero = NEON2RegMiscFP16Fixed | 0x0080E000,
+  NEON_FABS_H       = NEON2RegMiscFP16Fixed | 0x0080F000,
+  NEON_FRINTP_H     = NEON2RegMiscFP16Fixed | 0x00818000,
+  NEON_FRINTZ_H     = NEON2RegMiscFP16Fixed | 0x00819000,
+  NEON_FCVTPS_H     = NEON2RegMiscFP16Fixed | 0x0081A000,
+  NEON_FCVTZS_H     = NEON2RegMiscFP16Fixed | 0x0081B000,
+  NEON_FRECPE_H     = NEON2RegMiscFP16Fixed | 0x0081D000,
+  NEON_FRINTA_H     = NEON2RegMiscFP16Fixed | 0x20018000,
+  NEON_FRINTX_H     = NEON2RegMiscFP16Fixed | 0x20019000,
+  NEON_FCVTNU_H     = NEON2RegMiscFP16Fixed | 0x2001A000,
+  NEON_FCVTMU_H     = NEON2RegMiscFP16Fixed | 0x2001B000,
+  NEON_FCVTAU_H     = NEON2RegMiscFP16Fixed | 0x2001C000,
+  NEON_UCVTF_H      = NEON2RegMiscFP16Fixed | 0x2001D000,
+  NEON_FCMGE_H_zero = NEON2RegMiscFP16Fixed | 0x2080C000,
+  NEON_FCMLE_H_zero = NEON2RegMiscFP16Fixed | 0x2080D000,
+  NEON_FNEG_H       = NEON2RegMiscFP16Fixed | 0x2080F000,
+  NEON_FRINTI_H     = NEON2RegMiscFP16Fixed | 0x20819000,
+  NEON_FCVTPU_H     = NEON2RegMiscFP16Fixed | 0x2081A000,
+  NEON_FCVTZU_H     = NEON2RegMiscFP16Fixed | 0x2081B000,
+  NEON_FRSQRTE_H    = NEON2RegMiscFP16Fixed | 0x2081D000,
+  NEON_FSQRT_H      = NEON2RegMiscFP16Fixed | 0x2081F000
+};
+
 // NEON instructions with three same-type operands.
 enum NEON3SameOp {
   NEON3SameFixed = 0x0E200400,
@@ -1592,6 +1807,37 @@ enum NEON3SameOp {
   NEON_BIF = NEON3SameLogicalFixed | 0x20C00000,
   NEON_BIT = NEON3SameLogicalFixed | 0x20800000,
   NEON_BSL = NEON3SameLogicalFixed | 0x20400000
+};
+
+
+enum NEON3SameFP16 {
+  NEON3SameFP16Fixed = 0x0E400400,
+  NEON3SameFP16FMask = 0x9F60C400,
+  NEON3SameFP16Mask =  0xBFE0FC00,
+  NEON_FMAXNM_H  = NEON3SameFP16Fixed | 0x00000000,
+  NEON_FMLA_H    = NEON3SameFP16Fixed | 0x00000800,
+  NEON_FADD_H    = NEON3SameFP16Fixed | 0x00001000,
+  NEON_FMULX_H   = NEON3SameFP16Fixed | 0x00001800,
+  NEON_FCMEQ_H   = NEON3SameFP16Fixed | 0x00002000,
+  NEON_FMAX_H    = NEON3SameFP16Fixed | 0x00003000,
+  NEON_FRECPS_H  = NEON3SameFP16Fixed | 0x00003800,
+  NEON_FMINNM_H  = NEON3SameFP16Fixed | 0x00800000,
+  NEON_FMLS_H    = NEON3SameFP16Fixed | 0x00800800,
+  NEON_FSUB_H    = NEON3SameFP16Fixed | 0x00801000,
+  NEON_FMIN_H    = NEON3SameFP16Fixed | 0x00803000,
+  NEON_FRSQRTS_H = NEON3SameFP16Fixed | 0x00803800,
+  NEON_FMAXNMP_H = NEON3SameFP16Fixed | 0x20000000,
+  NEON_FADDP_H   = NEON3SameFP16Fixed | 0x20001000,
+  NEON_FMUL_H    = NEON3SameFP16Fixed | 0x20001800,
+  NEON_FCMGE_H   = NEON3SameFP16Fixed | 0x20002000,
+  NEON_FACGE_H   = NEON3SameFP16Fixed | 0x20002800,
+  NEON_FMAXP_H   = NEON3SameFP16Fixed | 0x20003000,
+  NEON_FDIV_H    = NEON3SameFP16Fixed | 0x20003800,
+  NEON_FMINNMP_H = NEON3SameFP16Fixed | 0x20800000,
+  NEON_FABD_H    = NEON3SameFP16Fixed | 0x20801000,
+  NEON_FCMGT_H   = NEON3SameFP16Fixed | 0x20802000,
+  NEON_FACGT_H   = NEON3SameFP16Fixed | 0x20802800,
+  NEON_FMINP_H   = NEON3SameFP16Fixed | 0x20803000
 };
 
 
@@ -1690,10 +1936,18 @@ enum NEONAcrossLanesOp {
   NEON_UMAXV  = NEONAcrossLanesFixed | 0x2000A000,
   NEON_UMINV  = NEONAcrossLanesFixed | 0x2001A000,
 
+  NEONAcrossLanesFP16Fixed = NEONAcrossLanesFixed | 0x0000C000,
+  NEONAcrossLanesFP16FMask = NEONAcrossLanesFMask | 0x2000C000,
+  NEONAcrossLanesFP16Mask  = NEONAcrossLanesMask  | 0x20800000,
+  NEON_FMAXNMV_H = NEONAcrossLanesFP16Fixed | 0x00000000,
+  NEON_FMAXV_H   = NEONAcrossLanesFP16Fixed | 0x00003000,
+  NEON_FMINNMV_H = NEONAcrossLanesFP16Fixed | 0x00800000,
+  NEON_FMINV_H   = NEONAcrossLanesFP16Fixed | 0x00803000,
+
   // NEON floating point across instructions.
-  NEONAcrossLanesFPFixed = NEONAcrossLanesFixed | 0x0000C000,
-  NEONAcrossLanesFPFMask = NEONAcrossLanesFMask | 0x0000C000,
-  NEONAcrossLanesFPMask  = NEONAcrossLanesMask  | 0x00800000,
+  NEONAcrossLanesFPFixed = NEONAcrossLanesFixed | 0x2000C000,
+  NEONAcrossLanesFPFMask = NEONAcrossLanesFMask | 0x2000C000,
+  NEONAcrossLanesFPMask  = NEONAcrossLanesMask  | 0x20800000,
 
   NEON_FMAXV   = NEONAcrossLanesFPFixed | 0x2000F000,
   NEON_FMINV   = NEONAcrossLanesFPFixed | 0x2080F000,
@@ -1724,6 +1978,10 @@ enum NEONByIndexedElementOp {
   NEON_SQRDMLAH_byelement = NEONByIndexedElementFixed | 0x2000D000,
   NEON_UDOT_byelement = NEONByIndexedElementFixed | 0x2000E000,
   NEON_SQRDMLSH_byelement = NEONByIndexedElementFixed | 0x2000F000,
+  NEON_FMLA_H_byelement   = NEONByIndexedElementFixed | 0x00001000,
+  NEON_FMLS_H_byelement   = NEONByIndexedElementFixed | 0x00005000,
+  NEON_FMUL_H_byelement   = NEONByIndexedElementFixed | 0x00009000,
+  NEON_FMULX_H_byelement  = NEONByIndexedElementFixed | 0x20009000,
 
   // Floating point instructions.
   NEONByIndexedElementFPFixed = NEONByIndexedElementFixed | 0x00800000,
@@ -2072,6 +2330,33 @@ enum NEONScalar2RegMiscOp {
   NEON_FCVTXN_scalar     = NEON_Q | NEONScalar | NEON_FCVTXN
 };
 
+// NEON instructions with two register operands (FP16).
+enum NEONScalar2RegMiscFP16Op {
+  NEONScalar2RegMiscFP16Fixed = 0x5E780800,
+  NEONScalar2RegMiscFP16FMask = 0xDF7E0C00,
+  NEONScalar2RegMiscFP16Mask  = 0xFFFFFC00,
+  NEON_FCVTNS_H_scalar     = NEON_Q | NEONScalar | NEON_FCVTNS_H,
+  NEON_FCVTMS_H_scalar     = NEON_Q | NEONScalar | NEON_FCVTMS_H,
+  NEON_FCVTAS_H_scalar     = NEON_Q | NEONScalar | NEON_FCVTAS_H,
+  NEON_SCVTF_H_scalar      = NEON_Q | NEONScalar | NEON_SCVTF_H,
+  NEON_FCMGT_H_zero_scalar = NEON_Q | NEONScalar | NEON_FCMGT_H_zero,
+  NEON_FCMEQ_H_zero_scalar = NEON_Q | NEONScalar | NEON_FCMEQ_H_zero,
+  NEON_FCMLT_H_zero_scalar = NEON_Q | NEONScalar | NEON_FCMLT_H_zero,
+  NEON_FCVTPS_H_scalar     = NEON_Q | NEONScalar | NEON_FCVTPS_H,
+  NEON_FCVTZS_H_scalar     = NEON_Q | NEONScalar | NEON_FCVTZS_H,
+  NEON_FRECPE_H_scalar     = NEON_Q | NEONScalar | NEON_FRECPE_H,
+  NEON_FRECPX_H_scalar     = NEONScalar2RegMiscFP16Fixed | 0x0081F000,
+  NEON_FCVTNU_H_scalar     = NEON_Q | NEONScalar | NEON_FCVTNU_H,
+  NEON_FCVTMU_H_scalar     = NEON_Q | NEONScalar | NEON_FCVTMU_H,
+  NEON_FCVTAU_H_scalar     = NEON_Q | NEONScalar | NEON_FCVTAU_H,
+  NEON_UCVTF_H_scalar      = NEON_Q | NEONScalar | NEON_UCVTF_H,
+  NEON_FCMGE_H_zero_scalar = NEON_Q | NEONScalar | NEON_FCMGE_H_zero,
+  NEON_FCMLE_H_zero_scalar = NEON_Q | NEONScalar | NEON_FCMLE_H_zero,
+  NEON_FCVTPU_H_scalar     = NEON_Q | NEONScalar | NEON_FCVTPU_H,
+  NEON_FCVTZU_H_scalar     = NEON_Q | NEONScalar | NEON_FCVTZU_H,
+  NEON_FRSQRTE_H_scalar    = NEON_Q | NEONScalar | NEON_FRSQRTE_H
+};
+
 // NEON scalar instructions with three same-type operands.
 enum NEONScalar3SameOp {
   NEONScalar3SameFixed = 0x5E200400,
@@ -2115,6 +2400,22 @@ enum NEONScalar3SameOp {
   NEON_FABD_scalar    = NEON_Q | NEONScalar | NEON_FABD
 };
 
+// NEON scalar FP16 instructions with three same-type operands.
+enum NEONScalar3SameFP16Op {
+  NEONScalar3SameFP16Fixed = 0x5E400400,
+  NEONScalar3SameFP16FMask = 0xDF60C400,
+  NEONScalar3SameFP16Mask  = 0xFFE0FC00,
+  NEON_FABD_H_scalar    = NEON_Q | NEONScalar | NEON_FABD_H,
+  NEON_FMULX_H_scalar   = NEON_Q | NEONScalar | NEON_FMULX_H,
+  NEON_FCMEQ_H_scalar   = NEON_Q | NEONScalar | NEON_FCMEQ_H,
+  NEON_FCMGE_H_scalar   = NEON_Q | NEONScalar | NEON_FCMGE_H,
+  NEON_FCMGT_H_scalar   = NEON_Q | NEONScalar | NEON_FCMGT_H,
+  NEON_FACGE_H_scalar   = NEON_Q | NEONScalar | NEON_FACGE_H,
+  NEON_FACGT_H_scalar   = NEON_Q | NEONScalar | NEON_FACGT_H,
+  NEON_FRECPS_H_scalar  = NEON_Q | NEONScalar | NEON_FRECPS_H,
+  NEON_FRSQRTS_H_scalar = NEON_Q | NEONScalar | NEON_FRSQRTS_H
+};
+
 // 'Extra' NEON scalar instructions with three same-type operands.
 enum NEONScalar3SameExtraOp {
   NEONScalar3SameExtraFixed = 0x5E008400,
@@ -2149,6 +2450,10 @@ enum NEONScalarByIndexedElementOp {
     = NEON_Q | NEONScalar | NEON_SQRDMLAH_byelement,
   NEON_SQRDMLSH_byelement_scalar
     = NEON_Q | NEONScalar | NEON_SQRDMLSH_byelement,
+  NEON_FMLA_H_byelement_scalar  = NEON_Q | NEONScalar | NEON_FMLA_H_byelement,
+  NEON_FMLS_H_byelement_scalar  = NEON_Q | NEONScalar | NEON_FMLS_H_byelement,
+  NEON_FMUL_H_byelement_scalar  = NEON_Q | NEONScalar | NEON_FMUL_H_byelement,
+  NEON_FMULX_H_byelement_scalar = NEON_Q | NEONScalar | NEON_FMULX_H_byelement,
 
   // Floating point instructions.
   NEONScalarByIndexedElementFPFixed
@@ -2174,12 +2479,17 @@ enum NEONScalarPairwiseOp {
   NEONScalarPairwiseFixed = 0x5E300800,
   NEONScalarPairwiseFMask = 0xDF3E0C00,
   NEONScalarPairwiseMask  = 0xFFB1F800,
-  NEON_ADDP_scalar    = NEONScalarPairwiseFixed | 0x0081B000,
-  NEON_FMAXNMP_scalar = NEONScalarPairwiseFixed | 0x2000C000,
-  NEON_FMINNMP_scalar = NEONScalarPairwiseFixed | 0x2080C000,
-  NEON_FADDP_scalar   = NEONScalarPairwiseFixed | 0x2000D000,
-  NEON_FMAXP_scalar   = NEONScalarPairwiseFixed | 0x2000F000,
-  NEON_FMINP_scalar   = NEONScalarPairwiseFixed | 0x2080F000
+  NEON_ADDP_scalar      = NEONScalarPairwiseFixed | 0x0081B000,
+  NEON_FMAXNMP_h_scalar = NEONScalarPairwiseFixed | 0x0000C000,
+  NEON_FADDP_h_scalar   = NEONScalarPairwiseFixed | 0x0000D000,
+  NEON_FMAXP_h_scalar   = NEONScalarPairwiseFixed | 0x0000F000,
+  NEON_FMINNMP_h_scalar = NEONScalarPairwiseFixed | 0x0080C000,
+  NEON_FMINP_h_scalar   = NEONScalarPairwiseFixed | 0x0080F000,
+  NEON_FMAXNMP_scalar   = NEONScalarPairwiseFixed | 0x2000C000,
+  NEON_FMINNMP_scalar   = NEONScalarPairwiseFixed | 0x2080C000,
+  NEON_FADDP_scalar     = NEONScalarPairwiseFixed | 0x2000D000,
+  NEON_FMAXP_scalar     = NEONScalarPairwiseFixed | 0x2000F000,
+  NEON_FMINP_scalar     = NEONScalarPairwiseFixed | 0x2080F000
 };
 
 // NEON scalar shift immediate.

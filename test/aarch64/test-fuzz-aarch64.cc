@@ -80,10 +80,9 @@ TEST(disasm) {
 // These tests are commented out as they take a long time to run, causing the
 // test script to timeout. After enabling them, they are best run manually:
 //
-//     test-runner_sim FUZZ_decoder_pedantic
-//     test-runner_sim FUZZ_disasm_pedantic
+//     test-runner AARCH64_FUZZ_decoder_pedantic
+//     test-runner AARCH64_FUZZ_disasm_pedantic
 //
-// or test-runner_sim_g for debug builds.
 
 TEST(decoder_pedantic) {
   // Test the entire instruction space.

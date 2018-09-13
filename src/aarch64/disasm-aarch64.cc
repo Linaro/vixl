@@ -28,7 +28,6 @@
 #include <sstream>
 
 #include "disasm-aarch64.h"
-#include "utils-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {
@@ -489,6 +488,7 @@ void Disassembler::VisitBitfield(const Instruction *instr) {
   const char *form_shift_right = "'Rd, 'Rn, 'IBr";
   const char *form_extend = "'Rd, 'Wn";
   const char *form_bfiz = "'Rd, 'Rn, 'IBZ-r, 'IBs+1";
+  const char *form_bfc = "'Rd, 'IBZ-r, 'IBs+1";
   const char *form_bfx = "'Rd, 'Rn, 'IBr, 'IBs-r+1";
   const char *form_lsl = "'Rd, 'Rn, 'IBZ-r";
 
@@ -548,8 +548,13 @@ void Disassembler::VisitBitfield(const Instruction *instr) {
       mnemonic = "bfxil";
       form = form_bfx;
       if (s < r) {
-        mnemonic = "bfi";
-        form = form_bfiz;
+        if (instr->GetRn() == kZeroRegCode) {
+          mnemonic = "bfc";
+          form = form_bfc;
+        } else {
+          mnemonic = "bfi";
+          form = form_bfiz;
+        }
       }
     }
   }
@@ -607,22 +612,66 @@ void Disassembler::VisitConditionalBranch(const Instruction *instr) {
 void Disassembler::VisitUnconditionalBranchToRegister(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "'Xn";
+  const char *form;
 
   switch (instr->Mask(UnconditionalBranchToRegisterMask)) {
     case BR:
       mnemonic = "br";
+      form = "'Xn";
       break;
     case BLR:
       mnemonic = "blr";
+      form = "'Xn";
       break;
     case RET: {
       mnemonic = "ret";
       if (instr->GetRn() == kLinkRegCode) {
         form = NULL;
+      } else {
+        form = "'Xn";
       }
       break;
     }
+    case BRAAZ:
+      mnemonic = "braaz";
+      form = "'Xn";
+      break;
+    case BRABZ:
+      mnemonic = "brabz";
+      form = "'Xn";
+      break;
+    case BLRAAZ:
+      mnemonic = "blraaz";
+      form = "'Xn";
+      break;
+    case BLRABZ:
+      mnemonic = "blrabz";
+      form = "'Xn";
+      break;
+    case RETAA:
+      mnemonic = "retaa";
+      form = NULL;
+      break;
+    case RETAB:
+      mnemonic = "retab";
+      form = NULL;
+      break;
+    case BRAA:
+      mnemonic = "braa";
+      form = "'Xn, 'Xds";
+      break;
+    case BRAB:
+      mnemonic = "brab";
+      form = "'Xn, 'Xds";
+      break;
+    case BLRAA:
+      mnemonic = "blraa";
+      form = "'Xn, 'Xds";
+      break;
+    case BLRAB:
+      mnemonic = "blrab";
+      form = "'Xn, 'Xds";
+      break;
     default:
       form = "(UnconditionalBranchToRegister)";
   }
@@ -664,6 +713,41 @@ void Disassembler::VisitDataProcessing1Source(const Instruction *instr) {
     FORMAT(CLZ, "clz");
     FORMAT(CLS, "cls");
 #undef FORMAT
+
+#define PAUTH_VARIATIONS(V) \
+  V(PACI, "paci")           \
+  V(PACD, "pacd")           \
+  V(AUTI, "auti")           \
+  V(AUTD, "autd")
+#define PAUTH_CASE(NAME, MN) \
+  case NAME##A:              \
+    mnemonic = MN "a";       \
+    form = "'Xd, 'Xns";      \
+    break;                   \
+  case NAME##ZA:             \
+    mnemonic = MN "za";      \
+    form = "'Xd";            \
+    break;                   \
+  case NAME##B:              \
+    mnemonic = MN "b";       \
+    form = "'Xd, 'Xns";      \
+    break;                   \
+  case NAME##ZB:             \
+    mnemonic = MN "zb";      \
+    form = "'Xd";            \
+    break;
+
+    PAUTH_VARIATIONS(PAUTH_CASE)
+#undef PAUTH_CASE
+
+    case XPACI:
+      mnemonic = "xpaci";
+      form = "'Xd";
+      break;
+    case XPACD:
+      mnemonic = "xpacd";
+      form = "'Xd";
+      break;
     case REV32_x:
       mnemonic = "rev32";
       break;
@@ -692,6 +776,10 @@ void Disassembler::VisitDataProcessing2Source(const Instruction *instr) {
     FORMAT(ASRV, "asr");
     FORMAT(RORV, "ror");
 #undef FORMAT
+    case PACGA:
+      mnemonic = "pacga";
+      form = "'Xd, 'Xn, 'Xms";
+      break;
     case CRC32B:
       mnemonic = "crc32b";
       break;
@@ -1347,6 +1435,152 @@ void Disassembler::VisitLoadStoreExclusive(const Instruction *instr) {
   Format(instr, mnemonic, form);
 }
 
+#define ATOMIC_MEMORY_SIMPLE_LIST(V) \
+  V(LDADD, "add")                    \
+  V(LDCLR, "clr")                    \
+  V(LDEOR, "eor")                    \
+  V(LDSET, "set")                    \
+  V(LDSMAX, "smax")                  \
+  V(LDSMIN, "smin")                  \
+  V(LDUMAX, "umax")                  \
+  V(LDUMIN, "umin")
+
+void Disassembler::VisitAtomicMemory(const Instruction *instr) {
+  const int kMaxAtomicOpMnemonicLength = 16;
+  const char *mnemonic;
+  const char *form = "'Ws, 'Wt, ['Xns]";
+
+  switch (instr->Mask(AtomicMemoryMask)) {
+#define AMS(A, MN)             \
+  case A##B:                   \
+    mnemonic = MN "b";         \
+    break;                     \
+  case A##AB:                  \
+    mnemonic = MN "ab";        \
+    break;                     \
+  case A##LB:                  \
+    mnemonic = MN "lb";        \
+    break;                     \
+  case A##ALB:                 \
+    mnemonic = MN "alb";       \
+    break;                     \
+  case A##H:                   \
+    mnemonic = MN "h";         \
+    break;                     \
+  case A##AH:                  \
+    mnemonic = MN "ah";        \
+    break;                     \
+  case A##LH:                  \
+    mnemonic = MN "lh";        \
+    break;                     \
+  case A##ALH:                 \
+    mnemonic = MN "alh";       \
+    break;                     \
+  case A##_w:                  \
+    mnemonic = MN;             \
+    break;                     \
+  case A##A_w:                 \
+    mnemonic = MN "a";         \
+    break;                     \
+  case A##L_w:                 \
+    mnemonic = MN "l";         \
+    break;                     \
+  case A##AL_w:                \
+    mnemonic = MN "al";        \
+    break;                     \
+  case A##_x:                  \
+    mnemonic = MN;             \
+    form = "'Xs, 'Xt, ['Xns]"; \
+    break;                     \
+  case A##A_x:                 \
+    mnemonic = MN "a";         \
+    form = "'Xs, 'Xt, ['Xns]"; \
+    break;                     \
+  case A##L_x:                 \
+    mnemonic = MN "l";         \
+    form = "'Xs, 'Xt, ['Xns]"; \
+    break;                     \
+  case A##AL_x:                \
+    mnemonic = MN "al";        \
+    form = "'Xs, 'Xt, ['Xns]"; \
+    break;
+    ATOMIC_MEMORY_SIMPLE_LIST(AMS)
+
+    // SWP has the same semantics as ldadd etc but without the store aliases.
+    AMS(SWP, "swp")
+#undef AMS
+
+    case LDAPRB:
+      mnemonic = "ldaprb";
+      form = "'Wt, ['Xns]";
+      break;
+    case LDAPRH:
+      mnemonic = "ldaprh";
+      form = "'Wt, ['Xns]";
+      break;
+    case LDAPR_w:
+      mnemonic = "ldapr";
+      form = "'Wt, ['Xns]";
+      break;
+    case LDAPR_x:
+      mnemonic = "ldapr";
+      form = "'Xt, ['Xns]";
+      break;
+    default:
+      mnemonic = "unimplemented";
+      form = "(AtomicMemory)";
+  }
+
+  const char *prefix = "";
+  switch (instr->Mask(AtomicMemoryMask)) {
+#define AMS(A, MN)                   \
+  case A##AB:                        \
+  case A##ALB:                       \
+  case A##AH:                        \
+  case A##ALH:                       \
+  case A##A_w:                       \
+  case A##AL_w:                      \
+  case A##A_x:                       \
+  case A##AL_x:                      \
+    prefix = "ld";                   \
+    break;                           \
+  case A##B:                         \
+  case A##LB:                        \
+  case A##H:                         \
+  case A##LH:                        \
+  case A##_w:                        \
+  case A##L_w: {                     \
+    prefix = "ld";                   \
+    unsigned rt = instr->GetRt();    \
+    if (Register(rt, 32).IsZero()) { \
+      prefix = "st";                 \
+      form = "'Ws, ['Xns]";          \
+    }                                \
+    break;                           \
+  }                                  \
+  case A##_x:                        \
+  case A##L_x: {                     \
+    prefix = "ld";                   \
+    unsigned rt = instr->GetRt();    \
+    if (Register(rt, 64).IsZero()) { \
+      prefix = "st";                 \
+      form = "'Xs, ['Xns]";          \
+    }                                \
+    break;                           \
+  }
+    ATOMIC_MEMORY_SIMPLE_LIST(AMS)
+#undef AMS
+  }
+
+  char buffer[kMaxAtomicOpMnemonicLength];
+  if (strlen(prefix) > 0) {
+    snprintf(buffer, kMaxAtomicOpMnemonicLength, "%s%s", prefix, mnemonic);
+    mnemonic = buffer;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
 
 void Disassembler::VisitFPCompare(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
@@ -1354,18 +1588,22 @@ void Disassembler::VisitFPCompare(const Instruction *instr) {
   const char *form_zero = "'Fn, #0.0";
 
   switch (instr->Mask(FPCompareMask)) {
+    case FCMP_h_zero:
     case FCMP_s_zero:
     case FCMP_d_zero:
       form = form_zero;
       VIXL_FALLTHROUGH();
+    case FCMP_h:
     case FCMP_s:
     case FCMP_d:
       mnemonic = "fcmp";
       break;
+    case FCMPE_h_zero:
     case FCMPE_s_zero:
     case FCMPE_d_zero:
       form = form_zero;
       VIXL_FALLTHROUGH();
+    case FCMPE_h:
     case FCMPE_s:
     case FCMPE_d:
       mnemonic = "fcmpe";
@@ -1382,10 +1620,12 @@ void Disassembler::VisitFPConditionalCompare(const Instruction *instr) {
   const char *form = "'Fn, 'Fm, 'INzcv, 'Cond";
 
   switch (instr->Mask(FPConditionalCompareMask)) {
+    case FCCMP_h:
     case FCCMP_s:
     case FCCMP_d:
       mnemonic = "fccmp";
       break;
+    case FCCMPE_h:
     case FCCMPE_s:
     case FCCMPE_d:
       mnemonic = "fccmpe";
@@ -1402,6 +1642,7 @@ void Disassembler::VisitFPConditionalSelect(const Instruction *instr) {
   const char *form = "'Fd, 'Fn, 'Fm, 'Cond";
 
   switch (instr->Mask(FPConditionalSelectMask)) {
+    case FCSEL_h:
     case FCSEL_s:
     case FCSEL_d:
       mnemonic = "fcsel";
@@ -1418,7 +1659,6 @@ void Disassembler::VisitFPDataProcessing1Source(const Instruction *instr) {
   const char *form = "'Fd, 'Fn";
 
   switch (instr->Mask(FPDataProcessing1SourceMask)) {
-// Duplicated until half precision support for all fp instructions.
 #define FORMAT(A, B) \
   case A##_h:        \
   case A##_s:        \
@@ -1426,12 +1666,6 @@ void Disassembler::VisitFPDataProcessing1Source(const Instruction *instr) {
     mnemonic = B;    \
     break;
     FORMAT(FMOV, "fmov");
-#undef FORMAT
-#define FORMAT(A, B) \
-  case A##_s:        \
-  case A##_d:        \
-    mnemonic = B;    \
-    break;
     FORMAT(FABS, "fabs");
     FORMAT(FNEG, "fneg");
     FORMAT(FSQRT, "fsqrt");
@@ -1480,14 +1714,15 @@ void Disassembler::VisitFPDataProcessing2Source(const Instruction *instr) {
 
   switch (instr->Mask(FPDataProcessing2SourceMask)) {
 #define FORMAT(A, B) \
+  case A##_h:        \
   case A##_s:        \
   case A##_d:        \
     mnemonic = B;    \
     break;
-    FORMAT(FMUL, "fmul");
-    FORMAT(FDIV, "fdiv");
     FORMAT(FADD, "fadd");
     FORMAT(FSUB, "fsub");
+    FORMAT(FMUL, "fmul");
+    FORMAT(FDIV, "fdiv");
     FORMAT(FMAX, "fmax");
     FORMAT(FMIN, "fmin");
     FORMAT(FMAXNM, "fmaxnm");
@@ -1507,6 +1742,7 @@ void Disassembler::VisitFPDataProcessing3Source(const Instruction *instr) {
 
   switch (instr->Mask(FPDataProcessing3SourceMask)) {
 #define FORMAT(A, B) \
+  case A##_h:        \
   case A##_s:        \
   case A##_d:        \
     mnemonic = B;    \
@@ -1575,6 +1811,8 @@ void Disassembler::VisitFPIntegerConvert(const Instruction *instr) {
       mnemonic = "fmov";
       form = "'Rd, 'Vn.D[1]";
       break;
+    case FCVTAS_wh:
+    case FCVTAS_xh:
     case FCVTAS_ws:
     case FCVTAS_xs:
     case FCVTAS_wd:
@@ -1582,6 +1820,8 @@ void Disassembler::VisitFPIntegerConvert(const Instruction *instr) {
       mnemonic = "fcvtas";
       form = form_rf;
       break;
+    case FCVTAU_wh:
+    case FCVTAU_xh:
     case FCVTAU_ws:
     case FCVTAU_xs:
     case FCVTAU_wd:
@@ -1589,6 +1829,8 @@ void Disassembler::VisitFPIntegerConvert(const Instruction *instr) {
       mnemonic = "fcvtau";
       form = form_rf;
       break;
+    case FCVTMS_wh:
+    case FCVTMS_xh:
     case FCVTMS_ws:
     case FCVTMS_xs:
     case FCVTMS_wd:
@@ -1596,6 +1838,8 @@ void Disassembler::VisitFPIntegerConvert(const Instruction *instr) {
       mnemonic = "fcvtms";
       form = form_rf;
       break;
+    case FCVTMU_wh:
+    case FCVTMU_xh:
     case FCVTMU_ws:
     case FCVTMU_xs:
     case FCVTMU_wd:
@@ -1603,6 +1847,8 @@ void Disassembler::VisitFPIntegerConvert(const Instruction *instr) {
       mnemonic = "fcvtmu";
       form = form_rf;
       break;
+    case FCVTNS_wh:
+    case FCVTNS_xh:
     case FCVTNS_ws:
     case FCVTNS_xs:
     case FCVTNS_wd:
@@ -1610,6 +1856,8 @@ void Disassembler::VisitFPIntegerConvert(const Instruction *instr) {
       mnemonic = "fcvtns";
       form = form_rf;
       break;
+    case FCVTNU_wh:
+    case FCVTNU_xh:
     case FCVTNU_ws:
     case FCVTNU_xs:
     case FCVTNU_wd:
@@ -1617,34 +1865,44 @@ void Disassembler::VisitFPIntegerConvert(const Instruction *instr) {
       mnemonic = "fcvtnu";
       form = form_rf;
       break;
-    case FCVTZU_xd:
+    case FCVTZU_wh:
+    case FCVTZU_xh:
     case FCVTZU_ws:
-    case FCVTZU_wd:
     case FCVTZU_xs:
+    case FCVTZU_wd:
+    case FCVTZU_xd:
       mnemonic = "fcvtzu";
       form = form_rf;
       break;
-    case FCVTZS_xd:
-    case FCVTZS_wd:
-    case FCVTZS_xs:
+    case FCVTZS_wh:
+    case FCVTZS_xh:
     case FCVTZS_ws:
+    case FCVTZS_xs:
+    case FCVTZS_wd:
+    case FCVTZS_xd:
       mnemonic = "fcvtzs";
       form = form_rf;
       break;
-    case FCVTPU_xd:
-    case FCVTPU_ws:
-    case FCVTPU_wd:
+    case FCVTPU_wh:
+    case FCVTPU_xh:
     case FCVTPU_xs:
+    case FCVTPU_wd:
+    case FCVTPU_ws:
+    case FCVTPU_xd:
       mnemonic = "fcvtpu";
       form = form_rf;
       break;
-    case FCVTPS_xd:
-    case FCVTPS_wd:
-    case FCVTPS_xs:
+    case FCVTPS_wh:
+    case FCVTPS_xh:
     case FCVTPS_ws:
+    case FCVTPS_xs:
+    case FCVTPS_wd:
+    case FCVTPS_xd:
       mnemonic = "fcvtps";
       form = form_rf;
       break;
+    case SCVTF_hw:
+    case SCVTF_hx:
     case SCVTF_sw:
     case SCVTF_sx:
     case SCVTF_dw:
@@ -1652,12 +1910,18 @@ void Disassembler::VisitFPIntegerConvert(const Instruction *instr) {
       mnemonic = "scvtf";
       form = form_fr;
       break;
+    case UCVTF_hw:
+    case UCVTF_hx:
     case UCVTF_sw:
     case UCVTF_sx:
     case UCVTF_dw:
     case UCVTF_dx:
       mnemonic = "ucvtf";
       form = form_fr;
+      break;
+    case FJCVTZS:
+      mnemonic = "fjcvtzs";
+      form = form_rf;
       break;
   }
   Format(instr, mnemonic, form);
@@ -1670,18 +1934,24 @@ void Disassembler::VisitFPFixedPointConvert(const Instruction *instr) {
   const char *form_fr = "'Fd, 'Rn, 'IFPFBits";
 
   switch (instr->Mask(FPFixedPointConvertMask)) {
+    case FCVTZS_wh_fixed:
+    case FCVTZS_xh_fixed:
     case FCVTZS_ws_fixed:
     case FCVTZS_xs_fixed:
     case FCVTZS_wd_fixed:
     case FCVTZS_xd_fixed:
       mnemonic = "fcvtzs";
       break;
+    case FCVTZU_wh_fixed:
+    case FCVTZU_xh_fixed:
     case FCVTZU_ws_fixed:
     case FCVTZU_xs_fixed:
     case FCVTZU_wd_fixed:
     case FCVTZU_xd_fixed:
       mnemonic = "fcvtzu";
       break;
+    case SCVTF_hw_fixed:
+    case SCVTF_hx_fixed:
     case SCVTF_sw_fixed:
     case SCVTF_sx_fixed:
     case SCVTF_dw_fixed:
@@ -1689,6 +1959,8 @@ void Disassembler::VisitFPFixedPointConvert(const Instruction *instr) {
       mnemonic = "scvtf";
       form = form_fr;
       break;
+    case UCVTF_hw_fixed:
+    case UCVTF_hx_fixed:
     case UCVTF_sw_fixed:
     case UCVTF_sx_fixed:
     case UCVTF_dw_fixed:
@@ -1702,6 +1974,21 @@ void Disassembler::VisitFPFixedPointConvert(const Instruction *instr) {
   Format(instr, mnemonic, form);
 }
 
+// clang-format off
+#define PAUTH_SYSTEM_MNEMONICS(V) \
+  V(PACIA1716, "pacia1716")       \
+  V(PACIB1716, "pacib1716")       \
+  V(AUTIA1716, "autia1716")       \
+  V(AUTIB1716, "autib1716")       \
+  V(PACIAZ,    "paciaz")          \
+  V(PACIASP,   "paciasp")         \
+  V(PACIBZ,    "pacibz")          \
+  V(PACIBSP,   "pacibsp")         \
+  V(AUTIAZ,    "autiaz")          \
+  V(AUTIASP,   "autiasp")         \
+  V(AUTIBZ,    "autibz")          \
+  V(AUTIBSP,   "autibsp")
+// clang-format on
 
 void Disassembler::VisitSystem(const Instruction *instr) {
   // Some system instructions hijack their Op and Cp fields to represent a
@@ -1709,8 +1996,22 @@ void Disassembler::VisitSystem(const Instruction *instr) {
   // makes the decoding tricky.
   const char *mnemonic = "unimplemented";
   const char *form = "(System)";
+  if (instr->GetInstructionBits() == XPACLRI) {
+    mnemonic = "xpaclri";
+    form = NULL;
+  } else if (instr->Mask(SystemPAuthFMask) == SystemPAuthFixed) {
+    switch (instr->Mask(SystemPAuthMask)) {
+#define PAUTH_CASE(NAME, MN) \
+  case NAME:                 \
+    mnemonic = MN;           \
+    form = NULL;             \
+    break;
 
-  if (instr->Mask(SystemExclusiveMonitorFMask) == SystemExclusiveMonitorFixed) {
+      PAUTH_SYSTEM_MNEMONICS(PAUTH_CASE)
+#undef PAUTH_CASE
+    }
+  } else if (instr->Mask(SystemExclusiveMonitorFMask) ==
+             SystemExclusiveMonitorFixed) {
     switch (instr->Mask(SystemExclusiveMonitorMask)) {
       case CLREX: {
         mnemonic = "clrex";
@@ -1761,6 +2062,11 @@ void Disassembler::VisitSystem(const Instruction *instr) {
       case SEVL: {
         form = NULL;
         mnemonic = "sevl";
+        break;
+      }
+      case ESB: {
+        form = NULL;
+        mnemonic = "esb";
         break;
       }
       case CSDB: {
@@ -2154,6 +2460,73 @@ void Disassembler::VisitNEON2RegMisc(const Instruction *instr) {
   Format(instr, mnemonic, nfd.Substitute(form));
 }
 
+void Disassembler::VisitNEON2RegMiscFP16(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'Vd.%s, 'Vn.%s";
+  const char *form_cmp = "'Vd.%s, 'Vn.%s, #0.0";
+
+  static const NEONFormatMap map_half = {{30}, {NF_4H, NF_8H}};
+  NEONFormatDecoder nfd(instr, &map_half);
+
+  switch (instr->Mask(NEON2RegMiscFP16Mask)) {
+// clang-format off
+#define FORMAT(A, B) \
+  case NEON_##A##_H: \
+    mnemonic = B;    \
+    break;
+    FORMAT(FABS,    "fabs")
+    FORMAT(FCVTAS,  "fcvtas")
+    FORMAT(FCVTAU,  "fcvtau")
+    FORMAT(FCVTMS,  "fcvtms")
+    FORMAT(FCVTMU,  "fcvtmu")
+    FORMAT(FCVTNS,  "fcvtns")
+    FORMAT(FCVTNU,  "fcvtnu")
+    FORMAT(FCVTPS,  "fcvtps")
+    FORMAT(FCVTPU,  "fcvtpu")
+    FORMAT(FCVTZS,  "fcvtzs")
+    FORMAT(FCVTZU,  "fcvtzu")
+    FORMAT(FNEG,    "fneg")
+    FORMAT(FRECPE,  "frecpe")
+    FORMAT(FRINTA,  "frinta")
+    FORMAT(FRINTI,  "frinti")
+    FORMAT(FRINTM,  "frintm")
+    FORMAT(FRINTN,  "frintn")
+    FORMAT(FRINTP,  "frintp")
+    FORMAT(FRINTX,  "frintx")
+    FORMAT(FRINTZ,  "frintz")
+    FORMAT(FRSQRTE, "frsqrte")
+    FORMAT(FSQRT,   "fsqrt")
+    FORMAT(SCVTF,   "scvtf")
+    FORMAT(UCVTF,   "ucvtf")
+// clang-format on
+#undef FORMAT
+
+    case NEON_FCMEQ_H_zero:
+      mnemonic = "fcmeq";
+      form = form_cmp;
+      break;
+    case NEON_FCMGT_H_zero:
+      mnemonic = "fcmgt";
+      form = form_cmp;
+      break;
+    case NEON_FCMGE_H_zero:
+      mnemonic = "fcmge";
+      form = form_cmp;
+      break;
+    case NEON_FCMLT_H_zero:
+      mnemonic = "fcmlt";
+      form = form_cmp;
+      break;
+    case NEON_FCMLE_H_zero:
+      mnemonic = "fcmle";
+      form = form_cmp;
+      break;
+    default:
+      form = "(NEON2RegMiscFP16)";
+  }
+  Format(instr, mnemonic, nfd.Substitute(form));
+}
+
 
 void Disassembler::VisitNEON3Same(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
@@ -2329,7 +2702,7 @@ void Disassembler::VisitNEON3Same(const Instruction *instr) {
     // size (23) and the U bit (29).
     unsigned index = (instr->ExtractBits(15, 11) << 2) |
                      (instr->ExtractBit(23) << 1) | instr->ExtractBit(29);
-    VIXL_ASSERT(index < (sizeof(mnemonics) / sizeof(mnemonics[0])));
+    VIXL_ASSERT(index < ArrayLength(mnemonics));
     mnemonic = mnemonics[index];
     // Assert that index is not one of the previously handled logical
     // instructions.
@@ -2339,6 +2712,50 @@ void Disassembler::VisitNEON3Same(const Instruction *instr) {
       nfd.SetFormatMaps(nfd.FPFormatMap());
     }
   }
+  Format(instr, mnemonic, nfd.Substitute(form));
+}
+
+void Disassembler::VisitNEON3SameFP16(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
+
+  NEONFormatDecoder nfd(instr);
+  nfd.SetFormatMaps(nfd.FP16FormatMap());
+
+  switch (instr->Mask(NEON3SameFP16Mask)) {
+#define FORMAT(A, B) \
+  case NEON_##A##_H: \
+    mnemonic = B;    \
+    break;
+    FORMAT(FMAXNM, "fmaxnm");
+    FORMAT(FMLA, "fmla");
+    FORMAT(FADD, "fadd");
+    FORMAT(FMULX, "fmulx");
+    FORMAT(FCMEQ, "fcmeq");
+    FORMAT(FMAX, "fmax");
+    FORMAT(FRECPS, "frecps");
+    FORMAT(FMINNM, "fminnm");
+    FORMAT(FMLS, "fmls");
+    FORMAT(FSUB, "fsub");
+    FORMAT(FMIN, "fmin");
+    FORMAT(FRSQRTS, "frsqrts");
+    FORMAT(FMAXNMP, "fmaxnmp");
+    FORMAT(FADDP, "faddp");
+    FORMAT(FMUL, "fmul");
+    FORMAT(FCMGE, "fcmge");
+    FORMAT(FACGE, "facge");
+    FORMAT(FMAXP, "fmaxp");
+    FORMAT(FDIV, "fdiv");
+    FORMAT(FMINNMP, "fminnmp");
+    FORMAT(FABD, "fabd");
+    FORMAT(FCMGT, "fcmgt");
+    FORMAT(FACGT, "facgt");
+    FORMAT(FMINP, "fminp");
+#undef FORMAT
+    default:
+      form = "(NEON3SameFP16)";
+  }
+
   Format(instr, mnemonic, nfd.Substitute(form));
 }
 
@@ -2491,12 +2908,33 @@ void Disassembler::VisitNEON3Different(const Instruction *instr) {
 void Disassembler::VisitNEONAcrossLanes(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "%sd, 'Vn.%s";
+  const char *form_half = "'Hd, 'Vn.%s";
+  bool half_op = false;
+  static const NEONFormatMap map_half = {{30}, {NF_4H, NF_8H}};
 
   NEONFormatDecoder nfd(instr,
                         NEONFormatDecoder::ScalarFormatMap(),
                         NEONFormatDecoder::IntegerFormatMap());
 
-  if (instr->Mask(NEONAcrossLanesFPFMask) == NEONAcrossLanesFPFixed) {
+  if (instr->Mask(NEONAcrossLanesFP16FMask) == NEONAcrossLanesFP16Fixed) {
+    half_op = true;
+    form = form_half;
+    nfd.SetFormatMaps(&map_half);
+    switch (instr->Mask(NEONAcrossLanesFP16Mask)) {
+      case NEON_FMAXV_H:
+        mnemonic = "fmaxv";
+        break;
+      case NEON_FMINV_H:
+        mnemonic = "fminv";
+        break;
+      case NEON_FMAXNMV_H:
+        mnemonic = "fmaxnmv";
+        break;
+      case NEON_FMINNMV_H:
+        mnemonic = "fminnmv";
+        break;
+    }
+  } else if (instr->Mask(NEONAcrossLanesFPFMask) == NEONAcrossLanesFPFixed) {
     nfd.SetFormatMap(0, nfd.FPScalarFormatMap());
     nfd.SetFormatMap(1, nfd.FPFormatMap());
     switch (instr->Mask(NEONAcrossLanesFPMask)) {
@@ -2546,11 +2984,16 @@ void Disassembler::VisitNEONAcrossLanes(const Instruction *instr) {
         break;
     }
   }
-  Format(instr,
-         mnemonic,
-         nfd.Substitute(form,
-                        NEONFormatDecoder::kPlaceholder,
-                        NEONFormatDecoder::kFormat));
+
+  if (half_op) {
+    Format(instr, mnemonic, nfd.Substitute(form));
+  } else {
+    Format(instr,
+           mnemonic,
+           nfd.Substitute(form,
+                          NEONFormatDecoder::kPlaceholder,
+                          NEONFormatDecoder::kFormat));
+  }
 }
 
 
@@ -2559,6 +3002,7 @@ void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
   bool l_instr = false;
   bool fp_instr = false;
   bool cn_instr = false;
+  bool half_instr = false;
 
   const char *form = "'Vd.%s, 'Vn.%s, 'Ve.%s['IVByElemIndex]";
 
@@ -2567,6 +3011,7 @@ void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
       {{23, 22, 30},
        {NF_UNDEF, NF_UNDEF, NF_4H, NF_8H, NF_UNDEF, NF_4S, NF_UNDEF, NF_UNDEF}};
   static const NEONFormatMap map_usdot = {{30}, {NF_8B, NF_16B}};
+  static const NEONFormatMap map_half = {{30}, {NF_4H, NF_8H}};
 
   NEONFormatDecoder nfd(instr,
                         &map_ta,
@@ -2659,6 +3104,22 @@ void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
           mnemonic = "fmulx";
           fp_instr = true;
           break;
+        case NEON_FMLA_H_byelement:
+          mnemonic = "fmla";
+          half_instr = true;
+          break;
+        case NEON_FMLS_H_byelement:
+          mnemonic = "fmls";
+          half_instr = true;
+          break;
+        case NEON_FMUL_H_byelement:
+          mnemonic = "fmul";
+          half_instr = true;
+          break;
+        case NEON_FMULX_H_byelement:
+          mnemonic = "fmulx";
+          half_instr = true;
+          break;
         default:
           switch (instr->Mask(NEONByIndexedElementFPComplexMask)) {
             case NEON_FCMLA_byelement:
@@ -2670,7 +3131,11 @@ void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
       }
   }
 
-  if (l_instr) {
+  if (half_instr) {
+    form = "'Vd.%s, 'Vn.%s, 'Ve.h['IVByElemIndex]";
+    nfd.SetFormatMaps(&map_half, &map_half);
+    Format(instr, mnemonic, nfd.Substitute(form));
+  } else if (l_instr) {
     Format(instr, nfd.Mnemonic(mnemonic), nfd.Substitute(form));
   } else if (fp_instr) {
     nfd.SetFormatMap(0, nfd.FPFormatMap());
@@ -3488,6 +3953,52 @@ void Disassembler::VisitNEONScalar2RegMisc(const Instruction *instr) {
   Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
 }
 
+void Disassembler::VisitNEONScalar2RegMiscFP16(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'Hd, 'Hn";
+  const char *form_fp0 = "'Hd, 'Hn, #0.0";
+
+  switch (instr->Mask(NEONScalar2RegMiscFP16Mask)) {
+#define FORMAT(A, B)        \
+  case NEON_##A##_H_scalar: \
+    mnemonic = B;           \
+    break;
+    // clang-format off
+    FORMAT(FCVTNS,  "fcvtns")
+    FORMAT(FCVTMS,  "fcvtms")
+    FORMAT(FCVTAS,  "fcvtas")
+    FORMAT(SCVTF,   "scvtf")
+    FORMAT(FCVTPS,  "fcvtps")
+    FORMAT(FCVTZS,  "fcvtzs")
+    FORMAT(FRECPE,  "frecpe")
+    FORMAT(FRECPX,  "frecpx")
+    FORMAT(FCVTNU,  "fcvtnu")
+    FORMAT(FCVTMU,  "fcvtmu")
+    FORMAT(FCVTAU,  "fcvtau")
+    FORMAT(UCVTF,   "ucvtf")
+    FORMAT(FCVTPU,  "fcvtpu")
+    FORMAT(FCVTZU,  "fcvtzu")
+    FORMAT(FRSQRTE, "frsqrte")
+// clang-format on
+#undef FORMAT
+#define FORMAT(A, B)             \
+  case NEON_##A##_H_zero_scalar: \
+    mnemonic = B;                \
+    form = form_fp0;             \
+    break;
+    FORMAT(FCMGT, "fcmgt")
+    FORMAT(FCMEQ, "fcmeq")
+    FORMAT(FCMLT, "fcmlt")
+    FORMAT(FCMGE, "fcmge")
+    FORMAT(FCMLE, "fcmle")
+#undef FORMAT
+
+    default:
+      VIXL_UNREACHABLE();
+  }
+  Format(instr, mnemonic, form);
+}
+
 
 void Disassembler::VisitNEONScalar3Diff(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
@@ -3626,6 +4137,43 @@ void Disassembler::VisitNEONScalar3Same(const Instruction *instr) {
   Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
 }
 
+void Disassembler::VisitNEONScalar3SameFP16(const Instruction *instr) {
+  const char *mnemonic = NULL;
+  const char *form = "'Hd, 'Hn, 'Hm";
+
+  switch (instr->Mask(NEONScalar3SameFP16Mask)) {
+    case NEON_FABD_H_scalar:
+      mnemonic = "fabd";
+      break;
+    case NEON_FMULX_H_scalar:
+      mnemonic = "fmulx";
+      break;
+    case NEON_FCMEQ_H_scalar:
+      mnemonic = "fcmeq";
+      break;
+    case NEON_FCMGE_H_scalar:
+      mnemonic = "fcmge";
+      break;
+    case NEON_FCMGT_H_scalar:
+      mnemonic = "fcmgt";
+      break;
+    case NEON_FACGE_H_scalar:
+      mnemonic = "facge";
+      break;
+    case NEON_FACGT_H_scalar:
+      mnemonic = "facgt";
+      break;
+    case NEON_FRECPS_H_scalar:
+      mnemonic = "frecps";
+      break;
+    case NEON_FRSQRTS_H_scalar:
+      mnemonic = "frsqrts";
+      break;
+    default:
+      VIXL_UNREACHABLE();
+  }
+  Format(instr, mnemonic, form);
+}
 
 void Disassembler::VisitNEONScalar3SameExtra(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
@@ -3649,6 +4197,7 @@ void Disassembler::VisitNEONScalar3SameExtra(const Instruction *instr) {
 void Disassembler::VisitNEONScalarByIndexedElement(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "%sd, %sn, 'Ve.%s['IVByElemIndex]";
+  const char *form_half = "'Hd, 'Hn, 'Ve.h['IVByElemIndex]";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
   bool long_instr = false;
 
@@ -3692,6 +4241,22 @@ void Disassembler::VisitNEONScalarByIndexedElement(const Instruction *instr) {
         case NEON_FMULX_byelement_scalar:
           mnemonic = "fmulx";
           break;
+        case NEON_FMLA_H_byelement_scalar:
+          mnemonic = "fmla";
+          form = form_half;
+          break;
+        case NEON_FMLS_H_byelement_scalar:
+          mnemonic = "fmls";
+          form = form_half;
+          break;
+        case NEON_FMUL_H_byelement_scalar:
+          mnemonic = "fmul";
+          form = form_half;
+          break;
+        case NEON_FMULX_H_byelement_scalar:
+          mnemonic = "fmulx";
+          form = form_half;
+          break;
         default:
           form = "(NEONScalarByIndexedElement)";
       }
@@ -3726,24 +4291,44 @@ void Disassembler::VisitNEONScalarPairwise(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "%sd, 'Vn.%s";
   NEONFormatMap map = {{22}, {NF_2S, NF_2D}};
-  NEONFormatDecoder nfd(instr, NEONFormatDecoder::FPScalarFormatMap(), &map);
+  NEONFormatDecoder nfd(instr,
+                        NEONFormatDecoder::FPScalarPairwiseFormatMap(),
+                        &map);
 
   switch (instr->Mask(NEONScalarPairwiseMask)) {
     case NEON_ADDP_scalar:
+      // All pairwise operations except ADDP use bit U to differentiate FP16
+      // from FP32/FP64 variations.
+      nfd.SetFormatMap(0, NEONFormatDecoder::FPScalarFormatMap());
       mnemonic = "addp";
       break;
+    case NEON_FADDP_h_scalar:
+      form = "%sd, 'Vn.2h";
+      VIXL_FALLTHROUGH();
     case NEON_FADDP_scalar:
       mnemonic = "faddp";
       break;
+    case NEON_FMAXP_h_scalar:
+      form = "%sd, 'Vn.2h";
+      VIXL_FALLTHROUGH();
     case NEON_FMAXP_scalar:
       mnemonic = "fmaxp";
       break;
+    case NEON_FMAXNMP_h_scalar:
+      form = "%sd, 'Vn.2h";
+      VIXL_FALLTHROUGH();
     case NEON_FMAXNMP_scalar:
       mnemonic = "fmaxnmp";
       break;
+    case NEON_FMINP_h_scalar:
+      form = "%sd, 'Vn.2h";
+      VIXL_FALLTHROUGH();
     case NEON_FMINP_scalar:
       mnemonic = "fminp";
       break;
+    case NEON_FMINNMP_h_scalar:
+      form = "%sd, 'Vn.2h";
+      VIXL_FALLTHROUGH();
     case NEON_FMINNMP_scalar:
       mnemonic = "fminnmp";
       break;
@@ -4683,6 +5268,10 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
             ret += 3;
           } else if (instr->GetNEONSize() == 1) {
             vm_index = (vm_index << 1) | instr->GetNEONM();
+          } else if (instr->GetNEONSize() == 0) {
+            // Half-precision FP ops use H:L:M bit index
+            vm_index = (instr->GetNEONH() << 2) | (instr->GetNEONL() << 1) |
+                       instr->GetNEONM();
           }
           AppendToOutput("%d", vm_index);
           return ret;
@@ -5079,7 +5668,7 @@ int Disassembler::SubstitutePrefetchField(const Instruction *instr,
   unsigned target = instr->GetPrefetchTarget() + 1;
   unsigned stream = instr->GetPrefetchStream();
 
-  if ((hint >= (sizeof(hints) / sizeof(hints[0]))) || (target > 3)) {
+  if ((hint >= ArrayLength(hints)) || (target > 3)) {
     // Unallocated prefetch operations.
     int prefetch_mode = instr->GetImmPrefetchOperation();
     AppendToOutput("#0b%c%c%c%c%c",
@@ -5089,7 +5678,7 @@ int Disassembler::SubstitutePrefetchField(const Instruction *instr,
                    (prefetch_mode & (1 << 1)) ? '1' : '0',
                    (prefetch_mode & (1 << 0)) ? '1' : '0');
   } else {
-    VIXL_ASSERT(stream < (sizeof(stream_options) / sizeof(stream_options[0])));
+    VIXL_ASSERT(stream < ArrayLength(stream_options));
     AppendToOutput("p%sl%d%s", hints[hint], target, stream_options[stream]);
   }
   return 6;

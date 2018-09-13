@@ -364,6 +364,7 @@ class VRegister : public CPURegister {
 
   VRegister V8B() const { return VRegister(code_, kDRegSize, 8); }
   VRegister V16B() const { return VRegister(code_, kQRegSize, 16); }
+  VRegister V2H() const { return VRegister(code_, kSRegSize, 2); }
   VRegister V4H() const { return VRegister(code_, kDRegSize, 4); }
   VRegister V8H() const { return VRegister(code_, kQRegSize, 8); }
   VRegister V2S() const { return VRegister(code_, kDRegSize, 2); }
@@ -373,6 +374,7 @@ class VRegister : public CPURegister {
 
   bool Is8B() const { return (Is64Bits() && (lanes_ == 8)); }
   bool Is16B() const { return (Is128Bits() && (lanes_ == 16)); }
+  bool Is2H() const { return (Is32Bits() && (lanes_ == 2)); }
   bool Is4H() const { return (Is64Bits() && (lanes_ == 4)); }
   bool Is8H() const { return (Is128Bits() && (lanes_ == 8)); }
   bool Is2S() const { return (Is64Bits() && (lanes_ == 2)); }

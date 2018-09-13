@@ -1485,7 +1485,7 @@ void MacroAssembler::Fmov(VRegister vd, double imm) {
   MacroEmissionCheckScope guard(this);
 
   if (vd.Is1H() || vd.Is4H() || vd.Is8H()) {
-    Fmov(vd, F16(imm));
+    Fmov(vd, Float16(imm));
     return;
   }
 
@@ -1522,7 +1522,7 @@ void MacroAssembler::Fmov(VRegister vd, float imm) {
   MacroEmissionCheckScope guard(this);
 
   if (vd.Is1H() || vd.Is4H() || vd.Is8H()) {
-    Fmov(vd, F16(imm));
+    Fmov(vd, Float16(imm));
     return;
   }
 
@@ -1553,23 +1553,23 @@ void MacroAssembler::Fmov(VRegister vd, float imm) {
 }
 
 
-void MacroAssembler::Fmov(VRegister vd, F16 imm) {
+void MacroAssembler::Fmov(VRegister vd, Float16 imm) {
   VIXL_ASSERT(allow_macro_instructions_);
   MacroEmissionCheckScope guard(this);
 
   if (vd.Is1S() || vd.Is2S() || vd.Is4S()) {
-    Fmov(vd, static_cast<float>(imm));
+    Fmov(vd, FPToFloat(imm, kIgnoreDefaultNaN));
     return;
   }
 
   if (vd.Is1D() || vd.Is2D()) {
-    Fmov(vd, static_cast<double>(imm));
+    Fmov(vd, FPToDouble(imm, kIgnoreDefaultNaN));
     return;
   }
 
   VIXL_ASSERT(vd.Is1H() || vd.Is4H() || vd.Is8H());
-  uint16_t rawbits = imm.ToRawbits();
-  if (IsImmFP16(rawbits)) {
+  uint16_t rawbits = Float16ToRawbits(imm);
+  if (IsImmFP16(imm)) {
     fmov(vd, imm);
   } else {
     if (vd.IsScalar()) {
@@ -2966,7 +2966,7 @@ void UseScratchRegisterScope::Exclude(const CPURegister& reg1,
 
   const CPURegister regs[] = {reg1, reg2, reg3, reg4};
 
-  for (unsigned i = 0; i < (sizeof(regs) / sizeof(regs[0])); i++) {
+  for (size_t i = 0; i < ArrayLength(regs); i++) {
     if (regs[i].IsRegister()) {
       exclude |= regs[i].GetBit();
     } else if (regs[i].IsFPRegister()) {

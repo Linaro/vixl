@@ -213,7 +213,7 @@ bool EqualFP32(float expected,
   if (FloatToRawbits(expected) == result) {
     return true;
   } else {
-    if (std::isnan(expected) || (expected == 0.0)) {
+    if (IsNaN(expected) || (expected == 0.0)) {
       printf("Expected 0x%08" PRIx32 "\t Found 0x%08" PRIx32 "\n",
              FloatToRawbits(expected),
              result);
@@ -241,7 +241,7 @@ bool EqualFP64(double expected,
     return true;
   }
 
-  if (std::isnan(expected) || (expected == 0.0)) {
+  if (IsNaN(expected) || (expected == 0.0)) {
     printf("Expected 0x%016" PRIx64 "\t Found 0x%016" PRIx64 "\n",
            DoubleToRawbits(expected),
            DoubleToRawbits(result));

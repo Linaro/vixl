@@ -386,7 +386,7 @@ TEST(CPUFeatures_format) {
       // Armv8.1
       "Atomics, LORegions, RDM, "
       // Armv8.2
-      "DotProduct, FPHalf, NEONHalf, DCPoP, SHA3, SHA512, SM3, SM4, "
+      "DotProduct, FPHalf, NEONHalf, RAS, DCPoP, SHA3, SHA512, SM3, SM4, "
       // Armv8.3
       "PAuth, PAuthQARMA, PAuthGeneric, PAuthGenericQARMA, JSCVT, RCpc, Fcma",
       CPUFeatures::All());

@@ -407,6 +407,14 @@ void Instrument::VisitLoadStoreExclusive(const Instruction* instr) {
 }
 
 
+void Instrument::VisitAtomicMemory(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("Other");
+  counter->Increment();
+}
+
+
 void Instrument::VisitLoadLiteral(const Instruction* instr) {
   USE(instr);
   Update();
@@ -670,7 +678,23 @@ void Instrument::VisitNEON2RegMisc(const Instruction* instr) {
 }
 
 
+void Instrument::VisitNEON2RegMiscFP16(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
 void Instrument::VisitNEON3Same(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEON3SameFP16(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("NEON");
@@ -776,6 +800,14 @@ void Instrument::VisitNEONScalar2RegMisc(const Instruction* instr) {
 }
 
 
+void Instrument::VisitNEONScalar2RegMiscFP16(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
 void Instrument::VisitNEONScalar3Diff(const Instruction* instr) {
   USE(instr);
   Update();
@@ -785,6 +817,14 @@ void Instrument::VisitNEONScalar3Diff(const Instruction* instr) {
 
 
 void Instrument::VisitNEONScalar3Same(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("NEON");
+  counter->Increment();
+}
+
+
+void Instrument::VisitNEONScalar3SameFP16(const Instruction* instr) {
   USE(instr);
   Update();
   static Counter* counter = GetCounter("NEON");

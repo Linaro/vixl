@@ -33,7 +33,6 @@
 #include "aarch64/disasm-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/simulator-aarch64.h"
-#include "aarch64/utils-aarch64.h"
 
 #define __ masm->
 
@@ -45,10 +44,12 @@ namespace aarch64 {
 // least-significant word).
 const double kFP64SignallingNaN = RawbitsToDouble(UINT64_C(0x7ff000007f800001));
 const float kFP32SignallingNaN = RawbitsToFloat(0x7f800001);
+const Float16 kFP16SignallingNaN = RawbitsToFloat16(0x7c01);
 
 // A similar value, but as a quiet NaN.
 const double kFP64QuietNaN = RawbitsToDouble(UINT64_C(0x7ff800007fc00001));
 const float kFP32QuietNaN = RawbitsToFloat(0x7fc00001);
+const Float16 kFP16QuietNaN = RawbitsToFloat16(0x7e01);
 
 
 bool Equal32(uint32_t expected, const RegisterDump*, uint32_t result) {
@@ -88,13 +89,13 @@ bool Equal128(vec128_t expected, const RegisterDump*, vec128_t result) {
 }
 
 
-bool EqualFP16(F16 expected, const RegisterDump*, F16 result) {
-  uint16_t e_rawbits = expected.ToRawbits();
-  uint16_t r_rawbits = result.ToRawbits();
+bool EqualFP16(Float16 expected, const RegisterDump*, Float16 result) {
+  uint16_t e_rawbits = Float16ToRawbits(expected);
+  uint16_t r_rawbits = Float16ToRawbits(result);
   if (e_rawbits == r_rawbits) {
     return true;
   } else {
-    if (IsNaN(e_rawbits) || (e_rawbits == 0x0)) {
+    if (IsNaN(expected) || IsZero(expected)) {
       printf("Expected 0x%04" PRIx16 "\t Found 0x%04" PRIx16 "\n",
              e_rawbits,
              r_rawbits);
@@ -102,9 +103,9 @@ bool EqualFP16(F16 expected, const RegisterDump*, F16 result) {
       printf("Expected %.6f (16 bit): (0x%04" PRIx16
              ")\t "
              "Found %.6f (0x%04" PRIx16 ")\n",
-             FPToFloat(e_rawbits, kIgnoreDefaultNaN),
+             FPToFloat(expected, kIgnoreDefaultNaN),
              e_rawbits,
-             FPToFloat(r_rawbits, kIgnoreDefaultNaN),
+             FPToFloat(result, kIgnoreDefaultNaN),
              r_rawbits);
     }
     return false;
@@ -116,7 +117,7 @@ bool EqualFP32(float expected, const RegisterDump*, float result) {
   if (FloatToRawbits(expected) == FloatToRawbits(result)) {
     return true;
   } else {
-    if (std::isnan(expected) || (expected == 0.0)) {
+    if (IsNaN(expected) || (expected == 0.0)) {
       printf("Expected 0x%08" PRIx32 "\t Found 0x%08" PRIx32 "\n",
              FloatToRawbits(expected),
              FloatToRawbits(result));
@@ -139,7 +140,7 @@ bool EqualFP64(double expected, const RegisterDump*, double result) {
     return true;
   }
 
-  if (std::isnan(expected) || (expected == 0.0)) {
+  if (IsNaN(expected) || (expected == 0.0)) {
     printf("Expected 0x%016" PRIx64 "\t Found 0x%016" PRIx64 "\n",
            DoubleToRawbits(expected),
            DoubleToRawbits(result));
@@ -190,7 +191,7 @@ bool Equal128(uint64_t expected_h,
 }
 
 
-bool EqualFP16(F16 expected,
+bool EqualFP16(Float16 expected,
                const RegisterDump* core,
                const FPRegister& fpreg) {
   VIXL_ASSERT(fpreg.Is16Bits());
@@ -199,8 +200,8 @@ bool EqualFP16(F16 expected,
   uint64_t result_64 = core->dreg_bits(fpreg.GetCode());
   if ((result_64 & 0xfffffffffff0000) != 0) {
     printf("Expected 0x%04" PRIx16 " (%f)\t Found 0x%016" PRIx64 "\n",
-           expected.ToRawbits(),
-           FPToFloat(expected.ToRawbits(), kIgnoreDefaultNaN),
+           Float16ToRawbits(expected),
+           FPToFloat(expected, kIgnoreDefaultNaN),
            result_64);
     return false;
   }

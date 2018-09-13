@@ -63,9 +63,6 @@ namespace vixl {
 
 typedef uint8_t byte;
 
-// Type for half-precision (16 bit) floating point numbers.
-typedef uint16_t float16;
-
 const int KBytes = 1024;
 const int MBytes = 1024 * KBytes;
 

@@ -448,6 +448,180 @@ extern "C" {
   0x4f000000,   /* The value just above INT32_MAX.                  */
 
 
+// FP16 values, stored as uint16_t representations. This ensures exact bit
+// representation, and avoids the loss of NaNs and suchlike through C++ casts.
+#define INPUT_FLOAT16_BASIC                                                   \
+  /* Simple values. */                                                        \
+  0x0000,   /* 0.0                        */                                  \
+  0x0400,   /* The smallest normal value. */                                  \
+  0x37ff,   /* The value just below 0.5.  */                                  \
+  0x3800,   /* 0.5                        */                                  \
+  0x3801,   /* The value just above 0.5.  */                                  \
+  0x3bff,   /* The value just below 1.0.  */                                  \
+  0x3c00,   /* 1.0                        */                                  \
+  0x3c01,   /* The value just above 1.0.  */                                  \
+  0x3e00,   /* 1.5                        */                                  \
+  0x4900,   /* 10                         */                                  \
+  0x7bff,   /* The largest finite value.  */                                  \
+                                                                              \
+  /* Infinity. */                                                             \
+  0x7c00,                                                                     \
+                                                                              \
+  /* NaNs. */                                                                 \
+  /*  - Quiet NaNs */                                                         \
+  0x7f23,                                                                     \
+  0x7e00,                                                                     \
+  /*  - Signalling NaNs */                                                    \
+  0x7d23,                                                                     \
+  0x7c01,                                                                     \
+                                                                              \
+  /* Subnormals. */                                                           \
+  /*  - A recognisable bit pattern. */                                        \
+  0x0012,                                                                     \
+  /*  - The largest subnormal value. */                                       \
+  0x03ff,                                                                     \
+  /*  - The smallest subnormal value. */                                      \
+  0x0001,                                                                     \
+                                                                              \
+  /* The same values again, but negated. */                                   \
+  0x8000,                                                                     \
+  0x8400,                                                                     \
+  0xb7ff,                                                                     \
+  0xb800,                                                                     \
+  0xb801,                                                                     \
+  0xbbff,                                                                     \
+  0xbc00,                                                                     \
+  0xbc01,                                                                     \
+  0xbe00,                                                                     \
+  0xc900,                                                                     \
+  0xfbff,                                                                     \
+  0xfc00,                                                                     \
+  0xff23,                                                                     \
+  0xfe00,                                                                     \
+  0xfd23,                                                                     \
+  0xfc01,                                                                     \
+  0x8012,                                                                     \
+  0x83ff,                                                                     \
+  0x8001,
+
+
+// Extra inputs. Passing these to 3- or 2-op instructions makes the trace file
+// very large, so these should only be used with 1-op instructions. The largest
+// normal FP16 value is 65504 which won't overflow int32_t or int64_t, so we
+// don't test any cases like that.
+#define INPUT_FLOAT16_CONVERSIONS                                             \
+  /* Values relevant for conversions to integers (frint).           */        \
+  /*  - The lowest-order mantissa bit has value 1.                  */        \
+  0x6400,                                                                     \
+  0x6401,                                                                     \
+  0x6402,                                                                     \
+  0x6403,                                                                     \
+  0x6543,                                                                     \
+  0x67fc,                                                                     \
+  0x67fd,                                                                     \
+  0x67fe,                                                                     \
+  0x67ff,                                                                     \
+  /*  - The lowest-order mantissa bit has value 0.5.                */        \
+  0x6000,                                                                     \
+  0x6001,                                                                     \
+  0x6002,                                                                     \
+  0x6003,                                                                     \
+  0x6321,                                                                     \
+  0x63fc,                                                                     \
+  0x63fd,                                                                     \
+  0x63fe,                                                                     \
+  0x63ff,                                                                     \
+  /*  - The lowest-order mantissa bit has value 0.25.               */        \
+  0x5c00,                                                                     \
+  0x5c01,                                                                     \
+  0x5c02,                                                                     \
+  0x5c03,                                                                     \
+  0x5d32,                                                                     \
+  0x5ffc,                                                                     \
+  0x5ffd,                                                                     \
+  0x5ffe,                                                                     \
+  0x5fff,                                                                     \
+                                                                              \
+  /* The same values again, but negated. */                                   \
+  0xe400,                                                                     \
+  0xe401,                                                                     \
+  0xe402,                                                                     \
+  0xe403,                                                                     \
+  0xe543,                                                                     \
+  0xe7fc,                                                                     \
+  0xe7fd,                                                                     \
+  0xe7fe,                                                                     \
+  0xe7ff,                                                                     \
+  0xe000,                                                                     \
+  0xe001,                                                                     \
+  0xe002,                                                                     \
+  0xe003,                                                                     \
+  0xe321,                                                                     \
+  0xe3fc,                                                                     \
+  0xe3fd,                                                                     \
+  0xe3fe,                                                                     \
+  0xe3ff,                                                                     \
+  0xdc00,                                                                     \
+  0xdc01,                                                                     \
+  0xdc02,                                                                     \
+  0xdc03,                                                                     \
+  0xdd32,                                                                     \
+  0xdffc,                                                                     \
+  0xdffd,                                                                     \
+  0xdffe,                                                                     \
+  0xdfff,                                                                     \
+                                                                              \
+  /* Some more NaN values. */                                                 \
+  0x7c7f,                                                                     \
+  0x7e91,                                                                     \
+  0x7e00,                                                                     \
+  0x7c91,                                                                     \
+  0xfc7f,                                                                     \
+  0xfe91,                                                                     \
+  0xfe00,                                                                     \
+  0xfc91,                                                                     \
+  0xffff,
+
+#define INPUT_16BITS_FIXEDPOINT_CONVERSIONS                                   \
+  0x0000,                                                                     \
+  0x0001,                                                                     \
+  0x0400,                                                                     \
+  0x0401,                                                                     \
+  0x0476,                                                                     \
+  0x0800,                                                                     \
+  0x0801,                                                                     \
+  0x0c00,                                                                     \
+  0x0c01,                                                                     \
+  0x1000,                                                                     \
+  0x1001,                                                                     \
+  0x1400,                                                                     \
+  0x1401,                                                                     \
+  0x1800,                                                                     \
+  0x1c00,                                                                     \
+  0x7f80,                                                                     \
+  0x7fc0,                                                                     \
+  0x7fff,                                                                     \
+                                                                              \
+  /* The same values again, but negated. */                                   \
+  0x8000,                                                                     \
+  0x8001,                                                                     \
+  0x8400,                                                                     \
+  0x8401,                                                                     \
+  0x8476,                                                                     \
+  0x8800,                                                                     \
+  0x8801,                                                                     \
+  0x8c00,                                                                     \
+  0x8c01,                                                                     \
+  0x9000,                                                                     \
+  0x9001,                                                                     \
+  0x9400,                                                                     \
+  0x9401,                                                                     \
+  0x9800,                                                                     \
+  0x9c00,                                                                     \
+  0xff80,                                                                     \
+  0xffc0,                                                                     \
+  0xffff
+
 #define INPUT_32BITS_FIXEDPOINT_CONVERSIONS                                   \
   0x00000000,                                                                 \
   0x00000001,                                                                 \
@@ -521,54 +695,6 @@ extern "C" {
   0x7fffffffffffffff,                                                         \
   0xfffffffffffffc00,                                                         \
   0xffffffffffffffff
-
-// Float16 - Basic test values.
-#define INPUT_FLOAT16_BASIC                                                   \
-  0x3c00,  /* 1                             0 01111 0000000000 */             \
-  0x3c01,  /* Next smallest float after 1.  0 01111 0000000001 */             \
-  0xc000,  /* -2                            1 10000 0000000000 */             \
-  0x7bff,  /* Maximum in half precision.    0 11110 1111111111 */             \
-  0x0400,  /* Minimum positive normal.      0 00001 0000000000 */             \
-  0x03ff,  /* Maximum subnormal.            0 00000 1111111111 */             \
-  0x0001,  /* Minimum positive subnormal.   0 00000 0000000001 */             \
-  0x0000,  /* 0                             0 00000 0000000000 */             \
-  0x8000,  /* -0                            1 00000 0000000000 */             \
-  0x7c00,  /* inf                           0 11111 0000000000 */             \
-  0xfc00,  /* -inf                          1 11111 0000000000 */             \
-  0x3555,  /* 1/3                           0 01101 0101010101 */             \
-  0x3e00,  /* 1.5                           0 01111 1000000000 */             \
-  0x4900,  /* 10                            0 10010 0100000000 */             \
-  0xbe00,  /* -1.5                          1 01111 1000000000 */             \
-  0xc900,  /* -10                           1 10010 0100000000 */             \
-
-// Float16 - Conversion test values.
-// Note the second column in the comments shows what the value might
-// look like if represented in single precision (32 bit) floating point format.
-#define INPUT_FLOAT16_CONVERSIONS                                             \
-  0x37ff,  /* 0.4999999701976776     0x3effffff  f16: 0 01101 1111111111 */   \
-  0x3800,  /* 0.4999999701976776     0x3effffff  f16: 0 01110 0000000000 */   \
-  0x3801,  /* 0.5000000596046448     0x3f000001  f16: 0 01110 0000000001 */   \
-  0x3bff,  /* 0.9999999403953552     0x3f7fffff  f16: 0 01110 1111111111 */   \
-  0x7c7f,  /* nan                    0x7f8fffff  f16: 0 11111 0001111111 */   \
-  0x7e91,  /* nan                    0x7fd23456  f16: 0 11111 1010010001 */   \
-  0x7e00,  /* nan                    0x7fc00000  f16: 0 11111 1000000000 */   \
-  0x7c91,  /* nan                    0x7f923456  f16: 0 11111 0010010001 */   \
-  0x8001,  /* -1.175494350822288e-38 0x80800000  f16: 1 00000 0000000001 */   \
-  0xb7ff,  /* -0.4999999701976776    0xbeffffff  f16: 1 01101 1111111111 */   \
-  0xb800,  /* -0.4999999701976776    0xbeffffff  f16: 1 01110 0000000000 */   \
-  0xb801,  /* -0.5000000596046448    0xbf000001  f16: 1 01110 0000000001 */   \
-  0xbbff,  /* -0.9999999403953552    0xbf7fffff  f16: 1 01110 1111111111 */   \
-  0xbc00,  /* -0.9999999403953552    0xbf7fffff  f16: 1 01111 0000000000 */   \
-  0xbc01,  /* -1.00000011920929      0xbf800001  f16: 1 01111 0000000001 */   \
-  0xfc7f,  /* -nan                   0xff8fffff  f16: 1 11111 0001111111 */   \
-  0xfe91,  /* -nan                   0xffd23456  f16: 1 11111 1010010001 */   \
-  0xfe00,  /* -nan                   0xffc00000  f16: 1 11111 1000000000 */   \
-  0xfc91,  /* -nan                   0xff923456  f16: 1 11111 0010010001 */   \
-  0xfbff,  /* -8388608               0xcb000000  f16: 1 11110 1111111111 */   \
-  0x0002,  /* 1.192092895507812e-07  0x00000002  f16: 0 00000 0000000010 */   \
-  0x8002,  /* -1.192092895507812e-07 0x80000002  f16: 1 00000 0000000010 */   \
-  0x8fff,  /* -0.0004880428314208984 0x8fffffff  f16: 1 00011 1111111111 */   \
-  0xffff,  /* -nan                   0xffffffff  f16: 1 11111 1111111111 */   \
 
 // Some useful sets of values for testing vector SIMD operations.
 #define INPUT_8BITS_IMM_LANECOUNT_FROMZERO                                    \
@@ -715,6 +841,11 @@ extern "C" {
   0x00,                                                                       \
   INPUT_64BITS_IMM_TYPEWIDTH_BASE
 
+#define INPUT_16BITS_IMM_TYPEWIDTH_FROMZERO_TOWIDTH                           \
+  0x00,                                                                       \
+  INPUT_16BITS_IMM_TYPEWIDTH_BASE,                                            \
+  0x10
+
 #define INPUT_32BITS_IMM_TYPEWIDTH_FROMZERO_TOWIDTH                           \
   0x00,                                                                       \
   INPUT_32BITS_IMM_TYPEWIDTH_BASE,                                            \
@@ -857,16 +988,21 @@ extern "C" {
 // the length of this list.
 static const uint64_t kInputDoubleBasic[] = {INPUT_DOUBLE_BASIC};
 static const uint32_t kInputFloatBasic[] = {INPUT_FLOAT_BASIC};
+static const uint16_t kInputFloat16Basic[] = {INPUT_FLOAT16_BASIC};
 
 // TODO: Define different values when the traces file is split.
 #define INPUT_DOUBLE_ACC_DESTINATION INPUT_DOUBLE_BASIC
 #define INPUT_FLOAT_ACC_DESTINATION INPUT_FLOAT_BASIC
+#define INPUT_FLOAT16_ACC_DESTINATION INPUT_FLOAT16_BASIC
 
 static const uint64_t kInputDoubleAccDestination[] = {
     INPUT_DOUBLE_ACC_DESTINATION};
 
 static const uint32_t kInputFloatAccDestination[] = {
     INPUT_FLOAT_ACC_DESTINATION};
+
+static const uint16_t kInputFloat16AccDestination[] = {
+    INPUT_FLOAT16_ACC_DESTINATION};
 
 // For conversions, include several extra inputs.
 static const uint64_t kInputDoubleConversions[] = {
@@ -880,6 +1016,9 @@ static const uint64_t kInput64bitsFixedPointConversions[] =
 
 static const uint32_t kInput32bitsFixedPointConversions[] =
     {INPUT_32BITS_BASIC, INPUT_32BITS_FIXEDPOINT_CONVERSIONS};
+
+static const uint16_t kInput16bitsFixedPointConversions[] =
+    {INPUT_16BITS_BASIC, INPUT_16BITS_FIXEDPOINT_CONVERSIONS};
 
 static const uint16_t kInputFloat16Conversions[] = {
     INPUT_FLOAT16_BASIC INPUT_FLOAT16_CONVERSIONS};
@@ -911,6 +1050,9 @@ static const int kInput32bitsImmTypeWidthFromZero[] = {
 
 static const int kInput64bitsImmTypeWidthFromZero[] = {
     INPUT_64BITS_IMM_TYPEWIDTH_FROMZERO};
+
+static const int kInput16bitsImmTypeWidthFromZeroToWidth[] = {
+    INPUT_16BITS_IMM_TYPEWIDTH_FROMZERO_TOWIDTH};
 
 static const int kInput32bitsImmTypeWidthFromZeroToWidth[] = {
     INPUT_32BITS_IMM_TYPEWIDTH_FROMZERO_TOWIDTH};

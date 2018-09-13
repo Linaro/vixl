@@ -29,6 +29,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <limits>
 #include <vector>
 
 #include "compiler-intrinsics-vixl.h"
@@ -64,6 +65,11 @@ namespace vixl {
 #else
 #define VIXL_UNREACHABLE_OR_FALLTHROUGH() VIXL_FALLTHROUGH()
 #endif
+
+template <typename T, size_t n>
+size_t ArrayLength(const T (&)[n]) {
+  return n;
+}
 
 // Check number width.
 // TODO: Refactor these using templates.
@@ -222,8 +228,21 @@ inline uint64_t RotateRight(uint64_t value,
 }
 
 
+// Wrapper class for passing FP16 values through the assembler.
+// This is purely to aid with type checking/casting.
+class Float16 {
+ public:
+  explicit Float16(double dvalue);
+  Float16() : rawbits_(0x0) {}
+  friend uint16_t Float16ToRawbits(Float16 value);
+  friend Float16 RawbitsToFloat16(uint16_t bits);
+
+ protected:
+  uint16_t rawbits_;
+};
+
 // Floating point representation.
-uint16_t Float16ToRawbits(float16 value);
+uint16_t Float16ToRawbits(Float16 value);
 
 
 uint32_t FloatToRawbits(float value);
@@ -238,7 +257,7 @@ VIXL_DEPRECATED("DoubleToRawbits",
   return DoubleToRawbits(value);
 }
 
-float16 RawbitsToFloat16(uint16_t bits);
+Float16 RawbitsToFloat16(uint16_t bits);
 
 float RawbitsToFloat(uint32_t bits);
 VIXL_DEPRECATED("RawbitsToFloat",
@@ -251,6 +270,41 @@ VIXL_DEPRECATED("RawbitsToDouble",
                 inline double rawbits_to_double(uint64_t bits)) {
   return RawbitsToDouble(bits);
 }
+
+namespace internal {
+
+// Internal simulation class used solely by the simulator to
+// provide an abstraction layer for any half-precision arithmetic.
+class SimFloat16 : public Float16 {
+ public:
+  // TODO: We should investigate making this constructor explicit.
+  // This is currently difficult to do due to a number of templated
+  // functions in the simulator which rely on returning double values.
+  SimFloat16(double dvalue) : Float16(dvalue) {}  // NOLINT(runtime/explicit)
+  SimFloat16(Float16 f) {                         // NOLINT(runtime/explicit)
+    this->rawbits_ = Float16ToRawbits(f);
+  }
+  SimFloat16() : Float16() {}
+  SimFloat16 operator-() const;
+  SimFloat16 operator+(SimFloat16 rhs) const;
+  SimFloat16 operator-(SimFloat16 rhs) const;
+  SimFloat16 operator*(SimFloat16 rhs) const;
+  SimFloat16 operator/(SimFloat16 rhs) const;
+  bool operator<(SimFloat16 rhs) const;
+  bool operator>(SimFloat16 rhs) const;
+  bool operator==(SimFloat16 rhs) const;
+  bool operator!=(SimFloat16 rhs) const;
+  // This is necessary for conversions peformed in (macro asm) Fmov.
+  bool operator==(double rhs) const;
+  operator double() const;
+};
+}  // namespace internal
+
+uint32_t Float16Sign(internal::SimFloat16 value);
+
+uint32_t Float16Exp(internal::SimFloat16 value);
+
+uint32_t Float16Mantissa(internal::SimFloat16 value);
 
 uint32_t FloatSign(float value);
 VIXL_DEPRECATED("FloatSign", inline uint32_t float_sign(float value)) {
@@ -283,6 +337,10 @@ VIXL_DEPRECATED("DoubleMantissa",
   return DoubleMantissa(value);
 }
 
+internal::SimFloat16 Float16Pack(uint16_t sign,
+                                 uint16_t exp,
+                                 uint16_t mantissa);
+
 float FloatPack(uint32_t sign, uint32_t exp, uint32_t mantissa);
 VIXL_DEPRECATED("FloatPack",
                 inline float float_pack(uint32_t sign,
@@ -300,21 +358,33 @@ VIXL_DEPRECATED("DoublePack",
 }
 
 // An fpclassify() function for 16-bit half-precision floats.
-int Float16Classify(float16 value);
-VIXL_DEPRECATED("Float16Classify", inline int float16classify(float16 value)) {
-  return Float16Classify(value);
+int Float16Classify(Float16 value);
+VIXL_DEPRECATED("Float16Classify", inline int float16classify(uint16_t value)) {
+  return Float16Classify(RawbitsToFloat16(value));
 }
 
+bool IsZero(Float16 value);
 
-// Check for float16 (uint16_t) NaNs.
-inline bool IsNaN(float16 value) { return Float16Classify(value) == FP_NAN; }
+inline bool IsNaN(float value) { return std::isnan(value); }
+
+inline bool IsNaN(double value) { return std::isnan(value); }
+
+inline bool IsNaN(Float16 value) { return Float16Classify(value) == FP_NAN; }
+
+inline bool IsInf(float value) { return std::isinf(value); }
+
+inline bool IsInf(double value) { return std::isinf(value); }
+
+inline bool IsInf(Float16 value) {
+  return Float16Classify(value) == FP_INFINITE;
+}
 
 
 // NaN tests.
 inline bool IsSignallingNaN(double num) {
   const uint64_t kFP64QuietNaNMask = UINT64_C(0x0008000000000000);
   uint64_t raw = DoubleToRawbits(num);
-  if (std::isnan(num) && ((raw & kFP64QuietNaNMask) == 0)) {
+  if (IsNaN(num) && ((raw & kFP64QuietNaNMask) == 0)) {
     return true;
   }
   return false;
@@ -324,37 +394,45 @@ inline bool IsSignallingNaN(double num) {
 inline bool IsSignallingNaN(float num) {
   const uint32_t kFP32QuietNaNMask = 0x00400000;
   uint32_t raw = FloatToRawbits(num);
-  if (std::isnan(num) && ((raw & kFP32QuietNaNMask) == 0)) {
+  if (IsNaN(num) && ((raw & kFP32QuietNaNMask) == 0)) {
     return true;
   }
   return false;
 }
 
 
-inline bool IsSignallingNaN(float16 num) {
+inline bool IsSignallingNaN(Float16 num) {
   const uint16_t kFP16QuietNaNMask = 0x0200;
-  return IsNaN(num) && ((num & kFP16QuietNaNMask) == 0);
+  return IsNaN(num) && ((Float16ToRawbits(num) & kFP16QuietNaNMask) == 0);
 }
 
 
 template <typename T>
 inline bool IsQuietNaN(T num) {
-  return std::isnan(num) && !IsSignallingNaN(num);
+  return IsNaN(num) && !IsSignallingNaN(num);
 }
 
 
 // Convert the NaN in 'num' to a quiet NaN.
 inline double ToQuietNaN(double num) {
   const uint64_t kFP64QuietNaNMask = UINT64_C(0x0008000000000000);
-  VIXL_ASSERT(std::isnan(num));
+  VIXL_ASSERT(IsNaN(num));
   return RawbitsToDouble(DoubleToRawbits(num) | kFP64QuietNaNMask);
 }
 
 
 inline float ToQuietNaN(float num) {
   const uint32_t kFP32QuietNaNMask = 0x00400000;
-  VIXL_ASSERT(std::isnan(num));
+  VIXL_ASSERT(IsNaN(num));
   return RawbitsToFloat(FloatToRawbits(num) | kFP32QuietNaNMask);
+}
+
+
+inline internal::SimFloat16 ToQuietNaN(internal::SimFloat16 num) {
+  const uint16_t kFP16QuietNaNMask = 0x0200;
+  VIXL_ASSERT(IsNaN(num));
+  return internal::SimFloat16(
+      RawbitsToFloat16(Float16ToRawbits(num) | kFP16QuietNaNMask));
 }
 
 
@@ -898,6 +976,306 @@ Int64 BitCount(Uint32 value);
 
 }  // namespace internal
 
+// The default NaN values (for FPCR.DN=1).
+extern const double kFP64DefaultNaN;
+extern const float kFP32DefaultNaN;
+extern const Float16 kFP16DefaultNaN;
+
+// Floating-point infinity values.
+extern const Float16 kFP16PositiveInfinity;
+extern const Float16 kFP16NegativeInfinity;
+extern const float kFP32PositiveInfinity;
+extern const float kFP32NegativeInfinity;
+extern const double kFP64PositiveInfinity;
+extern const double kFP64NegativeInfinity;
+
+// Floating-point zero values.
+extern const Float16 kFP16PositiveZero;
+extern const Float16 kFP16NegativeZero;
+
+// AArch64 floating-point specifics. These match IEEE-754.
+const unsigned kDoubleMantissaBits = 52;
+const unsigned kDoubleExponentBits = 11;
+const unsigned kFloatMantissaBits = 23;
+const unsigned kFloatExponentBits = 8;
+const unsigned kFloat16MantissaBits = 10;
+const unsigned kFloat16ExponentBits = 5;
+
+enum FPRounding {
+  // The first four values are encodable directly by FPCR<RMode>.
+  FPTieEven = 0x0,
+  FPPositiveInfinity = 0x1,
+  FPNegativeInfinity = 0x2,
+  FPZero = 0x3,
+
+  // The final rounding modes are only available when explicitly specified by
+  // the instruction (such as with fcvta). It cannot be set in FPCR.
+  FPTieAway,
+  FPRoundOdd
+};
+
+enum UseDefaultNaN { kUseDefaultNaN, kIgnoreDefaultNaN };
+
+// Assemble the specified IEEE-754 components into the target type and apply
+// appropriate rounding.
+//  sign:     0 = positive, 1 = negative
+//  exponent: Unbiased IEEE-754 exponent.
+//  mantissa: The mantissa of the input. The top bit (which is not encoded for
+//            normal IEEE-754 values) must not be omitted. This bit has the
+//            value 'pow(2, exponent)'.
+//
+// The input value is assumed to be a normalized value. That is, the input may
+// not be infinity or NaN. If the source value is subnormal, it must be
+// normalized before calling this function such that the highest set bit in the
+// mantissa has the value 'pow(2, exponent)'.
+//
+// Callers should use FPRoundToFloat or FPRoundToDouble directly, rather than
+// calling a templated FPRound.
+template <class T, int ebits, int mbits>
+T FPRound(int64_t sign,
+          int64_t exponent,
+          uint64_t mantissa,
+          FPRounding round_mode) {
+  VIXL_ASSERT((sign == 0) || (sign == 1));
+
+  // Only FPTieEven and FPRoundOdd rounding modes are implemented.
+  VIXL_ASSERT((round_mode == FPTieEven) || (round_mode == FPRoundOdd));
+
+  // Rounding can promote subnormals to normals, and normals to infinities. For
+  // example, a double with exponent 127 (FLT_MAX_EXP) would appear to be
+  // encodable as a float, but rounding based on the low-order mantissa bits
+  // could make it overflow. With ties-to-even rounding, this value would become
+  // an infinity.
+
+  // ---- Rounding Method ----
+  //
+  // The exponent is irrelevant in the rounding operation, so we treat the
+  // lowest-order bit that will fit into the result ('onebit') as having
+  // the value '1'. Similarly, the highest-order bit that won't fit into
+  // the result ('halfbit') has the value '0.5'. The 'point' sits between
+  // 'onebit' and 'halfbit':
+  //
+  //            These bits fit into the result.
+  //               |---------------------|
+  //  mantissa = 0bxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  //                                     ||
+  //                                    / |
+  //                                   /  halfbit
+  //                               onebit
+  //
+  // For subnormal outputs, the range of representable bits is smaller and
+  // the position of onebit and halfbit depends on the exponent of the
+  // input, but the method is otherwise similar.
+  //
+  //   onebit(frac)
+  //     |
+  //     | halfbit(frac)          halfbit(adjusted)
+  //     | /                      /
+  //     | |                      |
+  //  0b00.0 (exact)      -> 0b00.0 (exact)                    -> 0b00
+  //  0b00.0...           -> 0b00.0...                         -> 0b00
+  //  0b00.1 (exact)      -> 0b00.0111..111                    -> 0b00
+  //  0b00.1...           -> 0b00.1...                         -> 0b01
+  //  0b01.0 (exact)      -> 0b01.0 (exact)                    -> 0b01
+  //  0b01.0...           -> 0b01.0...                         -> 0b01
+  //  0b01.1 (exact)      -> 0b01.1 (exact)                    -> 0b10
+  //  0b01.1...           -> 0b01.1...                         -> 0b10
+  //  0b10.0 (exact)      -> 0b10.0 (exact)                    -> 0b10
+  //  0b10.0...           -> 0b10.0...                         -> 0b10
+  //  0b10.1 (exact)      -> 0b10.0111..111                    -> 0b10
+  //  0b10.1...           -> 0b10.1...                         -> 0b11
+  //  0b11.0 (exact)      -> 0b11.0 (exact)                    -> 0b11
+  //  ...                   /             |                      /   |
+  //                       /              |                     /    |
+  //                                                           /     |
+  // adjusted = frac - (halfbit(mantissa) & ~onebit(frac));   /      |
+  //
+  //                   mantissa = (mantissa >> shift) + halfbit(adjusted);
+
+  static const int mantissa_offset = 0;
+  static const int exponent_offset = mantissa_offset + mbits;
+  static const int sign_offset = exponent_offset + ebits;
+  VIXL_ASSERT(sign_offset == (sizeof(T) * 8 - 1));
+
+  // Bail out early for zero inputs.
+  if (mantissa == 0) {
+    return static_cast<T>(sign << sign_offset);
+  }
+
+  // If all bits in the exponent are set, the value is infinite or NaN.
+  // This is true for all binary IEEE-754 formats.
+  static const int infinite_exponent = (1 << ebits) - 1;
+  static const int max_normal_exponent = infinite_exponent - 1;
+
+  // Apply the exponent bias to encode it for the result. Doing this early makes
+  // it easy to detect values that will be infinite or subnormal.
+  exponent += max_normal_exponent >> 1;
+
+  if (exponent > max_normal_exponent) {
+    // Overflow: the input is too large for the result type to represent.
+    if (round_mode == FPTieEven) {
+      // FPTieEven rounding mode handles overflows using infinities.
+      exponent = infinite_exponent;
+      mantissa = 0;
+    } else {
+      VIXL_ASSERT(round_mode == FPRoundOdd);
+      // FPRoundOdd rounding mode handles overflows using the largest magnitude
+      // normal number.
+      exponent = max_normal_exponent;
+      mantissa = (UINT64_C(1) << exponent_offset) - 1;
+    }
+    return static_cast<T>((sign << sign_offset) |
+                          (exponent << exponent_offset) |
+                          (mantissa << mantissa_offset));
+  }
+
+  // Calculate the shift required to move the top mantissa bit to the proper
+  // place in the destination type.
+  const int highest_significant_bit = 63 - CountLeadingZeros(mantissa);
+  int shift = highest_significant_bit - mbits;
+
+  if (exponent <= 0) {
+    // The output will be subnormal (before rounding).
+    // For subnormal outputs, the shift must be adjusted by the exponent. The +1
+    // is necessary because the exponent of a subnormal value (encoded as 0) is
+    // the same as the exponent of the smallest normal value (encoded as 1).
+    shift += -exponent + 1;
+
+    // Handle inputs that would produce a zero output.
+    //
+    // Shifts higher than highest_significant_bit+1 will always produce a zero
+    // result. A shift of exactly highest_significant_bit+1 might produce a
+    // non-zero result after rounding.
+    if (shift > (highest_significant_bit + 1)) {
+      if (round_mode == FPTieEven) {
+        // The result will always be +/-0.0.
+        return static_cast<T>(sign << sign_offset);
+      } else {
+        VIXL_ASSERT(round_mode == FPRoundOdd);
+        VIXL_ASSERT(mantissa != 0);
+        // For FPRoundOdd, if the mantissa is too small to represent and
+        // non-zero return the next "odd" value.
+        return static_cast<T>((sign << sign_offset) | 1);
+      }
+    }
+
+    // Properly encode the exponent for a subnormal output.
+    exponent = 0;
+  } else {
+    // Clear the topmost mantissa bit, since this is not encoded in IEEE-754
+    // normal values.
+    mantissa &= ~(UINT64_C(1) << highest_significant_bit);
+  }
+
+  // The casts below are only well-defined for unsigned integers.
+  VIXL_STATIC_ASSERT(std::numeric_limits<T>::is_integer);
+  VIXL_STATIC_ASSERT(!std::numeric_limits<T>::is_signed);
+
+  if (shift > 0) {
+    if (round_mode == FPTieEven) {
+      // We have to shift the mantissa to the right. Some precision is lost, so
+      // we need to apply rounding.
+      uint64_t onebit_mantissa = (mantissa >> (shift)) & 1;
+      uint64_t halfbit_mantissa = (mantissa >> (shift - 1)) & 1;
+      uint64_t adjustment = (halfbit_mantissa & ~onebit_mantissa);
+      uint64_t adjusted = mantissa - adjustment;
+      T halfbit_adjusted = (adjusted >> (shift - 1)) & 1;
+
+      T result =
+          static_cast<T>((sign << sign_offset) | (exponent << exponent_offset) |
+                         ((mantissa >> shift) << mantissa_offset));
+
+      // A very large mantissa can overflow during rounding. If this happens,
+      // the exponent should be incremented and the mantissa set to 1.0
+      // (encoded as 0). Applying halfbit_adjusted after assembling the float
+      // has the nice side-effect that this case is handled for free.
+      //
+      // This also handles cases where a very large finite value overflows to
+      // infinity, or where a very large subnormal value overflows to become
+      // normal.
+      return result + halfbit_adjusted;
+    } else {
+      VIXL_ASSERT(round_mode == FPRoundOdd);
+      // If any bits at position halfbit or below are set, onebit (ie. the
+      // bottom bit of the resulting mantissa) must be set.
+      uint64_t fractional_bits = mantissa & ((UINT64_C(1) << shift) - 1);
+      if (fractional_bits != 0) {
+        mantissa |= UINT64_C(1) << shift;
+      }
+
+      return static_cast<T>((sign << sign_offset) |
+                            (exponent << exponent_offset) |
+                            ((mantissa >> shift) << mantissa_offset));
+    }
+  } else {
+    // We have to shift the mantissa to the left (or not at all). The input
+    // mantissa is exactly representable in the output mantissa, so apply no
+    // rounding correction.
+    return static_cast<T>((sign << sign_offset) |
+                          (exponent << exponent_offset) |
+                          ((mantissa << -shift) << mantissa_offset));
+  }
+}
+
+
+// See FPRound for a description of this function.
+inline double FPRoundToDouble(int64_t sign,
+                              int64_t exponent,
+                              uint64_t mantissa,
+                              FPRounding round_mode) {
+  uint64_t bits =
+      FPRound<uint64_t, kDoubleExponentBits, kDoubleMantissaBits>(sign,
+                                                                  exponent,
+                                                                  mantissa,
+                                                                  round_mode);
+  return RawbitsToDouble(bits);
+}
+
+
+// See FPRound for a description of this function.
+inline Float16 FPRoundToFloat16(int64_t sign,
+                                int64_t exponent,
+                                uint64_t mantissa,
+                                FPRounding round_mode) {
+  return RawbitsToFloat16(
+      FPRound<uint16_t,
+              kFloat16ExponentBits,
+              kFloat16MantissaBits>(sign, exponent, mantissa, round_mode));
+}
+
+
+// See FPRound for a description of this function.
+static inline float FPRoundToFloat(int64_t sign,
+                                   int64_t exponent,
+                                   uint64_t mantissa,
+                                   FPRounding round_mode) {
+  uint32_t bits =
+      FPRound<uint32_t, kFloatExponentBits, kFloatMantissaBits>(sign,
+                                                                exponent,
+                                                                mantissa,
+                                                                round_mode);
+  return RawbitsToFloat(bits);
+}
+
+
+float FPToFloat(Float16 value, UseDefaultNaN DN, bool* exception = NULL);
+float FPToFloat(double value,
+                FPRounding round_mode,
+                UseDefaultNaN DN,
+                bool* exception = NULL);
+
+double FPToDouble(Float16 value, UseDefaultNaN DN, bool* exception = NULL);
+double FPToDouble(float value, UseDefaultNaN DN, bool* exception = NULL);
+
+Float16 FPToFloat16(float value,
+                    FPRounding round_mode,
+                    UseDefaultNaN DN,
+                    bool* exception = NULL);
+
+Float16 FPToFloat16(double value,
+                    FPRounding round_mode,
+                    UseDefaultNaN DN,
+                    bool* exception = NULL);
 }  // namespace vixl
 
 #endif  // VIXL_UTILS_H

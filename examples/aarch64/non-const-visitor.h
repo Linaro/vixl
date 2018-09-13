@@ -82,6 +82,7 @@ class SwitchAddSubRegisterSources : public DecoderVisitor {
   V(LoadStoreRegisterOffset)            \
   V(LoadStoreUnsignedOffset)            \
   V(LoadStoreExclusive)                 \
+  V(AtomicMemory)                       \
   V(LogicalShifted)                     \
   V(AddSubExtended)                     \
   V(AddSubWithCarry)                    \
@@ -104,8 +105,10 @@ class SwitchAddSubRegisterSources : public DecoderVisitor {
   V(Crypto3RegSHA)                      \
   V(CryptoAES)                          \
   V(NEON2RegMisc)                       \
+  V(NEON2RegMiscFP16)                   \
   V(NEON3Different)                     \
   V(NEON3Same)                          \
+  V(NEON3SameFP16)                      \
   V(NEONAcrossLanes)                    \
   V(NEONByIndexedElement)               \
   V(NEONCopy)                           \
@@ -116,8 +119,10 @@ class SwitchAddSubRegisterSources : public DecoderVisitor {
   V(NEONLoadStoreSingleStructPostIndex) \
   V(NEONModifiedImmediate)              \
   V(NEONScalar2RegMisc)                 \
+  V(NEONScalar2RegMiscFP16)             \
   V(NEONScalar3Diff)                    \
   V(NEONScalar3Same)                    \
+  V(NEONScalar3SameFP16)                \
   V(NEONScalar3SameExtra)               \
   V(NEON3SameExtra)                     \
   V(NEONScalarByIndexedElement)         \

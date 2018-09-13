@@ -61,6 +61,8 @@ namespace vixl {
   /* Half-precision (FP16) support for FP and NEON, respectively.           */ \
   V(kFPHalf,              "FPHalf",                 "fphp")                    \
   V(kNEONHalf,            "NEONHalf",               "asimdhp")                 \
+  /* The RAS extension, including the ESB instruction.                      */ \
+  V(kRAS,                 "RAS",                    NULL)                      \
   /* Data cache clean to the point of persistence: DC CVAP.                 */ \
   V(kDCPoP,               "DCPoP",                  "dcpop")                   \
   /* Cryptographic support instructions.                                    */ \

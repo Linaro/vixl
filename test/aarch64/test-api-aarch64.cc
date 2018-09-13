@@ -41,6 +41,50 @@
 namespace vixl {
 namespace aarch64 {
 
+// Check SimFloat16 class mechanics.
+TEST(float16_operators) {
+  ::vixl::internal::SimFloat16 f1 = kFP16DefaultNaN;
+  ::vixl::internal::SimFloat16 f2 = kFP16DefaultNaN;
+  ::vixl::internal::SimFloat16 f3 = kFP16PositiveInfinity;
+  ::vixl::internal::SimFloat16 f4 = kFP16NegativeInfinity;
+  VIXL_CHECK(!(f1 == f2));
+  VIXL_CHECK(f1 != f2);
+  VIXL_CHECK(!(f3 == f4));
+  VIXL_CHECK(f3 != f4);
+  VIXL_CHECK(::vixl::internal::SimFloat16(kFP16PositiveZero) ==
+             ::vixl::internal::SimFloat16(kFP16NegativeZero));
+  VIXL_CHECK(!(::vixl::internal::SimFloat16(kFP16PositiveZero) !=
+               ::vixl::internal::SimFloat16(kFP16NegativeZero)));
+}
+
+// Check moved FP constants are still accessible via the AArch64 namespace.
+TEST(float_constants_scope) {
+  VIXL_CHECK(vixl::aarch64::kFP64PositiveInfinity ==
+             vixl::kFP64PositiveInfinity);
+  VIXL_CHECK(vixl::aarch64::kFP64NegativeInfinity ==
+             vixl::kFP64NegativeInfinity);
+  VIXL_CHECK(vixl::aarch64::kFP32PositiveInfinity ==
+             vixl::kFP32PositiveInfinity);
+  VIXL_CHECK(vixl::aarch64::kFP32NegativeInfinity ==
+             vixl::kFP32NegativeInfinity);
+  VIXL_CHECK(Float16ToRawbits(vixl::aarch64::kFP16PositiveInfinity) ==
+             Float16ToRawbits(vixl::aarch64::kFP16PositiveInfinity));
+  VIXL_CHECK(Float16ToRawbits(vixl::aarch64::kFP16NegativeInfinity) ==
+             Float16ToRawbits(vixl::aarch64::kFP16NegativeInfinity));
+  VIXL_CHECK(DoubleToRawbits(vixl::aarch64::kFP64DefaultNaN) ==
+             DoubleToRawbits(vixl::kFP64DefaultNaN));
+  VIXL_CHECK(FloatToRawbits(vixl::aarch64::kFP32DefaultNaN) ==
+             FloatToRawbits(vixl::kFP32DefaultNaN));
+  VIXL_CHECK(IsNaN(vixl::aarch64::kFP16DefaultNaN) ==
+             IsNaN(vixl::kFP16DefaultNaN));
+  VIXL_CHECK(vixl::aarch64::kDoubleExponentBits == vixl::kDoubleExponentBits);
+  VIXL_CHECK(vixl::aarch64::kDoubleMantissaBits == vixl::kDoubleMantissaBits);
+  VIXL_CHECK(vixl::aarch64::kFloatExponentBits == vixl::kFloatExponentBits);
+  VIXL_CHECK(vixl::aarch64::kFloatMantissaBits == vixl::kFloatMantissaBits);
+  VIXL_CHECK(vixl::aarch64::kFloat16ExponentBits == vixl::kFloat16ExponentBits);
+  VIXL_CHECK(vixl::aarch64::kFloat16MantissaBits == vixl::kFloat16MantissaBits);
+}
+
 
 TEST(register_bit) {
   VIXL_CHECK(x0.GetBit() == (UINT64_C(1) << 0));

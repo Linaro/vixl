@@ -567,12 +567,36 @@ TEST(dp_1_source) {
   COMPARE(rev16(w4, w5), "rev16 w4, w5");
   COMPARE(rev16(x6, x7), "rev16 x6, x7");
   COMPARE(rev32(x8, x9), "rev32 x8, x9");
-  COMPARE(rev(w10, w11), "rev w10, w11");
-  COMPARE(rev(x12, x13), "rev x12, x13");
-  COMPARE(clz(w14, w15), "clz w14, w15");
-  COMPARE(clz(x16, x17), "clz x16, x17");
-  COMPARE(cls(w18, w19), "cls w18, w19");
-  COMPARE(cls(x20, x21), "cls x20, x21");
+  COMPARE(rev64(x10, x11), "rev x10, x11");
+  COMPARE(rev(w12, w13), "rev w12, w13");
+  COMPARE(rev(x14, x15), "rev x14, x15");
+  COMPARE(clz(w16, w17), "clz w16, w17");
+  COMPARE(clz(x18, x19), "clz x18, x19");
+  COMPARE(cls(w20, w21), "cls w20, w21");
+  COMPARE(cls(x22, x23), "cls x22, x23");
+  COMPARE(pacia(x24, x25), "pacia x24, x25");
+  COMPARE(pacia(x26, sp), "pacia x26, sp");
+  COMPARE(pacib(x27, x28), "pacib x27, x28");
+  COMPARE(pacib(x29, sp), "pacib x29, sp");
+  COMPARE(pacda(x30, x0), "pacda x30, x0");
+  COMPARE(pacda(x1, sp), "pacda x1, sp");
+  COMPARE(pacdb(x2, x3), "pacdb x2, x3");
+  COMPARE(pacdb(x4, sp), "pacdb x4, sp");
+  COMPARE(paciza(x5), "paciza x5");
+  COMPARE(pacizb(x6), "pacizb x6");
+  COMPARE(pacdza(x7), "pacdza x7");
+  COMPARE(pacdzb(x8), "pacdzb x8");
+  COMPARE(autia(x9, x10), "autia x9, x10");
+  COMPARE(autia(x11, sp), "autia x11, sp");
+  COMPARE(autib(x12, x13), "autib x12, x13");
+  COMPARE(autib(x14, sp), "autib x14, sp");
+  COMPARE(autda(x15, x16), "autda x15, x16");
+  COMPARE(autda(x17, sp), "autda x17, sp");
+  COMPARE(autdb(x18, x19), "autdb x18, x19");
+  COMPARE(autdb(x20, sp), "autdb x20, sp");
+  COMPARE(autiza(x21), "autiza x21");
+  COMPARE(autizb(x22), "autizb x22");
+  COMPARE(autdza(x23), "autdza x23");
 
   CLEANUP();
 }
@@ -615,6 +639,8 @@ TEST(bitfield) {
   COMPARE(ubfiz(x19, x20, 10, 11), "ubfiz x19, x20, #10, #11");
   COMPARE(ubfx(w21, w22, 11, 10), "ubfx w21, w22, #11, #10");
   COMPARE(ubfx(x23, x24, 12, 9), "ubfx x23, x24, #12, #9");
+  COMPARE(bfc(w25, 13, 8), "bfc w25, #13, #8");
+  COMPARE(bfc(x26, 14, 7), "bfc x26, #14, #7");
 
   CLEANUP();
 }
@@ -921,6 +947,8 @@ TEST(dp_2_source) {
   COMPARE(asrv(x15, x16, x17), "asr x15, x16, x17");
   COMPARE(rorv(w18, w19, w20), "ror w18, w19, w20");
   COMPARE(rorv(x21, x22, x23), "ror x21, x22, x23");
+  COMPARE(pacga(x24, x25, x26), "pacga x24, x25, x26");
+  COMPARE(pacga(x27, x28, sp), "pacga x27, x28, sp");
 
   CLEANUP();
 }
@@ -991,7 +1019,22 @@ TEST(branch) {
   COMPARE(br(x0), "br x0");
   COMPARE(blr(x1), "blr x1");
   COMPARE(ret(x2), "ret x2");
-  COMPARE(ret(lr), "ret")
+  COMPARE(ret(lr), "ret");
+
+  COMPARE(braaz(x0), "braaz x0");
+  COMPARE(brabz(x1), "brabz x1");
+  COMPARE(blraaz(x2), "blraaz x2");
+  COMPARE(blrabz(x3), "blrabz x3");
+  COMPARE(retaa(), "retaa");
+  COMPARE(retab(), "retab");
+  COMPARE(braa(x4, x5), "braa x4, x5");
+  COMPARE(braa(x6, sp), "braa x6, sp");
+  COMPARE(brab(x7, x8), "brab x7, x8");
+  COMPARE(brab(x9, sp), "brab x9, sp");
+  COMPARE(blraa(x10, x11), "blraa x10, x11");
+  COMPARE(blraa(x12, sp), "blraa x12, sp");
+  COMPARE(blrab(x13, x14), "blrab x13, x14");
+  COMPARE(blrab(x15, sp), "blrab x15, sp");
 
   CLEANUP();
 }
@@ -2006,6 +2049,98 @@ TEST(load_store_exclusive) {
   CLEANUP();
 }
 
+// clang-format off
+#define ATOMIC_MEMORY_DISASM_LIST(V, DEF) \
+  V(DEF, add,  "add")                     \
+  V(DEF, clr,  "clr")                     \
+  V(DEF, eor,  "eor")                     \
+  V(DEF, set,  "set")                     \
+  V(DEF, smax, "smax")                    \
+  V(DEF, smin, "smin")                    \
+  V(DEF, umax, "umax")                    \
+  V(DEF, umin, "umin")
+
+#define ATOMIC_MEMORY_DISASM_STORE_X_MODES(V, NAME, STR) \
+  V(NAME,    STR)                                        \
+  V(NAME##l, STR "l")
+
+
+#define ATOMIC_MEMORY_DISASM_STORE_W_MODES(V, NAME, STR) \
+  ATOMIC_MEMORY_DISASM_STORE_X_MODES(V, NAME, STR)       \
+  V(NAME##b,  STR "b")                                   \
+  V(NAME##lb, STR "lb")                                  \
+  V(NAME##h,  STR "h")                                   \
+  V(NAME##lh, STR "lh")
+
+#define ATOMIC_MEMORY_DISASM_LOAD_X_MODES(V, NAME, STR) \
+  ATOMIC_MEMORY_DISASM_STORE_X_MODES(V, NAME, STR)      \
+  V(NAME##a,  STR "a")                                  \
+  V(NAME##al, STR "al")
+
+#define ATOMIC_MEMORY_DISASM_LOAD_W_MODES(V, NAME, STR) \
+  ATOMIC_MEMORY_DISASM_LOAD_X_MODES(V, NAME, STR)       \
+  V(NAME##ab,  STR "ab")                                \
+  V(NAME##alb, STR "alb")                               \
+  V(NAME##ah,  STR "ah")                                \
+  V(NAME##alh, STR "alh")
+// clang-format on
+
+TEST(atomic_memory) {
+  SETUP();
+
+// These macros generate tests for all the variations of the atomic memory
+// operations, e.g. ldadd, ldadda, ldaddb, staddl, etc.
+
+#define AM_LOAD_X_TESTS(N, MN)                                     \
+  COMPARE(ld##N(x0, x1, MemOperand(x2)), "ld" MN " x0, x1, [x2]"); \
+  COMPARE(ld##N(x3, x4, MemOperand(sp)), "ld" MN " x3, x4, [sp]");
+#define AM_LOAD_W_TESTS(N, MN)                                     \
+  COMPARE(ld##N(w0, w1, MemOperand(x2)), "ld" MN " w0, w1, [x2]"); \
+  COMPARE(ld##N(w3, w4, MemOperand(sp)), "ld" MN " w3, w4, [sp]");
+#define AM_STORE_X_TESTS(N, MN)                            \
+  COMPARE(st##N(x0, MemOperand(x1)), "st" MN " x0, [x1]"); \
+  COMPARE(st##N(x2, MemOperand(sp)), "st" MN " x2, [sp]");
+#define AM_STORE_W_TESTS(N, MN)                            \
+  COMPARE(st##N(w0, MemOperand(x1)), "st" MN " w0, [x1]"); \
+  COMPARE(st##N(w2, MemOperand(sp)), "st" MN " w2, [sp]");
+
+  ATOMIC_MEMORY_DISASM_LIST(ATOMIC_MEMORY_DISASM_LOAD_X_MODES, AM_LOAD_X_TESTS)
+  ATOMIC_MEMORY_DISASM_LIST(ATOMIC_MEMORY_DISASM_LOAD_W_MODES, AM_LOAD_W_TESTS)
+  ATOMIC_MEMORY_DISASM_LIST(ATOMIC_MEMORY_DISASM_STORE_X_MODES,
+                            AM_STORE_X_TESTS)
+  ATOMIC_MEMORY_DISASM_LIST(ATOMIC_MEMORY_DISASM_STORE_W_MODES,
+                            AM_STORE_W_TESTS)
+
+#define AM_SWP_X_TESTS(N, MN)                             \
+  COMPARE(N(x0, x1, MemOperand(x2)), MN " x0, x1, [x2]"); \
+  COMPARE(N(x3, x4, MemOperand(sp)), MN " x3, x4, [sp]");
+#define AM_SWP_W_TESTS(N, MN)                             \
+  COMPARE(N(w0, w1, MemOperand(x2)), MN " w0, w1, [x2]"); \
+  COMPARE(N(w3, w4, MemOperand(sp)), MN " w3, w4, [sp]");
+
+
+  ATOMIC_MEMORY_DISASM_LOAD_X_MODES(AM_SWP_X_TESTS, swp, "swp")
+  ATOMIC_MEMORY_DISASM_LOAD_W_MODES(AM_SWP_W_TESTS, swp, "swp")
+
+#undef AM_LOAD_X_TESTS
+#undef AM_LOAD_W_TESTS
+#undef AM_STORE_X_TESTS
+#undef AM_STORE_W_TESTS
+#undef AM_SWP_X_TESTS
+#undef AM_SWP_W_TESTS
+
+  COMPARE(ldaprb(w0, MemOperand(x1)), "ldaprb w0, [x1]");
+  COMPARE(ldaprb(w2, MemOperand(sp)), "ldaprb w2, [sp]");
+  COMPARE(ldaprh(w3, MemOperand(x4)), "ldaprh w3, [x4]");
+  COMPARE(ldaprh(w5, MemOperand(sp)), "ldaprh w5, [sp]");
+  COMPARE(ldapr(w6, MemOperand(x7)), "ldapr w6, [x7]");
+  COMPARE(ldapr(w8, MemOperand(sp)), "ldapr w8, [sp]");
+  COMPARE(ldapr(x9, MemOperand(x10)), "ldapr x9, [x10]");
+  COMPARE(ldapr(x11, MemOperand(sp)), "ldapr x11, [sp]");
+
+  CLEANUP();
+}
+
 
 TEST(load_store_pair_nontemp) {
   SETUP();
@@ -2648,8 +2783,8 @@ TEST(cond_cmp_macro) {
 TEST(fmov_imm) {
   SETUP();
 
-  COMPARE(fmov(h2, F16(-5.0)), "fmov h2, #0x94 (-5.0000)");
-  COMPARE(fmov(h30, F16(29.0)), "fmov h30, #0x3d (29.0000)");
+  COMPARE(fmov(h2, Float16(-5.0)), "fmov h2, #0x94 (-5.0000)");
+  COMPARE(fmov(h30, Float16(29.0)), "fmov h30, #0x3d (29.0000)");
   COMPARE(fmov(s0, 1.0f), "fmov s0, #0x70 (1.0000)");
   COMPARE(fmov(s31, -13.0f), "fmov s31, #0xaa (-13.0000)");
   COMPARE(fmov(d1, 1.0), "fmov d1, #0x70 (1.0000)");
@@ -2729,22 +2864,31 @@ TEST(fp_dp1) {
 TEST(fp_dp2) {
   SETUP();
 
+  COMPARE(fadd(h8, h9, h10), "fadd h8, h9, h10");
   COMPARE(fadd(s0, s1, s2), "fadd s0, s1, s2");
   COMPARE(fadd(d3, d4, d5), "fadd d3, d4, d5");
+  COMPARE(fsub(h14, h17, h21), "fsub h14, h17, h21");
   COMPARE(fsub(s31, s30, s29), "fsub s31, s30, s29");
   COMPARE(fsub(d31, d30, d29), "fsub d31, d30, d29");
+  COMPARE(fmul(h13, h14, h15), "fmul h13, h14, h15");
   COMPARE(fmul(s7, s8, s9), "fmul s7, s8, s9");
   COMPARE(fmul(d10, d11, d12), "fmul d10, d11, d12");
+  COMPARE(fnmul(h4, h5, h6), "fnmul h4, h5, h6");
   COMPARE(fnmul(s7, s8, s9), "fnmul s7, s8, s9");
   COMPARE(fnmul(d10, d11, d12), "fnmul d10, d11, d12");
+  COMPARE(fdiv(h0, h1, h2), "fdiv h0, h1, h2");
   COMPARE(fdiv(s13, s14, s15), "fdiv s13, s14, s15");
   COMPARE(fdiv(d16, d17, d18), "fdiv d16, d17, d18");
+  COMPARE(fmax(h9, h10, h11), "fmax h9, h10, h11");
   COMPARE(fmax(s19, s20, s21), "fmax s19, s20, s21");
   COMPARE(fmax(d22, d23, d24), "fmax d22, d23, d24");
+  COMPARE(fmin(h13, h15, h17), "fmin h13, h15, h17");
   COMPARE(fmin(s25, s26, s27), "fmin s25, s26, s27");
   COMPARE(fmin(d28, d29, d30), "fmin d28, d29, d30");
+  COMPARE(fmaxnm(h4, h5, h6), "fmaxnm h4, h5, h6");
   COMPARE(fmaxnm(s31, s0, s1), "fmaxnm s31, s0, s1");
   COMPARE(fmaxnm(d2, d3, d4), "fmaxnm d2, d3, d4");
+  COMPARE(fminnm(h22, h23, h24), "fminnm h22, h23, h24");
   COMPARE(fminnm(s5, s6, s7), "fminnm s5, s6, s7");
   COMPARE(fminnm(d8, d9, d10), "fminnm d8, d9, d10");
 
@@ -2755,13 +2899,17 @@ TEST(fp_dp2) {
 TEST(fp_dp3) {
   SETUP();
 
+  COMPARE(fmadd(h4, h5, h6, h10), "fmadd h4, h5, h6, h10");
   COMPARE(fmadd(s7, s8, s9, s10), "fmadd s7, s8, s9, s10");
   COMPARE(fmadd(d10, d11, d12, d10), "fmadd d10, d11, d12, d10");
+  COMPARE(fmsub(h4, h5, h6, h10), "fmsub h4, h5, h6, h10");
   COMPARE(fmsub(s7, s8, s9, s10), "fmsub s7, s8, s9, s10");
   COMPARE(fmsub(d10, d11, d12, d10), "fmsub d10, d11, d12, d10");
 
+  COMPARE(fnmadd(h4, h5, h6, h10), "fnmadd h4, h5, h6, h10");
   COMPARE(fnmadd(s7, s8, s9, s10), "fnmadd s7, s8, s9, s10");
   COMPARE(fnmadd(d10, d11, d12, d10), "fnmadd d10, d11, d12, d10");
+  COMPARE(fnmsub(h4, h5, h6, h10), "fnmsub h4, h5, h6, h10");
   COMPARE(fnmsub(s7, s8, s9, s10), "fnmsub s7, s8, s9, s10");
   COMPARE(fnmsub(d10, d11, d12, d10), "fnmsub d10, d11, d12, d10");
 
@@ -2772,17 +2920,23 @@ TEST(fp_dp3) {
 TEST(fp_compare) {
   SETUP();
 
+  COMPARE(fcmp(h0, h1), "fcmp h0, h1");
+  COMPARE(fcmp(h31, h30), "fcmp h31, h30");
   COMPARE(fcmp(s0, s1), "fcmp s0, s1");
   COMPARE(fcmp(s31, s30), "fcmp s31, s30");
   COMPARE(fcmp(d0, d1), "fcmp d0, d1");
   COMPARE(fcmp(d31, d30), "fcmp d31, d30");
+  COMPARE(fcmp(h12, 0), "fcmp h12, #0.0");
   COMPARE(fcmp(s12, 0), "fcmp s12, #0.0");
   COMPARE(fcmp(d12, 0), "fcmp d12, #0.0");
 
+  COMPARE(fcmpe(h0, h1), "fcmpe h0, h1");
+  COMPARE(fcmpe(h31, h30), "fcmpe h31, h30");
   COMPARE(fcmpe(s0, s1), "fcmpe s0, s1");
   COMPARE(fcmpe(s31, s30), "fcmpe s31, s30");
   COMPARE(fcmpe(d0, d1), "fcmpe d0, d1");
   COMPARE(fcmpe(d31, d30), "fcmpe d31, d30");
+  COMPARE(fcmpe(h12, 0), "fcmpe h12, #0.0");
   COMPARE(fcmpe(s12, 0), "fcmpe s12, #0.0");
   COMPARE(fcmpe(d12, 0), "fcmpe d12, #0.0");
 
@@ -2793,6 +2947,10 @@ TEST(fp_compare) {
 TEST(fp_cond_compare) {
   SETUP();
 
+  COMPARE(fccmp(h8, h9, NoFlag, eq), "fccmp h8, h9, #nzcv, eq");
+  COMPARE(fccmp(h10, h11, ZVFlag, ne), "fccmp h10, h11, #nZcV, ne");
+  COMPARE(fccmp(h30, h16, NCFlag, pl), "fccmp h30, h16, #NzCv, pl");
+  COMPARE(fccmp(h31, h31, NZCVFlag, le), "fccmp h31, h31, #NZCV, le");
   COMPARE(fccmp(s0, s1, NoFlag, eq), "fccmp s0, s1, #nzcv, eq");
   COMPARE(fccmp(s2, s3, ZVFlag, ne), "fccmp s2, s3, #nZcV, ne");
   COMPARE(fccmp(s30, s16, NCFlag, pl), "fccmp s30, s16, #NzCv, pl");
@@ -2801,9 +2959,14 @@ TEST(fp_cond_compare) {
   COMPARE(fccmp(d6, d7, NFlag, vs), "fccmp d6, d7, #Nzcv, vs");
   COMPARE(fccmp(d30, d0, NZFlag, vc), "fccmp d30, d0, #NZcv, vc");
   COMPARE(fccmp(d31, d31, ZFlag, hs), "fccmp d31, d31, #nZcv, hs");
+  COMPARE(fccmp(h12, h13, CVFlag, al), "fccmp h12, h13, #nzCV, al");
   COMPARE(fccmp(s14, s15, CVFlag, al), "fccmp s14, s15, #nzCV, al");
   COMPARE(fccmp(d16, d17, CFlag, nv), "fccmp d16, d17, #nzCv, nv");
 
+  COMPARE(fccmpe(h8, h9, NoFlag, eq), "fccmpe h8, h9, #nzcv, eq");
+  COMPARE(fccmpe(h10, h11, ZVFlag, ne), "fccmpe h10, h11, #nZcV, ne");
+  COMPARE(fccmpe(h30, h16, NCFlag, pl), "fccmpe h30, h16, #NzCv, pl");
+  COMPARE(fccmpe(h31, h31, NZCVFlag, le), "fccmpe h31, h31, #NZCV, le");
   COMPARE(fccmpe(s0, s1, NoFlag, eq), "fccmpe s0, s1, #nzcv, eq");
   COMPARE(fccmpe(s2, s3, ZVFlag, ne), "fccmpe s2, s3, #nZcV, ne");
   COMPARE(fccmpe(s30, s16, NCFlag, pl), "fccmpe s30, s16, #NzCv, pl");
@@ -2812,6 +2975,7 @@ TEST(fp_cond_compare) {
   COMPARE(fccmpe(d6, d7, NFlag, vs), "fccmpe d6, d7, #Nzcv, vs");
   COMPARE(fccmpe(d30, d0, NZFlag, vc), "fccmpe d30, d0, #NZcv, vc");
   COMPARE(fccmpe(d31, d31, ZFlag, hs), "fccmpe d31, d31, #nZcv, hs");
+  COMPARE(fccmpe(h12, h13, CVFlag, al), "fccmpe h12, h13, #nzCV, al");
   COMPARE(fccmpe(s14, s15, CVFlag, al), "fccmpe s14, s15, #nzCV, al");
   COMPARE(fccmpe(d16, d17, CFlag, nv), "fccmpe d16, d17, #nzCv, nv");
 
@@ -2822,10 +2986,13 @@ TEST(fp_cond_compare) {
 TEST(fp_select) {
   SETUP();
 
+  COMPARE(fcsel(h0, h1, h2, eq), "fcsel h0, h1, h2, eq");
+  COMPARE(fcsel(h31, h31, h30, ne), "fcsel h31, h31, h30, ne");
   COMPARE(fcsel(s0, s1, s2, eq), "fcsel s0, s1, s2, eq");
   COMPARE(fcsel(s31, s31, s30, ne), "fcsel s31, s31, s30, ne");
   COMPARE(fcsel(d0, d1, d2, mi), "fcsel d0, d1, d2, mi");
   COMPARE(fcsel(d31, d30, d31, pl), "fcsel d31, d30, d31, pl");
+  COMPARE(fcsel(h11, h12, h13, al), "fcsel h11, h12, h13, al");
   COMPARE(fcsel(s14, s15, s16, al), "fcsel s14, s15, s16, al");
   COMPARE(fcsel(d17, d18, d19, nv), "fcsel d17, d18, d19, nv");
 
@@ -2866,6 +3033,7 @@ TEST(fcvt_scvtf_ucvtf) {
   COMPARE(fcvtzs(x4, s3, 15), "fcvtzs x4, s3, #15");
   COMPARE(fcvtzs(w6, d5, 32), "fcvtzs w6, d5, #32");
   COMPARE(fcvtzs(w6, s5, 32), "fcvtzs w6, s5, #32");
+  COMPARE(fjcvtzs(w0, d1), "fjcvtzs w0, d1");
   COMPARE(fcvtzu(w2, d1, 1), "fcvtzu w2, d1, #1");
   COMPARE(fcvtzu(w2, s1, 1), "fcvtzu w2, s1, #1");
   COMPARE(fcvtzu(x4, d3, 15), "fcvtzu x4, d3, #15");
@@ -2910,6 +3078,44 @@ TEST(fcvt_scvtf_ucvtf) {
   COMPARE(fcvtmu(x10, s11), "fcvtmu x10, s11");
   COMPARE(fcvtmu(w12, d13), "fcvtmu w12, d13");
   COMPARE(fcvtmu(x14, d15), "fcvtmu x14, d15");
+
+  COMPARE(fcvtas(w0, h1), "fcvtas w0, h1");
+  COMPARE(fcvtas(x2, h3), "fcvtas x2, h3");
+  COMPARE(fcvtau(w8, h9), "fcvtau w8, h9");
+  COMPARE(fcvtau(x10, h11), "fcvtau x10, h11");
+  COMPARE(fcvtns(w0, h1), "fcvtns w0, h1");
+  COMPARE(fcvtns(x2, h3), "fcvtns x2, h3");
+  COMPARE(fcvtnu(w8, h9), "fcvtnu w8, h9");
+  COMPARE(fcvtnu(x10, h11), "fcvtnu x10, h11");
+  COMPARE(fcvtzu(x16, h17), "fcvtzu x16, h17");
+  COMPARE(fcvtzu(w18, h19), "fcvtzu w18, h19");
+  COMPARE(fcvtzs(x20, h21), "fcvtzs x20, h21");
+  COMPARE(fcvtzs(w22, h23), "fcvtzs w22, h23");
+  COMPARE(fcvtzs(w2, h1, 1), "fcvtzs w2, h1, #1");
+  COMPARE(fcvtzs(x4, h3, 15), "fcvtzs x4, h3, #15");
+  COMPARE(fcvtzs(w6, h5, 32), "fcvtzs w6, h5, #32");
+  COMPARE(fcvtzu(w2, h1, 1), "fcvtzu w2, h1, #1");
+  COMPARE(fcvtzu(x4, h3, 15), "fcvtzu x4, h3, #15");
+  COMPARE(fcvtzu(w6, h5, 32), "fcvtzu w6, h5, #32");
+  COMPARE(fcvtpu(x0, h1), "fcvtpu x0, h1");
+  COMPARE(fcvtpu(w2, h3), "fcvtpu w2, h3");
+  COMPARE(fcvtps(x4, h5), "fcvtps x4, h5");
+  COMPARE(fcvtps(w6, h7), "fcvtps w6, h7");
+  COMPARE(scvtf(h24, w25), "scvtf h24, w25");
+  COMPARE(scvtf(h26, x0), "scvtf h26, x0");
+  COMPARE(ucvtf(h28, w29), "ucvtf h28, w29");
+  COMPARE(ucvtf(h0, x1), "ucvtf h0, x1");
+  COMPARE(ucvtf(h0, x1, 0), "ucvtf h0, x1");
+  COMPARE(scvtf(h1, x2, 1), "scvtf h1, x2, #1");
+  COMPARE(scvtf(h3, x4, 15), "scvtf h3, x4, #15");
+  COMPARE(scvtf(h5, x6, 32), "scvtf h5, x6, #32");
+  COMPARE(ucvtf(h7, x8, 2), "ucvtf h7, x8, #2");
+  COMPARE(ucvtf(h9, x10, 16), "ucvtf h9, x10, #16");
+  COMPARE(ucvtf(h11, x12, 33), "ucvtf h11, x12, #33");
+  COMPARE(fcvtms(w0, h1), "fcvtms w0, h1");
+  COMPARE(fcvtms(x2, h3), "fcvtms x2, h3");
+  COMPARE(fcvtmu(w8, h9), "fcvtmu w8, h9");
+  COMPARE(fcvtmu(x10, h11), "fcvtmu x10, h11");
 
   CLEANUP();
 }
@@ -3005,6 +3211,25 @@ TEST(system_nop) {
   COMPARE(nop(), "nop");
 
   CLEANUP();
+}
+
+
+TEST(system_pauth) {
+  SETUP();
+
+  COMPARE(pacia1716(), "pacia1716");
+  COMPARE(pacib1716(), "pacib1716");
+  COMPARE(paciaz(), "paciaz");
+  COMPARE(pacibz(), "pacibz");
+  COMPARE(paciasp(), "paciasp");
+  COMPARE(pacibsp(), "pacibsp");
+  COMPARE(autia1716(), "autia1716");
+  COMPARE(autib1716(), "autib1716");
+  COMPARE(autiaz(), "autiaz");
+  COMPARE(autibz(), "autibz");
+  COMPARE(autiasp(), "autiasp");
+  COMPARE(autibsp(), "autibsp");
+  COMPARE(xpaclri(), "xpaclri");
 }
 
 
@@ -3211,6 +3436,9 @@ TEST(barriers) {
 
   // ISB
   COMPARE_MACRO(Isb(), "isb");
+
+  // ESB
+  COMPARE_MACRO(Esb(), "esb");
 
   // CSDB
   COMPARE_MACRO(Csdb(), "csdb");
@@ -4713,6 +4941,106 @@ TEST(neon_3same) {
   CLEANUP();
 }
 
+TEST(neon_3same_fp16) {
+  SETUP();
+
+  COMPARE_MACRO(Fmaxnm(v0.V8H(), v1.V8H(), v2.V8H()),
+                "fmaxnm v0.8h, v1.8h, v2.8h");
+  COMPARE_MACRO(Fmaxnm(v3.V4H(), v4.V4H(), v5.V4H()),
+                "fmaxnm v3.4h, v4.4h, v5.4h");
+  COMPARE_MACRO(Fmla(v6.V8H(), v7.V8H(), v8.V8H()), "fmla v6.8h, v7.8h, v8.8h");
+  COMPARE_MACRO(Fmla(v9.V4H(), v10.V4H(), v11.V4H()),
+                "fmla v9.4h, v10.4h, v11.4h");
+  COMPARE_MACRO(Fadd(v12.V8H(), v13.V8H(), v14.V8H()),
+                "fadd v12.8h, v13.8h, v14.8h");
+  COMPARE_MACRO(Fadd(v15.V4H(), v16.V4H(), v17.V4H()),
+                "fadd v15.4h, v16.4h, v17.4h");
+  COMPARE_MACRO(Fmulx(v18.V8H(), v19.V8H(), v20.V8H()),
+                "fmulx v18.8h, v19.8h, v20.8h");
+  COMPARE_MACRO(Fmulx(v21.V4H(), v22.V4H(), v23.V4H()),
+                "fmulx v21.4h, v22.4h, v23.4h");
+  COMPARE_MACRO(Fcmeq(v24.V8H(), v25.V8H(), v26.V8H()),
+                "fcmeq v24.8h, v25.8h, v26.8h");
+  COMPARE_MACRO(Fcmeq(v27.V4H(), v28.V4H(), v29.V4H()),
+                "fcmeq v27.4h, v28.4h, v29.4h");
+  COMPARE_MACRO(Fmax(v30.V8H(), v0.V8H(), v1.V8H()),
+                "fmax v30.8h, v0.8h, v1.8h");
+  COMPARE_MACRO(Fmax(v2.V4H(), v3.V4H(), v4.V4H()), "fmax v2.4h, v3.4h, v4.4h");
+  COMPARE_MACRO(Frecps(v5.V8H(), v6.V8H(), v7.V8H()),
+                "frecps v5.8h, v6.8h, v7.8h");
+  COMPARE_MACRO(Frecps(v8.V4H(), v9.V4H(), v10.V4H()),
+                "frecps v8.4h, v9.4h, v10.4h");
+  COMPARE_MACRO(Fminnm(v11.V8H(), v12.V8H(), v13.V8H()),
+                "fminnm v11.8h, v12.8h, v13.8h");
+  COMPARE_MACRO(Fminnm(v14.V4H(), v15.V4H(), v16.V4H()),
+                "fminnm v14.4h, v15.4h, v16.4h");
+  COMPARE_MACRO(Fmls(v17.V8H(), v18.V8H(), v19.V8H()),
+                "fmls v17.8h, v18.8h, v19.8h");
+  COMPARE_MACRO(Fmls(v20.V4H(), v21.V4H(), v22.V4H()),
+                "fmls v20.4h, v21.4h, v22.4h");
+  COMPARE_MACRO(Fsub(v23.V8H(), v24.V8H(), v25.V8H()),
+                "fsub v23.8h, v24.8h, v25.8h");
+  COMPARE_MACRO(Fsub(v26.V4H(), v27.V4H(), v28.V4H()),
+                "fsub v26.4h, v27.4h, v28.4h");
+  COMPARE_MACRO(Fmin(v29.V8H(), v30.V8H(), v0.V8H()),
+                "fmin v29.8h, v30.8h, v0.8h");
+  COMPARE_MACRO(Fmin(v1.V4H(), v2.V4H(), v3.V4H()), "fmin v1.4h, v2.4h, v3.4h");
+  COMPARE_MACRO(Frsqrts(v4.V8H(), v5.V8H(), v6.V8H()),
+                "frsqrts v4.8h, v5.8h, v6.8h");
+  COMPARE_MACRO(Frsqrts(v7.V4H(), v8.V4H(), v9.V4H()),
+                "frsqrts v7.4h, v8.4h, v9.4h");
+  COMPARE_MACRO(Fmaxnmp(v10.V8H(), v11.V8H(), v12.V8H()),
+                "fmaxnmp v10.8h, v11.8h, v12.8h");
+  COMPARE_MACRO(Fmaxnmp(v13.V4H(), v14.V4H(), v15.V4H()),
+                "fmaxnmp v13.4h, v14.4h, v15.4h");
+  COMPARE_MACRO(Faddp(v16.V8H(), v17.V8H(), v18.V8H()),
+                "faddp v16.8h, v17.8h, v18.8h");
+  COMPARE_MACRO(Faddp(v19.V4H(), v20.V4H(), v21.V4H()),
+                "faddp v19.4h, v20.4h, v21.4h");
+  COMPARE_MACRO(Fmul(v22.V8H(), v23.V8H(), v24.V8H()),
+                "fmul v22.8h, v23.8h, v24.8h");
+  COMPARE_MACRO(Fmul(v25.V4H(), v26.V4H(), v27.V4H()),
+                "fmul v25.4h, v26.4h, v27.4h");
+  COMPARE_MACRO(Fcmge(v28.V8H(), v29.V8H(), v30.V8H()),
+                "fcmge v28.8h, v29.8h, v30.8h");
+  COMPARE_MACRO(Fcmge(v0.V4H(), v1.V4H(), v2.V4H()),
+                "fcmge v0.4h, v1.4h, v2.4h");
+  COMPARE_MACRO(Facge(v3.V8H(), v4.V8H(), v5.V8H()),
+                "facge v3.8h, v4.8h, v5.8h");
+  COMPARE_MACRO(Facge(v6.V4H(), v7.V4H(), v8.V4H()),
+                "facge v6.4h, v7.4h, v8.4h");
+  COMPARE_MACRO(Fmaxp(v9.V8H(), v10.V8H(), v11.V8H()),
+                "fmaxp v9.8h, v10.8h, v11.8h");
+  COMPARE_MACRO(Fmaxp(v12.V4H(), v13.V4H(), v14.V4H()),
+                "fmaxp v12.4h, v13.4h, v14.4h");
+  COMPARE_MACRO(Fdiv(v15.V8H(), v16.V8H(), v17.V8H()),
+                "fdiv v15.8h, v16.8h, v17.8h");
+  COMPARE_MACRO(Fdiv(v18.V4H(), v19.V4H(), v20.V4H()),
+                "fdiv v18.4h, v19.4h, v20.4h");
+  COMPARE_MACRO(Fminnmp(v21.V8H(), v22.V8H(), v23.V8H()),
+                "fminnmp v21.8h, v22.8h, v23.8h");
+  COMPARE_MACRO(Fminnmp(v24.V4H(), v25.V4H(), v26.V4H()),
+                "fminnmp v24.4h, v25.4h, v26.4h");
+  COMPARE_MACRO(Fabd(v27.V8H(), v28.V8H(), v29.V8H()),
+                "fabd v27.8h, v28.8h, v29.8h");
+  COMPARE_MACRO(Fabd(v30.V4H(), v0.V4H(), v1.V4H()),
+                "fabd v30.4h, v0.4h, v1.4h");
+  COMPARE_MACRO(Fcmgt(v2.V8H(), v3.V8H(), v4.V8H()),
+                "fcmgt v2.8h, v3.8h, v4.8h");
+  COMPARE_MACRO(Fcmgt(v5.V4H(), v6.V4H(), v7.V4H()),
+                "fcmgt v5.4h, v6.4h, v7.4h");
+  COMPARE_MACRO(Facgt(v8.V8H(), v9.V8H(), v10.V8H()),
+                "facgt v8.8h, v9.8h, v10.8h");
+  COMPARE_MACRO(Facgt(v11.V4H(), v12.V4H(), v13.V4H()),
+                "facgt v11.4h, v12.4h, v13.4h");
+  COMPARE_MACRO(Fminp(v14.V8H(), v15.V8H(), v16.V8H()),
+                "fminp v14.8h, v15.8h, v16.8h");
+  COMPARE_MACRO(Fminp(v17.V4H(), v18.V4H(), v19.V4H()),
+                "fminp v17.4h, v18.4h, v19.4h");
+
+  CLEANUP();
+}
+
 TEST(neon_3same_extra_fcadd) {
   SETUP();
 
@@ -4750,27 +5078,32 @@ TEST(neon_3same_extra_fcadd) {
   V(V4S(), "4s")               \
   V(V2D(), "2d")
 
+#define NEON_FORMAT_LIST_FP_FP16(V) \
+  NEON_FORMAT_LIST_FP(V)            \
+  V(V4H(), "4h")                    \
+  V(V8H(), "8h")
+
 TEST(neon_fp_3same) {
   SETUP();
 
 #define DISASM_INST(M, S) \
   COMPARE_MACRO(Fadd(v0.M, v1.M, v2.M), "fadd v0." S ", v1." S ", v2." S);
-  NEON_FORMAT_LIST_FP(DISASM_INST)
+  NEON_FORMAT_LIST_FP_FP16(DISASM_INST)
 #undef DISASM_INST
 
 #define DISASM_INST(M, S) \
   COMPARE_MACRO(Fsub(v3.M, v4.M, v5.M), "fsub v3." S ", v4." S ", v5." S);
-  NEON_FORMAT_LIST_FP(DISASM_INST)
+  NEON_FORMAT_LIST_FP_FP16(DISASM_INST)
 #undef DISASM_INST
 
 #define DISASM_INST(M, S) \
   COMPARE_MACRO(Fmul(v6.M, v7.M, v8.M), "fmul v6." S ", v7." S ", v8." S);
-  NEON_FORMAT_LIST_FP(DISASM_INST)
+  NEON_FORMAT_LIST_FP_FP16(DISASM_INST)
 #undef DISASM_INST
 
 #define DISASM_INST(M, S) \
   COMPARE_MACRO(Fdiv(v9.M, v10.M, v11.M), "fdiv v9." S ", v10." S ", v11." S);
-  NEON_FORMAT_LIST_FP(DISASM_INST)
+  NEON_FORMAT_LIST_FP_FP16(DISASM_INST)
 #undef DISASM_INST
 
 #define DISASM_INST(M, S)                  \
@@ -4778,13 +5111,13 @@ TEST(neon_fp_3same) {
                 "fmin v12." S ", v13." S   \
                 ", "                       \
                 "v14." S);
-  NEON_FORMAT_LIST_FP(DISASM_INST)
+  NEON_FORMAT_LIST_FP_FP16(DISASM_INST)
 #undef DISASM_INST
 
 #define DISASM_INST(M, S)                    \
   COMPARE_MACRO(Fminnm(v15.M, v16.M, v17.M), \
                 "fminnm v15." S ", v16." S ", v17." S);
-  NEON_FORMAT_LIST_FP(DISASM_INST)
+  NEON_FORMAT_LIST_FP_FP16(DISASM_INST)
 #undef DISASM_INST
 
 #define DISASM_INST(M, S)                  \
@@ -4792,13 +5125,13 @@ TEST(neon_fp_3same) {
                 "fmax v18." S ", v19." S   \
                 ", "                       \
                 "v20." S);
-  NEON_FORMAT_LIST_FP(DISASM_INST)
+  NEON_FORMAT_LIST_FP_FP16(DISASM_INST)
 #undef DISASM_INST
 
 #define DISASM_INST(M, S)                    \
   COMPARE_MACRO(Fmaxnm(v21.M, v22.M, v23.M), \
                 "fmaxnm v21." S ", v22." S ", v23." S);
-  NEON_FORMAT_LIST_FP(DISASM_INST)
+  NEON_FORMAT_LIST_FP_FP16(DISASM_INST)
 #undef DISASM_INST
 
 #define DISASM_INST(M, S)                    \
@@ -5007,6 +5340,23 @@ TEST(neon_scalar_3same) {
 }
 
 
+TEST(neon_scalar_3same_fp16) {
+  SETUP();
+
+  COMPARE_MACRO(Fmulx(v0.H(), v1.H(), v2.H()), "fmulx h0, h1, h2");
+  COMPARE_MACRO(Fcmeq(v3.H(), v4.H(), v5.H()), "fcmeq h3, h4, h5");
+  COMPARE_MACRO(Fcmge(v6.H(), v7.H(), v8.H()), "fcmge h6, h7, h8");
+  COMPARE_MACRO(Fcmgt(v9.H(), v10.H(), v11.H()), "fcmgt h9, h10, h11");
+  COMPARE_MACRO(Facge(v12.H(), v13.H(), v14.H()), "facge h12, h13, h14");
+  COMPARE_MACRO(Facgt(v15.H(), v16.H(), v17.H()), "facgt h15, h16, h17");
+  COMPARE_MACRO(Frecps(v18.H(), v19.H(), v20.H()), "frecps h18, h19, h20");
+  COMPARE_MACRO(Frsqrts(v21.H(), v22.H(), v23.H()), "frsqrts h21, h22, h23");
+  COMPARE_MACRO(Fabd(v24.H(), v25.H(), v26.H()), "fabd h24, h25, h26");
+
+  CLEANUP();
+}
+
+
 TEST(neon_byelement) {
   SETUP();
 
@@ -5185,6 +5535,10 @@ TEST(neon_byelement) {
 TEST(neon_fp_byelement) {
   SETUP();
 
+  COMPARE_MACRO(Fmul(v0.V4H(), v1.V4H(), v2.H(), 0),
+                "fmul v0.4h, v1.4h, v2.h[0]");
+  COMPARE_MACRO(Fmul(v2.V8H(), v3.V8H(), v15.H(), 3),
+                "fmul v2.8h, v3.8h, v15.h[3]");
   COMPARE_MACRO(Fmul(v0.V2S(), v1.V2S(), v2.S(), 0),
                 "fmul v0.2s, v1.2s, v2.s[0]");
   COMPARE_MACRO(Fmul(v2.V4S(), v3.V4S(), v15.S(), 3),
@@ -5193,7 +5547,12 @@ TEST(neon_fp_byelement) {
                 "fmul v0.2d, v1.2d, v2.d[0]");
   COMPARE_MACRO(Fmul(d0, d1, v2.D(), 0), "fmul d0, d1, v2.d[0]");
   COMPARE_MACRO(Fmul(s0, s1, v2.S(), 0), "fmul s0, s1, v2.s[0]");
+  COMPARE_MACRO(Fmul(h0, h1, v2.H(), 0), "fmul h0, h1, v2.h[0]");
 
+  COMPARE_MACRO(Fmla(v0.V4H(), v1.V4H(), v2.H(), 0),
+                "fmla v0.4h, v1.4h, v2.h[0]");
+  COMPARE_MACRO(Fmla(v2.V8H(), v3.V8H(), v15.H(), 3),
+                "fmla v2.8h, v3.8h, v15.h[3]");
   COMPARE_MACRO(Fmla(v0.V2S(), v1.V2S(), v2.S(), 0),
                 "fmla v0.2s, v1.2s, v2.s[0]");
   COMPARE_MACRO(Fmla(v2.V4S(), v3.V4S(), v15.S(), 3),
@@ -5202,7 +5561,12 @@ TEST(neon_fp_byelement) {
                 "fmla v0.2d, v1.2d, v2.d[0]");
   COMPARE_MACRO(Fmla(d0, d1, v2.D(), 0), "fmla d0, d1, v2.d[0]");
   COMPARE_MACRO(Fmla(s0, s1, v2.S(), 0), "fmla s0, s1, v2.s[0]");
+  COMPARE_MACRO(Fmla(h0, h1, v2.H(), 0), "fmla h0, h1, v2.h[0]");
 
+  COMPARE_MACRO(Fmls(v0.V4H(), v1.V4H(), v2.H(), 0),
+                "fmls v0.4h, v1.4h, v2.h[0]");
+  COMPARE_MACRO(Fmls(v2.V8H(), v3.V8H(), v15.H(), 3),
+                "fmls v2.8h, v3.8h, v15.h[3]");
   COMPARE_MACRO(Fmls(v0.V2S(), v1.V2S(), v2.S(), 0),
                 "fmls v0.2s, v1.2s, v2.s[0]");
   COMPARE_MACRO(Fmls(v2.V4S(), v3.V4S(), v15.S(), 3),
@@ -5211,7 +5575,12 @@ TEST(neon_fp_byelement) {
                 "fmls v0.2d, v1.2d, v2.d[0]");
   COMPARE_MACRO(Fmls(d0, d1, v2.D(), 0), "fmls d0, d1, v2.d[0]");
   COMPARE_MACRO(Fmls(s0, s1, v2.S(), 0), "fmls s0, s1, v2.s[0]");
+  COMPARE_MACRO(Fmls(h0, h1, v2.H(), 0), "fmls h0, h1, v2.h[0]");
 
+  COMPARE_MACRO(Fmulx(v0.V4H(), v1.V4H(), v2.H(), 0),
+                "fmulx v0.4h, v1.4h, v2.h[0]");
+  COMPARE_MACRO(Fmulx(v2.V8H(), v3.V8H(), v15.H(), 3),
+                "fmulx v2.8h, v3.8h, v15.h[3]");
   COMPARE_MACRO(Fmulx(v0.V2S(), v1.V2S(), v2.S(), 0),
                 "fmulx v0.2s, v1.2s, v2.s[0]");
   COMPARE_MACRO(Fmulx(v2.V4S(), v3.V4S(), v8.S(), 3),
@@ -5220,6 +5589,7 @@ TEST(neon_fp_byelement) {
                 "fmulx v0.2d, v1.2d, v2.d[0]");
   COMPARE_MACRO(Fmulx(d0, d1, v2.D(), 0), "fmulx d0, d1, v2.d[0]");
   COMPARE_MACRO(Fmulx(s0, s1, v2.S(), 0), "fmulx s0, s1, v2.s[0]");
+  COMPARE_MACRO(Fmulx(h0, h1, v2.H(), 0), "fmulx h0, h1, v2.h[0]");
 
   COMPARE_MACRO(Fcmla(v0.V4S(), v1.V4S(), v2.S(), 0, 270),
                 "fcmla v0.4s, v1.4s, v2.s[0], #270");
@@ -5838,10 +6208,11 @@ TEST(neon_modimm) {
   COMPARE_MACRO(Fmov(v31.V4S(), -13.0f), "fmov v31.4s, #0xaa (-13.0000)");
   COMPARE_MACRO(Fmov(v1.V2D(), 1.0), "fmov v1.2d, #0x70 (1.0000)");
   COMPARE_MACRO(Fmov(v29.V2D(), -13.0), "fmov v29.2d, #0xaa (-13.0000)");
-  COMPARE_MACRO(Fmov(v0.V4H(), F16(-5.0f)), "fmov v0.4h, #0x94 (-5.0000)");
-  COMPARE_MACRO(Fmov(v31.V8H(), F16(29.0f)), "fmov v31.8h, #0x3d (29.0000)");
-  COMPARE_MACRO(Fmov(v0.V4H(), F16(-5.0)), "fmov v0.4h, #0x94 (-5.0000)");
-  COMPARE_MACRO(Fmov(v31.V8H(), F16(29.0)), "fmov v31.8h, #0x3d (29.0000)");
+  COMPARE_MACRO(Fmov(v0.V4H(), Float16(-5.0f)), "fmov v0.4h, #0x94 (-5.0000)");
+  COMPARE_MACRO(Fmov(v31.V8H(), Float16(29.0f)),
+                "fmov v31.8h, #0x3d (29.0000)");
+  COMPARE_MACRO(Fmov(v0.V4H(), Float16(-5.0)), "fmov v0.4h, #0x94 (-5.0000)");
+  COMPARE_MACRO(Fmov(v31.V8H(), Float16(29.0)), "fmov v31.8h, #0x3d (29.0000)");
 
   CLEANUP();
 }
@@ -6535,6 +6906,58 @@ TEST(neon_2regmisc) {
   CLEANUP();
 }
 
+#define COMPARE_2REGMISC_FP16(A, B)                            \
+  COMPARE_MACRO(A(v2.V4H(), v9.V4H()), B " v2.4h, v9.4h");     \
+  COMPARE_MACRO(A(v16.V8H(), v23.V8H()), B " v16.8h, v23.8h"); \
+  COMPARE_MACRO(A(h5, h17), B " h5, h17")
+
+#define COMPARE_2REGMISC_CMP_FP16(A, B)                                 \
+  COMPARE_MACRO(A(v2.V4H(), v9.V4H(), 0), B " v2.4h, v9.4h, #0.0");     \
+  COMPARE_MACRO(A(v16.V8H(), v23.V8H(), 0), B " v16.8h, v23.8h, #0.0"); \
+  COMPARE_MACRO(A(h5, h17, 0), B " h5, h17, #0.0")
+
+TEST(neon_2regmisc_fp16) {
+  SETUP();
+
+  COMPARE_2REGMISC_FP16(Frintn, "frintn");
+  COMPARE_2REGMISC_FP16(Frinta, "frinta");
+  COMPARE_2REGMISC_FP16(Frintp, "frintp");
+  COMPARE_2REGMISC_FP16(Frintm, "frintm");
+  COMPARE_2REGMISC_FP16(Frintx, "frintx");
+  COMPARE_2REGMISC_FP16(Frintz, "frintz");
+  COMPARE_2REGMISC_FP16(Frinti, "frinti");
+
+  COMPARE_2REGMISC_FP16(Fcvtns, "fcvtns");
+  COMPARE_2REGMISC_FP16(Fcvtnu, "fcvtnu");
+  COMPARE_2REGMISC_FP16(Fcvtps, "fcvtps");
+  COMPARE_2REGMISC_FP16(Fcvtpu, "fcvtpu");
+  COMPARE_2REGMISC_FP16(Fcvtms, "fcvtms");
+  COMPARE_2REGMISC_FP16(Fcvtmu, "fcvtmu");
+  COMPARE_2REGMISC_FP16(Fcvtzs, "fcvtzs");
+  COMPARE_2REGMISC_FP16(Fcvtzu, "fcvtzu");
+  COMPARE_2REGMISC_FP16(Fcvtas, "fcvtas");
+  COMPARE_2REGMISC_FP16(Fcvtau, "fcvtau");
+
+  COMPARE_2REGMISC_FP16(Scvtf, "scvtf");
+  COMPARE_2REGMISC_FP16(Ucvtf, "ucvtf");
+
+  COMPARE_2REGMISC_FP16(Fabs, "fabs");
+  COMPARE_2REGMISC_FP16(Frecpe, "frecpe");
+  COMPARE_2REGMISC_FP16(Fneg, "fneg");
+  COMPARE_2REGMISC_FP16(Frsqrte, "frsqrte");
+  COMPARE_2REGMISC_FP16(Fsqrt, "fsqrt");
+
+  COMPARE_2REGMISC_CMP_FP16(Fcmeq, "fcmeq");
+  COMPARE_2REGMISC_CMP_FP16(Fcmgt, "fcmgt");
+  COMPARE_2REGMISC_CMP_FP16(Fcmge, "fcmge");
+  COMPARE_2REGMISC_CMP_FP16(Fcmlt, "fcmlt");
+  COMPARE_2REGMISC_CMP_FP16(Fcmle, "fcmle");
+
+  COMPARE_MACRO(Frecpx(h5, h17), "frecpx h5, h17");
+
+  CLEANUP();
+}
+
 TEST(neon_acrosslanes) {
   SETUP();
 
@@ -6581,9 +7004,17 @@ TEST(neon_acrosslanes) {
   COMPARE_MACRO(Uaddlv(d4, v5.V4S()), "uaddlv d4, v5.4s");
 
   COMPARE_MACRO(Fmaxv(s4, v5.V4S()), "fmaxv s4, v5.4s");
+  COMPARE_MACRO(Fmaxv(h4, v5.V4H()), "fmaxv h4, v5.4h");
+  COMPARE_MACRO(Fmaxv(h4, v5.V8H()), "fmaxv h4, v5.8h");
   COMPARE_MACRO(Fminv(s4, v5.V4S()), "fminv s4, v5.4s");
+  COMPARE_MACRO(Fminv(h4, v5.V4H()), "fminv h4, v5.4h");
+  COMPARE_MACRO(Fminv(h4, v5.V8H()), "fminv h4, v5.8h");
   COMPARE_MACRO(Fmaxnmv(s4, v5.V4S()), "fmaxnmv s4, v5.4s");
+  COMPARE_MACRO(Fmaxnmv(h4, v5.V4H()), "fmaxnmv h4, v5.4h");
+  COMPARE_MACRO(Fmaxnmv(h4, v5.V8H()), "fmaxnmv h4, v5.8h");
   COMPARE_MACRO(Fminnmv(s4, v5.V4S()), "fminnmv s4, v5.4s");
+  COMPARE_MACRO(Fminnmv(h4, v5.V4H()), "fminnmv h4, v5.4h");
+  COMPARE_MACRO(Fminnmv(h4, v5.V8H()), "fminnmv h4, v5.8h");
 
   CLEANUP();
 }
@@ -6592,14 +7023,19 @@ TEST(neon_scalar_pairwise) {
   SETUP();
 
   COMPARE_MACRO(Addp(d0, v1.V2D()), "addp d0, v1.2d");
+  COMPARE_MACRO(Faddp(h0, v1.V2H()), "faddp h0, v1.2h");
   COMPARE_MACRO(Faddp(s0, v1.V2S()), "faddp s0, v1.2s");
   COMPARE_MACRO(Faddp(d2, v3.V2D()), "faddp d2, v3.2d");
+  COMPARE_MACRO(Fmaxp(h4, v5.V2H()), "fmaxp h4, v5.2h");
   COMPARE_MACRO(Fmaxp(s4, v5.V2S()), "fmaxp s4, v5.2s");
   COMPARE_MACRO(Fmaxp(d6, v7.V2D()), "fmaxp d6, v7.2d");
+  COMPARE_MACRO(Fmaxnmp(h8, v9.V2H()), "fmaxnmp h8, v9.2h");
   COMPARE_MACRO(Fmaxnmp(s8, v9.V2S()), "fmaxnmp s8, v9.2s");
   COMPARE_MACRO(Fmaxnmp(d10, v11.V2D()), "fmaxnmp d10, v11.2d");
+  COMPARE_MACRO(Fminp(h12, v13.V2H()), "fminp h12, v13.2h");
   COMPARE_MACRO(Fminp(s12, v13.V2S()), "fminp s12, v13.2s");
   COMPARE_MACRO(Fminp(d14, v15.V2D()), "fminp d14, v15.2d");
+  COMPARE_MACRO(Fminnmp(h16, v17.V2H()), "fminnmp h16, v17.2h");
   COMPARE_MACRO(Fminnmp(s16, v17.V2S()), "fminnmp s16, v17.2s");
   COMPARE_MACRO(Fminnmp(d18, v19.V2D()), "fminnmp d18, v19.2d");
   CLEANUP();
@@ -6916,27 +7352,39 @@ TEST(neon_shift_immediate) {
   COMPARE_MACRO(Sqrshrun(h1, s2, 2), "sqrshrun h1, s2, #2");
   COMPARE_MACRO(Sqrshrun(s2, d3, 3), "sqrshrun s2, d3, #3");
 
+  COMPARE_MACRO(Scvtf(v5.V4H(), v3.V4H(), 11), "scvtf v5.4h, v3.4h, #11");
+  COMPARE_MACRO(Scvtf(v6.V8H(), v4.V8H(), 12), "scvtf v6.8h, v4.8h, #12");
   COMPARE_MACRO(Scvtf(v5.V2S(), v3.V2S(), 11), "scvtf v5.2s, v3.2s, #11");
   COMPARE_MACRO(Scvtf(v6.V4S(), v4.V4S(), 12), "scvtf v6.4s, v4.4s, #12");
   COMPARE_MACRO(Scvtf(v7.V2D(), v5.V2D(), 33), "scvtf v7.2d, v5.2d, #33");
+  COMPARE_MACRO(Scvtf(h8, h6, 13), "scvtf h8, h6, #13");
   COMPARE_MACRO(Scvtf(s8, s6, 13), "scvtf s8, s6, #13");
   COMPARE_MACRO(Scvtf(d8, d6, 34), "scvtf d8, d6, #34");
 
+  COMPARE_MACRO(Ucvtf(v5.V4H(), v3.V4H(), 11), "ucvtf v5.4h, v3.4h, #11");
+  COMPARE_MACRO(Ucvtf(v6.V8H(), v4.V8H(), 12), "ucvtf v6.8h, v4.8h, #12");
   COMPARE_MACRO(Ucvtf(v5.V2S(), v3.V2S(), 11), "ucvtf v5.2s, v3.2s, #11");
   COMPARE_MACRO(Ucvtf(v6.V4S(), v4.V4S(), 12), "ucvtf v6.4s, v4.4s, #12");
   COMPARE_MACRO(Ucvtf(v7.V2D(), v5.V2D(), 33), "ucvtf v7.2d, v5.2d, #33");
+  COMPARE_MACRO(Ucvtf(h8, h6, 13), "ucvtf h8, h6, #13");
   COMPARE_MACRO(Ucvtf(s8, s6, 13), "ucvtf s8, s6, #13");
   COMPARE_MACRO(Ucvtf(d8, d6, 34), "ucvtf d8, d6, #34");
 
+  COMPARE_MACRO(Fcvtzs(v3.V4H(), v1.V4H(), 5), "fcvtzs v3.4h, v1.4h, #5");
+  COMPARE_MACRO(Fcvtzs(v4.V8H(), v2.V8H(), 6), "fcvtzs v4.8h, v2.8h, #6");
   COMPARE_MACRO(Fcvtzs(v5.V2S(), v3.V2S(), 11), "fcvtzs v5.2s, v3.2s, #11");
   COMPARE_MACRO(Fcvtzs(v6.V4S(), v4.V4S(), 12), "fcvtzs v6.4s, v4.4s, #12");
   COMPARE_MACRO(Fcvtzs(v7.V2D(), v5.V2D(), 33), "fcvtzs v7.2d, v5.2d, #33");
+  COMPARE_MACRO(Fcvtzs(h8, h6, 13), "fcvtzs h8, h6, #13");
   COMPARE_MACRO(Fcvtzs(s8, s6, 13), "fcvtzs s8, s6, #13");
   COMPARE_MACRO(Fcvtzs(d8, d6, 34), "fcvtzs d8, d6, #34");
 
+  COMPARE_MACRO(Fcvtzu(v3.V4H(), v1.V4H(), 5), "fcvtzu v3.4h, v1.4h, #5");
+  COMPARE_MACRO(Fcvtzu(v4.V8H(), v2.V8H(), 6), "fcvtzu v4.8h, v2.8h, #6");
   COMPARE_MACRO(Fcvtzu(v5.V2S(), v3.V2S(), 11), "fcvtzu v5.2s, v3.2s, #11");
   COMPARE_MACRO(Fcvtzu(v6.V4S(), v4.V4S(), 12), "fcvtzu v6.4s, v4.4s, #12");
   COMPARE_MACRO(Fcvtzu(v7.V2D(), v5.V2D(), 33), "fcvtzu v7.2d, v5.2d, #33");
+  COMPARE_MACRO(Fcvtzu(h8, h6, 13), "fcvtzu h8, h6, #13");
   COMPARE_MACRO(Fcvtzu(s8, s6, 13), "fcvtzu s8, s6, #13");
   COMPARE_MACRO(Fcvtzu(d8, d6, 34), "fcvtzu d8, d6, #34");
   CLEANUP();
@@ -7030,6 +7478,7 @@ TEST(hint) {
   COMPARE(hint(SEV), "sev");
   COMPARE(hint(SEVL), "sevl");
   COMPARE(hint(6), "hint #6");
+  COMPARE(hint(ESB), "esb");
   COMPARE(hint(CSDB), "csdb");
   COMPARE(hint(42), "hint #42");
   COMPARE(hint(127), "hint #127");

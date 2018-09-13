@@ -44,7 +44,6 @@
 // is needed regardless of whether the simulator is included or not, since
 // generating simulator specific instructions is controlled at runtime.
 #include "simulator-constants-aarch64.h"
-#include "utils-aarch64.h"
 
 
 #define LS_MACRO_LIST(V)                                     \
@@ -1036,6 +1035,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     bfi(rd, rn, lsb, width);
   }
+  void Bfc(const Register& rd, unsigned lsb, unsigned width) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    SingleEmissionCheckScope guard(this);
+    bfc(rd, lsb, width);
+  }
   void Bfxil(const Register& rd,
              const Register& rn,
              unsigned lsb,
@@ -1066,6 +1071,56 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     br(xn);
   }
+  void Braaz(const Register& xn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    braaz(xn);
+  }
+  void Brabz(const Register& xn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    brabz(xn);
+  }
+  void Blraaz(const Register& xn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    blraaz(xn);
+  }
+  void Blrabz(const Register& xn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    blrabz(xn);
+  }
+  void Retaa() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    retaa();
+  }
+  void Retab() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    retab();
+  }
+  void Braa(const Register& xn, const Register& xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    braa(xn, xm);
+  }
+  void Brab(const Register& xn, const Register& xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    brab(xn, xm);
+  }
+  void Blraa(const Register& xn, const Register& xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    blraa(xn, xm);
+  }
+  void Blrab(const Register& xn, const Register& xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    blrab(xn, xm);
+  }
   void Brk(int code = 0) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -1086,6 +1141,79 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!rn.IsZero());
     SingleEmissionCheckScope guard(this);
     cinv(rd, rn, cond);
+  }
+
+#define PAUTH_SYSTEM_MODES(V) \
+  V(az)                       \
+  V(bz)                       \
+  V(asp)                      \
+  V(bsp)
+
+#define DEFINE_MACRO_ASM_FUNCS(SUFFIX)      \
+  void Paci##SUFFIX() {                     \
+    VIXL_ASSERT(allow_macro_instructions_); \
+    SingleEmissionCheckScope guard(this);   \
+    paci##SUFFIX();                         \
+  }                                         \
+  void Auti##SUFFIX() {                     \
+    VIXL_ASSERT(allow_macro_instructions_); \
+    SingleEmissionCheckScope guard(this);   \
+    auti##SUFFIX();                         \
+  }
+
+  PAUTH_SYSTEM_MODES(DEFINE_MACRO_ASM_FUNCS)
+#undef DEFINE_MACRO_ASM_FUNCS
+
+  // The 1716 pac and aut instructions encourage people to use x16 and x17
+  // directly, perhaps without realising that this is forbidden. For example:
+  //
+  //     UseScratchRegisterScope temps(&masm);
+  //     Register temp = temps.AcquireX();  // temp will be x16
+  //     __ Mov(x17, ptr);
+  //     __ Mov(x16, modifier);  // Will override temp!
+  //     __ Pacia1716();
+  //
+  // To work around this issue, you must exclude x16 and x17 from the scratch
+  // register list. You may need to replace them with other registers:
+  //
+  //     UseScratchRegisterScope temps(&masm);
+  //     temps.Exclude(x16, x17);
+  //     temps.Include(x10, x11);
+  //     __ Mov(x17, ptr);
+  //     __ Mov(x16, modifier);
+  //     __ Pacia1716();
+  void Pacia1716() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!GetScratchRegisterList()->IncludesAliasOf(x16));
+    VIXL_ASSERT(!GetScratchRegisterList()->IncludesAliasOf(x17));
+    SingleEmissionCheckScope guard(this);
+    pacia1716();
+  }
+  void Pacib1716() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!GetScratchRegisterList()->IncludesAliasOf(x16));
+    VIXL_ASSERT(!GetScratchRegisterList()->IncludesAliasOf(x17));
+    SingleEmissionCheckScope guard(this);
+    pacib1716();
+  }
+  void Autia1716() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!GetScratchRegisterList()->IncludesAliasOf(x16));
+    VIXL_ASSERT(!GetScratchRegisterList()->IncludesAliasOf(x17));
+    SingleEmissionCheckScope guard(this);
+    autia1716();
+  }
+  void Autib1716() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!GetScratchRegisterList()->IncludesAliasOf(x16));
+    VIXL_ASSERT(!GetScratchRegisterList()->IncludesAliasOf(x17));
+    SingleEmissionCheckScope guard(this);
+    autib1716();
+  }
+  void Xpaclri() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    xpaclri();
   }
   void Clrex() {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1112,6 +1240,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!rn.IsZero());
     SingleEmissionCheckScope guard(this);
     cneg(rd, rn, cond);
+  }
+  void Esb() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    esb();
   }
   void Csdb() {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -1318,6 +1451,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fcvtzs(rd, vn, fbits);
   }
+  void Fjcvtzs(const Register& rd, const VRegister& vn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    SingleEmissionCheckScope guard(this);
+    fjcvtzs(rd, vn);
+  }
   void Fcvtzu(const Register& rd, const VRegister& vn, int fbits = 0) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rd.IsZero());
@@ -1389,7 +1528,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // signalling NaNs to quiet NaNs when converting between float and double.
   void Fmov(VRegister vd, double imm);
   void Fmov(VRegister vd, float imm);
-  void Fmov(VRegister vd, const F16 imm);
+  void Fmov(VRegister vd, const Float16 imm);
   // Provide a template to allow other types to be converted automatically.
   template <typename T>
   void Fmov(VRegister vd, T imm) {
@@ -1567,6 +1706,91 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   COMPARE_AND_SWAP_PAIR_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
 #undef DEFINE_MACRO_ASM_FUNC
+
+// These macros generate all the variations of the atomic memory operations,
+// e.g. ldadd, ldadda, ldaddb, staddl, etc.
+
+// clang-format off
+#define ATOMIC_MEMORY_SIMPLE_MACRO_LIST(V, DEF, MASM_PRE, ASM_PRE) \
+  V(DEF, MASM_PRE##add,  ASM_PRE##add)                             \
+  V(DEF, MASM_PRE##clr,  ASM_PRE##clr)                             \
+  V(DEF, MASM_PRE##eor,  ASM_PRE##eor)                             \
+  V(DEF, MASM_PRE##set,  ASM_PRE##set)                             \
+  V(DEF, MASM_PRE##smax, ASM_PRE##smax)                            \
+  V(DEF, MASM_PRE##smin, ASM_PRE##smin)                            \
+  V(DEF, MASM_PRE##umax, ASM_PRE##umax)                            \
+  V(DEF, MASM_PRE##umin, ASM_PRE##umin)
+
+#define ATOMIC_MEMORY_STORE_MACRO_MODES(V, MASM, ASM) \
+  V(MASM,     ASM)                                    \
+  V(MASM##l,  ASM##l)                                 \
+  V(MASM##b,  ASM##b)                                 \
+  V(MASM##lb, ASM##lb)                                \
+  V(MASM##h,  ASM##h)                                 \
+  V(MASM##lh, ASM##lh)
+
+#define ATOMIC_MEMORY_LOAD_MACRO_MODES(V, MASM, ASM) \
+  ATOMIC_MEMORY_STORE_MACRO_MODES(V, MASM, ASM)      \
+  V(MASM##a,   ASM##a)                               \
+  V(MASM##al,  ASM##al)                              \
+  V(MASM##ab,  ASM##ab)                              \
+  V(MASM##alb, ASM##alb)                             \
+  V(MASM##ah,  ASM##ah)                              \
+  V(MASM##alh, ASM##alh)
+// clang-format on
+
+#define DEFINE_MACRO_LOAD_ASM_FUNC(MASM, ASM)                                \
+  void MASM(const Register& rs, const Register& rt, const MemOperand& src) { \
+    VIXL_ASSERT(allow_macro_instructions_);                                  \
+    SingleEmissionCheckScope guard(this);                                    \
+    ASM(rs, rt, src);                                                        \
+  }
+#define DEFINE_MACRO_STORE_ASM_FUNC(MASM, ASM)           \
+  void MASM(const Register& rs, const MemOperand& src) { \
+    VIXL_ASSERT(allow_macro_instructions_);              \
+    SingleEmissionCheckScope guard(this);                \
+    ASM(rs, src);                                        \
+  }
+
+  ATOMIC_MEMORY_SIMPLE_MACRO_LIST(ATOMIC_MEMORY_LOAD_MACRO_MODES,
+                                  DEFINE_MACRO_LOAD_ASM_FUNC,
+                                  Ld,
+                                  ld)
+  ATOMIC_MEMORY_SIMPLE_MACRO_LIST(ATOMIC_MEMORY_STORE_MACRO_MODES,
+                                  DEFINE_MACRO_STORE_ASM_FUNC,
+                                  St,
+                                  st)
+
+#define DEFINE_MACRO_SWP_ASM_FUNC(MASM, ASM)                                 \
+  void MASM(const Register& rs, const Register& rt, const MemOperand& src) { \
+    VIXL_ASSERT(allow_macro_instructions_);                                  \
+    SingleEmissionCheckScope guard(this);                                    \
+    ASM(rs, rt, src);                                                        \
+  }
+
+  ATOMIC_MEMORY_LOAD_MACRO_MODES(DEFINE_MACRO_SWP_ASM_FUNC, Swp, swp)
+
+#undef DEFINE_MACRO_LOAD_ASM_FUNC
+#undef DEFINE_MACRO_STORE_ASM_FUNC
+#undef DEFINE_MACRO_SWP_ASM_FUNC
+
+  void Ldaprb(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldaprb(rt, src);
+  }
+
+  void Ldaprh(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldaprh(rt, src);
+  }
+
+  void Ldapr(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldapr(rt, src);
+  }
 
   void Ldnp(const CPURegister& rt,
             const CPURegister& rt2,
@@ -1837,6 +2061,62 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!rn.IsZero());
     SingleEmissionCheckScope guard(this);
     rev32(rd, rn);
+  }
+  void Rev64(const Register& rd, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(!rn.IsZero());
+    SingleEmissionCheckScope guard(this);
+    rev64(rd, rn);
+  }
+
+#define PAUTH_MASM_VARIATIONS(V) \
+  V(Paci, paci)                  \
+  V(Pacd, pacd)                  \
+  V(Auti, auti)                  \
+  V(Autd, autd)
+
+#define DEFINE_MACRO_ASM_FUNCS(MASM_PRE, ASM_PRE)            \
+  void MASM_PRE##a(const Register& xd, const Register& xn) { \
+    VIXL_ASSERT(allow_macro_instructions_);                  \
+    SingleEmissionCheckScope guard(this);                    \
+    ASM_PRE##a(xd, xn);                                      \
+  }                                                          \
+  void MASM_PRE##za(const Register& xd) {                    \
+    VIXL_ASSERT(allow_macro_instructions_);                  \
+    SingleEmissionCheckScope guard(this);                    \
+    ASM_PRE##za(xd);                                         \
+  }                                                          \
+  void MASM_PRE##b(const Register& xd, const Register& xn) { \
+    VIXL_ASSERT(allow_macro_instructions_);                  \
+    SingleEmissionCheckScope guard(this);                    \
+    ASM_PRE##b(xd, xn);                                      \
+  }                                                          \
+  void MASM_PRE##zb(const Register& xd) {                    \
+    VIXL_ASSERT(allow_macro_instructions_);                  \
+    SingleEmissionCheckScope guard(this);                    \
+    ASM_PRE##zb(xd);                                         \
+  }
+
+  PAUTH_MASM_VARIATIONS(DEFINE_MACRO_ASM_FUNCS)
+#undef DEFINE_MACRO_ASM_FUNCS
+
+  void Pacga(const Register& xd, const Register& xn, const Register& xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    pacga(xd, xn, xm);
+  }
+
+  void Xpaci(const Register& xd) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    xpaci(xd);
+  }
+
+  void Xpacd(const Register& xd) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    xpacd(xd);
   }
   void Ror(const Register& rd, const Register& rs, unsigned shift) {
     VIXL_ASSERT(allow_macro_instructions_);

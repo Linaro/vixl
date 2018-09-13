@@ -39,7 +39,6 @@
 #include "instructions-aarch64.h"
 #include "instrument-aarch64.h"
 #include "simulator-constants-aarch64.h"
-#include "utils-aarch64.h"
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
@@ -97,12 +96,11 @@ class SimRegisterBase {
   // Write the specified value. The value is zero-extended if necessary.
   template <typename T>
   void Write(T new_value) {
-    VIXL_STATIC_ASSERT(sizeof(new_value) <= kSizeInBytes);
     if (sizeof(new_value) < kSizeInBytes) {
       // All AArch64 registers are zero-extending.
       memset(value_ + sizeof(new_value), 0, kSizeInBytes - sizeof(new_value));
     }
-    memcpy(value_, &new_value, sizeof(new_value));
+    WriteLane(new_value, 0);
     NotifyRegisterWrite();
   }
   template <typename T>
@@ -116,10 +114,7 @@ class SimRegisterBase {
   // 0 represents the least significant bits.
   template <typename T>
   void Insert(int lane, T new_value) {
-    VIXL_ASSERT(lane >= 0);
-    VIXL_ASSERT((sizeof(new_value) + (lane * sizeof(new_value))) <=
-                kSizeInBytes);
-    memcpy(&value_[lane * sizeof(new_value)], &new_value, sizeof(new_value));
+    WriteLane(new_value, lane);
     NotifyRegisterWrite();
   }
 
@@ -134,9 +129,7 @@ class SimRegisterBase {
   template <typename T>
   T GetLane(int lane) const {
     T result;
-    VIXL_ASSERT(lane >= 0);
-    VIXL_ASSERT((sizeof(result) + (lane * sizeof(result))) <= kSizeInBytes);
-    memcpy(&result, &value_[lane * sizeof(result)], sizeof(result));
+    ReadLane(&result, lane);
     return result;
   }
   template <typename T>
@@ -158,9 +151,43 @@ class SimRegisterBase {
   bool written_since_last_log_;
 
   void NotifyRegisterWrite() { written_since_last_log_ = true; }
+
+ private:
+  template <typename T>
+  void ReadLane(T* dst, int lane) const {
+    VIXL_ASSERT(lane >= 0);
+    VIXL_ASSERT((sizeof(*dst) + (lane * sizeof(*dst))) <= kSizeInBytes);
+    memcpy(dst, &value_[lane * sizeof(*dst)], sizeof(*dst));
+  }
+
+  template <typename T>
+  void WriteLane(T src, int lane) {
+    VIXL_ASSERT(lane >= 0);
+    VIXL_ASSERT((sizeof(src) + (lane * sizeof(src))) <= kSizeInBytes);
+    memcpy(&value_[lane * sizeof(src)], &src, sizeof(src));
+  }
 };
 typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;   // r0-r31
 typedef SimRegisterBase<kQRegSizeInBytes> SimVRegister;  // v0-v31
+
+// The default ReadLane and WriteLane methods assume what we are copying is
+// "trivially copyable" by using memcpy. We have to provide alternative
+// implementations for SimFloat16 which cannot be copied this way.
+
+template <>
+template <>
+inline void SimVRegister::ReadLane(vixl::internal::SimFloat16* dst,
+                                   int lane) const {
+  uint16_t rawbits;
+  ReadLane(&rawbits, lane);
+  *dst = RawbitsToFloat16(rawbits);
+}
+
+template <>
+template <>
+inline void SimVRegister::WriteLane(vixl::internal::SimFloat16 src, int lane) {
+  WriteLane(Float16ToRawbits(src), lane);
+}
 
 // Representation of a vector register, with typed getters and setters for lanes
 // and additional information to represent lane state.
@@ -169,10 +196,10 @@ class LogicVRegister {
   inline LogicVRegister(
       SimVRegister& other)  // NOLINT(runtime/references)(runtime/explicit)
       : register_(other) {
-    for (unsigned i = 0; i < sizeof(saturated_) / sizeof(saturated_[0]); i++) {
+    for (size_t i = 0; i < ArrayLength(saturated_); i++) {
       saturated_[i] = kNotSaturated;
     }
-    for (unsigned i = 0; i < sizeof(round_) / sizeof(round_[0]); i++) {
+    for (size_t i = 0; i < ArrayLength(round_); i++) {
       round_[i] = 0;
     }
   }
@@ -977,11 +1004,11 @@ class Simulator : public DecoderVisitor {
     return ReadBRegister(code);
   }
 
-  int16_t ReadHRegister(unsigned code) const {
-    return ReadVRegister<int16_t>(code);
+  vixl::internal::SimFloat16 ReadHRegister(unsigned code) const {
+    return RawbitsToFloat16(ReadHRegisterBits(code));
   }
   VIXL_DEPRECATED("ReadHRegister", int16_t hreg(unsigned code) const) {
-    return ReadHRegister(code);
+    return Float16ToRawbits(ReadHRegister(code));
   }
 
   uint16_t ReadHRegisterBits(unsigned code) const {
@@ -1095,6 +1122,12 @@ class Simulator : public DecoderVisitor {
                                 int8_t value,
                                 RegLogMode log_mode = LogRegWrites)) {
     return WriteBRegister(code, value, log_mode);
+  }
+
+  void WriteHRegister(unsigned code,
+                      vixl::internal::SimFloat16 value,
+                      RegLogMode log_mode = LogRegWrites) {
+    WriteVRegister(code, Float16ToRawbits(value), log_mode);
   }
 
   void WriteHRegister(unsigned code,
@@ -1397,9 +1430,9 @@ class Simulator : public DecoderVisitor {
     return GetPrintRegisterFormatForSizeFP(sizeof(value));
   }
 
-  PrintRegisterFormat GetPrintRegisterFormat(float16 value) {
-    VIXL_STATIC_ASSERT(sizeof(value) == kHRegSizeInBytes);
-    return GetPrintRegisterFormatForSizeFP(sizeof(value));
+  PrintRegisterFormat GetPrintRegisterFormat(Float16 value) {
+    VIXL_STATIC_ASSERT(sizeof(Float16ToRawbits(value)) == kHRegSizeInBytes);
+    return GetPrintRegisterFormatForSizeFP(sizeof(Float16ToRawbits(value)));
   }
 
   PrintRegisterFormat GetPrintRegisterFormat(VectorFormat vform);
@@ -1551,6 +1584,44 @@ class Simulator : public DecoderVisitor {
   void SilenceExclusiveAccessWarning() {
     print_exclusive_access_warning_ = false;
   }
+
+  enum PointerType { kDataPointer, kInstructionPointer };
+
+  struct PACKey {
+    uint64_t high;
+    uint64_t low;
+    int number;
+  };
+
+  // Current implementation is that all pointers are tagged.
+  bool HasTBI(uint64_t ptr, PointerType type) {
+    USE(ptr, type);
+    return true;
+  }
+
+  // Current implementation uses 48-bit virtual addresses.
+  int GetBottomPACBit(uint64_t ptr, int ttbr) {
+    USE(ptr, ttbr);
+    VIXL_ASSERT((ttbr == 0) || (ttbr == 1));
+    return 48;
+  }
+
+  // The top PAC bit is 55 for the purposes of relative bit fields with TBI,
+  // however bit 55 is the TTBR bit regardless of TBI so isn't part of the PAC
+  // codes in pointers.
+  int GetTopPACBit(uint64_t ptr, PointerType type) {
+    return HasTBI(ptr, type) ? 55 : 63;
+  }
+
+  // Armv8.3 Pointer authentication helpers.
+  uint64_t CalculatePACMask(uint64_t ptr, PointerType type, int ext_bit);
+  uint64_t ComputePAC(uint64_t data, uint64_t context, PACKey key);
+  uint64_t AuthPAC(uint64_t ptr,
+                   uint64_t context,
+                   PACKey key,
+                   PointerType type);
+  uint64_t AddPAC(uint64_t ptr, uint64_t context, PACKey key, PointerType type);
+  uint64_t StripPAC(uint64_t ptr, PointerType type);
 
   // The common CPUFeatures interface with the set of available features.
 
@@ -1740,6 +1811,12 @@ class Simulator : public DecoderVisitor {
   void CompareAndSwapHelper(const Instruction* instr);
   template <typename T>
   void CompareAndSwapPairHelper(const Instruction* instr);
+  template <typename T>
+  void AtomicMemorySimpleHelper(const Instruction* instr);
+  template <typename T>
+  void AtomicMemorySwapHelper(const Instruction* instr);
+  template <typename T>
+  void LoadAcquireRCpcHelper(const Instruction* instr);
   uintptr_t AddressModeHelper(unsigned addr_reg,
                               int64_t offset,
                               AddrMode addrmode);
@@ -2891,12 +2968,16 @@ class Simulator : public DecoderVisitor {
                         LogicVRegister dst,
                         const LogicVRegister& src);
 
-  typedef float (Simulator::*FPMinMaxOp)(float a, float b);
+  template <typename T>
+  struct TFPMinMaxOp {
+    typedef T (Simulator::*type)(T a, T b);
+  };
 
+  template <typename T>
   LogicVRegister fminmaxv(VectorFormat vform,
                           LogicVRegister dst,
                           const LogicVRegister& src,
-                          FPMinMaxOp Op);
+                          typename TFPMinMaxOp<T>::type Op);
 
   LogicVRegister fminv(VectorFormat vform,
                        LogicVRegister dst,
@@ -2937,10 +3018,19 @@ class Simulator : public DecoderVisitor {
   double UFixedToDouble(uint64_t src, int fbits, FPRounding round_mode);
   float FixedToFloat(int64_t src, int fbits, FPRounding round_mode);
   float UFixedToFloat(uint64_t src, int fbits, FPRounding round_mode);
+  ::vixl::internal::SimFloat16 FixedToFloat16(int64_t src,
+                                              int fbits,
+                                              FPRounding round_mode);
+  ::vixl::internal::SimFloat16 UFixedToFloat16(uint64_t src,
+                                               int fbits,
+                                               FPRounding round_mode);
+  int16_t FPToInt16(double value, FPRounding rmode);
   int32_t FPToInt32(double value, FPRounding rmode);
   int64_t FPToInt64(double value, FPRounding rmode);
+  uint16_t FPToUInt16(double value, FPRounding rmode);
   uint32_t FPToUInt32(double value, FPRounding rmode);
   uint64_t FPToUInt64(double value, FPRounding rmode);
+  int32_t FPToFixedJS(double value);
 
   template <typename T>
   T FPAdd(T op1, T op2);
@@ -3078,13 +3168,19 @@ class Simulator : public DecoderVisitor {
   static const char* vreg_names[];
 
  private:
+  static const PACKey kPACKeyIA;
+  static const PACKey kPACKeyIB;
+  static const PACKey kPACKeyDA;
+  static const PACKey kPACKeyDB;
+  static const PACKey kPACKeyGA;
+
   template <typename T>
   static T FPDefaultNaN();
 
   // Standard NaN processing.
   template <typename T>
   T FPProcessNaN(T op) {
-    VIXL_ASSERT(std::isnan(op));
+    VIXL_ASSERT(IsNaN(op));
     if (IsSignallingNaN(op)) {
       FPProcessException();
     }
@@ -3097,10 +3193,10 @@ class Simulator : public DecoderVisitor {
       return FPProcessNaN(op1);
     } else if (IsSignallingNaN(op2)) {
       return FPProcessNaN(op2);
-    } else if (std::isnan(op1)) {
+    } else if (IsNaN(op1)) {
       VIXL_ASSERT(IsQuietNaN(op1));
       return FPProcessNaN(op1);
-    } else if (std::isnan(op2)) {
+    } else if (IsNaN(op2)) {
       VIXL_ASSERT(IsQuietNaN(op2));
       return FPProcessNaN(op2);
     } else {
@@ -3116,13 +3212,13 @@ class Simulator : public DecoderVisitor {
       return FPProcessNaN(op2);
     } else if (IsSignallingNaN(op3)) {
       return FPProcessNaN(op3);
-    } else if (std::isnan(op1)) {
+    } else if (IsNaN(op1)) {
       VIXL_ASSERT(IsQuietNaN(op1));
       return FPProcessNaN(op1);
-    } else if (std::isnan(op2)) {
+    } else if (IsNaN(op2)) {
       VIXL_ASSERT(IsQuietNaN(op2));
       return FPProcessNaN(op2);
-    } else if (std::isnan(op3)) {
+    } else if (IsNaN(op3)) {
       VIXL_ASSERT(IsQuietNaN(op3));
       return FPProcessNaN(op3);
     } else {
