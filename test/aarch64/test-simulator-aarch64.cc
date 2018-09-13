@@ -93,7 +93,8 @@ namespace aarch64 {
   __ Ret();                         \
   masm.FinalizeCode()
 
-#define RUN() \
+#define RUN()    \
+  DISASSEMBLE(); \
   simulator.RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>())
 
 #define TEARDOWN()
@@ -115,6 +116,7 @@ namespace aarch64 {
   masm.FinalizeCode()
 
 #define RUN()                                                 \
+  DISASSEMBLE();                                              \
   {                                                           \
     masm.GetBuffer()->SetExecutable();                        \
     ExecuteMemory(masm.GetBuffer()->GetStartAddress<byte*>(), \
@@ -126,6 +128,15 @@ namespace aarch64 {
 
 #endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
+
+#define DISASSEMBLE()                                             \
+  if (Test::disassemble()) {                                      \
+    PrintDisassembler disasm(stdout);                             \
+    CodeBuffer* buffer = masm.GetBuffer();                        \
+    Instruction* start = buffer->GetStartAddress<Instruction*>(); \
+    Instruction* end = buffer->GetEndAddress<Instruction*>();     \
+    disasm.DisassembleBuffer(start, end);                         \
+  }
 
 // The maximum number of errors to report in detail for each test.
 static const unsigned kErrorReportLimit = 8;
