@@ -167,11 +167,11 @@ class CPUFeatures {
     // Refer to VIXL_CPU_FEATURE_LIST (above) for the list of feature names that
     // this class supports.
 
+    kNone = -1,
 #define VIXL_DECLARE_FEATURE(SYMBOL, NAME, CPUINFO) SYMBOL,
     VIXL_CPU_FEATURE_LIST(VIXL_DECLARE_FEATURE)
 #undef VIXL_DECLARE_FEATURE
-    kNone,
-    kNumberOfFeatures = kNone
+    kNumberOfFeatures
   };
   // clang-format on
 

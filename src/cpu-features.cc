@@ -148,6 +148,8 @@ VIXL_CPU_FEATURE_LIST(VIXL_FORMAT_FEATURE)
 #undef VIXL_FORMAT_FEATURE
     case CPUFeatures::kNone:
       return os << "none";
+    case CPUFeatures::kNumberOfFeatures:
+      VIXL_UNREACHABLE();
   }
   // clang-format on
   VIXL_UNREACHABLE();
@@ -187,12 +189,13 @@ CPUFeatures::Feature CPUFeaturesConstIterator::operator++() {  // Prefix
   VIXL_ASSERT(IsValid());
   do {
     // Find the next feature. The order is unspecified.
-    VIXL_STATIC_ASSERT(CPUFeatures::kNone == CPUFeatures::kNumberOfFeatures);
-    if (feature_ == CPUFeatures::kNone) {
-      feature_ = static_cast<CPUFeatures::Feature>(0);
-    } else {
-      feature_ = static_cast<CPUFeatures::Feature>(feature_ + 1);
+    feature_ = static_cast<CPUFeatures::Feature>(feature_ + 1);
+    if (feature_ == CPUFeatures::kNumberOfFeatures) {
+      feature_ = CPUFeatures::kNone;
+      VIXL_STATIC_ASSERT(CPUFeatures::kNone == -1);
     }
+    VIXL_ASSERT(CPUFeatures::kNone <= feature_);
+    VIXL_ASSERT(feature_ < CPUFeatures::kNumberOfFeatures);
     // cpu_features_->Has(kNone) is always true, so this will terminate even if
     // the features list is empty.
   } while (!cpu_features_->Has(feature_));

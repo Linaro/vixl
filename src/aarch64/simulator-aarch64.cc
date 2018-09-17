@@ -6597,7 +6597,7 @@ void Simulator::DoConfigureCPUFeatures(const Instruction* instr) {
   VIXL_ASSERT(instr->Mask(ExceptionMask) == HLT);
 
   typedef ConfigureCPUFeaturesElementType ElementType;
-  VIXL_ASSERT(CPUFeatures::kNumberOfFeatures <=
+  VIXL_ASSERT(CPUFeatures::kNumberOfFeatures <
               std::numeric_limits<ElementType>::max());
 
   // k{Set,Enable,Disable}CPUFeatures have the same parameter encoding.
@@ -6610,7 +6610,7 @@ void Simulator::DoConfigureCPUFeatures(const Instruction* instr) {
   while (true) {
     ElementType feature = Memory::Read<ElementType>(instr + offset);
     offset += element_size;
-    if (feature == CPUFeatures::kNone) break;
+    if (feature == static_cast<ElementType>(CPUFeatures::kNone)) break;
     parameters.Combine(static_cast<CPUFeatures::Feature>(feature));
   }
 
