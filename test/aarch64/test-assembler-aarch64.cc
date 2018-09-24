@@ -17355,13 +17355,10 @@ static void ProcessNaNsHelper(Float16 n, Float16 m, Float16 expected) {
 
   __ Fadd(h2, h0, h1);
   __ Fsub(h3, h0, h1);
-
-  // TODO: Test the following instructions as support is added.
-
-  // __ Fmul(h4, h0, h1);
-  // __ Fdiv(h5, h0, h1);
-  // __ Fmax(h6, h0, h1);
-  // __ Fmin(h7, h0, h1);
+  __ Fmul(h4, h0, h1);
+  __ Fdiv(h5, h0, h1);
+  __ Fmax(h6, h0, h1);
+  __ Fmin(h7, h0, h1);
 
   END();
 
@@ -17369,10 +17366,10 @@ static void ProcessNaNsHelper(Float16 n, Float16 m, Float16 expected) {
   RUN();
   ASSERT_EQUAL_FP16(expected, h2);
   ASSERT_EQUAL_FP16(expected, h3);
-// ASSERT_EQUAL_FP16(expected, h4);
-// ASSERT_EQUAL_FP16(expected, h5);
-// ASSERT_EQUAL_FP16(expected, h6);
-// ASSERT_EQUAL_FP16(expected, h7);
+  ASSERT_EQUAL_FP16(expected, h4);
+  ASSERT_EQUAL_FP16(expected, h5);
+  ASSERT_EQUAL_FP16(expected, h6);
+  ASSERT_EQUAL_FP16(expected, h7);
 #else
   USE(expected);
 #endif
