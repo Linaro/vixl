@@ -1009,6 +1009,19 @@ void CPUFeaturesAuditor::VisitSystem(const Instruction* instr) {
     // features are not implemented, so we record the corresponding features
     // only if they are available.
     if (available_.Has(required)) scope.Record(required);
+  } else if (instr->Mask(SystemSysMask) == SYS) {
+    switch (instr->GetSysOp()) {
+      // DC instruction variants.
+      case CVAP:
+        scope.Record(CPUFeatures::kDCPoP);
+        break;
+      case IVAU:
+      case CVAC:
+      case CVAU:
+      case CIVAC:
+        // No special CPU features.
+        break;
+    }
   }
 }
 

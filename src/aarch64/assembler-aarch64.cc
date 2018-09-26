@@ -1765,7 +1765,7 @@ void Assembler::sys(int op, const Register& xt) {
 
 
 void Assembler::dc(DataCacheOp op, const Register& rt) {
-  VIXL_ASSERT((op == CVAC) || (op == CVAU) || (op == CIVAC) || (op == ZVA));
+  if (op == CVAP) VIXL_ASSERT(CPUHas(CPUFeatures::kDCPoP));
   sys(op, rt);
 }
 

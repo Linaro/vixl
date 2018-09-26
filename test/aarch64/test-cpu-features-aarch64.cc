@@ -2774,6 +2774,10 @@ TEST_CRC32(crc32ch_0, crc32ch(w0, w1, w2))
 TEST_CRC32(crc32cw_0, crc32cw(w0, w1, w2))
 TEST_CRC32(crc32cx_0, crc32cx(w0, w1, x2))
 
+#define TEST_DCPOP(NAME, ASM) \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kDCPoP), DCPoP_##NAME, ASM)
+TEST_DCPOP(dc_0, dc(CVAP, x0))
+
 #define TEST_PAUTH(NAME, ASM) \
   TEST_TEMPLATE(CPUFeatures(CPUFeatures::kPAuth), PAuth_##NAME, ASM)
 TEST_PAUTH(autda_0, autda(x0, x1))

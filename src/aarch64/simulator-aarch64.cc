@@ -3610,6 +3610,7 @@ void Simulator::SysOp_W(int op, int64_t val) {
     case IVAU:
     case CVAC:
     case CVAU:
+    case CVAP:
     case CIVAC: {
       // Perform a dummy memory access to ensure that we have read access
       // to the specified address.

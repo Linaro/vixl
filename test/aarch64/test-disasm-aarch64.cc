@@ -3197,7 +3197,8 @@ TEST(system_dc) {
 
   COMPARE(dc(CVAC, x2), "dc cvac, x2");
   COMPARE(dc(CVAU, x3), "dc cvau, x3");
-  COMPARE(dc(CIVAC, x4), "dc civac, x4");
+  COMPARE(dc(CVAP, x4), "dc cvap, x4");
+  COMPARE(dc(CIVAC, x5), "dc civac, x5");
   COMPARE(dc(ZVA, x0), "dc zva, x0");
   COMPARE(dc(ZVA, xzr), "dc zva, xzr");
 

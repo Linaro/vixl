@@ -21791,14 +21791,36 @@ TEST(system_dc) {
   START();
   __ Mov(x20, msg_addr);
   __ Dc(CVAC, x20);
-  __ Mov(x21, x20);
+  __ Mov(x21, msg_addr);
   __ Dc(CVAU, x21);
-  __ Mov(x22, x21);
+  __ Mov(x22, msg_addr);
   __ Dc(CIVAC, x22);
   // TODO: Add tests to check ZVA.
   END();
 
   RUN();
+  ASSERT_EQUAL_64(msg_addr, x20);
+  ASSERT_EQUAL_64(msg_addr, x21);
+  ASSERT_EQUAL_64(msg_addr, x22);
+
+  TEARDOWN();
+}
+
+
+TEST(system_dcpop) {
+  SETUP_WITH_FEATURES(CPUFeatures::kDCPoP);
+  const char* msg = "DCPoP test!";
+  uintptr_t msg_addr = reinterpret_cast<uintptr_t>(msg);
+
+  START();
+  __ Mov(x20, msg_addr);
+  __ Dc(CVAP, x20);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_64(msg_addr, x20);
+#endif
 
   TEARDOWN();
 }

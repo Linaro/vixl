@@ -382,6 +382,7 @@ enum InstructionCacheOp {
 enum DataCacheOp {
   CVAC = CacheOpEncoder<3, 7, 10, 1>::value,
   CVAU = CacheOpEncoder<3, 7, 11, 1>::value,
+  CVAP = CacheOpEncoder<3, 7, 12, 1>::value,
   CIVAC = CacheOpEncoder<3, 7, 14, 1>::value,
   ZVA = CacheOpEncoder<3, 7, 4, 1>::value
 };
