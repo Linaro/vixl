@@ -2141,9 +2141,11 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Conditional speculation dependency barrier.
   void csdb();
 
-  // Alias for system instructions.
   // No-op.
   void nop() { hint(NOP); }
+
+  // Branch target identification.
+  void bti(BranchTargetIdentifier id);
 
   // FP and NEON instructions.
   // Move double precision immediate to FP register.

@@ -3210,6 +3210,7 @@ TEST(system_nop) {
   SETUP();
 
   COMPARE(nop(), "nop");
+  COMPARE_MACRO(Nop(), "nop");
 
   CLEANUP();
 }
@@ -7537,6 +7538,27 @@ TEST(hint) {
   COMPARE_MACRO(Hint(CSDB), "csdb");
   COMPARE_MACRO(Hint(42), "hint #42");
   COMPARE_MACRO(Hint(127), "hint #127");
+
+  CLEANUP();
+}
+
+TEST(bti) {
+  SETUP();
+
+  COMPARE(bti(EmitBTI), "bti");
+  COMPARE(bti(EmitBTI_c), "bti c");
+  COMPARE(bti(EmitBTI_j), "bti j");
+  COMPARE(bti(EmitBTI_jc), "bti jc");
+  COMPARE(hint(BTI), "bti");
+  COMPARE(hint(BTI_c), "bti c");
+  COMPARE(hint(BTI_j), "bti j");
+  COMPARE(hint(BTI_jc), "bti jc");
+
+  Label dummy1, dummy2, dummy3, dummy4;
+  COMPARE_MACRO(Bind(&dummy1, EmitBTI), "bti");
+  COMPARE_MACRO(Bind(&dummy2, EmitBTI_c), "bti c");
+  COMPARE_MACRO(Bind(&dummy3, EmitBTI_j), "bti j");
+  COMPARE_MACRO(Bind(&dummy4, EmitBTI_jc), "bti jc");
 
   CLEANUP();
 }

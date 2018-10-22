@@ -94,7 +94,9 @@ namespace vixl {
   /* FP16 fused multiply-add or -subtract long: FMLAL{2}, FMLSL{2}.         */ \
   V(kFHM,                 "FHM",                    "asimdfhm")                \
   /* Data-independent timing (for selected instructions).                   */ \
-  V(kDIT,                 "DIT",                    "dit")
+  V(kDIT,                 "DIT",                    "dit")                     \
+  /* Branch target identification.                                          */ \
+  V(kBTI,                 "BTI",                    NULL)
 // clang-format on
 
 

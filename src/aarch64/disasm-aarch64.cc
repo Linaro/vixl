@@ -2033,53 +2033,49 @@ void Disassembler::VisitSystem(const Instruction *instr) {
       }
     }
   } else if (instr->Mask(SystemHintFMask) == SystemHintFixed) {
+    form = NULL;
     switch (instr->GetImmHint()) {
-      case NOP: {
-        form = NULL;
+      case NOP:
         mnemonic = "nop";
         break;
-      }
-      case YIELD: {
-        form = NULL;
+      case YIELD:
         mnemonic = "yield";
         break;
-      }
-      case WFE: {
-        form = NULL;
+      case WFE:
         mnemonic = "wfe";
         break;
-      }
-      case WFI: {
-        form = NULL;
+      case WFI:
         mnemonic = "wfi";
         break;
-      }
-      case SEV: {
-        form = NULL;
+      case SEV:
         mnemonic = "sev";
         break;
-      }
-      case SEVL: {
-        form = NULL;
+      case SEVL:
         mnemonic = "sevl";
         break;
-      }
-      case ESB: {
-        form = NULL;
+      case ESB:
         mnemonic = "esb";
         break;
-      }
-      case CSDB: {
-        form = NULL;
+      case CSDB:
         mnemonic = "csdb";
         break;
-      }
-      default: {
+      case BTI:
+        mnemonic = "bti";
+        break;
+      case BTI_c:
+        mnemonic = "bti c";
+        break;
+      case BTI_j:
+        mnemonic = "bti j";
+        break;
+      case BTI_jc:
+        mnemonic = "bti jc";
+        break;
+      default:
         // Fall back to 'hint #<imm7>'.
         form = "'IH";
         mnemonic = "hint";
         break;
-      }
     }
   } else if (instr->Mask(MemBarrierFMask) == MemBarrierFixed) {
     switch (instr->Mask(MemBarrierMask)) {

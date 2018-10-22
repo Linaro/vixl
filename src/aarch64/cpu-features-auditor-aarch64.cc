@@ -1023,7 +1023,19 @@ void CPUFeaturesAuditor::VisitSystem(const Instruction* instr) {
         required.Combine(CPUFeatures::kPAuth);
         break;
       default:
-        if (instr->GetImmHint() == ESB) required.Combine(CPUFeatures::kRAS);
+        switch (instr->GetImmHint()) {
+          case ESB:
+            required.Combine(CPUFeatures::kRAS);
+            break;
+          case BTI:
+          case BTI_j:
+          case BTI_c:
+          case BTI_jc:
+            required.Combine(CPUFeatures::kBTI);
+            break;
+          default:
+            break;
+        }
         break;
     }
 

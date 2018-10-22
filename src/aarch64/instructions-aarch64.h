@@ -312,6 +312,24 @@ class Instruction {
            (Mask(MoveWideImmediateMask) == MOVN_w);
   }
 
+  bool IsException() const { return Mask(ExceptionFMask) == ExceptionFixed; }
+
+  bool IsPAuth() const { return Mask(SystemPAuthFMask) == SystemPAuthFixed; }
+
+  bool IsBti() const {
+    if (Mask(SystemHintFMask) == SystemHintFixed) {
+      int imm_hint = GetImmHint();
+      switch (imm_hint) {
+        case BTI:
+        case BTI_c:
+        case BTI_j:
+        case BTI_jc:
+          return true;
+      }
+    }
+    return false;
+  }
+
   static int GetImmBranchRangeBitwidth(ImmBranchType branch_type);
   VIXL_DEPRECATED(
       "GetImmBranchRangeBitwidth",

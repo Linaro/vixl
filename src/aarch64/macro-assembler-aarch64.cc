@@ -711,13 +711,25 @@ void MacroAssembler::Tbz(const Register& rt, unsigned bit_pos, Label* label) {
   }
 }
 
-
-void MacroAssembler::Bind(Label* label) {
+void MacroAssembler::Bind(Label* label, BranchTargetIdentifier id) {
   VIXL_ASSERT(allow_macro_instructions_);
   veneer_pool_.DeleteUnresolvedBranchInfoForLabel(label);
-  bind(label);
+  if (id == EmitBTI_none) {
+    bind(label);
+  } else {
+    // Emit this inside an ExactAssemblyScope to ensure there are no extra
+    // instructions between the bind and the target identifier instruction.
+    ExactAssemblyScope scope(this, kInstructionSize);
+    bind(label);
+    if (id == EmitPACIASP) {
+      paciasp();
+    } else if (id == EmitPACIBSP) {
+      pacibsp();
+    } else {
+      bti(id);
+    }
+  }
 }
-
 
 // Bind a label to a specified offset from the start of the buffer.
 void MacroAssembler::BindToOffset(Label* label, ptrdiff_t offset) {

@@ -339,18 +339,23 @@ const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
 #define ASSERT_LITERAL_POOL_SIZE(expected) \
   VIXL_CHECK((expected + kInstructionSize) == (masm.GetLiteralPoolSize()))
 
-#define MUST_FAIL_WITH_MESSAGE(code, message)                           \
-  {                                                                     \
-    bool aborted = false;                                               \
-    try {                                                               \
-      code;                                                             \
-    } catch (const std::runtime_error& e) {                             \
-      const char* expected_error = message;                             \
-      size_t error_length = strlen(expected_error);                     \
-      VIXL_CHECK(strncmp(expected_error, e.what(), error_length) == 0); \
-      aborted = true;                                                   \
-    }                                                                   \
-    VIXL_CHECK(aborted);                                                \
+#define MUST_FAIL_WITH_MESSAGE(code, message)                     \
+  {                                                               \
+    bool aborted = false;                                         \
+    try {                                                         \
+      code;                                                       \
+    } catch (const std::runtime_error& e) {                       \
+      const char* expected_error = message;                       \
+      size_t error_length = strlen(expected_error);               \
+      if (strncmp(expected_error, e.what(), error_length) == 0) { \
+        aborted = true;                                           \
+      } else {                                                    \
+        printf("Mismatch in error message.\n");                   \
+        printf("Expected: %s\n", expected_error);                 \
+        printf("Found:    %s\n", e.what());                       \
+      }                                                           \
+    }                                                             \
+    VIXL_CHECK(aborted);                                          \
   }
 
 
@@ -2790,6 +2795,56 @@ TEST(return_to_reg_auth) {
   END();
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(42, x0);
+  ASSERT_EQUAL_64(84, x1);
+#endif
+
+  TEARDOWN();
+}
+
+TEST(return_to_reg_auth_guarded) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  START();
+
+  Label fn1, after_fn1;
+
+  __ Mov(x28, sp);
+  __ Mov(x29, lr);
+  __ Mov(sp, 0x477d469dec0b8760);
+
+  __ Mov(x0, 0);
+  __ B(&after_fn1);
+
+  __ Bind(&fn1, EmitPACIASP);
+  __ Mov(x0, 42);
+  __ Retaa();
+
+  __ Bind(&after_fn1);
+  __ Adr(x2, &fn1);
+  __ Blr(x2);
+
+  Label fn2, after_fn2;
+
+  __ Mov(x1, 0);
+  __ B(&after_fn2);
+
+  __ Bind(&fn2, EmitPACIBSP);
+  __ Mov(x1, 84);
+  __ Retab();
+
+  __ Bind(&after_fn2);
+  __ Adr(x2, &fn2);
+  __ Blr(x2);
+
+  __ Mov(sp, x28);
+  __ Mov(lr, x29);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  simulator.SetGuardedPages(true);
   RUN();
 
   ASSERT_EQUAL_64(42, x0);
@@ -15127,6 +15182,191 @@ TEST(system) {
   TEARDOWN();
 }
 
+static void BtiHelper(Register ipreg) {
+  SETUP_WITH_FEATURES(CPUFeatures::kBTI);
+
+  Label jump_target, jump_call_target, call_target, done;
+  START();
+  UseScratchRegisterScope temps(&masm);
+  temps.Exclude(ipreg);
+  __ Adr(x0, &jump_target);
+  __ Br(x0);
+  __ Nop();
+  __ Bind(&jump_target, EmitBTI_j);
+  __ Adr(x0, &call_target);
+  __ Blr(x0);
+  __ Adr(ipreg, &jump_call_target);
+  __ Blr(ipreg);
+  __ Adr(lr, &done);  // Make Ret return to done label.
+  __ Br(ipreg);
+  __ Bind(&call_target, EmitBTI_c);
+  __ Ret();
+  __ Bind(&jump_call_target, EmitBTI_jc);
+  __ Ret();
+  __ Bind(&done);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  simulator.SetGuardedPages(true);
+  RUN();
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(bti) {
+  BtiHelper(x16);
+  BtiHelper(x17);
+}
+
+TEST(unguarded_bti_is_nop) {
+  SETUP_WITH_FEATURES(CPUFeatures::kBTI);
+
+  Label start, none, c, j, jc;
+  START();
+  __ B(&start);
+  __ Bind(&none, EmitBTI);
+  __ Bind(&c, EmitBTI_c);
+  __ Bind(&j, EmitBTI_j);
+  __ Bind(&jc, EmitBTI_jc);
+  VIXL_CHECK(__ GetSizeOfCodeGeneratedSince(&none) == 4 * kInstructionSize);
+  __ Ret();
+
+  Label jump_to_c, call_to_j;
+  __ Bind(&start);
+  __ Adr(x0, &none);
+  __ Adr(lr, &jump_to_c);
+  __ Br(x0);
+
+  __ Bind(&jump_to_c);
+  __ Adr(x0, &c);
+  __ Adr(lr, &call_to_j);
+  __ Br(x0);
+
+  __ Bind(&call_to_j);
+  __ Adr(x0, &j);
+  __ Blr(x0);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  simulator.SetGuardedPages(false);
+  RUN();
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+#ifdef VIXL_NEGATIVE_TESTING
+TEST(bti_jump_to_ip_unidentified) {
+  SETUP();
+
+  START();
+  UseScratchRegisterScope temps(&masm);
+  temps.Exclude(x17);
+  Label l;
+  __ Adr(x17, &l);
+  __ Br(x17);
+  __ Nop();
+  __ Bind(&l);
+  __ Nop();
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  simulator.SetGuardedPages(true);
+  MUST_FAIL_WITH_MESSAGE(RUN(),
+                         "Executing non-BTI instruction with wrong "
+                         "BType.");
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(bti_jump_to_unidentified) {
+  SETUP();
+
+  START();
+  Label l;
+  __ Adr(x0, &l);
+  __ Br(x0);
+  __ Nop();
+  __ Bind(&l);
+  __ Nop();
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  simulator.SetGuardedPages(true);
+  MUST_FAIL_WITH_MESSAGE(RUN(),
+                         "Executing non-BTI instruction with wrong "
+                         "BType.");
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(bti_call_to_unidentified) {
+  SETUP();
+
+  START();
+  Label l;
+  __ Adr(x0, &l);
+  __ Blr(x0);
+  __ Nop();
+  __ Bind(&l);
+  __ Nop();
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  simulator.SetGuardedPages(true);
+  MUST_FAIL_WITH_MESSAGE(RUN(),
+                         "Executing non-BTI instruction with wrong "
+                         "BType.");
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(bti_jump_to_c) {
+  SETUP_WITH_FEATURES(CPUFeatures::kBTI);
+
+  START();
+  // Jumping to a "BTI c" target must fail.
+  Label jump_target;
+  __ Adr(x0, &jump_target);
+  __ Br(x0);
+  __ Nop();
+  __ Bind(&jump_target, EmitBTI_c);
+  __ Nop();
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  simulator.SetGuardedPages(true);
+  MUST_FAIL_WITH_MESSAGE(RUN(), "Executing BTI c with wrong BType.");
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+TEST(bti_call_to_j) {
+  SETUP_WITH_FEATURES(CPUFeatures::kBTI);
+
+  START();
+  // Calling a "BTI j" target must fail.
+  Label call_target;
+  __ Adr(x0, &call_target);
+  __ Blr(x0);
+  __ Nop();
+  __ Bind(&call_target, EmitBTI_j);
+  __ Nop();
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  simulator.SetGuardedPages(true);
+  MUST_FAIL_WITH_MESSAGE(RUN(), "Executing BTI j with wrong BType.");
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+#endif  // VIXL_NEGATIVE_TESTING
 
 TEST(zero_dest) {
   // RegisterDump::Dump uses NEON.

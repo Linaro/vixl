@@ -1051,7 +1051,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     bfxil(rd, rn, lsb, width);
   }
-  void Bind(Label* label);
+  void Bind(Label* label, BranchTargetIdentifier id = EmitBTI_none);
   // Bind a label to a specified offset from the start of the buffer.
   void BindToOffset(Label* label, ptrdiff_t offset);
   void Bl(Label* label) {

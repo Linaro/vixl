@@ -111,6 +111,8 @@ Simulator::Simulator(Decoder* decoder, FILE* stream)
   // time they are encountered. This warning can be silenced using
   // SilenceExclusiveAccessWarning().
   print_exclusive_access_warning_ = true;
+
+  guard_pages_ = false;
 }
 
 
@@ -141,6 +143,9 @@ void Simulator::ResetState() {
   }
   // Returning to address 0 exits the Simulator.
   WriteLr(kEndOfSimAddress);
+
+  btype_ = DefaultBType;
+  next_btype_ = DefaultBType;
 }
 
 
@@ -1085,13 +1090,33 @@ void Simulator::VisitConditionalBranch(const Instruction* instr) {
   }
 }
 
+BType Simulator::GetBTypeFromInstruction(const Instruction* instr) const {
+  switch (instr->Mask(UnconditionalBranchToRegisterMask)) {
+    case BLR:
+    case BLRAA:
+    case BLRAB:
+    case BLRAAZ:
+    case BLRABZ:
+      return BranchAndLink;
+    case BR:
+    case BRAA:
+    case BRAB:
+    case BRAAZ:
+    case BRABZ:
+      if ((instr->GetRn() == 16) || (instr->GetRn() == 17) ||
+          !PcIsInGuardedPage()) {
+        return BranchFromUnguardedOrToIP;
+      }
+      return BranchFromGuardedNotToIP;
+  }
+  return DefaultBType;
+}
 
 void Simulator::VisitUnconditionalBranchToRegister(const Instruction* instr) {
   bool authenticate = false;
   bool link = false;
-  uint64_t addr = 0;
+  uint64_t addr = ReadXRegister(instr->GetRn());
   uint64_t context = 0;
-  Instruction* target;
 
   switch (instr->Mask(UnconditionalBranchToRegisterMask)) {
     case BLR:
@@ -1099,7 +1124,6 @@ void Simulator::VisitUnconditionalBranchToRegister(const Instruction* instr) {
       VIXL_FALLTHROUGH();
     case BR:
     case RET:
-      addr = ReadXRegister(instr->GetRn());
       break;
 
     case BLRAAZ:
@@ -1109,7 +1133,6 @@ void Simulator::VisitUnconditionalBranchToRegister(const Instruction* instr) {
     case BRAAZ:
     case BRABZ:
       authenticate = true;
-      addr = ReadXRegister(instr->GetRn());
       break;
 
     case BLRAA:
@@ -1119,7 +1142,6 @@ void Simulator::VisitUnconditionalBranchToRegister(const Instruction* instr) {
     case BRAA:
     case BRAB:
       authenticate = true;
-      addr = ReadXRegister(instr->GetRn());
       context = ReadXRegister(instr->GetRd());
       break;
 
@@ -1147,8 +1169,8 @@ void Simulator::VisitUnconditionalBranchToRegister(const Instruction* instr) {
     }
   }
 
-  target = Instruction::Cast(addr);
-  WritePc(target);
+  WritePc(Instruction::Cast(addr));
+  WriteNextBType(GetBTypeFromInstruction(instr));
 }
 
 
@@ -3643,6 +3665,25 @@ void Simulator::VisitSystem(const Instruction* instr) {
   if (instr->GetInstructionBits() == XPACLRI) {
     WriteXRegister(30, StripPAC(ReadXRegister(30), kInstructionPointer));
   } else if (instr->Mask(SystemPAuthFMask) == SystemPAuthFixed) {
+    // Check BType allows PACI[AB]SP instructions.
+    if (PcIsInGuardedPage()) {
+      Instr i = instr->Mask(SystemPAuthMask);
+      if ((i == PACIASP) || (i == PACIBSP)) {
+        switch (ReadBType()) {
+          case DefaultBType:
+            VIXL_ABORT_WITH_MSG("Executing PACIXSP with wrong BType.");
+            break;
+          case BranchFromGuardedNotToIP:
+          // TODO: This case depends on the value of SCTLR_EL1.BT0, which we
+          // assume here to be zero. This allows execution of PACI[AB]SP when
+          // BTYPE is BranchFromGuardedNotToIP (0b11).
+          case BranchFromUnguardedOrToIP:
+          case BranchAndLink:
+            break;
+        }
+      }
+    }
+
     switch (instr->Mask(SystemPAuthMask)) {
 #define DEFINE_PAUTH_FUNCS(SUFFIX, DST, MOD, KEY)                              \
   case PACI##SUFFIX:                                                           \
@@ -3707,6 +3748,22 @@ void Simulator::VisitSystem(const Instruction* instr) {
       case NOP:
       case ESB:
       case CSDB:
+      case BTI_jc:
+        break;
+      case BTI:
+        if (PcIsInGuardedPage() && (ReadBType() != DefaultBType)) {
+          VIXL_ABORT_WITH_MSG("Executing BTI with wrong BType.");
+        }
+        break;
+      case BTI_c:
+        if (PcIsInGuardedPage() && (ReadBType() == BranchFromGuardedNotToIP)) {
+          VIXL_ABORT_WITH_MSG("Executing BTI c with wrong BType.");
+        }
+        break;
+      case BTI_j:
+        if (PcIsInGuardedPage() && (ReadBType() == BranchAndLink)) {
+          VIXL_ABORT_WITH_MSG("Executing BTI j with wrong BType.");
+        }
         break;
       default:
         VIXL_UNIMPLEMENTED();

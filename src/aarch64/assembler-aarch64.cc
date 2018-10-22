@@ -2488,6 +2488,12 @@ void Assembler::autibsp() {
   Emit(AUTIBSP);
 }
 
+void Assembler::bti(BranchTargetIdentifier id) {
+  VIXL_ASSERT((id != EmitPACIASP) && (id != EmitPACIBSP));  // Not modes of Bti.
+  VIXL_ASSERT(id != EmitBTI_none);  // Always generate an instruction.
+  VIXL_ASSERT(CPUHas(CPUFeatures::kBTI));
+  hint(static_cast<SystemHint>(id));
+}
 
 void Assembler::mvn(const Register& rd, const Operand& operand) {
   orn(rd, AppropriateZeroRegFor(rd), operand);

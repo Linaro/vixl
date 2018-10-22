@@ -390,7 +390,9 @@ TEST(CPUFeatures_format) {
       // Armv8.3
       "PAuth, PAuthQARMA, PAuthGeneric, PAuthGenericQARMA, JSCVT, Fcma, RCpc, "
       // Armv8.4
-      "RCpc (imm), FlagM, USCAT, FHM, DIT",
+      "RCpc (imm), FlagM, USCAT, FHM, DIT, "
+      // Armv8.5
+      "BTI",
       CPUFeatures::All());
 }
 
