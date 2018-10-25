@@ -19369,6 +19369,372 @@ TEST(ldaprb_ldaprh_ldapr) {
   TEARDOWN();
 }
 
+
+#define SIMPLE_ATOMIC_OPS(V, DEF) \
+  V(DEF, add)                     \
+  V(DEF, clr)                     \
+  V(DEF, eor)                     \
+  V(DEF, set)                     \
+  V(DEF, smax)                    \
+  V(DEF, smin)                    \
+  V(DEF, umax)                    \
+  V(DEF, umin)
+
+#define SIMPLE_ATOMIC_STORE_MODES(V, NAME) \
+  V(NAME)                                  \
+  V(NAME##l)
+
+#define SIMPLE_ATOMIC_LOAD_MODES(V, NAME) \
+  SIMPLE_ATOMIC_STORE_MODES(V, NAME)      \
+  V(NAME##a)                              \
+  V(NAME##al)
+
+
+TEST(unaligned_single_copy_atomicity) {
+  uint64_t data0[] = {0x1010101010101010, 0x1010101010101010};
+  uint64_t dst[] = {0x0000000000000000, 0x0000000000000000};
+
+  uint64_t* data0_aligned = AlignUp(data0, kAtomicAccessGranule);
+  uint64_t* dst_aligned = AlignUp(dst, kAtomicAccessGranule);
+
+  SETUP_WITH_FEATURES(CPUFeatures::kAtomics,
+                      CPUFeatures::kLORegions,
+                      CPUFeatures::kRCpc,
+                      CPUFeatures::kUSCAT);
+  START();
+
+  __ Mov(x0, 0x0123456789abcdef);
+  __ Mov(x1, 0x456789abcdef0123);
+  __ Mov(x2, 0x89abcdef01234567);
+  __ Mov(x3, 0xcdef0123456789ab);
+  __ Mov(x20, reinterpret_cast<uintptr_t>(data0_aligned));
+  __ Mov(x21, reinterpret_cast<uintptr_t>(dst_aligned));
+
+  for (unsigned i = 0; i < kAtomicAccessGranule; i++) {
+    __ Stxrb(w0, w1, MemOperand(x20));
+    __ Stlxrb(w0, w1, MemOperand(x20));
+    __ Ldxrb(w0, MemOperand(x20));
+    __ Ldaxrb(w0, MemOperand(x20));
+    __ Stllrb(w0, MemOperand(x20));
+    __ Stlrb(w0, MemOperand(x20));
+    __ Casb(w0, w1, MemOperand(x20));
+    __ Caslb(w0, w1, MemOperand(x20));
+    __ Ldlarb(w0, MemOperand(x20));
+    __ Ldarb(w0, MemOperand(x20));
+    __ Casab(w0, w1, MemOperand(x20));
+    __ Casalb(w0, w1, MemOperand(x20));
+
+    __ Swpb(w0, w1, MemOperand(x20));
+    __ Swplb(w0, w1, MemOperand(x20));
+    __ Swpab(w0, w1, MemOperand(x20));
+    __ Swpalb(w0, w1, MemOperand(x20));
+    __ Ldaprb(w0, MemOperand(x20));
+
+#define ATOMIC_LOAD_B(NAME) __ Ld##NAME##b(w0, w1, MemOperand(x20));
+#define ATOMIC_STORE_B(NAME) __ St##NAME##b(w0, MemOperand(x20));
+    SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_LOAD_MODES, ATOMIC_LOAD_B)
+    SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_STORE_MODES, ATOMIC_STORE_B)
+#undef ATOMIC_LOAD_B
+#undef ATOMIC_STORE_B
+
+    if (i <= (kAtomicAccessGranule - kHRegSizeInBytes)) {
+      __ Stxrh(w0, w1, MemOperand(x20));
+      __ Stlxrh(w0, w1, MemOperand(x20));
+      __ Ldxrh(w0, MemOperand(x20));
+      __ Ldaxrh(w0, MemOperand(x20));
+      __ Stllrh(w0, MemOperand(x20));
+      __ Stlrh(w0, MemOperand(x20));
+      __ Cash(w0, w1, MemOperand(x20));
+      __ Caslh(w0, w1, MemOperand(x20));
+      __ Ldlarh(w0, MemOperand(x20));
+      __ Ldarh(w0, MemOperand(x20));
+      __ Casah(w0, w1, MemOperand(x20));
+      __ Casalh(w0, w1, MemOperand(x20));
+
+      __ Swph(w0, w1, MemOperand(x20));
+      __ Swplh(w0, w1, MemOperand(x20));
+      __ Swpah(w0, w1, MemOperand(x20));
+      __ Swpalh(w0, w1, MemOperand(x20));
+      __ Ldaprh(w0, MemOperand(x20));
+
+#define ATOMIC_LOAD_H(NAME) __ Ld##NAME##h(w0, w1, MemOperand(x20));
+#define ATOMIC_STORE_H(NAME) __ St##NAME##h(w0, MemOperand(x20));
+      SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_LOAD_MODES, ATOMIC_LOAD_H)
+      SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_STORE_MODES, ATOMIC_STORE_H)
+#undef ATOMIC_LOAD_H
+#undef ATOMIC_STORE_H
+    }
+
+    if (i <= (kAtomicAccessGranule - kWRegSizeInBytes)) {
+      __ Stxr(w0, w1, MemOperand(x20));
+      __ Stlxr(w0, w1, MemOperand(x20));
+      __ Ldxr(w0, MemOperand(x20));
+      __ Ldaxr(w0, MemOperand(x20));
+      __ Stllr(w0, MemOperand(x20));
+      __ Stlr(w0, MemOperand(x20));
+      __ Cas(w0, w1, MemOperand(x20));
+      __ Casl(w0, w1, MemOperand(x20));
+      __ Ldlar(w0, MemOperand(x20));
+      __ Ldar(w0, MemOperand(x20));
+      __ Casa(w0, w1, MemOperand(x20));
+      __ Casal(w0, w1, MemOperand(x20));
+
+      __ Swp(w0, w1, MemOperand(x20));
+      __ Swpl(w0, w1, MemOperand(x20));
+      __ Swpa(w0, w1, MemOperand(x20));
+      __ Swpal(w0, w1, MemOperand(x20));
+      __ Ldapr(w0, MemOperand(x20));
+
+#define ATOMIC_LOAD_W(NAME) __ Ld##NAME(w0, w1, MemOperand(x20));
+#define ATOMIC_STORE_W(NAME) __ St##NAME(w0, MemOperand(x20));
+      SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_LOAD_MODES, ATOMIC_LOAD_W)
+      SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_STORE_MODES, ATOMIC_STORE_W)
+#undef ATOMIC_LOAD_W
+#undef ATOMIC_STORE_W
+    }
+
+    if (i <= (kAtomicAccessGranule - (kWRegSizeInBytes * 2))) {
+      __ Casp(w0, w1, w2, w3, MemOperand(x20));
+      __ Caspl(w0, w1, w2, w3, MemOperand(x20));
+      __ Caspa(w0, w1, w2, w3, MemOperand(x20));
+      __ Caspal(w0, w1, w2, w3, MemOperand(x20));
+      __ Stxp(w0, w1, w2, MemOperand(x20));
+      __ Stlxp(w0, w1, w2, MemOperand(x20));
+      __ Ldxp(w0, w1, MemOperand(x20));
+      __ Ldaxp(w0, w1, MemOperand(x20));
+    }
+
+    if (i <= (kAtomicAccessGranule - kXRegSizeInBytes)) {
+      __ Stxr(x0, x1, MemOperand(x20));
+      __ Stlxr(x0, x1, MemOperand(x20));
+      __ Ldxr(x0, MemOperand(x20));
+      __ Ldaxr(x0, MemOperand(x20));
+      __ Stllr(x0, MemOperand(x20));
+      __ Stlr(x0, MemOperand(x20));
+      __ Cas(x0, x1, MemOperand(x20));
+      __ Casl(x0, x1, MemOperand(x20));
+      __ Ldlar(x0, MemOperand(x20));
+      __ Ldar(x0, MemOperand(x20));
+      __ Casa(x0, x1, MemOperand(x20));
+      __ Casal(x0, x1, MemOperand(x20));
+
+      __ Swp(x0, x1, MemOperand(x20));
+      __ Swpl(x0, x1, MemOperand(x20));
+      __ Swpa(x0, x1, MemOperand(x20));
+      __ Swpal(x0, x1, MemOperand(x20));
+      __ Ldapr(x0, MemOperand(x20));
+
+#define ATOMIC_LOAD_X(NAME) __ Ld##NAME(x0, x1, MemOperand(x20));
+#define ATOMIC_STORE_X(NAME) __ St##NAME(x0, MemOperand(x20));
+      SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_LOAD_MODES, ATOMIC_LOAD_X)
+      SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_STORE_MODES, ATOMIC_STORE_X)
+#undef ATOMIC_LOAD_X
+#undef ATOMIC_STORE_X
+    }
+
+    if (i <= (kAtomicAccessGranule - (kXRegSizeInBytes * 2))) {
+      __ Casp(x0, x1, x2, x3, MemOperand(x20));
+      __ Caspl(x0, x1, x2, x3, MemOperand(x20));
+      __ Caspa(x0, x1, x2, x3, MemOperand(x20));
+      __ Caspal(x0, x1, x2, x3, MemOperand(x20));
+      __ Stxp(x0, x1, x2, MemOperand(x20));
+      __ Stlxp(x0, x1, x2, MemOperand(x20));
+      __ Ldxp(x0, x1, MemOperand(x20));
+      __ Ldaxp(x0, x1, MemOperand(x20));
+    }
+
+    __ Add(x20, x20, 1);
+    __ Add(x21, x21, 1);
+  }
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  // We can't detect kUSCAT with the CPUFeaturesAuditor so it fails the seen
+  // check.
+  RUN_WITHOUT_SEEN_FEATURE_CHECK();
+#endif
+
+  TEARDOWN();
+}
+
+
+#if defined(VIXL_NEGATIVE_TESTING) && defined(VIXL_INCLUDE_SIMULATOR_AARCH64)
+#define CHECK_ALIGN_FAIL(i, expr)                                            \
+  {                                                                          \
+    SETUP_WITH_FEATURES(CPUFeatures::kAtomics,                               \
+                        CPUFeatures::kLORegions,                             \
+                        CPUFeatures::kRCpc,                                  \
+                        CPUFeatures::kUSCAT);                                \
+    START();                                                                 \
+    __ Mov(x0, 0x0123456789abcdef);                                          \
+    __ Mov(x1, 0x456789abcdef0123);                                          \
+    __ Mov(x2, 0x89abcdef01234567);                                          \
+    __ Mov(x3, 0xcdef0123456789ab);                                          \
+    __ Mov(x20, reinterpret_cast<uintptr_t>(data0_aligned));                 \
+    __ Mov(x21, reinterpret_cast<uintptr_t>(dst_aligned));                   \
+    __ Add(x20, x20, i);                                                     \
+    __ Add(x21, x21, i);                                                     \
+    expr;                                                                    \
+    END();                                                                   \
+    /* We can't detect kUSCAT with the CPUFeaturesAuditor so it fails the */ \
+    /* seen check. */                                                        \
+    MUST_FAIL_WITH_MESSAGE(RUN_WITHOUT_SEEN_FEATURE_CHECK(),                 \
+                           "ALIGNMENT EXCEPTION");                           \
+    TEARDOWN();                                                              \
+  }
+
+TEST(unaligned_single_copy_atomicity_negative_test) {
+  uint64_t data0[] = {0x1010101010101010, 0x1010101010101010};
+  uint64_t dst[] = {0x0000000000000000, 0x0000000000000000};
+
+  uint64_t* data0_aligned = AlignUp(data0, kAtomicAccessGranule);
+  uint64_t* dst_aligned = AlignUp(dst, kAtomicAccessGranule);
+
+  for (unsigned i = 0; i < kAtomicAccessGranule; i++) {
+    if (i > (kAtomicAccessGranule - kHRegSizeInBytes)) {
+      CHECK_ALIGN_FAIL(i, __ Stxrh(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Stlxrh(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldxrh(w0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldaxrh(w0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Stllrh(w0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Stlrh(w0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Cash(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Caslh(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldlarh(w0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldarh(w0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Casah(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Casalh(w0, w1, MemOperand(x20)));
+
+      CHECK_ALIGN_FAIL(i, __ Swph(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Swplh(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Swpah(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Swpalh(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldaprh(w0, MemOperand(x20)));
+
+#define ATOMIC_LOAD_H(NAME) \
+  CHECK_ALIGN_FAIL(i, __ Ld##NAME##h(w0, w1, MemOperand(x20)));
+#define ATOMIC_STORE_H(NAME) \
+  CHECK_ALIGN_FAIL(i, __ St##NAME##h(w0, MemOperand(x20)));
+      SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_LOAD_MODES, ATOMIC_LOAD_H)
+      SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_STORE_MODES, ATOMIC_STORE_H)
+#undef ATOMIC_LOAD_H
+#undef ATOMIC_STORE_H
+    }
+
+    if (i > (kAtomicAccessGranule - kWRegSizeInBytes)) {
+      CHECK_ALIGN_FAIL(i, __ Stxr(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Stlxr(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldxr(w0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldaxr(w0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Stllr(w0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Stlr(w0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Cas(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Casl(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldlar(w0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldar(w0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Casa(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Casal(w0, w1, MemOperand(x20)));
+
+      CHECK_ALIGN_FAIL(i, __ Swp(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Swpl(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Swpa(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Swpal(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldapr(w0, MemOperand(x20)));
+
+#define ATOMIC_LOAD_W(NAME) \
+  CHECK_ALIGN_FAIL(i, __ Ld##NAME(w0, w1, MemOperand(x20)));
+#define ATOMIC_STORE_W(NAME) \
+  CHECK_ALIGN_FAIL(i, __ St##NAME(w0, MemOperand(x20)));
+      SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_LOAD_MODES, ATOMIC_LOAD_W)
+      SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_STORE_MODES, ATOMIC_STORE_W)
+#undef ATOMIC_LOAD_W
+#undef ATOMIC_STORE_W
+    }
+
+    if (i > (kAtomicAccessGranule - (kWRegSizeInBytes * 2))) {
+      CHECK_ALIGN_FAIL(i, __ Casp(w0, w1, w2, w3, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Caspl(w0, w1, w2, w3, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Caspa(w0, w1, w2, w3, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Caspal(w0, w1, w2, w3, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Stxp(w0, w1, w2, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Stlxp(w0, w1, w2, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldxp(w0, w1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldaxp(w0, w1, MemOperand(x20)));
+    }
+
+    if (i > (kAtomicAccessGranule - kXRegSizeInBytes)) {
+      CHECK_ALIGN_FAIL(i, __ Stxr(x0, x1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Stlxr(x0, x1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldxr(x0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldaxr(x0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Stllr(x0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Stlr(x0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Cas(x0, x1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Casl(x0, x1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldlar(x0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldar(x0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Casa(x0, x1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Casal(x0, x1, MemOperand(x20)));
+
+      CHECK_ALIGN_FAIL(i, __ Swp(x0, x1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Swpl(x0, x1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Swpa(x0, x1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Swpal(x0, x1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldapr(x0, MemOperand(x20)));
+
+#define ATOMIC_LOAD_X(NAME) \
+  CHECK_ALIGN_FAIL(i, __ Ld##NAME(x0, x1, MemOperand(x20)));
+#define ATOMIC_STORE_X(NAME) \
+  CHECK_ALIGN_FAIL(i, __ St##NAME(x0, MemOperand(x20)));
+      SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_LOAD_MODES, ATOMIC_LOAD_X)
+      SIMPLE_ATOMIC_OPS(SIMPLE_ATOMIC_STORE_MODES, ATOMIC_STORE_X)
+#undef ATOMIC_LOAD_X
+#undef ATOMIC_STORE_X
+    }
+
+    if (i > (kAtomicAccessGranule - (kXRegSizeInBytes * 2))) {
+      CHECK_ALIGN_FAIL(i, __ Casp(x0, x1, x2, x3, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Caspl(x0, x1, x2, x3, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Caspa(x0, x1, x2, x3, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Caspal(x0, x1, x2, x3, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Stxp(x0, x1, x2, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Stlxp(x0, x1, x2, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldxp(x0, x1, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldaxp(x0, x1, MemOperand(x20)));
+    }
+  }
+}
+
+TEST(unaligned_single_copy_atomicity_negative_test_2) {
+  uint64_t data[] = {0x1010101010101010, 0x1010101010101010};
+
+  uint64_t* data_aligned = AlignUp(data, kAtomicAccessGranule);
+
+  // Check that the same code doesn't fail with USCAT enabled but does
+  // fail when not enabled.
+  {
+    SETUP_WITH_FEATURES(CPUFeatures::kUSCAT);
+    START();
+    __ Mov(x0, reinterpret_cast<uintptr_t>(data_aligned));
+    __ Add(x0, x0, 1);
+    __ Ldxrh(w1, MemOperand(x0));
+    END();
+    RUN_WITHOUT_SEEN_FEATURE_CHECK();
+    TEARDOWN();
+  }
+  {
+    SETUP();
+    START();
+    __ Mov(x0, reinterpret_cast<uintptr_t>(data_aligned));
+    __ Add(x0, x0, 1);
+    __ Ldxrh(w1, MemOperand(x0));
+    END();
+    MUST_FAIL_WITH_MESSAGE(RUN(), "ALIGNMENT EXCEPTION");
+    TEARDOWN();
+  }
+}
+#endif  // VIXL_NEGATIVE_TESTING && VIXL_INCLUDE_SIMULATOR_AARCH64
+
 TEST(load_store_tagged_immediate_offset) {
   uint64_t tags[] = {0x00, 0x1, 0x55, 0xff};
   int tag_count = sizeof(tags) / sizeof(tags[0]);

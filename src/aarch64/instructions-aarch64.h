@@ -106,6 +106,8 @@ const unsigned kZeroRegCode = 31;
 const unsigned kSPRegInternalCode = 63;
 const unsigned kRegCodeMask = 0x1f;
 
+const unsigned kAtomicAccessGranule = 16;
+
 const unsigned kAddressTagOffset = 56;
 const unsigned kAddressTagWidth = 8;
 const uint64_t kAddressTagMask = ((UINT64_C(1) << kAddressTagWidth) - 1)

@@ -185,10 +185,9 @@ inline void USE(const T1&, const T2&, const T3&) {}
 template <typename T1, typename T2, typename T3, typename T4>
 inline void USE(const T1&, const T2&, const T3&, const T4&) {}
 
-#define VIXL_ALIGNMENT_EXCEPTION()            \
-  do {                                        \
-    fprintf(stderr, "ALIGNMENT EXCEPTION\t"); \
-    VIXL_ABORT();                             \
+#define VIXL_ALIGNMENT_EXCEPTION()                \
+  do {                                            \
+    VIXL_ABORT_WITH_MSG("ALIGNMENT EXCEPTION\t"); \
   } while (0)
 
 // The clang::fallthrough attribute is used along with the Wimplicit-fallthrough

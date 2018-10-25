@@ -1613,6 +1613,31 @@ class Simulator : public DecoderVisitor {
     print_exclusive_access_warning_ = false;
   }
 
+  void CheckIsValidUnalignedAtomicAccess(int rn,
+                                         uint64_t address,
+                                         unsigned access_size) {
+    // Verify that the address is available to the host.
+    VIXL_ASSERT(address == static_cast<uintptr_t>(address));
+
+    if (GetCPUFeatures()->Has(CPUFeatures::kUSCAT)) {
+      // Check that the access falls entirely within one atomic access granule.
+      if (AlignDown(address, kAtomicAccessGranule) !=
+          AlignDown(address + access_size - 1, kAtomicAccessGranule)) {
+        VIXL_ALIGNMENT_EXCEPTION();
+      }
+    } else {
+      // Check that the access is aligned.
+      if (AlignDown(address, access_size) != address) {
+        VIXL_ALIGNMENT_EXCEPTION();
+      }
+    }
+
+    // The sp must be aligned to 16 bytes when it is accessed.
+    if ((rn == kSpRegCode) && (AlignDown(address, 16) != address)) {
+      VIXL_ALIGNMENT_EXCEPTION();
+    }
+  }
+
   enum PointerType { kDataPointer, kInstructionPointer };
 
   struct PACKey {

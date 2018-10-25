@@ -1714,19 +1714,6 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
 }
 
 
-void Simulator::PrintExclusiveAccessWarning() {
-  if (print_exclusive_access_warning_) {
-    fprintf(stderr,
-            "%sWARNING:%s VIXL simulator support for "
-            "load-/store-/clear-exclusive "
-            "instructions is limited. Refer to the README for details.%s\n",
-            clr_warning,
-            clr_warning_message,
-            clr_normal);
-    print_exclusive_access_warning_ = false;
-  }
-}
-
 template <typename T>
 void Simulator::CompareAndSwapHelper(const Instruction* instr) {
   unsigned rs = instr->GetRs();
@@ -1735,6 +1722,8 @@ void Simulator::CompareAndSwapHelper(const Instruction* instr) {
 
   unsigned element_size = sizeof(T);
   uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
+
+  CheckIsValidUnalignedAtomicAccess(rn, address, element_size);
 
   bool is_acquire = instr->ExtractBit(22) == 1;
   bool is_release = instr->ExtractBit(15) == 1;
@@ -1764,6 +1753,7 @@ void Simulator::CompareAndSwapHelper(const Instruction* instr) {
   LogRead(address, rs, GetPrintRegisterFormatForSize(element_size));
 }
 
+
 template <typename T>
 void Simulator::CompareAndSwapPairHelper(const Instruction* instr) {
   VIXL_ASSERT((sizeof(T) == 4) || (sizeof(T) == 8));
@@ -1775,6 +1765,9 @@ void Simulator::CompareAndSwapPairHelper(const Instruction* instr) {
 
   unsigned element_size = sizeof(T);
   uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
+
+  CheckIsValidUnalignedAtomicAccess(rn, address, element_size * 2);
+
   uint64_t address2 = address + element_size;
 
   bool is_acquire = instr->ExtractBit(22) == 1;
@@ -1822,39 +1815,23 @@ void Simulator::CompareAndSwapPairHelper(const Instruction* instr) {
 }
 
 
+void Simulator::PrintExclusiveAccessWarning() {
+  if (print_exclusive_access_warning_) {
+    fprintf(stderr,
+            "%sWARNING:%s VIXL simulator support for "
+            "load-/store-/clear-exclusive "
+            "instructions is limited. Refer to the README for details.%s\n",
+            clr_warning,
+            clr_warning_message,
+            clr_normal);
+    print_exclusive_access_warning_ = false;
+  }
+}
+
+
 void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
-  PrintExclusiveAccessWarning();
-
-  unsigned rs = instr->GetRs();
-  unsigned rt = instr->GetRt();
-  unsigned rt2 = instr->GetRt2();
-  unsigned rn = instr->GetRn();
-
   LoadStoreExclusive op =
       static_cast<LoadStoreExclusive>(instr->Mask(LoadStoreExclusiveMask));
-
-  bool is_exclusive = !instr->GetLdStXNotExclusive();
-  bool is_acquire_release = !is_exclusive || instr->GetLdStXAcquireRelease();
-  bool is_load = instr->GetLdStXLoad();
-  bool is_pair = instr->GetLdStXPair();
-
-  unsigned element_size = 1 << instr->GetLdStXSizeLog2();
-  unsigned access_size = is_pair ? element_size * 2 : element_size;
-  uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
-
-  // Verify that the address is available to the host.
-  VIXL_ASSERT(address == static_cast<uintptr_t>(address));
-
-  // Check the alignment of `address`.
-  if (AlignDown(address, access_size) != address) {
-    VIXL_ALIGNMENT_EXCEPTION();
-  }
-
-  // The sp must be aligned to 16 bytes when it is accessed.
-  if ((rn == 31) && (AlignDown(address, 16) != address)) {
-    VIXL_ALIGNMENT_EXCEPTION();
-  }
-
 
   switch (op) {
     case CAS_w:
@@ -1894,6 +1871,25 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
       CompareAndSwapPairHelper<uint64_t>(instr);
       break;
     default:
+      PrintExclusiveAccessWarning();
+
+      unsigned rs = instr->GetRs();
+      unsigned rt = instr->GetRt();
+      unsigned rt2 = instr->GetRt2();
+      unsigned rn = instr->GetRn();
+
+      bool is_exclusive = !instr->GetLdStXNotExclusive();
+      bool is_acquire_release =
+          !is_exclusive || instr->GetLdStXAcquireRelease();
+      bool is_load = instr->GetLdStXLoad();
+      bool is_pair = instr->GetLdStXPair();
+
+      unsigned element_size = 1 << instr->GetLdStXSizeLog2();
+      unsigned access_size = is_pair ? element_size * 2 : element_size;
+      uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
+
+      CheckIsValidUnalignedAtomicAccess(rn, address, access_size);
+
       if (is_load) {
         if (is_exclusive) {
           local_monitor_.MarkExclusive(address, access_size);
@@ -2045,8 +2041,7 @@ void Simulator::AtomicMemorySimpleHelper(const Instruction* instr) {
   unsigned element_size = sizeof(T);
   uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
 
-  // Verify that the address is available to the host.
-  VIXL_ASSERT(address == static_cast<uintptr_t>(address));
+  CheckIsValidUnalignedAtomicAccess(rn, address, element_size);
 
   T value = ReadRegister<T>(rs);
 
@@ -2110,8 +2105,7 @@ void Simulator::AtomicMemorySwapHelper(const Instruction* instr) {
   unsigned element_size = sizeof(T);
   uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
 
-  // Verify that the address is available to the host.
-  VIXL_ASSERT(address == static_cast<uintptr_t>(address));
+  CheckIsValidUnalignedAtomicAccess(rn, address, element_size);
 
   T data = Memory::Read<T>(address);
   if (is_acquire) {
@@ -2139,8 +2133,8 @@ void Simulator::LoadAcquireRCpcHelper(const Instruction* instr) {
   unsigned element_size = sizeof(T);
   uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
 
-  // Verify that the address is available to the host.
-  VIXL_ASSERT(address == static_cast<uintptr_t>(address));
+  CheckIsValidUnalignedAtomicAccess(rn, address, element_size);
+
   WriteRegister<T>(rt, Memory::Read<T>(address));
 
   // Approximate load-acquire by issuing a full barrier after the load.
