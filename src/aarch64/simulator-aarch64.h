@@ -1870,6 +1870,10 @@ class Simulator : public DecoderVisitor {
   void AtomicMemorySwapHelper(const Instruction* instr);
   template <typename T>
   void LoadAcquireRCpcHelper(const Instruction* instr);
+  template <typename T1, typename T2>
+  void LoadAcquireRCpcUnscaledOffsetHelper(const Instruction* instr);
+  template <typename T>
+  void StoreReleaseUnscaledOffsetHelper(const Instruction* instr);
   uintptr_t AddressModeHelper(unsigned addr_reg,
                               int64_t offset,
                               AddrMode addrmode);

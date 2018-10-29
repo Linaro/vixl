@@ -1092,6 +1092,65 @@ void Disassembler::VisitLoadStoreUnsignedOffset(const Instruction *instr) {
 }
 
 
+void Disassembler::VisitLoadStoreRCpcUnscaledOffset(const Instruction *instr) {
+  const char *mnemonic;
+  const char *form = "'Wt, ['Xns'ILS]";
+  const char *form_x = "'Xt, ['Xns'ILS]";
+
+  switch (instr->Mask(LoadStoreRCpcUnscaledOffsetMask)) {
+    case STLURB:
+      mnemonic = "stlurb";
+      break;
+    case LDAPURB:
+      mnemonic = "ldapurb";
+      break;
+    case LDAPURSB_w:
+      mnemonic = "ldapursb";
+      break;
+    case LDAPURSB_x:
+      mnemonic = "ldapursb";
+      form = form_x;
+      break;
+    case STLURH:
+      mnemonic = "stlurh";
+      break;
+    case LDAPURH:
+      mnemonic = "ldapurh";
+      break;
+    case LDAPURSH_w:
+      mnemonic = "ldapursh";
+      break;
+    case LDAPURSH_x:
+      mnemonic = "ldapursh";
+      form = form_x;
+      break;
+    case STLUR_w:
+      mnemonic = "stlur";
+      break;
+    case LDAPUR_w:
+      mnemonic = "ldapur";
+      break;
+    case LDAPURSW:
+      mnemonic = "ldapursw";
+      form = form_x;
+      break;
+    case STLUR_x:
+      mnemonic = "stlur";
+      form = form_x;
+      break;
+    case LDAPUR_x:
+      mnemonic = "ldapur";
+      form = form_x;
+      break;
+    default:
+      mnemonic = "unimplemented";
+      form = "(LoadStoreRCpcUnscaledOffset)";
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+
 void Disassembler::VisitLoadStoreRegisterOffset(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(LoadStoreRegisterOffset)";

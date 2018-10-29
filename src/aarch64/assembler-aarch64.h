@@ -1487,6 +1487,35 @@ class Assembler : public vixl::internal::AssemblerBase {
               const Register& rt2,
               const MemOperand& src);
 
+  // Store-release byte (with unscaled offset) [Armv8.4].
+  void stlurb(const Register& rt, const MemOperand& dst);
+
+  // Load-acquire RCpc Register byte (with unscaled offset) [Armv8.4].
+  void ldapurb(const Register& rt, const MemOperand& src);
+
+  // Load-acquire RCpc Register signed byte (with unscaled offset) [Armv8.4].
+  void ldapursb(const Register& rt, const MemOperand& src);
+
+  // Store-release half-word (with unscaled offset) [Armv8.4].
+  void stlurh(const Register& rt, const MemOperand& dst);
+
+  // Load-acquire RCpc Register half-word (with unscaled offset) [Armv8.4].
+  void ldapurh(const Register& rt, const MemOperand& src);
+
+  // Load-acquire RCpc Register signed half-word (with unscaled offset)
+  // [Armv8.4].
+  void ldapursh(const Register& rt, const MemOperand& src);
+
+  // Store-release word or double-word (with unscaled offset) [Armv8.4].
+  void stlur(const Register& rt, const MemOperand& dst);
+
+  // Load-acquire RCpc Register word or double-word (with unscaled offset)
+  // [Armv8.4].
+  void ldapur(const Register& rt, const MemOperand& src);
+
+  // Load-acquire RCpc Register signed word (with unscaled offset) [Armv8.4].
+  void ldapursw(const Register& xt, const MemOperand& src);
+
   // Atomic add on byte in memory [Armv8.1]
   void ldaddb(const Register& rs, const Register& rt, const MemOperand& src);
 

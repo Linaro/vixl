@@ -1134,6 +1134,26 @@ enum LoadStoreExclusive {
   CASPAL_x = CASPFixed | LSEBit_l | LSEBit_o0 | LSEBit_sz
 };
 
+// Load/store RCpc unscaled offset.
+enum LoadStoreRCpcUnscaledOffsetOp {
+  LoadStoreRCpcUnscaledOffsetFixed = 0x19000000,
+  LoadStoreRCpcUnscaledOffsetFMask = 0x3F200C00,
+  LoadStoreRCpcUnscaledOffsetMask  = 0xFFE00C00,
+  STLURB     = LoadStoreRCpcUnscaledOffsetFixed | 0x00000000,
+  LDAPURB    = LoadStoreRCpcUnscaledOffsetFixed | 0x00400000,
+  LDAPURSB_x = LoadStoreRCpcUnscaledOffsetFixed | 0x00800000,
+  LDAPURSB_w = LoadStoreRCpcUnscaledOffsetFixed | 0x00C00000,
+  STLURH     = LoadStoreRCpcUnscaledOffsetFixed | 0x40000000,
+  LDAPURH    = LoadStoreRCpcUnscaledOffsetFixed | 0x40400000,
+  LDAPURSH_x = LoadStoreRCpcUnscaledOffsetFixed | 0x40800000,
+  LDAPURSH_w = LoadStoreRCpcUnscaledOffsetFixed | 0x40C00000,
+  STLUR_w    = LoadStoreRCpcUnscaledOffsetFixed | 0x80000000,
+  LDAPUR_w   = LoadStoreRCpcUnscaledOffsetFixed | 0x80400000,
+  LDAPURSW   = LoadStoreRCpcUnscaledOffsetFixed | 0x80800000,
+  STLUR_x    = LoadStoreRCpcUnscaledOffsetFixed | 0xC0000000,
+  LDAPUR_x   = LoadStoreRCpcUnscaledOffsetFixed | 0xC0400000
+};
+
 #define ATOMIC_MEMORY_SIMPLE_OPC_LIST(V) \
   V(LDADD, 0x00000000),                  \
   V(LDCLR, 0x00001000),                  \

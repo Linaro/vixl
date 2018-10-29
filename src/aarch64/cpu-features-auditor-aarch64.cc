@@ -273,6 +273,30 @@ void CPUFeaturesAuditor::VisitDataProcessing2Source(const Instruction* instr) {
   }
 }
 
+void CPUFeaturesAuditor::VisitLoadStoreRCpcUnscaledOffset(
+    const Instruction* instr) {
+  RecordInstructionFeaturesScope scope(this);
+  switch (instr->Mask(LoadStoreRCpcUnscaledOffsetMask)) {
+    case LDAPURB:
+    case LDAPURSB_w:
+    case LDAPURSB_x:
+    case LDAPURH:
+    case LDAPURSH_w:
+    case LDAPURSH_x:
+    case LDAPUR_w:
+    case LDAPURSW:
+    case LDAPUR_x:
+      scope.Record(CPUFeatures::kRCpc);
+      VIXL_FALLTHROUGH();
+    case STLURB:
+    case STLURH:
+    case STLUR_w:
+    case STLUR_x:
+      scope.Record(CPUFeatures::kRCpcImm);
+      return;
+  }
+}
+
 void CPUFeaturesAuditor::VisitLoadStorePAC(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
   USE(instr);

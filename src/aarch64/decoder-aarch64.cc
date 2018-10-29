@@ -422,7 +422,17 @@ void Decoder::DecodeLoadStore(const Instruction* instr) {
       }
     } else {
       if (instr->ExtractBit(29) == 0) {
-        VisitUnallocated(instr);
+        if ((instr->ExtractBit(26) == 0) && (instr->ExtractBit(21) == 0) &&
+            (instr->ExtractBits(11, 10) == 0x0) &&
+            ((instr->ExtractBits(31, 30) < 0x2) ||
+             ((instr->ExtractBits(31, 30) == 0x2) &&
+              (instr->ExtractBits(23, 22) != 0x3)) ||
+             ((instr->ExtractBits(31, 30) == 0x3) &&
+              (instr->ExtractBits(23, 22) < 0x2)))) {
+          VisitLoadStoreRCpcUnscaledOffset(instr);
+        } else {
+          VisitUnallocated(instr);
+        }
       } else {
         if ((instr->Mask(0x84C00000) == 0x80C00000) ||
             (instr->Mask(0x44800000) == 0x44800000) ||

@@ -2186,6 +2186,54 @@ TEST(atomic_memory) {
   CLEANUP();
 }
 
+TEST(load_store_rcpc_unscaled_offset) {
+  SETUP();
+
+  COMPARE(ldapurb(w0, MemOperand(x1)), "ldapurb w0, [x1]");
+  COMPARE(ldapurb(w2, MemOperand(x3, 13)), "ldapurb w2, [x3, #13]");
+  COMPARE(ldapursb(w4, MemOperand(x5, 129)), "ldapursb w4, [x5, #129]");
+  COMPARE(ldapursb(x6, MemOperand(sp, 64)), "ldapursb x6, [sp, #64]");
+  COMPARE(ldapurh(w7, MemOperand(x8)), "ldapurh w7, [x8]");
+  COMPARE(ldapurh(w9, MemOperand(x10, 13)), "ldapurh w9, [x10, #13]");
+  COMPARE(ldapursh(w11, MemOperand(x12, 129)), "ldapursh w11, [x12, #129]");
+  COMPARE(ldapursh(x13, MemOperand(sp, 64)), "ldapursh x13, [sp, #64]");
+  COMPARE(ldapur(w14, MemOperand(x15)), "ldapur w14, [x15]");
+  COMPARE(ldapur(w16, MemOperand(x17, 13)), "ldapur w16, [x17, #13]");
+  COMPARE(ldapursw(x18, MemOperand(sp, 64)), "ldapursw x18, [sp, #64]");
+  COMPARE(ldapur(x19, MemOperand(x20)), "ldapur x19, [x20]");
+  COMPARE(ldapur(x21, MemOperand(sp, 64)), "ldapur x21, [sp, #64]");
+
+  COMPARE(stlurb(w22, MemOperand(x23)), "stlurb w22, [x23]");
+  COMPARE(stlurb(w24, MemOperand(sp, 64)), "stlurb w24, [sp, #64]");
+  COMPARE(stlurh(w25, MemOperand(x26)), "stlurh w25, [x26]");
+  COMPARE(stlurh(w27, MemOperand(sp, 64)), "stlurh w27, [sp, #64]");
+  COMPARE(stlur(w28, MemOperand(x29)), "stlur w28, [x29]");
+  COMPARE(stlur(w0, MemOperand(sp, 64)), "stlur w0, [sp, #64]");
+  COMPARE(stlur(x1, MemOperand(x2)), "stlur x1, [x2]");
+  COMPARE(stlur(x3, MemOperand(sp, 64)), "stlur x3, [sp, #64]");
+
+
+  COMPARE_MACRO(Ldaprb(w0, MemOperand(x1)), "ldaprb w0, [x1]");
+  COMPARE_MACRO(Ldaprb(w2, MemOperand(x3, 13)), "ldapurb w2, [x3, #13]");
+  COMPARE_MACRO(Ldaprh(w4, MemOperand(x5)), "ldaprh w4, [x5]");
+  COMPARE_MACRO(Ldaprh(w6, MemOperand(x7, 13)), "ldapurh w6, [x7, #13]");
+  COMPARE_MACRO(Ldapr(w8, MemOperand(x9)), "ldapr w8, [x9]");
+  COMPARE_MACRO(Ldapr(w10, MemOperand(x11, 13)), "ldapur w10, [x11, #13]");
+  COMPARE_MACRO(Ldapr(x12, MemOperand(x13)), "ldapr x12, [x13]");
+  COMPARE_MACRO(Ldapr(x14, MemOperand(sp, 64)), "ldapur x14, [sp, #64]");
+
+  COMPARE_MACRO(Stlrb(w15, MemOperand(x16)), "stlrb w15, [x16]");
+  COMPARE_MACRO(Stlrb(w17, MemOperand(sp, 64)), "stlurb w17, [sp, #64]");
+  COMPARE_MACRO(Stlrh(w18, MemOperand(x19)), "stlrh w18, [x19]");
+  COMPARE_MACRO(Stlrh(w20, MemOperand(sp, 64)), "stlurh w20, [sp, #64]");
+  COMPARE_MACRO(Stlr(w21, MemOperand(x22)), "stlr w21, [x22]");
+  COMPARE_MACRO(Stlr(w23, MemOperand(sp, 64)), "stlur w23, [sp, #64]");
+  COMPARE_MACRO(Stlr(x24, MemOperand(x25)), "stlr x24, [x25]");
+  COMPARE_MACRO(Stlr(x26, MemOperand(sp, 64)), "stlur x26, [sp, #64]");
+
+  CLEANUP();
+}
+
 
 TEST(load_store_pair_nontemp) {
   SETUP();

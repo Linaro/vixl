@@ -1449,6 +1449,105 @@ void Simulator::VisitLoadStorePostIndex(const Instruction* instr) {
 }
 
 
+template <typename T1, typename T2>
+void Simulator::LoadAcquireRCpcUnscaledOffsetHelper(const Instruction* instr) {
+  unsigned rt = instr->GetRt();
+  unsigned rn = instr->GetRn();
+
+  unsigned element_size = sizeof(T2);
+  uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
+  int offset = instr->GetImmLS();
+  address += offset;
+
+  // Verify that the address is available to the host.
+  VIXL_ASSERT(address == static_cast<uintptr_t>(address));
+
+  // Check the alignment of `address`.
+  if (AlignDown(address, 16) != AlignDown(address + element_size - 1, 16)) {
+    VIXL_ALIGNMENT_EXCEPTION();
+  }
+
+  WriteRegister<T1>(rt, static_cast<T1>(Memory::Read<T2>(address)));
+
+  // Approximate load-acquire by issuing a full barrier after the load.
+  __sync_synchronize();
+
+  LogRead(address, rt, GetPrintRegisterFormat(element_size));
+}
+
+
+template <typename T>
+void Simulator::StoreReleaseUnscaledOffsetHelper(const Instruction* instr) {
+  unsigned rt = instr->GetRt();
+  unsigned rn = instr->GetRn();
+
+  unsigned element_size = sizeof(T);
+  uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
+  int offset = instr->GetImmLS();
+  address += offset;
+
+  // Verify that the address is available to the host.
+  VIXL_ASSERT(address == static_cast<uintptr_t>(address));
+
+  // Check the alignment of `address`.
+  if (AlignDown(address, 16) != AlignDown(address + element_size - 1, 16)) {
+    VIXL_ALIGNMENT_EXCEPTION();
+  }
+
+  // Approximate store-release by issuing a full barrier after the load.
+  __sync_synchronize();
+
+  Memory::Write<T>(address, ReadRegister<T>(rt));
+
+  LogWrite(address, rt, GetPrintRegisterFormat(element_size));
+}
+
+
+void Simulator::VisitLoadStoreRCpcUnscaledOffset(const Instruction* instr) {
+  switch (instr->Mask(LoadStoreRCpcUnscaledOffsetMask)) {
+    case LDAPURB:
+      LoadAcquireRCpcUnscaledOffsetHelper<uint8_t, uint8_t>(instr);
+      break;
+    case LDAPURH:
+      LoadAcquireRCpcUnscaledOffsetHelper<uint16_t, uint16_t>(instr);
+      break;
+    case LDAPUR_w:
+      LoadAcquireRCpcUnscaledOffsetHelper<uint32_t, uint32_t>(instr);
+      break;
+    case LDAPUR_x:
+      LoadAcquireRCpcUnscaledOffsetHelper<uint64_t, uint64_t>(instr);
+      break;
+    case LDAPURSB_w:
+      LoadAcquireRCpcUnscaledOffsetHelper<int32_t, int8_t>(instr);
+      break;
+    case LDAPURSB_x:
+      LoadAcquireRCpcUnscaledOffsetHelper<int64_t, int8_t>(instr);
+      break;
+    case LDAPURSH_w:
+      LoadAcquireRCpcUnscaledOffsetHelper<int32_t, int16_t>(instr);
+      break;
+    case LDAPURSH_x:
+      LoadAcquireRCpcUnscaledOffsetHelper<int64_t, int16_t>(instr);
+      break;
+    case LDAPURSW:
+      LoadAcquireRCpcUnscaledOffsetHelper<int64_t, int32_t>(instr);
+      break;
+    case STLURB:
+      StoreReleaseUnscaledOffsetHelper<uint8_t>(instr);
+      break;
+    case STLURH:
+      StoreReleaseUnscaledOffsetHelper<uint16_t>(instr);
+      break;
+    case STLUR_w:
+      StoreReleaseUnscaledOffsetHelper<uint32_t>(instr);
+      break;
+    case STLUR_x:
+      StoreReleaseUnscaledOffsetHelper<uint64_t>(instr);
+      break;
+  }
+}
+
+
 void Simulator::VisitLoadStorePAC(const Instruction* instr) {
   unsigned dst = instr->GetRt();
   unsigned addr_reg = instr->GetRn();

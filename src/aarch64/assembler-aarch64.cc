@@ -1522,10 +1522,28 @@ void Assembler::stlrb(const Register& rt, const MemOperand& dst) {
   Emit(STLRB_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
 }
 
+void Assembler::stlurb(const Register& rt, const MemOperand& dst) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpcImm));
+  VIXL_ASSERT(dst.IsImmediateOffset() && IsImmLSUnscaled(dst.GetOffset()));
+
+  Instr base = RnSP(dst.GetBaseRegister());
+  int64_t offset = dst.GetOffset();
+  Emit(STLURB | Rt(rt) | base | ImmLS(static_cast<int>(offset)));
+}
+
 
 void Assembler::stlrh(const Register& rt, const MemOperand& dst) {
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   Emit(STLRH_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
+}
+
+void Assembler::stlurh(const Register& rt, const MemOperand& dst) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpcImm));
+  VIXL_ASSERT(dst.IsImmediateOffset() && IsImmLSUnscaled(dst.GetOffset()));
+
+  Instr base = RnSP(dst.GetBaseRegister());
+  int64_t offset = dst.GetOffset();
+  Emit(STLURH | Rt(rt) | base | ImmLS(static_cast<int>(offset)));
 }
 
 
@@ -1533,6 +1551,16 @@ void Assembler::stlr(const Register& rt, const MemOperand& dst) {
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? STLR_x : STLR_w;
   Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
+}
+
+void Assembler::stlur(const Register& rt, const MemOperand& dst) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpcImm));
+  VIXL_ASSERT(dst.IsImmediateOffset() && IsImmLSUnscaled(dst.GetOffset()));
+
+  Instr base = RnSP(dst.GetBaseRegister());
+  int64_t offset = dst.GetOffset();
+  Instr op = rt.Is64Bits() ? STLUR_x : STLUR_w;
+  Emit(op | Rt(rt) | base | ImmLS(static_cast<int>(offset)));
 }
 
 
@@ -1746,6 +1774,25 @@ void Assembler::ldaprb(const Register& rt, const MemOperand& src) {
   Emit(op | Rs(xzr) | Rt(rt) | RnSP(src.GetBaseRegister()));
 }
 
+void Assembler::ldapurb(const Register& rt, const MemOperand& src) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
+  VIXL_ASSERT(src.IsImmediateOffset() && IsImmLSUnscaled(src.GetOffset()));
+
+  Instr base = RnSP(src.GetBaseRegister());
+  int64_t offset = src.GetOffset();
+  Emit(LDAPURB | Rt(rt) | base | ImmLS(static_cast<int>(offset)));
+}
+
+void Assembler::ldapursb(const Register& rt, const MemOperand& src) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
+  VIXL_ASSERT(src.IsImmediateOffset() && IsImmLSUnscaled(src.GetOffset()));
+
+  Instr base = RnSP(src.GetBaseRegister());
+  int64_t offset = src.GetOffset();
+  Instr op = rt.Is64Bits() ? LDAPURSB_x : LDAPURSB_w;
+  Emit(op | Rt(rt) | base | ImmLS(static_cast<int>(offset)));
+}
+
 void Assembler::ldaprh(const Register& rt, const MemOperand& src) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc));
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
@@ -1753,11 +1800,50 @@ void Assembler::ldaprh(const Register& rt, const MemOperand& src) {
   Emit(op | Rs(xzr) | Rt(rt) | RnSP(src.GetBaseRegister()));
 }
 
+void Assembler::ldapurh(const Register& rt, const MemOperand& src) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
+  VIXL_ASSERT(src.IsImmediateOffset() && IsImmLSUnscaled(src.GetOffset()));
+
+  Instr base = RnSP(src.GetBaseRegister());
+  int64_t offset = src.GetOffset();
+  Emit(LDAPURH | Rt(rt) | base | ImmLS(static_cast<int>(offset)));
+}
+
+void Assembler::ldapursh(const Register& rt, const MemOperand& src) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
+  VIXL_ASSERT(src.IsImmediateOffset() && IsImmLSUnscaled(src.GetOffset()));
+
+  Instr base = RnSP(src.GetBaseRegister());
+  int64_t offset = src.GetOffset();
+  LoadStoreRCpcUnscaledOffsetOp op = rt.Is64Bits() ? LDAPURSH_x : LDAPURSH_w;
+  Emit(op | Rt(rt) | base | ImmLS(static_cast<int>(offset)));
+}
+
 void Assembler::ldapr(const Register& rt, const MemOperand& src) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc));
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   AtomicMemoryOp op = rt.Is64Bits() ? LDAPR_x : LDAPR_w;
   Emit(op | Rs(xzr) | Rt(rt) | RnSP(src.GetBaseRegister()));
+}
+
+void Assembler::ldapur(const Register& rt, const MemOperand& src) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
+  VIXL_ASSERT(src.IsImmediateOffset() && IsImmLSUnscaled(src.GetOffset()));
+
+  Instr base = RnSP(src.GetBaseRegister());
+  int64_t offset = src.GetOffset();
+  LoadStoreRCpcUnscaledOffsetOp op = rt.Is64Bits() ? LDAPUR_x : LDAPUR_w;
+  Emit(op | Rt(rt) | base | ImmLS(static_cast<int>(offset)));
+}
+
+void Assembler::ldapursw(const Register& rt, const MemOperand& src) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
+  VIXL_ASSERT(rt.Is64Bits());
+  VIXL_ASSERT(src.IsImmediateOffset() && IsImmLSUnscaled(src.GetOffset()));
+
+  Instr base = RnSP(src.GetBaseRegister());
+  int64_t offset = src.GetOffset();
+  Emit(LDAPURSW | Rt(rt) | base | ImmLS(static_cast<int>(offset)));
 }
 
 void Assembler::prfm(PrefetchOperation op,

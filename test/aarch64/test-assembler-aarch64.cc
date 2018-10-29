@@ -19570,6 +19570,145 @@ TEST(ldaprb_ldaprh_ldapr) {
 }
 
 
+TEST(ldapurb_ldapurh_ldapur) {
+  uint64_t data[]
+      __attribute__((aligned(kXRegSizeInBytes * 2))) = {0x0123456789abcdef,
+                                                        0xfedcba9876543210};
+
+  uintptr_t data_base = reinterpret_cast<uintptr_t>(data);
+
+  SETUP_WITH_FEATURES(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm);
+  START();
+
+  __ Mov(x20, data_base);
+  __ Mov(x21, data_base + 2 * sizeof(data[0]));
+
+  __ Ldaprb(w0, MemOperand(x20));
+  __ Ldaprh(w1, MemOperand(x20));
+  __ Ldapr(w2, MemOperand(x20));
+  __ Ldapr(x3, MemOperand(x20));
+  __ Ldaprb(w4, MemOperand(x20, 12));
+  __ Ldaprh(w5, MemOperand(x20, 8));
+  __ Ldapr(w6, MemOperand(x20, 10));
+  __ Ldapr(x7, MemOperand(x20, 7));
+  __ Ldaprb(w8, MemOperand(x21, -1));
+  __ Ldaprh(w9, MemOperand(x21, -3));
+  __ Ldapr(w10, MemOperand(x21, -9));
+  __ Ldapr(x11, MemOperand(x21, -12));
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_64(0xef, x0);
+  ASSERT_EQUAL_64(0xcdef, x1);
+  ASSERT_EQUAL_64(0x89abcdef, x2);
+  ASSERT_EQUAL_64(0x0123456789abcdef, x3);
+  ASSERT_EQUAL_64(0x98, x4);
+  ASSERT_EQUAL_64(0x3210, x5);
+  ASSERT_EQUAL_64(0xba987654, x6);
+  ASSERT_EQUAL_64(0xdcba987654321001, x7);
+  ASSERT_EQUAL_64(0xfe, x8);
+  ASSERT_EQUAL_64(0xdcba, x9);
+  ASSERT_EQUAL_64(0x54321001, x10);
+  ASSERT_EQUAL_64(0x7654321001234567, x11);
+#endif
+
+  TEARDOWN();
+}
+
+
+TEST(ldapursb_ldapursh_ldapursw) {
+  uint64_t data[]
+      __attribute__((aligned(kXRegSizeInBytes * 2))) = {0x0123456789abcdef,
+                                                        0xfedcba9876543210};
+
+  uintptr_t data_base = reinterpret_cast<uintptr_t>(data);
+
+  SETUP_WITH_FEATURES(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm);
+  START();
+
+  __ Mov(x20, data_base);
+  __ Mov(x21, data_base + 2 * sizeof(data[0]));
+
+  __ Ldapursb(w0, MemOperand(x20));
+  __ Ldapursb(x1, MemOperand(x20));
+  __ Ldapursh(w2, MemOperand(x20));
+  __ Ldapursh(x3, MemOperand(x20));
+  __ Ldapursw(x4, MemOperand(x20));
+  __ Ldapursb(w5, MemOperand(x20, 12));
+  __ Ldapursb(x6, MemOperand(x20, 12));
+  __ Ldapursh(w7, MemOperand(x20, 13));
+  __ Ldapursh(x8, MemOperand(x20, 13));
+  __ Ldapursw(x9, MemOperand(x20, 10));
+  __ Ldapursb(w10, MemOperand(x21, -1));
+  __ Ldapursb(x11, MemOperand(x21, -1));
+  __ Ldapursh(w12, MemOperand(x21, -4));
+  __ Ldapursh(x13, MemOperand(x21, -4));
+  __ Ldapursw(x14, MemOperand(x21, -5));
+
+  __ Ldapursb(x15, MemOperand(x20, 8));
+  __ Ldapursh(x16, MemOperand(x20, 8));
+  __ Ldapursw(x17, MemOperand(x20, 8));
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_64(0xffffffef, x0);
+  ASSERT_EQUAL_64(0xffffffffffffffef, x1);
+  ASSERT_EQUAL_64(0xffffcdef, x2);
+  ASSERT_EQUAL_64(0xffffffffffffcdef, x3);
+  ASSERT_EQUAL_64(0xffffffff89abcdef, x4);
+  ASSERT_EQUAL_64(0xffffff98, x5);
+  ASSERT_EQUAL_64(0xffffffffffffff98, x6);
+  ASSERT_EQUAL_64(0xffffdcba, x7);
+  ASSERT_EQUAL_64(0xffffffffffffdcba, x8);
+  ASSERT_EQUAL_64(0xffffffffba987654, x9);
+  ASSERT_EQUAL_64(0xfffffffe, x10);
+  ASSERT_EQUAL_64(0xfffffffffffffffe, x11);
+  ASSERT_EQUAL_64(0xffffba98, x12);
+  ASSERT_EQUAL_64(0xffffffffffffba98, x13);
+  ASSERT_EQUAL_64(0xffffffffdcba9876, x14);
+
+  ASSERT_EQUAL_64(0x0000000000000010, x15);
+  ASSERT_EQUAL_64(0x0000000000003210, x16);
+  ASSERT_EQUAL_64(0x0000000076543210, x17);
+#endif
+
+  TEARDOWN();
+}
+
+
+TEST(stlurb_stlurh_strlur) {
+  uint64_t data[] __attribute__((aligned(kXRegSizeInBytes * 2))) = {0x0, 0x0};
+
+  uintptr_t data_base = reinterpret_cast<uintptr_t>(data);
+
+  SETUP_WITH_FEATURES(CPUFeatures::kRCpcImm);
+  START();
+
+  __ Mov(x0, 0x0011223344556677);
+  __ Mov(x20, data_base);
+  __ Mov(x21, data_base + 2 * sizeof(data[0]));
+
+  __ Stlrb(w0, MemOperand(x20));
+  __ Stlrh(w0, MemOperand(x20, 1));
+  __ Stlr(w0, MemOperand(x20, 3));
+  __ Stlr(x0, MemOperand(x21, -8));
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_64(0x0044556677667777, data[0]);
+  ASSERT_EQUAL_64(0x0011223344556677, data[1]);
+#endif
+
+  TEARDOWN();
+}
+
+
 #define SIMPLE_ATOMIC_OPS(V, DEF) \
   V(DEF, add)                     \
   V(DEF, clr)                     \
@@ -19597,18 +19736,22 @@ TEST(unaligned_single_copy_atomicity) {
   uint64_t* data0_aligned = AlignUp(data0, kAtomicAccessGranule);
   uint64_t* dst_aligned = AlignUp(dst, kAtomicAccessGranule);
 
-  SETUP_WITH_FEATURES(CPUFeatures::kAtomics,
-                      CPUFeatures::kLORegions,
-                      CPUFeatures::kRCpc,
-                      CPUFeatures::kUSCAT);
+  CPUFeatures features(CPUFeatures::kAtomics,
+                       CPUFeatures::kLORegions,
+                       CPUFeatures::kRCpc,
+                       CPUFeatures::kRCpcImm);
+  features.Combine(CPUFeatures::kUSCAT);
+  SETUP_WITH_FEATURES(features);
   START();
 
   __ Mov(x0, 0x0123456789abcdef);
   __ Mov(x1, 0x456789abcdef0123);
   __ Mov(x2, 0x89abcdef01234567);
   __ Mov(x3, 0xcdef0123456789ab);
-  __ Mov(x20, reinterpret_cast<uintptr_t>(data0_aligned));
-  __ Mov(x21, reinterpret_cast<uintptr_t>(dst_aligned));
+  __ Mov(x18, reinterpret_cast<uintptr_t>(data0_aligned));
+  __ Mov(x19, reinterpret_cast<uintptr_t>(dst_aligned));
+  __ Mov(x20, x18);
+  __ Mov(x21, x19);
 
   for (unsigned i = 0; i < kAtomicAccessGranule; i++) {
     __ Stxrb(w0, w1, MemOperand(x20));
@@ -19629,6 +19772,11 @@ TEST(unaligned_single_copy_atomicity) {
     __ Swpab(w0, w1, MemOperand(x20));
     __ Swpalb(w0, w1, MemOperand(x20));
     __ Ldaprb(w0, MemOperand(x20));
+    // Use offset instead of Add to test Stlurb and Ldapurb.
+    __ Stlrb(w0, MemOperand(x19, i));
+    __ Ldaprb(w0, MemOperand(x19, i));
+    __ Ldapursb(w0, MemOperand(x20));
+    __ Ldapursb(x0, MemOperand(x20));
 
 #define ATOMIC_LOAD_B(NAME) __ Ld##NAME##b(w0, w1, MemOperand(x20));
 #define ATOMIC_STORE_B(NAME) __ St##NAME##b(w0, MemOperand(x20));
@@ -19656,6 +19804,11 @@ TEST(unaligned_single_copy_atomicity) {
       __ Swpah(w0, w1, MemOperand(x20));
       __ Swpalh(w0, w1, MemOperand(x20));
       __ Ldaprh(w0, MemOperand(x20));
+      // Use offset instead of Add to test Stlurh and Ldapurh.
+      __ Stlrh(w0, MemOperand(x19, i));
+      __ Ldaprh(w0, MemOperand(x19, i));
+      __ Ldapursh(w0, MemOperand(x20));
+      __ Ldapursh(x0, MemOperand(x20));
 
 #define ATOMIC_LOAD_H(NAME) __ Ld##NAME##h(w0, w1, MemOperand(x20));
 #define ATOMIC_STORE_H(NAME) __ St##NAME##h(w0, MemOperand(x20));
@@ -19684,6 +19837,10 @@ TEST(unaligned_single_copy_atomicity) {
       __ Swpa(w0, w1, MemOperand(x20));
       __ Swpal(w0, w1, MemOperand(x20));
       __ Ldapr(w0, MemOperand(x20));
+      // Use offset instead of Add to test Stlur and Ldapur.
+      __ Stlr(w0, MemOperand(x19, i));
+      __ Ldapr(w0, MemOperand(x19, i));
+      __ Ldapursw(x0, MemOperand(x20));
 
 #define ATOMIC_LOAD_W(NAME) __ Ld##NAME(w0, w1, MemOperand(x20));
 #define ATOMIC_STORE_W(NAME) __ St##NAME(w0, MemOperand(x20));
@@ -19723,6 +19880,9 @@ TEST(unaligned_single_copy_atomicity) {
       __ Swpa(x0, x1, MemOperand(x20));
       __ Swpal(x0, x1, MemOperand(x20));
       __ Ldapr(x0, MemOperand(x20));
+      // Use offset instead of Add to test Stlur and Ldapur.
+      __ Stlr(x0, MemOperand(x19, i));
+      __ Ldapr(x0, MemOperand(x19, i));
 
 #define ATOMIC_LOAD_X(NAME) __ Ld##NAME(x0, x1, MemOperand(x20));
 #define ATOMIC_STORE_X(NAME) __ St##NAME(x0, MemOperand(x20));
@@ -19761,10 +19921,12 @@ TEST(unaligned_single_copy_atomicity) {
 #if defined(VIXL_NEGATIVE_TESTING) && defined(VIXL_INCLUDE_SIMULATOR_AARCH64)
 #define CHECK_ALIGN_FAIL(i, expr)                                            \
   {                                                                          \
-    SETUP_WITH_FEATURES(CPUFeatures::kAtomics,                               \
-                        CPUFeatures::kLORegions,                             \
-                        CPUFeatures::kRCpc,                                  \
-                        CPUFeatures::kUSCAT);                                \
+    CPUFeatures features(CPUFeatures::kAtomics,                              \
+                         CPUFeatures::kLORegions,                            \
+                         CPUFeatures::kRCpc,                                 \
+                         CPUFeatures::kRCpcImm);                             \
+    features.Combine(CPUFeatures::kUSCAT);                                   \
+    SETUP_WITH_FEATURES(features);                                           \
     START();                                                                 \
     __ Mov(x0, 0x0123456789abcdef);                                          \
     __ Mov(x1, 0x456789abcdef0123);                                          \
@@ -19810,6 +19972,11 @@ TEST(unaligned_single_copy_atomicity_negative_test) {
       CHECK_ALIGN_FAIL(i, __ Swpah(w0, w1, MemOperand(x20)));
       CHECK_ALIGN_FAIL(i, __ Swpalh(w0, w1, MemOperand(x20)));
       CHECK_ALIGN_FAIL(i, __ Ldaprh(w0, MemOperand(x20)));
+      // Use offset instead of Add to test Stlurh and Ldapurh.
+      CHECK_ALIGN_FAIL(0, __ Stlrh(w0, MemOperand(x20, i)));
+      CHECK_ALIGN_FAIL(0, __ Ldaprh(w0, MemOperand(x20, i)));
+      CHECK_ALIGN_FAIL(i, __ Ldapursh(w0, MemOperand(x20)));
+      CHECK_ALIGN_FAIL(i, __ Ldapursh(x0, MemOperand(x20)));
 
 #define ATOMIC_LOAD_H(NAME) \
   CHECK_ALIGN_FAIL(i, __ Ld##NAME##h(w0, w1, MemOperand(x20)));
@@ -19840,6 +20007,10 @@ TEST(unaligned_single_copy_atomicity_negative_test) {
       CHECK_ALIGN_FAIL(i, __ Swpa(w0, w1, MemOperand(x20)));
       CHECK_ALIGN_FAIL(i, __ Swpal(w0, w1, MemOperand(x20)));
       CHECK_ALIGN_FAIL(i, __ Ldapr(w0, MemOperand(x20)));
+      // Use offset instead of add to test Stlur and Ldapur.
+      CHECK_ALIGN_FAIL(0, __ Stlr(w0, MemOperand(x20, i)));
+      CHECK_ALIGN_FAIL(0, __ Ldapr(w0, MemOperand(x20, i)));
+      CHECK_ALIGN_FAIL(i, __ Ldapursw(x0, MemOperand(x20)));
 
 #define ATOMIC_LOAD_W(NAME) \
   CHECK_ALIGN_FAIL(i, __ Ld##NAME(w0, w1, MemOperand(x20)));
@@ -19881,6 +20052,9 @@ TEST(unaligned_single_copy_atomicity_negative_test) {
       CHECK_ALIGN_FAIL(i, __ Swpa(x0, x1, MemOperand(x20)));
       CHECK_ALIGN_FAIL(i, __ Swpal(x0, x1, MemOperand(x20)));
       CHECK_ALIGN_FAIL(i, __ Ldapr(x0, MemOperand(x20)));
+      // Use offset instead of add to test Stlur and Ldapur.
+      CHECK_ALIGN_FAIL(0, __ Stlr(x0, MemOperand(x20, i)));
+      CHECK_ALIGN_FAIL(0, __ Ldapr(x0, MemOperand(x20, i)));
 
 #define ATOMIC_LOAD_X(NAME) \
   CHECK_ALIGN_FAIL(i, __ Ld##NAME(x0, x1, MemOperand(x20)));
@@ -19934,6 +20108,7 @@ TEST(unaligned_single_copy_atomicity_negative_test_2) {
   }
 }
 #endif  // VIXL_NEGATIVE_TESTING && VIXL_INCLUDE_SIMULATOR_AARCH64
+
 
 TEST(load_store_tagged_immediate_offset) {
   uint64_t tags[] = {0x00, 0x1, 0x55, 0xff};

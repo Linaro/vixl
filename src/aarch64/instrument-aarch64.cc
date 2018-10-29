@@ -495,6 +495,33 @@ void Instrument::VisitLoadStoreRegisterOffset(const Instruction* instr) {
   InstrumentLoadStore(instr);
 }
 
+void Instrument::VisitLoadStoreRCpcUnscaledOffset(const Instruction* instr) {
+  Update();
+  switch (instr->Mask(LoadStoreRCpcUnscaledOffsetMask)) {
+    case STLURB:
+    case STLURH:
+    case STLUR_w:
+    case STLUR_x: {
+      static Counter* counter = GetCounter("Store Integer");
+      counter->Increment();
+      break;
+    }
+    case LDAPURB:
+    case LDAPURSB_w:
+    case LDAPURSB_x:
+    case LDAPURH:
+    case LDAPURSH_w:
+    case LDAPURSH_x:
+    case LDAPUR_w:
+    case LDAPURSW:
+    case LDAPUR_x: {
+      static Counter* counter = GetCounter("Load Integer");
+      counter->Increment();
+      break;
+    }
+  }
+}
+
 
 void Instrument::VisitLoadStoreUnsignedOffset(const Instruction* instr) {
   Update();

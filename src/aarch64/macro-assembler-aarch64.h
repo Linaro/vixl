@@ -1781,19 +1781,52 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Ldaprb(const Register& rt, const MemOperand& src) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ldaprb(rt, src);
+    VIXL_ASSERT(src.IsImmediateOffset());
+    if (src.GetOffset() == 0) {
+      ldaprb(rt, src);
+    } else {
+      ldapurb(rt, src);
+    }
+  }
+
+  void Ldapursb(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldapursb(rt, src);
   }
 
   void Ldaprh(const Register& rt, const MemOperand& src) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ldaprh(rt, src);
+    VIXL_ASSERT(src.IsImmediateOffset());
+    if (src.GetOffset() == 0) {
+      ldaprh(rt, src);
+    } else {
+      ldapurh(rt, src);
+    }
+  }
+
+  void Ldapursh(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldapursh(rt, src);
   }
 
   void Ldapr(const Register& rt, const MemOperand& src) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ldapr(rt, src);
+    VIXL_ASSERT(src.IsImmediateOffset());
+    if (src.GetOffset() == 0) {
+      ldapr(rt, src);
+    } else {
+      ldapur(rt, src);
+    }
+  }
+
+  void Ldapursw(const Register& rt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldapursw(rt, src);
   }
 
   void Ldnp(const CPURegister& rt,
@@ -2249,17 +2282,32 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Stlr(const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    stlr(rt, dst);
+    VIXL_ASSERT(dst.IsImmediateOffset());
+    if (dst.GetOffset() == 0) {
+      stlr(rt, dst);
+    } else {
+      stlur(rt, dst);
+    }
   }
   void Stlrb(const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    stlrb(rt, dst);
+    VIXL_ASSERT(dst.IsImmediateOffset());
+    if (dst.GetOffset() == 0) {
+      stlrb(rt, dst);
+    } else {
+      stlurb(rt, dst);
+    }
   }
   void Stlrh(const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    stlrh(rt, dst);
+    VIXL_ASSERT(dst.IsImmediateOffset());
+    if (dst.GetOffset() == 0) {
+      stlrh(rt, dst);
+    } else {
+      stlurh(rt, dst);
+    }
   }
   void Stllr(const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);

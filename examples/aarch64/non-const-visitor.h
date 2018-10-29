@@ -78,6 +78,7 @@ class SwitchAddSubRegisterSources : public DecoderVisitor {
   V(LoadStorePairOffset)                \
   V(LoadStorePairPreIndex)              \
   V(LoadStorePairNonTemporal)           \
+  V(LoadStoreRCpcUnscaledOffset)        \
   V(LoadLiteral)                        \
   V(LoadStoreUnscaledOffset)            \
   V(LoadStorePostIndex)                 \
