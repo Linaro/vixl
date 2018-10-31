@@ -2904,7 +2904,12 @@ TEST(return_to_reg_auth_fail) {
   __ Retab();
 
   __ Bind(&after_fn1);
-  __ Bl(&fn1);
+  // There is a small but not negligible chance (1 in 127 runs) that the PAC
+  // codes for keys A and B will collide and RETAB won't abort. To mitigate
+  // this, we simply repeat the test a few more times.
+  for (unsigned i = 0; i < 32; i++) {
+    __ Bl(&fn1);
+  }
 
   __ Mov(sp, x28);
   __ Mov(lr, x29);
@@ -3543,9 +3548,14 @@ TEST(load_pauth_negative_test) {
   START();
   __ Mov(x16, src_base);
 
-  __ Pacdza(x16);
-
-  __ Ldrab(x0, MemOperand(x16));
+  // There is a small but not negligible chance (1 in 127 runs) that the PAC
+  // codes for keys A and B will collide and LDRAB won't abort. To mitigate
+  // this, we simply repeat the test a few more times.
+  for (unsigned i = 0; i < 32; i++) {
+    __ Add(x17, x16, i);
+    __ Pacdza(x17);
+    __ Ldrab(x0, MemOperand(x17));
+  }
   END();
 
   MUST_FAIL_WITH_MESSAGE(RUN(), "Failed to authenticate pointer.");
