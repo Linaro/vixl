@@ -1422,6 +1422,48 @@ void Simulator::VisitLoadStorePostIndex(const Instruction* instr) {
 }
 
 
+void Simulator::VisitLoadStorePAC(const Instruction* instr) {
+  unsigned dst = instr->GetRt();
+  unsigned addr_reg = instr->GetRn();
+
+  uint64_t address = ReadXRegister(addr_reg, Reg31IsStackPointer);
+
+  PACKey key = (instr->ExtractBit(23) == 0) ? kPACKeyDA : kPACKeyDB;
+  address = AuthPAC(address, 0, key, kDataPointer);
+
+  int error_lsb = GetTopPACBit(address, kInstructionPointer) - 2;
+  if (((address >> error_lsb) & 0x3) != 0x0) {
+    VIXL_ABORT_WITH_MSG("Failed to authenticate pointer.");
+  }
+
+
+  if ((addr_reg == 31) && ((address % 16) != 0)) {
+    // When the base register is SP the stack pointer is required to be
+    // quadword aligned prior to the address calculation and write-backs.
+    // Misalignment will cause a stack alignment fault.
+    VIXL_ALIGNMENT_EXCEPTION();
+  }
+
+  int64_t offset = instr->GetImmLSPAC();
+  address += offset;
+
+  if (instr->Mask(LoadStorePACPreBit) == LoadStorePACPreBit) {
+    // Pre-index mode.
+    VIXL_ASSERT(offset != 0);
+    WriteXRegister(addr_reg, address, LogRegWrites, Reg31IsStackPointer);
+  }
+
+  uintptr_t addr_ptr = static_cast<uintptr_t>(address);
+
+  // Verify that the calculated address is available to the host.
+  VIXL_ASSERT(address == addr_ptr);
+
+  WriteXRegister(dst, Memory::Read<uint64_t>(addr_ptr), NoRegLog);
+  unsigned access_size = 1 << 3;
+  LogRead(addr_ptr, dst, GetPrintRegisterFormatForSize(access_size));
+}
+
+
 void Simulator::VisitLoadStoreRegisterOffset(const Instruction* instr) {
   Extend ext = static_cast<Extend>(instr->GetExtendMode());
   VIXL_ASSERT((ext == UXTW) || (ext == UXTX) || (ext == SXTW) || (ext == SXTX));

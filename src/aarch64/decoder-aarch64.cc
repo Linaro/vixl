@@ -385,7 +385,19 @@ void Decoder::DecodeLoadStore(const Instruction* instr) {
                   VisitUnallocated(instr);
                 }
               } else {
-                VisitUnallocated(instr);
+                if (instr->ExtractBit(25) == 0) {
+                  if (instr->ExtractBit(26) == 0) {
+                    if (instr->ExtractBits(31, 30) == 0x3) {
+                      VisitLoadStorePAC(instr);
+                    } else {
+                      VisitUnallocated(instr);
+                    }
+                  } else {
+                    VisitUnallocated(instr);
+                  }
+                } else {
+                  VisitUnallocated(instr);
+                }
               }
             }
           }

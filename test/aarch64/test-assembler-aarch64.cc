@@ -3486,6 +3486,75 @@ TEST(load_store_regoffset) {
 }
 
 
+TEST(load_pauth) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  uint64_t src[4] = {1, 2, 3, 4};
+  uintptr_t src_base = reinterpret_cast<uintptr_t>(src);
+
+  START();
+  __ Mov(x16, src_base);
+  __ Mov(x17, src_base);
+  __ Mov(x18, src_base + 4 * sizeof(src[0]));
+  __ Mov(x19, src_base + 4 * sizeof(src[0]));
+
+  // Add PAC codes to addresses
+  __ Pacdza(x16);
+  __ Pacdzb(x17);
+  __ Pacdza(x18);
+  __ Pacdzb(x19);
+
+  __ Ldraa(x0, MemOperand(x16));
+  __ Ldraa(x1, MemOperand(x16, sizeof(src[0])));
+  __ Ldraa(x2, MemOperand(x16, 2 * sizeof(src[0]), PreIndex));
+  __ Ldraa(x3, MemOperand(x18, -sizeof(src[0])));
+  __ Ldrab(x4, MemOperand(x17));
+  __ Ldrab(x5, MemOperand(x17, sizeof(src[0])));
+  __ Ldrab(x6, MemOperand(x17, 2 * sizeof(src[0]), PreIndex));
+  __ Ldrab(x7, MemOperand(x19, -sizeof(src[0])));
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(1, x0);
+  ASSERT_EQUAL_64(2, x1);
+  ASSERT_EQUAL_64(3, x2);
+  ASSERT_EQUAL_64(4, x3);
+  ASSERT_EQUAL_64(1, x4);
+  ASSERT_EQUAL_64(2, x5);
+  ASSERT_EQUAL_64(3, x6);
+  ASSERT_EQUAL_64(4, x7);
+  ASSERT_EQUAL_64(src_base + 2 * sizeof(src[0]), x16);
+  ASSERT_EQUAL_64(src_base + 2 * sizeof(src[0]), x17);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+#ifdef VIXL_NEGATIVE_TESTING
+TEST(load_pauth_negative_test) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  uint64_t src[4] = {1, 2, 3, 4};
+  uintptr_t src_base = reinterpret_cast<uintptr_t>(src);
+
+  START();
+  __ Mov(x16, src_base);
+
+  __ Pacdza(x16);
+
+  __ Ldrab(x0, MemOperand(x16));
+  END();
+
+  MUST_FAIL_WITH_MESSAGE(RUN(), "Failed to authenticate pointer.");
+
+  TEARDOWN();
+}
+#endif  // VIXL_NEGATIVE_TESTING
+
+
 TEST(load_store_float) {
   SETUP_WITH_FEATURES(CPUFeatures::kFP);
 

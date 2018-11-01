@@ -1931,6 +1931,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     lsrv(rd, rn, rm);
   }
+  void Ldraa(const Register& xt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldraa(xt, src);
+  }
+  void Ldrab(const Register& xt, const MemOperand& src) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldrab(xt, src);
+  }
   void Madd(const Register& rd,
             const Register& rn,
             const Register& rm,

@@ -1280,6 +1280,14 @@ class Assembler : public vixl::internal::AssemblerBase {
               const MemOperand& src,
               LoadStoreScalingOption option = PreferUnscaledOffset);
 
+  // Load double-word with pointer authentication, using data key A and a
+  // modifier of zero [Armv8.3].
+  void ldraa(const Register& xt, const MemOperand& src);
+
+  // Load double-word with pointer authentication, using data key B and a
+  // modifier of zero [Armv8.3].
+  void ldrab(const Register& xt, const MemOperand& src);
+
   // Load integer or FP register pair.
   void ldp(const CPURegister& rt,
            const CPURegister& rt2,
@@ -3782,6 +3790,15 @@ class Assembler : public vixl::internal::AssemblerBase {
     return shift_amount << ImmShiftLS_offset;
   }
 
+  static Instr ImmLSPAC(int64_t imm10) {
+    VIXL_ASSERT(IsMultiple(imm10, 1 << 3));
+    int64_t scaled_imm10 = imm10 / (1 << 3);
+    VIXL_ASSERT(IsInt10(scaled_imm10));
+    uint32_t s_bit = (scaled_imm10 >> 9) & 1;
+    return (s_bit << ImmLSPACHi_offset) |
+           (TruncateToUint9(scaled_imm10) << ImmLSPACLo_offset);
+  }
+
   static Instr ImmPrefetchOperation(int imm5) {
     VIXL_ASSERT(IsUint5(imm5));
     return imm5 << ImmPrefetchOperation_offset;
@@ -4145,6 +4162,10 @@ class Assembler : public vixl::internal::AssemblerBase {
                  const MemOperand& addr,
                  LoadStoreOp op,
                  LoadStoreScalingOption option = PreferScaledOffset);
+
+  void LoadStorePAC(const Register& xt,
+                    const MemOperand& addr,
+                    LoadStorePACOp op);
 
   void LoadStorePair(const CPURegister& rt,
                      const CPURegister& rt2,

@@ -67,6 +67,7 @@
   V(FPIntegerConvert)                   \
   V(LoadLiteral)                        \
   V(LoadStoreExclusive)                 \
+  V(LoadStorePAC)                       \
   V(LoadStorePairNonTemporal)           \
   V(LoadStorePairOffset)                \
   V(LoadStorePairPostIndex)             \

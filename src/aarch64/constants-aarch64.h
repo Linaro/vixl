@@ -120,6 +120,8 @@ V_(ImmPrefetchOperation, 4, 0, ExtractBits)                                  \
 V_(PrefetchHint, 4, 3, ExtractBits)                                          \
 V_(PrefetchTarget, 2, 1, ExtractBits)                                        \
 V_(PrefetchStream, 0, 0, ExtractBits)                                        \
+V_(ImmLSPACHi, 22, 22, ExtractSignedBits)                                    \
+V_(ImmLSPACLo, 20, 12, ExtractBits)                                          \
                                                                              \
 /* Other immediates */                                                       \
 V_(ImmUncondBranch, 25, 0, ExtractSignedBits)                                \
@@ -902,6 +904,18 @@ enum LoadStorePairNonTemporalOp {
   LDNP_d = LoadStorePairNonTemporalFixed | LDP_d,
   STNP_q = LoadStorePairNonTemporalFixed | STP_q,
   LDNP_q = LoadStorePairNonTemporalFixed | LDP_q
+};
+
+// Load with pointer authentication.
+enum LoadStorePACOp {
+  LoadStorePACFixed  = 0xF8200400,
+  LoadStorePACFMask  = 0xFF200400,
+  LoadStorePACMask   = 0xFFA00C00,
+  LoadStorePACPreBit = 0x00000800,
+  LDRAA     = LoadStorePACFixed | 0x00000000,
+  LDRAA_pre = LoadStorePACPreBit | LDRAA,
+  LDRAB     = LoadStorePACFixed | 0x00800000,
+  LDRAB_pre = LoadStorePACPreBit | LDRAB
 };
 
 // Load literal.

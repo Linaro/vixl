@@ -1435,6 +1435,32 @@ void Disassembler::VisitLoadStoreExclusive(const Instruction *instr) {
   Format(instr, mnemonic, form);
 }
 
+void Disassembler::VisitLoadStorePAC(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(LoadStorePAC)";
+
+  switch (instr->Mask(LoadStorePACMask)) {
+    case LDRAA:
+      mnemonic = "ldraa";
+      form = "'Xt, ['Xns'ILA]";
+      break;
+    case LDRAB:
+      mnemonic = "ldrab";
+      form = "'Xt, ['Xns'ILA]";
+      break;
+    case LDRAA_pre:
+      mnemonic = "ldraa";
+      form = "'Xt, ['Xns'ILA]!";
+      break;
+    case LDRAB_pre:
+      mnemonic = "ldrab";
+      form = "'Xt, ['Xns'ILA]!";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
 #define ATOMIC_MEMORY_SIMPLE_LIST(V) \
   V(LDADD, "add")                    \
   V(LDCLR, "clr")                    \
@@ -5201,6 +5227,12 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
         case 'F': {  // ILF(CNR) - Immediate Rotation Value for Complex Numbers
           AppendToOutput("#%" PRId32, instr->GetImmRotFcmlaSca() * 90);
           return strlen("ILFCNR");
+        }
+        case 'A': {  // ILA - Immediate Load with pointer authentication.
+          if (instr->GetImmLSPAC() != 0) {
+            AppendToOutput(", #%" PRId32, instr->GetImmLSPAC());
+          }
+          return 3;
         }
         default: {
           VIXL_UNIMPLEMENTED();

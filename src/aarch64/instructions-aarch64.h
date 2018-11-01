@@ -207,6 +207,16 @@ class Instruction {
   }
   VIXL_DEPRECATED("GetImmPCRel", int ImmPCRel() const) { return GetImmPCRel(); }
 
+  // ImmLSPAC is a compound field (not present in INSTRUCTION_FIELDS_LIST),
+  // formed from ImmLSPACLo and ImmLSPACHi.
+  int GetImmLSPAC() const {
+    uint32_t hi = static_cast<uint32_t>(GetImmLSPACHi());
+    uint32_t lo = GetImmLSPACLo();
+    uint32_t offset = (hi << ImmLSPACLo_width) | lo;
+    int width = ImmLSPACLo_width + ImmLSPACHi_width;
+    return ExtractSignedBitfield32(width - 1, 0, offset) << 3;
+  }
+
   uint64_t GetImmLogical() const;
   VIXL_DEPRECATED("GetImmLogical", uint64_t ImmLogical() const) {
     return GetImmLogical();

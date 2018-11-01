@@ -71,6 +71,7 @@ class SwitchAddSubRegisterSources : public DecoderVisitor {
   V(ConditionalBranch)                  \
   V(System)                             \
   V(Exception)                          \
+  V(LoadStorePAC)                       \
   V(LoadStorePairPostIndex)             \
   V(LoadStorePairOffset)                \
   V(LoadStorePairPreIndex)              \

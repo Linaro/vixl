@@ -423,6 +423,14 @@ void Instrument::VisitLoadLiteral(const Instruction* instr) {
 }
 
 
+void Instrument::VisitLoadStorePAC(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("Load Integer");
+  counter->Increment();
+}
+
+
 void Instrument::InstrumentLoadStore(const Instruction* instr) {
   static Counter* load_int_counter = GetCounter("Load Integer");
   static Counter* store_int_counter = GetCounter("Store Integer");

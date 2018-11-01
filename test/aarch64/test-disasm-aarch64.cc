@@ -1866,6 +1866,31 @@ TEST(load_store_pair) {
 }
 
 
+TEST(load_pauth) {
+  SETUP();
+
+  COMPARE(ldraa(x0, MemOperand(x1)), "ldraa x0, [x1]");
+  COMPARE(ldraa(x2, MemOperand(sp)), "ldraa x2, [sp]");
+  COMPARE(ldraa(x3, MemOperand(x4, 64)), "ldraa x3, [x4, #64]");
+  COMPARE(ldraa(x5, MemOperand(sp, 512)), "ldraa x5, [sp, #512]");
+  COMPARE(ldraa(x6, MemOperand(x7, -256)), "ldraa x6, [x7, #-256]");
+  COMPARE(ldraa(x8, MemOperand(sp, -1024)), "ldraa x8, [sp, #-1024]");
+  COMPARE(ldraa(x9, MemOperand(x10, 2048, PreIndex)),
+          "ldraa x9, [x10, #2048]!");
+
+  COMPARE(ldrab(x9, MemOperand(x10)), "ldrab x9, [x10]");
+  COMPARE(ldrab(x11, MemOperand(sp)), "ldrab x11, [sp]");
+  COMPARE(ldrab(x12, MemOperand(x13, 64)), "ldrab x12, [x13, #64]");
+  COMPARE(ldrab(x14, MemOperand(sp, 512)), "ldrab x14, [sp, #512]");
+  COMPARE(ldrab(x15, MemOperand(x16, -256)), "ldrab x15, [x16, #-256]");
+  COMPARE(ldrab(x17, MemOperand(sp, -1024)), "ldrab x17, [sp, #-1024]");
+  COMPARE(ldrab(x18, MemOperand(x19, 2048, PreIndex)),
+          "ldrab x18, [x19, #2048]!");
+
+  CLEANUP();
+}
+
+
 TEST(load_store_exclusive) {
   SETUP();
 

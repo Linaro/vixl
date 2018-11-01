@@ -254,6 +254,12 @@ void CPUFeaturesAuditor::VisitDataProcessing2Source(const Instruction* instr) {
   }
 }
 
+void CPUFeaturesAuditor::VisitLoadStorePAC(const Instruction* instr) {
+  RecordInstructionFeaturesScope scope(this);
+  USE(instr);
+  scope.Record(CPUFeatures::kPAuth);
+}
+
 void CPUFeaturesAuditor::VisitDataProcessing3Source(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
   USE(instr);

@@ -1324,6 +1324,18 @@ void Assembler::ldursw(const Register& xt,
 }
 
 
+void Assembler::ldraa(const Register& xt, const MemOperand& src) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));
+  LoadStorePAC(xt, src, LDRAA);
+}
+
+
+void Assembler::ldrab(const Register& xt, const MemOperand& src) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));
+  LoadStorePAC(xt, src, LDRAB);
+}
+
+
 void Assembler::ldrsw(const Register& xt, RawLiteral* literal) {
   VIXL_ASSERT(xt.Is64Bits());
   VIXL_ASSERT(literal->GetSize() == kWRegSizeInBytes);
@@ -5510,6 +5522,23 @@ void Assembler::LoadStore(const CPURegister& rt,
                           LoadStoreScalingOption option) {
   VIXL_ASSERT(CPUHas(rt));
   Emit(op | Rt(rt) | LoadStoreMemOperand(addr, CalcLSDataSize(op), option));
+}
+
+void Assembler::LoadStorePAC(const Register& xt,
+                             const MemOperand& addr,
+                             LoadStorePACOp op) {
+  VIXL_ASSERT(xt.Is64Bits());
+  VIXL_ASSERT(addr.IsImmediateOffset() || addr.IsPreIndex());
+
+  Instr pac_op = op;
+  if (addr.IsPreIndex()) {
+    pac_op |= LoadStorePACPreBit;
+  }
+
+  Instr base = RnSP(addr.GetBaseRegister());
+  int64_t offset = addr.GetOffset();
+
+  Emit(pac_op | Rt(xt) | base | ImmLSPAC(static_cast<int>(offset)));
 }
 
 
