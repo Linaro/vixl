@@ -546,6 +546,25 @@ void Assembler::sbcs(const Register& rd,
 }
 
 
+void Assembler::rmif(const Register& xn, unsigned rotation, StatusFlags flags) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kFlagM));
+  VIXL_ASSERT(xn.Is64Bits());
+  Emit(RMIF | Rn(xn) | ImmRMIFRotation(rotation) | Nzcv(flags));
+}
+
+
+void Assembler::setf8(const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kFlagM));
+  Emit(SETF8 | Rn(rn));
+}
+
+
+void Assembler::setf16(const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kFlagM));
+  Emit(SETF16 | Rn(rn));
+}
+
+
 void Assembler::ngc(const Register& rd, const Operand& operand) {
   Register zr = AppropriateZeroRegFor(rd);
   sbc(rd, zr, operand);
@@ -2521,6 +2540,12 @@ void Assembler::mrs(const Register& xt, SystemRegister sysreg) {
 void Assembler::msr(SystemRegister sysreg, const Register& xt) {
   VIXL_ASSERT(xt.Is64Bits());
   Emit(MSR | Rt(xt) | ImmSystemRegister(sysreg));
+}
+
+
+void Assembler::cfinv() {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kFlagM));
+  Emit(CFINV);
 }
 
 

@@ -498,6 +498,26 @@ TEST(adc_subc_ngc) {
 }
 
 
+TEST(rmif) {
+  SETUP();
+
+  COMPARE(rmif(x0, 3, ZCVFlag), "rmif x0, #3, #nZCV");
+  COMPARE(rmif(x1, 63, NCFlag), "rmif x1, #63, #NzCv");
+
+  CLEANUP();
+}
+
+
+TEST(setf8_setf16) {
+  SETUP();
+
+  COMPARE(setf8(w0), "setf8 w0");
+  COMPARE(setf16(w1), "setf16 w1");
+
+  CLEANUP();
+}
+
+
 TEST(mul_and_div) {
   SETUP();
 
@@ -3183,6 +3203,15 @@ TEST(system_msr) {
   // Test msr that use system registers we haven't named.
   COMPARE(dci(MSR | (0x1234 << 5)), "msr S2_2_c4_c6_4, x0");
   COMPARE(dci(0xd51e1000), "msr S3_6_c1_c0_0, x0");
+
+  CLEANUP();
+}
+
+
+TEST(system_pstate) {
+  SETUP();
+
+  COMPARE(cfinv(), "cfinv");
 
   CLEANUP();
 }

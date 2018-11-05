@@ -1883,6 +1883,29 @@ void MacroAssembler::AddSubWithCarryMacro(const Register& rd,
 }
 
 
+void MacroAssembler::Rmif(const Register& xn,
+                          unsigned shift,
+                          StatusFlags flags) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SingleEmissionCheckScope guard(this);
+  rmif(xn, shift, flags);
+}
+
+
+void MacroAssembler::Setf8(const Register& wn) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SingleEmissionCheckScope guard(this);
+  setf8(wn);
+}
+
+
+void MacroAssembler::Setf16(const Register& wn) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SingleEmissionCheckScope guard(this);
+  setf16(wn);
+}
+
+
 #define DEFINE_FUNCTION(FN, REGTYPE, REG, OP)                          \
   void MacroAssembler::FN(const REGTYPE REG, const MemOperand& addr) { \
     VIXL_ASSERT(allow_macro_instructions_);                            \

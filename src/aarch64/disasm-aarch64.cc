@@ -243,6 +243,44 @@ void Disassembler::VisitAddSubWithCarry(const Instruction *instr) {
 }
 
 
+void Disassembler::VisitRotateRightIntoFlags(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(RotateRightIntoFlags)";
+
+  switch (instr->Mask(RotateRightIntoFlagsMask)) {
+    case RMIF:
+      mnemonic = "rmif";
+      form = "'Xn, 'IRr, 'INzcv";
+      break;
+    default:
+      VIXL_UNREACHABLE();
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+
+void Disassembler::VisitEvaluateIntoFlags(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(EvaluateIntoFlags)";
+
+  switch (instr->Mask(EvaluateIntoFlagsMask)) {
+    case SETF8:
+      mnemonic = "setf8";
+      form = "'Wn";
+      break;
+    case SETF16:
+      mnemonic = "setf16";
+      form = "'Wn";
+      break;
+    default:
+      VIXL_UNREACHABLE();
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+
 void Disassembler::VisitLogicalImmediate(const Instruction *instr) {
   bool rd_is_zr = RdIsZROrSP(instr);
   bool rn_is_zr = RnIsZROrSP(instr);
@@ -2025,6 +2063,13 @@ void Disassembler::VisitSystem(const Instruction *instr) {
   if (instr->GetInstructionBits() == XPACLRI) {
     mnemonic = "xpaclri";
     form = NULL;
+  } else if (instr->Mask(SystemPStateFMask) == SystemPStateFixed) {
+    switch (instr->Mask(SystemPStateMask)) {
+      case CFINV:
+        mnemonic = "cfinv";
+        form = NULL;
+        break;
+    }
   } else if (instr->Mask(SystemPAuthFMask) == SystemPAuthFixed) {
     switch (instr->Mask(SystemPAuthMask)) {
 #define PAUTH_CASE(NAME, MN) \
@@ -5479,6 +5524,18 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           break;
       }
       return 2;
+    }
+    case 'R': {  // IR - Rotate right into flags.
+      switch (format[2]) {
+        case 'r': {  // IRr - Rotate amount.
+          AppendToOutput("#%d", instr->GetImmRMIFRotation());
+          return 3;
+        }
+        default: {
+          VIXL_UNIMPLEMENTED();
+          return 0;
+        }
+      }
     }
     default: {
       VIXL_UNIMPLEMENTED();

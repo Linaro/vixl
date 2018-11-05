@@ -674,6 +674,16 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Subtract with carry bit and update status flags.
   void sbcs(const Register& rd, const Register& rn, const Operand& operand);
 
+  // Rotate register right and insert into NZCV flags under the control of a
+  // mask [Armv8.4].
+  void rmif(const Register& xn, unsigned rotation, StatusFlags flags);
+
+  // Set NZCV flags from register, treated as an 8-bit value [Armv8.4].
+  void setf8(const Register& rn);
+
+  // Set NZCV flags from register, treated as an 16-bit value [Armv8.4].
+  void setf16(const Register& rn);
+
   // Negate with carry bit.
   void ngc(const Register& rd, const Operand& operand);
 
@@ -2112,6 +2122,9 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Move from register to system register.
   void msr(SystemRegister sysreg, const Register& xt);
+
+  // Invert carry flag [Armv8.4].
+  void cfinv();
 
   // System instruction.
   void sys(int op1, int crn, int crm, int op2, const Register& xt = xzr);
@@ -3812,6 +3825,11 @@ class Assembler : public vixl::internal::AssemblerBase {
   static Instr ImmSystemRegister(int imm16) {
     VIXL_ASSERT(IsUint16(imm16));
     return imm16 << ImmSystemRegister_offset;
+  }
+
+  static Instr ImmRMIFRotation(int imm6) {
+    VIXL_ASSERT(IsUint6(imm6));
+    return imm6 << ImmRMIFRotation_offset;
   }
 
   static Instr ImmHint(int imm7) {

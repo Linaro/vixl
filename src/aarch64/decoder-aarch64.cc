@@ -505,8 +505,24 @@ void Decoder::DecodeDataProcessing(const Instruction* instr) {
     } else {
       switch (instr->ExtractBits(23, 21)) {
         case 0: {
-          if (instr->Mask(0x0000FC00) != 0) {
-            VisitUnallocated(instr);
+          if (instr->ExtractBits(15, 10) != 0) {
+            if (instr->ExtractBits(14, 10) == 0x1) {
+              if (instr->Mask(0xE0000010) == 0xA0000000) {
+                VisitRotateRightIntoFlags(instr);
+              } else {
+                VisitUnallocated(instr);
+              }
+            } else {
+              if (instr->ExtractBits(13, 10) == 0x2) {
+                if (instr->Mask(0xE01F801F) == 0x2000000D) {
+                  VisitEvaluateIntoFlags(instr);
+                } else {
+                  VisitUnallocated(instr);
+                }
+              } else {
+                VisitUnallocated(instr);
+              }
+            }
           } else {
             VisitAddSubWithCarry(instr);
           }

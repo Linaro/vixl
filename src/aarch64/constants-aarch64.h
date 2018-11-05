@@ -141,6 +141,7 @@ V_(SysOp1, 18, 16, ExtractBits)                                              \
 V_(SysOp2, 7, 5, ExtractBits)                                                \
 V_(CRn, 15, 12, ExtractBits)                                                 \
 V_(CRm, 11, 8, ExtractBits)                                                  \
+V_(ImmRMIFRotation, 20, 15, ExtractBits)                                     \
                                                                              \
 /* Load-/store-exclusive */                                                  \
 V_(LdStXLoad, 22, 22, ExtractBits)                                           \
@@ -574,6 +575,23 @@ enum AddSubWithCarryOp {
   SBCS_x               = AddSubWithCarryFixed | SUBS | SixtyFourBits
 };
 
+// Rotate right into flags.
+enum RotateRightIntoFlagsOp {
+  RotateRightIntoFlagsFixed = 0x1A000400,
+  RotateRightIntoFlagsFMask = 0x1FE07C00,
+  RotateRightIntoFlagsMask  = 0xFFE07C10,
+  RMIF                      = RotateRightIntoFlagsFixed | 0xA0000000
+};
+
+// Evaluate into flags.
+enum EvaluateIntoFlagsOp {
+  EvaluateIntoFlagsFixed = 0x1A000800,
+  EvaluateIntoFlagsFMask = 0x1FE03C00,
+  EvaluateIntoFlagsMask  = 0xFFE07C1F,
+  SETF8                  = EvaluateIntoFlagsFixed | 0x2000000D,
+  SETF16                 = EvaluateIntoFlagsFixed | 0x2000400D
+};
+
 
 // Logical (immediate and shifted register).
 enum LogicalOp {
@@ -755,6 +773,13 @@ enum SystemSysRegOp {
   SystemSysRegMask  = 0xFFF00000,
   MRS               = SystemSysRegFixed | 0x00200000,
   MSR               = SystemSysRegFixed | 0x00000000
+};
+
+enum SystemPStateOp {
+  SystemPStateFixed = 0xD5004000,
+  SystemPStateFMask = 0xFFF8F000,
+  SystemPStateMask  = 0xFFFFF0FF,
+  CFINV             = SystemPStateFixed | 0x0000001F
 };
 
 enum SystemHintOp {

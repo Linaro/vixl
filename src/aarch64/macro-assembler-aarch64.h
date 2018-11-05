@@ -697,6 +697,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                             FlagsUpdate S,
                             AddSubWithCarryOp op);
 
+  void Rmif(const Register& xn, unsigned shift, StatusFlags flags);
+  void Setf8(const Register& wn);
+  void Setf16(const Register& wn);
+
   // Move macros.
   void Mov(const Register& rd, uint64_t imm);
   void Mov(const Register& rd,
@@ -1997,6 +2001,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!rt.IsZero());
     SingleEmissionCheckScope guard(this);
     msr(sysreg, rt);
+  }
+  void Cfinv() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cfinv();
   }
   void Sys(int op1, int crn, int crm, int op2, const Register& rt = xzr) {
     VIXL_ASSERT(allow_macro_instructions_);

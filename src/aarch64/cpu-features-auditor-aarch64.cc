@@ -140,6 +140,25 @@ void CPUFeaturesAuditor::VisitAddSubWithCarry(const Instruction* instr) {
   USE(instr);
 }
 
+void CPUFeaturesAuditor::VisitRotateRightIntoFlags(const Instruction* instr) {
+  RecordInstructionFeaturesScope scope(this);
+  switch (instr->Mask(RotateRightIntoFlagsMask)) {
+    case RMIF:
+      scope.Record(CPUFeatures::kFlagM);
+      return;
+  }
+}
+
+void CPUFeaturesAuditor::VisitEvaluateIntoFlags(const Instruction* instr) {
+  RecordInstructionFeaturesScope scope(this);
+  switch (instr->Mask(EvaluateIntoFlagsMask)) {
+    case SETF8:
+    case SETF16:
+      scope.Record(CPUFeatures::kFlagM);
+      return;
+  }
+}
+
 void CPUFeaturesAuditor::VisitAtomicMemory(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
   switch (instr->Mask(AtomicMemoryMask)) {
@@ -1060,6 +1079,12 @@ void CPUFeaturesAuditor::VisitSystem(const Instruction* instr) {
       case CVAU:
       case CIVAC:
         // No special CPU features.
+        break;
+    }
+  } else if (instr->Mask(SystemPStateFMask) == SystemPStateFixed) {
+    switch (instr->Mask(SystemPStateMask)) {
+      case CFINV:
+        scope.Record(CPUFeatures::kFlagM);
         break;
     }
   }

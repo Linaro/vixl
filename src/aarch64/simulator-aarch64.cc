@@ -1307,6 +1307,33 @@ void Simulator::VisitAddSubWithCarry(const Instruction* instr) {
 }
 
 
+void Simulator::VisitRotateRightIntoFlags(const Instruction* instr) {
+  switch (instr->Mask(RotateRightIntoFlagsMask)) {
+    case RMIF: {
+      uint64_t value = ReadRegister<uint64_t>(instr->GetRn());
+      unsigned shift = instr->GetImmRMIFRotation();
+      unsigned mask = instr->GetNzcv();
+      uint64_t rotated = RotateRight(value, shift, kXRegSize);
+
+      ReadNzcv().SetFlags((rotated & mask) | (ReadNzcv().GetFlags() & ~mask));
+      break;
+    }
+  }
+}
+
+
+void Simulator::VisitEvaluateIntoFlags(const Instruction* instr) {
+  uint32_t value = ReadRegister<uint32_t>(instr->GetRn());
+  unsigned msb = (instr->Mask(EvaluateIntoFlagsMask) == SETF16) ? 15 : 7;
+
+  unsigned sign_bit = (value >> msb) & 1;
+  unsigned overflow_bit = (value >> (msb + 1)) & 1;
+  ReadNzcv().SetN(sign_bit);
+  ReadNzcv().SetZ((value << (31 - msb)) == 0);
+  ReadNzcv().SetV(sign_bit ^ overflow_bit);
+}
+
+
 void Simulator::VisitLogicalShifted(const Instruction* instr) {
   unsigned reg_size = instr->GetSixtyFourBits() ? kXRegSize : kWRegSize;
   Shift shift_type = static_cast<Shift>(instr->GetShiftDP());
@@ -3700,6 +3727,12 @@ void Simulator::VisitSystem(const Instruction* instr) {
   // makes the decoding tricky.
   if (instr->GetInstructionBits() == XPACLRI) {
     WriteXRegister(30, StripPAC(ReadXRegister(30), kInstructionPointer));
+  } else if (instr->Mask(SystemPStateFMask) == SystemPStateFixed) {
+    switch (instr->Mask(SystemPStateMask)) {
+      case CFINV:
+        ReadNzcv().SetC(!ReadC());
+        break;
+    }
   } else if (instr->Mask(SystemPAuthFMask) == SystemPAuthFixed) {
     // Check BType allows PACI[AB]SP instructions.
     if (PcIsInGuardedPage()) {

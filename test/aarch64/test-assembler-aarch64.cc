@@ -9619,6 +9619,111 @@ TEST(adc_sbc_wide_imm) {
   TEARDOWN();
 }
 
+
+TEST(rmif) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFlagM);
+
+  START();
+  __ Mov(x0, 0x0123456789abcdef);
+
+  // Set NZCV to 0b1011 (0xb)
+  __ Rmif(x0, 0, NCVFlag);
+  __ Mrs(x1, NZCV);
+
+  // Set NZCV to 0b0111 (0x7)
+  __ Rmif(x0, 6, NZCVFlag);
+  __ Mrs(x2, NZCV);
+
+  // Set Z to 0, NZCV = 0b0011 (0x3)
+  __ Rmif(x0, 60, ZFlag);
+  __ Mrs(x3, NZCV);
+
+  // Set N to 1 and C to 0, NZCV = 0b1001 (0x9)
+  __ Rmif(x0, 62, NCFlag);
+  __ Mrs(x4, NZCV);
+
+  // No change to NZCV
+  __ Rmif(x0, 0, NoFlag);
+  __ Mrs(x5, NZCV);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_32(NCVFlag, w1);
+  ASSERT_EQUAL_32(ZCVFlag, w2);
+  ASSERT_EQUAL_32(CVFlag, w3);
+  ASSERT_EQUAL_32(NVFlag, w4);
+  ASSERT_EQUAL_32(NVFlag, w5);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
+TEST(setf8_setf16) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFlagM);
+
+  START();
+  __ Mov(x0, 0x0);
+  __ Mov(x1, 0x1);
+  __ Mov(x2, 0xff);
+  __ Mov(x3, 0x100);
+  __ Mov(x4, 0x101);
+  __ Mov(x5, 0xffff);
+  __ Mov(x6, 0x10000);
+  __ Mov(x7, 0x10001);
+  __ Mov(x8, 0xfffffffff);
+
+  __ Setf8(w0);
+  __ Mrs(x9, NZCV);
+  __ Setf8(w1);
+  __ Mrs(x10, NZCV);
+  __ Setf8(w2);
+  __ Mrs(x11, NZCV);
+  __ Setf8(w3);
+  __ Mrs(x12, NZCV);
+  __ Setf8(w4);
+  __ Mrs(x13, NZCV);
+  __ Setf8(w8);
+  __ Mrs(x14, NZCV);
+
+  __ Setf16(w0);
+  __ Mrs(x15, NZCV);
+  __ Setf16(w1);
+  __ Mrs(x16, NZCV);
+  __ Setf16(w5);
+  __ Mrs(x17, NZCV);
+  __ Setf16(w6);
+  __ Mrs(x18, NZCV);
+  __ Setf16(w7);
+  __ Mrs(x19, NZCV);
+  __ Setf16(w8);
+  __ Mrs(x20, NZCV);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_32(ZFlag, w9);    // Zero
+  ASSERT_EQUAL_32(NoFlag, w10);  // Regular int8
+  ASSERT_EQUAL_32(NVFlag, w11);  // Negative but not sign-extended (overflow)
+  ASSERT_EQUAL_32(ZVFlag, w12);  // Overflow with zero remainder
+  ASSERT_EQUAL_32(VFlag, w13);   // Overflow with non-zero remainder
+  ASSERT_EQUAL_32(NFlag, w14);   // Negative and sign-extended
+
+  ASSERT_EQUAL_32(ZFlag, w15);   // Zero
+  ASSERT_EQUAL_32(NoFlag, w16);  // Regular int16
+  ASSERT_EQUAL_32(NVFlag, w17);  // Negative but not sign-extended (overflow)
+  ASSERT_EQUAL_32(ZVFlag, w18);  // Overflow with zero remainder
+  ASSERT_EQUAL_32(VFlag, w19);   // Overflow with non-zero remainder
+  ASSERT_EQUAL_32(NFlag, w20);   // Negative and sign-extended
+
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+
+  TEARDOWN();
+}
+
+
 TEST(flags) {
   SETUP();
 
@@ -14917,6 +15022,37 @@ TEST(system_mrs) {
   // FPCR
   // The default FPCR on Linux-based platforms is 0.
   ASSERT_EQUAL_32(0, w6);
+
+  TEARDOWN();
+}
+
+
+TEST(cfinv) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFlagM);
+
+  START();
+  __ Mov(w0, 1);
+
+  // Set the C flag.
+  __ Cmp(w0, 0);
+  __ Mrs(x1, NZCV);
+
+  // Invert the C flag.
+  __ Cfinv();
+  __ Mrs(x2, NZCV);
+
+  // Invert the C flag again.
+  __ Cfinv();
+  __ Mrs(x3, NZCV);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_32(CFlag, w1);
+  ASSERT_EQUAL_32(NoFlag, w2);
+  ASSERT_EQUAL_32(CFlag, w3);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
   TEARDOWN();
 }

@@ -56,6 +56,7 @@
   V(DataProcessing3Source)              \
   V(Exception)                          \
   V(Extract)                            \
+  V(EvaluateIntoFlags)                  \
   V(FPCompare)                          \
   V(FPConditionalCompare)               \
   V(FPConditionalSelect)                \
@@ -109,6 +110,7 @@
   V(NEONShiftImmediate)                 \
   V(NEONTable)                          \
   V(PCRelAddressing)                    \
+  V(RotateRightIntoFlags)               \
   V(System)                             \
   V(TestBranch)                         \
   V(UnconditionalBranch)                \

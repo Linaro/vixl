@@ -534,6 +534,22 @@ void Instrument::VisitAddSubWithCarry(const Instruction* instr) {
 }
 
 
+void Instrument::VisitRotateRightIntoFlags(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("Other");
+  counter->Increment();
+}
+
+
+void Instrument::VisitEvaluateIntoFlags(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("Other");
+  counter->Increment();
+}
+
+
 void Instrument::VisitConditionalCompareRegister(const Instruction* instr) {
   USE(instr);
   Update();
