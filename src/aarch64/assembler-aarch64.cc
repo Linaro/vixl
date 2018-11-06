@@ -2549,6 +2549,18 @@ void Assembler::cfinv() {
 }
 
 
+void Assembler::axflag() {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kAXFlag));
+  Emit(AXFLAG);
+}
+
+
+void Assembler::xaflag() {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kAXFlag));
+  Emit(XAFLAG);
+}
+
+
 void Assembler::clrex(int imm4) { Emit(CLREX | CRm(imm4)); }
 
 

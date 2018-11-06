@@ -392,7 +392,7 @@ TEST(CPUFeatures_format) {
       // Armv8.4
       "RCpc (imm), FlagM, USCAT, FHM, DIT, "
       // Armv8.5
-      "BTI",
+      "BTI, AXFlag",
       CPUFeatures::All());
 }
 

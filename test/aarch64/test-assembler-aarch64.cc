@@ -15058,6 +15058,70 @@ TEST(cfinv) {
 }
 
 
+TEST(axflag_xaflag) {
+  // The AXFLAG and XAFLAG instructions are designed for converting the FP
+  // conditional flags from Arm format to an alternate format efficiently.
+  // There are only 4 cases which are relevant for this conversion but we test
+  // the behaviour for all 16 cases anyway. The 4 important cases are labelled
+  // below.
+  StatusFlags expected_x[16] = {NoFlag,
+                                ZFlag,
+                                CFlag,  // Greater than
+                                ZFlag,  // Unordered
+                                ZFlag,
+                                ZFlag,
+                                ZCFlag,  // Equal to
+                                ZFlag,
+                                NoFlag,  // Less than
+                                ZFlag,
+                                CFlag,
+                                ZFlag,
+                                ZFlag,
+                                ZFlag,
+                                ZCFlag,
+                                ZFlag};
+  StatusFlags expected_a[16] = {NFlag,  // Less than
+                                NFlag,
+                                CFlag,  // Greater than
+                                CFlag,
+                                CVFlag,  // Unordered
+                                CVFlag,
+                                ZCFlag,  // Equal to
+                                ZCFlag,
+                                NFlag,
+                                NFlag,
+                                CFlag,
+                                CFlag,
+                                CVFlag,
+                                CVFlag,
+                                ZCFlag,
+                                ZCFlag};
+
+  for (unsigned i = 0; i < 16; i++) {
+    SETUP_WITH_FEATURES(CPUFeatures::kAXFlag);
+
+    START();
+    __ Mov(x0, i << Flags_offset);
+    __ Msr(NZCV, x0);
+    __ Axflag();
+    __ Mrs(x1, NZCV);
+    __ Msr(NZCV, x0);
+    __ Xaflag();
+    __ Mrs(x2, NZCV);
+    END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+    RUN();
+    ASSERT_EQUAL_32(expected_x[i], w1);
+    ASSERT_EQUAL_32(expected_a[i], w2);
+#else
+    USE(expected_x, expected_a);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+    TEARDOWN();
+  }
+}
+
+
 TEST(system_msr) {
   // All FPCR fields that must be implemented: AHP, DN, FZ, RMode
   const uint64_t fpcr_core = 0x07c00000;

@@ -3212,6 +3212,8 @@ TEST(system_pstate) {
   SETUP();
 
   COMPARE(cfinv(), "cfinv");
+  COMPARE(axflag(), "axflag");
+  COMPARE(xaflag(), "xaflag");
 
   CLEANUP();
 }

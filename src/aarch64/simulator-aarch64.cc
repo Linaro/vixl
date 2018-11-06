@@ -3732,6 +3732,24 @@ void Simulator::VisitSystem(const Instruction* instr) {
       case CFINV:
         ReadNzcv().SetC(!ReadC());
         break;
+      case AXFLAG:
+        ReadNzcv().SetN(0);
+        ReadNzcv().SetZ(ReadNzcv().GetZ() | ReadNzcv().GetV());
+        ReadNzcv().SetC(ReadNzcv().GetC() & ~ReadNzcv().GetV());
+        ReadNzcv().SetV(0);
+        break;
+      case XAFLAG: {
+        // Can't set the flags in place due to the logical dependencies.
+        uint32_t n = (~ReadNzcv().GetC() & ~ReadNzcv().GetZ()) & 1;
+        uint32_t z = ReadNzcv().GetZ() & ReadNzcv().GetC();
+        uint32_t c = ReadNzcv().GetC() | ReadNzcv().GetZ();
+        uint32_t v = ~ReadNzcv().GetC() & ReadNzcv().GetZ();
+        ReadNzcv().SetN(n);
+        ReadNzcv().SetZ(z);
+        ReadNzcv().SetC(c);
+        ReadNzcv().SetV(v);
+        break;
+      }
     }
   } else if (instr->Mask(SystemPAuthFMask) == SystemPAuthFixed) {
     // Check BType allows PACI[AB]SP instructions.

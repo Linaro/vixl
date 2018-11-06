@@ -96,7 +96,9 @@ namespace vixl {
   /* Data-independent timing (for selected instructions).                   */ \
   V(kDIT,                 "DIT",                    "dit")                     \
   /* Branch target identification.                                          */ \
-  V(kBTI,                 "BTI",                    NULL)
+  V(kBTI,                 "BTI",                    NULL)                      \
+  /* Flag manipulation instructions: {AX,XA}FLAG                            */ \
+  V(kAXFlag,              "AXFlag",                 NULL)
 // clang-format on
 
 

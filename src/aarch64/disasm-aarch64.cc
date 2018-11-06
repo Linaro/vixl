@@ -2069,6 +2069,14 @@ void Disassembler::VisitSystem(const Instruction *instr) {
         mnemonic = "cfinv";
         form = NULL;
         break;
+      case AXFLAG:
+        mnemonic = "axflag";
+        form = NULL;
+        break;
+      case XAFLAG:
+        mnemonic = "xaflag";
+        form = NULL;
+        break;
     }
   } else if (instr->Mask(SystemPAuthFMask) == SystemPAuthFixed) {
     switch (instr->Mask(SystemPAuthMask)) {

@@ -2126,6 +2126,14 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Invert carry flag [Armv8.4].
   void cfinv();
 
+  // Convert floating-point condition flags from alternative format to Arm
+  // format [Armv8.5].
+  void xaflag();
+
+  // Convert floating-point condition flags from Arm format to alternative
+  // format [Armv8.5].
+  void axflag();
+
   // System instruction.
   void sys(int op1, int crn, int crm, int op2, const Register& xt = xzr);
 

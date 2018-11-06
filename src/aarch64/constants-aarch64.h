@@ -779,7 +779,9 @@ enum SystemPStateOp {
   SystemPStateFixed = 0xD5004000,
   SystemPStateFMask = 0xFFF8F000,
   SystemPStateMask  = 0xFFFFF0FF,
-  CFINV             = SystemPStateFixed | 0x0000001F
+  CFINV             = SystemPStateFixed | 0x0000001F,
+  XAFLAG            = SystemPStateFixed | 0x0000003F,
+  AXFLAG            = SystemPStateFixed | 0x0000005F
 };
 
 enum SystemHintOp {

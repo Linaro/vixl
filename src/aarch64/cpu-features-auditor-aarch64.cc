@@ -1086,6 +1086,10 @@ void CPUFeaturesAuditor::VisitSystem(const Instruction* instr) {
       case CFINV:
         scope.Record(CPUFeatures::kFlagM);
         break;
+      case AXFLAG:
+      case XAFLAG:
+        scope.Record(CPUFeatures::kAXFlag);
+        break;
     }
   }
 }
