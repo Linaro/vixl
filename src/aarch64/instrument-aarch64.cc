@@ -106,6 +106,7 @@ static const CounterDescriptor kCounterList[] =
      {"PC Addressing", Gauge},
      {"Other", Gauge},
      {"NEON", Gauge},
+     {"SVE", Gauge},
      {"Crypto", Gauge}};
 
 
@@ -946,6 +947,379 @@ void Instrument::VisitNEONPerm(const Instruction* instr) {
   counter->Increment();
 }
 
+void Instrument::VisitSVEAddressGeneration(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEBitwiseImm(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEBitwiseLogicalUnpredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEBitwiseShiftPredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEElementCount(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPAccumulatingReduction(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPArithmeticPredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPArithmeticUnpredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPCompareVectors(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPCompareWithZero(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPComplexAddition(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPComplexMulAdd(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPComplexMulAddIndex(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPFastReduction(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPMulIndex(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPMulAdd(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPMulAddIndex(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPUnaryOpPredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEFPUnaryOpUnpredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIncDecByPredicateCount(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIndexGeneration(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIntArithmeticUnpredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIntBinaryArithmeticPredicated(
+    const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIntCompareScalars(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIntCompareSignedImm(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIntCompareUnsignedImm(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIntCompareVectors(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIntMiscUnpredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIntMulAddPredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIntMulAddUnpredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIntReduction(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIntUnaryArithmeticPredicated(
+    const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIntWideImmPredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEIntWideImmUnpredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEMem32BitGatherAndUnsizedContiguous(
+    const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEMem64BitGather(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEMemContiguousLoad(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEMemStore(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEMulIndex(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEPartitionBreak(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEPermutePredicate(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEPermuteVectorExtract(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEPermuteVectorInterleaving(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEPermuteVectorPredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEPermuteVectorUnpredicated(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEPredicateCount(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEPredicateLogicalOp(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEPredicateMisc(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEPropagateBreak(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEStackAllocation(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEVectorSelect(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
+
+void Instrument::VisitSVEWriteFFR(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("SVE");
+  counter->Increment();
+}
 
 void Instrument::VisitUnallocated(const Instruction* instr) {
   USE(instr);

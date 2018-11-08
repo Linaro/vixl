@@ -6671,6 +6671,272 @@ void Simulator::VisitNEONPerm(const Instruction* instr) {
   }
 }
 
+void Simulator::VisitSVEAddressGeneration(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEBitwiseImm(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEBitwiseLogicalUnpredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEBitwiseShiftPredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEElementCount(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPAccumulatingReduction(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPArithmeticPredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPArithmeticUnpredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPCompareVectors(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPCompareWithZero(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPComplexAddition(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPComplexMulAdd(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPComplexMulAddIndex(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPFastReduction(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPMulIndex(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPMulAdd(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPMulAddIndex(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPUnaryOpPredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEFPUnaryOpUnpredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIncDecByPredicateCount(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIndexGeneration(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIntArithmeticUnpredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIntBinaryArithmeticPredicated(
+    const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIntCompareScalars(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIntCompareSignedImm(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIntCompareUnsignedImm(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIntCompareVectors(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIntMiscUnpredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIntMulAddPredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIntMulAddUnpredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIntReduction(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIntUnaryArithmeticPredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIntWideImmPredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEIntWideImmUnpredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEMem32BitGatherAndUnsizedContiguous(
+    const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEMem64BitGather(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEMemContiguousLoad(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEMemStore(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEMulIndex(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEPartitionBreak(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEPermutePredicate(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEPermuteVectorExtract(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEPermuteVectorInterleaving(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEPermuteVectorPredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEPermuteVectorUnpredicated(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEPredicateCount(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEPredicateLogicalOp(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEPredicateMisc(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEPropagateBreak(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEStackAllocation(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEVectorSelect(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
+
+void Simulator::VisitSVEWriteFFR(const Instruction* instr) {
+  USE(instr);
+  VIXL_UNIMPLEMENTED();
+}
 
 void Simulator::DoUnreachable(const Instruction* instr) {
   VIXL_ASSERT((instr->Mask(ExceptionMask) == HLT) &&

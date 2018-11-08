@@ -4904,6 +4904,274 @@ void Disassembler::VisitNEONPerm(const Instruction *instr) {
   Format(instr, mnemonic, nfd.Substitute(form));
 }
 
+void Disassembler::VisitSVEAddressGeneration(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEBitwiseImm(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEBitwiseLogicalUnpredicated(
+    const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEBitwiseShiftPredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEBitwiseShiftUnpredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEElementCount(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPAccumulatingReduction(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPArithmeticPredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPArithmeticUnpredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPCompareVectors(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPCompareWithZero(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPComplexAddition(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPComplexMulAdd(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPComplexMulAddIndex(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPFastReduction(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPMulIndex(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPMulAdd(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPMulAddIndex(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPUnaryOpPredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEFPUnaryOpUnpredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIncDecByPredicateCount(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIndexGeneration(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIntArithmeticUnpredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIntBinaryArithmeticPredicated(
+    const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIntCompareScalars(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIntCompareSignedImm(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIntCompareUnsignedImm(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIntCompareVectors(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIntMiscUnpredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIntMulAddPredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIntMulAddUnpredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIntReduction(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIntUnaryArithmeticPredicated(
+    const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIntWideImmPredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEIntWideImmUnpredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEMem32BitGatherAndUnsizedContiguous(
+    const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEMem64BitGather(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEMemContiguousLoad(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEMemStore(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEMulIndex(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEPartitionBreak(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEPermutePredicate(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEPermuteVectorExtract(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEPermuteVectorInterleaving(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEPermuteVectorPredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEPermuteVectorUnpredicated(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEPredicateCount(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEPredicateLogicalOp(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEPredicateMisc(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEPropagateBreak(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEStackAllocation(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEVectorSelect(const Instruction *instr) {
+  USE(instr);
+  return;
+}
+
+void Disassembler::VisitSVEWriteFFR(const Instruction *instr) {
+  USE(instr);
+  return;
+}
 
 void Disassembler::VisitUnimplemented(const Instruction *instr) {
   Format(instr, "unimplemented", "(Unimplemented)");

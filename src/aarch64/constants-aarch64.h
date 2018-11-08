@@ -2641,6 +2641,271 @@ enum NEONScalarShiftImmediateOp {
   NEON_FCVTZU_imm_scalar = NEON_Q | NEONScalar | NEON_FCVTZU_imm
 };
 
+enum SVEAddressGenerationOp {
+  SVEAddressGenerationFixed = 0x0420A000,
+  SVEAddressGenerationFMask = 0xFF20F000
+};
+
+enum SVEBitwiseImmOp {
+  SVEBitwiseImmFixed = 0x05000000,
+  SVEBitwiseImmFMask = 0xFF300000
+};
+
+enum SVEBitwiseLogicalUnpredicatedOp {
+  SVEBitwiseLogicalUnpredicatedFixed = 0x04202000,
+  SVEBitwiseLogicalUnpredicatedFMask = 0xFF20E000
+};
+
+enum SVEBitwiseShiftPredicatedOp {
+  SVEBitwiseShiftPredicatedFixed = 0x04008000,
+  SVEBitwiseShiftPredicatedFMask = 0xFF20E000
+};
+
+enum SVEBitwiseShiftUnpredicatedOp {
+  SVEBitwiseShiftUnpredicatedFixed = 0x04208000,
+  SVEBitwiseShiftUnpredicatedFMask = 0xFF20E000
+};
+
+enum SVEElementCountOp {
+  SVEElementCountFixed = 0x0420C000,
+  SVEElementCountFMask = 0xFF20C000
+};
+
+enum SVEFPAccumulatingReductionOp {
+  SVEFPAccumulatingReductionFixed = 0x65182000,
+  SVEFPAccumulatingReductionFMask = 0xFF38E000
+};
+
+enum SVEFPArithmeticPredicatedOp {
+  SVEFPArithmeticPredicatedFixed = 0x65008000,
+  SVEFPArithmeticPredicatedFMask = 0xFF20E000
+};
+
+enum SVEFPArithmeticUnpredicatedOp {
+  SVEFPArithmeticUnpredicatedFixed = 0x65000000,
+  SVEFPArithmeticUnpredicatedFMask = 0xFF20E000
+};
+
+enum SVEFPCompareVectorsOp {
+  SVEFPCompareVectorsFixed = 0x65004000,
+  SVEFPCompareVectorsFMask = 0xFF204000
+};
+
+enum SVEFPCompareWithZeroOp {
+  SVEFPCompareWithZeroFixed = 0x65102000,
+  SVEFPCompareWithZeroFMask = 0xFF38E000
+};
+
+enum SVEFPComplexAdditionOp {
+  SVEFPComplexAdditionFixed = 0x64008000,
+  SVEFPComplexAdditionFMask = 0xFF3EE000
+};
+
+enum SVEFPComplexMulAddOp {
+  SVEFPComplexMulAddFixed = 0x64000000,
+  SVEFPComplexMulAddFMask = 0xFF208000
+};
+
+enum SVEFPComplexMulAddIndexOp {
+  SVEFPComplexMulAddIndexFixed = 0x64201000,
+  SVEFPComplexMulAddIndexFMask = 0xFF20F000
+};
+
+enum SVEFPFastReductionOp {
+  SVEFPFastReductionFixed = 0x65002000,
+  SVEFPFastReductionFMask = 0xFF38E000
+};
+
+enum SVEFPMulIndexOp {
+  SVEFPMulIndexFixed = 0x64202000,
+  SVEFPMulIndexFMask = 0xFF20FC00
+};
+
+enum SVEFPMulAddOp {
+  SVEFPMulAddFixed = 0x65200000,
+  SVEFPMulAddFMask = 0xFF200000
+};
+
+enum SVEFPMulAddIndexOp {
+  SVEFPMulAddIndexFixed = 0x64200000,
+  SVEFPMulAddIndexFMask = 0xFF20F800
+};
+
+enum SVEFPUnaryOpPredicatedOp {
+  SVEFPUnaryOpPredicatedFixed = 0x6500A000,
+  SVEFPUnaryOpPredicatedFMask = 0xFF20E000
+};
+
+enum SVEFPUnaryOpUnpredicatedOp {
+  SVEFPUnaryOpUnpredicatedFixed = 0x65083000,
+  SVEFPUnaryOpUnpredicatedFMask = 0xFF38F000
+};
+
+enum SVEIncDecByPredicateCountOp {
+  SVEIncDecByPredicateCountFixed = 0x25288000,
+  SVEIncDecByPredicateCountFMask = 0xFF38F000
+};
+
+enum SVEIndexGenerationOp {
+  SVEIndexGenerationFixed = 0x04204000,
+  SVEIndexGenerationFMask = 0xFF20F000
+};
+
+enum SVEIntArithmeticUnpredicatedOp {
+  SVEIntArithmeticUnpredicatedFixed = 0x04200000,
+  SVEIntArithmeticUnpredicatedFMask = 0xFF20E000
+};
+
+enum SVEIntBinaryArithmeticPredicatedOp {
+  SVEIntBinaryArithmeticPredicatedFixed = 0x04000000,
+  SVEIntBinaryArithmeticPredicatedFMask = 0xFF20E000
+};
+
+enum SVEIntCompareScalarsOp {
+  SVEIntCompareScalarsFixed = 0x25200000,
+  SVEIntCompareScalarsFMask = 0xFF20C000
+};
+
+enum SVEIntCompareSignedImmOp {
+  SVEIntCompareSignedImmFixed = 0x25000000,
+  SVEIntCompareSignedImmFMask = 0xFF204000
+};
+
+enum SVEIntCompareUnsignedImmOp {
+  SVEIntCompareUnsignedImmFixed = 0x24200000,
+  SVEIntCompareUnsignedImmFMask = 0xFF200000
+};
+
+enum SVEIntCompareVectorsOp {
+  SVEIntCompareVectorsFixed = 0x24000000,
+  SVEIntCompareVectorsFMask = 0xFF200000
+};
+
+enum SVEIntMiscUnpredicatedOp {
+  SVEIntMiscUnpredicatedFixed = 0x0420B000,
+  SVEIntMiscUnpredicatedFMask = 0xFF20F000
+};
+
+enum SVEIntMulAddPredicatedOp {
+  SVEIntMulAddPredicatedFixed = 0x04004000,
+  SVEIntMulAddPredicatedFMask = 0xFF204000
+};
+
+enum SVEIntMulAddUnpredicatedOp {
+  SVEIntMulAddUnpredicatedFixed = 0x44000000,
+  SVEIntMulAddUnpredicatedFMask = 0xFF208000
+};
+
+enum SVEIntReductionOp {
+  SVEIntReductionFixed = 0x04002000,
+  SVEIntReductionFMask = 0xFF20E000
+};
+
+enum SVEIntUnaryArithmeticPredicatedOp {
+  SVEIntUnaryArithmeticPredicatedFixed = 0x0400A000,
+  SVEIntUnaryArithmeticPredicatedFMask = 0xFF20E000
+};
+
+enum SVEIntWideImmPredicatedOp {
+  SVEIntWideImmPredicatedFixed = 0x05100000,
+  SVEIntWideImmPredicatedFMask = 0xFF300000
+};
+
+enum SVEIntWideImmUnpredicatedOp {
+  SVEIntWideImmUnpredicatedFixed = 0x2520C000,
+  SVEIntWideImmUnpredicatedFMask = 0xFF20C000
+};
+
+enum SVEMem32BitGatherAndUnsizedContiguousOp {
+  SVEMem32BitGatherAndUnsizedContiguousFixed = 0x84000000,
+  SVEMem32BitGatherAndUnsizedContiguousFMask = 0xFE000000
+};
+
+enum SVEMem64BitGatherOp {
+  SVEMem64BitGatherFixed = 0xC4000000,
+  SVEMem64BitGatherFMask = 0xFE000000
+};
+
+enum SVEMemContiguousLoadOp {
+  SVEMemContiguousLoadFixed = 0xA4000000,
+  SVEMemContiguousLoadFMask = 0xFE000000
+};
+
+enum SVEMemStoreOp {
+  SVEMemStoreFixed = 0xE4000000,
+  SVEMemStoreFMask = 0xFE000000
+};
+
+enum SVEMulIndexOp {
+  SVEMulIndexFixed = 0x44200000,
+  SVEMulIndexFMask = 0xFF200000
+};
+
+enum SVEPartitionBreakOp {
+  SVEPartitionBreakFixed = 0x25104000,
+  SVEPartitionBreakFMask = 0xFF30C000
+};
+
+enum SVEPermutePredicateOp {
+  SVEPermutePredicateFixed = 0x05204000,
+  SVEPermutePredicateFMask = 0xFF20E000
+};
+
+enum SVEPermuteVectorExtractOp {
+  SVEPermuteVectorExtractFixed = 0x05200000,
+  SVEPermuteVectorExtractFMask = 0xFF20E000
+};
+
+enum SVEPermuteVectorInterleavingOp {
+  SVEPermuteVectorInterleavingFixed = 0x05206000,
+  SVEPermuteVectorInterleavingFMask = 0xFF20E000
+};
+
+enum SVEPermuteVectorPredicatedOp {
+  SVEPermuteVectorPredicatedFixed = 0x05208000,
+  SVEPermuteVectorPredicatedFMask = 0xFF20C000
+};
+
+enum SVEPermuteVectorUnpredicatedOp {
+  SVEPermuteVectorUnpredicatedFixed = 0x05202000,
+  SVEPermuteVectorUnpredicatedFMask = 0xFF20E000
+};
+
+enum SVEPredicateCountOp {
+  SVEPredicateCountFixed = 0x25208000,
+  SVEPredicateCountFMask = 0xFF38C000
+};
+
+enum SVEPredicateLogicalOpOp {
+  SVEPredicateLogicalOpFixed = 0x25004000,
+  SVEPredicateLogicalOpFMask = 0xFF30C000
+};
+
+enum SVEPredicateMiscOp {
+  SVEPredicateMiscFixed = 0x2510C000,
+  SVEPredicateMiscFMask = 0xFF30C000
+};
+
+enum SVEPropagateBreakOp {
+  SVEPropagateBreakFixed = 0x2500C000,
+  SVEPropagateBreakFMask = 0xFF30C000
+};
+
+enum SVEStackAllocationOp {
+  SVEStackAllocationFixed = 0x04205000,
+  SVEStackAllocationFMask = 0xFF20F000
+};
+
+enum SVEVectorSelectOp {
+  SVEVectorSelectFixed = 0x0520C000,
+  SVEVectorSelectFMask = 0xFF20C000
+};
+
+enum SVEWriteFFROp {
+  SVEWriteFFRFixed = 0x25289000,
+  SVEWriteFFRFMask = 0xFF38F000
+};
+
 // Unimplemented and unallocated instructions. These are defined to make fixed
 // bit assertion easier.
 enum UnimplementedOp {

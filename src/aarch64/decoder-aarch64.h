@@ -119,9 +119,63 @@
   V(UnconditionalBranch)                \
   V(UnconditionalBranchToRegister)
 
-#define VISITOR_LIST_THAT_DONT_RETURN(V) \
-  V(Unallocated)                         \
+#define VISITOR_LIST_THAT_DONT_RETURN(V)   \
+  V(SVEAddressGeneration)                  \
+  V(SVEBitwiseImm)                         \
+  V(SVEBitwiseLogicalUnpredicated)         \
+  V(SVEBitwiseShiftPredicated)             \
+  V(SVEBitwiseShiftUnpredicated)           \
+  V(SVEElementCount)                       \
+  V(SVEFPAccumulatingReduction)            \
+  V(SVEFPArithmeticPredicated)             \
+  V(SVEFPArithmeticUnpredicated)           \
+  V(SVEFPCompareVectors)                   \
+  V(SVEFPCompareWithZero)                  \
+  V(SVEFPComplexAddition)                  \
+  V(SVEFPComplexMulAdd)                    \
+  V(SVEFPComplexMulAddIndex)               \
+  V(SVEFPFastReduction)                    \
+  V(SVEFPMulIndex)                         \
+  V(SVEFPMulAdd)                           \
+  V(SVEFPMulAddIndex)                      \
+  V(SVEFPUnaryOpPredicated)                \
+  V(SVEFPUnaryOpUnpredicated)              \
+  V(SVEIncDecByPredicateCount)             \
+  V(SVEIndexGeneration)                    \
+  V(SVEIntArithmeticUnpredicated)          \
+  V(SVEIntBinaryArithmeticPredicated)      \
+  V(SVEIntCompareScalars)                  \
+  V(SVEIntCompareSignedImm)                \
+  V(SVEIntCompareUnsignedImm)              \
+  V(SVEIntCompareVectors)                  \
+  V(SVEIntMiscUnpredicated)                \
+  V(SVEIntMulAddPredicated)                \
+  V(SVEIntMulAddUnpredicated)              \
+  V(SVEIntReduction)                       \
+  V(SVEIntUnaryArithmeticPredicated)       \
+  V(SVEIntWideImmPredicated)               \
+  V(SVEIntWideImmUnpredicated)             \
+  V(SVEMem32BitGatherAndUnsizedContiguous) \
+  V(SVEMem64BitGather)                     \
+  V(SVEMemContiguousLoad)                  \
+  V(SVEMemStore)                           \
+  V(SVEMulIndex)                           \
+  V(SVEPartitionBreak)                     \
+  V(SVEPermutePredicate)                   \
+  V(SVEPermuteVectorExtract)               \
+  V(SVEPermuteVectorInterleaving)          \
+  V(SVEPermuteVectorPredicated)            \
+  V(SVEPermuteVectorUnpredicated)          \
+  V(SVEPredicateCount)                     \
+  V(SVEPredicateLogicalOp)                 \
+  V(SVEPredicateMisc)                      \
+  V(SVEPropagateBreak)                     \
+  V(SVEStackAllocation)                    \
+  V(SVEVectorSelect)                       \
+  V(SVEWriteFFR)                           \
+  V(Unallocated)                           \
   V(Unimplemented)
+
 
 #define VISITOR_LIST(V)       \
   VISITOR_LIST_THAT_RETURN(V) \
@@ -251,7 +305,7 @@ class Decoder {
 };
 
 const int kMaxDecodeSampledBits = 16;
-const int kMaxDecodeMappings = 22;
+const int kMaxDecodeMappings = 43;
 typedef void (Decoder::*DecodeFnPtr)(const Instruction*);
 typedef uint32_t (Instruction::*BitExtractFn)(void) const;
 
