@@ -1291,7 +1291,16 @@ class Simulator : public DecoderVisitor {
                            T value,
                            RegLogMode log_mode = LogRegWrites) {
     if (operand.IsCPURegister()) {
-      WriteCPURegister<T>(operand.GetCPURegister(), value, log_mode);
+      // Outside SIMD, registers are 64-bit or a subset of a 64-bit register. If
+      // the width of the value to write is smaller than 64 bits, the unused
+      // bits may contain unrelated values that the code following this write
+      // needs to handle gracefully.
+      // Here we fill the unused bits with a predefined pattern to catch issues
+      // early.
+      VIXL_ASSERT(operand.GetCPURegister().GetSizeInBits() <= 64);
+      uint64_t raw = 0xdeadda1adeadda1a;
+      memcpy(&raw, &value, sizeof(value));
+      WriteCPURegister(operand.GetCPURegister(), raw, log_mode);
     } else {
       VIXL_ASSERT(operand.IsMemOperand());
       Memory::Write(ComputeMemOperandAddress(operand.GetMemOperand()), value);

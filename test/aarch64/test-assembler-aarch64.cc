@@ -28781,21 +28781,25 @@ TEST(runtime_calls) {
   for (size_t i = 0; i < sizeof(test_values) / sizeof(test_values[0]); ++i) {
     Label pass_int8, pass_uint8, pass_int16, pass_uint16;
     int x = test_values[i];
-    __ Mov(w0, static_cast<int8_t>(x));
+    __ Mov(w0, x);
     __ CallRuntime(test_int8_t);
-    __ Cmp(w0, static_cast<int8_t>(x));
+    __ Sxtb(w0, w0);
+    __ Cmp(w0, ExtractSignedBitfield32(7, 0, x));
     __ Cinc(x24, x24, ne);
-    __ Mov(w0, static_cast<uint8_t>(x));
+    __ Mov(w0, x);
     __ CallRuntime(test_uint8_t);
-    __ Cmp(w0, static_cast<uint8_t>(x));
+    __ Uxtb(w0, w0);
+    __ Cmp(w0, ExtractUnsignedBitfield32(7, 0, x));
     __ Cinc(x24, x24, ne);
-    __ Mov(w0, static_cast<int16_t>(x));
+    __ Mov(w0, x);
     __ CallRuntime(test_int16_t);
-    __ Cmp(w0, static_cast<int16_t>(x));
+    __ Sxth(w0, w0);
+    __ Cmp(w0, ExtractSignedBitfield32(15, 0, x));
     __ Cinc(x24, x24, ne);
-    __ Mov(w0, static_cast<uint16_t>(x));
+    __ Mov(w0, x);
     __ CallRuntime(test_uint16_t);
-    __ Cmp(w0, static_cast<uint16_t>(x));
+    __ Uxth(w0, w0);
+    __ Cmp(w0, ExtractUnsignedBitfield32(15, 0, x));
     __ Cinc(x24, x24, ne);
   }
 
