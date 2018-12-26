@@ -1883,6 +1883,7 @@ void Assembler::sys(int op, const Register& xt) {
 
 void Assembler::dc(DataCacheOp op, const Register& rt) {
   if (op == CVAP) VIXL_ASSERT(CPUHas(CPUFeatures::kDCPoP));
+  if (op == CVADP) VIXL_ASSERT(CPUHas(CPUFeatures::kDCCVADP));
   sys(op, rt);
 }
 

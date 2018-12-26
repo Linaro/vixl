@@ -1098,6 +1098,9 @@ void CPUFeaturesAuditor::VisitSystem(const Instruction* instr) {
       case CVAP:
         scope.Record(CPUFeatures::kDCPoP);
         break;
+      case CVADP:
+        scope.Record(CPUFeatures::kDCCVADP);
+        break;
       case IVAU:
       case CVAC:
       case CVAU:

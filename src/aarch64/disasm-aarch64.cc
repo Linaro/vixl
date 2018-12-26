@@ -2251,6 +2251,10 @@ void Disassembler::VisitSystem(const Instruction *instr) {
         mnemonic = "dc";
         form = "cvap, 'Xt";
         break;
+      case CVADP:
+        mnemonic = "dc";
+        form = "cvadp, 'Xt";
+        break;
       case CIVAC:
         mnemonic = "dc";
         form = "civac, 'Xt";

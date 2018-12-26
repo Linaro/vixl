@@ -22885,6 +22885,23 @@ TEST(system_dcpop) {
   TEARDOWN();
 }
 
+TEST(system_dccvadp) {
+  SETUP_WITH_FEATURES(CPUFeatures::kDCCVADP);
+  const char* msg = "DCCVADP test!";
+  uintptr_t msg_addr = reinterpret_cast<uintptr_t>(msg);
+
+  START();
+  __ Mov(x20, msg_addr);
+  __ Dc(CVADP, x20);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  ASSERT_EQUAL_64(msg_addr, x20);
+#endif
+
+  TEARDOWN();
+}
 
 TEST(neon_2regmisc_xtn) {
   SETUP_WITH_FEATURES(CPUFeatures::kNEON);

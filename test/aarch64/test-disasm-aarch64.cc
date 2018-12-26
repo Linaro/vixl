@@ -3274,6 +3274,8 @@ TEST(system_sys) {
   COMPARE(sys(0x3, 0x7, 0xa, 0x1, x2), "dc cvac, x2");
   COMPARE(sys(0x3, 0x7, 0xb, 0x1, x3), "dc cvau, x3");
   COMPARE(sys(0x3, 0x7, 0xe, 0x1, x4), "dc civac, x4");
+  COMPARE(sys(0x3, 0x7, 0xc, 0x1, x5), "dc cvap, x5");
+  COMPARE(sys(0x3, 0x7, 0xd, 0x1, x6), "dc cvadp, x6");
   COMPARE(sys(0x3, 0x7, 0x4, 0x1, x0), "dc zva, x0");
   COMPARE(sys(0x0, 0x0, 0x0, 0x0, x0), "sys #0, C0, C0, #0, x0");
   COMPARE(sys(0x1, 0x2, 0x5, 0x2, x5), "sys #1, C2, C5, #2, x5");
@@ -3303,6 +3305,7 @@ TEST(system_dc) {
   COMPARE(dc(CVAU, x3), "dc cvau, x3");
   COMPARE(dc(CVAP, x4), "dc cvap, x4");
   COMPARE(dc(CIVAC, x5), "dc civac, x5");
+  COMPARE(dc(CVADP, x6), "dc cvadp, x6");
   COMPARE(dc(ZVA, x0), "dc zva, x0");
   COMPARE(dc(ZVA, xzr), "dc zva, xzr");
 

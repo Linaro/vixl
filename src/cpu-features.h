@@ -67,6 +67,8 @@ namespace vixl {
   V(kRAS,                 "RAS",                    NULL)                      \
   /* Data cache clean to the point of persistence: DC CVAP.                 */ \
   V(kDCPoP,               "DCPoP",                  "dcpop")                   \
+  /* Data cache clean to the point of deep persistence: DC CVADP.           */ \
+  V(kDCCVADP,             "DCCVADP",                NULL)                      \
   /* Cryptographic support instructions.                                    */ \
   V(kSHA3,                "SHA3",                   "sha3")                    \
   V(kSHA512,              "SHA512",                 "sha512")                  \
