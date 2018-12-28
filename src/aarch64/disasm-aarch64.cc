@@ -5585,6 +5585,12 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
         case FPCR:
           AppendToOutput("fpcr");
           break;
+        case RNDR:
+          AppendToOutput("rndr");
+          break;
+        case RNDRRS:
+          AppendToOutput("rndrrs");
+          break;
         default:
           AppendToOutput("S%d_%d_c%d_c%d_%d",
                          instr->GetSysOp0(),

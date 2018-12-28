@@ -100,7 +100,9 @@ namespace vixl {
   /* Branch target identification.                                          */ \
   V(kBTI,                 "BTI",                    NULL)                      \
   /* Flag manipulation instructions: {AX,XA}FLAG                            */ \
-  V(kAXFlag,              "AXFlag",                 NULL)
+  V(kAXFlag,              "AXFlag",                 NULL)                      \
+  /* Random number generation extension,                                    */ \
+  V(kRNG,                 "RNG",                    NULL)
 // clang-format on
 
 

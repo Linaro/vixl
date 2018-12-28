@@ -3354,6 +3354,9 @@ class Simulator : public DecoderVisitor {
 
   CPUFeaturesAuditor cpu_features_auditor_;
   std::vector<CPUFeatures> saved_cpu_features_;
+
+  // The simulated state of RNDR and RNDRRS for generating a random number.
+  uint16_t rndr_state_[3];
 };
 
 #if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) && __cplusplus < 201402L

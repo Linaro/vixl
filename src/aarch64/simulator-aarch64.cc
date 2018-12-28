@@ -113,6 +113,11 @@ Simulator::Simulator(Decoder* decoder, FILE* stream)
   print_exclusive_access_warning_ = true;
 
   guard_pages_ = false;
+
+  // Initialize the common state of RNDR and RNDRRS.
+  uint16_t seed[3] = {11, 22, 33};
+  VIXL_STATIC_ASSERT(sizeof(seed) == sizeof(rndr_state_));
+  memcpy(rndr_state_, seed, sizeof(rndr_state_));
 }
 
 
@@ -3908,6 +3913,19 @@ void Simulator::VisitSystem(const Instruction* instr) {
           case FPCR:
             WriteXRegister(instr->GetRt(), ReadFpcr().GetRawValue());
             break;
+          case RNDR:
+          case RNDRRS: {
+            uint64_t high = jrand48(rndr_state_);
+            uint64_t low = jrand48(rndr_state_);
+            uint64_t rand_num = (high << 32) | (low & 0xffffffff);
+            WriteXRegister(instr->GetRt(), rand_num);
+            // Simulate successful random number generation.
+            // TODO: Return failure occasionally as a random number cannot be
+            // returned in a period of time.
+            ReadNzcv().SetRawValue(NoFlag);
+            LogSystemRegister(NZCV);
+            break;
+          }
           default:
             VIXL_UNIMPLEMENTED();
         }

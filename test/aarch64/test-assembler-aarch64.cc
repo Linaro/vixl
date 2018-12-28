@@ -15026,6 +15026,45 @@ TEST(system_mrs) {
   TEARDOWN();
 }
 
+TEST(system_rng) {
+  SETUP_WITH_FEATURES(CPUFeatures::kRNG);
+
+  START();
+  // Random number.
+  __ Mrs(x1, RNDR);
+  // Assume that each generation is successful now.
+  // TODO: Return failure occasionally.
+  __ Mrs(x2, NZCV);
+  __ Mrs(x3, RNDR);
+  __ Mrs(x4, NZCV);
+
+  // Reseeded random number.
+  __ Mrs(x5, RNDRRS);
+  // Assume that each generation is successful now.
+  // TODO: Return failure occasionally.
+  __ Mrs(x6, NZCV);
+  __ Mrs(x7, RNDRRS);
+  __ Mrs(x8, NZCV);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  // Random number generation series.
+  // Check random numbers have been generated and aren't equal when reseed has
+  // happened.
+  // NOTE: With a different architectural implementation, there may be a
+  // collison.
+  // TODO: Return failure occasionally. Set ZFlag and return UNKNOWN value.
+  ASSERT_NOT_EQUAL_64(x1, x3);
+  ASSERT_EQUAL_64(NoFlag, x2);
+  ASSERT_EQUAL_64(NoFlag, x4);
+  ASSERT_NOT_EQUAL_64(x5, x7);
+  ASSERT_EQUAL_64(NoFlag, x6);
+  ASSERT_EQUAL_64(NoFlag, x8);
+#endif
+
+  TEARDOWN();
+}
 
 TEST(cfinv) {
   SETUP_WITH_FEATURES(CPUFeatures::kFlagM);

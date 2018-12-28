@@ -1118,6 +1118,15 @@ void CPUFeaturesAuditor::VisitSystem(const Instruction* instr) {
         scope.Record(CPUFeatures::kAXFlag);
         break;
     }
+  } else if (instr->Mask(SystemSysRegFMask) == SystemSysRegFixed) {
+    if (instr->Mask(SystemSysRegMask) == MRS) {
+      switch (instr->GetImmSystemRegister()) {
+        case RNDR:
+        case RNDRRS:
+          scope.Record(CPUFeatures::kRNG);
+          break;
+      }
+    }
   }
 }
 
