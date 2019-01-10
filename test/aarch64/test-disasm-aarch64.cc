@@ -7414,6 +7414,20 @@ TEST(neon_shift_immediate) {
   COMPARE_MACRO(Sshll2(v4.V4S(), v2.V8H(), 4), "sshll2 v4.4s, v2.8h, #4");
   COMPARE_MACRO(Sshll2(v6.V2D(), v4.V4S(), 6), "sshll2 v6.2d, v4.4s, #6");
 
+  // Translate to shll if shift(immediate) equal to the element size
+  COMPARE_MACRO(Sshll(v1.V8H(), v8.V8B(), 8), "shll v1.8h, v8.8b, #8");
+  COMPARE_MACRO(Sshll(v3.V4S(), v1.V4H(), 16), "shll v3.4s, v1.4h, #16");
+  COMPARE_MACRO(Sshll(v5.V2D(), v3.V2S(), 32), "shll v5.2d, v3.2s, #32");
+  COMPARE_MACRO(Sshll2(v2.V8H(), v9.V16B(), 8), "shll2 v2.8h, v9.16b, #8");
+  COMPARE_MACRO(Sshll2(v4.V4S(), v2.V8H(), 16), "shll2 v4.4s, v2.8h, #16");
+  COMPARE_MACRO(Sshll2(v6.V2D(), v4.V4S(), 32), "shll2 v6.2d, v4.4s, #32");
+  COMPARE_MACRO(Ushll(v3.V8H(), v10.V8B(), 8), "shll v3.8h, v10.8b, #8");
+  COMPARE_MACRO(Ushll(v5.V4S(), v3.V4H(), 16), "shll v5.4s, v3.4h, #16");
+  COMPARE_MACRO(Ushll(v7.V2D(), v5.V2S(), 32), "shll v7.2d, v5.2s, #32");
+  COMPARE_MACRO(Ushll2(v4.V8H(), v9.V16B(), 8), "shll2 v4.8h, v9.16b, #8");
+  COMPARE_MACRO(Ushll2(v6.V4S(), v4.V8H(), 16), "shll2 v6.4s, v4.8h, #16");
+  COMPARE_MACRO(Ushll2(v8.V2D(), v6.V4S(), 32), "shll2 v8.2d, v6.4s, #32");
+
   COMPARE_MACRO(Sshll(v1.V8H(), v8.V8B(), 0), "sxtl v1.8h, v8.8b");
   COMPARE_MACRO(Sshll(v3.V4S(), v1.V4H(), 0), "sxtl v3.4s, v1.4h");
   COMPARE_MACRO(Sshll(v5.V2D(), v3.V2S(), 0), "sxtl v5.2d, v3.2s");
