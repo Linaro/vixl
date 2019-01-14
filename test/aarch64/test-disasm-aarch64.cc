@@ -6377,6 +6377,11 @@ TEST(neon_modimm) {
   COMPARE_MACRO(Fmov(v0.V4H(), Float16(-5.0)), "fmov v0.4h, #0x94 (-5.0000)");
   COMPARE_MACRO(Fmov(v31.V8H(), Float16(29.0)), "fmov v31.8h, #0x3d (29.0000)");
 
+  COMPARE_MACRO(Fmov(v5.D(), 1, x14), "fmov v5.D[1], x14");
+  COMPARE_MACRO(Fmov(x14, v5.D(), 1), "fmov x14, v5.D[1]");
+  COMPARE_MACRO(Fmov(v3.D(), 0, x21), "mov v3.d[0], x21");
+  COMPARE_MACRO(Fmov(x21, v3.D(), 0), "mov x21, v3.d[0]");
+
   // An unallocated form of fmov.
   COMPARE(dci(0x2f07ffff), "unallocated (Unallocated)");
 

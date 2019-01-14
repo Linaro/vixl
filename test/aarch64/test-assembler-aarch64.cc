@@ -10782,6 +10782,9 @@ TEST(fmov_reg) {
   __ Fmov(d0, 0.0);
   __ Fmov(v0.D(), 1, x1);
   __ Fmov(x2, v0.D(), 1);
+  __ Fmov(v3.D(), 1, x4);
+  __ Fmov(v3.D(), 0, x1);
+  __ Fmov(x5, v1.D(), 0);
 
   END();
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
@@ -10801,6 +10804,8 @@ TEST(fmov_reg) {
   ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s6);
   ASSERT_EQUAL_128(DoubleToRawbits(-13.0), 0x0000000000000000, q0);
   ASSERT_EQUAL_64(DoubleToRawbits(-13.0), x2);
+  ASSERT_EQUAL_128(0x0000000000006400, DoubleToRawbits(-13.0), q3);
+  ASSERT_EQUAL_64(DoubleToRawbits(-13.0), x5);
 #endif
 
   TEARDOWN();
