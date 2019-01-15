@@ -397,7 +397,7 @@ class SystemRegisterEncoder {
 
 // System/special register names.
 // This information is not encoded as one field but as the concatenation of
-// multiple fields (Op0<0>, Op1, Crn, Crm, Op2).
+// multiple fields (Op0, Op1, Crn, Crm, Op2).
 enum SystemRegister {
   NZCV = SystemRegisterEncoder<3, 3, 4, 2, 0>::value,
   FPCR = SystemRegisterEncoder<3, 3, 4, 4, 0>::value,
