@@ -176,7 +176,11 @@ V_(NEONCmode, 15, 12, ExtractBits)                                           \
 /* NEON Shift Immediate fields */                                            \
 V_(ImmNEONImmhImmb, 22, 16, ExtractBits)                                     \
 V_(ImmNEONImmh, 22, 19, ExtractBits)                                         \
-V_(ImmNEONImmb, 18, 16, ExtractBits)
+V_(ImmNEONImmb, 18, 16, ExtractBits)                                         \
+                                                                             \
+/* SVE generic fields */                                                     \
+V_(SVESize, 23, 22, ExtractBits)
+
 // clang-format on
 
 #define SYSTEM_REGISTER_FIELDS_LIST(V_, M_) \
@@ -498,6 +502,14 @@ enum NEONScalarFormatField {
   NEON_H                    = 0x00400000,
   NEON_S                    = 0x00800000,
   NEON_D                    = 0x00C00000
+};
+
+enum SVESizeField {
+  SVESizeFieldMask = 0x00C00000,
+  SVE_B            = 0x00000000,
+  SVE_H            = 0x00400000,
+  SVE_S            = 0x00800000,
+  SVE_D            = 0x00C00000
 };
 
 // PC relative addressing.

@@ -442,6 +442,20 @@ class VRegister : public CPURegister {
 // Backward compatibility for FPRegisters.
 typedef VRegister FPRegister;
 
+// TODO: Fix when proper ZRegister and PRegister are available.
+class ZRegister : public VRegister {
+ public:
+  ZRegister() : VRegister() {}
+  explicit ZRegister(unsigned code) : VRegister(code, kQRegSize, 16) {}
+};
+class PRegister : public CPURegister {};
+const ZRegister z0(0);
+const ZRegister z1(1);
+const ZRegister NoZReg;
+typedef PRegister PRegisterWithLaneSize;
+typedef PRegister PRegisterM;
+typedef PRegister PRegisterZ;
+
 // No*Reg is used to indicate an unused argument, or an error case. Note that
 // these all compare equal (using the Is() method). The Register and VRegister
 // variants are provided for convenience.
@@ -545,6 +559,12 @@ bool AreConsecutive(const VRegister& reg1,
                     const VRegister& reg3 = NoVReg,
                     const VRegister& reg4 = NoVReg);
 
+// AreSameType returns true if all of the specified ZRegisters use the same
+// element type, B, H, S or D.
+bool AreSameType(const ZRegister& reg1,
+                 const ZRegister& reg2,
+                 const ZRegister& reg3 = NoZReg,
+                 const ZRegister& reg4 = NoZReg);
 
 // Lists of registers.
 class CPURegList {

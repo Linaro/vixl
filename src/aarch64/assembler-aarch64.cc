@@ -6292,5 +6292,27 @@ bool AreConsecutive(const VRegister& reg1,
 
   return true;
 }
+
+
+bool AreSameType(const ZRegister& reg1,
+                 const ZRegister& reg2,
+                 const ZRegister& reg3,
+                 const ZRegister& reg4) {
+
+  VIXL_ASSERT(reg1.IsValid());
+  bool match = true;
+  unsigned reg1_ls = reg1.GetLaneSizeInBytes();
+  if (reg2.IsValid()) {
+    match = match && (reg1_ls == reg2.GetLaneSizeInBytes());
+    if (reg3.IsValid()) {
+      match = match && (reg1_ls == reg3.GetLaneSizeInBytes());
+      if (reg4.IsValid()) {
+        match = match && (reg1_ls == reg4.GetLaneSizeInBytes());
+      }
+    }
+  }
+  return match;
+}
+
 }  // namespace aarch64
 }  // namespace vixl
