@@ -260,6 +260,134 @@ TEST(areconsecutive) {
 }
 
 
+TEST(sve_p_registers) {
+  enum Qualification { kNone, kZeroing, kMerging, kWithLaneSize };
+  class Helper {
+   public:
+    static Qualification GetQualification(PRegister) { return kNone; }
+    static Qualification GetQualification(PRegisterZ) { return kZeroing; }
+    static Qualification GetQualification(PRegisterM) { return kMerging; }
+    static Qualification GetQualification(PRegisterWithLaneSize) {
+      return kWithLaneSize;
+    }
+  };
+
+  VIXL_CHECK(kNumberOfPRegisters == 16);
+  VIXL_CHECK(p0.GetCode() == 0);
+  VIXL_CHECK(p15.GetCode() == 15);
+  VIXL_CHECK(p14.VnB().GetLaneSizeInBits() == kBRegSize);
+  VIXL_CHECK(p14.VnH().GetLaneSizeInBits() == kHRegSize);
+  VIXL_CHECK(p14.VnS().GetLaneSizeInBits() == kSRegSize);
+  VIXL_CHECK(p14.VnD().GetLaneSizeInBits() == kDRegSize);
+  VIXL_CHECK(p14.VnB().GetLaneSizeInBytes() == kBRegSizeInBytes);
+  VIXL_CHECK(p14.VnH().GetLaneSizeInBytes() == kHRegSizeInBytes);
+  VIXL_CHECK(p14.VnS().GetLaneSizeInBytes() == kSRegSizeInBytes);
+  VIXL_CHECK(p14.VnD().GetLaneSizeInBytes() == kDRegSizeInBytes);
+  VIXL_CHECK(Helper::GetQualification(p1) == kNone);
+  VIXL_CHECK(Helper::GetQualification(p2.Zeroing()) == kZeroing);
+  VIXL_CHECK(Helper::GetQualification(p3.Merging()) == kMerging);
+  VIXL_CHECK(Helper::GetQualification(p4.VnB()) == kWithLaneSize);
+  VIXL_CHECK(Helper::GetQualification(p5.VnH()) == kWithLaneSize);
+  VIXL_CHECK(Helper::GetQualification(p6.VnS()) == kWithLaneSize);
+  VIXL_CHECK(Helper::GetQualification(p7.VnD()) == kWithLaneSize);
+}
+
+
+TEST(sve_z_registers) {
+  VIXL_CHECK(z0.GetCode() == 0);
+  VIXL_CHECK(z31.GetCode() == 31);
+
+  VIXL_CHECK(z0.Is(z0));
+  VIXL_CHECK(!z0.Is(z1));
+  VIXL_CHECK(!z0.Is(v0));
+  VIXL_CHECK(!z0.Is(b0));
+  VIXL_CHECK(!z0.Is(q0));
+
+  VIXL_CHECK(AreAliased(z5, z5));
+  VIXL_CHECK(AreAliased(z5, b5));
+  VIXL_CHECK(AreAliased(b5, z5));
+  VIXL_CHECK(AreAliased(z5, z5.B()));
+  VIXL_CHECK(AreAliased(z5, z5.VnB()));
+
+  VIXL_CHECK(!AreAliased(z6, z7));
+  VIXL_CHECK(!AreAliased(b6, z7));
+  VIXL_CHECK(!AreAliased(x7, z7));
+}
+
+
+TEST(sve_z_registers_vs_neon) {
+  // There are three related register variants to consider in VIXL's API:
+  //
+  //    "b0": NEON: The least-significant byte of v0.
+  //    "v0.B": NEON: v0, with an unspecified number of byte-sized lanes.
+  //    "z0.B": SVE: z0, with an unspecified number of byte-sized lanes.
+  //
+  // The first two cases are indistinguishable in VIXL; both are obtained using
+  // something like `v0.B()`. This is fine for NEON because there is no
+  // ambiguity in practice; the "v0.B" form is always used with an index that
+  // makes the meaning clear.
+
+  VIXL_ASSERT(v6.B().Is(b6));
+  VIXL_ASSERT(v7.H().Is(h7));
+  VIXL_ASSERT(v8.S().Is(s8));
+  VIXL_ASSERT(v9.D().Is(d9));
+
+  VIXL_ASSERT(z6.B().Is(b6));
+  VIXL_ASSERT(z7.H().Is(h7));
+  VIXL_ASSERT(z8.S().Is(s8));
+  VIXL_ASSERT(z9.D().Is(d9));
+
+  // We cannot use the same approach for SVE's "z0.B" because, for example,
+  // `Add(VRegister, ...)` and `Add(ZRegister, ...)` generate different
+  // instructions.
+
+  // Test that the variants can be distinguished with `Is`.
+  VIXL_CHECK(!z6.VnB().Is(b6));
+  VIXL_CHECK(!z7.VnH().Is(h7));
+  VIXL_CHECK(!z8.VnS().Is(s8));
+  VIXL_CHECK(!z9.VnD().Is(d9));
+
+  VIXL_CHECK(!z6.VnB().Is(v6.B()));
+  VIXL_CHECK(!z7.VnH().Is(v7.H()));
+  VIXL_CHECK(!z8.VnS().Is(v8.S()));
+  VIXL_CHECK(!z9.VnD().Is(v9.D()));
+
+  VIXL_CHECK(!z6.VnB().Is(z6.B()));
+  VIXL_CHECK(!z7.VnH().Is(z7.H()));
+  VIXL_CHECK(!z8.VnS().Is(z8.S()));
+  VIXL_CHECK(!z9.VnD().Is(z9.D()));
+
+  // Test that the variants can be distinguished at compile-time using
+  // overloading. VIXL's API relies on this.
+  enum Variant { kNEON, kSVE, kUnknown };
+  class Helper {
+   public:
+    static Variant GetVariant(ZRegister) { return kSVE; }
+    static Variant GetVariant(VRegister) { return kNEON; }
+    static Variant GetVariant(CPURegister) { return kUnknown; }
+  };
+  VIXL_CHECK(Helper::GetVariant(z10.VnB()) == kSVE);
+  VIXL_CHECK(Helper::GetVariant(z11.VnH()) == kSVE);
+  VIXL_CHECK(Helper::GetVariant(z12.VnS()) == kSVE);
+  VIXL_CHECK(Helper::GetVariant(z13.VnD()) == kSVE);
+
+  VIXL_CHECK(Helper::GetVariant(v10.B()) == kNEON);
+  VIXL_CHECK(Helper::GetVariant(v11.H()) == kNEON);
+  VIXL_CHECK(Helper::GetVariant(v12.S()) == kNEON);
+  VIXL_CHECK(Helper::GetVariant(v13.D()) == kNEON);
+
+  VIXL_CHECK(Helper::GetVariant(v10.V16B()) == kNEON);
+  VIXL_CHECK(Helper::GetVariant(v11.V8H()) == kNEON);
+  VIXL_CHECK(Helper::GetVariant(v12.V4S()) == kNEON);
+  VIXL_CHECK(Helper::GetVariant(v13.V2D()) == kNEON);
+
+  VIXL_CHECK(Helper::GetVariant(b10) == kNEON);
+  VIXL_CHECK(Helper::GetVariant(h11) == kNEON);
+  VIXL_CHECK(Helper::GetVariant(s12) == kNEON);
+  VIXL_CHECK(Helper::GetVariant(d13) == kNEON);
+}
+
+
 TEST(move_immediate_helpers) {
   // Using these helpers to query information (without generating code) should
   // not crash.

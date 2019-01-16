@@ -439,36 +439,268 @@ class VRegister : public CPURegister {
 };
 
 
+// TODO: PRegister doesn't support a NoPReg. Does it need to? The main use of
+// No*Reg is for things like AreAliased, which we could better implement with
+// C++11 variadic templates anyway.
+
+// TODO: Make PRegister* derive from CPURegister. This helps code re-use, and
+// reinstates CPURegister's ability to represent any architectural register.
+
+class PRegisterWithLaneSize;
+class PRegisterM;
+class PRegisterZ;
+
+// SVE predicate registers (p0-p15).
+class PRegister {
+ public:
+  explicit PRegister(unsigned code) : code_(code) {
+    // TODO: If we want to make this constexpr, we'll have to remove the
+    // assertion.
+    VIXL_ASSERT(IsValid());
+  }
+
+  unsigned GetCode() const { return code_; }
+  bool Is(PRegister other) const { return code_ == other.code_; }
+
+  // SVE predicates are specified (in normal assembly) with a "/Z" (zeroing) or
+  // "/M" (merging) suffix. These methods are VIXL's equivalents.
+  PRegisterZ Zeroing() const;
+  PRegisterM Merging() const;
+
+  // Some instructions allow a lane size to be associated with a predicate
+  // register.
+  PRegisterWithLaneSize VnB() const;
+  PRegisterWithLaneSize VnH() const;
+  PRegisterWithLaneSize VnS() const;
+  PRegisterWithLaneSize VnD() const;
+
+  bool IsValid() const { return code_ < kNumberOfPRegisters; }
+
+ private:
+  unsigned code_;
+};
+
+// SVE predicate registers with lane size qualifier (p0.B - p15.D).
+class PRegisterWithLaneSize {
+ public:
+  unsigned GetLaneSizeInBits() const { return lane_size_; }
+  unsigned GetLaneSizeInBytes() const {
+    VIXL_ASSERT((lane_size_ % 8) == 0);
+    return lane_size_ / 8;
+  }
+
+  unsigned GetCode() const { return code_; }
+
+  bool Is(PRegisterWithLaneSize other) const {
+    return (code_ == other.code_) && (lane_size_ == other.lane_size_);
+  }
+
+ private:
+  PRegisterWithLaneSize(PRegister other, unsigned lane_size)
+      : code_(other.GetCode()), lane_size_(lane_size) {
+    VIXL_ASSERT(IsValid());
+  }
+
+  bool IsValid() const {
+    return PRegister(code_).IsValid() &&
+           ((lane_size_ == kBRegSize) || (lane_size_ == kHRegSize) ||
+            (lane_size_ == kSRegSize) || (lane_size_ == kDRegSize));
+  }
+
+  unsigned code_;
+  unsigned lane_size_;
+
+  friend class PRegister;
+};
+
+
+// SVE predicate registers with zeroing qualifier (p0/Z - p15/Z).
+class PRegisterZ {
+ public:
+  unsigned GetCode() const { return code_; }
+  bool Is(PRegisterZ other) const { return code_ == other.code_; }
+
+ private:
+  // TODO: Consider making this public and implicit to allow unqualified
+  // PRegisters to be passed in unambiguous cases.
+  explicit PRegisterZ(PRegister other) : code_(other.GetCode()) {}
+
+  unsigned code_;
+
+  friend class PRegister;
+};
+
+
+// SVE predicate registers with merging qualifier (p0/M - p15/M).
+class PRegisterM {
+ public:
+  unsigned GetCode() const { return code_; }
+  bool Is(PRegisterM other) const { return code_ == other.code_; }
+
+ private:
+  // TODO: Consider making this public and implicit to allow unqualified
+  // PRegisters to be passed in unambiguous cases.
+  explicit PRegisterM(PRegister other) : code_(other.GetCode()) {}
+
+  unsigned code_;
+
+  friend class PRegister;
+};
+
+inline PRegisterZ PRegister::Zeroing() const { return PRegisterZ(*this); }
+inline PRegisterM PRegister::Merging() const { return PRegisterM(*this); }
+
+inline PRegisterWithLaneSize PRegister::VnB() const {
+  return PRegisterWithLaneSize(*this, kBRegSize);
+}
+inline PRegisterWithLaneSize PRegister::VnH() const {
+  return PRegisterWithLaneSize(*this, kHRegSize);
+}
+inline PRegisterWithLaneSize PRegister::VnS() const {
+  return PRegisterWithLaneSize(*this, kSRegSize);
+}
+inline PRegisterWithLaneSize PRegister::VnD() const {
+  return PRegisterWithLaneSize(*this, kDRegSize);
+}
+
+
 // Backward compatibility for FPRegisters.
 typedef VRegister FPRegister;
 
-// TODO: Fix when proper ZRegister and PRegister are available.
-class ZRegister : public VRegister {
+// TODO: This is a temporary implementation of ZRegister to enable initial
+// development. The API should be considered unstable.
+
+class ZRegister;
+
+// An unqualified Z register, like "z0".
+class ZRegisterNoLaneSize {
  public:
-  ZRegister() : VRegister() {}
-  explicit ZRegister(unsigned code) : VRegister(code, kQRegSize, 16) {}
-  ZRegister B() const { return ZRegister(code_, kQRegSize, 16); }
-  ZRegister H() const { return ZRegister(code_, kQRegSize, 8); }
-  ZRegister S() const { return ZRegister(code_, kQRegSize, 4); }
-  ZRegister D() const { return ZRegister(code_, kQRegSize, 2); }
-  bool IsValid() const { return type_ != kNoRegister; }
+  ZRegisterNoLaneSize() : code_(kUnknownCode) {}
+
+  explicit ZRegisterNoLaneSize(unsigned code) : code_(code) {
+    // TODO: If we want to make this constexpr, we'll have to remove the
+    // assertion.
+    VIXL_ASSERT(IsValid());
+  }
+
+  // Convert to a qualified Z register, like "z0.B".
+  ZRegister VnB() const;
+  ZRegister VnH() const;
+  ZRegister VnS() const;
+  ZRegister VnD() const;
+
+  // Convert to a scalar register, like "b0".
+  VRegister B() const { return VRegister(code_, kBRegSize); }
+  VRegister H() const { return VRegister(code_, kHRegSize); }
+  VRegister S() const { return VRegister(code_, kSRegSize); }
+  VRegister D() const { return VRegister(code_, kDRegSize); }
+
+  unsigned GetCode() const { return code_; }
+
+  bool Is(const ZRegisterNoLaneSize& other) const {
+    return (code_ == other.code_);
+  }
+
+  bool Is(const CPURegister& other) const {
+    // TODO: Update this once CPURegister can represent a ZRegister.
+    USE(other);
+    return false;
+  }
+
+  // TODO: Is this the right result? We use this to determine aliasing, so it
+  // really refers to the register bank, but it cannot be represented with a
+  // VRegister object so the name might be misleading.
+  bool IsVRegister() const { return true; }
+  CPURegister::RegisterType GetType() const { return CPURegister::kVRegister; }
+
+  bool IsNone() const { return code_ == kUnknownCode; }
+  bool IsValid() const { return (code_ < kNumberOfZRegisters); }
 
  private:
-  ZRegister(unsigned code, unsigned size, unsigned lanes = 1)
-      : VRegister(code, size, lanes) {}
+  unsigned code_;
+
+  // TODO: If we really need a No*Reg, inherit this from CPURegister.
+  static const unsigned kUnknownCode = kNumberOfZRegisters;
+
+  friend class ZRegister;
 };
-class PRegister : public CPURegister {
+
+
+// A Z register which is statically known to be qualified with a lane size
+// ("<T>"). The actual size used is known only at run-time.
+class ZRegister {
  public:
-  explicit PRegister(unsigned code) : CPURegister(code, 32, kRegister) {}
+  ZRegister() : code_(kUnknownCode), lane_size_(kNoLaneSize) {}
+
+  unsigned GetCode() const { return code_; }
+
+  unsigned GetLaneSizeInBits() const { return lane_size_; }
+  unsigned GetLaneSizeInBytes() const {
+    VIXL_ASSERT((lane_size_ % 8) == 0);
+    return lane_size_ / 8;
+  }
+
+  bool Is(const ZRegister& other) const {
+    return (code_ == other.code_) && (lane_size_ == other.lane_size_);
+  }
+
+  bool Is(const CPURegister& other) const {
+    // TODO: Update this once CPURegister can represent a ZRegister.
+    USE(other);
+    return false;
+  }
+
+  // TODO: Is this the right result? We use this to determine aliasing, so it
+  // really refers to the register bank, but it cannot be represented with a
+  // VRegister object so the name might be misleading.
+  bool IsVRegister() const { return true; }
+  CPURegister::RegisterType GetType() const { return CPURegister::kVRegister; }
+
+  bool IsNone() const { return code_ == kUnknownCode; }
+  bool IsValid() const {
+    VIXL_ASSERT(HasValidCode() == HasValidLaneSize());
+    return HasValidCode() && HasValidLaneSize();
+  }
+
+ private:
+  ZRegister(const ZRegisterNoLaneSize& other, unsigned lane_size)
+      : code_(other.code_), lane_size_(lane_size) {
+    // TODO: If we want to make this constexpr, we'll have to remove the
+    // assertion.
+    VIXL_ASSERT(IsValid());
+  }
+
+  bool HasValidCode() const { return code_ < kNumberOfZRegisters; }
+  bool HasValidLaneSize() const {
+    return (lane_size_ == kBRegSize) || (lane_size_ == kHRegSize) ||
+           (lane_size_ == kSRegSize) || (lane_size_ == kDRegSize);
+  }
+
+  unsigned code_;
+  unsigned lane_size_;
+
+  // This class inherently has a lane size. However, we use this for the default
+  // constructor (NoZReg).
+  static const unsigned kNoLaneSize = 0;
+  static const unsigned kUnknownCode = ZRegisterNoLaneSize::kUnknownCode;
+
+  friend class ZRegisterNoLaneSize;
 };
-const ZRegister z0(0);
-const ZRegister z1(1);
-const ZRegister NoZReg;
-typedef PRegister PRegisterWithLaneSize;
-typedef PRegister PRegisterM;
-typedef PRegister PRegisterZ;
-const PRegister p6(6);
-const PRegister p7(7);
+
+
+inline ZRegister ZRegisterNoLaneSize::VnB() const {
+  return ZRegister(*this, kBRegSize);
+}
+inline ZRegister ZRegisterNoLaneSize::VnH() const {
+  return ZRegister(*this, kHRegSize);
+}
+inline ZRegister ZRegisterNoLaneSize::VnS() const {
+  return ZRegister(*this, kSRegSize);
+}
+inline ZRegister ZRegisterNoLaneSize::VnD() const {
+  return ZRegister(*this, kDRegSize);
+}
+
 
 // No*Reg is used to indicate an unused argument, or an error case. Note that
 // these all compare equal (using the Is() method). The Register and VRegister
@@ -477,7 +709,7 @@ const Register NoReg;
 const VRegister NoVReg;
 const FPRegister NoFPReg;  // For backward compatibility.
 const CPURegister NoCPUReg;
-
+const ZRegister NoZReg;
 
 #define DEFINE_REGISTERS(N) \
   const WRegister w##N(N);  \
@@ -494,9 +726,15 @@ const XRegister sp(kSPRegInternalCode);
   const VRegister s##N(N, kSRegSize); \
   const VRegister d##N(N, kDRegSize); \
   const VRegister q##N(N, kQRegSize); \
-  const VRegister v##N(N, kQRegSize);
+  const VRegister v##N(N, kQRegSize); \
+  const ZRegisterNoLaneSize z##N(N);
 AARCH64_REGISTER_CODE_LIST(DEFINE_VREGISTERS)
 #undef DEFINE_VREGISTERS
+
+
+#define DEFINE_PREGISTERS(N) const PRegister p##N(N);
+AARCH64_P_REGISTER_CODE_LIST(DEFINE_PREGISTERS)
+#undef DEFINE_PREGISTERS
 
 
 // Register aliases.
@@ -579,6 +817,38 @@ bool AreSameType(const ZRegister& reg1,
                  const ZRegister& reg2,
                  const ZRegister& reg3 = NoZReg,
                  const ZRegister& reg4 = NoZReg);
+
+
+// TODO: Once CPURegister can represent a ZRegister, we can get rid of these
+// ZRegister shims.
+
+// Template type deduction doesn't work with default parameters, so we can't use
+// the default-parameter trick with a C++98 implementation. The TODO above
+// should resolve this problem, but for now we'll have to add new overloads as
+// we need them.
+template <typename T1, typename T2>
+bool AreAliased(const T1& reg1, const T2& reg2) {
+  // For AreAliased on AArch64, we only care about the register bank
+  // ("RegisterType") and its code, so just pick a size that keeps all the
+  // assertions happy.
+  unsigned size = kXRegSize;
+  return AreAliased(CPURegister(reg1.GetCode(), size, reg1.GetType()),
+                    CPURegister(reg2.GetCode(), size, reg2.GetType()));
+}
+
+
+inline bool AreConsecutive(const ZRegister& reg1,
+                           const ZRegister& reg2,
+                           const ZRegister& reg3 = NoZReg,
+                           const ZRegister& reg4 = NoZReg) {
+  // We only care about the register code here, so we can re-use the VRegister
+  // implementation.
+  return AreConsecutive(VRegister(reg1.GetCode(), kQRegSize),
+                        VRegister(reg2.GetCode(), kQRegSize),
+                        VRegister(reg3.GetCode(), kQRegSize),
+                        VRegister(reg4.GetCode(), kQRegSize));
+}
+
 
 // Lists of registers.
 class CPURegList {

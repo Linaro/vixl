@@ -7352,7 +7352,7 @@ void Assembler::revw(const ZRegister& zd,
 }
 
 void Assembler::splice(const ZRegister& zd,
-                       const PRegisterWithLaneSize& pg,
+                       const PRegister& pg,
                        const ZRegister& zn,
                        const ZRegister& zm) {
   // SPLICE <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>

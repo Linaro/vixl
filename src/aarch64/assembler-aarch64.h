@@ -5559,7 +5559,7 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Splice two vectors under predicate control.
   void splice(const ZRegister& zd,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const ZRegister& zn,
               const ZRegister& zm);
 
@@ -6352,8 +6352,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Code generation helpers.
 
   // Register encoding.
-  template <int hibit, int lobit>
-  static Instr Rx(CPURegister rx) {
+  // TODO: When every register type derives from CPURegister, remove the
+  // templating on T.
+  template <int hibit, int lobit, typename T>
+  static Instr Rx(T rx) {
     VIXL_STATIC_ASSERT((hibit >= lobit) && (lobit >= 0));
     VIXL_STATIC_ASSERT(hibit < (sizeof(Instr) * kBitsPerByte));
     Instr code = rx.GetCode();
@@ -6362,15 +6364,24 @@ class Assembler : public vixl::internal::AssemblerBase {
     return code << lobit;
   }
 
-#define REGISTER_FIELD_NAMES(V) V(d) V(n) V(m) V(a) V(t) V(t2) V(s)
-
+#define CPU_REGISTER_FIELD_NAMES(V) V(d) V(n) V(m) V(a) V(t) V(t2) V(s)
 #define REGISTER_ENCODER(N)                                           \
   static Instr R##N(CPURegister r##N) {                               \
     return Rx<R##N##_offset + R##N##_width - 1, R##N##_offset>(r##N); \
   }
-  REGISTER_FIELD_NAMES(REGISTER_ENCODER)
+  CPU_REGISTER_FIELD_NAMES(REGISTER_ENCODER)
 #undef REGISTER_ENCODER
-#undef REGISTER_FIELD_NAMES
+#undef CPU_REGISTER_FIELD_NAMES
+
+// TODO: Remove this once every register type derives from CPURegister.
+#define Z_REGISTER_FIELD_NAMES(V) V(d) V(n) V(m) V(t)
+#define REGISTER_ENCODER(N)                                           \
+  static Instr R##N(ZRegister r##N) {                                 \
+    return Rx<R##N##_offset + R##N##_width - 1, R##N##_offset>(r##N); \
+  }
+  Z_REGISTER_FIELD_NAMES(REGISTER_ENCODER)
+#undef REGISTER_ENCODER
+#undef Z_REGISTER_FIELD_NAMES
 
   static Instr RmNot31(CPURegister rm) {
     VIXL_ASSERT(rm.GetCode() != kSPRegInternalCode);
@@ -6395,7 +6406,12 @@ class Assembler : public vixl::internal::AssemblerBase {
     return (rm.GetCode() & kRegCodeMask) << Rm_offset;
   }
 
-  static Instr Pd(PRegister pd) { return Rx<3, 0>(pd); }
+  // TODO: Consider restricting this to PRegister and related types. Otherwise,
+  // use CPURegister, once PRegister* types derive from it.
+  template <typename T>
+  static Instr Pd(T pd) {
+    return Rx<3, 0>(pd);
+  }
 
   // Flags encoding.
   static Instr Flags(FlagsUpdate S) {
