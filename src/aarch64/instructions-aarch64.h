@@ -178,6 +178,37 @@ class Instruction {
     return ExtractBits(msb, lsb);
   }
 
+  // Compress bit extraction operation from Hacker's Delight.
+  // https://github.com/hcs0/Hackers-Delight/blob/master/compress.c.txt
+  uint32_t Compress(uint32_t mask) const {
+    uint32_t mk, mp, mv, t;
+    uint32_t x = GetInstructionBits() & mask;  // Clear irrelevant bits.
+    mk = ~mask << 1;                           // We will count 0's to right.
+    for (int i = 0; i < 5; i++) {
+      mp = mk ^ (mk << 1);  // Parallel suffix.
+      mp = mp ^ (mp << 2);
+      mp = mp ^ (mp << 4);
+      mp = mp ^ (mp << 8);
+      mp = mp ^ (mp << 16);
+      mv = mp & mask;                         // Bits to move.
+      mask = (mask ^ mv) | (mv >> (1 << i));  // Compress mask.
+      t = x & mv;
+      x = (x ^ t) | (t >> (1 << i));  // Compress x.
+      mk = mk & ~mp;
+    }
+    return x;
+  }
+
+  template <uint32_t M>
+  uint32_t ExtractBits() const {
+    return Compress(M);
+  }
+
+  template <uint32_t M, uint32_t V>
+  uint32_t IsMaskedValue() const {
+    return (Mask(M) == V) ? 1 : 0;
+  }
+
   int32_t ExtractSignedBits(int msb, int lsb) const {
     int32_t bits = *(reinterpret_cast<const int32_t*>(this));
     return ExtractSignedBitfield32(msb, lsb, bits);

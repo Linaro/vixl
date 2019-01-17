@@ -1,4 +1,4 @@
-// Copyright 2014, VIXL authors
+// Copyright 2019, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,8 @@
 #define VIXL_AARCH64_DECODER_AARCH64_H_
 
 #include <list>
+#include <map>
+#include <string>
 
 #include "../globals-vixl.h"
 
@@ -152,22 +154,22 @@ class DecoderVisitor {
   const VisitorConstness constness_;
 };
 
+class DecodeNode;
+class CompiledDecodeNode;
 
+// The instruction decoder is constructed from a graph of decode nodes. At each
+// node, a number of bits are sampled from the instruction being decoded. The
+// resulting value is used to look up the next node in the graph, which then
+// samples other bits, and moves to other decode nodes. Eventually, a visitor
+// node is reached, and the corresponding visitor function is called, which
+// handles the instruction.
 class Decoder {
  public:
-  Decoder() {}
+  Decoder() { ConstructDecodeGraph(); }
 
   // Top-level wrappers around the actual decoding function.
-  void Decode(const Instruction* instr) {
-    std::list<DecoderVisitor*>::iterator it;
-    for (it = visitors_.begin(); it != visitors_.end(); it++) {
-      VIXL_ASSERT((*it)->IsConstVisitor());
-    }
-    DecodeInstruction(instr);
-  }
-  void Decode(Instruction* instr) {
-    DecodeInstruction(const_cast<const Instruction*>(instr));
-  }
+  void Decode(const Instruction* instr);
+  void Decode(Instruction* instr);
 
   // Decode all instructions from start (inclusive) to end (exclusive).
   template <typename T>
@@ -220,72 +222,285 @@ class Decoder {
   VISITOR_LIST(DECLARE)
 #undef DECLARE
 
-
   std::list<DecoderVisitor*>* visitors() { return &visitors_; }
+
+  // Get a DecodeNode by name from the Decoder's map.
+  DecodeNode* GetDecodeNode(std::string name);
 
  private:
   // Decodes an instruction and calls the visitor functions registered with the
   // Decoder class.
   void DecodeInstruction(const Instruction* instr);
 
-  // Decode the PC relative addressing instruction, and call the corresponding
-  // visitors.
-  // On entry, instruction bits 27:24 = 0x0.
-  void DecodePCRelAddressing(const Instruction* instr);
+  // Add an initialised DecodeNode to the decode_node_ map.
+  void AddDecodeNode(const DecodeNode& node);
 
-  // Decode the add/subtract immediate instruction, and call the correspoding
-  // visitors.
-  // On entry, instruction bits 27:24 = 0x1.
-  void DecodeAddSubImmediate(const Instruction* instr);
-
-  // Decode the branch, system command, and exception generation parts of
-  // the instruction tree, and call the corresponding visitors.
-  // On entry, instruction bits 27:24 = {0x4, 0x5, 0x6, 0x7}.
-  void DecodeBranchSystemException(const Instruction* instr);
-
-  // Decode the load and store parts of the instruction tree, and call
-  // the corresponding visitors.
-  // On entry, instruction bits 27:24 = {0x8, 0x9, 0xC, 0xD}.
-  void DecodeLoadStore(const Instruction* instr);
-
-  // Decode the logical immediate and move wide immediate parts of the
-  // instruction tree, and call the corresponding visitors.
-  // On entry, instruction bits 27:24 = 0x2.
-  void DecodeLogical(const Instruction* instr);
-
-  // Decode the bitfield and extraction parts of the instruction tree,
-  // and call the corresponding visitors.
-  // On entry, instruction bits 27:24 = 0x3.
-  void DecodeBitfieldExtract(const Instruction* instr);
-
-  // Decode the data processing parts of the instruction tree, and call the
-  // corresponding visitors.
-  // On entry, instruction bits 27:24 = {0x1, 0xA, 0xB}.
-  void DecodeDataProcessing(const Instruction* instr);
-
-  // Decode the floating point parts of the instruction tree, and call the
-  // corresponding visitors.
-  // On entry, instruction bits 27:24 = {0xE, 0xF}.
-  void DecodeFP(const Instruction* instr);
-
-  // Decode the Advanced SIMD (NEON) load/store part of the instruction tree,
-  // and call the corresponding visitors.
-  // On entry, instruction bits 29:25 = 0x6.
-  void DecodeNEONLoadStore(const Instruction* instr);
-
-  // Decode the Advanced SIMD (NEON) vector data processing part of the
-  // instruction tree, and call the corresponding visitors.
-  // On entry, instruction bits 28:25 = 0x7.
-  void DecodeNEONVectorDataProcessing(const Instruction* instr);
-
-  // Decode the Advanced SIMD (NEON) scalar data processing part of the
-  // instruction tree, and call the corresponding visitors.
-  // On entry, instruction bits 28:25 = 0xF.
-  void DecodeNEONScalarDataProcessing(const Instruction* instr);
-
- private:
   // Visitors are registered in a list.
   std::list<DecoderVisitor*> visitors_;
+
+  // Compile the dynamically generated decode graph based on the static
+  // information in kDecodeMapping and kVisitorNodes.
+  void ConstructDecodeGraph();
+
+  // Root node for the compiled decoder graph, stored here to avoid a map lookup
+  // for every instruction decoded.
+  CompiledDecodeNode* compiled_decoder_root_;
+
+  // Map of node names to DecodeNodes.
+  std::map<std::string, DecodeNode> decode_nodes_;
+};
+
+const int kMaxDecodeSampledBits = 16;
+const int kMaxDecodeMappings = 22;
+typedef void (Decoder::*DecodeFnPtr)(const Instruction*);
+typedef uint32_t (Instruction::*BitExtractFn)(void) const;
+
+// A Visitor node maps the name of a visitor to the function that handles it.
+struct VisitorNode {
+  const char* name;
+  const DecodeFnPtr visitor_fn;
+};
+
+// DecodePattern and DecodeMapping represent the input data to the decoder
+// compilation stage. After compilation, the decoder is embodied in the graph
+// of CompiledDecodeNodes pointer to by compiled_decoder_root_.
+
+// A DecodePattern maps a pattern of set/unset/don't care (1, 0, x) bits as a
+// string to the name of its handler.
+struct DecodePattern {
+  const char* pattern;
+  const char* handler;
+};
+
+// A DecodeMapping consists of the name of a handler, the bits sampled in the
+// instruction by that handler, and a mapping from the pattern that those
+// sampled bits match to the corresponding name of a node.
+struct DecodeMapping {
+  const char* name;
+  const uint8_t sampled_bits[kMaxDecodeSampledBits];
+  const DecodePattern mapping[kMaxDecodeMappings];
+};
+
+// For speed, before nodes can be used for decoding instructions, they must
+// be compiled. This converts the mapping "bit pattern strings to decoder name
+// string" stored in DecodeNodes to an array look up for the pointer to the next
+// node, stored in CompiledDecodeNodes. Compilation may also apply other
+// optimisations for simple decode patterns.
+class CompiledDecodeNode {
+ public:
+  // Constructor for decode node, containing a decode table and pointer to a
+  // function that extracts the bits to be sampled.
+  CompiledDecodeNode(BitExtractFn bit_extract_fn, size_t decode_table_size)
+      : bit_extract_fn_(bit_extract_fn),
+        visitor_fn_(NULL),
+        decode_table_size_(decode_table_size),
+        decoder_(NULL) {
+    decode_table_ = new CompiledDecodeNode*[decode_table_size_];
+    memset(decode_table_, 0, decode_table_size_ * sizeof(decode_table_[0]));
+  }
+
+  // Constructor for wrappers around visitor functions. These require no
+  // decoding, so no bit extraction function or decode table is assigned.
+  explicit CompiledDecodeNode(DecodeFnPtr visitor_fn, Decoder* decoder)
+      : bit_extract_fn_(NULL),
+        visitor_fn_(visitor_fn),
+        decode_table_(NULL),
+        decode_table_size_(0),
+        decoder_(decoder) {}
+
+  ~CompiledDecodeNode() {
+    // Free the decode table, if this is a compiled, non-leaf node.
+    if (decode_table_ != NULL) {
+      VIXL_ASSERT(!IsLeafNode());
+      delete[] decode_table_;
+    }
+  }
+
+  // Decode the instruction by either sampling the bits using the bit extract
+  // function to find the next node, or, if we're at a leaf, calling the visitor
+  // function.
+  void Decode(const Instruction* instr) const;
+
+  // A leaf node is a wrapper for a visitor function.
+  bool IsLeafNode() const {
+    VIXL_ASSERT(((visitor_fn_ == NULL) && (bit_extract_fn_ != NULL)) ||
+                ((visitor_fn_ != NULL) && (bit_extract_fn_ == NULL)));
+    return visitor_fn_ != NULL;
+  }
+
+  // Get a pointer to the next node required in the decode process, based on the
+  // bits sampled by the current node.
+  CompiledDecodeNode* GetNodeForBits(uint32_t bits) const {
+    VIXL_ASSERT(bits < decode_table_size_);
+    return decode_table_[bits];
+  }
+
+  // Set the next node in the decode process for the pattern of sampled bits in
+  // the current node.
+  void SetNodeForBits(uint32_t bits, CompiledDecodeNode* n) {
+    VIXL_ASSERT(bits < decode_table_size_);
+    VIXL_ASSERT(n != NULL);
+    decode_table_[bits] = n;
+  }
+
+ private:
+  // Pointer to an instantiated template function for extracting the bits
+  // sampled by this node. Set to NULL for leaf nodes.
+  const BitExtractFn bit_extract_fn_;
+
+  // Visitor function that handles the instruction identified. Set only for
+  // leaf nodes, where no extra decoding is required, otherwise NULL.
+  const DecodeFnPtr visitor_fn_;
+
+  // Mapping table from instruction bits to next decode stage.
+  CompiledDecodeNode** decode_table_;
+  const size_t decode_table_size_;
+
+  // Pointer to the decoder containing this node, used to call its visitor
+  // function for leaf nodes. Set to NULL for non-leaf nodes.
+  Decoder* decoder_;
+};
+
+class DecodeNode {
+ public:
+  // Default constructor needed for map initialisation.
+  DecodeNode() : compiled_node_(NULL) {}
+
+  // Constructor for DecodeNode wrappers around visitor functions. These are
+  // marked as "compiled", as there is no decoding left to do.
+  explicit DecodeNode(const VisitorNode& visitor, Decoder* decoder)
+      : name_(visitor.name),
+        visitor_fn_(visitor.visitor_fn),
+        decoder_(decoder),
+        compiled_node_(NULL) {}
+
+  // Constructor for DecodeNodes that map bit patterns to other DecodeNodes.
+  explicit DecodeNode(const DecodeMapping& map, Decoder* decoder = NULL)
+      : name_(map.name),
+        visitor_fn_(NULL),
+        decoder_(decoder),
+        compiled_node_(NULL) {
+    // The length of the bit string in the first mapping determines the number
+    // of sampled bits. When adding patterns later, we assert that all mappings
+    // sample the same number of bits.
+    VIXL_CHECK(strcmp(map.mapping[0].pattern, "otherwise") != 0);
+    int bit_count = static_cast<int>(strlen(map.mapping[0].pattern));
+    VIXL_CHECK((bit_count > 0) && (bit_count <= 32));
+    SetSampledBits(map.sampled_bits, bit_count);
+    AddPatterns(map.mapping);
+  }
+
+  ~DecodeNode() {
+    // Delete the compiled version of this node, if one was created.
+    if (compiled_node_ != NULL) {
+      delete compiled_node_;
+    }
+  }
+
+  // Set the bits sampled from the instruction by this node.
+  void SetSampledBits(const uint8_t* bits, int bit_count);
+
+  // Get the bits sampled from the instruction by this node.
+  std::vector<uint8_t> GetSampledBits() const;
+
+  // Get the number of bits sampled from the instruction by this node.
+  size_t GetSampledBitsCount() const;
+
+  // Add patterns to this node's internal pattern table.
+  void AddPatterns(const DecodePattern* patterns);
+
+  // A leaf node is a DecodeNode that wraps the visitor function for the
+  // identified instruction class.
+  bool IsLeafNode() const { return visitor_fn_ != NULL; }
+
+  std::string GetName() const { return name_; }
+
+  // Create a CompiledDecodeNode of specified table size that uses
+  // bit_extract_fn to sample bits from the instruction.
+  void CreateCompiledNode(BitExtractFn bit_extract_fn, size_t table_size) {
+    VIXL_ASSERT(bit_extract_fn != NULL);
+    VIXL_ASSERT(table_size > 0);
+    compiled_node_ = new CompiledDecodeNode(bit_extract_fn, table_size);
+  }
+
+  // Create a CompiledDecodeNode wrapping a visitor function. No decoding is
+  // required for this node; the visitor function is called instead.
+  void CreateVisitorNode() {
+    compiled_node_ = new CompiledDecodeNode(visitor_fn_, decoder_);
+  }
+
+  // Find and compile the DecodeNode named "name", and set it as the node for
+  // the pattern "bits".
+  void CompileNodeForBits(Decoder* decoder, std::string name, uint32_t bits);
+
+  // Get a pointer to an instruction method that extracts the instruction bits
+  // specified by the mask argument, and returns those sampled bits as a
+  // contiguous sequence, suitable for indexing an array.
+  // For example, a mask of 0b1010 returns a function that, given an instruction
+  // 0bXYZW, will return 0bXZ.
+  BitExtractFn GetBitExtractFunction(uint32_t mask);
+
+  // Get a pointer to an Instruction method that applies a mask to the
+  // instruction bits, and tests if the result is equal to value. The returned
+  // function gives a 1 result if (inst & mask == value), 0 otherwise.
+  BitExtractFn GetBitExtractFunction(uint32_t mask, uint32_t value);
+
+  // Compile this DecodeNode into a new CompiledDecodeNode and returns a pointer
+  // to it. This pointer is also stored inside the DecodeNode itself. Destroying
+  // a DecodeNode frees its associated CompiledDecodeNode.
+  CompiledDecodeNode* Compile(Decoder* decoder);
+
+  // Get a pointer to the CompiledDecodeNode associated with this DecodeNode.
+  // Returns NULL if the node has not been compiled yet.
+  CompiledDecodeNode* GetCompiledNode() const { return compiled_node_; }
+  bool IsCompiled() const { return GetCompiledNode() != NULL; }
+
+ private:
+  // Generate a mask and value pair from a string constructed from 0, 1 and x
+  // (don't care) characters.
+  // For example "10x1" should return mask = 0b1101, value = 0b1001.
+  typedef std::pair<Instr, Instr> MaskValuePair;
+  MaskValuePair GenerateMaskValuePair(std::string pattern) const;
+
+  // Generate a pattern string ordered by the bit positions sampled by this
+  // node. The first character in the string corresponds to the lowest sampled
+  // bit.
+  // For example, a pattern of "1x0" expected when sampling bits 31, 1 and 30
+  // returns the pattern "x01"; bit 1 should be 'x', bit 30 '0' and bit 31 '1'.
+  // This output makes comparisons easier between the pattern and bits sampled
+  // from an instruction using the fast "compress" algorithm. See
+  // Instruction::Compress().
+  std::string GenerateOrderedPattern(std::string pattern) const;
+
+  // Generate a mask with a bit set at each sample position.
+  uint32_t GenerateSampledBitsMask() const;
+
+  // Try to compile a more optimised decode operation for this node, returning
+  // true if successful.
+  bool TryCompileOptimisedDecodeTable(Decoder* decoder);
+
+  // Name of this decoder node, used to construct edges in the decode graph.
+  std::string name_;
+
+  // Vector of bits sampled from an instruction to determine which node to look
+  // up next in the decode process.
+  std::vector<uint8_t> sampled_bits_;
+
+  // Visitor function that handles the instruction identified. Set only for leaf
+  // nodes, where no extra decoding is required. For non-leaf decoding nodes,
+  // this pointer is NULL.
+  DecodeFnPtr visitor_fn_;
+
+  // Source mapping from bit pattern to name of next decode stage.
+  std::vector<DecodePattern> pattern_table_;
+
+  // Pointer to the decoder containing this node, used to call its visitor
+  // function for leaf nodes.
+  Decoder* decoder_;
+
+  // Pointer to the compiled version of this node. Is this node hasn't been
+  // compiled yet, this pointer is NULL.
+  CompiledDecodeNode* compiled_node_;
 };
 
 }  // namespace aarch64

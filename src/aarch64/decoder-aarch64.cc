@@ -1,4 +1,4 @@
-// Copyright 2014, VIXL authors
+// Copyright 2019, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -24,106 +24,55 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <string>
+
 #include "../globals-vixl.h"
 #include "../utils-vixl.h"
 
 #include "decoder-aarch64.h"
+#include "decoder-constants-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {
 
-void Decoder::DecodeInstruction(const Instruction* instr) {
-  if (instr->ExtractBits(28, 27) == 0) {
-    VisitUnallocated(instr);
-  } else {
-    switch (instr->ExtractBits(27, 24)) {
-      // 0:   PC relative addressing.
-      case 0x0:
-        DecodePCRelAddressing(instr);
-        break;
-
-      // 1:   Add/sub immediate.
-      case 0x1:
-        DecodeAddSubImmediate(instr);
-        break;
-
-      // A:   Logical shifted register.
-      //      Add/sub with carry.
-      //      Conditional compare register.
-      //      Conditional compare immediate.
-      //      Conditional select.
-      //      Data processing 1 source.
-      //      Data processing 2 source.
-      // B:   Add/sub shifted register.
-      //      Add/sub extended register.
-      //      Data processing 3 source.
-      case 0xA:
-      case 0xB:
-        DecodeDataProcessing(instr);
-        break;
-
-      // 2:   Logical immediate.
-      //      Move wide immediate.
-      case 0x2:
-        DecodeLogical(instr);
-        break;
-
-      // 3:   Bitfield.
-      //      Extract.
-      case 0x3:
-        DecodeBitfieldExtract(instr);
-        break;
-
-      // 4:   Unconditional branch immediate.
-      //      Exception generation.
-      //      Compare and branch immediate.
-      // 5:   Compare and branch immediate.
-      //      Conditional branch.
-      //      System.
-      // 6,7: Unconditional branch.
-      //      Test and branch immediate.
-      case 0x4:
-      case 0x5:
-      case 0x6:
-      case 0x7:
-        DecodeBranchSystemException(instr);
-        break;
-
-      // 8,9: Load/store register pair post-index.
-      //      Load register literal.
-      //      Load/store register unscaled immediate.
-      //      Load/store register immediate post-index.
-      //      Load/store register immediate pre-index.
-      //      Load/store register offset.
-      //      Load/store exclusive.
-      // C,D: Load/store register pair offset.
-      //      Load/store register pair pre-index.
-      //      Load/store register unsigned immediate.
-      //      Advanced SIMD.
-      case 0x8:
-      case 0x9:
-      case 0xC:
-      case 0xD:
-        DecodeLoadStore(instr);
-        break;
-
-      // E:   FP fixed point conversion.
-      //      FP integer conversion.
-      //      FP data processing 1 source.
-      //      FP compare.
-      //      FP immediate.
-      //      FP data processing 2 source.
-      //      FP conditional compare.
-      //      FP conditional select.
-      //      Advanced SIMD.
-      // F:   FP data processing 3 source.
-      //      Advanced SIMD.
-      case 0xE:
-      case 0xF:
-        DecodeFP(instr);
-        break;
-    }
+void Decoder::Decode(const Instruction* instr) {
+  std::list<DecoderVisitor*>::iterator it;
+  for (it = visitors_.begin(); it != visitors_.end(); it++) {
+    VIXL_ASSERT((*it)->IsConstVisitor());
   }
+  VIXL_ASSERT(compiled_decoder_root_ != NULL);
+  compiled_decoder_root_->Decode(instr);
+}
+
+void Decoder::Decode(Instruction* instr) {
+  compiled_decoder_root_->Decode(const_cast<const Instruction*>(instr));
+}
+
+void Decoder::AddDecodeNode(const DecodeNode& node) {
+  decode_nodes_.insert(std::make_pair(node.GetName(), node));
+}
+
+DecodeNode* Decoder::GetDecodeNode(std::string name) {
+  if (decode_nodes_.count(name) != 1) {
+    std::string msg = "Can't find decode node " + name + ".\n";
+    VIXL_ABORT_WITH_MSG(msg.c_str());
+  }
+  return &decode_nodes_[name];
+}
+
+void Decoder::ConstructDecodeGraph() {
+  // Add all of the decoding nodes to the Decoder.
+  for (unsigned i = 0; i < ArrayLength(kDecodeMapping); i++) {
+    AddDecodeNode(DecodeNode(kDecodeMapping[i], this));
+  }
+
+  // Add the visitor function wrapping nodes to the Decoder.
+  for (unsigned i = 0; i < ArrayLength(kVisitorNodes); i++) {
+    AddDecodeNode(DecodeNode(kVisitorNodes[i], this));
+  }
+
+  // Compile the graph from the root.
+  compiled_decoder_root_ = GetDecodeNode("Root")->Compile(this);
 }
 
 void Decoder::AppendVisitor(DecoderVisitor* new_visitor) {
@@ -173,885 +122,6 @@ void Decoder::RemoveVisitor(DecoderVisitor* visitor) {
   visitors_.remove(visitor);
 }
 
-
-void Decoder::DecodePCRelAddressing(const Instruction* instr) {
-  VIXL_ASSERT(instr->ExtractBits(27, 24) == 0x0);
-  // We know bit 28 is set, as <b28:b27> = 0 is filtered out at the top level
-  // decode.
-  VIXL_ASSERT(instr->ExtractBit(28) == 0x1);
-  VisitPCRelAddressing(instr);
-}
-
-
-void Decoder::DecodeBranchSystemException(const Instruction* instr) {
-  VIXL_ASSERT((instr->ExtractBits(27, 24) == 0x4) ||
-              (instr->ExtractBits(27, 24) == 0x5) ||
-              (instr->ExtractBits(27, 24) == 0x6) ||
-              (instr->ExtractBits(27, 24) == 0x7));
-
-  switch (instr->ExtractBits(31, 29)) {
-    case 0:
-    case 4: {
-      VisitUnconditionalBranch(instr);
-      break;
-    }
-    case 1:
-    case 5: {
-      if (instr->ExtractBit(25) == 0) {
-        VisitCompareBranch(instr);
-      } else {
-        VisitTestBranch(instr);
-      }
-      break;
-    }
-    case 2: {
-      if (instr->ExtractBit(25) == 0) {
-        if ((instr->ExtractBit(24) == 0x1) ||
-            (instr->Mask(0x01000010) == 0x00000010)) {
-          VisitUnallocated(instr);
-        } else {
-          VisitConditionalBranch(instr);
-        }
-      } else {
-        VisitUnallocated(instr);
-      }
-      break;
-    }
-    case 6: {
-      if (instr->ExtractBit(25) == 0) {
-        if (instr->ExtractBit(24) == 0) {
-          if ((instr->ExtractBits(4, 2) != 0) ||
-              (instr->Mask(0x00E0001D) == 0x00200001) ||
-              (instr->Mask(0x00E0001D) == 0x00400001) ||
-              (instr->Mask(0x00E0001E) == 0x00200002) ||
-              (instr->Mask(0x00E0001E) == 0x00400002) ||
-              (instr->Mask(0x00E0001C) == 0x00600000) ||
-              (instr->Mask(0x00E0001C) == 0x00800000) ||
-              (instr->Mask(0x00E0001F) == 0x00A00000) ||
-              (instr->Mask(0x00C0001C) == 0x00C00000)) {
-            VisitUnallocated(instr);
-          } else {
-            VisitException(instr);
-          }
-        } else {
-          if (instr->ExtractBits(23, 22) == 0) {
-            const Instr masked_003FF0E0 = instr->Mask(0x003FF0E0);
-            if ((instr->ExtractBits(21, 19) == 0x4) ||
-                (masked_003FF0E0 == 0x00033000) ||
-                (masked_003FF0E0 == 0x003FF020) ||
-                (masked_003FF0E0 == 0x003FF060) ||
-                (masked_003FF0E0 == 0x003FF0E0) ||
-                (instr->Mask(0x00388000) == 0x00008000) ||
-                (instr->Mask(0x0038E000) == 0x00000000) ||
-                (instr->Mask(0x0039E000) == 0x00002000) ||
-                (instr->Mask(0x003AE000) == 0x00002000) ||
-                (instr->Mask(0x003CE000) == 0x00042000) ||
-                (instr->Mask(0x0038F000) == 0x00005000) ||
-                (instr->Mask(0x0038E000) == 0x00006000)) {
-              VisitUnallocated(instr);
-            } else {
-              VisitSystem(instr);
-            }
-          } else {
-            VisitUnallocated(instr);
-          }
-        }
-      } else {
-        if (((instr->ExtractBit(24) == 0x1) &&
-             (instr->ExtractBits(23, 21) > 0x1)) ||
-            (instr->ExtractBits(20, 16) != 0x1F) ||
-            (instr->ExtractBits(15, 10) == 0x1) ||
-            (instr->ExtractBits(15, 10) > 0x3) ||
-            (instr->ExtractBits(24, 21) == 0x3) ||
-            (instr->ExtractBits(24, 22) == 0x3)) {
-          VisitUnallocated(instr);
-        } else {
-          VisitUnconditionalBranchToRegister(instr);
-        }
-      }
-      break;
-    }
-    case 3:
-    case 7: {
-      VisitUnallocated(instr);
-      break;
-    }
-  }
-}
-
-
-void Decoder::DecodeLoadStore(const Instruction* instr) {
-  VIXL_ASSERT((instr->ExtractBits(27, 24) == 0x8) ||
-              (instr->ExtractBits(27, 24) == 0x9) ||
-              (instr->ExtractBits(27, 24) == 0xC) ||
-              (instr->ExtractBits(27, 24) == 0xD));
-  // TODO(all): rearrange the tree to integrate this branch.
-  if ((instr->ExtractBit(28) == 0) && (instr->ExtractBit(29) == 0) &&
-      (instr->ExtractBit(26) == 1)) {
-    DecodeNEONLoadStore(instr);
-    return;
-  }
-
-  if (instr->ExtractBit(24) == 0) {
-    if (instr->ExtractBit(28) == 0) {
-      if (instr->ExtractBit(29) == 0) {
-        if (instr->ExtractBit(26) == 0) {
-          VisitLoadStoreExclusive(instr);
-        } else {
-          VIXL_UNREACHABLE();
-        }
-      } else {
-        if ((instr->ExtractBits(31, 30) == 0x3) ||
-            (instr->Mask(0xC4400000) == 0x40000000)) {
-          VisitUnallocated(instr);
-        } else {
-          if (instr->ExtractBit(23) == 0) {
-            if (instr->Mask(0xC4400000) == 0xC0400000) {
-              VisitUnallocated(instr);
-            } else {
-              VisitLoadStorePairNonTemporal(instr);
-            }
-          } else {
-            VisitLoadStorePairPostIndex(instr);
-          }
-        }
-      }
-    } else {
-      if (instr->ExtractBit(29) == 0) {
-        if (instr->Mask(0xC4000000) == 0xC4000000) {
-          VisitUnallocated(instr);
-        } else {
-          VisitLoadLiteral(instr);
-        }
-      } else {
-        if ((instr->Mask(0x44800000) == 0x44800000) ||
-            (instr->Mask(0x84800000) == 0x84800000)) {
-          VisitUnallocated(instr);
-        } else {
-          if (instr->ExtractBit(21) == 0) {
-            switch (instr->ExtractBits(11, 10)) {
-              case 0: {
-                VisitLoadStoreUnscaledOffset(instr);
-                break;
-              }
-              case 1: {
-                if (instr->Mask(0xC4C00000) == 0xC0800000) {
-                  VisitUnallocated(instr);
-                } else {
-                  VisitLoadStorePostIndex(instr);
-                }
-                break;
-              }
-              case 2: {
-                // TODO: VisitLoadStoreRegisterOffsetUnpriv.
-                VisitUnimplemented(instr);
-                break;
-              }
-              case 3: {
-                if (instr->Mask(0xC4C00000) == 0xC0800000) {
-                  VisitUnallocated(instr);
-                } else {
-                  VisitLoadStorePreIndex(instr);
-                }
-                break;
-              }
-            }
-          } else {
-            if (instr->ExtractBits(11, 10) == 0x2) {
-              if (instr->ExtractBit(14) == 0) {
-                VisitUnallocated(instr);
-              } else {
-                VisitLoadStoreRegisterOffset(instr);
-              }
-            } else {
-              if (instr->ExtractBits(11, 10) == 0x0) {
-                if (instr->ExtractBit(25) == 0) {
-                  if (instr->ExtractBit(26) == 0) {
-                    if ((instr->ExtractBit(15) == 1) &&
-                        ((instr->ExtractBits(14, 12) == 0x1) ||
-                         (instr->ExtractBit(13) == 1) ||
-                         (instr->ExtractBits(14, 12) == 0x5) ||
-                         ((instr->ExtractBits(14, 12) == 0x4) &&
-                          ((instr->ExtractBit(23) == 0) ||
-                           (instr->ExtractBits(23, 22) == 0x3))))) {
-                      VisitUnallocated(instr);
-                    } else {
-                      VisitAtomicMemory(instr);
-                    }
-                  } else {
-                    VisitUnallocated(instr);
-                  }
-                } else {
-                  VisitUnallocated(instr);
-                }
-              } else {
-                if (instr->ExtractBit(25) == 0) {
-                  if (instr->ExtractBit(26) == 0) {
-                    if (instr->ExtractBits(31, 30) == 0x3) {
-                      VisitLoadStorePAC(instr);
-                    } else {
-                      VisitUnallocated(instr);
-                    }
-                  } else {
-                    VisitUnallocated(instr);
-                  }
-                } else {
-                  VisitUnallocated(instr);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  } else {
-    if (instr->ExtractBit(28) == 0) {
-      if (instr->ExtractBit(29) == 0) {
-        VisitUnallocated(instr);
-      } else {
-        if ((instr->ExtractBits(31, 30) == 0x3) ||
-            (instr->Mask(0xC4400000) == 0x40000000)) {
-          VisitUnallocated(instr);
-        } else {
-          if (instr->ExtractBit(23) == 0) {
-            VisitLoadStorePairOffset(instr);
-          } else {
-            VisitLoadStorePairPreIndex(instr);
-          }
-        }
-      }
-    } else {
-      if (instr->ExtractBit(29) == 0) {
-        if ((instr->ExtractBit(26) == 0) && (instr->ExtractBit(21) == 0) &&
-            (instr->ExtractBits(11, 10) == 0x0) &&
-            ((instr->ExtractBits(31, 30) < 0x2) ||
-             ((instr->ExtractBits(31, 30) == 0x2) &&
-              (instr->ExtractBits(23, 22) != 0x3)) ||
-             ((instr->ExtractBits(31, 30) == 0x3) &&
-              (instr->ExtractBits(23, 22) < 0x2)))) {
-          VisitLoadStoreRCpcUnscaledOffset(instr);
-        } else {
-          VisitUnallocated(instr);
-        }
-      } else {
-        if ((instr->Mask(0x84C00000) == 0x80C00000) ||
-            (instr->Mask(0x44800000) == 0x44800000) ||
-            (instr->Mask(0x84800000) == 0x84800000)) {
-          VisitUnallocated(instr);
-        } else {
-          VisitLoadStoreUnsignedOffset(instr);
-        }
-      }
-    }
-  }
-}
-
-
-void Decoder::DecodeLogical(const Instruction* instr) {
-  VIXL_ASSERT(instr->ExtractBits(27, 24) == 0x2);
-
-  if (instr->Mask(0x80400000) == 0x00400000) {
-    VisitUnallocated(instr);
-  } else {
-    if (instr->ExtractBit(23) == 0) {
-      VisitLogicalImmediate(instr);
-    } else {
-      if (instr->ExtractBits(30, 29) == 0x1) {
-        VisitUnallocated(instr);
-      } else {
-        VisitMoveWideImmediate(instr);
-      }
-    }
-  }
-}
-
-
-void Decoder::DecodeBitfieldExtract(const Instruction* instr) {
-  VIXL_ASSERT(instr->ExtractBits(27, 24) == 0x3);
-
-  if ((instr->Mask(0x80400000) == 0x80000000) ||
-      (instr->Mask(0x80400000) == 0x00400000) ||
-      (instr->Mask(0x80008000) == 0x00008000)) {
-    VisitUnallocated(instr);
-  } else if (instr->ExtractBit(23) == 0) {
-    if ((instr->Mask(0x80200000) == 0x00200000) ||
-        (instr->Mask(0x60000000) == 0x60000000)) {
-      VisitUnallocated(instr);
-    } else {
-      VisitBitfield(instr);
-    }
-  } else {
-    if ((instr->Mask(0x60200000) == 0x00200000) ||
-        (instr->Mask(0x60000000) != 0x00000000)) {
-      VisitUnallocated(instr);
-    } else {
-      VisitExtract(instr);
-    }
-  }
-}
-
-
-void Decoder::DecodeAddSubImmediate(const Instruction* instr) {
-  VIXL_ASSERT(instr->ExtractBits(27, 24) == 0x1);
-  if (instr->ExtractBit(23) == 1) {
-    VisitUnallocated(instr);
-  } else {
-    VisitAddSubImmediate(instr);
-  }
-}
-
-
-void Decoder::DecodeDataProcessing(const Instruction* instr) {
-  VIXL_ASSERT((instr->ExtractBits(27, 24) == 0xA) ||
-              (instr->ExtractBits(27, 24) == 0xB));
-
-  if (instr->ExtractBit(24) == 0) {
-    if (instr->ExtractBit(28) == 0) {
-      if (instr->Mask(0x80008000) == 0x00008000) {
-        VisitUnallocated(instr);
-      } else {
-        VisitLogicalShifted(instr);
-      }
-    } else {
-      switch (instr->ExtractBits(23, 21)) {
-        case 0: {
-          if (instr->ExtractBits(15, 10) != 0) {
-            if (instr->ExtractBits(14, 10) == 0x1) {
-              if (instr->Mask(0xE0000010) == 0xA0000000) {
-                VisitRotateRightIntoFlags(instr);
-              } else {
-                VisitUnallocated(instr);
-              }
-            } else {
-              if (instr->ExtractBits(13, 10) == 0x2) {
-                if (instr->Mask(0xE01F801F) == 0x2000000D) {
-                  VisitEvaluateIntoFlags(instr);
-                } else {
-                  VisitUnallocated(instr);
-                }
-              } else {
-                VisitUnallocated(instr);
-              }
-            }
-          } else {
-            VisitAddSubWithCarry(instr);
-          }
-          break;
-        }
-        case 2: {
-          if ((instr->ExtractBit(29) == 0) || (instr->Mask(0x00000410) != 0)) {
-            VisitUnallocated(instr);
-          } else {
-            if (instr->ExtractBit(11) == 0) {
-              VisitConditionalCompareRegister(instr);
-            } else {
-              VisitConditionalCompareImmediate(instr);
-            }
-          }
-          break;
-        }
-        case 4: {
-          if (instr->Mask(0x20000800) != 0x00000000) {
-            VisitUnallocated(instr);
-          } else {
-            VisitConditionalSelect(instr);
-          }
-          break;
-        }
-        case 6: {
-          if (instr->ExtractBit(29) == 0x1) {
-            VisitUnallocated(instr);
-            VIXL_FALLTHROUGH();
-          } else {
-            if (instr->ExtractBit(30) == 0) {
-              if ((instr->ExtractBit(15) == 0x1) ||
-                  (instr->ExtractBits(15, 11) == 0) ||
-                  (instr->ExtractBits(15, 12) == 0x1) ||
-                  ((instr->ExtractBits(15, 12) == 0x3) &&
-                   (instr->ExtractBit(31) == 0)) ||
-                  (instr->ExtractBits(15, 13) == 0x3) ||
-                  (instr->Mask(0x8000EC00) == 0x00004C00) ||
-                  (instr->Mask(0x8000E800) == 0x80004000) ||
-                  (instr->Mask(0x8000E400) == 0x80004000)) {
-                VisitUnallocated(instr);
-              } else {
-                VisitDataProcessing2Source(instr);
-              }
-            } else {
-              if ((instr->ExtractBits(20, 17) != 0) ||
-                  (instr->ExtractBit(15) == 1) ||
-                  ((instr->ExtractBit(16) == 1) &&
-                   ((instr->ExtractBits(14, 10) > 17) ||
-                    (instr->ExtractBit(31) == 0))) ||
-                  ((instr->ExtractBit(16) == 0) &&
-                   ((instr->ExtractBits(14, 13) != 0) ||
-                    (instr->Mask(0xA01FFC00) == 0x00000C00) ||
-                    (instr->Mask(0x201FF800) == 0x00001800)))) {
-                VisitUnallocated(instr);
-              } else {
-                VisitDataProcessing1Source(instr);
-              }
-            }
-            break;
-          }
-        }
-        case 1:
-        case 3:
-        case 5:
-        case 7:
-          VisitUnallocated(instr);
-          break;
-      }
-    }
-  } else {
-    if (instr->ExtractBit(28) == 0) {
-      if (instr->ExtractBit(21) == 0) {
-        if ((instr->ExtractBits(23, 22) == 0x3) ||
-            (instr->Mask(0x80008000) == 0x00008000)) {
-          VisitUnallocated(instr);
-        } else {
-          VisitAddSubShifted(instr);
-        }
-      } else {
-        if ((instr->Mask(0x00C00000) != 0x00000000) ||
-            (instr->Mask(0x00001400) == 0x00001400) ||
-            (instr->Mask(0x00001800) == 0x00001800)) {
-          VisitUnallocated(instr);
-        } else {
-          VisitAddSubExtended(instr);
-        }
-      }
-    } else {
-      if ((instr->ExtractBit(30) == 0x1) ||
-          (instr->ExtractBits(30, 29) == 0x1) ||
-          (instr->Mask(0xE0600000) == 0x00200000) ||
-          (instr->Mask(0xE0608000) == 0x00400000) ||
-          (instr->Mask(0x60608000) == 0x00408000) ||
-          (instr->Mask(0x60E00000) == 0x00E00000) ||
-          (instr->Mask(0x60E00000) == 0x00800000) ||
-          (instr->Mask(0x60E00000) == 0x00600000)) {
-        VisitUnallocated(instr);
-      } else {
-        VisitDataProcessing3Source(instr);
-      }
-    }
-  }
-}
-
-
-void Decoder::DecodeFP(const Instruction* instr) {
-  VIXL_ASSERT((instr->ExtractBits(27, 24) == 0xE) ||
-              (instr->ExtractBits(27, 24) == 0xF));
-  if (instr->ExtractBit(28) == 0) {
-    DecodeNEONVectorDataProcessing(instr);
-  } else {
-    if (instr->ExtractBits(31, 30) == 0x3) {
-      VisitUnallocated(instr);
-    } else if (instr->ExtractBits(31, 30) == 0x1) {
-      DecodeNEONScalarDataProcessing(instr);
-    } else {
-      if (instr->ExtractBit(29) == 0) {
-        if (instr->ExtractBit(24) == 0) {
-          if (instr->ExtractBit(21) == 0) {
-            if ((instr->ExtractBits(23, 22) == 0x2) ||
-                (instr->ExtractBit(18) == 1) ||
-                (instr->Mask(0x80008000) == 0x00000000) ||
-                (instr->Mask(0x000E0000) == 0x00000000) ||
-                (instr->Mask(0x000E0000) == 0x000A0000) ||
-                (instr->Mask(0x00160000) == 0x00000000) ||
-                (instr->Mask(0x00160000) == 0x00120000)) {
-              VisitUnallocated(instr);
-            } else {
-              VisitFPFixedPointConvert(instr);
-            }
-          } else {
-            if (instr->ExtractBits(15, 10) == 32) {
-              VisitUnallocated(instr);
-            } else if (instr->ExtractBits(15, 10) == 0) {
-              if ((instr->Mask(0x000E0000) == 0x000A0000) ||
-                  (instr->Mask(0x000E0000) == 0x000C0000) ||
-                  (instr->Mask(0x00160000) == 0x00120000) ||
-                  (instr->Mask(0x00160000) == 0x00140000) ||
-                  (instr->Mask(0x20C40000) == 0x00800000) ||
-                  (instr->Mask(0x20C60000) == 0x00840000) ||
-                  (instr->Mask(0xA0C60000) == 0x80060000) ||
-                  (instr->Mask(0xA0C60000) == 0x00860000) ||
-                  (instr->Mask(0xA0CE0000) == 0x80860000) ||
-                  (instr->Mask(0xA0CE0000) == 0x804E0000) ||
-                  (instr->Mask(0xA0CE0000) == 0x000E0000) ||
-                  (instr->Mask(0xA0D60000) == 0x00160000) ||
-                  (instr->Mask(0xA0D60000) == 0x80560000) ||
-                  (instr->Mask(0xA0D60000) == 0x80960000)) {
-                VisitUnallocated(instr);
-              } else {
-                VisitFPIntegerConvert(instr);
-              }
-            } else if (instr->ExtractBits(14, 10) == 16) {
-              const Instr masked_A0DF8000 = instr->Mask(0xA0DF8000);
-              if ((instr->Mask(0x80180000) != 0) ||
-                  (masked_A0DF8000 == 0x00020000) ||
-                  (masked_A0DF8000 == 0x00030000) ||
-                  (masked_A0DF8000 == 0x00068000) ||
-                  (masked_A0DF8000 == 0x00428000) ||
-                  (masked_A0DF8000 == 0x00430000) ||
-                  (masked_A0DF8000 == 0x00468000) ||
-                  (instr->Mask(0xA0D80000) == 0x00800000) ||
-                  (instr->Mask(0xA0DF0000) == 0x00C30000) ||
-                  (instr->Mask(0xA0DF8000) == 0x00C68000)) {
-                VisitUnallocated(instr);
-              } else {
-                VisitFPDataProcessing1Source(instr);
-              }
-            } else if (instr->ExtractBits(13, 10) == 8) {
-              if ((instr->ExtractBits(15, 14) != 0) ||
-                  (instr->ExtractBits(2, 0) != 0) ||
-                  (instr->ExtractBit(31) == 1) ||
-                  (instr->ExtractBits(23, 22) == 0x2)) {
-                VisitUnallocated(instr);
-              } else {
-                VisitFPCompare(instr);
-              }
-            } else if (instr->ExtractBits(12, 10) == 4) {
-              if ((instr->ExtractBits(9, 5) != 0) ||
-                  // Valid enc: 01d, 00s, 11h.
-                  (instr->ExtractBits(23, 22) == 0x2) ||
-                  (instr->ExtractBit(31) == 1)) {
-                VisitUnallocated(instr);
-              } else {
-                VisitFPImmediate(instr);
-              }
-            } else {
-              if ((instr->ExtractBits(23, 22) == 0x2) ||
-                  (instr->ExtractBit(31) == 1)) {
-                VisitUnallocated(instr);
-              } else {
-                switch (instr->ExtractBits(11, 10)) {
-                  case 1: {
-                    VisitFPConditionalCompare(instr);
-                    break;
-                  }
-                  case 2: {
-                    if (instr->ExtractBits(15, 12) > 0x8) {
-                      VisitUnallocated(instr);
-                    } else {
-                      VisitFPDataProcessing2Source(instr);
-                    }
-                    break;
-                  }
-                  case 3: {
-                    VisitFPConditionalSelect(instr);
-                    break;
-                  }
-                  default:
-                    VIXL_UNREACHABLE();
-                }
-              }
-            }
-          }
-        } else {
-          // Bit 30 == 1 has been handled earlier.
-          VIXL_ASSERT(instr->ExtractBit(30) == 0);
-          if ((instr->Mask(0xA0000000) != 0) ||
-              (instr->ExtractBits(23, 22) == 0x2)) {
-            VisitUnallocated(instr);
-          } else {
-            VisitFPDataProcessing3Source(instr);
-          }
-        }
-      } else {
-        VisitUnallocated(instr);
-      }
-    }
-  }
-}
-
-
-void Decoder::DecodeNEONLoadStore(const Instruction* instr) {
-  VIXL_ASSERT(instr->ExtractBits(29, 25) == 0x6);
-  if (instr->ExtractBit(31) == 0) {
-    if ((instr->ExtractBit(24) == 0) && (instr->ExtractBit(21) == 1)) {
-      VisitUnallocated(instr);
-      return;
-    }
-
-    if (instr->ExtractBit(23) == 0) {
-      if (instr->ExtractBits(20, 16) == 0) {
-        if (instr->ExtractBit(24) == 0) {
-          VisitNEONLoadStoreMultiStruct(instr);
-        } else {
-          VisitNEONLoadStoreSingleStruct(instr);
-        }
-      } else {
-        VisitUnallocated(instr);
-      }
-    } else {
-      if (instr->ExtractBit(24) == 0) {
-        VisitNEONLoadStoreMultiStructPostIndex(instr);
-      } else {
-        VisitNEONLoadStoreSingleStructPostIndex(instr);
-      }
-    }
-  } else {
-    VisitUnallocated(instr);
-  }
-}
-
-
-void Decoder::DecodeNEONVectorDataProcessing(const Instruction* instr) {
-  VIXL_ASSERT(instr->ExtractBits(28, 25) == 0x7);
-  if (instr->ExtractBit(31) == 0) {
-    if (instr->ExtractBit(24) == 0) {
-      if (instr->ExtractBit(21) == 0) {
-        if (instr->ExtractBit(15) == 0) {
-          if (instr->ExtractBit(10) == 0) {
-            if (instr->ExtractBit(29) == 0) {
-              if (instr->ExtractBit(11) == 0) {
-                VisitNEONTable(instr);
-              } else {
-                VisitNEONPerm(instr);
-              }
-            } else {
-              VisitNEONExtract(instr);
-            }
-          } else {
-            if (instr->ExtractBits(23, 22) == 0) {
-              VisitNEONCopy(instr);
-            } else if (instr->ExtractBit(14) == 0x0 &&
-                       instr->ExtractBit(22) == 0x1) {
-              // U + a + opcode.
-              uint8_t decode_field =
-                  (instr->ExtractBit(29) << 1) | instr->ExtractBit(23);
-              decode_field = (decode_field << 3) | instr->ExtractBits(13, 11);
-              switch (decode_field) {
-                case 0x5:
-                case 0xB:
-                case 0xC:
-                case 0xD:
-                case 0x11:
-                case 0x19:
-                case 0x1B:
-                case 0x1F:
-                  VisitUnallocated(instr);
-                  break;
-                default:
-                  VisitNEON3SameFP16(instr);
-                  break;
-              }
-            } else {
-              VisitUnallocated(instr);
-            }
-          }
-        } else if (instr->ExtractBit(10) == 0) {
-          VisitUnallocated(instr);
-        } else if ((instr->ExtractBits(14, 11) == 0x3) ||
-                   (instr->ExtractBits(14, 13) == 0x1)) {
-          // opcode = 0b0011
-          // opcode = 0b01xx
-          VisitUnallocated(instr);
-        } else if (instr->ExtractBit(29) == 0) {
-          // U == 0
-          if (instr->ExtractBits(14, 11) == 0x2) {
-            // opcode = 0b0010
-            VisitNEON3SameExtra(instr);
-          } else {
-            VisitUnallocated(instr);
-          }
-        } else {
-          // U == 1
-          if ((instr->ExtractBits(14, 11) == 0xd) ||
-              (instr->ExtractBits(14, 11) == 0xf)) {
-            // opcode = 0b11x1
-            VisitUnallocated(instr);
-          } else {
-            VisitNEON3SameExtra(instr);
-          }
-        }
-      } else {
-        if (instr->ExtractBit(10) == 0) {
-          if (instr->ExtractBit(11) == 0) {
-            VisitNEON3Different(instr);
-          } else {
-            if (instr->ExtractBits(18, 17) == 0) {
-              if (instr->ExtractBit(20) == 0) {
-                if (instr->ExtractBit(19) == 0) {
-                  VisitNEON2RegMisc(instr);
-                } else {
-                  if (instr->ExtractBits(30, 29) == 0x2) {
-                    VisitCryptoAES(instr);
-                  } else {
-                    VisitUnallocated(instr);
-                  }
-                }
-              } else {
-                if (instr->ExtractBit(19) == 0) {
-                  VisitNEONAcrossLanes(instr);
-                } else {
-                  if (instr->ExtractBit(22) == 0) {
-                    VisitUnallocated(instr);
-                  } else {
-                    if ((instr->ExtractBits(16, 15) == 0x0) ||
-                        (instr->ExtractBits(16, 14) == 0x2) ||
-                        (instr->ExtractBits(16, 15) == 0x2) ||
-                        (instr->ExtractBits(16, 12) == 0x1e) ||
-                        ((instr->ExtractBit(23) == 0) &&
-                         ((instr->ExtractBits(16, 14) == 0x3) ||
-                          (instr->ExtractBits(16, 12) == 0x1f))) ||
-                        ((instr->ExtractBit(23) == 1) &&
-                         (instr->ExtractBits(16, 12) == 0x1c))) {
-                      VisitUnallocated(instr);
-                    } else {
-                      VisitNEON2RegMiscFP16(instr);
-                    }
-                  }
-                }
-              }
-            } else {
-              VisitUnallocated(instr);
-            }
-          }
-        } else {
-          VisitNEON3Same(instr);
-        }
-      }
-    } else {
-      if (instr->ExtractBit(10) == 0) {
-        VisitNEONByIndexedElement(instr);
-      } else {
-        if (instr->ExtractBit(23) == 0) {
-          if (instr->ExtractBits(22, 19) == 0) {
-            VisitNEONModifiedImmediate(instr);
-          } else {
-            VisitNEONShiftImmediate(instr);
-          }
-        } else {
-          VisitUnallocated(instr);
-        }
-      }
-    }
-  } else {
-    VisitUnallocated(instr);
-  }
-}
-
-
-void Decoder::DecodeNEONScalarDataProcessing(const Instruction* instr) {
-  VIXL_ASSERT(instr->ExtractBits(28, 25) == 0xF);
-  if (instr->ExtractBit(24) == 0) {
-    if (instr->ExtractBit(21) == 0) {
-      if (instr->ExtractBit(15) == 0) {
-        if (instr->ExtractBit(10) == 0) {
-          if (instr->ExtractBit(29) == 0) {
-            if (instr->ExtractBit(11) == 0) {
-              VisitCrypto3RegSHA(instr);
-            } else {
-              VisitUnallocated(instr);
-            }
-          } else {
-            VisitUnallocated(instr);
-          }
-        } else {
-          if (instr->ExtractBits(23, 22) == 0) {
-            VisitNEONScalarCopy(instr);
-          } else {
-            if (instr->Mask(0x00404000) == 0x00400000) {
-              if ((instr->ExtractBits(13, 11) == 0x6) ||
-                  (instr->ExtractBits(13, 11) < 2) ||
-                  ((instr->Mask(0x20800000) == 0x00000000) &&
-                   ((instr->ExtractBits(13, 11) < 0x3) ||
-                    (instr->ExtractBits(13, 11) == 0x5))) ||
-                  ((instr->Mask(0x20800000) == 0x00800000) &&
-                   (instr->ExtractBits(13, 11) < 0x7)) ||
-                  ((instr->Mask(0x20800000) == 0x20000000) &&
-                   ((instr->ExtractBits(13, 11) < 0x4) ||
-                    (instr->ExtractBits(13, 11) == 0x7))) ||
-                  ((instr->Mask(0x20800000) == 0x20800000) &&
-                   (instr->ExtractBits(12, 11) == 0x3))) {
-                VisitUnallocated(instr);
-              } else {
-                VisitNEONScalar3SameFP16(instr);
-              }
-            } else {
-              VisitUnallocated(instr);
-            }
-          }
-        }
-      } else {
-        if (instr->ExtractBit(29) == 0) {
-          VisitUnallocated(instr);
-        } else {
-          if (instr->ExtractBit(10) == 0) {
-            VisitUnallocated(instr);
-          } else {
-            VisitNEONScalar3SameExtra(instr);
-          }
-        }
-      }
-    } else {
-      if (instr->ExtractBit(10) == 0) {
-        if (instr->ExtractBit(11) == 0) {
-          VisitNEONScalar3Diff(instr);
-        } else {
-          if (instr->ExtractBits(18, 17) == 0) {
-            if (instr->ExtractBit(20) == 0) {
-              if (instr->ExtractBit(19) == 0) {
-                VisitNEONScalar2RegMisc(instr);
-              } else {
-                if (instr->ExtractBit(29) == 0) {
-                  VisitCrypto2RegSHA(instr);
-                } else {
-                  VisitUnallocated(instr);
-                }
-              }
-            } else {
-              if (instr->ExtractBit(19) == 0) {
-                VisitNEONScalarPairwise(instr);
-              } else {
-                if (instr->ExtractBit(22) == 0) {
-                  VisitUnallocated(instr);
-                } else {
-                  if ((instr->ExtractBits(16, 15) == 0x0) ||
-                      (instr->ExtractBits(16, 14) == 0x2) ||
-                      (instr->ExtractBits(16, 15) == 0x2) ||
-                      (instr->ExtractBits(16, 13) == 0xc) ||
-                      (instr->ExtractBits(16, 12) == 0x1e) ||
-                      ((instr->ExtractBit(23) == 0) &&
-                       ((instr->ExtractBits(16, 14) == 0x3) ||
-                        (instr->ExtractBits(16, 12) == 0x1f))) ||
-                      ((instr->ExtractBit(23) == 1) &&
-                       ((instr->ExtractBits(16, 12) == 0xf) ||
-                        (instr->ExtractBits(16, 12) == 0x1c) ||
-                        ((instr->ExtractBit(29) == 1) &&
-                         ((instr->ExtractBits(16, 12) == 0xe) ||
-                          (instr->ExtractBits(16, 12) == 0x1f)))))) {
-                    VisitUnallocated(instr);
-                  } else {
-                    VisitNEONScalar2RegMiscFP16(instr);
-                  }
-                }
-              }
-            }
-          } else {
-            VisitUnallocated(instr);
-          }
-        }
-      } else {
-        VisitNEONScalar3Same(instr);
-      }
-    }
-  } else {
-    if (instr->ExtractBit(10) == 0) {
-      VisitNEONScalarByIndexedElement(instr);
-    } else {
-      if (instr->ExtractBit(23) == 0) {
-        VisitNEONScalarShiftImmediate(instr);
-      } else {
-        VisitUnallocated(instr);
-      }
-    }
-  }
-}
-
-
 #define DEFINE_VISITOR_CALLERS(A)                               \
   void Decoder::Visit##A(const Instruction* instr) {            \
     VIXL_ASSERT(((A##FMask == 0) && (A##Fixed == 0)) ||         \
@@ -1063,5 +133,336 @@ void Decoder::DecodeNEONScalarDataProcessing(const Instruction* instr) {
   }
 VISITOR_LIST(DEFINE_VISITOR_CALLERS)
 #undef DEFINE_VISITOR_CALLERS
+
+void DecodeNode::SetSampledBits(const uint8_t* bits, int bit_count) {
+  VIXL_ASSERT(!IsCompiled());
+
+  sampled_bits_.resize(bit_count);
+  for (int i = 0; i < bit_count; i++) {
+    sampled_bits_[i] = bits[i];
+  }
+}
+
+std::vector<uint8_t> DecodeNode::GetSampledBits() const {
+  return sampled_bits_;
+}
+
+size_t DecodeNode::GetSampledBitsCount() const { return sampled_bits_.size(); }
+
+void DecodeNode::AddPatterns(const DecodePattern* patterns) {
+  VIXL_ASSERT(!IsCompiled());
+  for (unsigned i = 0; i < kMaxDecodeMappings; i++) {
+    // Empty string indicates end of patterns.
+    if (patterns[i].pattern == NULL) break;
+    VIXL_ASSERT((strlen(patterns[i].pattern) == GetSampledBitsCount()) ||
+                (strcmp(patterns[i].pattern, "otherwise") == 0));
+    pattern_table_.push_back(patterns[i]);
+  }
+}
+
+void DecodeNode::CompileNodeForBits(Decoder* decoder,
+                                    std::string name,
+                                    uint32_t bits) {
+  DecodeNode* n = decoder->GetDecodeNode(name);
+  VIXL_ASSERT(n != NULL);
+  if (!n->IsCompiled()) {
+    n->Compile(decoder);
+  }
+  VIXL_ASSERT(n->IsCompiled());
+  compiled_node_->SetNodeForBits(bits, n->GetCompiledNode());
+}
+
+BitExtractFn DecodeNode::GetBitExtractFunction(uint32_t mask) {
+  // Instantiate a templated bit extraction function for every pattern we
+  // might encounter. If the assertion in the default clause is reached, add a
+  // new instantiation below using the information in the failure message.
+  BitExtractFn bit_extract_fn = NULL;
+  switch (mask) {
+#define INSTANTIATE_TEMPLATE(M)                    \
+  case M:                                          \
+    bit_extract_fn = &Instruction::ExtractBits<M>; \
+    break;
+    INSTANTIATE_TEMPLATE(0x00000800);
+    INSTANTIATE_TEMPLATE(0x00000c00);
+    INSTANTIATE_TEMPLATE(0x00001c00);
+    INSTANTIATE_TEMPLATE(0x00004000);
+    INSTANTIATE_TEMPLATE(0x00008000);
+    INSTANTIATE_TEMPLATE(0x0000f000);
+    INSTANTIATE_TEMPLATE(0x0000fc00);
+    INSTANTIATE_TEMPLATE(0x001f0000);
+    INSTANTIATE_TEMPLATE(0x0020fc00);
+    INSTANTIATE_TEMPLATE(0x0038f000);
+    INSTANTIATE_TEMPLATE(0x00400000);
+    INSTANTIATE_TEMPLATE(0x0040f000);
+    INSTANTIATE_TEMPLATE(0x00800000);
+    INSTANTIATE_TEMPLATE(0x00c00000);
+    INSTANTIATE_TEMPLATE(0x00c78000);
+    INSTANTIATE_TEMPLATE(0x00db0000);
+    INSTANTIATE_TEMPLATE(0x00e00003);
+    INSTANTIATE_TEMPLATE(0x00f80400);
+    INSTANTIATE_TEMPLATE(0x01e00000);
+    INSTANTIATE_TEMPLATE(0x03800000);
+    INSTANTIATE_TEMPLATE(0x04c0f000);
+    INSTANTIATE_TEMPLATE(0x10800400);
+    INSTANTIATE_TEMPLATE(0x1e000000);
+    INSTANTIATE_TEMPLATE(0x20000000);
+    INSTANTIATE_TEMPLATE(0x20000410);
+    INSTANTIATE_TEMPLATE(0x20007000);
+    INSTANTIATE_TEMPLATE(0x20007800);
+    INSTANTIATE_TEMPLATE(0x2000f000);
+    INSTANTIATE_TEMPLATE(0x2000f800);
+    INSTANTIATE_TEMPLATE(0x201e0c00);
+    INSTANTIATE_TEMPLATE(0x20803800);
+    INSTANTIATE_TEMPLATE(0x20c0cc00);
+    INSTANTIATE_TEMPLATE(0x20c0f000);
+    INSTANTIATE_TEMPLATE(0x20c0f800);
+    INSTANTIATE_TEMPLATE(0x20c1f000);
+    INSTANTIATE_TEMPLATE(0x51e00000);
+    INSTANTIATE_TEMPLATE(0x60007800);
+    INSTANTIATE_TEMPLATE(0x6000f800);
+    INSTANTIATE_TEMPLATE(0x601e0000);
+    INSTANTIATE_TEMPLATE(0x80007c00);
+    INSTANTIATE_TEMPLATE(0x80017c00);
+    INSTANTIATE_TEMPLATE(0x80408000);
+    INSTANTIATE_TEMPLATE(0x80a07c00);
+    INSTANTIATE_TEMPLATE(0x80df0000);
+    INSTANTIATE_TEMPLATE(0x80e08000);
+    INSTANTIATE_TEMPLATE(0xa0c00000);
+    INSTANTIATE_TEMPLATE(0xb5a00000);
+    INSTANTIATE_TEMPLATE(0xc0c00c00);
+    INSTANTIATE_TEMPLATE(0xc4400000);
+    INSTANTIATE_TEMPLATE(0xc4c00000);
+    INSTANTIATE_TEMPLATE(0xe3c00000);
+    INSTANTIATE_TEMPLATE(0xf1200000);
+#undef INSTANTIATE_TEMPLATE
+    default:
+      printf("Node %s: No template instantiated for extracting 0x%08x.\n",
+             GetName().c_str(),
+             GenerateSampledBitsMask());
+      printf("Add one in %s above line %d:\n", __FILE__, __LINE__);
+      printf("  INSTANTIATE_TEMPLATE(0x%08x);\n", GenerateSampledBitsMask());
+      VIXL_UNREACHABLE();
+  }
+  return bit_extract_fn;
+}
+
+BitExtractFn DecodeNode::GetBitExtractFunction(uint32_t mask, uint32_t value) {
+  // Instantiate a templated bit extraction function for every pattern we
+  // might encounter. If the assertion in the following check fails, add a
+  // new instantiation below using the information in the failure message.
+  bool instantiated = false;
+  BitExtractFn bit_extract_fn = NULL;
+#define INSTANTIATE_TEMPLATE(M, V)                      \
+  if ((mask == M) && (value == V)) {                    \
+    bit_extract_fn = &Instruction::IsMaskedValue<M, V>; \
+    instantiated = true;                                \
+  }
+  INSTANTIATE_TEMPLATE(0x0000001c, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00003000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00007800, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x0000f000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x0003801f, 0x0000000d);
+  INSTANTIATE_TEMPLATE(0x000f0000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x001f0000, 0x001f0000);
+  INSTANTIATE_TEMPLATE(0x0038e000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x0039e000, 0x00002000);
+  INSTANTIATE_TEMPLATE(0x003ae000, 0x00002000);
+  INSTANTIATE_TEMPLATE(0x003ce000, 0x00042000);
+  INSTANTIATE_TEMPLATE(0x00780000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00c00000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00c00000, 0x00800000);
+  INSTANTIATE_TEMPLATE(0x00c00000, 0x00c00000);
+  INSTANTIATE_TEMPLATE(0x01000010, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x20000800, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x20008000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x20040000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x201e8000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x60000000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x60000000, 0x20000000);
+  INSTANTIATE_TEMPLATE(0x60000000, 0x60000000);
+  INSTANTIATE_TEMPLATE(0x60200000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x80008000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x80008000, 0x00008000);
+  INSTANTIATE_TEMPLATE(0x80400000, 0x00400000);
+  INSTANTIATE_TEMPLATE(0xa00003e0, 0x00000000);
+  INSTANTIATE_TEMPLATE(0xa000c007, 0x00000000);
+  INSTANTIATE_TEMPLATE(0xa0180000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0xc4000000, 0xc0000000);
+  INSTANTIATE_TEMPLATE(0xc4000000, 0xc4000000);
+  INSTANTIATE_TEMPLATE(0xe0000010, 0xa0000000);
+  INSTANTIATE_TEMPLATE(0xe01c0000, 0x20000000);
+#undef INSTANTIATE_TEMPLATE
+
+  if (!instantiated) {
+    printf(
+        "Node %s: no template instantiated for mask 0x%08x, value = "
+        "0x%08x.\n",
+        GetName().c_str(),
+        mask,
+        value);
+    printf("Add one in %s above line %d:\n", __FILE__, __LINE__);
+    printf("  INSTANTIATE_TEMPLATE(0x%08x, 0x%08x);\n", mask, value);
+    VIXL_UNREACHABLE();
+  }
+  return bit_extract_fn;
+}
+
+bool DecodeNode::TryCompileOptimisedDecodeTable(Decoder* decoder) {
+  // EitherOr optimisation: if there are only one or two patterns in the table,
+  // try to optimise the node to exploit that.
+  if ((pattern_table_.size() == 2) && (GetSampledBitsCount() > 1)) {
+    // TODO: support 'x' in this optimisation by dropping the sampled bit
+    // positions before making the mask/value.
+    if ((strchr(pattern_table_[0].pattern, 'x') == NULL) &&
+        (strcmp(pattern_table_[1].pattern, "otherwise") == 0)) {
+      // A pattern table consisting of a fixed pattern with no x's, and an
+      // "otherwise" case. Optimise this into an instruction mask and value
+      // test.
+      uint32_t single_decode_mask = 0;
+      uint32_t single_decode_value = 0;
+      std::vector<uint8_t> bits = GetSampledBits();
+
+      // Construct the instruction mask and value from the pattern.
+      VIXL_ASSERT(bits.size() == strlen(pattern_table_[0].pattern));
+      for (size_t i = 0; i < bits.size(); i++) {
+        single_decode_mask |= 1U << bits[i];
+        if (pattern_table_[0].pattern[i] == '1') {
+          single_decode_value |= 1U << bits[i];
+        }
+      }
+
+      BitExtractFn bit_extract_fn =
+          GetBitExtractFunction(single_decode_mask, single_decode_value);
+
+      // Create a compiled node that contains a two entry table for the
+      // either/or cases.
+      CreateCompiledNode(bit_extract_fn, 2);
+
+      // Set DecodeNode for when the instruction after masking doesn't match the
+      // value.
+      CompileNodeForBits(decoder, pattern_table_[1].handler, 0);
+
+      // Set DecodeNode for when it does match.
+      CompileNodeForBits(decoder, pattern_table_[0].handler, 1);
+
+      return true;
+    }
+  }
+  return false;
+}
+
+CompiledDecodeNode* DecodeNode::Compile(Decoder* decoder) {
+  if (IsLeafNode()) {
+    // A leaf node is a simple wrapper around a visitor function, with no
+    // instruction decoding to do.
+    CreateVisitorNode();
+  } else if (!TryCompileOptimisedDecodeTable(decoder)) {
+    // The "otherwise" node is the default next node if no pattern matches.
+    std::string otherwise = "VisitUnallocated";
+
+    // For each pattern in pattern_table_, create an entry in matches that
+    // has a corresponding mask and value for the pattern.
+    std::vector<MaskValuePair> matches;
+    for (size_t i = 0; i < pattern_table_.size(); i++) {
+      if (strcmp(pattern_table_[i].pattern, "otherwise") == 0) {
+        // "otherwise" must be the last pattern in the list, otherwise the
+        // indices won't match for pattern_table_ and matches.
+        VIXL_ASSERT(i == pattern_table_.size() - 1);
+        otherwise = pattern_table_[i].handler;
+      } else {
+        matches.push_back(GenerateMaskValuePair(
+            GenerateOrderedPattern(pattern_table_[i].pattern)));
+      }
+    }
+
+    BitExtractFn bit_extract_fn =
+        GetBitExtractFunction(GenerateSampledBitsMask());
+
+    // Create a compiled node that contains a table with an entry for every bit
+    // pattern.
+    CreateCompiledNode(bit_extract_fn, 1U << GetSampledBitsCount());
+    VIXL_ASSERT(compiled_node_ != NULL);
+
+    // When we find a pattern matches the representation, set the node's decode
+    // function for that representation to the corresponding function.
+    for (uint32_t bits = 0; bits < (1U << GetSampledBitsCount()); bits++) {
+      for (size_t i = 0; i < matches.size(); i++) {
+        if ((bits & matches[i].first) == matches[i].second) {
+          // Only one instruction class should match for each value of bits, so
+          // if we get here, the node pointed to should still be unallocated.
+          VIXL_ASSERT(compiled_node_->GetNodeForBits(bits) == NULL);
+          CompileNodeForBits(decoder, pattern_table_[i].handler, bits);
+          break;
+        }
+      }
+
+      // If the decode_table_ entry for these bits is still NULL, the
+      // instruction must be handled by the "otherwise" case, which by default
+      // is the Unallocated visitor.
+      if (compiled_node_->GetNodeForBits(bits) == NULL) {
+        CompileNodeForBits(decoder, otherwise, bits);
+      }
+    }
+  }
+
+  VIXL_ASSERT(compiled_node_ != NULL);
+  return compiled_node_;
+}
+
+void CompiledDecodeNode::Decode(const Instruction* instr) const {
+  if (IsLeafNode()) {
+    // If this node is a leaf, call the registered visitor function.
+    VIXL_ASSERT(decoder_ != NULL);
+    (decoder_->*visitor_fn_)(instr);
+  } else {
+    // Otherwise, using the sampled bit extractor for this node, look up the
+    // next node in the decode tree, and call its Decode method.
+    VIXL_ASSERT(bit_extract_fn_ != NULL);
+    VIXL_ASSERT((instr->*bit_extract_fn_)() < decode_table_size_);
+    VIXL_ASSERT(decode_table_[(instr->*bit_extract_fn_)()] != NULL);
+    decode_table_[(instr->*bit_extract_fn_)()]->Decode(instr);
+  }
+}
+
+DecodeNode::MaskValuePair DecodeNode::GenerateMaskValuePair(
+    std::string pattern) const {
+  uint32_t mask = 0, value = 0;
+  for (size_t i = 0; i < pattern.size(); i++) {
+    mask |= ((pattern[i] == 'x') ? 0 : 1) << i;
+    value |= ((pattern[i] == '1') ? 1 : 0) << i;
+  }
+  return std::make_pair(mask, value);
+}
+
+std::string DecodeNode::GenerateOrderedPattern(std::string pattern) const {
+  std::vector<uint8_t> sampled_bits = GetSampledBits();
+  // Construct a temporary 32-character string containing '_', then at each
+  // sampled bit position, set the corresponding pattern character.
+  std::string temp(32, '_');
+  for (size_t i = 0; i < sampled_bits.size(); i++) {
+    temp[sampled_bits[i]] = pattern[i];
+  }
+
+  // Iterate through the temporary string, filtering out the non-'_' characters
+  // into a new ordered pattern result string.
+  std::string result;
+  for (size_t i = 0; i < temp.size(); i++) {
+    if (temp[i] != '_') {
+      result.push_back(temp[i]);
+    }
+  }
+  VIXL_ASSERT(result.size() == sampled_bits.size());
+  return result;
+}
+
+uint32_t DecodeNode::GenerateSampledBitsMask() const {
+  std::vector<uint8_t> sampled_bits = GetSampledBits();
+  uint32_t mask = 0;
+  for (size_t i = 0; i < sampled_bits.size(); i++) {
+    mask |= 1 << sampled_bits[i];
+  }
+  return mask;
+}
+
 }  // namespace aarch64
 }  // namespace vixl

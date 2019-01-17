@@ -3847,63 +3847,68 @@ TEST(neon_load_store_vector) {
 TEST(neon_load_store_vector_unallocated) {
   SETUP();
 
-  const char* expected = "unallocated (NEONLoadStoreMultiStruct)";
+  // Encodings marked as unallocated during decoding to an instruction class.
+  const char* expected = "unallocated (Unallocated)";
+
+  // Encodings marked as unallocated within instruction classes
+  const char* expected_2 = "unallocated (NEONLoadStoreMultiStruct)";
+  const char* expected_3 = "unallocated (NEONLoadStoreMultiStructPostIndex)";
+
   // LD[1-4] (multiple structures) (no offset)
-  COMPARE(dci(0x0c401000), expected);  // opcode = 0b0001
-  COMPARE(dci(0x0c403000), expected);  // opcode = 0b0011
-  COMPARE(dci(0x0c405000), expected);  // opcode = 0b0101
-  COMPARE(dci(0x0c409000), expected);  // opcode = 0b1001
-  COMPARE(dci(0x0c40b000), expected);  // opcode = 0b1011
-  COMPARE(dci(0x0c40c000), expected);  // opcode = 0b1100
-  COMPARE(dci(0x0c40d000), expected);  // opcode = 0b1101
-  COMPARE(dci(0x0c40e000), expected);  // opcode = 0b1110
-  COMPARE(dci(0x0c40f000), expected);  // opcode = 0b1111
-  COMPARE(dci(0x0c400c00), expected);  // opcode = 0b0000, size:Q = 0b110
-  COMPARE(dci(0x0c404c00), expected);  // opcode = 0b0100, size:Q = 0b110
-  COMPARE(dci(0x0c408c00), expected);  // opcode = 0b1000, size:Q = 0b110
+  COMPARE(dci(0x0c401000), expected);    // opcode = 0b0001
+  COMPARE(dci(0x0c403000), expected);    // opcode = 0b0011
+  COMPARE(dci(0x0c405000), expected);    // opcode = 0b0101
+  COMPARE(dci(0x0c409000), expected);    // opcode = 0b1001
+  COMPARE(dci(0x0c40b000), expected);    // opcode = 0b1011
+  COMPARE(dci(0x0c40c000), expected);    // opcode = 0b1100
+  COMPARE(dci(0x0c40d000), expected);    // opcode = 0b1101
+  COMPARE(dci(0x0c40e000), expected);    // opcode = 0b1110
+  COMPARE(dci(0x0c40f000), expected);    // opcode = 0b1111
+  COMPARE(dci(0x0c400c00), expected_2);  // opcode = 0b0000, size:Q = 0b110
+  COMPARE(dci(0x0c404c00), expected_2);  // opcode = 0b0100, size:Q = 0b110
+  COMPARE(dci(0x0c408c00), expected_2);  // opcode = 0b1000, size:Q = 0b110
 
   // ST[1-4] (multiple structures) (no offset)
-  COMPARE(dci(0x0c001000), expected);  // opcode = 0b0001
-  COMPARE(dci(0x0c003000), expected);  // opcode = 0b0011
-  COMPARE(dci(0x0c005000), expected);  // opcode = 0b0101
-  COMPARE(dci(0x0c009000), expected);  // opcode = 0b1001
-  COMPARE(dci(0x0c00b000), expected);  // opcode = 0b1011
-  COMPARE(dci(0x0c00c000), expected);  // opcode = 0b1100
-  COMPARE(dci(0x0c00d000), expected);  // opcode = 0b1101
-  COMPARE(dci(0x0c00e000), expected);  // opcode = 0b1110
-  COMPARE(dci(0x0c00f000), expected);  // opcode = 0b1111
-  COMPARE(dci(0x0c000c00), expected);  // opcode = 0b0000, size:Q = 0b110
-  COMPARE(dci(0x0c004c00), expected);  // opcode = 0b0100, size:Q = 0b110
-  COMPARE(dci(0x0c008c00), expected);  // opcode = 0b1000, size:Q = 0b110
+  COMPARE(dci(0x0c001000), expected);    // opcode = 0b0001
+  COMPARE(dci(0x0c003000), expected);    // opcode = 0b0011
+  COMPARE(dci(0x0c005000), expected);    // opcode = 0b0101
+  COMPARE(dci(0x0c009000), expected);    // opcode = 0b1001
+  COMPARE(dci(0x0c00b000), expected);    // opcode = 0b1011
+  COMPARE(dci(0x0c00c000), expected);    // opcode = 0b1100
+  COMPARE(dci(0x0c00d000), expected);    // opcode = 0b1101
+  COMPARE(dci(0x0c00e000), expected);    // opcode = 0b1110
+  COMPARE(dci(0x0c00f000), expected);    // opcode = 0b1111
+  COMPARE(dci(0x0c000c00), expected_2);  // opcode = 0b0000, size:Q = 0b110
+  COMPARE(dci(0x0c004c00), expected_2);  // opcode = 0b0100, size:Q = 0b110
+  COMPARE(dci(0x0c008c00), expected_2);  // opcode = 0b1000, size:Q = 0b110
 
-  expected = "unallocated (NEONLoadStoreMultiStructPostIndex)";
   // LD[1-4] (multiple structures) (post index)
-  COMPARE(dci(0x0cc01000), expected);  // opcode = 0b0001
-  COMPARE(dci(0x0cc03000), expected);  // opcode = 0b0011
-  COMPARE(dci(0x0cc05000), expected);  // opcode = 0b0101
-  COMPARE(dci(0x0cc09000), expected);  // opcode = 0b1001
-  COMPARE(dci(0x0cc0b000), expected);  // opcode = 0b1011
-  COMPARE(dci(0x0cc0c000), expected);  // opcode = 0b1100
-  COMPARE(dci(0x0cc0d000), expected);  // opcode = 0b1101
-  COMPARE(dci(0x0cc0e000), expected);  // opcode = 0b1110
-  COMPARE(dci(0x0cc0f000), expected);  // opcode = 0b1111
-  COMPARE(dci(0x0cc00c00), expected);  // opcode = 0b0000, size:Q = 0b110
-  COMPARE(dci(0x0cc04c00), expected);  // opcode = 0b0100, size:Q = 0b110
-  COMPARE(dci(0x0cc08c00), expected);  // opcode = 0b1000, size:Q = 0b110
+  COMPARE(dci(0x0cc01000), expected);    // opcode = 0b0001
+  COMPARE(dci(0x0cc03000), expected);    // opcode = 0b0011
+  COMPARE(dci(0x0cc05000), expected);    // opcode = 0b0101
+  COMPARE(dci(0x0cc09000), expected);    // opcode = 0b1001
+  COMPARE(dci(0x0cc0b000), expected);    // opcode = 0b1011
+  COMPARE(dci(0x0cc0c000), expected);    // opcode = 0b1100
+  COMPARE(dci(0x0cc0d000), expected);    // opcode = 0b1101
+  COMPARE(dci(0x0cc0e000), expected);    // opcode = 0b1110
+  COMPARE(dci(0x0cc0f000), expected);    // opcode = 0b1111
+  COMPARE(dci(0x0cc00c00), expected_3);  // opcode = 0b0000, size:Q = 0b110
+  COMPARE(dci(0x0cc04c00), expected_3);  // opcode = 0b0100, size:Q = 0b110
+  COMPARE(dci(0x0cc08c00), expected_3);  // opcode = 0b1000, size:Q = 0b110
 
   // ST[1-4] (multiple structures) (post index)
-  COMPARE(dci(0x0c801000), expected);  // opcode = 0b0001
-  COMPARE(dci(0x0c803000), expected);  // opcode = 0b0011
-  COMPARE(dci(0x0c805000), expected);  // opcode = 0b0101
-  COMPARE(dci(0x0c809000), expected);  // opcode = 0b1001
-  COMPARE(dci(0x0c80b000), expected);  // opcode = 0b1011
-  COMPARE(dci(0x0c80c000), expected);  // opcode = 0b1100
-  COMPARE(dci(0x0c80d000), expected);  // opcode = 0b1101
-  COMPARE(dci(0x0c80e000), expected);  // opcode = 0b1110
-  COMPARE(dci(0x0c80f000), expected);  // opcode = 0b1111
-  COMPARE(dci(0x0c800c00), expected);  // opcode = 0b0000, size:Q = 0b110
-  COMPARE(dci(0x0c804c00), expected);  // opcode = 0b0100, size:Q = 0b110
-  COMPARE(dci(0x0c808c00), expected);  // opcode = 0b1000, size:Q = 0b110
+  COMPARE(dci(0x0c801000), expected);    // opcode = 0b0001
+  COMPARE(dci(0x0c803000), expected);    // opcode = 0b0011
+  COMPARE(dci(0x0c805000), expected);    // opcode = 0b0101
+  COMPARE(dci(0x0c809000), expected);    // opcode = 0b1001
+  COMPARE(dci(0x0c80b000), expected);    // opcode = 0b1011
+  COMPARE(dci(0x0c80c000), expected);    // opcode = 0b1100
+  COMPARE(dci(0x0c80d000), expected);    // opcode = 0b1101
+  COMPARE(dci(0x0c80e000), expected);    // opcode = 0b1110
+  COMPARE(dci(0x0c80f000), expected);    // opcode = 0b1111
+  COMPARE(dci(0x0c800c00), expected_3);  // opcode = 0b0000, size:Q = 0b110
+  COMPARE(dci(0x0c804c00), expected_3);  // opcode = 0b0100, size:Q = 0b110
+  COMPARE(dci(0x0c808c00), expected_3);  // opcode = 0b1000, size:Q = 0b110
 
   CLEANUP();
 }
@@ -4427,7 +4432,7 @@ TEST(neon_load_store_lane) {
 TEST(neon_load_store_lane_unallocated) {
   SETUP();
 
-  const char* expected = "unallocated (NEONLoadStoreSingleStruct)";
+  const char* expected = "unallocated (Unallocated)";
   // LD1 (single structure) (no offset)
   COMPARE(dci(0x0d404400), expected);  // .h, size<0> = 1
   COMPARE(dci(0x0d408800), expected);  // .s, size<1> = 1
@@ -4461,7 +4466,6 @@ TEST(neon_load_store_lane_unallocated) {
   COMPARE(dci(0x0d20a800), expected);  // .s, size<1> = 1
   COMPARE(dci(0x0d20b400), expected);  // .d, size<0> = 1, S = 1
 
-  expected = "unallocated (NEONLoadStoreSingleStructPostIndex)";
   // LD1 (single structure) (post index)
   COMPARE(dci(0x0dc04400), expected);  // .h, size<0> = 1
   COMPARE(dci(0x0dc08800), expected);  // .s, size<1> = 1
@@ -4699,7 +4703,7 @@ TEST(neon_load_all_lanes) {
 TEST(neon_load_all_lanes_unallocated) {
   SETUP();
 
-  const char* expected = "unallocated (NEONLoadStoreSingleStruct)";
+  const char* expected = "unallocated (Unallocated)";
   // LD1R (single structure) (no offset)
   COMPARE(dci(0x0d00c000), expected);  // L = 0
   COMPARE(dci(0x0d40d000), expected);  // S = 1
@@ -4713,7 +4717,6 @@ TEST(neon_load_all_lanes_unallocated) {
   COMPARE(dci(0x0d20e000), expected);  // L = 0
   COMPARE(dci(0x0d60f000), expected);  // S = 1
 
-  expected = "unallocated (NEONLoadStoreSingleStructPostIndex)";
   // LD1R (single structure) (post index)
   COMPARE(dci(0x0d80c000), expected);  // L = 0
   COMPARE(dci(0x0dc0d000), expected);  // S = 1
@@ -5355,14 +5358,14 @@ TEST(neon_fp_3same) {
 
   // Verify that unallocated encodings similar to FMLAL (and so on) are properly
   // handled.
-  COMPARE(dci(0x0e66ed85), "unallocated (NEON3Same)");
-  COMPARE(dci(0x2e69cd4e), "unallocated (NEON3Same)");
-  COMPARE(dci(0x0efced3f), "unallocated (NEON3Same)");
-  COMPARE(dci(0x2ee2ced5), "unallocated (NEON3Same)");
-  COMPARE(dci(0x4e7eef5a), "unallocated (NEON3Same)");
-  COMPARE(dci(0x6e79ce4f), "unallocated (NEON3Same)");
-  COMPARE(dci(0x4ef7ec89), "unallocated (NEON3Same)");
-  COMPARE(dci(0x6ef1cf9c), "unallocated (NEON3Same)");
+  COMPARE(dci(0x0e66ed85), "unallocated (Unallocated)");
+  COMPARE(dci(0x2e69cd4e), "unallocated (Unallocated)");
+  COMPARE(dci(0x0efced3f), "unallocated (Unallocated)");
+  COMPARE(dci(0x2ee2ced5), "unallocated (Unallocated)");
+  COMPARE(dci(0x4e7eef5a), "unallocated (Unallocated)");
+  COMPARE(dci(0x6e79ce4f), "unallocated (Unallocated)");
+  COMPARE(dci(0x4ef7ec89), "unallocated (Unallocated)");
+  COMPARE(dci(0x6ef1cf9c), "unallocated (Unallocated)");
 
   CLEANUP();
 }
@@ -6362,11 +6365,15 @@ TEST(neon_modimm) {
   COMPARE_MACRO(Fmov(v31.V4S(), -13.0f), "fmov v31.4s, #0xaa (-13.0000)");
   COMPARE_MACRO(Fmov(v1.V2D(), 1.0), "fmov v1.2d, #0x70 (1.0000)");
   COMPARE_MACRO(Fmov(v29.V2D(), -13.0), "fmov v29.2d, #0xaa (-13.0000)");
+
   COMPARE_MACRO(Fmov(v0.V4H(), Float16(-5.0f)), "fmov v0.4h, #0x94 (-5.0000)");
   COMPARE_MACRO(Fmov(v31.V8H(), Float16(29.0f)),
                 "fmov v31.8h, #0x3d (29.0000)");
   COMPARE_MACRO(Fmov(v0.V4H(), Float16(-5.0)), "fmov v0.4h, #0x94 (-5.0000)");
   COMPARE_MACRO(Fmov(v31.V8H(), Float16(29.0)), "fmov v31.8h, #0x3d (29.0000)");
+
+  // An unallocated form of fmov.
+  COMPARE(dci(0x2f07ffff), "unallocated (Unallocated)");
 
   CLEANUP();
 }
