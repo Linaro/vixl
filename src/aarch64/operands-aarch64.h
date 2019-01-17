@@ -447,14 +447,28 @@ class ZRegister : public VRegister {
  public:
   ZRegister() : VRegister() {}
   explicit ZRegister(unsigned code) : VRegister(code, kQRegSize, 16) {}
+  ZRegister B() const { return ZRegister(code_, kQRegSize, 16); }
+  ZRegister H() const { return ZRegister(code_, kQRegSize, 8); }
+  ZRegister S() const { return ZRegister(code_, kQRegSize, 4); }
+  ZRegister D() const { return ZRegister(code_, kQRegSize, 2); }
+  bool IsValid() const { return type_ != kNoRegister; }
+
+ private:
+  ZRegister(unsigned code, unsigned size, unsigned lanes = 1)
+      : VRegister(code, size, lanes) {}
 };
-class PRegister : public CPURegister {};
+class PRegister : public CPURegister {
+ public:
+  explicit PRegister(unsigned code) : CPURegister(code, 32, kRegister) {}
+};
 const ZRegister z0(0);
 const ZRegister z1(1);
 const ZRegister NoZReg;
 typedef PRegister PRegisterWithLaneSize;
 typedef PRegister PRegisterM;
 typedef PRegister PRegisterZ;
+const PRegister p6(6);
+const PRegister p7(7);
 
 // No*Reg is used to indicate an unused argument, or an error case. Note that
 // these all compare equal (using the Is() method). The Register and VRegister
