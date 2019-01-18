@@ -5335,6 +5335,8 @@ void Assembler::brk(int code) {
 
 void Assembler::svc(int code) { Emit(SVC | ImmException(code)); }
 
+void Assembler::udf(int code) { Emit(UDF | ImmUdf(code)); }
+
 
 // TODO(all): The third parameter should be passed by reference but gcc 4.8.2
 // reports a bogus uninitialised warning then.

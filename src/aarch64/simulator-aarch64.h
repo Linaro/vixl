@@ -767,10 +767,17 @@ class Simulator : public DecoderVisitor {
   VISITOR_LIST_THAT_RETURN(DECLARE)
 #undef DECLARE
 
-#define DECLARE(A)                                                     \
-  VIXL_DEBUG_NO_RETURN virtual void Visit##A(const Instruction* instr) \
-      VIXL_OVERRIDE;
+
+#define DECLARE(A) \
+  VIXL_NO_RETURN virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE;
   VISITOR_LIST_THAT_DONT_RETURN(DECLARE)
+#undef DECLARE
+
+
+#define DECLARE(A)                                                             \
+  VIXL_NO_RETURN_IN_DEBUG_MODE virtual void Visit##A(const Instruction* instr) \
+      VIXL_OVERRIDE;
+  VISITOR_LIST_THAT_DONT_RETURN_IN_DEBUG_MODE(DECLARE)
 #undef DECLARE
 
 

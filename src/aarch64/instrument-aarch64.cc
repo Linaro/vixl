@@ -947,6 +947,14 @@ void Instrument::VisitNEONPerm(const Instruction* instr) {
 }
 
 
+void Instrument::VisitReserved(const Instruction* instr) {
+  USE(instr);
+  Update();
+  static Counter* counter = GetCounter("Other");
+  counter->Increment();
+}
+
+
 void Instrument::VisitUnallocated(const Instruction* instr) {
   USE(instr);
   Update();

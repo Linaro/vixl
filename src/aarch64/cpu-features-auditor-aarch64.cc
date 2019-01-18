@@ -1167,6 +1167,11 @@ void CPUFeaturesAuditor::VisitUnconditionalBranchToRegister(
   }
 }
 
+void CPUFeaturesAuditor::VisitReserved(const Instruction* instr) {
+  RecordInstructionFeaturesScope scope(this);
+  USE(instr);
+}
+
 void CPUFeaturesAuditor::VisitUnimplemented(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
   USE(instr);

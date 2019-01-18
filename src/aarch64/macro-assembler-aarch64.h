@@ -2585,9 +2585,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     if (generate_simulator_code_) {
       hlt(kUnreachableOpcode);
     } else {
-      // Branch to 0 to generate a segfault.
-      // lr - kInstructionSize is the address of the offending instruction.
-      blr(xzr);
+      // Use the architecturally-defined UDF instruction to abort on hardware,
+      // because using HLT and BRK tends to make the process difficult to debug.
+      udf(kUnreachableOpcode);
     }
   }
   void Uxtb(const Register& rd, const Register& rn) {

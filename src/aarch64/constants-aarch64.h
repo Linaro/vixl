@@ -131,6 +131,7 @@ V_(ImmException, 20, 5, ExtractBits)                                         \
 V_(ImmHint, 11, 5, ExtractBits)                                              \
 V_(ImmBarrierDomain, 11, 10, ExtractBits)                                    \
 V_(ImmBarrierType, 9, 8, ExtractBits)                                        \
+V_(ImmUdf, 15, 0, ExtractBits)                                               \
                                                                              \
 /* System (MRS, MSR, SYS) */                                                 \
 V_(ImmSystemRegister, 20, 5, ExtractBits)                                    \
@@ -2641,6 +2642,14 @@ enum NEONScalarShiftImmediateOp {
   NEON_UCVTF_imm_scalar =  NEON_Q | NEONScalar | NEON_UCVTF_imm,
   NEON_FCVTZS_imm_scalar = NEON_Q | NEONScalar | NEON_FCVTZS_imm,
   NEON_FCVTZU_imm_scalar = NEON_Q | NEONScalar | NEON_FCVTZU_imm
+};
+
+enum ReservedOp {
+  ReservedFixed = 0x00000000,
+  ReservedFMask = 0x1E000000,
+  ReservedMask = 0xFFFF0000,
+
+  UDF = ReservedFixed | 0x00000000
 };
 
 // Unimplemented and unallocated instructions. These are defined to make fixed

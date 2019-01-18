@@ -4905,6 +4905,13 @@ void Disassembler::VisitNEONPerm(const Instruction *instr) {
 }
 
 
+void Disassembler::VisitReserved(const Instruction *instr) {
+  // UDF is the only instruction in this group, and the Decoder is precise.
+  VIXL_ASSERT(instr->Mask(ReservedMask) == UDF);
+  Format(instr, "udf", "'IUdf");
+}
+
+
 void Disassembler::VisitUnimplemented(const Instruction *instr) {
   Format(instr, "unimplemented", "(Unimplemented)");
 }
@@ -5442,6 +5449,10 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
     case 'D': {  // IDebug - HLT and BRK instructions.
       AppendToOutput("#0x%" PRIx32, instr->GetImmException());
       return 6;
+    }
+    case 'U': {  // IUdf - UDF immediate.
+      AppendToOutput("#0x%" PRIx32, instr->GetImmUdf());
+      return 4;
     }
     case 'V': {  // Immediate Vector.
       switch (format[2]) {
