@@ -14435,7 +14435,7 @@ TEST(fjcvtzs) {
   // integers.
   int first_exp_boundary = 52;
   int second_exp_boundary = first_exp_boundary + 64;
-  for (int exponent = 0; exponent < 2048; exponent++) {
+  for (int exponent = 0; exponent < 2048; exponent += 8) {
     int e = exponent - 1023;
 
     uint64_t expected = 0;

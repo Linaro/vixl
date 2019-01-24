@@ -25,6 +25,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstdlib>
+#include <string>
 
 #include "test-runner.h"
 
@@ -37,84 +38,73 @@
 namespace vixl {
 namespace aarch64 {
 
-
-TEST(decoder) {
-  // Feed noise into the decoder to check that it doesn't crash.
-  // 43 million = ~1% of the instruction space.
-  static const int instruction_count = 43 * 1024 * 1024;
-
-  uint16_t seed[3] = {1, 2, 3};
-  seed48(seed);
-
-  Decoder decoder;
-  Instruction buffer[kInstructionSize];
-
-  for (int i = 0; i < instruction_count; i++) {
-    uint32_t instr = static_cast<uint32_t>(mrand48());
-    buffer->SetInstructionBits(instr);
-    decoder.Decode(buffer);
-  }
-}
-
-TEST(disasm) {
-  // Feed noise into the disassembler to check that it doesn't crash.
-  // 9 million = ~0.2% of the instruction space.
-  static const int instruction_count = 9 * 1024 * 1024;
-
-  uint16_t seed[3] = {42, 43, 44};
-  seed48(seed);
-
-  Decoder decoder;
-  Disassembler disasm;
-  Instruction buffer[kInstructionSize];
-
-  decoder.AppendVisitor(&disasm);
-  for (int i = 0; i < instruction_count; i++) {
-    uint32_t instr = static_cast<uint32_t>(mrand48());
-    buffer->SetInstructionBits(instr);
-    decoder.Decode(buffer);
-  }
-}
-
-#if 0
-// These tests are commented out as they take a long time to run, causing the
-// test script to timeout. After enabling them, they are best run manually:
-//
-//     test-runner AARCH64_FUZZ_decoder_pedantic
-//     test-runner AARCH64_FUZZ_disasm_pedantic
-//
-
-TEST(decoder_pedantic) {
-  // Test the entire instruction space.
-  Decoder decoder;
-  Instruction buffer[kInstructionSize];
-
-  for (uint64_t i = 0; i < (UINT64_C(1) << 32); i++) {
-    if ((i & 0xffffff) == 0) {
-      fprintf(stderr, "0x%08" PRIx32 "\n", static_cast<uint32_t>(i));
-    }
-    buffer->SetInstructionBits(static_cast<uint32_t>(i));
-    decoder.Decode(buffer);
-  }
-}
-
-TEST(disasm_pedantic) {
-  // Test the entire instruction space. Warning: takes about 30 minutes on a
-  // high-end CPU.
+static void FuzzHelper(std::string mode, int step_size, int offset, int shift) {
   Decoder decoder;
   PrintDisassembler disasm(stdout);
   Instruction buffer[kInstructionSize];
 
-  decoder.AppendVisitor(&disasm);
-  for (uint64_t i = 0; i < (UINT64_C(1) << 32); i++) {
-    if ((i & 0xffff) == 0) {
-      fprintf(stderr, "0x%08" PRIx32 "\n", static_cast<uint32_t>(i));
-    }
+  if (mode == "disasm") {
+    decoder.AppendVisitor(&disasm);
+  } else {
+    VIXL_CHECK(mode == "decoder");
+  }
+
+  for (uint64_t i = offset << shift; i < (UINT64_C(1) << 32); i += step_size) {
     buffer->SetInstructionBits(static_cast<uint32_t>(i));
     decoder.Decode(buffer);
   }
 }
-#endif
+
+// Number of shards used to split fuzz tests. This value isn't used in the macro
+// below, so if you change this, ensure more FUZZ_SHARD instances are
+// instantiated.
+static const int kShardCount = 16;
+
+// Test approximately 1% of the instruction space for the decoder, and 0.2% for
+// the disassembler. Multiply the step size by the number of shards issued.
+static const int kDecoderStep = 100 * kShardCount + 1;
+static const int kDisasmStep = 500 * kShardCount + 1;
+
+// Shift the offset argument into the top-level opcode bits, which helps to
+// spread the fuzz coverage across instruction classes.
+static const int kOpFieldShift = 25;
+
+#define FUZZ_SHARD(mode, step, i, shift) \
+  TEST(mode##_##i) { FuzzHelper(#mode, step, i, shift); }
+
+FUZZ_SHARD(decoder, kDecoderStep, 0, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 1, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 2, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 3, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 4, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 5, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 6, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 7, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 8, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 9, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 10, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 11, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 12, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 13, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 14, kOpFieldShift)
+FUZZ_SHARD(decoder, kDecoderStep, 15, kOpFieldShift)
+
+FUZZ_SHARD(disasm, kDisasmStep, 0, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 1, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 2, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 3, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 4, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 5, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 6, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 7, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 8, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 9, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 10, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 11, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 12, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 13, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 14, kOpFieldShift)
+FUZZ_SHARD(disasm, kDisasmStep, 15, kOpFieldShift)
 
 }  // namespace aarch64
 }  // namespace vixl
