@@ -431,7 +431,6 @@ class Assembler : public vixl::internal::AssemblerBase {
   // and data that has already been emitted into the buffer.
   void Reset();
 
-  // Label.
   // Bind a label to the current PC.
   void bind(Label* label);
 
@@ -486,6 +485,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Instruction set functions.
 
   // Branch / Jump instructions.
+
   // Branch to register.
   void br(const Register& xn);
 
@@ -638,6 +638,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void adrp(const Register& xd, int64_t imm21);
 
   // Data Processing instructions.
+
   // Add.
   void add(const Register& rd, const Register& rn, const Operand& operand);
 
@@ -691,6 +692,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ngcs(const Register& rd, const Operand& operand);
 
   // Logical instructions.
+
   // Bitwise and (A & B).
   void and_(const Register& rd, const Register& rn, const Operand& operand);
 
@@ -731,6 +733,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void rorv(const Register& rd, const Register& rn, const Register& rm);
 
   // Bitfield instructions.
+
   // Bitfield move.
   void bfm(const Register& rd,
            const Register& rn,
@@ -750,6 +753,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             unsigned imms);
 
   // Bfm aliases.
+
   // Bitfield insert.
   void bfi(const Register& rd,
            const Register& rn,
@@ -779,6 +783,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   }
 
   // Sbfm aliases.
+
   // Arithmetic shift right.
   void asr(const Register& rd, const Register& rn, unsigned shift) {
     VIXL_ASSERT(shift < static_cast<unsigned>(rd.GetSizeInBits()));
@@ -818,6 +823,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sxtw(const Register& rd, const Register& rn) { sbfm(rd, rn, 0, 31); }
 
   // Ubfm aliases.
+
   // Logical shift left.
   void lsl(const Register& rd, const Register& rn, unsigned shift) {
     unsigned reg_size = rd.GetSizeInBits();
@@ -914,6 +920,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   }
 
   // Conditional comparison.
+
   // Conditional compare negative.
   void ccmn(const Register& rn,
             const Operand& operand,
@@ -1200,6 +1207,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void xpaclri();
 
   // Memory instructions.
+
   // Load integer or FP register.
   void ldr(const CPURegister& rt,
            const MemOperand& src,
@@ -2130,6 +2138,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   }
 
   // Misc instructions.
+
   // Monitor debug-mode breakpoint.
   void brk(int code);
 
@@ -2146,6 +2155,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void mvn(const Register& rd, const Operand& operand);
 
   // System instructions.
+
   // Move to register from system register.
   void mrs(const Register& xt, SystemRegister sysreg);
 
@@ -2206,6 +2216,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void bti(BranchTargetIdentifier id);
 
   // FP and NEON instructions.
+
   // Move double precision immediate to FP register.
   void fmov(const VRegister& vd, double imm);
 
@@ -3572,6 +3583,7 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // v8.3 complex numbers - note that these are only partial/helper functions
   // and must be used in series in order to perform full CN operations.
+
   // FP complex multiply accumulate (by element) [Armv8.3].
   void fcmla(const VRegister& vd,
              const VRegister& vn,
@@ -3592,6 +3604,7 @@ class Assembler : public vixl::internal::AssemblerBase {
              int rot);
 
   // Emit generic instructions.
+
   // Emit raw instructions into the instruction stream.
   void dci(Instr raw_inst) { Emit(raw_inst); }
 
