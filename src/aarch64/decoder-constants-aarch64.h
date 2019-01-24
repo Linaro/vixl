@@ -292,8 +292,10 @@ static const DecodeMapping kDecodeMapping[] = {
   },
 
   { "UnallocBitfield",
-    {30, 29},
-    { {"11", "VisitUnallocated"},
+    {31, 30, 29, 22},
+    { {"x11x", "VisitUnallocated"},
+      {"0xx1", "VisitUnallocated"},
+      {"1xx0", "VisitUnallocated"},
       {"otherwise", "VisitBitfield"},
     },
   },
