@@ -462,6 +462,11 @@ TEST(stack_ops) {
   __ Orr(sp, xzr, 0xfffffff8);
   __ Mov(w5, wsp);
 
+  // Test writing into wsp in cases where the immediate isn't encodable.
+  VIXL_ASSERT(!Assembler::IsImmLogical(0x1234, kWRegSize));
+  __ Orr(wsp, w5, 0x1234);
+  __ Mov(w6, wsp);
+
   //  restore sp.
   __ Mov(sp, x29);
   END();
@@ -474,6 +479,7 @@ TEST(stack_ops) {
   ASSERT_EQUAL_64(0x1fff, x3);
   ASSERT_EQUAL_64(0xfffffff8, x4);
   ASSERT_EQUAL_64(0xfffffff8, x5);
+  ASSERT_EQUAL_64(0xfffffffc, x6);
 
   TEARDOWN();
 }

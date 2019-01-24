@@ -3494,6 +3494,16 @@ TEST(logical_immediate_move) {
   COMPARE_MACRO(Eon(x22, x23, 0xffffffff), "eor x22, x23, #0xffffffff00000000");
   COMPARE_MACRO(Eon(x22, x23, 0xffffffffffffffff), "mov x22, x23");
 
+  // Test stack pointer with non encodable immediate.
+  COMPARE_MACRO(Orr(wsp, w5, 0x1234),
+                "mov w16, #0x1234\n"
+                "orr w16, w5, w16\n"
+                "mov wsp, w16");
+  COMPARE_MACRO(Orr(sp, x15, 0x123),
+                "mov x16, #0x123\n"
+                "orr x16, x15, x16\n"
+                "mov sp, x16");
+
   CLEANUP();
 }
 
