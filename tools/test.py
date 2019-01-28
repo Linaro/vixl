@@ -359,20 +359,10 @@ if __name__ == '__main__':
   if IsPrecommitRun(args):
     # Maximize the coverage for precommit testing.
 
-    # TODO: Merge this ListCombinations call with the next one once
-    # negative_testing is fixed on master for c++11.
-    list_options += ListCombinations(
-        compiler = args.compiler,
-        negative_testing = 'off',
-        std = 'c++11',
-        mode = 'debug',
-        target = 'a64,a32,t32')
-
-    # Debug c++98 build with negative testing and all targets enabled.
+    # Debug builds with negative testing and all targets enabled.
     list_options += ListCombinations(
         compiler = args.compiler,
         negative_testing = 'on',
-        std = 'c++98',
         mode = 'debug',
         target = 'a64,a32,t32')
 

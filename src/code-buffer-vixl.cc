@@ -74,7 +74,7 @@ CodeBuffer::CodeBuffer(byte* buffer, size_t capacity)
 }
 
 
-CodeBuffer::~CodeBuffer() {
+CodeBuffer::~CodeBuffer() VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION {
   VIXL_ASSERT(!IsDirty());
   if (managed_) {
 #ifdef VIXL_CODE_BUFFER_MALLOC

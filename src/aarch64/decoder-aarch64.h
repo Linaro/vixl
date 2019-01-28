@@ -314,7 +314,7 @@ class CompiledDecodeNode {
         decode_table_size_(0),
         decoder_(decoder) {}
 
-  ~CompiledDecodeNode() {
+  ~CompiledDecodeNode() VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION {
     // Free the decode table, if this is a compiled, non-leaf node.
     if (decode_table_ != NULL) {
       VIXL_ASSERT(!IsLeafNode());

@@ -91,7 +91,7 @@ template <TEMPLATE_INVALSET_P_DECL>
 class InvalSet {
  public:
   InvalSet();
-  ~InvalSet();
+  ~InvalSet() VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION;
 
   static const size_t kNPreallocatedElements = N_PREALLOCATED_ELEMENTS;
   static const KeyType kInvalidKey = INVALID_KEY;
@@ -323,7 +323,8 @@ InvalSet<TEMPLATE_INVALSET_P_DEF>::InvalSet()
 
 
 template <TEMPLATE_INVALSET_P_DECL>
-InvalSet<TEMPLATE_INVALSET_P_DEF>::~InvalSet() {
+InvalSet<TEMPLATE_INVALSET_P_DEF>::~InvalSet()
+    VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION {
   VIXL_ASSERT(monitor_ == 0);
   delete vector_;
 }
