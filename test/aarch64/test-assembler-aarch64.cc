@@ -1872,8 +1872,11 @@ static void TbzRangePoolLimitHelper(TestBranchSignature test_branch) {
   }
 }
 
-TEST(test_branch_limits_literal_pool_size) {
+TEST(test_branch_limits_literal_pool_size_tbz) {
   TbzRangePoolLimitHelper(&MacroAssembler::Tbz);
+}
+
+TEST(test_branch_limits_literal_pool_size_tbnz) {
   TbzRangePoolLimitHelper(&MacroAssembler::Tbnz);
 }
 
