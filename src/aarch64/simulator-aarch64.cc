@@ -6691,269 +6691,2666 @@ void Simulator::VisitNEONPerm(const Instruction* instr) {
 
 void Simulator::VisitSVEAddressGeneration(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEAddressGenerationMask)) {
+    case ADR_z_az_d_s32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ADR_z_az_d_u32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ADR_z_az_sd_same_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEBitwiseImm(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEBitwiseImmMask)) {
+    case AND_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case DUPM_z_i:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case EOR_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ORR_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEBitwiseLogicalUnpredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEBitwiseLogicalUnpredicatedMask)) {
+    case AND_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case BIC_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case EOR_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ORR_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEBitwiseShiftPredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEBitwiseShiftPredicatedMask)) {
+    case ASRD_z_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ASRR_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ASR_z_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ASR_z_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ASR_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSLR_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSL_z_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSL_z_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSL_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSRR_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSR_z_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSR_z_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSR_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEBitwiseShiftUnpredicatedMask)) {
+    case ASR_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ASR_z_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSL_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSL_z_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSR_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSR_z_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEElementCount(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEElementCountMask)) {
+    case CNTB_r_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CNTD_r_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CNTH_r_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CNTW_r_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case DECB_r_rs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case DECD_r_rs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case DECD_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case DECH_r_rs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case DECH_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case DECW_r_rs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case DECW_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INCB_r_rs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INCD_r_rs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INCD_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INCH_r_rs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INCH_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INCW_r_rs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INCW_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECB_r_rs_sx:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECB_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECD_r_rs_sx:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECD_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECD_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECH_r_rs_sx:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECH_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECH_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECW_r_rs_sx:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECW_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECW_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCB_r_rs_sx:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCB_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCD_r_rs_sx:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCD_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCD_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCH_r_rs_sx:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCH_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCH_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCW_r_rs_sx:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCW_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCW_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECB_r_rs_uw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECB_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECD_r_rs_uw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECD_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECD_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECH_r_rs_uw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECH_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECH_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECW_r_rs_uw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECW_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECW_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCB_r_rs_uw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCB_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCD_r_rs_uw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCD_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCD_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCH_r_rs_uw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCH_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCH_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCW_r_rs_uw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCW_r_rs_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCW_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPAccumulatingReduction(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPAccumulatingReductionMask)) {
+    case FADDA_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPArithmeticPredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPArithmeticPredicatedMask)) {
+    case FABD_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FADD_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FADD_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FDIVR_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FDIV_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMAXNM_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMAXNM_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMAX_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMAX_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMINNM_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMINNM_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMIN_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMIN_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMULX_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMUL_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMUL_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FSCALE_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FSUBR_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FSUBR_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FSUB_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FSUB_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FTMAD_z_zzi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPArithmeticUnpredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPArithmeticUnpredicatedMask)) {
+    case FADD_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMUL_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FRECPS_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FRSQRTS_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FSUB_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FTSMUL_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPCompareVectors(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPCompareVectorsMask)) {
+    case FACGE_p_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FACGT_p_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCMEQ_p_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCMGE_p_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCMGT_p_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCMNE_p_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCMUO_p_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPCompareWithZero(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPCompareWithZeroMask)) {
+    case FCMEQ_p_p_z0:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCMGE_p_p_z0:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCMGT_p_p_z0:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCMLE_p_p_z0:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCMLT_p_p_z0:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCMNE_p_p_z0:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPComplexAddition(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPComplexAdditionMask)) {
+    case FCADD_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPComplexMulAdd(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPComplexMulAddMask)) {
+    case FCMLA_z_p_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPComplexMulAddIndex(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPComplexMulAddIndexMask)) {
+    case FCMLA_z_zzzi_h:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCMLA_z_zzzi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPFastReduction(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPFastReductionMask)) {
+    case FADDV_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMAXNMV_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMAXV_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMINNMV_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMINV_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPMulIndex(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPMulIndexMask)) {
+    case FMUL_z_zzi_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMUL_z_zzi_h:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMUL_z_zzi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPMulAdd(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPMulAddMask)) {
+    case FMAD_z_p_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMLA_z_p_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMLS_z_p_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMSB_z_p_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FNMAD_z_p_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FNMLA_z_p_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FNMLS_z_p_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FNMSB_z_p_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPMulAddIndex(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPMulAddIndexMask)) {
+    case FMLA_z_zzzi_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMLA_z_zzzi_h:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMLA_z_zzzi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMLS_z_zzzi_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMLS_z_zzzi_h:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMLS_z_zzzi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPUnaryOpPredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPUnaryOpPredicatedMask)) {
+    case FCVTZS_z_p_z_d2w:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVTZS_z_p_z_d2x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVTZS_z_p_z_fp162h:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVTZS_z_p_z_fp162w:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVTZS_z_p_z_fp162x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVTZS_z_p_z_s2w:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVTZS_z_p_z_s2x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVTZU_z_p_z_d2w:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVTZU_z_p_z_d2x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVTZU_z_p_z_fp162h:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVTZU_z_p_z_fp162w:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVTZU_z_p_z_fp162x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVTZU_z_p_z_s2w:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVTZU_z_p_z_s2x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVT_z_p_z_d2h:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVT_z_p_z_d2s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVT_z_p_z_h2d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVT_z_p_z_h2s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVT_z_p_z_s2d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCVT_z_p_z_s2h:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FRECPX_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FRINTA_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FRINTI_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FRINTM_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FRINTN_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FRINTP_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FRINTX_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FRINTZ_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FSQRT_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SCVTF_z_p_z_h2fp16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SCVTF_z_p_z_w2d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SCVTF_z_p_z_w2fp16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SCVTF_z_p_z_w2s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SCVTF_z_p_z_x2d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SCVTF_z_p_z_x2fp16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SCVTF_z_p_z_x2s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UCVTF_z_p_z_h2fp16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UCVTF_z_p_z_w2d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UCVTF_z_p_z_w2fp16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UCVTF_z_p_z_w2s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UCVTF_z_p_z_x2d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UCVTF_z_p_z_x2fp16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UCVTF_z_p_z_x2s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEFPUnaryOpUnpredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEFPUnaryOpUnpredicatedMask)) {
+    case FRECPE_z_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FRSQRTE_z_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIncDecByPredicateCount(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIncDecByPredicateCountMask)) {
+    case DECP_r_p_r:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case DECP_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INCP_r_p_r:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INCP_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECP_r_p_r_sx:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECP_r_p_r_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECP_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCP_r_p_r_sx:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCP_r_p_r_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCP_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECP_r_p_r_uw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECP_r_p_r_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECP_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCP_r_p_r_uw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCP_r_p_r_x:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCP_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIndexGeneration(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIndexGenerationMask)) {
+    case INDEX_z_ii:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INDEX_z_ir:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INDEX_z_ri:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INDEX_z_rr:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIntArithmeticUnpredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIntArithmeticUnpredicatedMask)) {
+    case ADD_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQADD_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQSUB_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SUB_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQADD_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQSUB_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIntBinaryArithmeticPredicated(
     const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIntBinaryArithmeticPredicatedMask)) {
+    case ADD_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case AND_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case BIC_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case EOR_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case MUL_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ORR_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SABD_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SDIVR_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SDIV_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SMAX_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SMIN_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SMULH_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SUBR_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SUB_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UABD_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UDIVR_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UDIV_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UMAX_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UMIN_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UMULH_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIntCompareScalars(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIntCompareScalarsMask)) {
+    case CTERMEQ_rr:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CTERMNE_rr:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case WHILELE_p_p_rr:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case WHILELO_p_p_rr:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case WHILELS_p_p_rr:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case WHILELT_p_p_rr:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIntCompareSignedImm(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIntCompareSignedImmMask)) {
+    case CMPEQ_p_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPGE_p_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPGT_p_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPLE_p_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPLT_p_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPNE_p_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIntCompareUnsignedImm(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIntCompareUnsignedImmMask)) {
+    case CMPHI_p_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPHS_p_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPLO_p_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPLS_p_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIntCompareVectors(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIntCompareVectorsMask)) {
+    case CMPEQ_p_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPEQ_p_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPGE_p_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPGE_p_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPGT_p_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPGT_p_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPHI_p_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPHI_p_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPHS_p_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPHS_p_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPLE_p_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPLO_p_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPLS_p_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPLT_p_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPNE_p_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CMPNE_p_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIntMiscUnpredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIntMiscUnpredicatedMask)) {
+    case FEXPA_z_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FTSSEL_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case MOVPRFX_z_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIntMulAddPredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIntMulAddPredicatedMask)) {
+    case MAD_z_p_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case MLA_z_p_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case MLS_z_p_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case MSB_z_p_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIntMulAddUnpredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIntMulAddUnpredicatedMask)) {
+    case SDOT_z_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UDOT_z_zzz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIntReduction(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIntReductionMask)) {
+    case ANDV_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case EORV_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case MOVPRFX_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ORV_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SADDV_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SMAXV_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SMINV_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UADDV_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UMAXV_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UMINV_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIntUnaryArithmeticPredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIntUnaryArithmeticPredicatedMask)) {
+    case ABS_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CLS_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CLZ_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CNOT_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CNT_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FABS_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FNEG_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case NEG_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case NOT_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SXTB_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SXTH_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SXTW_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UXTB_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UXTH_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UXTW_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIntWideImmPredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIntWideImmPredicatedMask)) {
+    case CPY_z_p_i:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FCPY_z_p_i:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEIntWideImmUnpredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEIntWideImmUnpredicatedMask)) {
+    case ADD_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case DUP_z_i:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FDUP_z_i:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case MUL_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SMAX_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SMIN_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQADD_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQSUB_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SUBR_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SUB_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UMAX_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UMIN_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQADD_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQSUB_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEMem32BitGatherAndUnsizedContiguous(
     const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEMem32BitGatherAndUnsizedContiguousMask)) {
+    case LD1B_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1B_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RB_z_p_bi_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RB_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RB_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RB_z_p_bi_u8:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RD_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RH_z_p_bi_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RH_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RH_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RSB_z_p_bi_s16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RSB_z_p_bi_s32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RSB_z_p_bi_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RSH_z_p_bi_s32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RSH_z_p_bi_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RSW_z_p_bi_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RW_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RW_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDR_p_bi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDR_z_bi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFB_i_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFB_i_p_bi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFB_i_p_br_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFB_i_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFD_i_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFD_i_p_bi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFD_i_p_br_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFD_i_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFH_i_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFH_i_p_bi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFH_i_p_br_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFH_i_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFW_i_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFW_i_p_bi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFW_i_p_br_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFW_i_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEMem64BitGather(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEMem64BitGatherMask)) {
+    case LD1B_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1B_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1B_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1D_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1D_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1D_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1D_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1D_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SW_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SW_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SW_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SW_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SW_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1D_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1D_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1D_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1D_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1D_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SW_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SW_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SW_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SW_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SW_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFB_i_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFB_i_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFB_i_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFD_i_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFD_i_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFD_i_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFH_i_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFH_i_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFH_i_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFW_i_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFW_i_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFW_i_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEMemContiguousLoad(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEMemContiguousLoadMask)) {
+    case LD1B_z_p_bi_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1B_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1B_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1B_z_p_bi_u8:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1B_z_p_br_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1B_z_p_br_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1B_z_p_br_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1B_z_p_br_u8:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1D_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1D_z_p_br_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_bi_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_br_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_br_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_br_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQB_z_p_bi_u8:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQB_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQD_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQD_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQH_z_p_bi_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQH_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQW_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQW_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_bi_s16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_bi_s32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_bi_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_br_s16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_br_s32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_br_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_bi_s32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_bi_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_br_s32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_br_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SW_z_p_bi_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SW_z_p_br_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_br_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_br_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_br_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_br_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_br_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_br_u8:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1D_z_p_br_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_br_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_br_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_br_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_br_s16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_br_s32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_br_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_br_s32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_br_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SW_z_p_br_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_br_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_br_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1B_z_p_bi_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1B_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1B_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1B_z_p_bi_u8:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1D_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1H_z_p_bi_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1H_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1H_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1SB_z_p_bi_s16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1SB_z_p_bi_s32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1SB_z_p_bi_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1SH_z_p_bi_s32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1SH_z_p_bi_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1SW_z_p_bi_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1W_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNF1W_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNT1B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNT1B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNT1D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNT1D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNT1H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNT1H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNT1W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNT1W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEMemStore(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEMemStoreMask)) {
+    case ST1B_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1B_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1B_z_p_bi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1B_z_p_br:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1B_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1B_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1B_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1D_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1D_z_p_bi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    // TODO: fix encoding alias issue with enum above.
+    //    case ST1D_z_p_br:
+    //      VIXL_UNIMPLEMENTED();
+    //      break;
+    case ST1D_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1D_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1D_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1D_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_bi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_br:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_bi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_br:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STR_p_bi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STR_z_bi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEMulIndex(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEMulIndexMask)) {
+    case SDOT_z_zzzi_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SDOT_z_zzzi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UDOT_z_zzzi_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UDOT_z_zzzi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEPartitionBreak(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEPartitionBreakMask)) {
+    case BRKAS_p_p_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case BRKA_p_p_p:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case BRKBS_p_p_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case BRKB_p_p_p:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case BRKNS_p_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case BRKN_p_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEPermutePredicate(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEPermutePredicateMask)) {
+    case PUNPKHI_p_p:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PUNPKLO_p_p:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case REV_p_p:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case TRN1_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case TRN2_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UZP1_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UZP2_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ZIP1_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ZIP2_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEPermuteVectorExtract(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEPermuteVectorExtractMask)) {
+    case EXT_z_zi_des:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEPermuteVectorInterleaving(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEPermuteVectorInterleavingMask)) {
+    case TRN1_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case TRN2_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UZP1_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UZP2_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ZIP1_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ZIP2_z_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEPermuteVectorPredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEPermuteVectorPredicatedMask)) {
+    case CLASTA_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CLASTA_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CLASTA_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CLASTB_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CLASTB_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CLASTB_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case COMPACT_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CPY_z_p_r:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CPY_z_p_v:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LASTA_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LASTA_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LASTB_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LASTB_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case RBIT_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case REVB_z_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case REVH_z_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case REVW_z_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SPLICE_z_p_zz_des:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEPermuteVectorUnpredicated(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEPermuteVectorUnpredicatedMask)) {
+    case DUP_z_r:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case DUP_z_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INSR_z_r:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INSR_z_v:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case REV_z_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SUNPKHI_z_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SUNPKLO_z_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case TBL_z_zz_1:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UUNPKHI_z_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UUNPKLO_z_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEPredicateCount(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEPredicateCountMask)) {
+    case CNTP_r_p_p:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEPredicateLogicalOp(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEPredicateLogicalOpMask)) {
+    case ANDS_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case AND_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case BICS_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case BIC_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case EORS_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case EOR_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case NANDS_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case NAND_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case NORS_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case NOR_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ORNS_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ORN_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ORRS_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ORR_p_p_pp_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SEL_p_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEPredicateMisc(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEPredicateMiscMask)) {
+    case PFALSE_p:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PFIRST_p_p_p:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PNEXT_p_p_p:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PTEST_p_p:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PTRUES_p_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PTRUE_p_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case RDFFRS_p_p_f:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case RDFFR_p_f:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case RDFFR_p_p_f:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEPropagateBreak(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEPropagateBreakMask)) {
+    case BRKPAS_p_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case BRKPA_p_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case BRKPBS_p_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case BRKPB_p_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEStackAllocation(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEStackAllocationMask)) {
+    case ADDPL_r_ri:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ADDVL_r_ri:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case RDVL_r_i:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEVectorSelect(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEVectorSelectMask)) {
+    case SEL_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEWriteFFR(const Instruction* instr) {
   USE(instr);
-  VIXL_UNIMPLEMENTED();
+  switch (instr->Mask(SVEWriteFFRMask)) {
+    case SETFFR_f:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case WRFFR_f_p:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::DoUnreachable(const Instruction* instr) {
