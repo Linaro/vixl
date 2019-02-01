@@ -1872,8 +1872,11 @@ static void TbzRangePoolLimitHelper(TestBranchSignature test_branch) {
   }
 }
 
-TEST(test_branch_limits_literal_pool_size) {
+TEST(test_branch_limits_literal_pool_size_tbz) {
   TbzRangePoolLimitHelper(&MacroAssembler::Tbz);
+}
+
+TEST(test_branch_limits_literal_pool_size_tbnz) {
   TbzRangePoolLimitHelper(&MacroAssembler::Tbnz);
 }
 
@@ -10782,6 +10785,9 @@ TEST(fmov_reg) {
   __ Fmov(d0, 0.0);
   __ Fmov(v0.D(), 1, x1);
   __ Fmov(x2, v0.D(), 1);
+  __ Fmov(v3.D(), 1, x4);
+  __ Fmov(v3.D(), 0, x1);
+  __ Fmov(x5, v1.D(), 0);
 
   END();
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
@@ -10801,6 +10807,8 @@ TEST(fmov_reg) {
   ASSERT_EQUAL_FP32(RawbitsToFloat(0x89abcdef), s6);
   ASSERT_EQUAL_128(DoubleToRawbits(-13.0), 0x0000000000000000, q0);
   ASSERT_EQUAL_64(DoubleToRawbits(-13.0), x2);
+  ASSERT_EQUAL_128(0x0000000000006400, DoubleToRawbits(-13.0), q3);
+  ASSERT_EQUAL_64(DoubleToRawbits(-13.0), x5);
 #endif
 
   TEARDOWN();
@@ -14430,7 +14438,7 @@ TEST(fjcvtzs) {
   // integers.
   int first_exp_boundary = 52;
   int second_exp_boundary = first_exp_boundary + 64;
-  for (int exponent = 0; exponent < 2048; exponent++) {
+  for (int exponent = 0; exponent < 2048; exponent += 8) {
     int e = exponent - 1023;
 
     uint64_t expected = 0;
@@ -15026,6 +15034,45 @@ TEST(system_mrs) {
   TEARDOWN();
 }
 
+TEST(system_rng) {
+  SETUP_WITH_FEATURES(CPUFeatures::kRNG);
+
+  START();
+  // Random number.
+  __ Mrs(x1, RNDR);
+  // Assume that each generation is successful now.
+  // TODO: Return failure occasionally.
+  __ Mrs(x2, NZCV);
+  __ Mrs(x3, RNDR);
+  __ Mrs(x4, NZCV);
+
+  // Reseeded random number.
+  __ Mrs(x5, RNDRRS);
+  // Assume that each generation is successful now.
+  // TODO: Return failure occasionally.
+  __ Mrs(x6, NZCV);
+  __ Mrs(x7, RNDRRS);
+  __ Mrs(x8, NZCV);
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+  // Random number generation series.
+  // Check random numbers have been generated and aren't equal when reseed has
+  // happened.
+  // NOTE: With a different architectural implementation, there may be a
+  // collison.
+  // TODO: Return failure occasionally. Set ZFlag and return UNKNOWN value.
+  ASSERT_NOT_EQUAL_64(x1, x3);
+  ASSERT_EQUAL_64(NoFlag, x2);
+  ASSERT_EQUAL_64(NoFlag, x4);
+  ASSERT_NOT_EQUAL_64(x5, x7);
+  ASSERT_EQUAL_64(NoFlag, x6);
+  ASSERT_EQUAL_64(NoFlag, x8);
+#endif
+
+  TEARDOWN();
+}
 
 TEST(cfinv) {
   SETUP_WITH_FEATURES(CPUFeatures::kFlagM);

@@ -1518,12 +1518,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fmov(const VRegister& vd, int index, const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fmov(vd, index, rn);
+    if (vd.Is1D() && (index == 0)) {
+      mov(vd, index, rn);
+    } else {
+      fmov(vd, index, rn);
+    }
   }
   void Fmov(const Register& rd, const VRegister& vn, int index) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fmov(rd, vn, index);
+    if (vn.Is1D() && (index == 0)) {
+      mov(rd, vn, index);
+    } else {
+      fmov(rd, vn, index);
+    }
   }
 
   // Provide explicit double and float interfaces for FP immediate moves, rather

@@ -3623,7 +3623,9 @@ TEST_T32(near_branch_fuzz) {
 }
 
 
-TEST_T32(near_branch_and_literal_fuzz) {
+static void NearBranchAndLiteralFuzzHelper(InstructionSet isa,
+                                           int shard_count,
+                                           int shard_offset) {
   SETUP();
   START();
 
@@ -3641,6 +3643,7 @@ TEST_T32(near_branch_and_literal_fuzz) {
   // sequence.
   const int iterations = 128;
   const int n_cases = 20;
+  VIXL_CHECK((iterations % shard_count) == 0);
 
   int loop_count = 0;
   __ Mov(r1, 0);
@@ -3670,7 +3673,7 @@ TEST_T32(near_branch_and_literal_fuzz) {
   for (uint32_t window = 5; window < 14; window++) {
     for (uint32_t ratio = 0; ratio < static_cast<uint32_t>(n_cases - window);
          ratio++) {
-      for (int iter = 0; iter < iterations; iter++) {
+      for (int iter = shard_offset; iter < iterations; iter += shard_count) {
         Label fail;
         Label end;
 
@@ -3889,6 +3892,21 @@ TEST_T32(near_branch_and_literal_fuzz) {
   ASSERT_EQUAL_32(42, r4);
 }
 
+TEST_T32(near_branch_and_literal_fuzz_0) {
+  NearBranchAndLiteralFuzzHelper(isa, 4, 0);
+}
+
+TEST_T32(near_branch_and_literal_fuzz_1) {
+  NearBranchAndLiteralFuzzHelper(isa, 4, 1);
+}
+
+TEST_T32(near_branch_and_literal_fuzz_2) {
+  NearBranchAndLiteralFuzzHelper(isa, 4, 2);
+}
+
+TEST_T32(near_branch_and_literal_fuzz_3) {
+  NearBranchAndLiteralFuzzHelper(isa, 4, 3);
+}
 
 #ifdef VIXL_INCLUDE_TARGET_T32
 TEST_NOASM(code_buffer_precise_growth) {

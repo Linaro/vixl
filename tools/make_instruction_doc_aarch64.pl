@@ -37,21 +37,37 @@ my @extras = qw/bind debug dci dc32 dc64 place/;
 
 my %inst = ();  # Global hash of instructions.
 
+# Set record separator to one or more consecutive new lines. This causes $_ to
+# be assigned a 'paragraph' of text for each iteration of the while loop.
 $/ = '';
+
 open(IN, "<$hfile") or die("Can't open header file $hfile.\n");
 while(<IN>)
 {
   # Find a function formatted like an instruction.
   if(my($t) = /^  ((?:void|inline void) [a-z][a-z0-9]{0,8}_?)\(/mgp)
   {
+    # Everything before the function match, ie. the comments.
     my $before = ${^PREMATCH};
+
+    # Everything after the function match, ie. arguments to the function, if
+    # any, and the closing parenthesis and semi-colon.
     my $after = ${^POSTMATCH};
 
     # Extract the instruction.
     my($i) = $t =~ /(?:void|inline void) ([a-z][a-z0-9]{0,8})/;
 
-    # Extract the comment from before the function.
-    my($d) = $before =~ /.*  \/\/ ([A-Z].+?\.)$/;
+    # Extract the comment from before the function. Drop comment characters
+    # and format the architecture version suffix, if present.
+    my $d = $before;
+    $d =~ s|^  // ||;   # Delete comment chars from first line.
+    $d =~ s|\n  //||g;  # Delete comment chars from subsequent lines.
+    $d =~ s|\n$||;      # Delete trailing new line.
+    $d =~ s|\[Armv(.+)\]|_\(Armv$1\)_|gi;
+
+    # Drop any templating that may have prefixed the prototype, and has now
+    # found its way into the description.
+    $d =~ s|\n  template <.*>$||g;
 
     # Extract and tidy up the function prototype.
     my($p) = $after =~ /(.*?\))/ms;
@@ -62,6 +78,12 @@ while(<IN>)
     my $type = 'integer';
     ($p =~ /VRegister/) and $type = 'float';
     ($i ~~ @extras) and $type = 'pseudo';
+
+    # Special case to distinguish dc() the data constant placing function from
+    # dc() the data cache maintenance instruction.
+    if (($i eq 'dc') and ($p =~ /\(T data\)/)) {
+      $type = 'pseudo';
+    }
 
     # Push the results into a hash keyed by prototype string.
     $inst{$p}->{'type'} = $type;

@@ -404,7 +404,9 @@ class SystemRegisterEncoder {
 // multiple fields (Op0<0>, Op1, Crn, Crm, Op2).
 enum SystemRegister {
   NZCV = SystemRegisterEncoder<3, 3, 4, 2, 0>::value,
-  FPCR = SystemRegisterEncoder<3, 3, 4, 4, 0>::value
+  FPCR = SystemRegisterEncoder<3, 3, 4, 4, 0>::value,
+  RNDR = SystemRegisterEncoder<3, 3, 2, 4, 0>::value,    // Random number.
+  RNDRRS = SystemRegisterEncoder<3, 3, 2, 4, 1>::value   // Reseeded random number.
 };
 
 template<int op1, int crn, int crm, int op2>
