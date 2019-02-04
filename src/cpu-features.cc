@@ -30,6 +30,11 @@
 #include "globals-vixl.h"
 #include "utils-vixl.h"
 
+#if defined(__aarch64__) && defined(VIXL_INCLUDE_TARGET_AARCH64)
+#include "aarch64/cpu-aarch64.h"
+#define VIXL_USE_AARCH64_CPU_HELPERS
+#endif
+
 namespace vixl {
 
 static uint64_t MakeFeatureMask(CPUFeatures::Feature feature) {
@@ -60,9 +65,24 @@ CPUFeatures CPUFeatures::All() {
   return all;
 }
 
-CPUFeatures CPUFeatures::InferFromOS() {
-  // TODO: Actually infer features from the OS.
+CPUFeatures CPUFeatures::InferFromIDRegisters() {
+  // This function assumes that kIDRegisterEmulation is available.
+  CPUFeatures features(CPUFeatures::kIDRegisterEmulation);
+#ifdef VIXL_USE_AARCH64_CPU_HELPERS
+  // Note that the Linux kernel filters these values during emulation, so the
+  // results may not exactly match the expected hardware support.
+  features.Combine(aarch64::CPU::InferCPUFeaturesFromIDRegisters());
+#endif
+  return features;
+}
+
+CPUFeatures CPUFeatures::InferFromOS(QueryIDRegistersOption option) {
+#ifdef VIXL_USE_AARCH64_CPU_HELPERS
+  return aarch64::CPU::InferCPUFeaturesFromOS(option);
+#else
+  USE(option);
   return CPUFeatures();
+#endif
 }
 
 void CPUFeatures::Combine(const CPUFeatures& other) {

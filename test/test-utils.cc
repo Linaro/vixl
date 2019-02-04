@@ -26,12 +26,17 @@
 
 #include "test-utils.h"
 
+#include <string.h>
+
 extern "C" {
 #include <sys/mman.h>
 }
 
 #include "globals-vixl.h"
+
+#ifdef VIXL_INCLUDE_TARGET_AARCH64
 #include "aarch64/cpu-aarch64.h"
+#endif
 
 namespace vixl {
 
@@ -43,14 +48,14 @@ namespace vixl {
 #endif
 
 
-void ExecuteMemory(byte* buffer, size_t size, int offset) {
+void ExecuteMemory(byte* buffer, size_t size, int byte_offset) {
   void (*test_function)(void);
 
-  VIXL_ASSERT((offset >= 0) && (static_cast<size_t>(offset) < size));
+  VIXL_ASSERT((byte_offset >= 0) && (static_cast<size_t>(byte_offset) < size));
   VIXL_STATIC_ASSERT(sizeof(buffer) == sizeof(test_function));
   VIXL_STATIC_ASSERT(sizeof(uintptr_t) == sizeof(test_function));
   uintptr_t entry_point = reinterpret_cast<uintptr_t>(buffer);
-  entry_point += offset;
+  entry_point += byte_offset;
   memcpy(&test_function, &entry_point, sizeof(test_function));
 
   USE(size);
@@ -62,6 +67,9 @@ void ExecuteMemory(byte* buffer, size_t size, int offset) {
   // TODO: Do not use __builtin___clear_cache and instead implement
   // `CPU::EnsureIAndDCacheCoherency` for aarch32.
   __builtin___clear_cache(buffer, reinterpret_cast<char*>(buffer) + size);
+#else
+  // This helper requires a native (non-Simulator) environment.
+  VIXL_ABORT_WITH_MSG("Cannot ExecuteMemory(...): unsupported platform.");
 #endif
   test_function();
 }

@@ -520,4 +520,49 @@ TEST(CPUFeaturesScope) {
   VIXL_CHECK(original_outer.Has(cpu));
 }
 
+TEST(CPUFeatures_infer_from_os) {
+  // Test that CPUFeatures::InferFromOS functions on supported platforms.
+  CPUFeatures os;
+  VIXL_ASSERT(os.Count() == 0);
+  os = CPUFeatures::InferFromOS();
+
+  // Every real platform has FP and NEON. However, InferFromOS does not support
+  // every platform, so we also have to tolerate empty results.
+  if (os.Count() == 0) {
+    std::cout << "Warning: CPUFeatures::InferFromOS() returned no results.\n";
+  } else {
+    std::cout << "CPUFeatures::InferFromOS():\n  {" << os << "}\n";
+    VIXL_CHECK(os.Has(CPUFeatures::kFP));
+    VIXL_CHECK(os.Has(CPUFeatures::kNEON));
+  }
+}
+
+TEST(CPUFeatures_infer_from_id_registers) {
+  CPUFeatures os_only =
+      CPUFeatures::InferFromOS(CPUFeatures::kDontQueryIDRegisters);
+  std::cout << "CPUFeatures::InferFromOS(kDontQueryIDRegisters):\n  {"
+            << os_only << "}\n";
+  if (os_only.Has(CPUFeatures::kIDRegisterEmulation)) {
+    CPUFeatures id_regs = CPUFeatures::InferFromIDRegisters();
+    std::cout << "CPUFeatures::InferFromIDRegisters():\n  {" << id_regs
+              << "}\n";
+    // The ID registers should return at least as many features as the OS
+    // information. This is intended to verify VIXL's InferFromIDRegisters
+    // logic, but it also relies on the OS presenting consistent information.
+    VIXL_CHECK(id_regs.Has(os_only));
+
+    // The default InferFromOS should combine its results with
+    // InferFromIDRegisters.
+    CPUFeatures os_auto = CPUFeatures::InferFromOS();
+    CPUFeatures os_with_id_regs = os_only.With(id_regs);
+    // Check equivalence.
+    VIXL_CHECK(os_auto.Has(os_with_id_regs));
+    VIXL_CHECK(os_with_id_regs.Has(os_auto));
+  } else {
+    printf(
+        "Warning: skipping test because ID register emulation is not "
+        "available.\n");
+  }
+}
+
 }  // namespace vixl

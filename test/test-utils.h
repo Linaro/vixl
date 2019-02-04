@@ -33,7 +33,9 @@
 
 namespace vixl {
 
-void ExecuteMemory(byte* buffer, size_t size, int offset = 0);
+// In native (non-Simulator) environments, call a function at buffer +
+// byte_offset. The function is given no arguments and returns no results.
+void ExecuteMemory(byte* buffer, size_t size, int byte_offset = 0);
 
 }  // namespace vixl
 
