@@ -19765,7 +19765,7 @@ TEST(stlurb_stlurh_strlur) {
 
   uintptr_t data_base = reinterpret_cast<uintptr_t>(data);
 
-  SETUP_WITH_FEATURES(CPUFeatures::kRCpcImm);
+  SETUP_WITH_FEATURES(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm);
   START();
 
   __ Mov(x0, 0x0011223344556677);

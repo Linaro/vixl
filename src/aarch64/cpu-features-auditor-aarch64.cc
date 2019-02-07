@@ -286,13 +286,14 @@ void CPUFeaturesAuditor::VisitLoadStoreRCpcUnscaledOffset(
     case LDAPUR_w:
     case LDAPURSW:
     case LDAPUR_x:
-      scope.Record(CPUFeatures::kRCpc);
-      VIXL_FALLTHROUGH();
+
+    // These stores don't actually have RCpc semantics but they're included with
+    // the RCpc extensions.
     case STLURB:
     case STLURH:
     case STLUR_w:
     case STLUR_x:
-      scope.Record(CPUFeatures::kRCpcImm);
+      scope.Record(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm);
       return;
   }
 }

@@ -4349,6 +4349,8 @@ class Assembler : public vixl::internal::AssemblerBase {
   bool CPUHas(const CPURegister& rt) const;
   bool CPUHas(const CPURegister& rt, const CPURegister& rt2) const;
 
+  bool CPUHas(SystemRegister sysreg) const;
+
  private:
   static uint32_t FP16ToImm8(Float16 imm);
   static uint32_t FP32ToImm8(float imm);

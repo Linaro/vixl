@@ -721,9 +721,21 @@ TEST_FP(ucvtf_5, ucvtf(d0, x1))
 TEST_FP(ucvtf_6, ucvtf(s0, w1))
 TEST_FP(ucvtf_7, ucvtf(s0, x1))
 
+#define TEST_BTI(NAME, ASM) \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kBTI), BTI_##NAME, ASM)
+TEST_BTI(bti_0, bti(EmitBTI))
+TEST_BTI(bti_1, bti(EmitBTI_c))
+TEST_BTI(bti_2, bti(EmitBTI_j))
+TEST_BTI(bti_3, bti(EmitBTI_jc))
+
 #define TEST_RAS(NAME, ASM) \
   TEST_TEMPLATE(CPUFeatures(CPUFeatures::kRAS), RAS_##NAME, ASM)
 TEST_RAS(esb_0, esb())
+
+#define TEST_RNG(NAME, ASM) \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kRNG), RNG_##NAME, ASM)
+TEST_RNG(mrs_0, mrs(x0, RNDR))
+TEST_RNG(mrs_1, mrs(x0, RNDRRS))
 
 #define TEST_NEON(NAME, ASM) \
   TEST_TEMPLATE(CPUFeatures(CPUFeatures::kNEON), NEON_##NAME, ASM)
@@ -2778,6 +2790,13 @@ TEST_CRC32(crc32cx_0, crc32cx(w0, w1, x2))
   TEST_TEMPLATE(CPUFeatures(CPUFeatures::kDCPoP), DCPoP_##NAME, ASM)
 TEST_DCPOP(dc_0, dc(CVAP, x0))
 
+#define TEST_FLAGM(NAME, ASM) \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFlagM), FlagM_##NAME, ASM)
+TEST_FLAGM(cfinv_0, cfinv())
+TEST_FLAGM(rmif_0, rmif(x0, 52, NVFlag))
+TEST_FLAGM(setf16_0, setf16(w0))
+TEST_FLAGM(setf8_0, setf8(w0))
+
 #define TEST_PAUTH(NAME, ASM) \
   TEST_TEMPLATE(CPUFeatures(CPUFeatures::kPAuth), PAuth_##NAME, ASM)
 TEST_PAUTH(autda_0, autda(x0, x1))
@@ -2802,6 +2821,10 @@ TEST_PAUTH(braaz_0, braaz(x0))
 TEST_PAUTH(braa_0, braa(x0, x1))
 TEST_PAUTH(brabz_0, brabz(x0))
 TEST_PAUTH(brab_0, brab(x0, x1))
+TEST_PAUTH(ldraa_0, ldraa(x0, MemOperand(x1, -48, PreIndex)))
+TEST_PAUTH(ldraa_1, ldraa(x0, MemOperand(x1, -1808)))
+TEST_PAUTH(ldrab_0, ldrab(x0, MemOperand(x1, 1544, PreIndex)))
+TEST_PAUTH(ldrab_1, ldrab(x0, MemOperand(x1, 1512)))
 TEST_PAUTH(pacda_0, pacda(x0, x1))
 TEST_PAUTH(pacdza_0, pacdza(x0))
 TEST_PAUTH(pacdb_0, pacdb(x0, x1))
@@ -2821,6 +2844,11 @@ TEST_PAUTH(retab_0, retab())
 TEST_PAUTH(xpacd_0, xpacd(x0))
 TEST_PAUTH(xpaci_0, xpaci(x0))
 TEST_PAUTH(xpaclri_0, xpaclri())
+
+#define TEST_AXFLAG(NAME, ASM) \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kAXFlag), AXFlag_##NAME, ASM)
+TEST_AXFLAG(axflag_0, axflag())
+TEST_AXFLAG(xaflag_0, xaflag())
 
 #define TEST_ATOMICS(NAME, ASM) \
   TEST_TEMPLATE(CPUFeatures(CPUFeatures::kAtomics), Atomics_##NAME, ASM)
@@ -3477,6 +3505,24 @@ TEST_FP_FCMA_NEON(fcmla_0, fcmla(v0.V4S(), v1.V4S(), v2.S(), 0, 180))
 TEST_FP_FCMA_NEON(fcmla_1, fcmla(v0.V2S(), v1.V2S(), v2.V2S(), 90))
 TEST_FP_FCMA_NEON(fcmla_2, fcmla(v0.V4S(), v1.V4S(), v2.V4S(), 90))
 TEST_FP_FCMA_NEON(fcmla_3, fcmla(v0.V2D(), v1.V2D(), v2.V2D(), 90))
+
+#define TEST_RCPC_RCPCIMM(NAME, ASM)                                    \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm), \
+                RCpc_RCpcImm_##NAME,                                    \
+                ASM)
+TEST_RCPC_RCPCIMM(ldapurb_0, ldapurb(w0, MemOperand(x1, 20)))
+TEST_RCPC_RCPCIMM(ldapurh_0, ldapurh(w0, MemOperand(x1, 194)))
+TEST_RCPC_RCPCIMM(ldapursb_0, ldapursb(w0, MemOperand(x1, -27)))
+TEST_RCPC_RCPCIMM(ldapursb_1, ldapursb(x0, MemOperand(x1, -64)))
+TEST_RCPC_RCPCIMM(ldapursh_0, ldapursh(w0, MemOperand(x1, 180)))
+TEST_RCPC_RCPCIMM(ldapursh_1, ldapursh(x0, MemOperand(x1, -212)))
+TEST_RCPC_RCPCIMM(ldapursw_0, ldapursw(x0, MemOperand(x1, -196)))
+TEST_RCPC_RCPCIMM(ldapur_0, ldapur(w0, MemOperand(x1, -96)))
+TEST_RCPC_RCPCIMM(ldapur_1, ldapur(x0, MemOperand(x1, -112)))
+TEST_RCPC_RCPCIMM(stlurb_0, stlurb(w0, MemOperand(x1, -233)))
+TEST_RCPC_RCPCIMM(stlurh_0, stlurh(w0, MemOperand(x1, -147)))
+TEST_RCPC_RCPCIMM(stlur_0, stlur(w0, MemOperand(x1, 40)))
+TEST_RCPC_RCPCIMM(stlur_1, stlur(x0, MemOperand(x1, 209)))
 
 #define TEST_NEON_DOTPRODUCT(NAME, ASM)                                    \
   TEST_TEMPLATE(CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kDotProduct), \
