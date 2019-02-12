@@ -3862,13 +3862,11 @@ void Simulator::VisitSystem(const Instruction* instr) {
       Instr i = instr->Mask(SystemPAuthMask);
       if ((i == PACIASP) || (i == PACIBSP)) {
         switch (ReadBType()) {
-          case DefaultBType:
-            VIXL_ABORT_WITH_MSG("Executing PACIXSP with wrong BType.");
-            break;
           case BranchFromGuardedNotToIP:
           // TODO: This case depends on the value of SCTLR_EL1.BT0, which we
           // assume here to be zero. This allows execution of PACI[AB]SP when
           // BTYPE is BranchFromGuardedNotToIP (0b11).
+          case DefaultBType:
           case BranchFromUnguardedOrToIP:
           case BranchAndLink:
             break;

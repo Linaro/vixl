@@ -15700,6 +15700,33 @@ TEST(bti_call_to_j) {
 }
 #endif  // VIXL_NEGATIVE_TESTING
 
+TEST(fall_through_bti) {
+  SETUP_WITH_FEATURES(CPUFeatures::kBTI, CPUFeatures::kPAuth);
+
+  START();
+  Label target, target_j, target_c, target_jc;
+  __ Mov(x0, 0);  // 'Normal' instruction sets BTYPE to zero.
+  __ Bind(&target, EmitBTI);
+  __ Add(x0, x0, 1);
+  __ Bind(&target_j, EmitBTI_j);
+  __ Add(x0, x0, 1);
+  __ Bind(&target_c, EmitBTI_c);
+  __ Add(x0, x0, 1);
+  __ Bind(&target_jc, EmitBTI_jc);
+  __ Add(x0, x0, 1);
+  __ Paciasp();
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  simulator.SetGuardedPages(true);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(4, x0);
+
+  TEARDOWN();
+}
+
 TEST(zero_dest) {
   // RegisterDump::Dump uses NEON.
   SETUP_WITH_FEATURES(CPUFeatures::kNEON);
