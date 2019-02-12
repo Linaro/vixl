@@ -4048,7 +4048,7 @@ void Assembler::ld1rw(const ZRegister& zt,
        ImmField<21, 16>(imm6));
 }
 
-void Assembler::ldr(const PRegisterWithLaneSize& pt, const Register& xn) {
+void Assembler::ldr(const PRegister& pt, const Register& xn) {
   // LDR <Pt>, [<Xn|SP>{, #<imm>, MUL VL}]
   //  1000 0101 10.. .... 000. .... ...0 ....
   //  imm9h<21:16> | imm9l<12:10> | Rn<9:5> | Pt<3:0>
@@ -4058,7 +4058,7 @@ void Assembler::ldr(const PRegisterWithLaneSize& pt, const Register& xn) {
   Emit(LDR_p_bi | Pd(pt) | RnSP(xn));
 }
 
-void Assembler::ldr(const ZRegister& zt, const Register& xn) {
+void Assembler::ldr(const ZRegisterNoLaneSize& zt, const Register& xn) {
   // LDR <Zt>, [<Xn|SP>{, #<imm>, MUL VL}]
   //  1000 0101 10.. .... 010. .... .... ....
   //  imm9h<21:16> | imm9l<12:10> | Rn<9:5> | Zt<4:0>
@@ -6782,7 +6782,7 @@ void Assembler::stnt1w(const ZRegister& zt,
        ImmField<19, 16>(imm4));
 }
 
-void Assembler::str(const PRegisterWithLaneSize& pt, const Register& xn) {
+void Assembler::str(const PRegister& pt, const Register& xn) {
   // STR <Pt>, [<Xn|SP>{, #<imm>, MUL VL}]
   //  1110 0101 10.. .... 000. .... ...0 ....
   //  imm9h<21:16> | imm9l<12:10> | Rn<9:5> | Pt<3:0>
@@ -6792,7 +6792,7 @@ void Assembler::str(const PRegisterWithLaneSize& pt, const Register& xn) {
   Emit(STR_p_bi | Pd(pt) | RnSP(xn));
 }
 
-void Assembler::str(const ZRegister& zt, const Register& xn) {
+void Assembler::str(const ZRegisterNoLaneSize& zt, const Register& xn) {
   // STR <Zt>, [<Xn|SP>{, #<imm>, MUL VL}]
   //  1110 0101 10.. .... 010. .... .... ....
   //  imm9h<21:16> | imm9l<12:10> | Rn<9:5> | Zt<4:0>

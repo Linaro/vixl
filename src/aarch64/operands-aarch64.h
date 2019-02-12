@@ -264,6 +264,8 @@ class Register : public CPURegister {
     return GetXRegFromCode(code);
   }
 
+  static unsigned GetMaxCode() { return kNumberOfRegisters - 1; }
+
  private:
   static const Register wregisters[];
   static const Register xregisters[];
@@ -428,6 +430,8 @@ class VRegister : public CPURegister {
     return GetLaneSizeInBits();
   }
 
+  static unsigned GetMaxCode() { return kNumberOfVRegisters - 1; }
+
  private:
   static const VRegister bregisters[];
   static const VRegister hregisters[];
@@ -474,7 +478,12 @@ class PRegister {
   PRegisterWithLaneSize VnS() const;
   PRegisterWithLaneSize VnD() const;
 
+  unsigned GetMaxSizeInBits() const { return kPRegMaxSize; }
+  unsigned GetMaxSizeInBytes() const { return kPRegMaxSizeInBytes; }
+
   bool IsValid() const { return code_ < kNumberOfPRegisters; }
+
+  static unsigned GetMaxCode() { return kNumberOfPRegisters - 1; }
 
  private:
   unsigned code_;
@@ -597,6 +606,9 @@ class ZRegisterNoLaneSize {
 
   unsigned GetCode() const { return code_; }
 
+  unsigned GetMaxSizeInBits() const { return kZRegMaxSize; }
+  unsigned GetMaxSizeInBytes() const { return kZRegMaxSizeInBytes; }
+
   bool Is(const ZRegisterNoLaneSize& other) const {
     return (code_ == other.code_);
   }
@@ -615,6 +627,8 @@ class ZRegisterNoLaneSize {
 
   bool IsNone() const { return code_ == kUnknownCode; }
   bool IsValid() const { return (code_ < kNumberOfZRegisters); }
+
+  static unsigned GetMaxCode() { return kNumberOfZRegisters - 1; }
 
  private:
   unsigned code_;
@@ -1193,6 +1207,16 @@ class MemOperand {
   VIXL_DEPRECATED("GetShiftAmount", unsigned shift_amount() const) {
     return GetShiftAmount();
   }
+
+  // True for MemOperands which represent something like [x0].
+  // Currently, this will also return true for [x0, #0], because MemOperand has
+  // no way to distinguish the two.
+  bool IsPlainRegister() const;
+
+  // True for MemOperands which represent something like [x0], or for compound
+  // MemOperands which are functionally equivalent, such as [x0, #0], [x0, xzr]
+  // or [x0, wzr, UXTW #3].
+  bool IsEquivalentToPlainRegister() const;
 
   bool IsImmediateOffset() const;
   bool IsRegisterOffset() const;

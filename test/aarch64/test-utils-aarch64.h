@@ -52,11 +52,41 @@ extern const float kFP32QuietNaN;
 extern const Float16 kFP16SignallingNaN;
 extern const Float16 kFP16QuietNaN;
 
-// Structure representing Q registers in a RegisterDump.
-struct vec128_t {
-  uint64_t l;
-  uint64_t h;
+// Vector registers don't naturally fit any C++ native type, so define a class
+// with convenient accessors.
+// Note that this has to be a POD type so that we can use 'offsetof' with it.
+template <int kSizeInBytes>
+struct VectorValue {
+  template <typename T>
+  T GetLane(int lane) {
+    size_t lane_size = sizeof(T);
+    VIXL_CHECK(kSizeInBytes >= ((lane + 1) * lane_size));
+    T result;
+    memcpy(&result, bytes + (lane * lane_size), lane_size);
+    return result;
+  }
+
+  template <typename T>
+  void SetLane(int lane, T value) {
+    size_t lane_size = sizeof(value);
+    VIXL_CHECK(kSizeInBytes >= ((lane + 1) * lane_size));
+    memcpy(bytes + (lane * lane_size), &value, lane_size);
+  }
+
+  bool Equals(const VectorValue<kSizeInBytes>& other) const {
+    return memcmp(bytes, other.bytes, kSizeInBytes) == 0;
+  }
+
+  uint8_t bytes[kSizeInBytes];
 };
+
+// It would be convenient to make these subclasses, so we can provide convenient
+// constructors and utility methods specific to each register type, but we can't
+// do that because it makes the result a non-POD type, and then we can't use
+// 'offsetof' in RegisterDump::Dump.
+typedef VectorValue<kQRegSizeInBytes> QRegisterValue;
+typedef VectorValue<kZRegMaxSizeInBytes> ZRegisterValue;
+typedef VectorValue<kPRegMaxSizeInBytes> PRegisterValue;
 
 // RegisterDump: Object allowing integer, floating point and flags registers
 // to be saved to itself for future reference.
@@ -127,7 +157,7 @@ class RegisterDump {
     return RawbitsToDouble(dreg_bits(code));
   }
 
-  inline vec128_t qreg(unsigned code) const { return dump_.q_[code]; }
+  inline QRegisterValue qreg(unsigned code) const { return dump_.q_[code]; }
 
   // Stack pointer accessors.
   inline int64_t spreg() const {
@@ -176,6 +206,17 @@ class RegisterDump {
             ((dump_.s_[code] & kHRegMask) == dump_.h_[code]));
   }
 
+  // Record the CPUFeatures enabled when Dump was called.
+  CPUFeatures dump_cpu_features_;
+
+  // Convenience pass-through for CPU feature checks.
+  bool CPUHas(CPUFeatures::Feature feature0,
+              CPUFeatures::Feature feature1 = CPUFeatures::kNone,
+              CPUFeatures::Feature feature2 = CPUFeatures::kNone,
+              CPUFeatures::Feature feature3 = CPUFeatures::kNone) const {
+    return dump_cpu_features_.Has(feature0, feature1, feature2, feature3);
+  }
+
   // Store all the dumped elements in a simple struct so the implementation can
   // use offsetof to quickly find the correct field.
   struct dump_t {
@@ -189,7 +230,10 @@ class RegisterDump {
     uint16_t h_[kNumberOfFPRegisters];
 
     // Vector registers.
-    vec128_t q_[kNumberOfVRegisters];
+    QRegisterValue q_[kNumberOfVRegisters];
+    ZRegisterValue z_[kNumberOfZRegisters];
+
+    PRegisterValue p_[kNumberOfPRegisters];
 
     // The stack pointer.
     uint64_t sp_;
@@ -201,6 +245,9 @@ class RegisterDump {
     // bit[29] : Carry
     // bit[28] : oVerflow
     uint64_t flags_;
+
+    // The SVE "VL" (vector length) in bits.
+    uint64_t vl_;
   } dump_;
 };
 
@@ -208,6 +255,9 @@ class RegisterDump {
 // accept them so that they can overload those that take register arguments.
 bool Equal32(uint32_t expected, const RegisterDump*, uint32_t result);
 bool Equal64(uint64_t expected, const RegisterDump*, uint64_t result);
+bool Equal128(QRegisterValue expected,
+              const RegisterDump*,
+              QRegisterValue result);
 
 bool EqualFP16(Float16 expected, const RegisterDump*, uint16_t result);
 bool EqualFP32(float expected, const RegisterDump*, float result);

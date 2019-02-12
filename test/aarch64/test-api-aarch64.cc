@@ -456,7 +456,7 @@ TEST(static_register_types) {
 }
 
 
-TEST(is_plain_register) {
+TEST(operand_is_plain_register) {
   VIXL_CHECK(Operand(x0).IsPlainRegister());
   VIXL_CHECK(Operand(x1, LSL, 0).IsPlainRegister());
   VIXL_CHECK(Operand(x2, LSR, 0).IsPlainRegister());
@@ -488,6 +488,45 @@ TEST(is_plain_register) {
   // the Operand class doesn't know the context so it has to return false.
   VIXL_CHECK(!Operand(w15, UXTW).IsPlainRegister());
   VIXL_CHECK(!Operand(w16, SXTW).IsPlainRegister());
+}
+
+
+TEST(memoperand_is_plain_register) {
+  VIXL_CHECK(MemOperand(x0).IsPlainRegister());
+  VIXL_CHECK(MemOperand(sp).IsPlainRegister());
+  VIXL_CHECK(MemOperand(x1, 0).IsPlainRegister());
+
+  VIXL_CHECK(!MemOperand(x2, xzr).IsPlainRegister());
+  VIXL_CHECK(!MemOperand(x3, xzr, SXTX).IsPlainRegister());
+  VIXL_CHECK(!MemOperand(x4, xzr, SXTX, 2).IsPlainRegister());
+  VIXL_CHECK(!MemOperand(x5, wzr, UXTW).IsPlainRegister());
+  VIXL_CHECK(!MemOperand(x6, wzr, UXTW, 3).IsPlainRegister());
+
+  VIXL_CHECK(!MemOperand(x7, 0, PostIndex).IsPlainRegister());
+  VIXL_CHECK(!MemOperand(x8, 0, PreIndex).IsPlainRegister());
+  VIXL_CHECK(!MemOperand(x9, xzr, PostIndex).IsPlainRegister());
+
+  VIXL_CHECK(!MemOperand(x20, 1).IsPlainRegister());
+  VIXL_CHECK(!MemOperand(x21, x30).IsPlainRegister());
+}
+
+TEST(memoperand_is_plain_register_or_equivalent) {
+  VIXL_CHECK(MemOperand(x0).IsEquivalentToPlainRegister());
+  VIXL_CHECK(MemOperand(sp).IsEquivalentToPlainRegister());
+  VIXL_CHECK(MemOperand(x1, 0).IsEquivalentToPlainRegister());
+
+  VIXL_CHECK(MemOperand(x2, xzr).IsEquivalentToPlainRegister());
+  VIXL_CHECK(MemOperand(x3, xzr, SXTX).IsEquivalentToPlainRegister());
+  VIXL_CHECK(MemOperand(x4, xzr, SXTX, 2).IsEquivalentToPlainRegister());
+  VIXL_CHECK(MemOperand(x5, wzr, UXTW).IsEquivalentToPlainRegister());
+  VIXL_CHECK(MemOperand(x6, wzr, UXTW, 3).IsEquivalentToPlainRegister());
+
+  VIXL_CHECK(MemOperand(x7, 0, PostIndex).IsEquivalentToPlainRegister());
+  VIXL_CHECK(MemOperand(x8, 0, PreIndex).IsEquivalentToPlainRegister());
+  VIXL_CHECK(MemOperand(x9, xzr, PostIndex).IsEquivalentToPlainRegister());
+
+  VIXL_CHECK(!MemOperand(x20, 1).IsEquivalentToPlainRegister());
+  VIXL_CHECK(!MemOperand(x21, x30).IsEquivalentToPlainRegister());
 }
 
 

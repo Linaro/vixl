@@ -74,18 +74,20 @@ bool Equal64(uint64_t expected, const RegisterDump*, uint64_t result) {
 }
 
 
-bool Equal128(vec128_t expected, const RegisterDump*, vec128_t result) {
-  if ((result.h != expected.h) || (result.l != expected.l)) {
+bool Equal128(QRegisterValue expected,
+              const RegisterDump*,
+              QRegisterValue result) {
+  if (!expected.Equals(result)) {
     printf("Expected 0x%016" PRIx64 "%016" PRIx64
            "\t "
            "Found 0x%016" PRIx64 "%016" PRIx64 "\n",
-           expected.h,
-           expected.l,
-           result.h,
-           result.l);
+           expected.GetLane<uint64_t>(1),
+           expected.GetLane<uint64_t>(0),
+           result.GetLane<uint64_t>(1),
+           result.GetLane<uint64_t>(0));
   }
 
-  return ((expected.h == result.h) && (expected.l == result.l));
+  return expected.Equals(result);
 }
 
 
@@ -185,8 +187,10 @@ bool Equal128(uint64_t expected_h,
               const RegisterDump* core,
               const VRegister& vreg) {
   VIXL_ASSERT(vreg.Is128Bits());
-  vec128_t expected = {expected_l, expected_h};
-  vec128_t result = core->qreg(vreg.GetCode());
+  QRegisterValue expected;
+  expected.SetLane(0, expected_l);
+  expected.SetLane(1, expected_h);
+  QRegisterValue result = core->qreg(vreg.GetCode());
   return Equal128(expected, core, result);
 }
 
@@ -430,21 +434,53 @@ void Clobber(MacroAssembler* masm, CPURegList reg_list) {
   }
 }
 
+// TODO: Once registers have sufficiently compatible interfaces, merge the two
+// DumpRegisters templates.
+template <typename T>
+static void DumpRegisters(MacroAssembler* masm,
+                          Register dump_base,
+                          int offset) {
+  UseScratchRegisterScope temps(masm);
+  Register dump = temps.AcquireX();
+  __ Add(dump, dump_base, offset);
+  for (unsigned i = 0; i <= T::GetMaxCode(); i++) {
+    T reg(i);
+    __ Str(reg, MemOperand(dump));
+    __ Add(dump, dump, reg.GetMaxSizeInBytes());
+  }
+}
+
+template <typename T>
+static void DumpRegisters(MacroAssembler* masm,
+                          Register dump_base,
+                          int offset,
+                          int reg_size_in_bytes) {
+  UseScratchRegisterScope temps(masm);
+  Register dump = temps.AcquireX();
+  __ Add(dump, dump_base, offset);
+  for (unsigned i = 0; i <= T::GetMaxCode(); i++) {
+    T reg(i, reg_size_in_bytes * kBitsPerByte);
+    __ Str(reg, MemOperand(dump));
+    __ Add(dump, dump, reg_size_in_bytes);
+  }
+}
 
 void RegisterDump::Dump(MacroAssembler* masm) {
   VIXL_ASSERT(__ StackPointer().Is(sp));
 
-  // Ensure that we don't unintentionally clobber any registers.
+  dump_cpu_features_ = *masm->GetCPUFeatures();
+
+  // We need some scratch registers, but we also need to dump them, so we have
+  // to control exactly which registers are used, and dump them separately.
+  CPURegList scratch_registers(x0, x1, x2, x3);
+
   UseScratchRegisterScope temps(masm);
   temps.ExcludeAll();
+  __ PushCPURegList(scratch_registers);
+  temps.Include(scratch_registers);
 
-  // Preserve some temporary registers.
-  Register dump_base = x0;
-  Register dump = x1;
-  Register tmp = x2;
-  Register dump_base_w = dump_base.W();
-  Register dump_w = dump.W();
-  Register tmp_w = tmp.W();
+  Register dump_base = temps.AcquireX();
+  Register tmp = temps.AcquireX();
 
   // Offsets into the dump_ structure.
   const int x_offset = offsetof(dump_t, x_);
@@ -453,11 +489,12 @@ void RegisterDump::Dump(MacroAssembler* masm) {
   const int s_offset = offsetof(dump_t, s_);
   const int h_offset = offsetof(dump_t, h_);
   const int q_offset = offsetof(dump_t, q_);
+  const int z_offset = offsetof(dump_t, z_);
+  const int p_offset = offsetof(dump_t, p_);
   const int sp_offset = offsetof(dump_t, sp_);
   const int wsp_offset = offsetof(dump_t, wsp_);
   const int flags_offset = offsetof(dump_t, flags_);
-
-  __ Push(xzr, dump_base, dump, tmp);
+  const int vl_offset = offsetof(dump_t, vl_);
 
   // Load the address where we will dump the state.
   __ Mov(dump_base, reinterpret_cast<uintptr_t>(&dump_));
@@ -468,91 +505,62 @@ void RegisterDump::Dump(MacroAssembler* masm) {
   // compensate here.
   __ Add(tmp, sp, 4 * kXRegSizeInBytes);
   __ Str(tmp, MemOperand(dump_base, sp_offset));
-  __ Add(tmp_w, wsp, 4 * kXRegSizeInBytes);
-  __ Str(tmp_w, MemOperand(dump_base, wsp_offset));
+  __ Add(tmp.W(), wsp, 4 * kXRegSizeInBytes);
+  __ Str(tmp.W(), MemOperand(dump_base, wsp_offset));
 
-  // Dump X registers.
-  __ Add(dump, dump_base, x_offset);
-  for (unsigned i = 0; i < kNumberOfRegisters; i += 2) {
-    __ Stp(Register::GetXRegFromCode(i),
-           Register::GetXRegFromCode(i + 1),
-           MemOperand(dump, i * kXRegSizeInBytes));
-  }
+  // Dump core registers.
+  DumpRegisters<Register>(masm, dump_base, x_offset, kXRegSizeInBytes);
+  DumpRegisters<Register>(masm, dump_base, w_offset, kWRegSizeInBytes);
 
-  // Dump W registers.
-  __ Add(dump, dump_base, w_offset);
-  for (unsigned i = 0; i < kNumberOfRegisters; i += 2) {
-    __ Stp(Register::GetWRegFromCode(i),
-           Register::GetWRegFromCode(i + 1),
-           MemOperand(dump, i * kWRegSizeInBytes));
-  }
+  // Dump NEON and FP registers.
+  DumpRegisters<VRegister>(masm, dump_base, q_offset, kQRegSizeInBytes);
+  DumpRegisters<VRegister>(masm, dump_base, d_offset, kDRegSizeInBytes);
+  DumpRegisters<VRegister>(masm, dump_base, s_offset, kSRegSizeInBytes);
+  DumpRegisters<VRegister>(masm, dump_base, h_offset, kHRegSizeInBytes);
 
-  // Dump D registers.
-  __ Add(dump, dump_base, d_offset);
-  for (unsigned i = 0; i < kNumberOfFPRegisters; i += 2) {
-    __ Stp(FPRegister::GetDRegFromCode(i),
-           FPRegister::GetDRegFromCode(i + 1),
-           MemOperand(dump, i * kDRegSizeInBytes));
-  }
+  // Dump SVE registers.
+  if (CPUHas(CPUFeatures::kSVE)) {
+    DumpRegisters<ZRegisterNoLaneSize>(masm, dump_base, z_offset);
+    DumpRegisters<PRegister>(masm, dump_base, p_offset);
 
-  // Dump S registers.
-  __ Add(dump, dump_base, s_offset);
-  for (unsigned i = 0; i < kNumberOfFPRegisters; i += 2) {
-    __ Stp(FPRegister::GetSRegFromCode(i),
-           FPRegister::GetSRegFromCode(i + 1),
-           MemOperand(dump, i * kSRegSizeInBytes));
-  }
-
-#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
-  // Dump H registers. Note: Stp does not support 16 bits.
-  __ Add(dump, dump_base, h_offset);
-  for (unsigned i = 0; i < kNumberOfFPRegisters; i++) {
-    __ Str(FPRegister::GetHRegFromCode(i),
-           MemOperand(dump, i * kHRegSizeInBytes));
-  }
-#else
-  USE(h_offset);
-#endif
-
-  // Dump Q registers.
-  __ Add(dump, dump_base, q_offset);
-  for (unsigned i = 0; i < kNumberOfVRegisters; i += 2) {
-    __ Stp(VRegister::GetQRegFromCode(i),
-           VRegister::GetQRegFromCode(i + 1),
-           MemOperand(dump, i * kQRegSizeInBytes));
+    // Record the vector length.
+    __ Rdvl(tmp, kBitsPerByte);
+    __ Str(tmp, MemOperand(dump_base, vl_offset));
   }
 
   // Dump the flags.
   __ Mrs(tmp, NZCV);
   __ Str(tmp, MemOperand(dump_base, flags_offset));
 
-  // To dump the values that were in tmp amd dump, we need a new scratch
+  // To dump the values we used as scratch registers, we need a new scratch
   // register. We can use any of the already dumped registers since we can
   // easily restore them.
   Register dump2_base = x10;
-  Register dump2 = x11;
-  VIXL_ASSERT(!AreAliased(dump_base, dump, tmp, dump2_base, dump2));
+  VIXL_ASSERT(!scratch_registers.IncludesAliasOf(dump2_base));
+
+  VIXL_ASSERT(scratch_registers.IncludesAliasOf(dump_base));
+
+  // Ensure that we don't try to use the scratch registers again.
+  temps.ExcludeAll();
 
   // Don't lose the dump_ address.
   __ Mov(dump2_base, dump_base);
 
-  __ Pop(tmp, dump, dump_base, xzr);
+  __ PopCPURegList(scratch_registers);
 
-  __ Add(dump2, dump2_base, w_offset);
-  __ Str(dump_base_w,
-         MemOperand(dump2, dump_base.GetCode() * kWRegSizeInBytes));
-  __ Str(dump_w, MemOperand(dump2, dump.GetCode() * kWRegSizeInBytes));
-  __ Str(tmp_w, MemOperand(dump2, tmp.GetCode() * kWRegSizeInBytes));
+  while (!scratch_registers.IsEmpty()) {
+    CPURegister reg = scratch_registers.PopLowestIndex();
+    Register x = reg.X();
+    Register w = reg.W();
+    unsigned code = reg.GetCode();
+    __ Str(x, MemOperand(dump2_base, x_offset + (code * kXRegSizeInBytes)));
+    __ Str(w, MemOperand(dump2_base, w_offset + (code * kWRegSizeInBytes)));
+  }
 
-  __ Add(dump2, dump2_base, x_offset);
-  __ Str(dump_base, MemOperand(dump2, dump_base.GetCode() * kXRegSizeInBytes));
-  __ Str(dump, MemOperand(dump2, dump.GetCode() * kXRegSizeInBytes));
-  __ Str(tmp, MemOperand(dump2, tmp.GetCode() * kXRegSizeInBytes));
-
-  // Finally, restore dump2_base and dump2.
+  // Finally, restore dump2_base.
   __ Ldr(dump2_base,
-         MemOperand(dump2, dump2_base.GetCode() * kXRegSizeInBytes));
-  __ Ldr(dump2, MemOperand(dump2, dump2.GetCode() * kXRegSizeInBytes));
+         MemOperand(dump2_base,
+                    x_offset + (dump2_base.GetCode() * kXRegSizeInBytes)));
 
   completed_ = true;
 }

@@ -116,6 +116,28 @@ VIXL_STATIC_ASSERT(kAddressTagMask == UINT64_C(0xff00000000000000));
 
 const uint64_t kTTBRMask = UINT64_C(1) << 55;
 
+// We can't define a static kZRegSize because the size depends on the
+// implementation. However, it is sometimes useful to know the minimum and
+// maxmimum possible sizes.
+const unsigned kZRegMinSize = 128;
+const unsigned kZRegMinSizeLog2 = 7;
+const unsigned kZRegMinSizeInBytes = kZRegMinSize / 8;
+const unsigned kZRegMinSizeInBytesLog2 = kZRegMinSizeLog2 - 3;
+const unsigned kZRegMaxSize = 2048;
+const unsigned kZRegMaxSizeLog2 = 11;
+const unsigned kZRegMaxSizeInBytes = kZRegMaxSize / 8;
+const unsigned kZRegMaxSizeInBytesLog2 = kZRegMaxSizeLog2 - 3;
+
+// The P register size depends on the Z register size.
+const unsigned kPRegMinSize = kZRegMinSize / 8;
+const unsigned kPRegMinSizeLog2 = kZRegMinSizeLog2 - 3;
+const unsigned kPRegMinSizeInBytes = kPRegMinSize / 8;
+const unsigned kPRegMinSizeInBytesLog2 = kPRegMinSizeLog2 - 3;
+const unsigned kPRegMaxSize = kZRegMaxSize / 8;
+const unsigned kPRegMaxSizeLog2 = kZRegMaxSizeLog2 - 3;
+const unsigned kPRegMaxSizeInBytes = kPRegMaxSize / 8;
+const unsigned kPRegMaxSizeInBytesLog2 = kPRegMaxSizeLog2 - 3;
+
 // Make these moved float constants backwards compatible
 // with explicit vixl::aarch64:: namespace references.
 using vixl::kDoubleMantissaBits;
