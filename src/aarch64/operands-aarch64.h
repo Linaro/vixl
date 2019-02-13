@@ -811,12 +811,12 @@ bool AreConsecutive(const VRegister& reg1,
                     const VRegister& reg3 = NoVReg,
                     const VRegister& reg4 = NoVReg);
 
-// AreSameType returns true if all of the specified ZRegisters use the same
-// element type, B, H, S or D.
-bool AreSameType(const ZRegister& reg1,
-                 const ZRegister& reg2,
-                 const ZRegister& reg3 = NoZReg,
-                 const ZRegister& reg4 = NoZReg);
+// AreSameLaneSize returns true if all of the specified ZRegisters use the same
+// element lane size, B, H, S or D.
+bool AreSameLaneSize(const ZRegister& reg1,
+                     const ZRegister& reg2,
+                     const ZRegister& reg3 = NoZReg,
+                     const ZRegister& reg4 = NoZReg);
 
 
 // TODO: Once CPURegister can represent a ZRegister, we can get rid of these

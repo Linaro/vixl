@@ -6294,10 +6294,10 @@ bool AreConsecutive(const VRegister& reg1,
 }
 
 
-bool AreSameType(const ZRegister& reg1,
-                 const ZRegister& reg2,
-                 const ZRegister& reg3,
-                 const ZRegister& reg4) {
+bool AreSameLaneSize(const ZRegister& reg1,
+                     const ZRegister& reg2,
+                     const ZRegister& reg3,
+                     const ZRegister& reg4) {
 
   VIXL_ASSERT(reg1.IsValid());
   bool match = true;

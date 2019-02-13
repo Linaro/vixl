@@ -3653,9 +3653,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegisterWithLaneSize& pm);
 
   // Bitwise AND reduction to scalar.
-  void andv(const VRegister& vd,
-            const PRegisterWithLaneSize& pg,
-            const ZRegister& zn);
+  void andv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Arithmetic shift right by immediate (predicated).
   void asr(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
@@ -3704,7 +3702,7 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Break after first true condition.
   void brka(const PRegisterWithLaneSize& pd,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const PRegisterWithLaneSize& pn);
 
   // Break after first true condition.
@@ -3714,7 +3712,7 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Break before first true condition.
   void brkb(const PRegisterWithLaneSize& pd,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const PRegisterWithLaneSize& pn);
 
   // Break before first true condition.
@@ -3760,37 +3758,37 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Conditionally extract element after last to general-purpose register.
   void clasta(const Register& rd,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const Register& rn,
               const ZRegister& zm);
 
   // Conditionally extract element after last to SIMD&FP scalar register.
   void clasta(const VRegister& vd,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const VRegister& vn,
               const ZRegister& zm);
 
   // Conditionally extract element after last to vector register.
   void clasta(const ZRegister& zd,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const ZRegister& zn,
               const ZRegister& zm);
 
   // Conditionally extract last element to general-purpose register.
   void clastb(const Register& rd,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const Register& rn,
               const ZRegister& zm);
 
   // Conditionally extract last element to SIMD&FP scalar register.
   void clastb(const VRegister& vd,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const VRegister& vn,
               const ZRegister& zm);
 
   // Conditionally extract last element to vector register.
   void clastb(const ZRegister& zd,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const ZRegister& zn,
               const ZRegister& zm);
 
@@ -3937,25 +3935,23 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Set scalar to active predicate element count.
   void cntp(const Register& rd,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const PRegisterWithLaneSize& pn);
 
   // Set scalar to multiple of predicate constraint element count.
   void cntw(const Register& rd, int pattern);
 
   // Shuffle active elements of vector to the right and fill with zero.
-  void compact(const ZRegister& zd,
-               const PRegisterWithLaneSize& pg,
-               const ZRegister& zn);
+  void compact(const ZRegister& zd, const PRegister& pg, const ZRegister& zn);
+
+  // Copy signed integer immediate to vector elements (predicated).
+  void cpy(const ZRegister& zd, const PRegister& pg, int imm8);
 
   // Copy general-purpose register to vector elements (predicated).
   void cpy(const ZRegister& zd, const PRegisterM& pg, const Register& xn);
 
   // Copy SIMD&FP scalar register to vector elements (predicated).
   void cpy(const ZRegister& zd, const PRegisterM& pg, const VRegister& vn);
-
-  // Copy signed integer immediate to vector elements (predicated).
-  void cpy(const ZRegister& zd, const PRegisterWithLaneSize& pg, int imm8);
 
   // Compare and terminate loop.
   void ctermeq(const Register& rn, const Register& rm);
@@ -3979,10 +3975,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void dech(const ZRegister& zdn, int pattern);
 
   // Decrement scalar by active predicate element count.
-  void decp(const Register& rdn, const PRegisterWithLaneSize& pg);
+  void decp(const Register& rdn, const PRegister& pg);
 
   // Decrement vector by active predicate element count.
-  void decp(const ZRegister& zdn, const PRegisterWithLaneSize& pg);
+  void decp(const ZRegister& zdn, const PRegister& pg);
 
   // Decrement scalar by multiple of predicate constraint element count.
   void decw(const Register& rdn, int pattern);
@@ -4027,9 +4023,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegisterWithLaneSize& pm);
 
   // Bitwise XOR reduction to scalar.
-  void eorv(const VRegister& vd,
-            const PRegisterWithLaneSize& pg,
-            const ZRegister& zn);
+  void eorv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Extract vector from pair of vectors.
   void ext(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -4069,14 +4063,12 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Floating-point add strictly-ordered reduction, accumulating in scalar.
   void fadda(const VRegister& vd,
-             const PRegisterWithLaneSize& pg,
+             const PRegister& pg,
              const VRegister& vn,
              const ZRegister& zm);
 
   // Floating-point add recursive reduction to scalar.
-  void faddv(const VRegister& vd,
-             const PRegisterWithLaneSize& pg,
-             const ZRegister& zn);
+  void faddv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Floating-point complex add with rotate (predicated).
   void fcadd(const ZRegister& zd,
@@ -4212,14 +4204,10 @@ class Assembler : public vixl::internal::AssemblerBase {
               const ZRegister& zm);
 
   // Floating-point maximum number recursive reduction to scalar.
-  void fmaxnmv(const VRegister& vd,
-               const PRegisterWithLaneSize& pg,
-               const ZRegister& zn);
+  void fmaxnmv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Floating-point maximum recursive reduction to scalar.
-  void fmaxv(const VRegister& vd,
-             const PRegisterWithLaneSize& pg,
-             const ZRegister& zn);
+  void fmaxv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Floating-point minimum with immediate (predicated).
   void fmin(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
@@ -4240,14 +4228,10 @@ class Assembler : public vixl::internal::AssemblerBase {
               const ZRegister& zm);
 
   // Floating-point minimum number recursive reduction to scalar.
-  void fminnmv(const VRegister& vd,
-               const PRegisterWithLaneSize& pg,
-               const ZRegister& zn);
+  void fminnmv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Floating-point minimum recursive reduction to scalar.
-  void fminv(const VRegister& vd,
-             const PRegisterWithLaneSize& pg,
-             const ZRegister& zn);
+  void fminv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Floating-point fused multiply-add vectors (predicated), writing addend
   // [Zda = Zda + Zn * Zm].
@@ -4424,10 +4408,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void inch(const ZRegister& zdn, int pattern);
 
   // Increment scalar by active predicate element count.
-  void incp(const Register& rdn, const PRegisterWithLaneSize& pg);
+  void incp(const Register& rdn, const PRegister& pg);
 
   // Increment vector by active predicate element count.
-  void incp(const ZRegister& zdn, const PRegisterWithLaneSize& pg);
+  void incp(const ZRegister& zdn, const PRegister& pg);
 
   // Increment scalar by multiple of predicate constraint element count.
   void incw(const Register& rdn, int pattern);
@@ -4456,24 +4440,16 @@ class Assembler : public vixl::internal::AssemblerBase {
   void insr(const ZRegister& zdn, const VRegister& vm);
 
   // Extract element after last to general-purpose register.
-  void lasta(const Register& rd,
-             const PRegisterWithLaneSize& pg,
-             const ZRegister& zn);
+  void lasta(const Register& rd, const PRegister& pg, const ZRegister& zn);
 
   // Extract element after last to SIMD&FP scalar register.
-  void lasta(const VRegister& vd,
-             const PRegisterWithLaneSize& pg,
-             const ZRegister& zn);
+  void lasta(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Extract last element to general-purpose register.
-  void lastb(const Register& rd,
-             const PRegisterWithLaneSize& pg,
-             const ZRegister& zn);
+  void lastb(const Register& rd, const PRegister& pg, const ZRegister& zn);
 
   // Extract last element to SIMD&FP scalar register.
-  void lastb(const VRegister& vd,
-             const PRegisterWithLaneSize& pg,
-             const ZRegister& zn);
+  void lastb(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Contiguous load unsigned bytes to vector (scalar index).
   void ld1b(const ZRegister& zt,
@@ -5226,9 +5202,7 @@ class Assembler : public vixl::internal::AssemblerBase {
            const ZRegister& zm);
 
   // Move prefix (predicated).
-  void movprfx(const ZRegister& zd,
-               const PRegisterWithLaneSize& pg,
-               const ZRegister& zn);
+  void movprfx(const ZRegister& zd, const PRegister& pg, const ZRegister& zn);
 
   // Move prefix (unpredicated).
   void movprfx(const ZRegister& zd, const ZRegister& zn);
@@ -5316,121 +5290,95 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegisterWithLaneSize& pm);
 
   // Bitwise OR reduction to scalar.
-  void orv(const VRegister& vd,
-           const PRegisterWithLaneSize& pg,
-           const ZRegister& zn);
+  void orv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Set all predicate elements to false.
   void pfalse(const PRegisterWithLaneSize& pd);
 
   // Set the first active predicate element to true.
   void pfirst(const PRegisterWithLaneSize& pd,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const PRegisterWithLaneSize& pn);
 
   // Find next active predicate.
   void pnext(const PRegisterWithLaneSize& pd,
-             const PRegisterWithLaneSize& pg,
+             const PRegister& pg,
              const PRegisterWithLaneSize& pn);
 
   // Contiguous prefetch bytes (scalar index).
   void prfb(int prfop,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
   // Gather prefetch bytes (scalar plus vector).
   void prfb(int prfop,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const ZRegister& zm);
 
   // Contiguous prefetch bytes (immediate index).
-  void prfb(int prfop,
-            const PRegisterWithLaneSize& pg,
-            const Register& xn,
-            int imm6);
+  void prfb(int prfop, const PRegister& pg, const Register& xn, int imm6);
 
   // Gather prefetch bytes (vector plus immediate).
-  void prfb(int prfop,
-            const PRegisterWithLaneSize& pg,
-            const ZRegister& zn,
-            int imm5);
+  void prfb(int prfop, const PRegister& pg, const ZRegister& zn, int imm5);
 
   // Contiguous prefetch doublewords (scalar index).
   void prfd(int prfop,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
   // Gather prefetch doublewords (scalar plus vector).
   void prfd(int prfop,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const ZRegister& zm);
 
   // Contiguous prefetch doublewords (immediate index).
-  void prfd(int prfop,
-            const PRegisterWithLaneSize& pg,
-            const Register& xn,
-            int imm6);
+  void prfd(int prfop, const PRegister& pg, const Register& xn, int imm6);
 
   // Gather prefetch doublewords (vector plus immediate).
-  void prfd(int prfop,
-            const PRegisterWithLaneSize& pg,
-            const ZRegister& zn,
-            int imm5);
+  void prfd(int prfop, const PRegister& pg, const ZRegister& zn, int imm5);
 
   // Contiguous prefetch halfwords (scalar index).
   void prfh(int prfop,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
   // Gather prefetch halfwords (scalar plus vector).
   void prfh(int prfop,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const ZRegister& zm);
 
   // Contiguous prefetch halfwords (immediate index).
-  void prfh(int prfop,
-            const PRegisterWithLaneSize& pg,
-            const Register& xn,
-            int imm6);
+  void prfh(int prfop, const PRegister& pg, const Register& xn, int imm6);
 
   // Gather prefetch halfwords (vector plus immediate).
-  void prfh(int prfop,
-            const PRegisterWithLaneSize& pg,
-            const ZRegister& zn,
-            int imm5);
+  void prfh(int prfop, const PRegister& pg, const ZRegister& zn, int imm5);
 
   // Contiguous prefetch words (scalar index).
   void prfw(int prfop,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
   // Gather prefetch words (scalar plus vector).
   void prfw(int prfop,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const ZRegister& zm);
 
   // Contiguous prefetch words (immediate index).
-  void prfw(int prfop,
-            const PRegisterWithLaneSize& pg,
-            const Register& xn,
-            int imm6);
+  void prfw(int prfop, const PRegister& pg, const Register& xn, int imm6);
 
   // Gather prefetch words (vector plus immediate).
-  void prfw(int prfop,
-            const PRegisterWithLaneSize& pg,
-            const ZRegister& zn,
-            int imm5);
+  void prfw(int prfop, const PRegister& pg, const ZRegister& zn, int imm5);
 
   // Set condition flags for predicate.
-  void ptest(const PRegisterWithLaneSize& pg, const PRegisterWithLaneSize& pn);
+  void ptest(const PRegister& pg, const PRegisterWithLaneSize& pn);
 
   // Initialise predicate from named constraint.
   void ptrue(const PRegisterWithLaneSize& pd, int pattern);
@@ -5483,9 +5431,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zm);
 
   // Signed add reduction to scalar.
-  void saddv(const VRegister& dd,
-             const PRegisterWithLaneSize& pg,
-             const ZRegister& zn);
+  void saddv(const VRegister& dd, const PRegister& pg, const ZRegister& zn);
 
   // Signed integer convert to floating-point (predicated).
   void scvtf(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
@@ -5510,13 +5456,13 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Conditionally select elements from two predicates.
   void sel(const PRegisterWithLaneSize& pd,
-           const PRegisterWithLaneSize& pg,
+           const PRegister& pg,
            const PRegisterWithLaneSize& pn,
            const PRegisterWithLaneSize& pm);
 
   // Conditionally select elements from two vectors.
   void sel(const ZRegister& zd,
-           const PRegisterWithLaneSize& pg,
+           const PRegister& pg,
            const ZRegister& zn,
            const ZRegister& zm);
 
@@ -5533,9 +5479,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void smax(const ZRegister& zd, const ZRegister& zn, int imm8);
 
   // Signed maximum reduction to scalar.
-  void smaxv(const VRegister& vd,
-             const PRegisterWithLaneSize& pg,
-             const ZRegister& zn);
+  void smaxv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Signed minimum vectors (predicated).
   void smin(const ZRegister& zd,
@@ -5547,9 +5491,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void smin(const ZRegister& zd, const ZRegister& zn, int imm8);
 
   // Signed minimum reduction to scalar.
-  void sminv(const VRegister& vd,
-             const PRegisterWithLaneSize& pg,
-             const ZRegister& zn);
+  void sminv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Signed multiply returning high half (predicated).
   void smulh(const ZRegister& zd,
@@ -5602,15 +5544,13 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sqdech(const ZRegister& zdn, int pattern);
 
   // Signed saturating decrement scalar by active predicate element count.
-  void sqdecp(const Register& rd,
-              const PRegisterWithLaneSize& pg,
-              const Register& wn);
+  void sqdecp(const Register& rd, const PRegister& pg, const Register& wn);
 
   // Signed saturating decrement scalar by active predicate element count.
-  void sqdecp(const Register& rdn, const PRegisterWithLaneSize& pg);
+  void sqdecp(const Register& rdn, const PRegister& pg);
 
   // Signed saturating decrement vector by active predicate element count.
-  void sqdecp(const ZRegister& zdn, const PRegisterWithLaneSize& pg);
+  void sqdecp(const ZRegister& zdn, const PRegister& pg);
 
   // Signed saturating decrement scalar by multiple of 32-bit predicate
   // constraint element count.
@@ -5657,15 +5597,13 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sqinch(const ZRegister& zdn, int pattern);
 
   // Signed saturating increment scalar by active predicate element count.
-  void sqincp(const Register& rd,
-              const PRegisterWithLaneSize& pg,
-              const Register& wn);
+  void sqincp(const Register& rd, const PRegister& pg, const Register& wn);
 
   // Signed saturating increment scalar by active predicate element count.
-  void sqincp(const Register& rdn, const PRegisterWithLaneSize& pg);
+  void sqincp(const Register& rdn, const PRegister& pg);
 
   // Signed saturating increment vector by active predicate element count.
-  void sqincp(const ZRegister& zdn, const PRegisterWithLaneSize& pg);
+  void sqincp(const ZRegister& zdn, const PRegister& pg);
 
   // Signed saturating increment scalar by multiple of 32-bit predicate
   // constraint element count.
@@ -5687,104 +5625,104 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Contiguous store bytes from vector (scalar index).
   void st1b(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
   // Scatter store bytes from a vector (vector index).
   void st1b(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const ZRegister& zm);
 
   // Contiguous store bytes from vector (immediate index).
   void st1b(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
   // Scatter store bytes from a vector (immediate index).
   void st1b(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const ZRegister& zn,
             int imm5);
 
   // Contiguous store doublewords from vector (scalar index).
   void st1d(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
   // Scatter store doublewords from a vector (vector index).
   void st1d(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const ZRegister& zm);
 
   // Contiguous store doublewords from vector (immediate index).
   void st1d(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
   // Scatter store doublewords from a vector (immediate index).
   void st1d(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const ZRegister& zn,
             int imm5);
 
   // Contiguous store halfwords from vector (scalar index).
   void st1h(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
   // Scatter store halfwords from a vector (vector index).
   void st1h(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const ZRegister& zm);
 
   // Contiguous store halfwords from vector (immediate index).
   void st1h(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
   // Scatter store halfwords from a vector (immediate index).
   void st1h(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const ZRegister& zn,
             int imm5);
 
   // Contiguous store words from vector (scalar index).
   void st1w(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
   // Scatter store words from a vector (vector index).
   void st1w(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const ZRegister& zm);
 
   // Contiguous store words from vector (immediate index).
   void st1w(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
   // Scatter store words from a vector (immediate index).
   void st1w(const ZRegister& zt,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const ZRegister& zn,
             int imm5);
 
   // Contiguous store two-byte structures from two vectors (scalar index).
   void st2b(const ZRegister& zt1,
             const ZRegister& zt2,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
@@ -5792,7 +5730,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // index).
   void st2b(const ZRegister& zt1,
             const ZRegister& zt2,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
@@ -5800,7 +5738,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // index).
   void st2d(const ZRegister& zt1,
             const ZRegister& zt2,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
@@ -5808,7 +5746,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // index).
   void st2d(const ZRegister& zt1,
             const ZRegister& zt2,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
@@ -5816,7 +5754,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // index).
   void st2h(const ZRegister& zt1,
             const ZRegister& zt2,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
@@ -5824,14 +5762,14 @@ class Assembler : public vixl::internal::AssemblerBase {
   // index).
   void st2h(const ZRegister& zt1,
             const ZRegister& zt2,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
   // Contiguous store two-word structures from two vectors (scalar index).
   void st2w(const ZRegister& zt1,
             const ZRegister& zt2,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
@@ -5839,7 +5777,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // index).
   void st2w(const ZRegister& zt1,
             const ZRegister& zt2,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
@@ -5848,7 +5786,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void st3b(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
@@ -5857,7 +5795,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void st3b(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
@@ -5866,7 +5804,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void st3d(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
@@ -5875,7 +5813,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void st3d(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
@@ -5884,7 +5822,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void st3h(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
@@ -5893,7 +5831,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void st3h(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
@@ -5902,7 +5840,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void st3w(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
@@ -5911,7 +5849,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void st3w(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
@@ -5920,7 +5858,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const ZRegister& zt4,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
@@ -5930,7 +5868,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const ZRegister& zt4,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
@@ -5940,7 +5878,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const ZRegister& zt4,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
@@ -5950,7 +5888,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const ZRegister& zt4,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
@@ -5960,7 +5898,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const ZRegister& zt4,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
@@ -5970,7 +5908,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const ZRegister& zt4,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
@@ -5979,7 +5917,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const ZRegister& zt4,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             const Register& rm);
 
@@ -5989,56 +5927,56 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const ZRegister& zt4,
-            const PRegisterWithLaneSize& pg,
+            const PRegister& pg,
             const Register& xn,
             int imm4);
 
   // Contiguous store non-temporal bytes from vector (scalar index).
   void stnt1b(const ZRegister& zt,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const Register& xn,
               const Register& rm);
 
   // Contiguous store non-temporal bytes from vector (immediate index).
   void stnt1b(const ZRegister& zt,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const Register& xn,
               int imm4);
 
   // Contiguous store non-temporal doublewords from vector (scalar index).
   void stnt1d(const ZRegister& zt,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const Register& xn,
               const Register& rm);
 
   // Contiguous store non-temporal doublewords from vector (immediate
   // index).
   void stnt1d(const ZRegister& zt,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const Register& xn,
               int imm4);
 
   // Contiguous store non-temporal halfwords from vector (scalar index).
   void stnt1h(const ZRegister& zt,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const Register& xn,
               const Register& rm);
 
   // Contiguous store non-temporal halfwords from vector (immediate index).
   void stnt1h(const ZRegister& zt,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const Register& xn,
               int imm4);
 
   // Contiguous store non-temporal words from vector (scalar index).
   void stnt1w(const ZRegister& zt,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const Register& xn,
               const Register& rm);
 
   // Contiguous store non-temporal words from vector (immediate index).
   void stnt1w(const ZRegister& zt,
-              const PRegisterWithLaneSize& pg,
+              const PRegister& pg,
               const Register& xn,
               int imm4);
 
@@ -6111,9 +6049,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zm);
 
   // Unsigned add reduction to scalar.
-  void uaddv(const VRegister& dd,
-             const PRegisterWithLaneSize& pg,
-             const ZRegister& zn);
+  void uaddv(const VRegister& dd, const PRegister& pg, const ZRegister& zn);
 
   // Unsigned integer convert to floating-point (predicated).
   void ucvtf(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
@@ -6146,9 +6082,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void umax(const ZRegister& zd, const ZRegister& zn, int imm8);
 
   // Unsigned maximum reduction to scalar.
-  void umaxv(const VRegister& vd,
-             const PRegisterWithLaneSize& pg,
-             const ZRegister& zn);
+  void umaxv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Unsigned minimum vectors (predicated).
   void umin(const ZRegister& zd,
@@ -6160,9 +6094,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void umin(const ZRegister& zd, const ZRegister& zn, int imm8);
 
   // Unsigned minimum reduction to scalar.
-  void uminv(const VRegister& vd,
-             const PRegisterWithLaneSize& pg,
-             const ZRegister& zn);
+  void uminv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Unsigned multiply returning high half (predicated).
   void umulh(const ZRegister& zd,
@@ -6197,10 +6129,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void uqdech(const ZRegister& zdn, int pattern);
 
   // Unsigned saturating decrement scalar by active predicate element count.
-  void uqdecp(const Register& rdn, const PRegisterWithLaneSize& pg);
+  void uqdecp(const Register& rdn, const PRegister& pg);
 
   // Unsigned saturating decrement vector by active predicate element count.
-  void uqdecp(const ZRegister& zdn, const PRegisterWithLaneSize& pg);
+  void uqdecp(const ZRegister& zdn, const PRegister& pg);
 
   // Unsigned saturating decrement scalar by multiple of 32-bit predicate
   // constraint element count.
@@ -6231,10 +6163,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void uqinch(const ZRegister& zdn, int pattern);
 
   // Unsigned saturating increment scalar by active predicate element count.
-  void uqincp(const Register& rdn, const PRegisterWithLaneSize& pg);
+  void uqincp(const Register& rdn, const PRegister& pg);
 
   // Unsigned saturating increment vector by active predicate element count.
-  void uqincp(const ZRegister& zdn, const PRegisterWithLaneSize& pg);
+  void uqincp(const ZRegister& zdn, const PRegister& pg);
 
   // Unsigned saturating increment scalar by multiple of 32-bit predicate
   // constraint element count.
