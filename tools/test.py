@@ -322,6 +322,7 @@ def RunCommand(command, environment_options = None):
   rc = p.poll()
   process_output += out
 
+  printable_command += ' (took %d seconds)' % int(t_current - t_start)
   if rc == 0:
     printer.Print(printer.COLOUR_GREEN + printable_command + printer.NO_COLOUR)
   else:
@@ -473,6 +474,7 @@ if __name__ == '__main__':
                                     test_build_combinations[0]))
   test_runtime_combinations = ListCombinations(args, test_runtime_options)
 
+  tests = threaded_tests.TestQueue(args.under_valgrind)
   for environment_options in test_env_combinations:
     for build_options in test_build_combinations:
       if (args.dry_run):
@@ -504,17 +506,16 @@ if __name__ == '__main__':
         if not args.notest:
           runtime_options = [x for x in runtime_options if x is not None]
           prefix = '  ' + ' '.join(runtime_options) + '  '
-          rc |= threaded_tests.RunTests(test_executable,
-                                        args.filters,
-                                        list(runtime_options),
-                                        args.under_valgrind,
-                                        jobs = args.jobs, prefix = prefix)
+          tests.Add(test_executable,
+                    args.filters,
+                    list(runtime_options))
           MaybeExitEarly(rc)
 
       if not args.nobench:
         rc |= RunBenchmarks(build_options, args)
         MaybeExitEarly(rc)
 
+  rc |= tests.Run(args.jobs)
   if not args.dry_run:
     PrintStatus(rc == 0)
 
