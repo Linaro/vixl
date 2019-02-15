@@ -251,7 +251,8 @@ vars.AddVariables(
                     'Configure the allocation mechanism in the CodeBuffer',
                     ['malloc', 'mmap']),
     ('std', 'C++ standard. The standards tested are: %s.' % \
-                                         ', '.join(config.tested_cpp_standards))
+                                         ', '.join(config.tested_cpp_standards)),
+    ('compiler_wrapper', 'Command to prefix to the C and C++ compiler (e.g ccache)', '')
     )
 
 # We use 'variant directories' to avoid recompiling multiple times when build
@@ -259,7 +260,7 @@ vars.AddVariables(
 # set. These are the options that should be reflected in the build directory
 # path.
 options_influencing_build_path = [
-  'target', 'mode', 'symbols', 'CXX', 'std', 'simulator', 'negative_testing',
+  'target', 'mode', 'symbols', 'compiler', 'std', 'simulator', 'negative_testing',
   'code_buffer_allocator'
 ]
 
@@ -403,6 +404,10 @@ def ConfigureEnvironmentForCompiler(env):
 
 def ConfigureEnvironment(env):
   RetrieveEnvironmentVariables(env)
+  env['compiler'] = env['CXX']
+  if env['compiler_wrapper'] != '':
+    env['CXX'] = env['compiler_wrapper'] + ' ' + env['CXX']
+    env['CC'] = env['compiler_wrapper'] + ' ' + env['CC']
   env['host_arch'] = util.GetHostArch(env)
   ProcessBuildOptions(env)
   if 'std' in env:

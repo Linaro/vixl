@@ -146,8 +146,8 @@ def BuildOptions():
                                  tested.''')
   general_arguments.add_argument(
     '--jobs', '-j', metavar='N', type=int, nargs='?',
-    default=min(multiprocessing.cpu_count(),32),
-    const=min(multiprocessing.cpu_count(),32),
+    default=multiprocessing.cpu_count(),
+    const=multiprocessing.cpu_count(),
     help='''Runs the tests using N jobs. If the option is set but no value is
     provided, the script will use as many jobs as it thinks useful.''')
   general_arguments.add_argument('--clang-format',
@@ -264,6 +264,11 @@ def RunClangFormat(clang_path, jobs):
 
 def BuildAll(build_options, jobs, environment_options):
   scons_command = ['scons', '-C', dir_root, 'all', '-j', str(jobs)]
+  if util.IsCommandAvailable('ccache'):
+    scons_command += ['compiler_wrapper=ccache']
+    # Fixes warnings for ccache 3.3.1 and lower:
+    environment_options = environment_options.copy()
+    environment_options["CCACHE_CPP2"] = 'yes'
   scons_command += DictToString(build_options).split()
   return RunCommand(scons_command, environment_options)
 

@@ -77,7 +77,7 @@ def relrealpath(path, start=os.getcwd()):
 # Query the compiler about its preprocessor directives and return all of them as
 # a dictionnary.
 def GetCompilerDirectives(env):
-  args = [env['CXX']]
+  args = [env['compiler']]
   # Pass the CXXFLAGS varables to the compile, in case we've used "-m32" to
   # compile for i386.
   if env['CXXFLAGS']:
