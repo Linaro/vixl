@@ -6320,19 +6320,6 @@ class Assembler : public vixl::internal::AssemblerBase {
 #undef REGISTER_ENCODER
 #undef CPU_REGISTER_FIELD_NAMES
 
-// TODO: Remove this once every register type derives from CPURegister.
-#define Z_REGISTER_FIELD_NAMES(V) V(d) V(n) V(m) V(t)
-#define REGISTER_ENCODER(N)                                           \
-  static Instr R##N(ZRegister r##N) {                                 \
-    return Rx<R##N##_offset + R##N##_width - 1, R##N##_offset>(r##N); \
-  }                                                                   \
-  static Instr R##N(ZRegisterNoLaneSize r##N) {                       \
-    return Rx<R##N##_offset + R##N##_width - 1, R##N##_offset>(r##N); \
-  }
-  Z_REGISTER_FIELD_NAMES(REGISTER_ENCODER)
-#undef REGISTER_ENCODER
-#undef Z_REGISTER_FIELD_NAMES
-
   static Instr RmNot31(CPURegister rm) {
     VIXL_ASSERT(rm.GetCode() != kSPRegInternalCode);
     VIXL_ASSERT(!rm.IsZero());

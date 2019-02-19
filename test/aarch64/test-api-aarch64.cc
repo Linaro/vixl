@@ -33,6 +33,7 @@
 #include "aarch64/test-utils-aarch64.h"
 
 #include "aarch64/macro-assembler-aarch64.h"
+#include "aarch64/registers-aarch64.h"
 
 #define __ masm.
 #define TEST(name) TEST_(AARCH64_API_##name)
@@ -207,6 +208,154 @@ TEST(noreg) {
   VIXL_CHECK(NoVReg.IsNone());
   VIXL_CHECK(NoCPUReg.IsNone());
 }
+
+
+TEST(constructors) {
+  // *Register(code)
+  VIXL_CHECK(WRegister(0).Is(w0));
+  VIXL_CHECK(XRegister(1).Is(x1));
+
+  VIXL_CHECK(BRegister(2).Is(b2));
+  VIXL_CHECK(HRegister(3).Is(h3));
+  VIXL_CHECK(SRegister(4).Is(s4));
+  VIXL_CHECK(DRegister(5).Is(d5));
+  VIXL_CHECK(QRegister(6).Is(q6));
+
+  VIXL_CHECK(ZRegisterNoLaneSize(7).Is(z7));
+  VIXL_CHECK(PRegister(8).Is(p8));
+}
+
+
+TEST(constructors_r) {
+  // Register(code, size_in_bits)
+  VIXL_CHECK(Register(0, kWRegSize).Is(w0));
+  VIXL_CHECK(Register(1, kXRegSize).Is(x1));
+}
+
+
+TEST(constructors_v) {
+  // VRegister(code)
+  VIXL_CHECK(VRegister(0).Is(v0));
+  VIXL_CHECK(VRegister(1).Is(v1));
+  VIXL_CHECK(VRegister(2).Is(v2));
+  VIXL_CHECK(VRegister(3).Is(v3));
+  VIXL_CHECK(VRegister(4).Is(v4));
+
+  // VRegister(code, size_in_bits)
+  VIXL_CHECK(VRegister(0, kBRegSize).Is(b0));
+  VIXL_CHECK(VRegister(1, kHRegSize).Is(h1));
+  VIXL_CHECK(VRegister(2, kSRegSize).Is(s2));
+  VIXL_CHECK(VRegister(3, kDRegSize).Is(d3));
+  VIXL_CHECK(VRegister(4, kQRegSize).Is(q4));
+
+  // VRegister(code, size_in_bits, lanes)
+  VIXL_CHECK(VRegister(0, kBRegSize, 1).Is(b0));
+  VIXL_CHECK(VRegister(1, kHRegSize, 1).Is(h1));
+  VIXL_CHECK(VRegister(2, kSRegSize, 1).Is(s2));
+  VIXL_CHECK(VRegister(3, kDRegSize, 1).Is(d3));
+  VIXL_CHECK(VRegister(4, kQRegSize, 1).Is(q4));
+
+  VIXL_CHECK(VRegister(0, kSRegSize, 2).Is(v0.V2H()));
+
+  VIXL_CHECK(VRegister(1, kDRegSize, 1).Is(v1.V1D()));
+  VIXL_CHECK(VRegister(2, kDRegSize, 2).Is(v2.V2S()));
+  VIXL_CHECK(VRegister(3, kDRegSize, 4).Is(v3.V4H()));
+  VIXL_CHECK(VRegister(4, kDRegSize, 8).Is(v4.V8B()));
+
+  VIXL_CHECK(VRegister(5, kQRegSize, 2).Is(v5.V2D()));
+  VIXL_CHECK(VRegister(6, kQRegSize, 4).Is(v6.V4S()));
+  VIXL_CHECK(VRegister(7, kQRegSize, 8).Is(v7.V8H()));
+  VIXL_CHECK(VRegister(8, kQRegSize, 16).Is(v8.V16B()));
+
+  // VRegister(code, format)
+  VIXL_CHECK(VRegister(0, kFormatB).Is(b0));
+  VIXL_CHECK(VRegister(1, kFormatH).Is(h1));
+  VIXL_CHECK(VRegister(2, kFormatS).Is(s2));
+  VIXL_CHECK(VRegister(3, kFormatD).Is(d3));
+  VIXL_CHECK(VRegister(4, kFormat8B).Is(v4.V8B()));
+  VIXL_CHECK(VRegister(5, kFormat16B).Is(v5.V16B()));
+  VIXL_CHECK(VRegister(6, kFormat2H).Is(v6.V2H()));
+  VIXL_CHECK(VRegister(7, kFormat4H).Is(v7.V4H()));
+  VIXL_CHECK(VRegister(8, kFormat8H).Is(v8.V8H()));
+  VIXL_CHECK(VRegister(9, kFormat2S).Is(v9.V2S()));
+  VIXL_CHECK(VRegister(10, kFormat4S).Is(v10.V4S()));
+  VIXL_CHECK(VRegister(11, kFormat1D).Is(v11.V1D()));
+  VIXL_CHECK(VRegister(12, kFormat2D).Is(v12.V2D()));
+}
+
+
+TEST(constructors_z) {
+  // ZRegister(code, lane_size_in_bits)
+  VIXL_CHECK(ZRegister(0, kBRegSize).Is(z0.VnB()));
+  VIXL_CHECK(ZRegister(1, kHRegSize).Is(z1.VnH()));
+  VIXL_CHECK(ZRegister(2, kSRegSize).Is(z2.VnS()));
+  VIXL_CHECK(ZRegister(3, kDRegSize).Is(z3.VnD()));
+
+  // ZRegister(code, format)
+  VIXL_CHECK(ZRegister(0, kFormatVnB).Is(z0.VnB()));
+  VIXL_CHECK(ZRegister(1, kFormatVnH).Is(z1.VnH()));
+  VIXL_CHECK(ZRegister(2, kFormatVnS).Is(z2.VnS()));
+  VIXL_CHECK(ZRegister(3, kFormatVnD).Is(z3.VnD()));
+}
+
+
+TEST(constructors_p) {
+  // ZRegister(code, lane_size_in_bits)
+  VIXL_CHECK(PRegisterWithLaneSize(0, kBRegSize).Is(p0.VnB()));
+  VIXL_CHECK(PRegisterWithLaneSize(1, kHRegSize).Is(p1.VnH()));
+  VIXL_CHECK(PRegisterWithLaneSize(2, kSRegSize).Is(p2.VnS()));
+  VIXL_CHECK(PRegisterWithLaneSize(3, kDRegSize).Is(p3.VnD()));
+
+  // ZRegister(code, format)
+  VIXL_CHECK(PRegisterWithLaneSize(0, kFormatVnB).Is(p0.VnB()));
+  VIXL_CHECK(PRegisterWithLaneSize(1, kFormatVnH).Is(p1.VnH()));
+  VIXL_CHECK(PRegisterWithLaneSize(2, kFormatVnS).Is(p2.VnS()));
+  VIXL_CHECK(PRegisterWithLaneSize(3, kFormatVnD).Is(p3.VnD()));
+
+  VIXL_CHECK(PRegisterZ(0).Is(p0.Zeroing()));
+  VIXL_CHECK(PRegisterM(1).Is(p1.Merging()));
+}
+
+
+TEST(constructors_cpu) {
+  // ZRegister(code, size_in_bits, type)
+  VIXL_CHECK(CPURegister(0, kWRegSize, CPURegister::kRegister).Is(w0));
+  VIXL_CHECK(CPURegister(1, kXRegSize, CPURegister::kRegister).Is(x1));
+
+  VIXL_CHECK(CPURegister(2, kBRegSize, CPURegister::kVRegister).Is(b2));
+  VIXL_CHECK(CPURegister(3, kHRegSize, CPURegister::kVRegister).Is(h3));
+  VIXL_CHECK(CPURegister(4, kSRegSize, CPURegister::kVRegister).Is(s4));
+  VIXL_CHECK(CPURegister(5, kDRegSize, CPURegister::kVRegister).Is(d5));
+  VIXL_CHECK(CPURegister(6, kQRegSize, CPURegister::kVRegister).Is(q6));
+  VIXL_CHECK(CPURegister(7, kQRegSize, CPURegister::kVRegister).Is(v7));
+
+  VIXL_CHECK(CPURegister(0, CPURegister::kUnknownSize, CPURegister::kVRegister)
+                 .Is(z0));
+  VIXL_CHECK(CPURegister(1, CPURegister::kUnknownSize, CPURegister::kPRegister)
+                 .Is(p1));
+}
+
+
+#ifdef __aarch64__
+static void CPURegisterByValueHelper(CPURegister reg) {
+  CPURegister out;
+  // Verify that `reg` can be passed in one register.
+  // The early-clobber ("=&r") ensures that `out` and `in` are allocated
+  // to different registers.
+  asm("  mov %w[out], %w[in]\n" : [out] "=&r"(out) : [in] "r"(reg));
+  VIXL_CHECK(out.Is(reg));
+}
+
+
+TEST(cpureg_by_value) {
+  VIXL_STATIC_ASSERT(sizeof(CPURegister) <= sizeof(void*));
+  // Check some arbitrary registers to try to exercise each encoding field.
+  CPURegisterByValueHelper(x0);
+  CPURegisterByValueHelper(v31.V8H());
+  CPURegisterByValueHelper(z16.VnD());
+  CPURegisterByValueHelper(p15.Merging());
+}
+#endif  // __aarch64__
 
 
 TEST(isvalid) {
@@ -890,5 +1039,6 @@ TEST(sve_first_none_last_active) {
 }
 #undef REG_ACCESSOR_UINT_DOTEST
 #endif
+
 }  // namespace aarch64
 }  // namespace vixl

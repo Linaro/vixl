@@ -1495,25 +1495,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fmov(const VRegister& vd, const VRegister& vn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    // Only emit an instruction if vd and vn are different, and they are both D
-    // registers. fmov(s0, s0) is not a no-op because it clears the top word of
-    // d0. Technically, fmov(d0, d0) is not a no-op either because it clears
-    // the top of q0, but VRegister does not currently support Q registers.
-    if (!vd.Is(vn) || !vd.Is64Bits()) {
-      fmov(vd, vn);
-    }
+    // TODO: Use DiscardMoveMode to allow this move to be elided if vd.Is(vn).
+    fmov(vd, vn);
   }
   void Fmov(const VRegister& vd, const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rn.IsZero());
     SingleEmissionCheckScope guard(this);
     fmov(vd, rn);
-  }
-  void Fmov(const VRegister& vd, const XRegister& xn) {
-    Fmov(vd, Register(xn));
-  }
-  void Fmov(const VRegister& vd, const WRegister& wn) {
-    Fmov(vd, Register(wn));
   }
   void Fmov(const VRegister& vd, int index, const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -7381,9 +7370,6 @@ class UseScratchRegisterScope {
 
   bool IsAvailable(const CPURegister& reg) const;
 
-  // TODO: Once CPURegister can represent Z registers, remove this special case.
-  bool IsAvailable(const ZRegisterNoLaneSize& reg) const;
-
   // Take a register from the appropriate temps list. It will be returned
   // automatically when the scope ends.
   Register AcquireW() {
@@ -7463,12 +7449,11 @@ class UseScratchRegisterScope {
   static CPURegister AcquireNextAvailable(CPURegList* available);
 
   static void ReleaseByCode(CPURegList* available, int code);
-
   static void ReleaseByRegList(CPURegList* available, RegList regs);
-
   static void IncludeByRegList(CPURegList* available, RegList exclude);
-
   static void ExcludeByRegList(CPURegList* available, RegList exclude);
+
+  CPURegList* GetAvailableListFor(CPURegister::RegisterBank bank);
 
   // The MacroAssembler maintains a list of available scratch registers, and
   // also keeps track of the most recently-opened scope so that on destruction

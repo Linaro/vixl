@@ -223,8 +223,11 @@ inline void USE(const T1&, const T2&, const T3&, const T4&) {}
 
 #if __cplusplus >= 201103L
 #define VIXL_OVERRIDE override
+#define VIXL_CONSTEXPR constexpr
+#define VIXL_HAS_CONSTEXPR 1
 #else
 #define VIXL_OVERRIDE
+#define VIXL_CONSTEXPR
 #endif
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64

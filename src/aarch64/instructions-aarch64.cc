@@ -553,6 +553,7 @@ VectorFormat ScalarFormatFromFormat(VectorFormat vform) {
 
 unsigned RegisterSizeInBitsFromFormat(VectorFormat vform) {
   VIXL_ASSERT(vform != kFormatUndefined);
+  VIXL_ASSERT(!IsSVEFormat(vform));
   switch (vform) {
     case kFormatB:
       return kBRegSize;
@@ -562,14 +563,19 @@ unsigned RegisterSizeInBitsFromFormat(VectorFormat vform) {
     case kFormat2H:
       return kSRegSize;
     case kFormatD:
-      return kDRegSize;
     case kFormat8B:
     case kFormat4H:
     case kFormat2S:
     case kFormat1D:
       return kDRegSize;
-    default:
+    case kFormat16B:
+    case kFormat8H:
+    case kFormat4S:
+    case kFormat2D:
       return kQRegSize;
+    default:
+      VIXL_UNREACHABLE();
+      return 0;
   }
 }
 

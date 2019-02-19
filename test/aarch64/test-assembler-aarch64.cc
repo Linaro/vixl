@@ -7357,7 +7357,7 @@ TEST(zero_dest) {
   __ Mov(x0, 0);
   __ Mov(x1, literal_base);
   for (unsigned i = 2; i < x30.GetCode(); i++) {
-    __ Add(Register::GetXRegFromCode(i), Register::GetXRegFromCode(i - 1), x1);
+    __ Add(XRegister(i), XRegister(i - 1), x1);
   }
   before.Dump(&masm);
 
@@ -7428,7 +7428,7 @@ TEST(zero_dest_setflags) {
   __ Mov(x0, 0);
   __ Mov(x1, literal_base);
   for (int i = 2; i < 30; i++) {
-    __ Add(Register::GetXRegFromCode(i), Register::GetXRegFromCode(i - 1), x1);
+    __ Add(XRegister(i), XRegister(i - 1), x1);
   }
   before.Dump(&masm);
 

@@ -493,7 +493,7 @@ void Clobber(MacroAssembler* masm, CPURegList reg_list) {
     // This will always clobber D registers.
     ClobberFP(masm, reg_list.GetList());
   } else {
-    VIXL_UNREACHABLE();
+    VIXL_UNIMPLEMENTED();
   }
 }
 
