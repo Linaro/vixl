@@ -118,6 +118,22 @@ TEST(float16_operators) {
                ::vixl::internal::SimFloat16(kFP16NegativeZero)));
 }
 
+TEST(rawbits_conversions) {
+  VIXL_CHECK(RawbitsToInt64(0x0) == 0x0);
+  VIXL_CHECK(RawbitsToInt64(0x123) == 0x123);
+  VIXL_CHECK(RawbitsToInt64(INT64_MAX) == INT64_MAX);
+  VIXL_CHECK(RawbitsToInt64(UINT64_C(0xffffffffffffffff)) == -1);
+  VIXL_CHECK(RawbitsToInt64(UINT64_C(0x8000000000000000)) == INT64_MIN);
+  VIXL_CHECK(RawbitsToInt64(UINT64_C(0x8000000000000001)) == -INT64_MAX);
+
+  VIXL_CHECK(RawbitsToInt32(0x0) == 0x0);
+  VIXL_CHECK(RawbitsToInt32(0x123) == 0x123);
+  VIXL_CHECK(RawbitsToInt32(INT32_MAX) == INT32_MAX);
+  VIXL_CHECK(RawbitsToInt32(UINT32_C(0xffffffff)) == -1);
+  VIXL_CHECK(RawbitsToInt32(UINT32_C(0x80000000)) == INT32_MIN);
+  VIXL_CHECK(RawbitsToInt32(UINT32_C(0x80000001)) == -INT32_MAX);
+}
+
 // Check moved FP constants are still accessible via the AArch64 namespace.
 TEST(float_constants_scope) {
   VIXL_CHECK(vixl::aarch64::kFP64PositiveInfinity ==

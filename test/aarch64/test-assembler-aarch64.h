@@ -373,6 +373,15 @@ inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
 #define ASSERT_LITERAL_POOL_SIZE(expected) \
   VIXL_CHECK((expected + kInstructionSize) == (masm.GetLiteralPoolSize()))
 
+#define ASSERT_EQUAL_SVE_LANE(expected, result, lane) \
+  VIXL_CHECK(EqualSVELane(expected, &core, result, lane))
+
+// Where `expected` is an array of N expected values, check that the first N
+// lanes on `result` match. The rightmost (highest-indexed) array element maps
+// to the lowest-numbered lane.
+#define ASSERT_EQUAL_SVE(expected, result) \
+  VIXL_CHECK(EqualSVE(expected, &core, result))
+
 #define MUST_FAIL_WITH_MESSAGE(code, message)                     \
   {                                                               \
     bool aborted = false;                                         \

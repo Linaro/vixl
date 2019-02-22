@@ -27,6 +27,9 @@
 #ifndef VIXL_AARCH64_OPERANDS_AARCH64_H_
 #define VIXL_AARCH64_OPERANDS_AARCH64_H_
 
+#include <sstream>
+#include <string>
+
 #include "instructions-aarch64.h"
 
 namespace vixl {
@@ -678,6 +681,15 @@ class ZRegister {
     return HasValidCode() && HasValidLaneSize();
   }
 
+  // TODO: This is temporary. Ultimately, we should move the
+  // Simulator::*RegNameForCode helpers out of the simulator, and provide an
+  // independent way to obtain the name of a register.
+  std::string GetArchitecturalName() const {
+    std::ostringstream name;
+    name << 'z' << code_ << '.' << GetLaneSizeSymbol();
+    return name.str();
+  }
+
  private:
   ZRegister(const ZRegisterNoLaneSize& other, unsigned lane_size)
       : code_(other.code_), lane_size_(lane_size) {
@@ -690,6 +702,21 @@ class ZRegister {
   bool HasValidLaneSize() const {
     return (lane_size_ == kBRegSize) || (lane_size_ == kHRegSize) ||
            (lane_size_ == kSRegSize) || (lane_size_ == kDRegSize);
+  }
+
+  char GetLaneSizeSymbol() const {
+    switch (lane_size_) {
+      case kBRegSize:
+        return 'B';
+      case kHRegSize:
+        return 'H';
+      case kSRegSize:
+        return 'S';
+      case kDRegSize:
+        return 'D';
+    }
+    VIXL_UNREACHABLE();
+    return '?';
   }
 
   unsigned code_;

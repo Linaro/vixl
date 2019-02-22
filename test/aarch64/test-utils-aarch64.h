@@ -58,8 +58,9 @@ extern const Float16 kFP16QuietNaN;
 template <int kSizeInBytes>
 struct VectorValue {
   template <typename T>
-  T GetLane(int lane) {
+  T GetLane(int lane) const {
     size_t lane_size = sizeof(T);
+    VIXL_CHECK(lane >= 0);
     VIXL_CHECK(kSizeInBytes >= ((lane + 1) * lane_size));
     T result;
     memcpy(&result, bytes + (lane * lane_size), lane_size);
@@ -131,12 +132,12 @@ class RegisterDump {
 
   // FPRegister accessors.
   inline uint16_t hreg_bits(unsigned code) const {
-    VIXL_ASSERT(FPRegAliasesMatch(code));
+    VIXL_ASSERT(VRegAliasesMatch(code));
     return dump_.h_[code];
   }
 
   inline uint32_t sreg_bits(unsigned code) const {
-    VIXL_ASSERT(FPRegAliasesMatch(code));
+    VIXL_ASSERT(VRegAliasesMatch(code));
     return dump_.s_[code];
   }
 
@@ -149,7 +150,7 @@ class RegisterDump {
   }
 
   inline uint64_t dreg_bits(unsigned code) const {
-    VIXL_ASSERT(FPRegAliasesMatch(code));
+    VIXL_ASSERT(VRegAliasesMatch(code));
     return dump_.d_[code];
   }
 
@@ -158,6 +159,31 @@ class RegisterDump {
   }
 
   inline QRegisterValue qreg(unsigned code) const { return dump_.q_[code]; }
+
+  template <typename T>
+  inline T zreg_lane(unsigned code, int lane) const {
+    VIXL_ASSERT(VRegAliasesMatch(code));
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+    VIXL_ASSERT(((lane + 1) * sizeof(T) * kBitsPerByte) <= dump_.vl_);
+    return dump_.z_[code].GetLane<T>(lane);
+  }
+
+  inline uint64_t zreg_lane(unsigned code,
+                            unsigned size_in_bits,
+                            int lane) const {
+    switch (size_in_bits) {
+      case kBRegSize:
+        return zreg_lane<uint8_t>(code, lane);
+      case kHRegSize:
+        return zreg_lane<uint16_t>(code, lane);
+      case kSRegSize:
+        return zreg_lane<uint32_t>(code, lane);
+      case kDRegSize:
+        return zreg_lane<uint64_t>(code, lane);
+    }
+    VIXL_UNREACHABLE();
+    return 0;
+  }
 
   // Stack pointer accessors.
   inline int64_t spreg() const {
@@ -198,12 +224,19 @@ class RegisterDump {
     return ((dump_.sp_ & kWRegMask) == dump_.wsp_);
   }
 
-  // As RegAliasesMatch, but for floating-point registers.
-  bool FPRegAliasesMatch(unsigned code) const {
+  // As RegAliasesMatch, but for Z and V registers.
+  bool VRegAliasesMatch(unsigned code) const {
     VIXL_ASSERT(IsComplete());
-    VIXL_ASSERT(code < kNumberOfFPRegisters);
-    return (((dump_.d_[code] & kSRegMask) == dump_.s_[code]) ||
-            ((dump_.s_[code] & kHRegMask) == dump_.h_[code]));
+    VIXL_ASSERT(code < kNumberOfVRegisters);
+    bool match = ((dump_.q_[code].GetLane<uint64_t>(0) == dump_.d_[code]) &&
+                  ((dump_.d_[code] & kSRegMask) == dump_.s_[code]) &&
+                  ((dump_.s_[code] & kHRegMask) == dump_.h_[code]));
+    if (CPUHas(CPUFeatures::kSVE)) {
+      bool z_match =
+          memcmp(&dump_.q_[code], &dump_.z_[code], kQRegSizeInBytes) == 0;
+      match = match && z_match;
+    }
+    return match;
   }
 
   // Record the CPUFeatures enabled when Dump was called.
@@ -309,6 +342,23 @@ bool EqualRegisters(const RegisterDump* a, const RegisterDump* b);
 template <typename T0, typename T1>
 bool NotEqual64(T0 reference, const RegisterDump* core, T1 result) {
   return !Equal64(reference, core, result, kExpectNotEqual);
+}
+
+bool EqualSVELane(uint64_t expected,
+                  const RegisterDump* core,
+                  const ZRegister& reg,
+                  int lane);
+
+template <typename T, int N>
+bool EqualSVE(const T (&expected)[N],
+              const RegisterDump* core,
+              const ZRegister& reg) {
+  bool equal = true;
+  for (int lane = 0; lane < N; ++lane) {
+    // Evaluate and report errors on every lane, rather than just the first.
+    equal = EqualSVELane(expected[lane], core, reg, lane) && equal;
+  }
+  return equal;
 }
 
 // Populate the w, x and r arrays with registers from the 'allowed' mask. The

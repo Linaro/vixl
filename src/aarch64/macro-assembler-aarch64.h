@@ -4530,6 +4530,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     insr(zdn, vm);
   }
+  void Insr(const ZRegister& zdn, uint64_t imm);
   void Lasta(const Register& rd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

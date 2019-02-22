@@ -71,6 +71,12 @@ size_t ArrayLength(const T (&)[n]) {
   return n;
 }
 
+inline uint64_t GetUintMask(unsigned bits) {
+  VIXL_ASSERT(bits <= 64);
+  uint64_t base = (bits >= 64) ? 0 : (UINT64_C(1) << bits);
+  return base - 1;
+}
+
 // Check number width.
 // TODO: Refactor these using templates.
 inline bool IsIntN(unsigned n, uint32_t x) {
@@ -98,7 +104,8 @@ VIXL_DEPRECATED("IsIntN", inline bool is_intn(unsigned n, int64_t x)) {
 }
 
 inline bool IsUintN(unsigned n, uint32_t x) {
-  VIXL_ASSERT((0 < n) && (n < 32));
+  VIXL_ASSERT((0 < n) && (n <= 32));
+  if (n >= 32) return true;
   return !(x >> n);
 }
 inline bool IsUintN(unsigned n, int32_t x) {
@@ -107,7 +114,8 @@ inline bool IsUintN(unsigned n, int32_t x) {
   return !(static_cast<uint32_t>(x) >> n);
 }
 inline bool IsUintN(unsigned n, uint64_t x) {
-  VIXL_ASSERT((0 < n) && (n < 64));
+  VIXL_ASSERT((0 < n) && (n <= 64));
+  if (n >= 64) return true;
   return !(x >> n);
 }
 inline bool IsUintN(unsigned n, int64_t x) {
@@ -269,6 +277,19 @@ double RawbitsToDouble(uint64_t bits);
 VIXL_DEPRECATED("RawbitsToDouble",
                 inline double rawbits_to_double(uint64_t bits)) {
   return RawbitsToDouble(bits);
+}
+
+// Convert unsigned to signed numbers in a well-defined way (using two's
+// complement representations).
+inline int64_t RawbitsToInt64(uint64_t bits) {
+  return (bits >= UINT64_C(0x8000000000000000))
+             ? (-static_cast<int64_t>(-bits - 1) - 1)
+             : static_cast<int64_t>(bits);
+}
+
+inline int32_t RawbitsToInt32(uint32_t bits) {
+  return (bits >= UINT64_C(0x80000000)) ? (-static_cast<int32_t>(-bits - 1) - 1)
+                                        : static_cast<int32_t>(bits);
 }
 
 namespace internal {

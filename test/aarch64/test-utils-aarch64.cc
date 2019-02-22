@@ -352,6 +352,34 @@ bool EqualRegisters(const RegisterDump* a, const RegisterDump* b) {
   return true;
 }
 
+bool EqualSVELane(uint64_t expected,
+                  const RegisterDump* core,
+                  const ZRegister& reg,
+                  int lane) {
+  unsigned lane_size = reg.GetLaneSizeInBits();
+  // For convenience in the tests, we allow negative values to be passed into
+  // `expected`, but truncate them to an appropriately-sized unsigned value for
+  // the check. For example, in `EqualSVELane(-1, core, z0.VnB())`, the expected
+  // value is truncated from 0xffffffffffffffff to 0xff before the comparison.
+  VIXL_ASSERT(IsUintN(lane_size, expected) ||
+              IsIntN(lane_size, RawbitsToInt64(expected)));
+  expected &= GetUintMask(lane_size);
+
+  uint64_t result = core->zreg_lane(reg.GetCode(), lane_size, lane);
+  if (expected != result) {
+    unsigned lane_size_in_hex_chars = lane_size / 4;
+    std::string reg_name = reg.GetArchitecturalName();
+    printf("%s[%d]\t Expected 0x%0*" PRIx64 "\t Found 0x%0*" PRIx64 "\n",
+           reg_name.c_str(),
+           lane,
+           lane_size_in_hex_chars,
+           expected,
+           lane_size_in_hex_chars,
+           result);
+    return false;
+  }
+  return true;
+}
 
 RegList PopulateRegisterArray(Register* w,
                               Register* x,
