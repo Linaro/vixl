@@ -87,7 +87,7 @@ class Memory {
   }
 };
 
-// Represent a register (r0-r31, v0-v31).
+// Represent a register (r0-r31, v0-v31, z0-z31).
 template <int kSizeInBytes>
 class SimRegisterBase {
  public:
@@ -167,8 +167,8 @@ class SimRegisterBase {
     memcpy(&value_[lane * sizeof(src)], &src, sizeof(src));
   }
 };
-typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;   // r0-r31
-typedef SimRegisterBase<kQRegSizeInBytes> SimVRegister;  // v0-v31
+typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;      // r0-r31
+typedef SimRegisterBase<kZRegMaxSizeInBytes> SimVRegister;  // v0-v31 and z0-z31
 
 // The default ReadLane and WriteLane methods assume what we are copying is
 // "trivially copyable" by using memcpy. We have to provide alternative
@@ -1008,6 +1008,11 @@ class Simulator : public DecoderVisitor {
     uint8_t val[kQRegSizeInBytes];
   };
 
+  // A structure for representing a SVE Z register.
+  struct zreg_t {
+    uint8_t val[kZRegMaxSizeInBytes];
+  };
+
   // Basic accessor: read the register as the specified type.
   template <typename T>
   T ReadVRegister(unsigned code) const {
@@ -1123,7 +1128,8 @@ class Simulator : public DecoderVisitor {
                        (sizeof(value) == kHRegSizeInBytes) ||
                        (sizeof(value) == kSRegSizeInBytes) ||
                        (sizeof(value) == kDRegSizeInBytes) ||
-                       (sizeof(value) == kQRegSizeInBytes));
+                       (sizeof(value) == kQRegSizeInBytes) ||
+                       (sizeof(value) == kZRegMaxSizeInBytes));
     VIXL_ASSERT(code < kNumberOfVRegisters);
     vregisters_[code].Write(value);
 
@@ -1228,6 +1234,12 @@ class Simulator : public DecoderVisitor {
                                 qreg_t value,
                                 RegLogMode log_mode = LogRegWrites)) {
     WriteQRegister(code, value, log_mode);
+  }
+
+  void WriteZRegister(unsigned code,
+                      zreg_t value,
+                      RegLogMode log_mode = LogRegWrites) {
+    WriteVRegister(code, value, log_mode);
   }
 
   template <typename T>
@@ -1795,6 +1807,25 @@ class Simulator : public DecoderVisitor {
     }
   };
 #endif
+
+  void SetVectorLengthInBits(unsigned n) {
+    VIXL_ASSERT((n >= kZRegMinSize) && (n <= kZRegMaxSize));
+    VIXL_ASSERT(n % kZRegMinSize == 0);
+    vector_length_ = n;
+  }
+
+  int LaneCountFromFormat(VectorFormat vform) const {
+    if (IsSVEFormat(vform)) {
+      return GetVectorLengthInBits() / LaneSizeInBitsFromFormat(vform);
+    } else {
+      return vixl::aarch64::LaneCountFromFormat(vform);
+    }
+  }
+
+  unsigned GetVectorLengthInBits() const { return vector_length_; }
+  unsigned GetVectorLengthInBytes() const {
+    return GetVectorLengthInBits() / 8;
+  }
 
  protected:
   const char* clr_normal;
@@ -3357,6 +3388,9 @@ class Simulator : public DecoderVisitor {
 
   // The simulated state of RNDR and RNDRRS for generating a random number.
   uint16_t rndr_state_[3];
+
+  // A configurable size of SVE vector registers.
+  unsigned vector_length_;
 };
 
 #if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) && __cplusplus < 201402L

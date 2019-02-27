@@ -114,6 +114,9 @@ Simulator::Simulator(Decoder* decoder, FILE* stream)
 
   guard_pages_ = false;
 
+  // Configure SVE minimum vector register length which is 128 bits by default.
+  SetVectorLengthInBits(kZRegMinSize);
+
   // Initialize the common state of RNDR and RNDRRS.
   uint16_t seed[3] = {11, 22, 33};
   VIXL_STATIC_ASSERT(sizeof(seed) == sizeof(rndr_state_));
@@ -132,20 +135,21 @@ void Simulator::ResetState() {
   for (unsigned i = 0; i < kNumberOfRegisters; i++) {
     WriteXRegister(i, 0xbadbeef);
   }
-  // Set FP registers to a value that is a NaN in both 32-bit and 64-bit FP.
-  uint64_t nan_bits[] = {
-      UINT64_C(0x7ff00cab7f8ba9e1), UINT64_C(0x7ff0dead7f8beef1),
-  };
-  VIXL_ASSERT(IsSignallingNaN(RawbitsToDouble(nan_bits[0] & kDRegMask)));
-  VIXL_ASSERT(IsSignallingNaN(RawbitsToFloat(nan_bits[0] & kSRegMask)));
 
-  qreg_t q_bits;
-  VIXL_ASSERT(sizeof(q_bits) == sizeof(nan_bits));
-  memcpy(&q_bits, nan_bits, sizeof(nan_bits));
-
-  for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
-    WriteQRegister(i, q_bits);
+  // Set SVE/FP registers to a value that is a NaN in both 32-bit and 64-bit FP.
+  for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
+    for (size_t lane = 0; lane < (kZRegMaxSizeInBytes / kDRegSizeInBytes);
+         lane++) {
+      // Encode the register number and (D-sized) lane into each NaN, to
+      // make them easier to trace.
+      uint64_t nan_bits = 0x7ff0f0007f80f000 | (0x0000000100000000 * i) |
+                          (0x0000000000000001 * lane);
+      VIXL_ASSERT(IsSignallingNaN(RawbitsToDouble(nan_bits & kDRegMask)));
+      VIXL_ASSERT(IsSignallingNaN(RawbitsToFloat(nan_bits & kSRegMask)));
+      vregisters_[i].Insert(static_cast<int>(lane), nan_bits);
+    }
   }
+
   // Returning to address 0 exits the Simulator.
   WriteLr(kEndOfSimAddress);
 

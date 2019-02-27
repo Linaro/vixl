@@ -530,5 +530,100 @@ TEST(memoperand_is_plain_register_or_equivalent) {
 }
 
 
+// The tests below only work with the simulator.
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+// Testing data transfer to register on each element access type and size.
+#define REG_ACCESSOR_UINT_DOTEST(INPUT, EXPECTED, ELEM, TYPE)                  \
+  VIXL_STATIC_ASSERT(sizeof(INPUT) == sizeof(EXPECTED));                       \
+  do {                                                                         \
+    simulator.ResetState();                                                    \
+    simulator.SetVectorLengthInBits(sizeof(INPUT) << 3);                       \
+    LogicVRegister reg(simulator.ReadVRegister(0));                            \
+    for (int i = 0; i < simulator.LaneCountFromFormat(kFormatVn##ELEM); i++) { \
+      reg.SetUint(kFormatVn##ELEM, i, 0);                                      \
+      if (i % 2 == 0) {                                                        \
+        reg.SetUint(kFormatVn##ELEM, i, reinterpret_cast<TYPE*>(INPUT)[i]);    \
+      }                                                                        \
+      VIXL_CHECK(static_cast<TYPE>(EXPECTED[i]) ==                             \
+                 static_cast<TYPE>(reg.Uint(kFormatVn##ELEM, i)));             \
+    }                                                                          \
+  } while (0)
+
+#define REG_ACCESSOR_INT_DOTEST(INPUT, EXPECTED, ELEM, TYPE)                   \
+  VIXL_STATIC_ASSERT(sizeof(INPUT) == sizeof(EXPECTED));                       \
+  do {                                                                         \
+    simulator.ResetState();                                                    \
+    simulator.SetVectorLengthInBits(sizeof(INPUT) << 3);                       \
+    LogicVRegister reg(simulator.ReadVRegister(0));                            \
+    for (int i = 0; i < simulator.LaneCountFromFormat(kFormatVn##ELEM); i++) { \
+      reg.SetInt(kFormatVn##ELEM, i, 0);                                       \
+      if (i % 2 == 0) {                                                        \
+        reg.SetInt(kFormatVn##ELEM, i, reinterpret_cast<TYPE*>(INPUT)[i]);     \
+      }                                                                        \
+      VIXL_CHECK(static_cast<TYPE>(EXPECTED[i]) ==                             \
+                 static_cast<TYPE>(reg.Int(kFormatVn##ELEM, i)));              \
+    }                                                                          \
+  } while (0)
+
+TEST(sve_logic_z_register) {
+  // Initialize a 256-bit vector for the example function.
+  // clang-format off
+  uint8_t input[32] = {0x81, 0x83, 0x85, 0x87, 0x89, 0x8b, 0x8d, 0x8f,
+                       0x91, 0x93, 0x95, 0x97, 0x99, 0x9b, 0x9d, 0x9f,
+                       0xa1, 0xa3, 0xa5, 0xa7, 0xa9, 0xab, 0xad, 0xaf,
+                       0xb1, 0xb3, 0xb5, 0xb7, 0xb9, 0xbb, 0xbd, 0xbf};
+
+  uint64_t D2D[4] = {0x8f8d8b8987858381, 0x0000000000000000,
+                     0xafadaba9a7a5a3a1, 0x0000000000000000};
+
+  uint32_t W2W[8] = {0x87858381, 0x0000000, 0x97959391, 0x00000000,
+                     0xa7a5a3a1, 0x0000000, 0xb7b5b3b1, 0x00000000};
+
+  uint16_t H2H[16] = {0x8381, 0x0000, 0x8b89, 0x0000, 0x9391, 0x0000, 0x9b99, 0x0000,
+                      0xa3a1, 0x0000, 0xaba9, 0x0000, 0xb3b1, 0x0000, 0xbbb9, 0x0000};
+
+  uint8_t B2B[32] = {0x81, 0x00, 0x85, 0x00, 0x89, 0x00, 0x8d, 0x00,
+                     0x91, 0x00, 0x95, 0x00, 0x99, 0x00, 0x9d, 0x00,
+                     0xa1, 0x00, 0xa5, 0x00, 0xa9, 0x00, 0xad, 0x00,
+                     0xb1, 0x00, 0xb5, 0x00, 0xb9, 0x00, 0xbd, 0x00};
+
+  uint64_t W2D[4] = {0x0000000087858381, 0x0000000000000000,
+                    0x0000000097959391, 0x0000000000000000};
+
+  uint64_t SW2D[4] = {0xffffffff87858381, 0x0000000000000000,
+                     0xffffffff97959391, 0x0000000000000000};
+
+  uint32_t H2W[8] = {0x00008381, 0x00000000, 0x00008b89, 0x00000000,
+                    0x00009391, 0x00000000, 0x00009b99, 0x00000000};
+
+  uint32_t SH2W[8] = {0xffff8381, 0x00000000, 0xffff8b89, 0x00000000,
+                     0xffff9391, 0x00000000, 0xffff9b99, 0x00000000};
+
+  uint16_t B2H[16] = {0x0081, 0x0000, 0x0085, 0x0000, 0x0089, 0x0000, 0x008d, 0x0000,
+                     0x0091, 0x0000, 0x0095, 0x0000, 0x0099, 0x0000, 0x009d, 0x0000};
+
+  uint16_t SB2H[16] = {0xff81, 0x0000, 0xff85, 0x0000, 0xff89, 0x0000, 0xff8d, 0x0000,
+                      0xff91, 0x0000, 0xff95, 0x0000, 0xff99, 0x0000, 0xff9d, 0x0000};
+  // clang-format on
+
+  MacroAssembler masm;
+  Decoder decoder;
+  Simulator simulator(&decoder);
+  // Test packed access.
+  REG_ACCESSOR_UINT_DOTEST(input, D2D, D, uint64_t);
+  REG_ACCESSOR_UINT_DOTEST(input, W2W, S, uint32_t);
+  REG_ACCESSOR_UINT_DOTEST(input, H2H, H, uint16_t);
+  REG_ACCESSOR_UINT_DOTEST(input, B2B, B, uint8_t);
+
+  // Test unpacked access, either sign-extended or zero-extended.
+  REG_ACCESSOR_UINT_DOTEST(input, B2H, H, uint8_t);
+  REG_ACCESSOR_UINT_DOTEST(input, W2D, D, uint32_t);
+  REG_ACCESSOR_UINT_DOTEST(input, H2W, S, uint16_t);
+  REG_ACCESSOR_INT_DOTEST(input, SB2H, H, int8_t);
+  REG_ACCESSOR_INT_DOTEST(input, SW2D, D, int32_t);
+  REG_ACCESSOR_INT_DOTEST(input, SH2W, S, int16_t);
+}
+#undef REG_ACCESSOR_UINT_DOTEST
+#endif
 }  // namespace aarch64
 }  // namespace vixl

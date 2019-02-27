@@ -588,7 +588,7 @@ class Instruction {
 };
 
 
-// Functions for handling NEON vector format information.
+// Functions for handling NEON and SVE vector format information.
 enum VectorFormat {
   kFormatUndefined = 0xffffffff,
   kFormat8B = NEON_8B,
@@ -610,6 +610,15 @@ enum VectorFormat {
   kFormatS = NEON_S | NEONScalar,
   kFormatD = NEON_D | NEONScalar,
 
+  // An artificial value, used to distinguish from NEON format category.
+  kFormatSVE = 0x0000fffd,
+  // Vector element width of SVE register with the unknown lane count since
+  // the vector length is implementation dependent.
+  kFormatVnB = SVE_B | kFormatSVE,
+  kFormatVnH = SVE_H | kFormatSVE,
+  kFormatVnS = SVE_S | kFormatSVE,
+  kFormatVnD = SVE_D | kFormatSVE,
+
   // An artificial value, used by simulator trace tests and a few oddball
   // instructions (such as FMLAL).
   kFormat2H = 0xfffffffe
@@ -627,6 +636,7 @@ VectorFormat VectorFormatFillQ(VectorFormat vform);
 VectorFormat ScalarFormatFromFormat(VectorFormat vform);
 unsigned RegisterSizeInBitsFromFormat(VectorFormat vform);
 unsigned RegisterSizeInBytesFromFormat(VectorFormat vform);
+bool IsSVEFormat(VectorFormat vform);
 // TODO: Make the return types of these functions consistent.
 unsigned LaneSizeInBitsFromFormat(VectorFormat vform);
 int LaneSizeInBytesFromFormat(VectorFormat vform);
