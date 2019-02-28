@@ -3567,7 +3567,9 @@ TEST(load_pauth_negative_test) {
   }
   END();
 
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   MUST_FAIL_WITH_MESSAGE(RUN(), "Failed to authenticate pointer.");
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
   TEARDOWN();
 }
