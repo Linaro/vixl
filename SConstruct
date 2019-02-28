@@ -277,9 +277,6 @@ def RetrieveEnvironmentVariables(env):
     env.Append(CXXFLAGS = os.getenv('CXXFLAGS').split())
   if os.getenv('LINKFLAGS'):
     env.Append(LINKFLAGS = os.getenv('LINKFLAGS').split())
-  # This allows colors to be displayed when using with clang.
-  env['ENV']['TERM'] = os.getenv('TERM')
-
 
 # The architecture targeted by default will depend on the compiler being
 # used. 'host_arch' is extracted from the compiler while 'target' can be
@@ -457,11 +454,15 @@ env = Environment(variables = vars,
                   BUILDERS = {
                       'Markdown': Builder(action = 'markdown $SOURCE > $TARGET',
                                           suffix = '.html')
-                  })
+                  }, ENV = os.environ)
 # Abort the build if any command line option is unknown or invalid.
 unknown_build_options = vars.UnknownVariables()
 if unknown_build_options:
   print 'Unknown build options:',  unknown_build_options.keys()
+  Exit(1)
+
+if env['negative_testing'] == 'on' and env['mode'] != 'debug':
+  print 'negative_testing only works in debug mode'
   Exit(1)
 
 ConfigureEnvironment(env)

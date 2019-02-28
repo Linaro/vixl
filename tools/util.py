@@ -194,3 +194,26 @@ class CompilerInformation(object):
     # version numbers.
     return self.compiler == compiler and \
            operator(LooseVersion(self.version), LooseVersion(version))
+
+class ReturnCode:
+  def __init__(self, exit_on_error, printer_fn):
+    self.rc = 0
+    self.exit_on_error = exit_on_error
+    self.printer_fn = printer_fn
+
+  def Combine(self, rc):
+    self.rc |= rc
+    if self.exit_on_error and rc != 0:
+      self.PrintStatus()
+      sys.exit(rc)
+
+  @property
+  def Value(self):
+    return self.rc
+
+  def PrintStatus(self):
+    self.printer_fn('\n$ ' + ' '.join(sys.argv))
+    if self.rc == 0:
+      self.printer_fn('SUCCESS')
+    else:
+      self.printer_fn('FAILURE')
