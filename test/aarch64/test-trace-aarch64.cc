@@ -2739,21 +2739,16 @@ static void GenerateTestSequenceNEONFP(MacroAssembler* masm) {
 
 
 static void MaskAddresses(const char* trace) {
-// Hexadecimal expressions of the form `\xab` do not work out-of-the box with
-// BSD `sed`. So we use ANSI-C quoting to have the regular expressions below
-// work both on Linux and BSD (and macOS).
 #ifdef __APPLE__
 #define MAYBE_ANSI_C_QUOTE "$"
-#define HEX(val) "\\x" #val
 #define ESCAPE(c) "\\\\" #c
   const char* sed_options = "-i \"\" -E";
 #else
 #define MAYBE_ANSI_C_QUOTE
-#define HEX(val) "\\x" #val
 #define ESCAPE(c) "\\" #c
-  const char* sed_options = "--in-place --regexp-extended";
+  const char* sed_options = "-i -E";
 #endif
-#define COLOUR "(" HEX(1b) ESCAPE([) "[01];([0-9][0-9])?m)?"
+#define COLOUR "(\x1b" ESCAPE([) "[01];([0-9][0-9])?m)?"
   struct {
     const char* search;
     const char* replace;
