@@ -506,7 +506,8 @@ if CanTargetAArch32(env):
   test_aarch32_build_dir = PrepareVariantDir(join('test', 'aarch32'), TargetBuildDir(env))
   test_objects.append(env.Object(
       Glob(join(test_aarch32_build_dir, '*.cc')),
-      CPPPATH = env['CPPPATH'] + [config.dir_tests]))
+      CPPPATH = env['CPPPATH'] + [config.dir_tests],
+      CCFLAGS = [flag for flag in env['CCFLAGS'] if flag != '-O3']))
 
 # AArch64 support
 if CanTargetAArch64(env):
@@ -538,7 +539,8 @@ if CanTargetAArch64(env):
   test_aarch64_build_dir = PrepareVariantDir(join('test', 'aarch64'), TargetBuildDir(env))
   test_objects.append(env.Object(
       Glob(join(test_aarch64_build_dir, '*.cc')),
-      CPPPATH = env['CPPPATH'] + [config.dir_tests]))
+      CPPPATH = env['CPPPATH'] + [config.dir_tests],
+      CCFLAGS = [flag for flag in env['CCFLAGS'] if flag != '-O3']))
 
   # The test requires building the example files with specific options, so we
   # create a separate variant dir for the example objects built this way.

@@ -294,6 +294,7 @@ def RunCommand(command, environment_options = None):
 
   t_start = time.time()
   t_last_indication = t_start
+  t_current = t_start
   process_output = ''
 
   # Keep looping as long as the process is running.
