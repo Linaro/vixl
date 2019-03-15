@@ -83,7 +83,8 @@ options = {
                    '-Wredundant-decls',
                    '-pedantic',
                    '-Wwrite-strings',
-                   '-Wunused'],
+                   '-Wunused',
+                   '-Wno-missing-noreturn'],
       'CPPPATH' : [config.dir_src_vixl]
       },
 #   'build_option:value' : {
@@ -351,11 +352,6 @@ def ProcessBuildOptions(env):
 
 
 def ConfigureEnvironmentForCompiler(env):
-  if CanTargetA32(env) and CanTargetT32(env):
-    # When building for only one aarch32 isa, fixing the no-return is not worth
-    # the effort.
-    env.Append(CPPFLAGS = ['-Wmissing-noreturn'])
-
   compiler = util.CompilerInformation(env)
   if compiler == 'clang':
     # These warnings only work for Clang.

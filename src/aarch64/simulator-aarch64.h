@@ -3199,10 +3199,7 @@ class Simulator : public DecoderVisitor {
   void DoSaveCPUFeatures(const Instruction* instr);
   void DoRestoreCPUFeatures(const Instruction* instr);
 
-// Simulate a runtime call.
-#ifndef VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
-  VIXL_NO_RETURN_IN_DEBUG_MODE
-#endif
+  // Simulate a runtime call.
   void DoRuntimeCall(const Instruction* instr);
 
   // Processor state ---------------------------------------

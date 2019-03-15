@@ -88,20 +88,28 @@ CodeBuffer::~CodeBuffer() {
 }
 
 
-#ifdef VIXL_CODE_BUFFER_MMAP
 void CodeBuffer::SetExecutable() {
+#ifdef VIXL_CODE_BUFFER_MMAP
   int ret = mprotect(buffer_, capacity_, PROT_READ | PROT_EXEC);
   VIXL_CHECK(ret == 0);
-}
+#else
+  // This requires page-aligned memory blocks, which we can only guarantee with
+  // mmap.
+  VIXL_UNIMPLEMENTED();
 #endif
+}
 
 
-#ifdef VIXL_CODE_BUFFER_MMAP
 void CodeBuffer::SetWritable() {
+#ifdef VIXL_CODE_BUFFER_MMAP
   int ret = mprotect(buffer_, capacity_, PROT_READ | PROT_WRITE);
   VIXL_CHECK(ret == 0);
-}
+#else
+  // This requires page-aligned memory blocks, which we can only guarantee with
+  // mmap.
+  VIXL_UNIMPLEMENTED();
 #endif
+}
 
 
 void CodeBuffer::EmitString(const char* string) {

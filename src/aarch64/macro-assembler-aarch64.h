@@ -3939,10 +3939,11 @@ class UseScratchRegisterScope {
   RegList old_availablefp_;  // kVRegister
 
   // Disallow copy constructor and operator=.
-  VIXL_DEBUG_NO_RETURN UseScratchRegisterScope(const UseScratchRegisterScope&) {
+  VIXL_NO_RETURN_IN_DEBUG_MODE UseScratchRegisterScope(
+      const UseScratchRegisterScope&) {
     VIXL_UNREACHABLE();
   }
-  VIXL_DEBUG_NO_RETURN void operator=(const UseScratchRegisterScope&) {
+  VIXL_NO_RETURN_IN_DEBUG_MODE void operator=(const UseScratchRegisterScope&) {
     VIXL_UNREACHABLE();
   }
 };
