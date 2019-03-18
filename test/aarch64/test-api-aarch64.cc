@@ -702,15 +702,15 @@ TEST(sve_logic_p_register) {
   LogicPRegister Pm(simulator.ReadPRegister(4));
   LogicPRegister Pn(simulator.ReadPRegister(3));
   LogicPRegister Pd(simulator.ReadPRegister(2));
-  int plInByte = simulator.GetVectorLengthInBytes() / 8;
-  int plInchunks = plInByte / kHRegSizeInBytes;
-  for (int i = 0; i < plInchunks; i++) {
+  int p_size_in_bytes = simulator.GetVectorLengthInBytes() / 8;
+  int p_size_in_chunks = p_size_in_bytes / sizeof(LogicPRegister::ChunkType);
+  for (int i = 0; i < p_size_in_chunks; i++) {
     Pm.SetChunk(i, input1[i]);
     Pn.SetChunk(i, input2[i]);
     Pg.SetChunk(i, input3[i]);
   }
 
-  for (int i = 0; i < plInchunks; i++) {
+  for (int i = 0; i < p_size_in_chunks; i++) {
     uint16_t chunk1 = Pm.GetChunk(i);
     uint16_t chunk2 = Pn.GetChunk(i);
     uint16_t mask = Pg.GetChunk(i);
@@ -742,6 +742,41 @@ TEST(sve_logic_p_register) {
   VIXL_CHECK(Pd.IsActive(kFormatVnH, 5) == true);
   VIXL_CHECK(Pd.IsActive(kFormatVnB, 7) == true);
   VIXL_CHECK(Pd.IsActive(kFormatVnB, 6) == true);
+}
+
+TEST(sve_first_none_last_active) {
+  uint16_t mask[2] = {0x8785, 0x8381};
+  uint16_t bits[2] = {0xaca8, 0xacaa};
+
+  MacroAssembler masm;
+  Decoder decoder;
+  Simulator simulator(&decoder);
+  simulator.ResetState();
+  simulator.SetVectorLengthInBits(256);
+
+  LogicPRegister Pg(simulator.ReadPRegister(5));
+  LogicPRegister Pm(simulator.ReadPRegister(4));
+  int p_size_in_bytes = simulator.GetVectorLengthInBytes() / 8;
+  int p_size_in_chunks = p_size_in_bytes / sizeof(LogicPRegister::ChunkType);
+  for (int i = 0; i < p_size_in_chunks; i++) {
+    Pm.SetChunk(i, mask[i]);
+    Pg.SetChunk(i, bits[i]);
+  }
+
+  VIXL_CHECK(simulator.IsFirstActive(kFormatVnD, Pg, Pm) == false);
+  VIXL_CHECK(simulator.IsFirstActive(kFormatVnS, Pg, Pm) == false);
+  VIXL_CHECK(simulator.IsFirstActive(kFormatVnH, Pg, Pm) == true);
+  VIXL_CHECK(simulator.IsFirstActive(kFormatVnB, Pg, Pm) == false);
+
+  VIXL_CHECK(simulator.AreNoneActive(kFormatVnD, Pg, Pm) == true);
+  VIXL_CHECK(simulator.AreNoneActive(kFormatVnS, Pg, Pm) == true);
+  VIXL_CHECK(simulator.AreNoneActive(kFormatVnH, Pg, Pm) == false);
+  VIXL_CHECK(simulator.AreNoneActive(kFormatVnB, Pg, Pm) == false);
+
+  VIXL_CHECK(simulator.IsLastActive(kFormatVnD, Pg, Pm) == false);
+  VIXL_CHECK(simulator.IsLastActive(kFormatVnS, Pg, Pm) == false);
+  VIXL_CHECK(simulator.IsLastActive(kFormatVnH, Pg, Pm) == false);
+  VIXL_CHECK(simulator.IsLastActive(kFormatVnB, Pg, Pm) == true);
 }
 #undef REG_ACCESSOR_UINT_DOTEST
 #endif

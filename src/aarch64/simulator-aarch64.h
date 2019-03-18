@@ -197,6 +197,10 @@ class LogicPRegister {
       SimPRegister& other)  // NOLINT(runtime/references)(runtime/explicit)
       : register_(other) {}
 
+  // Set a conveniently-sized block to 16 bits as the minimum predicate length
+  // is 16 bits and allow to be increased to multiples of 16 bits.
+  typedef uint16_t ChunkType;
+
   // Assign a bit into the end positon of the specified lane.
   // The bit is zero-extended if necessary.
   void SetActive(VectorFormat vform, int lane_index, bool value) {
@@ -217,15 +221,13 @@ class LogicPRegister {
     return ExtractBit(byte, bit_offset);
   }
 
-  // The accessors for bulk processing. Set a conveniently-sized block to 16
-  // bits as the minimum predicate length is 16 bits and allow to be increased
-  // to multiples of 16 bits.
-  uint16_t GetChunk(int lane) const {
-    return register_.GetLane<uint16_t>(lane);
+  // The accessors for bulk processing.
+  ChunkType GetChunk(int lane) const {
+    return register_.GetLane<ChunkType>(lane);
   }
 
-  void SetChunk(int lane, uint16_t new_value) {
-    register_.Insert<uint16_t>(lane, new_value);
+  void SetChunk(int lane, ChunkType new_value) {
+    register_.Insert<ChunkType>(lane, new_value);
   }
 
  private:
@@ -1898,6 +1900,39 @@ class Simulator : public DecoderVisitor {
   unsigned GetVectorLengthInBits() const { return vector_length_; }
   unsigned GetVectorLengthInBytes() const {
     return GetVectorLengthInBits() / 8;
+  }
+
+  bool IsFirstActive(VectorFormat vform,
+                     LogicPRegister mask,
+                     LogicPRegister bits) {
+    for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+      if (mask.IsActive(vform, i)) {
+        return bits.IsActive(vform, i);
+      }
+    }
+    return false;
+  }
+
+  bool AreNoneActive(VectorFormat vform,
+                     LogicPRegister mask,
+                     LogicPRegister bits) {
+    for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+      if (mask.IsActive(vform, i) && bits.IsActive(vform, i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool IsLastActive(VectorFormat vform,
+                    LogicPRegister mask,
+                    LogicPRegister bits) {
+    for (int i = LaneCountFromFormat(vform) - 1; i >= 0; i--) {
+      if (mask.IsActive(vform, i)) {
+        return bits.IsActive(vform, i);
+      }
+    }
+    return false;
   }
 
  protected:
