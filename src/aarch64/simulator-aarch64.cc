@@ -150,6 +150,18 @@ void Simulator::ResetState() {
     }
   }
 
+  for (unsigned i = 0; i < kNumberOfPRegisters; i++) {
+    for (size_t lane = 0; lane < kPRegMaxSizeInBytes / kHRegSizeInBytes;
+         lane++) {
+      // Ensure a register configuration fit in this bit encoding.
+      VIXL_STATIC_ASSERT(kNumberOfPRegisters <= UINT8_MAX);
+      VIXL_STATIC_ASSERT((kPRegMaxSizeInBytes / kHRegSizeInBytes) <= UINT8_MAX);
+      // Encode the register number and (H-sized) lane into each lane slot.
+      uint16_t bits = (0x0100 * lane) | i;
+      pregisters_[i].Insert(static_cast<int>(lane), bits);
+    }
+  }
+
   // Returning to address 0 exits the Simulator.
   WriteLr(kEndOfSimAddress);
 

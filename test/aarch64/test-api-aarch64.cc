@@ -684,6 +684,65 @@ TEST(sve_logic_z_register) {
   REG_ACCESSOR_INT_DOTEST(input, SW2D, D, int32_t);
   REG_ACCESSOR_INT_DOTEST(input, SH2W, S, int16_t);
 }
+
+TEST(sve_logic_p_register) {
+  uint16_t input1[2] = {0x8381, 0x8785};
+  uint16_t input2[2] = {0x8b89, 0x8f8d};
+  uint16_t input3[2] = {0xa9a8, 0xafaa};
+  uint16_t expected[2] = {0x8180, 0x8780};
+  uint16_t result[2] = {0};
+
+  MacroAssembler masm;
+  Decoder decoder;
+  Simulator simulator(&decoder);
+  simulator.ResetState();
+  simulator.SetVectorLengthInBits(256);
+
+  LogicPRegister Pg(simulator.ReadPRegister(5));
+  LogicPRegister Pm(simulator.ReadPRegister(4));
+  LogicPRegister Pn(simulator.ReadPRegister(3));
+  LogicPRegister Pd(simulator.ReadPRegister(2));
+  int plInByte = simulator.GetVectorLengthInBytes() / 8;
+  int plInchunks = plInByte / kHRegSizeInBytes;
+  for (int i = 0; i < plInchunks; i++) {
+    Pm.SetChunk(i, input1[i]);
+    Pn.SetChunk(i, input2[i]);
+    Pg.SetChunk(i, input3[i]);
+  }
+
+  for (int i = 0; i < plInchunks; i++) {
+    uint16_t chunk1 = Pm.GetChunk(i);
+    uint16_t chunk2 = Pn.GetChunk(i);
+    uint16_t mask = Pg.GetChunk(i);
+    VIXL_CHECK(input1[i] == chunk1);
+    VIXL_CHECK(input2[i] == chunk2);
+    VIXL_CHECK(input3[i] == mask);
+    result[i] = (chunk1 & chunk2) & mask;
+    VIXL_CHECK(result[i] == expected[i]);
+    Pd.SetChunk(i, result[i]);
+  }
+
+  VIXL_CHECK(Pd.IsActive(kFormatVnD, 3) == true);
+  VIXL_CHECK(Pd.IsActive(kFormatVnS, 6) == true);
+  VIXL_CHECK(Pd.IsActive(kFormatVnS, 5) == false);
+  VIXL_CHECK(Pd.IsActive(kFormatVnH, 6) == false);
+  VIXL_CHECK(Pd.IsActive(kFormatVnH, 5) == false);
+  VIXL_CHECK(Pd.IsActive(kFormatVnB, 7) == true);
+  VIXL_CHECK(Pd.IsActive(kFormatVnB, 6) == false);
+
+  Pd.SetActive(kFormatVnD, 3, false);
+  Pd.SetActive(kFormatVnS, 5, true);
+  Pd.SetActive(kFormatVnH, 5, true);
+  Pd.SetActive(kFormatVnB, 6, true);
+
+  VIXL_CHECK(Pd.IsActive(kFormatVnD, 3) == false);
+  VIXL_CHECK(Pd.IsActive(kFormatVnS, 6) == false);
+  VIXL_CHECK(Pd.IsActive(kFormatVnS, 5) == true);
+  VIXL_CHECK(Pd.IsActive(kFormatVnH, 6) == false);
+  VIXL_CHECK(Pd.IsActive(kFormatVnH, 5) == true);
+  VIXL_CHECK(Pd.IsActive(kFormatVnB, 7) == true);
+  VIXL_CHECK(Pd.IsActive(kFormatVnB, 6) == true);
+}
 #undef REG_ACCESSOR_UINT_DOTEST
 #endif
 }  // namespace aarch64

@@ -87,7 +87,7 @@ class Memory {
   }
 };
 
-// Represent a register (r0-r31, v0-v31, z0-z31).
+// Represent a register (r0-r31, v0-v31, z0-z31, p0-p15).
 template <int kSizeInBytes>
 class SimRegisterBase {
  public:
@@ -169,6 +169,7 @@ class SimRegisterBase {
 };
 typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;      // r0-r31
 typedef SimRegisterBase<kZRegMaxSizeInBytes> SimVRegister;  // v0-v31 and z0-z31
+typedef SimRegisterBase<kPRegMaxSizeInBytes> SimPRegister;  // p0-p15
 
 // The default ReadLane and WriteLane methods assume what we are copying is
 // "trivially copyable" by using memcpy. We have to provide alternative
@@ -188,6 +189,73 @@ template <>
 inline void SimVRegister::WriteLane(vixl::internal::SimFloat16 src, int lane) {
   WriteLane(Float16ToRawbits(src), lane);
 }
+
+// Representation of a SVE predicate register.
+class LogicPRegister {
+ public:
+  inline LogicPRegister(
+      SimPRegister& other)  // NOLINT(runtime/references)(runtime/explicit)
+      : register_(other) {}
+
+  // Assign a bit into the end positon of the specified lane.
+  // The bit is zero-extended if necessary.
+  void SetActive(VectorFormat vform, int lane_index, bool value) {
+    int psize = LaneSizeInBytesFromFormat(vform);
+    int bit_index = lane_index * psize;
+    int byte_index = bit_index / kBitsPerByte;
+    int bit_offset = bit_index % kBitsPerByte;
+    uint8_t byte = register_.GetLane<uint8_t>(byte_index);
+    register_.Insert(byte_index, ZeroExtend(byte, bit_offset, psize, value));
+  }
+
+  bool IsActive(VectorFormat vform, int lane_index) const {
+    int psize = LaneSizeInBytesFromFormat(vform);
+    int bit_index = lane_index * psize;
+    int byte_index = bit_index / kBitsPerByte;
+    int bit_offset = bit_index % kBitsPerByte;
+    uint8_t byte = register_.GetLane<uint8_t>(byte_index);
+    return ExtractBit(byte, bit_offset);
+  }
+
+  // The accessors for bulk processing. Set a conveniently-sized block to 16
+  // bits as the minimum predicate length is 16 bits and allow to be increased
+  // to multiples of 16 bits.
+  uint16_t GetChunk(int lane) const {
+    return register_.GetLane<uint16_t>(lane);
+  }
+
+  void SetChunk(int lane, uint16_t new_value) {
+    register_.Insert<uint16_t>(lane, new_value);
+  }
+
+ private:
+  // The bit assignment is zero-extended to fill the size of predicate element.
+  uint8_t ZeroExtend(uint8_t byte, int index, int psize, bool value) {
+    VIXL_ASSERT(index >= 0);
+    VIXL_ASSERT(index + psize <= kBitsPerByte);
+    int bits = value ? 1 : 0;
+    switch (psize) {
+      case 1:
+        AssignBit(byte, index, bits);
+        break;
+      case 2:
+        AssignBits(byte, index, 0x03, bits);
+        break;
+      case 4:
+        AssignBits(byte, index, 0x0f, bits);
+        break;
+      case 8:
+        AssignBits(byte, index, 0xff, bits);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return 0;
+    }
+    return byte;
+  }
+
+  SimPRegister& register_;
+};
 
 // Representation of a vector register, with typed getters and setters for lanes
 // and additional information to represent lane state.
@@ -825,6 +893,11 @@ class Simulator : public DecoderVisitor {
                   int64_t xreg(unsigned code,
                                Reg31Mode r31mode = Reg31IsZeroRegister) const) {
     return ReadXRegister(code, r31mode);
+  }
+
+  SimPRegister& ReadPRegister(unsigned code) {
+    VIXL_ASSERT(code < kNumberOfPRegisters);
+    return pregisters_[code];
   }
 
   // As above, with parameterized size and return type. The value is
@@ -3251,6 +3324,9 @@ class Simulator : public DecoderVisitor {
 
   // Vector registers
   SimVRegister vregisters_[kNumberOfVRegisters];
+
+  // SVE predicate registers.
+  SimPRegister pregisters_[kNumberOfPRegisters];
 
   // Program Status Register.
   // bits[31, 27]: Condition flags N, Z, C, and V.
