@@ -227,15 +227,6 @@ inline void USE(const T1&, const T2&, const T3&, const T4&) {}
 #define VIXL_OVERRIDE
 #endif
 
-// Some functions might only be marked as "noreturn" for the DEBUG build. This
-// macro should be used for such cases (for more details see what
-// VIXL_UNREACHABLE expands to).
-#ifdef VIXL_DEBUG
-#define VIXL_DEBUG_NO_RETURN VIXL_NO_RETURN
-#else
-#define VIXL_DEBUG_NO_RETURN
-#endif
-
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 #ifndef VIXL_AARCH64_GENERATE_SIMULATOR_CODE
 #define VIXL_AARCH64_GENERATE_SIMULATOR_CODE 1

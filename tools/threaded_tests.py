@@ -41,7 +41,6 @@ def SigIntHandler(signal, frame):
 
 signal.signal(signal.SIGINT, SigIntHandler)
 
-
 # Scan matching tests and return a test manifest.
 def GetTests(runner, filters = []):
   rc, output = util.getstatusoutput(runner +  ' --list')
@@ -54,108 +53,103 @@ def GetTests(runner, filters = []):
 
   return tests
 
-
-# Shared state for multiprocessing. Ideally the context should be passed with
-# arguments, but constraints from the multiprocessing module prevent us from
-# doing so: the shared variables (multiprocessing.Value) must be global, or no
-# work is started. So we abstract some additional state into global variables to
-# simplify the implementation.
-# Read-write variables for the workers.
-n_tests_passed = multiprocessing.Value('i', 0)
-n_tests_failed = multiprocessing.Value('i', 0)
-# Read-only for workers.
-test_runner = None
-test_runner_runtime_options = None
-test_runner_under_valgrind = False
-n_tests = None
-start_time = None
-progress_prefix = None
-
-
 def RunTest(test):
-  command = [test_runner, test] + test_runner_runtime_options
-  if test_runner_under_valgrind:
-    command = ['valgrind'] + command
-
-  p = subprocess.Popen(command,
+  p = subprocess.Popen(test.command,
                        stdout=subprocess.PIPE,
                        stderr=subprocess.STDOUT)
   p_out, p_err = p.communicate()
   rc = p.poll()
 
   if rc == 0:
-    with n_tests_passed.get_lock(): n_tests_passed.value += 1
+    with Test.n_tests_passed.get_lock(): Test.n_tests_passed.value += 1
   else:
-    with n_tests_failed.get_lock(): n_tests_failed.value += 1
+    with Test.n_tests_failed.get_lock(): Test.n_tests_failed.value += 1
 
   printer.__print_lock__.acquire()
 
-  printer.UpdateProgress(start_time,
-                         n_tests_passed.value,
-                         n_tests_failed.value,
-                         n_tests,
-                         test,
+  printer.UpdateProgress(test.shared.start_time,
+                         Test.n_tests_passed.value,
+                         Test.n_tests_failed.value,
+                         test.shared.n_tests,
+                         test.name,
                          prevent_next_overwrite = (rc != 0),
                          has_lock = True,
-                         prefix = progress_prefix)
+                         prefix = test.shared.progress_prefix)
 
   if rc != 0:
-    printer.Print('FAILED: ' + test, has_lock = True)
-    printer.Print(printer.COLOUR_RED + ' '.join(command) + printer.NO_COLOUR,
+    printer.Print('FAILED: ' + test.name, has_lock = True)
+    printer.Print(printer.COLOUR_RED + ' '.join(test.command) + printer.NO_COLOUR,
                   has_lock = True)
     printer.Print(p_out, has_lock = True)
 
   printer.__print_lock__.release()
 
+class Test(object):
+  # Shared state for multiprocessing. Ideally the context should be passed with
+  # arguments, but constraints from the multiprocessing module prevent us from
+  # doing so: the shared variables (multiprocessing.Value) must be either global
+  # or static, or no work is started.
+  n_tests_passed = multiprocessing.Value('i', 0)
+  n_tests_failed = multiprocessing.Value('i', 0)
 
-# Run the specified tests.
-# This function won't run in parallel due to constraints from the
-# multiprocessing module.
-__run_tests_lock__ = multiprocessing.Lock()
-def RunTests(test_runner_command, filters, runtime_options,
-             under_valgrind = False,
-             jobs = 1, prefix = ''):
-  global test_runner
-  global test_runner_runtime_options
-  global test_runner_under_valgrind
-  global n_tests
-  global start_time
-  global progress_prefix
+  def __init__(self, test_runner, test, runtime_options, use_valgrind, shared):
+    self.command = [test_runner, test] + runtime_options
+    self.name = test
+    self.shared = shared
+    if use_valgrind:
+      self.command = ['valgrind'] + self.command
 
-  tests = GetTests(test_runner_command, filters)
-  tests = FilterKnownTestFailures(tests, under_valgrind=under_valgrind)
+class TestQueue(object):
+  def __init__(self, under_valgrind = False, prefix = ''):
+    self.progress_prefix = prefix
+    self.under_valgrind = under_valgrind
+    self.queue = []
 
-  if n_tests == 0:
-    printer.Print('No tests to run.')
-    return 0
+  def Add(self, test_runner_command, filters, runtime_options):
+    tests = GetTests(test_runner_command, filters)
+    tests = FilterKnownTestFailures(tests, under_valgrind = self.under_valgrind)
 
-  with __run_tests_lock__:
+    if len(tests) == 0:
+      printer.Print('No tests to run.')
+      return
 
-    # Initialisation.
-    start_time = time.time()
-    test_runner = test_runner_command
-    test_runner_runtime_options = runtime_options
-    test_runner_under_valgrind = under_valgrind
-    n_tests = len(tests)
-    n_tests_passed.value = 0
-    n_tests_failed.value = 0
-    progress_prefix = prefix
+    for test in tests:
+      self.queue.append(Test(test_runner_command, test,
+                             runtime_options, self.under_valgrind, self))
 
-    pool = multiprocessing.Pool(jobs)
-    # The '.get(9999999)' is a workaround to allow killing the test script with
-    # ctrl+C from the shell. This bug is documented at
-    # http://bugs.python.org/issue8296.
-    work = pool.map_async(RunTest, tests).get(9999999)
-    pool.close()
-    pool.join()
+  # Run the specified tests.
+  # This function won't run in parallel due to constraints from the
+  # multiprocessing module.
+  __run_tests_lock__ = multiprocessing.Lock()
+  def Run(self, jobs):
+    with TestQueue.__run_tests_lock__:
+      # Initialisation.
+      self.start_time = time.time()
+      self.n_tests = len(self.queue)
+      if self.n_tests == 0:
+        printer.Print('No tests to run.')
+        return 0
+      Test.n_tests_passed.value = 0
+      Test.n_tests_failed.value = 0
 
-    printer.UpdateProgress(start_time,
-                           n_tests_passed.value,
-                           n_tests_failed.value,
-                           n_tests,
-                           '== Done ==',
-                           prevent_next_overwrite = True,
-                           prefix = progress_prefix)
+      pool = multiprocessing.Pool(jobs)
+      # The '.get(9999999)' is a workaround to allow killing the test script with
+      # ctrl+C from the shell. This bug is documented at
+      # http://bugs.python.org/issue8296.
+      work = pool.map_async(RunTest, self.queue).get(9999999)
+      pool.close()
+      pool.join()
 
-  # `0` indicates success
-  return n_tests_failed.value
+      printer.UpdateProgress(self.start_time,
+                             Test.n_tests_passed.value,
+                             Test.n_tests_failed.value,
+                             self.n_tests,
+                             '== Done ==',
+                             prevent_next_overwrite = True,
+                             prefix = self.progress_prefix)
+
+    # Empty the queue now that the tests have been run.
+    self.queue = []
+    # `0` indicates success
+    return Test.n_tests_failed.value
+

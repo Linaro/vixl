@@ -2631,11 +2631,11 @@ TEST(system_pauth) {
 TEST(unreachable) {
   SETUP();
 
-#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   VIXL_ASSERT(kUnreachableOpcode == 0xdeb0);
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   COMPARE_MACRO(Unreachable(), "hlt #0xdeb0");
 #else
-  COMPARE_MACRO(Unreachable(), "blr xzr");
+  COMPARE_MACRO(Unreachable(), "udf #0xdeb0");
 #endif
 
   CLEANUP();
@@ -2777,6 +2777,16 @@ TEST(logical_immediate_move) {
   COMPARE_MACRO(Eon(w22, w23, 0xffffffff), "mov w22, w23");
   COMPARE_MACRO(Eon(x22, x23, 0xffffffff), "eor x22, x23, #0xffffffff00000000");
   COMPARE_MACRO(Eon(x22, x23, 0xffffffffffffffff), "mov x22, x23");
+
+  // Test stack pointer with non encodable immediate.
+  COMPARE_MACRO(Orr(wsp, w5, 0x1234),
+                "mov w16, #0x1234\n"
+                "orr w16, w5, w16\n"
+                "mov wsp, w16");
+  COMPARE_MACRO(Orr(sp, x15, 0x123),
+                "mov x16, #0x123\n"
+                "orr x16, x15, x16\n"
+                "mov sp, x16");
 
   CLEANUP();
 }
@@ -2960,6 +2970,26 @@ TEST(bti) {
   COMPARE_MACRO(Bind(&dummy2, EmitBTI_c), "bti c");
   COMPARE_MACRO(Bind(&dummy3, EmitBTI_j), "bti j");
   COMPARE_MACRO(Bind(&dummy4, EmitBTI_jc), "bti jc");
+
+  CLEANUP();
+}
+
+TEST(udf) {
+  SETUP();
+
+  COMPARE(udf(0), "udf #0x0");
+  COMPARE(udf(0x1234), "udf #0x1234");
+  COMPARE(udf(0xffff), "udf #0xffff");
+
+  // UDF gives the useful property that zero-initialised memory is guaranteed to
+  // generate undefined instruction exceptions.
+  COMPARE(dc(0), "udf #0x0");
+
+  // Check related unallocated bit patterns from the reserved block.
+  COMPARE(dc(0x00010000), "unallocated (Unallocated)");
+  COMPARE(dc(0x01000000), "unallocated (Unallocated)");
+  COMPARE(dc(0x20000000), "unallocated (Unallocated)");
+  COMPARE(dc(0x80000000), "unallocated (Unallocated)");
 
   CLEANUP();
 }

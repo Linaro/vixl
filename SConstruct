@@ -83,7 +83,8 @@ options = {
                    '-Wredundant-decls',
                    '-pedantic',
                    '-Wwrite-strings',
-                   '-Wunused'],
+                   '-Wunused',
+                   '-Wno-missing-noreturn'],
       'CPPPATH' : [config.dir_src_vixl]
       },
 #   'build_option:value' : {
@@ -251,7 +252,8 @@ vars.AddVariables(
                     'Configure the allocation mechanism in the CodeBuffer',
                     ['malloc', 'mmap']),
     ('std', 'C++ standard. The standards tested are: %s.' % \
-                                         ', '.join(config.tested_cpp_standards))
+                                         ', '.join(config.tested_cpp_standards)),
+    ('compiler_wrapper', 'Command to prefix to the C and C++ compiler (e.g ccache)', '')
     )
 
 # We use 'variant directories' to avoid recompiling multiple times when build
@@ -259,7 +261,7 @@ vars.AddVariables(
 # set. These are the options that should be reflected in the build directory
 # path.
 options_influencing_build_path = [
-  'target', 'mode', 'symbols', 'CXX', 'std', 'simulator', 'negative_testing',
+  'target', 'mode', 'symbols', 'compiler', 'std', 'simulator', 'negative_testing',
   'code_buffer_allocator'
 ]
 
@@ -277,9 +279,6 @@ def RetrieveEnvironmentVariables(env):
     env.Append(CXXFLAGS = os.getenv('CXXFLAGS').split())
   if os.getenv('LINKFLAGS'):
     env.Append(LINKFLAGS = os.getenv('LINKFLAGS').split())
-  # This allows colors to be displayed when using with clang.
-  env['ENV']['TERM'] = os.getenv('TERM')
-
 
 # The architecture targeted by default will depend on the compiler being
 # used. 'host_arch' is extracted from the compiler while 'target' can be
@@ -353,11 +352,6 @@ def ProcessBuildOptions(env):
 
 
 def ConfigureEnvironmentForCompiler(env):
-  if CanTargetA32(env) and CanTargetT32(env):
-    # When building for only one aarch32 isa, fixing the no-return is not worth
-    # the effort.
-    env.Append(CPPFLAGS = ['-Wmissing-noreturn'])
-
   compiler = util.CompilerInformation(env)
   if compiler == 'clang':
     # These warnings only work for Clang.
@@ -406,6 +400,10 @@ def ConfigureEnvironmentForCompiler(env):
 
 def ConfigureEnvironment(env):
   RetrieveEnvironmentVariables(env)
+  env['compiler'] = env['CXX']
+  if env['compiler_wrapper'] != '':
+    env['CXX'] = env['compiler_wrapper'] + ' ' + env['CXX']
+    env['CC'] = env['compiler_wrapper'] + ' ' + env['CC']
   env['host_arch'] = util.GetHostArch(env)
   ProcessBuildOptions(env)
   if 'std' in env:
@@ -457,11 +455,15 @@ env = Environment(variables = vars,
                   BUILDERS = {
                       'Markdown': Builder(action = 'markdown $SOURCE > $TARGET',
                                           suffix = '.html')
-                  })
+                  }, ENV = os.environ)
 # Abort the build if any command line option is unknown or invalid.
 unknown_build_options = vars.UnknownVariables()
 if unknown_build_options:
   print 'Unknown build options:',  unknown_build_options.keys()
+  Exit(1)
+
+if env['negative_testing'] == 'on' and env['mode'] != 'debug':
+  print 'negative_testing only works in debug mode'
   Exit(1)
 
 ConfigureEnvironment(env)
@@ -506,7 +508,8 @@ if CanTargetAArch32(env):
   test_aarch32_build_dir = PrepareVariantDir(join('test', 'aarch32'), TargetBuildDir(env))
   test_objects.append(env.Object(
       Glob(join(test_aarch32_build_dir, '*.cc')),
-      CPPPATH = env['CPPPATH'] + [config.dir_tests]))
+      CPPPATH = env['CPPPATH'] + [config.dir_tests],
+      CCFLAGS = [flag for flag in env['CCFLAGS'] if flag != '-O3']))
 
 # AArch64 support
 if CanTargetAArch64(env):
@@ -538,7 +541,8 @@ if CanTargetAArch64(env):
   test_aarch64_build_dir = PrepareVariantDir(join('test', 'aarch64'), TargetBuildDir(env))
   test_objects.append(env.Object(
       Glob(join(test_aarch64_build_dir, '*.cc')),
-      CPPPATH = env['CPPPATH'] + [config.dir_tests]))
+      CPPPATH = env['CPPPATH'] + [config.dir_tests],
+      CCFLAGS = [flag for flag in env['CCFLAGS'] if flag != '-O3']))
 
   # The test requires building the example files with specific options, so we
   # create a separate variant dir for the example objects built this way.

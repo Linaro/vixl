@@ -1523,7 +1523,7 @@ void Assembler::stlrb(const Register& rt, const MemOperand& dst) {
 }
 
 void Assembler::stlurb(const Register& rt, const MemOperand& dst) {
-  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpcImm));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
   VIXL_ASSERT(dst.IsImmediateOffset() && IsImmLSUnscaled(dst.GetOffset()));
 
   Instr base = RnSP(dst.GetBaseRegister());
@@ -1538,7 +1538,7 @@ void Assembler::stlrh(const Register& rt, const MemOperand& dst) {
 }
 
 void Assembler::stlurh(const Register& rt, const MemOperand& dst) {
-  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpcImm));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
   VIXL_ASSERT(dst.IsImmediateOffset() && IsImmLSUnscaled(dst.GetOffset()));
 
   Instr base = RnSP(dst.GetBaseRegister());
@@ -1554,7 +1554,7 @@ void Assembler::stlr(const Register& rt, const MemOperand& dst) {
 }
 
 void Assembler::stlur(const Register& rt, const MemOperand& dst) {
-  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpcImm));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
   VIXL_ASSERT(dst.IsImmediateOffset() && IsImmLSUnscaled(dst.GetOffset()));
 
   Instr base = RnSP(dst.GetBaseRegister());
@@ -2620,12 +2620,14 @@ void Assembler::mvn(const Register& rd, const Operand& operand) {
 
 void Assembler::mrs(const Register& xt, SystemRegister sysreg) {
   VIXL_ASSERT(xt.Is64Bits());
+  VIXL_ASSERT(CPUHas(sysreg));
   Emit(MRS | ImmSystemRegister(sysreg) | Rt(xt));
 }
 
 
 void Assembler::msr(SystemRegister sysreg, const Register& xt) {
   VIXL_ASSERT(xt.Is64Bits());
+  VIXL_ASSERT(CPUHas(sysreg));
   Emit(MSR | Rt(xt) | ImmSystemRegister(sysreg));
 }
 
@@ -5335,6 +5337,8 @@ void Assembler::brk(int code) {
 
 void Assembler::svc(int code) { Emit(SVC | ImmException(code)); }
 
+void Assembler::udf(int code) { Emit(UDF | ImmUdf(code)); }
+
 
 // TODO(all): The third parameter should be passed by reference but gcc 4.8.2
 // reports a bogus uninitialised warning then.
@@ -6142,6 +6146,19 @@ bool Assembler::CPUHas(const CPURegister& rt, const CPURegister& rt2) const {
   VIXL_ASSERT(AreSameSizeAndType(rt, rt2));
   USE(rt2);
   return CPUHas(rt);
+}
+
+
+bool Assembler::CPUHas(SystemRegister sysreg) const {
+  switch (sysreg) {
+    case RNDR:
+    case RNDRRS:
+      return CPUHas(CPUFeatures::kRNG);
+    case FPCR:
+    case NZCV:
+      break;
+  }
+  return true;
 }
 
 

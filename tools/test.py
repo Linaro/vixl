@@ -50,135 +50,47 @@ import util
 
 dir_root = config.dir_root
 
-def Optionify(name):
-  return '--' + name
+
+# Remove duplicates from a list
+def RemoveDuplicates(values):
+  # Convert the list into a set and back to list
+  # as sets guarantee items are unique.
+  return list(set(values))
 
 
-# The options that can be tested are abstracted to provide an easy way to add
-# new ones.
-# Environment options influence the environment. They can be used for example to
-# set the compiler used.
-# Build options are options passed to scons, with a syntax like `scons opt=val`
-# Runtime options are options passed to the test program.
-# See the definition of `test_options` below.
+# Custom argparse.Action to automatically add and handle an 'all' option.
+# If no 'default' value is set, it will default to 'all.
+# If accepted options are set using 'choices' then only these values will be
+# allowed.
+# If they're set using 'soft_choices' then 'all' will default to these values,
+# but other values will also be accepted.
+class AllChoiceAction(argparse.Action):
 
-# 'all' is a special value for the options. If specified, all other values of
-# the option are tested.
-class TestOption(object):
-  type_environment = 'type_environment'
-  type_build = 'type_build'
-  type_run = 'type_run'
+  # At least one option was set by the user.
+  WasSetByUser = False
 
-  def __init__(self, option_type, name, help,
-               val_test_choices, val_test_default = None,
-               # If unset, the user can pass any value.
-               strict_choices = True, test_independently = False):
-    self.name = name
-    self.option_type = option_type
-    self.help = help
-    self.val_test_choices = val_test_choices
-    self.strict_choices = strict_choices
-    self.test_independently = test_independently
-    if val_test_default is not None:
-      self.val_test_default = val_test_default
+  def __init__(self, **kwargs):
+    if 'choices' in kwargs:
+      assert 'soft_choices' not in kwargs,\
+          "Can't have both 'choices' and 'soft_choices' options"
+      self.all_choices = list(kwargs['choices'])
+      kwargs['choices'].append('all')
     else:
-      self.val_test_default = val_test_choices[0]
+      self.all_choices = kwargs['soft_choices']
+      kwargs['help'] += ' Supported values: {' + ','.join(
+          ['all'] + self.all_choices) + '}'
+      del kwargs['soft_choices']
+    if 'default' not in kwargs:
+      kwargs['default'] = self.all_choices
+    super(AllChoiceAction, self).__init__(**kwargs)
 
-  def ArgList(self, to_test):
-    res = []
-    if to_test == 'all':
-      for value in self.val_test_choices:
-        if value != 'all':
-          res.append(self.GetOptionString(value))
-    else:
-      for value in to_test:
-        res.append(self.GetOptionString(value))
-    return res
+  def __call__(self, parser, namespace, values, option_string=None):
+    AllChoiceAction.WasSetByUser = True
+    if 'all' in values:
+      # Substitute 'all' by the actual values.
+      values = self.all_choices + [value for value in values if value != 'all']
 
-class EnvironmentOption(TestOption):
-  option_type = TestOption.type_environment
-  def __init__(self, name, environment_variable_name, help,
-               val_test_choices, val_test_default = None,
-               strict_choices = True):
-    super(EnvironmentOption, self).__init__(EnvironmentOption.option_type,
-                                      name,
-                                      help,
-                                      val_test_choices,
-                                      val_test_default,
-                                      strict_choices = strict_choices)
-    self.environment_variable_name = environment_variable_name
-
-  def GetOptionString(self, value):
-    return self.environment_variable_name + '=' + value
-
-
-class BuildOption(TestOption):
-  option_type = TestOption.type_build
-  def __init__(self, name, help,
-               val_test_choices, val_test_default = None,
-               strict_choices = True, test_independently = False):
-    super(BuildOption, self).__init__(BuildOption.option_type,
-                                      name,
-                                      help,
-                                      val_test_choices,
-                                      val_test_default,
-                                      strict_choices = strict_choices,
-                                      test_independently = test_independently)
-  def GetOptionString(self, value):
-    return self.name + '=' + value
-
-
-class RuntimeOption(TestOption):
-  option_type = TestOption.type_run
-  def __init__(self, name, help,
-               val_test_choices, val_test_default = None):
-    super(RuntimeOption, self).__init__(RuntimeOption.option_type,
-                                        name,
-                                        help,
-                                        val_test_choices,
-                                        val_test_default)
-  def GetOptionString(self, value):
-    if value == 'on':
-      return Optionify(self.name)
-    else:
-      return None
-
-
-
-environment_option_compiler = \
-  EnvironmentOption('compiler', 'CXX', 'Test for the specified compilers.',
-                    val_test_choices=['all'] + config.tested_compilers,
-                    strict_choices = False)
-test_environment_options = [
-  environment_option_compiler
-]
-
-build_option_mode = \
-  BuildOption('mode', 'Test with the specified build modes.',
-              val_test_choices=['all'] + config.build_options_modes)
-build_option_standard = \
-  BuildOption('std', 'Test with the specified C++ standard.',
-              val_test_choices=['all'] + config.tested_cpp_standards,
-              strict_choices = False)
-build_option_target = \
-  BuildOption('target', 'Test with the specified isa enabled.',
-              val_test_choices=['all'] + config.build_options_target,
-              strict_choices = False, test_independently = True)
-build_option_negative_testing = \
-  BuildOption('negative_testing', 'Test with negative testing enabled.',
-              val_test_choices=['all'] + config.build_options_negative_testing,
-              strict_choices = False, test_independently = True)
-test_build_options = [
-  build_option_mode,
-  build_option_standard,
-  build_option_target,
-  build_option_negative_testing
-]
-
-test_runtime_options = []
-
-test_options = \
-    test_environment_options + test_build_options + test_runtime_options
+    setattr(namespace, self.dest, RemoveDuplicates(values))
 
 
 def BuildOptions():
@@ -196,24 +108,38 @@ def BuildOptions():
   test_arguments = args.add_argument_group(
     'Test options',
     'These options indicate what should be tested')
-  for option in test_options:
-    choices = option.val_test_choices if option.strict_choices else None
-    help = option.help
-    if not option.strict_choices:
-      help += ' Supported values: {' + ','.join(option.val_test_choices) + '}'
-    test_arguments.add_argument(Optionify(option.name),
-                                nargs='+',
-                                choices=choices,
-                                default=option.val_test_default,
-                                help=help,
-                                action='store')
+  test_arguments.add_argument(
+      '--negative_testing',
+      help='Tests with negative testing enabled.',
+      action='store_const',
+      const='on',
+      default='off')
+  test_arguments.add_argument(
+      '--compiler',
+      help='Test for the specified compilers.',
+      soft_choices=config.tested_compilers,
+      action=AllChoiceAction,
+      nargs="+")
+  test_arguments.add_argument(
+      '--mode',
+      help='Test with the specified build modes.',
+      choices=config.build_options_modes,
+      action=AllChoiceAction,
+      nargs="+")
+  test_arguments.add_argument(
+      '--std',
+      help='Test with the specified C++ standard.',
+      soft_choices=config.tested_cpp_standards,
+      action=AllChoiceAction,
+      nargs="+")
+  test_arguments.add_argument(
+      '--target',
+      help='Test with the specified isa enabled.',
+      soft_choices=config.build_options_target,
+      action=AllChoiceAction,
+      nargs="+")
 
   general_arguments = args.add_argument_group('General options')
-  general_arguments.add_argument('--fast', action='store_true',
-                                 help='''Skip the lint and clang-format tests,
-                                 and run only with one compiler, in one mode,
-                                 with one C++ standard, and with an appropriate
-                                 default for runtime options.''')
   general_arguments.add_argument('--dry-run', action='store_true',
                                  help='''Don't actually build or run anything,
                                  but print the configurations that would be
@@ -237,11 +163,6 @@ def BuildOptions():
                                  help='Do not run tests.')
   general_arguments.add_argument('--fail-early', action='store_true',
                                  help='Exit as soon as a test fails.')
-  sim_default = 'none' if platform.machine() == 'aarch64' else 'aarch64'
-  general_arguments.add_argument(
-    '--simulator', action='store', choices=['aarch64', 'none'],
-    default=sim_default,
-    help='Explicitly enable or disable the simulator.')
   general_arguments.add_argument(
     '--under_valgrind', action='store_true',
     help='''Run the test-runner commands under Valgrind.
@@ -253,19 +174,13 @@ def BuildOptions():
 def RunCommand(command, environment_options = None):
   # Create a copy of the environment. We do not want to pollute the environment
   # of future commands run.
-  environment = os.environ
-  # Configure the environment.
-  # TODO: We currently pass the options as strings, so we need to parse them. We
-  # should instead pass them as a data structure and build the string option
-  # later. `environment_options` looks like `['CXX=compiler', 'OPT=val']`.
-  if environment_options:
-    for option in environment_options:
-      opt, val = option.split('=')
-      environment[opt] = val
+  environment = os.environ.copy()
 
   printable_command = ''
   if environment_options:
-    printable_command += ' '.join(environment_options) + ' '
+    # Add the environment options to the environment:
+    environment.update(environment_options)
+    printable_command += ' ' + DictToString(environment_options) + ' '
   printable_command += ' '.join(command)
 
   printable_command_orange = \
@@ -293,7 +208,9 @@ def RunCommand(command, environment_options = None):
   fcntl.fcntl(p.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
   t_start = time.time()
+  t_current = t_start
   t_last_indication = t_start
+  t_current = t_start
   process_output = ''
 
   # Keep looping as long as the process is running.
@@ -322,6 +239,7 @@ def RunCommand(command, environment_options = None):
   rc = p.poll()
   process_output += out
 
+  printable_command += ' (took %d seconds)' % int(t_current - t_start)
   if rc == 0:
     printer.Print(printer.COLOUR_GREEN + printable_command + printer.NO_COLOUR)
   else:
@@ -330,7 +248,7 @@ def RunCommand(command, environment_options = None):
   return rc
 
 
-def RunLinter():
+def RunLinter(jobs):
   rc, default_tracked_files = lint.GetDefaultFilesToLint()
   if rc:
     return rc
@@ -338,54 +256,36 @@ def RunLinter():
                         jobs = args.jobs, progress_prefix = 'cpp lint: ')
 
 
-def RunClangFormat():
+def RunClangFormat(clang_path, jobs):
   return clang_format.ClangFormatFiles(clang_format.GetCppSourceFilesToFormat(),
-                                       args.clang_format, jobs = args.jobs,
+                                       clang_path, jobs = jobs,
                                        progress_prefix = 'clang-format: ')
 
 
+def BuildAll(build_options, jobs, environment_options):
+  scons_command = ['scons', '-C', dir_root, 'all', '-j', str(jobs)]
+  if util.IsCommandAvailable('ccache'):
+    scons_command += ['compiler_wrapper=ccache']
+    # Fixes warnings for ccache 3.3.1 and lower:
+    environment_options = environment_options.copy()
+    environment_options["CCACHE_CPP2"] = 'yes'
+  scons_command += DictToString(build_options).split()
+  return RunCommand(scons_command, environment_options)
 
-def BuildAll(build_options, jobs):
-  scons_command = ["scons", "-C", dir_root, 'all', '-j', str(jobs)]
-  scons_command += list(build_options)
-  return RunCommand(scons_command, list(environment_options))
 
-
-# Work out if the given options or args allow to run on the specified arch.
-#  * arches is a list of ISA/architecture (a64, aarch32, etc)
-#  * options are test.py's command line options if any.
-#  * args are the arguments given to the build script.
-def CanRunOn(arches, options, args):
-  # First we check in the build specific options.
-  for option in options:
-    if 'target' in option:
-      # The option format is 'target=x,y,z'.
-      for target in (option.split('='))[1].split(','):
-        if target in arches:
-          return True
-
-      # There was a target build option but it didn't include the target arch.
-      return False
-
-  # No specific build option, check the script arguments.
-  # The meaning of 'all' will depend on the platform, e.g. 32-bit compilers
-  # cannot handle Aarch64 while 64-bit compiler can handle Aarch32. To avoid
-  # any issues no benchmarks are run for target='all'.
-  if args.target == 'all': return False
-
-  for target in args.target[0].split(','):
-    if target in arches:
+def CanRunAarch64(options, args):
+  for target in options['target']:
+    if target in ['aarch64', 'a64']:
       return True
 
   return False
 
 
-def CanRunAarch64(options, args):
-  return CanRunOn(['aarch64', 'a64'], options, args)
-
-
 def CanRunAarch32(options, args):
-  return CanRunOn(['aarch32', 'a32', 't32'], options, args)
+  for target in options['target']:
+    if target in ['aarch32', 'a32', 't32']:
+      return True
+  return False
 
 
 def RunBenchmarks(options, args):
@@ -406,91 +306,123 @@ def RunBenchmarks(options, args):
   return rc
 
 
-def PrintStatus(success):
-  printer.Print('\n$ ' + ' '.join(sys.argv))
-  if success:
-    printer.Print('SUCCESS')
-  else:
-    printer.Print('FAILURE')
 
+# It is a precommit run if the user did not specify any of the
+# options that would affect the automatically generated combinations.
+def IsPrecommitRun(args):
+  return args.negative_testing == "off" and not AllChoiceAction.WasSetByUser
+
+# Generate a list of all the possible combinations of the passed list:
+# ListCombinations( a = [a0, a1], b = [b0, b1] ) will return
+# [ {a : a0, b : b0}, {a : a0, b : b1}, {a: a1, b : b0}, {a : a1, b : b1}]
+def ListCombinations(**kwargs):
+  # End of recursion: no options passed
+  if not kwargs:
+    return [{}]
+  option, values = kwargs.popitem()
+  configs = ListCombinations(**kwargs)
+  retval = []
+  if not isinstance(values, list):
+    values = [values]
+  for value in values:
+    for config in configs:
+      new_config = config.copy()
+      new_config[option] = value
+      retval.append(new_config)
+  return retval
+
+# Convert a dictionary into a space separated string
+# {a : a0, b : b0} --> "a=a0 b=b0"
+def DictToString(options):
+  return " ".join(
+      ["{}={}".format(option, value) for option, value in options.items()])
 
 
 if __name__ == '__main__':
   util.require_program('scons')
-  rc = 0
 
   args = BuildOptions()
 
-  def MaybeExitEarly(rc):
-    if args.fail_early and rc != 0:
-      PrintStatus(rc == 0)
-      sys.exit(rc)
+  rc = util.ReturnCode(args.fail_early, printer.Print)
 
   if args.under_valgrind:
     util.require_program('valgrind')
 
-  if args.fast:
-    def SetFast(option, specified, default):
-      option.val_test_choices = \
-        [default if specified == 'all' else specified[0]]
-    # `g++` is very slow to compile a few aarch32 test files.
-    SetFast(environment_option_compiler, args.compiler, 'clang++')
-    SetFast(build_option_standard, args.std, 'c++98')
-    SetFast(build_option_mode, args.mode, 'debug')
+  tests = threaded_tests.TestQueue(args.under_valgrind)
+  if not args.nolint and not args.dry_run:
+    rc.Combine(RunLinter(args.jobs))
 
-  if not args.nolint and not (args.fast or args.dry_run):
-    rc |= RunLinter()
-    MaybeExitEarly(rc)
+  if not args.noclang_format and not args.dry_run:
+    rc.Combine(RunClangFormat(args.clang_format, args.jobs))
 
-  if not args.noclang_format and not (args.fast or args.dry_run):
-    rc |= RunClangFormat()
-    MaybeExitEarly(rc)
+  list_options = []
+  if IsPrecommitRun(args):
+    # Maximize the coverage for precommit testing.
 
-  # List all combinations of options that will be tested.
-  def ListCombinations(args, options):
-    opts_list = [
-        opt.ArgList(args.__dict__[opt.name])
-        for opt in options
-        if not opt.test_independently
-    ]
-    return list(itertools.product(*opts_list))
-  # List combinations of options that should only be tested independently.
-  def ListIndependentCombinations(args, options, base):
-    n = []
-    for opt in options:
-      if opt.test_independently:
-        for o in opt.ArgList(args.__dict__[opt.name]):
-          n.append(base + (o,))
-    return n
-  # TODO: We should refine the configurations we test by default, instead of
-  #       always testing all possible combinations.
-  test_env_combinations = ListCombinations(args, test_environment_options)
-  test_build_combinations = ListCombinations(args, test_build_options)
-  if not args.fast:
-    test_build_combinations.extend(
-        ListIndependentCombinations(args,
-                                    test_build_options,
-                                    test_build_combinations[0]))
-  test_runtime_combinations = ListCombinations(args, test_runtime_options)
+    # TODO: Merge this ListCombinations call with the next one once
+    # negative_testing is fixed on master for c++11.
+    list_options += ListCombinations(
+        compiler = args.compiler,
+        negative_testing = 'off',
+        std = 'c++11',
+        mode = 'debug',
+        target = 'a64,a32,t32')
 
-  for environment_options in test_env_combinations:
-    for build_options in test_build_combinations:
-      if (args.dry_run):
-        for runtime_options in test_runtime_combinations:
-          print(' '.join(filter(None, environment_options)) + ', ' +
-                ' '.join(filter(None, build_options)) + ', ' +
-                ' '.join(filter(None, runtime_options)))
+    # Debug c++98 build with negative testing and all targets enabled.
+    list_options += ListCombinations(
+        compiler = args.compiler,
+        negative_testing = 'on',
+        std = 'c++98',
+        mode = 'debug',
+        target = 'a64,a32,t32')
+
+    # Release builds with all targets enabled.
+    list_options += ListCombinations(
+        compiler = args.compiler,
+        negative_testing = 'off',
+        std = args.std,
+        mode = 'release',
+        target = 'a64,a32,t32')
+
+    # c++98 builds for Thumb32 target only.
+    list_options += ListCombinations(
+        compiler = args.compiler,
+        negative_testing = 'off',
+        std = 'c++98',
+        mode = args.mode,
+        target = 't32')
+
+    # c++11 builds for Aarch64 target only.
+    list_options += ListCombinations(
+        compiler = args.compiler,
+        negative_testing = 'off',
+        std = 'c++11',
+        mode = args.mode,
+        target = 'a64')
+  else:
+    list_options = ListCombinations(
+        compiler = args.compiler,
+        negative_testing = args.negative_testing,
+        std = args.std,
+        mode = args.mode,
+        target = args.target)
+
+  for options in list_options:
+    if (args.dry_run):
+      print(DictToString(options))
+      continue
+    # Convert 'compiler' into an environment variable:
+    environment_options = {'CXX': options['compiler']}
+    del options['compiler']
+
+    # Avoid going through the build stage if we are not using the build
+    # result.
+    if not (args.notest and args.nobench):
+      build_rc = BuildAll(options, args.jobs, environment_options)
+      # Don't run the tests for this configuration if the build failed.
+      if build_rc != 0:
+        rc.Combine(build_rc)
         continue
-
-      # Avoid going through the build stage if we are not using the build
-      # result.
-      if not (args.notest and args.nobench):
-        build_rc = BuildAll(build_options, args.jobs)
-        # Don't run the tests for this configuration if the build failed.
-        if build_rc != 0:
-          rc |= build_rc
-          MaybeExitEarly(rc)
-          continue
 
       # Use the realpath of the test executable so that the commands printed
       # can be copy-pasted and run.
@@ -499,23 +431,16 @@ if __name__ == '__main__':
 
       if not args.notest:
         printer.Print(test_executable)
-
-      for runtime_options in test_runtime_combinations:
-        if not args.notest:
-          runtime_options = [x for x in runtime_options if x is not None]
-          prefix = '  ' + ' '.join(runtime_options) + '  '
-          rc |= threaded_tests.RunTests(test_executable,
-                                        args.filters,
-                                        list(runtime_options),
-                                        args.under_valgrind,
-                                        jobs = args.jobs, prefix = prefix)
-          MaybeExitEarly(rc)
+        tests.Add(
+            test_executable,
+            args.filters,
+            list())
 
       if not args.nobench:
-        rc |= RunBenchmarks(build_options, args)
-        MaybeExitEarly(rc)
+        rc.Combine(RunBenchmarks(options, args))
 
+  rc.Combine(tests.Run(args.jobs))
   if not args.dry_run:
-    PrintStatus(rc == 0)
+    rc.PrintStatus()
 
-  sys.exit(rc)
+  sys.exit(rc.Value)

@@ -892,11 +892,11 @@ void MacroAssembler::LogicalMacro(const Register& rd,
       PreShiftImmMode mode = rn.IsSP() ? kNoShift : kAnyShift;
       Operand imm_operand = MoveImmediateForShiftedOp(temp, immediate, mode);
 
-      if (rd.Is(sp)) {
+      if (rd.Is(sp) || rd.Is(wsp)) {
         // If rd is the stack pointer we cannot use it as the destination
         // register so we use the temp register as an intermediate again.
         Logical(temp, rn, imm_operand, op);
-        Mov(sp, temp);
+        Mov(rd, temp);
       } else {
         Logical(rd, rn, imm_operand, op);
       }

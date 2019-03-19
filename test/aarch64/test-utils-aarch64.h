@@ -251,10 +251,21 @@ class RegisterDump {
   } dump_;
 };
 
+// Some tests want to check that a value is _not_ equal to a reference value.
+// These enum values can be used to control the error reporting behaviour.
+enum ExpectedResult { kExpectEqual, kExpectNotEqual };
+
+// The Equal* methods return true if the result matches the reference value.
+// They all print an error message to the console if the result is incorrect
+// (according to the ExpectedResult argument, or kExpectEqual if it is absent).
+//
 // Some of these methods don't use the RegisterDump argument, but they have to
 // accept them so that they can overload those that take register arguments.
 bool Equal32(uint32_t expected, const RegisterDump*, uint32_t result);
-bool Equal64(uint64_t expected, const RegisterDump*, uint64_t result);
+bool Equal64(uint64_t reference,
+             const RegisterDump*,
+             uint64_t result,
+             ExpectedResult option = kExpectEqual);
 bool Equal128(QRegisterValue expected,
               const RegisterDump*,
               QRegisterValue result);
@@ -264,7 +275,10 @@ bool EqualFP32(float expected, const RegisterDump*, float result);
 bool EqualFP64(double expected, const RegisterDump*, double result);
 
 bool Equal32(uint32_t expected, const RegisterDump* core, const Register& reg);
-bool Equal64(uint64_t expected, const RegisterDump* core, const Register& reg);
+bool Equal64(uint64_t reference,
+             const RegisterDump* core,
+             const Register& reg,
+             ExpectedResult option = kExpectEqual);
 bool Equal64(uint64_t expected,
              const RegisterDump* core,
              const VRegister& vreg);
@@ -281,7 +295,8 @@ bool EqualFP64(double expected,
 
 bool Equal64(const Register& reg0,
              const RegisterDump* core,
-             const Register& reg1);
+             const Register& reg1,
+             ExpectedResult option = kExpectEqual);
 bool Equal128(uint64_t expected_h,
               uint64_t expected_l,
               const RegisterDump* core,
@@ -290,6 +305,11 @@ bool Equal128(uint64_t expected_h,
 bool EqualNzcv(uint32_t expected, uint32_t result);
 
 bool EqualRegisters(const RegisterDump* a, const RegisterDump* b);
+
+template <typename T0, typename T1>
+bool NotEqual64(T0 reference, const RegisterDump* core, T1 result) {
+  return !Equal64(reference, core, result, kExpectNotEqual);
+}
 
 // Populate the w, x and r arrays with registers from the 'allowed' mask. The
 // r array will be populated with <reg_size>-sized registers,

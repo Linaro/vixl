@@ -1054,6 +1054,18 @@ void Simulator::PrintTakenBranch(const Instruction* target) {
 
 // Visitors---------------------------------------------------------------------
 
+
+void Simulator::VisitReserved(const Instruction* instr) {
+  // UDF is the only instruction in this group, and the Decoder is precise here.
+  VIXL_ASSERT(instr->Mask(ReservedMask) == UDF);
+
+  printf("UDF (permanently undefined) instruction at %p: 0x%08" PRIx32 "\n",
+         reinterpret_cast<const void*>(instr),
+         instr->GetInstructionBits());
+  VIXL_ABORT_WITH_MSG("UNDEFINED (UDF)\n");
+}
+
+
 void Simulator::VisitUnimplemented(const Instruction* instr) {
   printf("Unimplemented instruction at %p: 0x%08" PRIx32 "\n",
          reinterpret_cast<const void*>(instr),
@@ -3866,13 +3878,11 @@ void Simulator::VisitSystem(const Instruction* instr) {
       Instr i = instr->Mask(SystemPAuthMask);
       if ((i == PACIASP) || (i == PACIBSP)) {
         switch (ReadBType()) {
-          case DefaultBType:
-            VIXL_ABORT_WITH_MSG("Executing PACIXSP with wrong BType.");
-            break;
           case BranchFromGuardedNotToIP:
           // TODO: This case depends on the value of SCTLR_EL1.BT0, which we
           // assume here to be zero. This allows execution of PACI[AB]SP when
           // BTYPE is BranchFromGuardedNotToIP (0b11).
+          case DefaultBType:
           case BranchFromUnguardedOrToIP:
           case BranchAndLink:
             break;

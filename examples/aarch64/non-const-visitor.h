@@ -189,6 +189,7 @@ class SwitchAddSubRegisterSources : public DecoderVisitor {
   V(SVEStackAllocation)                    \
   V(SVEVectorSelect)                       \
   V(SVEWriteFFR)                           \
+  V(Reserved)                              \
   V(Unallocated)                           \
   V(Unimplemented)
 #define DEFINE_UNUSED_VISITOR(Name)                                  \

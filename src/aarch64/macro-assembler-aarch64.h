@@ -2585,9 +2585,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     if (generate_simulator_code_) {
       hlt(kUnreachableOpcode);
     } else {
-      // Branch to 0 to generate a segfault.
-      // lr - kInstructionSize is the address of the offending instruction.
-      blr(xzr);
+      // Use the architecturally-defined UDF instruction to abort on hardware,
+      // because using HLT and BRK tends to make the process difficult to debug.
+      udf(kUnreachableOpcode);
     }
   }
   void Uxtb(const Register& rd, const Register& rn) {
@@ -2932,8 +2932,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(sri, Sri)                          \
   V(srshr, Srshr)                      \
   V(srsra, Srsra)                      \
-  V(sshll, Sshll)                      \
-  V(sshll2, Sshll2)                    \
   V(sshr, Sshr)                        \
   V(ssra, Ssra)                        \
   V(uqrshrn, Uqrshrn)                  \
@@ -2943,8 +2941,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(uqshrn2, Uqshrn2)                  \
   V(urshr, Urshr)                      \
   V(ursra, Ursra)                      \
-  V(ushll, Ushll)                      \
-  V(ushll2, Ushll2)                    \
   V(ushr, Ushr)                        \
   V(usra, Usra)
 
@@ -2955,6 +2951,25 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     ASM(vd, vn, shift);                                            \
   }
   NEON_2VREG_SHIFT_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
+#undef DEFINE_MACRO_ASM_FUNC
+
+#define NEON_2VREG_SHIFT_LONG_MACRO_LIST(V) \
+  V(shll, sshll, Sshll)                     \
+  V(shll, ushll, Ushll)                     \
+  V(shll2, sshll2, Sshll2)                  \
+  V(shll2, ushll2, Ushll2)
+
+#define DEFINE_MACRO_ASM_FUNC(ASM1, ASM2, MASM)                    \
+  void MASM(const VRegister& vd, const VRegister& vn, int shift) { \
+    VIXL_ASSERT(allow_macro_instructions_);                        \
+    SingleEmissionCheckScope guard(this);                          \
+    if (vn.GetLaneSizeInBits() == static_cast<unsigned>(shift)) {  \
+      ASM1(vd, vn, shift);                                         \
+    } else {                                                       \
+      ASM2(vd, vn, shift);                                         \
+    }                                                              \
+  }
+  NEON_2VREG_SHIFT_LONG_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
 #undef DEFINE_MACRO_ASM_FUNC
 
   void Bic(const VRegister& vd, const int imm8, const int left_shift = 0) {
@@ -7457,10 +7472,11 @@ class UseScratchRegisterScope {
   RegList old_availablefp_;  // kVRegister
 
   // Disallow copy constructor and operator=.
-  VIXL_DEBUG_NO_RETURN UseScratchRegisterScope(const UseScratchRegisterScope&) {
+  VIXL_NO_RETURN_IN_DEBUG_MODE UseScratchRegisterScope(
+      const UseScratchRegisterScope&) {
     VIXL_UNREACHABLE();
   }
-  VIXL_DEBUG_NO_RETURN void operator=(const UseScratchRegisterScope&) {
+  VIXL_NO_RETURN_IN_DEBUG_MODE void operator=(const UseScratchRegisterScope&) {
     VIXL_UNREACHABLE();
   }
 };

@@ -137,6 +137,7 @@ V_(ImmException, 20, 5, ExtractBits)                                         \
 V_(ImmHint, 11, 5, ExtractBits)                                              \
 V_(ImmBarrierDomain, 11, 10, ExtractBits)                                    \
 V_(ImmBarrierType, 9, 8, ExtractBits)                                        \
+V_(ImmUdf, 15, 0, ExtractBits)                                               \
                                                                              \
 /* System (MRS, MSR, SYS) */                                                 \
 V_(ImmSystemRegister, 20, 5, ExtractBits)                                    \
@@ -407,7 +408,7 @@ class SystemRegisterEncoder {
 
 // System/special register names.
 // This information is not encoded as one field but as the concatenation of
-// multiple fields (Op0<0>, Op1, Crn, Crm, Op2).
+// multiple fields (Op0, Op1, Crn, Crm, Op2).
 enum SystemRegister {
   NZCV = SystemRegisterEncoder<3, 3, 4, 2, 0>::value,
   FPCR = SystemRegisterEncoder<3, 3, 4, 4, 0>::value,
@@ -3705,6 +3706,13 @@ enum SVEWriteFFROp {
   SVEWriteFFRMask = 0xFFFFFFFF,
   WRFFR_f_p = SVEWriteFFRFixed,
   SETFFR_f = SVEWriteFFRFixed | 0x00040000
+};
+
+enum ReservedOp {
+  ReservedFixed = 0x00000000,
+  ReservedFMask = 0x1E000000,
+  ReservedMask = 0xFFFF0000,
+  UDF = ReservedFixed | 0x00000000
 };
 
 // Unimplemented and unallocated instructions. These are defined to make fixed

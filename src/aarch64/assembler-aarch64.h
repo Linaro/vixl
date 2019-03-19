@@ -2148,6 +2148,9 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Generate exception targeting EL1.
   void svc(int code);
 
+  // Generate undefined instruction exception.
+  void udf(int code);
+
   // Move register to register.
   void mov(const Register& rd, const Register& rn);
 
@@ -6537,6 +6540,11 @@ class Assembler : public vixl::internal::AssemblerBase {
     return imm16 << ImmException_offset;
   }
 
+  static Instr ImmUdf(int imm16) {
+    VIXL_ASSERT(IsUint16(imm16));
+    return imm16 << ImmUdf_offset;
+  }
+
   static Instr ImmSystemRegister(int imm16) {
     VIXL_ASSERT(IsUint16(imm16));
     return imm16 << ImmSystemRegister_offset;
@@ -7020,6 +7028,8 @@ class Assembler : public vixl::internal::AssemblerBase {
   // entry point for both integer and FP registers.
   bool CPUHas(const CPURegister& rt) const;
   bool CPUHas(const CPURegister& rt, const CPURegister& rt2) const;
+
+  bool CPUHas(SystemRegister sysreg) const;
 
  private:
   static uint32_t FP16ToImm8(Float16 imm);

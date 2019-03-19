@@ -63,14 +63,26 @@ bool Equal32(uint32_t expected, const RegisterDump*, uint32_t result) {
 }
 
 
-bool Equal64(uint64_t expected, const RegisterDump*, uint64_t result) {
-  if (result != expected) {
-    printf("Expected 0x%016" PRIx64 "\t Found 0x%016" PRIx64 "\n",
-           expected,
-           result);
+bool Equal64(uint64_t reference,
+             const RegisterDump*,
+             uint64_t result,
+             ExpectedResult option) {
+  switch (option) {
+    case kExpectEqual:
+      if (result != reference) {
+        printf("Expected 0x%016" PRIx64 "\t Found 0x%016" PRIx64 "\n",
+               reference,
+               result);
+      }
+      break;
+    case kExpectNotEqual:
+      if (result == reference) {
+        printf("Expected a result not equal to 0x%016" PRIx64 "\n", reference);
+      }
+      break;
   }
 
-  return expected == result;
+  return reference == result;
 }
 
 
@@ -175,10 +187,22 @@ bool Equal32(uint32_t expected, const RegisterDump* core, const Register& reg) {
 }
 
 
-bool Equal64(uint64_t expected, const RegisterDump* core, const Register& reg) {
+bool Equal64(uint64_t reference,
+             const RegisterDump* core,
+             const Register& reg,
+             ExpectedResult option) {
   VIXL_ASSERT(reg.Is64Bits());
   uint64_t result = core->xreg(reg.GetCode());
-  return Equal64(expected, core, result);
+  return Equal64(reference, core, result, option);
+}
+
+
+bool NotEqual64(uint64_t reference,
+                const RegisterDump* core,
+                const Register& reg) {
+  VIXL_ASSERT(reg.Is64Bits());
+  uint64_t result = core->xreg(reg.GetCode());
+  return NotEqual64(reference, core, result);
 }
 
 
@@ -242,11 +266,22 @@ bool EqualFP64(double expected,
 
 bool Equal64(const Register& reg0,
              const RegisterDump* core,
-             const Register& reg1) {
+             const Register& reg1,
+             ExpectedResult option) {
+  VIXL_ASSERT(reg0.Is64Bits() && reg1.Is64Bits());
+  int64_t reference = core->xreg(reg0.GetCode());
+  int64_t result = core->xreg(reg1.GetCode());
+  return Equal64(reference, core, result, option);
+}
+
+
+bool NotEqual64(const Register& reg0,
+                const RegisterDump* core,
+                const Register& reg1) {
   VIXL_ASSERT(reg0.Is64Bits() && reg1.Is64Bits());
   int64_t expected = core->xreg(reg0.GetCode());
   int64_t result = core->xreg(reg1.GetCode());
-  return Equal64(expected, core, result);
+  return NotEqual64(expected, core, result);
 }
 
 

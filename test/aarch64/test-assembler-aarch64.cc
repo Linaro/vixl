@@ -152,6 +152,11 @@ TEST(stack_ops) {
   __ Orr(sp, xzr, 0xfffffff8);
   __ Mov(w5, wsp);
 
+  // Test writing into wsp in cases where the immediate isn't encodable.
+  VIXL_ASSERT(!Assembler::IsImmLogical(0x1234, kWRegSize));
+  __ Orr(wsp, w5, 0x1234);
+  __ Mov(w6, wsp);
+
   //  restore sp.
   __ Mov(sp, x29);
   END();
@@ -164,6 +169,7 @@ TEST(stack_ops) {
   ASSERT_EQUAL_64(0x1fff, x3);
   ASSERT_EQUAL_64(0xfffffff8, x4);
   ASSERT_EQUAL_64(0xfffffff8, x5);
+  ASSERT_EQUAL_64(0xfffffffc, x6);
 
   TEARDOWN();
 }
@@ -3251,7 +3257,9 @@ TEST(load_pauth_negative_test) {
   }
   END();
 
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
   MUST_FAIL_WITH_MESSAGE(RUN(), "Failed to authenticate pointer.");
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
   TEARDOWN();
 }
@@ -7112,6 +7120,33 @@ TEST(bti_call_to_j) {
 }
 #endif  // VIXL_NEGATIVE_TESTING
 
+TEST(fall_through_bti) {
+  SETUP_WITH_FEATURES(CPUFeatures::kBTI, CPUFeatures::kPAuth);
+
+  START();
+  Label target, target_j, target_c, target_jc;
+  __ Mov(x0, 0);  // 'Normal' instruction sets BTYPE to zero.
+  __ Bind(&target, EmitBTI);
+  __ Add(x0, x0, 1);
+  __ Bind(&target_j, EmitBTI_j);
+  __ Add(x0, x0, 1);
+  __ Bind(&target_c, EmitBTI_c);
+  __ Add(x0, x0, 1);
+  __ Bind(&target_jc, EmitBTI_jc);
+  __ Add(x0, x0, 1);
+  __ Paciasp();
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  simulator.SetGuardedPages(true);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_64(4, x0);
+
+  TEARDOWN();
+}
+
 TEST(zero_dest) {
   // RegisterDump::Dump uses NEON.
   SETUP_WITH_FEATURES(CPUFeatures::kNEON);
@@ -10522,7 +10557,7 @@ TEST(stlurb_stlurh_strlur) {
 
   uintptr_t data_base = reinterpret_cast<uintptr_t>(data);
 
-  SETUP_WITH_FEATURES(CPUFeatures::kRCpcImm);
+  SETUP_WITH_FEATURES(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm);
   START();
 
   __ Mov(x0, 0x0011223344556677);

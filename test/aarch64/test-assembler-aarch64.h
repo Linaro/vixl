@@ -303,7 +303,7 @@
   VIXL_CHECK(Equal64(expected, &core, result))
 
 #define ASSERT_NOT_EQUAL_64(expected, result) \
-  VIXL_CHECK(!Equal64(expected, &core, result))
+  VIXL_CHECK(NotEqual64(expected, &core, result))
 
 #define ASSERT_EQUAL_FP64(expected, result) \
   VIXL_CHECK(EqualFP64(expected, &core, result))
