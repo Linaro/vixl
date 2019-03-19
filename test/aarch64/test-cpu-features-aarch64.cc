@@ -721,6 +721,20 @@ TEST_FP(ucvtf_5, ucvtf(d0, x1))
 TEST_FP(ucvtf_6, ucvtf(s0, w1))
 TEST_FP(ucvtf_7, ucvtf(s0, x1))
 
+#define TEST_FP_FRINT(NAME, ASM)                                 \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP,                    \
+                            CPUFeatures::kFrintToFixedSizedInt), \
+                FP_##NAME,                                       \
+                ASM)
+TEST_FP_FRINT(frint32x_0, frint32x(d0, d1))
+TEST_FP_FRINT(frint32x_1, frint32x(s0, s1))
+TEST_FP_FRINT(frint32z_0, frint32z(d0, d1))
+TEST_FP_FRINT(frint32z_1, frint32z(s0, s1))
+TEST_FP_FRINT(frint64x_0, frint64x(d0, d1))
+TEST_FP_FRINT(frint64x_1, frint64x(s0, s1))
+TEST_FP_FRINT(frint64z_0, frint64z(d0, d1))
+TEST_FP_FRINT(frint64z_1, frint64z(s0, s1))
+
 #define TEST_BTI(NAME, ASM) \
   TEST_TEMPLATE(CPUFeatures(CPUFeatures::kBTI), BTI_##NAME, ASM)
 TEST_BTI(bti_0, bti(EmitBTI))
@@ -3372,6 +3386,25 @@ TEST_FP_NEON(ucvtf_6, ucvtf(v0.V4S(), v1.V4S()))
 TEST_FP_NEON(ucvtf_7, ucvtf(v0.V2D(), v1.V2D()))
 TEST_FP_NEON(ucvtf_8, ucvtf(s0, s1))
 TEST_FP_NEON(ucvtf_9, ucvtf(d0, d1))
+
+#define TEST_FP_NEON_FRINT(NAME, ASM)                            \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP,                    \
+                            CPUFeatures::kNEON,                  \
+                            CPUFeatures::kFrintToFixedSizedInt), \
+                FP_NEON_##NAME,                                  \
+                ASM)
+TEST_FP_NEON_FRINT(frint32x_0, frint32x(v0.V2S(), v1.V2S()))
+TEST_FP_NEON_FRINT(frint32x_1, frint32x(v0.V4S(), v1.V4S()))
+TEST_FP_NEON_FRINT(frint32x_2, frint32x(v0.V2D(), v1.V2D()))
+TEST_FP_NEON_FRINT(frint32z_0, frint32z(v0.V2S(), v1.V2S()))
+TEST_FP_NEON_FRINT(frint32z_1, frint32z(v0.V4S(), v1.V4S()))
+TEST_FP_NEON_FRINT(frint32z_2, frint32z(v0.V2D(), v1.V2D()))
+TEST_FP_NEON_FRINT(frint64x_0, frint64x(v0.V2S(), v1.V2S()))
+TEST_FP_NEON_FRINT(frint64x_1, frint64x(v0.V4S(), v1.V4S()))
+TEST_FP_NEON_FRINT(frint64x_2, frint64x(v0.V2D(), v1.V2D()))
+TEST_FP_NEON_FRINT(frint64z_0, frint64z(v0.V2S(), v1.V2S()))
+TEST_FP_NEON_FRINT(frint64z_1, frint64z(v0.V4S(), v1.V4S()))
+TEST_FP_NEON_FRINT(frint64z_2, frint64z(v0.V2D(), v1.V2D()))
 
 #define TEST_FP_JSCVT(NAME, ASM)                                    \
   TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP, CPUFeatures::kJSCVT), \

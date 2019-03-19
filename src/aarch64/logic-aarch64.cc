@@ -4006,14 +4006,10 @@ int32_t Simulator::FPToFixedJS(double value) {
   return result;
 }
 
-
-double Simulator::FPRoundInt(double value, FPRounding round_mode) {
-  if ((value == 0.0) || (value == kFP64PositiveInfinity) ||
-      (value == kFP64NegativeInfinity)) {
-    return value;
-  } else if (IsNaN(value)) {
-    return FPProcessNaN(value);
-  }
+double Simulator::FPRoundIntCommon(double value, FPRounding round_mode) {
+  VIXL_ASSERT((value != kFP64PositiveInfinity) &&
+              (value != kFP64NegativeInfinity));
+  VIXL_ASSERT(!IsNaN(value));
 
   double int_result = std::floor(value);
   double error = value - int_result;
@@ -4075,6 +4071,50 @@ double Simulator::FPRoundInt(double value, FPRounding round_mode) {
   return int_result;
 }
 
+double Simulator::FPRoundInt(double value, FPRounding round_mode) {
+  if ((value == 0.0) || (value == kFP64PositiveInfinity) ||
+      (value == kFP64NegativeInfinity)) {
+    return value;
+  } else if (IsNaN(value)) {
+    return FPProcessNaN(value);
+  }
+  return FPRoundIntCommon(value, round_mode);
+}
+
+double Simulator::FPRoundInt(double value,
+                             FPRounding round_mode,
+                             FrintMode frint_mode) {
+  if (frint_mode == kFrintToInteger) {
+    return FPRoundInt(value, round_mode);
+  }
+
+  VIXL_ASSERT((frint_mode == kFrintToInt32) || (frint_mode == kFrintToInt64));
+
+  if (value == 0.0) {
+    return value;
+  }
+
+  if ((value == kFP64PositiveInfinity) || (value == kFP64NegativeInfinity) ||
+      IsNaN(value)) {
+    if (frint_mode == kFrintToInt32) {
+      return INT32_MIN;
+    } else {
+      return INT64_MIN;
+    }
+  }
+
+  double result = FPRoundIntCommon(value, round_mode);
+
+  if (frint_mode == kFrintToInt32) {
+    if ((result > INT32_MAX) || (result < INT32_MIN)) {
+      return INT32_MIN;
+    }
+  } else if ((result > INT64_MAX) || (result < INT64_MIN)) {
+    return INT64_MIN;
+  }
+
+  return result;
+}
 
 int16_t Simulator::FPToInt16(double value, FPRounding rmode) {
   value = FPRoundInt(value, rmode);
@@ -4864,9 +4904,11 @@ LogicVRegister Simulator::frint(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 FPRounding rounding_mode,
-                                bool inexact_exception) {
+                                bool inexact_exception,
+                                FrintMode frint_mode) {
   dst.ClearForWrite(vform);
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
+    VIXL_ASSERT(frint_mode == kFrintToInteger);
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       SimFloat16 input = src.Float<SimFloat16>(i);
       SimFloat16 rounded = FPRoundInt(input, rounding_mode);
@@ -4878,7 +4920,8 @@ LogicVRegister Simulator::frint(VectorFormat vform,
   } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       float input = src.Float<float>(i);
-      float rounded = FPRoundInt(input, rounding_mode);
+      float rounded = FPRoundInt(input, rounding_mode, frint_mode);
+
       if (inexact_exception && !IsNaN(input) && (input != rounded)) {
         FPProcessException();
       }
@@ -4888,7 +4931,7 @@ LogicVRegister Simulator::frint(VectorFormat vform,
     VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       double input = src.Float<double>(i);
-      double rounded = FPRoundInt(input, rounding_mode);
+      double rounded = FPRoundInt(input, rounding_mode, frint_mode);
       if (inexact_exception && !IsNaN(input) && (input != rounded)) {
         FPProcessException();
       }

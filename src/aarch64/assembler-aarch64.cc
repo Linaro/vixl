@@ -3351,6 +3351,30 @@ void Assembler::NEON3SameFP16(const VRegister& vd,
 NEON_FP2REGMISC_LIST(DEFINE_ASM_FUNC)
 #undef DEFINE_ASM_FUNC
 
+// clang-format off
+#define NEON_FP2REGMISC_V85_LIST(V)       \
+  V(frint32x,  NEON_FRINT32X,  FRINT32X)  \
+  V(frint32z,  NEON_FRINT32Z,  FRINT32Z)  \
+  V(frint64x,  NEON_FRINT64X,  FRINT64X)  \
+  V(frint64z,  NEON_FRINT64Z,  FRINT64Z)
+// clang-format on
+
+#define DEFINE_ASM_FUNC(FN, VEC_OP, SCA_OP)                                    \
+  void Assembler::FN(const VRegister& vd, const VRegister& vn) {               \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kFP, CPUFeatures::kFrintToFixedSizedInt)); \
+    Instr op;                                                                  \
+    if (vd.IsScalar()) {                                                       \
+      VIXL_ASSERT(vd.Is1S() || vd.Is1D());                                     \
+      op = SCA_OP;                                                             \
+    } else {                                                                   \
+      VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));                                 \
+      VIXL_ASSERT(vd.Is2S() || vd.Is2D() || vd.Is4S());                        \
+      op = VEC_OP;                                                             \
+    }                                                                          \
+    NEONFP2RegMisc(vd, vn, op);                                                \
+  }
+NEON_FP2REGMISC_V85_LIST(DEFINE_ASM_FUNC)
+#undef DEFINE_ASM_FUNC
 
 void Assembler::NEONFP2RegMiscFP16(const VRegister& vd,
                                    const VRegister& vn,

@@ -251,7 +251,11 @@ static void Test1Op_Helper(Test1OpFPHelper_t helper,
   VIXL_ASSERT((n_size == kDRegSize) || (n_size == kSRegSize) ||
               (n_size == kHRegSize));
 
-  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFPHalf);
+  CPUFeatures features;
+  features.Combine(CPUFeatures::kFP, CPUFeatures::kFPHalf);
+  // For frint{32,64}{x,y} variants.
+  features.Combine(CPUFeatures::kFrintToFixedSizedInt);
+  SETUP_WITH_FEATURES(features);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -1455,10 +1459,14 @@ static void Test1OpNEON_Helper(Test1OpNEONHelper_t helper,
   VIXL_ASSERT(vd_form != kFormatUndefined);
   VIXL_ASSERT(vn_form != kFormatUndefined);
 
-  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
-                      CPUFeatures::kFP,
-                      CPUFeatures::kRDM,
-                      CPUFeatures::kNEONHalf);
+  CPUFeatures features;
+  features.Combine(CPUFeatures::kNEON,
+                   CPUFeatures::kFP,
+                   CPUFeatures::kRDM,
+                   CPUFeatures::kNEONHalf);
+  // For frint{32,64}{x,y} variants.
+  features.Combine(CPUFeatures::kFrintToFixedSizedInt);
+  SETUP_WITH_FEATURES(features);
   START();
 
   // Roll up the loop to keep the code size down.
@@ -2924,6 +2932,10 @@ DEFINE_TEST_FP_FP16(fabs, 1Op, Basic)
 DEFINE_TEST_FP_FP16(fmov, 1Op, Basic)
 DEFINE_TEST_FP_FP16(fneg, 1Op, Basic)
 DEFINE_TEST_FP_FP16(fsqrt, 1Op, Basic)
+DEFINE_TEST_FP(frint32x, 1Op, Conversions)
+DEFINE_TEST_FP(frint64x, 1Op, Conversions)
+DEFINE_TEST_FP(frint32z, 1Op, Conversions)
+DEFINE_TEST_FP(frint64z, 1Op, Conversions)
 DEFINE_TEST_FP_FP16(frinta, 1Op, Conversions)
 DEFINE_TEST_FP_FP16(frinti, 1Op, Conversions)
 DEFINE_TEST_FP_FP16(frintm, 1Op, Conversions)
@@ -4843,6 +4855,10 @@ DEFINE_TEST_NEON_2DIFF_NARROW(sqxtun, Basic)
 DEFINE_TEST_NEON_2OPIMM_LONG(shll, Basic, SHLL)
 DEFINE_TEST_NEON_2DIFF_NARROW(uqxtn, Basic)
 DEFINE_TEST_NEON_2DIFF_FP_NARROW_2S(fcvtxn, Conversions)
+DEFINE_TEST_NEON_2SAME_FP(frint32x, Conversions)
+DEFINE_TEST_NEON_2SAME_FP(frint64x, Conversions)
+DEFINE_TEST_NEON_2SAME_FP(frint32z, Conversions)
+DEFINE_TEST_NEON_2SAME_FP(frint64z, Conversions)
 DEFINE_TEST_NEON_2SAME_FP_FP16(frinta, Conversions)
 DEFINE_TEST_NEON_2SAME_FP_FP16(frintx, Conversions)
 DEFINE_TEST_NEON_2SAME_FP_FP16(fcvtnu, Conversions)

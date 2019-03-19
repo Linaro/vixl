@@ -2788,6 +2788,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(fneg, Fneg)                  \
   V(frecpe, Frecpe)              \
   V(frecpx, Frecpx)              \
+  V(frint32x, Frint32x)          \
+  V(frint32z, Frint32z)          \
+  V(frint64x, Frint64x)          \
+  V(frint64z, Frint64z)          \
   V(frinta, Frinta)              \
   V(frinti, Frinti)              \
   V(frintm, Frintm)              \

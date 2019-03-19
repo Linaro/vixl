@@ -3513,6 +3513,7 @@ void Simulator::VisitFPDataProcessing1Source(const Instruction* instr) {
   SimVRegister& rd = ReadVRegister(instr->GetRd());
   SimVRegister& rn = ReadVRegister(instr->GetRn());
   bool inexact_exception = false;
+  FrintMode frint_mode = kFrintToInteger;
 
   unsigned fd = instr->GetRd();
   unsigned fn = instr->GetRn();
@@ -3570,6 +3571,28 @@ void Simulator::VisitFPDataProcessing1Source(const Instruction* instr) {
       // Explicitly log the register update whilst we have type information.
       LogVRegister(fd, GetPrintRegisterFormatFP(vform));
       return;
+    case FRINT32X_s:
+    case FRINT32X_d:
+      inexact_exception = true;
+      frint_mode = kFrintToInt32;
+      break;  // Use FPCR rounding mode.
+    case FRINT64X_s:
+    case FRINT64X_d:
+      inexact_exception = true;
+      frint_mode = kFrintToInt64;
+      break;  // Use FPCR rounding mode.
+    case FRINT32Z_s:
+    case FRINT32Z_d:
+      inexact_exception = true;
+      frint_mode = kFrintToInt32;
+      fpcr_rounding = FPZero;
+      break;
+    case FRINT64Z_s:
+    case FRINT64Z_d:
+      inexact_exception = true;
+      frint_mode = kFrintToInt64;
+      fpcr_rounding = FPZero;
+      break;
     case FRINTI_h:
     case FRINTI_s:
     case FRINTI_d:
@@ -3609,7 +3632,7 @@ void Simulator::VisitFPDataProcessing1Source(const Instruction* instr) {
   }
 
   // Only FRINT* instructions fall through the switch above.
-  frint(vform, rd, rn, fpcr_rounding, inexact_exception);
+  frint(vform, rd, rn, fpcr_rounding, inexact_exception, frint_mode);
   // Explicitly log the register update whilst we have type information.
   LogVRegister(fd, GetPrintRegisterFormatFP(vform));
 }
@@ -4160,6 +4183,7 @@ void Simulator::VisitNEON2RegMisc(const Instruction* instr) {
     VectorFormat fpf = nfd.GetVectorFormat(nfd.FPFormatMap());
     FPRounding fpcr_rounding = static_cast<FPRounding>(ReadFpcr().GetRMode());
     bool inexact_exception = false;
+    FrintMode frint_mode = kFrintToInteger;
 
     // These instructions all use a one bit size field, except XTN, SQXTUN,
     // SHLL, SQXTN and UQXTN, which use a two bit size field.
@@ -4197,6 +4221,24 @@ void Simulator::VisitNEON2RegMisc(const Instruction* instr) {
 
       // The following instructions break from the switch statement, rather
       // than return.
+      case NEON_FRINT32X:
+        inexact_exception = true;
+        frint_mode = kFrintToInt32;
+        break;  // Use FPCR rounding mode.
+      case NEON_FRINT32Z:
+        inexact_exception = true;
+        frint_mode = kFrintToInt32;
+        fpcr_rounding = FPZero;
+        break;
+      case NEON_FRINT64X:
+        inexact_exception = true;
+        frint_mode = kFrintToInt64;
+        break;  // Use FPCR rounding mode.
+      case NEON_FRINT64Z:
+        inexact_exception = true;
+        frint_mode = kFrintToInt64;
+        fpcr_rounding = FPZero;
+        break;
       case NEON_FRINTI:
         break;  // Use FPCR rounding mode.
       case NEON_FRINTX:
@@ -4314,7 +4356,7 @@ void Simulator::VisitNEON2RegMisc(const Instruction* instr) {
     }
 
     // Only FRINT* instructions fall through the switch above.
-    frint(fpf, rd, rn, fpcr_rounding, inexact_exception);
+    frint(fpf, rd, rn, fpcr_rounding, inexact_exception, frint_mode);
   }
 }
 

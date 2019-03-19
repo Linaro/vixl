@@ -379,6 +379,16 @@ void CPUFeaturesAuditor::VisitFPDataProcessing1Source(
     case FRINTI_h:
       scope.Record(CPUFeatures::kFPHalf);
       return;
+    case FRINT32X_s:
+    case FRINT32X_d:
+    case FRINT32Z_s:
+    case FRINT32Z_d:
+    case FRINT64X_s:
+    case FRINT64X_d:
+    case FRINT64Z_s:
+    case FRINT64Z_d:
+      scope.Record(CPUFeatures::kFrintToFixedSizedInt);
+      return;
     default:
       // No special CPU features.
       // This category includes some half-precision FCVT instructions that do
@@ -660,6 +670,12 @@ void CPUFeaturesAuditor::VisitNEON2RegMisc(const Instruction* instr) {
     case NEON_FCMLE_zero:
     case NEON_FCMLT_zero:
       scope.Record(CPUFeatures::kFP);
+      return;
+    case NEON_FRINT32X:
+    case NEON_FRINT32Z:
+    case NEON_FRINT64X:
+    case NEON_FRINT64Z:
+      scope.Record(CPUFeatures::kFP, CPUFeatures::kFrintToFixedSizedInt);
       return;
     default:
       // No additional features.
