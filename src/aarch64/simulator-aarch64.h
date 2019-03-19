@@ -842,13 +842,6 @@ class Simulator : public DecoderVisitor {
 #undef DECLARE
 
 
-#define DECLARE(A)                                                             \
-  VIXL_NO_RETURN_IN_DEBUG_MODE virtual void Visit##A(const Instruction* instr) \
-      VIXL_OVERRIDE;
-  VISITOR_LIST_THAT_DONT_RETURN_IN_DEBUG_MODE(DECLARE)
-#undef DECLARE
-
-
   // Integer register accessors.
 
   // Basic accessor: Read the register as the specified type.
