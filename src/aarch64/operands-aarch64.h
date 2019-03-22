@@ -704,12 +704,12 @@ class CPURegList {
 
   bool IncludesAliasOf(const CPURegister& other) const {
     VIXL_ASSERT(IsValid());
-    return (type_ == other.GetType()) && ((other.GetBit() & list_) != 0);
+    return (type_ == other.GetType()) && IncludesAliasOf(other.GetCode());
   }
 
   bool IncludesAliasOf(int code) const {
     VIXL_ASSERT(IsValid());
-    return ((code & list_) != 0);
+    return (((static_cast<RegList>(1) << code) & list_) != 0);
   }
 
   int GetCount() const {
