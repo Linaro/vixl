@@ -288,6 +288,13 @@ const VRegister& CPURegister::V() const {
 }
 
 
+ZRegisterNoLaneSize CPURegister::Z() const {
+  ZRegisterNoLaneSize z(code_);
+  VIXL_ASSERT(z.IsValid());
+  return z;
+}
+
+
 // Operand.
 Operand::Operand(int64_t immediate)
     : immediate_(immediate),

@@ -590,6 +590,45 @@ TEST(memoperand_is_plain_register_or_equivalent) {
   VIXL_CHECK(!MemOperand(x21, x30).IsEquivalentToPlainRegister());
 }
 
+TEST(scratch_scope_basic_v) {
+  MacroAssembler masm;
+  // v31 is the only V scratch register available by default.
+  {
+    UseScratchRegisterScope temps(&masm);
+    VRegister temp = temps.AcquireVRegisterOfSize(kQRegSize);
+    VIXL_CHECK(temp.Aliases(v31));
+  }
+  {
+    UseScratchRegisterScope temps(&masm);
+    VRegister temp = temps.AcquireVRegisterOfSize(kDRegSize);
+    VIXL_CHECK(temp.Aliases(v31));
+  }
+  {
+    UseScratchRegisterScope temps(&masm);
+    VRegister temp = temps.AcquireVRegisterOfSize(kSRegSize);
+    VIXL_CHECK(temp.Aliases(v31));
+  }
+}
+
+TEST(scratch_scope_basic_z) {
+  MacroAssembler masm;
+  // z31 is the only Z scratch register available by default.
+  {
+    UseScratchRegisterScope temps(&masm);
+    VIXL_CHECK(temps.IsAvailable(v31));
+    VIXL_CHECK(temps.IsAvailable(z31));
+    ZRegisterNoLaneSize temp = temps.AcquireZ();
+    VIXL_CHECK(temp.Is(z31));
+    // Check that allocating a Z register properly reserves the corresponding V
+    // register.
+    VIXL_CHECK(!temps.IsAvailable(v31));
+    VIXL_CHECK(!temps.IsAvailable(z31));
+  }
+  // Check that the destructor restored the acquired register.
+  UseScratchRegisterScope temps(&masm);
+  VIXL_CHECK(temps.IsAvailable(v31));
+  VIXL_CHECK(temps.IsAvailable(z31));
+}
 
 // The tests below only work with the simulator.
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64

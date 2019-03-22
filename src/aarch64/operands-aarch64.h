@@ -42,6 +42,7 @@ static const int kRegListSizeInBits = sizeof(RegList) * 8;
 // to declare them in advance.
 class Register;
 class VRegister;
+class ZRegisterNoLaneSize;
 
 class CPURegister {
  public:
@@ -219,6 +220,7 @@ class CPURegister {
   const VRegister& S() const;
   const VRegister& D() const;
   const VRegister& Q() const;
+  ZRegisterNoLaneSize Z() const;
 
   bool IsSameType(const CPURegister& other) const {
     return type_ == other.type_;
@@ -1027,7 +1029,7 @@ class CPURegList {
 
   bool IncludesAliasOf(int code) const {
     VIXL_ASSERT(IsValid());
-    return ((code & list_) != 0);
+    return (((static_cast<RegList>(1) << code) & list_) != 0);
   }
 
   int GetCount() const {

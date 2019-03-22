@@ -13444,26 +13444,6 @@ TEST(nop) {
   masm.FinalizeCode();
 }
 
-TEST(scratch_scope_basic_v) {
-  MacroAssembler masm;
-
-  {
-    UseScratchRegisterScope temps(&masm);
-    VRegister temp = temps.AcquireVRegisterOfSize(kQRegSize);
-    VIXL_CHECK(temp.Aliases(v31));
-  }
-  {
-    UseScratchRegisterScope temps(&masm);
-    VRegister temp = temps.AcquireVRegisterOfSize(kDRegSize);
-    VIXL_CHECK(temp.Aliases(v31));
-  }
-  {
-    UseScratchRegisterScope temps(&masm);
-    VRegister temp = temps.AcquireVRegisterOfSize(kSRegSize);
-    VIXL_CHECK(temp.Aliases(v31));
-  }
-}
-
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 // Test the pseudo-instructions that control CPUFeatures dynamically in the
 // Simulator. These are used by the test infrastructure itself, but in a fairly

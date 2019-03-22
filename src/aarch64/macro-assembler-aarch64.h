@@ -7380,6 +7380,8 @@ class UseScratchRegisterScope {
 
   bool IsAvailable(const CPURegister& reg) const;
 
+  // TODO: Once CPURegister can represent Z registers, remove this special case.
+  bool IsAvailable(const ZRegisterNoLaneSize& reg) const;
 
   // Take a register from the appropriate temps list. It will be returned
   // automatically when the scope ends.
@@ -7398,7 +7400,9 @@ class UseScratchRegisterScope {
   VRegister AcquireD() {
     return AcquireNextAvailable(masm_->GetScratchFPRegisterList()).D();
   }
-
+  ZRegisterNoLaneSize AcquireZ() {
+    return AcquireNextAvailable(masm_->GetScratchFPRegisterList()).Z();
+  }
 
   Register AcquireRegisterOfSize(int size_in_bits);
   Register AcquireSameSizeAs(const Register& reg) {

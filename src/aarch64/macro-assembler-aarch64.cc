@@ -2900,6 +2900,10 @@ bool UseScratchRegisterScope::IsAvailable(const CPURegister& reg) const {
          masm_->GetScratchFPRegisterList()->IncludesAliasOf(reg);
 }
 
+bool UseScratchRegisterScope::IsAvailable(
+    const ZRegisterNoLaneSize& reg) const {
+  return masm_->GetScratchFPRegisterList()->IncludesAliasOf(reg.GetCode());
+}
 
 Register UseScratchRegisterScope::AcquireRegisterOfSize(int size_in_bits) {
   int code = AcquireNextAvailable(masm_->GetScratchRegisterList()).GetCode();
