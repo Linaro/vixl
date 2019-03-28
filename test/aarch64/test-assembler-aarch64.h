@@ -33,12 +33,14 @@
 //     SETUP();
 //
 //     START();
-//     __ mov(x0, Operand(1));
+//     __ mov(x0, 1);
 //     END();
 //
-//     RUN();
+//     if (CAN_RUN()) {
+//       RUN();
 //
-//     ASSERT_EQUAL_64(1, x0);
+//       ASSERT_EQUAL_64(1, x0);
+//     }
 //
 //     TEARDOWN();
 //   }
@@ -47,6 +49,9 @@
 // be explicitly saved/restored. The END() macro replaces the function return
 // so it may appear multiple times in a test if the test has multiple exit
 // points.
+//
+// Tests requiring specific CPU features should specify exactly what they
+// require using SETUP_WITH_FEATURES(...) instead of SETUP().
 //
 // Once the test has been run all integer and floating point registers as well
 // as flags are accessible through a RegisterDump instance, see
@@ -71,9 +76,15 @@
 //
 //   ASSERT_EQUAL_64(0x1234, core->reg_x0() & 0xffff);
 
+namespace vixl {
+namespace aarch64 {
 
 #define __ masm.
 #define TEST(name) TEST_(AARCH64_ASM_##name)
+
+// PushCalleeSavedRegisters(), PopCalleeSavedRegisters() and Dump() use NEON, so
+// we need to enable it in the infrastructure code for each test.
+static const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 // Run tests with the simulator.
@@ -93,16 +104,19 @@
   MacroAssembler masm(buf, size + CodeBuffer::kDefaultCapacity, pic); \
   SETUP_COMMON()
 
-#define SETUP_COMMON()                                      \
-  masm.SetCPUFeatures(CPUFeatures::None());                 \
-  masm.SetGenerateSimulatorCode(true);                      \
-  Decoder simulator_decoder;                                \
-  Simulator simulator(&simulator_decoder);                  \
-  simulator.SetColouredTrace(Test::coloured_trace());       \
-  simulator.SetInstructionStats(Test::instruction_stats()); \
-  simulator.SetCPUFeatures(CPUFeatures::None());            \
-  RegisterDump core;                                        \
-  ptrdiff_t offset_after_infrastructure_start;              \
+#define SETUP_COMMON()                                                   \
+  bool queried_can_run = false;                                          \
+  /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
+  USE(queried_can_run);                                                  \
+  masm.SetCPUFeatures(CPUFeatures::None());                              \
+  masm.SetGenerateSimulatorCode(true);                                   \
+  Decoder simulator_decoder;                                             \
+  Simulator simulator(&simulator_decoder);                               \
+  simulator.SetColouredTrace(Test::coloured_trace());                    \
+  simulator.SetInstructionStats(Test::instruction_stats());              \
+  simulator.SetCPUFeatures(CPUFeatures::None());                         \
+  RegisterDump core;                                                     \
+  ptrdiff_t offset_after_infrastructure_start;                           \
   ptrdiff_t offset_before_infrastructure_end
 
 #define START()                                                               \
@@ -145,6 +159,14 @@
   __ Ret();                                                              \
   masm.FinalizeCode()
 
+inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
+  // The Simulator can run any test that VIXL can assemble.
+  USE(required);
+  *queried_can_run = true;
+  return true;
+}
+
+
 #define RUN()                                                                  \
   RUN_WITHOUT_SEEN_FEATURE_CHECK();                                            \
   {                                                                            \
@@ -174,6 +196,8 @@
 
 #define RUN_WITHOUT_SEEN_FEATURE_CHECK() \
   DISASSEMBLE();                         \
+  VIXL_ASSERT(QUERIED_CAN_RUN());        \
+  VIXL_ASSERT(CAN_RUN());                \
   simulator.RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>())
 
 #define RUN_CUSTOM() RUN()
@@ -204,12 +228,15 @@
   MacroAssembler masm(buffer, buffer_size, pic);                        \
   SETUP_COMMON()
 
-#define SETUP_COMMON()                               \
-  masm.GetCPUFeatures()->Remove(CPUFeatures::All()); \
-  masm.SetGenerateSimulatorCode(false);              \
-  RegisterDump core;                                 \
-  CPU::SetUp();                                      \
-  ptrdiff_t offset_after_infrastructure_start;       \
+#define SETUP_COMMON()                                                   \
+  bool queried_can_run = false;                                          \
+  /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
+  USE(queried_can_run);                                                  \
+  masm.SetCPUFeatures(CPUFeatures::None());                              \
+  masm.SetGenerateSimulatorCode(false);                                  \
+  RegisterDump core;                                                     \
+  CPU::SetUp();                                                          \
+  ptrdiff_t offset_after_infrastructure_start;                           \
   ptrdiff_t offset_before_infrastructure_end
 
 #define START()                                                          \
@@ -237,10 +264,16 @@
 // Execute the generated code from the memory area.
 #define RUN()                                               \
   DISASSEMBLE();                                            \
+  VIXL_ASSERT(QUERIED_CAN_RUN());                           \
+  VIXL_ASSERT(CAN_RUN());                                   \
   masm.GetBuffer()->SetExecutable();                        \
   ExecuteMemory(masm.GetBuffer()->GetStartAddress<byte*>(), \
                 masm.GetSizeOfCodeGenerated());             \
   masm.GetBuffer()->SetWritable()
+
+// This just provides compatibility with VIXL_INCLUDE_SIMULATOR_AARCH64 builds.
+// We cannot run seen-feature checks when running natively.
+#define RUN_WITHOUT_SEEN_FEATURE_CHECK() RUN()
 
 // The generated code was written directly into `buffer`, execute it directly.
 #define RUN_CUSTOM()                                    \
@@ -253,7 +286,33 @@
 
 #define TEARDOWN_CUSTOM()
 
+inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
+  // InferFromOS can fail, but we can assume that basic features are present.
+  CPUFeatures cpu =
+      CPUFeatures::AArch64LegacyBaseline().With(CPUFeatures::InferFromOS());
+  VIXL_ASSERT(cpu.Has(kInfrastructureCPUFeatures));
+
+  if (cpu.Has(required)) {
+    *queried_can_run = true;
+    return true;
+  }
+
+  // Only warn if we haven't already checked CanRun(...).
+  if (!*queried_can_run) {
+    *queried_can_run = true;
+    CPUFeatures missing = required.Without(cpu);
+    std::cout << "Warning: This test cannot execute its generated code on this "
+                 "CPU.\n";
+    std::cout << "  Required: { " << required << " }\n";
+    std::cout << "   Missing: { " << missing << " }\n";
+  }
+  return false;
+}
+
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
+
+#define CAN_RUN() CanRun(*masm.GetCPUFeatures(), &queried_can_run)
+#define QUERIED_CAN_RUN() (queried_can_run)
 
 #define DISASSEMBLE()                                                     \
   if (Test::disassemble()) {                                              \
@@ -332,3 +391,6 @@
     }                                                             \
     VIXL_CHECK(aborted);                                          \
   }
+
+}  // namespace aarch64
+}  // namespace vixl
