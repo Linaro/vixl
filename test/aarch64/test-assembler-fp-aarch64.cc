@@ -2031,6 +2031,597 @@ TEST(fsqrt) {
   TEARDOWN();
 }
 
+TEST(frint32x_s) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFrintToFixedSizedInt);
+
+  START();
+
+  __ Fmov(s13, 1.0);
+  __ Fmov(s14, 1.1);
+  __ Fmov(s15, 1.5);
+  __ Fmov(s16, 1.9);
+  __ Fmov(s17, 2.5);
+  __ Fmov(s18, -1.5);
+  __ Fmov(s19, -2.5);
+  __ Fmov(s20, kFP32PositiveInfinity);
+  __ Fmov(s21, kFP32NegativeInfinity);
+  __ Fmov(s22, 0.0);
+  __ Fmov(s23, -0.0);
+  __ Fmov(s24, -0.2);
+  __ Fmov(s25, kFP32DefaultNaN);
+  __ Fmov(s26, INT32_MIN);
+  __ Fmov(s27, INT32_MIN + 1);
+  __ Fmov(s28, INT32_MAX);
+  __ Fmov(s29, INT32_MAX - 1);
+  __ Fmov(s30, FLT_MIN);
+  __ Fmov(s31, FLT_MAX);
+
+  __ Frint32x(s0, s13);
+  __ Frint32x(s1, s14);
+  __ Frint32x(s2, s15);
+  __ Frint32x(s3, s16);
+  __ Frint32x(s4, s17);
+  __ Frint32x(s5, s18);
+  __ Frint32x(s6, s19);
+  __ Frint32x(s7, s20);
+  __ Frint32x(s8, s21);
+  __ Frint32x(s9, s22);
+  __ Frint32x(s10, s23);
+  __ Frint32x(s11, s24);
+  __ Frint32x(s12, s25);
+  __ Frint32x(s13, s26);
+  __ Frint32x(s14, s27);
+  __ Frint32x(s15, s28);
+  __ Frint32x(s16, s29);
+  __ Frint32x(s17, s30);
+  __ Frint32x(s18, s31);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP32(1.0, s0);
+  ASSERT_EQUAL_FP32(1.0, s1);
+  ASSERT_EQUAL_FP32(2.0, s2);
+  ASSERT_EQUAL_FP32(2.0, s3);
+  ASSERT_EQUAL_FP32(2.0, s4);
+  ASSERT_EQUAL_FP32(-2.0, s5);
+  ASSERT_EQUAL_FP32(-2.0, s6);
+  ASSERT_EQUAL_FP32(INT32_MIN, s7);
+  ASSERT_EQUAL_FP32(INT32_MIN, s8);
+  ASSERT_EQUAL_FP32(0.0, s9);
+  ASSERT_EQUAL_FP32(-0.0, s10);
+  ASSERT_EQUAL_FP32(-0.0, s11);
+  ASSERT_EQUAL_FP32(INT32_MIN, s12);
+  ASSERT_EQUAL_FP32(INT32_MIN, s13);
+  ASSERT_EQUAL_FP32(INT32_MIN + 1, s14);
+  ASSERT_EQUAL_FP32(INT32_MIN, s15);
+  ASSERT_EQUAL_FP32(INT32_MIN, s16);
+  ASSERT_EQUAL_FP32(0, s17);
+  ASSERT_EQUAL_FP32(INT32_MIN, s18);
+#endif
+
+  TEARDOWN();
+}
+
+TEST(frint32x_d) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFrintToFixedSizedInt);
+
+  START();
+
+  __ Fmov(d13, 1.0);
+  __ Fmov(d14, 1.1);
+  __ Fmov(d15, 1.5);
+  __ Fmov(d16, 1.9);
+  __ Fmov(d17, 2.5);
+  __ Fmov(d18, -1.5);
+  __ Fmov(d19, -2.5);
+  __ Fmov(d20, kFP64PositiveInfinity);
+  __ Fmov(d21, kFP64NegativeInfinity);
+  __ Fmov(d22, 0.0);
+  __ Fmov(d23, -0.0);
+  __ Fmov(d24, -0.2);
+  __ Fmov(d25, kFP64DefaultNaN);
+  __ Fmov(d26, INT32_MIN);
+  __ Fmov(d27, INT32_MIN + 1);
+  __ Fmov(d28, INT32_MAX);
+  __ Fmov(d29, INT32_MAX - 1);
+  __ Fmov(d30, FLT_MIN);
+  __ Fmov(d31, FLT_MAX);
+
+  __ Frint32x(d0, d13);
+  __ Frint32x(d1, d14);
+  __ Frint32x(d2, d15);
+  __ Frint32x(d3, d16);
+  __ Frint32x(d4, d17);
+  __ Frint32x(d5, d18);
+  __ Frint32x(d6, d19);
+  __ Frint32x(d7, d20);
+  __ Frint32x(d8, d21);
+  __ Frint32x(d9, d22);
+  __ Frint32x(d10, d23);
+  __ Frint32x(d11, d24);
+  __ Frint32x(d12, d25);
+  __ Frint32x(d13, d26);
+  __ Frint32x(d14, d27);
+  __ Frint32x(d15, d28);
+  __ Frint32x(d16, d29);
+  __ Frint32x(d17, d30);
+  __ Frint32x(d18, d31);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP64(1.0, d0);
+  ASSERT_EQUAL_FP64(1.0, d1);
+  ASSERT_EQUAL_FP64(2.0, d2);
+  ASSERT_EQUAL_FP64(2.0, d3);
+  ASSERT_EQUAL_FP64(2.0, d4);
+  ASSERT_EQUAL_FP64(-2.0, d5);
+  ASSERT_EQUAL_FP64(-2.0, d6);
+  ASSERT_EQUAL_FP64(INT32_MIN, d7);
+  ASSERT_EQUAL_FP64(INT32_MIN, d8);
+  ASSERT_EQUAL_FP64(0.0, d9);
+  ASSERT_EQUAL_FP64(-0.0, d10);
+  ASSERT_EQUAL_FP64(-0.0, d11);
+  ASSERT_EQUAL_FP64(INT32_MIN, d12);
+  ASSERT_EQUAL_FP64(INT32_MIN, d13);
+  ASSERT_EQUAL_FP64(INT32_MIN + 1, d14);
+  ASSERT_EQUAL_FP64(INT32_MAX, d15);
+  ASSERT_EQUAL_FP64(INT32_MAX - 1, d16);
+  ASSERT_EQUAL_FP64(0, d17);
+  ASSERT_EQUAL_FP64(INT32_MIN, d18);
+#endif
+
+  TEARDOWN();
+}
+
+TEST(frint32z_s) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFrintToFixedSizedInt);
+
+  START();
+
+  __ Fmov(s13, 1.0);
+  __ Fmov(s14, 1.1);
+  __ Fmov(s15, 1.5);
+  __ Fmov(s16, 1.9);
+  __ Fmov(s17, 2.5);
+  __ Fmov(s18, -1.5);
+  __ Fmov(s19, -2.5);
+  __ Fmov(s20, kFP32PositiveInfinity);
+  __ Fmov(s21, kFP32NegativeInfinity);
+  __ Fmov(s22, 0.0);
+  __ Fmov(s23, -0.0);
+  __ Fmov(s24, -0.2);
+  __ Fmov(s25, kFP32DefaultNaN);
+  __ Fmov(s26, INT32_MIN);
+  __ Fmov(s27, INT32_MIN + 1);
+  __ Fmov(s28, INT32_MAX);
+  __ Fmov(s29, INT32_MAX - 1);
+  __ Fmov(s30, FLT_MIN);
+  __ Fmov(s31, FLT_MAX);
+
+  __ Frint32z(s0, s13);
+  __ Frint32z(s1, s14);
+  __ Frint32z(s2, s15);
+  __ Frint32z(s3, s16);
+  __ Frint32z(s4, s17);
+  __ Frint32z(s5, s18);
+  __ Frint32z(s6, s19);
+  __ Frint32z(s7, s20);
+  __ Frint32z(s8, s21);
+  __ Frint32z(s9, s22);
+  __ Frint32z(s10, s23);
+  __ Frint32z(s11, s24);
+  __ Frint32z(s12, s25);
+  __ Frint32z(s13, s26);
+  __ Frint32z(s14, s27);
+  __ Frint32z(s15, s28);
+  __ Frint32z(s16, s29);
+  __ Frint32z(s17, s30);
+  __ Frint32z(s18, s31);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP32(1.0, s0);
+  ASSERT_EQUAL_FP32(1.0, s1);
+  ASSERT_EQUAL_FP32(1.0, s2);
+  ASSERT_EQUAL_FP32(1.0, s3);
+  ASSERT_EQUAL_FP32(2.0, s4);
+  ASSERT_EQUAL_FP32(-1.0, s5);
+  ASSERT_EQUAL_FP32(-2.0, s6);
+  ASSERT_EQUAL_FP32(INT32_MIN, s7);
+  ASSERT_EQUAL_FP32(INT32_MIN, s8);
+  ASSERT_EQUAL_FP32(0.0, s9);
+  ASSERT_EQUAL_FP32(-0.0, s10);
+  ASSERT_EQUAL_FP32(-0.0, s11);
+  ASSERT_EQUAL_FP32(INT32_MIN, s12);
+  ASSERT_EQUAL_FP32(INT32_MIN, s13);
+  ASSERT_EQUAL_FP32(INT32_MIN + 1, s14);
+  ASSERT_EQUAL_FP32(INT32_MIN, s15);
+  ASSERT_EQUAL_FP32(INT32_MIN, s16);
+  ASSERT_EQUAL_FP32(0, s17);
+  ASSERT_EQUAL_FP32(INT32_MIN, s18);
+#endif
+
+  TEARDOWN();
+}
+
+TEST(frint32z_d) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFrintToFixedSizedInt);
+
+  START();
+
+  __ Fmov(d13, 1.0);
+  __ Fmov(d14, 1.1);
+  __ Fmov(d15, 1.5);
+  __ Fmov(d16, 1.9);
+  __ Fmov(d17, 2.5);
+  __ Fmov(d18, -1.5);
+  __ Fmov(d19, -2.5);
+  __ Fmov(d20, kFP64PositiveInfinity);
+  __ Fmov(d21, kFP64NegativeInfinity);
+  __ Fmov(d22, 0.0);
+  __ Fmov(d23, -0.0);
+  __ Fmov(d24, -0.2);
+  __ Fmov(d25, kFP64DefaultNaN);
+  __ Fmov(d26, INT32_MIN);
+  __ Fmov(d27, INT32_MIN + 1);
+  __ Fmov(d28, INT32_MAX);
+  __ Fmov(d29, INT32_MAX - 1);
+  __ Fmov(d30, FLT_MIN);
+  __ Fmov(d31, FLT_MAX);
+
+  __ Frint32z(d0, d13);
+  __ Frint32z(d1, d14);
+  __ Frint32z(d2, d15);
+  __ Frint32z(d3, d16);
+  __ Frint32z(d4, d17);
+  __ Frint32z(d5, d18);
+  __ Frint32z(d6, d19);
+  __ Frint32z(d7, d20);
+  __ Frint32z(d8, d21);
+  __ Frint32z(d9, d22);
+  __ Frint32z(d10, d23);
+  __ Frint32z(d11, d24);
+  __ Frint32z(d12, d25);
+  __ Frint32z(d13, d26);
+  __ Frint32z(d14, d27);
+  __ Frint32z(d15, d28);
+  __ Frint32z(d16, d29);
+  __ Frint32z(d17, d30);
+  __ Frint32z(d18, d31);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP64(1.0, d0);
+  ASSERT_EQUAL_FP64(1.0, d1);
+  ASSERT_EQUAL_FP64(1.0, d2);
+  ASSERT_EQUAL_FP64(1.0, d3);
+  ASSERT_EQUAL_FP64(2.0, d4);
+  ASSERT_EQUAL_FP64(-1.0, d5);
+  ASSERT_EQUAL_FP64(-2.0, d6);
+  ASSERT_EQUAL_FP64(INT32_MIN, d7);
+  ASSERT_EQUAL_FP64(INT32_MIN, d8);
+  ASSERT_EQUAL_FP64(0.0, d9);
+  ASSERT_EQUAL_FP64(-0.0, d10);
+  ASSERT_EQUAL_FP64(-0.0, d11);
+  ASSERT_EQUAL_FP64(INT32_MIN, d12);
+  ASSERT_EQUAL_FP64(INT32_MIN, d13);
+  ASSERT_EQUAL_FP64(INT32_MIN + 1, d14);
+  ASSERT_EQUAL_FP64(INT32_MAX, d15);
+  ASSERT_EQUAL_FP64(INT32_MAX - 1, d16);
+  ASSERT_EQUAL_FP64(0, d17);
+  ASSERT_EQUAL_FP64(INT32_MIN, d18);
+#endif
+
+  TEARDOWN();
+}
+
+TEST(frint64x_s) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFrintToFixedSizedInt);
+
+  START();
+
+  __ Fmov(s13, 1.0);
+  __ Fmov(s14, 1.1);
+  __ Fmov(s15, 1.5);
+  __ Fmov(s16, 1.9);
+  __ Fmov(s17, 2.5);
+  __ Fmov(s18, -1.5);
+  __ Fmov(s19, -2.5);
+  __ Fmov(s20, kFP64PositiveInfinity);
+  __ Fmov(s21, kFP64NegativeInfinity);
+  __ Fmov(s22, 0.0);
+  __ Fmov(s23, -0.0);
+  __ Fmov(s24, -0.2);
+  __ Fmov(s25, kFP64DefaultNaN);
+  __ Fmov(s26, INT64_MIN);
+  __ Fmov(s27, INT64_MIN + 1);
+  __ Fmov(s28, INT64_MAX);
+  __ Fmov(s29, INT64_MAX - 1);
+  __ Fmov(s30, FLT_MIN);
+  __ Fmov(s31, FLT_MAX);
+
+  __ Frint64x(s0, s13);
+  __ Frint64x(s1, s14);
+  __ Frint64x(s2, s15);
+  __ Frint64x(s3, s16);
+  __ Frint64x(s4, s17);
+  __ Frint64x(s5, s18);
+  __ Frint64x(s6, s19);
+  __ Frint64x(s7, s20);
+  __ Frint64x(s8, s21);
+  __ Frint64x(s9, s22);
+  __ Frint64x(s10, s23);
+  __ Frint64x(s11, s24);
+  __ Frint64x(s12, s25);
+  __ Frint64x(s13, s26);
+  __ Frint64x(s14, s27);
+  __ Frint64x(s15, s28);
+  __ Frint64x(s16, s29);
+  __ Frint64x(s17, s30);
+  __ Frint64x(s18, s31);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP32(1.0, s0);
+  ASSERT_EQUAL_FP32(1.0, s1);
+  ASSERT_EQUAL_FP32(2.0, s2);
+  ASSERT_EQUAL_FP32(2.0, s3);
+  ASSERT_EQUAL_FP32(2.0, s4);
+  ASSERT_EQUAL_FP32(-2.0, s5);
+  ASSERT_EQUAL_FP32(-2.0, s6);
+  ASSERT_EQUAL_FP32(INT64_MIN, s7);
+  ASSERT_EQUAL_FP32(INT64_MIN, s8);
+  ASSERT_EQUAL_FP32(0.0, s9);
+  ASSERT_EQUAL_FP32(-0.0, s10);
+  ASSERT_EQUAL_FP32(-0.0, s11);
+  ASSERT_EQUAL_FP32(INT64_MIN, s12);
+  ASSERT_EQUAL_FP32(INT64_MIN, s13);
+  ASSERT_EQUAL_FP32(INT64_MIN + 1, s14);
+  ASSERT_EQUAL_FP32(INT64_MAX, s15);
+  ASSERT_EQUAL_FP32(INT64_MAX - 1, s16);
+  ASSERT_EQUAL_FP32(0, s17);
+  ASSERT_EQUAL_FP32(INT64_MIN, s18);
+#endif
+
+  TEARDOWN();
+}
+
+TEST(frint64x_d) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFrintToFixedSizedInt);
+
+  START();
+
+  __ Fmov(d13, 1.0);
+  __ Fmov(d14, 1.1);
+  __ Fmov(d15, 1.5);
+  __ Fmov(d16, 1.9);
+  __ Fmov(d17, 2.5);
+  __ Fmov(d18, -1.5);
+  __ Fmov(d19, -2.5);
+  __ Fmov(d20, kFP64PositiveInfinity);
+  __ Fmov(d21, kFP64NegativeInfinity);
+  __ Fmov(d22, 0.0);
+  __ Fmov(d23, -0.0);
+  __ Fmov(d24, -0.2);
+  __ Fmov(d25, kFP64DefaultNaN);
+  __ Fmov(d26, INT64_MIN);
+  __ Fmov(d27, INT64_MIN + 1);
+  __ Fmov(d28, INT64_MAX);
+  __ Fmov(d29, INT64_MAX - 1);
+  __ Fmov(d30, FLT_MIN);
+  __ Fmov(d31, FLT_MAX);
+
+  __ Frint64x(d0, d13);
+  __ Frint64x(d1, d14);
+  __ Frint64x(d2, d15);
+  __ Frint64x(d3, d16);
+  __ Frint64x(d4, d17);
+  __ Frint64x(d5, d18);
+  __ Frint64x(d6, d19);
+  __ Frint64x(d7, d20);
+  __ Frint64x(d8, d21);
+  __ Frint64x(d9, d22);
+  __ Frint64x(d10, d23);
+  __ Frint64x(d11, d24);
+  __ Frint64x(d12, d25);
+  __ Frint64x(d13, d26);
+  __ Frint64x(d14, d27);
+  __ Frint64x(d15, d28);
+  __ Frint64x(d16, d29);
+  __ Frint64x(d17, d30);
+  __ Frint64x(d18, d31);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP64(1.0, d0);
+  ASSERT_EQUAL_FP64(1.0, d1);
+  ASSERT_EQUAL_FP64(2.0, d2);
+  ASSERT_EQUAL_FP64(2.0, d3);
+  ASSERT_EQUAL_FP64(2.0, d4);
+  ASSERT_EQUAL_FP64(-2.0, d5);
+  ASSERT_EQUAL_FP64(-2.0, d6);
+  ASSERT_EQUAL_FP64(INT64_MIN, d7);
+  ASSERT_EQUAL_FP64(INT64_MIN, d8);
+  ASSERT_EQUAL_FP64(0.0, d9);
+  ASSERT_EQUAL_FP64(-0.0, d10);
+  ASSERT_EQUAL_FP64(-0.0, d11);
+  ASSERT_EQUAL_FP64(INT64_MIN, d12);
+  ASSERT_EQUAL_FP64(INT64_MIN, d13);
+  ASSERT_EQUAL_FP64(INT64_MIN, d14);
+  ASSERT_EQUAL_FP64(INT64_MAX, d15);
+  ASSERT_EQUAL_FP64(INT64_MAX, d16);
+  ASSERT_EQUAL_FP64(0, d17);
+  ASSERT_EQUAL_FP64(INT64_MIN, d18);
+#endif
+
+  TEARDOWN();
+}
+
+TEST(frint64z_s) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFrintToFixedSizedInt);
+
+  START();
+
+  __ Fmov(s13, 1.0);
+  __ Fmov(s14, 1.1);
+  __ Fmov(s15, 1.5);
+  __ Fmov(s16, 1.9);
+  __ Fmov(s17, 2.5);
+  __ Fmov(s18, -1.5);
+  __ Fmov(s19, -2.5);
+  __ Fmov(s20, kFP64PositiveInfinity);
+  __ Fmov(s21, kFP64NegativeInfinity);
+  __ Fmov(s22, 0.0);
+  __ Fmov(s23, -0.0);
+  __ Fmov(s24, -0.2);
+  __ Fmov(s25, kFP64DefaultNaN);
+  __ Fmov(s26, INT64_MIN);
+  __ Fmov(s27, INT64_MIN + 1);
+  __ Fmov(s28, INT64_MAX);
+  __ Fmov(s29, INT64_MAX - 1);
+  __ Fmov(s30, FLT_MIN);
+  __ Fmov(s31, FLT_MAX);
+
+  __ Frint64z(s0, s13);
+  __ Frint64z(s1, s14);
+  __ Frint64z(s2, s15);
+  __ Frint64z(s3, s16);
+  __ Frint64z(s4, s17);
+  __ Frint64z(s5, s18);
+  __ Frint64z(s6, s19);
+  __ Frint64z(s7, s20);
+  __ Frint64z(s8, s21);
+  __ Frint64z(s9, s22);
+  __ Frint64z(s10, s23);
+  __ Frint64z(s11, s24);
+  __ Frint64z(s12, s25);
+  __ Frint64z(s13, s26);
+  __ Frint64z(s14, s27);
+  __ Frint64z(s15, s28);
+  __ Frint64z(s16, s29);
+  __ Frint64z(s17, s30);
+  __ Frint64z(s18, s31);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP32(1.0, s0);
+  ASSERT_EQUAL_FP32(1.0, s1);
+  ASSERT_EQUAL_FP32(1.0, s2);
+  ASSERT_EQUAL_FP32(1.0, s3);
+  ASSERT_EQUAL_FP32(2.0, s4);
+  ASSERT_EQUAL_FP32(-1.0, s5);
+  ASSERT_EQUAL_FP32(-2.0, s6);
+  ASSERT_EQUAL_FP32(INT64_MIN, s7);
+  ASSERT_EQUAL_FP32(INT64_MIN, s8);
+  ASSERT_EQUAL_FP32(0.0, s9);
+  ASSERT_EQUAL_FP32(-0.0, s10);
+  ASSERT_EQUAL_FP32(-0.0, s11);
+  ASSERT_EQUAL_FP32(INT64_MIN, s12);
+  ASSERT_EQUAL_FP32(INT64_MIN, s13);
+  ASSERT_EQUAL_FP32(INT64_MIN + 1, s14);
+  ASSERT_EQUAL_FP32(INT64_MAX, s15);
+  ASSERT_EQUAL_FP32(INT64_MAX - 1, s16);
+  ASSERT_EQUAL_FP32(0, s17);
+  ASSERT_EQUAL_FP32(INT64_MIN, s18);
+#endif
+
+  TEARDOWN();
+}
+
+TEST(frint64z_d) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kFrintToFixedSizedInt);
+
+  START();
+
+  __ Fmov(d13, 1.0);
+  __ Fmov(d14, 1.1);
+  __ Fmov(d15, 1.5);
+  __ Fmov(d16, 1.9);
+  __ Fmov(d17, 2.5);
+  __ Fmov(d18, -1.5);
+  __ Fmov(d19, -2.5);
+  __ Fmov(d20, kFP64PositiveInfinity);
+  __ Fmov(d21, kFP64NegativeInfinity);
+  __ Fmov(d22, 0.0);
+  __ Fmov(d23, -0.0);
+  __ Fmov(d24, -0.2);
+  __ Fmov(d25, kFP64DefaultNaN);
+  __ Fmov(d26, INT64_MIN);
+  __ Fmov(d27, INT64_MIN + 1);
+  __ Fmov(d28, INT64_MAX);
+  __ Fmov(d29, INT64_MAX - 1);
+  __ Fmov(d30, FLT_MIN);
+  __ Fmov(d31, FLT_MAX);
+
+  __ Frint64z(d0, d13);
+  __ Frint64z(d1, d14);
+  __ Frint64z(d2, d15);
+  __ Frint64z(d3, d16);
+  __ Frint64z(d4, d17);
+  __ Frint64z(d5, d18);
+  __ Frint64z(d6, d19);
+  __ Frint64z(d7, d20);
+  __ Frint64z(d8, d21);
+  __ Frint64z(d9, d22);
+  __ Frint64z(d10, d23);
+  __ Frint64z(d11, d24);
+  __ Frint64z(d12, d25);
+  __ Frint64z(d13, d26);
+  __ Frint64z(d14, d27);
+  __ Frint64z(d15, d28);
+  __ Frint64z(d16, d29);
+  __ Frint64z(d17, d30);
+  __ Frint64z(d18, d31);
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_FP64(1.0, d0);
+  ASSERT_EQUAL_FP64(1.0, d1);
+  ASSERT_EQUAL_FP64(1.0, d2);
+  ASSERT_EQUAL_FP64(1.0, d3);
+  ASSERT_EQUAL_FP64(2.0, d4);
+  ASSERT_EQUAL_FP64(-1.0, d5);
+  ASSERT_EQUAL_FP64(-2.0, d6);
+  ASSERT_EQUAL_FP64(INT64_MIN, d7);
+  ASSERT_EQUAL_FP64(INT64_MIN, d8);
+  ASSERT_EQUAL_FP64(0.0, d9);
+  ASSERT_EQUAL_FP64(-0.0, d10);
+  ASSERT_EQUAL_FP64(-0.0, d11);
+  ASSERT_EQUAL_FP64(INT64_MIN, d12);
+  ASSERT_EQUAL_FP64(INT64_MIN, d13);
+  ASSERT_EQUAL_FP64(INT64_MIN, d14);
+  ASSERT_EQUAL_FP64(INT64_MAX, d15);
+  ASSERT_EQUAL_FP64(INT64_MAX, d16);
+  ASSERT_EQUAL_FP64(0, d17);
+  ASSERT_EQUAL_FP64(INT64_MIN, d18);
+#endif
+
+  TEARDOWN();
+}
 
 TEST(frinta) {
   SETUP_WITH_FEATURES(CPUFeatures::kFP);

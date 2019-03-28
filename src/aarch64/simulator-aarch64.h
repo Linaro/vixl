@@ -3056,6 +3056,12 @@ class Simulator : public DecoderVisitor {
   NEON_FPPAIRWISE_LIST(DECLARE_NEON_FP_PAIR_OP)
 #undef DECLARE_NEON_FP_PAIR_OP
 
+  enum FrintMode {
+    kFrintToInteger = 0,
+    kFrintToInt32 = 32,
+    kFrintToInt64 = 64
+  };
+
   template <typename T>
   LogicVRegister frecps(VectorFormat vform,
                         LogicVRegister dst,
@@ -3160,11 +3166,13 @@ class Simulator : public DecoderVisitor {
                       LogicVRegister dst,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
+
   LogicVRegister frint(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src,
                        FPRounding rounding_mode,
-                       bool inexact_exception = false);
+                       bool inexact_exception = false,
+                       FrintMode frint_mode = kFrintToInteger);
   LogicVRegister fcvts(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src,
@@ -3252,6 +3260,8 @@ class Simulator : public DecoderVisitor {
 
   void FPCompare(double val0, double val1, FPTrapFlags trap);
   double FPRoundInt(double value, FPRounding round_mode);
+  double FPRoundInt(double value, FPRounding round_mode, FrintMode frint_mode);
+  double FPRoundIntCommon(double value, FPRounding round_mode);
   double recip_sqrt_estimate(double a);
   double recip_estimate(double a);
   double FPRecipSqrtEstimate(double a);

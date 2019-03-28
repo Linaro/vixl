@@ -102,7 +102,9 @@ namespace vixl {
   /* Flag manipulation instructions: {AX,XA}FLAG                            */ \
   V(kAXFlag,              "AXFlag",                 NULL)                      \
   /* Random number generation extension,                                    */ \
-  V(kRNG,                 "RNG",                    NULL)
+  V(kRNG,                 "RNG",                    NULL)                      \
+  /* Floating-point round to {32,64}-bit integer.                           */ \
+  V(kFrintToFixedSizedInt,"Frint (bounded)",        NULL)
 // clang-format on
 
 
@@ -217,8 +219,18 @@ class CPUFeatures {
     return CPUFeatures(kFP, kNEON, kCRC32);
   }
 
+  // Construct a new CPUFeatures object using ID registers. This assumes that
+  // kIDRegisterEmulation is present.
+  static CPUFeatures InferFromIDRegisters();
+
+  enum QueryIDRegistersOption {
+    kDontQueryIDRegisters,
+    kQueryIDRegistersIfAvailable
+  };
+
   // Construct a new CPUFeatures object based on what the OS reports.
-  static CPUFeatures InferFromOS();
+  static CPUFeatures InferFromOS(
+      QueryIDRegistersOption option = kQueryIDRegistersIfAvailable);
 
   // Combine another CPUFeatures object into this one. Features that already
   // exist in this set are left unchanged.

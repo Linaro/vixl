@@ -1800,6 +1800,16 @@ void Disassembler::VisitFPDataProcessing1Source(const Instruction *instr) {
     FORMAT(FRINTX, "frintx");
     FORMAT(FRINTI, "frinti");
 #undef FORMAT
+#define FORMAT(A, B) \
+  case A##_s:        \
+  case A##_d:        \
+    mnemonic = B;    \
+    break;
+    FORMAT(FRINT32X, "frint32x");
+    FORMAT(FRINT32Z, "frint32z");
+    FORMAT(FRINT64X, "frint64x");
+    FORMAT(FRINT64Z, "frint64z");
+#undef FORMAT
     case FCVT_ds:
       mnemonic = "fcvt";
       form = "'Dd, 'Sn";
@@ -2461,6 +2471,18 @@ void Disassembler::VisitNEON2RegMisc(const Instruction *instr) {
         mnemonic = instr->Mask(NEON_Q) ? "fcvtl2" : "fcvtl";
         nfd.SetFormatMap(0, &map_cvt_ta);
         nfd.SetFormatMap(1, &map_cvt_tb);
+        break;
+      case NEON_FRINT32X:
+        mnemonic = "frint32x";
+        break;
+      case NEON_FRINT32Z:
+        mnemonic = "frint32z";
+        break;
+      case NEON_FRINT64X:
+        mnemonic = "frint64x";
+        break;
+      case NEON_FRINT64Z:
+        mnemonic = "frint64z";
         break;
       case NEON_FRINTN:
         mnemonic = "frintn";

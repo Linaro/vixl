@@ -3530,6 +3530,46 @@ TEST(neon_2regmisc) {
                 "fneg v31.2d, "
                 "v30.2d");
 
+  COMPARE_MACRO(Frint32x(v2.V2S(), v9.V2S()),
+                "frint32x v2.2s, "
+                "v9.2s");
+  COMPARE_MACRO(Frint32x(v16.V4S(), v23.V4S()),
+                "frint32x v16.4s, "
+                "v23.4s");
+  COMPARE_MACRO(Frint32x(v31.V2D(), v30.V2D()),
+                "frint32x v31.2d, "
+                "v30.2d");
+
+  COMPARE_MACRO(Frint32z(v2.V2S(), v9.V2S()),
+                "frint32z v2.2s, "
+                "v9.2s");
+  COMPARE_MACRO(Frint32z(v16.V4S(), v23.V4S()),
+                "frint32z v16.4s, "
+                "v23.4s");
+  COMPARE_MACRO(Frint32z(v31.V2D(), v30.V2D()),
+                "frint32z v31.2d, "
+                "v30.2d");
+
+  COMPARE_MACRO(Frint64x(v3.V2S(), v10.V2S()),
+                "frint64x v3.2s, "
+                "v10.2s");
+  COMPARE_MACRO(Frint64x(v17.V4S(), v24.V4S()),
+                "frint64x v17.4s, "
+                "v24.4s");
+  COMPARE_MACRO(Frint64x(v30.V2D(), v29.V2D()),
+                "frint64x v30.2d, "
+                "v29.2d");
+
+  COMPARE_MACRO(Frint64z(v4.V2S(), v11.V2S()),
+                "frint64z v4.2s, "
+                "v11.2s");
+  COMPARE_MACRO(Frint64z(v18.V4S(), v25.V4S()),
+                "frint64z v18.4s, "
+                "v25.4s");
+  COMPARE_MACRO(Frint64z(v29.V2D(), v28.V2D()),
+                "frint64z v29.2d, "
+                "v28.2d");
+
   COMPARE_MACRO(Frintn(v2.V2S(), v9.V2S()),
                 "frintn v2.2s, "
                 "v9.2s");

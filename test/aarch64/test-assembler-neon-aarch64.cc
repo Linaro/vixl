@@ -10719,6 +10719,52 @@ TEST(fmax_fmin_h) {
   }
 }
 
+TEST(neon_frint_saturating) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kFrintToFixedSizedInt);
+
+  START();
+
+  __ Movi(v0.V2D(), 0x3f8000003f8ccccd, 0x3fc000003ff33333);
+  __ Movi(v1.V2D(), 0x3e200000be200000, 0x7f800000ff800000);
+  __ Movi(v2.V2D(), 0xfff0000000000000, 0x7ff0000000000000);
+  __ Frint32x(v16.V2S(), v0.V2S());
+  __ Frint32x(v17.V4S(), v1.V4S());
+  __ Frint32x(v18.V2D(), v2.V2D());
+  __ Frint64x(v19.V2S(), v0.V2S());
+  __ Frint64x(v20.V4S(), v1.V4S());
+  __ Frint64x(v21.V2D(), v2.V2D());
+  __ Frint32z(v22.V2S(), v0.V2S());
+  __ Frint32z(v23.V4S(), v1.V4S());
+  __ Frint32z(v24.V2D(), v2.V2D());
+  __ Frint64z(v25.V2S(), v0.V2S());
+  __ Frint64z(v26.V4S(), v1.V4S());
+  __ Frint64z(v27.V2D(), v2.V2D());
+
+  END();
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  RUN();
+
+  ASSERT_EQUAL_128(0x0000000000000000, 0x4000000040000000, q16);
+  ASSERT_EQUAL_128(0x0000000080000000, 0xcf000000cf000000, q17);
+  ASSERT_EQUAL_128(0xc1e0000000000000, 0xc1e0000000000000, q18);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x4000000040000000, q19);
+  ASSERT_EQUAL_128(0x0000000080000000, 0xdf000000df000000, q20);
+  ASSERT_EQUAL_128(0xc3e0000000000000, 0xc3e0000000000000, q21);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x3f8000003f800000, q22);
+  ASSERT_EQUAL_128(0x0000000080000000, 0xcf000000cf000000, q23);
+  ASSERT_EQUAL_128(0xc1e0000000000000, 0xc1e0000000000000, q24);
+  ASSERT_EQUAL_128(0x0000000000000000, 0x3f8000003f800000, q25);
+  ASSERT_EQUAL_128(0x0000000080000000, 0xdf000000df000000, q26);
+  ASSERT_EQUAL_128(0xc3e0000000000000, 0xc3e0000000000000, q27);
+#endif
+
+  TEARDOWN();
+}
+
+
 TEST(neon_tbl) {
   SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
@@ -10792,6 +10838,7 @@ TEST(neon_tbl) {
 
   TEARDOWN();
 }
+
 
 }  // namespace aarch64
 }  // namespace vixl
