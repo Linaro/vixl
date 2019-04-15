@@ -181,25 +181,25 @@ static double rawbits_to_fp(uint16_t bits) {
 
 
 // MacroAssembler member function pointers to pass to the test dispatchers.
-typedef void (MacroAssembler::*Test1OpFPHelper_t)(const FPRegister& fd,
-                                                  const FPRegister& fn);
-typedef void (MacroAssembler::*Test2OpFPHelper_t)(const FPRegister& fd,
-                                                  const FPRegister& fn,
-                                                  const FPRegister& fm);
-typedef void (MacroAssembler::*Test3OpFPHelper_t)(const FPRegister& fd,
-                                                  const FPRegister& fn,
-                                                  const FPRegister& fm,
-                                                  const FPRegister& fa);
-typedef void (MacroAssembler::*TestFPCmpHelper_t)(const FPRegister& fn,
-                                                  const FPRegister& fm);
-typedef void (MacroAssembler::*TestFPCmpZeroHelper_t)(const FPRegister& fn,
+typedef void (MacroAssembler::*Test1OpFPHelper_t)(const VRegister& fd,
+                                                  const VRegister& fn);
+typedef void (MacroAssembler::*Test2OpFPHelper_t)(const VRegister& fd,
+                                                  const VRegister& fn,
+                                                  const VRegister& fm);
+typedef void (MacroAssembler::*Test3OpFPHelper_t)(const VRegister& fd,
+                                                  const VRegister& fn,
+                                                  const VRegister& fm,
+                                                  const VRegister& fa);
+typedef void (MacroAssembler::*TestFPCmpHelper_t)(const VRegister& fn,
+                                                  const VRegister& fm);
+typedef void (MacroAssembler::*TestFPCmpZeroHelper_t)(const VRegister& fn,
                                                       double value);
 typedef void (MacroAssembler::*TestFPToIntHelper_t)(const Register& rd,
-                                                    const FPRegister& fn);
+                                                    const VRegister& fn);
 typedef void (MacroAssembler::*TestFPToFixedHelper_t)(const Register& rd,
-                                                      const FPRegister& fn,
+                                                      const VRegister& fn,
                                                       int fbits);
-typedef void (MacroAssembler::*TestFixedToFPHelper_t)(const FPRegister& fd,
+typedef void (MacroAssembler::*TestFixedToFPHelper_t)(const VRegister& fd,
                                                       const Register& rn,
                                                       int fbits);
 // TODO: 'Test2OpNEONHelper_t' and 'Test2OpFPHelper_t' can be
@@ -267,8 +267,8 @@ static void Test1Op_Helper(Test1OpFPHelper_t helper,
   Register index_n = w3;
 
   int n_index_shift;
-  FPRegister fd;
-  FPRegister fn;
+  VRegister fd;
+  VRegister fn;
   if (n_size == kDRegSize) {
     n_index_shift = kDRegSizeInBytesLog2;
     fn = d1;
@@ -418,9 +418,9 @@ static void Test2Op_Helper(Test2OpFPHelper_t helper,
     index_shift = kHRegSizeInBytesLog2;
   }
 
-  FPRegister fd;
-  FPRegister fn;
-  FPRegister fm;
+  VRegister fd;
+  VRegister fn;
+  VRegister fm;
 
   if (double_op) {
     fd = d0;
@@ -569,10 +569,10 @@ static void Test3Op_Helper(Test3OpFPHelper_t helper,
   bool double_op = reg_size == kDRegSize;
   bool single_op = reg_size == kSRegSize;
   int index_shift;
-  FPRegister fd(0, reg_size);
-  FPRegister fn(1, reg_size);
-  FPRegister fm(2, reg_size);
-  FPRegister fa(3, reg_size);
+  VRegister fd(0, reg_size);
+  VRegister fn(1, reg_size);
+  VRegister fm(2, reg_size);
+  VRegister fa(3, reg_size);
   if (double_op) {
     index_shift = kDRegSizeInBytesLog2;
   } else if (single_op) {
@@ -728,8 +728,8 @@ static void TestCmp_Helper(TestFPCmpHelper_t helper,
   const int index_shift =
       double_op ? kDRegSizeInBytesLog2 : kSRegSizeInBytesLog2;
 
-  FPRegister fn = double_op ? d1 : s1;
-  FPRegister fm = double_op ? d2 : s2;
+  VRegister fn = double_op ? d1 : s1;
+  VRegister fm = double_op ? d2 : s2;
 
   __ Mov(out, results);
   __ Mov(inputs_base, inputs);
@@ -869,7 +869,7 @@ static void TestCmpZero_Helper(TestFPCmpZeroHelper_t helper,
   const int index_shift =
       double_op ? kDRegSizeInBytesLog2 : kSRegSizeInBytesLog2;
 
-  FPRegister fn = double_op ? d1 : s1;
+  VRegister fn = double_op ? d1 : s1;
 
   __ Mov(out, results);
   __ Mov(inputs_base, inputs);
@@ -1006,7 +1006,7 @@ static void TestFPToFixed_Helper(TestFPToFixedHelper_t helper,
   }
 
   Register rd = (d_size == kXRegSize) ? Register(x10) : Register(w10);
-  FPRegister fn;
+  VRegister fn;
   if (n_size == kDRegSize) {
     fn = d1;
   } else if (n_size == kSRegSize) {
@@ -1075,7 +1075,7 @@ static void TestFPToInt_Helper(TestFPToIntHelper_t helper,
   }
 
   Register rd = (d_size == kXRegSize) ? Register(x10) : Register(w10);
-  FPRegister fn;
+  VRegister fn;
   if (n_size == kDRegSize) {
     fn = d1;
   } else if (n_size == kSRegSize) {
@@ -5060,17 +5060,17 @@ Instruction* GenerateSum(MacroAssembler* masm) {
   masm->Reset();
 
   ABI abi;
-  FPRegister input_1 =
-      FPRegister(abi.GetNextParameterGenericOperand<float>().GetCPURegister());
+  VRegister input_1 =
+      VRegister(abi.GetNextParameterGenericOperand<float>().GetCPURegister());
   Register input_2 =
       Register(abi.GetNextParameterGenericOperand<int64_t>().GetCPURegister());
-  FPRegister input_3 =
-      FPRegister(abi.GetNextParameterGenericOperand<double>().GetCPURegister());
-  FPRegister result =
-      FPRegister(abi.GetReturnGenericOperand<double>().GetCPURegister());
+  VRegister input_3 =
+      VRegister(abi.GetNextParameterGenericOperand<double>().GetCPURegister());
+  VRegister result =
+      VRegister(abi.GetReturnGenericOperand<double>().GetCPURegister());
 
   UseScratchRegisterScope temps(masm);
-  FPRegister temp = temps.AcquireD();
+  VRegister temp = temps.AcquireD();
 
   __ Fcvt(input_1.D(), input_1);
   __ Scvtf(temp, input_2);

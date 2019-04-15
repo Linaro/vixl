@@ -8278,13 +8278,13 @@ static void PushPopFPSimpleHelper(int reg_count,
   // debug code, for example.
   static RegList const allowed = ~0;
   if (reg_count == kPushPopFPUseMaxRegCount) {
-    reg_count = CountSetBits(allowed, kNumberOfFPRegisters);
+    reg_count = CountSetBits(allowed, kNumberOfVRegisters);
   }
   // Work out which registers to use, based on reg_size.
-  FPRegister v[kNumberOfRegisters];
-  FPRegister d[kNumberOfRegisters];
+  VRegister v[kNumberOfRegisters];
+  VRegister d[kNumberOfRegisters];
   RegList list =
-      PopulateFPRegisterArray(NULL, d, v, reg_size, reg_count, allowed);
+      PopulateVRegisterArray(NULL, d, v, reg_size, reg_count, allowed);
 
   // Arbitrarily pick a register to use as a stack pointer.
   const Register& stack_pointer = x10;

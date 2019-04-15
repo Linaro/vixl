@@ -51,7 +51,6 @@ class CPURegister {
     kInvalid = 0,
     kRegister,
     kVRegister,
-    kFPRegister = kVRegister,
     kNoRegister
   };
 
@@ -154,7 +153,7 @@ class CPURegister {
   }
 
   bool IsValidFPRegister() const {
-    return IsFPRegister() && (code_ < kNumberOfVRegisters);
+    return IsValidVRegister() && IsFPRegister();
   }
 
   bool IsNone() const {
@@ -439,15 +438,11 @@ class VRegister : public CPURegister {
 };
 
 
-// Backward compatibility for FPRegisters.
-typedef VRegister FPRegister;
-
 // No*Reg is used to indicate an unused argument, or an error case. Note that
 // these all compare equal (using the Is() method). The Register and VRegister
 // variants are provided for convenience.
 const Register NoReg;
 const VRegister NoVReg;
-const FPRegister NoFPReg;  // For backward compatibility.
 const CPURegister NoCPUReg;
 
 

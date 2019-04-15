@@ -291,7 +291,7 @@ void LoadFPValueHelper(T values[], int card) {
   SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
   const bool is_32bits = (sizeof(T) == 4);
-  const FPRegister& fp_tgt = is_32bits ? s2 : d2;
+  const VRegister& fp_tgt = is_32bits ? s2 : d2;
   const Register& tgt1 = is_32bits ? Register(w1) : Register(x1);
   const Register& tgt2 = is_32bits ? Register(w2) : Register(x2);
 

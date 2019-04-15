@@ -88,7 +88,7 @@ VIXL_DEPRECATED("DebugHltOpcode", typedef DebugHltOpcode DebugHltOpcodes);
 // call):
 //    x0: The format string
 // x1-x7: Optional arguments, if type == CPURegister::kRegister
-// d0-d7: Optional arguments, if type == CPURegister::kFPRegister
+// d0-d7: Optional arguments, if type == CPURegister::kVRegister
 const unsigned kPrintfArgCountOffset = 1 * kInstructionSize;
 const unsigned kPrintfArgPatternListOffset = 2 * kInstructionSize;
 const unsigned kPrintfLength = 3 * kInstructionSize;
