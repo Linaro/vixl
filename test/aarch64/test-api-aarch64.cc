@@ -244,9 +244,8 @@ TEST(isvalid) {
   VIXL_CHECK(s0.IsValidFPRegister());
   VIXL_CHECK(!s0.IsValidRegister());
 
-  // TODO: h0.IsValidFPRegister() should be true.
   VIXL_CHECK(h0.IsValidVRegister());
-  VIXL_CHECK(!h0.IsValidFPRegister());
+  VIXL_CHECK(h0.IsValidFPRegister());
   VIXL_CHECK(!h0.IsValidRegister());
 
   VIXL_CHECK(b0.IsValidVRegister());
@@ -256,12 +255,10 @@ TEST(isvalid) {
   // IsValidFPRegister() is only true for scalar types.
   VIXL_CHECK(q0.V2D().IsValidVRegister());
   VIXL_CHECK(!q0.V2D().IsValidFPRegister());
-  // TODO: d0.V2S().IsValidFPRegister() should be false.
   VIXL_CHECK(d0.V2S().IsValidVRegister());
-  VIXL_CHECK(d0.V2S().IsValidFPRegister());
-  // TODO: s0.V2H().IsValidFPRegister() should be false.
+  VIXL_CHECK(!d0.V2S().IsValidFPRegister());
   VIXL_CHECK(s0.V2H().IsValidVRegister());
-  VIXL_CHECK(s0.V2H().IsValidFPRegister());
+  VIXL_CHECK(!s0.V2H().IsValidFPRegister());
 }
 
 
@@ -318,9 +315,8 @@ TEST(isvalid_cpu) {
   VIXL_CHECK(static_cast<CPURegister>(s0).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(s0).IsValidRegister());
 
-  // TODO: h0.IsValidFPRegister() should be true.
   VIXL_CHECK(static_cast<CPURegister>(h0).IsValidVRegister());
-  VIXL_CHECK(!static_cast<CPURegister>(h0).IsValidFPRegister());
+  VIXL_CHECK(static_cast<CPURegister>(h0).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(h0).IsValidRegister());
 
   VIXL_CHECK(static_cast<CPURegister>(b0).IsValidVRegister());
