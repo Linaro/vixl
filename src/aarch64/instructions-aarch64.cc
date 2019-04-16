@@ -35,7 +35,8 @@ static uint64_t RepeatBitsAcrossReg(unsigned reg_size,
                                     unsigned width) {
   VIXL_ASSERT((width == 2) || (width == 4) || (width == 8) || (width == 16) ||
               (width == 32));
-  VIXL_ASSERT((reg_size == kWRegSize) || (reg_size == kXRegSize));
+  VIXL_ASSERT((reg_size == kBRegSize) || (reg_size == kHRegSize) ||
+              (reg_size == kSRegSize) || (reg_size == kDRegSize));
   uint64_t result = value & ((UINT64_C(1) << width) - 1);
   for (unsigned i = width; i < reg_size; i *= 2) {
     result |= (result << i);
@@ -426,7 +427,74 @@ uint64_t Instruction::GetImmLogical() const {
   int32_t n = GetBitN();
   int32_t imm_s = GetImmSetBits();
   int32_t imm_r = GetImmRotate();
+  return DecodeImmBitMask(n, imm_s, imm_r, reg_size);
+}
 
+// Logical immediates can't encode zero, so a return value of zero is used to
+// indicate a failure case. Specifically, where the constraints on imm_s are
+// not met.
+uint64_t Instruction::GetSVEImmLogical() const {
+  int n = GetSVEBitN();
+  int imm_s = GetSVEImmSetBits();
+  int imm_r = GetSVEImmRotate();
+  int lane_size_in_bytes_log2 = GetSVEBitwiseImmLaneSizeInBytesLog2();
+  switch (lane_size_in_bytes_log2) {
+    case kDRegSizeInBytesLog2:
+    case kSRegSizeInBytesLog2:
+    case kHRegSizeInBytesLog2:
+    case kBRegSizeInBytesLog2: {
+      int lane_size_in_bits = 1 << (lane_size_in_bytes_log2 + 3);
+      return DecodeImmBitMask(n, imm_s, imm_r, lane_size_in_bits);
+    }
+    default:
+      return 0;
+  }
+}
+
+int Instruction::GetSVEBitwiseImmLaneSizeInBytesLog2() const {
+  int n = GetSVEBitN();
+  int imm_s = GetSVEImmSetBits();
+  unsigned type_bitset =
+      (n << SVEImmSetBits_width) | (~imm_s & GetUintMask(SVEImmSetBits_width));
+
+  // An lane size is constructed from the n and imm_s bits according to
+  // the following table:
+  //
+  // N   imms   size
+  // 0  0xxxxx   32
+  // 0  10xxxx   16
+  // 0  110xxx    8
+  // 0  1110xx    8
+  // 0  11110x    8
+  // 1  xxxxxx   64
+
+  if (type_bitset == 0) {
+    // Bail out early since `HighestSetBitPosition` doesn't accept zero
+    // value input.
+    return -1;
+  }
+
+  switch (HighestSetBitPosition(type_bitset)) {
+    case 6:
+      return kDRegSizeInBytesLog2;
+    case 5:
+      return kSRegSizeInBytesLog2;
+    case 4:
+      return kHRegSizeInBytesLog2;
+    case 3:
+    case 2:
+    case 1:
+      return kBRegSizeInBytesLog2;
+    default:
+      // RESERVED encoding.
+      return -1;
+  }
+}
+
+uint64_t Instruction::DecodeImmBitMask(int32_t n,
+                                       int32_t imm_s,
+                                       int32_t imm_r,
+                                       int32_t size) const {
   // An integer is constructed from the n, imm_s and imm_r bits according to
   // the following table:
   //
@@ -461,7 +529,7 @@ uint64_t Instruction::GetImmLogical() const {
           return 0;
         }
         uint64_t bits = (UINT64_C(1) << ((imm_s & mask) + 1)) - 1;
-        return RepeatBitsAcrossReg(reg_size,
+        return RepeatBitsAcrossReg(size,
                                    RotateRight(bits, imm_r & mask, width),
                                    width);
       }
@@ -1105,5 +1173,6 @@ int64_t MinIntFromFormat(VectorFormat vform) {
 uint64_t MaxUintFromFormat(VectorFormat vform) {
   return UINT64_MAX >> (64 - LaneSizeInBitsFromFormat(vform));
 }
+
 }  // namespace aarch64
 }  // namespace vixl

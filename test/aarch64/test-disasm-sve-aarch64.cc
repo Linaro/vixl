@@ -79,12 +79,13 @@ TEST(sve_address_generation) {
 TEST(sve_bitwise_imm) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(and_(z2.Vn?(), z2.Vn?()), "and <Zdn>.<T>, <Zdn>.<T>, #<const>");
-  COMPARE_PREFIX(dupm(z15.Vn?()), "dupm <Zd>.<T>, #<const>");
-  COMPARE_PREFIX(eor(z26.Vn?(), z26.Vn?()), "eor <Zdn>.<T>, <Zdn>.<T>, #<const>");
-  COMPARE_PREFIX(orr(z26.Vn?(), z26.Vn?()), "orr <Zdn>.<T>, <Zdn>.<T>, #<const>");
-#endif
+  // The assembler will necessarily encode an immediate in the simplest bitset.
+  COMPARE_PREFIX(and_(z2.VnD(), z2.VnD(), 0x0000ffff0000ffff),
+                 "and z2.s, z2.s, #0xffff");
+  COMPARE_PREFIX(dupm(z15.VnS(), 0x7ffc7ffc), "dupm z15.h, #0x7ffc");
+  COMPARE_PREFIX(eor(z26.VnH(), z26.VnH(), 0x7ff8),
+                 "eor z26.h, z26.h, #0x7ff8");
+  COMPARE_PREFIX(orr(z13.VnB(), z13.VnB(), 0x78), "orr z13.b, z13.b, #0x78");
 
   CLEANUP();
 }

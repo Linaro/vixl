@@ -330,6 +330,12 @@ class Instruction {
   VIXL_DEPRECATED("GetImmLogical", uint64_t ImmLogical() const) {
     return GetImmLogical();
   }
+  uint64_t GetSVEImmLogical() const;
+  int GetSVEBitwiseImmLaneSizeInBytesLog2() const;
+  uint64_t DecodeImmBitMask(int32_t n,
+                            int32_t imm_s,
+                            int32_t imm_r,
+                            int32_t size) const;
 
   unsigned GetImmNEONabcdefgh() const;
   VIXL_DEPRECATED("GetImmNEONabcdefgh", unsigned ImmNEONabcdefgh() const) {

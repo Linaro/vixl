@@ -4954,24 +4954,25 @@ void Disassembler::VisitSVEAddressGeneration(const Instruction *instr) {
 
 void Disassembler::VisitSVEBitwiseImm(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zdn>.<T>, <Zdn>.<T>, #<const>
-  const char *form = "'Zd.<T>, 'Zd.<T>, #<const>";
+  const char *form = "'Zd.'tl, 'Zd.'tl, 'ITriSve";
+
+  if (instr->GetSVEImmLogical() == 0) {
+    // The immediate encoded in the instruction is not in the expected format.
+    Format(instr, "unallocated", "(SVEBitwiseImm)");
+    return;
+  }
 
   switch (instr->Mask(SVEBitwiseImmMask)) {
-    // AND <Zdn>.<T>, <Zdn>.<T>, #<const>
     case AND_z_zi:
       mnemonic = "and";
       break;
-    // DUPM <Zd>.<T>, #<const>
     case DUPM_z_i:
       mnemonic = "dupm";
-      form = "'Zd.<T>, #<const>";
+      form = "'Zd.'tl, 'ITriSve";
       break;
-    // EOR <Zdn>.<T>, <Zdn>.<T>, #<const>
     case EOR_z_zi:
       mnemonic = "eor";
       break;
-    // ORR <Zdn>.<T>, <Zdn>.<T>, #<const>
     case ORR_z_zi:
       mnemonic = "orr";
       break;
@@ -9476,8 +9477,14 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
       return 2;
     }
     case 'T': {  // ITri - Immediate Triangular Encoded.
-      AppendToOutput("#0x%" PRIx64, instr->GetImmLogical());
-      return 4;
+      if (format[4] == 'S') {
+        // SVE logical immediate encoding.
+        AppendToOutput("#0x%" PRIx64, instr->GetSVEImmLogical());
+        return 7;
+      } else {
+        AppendToOutput("#0x%" PRIx64, instr->GetImmLogical());
+        return 4;
+      }
     }
     case 'N': {  // INzcv.
       int nzcv = (instr->GetNzcv() << Flags_offset);
@@ -10078,14 +10085,23 @@ int Disassembler::SubstituteSVESize(const Instruction *instr,
   USE(format);
   VIXL_ASSERT(format[0] == 't');
 
-  // TODO: only the most common case for <size> is supported at the moment,
-  // and even then, the RESERVED values are handled as if they're not reserved.
   static const char sizes[] = {'b', 'h', 's', 'd'};
-  unsigned s = instr->GetNEONSize();
-  VIXL_ASSERT(s < ArrayLength(sizes));
-  AppendToOutput("%c", sizes[s]);
+  unsigned size_in_byte_log2;
+  int placeholder_length = 1;
 
-  return 1;
+  if (format[1] == 'l') {  // Logical operations
+    size_in_byte_log2 = instr->GetSVEBitwiseImmLaneSizeInBytesLog2();
+    placeholder_length++;
+  } else {
+    // TODO: only the most common case for <size> is supported at the moment,
+    // and even then, the RESERVED values are handled as if they're not
+    // reserved.
+    size_in_byte_log2 = instr->GetSVESize();
+  }
+  VIXL_ASSERT(size_in_byte_log2 < ArrayLength(sizes));
+  AppendToOutput("%c", sizes[size_in_byte_log2]);
+
+  return placeholder_length;
 }
 
 void Disassembler::ResetOutput() {

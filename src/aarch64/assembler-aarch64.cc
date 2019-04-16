@@ -5832,7 +5832,8 @@ bool Assembler::IsImmLogical(uint64_t value,
                              unsigned* n,
                              unsigned* imm_s,
                              unsigned* imm_r) {
-  VIXL_ASSERT((width == kWRegSize) || (width == kXRegSize));
+  VIXL_ASSERT((width == kBRegSize) || (width == kHRegSize) ||
+              (width == kSRegSize) || (width == kDRegSize));
 
   bool negate = false;
 
@@ -5873,16 +5874,18 @@ bool Assembler::IsImmLogical(uint64_t value,
     value = ~value;
   }
 
-  if (width == kWRegSize) {
-    // To handle 32-bit logical immediates, the very easiest thing is to repeat
-    // the input value twice to make a 64-bit word. The correct encoding of that
-    // as a logical immediate will also be the correct encoding of the 32-bit
-    // value.
+  if (width <= kWRegSize) {
+    // To handle 8/16/32-bit logical immediates, the very easiest thing is to repeat
+    // the input value to fill a 64-bit word. The correct encoding of that as a
+    // logical immediate will also be the correct encoding of the value.
 
-    // Avoid making the assumption that the most-significant 32 bits are zero by
+    // Avoid making the assumption that the most-significant 56/48/32 bits are zero by
     // shifting the value left and duplicating it.
-    value <<= kWRegSize;
-    value |= value >> kWRegSize;
+    for (unsigned bits = width; bits <= kWRegSize; bits *= 2) {
+      value <<= bits;
+      uint64_t mask = (UINT64_C(1) << bits) - 1;
+      value |= ((value >> bits) & mask);
+    }
   }
 
   // The basic analysis idea: imagine our input word looks like this.

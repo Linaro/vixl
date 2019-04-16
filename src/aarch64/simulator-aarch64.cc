@@ -7004,19 +7004,22 @@ void Simulator::VisitSVEAddressGeneration(const Instruction* instr) {
 
 void Simulator::VisitSVEBitwiseImm(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEBitwiseImmMask)) {
+  Instr op = instr->Mask(SVEBitwiseImmMask);
+  switch (op) {
     case AND_z_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
     case DUPM_z_i:
-      VIXL_UNIMPLEMENTED();
-      break;
     case EOR_z_zi:
-      VIXL_UNIMPLEMENTED();
+    case ORR_z_zi: {
+      int lane_size = instr->GetSVEBitwiseImmLaneSizeInBytesLog2();
+      uint64_t imm = instr->GetSVEImmLogical();
+      // Valid immediate is a non-zero bits
+      VIXL_ASSERT(imm != 0);
+      SVEBitwiseImmHelper(static_cast<SVEBitwiseImmOp>(op),
+                          SVEFormatFromLaneSizeInBytesLog2(lane_size),
+                          ReadVRegister(instr->GetRd()),
+                          imm);
       break;
-    case ORR_z_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;

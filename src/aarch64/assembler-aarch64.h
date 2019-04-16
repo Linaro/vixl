@@ -3656,7 +3656,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zm);
 
   // Bitwise AND with immediate (unpredicated).
-  void and_(const ZRegister& zd, const ZRegister& zn);
+  void and_(const ZRegister& zd, const ZRegister& zn, uint64_t imm);
 
   // Bitwise AND vectors (unpredicated).
   void and_(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -4011,7 +4011,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void dup(const ZRegister& zd, int imm8);
 
   // Broadcast logical bitmask immediate to vector (unpredicated).
-  void dupm(const ZRegister& zd);
+  void dupm(const ZRegister& zd, uint64_t imm);
 
   // Bitwise exclusive OR predicates.
   void eor(const PRegister& pd,
@@ -4026,7 +4026,7 @@ class Assembler : public vixl::internal::AssemblerBase {
            const ZRegister& zm);
 
   // Bitwise exclusive OR with immediate (unpredicated).
-  void eor(const ZRegister& zd, const ZRegister& zn);
+  void eor(const ZRegister& zd, const ZRegister& zn, uint64_t imm);
 
   // Bitwise exclusive OR vectors (unpredicated).
   void eor(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -5293,7 +5293,7 @@ class Assembler : public vixl::internal::AssemblerBase {
            const ZRegister& zm);
 
   // Bitwise OR with immediate (unpredicated).
-  void orr(const ZRegister& zd, const ZRegister& zn);
+  void orr(const ZRegister& zd, const ZRegister& zn, uint64_t imm);
 
   // Bitwise OR vectors (unpredicated).
   void orr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -6440,6 +6440,24 @@ class Assembler : public vixl::internal::AssemblerBase {
     return imm;
   }
 
+  static Instr SVEImmSetBits(unsigned imms, unsigned lane_size) {
+    VIXL_ASSERT(IsUint6(imms));
+    VIXL_ASSERT((lane_size == kDRegSize) || IsUint6(imms + 3));
+    USE(lane_size);
+    return imms << SVEImmSetBits_offset;
+  }
+
+  static Instr SVEImmRotate(unsigned immr, unsigned lane_size) {
+    VIXL_ASSERT(IsUintN(WhichPowerOf2(lane_size), immr));
+    USE(lane_size);
+    return immr << SVEImmRotate_offset;
+  }
+
+  static Instr SVEBitN(unsigned bitn) {
+    VIXL_ASSERT(IsUint1(bitn));
+    return bitn << SVEBitN_offset;
+  }
+
   static Instr ImmS(unsigned imms, unsigned reg_size) {
     VIXL_ASSERT(((reg_size == kXRegSize) && IsUint6(imms)) ||
                 ((reg_size == kWRegSize) && IsUint5(imms)));
@@ -6978,6 +6996,10 @@ class Assembler : public vixl::internal::AssemblerBase {
                const PRegister& pn,
                const PRegister& pm,
                SVEPredicateLogicalOp op);
+
+  void SVELogicalImmediate(const ZRegister& zd,
+                           uint64_t imm,
+                           SVEBitwiseImmOp op);
 
   void LogicalImmediate(const Register& rd,
                         const Register& rn,

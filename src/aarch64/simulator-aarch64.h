@@ -3488,6 +3488,11 @@ class Simulator : public DecoderVisitor {
                                            const LogicPRegister& pm,
                                            FlagsUpdate flags);
 
+  LogicVRegister SVEBitwiseImmHelper(SVEBitwiseImmOp op,
+                                     VectorFormat vform,
+                                     LogicVRegister zd,
+                                     uint64_t imm);
+
   // Simulate a runtime call.
   void DoRuntimeCall(const Instruction* instr);
 

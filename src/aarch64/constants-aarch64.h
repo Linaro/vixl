@@ -196,7 +196,12 @@ V_(ImmNEONImmb, 18, 16, ExtractBits)                                         \
 V_(SVESize, 23, 22, ExtractBits)                                             \
 V_(ImmSVEVLScale, 10, 5, ExtractSignedBits)                                  \
 V_(ImmSVEIntWideSigned, 12, 5, ExtractSignedBits)                            \
-V_(ImmSVEIntWideUnsigned, 12, 5, ExtractBits)
+V_(ImmSVEIntWideUnsigned, 12, 5, ExtractBits)                                \
+                                                                             \
+/* SVE Bitwise Immediate bitfield */                                         \
+V_(SVEBitN, 17, 17, ExtractBits)                                             \
+V_(SVEImmRotate, 16, 11, ExtractBits)                                        \
+V_(SVEImmSetBits, 10, 5, ExtractBits)
 
 // clang-format on
 

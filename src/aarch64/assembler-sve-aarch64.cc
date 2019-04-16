@@ -47,52 +47,44 @@ void Assembler::adr(const ZRegister& zd,
   Emit(ADR_z_az_d_s32_scaled | Rd(zd) | Rn(zn) | Rm(zm));
 }
 
-// SVEBitwiseImm.
+void Assembler::SVELogicalImmediate(const ZRegister& zdn,
+                                    uint64_t imm,
+                                    SVEBitwiseImmOp op) {
+  unsigned bit_n, imm_s, imm_r;
+  unsigned lane_size = zdn.GetLaneSizeInBits();
+  // Check that the immediate can be encoded in the instruction.
+  if (IsImmLogical(imm, lane_size, &bit_n, &imm_s, &imm_r)) {
+    Emit(op | Rd(zdn) | SVEBitN(bit_n) | SVEImmRotate(imm_r, lane_size) |
+         SVEImmSetBits(imm_s, lane_size));
+  } else {
+    VIXL_UNREACHABLE();
+  }
+}
 
-void Assembler::and_(const ZRegister& zd, const ZRegister& zn) {
-  // AND <Zdn>.<T>, <Zdn>.<T>, #<const>
-  //  0000 0101 1000 00.. .... .... .... ....
-  //  opc<23:22> = 10 | imm13<17:5> | Zdn<4:0>
-
+void Assembler::and_(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zd.Is(zn));
-
-  Emit(AND_z_zi | Rd(zd));
+  SVELogicalImmediate(zd, imm, AND_z_zi);
 }
 
-void Assembler::dupm(const ZRegister& zd) {
-  // DUPM <Zd>.<T>, #<const>
-  //  0000 0101 1100 00.. .... .... .... ....
-  //  imm13<17:5> | Zd<4:0>
-
+void Assembler::dupm(const ZRegister& zd, uint64_t imm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(DUPM_z_i | Rd(zd));
+  SVELogicalImmediate(zd, imm, DUPM_z_i);
 }
 
-void Assembler::eor(const ZRegister& zd, const ZRegister& zn) {
-  // EOR <Zdn>.<T>, <Zdn>.<T>, #<const>
-  //  0000 0101 0100 00.. .... .... .... ....
-  //  opc<23:22> = 01 | imm13<17:5> | Zdn<4:0>
-
+void Assembler::eor(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zd.Is(zn));
-
-  Emit(EOR_z_zi | Rd(zd));
+  SVELogicalImmediate(zd, imm, EOR_z_zi);
 }
 
-void Assembler::orr(const ZRegister& zd, const ZRegister& zn) {
-  // ORR <Zdn>.<T>, <Zdn>.<T>, #<const>
-  //  0000 0101 0000 00.. .... .... .... ....
-  //  opc<23:22> = 00 | imm13<17:5> | Zdn<4:0>
-
+void Assembler::orr(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zd.Is(zn));
-
-  Emit(ORR_z_zi | Rd(zd));
+  SVELogicalImmediate(zd, imm, ORR_z_zi);
 }
 
 // SVEBitwiseLogicalUnpredicated.
