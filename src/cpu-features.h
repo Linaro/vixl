@@ -274,6 +274,7 @@ class CPUFeatures {
 
   // Return the number of enabled features.
   size_t Count() const;
+  bool HasNoFeatures() const { return Count() == 0; }
 
   // Check for equivalence.
   bool operator==(const CPUFeatures& other) const {
