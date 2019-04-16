@@ -45,11 +45,6 @@
 namespace vixl {
 namespace aarch64 {
 
-// PushCalleeSavedRegisters(), PopCalleeSavedRegisters() and Dump() use NEON.
-// Dump() also needs SVE in order to dump SVE registers, but this is inherited
-// from SETUP_WITH_FEATURES(...) in tests that care about it.
-const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
-
 // Ensure that basic test infrastructure works.
 // TODO: Remove this once we have real SVE tests.
 TEST(sve_test_infrastructure) {
@@ -57,9 +52,11 @@ TEST(sve_test_infrastructure) {
   START();
 
   END();
-  DISASSEMBLE();
 
-  // TODO: RUN() something once we have simulator support.
+  if (CAN_RUN()) {
+    // TODO: RUN() something once we have simulator support.
+    DISASSEMBLE();
+  }
 
   TEARDOWN();
 }
