@@ -221,7 +221,7 @@ bool Equal128(uint64_t expected_h,
 
 bool EqualFP16(Float16 expected,
                const RegisterDump* core,
-               const FPRegister& fpreg) {
+               const VRegister& fpreg) {
   VIXL_ASSERT(fpreg.Is16Bits());
   // Retrieve the corresponding D register so we can check that the upper part
   // was properly cleared.
@@ -239,7 +239,7 @@ bool EqualFP16(Float16 expected,
 
 bool EqualFP32(float expected,
                const RegisterDump* core,
-               const FPRegister& fpreg) {
+               const VRegister& fpreg) {
   VIXL_ASSERT(fpreg.Is32Bits());
   // Retrieve the corresponding D register so we can check that the upper part
   // was properly cleared.
@@ -258,7 +258,7 @@ bool EqualFP32(float expected,
 
 bool EqualFP64(double expected,
                const RegisterDump* core,
-               const FPRegister& fpreg) {
+               const VRegister& fpreg) {
   VIXL_ASSERT(fpreg.Is64Bits());
   return EqualFP64(expected, core, core->dreg(fpreg.GetCode()));
 }
@@ -337,7 +337,7 @@ bool EqualRegisters(const RegisterDump* a, const RegisterDump* b) {
     }
   }
 
-  for (unsigned i = 0; i < kNumberOfFPRegisters; i++) {
+  for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
     uint64_t a_bits = a->dreg_bits(i);
     uint64_t b_bits = b->dreg_bits(i);
     if (a_bits != b_bits) {
@@ -412,32 +412,32 @@ RegList PopulateRegisterArray(Register* w,
 }
 
 
-RegList PopulateFPRegisterArray(FPRegister* s,
-                                FPRegister* d,
-                                FPRegister* v,
-                                int reg_size,
-                                int reg_count,
-                                RegList allowed) {
+RegList PopulateVRegisterArray(VRegister* s,
+                               VRegister* d,
+                               VRegister* v,
+                               int reg_size,
+                               int reg_count,
+                               RegList allowed) {
   RegList list = 0;
   int i = 0;
-  for (unsigned n = 0; (n < kNumberOfFPRegisters) && (i < reg_count); n++) {
+  for (unsigned n = 0; (n < kNumberOfVRegisters) && (i < reg_count); n++) {
     if (((UINT64_C(1) << n) & allowed) != 0) {
       // Only assigned allowed registers.
       if (v) {
-        v[i] = FPRegister(n, reg_size);
+        v[i] = VRegister(n, reg_size);
       }
       if (d) {
-        d[i] = FPRegister(n, kDRegSize);
+        d[i] = VRegister(n, kDRegSize);
       }
       if (s) {
-        s[i] = FPRegister(n, kSRegSize);
+        s[i] = VRegister(n, kSRegSize);
       }
       list |= (UINT64_C(1) << n);
       i++;
     }
   }
   // Check that we got enough registers.
-  VIXL_ASSERT(CountSetBits(list, kNumberOfFPRegisters) == reg_count);
+  VIXL_ASSERT(CountSetBits(list, kNumberOfVRegisters) == reg_count);
 
   return list;
 }
@@ -467,10 +467,10 @@ void Clobber(MacroAssembler* masm, RegList reg_list, uint64_t const value) {
 
 
 void ClobberFP(MacroAssembler* masm, RegList reg_list, double const value) {
-  FPRegister first = NoFPReg;
-  for (unsigned i = 0; i < kNumberOfFPRegisters; i++) {
+  VRegister first = NoVReg;
+  for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
     if (reg_list & (UINT64_C(1) << i)) {
-      FPRegister dn(i, kDRegSize);
+      VRegister dn(i, kDRegSize);
       if (!first.IsValid()) {
         // This is the first register we've hit, so construct the literal.
         __ Fmov(dn, value);

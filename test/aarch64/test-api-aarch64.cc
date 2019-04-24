@@ -188,8 +188,8 @@ TEST(register_bit) {
 
 
 TEST(noreg) {
-  VIXL_CHECK(NoReg.Is(NoFPReg));
-  VIXL_CHECK(NoFPReg.Is(NoReg));
+  VIXL_CHECK(NoReg.Is(NoVReg));
+  VIXL_CHECK(NoVReg.Is(NoReg));
 
   VIXL_CHECK(NoVReg.Is(NoReg));
   VIXL_CHECK(NoReg.Is(NoVReg));
@@ -197,14 +197,13 @@ TEST(noreg) {
   VIXL_CHECK(NoReg.Is(NoCPUReg));
   VIXL_CHECK(NoCPUReg.Is(NoReg));
 
-  VIXL_CHECK(NoFPReg.Is(NoCPUReg));
-  VIXL_CHECK(NoCPUReg.Is(NoFPReg));
+  VIXL_CHECK(NoVReg.Is(NoCPUReg));
+  VIXL_CHECK(NoCPUReg.Is(NoVReg));
 
   VIXL_CHECK(NoVReg.Is(NoCPUReg));
   VIXL_CHECK(NoCPUReg.Is(NoVReg));
 
   VIXL_CHECK(NoReg.IsNone());
-  VIXL_CHECK(NoFPReg.IsNone());
   VIXL_CHECK(NoVReg.IsNone());
   VIXL_CHECK(NoCPUReg.IsNone());
 }
@@ -212,7 +211,6 @@ TEST(noreg) {
 
 TEST(isvalid) {
   VIXL_CHECK(!NoReg.IsValid());
-  VIXL_CHECK(!NoFPReg.IsValid());
   VIXL_CHECK(!NoVReg.IsValid());
   VIXL_CHECK(!NoCPUReg.IsValid());
 
@@ -237,6 +235,12 @@ TEST(isvalid) {
   VIXL_CHECK(wzr.IsValidRegister());
   VIXL_CHECK(sp.IsValidRegister());
   VIXL_CHECK(wsp.IsValidRegister());
+  VIXL_CHECK(!x0.IsValidVRegister());
+  VIXL_CHECK(!w0.IsValidVRegister());
+  VIXL_CHECK(!xzr.IsValidVRegister());
+  VIXL_CHECK(!wzr.IsValidVRegister());
+  VIXL_CHECK(!sp.IsValidVRegister());
+  VIXL_CHECK(!wsp.IsValidVRegister());
   VIXL_CHECK(!x0.IsValidFPRegister());
   VIXL_CHECK(!w0.IsValidFPRegister());
   VIXL_CHECK(!xzr.IsValidFPRegister());
@@ -244,13 +248,43 @@ TEST(isvalid) {
   VIXL_CHECK(!sp.IsValidFPRegister());
   VIXL_CHECK(!wsp.IsValidFPRegister());
 
+  VIXL_CHECK(q0.IsValidVRegister());
+  VIXL_CHECK(!q0.IsValidFPRegister());
+  VIXL_CHECK(!q0.IsValidRegister());
+
+  VIXL_CHECK(d0.IsValidVRegister());
   VIXL_CHECK(d0.IsValidFPRegister());
-  VIXL_CHECK(s0.IsValidFPRegister());
   VIXL_CHECK(!d0.IsValidRegister());
+
+  VIXL_CHECK(s0.IsValidVRegister());
+  VIXL_CHECK(s0.IsValidFPRegister());
   VIXL_CHECK(!s0.IsValidRegister());
 
-  // Test the same as before, but using CPURegister types. This shouldn't make
-  // any difference.
+  VIXL_CHECK(h0.IsValidVRegister());
+  VIXL_CHECK(h0.IsValidFPRegister());
+  VIXL_CHECK(!h0.IsValidRegister());
+
+  VIXL_CHECK(b0.IsValidVRegister());
+  VIXL_CHECK(!b0.IsValidFPRegister());
+  VIXL_CHECK(!b0.IsValidRegister());
+
+  // IsValidFPRegister() is only true for scalar types.
+  VIXL_CHECK(q0.V2D().IsValidVRegister());
+  VIXL_CHECK(!q0.V2D().IsValidFPRegister());
+  VIXL_CHECK(d0.V2S().IsValidVRegister());
+  VIXL_CHECK(!d0.V2S().IsValidFPRegister());
+  VIXL_CHECK(s0.V2H().IsValidVRegister());
+  VIXL_CHECK(!s0.V2H().IsValidFPRegister());
+}
+
+
+TEST(isvalid_cpu) {
+  // As 'isvalid', but using CPURegister types where possible. This shouldn't
+  // make any difference.
+  VIXL_CHECK(!static_cast<CPURegister>(NoReg).IsValid());
+  VIXL_CHECK(!static_cast<CPURegister>(NoVReg).IsValid());
+  VIXL_CHECK(!static_cast<CPURegister>(NoCPUReg).IsValid());
+
   VIXL_CHECK(static_cast<CPURegister>(x0).IsValid());
   VIXL_CHECK(static_cast<CPURegister>(w0).IsValid());
   VIXL_CHECK(static_cast<CPURegister>(x30).IsValid());
@@ -272,6 +306,12 @@ TEST(isvalid) {
   VIXL_CHECK(static_cast<CPURegister>(wzr).IsValidRegister());
   VIXL_CHECK(static_cast<CPURegister>(sp).IsValidRegister());
   VIXL_CHECK(static_cast<CPURegister>(wsp).IsValidRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(x0).IsValidVRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(w0).IsValidVRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(xzr).IsValidVRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(wzr).IsValidVRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(sp).IsValidVRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(wsp).IsValidVRegister());
   VIXL_CHECK(!static_cast<CPURegister>(x0).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(w0).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(xzr).IsValidFPRegister());
@@ -279,10 +319,25 @@ TEST(isvalid) {
   VIXL_CHECK(!static_cast<CPURegister>(sp).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(wsp).IsValidFPRegister());
 
+  VIXL_CHECK(static_cast<CPURegister>(q0).IsValidVRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(q0).IsValidFPRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(q0).IsValidRegister());
+
+  VIXL_CHECK(static_cast<CPURegister>(d0).IsValidVRegister());
   VIXL_CHECK(static_cast<CPURegister>(d0).IsValidFPRegister());
-  VIXL_CHECK(static_cast<CPURegister>(s0).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(d0).IsValidRegister());
+
+  VIXL_CHECK(static_cast<CPURegister>(s0).IsValidVRegister());
+  VIXL_CHECK(static_cast<CPURegister>(s0).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(s0).IsValidRegister());
+
+  VIXL_CHECK(static_cast<CPURegister>(h0).IsValidVRegister());
+  VIXL_CHECK(static_cast<CPURegister>(h0).IsValidFPRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(h0).IsValidRegister());
+
+  VIXL_CHECK(static_cast<CPURegister>(b0).IsValidVRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(b0).IsValidFPRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(b0).IsValidRegister());
 }
 
 

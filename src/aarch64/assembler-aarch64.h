@@ -6624,7 +6624,8 @@ class Assembler : public vixl::internal::AssemblerBase {
   static Instr ImmFP64(double imm);
 
   // FP register type.
-  static Instr FPType(FPRegister fd) {
+  static Instr FPType(VRegister fd) {
+    VIXL_ASSERT(fd.IsScalar());
     switch (fd.GetSizeInBits()) {
       case 16:
         return FP16;

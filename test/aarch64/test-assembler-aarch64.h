@@ -287,9 +287,10 @@ inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
 #define TEARDOWN_CUSTOM()
 
 inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
-  // InferFromOS can fail, but we can assume that basic features are present.
-  CPUFeatures cpu =
-      CPUFeatures::AArch64LegacyBaseline().With(CPUFeatures::InferFromOS());
+  CPUFeatures cpu = CPUFeatures::InferFromOS();
+  // If InferFromOS fails, assume that basic features are present.
+  if (cpu.HasNoFeatures()) cpu = CPUFeatures::AArch64LegacyBaseline();
+
   VIXL_ASSERT(cpu.Has(kInfrastructureCPUFeatures));
 
   if (cpu.Has(required)) {

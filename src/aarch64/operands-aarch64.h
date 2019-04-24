@@ -55,7 +55,6 @@ class CPURegister {
     kInvalid = 0,
     kRegister,
     kVRegister,
-    kFPRegister = kVRegister,
     kNoRegister
   };
 
@@ -158,7 +157,7 @@ class CPURegister {
   }
 
   bool IsValidFPRegister() const {
-    return IsFPRegister() && (code_ < kNumberOfVRegisters);
+    return IsValidVRegister() && IsFPRegister();
   }
 
   bool IsNone() const {
@@ -193,7 +192,10 @@ class CPURegister {
 
   bool IsVRegister() const { return type_ == kVRegister; }
 
-  bool IsFPRegister() const { return IsS() || IsD(); }
+  // CPURegister does not track lanes like VRegister does, so we have to assume
+  // that we have scalar types here.
+  // TODO: Encode lane information in CPURegister so that we can be consistent.
+  bool IsFPRegister() const { return IsH() || IsS() || IsD(); }
 
   bool IsW() const { return IsValidRegister() && Is32Bits(); }
   bool IsX() const { return IsValidRegister() && Is64Bits(); }
@@ -384,6 +386,7 @@ class VRegister : public CPURegister {
   bool Is2H() const { return (Is32Bits() && (lanes_ == 2)); }
   bool Is4H() const { return (Is64Bits() && (lanes_ == 4)); }
   bool Is8H() const { return (Is128Bits() && (lanes_ == 8)); }
+  bool Is1S() const { return (Is32Bits() && (lanes_ == 1)); }
   bool Is2S() const { return (Is64Bits() && (lanes_ == 2)); }
   bool Is4S() const { return (Is128Bits() && (lanes_ == 4)); }
   bool Is1D() const { return (Is64Bits() && (lanes_ == 1)); }
@@ -400,10 +403,6 @@ class VRegister : public CPURegister {
     VIXL_ASSERT(!(Is16Bits() && IsVector()));
     return Is16Bits();
   }
-  bool Is1S() const {
-    VIXL_ASSERT(!(Is32Bits() && IsVector()));
-    return Is32Bits();
-  }
 
   // Semantic type for sdot and udot instructions.
   bool Is1S4B() const { return Is1S(); }
@@ -416,6 +415,11 @@ class VRegister : public CPURegister {
 
   int GetLanes() const { return lanes_; }
   VIXL_DEPRECATED("GetLanes", int lanes() const) { return GetLanes(); }
+
+  bool IsFPRegister() const { return Is1H() || Is1S() || Is1D(); }
+  bool IsValidFPRegister() const {
+    return IsValidVRegister() && IsFPRegister();
+  }
 
   bool IsScalar() const { return lanes_ == 1; }
 
@@ -577,9 +581,6 @@ inline PRegisterWithLaneSize PRegister::VnD() const {
   return PRegisterWithLaneSize(*this, kDRegSize);
 }
 
-
-// Backward compatibility for FPRegisters.
-typedef VRegister FPRegister;
 
 // TODO: This is a temporary implementation of ZRegister to enable initial
 // development. The API should be considered unstable.
@@ -750,7 +751,6 @@ inline ZRegister ZRegisterNoLaneSize::VnD() const {
 // variants are provided for convenience.
 const Register NoReg;
 const VRegister NoVReg;
-const FPRegister NoFPReg;  // For backward compatibility.
 const CPURegister NoCPUReg;
 const ZRegister NoZReg;
 

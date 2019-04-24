@@ -7020,9 +7020,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     return GetScratchRegisterList();
   }
 
-  CPURegList* GetScratchFPRegisterList() { return &fptmp_list_; }
-  VIXL_DEPRECATED("GetScratchFPRegisterList", CPURegList* FPTmpList()) {
-    return GetScratchFPRegisterList();
+  CPURegList* GetScratchVRegisterList() { return &fptmp_list_; }
+  VIXL_DEPRECATED("GetScratchVRegisterList", CPURegList* FPTmpList()) {
+    return GetScratchVRegisterList();
   }
 
   // Get or set the current (most-deeply-nested) UseScratchRegisterScope.
@@ -7347,7 +7347,7 @@ class BlockPoolsScope {
 
 
 // This scope utility allows scratch registers to be managed safely. The
-// MacroAssembler's GetScratchRegisterList() (and GetScratchFPRegisterList()) is
+// MacroAssembler's GetScratchRegisterList() (and GetScratchVRegisterList()) is
 // used as a pool of scratch registers. These registers can be allocated on
 // demand, and will be returned at the end of the scope.
 //
@@ -7359,14 +7359,14 @@ class UseScratchRegisterScope {
   // must not be `NULL`), so it is ready to use immediately after it has been
   // constructed.
   explicit UseScratchRegisterScope(MacroAssembler* masm)
-      : masm_(NULL), parent_(NULL), old_available_(0), old_availablefp_(0) {
+      : masm_(NULL), parent_(NULL), old_available_(0), old_available_v_(0) {
     Open(masm);
   }
   // This constructor does not implicitly initialise the scope. Instead, the
   // user is required to explicitly call the `Open` function before using the
   // scope.
   UseScratchRegisterScope()
-      : masm_(NULL), parent_(NULL), old_available_(0), old_availablefp_(0) {}
+      : masm_(NULL), parent_(NULL), old_available_(0), old_available_v_(0) {}
 
   // This function performs the actual initialisation work.
   void Open(MacroAssembler* masm);
@@ -7393,16 +7393,16 @@ class UseScratchRegisterScope {
     return AcquireNextAvailable(masm_->GetScratchRegisterList()).X();
   }
   VRegister AcquireH() {
-    return AcquireNextAvailable(masm_->GetScratchFPRegisterList()).H();
+    return AcquireNextAvailable(masm_->GetScratchVRegisterList()).H();
   }
   VRegister AcquireS() {
-    return AcquireNextAvailable(masm_->GetScratchFPRegisterList()).S();
+    return AcquireNextAvailable(masm_->GetScratchVRegisterList()).S();
   }
   VRegister AcquireD() {
-    return AcquireNextAvailable(masm_->GetScratchFPRegisterList()).D();
+    return AcquireNextAvailable(masm_->GetScratchVRegisterList()).D();
   }
   ZRegisterNoLaneSize AcquireZ() {
-    return AcquireNextAvailable(masm_->GetScratchFPRegisterList()).Z();
+    return AcquireNextAvailable(masm_->GetScratchVRegisterList()).Z();
   }
 
   Register AcquireRegisterOfSize(int size_in_bits);
@@ -7478,7 +7478,7 @@ class UseScratchRegisterScope {
 
   // The state of the available lists at the start of this scope.
   RegList old_available_;    // kRegister
-  RegList old_availablefp_;  // kVRegister
+  RegList old_available_v_;  // kVRegister
 
   // Disallow copy constructor and operator=.
   VIXL_NO_RETURN_IN_DEBUG_MODE UseScratchRegisterScope(

@@ -523,12 +523,12 @@ TEST(CPUFeaturesScope) {
 TEST(CPUFeatures_infer_from_os) {
   // Test that CPUFeatures::InferFromOS functions on supported platforms.
   CPUFeatures os;
-  VIXL_ASSERT(os.Count() == 0);
+  VIXL_ASSERT(os.HasNoFeatures());
   os = CPUFeatures::InferFromOS();
 
   // Every real platform has FP and NEON. However, InferFromOS does not support
   // every platform, so we also have to tolerate empty results.
-  if (os.Count() == 0) {
+  if (os.HasNoFeatures()) {
     std::cout << "Warning: CPUFeatures::InferFromOS() returned no results.\n";
   } else {
     std::cout << "CPUFeatures::InferFromOS():\n  {" << os << "}\n";
