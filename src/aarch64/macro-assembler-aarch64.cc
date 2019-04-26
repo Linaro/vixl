@@ -2960,6 +2960,39 @@ void UseScratchRegisterScope::Include(const VRegister& reg1,
 }
 
 
+void UseScratchRegisterScope::Include(const CPURegister& reg1,
+                                      const CPURegister& reg2,
+                                      const CPURegister& reg3,
+                                      const CPURegister& reg4) {
+  RegList include = 0;
+  RegList include_v = 0;
+
+  const CPURegister regs[] = {reg1, reg2, reg3, reg4};
+
+  for (size_t i = 0; i < ArrayLength(regs); i++) {
+    RegList bit = regs[i].GetBit();
+    switch (regs[i].GetBank()) {
+      case CPURegister::kNoRegisterBank:
+        // Include(NoReg) has no effect.
+        VIXL_ASSERT(regs[i].IsNone());
+        break;
+      case CPURegister::kRRegisterBank:
+        include |= bit;
+        break;
+      case CPURegister::kVRegisterBank:
+        include_v |= bit;
+        break;
+      case CPURegister::kPRegisterBank:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  }
+
+  IncludeByRegList(masm_->GetScratchRegisterList(), include);
+  IncludeByRegList(masm_->GetScratchVRegisterList(), include_v);
+}
+
+
 void UseScratchRegisterScope::Exclude(const CPURegList& list) {
   ExcludeByRegList(GetAvailableListFor(list.GetBank()), list.GetList());
 }

@@ -7422,6 +7422,10 @@ class UseScratchRegisterScope {
                const VRegister& reg2 = NoVReg,
                const VRegister& reg3 = NoVReg,
                const VRegister& reg4 = NoVReg);
+  void Include(const CPURegister& reg1,
+               const CPURegister& reg2 = NoCPUReg,
+               const CPURegister& reg3 = NoCPUReg,
+               const CPURegister& reg4 = NoCPUReg);
 
 
   // Make sure that the specified registers are not available in this scope.

@@ -45,10 +45,8 @@ std::string CPURegister::GetArchitecturalName() const {
   return name.str();
 }
 
-unsigned CPURegister::GetMaxCode() const {
-  // We don't need to distinguish Z and V registers here, so we can just look at
-  // the register bank.
-  switch (GetBank()) {
+unsigned CPURegister::GetMaxCodeFor(CPURegister::RegisterBank bank) {
+  switch (bank) {
     case kNoRegisterBank:
       return 0;
     case kRRegisterBank:

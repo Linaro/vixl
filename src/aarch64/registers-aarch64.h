@@ -132,7 +132,7 @@ class CPURegister {
   // Return the highest valid register code for this type, to allow generic
   // loops to be written. This excludes kSPRegInternalCode, since it is not
   // contiguous, and sp usually requires special handling anyway.
-  unsigned GetMaxCode() const;
+  unsigned GetMaxCode() const { return GetMaxCodeFor(GetBank()); }
 
   // Registers without a known size report kUnknownSize.
   int GetSizeInBits() const { return DecodeSizeInBits(size_); }
@@ -387,6 +387,10 @@ class CPURegister {
     return kNoRegisterBank;
   }
 
+  static unsigned GetMaxCodeFor(CPURegister::RegisterType type) {
+    return GetMaxCodeFor(GetBankFor(type));
+  }
+
  protected:
   enum EncodedSize {
     // Ensure that kUnknownSize (and therefore kNoRegister) is encoded as zero.
@@ -467,6 +471,8 @@ class CPURegister {
     VIXL_STATIC_ASSERT(kUnknownSize == 0);
     return DecodeSizeInBytes(encoded_size) * kBitsPerByte;
   }
+
+  static unsigned GetMaxCodeFor(CPURegister::RegisterBank bank);
 
   enum Qualifiers {
     kNoQualifiers = 0,

@@ -70,6 +70,20 @@ class CPURegList {
     VIXL_ASSERT(IsValid());
   }
 
+  // Construct a CPURegList with all possible registers with the specified size
+  // and type. If `size` is CPURegister::kUnknownSize and the register type
+  // requires a size, a valid but unspecified default will be picked.
+  static CPURegList All(CPURegister::RegisterType type,
+                        unsigned size = CPURegister::kUnknownSize) {
+    unsigned number_of_registers = (CPURegister::GetMaxCodeFor(type) + 1);
+    RegList list = (static_cast<RegList>(1) << number_of_registers) - 1;
+    if (type == CPURegister::kRegister) {
+      // GetMaxCodeFor(kRegister) ignores SP, so explicitly include it.
+      list |= (static_cast<RegList>(1) << kSPRegInternalCode);
+    }
+    return CPURegList(type, GetDefaultSizeFor(type, size), list);
+  }
+
   CPURegister::RegisterType GetType() const {
     VIXL_ASSERT(IsValid());
     return type_;
@@ -238,6 +252,21 @@ class CPURegList {
   }
 
  private:
+  // If `size` is CPURegister::kUnknownSize and the type requires a known size,
+  // then return an arbitrary-but-valid size.
+  //
+  // Otherwise, the size is checked for validity and returned unchanged.
+  static unsigned GetDefaultSizeFor(CPURegister::RegisterType type,
+                                    unsigned size) {
+    if (size == CPURegister::kUnknownSize) {
+      if (type == CPURegister::kRegister) size = kXRegSize;
+      if (type == CPURegister::kVRegister) size = kQRegSize;
+      // All other types require kUnknownSize.
+    }
+    VIXL_ASSERT(CPURegister(0, size, type).IsValid());
+    return size;
+  }
+
   RegList list_;
   int size_;
   CPURegister::RegisterType type_;

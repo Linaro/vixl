@@ -55,7 +55,10 @@ CPURegister CPURegList::PopHighestIndex() {
 
 
 bool CPURegList::IsValid() const {
-  if ((type_ == CPURegister::kRegister) || (type_ == CPURegister::kVRegister)) {
+  if (type_ == CPURegister::kNoRegister) {
+    // We can't use IsEmpty here because that asserts IsValid().
+    return list_ == 0;
+  } else {
     bool is_valid = true;
     // Try to create a CPURegister for each element in the list.
     for (int i = 0; i < kRegListSizeInBits; i++) {
@@ -64,11 +67,6 @@ bool CPURegList::IsValid() const {
       }
     }
     return is_valid;
-  } else if (type_ == CPURegister::kNoRegister) {
-    // We can't use IsEmpty here because that asserts IsValid().
-    return list_ == 0;
-  } else {
-    return false;
   }
 }
 
