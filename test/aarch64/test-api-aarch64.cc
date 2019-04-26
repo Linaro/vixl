@@ -919,10 +919,12 @@ class ScratchScopeHelper {
         action_(action),
         type_(type),
         expected_(GetGuardListFor(CPURegister::kRegister)),
-        expected_v_(GetGuardListFor(CPURegister::kVRegister)) {
+        expected_v_(GetGuardListFor(CPURegister::kVRegister)),
+        expected_p_(GetGuardListFor(CPURegister::kPRegister)) {
     *GetExpectedFor(type) = GetInitialList();
     masm->GetScratchRegisterList()->SetList(expected_);
     masm->GetScratchVRegisterList()->SetList(expected_v_);
+    masm->GetScratchPRegisterList()->SetList(expected_p_);
   }
 
   // Notify the helper that the registers in `update` have been passed into
@@ -944,6 +946,7 @@ class ScratchScopeHelper {
     }
     VIXL_CHECK(masm_->GetScratchRegisterList()->GetList() == expected_);
     VIXL_CHECK(masm_->GetScratchVRegisterList()->GetList() == expected_v_);
+    VIXL_CHECK(masm_->GetScratchPRegisterList()->GetList() == expected_p_);
   }
 
  private:
@@ -982,8 +985,7 @@ class ScratchScopeHelper {
       case CPURegister::kZRegister:
         return &expected_v_;
       case CPURegister::kPRegister:
-        VIXL_UNIMPLEMENTED();
-        return NULL;
+        return &expected_p_;
     }
     VIXL_UNREACHABLE();
     return NULL;
@@ -995,6 +997,7 @@ class ScratchScopeHelper {
 
   RegList expected_;
   RegList expected_v_;
+  RegList expected_p_;
 };
 
 TEST(scratch_scope_include) {
@@ -1266,6 +1269,91 @@ TEST(scratch_scope_release_z) {
     temps.Release(ZRegister(3, kFormatVnD));
     temps.Release(CPURegister(z4));
     temps.Release(CPURegister(z5.VnH()));
+    helper.RecordActionsAndCheck(0x3f);
+    // It is not possible to release more than one register at a time, and it is
+    // invalid to release a register that is already available.
+  }
+}
+
+TEST(scratch_scope_include_p) {
+  MacroAssembler masm;
+  {
+    UseScratchRegisterScope temps(&masm);
+    ScratchScopeHelper helper(&masm,
+                              ScratchScopeHelper::kInclude,
+                              CPURegister::kPRegister);
+
+    // Any suitable register type deriving from CPURegister can be included.
+    temps.Include(p0);
+    temps.Include(PRegister(1));
+    temps.Include(PRegisterWithLaneSize(2, kFormatVnD));
+    temps.Include(PRegisterM(3));
+    temps.Include(CPURegister(PRegister(4)));
+    temps.Include(CPURegister(PRegisterZ(5)));
+    helper.RecordActionsAndCheck(0x3f);
+    // Multiple registers can be included at once.
+    temps.Include(p7, p8.Merging(), p9.VnS());
+    temps.Include(PRegister(11), PRegisterWithLaneSize(12, kHRegSize));
+    temps.Include(CPURegList(p15));
+    helper.RecordActionsAndCheck(0x9b80);
+    // Including a register again has no effect.
+    temps.Include(PRegister(15));
+    temps.Include(PRegisterWithLaneSize(12, kFormatVnB));
+    temps.Include(CPURegister(p11));
+    temps.Include(CPURegister(p9.VnD()));
+    temps.Include(p8.Merging(), p7.Zeroing(), p5.VnB(), p4);
+    temps.Include(CPURegList(p3, p2, p1, p0));
+    helper.RecordActionsAndCheck(0x9b80);
+  }
+}
+
+TEST(scratch_scope_exclude_p) {
+  MacroAssembler masm;
+  {
+    UseScratchRegisterScope temps(&masm);
+    ScratchScopeHelper helper(&masm,
+                              ScratchScopeHelper::kExclude,
+                              CPURegister::kPRegister);
+
+    // Any suitable register type deriving from CPURegister can be excluded.
+    temps.Exclude(p0);
+    temps.Exclude(PRegister(1));
+    temps.Exclude(PRegisterWithLaneSize(2, kFormatVnD));
+    temps.Exclude(PRegisterM(3));
+    temps.Exclude(CPURegister(PRegister(4)));
+    temps.Exclude(CPURegister(PRegisterZ(5)));
+    helper.RecordActionsAndCheck(0x3f);
+    // Multiple registers can be excluded at once.
+    temps.Exclude(p7, p8.Merging(), p9.VnS());
+    temps.Exclude(PRegister(11), PRegisterWithLaneSize(12, kHRegSize));
+    temps.Exclude(CPURegList(p15));
+    helper.RecordActionsAndCheck(0x9b80);
+    // Excluding a register again has no effect.
+    temps.Exclude(PRegister(15));
+    temps.Exclude(PRegisterWithLaneSize(12, kFormatVnB));
+    temps.Exclude(CPURegister(p11));
+    temps.Exclude(CPURegister(p9.VnD()));
+    temps.Exclude(p8.Merging(), p7.Zeroing(), p5.VnB(), p4);
+    temps.Exclude(CPURegList(p3, p2, p1, p0));
+    helper.RecordActionsAndCheck(0x9b80);
+  }
+}
+
+TEST(scratch_scope_release_p) {
+  MacroAssembler masm;
+  {
+    UseScratchRegisterScope temps(&masm);
+    ScratchScopeHelper helper(&masm,
+                              ScratchScopeHelper::kRelease,
+                              CPURegister::kPRegister);
+
+    // Any suitable register type deriving from CPURegister can be excluded.
+    temps.Release(p0);
+    temps.Release(PRegister(1));
+    temps.Release(PRegisterWithLaneSize(2, kFormatVnD));
+    temps.Release(PRegisterM(3));
+    temps.Release(CPURegister(PRegister(4)));
+    temps.Release(CPURegister(PRegisterZ(5)));
     helper.RecordActionsAndCheck(0x3f);
     // It is not possible to release more than one register at a time, and it is
     // invalid to release a register that is already available.

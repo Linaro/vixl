@@ -70,6 +70,14 @@ class CPURegList {
     VIXL_ASSERT(IsValid());
   }
 
+  // Construct an empty CPURegList with the specified size and type. If `size`
+  // is CPURegister::kUnknownSize and the register type requires a size, a valid
+  // but unspecified default will be picked.
+  static CPURegList Empty(CPURegister::RegisterType type,
+                          unsigned size = CPURegister::kUnknownSize) {
+    return CPURegList(type, GetDefaultSizeFor(type, size), 0);
+  }
+
   // Construct a CPURegList with all possible registers with the specified size
   // and type. If `size` is CPURegister::kUnknownSize and the register type
   // requires a size, a valid but unspecified default will be picked.
