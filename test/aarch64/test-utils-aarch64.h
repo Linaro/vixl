@@ -164,7 +164,7 @@ class RegisterDump {
   inline T zreg_lane(unsigned code, int lane) const {
     VIXL_ASSERT(VRegAliasesMatch(code));
     VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-    VIXL_ASSERT(((lane + 1) * sizeof(T) * kBitsPerByte) <= dump_.vl_);
+    VIXL_ASSERT(lane < GetSVELaneCount(sizeof(T) * kBitsPerByte));
     return dump_.z_[code].GetLane<T>(lane);
   }
 
@@ -183,6 +183,36 @@ class RegisterDump {
     }
     VIXL_UNREACHABLE();
     return 0;
+  }
+
+  inline uint64_t preg_lane(unsigned code,
+                            unsigned p_bits_per_lane,
+                            int lane) const {
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+    VIXL_ASSERT(lane < GetSVELaneCount(p_bits_per_lane * kZRegBitsPerPRegBit));
+    // Load a chunk and extract the necessary bits. The chunk size is arbitrary.
+    typedef uint64_t Chunk;
+    const size_t kChunkSizeInBits = sizeof(Chunk) * kBitsPerByte;
+    VIXL_ASSERT(IsPowerOf2(p_bits_per_lane));
+    VIXL_ASSERT(p_bits_per_lane <= kChunkSizeInBits);
+
+    int chunk_index = (lane * p_bits_per_lane) / kChunkSizeInBits;
+    int bit_index = (lane * p_bits_per_lane) % kChunkSizeInBits;
+    Chunk chunk = dump_.p_[code].GetLane<Chunk>(chunk_index);
+    return (chunk >> bit_index) & GetUintMask(p_bits_per_lane);
+  }
+
+  inline int GetSVELaneCount(int lane_size_in_bits) const {
+    VIXL_ASSERT((dump_.vl_ % lane_size_in_bits) == 0);
+    uint64_t count = dump_.vl_ / lane_size_in_bits;
+    VIXL_ASSERT(count <= INT_MAX);
+    return static_cast<int>(count);
+  }
+
+  template <typename T>
+  inline bool HasSVELane(T reg, int lane) const {
+    VIXL_ASSERT(reg.IsZRegister() || reg.IsPRegister());
+    return lane < GetSVELaneCount(reg.GetLaneSizeInBits());
   }
 
   // Stack pointer accessors.
@@ -349,12 +379,30 @@ bool EqualSVELane(uint64_t expected,
                   const ZRegister& reg,
                   int lane);
 
-template <typename T, int N>
+bool EqualSVELane(uint64_t expected,
+                  const RegisterDump* core,
+                  const PRegisterWithLaneSize& reg,
+                  int lane);
+
+template <typename T, int N, typename R>
 bool EqualSVE(const T (&expected)[N],
               const RegisterDump* core,
-              const ZRegister& reg) {
+              const R& reg,
+              bool* printed_warning) {
+  VIXL_ASSERT(reg.IsZRegister() || reg.IsPRegister());
+  VIXL_ASSERT(reg.HasLaneSize());
   bool equal = true;
   for (int lane = 0; lane < N; ++lane) {
+    if (!core->HasSVELane(reg, lane)) {
+      if (*printed_warning == false) {
+        *printed_warning = true;
+        printf(
+            "Warning: Ignoring SVE lanes beyond VL (%d bytes) "
+            "because the CPU does not implement them.\n",
+            core->GetSVELaneCount(kBRegSize));
+      }
+      break;
+    }
     // Evaluate and report errors on every lane, rather than just the first.
     equal = EqualSVELane(expected[lane], core, reg, lane) && equal;
   }

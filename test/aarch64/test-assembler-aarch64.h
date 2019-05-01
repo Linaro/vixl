@@ -106,8 +106,10 @@ static const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
 
 #define SETUP_COMMON()                                                   \
   bool queried_can_run = false;                                          \
+  bool printed_sve_lane_warning = false;                                 \
   /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
   USE(queried_can_run);                                                  \
+  USE(printed_sve_lane_warning);                                         \
   masm.SetCPUFeatures(CPUFeatures::None());                              \
   masm.SetGenerateSimulatorCode(true);                                   \
   Decoder simulator_decoder;                                             \
@@ -230,8 +232,10 @@ inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
 
 #define SETUP_COMMON()                                                   \
   bool queried_can_run = false;                                          \
+  bool printed_sve_lane_warning = false;                                 \
   /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
   USE(queried_can_run);                                                  \
+  USE(printed_sve_lane_warning);                                         \
   masm.SetCPUFeatures(CPUFeatures::None());                              \
   masm.SetGenerateSimulatorCode(false);                                  \
   RegisterDump core;                                                     \
@@ -381,7 +385,7 @@ inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
 // lanes on `result` match. The rightmost (highest-indexed) array element maps
 // to the lowest-numbered lane.
 #define ASSERT_EQUAL_SVE(expected, result) \
-  VIXL_CHECK(EqualSVE(expected, &core, result))
+  VIXL_CHECK(EqualSVE(expected, &core, result, &printed_sve_lane_warning))
 
 #define MUST_FAIL_WITH_MESSAGE(code, message)                     \
   {                                                               \

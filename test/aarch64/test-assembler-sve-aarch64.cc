@@ -65,8 +65,73 @@ void InsrHelper(MacroAssembler* masm,
   }
 }
 
+// Conveniently initialise P registers. This is optimised for call-site clarity,
+// not generated code quality.
+//
+// Usage:
+//
+//     int values[] = { 0x0, 0x1, 0x2 };
+//     Initialise(&masm, p0.VnS(), values);  // Sets p0 = 0b'0000'0001'0020
+//
+// The rightmost (highest-indexed) array element maps to the lowest-numbered
+// lane.
+//
+// Each element of the `values` array is mapped onto a lane in `pd`. The
+// architecture only respects the lower bit, and writes zero the upper bits, but
+// other (encodable) values can be specified if required by the test.
+template <typename T, size_t N>
+void Initialise(MacroAssembler* masm,
+                const PRegisterWithLaneSize& pd,
+                const T (&values)[N]) {
+  UseScratchRegisterScope temps(masm);
+  Register temp = temps.AcquireX();
+  Label data;
+  Label done;
+
+  // There is no 'insr' for P registers. The easiest way to initialise one with
+  // an arbitrary value is to load it from a literal pool.
+
+  int p_bits_per_lane = pd.GetLaneSizeInBits() / kZRegBitsPerPRegBit;
+  VIXL_ASSERT((N * p_bits_per_lane) <= kPRegMaxSize);
+  uint64_t p_lane_mask = GetUintMask(p_bits_per_lane);
+
+  // For most lane sizes, each value contributes less than a byte. We need to
+  // pack them into chunks which we can store directly. It's sensible for the
+  // chunk to be the same size as an instruction because we need to pad to an
+  // instruction boundary anyway.
+  typedef Instr Chunk;
+  const size_t kChunkSizeInBits = sizeof(Chunk) * kBitsPerByte;
+  VIXL_ASSERT((kPRegMaxSize % kChunkSizeInBits) == 0);
+  const size_t kPRegMaxSizeInChunks = kPRegMaxSize / kChunkSizeInBits;
+
+  masm->Adr(temp, &data);
+  // TODO: Use `Ldr(pd, MemOperand(temp))` once available.
+  masm->Ldr(PRegister(pd.GetCode()), temp);
+  masm->B(&done);
+  {
+    ExactAssemblyScope total(masm, kPRegMaxSizeInBytes);
+    masm->bind(&data);
+    // Put the last-specified value at the lowest address.
+    int values_index = N - 1;
+    for (size_t c = 0; c < kPRegMaxSizeInChunks; c++) {
+      Chunk chunk = 0;
+      // Whilst we still have values left, use them to populate the chunk.
+      for (size_t chunk_bit = 0;
+           (chunk_bit < kChunkSizeInBits) && (values_index >= 0);
+           chunk_bit += p_bits_per_lane) {
+        Chunk value = values[values_index] & p_lane_mask;
+        VIXL_ASSERT(static_cast<T>(value) == values[values_index]);
+        chunk |= value << chunk_bit;
+        values_index--;
+      }
+      masm->dc(chunk);
+    }
+  }
+  masm->Bind(&done);
+}
+
 // Ensure that basic test infrastructure works.
-TEST(sve_test_infrastructure) {
+TEST(sve_test_infrastructure_z) {
   SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
@@ -108,8 +173,7 @@ TEST(sve_test_infrastructure) {
       ASSERT_EQUAL_SVE(z0_inputs_b, z0.VnB());
 
       // Test that lane-by-lane checks work properly on a register initialised
-      // by
-      // array.
+      // by array.
       for (size_t i = 0; i < ArrayLength(z1_inputs); i++) {
         ASSERT_EQUAL_SVE_LANE(z1_inputs[i], z0.VnH(), i);
       }
@@ -126,6 +190,94 @@ TEST(sve_test_infrastructure) {
   }
 
   TEARDOWN();
+}
+
+// Ensure that basic test infrastructure works.
+TEST(sve_test_infrastructure_p) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Simple cases: move boolean (0 or 1) values.
+
+  int p0_inputs[] = {0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0};
+  Initialise(&masm, p0.VnB(), p0_inputs);
+
+  int p1_inputs[] = {1, 0, 1, 1, 0, 1, 1, 1};
+  Initialise(&masm, p1.VnH(), p1_inputs);
+
+  int p2_inputs[] = {1, 0, 0, 1};
+  Initialise(&masm, p2.VnS(), p2_inputs);
+
+  int p3_inputs[] = {0, 1};
+  Initialise(&masm, p3.VnD(), p3_inputs);
+
+  // Advanced cases: move numeric value into architecturally-ignored bits.
+
+  // B-sized lanes get one bit in a P register, so there are no ignored bits.
+
+  // H-sized lanes get two bits in a P register.
+  int p4_inputs[] = {0x3, 0x2, 0x1, 0x0, 0x1, 0x2, 0x3};
+  Initialise(&masm, p4.VnH(), p4_inputs);
+
+  // S-sized lanes get four bits in a P register.
+  int p5_inputs[] = {0xc, 0x7, 0x9, 0x6, 0xf};
+  Initialise(&masm, p5.VnS(), p5_inputs);
+
+  // D-sized lanes get eight bits in a P register.
+  int p6_inputs[] = {0x81, 0xcc, 0x55};
+  Initialise(&masm, p6.VnD(), p6_inputs);
+
+  // The largest possible P register has 32 bytes.
+  int p7_inputs[] = {0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87,
+                     0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e, 0x8f,
+                     0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97,
+                     0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f};
+  Initialise(&masm, p7.VnD(), p7_inputs);
+
+  END();
+
+  if (CAN_RUN()) {
+    if (0) {
+      // TODO: Enable this once we have sufficient simulator support.
+      RUN();
+
+      // Test that lane-by-lane checks work properly.
+      for (size_t i = 0; i < ArrayLength(p0_inputs); i++) {
+        ASSERT_EQUAL_SVE_LANE(p0_inputs[i], p0.VnB(), i);
+      }
+      for (size_t i = 0; i < ArrayLength(p1_inputs); i++) {
+        ASSERT_EQUAL_SVE_LANE(p1_inputs[i], p1.VnB(), i);
+      }
+      for (size_t i = 0; i < ArrayLength(p2_inputs); i++) {
+        ASSERT_EQUAL_SVE_LANE(p2_inputs[i], p2.VnB(), i);
+      }
+      for (size_t i = 0; i < ArrayLength(p3_inputs); i++) {
+        ASSERT_EQUAL_SVE_LANE(p3_inputs[i], p3.VnB(), i);
+      }
+
+      // Test that array checks work properly on predicates initialised with a
+      // possibly-different lane size.
+      // 0b...11'10'01'00'01'10'11
+      int p4_expected[] = {0x39, 0x1b};
+      ASSERT_EQUAL_SVE(p4_expected, p4.VnD());
+
+      ASSERT_EQUAL_SVE(p5_inputs, p5.VnS());
+
+      // 0b...10000001'11001100'01010101
+      int p6_expected[] = {2, 0, 0, 1, 3, 0, 3, 0, 1, 1, 1, 1};
+      ASSERT_EQUAL_SVE(p6_expected, p6.VnH());
+
+      // 0b...10011100'10011101'10011110'10011111
+      int p7_expected[] = {1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1,
+                           1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1};
+      ASSERT_EQUAL_SVE(p7_expected, p7.VnB());
+
+    } else {
+      // TODO: This normally happens in 'RUN()', so remove it once we enable the
+      // block above.
+      DISASSEMBLE();
+    }
+  }
 }
 
 }  // namespace aarch64

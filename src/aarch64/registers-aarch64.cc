@@ -39,6 +39,21 @@ std::string CPURegister::GetArchitecturalName() const {
     if (HasLaneSize()) {
       name << '.' << GetLaneSizeSymbol();
     }
+  } else if (IsPRegister()) {
+    name << 'p' << code_;
+    if (HasLaneSize()) {
+      name << '.' << GetLaneSizeSymbol();
+    }
+    switch (qualifiers_) {
+      case kNoQualifiers:
+        break;
+      case kMerging:
+        name << "/m";
+        break;
+      case kZeroing:
+        name << "/z";
+        break;
+    }
   } else {
     VIXL_UNIMPLEMENTED();
   }

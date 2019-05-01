@@ -381,6 +381,31 @@ bool EqualSVELane(uint64_t expected,
   return true;
 }
 
+bool EqualSVELane(uint64_t expected,
+                  const RegisterDump* core,
+                  const PRegisterWithLaneSize& reg,
+                  int lane) {
+  // Each bit in a P register corresponds to one byte in the lane format.
+  unsigned p_bits_per_lane = reg.GetLaneSizeInBytes();
+  VIXL_ASSERT(IsUintN(p_bits_per_lane, expected));
+  expected &= GetUintMask(p_bits_per_lane);
+
+  uint64_t result = core->preg_lane(reg.GetCode(), p_bits_per_lane, lane);
+  if (expected != result) {
+    unsigned lane_size_in_hex_chars = (p_bits_per_lane + 3) / 4;
+    std::string reg_name = reg.GetArchitecturalName();
+    printf("%s[%d]\t Expected 0x%0*" PRIx64 "\t Found 0x%0*" PRIx64 "\n",
+           reg_name.c_str(),
+           lane,
+           lane_size_in_hex_chars,
+           expected,
+           lane_size_in_hex_chars,
+           result);
+    return false;
+  }
+  return true;
+}
+
 RegList PopulateRegisterArray(Register* w,
                               Register* x,
                               Register* r,
