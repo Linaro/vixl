@@ -2907,13 +2907,13 @@ bool UseScratchRegisterScope::IsAvailable(const CPURegister& reg) const {
 }
 
 Register UseScratchRegisterScope::AcquireRegisterOfSize(int size_in_bits) {
-  int code = AcquireNextAvailable(masm_->GetScratchRegisterList()).GetCode();
+  int code = AcquireFrom(masm_->GetScratchRegisterList()).GetCode();
   return Register(code, size_in_bits);
 }
 
 
 VRegister UseScratchRegisterScope::AcquireVRegisterOfSize(int size_in_bits) {
-  int code = AcquireNextAvailable(masm_->GetScratchVRegisterList()).GetCode();
+  int code = AcquireFrom(masm_->GetScratchVRegisterList()).GetCode();
   return VRegister(code, size_in_bits);
 }
 
@@ -3074,10 +3074,10 @@ void UseScratchRegisterScope::ExcludeAll() {
 }
 
 
-CPURegister UseScratchRegisterScope::AcquireNextAvailable(
-    CPURegList* available) {
-  VIXL_CHECK(!available->IsEmpty());
-  CPURegister result = available->PopLowestIndex();
+CPURegister UseScratchRegisterScope::AcquireFrom(CPURegList* available,
+                                                 RegList mask) {
+  VIXL_CHECK((available->GetList() & mask) != 0);
+  CPURegister result = available->PopLowestIndex(mask);
   VIXL_ASSERT(!AreAliased(result, xzr, sp));
   return result;
 }

@@ -200,8 +200,11 @@ class CPURegList {
   // preparing registers for an AAPCS64 function call, for example.
   void RemoveCalleeSaved();
 
-  CPURegister PopLowestIndex();
-  CPURegister PopHighestIndex();
+  // Find the register in this list that appears in `mask` with the lowest or
+  // highest code, remove it from the list and return it as a CPURegister. If
+  // the list is empty, leave it unchanged and return NoCPUReg.
+  CPURegister PopLowestIndex(RegList mask = ~static_cast<RegList>(0));
+  CPURegister PopHighestIndex(RegList mask = ~static_cast<RegList>(0));
 
   // AAPCS64 callee-saved registers.
   static CPURegList GetCalleeSaved(unsigned size = kXRegSize);

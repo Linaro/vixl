@@ -43,6 +43,8 @@ const int kFirstCalleeSavedRegisterIndex = 21;
 // still caller-saved.
 const int kNumberOfCalleeSavedFPRegisters = 8;
 const int kFirstCalleeSavedFPRegisterIndex = 8;
+// All predicated instructions accept at least p0-p7 as the governing predicate.
+const unsigned kNumberOfGoverningPRegisters = 8;
 
 // clang-format off
 #define AARCH64_P_REGISTER_CODE_LIST(R)                                        \

@@ -7384,25 +7384,38 @@ class UseScratchRegisterScope {
   // Take a register from the appropriate temps list. It will be returned
   // automatically when the scope ends.
   Register AcquireW() {
-    return AcquireNextAvailable(masm_->GetScratchRegisterList()).W();
+    return AcquireFrom(masm_->GetScratchRegisterList()).W();
   }
   Register AcquireX() {
-    return AcquireNextAvailable(masm_->GetScratchRegisterList()).X();
+    return AcquireFrom(masm_->GetScratchRegisterList()).X();
   }
   VRegister AcquireH() {
-    return AcquireNextAvailable(masm_->GetScratchVRegisterList()).H();
+    return AcquireFrom(masm_->GetScratchVRegisterList()).H();
   }
   VRegister AcquireS() {
-    return AcquireNextAvailable(masm_->GetScratchVRegisterList()).S();
+    return AcquireFrom(masm_->GetScratchVRegisterList()).S();
   }
   VRegister AcquireD() {
-    return AcquireNextAvailable(masm_->GetScratchVRegisterList()).D();
+    return AcquireFrom(masm_->GetScratchVRegisterList()).D();
   }
   ZRegisterNoLaneSize AcquireZ() {
-    return AcquireNextAvailable(masm_->GetScratchVRegisterList()).Z();
+    return AcquireFrom(masm_->GetScratchVRegisterList()).Z();
   }
   PRegister AcquireP() {
-    return AcquireNextAvailable(masm_->GetScratchPRegisterList()).P();
+    // Prefer to allocate p8-p15 if we can, to leave p0-p7 available for use as
+    // governing predicates.
+    CPURegList* available = masm_->GetScratchPRegisterList();
+    RegList preferred = ~kGoverningPRegisterMask;
+    if ((available->GetList() & preferred) != 0) {
+      return AcquireFrom(available, preferred).P();
+    }
+    return AcquireFrom(available).P();
+  }
+  // Acquire a P register suitable for use as a governing predicate in
+  // instructions which only accept p0-p7 for that purpose.
+  PRegister AcquireGoverningP() {
+    CPURegList* available = masm_->GetScratchPRegisterList();
+    return AcquireFrom(available, kGoverningPRegisterMask).P();
   }
 
   Register AcquireRegisterOfSize(int size_in_bits);
@@ -7464,7 +7477,8 @@ class UseScratchRegisterScope {
   void ExcludeAll();
 
  private:
-  static CPURegister AcquireNextAvailable(CPURegList* available);
+  static CPURegister AcquireFrom(CPURegList* available,
+                                 RegList mask = ~static_cast<RegList>(0));
 
   static void ReleaseByCode(CPURegList* available, int code);
   static void ReleaseByRegList(CPURegList* available, RegList regs);
@@ -7472,6 +7486,9 @@ class UseScratchRegisterScope {
   static void ExcludeByRegList(CPURegList* available, RegList exclude);
 
   CPURegList* GetAvailableListFor(CPURegister::RegisterBank bank);
+
+  static const RegList kGoverningPRegisterMask =
+      (static_cast<RegList>(1) << kNumberOfGoverningPRegisters) - 1;
 
   // The MacroAssembler maintains a list of available scratch registers, and
   // also keeps track of the most recently-opened scope so that on destruction

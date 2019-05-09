@@ -884,6 +884,44 @@ TEST(scratch_scope_basic_z) {
   VIXL_CHECK(temps.IsAvailable(z31));
 }
 
+TEST(scratch_scope_basic_p) {
+  MacroAssembler masm;
+  {
+    UseScratchRegisterScope temps(&masm);
+    // There are no P scratch registers available by default.
+    VIXL_CHECK(masm.GetScratchPRegisterList()->IsEmpty());
+    temps.Include(p0, p1);
+    VIXL_CHECK(temps.IsAvailable(p0));
+    VIXL_CHECK(temps.IsAvailable(p1));
+    temps.Include(p7, p8, p15);
+    VIXL_CHECK(temps.IsAvailable(p7));
+    VIXL_CHECK(temps.IsAvailable(p8));
+    VIXL_CHECK(temps.IsAvailable(p15));
+
+    // AcquireGoverningP() can only return p0-p7.
+    VIXL_CHECK(temps.AcquireGoverningP().GetCode() <
+               kNumberOfGoverningPRegisters);
+    VIXL_CHECK(temps.AcquireGoverningP().GetCode() <
+               kNumberOfGoverningPRegisters);
+    VIXL_CHECK(temps.IsAvailable(p8));
+    VIXL_CHECK(temps.IsAvailable(p15));
+
+    // AcquireP() prefers p8-p15, ...
+    VIXL_CHECK(temps.AcquireP().GetCode() >= kNumberOfGoverningPRegisters);
+    VIXL_CHECK(temps.AcquireP().GetCode() >= kNumberOfGoverningPRegisters);
+    // ... but will return p0-p7 if none of p8-p15 are available.
+    VIXL_CHECK(temps.AcquireP().GetCode() < kNumberOfGoverningPRegisters);
+
+    VIXL_CHECK(masm.GetScratchPRegisterList()->IsEmpty());
+
+    // Leave some registers available so we can test the destructor.
+    temps.Include(p3, p6, p9, p12);
+    VIXL_CHECK(!masm.GetScratchPRegisterList()->IsEmpty());
+  }
+  // Check that the destructor correctly cleared the list.
+  VIXL_CHECK(masm.GetScratchPRegisterList()->IsEmpty());
+}
+
 TEST(scratch_scope_include_ignored) {
   MacroAssembler masm;
   {

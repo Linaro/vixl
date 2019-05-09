@@ -30,25 +30,22 @@ namespace vixl {
 namespace aarch64 {
 
 // CPURegList utilities.
-CPURegister CPURegList::PopLowestIndex() {
-  if (IsEmpty()) {
-    return NoCPUReg;
-  }
-  int index = CountTrailingZeros(list_);
-  VIXL_ASSERT((1 << index) & list_);
+CPURegister CPURegList::PopLowestIndex(RegList mask) {
+  RegList list = list_ & mask;
+  if (list == 0) return NoCPUReg;
+  int index = CountTrailingZeros(list);
+  VIXL_ASSERT(((1 << index) & list) != 0);
   Remove(index);
   return CPURegister(index, size_, type_);
 }
 
 
-CPURegister CPURegList::PopHighestIndex() {
-  VIXL_ASSERT(IsValid());
-  if (IsEmpty()) {
-    return NoCPUReg;
-  }
-  int index = CountLeadingZeros(list_);
+CPURegister CPURegList::PopHighestIndex(RegList mask) {
+  RegList list = list_ & mask;
+  if (list == 0) return NoCPUReg;
+  int index = CountLeadingZeros(list);
   index = kRegListSizeInBits - 1 - index;
-  VIXL_ASSERT((1 << index) & list_);
+  VIXL_ASSERT(((1 << index) & list) != 0);
   Remove(index);
   return CPURegister(index, size_, type_);
 }
