@@ -1883,10 +1883,24 @@ class Simulator : public DecoderVisitor {
   };
 #endif
 
+  // Configure the simulated value of 'VL', which is the size of a Z register.
   void SetVectorLengthInBits(unsigned n) {
     VIXL_ASSERT((n >= kZRegMinSize) && (n <= kZRegMaxSize));
-    VIXL_ASSERT(n % kZRegMinSize == 0);
+    VIXL_ASSERT((n % kZRegMinSize) == 0);
     vector_length_ = n;
+  }
+  unsigned GetVectorLengthInBits() const { return vector_length_; }
+  unsigned GetVectorLengthInBytes() const {
+    VIXL_ASSERT((vector_length_ % kBitsPerByte) == 0);
+    return vector_length_ / kBitsPerByte;
+  }
+  unsigned GetPredicateLengthInBits() const {
+    VIXL_ASSERT((GetVectorLengthInBits() % kZRegBitsPerPRegBit) == 0);
+    return GetVectorLengthInBits() / kZRegBitsPerPRegBit;
+  }
+  unsigned GetPredicateLengthInBytes() const {
+    VIXL_ASSERT((GetVectorLengthInBytes() % kZRegBitsPerPRegBit) == 0);
+    return GetVectorLengthInBytes() / kZRegBitsPerPRegBit;
   }
 
   int LaneCountFromFormat(VectorFormat vform) const {
@@ -1895,11 +1909,6 @@ class Simulator : public DecoderVisitor {
     } else {
       return vixl::aarch64::LaneCountFromFormat(vform);
     }
-  }
-
-  unsigned GetVectorLengthInBits() const { return vector_length_; }
-  unsigned GetVectorLengthInBytes() const {
-    return GetVectorLengthInBits() / 8;
   }
 
   bool IsFirstActive(VectorFormat vform,

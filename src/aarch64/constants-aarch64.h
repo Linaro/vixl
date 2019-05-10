@@ -67,6 +67,7 @@ V_(Ra, 14, 10, ExtractBits)       /* Third source register.               */ \
 V_(Rt, 4, 0, ExtractBits)         /* Load/store register.                 */ \
 V_(Rt2, 14, 10, ExtractBits)      /* Load/store second register.          */ \
 V_(Rs, 20, 16, ExtractBits)       /* Exclusive access status.             */ \
+V_(Pt, 3, 0, ExtractBits)         /* Load/store register (p0-p7).         */ \
                                                                              \
 /* Common bits */                                                            \
 V_(SixtyFourBits, 31, 31, ExtractBits)                                       \
@@ -188,7 +189,8 @@ V_(ImmNEONImmh, 22, 19, ExtractBits)                                         \
 V_(ImmNEONImmb, 18, 16, ExtractBits)                                         \
                                                                              \
 /* SVE generic fields */                                                     \
-V_(SVESize, 23, 22, ExtractBits)
+V_(SVESize, 23, 22, ExtractBits)                                             \
+V_(ImmSVEVLScale, 10, 5, ExtractSignedBits)
 
 // clang-format on
 
@@ -3534,8 +3536,6 @@ enum SVEMemStoreOp {
   ST1W_z_p_bz_s_x32_scaled = SVEMemStoreFixed | 0x01608000,
   ST1W_z_p_ai_s = SVEMemStoreFixed | 0x0160A000,
   ST4W_z_p_bi_contiguous = SVEMemStoreFixed | 0x0170E000,
-  STR_p_bi = SVEMemStoreFixed | 0x01800000,
-  STR_z_bi = SVEMemStoreFixed | 0x01804000,
   //ST1D_z_p_br = SVEMemStoreFixed | 0x01804000,
   STNT1D_z_p_br_contiguous = SVEMemStoreFixed | 0x01806000,
   ST1D_z_p_bz_d_x32_unscaled = SVEMemStoreFixed | 0x01808000,
@@ -3550,7 +3550,15 @@ enum SVEMemStoreOp {
   ST1D_z_p_ai_d = SVEMemStoreFixed | 0x01C0A000,
   ST3D_z_p_bi_contiguous = SVEMemStoreFixed | 0x01D0E000,
   ST4D_z_p_br_contiguous = SVEMemStoreFixed | 0x01E06000,
-  ST4D_z_p_bi_contiguous = SVEMemStoreFixed | 0x01F0E000
+  ST4D_z_p_bi_contiguous = SVEMemStoreFixed | 0x01F0E000,
+
+  // TODO: SVEMemStoreMask doesn't work here because the fixed bits vary between
+  // instruction groups. We should re-organise the enum groups to avoid this.
+  SVEMemStorePMask = 0xFFC0E010,
+  STR_p_bi = SVEMemStoreFixed | 0x01800000,
+
+  SVEMemStoreZMask = 0xFFC0E000,
+  STR_z_bi = SVEMemStoreFixed | 0x01804000
 };
 
 enum SVEMulIndexOp {
