@@ -190,7 +190,9 @@ V_(ImmNEONImmb, 18, 16, ExtractBits)                                         \
                                                                              \
 /* SVE generic fields */                                                     \
 V_(SVESize, 23, 22, ExtractBits)                                             \
-V_(ImmSVEVLScale, 10, 5, ExtractSignedBits)
+V_(ImmSVEVLScale, 10, 5, ExtractSignedBits)                                  \
+V_(ImmSVEIntWideSigned, 12, 5, ExtractSignedBits)                            \
+V_(ImmSVEIntWideUnsigned, 12, 5, ExtractBits)
 
 // clang-format on
 
@@ -3277,7 +3279,6 @@ enum SVEMem32BitGatherAndUnsizedContiguousOp {
   LD1RSH_z_p_bi_s32 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0140A000,
   LD1RW_z_p_bi_u32 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0140C000,
   LD1RW_z_p_bi_u64 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0140E000,
-  LDR_p_bi = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01800000,
   LDR_z_bi = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01804000,
   PRFD_i_p_br_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0180C000,
   PRFD_i_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0180E000,
@@ -3288,7 +3289,13 @@ enum SVEMem32BitGatherAndUnsizedContiguousOp {
   LD1RSB_z_p_bi_s64 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C08000,
   LD1RSB_z_p_bi_s32 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C0A000,
   LD1RSB_z_p_bi_s16 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C0C000,
-  LD1RD_z_p_bi_u64 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C0E000
+  LD1RD_z_p_bi_u64 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C0E000,
+
+  // TODO: SVEMem32BitGatherAndUnsizedContiguousFixed doesn't work here because
+  // the fixed bits vary between instruction groups. We should re-organise the
+  // enum groups to avoid this.
+  SVEMemUnsizedContiguousLoadPMask = 0xFFC0E010,
+  LDR_p_bi = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01800000
 };
 
 enum SVEMem64BitGatherOp {

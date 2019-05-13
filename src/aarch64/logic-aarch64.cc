@@ -2473,6 +2473,18 @@ LogicVRegister Simulator::ins_immediate(VectorFormat vform,
 }
 
 
+LogicVRegister Simulator::insr(VectorFormat vform,
+                               LogicVRegister dst,
+                               uint64_t imm) {
+  VIXL_ASSERT(IsSVEFormat(vform));
+  for (int i = LaneCountFromFormat(vform) - 1; i > 0; i--) {
+    dst.SetUint(vform, i, dst.Uint(vform, i - 1));
+  }
+  dst.SetUint(vform, 0, imm);
+  return dst;
+}
+
+
 LogicVRegister Simulator::movi(VectorFormat vform,
                                LogicVRegister dst,
                                uint64_t imm) {

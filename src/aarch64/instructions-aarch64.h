@@ -174,6 +174,41 @@ enum AddrMode { Offset, PreIndex, PostIndex };
 
 enum Reg31Mode { Reg31IsStackPointer, Reg31IsZeroRegister };
 
+enum VectorFormat {
+  kFormatUndefined = 0xffffffff,
+  kFormat8B = NEON_8B,
+  kFormat16B = NEON_16B,
+  kFormat4H = NEON_4H,
+  kFormat8H = NEON_8H,
+  kFormat2S = NEON_2S,
+  kFormat4S = NEON_4S,
+  kFormat1D = NEON_1D,
+  kFormat2D = NEON_2D,
+
+  // Scalar formats. We add the scalar bit to distinguish between scalar and
+  // vector enumerations; the bit is always set in the encoding of scalar ops
+  // and always clear for vector ops. Although kFormatD and kFormat1D appear
+  // to be the same, their meaning is subtly different. The first is a scalar
+  // operation, the second a vector operation that only affects one lane.
+  kFormatB = NEON_B | NEONScalar,
+  kFormatH = NEON_H | NEONScalar,
+  kFormatS = NEON_S | NEONScalar,
+  kFormatD = NEON_D | NEONScalar,
+
+  // An artificial value, used to distinguish from NEON format category.
+  kFormatSVE = 0x0000fffd,
+  // Vector element width of SVE register with the unknown lane count since
+  // the vector length is implementation dependent.
+  kFormatVnB = SVE_B | kFormatSVE,
+  kFormatVnH = SVE_H | kFormatSVE,
+  kFormatVnS = SVE_S | kFormatSVE,
+  kFormatVnD = SVE_D | kFormatSVE,
+
+  // An artificial value, used by simulator trace tests and a few oddball
+  // instructions (such as FMLAL).
+  kFormat2H = 0xfffffffe
+};
+
 // Instructions. ---------------------------------------------------------------
 
 class Instruction {
@@ -251,6 +286,21 @@ class Instruction {
   VIXL_DEPRECATED("Get" #Name, int32_t Name() const) { return Get##Name(); }
   INSTRUCTION_FIELDS_LIST(DEFINE_GETTER)
 #undef DEFINE_GETTER
+
+  VectorFormat GetSVEVectorFormat() const {
+    switch (Mask(SVESizeFieldMask)) {
+      case SVE_B:
+        return kFormatVnB;
+      case SVE_H:
+        return kFormatVnH;
+      case SVE_S:
+        return kFormatVnS;
+      case SVE_D:
+        return kFormatVnD;
+    }
+    VIXL_UNREACHABLE();
+    return kFormatUndefined;
+  }
 
   // ImmPCRel is a compound field (not present in INSTRUCTION_FIELDS_LIST),
   // formed from ImmPCRelLo and ImmPCRelHi.
@@ -590,40 +640,6 @@ class Instruction {
 
 
 // Functions for handling NEON and SVE vector format information.
-enum VectorFormat {
-  kFormatUndefined = 0xffffffff,
-  kFormat8B = NEON_8B,
-  kFormat16B = NEON_16B,
-  kFormat4H = NEON_4H,
-  kFormat8H = NEON_8H,
-  kFormat2S = NEON_2S,
-  kFormat4S = NEON_4S,
-  kFormat1D = NEON_1D,
-  kFormat2D = NEON_2D,
-
-  // Scalar formats. We add the scalar bit to distinguish between scalar and
-  // vector enumerations; the bit is always set in the encoding of scalar ops
-  // and always clear for vector ops. Although kFormatD and kFormat1D appear
-  // to be the same, their meaning is subtly different. The first is a scalar
-  // operation, the second a vector operation that only affects one lane.
-  kFormatB = NEON_B | NEONScalar,
-  kFormatH = NEON_H | NEONScalar,
-  kFormatS = NEON_S | NEONScalar,
-  kFormatD = NEON_D | NEONScalar,
-
-  // An artificial value, used to distinguish from NEON format category.
-  kFormatSVE = 0x0000fffd,
-  // Vector element width of SVE register with the unknown lane count since
-  // the vector length is implementation dependent.
-  kFormatVnB = SVE_B | kFormatSVE,
-  kFormatVnH = SVE_H | kFormatSVE,
-  kFormatVnS = SVE_S | kFormatSVE,
-  kFormatVnD = SVE_D | kFormatSVE,
-
-  // An artificial value, used by simulator trace tests and a few oddball
-  // instructions (such as FMLAL).
-  kFormat2H = 0xfffffffe
-};
 
 const int kMaxLanesPerVector = 16;
 

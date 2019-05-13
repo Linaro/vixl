@@ -88,17 +88,34 @@ class Memory {
 };
 
 // Represent a register (r0-r31, v0-v31, z0-z31, p0-p15).
-template <int kSizeInBytes>
+template <unsigned kMaxSizeInBits>
 class SimRegisterBase {
  public:
-  SimRegisterBase() : written_since_last_log_(false) {}
+  static const unsigned kMaxSizeInBytes = kMaxSizeInBits / kBitsPerByte;
+  VIXL_STATIC_ASSERT((kMaxSizeInBytes * kBitsPerByte) == kMaxSizeInBits);
+
+  SimRegisterBase()
+      : size_in_bytes_(kMaxSizeInBytes), written_since_last_log_(false) {}
+
+  unsigned GetSizeInBits() const { return size_in_bytes_ * kBitsPerByte; }
+  unsigned GetSizeInBytes() const { return size_in_bytes_; }
+
+  void SetSizeInBytes(unsigned size_in_bytes) {
+    VIXL_ASSERT(size_in_bytes <= kMaxSizeInBytes);
+    size_in_bytes_ = size_in_bytes;
+  }
+  void SetSizeInBits(unsigned size_in_bits) {
+    VIXL_ASSERT(size_in_bits <= kMaxSizeInBits);
+    VIXL_ASSERT((size_in_bits % kBitsPerByte) == 0);
+    SetSizeInBytes(size_in_bits / kBitsPerByte);
+  }
 
   // Write the specified value. The value is zero-extended if necessary.
   template <typename T>
   void Write(T new_value) {
-    if (sizeof(new_value) < kSizeInBytes) {
+    if (sizeof(new_value) < GetSizeInBytes()) {
       // All AArch64 registers are zero-extending.
-      memset(value_ + sizeof(new_value), 0, kSizeInBytes - sizeof(new_value));
+      memset(value_, 0, kMaxSizeInBytes);
     }
     WriteLane(new_value, 0);
     NotifyRegisterWrite();
@@ -145,7 +162,9 @@ class SimRegisterBase {
   void NotifyRegisterLogged() { written_since_last_log_ = false; }
 
  protected:
-  uint8_t value_[kSizeInBytes];
+  uint8_t value_[kMaxSizeInBytes];
+
+  unsigned size_in_bytes_;
 
   // Helpers to aid with register tracing.
   bool written_since_last_log_;
@@ -156,20 +175,20 @@ class SimRegisterBase {
   template <typename T>
   void ReadLane(T* dst, int lane) const {
     VIXL_ASSERT(lane >= 0);
-    VIXL_ASSERT((sizeof(*dst) + (lane * sizeof(*dst))) <= kSizeInBytes);
+    VIXL_ASSERT((sizeof(*dst) + (lane * sizeof(*dst))) <= GetSizeInBytes());
     memcpy(dst, &value_[lane * sizeof(*dst)], sizeof(*dst));
   }
 
   template <typename T>
   void WriteLane(T src, int lane) {
     VIXL_ASSERT(lane >= 0);
-    VIXL_ASSERT((sizeof(src) + (lane * sizeof(src))) <= kSizeInBytes);
+    VIXL_ASSERT((sizeof(src) + (lane * sizeof(src))) <= GetSizeInBytes());
     memcpy(&value_[lane * sizeof(src)], &src, sizeof(src));
   }
 };
-typedef SimRegisterBase<kXRegSizeInBytes> SimRegister;      // r0-r31
-typedef SimRegisterBase<kZRegMaxSizeInBytes> SimVRegister;  // v0-v31 and z0-z31
-typedef SimRegisterBase<kPRegMaxSizeInBytes> SimPRegister;  // p0-p15
+typedef SimRegisterBase<kXRegSize> SimRegister;      // r0-r31
+typedef SimRegisterBase<kZRegMaxSize> SimVRegister;  // v0-v31 and z0-z31
+typedef SimRegisterBase<kPRegMaxSize> SimPRegister;  // p0-p15
 
 // The default ReadLane and WriteLane methods assume what we are copying is
 // "trivially copyable" by using memcpy. We have to provide alternative
@@ -431,9 +450,12 @@ class LogicVRegister {
     register_.Insert(index, value);
   }
 
-  // When setting a result in a register of size less than Q, the top bits of
-  // the Q register must be cleared.
+  // When setting a result in a register larger than the result itself, the top
+  // bits of the register must be cleared.
   void ClearForWrite(VectorFormat vform) const {
+    // SVE destinations write whole registers, so we have nothing to clear.
+    if (IsSVEFormat(vform)) return;
+
     unsigned size = RegisterSizeInBytesFromFormat(vform);
     for (unsigned i = size; i < kQRegSizeInBytes; i++) {
       SetUint(kFormat16B, i, 0);
@@ -1884,11 +1906,10 @@ class Simulator : public DecoderVisitor {
 #endif
 
   // Configure the simulated value of 'VL', which is the size of a Z register.
-  void SetVectorLengthInBits(unsigned n) {
-    VIXL_ASSERT((n >= kZRegMinSize) && (n <= kZRegMaxSize));
-    VIXL_ASSERT((n % kZRegMinSize) == 0);
-    vector_length_ = n;
-  }
+  // Because this cannot occur during a program's lifetime, this function also
+  // resets the SVE registers.
+  void SetVectorLengthInBits(unsigned vector_length);
+
   unsigned GetVectorLengthInBits() const { return vector_length_; }
   unsigned GetVectorLengthInBytes() const {
     VIXL_ASSERT((vector_length_ % kBitsPerByte) == 0);
@@ -1959,6 +1980,12 @@ class Simulator : public DecoderVisitor {
   const char* clr_branch_marker;
 
   // Simulation helpers ------------------------------------
+
+  void ResetSystemRegisters();
+  void ResetRegisters();
+  void ResetVRegisters();
+  void ResetPRegisters();
+
   bool ConditionPassed(Condition cond) {
     switch (cond) {
       case eq:
@@ -2496,6 +2523,7 @@ class Simulator : public DecoderVisitor {
                                LogicVRegister dst,
                                int dst_index,
                                uint64_t imm);
+  LogicVRegister insr(VectorFormat vform, LogicVRegister dst, uint64_t imm);
   LogicVRegister dup_element(VectorFormat vform,
                              LogicVRegister dst,
                              const LogicVRegister& src,

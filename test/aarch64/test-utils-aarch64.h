@@ -391,6 +391,7 @@ bool EqualSVE(const T (&expected)[N],
               bool* printed_warning) {
   VIXL_ASSERT(reg.IsZRegister() || reg.IsPRegister());
   VIXL_ASSERT(reg.HasLaneSize());
+  // Evaluate and report errors on every lane, rather than just the first.
   bool equal = true;
   for (int lane = 0; lane < N; ++lane) {
     if (!core->HasSVELane(reg, lane)) {
@@ -403,8 +404,8 @@ bool EqualSVE(const T (&expected)[N],
       }
       break;
     }
-    // Evaluate and report errors on every lane, rather than just the first.
-    equal = EqualSVELane(expected[lane], core, reg, lane) && equal;
+    // Map the highest-indexed array element to the lowest-numbered lane.
+    equal = EqualSVELane(expected[N - lane - 1], core, reg, lane) && equal;
   }
   return equal;
 }

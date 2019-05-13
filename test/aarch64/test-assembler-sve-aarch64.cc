@@ -163,30 +163,26 @@ TEST(sve_test_infrastructure_z) {
   END();
 
   if (CAN_RUN()) {
-    if (0) {
-      // TODO: Enable this once we have sufficient simulator support.
-      RUN();
+    RUN();
 
-      // Test that array checks work properly on a register initialised
-      // lane-by-lane.
-      int z0_inputs_b[] = {0x01, 0x02, 0xef, 0xd6, 0x00};
-      ASSERT_EQUAL_SVE(z0_inputs_b, z0.VnB());
+    // Test that array checks work properly on a register initialised
+    // lane-by-lane.
+    int z0_inputs_b[] = {0x01, 0x02, 0xef, 0xd6, 0x00};
+    ASSERT_EQUAL_SVE(z0_inputs_b, z0.VnB());
 
-      // Test that lane-by-lane checks work properly on a register initialised
-      // by array.
-      for (size_t i = 0; i < ArrayLength(z1_inputs); i++) {
-        ASSERT_EQUAL_SVE_LANE(z1_inputs[i], z0.VnH(), i);
-      }
-
-      uint64_t z2_inputs_d[] = {0x0000d6feffd6fedc, 0xffffffd6fedcba98};
-      ASSERT_EQUAL_SVE(z2_inputs_d, z2.VnD());
-      uint64_t z3_inputs_d[] = {0xffffffffffffffd6, 0xfedcba9876543210};
-      ASSERT_EQUAL_SVE(z3_inputs_d, z3.VnD());
-    } else {
-      // TODO: This normally happens in 'RUN()', so remove it once we enable the
-      // block above.
-      DISASSEMBLE();
+    // Test that lane-by-lane checks work properly on a register initialised
+    // by array.
+    for (size_t i = 0; i < ArrayLength(z1_inputs); i++) {
+      // The rightmost (highest-indexed) array element maps to the
+      // lowest-numbered lane.
+      int lane = static_cast<int>(ArrayLength(z1_inputs) - i - 1);
+      ASSERT_EQUAL_SVE_LANE(z1_inputs[i], z1.VnH(), lane);
     }
+
+    uint64_t z2_inputs_d[] = {0x0000d6feffd6fedc, 0xffffffd6fedcba98};
+    ASSERT_EQUAL_SVE(z2_inputs_d, z2.VnD());
+    uint64_t z3_inputs_d[] = {0xffffffffffffffd6, 0xfedcba9876543210};
+    ASSERT_EQUAL_SVE(z3_inputs_d, z3.VnD());
   }
 
   TEARDOWN();
@@ -199,13 +195,13 @@ TEST(sve_test_infrastructure_p) {
 
   // Simple cases: move boolean (0 or 1) values.
 
-  int p0_inputs[] = {0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0};
+  int p0_inputs[] = {0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0};
   Initialise(&masm, p0.VnB(), p0_inputs);
 
   int p1_inputs[] = {1, 0, 1, 1, 0, 1, 1, 1};
   Initialise(&masm, p1.VnH(), p1_inputs);
 
-  int p2_inputs[] = {1, 0, 0, 1};
+  int p2_inputs[] = {1, 1, 0, 1};
   Initialise(&masm, p2.VnS(), p2_inputs);
 
   int p3_inputs[] = {0, 1};
@@ -237,46 +233,43 @@ TEST(sve_test_infrastructure_p) {
   END();
 
   if (CAN_RUN()) {
-    if (0) {
-      // TODO: Enable this once we have sufficient simulator support.
-      RUN();
+    RUN();
 
-      // Test that lane-by-lane checks work properly.
-      for (size_t i = 0; i < ArrayLength(p0_inputs); i++) {
-        ASSERT_EQUAL_SVE_LANE(p0_inputs[i], p0.VnB(), i);
-      }
-      for (size_t i = 0; i < ArrayLength(p1_inputs); i++) {
-        ASSERT_EQUAL_SVE_LANE(p1_inputs[i], p1.VnB(), i);
-      }
-      for (size_t i = 0; i < ArrayLength(p2_inputs); i++) {
-        ASSERT_EQUAL_SVE_LANE(p2_inputs[i], p2.VnB(), i);
-      }
-      for (size_t i = 0; i < ArrayLength(p3_inputs); i++) {
-        ASSERT_EQUAL_SVE_LANE(p3_inputs[i], p3.VnB(), i);
-      }
-
-      // Test that array checks work properly on predicates initialised with a
-      // possibly-different lane size.
-      // 0b...11'10'01'00'01'10'11
-      int p4_expected[] = {0x39, 0x1b};
-      ASSERT_EQUAL_SVE(p4_expected, p4.VnD());
-
-      ASSERT_EQUAL_SVE(p5_inputs, p5.VnS());
-
-      // 0b...10000001'11001100'01010101
-      int p6_expected[] = {2, 0, 0, 1, 3, 0, 3, 0, 1, 1, 1, 1};
-      ASSERT_EQUAL_SVE(p6_expected, p6.VnH());
-
-      // 0b...10011100'10011101'10011110'10011111
-      int p7_expected[] = {1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1,
-                           1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1};
-      ASSERT_EQUAL_SVE(p7_expected, p7.VnB());
-
-    } else {
-      // TODO: This normally happens in 'RUN()', so remove it once we enable the
-      // block above.
-      DISASSEMBLE();
+    // Test that lane-by-lane checks work properly. The rightmost
+    // (highest-indexed) array element maps to the lowest-numbered lane.
+    for (size_t i = 0; i < ArrayLength(p0_inputs); i++) {
+      int lane = static_cast<int>(ArrayLength(p0_inputs) - i - 1);
+      ASSERT_EQUAL_SVE_LANE(p0_inputs[i], p0.VnB(), lane);
     }
+    for (size_t i = 0; i < ArrayLength(p1_inputs); i++) {
+      int lane = static_cast<int>(ArrayLength(p1_inputs) - i - 1);
+      ASSERT_EQUAL_SVE_LANE(p1_inputs[i], p1.VnH(), lane);
+    }
+    for (size_t i = 0; i < ArrayLength(p2_inputs); i++) {
+      int lane = static_cast<int>(ArrayLength(p2_inputs) - i - 1);
+      ASSERT_EQUAL_SVE_LANE(p2_inputs[i], p2.VnS(), lane);
+    }
+    for (size_t i = 0; i < ArrayLength(p3_inputs); i++) {
+      int lane = static_cast<int>(ArrayLength(p3_inputs) - i - 1);
+      ASSERT_EQUAL_SVE_LANE(p3_inputs[i], p3.VnD(), lane);
+    }
+
+    // Test that array checks work properly on predicates initialised with a
+    // possibly-different lane size.
+    // 0b...11'10'01'00'01'10'11
+    int p4_expected[] = {0x39, 0x1b};
+    ASSERT_EQUAL_SVE(p4_expected, p4.VnD());
+
+    ASSERT_EQUAL_SVE(p5_inputs, p5.VnS());
+
+    // 0b...10000001'11001100'01010101
+    int p6_expected[] = {2, 0, 0, 1, 3, 0, 3, 0, 1, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p6_expected, p6.VnH());
+
+    // 0b...10011100'10011101'10011110'10011111
+    int p7_expected[] = {1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1,
+                         1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p7_expected, p7.VnB());
   }
 }
 

@@ -91,6 +91,10 @@ Simulator::Simulator(Decoder* decoder, FILE* stream)
   SetColouredTrace(false);
   trace_parameters_ = LOG_NONE;
 
+  // We have to configure the SVE vector register length before calling
+  // ResetState().
+  SetVectorLengthInBits(kZRegMinSize);
+
   ResetState();
 
   // Allocate and set up the simulator stack.
@@ -114,61 +118,90 @@ Simulator::Simulator(Decoder* decoder, FILE* stream)
 
   guard_pages_ = false;
 
-  // Configure SVE minimum vector register length which is 128 bits by default.
-  SetVectorLengthInBits(kZRegMinSize);
-
   // Initialize the common state of RNDR and RNDRRS.
   uint16_t seed[3] = {11, 22, 33};
   VIXL_STATIC_ASSERT(sizeof(seed) == sizeof(rndr_state_));
   memcpy(rndr_state_, seed, sizeof(rndr_state_));
 }
 
-
-void Simulator::ResetState() {
+void Simulator::ResetSystemRegisters() {
   // Reset the system registers.
   nzcv_ = SimSystemRegister::DefaultValueFor(NZCV);
   fpcr_ = SimSystemRegister::DefaultValueFor(FPCR);
+}
 
-  // Reset registers to 0.
-  pc_ = NULL;
-  pc_modified_ = false;
+void Simulator::ResetRegisters() {
   for (unsigned i = 0; i < kNumberOfRegisters; i++) {
     WriteXRegister(i, 0xbadbeef);
   }
+  // Returning to address 0 exits the Simulator.
+  WriteLr(kEndOfSimAddress);
+}
 
+void Simulator::ResetVRegisters() {
   // Set SVE/FP registers to a value that is a NaN in both 32-bit and 64-bit FP.
+  VIXL_ASSERT((GetVectorLengthInBytes() % kDRegSizeInBytes) == 0);
+  int lane_count = GetVectorLengthInBytes() / kDRegSizeInBytes;
   for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
-    for (size_t lane = 0; lane < (kZRegMaxSizeInBytes / kDRegSizeInBytes);
-         lane++) {
+    VIXL_ASSERT(vregisters_[i].GetSizeInBytes() == GetVectorLengthInBytes());
+    for (int lane = 0; lane < lane_count; lane++) {
       // Encode the register number and (D-sized) lane into each NaN, to
       // make them easier to trace.
       uint64_t nan_bits = 0x7ff0f0007f80f000 | (0x0000000100000000 * i) |
                           (0x0000000000000001 * lane);
       VIXL_ASSERT(IsSignallingNaN(RawbitsToDouble(nan_bits & kDRegMask)));
       VIXL_ASSERT(IsSignallingNaN(RawbitsToFloat(nan_bits & kSRegMask)));
-      vregisters_[i].Insert(static_cast<int>(lane), nan_bits);
+      vregisters_[i].Insert(lane, nan_bits);
     }
   }
+}
 
+void Simulator::ResetPRegisters() {
+  VIXL_ASSERT((GetPredicateLengthInBytes() % kHRegSizeInBytes) == 0);
+  int lane_count = GetPredicateLengthInBytes() / kHRegSizeInBytes;
+  // Ensure the register configuration fits in this bit encoding.
+  VIXL_STATIC_ASSERT(kNumberOfPRegisters <= UINT8_MAX);
+  VIXL_ASSERT(lane_count <= UINT8_MAX);
   for (unsigned i = 0; i < kNumberOfPRegisters; i++) {
-    for (size_t lane = 0; lane < kPRegMaxSizeInBytes / kHRegSizeInBytes;
-         lane++) {
-      // Ensure a register configuration fit in this bit encoding.
-      VIXL_STATIC_ASSERT(kNumberOfPRegisters <= UINT8_MAX);
-      VIXL_STATIC_ASSERT((kPRegMaxSizeInBytes / kHRegSizeInBytes) <= UINT8_MAX);
+    VIXL_ASSERT(pregisters_[i].GetSizeInBytes() == GetPredicateLengthInBytes());
+    for (int lane = 0; lane < lane_count; lane++) {
       // Encode the register number and (H-sized) lane into each lane slot.
       uint16_t bits = (0x0100 * lane) | i;
-      pregisters_[i].Insert(static_cast<int>(lane), bits);
+      pregisters_[i].Insert(lane, bits);
     }
   }
+}
 
-  // Returning to address 0 exits the Simulator.
-  WriteLr(kEndOfSimAddress);
+void Simulator::ResetState() {
+  ResetSystemRegisters();
+  ResetRegisters();
+  ResetVRegisters();
+  ResetPRegisters();
 
+  pc_ = NULL;
+  pc_modified_ = false;
+
+  // BTI state.
   btype_ = DefaultBType;
   next_btype_ = DefaultBType;
 }
 
+void Simulator::SetVectorLengthInBits(unsigned vector_length) {
+  VIXL_ASSERT((vector_length >= kZRegMinSize) &&
+              (vector_length <= kZRegMaxSize));
+  VIXL_ASSERT((vector_length % kZRegMinSize) == 0);
+  vector_length_ = vector_length;
+
+  for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
+    vregisters_[i].SetSizeInBytes(GetVectorLengthInBytes());
+  }
+  for (unsigned i = 0; i < kNumberOfPRegisters; i++) {
+    pregisters_[i].SetSizeInBytes(GetPredicateLengthInBytes());
+  }
+
+  ResetVRegisters();
+  ResetPRegisters();
+}
 
 Simulator::~Simulator() {
   delete[] stack_;
@@ -8023,12 +8056,15 @@ void Simulator::VisitSVEIntWideImmPredicated(const Instruction* instr) {
 
 void Simulator::VisitSVEIntWideImmUnpredicated(const Instruction* instr) {
   USE(instr);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
   switch (instr->Mask(SVEIntWideImmUnpredicatedMask)) {
     case ADD_z_zi:
       VIXL_UNIMPLEMENTED();
       break;
     case DUP_z_i:
-      VIXL_UNIMPLEMENTED();
+      dup_immediate(instr->GetSVEVectorFormat(),
+                    zd,
+                    instr->GetImmSVEIntWideSigned());
       break;
     case FDUP_z_i:
       VIXL_UNIMPLEMENTED();
@@ -8075,191 +8111,86 @@ void Simulator::VisitSVEIntWideImmUnpredicated(const Instruction* instr) {
 void Simulator::VisitSVEMem32BitGatherAndUnsizedContiguous(
     const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEMem32BitGatherAndUnsizedContiguousMask)) {
-    case LD1B_z_p_ai_s:
+  if (instr->Mask(SVEMemUnsizedContiguousLoadPMask) == LDR_p_bi) {
+    SimPRegister& pt = ReadPRegister(instr->GetPt());
+    uint64_t address = ReadXRegister(instr->GetRn());
+    if (instr->Mask(0x003f1c00)) {
+      // TODO: Support the VL multiplier.
       VIXL_UNIMPLEMENTED();
-      break;
-    case LD1B_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1H_z_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1H_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1H_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RB_z_p_bi_u16:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RB_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RB_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RB_z_p_bi_u8:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RD_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RH_z_p_bi_u16:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RH_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RH_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RSB_z_p_bi_s16:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RSB_z_p_bi_s32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RSB_z_p_bi_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RSH_z_p_bi_s32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RSH_z_p_bi_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RSW_z_p_bi_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RW_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RW_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SB_z_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SB_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SH_z_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SH_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SH_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1W_z_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1W_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1W_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1B_z_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1B_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1H_z_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1H_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1H_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SB_z_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SB_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SH_z_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SH_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SH_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1W_z_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1W_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1W_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDR_p_bi:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDR_z_bi:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFB_i_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFB_i_p_bi_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFB_i_p_br_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFB_i_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFD_i_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFD_i_p_bi_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFD_i_p_br_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFD_i_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFH_i_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFH_i_p_bi_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFH_i_p_br_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFH_i_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFW_i_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFW_i_p_bi_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFW_i_p_br_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFW_i_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-      break;
+    }
+    for (unsigned i = 0; i < GetPredicateLengthInBytes(); i++) {
+      pt.Insert(i, Memory::Read<uint8_t>(address + i));
+    }
+  } else {
+    // TODO: This switch doesn't work because the mask needs to vary on a finer
+    // granularity. Early implementations have already been pulled out, but we
+    // need to re-organise the instruction groups.
+    switch (instr->Mask(SVEMem32BitGatherAndUnsizedContiguousMask)) {
+      case LD1B_z_p_ai_s:
+      case LD1B_z_p_bz_s_x32_unscaled:
+      case LD1H_z_p_ai_s:
+      case LD1H_z_p_bz_s_x32_scaled:
+      case LD1H_z_p_bz_s_x32_unscaled:
+      case LD1RB_z_p_bi_u16:
+      case LD1RB_z_p_bi_u32:
+      case LD1RB_z_p_bi_u64:
+      case LD1RB_z_p_bi_u8:
+      case LD1RD_z_p_bi_u64:
+      case LD1RH_z_p_bi_u16:
+      case LD1RH_z_p_bi_u32:
+      case LD1RH_z_p_bi_u64:
+      case LD1RSB_z_p_bi_s16:
+      case LD1RSB_z_p_bi_s32:
+      case LD1RSB_z_p_bi_s64:
+      case LD1RSH_z_p_bi_s32:
+      case LD1RSH_z_p_bi_s64:
+      case LD1RSW_z_p_bi_s64:
+      case LD1RW_z_p_bi_u32:
+      case LD1RW_z_p_bi_u64:
+      case LD1SB_z_p_ai_s:
+      case LD1SB_z_p_bz_s_x32_unscaled:
+      case LD1SH_z_p_ai_s:
+      case LD1SH_z_p_bz_s_x32_scaled:
+      case LD1SH_z_p_bz_s_x32_unscaled:
+      case LD1W_z_p_ai_s:
+      case LD1W_z_p_bz_s_x32_scaled:
+      case LD1W_z_p_bz_s_x32_unscaled:
+      case LDFF1B_z_p_ai_s:
+      case LDFF1B_z_p_bz_s_x32_unscaled:
+      case LDFF1H_z_p_ai_s:
+      case LDFF1H_z_p_bz_s_x32_scaled:
+      case LDFF1H_z_p_bz_s_x32_unscaled:
+      case LDFF1SB_z_p_ai_s:
+      case LDFF1SB_z_p_bz_s_x32_unscaled:
+      case LDFF1SH_z_p_ai_s:
+      case LDFF1SH_z_p_bz_s_x32_scaled:
+      case LDFF1SH_z_p_bz_s_x32_unscaled:
+      case LDFF1W_z_p_ai_s:
+      case LDFF1W_z_p_bz_s_x32_scaled:
+      case LDFF1W_z_p_bz_s_x32_unscaled:
+      case LDR_z_bi:
+      case PRFB_i_p_ai_s:
+      case PRFB_i_p_bi_s:
+      case PRFB_i_p_br_s:
+      case PRFB_i_p_bz_s_x32_scaled:
+      case PRFD_i_p_ai_s:
+      case PRFD_i_p_bi_s:
+      case PRFD_i_p_br_s:
+      case PRFD_i_p_bz_s_x32_scaled:
+      case PRFH_i_p_ai_s:
+      case PRFH_i_p_bi_s:
+      case PRFH_i_p_br_s:
+      case PRFH_i_p_bz_s_x32_scaled:
+      case PRFW_i_p_ai_s:
+      case PRFW_i_p_bi_s:
+      case PRFW_i_p_br_s:
+      case PRFW_i_p_bz_s_x32_scaled:
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
   }
+  // TODO: LogRead
 }
 
 void Simulator::VisitSVEMem64BitGather(const Instruction* instr) {
@@ -9104,6 +9035,7 @@ void Simulator::VisitSVEPermuteVectorPredicated(const Instruction* instr) {
 
 void Simulator::VisitSVEPermuteVectorUnpredicated(const Instruction* instr) {
   USE(instr);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
   switch (instr->Mask(SVEPermuteVectorUnpredicatedMask)) {
     case DUP_z_r:
       VIXL_UNIMPLEMENTED();
@@ -9112,7 +9044,7 @@ void Simulator::VisitSVEPermuteVectorUnpredicated(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case INSR_z_r:
-      VIXL_UNIMPLEMENTED();
+      insr(instr->GetSVEVectorFormat(), zd, ReadXRegister(instr->GetRn()));
       break;
     case INSR_z_v:
       VIXL_UNIMPLEMENTED();
