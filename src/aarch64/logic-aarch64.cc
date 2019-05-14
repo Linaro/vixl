@@ -589,22 +589,24 @@ LogicVRegister Simulator::addp(VectorFormat vform,
 
 LogicVRegister Simulator::mla(VectorFormat vform,
                               LogicVRegister dst,
+                              const LogicVRegister& srca,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
   SimVRegister temp;
   mul(vform, temp, src1, src2);
-  add(vform, dst, dst, temp);
+  add(vform, dst, srca, temp);
   return dst;
 }
 
 
 LogicVRegister Simulator::mls(VectorFormat vform,
                               LogicVRegister dst,
+                              const LogicVRegister& srca,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
   SimVRegister temp;
   mul(vform, temp, src1, src2);
-  sub(vform, dst, dst, temp);
+  sub(vform, dst, srca, temp);
   return dst;
 }
 
@@ -639,7 +641,7 @@ LogicVRegister Simulator::mla(VectorFormat vform,
                               int index) {
   SimVRegister temp;
   VectorFormat indexform = VectorFormatFillQ(vform);
-  return mla(vform, dst, src1, dup_element(indexform, temp, src2, index));
+  return mla(vform, dst, dst, src1, dup_element(indexform, temp, src2, index));
 }
 
 
@@ -650,7 +652,7 @@ LogicVRegister Simulator::mls(VectorFormat vform,
                               int index) {
   SimVRegister temp;
   VectorFormat indexform = VectorFormatFillQ(vform);
-  return mls(vform, dst, src1, dup_element(indexform, temp, src2, index));
+  return mls(vform, dst, dst, src1, dup_element(indexform, temp, src2, index));
 }
 
 
@@ -1519,6 +1521,23 @@ LogicVRegister Simulator::ushll2(VectorFormat vform,
   LogicVRegister shiftreg = dup_immediate(vform, temp1, shift);
   LogicVRegister extendedreg = uxtl2(vform, temp2, src);
   return ushl(vform, dst, extendedreg, shiftreg);
+}
+
+
+LogicVRegister Simulator::sel(VectorFormat vform,
+                              LogicVRegister dst,
+                              const SimPRegister& pg,
+                              const LogicVRegister& src1,
+                              const LogicVRegister& src2) {
+  int p_reg_bits_per_lane =
+      LaneSizeInBitsFromFormat(vform) / kZRegBitsPerPRegBit;
+  for (int lane = 0; lane < LaneCountFromFormat(vform); lane++) {
+    uint64_t lane_value = pg.GetBit(lane * p_reg_bits_per_lane)
+                              ? src1.Uint(vform, lane)
+                              : src2.Uint(vform, lane);
+    dst.SetUint(vform, lane, lane_value);
+  }
+  return dst;
 }
 
 
@@ -2485,6 +2504,14 @@ LogicVRegister Simulator::insr(VectorFormat vform,
 }
 
 
+LogicVRegister Simulator::mov_merging(VectorFormat vform,
+                                      LogicVRegister dst,
+                                      const SimPRegister& pg,
+                                      const LogicVRegister& src) {
+  return sel(vform, dst, pg, src, dst);
+}
+
+
 LogicVRegister Simulator::movi(VectorFormat vform,
                                LogicVRegister dst,
                                uint64_t imm) {
@@ -3194,7 +3221,7 @@ LogicVRegister Simulator::umlsl(VectorFormat vform,
   SimVRegister temp1, temp2;
   uxtl(vform, temp1, src1);
   uxtl(vform, temp2, src2);
-  mls(vform, dst, temp1, temp2);
+  mls(vform, dst, dst, temp1, temp2);
   return dst;
 }
 
@@ -3206,7 +3233,7 @@ LogicVRegister Simulator::umlsl2(VectorFormat vform,
   SimVRegister temp1, temp2;
   uxtl2(vform, temp1, src1);
   uxtl2(vform, temp2, src2);
-  mls(vform, dst, temp1, temp2);
+  mls(vform, dst, dst, temp1, temp2);
   return dst;
 }
 
@@ -3218,7 +3245,7 @@ LogicVRegister Simulator::smlsl(VectorFormat vform,
   SimVRegister temp1, temp2;
   sxtl(vform, temp1, src1);
   sxtl(vform, temp2, src2);
-  mls(vform, dst, temp1, temp2);
+  mls(vform, dst, dst, temp1, temp2);
   return dst;
 }
 
@@ -3230,7 +3257,7 @@ LogicVRegister Simulator::smlsl2(VectorFormat vform,
   SimVRegister temp1, temp2;
   sxtl2(vform, temp1, src1);
   sxtl2(vform, temp2, src2);
-  mls(vform, dst, temp1, temp2);
+  mls(vform, dst, dst, temp1, temp2);
   return dst;
 }
 
@@ -3242,7 +3269,7 @@ LogicVRegister Simulator::umlal(VectorFormat vform,
   SimVRegister temp1, temp2;
   uxtl(vform, temp1, src1);
   uxtl(vform, temp2, src2);
-  mla(vform, dst, temp1, temp2);
+  mla(vform, dst, dst, temp1, temp2);
   return dst;
 }
 
@@ -3254,7 +3281,7 @@ LogicVRegister Simulator::umlal2(VectorFormat vform,
   SimVRegister temp1, temp2;
   uxtl2(vform, temp1, src1);
   uxtl2(vform, temp2, src2);
-  mla(vform, dst, temp1, temp2);
+  mla(vform, dst, dst, temp1, temp2);
   return dst;
 }
 
@@ -3266,7 +3293,7 @@ LogicVRegister Simulator::smlal(VectorFormat vform,
   SimVRegister temp1, temp2;
   sxtl(vform, temp1, src1);
   sxtl(vform, temp2, src2);
-  mla(vform, dst, temp1, temp2);
+  mla(vform, dst, dst, temp1, temp2);
   return dst;
 }
 
@@ -3278,7 +3305,7 @@ LogicVRegister Simulator::smlal2(VectorFormat vform,
   SimVRegister temp1, temp2;
   sxtl2(vform, temp1, src1);
   sxtl2(vform, temp2, src2);
-  mla(vform, dst, temp1, temp2);
+  mla(vform, dst, dst, temp1, temp2);
   return dst;
 }
 

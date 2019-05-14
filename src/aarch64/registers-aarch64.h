@@ -596,6 +596,14 @@ class ZRegister : public CPURegister {
     VIXL_ASSERT(IsValid());
   }
 
+  // Return a Z register with a known lane size (like "z0.B").
+  // TODO: We shouldn't duplicate these, but they should automatically be shared
+  // when the TODO on ZRegisterNoLaneSize is resolved.
+  ZRegister VnB() const { return ZRegister(GetCode(), kBRegSize); }
+  ZRegister VnH() const { return ZRegister(GetCode(), kHRegSize); }
+  ZRegister VnS() const { return ZRegister(GetCode(), kSRegSize); }
+  ZRegister VnD() const { return ZRegister(GetCode(), kDRegSize); }
+
   bool IsValid() const { return IsValidZRegister() && HasLaneSize(); }
 };
 
@@ -622,6 +630,16 @@ class ZRegisterNoLaneSize : public CPURegister {
   ZRegister VnH() const { return ZRegister(GetCode(), kHRegSize); }
   ZRegister VnS() const { return ZRegister(GetCode(), kSRegSize); }
   ZRegister VnD() const { return ZRegister(GetCode(), kDRegSize); }
+
+  template <typename T>
+  ZRegister WithLaneSize(T format) const {
+    return ZRegister(GetCode(), format);
+  }
+
+  ZRegister WithSameLaneSizeAs(const CPURegister& other) const {
+    VIXL_ASSERT(other.HasLaneSize());
+    return this->WithLaneSize(other.GetLaneSizeInBits());
+  }
 
   bool IsValid() const { return IsValidZRegister() && !HasLaneSize(); }
 };
@@ -716,6 +734,16 @@ class PRegister : public CPURegister {
   }
   PRegisterWithLaneSize VnD() const {
     return PRegisterWithLaneSize(GetCode(), kDRegSize);
+  }
+
+  template <typename T>
+  PRegisterWithLaneSize WithLaneSize(T format) const {
+    return PRegisterWithLaneSize(GetCode(), format);
+  }
+
+  PRegisterWithLaneSize WithSameLaneSizeAs(const CPURegister& other) const {
+    VIXL_ASSERT(other.HasLaneSize());
+    return this->WithLaneSize(other.GetLaneSizeInBits());
   }
 
   // SVE predicates are specified (in normal assembly) with a "/z" (zeroing) or

@@ -61,6 +61,63 @@ void MacroAssembler::Insr(const ZRegister& zdn, uint64_t imm) {
   insr(zdn, scratch);
 }
 
+void MacroAssembler::Mla(const ZRegister& zd,
+                         const PRegisterM& pg,
+                         const ZRegister& za,
+                         const ZRegister& zn,
+                         const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(za)) {
+    // zda = zda + (zn * zm)
+    SingleEmissionCheckScope guard(this);
+    mla(zd, pg, zn, zm);
+  } else if (zd.Aliases(zn)) {
+    // zdn = za + (zdn * zm)
+    SingleEmissionCheckScope guard(this);
+    mad(zd, pg, zm, za);
+  } else if (zd.Aliases(zm)) {
+    // Multiplication is commutative, so we can swap zn and zm.
+    // zdm = za + (zdm * zn)
+    SingleEmissionCheckScope guard(this);
+    mad(zd, pg, zn, za);
+  } else {
+    // zd = za + (zn * zm)
+    // TODO: This requires movprfx support.
+    VIXL_UNIMPLEMENTED();
+    // ExactAssemblyScope guard(this, 2 * kInstructionSize);
+    // movprfx(zd, pg, za);
+    // mla(zd, pg, zn, zm);
+  }
+}
+
+void MacroAssembler::Mls(const ZRegister& zd,
+                         const PRegisterM& pg,
+                         const ZRegister& za,
+                         const ZRegister& zn,
+                         const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(za)) {
+    // zda = zda - (zn * zm)
+    SingleEmissionCheckScope guard(this);
+    mls(zd, pg, zn, zm);
+  } else if (zd.Aliases(zn)) {
+    // zdn = za - (zdn * zm)
+    SingleEmissionCheckScope guard(this);
+    msb(zd, pg, zm, za);
+  } else if (zd.Aliases(zm)) {
+    // Multiplication is commutative, so we can swap zn and zm.
+    // zdm = za - (zdm * zn)
+    SingleEmissionCheckScope guard(this);
+    msb(zd, pg, zn, za);
+  } else {
+    // zd = za - (zn * zm)
+    // TODO: This requires movprfx support.
+    VIXL_UNIMPLEMENTED();
+    // ExactAssemblyScope guard(this, 2 * kInstructionSize);
+    // movprfx(zd, pg, za);
+    // mls(zd, pg, zn, zm);
+  }
+}
 
 }  // namespace aarch64
 }  // namespace vixl

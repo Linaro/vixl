@@ -984,24 +984,66 @@ TEST(sve_int_misc_unpredicated) {
 TEST(sve_int_mul_add_predicated) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(mad(z29.VnB(), p6.Merging(), z22.VnB(), za.VnB()), "mad <Zdn>.<T>, <Pg>/M, <Zm>.<T>, <Za>.<T>");
-  COMPARE_PREFIX(mad(z29.VnH(), p6.Merging(), z22.VnH(), za.VnH()), "mad <Zdn>.<T>, <Pg>/M, <Zm>.<T>, <Za>.<T>");
-  COMPARE_PREFIX(mad(z29.VnS(), p6.Merging(), z22.VnS(), za.VnS()), "mad <Zdn>.<T>, <Pg>/M, <Zm>.<T>, <Za>.<T>");
-  COMPARE_PREFIX(mad(z29.VnD(), p6.Merging(), z22.VnD(), za.VnD()), "mad <Zdn>.<T>, <Pg>/M, <Zm>.<T>, <Za>.<T>");
-  COMPARE_PREFIX(mla(z23.VnB(), p1.Merging(), z21.VnB(), z23.VnB()), "mla <Zda>.<T>, <Pg>/M, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(mla(z23.VnH(), p1.Merging(), z21.VnH(), z23.VnH()), "mla <Zda>.<T>, <Pg>/M, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(mla(z23.VnS(), p1.Merging(), z21.VnS(), z23.VnS()), "mla <Zda>.<T>, <Pg>/M, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(mla(z23.VnD(), p1.Merging(), z21.VnD(), z23.VnD()), "mla <Zda>.<T>, <Pg>/M, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(mls(z4.VnB(), p6.Merging(), z17.VnB(), z28.VnB()), "mls <Zda>.<T>, <Pg>/M, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(mls(z4.VnH(), p6.Merging(), z17.VnH(), z28.VnH()), "mls <Zda>.<T>, <Pg>/M, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(mls(z4.VnS(), p6.Merging(), z17.VnS(), z28.VnS()), "mls <Zda>.<T>, <Pg>/M, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(mls(z4.VnD(), p6.Merging(), z17.VnD(), z28.VnD()), "mls <Zda>.<T>, <Pg>/M, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(msb(z27.VnB(), p7.Merging(), z29.VnB(), za.VnB()), "msb <Zdn>.<T>, <Pg>/M, <Zm>.<T>, <Za>.<T>");
-  COMPARE_PREFIX(msb(z27.VnH(), p7.Merging(), z29.VnH(), za.VnH()), "msb <Zdn>.<T>, <Pg>/M, <Zm>.<T>, <Za>.<T>");
-  COMPARE_PREFIX(msb(z27.VnS(), p7.Merging(), z29.VnS(), za.VnS()), "msb <Zdn>.<T>, <Pg>/M, <Zm>.<T>, <Za>.<T>");
-  COMPARE_PREFIX(msb(z27.VnD(), p7.Merging(), z29.VnD(), za.VnD()), "msb <Zdn>.<T>, <Pg>/M, <Zm>.<T>, <Za>.<T>");
-#endif
+  COMPARE_PREFIX(mad(z29.VnB(), p6.Merging(), z22.VnB(), z21.VnB()),
+                 "mad z29.b, p6/m, z22.b, z21.b");
+  COMPARE_PREFIX(mad(z29.VnH(), p6.Merging(), z22.VnH(), z21.VnH()),
+                 "mad z29.h, p6/m, z22.h, z21.h");
+  COMPARE_PREFIX(mad(z29.VnS(), p6.Merging(), z22.VnS(), z21.VnS()),
+                 "mad z29.s, p6/m, z22.s, z21.s");
+  COMPARE_PREFIX(mad(z29.VnD(), p6.Merging(), z22.VnD(), z21.VnD()),
+                 "mad z29.d, p6/m, z22.d, z21.d");
+  COMPARE_PREFIX(mla(z23.VnB(), p1.Merging(), z21.VnB(), z23.VnB()),
+                 "mla z23.b, p1/m, z21.b, z23.b");
+  COMPARE_PREFIX(mla(z23.VnH(), p1.Merging(), z21.VnH(), z23.VnH()),
+                 "mla z23.h, p1/m, z21.h, z23.h");
+  COMPARE_PREFIX(mla(z23.VnS(), p1.Merging(), z21.VnS(), z23.VnS()),
+                 "mla z23.s, p1/m, z21.s, z23.s");
+  COMPARE_PREFIX(mla(z23.VnD(), p1.Merging(), z21.VnD(), z23.VnD()),
+                 "mla z23.d, p1/m, z21.d, z23.d");
+  COMPARE_PREFIX(mls(z4.VnB(), p6.Merging(), z17.VnB(), z28.VnB()),
+                 "mls z4.b, p6/m, z17.b, z28.b");
+  COMPARE_PREFIX(mls(z4.VnH(), p6.Merging(), z17.VnH(), z28.VnH()),
+                 "mls z4.h, p6/m, z17.h, z28.h");
+  COMPARE_PREFIX(mls(z4.VnS(), p6.Merging(), z17.VnS(), z28.VnS()),
+                 "mls z4.s, p6/m, z17.s, z28.s");
+  COMPARE_PREFIX(mls(z4.VnD(), p6.Merging(), z17.VnD(), z28.VnD()),
+                 "mls z4.d, p6/m, z17.d, z28.d");
+  COMPARE_PREFIX(msb(z27.VnB(), p7.Merging(), z29.VnB(), z1.VnB()),
+                 "msb z27.b, p7/m, z29.b, z1.b");
+  COMPARE_PREFIX(msb(z27.VnH(), p7.Merging(), z29.VnH(), z1.VnH()),
+                 "msb z27.h, p7/m, z29.h, z1.h");
+  COMPARE_PREFIX(msb(z27.VnS(), p7.Merging(), z29.VnS(), z1.VnS()),
+                 "msb z27.s, p7/m, z29.s, z1.s");
+  COMPARE_PREFIX(msb(z27.VnD(), p7.Merging(), z29.VnD(), z1.VnD()),
+                 "msb z27.d, p7/m, z29.d, z1.d");
+
+  CLEANUP();
+}
+
+TEST(sve_int_mul_add_predicated_macro) {
+  SETUP();
+
+  COMPARE_MACRO(Mla(z0.VnB(), p1.Merging(), z0.VnB(), z2.VnB(), z4.VnB()),
+                "mla z0.b, p1/m, z2.b, z4.b");
+  COMPARE_MACRO(Mla(z3.VnH(), p2.Merging(), z4.VnH(), z3.VnH(), z5.VnH()),
+                "mad z3.h, p2/m, z5.h, z4.h");
+  COMPARE_MACRO(Mla(z4.VnS(), p3.Merging(), z5.VnS(), z6.VnS(), z4.VnS()),
+                "mad z4.s, p3/m, z6.s, z5.s");
+  // TODO: Enable once movprfx is implemented.
+  // COMPARE_MACRO(Mla(z5.VnD(), p4.Merging(), z6.VnD(), z7.VnD(), z8.VnD()),
+  //               "movprfx z5, z6\n"
+  //               "mla z5.d, p4/m, z7.d, z8.d");
+
+  COMPARE_MACRO(Mls(z0.VnD(), p1.Merging(), z0.VnD(), z2.VnD(), z4.VnD()),
+                "mls z0.d, p1/m, z2.d, z4.d");
+  COMPARE_MACRO(Mls(z3.VnS(), p2.Merging(), z4.VnS(), z3.VnS(), z5.VnS()),
+                "msb z3.s, p2/m, z5.s, z4.s");
+  COMPARE_MACRO(Mls(z4.VnH(), p3.Merging(), z5.VnH(), z6.VnH(), z4.VnH()),
+                "msb z4.h, p3/m, z6.h, z5.h");
+  // TODO: Enable once movprfx is implemented.
+  // COMPARE_MACRO(Mls(z5.VnB(), p4.Merging(), z6.VnB(), z7.VnB(), z8.VnB()),
+  //               "movprfx z5, z6\n"
+  //               "mls z5.b, p4/m, z7.b, z8.b");
 
   CLEANUP();
 }

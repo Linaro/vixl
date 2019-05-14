@@ -3320,7 +3320,7 @@ void Assembler::mad(const ZRegister& zdn,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zdn, zm, za));
 
-  Emit(MAD_z_p_zzz | SVESize(zdn) | Rd(zdn) | Rx<12, 10>(pg) | Rm(zm) | Rn(za));
+  Emit(MAD_z_p_zzz | SVESize(zdn) | Rd(zdn) | PgLow8(pg) | Rm(zm) | Rn(za));
 }
 
 void Assembler::mla(const ZRegister& zda,
@@ -3334,7 +3334,7 @@ void Assembler::mla(const ZRegister& zda,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
 
-  Emit(MLA_z_p_zzz | SVESize(zda) | Rd(zda) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+  Emit(MLA_z_p_zzz | SVESize(zda) | Rd(zda) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::mls(const ZRegister& zda,
@@ -3348,7 +3348,7 @@ void Assembler::mls(const ZRegister& zda,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
 
-  Emit(MLS_z_p_zzz | SVESize(zda) | Rd(zda) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+  Emit(MLS_z_p_zzz | SVESize(zda) | Rd(zda) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::msb(const ZRegister& zdn,
@@ -3362,7 +3362,7 @@ void Assembler::msb(const ZRegister& zdn,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zdn, zm, za));
 
-  Emit(MSB_z_p_zzz | SVESize(zdn) | Rd(zdn) | Rx<12, 10>(pg) | Rm(zm) | Rn(za));
+  Emit(MSB_z_p_zzz | SVESize(zdn) | Rd(zdn) | PgLow8(pg) | Rm(zm) | Rn(za));
 }
 
 // SVEIntMulAddUnpredicated.

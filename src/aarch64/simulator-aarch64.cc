@@ -4673,10 +4673,10 @@ void Simulator::VisitNEON3Same(const Instruction* instr) {
         cmptst(vf, rd, rn, rm);
         break;
       case NEON_MLS:
-        mls(vf, rd, rn, rm);
+        mls(vf, rd, rd, rn, rm);
         break;
       case NEON_MLA:
-        mla(vf, rd, rn, rm);
+        mla(vf, rd, rd, rn, rm);
         break;
       case NEON_MUL:
         mul(vf, rd, rn, rm);
@@ -6841,9 +6841,19 @@ void Simulator::VisitSVEBitwiseLogicalUnpredicated(const Instruction* instr) {
     case EOR_z_zz:
       VIXL_UNIMPLEMENTED();
       break;
-    case ORR_z_zz:
-      VIXL_UNIMPLEMENTED();
+    case ORR_z_zz: {
+      // TODO: Replace this with a real implementation. This is just enough to
+      // make 'Mov(ZRegister, ZRegister)' work.
+      if (instr->GetRn() != instr->GetRm()) {
+        VIXL_UNIMPLEMENTED();
+      }
+      SimVRegister& zd = ReadVRegister(instr->GetRd());
+      SimVRegister& zn = ReadVRegister(instr->GetRn());
+      for (unsigned i = 0; i < GetVectorLengthInBytes(); i++) {
+        zd.Insert(i, zn.GetLane<uint8_t>(i));
+      }
       break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;
@@ -7912,23 +7922,33 @@ void Simulator::VisitSVEIntMiscUnpredicated(const Instruction* instr) {
 
 void Simulator::VisitSVEIntMulAddPredicated(const Instruction* instr) {
   USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  SimVRegister result;
   switch (instr->Mask(SVEIntMulAddPredicatedMask)) {
-    case MAD_z_p_zzz:
-      VIXL_UNIMPLEMENTED();
-      break;
     case MLA_z_p_zzz:
-      VIXL_UNIMPLEMENTED();
+      mla(vform, result, zd, ReadVRegister(instr->GetRn()), zm);
       break;
     case MLS_z_p_zzz:
-      VIXL_UNIMPLEMENTED();
+      mls(vform, result, zd, ReadVRegister(instr->GetRn()), zm);
       break;
-    case MSB_z_p_zzz:
-      VIXL_UNIMPLEMENTED();
+    case MAD_z_p_zzz:
+      // 'za' is encoded in 'Rn'.
+      mla(vform, result, ReadVRegister(instr->GetRn()), zd, zm);
       break;
+    case MSB_z_p_zzz: {
+      // 'za' is encoded in 'Rn'.
+      mls(vform, result, ReadVRegister(instr->GetRn()), zd, zm);
+      break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  mov_merging(vform, zd, ReadPRegister(instr->GetPgLow8()), result);
 }
 
 void Simulator::VisitSVEIntMulAddUnpredicated(const Instruction* instr) {
@@ -9038,7 +9058,9 @@ void Simulator::VisitSVEPermuteVectorUnpredicated(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   switch (instr->Mask(SVEPermuteVectorUnpredicatedMask)) {
     case DUP_z_r:
-      VIXL_UNIMPLEMENTED();
+      dup_immediate(instr->GetSVEVectorFormat(),
+                    zd,
+                    ReadXRegister(instr->GetRn(), Reg31IsStackPointer));
       break;
     case DUP_z_zi:
       VIXL_UNIMPLEMENTED();

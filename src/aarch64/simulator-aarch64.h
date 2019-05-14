@@ -154,6 +154,14 @@ class SimRegisterBase {
     return GetLane(lane);
   }
 
+  // Get the value of a specific bit, indexed from the least-significant bit of
+  // lane 0.
+  bool GetBit(int bit) const {
+    int bit_in_byte = bit % (sizeof(value_[0]) * kBitsPerByte);
+    int byte = bit / (sizeof(value_[0]) * kBitsPerByte);
+    return ((value_[byte] >> bit_in_byte) & 1) != 0;
+  }
+
   // TODO: Make this return a map of updated bytes, so that we can highlight
   // updated lanes for load-and-insert. (That never happens for scalar code, but
   // NEON has some instructions that can update individual lanes.)
@@ -2192,12 +2200,16 @@ class Simulator : public DecoderVisitor {
                       LogicVRegister dst,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
+  // dst = srca + src1 * src2
   LogicVRegister mla(VectorFormat vform,
                      LogicVRegister dst,
+                     const LogicVRegister& srca,
                      const LogicVRegister& src1,
                      const LogicVRegister& src2);
+  // dst = srca - src1 * src2
   LogicVRegister mls(VectorFormat vform,
                      LogicVRegister dst,
+                     const LogicVRegister& srca,
                      const LogicVRegister& src1,
                      const LogicVRegister& src2);
   LogicVRegister mul(VectorFormat vform,
@@ -2531,6 +2543,10 @@ class Simulator : public DecoderVisitor {
   LogicVRegister dup_immediate(VectorFormat vform,
                                LogicVRegister dst,
                                uint64_t imm);
+  LogicVRegister mov_merging(VectorFormat vform,
+                             LogicVRegister dst,
+                             const SimPRegister& pg,
+                             const LogicVRegister& src);
   LogicVRegister movi(VectorFormat vform, LogicVRegister dst, uint64_t imm);
   LogicVRegister mvni(VectorFormat vform, LogicVRegister dst, uint64_t imm);
   LogicVRegister orr(VectorFormat vform,
@@ -2545,6 +2561,11 @@ class Simulator : public DecoderVisitor {
                       LogicVRegister dst,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
+  LogicVRegister sel(VectorFormat vform,
+                     LogicVRegister dst,
+                     const SimPRegister& pg,
+                     const LogicVRegister& src1,
+                     const LogicVRegister& src2);
   LogicVRegister sminmax(VectorFormat vform,
                          LogicVRegister dst,
                          const LogicVRegister& src1,

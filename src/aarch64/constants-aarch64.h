@@ -68,6 +68,7 @@ V_(Rt, 4, 0, ExtractBits)         /* Load/store register.                 */ \
 V_(Rt2, 14, 10, ExtractBits)      /* Load/store second register.          */ \
 V_(Rs, 20, 16, ExtractBits)       /* Exclusive access status.             */ \
 V_(Pt, 3, 0, ExtractBits)         /* Load/store register (p0-p7).         */ \
+V_(PgLow8, 12, 10, ExtractBits)   /* Governing predicate (p0-p7).         */ \
                                                                              \
 /* Common bits */                                                            \
 V_(SixtyFourBits, 31, 31, ExtractBits)                                       \

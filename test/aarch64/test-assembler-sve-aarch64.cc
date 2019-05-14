@@ -273,5 +273,114 @@ TEST(sve_test_infrastructure_p) {
   }
 }
 
+static void MlaMlsHelper(unsigned lane_size_in_bits) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int za_inputs[] = {-39, 1, -3, 2};
+  int zn_inputs[] = {-5, -20, 9, 8};
+  int zm_inputs[] = {9, -5, 4, 5};
+
+  ZRegister zd = z0.WithLaneSize(lane_size_in_bits);
+  ZRegister za = z1.WithLaneSize(lane_size_in_bits);
+  ZRegister zn = z2.WithLaneSize(lane_size_in_bits);
+  ZRegister zm = z3.WithLaneSize(lane_size_in_bits);
+
+  // TODO: Use a simple `Dup` once it accepts arbitrary immediates.
+  __ Mov(w0, 0xdeadbeef);
+  __ Dup(zd.VnS(), w0);
+  InsrHelper(&masm, za, za_inputs);
+  InsrHelper(&masm, zn, zn_inputs);
+  InsrHelper(&masm, zm, zm_inputs);
+
+  int p0_inputs[] = {1, 1, 0, 1};
+  int p1_inputs[] = {1, 0, 1, 1};
+  int p2_inputs[] = {0, 1, 1, 1};
+  int p3_inputs[] = {1, 1, 1, 1};
+
+  Initialise(&masm, p0.WithLaneSize(lane_size_in_bits), p0_inputs);
+  Initialise(&masm, p1.WithLaneSize(lane_size_in_bits), p1_inputs);
+  Initialise(&masm, p2.WithLaneSize(lane_size_in_bits), p2_inputs);
+  Initialise(&masm, p3.WithLaneSize(lane_size_in_bits), p3_inputs);
+
+  // The Mla macro automatically selects between mla, mad and movprfx + mla
+  // based on what registers are aliased.
+  ZRegister mla_da_result = z10.WithLaneSize(lane_size_in_bits);
+  ZRegister mla_dn_result = z11.WithLaneSize(lane_size_in_bits);
+  ZRegister mla_dm_result = z12.WithLaneSize(lane_size_in_bits);
+
+  __ Mov(mla_da_result, za);
+  __ Mla(mla_da_result, p0.Merging(), mla_da_result, zn, zm);
+
+  __ Mov(mla_dn_result, zn);
+  __ Mla(mla_dn_result, p1.Merging(), za, mla_dn_result, zm);
+
+  __ Mov(mla_dm_result, zm);
+  __ Mla(mla_dm_result, p2.Merging(), za, zn, mla_dm_result);
+
+  // TODO: Enable once movprfx is implemented.
+  // __ Mla(mla_d_result, p3.Merging(), za, zn, zm);
+
+  // The Mls macro automatically selects between mls, msb and movprfx + mls
+  // based on what registers are aliased.
+  ZRegister mls_da_result = z20.WithLaneSize(lane_size_in_bits);
+  ZRegister mls_dn_result = z21.WithLaneSize(lane_size_in_bits);
+  ZRegister mls_dm_result = z22.WithLaneSize(lane_size_in_bits);
+
+  __ Mov(mls_da_result, za);
+  __ Mls(mls_da_result, p0.Merging(), mls_da_result, zn, zm);
+
+  __ Mov(mls_dn_result, zn);
+  __ Mls(mls_dn_result, p1.Merging(), za, mls_dn_result, zm);
+
+  __ Mov(mls_dm_result, zm);
+  __ Mls(mls_dm_result, p2.Merging(), za, zn, mls_dm_result);
+
+  // TODO: Enable once movprfx is implemented.
+  // __ Mls(mls_d_result, p3.Merging(), za, zn, zm);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(za_inputs, z1.WithLaneSize(lane_size_in_bits));
+    ASSERT_EQUAL_SVE(zn_inputs, z2.WithLaneSize(lane_size_in_bits));
+    ASSERT_EQUAL_SVE(zm_inputs, z3.WithLaneSize(lane_size_in_bits));
+
+    int mla[] = {-84, 101, 33, 42};
+    int mls[] = {6, -99, -39, -38};
+
+    int mla_da_expected[] = {mla[0], mla[1], za_inputs[2], mla[3]};
+    ASSERT_EQUAL_SVE(mla_da_expected, mla_da_result);
+
+    int mla_dn_expected[] = {mla[0], zn_inputs[1], mla[2], mla[3]};
+    ASSERT_EQUAL_SVE(mla_dn_expected, mla_dn_result);
+
+    int mla_dm_expected[] = {zm_inputs[0], mla[1], mla[2], mla[3]};
+    ASSERT_EQUAL_SVE(mla_dm_expected, mla_dm_result);
+
+    // TODO: Enable once movprfx is implemented.
+    // ASSERT_EQUAL_SVE(mla, mla_d_result);
+
+    int mls_da_expected[] = {mls[0], mls[1], za_inputs[2], mls[3]};
+    ASSERT_EQUAL_SVE(mls_da_expected, mls_da_result);
+
+    int mls_dn_expected[] = {mls[0], zn_inputs[1], mls[2], mls[3]};
+    ASSERT_EQUAL_SVE(mls_dn_expected, mls_dn_result);
+
+    int mls_dm_expected[] = {zm_inputs[0], mls[1], mls[2], mls[3]};
+    ASSERT_EQUAL_SVE(mls_dm_expected, mls_dm_result);
+
+    // TODO: Enable once movprfx is implemented.
+    // ASSERT_EQUAL_SVE(mls, mls_d_result);
+  }
+}
+
+TEST(sve_mla_mls_b) { MlaMlsHelper(kBRegSize); }
+TEST(sve_mla_mls_h) { MlaMlsHelper(kHRegSize); }
+TEST(sve_mla_mls_s) { MlaMlsHelper(kSRegSize); }
+TEST(sve_mla_mls_d) { MlaMlsHelper(kDRegSize); }
+
 }  // namespace aarch64
 }  // namespace vixl

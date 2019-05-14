@@ -6343,11 +6343,15 @@ class Assembler : public vixl::internal::AssemblerBase {
     return (rm.GetCode() & kRegCodeMask) << Rm_offset;
   }
 
-  // TODO: Consider restricting this to PRegister and related types. Otherwise,
-  // use CPURegister, once PRegister* types derive from it.
-  template <typename T>
-  static Instr Pd(T pd) {
+  // TODO: Consider restricting these to PRegister and related types.
+
+  static Instr Pd(CPURegister pd) {
+    // TODO: Define a Pd field so we can use Pd_offset etc.
     return Rx<3, 0>(pd);
+  }
+
+  static Instr PgLow8(CPURegister pg) {
+    return Rx<PgLow8_offset + PgLow8_width - 1, PgLow8_offset>(pg);
   }
 
   // Flags encoding.

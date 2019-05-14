@@ -5468,22 +5468,23 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     lsr(zd, zn, zm);
   }
-  void Mla(const ZRegister& zda,
-           const PRegisterM& pg,
-           const ZRegister& zn,
-           const ZRegister& zm) {
+  void Mov(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    mla(zda, pg, zn, zm);
+    orr(zd, zn, zn);
   }
-  void Mls(const ZRegister& zda,
+  // zd = za + (zn * zm)
+  void Mla(const ZRegister& zd,
            const PRegisterM& pg,
+           const ZRegister& za,
            const ZRegister& zn,
-           const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    mls(zda, pg, zn, zm);
-  }
+           const ZRegister& zm);
+  // zd = za - (zn * zm)
+  void Mls(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& za,
+           const ZRegister& zn,
+           const ZRegister& zm);
   void Mul(const ZRegister& zd,
            const PRegisterM& pg,
            const ZRegister& zn,
