@@ -71,7 +71,7 @@ void InsrHelper(MacroAssembler* masm,
 // Usage:
 //
 //     int values[] = { 0x0, 0x1, 0x2 };
-//     Initialise(&masm, p0.VnS(), values);  // Sets p0 = 0b'0000'0001'0020
+//     Initialise(&masm, p0.VnS(), values);  // Sets p0 = 0b'0000'0001'0010
 //
 // The rightmost (highest-indexed) array element maps to the lowest-numbered
 // lane.
