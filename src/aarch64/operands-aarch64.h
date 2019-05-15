@@ -223,7 +223,7 @@ class CPURegList {
 
   bool IncludesAliasOf(const CPURegister& other) const {
     VIXL_ASSERT(IsValid());
-    return (GetBank() == other.GetBank()) && ((other.GetBit() & list_) != 0);
+    return (GetBank() == other.GetBank()) && IncludesAliasOf(other.GetCode());
   }
 
   bool IncludesAliasOf(int code) const {

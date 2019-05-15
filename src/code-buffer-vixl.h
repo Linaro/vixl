@@ -40,7 +40,7 @@ class CodeBuffer {
 
   explicit CodeBuffer(size_t capacity = kDefaultCapacity);
   CodeBuffer(byte* buffer, size_t capacity);
-  ~CodeBuffer();
+  ~CodeBuffer() VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION;
 
   void Reset();
 

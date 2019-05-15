@@ -487,7 +487,7 @@ void PoolManager<T>::Release(T pc) {
 }
 
 template <typename T>
-PoolManager<T>::~PoolManager<T>() {
+PoolManager<T>::~PoolManager<T>() VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION {
 #ifdef VIXL_DEBUG
   // Check for unbound objects.
   for (objects_iter iter = objects_.begin(); iter != objects_.end(); ++iter) {

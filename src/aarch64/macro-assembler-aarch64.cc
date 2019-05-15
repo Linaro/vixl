@@ -53,7 +53,7 @@ LiteralPool::LiteralPool(MacroAssembler* masm)
       recommended_checkpoint_(kNoCheckpointRequired) {}
 
 
-LiteralPool::~LiteralPool() {
+LiteralPool::~LiteralPool() VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION {
   VIXL_ASSERT(IsEmpty());
   VIXL_ASSERT(!IsBlocked());
   for (std::vector<RawLiteral*>::iterator it = deleted_on_destruction_.begin();

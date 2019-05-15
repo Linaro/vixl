@@ -142,7 +142,7 @@ class LocationBase {
         is_bound_(true),
         location_(location) {}
 
-  virtual ~LocationBase() {}
+  virtual ~LocationBase() VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION {}
 
   // The PoolManager should assume ownership of some objects, and delete them
   // after they have been placed. This can happen for example for literals that
@@ -397,7 +397,7 @@ class PoolManager {
         max_pool_size_(0),
         monitor_(0) {}
 
-  ~PoolManager();
+  ~PoolManager() VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION;
 
   // Check if we will need to emit the pool at location 'pc', when planning to
   // generate a certain number of bytes. This optionally takes a

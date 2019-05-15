@@ -3423,9 +3423,8 @@ class Simulator : public DecoderVisitor {
     VIXL_ASSERT(ReadFpcr().GetFZ() == 0);
     // Ties-to-even rounding only.
     VIXL_ASSERT(ReadFpcr().GetRMode() == FPTieEven);
-
-    // The simulator does not support half-precision operations so
-    // GetFpcr().AHP() is irrelevant, and is not checked here.
+    // No alternative half-precision support.
+    VIXL_ASSERT(ReadFpcr().GetAHP() == 0);
   }
 
   static int CalcNFlag(uint64_t result, unsigned reg_size) {

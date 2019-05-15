@@ -230,6 +230,14 @@ inline void USE(const T1&, const T2&, const T3&, const T4&) {}
 #define VIXL_CONSTEXPR
 #endif
 
+// With VIXL_NEGATIVE_TESTING on, VIXL_ASSERT and VIXL_CHECK will throw
+// exceptions but C++11 marks destructors as noexcept(true) by default.
+#if defined(VIXL_NEGATIVE_TESTING) && __cplusplus >= 201103L
+#define VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION noexcept(false)
+#else
+#define VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION
+#endif
+
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 #ifndef VIXL_AARCH64_GENERATE_SIMULATOR_CODE
 #define VIXL_AARCH64_GENERATE_SIMULATOR_CODE 1

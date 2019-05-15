@@ -109,7 +109,7 @@ class Pool {
 class LiteralPool : public Pool {
  public:
   explicit LiteralPool(MacroAssembler* masm);
-  ~LiteralPool();
+  ~LiteralPool() VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION;
   void Reset();
 
   void AddEntry(RawLiteral* literal);
