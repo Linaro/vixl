@@ -382,5 +382,37 @@ TEST(sve_mla_mls_h) { MlaMlsHelper(kHRegSize); }
 TEST(sve_mla_mls_s) { MlaMlsHelper(kSRegSize); }
 TEST(sve_mla_mls_d) { MlaMlsHelper(kDRegSize); }
 
+TEST(sve_bitwise_unpredicate_logical) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t z8_inputs[] = {0xfedcba9876543210, 0x0123456789abcdef};
+  InsrHelper(&masm, z8.VnD(), z8_inputs);
+  uint64_t z15_inputs[] = {0xffffeeeeddddcccc, 0xccccddddeeeeffff};
+  InsrHelper(&masm, z15.VnD(), z15_inputs);
+
+  __ And(z1.VnD(), z8.VnD(), z15.VnD());
+  __ Bic(z2.VnD(), z8.VnD(), z15.VnD());
+  __ Eor(z3.VnD(), z8.VnD(), z15.VnD());
+  __ Orr(z4.VnD(), z8.VnD(), z15.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t z1_expected[] = {0xfedcaa8854540000, 0x0000454588aacdef};
+    uint64_t z2_expected[] = {0x0000101022003210, 0x0123002201010000};
+    uint64_t z3_expected[] = {0x01235476ab89fedc, 0xcdef98ba67453210};
+    uint64_t z4_expected[] = {0xfffffefeffddfedc, 0xcdefddffefefffff};
+
+    ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
+    ASSERT_EQUAL_SVE(z2_expected, z2.VnD());
+    ASSERT_EQUAL_SVE(z3_expected, z3.VnD());
+    ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+  }
+
+  TEARDOWN();
+}
+
 }  // namespace aarch64
 }  // namespace vixl

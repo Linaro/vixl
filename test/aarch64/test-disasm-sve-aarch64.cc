@@ -92,12 +92,11 @@ TEST(sve_bitwise_imm) {
 TEST(sve_bitwise_logical_unpredicated) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(and_(z12.VnD(), z5.VnD(), z29.VnD()), "and <Zd>.D, <Zn>.D, <Zm>.D");
-  COMPARE_PREFIX(bic(z11.VnD(), z15.VnD(), z9.VnD()), "bic <Zd>.D, <Zn>.D, <Zm>.D");
-  COMPARE_PREFIX(eor(z9.VnD(), z31.VnD(), z29.VnD()), "eor <Zd>.D, <Zn>.D, <Zm>.D");
-  COMPARE_PREFIX(orr(z17.VnD(), z8.VnD(), z19.VnD()), "orr <Zd>.D, <Zn>.D, <Zm>.D");
-#endif
+  COMPARE_PREFIX(and_(z12.VnD(), z5.VnD(), z29.VnD()),
+                 "and z12.d, z5.d, z29.d");
+  COMPARE_PREFIX(bic(z11.VnD(), z15.VnD(), z9.VnD()), "bic z11.d, z15.d, z9.d");
+  COMPARE_PREFIX(eor(z9.VnD(), z31.VnD(), z29.VnD()), "eor z9.d, z31.d, z29.d");
+  COMPARE_PREFIX(orr(z17.VnD(), z8.VnD(), z19.VnD()), "orr z17.d, z8.d, z19.d");
 
   CLEANUP();
 }

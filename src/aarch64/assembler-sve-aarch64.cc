@@ -96,53 +96,39 @@ void Assembler::orr(const ZRegister& zd, const ZRegister& zn) {
 }
 
 // SVEBitwiseLogicalUnpredicated.
+void Assembler::Logical(const ZRegister& zd,
+                        const ZRegister& zn,
+                        const ZRegister& zm,
+                        SVEBitwiseLogicalUnpredicatedOp op) {
+  Emit(op | Rd(zd) | Rn(zn) | Rm(zm));
+}
 
 void Assembler::and_(const ZRegister& zd,
                      const ZRegister& zn,
                      const ZRegister& zm) {
-  // AND <Zd>.D, <Zn>.D, <Zm>.D
-  //  0000 0100 001. .... 0011 00.. .... ....
-  //  opc<23:22> = 00 | Zm<20:16> | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(AND_z_zz | Rd(zd) | Rn(zn) | Rm(zm));
+  Logical(zd, zn, zm, AND_z_zz);
 }
 
 void Assembler::bic(const ZRegister& zd,
                     const ZRegister& zn,
                     const ZRegister& zm) {
-  // BIC <Zd>.D, <Zn>.D, <Zm>.D
-  //  0000 0100 111. .... 0011 00.. .... ....
-  //  opc<23:22> = 11 | Zm<20:16> | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(BIC_z_zz | Rd(zd) | Rn(zn) | Rm(zm));
+  Logical(zd, zn, zm, BIC_z_zz);
 }
 
 void Assembler::eor(const ZRegister& zd,
                     const ZRegister& zn,
                     const ZRegister& zm) {
-  // EOR <Zd>.D, <Zn>.D, <Zm>.D
-  //  0000 0100 101. .... 0011 00.. .... ....
-  //  opc<23:22> = 10 | Zm<20:16> | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(EOR_z_zz | Rd(zd) | Rn(zn) | Rm(zm));
+  Logical(zd, zn, zm, EOR_z_zz);
 }
 
 void Assembler::orr(const ZRegister& zd,
                     const ZRegister& zn,
                     const ZRegister& zm) {
-  // ORR <Zd>.D, <Zn>.D, <Zm>.D
-  //  0000 0100 011. .... 0011 00.. .... ....
-  //  opc<23:22> = 01 | Zm<20:16> | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ORR_z_zz | Rd(zd) | Rn(zn) | Rm(zm));
+  Logical(zd, zn, zm, ORR_z_zz);
 }
 
 // SVEBitwiseShiftPredicated.

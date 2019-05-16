@@ -5559,6 +5559,41 @@ LogicVRegister Simulator::ucvtf(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::SVEBitwiseLogicalUnpredicatedHelper(
+    SVEBitwiseLogicalUnpredicatedOp op,
+    LogicVRegister zd,
+    const LogicVRegister& zn,
+    const LogicVRegister& zm) {
+  // Lane size of registers is irrelevant to the bitwise operations, so perform
+  // the operation on D-sized lanes.
+  VectorFormat vform = kFormatVnD;
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    uint64_t op1 = zn.Uint(vform, i);
+    uint64_t op2 = zm.Uint(vform, i);
+    uint64_t result;
+    switch (op) {
+      case AND_z_zz:
+        result = op1 & op2;
+        break;
+      case BIC_z_zz:
+        result = op1 & ~op2;
+        break;
+      case EOR_z_zz:
+        result = op1 ^ op2;
+        break;
+      case ORR_z_zz:
+        result = op1 | op2;
+        break;
+      default:
+        result = 0;
+        VIXL_UNIMPLEMENTED();
+    }
+    zd.SetUint(vform, i, result);
+  }
+
+  return zd;
+}
+
 
 }  // namespace aarch64
 }  // namespace vixl

@@ -7025,29 +7025,19 @@ void Simulator::VisitSVEBitwiseImm(const Instruction* instr) {
 
 void Simulator::VisitSVEBitwiseLogicalUnpredicated(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEBitwiseLogicalUnpredicatedMask)) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  Instr op = instr->Mask(SVEBitwiseLogicalUnpredicatedMask);
+
+  switch (op) {
     case AND_z_zz:
-      VIXL_UNIMPLEMENTED();
-      break;
     case BIC_z_zz:
-      VIXL_UNIMPLEMENTED();
-      break;
     case EOR_z_zz:
-      VIXL_UNIMPLEMENTED();
+    case ORR_z_zz:
+      SVEBitwiseLogicalUnpredicatedHelper(
+          static_cast<SVEBitwiseLogicalUnpredicatedOp>(op), zd, zn, zm);
       break;
-    case ORR_z_zz: {
-      // TODO: Replace this with a real implementation. This is just enough to
-      // make 'Mov(ZRegister, ZRegister)' work.
-      if (instr->GetRn() != instr->GetRm()) {
-        VIXL_UNIMPLEMENTED();
-      }
-      SimVRegister& zd = ReadVRegister(instr->GetRd());
-      SimVRegister& zn = ReadVRegister(instr->GetRn());
-      for (unsigned i = 0; i < GetVectorLengthInBytes(); i++) {
-        zd.Insert(i, zn.GetLane<uint8_t>(i));
-      }
-      break;
-    }
     default:
       VIXL_UNIMPLEMENTED();
       break;
