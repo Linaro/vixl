@@ -173,9 +173,8 @@ class CPURegister {
   //      r.IsRegister()                       -> Register(r)
   //      r.IsVRegister()                      -> VRegister(r)
   //      r.IsZRegister()                      -> ZRegister(r)
+  //      r.IsPRegister()                      -> PRegister(r)
   //
-  //      r.IsPRegister() &&
-  //          IsUnqualified && !HasLaneSize()  -> PRegister(r)
   //      r.IsPRegister() && HasLaneSize()     -> PRegisterWithLaneSize(r)
   //      r.IsPRegister() && IsMerging()       -> PRegisterM(r)
   //      r.IsPRegister() && IsZeroing()       -> PRegisterZ(r)
@@ -498,21 +497,21 @@ class CPURegister {
 };
 
 // TODO: Add constexpr constructors.
-#define VIXL_DECLARE_REGISTER_COMMON(NAME, REGISTER_TYPE) \
-  VIXL_CONSTEXPR NAME() : CPURegister() {}                \
-                                                          \
-  explicit NAME(CPURegister other) : CPURegister(other) { \
-    VIXL_ASSERT(IsValid());                               \
-  }                                                       \
-                                                          \
-  VIXL_CONSTEXPR static unsigned GetMaxCode() {           \
-    return kNumberOf##REGISTER_TYPE##s - 1;               \
+#define VIXL_DECLARE_REGISTER_COMMON(NAME, REGISTER_TYPE, PARENT_TYPE) \
+  VIXL_CONSTEXPR NAME() : PARENT_TYPE() {}                             \
+                                                                       \
+  explicit NAME(CPURegister other) : PARENT_TYPE(other) {              \
+    VIXL_ASSERT(IsValid());                                            \
+  }                                                                    \
+                                                                       \
+  VIXL_CONSTEXPR static unsigned GetMaxCode() {                        \
+    return kNumberOf##REGISTER_TYPE##s - 1;                            \
   }
 
 // Any W or X register, including the zero register and the stack pointer.
 class Register : public CPURegister {
  public:
-  VIXL_DECLARE_REGISTER_COMMON(Register, Register)
+  VIXL_DECLARE_REGISTER_COMMON(Register, Register, CPURegister)
 
   Register(int code, int size_in_bits)
       : CPURegister(code, size_in_bits, kRegister) {
@@ -526,7 +525,7 @@ class Register : public CPURegister {
 // (B, H, S, D, Q).
 class VRegister : public CPURegister {
  public:
-  VIXL_DECLARE_REGISTER_COMMON(VRegister, VRegister)
+  VIXL_DECLARE_REGISTER_COMMON(VRegister, VRegister, CPURegister)
 
   // For historical reasons, VRegister(0) returns v0.1Q (or equivalently, q0).
   explicit VRegister(int code, int size_in_bits = kQRegSize, int lanes = 1)
@@ -570,7 +569,7 @@ class VRegister : public CPURegister {
 // Any SVE Z register, with or without a lane size specifier.
 class ZRegister : public CPURegister {
  public:
-  VIXL_DECLARE_REGISTER_COMMON(ZRegister, ZRegister)
+  VIXL_DECLARE_REGISTER_COMMON(ZRegister, ZRegister, CPURegister)
 
   explicit ZRegister(int code, int lane_size_in_bits = kUnknownSize)
       : CPURegister(code,
@@ -608,75 +607,10 @@ class ZRegister : public CPURegister {
   bool IsValid() const { return IsValidZRegister(); }
 };
 
-// Any SVE P register with a known lane size (like "p0.B").
-class PRegisterWithLaneSize : public CPURegister {
- public:
-  VIXL_DECLARE_REGISTER_COMMON(PRegisterWithLaneSize, PRegister)
-
-  PRegisterWithLaneSize(int code, int lane_size_in_bits)
-      : CPURegister(code,
-                    kEncodedUnknownSize,
-                    kPRegisterBank,
-                    EncodeSizeInBits(lane_size_in_bits)) {
-    VIXL_ASSERT(IsValid());
-  }
-
-  PRegisterWithLaneSize(int code, VectorFormat format)
-      : CPURegister(code,
-                    kEncodedUnknownSize,
-                    kPRegisterBank,
-                    EncodeSizeInBits(LaneSizeInBitsFromFormat(format)),
-                    kNoQualifiers) {
-    VIXL_ASSERT(IsValid());
-  }
-
-  bool IsValid() const {
-    return IsValidPRegister() && HasLaneSize() && IsUnqualified();
-  }
-};
-
-// Any SVE P register with the zeroing qualifier (like "p0/z").
-class PRegisterZ : public CPURegister {
- public:
-  VIXL_DECLARE_REGISTER_COMMON(PRegisterZ, PRegister)
-
-  explicit PRegisterZ(int code)
-      : CPURegister(code,
-                    kEncodedUnknownSize,
-                    kPRegisterBank,
-                    kEncodedUnknownSize,
-                    kZeroing) {
-    VIXL_ASSERT(IsValid());
-  }
-
-  bool IsValid() const {
-    return IsValidPRegister() && !HasLaneSize() && IsZeroing();
-  }
-};
-
-// Any SVE P register with the merging qualifier (like "p0/m").
-class PRegisterM : public CPURegister {
- public:
-  VIXL_DECLARE_REGISTER_COMMON(PRegisterM, PRegister)
-
-  explicit PRegisterM(int code)
-      : CPURegister(code,
-                    kEncodedUnknownSize,
-                    kPRegisterBank,
-                    kEncodedUnknownSize,
-                    kMerging) {
-    VIXL_ASSERT(IsValid());
-  }
-
-  bool IsValid() const {
-    return IsValidPRegister() && !HasLaneSize() && IsMerging();
-  }
-};
-
-// Any unqualified SVE P register (like "p0").
+// Any SVE P register, with or without a qualifier or lane size specifier.
 class PRegister : public CPURegister {
  public:
-  VIXL_DECLARE_REGISTER_COMMON(PRegister, PRegister)
+  VIXL_DECLARE_REGISTER_COMMON(PRegister, PRegister, CPURegister)
 
   explicit PRegister(int code) : CPURegister(code, kUnknownSize, kPRegister) {
     VIXL_ASSERT(IsValid());
@@ -687,34 +621,112 @@ class PRegister : public CPURegister {
   }
 
   // Return a P register with a known lane size (like "p0.B").
-  PRegisterWithLaneSize VnB() const {
-    return PRegisterWithLaneSize(GetCode(), kBRegSize);
-  }
-  PRegisterWithLaneSize VnH() const {
-    return PRegisterWithLaneSize(GetCode(), kHRegSize);
-  }
-  PRegisterWithLaneSize VnS() const {
-    return PRegisterWithLaneSize(GetCode(), kSRegSize);
-  }
-  PRegisterWithLaneSize VnD() const {
-    return PRegisterWithLaneSize(GetCode(), kDRegSize);
-  }
+  PRegisterWithLaneSize VnB() const;
+  PRegisterWithLaneSize VnH() const;
+  PRegisterWithLaneSize VnS() const;
+  PRegisterWithLaneSize VnD() const;
 
   template <typename T>
-  PRegisterWithLaneSize WithLaneSize(T format) const {
-    return PRegisterWithLaneSize(GetCode(), format);
-  }
+  PRegisterWithLaneSize WithLaneSize(T format) const;
 
-  PRegisterWithLaneSize WithSameLaneSizeAs(const CPURegister& other) const {
-    VIXL_ASSERT(other.HasLaneSize());
-    return this->WithLaneSize(other.GetLaneSizeInBits());
-  }
+  PRegisterWithLaneSize WithSameLaneSizeAs(const CPURegister& other) const;
 
   // SVE predicates are specified (in normal assembly) with a "/z" (zeroing) or
   // "/m" (merging) suffix. These methods are VIXL's equivalents.
-  PRegisterZ Zeroing() const { return PRegisterZ(GetCode()); }
-  PRegisterM Merging() const { return PRegisterM(GetCode()); }
+  PRegisterZ Zeroing() const;
+  PRegisterM Merging() const;
+
+ protected:
+  // Unchecked constructors, for use by derived classes.
+  PRegister(int code, EncodedSize encoded_lane_size)
+      : CPURegister(code,
+                    kEncodedUnknownSize,
+                    kPRegisterBank,
+                    encoded_lane_size,
+                    kNoQualifiers) {}
+
+  PRegister(int code, Qualifiers qualifiers)
+      : CPURegister(code,
+                    kEncodedUnknownSize,
+                    kPRegisterBank,
+                    kEncodedUnknownSize,
+                    qualifiers) {}
 };
+
+// Any SVE P register with a known lane size (like "p0.B").
+class PRegisterWithLaneSize : public PRegister {
+ public:
+  VIXL_DECLARE_REGISTER_COMMON(PRegisterWithLaneSize, PRegister, PRegister)
+
+  PRegisterWithLaneSize(int code, int lane_size_in_bits)
+      : PRegister(code, EncodeSizeInBits(lane_size_in_bits)) {
+    VIXL_ASSERT(IsValid());
+  }
+
+  PRegisterWithLaneSize(int code, VectorFormat format)
+      : PRegister(code, EncodeSizeInBits(LaneSizeInBitsFromFormat(format))) {
+    VIXL_ASSERT(IsValid());
+  }
+
+  bool IsValid() const {
+    return IsValidPRegister() && HasLaneSize() && IsUnqualified();
+  }
+};
+
+// Any SVE P register with the zeroing qualifier (like "p0/z").
+class PRegisterZ : public PRegister {
+ public:
+  VIXL_DECLARE_REGISTER_COMMON(PRegisterZ, PRegister, PRegister)
+
+  explicit PRegisterZ(int code) : PRegister(code, kZeroing) {
+    VIXL_ASSERT(IsValid());
+  }
+
+  bool IsValid() const {
+    return IsValidPRegister() && !HasLaneSize() && IsZeroing();
+  }
+};
+
+// Any SVE P register with the merging qualifier (like "p0/m").
+class PRegisterM : public PRegister {
+ public:
+  VIXL_DECLARE_REGISTER_COMMON(PRegisterM, PRegister, PRegister)
+
+  explicit PRegisterM(int code) : PRegister(code, kMerging) {
+    VIXL_ASSERT(IsValid());
+  }
+
+  bool IsValid() const {
+    return IsValidPRegister() && !HasLaneSize() && IsMerging();
+  }
+};
+
+inline PRegisterWithLaneSize PRegister::VnB() const {
+  return PRegisterWithLaneSize(GetCode(), kBRegSize);
+}
+inline PRegisterWithLaneSize PRegister::VnH() const {
+  return PRegisterWithLaneSize(GetCode(), kHRegSize);
+}
+inline PRegisterWithLaneSize PRegister::VnS() const {
+  return PRegisterWithLaneSize(GetCode(), kSRegSize);
+}
+inline PRegisterWithLaneSize PRegister::VnD() const {
+  return PRegisterWithLaneSize(GetCode(), kDRegSize);
+}
+
+template <typename T>
+inline PRegisterWithLaneSize PRegister::WithLaneSize(T format) const {
+  return PRegisterWithLaneSize(GetCode(), format);
+}
+
+inline PRegisterWithLaneSize PRegister::WithSameLaneSizeAs(
+    const CPURegister& other) const {
+  VIXL_ASSERT(other.HasLaneSize());
+  return this->WithLaneSize(other.GetLaneSizeInBits());
+}
+
+inline PRegisterZ PRegister::Zeroing() const { return PRegisterZ(GetCode()); }
+inline PRegisterM PRegister::Merging() const { return PRegisterM(GetCode()); }
 
 #define VIXL_REGISTER_WITH_SIZE_LIST(V) \
   V(WRegister, kWRegSize, Register)     \

@@ -6343,14 +6343,15 @@ class Assembler : public vixl::internal::AssemblerBase {
     return (rm.GetCode() & kRegCodeMask) << Rm_offset;
   }
 
-  // TODO: Consider restricting these to PRegister and related types.
-
-  static Instr Pd(CPURegister pd) {
+  static Instr Pd(PRegister pd) {
     // TODO: Define a Pd field so we can use Pd_offset etc.
     return Rx<3, 0>(pd);
   }
 
-  static Instr PgLow8(CPURegister pg) {
+  static Instr PgLow8(PRegister pg) {
+    // Governing predicates can be merging, zeroing, or unqualified. They should
+    // never have a lane size.
+    VIXL_ASSERT(!pg.HasLaneSize());
     return Rx<PgLow8_offset + PgLow8_width - 1, PgLow8_offset>(pg);
   }
 
