@@ -608,7 +608,7 @@ void RegisterDump::Dump(MacroAssembler* masm) {
 
   // Dump SVE registers.
   if (CPUHas(CPUFeatures::kSVE)) {
-    DumpRegisters<ZRegisterNoLaneSize>(masm, dump_base, z_offset);
+    DumpRegisters<ZRegister>(masm, dump_base, z_offset);
     DumpRegisters<PRegister>(masm, dump_base, p_offset);
 
     // Record the vector length.

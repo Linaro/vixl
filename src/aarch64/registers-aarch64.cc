@@ -124,20 +124,20 @@ bool CPURegister::IsValid() const {
 
 // Most coersions simply invoke the necessary constructor.
 #define VIXL_CPUREG_COERCION_LIST(U) \
-  U(W, R, WRegister)                 \
-  U(X, R, XRegister)                 \
-  U(B, V, BRegister)                 \
-  U(H, V, HRegister)                 \
-  U(S, V, SRegister)                 \
-  U(D, V, DRegister)                 \
-  U(Q, V, QRegister)                 \
-  U(V, V, VRegister)                 \
-  U(Z, V, ZRegisterNoLaneSize)       \
-  U(P, P, PRegister)
-#define VIXL_DEFINE_CPUREG_COERCION(NAME, BANK, RESULT_TYPE) \
-  RESULT_TYPE CPURegister::NAME() const {                    \
-    VIXL_ASSERT(GetBank() == k##BANK##RegisterBank);         \
-    return RESULT_TYPE(GetCode());                           \
+  U(W, R)                            \
+  U(X, R)                            \
+  U(B, V)                            \
+  U(H, V)                            \
+  U(S, V)                            \
+  U(D, V)                            \
+  U(Q, V)                            \
+  U(V, V)                            \
+  U(Z, V)                            \
+  U(P, P)
+#define VIXL_DEFINE_CPUREG_COERCION(TYPE, BANK)      \
+  TYPE##Register CPURegister::TYPE() const {         \
+    VIXL_ASSERT(GetBank() == k##BANK##RegisterBank); \
+    return TYPE##Register(GetCode());                \
   }
 VIXL_CPUREG_COERCION_LIST(VIXL_DEFINE_CPUREG_COERCION)
 #undef VIXL_CPUREG_COERCION_LIST

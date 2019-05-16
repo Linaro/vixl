@@ -5151,7 +5151,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ldr(const PRegister& pt, const Register& xn);
 
   // Load vector register.
-  void ldr(const ZRegisterNoLaneSize& zt, const Register& xn);
+  void ldr(const ZRegister& zt, const Register& xn);
 
   // Logical shift left by immediate (predicated).
   void lsl(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
@@ -5999,7 +5999,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void str(const PRegister& pt, const Register& xn);
 
   // Store vector register.
-  void str(const ZRegisterNoLaneSize& zt, const Register& xn);
+  void str(const ZRegister& zt, const Register& xn);
 
   // Subtract vectors (predicated).
   void sub(const ZRegister& zd,
@@ -6783,6 +6783,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   }
 
   static Instr SVESize(const ZRegister& zd) {
+    VIXL_ASSERT(zd.HasLaneSize());
     switch (zd.GetLaneSizeInBytes()) {
       case 1:
         return SVE_B;

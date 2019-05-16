@@ -221,7 +221,7 @@ TEST(constructors) {
   VIXL_CHECK(DRegister(5).Is(d5));
   VIXL_CHECK(QRegister(6).Is(q6));
 
-  VIXL_CHECK(ZRegisterNoLaneSize(7).Is(z7));
+  VIXL_CHECK(ZRegister(7).Is(z7));
   VIXL_CHECK(PRegister(8).Is(p8));
 }
 
@@ -871,7 +871,7 @@ TEST(scratch_scope_basic_z) {
     UseScratchRegisterScope temps(&masm);
     VIXL_CHECK(temps.IsAvailable(v31));
     VIXL_CHECK(temps.IsAvailable(z31));
-    ZRegisterNoLaneSize temp = temps.AcquireZ();
+    ZRegister temp = temps.AcquireZ();
     VIXL_CHECK(temp.Is(z31));
     // Check that allocating a Z register properly reserves the corresponding V
     // register.
@@ -1239,18 +1239,18 @@ TEST(scratch_scope_include_z) {
     // Any suitable register type deriving from CPURegister can be included.
     temps.Include(z0);
     temps.Include(z1.VnB());
-    temps.Include(ZRegisterNoLaneSize(2));
+    temps.Include(ZRegister(2));
     temps.Include(ZRegister(3, kFormatVnD));
     temps.Include(CPURegister(z4));
     temps.Include(CPURegister(z5.VnH()));
     helper.RecordActionsAndCheck(0x3f);
     // Multiple registers can be included at once.
     temps.Include(z8, z9, z10.VnS());
-    temps.Include(ZRegisterNoLaneSize(12), ZRegister(13, kHRegSize), z14);
+    temps.Include(ZRegister(12), ZRegister(13, kHRegSize), z14);
     temps.Include(CPURegList(z16, z17, z18));
     helper.RecordActionsAndCheck(0x77700);
     // Including a register again has no effect.
-    temps.Include(ZRegisterNoLaneSize(18));
+    temps.Include(ZRegister(18));
     temps.Include(ZRegister(17, kFormatVnB));
     temps.Include(CPURegister(z16));
     temps.Include(CPURegister(z13.VnD()));
@@ -1271,18 +1271,18 @@ TEST(scratch_scope_exclude_z) {
     // Any suitable register type deriving from CPURegister can be excluded.
     temps.Exclude(z0);
     temps.Exclude(z1.VnB());
-    temps.Exclude(ZRegisterNoLaneSize(2));
+    temps.Exclude(ZRegister(2));
     temps.Exclude(ZRegister(3, kFormatVnD));
     temps.Exclude(CPURegister(z4));
     temps.Exclude(CPURegister(z5.VnH()));
     helper.RecordActionsAndCheck(0x3f);
     // Multiple registers can be excluded at once.
     temps.Exclude(z8, z9, z10.VnS());
-    temps.Exclude(ZRegisterNoLaneSize(12), ZRegister(13, kHRegSize), z14);
+    temps.Exclude(ZRegister(12), ZRegister(13, kHRegSize), z14);
     temps.Exclude(CPURegList(z16, z17, z18));
     helper.RecordActionsAndCheck(0x77700);
     // Exluding a register again has no effect.
-    temps.Exclude(ZRegisterNoLaneSize(18));
+    temps.Exclude(ZRegister(18));
     temps.Exclude(ZRegister(17, kFormatVnB));
     temps.Exclude(CPURegister(z16));
     temps.Exclude(CPURegister(z13.VnD()));
@@ -1303,7 +1303,7 @@ TEST(scratch_scope_release_z) {
     // Any suitable register type deriving from CPURegister can be released.
     temps.Release(z0);
     temps.Release(z1.VnB());
-    temps.Release(ZRegisterNoLaneSize(2));
+    temps.Release(ZRegister(2));
     temps.Release(ZRegister(3, kFormatVnD));
     temps.Release(CPURegister(z4));
     temps.Release(CPURegister(z5.VnH()));

@@ -5417,7 +5417,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ldr(pt, xn);
   }
-  void Ldr(const ZRegisterNoLaneSize& zt, const Register& xn) {
+  void Ldr(const ZRegister& zt, const Register& xn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     ldr(zt, xn);
@@ -6509,7 +6509,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
       VIXL_UNIMPLEMENTED();
     }
   }
-  void Str(const ZRegisterNoLaneSize& zt, const MemOperand& dst) {
+  void Str(const ZRegister& zt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
     if (dst.IsEquivalentToPlainRegister()) {
       SingleEmissionCheckScope guard(this);
@@ -7399,7 +7399,7 @@ class UseScratchRegisterScope {
   VRegister AcquireD() {
     return AcquireFrom(masm_->GetScratchVRegisterList()).D();
   }
-  ZRegisterNoLaneSize AcquireZ() {
+  ZRegister AcquireZ() {
     return AcquireFrom(masm_->GetScratchVRegisterList()).Z();
   }
   PRegister AcquireP() {

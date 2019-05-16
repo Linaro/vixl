@@ -50,7 +50,6 @@ class SRegister;
 class DRegister;
 class QRegister;
 
-class ZRegisterNoLaneSize;
 class ZRegister;
 
 class PRegister;
@@ -172,11 +171,8 @@ class CPURegister {
   //
   //  If...                              ... then it is safe to construct ...
   //      r.IsRegister()                       -> Register(r)
-  //
   //      r.IsVRegister()                      -> VRegister(r)
-  //
-  //      r.IsZRegister() && !HasLaneSize()    -> ZRegisterNoLaneSize(r)
-  //      r.IsZRegister() && HasLaneSize()     -> ZRegister(r)
+  //      r.IsZRegister()                      -> ZRegister(r)
   //
   //      r.IsPRegister() &&
   //          IsUnqualified && !HasLaneSize()  -> PRegister(r)
@@ -287,7 +283,7 @@ class CPURegister {
   QRegister Q() const;
   VRegister V() const;
   // SVE registers, like "z0".
-  ZRegisterNoLaneSize Z() const;
+  ZRegister Z() const;
   PRegister P() const;
 
   // Utilities for kRegister types.
@@ -571,15 +567,12 @@ class VRegister : public CPURegister {
   }
 };
 
-// Any SVE Z register with a known lane size.
-//
-// Almost every use of Z registers requires an explicit lane size, so this type
-// is used by the API to avoid frequent HasLaneSize() assertions.
+// Any SVE Z register, with or without a lane size specifier.
 class ZRegister : public CPURegister {
  public:
   VIXL_DECLARE_REGISTER_COMMON(ZRegister, ZRegister)
 
-  ZRegister(int code, int lane_size_in_bits)
+  explicit ZRegister(int code, int lane_size_in_bits = kUnknownSize)
       : CPURegister(code,
                     kEncodedUnknownSize,
                     kVRegisterBank,
@@ -593,35 +586,6 @@ class ZRegister : public CPURegister {
                     kVRegisterBank,
                     EncodeSizeInBits(LaneSizeInBitsFromFormat(format)),
                     kNoQualifiers) {
-    VIXL_ASSERT(IsValid());
-  }
-
-  // Return a Z register with a known lane size (like "z0.B").
-  // TODO: We shouldn't duplicate these, but they should automatically be shared
-  // when the TODO on ZRegisterNoLaneSize is resolved.
-  ZRegister VnB() const { return ZRegister(GetCode(), kBRegSize); }
-  ZRegister VnH() const { return ZRegister(GetCode(), kHRegSize); }
-  ZRegister VnS() const { return ZRegister(GetCode(), kSRegSize); }
-  ZRegister VnD() const { return ZRegister(GetCode(), kDRegSize); }
-
-  bool IsValid() const { return IsValidZRegister() && HasLaneSize(); }
-};
-
-// Any SVE Z register without a known lane size.
-//
-// TODO: Allow this (or some other type) to have an _optional_ lane size, so it
-// can be a parent class of ZRegister. This allows us to easily implement
-// functions which don't care whether a lane size is specified or not, such as
-// logical operations and some loads and stores.
-class ZRegisterNoLaneSize : public CPURegister {
- public:
-  VIXL_DECLARE_REGISTER_COMMON(ZRegisterNoLaneSize, ZRegister)
-
-  explicit ZRegisterNoLaneSize(int code)
-      : CPURegister(code,
-                    kEncodedUnknownSize,
-                    kVRegisterBank,
-                    kEncodedUnknownSize) {
     VIXL_ASSERT(IsValid());
   }
 
@@ -641,7 +605,7 @@ class ZRegisterNoLaneSize : public CPURegister {
     return this->WithLaneSize(other.GetLaneSizeInBits());
   }
 
-  bool IsValid() const { return IsValidZRegister() && !HasLaneSize(); }
+  bool IsValid() const { return IsValidZRegister(); }
 };
 
 // Any SVE P register with a known lane size (like "p0.B").
@@ -788,7 +752,7 @@ VIXL_REGISTER_WITH_SIZE_LIST(VIXL_DEFINE_REGISTER_WITH_SIZE)
 const Register NoReg;
 const VRegister NoVReg;
 const CPURegister NoCPUReg;
-const ZRegisterNoLaneSize NoZReg;
+const ZRegister NoZReg;
 
 // TODO: Ideally, these would use specialised register types (like XRegister and
 // so on). However, doing so throws up template overloading problems elsewhere.
@@ -801,7 +765,7 @@ const ZRegisterNoLaneSize NoZReg;
   const VRegister d##N = DRegister(N); \
   const VRegister q##N = QRegister(N); \
   const VRegister v##N(N);             \
-  const ZRegisterNoLaneSize z##N(N);
+  const ZRegister z##N(N);
 AARCH64_REGISTER_CODE_LIST(VIXL_DEFINE_REGISTERS)
 #undef VIXL_DEFINE_REGISTERS
 
