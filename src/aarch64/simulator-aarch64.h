@@ -1467,6 +1467,7 @@ class Simulator : public DecoderVisitor {
     kPrintRegLaneSizeD = 3 << 0,
     kPrintRegLaneSizeX = kPrintRegLaneSizeD,
     kPrintRegLaneSizeQ = 4 << 0,
+    kPrintRegLaneSizeUnknown = 5 << 0,
 
     kPrintRegLaneSizeOffset = 0,
     kPrintRegLaneSizeMask = 7 << 0,
@@ -1513,6 +1514,7 @@ class Simulator : public DecoderVisitor {
   };
 
   unsigned GetPrintRegLaneSizeInBytesLog2(PrintRegisterFormat format) {
+    VIXL_ASSERT((format & kPrintRegLaneSizeMask) != kPrintRegLaneSizeUnknown);
     return (format & kPrintRegLaneSizeMask) >> kPrintRegLaneSizeOffset;
   }
 
@@ -1521,6 +1523,7 @@ class Simulator : public DecoderVisitor {
   }
 
   unsigned GetPrintRegSizeInBytesLog2(PrintRegisterFormat format) {
+    VIXL_ASSERT((format & kPrintRegLaneSizeMask) != kPrintRegLaneSizeUnknown);
     if (format & kPrintRegAsDVector) return kDRegSizeInBytesLog2;
     if (format & kPrintRegAsQVector) return kQRegSizeInBytesLog2;
 
@@ -1595,6 +1598,7 @@ class Simulator : public DecoderVisitor {
   // Print all registers of the specified types.
   void PrintRegisters();
   void PrintVRegisters();
+  void PrintZRegisters();
   void PrintSystemRegisters();
 
   // As above, but only print the registers that have been updated.
@@ -1616,6 +1620,10 @@ class Simulator : public DecoderVisitor {
   // Print individual register values (after update).
   void PrintRegister(unsigned code, Reg31Mode r31mode = Reg31IsStackPointer);
   void PrintVRegister(unsigned code, PrintRegisterFormat format);
+  void PrintZRegister(unsigned code,
+                      PrintRegisterFormat format = kPrintRegLaneSizeUnknown,
+                      int bytes = 0,
+                      int start_byte = 0);
   void PrintSystemRegister(SystemRegister id);
   void PrintTakenBranch(const Instruction* target);
 
@@ -1625,6 +1633,9 @@ class Simulator : public DecoderVisitor {
   }
   void LogVRegister(unsigned code, PrintRegisterFormat format) {
     if (GetTraceParameters() & LOG_VREGS) PrintVRegister(code, format);
+  }
+  void LogZRegister(unsigned code, PrintRegisterFormat format) {
+    if (GetTraceParameters() & LOG_VREGS) PrintZRegister(code, format);
   }
   void LogSystemRegister(SystemRegister id) {
     if (GetTraceParameters() & LOG_SYSREGS) PrintSystemRegister(id);
@@ -1648,6 +1659,19 @@ class Simulator : public DecoderVisitor {
                    unsigned reg_code,
                    PrintRegisterFormat format,
                    unsigned lane);
+  // The argument `address` is the address of `start byte`.
+  void PrintZRead(uintptr_t address,
+                  unsigned reg_code,
+                  PrintRegisterFormat format,
+                  unsigned data_size = 0,
+                  int bytes = 0,
+                  int start_byte = 0);
+  void PrintZWrite(uintptr_t address,
+                   unsigned reg_code,
+                   PrintRegisterFormat format,
+                   unsigned data_size = 0,
+                   int bytes = 0,
+                   int start_byte = 0);
 
   // Like Print* (above), but respect GetTraceParameters().
   void LogRead(uintptr_t address,
@@ -1676,6 +1700,26 @@ class Simulator : public DecoderVisitor {
       PrintVWrite(address, reg_code, format, lane);
     }
   }
+  void LogZRead(uintptr_t address,
+                unsigned reg_code,
+                PrintRegisterFormat format,
+                unsigned data_size = 0,
+                int bytes = 0,
+                int start_byte = 0) {
+    if (GetTraceParameters() & LOG_VREGS) {
+      PrintZRead(address, reg_code, format, data_size, bytes, start_byte);
+    }
+  }
+  void LogZWrite(uintptr_t address,
+                 unsigned reg_code,
+                 PrintRegisterFormat format,
+                 unsigned data_size = 0,
+                 int bytes = 0,
+                 int start_byte = 0) {
+    if (GetTraceParameters() & LOG_WRITE) {
+      PrintZWrite(address, reg_code, format, data_size, bytes, start_byte);
+    }
+  }
 
   // Helper functions for register tracing.
   void PrintRegisterRawHelper(unsigned code,
@@ -1688,6 +1732,11 @@ class Simulator : public DecoderVisitor {
                               unsigned lane_size_in_bytes,
                               int lane_count = 1,
                               int rightmost_lane = 0);
+  void PrintZRegisterRawHelper(unsigned code,
+                               int lane_size,
+                               int data_size = 0,
+                               int bytes = 0,
+                               int start_byte = 0);
 
   VIXL_NO_RETURN void DoUnreachable(const Instruction* instr);
   void DoTrace(const Instruction* instr);
@@ -1701,6 +1750,7 @@ class Simulator : public DecoderVisitor {
   static const char* SRegNameForCode(unsigned code);
   static const char* DRegNameForCode(unsigned code);
   static const char* VRegNameForCode(unsigned code);
+  static const char* ZRegNameForCode(unsigned code);
 
   bool IsColouredTrace() const { return coloured_trace_; }
   VIXL_DEPRECATED("IsColouredTrace", bool coloured_trace() const) {
@@ -3486,6 +3536,7 @@ class Simulator : public DecoderVisitor {
   static const char* sreg_names[];
   static const char* dreg_names[];
   static const char* vreg_names[];
+  static const char* zreg_names[];
 
  private:
   static const PACKey kPACKeyIA;

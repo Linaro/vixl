@@ -273,6 +273,13 @@ const char* Simulator::vreg_names[] = {"v0",  "v1",  "v2",  "v3",  "v4",  "v5",
                                        "v24", "v25", "v26", "v27", "v28", "v29",
                                        "v30", "v31"};
 
+const char* Simulator::zreg_names[] = {"z0",  "z1",  "z2",  "z3",  "z4",  "z5",
+                                       "z6",  "z7",  "z8",  "z9",  "z10", "z11",
+                                       "z12", "z13", "z14", "z15", "z16", "z17",
+                                       "z18", "z19", "z20", "z21", "z22", "z23",
+                                       "z24", "z25", "z26", "z27", "z28", "z29",
+                                       "z30", "z31"};
+
 
 const char* Simulator::WRegNameForCode(unsigned code, Reg31Mode mode) {
   VIXL_ASSERT(code < kNumberOfRegisters);
@@ -315,6 +322,12 @@ const char* Simulator::DRegNameForCode(unsigned code) {
 const char* Simulator::VRegNameForCode(unsigned code) {
   VIXL_ASSERT(code < kNumberOfVRegisters);
   return vreg_names[code];
+}
+
+
+const char* Simulator::ZRegNameForCode(unsigned code) {
+  VIXL_ASSERT(code < kNumberOfZRegisters);
+  return zreg_names[code];
 }
 
 
@@ -709,6 +722,13 @@ void Simulator::PrintVRegisters() {
 }
 
 
+void Simulator::PrintZRegisters() {
+  for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
+    PrintZRegister(i);
+  }
+}
+
+
 // Print a register's name and raw value.
 //
 // Only the least-significant `size_in_bytes` bytes of the register are printed,
@@ -807,7 +827,7 @@ void Simulator::PrintVRegisterRawHelper(unsigned code, int bytes, int lsb) {
   // An example with bytes=4 and lsb=8:
   //   "# v{code}:         0xbbaa9988                ".
   fprintf(stream_,
-          "# %s%5s: %s",
+          "# %s%13s: %s",
           clr_vreg_name,
           VRegNameForCode(code),
           clr_vreg_value);
@@ -833,6 +853,58 @@ void Simulator::PrintVRegisterRawHelper(unsigned code, int bytes, int lsb) {
   while (byte >= 0) {
     fprintf(stream_, "  ");
     byte--;
+  }
+  fprintf(stream_, "%s", clr_normal);
+}
+
+
+void Simulator::PrintZRegisterRawHelper(
+    unsigned code, int lane_size, int data_size, int bytes, int start_byte) {
+  VIXL_ASSERT(lane_size >= data_size);
+  // Currently only support printing of 128-bit length value and it must have
+  // 128-bit alignement.
+  VIXL_ASSERT((bytes % kQRegSizeInBytes) == 0);
+  VIXL_ASSERT((start_byte % kQRegSizeInBytes) == 0);
+
+  // The template for vector types:
+  //   "# z{code}<m+127:m>: 0x33333333222222221111111100000000",
+  // where m is multiple of 128b.
+  // An example with bytes=16 starting from a bit 128:
+  //   "# z{code}<255:128>: 0x77777777666666665555555544444444".
+  // A qlane from a bit zero with lane=4, data=2, and bytes=16:
+  //   "#   z{code}<127:0>: 0x    3333    2222    1111    0000".
+
+  std::stringstream prefix;
+  prefix << ZRegNameForCode(code) << "<"
+         << ((start_byte + bytes) * kBitsPerByte) - 1 << ":"
+         << (start_byte * kBitsPerByte) << ">";
+
+  fprintf(stream_,
+          "# %s%13s: %s0x",
+          clr_vreg_name,
+          prefix.str().c_str(),
+          clr_vreg_value);
+
+  // Print the 128-bit length of register, lane by lane.
+  for (int i = kQRegSizeInBytes / lane_size; i > 0; i--) {
+    VIXL_ASSERT((kQRegSizeInBytes % lane_size) == 0);
+    // Skip the irrelevant part of value from lane if any.
+    for (int skips = lane_size - data_size; skips > 0; skips--) {
+      fprintf(stream_, "  ");
+      bytes--;
+    }
+
+    // [`first_byte`, `last_byte`] represent the interval of bytes that are
+    // printed in each lane.
+    int last_byte = start_byte + bytes - 1;
+    int first_byte = last_byte - data_size + 1;
+    // Print the specified part of the value, byte by byte.
+    int lane_idx = last_byte >> kQRegSizeInBytesLog2;
+    qreg_t rawbits = vregisters_[code].GetLane<qreg_t>(lane_idx);
+    for (int byte = last_byte; byte >= first_byte; --byte) {
+      fprintf(stream_, "%02x", rawbits.val[byte % kQRegSizeInBytes]);
+      bytes--;
+    }
   }
   fprintf(stream_, "%s", clr_normal);
 }
@@ -967,6 +1039,44 @@ void Simulator::PrintVRegister(unsigned code, PrintRegisterFormat format) {
   fprintf(stream_, "\n");
 }
 
+void Simulator::PrintZRegister(unsigned code,
+                               PrintRegisterFormat format,
+                               int bytes,
+                               int start_byte) {
+  vregisters_[code].NotifyRegisterLogged();
+  if (bytes == 0) {
+    // If no byte size specified, print the whole length of register.
+    bytes = GetVectorLengthInBytes();
+  }
+
+  int lane_size;
+  switch (format) {
+    case kPrintRegLaneSizeUnknown:
+      // If no lane size specified, set to 128-bit lane by default.
+      lane_size = kQRegSizeInBytes;
+      break;
+    case kPrintRegLaneSizeB:
+    case kPrintRegLaneSizeH:
+    case kPrintRegLaneSizeS:
+    case kPrintRegLaneSizeD:
+      lane_size = GetPrintRegLaneSizeInBytes(format);
+      break;
+    default:
+      lane_size = 0;
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  while (bytes > 0) {
+    PrintZRegisterRawHelper(code,
+                            lane_size,
+                            lane_size,
+                            kQRegSizeInBytes,
+                            start_byte + bytes - kQRegSizeInBytes);
+    bytes -= kQRegSizeInBytes;
+    fprintf(stream_, "\n");
+  }
+}
 
 void Simulator::PrintSystemRegister(SystemRegister id) {
   switch (id) {
@@ -1042,6 +1152,50 @@ void Simulator::PrintVRead(uintptr_t address,
           clr_normal);
 }
 
+void Simulator::PrintZRead(uintptr_t address,
+                           unsigned reg_code,
+                           PrintRegisterFormat format,
+                           unsigned data_size,
+                           int bytes,
+                           int start_byte) {
+  vregisters_[reg_code].NotifyRegisterLogged();
+
+  // The templates:
+  //   "# v{code}<m:n>: 0x{rawbits} <- {address}"
+  // An example that prints an unpredicated memory read from a particular memory
+  // location to the specified portion of Z register.
+  // 0x00007fff00000000: 0x11110000 0x33332222 0x55554444 0x77776666
+  // 0x00007fff00000010: 0x99998888 0xbbbbaaaa 0xddddcccc 0xffffeeee
+  // The corresponding output is:
+  // Zt<255:128>: 0x77776666555544443333222211110000 <- 0x00007fff00000000
+  // Zt<383:256>: 0xffffeeeeddddccccbbbbaaaa99998888 <- 0x00007fff00000010
+
+  int lane_size = GetPrintRegLaneSizeInBytes(format);
+  if (data_size == 0) {
+    // Let the full lane of value are relevent.
+    data_size = lane_size;
+  }
+  if (bytes == 0) {
+    // If no byte size specified, print the whole length of register.
+    bytes = GetVectorLengthInBytes();
+  }
+
+  const int last_byte = start_byte + bytes - 1;
+  while (start_byte < last_byte) {
+    PrintZRegisterRawHelper(reg_code,
+                            lane_size,
+                            data_size,
+                            kQRegSizeInBytes,
+                            start_byte);
+    fprintf(stream_,
+            " <- %s0x%016" PRIxPTR "%s\n",
+            clr_memory_address,
+            address,
+            clr_normal);
+    start_byte += kQRegSizeInBytes;
+    address += kQRegSizeInBytes;
+  }
+}
 
 void Simulator::PrintWrite(uintptr_t address,
                            unsigned reg_code,
@@ -1085,6 +1239,46 @@ void Simulator::PrintVWrite(uintptr_t address,
           clr_memory_address,
           address,
           clr_normal);
+}
+
+void Simulator::PrintZWrite(uintptr_t address,
+                            unsigned reg_code,
+                            PrintRegisterFormat format,
+                            unsigned data_size,
+                            int bytes,
+                            int start_byte) {
+  // The templates:
+  //   "# v{code}<m:n>: 0x{rawbits} -> {address}"
+  // An example that prints an unpredicated memory write from the specified
+  // portion of Z register to a particular memory location.
+  // Zt<255:128>: 0x77776666555544443333222211110000 -> 0x00007fff00000000
+  // Zt<383:256>: 0xffffeeeeddddccccbbbbaaaa99998888 -> 0x00007fff00000010
+
+  int lane_size = GetPrintRegLaneSizeInBytes(format);
+  if (data_size == 0) {
+    // If no data size was specified, print the whole of each lane.
+    data_size = lane_size;
+  }
+  if (bytes == 0) {
+    // If no byte size was specified, print the whole register.
+    bytes = GetVectorLengthInBytes();
+  }
+
+  const int last_byte = start_byte + bytes - 1;
+  while (start_byte < last_byte) {
+    PrintZRegisterRawHelper(reg_code,
+                            lane_size,
+                            data_size,
+                            kQRegSizeInBytes,
+                            start_byte);
+    fprintf(stream_,
+            " -> %s0x%016" PRIxPTR "%s\n",
+            clr_memory_address,
+            address,
+            clr_normal);
+    start_byte += kQRegSizeInBytes;
+    address += kQRegSizeInBytes;
+  }
 }
 
 

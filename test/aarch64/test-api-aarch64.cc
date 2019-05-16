@@ -1585,6 +1585,49 @@ TEST(sve_first_none_last_active) {
   VIXL_CHECK(simulator.IsLastActive(kFormatVnH, Pg, Pm) == false);
   VIXL_CHECK(simulator.IsLastActive(kFormatVnB, Pg, Pm) == true);
 }
+
+TEST(sve_print_z_register) {
+  MacroAssembler masm;
+  Decoder decoder;
+  Simulator simulator(&decoder);
+  simulator.ResetState();
+  simulator.SetVectorLengthInBits(384);
+
+  Simulator::PrintRegisterFormat print_types[4] =
+      {Simulator::kPrintRegLaneSizeD,
+       Simulator::kPrintRegLaneSizeS,
+       Simulator::kPrintRegLaneSizeH,
+       Simulator::kPrintRegLaneSizeB};
+  int relevant_sizes[4] = {kDRegSizeInBytes,
+                           kSRegSizeInBytes,
+                           kHRegSizeInBytes,
+                           kBRegSizeInBytes};
+  const int bytes = 32;
+  const int start_byte = 16;
+  const int code = 1;
+  uintptr_t address = 0x00007fff00000008;
+
+  simulator.PrintZRegister(code);
+
+  for (int i = ARRAY_SIZE(print_types) - 1; i >= 0; --i) {
+    simulator.PrintZRegister(code, print_types[i], bytes, start_byte);
+  }
+
+  for (int i = ARRAY_SIZE(print_types) - 1; i >= 0; --i) {
+    for (int j = ARRAY_SIZE(relevant_sizes) - 1; j >= 0; --j) {
+      int lane_size = simulator.GetPrintRegLaneSizeInBytes(print_types[i]);
+      int data_size = relevant_sizes[j];
+      if (lane_size >= data_size) {
+        simulator.PrintZWrite(address,
+                              code,
+                              print_types[i],
+                              relevant_sizes[j],
+                              bytes,
+                              start_byte);
+      }
+    }
+  }
+}
 #undef REG_ACCESSOR_UINT_DOTEST
 #endif
 
