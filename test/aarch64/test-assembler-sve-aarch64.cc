@@ -277,6 +277,7 @@ static void MlaMlsHelper(unsigned lane_size_in_bits) {
   SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
+  int zd_inputs[] = {0xbb, 0xcc, 0xdd, 0xee};
   int za_inputs[] = {-39, 1, -3, 2};
   int zn_inputs[] = {-5, -20, 9, 8};
   int zm_inputs[] = {9, -5, 4, 5};
@@ -287,8 +288,7 @@ static void MlaMlsHelper(unsigned lane_size_in_bits) {
   ZRegister zm = z3.WithLaneSize(lane_size_in_bits);
 
   // TODO: Use a simple `Dup` once it accepts arbitrary immediates.
-  __ Mov(w0, 0xdeadbeef);
-  __ Dup(zd.VnS(), w0);
+  InsrHelper(&masm, zd, zd_inputs);
   InsrHelper(&masm, za, za_inputs);
   InsrHelper(&masm, zn, zn_inputs);
   InsrHelper(&masm, zm, zm_inputs);
@@ -296,7 +296,7 @@ static void MlaMlsHelper(unsigned lane_size_in_bits) {
   int p0_inputs[] = {1, 1, 0, 1};
   int p1_inputs[] = {1, 0, 1, 1};
   int p2_inputs[] = {0, 1, 1, 1};
-  int p3_inputs[] = {1, 1, 1, 1};
+  int p3_inputs[] = {1, 1, 1, 0};
 
   Initialise(&masm, p0.WithLaneSize(lane_size_in_bits), p0_inputs);
   Initialise(&masm, p1.WithLaneSize(lane_size_in_bits), p1_inputs);
@@ -308,6 +308,7 @@ static void MlaMlsHelper(unsigned lane_size_in_bits) {
   ZRegister mla_da_result = z10.WithLaneSize(lane_size_in_bits);
   ZRegister mla_dn_result = z11.WithLaneSize(lane_size_in_bits);
   ZRegister mla_dm_result = z12.WithLaneSize(lane_size_in_bits);
+  ZRegister mla_d_result = z13.WithLaneSize(lane_size_in_bits);
 
   __ Mov(mla_da_result, za);
   __ Mla(mla_da_result, p0.Merging(), mla_da_result, zn, zm);
@@ -318,14 +319,15 @@ static void MlaMlsHelper(unsigned lane_size_in_bits) {
   __ Mov(mla_dm_result, zm);
   __ Mla(mla_dm_result, p2.Merging(), za, zn, mla_dm_result);
 
-  // TODO: Enable once movprfx is implemented.
-  // __ Mla(mla_d_result, p3.Merging(), za, zn, zm);
+  __ Mov(mla_d_result, zd);
+  __ Mla(mla_d_result, p3.Merging(), za, zn, zm);
 
   // The Mls macro automatically selects between mls, msb and movprfx + mls
   // based on what registers are aliased.
   ZRegister mls_da_result = z20.WithLaneSize(lane_size_in_bits);
   ZRegister mls_dn_result = z21.WithLaneSize(lane_size_in_bits);
   ZRegister mls_dm_result = z22.WithLaneSize(lane_size_in_bits);
+  ZRegister mls_d_result = z23.WithLaneSize(lane_size_in_bits);
 
   __ Mov(mls_da_result, za);
   __ Mls(mls_da_result, p0.Merging(), mls_da_result, zn, zm);
@@ -336,8 +338,8 @@ static void MlaMlsHelper(unsigned lane_size_in_bits) {
   __ Mov(mls_dm_result, zm);
   __ Mls(mls_dm_result, p2.Merging(), za, zn, mls_dm_result);
 
-  // TODO: Enable once movprfx is implemented.
-  // __ Mls(mls_d_result, p3.Merging(), za, zn, zm);
+  __ Mov(mls_d_result, zd);
+  __ Mls(mls_d_result, p3.Merging(), za, zn, zm);
 
   END();
 
@@ -360,8 +362,8 @@ static void MlaMlsHelper(unsigned lane_size_in_bits) {
     int mla_dm_expected[] = {zm_inputs[0], mla[1], mla[2], mla[3]};
     ASSERT_EQUAL_SVE(mla_dm_expected, mla_dm_result);
 
-    // TODO: Enable once movprfx is implemented.
-    // ASSERT_EQUAL_SVE(mla, mla_d_result);
+    int mla_d_expected[] = {mla[0], mla[1], mla[2], zd_inputs[3]};
+    ASSERT_EQUAL_SVE(mla_d_expected, mla_d_result);
 
     int mls_da_expected[] = {mls[0], mls[1], za_inputs[2], mls[3]};
     ASSERT_EQUAL_SVE(mls_da_expected, mls_da_result);
@@ -372,8 +374,8 @@ static void MlaMlsHelper(unsigned lane_size_in_bits) {
     int mls_dm_expected[] = {zm_inputs[0], mls[1], mls[2], mls[3]};
     ASSERT_EQUAL_SVE(mls_dm_expected, mls_dm_result);
 
-    // TODO: Enable once movprfx is implemented.
-    // ASSERT_EQUAL_SVE(mls, mls_d_result);
+    int mls_d_expected[] = {mls[0], mls[1], mls[2], zd_inputs[3]};
+    ASSERT_EQUAL_SVE(mls_d_expected, mls_d_result);
   }
 }
 

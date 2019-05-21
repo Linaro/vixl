@@ -833,6 +833,11 @@ class Simulator : public DecoderVisitor {
     VIXL_ASSERT(IsWordAligned(pc_));
     pc_modified_ = false;
 
+    if (movprfx_ != NULL) {
+      VIXL_CHECK(pc_->CanTakeSVEMovprfx(movprfx_));
+      movprfx_ = NULL;
+    }
+
     // On guarded pages, if BType is not zero, take an exception on any
     // instruction other than BTI, PACI[AB]SP, HLT or BRK.
     if (PcIsInGuardedPage() && (ReadBType() != DefaultBType)) {
@@ -1982,6 +1987,20 @@ class Simulator : public DecoderVisitor {
     return GetVectorLengthInBytes() / kZRegBitsPerPRegBit;
   }
 
+  unsigned RegisterSizeInBitsFromFormat(VectorFormat vform) const {
+    if (IsSVEFormat(vform)) {
+      return GetVectorLengthInBits();
+    } else {
+      return vixl::aarch64::RegisterSizeInBitsFromFormat(vform);
+    }
+  }
+
+  unsigned RegisterSizeInBytesFromFormat(VectorFormat vform) const {
+    unsigned size_in_bits = RegisterSizeInBitsFromFormat(vform);
+    VIXL_ASSERT((size_in_bits % kBitsPerByte) == 0);
+    return size_in_bits / kBitsPerByte;
+  }
+
   int LaneCountFromFormat(VectorFormat vform) const {
     if (IsSVEFormat(vform)) {
       return GetVectorLengthInBits() / LaneSizeInBitsFromFormat(vform);
@@ -2593,7 +2612,14 @@ class Simulator : public DecoderVisitor {
   LogicVRegister dup_immediate(VectorFormat vform,
                                LogicVRegister dst,
                                uint64_t imm);
+  LogicVRegister mov(VectorFormat vform,
+                     LogicVRegister dst,
+                     const LogicVRegister& src);
   LogicVRegister mov_merging(VectorFormat vform,
+                             LogicVRegister dst,
+                             const SimPRegister& pg,
+                             const LogicVRegister& src);
+  LogicVRegister mov_zeroing(VectorFormat vform,
                              LogicVRegister dst,
                              const SimPRegister& pg,
                              const LogicVRegister& src);
@@ -3524,6 +3550,10 @@ class Simulator : public DecoderVisitor {
   // automatically incremented.
   bool pc_modified_;
   const Instruction* pc_;
+
+  // If non-NULL, the last instruction was a movprfx, and validity needs to be
+  // checked.
+  Instruction const* movprfx_;
 
   // Branch type register, used for branch target identification.
   BType btype_;

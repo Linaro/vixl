@@ -6593,52 +6593,63 @@ void Disassembler::VisitSVEIntReduction(const Instruction *instr) {
   // <V><d>, <Pg>, <Zn>.<T>
   const char *form = "'Vd, p'u1210, 'Zn.'t";
 
-  switch (instr->Mask(SVEIntReductionMask)) {
-    // ANDV <V><d>, <Pg>, <Zn>.<T>
-    case ANDV_r_p_z:
-      mnemonic = "andv";
-      break;
-    // EORV <V><d>, <Pg>, <Zn>.<T>
-    case EORV_r_p_z:
-      mnemonic = "eorv";
-      break;
-    // MOVPRFX <Zd>.<T>, <Pg>/<ZM>, <Zn>.<T>
-    case MOVPRFX_z_p_z:
-      mnemonic = "movprfx";
-      form = "'Zd.'t, p'u1210/<ZM>, 'Zn.'t";
-      break;
-    // ORV <V><d>, <Pg>, <Zn>.<T>
-    case ORV_r_p_z:
-      mnemonic = "orv";
-      break;
-    // SADDV <Dd>, <Pg>, <Zn>.<T>
-    case SADDV_r_p_z:
-      mnemonic = "saddv";
-      form = "'Dd, p'u1210, 'Zn.'t";
-      break;
-    // SMAXV <V><d>, <Pg>, <Zn>.<T>
-    case SMAXV_r_p_z:
-      mnemonic = "smaxv";
-      break;
-    // SMINV <V><d>, <Pg>, <Zn>.<T>
-    case SMINV_r_p_z:
-      mnemonic = "sminv";
-      break;
-    // UADDV <Dd>, <Pg>, <Zn>.<T>
-    case UADDV_r_p_z:
-      mnemonic = "uaddv";
-      form = "'Dd, p'u1210, 'Zn.'t";
-      break;
-    // UMAXV <V><d>, <Pg>, <Zn>.<T>
-    case UMAXV_r_p_z:
-      mnemonic = "umaxv";
-      break;
-    // UMINV <V><d>, <Pg>, <Zn>.<T>
-    case UMINV_r_p_z:
-      mnemonic = "uminv";
-      break;
-    default:
-      break;
+  if (instr->Mask(SVEIntReductionLogicalFMask) == SVEIntReductionLogicalFixed) {
+    switch (instr->Mask(SVEIntReductionLogicalMask)) {
+      // ANDV <V><d>, <Pg>, <Zn>.<T>
+      case ANDV_r_p_z:
+        mnemonic = "andv";
+        break;
+      // EORV <V><d>, <Pg>, <Zn>.<T>
+      case EORV_r_p_z:
+        mnemonic = "eorv";
+        break;
+      // ORV <V><d>, <Pg>, <Zn>.<T>
+      case ORV_r_p_z:
+        mnemonic = "orv";
+        break;
+      default:
+        break;
+    }
+  } else {
+    switch (instr->Mask(SVEIntReductionMask)) {
+      // MOVPRFX <Zd>.<T>, <Pg>/<ZM>, <Zn>.<T>
+      case MOVPRFX_z_p_z:
+        mnemonic = "movprfx";
+        if (instr->ExtractBit(16) == 0) {
+          form = "'Zd.'t, p'u1210/z, 'Zn.'t";
+        } else {
+          form = "'Zd.'t, p'u1210/m, 'Zn.'t";
+        }
+        break;
+      // SADDV <Dd>, <Pg>, <Zn>.<T>
+      case SADDV_r_p_z:
+        mnemonic = "saddv";
+        form = "'Dd, p'u1210, 'Zn.'t";
+        break;
+      // SMAXV <V><d>, <Pg>, <Zn>.<T>
+      case SMAXV_r_p_z:
+        mnemonic = "smaxv";
+        break;
+      // SMINV <V><d>, <Pg>, <Zn>.<T>
+      case SMINV_r_p_z:
+        mnemonic = "sminv";
+        break;
+      // UADDV <Dd>, <Pg>, <Zn>.<T>
+      case UADDV_r_p_z:
+        mnemonic = "uaddv";
+        form = "'Dd, p'u1210, 'Zn.'t";
+        break;
+      // UMAXV <V><d>, <Pg>, <Zn>.<T>
+      case UMAXV_r_p_z:
+        mnemonic = "umaxv";
+        break;
+      // UMINV <V><d>, <Pg>, <Zn>.<T>
+      case UMINV_r_p_z:
+        mnemonic = "uminv";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }

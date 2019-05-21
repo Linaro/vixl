@@ -2504,11 +2504,32 @@ LogicVRegister Simulator::insr(VectorFormat vform,
 }
 
 
+LogicVRegister Simulator::mov(VectorFormat vform,
+                              LogicVRegister dst,
+                              const LogicVRegister& src) {
+  dst.ClearForWrite(vform);
+  for (int lane = 0; lane < LaneCountFromFormat(vform); lane++) {
+    dst.SetUint(vform, lane, src.Uint(vform, lane));
+  }
+  return dst;
+}
+
+
 LogicVRegister Simulator::mov_merging(VectorFormat vform,
                                       LogicVRegister dst,
                                       const SimPRegister& pg,
                                       const LogicVRegister& src) {
   return sel(vform, dst, pg, src, dst);
+}
+
+
+LogicVRegister Simulator::mov_zeroing(VectorFormat vform,
+                                      LogicVRegister dst,
+                                      const SimPRegister& pg,
+                                      const LogicVRegister& src) {
+  SimVRegister zero;
+  dup_immediate(vform, zero, 0);
+  return sel(vform, dst, pg, src, zero);
 }
 
 

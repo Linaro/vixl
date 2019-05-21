@@ -974,8 +974,8 @@ TEST(sve_int_misc_unpredicated) {
   COMPARE_PREFIX(ftssel(z17.VnH(), z24.VnH(), z14.VnH()), "ftssel <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(ftssel(z17.VnS(), z24.VnS(), z14.VnS()), "ftssel <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(ftssel(z17.VnD(), z24.VnD(), z14.VnD()), "ftssel <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(movprfx(z24, z1), "movprfx <Zd>, <Zn>");
 #endif
+  COMPARE_PREFIX(movprfx(z24, z1), "movprfx z24, z1");
 
   CLEANUP();
 }
@@ -1028,10 +1028,9 @@ TEST(sve_int_mul_add_predicated_macro) {
                 "mad z3.h, p2/m, z5.h, z4.h");
   COMPARE_MACRO(Mla(z4.VnS(), p3.Merging(), z5.VnS(), z6.VnS(), z4.VnS()),
                 "mad z4.s, p3/m, z6.s, z5.s");
-  // TODO: Enable once movprfx is implemented.
-  // COMPARE_MACRO(Mla(z5.VnD(), p4.Merging(), z6.VnD(), z7.VnD(), z8.VnD()),
-  //               "movprfx z5, z6\n"
-  //               "mla z5.d, p4/m, z7.d, z8.d");
+  COMPARE_MACRO(Mla(z5.VnD(), p4.Merging(), z6.VnD(), z7.VnD(), z8.VnD()),
+                "movprfx z5.d, p4/m, z6.d\n"
+                "mla z5.d, p4/m, z7.d, z8.d");
 
   COMPARE_MACRO(Mls(z0.VnD(), p1.Merging(), z0.VnD(), z2.VnD(), z4.VnD()),
                 "mls z0.d, p1/m, z2.d, z4.d");
@@ -1039,10 +1038,9 @@ TEST(sve_int_mul_add_predicated_macro) {
                 "msb z3.s, p2/m, z5.s, z4.s");
   COMPARE_MACRO(Mls(z4.VnH(), p3.Merging(), z5.VnH(), z6.VnH(), z4.VnH()),
                 "msb z4.h, p3/m, z6.h, z5.h");
-  // TODO: Enable once movprfx is implemented.
-  // COMPARE_MACRO(Mls(z5.VnB(), p4.Merging(), z6.VnB(), z7.VnB(), z8.VnB()),
-  //               "movprfx z5, z6\n"
-  //               "mls z5.b, p4/m, z7.b, z8.b");
+  COMPARE_MACRO(Mls(z5.VnB(), p4.Merging(), z6.VnB(), z7.VnB(), z8.VnB()),
+                "movprfx z5.b, p4/m, z6.b\n"
+                "mls z5.b, p4/m, z7.b, z8.b");
 
   CLEANUP();
 }
@@ -1070,10 +1068,16 @@ TEST(sve_int_reduction) {
   COMPARE_PREFIX(eorv(h12, p0, z30.VnH()), "eorv <V><d>, <Pg>, <Zn>.<T>");
   COMPARE_PREFIX(eorv(s12, p0, z30.VnS()), "eorv <V><d>, <Pg>, <Zn>.<T>");
   COMPARE_PREFIX(eorv(d12, p0, z30.VnD()), "eorv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(movprfx(z30.VnB(), p2, z23.VnB()), "movprfx <Zd>.<T>, <Pg>/<ZM>, <Zn>.<T>");
-  COMPARE_PREFIX(movprfx(z30.VnH(), p2, z23.VnH()), "movprfx <Zd>.<T>, <Pg>/<ZM>, <Zn>.<T>");
-  COMPARE_PREFIX(movprfx(z30.VnS(), p2, z23.VnS()), "movprfx <Zd>.<T>, <Pg>/<ZM>, <Zn>.<T>");
-  COMPARE_PREFIX(movprfx(z30.VnD(), p2, z23.VnD()), "movprfx <Zd>.<T>, <Pg>/<ZM>, <Zn>.<T>");
+#endif
+  COMPARE_PREFIX(movprfx(z30.VnB(), p2.Zeroing(), z23.VnB()),
+                 "movprfx z30.b, p2/z, z23.b");
+  COMPARE_PREFIX(movprfx(z10.VnH(), p0.Merging(), z10.VnH()),
+                 "movprfx z10.h, p0/m, z10.h");
+  COMPARE_PREFIX(movprfx(z0.VnS(), p2.Zeroing(), z23.VnS()),
+                 "movprfx z0.s, p2/z, z23.s");
+  COMPARE_PREFIX(movprfx(z31.VnD(), p7.Merging(), z23.VnD()),
+                 "movprfx z31.d, p7/m, z23.d");
+#if 0
   COMPARE_PREFIX(orv(b4, p0, z16.VnB()), "orv <V><d>, <Pg>, <Zn>.<T>");
   COMPARE_PREFIX(orv(h4, p0, z16.VnH()), "orv <V><d>, <Pg>, <Zn>.<T>");
   COMPARE_PREFIX(orv(s4, p0, z16.VnS()), "orv <V><d>, <Pg>, <Zn>.<T>");

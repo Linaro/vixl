@@ -65,7 +65,7 @@ SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
 
 
 Simulator::Simulator(Decoder* decoder, FILE* stream)
-    : cpu_features_auditor_(decoder, CPUFeatures::All()) {
+    : movprfx_(NULL), cpu_features_auditor_(decoder, CPUFeatures::All()) {
   // Ensure that shift operations act as the simulator expects.
   VIXL_ASSERT((static_cast<int32_t>(-1) >> 1) == -1);
   VIXL_ASSERT((static_cast<uint32_t>(-1) >> 1) == 0x7fffffff);
@@ -8088,6 +8088,10 @@ void Simulator::VisitSVEIntCompareVectors(const Instruction* instr) {
 
 void Simulator::VisitSVEIntMiscUnpredicated(const Instruction* instr) {
   USE(instr);
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+
   switch (instr->Mask(SVEIntMiscUnpredicatedMask)) {
     case FEXPA_z_z:
       VIXL_UNIMPLEMENTED();
@@ -8096,7 +8100,9 @@ void Simulator::VisitSVEIntMiscUnpredicated(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case MOVPRFX_z_z:
-      VIXL_UNIMPLEMENTED();
+      mov(kFormatVnD, zd, zn);  // The lane size is arbitrary.
+      // Record the movprfx, so the next ExecuteInstruction() can check it.
+      movprfx_ = instr;
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -8152,40 +8158,61 @@ void Simulator::VisitSVEIntMulAddUnpredicated(const Instruction* instr) {
 
 void Simulator::VisitSVEIntReduction(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEIntReductionMask)) {
-    case ANDV_r_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case EORV_r_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case MOVPRFX_z_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case ORV_r_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SADDV_r_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SMAXV_r_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SMINV_r_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UADDV_r_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UMAXV_r_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UMINV_r_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-      break;
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  if (instr->Mask(SVEIntReductionLogicalFMask) == SVEIntReductionLogicalFixed) {
+    switch (instr->Mask(SVEIntReductionLogicalMask)) {
+      case ANDV_r_p_z:
+        VIXL_UNIMPLEMENTED();
+        break;
+      case EORV_r_p_z:
+        VIXL_UNIMPLEMENTED();
+        break;
+      case ORV_r_p_z:
+        VIXL_UNIMPLEMENTED();
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  } else {
+    switch (instr->Mask(SVEIntReductionMask)) {
+      case MOVPRFX_z_p_z: {
+        SimVRegister& zd = ReadVRegister(instr->GetRd());
+        if (instr->ExtractBit(16)) {
+          mov_merging(vform, zd, pg, zn);
+        } else {
+          mov_zeroing(vform, zd, pg, zn);
+        }
+        // Record the movprfx, so the next ExecuteInstruction() can check it.
+        movprfx_ = instr;
+        break;
+      }
+      case SADDV_r_p_z:
+        VIXL_UNIMPLEMENTED();
+        break;
+      case SMAXV_r_p_z:
+        VIXL_UNIMPLEMENTED();
+        break;
+      case SMINV_r_p_z:
+        VIXL_UNIMPLEMENTED();
+        break;
+      case UADDV_r_p_z:
+        VIXL_UNIMPLEMENTED();
+        break;
+      case UMAXV_r_p_z:
+        VIXL_UNIMPLEMENTED();
+        break;
+      case UMINV_r_p_z:
+        VIXL_UNIMPLEMENTED();
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
   }
 }
 

@@ -82,11 +82,9 @@ void MacroAssembler::Mla(const ZRegister& zd,
     mad(zd, pg, zn, za);
   } else {
     // zd = za + (zn * zm)
-    // TODO: This requires movprfx support.
-    VIXL_UNIMPLEMENTED();
-    // ExactAssemblyScope guard(this, 2 * kInstructionSize);
-    // movprfx(zd, pg, za);
-    // mla(zd, pg, zn, zm);
+    ExactAssemblyScope guard(this, 2 * kInstructionSize);
+    movprfx(zd, pg, za);
+    mla(zd, pg, zn, zm);
   }
 }
 
@@ -111,11 +109,9 @@ void MacroAssembler::Mls(const ZRegister& zd,
     msb(zd, pg, zn, za);
   } else {
     // zd = za - (zn * zm)
-    // TODO: This requires movprfx support.
-    VIXL_UNIMPLEMENTED();
-    // ExactAssemblyScope guard(this, 2 * kInstructionSize);
-    // movprfx(zd, pg, za);
-    // mls(zd, pg, zn, zm);
+    ExactAssemblyScope guard(this, 2 * kInstructionSize);
+    movprfx(zd, pg, za);
+    mls(zd, pg, zn, zm);
   }
 }
 

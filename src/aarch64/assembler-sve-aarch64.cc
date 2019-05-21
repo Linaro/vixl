@@ -3289,6 +3289,7 @@ void Assembler::movprfx(const ZRegister& zd, const ZRegister& zn) {
   //  opc<23:22> = 00 | opc2<20:16> = 00000 | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
   Emit(MOVPRFX_z_z | Rd(zd) | Rn(zn));
 }
@@ -3414,8 +3415,11 @@ void Assembler::movprfx(const ZRegister& zd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
+  VIXL_ASSERT(pg.IsMerging() || pg.IsZeroing());
+  VIXL_ASSERT(!pg.HasLaneSize());
 
-  Emit(MOVPRFX_z_p_z | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Instr m = pg.IsMerging() ? 0x00010000 : 0x00000000;
+  Emit(MOVPRFX_z_p_z | SVESize(zd) | m | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::orv(const VRegister& vd,
@@ -3713,8 +3717,10 @@ void Assembler::cpy(const ZRegister& zd, const PRegister& pg, int imm8) {
   //  size<23:22> | Pg<19:16> | M<14> | sh<13> | imm8<12:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(pg.IsMerging() || pg.IsZeroing());
 
-  Emit(CPY_z_p_i | SVESize(zd) | Rd(zd) | Rx<19, 16>(pg) |
+  Instr m = pg.IsMerging() ? 0x00004000 : 0x00000000;
+  Emit(CPY_z_p_i | m | SVESize(zd) | Rd(zd) | Rx<19, 16>(pg) |
        ImmField<12, 5>(imm8));
 }
 

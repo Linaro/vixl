@@ -418,6 +418,9 @@ class Instruction {
     return Mask(LoadStoreAnyFMask) == LoadStoreAnyFixed;
   }
 
+  // True if `this` is valid immediately after the provided movprfx instruction.
+  bool CanTakeSVEMovprfx(Instruction const* movprfx) const;
+
   bool IsLoad() const;
   bool IsStore() const;
 
