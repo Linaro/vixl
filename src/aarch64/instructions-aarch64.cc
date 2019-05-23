@@ -518,8 +518,8 @@ VectorFormat VectorFormatHalfLanes(VectorFormat vform) {
 }
 
 
-VectorFormat ScalarFormatFromLaneSize(int laneSize) {
-  switch (laneSize) {
+VectorFormat ScalarFormatFromLaneSize(int lane_size_in_bits) {
+  switch (lane_size_in_bits) {
     case 8:
       return kFormatB;
     case 16:
@@ -534,17 +534,69 @@ VectorFormat ScalarFormatFromLaneSize(int laneSize) {
   }
 }
 
+
 bool IsSVEFormat(VectorFormat vform) {
   switch (vform) {
     case kFormatVnB:
     case kFormatVnH:
     case kFormatVnS:
     case kFormatVnD:
+    case kFormatVnQ:
       return true;
     default:
       return false;
   }
 }
+
+
+VectorFormat SVEFormatFromLaneSizeInBytes(int lane_size_in_bytes) {
+  switch (lane_size_in_bytes) {
+    case 1:
+      return kFormatVnB;
+    case 2:
+      return kFormatVnH;
+    case 4:
+      return kFormatVnS;
+    case 8:
+      return kFormatVnD;
+    case 16:
+      return kFormatVnQ;
+    default:
+      VIXL_UNREACHABLE();
+      return kFormatUndefined;
+  }
+}
+
+
+VectorFormat SVEFormatFromLaneSizeInBits(int lane_size_in_bits) {
+  switch (lane_size_in_bits) {
+    case 8:
+    case 16:
+    case 32:
+    case 64:
+    case 128:
+      return SVEFormatFromLaneSizeInBytes(lane_size_in_bits / kBitsPerByte);
+    default:
+      VIXL_UNREACHABLE();
+      return kFormatUndefined;
+  }
+}
+
+
+VectorFormat SVEFormatFromLaneSizeInBytesLog2(int lane_size_in_bytes_log2) {
+  switch (lane_size_in_bytes_log2) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+      return SVEFormatFromLaneSizeInBytes(1 << lane_size_in_bytes_log2);
+    default:
+      VIXL_UNREACHABLE();
+      return kFormatUndefined;
+  }
+}
+
 
 VectorFormat ScalarFormatFromFormat(VectorFormat vform) {
   return ScalarFormatFromLaneSize(LaneSizeInBitsFromFormat(vform));
@@ -609,6 +661,8 @@ unsigned LaneSizeInBitsFromFormat(VectorFormat vform) {
     case kFormat2D:
     case kFormatVnD:
       return 64;
+    case kFormatVnQ:
+      return 128;
     default:
       VIXL_UNREACHABLE();
       return 0;
@@ -627,20 +681,26 @@ int LaneSizeInBytesLog2FromFormat(VectorFormat vform) {
     case kFormatB:
     case kFormat8B:
     case kFormat16B:
+    case kFormatVnB:
       return 0;
     case kFormatH:
     case kFormat2H:
     case kFormat4H:
     case kFormat8H:
+    case kFormatVnH:
       return 1;
     case kFormatS:
     case kFormat2S:
     case kFormat4S:
+    case kFormatVnS:
       return 2;
     case kFormatD:
     case kFormat1D:
     case kFormat2D:
+    case kFormatVnD:
       return 3;
+    case kFormatVnQ:
+      return 4;
     default:
       VIXL_UNREACHABLE();
       return 0;

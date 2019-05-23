@@ -197,12 +197,15 @@ enum VectorFormat {
 
   // An artificial value, used to distinguish from NEON format category.
   kFormatSVE = 0x0000fffd,
+  // An artificial value. Q lane size isn't encoded in the usual size field.
+  kFormatSVEQ = 0x000f0000,
   // Vector element width of SVE register with the unknown lane count since
   // the vector length is implementation dependent.
   kFormatVnB = SVE_B | kFormatSVE,
   kFormatVnH = SVE_H | kFormatSVE,
   kFormatVnS = SVE_S | kFormatSVE,
   kFormatVnD = SVE_D | kFormatSVE,
+  kFormatVnQ = kFormatSVEQ | kFormatSVE,
 
   // An artificial value, used by simulator trace tests and a few oddball
   // instructions (such as FMLAL).
@@ -647,10 +650,13 @@ VectorFormat VectorFormatHalfWidth(VectorFormat vform);
 VectorFormat VectorFormatDoubleWidth(VectorFormat vform);
 VectorFormat VectorFormatDoubleLanes(VectorFormat vform);
 VectorFormat VectorFormatHalfLanes(VectorFormat vform);
-VectorFormat ScalarFormatFromLaneSize(int lanesize);
+VectorFormat ScalarFormatFromLaneSize(int lane_size_in_bits);
 VectorFormat VectorFormatHalfWidthDoubleLanes(VectorFormat vform);
 VectorFormat VectorFormatFillQ(VectorFormat vform);
 VectorFormat ScalarFormatFromFormat(VectorFormat vform);
+VectorFormat SVEFormatFromLaneSizeInBits(int lane_size_in_bits);
+VectorFormat SVEFormatFromLaneSizeInBytes(int lane_size_in_bytes);
+VectorFormat SVEFormatFromLaneSizeInBytesLog2(int lane_size_in_bytes_log_2);
 unsigned RegisterSizeInBitsFromFormat(VectorFormat vform);
 unsigned RegisterSizeInBytesFromFormat(VectorFormat vform);
 bool IsSVEFormat(VectorFormat vform);

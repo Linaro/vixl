@@ -593,6 +593,7 @@ class ZRegister : public CPURegister {
   ZRegister VnH() const { return ZRegister(GetCode(), kHRegSize); }
   ZRegister VnS() const { return ZRegister(GetCode(), kSRegSize); }
   ZRegister VnD() const { return ZRegister(GetCode(), kDRegSize); }
+  ZRegister VnQ() const { return ZRegister(GetCode(), kQRegSize); }
 
   template <typename T>
   ZRegister WithLaneSize(T format) const {
