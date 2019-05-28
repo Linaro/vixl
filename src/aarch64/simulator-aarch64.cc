@@ -7794,59 +7794,119 @@ void Simulator::VisitSVEFPUnaryOpUnpredicated(const Instruction* instr) {
 
 void Simulator::VisitSVEIncDecByPredicateCount(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEIncDecByPredicateCountMask)) {
-    case DECP_r_p_r:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case DECP_z_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case INCP_r_p_r:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case INCP_z_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQDECP_r_p_r_sx:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQDECP_r_p_r_x:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQDECP_z_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQINCP_r_p_r_sx:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQINCP_r_p_r_x:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQINCP_z_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQDECP_r_p_r_uw:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQDECP_r_p_r_x:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQDECP_z_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQINCP_r_p_r_uw:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQINCP_r_p_r_x:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQINCP_z_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-      break;
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(8, 5));
+
+  int count = CountActiveLanes(vform, pg);
+
+  if (instr->ExtractBit(11) == 0) {
+    SimVRegister& zdn = ReadVRegister(instr->GetRd());
+    switch (instr->Mask(SVEIncDecByPredicateCountMask)) {
+      case DECP_z_p_z:
+        sub(vform, zdn, zdn, count);
+        break;
+      case INCP_z_p_z:
+        add(vform, zdn, zdn, count);
+        break;
+      case SQDECP_z_p_z:
+        sub(vform, zdn, zdn, count).SignedSaturate(vform);
+        break;
+      case SQINCP_z_p_z:
+        add(vform, zdn, zdn, count).SignedSaturate(vform);
+        break;
+      case UQDECP_z_p_z:
+        sub(vform, zdn, zdn, count).UnsignedSaturate(vform);
+        break;
+      case UQINCP_z_p_z:
+        add(vform, zdn, zdn, count).UnsignedSaturate(vform);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  } else {
+    bool is_saturating = (instr->ExtractBit(18) == 0);
+    bool decrement =
+        is_saturating ? instr->ExtractBit(17) : instr->ExtractBit(16);
+    bool is_signed = (instr->ExtractBit(16) == 0);
+    bool sf = is_saturating ? (instr->ExtractBit(10) != 0) : true;
+    unsigned width = sf ? kXRegSize : kWRegSize;
+
+    switch (instr->Mask(SVEIncDecByPredicateCountMask)) {
+      case DECP_r_p_r:
+      case INCP_r_p_r:
+      case SQDECP_r_p_r_sx:
+      case SQDECP_r_p_r_x:
+      case SQINCP_r_p_r_sx:
+      case SQINCP_r_p_r_x:
+      case UQDECP_r_p_r_uw:
+      case UQDECP_r_p_r_x:
+      case UQINCP_r_p_r_uw:
+      case UQINCP_r_p_r_x:
+        WriteXRegister(instr->GetRd(),
+                       IncDecN(ReadXRegister(instr->GetRd()),
+                               decrement ? -count : count,
+                               width,
+                               is_saturating,
+                               is_signed));
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
   }
+}
+
+uint64_t Simulator::IncDecN(uint64_t acc,
+                            int64_t delta,
+                            unsigned n,
+                            bool is_saturating,
+                            bool is_signed) {
+  VIXL_ASSERT(n <= 64);
+  VIXL_ASSERT(IsIntN(n, delta));
+
+  uint64_t sign_mask = UINT64_C(1) << (n - 1);
+  uint64_t mask = GetUintMask(n);
+
+  acc &= mask;  // Ignore initial accumulator high bits.
+  uint64_t result = (acc + delta) & mask;
+
+  bool acc_negative = ((acc & sign_mask) != 0);
+  bool delta_negative = delta < 0;
+  bool result_negative = ((result & sign_mask) != 0);
+
+  if (is_saturating) {
+    if (is_signed) {
+      // If the signs of the operands are the same, but different from the
+      // result, there was an overflow.
+      if ((acc_negative == delta_negative) &&
+          (acc_negative != result_negative)) {
+        if (result_negative) {
+          // Saturate to [..., INT<n>_MAX].
+          result_negative = false;
+          result = mask & ~sign_mask;  // E.g. 0x000000007fffffff
+        } else {
+          // Saturate to [INT<n>_MIN, ...].
+          result_negative = true;
+          result = ~mask | sign_mask;  // E.g. 0xffffffff80000000
+        }
+      }
+    } else {
+      if ((delta < 0) && (result > acc)) {
+        // Saturate to [0, ...].
+        result = 0;
+      } else if ((delta > 0) && (result < acc)) {
+        // Saturate to [..., UINT<n>_MAX].
+        result = mask;
+      }
+    }
+  }
+
+  // Sign-extend if necessary.
+  if (result_negative && is_signed) result |= ~mask;
+
+  return result;
 }
 
 void Simulator::VisitSVEIndexGeneration(const Instruction* instr) {

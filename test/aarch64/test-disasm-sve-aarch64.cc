@@ -618,66 +618,135 @@ TEST(sve_fp_unary_op_unpredicated) {
 TEST(sve_inc_dec_by_predicate_count) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(decp(x17, p0.VnB()), "decp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(decp(x17, p0.VnH()), "decp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(decp(x17, p0.VnS()), "decp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(decp(x17, p0.VnD()), "decp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(decp(z2.VnH(), p11), "decp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(decp(z2.VnS(), p11), "decp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(decp(z2.VnD(), p11), "decp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(incp(x26, p8.VnB()), "incp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(incp(x26, p8.VnH()), "incp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(incp(x26, p8.VnS()), "incp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(incp(x26, p8.VnD()), "incp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(incp(z27.VnH(), p9), "incp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(incp(z27.VnS(), p9), "incp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(incp(z27.VnD(), p9), "incp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(sqdecp(x12, p7.VnB(), w12), "sqdecp <Xdn>, <Pg>.<T>, <Wdn>");
-  COMPARE_PREFIX(sqdecp(x12, p7.VnH(), w12), "sqdecp <Xdn>, <Pg>.<T>, <Wdn>");
-  COMPARE_PREFIX(sqdecp(x12, p7.VnS(), w12), "sqdecp <Xdn>, <Pg>.<T>, <Wdn>");
-  COMPARE_PREFIX(sqdecp(x12, p7.VnD(), w12), "sqdecp <Xdn>, <Pg>.<T>, <Wdn>");
-  COMPARE_PREFIX(sqdecp(x30, p5.VnB()), "sqdecp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(sqdecp(x30, p5.VnH()), "sqdecp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(sqdecp(x30, p5.VnS()), "sqdecp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(sqdecp(x30, p5.VnD()), "sqdecp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(sqdecp(z13.VnH(), p1), "sqdecp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(sqdecp(z13.VnS(), p1), "sqdecp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(sqdecp(z13.VnD(), p1), "sqdecp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(sqincp(x26, p5.VnB(), w26), "sqincp <Xdn>, <Pg>.<T>, <Wdn>");
-  COMPARE_PREFIX(sqincp(x26, p5.VnH(), w26), "sqincp <Xdn>, <Pg>.<T>, <Wdn>");
-  COMPARE_PREFIX(sqincp(x26, p5.VnS(), w26), "sqincp <Xdn>, <Pg>.<T>, <Wdn>");
-  COMPARE_PREFIX(sqincp(x26, p5.VnD(), w26), "sqincp <Xdn>, <Pg>.<T>, <Wdn>");
-  COMPARE_PREFIX(sqincp(x5, p15.VnB()), "sqincp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(sqincp(x5, p15.VnH()), "sqincp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(sqincp(x5, p15.VnS()), "sqincp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(sqincp(x5, p15.VnD()), "sqincp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(sqincp(z14.VnH(), p4), "sqincp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(sqincp(z14.VnS(), p4), "sqincp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(sqincp(z14.VnD(), p4), "sqincp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(uqdecp(w3, p13.VnB()), "uqdecp <Wdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqdecp(w3, p13.VnH()), "uqdecp <Wdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqdecp(w3, p13.VnS()), "uqdecp <Wdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqdecp(w3, p13.VnD()), "uqdecp <Wdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqdecp(x19, p0.VnB()), "uqdecp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqdecp(x19, p0.VnH()), "uqdecp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqdecp(x19, p0.VnS()), "uqdecp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqdecp(x19, p0.VnD()), "uqdecp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqdecp(z15.VnH(), p9), "uqdecp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(uqdecp(z15.VnS(), p9), "uqdecp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(uqdecp(z15.VnD(), p9), "uqdecp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(uqincp(w18, p1.VnB()), "uqincp <Wdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqincp(w18, p1.VnH()), "uqincp <Wdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqincp(w18, p1.VnS()), "uqincp <Wdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqincp(w18, p1.VnD()), "uqincp <Wdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqincp(x17, p15.VnB()), "uqincp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqincp(x17, p15.VnH()), "uqincp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqincp(x17, p15.VnS()), "uqincp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqincp(x17, p15.VnD()), "uqincp <Xdn>, <Pg>.<T>");
-  COMPARE_PREFIX(uqincp(z4.VnH(), p3), "uqincp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(uqincp(z4.VnS(), p3), "uqincp <Zdn>.<T>, <Pg>");
-  COMPARE_PREFIX(uqincp(z4.VnD(), p3), "uqincp <Zdn>.<T>, <Pg>");
-#endif
+  COMPARE_PREFIX(decp(x17, p0.VnB()), "decp x17, p0.b");
+  COMPARE_PREFIX(decp(x17, p0.VnH()), "decp x17, p0.h");
+  COMPARE_PREFIX(decp(x17, p0.VnS()), "decp x17, p0.s");
+  COMPARE_PREFIX(decp(x17, p0.VnD()), "decp x17, p0.d");
+  COMPARE_PREFIX(decp(z2.VnH(), p11), "decp z2.h, p11");
+  COMPARE_PREFIX(decp(z2.VnS(), p11), "decp z2.s, p11");
+  COMPARE_PREFIX(decp(z2.VnD(), p11), "decp z2.d, p11");
+  COMPARE_PREFIX(incp(x26, p8.VnB()), "incp x26, p8.b");
+  COMPARE_PREFIX(incp(x26, p8.VnH()), "incp x26, p8.h");
+  COMPARE_PREFIX(incp(x26, p8.VnS()), "incp x26, p8.s");
+  COMPARE_PREFIX(incp(x26, p8.VnD()), "incp x26, p8.d");
+  COMPARE_PREFIX(incp(z27.VnH(), p9), "incp z27.h, p9");
+  COMPARE_PREFIX(incp(z27.VnS(), p9), "incp z27.s, p9");
+  COMPARE_PREFIX(incp(z27.VnD(), p9), "incp z27.d, p9");
+  COMPARE_PREFIX(sqdecp(x12, p7.VnB(), w12), "sqdecp x12, p7.b, w12");
+  COMPARE_PREFIX(sqdecp(x12, p7.VnH(), w12), "sqdecp x12, p7.h, w12");
+  COMPARE_PREFIX(sqdecp(x12, p7.VnS(), w12), "sqdecp x12, p7.s, w12");
+  COMPARE_PREFIX(sqdecp(x12, p7.VnD(), w12), "sqdecp x12, p7.d, w12");
+  COMPARE_PREFIX(sqdecp(x30, p5.VnB()), "sqdecp x30, p5.b");
+  COMPARE_PREFIX(sqdecp(x30, p5.VnH()), "sqdecp x30, p5.h");
+  COMPARE_PREFIX(sqdecp(x30, p5.VnS()), "sqdecp x30, p5.s");
+  COMPARE_PREFIX(sqdecp(x30, p5.VnD()), "sqdecp x30, p5.d");
+  COMPARE_PREFIX(sqdecp(z13.VnH(), p1), "sqdecp z13.h, p1");
+  COMPARE_PREFIX(sqdecp(z13.VnS(), p1), "sqdecp z13.s, p1");
+  COMPARE_PREFIX(sqdecp(z13.VnD(), p1), "sqdecp z13.d, p1");
+  COMPARE_PREFIX(sqincp(x26, p5.VnB(), w26), "sqincp x26, p5.b, w26");
+  COMPARE_PREFIX(sqincp(x26, p5.VnH(), w26), "sqincp x26, p5.h, w26");
+  COMPARE_PREFIX(sqincp(x26, p5.VnS(), w26), "sqincp x26, p5.s, w26");
+  COMPARE_PREFIX(sqincp(x26, p5.VnD(), w26), "sqincp x26, p5.d, w26");
+  COMPARE_PREFIX(sqincp(x5, p15.VnB()), "sqincp x5, p15.b");
+  COMPARE_PREFIX(sqincp(x5, p15.VnH()), "sqincp x5, p15.h");
+  COMPARE_PREFIX(sqincp(x5, p15.VnS()), "sqincp x5, p15.s");
+  COMPARE_PREFIX(sqincp(x5, p15.VnD()), "sqincp x5, p15.d");
+  COMPARE_PREFIX(sqincp(z14.VnH(), p4), "sqincp z14.h, p4");
+  COMPARE_PREFIX(sqincp(z14.VnS(), p4), "sqincp z14.s, p4");
+  COMPARE_PREFIX(sqincp(z14.VnD(), p4), "sqincp z14.d, p4");
+  COMPARE_PREFIX(uqdecp(w3, p13.VnB()), "uqdecp w3, p13.b");
+  COMPARE_PREFIX(uqdecp(w3, p13.VnH()), "uqdecp w3, p13.h");
+  COMPARE_PREFIX(uqdecp(w3, p13.VnS()), "uqdecp w3, p13.s");
+  COMPARE_PREFIX(uqdecp(w3, p13.VnD()), "uqdecp w3, p13.d");
+  COMPARE_PREFIX(uqdecp(x19, p0.VnB()), "uqdecp x19, p0.b");
+  COMPARE_PREFIX(uqdecp(x19, p0.VnH()), "uqdecp x19, p0.h");
+  COMPARE_PREFIX(uqdecp(x19, p0.VnS()), "uqdecp x19, p0.s");
+  COMPARE_PREFIX(uqdecp(x19, p0.VnD()), "uqdecp x19, p0.d");
+  COMPARE_PREFIX(uqdecp(z15.VnH(), p9), "uqdecp z15.h, p9");
+  COMPARE_PREFIX(uqdecp(z15.VnS(), p9), "uqdecp z15.s, p9");
+  COMPARE_PREFIX(uqdecp(z15.VnD(), p9), "uqdecp z15.d, p9");
+  COMPARE_PREFIX(uqincp(w18, p1.VnB()), "uqincp w18, p1.b");
+  COMPARE_PREFIX(uqincp(w18, p1.VnH()), "uqincp w18, p1.h");
+  COMPARE_PREFIX(uqincp(w18, p1.VnS()), "uqincp w18, p1.s");
+  COMPARE_PREFIX(uqincp(w18, p1.VnD()), "uqincp w18, p1.d");
+  COMPARE_PREFIX(uqincp(x17, p15.VnB()), "uqincp x17, p15.b");
+  COMPARE_PREFIX(uqincp(x17, p15.VnH()), "uqincp x17, p15.h");
+  COMPARE_PREFIX(uqincp(x17, p15.VnS()), "uqincp x17, p15.s");
+  COMPARE_PREFIX(uqincp(x17, p15.VnD()), "uqincp x17, p15.d");
+  COMPARE_PREFIX(uqincp(z4.VnH(), p3), "uqincp z4.h, p3");
+  COMPARE_PREFIX(uqincp(z4.VnS(), p3), "uqincp z4.s, p3");
+  COMPARE_PREFIX(uqincp(z4.VnD(), p3), "uqincp z4.d, p3");
+
+  // The governing predicate can have a lane size as long as it matches zdn.
+  COMPARE_PREFIX(decp(z0.VnH(), p1.VnH()), "decp z0.h, p1");
+  COMPARE_PREFIX(incp(z2.VnS(), p3.VnS()), "incp z2.s, p3");
+  COMPARE_PREFIX(sqdecp(z4.VnD(), p5.VnD()), "sqdecp z4.d, p5");
+  COMPARE_PREFIX(sqincp(z6.VnH(), p7.VnH()), "sqincp z6.h, p7");
+  COMPARE_PREFIX(uqdecp(z8.VnS(), p9.VnS()), "uqdecp z8.s, p9");
+  COMPARE_PREFIX(uqincp(z10.VnD(), p11.VnD()), "uqincp z10.d, p11");
+
+  CLEANUP();
+}
+
+TEST(sve_inc_dec_by_predicate_count_macro) {
+  SETUP();
+
+  // The MacroAssembler automatically generates movprfx where it can.
+  COMPARE_MACRO(Decp(z0.VnD(), p1), "decp z0.d, p1");
+  COMPARE_MACRO(Decp(z2.VnS(), p3, z2.VnS()), "decp z2.s, p3");
+  COMPARE_MACRO(Decp(z3.VnS(), p3, z3.VnS()), "decp z3.s, p3");
+  COMPARE_MACRO(Decp(z4.VnH(), p5, z6.VnH()),
+                "movprfx z4, z6\n"
+                "decp z4.h, p5");
+  COMPARE_MACRO(Incp(z7.VnD(), p8), "incp z7.d, p8");
+  COMPARE_MACRO(Incp(z9.VnS(), p10, z9.VnS()), "incp z9.s, p10");
+  COMPARE_MACRO(Incp(z10.VnS(), p10, z10.VnS()), "incp z10.s, p10");
+  COMPARE_MACRO(Incp(z10.VnH(), p11, z12.VnH()),
+                "movprfx z10, z12\n"
+                "incp z10.h, p11");
+  COMPARE_MACRO(Sqdecp(z0.VnD(), p1), "sqdecp z0.d, p1");
+  COMPARE_MACRO(Sqdecp(z2.VnS(), p3, z2.VnS()), "sqdecp z2.s, p3");
+  COMPARE_MACRO(Sqdecp(z3.VnS(), p3, z3.VnS()), "sqdecp z3.s, p3");
+  COMPARE_MACRO(Sqdecp(z4.VnH(), p5, z6.VnH()),
+                "movprfx z4, z6\n"
+                "sqdecp z4.h, p5");
+  COMPARE_MACRO(Sqincp(z7.VnD(), p8), "sqincp z7.d, p8");
+  COMPARE_MACRO(Sqincp(z9.VnS(), p10, z9.VnS()), "sqincp z9.s, p10");
+  COMPARE_MACRO(Sqincp(z10.VnS(), p10, z10.VnS()), "sqincp z10.s, p10");
+  COMPARE_MACRO(Sqincp(z10.VnH(), p11, z12.VnH()),
+                "movprfx z10, z12\n"
+                "sqincp z10.h, p11");
+  COMPARE_MACRO(Uqdecp(z0.VnD(), p1), "uqdecp z0.d, p1");
+  COMPARE_MACRO(Uqdecp(z2.VnS(), p3, z2.VnS()), "uqdecp z2.s, p3");
+  COMPARE_MACRO(Uqdecp(z3.VnS(), p3, z3.VnS()), "uqdecp z3.s, p3");
+  COMPARE_MACRO(Uqdecp(z4.VnH(), p5, z6.VnH()),
+                "movprfx z4, z6\n"
+                "uqdecp z4.h, p5");
+  COMPARE_MACRO(Uqincp(z7.VnD(), p8), "uqincp z7.d, p8");
+  COMPARE_MACRO(Uqincp(z9.VnS(), p10, z9.VnS()), "uqincp z9.s, p10");
+  COMPARE_MACRO(Uqincp(z10.VnS(), p10, z10.VnS()), "uqincp z10.s, p10");
+  COMPARE_MACRO(Uqincp(z10.VnH(), p11, z12.VnH()),
+                "movprfx z10, z12\n"
+                "uqincp z10.h, p11");
+
+  // Scalar sign- or zero-extending variants are selected by the size of `rn`.
+  COMPARE_MACRO(Sqdecp(x0, p1.VnB(), w0), "sqdecp x0, p1.b, w0");
+  COMPARE_MACRO(Sqdecp(x2, p3.VnH(), x2), "sqdecp x2, p3.h");
+  COMPARE_MACRO(Sqdecp(x4, p5.VnS()), "sqdecp x4, p5.s");
+  // Sqdecp cannot write into a W register, but Uqdecp can.
+  COMPARE_MACRO(Uqdecp(w6, p7.VnD(), w6), "uqdecp w6, p7.d");
+  COMPARE_MACRO(Uqdecp(x8, p9.VnB(), w8), "uqdecp w8, p9.b");
+  COMPARE_MACRO(Uqdecp(x10, p11.VnH(), x10), "uqdecp x10, p11.h");
+  COMPARE_MACRO(Uqdecp(x12, p13.VnS()), "uqdecp x12, p13.s");
+  COMPARE_MACRO(Uqdecp(w14, p15.VnD()), "uqdecp w14, p15.d");
+
+  // The governing predicate can have a lane size as long as it matches zdn.
+  COMPARE_MACRO(Decp(z10.VnH(), p6.VnH()), "decp z10.h, p6");
+  COMPARE_MACRO(Incp(z12.VnS(), p8.VnS()), "incp z12.s, p8");
+  COMPARE_MACRO(Sqdecp(z14.VnD(), p10.VnD()), "sqdecp z14.d, p10");
+  COMPARE_MACRO(Sqincp(z16.VnH(), p12.VnH()), "sqincp z16.h, p12");
+  COMPARE_MACRO(Uqdecp(z18.VnS(), p14.VnS()), "uqdecp z18.s, p14");
+  COMPARE_MACRO(Uqincp(z20.VnD(), p15.VnD()), "uqincp z20.d, p15");
 
   CLEANUP();
 }

@@ -528,6 +528,37 @@ class MacroEmissionCheckScope : public EmissionCheckScope {
 };
 
 
+// This scope simplifies the handling of the SVE `movprfx` instruction.
+//
+// If dst.Aliases(src):
+// - Start an ExactAssemblyScope(masm, kInstructionSize).
+// Otherwise:
+// - Start an ExactAssemblyScope(masm, 2 * kInstructionSize).
+// - Generate a suitable `movprfx` instruction.
+//
+// In both cases, the ExactAssemblyScope is left with enough remaining space for
+// exactly one destructive instruction.
+class MovprfxHelperScope : public ExactAssemblyScope {
+ public:
+  inline MovprfxHelperScope(MacroAssembler* masm,
+                            const ZRegister& dst,
+                            const ZRegister& src);
+
+  inline MovprfxHelperScope(MacroAssembler* masm,
+                            const ZRegister& dst,
+                            const PRegister& pg,
+                            const ZRegister& src);
+
+  // TODO: Implement constructors that examine _all_ sources. If `dst` aliases
+  // any other source register, we can't use `movprfx`. This isn't obviously
+  // useful, but the MacroAssembler should not generate invalid code for it.
+  // Valid behaviour can be implemented using `mov`.
+  //
+  // The best way to handle this in an instruction-agnostic way is probably to
+  // use variadic templates.
+};
+
+
 enum BranchType {
   // Copies of architectural conditions.
   // The associated conditions can be used in place of those, the code will
@@ -3890,16 +3921,19 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     dech(zdn, pattern);
   }
-  void Decp(const Register& rdn, const PRegister& pg) {
+  void Decp(const Register& rdn, const PRegisterWithLaneSize& pg) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     decp(rdn, pg);
   }
-  void Decp(const ZRegister& zdn, const PRegister& pg) {
+  void Decp(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    decp(zdn, pg);
+    VIXL_ASSERT(AreSameFormat(zd, zn));
+    // `decp` writes every lane, so use an unpredicated movprfx.
+    MovprfxHelperScope guard(this, zd, zn);
+    decp(zd, pg);
   }
+  void Decp(const ZRegister& zdn, const PRegister& pg) { Decp(zdn, pg, zdn); }
   void Decw(const Register& rdn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -4487,16 +4521,19 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     inch(zdn, pattern);
   }
-  void Incp(const Register& rdn, const PRegister& pg) {
+  void Incp(const Register& rdn, const PRegisterWithLaneSize& pg) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     incp(rdn, pg);
   }
-  void Incp(const ZRegister& zdn, const PRegister& pg) {
+  void Incp(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    incp(zdn, pg);
+    VIXL_ASSERT(AreSameFormat(zd, zn));
+    // `incp` writes every lane, so use an unpredicated movprfx.
+    MovprfxHelperScope guard(this, zd, zn);
+    incp(zd, pg);
   }
+  void Incp(const ZRegister& zdn, const PRegister& pg) { Incp(zdn, pg, zdn); }
   void Incw(const Register& rdn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -5981,20 +6018,32 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sqdech(zdn, pattern);
   }
-  void Sqdecp(const Register& rd, const PRegister& pg, const Register& wn) {
+  // The saturation is based on the size of `rn`. The result is sign-extended
+  // into `xd`. This instruction cannot write to a W register.
+  void Sqdecp(const Register& xd,
+              const PRegisterWithLaneSize& pg,
+              const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(xd.Aliases(rn));
     SingleEmissionCheckScope guard(this);
-    sqdecp(rd, pg, wn);
+    if (rn.Is64Bits()) {
+      sqdecp(xd, pg);
+    } else {
+      sqdecp(xd, pg, rn);
+    }
   }
-  void Sqdecp(const Register& rdn, const PRegister& pg) {
+  void Sqdecp(const Register& xdn, const PRegisterWithLaneSize& pg) {
+    Sqdecp(xdn, pg, xdn);
+  }
+  void Sqdecp(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqdecp(rdn, pg);
+    VIXL_ASSERT(AreSameFormat(zd, zn));
+    // `sqdecp` writes every lane, so use an unpredicated movprfx.
+    MovprfxHelperScope guard(this, zd, zn);
+    sqdecp(zd, pg);
   }
   void Sqdecp(const ZRegister& zdn, const PRegister& pg) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqdecp(zdn, pg);
+    Sqdecp(zdn, pg, zdn);
   }
   void Sqdecw(const Register& rd, const Register& wn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6051,20 +6100,30 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sqinch(zdn, pattern);
   }
-  void Sqincp(const Register& rd, const PRegister& pg, const Register& wn) {
+  void Sqincp(const Register& xd,
+              const PRegisterWithLaneSize& pg,
+              const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(xd.Aliases(rn));
     SingleEmissionCheckScope guard(this);
-    sqincp(rd, pg, wn);
+    if (rn.Is64Bits()) {
+      sqincp(xd, pg);
+    } else {
+      sqincp(xd, pg, rn);
+    }
   }
-  void Sqincp(const Register& rdn, const PRegister& pg) {
+  void Sqincp(const Register& xdn, const PRegisterWithLaneSize& pg) {
+    Sqincp(xdn, pg, xdn);
+  }
+  void Sqincp(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqincp(rdn, pg);
+    VIXL_ASSERT(AreSameFormat(zd, zn));
+    // `sqincp` writes every lane, so use an unpredicated movprfx.
+    MovprfxHelperScope guard(this, zd, zn);
+    sqincp(zd, pg);
   }
   void Sqincp(const ZRegister& zdn, const PRegister& pg) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqincp(zdn, pg);
+    Sqincp(zdn, pg, zdn);
   }
   void Sqincw(const Register& rd, const Register& wn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6728,15 +6787,34 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     uqdech(zdn, pattern);
   }
-  void Uqdecp(const Register& rdn, const PRegister& pg) {
+  // The saturation is based on the size of `rn`. The result is zero-extended
+  // into `rd`, which must be at least as big.
+  void Uqdecp(const Register& rd,
+              const PRegisterWithLaneSize& pg,
+              const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(rd.Aliases(rn));
+    VIXL_ASSERT(rd.GetSizeInBytes() >= rn.GetSizeInBytes());
     SingleEmissionCheckScope guard(this);
-    uqdecp(rdn, pg);
+    if (rn.Is64Bits()) {
+      uqdecp(rd, pg);
+    } else {
+      // Convert <Xd> into <Wd>, to make this more consistent with Sqdecp.
+      uqdecp(rd.W(), pg);
+    }
+  }
+  void Uqdecp(const Register& rdn, const PRegisterWithLaneSize& pg) {
+    Uqdecp(rdn, pg, rdn);
+  }
+  void Uqdecp(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(AreSameFormat(zd, zn));
+    // `sqdecp` writes every lane, so use an unpredicated movprfx.
+    MovprfxHelperScope guard(this, zd, zn);
+    uqdecp(zd, pg);
   }
   void Uqdecp(const ZRegister& zdn, const PRegister& pg) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    uqdecp(zdn, pg);
+    Uqdecp(zdn, pg, zdn);
   }
   void Uqdecw(const Register& rdn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6773,15 +6851,34 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     uqinch(zdn, pattern);
   }
-  void Uqincp(const Register& rdn, const PRegister& pg) {
+  // The saturation is based on the size of `rn`. The result is zero-extended
+  // into `rd`, which must be at least as big.
+  void Uqincp(const Register& rd,
+              const PRegisterWithLaneSize& pg,
+              const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(rd.Aliases(rn));
+    VIXL_ASSERT(rd.GetSizeInBytes() >= rn.GetSizeInBytes());
     SingleEmissionCheckScope guard(this);
-    uqincp(rdn, pg);
+    if (rn.Is64Bits()) {
+      uqincp(rd, pg);
+    } else {
+      // Convert <Xd> into <Wd>, to make this more consistent with Sqincp.
+      uqincp(rd.W(), pg);
+    }
+  }
+  void Uqincp(const Register& rdn, const PRegisterWithLaneSize& pg) {
+    Uqincp(rdn, pg, rdn);
+  }
+  void Uqincp(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(AreSameFormat(zd, zn));
+    // `sqincp` writes every lane, so use an unpredicated movprfx.
+    MovprfxHelperScope guard(this, zd, zn);
+    uqincp(zd, pg);
   }
   void Uqincp(const ZRegister& zdn, const PRegister& pg) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    uqincp(zdn, pg);
+    Uqincp(zdn, pg, zdn);
   }
   void Uqincw(const Register& rdn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -7361,6 +7458,30 @@ class BlockPoolsScope {
   MacroAssembler* masm_;
 };
 
+MovprfxHelperScope::MovprfxHelperScope(MacroAssembler* masm,
+                                       const ZRegister& dst,
+                                       const ZRegister& src)
+    : ExactAssemblyScope(masm,
+                         dst.Aliases(src) ? (kInstructionSize)
+                                          : (2 * kInstructionSize)) {
+  if (!dst.Aliases(src)) {
+    masm->movprfx(dst, src);
+  }
+}
+
+MovprfxHelperScope::MovprfxHelperScope(MacroAssembler* masm,
+                                       const ZRegister& dst,
+                                       const PRegister& pg,
+                                       const ZRegister& src)
+    : ExactAssemblyScope(masm,
+                         dst.Aliases(src) ? (kInstructionSize)
+                                          : (2 * kInstructionSize)) {
+  VIXL_ASSERT(AreSameLaneSize(dst, src));
+  VIXL_ASSERT(pg.IsMerging() || pg.IsZeroing());
+  if (!dst.Aliases(src)) {
+    masm->movprfx(dst, pg, src);
+  }
+}
 
 // This scope utility allows scratch registers to be managed safely. The
 // MacroAssembler's GetScratch*RegisterList() are used as a pool of scratch

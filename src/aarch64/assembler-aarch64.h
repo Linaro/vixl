@@ -3990,7 +3990,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void dech(const ZRegister& zdn, int pattern);
 
   // Decrement scalar by active predicate element count.
-  void decp(const Register& rdn, const PRegister& pg);
+  void decp(const Register& rdn, const PRegisterWithLaneSize& pg);
 
   // Decrement vector by active predicate element count.
   void decp(const ZRegister& zdn, const PRegister& pg);
@@ -4428,7 +4428,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void inch(const ZRegister& zdn, int pattern);
 
   // Increment scalar by active predicate element count.
-  void incp(const Register& rdn, const PRegister& pg);
+  void incp(const Register& rdn, const PRegisterWithLaneSize& pg);
 
   // Increment vector by active predicate element count.
   void incp(const ZRegister& zdn, const PRegister& pg);
@@ -5564,10 +5564,12 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sqdech(const ZRegister& zdn, int pattern);
 
   // Signed saturating decrement scalar by active predicate element count.
-  void sqdecp(const Register& rd, const PRegister& pg, const Register& wn);
+  void sqdecp(const Register& xd,
+              const PRegisterWithLaneSize& pg,
+              const Register& wn);
 
   // Signed saturating decrement scalar by active predicate element count.
-  void sqdecp(const Register& rdn, const PRegister& pg);
+  void sqdecp(const Register& xdn, const PRegisterWithLaneSize& pg);
 
   // Signed saturating decrement vector by active predicate element count.
   void sqdecp(const ZRegister& zdn, const PRegister& pg);
@@ -5617,10 +5619,12 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sqinch(const ZRegister& zdn, int pattern);
 
   // Signed saturating increment scalar by active predicate element count.
-  void sqincp(const Register& rd, const PRegister& pg, const Register& wn);
+  void sqincp(const Register& xd,
+              const PRegisterWithLaneSize& pg,
+              const Register& wn);
 
   // Signed saturating increment scalar by active predicate element count.
-  void sqincp(const Register& rdn, const PRegister& pg);
+  void sqincp(const Register& xdn, const PRegisterWithLaneSize& pg);
 
   // Signed saturating increment vector by active predicate element count.
   void sqincp(const ZRegister& zdn, const PRegister& pg);
@@ -6149,7 +6153,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void uqdech(const ZRegister& zdn, int pattern);
 
   // Unsigned saturating decrement scalar by active predicate element count.
-  void uqdecp(const Register& rdn, const PRegister& pg);
+  void uqdecp(const Register& rdn, const PRegisterWithLaneSize& pg);
 
   // Unsigned saturating decrement vector by active predicate element count.
   void uqdecp(const ZRegister& zdn, const PRegister& pg);
@@ -6183,7 +6187,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void uqinch(const ZRegister& zdn, int pattern);
 
   // Unsigned saturating increment scalar by active predicate element count.
-  void uqincp(const Register& rdn, const PRegister& pg);
+  void uqincp(const Register& rdn, const PRegisterWithLaneSize& pg);
 
   // Unsigned saturating increment vector by active predicate element count.
   void uqincp(const ZRegister& zdn, const PRegister& pg);
@@ -6813,9 +6817,11 @@ class Assembler : public vixl::internal::AssemblerBase {
     }
   }
 
-  static Instr SVESize(const ZRegister& zd) {
-    VIXL_ASSERT(zd.HasLaneSize());
-    switch (zd.GetLaneSizeInBytes()) {
+  template <typename T>
+  static Instr SVESize(const T& rd) {
+    VIXL_ASSERT(rd.IsZRegister() || rd.IsPRegister());
+    VIXL_ASSERT(rd.HasLaneSize());
+    switch (rd.GetLaneSizeInBytes()) {
       case 1:
         return SVE_B;
       case 2:

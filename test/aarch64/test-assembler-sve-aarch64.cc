@@ -851,5 +851,774 @@ TEST(sve_dup_imm) {
   }
 }
 
+TEST(sve_inc_dec_p_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int p0_inputs[] = {0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
+  Initialise(&masm, p0.VnB(), p0_inputs);
+
+  int p0_b_count = 9;
+  int p0_h_count = 5;
+  int p0_s_count = 3;
+  int p0_d_count = 2;
+
+  // 64-bit operations preserve their high bits.
+  __ Mov(x0, 0x123456780000002a);
+  __ Decp(x0, p0.VnB());
+
+  __ Mov(x1, 0x123456780000002a);
+  __ Incp(x1, p0.VnH());
+
+  // Check that saturation does not occur.
+  __ Mov(x10, 1);
+  __ Decp(x10, p0.VnS());
+
+  __ Mov(x11, UINT64_MAX);
+  __ Incp(x11, p0.VnD());
+
+  __ Mov(x12, INT64_MAX);
+  __ Incp(x12, p0.VnB());
+
+  // With an all-true predicate, these instructions increment or decrement by
+  // the vector length.
+
+  // TODO: Use Ptrue() for this, once it is implemented.
+  int p15_inputs[kPRegMaxSize / kZRegBitsPerPRegBit];
+  for (size_t i = 0; i < sizeof(p15_inputs) / sizeof(p15_inputs[0]); i++) {
+    p15_inputs[i] = 1;
+  }
+  Initialise(&masm, p15.VnB(), p15_inputs);
+
+  __ Mov(x20, 0x4000000000000000);
+  __ Decp(x20, p15.VnB());
+
+  __ Mov(x21, 0x4000000000000000);
+  __ Incp(x21, p15.VnH());
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_64(0x123456780000002a - p0_b_count, x0);
+    ASSERT_EQUAL_64(0x123456780000002a + p0_h_count, x1);
+
+    ASSERT_EQUAL_64(UINT64_C(1) - p0_s_count, x10);
+    ASSERT_EQUAL_64(UINT64_MAX + p0_d_count, x11);
+    ASSERT_EQUAL_64(static_cast<uint64_t>(INT64_MAX) + p0_b_count, x12);
+
+    ASSERT_EQUAL_64(0x4000000000000000 - core.GetSVELaneCount(kBRegSize), x20);
+    ASSERT_EQUAL_64(0x4000000000000000 + core.GetSVELaneCount(kHRegSize), x21);
+  }
+}
+
+TEST(sve_sqinc_sqdec_p_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int p0_inputs[] = {0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
+  Initialise(&masm, p0.VnB(), p0_inputs);
+
+  int p0_b_count = 9;
+  int p0_h_count = 5;
+  int p0_s_count = 3;
+  int p0_d_count = 2;
+
+  uint64_t dummy_high = 0x1234567800000000;
+
+  // 64-bit operations preserve their high bits.
+  __ Mov(x0, dummy_high + 42);
+  __ Sqdecp(x0, p0.VnB());
+
+  __ Mov(x1, dummy_high + 42);
+  __ Sqincp(x1, p0.VnH());
+
+  // 32-bit operations sign-extend into their high bits.
+  __ Mov(x2, dummy_high + 42);
+  __ Sqdecp(x2, p0.VnS(), w2);
+
+  __ Mov(x3, dummy_high + 42);
+  __ Sqincp(x3, p0.VnD(), w3);
+
+  __ Mov(x4, dummy_high + 1);
+  __ Sqdecp(x4, p0.VnS(), w4);
+
+  __ Mov(x5, dummy_high - 1);
+  __ Sqincp(x5, p0.VnD(), w5);
+
+  // Check that saturation behaves correctly.
+  __ Mov(x10, 0x8000000000000001);  // INT64_MIN + 1
+  __ Sqdecp(x10, p0.VnB(), x10);
+
+  __ Mov(x11, dummy_high + 0x80000001);  // INT32_MIN + 1
+  __ Sqdecp(x11, p0.VnH(), w11);
+
+  __ Mov(x12, 1);
+  __ Sqdecp(x12, p0.VnS(), x12);
+
+  __ Mov(x13, dummy_high + 1);
+  __ Sqdecp(x13, p0.VnD(), w13);
+
+  __ Mov(x14, 0x7ffffffffffffffe);  // INT64_MAX - 1
+  __ Sqincp(x14, p0.VnB(), x14);
+
+  __ Mov(x15, dummy_high + 0x7ffffffe);  // INT32_MAX - 1
+  __ Sqincp(x15, p0.VnH(), w15);
+
+  // Don't use x16 and x17 since they are scratch registers by default.
+
+  __ Mov(x18, 0xffffffffffffffff);
+  __ Sqincp(x18, p0.VnS(), x18);
+
+  __ Mov(x19, dummy_high + 0xffffffff);
+  __ Sqincp(x19, p0.VnD(), w19);
+
+  __ Mov(x20, dummy_high + 0xffffffff);
+  __ Sqdecp(x20, p0.VnB(), w20);
+
+  // With an all-true predicate, these instructions increment or decrement by
+  // the vector length.
+
+  // TODO: Use Ptrue() for this, once it is implemented.
+  int p15_inputs[kPRegMaxSize / kZRegBitsPerPRegBit];
+  for (size_t i = 0; i < sizeof(p15_inputs) / sizeof(p15_inputs[0]); i++) {
+    p15_inputs[i] = 1;
+  }
+  Initialise(&masm, p15.VnB(), p15_inputs);
+
+  __ Mov(x21, 0);
+  __ Sqdecp(x21, p15.VnB(), x21);
+
+  __ Mov(x22, 0);
+  __ Sqincp(x22, p15.VnH(), x22);
+
+  __ Mov(x23, dummy_high);
+  __ Sqdecp(x23, p15.VnS(), w23);
+
+  __ Mov(x24, dummy_high);
+  __ Sqincp(x24, p15.VnD(), w24);
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+
+    // 64-bit operations preserve their high bits.
+    ASSERT_EQUAL_64(dummy_high + 42 - p0_b_count, x0);
+    ASSERT_EQUAL_64(dummy_high + 42 + p0_h_count, x1);
+
+    // 32-bit operations sign-extend into their high bits.
+    ASSERT_EQUAL_64(42 - p0_s_count, x2);
+    ASSERT_EQUAL_64(42 + p0_d_count, x3);
+    ASSERT_EQUAL_64(0xffffffff00000000 | (1 - p0_s_count), x4);
+    ASSERT_EQUAL_64(p0_d_count - 1, x5);
+
+    // Check that saturation behaves correctly.
+    ASSERT_EQUAL_64(INT64_MIN, x10);
+    ASSERT_EQUAL_64(INT32_MIN, x11);
+    ASSERT_EQUAL_64(1 - p0_s_count, x12);
+    ASSERT_EQUAL_64(1 - p0_d_count, x13);
+    ASSERT_EQUAL_64(INT64_MAX, x14);
+    ASSERT_EQUAL_64(INT32_MAX, x15);
+    ASSERT_EQUAL_64(p0_s_count - 1, x18);
+    ASSERT_EQUAL_64(p0_d_count - 1, x19);
+    ASSERT_EQUAL_64(-1 - p0_b_count, x20);
+
+    // Check all-true predicates.
+    ASSERT_EQUAL_64(-core.GetSVELaneCount(kBRegSize), x21);
+    ASSERT_EQUAL_64(core.GetSVELaneCount(kHRegSize), x22);
+    ASSERT_EQUAL_64(-core.GetSVELaneCount(kSRegSize), x23);
+    ASSERT_EQUAL_64(core.GetSVELaneCount(kDRegSize), x24);
+  }
+}
+
+TEST(sve_uqinc_uqdec_p_scalar) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int p0_inputs[] = {0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
+  Initialise(&masm, p0.VnB(), p0_inputs);
+
+  int p0_b_count = 9;
+  int p0_h_count = 5;
+  int p0_s_count = 3;
+  int p0_d_count = 2;
+
+  uint64_t dummy_high = 0x1234567800000000;
+
+  // 64-bit operations preserve their high bits.
+  __ Mov(x0, dummy_high + 42);
+  __ Uqdecp(x0, p0.VnB());
+
+  __ Mov(x1, dummy_high + 42);
+  __ Uqincp(x1, p0.VnH());
+
+  // 32-bit operations zero-extend into their high bits.
+  __ Mov(x2, dummy_high + 42);
+  __ Uqdecp(x2, p0.VnS(), w2);
+
+  __ Mov(x3, dummy_high + 42);
+  __ Uqincp(x3, p0.VnD(), w3);
+
+  __ Mov(x4, dummy_high + 0x80000001);
+  __ Uqdecp(x4, p0.VnS(), w4);
+
+  __ Mov(x5, dummy_high + 0x7fffffff);
+  __ Uqincp(x5, p0.VnD(), w5);
+
+  // Check that saturation behaves correctly.
+  __ Mov(x10, 1);
+  __ Uqdecp(x10, p0.VnB(), x10);
+
+  __ Mov(x11, dummy_high + 1);
+  __ Uqdecp(x11, p0.VnH(), w11);
+
+  __ Mov(x12, 0x8000000000000000);  // INT64_MAX + 1
+  __ Uqdecp(x12, p0.VnS(), x12);
+
+  __ Mov(x13, dummy_high + 0x80000000);  // INT32_MAX + 1
+  __ Uqdecp(x13, p0.VnD(), w13);
+
+  __ Mov(x14, 0xfffffffffffffffe);  // UINT64_MAX - 1
+  __ Uqincp(x14, p0.VnB(), x14);
+
+  __ Mov(x15, dummy_high + 0xfffffffe);  // UINT32_MAX - 1
+  __ Uqincp(x15, p0.VnH(), w15);
+
+  // Don't use x16 and x17 since they are scratch registers by default.
+
+  __ Mov(x18, 0x7ffffffffffffffe);  // INT64_MAX - 1
+  __ Uqincp(x18, p0.VnS(), x18);
+
+  __ Mov(x19, dummy_high + 0x7ffffffe);  // INT32_MAX - 1
+  __ Uqincp(x19, p0.VnD(), w19);
+
+  // With an all-true predicate, these instructions increment or decrement by
+  // the vector length.
+
+  // TODO: Use Ptrue() for this, once it is implemented.
+  int p15_inputs[kPRegMaxSize / kZRegBitsPerPRegBit];
+  for (size_t i = 0; i < sizeof(p15_inputs) / sizeof(p15_inputs[0]); i++) {
+    p15_inputs[i] = 1;
+  }
+  Initialise(&masm, p15.VnB(), p15_inputs);
+
+  __ Mov(x20, 0x4000000000000000);
+  __ Uqdecp(x20, p15.VnB(), x20);
+
+  __ Mov(x21, 0x4000000000000000);
+  __ Uqincp(x21, p15.VnH(), x21);
+
+  __ Mov(x22, dummy_high + 0x40000000);
+  __ Uqdecp(x22, p15.VnS(), w22);
+
+  __ Mov(x23, dummy_high + 0x40000000);
+  __ Uqincp(x23, p15.VnD(), w23);
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+
+    // 64-bit operations preserve their high bits.
+    ASSERT_EQUAL_64(dummy_high + 42 - p0_b_count, x0);
+    ASSERT_EQUAL_64(dummy_high + 42 + p0_h_count, x1);
+
+    // 32-bit operations zero-extend into their high bits.
+    ASSERT_EQUAL_64(42 - p0_s_count, x2);
+    ASSERT_EQUAL_64(42 + p0_d_count, x3);
+    ASSERT_EQUAL_64(UINT64_C(0x80000001) - p0_s_count, x4);
+    ASSERT_EQUAL_64(UINT64_C(0x7fffffff) + p0_d_count, x5);
+
+    // Check that saturation behaves correctly.
+    ASSERT_EQUAL_64(0, x10);
+    ASSERT_EQUAL_64(0, x11);
+    ASSERT_EQUAL_64(0x8000000000000000 - p0_s_count, x12);
+    ASSERT_EQUAL_64(UINT64_C(0x80000000) - p0_d_count, x13);
+    ASSERT_EQUAL_64(UINT64_MAX, x14);
+    ASSERT_EQUAL_64(UINT32_MAX, x15);
+    ASSERT_EQUAL_64(0x7ffffffffffffffe + p0_s_count, x18);
+    ASSERT_EQUAL_64(UINT64_C(0x7ffffffe) + p0_d_count, x19);
+
+    // Check all-true predicates.
+    ASSERT_EQUAL_64(0x4000000000000000 - core.GetSVELaneCount(kBRegSize), x20);
+    ASSERT_EQUAL_64(0x4000000000000000 + core.GetSVELaneCount(kHRegSize), x21);
+    ASSERT_EQUAL_64(0x40000000 - core.GetSVELaneCount(kSRegSize), x22);
+    ASSERT_EQUAL_64(0x40000000 + core.GetSVELaneCount(kDRegSize), x23);
+  }
+}
+
+TEST(sve_inc_dec_p_vector) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // There are {5, 3, 2} active {H, S, D} lanes. B-sized lanes are ignored.
+  int p0_inputs[] = {0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
+  Initialise(&masm, p0.VnB(), p0_inputs);
+
+  // Check that saturation does not occur.
+
+  int64_t z0_inputs[] = {0x1234567800000042, 0, 1, INT64_MIN};
+  InsrHelper(&masm, z0.VnD(), z0_inputs);
+
+  int64_t z1_inputs[] = {0x12345678ffffff2a, 0, -1, INT64_MAX};
+  InsrHelper(&masm, z1.VnD(), z1_inputs);
+
+  int32_t z2_inputs[] = {0x12340042, 0, -1, 1, INT32_MAX, INT32_MIN};
+  InsrHelper(&masm, z2.VnS(), z2_inputs);
+
+  int16_t z3_inputs[] = {0x122a, 0, 1, -1, INT16_MIN, INT16_MAX};
+  InsrHelper(&masm, z3.VnH(), z3_inputs);
+
+  // The MacroAssembler implements non-destructive operations using movprfx.
+  __ Decp(z10.VnD(), p0, z0.VnD());
+  __ Decp(z11.VnD(), p0, z1.VnD());
+  __ Decp(z12.VnS(), p0, z2.VnS());
+  __ Decp(z13.VnH(), p0, z3.VnH());
+
+  __ Incp(z14.VnD(), p0, z0.VnD());
+  __ Incp(z15.VnD(), p0, z1.VnD());
+  __ Incp(z16.VnS(), p0, z2.VnS());
+  __ Incp(z17.VnH(), p0, z3.VnH());
+
+  // Also test destructive forms.
+  __ Mov(z4, z0);
+  __ Mov(z5, z1);
+  __ Mov(z6, z2);
+  __ Mov(z7, z3);
+
+  __ Decp(z0.VnD(), p0);
+  __ Decp(z1.VnD(), p0);
+  __ Decp(z2.VnS(), p0);
+  __ Decp(z3.VnH(), p0);
+
+  __ Incp(z4.VnD(), p0);
+  __ Incp(z5.VnD(), p0);
+  __ Incp(z6.VnS(), p0);
+  __ Incp(z7.VnH(), p0);
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+
+    // z0_inputs[...] - number of active D lanes (2)
+    int64_t z0_expected[] = {0x1234567800000040, -2, -1, 0x7ffffffffffffffe};
+    ASSERT_EQUAL_SVE(z0_expected, z0.VnD());
+
+    // z1_inputs[...] - number of active D lanes (2)
+    int64_t z1_expected[] = {0x12345678ffffff28, -2, -3, 0x7ffffffffffffffd};
+    ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
+
+    // z2_inputs[...] - number of active S lanes (3)
+    int32_t z2_expected[] = {0x1234003f, -3, -4, -2, 0x7ffffffc, 0x7ffffffd};
+    ASSERT_EQUAL_SVE(z2_expected, z2.VnS());
+
+    // z3_inputs[...] - number of active H lanes (5)
+    int16_t z3_expected[] = {0x1225, -5, -4, -6, 0x7ffb, 0x7ffa};
+    ASSERT_EQUAL_SVE(z3_expected, z3.VnH());
+
+    // z0_inputs[...] + number of active D lanes (2)
+    uint64_t z4_expected[] = {0x1234567800000044, 2, 3, 0x8000000000000002};
+    ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+
+    // z1_inputs[...] + number of active D lanes (2)
+    uint64_t z5_expected[] = {0x12345678ffffff2c, 2, 1, 0x8000000000000001};
+    ASSERT_EQUAL_SVE(z5_expected, z5.VnD());
+
+    // z2_inputs[...] + number of active S lanes (3)
+    uint32_t z6_expected[] = {0x12340045, 3, 2, 4, 0x80000002, 0x80000003};
+    ASSERT_EQUAL_SVE(z6_expected, z6.VnS());
+
+    // z3_inputs[...] + number of active H lanes (5)
+    uint16_t z7_expected[] = {0x122f, 5, 6, 4, 0x8005, 0x8004};
+    ASSERT_EQUAL_SVE(z7_expected, z7.VnH());
+
+    // Check that the non-destructive macros produced the same results.
+    ASSERT_EQUAL_SVE(z0_expected, z10.VnD());
+    ASSERT_EQUAL_SVE(z1_expected, z11.VnD());
+    ASSERT_EQUAL_SVE(z2_expected, z12.VnS());
+    ASSERT_EQUAL_SVE(z3_expected, z13.VnH());
+    ASSERT_EQUAL_SVE(z4_expected, z14.VnD());
+    ASSERT_EQUAL_SVE(z5_expected, z15.VnD());
+    ASSERT_EQUAL_SVE(z6_expected, z16.VnS());
+    ASSERT_EQUAL_SVE(z7_expected, z17.VnH());
+  }
+}
+
+TEST(sve_inc_dec_ptrue_vector) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // With an all-true predicate, these instructions increment or decrement by
+  // the vector length.
+
+  // TODO: Use Ptrue() for this, once it is implemented.
+  int p15_inputs[kPRegMaxSize / kZRegBitsPerPRegBit];
+  for (size_t i = 0; i < sizeof(p15_inputs) / sizeof(p15_inputs[0]); i++) {
+    p15_inputs[i] = 1;
+  }
+  Initialise(&masm, p15.VnB(), p15_inputs);
+
+  __ Dup(z0.VnD(), 0);
+  __ Decp(z0.VnD(), p15);
+
+  __ Dup(z1.VnS(), 0);
+  __ Decp(z1.VnS(), p15);
+
+  __ Dup(z2.VnH(), 0);
+  __ Decp(z2.VnH(), p15);
+
+  __ Dup(z3.VnD(), 0);
+  __ Incp(z3.VnD(), p15);
+
+  __ Dup(z4.VnS(), 0);
+  __ Incp(z4.VnS(), p15);
+
+  __ Dup(z5.VnH(), 0);
+  __ Incp(z5.VnH(), p15);
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+
+    int d_lane_count = core.GetSVELaneCount(kDRegSize);
+    int s_lane_count = core.GetSVELaneCount(kSRegSize);
+    int h_lane_count = core.GetSVELaneCount(kHRegSize);
+
+    for (int i = 0; i < d_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(-d_lane_count, z0.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(d_lane_count, z3.VnD(), i);
+    }
+
+    for (int i = 0; i < s_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(-s_lane_count, z1.VnS(), i);
+      ASSERT_EQUAL_SVE_LANE(s_lane_count, z4.VnS(), i);
+    }
+
+    for (int i = 0; i < h_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(-h_lane_count, z2.VnH(), i);
+      ASSERT_EQUAL_SVE_LANE(h_lane_count, z5.VnH(), i);
+    }
+  }
+}
+
+TEST(sve_sqinc_sqdec_p_vector) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // There are {5, 3, 2} active {H, S, D} lanes. B-sized lanes are ignored.
+  int p0_inputs[] = {0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
+  Initialise(&masm, p0.VnB(), p0_inputs);
+
+  // Check that saturation behaves correctly.
+
+  int64_t z0_inputs[] = {0x1234567800000042, 0, 1, INT64_MIN};
+  InsrHelper(&masm, z0.VnD(), z0_inputs);
+
+  int64_t z1_inputs[] = {0x12345678ffffff2a, 0, -1, INT64_MAX};
+  InsrHelper(&masm, z1.VnD(), z1_inputs);
+
+  int32_t z2_inputs[] = {0x12340042, 0, -1, 1, INT32_MAX, INT32_MIN};
+  InsrHelper(&masm, z2.VnS(), z2_inputs);
+
+  int16_t z3_inputs[] = {0x122a, 0, 1, -1, INT16_MIN, INT16_MAX};
+  InsrHelper(&masm, z3.VnH(), z3_inputs);
+
+  // The MacroAssembler implements non-destructive operations using movprfx.
+  __ Sqdecp(z10.VnD(), p0, z0.VnD());
+  __ Sqdecp(z11.VnD(), p0, z1.VnD());
+  __ Sqdecp(z12.VnS(), p0, z2.VnS());
+  __ Sqdecp(z13.VnH(), p0, z3.VnH());
+
+  __ Sqincp(z14.VnD(), p0, z0.VnD());
+  __ Sqincp(z15.VnD(), p0, z1.VnD());
+  __ Sqincp(z16.VnS(), p0, z2.VnS());
+  __ Sqincp(z17.VnH(), p0, z3.VnH());
+
+  // Also test destructive forms.
+  __ Mov(z4, z0);
+  __ Mov(z5, z1);
+  __ Mov(z6, z2);
+  __ Mov(z7, z3);
+
+  __ Sqdecp(z0.VnD(), p0);
+  __ Sqdecp(z1.VnD(), p0);
+  __ Sqdecp(z2.VnS(), p0);
+  __ Sqdecp(z3.VnH(), p0);
+
+  __ Sqincp(z4.VnD(), p0);
+  __ Sqincp(z5.VnD(), p0);
+  __ Sqincp(z6.VnS(), p0);
+  __ Sqincp(z7.VnH(), p0);
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+
+    // z0_inputs[...] - number of active D lanes (2)
+    int64_t z0_expected[] = {0x1234567800000040, -2, -1, INT64_MIN};
+    ASSERT_EQUAL_SVE(z0_expected, z0.VnD());
+
+    // z1_inputs[...] - number of active D lanes (2)
+    int64_t z1_expected[] = {0x12345678ffffff28, -2, -3, 0x7ffffffffffffffd};
+    ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
+
+    // z2_inputs[...] - number of active S lanes (3)
+    int32_t z2_expected[] = {0x1234003f, -3, -4, -2, 0x7ffffffc, INT32_MIN};
+    ASSERT_EQUAL_SVE(z2_expected, z2.VnS());
+
+    // z3_inputs[...] - number of active H lanes (5)
+    int16_t z3_expected[] = {0x1225, -5, -4, -6, INT16_MIN, 0x7ffa};
+    ASSERT_EQUAL_SVE(z3_expected, z3.VnH());
+
+    // z0_inputs[...] + number of active D lanes (2)
+    uint64_t z4_expected[] = {0x1234567800000044, 2, 3, 0x8000000000000002};
+    ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+
+    // z1_inputs[...] + number of active D lanes (2)
+    uint64_t z5_expected[] = {0x12345678ffffff2c, 2, 1, INT64_MAX};
+    ASSERT_EQUAL_SVE(z5_expected, z5.VnD());
+
+    // z2_inputs[...] + number of active S lanes (3)
+    uint32_t z6_expected[] = {0x12340045, 3, 2, 4, INT32_MAX, 0x80000003};
+    ASSERT_EQUAL_SVE(z6_expected, z6.VnS());
+
+    // z3_inputs[...] + number of active H lanes (5)
+    uint16_t z7_expected[] = {0x122f, 5, 6, 4, 0x8005, INT16_MAX};
+    ASSERT_EQUAL_SVE(z7_expected, z7.VnH());
+
+    // Check that the non-destructive macros produced the same results.
+    ASSERT_EQUAL_SVE(z0_expected, z10.VnD());
+    ASSERT_EQUAL_SVE(z1_expected, z11.VnD());
+    ASSERT_EQUAL_SVE(z2_expected, z12.VnS());
+    ASSERT_EQUAL_SVE(z3_expected, z13.VnH());
+    ASSERT_EQUAL_SVE(z4_expected, z14.VnD());
+    ASSERT_EQUAL_SVE(z5_expected, z15.VnD());
+    ASSERT_EQUAL_SVE(z6_expected, z16.VnS());
+    ASSERT_EQUAL_SVE(z7_expected, z17.VnH());
+  }
+}
+
+TEST(sve_sqinc_sqdec_ptrue_vector) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // With an all-true predicate, these instructions increment or decrement by
+  // the vector length.
+
+  // TODO: Use Ptrue() for this, once it is implemented.
+  int p15_inputs[kPRegMaxSize / kZRegBitsPerPRegBit];
+  for (size_t i = 0; i < sizeof(p15_inputs) / sizeof(p15_inputs[0]); i++) {
+    p15_inputs[i] = 1;
+  }
+  Initialise(&masm, p15.VnB(), p15_inputs);
+
+  __ Dup(z0.VnD(), 0);
+  __ Sqdecp(z0.VnD(), p15);
+
+  __ Dup(z1.VnS(), 0);
+  __ Sqdecp(z1.VnS(), p15);
+
+  __ Dup(z2.VnH(), 0);
+  __ Sqdecp(z2.VnH(), p15);
+
+  __ Dup(z3.VnD(), 0);
+  __ Sqincp(z3.VnD(), p15);
+
+  __ Dup(z4.VnS(), 0);
+  __ Sqincp(z4.VnS(), p15);
+
+  __ Dup(z5.VnH(), 0);
+  __ Sqincp(z5.VnH(), p15);
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+
+    int d_lane_count = core.GetSVELaneCount(kDRegSize);
+    int s_lane_count = core.GetSVELaneCount(kSRegSize);
+    int h_lane_count = core.GetSVELaneCount(kHRegSize);
+
+    for (int i = 0; i < d_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(-d_lane_count, z0.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(d_lane_count, z3.VnD(), i);
+    }
+
+    for (int i = 0; i < s_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(-s_lane_count, z1.VnS(), i);
+      ASSERT_EQUAL_SVE_LANE(s_lane_count, z4.VnS(), i);
+    }
+
+    for (int i = 0; i < h_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(-h_lane_count, z2.VnH(), i);
+      ASSERT_EQUAL_SVE_LANE(h_lane_count, z5.VnH(), i);
+    }
+  }
+}
+
+TEST(sve_uqinc_uqdec_p_vector) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // There are {5, 3, 2} active {H, S, D} lanes. B-sized lanes are ignored.
+  int p0_inputs[] = {0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
+  Initialise(&masm, p0.VnB(), p0_inputs);
+
+  // Check that saturation behaves correctly.
+
+  uint64_t z0_inputs[] = {0x1234567800000042, 0, 1, 0x8000000000000000};
+  InsrHelper(&masm, z0.VnD(), z0_inputs);
+
+  uint64_t z1_inputs[] = {0x12345678ffffff2a, 0, UINT64_MAX, INT64_MAX};
+  InsrHelper(&masm, z1.VnD(), z1_inputs);
+
+  uint32_t z2_inputs[] = {0x12340042, 0, UINT32_MAX, 1, INT32_MAX, 0x80000000};
+  InsrHelper(&masm, z2.VnS(), z2_inputs);
+
+  uint16_t z3_inputs[] = {0x122a, 0, 1, UINT16_MAX, 0x8000, INT16_MAX};
+  InsrHelper(&masm, z3.VnH(), z3_inputs);
+
+  // The MacroAssembler implements non-destructive operations using movprfx.
+  __ Uqdecp(z10.VnD(), p0, z0.VnD());
+  __ Uqdecp(z11.VnD(), p0, z1.VnD());
+  __ Uqdecp(z12.VnS(), p0, z2.VnS());
+  __ Uqdecp(z13.VnH(), p0, z3.VnH());
+
+  __ Uqincp(z14.VnD(), p0, z0.VnD());
+  __ Uqincp(z15.VnD(), p0, z1.VnD());
+  __ Uqincp(z16.VnS(), p0, z2.VnS());
+  __ Uqincp(z17.VnH(), p0, z3.VnH());
+
+  // Also test destructive forms.
+  __ Mov(z4, z0);
+  __ Mov(z5, z1);
+  __ Mov(z6, z2);
+  __ Mov(z7, z3);
+
+  __ Uqdecp(z0.VnD(), p0);
+  __ Uqdecp(z1.VnD(), p0);
+  __ Uqdecp(z2.VnS(), p0);
+  __ Uqdecp(z3.VnH(), p0);
+
+  __ Uqincp(z4.VnD(), p0);
+  __ Uqincp(z5.VnD(), p0);
+  __ Uqincp(z6.VnS(), p0);
+  __ Uqincp(z7.VnH(), p0);
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+
+    // z0_inputs[...] - number of active D lanes (2)
+    uint64_t z0_expected[] = {0x1234567800000040, 0, 0, 0x7ffffffffffffffe};
+    ASSERT_EQUAL_SVE(z0_expected, z0.VnD());
+
+    // z1_inputs[...] - number of active D lanes (2)
+    uint64_t z1_expected[] = {0x12345678ffffff28,
+                              0,
+                              0xfffffffffffffffd,
+                              0x7ffffffffffffffd};
+    ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
+
+    // z2_inputs[...] - number of active S lanes (3)
+    uint32_t z2_expected[] =
+        {0x1234003f, 0, 0xfffffffc, 0, 0x7ffffffc, 0x7ffffffd};
+    ASSERT_EQUAL_SVE(z2_expected, z2.VnS());
+
+    // z3_inputs[...] - number of active H lanes (5)
+    uint16_t z3_expected[] = {0x1225, 0, 0, 0xfffa, 0x7ffb, 0x7ffa};
+    ASSERT_EQUAL_SVE(z3_expected, z3.VnH());
+
+    // z0_inputs[...] + number of active D lanes (2)
+    uint64_t z4_expected[] = {0x1234567800000044, 2, 3, 0x8000000000000002};
+    ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+
+    // z1_inputs[...] + number of active D lanes (2)
+    uint64_t z5_expected[] = {0x12345678ffffff2c,
+                              2,
+                              UINT64_MAX,
+                              0x8000000000000001};
+    ASSERT_EQUAL_SVE(z5_expected, z5.VnD());
+
+    // z2_inputs[...] + number of active S lanes (3)
+    uint32_t z6_expected[] =
+        {0x12340045, 3, UINT32_MAX, 4, 0x80000002, 0x80000003};
+    ASSERT_EQUAL_SVE(z6_expected, z6.VnS());
+
+    // z3_inputs[...] + number of active H lanes (5)
+    uint16_t z7_expected[] = {0x122f, 5, 6, UINT16_MAX, 0x8005, 0x8004};
+    ASSERT_EQUAL_SVE(z7_expected, z7.VnH());
+
+    // Check that the non-destructive macros produced the same results.
+    ASSERT_EQUAL_SVE(z0_expected, z10.VnD());
+    ASSERT_EQUAL_SVE(z1_expected, z11.VnD());
+    ASSERT_EQUAL_SVE(z2_expected, z12.VnS());
+    ASSERT_EQUAL_SVE(z3_expected, z13.VnH());
+    ASSERT_EQUAL_SVE(z4_expected, z14.VnD());
+    ASSERT_EQUAL_SVE(z5_expected, z15.VnD());
+    ASSERT_EQUAL_SVE(z6_expected, z16.VnS());
+    ASSERT_EQUAL_SVE(z7_expected, z17.VnH());
+  }
+}
+
+TEST(sve_uqinc_uqdec_ptrue_vector) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // With an all-true predicate, these instructions increment or decrement by
+  // the vector length.
+
+  // TODO: Use Ptrue() for this, once it is implemented.
+  int p15_inputs[kPRegMaxSize / kZRegBitsPerPRegBit];
+  for (size_t i = 0; i < sizeof(p15_inputs) / sizeof(p15_inputs[0]); i++) {
+    p15_inputs[i] = 1;
+  }
+  Initialise(&masm, p15.VnB(), p15_inputs);
+
+  __ Mov(x0, 0x1234567800000000);
+  __ Mov(x1, 0x12340000);
+  __ Mov(x2, 0x1200);
+
+  __ Dup(z0.VnD(), x0);
+  __ Uqdecp(z0.VnD(), p15);
+
+  __ Dup(z1.VnS(), x1);
+  __ Uqdecp(z1.VnS(), p15);
+
+  __ Dup(z2.VnH(), x2);
+  __ Uqdecp(z2.VnH(), p15);
+
+  __ Dup(z3.VnD(), x0);
+  __ Uqincp(z3.VnD(), p15);
+
+  __ Dup(z4.VnS(), x1);
+  __ Uqincp(z4.VnS(), p15);
+
+  __ Dup(z5.VnH(), x2);
+  __ Uqincp(z5.VnH(), p15);
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+
+    int d_lane_count = core.GetSVELaneCount(kDRegSize);
+    int s_lane_count = core.GetSVELaneCount(kSRegSize);
+    int h_lane_count = core.GetSVELaneCount(kHRegSize);
+
+    for (int i = 0; i < d_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(0x1234567800000000 - d_lane_count, z0.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0x1234567800000000 + d_lane_count, z3.VnD(), i);
+    }
+
+    for (int i = 0; i < s_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(0x12340000 - s_lane_count, z1.VnS(), i);
+      ASSERT_EQUAL_SVE_LANE(0x12340000 + s_lane_count, z4.VnS(), i);
+    }
+
+    for (int i = 0; i < h_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(0x1200 - h_lane_count, z2.VnH(), i);
+      ASSERT_EQUAL_SVE_LANE(0x1200 + h_lane_count, z5.VnH(), i);
+    }
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

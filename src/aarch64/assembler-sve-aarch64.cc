@@ -2227,15 +2227,16 @@ void Assembler::frsqrte(const ZRegister& zd, const ZRegister& zn) {
 
 // SVEIncDecByPredicateCount.
 
-void Assembler::decp(const Register& rdn, const PRegister& pg) {
+void Assembler::decp(const Register& rdn, const PRegisterWithLaneSize& pg) {
   // DECP <Xdn>, <Pg>.<T>
   //  0010 0101 ..10 1101 1000 100. .... ....
   //  size<23:22> | op<17> = 0 | D<16> = 1 | opc2<10:9> = 00 | Pg<8:5> |
   //  Rdn<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(rdn.IsX());
 
-  Emit(DECP_r_p_r | Rd(rdn) | Rx<8, 5>(pg));
+  Emit(DECP_r_p_r | SVESize(pg) | Rd(rdn) | Rx<8, 5>(pg));
 }
 
 void Assembler::decp(const ZRegister& zdn, const PRegister& pg) {
@@ -2246,19 +2247,22 @@ void Assembler::decp(const ZRegister& zdn, const PRegister& pg) {
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zdn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(pg.IsUnqualified());
+  if (pg.HasLaneSize()) VIXL_ASSERT(AreSameLaneSize(zdn, pg));
 
   Emit(DECP_z_p_z | SVESize(zdn) | Rd(zdn) | Rx<8, 5>(pg));
 }
 
-void Assembler::incp(const Register& rdn, const PRegister& pg) {
+void Assembler::incp(const Register& rdn, const PRegisterWithLaneSize& pg) {
   // INCP <Xdn>, <Pg>.<T>
   //  0010 0101 ..10 1100 1000 100. .... ....
   //  size<23:22> | op<17> = 0 | D<16> = 0 | opc2<10:9> = 00 | Pg<8:5> |
   //  Rdn<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(rdn.IsX());
 
-  Emit(INCP_r_p_r | Rd(rdn) | Rx<8, 5>(pg));
+  Emit(INCP_r_p_r | SVESize(pg) | Rd(rdn) | Rx<8, 5>(pg));
 }
 
 void Assembler::incp(const ZRegister& zdn, const PRegister& pg) {
@@ -2269,12 +2273,14 @@ void Assembler::incp(const ZRegister& zdn, const PRegister& pg) {
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zdn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(pg.IsUnqualified());
+  if (pg.HasLaneSize()) VIXL_ASSERT(AreSameLaneSize(zdn, pg));
 
   Emit(INCP_z_p_z | SVESize(zdn) | Rd(zdn) | Rx<8, 5>(pg));
 }
 
-void Assembler::sqdecp(const Register& rd,
-                       const PRegister& pg,
+void Assembler::sqdecp(const Register& xd,
+                       const PRegisterWithLaneSize& pg,
                        const Register& wn) {
   // SQDECP <Xdn>, <Pg>.<T>, <Wdn>
   //  0010 0101 ..10 1010 1000 100. .... ....
@@ -2283,20 +2289,21 @@ void Assembler::sqdecp(const Register& rd,
 
   USE(wn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(rd.Is(wn));
+  VIXL_ASSERT(xd.IsX() && wn.IsW() && xd.Aliases(wn));
 
-  Emit(SQDECP_r_p_r_sx | Rd(rd) | Rx<8, 5>(pg));
+  Emit(SQDECP_r_p_r_sx | SVESize(pg) | Rd(xd) | Rx<8, 5>(pg));
 }
 
-void Assembler::sqdecp(const Register& rdn, const PRegister& pg) {
+void Assembler::sqdecp(const Register& xdn, const PRegisterWithLaneSize& pg) {
   // SQDECP <Xdn>, <Pg>.<T>
   //  0010 0101 ..10 1010 1000 110. .... ....
   //  size<23:22> | D<17> = 1 | U<16> = 0 | sf<10> = 1 | op<9> = 0 | Pg<8:5> |
   //  Rdn<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(xdn.IsX());
 
-  Emit(SQDECP_r_p_r_x | Rd(rdn) | Rx<8, 5>(pg));
+  Emit(SQDECP_r_p_r_x | SVESize(pg) | Rd(xdn) | Rx<8, 5>(pg));
 }
 
 void Assembler::sqdecp(const ZRegister& zdn, const PRegister& pg) {
@@ -2306,12 +2313,14 @@ void Assembler::sqdecp(const ZRegister& zdn, const PRegister& pg) {
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zdn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(pg.IsUnqualified());
+  if (pg.HasLaneSize()) VIXL_ASSERT(AreSameLaneSize(zdn, pg));
 
   Emit(SQDECP_z_p_z | SVESize(zdn) | Rd(zdn) | Rx<8, 5>(pg));
 }
 
-void Assembler::sqincp(const Register& rd,
-                       const PRegister& pg,
+void Assembler::sqincp(const Register& xd,
+                       const PRegisterWithLaneSize& pg,
                        const Register& wn) {
   // SQINCP <Xdn>, <Pg>.<T>, <Wdn>
   //  0010 0101 ..10 1000 1000 100. .... ....
@@ -2320,20 +2329,21 @@ void Assembler::sqincp(const Register& rd,
 
   USE(wn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(rd.Is(wn));
+  VIXL_ASSERT(xd.IsX() && wn.IsW() && xd.Aliases(wn));
 
-  Emit(SQINCP_r_p_r_sx | Rd(rd) | Rx<8, 5>(pg));
+  Emit(SQINCP_r_p_r_sx | SVESize(pg) | Rd(xd) | Rx<8, 5>(pg));
 }
 
-void Assembler::sqincp(const Register& rdn, const PRegister& pg) {
+void Assembler::sqincp(const Register& xdn, const PRegisterWithLaneSize& pg) {
   // SQINCP <Xdn>, <Pg>.<T>
   //  0010 0101 ..10 1000 1000 110. .... ....
   //  size<23:22> | D<17> = 0 | U<16> = 0 | sf<10> = 1 | op<9> = 0 | Pg<8:5> |
   //  Rdn<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(xdn.IsX());
 
-  Emit(SQINCP_r_p_r_x | Rd(rdn) | Rx<8, 5>(pg));
+  Emit(SQINCP_r_p_r_x | SVESize(pg) | Rd(xdn) | Rx<8, 5>(pg));
 }
 
 void Assembler::sqincp(const ZRegister& zdn, const PRegister& pg) {
@@ -2343,22 +2353,23 @@ void Assembler::sqincp(const ZRegister& zdn, const PRegister& pg) {
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zdn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(pg.IsUnqualified());
+  if (pg.HasLaneSize()) VIXL_ASSERT(AreSameLaneSize(zdn, pg));
 
   Emit(SQINCP_z_p_z | SVESize(zdn) | Rd(zdn) | Rx<8, 5>(pg));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  UQDECP_r_p_r_uw
-//  UQDECP_r_p_r_x
-void Assembler::uqdecp(const Register& rdn, const PRegister& pg) {
+void Assembler::uqdecp(const Register& rdn, const PRegisterWithLaneSize& pg) {
   // UQDECP <Wdn>, <Pg>.<T>
-  //  0010 0101 ..10 1011 1000 100. .... ....
-  //  size<23:22> | D<17> = 1 | U<16> = 1 | sf<10> = 0 | op<9> = 0 | Pg<8:5> |
+  // UQDECP <Xdn>, <Pg>.<T>
+  //  0010 0101 ..10 1011 1000 10.. .... ....
+  //  size<23:22> | D<17> = 1 | U<16> = 1 | sf<10> | op<9> = 0 | Pg<8:5> |
   //  Rdn<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(UQDECP_r_p_r_uw | Rd(rdn) | Rx<8, 5>(pg));
+  Instr op = rdn.IsX() ? UQDECP_r_p_r_x : UQDECP_r_p_r_uw;
+  Emit(op | SVESize(pg) | Rd(rdn) | Rx<8, 5>(pg));
 }
 
 void Assembler::uqdecp(const ZRegister& zdn, const PRegister& pg) {
@@ -2368,14 +2379,13 @@ void Assembler::uqdecp(const ZRegister& zdn, const PRegister& pg) {
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zdn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(pg.IsUnqualified());
+  if (pg.HasLaneSize()) VIXL_ASSERT(AreSameLaneSize(zdn, pg));
 
   Emit(UQDECP_z_p_z | SVESize(zdn) | Rd(zdn) | Rx<8, 5>(pg));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  UQINCP_r_p_r_uw
-//  UQINCP_r_p_r_x
-void Assembler::uqincp(const Register& rdn, const PRegister& pg) {
+void Assembler::uqincp(const Register& rdn, const PRegisterWithLaneSize& pg) {
   // UQINCP <Wdn>, <Pg>.<T>
   //  0010 0101 ..10 1001 1000 100. .... ....
   //  size<23:22> | D<17> = 0 | U<16> = 1 | sf<10> = 0 | op<9> = 0 | Pg<8:5> |
@@ -2383,7 +2393,8 @@ void Assembler::uqincp(const Register& rdn, const PRegister& pg) {
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(UQINCP_r_p_r_uw | Rd(rdn) | Rx<8, 5>(pg));
+  Instr op = rdn.IsX() ? UQINCP_r_p_r_x : UQINCP_r_p_r_uw;
+  Emit(op | SVESize(pg) | Rd(rdn) | Rx<8, 5>(pg));
 }
 
 void Assembler::uqincp(const ZRegister& zdn, const PRegister& pg) {
@@ -2393,6 +2404,8 @@ void Assembler::uqincp(const ZRegister& zdn, const PRegister& pg) {
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zdn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(pg.IsUnqualified());
+  if (pg.HasLaneSize()) VIXL_ASSERT(AreSameLaneSize(zdn, pg));
 
   Emit(UQINCP_z_p_z | SVESize(zdn) | Rd(zdn) | Rx<8, 5>(pg));
 }

@@ -600,15 +600,23 @@ class LogicVRegister {
     return *this;
   }
 
+  int LaneCountFromFormat(VectorFormat vform) const {
+    if (IsSVEFormat(vform)) {
+      return register_.GetSizeInBits() / LaneSizeInBitsFromFormat(vform);
+    } else {
+      return vixl::aarch64::LaneCountFromFormat(vform);
+    }
+  }
+
  private:
   SimVRegister& register_;
 
   // Allocate one saturation state entry per lane; largest register is type Q,
   // and lanes can be a minimum of one byte wide.
-  Saturation saturated_[kQRegSizeInBytes];
+  Saturation saturated_[kZRegMaxSizeInBytes];
 
   // Allocate one rounding state entry per lane.
-  bool round_[kQRegSizeInBytes];
+  bool round_[kZRegMaxSizeInBytes];
 };
 
 // The proper way to initialize a simulated system register (such as NZCV) is as
@@ -2284,6 +2292,10 @@ class Simulator : public DecoderVisitor {
                      LogicVRegister dst,
                      const LogicVRegister& src1,
                      const LogicVRegister& src2);
+  LogicVRegister add(VectorFormat vform,
+                     LogicVRegister dst,
+                     const LogicVRegister& src1,
+                     uint64_t value);
   LogicVRegister addp(VectorFormat vform,
                       LogicVRegister dst,
                       const LogicVRegister& src1,
@@ -2493,6 +2505,10 @@ class Simulator : public DecoderVisitor {
                      LogicVRegister dst,
                      const LogicVRegister& src1,
                      const LogicVRegister& src2);
+  LogicVRegister sub(VectorFormat vform,
+                     LogicVRegister dst,
+                     const LogicVRegister& src1,
+                     uint64_t value);
   LogicVRegister and_(VectorFormat vform,
                       LogicVRegister dst,
                       const LogicVRegister& src1,
@@ -3494,6 +3510,17 @@ class Simulator : public DecoderVisitor {
   void DoSaveCPUFeatures(const Instruction* instr);
   void DoRestoreCPUFeatures(const Instruction* instr);
 
+  // General arithmetic helpers ----------------------------
+
+  // Add `delta` to the accumulator (`acc`), optionally saturate, then zero- or
+  // sign-extend. Initial `acc` bits outside `n` are ignored, but the delta must
+  // be a valid int<n>_t.
+  uint64_t IncDecN(uint64_t acc,
+                   int64_t delta,
+                   unsigned n,
+                   bool is_saturating,
+                   bool is_signed);
+
   // SVE helpers -------------------------------------------
   LogicVRegister SVEBitwiseLogicalUnpredicatedHelper(
       SVEBitwiseLogicalUnpredicatedOp op,
@@ -3520,6 +3547,8 @@ class Simulator : public DecoderVisitor {
                                             const LogicVRegister& src1,
                                             const LogicVRegister& src2,
                                             bool is_wide_elements);
+
+  int CountActiveLanes(VectorFormat vform, const SimPRegister& pn);
 
   // Simulate a runtime call.
   void DoRuntimeCall(const Instruction* instr);

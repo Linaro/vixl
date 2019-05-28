@@ -575,6 +575,16 @@ LogicVRegister Simulator::add(VectorFormat vform,
 }
 
 
+LogicVRegister Simulator::add(VectorFormat vform,
+                              LogicVRegister dst,
+                              const LogicVRegister& src1,
+                              uint64_t value) {
+  SimVRegister src2;
+  dup_immediate(vform, src2, value);
+  return add(vform, dst, src1, src2);
+}
+
+
 LogicVRegister Simulator::addp(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
@@ -1025,6 +1035,16 @@ LogicVRegister Simulator::sub(VectorFormat vform,
     dst.SetInt(vform, i, ur >> (64 - lane_size));
   }
   return dst;
+}
+
+
+LogicVRegister Simulator::sub(VectorFormat vform,
+                              LogicVRegister dst,
+                              const LogicVRegister& src1,
+                              uint64_t value) {
+  SimVRegister src2;
+  dup_immediate(vform, src2, value);
+  return sub(vform, dst, src1, src2);
 }
 
 
@@ -5793,6 +5813,17 @@ LogicVRegister Simulator::SVEBitwiseImmHelper(SVEBitwiseImmOp op,
 
   return zd;
 }
+
+int Simulator::CountActiveLanes(VectorFormat vform, const SimPRegister& pn) {
+  int count = 0;
+  int p_reg_bits_per_lane =
+      LaneSizeInBitsFromFormat(vform) / kZRegBitsPerPRegBit;
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    count += pn.GetBit(i * p_reg_bits_per_lane) ? 1 : 0;
+  }
+  return count;
+}
+
 
 }  // namespace aarch64
 }  // namespace vixl

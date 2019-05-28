@@ -6081,82 +6081,72 @@ void Disassembler::VisitSVEFPUnaryOpUnpredicated(const Instruction *instr) {
 void Disassembler::VisitSVEIncDecByPredicateCount(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   // <Zdn>.<T>, <Pg>
-  const char *form = "'Zd.'t, p'u0805";
+  const char *form = "(SVEIncDecByPredicateCount)";
 
   switch (instr->Mask(SVEIncDecByPredicateCountMask)) {
-    // DECP <Xdn>, <Pg>.<T>
     case DECP_r_p_r:
-      mnemonic = "decp";
-      form = "'Rd, p'u0805.'t";
-      break;
-    // DECP <Zdn>.<T>, <Pg>
     case DECP_z_p_z:
       mnemonic = "decp";
       break;
-    // INCP <Xdn>, <Pg>.<T>
     case INCP_r_p_r:
-      mnemonic = "incp";
-      form = "'Rd, p'u0805.'t";
-      break;
-    // INCP <Zdn>.<T>, <Pg>
     case INCP_z_p_z:
       mnemonic = "incp";
       break;
-    // SQDECP <Xdn>, <Pg>.<T>, <Wdn>
     case SQDECP_r_p_r_sx:
-      mnemonic = "sqdecp";
-      form = "'Rd, p'u0805.'t, 'Rd";
-      break;
-    // SQDECP <Xdn>, <Pg>.<T>
     case SQDECP_r_p_r_x:
-      mnemonic = "sqdecp";
-      form = "'Rd, p'u0805.'t";
-      break;
-    // SQDECP <Zdn>.<T>, <Pg>
     case SQDECP_z_p_z:
       mnemonic = "sqdecp";
       break;
-    // SQINCP <Xdn>, <Pg>.<T>, <Wdn>
     case SQINCP_r_p_r_sx:
-      mnemonic = "sqincp";
-      form = "'Rd, p'u0805.'t, 'Rd";
-      break;
-    // SQINCP <Xdn>, <Pg>.<T>
     case SQINCP_r_p_r_x:
-      mnemonic = "sqincp";
-      form = "'Rd, p'u0805.'t";
-      break;
-    // SQINCP <Zdn>.<T>, <Pg>
     case SQINCP_z_p_z:
       mnemonic = "sqincp";
       break;
-    // UQDECP <Wdn>, <Pg>.<T>
     case UQDECP_r_p_r_uw:
-      mnemonic = "uqdecp";
-      form = "'Rd, p'u0805.'t";
-      break;
-    // UQDECP <Xdn>, <Pg>.<T>
     case UQDECP_r_p_r_x:
-      mnemonic = "uqdecp";
-      form = "'Rd, p'u0805.'t";
-      break;
-    // UQDECP <Zdn>.<T>, <Pg>
     case UQDECP_z_p_z:
       mnemonic = "uqdecp";
       break;
-    // UQINCP <Wdn>, <Pg>.<T>
     case UQINCP_r_p_r_uw:
-      mnemonic = "uqincp";
-      form = "'Rd, p'u0805.'t";
-      break;
-    // UQINCP <Xdn>, <Pg>.<T>
     case UQINCP_r_p_r_x:
-      mnemonic = "uqincp";
-      form = "'Rd, p'u0805.'t";
-      break;
-    // UQINCP <Zdn>.<T>, <Pg>
     case UQINCP_z_p_z:
       mnemonic = "uqincp";
+      break;
+    default:
+      break;
+  }
+
+  switch (instr->Mask(SVEIncDecByPredicateCountMask)) {
+    // <Xdn>, <Pg>.<T>
+    case DECP_r_p_r:
+    case INCP_r_p_r:
+      form = "'Xd, p'u0805.'t";
+      break;
+    // <Zdn>.<T>, <Pg>
+    case DECP_z_p_z:
+    case INCP_z_p_z:
+    case SQDECP_z_p_z:
+    case SQINCP_z_p_z:
+    case UQDECP_z_p_z:
+    case UQINCP_z_p_z:
+      form = "'Zd.'t, p'u0805";
+      break;
+    // <Xdn>, <Pg>.<T>, <Wdn>
+    case SQDECP_r_p_r_sx:
+    case SQINCP_r_p_r_sx:
+      form = "'Xd, p'u0805.'t, 'Wd";
+      break;
+    // <Xdn>, <Pg>.<T>
+    case SQDECP_r_p_r_x:
+    case SQINCP_r_p_r_x:
+    case UQDECP_r_p_r_x:
+    case UQINCP_r_p_r_x:
+      form = "'Xd, p'u0805.'t";
+      break;
+    // <Wdn>, <Pg>.<T>
+    case UQDECP_r_p_r_uw:
+    case UQINCP_r_p_r_uw:
+      form = "'Wd, p'u0805.'t";
       break;
     default:
       break;
