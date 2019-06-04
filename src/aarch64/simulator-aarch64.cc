@@ -8044,59 +8044,76 @@ void Simulator::VisitSVEIntCompareUnsignedImm(const Instruction* instr) {
 
 void Simulator::VisitSVEIntCompareVectors(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEIntCompareVectorsMask)) {
+
+  Instr op = instr->Mask(SVEIntCompareVectorsMask);
+  bool is_wide_elements = false;
+  switch (op) {
     case CMPEQ_p_p_zw:
-      VIXL_UNIMPLEMENTED();
+    case CMPGE_p_p_zw:
+    case CMPGT_p_p_zw:
+    case CMPHI_p_p_zw:
+    case CMPHS_p_p_zw:
+    case CMPLE_p_p_zw:
+    case CMPLO_p_p_zw:
+    case CMPLS_p_p_zw:
+    case CMPLT_p_p_zw:
+    case CMPNE_p_p_zw:
+      is_wide_elements = true;
       break;
+  }
+
+  Condition cc;
+  switch (op) {
+    case CMPEQ_p_p_zw:
     case CMPEQ_p_p_zz:
-      VIXL_UNIMPLEMENTED();
+      cc = eq;
       break;
     case CMPGE_p_p_zw:
-      VIXL_UNIMPLEMENTED();
-      break;
     case CMPGE_p_p_zz:
-      VIXL_UNIMPLEMENTED();
+      cc = ge;
       break;
     case CMPGT_p_p_zw:
-      VIXL_UNIMPLEMENTED();
-      break;
     case CMPGT_p_p_zz:
-      VIXL_UNIMPLEMENTED();
+      cc = gt;
       break;
     case CMPHI_p_p_zw:
-      VIXL_UNIMPLEMENTED();
-      break;
     case CMPHI_p_p_zz:
-      VIXL_UNIMPLEMENTED();
+      cc = hi;
       break;
     case CMPHS_p_p_zw:
-      VIXL_UNIMPLEMENTED();
-      break;
     case CMPHS_p_p_zz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case CMPLE_p_p_zw:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case CMPLO_p_p_zw:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case CMPLS_p_p_zw:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case CMPLT_p_p_zw:
-      VIXL_UNIMPLEMENTED();
+      cc = hs;
       break;
     case CMPNE_p_p_zw:
-      VIXL_UNIMPLEMENTED();
-      break;
     case CMPNE_p_p_zz:
-      VIXL_UNIMPLEMENTED();
+      cc = ne;
+      break;
+    case CMPLE_p_p_zw:
+      cc = le;
+      break;
+    case CMPLO_p_p_zw:
+      cc = lo;
+      break;
+    case CMPLS_p_p_zw:
+      cc = ls;
+      break;
+    case CMPLT_p_p_zw:
+      cc = lt;
       break;
     default:
       VIXL_UNIMPLEMENTED();
+      cc = al;
       break;
   }
+
+  SVEIntCompareVectorsHelper(cc,
+                             instr->GetSVEVectorFormat(),
+                             ReadPRegister(instr->GetPd()),
+                             ReadPRegister(instr->GetPgLow8()),
+                             ReadVRegister(instr->GetRn()),
+                             ReadVRegister(instr->GetRm()),
+                             is_wide_elements);
+  // TODO: LogPRegister(...)
 }
 
 void Simulator::VisitSVEIntMiscUnpredicated(const Instruction* instr) {

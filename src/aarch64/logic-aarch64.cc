@@ -5580,6 +5580,89 @@ LogicVRegister Simulator::ucvtf(VectorFormat vform,
   return dst;
 }
 
+LogicPRegister Simulator::SVEIntCompareVectorsHelper(Condition cc,
+                                                     VectorFormat vform,
+                                                     LogicPRegister dst,
+                                                     const LogicPRegister& mask,
+                                                     const LogicVRegister& src1,
+                                                     const LogicVRegister& src2,
+                                                     bool is_wide_elements) {
+  for (int lane = 0; lane < LaneCountFromFormat(vform); lane++) {
+    bool cond = false;
+    if (mask.IsActive(vform, lane)) {
+      int64_t op1 = 0xbadbeef;
+      int64_t op2 = 0xbadbeef;
+      int d_lane = (lane * LaneSizeInBitsFromFormat(vform)) / kDRegSize;
+      switch (cc) {
+        case eq:
+        case ge:
+        case gt:
+        case lt:
+        case le:
+        case ne:
+          op1 = src1.Int(vform, lane);
+          op2 = is_wide_elements ? src2.Int(kFormatVnD, d_lane)
+                                 : src2.Int(vform, lane);
+          break;
+        case hi:
+        case hs:
+        case ls:
+        case lo:
+          op1 = src1.Uint(vform, lane);
+          op2 = is_wide_elements ? src2.Uint(kFormatVnD, d_lane)
+                                 : src2.Uint(vform, lane);
+          break;
+        default:
+          VIXL_UNREACHABLE();
+      }
+
+      switch (cc) {
+        case eq:
+          cond = (op1 == op2);
+          break;
+        case ne:
+          cond = (op1 != op2);
+          break;
+        case ge:
+          cond = (op1 >= op2);
+          break;
+        case gt:
+          cond = (op1 > op2);
+          break;
+        case le:
+          cond = (op1 <= op2);
+          break;
+        case lt:
+          cond = (op1 < op2);
+          break;
+        case hs:
+          cond = (static_cast<uint64_t>(op1) >= static_cast<uint64_t>(op2));
+          break;
+        case hi:
+          cond = (static_cast<uint64_t>(op1) > static_cast<uint64_t>(op2));
+          break;
+        case ls:
+          cond = (static_cast<uint64_t>(op1) <= static_cast<uint64_t>(op2));
+          break;
+        case lo:
+          cond = (static_cast<uint64_t>(op1) < static_cast<uint64_t>(op2));
+          break;
+        default:
+          VIXL_UNREACHABLE();
+      }
+    }
+    dst.SetActive(vform, lane, cond);
+  }
+
+  ReadNzcv().SetN(IsFirstActive(vform, mask, dst));
+  ReadNzcv().SetZ(AreNoneActive(vform, mask, dst));
+  ReadNzcv().SetC(!IsLastActive(vform, mask, dst));
+  ReadNzcv().SetV(0);
+  LogSystemRegister(NZCV);
+
+  return dst;
+}
+
 LogicVRegister Simulator::SVEBitwiseLogicalUnpredicatedHelper(
     SVEBitwiseLogicalUnpredicatedOp op,
     LogicVRegister zd,

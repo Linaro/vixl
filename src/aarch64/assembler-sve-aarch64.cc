@@ -3068,6 +3068,13 @@ void Assembler::cmpls(const PRegisterWithLaneSize& pd,
 }
 
 // SVEIntCompareVectors.
+void Assembler::CompareVectors(const PRegisterWithLaneSize& pd,
+                               const PRegisterZ& pg,
+                               const ZRegister& zn,
+                               const ZRegister& zm,
+                               SVEIntCompareVectorsOp op) {
+  Emit(op | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+}
 
 // This prototype maps to 2 instruction encodings:
 //  CMPEQ_p_p_zw
@@ -3076,16 +3083,14 @@ void Assembler::cmpeq(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
                       const ZRegister& zm) {
-  // CMPEQ <Pd>.<T>, <Pg>/Z, <Zn>.<T>, <Zm>.D
-  //  0010 0100 ..0. .... 001. .... ...0 ....
-  //  size<23:22> | Zm<20:16> | op<15> = 0 | o2<13> = 1 | Pg<12:10> | Zn<9:5> |
-  //  ne<4> = 0 | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreSameLaneSize(zn, zm));
-  VIXL_ASSERT(zn.GetLaneSizeInBytes() != kDRegSizeInBytes);
-
-  Emit(CMPEQ_p_p_zw | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
+  SVEIntCompareVectorsOp op = CMPEQ_p_p_zz;
+  if (!AreSameLaneSize(zn, zm)) {
+    VIXL_ASSERT(zm.IsLaneSizeD());
+    op = CMPEQ_p_p_zw;
+  }
+  CompareVectors(pd, pg, zn, zm, op);
 }
 
 // This prototype maps to 2 instruction encodings:
@@ -3095,16 +3100,14 @@ void Assembler::cmpge(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
                       const ZRegister& zm) {
-  // CMPGE <Pd>.<T>, <Pg>/Z, <Zn>.<T>, <Zm>.D
-  //  0010 0100 ..0. .... 010. .... ...0 ....
-  //  size<23:22> | Zm<20:16> | U<15> = 0 | lt<13> = 0 | Pg<12:10> | Zn<9:5> |
-  //  ne<4> = 0 | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreSameLaneSize(zn, zm));
-  VIXL_ASSERT(zn.GetLaneSizeInBytes() != kDRegSizeInBytes);
-
-  Emit(CMPGE_p_p_zw | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
+  SVEIntCompareVectorsOp op = CMPGE_p_p_zz;
+  if (!AreSameLaneSize(zn, zm)) {
+    VIXL_ASSERT(zm.IsLaneSizeD());
+    op = CMPGE_p_p_zw;
+  }
+  CompareVectors(pd, pg, zn, zm, op);
 }
 
 // This prototype maps to 2 instruction encodings:
@@ -3114,16 +3117,14 @@ void Assembler::cmpgt(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
                       const ZRegister& zm) {
-  // CMPGT <Pd>.<T>, <Pg>/Z, <Zn>.<T>, <Zm>.D
-  //  0010 0100 ..0. .... 010. .... ...1 ....
-  //  size<23:22> | Zm<20:16> | U<15> = 0 | lt<13> = 0 | Pg<12:10> | Zn<9:5> |
-  //  ne<4> = 1 | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreSameLaneSize(zn, zm));
-  VIXL_ASSERT(zn.GetLaneSizeInBytes() != kDRegSizeInBytes);
-
-  Emit(CMPGT_p_p_zw | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
+  SVEIntCompareVectorsOp op = CMPGT_p_p_zz;
+  if (!AreSameLaneSize(zn, zm)) {
+    VIXL_ASSERT(zm.IsLaneSizeD());
+    op = CMPGT_p_p_zw;
+  }
+  CompareVectors(pd, pg, zn, zm, op);
 }
 
 // This prototype maps to 2 instruction encodings:
@@ -3133,16 +3134,14 @@ void Assembler::cmphi(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
                       const ZRegister& zm) {
-  // CMPHI <Pd>.<T>, <Pg>/Z, <Zn>.<T>, <Zm>.D
-  //  0010 0100 ..0. .... 110. .... ...1 ....
-  //  size<23:22> | Zm<20:16> | U<15> = 1 | lt<13> = 0 | Pg<12:10> | Zn<9:5> |
-  //  ne<4> = 1 | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreSameLaneSize(zn, zm));
-  VIXL_ASSERT(zn.GetLaneSizeInBytes() != kDRegSizeInBytes);
-
-  Emit(CMPHI_p_p_zw | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
+  SVEIntCompareVectorsOp op = CMPHI_p_p_zz;
+  if (!AreSameLaneSize(zn, zm)) {
+    VIXL_ASSERT(zm.IsLaneSizeD());
+    op = CMPHI_p_p_zw;
+  }
+  CompareVectors(pd, pg, zn, zm, op);
 }
 
 // This prototype maps to 2 instruction encodings:
@@ -3152,80 +3151,78 @@ void Assembler::cmphs(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
                       const ZRegister& zm) {
-  // CMPHS <Pd>.<T>, <Pg>/Z, <Zn>.<T>, <Zm>.D
-  //  0010 0100 ..0. .... 110. .... ...0 ....
-  //  size<23:22> | Zm<20:16> | U<15> = 1 | lt<13> = 0 | Pg<12:10> | Zn<9:5> |
-  //  ne<4> = 0 | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreSameLaneSize(zn, zm));
-  VIXL_ASSERT(zn.GetLaneSizeInBytes() != kDRegSizeInBytes);
-
-  Emit(CMPHS_p_p_zw | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
+  SVEIntCompareVectorsOp op = CMPHS_p_p_zz;
+  if (!AreSameLaneSize(zn, zm)) {
+    VIXL_ASSERT(zm.IsLaneSizeD());
+    op = CMPHS_p_p_zw;
+  }
+  CompareVectors(pd, pg, zn, zm, op);
 }
 
 void Assembler::cmple(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
                       const ZRegister& zm) {
-  // CMPLE <Pd>.<T>, <Pg>/Z, <Zn>.<T>, <Zm>.D
-  //  0010 0100 ..0. .... 011. .... ...1 ....
-  //  size<23:22> | Zm<20:16> | U<15> = 0 | lt<13> = 1 | Pg<12:10> | Zn<9:5> |
-  //  ne<4> = 1 | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreSameLaneSize(zn, zm));
-  VIXL_ASSERT(zn.GetLaneSizeInBytes() != kDRegSizeInBytes);
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
+  if (AreSameLaneSize(zn, zm)) {
+    cmpge(pd, pg, zm, zn);
+    return;
+  }
+  VIXL_ASSERT(zm.IsLaneSizeD());
+  VIXL_ASSERT(!zn.IsLaneSizeD());
 
-  Emit(CMPLE_p_p_zw | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+  CompareVectors(pd, pg, zn, zm, CMPLE_p_p_zw);
 }
 
 void Assembler::cmplo(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
                       const ZRegister& zm) {
-  // CMPLO <Pd>.<T>, <Pg>/Z, <Zn>.<T>, <Zm>.D
-  //  0010 0100 ..0. .... 111. .... ...0 ....
-  //  size<23:22> | Zm<20:16> | U<15> = 1 | lt<13> = 1 | Pg<12:10> | Zn<9:5> |
-  //  ne<4> = 0 | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreSameLaneSize(zn, zm));
-  VIXL_ASSERT(zn.GetLaneSizeInBytes() != kDRegSizeInBytes);
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
+  if (AreSameLaneSize(zn, zm)) {
+    cmphi(pd, pg, zm, zn);
+    return;
+  }
+  VIXL_ASSERT(zm.IsLaneSizeD());
+  VIXL_ASSERT(!zn.IsLaneSizeD());
 
-  Emit(CMPLO_p_p_zw | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+  CompareVectors(pd, pg, zn, zm, CMPLO_p_p_zw);
 }
 
 void Assembler::cmpls(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
                       const ZRegister& zm) {
-  // CMPLS <Pd>.<T>, <Pg>/Z, <Zn>.<T>, <Zm>.D
-  //  0010 0100 ..0. .... 111. .... ...1 ....
-  //  size<23:22> | Zm<20:16> | U<15> = 1 | lt<13> = 1 | Pg<12:10> | Zn<9:5> |
-  //  ne<4> = 1 | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreSameLaneSize(zn, zm));
-  VIXL_ASSERT(zn.GetLaneSizeInBytes() != kDRegSizeInBytes);
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
+  if (AreSameLaneSize(zn, zm)) {
+    cmphs(pd, pg, zm, zn);
+    return;
+  }
+  VIXL_ASSERT(zm.IsLaneSizeD());
+  VIXL_ASSERT(!zn.IsLaneSizeD());
 
-  Emit(CMPLS_p_p_zw | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+  CompareVectors(pd, pg, zn, zm, CMPLS_p_p_zw);
 }
 
 void Assembler::cmplt(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
                       const ZRegister& zm) {
-  // CMPLT <Pd>.<T>, <Pg>/Z, <Zn>.<T>, <Zm>.D
-  //  0010 0100 ..0. .... 011. .... ...0 ....
-  //  size<23:22> | Zm<20:16> | U<15> = 0 | lt<13> = 1 | Pg<12:10> | Zn<9:5> |
-  //  ne<4> = 0 | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreSameLaneSize(zn, zm));
-  VIXL_ASSERT(zn.GetLaneSizeInBytes() != kDRegSizeInBytes);
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
+  if (AreSameLaneSize(zn, zm)) {
+    cmpgt(pd, pg, zm, zn);
+    return;
+  }
+  VIXL_ASSERT(zm.IsLaneSizeD());
+  VIXL_ASSERT(!zn.IsLaneSizeD());
 
-  Emit(CMPLT_p_p_zw | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+  CompareVectors(pd, pg, zn, zm, CMPLT_p_p_zw);
 }
 
 // This prototype maps to 2 instruction encodings:
@@ -3235,16 +3232,14 @@ void Assembler::cmpne(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
                       const ZRegister& zm) {
-  // CMPNE <Pd>.<T>, <Pg>/Z, <Zn>.<T>, <Zm>.D
-  //  0010 0100 ..0. .... 001. .... ...1 ....
-  //  size<23:22> | Zm<20:16> | op<15> = 0 | o2<13> = 1 | Pg<12:10> | Zn<9:5> |
-  //  ne<4> = 1 | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreSameLaneSize(zn, zm));
-  VIXL_ASSERT(zn.GetLaneSizeInBytes() != kDRegSizeInBytes);
-
-  Emit(CMPNE_p_p_zw | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
+  SVEIntCompareVectorsOp op = CMPNE_p_p_zz;
+  if (!AreSameLaneSize(zn, zm)) {
+    VIXL_ASSERT(zm.IsLaneSizeD());
+    op = CMPNE_p_p_zw;
+  }
+  CompareVectors(pd, pg, zn, zm, op);
 }
 
 // SVEIntMiscUnpredicated.

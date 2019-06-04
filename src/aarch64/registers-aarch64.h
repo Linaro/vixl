@@ -854,18 +854,15 @@ bool AreSameFormat(const CPURegister& reg1,
                    const CPURegister& reg3 = NoCPUReg,
                    const CPURegister& reg4 = NoCPUReg);
 
-// AreSameLaneSize returns true if all of the specified ZRegisters use the same
-// element lane size, B, H, S or D.
+// AreSameLaneSize returns true if all of the specified registers have the same
+// element lane size, B, H, S or D. It doesn't compare the type of registers.
+// Arguments set to NoReg are ignored, as are any subsequent arguments.
+// At least one argument (reg1) must be valid (not NoVReg).
 // TODO: Remove this, and replace its uses with AreSameFormat.
-inline bool AreSameLaneSize(const ZRegister& reg1, const ZRegister& reg2) {
-  return AreSameFormat(reg1, reg2);
-}
-
-inline bool AreSameLaneSize(const ZRegister& reg1,
-                            const ZRegister& reg2,
-                            const ZRegister& reg3) {
-  return AreSameFormat(reg1, reg2, reg3);
-}
+bool AreSameLaneSize(const CPURegister& reg1,
+                     const CPURegister& reg2,
+                     const CPURegister& reg3 = NoCPUReg,
+                     const CPURegister& reg4 = NoCPUReg);
 }
 }  // namespace vixl::aarch64
 

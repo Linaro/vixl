@@ -469,10 +469,216 @@ TEST(sve_predicate_logical) {
     ASSERT_EQUAL_SVE(p6_expected, p6.VnB());
     ASSERT_EQUAL_SVE(p7_expected, p7.VnB());
 
+    ASSERT_EQUAL_32(SVEFirstFlag, w0);
+    ASSERT_EQUAL_32(SVENotLastFlag, w1);
+  }
+}
 
-    // TODO: We will add the SVE semantic aliases at some point.
-    ASSERT_EQUAL_32(NFlag, w0);  // First element is active.
-    ASSERT_EQUAL_32(CFlag, w1);  // Last element is not active.
+TEST(sve_int_compare_vectors) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int z10_inputs[] = {0x00, 0x80, 0xff, 0x7f, 0x00, 0x00, 0x00, 0xff};
+  int z11_inputs[] = {0x00, 0x00, 0x00, 0x00, 0x80, 0xff, 0x7f, 0xfe};
+  int p0_inputs[] = {1, 0, 1, 1, 1, 1, 1, 1};
+  InsrHelper(&masm, z10.VnB(), z10_inputs);
+  InsrHelper(&masm, z11.VnB(), z11_inputs);
+  Initialise(&masm, p0.VnB(), p0_inputs);
+
+  __ Cmphs(p6.VnB(), p0.Zeroing(), z10.VnB(), z11.VnB());
+  __ Mrs(x6, NZCV);
+
+  uint64_t z12_inputs[] = {0xffffffffffffffff, 0x8000000000000000};
+  uint64_t z13_inputs[] = {0x0000000000000000, 0x8000000000000000};
+  int p1_inputs[] = {1, 1};
+  InsrHelper(&masm, z12.VnD(), z12_inputs);
+  InsrHelper(&masm, z13.VnD(), z13_inputs);
+  Initialise(&masm, p1.VnD(), p1_inputs);
+
+  __ Cmphi(p7.VnD(), p1.Zeroing(), z12.VnD(), z13.VnD());
+  __ Mrs(x7, NZCV);
+
+  int z14_inputs[] = {0, 32767, -1, -32767, 0, 0, 0, 32766};
+  int z15_inputs[] = {0, 0, 0, 0, 32767, -1, -32767, 32767};
+
+  int p2_inputs[] = {1, 0, 1, 1, 1, 1, 1, 1};
+  InsrHelper(&masm, z14.VnH(), z14_inputs);
+  InsrHelper(&masm, z15.VnH(), z15_inputs);
+  Initialise(&masm, p2.VnH(), p2_inputs);
+
+  __ Cmpge(p8.VnH(), p2.Zeroing(), z14.VnH(), z15.VnH());
+  __ Mrs(x8, NZCV);
+
+  __ Cmpeq(p9.VnH(), p2.Zeroing(), z14.VnH(), z15.VnH());
+  __ Mrs(x9, NZCV);
+
+  int z16_inputs[] = {0, -1, 0, 0};
+  int z17_inputs[] = {0, 0, 2147483647, -2147483648};
+  int p3_inputs[] = {1, 1, 1, 1};
+  InsrHelper(&masm, z16.VnS(), z16_inputs);
+  InsrHelper(&masm, z17.VnS(), z17_inputs);
+  Initialise(&masm, p3.VnS(), p3_inputs);
+
+  __ Cmpgt(p10.VnS(), p3.Zeroing(), z16.VnS(), z17.VnS());
+  __ Mrs(x10, NZCV);
+
+  __ Cmpne(p11.VnS(), p3.Zeroing(), z16.VnS(), z17.VnS());
+  __ Mrs(x11, NZCV);
+
+  // Architectural aliases testing.
+  __ Cmpls(p12.VnB(), p0.Zeroing(), z11.VnB(), z10.VnB());  // HS
+  __ Cmplo(p13.VnD(), p1.Zeroing(), z13.VnD(), z12.VnD());  // HI
+  __ Cmple(p14.VnH(), p2.Zeroing(), z15.VnH(), z14.VnH());  // GE
+  __ Cmplt(p15.VnS(), p3.Zeroing(), z17.VnS(), z16.VnS());  // GT
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int p6_expected[] = {1, 0, 1, 1, 0, 0, 0, 1};
+    for (size_t i = 0; i < ArrayLength(p6_expected); i++) {
+      int lane = static_cast<int>(ArrayLength(p6_expected) - i - 1);
+      ASSERT_EQUAL_SVE_LANE(p6_expected[i], p6.VnB(), lane);
+    }
+
+    int p7_expected[] = {1, 0};
+    ASSERT_EQUAL_SVE(p7_expected, p7.VnD());
+
+    int p8_expected[] = {1, 0, 0, 0, 0, 1, 1, 0};
+    ASSERT_EQUAL_SVE(p8_expected, p8.VnH());
+
+    int p9_expected[] = {1, 0, 0, 0, 0, 0, 0, 0};
+    ASSERT_EQUAL_SVE(p9_expected, p9.VnH());
+
+    int p10_expected[] = {0, 0, 0, 1};
+    ASSERT_EQUAL_SVE(p10_expected, p10.VnS());
+
+    int p11_expected[] = {0, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p11_expected, p11.VnS());
+
+    // Reuse the expected results to verify the architectural aliases.
+    ASSERT_EQUAL_SVE(p6_expected, p12.VnB());
+    ASSERT_EQUAL_SVE(p7_expected, p13.VnD());
+    ASSERT_EQUAL_SVE(p8_expected, p14.VnH());
+    ASSERT_EQUAL_SVE(p10_expected, p15.VnS());
+
+    ASSERT_EQUAL_32(SVEFirstFlag, w6);
+    ASSERT_EQUAL_32(NoFlag, w7);
+    ASSERT_EQUAL_32(NoFlag, w8);
+    ASSERT_EQUAL_32(NoFlag, w9);
+    ASSERT_EQUAL_32(SVEFirstFlag | SVENotLastFlag, w10);
+  }
+}
+
+TEST(sve_int_compare_vectors_wide_elements) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int src1_inputs_1[] = {0, 1, -1, -128, 127, 100, -66};
+  int src2_inputs_1[] = {0, -1};
+  int mask_inputs_1[] = {1, 1, 1, 1, 1, 0, 1};
+  InsrHelper(&masm, z13.VnB(), src1_inputs_1);
+  InsrHelper(&masm, z19.VnD(), src2_inputs_1);
+  Initialise(&masm, p0.VnB(), mask_inputs_1);
+
+  __ Cmpge(p2.VnB(), p0.Zeroing(), z13.VnB(), z19.VnD());
+  __ Mrs(x2, NZCV);
+  __ Cmpgt(p3.VnB(), p0.Zeroing(), z13.VnB(), z19.VnD());
+  __ Mrs(x3, NZCV);
+
+  int src1_inputs_2[] = {0, 32767, -1, -32767, 1, 1234, 0, 32766};
+  int src2_inputs_2[] = {0, -32767};
+  int mask_inputs_2[] = {1, 0, 1, 1, 1, 1, 1, 1};
+  InsrHelper(&masm, z13.VnH(), src1_inputs_2);
+  InsrHelper(&masm, z19.VnD(), src2_inputs_2);
+  Initialise(&masm, p0.VnH(), mask_inputs_2);
+
+  __ Cmple(p4.VnH(), p0.Zeroing(), z13.VnH(), z19.VnD());
+  __ Mrs(x4, NZCV);
+  __ Cmplt(p5.VnH(), p0.Zeroing(), z13.VnH(), z19.VnD());
+  __ Mrs(x5, NZCV);
+
+  int src1_inputs_3[] = {0, -1, 2147483647, -2147483648};
+  int src2_inputs_3[] = {0, -2147483648};
+  int mask_inputs_3[] = {1, 1, 1, 1};
+  InsrHelper(&masm, z13.VnS(), src1_inputs_3);
+  InsrHelper(&masm, z19.VnD(), src2_inputs_3);
+  Initialise(&masm, p0.VnS(), mask_inputs_3);
+
+  __ Cmpeq(p6.VnS(), p0.Zeroing(), z13.VnS(), z19.VnD());
+  __ Mrs(x6, NZCV);
+  __ Cmpne(p7.VnS(), p0.Zeroing(), z13.VnS(), z19.VnD());
+  __ Mrs(x7, NZCV);
+
+  int src1_inputs_4[] = {0x00, 0x80, 0x7f, 0xff, 0x7f, 0xf0, 0x0f, 0x55};
+  int src2_inputs_4[] = {0x00, 0x7f};
+  int mask_inputs_4[] = {1, 1, 1, 1, 0, 1, 1, 1};
+  InsrHelper(&masm, z13.VnB(), src1_inputs_4);
+  InsrHelper(&masm, z19.VnD(), src2_inputs_4);
+  Initialise(&masm, p0.VnB(), mask_inputs_4);
+
+  __ Cmplo(p8.VnB(), p0.Zeroing(), z13.VnB(), z19.VnD());
+  __ Mrs(x8, NZCV);
+  __ Cmpls(p9.VnB(), p0.Zeroing(), z13.VnB(), z19.VnD());
+  __ Mrs(x9, NZCV);
+
+  int src1_inputs_5[] = {0x0000, 0x8000, 0x7fff, 0xffff};
+  int src2_inputs_5[] = {0x8000, 0xffff};
+  int mask_inputs_5[] = {1, 1, 1, 1};
+  InsrHelper(&masm, z13.VnS(), src1_inputs_5);
+  InsrHelper(&masm, z19.VnD(), src2_inputs_5);
+  Initialise(&masm, p0.VnS(), mask_inputs_5);
+
+  __ Cmphi(p10.VnS(), p0.Zeroing(), z13.VnS(), z19.VnD());
+  __ Mrs(x10, NZCV);
+  __ Cmphs(p11.VnS(), p0.Zeroing(), z13.VnS(), z19.VnD());
+  __ Mrs(x11, NZCV);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    int p2_expected[] = {1, 1, 1, 0, 1, 0, 0};
+    ASSERT_EQUAL_SVE(p2_expected, p2.VnB());
+
+    int p3_expected[] = {1, 1, 0, 0, 1, 0, 0};
+    ASSERT_EQUAL_SVE(p3_expected, p3.VnB());
+
+    int p4_expected[] = {0x1, 0x0, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0};
+    ASSERT_EQUAL_SVE(p4_expected, p4.VnH());
+
+    int p5_expected[] = {0x0, 0x0, 0x1, 0x1, 0x0, 0x0, 0x0, 0x0};
+    ASSERT_EQUAL_SVE(p5_expected, p5.VnH());
+
+    int p6_expected[] = {0x1, 0x0, 0x0, 0x1};
+    ASSERT_EQUAL_SVE(p6_expected, p6.VnS());
+
+    int p7_expected[] = {0x0, 0x1, 0x1, 0x0};
+    ASSERT_EQUAL_SVE(p7_expected, p7.VnS());
+
+    int p8_expected[] = {1, 0, 0, 0, 0, 0, 1, 1};
+    ASSERT_EQUAL_SVE(p8_expected, p8.VnB());
+
+    int p9_expected[] = {1, 0, 1, 0, 0, 0, 1, 1};
+    ASSERT_EQUAL_SVE(p9_expected, p9.VnB());
+
+    int p10_expected[] = {0x0, 0x0, 0x0, 0x0};
+    ASSERT_EQUAL_SVE(p10_expected, p10.VnS());
+
+    int p11_expected[] = {0x0, 0x1, 0x0, 0x1};
+    ASSERT_EQUAL_SVE(p11_expected, p11.VnS());
+
+    ASSERT_EQUAL_32(NoFlag, w2);
+    ASSERT_EQUAL_32(NoFlag, w3);
+    ASSERT_EQUAL_32(NoFlag, w4);
+    ASSERT_EQUAL_32(SVENotLastFlag, w5);
+    ASSERT_EQUAL_32(SVEFirstFlag, w6);
+    ASSERT_EQUAL_32(SVENotLastFlag, w7);
+    ASSERT_EQUAL_32(SVEFirstFlag, w8);
+    ASSERT_EQUAL_32(SVEFirstFlag, w9);
+    ASSERT_EQUAL_32(SVENotLastFlag | SVENoneFlag, w10);
+    ASSERT_EQUAL_32(SVENotLastFlag | SVEFirstFlag, w11);
   }
 }
 

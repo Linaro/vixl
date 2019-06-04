@@ -3500,6 +3500,7 @@ class Simulator : public DecoderVisitor {
       LogicVRegister zd,
       const LogicVRegister& zn,
       const LogicVRegister& zm);
+
   LogicPRegister SVEPredicateLogicalHelper(SVEPredicateLogicalOp op,
                                            LogicPRegister Pd,
                                            const LogicPRegister& pg,
@@ -3511,6 +3512,14 @@ class Simulator : public DecoderVisitor {
                                      VectorFormat vform,
                                      LogicVRegister zd,
                                      uint64_t imm);
+
+  LogicPRegister SVEIntCompareVectorsHelper(Condition cc,
+                                            VectorFormat vform,
+                                            LogicPRegister dst,
+                                            const LogicPRegister& mask,
+                                            const LogicVRegister& src1,
+                                            const LogicVRegister& src2,
+                                            bool is_wide_elements);
 
   // Simulate a runtime call.
   void DoRuntimeCall(const Instruction* instr);

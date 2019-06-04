@@ -7020,6 +7020,11 @@ class Assembler : public vixl::internal::AssemblerBase {
                        FlagsUpdate S,
                        AddSubWithCarryOp op);
 
+  void CompareVectors(const PRegisterWithLaneSize& pd,
+                      const PRegisterZ& pg,
+                      const ZRegister& zn,
+                      const ZRegister& zm,
+                      SVEIntCompareVectorsOp op);
 
   // Functions for emulating operands not directly supported by the instruction
   // set.

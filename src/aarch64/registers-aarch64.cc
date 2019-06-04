@@ -302,5 +302,20 @@ bool AreSameFormat(const CPURegister& reg1,
   match &= !reg4.IsValid() || reg4.IsSameFormat(reg1);
   return match;
 }
+
+bool AreSameLaneSize(const CPURegister& reg1,
+                     const CPURegister& reg2,
+                     const CPURegister& reg3,
+                     const CPURegister& reg4) {
+  VIXL_ASSERT(reg1.IsValid());
+  bool match = true;
+  match &=
+      !reg2.IsValid() || (reg2.GetLaneSizeInBits() == reg1.GetLaneSizeInBits());
+  match &=
+      !reg3.IsValid() || (reg3.GetLaneSizeInBits() == reg1.GetLaneSizeInBits());
+  match &=
+      !reg4.IsValid() || (reg4.GetLaneSizeInBits() == reg1.GetLaneSizeInBits());
+  return match;
+}
 }
 }  // namespace vixl::aarch64
