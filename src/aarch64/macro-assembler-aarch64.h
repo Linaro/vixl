@@ -566,7 +566,19 @@ enum BranchType {
   kBranchTypeFirstCondition = eq,
   kBranchTypeLastCondition = nv,
   kBranchTypeFirstUsingReg = reg_zero,
-  kBranchTypeFirstUsingBit = reg_bit_clear
+  kBranchTypeFirstUsingBit = reg_bit_clear,
+
+  // SVE branch conditions.
+  integer_none = eq,
+  integer_any = ne,
+  integer_nlast = cs,
+  integer_last = cc,
+  integer_first = mi,
+  integer_nfrst = pl,
+  integer_pmore = hi,
+  integer_plast = ls,
+  integer_tcont = ge,
+  integer_tstop = lt
 };
 
 

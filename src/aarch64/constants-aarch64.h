@@ -255,7 +255,19 @@ enum Condition {
 
   // Aliases.
   hs = cs,  // C set            Unsigned higher or same.
-  lo = cc   // C clear          Unsigned lower.
+  lo = cc,  // C clear          Unsigned lower.
+
+  // SVE predicate condition aliases.
+  sve_none  = eq,  // No active elements were true.
+  sve_any   = ne,  // An active element was true.
+  sve_nlast = cs,  // The last element was not true.
+  sve_last  = cc,  // The last element was true.
+  sve_first = mi,  // The first element was true.
+  sve_nfrst = pl,  // The first element was not true.
+  sve_pmore = hi,  // An active element was true but not the last element.
+  sve_plast = ls,  // The last active element was true or no active elements were true.
+  sve_tcont = ge,  // CTERM termination condition not deleted.
+  sve_tstop = lt   // CTERM termination condition deleted.
 };
 
 inline Condition InvertCondition(Condition cond) {
@@ -299,7 +311,12 @@ enum StatusFlags {
   FPEqualFlag       = ZCFlag,
   FPLessThanFlag    = NFlag,
   FPGreaterThanFlag = CFlag,
-  FPUnorderedFlag   = CVFlag
+  FPUnorderedFlag   = CVFlag,
+
+  // SVE condition flags.
+  SVEFirstFlag   = NFlag,
+  SVENoneFlag    = ZFlag,
+  SVENotLastFlag = CFlag
 };
 
 enum Shift {
