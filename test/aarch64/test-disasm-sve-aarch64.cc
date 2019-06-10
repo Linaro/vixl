@@ -925,26 +925,25 @@ TEST(sve_int_binary_arithmetic_predicated) {
 TEST(sve_int_compare_scalars) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(ctermeq(r30, r26), "ctermeq <R><n>, <R><m>");
-  COMPARE_PREFIX(ctermne(r21, r18), "ctermne <R><n>, <R><m>");
-  COMPARE_PREFIX(whilele(p10.VnB(), r11, r6), "whilele <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilele(p10.VnH(), r11, r6), "whilele <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilele(p10.VnS(), r11, r6), "whilele <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilele(p10.VnD(), r11, r6), "whilele <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilelo(p4.VnB(), r3, r25), "whilelo <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilelo(p4.VnH(), r3, r25), "whilelo <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilelo(p4.VnS(), r3, r25), "whilelo <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilelo(p4.VnD(), r3, r25), "whilelo <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilels(p7.VnB(), r15, r15), "whilels <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilels(p7.VnH(), r15, r15), "whilels <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilels(p7.VnS(), r15, r15), "whilels <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilels(p7.VnD(), r15, r15), "whilels <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilelt(p14.VnB(), r11, r14), "whilelt <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilelt(p14.VnH(), r11, r14), "whilelt <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilelt(p14.VnS(), r11, r14), "whilelt <Pd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(whilelt(p14.VnD(), r11, r14), "whilelt <Pd>.<T>, <R><n>, <R><m>");
-#endif
+  COMPARE_PREFIX(ctermeq(w30, w26), "ctermeq w30, w26");
+  COMPARE_PREFIX(ctermne(x21, x18), "ctermne x21, x18");
+  COMPARE_PREFIX(whilele(p10.VnB(), x11, x6), "whilele p10.b, x11, x6");
+  COMPARE_PREFIX(whilele(p10.VnH(), w11, w6), "whilele p10.h, w11, w6");
+  COMPARE_PREFIX(whilele(p10.VnH(), x11, x6), "whilele p10.h, x11, x6");
+  COMPARE_PREFIX(whilele(p10.VnS(), w11, w6), "whilele p10.s, w11, w6");
+  COMPARE_PREFIX(whilele(p10.VnD(), x11, x6), "whilele p10.d, x11, x6");
+  COMPARE_PREFIX(whilelo(p4.VnB(), w3, w25), "whilelo p4.b, w3, w25");
+  COMPARE_PREFIX(whilelo(p4.VnH(), x3, x25), "whilelo p4.h, x3, x25");
+  COMPARE_PREFIX(whilelo(p4.VnS(), w3, w25), "whilelo p4.s, w3, w25");
+  COMPARE_PREFIX(whilelo(p4.VnD(), x3, x25), "whilelo p4.d, x3, x25");
+  COMPARE_PREFIX(whilels(p7.VnB(), w15, w15), "whilels p7.b, w15, w15");
+  COMPARE_PREFIX(whilels(p7.VnH(), x15, x15), "whilels p7.h, x15, x15");
+  COMPARE_PREFIX(whilels(p7.VnS(), w15, w15), "whilels p7.s, w15, w15");
+  COMPARE_PREFIX(whilels(p7.VnD(), x15, x15), "whilels p7.d, x15, x15");
+  COMPARE_PREFIX(whilelt(p14.VnB(), w11, w14), "whilelt p14.b, w11, w14");
+  COMPARE_PREFIX(whilelt(p14.VnH(), x11, x14), "whilelt p14.h, x11, x14");
+  COMPARE_PREFIX(whilelt(p14.VnS(), w11, w14), "whilelt p14.s, w11, w14");
+  COMPARE_PREFIX(whilelt(p14.VnD(), x11, x14), "whilelt p14.d, x11, x14");
 
   CLEANUP();
 }

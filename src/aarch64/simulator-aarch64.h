@@ -270,6 +270,16 @@ class LogicPRegister {
     register_.Insert<ChunkType>(lane, new_value);
   }
 
+  void SetAllBits() {
+    int chunk_size = sizeof(ChunkType) * kBitsPerByte;
+    ChunkType bits = GetUintMask(chunk_size);
+    for (int lane = 0;
+         lane < (static_cast<int>(register_.GetSizeInBits() / chunk_size));
+         lane++) {
+      SetChunk(lane, bits);
+    }
+  }
+
  private:
   // The bit assignment is zero-extended to fill the size of predicate element.
   uint8_t ZeroExtend(uint8_t byte, int index, int psize, bool value) {
@@ -1470,6 +1480,13 @@ class Simulator : public DecoderVisitor {
 
   SimSystemRegister& ReadNzcv() { return nzcv_; }
   VIXL_DEPRECATED("ReadNzcv", SimSystemRegister& nzcv()) { return ReadNzcv(); }
+
+  void PredTest(VectorFormat vform, LogicPRegister mask, LogicPRegister bits) {
+    ReadNzcv().SetN(IsFirstActive(vform, mask, bits));
+    ReadNzcv().SetZ(AreNoneActive(vform, mask, bits));
+    ReadNzcv().SetC(!IsLastActive(vform, mask, bits));
+    ReadNzcv().SetV(0);
+  }
 
   // TODO: Find a way to make the fpcr_ members return the proper types, so
   // these accessors are not necessary.

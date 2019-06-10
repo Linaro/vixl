@@ -8030,29 +8030,72 @@ void Simulator::VisitSVEIntBinaryArithmeticPredicated(
 
 void Simulator::VisitSVEIntCompareScalars(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEIntCompareScalarsMask)) {
-    case CTERMEQ_rr:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case CTERMNE_rr:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case WHILELE_p_p_rr:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case WHILELO_p_p_rr:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case WHILELS_p_p_rr:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case WHILELT_p_p_rr:
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-      break;
+  unsigned rn_code = instr->GetRn();
+  unsigned rm_code = instr->GetRm();
+
+  if (instr->Mask(SVEIntCompareCountAndLimitScalarsFMask) ==
+      SVEIntCompareCountAndLimitScalarsFixed) {
+    SimPRegister& pd = ReadPRegister(instr->GetPd());
+    VectorFormat vform = instr->GetSVEVectorFormat();
+    bool is_64_bit = instr->ExtractBit(12) == 1;
+    int64_t src1 = is_64_bit ? ReadXRegister(rn_code) : ReadWRegister(rn_code);
+    int64_t src2 = is_64_bit ? ReadXRegister(rm_code) : ReadWRegister(rm_code);
+
+    bool last = true;
+    for (int lane = 0; lane < LaneCountFromFormat(vform); lane++) {
+      bool cond = false;
+      switch (instr->Mask(SVEIntCompareCountAndLimitScalarsMask)) {
+        case WHILELT_p_p_rr:
+          cond = src1 < src2;
+          break;
+        case WHILELE_p_p_rr:
+          cond = src1 <= src2;
+          break;
+        case WHILELO_p_p_rr:
+          cond = static_cast<uint64_t>(src1) < static_cast<uint64_t>(src2);
+          break;
+        case WHILELS_p_p_rr:
+          cond = static_cast<uint64_t>(src1) <= static_cast<uint64_t>(src2);
+          break;
+        default:
+          VIXL_UNIMPLEMENTED();
+          break;
+      }
+      last = last && cond;
+      LogicPRegister dst(pd);
+      dst.SetActive(vform, lane, last);
+      src1 += 1;
+    }
+
+    SimPRegister temp;
+    LogicPRegister ones(temp);
+    ones.SetAllBits();
+
+    PredTest(vform, ones, pd);
+    // TODO: LogPRegister(...)
+  } else {
+    VIXL_ASSERT(instr->Mask(SVEIntCompareCondTerminateScalarsFMask) ==
+                SVEIntCompareCondTerminateScalarsFixed);
+    bool is_64_bit = instr->ExtractBit(22) == 1;
+    uint64_t src1 = is_64_bit ? ReadXRegister(rn_code) : ReadWRegister(rn_code);
+    uint64_t src2 = is_64_bit ? ReadXRegister(rm_code) : ReadWRegister(rm_code);
+    bool term;
+    switch (instr->Mask(SVEIntCompareCondTerminateScalarsMask)) {
+      case CTERMEQ_rr:
+        term = src1 == src2;
+        break;
+      case CTERMNE_rr:
+        term = src1 != src2;
+        break;
+      default:
+        term = false;
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+    ReadNzcv().SetN(term ? 1 : 0);
+    ReadNzcv().SetV(term ? 0 : !ReadC());
   }
+  LogSystemRegister(NZCV);
 }
 
 void Simulator::VisitSVEIntCompareSignedImm(const Instruction* instr) {

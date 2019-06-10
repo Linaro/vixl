@@ -3108,13 +3108,25 @@ enum SVEIntBinaryArithmeticPredicatedOp {
 enum SVEIntCompareScalarsOp {
   SVEIntCompareScalarsFixed = 0x25200000,
   SVEIntCompareScalarsFMask = 0xFF20C000,
-  SVEIntCompareScalarsMask = 0xFFA0FC1F,
-  WHILELT_p_p_rr = SVEIntCompareScalarsFixed | 0x00000400,
-  WHILELE_p_p_rr = SVEIntCompareScalarsFixed | 0x00000410,
-  WHILELO_p_p_rr = SVEIntCompareScalarsFixed | 0x00000C00,
-  WHILELS_p_p_rr = SVEIntCompareScalarsFixed | 0x00000C10,
-  CTERMEQ_rr = SVEIntCompareScalarsFixed | 0x00802000,
-  CTERMNE_rr = SVEIntCompareScalarsFixed | 0x00802010
+  SVEIntCompareScalarsMask = 0xFFA0FC1F
+};
+
+enum SVEIntCompareCondTerminateScalarsOp {
+  SVEIntCompareCondTerminateScalarsFixed = 0x25202000,
+  SVEIntCompareCondTerminateScalarsFMask = 0xFF20FC0F,
+  SVEIntCompareCondTerminateScalarsMask = 0xFFA0FC1F,
+  CTERMEQ_rr = SVEIntCompareCondTerminateScalarsFixed | 0x00800000,
+  CTERMNE_rr = SVEIntCompareCondTerminateScalarsFixed | 0x00800010
+};
+
+enum SVEIntCompareCountAndLimitScalarsOp {
+  SVEIntCompareCountAndLimitScalarsFixed = 0x25200000,
+  SVEIntCompareCountAndLimitScalarsFMask = 0xFF20E000,
+  SVEIntCompareCountAndLimitScalarsMask = 0xFF20EC10,
+  WHILELT_p_p_rr = SVEIntCompareCountAndLimitScalarsFixed | 0x00000400,
+  WHILELE_p_p_rr = SVEIntCompareCountAndLimitScalarsFixed | 0x00000410,
+  WHILELO_p_p_rr = SVEIntCompareCountAndLimitScalarsFixed | 0x00000C00,
+  WHILELS_p_p_rr = SVEIntCompareCountAndLimitScalarsFixed | 0x00000C10
 };
 
 enum SVEIntCompareSignedImmOp {

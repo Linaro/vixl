@@ -6323,38 +6323,41 @@ void Disassembler::VisitSVEIntBinaryArithmeticPredicated(
 
 void Disassembler::VisitSVEIntCompareScalars(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Pd>.<T>, <R><n>, <R><m>
   const char *form = "'Pd.'t, 'Rn, 'Rm";
 
-  switch (instr->Mask(SVEIntCompareScalarsMask)) {
-    // CTERMEQ <R><n>, <R><m>
-    case CTERMEQ_rr:
-      mnemonic = "ctermeq";
-      form = "'Rn, 'Rm";
-      break;
-    // CTERMNE <R><n>, <R><m>
-    case CTERMNE_rr:
-      mnemonic = "ctermne";
-      form = "'Rn, 'Rm";
-      break;
-    // WHILELE <Pd>.<T>, <R><n>, <R><m>
-    case WHILELE_p_p_rr:
-      mnemonic = "whilele";
-      break;
-    // WHILELO <Pd>.<T>, <R><n>, <R><m>
-    case WHILELO_p_p_rr:
-      mnemonic = "whilelo";
-      break;
-    // WHILELS <Pd>.<T>, <R><n>, <R><m>
-    case WHILELS_p_p_rr:
-      mnemonic = "whilels";
-      break;
-    // WHILELT <Pd>.<T>, <R><n>, <R><m>
-    case WHILELT_p_p_rr:
-      mnemonic = "whilelt";
-      break;
-    default:
-      break;
+  if (instr->Mask(SVEIntCompareCountAndLimitScalarsFMask) ==
+      SVEIntCompareCountAndLimitScalarsFixed) {
+    form =
+        (instr->ExtractBit(12) == 0) ? "'Pd.'t, 'Wn, 'Wm" : "'Pd.'t, 'Xn, 'Xm";
+    switch (instr->Mask(SVEIntCompareCountAndLimitScalarsMask)) {
+      case WHILELE_p_p_rr:
+        mnemonic = "whilele";
+        break;
+      case WHILELO_p_p_rr:
+        mnemonic = "whilelo";
+        break;
+      case WHILELS_p_p_rr:
+        mnemonic = "whilels";
+        break;
+      case WHILELT_p_p_rr:
+        mnemonic = "whilelt";
+        break;
+      default:
+        break;
+    }
+  } else if (instr->Mask(SVEIntCompareCondTerminateScalarsFMask) ==
+             SVEIntCompareCondTerminateScalarsFixed) {
+    form = (instr->ExtractBit(22) == 0) ? "'Wn, 'Wm" : "'Xn, 'Xm";
+    switch (instr->Mask(SVEIntCompareCondTerminateScalarsMask)) {
+      case CTERMEQ_rr:
+        mnemonic = "ctermeq";
+        break;
+      case CTERMNE_rr:
+        mnemonic = "ctermne";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }

@@ -1808,5 +1808,181 @@ TEST(sve_index) {
   }
 }
 
+TEST(sve_int_compare_count_and_limit_scalars) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  __ Mov(w20, 0xfffffffd);
+  __ Mov(w21, 0xffffffff);
+
+  __ Whilele(p0.VnB(), w20, w21);
+  __ Mrs(x0, NZCV);
+  __ Whilele(p1.VnH(), w20, w21);
+  __ Mrs(x1, NZCV);
+
+  __ Mov(w20, 0xffffffff);
+  __ Mov(w21, 0x00000000);
+
+  __ Whilelt(p2.VnS(), w20, w21);
+  __ Mrs(x2, NZCV);
+  __ Whilelt(p3.VnD(), w20, w21);
+  __ Mrs(x3, NZCV);
+
+  __ Mov(w20, 0xfffffffd);
+  __ Mov(w21, 0xffffffff);
+
+  __ Whilels(p4.VnB(), w20, w21);
+  __ Mrs(x4, NZCV);
+  __ Whilels(p5.VnH(), w20, w21);
+  __ Mrs(x5, NZCV);
+
+  __ Mov(w20, 0xffffffff);
+  __ Mov(w21, 0x00000000);
+
+  __ Whilelo(p6.VnS(), w20, w21);
+  __ Mrs(x6, NZCV);
+  __ Whilelo(p7.VnD(), w20, w21);
+  __ Mrs(x7, NZCV);
+
+  __ Mov(x20, 0xfffffffffffffffd);
+  __ Mov(x21, 0xffffffffffffffff);
+
+  __ Whilele(p8.VnB(), x20, x21);
+  __ Mrs(x8, NZCV);
+  __ Whilele(p9.VnH(), x20, x21);
+  __ Mrs(x9, NZCV);
+
+  __ Mov(x20, 0xffffffffffffffff);
+  __ Mov(x21, 0x0000000000000000);
+
+  __ Whilelt(p10.VnS(), x20, x21);
+  __ Mrs(x10, NZCV);
+  __ Whilelt(p11.VnD(), x20, x21);
+  __ Mrs(x11, NZCV);
+
+  __ Mov(x20, 0xfffffffffffffffd);
+  __ Mov(x21, 0xffffffffffffffff);
+
+  __ Whilels(p12.VnB(), x20, x21);
+  __ Mrs(x12, NZCV);
+  __ Whilels(p13.VnH(), x20, x21);
+  __ Mrs(x13, NZCV);
+
+  __ Mov(x20, 0xffffffffffffffff);
+  __ Mov(x21, 0x0000000000000000);
+
+  __ Whilelo(p14.VnS(), x20, x21);
+  __ Mrs(x14, NZCV);
+  __ Whilelo(p15.VnD(), x20, x21);
+  __ Mrs(x15, NZCV);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // 0b...00000000'00000111
+    int p0_expected[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p0_expected, p0.VnB());
+
+    // 0b...00000000'00010101
+    int p1_expected[] = {0, 0, 0, 0, 0, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p1_expected, p1.VnH());
+
+    int p2_expected[] = {0x0, 0x0, 0x0, 0x1};
+    ASSERT_EQUAL_SVE(p2_expected, p2.VnS());
+
+    int p3_expected[] = {0x00, 0x01};
+    ASSERT_EQUAL_SVE(p3_expected, p3.VnD());
+
+    // 0b...11111111'11111111
+    int p4_expected[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p4_expected, p4.VnB());
+
+    // 0b...01010101'01010101
+    int p5_expected[] = {1, 1, 1, 1, 1, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p5_expected, p5.VnH());
+
+    int p6_expected[] = {0x0, 0x0, 0x0, 0x0};
+    ASSERT_EQUAL_SVE(p6_expected, p6.VnS());
+
+    int p7_expected[] = {0x00, 0x00};
+    ASSERT_EQUAL_SVE(p7_expected, p7.VnD());
+
+    // 0b...00000000'00000111
+    int p8_expected[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p8_expected, p8.VnB());
+
+    // 0b...00000000'00010101
+    int p9_expected[] = {0, 0, 0, 0, 0, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p9_expected, p9.VnH());
+
+    int p10_expected[] = {0x0, 0x0, 0x0, 0x1};
+    ASSERT_EQUAL_SVE(p10_expected, p10.VnS());
+
+    int p11_expected[] = {0x00, 0x01};
+    ASSERT_EQUAL_SVE(p11_expected, p11.VnD());
+
+    // 0b...11111111'11111111
+    int p12_expected[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p12_expected, p12.VnB());
+
+    // 0b...01010101'01010101
+    int p13_expected[] = {1, 1, 1, 1, 1, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p13_expected, p13.VnH());
+
+    int p14_expected[] = {0x0, 0x0, 0x0, 0x0};
+    ASSERT_EQUAL_SVE(p14_expected, p14.VnS());
+
+    int p15_expected[] = {0x00, 0x00};
+    ASSERT_EQUAL_SVE(p15_expected, p15.VnD());
+
+    ASSERT_EQUAL_32(SVEFirstFlag | SVENotLastFlag, w0);
+    ASSERT_EQUAL_32(SVEFirstFlag | SVENotLastFlag, w1);
+    ASSERT_EQUAL_32(SVEFirstFlag | SVENotLastFlag, w2);
+    ASSERT_EQUAL_32(SVEFirstFlag | SVENotLastFlag, w3);
+    ASSERT_EQUAL_32(SVEFirstFlag, w4);
+    ASSERT_EQUAL_32(SVEFirstFlag, w5);
+    ASSERT_EQUAL_32(SVENoneFlag | SVENotLastFlag, w6);
+    ASSERT_EQUAL_32(SVENoneFlag | SVENotLastFlag, w7);
+    ASSERT_EQUAL_32(SVEFirstFlag | SVENotLastFlag, w8);
+    ASSERT_EQUAL_32(SVEFirstFlag | SVENotLastFlag, w9);
+    ASSERT_EQUAL_32(SVEFirstFlag | SVENotLastFlag, w10);
+    ASSERT_EQUAL_32(SVEFirstFlag | SVENotLastFlag, w11);
+    ASSERT_EQUAL_32(SVEFirstFlag, w12);
+    ASSERT_EQUAL_32(SVEFirstFlag, w13);
+    ASSERT_EQUAL_32(SVENoneFlag | SVENotLastFlag, w14);
+    ASSERT_EQUAL_32(SVENoneFlag | SVENotLastFlag, w15);
+  }
+}
+
+TEST(sve_int_compare_conditionally_terminate_scalars) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  __ Mov(x0, 0xfedcba9887654321);
+  __ Mov(x1, 0x1000100010001000);
+
+  __ Ctermeq(w0, w0);
+  __ Mrs(x2, NZCV);
+  __ Ctermeq(x0, x1);
+  __ Mrs(x3, NZCV);
+  __ Ctermne(x0, x0);
+  __ Mrs(x4, NZCV);
+  __ Ctermne(w0, w1);
+  __ Mrs(x5, NZCV);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_32(SVEFirstFlag, w2);
+    ASSERT_EQUAL_32(VFlag, w3);
+    ASSERT_EQUAL_32(VFlag, w4);
+    ASSERT_EQUAL_32(SVEFirstFlag, w5);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

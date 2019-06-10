@@ -2869,8 +2869,10 @@ void Assembler::ctermeq(const Register& rn, const Register& rm) {
   //  op<23> = 1 | sz<22> | Rm<20:16> | Rn<9:5> | ne<4> = 0
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameSizeAndType(rn, rm));
+  const Instr sz = rn.Is64Bits() ? 0x00400000 : 0x00000000;
 
-  Emit(CTERMEQ_rr | Rn(rn) | Rm(rm));
+  Emit(CTERMEQ_rr | sz | Rn(rn) | Rm(rm));
 }
 
 void Assembler::ctermne(const Register& rn, const Register& rm) {
@@ -2879,8 +2881,10 @@ void Assembler::ctermne(const Register& rn, const Register& rm) {
   //  op<23> = 1 | sz<22> | Rm<20:16> | Rn<9:5> | ne<4> = 1
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameSizeAndType(rn, rm));
+  const Instr sz = rn.Is64Bits() ? 0x00400000 : 0x00000000;
 
-  Emit(CTERMNE_rr | Rn(rn) | Rm(rm));
+  Emit(CTERMNE_rr | sz | Rn(rn) | Rm(rm));
 }
 
 void Assembler::whilele(const PRegisterWithLaneSize& pd,
@@ -2892,8 +2896,10 @@ void Assembler::whilele(const PRegisterWithLaneSize& pd,
   //  eq<4> = 1 | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameSizeAndType(rn, rm));
+  const Instr sf = rn.Is64Bits() ? 0x00001000 : 0x00000000;
 
-  Emit(WHILELE_p_p_rr | Pd(pd) | Rn(rn) | Rm(rm));
+  Emit(WHILELE_p_p_rr | SVESize(pd) | sf | Pd(pd) | Rn(rn) | Rm(rm));
 }
 
 void Assembler::whilelo(const PRegisterWithLaneSize& pd,
@@ -2905,8 +2911,10 @@ void Assembler::whilelo(const PRegisterWithLaneSize& pd,
   //  eq<4> = 0 | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameSizeAndType(rn, rm));
+  const Instr sf = rn.Is64Bits() ? 0x00001000 : 0x00000000;
 
-  Emit(WHILELO_p_p_rr | Pd(pd) | Rn(rn) | Rm(rm));
+  Emit(WHILELO_p_p_rr | SVESize(pd) | sf | Pd(pd) | Rn(rn) | Rm(rm));
 }
 
 void Assembler::whilels(const PRegisterWithLaneSize& pd,
@@ -2918,8 +2926,10 @@ void Assembler::whilels(const PRegisterWithLaneSize& pd,
   //  eq<4> = 1 | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameSizeAndType(rn, rm));
+  const Instr sf = rn.Is64Bits() ? 0x00001000 : 0x00000000;
 
-  Emit(WHILELS_p_p_rr | Pd(pd) | Rn(rn) | Rm(rm));
+  Emit(WHILELS_p_p_rr | SVESize(pd) | sf | Pd(pd) | Rn(rn) | Rm(rm));
 }
 
 void Assembler::whilelt(const PRegisterWithLaneSize& pd,
@@ -2931,8 +2941,10 @@ void Assembler::whilelt(const PRegisterWithLaneSize& pd,
   //  eq<4> = 0 | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameSizeAndType(rn, rm));
+  const Instr sf = rn.Is64Bits() ? 0x00001000 : 0x00000000;
 
-  Emit(WHILELT_p_p_rr | Pd(pd) | Rn(rn) | Rm(rm));
+  Emit(WHILELT_p_p_rr | SVESize(pd) | sf | Pd(pd) | Rn(rn) | Rm(rm));
 }
 
 // SVEIntCompareSignedImm.
