@@ -34,7 +34,6 @@ import multiprocessing
 import os
 from os.path import join
 import platform
-import re
 import subprocess
 import sys
 import time
@@ -144,6 +143,8 @@ def BuildOptions():
                                  help='''Don't actually build or run anything,
                                  but print the configurations that would be
                                  tested.''')
+  general_arguments.add_argument('--verbose', action='store_true',
+                                 help='''Print extra information.''')
   general_arguments.add_argument(
     '--jobs', '-j', metavar='N', type=int, nargs='?',
     default=multiprocessing.cpu_count(),
@@ -429,7 +430,7 @@ if __name__ == '__main__':
       if not args.nobench:
         rc.Combine(RunBenchmarks(options, args))
 
-  rc.Combine(tests.Run(args.jobs))
+  rc.Combine(tests.Run(args.jobs, args.verbose))
   if not args.dry_run:
     rc.PrintStatus()
 
