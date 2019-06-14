@@ -1956,6 +1956,180 @@ TEST(sve_int_compare_count_and_limit_scalars) {
   }
 }
 
+TEST(sve_int_compare_vectors_signed_imm) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int z13_inputs[] = {0, 1, -1, -15, 126, -127, -126, -15};
+  int mask_inputs1[] = {1, 1, 1, 0, 1, 1, 1, 1};
+  InsrHelper(&masm, z13.VnB(), z13_inputs);
+  Initialise(&masm, p0.VnB(), mask_inputs1);
+
+  __ Cmpeq(p2.VnB(), p0.Zeroing(), z13.VnB(), -15);
+  __ Mrs(x2, NZCV);
+  __ Cmpeq(p3.VnB(), p0.Zeroing(), z13.VnB(), -127);
+
+  int z14_inputs[] = {0, 1, -1, -32767, -32766, 32767, 32766, 0};
+  int mask_inputs2[] = {1, 1, 1, 0, 1, 1, 1, 1};
+  InsrHelper(&masm, z14.VnH(), z14_inputs);
+  Initialise(&masm, p0.VnH(), mask_inputs2);
+
+  __ Cmpge(p4.VnH(), p0.Zeroing(), z14.VnH(), -1);
+  __ Mrs(x4, NZCV);
+  __ Cmpge(p5.VnH(), p0.Zeroing(), z14.VnH(), -32767);
+
+  int z15_inputs[] = {0, 1, -1, INT_MIN};
+  int mask_inputs3[] = {0, 1, 1, 1};
+  InsrHelper(&masm, z15.VnS(), z15_inputs);
+  Initialise(&masm, p0.VnS(), mask_inputs3);
+
+  __ Cmpgt(p6.VnS(), p0.Zeroing(), z15.VnS(), 0);
+  __ Mrs(x6, NZCV);
+  __ Cmpgt(p7.VnS(), p0.Zeroing(), z15.VnS(), INT_MIN + 1);
+
+  __ Cmplt(p8.VnS(), p0.Zeroing(), z15.VnS(), 0);
+  __ Mrs(x8, NZCV);
+  __ Cmplt(p9.VnS(), p0.Zeroing(), z15.VnS(), INT_MIN + 1);
+
+  int64_t z16_inputs[] = {0, -1};
+  int mask_inputs4[] = {1, 1};
+  InsrHelper(&masm, z16.VnD(), z16_inputs);
+  Initialise(&masm, p0.VnD(), mask_inputs4);
+
+  __ Cmple(p10.VnD(), p0.Zeroing(), z16.VnD(), -1);
+  __ Mrs(x10, NZCV);
+  __ Cmple(p11.VnD(), p0.Zeroing(), z16.VnD(), LLONG_MIN);
+
+  __ Cmpne(p12.VnD(), p0.Zeroing(), z16.VnD(), -1);
+  __ Mrs(x12, NZCV);
+  __ Cmpne(p13.VnD(), p0.Zeroing(), z16.VnD(), LLONG_MAX);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int p2_expected[] = {0, 0, 0, 0, 0, 0, 0, 1};
+    ASSERT_EQUAL_SVE(p2_expected, p2.VnB());
+
+    int p3_expected[] = {0, 0, 0, 0, 0, 1, 0, 0};
+    ASSERT_EQUAL_SVE(p3_expected, p3.VnB());
+
+    int p4_expected[] = {0x1, 0x1, 0x1, 0x0, 0x0, 0x1, 0x1, 0x1};
+    ASSERT_EQUAL_SVE(p4_expected, p4.VnH());
+
+    int p5_expected[] = {0x1, 0x1, 0x1, 0x0, 0x1, 0x1, 0x1, 0x1};
+    ASSERT_EQUAL_SVE(p5_expected, p5.VnH());
+
+    int p6_expected[] = {0x0, 0x1, 0x0, 0x0};
+    ASSERT_EQUAL_SVE(p6_expected, p6.VnS());
+
+    int p7_expected[] = {0x0, 0x1, 0x1, 0x0};
+    ASSERT_EQUAL_SVE(p7_expected, p7.VnS());
+
+    int p8_expected[] = {0x0, 0x0, 0x1, 0x1};
+    ASSERT_EQUAL_SVE(p8_expected, p8.VnS());
+
+    int p9_expected[] = {0x0, 0x0, 0x0, 0x1};
+    ASSERT_EQUAL_SVE(p9_expected, p9.VnS());
+
+    int p10_expected[] = {0x00, 0x01};
+    ASSERT_EQUAL_SVE(p10_expected, p10.VnD());
+
+    int p11_expected[] = {0x00, 0x00};
+    ASSERT_EQUAL_SVE(p11_expected, p11.VnD());
+
+    int p12_expected[] = {0x01, 0x00};
+    ASSERT_EQUAL_SVE(p12_expected, p12.VnD());
+
+    int p13_expected[] = {0x01, 0x01};
+    ASSERT_EQUAL_SVE(p13_expected, p13.VnD());
+
+    ASSERT_EQUAL_32(SVENotLastFlag | SVEFirstFlag, w2);
+    ASSERT_EQUAL_32(SVEFirstFlag, w4);
+    ASSERT_EQUAL_32(NoFlag, w6);
+    ASSERT_EQUAL_32(SVENotLastFlag | SVEFirstFlag, w8);
+    ASSERT_EQUAL_32(SVENotLastFlag | SVEFirstFlag, w10);
+    ASSERT_EQUAL_32(NoFlag, w12);
+  }
+}
+
+TEST(sve_int_compare_vectors_unsigned_imm) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint32_t src1_inputs[] = {0xf7, 0x0f, 0x8f, 0x1f, 0x83, 0x12, 0x00, 0xf1};
+  int mask_inputs1[] = {1, 1, 1, 0, 1, 1, 0, 1};
+  InsrHelper(&masm, z13.VnB(), src1_inputs);
+  Initialise(&masm, p0.VnB(), mask_inputs1);
+
+  __ Cmphi(p2.VnB(), p0.Zeroing(), z13.VnB(), 0x0f);
+  __ Mrs(x2, NZCV);
+  __ Cmphi(p3.VnB(), p0.Zeroing(), z13.VnB(), 0xf0);
+
+  uint32_t src2_inputs[] = {0xffff, 0x8000, 0x1fff, 0x0000, 0x1234};
+  int mask_inputs2[] = {1, 1, 1, 1, 0};
+  InsrHelper(&masm, z13.VnH(), src2_inputs);
+  Initialise(&masm, p0.VnH(), mask_inputs2);
+
+  __ Cmphs(p4.VnH(), p0.Zeroing(), z13.VnH(), 0x1f);
+  __ Mrs(x4, NZCV);
+  __ Cmphs(p5.VnH(), p0.Zeroing(), z13.VnH(), 0x1fff);
+
+  uint32_t src3_inputs[] = {0xffffffff, 0xfedcba98, 0x0000ffff, 0x00000000};
+  int mask_inputs3[] = {1, 1, 1, 1};
+  InsrHelper(&masm, z13.VnS(), src3_inputs);
+  Initialise(&masm, p0.VnS(), mask_inputs3);
+
+  __ Cmplo(p6.VnS(), p0.Zeroing(), z13.VnS(), 0x3f);
+  __ Mrs(x6, NZCV);
+  __ Cmplo(p7.VnS(), p0.Zeroing(), z13.VnS(), 0x3f3f3f3f);
+
+  uint64_t src4_inputs[] = {0xffffffffffffffff, 0x0000000000000000};
+  int mask_inputs4[] = {1, 1};
+  InsrHelper(&masm, z13.VnD(), src4_inputs);
+  Initialise(&masm, p0.VnD(), mask_inputs4);
+
+  __ Cmpls(p8.VnD(), p0.Zeroing(), z13.VnD(), 0x2f);
+  __ Mrs(x8, NZCV);
+  __ Cmpls(p9.VnD(), p0.Zeroing(), z13.VnD(), 0x800000000000000);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int p2_expected[] = {1, 0, 1, 0, 1, 1, 0, 1};
+    ASSERT_EQUAL_SVE(p2_expected, p2.VnB());
+
+    int p3_expected[] = {1, 0, 0, 0, 0, 0, 0, 1};
+    ASSERT_EQUAL_SVE(p3_expected, p3.VnB());
+
+    int p4_expected[] = {0x1, 0x1, 0x1, 0x0, 0x0};
+    ASSERT_EQUAL_SVE(p4_expected, p4.VnH());
+
+    int p5_expected[] = {0x1, 0x1, 0x1, 0x0, 0x0};
+    ASSERT_EQUAL_SVE(p5_expected, p5.VnH());
+
+    int p6_expected[] = {0x0, 0x0, 0x0, 0x1};
+    ASSERT_EQUAL_SVE(p6_expected, p6.VnS());
+
+    int p7_expected[] = {0x0, 0x0, 0x1, 0x1};
+    ASSERT_EQUAL_SVE(p7_expected, p7.VnS());
+
+    int p8_expected[] = {0x00, 0x01};
+    ASSERT_EQUAL_SVE(p8_expected, p8.VnD());
+
+    int p9_expected[] = {0x00, 0x01};
+    ASSERT_EQUAL_SVE(p9_expected, p9.VnD());
+
+    ASSERT_EQUAL_32(SVEFirstFlag, w2);
+    ASSERT_EQUAL_32(NoFlag, w4);
+    ASSERT_EQUAL_32(SVENotLastFlag | SVEFirstFlag, w6);
+    ASSERT_EQUAL_32(SVENotLastFlag | SVEFirstFlag, w8);
+  }
+}
+
 TEST(sve_int_compare_conditionally_terminate_scalars) {
   SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();

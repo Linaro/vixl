@@ -2947,6 +2947,73 @@ void Assembler::whilelt(const PRegisterWithLaneSize& pd,
   Emit(WHILELT_p_p_rr | SVESize(pd) | sf | Pd(pd) | Rn(rn) | Rm(rm));
 }
 
+void Assembler::CompareVectors(const PRegisterWithLaneSize& pd,
+                               const PRegisterZ& pg,
+                               const ZRegister& zn,
+                               const ZRegister& zm,
+                               SVEIntCompareVectorsOp op) {
+  Emit(op | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
+}
+
+void Assembler::CompareVectors(const PRegisterWithLaneSize& pd,
+                               const PRegisterZ& pg,
+                               const ZRegister& zn,
+                               int imm,
+                               SVEIntCompareSignedImmOp op) {
+  Emit(op | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) |
+       ImmField<20, 16>(imm));
+}
+
+void Assembler::CompareVectors(const PRegisterWithLaneSize& pd,
+                               const PRegisterZ& pg,
+                               const ZRegister& zn,
+                               unsigned imm,
+                               SVEIntCompareUnsignedImmOp op) {
+  Emit(op | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) |
+       ImmUnsignedField<20, 14>(imm));
+}
+
+void Assembler::cmp(Condition cond,
+                    const PRegisterWithLaneSize& pd,
+                    const PRegisterZ& pg,
+                    const ZRegister& zn,
+                    const ZRegister& zm) {
+  switch (cond) {
+    case eq:
+      cmpeq(pd, pg, zn, zm);
+      break;
+    case ge:
+      cmpge(pd, pg, zn, zm);
+      break;
+    case gt:
+      cmpgt(pd, pg, zn, zm);
+      break;
+    case le:
+      cmple(pd, pg, zn, zm);
+      break;
+    case lt:
+      cmplt(pd, pg, zn, zm);
+      break;
+    case ne:
+      cmpne(pd, pg, zn, zm);
+      break;
+    case hi:
+      cmphi(pd, pg, zn, zm);
+      break;
+    case hs:
+      cmphs(pd, pg, zn, zm);
+      break;
+    case lo:
+      cmplo(pd, pg, zn, zm);
+      break;
+    case ls:
+      cmpls(pd, pg, zn, zm);
+      break;
+    default:
+      VIXL_UNREACHABLE();
+  }
+}
+
 // SVEIntCompareSignedImm.
 
 void Assembler::cmpeq(const PRegisterWithLaneSize& pd,
@@ -2959,9 +3026,9 @@ void Assembler::cmpeq(const PRegisterWithLaneSize& pd,
   //  | ne<4> = 0 | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
 
-  Emit(CMPEQ_p_p_zi | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+  CompareVectors(pd, pg, zn, imm5, CMPEQ_p_p_zi);
 }
 
 void Assembler::cmpge(const PRegisterWithLaneSize& pd,
@@ -2974,9 +3041,9 @@ void Assembler::cmpge(const PRegisterWithLaneSize& pd,
   //  | ne<4> = 0 | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
 
-  Emit(CMPGE_p_p_zi | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+  CompareVectors(pd, pg, zn, imm5, CMPGE_p_p_zi);
 }
 
 void Assembler::cmpgt(const PRegisterWithLaneSize& pd,
@@ -2989,9 +3056,9 @@ void Assembler::cmpgt(const PRegisterWithLaneSize& pd,
   //  | ne<4> = 1 | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
 
-  Emit(CMPGT_p_p_zi | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+  CompareVectors(pd, pg, zn, imm5, CMPGT_p_p_zi);
 }
 
 void Assembler::cmple(const PRegisterWithLaneSize& pd,
@@ -3004,9 +3071,9 @@ void Assembler::cmple(const PRegisterWithLaneSize& pd,
   //  | ne<4> = 1 | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
 
-  Emit(CMPLE_p_p_zi | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+  CompareVectors(pd, pg, zn, imm5, CMPLE_p_p_zi);
 }
 
 void Assembler::cmplt(const PRegisterWithLaneSize& pd,
@@ -3019,9 +3086,9 @@ void Assembler::cmplt(const PRegisterWithLaneSize& pd,
   //  | ne<4> = 0 | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
 
-  Emit(CMPLT_p_p_zi | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+  CompareVectors(pd, pg, zn, imm5, CMPLT_p_p_zi);
 }
 
 void Assembler::cmpne(const PRegisterWithLaneSize& pd,
@@ -3034,9 +3101,9 @@ void Assembler::cmpne(const PRegisterWithLaneSize& pd,
   //  | ne<4> = 1 | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
 
-  Emit(CMPNE_p_p_zi | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+  CompareVectors(pd, pg, zn, imm5, CMPNE_p_p_zi);
 }
 
 // SVEIntCompareUnsignedImm.
@@ -3044,71 +3111,64 @@ void Assembler::cmpne(const PRegisterWithLaneSize& pd,
 void Assembler::cmphi(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
-                      int imm7) {
+                      unsigned imm7) {
   // CMPHI <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
   //  0010 0100 ..1. .... ..0. .... ...1 ....
   //  size<23:22> | imm7<20:14> | lt<13> = 0 | Pg<12:10> | Zn<9:5> | ne<4> = 1 |
   //  Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
 
-  Emit(CMPHI_p_p_zi | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 14>(imm7));
+  CompareVectors(pd, pg, zn, imm7, CMPHI_p_p_zi);
 }
 
 void Assembler::cmphs(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
-                      int imm7) {
+                      unsigned imm7) {
   // CMPHS <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
   //  0010 0100 ..1. .... ..0. .... ...0 ....
   //  size<23:22> | imm7<20:14> | lt<13> = 0 | Pg<12:10> | Zn<9:5> | ne<4> = 0 |
   //  Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
 
-  Emit(CMPHS_p_p_zi | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 14>(imm7));
+  CompareVectors(pd, pg, zn, imm7, CMPHS_p_p_zi);
 }
 
 void Assembler::cmplo(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
-                      int imm7) {
+                      unsigned imm7) {
   // CMPLO <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
   //  0010 0100 ..1. .... ..1. .... ...0 ....
   //  size<23:22> | imm7<20:14> | lt<13> = 1 | Pg<12:10> | Zn<9:5> | ne<4> = 0 |
   //  Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
 
-  Emit(CMPLO_p_p_zi | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 14>(imm7));
+  CompareVectors(pd, pg, zn, imm7, CMPLO_p_p_zi);
 }
 
 void Assembler::cmpls(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const ZRegister& zn,
-                      int imm7) {
+                      unsigned imm7) {
   // CMPLS <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
   //  0010 0100 ..1. .... ..1. .... ...1 ....
   //  size<23:22> | imm7<20:14> | lt<13> = 1 | Pg<12:10> | Zn<9:5> | ne<4> = 1 |
   //  Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn));
 
-  Emit(CMPLS_p_p_zi | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 14>(imm7));
+  CompareVectors(pd, pg, zn, imm7, CMPLS_p_p_zi);
 }
 
 // SVEIntCompareVectors.
-void Assembler::CompareVectors(const PRegisterWithLaneSize& pd,
-                               const PRegisterZ& pg,
-                               const ZRegister& zn,
-                               const ZRegister& zm,
-                               SVEIntCompareVectorsOp op) {
-  Emit(op | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn) | Rm(zm));
-}
 
 // This prototype maps to 2 instruction encodings:
 //  CMPEQ_p_p_zw

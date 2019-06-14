@@ -6365,30 +6365,24 @@ void Disassembler::VisitSVEIntCompareScalars(const Instruction *instr) {
 void Disassembler::VisitSVEIntCompareSignedImm(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   // <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
-  const char *form = "'Pd.'t, p'u1210/z, 'Zn.'t, #'u2016";
+  const char *form = "'Pd.'t, p'u1210/z, 'Zn.'t, #'s2016";
 
   switch (instr->Mask(SVEIntCompareSignedImmMask)) {
-    // CMPEQ <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
     case CMPEQ_p_p_zi:
       mnemonic = "cmpeq";
       break;
-    // CMPGE <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
     case CMPGE_p_p_zi:
       mnemonic = "cmpge";
       break;
-    // CMPGT <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
     case CMPGT_p_p_zi:
       mnemonic = "cmpgt";
       break;
-    // CMPLE <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
     case CMPLE_p_p_zi:
       mnemonic = "cmple";
       break;
-    // CMPLT <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
     case CMPLT_p_p_zi:
       mnemonic = "cmplt";
       break;
-    // CMPNE <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
     case CMPNE_p_p_zi:
       mnemonic = "cmpne";
       break;
@@ -6404,19 +6398,15 @@ void Disassembler::VisitSVEIntCompareUnsignedImm(const Instruction *instr) {
   const char *form = "'Pd.'t, p'u1210/z, 'Zn.'t, #'u2014";
 
   switch (instr->Mask(SVEIntCompareUnsignedImmMask)) {
-    // CMPHI <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
     case CMPHI_p_p_zi:
       mnemonic = "cmphi";
       break;
-    // CMPHS <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
     case CMPHS_p_p_zi:
       mnemonic = "cmphs";
       break;
-    // CMPLO <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
     case CMPLO_p_p_zi:
       mnemonic = "cmplo";
       break;
-    // CMPLS <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>
     case CMPLS_p_p_zi:
       mnemonic = "cmpls";
       break;

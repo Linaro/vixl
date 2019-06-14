@@ -3680,10 +3680,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Cmpeq(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm5) {
+             IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cmpeq(pd, pg, zn, imm5);
+    int imm5;
+    if (imm.TryEncodeAsIntNForLane<5>(zn, &imm5)) {
+      SingleEmissionCheckScope guard(this);
+      cmpeq(pd, pg, zn, imm5);
+    } else {
+      CompareHelper(eq, pd, pg, zn, imm);
+    }
   }
   void Cmpge(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -3696,10 +3701,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Cmpge(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm5) {
+             IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cmpge(pd, pg, zn, imm5);
+    int imm5;
+    if (imm.TryEncodeAsIntNForLane<5>(zn, &imm5)) {
+      SingleEmissionCheckScope guard(this);
+      cmpge(pd, pg, zn, imm5);
+    } else {
+      CompareHelper(ge, pd, pg, zn, imm);
+    }
   }
   void Cmpgt(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -3712,10 +3722,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Cmpgt(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm5) {
+             IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cmpgt(pd, pg, zn, imm5);
+    int imm5;
+    if (imm.TryEncodeAsIntNForLane<5>(zn, &imm5)) {
+      SingleEmissionCheckScope guard(this);
+      cmpgt(pd, pg, zn, imm5);
+    } else {
+      CompareHelper(gt, pd, pg, zn, imm);
+    }
   }
   void Cmphi(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -3728,10 +3743,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Cmphi(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm7) {
+             IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cmphi(pd, pg, zn, imm7);
+    if (imm.IsUintN(7)) {
+      SingleEmissionCheckScope guard(this);
+      cmphi(pd, pg, zn, static_cast<unsigned>(imm.AsUintN(7)));
+    } else {
+      CompareHelper(hi, pd, pg, zn, imm);
+    }
   }
   void Cmphs(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -3744,10 +3763,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Cmphs(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm7) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cmphs(pd, pg, zn, imm7);
+             IntegerOperand imm) {
+    if (imm.IsUintN(7)) {
+      SingleEmissionCheckScope guard(this);
+      cmphs(pd, pg, zn, static_cast<unsigned>(imm.AsUintN(7)));
+    } else {
+      CompareHelper(hs, pd, pg, zn, imm);
+    }
   }
   void Cmple(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -3760,10 +3782,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Cmple(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm5) {
+             IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cmple(pd, pg, zn, imm5);
+    int imm5;
+    if (imm.TryEncodeAsIntNForLane<5>(zn, &imm5)) {
+      SingleEmissionCheckScope guard(this);
+      cmple(pd, pg, zn, imm5);
+    } else {
+      CompareHelper(le, pd, pg, zn, imm);
+    }
   }
   void Cmplo(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -3776,10 +3803,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Cmplo(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm7) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cmplo(pd, pg, zn, imm7);
+             IntegerOperand imm) {
+    if (imm.IsUintN(7)) {
+      SingleEmissionCheckScope guard(this);
+      cmplo(pd, pg, zn, static_cast<unsigned>(imm.AsUintN(7)));
+    } else {
+      CompareHelper(lo, pd, pg, zn, imm);
+    }
   }
   void Cmpls(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -3792,10 +3822,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Cmpls(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm7) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cmpls(pd, pg, zn, imm7);
+             IntegerOperand imm) {
+    if (imm.IsUintN(7)) {
+      SingleEmissionCheckScope guard(this);
+      cmpls(pd, pg, zn, static_cast<unsigned>(imm.AsUintN(7)));
+    } else {
+      CompareHelper(ls, pd, pg, zn, imm);
+    }
   }
   void Cmplt(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -3808,10 +3841,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Cmplt(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm5) {
+             IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cmplt(pd, pg, zn, imm5);
+    int imm5;
+    if (imm.TryEncodeAsIntNForLane<5>(zn, &imm5)) {
+      SingleEmissionCheckScope guard(this);
+      cmplt(pd, pg, zn, imm5);
+    } else {
+      CompareHelper(lt, pd, pg, zn, imm);
+    }
   }
   void Cmpne(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -3824,10 +3862,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Cmpne(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm5) {
+             IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cmpne(pd, pg, zn, imm5);
+    int imm5;
+    if (imm.TryEncodeAsIntNForLane<5>(zn, &imm5)) {
+      SingleEmissionCheckScope guard(this);
+      cmpne(pd, pg, zn, imm5);
+    } else {
+      CompareHelper(ne, pd, pg, zn, imm);
+    }
   }
   void Cnot(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -7346,6 +7389,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   void ConfigureSimulatorCPUFeaturesHelper(const CPUFeatures& features,
                                            DebugHltOpcode action);
+
+  void CompareHelper(Condition cond,
+                     const PRegisterWithLaneSize& pd,
+                     const PRegisterZ& pg,
+                     const ZRegister& zn,
+                     IntegerOperand imm);
 
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number

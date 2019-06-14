@@ -3567,7 +3567,7 @@ class Simulator : public DecoderVisitor {
                                             const LogicPRegister& mask,
                                             const LogicVRegister& src1,
                                             const LogicVRegister& src2,
-                                            bool is_wide_elements);
+                                            bool is_wide_elements = false);
 
   int CountActiveLanes(VectorFormat vform, const SimPRegister& pn);
 

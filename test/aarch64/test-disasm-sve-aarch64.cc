@@ -951,32 +951,54 @@ TEST(sve_int_compare_scalars) {
 TEST(sve_int_compare_signed_imm) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(cmpeq(p0.VnB(), p3.Zeroing(), z1.VnB(), int imm5), "cmpeq <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpeq(p0.VnH(), p3.Zeroing(), z1.VnH(), int imm5), "cmpeq <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpeq(p0.VnS(), p3.Zeroing(), z1.VnS(), int imm5), "cmpeq <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpeq(p0.VnD(), p3.Zeroing(), z1.VnD(), int imm5), "cmpeq <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpge(p9.VnB(), p6.Zeroing(), z12.VnB(), int imm5), "cmpge <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpge(p9.VnH(), p6.Zeroing(), z12.VnH(), int imm5), "cmpge <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpge(p9.VnS(), p6.Zeroing(), z12.VnS(), int imm5), "cmpge <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpge(p9.VnD(), p6.Zeroing(), z12.VnD(), int imm5), "cmpge <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpgt(p15.VnB(), p4.Zeroing(), z23.VnB(), int imm5), "cmpgt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpgt(p15.VnH(), p4.Zeroing(), z23.VnH(), int imm5), "cmpgt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpgt(p15.VnS(), p4.Zeroing(), z23.VnS(), int imm5), "cmpgt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpgt(p15.VnD(), p4.Zeroing(), z23.VnD(), int imm5), "cmpgt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmple(p4.VnB(), p3.Zeroing(), z5.VnB(), int imm5), "cmple <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmple(p4.VnH(), p3.Zeroing(), z5.VnH(), int imm5), "cmple <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmple(p4.VnS(), p3.Zeroing(), z5.VnS(), int imm5), "cmple <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmple(p4.VnD(), p3.Zeroing(), z5.VnD(), int imm5), "cmple <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmplt(p3.VnB(), p7.Zeroing(), z15.VnB(), int imm5), "cmplt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmplt(p3.VnH(), p7.Zeroing(), z15.VnH(), int imm5), "cmplt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmplt(p3.VnS(), p7.Zeroing(), z15.VnS(), int imm5), "cmplt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmplt(p3.VnD(), p7.Zeroing(), z15.VnD(), int imm5), "cmplt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpne(p13.VnB(), p5.Zeroing(), z20.VnB(), int imm5), "cmpne <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpne(p13.VnH(), p5.Zeroing(), z20.VnH(), int imm5), "cmpne <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpne(p13.VnS(), p5.Zeroing(), z20.VnS(), int imm5), "cmpne <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpne(p13.VnD(), p5.Zeroing(), z20.VnD(), int imm5), "cmpne <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-#endif
+  COMPARE_PREFIX(cmpeq(p0.VnB(), p3.Zeroing(), z1.VnB(), 15),
+                 "cmpeq p0.b, p3/z, z1.b, #15");
+  COMPARE_PREFIX(cmpeq(p0.VnH(), p3.Zeroing(), z1.VnH(), 7),
+                 "cmpeq p0.h, p3/z, z1.h, #7");
+  COMPARE_PREFIX(cmpeq(p0.VnS(), p3.Zeroing(), z1.VnS(), -3),
+                 "cmpeq p0.s, p3/z, z1.s, #-3");
+  COMPARE_PREFIX(cmpeq(p0.VnD(), p3.Zeroing(), z1.VnD(), -14),
+                 "cmpeq p0.d, p3/z, z1.d, #-14");
+  COMPARE_PREFIX(cmpge(p9.VnB(), p6.Zeroing(), z12.VnB(), 14),
+                 "cmpge p9.b, p6/z, z12.b, #14");
+  COMPARE_PREFIX(cmpge(p9.VnH(), p6.Zeroing(), z12.VnH(), 6),
+                 "cmpge p9.h, p6/z, z12.h, #6");
+  COMPARE_PREFIX(cmpge(p9.VnS(), p6.Zeroing(), z12.VnS(), -4),
+                 "cmpge p9.s, p6/z, z12.s, #-4");
+  COMPARE_PREFIX(cmpge(p9.VnD(), p6.Zeroing(), z12.VnD(), -13),
+                 "cmpge p9.d, p6/z, z12.d, #-13");
+  COMPARE_PREFIX(cmpgt(p15.VnB(), p4.Zeroing(), z23.VnB(), 13),
+                 "cmpgt p15.b, p4/z, z23.b, #13");
+  COMPARE_PREFIX(cmpgt(p15.VnH(), p4.Zeroing(), z23.VnH(), 5),
+                 "cmpgt p15.h, p4/z, z23.h, #5");
+  COMPARE_PREFIX(cmpgt(p15.VnS(), p4.Zeroing(), z23.VnS(), -12),
+                 "cmpgt p15.s, p4/z, z23.s, #-12");
+  COMPARE_PREFIX(cmpgt(p15.VnD(), p4.Zeroing(), z23.VnD(), -5),
+                 "cmpgt p15.d, p4/z, z23.d, #-5");
+  COMPARE_PREFIX(cmple(p4.VnB(), p3.Zeroing(), z5.VnB(), 12),
+                 "cmple p4.b, p3/z, z5.b, #12");
+  COMPARE_PREFIX(cmple(p4.VnH(), p3.Zeroing(), z5.VnH(), 4),
+                 "cmple p4.h, p3/z, z5.h, #4");
+  COMPARE_PREFIX(cmple(p4.VnS(), p3.Zeroing(), z5.VnS(), -11),
+                 "cmple p4.s, p3/z, z5.s, #-11");
+  COMPARE_PREFIX(cmple(p4.VnD(), p3.Zeroing(), z5.VnD(), -6),
+                 "cmple p4.d, p3/z, z5.d, #-6");
+  COMPARE_PREFIX(cmplt(p3.VnB(), p7.Zeroing(), z15.VnB(), 11),
+                 "cmplt p3.b, p7/z, z15.b, #11");
+  COMPARE_PREFIX(cmplt(p3.VnH(), p7.Zeroing(), z15.VnH(), 3),
+                 "cmplt p3.h, p7/z, z15.h, #3");
+  COMPARE_PREFIX(cmplt(p3.VnS(), p7.Zeroing(), z15.VnS(), -10),
+                 "cmplt p3.s, p7/z, z15.s, #-10");
+  COMPARE_PREFIX(cmplt(p3.VnD(), p7.Zeroing(), z15.VnD(), -7),
+                 "cmplt p3.d, p7/z, z15.d, #-7");
+  COMPARE_PREFIX(cmpne(p13.VnB(), p5.Zeroing(), z20.VnB(), 10),
+                 "cmpne p13.b, p5/z, z20.b, #10");
+  COMPARE_PREFIX(cmpne(p13.VnH(), p5.Zeroing(), z20.VnH(), 2),
+                 "cmpne p13.h, p5/z, z20.h, #2");
+  COMPARE_PREFIX(cmpne(p13.VnS(), p5.Zeroing(), z20.VnS(), -9),
+                 "cmpne p13.s, p5/z, z20.s, #-9");
+  COMPARE_PREFIX(cmpne(p13.VnD(), p5.Zeroing(), z20.VnD(), -8),
+                 "cmpne p13.d, p5/z, z20.d, #-8");
 
   CLEANUP();
 }
@@ -984,24 +1006,38 @@ TEST(sve_int_compare_signed_imm) {
 TEST(sve_int_compare_unsigned_imm) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(cmphi(p8.VnB(), p6.Zeroing(), z1.VnB(), int imm7), "cmphi <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmphi(p8.VnH(), p6.Zeroing(), z1.VnH(), int imm7), "cmphi <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmphi(p8.VnS(), p6.Zeroing(), z1.VnS(), int imm7), "cmphi <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmphi(p8.VnD(), p6.Zeroing(), z1.VnD(), int imm7), "cmphi <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmphs(p11.VnB(), p2.Zeroing(), z8.VnB(), int imm7), "cmphs <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmphs(p11.VnH(), p2.Zeroing(), z8.VnH(), int imm7), "cmphs <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmphs(p11.VnS(), p2.Zeroing(), z8.VnS(), int imm7), "cmphs <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmphs(p11.VnD(), p2.Zeroing(), z8.VnD(), int imm7), "cmphs <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmplo(p9.VnB(), p4.Zeroing(), z4.VnB(), int imm7), "cmplo <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmplo(p9.VnH(), p4.Zeroing(), z4.VnH(), int imm7), "cmplo <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmplo(p9.VnS(), p4.Zeroing(), z4.VnS(), int imm7), "cmplo <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmplo(p9.VnD(), p4.Zeroing(), z4.VnD(), int imm7), "cmplo <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpls(p14.VnB(), p4.Zeroing(), z9.VnB(), int imm7), "cmpls <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpls(p14.VnH(), p4.Zeroing(), z9.VnH(), int imm7), "cmpls <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpls(p14.VnS(), p4.Zeroing(), z9.VnS(), int imm7), "cmpls <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-  COMPARE_PREFIX(cmpls(p14.VnD(), p4.Zeroing(), z9.VnD(), int imm7), "cmpls <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #<imm>");
-#endif
+  COMPARE_PREFIX(cmphi(p8.VnB(), p6.Zeroing(), z1.VnB(), 127),
+                 "cmphi p8.b, p6/z, z1.b, #127");
+  COMPARE_PREFIX(cmphi(p8.VnH(), p6.Zeroing(), z1.VnH(), 126),
+                 "cmphi p8.h, p6/z, z1.h, #126");
+  COMPARE_PREFIX(cmphi(p8.VnS(), p6.Zeroing(), z1.VnS(), 99),
+                 "cmphi p8.s, p6/z, z1.s, #99");
+  COMPARE_PREFIX(cmphi(p8.VnD(), p6.Zeroing(), z1.VnD(), 78),
+                 "cmphi p8.d, p6/z, z1.d, #78");
+  COMPARE_PREFIX(cmphs(p11.VnB(), p2.Zeroing(), z8.VnB(), 67),
+                 "cmphs p11.b, p2/z, z8.b, #67");
+  COMPARE_PREFIX(cmphs(p11.VnH(), p2.Zeroing(), z8.VnH(), 63),
+                 "cmphs p11.h, p2/z, z8.h, #63");
+  COMPARE_PREFIX(cmphs(p11.VnS(), p2.Zeroing(), z8.VnS(), 51),
+                 "cmphs p11.s, p2/z, z8.s, #51");
+  COMPARE_PREFIX(cmphs(p11.VnD(), p2.Zeroing(), z8.VnD(), 40),
+                 "cmphs p11.d, p2/z, z8.d, #40");
+  COMPARE_PREFIX(cmplo(p9.VnB(), p4.Zeroing(), z4.VnB(), 32),
+                 "cmplo p9.b, p4/z, z4.b, #32");
+  COMPARE_PREFIX(cmplo(p9.VnH(), p4.Zeroing(), z4.VnH(), 22),
+                 "cmplo p9.h, p4/z, z4.h, #22");
+  COMPARE_PREFIX(cmplo(p9.VnS(), p4.Zeroing(), z4.VnS(), 15),
+                 "cmplo p9.s, p4/z, z4.s, #15");
+  COMPARE_PREFIX(cmplo(p9.VnD(), p4.Zeroing(), z4.VnD(), 11),
+                 "cmplo p9.d, p4/z, z4.d, #11");
+  COMPARE_PREFIX(cmpls(p14.VnB(), p5.Zeroing(), z9.VnB(), 7),
+                 "cmpls p14.b, p5/z, z9.b, #7");
+  COMPARE_PREFIX(cmpls(p14.VnH(), p5.Zeroing(), z9.VnH(), 4),
+                 "cmpls p14.h, p5/z, z9.h, #4");
+  COMPARE_PREFIX(cmpls(p14.VnS(), p5.Zeroing(), z9.VnS(), 3),
+                 "cmpls p14.s, p5/z, z9.s, #3");
+  COMPARE_PREFIX(cmpls(p14.VnD(), p5.Zeroing(), z9.VnD(), 1),
+                 "cmpls p14.d, p5/z, z9.d, #1");
 
   CLEANUP();
 }

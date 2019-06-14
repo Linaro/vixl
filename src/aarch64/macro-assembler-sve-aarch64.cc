@@ -185,5 +185,17 @@ void MacroAssembler::Mls(const ZRegister& zd,
   }
 }
 
+void MacroAssembler::CompareHelper(Condition cond,
+                                   const PRegisterWithLaneSize& pd,
+                                   const PRegisterZ& pg,
+                                   const ZRegister& zn,
+                                   IntegerOperand imm) {
+  UseScratchRegisterScope temps(this);
+  ZRegister zm = temps.AcquireZ().WithLaneSize(zn.GetLaneSizeInBits());
+  Dup(zm, imm);
+  SingleEmissionCheckScope guard(this);
+  cmp(cond, pd, pg, zn, zm);
+}
+
 }  // namespace aarch64
 }  // namespace vixl

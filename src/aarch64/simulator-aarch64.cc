@@ -8100,50 +8100,86 @@ void Simulator::VisitSVEIntCompareScalars(const Instruction* instr) {
 
 void Simulator::VisitSVEIntCompareSignedImm(const Instruction* instr) {
   USE(instr);
+  bool commute_inputs = false;
+  Condition cond;
   switch (instr->Mask(SVEIntCompareSignedImmMask)) {
     case CMPEQ_p_p_zi:
-      VIXL_UNIMPLEMENTED();
+      cond = eq;
       break;
     case CMPGE_p_p_zi:
-      VIXL_UNIMPLEMENTED();
+      cond = ge;
       break;
     case CMPGT_p_p_zi:
-      VIXL_UNIMPLEMENTED();
+      cond = gt;
       break;
     case CMPLE_p_p_zi:
-      VIXL_UNIMPLEMENTED();
+      cond = ge;
+      commute_inputs = true;
       break;
     case CMPLT_p_p_zi:
-      VIXL_UNIMPLEMENTED();
+      cond = gt;
+      commute_inputs = true;
       break;
     case CMPNE_p_p_zi:
-      VIXL_UNIMPLEMENTED();
+      cond = ne;
       break;
     default:
+      cond = al;
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister src2;
+  dup_immediate(vform,
+                src2,
+                ExtractSignedBitfield64(4, 0, instr->ExtractBits(20, 16)));
+  SVEIntCompareVectorsHelper(cond,
+                             vform,
+                             ReadPRegister(instr->GetPd()),
+                             ReadPRegister(instr->GetPgLow8()),
+                             commute_inputs ? src2
+                                            : ReadVRegister(instr->GetRn()),
+                             commute_inputs ? ReadVRegister(instr->GetRn())
+                                            : src2);
 }
 
 void Simulator::VisitSVEIntCompareUnsignedImm(const Instruction* instr) {
   USE(instr);
+  bool commute_inputs = false;
+  Condition cond;
   switch (instr->Mask(SVEIntCompareUnsignedImmMask)) {
     case CMPHI_p_p_zi:
-      VIXL_UNIMPLEMENTED();
+      cond = hi;
       break;
     case CMPHS_p_p_zi:
-      VIXL_UNIMPLEMENTED();
+      cond = hs;
       break;
     case CMPLO_p_p_zi:
-      VIXL_UNIMPLEMENTED();
+      cond = hi;
+      commute_inputs = true;
       break;
     case CMPLS_p_p_zi:
-      VIXL_UNIMPLEMENTED();
+      cond = hs;
+      commute_inputs = true;
       break;
     default:
+      cond = al;
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister src2;
+  dup_immediate(vform, src2, instr->ExtractBits(20, 14));
+  SVEIntCompareVectorsHelper(cond,
+                             vform,
+                             ReadPRegister(instr->GetPd()),
+                             ReadPRegister(instr->GetPgLow8()),
+                             commute_inputs ? src2
+                                            : ReadVRegister(instr->GetRn()),
+                             commute_inputs ? ReadVRegister(instr->GetRn())
+                                            : src2);
 }
 
 void Simulator::VisitSVEIntCompareVectors(const Instruction* instr) {
@@ -8166,51 +8202,51 @@ void Simulator::VisitSVEIntCompareVectors(const Instruction* instr) {
       break;
   }
 
-  Condition cc;
+  Condition cond;
   switch (op) {
     case CMPEQ_p_p_zw:
     case CMPEQ_p_p_zz:
-      cc = eq;
+      cond = eq;
       break;
     case CMPGE_p_p_zw:
     case CMPGE_p_p_zz:
-      cc = ge;
+      cond = ge;
       break;
     case CMPGT_p_p_zw:
     case CMPGT_p_p_zz:
-      cc = gt;
+      cond = gt;
       break;
     case CMPHI_p_p_zw:
     case CMPHI_p_p_zz:
-      cc = hi;
+      cond = hi;
       break;
     case CMPHS_p_p_zw:
     case CMPHS_p_p_zz:
-      cc = hs;
+      cond = hs;
       break;
     case CMPNE_p_p_zw:
     case CMPNE_p_p_zz:
-      cc = ne;
+      cond = ne;
       break;
     case CMPLE_p_p_zw:
-      cc = le;
+      cond = le;
       break;
     case CMPLO_p_p_zw:
-      cc = lo;
+      cond = lo;
       break;
     case CMPLS_p_p_zw:
-      cc = ls;
+      cond = ls;
       break;
     case CMPLT_p_p_zw:
-      cc = lt;
+      cond = lt;
       break;
     default:
       VIXL_UNIMPLEMENTED();
-      cc = al;
+      cond = al;
       break;
   }
 
-  SVEIntCompareVectorsHelper(cc,
+  SVEIntCompareVectorsHelper(cond,
                              instr->GetSVEVectorFormat(),
                              ReadPRegister(instr->GetPd()),
                              ReadPRegister(instr->GetPgLow8()),

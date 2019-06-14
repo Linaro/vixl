@@ -3813,6 +3813,12 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Count leading zero bits (predicated).
   void clz(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
+  void cmp(Condition cond,
+           const PRegisterWithLaneSize& pd,
+           const PRegisterZ& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
   // Compare vector to 64-bit wide elements.
   void cmpeq(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -3859,7 +3865,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void cmphi(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm7);
+             unsigned imm7);
 
   // Compare vector to 64-bit wide elements.
   void cmphs(const PRegisterWithLaneSize& pd,
@@ -3871,7 +3877,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void cmphs(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm7);
+             unsigned imm7);
 
   // Compare vector to 64-bit wide elements.
   void cmple(const PRegisterWithLaneSize& pd,
@@ -3895,7 +3901,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void cmplo(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm7);
+             unsigned imm7);
 
   // Compare vector to 64-bit wide elements.
   void cmpls(const PRegisterWithLaneSize& pd,
@@ -3907,7 +3913,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void cmpls(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,
-             int imm7);
+             unsigned imm7);
 
   // Compare vector to 64-bit wide elements.
   void cmplt(const PRegisterWithLaneSize& pd,
@@ -6394,6 +6400,16 @@ class Assembler : public vixl::internal::AssemblerBase {
     return static_cast<Instr>(TruncateToUintN(fieldsize, imm) << lobit);
   }
 
+  // For unsigned immediate encoding.
+  // TODO: Handle signed and unsigned immediate in satisfactory way.
+  template <int hibit, int lobit>
+  static Instr ImmUnsignedField(unsigned imm) {
+    VIXL_STATIC_ASSERT((hibit >= lobit) && (lobit >= 0));
+    VIXL_STATIC_ASSERT(hibit < (sizeof(Instr) * kBitsPerByte));
+    VIXL_ASSERT(IsUintN(hibit - lobit + 1, imm));
+    return static_cast<Instr>(imm << lobit);
+  }
+
   // PC-relative address encoding.
   static Instr ImmPCRelAddress(int64_t imm21) {
     VIXL_ASSERT(IsInt21(imm21));
@@ -7036,6 +7052,18 @@ class Assembler : public vixl::internal::AssemblerBase {
                       const ZRegister& zn,
                       const ZRegister& zm,
                       SVEIntCompareVectorsOp op);
+
+  void CompareVectors(const PRegisterWithLaneSize& pd,
+                      const PRegisterZ& pg,
+                      const ZRegister& zn,
+                      int imm,
+                      SVEIntCompareSignedImmOp op);
+
+  void CompareVectors(const PRegisterWithLaneSize& pd,
+                      const PRegisterZ& pg,
+                      const ZRegister& zn,
+                      unsigned imm,
+                      SVEIntCompareUnsignedImmOp op);
 
   // Functions for emulating operands not directly supported by the instruction
   // set.
