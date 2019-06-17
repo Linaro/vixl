@@ -31,7 +31,11 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
+#include <list>
+#include <vector>
+
 #include "globals-vixl.h"
+#include "aarch64/macro-assembler-aarch64.h"
 
 class BenchTimer {
  public:
@@ -101,6 +105,12 @@ class BenchCLI {
     printf("Run a single VIXL benchmark for approximately RUN_TIME seconds,\n");
     printf("or %" PRIu32 " seconds if unspecified.\n", kDefaultRunTime);
     printf("\n");
+#ifdef VIXL_DEBUG
+    printf("This is a DEBUG build. VIXL's assertions will be enabled, and\n");
+    printf("extra debug information may be printed. The benchmark results\n");
+    printf("are not representative of expected VIXL deployments.\n");
+    printf("\n");
+#endif
     printf("OPTIONS:\n");
     printf("\n");
     printf("    -h, --help\n");
@@ -109,11 +119,15 @@ class BenchCLI {
 
   void PrintResults(uint64_t iterations, double elapsed_seconds) {
     double score = iterations / elapsed_seconds;
-    printf("%g iteration%s per second (%" PRIu64 " / %g)\n",
+    printf("%g iteration%s per second (%" PRIu64 " / %g)",
            score,
            (score == 1.0) ? "" : "s",
            iterations,
            elapsed_seconds);
+#ifdef VIXL_DEBUG
+    printf(" [Warning: DEBUG build]");
+#endif
+    printf("\n");
   }
 
   bool ShouldExitEarly() const {
@@ -148,6 +162,106 @@ class BenchCLI {
   uint32_t run_time_;
 
   enum { kRunBenchmark, kExitSuccess, kExitFailure } status_;
+};
+
+// Generate random, but valid (and simulatable) instruction sequences.
+//
+// The effect of the generated code is meaningless, but not harmful. That is,
+// it will not abort, callee-saved registers are properly preserved and so on.
+// It is possible to call it as a `void fn(void)` function.
+class BenchCodeGenerator {
+ public:
+  explicit BenchCodeGenerator(vixl::aarch64::MacroAssembler* masm)
+      : masm_(masm), rnd_(0), rnd_bits_(0), call_depth_(0) {
+    // Arbitrarily initialise rand_state_ using the behaviour of srand48(42).
+    rand_state_[2] = 0;
+    rand_state_[1] = 42;
+    rand_state_[0] = 0x330e;
+  }
+
+  void Generate(size_t min_size_in_bytes);
+
+ private:
+  void GeneratePrologue();
+  void GenerateEpilogue();
+
+  // Arbitrarily pick one of the other Generate*Sequence() functions.
+  // TODO: Consider allowing this to be biased, so that a benchmark can focus on
+  // a subset of sequences.
+  void GenerateArbitrarySequence();
+
+  // Instructions with a trivial pass-through to Emit().
+  void GenerateTrivialSequence();
+
+  // Instructions using the Operand and MemOperand abstractions. These have a
+  // run-time cost, and many common VIXL APIs use them.
+  void GenerateOperandSequence();
+  void GenerateMemOperandSequence();
+
+  // Generate instructions taking immediates that require analysis (and may
+  // result in multiple instructions per macro).
+  void GenerateImmediateSequence();
+
+  // Immediate-offset and register branches. This also (necessarily) covers adr.
+  void GenerateBranchSequence();
+
+  // Generate nested, conventional (blr+ret) calls.
+  void GenerateCallReturnSequence();
+
+  void GenerateFPSequence();
+  void GenerateNEONSequence();
+
+  // To exercise veneer pools, GenerateBranchSequence links labels that are
+  // expected to be bound later. This helper binds them.
+  // The Nth youngest label is bound if bit <N> is set in `bind_mask`. That
+  // means that this helper can bind at most 64 pending labels.
+  void BindPendingLabels(uint64_t bind_mask);
+
+  // As above, but unconditionally bind all pending labels (even if there are
+  // more than 64 of them).
+  void BindAllPendingLabels();
+
+  // Argument selection helpers. These only return caller-saved registers.
+
+  uint64_t GetRandomBits(int bits);
+  bool PickBool() { return GetRandomBits(1) != 0; }
+
+  unsigned PickRSize();
+  unsigned PickFPSize();
+
+  vixl::aarch64::Register PickR(unsigned size_in_bits);
+  vixl::aarch64::VRegister PickV(
+      unsigned size_in_bits = vixl::aarch64::kQRegSize);
+
+  vixl::aarch64::Register PickW() { return PickR(vixl::aarch64::kWRegSize); }
+  vixl::aarch64::Register PickX() { return PickR(vixl::aarch64::kXRegSize); }
+  vixl::aarch64::VRegister PickH() { return PickV(vixl::aarch64::kHRegSize); }
+  vixl::aarch64::VRegister PickS() { return PickV(vixl::aarch64::kSRegSize); }
+  vixl::aarch64::VRegister PickD() { return PickV(vixl::aarch64::kDRegSize); }
+
+  vixl::aarch64::MacroAssembler* masm_;
+
+  // State for *rand48(), used to randomise code generation.
+  unsigned short rand_state_[3];  // NOLINT(runtime/int)
+
+  uint32_t rnd_;
+  int rnd_bits_;
+
+  // The generator can produce nested calls. The probability of it doing this is
+  // influenced by the current call depth, so we have to track it here.
+  int call_depth_;
+
+  struct LabelPair {
+    // We can't copy labels, so we have to allocate them dynamically to store
+    // them in a std::list.
+    vixl::aarch64::Label* target;
+    vixl::aarch64::Label* cont;
+  };
+  std::list<LabelPair> labels_;
+
+  // Some sequences need a scratch area. Space for this is allocated on the
+  // stack, and stored in this register.
+  static const vixl::aarch64::Register scratch;
 };
 
 #endif  // VIXL_AARCH64_BENCH_UTILS_H_

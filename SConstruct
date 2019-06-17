@@ -517,11 +517,14 @@ if CanTargetAArch64(env):
   aarch64_benchmark_names = util.ListCCFilesWithoutExt(config.dir_aarch64_benchmarks)
   aarch64_benchmarks_build_dir = PrepareVariantDir('benchmarks/aarch64', TargetBuildDir(env))
   aarch64_benchmark_targets = []
+  bench_utils = env.Object(join(aarch64_benchmarks_build_dir, 'bench-utils.o'),
+                           join(aarch64_benchmarks_build_dir, 'bench-utils.cc'))
   for bench in aarch64_benchmark_names:
-    prog = env.Program(join(aarch64_benchmarks_build_dir, bench),
-                       join(aarch64_benchmarks_build_dir, bench + '.cc'),
-                       LIBS=[libvixl])
-    aarch64_benchmark_targets.append(prog)
+    if bench != 'bench-utils':
+      prog = env.Program(join(aarch64_benchmarks_build_dir, bench),
+                         [join(aarch64_benchmarks_build_dir, bench + '.cc'), bench_utils],
+                         LIBS=[libvixl])
+      aarch64_benchmark_targets.append(prog)
   env.Alias('aarch64_benchmarks', aarch64_benchmark_targets)
   top_level_targets.Add('aarch64_benchmarks', 'Build the benchmarks for AArch64.')
 
