@@ -1,4 +1,4 @@
-// Copyright 2014, VIXL authors
+// Copyright 2019, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -24,16 +24,15 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <sys/time.h>
 #include "globals-vixl.h"
 
 #include "aarch64/instructions-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 
+#include "bench-utils.h"
+
 using namespace vixl;
 using namespace vixl::aarch64;
-
-static const unsigned kDefaultInstructionCount = 100000;
 
 // This program focuses on emitting simple instructions.
 //
@@ -41,53 +40,28 @@ static const unsigned kDefaultInstructionCount = 100000;
 // buffer, looping over the buffer if necessary. This code therefore focuses
 // on Emit and Operand.
 int main(int argc, char* argv[]) {
-  unsigned instructions = 0;
+  BenchCLI cli(argc, argv);
+  if (cli.ShouldExitEarly()) return cli.GetExitCode();
 
-  switch (argc) {
-    case 1:
-      instructions = kDefaultInstructionCount;
-      break;
-    case 2:
-      instructions = atoi(argv[1]);
-      break;
-    default:
-      printf("Usage: %s [#instructions]\n", argv[0]);
-      exit(1);
-  }
-
-  const unsigned buffer_size = 256 * KBytes;
-  const unsigned buffer_instruction_count = buffer_size / kInstructionSize;
-  timeval start;
-  gettimeofday(&start, NULL);
+  const size_t buffer_size = 256 * KBytes;
+  const size_t buffer_instruction_count = buffer_size / kInstructionSize;
   MacroAssembler masm(buffer_size);
 
-#define __ masm.
+  BenchTimer timer;
 
-  unsigned rounds = instructions / buffer_instruction_count;
-  for (unsigned i = 0; i < rounds; ++i) {
+  size_t iterations = 0;
+  do {
+    masm.Reset();
     {
       ExactAssemblyScope scope(&masm, buffer_size);
-      for (unsigned j = 0; j < buffer_instruction_count; ++j) {
-        __ add(x0, x1, Operand(x2));
+      for (size_t i = 0; i < buffer_instruction_count; ++i) {
+        masm.add(x0, x1, Operand(x2));
       }
     }
-    masm.Reset();
-  }
+    masm.FinalizeCode();
+    iterations++;
+  } while (!timer.HasRunFor(cli.GetRunTimeInSeconds()));
 
-  unsigned remaining = instructions % buffer_instruction_count;
-  {
-    ExactAssemblyScope scope(&masm, remaining * kInstructionSize);
-    for (unsigned i = 0; i < remaining; ++i) {
-      __ add(x0, x1, Operand(x2));
-    }
-  }
-
-  masm.FinalizeCode();
-  timeval end;
-  gettimeofday(&end, NULL);
-  double delta = (end.tv_sec - start.tv_sec) +
-                 static_cast<double>(end.tv_usec - start.tv_usec) / 1000000;
-  printf("A64: time for %d instructions: %gs\n", instructions, delta);
-
-  return 0;
+  cli.PrintResults(iterations, timer.GetElapsedSeconds());
+  return cli.GetExitCode();
 }

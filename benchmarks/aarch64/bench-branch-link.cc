@@ -1,4 +1,4 @@
-// Copyright 2015, VIXL authors
+// Copyright 2019, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -24,54 +24,43 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <sys/time.h>
 #include "globals-vixl.h"
 
 #include "aarch64/instructions-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 
+#include "bench-utils.h"
+
 using namespace vixl;
 using namespace vixl::aarch64;
-
-static const int kDefaultInstructionCount = 100000;
 
 // Bind many branches to the same label, like bench-branch.cc but with a single
 // label. This stresses the label-linking mechanisms.
 int main(int argc, char* argv[]) {
-  int instructions = 0;
+  BenchCLI cli(argc, argv);
+  if (cli.ShouldExitEarly()) return cli.GetExitCode();
 
-  switch (argc) {
-    case 1:
-      instructions = kDefaultInstructionCount;
-      break;
-    case 2:
-      instructions = atoi(argv[1]);
-      break;
-    default:
-      printf("Usage: %s [#instructions]\n", argv[0]);
-      exit(1);
-  }
+  const size_t buffer_size = 256 * KBytes;
+  const size_t buffer_instruction_count = buffer_size / kInstructionSize;
+  MacroAssembler masm(buffer_size);
 
-  timeval start;
-  gettimeofday(&start, NULL);
-  MacroAssembler masm(instructions * kInstructionSize);
-  ExactAssemblyScope scope(&masm, instructions * kInstructionSize);
+  BenchTimer timer;
 
-#define __ masm.
+  size_t iterations = 0;
+  do {
+    masm.Reset();
+    {
+      ExactAssemblyScope scope(&masm, buffer_size);
+      Label target;
+      for (size_t i = 0; i < buffer_instruction_count; ++i) {
+        masm.b(&target);
+      }
+      masm.bind(&target);
+    }
+    masm.FinalizeCode();
+    iterations++;
+  } while (!timer.HasRunFor(cli.GetRunTimeInSeconds()));
 
-  Label target;
-  for (int i = 0; i < instructions; i++) {
-    __ b(&target);
-  }
-  __ bind(&target);
-
-  masm.FinalizeCode();
-
-  timeval end;
-  gettimeofday(&end, NULL);
-  double delta = (end.tv_sec - start.tv_sec) +
-                 static_cast<double>(end.tv_usec - start.tv_usec) / 1000000;
-  printf("A64: time for %d instructions: %gs\n", instructions, delta);
-
-  return 0;
+  cli.PrintResults(iterations, timer.GetElapsedSeconds());
+  return cli.GetExitCode();
 }
