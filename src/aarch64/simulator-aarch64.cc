@@ -9320,56 +9320,38 @@ void Simulator::VisitSVEPredicateCount(const Instruction* instr) {
 
 void Simulator::VisitSVEPredicateLogicalOp(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEPredicateLogicalOpMask)) {
+  Instr op = instr->Mask(SVEPredicateLogicalOpMask);
+  switch (op) {
     case ANDS_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case AND_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case BICS_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case BIC_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case EORS_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case EOR_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case NANDS_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case NAND_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case NORS_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case NOR_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case ORNS_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case ORN_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case ORRS_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case ORR_p_p_pp_z:
-      VIXL_UNIMPLEMENTED();
+    case SEL_p_p_pp: {
+      FlagsUpdate flags =
+          instr->Mask(SVEPredicateLogicalSetFlagsBit) ? SetFlags : LeaveFlags;
+      SVEPredicateLogicalHelper(static_cast<SVEPredicateLogicalOp>(op),
+                                ReadPRegister(instr->GetPd()),
+                                ReadPRegister(instr->ExtractBits(13, 10)),
+                                ReadPRegister(instr->GetPn()),
+                                ReadPRegister(instr->GetPm()),
+                                flags);
       break;
-    case SEL_p_p_pp:
-      VIXL_UNIMPLEMENTED();
-      break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  // TODO: LogPRegister(...)
 }
 
 void Simulator::VisitSVEPredicateMisc(const Instruction* instr) {

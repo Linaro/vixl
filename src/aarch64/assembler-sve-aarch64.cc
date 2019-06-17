@@ -7487,216 +7487,133 @@ void Assembler::cntp(const Register& rd,
 }
 
 // SVEPredicateLogicalOp.
-
-void Assembler::and_(const PRegisterWithLaneSize& pd,
-                     const PRegisterZ& pg,
-                     const PRegisterWithLaneSize& pn,
-                     const PRegisterWithLaneSize& pm) {
-  // AND <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 0000 .... 01.. ..0. ...0 ....
-  //  op<23> = 0 | S<22> = 0 | Pm<19:16> | Pg<13:10> | o2<9> = 0 | Pn<8:5> |
-  //  o3<4> = 0 | Pd<3:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(AND_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+void Assembler::Logical(const PRegister& pd,
+                        const PRegisterZ& pg,
+                        const PRegister& pn,
+                        const PRegister& pm,
+                        SVEPredicateLogicalOp op) {
+  AreSameFormat(pd, pn, pm);
+  Emit(op | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
-void Assembler::ands(const PRegisterWithLaneSize& pd,
+void Assembler::and_(const PRegister& pd,
                      const PRegisterZ& pg,
-                     const PRegisterWithLaneSize& pn,
-                     const PRegisterWithLaneSize& pm) {
-  // ANDS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 0100 .... 01.. ..0. ...0 ....
-  //  op<23> = 0 | S<22> = 1 | Pm<19:16> | Pg<13:10> | o2<9> = 0 | Pn<8:5> |
-  //  o3<4> = 0 | Pd<3:0>
-
+                     const PRegister& pn,
+                     const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ANDS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Logical(pd, pg, pn, pm, AND_p_p_pp_z);
 }
 
-void Assembler::bic(const PRegisterWithLaneSize& pd,
+void Assembler::ands(const PRegister& pd,
+                     const PRegisterZ& pg,
+                     const PRegister& pn,
+                     const PRegister& pm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  Logical(pd, pg, pn, pm, ANDS_p_p_pp_z);
+}
+
+void Assembler::bic(const PRegister& pd,
                     const PRegisterZ& pg,
-                    const PRegisterWithLaneSize& pn,
-                    const PRegisterWithLaneSize& pm) {
-  // BIC <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 0000 .... 01.. ..0. ...1 ....
-  //  op<23> = 0 | S<22> = 0 | Pm<19:16> | Pg<13:10> | o2<9> = 0 | Pn<8:5> |
-  //  o3<4> = 1 | Pd<3:0>
-
+                    const PRegister& pn,
+                    const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(BIC_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Logical(pd, pg, pn, pm, BIC_p_p_pp_z);
 }
 
-void Assembler::bics(const PRegisterWithLaneSize& pd,
+void Assembler::bics(const PRegister& pd,
                      const PRegisterZ& pg,
-                     const PRegisterWithLaneSize& pn,
-                     const PRegisterWithLaneSize& pm) {
-  // BICS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 0100 .... 01.. ..0. ...1 ....
-  //  op<23> = 0 | S<22> = 1 | Pm<19:16> | Pg<13:10> | o2<9> = 0 | Pn<8:5> |
-  //  o3<4> = 1 | Pd<3:0>
-
+                     const PRegister& pn,
+                     const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(BICS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Logical(pd, pg, pn, pm, BICS_p_p_pp_z);
 }
 
-void Assembler::eor(const PRegisterWithLaneSize& pd,
+void Assembler::eor(const PRegister& pd,
                     const PRegisterZ& pg,
-                    const PRegisterWithLaneSize& pn,
-                    const PRegisterWithLaneSize& pm) {
-  // EOR <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 0000 .... 01.. ..1. ...0 ....
-  //  op<23> = 0 | S<22> = 0 | Pm<19:16> | Pg<13:10> | o2<9> = 1 | Pn<8:5> |
-  //  o3<4> = 0 | Pd<3:0>
-
+                    const PRegister& pn,
+                    const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(EOR_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Logical(pd, pg, pn, pm, EOR_p_p_pp_z);
 }
 
-void Assembler::eors(const PRegisterWithLaneSize& pd,
+void Assembler::eors(const PRegister& pd,
                      const PRegisterZ& pg,
-                     const PRegisterWithLaneSize& pn,
-                     const PRegisterWithLaneSize& pm) {
-  // EORS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 0100 .... 01.. ..1. ...0 ....
-  //  op<23> = 0 | S<22> = 1 | Pm<19:16> | Pg<13:10> | o2<9> = 1 | Pn<8:5> |
-  //  o3<4> = 0 | Pd<3:0>
-
+                     const PRegister& pn,
+                     const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(EORS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Logical(pd, pg, pn, pm, EORS_p_p_pp_z);
 }
 
-void Assembler::nand(const PRegisterWithLaneSize& pd,
+void Assembler::nand(const PRegister& pd,
                      const PRegisterZ& pg,
-                     const PRegisterWithLaneSize& pn,
-                     const PRegisterWithLaneSize& pm) {
-  // NAND <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 1000 .... 01.. ..1. ...1 ....
-  //  op<23> = 1 | S<22> = 0 | Pm<19:16> | Pg<13:10> | o2<9> = 1 | Pn<8:5> |
-  //  o3<4> = 1 | Pd<3:0>
-
+                     const PRegister& pn,
+                     const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(NAND_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Logical(pd, pg, pn, pm, NAND_p_p_pp_z);
 }
 
-void Assembler::nands(const PRegisterWithLaneSize& pd,
+void Assembler::nands(const PRegister& pd,
                       const PRegisterZ& pg,
-                      const PRegisterWithLaneSize& pn,
-                      const PRegisterWithLaneSize& pm) {
-  // NANDS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 1100 .... 01.. ..1. ...1 ....
-  //  op<23> = 1 | S<22> = 1 | Pm<19:16> | Pg<13:10> | o2<9> = 1 | Pn<8:5> |
-  //  o3<4> = 1 | Pd<3:0>
-
+                      const PRegister& pn,
+                      const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(NANDS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) |
-       Rx<19, 16>(pm));
+  Logical(pd, pg, pn, pm, NANDS_p_p_pp_z);
 }
 
-void Assembler::nor(const PRegisterWithLaneSize& pd,
+void Assembler::nor(const PRegister& pd,
                     const PRegisterZ& pg,
-                    const PRegisterWithLaneSize& pn,
-                    const PRegisterWithLaneSize& pm) {
-  // NOR <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 1000 .... 01.. ..1. ...0 ....
-  //  op<23> = 1 | S<22> = 0 | Pm<19:16> | Pg<13:10> | o2<9> = 1 | Pn<8:5> |
-  //  o3<4> = 0 | Pd<3:0>
-
+                    const PRegister& pn,
+                    const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(NOR_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Logical(pd, pg, pn, pm, NOR_p_p_pp_z);
 }
 
-void Assembler::nors(const PRegisterWithLaneSize& pd,
+void Assembler::nors(const PRegister& pd,
                      const PRegisterZ& pg,
-                     const PRegisterWithLaneSize& pn,
-                     const PRegisterWithLaneSize& pm) {
-  // NORS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 1100 .... 01.. ..1. ...0 ....
-  //  op<23> = 1 | S<22> = 1 | Pm<19:16> | Pg<13:10> | o2<9> = 1 | Pn<8:5> |
-  //  o3<4> = 0 | Pd<3:0>
-
+                     const PRegister& pn,
+                     const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(NORS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Logical(pd, pg, pn, pm, NORS_p_p_pp_z);
 }
 
-void Assembler::orn(const PRegisterWithLaneSize& pd,
+void Assembler::orn(const PRegister& pd,
                     const PRegisterZ& pg,
-                    const PRegisterWithLaneSize& pn,
-                    const PRegisterWithLaneSize& pm) {
-  // ORN <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 1000 .... 01.. ..0. ...1 ....
-  //  op<23> = 1 | S<22> = 0 | Pm<19:16> | Pg<13:10> | o2<9> = 0 | Pn<8:5> |
-  //  o3<4> = 1 | Pd<3:0>
-
+                    const PRegister& pn,
+                    const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ORN_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Logical(pd, pg, pn, pm, ORN_p_p_pp_z);
 }
 
-void Assembler::orns(const PRegisterWithLaneSize& pd,
+void Assembler::orns(const PRegister& pd,
                      const PRegisterZ& pg,
-                     const PRegisterWithLaneSize& pn,
-                     const PRegisterWithLaneSize& pm) {
-  // ORNS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 1100 .... 01.. ..0. ...1 ....
-  //  op<23> = 1 | S<22> = 1 | Pm<19:16> | Pg<13:10> | o2<9> = 0 | Pn<8:5> |
-  //  o3<4> = 1 | Pd<3:0>
-
+                     const PRegister& pn,
+                     const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ORNS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Logical(pd, pg, pn, pm, ORNS_p_p_pp_z);
 }
 
-void Assembler::orr(const PRegisterWithLaneSize& pd,
+void Assembler::orr(const PRegister& pd,
                     const PRegisterZ& pg,
-                    const PRegisterWithLaneSize& pn,
-                    const PRegisterWithLaneSize& pm) {
-  // ORR <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 1000 .... 01.. ..0. ...0 ....
-  //  op<23> = 1 | S<22> = 0 | Pm<19:16> | Pg<13:10> | o2<9> = 0 | Pn<8:5> |
-  //  o3<4> = 0 | Pd<3:0>
-
+                    const PRegister& pn,
+                    const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ORR_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Logical(pd, pg, pn, pm, ORR_p_p_pp_z);
 }
 
-void Assembler::orrs(const PRegisterWithLaneSize& pd,
+void Assembler::orrs(const PRegister& pd,
                      const PRegisterZ& pg,
-                     const PRegisterWithLaneSize& pn,
-                     const PRegisterWithLaneSize& pm) {
-  // ORRS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  //  0010 0101 1100 .... 01.. ..0. ...0 ....
-  //  op<23> = 1 | S<22> = 1 | Pm<19:16> | Pg<13:10> | o2<9> = 0 | Pn<8:5> |
-  //  o3<4> = 0 | Pd<3:0>
-
+                     const PRegister& pn,
+                     const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ORRS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Logical(pd, pg, pn, pm, ORRS_p_p_pp_z);
 }
 
-void Assembler::sel(const PRegisterWithLaneSize& pd,
+void Assembler::sel(const PRegister& pd,
                     const PRegister& pg,
-                    const PRegisterWithLaneSize& pn,
-                    const PRegisterWithLaneSize& pm) {
-  // SEL <Pd>.B, <Pg>, <Pn>.B, <Pm>.B
-  //  0010 0101 0000 .... 01.. ..1. ...1 ....
-  //  op<23> = 0 | S<22> = 0 | Pm<19:16> | Pg<13:10> | o2<9> = 1 | Pn<8:5> |
-  //  o3<4> = 1 | Pd<3:0>
-
+                    const PRegister& pn,
+                    const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(SEL_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Emit(SEL_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 // SVEPredicateMisc.

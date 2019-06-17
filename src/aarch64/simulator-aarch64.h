@@ -3475,11 +3475,18 @@ class Simulator : public DecoderVisitor {
   void DoSaveCPUFeatures(const Instruction* instr);
   void DoRestoreCPUFeatures(const Instruction* instr);
 
+  // SVE helpers -------------------------------------------
   LogicVRegister SVEBitwiseLogicalUnpredicatedHelper(
       SVEBitwiseLogicalUnpredicatedOp op,
       LogicVRegister zd,
       const LogicVRegister& zn,
       const LogicVRegister& zm);
+  LogicPRegister SVEPredicateLogicalHelper(SVEPredicateLogicalOp op,
+                                           LogicPRegister Pd,
+                                           const LogicPRegister& pg,
+                                           const LogicPRegister& pn,
+                                           const LogicPRegister& pm,
+                                           FlagsUpdate flags);
 
   // Simulate a runtime call.
   void DoRuntimeCall(const Instruction* instr);

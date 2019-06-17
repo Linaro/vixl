@@ -3644,10 +3644,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void adr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Bitwise AND predicates.
-  void and_(const PRegisterWithLaneSize& pd,
+  void and_(const PRegister& pd,
             const PRegisterZ& pg,
-            const PRegisterWithLaneSize& pn,
-            const PRegisterWithLaneSize& pm);
+            const PRegister& pn,
+            const PRegister& pm);
 
   // Bitwise AND vectors (predicated).
   void and_(const ZRegister& zd,
@@ -3662,10 +3662,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void and_(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Bitwise AND predicates.
-  void ands(const PRegisterWithLaneSize& pd,
+  void ands(const PRegister& pd,
             const PRegisterZ& pg,
-            const PRegisterWithLaneSize& pn,
-            const PRegisterWithLaneSize& pm);
+            const PRegister& pn,
+            const PRegister& pm);
 
   // Bitwise AND reduction to scalar.
   void andv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
@@ -3695,10 +3695,10 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zm);
 
   // Bitwise clear predicates.
-  void bic(const PRegisterWithLaneSize& pd,
+  void bic(const PRegister& pd,
            const PRegisterZ& pg,
-           const PRegisterWithLaneSize& pn,
-           const PRegisterWithLaneSize& pm);
+           const PRegister& pn,
+           const PRegister& pm);
 
   // Bitwise clear vectors (predicated).
   void bic(const ZRegister& zd,
@@ -3710,10 +3710,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void bic(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Bitwise clear predicates.
-  void bics(const PRegisterWithLaneSize& pd,
+  void bics(const PRegister& pd,
             const PRegisterZ& pg,
-            const PRegisterWithLaneSize& pn,
-            const PRegisterWithLaneSize& pm);
+            const PRegister& pn,
+            const PRegister& pm);
 
   // Break after first true condition.
   void brka(const PRegisterWithLaneSize& pd,
@@ -4014,10 +4014,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void dupm(const ZRegister& zd);
 
   // Bitwise exclusive OR predicates.
-  void eor(const PRegisterWithLaneSize& pd,
+  void eor(const PRegister& pd,
            const PRegisterZ& pg,
-           const PRegisterWithLaneSize& pn,
-           const PRegisterWithLaneSize& pm);
+           const PRegister& pn,
+           const PRegister& pm);
 
   // Bitwise exclusive OR vectors (predicated).
   void eor(const ZRegister& zd,
@@ -4032,10 +4032,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void eor(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Bitwise exclusive OR predicates.
-  void eors(const PRegisterWithLaneSize& pd,
+  void eors(const PRegister& pd,
             const PRegisterZ& pg,
-            const PRegisterWithLaneSize& pn,
-            const PRegisterWithLaneSize& pm);
+            const PRegister& pn,
+            const PRegister& pm);
 
   // Bitwise XOR reduction to scalar.
   void eorv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
@@ -5239,52 +5239,52 @@ class Assembler : public vixl::internal::AssemblerBase {
   void mul(const ZRegister& zd, const ZRegister& zn, int imm8);
 
   // Bitwise NAND predicates.
-  void nand(const PRegisterWithLaneSize& pd,
+  void nand(const PRegister& pd,
             const PRegisterZ& pg,
-            const PRegisterWithLaneSize& pn,
-            const PRegisterWithLaneSize& pm);
+            const PRegister& pn,
+            const PRegister& pm);
 
   // Bitwise NAND predicates.
-  void nands(const PRegisterWithLaneSize& pd,
+  void nands(const PRegister& pd,
              const PRegisterZ& pg,
-             const PRegisterWithLaneSize& pn,
-             const PRegisterWithLaneSize& pm);
+             const PRegister& pn,
+             const PRegister& pm);
 
   // Negate (predicated).
   void neg(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
   // Bitwise NOR predicates.
-  void nor(const PRegisterWithLaneSize& pd,
+  void nor(const PRegister& pd,
            const PRegisterZ& pg,
-           const PRegisterWithLaneSize& pn,
-           const PRegisterWithLaneSize& pm);
+           const PRegister& pn,
+           const PRegister& pm);
 
   // Bitwise NOR predicates.
-  void nors(const PRegisterWithLaneSize& pd,
+  void nors(const PRegister& pd,
             const PRegisterZ& pg,
-            const PRegisterWithLaneSize& pn,
-            const PRegisterWithLaneSize& pm);
+            const PRegister& pn,
+            const PRegister& pm);
 
   // Bitwise invert vector (predicated).
   void not_(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
   // Bitwise OR inverted predicate.
-  void orn(const PRegisterWithLaneSize& pd,
+  void orn(const PRegister& pd,
            const PRegisterZ& pg,
-           const PRegisterWithLaneSize& pn,
-           const PRegisterWithLaneSize& pm);
+           const PRegister& pn,
+           const PRegister& pm);
 
   // Bitwise OR inverted predicate.
-  void orns(const PRegisterWithLaneSize& pd,
+  void orns(const PRegister& pd,
             const PRegisterZ& pg,
-            const PRegisterWithLaneSize& pn,
-            const PRegisterWithLaneSize& pm);
+            const PRegister& pn,
+            const PRegister& pm);
 
   // Bitwise OR predicate.
-  void orr(const PRegisterWithLaneSize& pd,
+  void orr(const PRegister& pd,
            const PRegisterZ& pg,
-           const PRegisterWithLaneSize& pn,
-           const PRegisterWithLaneSize& pm);
+           const PRegister& pn,
+           const PRegister& pm);
 
   // Bitwise OR vectors (predicated).
   void orr(const ZRegister& zd,
@@ -5299,10 +5299,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void orr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Bitwise OR predicate.
-  void orrs(const PRegisterWithLaneSize& pd,
+  void orrs(const PRegister& pd,
             const PRegisterZ& pg,
-            const PRegisterWithLaneSize& pn,
-            const PRegisterWithLaneSize& pm);
+            const PRegister& pn,
+            const PRegister& pm);
 
   // Bitwise OR reduction to scalar.
   void orv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
@@ -5470,10 +5470,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sdot(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
 
   // Conditionally select elements from two predicates.
-  void sel(const PRegisterWithLaneSize& pd,
+  void sel(const PRegister& pd,
            const PRegister& pg,
-           const PRegisterWithLaneSize& pn,
-           const PRegisterWithLaneSize& pm);
+           const PRegister& pn,
+           const PRegister& pm);
 
   // Conditionally select elements from two vectors.
   void sel(const ZRegister& zd,
@@ -6344,8 +6344,15 @@ class Assembler : public vixl::internal::AssemblerBase {
   }
 
   static Instr Pd(PRegister pd) {
-    // TODO: Define a Pd field so we can use Pd_offset etc.
-    return Rx<3, 0>(pd);
+    return Rx<Pd_offset + Pd_width - 1, Pd_offset>(pd);
+  }
+
+  static Instr Pm(PRegister pm) {
+    return Rx<Pm_offset + Pm_width - 1, Pm_offset>(pm);
+  }
+
+  static Instr Pn(PRegister pn) {
+    return Rx<Pn_offset + Pn_width - 1, Pn_offset>(pn);
   }
 
   static Instr PgLow8(PRegister pg) {
@@ -6965,6 +6972,12 @@ class Assembler : public vixl::internal::AssemblerBase {
                const ZRegister& zn,
                const ZRegister& zm,
                SVEBitwiseLogicalUnpredicatedOp op);
+
+  void Logical(const PRegister& pd,
+               const PRegisterZ& pg,
+               const PRegister& pn,
+               const PRegister& pm,
+               SVEPredicateLogicalOp op);
 
   void LogicalImmediate(const Register& rd,
                         const Register& rn,

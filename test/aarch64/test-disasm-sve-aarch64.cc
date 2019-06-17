@@ -1824,23 +1824,36 @@ TEST(sve_predicate_count) {
 TEST(sve_predicate_logical_op) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(ands(p13.VnB(), p9.Zeroing(), p5.VnB(), p15.VnB()), "ands <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(and_(p9.VnB(), p3.Zeroing(), p0.VnB(), p14.VnB()), "and <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(bics(p8.VnB(), p5.Zeroing(), p3.VnB(), p1.VnB()), "bics <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(bic(p5.VnB(), p5.Zeroing(), p9.VnB(), p9.VnB()), "bic <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(eors(p11.VnB(), p1.Zeroing(), p1.VnB(), p1.VnB()), "eors <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(eor(p8.VnB(), p6.Zeroing(), p1.VnB(), p11.VnB()), "eor <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(nands(p13.VnB(), p0.Zeroing(), p9.VnB(), p4.VnB()), "nands <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(nand(p7.VnB(), p7.Zeroing(), p15.VnB(), p2.VnB()), "nand <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(nors(p8.VnB(), p8.Zeroing(), p12.VnB(), p11.VnB()), "nors <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(nor(p3.VnB(), p6.Zeroing(), p15.VnB(), p12.VnB()), "nor <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(orns(p10.VnB(), p11.Zeroing(), p0.VnB(), p15.VnB()), "orns <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(orn(p0.VnB(), p1.Zeroing(), p7.VnB(), p4.VnB()), "orn <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(orrs(p14.VnB(), p6.Zeroing(), p1.VnB(), p5.VnB()), "orrs <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(orr(p13.VnB(), p7.Zeroing(), p10.VnB(), p4.VnB()), "orr <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(sel(p9.VnB(), p15, p15.VnB(), p7.VnB()), "sel <Pd>.B, <Pg>, <Pn>.B, <Pm>.B");
-#endif
+  COMPARE_PREFIX(ands(p13.VnB(), p9.Zeroing(), p5.VnB(), p15.VnB()),
+                 "ands p13.b, p9/z, p5.b, p15.b");
+  COMPARE_PREFIX(and_(p9.VnB(), p3.Zeroing(), p0.VnB(), p14.VnB()),
+                 "and p9.b, p3/z, p0.b, p14.b");
+  COMPARE_PREFIX(bics(p8.VnB(), p5.Zeroing(), p3.VnB(), p1.VnB()),
+                 "bics p8.b, p5/z, p3.b, p1.b");
+  COMPARE_PREFIX(bic(p5.VnB(), p5.Zeroing(), p9.VnB(), p9.VnB()),
+                 "bic p5.b, p5/z, p9.b, p9.b");
+  COMPARE_PREFIX(eors(p11.VnB(), p1.Zeroing(), p1.VnB(), p1.VnB()),
+                 "eors p11.b, p1/z, p1.b, p1.b");
+  COMPARE_PREFIX(eor(p8.VnB(), p6.Zeroing(), p1.VnB(), p11.VnB()),
+                 "eor p8.b, p6/z, p1.b, p11.b");
+  COMPARE_PREFIX(nands(p13.VnB(), p0.Zeroing(), p9.VnB(), p4.VnB()),
+                 "nands p13.b, p0/z, p9.b, p4.b");
+  COMPARE_PREFIX(nand(p7.VnB(), p7.Zeroing(), p15.VnB(), p2.VnB()),
+                 "nand p7.b, p7/z, p15.b, p2.b");
+  COMPARE_PREFIX(nors(p8.VnB(), p8.Zeroing(), p12.VnB(), p11.VnB()),
+                 "nors p8.b, p8/z, p12.b, p11.b");
+  COMPARE_PREFIX(nor(p3.VnB(), p6.Zeroing(), p15.VnB(), p12.VnB()),
+                 "nor p3.b, p6/z, p15.b, p12.b");
+  COMPARE_PREFIX(orns(p10.VnB(), p11.Zeroing(), p0.VnB(), p15.VnB()),
+                 "orns p10.b, p11/z, p0.b, p15.b");
+  COMPARE_PREFIX(orn(p0.VnB(), p1.Zeroing(), p7.VnB(), p4.VnB()),
+                 "orn p0.b, p1/z, p7.b, p4.b");
+  COMPARE_PREFIX(orrs(p14.VnB(), p6.Zeroing(), p1.VnB(), p5.VnB()),
+                 "orrs p14.b, p6/z, p1.b, p5.b");
+  COMPARE_PREFIX(orr(p13.VnB(), p7.Zeroing(), p10.VnB(), p4.VnB()),
+                 "orr p13.b, p7/z, p10.b, p4.b");
+  COMPARE_PREFIX(sel(p9.VnB(), p15, p15.VnB(), p7.VnB()),
+                 "sel p9.b, p15, p15.b, p7.b");
 
   CLEANUP();
 }

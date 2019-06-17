@@ -3417,10 +3417,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     and_(zd, zn, zm);
   }
-  void Ands(const PRegisterWithLaneSize& pd,
+  void Ands(const PRegister& pd,
             const PRegisterZ& pg,
-            const PRegisterWithLaneSize& pn,
-            const PRegisterWithLaneSize& pm) {
+            const PRegister& pn,
+            const PRegister& pm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     ands(pd, pg, pn, pm);

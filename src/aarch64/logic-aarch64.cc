@@ -5615,6 +5615,71 @@ LogicVRegister Simulator::SVEBitwiseLogicalUnpredicatedHelper(
   return zd;
 }
 
+LogicPRegister Simulator::SVEPredicateLogicalHelper(SVEPredicateLogicalOp op,
+                                                    LogicPRegister pd,
+                                                    const LogicPRegister& pg,
+                                                    const LogicPRegister& pn,
+                                                    const LogicPRegister& pm,
+                                                    FlagsUpdate flags) {
+  int pl_in_bytes = GetVectorLengthInBytes() / kBRegSize;
+  int pl_in_chunks = pl_in_bytes / sizeof(LogicPRegister::ChunkType);
+  // TODO: Transfer:
+  // and(s) -> mov(s) when Pm == Pg.
+  // eor(s) -> not(s) when Pm == Pg.
+  // orr(s) -> mov(s) when Pn == Pm && Pm == Pg.
+  for (int i = 0; i < pl_in_chunks; i++) {
+    LogicPRegister::ChunkType op1 = pn.GetChunk(i);
+    LogicPRegister::ChunkType op2 = pm.GetChunk(i);
+    LogicPRegister::ChunkType mask = pg.GetChunk(i);
+    LogicPRegister::ChunkType result;
+    switch (op) {
+      case ANDS_p_p_pp_z:
+      case AND_p_p_pp_z:
+        result = mask & (op1 & op2);
+        break;
+      case BICS_p_p_pp_z:
+      case BIC_p_p_pp_z:
+        result = mask & (op1 & ~op2);
+        break;
+      case EORS_p_p_pp_z:
+      case EOR_p_p_pp_z:
+        result = mask & (op1 ^ op2);
+        break;
+      case NANDS_p_p_pp_z:
+      case NAND_p_p_pp_z:
+        result = mask & ~(op1 & op2);
+        break;
+      case NORS_p_p_pp_z:
+      case NOR_p_p_pp_z:
+        result = mask & ~(op1 | op2);
+        break;
+      case ORNS_p_p_pp_z:
+      case ORN_p_p_pp_z:
+        result = mask & (op1 | ~op2);
+        break;
+      case ORRS_p_p_pp_z:
+      case ORR_p_p_pp_z:
+        result = mask & (op1 | op2);
+        break;
+      case SEL_p_p_pp:
+        result = (mask & op1) | (~mask & op2);
+        break;
+      default:
+        result = 0;
+        VIXL_UNIMPLEMENTED();
+    }
+    pd.SetChunk(i, result);
+  }
+
+  if (flags == SetFlags) {
+    ReadNzcv().SetN(IsFirstActive(kFormatVnB, pg, pd));
+    ReadNzcv().SetZ(AreNoneActive(kFormatVnB, pg, pd));
+    ReadNzcv().SetC(!IsLastActive(kFormatVnB, pg, pd));
+    ReadNzcv().SetV(0);
+    LogSystemRegister(NZCV);
+  }
+  return pd;
+}
 
 }  // namespace aarch64
 }  // namespace vixl

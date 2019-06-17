@@ -68,6 +68,9 @@ V_(Rt, 4, 0, ExtractBits)         /* Load/store register.                 */ \
 V_(Rt2, 14, 10, ExtractBits)      /* Load/store second register.          */ \
 V_(Rs, 20, 16, ExtractBits)       /* Exclusive access status.             */ \
 V_(Pt, 3, 0, ExtractBits)         /* Load/store register (p0-p7).         */ \
+V_(Pd, 3, 0, ExtractBits)         /* SVE destination predicate register.  */ \
+V_(Pn, 8, 5, ExtractBits)         /* SVE first source predicate register. */ \
+V_(Pm, 19, 16, ExtractBits)       /* SVE second source predicate register.*/ \
 V_(PgLow8, 12, 10, ExtractBits)   /* Governing predicate (p0-p7).         */ \
                                                                              \
 /* Common bits */                                                            \
@@ -3678,25 +3681,26 @@ enum SVEPredicateCountOp {
   CNTP_r_p_p = SVEPredicateCountFixed
 };
 
-enum SVEPredicateLogicalOpOp {
+enum SVEPredicateLogicalOp {
   SVEPredicateLogicalOpFixed = 0x25004000,
   SVEPredicateLogicalOpFMask = 0xFF30C000,
   SVEPredicateLogicalOpMask = 0xFFF0C210,
+  SVEPredicateLogicalSetFlagsBit = 0x00400000,
   AND_p_p_pp_z = SVEPredicateLogicalOpFixed,
+  ANDS_p_p_pp_z = AND_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
   BIC_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00000010,
+  BICS_p_p_pp_z = BIC_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
   EOR_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00000200,
-  SEL_p_p_pp = SVEPredicateLogicalOpFixed | 0x00000210,
-  ANDS_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00400000,
-  BICS_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00400010,
-  EORS_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00400200,
+  EORS_p_p_pp_z = EOR_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
   ORR_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00800000,
+  ORRS_p_p_pp_z = ORR_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
   ORN_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00800010,
-  NOR_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00800200,
+  ORNS_p_p_pp_z = ORN_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
   NAND_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00800210,
-  ORRS_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00C00000,
-  ORNS_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00C00010,
-  NORS_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00C00200,
-  NANDS_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00C00210
+  NANDS_p_p_pp_z = NAND_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
+  NOR_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00800200,
+  NORS_p_p_pp_z = NOR_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
+  SEL_p_p_pp = SVEPredicateLogicalOpFixed | 0x00000210
 };
 
 enum SVEPredicateMiscOp {

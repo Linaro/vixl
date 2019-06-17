@@ -416,5 +416,71 @@ TEST(sve_bitwise_unpredicate_logical) {
   TEARDOWN();
 }
 
+TEST(sve_predicate_logical) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // 0b...01011010'10110111
+  int p10_inputs[] = {0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1};  // Pm
+  // 0b...11011001'01010010
+  int p11_inputs[] = {1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0};  // Pn
+  // 0b...01010101'10110010
+  int p12_inputs[] = {0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0};  // pg
+
+  Initialise(&masm, p10.VnB(), p10_inputs);
+  Initialise(&masm, p11.VnB(), p11_inputs);
+  Initialise(&masm, p12.VnB(), p12_inputs);
+
+  __ Ands(p0.VnB(), p12.Zeroing(), p11.VnB(), p10.VnB());
+  __ Mrs(x0, NZCV);
+  __ Bics(p1.VnB(), p12.Zeroing(), p11.VnB(), p10.VnB());
+  __ Mrs(x1, NZCV);
+  __ Eor(p2.VnB(), p12.Zeroing(), p11.VnB(), p10.VnB());
+  __ Nand(p3.VnB(), p12.Zeroing(), p11.VnB(), p10.VnB());
+  __ Nor(p4.VnB(), p12.Zeroing(), p11.VnB(), p10.VnB());
+  __ Orn(p5.VnB(), p12.Zeroing(), p11.VnB(), p10.VnB());
+  __ Orr(p6.VnB(), p12.Zeroing(), p11.VnB(), p10.VnB());
+  __ Sel(p7.VnB(), p12, p11.VnB(), p10.VnB());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // 0b...01010000'00010010
+    int p0_expected[] = {0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0};
+    // 0b...00000001'00000000
+    int p1_expected[] = {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0};
+    // 0b...00000001'10100000
+    int p2_expected[] = {0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0};
+    // 0b...00000101'10100000
+    int p3_expected[] = {0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0};
+    // 0b...00000100'00000000
+    int p4_expected[] = {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    // 0b...01010101'00010010
+    int p5_expected[] = {0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0};
+    // 0b...01010001'10110010
+    int p6_expected[] = {0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0};
+    // 0b...01011011'00010111
+    int p7_expected[] = {0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1};
+
+    ASSERT_EQUAL_SVE(p0_expected, p0.VnB());
+    ASSERT_EQUAL_SVE(p1_expected, p1.VnB());
+    ASSERT_EQUAL_SVE(p2_expected, p2.VnB());
+    ASSERT_EQUAL_SVE(p3_expected, p3.VnB());
+    ASSERT_EQUAL_SVE(p4_expected, p4.VnB());
+    ASSERT_EQUAL_SVE(p5_expected, p5.VnB());
+    ASSERT_EQUAL_SVE(p6_expected, p6.VnB());
+    ASSERT_EQUAL_SVE(p7_expected, p7.VnB());
+
+
+    // TODO: We will add the SVE semantic aliases at some point.
+    ASSERT_EQUAL_32(NFlag, w0);  // First element is active.
+    ASSERT_EQUAL_32(CFlag, w1);  // Last element is not active.
+  }
+
+  TEARDOWN();
+}
+
 }  // namespace aarch64
 }  // namespace vixl
