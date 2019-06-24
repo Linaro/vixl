@@ -152,6 +152,12 @@ Operand::Operand(int64_t immediate)
       extend_(NO_EXTEND),
       shift_amount_(0) {}
 
+Operand::Operand(IntegerOperand immediate)
+    : immediate_(immediate.AsIntN(64)),
+      reg_(NoReg),
+      shift_(NO_SHIFT),
+      extend_(NO_EXTEND),
+      shift_amount_(0) {}
 
 Operand::Operand(Register reg, Shift shift, unsigned shift_amount)
     : reg_(reg),

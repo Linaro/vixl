@@ -80,22 +80,22 @@ inline uint64_t GetUintMask(unsigned bits) {
 // Check number width.
 // TODO: Refactor these using templates.
 inline bool IsIntN(unsigned n, uint32_t x) {
-  VIXL_ASSERT((0 < n) && (n < 32));
-  uint32_t limit = UINT32_C(1) << (n - 1);
-  return x < limit;
+  VIXL_ASSERT((0 < n) && (n <= 32));
+  return x <= static_cast<uint32_t>(INT32_MAX >> (32 - n));
 }
 inline bool IsIntN(unsigned n, int32_t x) {
-  VIXL_ASSERT((0 < n) && (n < 32));
+  VIXL_ASSERT((0 < n) && (n <= 32));
+  if (n == 32) return true;
   int32_t limit = INT32_C(1) << (n - 1);
   return (-limit <= x) && (x < limit);
 }
 inline bool IsIntN(unsigned n, uint64_t x) {
-  VIXL_ASSERT((0 < n) && (n < 64));
-  uint64_t limit = UINT64_C(1) << (n - 1);
-  return x < limit;
+  VIXL_ASSERT((0 < n) && (n <= 64));
+  return x <= static_cast<uint64_t>(INT64_MAX >> (64 - n));
 }
 inline bool IsIntN(unsigned n, int64_t x) {
-  VIXL_ASSERT((0 < n) && (n < 64));
+  VIXL_ASSERT((0 < n) && (n <= 64));
+  if (n == 64) return true;
   int64_t limit = INT64_C(1) << (n - 1);
   return (-limit <= x) && (x < limit);
 }
@@ -198,7 +198,7 @@ inline uint32_t ExtractUnsignedBitfield32(int msb, int lsb, uint32_t x) {
 }
 
 
-inline int64_t ExtractSignedBitfield64(int msb, int lsb, int64_t x) {
+inline int64_t ExtractSignedBitfield64(int msb, int lsb, uint64_t x) {
   VIXL_ASSERT((static_cast<size_t>(msb) < sizeof(x) * 8) && (lsb >= 0) &&
               (msb >= lsb));
   uint64_t temp = ExtractUnsignedBitfield64(msb, lsb, x);
@@ -211,8 +211,7 @@ inline int64_t ExtractSignedBitfield64(int msb, int lsb, int64_t x) {
   return result;
 }
 
-
-inline int32_t ExtractSignedBitfield32(int msb, int lsb, int32_t x) {
+inline int32_t ExtractSignedBitfield32(int msb, int lsb, uint32_t x) {
   VIXL_ASSERT((static_cast<size_t>(msb) < sizeof(x) * 8) && (lsb >= 0) &&
               (msb >= lsb));
   uint32_t temp = TruncateToUint32(ExtractSignedBitfield64(msb, lsb, x));
@@ -220,7 +219,6 @@ inline int32_t ExtractSignedBitfield32(int msb, int lsb, int32_t x) {
   memcpy(&result, &temp, sizeof(result));
   return result;
 }
-
 
 inline uint64_t RotateRight(uint64_t value,
                             unsigned int rotate,

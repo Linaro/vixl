@@ -5271,6 +5271,7 @@ void Assembler::MoveWide(const Register& rd,
   } else {
     // Calculate a new immediate and shift combination to encode the immediate
     // argument.
+    VIXL_ASSERT(shift == -1);
     shift = 0;
     if ((imm & 0xffffffffffff0000) == 0) {
       // Nothing to do.

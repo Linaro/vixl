@@ -4007,8 +4007,13 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Broadcast indexed element to vector (unpredicated).
   void dup(const ZRegister& zd, const ZRegister& zn);
 
+  // As for movz/movk/movn, if the default shift of -1 is specified to dup, the
+  // assembler will pick an appropriate immediate and left shift that is
+  // equivalent to the immediate argument. If an explicit left shift is
+  // specified (0 or 8), the immediate must be a signed 8-bit integer.
+
   // Broadcast signed immediate to vector elements (unpredicated).
-  void dup(const ZRegister& zd, int imm8);
+  void dup(const ZRegister& zd, int imm8, int shift = -1);
 
   // Broadcast logical bitmask immediate to vector (unpredicated).
   void dupm(const ZRegister& zd, uint64_t imm);

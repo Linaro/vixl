@@ -3920,20 +3920,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     dup(zd, zn);
   }
-  void Dup(const ZRegister& zd, uint64_t imm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    int64_t signed_imm = RawbitsToInt64(imm);
-    if (IsUint8(imm) || IsInt8(signed_imm)) {
-      // TODO: Handle both signed and unsigned immediate operand properly.
-      dup(zd, static_cast<int>(signed_imm));
-    } else if (IsImmLogical(imm, zd.GetLaneSizeInBits())) {
-      dupm(zd, imm);
-    } else {
-      // TODO: Synthesise immediate by some other means.
-      VIXL_UNIMPLEMENTED();
-    }
-  }
+  void Dup(const ZRegister& zd, IntegerOperand imm);
   void Eor(const PRegisterWithLaneSize& pd,
            const PRegisterZ& pg,
            const PRegisterWithLaneSize& pn,
@@ -4550,7 +4537,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     insr(zdn, vm);
   }
-  void Insr(const ZRegister& zdn, uint64_t imm);
+  void Insr(const ZRegister& zdn, IntegerOperand imm);
   void Lasta(const Register& rd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -7467,6 +7454,12 @@ class UseScratchRegisterScope {
     return masm_->GetScratchRegisterList()->IsEmpty()
                ? CPURegister(AcquireVRegisterOfSize(size_in_bits))
                : CPURegister(AcquireRegisterOfSize(size_in_bits));
+  }
+
+  // Acquire a register big enough to represent one lane of `vector`.
+  Register AcquireRegisterToHoldLane(const CPURegister& vector) {
+    VIXL_ASSERT(vector.GetLaneSizeInBits() <= kXRegSize);
+    return (vector.GetLaneSizeInBits() > kWRegSize) ? AcquireX() : AcquireW();
   }
 
 

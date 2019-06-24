@@ -725,11 +725,15 @@ TEST(sve_bitwise_imm) {
   __ Orr(z11.VnH(), z11.VnH(), 0x0ff0);
   __ Orr(z12.VnB(), z12.VnB(), 0x3f);
 
-  __ Dup(z13.VnD(), 0x7ffffff800000000);
-  __ Dup(z14.VnS(), 0x7ffc7ffc);
-  __ Dup(z15.VnH(), 0x3ffc);
-  // TODO: Enable once dup or mov is implemented.
-  // __ Dup(z16.VnB(), 0xc3);
+  {
+    // The `Dup` macro maps onto either `dup` or `dupm`, but has its own test,
+    // so here we test `dupm` directly.
+    ExactAssemblyScope guard(&masm, 4 * kInstructionSize);
+    __ dupm(z13.VnD(), 0x7ffffff800000000);
+    __ dupm(z14.VnS(), 0x7ffc7ffc);
+    __ dupm(z15.VnH(), 0x3ffc);
+    __ dupm(z16.VnB(), 0xc3);
+  }
 
   END();
 
@@ -781,6 +785,69 @@ TEST(sve_bitwise_imm) {
     ASSERT_EQUAL_SVE(z14_expected, z14.VnS());
     ASSERT_EQUAL_SVE(z15_expected, z15.VnH());
     // clang-format on
+  }
+}
+
+TEST(sve_dup_imm) {
+  // The `Dup` macro can generate `dup`, `dupm`, and it can synthesise
+  // unencodable immediates.
+
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Encodable with `dup` (shift 0).
+  __ Dup(z0.VnD(), -1);
+  __ Dup(z1.VnS(), 0x7f);
+  __ Dup(z2.VnH(), -0x80);
+  __ Dup(z3.VnB(), 42);
+
+  // Encodable with `dup` (shift 8).
+  // TODO: Enable these once we have Simulator support.
+  // __ Dup(z4.VnD(), -42 * 256);
+  // __ Dup(z5.VnS(), -0x8000);
+  // __ Dup(z6.VnH(), 0x7f00);
+  // B-sized lanes cannot take a shift of 8.
+
+  // Encodable with `dupm` (but not `dup`).
+  __ Dup(z10.VnD(), 0x3fc);
+  __ Dup(z11.VnS(), -516097);  // 0xfff81fff, as a signed int.
+  __ Dup(z12.VnH(), 0x0001);
+  // All values that fit B-sized lanes are encodable with `dup`.
+
+  // Cases that require immediate synthesis.
+  __ Dup(z20.VnD(), 0x1234);
+  __ Dup(z21.VnD(), -4242);
+  __ Dup(z22.VnD(), 0xfedcba9876543210);
+  __ Dup(z23.VnS(), 0x01020304);
+  __ Dup(z24.VnS(), -0x01020304);
+  __ Dup(z25.VnH(), 0x3c38);
+  // All values that fit B-sized lanes are directly encodable.
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(0xffffffffffffffff, z0.VnD());
+    ASSERT_EQUAL_SVE(0x0000007f, z1.VnS());
+    ASSERT_EQUAL_SVE(0xff80, z2.VnH());
+    ASSERT_EQUAL_SVE(0x2a, z3.VnB());
+
+    // TODO: Enable these once we have Simulator support.
+    // ASSERT_EQUAL_SVE(0x0000000000003c00, z4.VnD());
+    // ASSERT_EQUAL_SVE(0xffff8000, z5.VnS());
+    // ASSERT_EQUAL_SVE(0x7f00, z6.VnH());
+
+    ASSERT_EQUAL_SVE(0x00000000000003fc, z10.VnD());
+    ASSERT_EQUAL_SVE(0xfff81fff, z11.VnS());
+    ASSERT_EQUAL_SVE(0x0001, z12.VnH());
+
+    ASSERT_EQUAL_SVE(0x1234, z20.VnD());
+    ASSERT_EQUAL_SVE(0xffffffffffffef6e, z21.VnD());
+    ASSERT_EQUAL_SVE(0xfedcba9876543210, z22.VnD());
+    ASSERT_EQUAL_SVE(0x01020304, z23.VnS());
+    ASSERT_EQUAL_SVE(0xfefdfcfc, z24.VnS());
+    ASSERT_EQUAL_SVE(0x3c38, z25.VnH());
   }
 }
 

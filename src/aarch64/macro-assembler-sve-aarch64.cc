@@ -30,28 +30,42 @@ namespace vixl {
 namespace aarch64 {
 
 
-void MacroAssembler::Insr(const ZRegister& zdn, uint64_t imm) {
+void MacroAssembler::Dup(const ZRegister& zd, IntegerOperand imm) {
   VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(imm.FitsInLane(zd));
+  unsigned lane_size = zd.GetLaneSizeInBits();
+  int imm8;
+  int shift;
+  if (imm.TryEncodeAsShiftedIntNForLane<8, 0>(zd, &imm8, &shift) ||
+      imm.TryEncodeAsShiftedIntNForLane<8, 8>(zd, &imm8, &shift)) {
+    SingleEmissionCheckScope guard(this);
+    dup(zd, imm8, shift);
+  } else if (IsImmLogical(imm.AsUintN(lane_size), lane_size)) {
+    SingleEmissionCheckScope guard(this);
+    dupm(zd, imm.AsUintN(lane_size));
+  } else {
+    UseScratchRegisterScope temps(this);
+    Register scratch = temps.AcquireRegisterToHoldLane(zd);
+    Mov(scratch, imm);
 
-  // TODO: It might be useful to add an overload, so that calls like
-  // `Insr(zdn.VnB(), 0xffffffffffffffff)` can be distinguished from more
-  // reasonable calls like `Insr(zdn.VnB(), -1)`. A naive overload (taking
-  // int64_t) results in overload ambiguity. A template-based approach would
-  // require C++11's std::is_signed.
-  unsigned lane_size = zdn.GetLaneSizeInBits();
-  VIXL_ASSERT(IsUintN(lane_size, imm) ||
-              IsIntN(lane_size, RawbitsToInt64(imm)));
+    SingleEmissionCheckScope guard(this);
+    dup(zd, scratch);
+  }
+}
 
-  if (imm == 0) {
+void MacroAssembler::Insr(const ZRegister& zdn, IntegerOperand imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(imm.FitsInLane(zdn));
+
+  if (imm.IsZero()) {
     SingleEmissionCheckScope guard(this);
     insr(zdn, xzr);
     return;
   }
 
   UseScratchRegisterScope temps(this);
-  VIXL_ASSERT(lane_size <= kXRegSize);
-  Register scratch =
-      (lane_size > kWRegSize) ? temps.AcquireX() : temps.AcquireW();
+  Register scratch = temps.AcquireRegisterToHoldLane(zdn);
+
   // TODO: There are many cases where we could optimise immediates, such as by
   // detecting repeating patterns or FP immediates. We should optimise and
   // abstract this for use in other SVE mov-immediate-like macros.

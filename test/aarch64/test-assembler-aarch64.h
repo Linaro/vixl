@@ -356,7 +356,8 @@ inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
 #define ASSERT_EQUAL_SVE_LANE(expected, result, lane) \
   VIXL_CHECK(EqualSVELane(expected, &core, result, lane))
 
-// Where `expected` is an array of N expected values, check that the first N
+// If `expected` is scalar, check that every lane of `result` matches it.
+// If `expected` is an array of N expected values, check that the first N
 // lanes on `result` match. The rightmost (highest-indexed) array element maps
 // to the lowest-numbered lane.
 #define ASSERT_EQUAL_SVE(expected, result) \

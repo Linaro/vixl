@@ -3737,14 +3737,29 @@ void Assembler::add(const ZRegister& zd, const ZRegister& zn, int imm8) {
   Emit(ADD_z_zi | SVESize(zd) | Rd(zd) | ImmField<12, 5>(imm8));
 }
 
-void Assembler::dup(const ZRegister& zd, int imm8) {
+void Assembler::dup(const ZRegister& zd, int imm8, int shift) {
   // DUP <Zd>.<T>, #<imm>{, <shift>}
   //  0010 0101 ..11 1000 11.. .... .... ....
   //  size<23:22> | opc<18:17> = 00 | sh<13> | imm8<12:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(DUP_z_i | SVESize(zd) | Rd(zd) | ImmField<12, 5>(imm8));
+  if (shift < 0) {
+    VIXL_ASSERT(shift == -1);
+    // Derive the shift amount from the immediate.
+    if (IsInt8(imm8)) {
+      shift = 0;
+    } else if ((imm8 % 256) == 0) {
+      imm8 /= 256;
+      shift = 8;
+    }
+  }
+
+  VIXL_ASSERT(IsInt8(imm8));
+  VIXL_ASSERT((shift == 0) || (shift == 8));
+
+  Instr shift_bit = (shift > 0) ? (1 << 13) : 0;
+  Emit(DUP_z_i | SVESize(zd) | Rd(zd) | shift_bit | ImmField<12, 5>(imm8));
 }
 
 void Assembler::fdup(const ZRegister& zd) {

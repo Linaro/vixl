@@ -384,6 +384,8 @@ bool EqualSVELane(uint64_t expected,
                   const PRegisterWithLaneSize& reg,
                   int lane);
 
+// Check that each SVE lane matches the corresponding expected[] value. The
+// highest-indexed array element maps to the lowest-numbered lane.
 template <typename T, int N, typename R>
 bool EqualSVE(const T (&expected)[N],
               const RegisterDump* core,
@@ -406,6 +408,24 @@ bool EqualSVE(const T (&expected)[N],
     }
     // Map the highest-indexed array element to the lowest-numbered lane.
     equal = EqualSVELane(expected[N - lane - 1], core, reg, lane) && equal;
+  }
+  return equal;
+}
+
+// Check that each SVE lanes matches the `expected` value.
+template <typename T, typename R>
+bool EqualSVE(const T expected,
+              const RegisterDump* core,
+              const R& reg,
+              bool* printed_warning) {
+  VIXL_ASSERT(reg.IsZRegister() || reg.IsPRegister());
+  VIXL_ASSERT(reg.HasLaneSize());
+  USE(printed_warning);
+  // Evaluate and report errors on every lane, rather than just the first.
+  bool equal = true;
+  for (int lane = 0; lane < core->GetSVELaneCount(reg.GetLaneSizeInBits());
+       ++lane) {
+    equal = EqualSVELane(expected, core, reg, lane) && equal;
   }
   return equal;
 }

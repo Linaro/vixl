@@ -295,6 +295,7 @@ extern const CPURegList kCalleeSavedV;
 extern const CPURegList kCallerSaved;
 extern const CPURegList kCallerSavedV;
 
+class IntegerOperand;
 
 // Operand.
 class Operand {
@@ -303,7 +304,9 @@ class Operand {
   // where <immediate> is int64_t.
   // This is allowed to be an implicit constructor because Operand is
   // a wrapper class that doesn't normally perform any type conversion.
-  Operand(int64_t immediate = 0);  // NOLINT(runtime/explicit)
+  Operand(int64_t immediate);  // NOLINT(runtime/explicit)
+
+  Operand(IntegerOperand immediate);  // NOLINT(runtime/explicit)
 
   // rm, {<shift> #<shift_amount>}
   // where <shift> is one of {LSL, LSR, ASR, ROR}.
@@ -464,6 +467,158 @@ class MemOperand {
   Shift shift_;
   Extend extend_;
   unsigned shift_amount_;
+};
+
+// Represent a signed or unsigned integer operand.
+//
+// This is designed to make instructions which naturally accept a _signed_
+// immediate easier to implement and use, when we also want users to be able to
+// specify raw-bits values (such as with hexadecimal constants). The advantage
+// of this class over a simple uint64_t (with implicit C++ sign-extension) is
+// that this class can strictly check the range of allowed values. With a simple
+// uint64_t, it is impossible to distinguish -1 from UINT64_MAX.
+//
+// For example, these instructions are equivalent:
+//
+//     __ Insr(z0.VnB(), -1);
+//     __ Insr(z0.VnB(), 0xff);
+//
+// ... as are these:
+//
+//     __ Insr(z0.VnD(), -1);
+//     __ Insr(z0.VnD(), 0xffffffffffffffff);
+//
+// ... but this is invalid:
+//
+//     __ Insr(z0.VnB(), 0xffffffffffffffff);  // Too big for B-sized lanes.
+class IntegerOperand {
+ public:
+#define VIXL_INT_TYPES(V) \
+  V(char) V(short) V(int) V(long) V(long long)  // NOLINT(runtime/int)
+#define VIXL_DECL_INT_OVERLOADS(T)                                        \
+  /* These are allowed to be implicit constructors because this is a */   \
+  /* wrapper class that doesn't normally perform any type conversion. */  \
+  IntegerOperand(signed T immediate) /* NOLINT(runtime/explicit) */       \
+      : raw_bits_(immediate),        /* Allow implicit sign-extension. */ \
+        is_negative_(immediate < 0) {}                                    \
+  IntegerOperand(unsigned T immediate) /* NOLINT(runtime/explicit) */     \
+      : raw_bits_(immediate),                                             \
+        is_negative_(false) {}
+  VIXL_INT_TYPES(VIXL_DECL_INT_OVERLOADS)
+#undef VIXL_DECL_INT_OVERLOADS
+#undef VIXL_INT_TYPES
+
+  bool IsIntN(unsigned n) const {
+    return is_negative_ ? vixl::IsIntN(n, RawbitsToInt64(raw_bits_))
+                        : vixl::IsIntN(n, raw_bits_);
+  }
+  bool IsUintN(unsigned n) const {
+    return !is_negative_ && vixl::IsUintN(n, raw_bits_);
+  }
+
+  bool FitsInBits(unsigned n) const {
+    return is_negative_ ? IsIntN(n) : IsUintN(n);
+  }
+  bool FitsInLane(const CPURegister& zd) const {
+    return FitsInBits(zd.GetLaneSizeInBits());
+  }
+
+  // Cast a value in the range [INT<n>_MIN, UINT<n>_MAX] to an unsigned integer
+  // in the range [0, UINT<n>_MAX] (using two's complement mapping).
+  uint64_t AsUintN(unsigned n) const {
+    USE(n);
+    VIXL_ASSERT(FitsInBits(n));
+    return raw_bits_ & GetUintMask(n);
+  }
+
+  // Cast a value in the range [INT<n>_MIN, UINT<n>_MAX] to a signed integer in
+  // the range [INT<n>_MIN, INT<n>_MAX] (using two's complement mapping).
+  int64_t AsIntN(unsigned n) const {
+    USE(n);
+    VIXL_ASSERT(FitsInBits(n));
+    return ExtractSignedBitfield64(n - 1, 0, raw_bits_);
+  }
+
+  // Several instructions encode a signed int<N>_t, which is then (optionally)
+  // left-shifted and sign-extended to a Z register lane with a size which may
+  // be larger than N. This helper tries to find an int<N>_t such that the
+  // IntegerOperand's arithmetic value is reproduced in each lane.
+  //
+  // This is the mechanism that allows `Insr(z0.VnB(), 0xff)` to be treated as
+  // `Insr(z0.VnB(), -1)`.
+  template <unsigned N, unsigned kShift, typename T>
+  bool TryEncodeAsShiftedIntNForLane(const CPURegister& zd, T* imm) const {
+    VIXL_STATIC_ASSERT(std::numeric_limits<T>::digits > N);
+    VIXL_ASSERT(FitsInLane(zd));
+    if ((raw_bits_ & GetUintMask(kShift)) != 0) return false;
+
+    // Reverse the specified left-shift.
+    IntegerOperand unshifted(*this);
+    unshifted.ArithmeticShiftRight(kShift);
+
+    if (unshifted.IsIntN(N)) {
+      // This is trivial, since sign-extension produces the same arithmetic
+      // value irrespective of the destination size.
+      *imm = static_cast<T>(unshifted.AsIntN(N));
+      return true;
+    }
+
+    // Otherwise, we might be able to use the sign-extension to produce the
+    // desired bit pattern. We can only do this for values in the range
+    // [INT<N>_MAX + 1, UINT<N>_MAX], where the highest set bit is the sign bit.
+    //
+    // The lane size has to be adjusted to compensate for `kShift`, since the
+    // high bits will be dropped when the encoded value is left-shifted.
+    if (unshifted.IsUintN(zd.GetLaneSizeInBits() - kShift)) {
+      int64_t encoded = unshifted.AsIntN(zd.GetLaneSizeInBits() - kShift);
+      if (vixl::IsIntN(N, encoded)) {
+        *imm = static_cast<T>(encoded);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // As above, but `kShift` is written to the `*shift` parameter on success, so
+  // that it is easy to chain calls like this:
+  //
+  //     if (imm.TryEncodeAsShiftedIntNForLane<8, 0>(zd, &imm8, &shift) ||
+  //         imm.TryEncodeAsShiftedIntNForLane<8, 8>(zd, &imm8, &shift)) {
+  //       insn(zd, imm8, shift)
+  //     }
+  template <unsigned N, unsigned kShift, typename T, typename S>
+  bool TryEncodeAsShiftedIntNForLane(const CPURegister& zd,
+                                     T* imm,
+                                     S* shift) const {
+    if (TryEncodeAsShiftedIntNForLane<N, kShift>(zd, imm)) {
+      *shift = kShift;
+      return true;
+    }
+    return false;
+  }
+
+  // As above, but assume that `kShift` is 0.
+  template <unsigned N, typename T>
+  bool TryEncodeAsIntNForLane(const CPURegister& zd, T* imm) const {
+    return TryEncodeAsShiftedIntNForLane<N, 0>(zd, imm);
+  }
+
+  bool IsZero() const { return raw_bits_ == 0; }
+
+ private:
+  // Shift the arithmetic value right, with sign extension if is_negative_.
+  void ArithmeticShiftRight(int shift) {
+    VIXL_ASSERT((shift >= 0) && (shift < 64));
+    if (shift == 0) return;
+    if (is_negative_) {
+      raw_bits_ = ExtractSignedBitfield64(63, shift, raw_bits_);
+    } else {
+      raw_bits_ >>= shift;
+    }
+  }
+
+  uint64_t raw_bits_;
+  bool is_negative_;
 };
 
 // This an abstraction that can represent a register or memory location. The

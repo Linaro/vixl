@@ -704,6 +704,228 @@ TEST(generic_operand_helpers) {
 }
 
 
+TEST(integer_operand_is) {
+  VIXL_CHECK(IntegerOperand(0).IsZero());
+  VIXL_CHECK(!IntegerOperand(1).IsZero());
+  VIXL_CHECK(!IntegerOperand(-1).IsZero());
+
+  VIXL_CHECK(!IntegerOperand(-0x81).IsIntN(8));
+  VIXL_CHECK(IntegerOperand(-0x80).IsIntN(8));
+  VIXL_CHECK(IntegerOperand(-1).IsIntN(8));
+  VIXL_CHECK(IntegerOperand(0).IsIntN(8));
+  VIXL_CHECK(IntegerOperand(1).IsIntN(8));
+  VIXL_CHECK(IntegerOperand(0x7f).IsIntN(8));
+  VIXL_CHECK(!IntegerOperand(0x80).IsIntN(8));
+
+  VIXL_CHECK(!IntegerOperand(-1).IsUintN(8));
+  VIXL_CHECK(IntegerOperand(0).IsUintN(8));
+  VIXL_CHECK(IntegerOperand(1).IsUintN(8));
+  VIXL_CHECK(IntegerOperand(0xff).IsUintN(8));
+  VIXL_CHECK(!IntegerOperand(0x100).IsUintN(8));
+
+  VIXL_CHECK(IntegerOperand(INT64_MIN).IsIntN(64));
+  VIXL_CHECK(IntegerOperand(0).IsIntN(64));
+  VIXL_CHECK(IntegerOperand(INT64_MAX).IsIntN(64));
+  VIXL_CHECK(!IntegerOperand(0x8000000000000000).IsIntN(64));
+
+  VIXL_CHECK(!IntegerOperand(-1).IsUintN(64));
+  VIXL_CHECK(IntegerOperand(0).IsUintN(64));
+  VIXL_CHECK(IntegerOperand(UINT64_MAX).IsUintN(64));
+
+  VIXL_CHECK(!IntegerOperand(-0x801).FitsInBits(12));
+  VIXL_CHECK(IntegerOperand(-0x800).FitsInBits(12));
+  VIXL_CHECK(IntegerOperand(0).FitsInBits(12));
+  VIXL_CHECK(IntegerOperand(0x7ff).FitsInBits(12));
+  VIXL_CHECK(IntegerOperand(0x800).FitsInBits(12));
+  VIXL_CHECK(IntegerOperand(0xfff).FitsInBits(12));
+  VIXL_CHECK(!IntegerOperand(0x1000).FitsInBits(12));
+
+  VIXL_CHECK(!IntegerOperand(-0x8001).FitsInLane(z0.VnH()));
+  VIXL_CHECK(IntegerOperand(-0x8000).FitsInLane(z0.VnH()));
+  VIXL_CHECK(IntegerOperand(0).FitsInLane(z0.VnH()));
+  VIXL_CHECK(IntegerOperand(0x7fff).FitsInLane(z0.VnH()));
+  VIXL_CHECK(IntegerOperand(0x8000).FitsInLane(z0.VnH()));
+  VIXL_CHECK(IntegerOperand(0xffff).FitsInLane(z0.VnH()));
+  VIXL_CHECK(!IntegerOperand(0x10000).FitsInLane(z0.VnH()));
+}
+
+TEST(integer_operand_as_uint) {
+  // Simple cases.
+  VIXL_CHECK(IntegerOperand(1).AsUintN(8) == 1);
+  VIXL_CHECK(IntegerOperand(1).AsUintN(16) == 1);
+  VIXL_CHECK(IntegerOperand(1).AsUintN(32) == 1);
+  VIXL_CHECK(IntegerOperand(1).AsUintN(64) == 1);
+  VIXL_CHECK(IntegerOperand(-1).AsUintN(8) == 0xff);
+  VIXL_CHECK(IntegerOperand(-1).AsUintN(16) == 0xffff);
+  VIXL_CHECK(IntegerOperand(-1).AsUintN(32) == 0xffffffff);
+  VIXL_CHECK(IntegerOperand(-1).AsUintN(64) == 0xffffffffffffffff);
+  VIXL_CHECK(IntegerOperand(0xf0).AsUintN(8) == 0xf0);
+  VIXL_CHECK(IntegerOperand(0xf420).AsUintN(16) == 0xf420);
+  VIXL_CHECK(IntegerOperand(0xf4242420).AsUintN(32) == 0xf4242420);
+  VIXL_CHECK(IntegerOperand(0xf424242424242420).AsUintN(64) ==
+             0xf424242424242420);
+
+  // Boundary conditions for known-size types.
+  VIXL_CHECK(IntegerOperand(INT8_MIN).AsUintN(8) == 0x80);
+  VIXL_CHECK(IntegerOperand(INT8_MAX).AsUintN(8) == 0x7f);
+  VIXL_CHECK(IntegerOperand(UINT8_MAX).AsUintN(8) == 0xff);
+
+  VIXL_CHECK(IntegerOperand(INT16_MIN).AsUintN(16) == 0x8000);
+  VIXL_CHECK(IntegerOperand(INT16_MAX).AsUintN(16) == 0x7fff);
+  VIXL_CHECK(IntegerOperand(UINT16_MAX).AsUintN(16) == 0xffff);
+
+  VIXL_CHECK(IntegerOperand(INT32_MIN).AsUintN(32) == 0x80000000);
+  VIXL_CHECK(IntegerOperand(INT32_MAX).AsUintN(32) == 0x7fffffff);
+  VIXL_CHECK(IntegerOperand(UINT32_MAX).AsUintN(32) == 0xffffffff);
+
+  VIXL_CHECK(IntegerOperand(INT64_MIN).AsUintN(64) == 0x8000000000000000);
+  VIXL_CHECK(IntegerOperand(INT64_MAX).AsUintN(64) == 0x7fffffffffffffff);
+  VIXL_CHECK(IntegerOperand(UINT64_MAX).AsUintN(64) == 0xffffffffffffffff);
+}
+
+TEST(integer_operand_as_int) {
+  // Simple cases.
+  VIXL_CHECK(IntegerOperand(1).AsIntN(8) == 1);
+  VIXL_CHECK(IntegerOperand(1).AsIntN(16) == 1);
+  VIXL_CHECK(IntegerOperand(1).AsIntN(32) == 1);
+  VIXL_CHECK(IntegerOperand(1).AsIntN(64) == 1);
+  VIXL_CHECK(IntegerOperand(-1).AsIntN(8) == -1);
+  VIXL_CHECK(IntegerOperand(-1).AsIntN(16) == -1);
+  VIXL_CHECK(IntegerOperand(-1).AsIntN(32) == -1);
+  VIXL_CHECK(IntegerOperand(-1).AsIntN(64) == -1);
+  VIXL_CHECK(IntegerOperand(0x70).AsIntN(8) == 0x70);
+  VIXL_CHECK(IntegerOperand(0x7420).AsIntN(16) == 0x7420);
+  VIXL_CHECK(IntegerOperand(0x74242420).AsIntN(32) == 0x74242420);
+  VIXL_CHECK(IntegerOperand(0x7424242424242420).AsIntN(64) ==
+             0x7424242424242420);
+
+  // Boundary conditions for known-size types.
+  VIXL_CHECK(IntegerOperand(UINT8_MAX).AsIntN(8) == -1);
+  VIXL_CHECK(IntegerOperand(UINT16_MAX).AsIntN(16) == -1);
+  VIXL_CHECK(IntegerOperand(UINT32_MAX).AsIntN(32) == -1);
+  VIXL_CHECK(IntegerOperand(UINT64_MAX).AsIntN(64) == -1);
+
+  VIXL_CHECK(IntegerOperand(INT8_MAX).AsIntN(8) == INT8_MAX);
+  VIXL_CHECK(IntegerOperand(INT16_MAX).AsIntN(16) == INT16_MAX);
+  VIXL_CHECK(IntegerOperand(INT32_MAX).AsIntN(32) == INT32_MAX);
+  VIXL_CHECK(IntegerOperand(INT64_MAX).AsIntN(64) == INT64_MAX);
+
+  VIXL_CHECK(IntegerOperand(0x80).AsIntN(8) == INT8_MIN);
+  VIXL_CHECK(IntegerOperand(0x8000).AsIntN(16) == INT16_MIN);
+  VIXL_CHECK(IntegerOperand(0x80000000).AsIntN(32) == INT32_MIN);
+  VIXL_CHECK(IntegerOperand(0x8000000000000000).AsIntN(64) == INT64_MIN);
+}
+
+template <unsigned N>
+class IntegerOperandTryEncodeShiftedIntHelper {
+ public:
+  IntegerOperandTryEncodeShiftedIntHelper() {}
+
+  template <unsigned kShift, typename T>
+  void TestEncodable(T value, const ZRegister& zd, int64_t expected_imm) {
+    VIXL_CHECK(TestImpl<kShift>(value, zd, expected_imm));
+  }
+
+  template <unsigned kShift, typename T>
+  void TestUnencodable(T value, const ZRegister& zd) {
+    // The `expected_imm` value is ignored, so its value is arbitrary.
+    VIXL_CHECK(!TestImpl<kShift>(value, zd, 0));
+  }
+
+ private:
+  template <unsigned kShift, typename T>
+  bool TestImpl(T value, const ZRegister& zd, int64_t expected_imm) {
+    IntegerOperand operand(value);
+    int64_t imm = 0xdeadbeef42;
+    unsigned shift = 0xbeef43;
+    bool success =
+        operand.TryEncodeAsShiftedIntNForLane<N, kShift>(zd, &imm, &shift);
+    if (success) {
+      VIXL_CHECK(imm == expected_imm);
+      VIXL_CHECK(shift == kShift);
+    } else {
+      // Check that the outputs were unmodified.
+      VIXL_CHECK(imm == 0xdeadbeef42);
+      VIXL_CHECK(shift == 0xbeef43);
+    }
+
+    // If kShift is 0, also check TryEncodeAsIntNForLane.
+    if (kShift == 0) {
+      int64_t unshifted_imm = 0xdeadbeef99;
+      bool unshifted_success =
+          operand.TryEncodeAsIntNForLane<N>(zd, &unshifted_imm);
+
+      VIXL_CHECK(unshifted_success == success);
+      if (unshifted_success) {
+        VIXL_CHECK(unshifted_imm == expected_imm);
+      } else {
+        VIXL_CHECK(unshifted_imm == 0xdeadbeef99);
+      }
+    }
+
+    return success;
+  }
+};
+
+TEST(integer_operand_encode_as_intn) {
+  IntegerOperandTryEncodeShiftedIntHelper<4> int4_helper;
+  IntegerOperandTryEncodeShiftedIntHelper<8> int8_helper;
+  IntegerOperandTryEncodeShiftedIntHelper<12> int12_helper;
+
+  // Simple cases, where the value is directly encodable.
+  int4_helper.TestEncodable<0>(-8, z0.VnH(), -8);
+  int4_helper.TestEncodable<0>(-7, z0.VnH(), -7);
+  int4_helper.TestEncodable<0>(-1, z0.VnS(), -1);
+  int4_helper.TestEncodable<0>(0, z0.VnD(), 0);
+  int4_helper.TestEncodable<0>(1, z0.VnB(), 1);
+  int4_helper.TestEncodable<0>(7, z0.VnH(), 7);
+
+  int8_helper.TestEncodable<0>(0x7f, z0.VnB(), 0x7f);
+  int8_helper.TestEncodable<0>(0x7f, z0.VnH(), 0x7f);
+  int12_helper.TestEncodable<0>(0x7ff, z0.VnH(), 0x7ff);
+
+  int8_helper.TestEncodable<0>(-0x80, z0.VnB(), -0x80);
+  int8_helper.TestEncodable<0>(-0x80, z0.VnH(), -0x80);
+  int12_helper.TestEncodable<0>(-0x800, z0.VnH(), -0x800);
+
+  // Cases that are directly encodable with a shift.
+  int8_helper.TestEncodable<4>(-0x800, z0.VnH(), -0x80);
+  int8_helper.TestEncodable<4>(-0x7f0, z0.VnH(), -0x7f);
+  int8_helper.TestEncodable<4>(-0x010, z0.VnH(), -1);
+  int8_helper.TestEncodable<4>(0x000, z0.VnH(), 0);
+  int8_helper.TestEncodable<4>(0x010, z0.VnH(), 1);
+  int8_helper.TestEncodable<4>(0x7f0, z0.VnH(), 0x7f);
+
+  // Ensure that (positive) bit representations of negative values are treated
+  // as negative values, even though their arithmetic values are unencodable.
+  int12_helper.TestEncodable<0>(0xffd6, z0.VnH(), -42);
+  int12_helper.TestEncodable<0>(0xffffffd6, z0.VnS(), -42);
+  int12_helper.TestEncodable<4>(0xfd60, z0.VnH(), -42);
+  int12_helper.TestEncodable<8>(0xffffd600, z0.VnS(), -42);
+
+  int8_helper.TestEncodable<0>(UINT8_MAX, z0.VnB(), -1);
+  int8_helper.TestEncodable<0>(UINT16_MAX, z0.VnH(), -1);
+  int8_helper.TestEncodable<0>(UINT32_MAX, z0.VnS(), -1);
+  int8_helper.TestEncodable<0>(UINT64_MAX, z0.VnD(), -1);
+
+  int4_helper.TestEncodable<1>(UINT8_MAX ^ 0x1, z0.VnB(), -1);
+  int4_helper.TestEncodable<2>(UINT16_MAX ^ 0x3, z0.VnH(), -1);
+  int4_helper.TestEncodable<3>(UINT32_MAX ^ 0x7, z0.VnS(), -1);
+  int4_helper.TestEncodable<4>(UINT64_MAX ^ 0xf, z0.VnD(), -1);
+
+  // Unencodable cases.
+  int8_helper.TestUnencodable<0>(INT16_MAX, z0.VnH());
+  int8_helper.TestUnencodable<0>(INT32_MAX, z0.VnS());
+  int8_helper.TestUnencodable<0>(INT64_MAX, z0.VnD());
+
+  int4_helper.TestUnencodable<0>(0x10, z0.VnB());
+  int4_helper.TestUnencodable<1>(0x20, z0.VnB());
+
+  int12_helper.TestUnencodable<1>(1, z0.VnD());
+  int12_helper.TestUnencodable<12>(1, z0.VnD());
+  int12_helper.TestUnencodable<12>(0x800, z0.VnD());
+}
+
 TEST(static_register_types) {
   // [WX]Register implicitly casts to Register.
   XRegister x_x0(0);
