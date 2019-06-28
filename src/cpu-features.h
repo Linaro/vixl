@@ -333,8 +333,10 @@ class CPUFeaturesConstIterator {
   CPUFeatures::Feature feature_;
 
   bool IsValid() const {
-    return ((cpu_features_ == NULL) && (feature_ == CPUFeatures::kNone)) ||
-           cpu_features_->Has(feature_);
+    if (cpu_features_ == NULL) {
+      return feature_ == CPUFeatures::kNone;
+    }
+    return cpu_features_->Has(feature_);
   }
 };
 

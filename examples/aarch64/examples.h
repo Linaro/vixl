@@ -30,59 +30,56 @@
 #include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/simulator-aarch64.h"
 
-using namespace vixl;
-using namespace vixl::aarch64;
-
 // Generate a function with the following prototype:
 //   uint64_t factorial(uint64_t n)
 //
 // It provides an iterative implementation of the factorial computation.
-void GenerateFactorial(MacroAssembler* masm);
+void GenerateFactorial(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function with the following prototype:
 //   uint64_t factorial_rec(uint64_t n)
 //
 // It provides a recursive implementation of the factorial computation.
-void GenerateFactorialRec(MacroAssembler* masm);
+void GenerateFactorialRec(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function with the following prototype:
 //   void neon_matrix_multiply(float* dst, float* mat1, float* mat2)
 //
 // It provides an implementation of a column-major 4x4 matrix multiplication.
-void GenerateNEONMatrixMultiply(MacroAssembler* masm);
+void GenerateNEONMatrixMultiply(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function with the following prototype:
 //   void add2_vectors(int8_t *vecA, const int8_t *vecB, unsigned size)
 //
 // Demonstrate how to add two vectors using NEON. The result is stored in vecA.
-void GenerateAdd2Vectors(MacroAssembler* masm);
+void GenerateAdd2Vectors(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function with the following prototype:
 //   double add3_double(double x, double y, double z)
 //
 // This example is intended to show the calling convention with double
 // floating point arguments.
-void GenerateAdd3Double(MacroAssembler* masm);
+void GenerateAdd3Double(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function with the following prototype:
 //   double add4_double(uint64_t a, double b, uint64_t c, double d)
 //
 // The generated function pictures the calling convention for functions
 // mixing integer and floating point arguments.
-void GenerateAdd4Double(MacroAssembler* masm);
+void GenerateAdd4Double(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function with the following prototype:
 //   uint32_t sum_array(uint8_t* array, uint32_t size)
 //
 // The generated function computes the sum of all the elements in
 // the given array.
-void GenerateSumArray(MacroAssembler* masm);
+void GenerateSumArray(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function with the following prototype:
 //   int64_t abs(int64_t x)
 //
 // The generated function computes the absolute value of an integer.
-void GenerateAbs(MacroAssembler* masm);
+void GenerateAbs(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function with the following prototype:
 //   uint64_t check_bounds(uint64_t value, uint64_t low, uint64_t high)
@@ -91,35 +88,35 @@ void GenerateAbs(MacroAssembler* masm);
 // instructions. The generated function will check that the given value is
 // contained within the given boundaries. It returns 1 if 'value' is between
 // 'low' and 'high' (ie. low <= value <= high).
-void GenerateCheckBounds(MacroAssembler* masm);
+void GenerateCheckBounds(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function with the following prototype:
 //   uint32_t crc32(const char *msg, size_t msg_length)
 //
 // The generated function computes the CRC-32 checksum on the input msg
 // with specified length, and returns the result.
-void GenerateCrc32(MacroAssembler* masm);
+void GenerateCrc32(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function which uses the stack to swap the content of the x0, x1,
 // x2 and x3 registers.
-void GenerateSwap4(MacroAssembler* masm);
+void GenerateSwap4(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function which swaps the content of w0 and w1.
 // This example demonstrates some interesting features of VIXL's stack
 // operations.
-void GenerateSwapInt32(MacroAssembler* masm);
+void GenerateSwapInt32(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function with the following prototype:
 //   uint64_t demo_function(uint64_t x)
 //
 // This is the example used in doc/getting-started-aarch64.txt
-void GenerateDemoFunction(MacroAssembler* masm);
+void GenerateDemoFunction(vixl::aarch64::MacroAssembler* masm);
 
 // This function generates and runs code that uses literals to sum the `a` and
 // `b` inputs.
 int64_t LiteralExample(int64_t a, int64_t b);
 
 // Generate a few examples of runtime calls.
-void GenerateRuntimeCallExamples(MacroAssembler* masm);
+void GenerateRuntimeCallExamples(vixl::aarch64::MacroAssembler* masm);
 
 #endif  // VIXL_EXAMPLE_EXAMPLES_H_

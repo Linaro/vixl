@@ -71,6 +71,12 @@ size_t ArrayLength(const T (&)[n]) {
   return n;
 }
 
+inline uint64_t GetUintMask(unsigned bits) {
+  VIXL_ASSERT(bits <= 64);
+  uint64_t base = (bits >= 64) ? 0 : (UINT64_C(1) << bits);
+  return base - 1;
+}
+
 // Check number width.
 // TODO: Refactor these using templates.
 inline bool IsIntN(unsigned n, uint32_t x) {
@@ -190,7 +196,7 @@ inline uint32_t ExtractUnsignedBitfield32(int msb, int lsb, uint32_t x) {
 }
 
 
-inline int64_t ExtractSignedBitfield64(int msb, int lsb, int64_t x) {
+inline int64_t ExtractSignedBitfield64(int msb, int lsb, uint64_t x) {
   VIXL_ASSERT((static_cast<size_t>(msb) < sizeof(x) * 8) && (lsb >= 0) &&
               (msb >= lsb));
   uint64_t temp = ExtractUnsignedBitfield64(msb, lsb, x);
@@ -204,7 +210,7 @@ inline int64_t ExtractSignedBitfield64(int msb, int lsb, int64_t x) {
 }
 
 
-inline int32_t ExtractSignedBitfield32(int msb, int lsb, int32_t x) {
+inline int32_t ExtractSignedBitfield32(int msb, int lsb, uint32_t x) {
   VIXL_ASSERT((static_cast<size_t>(msb) < sizeof(x) * 8) && (lsb >= 0) &&
               (msb >= lsb));
   uint32_t temp = TruncateToUint32(ExtractSignedBitfield64(msb, lsb, x));

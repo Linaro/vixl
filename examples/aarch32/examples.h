@@ -41,9 +41,6 @@ extern "C" {
 #include "aarch32/instructions-aarch32.h"
 #include "aarch32/macro-assembler-aarch32.h"
 
-using namespace vixl;
-using namespace vixl::aarch32;
-
 #ifndef VIXL_INCLUDE_SIMULATOR_AARCH32
 class ExecutableMemory {
  public:
@@ -88,12 +85,12 @@ class ExecutableMemory {
 //   int32_t abs(int32_t x)
 //
 // The generated function computes the absolute value of an integer.
-void GenerateAbs(MacroAssembler* masm);
+void GenerateAbs(vixl::aarch32::MacroAssembler* masm);
 
 // Generate a function with the following prototype:
 //   uint32_t demo_function(uint32_t x)
 //
 // This is the example used in doc/getting-started-aarch32.md
-void GenerateDemo(MacroAssembler* masm);
+void GenerateDemo(vixl::aarch32::MacroAssembler* masm);
 
 #endif  // VIXL_EXAMPLE_EXAMPLES_H_

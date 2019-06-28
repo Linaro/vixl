@@ -26,6 +26,9 @@
 
 #include "examples.h"
 
+using namespace vixl;
+using namespace vixl::aarch64;
+
 #define __ masm->
 
 void GenerateCrc32(MacroAssembler* masm) {
