@@ -52,8 +52,8 @@ def BuildOptions():
   parser = argparse.ArgumentParser(
       description =
       '''This tool lints C++ files and produces a summary of the errors found.
-      If no files are provided on the command-line, all C++ source files in the
-      repository are processed.
+      If no files are provided on the command-line, all C++ source files are
+      processed, except for the test traces.
       Results are cached to speed up the process.
       ''',
       # Print default values.
@@ -195,19 +195,6 @@ def IsLinterInput(filename):
   return CPP_EXT_REGEXP.search(filename) != None
 
 
-def GetDefaultFilesToLint():
-  if git.is_git_repository_root(config.dir_root):
-    files = git.get_tracked_files().split()
-    files = filter(IsLinterInput, files)
-    files = FilterOutTestTraceHeaders(files)
-    return 0, files
-  else:
-    printer.Print(printer.COLOUR_ORANGE + 'WARNING: This script is not run ' \
-                  'from its Git repository. The linter will not run.' + \
-                  printer.NO_COLOUR)
-    return 1, []
-
-
 cached_results_pkl_filename = \
   os.path.join(config.dir_tools, '.cached_lint_results.pkl')
 
@@ -251,11 +238,7 @@ if __name__ == '__main__':
   # Parse the arguments.
   args = BuildOptions()
 
-  files = args.files
-  if not files:
-    retcode, files = GetDefaultFilesToLint()
-    if retcode:
-      sys.exit(retcode)
+  files = args.files or util.get_source_files()
 
   cached = not args.no_cache
   retcode = RunLinter(files, jobs=args.jobs, cached=cached)

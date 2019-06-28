@@ -250,16 +250,15 @@ def RunCommand(command, environment_options = None):
 
 
 def RunLinter(jobs):
-  rc, default_tracked_files = lint.GetDefaultFilesToLint()
-  if rc:
-    return rc
-  return lint.RunLinter(map(lambda x: join(dir_root, x), default_tracked_files),
+  return lint.RunLinter(map(lambda x: join(dir_root, x),
+                        util.get_source_files()),
                         jobs = args.jobs, progress_prefix = 'cpp lint: ')
 
 
 def RunClangFormat(clang_path, jobs):
-  return clang_format.ClangFormatFiles(clang_format.GetCppSourceFilesToFormat(),
-                                       clang_path, jobs = jobs,
+  return clang_format.ClangFormatFiles(util.get_source_files(),
+                                       clang_path,
+                                       jobs = jobs,
                                        progress_prefix = 'clang-format: ')
 
 
