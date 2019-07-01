@@ -2780,6 +2780,12 @@ static void MaskAddresses(const char* trace) {
   }
 }
 
+static void PrintFile(const char* name) {
+  FILE* file = fopen(name, "r");
+  char buffer[1024];  // The buffer size is arbitrary.
+  while (fgets(buffer, sizeof(buffer), file) != NULL) fputs(buffer, stdout);
+  fclose(file);
+}
 
 static bool CheckOrGenerateTrace(const char* filename, const char* ref_file) {
   bool trace_matched_reference;
@@ -2871,9 +2877,22 @@ static void TraceTestHelper(bool coloured_trace,
   masm.Ret();
   masm.FinalizeCode();
 
+  if (Test::disassemble()) {
+    PrintDisassembler disasm(stdout);
+    Instruction* start = masm.GetBuffer()->GetStartAddress<Instruction*>();
+    Instruction* end = masm.GetBuffer()->GetEndAddress<Instruction*>();
+    disasm.DisassembleBuffer(start, end);
+  }
+
   simulator.RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>());
 
   fclose(trace_stream);
+
+  // We already traced into the temporary file, so just print the file.
+  // Note that these tests need to control the trace flags, so we ignore all
+  // --trace-* options here except for --trace-sim.
+  if (Test::trace_sim()) PrintFile(trace_stream_filename);
+
   MaskAddresses(trace_stream_filename);
 
   bool trace_matched_reference =
@@ -2963,6 +2982,10 @@ static void PrintDisassemblerTestHelper(const char* prefix,
   }
 
   fclose(trace_stream);
+
+  // We already disassembled into the temporary file, so just print the file.
+  if (Test::disassemble()) PrintFile(trace_stream_filename);
+
   MaskAddresses(trace_stream_filename);
 
   bool trace_matched_reference =

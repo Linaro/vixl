@@ -142,8 +142,10 @@ namespace aarch64 {
       *skipped = false;                                                       \
     } else {                                                                  \
       std::stringstream os;                                                   \
-      os << "Warning: skipping test due to missing CPU features.\n";          \
-      os << "  Missing: {" << requirements.Without(this_machine) << "}\n";    \
+      /* Note: This message needs to match REGEXP_MISSING_FEATURES from    */ \
+      /* tools/threaded_test.py.                                           */ \
+      os << "SKIPPED: Missing features: { ";                                  \
+      os << requirements.Without(this_machine) << " }\n";                     \
       printf("%s", os.str().c_str());                                         \
       *skipped = true;                                                        \
     }                                                                         \

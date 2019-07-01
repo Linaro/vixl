@@ -58,9 +58,9 @@ signal.signal(signal.SIGINT, sigint_handler)
 def BuildOptions():
   parser = argparse.ArgumentParser(
     description = '''This tool runs `clang-format` on C++ files.
-    If no files are provided on the command-line, all C++ source files in `src`,
-    `sample`, and `benchmarks` are processed.
-    When available, `colordiff` is automatically used to clour the output.''',
+    If no files are provided on the command-line, all C++ source files are
+    processed, except for the test traces.
+    When available, `colordiff` is automatically used to colour the output.''',
     # Print default values.
     formatter_class = argparse.ArgumentDefaultsHelpFormatter)
   parser.add_argument('files', nargs = '*')
@@ -181,46 +181,10 @@ def ClangFormatFiles(files, clang_format, in_place = False, jobs = 1,
   return rc
 
 
-def Find(path, filters = ['*'], excluded_dir = ""):
-  files_found = []
-
-  def NameMatchesAnyFilter(name, ff):
-    for f in ff:
-      if fnmatch.fnmatch(name, f):
-        return True
-    return False
-
-  for root, dirs, files in os.walk(path):
-    files_found += [
-        os.path.join(root, fn)
-        for fn in files
-        # Include files which names match "filters".
-        # Exclude files for which the base directory is "excluded_dir".
-        if NameMatchesAnyFilter(os.path.relpath(fn), filters) and \
-            not os.path.dirname(os.path.join(root, fn)).endswith(excluded_dir)
-    ]
-  return files_found
-
-
-def GetCppSourceFilesToFormat():
-  sources = []
-  source_dirs = [config.dir_aarch32_benchmarks,
-                 config.dir_aarch32_examples,
-                 config.dir_aarch64_benchmarks,
-                 config.dir_aarch64_examples,
-                 config.dir_tests,
-                 config.dir_src_vixl ]
-  for directory in source_dirs:
-    sources += Find(directory, ['*.h', '*.cc'], 'traces')
-  return sources
-
-
 if __name__ == '__main__':
   # Parse the arguments.
   args = BuildOptions()
-  files = args.files
-  if not files:
-    files = GetCppSourceFilesToFormat()
+  files = args.files or util.get_source_files()
 
   rc = ClangFormatFiles(files, clang_format = args.clang_format,
                         in_place = args.in_place, jobs = args.jobs)

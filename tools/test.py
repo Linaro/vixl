@@ -34,7 +34,6 @@ import multiprocessing
 import os
 from os.path import join
 import platform
-import re
 import subprocess
 import sys
 import time
@@ -144,6 +143,8 @@ def BuildOptions():
                                  help='''Don't actually build or run anything,
                                  but print the configurations that would be
                                  tested.''')
+  general_arguments.add_argument('--verbose', action='store_true',
+                                 help='''Print extra information.''')
   general_arguments.add_argument(
     '--jobs', '-j', metavar='N', type=int, nargs='?',
     default=multiprocessing.cpu_count(),
@@ -249,16 +250,15 @@ def RunCommand(command, environment_options = None):
 
 
 def RunLinter(jobs):
-  rc, default_tracked_files = lint.GetDefaultFilesToLint()
-  if rc:
-    return rc
-  return lint.RunLinter(map(lambda x: join(dir_root, x), default_tracked_files),
+  return lint.RunLinter(map(lambda x: join(dir_root, x),
+                        util.get_source_files()),
                         jobs = args.jobs, progress_prefix = 'cpp lint: ')
 
 
 def RunClangFormat(clang_path, jobs):
-  return clang_format.ClangFormatFiles(clang_format.GetCppSourceFilesToFormat(),
-                                       clang_path, jobs = jobs,
+  return clang_format.ClangFormatFiles(util.get_source_files(),
+                                       clang_path,
+                                       jobs = jobs,
                                        progress_prefix = 'clang-format: ')
 
 
@@ -429,7 +429,7 @@ if __name__ == '__main__':
       if not args.nobench:
         rc.Combine(RunBenchmarks(options, args))
 
-  rc.Combine(tests.Run(args.jobs))
+  rc.Combine(tests.Run(args.jobs, args.verbose))
   if not args.dry_run:
     rc.PrintStatus()
 

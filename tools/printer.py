@@ -104,18 +104,22 @@ def PrintOverwritableLine(string, has_lock = False, type = LINE_TYPE_NONE):
 
 # Display the run progress:
 # prefix [time| progress|+ passed|- failed]  name
-def UpdateProgress(start_time, passed, failed, count, name, prefix = '',
-                   prevent_next_overwrite = False, has_lock = False):
+def UpdateProgress(start_time, passed, failed, count, skipped, known_failures,
+                   name, prefix = '', prevent_next_overwrite = False,
+                   has_lock = False):
   minutes, seconds = divmod(time.time() - start_time, 60)
-  progress = float(passed + failed) / count * 100
+  progress = float(passed + failed + skipped) / count * 100
   passed_colour = COLOUR_GREEN if passed != 0 else ''
   failed_colour = COLOUR_RED if failed != 0 else ''
+  skipped_colour = COLOUR_ORANGE if (skipped + known_failures) != 0 else ''
   indicator = '[%02d:%02d| %3d%%|'
   indicator += passed_colour + '+ %d' + NO_COLOUR + '|'
-  indicator += failed_colour + '- %d' + NO_COLOUR + ']'
+  indicator += failed_colour + '- %d' + NO_COLOUR + '|'
+  indicator += skipped_colour + '? %d' + NO_COLOUR + ']'
 
   progress_string = prefix
-  progress_string += indicator % (minutes, seconds, progress, passed, failed)
+  progress_string += indicator % (minutes, seconds, progress, passed, failed,
+                                  skipped + known_failures)
   progress_string += '  ' + name
 
   PrintOverwritableLine(progress_string, type = LINE_TYPE_PROGRESS,

@@ -306,10 +306,12 @@ inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
   if (!*queried_can_run) {
     *queried_can_run = true;
     CPUFeatures missing = required.Without(cpu);
-    std::cout << "Warning: This test cannot execute its generated code on this "
-                 "CPU.\n";
-    std::cout << "  Required: { " << required << " }\n";
-    std::cout << "   Missing: { " << missing << " }\n";
+    // Note: This message needs to match REGEXP_MISSING_FEATURES from
+    // tools/threaded_test.py.
+    std::cout << "SKIPPED: Missing features: { " << missing << " }\n";
+    std::cout << "This test requires the following features to run its "
+                 "generated code on this CPU: "
+              << required << "\n";
   }
   return false;
 }

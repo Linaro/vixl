@@ -45,8 +45,8 @@ def FilterKnownValgrindTestFailures(tests):
   if major > 3 or (major == 3 and minor > 10):
     return tests
 
-  # Valgrind versions before 3.11 have issues with fused multiply-add,
-  # so disable the affected tests.
+  reason = "Valgrind versions before 3.11 have issues with fused multiply-add, " \
+           "so disable the affected tests."
   known_valgrind_test_failures = {
     'AARCH64_SIM_fmadd_d',
     'AARCH64_SIM_fmadd_s',
@@ -76,13 +76,13 @@ def FilterKnownValgrindTestFailures(tests):
     'AARCH64_SIM_frsqrts_D'
   }
 
-  for t in sorted(known_valgrind_test_failures):
-    print('Skipping ' + t + '...')
-
-  return filter(lambda x: x not in known_valgrind_test_failures, tests)
+  filtered_list = filter(lambda x: x not in known_valgrind_test_failures, tests)
+  return (filtered_list, len(tests) - len(filtered_list), reason)
 
 def FilterKnownTestFailures(tests, **env):
+  skipped = []
   if env.get('under_valgrind'):
-    tests = FilterKnownValgrindTestFailures(tests)
+    tests, n_tests_skipped, reason = FilterKnownValgrindTestFailures(tests)
+    skipped.append( (n_tests_skipped, reason) )
 
-  return tests
+  return (tests, skipped)

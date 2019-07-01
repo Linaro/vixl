@@ -559,9 +559,13 @@ TEST(CPUFeatures_infer_from_id_registers) {
     VIXL_CHECK(os_auto.Has(os_with_id_regs));
     VIXL_CHECK(os_with_id_regs.Has(os_auto));
   } else {
-    printf(
-        "Warning: skipping test because ID register emulation is not "
-        "available.\n");
+    // Note: This message needs to match REGEXP_MISSING_FEATURES from
+    // tools/threaded_test.py.
+    std::cout << "SKIPPED: Missing features: { "
+              << CPUFeatures::kIDRegisterEmulation << " }\n";
+    std::cout << "This test requires the following features to run its "
+                 "generated code on this CPU: "
+              << CPUFeatures::kIDRegisterEmulation << "\n";
   }
 }
 
