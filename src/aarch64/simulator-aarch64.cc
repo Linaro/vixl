@@ -144,6 +144,7 @@ void Simulator::ResetVRegisters() {
   int lane_count = GetVectorLengthInBytes() / kDRegSizeInBytes;
   for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
     VIXL_ASSERT(vregisters_[i].GetSizeInBytes() == GetVectorLengthInBytes());
+    vregisters_[i].NotifyAccessAsZ();
     for (int lane = 0; lane < lane_count; lane++) {
       // Encode the register number and (D-sized) lane into each NaN, to
       // make them easier to trace.
@@ -694,9 +695,18 @@ void Simulator::PrintWrittenRegisters() {
 
 
 void Simulator::PrintWrittenVRegisters() {
+  bool has_sve = GetCPUFeatures()->Has(CPUFeatures::kSVE);
   for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
     // At this point there is no type information, so print as a raw 1Q.
-    if (vregisters_[i].WrittenSinceLastLog()) PrintVRegister(i, kPrintReg1Q);
+    if (vregisters_[i].WrittenSinceLastLog()) {
+      // Z registers are initialised in the constructor before the user can
+      // configure the CPU features, so we must also check for SVE here.
+      if (vregisters_[i].AccessedAsZSinceLastLog() && has_sve) {
+        PrintZRegister(i);
+      } else {
+        PrintVRegister(i, kPrintReg1Q);
+      }
+    }
   }
 }
 

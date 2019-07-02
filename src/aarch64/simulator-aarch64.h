@@ -193,29 +193,42 @@ class SimRegisterBase {
     VIXL_ASSERT((sizeof(src) + (lane * sizeof(src))) <= GetSizeInBytes());
     memcpy(&value_[lane * sizeof(src)], &src, sizeof(src));
   }
+
+  // The default ReadLane and WriteLane methods assume what we are copying is
+  // "trivially copyable" by using memcpy. We have to provide alternative
+  // implementations for SimFloat16 which cannot be copied this way.
+
+  void ReadLane(vixl::internal::SimFloat16* dst, int lane) const {
+    uint16_t rawbits;
+    ReadLane(&rawbits, lane);
+    *dst = RawbitsToFloat16(rawbits);
+  }
+
+  void WriteLane(vixl::internal::SimFloat16 src, int lane) {
+    WriteLane(Float16ToRawbits(src), lane);
+  }
 };
+
 typedef SimRegisterBase<kXRegSize> SimRegister;      // r0-r31
-typedef SimRegisterBase<kZRegMaxSize> SimVRegister;  // v0-v31 and z0-z31
 typedef SimRegisterBase<kPRegMaxSize> SimPRegister;  // p0-p15
 
-// The default ReadLane and WriteLane methods assume what we are copying is
-// "trivially copyable" by using memcpy. We have to provide alternative
-// implementations for SimFloat16 which cannot be copied this way.
+// v0-v31 and z0-z31
+class SimVRegister : public SimRegisterBase<kZRegMaxSize> {
+ public:
+  SimVRegister() : SimRegisterBase<kZRegMaxSize>(), accessed_as_z_(false) {}
 
-template <>
-template <>
-inline void SimVRegister::ReadLane(vixl::internal::SimFloat16* dst,
-                                   int lane) const {
-  uint16_t rawbits;
-  ReadLane(&rawbits, lane);
-  *dst = RawbitsToFloat16(rawbits);
-}
+  void NotifyAccessAsZ() { accessed_as_z_ = true; }
 
-template <>
-template <>
-inline void SimVRegister::WriteLane(vixl::internal::SimFloat16 src, int lane) {
-  WriteLane(Float16ToRawbits(src), lane);
-}
+  void NotifyRegisterLogged() {
+    SimRegisterBase<kZRegMaxSize>::NotifyRegisterLogged();
+    accessed_as_z_ = false;
+  }
+
+  bool AccessedAsZSinceLastLog() const { return accessed_as_z_; }
+
+ private:
+  bool accessed_as_z_;
+};
 
 // Representation of a SVE predicate register.
 class LogicPRegister {
@@ -302,6 +315,7 @@ class LogicVRegister {
   }
 
   int64_t Int(VectorFormat vform, int index) const {
+    if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
     int64_t element;
     switch (LaneSizeInBitsFromFormat(vform)) {
       case 8:
@@ -324,6 +338,7 @@ class LogicVRegister {
   }
 
   uint64_t Uint(VectorFormat vform, int index) const {
+    if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
     uint64_t element;
     switch (LaneSizeInBitsFromFormat(vform)) {
       case 8:
@@ -357,6 +372,7 @@ class LogicVRegister {
   }
 
   void SetInt(VectorFormat vform, int index, int64_t value) const {
+    if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
     switch (LaneSizeInBitsFromFormat(vform)) {
       case 8:
         register_.Insert(index, static_cast<int8_t>(value));
@@ -384,6 +400,7 @@ class LogicVRegister {
   }
 
   void SetUint(VectorFormat vform, int index, uint64_t value) const {
+    if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
     switch (LaneSizeInBitsFromFormat(vform)) {
       case 8:
         register_.Insert(index, static_cast<uint8_t>(value));
@@ -411,6 +428,7 @@ class LogicVRegister {
   }
 
   void ReadUintFromMem(VectorFormat vform, int index, uint64_t addr) const {
+    if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
     switch (LaneSizeInBitsFromFormat(vform)) {
       case 8:
         register_.Insert(index, Memory::Read<uint8_t>(addr));
@@ -431,6 +449,7 @@ class LogicVRegister {
   }
 
   void WriteUintToMem(VectorFormat vform, int index, uint64_t addr) const {
+    if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
     uint64_t value = Uint(vform, index);
     switch (LaneSizeInBitsFromFormat(vform)) {
       case 8:

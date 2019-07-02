@@ -2827,6 +2827,7 @@ static void TraceTestHelper(bool coloured_trace,
 
   Decoder decoder;
   Simulator simulator(&decoder, trace_stream);
+  simulator.SetCPUFeatures(CPUFeatures::AArch64LegacyBaseline());
   simulator.SetColouredTrace(coloured_trace);
   simulator.SetTraceParameters(trace_parameters);
   simulator.SilenceExclusiveAccessWarning();
