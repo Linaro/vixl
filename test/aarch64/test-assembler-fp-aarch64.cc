@@ -84,7 +84,6 @@ TEST(load_store_float) {
     ASSERT_EQUAL_64(src_base + 2 * sizeof(src[0]), x21);
     ASSERT_EQUAL_64(dst_base, x22);
   }
-  TEARDOWN();
 }
 
 
@@ -127,7 +126,6 @@ TEST(load_store_double) {
     ASSERT_EQUAL_64(src_base + 2 * sizeof(src[0]), x21);
     ASSERT_EQUAL_64(dst_base, x22);
   }
-  TEARDOWN();
 }
 
 TEST(ldp_stp_float) {
@@ -156,7 +154,6 @@ TEST(ldp_stp_float) {
     ASSERT_EQUAL_64(src_base + 2 * sizeof(src[0]), x16);
     ASSERT_EQUAL_64(dst_base + sizeof(dst[1]), x17);
   }
-  TEARDOWN();
 }
 
 
@@ -186,7 +183,6 @@ TEST(ldp_stp_double) {
     ASSERT_EQUAL_64(src_base + 2 * sizeof(src[0]), x16);
     ASSERT_EQUAL_64(dst_base + sizeof(dst[1]), x17);
   }
-  TEARDOWN();
 }
 
 TEST(ldnp_stnp_offset_float) {
@@ -234,7 +230,6 @@ TEST(ldnp_stnp_offset_float) {
     ASSERT_EQUAL_64(src_base + 12, x18);
     ASSERT_EQUAL_64(dst_base + 24, x19);
   }
-  TEARDOWN();
 }
 
 
@@ -283,7 +278,6 @@ TEST(ldnp_stnp_offset_double) {
     ASSERT_EQUAL_64(src_base + 24, x18);
     ASSERT_EQUAL_64(dst_base + 48, x19);
   }
-  TEARDOWN();
 }
 
 template <typename T>
@@ -316,7 +310,6 @@ void LoadFPValueHelper(T values[], int card) {
     // one.
     ASSERT_EQUAL_64(0, x0);
   }
-  TEARDOWN();
 }
 
 TEST(ldr_literal_values_d) {
@@ -379,8 +372,6 @@ TEST(fmov_imm) {
     // NaN check.
     ASSERT_EQUAL_FP16(RawbitsToFloat16(0x7e00), h27);
   }
-
-  TEARDOWN();
 }
 
 TEST(fmov_reg) {
@@ -436,8 +427,6 @@ TEST(fmov_reg) {
     ASSERT_EQUAL_128(0x0000000000006400, DoubleToRawbits(-13.0), q3);
     ASSERT_EQUAL_64(DoubleToRawbits(-13.0), x5);
   }
-
-  TEARDOWN();
 }
 
 
@@ -494,7 +483,6 @@ TEST(fadd) {
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d12);
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d13);
   }
-  TEARDOWN();
 }
 
 
@@ -531,7 +519,6 @@ TEST(fadd_h) {
     ASSERT_EQUAL_FP16(kFP16DefaultNaN, h5);
     ASSERT_EQUAL_FP16(kFP16DefaultNaN, h6);
     ASSERT_EQUAL_FP16(Float16(10.0), h7);
-    TEARDOWN();
   }
 }
 
@@ -588,7 +575,6 @@ TEST(fsub) {
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d12);
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d13);
   }
-  TEARDOWN();
 }
 
 
@@ -622,7 +608,6 @@ TEST(fsub_h) {
     ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h4);
     ASSERT_EQUAL_FP16(kFP16DefaultNaN, h5);
     ASSERT_EQUAL_FP16(kFP16DefaultNaN, h6);
-    TEARDOWN();
   }
 }
 
@@ -681,7 +666,6 @@ TEST(fmul) {
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d12);
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d13);
   }
-  TEARDOWN();
 }
 
 
@@ -717,8 +701,6 @@ TEST(fmul_h) {
     ASSERT_EQUAL_FP16(kFP16DefaultNaN, h5);
     ASSERT_EQUAL_FP16(kFP16DefaultNaN, h6);
   }
-
-  TEARDOWN();
 }
 
 
@@ -754,8 +736,6 @@ TEST(fnmul_h) {
     ASSERT_EQUAL_FP16(RawbitsToFloat16(0xfe00), h5);
     ASSERT_EQUAL_FP16(RawbitsToFloat16(0xfe00), h6);
   }
-
-  TEARDOWN();
 }
 
 
@@ -787,7 +767,6 @@ static void FmaddFmsubHelper(double n,
     ASSERT_EQUAL_FP64(fnmadd, d30);
     ASSERT_EQUAL_FP64(fnmsub, d31);
   }
-  TEARDOWN();
 }
 
 
@@ -870,7 +849,6 @@ static void FmaddFmsubHelper(float n,
     ASSERT_EQUAL_FP32(fnmadd, s30);
     ASSERT_EQUAL_FP32(fnmsub, s31);
   }
-  TEARDOWN();
 }
 
 
@@ -1175,7 +1153,6 @@ TEST(fdiv) {
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d12);
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d13);
   }
-  TEARDOWN();
 }
 
 
@@ -1211,8 +1188,6 @@ TEST(fdiv_h) {
     ASSERT_EQUAL_FP16(kFP16DefaultNaN, h5);
     ASSERT_EQUAL_FP16(kFP16DefaultNaN, h6);
   }
-
-  TEARDOWN();
 }
 
 static float MinMaxHelper(float n,
@@ -1318,7 +1293,6 @@ static void FminFmaxDoubleHelper(
     ASSERT_EQUAL_FP64(minnm, d30);
     ASSERT_EQUAL_FP64(maxnm, d31);
   }
-  TEARDOWN();
 }
 
 
@@ -1423,7 +1397,6 @@ static void FminFmaxFloatHelper(
     ASSERT_EQUAL_FP32(minnm, s30);
     ASSERT_EQUAL_FP32(maxnm, s31);
   }
-  TEARDOWN();
 }
 
 
@@ -1600,7 +1573,6 @@ TEST(fccmp) {
     ASSERT_EQUAL_32(CVFlag, w12);
     ASSERT_EQUAL_32(CVFlag, w13);
   }
-  TEARDOWN();
 }
 
 
@@ -1671,8 +1643,6 @@ TEST(fccmp_h) {
     ASSERT_EQUAL_32(CVFlag, w8);
     ASSERT_EQUAL_32(CVFlag, w9);
   }
-
-  TEARDOWN();
 }
 
 
@@ -1772,7 +1742,6 @@ TEST(fcmp) {
     ASSERT_EQUAL_32(CVFlag, w26);
     ASSERT_EQUAL_32(CVFlag, w27);
   }
-  TEARDOWN();
 }
 
 
@@ -1838,8 +1807,6 @@ TEST(fcmp_h) {
     ASSERT_EQUAL_32(CVFlag, w25);
     ASSERT_EQUAL_32(CVFlag, w26);
   }
-
-  TEARDOWN();
 }
 
 
@@ -1876,7 +1843,6 @@ TEST(fcsel) {
     ASSERT_EQUAL_FP32(1.0, s4);
     ASSERT_EQUAL_FP64(3.0, d5);
   }
-  TEARDOWN();
 }
 
 
@@ -1906,8 +1872,6 @@ TEST(fcsel_h) {
     ASSERT_EQUAL_FP16(Float16(1.0), h4);
     ASSERT_EQUAL_FP16(Float16(1.0), h5);
   }
-
-  TEARDOWN();
 }
 
 
@@ -1952,7 +1916,6 @@ TEST(fneg) {
     ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d10);
     ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d11);
   }
-  TEARDOWN();
 }
 
 
@@ -1989,7 +1952,6 @@ TEST(fabs) {
     ASSERT_EQUAL_FP64(0.0, d6);
     ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d7);
   }
-  TEARDOWN();
 }
 
 
@@ -2046,7 +2008,6 @@ TEST(fsqrt) {
     ASSERT_EQUAL_FP64(kFP32PositiveInfinity, d12);
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d13);
   }
-  TEARDOWN();
 }
 
 TEST(frint32x_s) {
@@ -2119,8 +2080,6 @@ TEST(frint32x_s) {
     ASSERT_EQUAL_FP32(0, s17);
     ASSERT_EQUAL_FP32(INT32_MIN, s18);
   }
-
-  TEARDOWN();
 }
 
 TEST(frint32x_d) {
@@ -2193,8 +2152,6 @@ TEST(frint32x_d) {
     ASSERT_EQUAL_FP64(0, d17);
     ASSERT_EQUAL_FP64(INT32_MIN, d18);
   }
-
-  TEARDOWN();
 }
 
 TEST(frint32z_s) {
@@ -2267,8 +2224,6 @@ TEST(frint32z_s) {
     ASSERT_EQUAL_FP32(0, s17);
     ASSERT_EQUAL_FP32(INT32_MIN, s18);
   }
-
-  TEARDOWN();
 }
 
 TEST(frint32z_d) {
@@ -2341,8 +2296,6 @@ TEST(frint32z_d) {
     ASSERT_EQUAL_FP64(0, d17);
     ASSERT_EQUAL_FP64(INT32_MIN, d18);
   }
-
-  TEARDOWN();
 }
 
 TEST(frint64x_s) {
@@ -2415,8 +2368,6 @@ TEST(frint64x_s) {
     ASSERT_EQUAL_FP32(0, s17);
     ASSERT_EQUAL_FP32(INT64_MIN, s18);
   }
-
-  TEARDOWN();
 }
 
 TEST(frint64x_d) {
@@ -2489,8 +2440,6 @@ TEST(frint64x_d) {
     ASSERT_EQUAL_FP64(0, d17);
     ASSERT_EQUAL_FP64(INT64_MIN, d18);
   }
-
-  TEARDOWN();
 }
 
 TEST(frint64z_s) {
@@ -2563,8 +2512,6 @@ TEST(frint64z_s) {
     ASSERT_EQUAL_FP32(0, s17);
     ASSERT_EQUAL_FP32(INT64_MIN, s18);
   }
-
-  TEARDOWN();
 }
 
 TEST(frint64z_d) {
@@ -2637,8 +2584,6 @@ TEST(frint64z_d) {
     ASSERT_EQUAL_FP64(0, d17);
     ASSERT_EQUAL_FP64(INT64_MIN, d18);
   }
-
-  TEARDOWN();
 }
 
 TEST(frinta) {
@@ -2726,7 +2671,6 @@ TEST(frinta) {
     ASSERT_EQUAL_FP64(-0.0, d22);
     ASSERT_EQUAL_FP64(-0.0, d23);
   }
-  TEARDOWN();
 }
 
 
@@ -2817,7 +2761,6 @@ TEST(frinti) {
     ASSERT_EQUAL_FP64(-0.0, d22);
     ASSERT_EQUAL_FP64(-0.0, d23);
   }
-  TEARDOWN();
 }
 
 
@@ -2906,7 +2849,6 @@ TEST(frintm) {
     ASSERT_EQUAL_FP64(-0.0, d22);
     ASSERT_EQUAL_FP64(-1.0, d23);
   }
-  TEARDOWN();
 }
 
 
@@ -2995,7 +2937,6 @@ TEST(frintn) {
     ASSERT_EQUAL_FP64(-0.0, d22);
     ASSERT_EQUAL_FP64(-0.0, d23);
   }
-  TEARDOWN();
 }
 
 
@@ -3084,7 +3025,6 @@ TEST(frintp) {
     ASSERT_EQUAL_FP64(-0.0, d22);
     ASSERT_EQUAL_FP64(-0.0, d23);
   }
-  TEARDOWN();
 }
 
 
@@ -3175,7 +3115,6 @@ TEST(frintx) {
     ASSERT_EQUAL_FP64(-0.0, d22);
     ASSERT_EQUAL_FP64(-0.0, d23);
   }
-  TEARDOWN();
 }
 
 
@@ -3258,7 +3197,6 @@ TEST(frintz) {
     ASSERT_EQUAL_FP64(0.0, d20);
     ASSERT_EQUAL_FP64(-0.0, d21);
   }
-  TEARDOWN();
 }
 
 
@@ -3325,7 +3263,6 @@ TEST(fcvt_ds) {
     ASSERT_EQUAL_FP64(RawbitsToDouble(0x7ff82468a0000000), d13);
     ASSERT_EQUAL_FP64(RawbitsToDouble(0x7ff82468a0000000), d14);
   }
-  TEARDOWN();
 }
 
 
@@ -3395,7 +3332,6 @@ TEST(fcvt_sd) {
     ASSERT_EQUAL_FP32(RawbitsToFloat(0x7fc12345), s13);
     ASSERT_EQUAL_FP32(RawbitsToFloat(0x7fc12345), s14);
   }
-  TEARDOWN();
 }
 
 
@@ -3501,7 +3437,6 @@ TEST(fcvt_half) {
     ASSERT_EQUAL_128(0, 0, q26);
     ASSERT_EQUAL_128(0, 0x8000, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -3606,7 +3541,6 @@ TEST(fcvtas) {
     ASSERT_EQUAL_64(0x7ffffffffffffc00, x29);
     ASSERT_EQUAL_64(0x8000000000000400, x30);
   }
-  TEARDOWN();
 }
 
 
@@ -3706,7 +3640,6 @@ TEST(fcvtau) {
     ASSERT_EQUAL_64(0xfffffffffffff800, x29);
     ASSERT_EQUAL_64(0xffffffff, x30);
   }
-  TEARDOWN();
 }
 
 
@@ -3811,7 +3744,6 @@ TEST(fcvtms) {
     ASSERT_EQUAL_64(0x7ffffffffffffc00, x29);
     ASSERT_EQUAL_64(0x8000000000000400, x30);
   }
-  TEARDOWN();
 }
 
 
@@ -3914,7 +3846,6 @@ TEST(fcvtmu) {
     ASSERT_EQUAL_64(0x7ffffffffffffc00, x29);
     ASSERT_EQUAL_64(0, x30);
   }
-  TEARDOWN();
 }
 
 
@@ -4019,7 +3950,6 @@ TEST(fcvtns) {
     ASSERT_EQUAL_64(0x7ffffffffffffc00, x29);
     ASSERT_EQUAL_64(0x8000000000000400, x30);
   }
-  TEARDOWN();
 }
 
 
@@ -4119,7 +4049,6 @@ TEST(fcvtnu) {
     ASSERT_EQUAL_64(0xfffffffffffff800, x29);
     ASSERT_EQUAL_64(0xffffffff, x30);
   }
-  TEARDOWN();
 }
 
 
@@ -4224,7 +4153,6 @@ TEST(fcvtzs) {
     ASSERT_EQUAL_64(0x7ffffffffffffc00, x29);
     ASSERT_EQUAL_64(0x8000000000000400, x30);
   }
-  TEARDOWN();
 }
 
 void FjcvtzsHelper(uint64_t value, uint64_t expected, uint32_t expected_z) {
@@ -4240,8 +4168,6 @@ void FjcvtzsHelper(uint64_t value, uint64_t expected, uint32_t expected_z) {
     ASSERT_EQUAL_64(expected, x0);
     ASSERT_EQUAL_32(expected_z, w1);
   }
-
-  TEARDOWN();
 }
 
 TEST(fjcvtzs) {
@@ -4431,7 +4357,6 @@ TEST(fcvtzu) {
     ASSERT_EQUAL_64(0x7ffffffffffffc00, x29);
     ASSERT_EQUAL_64(0, x30);
   }
-  TEARDOWN();
 }
 
 // Test that scvtf and ucvtf can convert the 64-bit input into the expected
@@ -4530,7 +4455,6 @@ static void TestUScvtfHelper(uint64_t in,
       ASSERT_EQUAL_FP64(expected_ucvtf, results_ucvtf_x[fbits]);
     }
   }
-  TEARDOWN();
 }
 
 
@@ -4686,7 +4610,6 @@ static void TestUScvtf32Helper(uint64_t in,
       ASSERT_EQUAL_FP32(expected_ucvtf, results_ucvtf_x[fbits]);
     }
   }
-  TEARDOWN();
 }
 
 
@@ -4830,7 +4753,6 @@ TEST(process_nan_double) {
     ASSERT_EQUAL_FP64(qn_proc, d16);
     ASSERT_EQUAL_FP64(qn_proc, d17);
   }
-  TEARDOWN();
 }
 
 
@@ -4907,7 +4829,6 @@ TEST(process_nan_float) {
     ASSERT_EQUAL_FP32(qn_proc, s16);
     ASSERT_EQUAL_FP32(qn_proc, s17);
   }
-  TEARDOWN();
 }
 
 // TODO: TEST(process_nan_half) {}
@@ -4943,7 +4864,6 @@ static void ProcessNaNsHelper(double n, double m, double expected) {
     ASSERT_EQUAL_FP64(expected, d6);
     ASSERT_EQUAL_FP64(expected, d7);
   }
-  TEARDOWN();
 }
 
 
@@ -5016,7 +4936,6 @@ static void ProcessNaNsHelper(float n, float m, float expected) {
     ASSERT_EQUAL_FP32(expected, s6);
     ASSERT_EQUAL_FP32(expected, s7);
   }
-  TEARDOWN();
 }
 
 
@@ -5089,8 +5008,6 @@ static void ProcessNaNsHelper(Float16 n, Float16 m, Float16 expected) {
     ASSERT_EQUAL_FP16(expected, h6);
     ASSERT_EQUAL_FP16(expected, h7);
   }
-
-  TEARDOWN();
 }
 
 
@@ -5215,7 +5132,6 @@ static void DefaultNaNHelper(float n, float m, float a) {
     ASSERT_EQUAL_FP32(kFP32DefaultNaN, s26);
     ASSERT_EQUAL_FP32(kFP32DefaultNaN, s27);
   }
-  TEARDOWN();
 }
 
 
@@ -5344,7 +5260,6 @@ static void DefaultNaNHelper(double n, double m, double a) {
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d26);
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d27);
   }
-  TEARDOWN();
 }
 
 

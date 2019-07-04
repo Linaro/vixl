@@ -84,7 +84,6 @@ TEST(load_store_b) {
     ASSERT_EQUAL_64(src_base + 2 * sizeof(src[0]), x21);
     ASSERT_EQUAL_64(dst_base, x22);
   }
-  TEARDOWN();
 }
 
 
@@ -127,7 +126,6 @@ TEST(load_store_h) {
     ASSERT_EQUAL_64(src_base + 2 * sizeof(src[0]), x21);
     ASSERT_EQUAL_64(dst_base, x22);
   }
-  TEARDOWN();
 }
 
 
@@ -178,7 +176,6 @@ TEST(load_store_q) {
     ASSERT_EQUAL_64(src_base + 32, x21);
     ASSERT_EQUAL_64(dst_base, x22);
   }
-  TEARDOWN();
 }
 
 
@@ -264,7 +261,6 @@ TEST(load_store_v_regoffset) {
     ASSERT_EQUAL_128(0x2027262524232221, 0x2023222120212020, q6);
     ASSERT_EQUAL_128(0x2f2e2d2c2b2a2928, 0x2726252423222120, q7);
   }
-  TEARDOWN();
 }
 
 TEST(ldp_stp_quad) {
@@ -299,7 +295,6 @@ TEST(ldp_stp_quad) {
     ASSERT_EQUAL_64(src_base + 4 * sizeof(src[0]), x16);
     ASSERT_EQUAL_64(dst_base + 2 * sizeof(dst[1]), x17);
   }
-  TEARDOWN();
 }
 
 TEST(neon_ld1_d) {
@@ -349,7 +344,6 @@ TEST(neon_ld1_d) {
     ASSERT_EQUAL_128(0, 0x1c1b1a1918171615, q22);
     ASSERT_EQUAL_128(0, 0x24232221201f1e1d, q23);
   }
-  TEARDOWN();
 }
 
 
@@ -419,7 +413,6 @@ TEST(neon_ld1_d_postindex) {
     ASSERT_EQUAL_64(src_base + 4 + 32, x21);
     ASSERT_EQUAL_64(src_base + 5 + 32, x22);
   }
-  TEARDOWN();
 }
 
 
@@ -463,7 +456,6 @@ TEST(neon_ld1_q) {
     ASSERT_EQUAL_128(0x333231302f2e2d2c, 0x2b2a292827262524, q0);
     ASSERT_EQUAL_128(0x434241403f3e3d3c, 0x3b3a393837363534, q1);
   }
-  TEARDOWN();
 }
 
 
@@ -521,7 +513,6 @@ TEST(neon_ld1_q_postindex) {
     ASSERT_EQUAL_64(src_base + 3 + 64, x20);
     ASSERT_EQUAL_64(src_base + 4 + 64, x21);
   }
-  TEARDOWN();
 }
 
 
@@ -586,7 +577,6 @@ TEST(neon_ld1_lane) {
     ASSERT_EQUAL_128(0x0f0e0d0c03020100, 0x0706050403020100, q6);
     ASSERT_EQUAL_128(0x0706050403020100, 0x0706050403020100, q7);
   }
-  TEARDOWN();
 }
 
 TEST(neon_ld2_d) {
@@ -621,7 +611,6 @@ TEST(neon_ld2_d) {
     ASSERT_EQUAL_128(0, 0x0e0d0c0b06050403, q31);
     ASSERT_EQUAL_128(0, 0x1211100f0a090807, q0);
   }
-  TEARDOWN();
 }
 
 TEST(neon_ld2_d_postindex) {
@@ -666,7 +655,6 @@ TEST(neon_ld2_d_postindex) {
     ASSERT_EQUAL_64(src_base + 3 + 16, x20);
     ASSERT_EQUAL_64(src_base + 4 + 16, x21);
   }
-  TEARDOWN();
 }
 
 
@@ -706,7 +694,6 @@ TEST(neon_ld2_q) {
     ASSERT_EQUAL_128(0x1b1a191817161514, 0x0b0a090807060504, q31);
     ASSERT_EQUAL_128(0x232221201f1e1d1c, 0x131211100f0e0d0c, q0);
   }
-  TEARDOWN();
 }
 
 
@@ -754,7 +741,6 @@ TEST(neon_ld2_q_postindex) {
     ASSERT_EQUAL_64(src_base + 3 + 32, x20);
     ASSERT_EQUAL_64(src_base + 4 + 32, x21);
   }
-  TEARDOWN();
 }
 
 
@@ -835,7 +821,6 @@ TEST(neon_ld2_lane) {
     ASSERT_EQUAL_128(0x0706050403020100, 0x0706050403020100, q14);
     ASSERT_EQUAL_128(0x0f0e0d0c0b0a0908, 0x1716151413121110, q15);
   }
-  TEARDOWN();
 }
 
 
@@ -932,7 +917,6 @@ TEST(neon_ld2_lane_postindex) {
     ASSERT_EQUAL_64(src_base + 3, x23);
     ASSERT_EQUAL_64(src_base + 4, x24);
   }
-  TEARDOWN();
 }
 
 
@@ -981,7 +965,6 @@ TEST(neon_ld2_alllanes) {
     ASSERT_EQUAL_128(0x1918171615141312, 0x1918171615141312, q12);
     ASSERT_EQUAL_128(0x21201f1e1d1c1b1a, 0x21201f1e1d1c1b1a, q13);
   }
-  TEARDOWN();
 }
 
 
@@ -1025,7 +1008,6 @@ TEST(neon_ld2_alllanes_postindex) {
     ASSERT_EQUAL_128(0x21201f1e1d1c1b1a, 0x21201f1e1d1c1b1a, q13);
     ASSERT_EQUAL_64(src_base + 34, x17);
   }
-  TEARDOWN();
 }
 
 
@@ -1065,7 +1047,6 @@ TEST(neon_ld3_d) {
     ASSERT_EQUAL_128(0, 0x161514130a090807, q0);
     ASSERT_EQUAL_128(0, 0x1a1918170e0d0c0b, q1);
   }
-  TEARDOWN();
 }
 
 
@@ -1117,7 +1098,6 @@ TEST(neon_ld3_d_postindex) {
     ASSERT_EQUAL_64(src_base + 3 + 24, x20);
     ASSERT_EQUAL_64(src_base + 4 + 24, x21);
   }
-  TEARDOWN();
 }
 
 
@@ -1162,7 +1142,6 @@ TEST(neon_ld3_q) {
     ASSERT_EQUAL_128(0x2b2a292827262524, 0x131211100f0e0d0c, q0);
     ASSERT_EQUAL_128(0x333231302f2e2d2c, 0x1b1a191817161514, q1);
   }
-  TEARDOWN();
 }
 
 
@@ -1215,7 +1194,6 @@ TEST(neon_ld3_q_postindex) {
     ASSERT_EQUAL_64(src_base + 3 + 48, x20);
     ASSERT_EQUAL_64(src_base + 4 + 48, x21);
   }
-  TEARDOWN();
 }
 
 
@@ -1302,7 +1280,6 @@ TEST(neon_ld3_lane) {
     ASSERT_EQUAL_128(0x1f1e1d1c1b1a1918, 0x0302151413121110, q16);
     ASSERT_EQUAL_128(0x2f2e2d2c2b2a2928, 0x0504252423222120, q17);
   }
-  TEARDOWN();
 }
 
 
@@ -1411,7 +1388,6 @@ TEST(neon_ld3_lane_postindex) {
     ASSERT_EQUAL_64(src_base + 3, x23);
     ASSERT_EQUAL_64(src_base + 4, x24);
   }
-  TEARDOWN();
 }
 
 
@@ -1467,7 +1443,6 @@ TEST(neon_ld3_alllanes) {
     ASSERT_EQUAL_128(0x2827262524232221, 0x2827262524232221, q19);
     ASSERT_EQUAL_128(0x302f2e2d2c2b2a29, 0x302f2e2d2c2b2a29, q20);
   }
-  TEARDOWN();
 }
 
 
@@ -1519,7 +1494,6 @@ TEST(neon_ld3_alllanes_postindex) {
     ASSERT_EQUAL_128(0x2827262524232221, 0x2827262524232221, q19);
     ASSERT_EQUAL_128(0x302f2e2d2c2b2a29, 0x302f2e2d2c2b2a29, q20);
   }
-  TEARDOWN();
 }
 
 
@@ -1563,7 +1537,6 @@ TEST(neon_ld4_d) {
     ASSERT_EQUAL_128(0, 0x1e1d1c1b0e0d0c0b, q0);
     ASSERT_EQUAL_128(0, 0x2221201f1211100f, q1);
   }
-  TEARDOWN();
 }
 
 
@@ -1641,7 +1614,6 @@ TEST(neon_ld4_d_postindex) {
     ASSERT_EQUAL_64(src_base + 3 + 32, x20);
     ASSERT_EQUAL_64(src_base + 4 + 32, x21);
   }
-  TEARDOWN();
 }
 
 
@@ -1691,7 +1663,6 @@ TEST(neon_ld4_q) {
     ASSERT_EQUAL_128(0x3b3a393837363534, 0x1b1a191817161514, q20);
     ASSERT_EQUAL_128(0x434241403f3e3d3c, 0x232221201f1e1d1c, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -1770,7 +1741,6 @@ TEST(neon_ld4_q_postindex) {
     ASSERT_EQUAL_64(src_base + 3 + 64, x20);
     ASSERT_EQUAL_64(src_base + 4 + 64, x21);
   }
-  TEARDOWN();
 }
 
 
@@ -1878,7 +1848,6 @@ TEST(neon_ld4_lane) {
     ASSERT_EQUAL_128(0x1716151413121110, 0x2726252423222120, q30);
     ASSERT_EQUAL_128(0x1f1e1d1c1b1a1918, 0x3736353433323130, q31);
   }
-  TEARDOWN();
 }
 
 
@@ -2024,7 +1993,6 @@ TEST(neon_ld4_lane_postindex) {
     ASSERT_EQUAL_64(src_base + 3, x23);
     ASSERT_EQUAL_64(src_base + 4, x24);
   }
-  TEARDOWN();
 }
 
 
@@ -2089,7 +2057,6 @@ TEST(neon_ld4_alllanes) {
     ASSERT_EQUAL_128(0x3736353433323130, 0x3736353433323130, q26);
     ASSERT_EQUAL_128(0x3f3e3d3c3b3a3938, 0x3f3e3d3c3b3a3938, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -2177,7 +2144,6 @@ TEST(neon_ld4_alllanes_postindex) {
     ASSERT_EQUAL_128(0x3f3e3d3c3b3a3938, 0x3f3e3d3c3b3a3938, q27);
     ASSERT_EQUAL_64(src_base + 64, x17);
   }
-  TEARDOWN();
 }
 
 
@@ -2229,7 +2195,6 @@ TEST(neon_st1_lane) {
     ASSERT_EQUAL_128(0x0302010007060504, 0x0b0a09080f0e0d0c, q3);
     ASSERT_EQUAL_128(0x0706050403020100, 0x0f0e0d0c0b0a0908, q4);
   }
-  TEARDOWN();
 }
 
 
@@ -2323,7 +2288,6 @@ TEST(neon_st2_lane) {
     ASSERT_EQUAL_128(0x1011121314151617, 0x0001020304050607, q22);
     ASSERT_EQUAL_128(0x18191a1b1c1d1e1f, 0x08090a0b0c0d0e0f, q23);
   }
-  TEARDOWN();
 }
 
 
@@ -2423,7 +2387,6 @@ TEST(neon_st3_lane) {
     ASSERT_EQUAL_128(0x18191a1b08090a0b, 0x2425262714151617, q27);
     ASSERT_EQUAL_128(0x2c2d2e2f1c1d1e1f, 0x0c0d0e0f28292a2b, q28);
   }
-  TEARDOWN();
 }
 
 
@@ -2507,7 +2470,6 @@ TEST(neon_st4_lane) {
     ASSERT_EQUAL_128(0x1011121314151617, 0x0001020304050607, q26);
     ASSERT_EQUAL_128(0x2021222324252627, 0x2021222324252627, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -2586,7 +2548,6 @@ TEST(neon_ld1_lane_postindex) {
     ASSERT_EQUAL_64(src_base + 3, x23);
     ASSERT_EQUAL_64(src_base + 4, x24);
   }
-  TEARDOWN();
 }
 
 
@@ -2634,7 +2595,6 @@ TEST(neon_st1_lane_postindex) {
     ASSERT_EQUAL_128(0x0302010007060504, 0x0b0a09080f0e0d0c, q3);
     ASSERT_EQUAL_128(0x0706050403020100, 0x0f0e0d0c0b0a0908, q4);
   }
-  TEARDOWN();
 }
 
 
@@ -2678,7 +2638,6 @@ TEST(neon_ld1_alllanes) {
     ASSERT_EQUAL_128(0, 0x0e0d0c0b0a090807, q6);
     ASSERT_EQUAL_128(0x0f0e0d0c0b0a0908, 0x0f0e0d0c0b0a0908, q7);
   }
-  TEARDOWN();
 }
 
 
@@ -2715,7 +2674,6 @@ TEST(neon_ld1_alllanes_postindex) {
     ASSERT_EQUAL_128(0x1211100f0e0d0c0b, 0x1211100f0e0d0c0b, q6);
     ASSERT_EQUAL_64(src_base + 19, x17);
   }
-  TEARDOWN();
 }
 
 
@@ -2773,7 +2731,6 @@ TEST(neon_st1_d) {
     ASSERT_EQUAL_128(0x1716151413121110, 0x0706050403020100, q23);
     ASSERT_EQUAL_128(0x3736353433323130, 0x2726252423222120, q24);
   }
-  TEARDOWN();
 }
 
 
@@ -2839,7 +2796,6 @@ TEST(neon_st1_d_postindex) {
     ASSERT_EQUAL_128(0x1716151413121110, 0x0706050403020100, q23);
     ASSERT_EQUAL_128(0x3736353433323130, 0x2726252423222120, q24);
   }
-  TEARDOWN();
 }
 
 
@@ -2892,7 +2848,6 @@ TEST(neon_st1_q) {
     ASSERT_EQUAL_128(0x2f2e2d2c2b2a2928, 0x2726252423222120, q24);
     ASSERT_EQUAL_128(0x3f3e3d3c3b3a3938, 0x3736353433323130, q25);
   }
-  TEARDOWN();
 }
 
 
@@ -2954,7 +2909,6 @@ TEST(neon_st1_q_postindex) {
     ASSERT_EQUAL_128(0x2f2e2d2c2b2a2928, 0x2726252423222120, q24);
     ASSERT_EQUAL_128(0x3f3e3d3c3b3a3938, 0x3736353433323130, q25);
   }
-  TEARDOWN();
 }
 
 
@@ -2995,7 +2949,6 @@ TEST(neon_st2_d) {
     ASSERT_EQUAL_128(0x1615140706050413, 0x1211100302010014, q2);
     ASSERT_EQUAL_128(0x3f3e3d3c3b3a3938, 0x3736353433323117, q3);
   }
-  TEARDOWN();
 }
 
 
@@ -3034,7 +2987,6 @@ TEST(neon_st2_d_postindex) {
     ASSERT_EQUAL_128(0x0605041312111003, 0x0201001716070615, q1);
     ASSERT_EQUAL_128(0x2f2e2d2c2b2a2928, 0x2726251716151407, q2);
   }
-  TEARDOWN();
 }
 
 
@@ -3077,7 +3029,6 @@ TEST(neon_st2_q) {
     ASSERT_EQUAL_128(0x1716151413121110, 0x0706050403020100, q2);
     ASSERT_EQUAL_128(0x1f1e1d1c1b1a1918, 0x0f0e0d0c0b0a0908, q3);
   }
-  TEARDOWN();
 }
 
 
@@ -3120,7 +3071,6 @@ TEST(neon_st2_q_postindex) {
     ASSERT_EQUAL_128(0x0d0c0b0a09081716, 0x1514131211100706, q3);
     ASSERT_EQUAL_128(0x4f4e4d4c4b4a1f1e, 0x1d1c1b1a19180f0e, q4);
   }
-  TEARDOWN();
 }
 
 
@@ -3159,7 +3109,6 @@ TEST(neon_st3_d) {
     ASSERT_EQUAL_128(0x2221201312111003, 0x0201000100201000, q0);
     ASSERT_EQUAL_128(0x1f1e1d2726252417, 0x1615140706050423, q1);
   }
-  TEARDOWN();
 }
 
 
@@ -3201,7 +3150,6 @@ TEST(neon_st3_d_postindex) {
     ASSERT_EQUAL_128(0x1615140706050423, 0x2221201312111003, q2);
     ASSERT_EQUAL_128(0x3f3e3d3c3b3a3938, 0x3736352726252417, q3);
   }
-  TEARDOWN();
 }
 
 
@@ -3249,7 +3197,6 @@ TEST(neon_st3_q) {
     ASSERT_EQUAL_128(0x281f1e1d1c1b1a19, 0x180f0e0d0c0b0a09, q4);
     ASSERT_EQUAL_128(0x5f5e5d5c5b5a5958, 0x572f2e2d2c2b2a29, q5);
   }
-  TEARDOWN();
 }
 
 
@@ -3297,7 +3244,6 @@ TEST(neon_st3_q_postindex) {
     ASSERT_EQUAL_128(0x1d1c1b1a19180f0e, 0x0d0c0b0a09082726, q5);
     ASSERT_EQUAL_128(0x6f6e6d6c6b6a2f2e, 0x2d2c2b2a29281f1e, q6);
   }
-  TEARDOWN();
 }
 
 
@@ -3341,7 +3287,6 @@ TEST(neon_st4_d) {
     ASSERT_EQUAL_128(0x1407060504333231, 0X3023222120131211, q2);
     ASSERT_EQUAL_128(0x3f3e3d3c3b373635, 0x3427262524171615, q3);
   }
-  TEARDOWN();
 }
 
 
@@ -3394,7 +3339,6 @@ TEST(neon_st4_d_postindex) {
     ASSERT_EQUAL_128(0x2625241716151407, 0x0605043332313023, q3);
     ASSERT_EQUAL_128(0x4f4e4d4c4b4a4948, 0x4746453736353427, q4);
   }
-  TEARDOWN();
 }
 
 
@@ -3446,7 +3390,6 @@ TEST(neon_st4_q) {
     ASSERT_EQUAL_128(0x382f2e2d2c2b2a29, 0x281f1e1d1c1b1a19, q5);
     ASSERT_EQUAL_128(0x6f6e6d6c6b6a6968, 0x673f3e3d3c3b3a39, q6);
   }
-  TEARDOWN();
 }
 
 
@@ -3511,7 +3454,6 @@ TEST(neon_st4_q_postindex) {
     ASSERT_EQUAL_128(0x2d2c2b2a29281f1e, 0x1d1c1b1a19180f0e, q7);
     ASSERT_EQUAL_128(0x8f8e8d8c8b8a3f3e, 0x3d3c3b3a39382f2e, q8);
   }
-  TEARDOWN();
 }
 
 
@@ -3578,7 +3520,6 @@ TEST(neon_destructive_minmaxp) {
     ASSERT_EQUAL_128(0, 0x1111111133333333, q30);
     ASSERT_EQUAL_128(0, 0x3333333333333333, q31);
   }
-  TEARDOWN();
 }
 
 
@@ -3635,7 +3576,6 @@ TEST(neon_destructive_tbl) {
     ASSERT_EQUAL_128(0xa0000000d4d5d6c7, 0xc8c9babbbcadaeaf, q22);
     ASSERT_EQUAL_128(0x0f000000c4c5c6b7, 0xb8b9aaabac424100, q26);
   }
-  TEARDOWN();
 }
 
 
@@ -3692,7 +3632,6 @@ TEST(neon_destructive_tbx) {
     ASSERT_EQUAL_128(0xa0aeadacd4d5d6c7, 0xc8c9babbbcadaeaf, q22);
     ASSERT_EQUAL_128(0x0f414243c4c5c6b7, 0xb8b9aaabac424100, q26);
   }
-  TEARDOWN();
 }
 
 
@@ -3731,7 +3670,6 @@ TEST(neon_destructive_fcvtl) {
     ASSERT_EQUAL_128(0xc0000000bf800000, 0xbf800000c0000000, q22);
     ASSERT_EQUAL_128(0x400000003f800000, 0x3f80000040000000, q23);
   }
-  TEARDOWN();
 }
 
 TEST(fadd_h_neon) {
@@ -3773,7 +3711,6 @@ TEST(fadd_h_neon) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x7e2f7e2f7e2f7e2f, q11);
     // Quiet NaN.
     ASSERT_EQUAL_128(0x0000000000000000, 0xfe0ffe0ffe0ffe0f, q12);
-    TEARDOWN();
   }
 }
 
@@ -3817,8 +3754,6 @@ TEST(fsub_h_neon) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x7e227e227e227e22, q11);
     // Quiet NaN.
     ASSERT_EQUAL_128(0x0000000000000000, 0xfe02fe02fe02fe02, q12);
-
-    TEARDOWN();
   }
 }
 
@@ -3851,8 +3786,6 @@ TEST(fmul_h_neon) {
     ASSERT_EQUAL_128(0x0000000000000000, 0xd200d200d200d200, q9);
     ASSERT_EQUAL_128(0x0000000000000000, 0xfc00fc00fc00fc00, q10);
   }
-
-  TEARDOWN();
 }
 
 TEST(fdiv_h_neon) {
@@ -3885,8 +3818,6 @@ TEST(fdiv_h_neon) {
     ASSERT_EQUAL_128(0x0000000000000000, 0xad55ad55ad55ad55, q9);
     ASSERT_EQUAL_128(0x0000000000000000, 0xfc00fc00fc00fc00, q10);
   }
-
-  TEARDOWN();
 }
 
 TEST(neon_fcvtl) {
@@ -3926,7 +3857,6 @@ TEST(neon_fcvtl) {
     ASSERT_EQUAL_128(0x36a0000000000000, 0xb6a0000000000000, q24);
     ASSERT_EQUAL_128(0x7ff9ffffe0000000, 0xfff9ffffe0000000, q25);
   }
-  TEARDOWN();
 }
 
 
@@ -3964,7 +3894,6 @@ TEST(neon_fcvtn) {
     ASSERT_EQUAL_128(0x7fc7ffffffc7ffff, 0x0000000080000000, q19);
     ASSERT_EQUAL_128(0x0000000080000000, 0x7fc7ffffffc7ffff, q20);
   }
-  TEARDOWN();
 }
 
 
@@ -4004,7 +3933,6 @@ TEST(neon_fcvtxn) {
     ASSERT_EQUAL_128(0x4f6800004f7fffff, 0x0000000180000001, q20);
     ASSERT_EQUAL_128(0, 0x7f7fffff, q21);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_addp) {
@@ -4022,7 +3950,6 @@ TEST(neon_3same_addp) {
     RUN();
     ASSERT_EQUAL_128(0x00ff54ffff54aaff, 0xffffffffffffffff, q16);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_sqdmulh_sqrdmulh) {
@@ -4058,7 +3985,6 @@ TEST(neon_3same_sqdmulh_sqrdmulh) {
     ASSERT_EQUAL_128(0, 0x7fff, q22);
     ASSERT_EQUAL_128(0, 0x7fffffff, q23);
   }
-  TEARDOWN();
 }
 
 TEST(neon_byelement_sqdmulh_sqrdmulh) {
@@ -4094,7 +4020,6 @@ TEST(neon_byelement_sqdmulh_sqrdmulh) {
     ASSERT_EQUAL_128(0, 0x7fff, q22);
     ASSERT_EQUAL_128(0, 0x7fffffff, q23);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_sqrdmlah) {
@@ -4126,7 +4051,6 @@ TEST(neon_3same_sqrdmlah) {
     ASSERT_EQUAL_128(0, 0x7fff, q18);
     ASSERT_EQUAL_128(0, 0, q19);
   }
-  TEARDOWN();
 }
 
 TEST(neon_byelement_sqrdmlah) {
@@ -4158,7 +4082,6 @@ TEST(neon_byelement_sqrdmlah) {
     ASSERT_EQUAL_128(0, 0x7fff, q18);
     ASSERT_EQUAL_128(0, 0, q19);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_sqrdmlsh) {
@@ -4190,7 +4113,6 @@ TEST(neon_3same_sqrdmlsh) {
     ASSERT_EQUAL_128(0, 0x3ffb, q18);
     ASSERT_EQUAL_128(0, 0xc0004000, q19);
   }
-  TEARDOWN();
 }
 
 TEST(neon_byelement_sqrdmlsh) {
@@ -4222,7 +4144,6 @@ TEST(neon_byelement_sqrdmlsh) {
     ASSERT_EQUAL_128(0, 0xc000, q18);
     ASSERT_EQUAL_128(0, 0xc0004000, q19);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_sdot_udot) {
@@ -4254,7 +4175,6 @@ TEST(neon_3same_sdot_udot) {
     ASSERT_EQUAL_128(0x000119d8000127f8, 0x000119d8000127f8, q18);
     ASSERT_EQUAL_128(0, 0x0000c35e00004000, q19);
   }
-  TEARDOWN();
 }
 
 TEST(neon_byelement_sdot_udot) {
@@ -4286,7 +4206,6 @@ TEST(neon_byelement_sdot_udot) {
     ASSERT_EQUAL_128(0x000119d8000119d8, 0x000119d8000119d8, q18);
     ASSERT_EQUAL_128(0, 0x0000c35e0000ca7e, q19);
   }
-  TEARDOWN();
 }
 
 
@@ -4317,7 +4236,6 @@ TEST(neon_2regmisc_saddlp) {
     ASSERT_EQUAL_128(0x0000000000818000, 0xffffffff82017f81, q20);
     ASSERT_EQUAL_128(0x0000000000000000, 0xffffffff82017f81, q21);
   }
-  TEARDOWN();
 }
 
 TEST(neon_2regmisc_uaddlp) {
@@ -4347,7 +4265,6 @@ TEST(neon_2regmisc_uaddlp) {
     ASSERT_EQUAL_128(0x0000000100818000, 0x0000000082017f81, q20);
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000082017f81, q21);
   }
-  TEARDOWN();
 }
 
 TEST(neon_2regmisc_sadalp) {
@@ -4387,7 +4304,6 @@ TEST(neon_2regmisc_sadalp) {
     ASSERT_EQUAL_128(0x7fffffff80000000, 0x800000007ffffffe, q20);
     ASSERT_EQUAL_128(0x0000000000000000, 0x000000007fffffff, q21);
   }
-  TEARDOWN();
 }
 
 TEST(neon_2regmisc_uadalp) {
@@ -4427,7 +4343,6 @@ TEST(neon_2regmisc_uadalp) {
     ASSERT_EQUAL_128(0x8000000180000000, 0x800000007ffffffe, q20);
     ASSERT_EQUAL_128(0x0000000000000000, 0x000000007fffffff, q21);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_mul) {
@@ -4452,7 +4367,6 @@ TEST(neon_3same_mul) {
     ASSERT_EQUAL_128(0x01029192055b5c08, 0xb30ab5d30d630faa, q17);
     ASSERT_EQUAL_128(0x0000727200abab00, 0x5600563900ab0056, q18);
   }
-  TEARDOWN();
 }
 
 
@@ -4480,7 +4394,6 @@ TEST(neon_3same_absdiff) {
     ASSERT_EQUAL_128(0x0100abab01565656, 0x5555550055565555, q18);
     ASSERT_EQUAL_128(0xff005555ffaaaaaa, 0x5555550055aa5555, q19);
   }
-  TEARDOWN();
 }
 
 
@@ -4537,7 +4450,6 @@ TEST(neon_byelement_mul) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q26);
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -4595,7 +4507,6 @@ TEST(neon_byelement_mull) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q26);
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -4644,7 +4555,6 @@ TEST(neon_byelement_sqdmull) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q25);
     ASSERT_EQUAL_128(0, 0x00000000, q26);
   }
-  TEARDOWN();
 }
 
 
@@ -4674,7 +4584,6 @@ TEST(neon_3diff_absdiff) {
     ASSERT_EQUAL_128(0x0103030405b107b3, 0x090b0b620d640f55, q18);
     ASSERT_EQUAL_128(0x02010304055b075d, 0x0a090bb60db80fab, q19);
   }
-  TEARDOWN();
 }
 
 
@@ -4706,7 +4615,6 @@ TEST(neon_3diff_sqdmull) {
     ASSERT_EQUAL_128(0, 0x7fffffff, q20);
     ASSERT_EQUAL_128(0, 0x7fffffffffffffff, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -4745,7 +4653,6 @@ TEST(neon_3diff_sqdmlal) {
     ASSERT_EQUAL_128(0, 0x7fffffff, q20);
     ASSERT_EQUAL_128(0, 0x7fffffffffffffff, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -4784,7 +4691,6 @@ TEST(neon_3diff_sqdmlsl) {
     ASSERT_EQUAL_128(0, 0x80000002, q20);
     ASSERT_EQUAL_128(0, 0x8000000000000002, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -4814,7 +4720,6 @@ TEST(neon_3diff_mla) {
     ASSERT_EQUAL_128(0x01020304e878ea7a, 0x090a0ab70cb90f00, q18);
     ASSERT_EQUAL_128(0x010203043d783f7a, 0x090a5fb761b90f00, q19);
   }
-  TEARDOWN();
 }
 
 
@@ -4844,7 +4749,6 @@ TEST(neon_3diff_mls) {
     ASSERT_EQUAL_128(0x0102030421942396, 0x090a0b610d630f00, q18);
     ASSERT_EQUAL_128(0x01020304cc94ce96, 0x090ab661b8630f00, q19);
   }
-  TEARDOWN();
 }
 
 
@@ -4882,7 +4786,6 @@ TEST(neon_3same_compare) {
     ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, q24);
     ASSERT_EQUAL_128(0xffffff0000ff00ff, 0xff0000ff00ffff00, q25);
   }
-  TEARDOWN();
 }
 
 
@@ -4927,7 +4830,6 @@ TEST(neon_3same_scalar_compare) {
     ASSERT_EQUAL_128(0, 0xffffffffffffffff, q27);
     ASSERT_EQUAL_128(0, 0x0000000000000000, q28);
   }
-  TEARDOWN();
 }
 
 TEST(neon_fcmeq_h) {
@@ -4965,8 +4867,6 @@ TEST(neon_fcmeq_h) {
     ASSERT_EQUAL_128(0, 0x0000000000000000, v10);
     ASSERT_EQUAL_128(0, 0x0000000000000000, v11);
   }
-
-  TEARDOWN();
 }
 
 TEST(neon_fcmeq_h_scalar) {
@@ -4996,8 +4896,6 @@ TEST(neon_fcmeq_h_scalar) {
     ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h6);
     ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h7);
   }
-
-  TEARDOWN();
 }
 
 TEST(neon_fcmge_h) {
@@ -5035,8 +4933,6 @@ TEST(neon_fcmge_h) {
     ASSERT_EQUAL_128(0, 0x0000000000000000, v10);
     ASSERT_EQUAL_128(0, 0xffffffffffffffff, v11);
   }
-
-  TEARDOWN();
 }
 
 TEST(neon_fcmge_h_scalar) {
@@ -5066,8 +4962,6 @@ TEST(neon_fcmge_h_scalar) {
     ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h6);
     ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h7);
   }
-
-  TEARDOWN();
 }
 
 TEST(neon_fcmgt_h) {
@@ -5105,8 +4999,6 @@ TEST(neon_fcmgt_h) {
     ASSERT_EQUAL_128(0, 0x0000000000000000, v10);
     ASSERT_EQUAL_128(0, 0xffffffffffffffff, v11);
   }
-
-  TEARDOWN();
 }
 
 TEST(neon_fcmgt_h_scalar) {
@@ -5136,8 +5028,6 @@ TEST(neon_fcmgt_h_scalar) {
     ASSERT_EQUAL_FP16(RawbitsToFloat16(0x0000), h6);
     ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h7);
   }
-
-  TEARDOWN();
 }
 
 TEST(neon_facge_h) {
@@ -5175,8 +5065,6 @@ TEST(neon_facge_h) {
     ASSERT_EQUAL_128(0, 0xffffffffffffffff, v10);
     ASSERT_EQUAL_128(0, 0xffffffffffffffff, v11);
   }
-
-  TEARDOWN();
 }
 
 TEST(neon_facge_h_scalar) {
@@ -5206,8 +5094,6 @@ TEST(neon_facge_h_scalar) {
     ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h6);
     ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h7);
   }
-
-  TEARDOWN();
 }
 
 TEST(neon_facgt_h) {
@@ -5245,8 +5131,6 @@ TEST(neon_facgt_h) {
     ASSERT_EQUAL_128(0, 0xffffffffffffffff, v10);
     ASSERT_EQUAL_128(0, 0xffffffffffffffff, v11);
   }
-
-  TEARDOWN();
 }
 
 TEST(neon_facgt_h_scalar) {
@@ -5276,8 +5160,6 @@ TEST(neon_facgt_h_scalar) {
     ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h6);
     ASSERT_EQUAL_FP16(RawbitsToFloat16(0xffff), h7);
   }
-
-  TEARDOWN();
 }
 
 TEST(neon_2regmisc_fcmeq) {
@@ -5316,7 +5198,6 @@ TEST(neon_2regmisc_fcmeq) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q24);
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q25);
   }
-  TEARDOWN();
 }
 
 TEST(neon_2regmisc_fcmge) {
@@ -5355,7 +5236,6 @@ TEST(neon_2regmisc_fcmge) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q24);
     ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, q25);
   }
-  TEARDOWN();
 }
 
 
@@ -5395,7 +5275,6 @@ TEST(neon_2regmisc_fcmgt) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q24);
     ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, q25);
   }
-  TEARDOWN();
 }
 
 TEST(neon_2regmisc_fcmle) {
@@ -5434,7 +5313,6 @@ TEST(neon_2regmisc_fcmle) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q24);
     ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, q25);
   }
-  TEARDOWN();
 }
 
 
@@ -5474,7 +5352,6 @@ TEST(neon_2regmisc_fcmlt) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q24);
     ASSERT_EQUAL_128(0xffffffffffffffff, 0xffffffffffffffff, q25);
   }
-  TEARDOWN();
 }
 
 TEST(neon_2regmisc_cmeq) {
@@ -5509,7 +5386,6 @@ TEST(neon_2regmisc_cmeq) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q23);
     ASSERT_EQUAL_128(0x0000000000000000, 0xffffffffffffffff, q24);
   }
-  TEARDOWN();
 }
 
 
@@ -5545,7 +5421,6 @@ TEST(neon_2regmisc_cmge) {
     ASSERT_EQUAL_128(0x0000000000000000, 0xffffffffffffffff, q23);
     ASSERT_EQUAL_128(0x0000000000000000, 0xffffffffffffffff, q24);
   }
-  TEARDOWN();
 }
 
 
@@ -5581,7 +5456,6 @@ TEST(neon_2regmisc_cmlt) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q23);
     ASSERT_EQUAL_128(0x0000000000000000, 0xffffffffffffffff, q24);
   }
-  TEARDOWN();
 }
 
 
@@ -5617,7 +5491,6 @@ TEST(neon_2regmisc_cmle) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q23);
     ASSERT_EQUAL_128(0x0000000000000000, 0xffffffffffffffff, q24);
   }
-  TEARDOWN();
 }
 
 
@@ -5653,7 +5526,6 @@ TEST(neon_2regmisc_cmgt) {
     ASSERT_EQUAL_128(0x0000000000000000, 0xffffffffffffffff, q23);
     ASSERT_EQUAL_128(0xffffffffffffffff, 0x0000000000000000, q24);
   }
-  TEARDOWN();
 }
 
 
@@ -5692,7 +5564,6 @@ TEST(neon_2regmisc_neg) {
     ASSERT_EQUAL_128(0x7fffffffffffffff, 0x8000000000000001, q23);
     ASSERT_EQUAL_128(0x8000000000000000, 0x0000000000000000, q24);
   }
-  TEARDOWN();
 }
 
 
@@ -5739,7 +5610,6 @@ TEST(neon_2regmisc_sqneg) {
     ASSERT_EQUAL_128(0, 0x80000001, q26);
     ASSERT_EQUAL_128(0, 0x8000000000000001, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -5778,7 +5648,6 @@ TEST(neon_2regmisc_abs) {
     ASSERT_EQUAL_128(0x7fffffffffffffff, 0x7fffffffffffffff, q23);
     ASSERT_EQUAL_128(0x8000000000000000, 0x0000000000000000, q24);
   }
-  TEARDOWN();
 }
 
 
@@ -5825,7 +5694,6 @@ TEST(neon_2regmisc_sqabs) {
     ASSERT_EQUAL_128(0, 0x7fffffff, q26);
     ASSERT_EQUAL_128(0, 0x7fffffffffffffff, q27);
   }
-  TEARDOWN();
 }
 
 TEST(neon_2regmisc_suqadd) {
@@ -5888,7 +5756,6 @@ TEST(neon_2regmisc_suqadd) {
     ASSERT_EQUAL_128(0, 0x7fffffff, q25);
     ASSERT_EQUAL_128(0, 0x7fffffffffffffff, q26);
   }
-  TEARDOWN();
 }
 
 TEST(neon_2regmisc_usqadd) {
@@ -5951,7 +5818,6 @@ TEST(neon_2regmisc_usqadd) {
     ASSERT_EQUAL_128(0, 0xffffffff, q25);
     ASSERT_EQUAL_128(0, 0x0000000000000000, q26);
   }
-  TEARDOWN();
 }
 
 TEST(neon_2regmisc_xtn) {
@@ -5980,7 +5846,6 @@ TEST(neon_2regmisc_xtn) {
     ASSERT_EQUAL_128(0x0000ffff0000ffff, 0x8001000000007fff, q17);
     ASSERT_EQUAL_128(0x0000000000000000, 0x00000001ffffffff, q18);
   }
-  TEARDOWN();
 }
 
 
@@ -6016,7 +5881,6 @@ TEST(neon_2regmisc_sqxtn) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000007fff, q20);
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000080000000, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -6052,7 +5916,6 @@ TEST(neon_2regmisc_uqxtn) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x000000000000ffff, q20);
     ASSERT_EQUAL_128(0x0000000000000000, 0x00000000ffffffff, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -6088,7 +5951,6 @@ TEST(neon_2regmisc_sqxtun) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x000000000000ffff, q20);
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000000, q21);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_and) {
@@ -6112,7 +5974,6 @@ TEST(neon_3same_and) {
     ASSERT_EQUAL_128(0, 0xff00aa5500ff55aa, q24);
     ASSERT_EQUAL_128(0, 0xaa00aa00005500aa, q25);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_bic) {
@@ -6136,7 +5997,6 @@ TEST(neon_3same_bic) {
     ASSERT_EQUAL_128(0, 0x0000000000000000, q24);
     ASSERT_EQUAL_128(0, 0x0000aa0000005500, q25);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_orr) {
@@ -6160,7 +6020,6 @@ TEST(neon_3same_orr) {
     ASSERT_EQUAL_128(0, 0xff00aa5500ff55aa, q24);
     ASSERT_EQUAL_128(0, 0xff55ff5555ff55ff, q25);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_mov) {
@@ -6192,7 +6051,6 @@ TEST(neon_3same_mov) {
     ASSERT_EQUAL_128(0x0, 0xff00aa5500ff55aa, q25);
     ASSERT_EQUAL_128(0x0, 0xff00aa5500ff55aa, q26);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_orn) {
@@ -6216,7 +6074,6 @@ TEST(neon_3same_orn) {
     ASSERT_EQUAL_128(0, 0xffffffffffffffff, q24);
     ASSERT_EQUAL_128(0, 0xffaaaaffaaffffaa, q25);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_eor) {
@@ -6240,7 +6097,6 @@ TEST(neon_3same_eor) {
     ASSERT_EQUAL_128(0, 0x0000000000000000, q24);
     ASSERT_EQUAL_128(0, 0x00ffaa0000005555, q25);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_bif) {
@@ -6272,7 +6128,6 @@ TEST(neon_3same_bif) {
     ASSERT_EQUAL_128(0x5555ffffffcccc00, 0xff333300fff0f000, q17);
     ASSERT_EQUAL_128(0, 0xf0f0f0f0f00f0ff0, q18);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_bit) {
@@ -6304,7 +6159,6 @@ TEST(neon_3same_bit) {
     ASSERT_EQUAL_128(0x55550000cc00ffcc, 0x3300ff33f000fff0, q17);
     ASSERT_EQUAL_128(0, 0xf0f0f0f00ff0f00f, q18);
   }
-  TEARDOWN();
 }
 
 TEST(neon_3same_bsl) {
@@ -6336,7 +6190,6 @@ TEST(neon_3same_bsl) {
     ASSERT_EQUAL_128(0xff550000cc33ff00, 0x33ccff00f00fff00, q17);
     ASSERT_EQUAL_128(0, 0xf0fffff000f0f000, q18);
   }
-  TEARDOWN();
 }
 
 
@@ -6367,7 +6220,6 @@ TEST(neon_3same_smax) {
     ASSERT_EQUAL_128(0x55aa555555555555, 0x00000000000055ff, q19);
     ASSERT_EQUAL_128(0x55aa555555555555, 0x000000000000aa55, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -6398,7 +6250,6 @@ TEST(neon_3same_smaxp) {
     ASSERT_EQUAL_128(0x55aaaaaa000055ff, 0xaaaa5555ffff0000, q19);
     ASSERT_EQUAL_128(0x55aa555500000000, 0x555555550000aa55, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -6424,7 +6275,6 @@ TEST(neon_addp_scalar) {
     ASSERT_EQUAL_128(0x0, 0x55aa5556aa5500a9, q17);
     ASSERT_EQUAL_128(0x0, 0xaaaaaaa96655ff55, q18);
   }
-  TEARDOWN();
 }
 
 TEST(neon_acrosslanes_addv) {
@@ -6453,7 +6303,6 @@ TEST(neon_acrosslanes_addv) {
     ASSERT_EQUAL_128(0x0, 0x55fc, q19);
     ASSERT_EQUAL_128(0x0, 0x1100a9fe, q20);
   }
-  TEARDOWN();
 }
 
 
@@ -6483,7 +6332,6 @@ TEST(neon_acrosslanes_saddlv) {
     ASSERT_EQUAL_128(0x0, 0x000055fc, q19);
     ASSERT_EQUAL_128(0x0, 0x0000001100a9fe, q20);
   }
-  TEARDOWN();
 }
 
 
@@ -6513,7 +6361,6 @@ TEST(neon_acrosslanes_uaddlv) {
     ASSERT_EQUAL_128(0x0, 0x000355fc, q19);
     ASSERT_EQUAL_128(0x0, 0x000000021100a9fe, q20);
   }
-  TEARDOWN();
 }
 
 
@@ -6543,7 +6390,6 @@ TEST(neon_acrosslanes_smaxv) {
     ASSERT_EQUAL_128(0x0, 0x55ff, q19);
     ASSERT_EQUAL_128(0x0, 0x66555555, q20);
   }
-  TEARDOWN();
 }
 
 
@@ -6573,7 +6419,6 @@ TEST(neon_acrosslanes_sminv) {
     ASSERT_EQUAL_128(0x0, 0xaaaa, q19);
     ASSERT_EQUAL_128(0x0, 0xaaaaaaaa, q20);
   }
-  TEARDOWN();
 }
 
 TEST(neon_acrosslanes_umaxv) {
@@ -6602,7 +6447,6 @@ TEST(neon_acrosslanes_umaxv) {
     ASSERT_EQUAL_128(0x0, 0xffab, q19);
     ASSERT_EQUAL_128(0x0, 0xffffffff, q20);
   }
-  TEARDOWN();
 }
 
 
@@ -6632,7 +6476,6 @@ TEST(neon_acrosslanes_uminv) {
     ASSERT_EQUAL_128(0x0, 0x0000, q19);
     ASSERT_EQUAL_128(0x0, 0x0000aa00, q20);
   }
-  TEARDOWN();
 }
 
 
@@ -6663,7 +6506,6 @@ TEST(neon_3same_smin) {
     ASSERT_EQUAL_128(0xaaaaaaaaaaaaaaaa, 0xffffffffffaaaa55, q19);
     ASSERT_EQUAL_128(0xaaaaaaaaaaaaaaaa, 0xffffffffffaa55ff, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -6694,7 +6536,6 @@ TEST(neon_3same_umax) {
     ASSERT_EQUAL_128(0xaaaaaaaaaaaaaaaa, 0xffffffffffaaaa55, q19);
     ASSERT_EQUAL_128(0xaaaaaaaaaaaaaaaa, 0xffffffffffaa55ff, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -6725,7 +6566,6 @@ TEST(neon_3same_umin) {
     ASSERT_EQUAL_128(0x55aa555555555555, 0x00000000000055ff, q19);
     ASSERT_EQUAL_128(0x55aa555555555555, 0x000000000000aa55, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -6774,7 +6614,6 @@ TEST(neon_3same_extra_fcadd) {
     ASSERT_EQUAL_128(0x4120000000000000, 0x40A0000040A00000, q27);
     ASSERT_EQUAL_128(0x0000000041200000, 0x40A0000040A00000, q26);
   }
-  TEARDOWN();
 }
 
 
@@ -6849,7 +6688,6 @@ TEST(neon_3same_extra_fcmla) {
     // (619.125i, -3072), (0i, -114817.5)
     ASSERT_EQUAL_128(0xc5a00000c480fc00, 0xca63d00000000000, q24);
   }
-  TEARDOWN();
 }
 
 
@@ -6924,8 +6762,6 @@ TEST(neon_byelement_fcmla) {
     // (3i, 5), (9i, 15)
     ASSERT_EQUAL_128(0x4040000040a00000, 0x4110000041700000, q22);
   }
-
-  TEARDOWN();
 }
 
 
@@ -6959,7 +6795,6 @@ TEST(neon_2regmisc_mvn) {
     ASSERT_EQUAL_128(0x0, 0xaa55aa55aa55aa55, q25);
     ASSERT_EQUAL_128(0x0, 0xaa55aa55aa55aa55, q26);
   }
-  TEARDOWN();
 }
 
 
@@ -6981,7 +6816,6 @@ TEST(neon_2regmisc_not) {
     ASSERT_EQUAL_128(0xff00ff0000ffaa55, 0xaa55aa55aa55aa55, q16);
     ASSERT_EQUAL_128(0x0, 0xff0000ffff0000ff, q17);
   }
-  TEARDOWN();
 }
 
 
@@ -7032,7 +6866,6 @@ TEST(neon_2regmisc_cls_clz_cnt) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0102020302030304, q28);
     ASSERT_EQUAL_128(0x0705050305030301, 0x0103030503050507, q29);
   }
-  TEARDOWN();
 }
 
 TEST(neon_2regmisc_rev) {
@@ -7084,7 +6917,6 @@ TEST(neon_2regmisc_rev) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x80c4a2e691d5b3f7, q28);
     ASSERT_EQUAL_128(0x7f3b5d196e2a4c08, 0x80c4a2e691d5b3f7, q29);
   }
-  TEARDOWN();
 }
 
 
@@ -7130,7 +6962,6 @@ TEST(neon_sli) {
 
     ASSERT_EQUAL_128(0x0000000000000000, 0xcdef0a0b0c0d0e0f, q23);
   }
-  TEARDOWN();
 }
 
 
@@ -7176,7 +7007,6 @@ TEST(neon_sri) {
 
     ASSERT_EQUAL_128(0x0000000000000000, 0x08090a0b0c0d0123, q23);
   }
-  TEARDOWN();
 }
 
 
@@ -7206,7 +7036,6 @@ TEST(neon_shrn) {
     ASSERT_EQUAL_128(0x0000ffff0000ffff, 0x8000ffffffff0001, q17);
     ASSERT_EQUAL_128(0x00000000ffffffff, 0x800000007fffffff, q18);
   }
-  TEARDOWN();
 }
 
 
@@ -7236,7 +7065,6 @@ TEST(neon_rshrn) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x8001ffffffff0001, q17);
     ASSERT_EQUAL_128(0x0000000100000000, 0x8000000080000000, q18);
   }
-  TEARDOWN();
 }
 
 
@@ -7273,7 +7101,6 @@ TEST(neon_uqshrn) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000001, q20);
     ASSERT_EQUAL_128(0x0000000000000000, 0x000000007fffffff, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -7310,7 +7137,6 @@ TEST(neon_uqrshrn) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000001, q20);
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000080000000, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -7347,7 +7173,6 @@ TEST(neon_sqshrn) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000001, q20);
     ASSERT_EQUAL_128(0x0000000000000000, 0x000000007fffffff, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -7384,7 +7209,6 @@ TEST(neon_sqrshrn) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000001, q20);
     ASSERT_EQUAL_128(0x0000000000000000, 0x000000007fffffff, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -7421,7 +7245,6 @@ TEST(neon_sqshrun) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000001, q20);
     ASSERT_EQUAL_128(0x0000000000000000, 0x000000007fffffff, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -7458,7 +7281,6 @@ TEST(neon_sqrshrun) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000000001, q20);
     ASSERT_EQUAL_128(0x0000000000000000, 0x0000000080000000, q21);
   }
-  TEARDOWN();
 }
 
 TEST(neon_modimm_bic) {
@@ -7514,7 +7336,6 @@ TEST(neon_modimm_bic) {
     ASSERT_EQUAL_128(0x0000ff55ff0055aa, 0x5500ffff0000aaaa, q26);
     ASSERT_EQUAL_128(0x00aaff55ff0055aa, 0x5555ffff0000aaaa, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -7542,7 +7363,6 @@ TEST(neon_modimm_movi_16bit_any) {
     ASSERT_EQUAL_128(0xffabffabffabffab, 0xffabffabffabffab, q4);
     ASSERT_EQUAL_128(0xabcdabcdabcdabcd, 0xabcdabcdabcdabcd, q5);
   }
-  TEARDOWN();
 }
 
 
@@ -7596,7 +7416,6 @@ TEST(neon_modimm_movi_32bit_any) {
     ASSERT_EQUAL_128(0xabcdef01abcdef01, 0xabcdef01abcdef01, q22);
     ASSERT_EQUAL_128(0x00ffff0000ffff00, 0x00ffff0000ffff00, q23);
   }
-  TEARDOWN();
 }
 
 
@@ -7624,7 +7443,6 @@ TEST(neon_modimm_movi_64bit_any) {
     ASSERT_EQUAL_64(0xabcdef0123456789, d4);
     ASSERT_EQUAL_128(0xabcdef0123456789, 0xabcdef0123456789, q5);
   }
-  TEARDOWN();
 }
 
 
@@ -7690,7 +7508,6 @@ TEST(neon_modimm_movi) {
     ASSERT_EQUAL_128(0x0000ffff0000ffff, 0x0000ffff0000ffff, q30);
     ASSERT_EQUAL_128(0x0000ffff0000ffff, 0x0000ffff0000ffff, q31);
   }
-  TEARDOWN();
 }
 
 
@@ -7744,7 +7561,6 @@ TEST(neon_modimm_mvni) {
     ASSERT_EQUAL_128(0xffff0000ffff0000, 0xffff0000ffff0000, q30);
     ASSERT_EQUAL_128(0xffff0000ffff0000, 0xffff0000ffff0000, q31);
   }
-  TEARDOWN();
 }
 
 
@@ -7801,7 +7617,6 @@ TEST(neon_modimm_orr) {
     ASSERT_EQUAL_128(0x00ffff55ffff55aa, 0x55ffffff00ffaaaa, q26);
     ASSERT_EQUAL_128(0x00aaff55ff0055aa, 0x5555ffff0000aaaa, q27);
   }
-  TEARDOWN();
 }
 
 TEST(ldr_literal_values_q) {
@@ -7844,7 +7659,6 @@ TEST(ldr_literal_values_q) {
     // one.
     ASSERT_EQUAL_64(0, x0);
   }
-  TEARDOWN();
 }
 
 TEST(fmov_vec_imm) {
@@ -7869,8 +7683,6 @@ TEST(fmov_vec_imm) {
     ASSERT_EQUAL_64(0xC500C500C500C500, d2);
     ASSERT_EQUAL_128(0x4A804A804A804A80, 0x4A804A804A804A80, q3);
   }
-
-  TEARDOWN();
 }
 
 // TODO: add arbitrary values once load literal to Q registers is supported.
@@ -7928,7 +7740,6 @@ TEST(neon_modimm_fmov) {
     ASSERT_EQUAL_128(kFP32Inf2S, kFP32Inf2S, q5);
     ASSERT_EQUAL_128(kFP64Inf1D, kFP64Inf1D, q6);
   }
-  TEARDOWN();
 }
 
 
@@ -7959,7 +7770,6 @@ TEST(neon_perm) {
     ASSERT_EQUAL_128(0x11131517191b1d1f, 0x01030507090b0d0f, q20);
     ASSERT_EQUAL_128(0x10121416181a1c1e, 0x00020406080a0c0e, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -8018,7 +7828,6 @@ TEST(neon_copy_dup_element) {
     ASSERT_EQUAL_128(0x89abcdef89abcdef, 0x89abcdef89abcdef, q4);
     ASSERT_EQUAL_128(0x0011223344556677, 0x0011223344556677, q5);
   }
-  TEARDOWN();
 }
 
 
@@ -8062,7 +7871,6 @@ TEST(neon_copy_dup_general) {
     ASSERT_EQUAL_128(0, 0, q4);
     ASSERT_EQUAL_128(0, 0, q5);
   }
-  TEARDOWN();
 }
 
 
@@ -8108,7 +7916,6 @@ TEST(neon_copy_ins_element) {
     ASSERT_EQUAL_128(0x89abcdef00000000, 0x0123456789abcdef, q4);
     ASSERT_EQUAL_128(0, 0, q5);
   }
-  TEARDOWN();
 }
 
 
@@ -8154,7 +7961,6 @@ TEST(neon_copy_mov_element) {
     ASSERT_EQUAL_128(0x89abcdef00000000, 0x0123456789abcdef, q4);
     ASSERT_EQUAL_128(0, 0, q5);
   }
-  TEARDOWN();
 }
 
 
@@ -8196,7 +8002,6 @@ TEST(neon_copy_smov) {
     ASSERT_EQUAL_64(0x0000000076543210, x16);
     ASSERT_EQUAL_64(0xfffffffffedcba98, x17);
   }
-  TEARDOWN();
 }
 
 
@@ -8227,7 +8032,6 @@ TEST(neon_copy_umov_mov) {
     ASSERT_EQUAL_32(0x01234567, w4);
     ASSERT_EQUAL_64(0x0123456789abcdef, x5);
   }
-  TEARDOWN();
 }
 
 
@@ -8272,7 +8076,6 @@ TEST(neon_copy_ins_general) {
     ASSERT_EQUAL_128(0x4455667700000000, 0x0123456789abcdef, q4);
     ASSERT_EQUAL_128(0x0011223344556677, 0x0123456789abcdef, q5);
   }
-  TEARDOWN();
 }
 
 
@@ -8312,7 +8115,6 @@ TEST(neon_extract_ext) {
     ASSERT_EQUAL_128(0, 0xccddeeff00112233, q2);
     ASSERT_EQUAL_128(0, 0xccddeeff8899aabb, q3);
   }
-  TEARDOWN();
 }
 
 
@@ -8357,7 +8159,6 @@ TEST(neon_3different_uaddl) {
     ASSERT_EQUAL_128(0x0000000000000001, 0x0000000000000002, q16);
     ASSERT_EQUAL_128(0x0000000080000002, 0x0000000100000000, q17);
   }
-  TEARDOWN();
 }
 
 
@@ -8391,7 +8192,6 @@ TEST(neon_3different_addhn_subhn) {
     ASSERT_EQUAL_128(0x0000ffff80008000, 0xff80817f80ff0100, q18);
     ASSERT_EQUAL_128(0x0000000080008000, 0xff81827f81ff0101, q19);
   }
-  TEARDOWN();
 }
 
 TEST(neon_d_only_scalar) {
@@ -8440,7 +8240,6 @@ TEST(neon_d_only_scalar) {
     ASSERT_EQUAL_128(0, 0xf0000000f000f0f0, q28);
     ASSERT_EQUAL_128(0, 0x0000f000f0f00000, q29);
   }
-  TEARDOWN();
 }
 
 
@@ -8498,7 +8297,6 @@ TEST(neon_sqshl_imm_scalar) {
     ASSERT_EQUAL_128(0, 0x8000000000000000, q26);
     ASSERT_EQUAL_128(0, 0x0000000000000002, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -8556,7 +8354,6 @@ TEST(neon_uqshl_imm_scalar) {
     ASSERT_EQUAL_128(0, 0xffffffffffffffff, q26);
     ASSERT_EQUAL_128(0, 0x0000000000000002, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -8614,7 +8411,6 @@ TEST(neon_sqshlu_scalar) {
     ASSERT_EQUAL_128(0, 0x0000000000000000, q26);
     ASSERT_EQUAL_128(0, 0x0000000000000004, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -8648,7 +8444,6 @@ TEST(neon_sshll) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x00007fffffff0000, q20);
     ASSERT_EQUAL_128(0xffff800000000000, 0xffffffffffff0000, q21);
   }
-  TEARDOWN();
 }
 
 TEST(neon_shll) {
@@ -8681,7 +8476,6 @@ TEST(neon_shll) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x7fffffff00000000, q20);
     ASSERT_EQUAL_128(0x8000000000000000, 0xffffffff00000000, q21);
   }
-  TEARDOWN();
 }
 
 TEST(neon_ushll) {
@@ -8714,7 +8508,6 @@ TEST(neon_ushll) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x00007fffffff0000, q20);
     ASSERT_EQUAL_128(0x0000800000000000, 0x0000ffffffff0000, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -8748,7 +8541,6 @@ TEST(neon_sxtl) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x000000007fffffff, q20);
     ASSERT_EQUAL_128(0xffffffff80000000, 0xffffffffffffffff, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -8782,7 +8574,6 @@ TEST(neon_uxtl) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x000000007fffffff, q20);
     ASSERT_EQUAL_128(0x0000000080000000, 0x00000000ffffffff, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -8837,7 +8628,6 @@ TEST(neon_ssra) {
     ASSERT_EQUAL_128(0x7fffffff80000000, 0x0000000000000000, q23);
     ASSERT_EQUAL_128(0x0000000000000000, 0x8000000000007ffe, q24);
   }
-  TEARDOWN();
 }
 
 TEST(neon_srsra) {
@@ -8891,7 +8681,6 @@ TEST(neon_srsra) {
     ASSERT_EQUAL_128(0x7fffffff80000000, 0x0000000000000000, q23);
     ASSERT_EQUAL_128(0x0000000000000000, 0x8000000000007fff, q24);
   }
-  TEARDOWN();
 }
 
 TEST(neon_usra) {
@@ -8945,7 +8734,6 @@ TEST(neon_usra) {
     ASSERT_EQUAL_128(0x8000000080000000, 0x0000000000000000, q23);
     ASSERT_EQUAL_128(0x0000000000000000, 0x8000000000007ffe, q24);
   }
-  TEARDOWN();
 }
 
 TEST(neon_ursra) {
@@ -8999,7 +8787,6 @@ TEST(neon_ursra) {
     ASSERT_EQUAL_128(0x8000000080000000, 0x0000000000000000, q23);
     ASSERT_EQUAL_128(0x0000000000000000, 0x8000000000007fff, q24);
   }
-  TEARDOWN();
 }
 
 
@@ -9052,7 +8839,6 @@ TEST(neon_uqshl_scalar) {
     ASSERT_EQUAL_128(0, 0xfffffffefffefefe, q30);
     ASSERT_EQUAL_128(0, 0x3fffffffbfffbfbf, q31);
   }
-  TEARDOWN();
 }
 
 
@@ -9105,7 +8891,6 @@ TEST(neon_sqshl_scalar) {
     ASSERT_EQUAL_128(0, 0x7fffffffffffffff, q30);
     ASSERT_EQUAL_128(0, 0x2000000020002020, q31);
   }
-  TEARDOWN();
 }
 
 
@@ -9134,7 +8919,6 @@ TEST(neon_urshl_scalar) {
     ASSERT_EQUAL_128(0, 0xfffffffefffefefe, q30);
     ASSERT_EQUAL_128(0, 0x3fffffffbfffbfc0, q31);
   }
-  TEARDOWN();
 }
 
 
@@ -9163,7 +8947,6 @@ TEST(neon_srshl_scalar) {
     ASSERT_EQUAL_128(0, 0x8000000080008080, q30);
     ASSERT_EQUAL_128(0, 0x2000000020002020, q31);
   }
-  TEARDOWN();
 }
 
 
@@ -9216,7 +8999,6 @@ TEST(neon_uqrshl_scalar) {
     ASSERT_EQUAL_128(0, 0xfffffffefffefefe, q30);
     ASSERT_EQUAL_128(0, 0x3fffffffbfffbfc0, q31);
   }
-  TEARDOWN();
 }
 
 
@@ -9269,7 +9051,6 @@ TEST(neon_sqrshl_scalar) {
     ASSERT_EQUAL_128(0, 0x7fffffffffffffff, q30);
     ASSERT_EQUAL_128(0, 0x2000000020002020, q31);
   }
-  TEARDOWN();
 }
 
 
@@ -9313,7 +9094,6 @@ TEST(neon_uqadd_scalar) {
     ASSERT_EQUAL_128(0, 0xfffffffefffefefe, q26);
     ASSERT_EQUAL_128(0, 0x2000000020002020, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -9357,7 +9137,6 @@ TEST(neon_sqadd_scalar) {
     ASSERT_EQUAL_128(0, 0x7fffffffffffffff, q26);
     ASSERT_EQUAL_128(0, 0x2000000020002020, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -9403,7 +9182,6 @@ TEST(neon_uqsub_scalar) {
     ASSERT_EQUAL_128(0, 0x7000000170017171, q26);
     ASSERT_EQUAL_128(0, 0, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -9449,7 +9227,6 @@ TEST(neon_sqsub_scalar) {
     ASSERT_EQUAL_128(0, 0x8000000000000000, q26);
     ASSERT_EQUAL_128(0, 0x7fffffffffffffff, q27);
   }
-  TEARDOWN();
 }
 
 
@@ -9485,7 +9262,6 @@ TEST(neon_fmla_fmls) {
     ASSERT_EQUAL_128(0xbf800000ffffffff, 0x7fc000007f800000, q20);
     ASSERT_EQUAL_128(0xbf8000023f0007ee, 0x40fffffffffffe04, q21);
   }
-  TEARDOWN();
 }
 
 
@@ -9533,8 +9309,6 @@ TEST(neon_fmla_h) {
     ASSERT_EQUAL_128(0, 0x7e007e007e007e00, v22);
     ASSERT_EQUAL_128(0, 0x7e017e017e017e01, v23);
   }
-
-  TEARDOWN();
 }
 
 
@@ -9582,8 +9356,6 @@ TEST(neon_fmls_h) {
     ASSERT_EQUAL_128(0, 0x7e007e007e007e00, v22);
     ASSERT_EQUAL_128(0, 0x7e017e017e017e01, v23);
   }
-
-  TEARDOWN();
 }
 
 
@@ -9675,8 +9447,6 @@ TEST(neon_fhm) {
     ASSERT_EQUAL_128(0xbf7f0020bf800000, 0x00000000cf7fc004, v6);
     ASSERT_EQUAL_128(0xff80000000000000, 0x00000000b87fe000, v7);
   }
-
-  TEARDOWN();
 }
 
 
@@ -9783,8 +9553,6 @@ TEST(neon_byelement_fhm) {
     // In this case: v7.S[2] = 0 - (-0 * 0.9995117) = 0
     ASSERT_EQUAL_128(0x7f80000000000000, 0x00000000b87fe000, v7);
   }
-
-  TEARDOWN();
 }
 
 
@@ -9831,7 +9599,6 @@ TEST(neon_fmulx_scalar) {
     ASSERT_EQUAL_FP64(-2.0, d30);
     ASSERT_EQUAL_FP64(2.0, d31);
   }
-  TEARDOWN();
 }
 
 
@@ -9872,8 +9639,6 @@ TEST(neon_fmulx_h) {
     ASSERT_EQUAL_128(0, 0xc000c000c000c000, v14);
     ASSERT_EQUAL_128(0, 0x4000400040004000, v15);
   }
-
-  TEARDOWN();
 }
 
 
@@ -9905,8 +9670,6 @@ TEST(neon_fmulx_h_scalar) {
     ASSERT_EQUAL_FP16(Float16(-2.0), h9);
     ASSERT_EQUAL_FP16(Float16(2.0), h10);
   }
-
-  TEARDOWN();
 }
 
 TEST(neon_fabd_h) {
@@ -9948,8 +9711,6 @@ TEST(neon_fabd_h) {
     ASSERT_EQUAL_128(0, 0x7c007c007c007c00, v14);
     ASSERT_EQUAL_128(0, 0x7c007c007c007c00, v15);
   }
-
-  TEARDOWN();
 }
 
 
@@ -9981,8 +9742,6 @@ TEST(neon_fabd_h_scalar) {
     ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h19);
     ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h20);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10029,7 +9788,6 @@ TEST(neon_fabd_scalar) {
     ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d30);
     ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d31);
   }
-  TEARDOWN();
 }
 
 
@@ -10067,8 +9825,6 @@ TEST(neon_frecps_h) {
     ASSERT_EQUAL_128(0, 0xfc00fc00fc00fc00, v11);
     ASSERT_EQUAL_128(0, 0x7c007c007c007c00, v12);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10099,8 +9855,6 @@ TEST(neon_frecps_h_scalar) {
     ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h7);
     ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h8);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10138,8 +9892,6 @@ TEST(neon_frsqrts_h) {
     ASSERT_EQUAL_128(0, 0xfc00fc00fc00fc00, v11);
     ASSERT_EQUAL_128(0, 0x7c007c007c007c00, v12);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10170,8 +9922,6 @@ TEST(neon_frsqrts_h_scalar) {
     ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h7);
     ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h8);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10200,8 +9950,6 @@ TEST(neon_faddp_h) {
     ASSERT_EQUAL_128(0, 0x420042007e007e00, v6);
     ASSERT_EQUAL_128(0, 0x000000007e017e01, v7);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10234,8 +9982,6 @@ TEST(neon_faddp_scalar) {
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d4);
     ASSERT_EQUAL_FP64(0.0, d5);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10260,8 +10006,6 @@ TEST(neon_faddp_h_scalar) {
     ASSERT_EQUAL_FP16(kFP16DefaultNaN, h1);
     ASSERT_EQUAL_FP16(Float16(0.0), h2);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10294,7 +10038,6 @@ TEST(neon_fmaxp_scalar) {
     ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d4);
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d5);
   }
-  TEARDOWN();
 }
 
 
@@ -10319,8 +10062,6 @@ TEST(neon_fmaxp_h_scalar) {
     ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h1);
     ASSERT_EQUAL_FP16(kFP16DefaultNaN, h2);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10359,8 +10100,6 @@ TEST(neon_fmax_h) {
     ASSERT_EQUAL_128(0, 0x7e007e007e007e00, v12);
     ASSERT_EQUAL_128(0, 0x7e017e017e017e01, v13);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10389,8 +10128,6 @@ TEST(neon_fmaxp_h) {
     ASSERT_EQUAL_128(0, 0x7c007c0040004000, v8);
     ASSERT_EQUAL_128(0, 0x7e017e017e007e00, v9);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10429,8 +10166,6 @@ TEST(neon_fmaxnm_h) {
     ASSERT_EQUAL_128(0, 0x3c003c003c003c00, v12);
     ASSERT_EQUAL_128(0, 0x7e017e017e017e01, v13);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10459,8 +10194,6 @@ TEST(neon_fmaxnmp_h) {
     ASSERT_EQUAL_128(0, 0x7c007c0040004000, v8);
     ASSERT_EQUAL_128(0, 0x7e017e013c003c00, v9);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10493,7 +10226,6 @@ TEST(neon_fmaxnmp_scalar) {
     ASSERT_EQUAL_FP64(kFP64PositiveInfinity, d4);
     ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d5);
   }
-  TEARDOWN();
 }
 
 
@@ -10518,8 +10250,6 @@ TEST(neon_fmaxnmp_h_scalar) {
     ASSERT_EQUAL_FP16(kFP16PositiveInfinity, h1);
     ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h2);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10552,7 +10282,6 @@ TEST(neon_fminp_scalar) {
     ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d4);
     ASSERT_EQUAL_FP64(kFP64DefaultNaN, d5);
   }
-  TEARDOWN();
 }
 
 
@@ -10577,8 +10306,6 @@ TEST(neon_fminp_h_scalar) {
     ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h1);
     ASSERT_EQUAL_FP16(kFP16DefaultNaN, h2);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10617,8 +10344,6 @@ TEST(neon_fmin_h) {
     ASSERT_EQUAL_128(0, 0x7e007e007e007e00, v12);
     ASSERT_EQUAL_128(0, 0x7e017e017e017e01, v13);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10647,8 +10372,6 @@ TEST(neon_fminp_h) {
     ASSERT_EQUAL_128(0, 0xfc00fc003c003c00, v8);
     ASSERT_EQUAL_128(0, 0x7e017e017e007e00, v9);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10687,8 +10410,6 @@ TEST(neon_fminnm_h) {
     ASSERT_EQUAL_128(0, 0x3c003c003c003c00, v12);
     ASSERT_EQUAL_128(0, 0x7e017e017e017e01, v13);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10717,8 +10438,6 @@ TEST(neon_fminnmp_h) {
     ASSERT_EQUAL_128(0, 0xfc00fc003c003c00, v8);
     ASSERT_EQUAL_128(0, 0x7e017e013c003c00, v9);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10751,7 +10470,6 @@ TEST(neon_fminnmp_scalar) {
     ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d4);
     ASSERT_EQUAL_FP64(kFP64NegativeInfinity, d5);
   }
-  TEARDOWN();
 }
 
 
@@ -10776,8 +10494,6 @@ TEST(neon_fminnmp_h_scalar) {
     ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h1);
     ASSERT_EQUAL_FP16(kFP16NegativeInfinity, h2);
   }
-
-  TEARDOWN();
 }
 
 static uint64_t Float16ToV4H(Float16 f) {
@@ -10839,8 +10555,6 @@ static void FminFmaxFloat16Helper(Float16 n,
     ASSERT_EQUAL_128(0, maxnm_vec, v8);
     ASSERT_EQUAL_128(maxnm_vec, maxnm_vec, v9);
   }
-
-  TEARDOWN();
 }
 
 static Float16 MinMaxHelper(Float16 n,
@@ -11027,8 +10741,6 @@ TEST(neon_frint_saturating) {
     ASSERT_EQUAL_128(0x0000000080000000, 0xdf000000df000000, q26);
     ASSERT_EQUAL_128(0xc3e0000000000000, 0xc3e0000000000000, q27);
   }
-
-  TEARDOWN();
 }
 
 
@@ -11104,7 +10816,6 @@ TEST(neon_tbl) {
     ASSERT_EQUAL_128(0x0000000000000000, 0x0946cd5e80ba8882, v22);
     ASSERT_EQUAL_128(0x0000000000000000, 0xe6d1822b5bbff074, v23);
   }
-  TEARDOWN();
 }
 
 

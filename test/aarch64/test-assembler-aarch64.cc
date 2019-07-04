@@ -113,7 +113,6 @@ TEST(preshift_immediates) {
     ASSERT_EQUAL_64(0x207e2, x14);
     ASSERT_EQUAL_64(0x1f7de, x15);
   }
-  TEARDOWN();
 }
 
 
@@ -169,7 +168,6 @@ TEST(stack_ops) {
     ASSERT_EQUAL_64(0xfffffff8, x5);
     ASSERT_EQUAL_64(0xfffffffc, x6);
   }
-  TEARDOWN();
 }
 
 
@@ -215,7 +213,6 @@ TEST(mvn) {
     ASSERT_EQUAL_64(0xfffffffffffe000f, x14);
     ASSERT_EQUAL_64(0xfffffffffffe000f, x15);
   }
-  TEARDOWN();
 }
 
 
@@ -249,7 +246,6 @@ TEST(mov_imm_w) {
     ASSERT_EQUAL_64(0xffff0000, x8);
     ASSERT_EQUAL_32(kWMinInt, w9);
   }
-  TEARDOWN();
 }
 
 
@@ -316,7 +312,6 @@ TEST(mov_imm_x) {
     ASSERT_EQUAL_64(0xffff000000000001, x27);
     ASSERT_EQUAL_64(0x8000ffff00000000, x28);
   }
-  TEARDOWN();
 }
 
 
@@ -404,7 +399,6 @@ TEST(mov) {
     ASSERT_EQUAL_64(0x000000000001ffe0, x27);
     ASSERT_EQUAL_64(0x0123456789abcdef, x28);
   }
-  TEARDOWN();
 }
 
 
@@ -455,7 +449,6 @@ TEST(mov_negative) {
     ASSERT_EQUAL_64(0x00000001fffffffe, x29);
     ASSERT_EQUAL_64(0xfffffffffffffffe, x30);
   }
-  TEARDOWN();
 }
 
 
@@ -492,7 +485,6 @@ TEST(orr) {
     ASSERT_EQUAL_64(0x0000f0ff, x10);
     ASSERT_EQUAL_64(0xf0000000f000f0f0, x11);
   }
-  TEARDOWN();
 }
 
 
@@ -524,7 +516,6 @@ TEST(orr_extend) {
     ASSERT_EQUAL_64(0xfffffffe00020201, x12);
     ASSERT_EQUAL_64(0x0000000400040401, x13);
   }
-  TEARDOWN();
 }
 
 
@@ -552,7 +543,6 @@ TEST(bitwise_wide_imm) {
     ASSERT_EQUAL_32(kWMinInt, w12);
     ASSERT_EQUAL_32(kWMinInt, w13);
   }
-  TEARDOWN();
 }
 
 
@@ -589,7 +579,6 @@ TEST(orn) {
     ASSERT_EQUAL_64(0xfffff0f0, x10);
     ASSERT_EQUAL_64(0xffff0000fffff0f0, x11);
   }
-  TEARDOWN();
 }
 
 
@@ -621,7 +610,6 @@ TEST(orn_extend) {
     ASSERT_EQUAL_64(0x00000001fffdfdfb, x12);
     ASSERT_EQUAL_64(0xfffffffbfffbfbf7, x13);
   }
-  TEARDOWN();
 }
 
 
@@ -658,7 +646,6 @@ TEST(and_) {
     ASSERT_EQUAL_64(0x0000ff00, x10);
     ASSERT_EQUAL_64(0x000000f0, x11);
   }
-  TEARDOWN();
 }
 
 
@@ -690,7 +677,6 @@ TEST(and_extend) {
     ASSERT_EQUAL_64(0xfffffffe00020204, x12);
     ASSERT_EQUAL_64(0x0000000400040408, x13);
   }
-  TEARDOWN();
 }
 
 
@@ -758,7 +744,6 @@ TEST(ands) {
     ASSERT_EQUAL_NZCV(NFlag);
     ASSERT_EQUAL_64(0x80000000, x0);
   }
-  TEARDOWN();
 }
 
 
@@ -807,7 +792,6 @@ TEST(bic) {
 
     ASSERT_EQUAL_64(0x543210, x21);
   }
-  TEARDOWN();
 }
 
 
@@ -839,7 +823,6 @@ TEST(bic_extend) {
     ASSERT_EQUAL_64(0x00000001fffdfdfb, x12);
     ASSERT_EQUAL_64(0xfffffffbfffbfbf7, x13);
   }
-  TEARDOWN();
 }
 
 
@@ -906,7 +889,6 @@ TEST(bics) {
     ASSERT_EQUAL_NZCV(ZFlag);
     ASSERT_EQUAL_64(0x00000000, x0);
   }
-  TEARDOWN();
 }
 
 
@@ -943,7 +925,6 @@ TEST(eor) {
     ASSERT_EQUAL_64(0xff0000f0, x10);
     ASSERT_EQUAL_64(0xff00ff00ff0000f0, x11);
   }
-  TEARDOWN();
 }
 
 TEST(eor_extend) {
@@ -974,7 +955,6 @@ TEST(eor_extend) {
     ASSERT_EQUAL_64(0xeeeeeeef11131315, x12);
     ASSERT_EQUAL_64(0x1111111511151519, x13);
   }
-  TEARDOWN();
 }
 
 
@@ -1011,7 +991,6 @@ TEST(eon) {
     ASSERT_EQUAL_64(0xfc3f03cf, x10);
     ASSERT_EQUAL_64(0xffffefffffff100f, x11);
   }
-  TEARDOWN();
 }
 
 
@@ -1043,7 +1022,6 @@ TEST(eon_extend) {
     ASSERT_EQUAL_64(0x11111110eeececea, x12);
     ASSERT_EQUAL_64(0xeeeeeeeaeeeaeae6, x13);
   }
-  TEARDOWN();
 }
 
 
@@ -1100,7 +1078,6 @@ TEST(mul) {
     ASSERT_EQUAL_64(0xffffffff, x22);
     ASSERT_EQUAL_64(0xffffffffffffffff, x23);
   }
-  TEARDOWN();
 }
 
 
@@ -1115,7 +1092,6 @@ static void SmullHelper(int64_t expected, int64_t a, int64_t b) {
     RUN();
     ASSERT_EQUAL_64(expected, x2);
   }
-  TEARDOWN();
 }
 
 
@@ -1195,7 +1171,6 @@ TEST(madd) {
     ASSERT_EQUAL_64(0, x26);
     ASSERT_EQUAL_64(0, x27);
   }
-  TEARDOWN();
 }
 
 
@@ -1265,7 +1240,6 @@ TEST(msub) {
     ASSERT_EQUAL_64(0x00000001fffffffe, x26);
     ASSERT_EQUAL_64(0xfffffffffffffffe, x27);
   }
-  TEARDOWN();
 }
 
 
@@ -1314,7 +1288,6 @@ TEST(smulh) {
     ASSERT_EQUAL_64(0xe38e38e38e38e38e, x10);
     ASSERT_EQUAL_64(0x1c71c71c71c71c72, x11);
   }
-  TEARDOWN();
 }
 
 
@@ -1363,7 +1336,6 @@ TEST(umulh) {
     ASSERT_EQUAL_64(0x38e38e38e38e38e3, x10);
     ASSERT_EQUAL_64(0x71c71c71c71c71c6, x11);
   }
-  TEARDOWN();
 }
 
 
@@ -1403,7 +1375,6 @@ TEST(smaddl_umaddl_umull) {
     ASSERT_EQUAL_64(0xfffffffe00000001, x24);
     ASSERT_EQUAL_64(0x00000000ffffffff, x25);
   }
-  TEARDOWN();
 }
 
 
@@ -1439,7 +1410,6 @@ TEST(smsubl_umsubl) {
     ASSERT_EQUAL_64(0x0000000200000003, x15);
     ASSERT_EQUAL_64(0x00000003ffffffff, x22);
   }
-  TEARDOWN();
 }
 
 
@@ -1522,7 +1492,6 @@ TEST(div) {
     ASSERT_EQUAL_64(0, x20);
     ASSERT_EQUAL_64(0, x21);
   }
-  TEARDOWN();
 }
 
 
@@ -1553,7 +1522,6 @@ TEST(rbit_rev) {
     ASSERT_EQUAL_64(0x1032547698badcfe, x6);
     ASSERT_EQUAL_64(0x1032547698badcfe, x7);
   }
-  TEARDOWN();
 }
 
 typedef void (MacroAssembler::*TestBranchSignature)(const Register& rt,
@@ -1608,7 +1576,6 @@ static void TbzRangePoolLimitHelper(TestBranchSignature test_branch) {
       if (CAN_RUN()) {
         RUN();
       }
-      TEARDOWN();
     }
   }
 }
@@ -1658,7 +1625,6 @@ TEST(clz_cls) {
     ASSERT_EQUAL_64(31, x10);
     ASSERT_EQUAL_64(63, x11);
   }
-  TEARDOWN();
 }
 
 
@@ -1719,8 +1685,6 @@ TEST(pacia_pacib_autia_autib) {
     ASSERT_EQUAL_64(0x0020000012345678, x4);
     ASSERT_EQUAL_64(0x0040000012345678, x5);
   }
-
-  TEARDOWN();
 }
 
 
@@ -1779,8 +1743,6 @@ TEST(paciza_pacizb_autiza_autizb) {
     ASSERT_EQUAL_64(0x0020000012345678, x4);
     ASSERT_EQUAL_64(0x0040000012345678, x5);
   }
-
-  TEARDOWN();
 }
 
 
@@ -1841,8 +1803,6 @@ TEST(pacda_pacdb_autda_autdb) {
     ASSERT_EQUAL_64(0x0020000012345678, x4);
     ASSERT_EQUAL_64(0x0040000012345678, x5);
   }
-
-  TEARDOWN();
 }
 
 
@@ -1901,8 +1861,6 @@ TEST(pacdza_pacdzb_autdza_autdzb) {
     ASSERT_EQUAL_64(0x0020000012345678, x4);
     ASSERT_EQUAL_64(0x0040000012345678, x5);
   }
-
-  TEARDOWN();
 }
 
 
@@ -1956,8 +1914,6 @@ TEST(pacga_xpaci_xpacd) {
     ASSERT_EQUAL_64(pointer, x3);
     ASSERT_EQUAL_64(pointer, x4);
   }
-
-  TEARDOWN();
 }
 
 
@@ -1996,7 +1952,6 @@ TEST(label) {
     ASSERT_EQUAL_64(0x1, x0);
     ASSERT_EQUAL_64(0x1, x1);
   }
-  TEARDOWN();
 }
 
 
@@ -2037,7 +1992,6 @@ TEST(label_2) {
 
     ASSERT_EQUAL_64(0xf, x0);
   }
-  TEARDOWN();
 }
 
 
@@ -2083,7 +2037,6 @@ TEST(adr) {
     ASSERT_EQUAL_64(0x0, x0);
     ASSERT_EQUAL_64(0x0, x1);
   }
-  TEARDOWN();
 }
 
 
@@ -2137,7 +2090,7 @@ TEST(adrp) {
   VIXL_ASSERT(masm.GetSizeOfCodeGeneratedSince(&start) < kPageSize);
   END();
   if (CAN_RUN()) {
-    RUN_CUSTOM();
+    RUN();
 
     uint64_t expected = reinterpret_cast<uint64_t>(
         AlignDown(masm.GetLabelAddress<uint64_t*>(&start), kPageSize));
@@ -2151,8 +2104,6 @@ TEST(adrp) {
     ASSERT_EQUAL_64(expected, x7);
     ASSERT_EQUAL_64(expected, x8);
   }
-
-  TEARDOWN_CUSTOM();
 }
 
 
@@ -2223,7 +2174,7 @@ static void AdrpPageBoundaryHelper(unsigned offset_into_page) {
 
   END();
   if (CAN_RUN()) {
-    RUN_CUSTOM();
+    RUN();
 
     uintptr_t expected =
         AlignDown(masm.GetLabelAddress<uintptr_t>(&test), kPageSize);
@@ -2231,8 +2182,6 @@ static void AdrpPageBoundaryHelper(unsigned offset_into_page) {
     ASSERT_EQUAL_64(expected, x1);
     ASSERT_EQUAL_NZCV(ZCFlag);
   }
-
-  TEARDOWN_CUSTOM();
 }
 
 
@@ -2282,7 +2231,7 @@ static void AdrpOffsetHelper(int64_t offset) {
 
   END();
   if (CAN_RUN()) {
-    RUN_CUSTOM();
+    RUN();
 
     uintptr_t expected =
         masm.GetLabelAddress<uintptr_t>(&page) + (kPageSize * offset);
@@ -2290,8 +2239,6 @@ static void AdrpOffsetHelper(int64_t offset) {
     ASSERT_EQUAL_64(expected, x1);
     ASSERT_EQUAL_NZCV(ZCFlag);
   }
-
-  TEARDOWN_CUSTOM();
 }
 
 
@@ -2404,7 +2351,6 @@ TEST(branch_cond) {
 
     ASSERT_EQUAL_64(0x1, x0);
   }
-  TEARDOWN();
 }
 
 
@@ -2457,7 +2403,6 @@ TEST(branch_to_reg) {
     ASSERT_EQUAL_64(42, x1);
     ASSERT_EQUAL_64(84, x2);
   }
-  TEARDOWN();
 }
 
 TEST(branch_to_reg_auth_a) {
@@ -2512,8 +2457,6 @@ TEST(branch_to_reg_auth_a) {
     ASSERT_EQUAL_64(42, x1);
     ASSERT_EQUAL_64(84, x2);
   }
-
-  TEARDOWN();
 }
 
 TEST(return_to_reg_auth) {
@@ -2561,8 +2504,6 @@ TEST(return_to_reg_auth) {
     ASSERT_EQUAL_64(42, x0);
     ASSERT_EQUAL_64(84, x1);
   }
-
-  TEARDOWN();
 }
 
 TEST(return_to_reg_auth_guarded) {
@@ -2615,8 +2556,6 @@ TEST(return_to_reg_auth_guarded) {
     ASSERT_EQUAL_64(42, x0);
     ASSERT_EQUAL_64(84, x1);
   }
-
-  TEARDOWN();
 }
 
 #ifdef VIXL_NEGATIVE_TESTING
@@ -2645,8 +2584,6 @@ TEST(branch_to_reg_auth_fail) {
   if (CAN_RUN()) {
     MUST_FAIL_WITH_MESSAGE(RUN(), "Failed to authenticate pointer.");
   }
-
-  TEARDOWN();
 }
 #endif  // VIXL_NEGATIVE_TESTING
 
@@ -2683,8 +2620,6 @@ TEST(return_to_reg_auth_fail) {
   if (CAN_RUN()) {
     MUST_FAIL_WITH_MESSAGE(RUN(), "Failed to authenticate pointer.");
   }
-
-  TEARDOWN();
 }
 #endif  // VIXL_NEGATIVE_TESTING
 
@@ -2739,8 +2674,6 @@ TEST(branch_to_reg_auth_a_zero) {
     ASSERT_EQUAL_64(42, x1);
     ASSERT_EQUAL_64(84, x2);
   }
-
-  TEARDOWN();
 }
 
 
@@ -2813,7 +2746,6 @@ TEST(compare_branch) {
     ASSERT_EQUAL_64(1, x4);
     ASSERT_EQUAL_64(0, x5);
   }
-  TEARDOWN();
 }
 
 
@@ -2864,7 +2796,6 @@ TEST(test_branch) {
     ASSERT_EQUAL_64(1, x2);
     ASSERT_EQUAL_64(0, x3);
   }
-  TEARDOWN();
 }
 
 
@@ -2920,7 +2851,6 @@ TEST(branch_type) {
 
     ASSERT_EQUAL_64(0x0, x0);
   }
-  TEARDOWN();
 }
 
 
@@ -2963,7 +2893,6 @@ TEST(ldr_str_offset) {
     ASSERT_EQUAL_64(src_base, x17);
     ASSERT_EQUAL_64(dst_base, x18);
   }
-  TEARDOWN();
 }
 
 
@@ -3012,7 +2941,6 @@ TEST(ldr_str_wide) {
     ASSERT_EQUAL_64(src_base + 6144 * sizeof(src[0]), x26);
     ASSERT_EQUAL_64(dst_base + 6144 * sizeof(dst[0]), x27);
   }
-  TEARDOWN();
 }
 
 
@@ -3071,7 +2999,6 @@ TEST(ldr_str_preindex) {
     ASSERT_EQUAL_64(src_base + 3, x25);
     ASSERT_EQUAL_64(dst_base + 41, x26);
   }
-  TEARDOWN();
 }
 
 
@@ -3130,7 +3057,6 @@ TEST(ldr_str_postindex) {
     ASSERT_EQUAL_64(src_base, x25);
     ASSERT_EQUAL_64(dst_base, x26);
   }
-  TEARDOWN();
 }
 
 
@@ -3176,7 +3102,6 @@ TEST(ldr_str_largeindex) {
     ASSERT_EQUAL_64(base_addr + 8, x21);
     ASSERT_EQUAL_64(base_addr + 16 + largeoffset, x22);
   }
-  TEARDOWN();
 }
 
 
@@ -3214,7 +3139,6 @@ TEST(load_signed) {
     ASSERT_EQUAL_64(0xffffffff80008080, x8);
     ASSERT_EQUAL_64(0x000000007fff7f7f, x9);
   }
-  TEARDOWN();
 }
 
 
@@ -3262,7 +3186,6 @@ TEST(load_store_regoffset) {
     ASSERT_EQUAL_32(3, dst[2]);
     ASSERT_EQUAL_32(3, dst[3]);
   }
-  TEARDOWN();
 }
 
 
@@ -3308,8 +3231,6 @@ TEST(load_pauth) {
     ASSERT_EQUAL_64(src_base + 2 * sizeof(src[0]), x16);
     ASSERT_EQUAL_64(src_base + 2 * sizeof(src[0]), x17);
   }
-
-  TEARDOWN();
 }
 
 
@@ -3336,8 +3257,6 @@ TEST(load_pauth_negative_test) {
   if (CAN_RUN()) {
     MUST_FAIL_WITH_MESSAGE(RUN(), "Failed to authenticate pointer.");
   }
-
-  TEARDOWN();
 }
 #endif  // VIXL_NEGATIVE_TESTING
 
@@ -3394,7 +3313,6 @@ TEST(ldp_stp_offset) {
     ASSERT_EQUAL_64(src_base + 24, x18);
     ASSERT_EQUAL_64(dst_base + 56, x19);
   }
-  TEARDOWN();
 }
 
 
@@ -3453,7 +3371,6 @@ TEST(ldp_stp_offset_wide) {
     ASSERT_EQUAL_64(src_base + base_offset + 24, x18);
     ASSERT_EQUAL_64(dst_base + base_offset + 56, x19);
   }
-  TEARDOWN();
 }
 
 
@@ -3532,7 +3449,6 @@ TEST(ldnp_stnp_offset) {
     ASSERT_EQUAL_64(dst_base + 64, x19);
     ASSERT_EQUAL_64(src_base + 32, x20);
   }
-  TEARDOWN();
 }
 
 TEST(ldp_stp_preindex) {
@@ -3587,7 +3503,6 @@ TEST(ldp_stp_preindex) {
     ASSERT_EQUAL_64(src_base + 8, x21);
     ASSERT_EQUAL_64(dst_base + 24, x22);
   }
-  TEARDOWN();
 }
 
 
@@ -3651,7 +3566,6 @@ TEST(ldp_stp_preindex_wide) {
     ASSERT_EQUAL_64(src_base + 8, x21);
     ASSERT_EQUAL_64(dst_base + 24, x22);
   }
-  TEARDOWN();
 }
 
 
@@ -3708,7 +3622,6 @@ TEST(ldp_stp_postindex) {
     ASSERT_EQUAL_64(src_base + 8, x21);
     ASSERT_EQUAL_64(dst_base + 24, x22);
   }
-  TEARDOWN();
 }
 
 
@@ -3773,7 +3686,6 @@ TEST(ldp_stp_postindex_wide) {
     ASSERT_EQUAL_64(src_base + base_offset + 8, x21);
     ASSERT_EQUAL_64(dst_base - base_offset + 24, x22);
   }
-  TEARDOWN();
 }
 
 
@@ -3794,7 +3706,6 @@ TEST(ldp_sign_extend) {
     ASSERT_EQUAL_64(0xffffffff80000000, x0);
     ASSERT_EQUAL_64(0x000000007fffffff, x1);
   }
-  TEARDOWN();
 }
 
 
@@ -3839,7 +3750,6 @@ TEST(ldur_stur) {
     ASSERT_EQUAL_64(src_base + 16, x19);
     ASSERT_EQUAL_64(dst_base + 32, x20);
   }
-  TEARDOWN();
 }
 
 
@@ -3879,7 +3789,6 @@ TEST(ldur_stur_neon) {
     ASSERT_EQUAL_64(0x6789abcdef012345, dst[2]);
     ASSERT_EQUAL_64(0x0089abcdef012345, dst[3]);
   }
-  TEARDOWN();
 }
 
 
@@ -3907,7 +3816,6 @@ TEST(ldr_literal) {
     ASSERT_EQUAL_FP64(1.234, d13);
     ASSERT_EQUAL_FP32(2.5, s25);
   }
-  TEARDOWN();
 }
 
 
@@ -3969,7 +3877,6 @@ TEST(ldr_literal_range) {
     ASSERT_EQUAL_FP64(123.4, d4);
     ASSERT_EQUAL_FP32(250.0, s5);
   }
-  TEARDOWN();
 }
 
 
@@ -4000,7 +3907,6 @@ void LoadIntValueHelper(T values[], int card) {
     // one.
     ASSERT_EQUAL_64(0, x0);
   }
-  TEARDOWN();
 }
 
 
@@ -4114,7 +4020,6 @@ TEST(ldr_literal_custom) {
     ASSERT_EQUAL_FP64(1.234, d14);
     ASSERT_EQUAL_FP32(2.5, s26);
   }
-  TEARDOWN();
 }
 
 
@@ -4201,7 +4106,6 @@ TEST(ldr_literal_custom_shared) {
     ASSERT_EQUAL_FP64(1.234, d14);
     ASSERT_EQUAL_FP32(2.5, s26);
   }
-  TEARDOWN();
 }
 
 
@@ -4237,7 +4141,6 @@ TEST(prfm_offset) {
   if (CAN_RUN()) {
     RUN();
   }
-  TEARDOWN();
 }
 
 
@@ -4282,7 +4185,6 @@ TEST(prfm_regoffset) {
   if (CAN_RUN()) {
     RUN();
   }
-  TEARDOWN();
 }
 
 
@@ -4309,7 +4211,6 @@ TEST(prfm_literal_imm19) {
   if (CAN_RUN()) {
     RUN();
   }
-  TEARDOWN();
 }
 
 
@@ -4352,7 +4253,6 @@ TEST(prfm_literal) {
   if (CAN_RUN()) {
     RUN();
   }
-  TEARDOWN();
 }
 
 
@@ -4377,7 +4277,6 @@ TEST(prfm_wide) {
   if (CAN_RUN()) {
     RUN();
   }
-  TEARDOWN();
 }
 
 
@@ -4477,7 +4376,6 @@ TEST(load_prfm_literal) {
     ASSERT_EQUAL_FP64(1.234, d14);
     ASSERT_EQUAL_FP32(2.5, s26);
   }
-  TEARDOWN();
 }
 
 
@@ -4534,7 +4432,6 @@ TEST(add_sub_imm) {
     ASSERT_EQUAL_32(0x111, w26);
     ASSERT_EQUAL_32(0xffffffff, w27);
   }
-  TEARDOWN();
 }
 
 
@@ -4574,7 +4471,6 @@ TEST(add_sub_wide_imm) {
     ASSERT_EQUAL_64(-0x1234567890abcdef, x20);
     ASSERT_EQUAL_32(-0x12345678, w21);
   }
-  TEARDOWN();
 }
 
 
@@ -4627,7 +4523,6 @@ TEST(add_sub_shifted) {
     ASSERT_EQUAL_64(0x10765432, x26);
     ASSERT_EQUAL_64(0x10fedcba98765432, x27);
   }
-  TEARDOWN();
 }
 
 
@@ -4698,7 +4593,6 @@ TEST(add_sub_extended) {
 
     ASSERT_EQUAL_64(256, x30);
   }
-  TEARDOWN();
 }
 
 
@@ -4744,7 +4638,6 @@ TEST(add_sub_negative) {
     ASSERT_EQUAL_32(0x11223400, w21);
     ASSERT_EQUAL_32(402000, w22);
   }
-  TEARDOWN();
 }
 
 
@@ -4782,7 +4675,6 @@ TEST(add_sub_zero) {
     ASSERT_EQUAL_64(0, x1);
     ASSERT_EQUAL_64(0, x2);
   }
-  TEARDOWN();
 }
 
 
@@ -4804,7 +4696,6 @@ TEST(claim_drop_zero) {
   if (CAN_RUN()) {
     RUN();
   }
-  TEARDOWN();
 }
 
 
@@ -4853,7 +4744,6 @@ TEST(neg) {
     ASSERT_EQUAL_64(0x65432110, x13);
     ASSERT_EQUAL_64(0x0000000765432110, x14);
   }
-  TEARDOWN();
 }
 
 
@@ -4884,7 +4774,6 @@ static void AdcsSbcsHelper(
     ASSERT_EQUAL_64(expected, result_reg.X());
     ASSERT_EQUAL_NZCV(expected_flags);
   }
-  TEARDOWN();
 }
 
 
@@ -5336,7 +5225,6 @@ TEST(adc_sbc_shift) {
     ASSERT_EQUAL_32(0x91111110 + 1, w26);
     ASSERT_EQUAL_32(0x9a222221 + 1, w27);
   }
-  TEARDOWN();
 }
 
 
@@ -5436,7 +5324,6 @@ TEST(adc_sbc_extend) {
 
     ASSERT_EQUAL_NZCV(NVFlag);
   }
-  TEARDOWN();
 }
 
 
@@ -5484,7 +5371,6 @@ TEST(adc_sbc_wide_imm) {
     ASSERT_EQUAL_64(0x0000000100000000, x22);
     ASSERT_EQUAL_64(0x0000000000010000, x23);
   }
-  TEARDOWN();
 }
 
 
@@ -5523,8 +5409,6 @@ TEST(rmif) {
     ASSERT_EQUAL_32(NVFlag, w4);
     ASSERT_EQUAL_32(NVFlag, w5);
   }
-
-  TEARDOWN();
 }
 
 
@@ -5586,8 +5470,6 @@ TEST(setf8_setf16) {
     ASSERT_EQUAL_32(VFlag, w19);   // Overflow with non-zero remainder
     ASSERT_EQUAL_32(NFlag, w20);   // Negative and sign-extended
   }
-
-  TEARDOWN();
 }
 
 
@@ -5761,7 +5643,6 @@ TEST(flags) {
 
     ASSERT_EQUAL_NZCV(ZCFlag);
   }
-  TEARDOWN();
 }
 
 
@@ -5817,7 +5698,6 @@ TEST(cmp_shift) {
     ASSERT_EQUAL_32(ZCFlag, w6);
     ASSERT_EQUAL_32(ZCFlag, w7);
   }
-  TEARDOWN();
 }
 
 
@@ -5870,7 +5750,6 @@ TEST(cmp_extend) {
     ASSERT_EQUAL_32(NCFlag, w6);
     ASSERT_EQUAL_32(ZCFlag, w7);
   }
-  TEARDOWN();
 }
 
 
@@ -5922,7 +5801,6 @@ TEST(ccmp) {
     ASSERT_EQUAL_32(ZCFlag, w4);
     ASSERT_EQUAL_32(ZCFlag, w5);
   }
-  TEARDOWN();
 }
 
 
@@ -5947,7 +5825,6 @@ TEST(ccmp_wide_imm) {
     ASSERT_EQUAL_32(NFlag, w0);
     ASSERT_EQUAL_32(NoFlag, w1);
   }
-  TEARDOWN();
 }
 
 
@@ -5991,7 +5868,6 @@ TEST(ccmp_shift_extend) {
     ASSERT_EQUAL_32(NCFlag, w3);
     ASSERT_EQUAL_32(NZCVFlag, w4);
   }
-  TEARDOWN();
 }
 
 
@@ -6058,7 +5934,6 @@ TEST(csel_reg) {
     ASSERT_EQUAL_64(0x0000000f, x15);
     ASSERT_EQUAL_64(0x0000000f0000000f, x17);
   }
-  TEARDOWN();
 }
 
 
@@ -6093,8 +5968,6 @@ TEST(csel_imm) {
       }
     }
   }
-
-  TEARDOWN();
 }
 
 
@@ -6148,7 +6021,6 @@ TEST(csel_mixed) {
     ASSERT_EQUAL_64(0x4000000000000000, x14);
     ASSERT_EQUAL_64(0x8000000000000000, x15);
   }
-  TEARDOWN();
 }
 
 
@@ -6205,7 +6077,6 @@ TEST(lslv) {
     ASSERT_EQUAL_32(value << (shift[4] & 31), w26);
     ASSERT_EQUAL_32(value << (shift[5] & 31), w27);
   }
-  TEARDOWN();
 }
 
 
@@ -6264,7 +6135,6 @@ TEST(lsrv) {
     ASSERT_EQUAL_32(value >> (shift[4] & 31), w26);
     ASSERT_EQUAL_32(value >> (shift[5] & 31), w27);
   }
-  TEARDOWN();
 }
 
 
@@ -6323,7 +6193,6 @@ TEST(asrv) {
     ASSERT_EQUAL_32(value32 >> (shift[4] & 31), w26);
     ASSERT_EQUAL_32(value32 >> (shift[5] & 31), w27);
   }
-  TEARDOWN();
 }
 
 
@@ -6380,7 +6249,6 @@ TEST(rorv) {
     ASSERT_EQUAL_32(0xabcdef89, w26);
     ASSERT_EQUAL_32(0xf89abcde, w27);
   }
-  TEARDOWN();
 }
 
 
@@ -6424,7 +6292,6 @@ TEST(bfm) {
     ASSERT_EQUAL_64(0x88888888888888ab, x13);
     ASSERT_EQUAL_64(0xffffffffff00ffff, x14);
   }
-  TEARDOWN();
 }
 
 
@@ -6487,7 +6354,6 @@ TEST(sbfm) {
     ASSERT_EQUAL_64(0xffffffff89abcdef, x28);
     ASSERT_EQUAL_64(0x0000000076543210, x29);
   }
-  TEARDOWN();
 }
 
 
@@ -6544,7 +6410,6 @@ TEST(ubfm) {
     ASSERT_EQUAL_64(0x000000000000cdef, x21);
     ASSERT_EQUAL_64(0x0000000089abcdef, x22);
   }
-  TEARDOWN();
 }
 
 
@@ -6580,7 +6445,6 @@ TEST(extr) {
     ASSERT_EQUAL_64(0x7f6e5d4c3b2a1908, x19);
     ASSERT_EQUAL_64(0x02468acf13579bde, x20);
   }
-  TEARDOWN();
 }
 
 
@@ -6620,7 +6484,6 @@ TEST(system_mrs) {
     // The default FPCR on Linux-based platforms is 0.
     ASSERT_EQUAL_32(0, w6);
   }
-  TEARDOWN();
 }
 
 TEST(system_rng) {
@@ -6659,8 +6522,6 @@ TEST(system_rng) {
     ASSERT_EQUAL_64(NoFlag, x6);
     ASSERT_EQUAL_64(NoFlag, x8);
   }
-
-  TEARDOWN();
 }
 
 TEST(cfinv) {
@@ -6689,8 +6550,6 @@ TEST(cfinv) {
     ASSERT_EQUAL_32(NoFlag, w2);
     ASSERT_EQUAL_32(CFlag, w3);
   }
-
-  TEARDOWN();
 }
 
 
@@ -6751,7 +6610,6 @@ TEST(axflag_xaflag) {
       ASSERT_EQUAL_32(expected_x[i], w1);
       ASSERT_EQUAL_32(expected_a[i], w2);
     }
-    TEARDOWN();
   }
 }
 
@@ -6824,7 +6682,6 @@ TEST(system_msr) {
     ASSERT_EQUAL_64(fpcr_core, x9);
     ASSERT_EQUAL_64(0, x10);
   }
-  TEARDOWN();
 }
 
 
@@ -6925,8 +6782,6 @@ TEST(system_pauth_a) {
     // Pointer with code stripped.
     ASSERT_EQUAL_64(0x0000000012345678, x9);
   }
-
-  TEARDOWN();
 }
 
 
@@ -7027,8 +6882,6 @@ TEST(system_pauth_b) {
     // Pointer with code stripped.
     ASSERT_EQUAL_64(0x0000000012345678, x9);
   }
-
-  TEARDOWN();
 }
 
 #ifdef VIXL_NEGATIVE_TESTING
@@ -7073,7 +6926,6 @@ TEST(system_pauth_negative_test) {
                          "(!GetScratchRegisterList()->IncludesAliasOf(");
 
   END();
-  TEARDOWN();
 }
 #endif  // VIXL_NEGATIVE_TESTING
 
@@ -7096,7 +6948,6 @@ TEST(system) {
     ASSERT_EQUAL_REGISTERS(before);
     ASSERT_EQUAL_NZCV(before.flags_nzcv());
   }
-  TEARDOWN();
 }
 
 static void BtiHelper(Register ipreg) {
@@ -7131,8 +6982,6 @@ static void BtiHelper(Register ipreg) {
 #endif
     RUN();
   }
-
-  TEARDOWN();
 }
 
 TEST(bti) {
@@ -7177,8 +7026,6 @@ TEST(unguarded_bti_is_nop) {
 #endif
     RUN();
   }
-
-  TEARDOWN();
 }
 
 #ifdef VIXL_NEGATIVE_TESTING
@@ -7206,8 +7053,6 @@ TEST(bti_jump_to_ip_unidentified) {
                            "Executing non-BTI instruction with wrong "
                            "BType.");
   }
-
-  TEARDOWN();
 }
 
 TEST(bti_jump_to_unidentified) {
@@ -7232,8 +7077,6 @@ TEST(bti_jump_to_unidentified) {
                            "Executing non-BTI instruction with wrong "
                            "BType.");
   }
-
-  TEARDOWN();
 }
 
 TEST(bti_call_to_unidentified) {
@@ -7258,8 +7101,6 @@ TEST(bti_call_to_unidentified) {
                            "Executing non-BTI instruction with wrong "
                            "BType.");
   }
-
-  TEARDOWN();
 }
 
 TEST(bti_jump_to_c) {
@@ -7283,8 +7124,6 @@ TEST(bti_jump_to_c) {
 #endif
     MUST_FAIL_WITH_MESSAGE(RUN(), "Executing BTI c with wrong BType.");
   }
-
-  TEARDOWN();
 }
 
 TEST(bti_call_to_j) {
@@ -7308,8 +7147,6 @@ TEST(bti_call_to_j) {
 #endif
     MUST_FAIL_WITH_MESSAGE(RUN(), "Executing BTI j with wrong BType.");
   }
-
-  TEARDOWN();
 }
 #endif  // VIXL_NEGATIVE_TESTING
 
@@ -7340,8 +7177,6 @@ TEST(fall_through_bti) {
 
     ASSERT_EQUAL_64(4, x0);
   }
-
-  TEARDOWN();
 }
 
 TEST(zero_dest) {
@@ -7411,7 +7246,6 @@ TEST(zero_dest) {
     ASSERT_EQUAL_REGISTERS(before);
     ASSERT_EQUAL_NZCV(before.flags_nzcv());
   }
-  TEARDOWN();
 }
 
 
@@ -7488,7 +7322,6 @@ TEST(zero_dest_setflags) {
 
     ASSERT_EQUAL_REGISTERS(before);
   }
-  TEARDOWN();
 }
 
 
@@ -7511,7 +7344,6 @@ TEST(stack_pointer_override) {
   if (CAN_RUN()) {
     RUN();
   }
-  TEARDOWN();
 }
 
 
@@ -7579,7 +7411,6 @@ TEST(peek_poke_simple) {
     ASSERT_EQUAL_64((literal_base * 3) & 0xffffffff, x12);
     ASSERT_EQUAL_64((literal_base * 4) & 0xffffffff, x13);
   }
-  TEARDOWN();
 }
 
 
@@ -7659,7 +7490,6 @@ TEST(peek_poke_unaligned) {
     ASSERT_EQUAL_64((literal_base * 2) & 0xffffffff, x11);
     ASSERT_EQUAL_64((literal_base * 3) & 0xffffffff, x12);
   }
-  TEARDOWN();
 }
 
 
@@ -7709,7 +7539,6 @@ TEST(peek_poke_endianness) {
     ASSERT_EQUAL_64(x4_expected, x4);
     ASSERT_EQUAL_64(x5_expected, x5);
   }
-  TEARDOWN();
 }
 
 
@@ -7784,7 +7613,6 @@ TEST(peek_poke_mixed) {
     ASSERT_EQUAL_64(x6_expected, x6);
     ASSERT_EQUAL_64(x7_expected, x7);
   }
-  TEARDOWN();
 }
 
 
@@ -7876,7 +7704,6 @@ TEST(peek_poke_reglist) {
     ASSERT_EQUAL_FP32(RawbitsToFloat((4 * base_d) & kSRegMask), s16);
     ASSERT_EQUAL_FP32(RawbitsToFloat((4 * base_d) >> kSRegSize), s17);
   }
-  TEARDOWN();
 }
 
 
@@ -7993,7 +7820,6 @@ TEST(load_store_reglist) {
     ASSERT_EQUAL_FP64(RawbitsToDouble(3 * base), d17);
     ASSERT_EQUAL_FP64(RawbitsToDouble(4 * base), d18);
   }
-  TEARDOWN();
 }
 
 
@@ -8151,7 +7977,6 @@ static void PushPopSimpleHelper(int reg_count,
       }
     }
   }
-  TEARDOWN();
 }
 
 
@@ -8403,7 +8228,6 @@ static void PushPopFPSimpleHelper(int reg_count,
       ASSERT_EQUAL_FP64(expected, d[i]);
     }
   }
-  TEARDOWN();
 }
 
 
@@ -8593,7 +8417,6 @@ static void PushPopMixedMethodsHelper(int claim, int reg_size) {
     ASSERT_EQUAL_64(literal_base * 1, x[5]);
     ASSERT_EQUAL_64(literal_base * 2, x[4]);
   }
-  TEARDOWN();
 }
 
 
@@ -8799,7 +8622,6 @@ static void PushPopWXOverlapHelper(int reg_count, int claim) {
     }
     VIXL_ASSERT(slot == requested_w_slots);
   }
-  TEARDOWN();
 }
 
 
@@ -8903,7 +8725,6 @@ TEST(push_pop_sp) {
     ASSERT_EQUAL_32(0x22222222U, w28);
     ASSERT_EQUAL_32(0x33333333U, w29);
   }
-  TEARDOWN();
 }
 
 
@@ -9017,7 +8838,6 @@ TEST(printf) {
     // that, and here we just test that we didn't clobber any registers.
     ASSERT_EQUAL_REGISTERS(before);
   }
-  TEARDOWN();
 }
 
 
@@ -9150,7 +8970,6 @@ TEST(printf_no_preserve) {
     // w3: 4294967295, s1: 1.234000, x5: 18446744073709551615, d3: 3.456000
     ASSERT_EQUAL_64(69, x29);
   }
-  TEARDOWN();
 }
 
 
@@ -9171,7 +8990,6 @@ TEST(trace) {
   }
 
   END();
-  TEARDOWN();
 }
 
 
@@ -9191,7 +9009,6 @@ TEST(log) {
   }
 
   END();
-  TEARDOWN();
 }
 
 
@@ -9221,7 +9038,6 @@ TEST(blr_lr) {
 
     ASSERT_EQUAL_64(0xc001c0de, x0);
   }
-  TEARDOWN();
 }
 
 
@@ -9281,7 +9097,6 @@ TEST(barriers) {
   if (CAN_RUN()) {
     RUN();
   }
-  TEARDOWN();
 }
 
 
@@ -9335,7 +9150,6 @@ TEST(ldar_stlr) {
     ASSERT_EQUAL_64(0, x[0]);
     ASSERT_EQUAL_64(0, x[2]);
   }
-  TEARDOWN();
 }
 
 
@@ -9391,8 +9205,6 @@ TEST(ldlar_stllr) {
     ASSERT_EQUAL_64(0, x[0]);
     ASSERT_EQUAL_64(0, x[2]);
   }
-
-  TEARDOWN();
 }
 
 
@@ -9494,7 +9306,6 @@ TEST(ldxr_stxr) {
     ASSERT_EQUAL_64(0, xp[0]);
     ASSERT_EQUAL_64(0, xp[3]);
   }
-  TEARDOWN();
 }
 
 
@@ -9596,7 +9407,6 @@ TEST(ldaxr_stlxr) {
     ASSERT_EQUAL_64(0, xp[0]);
     ASSERT_EQUAL_64(0, xp[3]);
   }
-  TEARDOWN();
 }
 
 
@@ -9700,7 +9510,6 @@ TEST(clrex) {
     ASSERT_EQUAL_64(0, data[1]);
     ASSERT_EQUAL_64(0, data[2]);
   }
-  TEARDOWN();
 }
 
 
@@ -9784,7 +9593,6 @@ TEST(ldxr_stxr_fail) {
     // Check that the watchdog counter didn't run out.
     ASSERT_EQUAL_64(0, x12);
   }
-  TEARDOWN();
 }
 #endif
 
@@ -9869,7 +9677,6 @@ TEST(ldaxr_stlxr_fail) {
     // Check that the watchdog counter didn't run out.
     ASSERT_EQUAL_64(0, x12);
   }
-  TEARDOWN();
 }
 #endif
 
@@ -9948,8 +9755,6 @@ TEST(cas_casa_casl_casal_w) {
     ASSERT_EQUAL_64(0x01234567, data7[0]);
     ASSERT_EQUAL_64(0xffffffff, data8[0]);
   }
-
-  TEARDOWN();
 }
 
 TEST(cas_casa_casl_casal_x) {
@@ -10027,8 +9832,6 @@ TEST(cas_casa_casl_casal_x) {
     ASSERT_EQUAL_64(0x0123456789abcdef, data7[0]);
     ASSERT_EQUAL_64(0xffffffffffffffff, data8[0]);
   }
-
-  TEARDOWN();
 }
 
 TEST(casb_casab_caslb_casalb) {
@@ -10106,8 +9909,6 @@ TEST(casb_casab_caslb_casalb) {
     ASSERT_EQUAL_64(0x01234567, data7[0]);
     ASSERT_EQUAL_64(0x012345ff, data8[0]);
   }
-
-  TEARDOWN();
 }
 
 TEST(cash_casah_caslh_casalh) {
@@ -10185,8 +9986,6 @@ TEST(cash_casah_caslh_casalh) {
     ASSERT_EQUAL_64(0x01234567, data7[0]);
     ASSERT_EQUAL_64(0x0123ffff, data8[0]);
   }
-
-  TEARDOWN();
 }
 
 TEST(casp_caspa_caspl_caspal) {
@@ -10284,8 +10083,6 @@ TEST(casp_caspa_caspl_caspal) {
     ASSERT_EQUAL_64(0x89abcdef01234567, data7[0]);
     ASSERT_EQUAL_64(0xffffffffffffffff, data8[0]);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10359,8 +10156,6 @@ void AtomicMemoryWHelper(AtomicMemoryLoadSignature* load_funcs,
       ASSERT_EQUAL_64(final_expected, data5[0]);
     }
   }
-
-  TEARDOWN();
 }
 
 void AtomicMemoryXHelper(AtomicMemoryLoadSignature* load_funcs,
@@ -10423,8 +10218,6 @@ void AtomicMemoryXHelper(AtomicMemoryLoadSignature* load_funcs,
       ASSERT_EQUAL_64(expected, data5[0]);
     }
   }
-
-  TEARDOWN();
 }
 
 // clang-format off
@@ -10662,8 +10455,6 @@ TEST(ldaprb_ldaprh_ldapr) {
     ASSERT_EQUAL_64(0x10101010, x2);
     ASSERT_EQUAL_64(0x1010101010101010, x3);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10710,8 +10501,6 @@ TEST(ldapurb_ldapurh_ldapur) {
     ASSERT_EQUAL_64(0x54321001, x10);
     ASSERT_EQUAL_64(0x7654321001234567, x11);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10772,8 +10561,6 @@ TEST(ldapursb_ldapursh_ldapursw) {
     ASSERT_EQUAL_64(0x0000000000003210, x16);
     ASSERT_EQUAL_64(0x0000000076543210, x17);
   }
-
-  TEARDOWN();
 }
 
 
@@ -10801,8 +10588,6 @@ TEST(stlurb_stlurh_strlur) {
     ASSERT_EQUAL_64(0x0044556677667777, data[0]);
     ASSERT_EQUAL_64(0x0011223344556677, data[1]);
   }
-
-  TEARDOWN();
 }
 
 
@@ -11010,8 +10795,6 @@ TEST(unaligned_single_copy_atomicity) {
     // check.
     RUN_WITHOUT_SEEN_FEATURE_CHECK();
   }
-
-  TEARDOWN();
 }
 
 
@@ -11042,7 +10825,6 @@ TEST(unaligned_single_copy_atomicity) {
       MUST_FAIL_WITH_MESSAGE(RUN_WITHOUT_SEEN_FEATURE_CHECK(),                 \
                              "ALIGNMENT EXCEPTION");                           \
     }                                                                          \
-    TEARDOWN();                                                                \
   }
 
 TEST(unaligned_single_copy_atomicity_negative_test) {
@@ -11196,7 +10978,6 @@ TEST(unaligned_single_copy_atomicity_negative_test_2) {
     if (CAN_RUN()) {
       RUN_WITHOUT_SEEN_FEATURE_CHECK();
     }
-    TEARDOWN();
   }
   {
     SETUP();
@@ -11208,7 +10989,6 @@ TEST(unaligned_single_copy_atomicity_negative_test_2) {
     if (CAN_RUN()) {
       MUST_FAIL_WITH_MESSAGE(RUN(), "ALIGNMENT EXCEPTION");
     }
-    TEARDOWN();
   }
 }
 #endif  // VIXL_NEGATIVE_TESTING && VIXL_INCLUDE_SIMULATOR_AARCH64
@@ -11420,7 +11200,6 @@ TEST(load_store_tagged_immediate_offset) {
           VIXL_CHECK(src[k] == dst[k]);
         }
       }
-      TEARDOWN();
     }
   }
 }
@@ -11592,7 +11371,6 @@ TEST(load_store_tagged_immediate_preindex) {
           VIXL_CHECK(src[k] == dst[k]);
         }
       }
-      TEARDOWN();
     }
   }
 }
@@ -11759,7 +11537,6 @@ TEST(load_store_tagged_immediate_postindex) {
           VIXL_CHECK(src[k] == dst[k]);
         }
       }
-      TEARDOWN();
     }
   }
 }
@@ -11882,7 +11659,6 @@ TEST(load_store_tagged_register_offset) {
             VIXL_CHECK(src[k] == dst[k]);
           }
         }
-        TEARDOWN();
       }
     }
   }
@@ -11915,7 +11691,6 @@ TEST(load_store_tagged_register_postindex) {
         ASSERT_EQUAL_128(0x0f0e0d0c0b0a0908, 0x0706050403020100, q0);
         ASSERT_EQUAL_64(src_tagged + offset_tagged, x10);
       }
-      TEARDOWN();
     }
   }
 }
@@ -11949,7 +11724,6 @@ TEST(branch_tagged) {
 
     ASSERT_EQUAL_64(1 << kAddressTagWidth, x1);
   }
-  TEARDOWN();
 }
 
 
@@ -11986,7 +11760,6 @@ TEST(branch_and_link_tagged) {
 
     ASSERT_EQUAL_64(1 << kAddressTagWidth, x1);
   }
-  TEARDOWN();
 }
 
 
@@ -12025,11 +11798,10 @@ TEST(branch_tagged_and_adr_adrp) {
 
   END();
   if (CAN_RUN()) {
-    RUN_CUSTOM();
+    RUN();
 
     ASSERT_EQUAL_64(1 << kAddressTagWidth, x1);
   }
-  TEARDOWN_CUSTOM();
 }
 
 TEST(system_sys) {
@@ -12052,7 +11824,6 @@ TEST(system_sys) {
   if (CAN_RUN()) {
     RUN();
   }
-  TEARDOWN();
 }
 
 
@@ -12069,7 +11840,6 @@ TEST(system_ic) {
   if (CAN_RUN()) {
     RUN();
   }
-  TEARDOWN();
 }
 
 
@@ -12094,7 +11864,6 @@ TEST(system_dc) {
     ASSERT_EQUAL_64(msg_addr, x21);
     ASSERT_EQUAL_64(msg_addr, x22);
   }
-  TEARDOWN();
 }
 
 
@@ -12112,8 +11881,6 @@ TEST(system_dcpop) {
     RUN();
     ASSERT_EQUAL_64(msg_addr, x20);
   }
-
-  TEARDOWN();
 }
 
 TEST(system_dccvadp) {
@@ -12130,8 +11897,6 @@ TEST(system_dccvadp) {
     RUN();
     ASSERT_EQUAL_64(msg_addr, x20);
   }
-
-  TEARDOWN();
 }
 
 
@@ -12179,8 +11944,6 @@ TEST(crc32b) {
     ASSERT_EQUAL_64(0x00ffffff, x14);
     ASSERT_EQUAL_64(0x77073196, x15);
   }
-
-  TEARDOWN();
 }
 
 
@@ -12225,8 +11988,6 @@ TEST(crc32h) {
     ASSERT_EQUAL_64(0x2d021072, x14);
     ASSERT_EQUAL_64(0x04ac2124, x15);
   }
-
-  TEARDOWN();
 }
 
 
@@ -12266,8 +12027,6 @@ TEST(crc32w) {
     ASSERT_EQUAL_64(0x00be2612, x14);
     ASSERT_EQUAL_64(0xa036e530, x15);
   }
-
-  TEARDOWN();
 }
 
 
@@ -12307,8 +12066,6 @@ TEST(crc32x) {
     ASSERT_EQUAL_64(0xbc962670, x14);
     ASSERT_EQUAL_64(0x0667602f, x15);
   }
-
-  TEARDOWN();
 }
 
 
@@ -12353,8 +12110,6 @@ TEST(crc32cb) {
     ASSERT_EQUAL_64(0x00ffffff, x14);
     ASSERT_EQUAL_64(0xf26b8203, x15);
   }
-
-  TEARDOWN();
 }
 
 
@@ -12399,8 +12154,6 @@ TEST(crc32ch) {
     ASSERT_EQUAL_64(0xad7dacae, x14);
     ASSERT_EQUAL_64(0x03fc5f19, x15);
   }
-
-  TEARDOWN();
 }
 
 
@@ -12440,8 +12193,6 @@ TEST(crc32cw) {
     ASSERT_EQUAL_64(0x9f9b5c7a, x14);
     ASSERT_EQUAL_64(0xae1b882a, x15);
   }
-
-  TEARDOWN();
 }
 
 
@@ -12481,8 +12232,6 @@ TEST(crc32cx) {
     ASSERT_EQUAL_64(0x6cc27dd0, x14);
     ASSERT_EQUAL_64(0xc6f0acdb, x15);
   }
-
-  TEARDOWN();
 }
 
 TEST(regress_cmp_shift_imm) {
@@ -12499,7 +12248,6 @@ TEST(regress_cmp_shift_imm) {
 
     ASSERT_EQUAL_NZCV(ZCFlag);
   }
-  TEARDOWN();
 }
 
 
@@ -12551,7 +12299,6 @@ TEST(compute_address) {
     ASSERT_EQUAL_64(INT64_C(0x122e1d951740), x11);
     ASSERT_EQUAL_64(INT64_C(0x12343b2a23c4), x12);
   }
-  TEARDOWN();
 }
 
 
@@ -12627,7 +12374,6 @@ TEST(far_branch_backward) {
     ASSERT_EQUAL_64(0x7, x0);
     ASSERT_EQUAL_64(0x1, x1);
   }
-  TEARDOWN();
 }
 
 
@@ -12672,7 +12418,6 @@ TEST(single_veneer) {
     ASSERT_EQUAL_64(1, x0);
     ASSERT_EQUAL_64(1, x1);
   }
-  TEARDOWN();
 }
 
 
@@ -12738,7 +12483,6 @@ TEST(simple_veneers) {
     ASSERT_EQUAL_64(0x7, x0);
     ASSERT_EQUAL_64(0x1, x1);
   }
-  TEARDOWN();
 }
 
 
@@ -12763,7 +12507,6 @@ TEST(veneers_stress) {
   __ Bind(&target);
 
   END();
-  TEARDOWN();
 }
 
 
@@ -12803,7 +12546,6 @@ TEST(veneers_two_out_of_range) {
   __ Bind(&target_tbz);
 
   END();
-  TEARDOWN();
 }
 
 
@@ -12891,7 +12633,6 @@ TEST(veneers_hanging) {
   }
 
   END();
-  TEARDOWN();
 }
 
 
@@ -12956,7 +12697,6 @@ TEST(collision_literal_veneer_pools) {
   VIXL_CHECK(masm.GetNumberOfPotentialVeneers() == 0);
 
   END();
-  TEARDOWN();
 }
 
 
@@ -12983,7 +12723,6 @@ TEST(ldr_literal_explicit) {
 
     ASSERT_EQUAL_64(3, x0);
   }
-  TEARDOWN();
 }
 
 
@@ -13032,7 +12771,6 @@ TEST(ldr_literal_automatically_placed) {
     ASSERT_EQUAL_FP64(3.3, d3);
     ASSERT_EQUAL_64(2, x4);
   }
-  TEARDOWN();
 }
 
 
@@ -13076,7 +12814,6 @@ TEST(literal_update_overwrite) {
     ASSERT_EQUAL_64(128, x3);
     ASSERT_EQUAL_64(256, x4);
   }
-  TEARDOWN();
 }
 
 
@@ -13125,7 +12862,6 @@ TEST(literal_deletion_policies) {
     ASSERT_EQUAL_64(64, x2);
     ASSERT_EQUAL_64(128, x3);
   }
-  TEARDOWN();
 }
 
 
@@ -13211,7 +12947,6 @@ TEST(generic_operand) {
     VIXL_CHECK(data_64_array[3] == INT64_C(0x3333333333333333));
     VIXL_CHECK(data_64_array[4] == INT64_C(0x1111111111111111));
   }
-  TEARDOWN();
 }
 
 
@@ -13289,7 +13024,6 @@ TEST(runtime_calls) {
     // This configuration is unsupported and a `VIXL_UNREACHABLE()` would fire
     // while trying to generate `CallRuntime`. This configuration should only be
     // reachable with C++11 and a (buggy) version of GCC pre-4.9.1.
-    TEARDOWN();
     return;
   }
 #endif
@@ -13404,8 +13138,6 @@ TEST(runtime_calls) {
     ASSERT_EQUAL_64(0, x24);
   }
 #endif  // #if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) || ...
-
-  TEARDOWN();
 }
 #endif  // #ifdef VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT
 
@@ -13428,7 +13160,6 @@ TEST(optimised_mov_register) {
   if (CAN_RUN()) {
     RUN();
   }
-  TEARDOWN();
 }
 
 
@@ -13520,7 +13251,6 @@ static void SetSimulatorCPUFeaturesHelper(const CPUFeatures& base,
     RUN_WITHOUT_SEEN_FEATURE_CHECK();
     VIXL_CHECK(*(simulator.GetCPUFeatures()) == f);
   }
-  TEARDOWN();
 }
 
 TEST(configure_cpu_features_set) {
@@ -13539,7 +13269,6 @@ static void EnableSimulatorCPUFeaturesHelper(const CPUFeatures& base,
     RUN_WITHOUT_SEEN_FEATURE_CHECK();
     VIXL_CHECK(*(simulator.GetCPUFeatures()) == base.With(f));
   }
-  TEARDOWN();
 }
 
 TEST(configure_cpu_features_enable) {
@@ -13558,7 +13287,6 @@ static void DisableSimulatorCPUFeaturesHelper(const CPUFeatures& base,
     RUN_WITHOUT_SEEN_FEATURE_CHECK();
     VIXL_CHECK(*(simulator.GetCPUFeatures()) == base.Without(f));
   }
-  TEARDOWN();
 }
 
 TEST(configure_cpu_features_disable) {
@@ -13586,7 +13314,6 @@ static void SaveRestoreSimulatorCPUFeaturesHelper(const CPUFeatures& base,
     RUN_WITHOUT_SEEN_FEATURE_CHECK();
     VIXL_CHECK(*(simulator.GetCPUFeatures()) == base);
   }
-  TEARDOWN();
 }
 
 TEST(configure_cpu_features_save_restore) {
@@ -13616,7 +13343,6 @@ static void SimulationCPUFeaturesScopeHelper(const CPUFeatures& base,
     RUN_WITHOUT_SEEN_FEATURE_CHECK();
     VIXL_CHECK(*(simulator.GetCPUFeatures()) == base);
   }
-  TEARDOWN();
 }
 
 TEST(configure_cpu_features_scope) {

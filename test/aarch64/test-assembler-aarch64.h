@@ -41,8 +41,6 @@
 //
 //       ASSERT_EQUAL_64(1, x0);
 //     }
-//
-//     TEARDOWN();
 //   }
 //
 // Within a START ... END block all registers but sp can be modified. sp has to
@@ -99,9 +97,8 @@ static const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
   masm.SetCPUFeatures(CPUFeatures(__VA_ARGS__)); \
   simulator.SetCPUFeatures(CPUFeatures(__VA_ARGS__))
 
-#define SETUP_CUSTOM(size, pic)                                       \
-  byte* buf = new byte[size + CodeBuffer::kDefaultCapacity];          \
-  MacroAssembler masm(buf, size + CodeBuffer::kDefaultCapacity, pic); \
+#define SETUP_CUSTOM(size, pic)                                  \
+  MacroAssembler masm(size + CodeBuffer::kDefaultCapacity, pic); \
   SETUP_COMMON()
 
 #define SETUP_COMMON()                                                   \
@@ -200,12 +197,6 @@ inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
   VIXL_ASSERT(CAN_RUN());                \
   simulator.RunFrom(masm.GetBuffer()->GetStartAddress<Instruction*>())
 
-#define RUN_CUSTOM() RUN()
-
-#define TEARDOWN()
-
-#define TEARDOWN_CUSTOM() delete[] buf;
-
 #else  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
 #define SETUP()        \
   MacroAssembler masm; \
@@ -216,16 +207,9 @@ inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
   SETUP_COMMON();                \
   masm.SetCPUFeatures(CPUFeatures(__VA_ARGS__))
 
-#define SETUP_CUSTOM(size, pic)                                         \
-  byte* buffer =                                                        \
-      reinterpret_cast<byte*>(mmap(NULL,                                \
-                                   size + CodeBuffer::kDefaultCapacity, \
-                                   PROT_READ | PROT_WRITE,              \
-                                   MAP_PRIVATE | MAP_ANONYMOUS,         \
-                                   -1,                                  \
-                                   0));                                 \
-  size_t buffer_size = size + CodeBuffer::kDefaultCapacity;             \
-  MacroAssembler masm(buffer, buffer_size, pic);                        \
+#define SETUP_CUSTOM(size, pic)                             \
+  size_t buffer_size = size + CodeBuffer::kDefaultCapacity; \
+  MacroAssembler masm(buffer_size, pic);                    \
   SETUP_COMMON()
 
 #define SETUP_COMMON()                                                   \
@@ -274,17 +258,6 @@ inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
 // This just provides compatibility with VIXL_INCLUDE_SIMULATOR_AARCH64 builds.
 // We cannot run seen-feature checks when running natively.
 #define RUN_WITHOUT_SEEN_FEATURE_CHECK() RUN()
-
-// The generated code was written directly into `buffer`, execute it directly.
-#define RUN_CUSTOM()                                    \
-  DISASSEMBLE();                                        \
-  mprotect(buffer, buffer_size, PROT_READ | PROT_EXEC); \
-  ExecuteMemory(buffer, buffer_size);                   \
-  mprotect(buffer, buffer_size, PROT_READ | PROT_WRITE)
-
-#define TEARDOWN()
-
-#define TEARDOWN_CUSTOM()
 
 inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
   CPUFeatures cpu = CPUFeatures::InferFromOS();
