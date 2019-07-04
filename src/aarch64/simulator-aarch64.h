@@ -484,7 +484,7 @@ class LogicVRegister {
     if (IsSVEFormat(vform)) return;
 
     unsigned size = RegisterSizeInBytesFromFormat(vform);
-    for (unsigned i = size; i < kQRegSizeInBytes; i++) {
+    for (unsigned i = size; i < register_.GetSizeInBytes(); i++) {
       SetUint(kFormat16B, i, 0);
     }
   }

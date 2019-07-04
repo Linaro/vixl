@@ -271,6 +271,93 @@ TEST(sve_test_infrastructure_p) {
   }
 }
 
+// Test that writes to V registers clear the high bits of the corresponding Z
+// register.
+TEST(sve_v_write_clear) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP, CPUFeatures::kSVE);
+  START();
+
+  // The Simulator has two mechansisms for writing V registers:
+  //  - Write*Register, calling through to SimRegisterBase::Write.
+  //  - LogicVRegister::ClearForWrite followed by one or more lane updates.
+  // Try to cover both variants.
+
+  // Prepare some known inputs.
+  uint8_t data[kQRegSizeInBytes];
+  for (size_t i = 0; i < kQRegSizeInBytes; i++) {
+    data[i] = 42 + i;
+  }
+  __ Mov(x10, reinterpret_cast<uintptr_t>(data));
+  __ Fmov(d30, 42.0);
+
+  // Use Index to label the lane indeces, so failures are easy to detect and
+  // diagnose.
+  __ Index(z0.VnB(), 0, 1);
+  __ Index(z1.VnB(), 0, 1);
+  __ Index(z2.VnB(), 0, 1);
+  __ Index(z3.VnB(), 0, 1);
+  __ Index(z4.VnB(), 0, 1);
+
+  __ Index(z10.VnB(), 0, -1);
+  __ Index(z11.VnB(), 0, -1);
+  __ Index(z12.VnB(), 0, -1);
+  __ Index(z13.VnB(), 0, -1);
+  __ Index(z14.VnB(), 0, -1);
+
+  // Instructions using Write*Register (and SimRegisterBase::Write).
+  __ Ldr(b0, MemOperand(x10));
+  __ Fcvt(h1, d30);
+  __ Fmov(s2, 1.5f);
+  __ Fmov(d3, d30);
+  __ Ldr(q4, MemOperand(x10));
+
+  // Instructions using LogicVRegister::ClearForWrite.
+  // These also (incidentally) test that across-lane instructions correctly
+  // ignore the high-order Z register lanes.
+  __ Sminv(b10, v10.V16B());
+  __ Addv(h11, v11.V4H());
+  __ Saddlv(s12, v12.V8H());
+  __ Dup(v13.V8B(), b13, kDRegSizeInBytes);
+  __ Uaddl(v14.V8H(), v14.V8B(), v14.V8B());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // Check the Q part first.
+    ASSERT_EQUAL_128(0x0000000000000000, 0x000000000000002a, v0);
+    ASSERT_EQUAL_128(0x0000000000000000, 0x0000000000005140, v1);  // 42.0 (f16)
+    ASSERT_EQUAL_128(0x0000000000000000, 0x000000003fc00000, v2);  // 1.5 (f32)
+    ASSERT_EQUAL_128(0x0000000000000000, 0x4045000000000000, v3);  // 42.0 (f64)
+    ASSERT_EQUAL_128(0x3938373635343332, 0x31302f2e2d2c2b2a, v4);
+    ASSERT_EQUAL_128(0x0000000000000000, 0x00000000000000f1, v10);  // -15
+    //  0xf9fa + 0xfbfc + 0xfdfe + 0xff00 -> 0xf2f4
+    ASSERT_EQUAL_128(0x0000000000000000, 0x000000000000f2f4, v11);
+    //  0xfffff1f2 + 0xfffff3f4 + ... + 0xfffffdfe + 0xffffff00 -> 0xffffc6c8
+    ASSERT_EQUAL_128(0x0000000000000000, 0x00000000ffffc6c8, v12);
+    ASSERT_EQUAL_128(0x0000000000000000, 0xf8f8f8f8f8f8f8f8, v13);  // [-8] x 8
+    //    [0x00f9, 0x00fa, 0x00fb, 0x00fc, 0x00fd, 0x00fe, 0x00ff, 0x0000]
+    //  + [0x00f9, 0x00fa, 0x00fb, 0x00fc, 0x00fd, 0x00fe, 0x00ff, 0x0000]
+    // -> [0x01f2, 0x01f4, 0x01f6, 0x01f8, 0x01fa, 0x01fc, 0x01fe, 0x0000]
+    ASSERT_EQUAL_128(0x01f201f401f601f8, 0x01fa01fc01fe0000, v14);
+
+    // Check that the upper lanes are all clear.
+    for (int i = kQRegSizeInBytes; i < core.GetSVELaneCount(kBRegSize); i++) {
+      ASSERT_EQUAL_SVE_LANE(0x00, z0.VnB(), i);
+      ASSERT_EQUAL_SVE_LANE(0x00, z1.VnB(), i);
+      ASSERT_EQUAL_SVE_LANE(0x00, z2.VnB(), i);
+      ASSERT_EQUAL_SVE_LANE(0x00, z3.VnB(), i);
+      ASSERT_EQUAL_SVE_LANE(0x00, z4.VnB(), i);
+      ASSERT_EQUAL_SVE_LANE(0x00, z10.VnB(), i);
+      ASSERT_EQUAL_SVE_LANE(0x00, z11.VnB(), i);
+      ASSERT_EQUAL_SVE_LANE(0x00, z12.VnB(), i);
+      ASSERT_EQUAL_SVE_LANE(0x00, z13.VnB(), i);
+      ASSERT_EQUAL_SVE_LANE(0x00, z14.VnB(), i);
+    }
+  }
+}
+
 static void MlaMlsHelper(unsigned lane_size_in_bits) {
   SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
