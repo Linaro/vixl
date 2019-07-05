@@ -47,10 +47,10 @@ def abort(message):
 
 
 # Emulate python3 subprocess.getstatusoutput.
-def getstatusoutput(command, shell=False):
+def getstatusoutput(command):
   try:
     args = shlex.split(command)
-    output = subprocess.check_output(args, stderr=subprocess.STDOUT, shell=shell)
+    output = subprocess.check_output(args, stderr=subprocess.STDOUT)
     return 0, output.rstrip('\n')
   except subprocess.CalledProcessError as e:
     return e.returncode, e.output.rstrip('\n')
