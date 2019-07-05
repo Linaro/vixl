@@ -27,72 +27,12 @@
 import collections
 import multiprocessing
 import re
-import subprocess
 import time
 
-from known_test_failures import FilterKnownTestFailures
 import printer
 import thread_pool
-import util
 
 REGEXP_MISSING_FEATURES = "Missing features: { ([^,}]+(, [^,}]+)*) }"
-
-# Scan matching tests and return a test manifest.
-def GetTests(runner, filters = []):
-  rc, output = util.getstatusoutput(runner +  ' --list')
-  if rc != 0: util.abort('Failed to list all tests')
-
-  tests = output.split()
-  for f in filters:
-    tests = filter(re.compile(f).search, tests)
-
-  return tests
-
-def RunTest(test):
-  p = subprocess.Popen(test.command,
-                       stdout=subprocess.PIPE,
-                       stderr=subprocess.STDOUT)
-  p_out, p_err = p.communicate()
-  rc = p.poll()
-
-  if rc == 0:
-    skipped = False
-    lines = p_out.split('\n')
-    skipped_id = "SKIPPED: "
-    for i in range(len(lines)):
-      if lines[i].startswith(skipped_id):
-        skipped = True
-        reason = lines[i][len(skipped_id):]
-        with Test.n_tests_skipped.get_lock():
-          Test.n_tests_skipped.value += 1
-          test.shared.tests_skipped.setdefault(reason, 0)
-          test.shared.tests_skipped[reason] += 1
-        break
-    if not skipped:
-      with Test.n_tests_passed.get_lock(): Test.n_tests_passed.value += 1
-  else:
-    with Test.n_tests_failed.get_lock(): Test.n_tests_failed.value += 1
-
-  printer.__print_lock__.acquire()
-
-  printer.UpdateProgress(test.shared.start_time,
-                         Test.n_tests_passed.value,
-                         Test.n_tests_failed.value,
-                         test.shared.n_tests,
-                         Test.n_tests_skipped.value,
-                         test.shared.n_known_failures,
-                         test.name,
-                         prevent_next_overwrite = (rc != 0),
-                         has_lock = True,
-                         prefix = test.shared.progress_prefix)
-
-  if rc != 0:
-    printer.Print('FAILED: ' + test.name, has_lock = True)
-    printer.Print(printer.COLOUR_RED + ' '.join(test.command) + printer.NO_COLOUR,
-                  has_lock = True)
-    printer.Print(p_out, has_lock = True)
-
-  printer.__print_lock__.release()
 
 class Test(object):
   # Shared state for multiprocessing. Ideally the context should be passed with
@@ -104,41 +44,28 @@ class Test(object):
   n_tests_skipped = multiprocessing.Value('i', 0)
   manager = multiprocessing.Manager()
 
-  def __init__(self, test_runner, test, runtime_options, use_valgrind, shared):
-    self.command = [test_runner, test] + runtime_options
-    self.name = test
-    self.shared = shared
-    if use_valgrind:
-      self.command = ['valgrind'] + self.command
+  def __init__(self, name, shared, **kwargs):
+      self.name = name
+      self.shared = shared
+      self.args = kwargs
 
 class TestQueue(object):
-  def __init__(self, under_valgrind = False, prefix = ''):
+  def __init__(self, prefix = ''):
     self.progress_prefix = prefix
-    self.under_valgrind = under_valgrind
     self.queue = []
     self.tests_skipped = Test.manager.dict()
     self.n_known_failures = 0
     self.known_failures = collections.Counter()
 
-  def Add(self, test_runner_command, filters, runtime_options):
-    tests = GetTests(test_runner_command, filters)
-    n_tests_total = len(tests)
-    tests, skipped  = FilterKnownTestFailures(tests, under_valgrind = self.under_valgrind)
-    for n_tests, reason in skipped:
-      if n_tests > 0:
-          self.n_known_failures += n_tests
-          self.known_failures[reason] += n_tests
+  def AddKnownFailures(self, reason, n_tests):
+      self.n_known_failures += n_tests
+      self.known_failures[reason] += n_tests
 
-    if len(tests) == 0:
-      printer.Print('No tests to run.')
-      return
-
-    for test in tests:
-      self.queue.append(Test(test_runner_command, test,
-                             runtime_options, self.under_valgrind, self))
+  def AddTest(self, name, **kwargs):
+    self.queue.append(Test(name, self, **kwargs))
 
   # Run the specified tests.
-  def Run(self, jobs, verbose):
+  def Run(self, jobs, verbose, run_function):
     def InitGlobals():
       # Initialisation.
       self.start_time = time.time()
@@ -152,7 +79,7 @@ class TestQueue(object):
       self.tests_skipped.clear()
       return True
 
-    thread_pool.Multithread(RunTest, self.queue, jobs, InitGlobals)
+    thread_pool.Multithread(run_function, self.queue, jobs, InitGlobals)
 
     printer.UpdateProgress(self.start_time,
                            Test.n_tests_passed.value,

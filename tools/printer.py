@@ -108,7 +108,7 @@ def UpdateProgress(start_time, passed, failed, count, skipped, known_failures,
                    name, prefix = '', prevent_next_overwrite = False,
                    has_lock = False):
   minutes, seconds = divmod(time.time() - start_time, 60)
-  progress = float(passed + failed + skipped) / count * 100
+  progress = float(passed + failed + skipped) / max(1, count) * 100
   passed_colour = COLOUR_GREEN if passed != 0 else ''
   failed_colour = COLOUR_RED if failed != 0 else ''
   skipped_colour = COLOUR_ORANGE if (skipped + known_failures) != 0 else ''
