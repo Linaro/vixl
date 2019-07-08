@@ -270,16 +270,20 @@ class CPURegister {
   //       DRegister d = reg.D();
   //       ...
   //     }
+  //
+  // These could all return types with compile-time guarantees (like XRegister),
+  // but this breaks backwards-compatibility quite severely, particularly with
+  // code like `cond ? reg.W() : reg.X()`, which would have indeterminate type.
 
   // Core registers, like "w0".
-  WRegister W() const;
-  XRegister X() const;
+  Register W() const;
+  Register X() const;
   // FP/NEON registers, like "b0".
-  BRegister B() const;
-  HRegister H() const;
-  SRegister S() const;
-  DRegister D() const;
-  QRegister Q() const;
+  VRegister B() const;
+  VRegister H() const;
+  VRegister S() const;
+  VRegister D() const;
+  VRegister Q() const;
   VRegister V() const;
   // SVE registers, like "z0".
   ZRegister Z() const;
