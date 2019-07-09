@@ -40,10 +40,11 @@ import time
 
 import config
 import clang_format
+import clang_tidy
 import lint
 import printer
 import test
-import threaded_tests
+import test_runner
 import util
 
 
@@ -154,12 +155,17 @@ def BuildOptions():
   general_arguments.add_argument('--clang-format',
                                  default=clang_format.DEFAULT_CLANG_FORMAT,
                                  help='Path to clang-format.')
+  general_arguments.add_argument('--clang-tidy',
+                                 default=clang_tidy.DEFAULT_CLANG_TIDY,
+                                 help='Path to clang-tidy.')
   general_arguments.add_argument('--nobench', action='store_true',
                                  help='Do not run benchmarks.')
   general_arguments.add_argument('--nolint', action='store_true',
                                  help='Do not run the linter.')
   general_arguments.add_argument('--noclang-format', action='store_true',
                                  help='Do not run clang-format.')
+  general_arguments.add_argument('--noclang-tidy', action='store_true',
+                                 help='Do not run clang-tidy.')
   general_arguments.add_argument('--notest', action='store_true',
                                  help='Do not run tests.')
   general_arguments.add_argument('--fail-early', action='store_true',
@@ -261,6 +267,11 @@ def RunClangFormat(clang_path, jobs):
                                        jobs = jobs,
                                        progress_prefix = 'clang-format: ')
 
+def RunClangTidy(clang_path, jobs):
+  return clang_tidy.ClangTidyFiles(util.get_source_files(),
+                                   clang_path,
+                                   jobs = jobs,
+                                   progress_prefix = 'clang-tidy: ')
 
 def BuildAll(build_options, jobs, environment_options):
   scons_command = ['scons', '-C', dir_root, 'all', '-j', str(jobs)]
@@ -348,12 +359,15 @@ if __name__ == '__main__':
   if args.under_valgrind:
     util.require_program('valgrind')
 
-  tests = threaded_tests.TestQueue(args.under_valgrind)
+  tests = test_runner.TestQueue()
   if not args.nolint and not args.dry_run:
     rc.Combine(RunLinter(args.jobs))
 
   if not args.noclang_format and not args.dry_run:
     rc.Combine(RunClangFormat(args.clang_format, args.jobs))
+
+  if not args.noclang_tidy and not args.dry_run:
+    rc.Combine(RunClangTidy(args.clang_tidy, args.jobs))
 
   list_options = []
   if IsPrecommitRun(args):
@@ -421,10 +435,11 @@ if __name__ == '__main__':
 
       if not args.notest:
         printer.Print(test_executable)
-        tests.Add(
+        tests.AddTests(
             test_executable,
             args.filters,
-            list())
+            list(),
+            args.under_valgrind)
 
       if not args.nobench:
         rc.Combine(RunBenchmarks(options, args))

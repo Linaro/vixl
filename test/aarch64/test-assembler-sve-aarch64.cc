@@ -184,8 +184,6 @@ TEST(sve_test_infrastructure_z) {
     uint64_t z3_inputs_d[] = {0xffffffffffffffd6, 0xfedcba9876543210};
     ASSERT_EQUAL_SVE(z3_inputs_d, z3.VnD());
   }
-
-  TEARDOWN();
 }
 
 // Ensure that basic test infrastructure works.
@@ -412,8 +410,6 @@ TEST(sve_bitwise_unpredicate_logical) {
     ASSERT_EQUAL_SVE(z3_expected, z3.VnD());
     ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
   }
-
-  TEARDOWN();
 }
 
 TEST(sve_predicate_logical) {
@@ -478,8 +474,6 @@ TEST(sve_predicate_logical) {
     ASSERT_EQUAL_32(NFlag, w0);  // First element is active.
     ASSERT_EQUAL_32(CFlag, w1);  // Last element is not active.
   }
-
-  TEARDOWN();
 }
 
 TEST(sve_bitwise_imm) {
@@ -582,8 +576,6 @@ TEST(sve_bitwise_imm) {
     ASSERT_EQUAL_SVE(z15_expected, z15.VnH());
     // clang-format on
   }
-
-  TEARDOWN();
 }
 
 }  // namespace aarch64

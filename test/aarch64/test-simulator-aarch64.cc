@@ -102,7 +102,6 @@ namespace aarch64 {
   /* The simulator can run every test. */                               \
   *skipped = false
 
-#define TEARDOWN()
 
 #else  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
@@ -151,7 +150,6 @@ namespace aarch64 {
     }                                                                         \
   }
 
-#define TEARDOWN()
 
 #endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
@@ -311,7 +309,6 @@ static void Test1Op_Helper(Test1OpFPHelper_t helper,
 
   END();
   TRY_RUN(skipped);
-  TEARDOWN();
 }
 
 
@@ -466,7 +463,6 @@ static void Test2Op_Helper(Test2OpFPHelper_t helper,
 
   END();
   TRY_RUN(skipped);
-  TEARDOWN();
 }
 
 
@@ -619,7 +615,6 @@ static void Test3Op_Helper(Test3OpFPHelper_t helper,
 
   END();
   TRY_RUN(skipped);
-  TEARDOWN();
 }
 
 
@@ -763,7 +758,6 @@ static void TestCmp_Helper(TestFPCmpHelper_t helper,
 
   END();
   TRY_RUN(skipped);
-  TEARDOWN();
 }
 
 
@@ -895,7 +889,6 @@ static void TestCmpZero_Helper(TestFPCmpZeroHelper_t helper,
 
   END();
   TRY_RUN(skipped);
-  TEARDOWN();
 }
 
 
@@ -1039,7 +1032,6 @@ static void TestFPToFixed_Helper(TestFPToFixedHelper_t helper,
 
   END();
   TRY_RUN(skipped);
-  TEARDOWN();
 }
 
 
@@ -1106,7 +1098,6 @@ static void TestFPToInt_Helper(TestFPToIntHelper_t helper,
 
   END();
   TRY_RUN(skipped);
-  TEARDOWN();
 }
 
 
@@ -1536,7 +1527,6 @@ static void Test1OpNEON_Helper(Test1OpNEONHelper_t helper,
 
   END();
   TRY_RUN(skipped);
-  TEARDOWN();
 }
 
 
@@ -1746,7 +1736,6 @@ static void Test1OpAcrossNEON_Helper(Test1OpNEONHelper_t helper,
 
   END();
   TRY_RUN(skipped);
-  TEARDOWN();
 }
 
 // Test NEON instructions. The inputs_*[] and expected[] arrays should be
@@ -2000,7 +1989,6 @@ static void Test2OpNEON_Helper(Test2OpNEONHelper_t helper,
 
   END();
   TRY_RUN(skipped);
-  TEARDOWN();
 }
 
 
@@ -2260,7 +2248,6 @@ static void TestByElementNEON_Helper(TestByElementNEONHelper_t helper,
 
   END();
   TRY_RUN(skipped);
-  TEARDOWN();
 }
 
 
@@ -2499,7 +2486,6 @@ void Test2OpImmNEON_Helper(
 
   END();
   TRY_RUN(skipped);
-  TEARDOWN();
 }
 
 
@@ -2723,7 +2709,6 @@ static void TestOpImmOpImmNEON_Helper(TestOpImmOpImmVdUpdateNEONHelper_t helper,
 
   END();
   TRY_RUN(skipped);
-  TEARDOWN();
 }
 
 

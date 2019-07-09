@@ -1,0 +1,9 @@
+---
+# TODO: Expand the list of checks. This is just a placeholder, since the list
+# cannot be empty.
+Checks:          '-*,google-runtime-int'
+HeaderFilterRegex: ''
+AnalyzeTemporaryDtors: false
+CheckOptions:
+...
+
