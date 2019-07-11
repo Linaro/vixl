@@ -2512,6 +2512,20 @@ LogicVRegister Simulator::ins_immediate(VectorFormat vform,
 }
 
 
+LogicVRegister Simulator::index(VectorFormat vform,
+                                LogicVRegister dst,
+                                uint64_t start,
+                                uint64_t step) {
+  VIXL_ASSERT(IsSVEFormat(vform));
+  uint64_t value = start;
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    dst.SetUint(vform, i, value);
+    value += step;
+  }
+  return dst;
+}
+
+
 LogicVRegister Simulator::insr(VectorFormat vform,
                                LogicVRegister dst,
                                uint64_t imm) {

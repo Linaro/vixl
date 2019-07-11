@@ -4544,26 +4544,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     incw(zdn, pattern);
   }
-  void Index(const ZRegister& zd) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    index(zd);
-  }
-  void Index(const ZRegister& zd, const Register& rn, const Register& rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    index(zd, rn, rm);
-  }
-  void Index(const ZRegister& zd, const Register& rn, int imm5) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    index(zd, rn, imm5);
-  }
-  void Index(const ZRegister& zd, int imm5, const Register& rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    index(zd, imm5, rm);
-  }
+  void Index(const ZRegister& zd, const Operand& start, const Operand& step);
   void Insr(const ZRegister& zdn, const Register& rm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

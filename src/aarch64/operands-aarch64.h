@@ -508,6 +508,12 @@ class IntegerOperand {
 #undef VIXL_DECL_INT_OVERLOADS
 #undef VIXL_INT_TYPES
 
+  // TODO: `Operand` can currently only hold an int64_t, so some large, unsigned
+  // values will be misrepresented here.
+  explicit IntegerOperand(const Operand& operand)
+      : raw_bits_(operand.GetEquivalentImmediate()),
+        is_negative_(operand.GetEquivalentImmediate() < 0) {}
+
   bool IsIntN(unsigned n) const {
     return is_negative_ ? vixl::IsIntN(n, RawbitsToInt64(raw_bits_))
                         : vixl::IsIntN(n, raw_bits_);

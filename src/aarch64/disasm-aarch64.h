@@ -132,7 +132,7 @@ class Disassembler : public DecoderVisitor {
   int SubstituteBarrierField(const Instruction* instr, const char* format);
   int SubstituteSysOpField(const Instruction* instr, const char* format);
   int SubstituteCrField(const Instruction* instr, const char* format);
-  int SubstituteUIntField(const Instruction* instr, const char* format);
+  int SubstituteIntField(const Instruction* instr, const char* format);
   int SubstituteSVESize(const Instruction* instr, const char* format);
   bool RdIsZROrSP(const Instruction* instr) const {
     return (instr->GetRd() == kZeroRegCode);

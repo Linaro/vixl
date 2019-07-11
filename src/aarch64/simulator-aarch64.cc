@@ -7911,19 +7911,20 @@ uint64_t Simulator::IncDecN(uint64_t acc,
 
 void Simulator::VisitSVEIndexGeneration(const Instruction* instr) {
   USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
   switch (instr->Mask(SVEIndexGenerationMask)) {
     case INDEX_z_ii:
-      VIXL_UNIMPLEMENTED();
-      break;
     case INDEX_z_ir:
-      VIXL_UNIMPLEMENTED();
-      break;
     case INDEX_z_ri:
-      VIXL_UNIMPLEMENTED();
+    case INDEX_z_rr: {
+      uint64_t start = instr->ExtractBit(10) ? ReadXRegister(instr->GetRn())
+                                             : instr->ExtractSignedBits(9, 5);
+      uint64_t step = instr->ExtractBit(11) ? ReadXRegister(instr->GetRm())
+                                            : instr->ExtractSignedBits(20, 16);
+      index(vform, zd, start, step);
       break;
-    case INDEX_z_rr:
-      VIXL_UNIMPLEMENTED();
-      break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;

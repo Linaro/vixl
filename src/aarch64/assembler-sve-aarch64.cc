@@ -2412,14 +2412,15 @@ void Assembler::uqincp(const ZRegister& zdn, const PRegister& pg) {
 
 // SVEIndexGeneration.
 
-void Assembler::index(const ZRegister& zd) {
+void Assembler::index(const ZRegister& zd, int start, int step) {
   // INDEX <Zd>.<T>, #<imm1>, #<imm2>
   //  0000 0100 ..1. .... 0100 00.. .... ....
-  //  size<23:22> | imm5b<20:16> | imm5<9:5> | Zd<4:0>
+  //  size<23:22> | step<20:16> | start<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(INDEX_z_ii | SVESize(zd) | Rd(zd));
+  Emit(INDEX_z_ii | SVESize(zd) | ImmField<20, 16>(step) |
+       ImmField<9, 5>(start) | Rd(zd));
 }
 
 void Assembler::index(const ZRegister& zd,
@@ -2430,6 +2431,10 @@ void Assembler::index(const ZRegister& zd,
   //  size<23:22> | Rm<20:16> | Rn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(static_cast<unsigned>(rn.GetSizeInBits()) >=
+              zd.GetLaneSizeInBits());
+  VIXL_ASSERT(static_cast<unsigned>(rm.GetSizeInBits()) >=
+              zd.GetLaneSizeInBits());
 
   Emit(INDEX_z_rr | SVESize(zd) | Rd(zd) | Rn(rn) | Rm(rm));
 }
@@ -2440,6 +2445,8 @@ void Assembler::index(const ZRegister& zd, const Register& rn, int imm5) {
   //  size<23:22> | imm5<20:16> | Rn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(static_cast<unsigned>(rn.GetSizeInBits()) >=
+              zd.GetLaneSizeInBits());
 
   Emit(INDEX_z_ri | SVESize(zd) | Rd(zd) | Rn(rn) | ImmField<20, 16>(imm5));
 }
@@ -2450,6 +2457,8 @@ void Assembler::index(const ZRegister& zd, int imm5, const Register& rm) {
   //  size<23:22> | Rm<20:16> | imm5<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(static_cast<unsigned>(rm.GetSizeInBits()) >=
+              zd.GetLaneSizeInBits());
 
   Emit(INDEX_z_ir | SVESize(zd) | Rd(zd) | ImmField<9, 5>(imm5) | Rm(rm));
 }

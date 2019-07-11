@@ -6158,26 +6158,29 @@ void Disassembler::VisitSVEIndexGeneration(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEIndexGeneration)";
 
+  bool w_inputs =
+      static_cast<unsigned>(instr->GetSVESize()) <= kWRegSizeInBytesLog2;
+
   switch (instr->Mask(SVEIndexGenerationMask)) {
     // INDEX <Zd>.<T>, #<imm1>, #<imm2>
     case INDEX_z_ii:
       mnemonic = "index";
-      form = "'Zd.'t, #<imm1>, #<imm2>";
+      form = "'Zd.'t, #'s0905, #'s2016";
       break;
     // INDEX <Zd>.<T>, #<imm>, <R><m>
     case INDEX_z_ir:
       mnemonic = "index";
-      form = "'Zd.'t, #'u0905, 'Rm";
+      form = w_inputs ? "'Zd.'t, #'s0905, 'Wm" : "'Zd.'t, #'s0905, 'Xm";
       break;
     // INDEX <Zd>.<T>, <R><n>, #<imm>
     case INDEX_z_ri:
       mnemonic = "index";
-      form = "'Zd.'t, 'Rn, #'u2016";
+      form = w_inputs ? "'Zd.'t, 'Wn, #'s2016" : "'Zd.'t, 'Xn, #'s2016";
       break;
     // INDEX <Zd>.<T>, <R><n>, <R><m>
     case INDEX_z_rr:
       mnemonic = "index";
-      form = "'Zd.'t, 'Rn, 'Rm";
+      form = w_inputs ? "'Zd.'t, 'Wn, 'Wm" : "'Zd.'t, 'Xn, 'Xm";
       break;
     default:
       break;
@@ -9160,7 +9163,8 @@ int Disassembler::SubstituteField(const Instruction *instr,
     case 'p':
       return SubstitutePrefetchField(instr, format);
     case 'u':
-      return SubstituteUIntField(instr, format);
+    case 's':
+      return SubstituteIntField(instr, format);
     case 't':
       return SubstituteSVESize(instr, format);
     default: {
@@ -10051,21 +10055,26 @@ int Disassembler::SubstituteCrField(const Instruction *instr,
   return 2;
 }
 
-int Disassembler::SubstituteUIntField(const Instruction *instr,
-                                      const char *format) {
-  VIXL_ASSERT(format[0] == 'u');
+int Disassembler::SubstituteIntField(const Instruction *instr,
+                                     const char *format) {
+  VIXL_ASSERT((format[0] == 'u') || (format[0] == 's'));
   VIXL_ASSERT(strspn(&format[1], "0123456789") == 4);
 
-  // A generic unsigned int field uses a placeholder of the form 'uXXYY where
-  // XX and YY are two digit bit positions between 00 and 31, and XX >= YY. The
-  // placeholder is substituted with the decimal unsigned integer represented
-  // by the bits in the instruction between positions XX and YY inclusive.
+  // A generic signed or unsigned int field uses a placeholder of the form
+  // 'sXXYY and 'uXXYY respectively where XX and YY are two digit bit positions
+  // between 00 and 31, and XX >= YY. The placeholder is substituted with the
+  // decimal integer represented by the bits in the instruction between
+  // positions XX and YY inclusive.
   int bitpos = atoi(&format[1]);  // (hibit * 100) + lobit.
   int hibit = bitpos / 100;
   int lobit = bitpos % 100;
   VIXL_ASSERT(hibit < static_cast<int>(kInstructionSize * kBitsPerByte));
   VIXL_ASSERT(lobit <= hibit);
-  AppendToOutput("%u", instr->ExtractBits(hibit, lobit));
+  if (format[0] == 'u') {
+    AppendToOutput("%u", instr->ExtractBits(hibit, lobit));
+  } else {
+    AppendToOutput("%d", instr->ExtractSignedBits(hibit, lobit));
+  }
 
   return 5;
 }

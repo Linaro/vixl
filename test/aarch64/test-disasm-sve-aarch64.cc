@@ -754,24 +754,60 @@ TEST(sve_inc_dec_by_predicate_count_macro) {
 TEST(sve_index_generation) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(index(z22.VnB()), "index <Zd>.<T>, #<imm1>, #<imm2>");
-  COMPARE_PREFIX(index(z22.VnH()), "index <Zd>.<T>, #<imm1>, #<imm2>");
-  COMPARE_PREFIX(index(z22.VnS()), "index <Zd>.<T>, #<imm1>, #<imm2>");
-  COMPARE_PREFIX(index(z22.VnD()), "index <Zd>.<T>, #<imm1>, #<imm2>");
-  COMPARE_PREFIX(index(z23.VnB(), int imm5, r8), "index <Zd>.<T>, #<imm>, <R><m>");
-  COMPARE_PREFIX(index(z23.VnH(), int imm5, r8), "index <Zd>.<T>, #<imm>, <R><m>");
-  COMPARE_PREFIX(index(z23.VnS(), int imm5, r8), "index <Zd>.<T>, #<imm>, <R><m>");
-  COMPARE_PREFIX(index(z23.VnD(), int imm5, r8), "index <Zd>.<T>, #<imm>, <R><m>");
-  COMPARE_PREFIX(index(z14.VnB(), r15, int imm5), "index <Zd>.<T>, <R><n>, #<imm>");
-  COMPARE_PREFIX(index(z14.VnH(), r15, int imm5), "index <Zd>.<T>, <R><n>, #<imm>");
-  COMPARE_PREFIX(index(z14.VnS(), r15, int imm5), "index <Zd>.<T>, <R><n>, #<imm>");
-  COMPARE_PREFIX(index(z14.VnD(), r15, int imm5), "index <Zd>.<T>, <R><n>, #<imm>");
-  COMPARE_PREFIX(index(z20.VnB(), r23, r21), "index <Zd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(index(z20.VnH(), r23, r21), "index <Zd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(index(z20.VnS(), r23, r21), "index <Zd>.<T>, <R><n>, <R><m>");
-  COMPARE_PREFIX(index(z20.VnD(), r23, r21), "index <Zd>.<T>, <R><n>, <R><m>");
-#endif
+  COMPARE_PREFIX(index(z21.VnB(), -16, 15), "index z21.b, #-16, #15");
+  COMPARE_PREFIX(index(z22.VnB(), -2, 1), "index z22.b, #-2, #1");
+  COMPARE_PREFIX(index(z23.VnH(), -1, 0), "index z23.h, #-1, #0");
+  COMPARE_PREFIX(index(z24.VnS(), 0, -1), "index z24.s, #0, #-1");
+  COMPARE_PREFIX(index(z25.VnD(), 1, -2), "index z25.d, #1, #-2");
+  COMPARE_PREFIX(index(z26.VnB(), 15, -16), "index z26.b, #15, #-16");
+  COMPARE_PREFIX(index(z23.VnB(), -16, w8), "index z23.b, #-16, w8");
+  COMPARE_PREFIX(index(z24.VnH(), -1, x9), "index z24.h, #-1, w9");
+  COMPARE_PREFIX(index(z25.VnS(), 0, w10), "index z25.s, #0, w10");
+  COMPARE_PREFIX(index(z26.VnD(), 15, x11), "index z26.d, #15, x11");
+  COMPARE_PREFIX(index(z14.VnB(), w15, 15), "index z14.b, w15, #15");
+  COMPARE_PREFIX(index(z15.VnH(), x16, 1), "index z15.h, w16, #1");
+  COMPARE_PREFIX(index(z16.VnS(), w17, 0), "index z16.s, w17, #0");
+  COMPARE_PREFIX(index(z17.VnD(), x18, -16), "index z17.d, x18, #-16");
+  COMPARE_PREFIX(index(z20.VnB(), w23, w21), "index z20.b, w23, w21");
+  COMPARE_PREFIX(index(z21.VnH(), x24, w22), "index z21.h, w24, w22");
+  COMPARE_PREFIX(index(z22.VnS(), w25, x23), "index z22.s, w25, w23");
+  COMPARE_PREFIX(index(z23.VnD(), x26, x24), "index z23.d, x26, x24");
+
+  // Simple pass-through macros.
+  COMPARE_MACRO(Index(z21.VnB(), -16, 15), "index z21.b, #-16, #15");
+  COMPARE_MACRO(Index(z22.VnB(), -2, 1), "index z22.b, #-2, #1");
+  COMPARE_MACRO(Index(z23.VnH(), -1, 0), "index z23.h, #-1, #0");
+  COMPARE_MACRO(Index(z24.VnS(), 0, -1), "index z24.s, #0, #-1");
+  COMPARE_MACRO(Index(z25.VnD(), 1, -2), "index z25.d, #1, #-2");
+  COMPARE_MACRO(Index(z26.VnB(), 15, -16), "index z26.b, #15, #-16");
+  COMPARE_MACRO(Index(z23.VnB(), -16, w8), "index z23.b, #-16, w8");
+  COMPARE_MACRO(Index(z24.VnH(), -1, x9), "index z24.h, #-1, w9");
+  COMPARE_MACRO(Index(z25.VnS(), 0, w10), "index z25.s, #0, w10");
+  COMPARE_MACRO(Index(z26.VnD(), 15, x11), "index z26.d, #15, x11");
+  COMPARE_MACRO(Index(z14.VnB(), w15, 15), "index z14.b, w15, #15");
+  COMPARE_MACRO(Index(z15.VnH(), x16, 1), "index z15.h, w16, #1");
+  COMPARE_MACRO(Index(z16.VnS(), w17, 0), "index z16.s, w17, #0");
+  COMPARE_MACRO(Index(z17.VnD(), x18, -16), "index z17.d, x18, #-16");
+  COMPARE_MACRO(Index(z20.VnB(), w23, w21), "index z20.b, w23, w21");
+  COMPARE_MACRO(Index(z21.VnH(), x24, w22), "index z21.h, w24, w22");
+  COMPARE_MACRO(Index(z22.VnS(), w25, x23), "index z22.s, w25, w23");
+  COMPARE_MACRO(Index(z23.VnD(), x26, x24), "index z23.d, x26, x24");
+
+  // Argument synthesis.
+  COMPARE_MACRO(Index(z0.VnB(), 16, -17),
+                "mov w16, #0x10\n"
+                "mov w17, #0xffffffef\n"
+                "index z0.b, w16, w17");
+  COMPARE_MACRO(Index(z1.VnH(), x2, -17),
+                "mov w16, #0xffffffef\n"
+                "index z1.h, w2, w16");
+  COMPARE_MACRO(Index(z3.VnS(), 16, w4),
+                "mov w16, #0x10\n"
+                "index z3.s, w16, w4");
+  COMPARE_MACRO(Index(z4.VnD(), -17, 16),
+                "mov x16, #0xffffffffffffffef\n"
+                "mov x17, #0x10\n"
+                "index z4.d, x16, x17");
 
   CLEANUP();
 }

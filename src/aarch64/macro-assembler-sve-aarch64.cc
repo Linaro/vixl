@@ -53,6 +53,62 @@ void MacroAssembler::Dup(const ZRegister& zd, IntegerOperand imm) {
   }
 }
 
+void MacroAssembler::Index(const ZRegister& zd,
+                           const Operand& start,
+                           const Operand& step) {
+  class IndexOperand : public Operand {
+   public:
+    static IndexOperand Prepare(MacroAssembler* masm,
+                                UseScratchRegisterScope* temps,
+                                const Operand& op,
+                                const ZRegister& zd) {
+      // Look for encodable immediates.
+      int imm;
+      if (op.IsImmediate()) {
+        if (IntegerOperand(op).TryEncodeAsIntNForLane<5>(zd, &imm)) {
+          return IndexOperand(imm);
+        }
+        Register scratch = temps->AcquireRegisterToHoldLane(zd);
+        masm->Mov(scratch, op);
+        return IndexOperand(scratch);
+      } else {
+        // Plain registers can be encoded directly.
+        VIXL_ASSERT(op.IsPlainRegister());
+        return IndexOperand(op.GetRegister());
+      }
+    }
+
+    int GetImm5() const {
+      int64_t imm = GetImmediate();
+      VIXL_ASSERT(IsInt5(imm));
+      return static_cast<int>(imm);
+    }
+
+   private:
+    explicit IndexOperand(const Register& reg) : Operand(reg) {}
+    explicit IndexOperand(int64_t imm) : Operand(imm) {}
+  };
+
+  UseScratchRegisterScope temps(this);
+  IndexOperand start_enc = IndexOperand::Prepare(this, &temps, start, zd);
+  IndexOperand step_enc = IndexOperand::Prepare(this, &temps, step, zd);
+
+  SingleEmissionCheckScope guard(this);
+  if (start_enc.IsImmediate()) {
+    if (step_enc.IsImmediate()) {
+      index(zd, start_enc.GetImm5(), step_enc.GetImm5());
+    } else {
+      index(zd, start_enc.GetImm5(), step_enc.GetRegister());
+    }
+  } else {
+    if (step_enc.IsImmediate()) {
+      index(zd, start_enc.GetRegister(), step_enc.GetImm5());
+    } else {
+      index(zd, start_enc.GetRegister(), step_enc.GetRegister());
+    }
+  }
+}
+
 void MacroAssembler::Insr(const ZRegister& zdn, IntegerOperand imm) {
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(imm.FitsInLane(zdn));

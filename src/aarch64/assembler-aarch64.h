@@ -4440,7 +4440,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void incw(const ZRegister& zdn, int pattern);
 
   // Create index starting from and incremented by immediate.
-  void index(const ZRegister& zd);
+  void index(const ZRegister& zd, int start, int step);
 
   // Create index starting from and incremented by general-purpose register.
   void index(const ZRegister& zd, const Register& rn, const Register& rm);

@@ -1620,5 +1620,106 @@ TEST(sve_uqinc_uqdec_ptrue_vector) {
   }
 }
 
+TEST(sve_index) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Simple cases.
+  __ Index(z0.VnB(), 0, 1);
+  __ Index(z1.VnH(), 1, 1);
+  __ Index(z2.VnS(), 2, 1);
+  __ Index(z3.VnD(), 3, 1);
+
+  // Synthesised immediates.
+  __ Index(z4.VnB(), 42, -1);
+  __ Index(z5.VnH(), -1, 42);
+  __ Index(z6.VnS(), 42, 42);
+
+  // Register arguments.
+  __ Mov(x0, 42);
+  __ Mov(x1, -3);
+  __ Index(z10.VnD(), x0, x1);
+  __ Index(z11.VnB(), w0, w1);
+  // The register size should correspond to the lane size, but VIXL allows any
+  // register at least as big as the lane size.
+  __ Index(z12.VnB(), x0, x1);
+  __ Index(z13.VnH(), w0, x1);
+  __ Index(z14.VnS(), x0, w1);
+
+  // Integer overflow.
+  __ Index(z20.VnB(), UINT8_MAX - 2, 2);
+  __ Index(z21.VnH(), 7, -3);
+  __ Index(z22.VnS(), INT32_MAX - 2, 1);
+  __ Index(z23.VnD(), INT64_MIN + 6, -7);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int b_lane_count = core.GetSVELaneCount(kBRegSize);
+    int h_lane_count = core.GetSVELaneCount(kHRegSize);
+    int s_lane_count = core.GetSVELaneCount(kSRegSize);
+    int d_lane_count = core.GetSVELaneCount(kDRegSize);
+
+    uint64_t b_mask = GetUintMask(kBRegSize);
+    uint64_t h_mask = GetUintMask(kHRegSize);
+    uint64_t s_mask = GetUintMask(kSRegSize);
+    uint64_t d_mask = GetUintMask(kDRegSize);
+
+    // Simple cases.
+    for (int i = 0; i < b_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE((0 + i) & b_mask, z0.VnB(), i);
+    }
+    for (int i = 0; i < h_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE((1 + i) & h_mask, z1.VnH(), i);
+    }
+    for (int i = 0; i < s_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE((2 + i) & s_mask, z2.VnS(), i);
+    }
+    for (int i = 0; i < d_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE((3 + i) & d_mask, z3.VnD(), i);
+    }
+
+    // Synthesised immediates.
+    for (int i = 0; i < b_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE((42 - i) & b_mask, z4.VnB(), i);
+    }
+    for (int i = 0; i < h_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE((-1 + (42 * i)) & h_mask, z5.VnH(), i);
+    }
+    for (int i = 0; i < s_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE((42 + (42 * i)) & s_mask, z6.VnS(), i);
+    }
+
+    // Register arguments.
+    for (int i = 0; i < d_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE((42 - (3 * i)) & d_mask, z10.VnD(), i);
+    }
+    for (int i = 0; i < b_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE((42 - (3 * i)) & b_mask, z11.VnB(), i);
+    }
+    for (int i = 0; i < b_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE((42 - (3 * i)) & b_mask, z12.VnB(), i);
+    }
+    for (int i = 0; i < h_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE((42 - (3 * i)) & h_mask, z13.VnH(), i);
+    }
+    for (int i = 0; i < s_lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE((42 - (3 * i)) & s_mask, z14.VnS(), i);
+    }
+
+    // Integer overflow.
+    uint8_t expected_z20[] = {0x05, 0x03, 0x01, 0xff, 0xfd};
+    ASSERT_EQUAL_SVE(expected_z20, z20.VnB());
+    uint16_t expected_z21[] = {0xfffb, 0xfffe, 0x0001, 0x0004, 0x0007};
+    ASSERT_EQUAL_SVE(expected_z21, z21.VnH());
+    uint32_t expected_z22[] = {0x80000000, 0x7fffffff, 0x7ffffffe, 0x7ffffffd};
+    ASSERT_EQUAL_SVE(expected_z22, z22.VnS());
+    uint64_t expected_z23[] = {0x7fffffffffffffff, 0x8000000000000006};
+    ASSERT_EQUAL_SVE(expected_z23, z23.VnD());
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

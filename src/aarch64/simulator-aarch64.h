@@ -2630,6 +2630,10 @@ class Simulator : public DecoderVisitor {
                        const LogicVRegister& src1,
                        const LogicVRegister& src2,
                        int rot);
+  LogicVRegister index(VectorFormat vform,
+                       LogicVRegister dst,
+                       uint64_t start,
+                       uint64_t step);
   LogicVRegister ins_element(VectorFormat vform,
                              LogicVRegister dst,
                              int dst_index,
