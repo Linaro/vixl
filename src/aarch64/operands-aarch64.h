@@ -844,6 +844,8 @@ class Operand {
 
 
 // MemOperand represents the addressing mode of a load or store instruction.
+// In assembly syntax, MemOperands are normally denoted by one or more elements
+// inside or around square brackets.
 class MemOperand {
  public:
   // Creates an invalid `MemOperand`.
@@ -862,36 +864,30 @@ class MemOperand {
   MemOperand(Register base, const Operand& offset, AddrMode addrmode = Offset);
 
   const Register& GetBaseRegister() const { return base_; }
-  VIXL_DEPRECATED("GetBaseRegister", const Register& base() const) {
-    return GetBaseRegister();
-  }
 
+  // If the MemOperand has a register offset, return it. (This also applies to
+  // pre- and post-index modes.) Otherwise, return NoReg.
   const Register& GetRegisterOffset() const { return regoffset_; }
-  VIXL_DEPRECATED("GetRegisterOffset", const Register& regoffset() const) {
-    return GetRegisterOffset();
-  }
 
+  // If the MemOperand has an immediate offset, return it. (This also applies to
+  // pre- and post-index modes.) Otherwise, return 0.
   int64_t GetOffset() const { return offset_; }
-  VIXL_DEPRECATED("GetOffset", int64_t offset() const) { return GetOffset(); }
 
   AddrMode GetAddrMode() const { return addrmode_; }
-  VIXL_DEPRECATED("GetAddrMode", AddrMode addrmode() const) {
-    return GetAddrMode();
-  }
-
   Shift GetShift() const { return shift_; }
-  VIXL_DEPRECATED("GetShift", Shift shift() const) { return GetShift(); }
-
   Extend GetExtend() const { return extend_; }
-  VIXL_DEPRECATED("GetExtend", Extend extend() const) { return GetExtend(); }
 
-  unsigned GetShiftAmount() const { return shift_amount_; }
-  VIXL_DEPRECATED("GetShiftAmount", unsigned shift_amount() const) {
-    return GetShiftAmount();
+  unsigned GetShiftAmount() const {
+    // Extend modes can also encode a shift for some instructions.
+    VIXL_ASSERT((GetShift() != NO_SHIFT) || (GetExtend() != NO_EXTEND));
+    return shift_amount_;
   }
 
+  // True for immediate-offset (but not indexed) MemOperands.
   bool IsImmediateOffset() const;
+  // True for register-offset (but not indexed) MemOperands.
   bool IsRegisterOffset() const;
+
   bool IsPreIndex() const;
   bool IsPostIndex() const;
 
