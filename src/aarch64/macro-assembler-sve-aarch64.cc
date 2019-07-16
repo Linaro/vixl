@@ -255,5 +255,85 @@ void MacroAssembler::Ptrue(const PRegisterWithLaneSize& pd,
   VIXL_UNREACHABLE();
 }
 
+void MacroAssembler::Sub(const ZRegister& zd,
+                         const PRegisterM& pg,
+                         const ZRegister& zn,
+                         const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(zn)) {
+    SingleEmissionCheckScope guard(this);
+    sub(zd, pg, zn, zm);
+  } else if (zd.Aliases(zm)) {
+    SingleEmissionCheckScope guard(this);
+    subr(zd, pg, zm, zn);
+  } else {
+    ExactAssemblyScope guard(this, 2 * kInstructionSize);
+    movprfx(zd, pg, zn);
+    sub(zd, pg, zd, zm);
+  }
+}
+
+void MacroAssembler::Sdiv(const ZRegister& zd,
+                          const PRegisterM& pg,
+                          const ZRegister& zn,
+                          const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(zn)) {
+    // zd = zd / zm
+    SingleEmissionCheckScope guard(this);
+    sdiv(zd, pg, zn, zm);
+  } else if (zd.Aliases(zm)) {
+    // zd = zn / zd
+    SingleEmissionCheckScope guard(this);
+    sdivr(zd, pg, zm, zn);
+  } else {
+    // zd = zn / zm
+    ExactAssemblyScope guard(this, 2 * kInstructionSize);
+    movprfx(zd, pg, zn);
+    sdiv(zd, pg, zd, zm);
+  }
+}
+
+void MacroAssembler::Udiv(const ZRegister& zd,
+                          const PRegisterM& pg,
+                          const ZRegister& zn,
+                          const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(zn)) {
+    // zd = zd / zm
+    SingleEmissionCheckScope guard(this);
+    udiv(zd, pg, zn, zm);
+  } else if (zd.Aliases(zm)) {
+    // zd = zn / zd
+    SingleEmissionCheckScope guard(this);
+    udivr(zd, pg, zm, zn);
+  } else {
+    // zd = zn / zm
+    ExactAssemblyScope guard(this, 2 * kInstructionSize);
+    movprfx(zd, pg, zn);
+    udiv(zd, pg, zd, zm);
+  }
+}
+
+void MacroAssembler::Mul(const ZRegister& zd,
+                         const ZRegister& zn,
+                         IntegerOperand imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  int imm8;
+  if (imm.TryEncodeAsIntNForLane<8>(zn, &imm8)) {
+    SingleEmissionCheckScope guard(this);
+    mul(zd, zn, imm8);
+  } else {
+    Dup(zd, imm);
+
+    ExactAssemblyScope guard(this, 2 * kInstructionSize);
+    UseScratchRegisterScope temps(this);
+    PRegisterWithLaneSize pg =
+        temps.AcquireP().WithLaneSize(zn.GetLaneSizeInBits());
+    ptrue(pg, SVE_ALL);
+    mul(zd, pg.Merging(), zd, zn);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

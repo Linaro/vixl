@@ -93,7 +93,20 @@ bool Instruction::CanTakeSVEMovprfx(Instruction const* movprfx) const {
                     SVEIntUnaryArithmeticPredicatedFixed>()) {
     if (movprfx_is_predicated) {
       if (pg_mismatch) return false;
-      if (vector_format != GetSVEVectorFormat()) return false;
+      switch (Mask(SVEIntBinaryArithmeticPredicatedMask)) {
+        case SDIVR_z_p_zz:
+        case SDIV_z_p_zz:
+        case UDIVR_z_p_zz:
+        case UDIV_z_p_zz: {
+          VectorFormat instr_vector_format =
+              (ExtractBit(22) == 0) ? kFormatVnS : kFormatVnD;
+          if (vector_format != instr_vector_format) return false;
+          break;
+        }
+        default:
+          if (vector_format != GetSVEVectorFormat()) return false;
+          break;
+      }
     }
     return zd_matches && zd_is_not_zn;
   }

@@ -3008,6 +3008,44 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   NEON_2VREG_SHIFT_LONG_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
 #undef DEFINE_MACRO_ASM_FUNC
 
+// SVE 3 vector register instructions.
+#define SVE_3VREG_COMMUTATIVE_MACRO_LIST(V) \
+  V(add, Add)                               \
+  V(and_, And)                              \
+  V(bic, Bic)                               \
+  V(eor, Eor)                               \
+  V(mul, Mul)                               \
+  V(orr, Orr)                               \
+  V(sabd, Sabd)                             \
+  V(smax, Smax)                             \
+  V(smulh, Smulh)                           \
+  V(smin, Smin)                             \
+  V(uabd, Uabd)                             \
+  V(umax, Umax)                             \
+  V(umin, Umin)                             \
+  V(umulh, Umulh)
+
+#define DEFINE_MACRO_ASM_FUNC(ASM, MASM)                    \
+  void MASM(const ZRegister& zd,                            \
+            const PRegisterM& pg,                           \
+            const ZRegister& zn,                            \
+            const ZRegister& zm) {                          \
+    VIXL_ASSERT(allow_macro_instructions_);                 \
+    if (zd.Aliases(zn)) {                                   \
+      SingleEmissionCheckScope guard(this);                 \
+      ASM(zd, pg, zd, zm);                                  \
+    } else if (zd.Aliases(zm)) {                            \
+      SingleEmissionCheckScope guard(this);                 \
+      ASM(zd, pg, zd, zn);                                  \
+    } else {                                                \
+      ExactAssemblyScope guard(this, 2 * kInstructionSize); \
+      movprfx(zd, pg, zn);                                  \
+      ASM(zd, pg, zd, zm);                                  \
+    }                                                       \
+  }
+  SVE_3VREG_COMMUTATIVE_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
+#undef DEFINE_MACRO_ASM_FUNC
+
   void Bic(const VRegister& vd, const int imm8, const int left_shift = 0) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -3401,14 +3439,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     abs(zd, pg, zn);
   }
-  void Add(const ZRegister& zd,
-           const PRegisterM& pg,
-           const ZRegister& zn,
-           const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    add(zd, pg, zn, zm);
-  }
   void Add(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -3441,14 +3471,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     and_(pd, pg, pn, pm);
-  }
-  void And(const ZRegister& zd,
-           const PRegisterM& pg,
-           const ZRegister& zn,
-           const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    and_(zd, pg, zn, zm);
   }
   void And(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -3513,14 +3535,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     bic(pd, pg, pn, pm);
-  }
-  void Bic(const ZRegister& zd,
-           const PRegisterM& pg,
-           const ZRegister& zn,
-           const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    bic(zd, pg, zn, zm);
   }
   void Bic(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -4008,14 +4022,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     eor(pd, pg, pn, pm);
-  }
-  void Eor(const ZRegister& zd,
-           const PRegisterM& pg,
-           const ZRegister& zn,
-           const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    eor(zd, pg, zn, zm);
   }
   void Eor(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -5572,19 +5578,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
            const ZRegister& za,
            const ZRegister& zn,
            const ZRegister& zm);
-  void Mul(const ZRegister& zd,
-           const PRegisterM& pg,
-           const ZRegister& zn,
-           const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    mul(zd, pg, zn, zm);
-  }
-  void Mul(const ZRegister& zd, const ZRegister& zn, int imm8) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    mul(zd, zn, imm8);
-  }
+  void Mul(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm);
   void Nand(const PRegisterWithLaneSize& pd,
             const PRegisterZ& pg,
             const PRegisterWithLaneSize& pn,
@@ -5650,14 +5644,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     orr(pd, pg, pn, pm);
-  }
-  void Orr(const ZRegister& zd,
-           const PRegisterM& pg,
-           const ZRegister& zn,
-           const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    orr(zd, pg, zn, zm);
   }
   void Orr(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -5888,14 +5874,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     revw(zd, pg, zn);
   }
-  void Sabd(const ZRegister& zd,
-            const PRegisterM& pg,
-            const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sabd(zd, pg, zn, zm);
-  }
   void Saddv(const VRegister& dd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -5909,11 +5887,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Sdiv(const ZRegister& zd,
             const PRegisterM& pg,
             const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sdiv(zd, pg, zn, zm);
-  }
+            const ZRegister& zm);
   void Sdot(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -5945,14 +5919,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     setffr();
   }
-  void Smax(const ZRegister& zd,
-            const PRegisterM& pg,
-            const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    smax(zd, pg, zn, zm);
-  }
   void Smax(const ZRegister& zd, const ZRegister& zn, int imm8) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -5963,14 +5929,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     smaxv(vd, pg, zn);
   }
-  void Smin(const ZRegister& zd,
-            const PRegisterM& pg,
-            const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    smin(zd, pg, zn, zm);
-  }
   void Smin(const ZRegister& zd, const ZRegister& zn, int imm8) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -5980,14 +5938,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     sminv(vd, pg, zn);
-  }
-  void Smulh(const ZRegister& zd,
-             const PRegisterM& pg,
-             const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    smulh(zd, pg, zn, zm);
   }
   void Splice(const ZRegister& zd,
               const PRegister& pg,
@@ -6632,11 +6582,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Sub(const ZRegister& zd,
            const PRegisterM& pg,
            const ZRegister& zn,
-           const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sub(zd, pg, zn, zm);
-  }
+           const ZRegister& zm);
   void Sub(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6701,14 +6647,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     trn2(zd, zn, zm);
   }
-  void Uabd(const ZRegister& zd,
-            const PRegisterM& pg,
-            const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    uabd(zd, pg, zn, zm);
-  }
   void Uaddv(const VRegister& dd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6722,11 +6660,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Udiv(const ZRegister& zd,
             const PRegisterM& pg,
             const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    udiv(zd, pg, zn, zm);
-  }
+            const ZRegister& zm);
   void Udot(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6736,14 +6670,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     udot(zda, zn, zm);
-  }
-  void Umax(const ZRegister& zd,
-            const PRegisterM& pg,
-            const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    umax(zd, pg, zn, zm);
   }
   void Umax(const ZRegister& zd, const ZRegister& zn, int imm8) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6755,14 +6681,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     umaxv(vd, pg, zn);
   }
-  void Umin(const ZRegister& zd,
-            const PRegisterM& pg,
-            const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    umin(zd, pg, zn, zm);
-  }
   void Umin(const ZRegister& zd, const ZRegister& zn, int imm8) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6772,14 +6690,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     uminv(vd, pg, zn);
-  }
-  void Umulh(const ZRegister& zd,
-             const PRegisterM& pg,
-             const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    umulh(zd, pg, zn, zm);
   }
   void Uqadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);

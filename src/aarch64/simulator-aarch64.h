@@ -2383,6 +2383,14 @@ class Simulator : public DecoderVisitor {
                       LogicVRegister dst,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
+  LogicVRegister sdiv(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2);
+  LogicVRegister udiv(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2);
 
   typedef LogicVRegister (Simulator::*ByElementOp)(VectorFormat vform,
                                                    LogicVRegister dst,
@@ -2429,6 +2437,10 @@ class Simulator : public DecoderVisitor {
                        const LogicVRegister& src1,
                        const LogicVRegister& src2,
                        int index);
+  LogicVRegister smulh(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2);
   LogicVRegister smull(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src1,
@@ -2489,6 +2501,10 @@ class Simulator : public DecoderVisitor {
                         const LogicVRegister& src1,
                         const LogicVRegister& src2,
                         int index);
+  LogicVRegister umulh(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2);
   LogicVRegister sqdmull(VectorFormat vform,
                          LogicVRegister dst,
                          const LogicVRegister& src1,
@@ -3079,7 +3095,7 @@ class Simulator : public DecoderVisitor {
                          LogicVRegister dst,
                          const LogicVRegister& src1,
                          const LogicVRegister& src2,
-                         bool issigned);
+                         bool is_signed);
   LogicVRegister saba(VectorFormat vform,
                       LogicVRegister dst,
                       const LogicVRegister& src1,
@@ -3585,11 +3601,11 @@ class Simulator : public DecoderVisitor {
                    bool is_signed);
 
   // SVE helpers -------------------------------------------
-  LogicVRegister SVEBitwiseLogicalUnpredicatedHelper(
-      SVEBitwiseLogicalUnpredicatedOp op,
-      LogicVRegister zd,
-      const LogicVRegister& zn,
-      const LogicVRegister& zm);
+  LogicVRegister SVEBitwiseLogicalUnpredicatedHelper(LogicalOp op,
+                                                     VectorFormat vform,
+                                                     LogicVRegister zd,
+                                                     const LogicVRegister& zn,
+                                                     const LogicVRegister& zm);
 
   LogicPRegister SVEPredicateLogicalHelper(SVEPredicateLogicalOp op,
                                            LogicPRegister Pd,

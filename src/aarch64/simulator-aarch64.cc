@@ -3121,40 +3121,6 @@ void Simulator::VisitDataProcessing2Source(const Instruction* instr) {
 }
 
 
-// The algorithm used is adapted from the one described in section 8.2 of
-//   Hacker's Delight, by Henry S. Warren, Jr.
-template <typename T>
-static int64_t MultiplyHigh(T u, T v) {
-  uint64_t u0, v0, w0, u1, v1, w1, w2, t;
-  uint64_t sign_mask = UINT64_C(0x8000000000000000);
-  uint64_t sign_ext = 0;
-  if (std::numeric_limits<T>::is_signed) {
-    sign_ext = UINT64_C(0xffffffff00000000);
-  }
-
-  VIXL_ASSERT(sizeof(u) == sizeof(uint64_t));
-  VIXL_ASSERT(sizeof(u) == sizeof(u0));
-
-  u0 = u & 0xffffffff;
-  u1 = u >> 32 | (((u & sign_mask) != 0) ? sign_ext : 0);
-  v0 = v & 0xffffffff;
-  v1 = v >> 32 | (((v & sign_mask) != 0) ? sign_ext : 0);
-
-  w0 = u0 * v0;
-  t = u1 * v0 + (w0 >> 32);
-
-  w1 = t & 0xffffffff;
-  w2 = t >> 32 | (((t & sign_mask) != 0) ? sign_ext : 0);
-  w1 = u0 * v1 + w1;
-  w1 = w1 >> 32 | (((w1 & sign_mask) != 0) ? sign_ext : 0);
-
-  uint64_t value = u1 * v1 + w2 + w1;
-  int64_t result;
-  memcpy(&result, &value, sizeof(result));
-  return result;
-}
-
-
 void Simulator::VisitDataProcessing3Source(const Instruction* instr) {
   unsigned reg_size = instr->GetSixtyFourBits() ? kXRegSize : kWRegSize;
 
@@ -3190,12 +3156,13 @@ void Simulator::VisitDataProcessing3Source(const Instruction* instr) {
       result = ReadXRegister(instr->GetRa()) - (rn_u32 * rm_u32);
       break;
     case UMULH_x:
-      result = MultiplyHigh(ReadRegister<uint64_t>(instr->GetRn()),
-                            ReadRegister<uint64_t>(instr->GetRm()));
+      result =
+          internal::MultiplyHigh<64>(ReadRegister<uint64_t>(instr->GetRn()),
+                                     ReadRegister<uint64_t>(instr->GetRm()));
       break;
     case SMULH_x:
-      result = MultiplyHigh(ReadXRegister(instr->GetRn()),
-                            ReadXRegister(instr->GetRm()));
+      result = internal::MultiplyHigh<64>(ReadXRegister(instr->GetRn()),
+                                          ReadXRegister(instr->GetRm()));
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -7116,18 +7083,28 @@ void Simulator::VisitSVEBitwiseLogicalUnpredicated(const Instruction* instr) {
   SimVRegister& zm = ReadVRegister(instr->GetRm());
   Instr op = instr->Mask(SVEBitwiseLogicalUnpredicatedMask);
 
+  LogicalOp logical_op;
   switch (op) {
     case AND_z_zz:
+      logical_op = AND;
+      break;
     case BIC_z_zz:
+      logical_op = BIC;
+      break;
     case EOR_z_zz:
+      logical_op = EOR;
+      break;
     case ORR_z_zz:
-      SVEBitwiseLogicalUnpredicatedHelper(
-          static_cast<SVEBitwiseLogicalUnpredicatedOp>(op), zd, zn, zm);
+      logical_op = ORR;
       break;
     default:
+      logical_op = LogicalOpMask;
       VIXL_UNIMPLEMENTED();
       break;
   }
+  // Lane size of registers is irrelevant to the bitwise operations, so perform
+  // the operation on D-sized lanes.
+  SVEBitwiseLogicalUnpredicatedHelper(logical_op, kFormatVnD, zd, zn, zm);
 }
 
 void Simulator::VisitSVEBitwiseShiftPredicated(const Instruction* instr) {
@@ -8034,71 +8011,88 @@ void Simulator::VisitSVEIntArithmeticUnpredicated(const Instruction* instr) {
 void Simulator::VisitSVEIntBinaryArithmeticPredicated(
     const Instruction* instr) {
   USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  // Get the size specifier for division instructions.
+  VectorFormat div_vform = kFormatUndefined;
+  unsigned div_size = instr->ExtractBits(23, 22);
+  if (div_size == 0) div_vform = kFormatVnS;
+  if (div_size == 1) div_vform = kFormatVnD;
+
   switch (instr->Mask(SVEIntBinaryArithmeticPredicatedMask)) {
     case ADD_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      add(vform, result, zdn, zm);
       break;
     case AND_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      SVEBitwiseLogicalUnpredicatedHelper(AND, vform, result, zdn, zm);
       break;
     case BIC_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      SVEBitwiseLogicalUnpredicatedHelper(BIC, vform, result, zdn, zm);
       break;
     case EOR_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      SVEBitwiseLogicalUnpredicatedHelper(EOR, vform, result, zdn, zm);
       break;
     case MUL_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      mul(vform, result, zdn, zm);
       break;
     case ORR_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      SVEBitwiseLogicalUnpredicatedHelper(ORR, vform, result, zdn, zm);
       break;
     case SABD_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      absdiff(vform, result, zdn, zm, true);
       break;
     case SDIVR_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      vform = div_vform;
+      sdiv(vform, result, zm, zdn);
       break;
     case SDIV_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      vform = div_vform;
+      sdiv(vform, result, zdn, zm);
       break;
     case SMAX_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      smax(vform, result, zdn, zm);
       break;
     case SMIN_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      smin(vform, result, zdn, zm);
       break;
     case SMULH_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      smulh(vform, result, zdn, zm);
       break;
     case SUBR_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      sub(vform, result, zm, zdn);
       break;
     case SUB_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      sub(vform, result, zdn, zm);
       break;
     case UABD_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      absdiff(vform, result, zdn, zm, false);
       break;
     case UDIVR_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      vform = div_vform;
+      udiv(vform, result, zm, zdn);
       break;
     case UDIV_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      vform = div_vform;
+      udiv(vform, result, zdn, zm);
       break;
     case UMAX_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      umax(vform, result, zdn, zm);
       break;
     case UMIN_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      umin(vform, result, zdn, zm);
       break;
     case UMULH_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      umulh(vform, result, zdn, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  mov_merging(vform, zdn, pg, result);
 }
 
 void Simulator::VisitSVEIntCompareScalars(const Instruction* instr) {

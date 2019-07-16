@@ -3156,5 +3156,568 @@ TEST_SVE(sve_cntp) {
   }
 }
 
+typedef void (MacroAssembler::*IntBinArithFn)(const ZRegister& zd,
+                                              const PRegisterM& pg,
+                                              const ZRegister& zn,
+                                              const ZRegister& zm);
+
+template <typename Td, typename Tg, typename Tn>
+static void IntBinArithHelper(Test* config,
+                              IntBinArithFn macro,
+                              unsigned lane_size_in_bits,
+                              const Tg& pg_inputs,
+                              const Tn& zn_inputs,
+                              const Tn& zm_inputs,
+                              const Td& zd_expected) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  ZRegister src_a = z31.WithLaneSize(lane_size_in_bits);
+  ZRegister src_b = z27.WithLaneSize(lane_size_in_bits);
+  InsrHelper(&masm, src_a, zn_inputs);
+  InsrHelper(&masm, src_b, zm_inputs);
+
+  Initialise(&masm, p0.WithLaneSize(lane_size_in_bits), pg_inputs);
+
+  ZRegister zd_1 = z0.WithLaneSize(lane_size_in_bits);
+  ZRegister zd_2 = z1.WithLaneSize(lane_size_in_bits);
+  ZRegister zd_3 = z2.WithLaneSize(lane_size_in_bits);
+
+  // `instr` zd(dst), zd(src_a), zn(src_b)
+  __ Mov(zd_1, src_a);
+  (masm.*macro)(zd_1, p0.Merging(), zd_1, src_b);
+
+  // `instr` zd(dst), zm(src_a), zd(src_b)
+  // Based on whether zd and zm registers are aliased, the macro of instructions
+  // (`Instr`) swaps the order of operands if it has the commutative property,
+  // otherwise, transfer to the reversed `Instr`, such as subr and divr.
+  __ Mov(zd_2, src_b);
+  (masm.*macro)(zd_2, p0.Merging(), src_a, zd_2);
+
+  // `instr` zd(dst), zm(src_a), zn(src_b)
+  // The macro of instructions (`Instr`) automatically selects between `instr`
+  // and movprfx + `instr` based on whether zd and zn registers are aliased.
+  // A generated moveprfx instruction is predicated that using the same
+  // governing predicate register. In order to keep the result constant,
+  // initialize the destination register first.
+  __ Mov(zd_3, src_a);
+  (masm.*macro)(zd_3, p0.Merging(), src_a, src_b);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(zd_expected, zd_1);
+
+    for (size_t i = 0; i < ArrayLength(zd_expected); i++) {
+      int lane = static_cast<int>(ArrayLength(zd_expected) - i - 1);
+      if (!core.HasSVELane(zd_1, lane)) break;
+      if (pg_inputs[i] == 1) {
+        ASSERT_EQUAL_SVE_LANE(zd_expected[i], zd_1, lane);
+      } else {
+        ASSERT_EQUAL_SVE_LANE(zn_inputs[i], zd_1, lane);
+      }
+    }
+
+    ASSERT_EQUAL_SVE(zd_expected, zd_3);
+  }
+}
+
+TEST_SVE(sve_binary_arithmetic_predicated_add) {
+  // clang-format off
+  unsigned zn_b[] = {0x00, 0x01, 0x10, 0x81, 0xff, 0x0f, 0x01, 0x7f};
+
+  unsigned zm_b[] = {0x00, 0x01, 0x10, 0x00, 0x81, 0x80, 0xff, 0xff};
+
+  unsigned zn_h[] = {0x0000, 0x0123, 0x1010, 0x8181, 0xffff, 0x0f0f, 0x0101, 0x7f7f};
+
+  unsigned zm_h[] = {0x0000, 0x0123, 0x1010, 0x0000, 0x8181, 0x8080, 0xffff, 0xffff};
+
+  unsigned zn_s[] = {0x00000000, 0x01234567, 0x10101010, 0x81818181,
+                     0xffffffff, 0x0f0f0f0f, 0x01010101, 0x7f7f7f7f};
+
+  unsigned zm_s[] = {0x00000000, 0x01234567, 0x10101010, 0x00000000,
+                     0x81818181, 0x80808080, 0xffffffff, 0xffffffff};
+
+  uint64_t zn_d[] = {0x0000000000000000, 0x0123456789abcdef,
+                     0x1010101010101010, 0x8181818181818181,
+                     0xffffffffffffffff, 0x0f0f0f0f0f0f0f0f,
+                     0x0101010101010101, 0x7f7f7f7fffffffff};
+
+  uint64_t zm_d[] = {0x0000000000000000, 0x0123456789abcdef,
+                     0x1010101010101010, 0x0000000000000000,
+                     0x8181818181818181, 0x8080808080808080,
+                     0xffffffffffffffff, 0xffffffffffffffff};
+
+  int pg_b[] = {1, 1, 1, 0, 1, 1, 1, 0};
+  int pg_h[] = {1, 1, 0, 1, 1, 1, 0, 1};
+  int pg_s[] = {1, 0, 1, 1, 1, 0, 1, 1};
+  int pg_d[] = {0, 1, 1, 1, 0, 1, 1, 1};
+
+  unsigned add_exp_b[] = {0x00, 0x02, 0x20, 0x81, 0x80, 0x8f, 0x00, 0x7f};
+
+  unsigned add_exp_h[] = {0x0000, 0x0246, 0x1010, 0x8181,
+                          0x8180, 0x8f8f, 0x0101, 0x7f7e};
+
+  unsigned add_exp_s[] = {0x00000000, 0x01234567, 0x20202020, 0x81818181,
+                          0x81818180, 0x0f0f0f0f, 0x01010100, 0x7f7f7f7e};
+
+  uint64_t add_exp_d[] = {0x0000000000000000, 0x02468acf13579bde,
+                          0x2020202020202020, 0x8181818181818181,
+                          0xffffffffffffffff, 0x8f8f8f8f8f8f8f8f,
+                          0x0101010101010100, 0x7f7f7f7ffffffffe};
+
+  IntBinArithFn fn = &MacroAssembler::Add;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, add_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, add_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, add_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, add_exp_d);
+
+  unsigned sub_exp_b[] = {0x00, 0x00, 0x00, 0x81, 0x7e, 0x8f, 0x02, 0x7f};
+
+  unsigned sub_exp_h[] = {0x0000, 0x0000, 0x1010, 0x8181,
+                          0x7e7e, 0x8e8f, 0x0101, 0x7f80};
+
+  unsigned sub_exp_s[] = {0x00000000, 0x01234567, 0x00000000, 0x81818181,
+                          0x7e7e7e7e, 0x0f0f0f0f, 0x01010102, 0x7f7f7f80};
+
+  uint64_t sub_exp_d[] = {0x0000000000000000, 0x0000000000000000,
+                          0x0000000000000000, 0x8181818181818181,
+                          0xffffffffffffffff, 0x8e8e8e8e8e8e8e8f,
+                          0x0101010101010102, 0x7f7f7f8000000000};
+
+  fn = &MacroAssembler::Sub;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, sub_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, sub_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, sub_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, sub_exp_d);
+  // clang-format on
+}
+
+TEST_SVE(sve_binary_arithmetic_predicated_umin_umax_uabd) {
+  // clang-format off
+  unsigned zn_b[] = {0x00, 0xff, 0x0f, 0xff, 0xf0, 0x98, 0x55, 0x67};
+
+  unsigned zm_b[] = {0x01, 0x00, 0x0e, 0xfe, 0xfe, 0xab, 0xcd, 0x78};
+
+  unsigned zn_h[] = {0x0000, 0xffff, 0x00ff, 0xffff,
+                     0xff00, 0xba98, 0x5555, 0x4567};
+
+  unsigned zm_h[] = {0x0001, 0x0000, 0x00ee, 0xfffe,
+                     0xfe00, 0xabab, 0xcdcd, 0x5678};
+
+  unsigned zn_s[] = {0x00000000, 0xffffffff, 0x0000ffff, 0xffffffff,
+                     0xffff0000, 0xfedcba98, 0x55555555, 0x01234567};
+
+  unsigned zm_s[] = {0x00000001, 0x00000000, 0x0000eeee, 0xfffffffe,
+                     0xfffe0000, 0xabababab, 0xcdcdcdcd, 0x12345678};
+
+  uint64_t zn_d[] = {0x0000000000000000, 0xffffffffffffffff,
+                     0x5555555555555555, 0x0000000001234567};
+
+  uint64_t zm_d[] = {0x0000000000000001, 0x0000000000000000,
+                     0xcdcdcdcdcdcdcdcd, 0x0000000012345678};
+
+  int pg_b[] = {1, 1, 1, 0, 1, 1, 1, 0};
+  int pg_h[] = {1, 1, 0, 1, 1, 1, 0, 1};
+  int pg_s[] = {1, 0, 1, 1, 1, 0, 1, 1};
+  int pg_d[] = {1, 0, 1, 1};
+
+  unsigned umax_exp_b[] = {0x01, 0xff, 0x0f, 0xff, 0xfe, 0xab, 0xcd, 0x67};
+
+  unsigned umax_exp_h[] = {0x0001, 0xffff, 0x00ff, 0xffff,
+                           0xff00, 0xba98, 0x5555, 0x5678};
+
+  unsigned umax_exp_s[] = {0x00000001, 0xffffffff, 0x0000ffff, 0xffffffff,
+                           0xffff0000, 0xfedcba98, 0xcdcdcdcd, 0x12345678};
+
+  uint64_t umax_exp_d[] = {0x0000000000000001, 0xffffffffffffffff,
+                           0xcdcdcdcdcdcdcdcd, 0x0000000012345678};
+
+  IntBinArithFn fn = &MacroAssembler::Umax;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, umax_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, umax_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, umax_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, umax_exp_d);
+
+  unsigned umin_exp_b[] = {0x00, 0x00, 0x0e, 0xff, 0xf0, 0x98, 0x55, 0x67};
+
+  unsigned umin_exp_h[] = {0x0000, 0x0000, 0x00ff, 0xfffe,
+                           0xfe00, 0xabab, 0x5555, 0x4567};
+
+  unsigned umin_exp_s[] = {0x00000000, 0xffffffff, 0x0000eeee, 0xfffffffe,
+                           0xfffe0000, 0xfedcba98, 0x55555555, 0x01234567};
+
+  uint64_t umin_exp_d[] = {0x0000000000000000, 0xffffffffffffffff,
+                           0x5555555555555555, 0x0000000001234567};
+  fn = &MacroAssembler::Umin;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, umin_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, umin_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, umin_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, umin_exp_d);
+
+  unsigned uabd_exp_b[] = {0x01, 0xff, 0x01, 0xff, 0x0e, 0x13, 0x78, 0x67};
+
+  unsigned uabd_exp_h[] = {0x0001, 0xffff, 0x00ff, 0x0001,
+                           0x0100, 0x0eed, 0x5555, 0x1111};
+
+  unsigned uabd_exp_s[] = {0x00000001, 0xffffffff, 0x00001111, 0x00000001,
+                           0x00010000, 0xfedcba98, 0x78787878, 0x11111111};
+
+  uint64_t uabd_exp_d[] = {0x0000000000000001, 0xffffffffffffffff,
+                           0x7878787878787878, 0x0000000011111111};
+
+  fn = &MacroAssembler::Uabd;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, uabd_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, uabd_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, uabd_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, uabd_exp_d);
+  // clang-format on
+}
+
+TEST_SVE(sve_binary_arithmetic_predicated_smin_smax_sabd) {
+  // clang-format off
+  int zn_b[] = {0, -128, -128, -128, -128, 127, 127, 1};
+
+  int zm_b[] = {-1, 0, -1, -127, 127, 126, -1, 0};
+
+  int zn_h[] = {0, INT16_MIN, INT16_MIN, INT16_MIN,
+                INT16_MIN, INT16_MAX, INT16_MAX, 1};
+
+  int zm_h[] = {-1, 0, -1, INT16_MIN + 1,
+                INT16_MAX, INT16_MAX - 1, -1, 0};
+
+  int zn_s[] = {0, INT32_MIN, INT32_MIN, INT32_MIN,
+                INT32_MIN, INT32_MAX, INT32_MAX, 1};
+
+  int zm_s[] = {-1, 0, -1, -INT32_MAX,
+                INT32_MAX, INT32_MAX - 1, -1, 0};
+
+  int64_t zn_d[] = {0, INT64_MIN, INT64_MIN, INT64_MIN,
+                    INT64_MIN, INT64_MAX, INT64_MAX, 1};
+
+  int64_t zm_d[] = {-1, 0, -1, INT64_MIN + 1,
+                    INT64_MAX, INT64_MAX - 1, -1, 0};
+
+  int pg_b[] = {1, 1, 1, 0, 1, 1, 1, 0};
+  int pg_h[] = {1, 1, 0, 1, 1, 1, 0, 1};
+  int pg_s[] = {1, 0, 1, 1, 1, 0, 1, 1};
+  int pg_d[] = {0, 1, 1, 1, 0, 1, 1, 1};
+
+  int smax_exp_b[] = {0, 0, -1, -128, 127, 127, 127, 1};
+
+  int smax_exp_h[] = {0, 0, INT16_MIN, INT16_MIN + 1,
+                      INT16_MAX, INT16_MAX, INT16_MAX, 1};
+
+  int smax_exp_s[] = {0, INT32_MIN, -1, INT32_MIN + 1,
+                      INT32_MAX, INT32_MAX, INT32_MAX, 1};
+
+  int64_t smax_exp_d[] = {0, 0, -1, INT64_MIN + 1,
+                          INT64_MIN, INT64_MAX, INT64_MAX, 1};
+
+  IntBinArithFn fn = &MacroAssembler::Smax;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, smax_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, smax_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, smax_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, smax_exp_d);
+
+  int smin_exp_b[] = {-1, -128, -128, -128, -128, 126, -1, 1};
+
+  int smin_exp_h[] = {-1, INT16_MIN, INT16_MIN, INT16_MIN,
+                      INT16_MIN, INT16_MAX - 1, INT16_MAX, 0};
+
+  int smin_exp_s[] = {-1, INT32_MIN, INT32_MIN, INT32_MIN,
+                      INT32_MIN, INT32_MAX, -1, 0};
+
+  int64_t smin_exp_d[] = {0, INT64_MIN, INT64_MIN, INT64_MIN,
+                          INT64_MIN, INT64_MAX - 1, -1, 0};
+
+  fn = &MacroAssembler::Smin;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, smin_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, smin_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, smin_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, smin_exp_d);
+
+  unsigned sabd_exp_b[] = {1, 128, 127, 128, 255, 1, 128, 1};
+
+  unsigned sabd_exp_h[] = {1, 0x8000, 0x8000, 1, 0xffff, 1, 0x7fff, 1};
+
+  unsigned sabd_exp_s[] = {1, 0x80000000, 0x7fffffff, 1,
+                           0xffffffff, 0x7fffffff, 0x80000000, 1};
+
+  uint64_t sabd_exp_d[] = {0, 0x8000000000000000, 0x7fffffffffffffff, 1,
+                           0x8000000000000000, 1, 0x8000000000000000, 1};
+
+  fn = &MacroAssembler::Sabd;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, sabd_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, sabd_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, sabd_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, sabd_exp_d);
+  // clang-format on
+}
+
+TEST_SVE(sve_binary_arithmetic_predicated_mul_umulh) {
+  // clang-format off
+  unsigned zn_b[] = {0x00, 0x01, 0x20, 0x08, 0x80, 0xff, 0x55, 0xaa};
+
+  unsigned zm_b[] = {0x7f, 0xcd, 0x80, 0xff, 0x55, 0xaa, 0x00, 0x08};
+
+  unsigned zn_h[] = {0x0000, 0x0001, 0x0020, 0x0800,
+                     0x8000, 0xff00, 0x5555, 0xaaaa};
+
+  unsigned zm_h[] = {0x007f, 0x00cd, 0x0800, 0xffff,
+                     0x5555, 0xaaaa, 0x0001, 0x1234};
+
+  unsigned zn_s[] = {0x00000000, 0x00000001, 0x00200020, 0x08000800,
+                     0x12345678, 0xffffffff, 0x55555555, 0xaaaaaaaa};
+
+  unsigned zm_s[] = {0x00000000, 0x00000001, 0x00200020, 0x08000800,
+                     0x12345678, 0x22223333, 0x55556666, 0x77778888};
+
+  uint64_t zn_d[] = {0x0000000000000000, 0x5555555555555555,
+                     0xffffffffffffffff, 0xaaaaaaaaaaaaaaaa};
+
+  uint64_t zm_d[] = {0x0000000000000000, 0x1111111133333333,
+                     0xddddddddeeeeeeee, 0xaaaaaaaaaaaaaaaa};
+
+  int pg_b[] = {0, 1, 1, 1, 0, 1, 1, 1};
+  int pg_h[] = {1, 0, 1, 1, 1, 0, 1, 1};
+  int pg_s[] = {1, 1, 0, 1, 1, 1, 0, 1};
+  int pg_d[] = {1, 1, 0, 1};
+
+  unsigned mul_exp_b[] = {0x00, 0xcd, 0x00, 0xf8, 0x80, 0x56, 0x00, 0x50};
+
+  unsigned mul_exp_h[] = {0x0000, 0x0001, 0x0000, 0xf800,
+                          0x8000, 0xff00, 0x5555, 0x9e88};
+
+  unsigned mul_exp_s[] = {0x00000000, 0x00000001, 0x00200020, 0x00400000,
+                          0x1df4d840, 0xddddcccd, 0x55555555, 0xb05afa50};
+
+  uint64_t mul_exp_d[] = {0x0000000000000000, 0xa4fa4fa4eeeeeeef,
+                          0xffffffffffffffff, 0x38e38e38e38e38e4};
+
+  IntBinArithFn fn = &MacroAssembler::Mul;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, mul_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, mul_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, mul_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, mul_exp_d);
+
+  unsigned umulh_exp_b[] = {0x00, 0x00, 0x10, 0x07, 0x80, 0xa9, 0x00, 0x05};
+
+  unsigned umulh_exp_h[] = {0x0000, 0x0001, 0x0001, 0x07ff,
+                            0x2aaa, 0xff00, 0x0000, 0x0c22};
+
+  unsigned umulh_exp_s[] = {0x00000000, 0x00000000, 0x00200020, 0x00400080,
+                            0x014b66dc, 0x22223332, 0x55555555, 0x4fa505af};
+
+  uint64_t umulh_exp_d[] = {0x0000000000000000, 0x05b05b05bbbbbbbb,
+                            0xffffffffffffffff, 0x71c71c71c71c71c6};
+
+  fn = &MacroAssembler::Umulh;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, umulh_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, umulh_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, umulh_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, umulh_exp_d);
+  // clang-format on
+}
+
+TEST_SVE(sve_binary_arithmetic_predicated_smulh) {
+  // clang-format off
+  int zn_b[] = {0, 1, -1, INT8_MIN, INT8_MAX, -1, 100, -3};
+
+  int zm_b[] = {0, INT8_MIN, INT8_MIN, INT8_MAX, INT8_MAX, -1, 2, 66};
+
+  int zn_h[] = {0, 1, -1, INT16_MIN, INT16_MAX, -1, 10000, -3};
+
+  int zm_h[] = {0, INT16_MIN, INT16_MIN, INT16_MAX, INT16_MAX, -1, 2, 6666};
+
+  int zn_s[] = {0, 1, -1, INT32_MIN, INT32_MAX, -1, 100000000, -3};
+
+  int zm_s[] = {0, INT32_MIN, INT32_MIN, INT32_MAX, INT32_MAX, -1, 2, 66666666};
+
+  int64_t zn_d[] = {0, -1, INT64_MIN, INT64_MAX};
+
+  int64_t zm_d[] = {INT64_MIN, INT64_MAX, INT64_MIN, INT64_MAX};
+
+  int pg_b[] = {0, 1, 1, 1, 0, 1, 1, 1};
+  int pg_h[] = {1, 0, 1, 1, 1, 0, 1, 1};
+  int pg_s[] = {1, 1, 0, 1, 1, 1, 0, 1};
+  int pg_d[] = {1, 1, 0, 1};
+
+  int exp_b[] = {0, -1, 0, -64, INT8_MAX, 0, 0, -1};
+
+  int exp_h[] = {0, 1, 0, -16384, 16383, -1, 0, -1};
+
+  int exp_s[] = {0, -1, -1, -1073741824, 1073741823, 0, 100000000, -1};
+
+  int64_t exp_d[] = {0, -1, INT64_MIN, 4611686018427387903};
+
+  IntBinArithFn fn = &MacroAssembler::Smulh;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, exp_d);
+  // clang-format on
+}
+
+TEST_SVE(sve_binary_arithmetic_predicated_logical) {
+  // clang-format off
+  unsigned zn_b[] = {0x00, 0x01, 0x20, 0x08, 0x80, 0xff, 0x55, 0xaa};
+  unsigned zm_b[] = {0x7f, 0xcd, 0x80, 0xff, 0x55, 0xaa, 0x00, 0x08};
+
+  unsigned zn_h[] = {0x0000, 0x0001, 0x2020, 0x0008,
+                     0x8000, 0xffff, 0x5555, 0xaaaa};
+  unsigned zm_h[] = {0x7fff, 0xabcd, 0x8000, 0xffff,
+                     0x5555, 0xaaaa, 0x0000, 0x0800};
+
+  unsigned zn_s[] = {0x00000001, 0x20200008, 0x8000ffff, 0x5555aaaa};
+  unsigned zm_s[] = {0x7fffabcd, 0x8000ffff, 0x5555aaaa, 0x00000800};
+
+  uint64_t zn_d[] = {0xfedcba9876543210, 0x0123456789abcdef,
+                     0x0001200880ff55aa, 0x0022446688aaccee};
+  uint64_t zm_d[] = {0xffffeeeeddddcccc, 0xccccddddeeeeffff,
+                     0x7fcd80ff55aa0008, 0x1133557799bbddff};
+
+  int pg_b[] = {0, 1, 1, 1, 0, 1, 1, 1};
+  int pg_h[] = {1, 0, 1, 1, 1, 0, 1, 1};
+  int pg_s[] = {1, 1, 1, 0};
+  int pg_d[] = {1, 1, 0, 1};
+
+  unsigned and_exp_b[] = {0x00, 0x01, 0x00, 0x08, 0x80, 0xaa, 0x00, 0x08};
+
+  unsigned and_exp_h[] = {0x0000, 0x0001, 0x0000, 0x0008,
+                          0x0000, 0xffff, 0x0000, 0x0800};
+
+  unsigned and_exp_s[] = {0x00000001, 0x00000008, 0x0000aaaa, 0x5555aaaa};
+
+  uint64_t and_exp_d[] = {0xfedcaa8854540000, 0x0000454588aacdef,
+                          0x0001200880ff55aa, 0x0022446688aaccee};
+
+  IntBinArithFn fn = &MacroAssembler::And;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, and_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, and_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, and_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, and_exp_d);
+
+  unsigned bic_exp_b[] = {0x00, 0x00, 0x20, 0x00, 0x80, 0x55, 0x55, 0xa2};
+
+  unsigned bic_exp_h[] = {0x0000, 0x0001, 0x2020, 0x0000,
+                          0x8000, 0xffff, 0x5555, 0xa2aa};
+
+  unsigned bic_exp_s[] = {0x00000000, 0x20200000, 0x80005555, 0x5555aaaa};
+
+  uint64_t bic_exp_d[] = {0x0000101022003210, 0x0123002201010000,
+                          0x0001200880ff55aa, 0x0000000000000000};
+
+  fn = &MacroAssembler::Bic;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, bic_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, bic_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, bic_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, bic_exp_d);
+
+  unsigned eor_exp_b[] = {0x00, 0xcc, 0xa0, 0xf7, 0x80, 0x55, 0x55, 0xa2};
+
+  unsigned eor_exp_h[] = {0x7fff, 0x0001, 0xa020, 0xfff7,
+                          0xd555, 0xffff, 0x5555, 0xa2aa};
+
+  unsigned eor_exp_s[] = {0x7fffabcc, 0xa020fff7, 0xd5555555, 0x5555aaaa};
+
+  uint64_t eor_exp_d[] = {0x01235476ab89fedc, 0xcdef98ba67453210,
+                          0x0001200880ff55aa, 0x1111111111111111};
+
+  fn = &MacroAssembler::Eor;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, eor_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, eor_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, eor_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, eor_exp_d);
+
+  unsigned orr_exp_b[] = {0x00, 0xcd, 0xa0, 0xff, 0x80, 0xff, 0x55, 0xaa};
+
+  unsigned orr_exp_h[] = {0x7fff, 0x0001, 0xa020, 0xffff,
+                          0xd555, 0xffff, 0x5555, 0xaaaa};
+
+  unsigned orr_exp_s[] = {0x7fffabcd, 0xa020ffff, 0xd555ffff, 0x5555aaaa};
+
+  uint64_t orr_exp_d[] = {0xfffffefeffddfedc, 0xcdefddffefefffff,
+                          0x0001200880ff55aa, 0x1133557799bbddff};
+
+  fn = &MacroAssembler::Orr;
+  IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, orr_exp_b);
+  IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, orr_exp_h);
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, orr_exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, orr_exp_d);
+  // clang-format on
+}
+
+TEST_SVE(sve_binary_arithmetic_predicated_sdiv) {
+  // clang-format off
+  int zn_s[] = {0, 1, -1, 2468,
+                INT32_MIN, INT32_MAX, INT32_MIN, INT32_MAX,
+                -11111111, 87654321, 0, 0};
+
+  int zm_s[] = {1, -1, 1, 1234,
+                -1, INT32_MIN, 1, -1,
+                22222222, 80000000, -1, 0};
+
+  int64_t zn_d[] = {0, 1, -1, 2468,
+                    INT64_MIN, INT64_MAX, INT64_MIN, INT64_MAX,
+                    -11111111, 87654321, 0, 0};
+
+  int64_t zm_d[] = {1, -1, 1, 1234,
+                    -1, INT64_MIN, 1, -1,
+                    22222222, 80000000, -1, 0};
+
+  int pg_s[] = {1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0};
+  int pg_d[] = {0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1};
+
+  int exp_s[] = {0, 1, -1, 2,
+                 INT32_MIN, 0, INT32_MIN, -INT32_MAX,
+                 0, 1, 0, 0};
+
+  int64_t exp_d[] = {0, -1, -1, 2,
+                     INT64_MIN, INT64_MAX, INT64_MIN, -INT64_MAX,
+                     0, 1, 0, 0};
+
+  IntBinArithFn fn = &MacroAssembler::Sdiv;
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, exp_d);
+  // clang-format on
+}
+
+TEST_SVE(sve_binary_arithmetic_predicated_udiv) {
+  // clang-format off
+  unsigned zn_s[] = {0x00000000, 0x00000001, 0xffffffff, 0x80000000,
+                     0xffffffff, 0x80000000, 0xffffffff, 0x0000f000};
+
+  unsigned zm_s[] = {0x00000001, 0xffffffff, 0x80000000, 0x00000002,
+                     0x00000000, 0x00000001, 0x00008000, 0xf0000000};
+
+  uint64_t zn_d[] = {0x0000000000000000, 0x0000000000000001,
+                     0xffffffffffffffff, 0x8000000000000000,
+                     0xffffffffffffffff, 0x8000000000000000,
+                     0xffffffffffffffff, 0xf0000000f0000000};
+
+  uint64_t zm_d[] = {0x0000000000000001, 0xffffffff00000000,
+                     0x8000000000000000, 0x0000000000000002,
+                     0x8888888888888888, 0x0000000000000001,
+                     0x0000000080000000, 0x00000000f0000000};
+
+  int pg_s[] = {1, 1, 0, 1, 1, 0, 1, 1};
+  int pg_d[] = {1, 0, 1, 1, 1, 1, 0, 1};
+
+  unsigned exp_s[] = {0x00000000, 0x00000000, 0xffffffff, 0x40000000,
+                      0x00000000, 0x80000000, 0x0001ffff, 0x00000000};
+
+  uint64_t exp_d[] = {0x0000000000000000, 0x0000000000000001,
+                      0x0000000000000001, 0x4000000000000000,
+                      0x0000000000000001, 0x8000000000000000,
+                      0xffffffffffffffff, 0x0000000100000001};
+
+  IntBinArithFn fn = &MacroAssembler::Udiv;
+  IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, exp_s);
+  IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, exp_d);
+  // clang-format on
+}
+
 }  // namespace aarch64
 }  // namespace vixl

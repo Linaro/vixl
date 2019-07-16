@@ -354,7 +354,7 @@ inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
   VIXL_CHECK((expected + kInstructionSize) == (masm.GetLiteralPoolSize()))
 
 #define ASSERT_EQUAL_SVE_LANE(expected, result, lane) \
-  VIXL_CHECK(EqualSVELane(expected, &core, result, lane))
+  VIXL_CHECK(EqualSVELane(expected, &core, result, lane));
 
 // If `expected` is scalar, check that every lane of `result` matches it.
 // If `expected` is an array of N expected values, check that the first N

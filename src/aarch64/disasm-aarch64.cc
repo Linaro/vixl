@@ -6231,92 +6231,86 @@ void Disassembler::VisitSVEIntBinaryArithmeticPredicated(
   const char *form = "'Zd.'t, p'u1210/m, 'Zd.'t, 'Zn.'t";
 
   switch (instr->Mask(SVEIntBinaryArithmeticPredicatedMask)) {
-    // ADD <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case ADD_z_p_zz:
       mnemonic = "add";
       break;
-    // AND <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case AND_z_p_zz:
       mnemonic = "and";
       break;
-    // BIC <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case BIC_z_p_zz:
       mnemonic = "bic";
       break;
-    // EOR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case EOR_z_p_zz:
       mnemonic = "eor";
       break;
-    // MUL <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case MUL_z_p_zz:
       mnemonic = "mul";
       break;
-    // ORR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case ORR_z_p_zz:
       mnemonic = "orr";
       break;
-    // SABD <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case SABD_z_p_zz:
       mnemonic = "sabd";
       break;
-    // SDIVR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case SDIVR_z_p_zz:
       mnemonic = "sdivr";
-      form = "'Zd.<T>, p'u1210/m, 'Zd.<T>, 'Zn.<T>";
       break;
-    // SDIV <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case SDIV_z_p_zz:
       mnemonic = "sdiv";
-      form = "'Zd.<T>, p'u1210/m, 'Zd.<T>, 'Zn.<T>";
       break;
-    // SMAX <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case SMAX_z_p_zz:
       mnemonic = "smax";
       break;
-    // SMIN <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case SMIN_z_p_zz:
       mnemonic = "smin";
       break;
-    // SMULH <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case SMULH_z_p_zz:
       mnemonic = "smulh";
       break;
-    // SUBR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case SUBR_z_p_zz:
       mnemonic = "subr";
       break;
-    // SUB <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case SUB_z_p_zz:
       mnemonic = "sub";
       break;
-    // UABD <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case UABD_z_p_zz:
       mnemonic = "uabd";
       break;
-    // UDIVR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case UDIVR_z_p_zz:
       mnemonic = "udivr";
-      form = "'Zd.<T>, p'u1210/m, 'Zd.<T>, 'Zn.<T>";
       break;
-    // UDIV <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case UDIV_z_p_zz:
       mnemonic = "udiv";
-      form = "'Zd.<T>, p'u1210/m, 'Zd.<T>, 'Zn.<T>";
       break;
-    // UMAX <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case UMAX_z_p_zz:
       mnemonic = "umax";
       break;
-    // UMIN <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case UMIN_z_p_zz:
       mnemonic = "umin";
       break;
-    // UMULH <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case UMULH_z_p_zz:
       mnemonic = "umulh";
       break;
     default:
       break;
+  }
+
+  switch (instr->Mask(SVEIntBinaryArithmeticPredicatedMask)) {
+    case SDIVR_z_p_zz:
+    case SDIV_z_p_zz:
+    case UDIVR_z_p_zz:
+    case UDIV_z_p_zz:
+      switch (instr->GetSVESize()) {
+        case 0:
+          form = "'Zd.s, p'u1210/m, 'Zd.s, 'Zn.s";
+          break;
+        case 1:
+          form = "'Zd.d, p'u1210/m, 'Zd.d, 'Zn.d";
+          break;
+        default:
+          mnemonic = "unimplemented";
+          break;
+      }
   }
   Format(instr, mnemonic, form);
 }

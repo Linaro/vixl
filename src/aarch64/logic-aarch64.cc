@@ -550,6 +550,7 @@ LogicVRegister Simulator::add(VectorFormat vform,
                               const LogicVRegister& src2) {
   int lane_size = LaneSizeInBitsFromFormat(vform);
   dst.ClearForWrite(vform);
+
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     // Test for unsigned saturation.
     uint64_t ua = src1.UintLeftJustified(vform, i);
@@ -568,7 +569,6 @@ LogicVRegister Simulator::add(VectorFormat vform,
     if ((pos_a == pos_b) && (pos_a != pos_r)) {
       dst.SetSignedSat(i, pos_a);
     }
-
     dst.SetInt(vform, i, ur >> (64 - lane_size));
   }
   return dst;
@@ -593,6 +593,47 @@ LogicVRegister Simulator::addp(VectorFormat vform,
   uzp1(vform, temp1, src1, src2);
   uzp2(vform, temp2, src1, src2);
   add(vform, dst, temp1, temp2);
+  return dst;
+}
+
+LogicVRegister Simulator::sdiv(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2) {
+  VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    int64_t val1 = src1.Int(vform, i);
+    int64_t val2 = src2.Int(vform, i);
+    int64_t min_int = (vform == kFormatVnD) ? kXMinInt : kWMinInt;
+    int64_t quotient = 0;
+    if ((val1 == min_int) && (val2 == -1)) {
+      quotient = min_int;
+    } else if (val2 != 0) {
+      quotient = val1 / val2;
+    }
+    dst.SetInt(vform, i, quotient);
+  }
+
+  return dst;
+}
+
+LogicVRegister Simulator::udiv(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2) {
+  VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    uint64_t val1 = src1.Uint(vform, i);
+    uint64_t val2 = src2.Uint(vform, i);
+    uint64_t quotient = 0;
+    if (val2 != 0) {
+      quotient = val1 / val2;
+    }
+    dst.SetUint(vform, i, quotient);
+  }
+
   return dst;
 }
 
@@ -626,6 +667,7 @@ LogicVRegister Simulator::mul(VectorFormat vform,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
   dst.ClearForWrite(vform);
+
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     dst.SetUint(vform, i, src1.Uint(vform, i) * src2.Uint(vform, i));
   }
@@ -641,6 +683,70 @@ LogicVRegister Simulator::mul(VectorFormat vform,
   SimVRegister temp;
   VectorFormat indexform = VectorFormatFillQ(vform);
   return mul(vform, dst, src1, dup_element(indexform, temp, src2, index));
+}
+
+
+LogicVRegister Simulator::smulh(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicVRegister& src1,
+                                const LogicVRegister& src2) {
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    int64_t dst_val;
+    int64_t val1 = src1.Int(vform, i);
+    int64_t val2 = src2.Int(vform, i);
+    switch (LaneSizeInBitsFromFormat(vform)) {
+      case 8:
+        dst_val = internal::MultiplyHigh<8>(val1, val2);
+        break;
+      case 16:
+        dst_val = internal::MultiplyHigh<16>(val1, val2);
+        break;
+      case 32:
+        dst_val = internal::MultiplyHigh<32>(val1, val2);
+        break;
+      case 64:
+        dst_val = internal::MultiplyHigh<64>(val1, val2);
+        break;
+      default:
+        dst_val = 0xbadbeef;
+        VIXL_UNREACHABLE();
+        break;
+    }
+    dst.SetInt(vform, i, dst_val);
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::umulh(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicVRegister& src1,
+                                const LogicVRegister& src2) {
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    uint64_t dst_val;
+    uint64_t val1 = src1.Uint(vform, i);
+    uint64_t val2 = src2.Uint(vform, i);
+    switch (LaneSizeInBitsFromFormat(vform)) {
+      case 8:
+        dst_val = internal::MultiplyHigh<8>(val1, val2);
+        break;
+      case 16:
+        dst_val = internal::MultiplyHigh<16>(val1, val2);
+        break;
+      case 32:
+        dst_val = internal::MultiplyHigh<32>(val1, val2);
+        break;
+      case 64:
+        dst_val = internal::MultiplyHigh<64>(val1, val2);
+        break;
+      default:
+        dst_val = 0xbadbeef;
+        VIXL_UNREACHABLE();
+        break;
+    }
+    dst.SetUint(vform, i, dst_val);
+  }
+  return dst;
 }
 
 
@@ -2069,17 +2175,17 @@ LogicVRegister Simulator::absdiff(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2,
-                                  bool issigned) {
+                                  bool is_signed) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    if (issigned) {
-      int64_t sr = src1.Int(vform, i) - src2.Int(vform, i);
-      sr = sr > 0 ? sr : -sr;
-      dst.SetInt(vform, i, sr);
+    bool src1_gt_src2 = is_signed ? (src1.Int(vform, i) > src2.Int(vform, i))
+                                  : (src1.Uint(vform, i) > src2.Uint(vform, i));
+    // Always calculate the answer using unsigned arithmetic, to avoid
+    // implemenation-defined signed overflow.
+    if (src1_gt_src2) {
+      dst.SetUint(vform, i, src1.Uint(vform, i) - src2.Uint(vform, i));
     } else {
-      int64_t sr = src1.Uint(vform, i) - src2.Uint(vform, i);
-      sr = sr > 0 ? sr : -sr;
-      dst.SetUint(vform, i, sr);
+      dst.SetUint(vform, i, src2.Uint(vform, i) - src1.Uint(vform, i));
     }
   }
   return dst;
@@ -5746,28 +5852,27 @@ LogicPRegister Simulator::SVEIntCompareVectorsHelper(Condition cond,
 }
 
 LogicVRegister Simulator::SVEBitwiseLogicalUnpredicatedHelper(
-    SVEBitwiseLogicalUnpredicatedOp op,
+    LogicalOp logical_op,
+    VectorFormat vform,
     LogicVRegister zd,
     const LogicVRegister& zn,
     const LogicVRegister& zm) {
-  // Lane size of registers is irrelevant to the bitwise operations, so perform
-  // the operation on D-sized lanes.
-  VectorFormat vform = kFormatVnD;
+  VIXL_ASSERT(IsSVEFormat(vform));
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     uint64_t op1 = zn.Uint(vform, i);
     uint64_t op2 = zm.Uint(vform, i);
     uint64_t result;
-    switch (op) {
-      case AND_z_zz:
+    switch (logical_op) {
+      case AND:
         result = op1 & op2;
         break;
-      case BIC_z_zz:
+      case BIC:
         result = op1 & ~op2;
         break;
-      case EOR_z_zz:
+      case EOR:
         result = op1 ^ op2;
         break;
-      case ORR_z_zz:
+      case ORR:
         result = op1 | op2;
         break;
       default:
