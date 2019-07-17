@@ -3603,6 +3603,11 @@ class Simulator : public DecoderVisitor {
 
   int CountActiveLanes(VectorFormat vform, const LogicPRegister& pg) const;
 
+  // Count active and true lanes in `pn`.
+  int CountActiveAndTrueLanes(VectorFormat vform,
+                              const LogicPRegister& pg,
+                              const LogicPRegister& pn) const;
+
   // Count the number of lanes referred to by `pattern`, given the vector
   // length. If `pattern` is not a recognised SVEPredicateConstraint, this
   // returns zero.

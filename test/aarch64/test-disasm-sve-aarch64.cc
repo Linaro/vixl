@@ -2036,12 +2036,13 @@ TEST(sve_permute_vector_unpredicated) {
 TEST(sve_predicate_count) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(cntp(x9, p1, p10.VnB()), "cntp <Xd>, <Pg>, <Pn>.<T>");
-  COMPARE_PREFIX(cntp(x9, p1, p10.VnH()), "cntp <Xd>, <Pg>, <Pn>.<T>");
-  COMPARE_PREFIX(cntp(x9, p1, p10.VnS()), "cntp <Xd>, <Pg>, <Pn>.<T>");
-  COMPARE_PREFIX(cntp(x9, p1, p10.VnD()), "cntp <Xd>, <Pg>, <Pn>.<T>");
-#endif
+  COMPARE_PREFIX(cntp(x9, p1, p0.VnB()), "cntp x9, p1, p0.b");
+  COMPARE_PREFIX(cntp(x10, p12, p1.VnH()), "cntp x10, p12, p1.h");
+  COMPARE_PREFIX(cntp(x11, p13, p14.VnS()), "cntp x11, p13, p14.s");
+  COMPARE_PREFIX(cntp(x12, p4, p15.VnD()), "cntp x12, p4, p15.d");
+
+  COMPARE_MACRO(Cntp(x0, p1, p2.VnB()), "cntp x0, p1, p2.b");
+  COMPARE_MACRO(Cntp(w10, p11, p12.VnH()), "cntp x10, p11, p12.h");
 
   CLEANUP();
 }

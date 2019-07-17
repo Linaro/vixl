@@ -8724,7 +8724,7 @@ void Disassembler::VisitSVEPredicateCount(const Instruction *instr) {
     // CNTP <Xd>, <Pg>, <Pn>.<T>
     case CNTP_r_p_p:
       mnemonic = "cntp";
-      form = "'Rd, p'u1310, p'u0805.'t";
+      form = "'Xd, p'u1310, 'Pn.'t";
       break;
     default:
       break;

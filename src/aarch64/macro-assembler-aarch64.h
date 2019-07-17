@@ -3902,7 +3902,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const PRegisterWithLaneSize& pn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    cntp(rd, pg, pn);
+    // The `cntp` instruction architecturally takes an X register, but the
+    // result will always be in the range [0, kPRegMaxSize] (and therefore
+    // always fits in a W register), so we can accept a W-sized rd here.
+    cntp(rd.X(), pg, pn);
   }
   void Cntw(const Register& rd, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);

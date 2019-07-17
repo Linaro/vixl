@@ -7570,7 +7570,7 @@ void Assembler::uunpklo(const ZRegister& zd, const ZRegister& zn) {
 
 // SVEPredicateCount.
 
-void Assembler::cntp(const Register& rd,
+void Assembler::cntp(const Register& xd,
                      const PRegister& pg,
                      const PRegisterWithLaneSize& pn) {
   // CNTP <Xd>, <Pg>, <Pn>.<T>
@@ -7578,8 +7578,11 @@ void Assembler::cntp(const Register& rd,
   //  size<23:22> | opc<18:16> = 000 | Pg<13:10> | o2<9> = 0 | Pn<8:5> | Rd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(xd.IsX());
+  VIXL_ASSERT(pg.IsUnqualified());
+  if (pg.HasLaneSize()) VIXL_ASSERT(AreSameFormat(pg, pn));
 
-  Emit(CNTP_r_p_p | Rd(rd) | Rx<13, 10>(pg) | Rx<8, 5>(pn));
+  Emit(CNTP_r_p_p | SVESize(pn) | Rd(xd) | Rx<13, 10>(pg) | Pn(pn));
 }
 
 // SVEPredicateLogicalOp.

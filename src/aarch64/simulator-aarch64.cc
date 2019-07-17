@@ -9478,10 +9478,16 @@ void Simulator::VisitSVEPermuteVectorUnpredicated(const Instruction* instr) {
 
 void Simulator::VisitSVEPredicateCount(const Instruction* instr) {
   USE(instr);
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(13, 10));
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+
   switch (instr->Mask(SVEPredicateCountMask)) {
-    case CNTP_r_p_p:
-      VIXL_UNIMPLEMENTED();
+    case CNTP_r_p_p: {
+      WriteXRegister(instr->GetRd(), CountActiveAndTrueLanes(vform, pg, pn));
       break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;

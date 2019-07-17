@@ -3955,7 +3955,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void cnth(const Register& rd, int pattern);
 
   // Set scalar to active predicate element count.
-  void cntp(const Register& rd,
+  void cntp(const Register& xd,
             const PRegister& pg,
             const PRegisterWithLaneSize& pn);
 

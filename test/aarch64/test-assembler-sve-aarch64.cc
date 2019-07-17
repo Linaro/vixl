@@ -3031,5 +3031,75 @@ TEST(sve_ptest) {
   }
 }
 
+TEST(sve_cntp) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // There are {7, 5, 2, 1} active {B, H, S, D} lanes.
+  int p0_inputs[] = {0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0};
+  Initialise(&masm, p0.VnB(), p0_inputs);
+
+  // With an all-true predicate, these instructions measure the vector length.
+  __ Ptrue(p10.VnB());
+  __ Ptrue(p11.VnH());
+  __ Ptrue(p12.VnS());
+  __ Ptrue(p13.VnD());
+
+  // `ptrue p10.b` provides an all-active pg.
+  __ Cntp(x10, p10, p10.VnB());
+  __ Cntp(x11, p10, p11.VnH());
+  __ Cntp(x12, p10, p12.VnS());
+  __ Cntp(x13, p10, p13.VnD());
+
+  // Check that the predicate mask is applied properly.
+  __ Cntp(x14, p10, p10.VnB());
+  __ Cntp(x15, p11, p10.VnB());
+  __ Cntp(x16, p12, p10.VnB());
+  __ Cntp(x17, p13, p10.VnB());
+
+  // Check other patterns (including some ignored bits).
+  __ Cntp(x0, p10, p0.VnB());
+  __ Cntp(x1, p10, p0.VnH());
+  __ Cntp(x2, p10, p0.VnS());
+  __ Cntp(x3, p10, p0.VnD());
+  __ Cntp(x4, p0, p10.VnB());
+  __ Cntp(x5, p0, p10.VnH());
+  __ Cntp(x6, p0, p10.VnS());
+  __ Cntp(x7, p0, p10.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int vl_b = core.GetSVELaneCount(kBRegSize);
+    int vl_h = core.GetSVELaneCount(kHRegSize);
+    int vl_s = core.GetSVELaneCount(kSRegSize);
+    int vl_d = core.GetSVELaneCount(kDRegSize);
+
+    // Check all-active predicates in various combinations.
+    ASSERT_EQUAL_64(vl_b, x10);
+    ASSERT_EQUAL_64(vl_h, x11);
+    ASSERT_EQUAL_64(vl_s, x12);
+    ASSERT_EQUAL_64(vl_d, x13);
+
+    ASSERT_EQUAL_64(vl_b, x14);
+    ASSERT_EQUAL_64(vl_h, x15);
+    ASSERT_EQUAL_64(vl_s, x16);
+    ASSERT_EQUAL_64(vl_d, x17);
+
+    // Check that irrelevant bits are properly ignored.
+    ASSERT_EQUAL_64(7, x0);
+    ASSERT_EQUAL_64(5, x1);
+    ASSERT_EQUAL_64(2, x2);
+    ASSERT_EQUAL_64(1, x3);
+
+    ASSERT_EQUAL_64(7, x4);
+    ASSERT_EQUAL_64(5, x5);
+    ASSERT_EQUAL_64(2, x6);
+    ASSERT_EQUAL_64(1, x7);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

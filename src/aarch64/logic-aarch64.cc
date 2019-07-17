@@ -5893,6 +5893,16 @@ int Simulator::CountActiveLanes(VectorFormat vform,
   return count;
 }
 
+int Simulator::CountActiveAndTrueLanes(VectorFormat vform,
+                                       const LogicPRegister& pg,
+                                       const LogicPRegister& pn) const {
+  int count = 0;
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    count += (pg.IsActive(vform, i) && pn.IsActive(vform, i)) ? 1 : 0;
+  }
+  return count;
+}
+
 int Simulator::GetPredicateConstraintLaneCount(VectorFormat vform,
                                                int pattern) const {
   VIXL_ASSERT(IsSVEFormat(vform));
