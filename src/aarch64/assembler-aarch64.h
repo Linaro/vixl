@@ -5407,10 +5407,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ptest(const PRegister& pg, const PRegisterWithLaneSize& pn);
 
   // Initialise predicate from named constraint.
-  void ptrue(const PRegisterWithLaneSize& pd, int pattern);
+  void ptrue(const PRegisterWithLaneSize& pd, int pattern = SVE_ALL);
 
   // Initialise predicate from named constraint.
-  void ptrues(const PRegisterWithLaneSize& pd, int pattern);
+  void ptrues(const PRegisterWithLaneSize& pd, int pattern = SVE_ALL);
 
   // Unpack and widen half of predicate.
   void punpkhi(const PRegisterWithLaneSize& pd,
@@ -6849,6 +6849,12 @@ class Assembler : public vixl::internal::AssemblerBase {
       default:
         return 0xffffffff;
     }
+  }
+
+  static Instr ImmSVEPredicateConstraint(int pattern) {
+    VIXL_ASSERT(IsUint5(pattern));
+    return (pattern << ImmSVEPredicateConstraint_offset) &
+           ImmSVEPredicateConstraint_mask;
   }
 
   static Instr ImmNEONHLM(int index, int num_bits) {

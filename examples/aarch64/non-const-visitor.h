@@ -170,7 +170,13 @@ class SwitchAddSubRegisterSources : public vixl::aarch64::DecoderVisitor {
   V(SVEPermuteVectorUnpredicated)          \
   V(SVEPredicateCount)                     \
   V(SVEPredicateLogicalOp)                 \
-  V(SVEPredicateMisc)                      \
+  V(SVEPredicateFirstActive)               \
+  V(SVEPredicateInitialize)                \
+  V(SVEPredicateNextActive)                \
+  V(SVEPredicateReadFromFFR_Predicated)    \
+  V(SVEPredicateReadFromFFR_Unpredicated)  \
+  V(SVEPredicateTest)                      \
+  V(SVEPredicateZero)                      \
   V(SVEPropagateBreak)                     \
   V(SVEStackAllocation)                    \
   V(SVEVectorSelect)                       \

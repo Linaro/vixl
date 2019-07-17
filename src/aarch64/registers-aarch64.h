@@ -676,6 +676,21 @@ class PRegisterWithLaneSize : public PRegister {
   bool IsValid() const {
     return IsValidPRegister() && HasLaneSize() && IsUnqualified();
   }
+
+  // Overload lane size accessors so we can assert `HasLaneSize()`. This allows
+  // tools such as clang-tidy to prove that the result of GetLaneSize* is
+  // non-zero.
+
+  // TODO: Make these return 'int'.
+  unsigned GetLaneSizeInBits() const {
+    VIXL_ASSERT(HasLaneSize());
+    return PRegister::GetLaneSizeInBits();
+  }
+
+  unsigned GetLaneSizeInBytes() const {
+    VIXL_ASSERT(HasLaneSize());
+    return PRegister::GetLaneSizeInBytes();
+  }
 };
 
 // Any SVE P register with the zeroing qualifier (like "p0/z").

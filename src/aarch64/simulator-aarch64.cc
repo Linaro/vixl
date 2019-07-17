@@ -9524,35 +9524,99 @@ void Simulator::VisitSVEPredicateLogicalOp(const Instruction* instr) {
   // TODO: LogPRegister(...)
 }
 
-void Simulator::VisitSVEPredicateMisc(const Instruction* instr) {
+void Simulator::VisitSVEPredicateFirstActive(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEPredicateMiscMask)) {
-    case PFALSE_p:
-      VIXL_UNIMPLEMENTED();
-      break;
+  LogicPRegister pg = ReadPRegister(instr->ExtractBits(8, 5));
+  LogicPRegister pdn = ReadPRegister(instr->GetPd());
+  switch (instr->Mask(SVEPredicateFirstActiveMask)) {
     case PFIRST_p_p_p:
+      pfirst(pdn, pg, pdn);
+      // TODO: Is this broken when pg == pdn?
+      PredTest(kFormatVnB, pg, pdn);
+      break;
+    default:
       VIXL_UNIMPLEMENTED();
       break;
-    case PNEXT_p_p_p:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PTEST_p_p:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PTRUES_p_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PTRUE_p_s:
-      VIXL_UNIMPLEMENTED();
-      break;
+  }
+}
+
+void Simulator::VisitSVEPredicateInitialize(const Instruction* instr) {
+  USE(instr);
+  // This group only contains PTRUE{S}, and there are no unallocated encodings.
+  VIXL_STATIC_ASSERT(
+      SVEPredicateInitializeMask ==
+      (SVEPredicateInitializeFMask | SVEPredicateInitializeSetFlagsBit));
+  VIXL_ASSERT((instr->Mask(SVEPredicateInitializeMask) == PTRUE_p_s) ||
+              (instr->Mask(SVEPredicateInitializeMask) == PTRUES_p_s));
+
+  LogicPRegister pdn = ReadPRegister(instr->GetPd());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  ptrue(vform, pdn, instr->GetImmSVEPredicateConstraint());
+  if (instr->ExtractBit(16)) PredTest(vform, pdn, pdn);
+}
+
+void Simulator::VisitSVEPredicateNextActive(const Instruction* instr) {
+  USE(instr);
+  // This group only contains PNEXT, and there are no unallocated encodings.
+  VIXL_STATIC_ASSERT(SVEPredicateNextActiveFMask == SVEPredicateNextActiveMask);
+  VIXL_ASSERT(instr->Mask(SVEPredicateNextActiveMask) == PNEXT_p_p_p);
+
+  LogicPRegister pg = ReadPRegister(instr->ExtractBits(8, 5));
+  LogicPRegister pdn = ReadPRegister(instr->GetPd());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  pnext(vform, pdn, pg, pdn);
+  // TODO: Is this broken when pg == pdn?
+  PredTest(vform, pg, pdn);
+}
+
+void Simulator::VisitSVEPredicateReadFromFFR_Predicated(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEPredicateReadFromFFR_PredicatedMask)) {
+    case RDFFR_p_p_f:
     case RDFFRS_p_p_f:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEPredicateReadFromFFR_Unpredicated(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEPredicateReadFromFFR_UnpredicatedMask)) {
     case RDFFR_p_f:
       VIXL_UNIMPLEMENTED();
       break;
-    case RDFFR_p_p_f:
+    default:
       VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEPredicateTest(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEPredicateTestMask)) {
+    case PTEST_p_p:
+      PredTest(kFormatVnB,
+               ReadPRegister(instr->ExtractBits(13, 10)),
+               ReadPRegister(instr->GetPn()));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEPredicateZero(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEPredicateZeroMask)) {
+    case PFALSE_p:
+      pfalse(ReadPRegister(instr->GetPd()));
       break;
     default:
       VIXL_UNIMPLEMENTED();

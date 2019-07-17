@@ -182,6 +182,7 @@ BitExtractFn DecodeNode::GetBitExtractFunction(uint32_t mask) {
   case M:                                          \
     bit_extract_fn = &Instruction::ExtractBits<M>; \
     break;
+    INSTANTIATE_TEMPLATE(0x000001e0);
     INSTANTIATE_TEMPLATE(0x00000800);
     INSTANTIATE_TEMPLATE(0x00000c00);
     INSTANTIATE_TEMPLATE(0x00001000);
@@ -191,6 +192,8 @@ BitExtractFn DecodeNode::GetBitExtractFunction(uint32_t mask) {
     INSTANTIATE_TEMPLATE(0x00008000);
     INSTANTIATE_TEMPLATE(0x0000f000);
     INSTANTIATE_TEMPLATE(0x0000fc00);
+    INSTANTIATE_TEMPLATE(0x00060010);
+    INSTANTIATE_TEMPLATE(0x00093e00);
     INSTANTIATE_TEMPLATE(0x00100000);
     INSTANTIATE_TEMPLATE(0x00180000);
     INSTANTIATE_TEMPLATE(0x00181000);

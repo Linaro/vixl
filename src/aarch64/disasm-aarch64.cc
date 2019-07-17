@@ -8735,15 +8735,21 @@ void Disassembler::VisitSVEPredicateCount(const Instruction *instr) {
 void Disassembler::VisitSVEPredicateLogicalOp(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   // <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  const char *form = "'Pd.b, p'u1310/z, p'u0805.b, p'u1916.b";
+  const char *form = "'Pd.b, p'u1310/z, 'Pn.b, 'Pm.b";
+
+  int pn = instr->GetPn();
+  int pm = instr->GetPm();
+  int pg = instr->ExtractBits(13, 10);
 
   switch (instr->Mask(SVEPredicateLogicalOpMask)) {
     // ANDS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case ANDS_p_p_pp_z:
+      // TODO: Implement the `movs` alias.
       mnemonic = "ands";
       break;
     // AND <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case AND_p_p_pp_z:
+      // TODO: Implement the `mov` alias.
       mnemonic = "and";
       break;
     // BICS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
@@ -8756,10 +8762,12 @@ void Disassembler::VisitSVEPredicateLogicalOp(const Instruction *instr) {
       break;
     // EORS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case EORS_p_p_pp_z:
+      // TODO: Implement the `nots` alias.
       mnemonic = "eors";
       break;
     // EOR <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case EOR_p_p_pp_z:
+      // TODO: Implement the `not` alias.
       mnemonic = "eor";
       break;
     // NANDS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
@@ -8788,16 +8796,37 @@ void Disassembler::VisitSVEPredicateLogicalOp(const Instruction *instr) {
       break;
     // ORRS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case ORRS_p_p_pp_z:
+      // TODO: Implement the `movs` alias.
       mnemonic = "orrs";
       break;
     // ORR <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case ORR_p_p_pp_z:
-      mnemonic = "orr";
+      if ((pn == pm) && (pn == pg)) {
+        mnemonic = "mov";
+        form = "'Pd.b, 'Pn.b";
+      } else {
+        mnemonic = "orr";
+      }
       break;
     // SEL <Pd>.B, <Pg>, <Pn>.B, <Pm>.B
     case SEL_p_p_pp:
       mnemonic = "sel";
-      form = "'Pd.b, p'u1310, p'u0805.b, p'u1916.b";
+      form = "'Pd.b, p'u1310, 'Pn.b, 'Pm.b";
+      break;
+    default:
+      form = "(SVEPredicateLogical)";
+      break;
+  }
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitSVEPredicateFirstActive(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(SVEPredicateFirstActive)";
+  switch (instr->Mask(SVEPredicateFirstActiveMask)) {
+    case PFIRST_p_p_p:
+      mnemonic = "pfirst";
+      form = "'Pd.b, p'u0805, 'Pd.b";
       break;
     default:
       break;
@@ -8805,55 +8834,81 @@ void Disassembler::VisitSVEPredicateLogicalOp(const Instruction *instr) {
   Format(instr, mnemonic, form);
 }
 
-void Disassembler::VisitSVEPredicateMisc(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEPredicateMisc)";
+void Disassembler::VisitSVEPredicateInitialize(const Instruction *instr) {
+  // This group only contains PTRUE{S}, and there are no unallocated encodings.
+  VIXL_STATIC_ASSERT(
+      SVEPredicateInitializeMask ==
+      (SVEPredicateInitializeFMask | SVEPredicateInitializeSetFlagsBit));
+  VIXL_ASSERT((instr->Mask(SVEPredicateInitializeMask) == PTRUE_p_s) ||
+              (instr->Mask(SVEPredicateInitializeMask) == PTRUES_p_s));
 
-  switch (instr->Mask(SVEPredicateMiscMask)) {
-    // PFALSE <Pd>.B
-    case PFALSE_p:
-      mnemonic = "pfalse";
-      form = "'Pd.b";
-      break;
-    // PFIRST <Pdn>.B, <Pg>, <Pdn>.B
-    case PFIRST_p_p_p:
-      mnemonic = "pfirst";
-      form = "'Pd.b, p'u0805, 'Pd.b";
-      break;
-    // PNEXT <Pdn>.<T>, <Pg>, <Pdn>.<T>
-    case PNEXT_p_p_p:
-      mnemonic = "pnext";
-      form = "'Pd.'t, p'u0805, 'Pd.'t";
-      break;
-    // PTEST <Pg>, <Pn>.B
-    case PTEST_p_p:
-      mnemonic = "ptest";
-      form = "p'u1310, p'u0805.b";
-      break;
-    // PTRUES <Pd>.<T>{, <pattern>}
-    case PTRUES_p_s:
-      mnemonic = "ptrues";
-      form = "'Pd.'t{, #'u0905}";
-      break;
-    // PTRUE <Pd>.<T>{, <pattern>}
-    case PTRUE_p_s:
-      mnemonic = "ptrue";
-      form = "'Pd.'t{, #'u0905}";
-      break;
-    // RDFFRS <Pd>.B, <Pg>/Z
+  const char *mnemonic = instr->ExtractBit(16) ? "ptrues" : "ptrue";
+  const char *form = "'Pd.'t, 'Ipc";
+  // Omit the pattern if it is the default ('ALL').
+  if (instr->ExtractBits(9, 5) == SVE_ALL) form = "'Pd.'t";
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitSVEPredicateNextActive(const Instruction *instr) {
+  // This group only contains PNEXT, and there are no unallocated encodings.
+  VIXL_STATIC_ASSERT(SVEPredicateNextActiveFMask == SVEPredicateNextActiveMask);
+  VIXL_ASSERT(instr->Mask(SVEPredicateNextActiveMask) == PNEXT_p_p_p);
+
+  Format(instr, "pnext", "'Pd.'t, p'u0805, 'Pd.'t");
+}
+
+void Disassembler::VisitSVEPredicateReadFromFFR_Predicated(
+    const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(SVEPredicateReadFromFFR_Predicated)";
+  switch (instr->Mask(SVEPredicateReadFromFFR_PredicatedMask)) {
+    case RDFFR_p_p_f:
     case RDFFRS_p_p_f:
-      mnemonic = "rdffrs";
+      mnemonic = instr->ExtractBit(22) ? "rdffrs" : "rdffr";
       form = "'Pd.b, p'u0805/z";
       break;
-    // RDFFR <Pd>.B
+    default:
+      break;
+  }
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitSVEPredicateReadFromFFR_Unpredicated(
+    const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(SVEPredicateReadFromFFR_Unpredicated)";
+  switch (instr->Mask(SVEPredicateReadFromFFR_UnpredicatedMask)) {
     case RDFFR_p_f:
       mnemonic = "rdffr";
       form = "'Pd.b";
       break;
-    // RDFFR <Pd>.B, <Pg>/Z
-    case RDFFR_p_p_f:
-      mnemonic = "rdffr";
-      form = "'Pd.b, p'u0805/z";
+    default:
+      break;
+  }
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitSVEPredicateTest(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(SVEPredicateTest)";
+  switch (instr->Mask(SVEPredicateTestMask)) {
+    case PTEST_p_p:
+      mnemonic = "ptest";
+      form = "p'u1310, 'Pn.b";
+      break;
+    default:
+      break;
+  }
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitSVEPredicateZero(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(SVEPredicateZero)";
+  switch (instr->Mask(SVEPredicateZeroMask)) {
+    case PFALSE_p:
+      mnemonic = "pfalse";
+      form = "'Pd.b";
       break;
     default:
       break;
@@ -9116,7 +9171,7 @@ void Disassembler::Substitute(const Instruction *instr, const char *string) {
 int Disassembler::SubstituteField(const Instruction *instr,
                                   const char *format) {
   switch (format[0]) {
-    // NB. The remaining substitution prefix upper-case characters are: JKU.
+    // NB. The remaining substitution prefix upper-case characters are: JU.
     case 'R':  // Register. X or W, selected by sf bit.
     case 'F':  // FP register. S or D, selected by type field.
     case 'V':  // Vector register, V, vector format.
@@ -9350,10 +9405,23 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
 int Disassembler::SubstitutePredicateRegisterField(const Instruction *instr,
                                                    const char *format) {
   USE(format);
-  // Only 'Pd is supported, as it's the only predicate register always encoded
-  // in the same position in an instruction.
-  VIXL_ASSERT((format[0] == 'P') && (format[1] == 'd'));
-  AppendToOutput("p%u", instr->ExtractBits(3, 0));
+  VIXL_ASSERT(format[0] == 'P');
+  switch (format[1]) {
+    // This field only supports P register that are always encoded in the same
+    // position.
+    case 'd':
+    case 't':
+      AppendToOutput("p%u", instr->ExtractBits(3, 0));
+      break;
+    case 'n':
+      AppendToOutput("p%u", instr->ExtractBits(8, 5));
+      break;
+    case 'm':
+      AppendToOutput("p%u", instr->ExtractBits(19, 16));
+      break;
+    default:
+      VIXL_UNREACHABLE();
+  }
   return 2;
 }
 
@@ -9697,6 +9765,48 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           return 0;
         }
       }
+    }
+    case 'p': {  // Ipc - SVE predicate constraint specifier.
+      VIXL_ASSERT(format[2] == 'c');
+      unsigned pattern = instr->GetImmSVEPredicateConstraint();
+      switch (pattern) {
+        // VL1-VL8 are encoded directly.
+        case SVE_VL1:
+        case SVE_VL2:
+        case SVE_VL3:
+        case SVE_VL4:
+        case SVE_VL5:
+        case SVE_VL6:
+        case SVE_VL7:
+        case SVE_VL8:
+          AppendToOutput("vl%u", pattern);
+          break;
+        // VL16-VL256 are encoded as log2(N) + c.
+        case SVE_VL16:
+        case SVE_VL32:
+        case SVE_VL64:
+        case SVE_VL128:
+        case SVE_VL256:
+          AppendToOutput("vl%u", 16 << (pattern - SVE_VL16));
+          break;
+        // Special cases.
+        case SVE_POW2:
+          AppendToOutput("pow2");
+          break;
+        case SVE_MUL4:
+          AppendToOutput("mul4");
+          break;
+        case SVE_MUL3:
+          AppendToOutput("mul3");
+          break;
+        case SVE_ALL:
+          AppendToOutput("all");
+          break;
+        default:
+          AppendToOutput("#0x%x", pattern);
+          break;
+      }
+      return 3;
     }
     default: {
       VIXL_UNIMPLEMENTED();

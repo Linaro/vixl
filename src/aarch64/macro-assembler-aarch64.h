@@ -5547,6 +5547,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     lsr(zd, zn, zm);
   }
+  void Mov(const PRegister& pd, const PRegister& pn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    orr(pd.VnB(), pn.Zeroing(), pn.VnB(), pn.VnB());
+  }
   void Mov(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -5682,22 +5687,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Pfalse(const PRegisterWithLaneSize& pd) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    pfalse(pd);
+    pfalse(pd.VnB());
   }
   void Pfirst(const PRegisterWithLaneSize& pd,
               const PRegister& pg,
-              const PRegisterWithLaneSize& pn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    pfirst(pd, pg, pn);
-  }
+              const PRegisterWithLaneSize& pn);
   void Pnext(const PRegisterWithLaneSize& pd,
              const PRegister& pg,
-             const PRegisterWithLaneSize& pn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    pnext(pd, pg, pn);
-  }
+             const PRegisterWithLaneSize& pn);
   void Prfb(int prfop,
             const PRegister& pg,
             const Register& xn,
@@ -5807,12 +5804,17 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ptest(pg, pn);
   }
-  void Ptrue(const PRegisterWithLaneSize& pd, int pattern) {
+  void Ptrue(const PRegisterWithLaneSize& pd,
+             SVEPredicateConstraint pattern,
+             FlagsUpdate s);
+  void Ptrue(const PRegisterWithLaneSize& pd,
+             SVEPredicateConstraint pattern = SVE_ALL) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     ptrue(pd, pattern);
   }
-  void Ptrues(const PRegisterWithLaneSize& pd, int pattern) {
+  void Ptrues(const PRegisterWithLaneSize& pd,
+              SVEPredicateConstraint pattern = SVE_ALL) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     ptrues(pd, pattern);

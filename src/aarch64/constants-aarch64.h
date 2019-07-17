@@ -197,6 +197,7 @@ V_(SVESize, 23, 22, ExtractBits)                                             \
 V_(ImmSVEVLScale, 10, 5, ExtractSignedBits)                                  \
 V_(ImmSVEIntWideSigned, 12, 5, ExtractSignedBits)                            \
 V_(ImmSVEIntWideUnsigned, 12, 5, ExtractBits)                                \
+V_(ImmSVEPredicateConstraint, 9, 5, ExtractBits)                             \
                                                                              \
 /* SVE Bitwise Immediate bitfield */                                         \
 V_(SVEBitN, 17, 17, ExtractBits)                                             \
@@ -469,6 +470,36 @@ enum DataCacheOp {
   CVADP = CacheOpEncoder<3, 7, 13, 1>::value,
   CIVAC = CacheOpEncoder<3, 7, 14, 1>::value,
   ZVA = CacheOpEncoder<3, 7, 4, 1>::value
+};
+
+// Some SVE instructions support a predicate constraint pattern. This is
+// interpreted as a VL-dependent value, and is typically used to initialise
+// predicates, or to otherwise limit the number of processed elements.
+enum SVEPredicateConstraint {
+  // Select 2^N elements, for the largest possible N.
+  SVE_POW2 = 0x0,
+  // Each VL<N> selects exactly N elements if possible, or zero if N is greater
+  // than the number of elements. Note that the encoding values for VL<N> are
+  // not linearly related to N.
+  SVE_VL1 = 0x1,
+  SVE_VL2 = 0x2,
+  SVE_VL3 = 0x3,
+  SVE_VL4 = 0x4,
+  SVE_VL5 = 0x5,
+  SVE_VL6 = 0x6,
+  SVE_VL7 = 0x7,
+  SVE_VL8 = 0x8,
+  SVE_VL16 = 0x9,
+  SVE_VL32 = 0xa,
+  SVE_VL64 = 0xb,
+  SVE_VL128 = 0xc,
+  SVE_VL256 = 0xd,
+  // Each MUL<N> selects the largest multiple of N elements that the vector
+  // length supports. Note that for D-sized lanes, this can be zero.
+  SVE_MUL4 = 0x1d,
+  SVE_MUL3 = 0x1e,
+  // Select all elements.
+  SVE_ALL = 0x1f
 };
 
 // Instruction enumerations.
@@ -3737,19 +3768,57 @@ enum SVEPredicateLogicalOp {
   SEL_p_p_pp = SVEPredicateLogicalOpFixed | 0x00000210
 };
 
-enum SVEPredicateMiscOp {
-  SVEPredicateMiscFixed = 0x2510C000,
-  SVEPredicateMiscFMask = 0xFF30C000,
-  SVEPredicateMiscMask = 0xFFFFFFFF,
-  PTRUE_p_s = SVEPredicateMiscFixed | 0x00082000,
-  PFALSE_p = SVEPredicateMiscFixed | 0x00082400,
-  RDFFR_p_p_f = SVEPredicateMiscFixed | 0x00083000,
-  PNEXT_p_p_p = SVEPredicateMiscFixed | 0x00090400,
-  PTRUES_p_s = SVEPredicateMiscFixed | 0x00092000,
-  RDFFR_p_f = SVEPredicateMiscFixed | 0x00093000,
-  PTEST_p_p = SVEPredicateMiscFixed | 0x00400000,
-  PFIRST_p_p_p = SVEPredicateMiscFixed | 0x00480000,
-  RDFFRS_p_p_f = SVEPredicateMiscFixed | 0x00483000
+enum SVEPredicateFirstActiveOp {
+  SVEPredicateFirstActiveFixed = 0x2518C000,
+  SVEPredicateFirstActiveFMask = 0xFF3FFE10,
+  SVEPredicateFirstActiveMask = 0xFFFFFE10,
+  PFIRST_p_p_p = SVEPredicateFirstActiveFixed | 0x00400000
+};
+
+enum SVEPredicateInitializeOp {
+  SVEPredicateInitializeFixed = 0x2518E000,
+  SVEPredicateInitializeFMask = 0xFF3EFC10,
+  SVEPredicateInitializeMask = 0xFF3FFC10,
+  SVEPredicateInitializeSetFlagsBit = 0x00010000,
+  PTRUE_p_s = SVEPredicateInitializeFixed | 0x00000000,
+  PTRUES_p_s = SVEPredicateInitializeFixed | SVEPredicateInitializeSetFlagsBit
+};
+
+enum SVEPredicateNextActiveOp {
+  SVEPredicateNextActiveFixed = 0x2519C400,
+  SVEPredicateNextActiveFMask = 0xFF3FFE10,
+  SVEPredicateNextActiveMask = 0xFF3FFE10,
+  PNEXT_p_p_p = SVEPredicateNextActiveFixed | 0x00000000
+};
+
+enum SVEPredicateReadFromFFR_PredicatedOp {
+  SVEPredicateReadFromFFR_PredicatedFixed = 0x2518F000,
+  SVEPredicateReadFromFFR_PredicatedFMask = 0xFF3FFE10,
+  SVEPredicateReadFromFFR_PredicatedMask = 0xFFFFFE10,
+  SVEPredicateReadFromFFR_PredicatedSetFlagsBit = 0x00400000,
+  RDFFR_p_p_f = SVEPredicateReadFromFFR_PredicatedFixed | 0x00000000,
+  RDFFRS_p_p_f = SVEPredicateReadFromFFR_PredicatedFixed | SVEPredicateReadFromFFR_PredicatedSetFlagsBit
+};
+
+enum SVEPredicateReadFromFFR_UnpredicatedOp {
+  SVEPredicateReadFromFFR_UnpredicatedFixed = 0x2519F000,
+  SVEPredicateReadFromFFR_UnpredicatedFMask = 0xFF3FFFF0,
+  SVEPredicateReadFromFFR_UnpredicatedMask = 0xFFFFFFF0,
+  RDFFR_p_f = SVEPredicateReadFromFFR_UnpredicatedFixed | 0x00000000
+};
+
+enum SVEPredicateTestOp {
+  SVEPredicateTestFixed = 0x2510C000,
+  SVEPredicateTestFMask = 0xFF3FC210,
+  SVEPredicateTestMask = 0xFFFFC21F,
+  PTEST_p_p = SVEPredicateTestFixed | 0x00400000
+};
+
+enum SVEPredicateZeroOp {
+  SVEPredicateZeroFixed = 0x2518E400,
+  SVEPredicateZeroFMask = 0xFF3FFFF0,
+  SVEPredicateZeroMask = 0xFFFFFFF0,
+  PFALSE_p = SVEPredicateZeroFixed | 0x00000000
 };
 
 enum SVEPropagateBreakOp {

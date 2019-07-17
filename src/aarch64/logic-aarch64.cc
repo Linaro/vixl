@@ -2549,6 +2549,17 @@ LogicVRegister Simulator::mov(VectorFormat vform,
 }
 
 
+LogicPRegister Simulator::mov(LogicPRegister dst, const LogicPRegister& src) {
+  // Avoid a copy if the registers already alias.
+  if (dst.Aliases(src)) return dst;
+
+  for (int i = 0; i < dst.GetChunkCount(); i++) {
+    dst.SetChunk(i, src.GetChunk(i));
+  }
+  return dst;
+}
+
+
 LogicVRegister Simulator::mov_merging(VectorFormat vform,
                                       LogicVRegister dst,
                                       const SimPRegister& pg,
@@ -5520,6 +5531,47 @@ LogicVRegister Simulator::urecpe(VectorFormat vform,
   return dst;
 }
 
+LogicPRegister Simulator::pfalse(LogicPRegister dst) {
+  dst.Clear();
+  return dst;
+}
+
+LogicPRegister Simulator::pfirst(LogicPRegister dst,
+                                 const LogicPRegister& pg,
+                                 const LogicPRegister& src) {
+  int first_pg = GetFirstActive(kFormatVnB, pg);
+  VIXL_ASSERT(first_pg < LaneCountFromFormat(kFormatVnB));
+  mov(dst, src);
+  if (first_pg >= 0) dst.SetActive(kFormatVnB, first_pg, true);
+  return dst;
+}
+
+LogicPRegister Simulator::ptrue(VectorFormat vform,
+                                LogicPRegister dst,
+                                int pattern) {
+  int count = GetPredicateConstraintLaneCount(vform, pattern);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    dst.SetActive(vform, i, i < count);
+  }
+  return dst;
+}
+
+LogicPRegister Simulator::pnext(VectorFormat vform,
+                                LogicPRegister dst,
+                                const LogicPRegister& pg,
+                                const LogicPRegister& src) {
+  int next = GetLastActive(vform, src) + 1;
+  while (next < LaneCountFromFormat(vform)) {
+    if (pg.IsActive(vform, next)) break;
+    next++;
+  }
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    dst.SetActive(vform, i, (i == next));
+  }
+  return dst;
+}
+
 template <typename T>
 LogicVRegister Simulator::frecpx(VectorFormat vform,
                                  LogicVRegister dst,
@@ -5688,11 +5740,7 @@ LogicPRegister Simulator::SVEIntCompareVectorsHelper(Condition cond,
     dst.SetActive(vform, lane, result);
   }
 
-  ReadNzcv().SetN(IsFirstActive(vform, mask, dst));
-  ReadNzcv().SetZ(AreNoneActive(vform, mask, dst));
-  ReadNzcv().SetC(!IsLastActive(vform, mask, dst));
-  ReadNzcv().SetV(0);
-  LogSystemRegister(NZCV);
+  PredTest(vform, mask, dst);
 
   return dst;
 }
@@ -5738,13 +5786,11 @@ LogicPRegister Simulator::SVEPredicateLogicalHelper(SVEPredicateLogicalOp op,
                                                     const LogicPRegister& pn,
                                                     const LogicPRegister& pm,
                                                     FlagsUpdate flags) {
-  int pl_in_bytes = GetVectorLengthInBytes() / kBRegSize;
-  int pl_in_chunks = pl_in_bytes / sizeof(LogicPRegister::ChunkType);
   // TODO: Transfer:
   // and(s) -> mov(s) when Pm == Pg.
   // eor(s) -> not(s) when Pm == Pg.
   // orr(s) -> mov(s) when Pn == Pm && Pm == Pg.
-  for (int i = 0; i < pl_in_chunks; i++) {
+  for (int i = 0; i < pd.GetChunkCount(); i++) {
     LogicPRegister::ChunkType op1 = pn.GetChunk(i);
     LogicPRegister::ChunkType op2 = pm.GetChunk(i);
     LogicPRegister::ChunkType mask = pg.GetChunk(i);
@@ -5788,13 +5834,7 @@ LogicPRegister Simulator::SVEPredicateLogicalHelper(SVEPredicateLogicalOp op,
     pd.SetChunk(i, result);
   }
 
-  if (flags == SetFlags) {
-    ReadNzcv().SetN(IsFirstActive(kFormatVnB, pg, pd));
-    ReadNzcv().SetZ(AreNoneActive(kFormatVnB, pg, pd));
-    ReadNzcv().SetC(!IsLastActive(kFormatVnB, pg, pd));
-    ReadNzcv().SetV(0);
-    LogSystemRegister(NZCV);
-  }
+  if (flags == SetFlags) PredTest(kFormatVnB, pg, pd);
   return pd;
 }
 
@@ -5828,14 +5868,71 @@ LogicVRegister Simulator::SVEBitwiseImmHelper(SVEBitwiseImmOp op,
   return zd;
 }
 
-int Simulator::CountActiveLanes(VectorFormat vform, const SimPRegister& pn) {
-  int count = 0;
-  int p_reg_bits_per_lane =
-      LaneSizeInBitsFromFormat(vform) / kZRegBitsPerPRegBit;
+int Simulator::GetFirstActive(VectorFormat vform,
+                              const LogicPRegister& pg) const {
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    count += pn.GetBit(i * p_reg_bits_per_lane) ? 1 : 0;
+    if (pg.IsActive(vform, i)) return i;
+  }
+  return -1;
+}
+
+int Simulator::GetLastActive(VectorFormat vform,
+                             const LogicPRegister& pg) const {
+  for (int i = LaneCountFromFormat(vform) - 1; i >= 0; i--) {
+    if (pg.IsActive(vform, i)) return i;
+  }
+  return -1;
+}
+
+int Simulator::CountActiveLanes(VectorFormat vform,
+                                const LogicPRegister& pg) const {
+  int count = 0;
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    count += pg.IsActive(vform, i) ? 1 : 0;
   }
   return count;
+}
+
+int Simulator::GetPredicateConstraintLaneCount(VectorFormat vform,
+                                               int pattern) const {
+  VIXL_ASSERT(IsSVEFormat(vform));
+  int all = LaneCountFromFormat(vform);
+  VIXL_ASSERT(all > 0);
+
+  switch (pattern) {
+    case SVE_VL1:
+    case SVE_VL2:
+    case SVE_VL3:
+    case SVE_VL4:
+    case SVE_VL5:
+    case SVE_VL6:
+    case SVE_VL7:
+    case SVE_VL8:
+      // VL1-VL8 are encoded directly.
+      VIXL_STATIC_ASSERT(SVE_VL1 == 1);
+      VIXL_STATIC_ASSERT(SVE_VL8 == 8);
+      return (pattern <= all) ? pattern : 0;
+    case SVE_VL16:
+    case SVE_VL32:
+    case SVE_VL64:
+    case SVE_VL128:
+    case SVE_VL256: {
+      // VL16-VL256 are encoded as log2(N) + c.
+      int min = 16 << (pattern - SVE_VL16);
+      return (min <= all) ? min : 0;
+    }
+    // Special cases.
+    case SVE_POW2:
+      return 1 << HighestSetBitPosition(all);
+    case SVE_MUL4:
+      return all - (all % 4);
+    case SVE_MUL3:
+      return all - (all % 3);
+    case SVE_ALL:
+      return all;
+  }
+  // Unnamed cases archicturally return 0.
+  return 0;
 }
 
 

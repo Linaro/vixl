@@ -197,5 +197,63 @@ void MacroAssembler::CompareHelper(Condition cond,
   cmp(cond, pd, pg, zn, zm);
 }
 
+void MacroAssembler::Pfirst(const PRegisterWithLaneSize& pd,
+                            const PRegister& pg,
+                            const PRegisterWithLaneSize& pn) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  VIXL_ASSERT(pn.IsLaneSizeB());
+  if (pd.Is(pn)) {
+    SingleEmissionCheckScope guard(this);
+    pfirst(pd, pg, pn);
+  } else {
+    UseScratchRegisterScope temps(this);
+    PRegister temp_pg = pg;
+    if (pd.Aliases(pg)) {
+      temp_pg = temps.AcquireP();
+      Mov(temp_pg.VnB(), pg.VnB());
+    }
+    Mov(pd, pn);
+    SingleEmissionCheckScope guard(this);
+    pfirst(pd, temp_pg, pd);
+  }
+}
+
+void MacroAssembler::Pnext(const PRegisterWithLaneSize& pd,
+                           const PRegister& pg,
+                           const PRegisterWithLaneSize& pn) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(AreSameFormat(pd, pn));
+  if (pd.Is(pn)) {
+    SingleEmissionCheckScope guard(this);
+    pnext(pd, pg, pn);
+  } else {
+    UseScratchRegisterScope temps(this);
+    PRegister temp_pg = pg;
+    if (pd.Aliases(pg)) {
+      temp_pg = temps.AcquireP();
+      Mov(temp_pg.VnB(), pg.VnB());
+    }
+    Mov(pd, pn);
+    SingleEmissionCheckScope guard(this);
+    pnext(pd, temp_pg, pd);
+  }
+}
+
+void MacroAssembler::Ptrue(const PRegisterWithLaneSize& pd,
+                           SVEPredicateConstraint pattern,
+                           FlagsUpdate s) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  switch (s) {
+    case LeaveFlags:
+      Ptrue(pd, pattern);
+      return;
+    case SetFlags:
+      Ptrues(pd, pattern);
+      return;
+  }
+  VIXL_UNREACHABLE();
+}
+
 }  // namespace aarch64
 }  // namespace vixl

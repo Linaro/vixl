@@ -2083,25 +2083,161 @@ TEST(sve_predicate_logical_op) {
   CLEANUP();
 }
 
+TEST(sve_predicate_first_active) {
+  SETUP();
+
+  COMPARE_PREFIX(pfirst(p0.VnB(), p7, p0.VnB()), "pfirst p0.b, p7, p0.b");
+  COMPARE_PREFIX(pfirst(p7.VnB(), p0, p7.VnB()), "pfirst p7.b, p0, p7.b");
+
+  COMPARE_MACRO(Pfirst(p1.VnB(), p2, p1.VnB()), "pfirst p1.b, p2, p1.b");
+  COMPARE_MACRO(Pfirst(p3.VnB(), p4, p5.VnB()),
+                "mov p3.b, p5.b\n"
+                "pfirst p3.b, p4, p3.b");
+
+  {
+    UseScratchRegisterScope temps(&masm);
+    temps.Include(p7, p15);
+    COMPARE_MACRO(Pfirst(p6.VnB(), p6, p0.VnB()),
+                  "mov p15.b, p6.b\n"
+                  "mov p6.b, p0.b\n"
+                  "pfirst p6.b, p15, p6.b");
+  }
+
+  CLEANUP();
+}
+
+TEST(sve_predicate_next_active) {
+  SETUP();
+
+  COMPARE_PREFIX(pnext(p0.VnB(), p8, p0.VnB()), "pnext p0.b, p8, p0.b");
+  COMPARE_PREFIX(pnext(p1.VnH(), p9, p1.VnH()), "pnext p1.h, p9, p1.h");
+  COMPARE_PREFIX(pnext(p2.VnS(), p10, p2.VnS()), "pnext p2.s, p10, p2.s");
+  COMPARE_PREFIX(pnext(p3.VnD(), p11, p3.VnD()), "pnext p3.d, p11, p3.d");
+
+  COMPARE_PREFIX(pnext(p12.VnB(), p4, p12.VnB()), "pnext p12.b, p4, p12.b");
+  COMPARE_PREFIX(pnext(p13.VnH(), p5, p13.VnH()), "pnext p13.h, p5, p13.h");
+  COMPARE_PREFIX(pnext(p14.VnS(), p6, p14.VnS()), "pnext p14.s, p6, p14.s");
+  COMPARE_PREFIX(pnext(p15.VnD(), p7, p15.VnD()), "pnext p15.d, p7, p15.d");
+
+  COMPARE_MACRO(Pnext(p5.VnB(), p9, p5.VnB()), "pnext p5.b, p9, p5.b");
+  COMPARE_MACRO(Pnext(p6.VnH(), p8, p6.VnH()), "pnext p6.h, p8, p6.h");
+  COMPARE_MACRO(Pnext(p7.VnS(), p5, p7.VnS()), "pnext p7.s, p5, p7.s");
+  COMPARE_MACRO(Pnext(p8.VnD(), p6, p8.VnD()), "pnext p8.d, p6, p8.d");
+
+  COMPARE_MACRO(Pnext(p6.VnB(), p4, p5.VnB()),
+                "mov p6.b, p5.b\n"
+                "pnext p6.b, p4, p6.b");
+  COMPARE_MACRO(Pnext(p7.VnH(), p3, p8.VnH()),
+                "mov p7.b, p8.b\n"
+                "pnext p7.h, p3, p7.h");
+  COMPARE_MACRO(Pnext(p8.VnS(), p2, p9.VnS()),
+                "mov p8.b, p9.b\n"
+                "pnext p8.s, p2, p8.s");
+  COMPARE_MACRO(Pnext(p9.VnD(), p1, p10.VnD()),
+                "mov p9.b, p10.b\n"
+                "pnext p9.d, p1, p9.d");
+
+  {
+    UseScratchRegisterScope temps(&masm);
+    temps.Include(p7, p8);
+    COMPARE_MACRO(Pnext(p6.VnB(), p6, p0.VnB()),
+                  "mov p8.b, p6.b\n"
+                  "mov p6.b, p0.b\n"
+                  "pnext p6.b, p8, p6.b");
+    COMPARE_MACRO(Pnext(p7.VnH(), p7, p1.VnH()),
+                  "mov p8.b, p7.b\n"
+                  "mov p7.b, p1.b\n"
+                  "pnext p7.h, p8, p7.h");
+    COMPARE_MACRO(Pnext(p10.VnS(), p10, p2.VnS()),
+                  "mov p8.b, p10.b\n"
+                  "mov p10.b, p2.b\n"
+                  "pnext p10.s, p8, p10.s");
+    COMPARE_MACRO(Pnext(p11.VnD(), p11, p3.VnD()),
+                  "mov p8.b, p11.b\n"
+                  "mov p11.b, p3.b\n"
+                  "pnext p11.d, p8, p11.d");
+  }
+
+  CLEANUP();
+}
+
+TEST(sve_predicate_initialize) {
+  SETUP();
+
+  // Basic forms.
+  COMPARE_PREFIX(ptrue(p0.VnB(), SVE_POW2), "ptrue p0.b, pow2");
+  COMPARE_PREFIX(ptrue(p1.VnH(), SVE_VL1), "ptrue p1.h, vl1");
+  COMPARE_PREFIX(ptrue(p2.VnS(), SVE_VL8), "ptrue p2.s, vl8");
+  COMPARE_PREFIX(ptrue(p3.VnD(), SVE_VL16), "ptrue p3.d, vl16");
+  COMPARE_PREFIX(ptrue(p4.VnB(), SVE_VL256), "ptrue p4.b, vl256");
+  COMPARE_PREFIX(ptrue(p5.VnH(), SVE_MUL3), "ptrue p5.h, mul3");
+  COMPARE_PREFIX(ptrue(p6.VnS(), SVE_MUL4), "ptrue p6.s, mul4");
+  COMPARE_PREFIX(ptrue(p7.VnD(), SVE_ALL), "ptrue p7.d");
+
+  COMPARE_PREFIX(ptrues(p8.VnB(), SVE_ALL), "ptrues p8.b");
+  COMPARE_PREFIX(ptrues(p9.VnH(), SVE_MUL4), "ptrues p9.h, mul4");
+  COMPARE_PREFIX(ptrues(p10.VnS(), SVE_MUL3), "ptrues p10.s, mul3");
+  COMPARE_PREFIX(ptrues(p11.VnD(), SVE_VL256), "ptrues p11.d, vl256");
+  COMPARE_PREFIX(ptrues(p12.VnB(), SVE_VL16), "ptrues p12.b, vl16");
+  COMPARE_PREFIX(ptrues(p13.VnH(), SVE_VL8), "ptrues p13.h, vl8");
+  COMPARE_PREFIX(ptrues(p14.VnS(), SVE_VL1), "ptrues p14.s, vl1");
+  COMPARE_PREFIX(ptrues(p15.VnD(), SVE_POW2), "ptrues p15.d, pow2");
+
+  // The Assembler supports arbitrary immediates.
+  COMPARE_PREFIX(ptrue(p7.VnS(), 0xd), "ptrue p7.s, vl256");
+  COMPARE_PREFIX(ptrue(p8.VnD(), 0xe), "ptrue p8.d, #0xe");
+  COMPARE_PREFIX(ptrue(p9.VnB(), 0x15), "ptrue p9.b, #0x15");
+  COMPARE_PREFIX(ptrue(p10.VnH(), 0x19), "ptrue p10.h, #0x19");
+  COMPARE_PREFIX(ptrue(p11.VnS(), 0x1a), "ptrue p11.s, #0x1a");
+  COMPARE_PREFIX(ptrue(p12.VnD(), 0x1c), "ptrue p12.d, #0x1c");
+  COMPARE_PREFIX(ptrue(p13.VnB(), 0x1d), "ptrue p13.b, mul4");
+
+  COMPARE_PREFIX(ptrues(p14.VnS(), 0xd), "ptrues p14.s, vl256");
+  COMPARE_PREFIX(ptrues(p15.VnD(), 0xe), "ptrues p15.d, #0xe");
+  COMPARE_PREFIX(ptrues(p0.VnB(), 0x15), "ptrues p0.b, #0x15");
+  COMPARE_PREFIX(ptrues(p1.VnH(), 0x19), "ptrues p1.h, #0x19");
+  COMPARE_PREFIX(ptrues(p2.VnS(), 0x1a), "ptrues p2.s, #0x1a");
+  COMPARE_PREFIX(ptrues(p3.VnD(), 0x1c), "ptrues p3.d, #0x1c");
+  COMPARE_PREFIX(ptrues(p4.VnB(), 0x1d), "ptrues p4.b, mul4");
+
+  // SVE_ALL is the default.
+  COMPARE_PREFIX(ptrue(p15.VnS()), "ptrue p15.s");
+  COMPARE_PREFIX(ptrues(p0.VnS()), "ptrues p0.s");
+
+  // The MacroAssembler provides a `FlagsUpdate` argument.
+  COMPARE_MACRO(Ptrue(p0.VnB(), SVE_MUL3), "ptrue p0.b, mul3");
+  COMPARE_MACRO(Ptrues(p1.VnH(), SVE_MUL4), "ptrues p1.h, mul4");
+  COMPARE_MACRO(Ptrue(p2.VnS(), SVE_VL32, LeaveFlags), "ptrue p2.s, vl32");
+  COMPARE_MACRO(Ptrue(p3.VnD(), SVE_VL64, SetFlags), "ptrues p3.d, vl64");
+}
+
+TEST(sve_pfalse) {
+  SETUP();
+
+  COMPARE_PREFIX(pfalse(p0.VnB()), "pfalse p0.b");
+  COMPARE_PREFIX(pfalse(p15.VnB()), "pfalse p15.b");
+
+  COMPARE_MACRO(Pfalse(p1.VnB()), "pfalse p1.b");
+  COMPARE_MACRO(Pfalse(p4.VnH()), "pfalse p4.b");
+  COMPARE_MACRO(Pfalse(p9.VnS()), "pfalse p9.b");
+  COMPARE_MACRO(Pfalse(p14.VnD()), "pfalse p14.b");
+}
+
+TEST(sve_ptest) {
+  SETUP();
+
+  COMPARE_PREFIX(ptest(p15, p0.VnB()), "ptest p15, p0.b");
+  COMPARE_PREFIX(ptest(p0, p15.VnB()), "ptest p0, p15.b");
+  COMPARE_PREFIX(ptest(p6, p6.VnB()), "ptest p6, p6.b");
+
+  COMPARE_MACRO(Ptest(p0, p1.VnB()), "ptest p0, p1.b");
+}
+
 TEST(sve_predicate_misc) {
+  // TODO: Replace this with separate tests.
   SETUP();
 
 #if 0
-  COMPARE_PREFIX(pfalse(p14.VnB()), "pfalse <Pd>.B");
-  COMPARE_PREFIX(pfirst(p7.VnB(), p11, p7.VnB()), "pfirst <Pdn>.B, <Pg>, <Pdn>.B");
-  COMPARE_PREFIX(pnext(p8.VnB(), p0, p8.VnB()), "pnext <Pdn>.<T>, <Pg>, <Pdn>.<T>");
-  COMPARE_PREFIX(pnext(p8.VnH(), p0, p8.VnH()), "pnext <Pdn>.<T>, <Pg>, <Pdn>.<T>");
-  COMPARE_PREFIX(pnext(p8.VnS(), p0, p8.VnS()), "pnext <Pdn>.<T>, <Pg>, <Pdn>.<T>");
-  COMPARE_PREFIX(pnext(p8.VnD(), p0, p8.VnD()), "pnext <Pdn>.<T>, <Pg>, <Pdn>.<T>");
-  COMPARE_PREFIX(ptest(p7, p12.VnB()), "ptest <Pg>, <Pn>.B");
-  COMPARE_PREFIX(ptrues(p13.VnB(), int pattern), "ptrues <Pd>.<T>{, <pattern>}");
-  COMPARE_PREFIX(ptrues(p13.VnH(), int pattern), "ptrues <Pd>.<T>{, <pattern>}");
-  COMPARE_PREFIX(ptrues(p13.VnS(), int pattern), "ptrues <Pd>.<T>{, <pattern>}");
-  COMPARE_PREFIX(ptrues(p13.VnD(), int pattern), "ptrues <Pd>.<T>{, <pattern>}");
-  COMPARE_PREFIX(ptrue(p9.VnB(), int pattern), "ptrue <Pd>.<T>{, <pattern>}");
-  COMPARE_PREFIX(ptrue(p9.VnH(), int pattern), "ptrue <Pd>.<T>{, <pattern>}");
-  COMPARE_PREFIX(ptrue(p9.VnS(), int pattern), "ptrue <Pd>.<T>{, <pattern>}");
-  COMPARE_PREFIX(ptrue(p9.VnD(), int pattern), "ptrue <Pd>.<T>{, <pattern>}");
   COMPARE_PREFIX(rdffrs(p14.VnB(), p9.Zeroing()), "rdffrs <Pd>.B, <Pg>/Z");
   COMPARE_PREFIX(rdffr(p13.VnB()), "rdffr <Pd>.B");
   COMPARE_PREFIX(rdffr(p5.VnB(), p14.Zeroing()), "rdffr <Pd>.B, <Pg>/Z");

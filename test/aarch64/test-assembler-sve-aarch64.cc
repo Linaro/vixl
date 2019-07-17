@@ -65,44 +65,24 @@ void InsrHelper(MacroAssembler* masm,
   }
 }
 
-// Conveniently initialise P registers. This is optimised for call-site clarity,
-// not generated code quality.
+// Conveniently initialise P registers with scalar bit patterns. The destination
+// lane size is ignored. This is optimised for call-site clarity, not generated
+// code quality.
 //
 // Usage:
 //
-//     int values[] = { 0x0, 0x1, 0x2 };
-//     Initialise(&masm, p0.VnS(), values);  // Sets p0 = 0b'0000'0001'0010
-//
-// The rightmost (highest-indexed) array element maps to the lowest-numbered
-// lane.
-//
-// Each element of the `values` array is mapped onto a lane in `pd`. The
-// architecture only respects the lower bit, and writes zero the upper bits, but
-// other (encodable) values can be specified if required by the test.
-template <typename T, size_t N>
+//    Initialise(&masm, p0, 0x1234);  // Sets p0 = 0b'0001'0010'0011'0100
 void Initialise(MacroAssembler* masm,
-                const PRegisterWithLaneSize& pd,
-                const T (&values)[N]) {
+                const PRegister& pd,
+                uint64_t value3,
+                uint64_t value2,
+                uint64_t value1,
+                uint64_t value0) {
+  // Generate a literal pool, as in the array form.
   UseScratchRegisterScope temps(masm);
   Register temp = temps.AcquireX();
   Label data;
   Label done;
-
-  // There is no 'insr' for P registers. The easiest way to initialise one with
-  // an arbitrary value is to load it from a literal pool.
-
-  int p_bits_per_lane = pd.GetLaneSizeInBits() / kZRegBitsPerPRegBit;
-  VIXL_ASSERT((N * p_bits_per_lane) <= kPRegMaxSize);
-  uint64_t p_lane_mask = GetUintMask(p_bits_per_lane);
-
-  // For most lane sizes, each value contributes less than a byte. We need to
-  // pack them into chunks which we can store directly. It's sensible for the
-  // chunk to be the same size as an instruction because we need to pad to an
-  // instruction boundary anyway.
-  typedef Instr Chunk;
-  const size_t kChunkSizeInBits = sizeof(Chunk) * kBitsPerByte;
-  VIXL_ASSERT((kPRegMaxSize % kChunkSizeInBits) == 0);
-  const size_t kPRegMaxSizeInChunks = kPRegMaxSize / kChunkSizeInBits;
 
   masm->Adr(temp, &data);
   // TODO: Use `Ldr(pd, MemOperand(temp))` once available.
@@ -111,23 +91,68 @@ void Initialise(MacroAssembler* masm,
   {
     ExactAssemblyScope total(masm, kPRegMaxSizeInBytes);
     masm->bind(&data);
-    // Put the last-specified value at the lowest address.
-    int values_index = N - 1;
-    for (size_t c = 0; c < kPRegMaxSizeInChunks; c++) {
-      Chunk chunk = 0;
-      // Whilst we still have values left, use them to populate the chunk.
-      for (size_t chunk_bit = 0;
-           (chunk_bit < kChunkSizeInBits) && (values_index >= 0);
-           chunk_bit += p_bits_per_lane) {
-        Chunk value = values[values_index] & p_lane_mask;
-        VIXL_ASSERT(static_cast<T>(value) == values[values_index]);
-        chunk |= value << chunk_bit;
-        values_index--;
-      }
-      masm->dc(chunk);
-    }
+    masm->dc64(value0);
+    masm->dc64(value1);
+    masm->dc64(value2);
+    masm->dc64(value3);
   }
   masm->Bind(&done);
+}
+void Initialise(MacroAssembler* masm,
+                const PRegister& pd,
+                uint64_t value2,
+                uint64_t value1,
+                uint64_t value0) {
+  Initialise(masm, pd, 0, value2, value1, value0);
+}
+void Initialise(MacroAssembler* masm,
+                const PRegister& pd,
+                uint64_t value1,
+                uint64_t value0) {
+  Initialise(masm, pd, 0, 0, value1, value0);
+}
+void Initialise(MacroAssembler* masm, const PRegister& pd, uint64_t value0) {
+  Initialise(masm, pd, 0, 0, 0, value0);
+}
+
+// Conveniently initialise P registers by lane. This is optimised for call-site
+// clarity, not generated code quality.
+//
+// Usage:
+//
+//     int values[] = { 0x0, 0x1, 0x2 };
+//     Initialise(&masm, p0.VnS(), values);  // Sets p0 = 0b'0000'0001'0010
+//
+// The rightmost (highest-indexed) array element maps to the lowest-numbered
+// lane. Unspecified lanes are set to 0 (inactive).
+//
+// Each element of the `values` array is mapped onto a lane in `pd`. The
+// architecture only respects the lower bit, and writes zero the upper bits, but
+// other (encodable) values can be specified if required by the test.
+template <typename T, size_t N>
+void Initialise(MacroAssembler* masm,
+                const PRegisterWithLaneSize& pd,
+                const T (&values)[N]) {
+  // Turn the array into 64-bit chunks.
+  uint64_t chunks[4] = {0, 0, 0, 0};
+  VIXL_STATIC_ASSERT(sizeof(chunks) == kPRegMaxSizeInBytes);
+
+  int p_bits_per_lane = pd.GetLaneSizeInBits() / kZRegBitsPerPRegBit;
+  VIXL_ASSERT((64 % p_bits_per_lane) == 0);
+  VIXL_ASSERT((N * p_bits_per_lane) <= kPRegMaxSize);
+
+  uint64_t p_lane_mask = GetUintMask(p_bits_per_lane);
+
+  VIXL_STATIC_ASSERT(N <= kPRegMaxSize);
+  size_t bit = 0;
+  for (int n = static_cast<int>(N - 1); n >= 0; n--) {
+    VIXL_ASSERT(bit < (sizeof(chunks) * kBitsPerByte));
+    uint64_t value = values[n] & p_lane_mask;
+    chunks[bit / 64] |= value << (bit % 64);
+    bit += p_bits_per_lane;
+  }
+
+  Initialise(masm, pd, chunks[3], chunks[2], chunks[1], chunks[0]);
 }
 
 // Ensure that basic test infrastructure works.
@@ -969,13 +994,7 @@ TEST(sve_inc_dec_p_scalar) {
 
   // With an all-true predicate, these instructions increment or decrement by
   // the vector length.
-
-  // TODO: Use Ptrue() for this, once it is implemented.
-  int p15_inputs[kPRegMaxSize / kZRegBitsPerPRegBit];
-  for (size_t i = 0; i < sizeof(p15_inputs) / sizeof(p15_inputs[0]); i++) {
-    p15_inputs[i] = 1;
-  }
-  Initialise(&masm, p15.VnB(), p15_inputs);
+  __ Ptrue(p15.VnB());
 
   __ Mov(x20, 0x4000000000000000);
   __ Decp(x20, p15.VnB());
@@ -1065,13 +1084,7 @@ TEST(sve_sqinc_sqdec_p_scalar) {
 
   // With an all-true predicate, these instructions increment or decrement by
   // the vector length.
-
-  // TODO: Use Ptrue() for this, once it is implemented.
-  int p15_inputs[kPRegMaxSize / kZRegBitsPerPRegBit];
-  for (size_t i = 0; i < sizeof(p15_inputs) / sizeof(p15_inputs[0]); i++) {
-    p15_inputs[i] = 1;
-  }
-  Initialise(&masm, p15.VnB(), p15_inputs);
+  __ Ptrue(p15.VnB());
 
   __ Mov(x21, 0);
   __ Sqdecp(x21, p15.VnB(), x21);
@@ -1181,13 +1194,7 @@ TEST(sve_uqinc_uqdec_p_scalar) {
 
   // With an all-true predicate, these instructions increment or decrement by
   // the vector length.
-
-  // TODO: Use Ptrue() for this, once it is implemented.
-  int p15_inputs[kPRegMaxSize / kZRegBitsPerPRegBit];
-  for (size_t i = 0; i < sizeof(p15_inputs) / sizeof(p15_inputs[0]); i++) {
-    p15_inputs[i] = 1;
-  }
-  Initialise(&masm, p15.VnB(), p15_inputs);
+  __ Ptrue(p15.VnB());
 
   __ Mov(x20, 0x4000000000000000);
   __ Uqdecp(x20, p15.VnB(), x20);
@@ -1336,13 +1343,7 @@ TEST(sve_inc_dec_ptrue_vector) {
 
   // With an all-true predicate, these instructions increment or decrement by
   // the vector length.
-
-  // TODO: Use Ptrue() for this, once it is implemented.
-  int p15_inputs[kPRegMaxSize / kZRegBitsPerPRegBit];
-  for (size_t i = 0; i < sizeof(p15_inputs) / sizeof(p15_inputs[0]); i++) {
-    p15_inputs[i] = 1;
-  }
-  Initialise(&masm, p15.VnB(), p15_inputs);
+  __ Ptrue(p15.VnB());
 
   __ Dup(z0.VnD(), 0);
   __ Decp(z0.VnD(), p15);
@@ -1490,13 +1491,7 @@ TEST(sve_sqinc_sqdec_ptrue_vector) {
 
   // With an all-true predicate, these instructions increment or decrement by
   // the vector length.
-
-  // TODO: Use Ptrue() for this, once it is implemented.
-  int p15_inputs[kPRegMaxSize / kZRegBitsPerPRegBit];
-  for (size_t i = 0; i < sizeof(p15_inputs) / sizeof(p15_inputs[0]); i++) {
-    p15_inputs[i] = 1;
-  }
-  Initialise(&masm, p15.VnB(), p15_inputs);
+  __ Ptrue(p15.VnB());
 
   __ Dup(z0.VnD(), 0);
   __ Sqdecp(z0.VnD(), p15);
@@ -1652,13 +1647,7 @@ TEST(sve_uqinc_uqdec_ptrue_vector) {
 
   // With an all-true predicate, these instructions increment or decrement by
   // the vector length.
-
-  // TODO: Use Ptrue() for this, once it is implemented.
-  int p15_inputs[kPRegMaxSize / kZRegBitsPerPRegBit];
-  for (size_t i = 0; i < sizeof(p15_inputs) / sizeof(p15_inputs[0]); i++) {
-    p15_inputs[i] = 1;
-  }
-  Initialise(&masm, p15.VnB(), p15_inputs);
+  __ Ptrue(p15.VnB());
 
   __ Mov(x0, 0x1234567800000000);
   __ Mov(x1, 0x12340000);
@@ -2155,6 +2144,890 @@ TEST(sve_int_compare_conditionally_terminate_scalars) {
     ASSERT_EQUAL_32(VFlag, w3);
     ASSERT_EQUAL_32(VFlag, w4);
     ASSERT_EQUAL_32(SVEFirstFlag, w5);
+  }
+}
+
+// Work out what the architectural `PredTest` pseudocode should produce for the
+// given result and governing predicate.
+template <typename Tg, typename Td, int N>
+static StatusFlags GetPredTestFlags(const Td (&pd)[N],
+                                    const Tg (&pg)[N],
+                                    int vl) {
+  int first = -1;
+  int last = -1;
+  bool any_active = false;
+
+  // Only consider potentially-active lanes.
+  int start = (N > vl) ? (N - vl) : 0;
+  for (int i = start; i < N; i++) {
+    if ((pg[i] & 1) == 1) {
+      // Look for the first and last active lanes.
+      // Note that the 'first' lane is the one with the highest index.
+      if (last < 0) last = i;
+      first = i;
+      // Look for any active lanes that are also active in pd.
+      if ((pd[i] & 1) == 1) any_active = true;
+    }
+  }
+
+  uint32_t flags = 0;
+  if ((first >= 0) && ((pd[first] & 1) == 1)) flags |= SVEFirstFlag;
+  if (!any_active) flags |= SVENoneFlag;
+  if ((last < 0) || ((pd[last] & 1) == 0)) flags |= SVENotLastFlag;
+  return static_cast<StatusFlags>(flags);
+}
+
+typedef void (MacroAssembler::*PfirstPnextFn)(const PRegisterWithLaneSize& pd,
+                                              const PRegister& pg,
+                                              const PRegisterWithLaneSize& pn);
+template <typename Tg, typename Tn, typename Td>
+static void PfirstPnextHelper(PfirstPnextFn macro,
+                              unsigned lane_size_in_bits,
+                              const Tg& pg_inputs,
+                              const Tn& pn_inputs,
+                              const Td& pd_expected) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  PRegister pg = p15;
+  PRegister pn = p14;
+  Initialise(&masm, pg.WithLaneSize(lane_size_in_bits), pg_inputs);
+  Initialise(&masm, pn.WithLaneSize(lane_size_in_bits), pn_inputs);
+
+  // Initialise NZCV to an impossible value, to check that we actually write it.
+  __ Mov(x10, NZCVFlag);
+
+  // If pd.Is(pn), the MacroAssembler simply passes the arguments directly to
+  // the Assembler.
+  __ Msr(NZCV, x10);
+  __ Mov(p0, pn);
+  (masm.*macro)(p0.WithLaneSize(lane_size_in_bits),
+                pg,
+                p0.WithLaneSize(lane_size_in_bits));
+  __ Mrs(x0, NZCV);
+
+  // The MacroAssembler supports non-destructive use.
+  __ Msr(NZCV, x10);
+  (masm.*macro)(p1.WithLaneSize(lane_size_in_bits),
+                pg,
+                pn.WithLaneSize(lane_size_in_bits));
+  __ Mrs(x1, NZCV);
+
+  // If pd.Aliases(pg) the macro requires a scratch register.
+  {
+    UseScratchRegisterScope temps(&masm);
+    temps.Include(p13);
+    __ Msr(NZCV, x10);
+    __ Mov(p2, p15);
+    (masm.*macro)(p2.WithLaneSize(lane_size_in_bits),
+                  p2,
+                  pn.WithLaneSize(lane_size_in_bits));
+    __ Mrs(x2, NZCV);
+  }
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // Check that the inputs weren't modified.
+    ASSERT_EQUAL_SVE(pn_inputs, pn.WithLaneSize(lane_size_in_bits));
+    ASSERT_EQUAL_SVE(pg_inputs, pg.WithLaneSize(lane_size_in_bits));
+
+    // Check the primary operation.
+    ASSERT_EQUAL_SVE(pd_expected, p0.WithLaneSize(lane_size_in_bits));
+    ASSERT_EQUAL_SVE(pd_expected, p1.WithLaneSize(lane_size_in_bits));
+    ASSERT_EQUAL_SVE(pd_expected, p2.WithLaneSize(lane_size_in_bits));
+
+    // Check that the flags were properly set.
+    StatusFlags nzcv_expected =
+        GetPredTestFlags(pd_expected,
+                         pg_inputs,
+                         core.GetSVELaneCount(kBRegSize));
+    ASSERT_EQUAL_64(nzcv_expected, x0);
+    ASSERT_EQUAL_64(nzcv_expected, x1);
+    ASSERT_EQUAL_64(nzcv_expected, x2);
+  }
+}
+
+template <typename Tg, typename Tn, typename Td>
+static void PfirstHelper(const Tg& pg_inputs,
+                         const Tn& pn_inputs,
+                         const Td& pd_expected) {
+  PfirstPnextHelper(&MacroAssembler::Pfirst,
+                    kBRegSize,  // pfirst only accepts B-sized lanes.
+                    pg_inputs,
+                    pn_inputs,
+                    pd_expected);
+}
+
+template <typename Tg, typename Tn, typename Td>
+static void PnextHelper(unsigned lane_size_in_bits,
+                        const Tg& pg_inputs,
+                        const Tn& pn_inputs,
+                        const Td& pd_expected) {
+  PfirstPnextHelper(&MacroAssembler::Pnext,
+                    lane_size_in_bits,
+                    pg_inputs,
+                    pn_inputs,
+                    pd_expected);
+}
+
+TEST(sve_pfirst) {
+  // Provide more lanes than kPRegMinSize (to check propagation if we have a
+  // large VL), but few enough to make the test easy to read.
+  int in0[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int in1[] = {1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0};
+  int in2[] = {0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+  int in3[] = {0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1};
+  int in4[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  VIXL_ASSERT(ArrayLength(in0) > kPRegMinSize);
+
+  // Pfirst finds the first active lane in pg, and activates the corresponding
+  // lane in pn (if it isn't already active).
+
+  //                             The first active lane in in1 is here. |
+  //                                                                   v
+  int exp10[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
+  int exp12[] = {0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0};
+  int exp13[] = {0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1};
+  int exp14[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
+  PfirstHelper(in1, in0, exp10);
+  PfirstHelper(in1, in2, exp12);
+  PfirstHelper(in1, in3, exp13);
+  PfirstHelper(in1, in4, exp14);
+
+  //                          The first active lane in in2 is here. |
+  //                                                                v
+  int exp20[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0};
+  int exp21[] = {1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0};
+  int exp23[] = {0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1};
+  int exp24[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0};
+  PfirstHelper(in2, in0, exp20);
+  PfirstHelper(in2, in1, exp21);
+  PfirstHelper(in2, in3, exp23);
+  PfirstHelper(in2, in4, exp24);
+
+  //                                   The first active lane in in3 is here. |
+  //                                                                         v
+  int exp30[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+  int exp31[] = {1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1};
+  int exp32[] = {0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1};
+  int exp34[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+  PfirstHelper(in3, in0, exp30);
+  PfirstHelper(in3, in1, exp31);
+  PfirstHelper(in3, in2, exp32);
+  PfirstHelper(in3, in4, exp34);
+
+  //             | The first active lane in in4 is here.
+  //             v
+  int exp40[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp41[] = {1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0};
+  int exp42[] = {1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+  int exp43[] = {1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1};
+  PfirstHelper(in4, in0, exp40);
+  PfirstHelper(in4, in1, exp41);
+  PfirstHelper(in4, in2, exp42);
+  PfirstHelper(in4, in3, exp43);
+
+  // If pg is all inactive, the input is passed through unchanged.
+  PfirstHelper(in0, in0, in0);
+  PfirstHelper(in0, in1, in1);
+  PfirstHelper(in0, in2, in2);
+  PfirstHelper(in0, in3, in3);
+
+  // If the values of pg and pn match, the value is passed through unchanged.
+  PfirstHelper(in0, in0, in0);
+  PfirstHelper(in1, in1, in1);
+  PfirstHelper(in2, in2, in2);
+  PfirstHelper(in3, in3, in3);
+}
+
+TEST(sve_pfirst_alias) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Check that the Simulator behaves correctly when all arguments are aliased.
+  int in_b[] = {0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0};
+  int in_h[] = {0, 0, 0, 0, 1, 1, 0, 0};
+  int in_s[] = {0, 1, 1, 0};
+  int in_d[] = {1, 1};
+
+  Initialise(&masm, p0.VnB(), in_b);
+  Initialise(&masm, p1.VnH(), in_h);
+  Initialise(&masm, p2.VnS(), in_s);
+  Initialise(&masm, p3.VnD(), in_d);
+
+  // Initialise NZCV to an impossible value, to check that we actually write it.
+  __ Mov(x10, NZCVFlag);
+
+  __ Msr(NZCV, x10);
+  __ Pfirst(p0.VnB(), p0.VnB(), p0.VnB());
+  __ Mrs(x0, NZCV);
+
+  __ Msr(NZCV, x10);
+  __ Pfirst(p1.VnB(), p1.VnB(), p1.VnB());
+  __ Mrs(x1, NZCV);
+
+  __ Msr(NZCV, x10);
+  __ Pfirst(p2.VnB(), p2.VnB(), p2.VnB());
+  __ Mrs(x2, NZCV);
+
+  __ Msr(NZCV, x10);
+  __ Pfirst(p3.VnB(), p3.VnB(), p3.VnB());
+  __ Mrs(x3, NZCV);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // The first lane from pg is already active in pdn, so the P register should
+    // be unchanged.
+    ASSERT_EQUAL_SVE(in_b, p0.VnB());
+    ASSERT_EQUAL_SVE(in_h, p1.VnH());
+    ASSERT_EQUAL_SVE(in_s, p2.VnS());
+    ASSERT_EQUAL_SVE(in_d, p3.VnD());
+
+    ASSERT_EQUAL_64(SVEFirstFlag, x0);
+    ASSERT_EQUAL_64(SVEFirstFlag, x1);
+    ASSERT_EQUAL_64(SVEFirstFlag, x2);
+    ASSERT_EQUAL_64(SVEFirstFlag, x3);
+  }
+}
+
+TEST(sve_pnext_b) {
+  // TODO: Once we have the infrastructure, provide more lanes than kPRegMinSize
+  // (to check propagation if we have a large VL), but few enough to make the
+  // test easy to read.
+  // For now, we just use kPRegMinSize so that the test works anywhere.
+  int in0[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int in1[] = {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0};
+  int in2[] = {0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+  int in3[] = {0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1};
+  int in4[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  // Pnext activates the next element that is true in pg, after the last-active
+  // element in pn. If all pn elements are false (as in in0), it starts looking
+  // at element 0.
+
+  // There are no active lanes in in0, so the result is simply the first active
+  // lane from pg.
+  int exp00[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp10[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
+  int exp20[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0};
+  int exp30[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+  int exp40[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  //      The last active lane in in1 is here. |
+  //                                           v
+  int exp01[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp11[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp21[] = {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp31[] = {0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp41[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  //                | The last active lane in in2 is here.
+  //                v
+  int exp02[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp12[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp22[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp32[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp42[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  //                               | The last active lane in in3 is here.
+  //                               v
+  int exp03[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp13[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp23[] = {0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp33[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp43[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  //             | The last active lane in in4 is here.
+  //             v
+  int exp04[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp14[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp24[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp34[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp44[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  PnextHelper(kBRegSize, in0, in0, exp00);
+  PnextHelper(kBRegSize, in1, in0, exp10);
+  PnextHelper(kBRegSize, in2, in0, exp20);
+  PnextHelper(kBRegSize, in3, in0, exp30);
+  PnextHelper(kBRegSize, in4, in0, exp40);
+
+  PnextHelper(kBRegSize, in0, in1, exp01);
+  PnextHelper(kBRegSize, in1, in1, exp11);
+  PnextHelper(kBRegSize, in2, in1, exp21);
+  PnextHelper(kBRegSize, in3, in1, exp31);
+  PnextHelper(kBRegSize, in4, in1, exp41);
+
+  PnextHelper(kBRegSize, in0, in2, exp02);
+  PnextHelper(kBRegSize, in1, in2, exp12);
+  PnextHelper(kBRegSize, in2, in2, exp22);
+  PnextHelper(kBRegSize, in3, in2, exp32);
+  PnextHelper(kBRegSize, in4, in2, exp42);
+
+  PnextHelper(kBRegSize, in0, in3, exp03);
+  PnextHelper(kBRegSize, in1, in3, exp13);
+  PnextHelper(kBRegSize, in2, in3, exp23);
+  PnextHelper(kBRegSize, in3, in3, exp33);
+  PnextHelper(kBRegSize, in4, in3, exp43);
+
+  PnextHelper(kBRegSize, in0, in4, exp04);
+  PnextHelper(kBRegSize, in1, in4, exp14);
+  PnextHelper(kBRegSize, in2, in4, exp24);
+  PnextHelper(kBRegSize, in3, in4, exp34);
+  PnextHelper(kBRegSize, in4, in4, exp44);
+}
+
+TEST(sve_pnext_h) {
+  // TODO: Once we have the infrastructure, provide more lanes than kPRegMinSize
+  // (to check propagation if we have a large VL), but few enough to make the
+  // test easy to read.
+  // For now, we just use kPRegMinSize so that the test works anywhere.
+  int in0[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int in1[] = {0, 0, 0, 1, 0, 2, 1, 0};
+  int in2[] = {0, 1, 2, 0, 2, 0, 2, 0};
+  int in3[] = {0, 0, 0, 3, 0, 0, 0, 3};
+  int in4[] = {3, 0, 0, 0, 0, 0, 0, 0};
+
+  // Pnext activates the next element that is true in pg, after the last-active
+  // element in pn. If all pn elements are false (as in in0), it starts looking
+  // at element 0.
+  //
+  // As for other SVE instructions, elements are only considered to be active if
+  // the _first_ bit in each field is one. Other bits are ignored.
+
+  // There are no active lanes in in0, so the result is simply the first active
+  // lane from pg.
+  int exp00[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp10[] = {0, 0, 0, 0, 0, 0, 1, 0};
+  int exp20[] = {0, 1, 0, 0, 0, 0, 0, 0};
+  int exp30[] = {0, 0, 0, 0, 0, 0, 0, 1};
+  int exp40[] = {1, 0, 0, 0, 0, 0, 0, 0};
+
+  //                      | The last active lane in in1 is here.
+  //                      v
+  int exp01[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp11[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp21[] = {0, 1, 0, 0, 0, 0, 0, 0};
+  int exp31[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp41[] = {1, 0, 0, 0, 0, 0, 0, 0};
+
+  //                | The last active lane in in2 is here.
+  //                v
+  int exp02[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp12[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp22[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp32[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp42[] = {1, 0, 0, 0, 0, 0, 0, 0};
+
+  //                      | The last active lane in in3 is here.
+  //                      v
+  int exp03[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp13[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp23[] = {0, 1, 0, 0, 0, 0, 0, 0};
+  int exp33[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp43[] = {1, 0, 0, 0, 0, 0, 0, 0};
+
+  //             | The last active lane in in4 is here.
+  //             v
+  int exp04[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp14[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp24[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp34[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int exp44[] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+  PnextHelper(kHRegSize, in0, in0, exp00);
+  PnextHelper(kHRegSize, in1, in0, exp10);
+  PnextHelper(kHRegSize, in2, in0, exp20);
+  PnextHelper(kHRegSize, in3, in0, exp30);
+  PnextHelper(kHRegSize, in4, in0, exp40);
+
+  PnextHelper(kHRegSize, in0, in1, exp01);
+  PnextHelper(kHRegSize, in1, in1, exp11);
+  PnextHelper(kHRegSize, in2, in1, exp21);
+  PnextHelper(kHRegSize, in3, in1, exp31);
+  PnextHelper(kHRegSize, in4, in1, exp41);
+
+  PnextHelper(kHRegSize, in0, in2, exp02);
+  PnextHelper(kHRegSize, in1, in2, exp12);
+  PnextHelper(kHRegSize, in2, in2, exp22);
+  PnextHelper(kHRegSize, in3, in2, exp32);
+  PnextHelper(kHRegSize, in4, in2, exp42);
+
+  PnextHelper(kHRegSize, in0, in3, exp03);
+  PnextHelper(kHRegSize, in1, in3, exp13);
+  PnextHelper(kHRegSize, in2, in3, exp23);
+  PnextHelper(kHRegSize, in3, in3, exp33);
+  PnextHelper(kHRegSize, in4, in3, exp43);
+
+  PnextHelper(kHRegSize, in0, in4, exp04);
+  PnextHelper(kHRegSize, in1, in4, exp14);
+  PnextHelper(kHRegSize, in2, in4, exp24);
+  PnextHelper(kHRegSize, in3, in4, exp34);
+  PnextHelper(kHRegSize, in4, in4, exp44);
+}
+
+TEST(sve_pnext_s) {
+  // TODO: Once we have the infrastructure, provide more lanes than kPRegMinSize
+  // (to check propagation if we have a large VL), but few enough to make the
+  // test easy to read.
+  // For now, we just use kPRegMinSize so that the test works anywhere.
+  int in0[] = {0xe, 0xc, 0x8, 0x0};
+  int in1[] = {0x0, 0x2, 0x0, 0x1};
+  int in2[] = {0x0, 0x1, 0xf, 0x0};
+  int in3[] = {0xf, 0x0, 0x0, 0x0};
+
+  // Pnext activates the next element that is true in pg, after the last-active
+  // element in pn. If all pn elements are false (as in in0), it starts looking
+  // at element 0.
+  //
+  // As for other SVE instructions, elements are only considered to be active if
+  // the _first_ bit in each field is one. Other bits are ignored.
+
+  // There are no active lanes in in0, so the result is simply the first active
+  // lane from pg.
+  int exp00[] = {0, 0, 0, 0};
+  int exp10[] = {0, 0, 0, 1};
+  int exp20[] = {0, 0, 1, 0};
+  int exp30[] = {1, 0, 0, 0};
+
+  //                      | The last active lane in in1 is here.
+  //                      v
+  int exp01[] = {0, 0, 0, 0};
+  int exp11[] = {0, 0, 0, 0};
+  int exp21[] = {0, 0, 1, 0};
+  int exp31[] = {1, 0, 0, 0};
+
+  //                | The last active lane in in2 is here.
+  //                v
+  int exp02[] = {0, 0, 0, 0};
+  int exp12[] = {0, 0, 0, 0};
+  int exp22[] = {0, 0, 0, 0};
+  int exp32[] = {1, 0, 0, 0};
+
+  //             | The last active lane in in3 is here.
+  //             v
+  int exp03[] = {0, 0, 0, 0};
+  int exp13[] = {0, 0, 0, 0};
+  int exp23[] = {0, 0, 0, 0};
+  int exp33[] = {0, 0, 0, 0};
+
+  PnextHelper(kSRegSize, in0, in0, exp00);
+  PnextHelper(kSRegSize, in1, in0, exp10);
+  PnextHelper(kSRegSize, in2, in0, exp20);
+  PnextHelper(kSRegSize, in3, in0, exp30);
+
+  PnextHelper(kSRegSize, in0, in1, exp01);
+  PnextHelper(kSRegSize, in1, in1, exp11);
+  PnextHelper(kSRegSize, in2, in1, exp21);
+  PnextHelper(kSRegSize, in3, in1, exp31);
+
+  PnextHelper(kSRegSize, in0, in2, exp02);
+  PnextHelper(kSRegSize, in1, in2, exp12);
+  PnextHelper(kSRegSize, in2, in2, exp22);
+  PnextHelper(kSRegSize, in3, in2, exp32);
+
+  PnextHelper(kSRegSize, in0, in3, exp03);
+  PnextHelper(kSRegSize, in1, in3, exp13);
+  PnextHelper(kSRegSize, in2, in3, exp23);
+  PnextHelper(kSRegSize, in3, in3, exp33);
+}
+
+TEST(sve_pnext_d) {
+  // TODO: Once we have the infrastructure, provide more lanes than kPRegMinSize
+  // (to check propagation if we have a large VL), but few enough to make the
+  // test easy to read.
+  // For now, we just use kPRegMinSize so that the test works anywhere.
+  int in0[] = {0xfe, 0xf0};
+  int in1[] = {0x00, 0x55};
+  int in2[] = {0x33, 0xff};
+
+  // Pnext activates the next element that is true in pg, after the last-active
+  // element in pn. If all pn elements are false (as in in0), it starts looking
+  // at element 0.
+  //
+  // As for other SVE instructions, elements are only considered to be active if
+  // the _first_ bit in each field is one. Other bits are ignored.
+
+  // There are no active lanes in in0, so the result is simply the first active
+  // lane from pg.
+  int exp00[] = {0, 0};
+  int exp10[] = {0, 1};
+  int exp20[] = {0, 1};
+
+  //                | The last active lane in in1 is here.
+  //                v
+  int exp01[] = {0, 0};
+  int exp11[] = {0, 0};
+  int exp21[] = {1, 0};
+
+  //             | The last active lane in in2 is here.
+  //             v
+  int exp02[] = {0, 0};
+  int exp12[] = {0, 0};
+  int exp22[] = {0, 0};
+
+  PnextHelper(kDRegSize, in0, in0, exp00);
+  PnextHelper(kDRegSize, in1, in0, exp10);
+  PnextHelper(kDRegSize, in2, in0, exp20);
+
+  PnextHelper(kDRegSize, in0, in1, exp01);
+  PnextHelper(kDRegSize, in1, in1, exp11);
+  PnextHelper(kDRegSize, in2, in1, exp21);
+
+  PnextHelper(kDRegSize, in0, in2, exp02);
+  PnextHelper(kDRegSize, in1, in2, exp12);
+  PnextHelper(kDRegSize, in2, in2, exp22);
+}
+
+TEST(sve_pnext_alias) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Check that the Simulator behaves correctly when all arguments are aliased.
+  int in_b[] = {0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0};
+  int in_h[] = {0, 0, 0, 0, 1, 1, 0, 0};
+  int in_s[] = {0, 1, 1, 0};
+  int in_d[] = {1, 1};
+
+  Initialise(&masm, p0.VnB(), in_b);
+  Initialise(&masm, p1.VnH(), in_h);
+  Initialise(&masm, p2.VnS(), in_s);
+  Initialise(&masm, p3.VnD(), in_d);
+
+  // Initialise NZCV to an impossible value, to check that we actually write it.
+  __ Mov(x10, NZCVFlag);
+
+  __ Msr(NZCV, x10);
+  __ Pnext(p0.VnB(), p0.VnB(), p0.VnB());
+  __ Mrs(x0, NZCV);
+
+  __ Msr(NZCV, x10);
+  __ Pnext(p1.VnB(), p1.VnB(), p1.VnB());
+  __ Mrs(x1, NZCV);
+
+  __ Msr(NZCV, x10);
+  __ Pnext(p2.VnB(), p2.VnB(), p2.VnB());
+  __ Mrs(x2, NZCV);
+
+  __ Msr(NZCV, x10);
+  __ Pnext(p3.VnB(), p3.VnB(), p3.VnB());
+  __ Mrs(x3, NZCV);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // Since pg.Is(pdn), there can be no active lanes in pg above the last
+    // active lane in pdn, so the result should always be zero.
+    ASSERT_EQUAL_SVE(0, p0.VnB());
+    ASSERT_EQUAL_SVE(0, p1.VnH());
+    ASSERT_EQUAL_SVE(0, p2.VnS());
+    ASSERT_EQUAL_SVE(0, p3.VnD());
+
+    ASSERT_EQUAL_64(SVENoneFlag | SVENotLastFlag, x0);
+    ASSERT_EQUAL_64(SVENoneFlag | SVENotLastFlag, x1);
+    ASSERT_EQUAL_64(SVENoneFlag | SVENotLastFlag, x2);
+    ASSERT_EQUAL_64(SVENoneFlag | SVENotLastFlag, x3);
+  }
+}
+
+static void PtrueHelper(unsigned lane_size_in_bits,
+                        FlagsUpdate s = LeaveFlags) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  PRegisterWithLaneSize p[kNumberOfPRegisters];
+  for (unsigned i = 0; i < kNumberOfPRegisters; i++) {
+    p[i] = PRegister(i).WithLaneSize(lane_size_in_bits);
+  }
+
+  // Initialise NZCV to an impossible value, to check that we actually write it.
+  StatusFlags nzcv_unmodified = NZCVFlag;
+  __ Mov(x20, nzcv_unmodified);
+
+  // We don't have enough registers to conveniently test every pattern, so take
+  // samples from each group.
+  __ Msr(NZCV, x20);
+  __ Ptrue(p[0], SVE_POW2, s);
+  __ Mrs(x0, NZCV);
+
+  __ Msr(NZCV, x20);
+  __ Ptrue(p[1], SVE_VL1, s);
+  __ Mrs(x1, NZCV);
+
+  __ Msr(NZCV, x20);
+  __ Ptrue(p[2], SVE_VL2, s);
+  __ Mrs(x2, NZCV);
+
+  __ Msr(NZCV, x20);
+  __ Ptrue(p[3], SVE_VL5, s);
+  __ Mrs(x3, NZCV);
+
+  __ Msr(NZCV, x20);
+  __ Ptrue(p[4], SVE_VL6, s);
+  __ Mrs(x4, NZCV);
+
+  __ Msr(NZCV, x20);
+  __ Ptrue(p[5], SVE_VL8, s);
+  __ Mrs(x5, NZCV);
+
+  __ Msr(NZCV, x20);
+  __ Ptrue(p[6], SVE_VL16, s);
+  __ Mrs(x6, NZCV);
+
+  __ Msr(NZCV, x20);
+  __ Ptrue(p[7], SVE_VL64, s);
+  __ Mrs(x7, NZCV);
+
+  __ Msr(NZCV, x20);
+  __ Ptrue(p[8], SVE_VL256, s);
+  __ Mrs(x8, NZCV);
+
+  {
+    // We have to use the Assembler to use values not defined by
+    // SVEPredicateConstraint, so call `ptrues` directly..
+    typedef void (
+        MacroAssembler::*AssemblePtrueFn)(const PRegisterWithLaneSize& pd,
+                                          int pattern);
+    AssemblePtrueFn assemble =
+        (s == SetFlags) ? &MacroAssembler::ptrues : &MacroAssembler::ptrue;
+
+    ExactAssemblyScope guard(&masm, 12 * kInstructionSize);
+    __ msr(NZCV, x20);
+    (masm.*assemble)(p[9], 0xe);
+    __ mrs(x9, NZCV);
+
+    __ msr(NZCV, x20);
+    (masm.*assemble)(p[10], 0x16);
+    __ mrs(x10, NZCV);
+
+    __ msr(NZCV, x20);
+    (masm.*assemble)(p[11], 0x1a);
+    __ mrs(x11, NZCV);
+
+    __ msr(NZCV, x20);
+    (masm.*assemble)(p[12], 0x1c);
+    __ mrs(x12, NZCV);
+  }
+
+  __ Msr(NZCV, x20);
+  __ Ptrue(p[13], SVE_MUL4, s);
+  __ Mrs(x13, NZCV);
+
+  __ Msr(NZCV, x20);
+  __ Ptrue(p[14], SVE_MUL3, s);
+  __ Mrs(x14, NZCV);
+
+  __ Msr(NZCV, x20);
+  __ Ptrue(p[15], SVE_ALL, s);
+  __ Mrs(x15, NZCV);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int all = core.GetSVELaneCount(lane_size_in_bits);
+    int pow2 = 1 << HighestSetBitPosition(all);
+    int mul4 = all - (all % 4);
+    int mul3 = all - (all % 3);
+
+    // Check P register results.
+    for (int i = 0; i < all; i++) {
+      ASSERT_EQUAL_SVE_LANE(i < pow2, p[0], i);
+      ASSERT_EQUAL_SVE_LANE((all >= 1) && (i < 1), p[1], i);
+      ASSERT_EQUAL_SVE_LANE((all >= 2) && (i < 2), p[2], i);
+      ASSERT_EQUAL_SVE_LANE((all >= 5) && (i < 5), p[3], i);
+      ASSERT_EQUAL_SVE_LANE((all >= 6) && (i < 6), p[4], i);
+      ASSERT_EQUAL_SVE_LANE((all >= 8) && (i < 8), p[5], i);
+      ASSERT_EQUAL_SVE_LANE((all >= 16) && (i < 16), p[6], i);
+      ASSERT_EQUAL_SVE_LANE((all >= 64) && (i < 64), p[7], i);
+      ASSERT_EQUAL_SVE_LANE((all >= 256) && (i < 256), p[8], i);
+      ASSERT_EQUAL_SVE_LANE(false, p[9], i);
+      ASSERT_EQUAL_SVE_LANE(false, p[10], i);
+      ASSERT_EQUAL_SVE_LANE(false, p[11], i);
+      ASSERT_EQUAL_SVE_LANE(false, p[12], i);
+      ASSERT_EQUAL_SVE_LANE(i < mul4, p[13], i);
+      ASSERT_EQUAL_SVE_LANE(i < mul3, p[14], i);
+      ASSERT_EQUAL_SVE_LANE(true, p[15], i);
+    }
+
+    // Check NZCV results.
+    if (s == LeaveFlags) {
+      // No flags should have been updated.
+      for (int i = 0; i <= 15; i++) {
+        ASSERT_EQUAL_64(nzcv_unmodified, XRegister(i));
+      }
+    } else {
+      StatusFlags zero = static_cast<StatusFlags>(SVENoneFlag | SVENotLastFlag);
+      StatusFlags nonzero = SVEFirstFlag;
+
+      // POW2
+      ASSERT_EQUAL_64(nonzero, x0);
+      // VL*
+      ASSERT_EQUAL_64((all >= 1) ? nonzero : zero, x1);
+      ASSERT_EQUAL_64((all >= 2) ? nonzero : zero, x2);
+      ASSERT_EQUAL_64((all >= 5) ? nonzero : zero, x3);
+      ASSERT_EQUAL_64((all >= 6) ? nonzero : zero, x4);
+      ASSERT_EQUAL_64((all >= 8) ? nonzero : zero, x5);
+      ASSERT_EQUAL_64((all >= 16) ? nonzero : zero, x6);
+      ASSERT_EQUAL_64((all >= 64) ? nonzero : zero, x7);
+      ASSERT_EQUAL_64((all >= 256) ? nonzero : zero, x8);
+      // #uimm5
+      ASSERT_EQUAL_64(zero, x9);
+      ASSERT_EQUAL_64(zero, x10);
+      ASSERT_EQUAL_64(zero, x11);
+      ASSERT_EQUAL_64(zero, x12);
+      // MUL*
+      ASSERT_EQUAL_64((all >= 4) ? nonzero : zero, x13);
+      ASSERT_EQUAL_64((all >= 3) ? nonzero : zero, x14);
+      // ALL
+      ASSERT_EQUAL_64(nonzero, x15);
+    }
+  }
+}
+
+TEST(sve_ptrue_b) { PtrueHelper(kBRegSize, LeaveFlags); }
+TEST(sve_ptrue_h) { PtrueHelper(kHRegSize, LeaveFlags); }
+TEST(sve_ptrue_s) { PtrueHelper(kSRegSize, LeaveFlags); }
+TEST(sve_ptrue_d) { PtrueHelper(kDRegSize, LeaveFlags); }
+
+TEST(sve_ptrues_b) { PtrueHelper(kBRegSize, SetFlags); }
+TEST(sve_ptrues_h) { PtrueHelper(kHRegSize, SetFlags); }
+TEST(sve_ptrues_s) { PtrueHelper(kSRegSize, SetFlags); }
+TEST(sve_ptrues_d) { PtrueHelper(kDRegSize, SetFlags); }
+
+TEST(sve_pfalse) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Initialise non-zero inputs.
+  __ Ptrue(p0.VnB());
+  __ Ptrue(p1.VnH());
+  __ Ptrue(p2.VnS());
+  __ Ptrue(p3.VnD());
+
+  // The instruction only supports B-sized lanes, but the lane size has no
+  // logical effect, so the MacroAssembler accepts anything.
+  __ Pfalse(p0.VnB());
+  __ Pfalse(p1.VnH());
+  __ Pfalse(p2.VnS());
+  __ Pfalse(p3.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(0, p0.VnB());
+    ASSERT_EQUAL_SVE(0, p1.VnB());
+    ASSERT_EQUAL_SVE(0, p2.VnB());
+    ASSERT_EQUAL_SVE(0, p3.VnB());
+  }
+}
+
+TEST(sve_ptest) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Initialise NZCV to a known (impossible) value.
+  StatusFlags nzcv_unmodified = NZCVFlag;
+  __ Mov(x0, nzcv_unmodified);
+  __ Msr(NZCV, x0);
+
+  // Construct some test inputs.
+  int in2[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0};
+  int in3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0};
+  int in4[] = {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0};
+  __ Pfalse(p0.VnB());
+  __ Ptrue(p1.VnB());
+  Initialise(&masm, p2.VnB(), in2);
+  Initialise(&masm, p3.VnB(), in3);
+  Initialise(&masm, p4.VnB(), in4);
+
+  // All-inactive pg.
+  __ Ptest(p0, p0.VnB());
+  __ Mrs(x0, NZCV);
+  __ Ptest(p0, p1.VnB());
+  __ Mrs(x1, NZCV);
+  __ Ptest(p0, p2.VnB());
+  __ Mrs(x2, NZCV);
+  __ Ptest(p0, p3.VnB());
+  __ Mrs(x3, NZCV);
+  __ Ptest(p0, p4.VnB());
+  __ Mrs(x4, NZCV);
+
+  // All-active pg.
+  __ Ptest(p1, p0.VnB());
+  __ Mrs(x5, NZCV);
+  __ Ptest(p1, p1.VnB());
+  __ Mrs(x6, NZCV);
+  __ Ptest(p1, p2.VnB());
+  __ Mrs(x7, NZCV);
+  __ Ptest(p1, p3.VnB());
+  __ Mrs(x8, NZCV);
+  __ Ptest(p1, p4.VnB());
+  __ Mrs(x9, NZCV);
+
+  // Combinations of other inputs.
+  __ Ptest(p2, p2.VnB());
+  __ Mrs(x20, NZCV);
+  __ Ptest(p2, p3.VnB());
+  __ Mrs(x21, NZCV);
+  __ Ptest(p2, p4.VnB());
+  __ Mrs(x22, NZCV);
+  __ Ptest(p3, p2.VnB());
+  __ Mrs(x23, NZCV);
+  __ Ptest(p3, p3.VnB());
+  __ Mrs(x24, NZCV);
+  __ Ptest(p3, p4.VnB());
+  __ Mrs(x25, NZCV);
+  __ Ptest(p4, p2.VnB());
+  __ Mrs(x26, NZCV);
+  __ Ptest(p4, p3.VnB());
+  __ Mrs(x27, NZCV);
+  __ Ptest(p4, p4.VnB());
+  __ Mrs(x28, NZCV);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    StatusFlags zero = static_cast<StatusFlags>(SVENoneFlag | SVENotLastFlag);
+
+    // If pg is all inactive, the value of pn is irrelevant.
+    ASSERT_EQUAL_64(zero, x0);
+    ASSERT_EQUAL_64(zero, x1);
+    ASSERT_EQUAL_64(zero, x2);
+    ASSERT_EQUAL_64(zero, x3);
+    ASSERT_EQUAL_64(zero, x4);
+
+    // All-active pg.
+    ASSERT_EQUAL_64(zero, x5);          // All-inactive pn.
+    ASSERT_EQUAL_64(SVEFirstFlag, x6);  // All-active pn.
+    // Other pn inputs are non-zero, but the first and last lanes are inactive.
+    ASSERT_EQUAL_64(SVENotLastFlag, x7);
+    ASSERT_EQUAL_64(SVENotLastFlag, x8);
+    ASSERT_EQUAL_64(SVENotLastFlag, x9);
+
+    // Other inputs.
+    ASSERT_EQUAL_64(SVEFirstFlag, x20);  // pg: in2, pn: in2
+    ASSERT_EQUAL_64(NoFlag, x21);        // pg: in2, pn: in3
+    ASSERT_EQUAL_64(zero, x22);          // pg: in2, pn: in4
+    ASSERT_EQUAL_64(static_cast<StatusFlags>(SVEFirstFlag | SVENotLastFlag),
+                    x23);                // pg: in3, pn: in2
+    ASSERT_EQUAL_64(SVEFirstFlag, x24);  // pg: in3, pn: in3
+    ASSERT_EQUAL_64(zero, x25);          // pg: in3, pn: in4
+    ASSERT_EQUAL_64(zero, x26);          // pg: in4, pn: in2
+    ASSERT_EQUAL_64(zero, x27);          // pg: in4, pn: in3
+    ASSERT_EQUAL_64(SVEFirstFlag, x28);  // pg: in4, pn: in4
   }
 }
 

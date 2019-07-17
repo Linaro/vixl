@@ -372,7 +372,13 @@ void Instrument::Disable() {
   V("SVE", SVEPermuteVectorUnpredicated)                \
   V("SVE", SVEPredicateCount)                           \
   V("SVE", SVEPredicateLogicalOp)                       \
-  V("SVE", SVEPredicateMisc)                            \
+  V("SVE", SVEPredicateFirstActive)                     \
+  V("SVE", SVEPredicateInitialize)                      \
+  V("SVE", SVEPredicateNextActive)                      \
+  V("SVE", SVEPredicateReadFromFFR_Predicated)          \
+  V("SVE", SVEPredicateReadFromFFR_Unpredicated)        \
+  V("SVE", SVEPredicateTest)                            \
+  V("SVE", SVEPredicateZero)                            \
   V("SVE", SVEPropagateBreak)                           \
   V("SVE", SVEStackAllocation)                          \
   V("SVE", SVEVectorSelect)                             \

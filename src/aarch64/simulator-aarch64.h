@@ -113,16 +113,19 @@ class SimRegisterBase {
   // Write the specified value. The value is zero-extended if necessary.
   template <typename T>
   void Write(T new_value) {
-    if (sizeof(new_value) < GetSizeInBytes()) {
-      // All AArch64 registers are zero-extending.
-      memset(value_, 0, kMaxSizeInBytes);
-    }
+    // All AArch64 registers are zero-extending.
+    if (sizeof(new_value) < GetSizeInBytes()) Clear();
     WriteLane(new_value, 0);
     NotifyRegisterWrite();
   }
   template <typename T>
   VIXL_DEPRECATED("Write", void Set(T new_value)) {
     Write(new_value);
+  }
+
+  void Clear() {
+    memset(value_, 0, kMaxSizeInBytes);
+    NotifyRegisterWrite();
   }
 
   // Insert a typed value into a register, leaving the rest of the register
@@ -262,6 +265,11 @@ class LogicPRegister {
   }
 
   // The accessors for bulk processing.
+  int GetChunkCount() const {
+    VIXL_ASSERT((register_.GetSizeInBytes() % sizeof(ChunkType)) == 0);
+    return register_.GetSizeInBytes() / sizeof(ChunkType);
+  }
+
   ChunkType GetChunk(int lane) const {
     return register_.GetLane<ChunkType>(lane);
   }
@@ -278,6 +286,12 @@ class LogicPRegister {
          lane++) {
       SetChunk(lane, bits);
     }
+  }
+
+  void Clear() { register_.Clear(); }
+
+  bool Aliases(const LogicPRegister& other) const {
+    return &register_ == &other.register_;
   }
 
  private:
@@ -1481,13 +1495,6 @@ class Simulator : public DecoderVisitor {
   SimSystemRegister& ReadNzcv() { return nzcv_; }
   VIXL_DEPRECATED("ReadNzcv", SimSystemRegister& nzcv()) { return ReadNzcv(); }
 
-  void PredTest(VectorFormat vform, LogicPRegister mask, LogicPRegister bits) {
-    ReadNzcv().SetN(IsFirstActive(vform, mask, bits));
-    ReadNzcv().SetZ(AreNoneActive(vform, mask, bits));
-    ReadNzcv().SetC(!IsLastActive(vform, mask, bits));
-    ReadNzcv().SetV(0);
-  }
-
   // TODO: Find a way to make the fpcr_ members return the proper types, so
   // these accessors are not necessary.
   FPRounding ReadRMode() const {
@@ -2054,8 +2061,8 @@ class Simulator : public DecoderVisitor {
   }
 
   bool IsFirstActive(VectorFormat vform,
-                     LogicPRegister mask,
-                     LogicPRegister bits) {
+                     const LogicPRegister& mask,
+                     const LogicPRegister& bits) {
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       if (mask.IsActive(vform, i)) {
         return bits.IsActive(vform, i);
@@ -2065,8 +2072,8 @@ class Simulator : public DecoderVisitor {
   }
 
   bool AreNoneActive(VectorFormat vform,
-                     LogicPRegister mask,
-                     LogicPRegister bits) {
+                     const LogicPRegister& mask,
+                     const LogicPRegister& bits) {
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       if (mask.IsActive(vform, i) && bits.IsActive(vform, i)) {
         return false;
@@ -2076,14 +2083,24 @@ class Simulator : public DecoderVisitor {
   }
 
   bool IsLastActive(VectorFormat vform,
-                    LogicPRegister mask,
-                    LogicPRegister bits) {
+                    const LogicPRegister& mask,
+                    const LogicPRegister& bits) {
     for (int i = LaneCountFromFormat(vform) - 1; i >= 0; i--) {
       if (mask.IsActive(vform, i)) {
         return bits.IsActive(vform, i);
       }
     }
     return false;
+  }
+
+  void PredTest(VectorFormat vform,
+                const LogicPRegister& mask,
+                const LogicPRegister& bits) {
+    ReadNzcv().SetN(IsFirstActive(vform, mask, bits));
+    ReadNzcv().SetZ(AreNoneActive(vform, mask, bits));
+    ReadNzcv().SetC(!IsLastActive(vform, mask, bits));
+    ReadNzcv().SetV(0);
+    LogSystemRegister(NZCV);
   }
 
  protected:
@@ -2671,6 +2688,7 @@ class Simulator : public DecoderVisitor {
   LogicVRegister mov(VectorFormat vform,
                      LogicVRegister dst,
                      const LogicVRegister& src);
+  LogicPRegister mov(LogicPRegister dst, const LogicPRegister& src);
   LogicVRegister mov_merging(VectorFormat vform,
                              LogicVRegister dst,
                              const SimPRegister& pg,
@@ -3408,6 +3426,16 @@ class Simulator : public DecoderVisitor {
                         LogicVRegister dst,
                         const LogicVRegister& src);
 
+  LogicPRegister pfalse(LogicPRegister dst);
+  LogicPRegister pfirst(LogicPRegister dst,
+                        const LogicPRegister& pg,
+                        const LogicPRegister& src);
+  LogicPRegister ptrue(VectorFormat vform, LogicPRegister dst, int pattern);
+  LogicPRegister pnext(VectorFormat vform,
+                       LogicPRegister dst,
+                       const LogicPRegister& pg,
+                       const LogicPRegister& src);
+
   template <typename T>
   struct TFPMinMaxOp {
     typedef T (Simulator::*type)(T a, T b);
@@ -3569,7 +3597,16 @@ class Simulator : public DecoderVisitor {
                                             const LogicVRegister& src2,
                                             bool is_wide_elements = false);
 
-  int CountActiveLanes(VectorFormat vform, const SimPRegister& pn);
+  // Return the first or last active lane, or -1 if none are active.
+  int GetFirstActive(VectorFormat vform, const LogicPRegister& pg) const;
+  int GetLastActive(VectorFormat vform, const LogicPRegister& pg) const;
+
+  int CountActiveLanes(VectorFormat vform, const LogicPRegister& pg) const;
+
+  // Count the number of lanes referred to by `pattern`, given the vector
+  // length. If `pattern` is not a recognised SVEPredicateConstraint, this
+  // returns zero.
+  int GetPredicateConstraintLaneCount(VectorFormat vform, int pattern) const;
 
   // Simulate a runtime call.
   void DoRuntimeCall(const Instruction* instr);

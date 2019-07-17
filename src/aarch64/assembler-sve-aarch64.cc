@@ -7720,6 +7720,7 @@ void Assembler::pfalse(const PRegisterWithLaneSize& pd) {
   //  op<23> = 0 | S<22> = 0 | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  // Ignore the lane size, since it makes no difference to the operation.
 
   Emit(PFALSE_p | Pd(pd));
 }
@@ -7734,6 +7735,7 @@ void Assembler::pfirst(const PRegisterWithLaneSize& pd,
   USE(pn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(pd.Is(pn));
+  VIXL_ASSERT(pd.IsLaneSizeB());
 
   Emit(PFIRST_p_p_p | Pd(pd) | Rx<8, 5>(pg));
 }
@@ -7749,7 +7751,7 @@ void Assembler::pnext(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(pd.Is(pn));
 
-  Emit(PNEXT_p_p_p | Pd(pd) | Rx<8, 5>(pg));
+  Emit(PNEXT_p_p_p | SVESize(pd) | Pd(pd) | Rx<8, 5>(pg));
 }
 
 void Assembler::ptest(const PRegister& pg, const PRegisterWithLaneSize& pn) {
@@ -7758,6 +7760,7 @@ void Assembler::ptest(const PRegister& pg, const PRegisterWithLaneSize& pn) {
   //  op<23> = 0 | S<22> = 1 | Pg<13:10> | Pn<8:5> | opc2<3:0> = 0000
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(pn.IsLaneSizeB());
 
   Emit(PTEST_p_p | Rx<13, 10>(pg) | Rx<8, 5>(pn));
 }
@@ -7769,7 +7772,7 @@ void Assembler::ptrue(const PRegisterWithLaneSize& pd, int pattern) {
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(PTRUE_p_s | Pd(pd) | ImmField<9, 5>(pattern));
+  Emit(PTRUE_p_s | SVESize(pd) | Pd(pd) | ImmSVEPredicateConstraint(pattern));
 }
 
 void Assembler::ptrues(const PRegisterWithLaneSize& pd, int pattern) {
@@ -7779,7 +7782,7 @@ void Assembler::ptrues(const PRegisterWithLaneSize& pd, int pattern) {
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(PTRUES_p_s | Pd(pd) | ImmField<9, 5>(pattern));
+  Emit(PTRUES_p_s | SVESize(pd) | Pd(pd) | ImmSVEPredicateConstraint(pattern));
 }
 
 void Assembler::rdffr(const PRegisterWithLaneSize& pd) {
