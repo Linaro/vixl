@@ -270,15 +270,23 @@ inline void USE(const T1&, const T2&, const T3&, const T4&) {}
 
 // Target Architecture/ISA
 #ifdef VIXL_INCLUDE_TARGET_A64
+#ifndef VIXL_INCLUDE_TARGET_AARCH64
 #define VIXL_INCLUDE_TARGET_AARCH64
+#endif
 #endif
 
 #if defined(VIXL_INCLUDE_TARGET_A32) && defined(VIXL_INCLUDE_TARGET_T32)
+#ifndef VIXL_INCLUDE_TARGET_AARCH32
 #define VIXL_INCLUDE_TARGET_AARCH32
+#endif
 #elif defined(VIXL_INCLUDE_TARGET_A32)
+#ifndef VIXL_INCLUDE_TARGET_A32_ONLY
 #define VIXL_INCLUDE_TARGET_A32_ONLY
+#endif
 #else
+#ifndef VIXL_INCLUDE_TARGET_T32_ONLY
 #define VIXL_INCLUDE_TARGET_T32_ONLY
+#endif
 #endif
 
 

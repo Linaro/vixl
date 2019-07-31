@@ -1,4 +1,4 @@
-// Copyright 2016, VIXL authors
+// Copyright 2019, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -24,48 +24,39 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "examples.h"
+#include "globals-vixl.h"
+
+#include "aarch64/instructions-aarch64.h"
+#include "aarch64/macro-assembler-aarch64.h"
+
+#include "bench-utils.h"
 
 using namespace vixl;
-using namespace vixl::aarch32;
+using namespace vixl::aarch64;
 
-#define __ masm->
+// This program measures code generation time using the MacroAssembler. It aims
+// to be representative of realistic usage, but is not based on real traces.
+int main(int argc, char* argv[]) {
+  BenchCLI cli(argc, argv);
+  if (cli.ShouldExitEarly()) return cli.GetExitCode();
 
-void GenerateDemo(MacroAssembler* masm) {
-  // uint32_t demo(uint32_t x)
+  const size_t buffer_size = 256 * KBytes;
+  MacroAssembler masm(buffer_size);
+  masm.SetCPUFeatures(CPUFeatures::All());
+  BenchCodeGenerator generator(&masm);
 
-  // Load a constant in r1 using the literal pool.
-  __ Ldr(r1, 0x12345678);
-  __ And(r0, r0, r1);
-  __ Bx(lr);
+  BenchTimer timer;
+
+  size_t iterations = 0;
+  do {
+    masm.Reset();
+
+    generator.Generate(buffer_size);
+
+    masm.FinalizeCode();
+    iterations++;
+  } while (!timer.HasRunFor(cli.GetRunTimeInSeconds()));
+
+  cli.PrintResults(iterations, timer.GetElapsedSeconds());
+  return cli.GetExitCode();
 }
-
-
-#ifndef TEST_EXAMPLES
-int main() {
-  MacroAssembler masm;
-  // Generate the code for the example function.
-  Label demo;
-  // Tell the macro assembler that the label "demo" refer to the current
-  // location in the buffer.
-  masm.Bind(&demo);
-  GenerateDemo(&masm);
-  // Ensure that everything is generated and that the generated buffer is
-  // ready to use.
-  masm.FinalizeCode();
-#ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
-// There is no simulator defined for VIXL AArch32.
-#else
-  byte* code = masm.GetBuffer()->GetStartAddress<byte*>();
-  uint32_t code_size = masm.GetSizeOfCodeGenerated();
-  ExecutableMemory memory(code, code_size);
-  // Run the example function.
-  uint32_t (*demo_function)(uint32_t) = memory.GetEntryPoint<uint32_t (*)(
-      uint32_t)>(demo, masm.GetInstructionSetInUse());
-  uint32_t input_value = 0x89abcdef;
-  uint32_t output_value = (*demo_function)(input_value);
-  printf("native: demo(0x%08x) = 0x%08x\n", input_value, output_value);
-#endif
-  return 0;
-}
-#endif  // TEST_EXAMPLES

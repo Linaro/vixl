@@ -27,7 +27,27 @@
 #include "non-const-visitor.h"
 #include "examples.h"
 
+using namespace vixl;
+using namespace vixl::aarch64;
+
 #define __ masm->
+
+
+void SwitchAddSubRegisterSources::VisitAddSubShifted(const Instruction* instr) {
+  int rn = instr->GetRn();
+  int rm = instr->GetRm();
+  // Only non-const visitors are allowed to discard constness of the visited
+  // instruction.
+  Instruction* mutable_instr = MutableInstruction(instr);
+  Instr instr_bits = mutable_instr->GetInstructionBits();
+
+  // Switch the bitfields for the `rn` and `rm` registers.
+  instr_bits &= ~(Rn_mask | Rm_mask);
+  instr_bits |= (rn << Rm_offset) | (rm << Rn_offset);
+
+  // Rewrite the instruction.
+  mutable_instr->SetInstructionBits(instr_bits);
+}
 
 
 void GenerateNonConstVisitorTestCode(MacroAssembler* masm) {

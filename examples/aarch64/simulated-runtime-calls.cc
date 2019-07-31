@@ -30,6 +30,9 @@
 #include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/simulator-aarch64.h"
 
+using namespace vixl;
+using namespace vixl::aarch64;
+
 #ifdef VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
 
 #define __ masm->

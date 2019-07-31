@@ -1933,6 +1933,7 @@ void Assembler::LoadStoreStructVerify(const VRegister& vt,
   // Assert that addressing mode is either offset (with immediate 0), post
   // index by immediate of the size of the register list, or post index by a
   // value in a core register.
+  VIXL_ASSERT(vt.HasSize() && vt.HasLaneSize());
   if (addr.IsImmediateOffset()) {
     VIXL_ASSERT(addr.GetOffset() == 0);
   } else {

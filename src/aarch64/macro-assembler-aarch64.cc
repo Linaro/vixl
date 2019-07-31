@@ -509,7 +509,7 @@ int MacroAssembler::MoveImmediateHelper(MacroAssembler* masm,
 
 bool MacroAssembler::OneInstrMoveImmediateHelper(MacroAssembler* masm,
                                                  const Register& dst,
-                                                 int64_t imm) {
+                                                 uint64_t imm) {
   bool emit_code = masm != NULL;
   unsigned n, imm_s, imm_r;
   int reg_size = dst.GetSizeInBits();
@@ -1620,13 +1620,13 @@ void MacroAssembler::Negs(const Register& rd, const Operand& operand) {
 
 
 bool MacroAssembler::TryOneInstrMoveImmediate(const Register& dst,
-                                              int64_t imm) {
+                                              uint64_t imm) {
   return OneInstrMoveImmediateHelper(this, dst, imm);
 }
 
 
 Operand MacroAssembler::MoveImmediateForShiftedOp(const Register& dst,
-                                                  int64_t imm,
+                                                  uint64_t imm,
                                                   PreShiftImmMode mode) {
   int reg_size = dst.GetSizeInBits();
 
@@ -1643,12 +1643,17 @@ Operand MacroAssembler::MoveImmediateForShiftedOp(const Register& dst,
       // immediate is tested.
       shift_low = std::min(shift_low, 4);
     }
-    int64_t imm_low = imm >> shift_low;
+    // TryOneInstrMoveImmediate handles `imm` with a value of zero, so shift_low
+    // must lie in the range [0, 63], and the shifts below are well-defined.
+    VIXL_ASSERT((shift_low >= 0) && (shift_low < 64));
+    // imm_low = imm >> shift_low (with sign extension)
+    uint64_t imm_low = ExtractSignedBitfield64(63, shift_low, imm);
 
     // Pre-shift the immediate to the most-significant bits of the register,
     // inserting set bits in the least-significant bits.
     int shift_high = CountLeadingZeros(imm, reg_size);
-    int64_t imm_high = (imm << shift_high) | ((INT64_C(1) << shift_high) - 1);
+    VIXL_ASSERT((shift_high >= 0) && (shift_high < 64));
+    uint64_t imm_high = (imm << shift_high) | GetUintMask(shift_high);
 
     if ((mode != kNoShift) && TryOneInstrMoveImmediate(dst, imm_low)) {
       // The new immediate has been moved into the destination's low bits:

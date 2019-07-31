@@ -30,31 +30,17 @@
 #include "aarch64/decoder-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 
-using namespace vixl::aarch64;
-
-class SwitchAddSubRegisterSources : public DecoderVisitor {
+class SwitchAddSubRegisterSources : public vixl::aarch64::DecoderVisitor {
  public:
   SwitchAddSubRegisterSources()
-      : DecoderVisitor(DecoderVisitor::kNonConstVisitor) {}
+      : vixl::aarch64::DecoderVisitor(kNonConstVisitor) {}
 
   // Our visitor switches the register sources for some add and sub instructions
   // (not all add and sub instructions). Visitors are listed by the macro
   // `VISITOR_LIST` in aarch64/decoder-aarch64.h.
-  virtual void VisitAddSubShifted(const Instruction* instr) VIXL_OVERRIDE {
-    int rn = instr->GetRn();
-    int rm = instr->GetRm();
-    // Only non-const visitors are allowed to discard constness of the visited
-    // instruction.
-    Instruction* mutable_instr = MutableInstruction(instr);
-    Instr instr_bits = mutable_instr->GetInstructionBits();
 
-    // Switch the bitfields for the `rn` and `rm` registers.
-    instr_bits &= ~(Rn_mask | Rm_mask);
-    instr_bits |= (rn << Rm_offset) | (rm << Rn_offset);
-
-    // Rewrite the instruction.
-    mutable_instr->SetInstructionBits(instr_bits);
-  }
+  virtual void VisitAddSubShifted(const vixl::aarch64::Instruction* instr)
+      VIXL_OVERRIDE;
 
 // Define the remaining visitors to do nothing.
 #define UNUSED_VISITOR_LIST(V)             \
@@ -193,7 +179,8 @@ class SwitchAddSubRegisterSources : public DecoderVisitor {
   V(Unallocated)                           \
   V(Unimplemented)
 #define DEFINE_UNUSED_VISITOR(Name)                                  \
-  virtual void Visit##Name(const Instruction* i) VIXL_OVERRIDE {     \
+  virtual void Visit##Name(const vixl::aarch64::Instruction* i)      \
+      VIXL_OVERRIDE {                                                \
     USE(i); /* Prevents compiler warnings about unused variables. */ \
   }
   UNUSED_VISITOR_LIST(DEFINE_UNUSED_VISITOR)
@@ -202,12 +189,13 @@ class SwitchAddSubRegisterSources : public DecoderVisitor {
 };
 
 
-void GenerateNonConstVisitorTestCode(MacroAssembler* masm);
+void GenerateNonConstVisitorTestCode(vixl::aarch64::MacroAssembler* masm);
 
-int64_t RunNonConstVisitorTestGeneratedCode(const Instruction* start_instr);
+int64_t RunNonConstVisitorTestGeneratedCode(
+    const vixl::aarch64::Instruction* start_instr);
 
-void ModifyNonConstVisitorTestGeneratedCode(Instruction* start,
-                                            Instruction* end);
+void ModifyNonConstVisitorTestGeneratedCode(vixl::aarch64::Instruction* start,
+                                            vixl::aarch64::Instruction* end);
 
 
 #endif

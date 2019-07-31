@@ -1,8 +1,26 @@
 ---
-# TODO: Expand the list of checks. This is just a placeholder, since the list
-# cannot be empty.
-Checks:          '-*,google-runtime-int'
-HeaderFilterRegex: ''
+# We use the clang-tidy defaults and the Google styles as a baseline, with a
+# few changes specific to VIXL:
+#   -google-readability-todo:
+#       We don't put names on TODOs.
+#   -google-readability-function-size:
+#       There are cases where we need (or generate) very long functions,
+#       particularly involving macro-generated encoding tables and so on.
+#   -google-build-using-namespace:
+#       We do this in internal contexts (typically in .cc files), but clang-tidy
+#       cannot tell the difference.
+#   -google-explicit-constructor:
+#       We follow this rule, but have some exceptions that are annotated using
+#       cpplint's NOLINT format.
+#
+# TODO: The following _should_ be enabled, but currently show several failures:
+#   google-readability-braces-around-statements
+#   google-readability-namespace-comments
+#   google-readability-casting
+#
+# TODO: Also consider enabling other rules, such as bugprone-* and cert-*.
+Checks:          'google-*,-google-readability-todo,-google-readability-function-size,-google-build-using-namespace,-google-explicit-constructor,-google-readability-braces-around-statements,-google-readability-namespace-comments,-google-readability-casting'
+HeaderFilterRegex: '\.h$'
 AnalyzeTemporaryDtors: false
 CheckOptions:
 ...

@@ -690,14 +690,14 @@ TEST(MustEmitNewReferenceDueToRange) {
   PoolManager<int32_t> pool_manager(kHeaderSize,
                                     kHeaderAlignment,
                                     BUFFER_ALIGNMENT);
-  pc = AddNBranches(&pool_manager,
-                    pc,
-                    labels,
-                    kNumBranches,
-                    kBranchSize,
-                    kVeneerSize,
-                    kVeneerAlignment,
-                    kBranchRange);
+  AddNBranches(&pool_manager,
+               pc,
+               labels,
+               kNumBranches,
+               kBranchSize,
+               kVeneerSize,
+               kVeneerAlignment,
+               kBranchRange);
 
   // Increment PC to close to the checkpoint of the pools.
   TestPoolManager test(&pool_manager);
@@ -786,14 +786,14 @@ TEST(MustEmitNewReferenceDueToSizeOfObject) {
                                     kHeaderAlignment,
                                     BUFFER_ALIGNMENT);
   TestBranchObject *labels[kNumBranches];
-  pc = AddNBranches(&pool_manager,
-                    pc,
-                    labels,
-                    kNumBranches,
-                    kBranchSize,
-                    kVeneerSize,
-                    kVeneerAlignment,
-                    kBranchRange);
+  AddNBranches(&pool_manager,
+               pc,
+               labels,
+               kNumBranches,
+               kBranchSize,
+               kVeneerSize,
+               kVeneerAlignment,
+               kBranchRange);
 
 
   // Increment PC to close to the checkpoint of the pools minus a known

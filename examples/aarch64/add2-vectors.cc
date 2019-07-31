@@ -26,6 +26,9 @@
 
 #include "examples.h"
 
+using namespace vixl;
+using namespace vixl::aarch64;
+
 // Macro to compute the number of elements in a vector.
 #define ARRAY_SIZE(Array) (sizeof(Array) / sizeof((Array)[0]))
 #define __ masm->

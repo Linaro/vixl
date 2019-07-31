@@ -1161,17 +1161,18 @@ bool IsVectorFormat(VectorFormat vform) {
 
 
 int64_t MaxIntFromFormat(VectorFormat vform) {
-  return INT64_MAX >> (64 - LaneSizeInBitsFromFormat(vform));
+  int lane_size = LaneSizeInBitsFromFormat(vform);
+  return static_cast<int64_t>(GetUintMask(lane_size) >> 1);
 }
 
 
 int64_t MinIntFromFormat(VectorFormat vform) {
-  return INT64_MIN >> (64 - LaneSizeInBitsFromFormat(vform));
+  return -MaxIntFromFormat(vform) - 1;
 }
 
 
 uint64_t MaxUintFromFormat(VectorFormat vform) {
-  return UINT64_MAX >> (64 - LaneSizeInBitsFromFormat(vform));
+  return GetUintMask(LaneSizeInBitsFromFormat(vform));
 }
 
 }  // namespace aarch64

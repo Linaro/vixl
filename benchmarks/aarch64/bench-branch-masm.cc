@@ -1,4 +1,4 @@
-// Copyright 2015, VIXL authors
+// Copyright 2019, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -24,66 +24,47 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <sys/time.h>
 #include "globals-vixl.h"
 
 #include "aarch64/instructions-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 
+#include "bench-utils.h"
+
 using namespace vixl;
 using namespace vixl::aarch64;
-
-static const int kDefaultIterationCount = 100000;
 
 // This program focuses on emitting branch instructions targeting a label bound
 // very closely. Here the MacroAssembler is used. This exercises label binding
 // and patching mechanisms, as well as the veneer resolving mechanisms for
 // branches not requiring veneers.
 int main(int argc, char* argv[]) {
-  int iterations = 0;
+  BenchCLI cli(argc, argv);
+  if (cli.ShouldExitEarly()) return cli.GetExitCode();
 
-  switch (argc) {
-    case 1:
-      iterations = kDefaultIterationCount;
-      break;
-    case 2:
-      iterations = atoi(argv[1]);
-      break;
-    default:
-      printf("Usage: %s [#iterations]\n", argv[0]);
-      exit(1);
-  }
-
-  const int buffer_size = 256 * KBytes;
-  const int instructions_per_iteration = 4;
-  const int max_buffer_iterations =
+  const size_t buffer_size = 256 * KBytes;
+  const size_t instructions_per_iteration = 4;
+  const size_t max_buffer_iterations =
       buffer_size / (instructions_per_iteration * kInstructionSize);
-
-  timeval start;
-  gettimeofday(&start, NULL);
   MacroAssembler masm(buffer_size);
 
-#define __ masm.
+  BenchTimer timer;
 
-  for (int i = 0; i < iterations;) {
+  size_t iterations = 0;
+  do {
     masm.Reset();
-    for (int j = 0; (j < max_buffer_iterations) && (i < iterations); ++j, ++i) {
+    for (size_t i = 0; i < max_buffer_iterations; ++i) {
       Label target;
-      __ B(&target);
-      __ B(eq, &target);
-      __ Cbz(x2, &target);
-      __ Tbz(x3, 2, &target);
-      __ Bind(&target);
+      masm.B(&target);
+      masm.B(eq, &target);
+      masm.Cbz(x2, &target);
+      masm.Tbz(x3, 2, &target);
+      masm.Bind(&target);
     }
-  }
+    masm.FinalizeCode();
+    iterations++;
+  } while (!timer.HasRunFor(cli.GetRunTimeInSeconds()));
 
-  masm.FinalizeCode();
-
-  timeval end;
-  gettimeofday(&end, NULL);
-  double delta = (end.tv_sec - start.tv_sec) +
-                 static_cast<double>(end.tv_usec - start.tv_usec) / 1000000;
-  printf("A64: time for %d iterations: %gs\n", iterations, delta);
-
-  return 0;
+  cli.PrintResults(iterations, timer.GetElapsedSeconds());
+  return cli.GetExitCode();
 }

@@ -26,6 +26,9 @@
 
 #include "examples.h"
 
+using namespace vixl;
+using namespace vixl::aarch32;
+
 #define __ masm->
 
 void GenerateAbs(MacroAssembler* masm) {

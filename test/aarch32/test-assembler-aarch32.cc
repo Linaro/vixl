@@ -3534,7 +3534,6 @@ TEST_T32(near_branch_fuzz) {
   seed48(seed);
 
   const int label_count = 31;
-  bool allbound;
   Label* l;
 
   // Use multiple iterations, as each produces a different predictably random
@@ -3552,8 +3551,6 @@ TEST_T32(near_branch_fuzz) {
   // ratio in the sequence is fixed at 4:1 by the ratio of cases.
   for (int case_count = 6; case_count < 37; case_count++) {
     for (int iter = 0; iter < iterations; iter++) {
-      // Reset local state.
-      allbound = false;
       l = new Label[label_count];
 
       // Set r0 != 0 to force no branches to be taken. Also acts as a marker
@@ -3602,11 +3599,11 @@ TEST_T32(near_branch_fuzz) {
 
         // If all labels have been bound, exit the inner loop and finalise the
         // code.
-        allbound = true;
+        bool all_bound = true;
         for (int i = 0; i < label_count; i++) {
-          allbound = allbound && l[i].IsBound();
+          all_bound = all_bound && l[i].IsBound();
         }
-        if (allbound) break;
+        if (all_bound) break;
       }
 
       // Ensure that the veneer pools are emitted, to keep each branch/bind test
@@ -3634,7 +3631,6 @@ static void NearBranchAndLiteralFuzzHelper(InstructionSet isa,
 
   const int label_count = 15;
   const int literal_count = 31;
-  bool allbound;
   Label* labels;
   uint64_t* literal_values;
   Literal<uint64_t>* literals[literal_count];
@@ -3678,7 +3674,6 @@ static void NearBranchAndLiteralFuzzHelper(InstructionSet isa,
         Label end;
 
         // Reset local state.
-        allbound = false;
         labels = new Label[label_count];
 
         // Create new literal values.
@@ -3861,11 +3856,11 @@ static void NearBranchAndLiteralFuzzHelper(InstructionSet isa,
 
           // If all labels have been bound, exit the inner loop and finalise the
           // code.
-          allbound = true;
+          bool all_bound = true;
           for (int i = 0; i < label_count; i++) {
-            allbound = allbound && labels[i].IsBound();
+            all_bound = all_bound && labels[i].IsBound();
           }
-          if (allbound) break;
+          if (all_bound) break;
         }
 
         __ B(&end);

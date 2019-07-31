@@ -29,27 +29,27 @@
 
 #include "aarch64/disasm-aarch64.h"
 
-using namespace vixl::aarch64;
-
 void TestCustomDisassembler();
 
 // We want to change three things in the disassembly:
 // - Add comments to some add/sub instructions.
 // - Use aliases for register names.
 // - Add descriptions for code addresses.
-class CustomDisassembler : public Disassembler {
+class CustomDisassembler : public vixl::aarch64::Disassembler {
  public:
-  CustomDisassembler() : Disassembler() {}
+  CustomDisassembler() : vixl::aarch64::Disassembler() {}
   virtual ~CustomDisassembler() {}
 
-  virtual void VisitAddSubShifted(const Instruction* instr) VIXL_OVERRIDE;
+  virtual void VisitAddSubShifted(const vixl::aarch64::Instruction* instr)
+      VIXL_OVERRIDE;
 
  protected:
-  virtual void AppendRegisterNameToOutput(const Instruction* instr,
-                                          const CPURegister& reg) VIXL_OVERRIDE;
+  virtual void AppendRegisterNameToOutput(
+      const vixl::aarch64::Instruction* instr,
+      const vixl::aarch64::CPURegister& reg) VIXL_OVERRIDE;
 
   virtual void AppendCodeRelativeCodeAddressToOutput(
-      const Instruction* instr, const void* addr) VIXL_OVERRIDE;
+      const vixl::aarch64::Instruction* instr, const void* addr) VIXL_OVERRIDE;
 };
 
 

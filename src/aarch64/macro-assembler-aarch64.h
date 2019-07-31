@@ -687,7 +687,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                  uint64_t imm);
   static bool OneInstrMoveImmediateHelper(MacroAssembler* masm,
                                           const Register& dst,
-                                          int64_t imm);
+                                          uint64_t imm);
 
 
   // Logical macros.
@@ -757,7 +757,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // Try to move an immediate into the destination register in a single
   // instruction. Returns true for success, and updates the contents of dst.
   // Returns false, otherwise.
-  bool TryOneInstrMoveImmediate(const Register& dst, int64_t imm);
+  bool TryOneInstrMoveImmediate(const Register& dst, uint64_t imm);
 
   // Move an immediate into register dst, and return an Operand object for
   // use with a subsequent instruction that accepts a shift. The value moved
@@ -765,7 +765,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // operation applied to it that will be subsequently undone by the shift
   // applied in the Operand.
   Operand MoveImmediateForShiftedOp(const Register& dst,
-                                    int64_t imm,
+                                    uint64_t imm,
                                     PreShiftImmMode mode);
 
   void Move(const GenericOperand& dst, const GenericOperand& src);

@@ -27,6 +27,8 @@
 #include "custom-disassembler.h"
 #include "examples.h"
 
+using namespace vixl;
+using namespace vixl::aarch64;
 
 #define __ masm->
 
