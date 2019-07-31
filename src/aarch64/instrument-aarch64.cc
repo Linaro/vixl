@@ -254,30 +254,146 @@ void Instrument::Disable() {
   }
 }
 
+// Most visitors have exactly the same form, so use a macro list to define them.
+#define VIXL_SIMPLE_INSTRUMENT_VISITOR_LIST(V)          \
+  V("Add/Sub DP", AddSubExtended)                       \
+  V("Add/Sub DP", AddSubImmediate)                      \
+  V("Add/Sub DP", AddSubShifted)                        \
+  V("Add/Sub DP", AddSubWithCarry)                      \
+  V("Compare and Branch", CompareBranch)                \
+  V("Conditional Branch", ConditionalBranch)            \
+  V("Conditional Compare", ConditionalCompareImmediate) \
+  V("Conditional Compare", ConditionalCompareRegister)  \
+  V("Conditional Compare", FPConditionalCompare)        \
+  V("Conditional Select", ConditionalSelect)            \
+  V("Conditional Select", FPConditionalSelect)          \
+  V("Crypto", Crypto2RegSHA)                            \
+  V("Crypto", Crypto3RegSHA)                            \
+  V("Crypto", CryptoAES)                                \
+  V("FP DP", FPCompare)                                 \
+  V("FP DP", FPDataProcessing1Source)                   \
+  V("FP DP", FPDataProcessing2Source)                   \
+  V("FP DP", FPDataProcessing3Source)                   \
+  V("FP DP", FPFixedPointConvert)                       \
+  V("FP DP", FPImmediate)                               \
+  V("FP DP", FPIntegerConvert)                          \
+  V("Load Integer", LoadStorePAC)                       \
+  V("Load Literal", LoadLiteral)                        \
+  V("Logical DP", LogicalImmediate)                     \
+  V("Logical DP", LogicalShifted)                       \
+  V("NEON", NEON2RegMisc)                               \
+  V("NEON", NEON2RegMiscFP16)                           \
+  V("NEON", NEON3Different)                             \
+  V("NEON", NEON3Same)                                  \
+  V("NEON", NEON3SameExtra)                             \
+  V("NEON", NEON3SameFP16)                              \
+  V("NEON", NEONAcrossLanes)                            \
+  V("NEON", NEONByIndexedElement)                       \
+  V("NEON", NEONCopy)                                   \
+  V("NEON", NEONExtract)                                \
+  V("NEON", NEONLoadStoreMultiStruct)                   \
+  V("NEON", NEONLoadStoreMultiStructPostIndex)          \
+  V("NEON", NEONLoadStoreSingleStruct)                  \
+  V("NEON", NEONLoadStoreSingleStructPostIndex)         \
+  V("NEON", NEONModifiedImmediate)                      \
+  V("NEON", NEONPerm)                                   \
+  V("NEON", NEONScalar2RegMisc)                         \
+  V("NEON", NEONScalar2RegMiscFP16)                     \
+  V("NEON", NEONScalar3Diff)                            \
+  V("NEON", NEONScalar3Same)                            \
+  V("NEON", NEONScalar3SameExtra)                       \
+  V("NEON", NEONScalar3SameFP16)                        \
+  V("NEON", NEONScalarByIndexedElement)                 \
+  V("NEON", NEONScalarCopy)                             \
+  V("NEON", NEONScalarPairwise)                         \
+  V("NEON", NEONScalarShiftImmediate)                   \
+  V("NEON", NEONShiftImmediate)                         \
+  V("NEON", NEONTable)                                  \
+  V("Other Int DP", Bitfield)                           \
+  V("Other Int DP", DataProcessing1Source)              \
+  V("Other Int DP", DataProcessing2Source)              \
+  V("Other Int DP", DataProcessing3Source)              \
+  V("Other Int DP", Extract)                            \
+  V("Other", AtomicMemory)                              \
+  V("Other", EvaluateIntoFlags)                         \
+  V("Other", Exception)                                 \
+  V("Other", LoadStoreExclusive)                        \
+  V("Other", Reserved)                                  \
+  V("Other", RotateRightIntoFlags)                      \
+  V("Other", System)                                    \
+  V("Other", Unallocated)                               \
+  V("Other", Unimplemented)                             \
+  V("PC Addressing", PCRelAddressing)                   \
+  V("SVE", SVEAddressGeneration)                        \
+  V("SVE", SVEBitwiseImm)                               \
+  V("SVE", SVEBitwiseLogicalUnpredicated)               \
+  V("SVE", SVEBitwiseShiftPredicated)                   \
+  V("SVE", SVEBitwiseShiftUnpredicated)                 \
+  V("SVE", SVEElementCount)                             \
+  V("SVE", SVEFPAccumulatingReduction)                  \
+  V("SVE", SVEFPArithmeticPredicated)                   \
+  V("SVE", SVEFPArithmeticUnpredicated)                 \
+  V("SVE", SVEFPCompareVectors)                         \
+  V("SVE", SVEFPCompareWithZero)                        \
+  V("SVE", SVEFPComplexAddition)                        \
+  V("SVE", SVEFPComplexMulAdd)                          \
+  V("SVE", SVEFPComplexMulAddIndex)                     \
+  V("SVE", SVEFPFastReduction)                          \
+  V("SVE", SVEFPMulAdd)                                 \
+  V("SVE", SVEFPMulAddIndex)                            \
+  V("SVE", SVEFPMulIndex)                               \
+  V("SVE", SVEFPUnaryOpPredicated)                      \
+  V("SVE", SVEFPUnaryOpUnpredicated)                    \
+  V("SVE", SVEIncDecByPredicateCount)                   \
+  V("SVE", SVEIndexGeneration)                          \
+  V("SVE", SVEIntArithmeticUnpredicated)                \
+  V("SVE", SVEIntBinaryArithmeticPredicated)            \
+  V("SVE", SVEIntCompareScalars)                        \
+  V("SVE", SVEIntCompareSignedImm)                      \
+  V("SVE", SVEIntCompareUnsignedImm)                    \
+  V("SVE", SVEIntCompareVectors)                        \
+  V("SVE", SVEIntMiscUnpredicated)                      \
+  V("SVE", SVEIntMulAddPredicated)                      \
+  V("SVE", SVEIntMulAddUnpredicated)                    \
+  V("SVE", SVEIntReduction)                             \
+  V("SVE", SVEIntUnaryArithmeticPredicated)             \
+  V("SVE", SVEIntWideImmPredicated)                     \
+  V("SVE", SVEIntWideImmUnpredicated)                   \
+  V("SVE", SVEMem32BitGatherAndUnsizedContiguous)       \
+  V("SVE", SVEMem64BitGather)                           \
+  V("SVE", SVEMemContiguousLoad)                        \
+  V("SVE", SVEMemStore)                                 \
+  V("SVE", SVEMulIndex)                                 \
+  V("SVE", SVEPartitionBreak)                           \
+  V("SVE", SVEPermutePredicate)                         \
+  V("SVE", SVEPermuteVectorExtract)                     \
+  V("SVE", SVEPermuteVectorInterleaving)                \
+  V("SVE", SVEPermuteVectorPredicated)                  \
+  V("SVE", SVEPermuteVectorUnpredicated)                \
+  V("SVE", SVEPredicateCount)                           \
+  V("SVE", SVEPredicateLogicalOp)                       \
+  V("SVE", SVEPredicateMisc)                            \
+  V("SVE", SVEPropagateBreak)                           \
+  V("SVE", SVEStackAllocation)                          \
+  V("SVE", SVEVectorSelect)                             \
+  V("SVE", SVEWriteFFR)                                 \
+  V("Test and Branch", TestBranch)                      \
+  V("Unconditional Branch", UnconditionalBranch)        \
+  V("Unconditional Branch", UnconditionalBranchToRegister)
 
-void Instrument::VisitPCRelAddressing(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("PC Addressing");
-  counter->Increment();
-}
+#define VIXL_DEFINE_SIMPLE_INSTRUMENT_VISITOR(COUNTER, NAME) \
+  void Instrument::Visit##NAME(const Instruction* instr) {   \
+    USE(instr);                                              \
+    Update();                                                \
+    GetCounter(COUNTER)->Increment();                        \
+  }
 
+VIXL_SIMPLE_INSTRUMENT_VISITOR_LIST(VIXL_DEFINE_SIMPLE_INSTRUMENT_VISITOR)
 
-void Instrument::VisitAddSubImmediate(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Add/Sub DP");
-  counter->Increment();
-}
+#undef VIXL_DEFINE_SIMPLE_INSTRUMENT_VISITOR
+#undef VIXL_SIMPLE_INSTRUMENT_VISITOR_LIST
 
-
-void Instrument::VisitLogicalImmediate(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Logical DP");
-  counter->Increment();
-}
-
+// Other visitors require more analysis.
 
 void Instrument::VisitMoveWideImmediate(const Instruction* instr) {
   Update();
@@ -291,79 +407,6 @@ void Instrument::VisitMoveWideImmediate(const Instruction* instr) {
   }
 }
 
-
-void Instrument::VisitBitfield(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other Int DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitExtract(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other Int DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitUnconditionalBranch(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Unconditional Branch");
-  counter->Increment();
-}
-
-
-void Instrument::VisitUnconditionalBranchToRegister(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Unconditional Branch");
-  counter->Increment();
-}
-
-
-void Instrument::VisitCompareBranch(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Compare and Branch");
-  counter->Increment();
-}
-
-
-void Instrument::VisitTestBranch(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Test and Branch");
-  counter->Increment();
-}
-
-
-void Instrument::VisitConditionalBranch(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Conditional Branch");
-  counter->Increment();
-}
-
-
-void Instrument::VisitSystem(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other");
-  counter->Increment();
-}
-
-
-void Instrument::VisitException(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other");
-  counter->Increment();
-}
-
-
 void Instrument::InstrumentLoadStorePair(const Instruction* instr) {
   static Counter* load_pair_counter = GetCounter("Load Pair");
   static Counter* store_pair_counter = GetCounter("Store Pair");
@@ -375,62 +418,25 @@ void Instrument::InstrumentLoadStorePair(const Instruction* instr) {
   }
 }
 
-
 void Instrument::VisitLoadStorePairPostIndex(const Instruction* instr) {
   Update();
   InstrumentLoadStorePair(instr);
 }
-
 
 void Instrument::VisitLoadStorePairOffset(const Instruction* instr) {
   Update();
   InstrumentLoadStorePair(instr);
 }
 
-
 void Instrument::VisitLoadStorePairPreIndex(const Instruction* instr) {
   Update();
   InstrumentLoadStorePair(instr);
 }
 
-
 void Instrument::VisitLoadStorePairNonTemporal(const Instruction* instr) {
   Update();
   InstrumentLoadStorePair(instr);
 }
-
-
-void Instrument::VisitLoadStoreExclusive(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other");
-  counter->Increment();
-}
-
-
-void Instrument::VisitAtomicMemory(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other");
-  counter->Increment();
-}
-
-
-void Instrument::VisitLoadLiteral(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Load Literal");
-  counter->Increment();
-}
-
-
-void Instrument::VisitLoadStorePAC(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Load Integer");
-  counter->Increment();
-}
-
 
 void Instrument::InstrumentLoadStore(const Instruction* instr) {
   static Counter* load_int_counter = GetCounter("Load Integer");
@@ -471,12 +477,10 @@ void Instrument::InstrumentLoadStore(const Instruction* instr) {
   }
 }
 
-
 void Instrument::VisitLoadStoreUnscaledOffset(const Instruction* instr) {
   Update();
   InstrumentLoadStore(instr);
 }
-
 
 void Instrument::VisitLoadStorePostIndex(const Instruction* instr) {
   USE(instr);
@@ -484,12 +488,10 @@ void Instrument::VisitLoadStorePostIndex(const Instruction* instr) {
   InstrumentLoadStore(instr);
 }
 
-
 void Instrument::VisitLoadStorePreIndex(const Instruction* instr) {
   Update();
   InstrumentLoadStore(instr);
 }
-
 
 void Instrument::VisitLoadStoreRegisterOffset(const Instruction* instr) {
   Update();
@@ -523,827 +525,10 @@ void Instrument::VisitLoadStoreRCpcUnscaledOffset(const Instruction* instr) {
   }
 }
 
-
 void Instrument::VisitLoadStoreUnsignedOffset(const Instruction* instr) {
   Update();
   InstrumentLoadStore(instr);
 }
-
-
-void Instrument::VisitLogicalShifted(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Logical DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitAddSubShifted(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Add/Sub DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitAddSubExtended(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Add/Sub DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitAddSubWithCarry(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Add/Sub DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitRotateRightIntoFlags(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other");
-  counter->Increment();
-}
-
-
-void Instrument::VisitEvaluateIntoFlags(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other");
-  counter->Increment();
-}
-
-
-void Instrument::VisitConditionalCompareRegister(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Conditional Compare");
-  counter->Increment();
-}
-
-
-void Instrument::VisitConditionalCompareImmediate(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Conditional Compare");
-  counter->Increment();
-}
-
-
-void Instrument::VisitConditionalSelect(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Conditional Select");
-  counter->Increment();
-}
-
-
-void Instrument::VisitDataProcessing1Source(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other Int DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitDataProcessing2Source(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other Int DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitDataProcessing3Source(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other Int DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitFPCompare(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("FP DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitFPConditionalCompare(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Conditional Compare");
-  counter->Increment();
-}
-
-
-void Instrument::VisitFPConditionalSelect(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Conditional Select");
-  counter->Increment();
-}
-
-
-void Instrument::VisitFPImmediate(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("FP DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitFPDataProcessing1Source(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("FP DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitFPDataProcessing2Source(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("FP DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitFPDataProcessing3Source(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("FP DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitFPIntegerConvert(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("FP DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitFPFixedPointConvert(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("FP DP");
-  counter->Increment();
-}
-
-
-void Instrument::VisitCrypto2RegSHA(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Crypto");
-  counter->Increment();
-}
-
-
-void Instrument::VisitCrypto3RegSHA(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Crypto");
-  counter->Increment();
-}
-
-
-void Instrument::VisitCryptoAES(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Crypto");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEON2RegMisc(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEON2RegMiscFP16(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEON3Same(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEON3SameFP16(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEON3SameExtra(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEON3Different(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONAcrossLanes(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONByIndexedElement(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONCopy(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONExtract(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONLoadStoreMultiStruct(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONLoadStoreMultiStructPostIndex(
-    const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONLoadStoreSingleStruct(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONLoadStoreSingleStructPostIndex(
-    const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONModifiedImmediate(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONScalar2RegMisc(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONScalar2RegMiscFP16(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONScalar3Diff(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONScalar3Same(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONScalar3SameFP16(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONScalar3SameExtra(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONScalarByIndexedElement(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONScalarCopy(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONScalarPairwise(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONScalarShiftImmediate(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONShiftImmediate(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONTable(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-
-void Instrument::VisitNEONPerm(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("NEON");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEAddressGeneration(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEBitwiseImm(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEBitwiseLogicalUnpredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEBitwiseShiftPredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEElementCount(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPAccumulatingReduction(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPArithmeticPredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPArithmeticUnpredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPCompareVectors(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPCompareWithZero(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPComplexAddition(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPComplexMulAdd(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPComplexMulAddIndex(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPFastReduction(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPMulIndex(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPMulAdd(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPMulAddIndex(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPUnaryOpPredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEFPUnaryOpUnpredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIncDecByPredicateCount(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIndexGeneration(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIntArithmeticUnpredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIntBinaryArithmeticPredicated(
-    const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIntCompareScalars(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIntCompareSignedImm(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIntCompareUnsignedImm(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIntCompareVectors(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIntMiscUnpredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIntMulAddPredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIntMulAddUnpredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIntReduction(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIntUnaryArithmeticPredicated(
-    const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIntWideImmPredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEIntWideImmUnpredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEMem32BitGatherAndUnsizedContiguous(
-    const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEMem64BitGather(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEMemContiguousLoad(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEMemStore(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEMulIndex(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEPartitionBreak(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEPermutePredicate(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEPermuteVectorExtract(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEPermuteVectorInterleaving(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEPermuteVectorPredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEPermuteVectorUnpredicated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEPredicateCount(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEPredicateLogicalOp(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEPredicateMisc(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEPropagateBreak(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEStackAllocation(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEVectorSelect(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitSVEWriteFFR(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("SVE");
-  counter->Increment();
-}
-
-void Instrument::VisitReserved(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other");
-  counter->Increment();
-}
-
-
-void Instrument::VisitUnallocated(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other");
-  counter->Increment();
-}
-
-
-void Instrument::VisitUnimplemented(const Instruction* instr) {
-  USE(instr);
-  Update();
-  static Counter* counter = GetCounter("Other");
-  counter->Increment();
-}
-
 
 }  // namespace aarch64
 }  // namespace vixl

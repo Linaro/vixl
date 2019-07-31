@@ -1068,344 +1068,70 @@ void CPUFeaturesAuditor::VisitPCRelAddressing(const Instruction* instr) {
   USE(instr);
 }
 
-void CPUFeaturesAuditor::VisitSVEAddressGeneration(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEBitwiseImm(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEBitwiseLogicalUnpredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEBitwiseShiftPredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEBitwiseShiftUnpredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEElementCount(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPAccumulatingReduction(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPArithmeticPredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPArithmeticUnpredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPCompareVectors(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPCompareWithZero(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPComplexAddition(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPComplexMulAdd(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPComplexMulAddIndex(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPFastReduction(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPMulIndex(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPMulAdd(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPMulAddIndex(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPUnaryOpPredicated(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEFPUnaryOpUnpredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIncDecByPredicateCount(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIndexGeneration(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIntArithmeticUnpredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIntBinaryArithmeticPredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIntCompareScalars(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIntCompareSignedImm(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIntCompareUnsignedImm(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIntCompareVectors(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIntMiscUnpredicated(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIntMulAddPredicated(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIntMulAddUnpredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIntReduction(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIntUnaryArithmeticPredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIntWideImmPredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEIntWideImmUnpredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEMem32BitGatherAndUnsizedContiguous(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEMem64BitGather(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEMemContiguousLoad(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEMemStore(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEMulIndex(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEPartitionBreak(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEPermutePredicate(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEPermuteVectorExtract(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEPermuteVectorInterleaving(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEPermuteVectorPredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEPermuteVectorUnpredicated(
-    const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEPredicateCount(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEPredicateLogicalOp(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEPredicateMisc(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEPropagateBreak(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEStackAllocation(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEVectorSelect(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
-
-void CPUFeaturesAuditor::VisitSVEWriteFFR(const Instruction* instr) {
-  RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kSVE);
-  USE(instr);
-}
+// Most SVE visitors require only SVE.
+#define VIXL_SIMPLE_SVE_VISITOR_LIST(V)    \
+  V(SVEAddressGeneration)                  \
+  V(SVEBitwiseImm)                         \
+  V(SVEBitwiseLogicalUnpredicated)         \
+  V(SVEBitwiseShiftPredicated)             \
+  V(SVEBitwiseShiftUnpredicated)           \
+  V(SVEElementCount)                       \
+  V(SVEFPAccumulatingReduction)            \
+  V(SVEFPArithmeticPredicated)             \
+  V(SVEFPArithmeticUnpredicated)           \
+  V(SVEFPCompareVectors)                   \
+  V(SVEFPCompareWithZero)                  \
+  V(SVEFPComplexAddition)                  \
+  V(SVEFPComplexMulAdd)                    \
+  V(SVEFPComplexMulAddIndex)               \
+  V(SVEFPFastReduction)                    \
+  V(SVEFPMulAdd)                           \
+  V(SVEFPMulAddIndex)                      \
+  V(SVEFPMulIndex)                         \
+  V(SVEFPUnaryOpPredicated)                \
+  V(SVEFPUnaryOpUnpredicated)              \
+  V(SVEIncDecByPredicateCount)             \
+  V(SVEIndexGeneration)                    \
+  V(SVEIntArithmeticUnpredicated)          \
+  V(SVEIntBinaryArithmeticPredicated)      \
+  V(SVEIntCompareScalars)                  \
+  V(SVEIntCompareSignedImm)                \
+  V(SVEIntCompareUnsignedImm)              \
+  V(SVEIntCompareVectors)                  \
+  V(SVEIntMiscUnpredicated)                \
+  V(SVEIntMulAddPredicated)                \
+  V(SVEIntMulAddUnpredicated)              \
+  V(SVEIntReduction)                       \
+  V(SVEIntUnaryArithmeticPredicated)       \
+  V(SVEIntWideImmPredicated)               \
+  V(SVEIntWideImmUnpredicated)             \
+  V(SVEMem32BitGatherAndUnsizedContiguous) \
+  V(SVEMem64BitGather)                     \
+  V(SVEMemContiguousLoad)                  \
+  V(SVEMemStore)                           \
+  V(SVEMulIndex)                           \
+  V(SVEPartitionBreak)                     \
+  V(SVEPermutePredicate)                   \
+  V(SVEPermuteVectorExtract)               \
+  V(SVEPermuteVectorInterleaving)          \
+  V(SVEPermuteVectorPredicated)            \
+  V(SVEPermuteVectorUnpredicated)          \
+  V(SVEPredicateCount)                     \
+  V(SVEPredicateLogicalOp)                 \
+  V(SVEPredicateMisc)                      \
+  V(SVEPropagateBreak)                     \
+  V(SVEStackAllocation)                    \
+  V(SVEVectorSelect)                       \
+  V(SVEWriteFFR)
+#define VIXL_DEFINE_SIMPLE_SVE_VISITOR(NAME)                       \
+  void CPUFeaturesAuditor::Visit##NAME(const Instruction* instr) { \
+    RecordInstructionFeaturesScope scope(this);                    \
+    scope.Record(CPUFeatures::kSVE);                               \
+    USE(instr);                                                    \
+  }
+VIXL_SIMPLE_SVE_VISITOR_LIST(VIXL_DEFINE_SIMPLE_SVE_VISITOR)
+#undef VIXL_DEFINE_SIMPLE_SVE_VISITOR
+#undef VIXL_SIMPLE_SVE_VISITOR_LIST
 
 void CPUFeaturesAuditor::VisitSystem(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
