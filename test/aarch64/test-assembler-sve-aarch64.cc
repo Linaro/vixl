@@ -45,6 +45,53 @@
 namespace vixl {
 namespace aarch64 {
 
+Test* MakeSVETest(int vl, const char* name, Test::TestFunctionWithConfig* fn) {
+  // We never free this memory, but we need it to live for as long as the static
+  // linked list of tests, and this is the easiest way to do it.
+  Test* test = new Test(name, fn);
+  test->set_sve_vl_in_bits(vl);
+  return test;
+}
+
+// The TEST_SVE macro works just like the usual TEST macro, but the resulting
+// function receives a `const Test& config` argument, to allow it to query the
+// vector length.
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+// On the Simulator, run SVE tests with several vector lengths, including the
+// extreme values and an intermediate value that isn't a power of two.
+
+#define TEST_SVE(name)                                                  \
+  void Test##name(Test* config);                                        \
+  Test* test_##name##_list[] =                                          \
+      {MakeSVETest(128, "AARCH64_ASM_" #name "_vl128", &Test##name),    \
+       MakeSVETest(384, "AARCH64_ASM_" #name "_vl384", &Test##name),    \
+       MakeSVETest(2048, "AARCH64_ASM_" #name "_vl2048", &Test##name)}; \
+  void Test##name(Test* config)
+
+#define SVE_SETUP_WITH_FEATURES(...) \
+  SETUP_WITH_FEATURES(__VA_ARGS__);  \
+  simulator.SetVectorLengthInBits(config->sve_vl_in_bits())
+
+#else
+// Otherwise, just use whatever the hardware provides.
+static const int kSVEVectorLengthInBits =
+    CPUFeatures::InferFromOS().Has(CPUFeatures::kSVE)
+        ? CPU::ReadSVEVectorLengthInBits()
+        : 0;
+
+#define TEST_SVE(name)                                                     \
+  void Test##name(Test* config);                                           \
+  Test* test_##name##_vlauto = MakeSVETest(kSVEVectorLengthInBits,         \
+                                           "AARCH64_ASM_" #name "_vlauto", \
+                                           &Test##name);                   \
+  void Test##name(Test* config)
+
+#define SVE_SETUP_WITH_FEATURES(...) \
+  SETUP_WITH_FEATURES(__VA_ARGS__);  \
+  USE(config)
+
+#endif
+
 // Call masm->Insr repeatedly to allow test inputs to be set up concisely. This
 // is optimised for call-site clarity, not generated code quality, so it doesn't
 // exist in the MacroAssembler itself.
@@ -156,8 +203,8 @@ void Initialise(MacroAssembler* masm,
 }
 
 // Ensure that basic test infrastructure works.
-TEST(sve_test_infrastructure_z) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_test_infrastructure_z) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   __ Mov(x0, 0x0123456789abcdef);
@@ -212,8 +259,8 @@ TEST(sve_test_infrastructure_z) {
 }
 
 // Ensure that basic test infrastructure works.
-TEST(sve_test_infrastructure_p) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_test_infrastructure_p) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // Simple cases: move boolean (0 or 1) values.
@@ -298,8 +345,10 @@ TEST(sve_test_infrastructure_p) {
 
 // Test that writes to V registers clear the high bits of the corresponding Z
 // register.
-TEST(sve_v_write_clear) {
-  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP, CPUFeatures::kSVE);
+TEST_SVE(sve_v_write_clear) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                          CPUFeatures::kFP,
+                          CPUFeatures::kSVE);
   START();
 
   // The Simulator has two mechansisms for writing V registers:
@@ -383,8 +432,8 @@ TEST(sve_v_write_clear) {
   }
 }
 
-static void MlaMlsHelper(unsigned lane_size_in_bits) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+static void MlaMlsHelper(Test* config, unsigned lane_size_in_bits) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   int zd_inputs[] = {0xbb, 0xcc, 0xdd, 0xee};
@@ -489,13 +538,13 @@ static void MlaMlsHelper(unsigned lane_size_in_bits) {
   }
 }
 
-TEST(sve_mla_mls_b) { MlaMlsHelper(kBRegSize); }
-TEST(sve_mla_mls_h) { MlaMlsHelper(kHRegSize); }
-TEST(sve_mla_mls_s) { MlaMlsHelper(kSRegSize); }
-TEST(sve_mla_mls_d) { MlaMlsHelper(kDRegSize); }
+TEST_SVE(sve_mla_mls_b) { MlaMlsHelper(config, kBRegSize); }
+TEST_SVE(sve_mla_mls_h) { MlaMlsHelper(config, kHRegSize); }
+TEST_SVE(sve_mla_mls_s) { MlaMlsHelper(config, kSRegSize); }
+TEST_SVE(sve_mla_mls_d) { MlaMlsHelper(config, kDRegSize); }
 
-TEST(sve_bitwise_unpredicate_logical) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_bitwise_unpredicate_logical) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   uint64_t z8_inputs[] = {0xfedcba9876543210, 0x0123456789abcdef};
@@ -524,8 +573,8 @@ TEST(sve_bitwise_unpredicate_logical) {
   }
 }
 
-TEST(sve_predicate_logical) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_predicate_logical) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // 0b...01011010'10110111
@@ -586,8 +635,8 @@ TEST(sve_predicate_logical) {
   }
 }
 
-TEST(sve_int_compare_vectors) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_int_compare_vectors) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   int z10_inputs[] = {0x00, 0x80, 0xff, 0x7f, 0x00, 0x00, 0x00, 0xff};
@@ -683,8 +732,8 @@ TEST(sve_int_compare_vectors) {
   }
 }
 
-TEST(sve_int_compare_vectors_wide_elements) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_int_compare_vectors_wide_elements) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   int src1_inputs_1[] = {0, 1, -1, -128, 127, 100, -66};
@@ -794,8 +843,8 @@ TEST(sve_int_compare_vectors_wide_elements) {
   }
 }
 
-TEST(sve_bitwise_imm) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_bitwise_imm) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // clang-format off
@@ -900,11 +949,11 @@ TEST(sve_bitwise_imm) {
   }
 }
 
-TEST(sve_dup_imm) {
+TEST_SVE(sve_dup_imm) {
   // The `Dup` macro can generate `dup`, `dupm`, and it can synthesise
   // unencodable immediates.
 
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // Encodable with `dup` (shift 0).
@@ -963,8 +1012,8 @@ TEST(sve_dup_imm) {
   }
 }
 
-TEST(sve_inc_dec_p_scalar) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_inc_dec_p_scalar) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   int p0_inputs[] = {0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
@@ -1018,8 +1067,8 @@ TEST(sve_inc_dec_p_scalar) {
   }
 }
 
-TEST(sve_sqinc_sqdec_p_scalar) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_sqinc_sqdec_p_scalar) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   int p0_inputs[] = {0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
@@ -1131,8 +1180,8 @@ TEST(sve_sqinc_sqdec_p_scalar) {
   }
 }
 
-TEST(sve_uqinc_uqdec_p_scalar) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_uqinc_uqdec_p_scalar) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   int p0_inputs[] = {0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1};
@@ -1240,8 +1289,8 @@ TEST(sve_uqinc_uqdec_p_scalar) {
   }
 }
 
-TEST(sve_inc_dec_p_vector) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_inc_dec_p_vector) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // There are {5, 3, 2} active {H, S, D} lanes. B-sized lanes are ignored.
@@ -1337,8 +1386,8 @@ TEST(sve_inc_dec_p_vector) {
   }
 }
 
-TEST(sve_inc_dec_ptrue_vector) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_inc_dec_ptrue_vector) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // With an all-true predicate, these instructions increment or decrement by
@@ -1388,8 +1437,8 @@ TEST(sve_inc_dec_ptrue_vector) {
   }
 }
 
-TEST(sve_sqinc_sqdec_p_vector) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_sqinc_sqdec_p_vector) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // There are {5, 3, 2} active {H, S, D} lanes. B-sized lanes are ignored.
@@ -1485,8 +1534,8 @@ TEST(sve_sqinc_sqdec_p_vector) {
   }
 }
 
-TEST(sve_sqinc_sqdec_ptrue_vector) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_sqinc_sqdec_ptrue_vector) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // With an all-true predicate, these instructions increment or decrement by
@@ -1536,8 +1585,8 @@ TEST(sve_sqinc_sqdec_ptrue_vector) {
   }
 }
 
-TEST(sve_uqinc_uqdec_p_vector) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_uqinc_uqdec_p_vector) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // There are {5, 3, 2} active {H, S, D} lanes. B-sized lanes are ignored.
@@ -1641,8 +1690,8 @@ TEST(sve_uqinc_uqdec_p_vector) {
   }
 }
 
-TEST(sve_uqinc_uqdec_ptrue_vector) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_uqinc_uqdec_ptrue_vector) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // With an all-true predicate, these instructions increment or decrement by
@@ -1696,8 +1745,8 @@ TEST(sve_uqinc_uqdec_ptrue_vector) {
   }
 }
 
-TEST(sve_index) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_index) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // Simple cases.
@@ -2181,12 +2230,13 @@ typedef void (MacroAssembler::*PfirstPnextFn)(const PRegisterWithLaneSize& pd,
                                               const PRegister& pg,
                                               const PRegisterWithLaneSize& pn);
 template <typename Tg, typename Tn, typename Td>
-static void PfirstPnextHelper(PfirstPnextFn macro,
+static void PfirstPnextHelper(Test* config,
+                              PfirstPnextFn macro,
                               unsigned lane_size_in_bits,
                               const Tg& pg_inputs,
                               const Tn& pn_inputs,
                               const Td& pd_expected) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   PRegister pg = p15;
@@ -2251,10 +2301,12 @@ static void PfirstPnextHelper(PfirstPnextFn macro,
 }
 
 template <typename Tg, typename Tn, typename Td>
-static void PfirstHelper(const Tg& pg_inputs,
+static void PfirstHelper(Test* config,
+                         const Tg& pg_inputs,
                          const Tn& pn_inputs,
                          const Td& pd_expected) {
-  PfirstPnextHelper(&MacroAssembler::Pfirst,
+  PfirstPnextHelper(config,
+                    &MacroAssembler::Pfirst,
                     kBRegSize,  // pfirst only accepts B-sized lanes.
                     pg_inputs,
                     pn_inputs,
@@ -2262,18 +2314,20 @@ static void PfirstHelper(const Tg& pg_inputs,
 }
 
 template <typename Tg, typename Tn, typename Td>
-static void PnextHelper(unsigned lane_size_in_bits,
+static void PnextHelper(Test* config,
+                        unsigned lane_size_in_bits,
                         const Tg& pg_inputs,
                         const Tn& pn_inputs,
                         const Td& pd_expected) {
-  PfirstPnextHelper(&MacroAssembler::Pnext,
+  PfirstPnextHelper(config,
+                    &MacroAssembler::Pnext,
                     lane_size_in_bits,
                     pg_inputs,
                     pn_inputs,
                     pd_expected);
 }
 
-TEST(sve_pfirst) {
+TEST_SVE(sve_pfirst) {
   // Provide more lanes than kPRegMinSize (to check propagation if we have a
   // large VL), but few enough to make the test easy to read.
   int in0[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -2292,10 +2346,10 @@ TEST(sve_pfirst) {
   int exp12[] = {0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0};
   int exp13[] = {0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1};
   int exp14[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
-  PfirstHelper(in1, in0, exp10);
-  PfirstHelper(in1, in2, exp12);
-  PfirstHelper(in1, in3, exp13);
-  PfirstHelper(in1, in4, exp14);
+  PfirstHelper(config, in1, in0, exp10);
+  PfirstHelper(config, in1, in2, exp12);
+  PfirstHelper(config, in1, in3, exp13);
+  PfirstHelper(config, in1, in4, exp14);
 
   //                          The first active lane in in2 is here. |
   //                                                                v
@@ -2303,10 +2357,10 @@ TEST(sve_pfirst) {
   int exp21[] = {1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0};
   int exp23[] = {0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1};
   int exp24[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0};
-  PfirstHelper(in2, in0, exp20);
-  PfirstHelper(in2, in1, exp21);
-  PfirstHelper(in2, in3, exp23);
-  PfirstHelper(in2, in4, exp24);
+  PfirstHelper(config, in2, in0, exp20);
+  PfirstHelper(config, in2, in1, exp21);
+  PfirstHelper(config, in2, in3, exp23);
+  PfirstHelper(config, in2, in4, exp24);
 
   //                                   The first active lane in in3 is here. |
   //                                                                         v
@@ -2314,10 +2368,10 @@ TEST(sve_pfirst) {
   int exp31[] = {1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1};
   int exp32[] = {0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1};
   int exp34[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
-  PfirstHelper(in3, in0, exp30);
-  PfirstHelper(in3, in1, exp31);
-  PfirstHelper(in3, in2, exp32);
-  PfirstHelper(in3, in4, exp34);
+  PfirstHelper(config, in3, in0, exp30);
+  PfirstHelper(config, in3, in1, exp31);
+  PfirstHelper(config, in3, in2, exp32);
+  PfirstHelper(config, in3, in4, exp34);
 
   //             | The first active lane in in4 is here.
   //             v
@@ -2325,26 +2379,26 @@ TEST(sve_pfirst) {
   int exp41[] = {1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0};
   int exp42[] = {1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
   int exp43[] = {1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1};
-  PfirstHelper(in4, in0, exp40);
-  PfirstHelper(in4, in1, exp41);
-  PfirstHelper(in4, in2, exp42);
-  PfirstHelper(in4, in3, exp43);
+  PfirstHelper(config, in4, in0, exp40);
+  PfirstHelper(config, in4, in1, exp41);
+  PfirstHelper(config, in4, in2, exp42);
+  PfirstHelper(config, in4, in3, exp43);
 
   // If pg is all inactive, the input is passed through unchanged.
-  PfirstHelper(in0, in0, in0);
-  PfirstHelper(in0, in1, in1);
-  PfirstHelper(in0, in2, in2);
-  PfirstHelper(in0, in3, in3);
+  PfirstHelper(config, in0, in0, in0);
+  PfirstHelper(config, in0, in1, in1);
+  PfirstHelper(config, in0, in2, in2);
+  PfirstHelper(config, in0, in3, in3);
 
   // If the values of pg and pn match, the value is passed through unchanged.
-  PfirstHelper(in0, in0, in0);
-  PfirstHelper(in1, in1, in1);
-  PfirstHelper(in2, in2, in2);
-  PfirstHelper(in3, in3, in3);
+  PfirstHelper(config, in0, in0, in0);
+  PfirstHelper(config, in1, in1, in1);
+  PfirstHelper(config, in2, in2, in2);
+  PfirstHelper(config, in3, in3, in3);
 }
 
-TEST(sve_pfirst_alias) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_pfirst_alias) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // Check that the Simulator behaves correctly when all arguments are aliased.
@@ -2396,7 +2450,7 @@ TEST(sve_pfirst_alias) {
   }
 }
 
-TEST(sve_pnext_b) {
+TEST_SVE(sve_pnext_b) {
   // TODO: Once we have the infrastructure, provide more lanes than kPRegMinSize
   // (to check propagation if we have a large VL), but few enough to make the
   // test easy to read.
@@ -2451,38 +2505,38 @@ TEST(sve_pnext_b) {
   int exp34[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   int exp44[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-  PnextHelper(kBRegSize, in0, in0, exp00);
-  PnextHelper(kBRegSize, in1, in0, exp10);
-  PnextHelper(kBRegSize, in2, in0, exp20);
-  PnextHelper(kBRegSize, in3, in0, exp30);
-  PnextHelper(kBRegSize, in4, in0, exp40);
+  PnextHelper(config, kBRegSize, in0, in0, exp00);
+  PnextHelper(config, kBRegSize, in1, in0, exp10);
+  PnextHelper(config, kBRegSize, in2, in0, exp20);
+  PnextHelper(config, kBRegSize, in3, in0, exp30);
+  PnextHelper(config, kBRegSize, in4, in0, exp40);
 
-  PnextHelper(kBRegSize, in0, in1, exp01);
-  PnextHelper(kBRegSize, in1, in1, exp11);
-  PnextHelper(kBRegSize, in2, in1, exp21);
-  PnextHelper(kBRegSize, in3, in1, exp31);
-  PnextHelper(kBRegSize, in4, in1, exp41);
+  PnextHelper(config, kBRegSize, in0, in1, exp01);
+  PnextHelper(config, kBRegSize, in1, in1, exp11);
+  PnextHelper(config, kBRegSize, in2, in1, exp21);
+  PnextHelper(config, kBRegSize, in3, in1, exp31);
+  PnextHelper(config, kBRegSize, in4, in1, exp41);
 
-  PnextHelper(kBRegSize, in0, in2, exp02);
-  PnextHelper(kBRegSize, in1, in2, exp12);
-  PnextHelper(kBRegSize, in2, in2, exp22);
-  PnextHelper(kBRegSize, in3, in2, exp32);
-  PnextHelper(kBRegSize, in4, in2, exp42);
+  PnextHelper(config, kBRegSize, in0, in2, exp02);
+  PnextHelper(config, kBRegSize, in1, in2, exp12);
+  PnextHelper(config, kBRegSize, in2, in2, exp22);
+  PnextHelper(config, kBRegSize, in3, in2, exp32);
+  PnextHelper(config, kBRegSize, in4, in2, exp42);
 
-  PnextHelper(kBRegSize, in0, in3, exp03);
-  PnextHelper(kBRegSize, in1, in3, exp13);
-  PnextHelper(kBRegSize, in2, in3, exp23);
-  PnextHelper(kBRegSize, in3, in3, exp33);
-  PnextHelper(kBRegSize, in4, in3, exp43);
+  PnextHelper(config, kBRegSize, in0, in3, exp03);
+  PnextHelper(config, kBRegSize, in1, in3, exp13);
+  PnextHelper(config, kBRegSize, in2, in3, exp23);
+  PnextHelper(config, kBRegSize, in3, in3, exp33);
+  PnextHelper(config, kBRegSize, in4, in3, exp43);
 
-  PnextHelper(kBRegSize, in0, in4, exp04);
-  PnextHelper(kBRegSize, in1, in4, exp14);
-  PnextHelper(kBRegSize, in2, in4, exp24);
-  PnextHelper(kBRegSize, in3, in4, exp34);
-  PnextHelper(kBRegSize, in4, in4, exp44);
+  PnextHelper(config, kBRegSize, in0, in4, exp04);
+  PnextHelper(config, kBRegSize, in1, in4, exp14);
+  PnextHelper(config, kBRegSize, in2, in4, exp24);
+  PnextHelper(config, kBRegSize, in3, in4, exp34);
+  PnextHelper(config, kBRegSize, in4, in4, exp44);
 }
 
-TEST(sve_pnext_h) {
+TEST_SVE(sve_pnext_h) {
   // TODO: Once we have the infrastructure, provide more lanes than kPRegMinSize
   // (to check propagation if we have a large VL), but few enough to make the
   // test easy to read.
@@ -2540,38 +2594,38 @@ TEST(sve_pnext_h) {
   int exp34[] = {0, 0, 0, 0, 0, 0, 0, 0};
   int exp44[] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-  PnextHelper(kHRegSize, in0, in0, exp00);
-  PnextHelper(kHRegSize, in1, in0, exp10);
-  PnextHelper(kHRegSize, in2, in0, exp20);
-  PnextHelper(kHRegSize, in3, in0, exp30);
-  PnextHelper(kHRegSize, in4, in0, exp40);
+  PnextHelper(config, kHRegSize, in0, in0, exp00);
+  PnextHelper(config, kHRegSize, in1, in0, exp10);
+  PnextHelper(config, kHRegSize, in2, in0, exp20);
+  PnextHelper(config, kHRegSize, in3, in0, exp30);
+  PnextHelper(config, kHRegSize, in4, in0, exp40);
 
-  PnextHelper(kHRegSize, in0, in1, exp01);
-  PnextHelper(kHRegSize, in1, in1, exp11);
-  PnextHelper(kHRegSize, in2, in1, exp21);
-  PnextHelper(kHRegSize, in3, in1, exp31);
-  PnextHelper(kHRegSize, in4, in1, exp41);
+  PnextHelper(config, kHRegSize, in0, in1, exp01);
+  PnextHelper(config, kHRegSize, in1, in1, exp11);
+  PnextHelper(config, kHRegSize, in2, in1, exp21);
+  PnextHelper(config, kHRegSize, in3, in1, exp31);
+  PnextHelper(config, kHRegSize, in4, in1, exp41);
 
-  PnextHelper(kHRegSize, in0, in2, exp02);
-  PnextHelper(kHRegSize, in1, in2, exp12);
-  PnextHelper(kHRegSize, in2, in2, exp22);
-  PnextHelper(kHRegSize, in3, in2, exp32);
-  PnextHelper(kHRegSize, in4, in2, exp42);
+  PnextHelper(config, kHRegSize, in0, in2, exp02);
+  PnextHelper(config, kHRegSize, in1, in2, exp12);
+  PnextHelper(config, kHRegSize, in2, in2, exp22);
+  PnextHelper(config, kHRegSize, in3, in2, exp32);
+  PnextHelper(config, kHRegSize, in4, in2, exp42);
 
-  PnextHelper(kHRegSize, in0, in3, exp03);
-  PnextHelper(kHRegSize, in1, in3, exp13);
-  PnextHelper(kHRegSize, in2, in3, exp23);
-  PnextHelper(kHRegSize, in3, in3, exp33);
-  PnextHelper(kHRegSize, in4, in3, exp43);
+  PnextHelper(config, kHRegSize, in0, in3, exp03);
+  PnextHelper(config, kHRegSize, in1, in3, exp13);
+  PnextHelper(config, kHRegSize, in2, in3, exp23);
+  PnextHelper(config, kHRegSize, in3, in3, exp33);
+  PnextHelper(config, kHRegSize, in4, in3, exp43);
 
-  PnextHelper(kHRegSize, in0, in4, exp04);
-  PnextHelper(kHRegSize, in1, in4, exp14);
-  PnextHelper(kHRegSize, in2, in4, exp24);
-  PnextHelper(kHRegSize, in3, in4, exp34);
-  PnextHelper(kHRegSize, in4, in4, exp44);
+  PnextHelper(config, kHRegSize, in0, in4, exp04);
+  PnextHelper(config, kHRegSize, in1, in4, exp14);
+  PnextHelper(config, kHRegSize, in2, in4, exp24);
+  PnextHelper(config, kHRegSize, in3, in4, exp34);
+  PnextHelper(config, kHRegSize, in4, in4, exp44);
 }
 
-TEST(sve_pnext_s) {
+TEST_SVE(sve_pnext_s) {
   // TODO: Once we have the infrastructure, provide more lanes than kPRegMinSize
   // (to check propagation if we have a large VL), but few enough to make the
   // test easy to read.
@@ -2616,28 +2670,28 @@ TEST(sve_pnext_s) {
   int exp23[] = {0, 0, 0, 0};
   int exp33[] = {0, 0, 0, 0};
 
-  PnextHelper(kSRegSize, in0, in0, exp00);
-  PnextHelper(kSRegSize, in1, in0, exp10);
-  PnextHelper(kSRegSize, in2, in0, exp20);
-  PnextHelper(kSRegSize, in3, in0, exp30);
+  PnextHelper(config, kSRegSize, in0, in0, exp00);
+  PnextHelper(config, kSRegSize, in1, in0, exp10);
+  PnextHelper(config, kSRegSize, in2, in0, exp20);
+  PnextHelper(config, kSRegSize, in3, in0, exp30);
 
-  PnextHelper(kSRegSize, in0, in1, exp01);
-  PnextHelper(kSRegSize, in1, in1, exp11);
-  PnextHelper(kSRegSize, in2, in1, exp21);
-  PnextHelper(kSRegSize, in3, in1, exp31);
+  PnextHelper(config, kSRegSize, in0, in1, exp01);
+  PnextHelper(config, kSRegSize, in1, in1, exp11);
+  PnextHelper(config, kSRegSize, in2, in1, exp21);
+  PnextHelper(config, kSRegSize, in3, in1, exp31);
 
-  PnextHelper(kSRegSize, in0, in2, exp02);
-  PnextHelper(kSRegSize, in1, in2, exp12);
-  PnextHelper(kSRegSize, in2, in2, exp22);
-  PnextHelper(kSRegSize, in3, in2, exp32);
+  PnextHelper(config, kSRegSize, in0, in2, exp02);
+  PnextHelper(config, kSRegSize, in1, in2, exp12);
+  PnextHelper(config, kSRegSize, in2, in2, exp22);
+  PnextHelper(config, kSRegSize, in3, in2, exp32);
 
-  PnextHelper(kSRegSize, in0, in3, exp03);
-  PnextHelper(kSRegSize, in1, in3, exp13);
-  PnextHelper(kSRegSize, in2, in3, exp23);
-  PnextHelper(kSRegSize, in3, in3, exp33);
+  PnextHelper(config, kSRegSize, in0, in3, exp03);
+  PnextHelper(config, kSRegSize, in1, in3, exp13);
+  PnextHelper(config, kSRegSize, in2, in3, exp23);
+  PnextHelper(config, kSRegSize, in3, in3, exp33);
 }
 
-TEST(sve_pnext_d) {
+TEST_SVE(sve_pnext_d) {
   // TODO: Once we have the infrastructure, provide more lanes than kPRegMinSize
   // (to check propagation if we have a large VL), but few enough to make the
   // test easy to read.
@@ -2671,21 +2725,21 @@ TEST(sve_pnext_d) {
   int exp12[] = {0, 0};
   int exp22[] = {0, 0};
 
-  PnextHelper(kDRegSize, in0, in0, exp00);
-  PnextHelper(kDRegSize, in1, in0, exp10);
-  PnextHelper(kDRegSize, in2, in0, exp20);
+  PnextHelper(config, kDRegSize, in0, in0, exp00);
+  PnextHelper(config, kDRegSize, in1, in0, exp10);
+  PnextHelper(config, kDRegSize, in2, in0, exp20);
 
-  PnextHelper(kDRegSize, in0, in1, exp01);
-  PnextHelper(kDRegSize, in1, in1, exp11);
-  PnextHelper(kDRegSize, in2, in1, exp21);
+  PnextHelper(config, kDRegSize, in0, in1, exp01);
+  PnextHelper(config, kDRegSize, in1, in1, exp11);
+  PnextHelper(config, kDRegSize, in2, in1, exp21);
 
-  PnextHelper(kDRegSize, in0, in2, exp02);
-  PnextHelper(kDRegSize, in1, in2, exp12);
-  PnextHelper(kDRegSize, in2, in2, exp22);
+  PnextHelper(config, kDRegSize, in0, in2, exp02);
+  PnextHelper(config, kDRegSize, in1, in2, exp12);
+  PnextHelper(config, kDRegSize, in2, in2, exp22);
 }
 
-TEST(sve_pnext_alias) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_pnext_alias) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // Check that the Simulator behaves correctly when all arguments are aliased.
@@ -2737,9 +2791,10 @@ TEST(sve_pnext_alias) {
   }
 }
 
-static void PtrueHelper(unsigned lane_size_in_bits,
+static void PtrueHelper(Test* config,
+                        unsigned lane_size_in_bits,
                         FlagsUpdate s = LeaveFlags) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   PRegisterWithLaneSize p[kNumberOfPRegisters];
@@ -2893,18 +2948,18 @@ static void PtrueHelper(unsigned lane_size_in_bits,
   }
 }
 
-TEST(sve_ptrue_b) { PtrueHelper(kBRegSize, LeaveFlags); }
-TEST(sve_ptrue_h) { PtrueHelper(kHRegSize, LeaveFlags); }
-TEST(sve_ptrue_s) { PtrueHelper(kSRegSize, LeaveFlags); }
-TEST(sve_ptrue_d) { PtrueHelper(kDRegSize, LeaveFlags); }
+TEST_SVE(sve_ptrue_b) { PtrueHelper(config, kBRegSize, LeaveFlags); }
+TEST_SVE(sve_ptrue_h) { PtrueHelper(config, kHRegSize, LeaveFlags); }
+TEST_SVE(sve_ptrue_s) { PtrueHelper(config, kSRegSize, LeaveFlags); }
+TEST_SVE(sve_ptrue_d) { PtrueHelper(config, kDRegSize, LeaveFlags); }
 
-TEST(sve_ptrues_b) { PtrueHelper(kBRegSize, SetFlags); }
-TEST(sve_ptrues_h) { PtrueHelper(kHRegSize, SetFlags); }
-TEST(sve_ptrues_s) { PtrueHelper(kSRegSize, SetFlags); }
-TEST(sve_ptrues_d) { PtrueHelper(kDRegSize, SetFlags); }
+TEST_SVE(sve_ptrues_b) { PtrueHelper(config, kBRegSize, SetFlags); }
+TEST_SVE(sve_ptrues_h) { PtrueHelper(config, kHRegSize, SetFlags); }
+TEST_SVE(sve_ptrues_s) { PtrueHelper(config, kSRegSize, SetFlags); }
+TEST_SVE(sve_ptrues_d) { PtrueHelper(config, kDRegSize, SetFlags); }
 
-TEST(sve_pfalse) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_pfalse) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // Initialise non-zero inputs.
@@ -2932,8 +2987,8 @@ TEST(sve_pfalse) {
   }
 }
 
-TEST(sve_ptest) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_ptest) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // Initialise NZCV to a known (impossible) value.
@@ -3031,8 +3086,8 @@ TEST(sve_ptest) {
   }
 }
 
-TEST(sve_cntp) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+TEST_SVE(sve_cntp) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
   // There are {7, 5, 2, 1} active {B, H, S, D} lanes.

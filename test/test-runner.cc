@@ -55,20 +55,6 @@ bool vixl::Test::instruction_stats_ = false;
 // Don't generate traces by default.
 bool vixl::Test::generate_test_trace_ = false;
 
-// Instantiate a Test and append it to the linked list.
-vixl::Test::Test(const char* name, TestFunction* callback)
-    : name_(name), callback_(callback), next_(NULL) {
-  // Append this test to the linked list.
-  if (first_ == NULL) {
-    VIXL_ASSERT(last_ == NULL);
-    first_ = this;
-  } else {
-    last_->next_ = this;
-  }
-  last_ = this;
-}
-
-
 // Look for 'search' in the arguments.
 static bool IsInArgs(const char* search, int argc, char* argv[]) {
   for (int i = 1; i < argc; i++) {
@@ -202,7 +188,7 @@ int main(int argc, char* argv[]) {
     // Run all registered tests.
     for (vixl::Test* c = vixl::Test::first(); c != NULL; c = c->next()) {
       printf("Running %s\n", c->name());
-      c->callback()();
+      c->run();
     }
 
   } else {
@@ -218,7 +204,7 @@ int main(int argc, char* argv[]) {
         vixl::Test* c;
         for (c = vixl::Test::first(); c != NULL; c = c->next()) {
           if (strcmp(c->name(), argv[i]) == 0) {
-            c->callback()();
+            c->run();
             break;
           }
         }
@@ -232,4 +218,24 @@ int main(int argc, char* argv[]) {
   }
 
   return EXIT_SUCCESS;
+}
+
+void vixl::Test::set_callback(TestFunction* callback) {
+  callback_ = callback;
+  callback_with_config_ = NULL;
+}
+
+void vixl::Test::set_callback(TestFunctionWithConfig* callback) {
+  callback_ = NULL;
+  callback_with_config_ = callback;
+}
+
+void vixl::Test::run() {
+  if (callback_ == NULL) {
+    VIXL_ASSERT(callback_with_config_ != NULL);
+    callback_with_config_(this);
+  } else {
+    VIXL_ASSERT(callback_with_config_ == NULL);
+    callback_();
+  }
 }
