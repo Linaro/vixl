@@ -5500,15 +5500,23 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ldnt1w(zt, pg, xn, imm4);
   }
-  void Ldr(const PRegister& pt, const Register& xn) {
+  void Ldr(const PRegister& pt, const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldr(pt, xn);
+    if (addr.IsEquivalentToScalar()) {
+      SingleEmissionCheckScope guard(this);
+      ldr(pt, SVEMemOperand(addr.GetScalarBase()));
+    } else {
+      VIXL_UNIMPLEMENTED();
+    }
   }
-  void Ldr(const ZRegister& zt, const Register& xn) {
+  void Ldr(const ZRegister& zt, const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldr(zt, xn);
+    if (addr.IsEquivalentToScalar()) {
+      SingleEmissionCheckScope guard(this);
+      ldr(zt, SVEMemOperand(addr.GetScalarBase()));
+    } else {
+      VIXL_UNIMPLEMENTED();
+    }
   }
   void Lsl(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6561,20 +6569,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     stnt1w(zt, pg, xn, imm4);
   }
-  void Str(const PRegister& pt, const MemOperand& dst) {
+  void Str(const PRegister& pt, const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    if (dst.IsEquivalentToPlainRegister()) {
+    if (addr.IsEquivalentToScalar()) {
       SingleEmissionCheckScope guard(this);
-      str(pt, dst.GetBaseRegister());
+      str(pt, SVEMemOperand(addr.GetScalarBase()));
     } else {
       VIXL_UNIMPLEMENTED();
     }
   }
-  void Str(const ZRegister& zt, const MemOperand& dst) {
+  void Str(const ZRegister& zt, const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    if (dst.IsEquivalentToPlainRegister()) {
+    if (addr.IsEquivalentToScalar()) {
       SingleEmissionCheckScope guard(this);
-      str(zt, dst.GetBaseRegister());
+      str(zt, SVEMemOperand(addr.GetScalarBase()));
     } else {
       VIXL_UNIMPLEMENTED();
     }

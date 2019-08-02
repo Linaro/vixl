@@ -1032,6 +1032,76 @@ TEST(memoperand_is_plain_register_or_equivalent) {
   VIXL_CHECK(!MemOperand(x21, x30).IsEquivalentToPlainRegister());
 }
 
+TEST(sve_memoperand_is_scalar) {
+  VIXL_CHECK(SVEMemOperand(x0).IsScalar());
+  VIXL_CHECK(SVEMemOperand(sp).IsScalar());
+  VIXL_CHECK(SVEMemOperand(x1, 0).IsScalar());
+
+  VIXL_CHECK(!SVEMemOperand(x2, xzr).IsScalar());
+  VIXL_CHECK(!SVEMemOperand(x4, xzr, LSL, 2).IsScalar());
+
+  VIXL_CHECK(!SVEMemOperand(x20, 1).IsScalar());
+  VIXL_CHECK(!SVEMemOperand(x21, x30).IsScalar());
+
+  VIXL_CHECK(!SVEMemOperand(x0, z1.VnD()).IsScalar());
+  VIXL_CHECK(!SVEMemOperand(x2, z3.VnS(), UXTW).IsScalar());
+  VIXL_CHECK(!SVEMemOperand(z4.VnD(), 0).IsScalar());
+}
+
+TEST(sve_memoperand_is_scalar_or_equivalent) {
+  VIXL_CHECK(SVEMemOperand(x0).IsEquivalentToScalar());
+  VIXL_CHECK(SVEMemOperand(sp).IsEquivalentToScalar());
+  VIXL_CHECK(SVEMemOperand(x1, 0).IsEquivalentToScalar());
+
+  VIXL_CHECK(SVEMemOperand(x2, xzr).IsEquivalentToScalar());
+  VIXL_CHECK(SVEMemOperand(x4, xzr, LSL, 2).IsEquivalentToScalar());
+
+  VIXL_CHECK(!SVEMemOperand(x20, 1).IsEquivalentToScalar());
+  VIXL_CHECK(!SVEMemOperand(x21, x30).IsEquivalentToScalar());
+
+  VIXL_CHECK(!SVEMemOperand(x0, z1.VnD()).IsEquivalentToScalar());
+  VIXL_CHECK(!SVEMemOperand(x2, z3.VnD(), SXTW).IsEquivalentToScalar());
+  VIXL_CHECK(!SVEMemOperand(z4.VnD(), 0).IsEquivalentToScalar());
+}
+
+TEST(sve_memoperand_types) {
+  VIXL_CHECK(SVEMemOperand(x0, 42).IsScalarPlusImmediate());
+  VIXL_CHECK(SVEMemOperand(x1, 42, SVE_MUL_VL).IsScalarPlusImmediate());
+  VIXL_CHECK(SVEMemOperand(x2, -42, SVE_MUL_VL).IsScalarPlusImmediate());
+
+  VIXL_CHECK(SVEMemOperand(sp, x3).IsScalarPlusScalar());
+  VIXL_CHECK(SVEMemOperand(x4, xzr).IsScalarPlusScalar());
+  VIXL_CHECK(SVEMemOperand(x5, x6, LSL, 1).IsScalarPlusScalar());
+
+  VIXL_CHECK(SVEMemOperand(x7, z0.VnD()).IsScalarPlusVector());
+  VIXL_CHECK(SVEMemOperand(x8, z1.VnS(), SXTW).IsScalarPlusVector());
+  VIXL_CHECK(SVEMemOperand(x9, z2.VnD(), UXTW).IsScalarPlusVector());
+  VIXL_CHECK(SVEMemOperand(x10, z3.VnD(), LSL, 2).IsScalarPlusVector());
+
+  VIXL_CHECK(SVEMemOperand(z4.VnD(), 42).IsVectorPlusImmediate());
+  VIXL_CHECK(SVEMemOperand(z5.VnS(), -42).IsVectorPlusImmediate());
+}
+
+TEST(sve_memoperand_scatter_gather) {
+  // Single-address accesses.
+  VIXL_CHECK(!SVEMemOperand(x0, 42).IsScatterGather());
+  VIXL_CHECK(!SVEMemOperand(x1, 42, SVE_MUL_VL).IsScatterGather());
+  VIXL_CHECK(!SVEMemOperand(x2, -42, SVE_MUL_VL).IsScatterGather());
+
+  VIXL_CHECK(!SVEMemOperand(sp, x3).IsScatterGather());
+  VIXL_CHECK(!SVEMemOperand(x4, xzr).IsScatterGather());
+  VIXL_CHECK(!SVEMemOperand(x5, x6, LSL, 1).IsScatterGather());
+
+  // Scatter-gather accesses.
+  VIXL_CHECK(SVEMemOperand(x7, z0.VnD()).IsScatterGather());
+  VIXL_CHECK(SVEMemOperand(x8, z1.VnS(), SXTW).IsScatterGather());
+  VIXL_CHECK(SVEMemOperand(x9, z2.VnD(), UXTW).IsScatterGather());
+  VIXL_CHECK(SVEMemOperand(x10, z3.VnD(), LSL, 2).IsScatterGather());
+
+  VIXL_CHECK(SVEMemOperand(z4.VnD(), 42).IsScatterGather());
+  VIXL_CHECK(SVEMemOperand(z5.VnS(), -42).IsScatterGather());
+}
+
 TEST(scratch_scope_basic) {
   MacroAssembler masm;
   // x16 and x17 are available as scratch registers by default.

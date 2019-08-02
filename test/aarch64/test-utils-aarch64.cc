@@ -533,7 +533,7 @@ static void DumpRegisters(MacroAssembler* masm,
   __ Add(dump, dump_base, offset);
   for (unsigned i = 0; i <= T::GetMaxCode(); i++) {
     T reg(i);
-    __ Str(reg, MemOperand(dump));
+    __ Str(reg, SVEMemOperand(dump));
     __ Add(dump, dump, reg.GetMaxSizeInBytes());
   }
 }

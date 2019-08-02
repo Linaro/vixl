@@ -465,6 +465,217 @@ class MemOperand {
   unsigned shift_amount_;
 };
 
+// SVE supports memory operands which don't make sense to the core ISA, such as
+// scatter-gather forms, in which either the base or offset registers are
+// vectors. This class exists to avoid complicating core-ISA code with
+// SVE-specific behaviour.
+//
+// Note that SVE does not support any pre- or post-index modes.
+class SVEMemOperand {
+ public:
+  // "vector-plus-immediate", like [z0.s, #21]
+  explicit SVEMemOperand(ZRegister base, uint64_t offset = 0)
+      : base_(base),
+        regoffset_(NoReg),
+        offset_(RawbitsToInt64(offset)),
+        mod_(NO_SVE_OFFSET_MODIFIER),
+        shift_amount_(0) {
+    VIXL_ASSERT(IsVectorPlusImmediate());
+    VIXL_ASSERT(IsValid());
+  }
+
+  // "scalar-plus-immediate", like [x0], [x0, #42] or [x0, #42, MUL_VL]
+  // The only supported modifiers are NO_SVE_OFFSET_MODIFIER or SVE_MUL_VL.
+  explicit SVEMemOperand(Register base,
+                         uint64_t offset = 0,
+                         SVEOffsetModifier mod = NO_SVE_OFFSET_MODIFIER)
+      : base_(base),
+        regoffset_(NoReg),
+        offset_(RawbitsToInt64(offset)),
+        mod_(mod),
+        shift_amount_(0) {
+    VIXL_ASSERT(IsScalarPlusImmediate());
+    if (offset == 0) VIXL_ASSERT(IsScalar());
+    VIXL_ASSERT(IsValid());
+
+    // SVE_MUL_VL_FOR_*REG shouldn't be used directly. Instead, call
+    // `For*RegAccess()` on the result of this constructor.
+    VIXL_ASSERT((mod == NO_SVE_OFFSET_MODIFIER) || (mod == SVE_MUL_VL));
+  }
+
+  // "scalar-plus-scalar", like [x0, x1]
+  // "scalar-plus-vector", like [x0, z1.d]
+  SVEMemOperand(Register base, CPURegister offset)
+      : base_(base),
+        regoffset_(offset),
+        offset_(0),
+        mod_(NO_SVE_OFFSET_MODIFIER),
+        shift_amount_(0) {
+    VIXL_ASSERT(IsScalarPlusScalar() || IsScalarPlusVector());
+    if (offset.IsZero()) VIXL_ASSERT(IsEquivalentToScalar());
+    VIXL_ASSERT(IsValid());
+  }
+
+  // "scalar-plus-vector", like [x0, z1.d, UXTW]
+  // The type of `mod` can be any `SVEOffsetModifier` (other than LSL), or a
+  // corresponding `Extend` value.
+  template <typename M>
+  SVEMemOperand(Register base, ZRegister offset, M mod)
+      : base_(base),
+        regoffset_(offset),
+        offset_(0),
+        mod_(GetSVEOffsetModifierFor(mod)),
+        shift_amount_(0) {
+    VIXL_ASSERT(mod_ != SVE_LSL);  // LSL requires an explicit shift amount.
+    VIXL_ASSERT(IsScalarPlusVector());
+    VIXL_ASSERT(IsValid());
+  }
+
+  // "scalar-plus-scalar", like [x0, x1, LSL #1]
+  // "scalar-plus-vector", like [x0, z1.d, LSL #2]
+  // The type of `mod` can be any `SVEOffsetModifier`, or a corresponding
+  // `Shift` or `Extend` value.
+  template <typename M>
+  SVEMemOperand(Register base, CPURegister offset, M mod, unsigned shift_amount)
+      : base_(base),
+        regoffset_(offset),
+        offset_(0),
+        mod_(GetSVEOffsetModifierFor(mod)),
+        shift_amount_(shift_amount) {
+    VIXL_ASSERT(IsValid());
+  }
+
+  // True for SVEMemOperands which represent something like [x0].
+  // This will also return true for [x0, #0], because there is no way
+  // to distinguish the two.
+  bool IsScalar() const { return IsScalarPlusImmediate() && (offset_ == 0); }
+
+  // True for SVEMemOperands which represent something like [x0], or for
+  // compound SVEMemOperands which are functionally equivalent, such as
+  // [x0, #0], [x0, xzr] or [x0, wzr, UXTW #3].
+  bool IsEquivalentToScalar() const;
+
+  bool IsScalarPlusImmediate() const {
+    return base_.IsX() && regoffset_.IsNone() &&
+           ((mod_ == NO_SVE_OFFSET_MODIFIER) || IsMulVl());
+  }
+
+  bool IsScalarPlusScalar() const {
+    // SVE offers no extend modes for scalar-plus-scalar, so both registers must
+    // be X registers.
+    return base_.IsX() && regoffset_.IsX() &&
+           ((mod_ == NO_SVE_OFFSET_MODIFIER) || (mod_ == SVE_LSL));
+  }
+
+  bool IsScalarPlusVector() const {
+    // The modifier can be LSL or an an extend mode (UXTW or SXTW) here. Unlike
+    // in the core ISA, these extend modes do not imply an S-sized lane, so the
+    // modifier is independent from the lane size. The architecture describes
+    // [US]XTW with a D-sized lane as an "unpacked" offset.
+    return base_.IsX() && regoffset_.IsZRegister() &&
+           (regoffset_.IsLaneSizeS() || regoffset_.IsLaneSizeD()) && !IsMulVl();
+  }
+
+  bool IsVectorPlusImmediate() const {
+    return base_.IsZRegister() &&
+           (base_.IsLaneSizeS() || base_.IsLaneSizeD()) &&
+           regoffset_.IsNone() && (mod_ == NO_SVE_OFFSET_MODIFIER);
+  }
+
+  bool IsScatterGather() const {
+    return base_.IsZRegister() || regoffset_.IsZRegister();
+  }
+
+  // TODO: If necessary, add helpers like `HasScalarBase()`.
+
+  Register GetScalarBase() const {
+    VIXL_ASSERT(base_.IsX());
+    return Register(base_);
+  }
+
+  ZRegister GetVectorBase() const {
+    VIXL_ASSERT(base_.IsZRegister());
+    VIXL_ASSERT(base_.HasLaneSize());
+    return ZRegister(base_);
+  }
+
+  Register GetScalarOffset() const {
+    VIXL_ASSERT(regoffset_.IsRegister());
+    return Register(regoffset_);
+  }
+
+  ZRegister GetVectorOffset() const {
+    VIXL_ASSERT(regoffset_.IsZRegister());
+    VIXL_ASSERT(regoffset_.HasLaneSize());
+    return ZRegister(regoffset_);
+  }
+
+  int64_t GetImmediateOffset() const {
+    VIXL_ASSERT(regoffset_.IsNone());
+    return offset_;
+  }
+
+  SVEOffsetModifier GetOffsetModifier() const { return mod_; }
+  unsigned GetShiftAmount() const { return shift_amount_; }
+
+  // Usually, SVEMemOperands are access-size-agnostic, but the behaviour of
+  // "MUL VL" depends on the access size.
+  bool IsMulVlForZReg() const { return mod_ == SVE_MUL_VL_FOR_ZREG; }
+  bool IsMulVlForPReg() const { return mod_ == SVE_MUL_VL_FOR_PREG; }
+
+  // Specify the access type for SVE_MUL_VL.
+  inline SVEMemOperand ForPRegAccess() const;
+  inline SVEMemOperand ForZRegAccess() const;
+
+  bool IsMulVl() const {
+    return (mod_ == SVE_MUL_VL) || (mod_ == SVE_MUL_VL_FOR_ZREG) ||
+           (mod_ == SVE_MUL_VL_FOR_PREG);
+  }
+
+  bool IsValid() const;
+
+ private:
+  // Allow standard `Shift` and `Extend` arguments to be used.
+  SVEOffsetModifier GetSVEOffsetModifierFor(Shift shift) {
+    if (shift == LSL) return SVE_LSL;
+    // SVE does not accept any other shift.
+    VIXL_UNIMPLEMENTED();
+    return NO_SVE_OFFSET_MODIFIER;
+  }
+
+  SVEOffsetModifier GetSVEOffsetModifierFor(Extend extend) {
+    if (extend == UXTW) return SVE_UXTW;
+    if (extend == SXTW) return SVE_SXTW;
+    // SVE does not accept any other extend mode.
+    VIXL_UNIMPLEMENTED();
+    return NO_SVE_OFFSET_MODIFIER;
+  }
+
+  SVEOffsetModifier GetSVEOffsetModifierFor(SVEOffsetModifier mod) {
+    return mod;
+  }
+
+  CPURegister base_;
+  CPURegister regoffset_;
+  int64_t offset_;
+  SVEOffsetModifier mod_;
+  unsigned shift_amount_;
+};
+
+inline SVEMemOperand SVEMemOperand::ForPRegAccess() const {
+  VIXL_ASSERT(mod_ == SVE_MUL_VL);
+  SVEMemOperand result = *this;
+  result.mod_ = SVE_MUL_VL_FOR_PREG;
+  return result;
+}
+
+inline SVEMemOperand SVEMemOperand::ForZRegAccess() const {
+  VIXL_ASSERT(mod_ == SVE_MUL_VL);
+  SVEMemOperand result = *this;
+  result.mod_ = SVE_MUL_VL_FOR_ZREG;
+  return result;
+}
+
 // Represent a signed or unsigned integer operand.
 //
 // This is designed to make instructions which naturally accept a _signed_

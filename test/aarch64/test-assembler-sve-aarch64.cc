@@ -132,8 +132,7 @@ void Initialise(MacroAssembler* masm,
   Label done;
 
   masm->Adr(temp, &data);
-  // TODO: Use `Ldr(pd, MemOperand(temp))` once available.
-  masm->Ldr(PRegister(pd.GetCode()), temp);
+  masm->Ldr(pd, SVEMemOperand(temp));
   masm->B(&done);
   {
     ExactAssemblyScope total(masm, kPRegMaxSizeInBytes);

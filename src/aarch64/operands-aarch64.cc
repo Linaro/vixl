@@ -373,6 +373,56 @@ void MemOperand::AddOffset(int64_t offset) {
 }
 
 
+bool SVEMemOperand::IsValid() const {
+#ifdef VIXL_DEBUG
+  {
+    // It should not be possible for an SVEMemOperand to match multiple types.
+    int count = 0;
+    if (IsScalarPlusImmediate()) count++;
+    if (IsScalarPlusScalar()) count++;
+    if (IsScalarPlusVector()) count++;
+    if (IsVectorPlusImmediate()) count++;
+    VIXL_ASSERT(count <= 1);
+  }
+#endif
+
+  // We can't have a register _and_ an immediate offset.
+  if ((offset_ != 0) && (!regoffset_.IsNone())) return false;
+
+  if (shift_amount_ != 0) {
+    // Only shift and extend modifiers can take a shift amount.
+    switch (mod_) {
+      case NO_SVE_OFFSET_MODIFIER:
+      case SVE_MUL_VL:
+      case SVE_MUL_VL_FOR_ZREG:
+      case SVE_MUL_VL_FOR_PREG:
+        return false;
+      case SVE_LSL:
+      case SVE_UXTW:
+      case SVE_SXTW:
+        // Fall through.
+        break;
+    }
+  }
+
+  return IsScalarPlusImmediate() || IsScalarPlusScalar() ||
+         IsScalarPlusVector() || IsVectorPlusImmediate();
+}
+
+
+bool SVEMemOperand::IsEquivalentToScalar() const {
+  if (IsScalarPlusImmediate()) {
+    return GetImmediateOffset() == 0;
+  }
+  if (IsScalarPlusScalar()) {
+    // We can ignore the shift because it will still result in zero.
+    return GetScalarOffset().IsZero();
+  }
+  // Forms involving vectors are never equivalent to a single scalar.
+  return false;
+}
+
+
 GenericOperand::GenericOperand(const CPURegister& reg)
     : cpu_register_(reg), mem_op_size_(0) {
   if (reg.IsQ()) {

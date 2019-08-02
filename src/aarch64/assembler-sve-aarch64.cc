@@ -4148,24 +4148,26 @@ void Assembler::ld1rw(const ZRegister& zt,
        ImmField<21, 16>(imm6));
 }
 
-void Assembler::ldr(const PRegister& pt, const Register& xn) {
+void Assembler::ldr(const PRegister& pt, const SVEMemOperand& addr) {
   // LDR <Pt>, [<Xn|SP>{, #<imm>, MUL VL}]
   //  1000 0101 10.. .... 000. .... ...0 ....
   //  imm9h<21:16> | imm9l<12:10> | Rn<9:5> | Pt<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(addr.IsScalar());
 
-  Emit(LDR_p_bi | Pd(pt) | RnSP(xn));
+  Emit(LDR_p_bi | Pd(pt) | RnSP(addr.GetScalarBase()));
 }
 
-void Assembler::ldr(const ZRegister& zt, const Register& xn) {
+void Assembler::ldr(const ZRegister& zt, const SVEMemOperand& addr) {
   // LDR <Zt>, [<Xn|SP>{, #<imm>, MUL VL}]
   //  1000 0101 10.. .... 010. .... .... ....
   //  imm9h<21:16> | imm9l<12:10> | Rn<9:5> | Zt<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(addr.IsScalar());
 
-  Emit(LDR_z_bi | Rt(zt) | RnSP(xn));
+  Emit(LDR_z_bi | Rt(zt) | RnSP(addr.GetScalarBase()));
 }
 
 void Assembler::prfb(int prfop,
@@ -6882,24 +6884,26 @@ void Assembler::stnt1w(const ZRegister& zt,
        ImmField<19, 16>(imm4));
 }
 
-void Assembler::str(const PRegister& pt, const Register& xn) {
+void Assembler::str(const PRegister& pt, const SVEMemOperand& addr) {
   // STR <Pt>, [<Xn|SP>{, #<imm>, MUL VL}]
   //  1110 0101 10.. .... 000. .... ...0 ....
   //  imm9h<21:16> | imm9l<12:10> | Rn<9:5> | Pt<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(addr.IsScalar());
 
-  Emit(STR_p_bi | Pd(pt) | RnSP(xn));
+  Emit(STR_p_bi | Pd(pt) | RnSP(addr.GetScalarBase()));
 }
 
-void Assembler::str(const ZRegister& zt, const Register& xn) {
+void Assembler::str(const ZRegister& zt, const SVEMemOperand& addr) {
   // STR <Zt>, [<Xn|SP>{, #<imm>, MUL VL}]
   //  1110 0101 10.. .... 010. .... .... ....
   //  imm9h<21:16> | imm9l<12:10> | Rn<9:5> | Zt<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(addr.IsScalar());
 
-  Emit(STR_z_bi | Rt(zt) | RnSP(xn));
+  Emit(STR_z_bi | Rt(zt) | RnSP(addr.GetScalarBase()));
 }
 
 // SVEMulIndex.
