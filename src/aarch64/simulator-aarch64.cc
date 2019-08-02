@@ -232,6 +232,7 @@ void Simulator::RunFrom(const Instruction* first) {
 }
 
 
+// clang-format off
 const char* Simulator::xreg_names[] = {"x0",  "x1",  "x2",  "x3",  "x4",  "x5",
                                        "x6",  "x7",  "x8",  "x9",  "x10", "x11",
                                        "x12", "x13", "x14", "x15", "x16", "x17",
@@ -280,6 +281,11 @@ const char* Simulator::zreg_names[] = {"z0",  "z1",  "z2",  "z3",  "z4",  "z5",
                                        "z18", "z19", "z20", "z21", "z22", "z23",
                                        "z24", "z25", "z26", "z27", "z28", "z29",
                                        "z30", "z31"};
+
+const char* Simulator::preg_names[] = {"p0",  "p1",  "p2",  "p3",  "p4",  "p5",
+                                       "p6",  "p7",  "p8",  "p9",  "p10", "p11",
+                                       "p12", "p13", "p14", "p15"};
+// clang-format on
 
 
 const char* Simulator::WRegNameForCode(unsigned code, Reg31Mode mode) {
@@ -332,6 +338,12 @@ const char* Simulator::ZRegNameForCode(unsigned code) {
 }
 
 
+const char* Simulator::PRegNameForCode(unsigned code) {
+  VIXL_ASSERT(code < kNumberOfPRegisters);
+  return preg_names[code];
+}
+
+
 #define COLOUR(colour_code) "\033[0;" colour_code "m"
 #define COLOUR_BOLD(colour_code) "\033[1;" colour_code "m"
 #define COLOUR_HIGHLIGHT "\033[43m"
@@ -354,6 +366,8 @@ void Simulator::SetColouredTrace(bool value) {
   clr_reg_value = value ? COLOUR(CYAN) : "";
   clr_vreg_name = value ? COLOUR_BOLD(MAGENTA) : "";
   clr_vreg_value = value ? COLOUR(MAGENTA) : "";
+  clr_preg_name = value ? COLOUR_BOLD(GREEN) : "";
+  clr_preg_value = value ? COLOUR(GREEN) : "";
   clr_memory_address = value ? COLOUR_BOLD(BLUE) : "";
   clr_warning = value ? COLOUR_BOLD(YELLOW) : "";
   clr_warning_message = value ? COLOUR(YELLOW) : "";
@@ -711,6 +725,18 @@ void Simulator::PrintWrittenVRegisters() {
 }
 
 
+void Simulator::PrintWrittenPRegisters() {
+  // P registers are initialised in the constructor before the user can
+  // configure the CPU features, so we must check for SVE here.
+  if (!GetCPUFeatures()->Has(CPUFeatures::kSVE)) return;
+  for (unsigned i = 0; i < kNumberOfPRegisters; i++) {
+    if (pregisters_[i].WrittenSinceLastLog()) {
+      PrintPRegister(i);
+    }
+  }
+}
+
+
 void Simulator::PrintSystemRegisters() {
   PrintSystemRegister(NZCV);
   PrintSystemRegister(FPCR);
@@ -920,6 +946,40 @@ void Simulator::PrintZRegisterRawHelper(
 }
 
 
+void Simulator::PrintPRegisterRawHelper(unsigned code, int lsb) {
+  // There are no predicated store-predicate instructions, so we can always
+  // print the full register, but this helper prints a single run of 16 bits
+  // (from `lsb`).
+  VIXL_ASSERT(code < kNumberOfPRegisters);
+  int bits = kQRegSize / kZRegBitsPerPRegBit;
+  int msb = lsb + bits - 1;
+  VIXL_ASSERT(static_cast<unsigned>(msb) < pregisters_[code].GetSizeInBits());
+  VIXL_ASSERT((lsb % bits) == 0);
+
+  // The template for P registers:
+  //   "# p{code}<m+15:m>:  0b 0 0 0 0 1 0 1 1 0 1 1 1 0 1 0 0",
+  // where m is multiple of 16.
+
+  // Each printed bit aligns with the least-significant nibble of the
+  // corresponding Z-register lane, to make predicate behaviour easy to follow.
+
+  std::stringstream prefix;
+  prefix << PRegNameForCode(code) << "<" << msb << ":" << lsb << ">";
+
+  fprintf(stream_,
+          "# %s%13s: %s0b",
+          clr_preg_name,
+          prefix.str().c_str(),
+          clr_preg_value);
+
+  // Print the 16-bit length of register, lane by lane.
+  for (int i = msb; i >= lsb; i--) {
+    fprintf(stream_, " %c", pregisters_[code].GetBit(i) ? '1' : '0');
+  }
+  fprintf(stream_, "%s", clr_normal);
+}
+
+
 // Print each of the specified lanes of a register as a float or double value.
 //
 // The `lane_count` and `lslane` arguments can be used to limit the lanes that
@@ -1084,6 +1144,19 @@ void Simulator::PrintZRegister(unsigned code,
                             kQRegSizeInBytes,
                             start_byte + bytes - kQRegSizeInBytes);
     bytes -= kQRegSizeInBytes;
+    fprintf(stream_, "\n");
+  }
+}
+
+void Simulator::PrintPRegister(unsigned code, PrintRegisterFormat format) {
+  USE(format);
+  pregisters_[code].NotifyRegisterLogged();
+  // There are no predicated store-predicate instructions, so we can simply
+  // print the full register.
+  int bits_per_chunk = kQRegSize / kZRegBitsPerPRegBit;
+  int bits = pregisters_[code].GetSizeInBits();
+  for (int lsb = bits - bits_per_chunk; lsb >= 0; lsb -= bits_per_chunk) {
+    PrintPRegisterRawHelper(code, lsb);
     fprintf(stream_, "\n");
   }
 }
@@ -8072,7 +8145,6 @@ void Simulator::VisitSVEIntCompareScalars(const Instruction* instr) {
     ones.SetAllBits();
 
     PredTest(vform, ones, pd);
-    // TODO: LogPRegister(...)
   } else {
     VIXL_ASSERT(instr->Mask(SVEIntCompareCondTerminateScalarsFMask) ==
                 SVEIntCompareCondTerminateScalarsFixed);
@@ -8253,7 +8325,6 @@ void Simulator::VisitSVEIntCompareVectors(const Instruction* instr) {
                              ReadVRegister(instr->GetRn()),
                              ReadVRegister(instr->GetRm()),
                              is_wide_elements);
-  // TODO: LogPRegister(...)
 }
 
 void Simulator::VisitSVEIntMiscUnpredicated(const Instruction* instr) {
@@ -9527,7 +9598,6 @@ void Simulator::VisitSVEPredicateLogicalOp(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
   }
-  // TODO: LogPRegister(...)
 }
 
 void Simulator::VisitSVEPredicateFirstActive(const Instruction* instr) {

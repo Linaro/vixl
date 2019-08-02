@@ -1660,6 +1660,7 @@ class Simulator : public DecoderVisitor {
   // As above, but only print the registers that have been updated.
   void PrintWrittenRegisters();
   void PrintWrittenVRegisters();
+  void PrintWrittenPRegisters();
 
   // As above, but respect LOG_REG and LOG_VREG.
   void LogWrittenRegisters() {
@@ -1668,9 +1669,13 @@ class Simulator : public DecoderVisitor {
   void LogWrittenVRegisters() {
     if (GetTraceParameters() & LOG_VREGS) PrintWrittenVRegisters();
   }
+  void LogWrittenPRegisters() {
+    if (GetTraceParameters() & LOG_VREGS) PrintWrittenPRegisters();
+  }
   void LogAllWrittenRegisters() {
     LogWrittenRegisters();
     LogWrittenVRegisters();
+    LogWrittenPRegisters();
   }
 
   // Print individual register values (after update).
@@ -1680,6 +1685,8 @@ class Simulator : public DecoderVisitor {
                       PrintRegisterFormat format = kPrintRegLaneSizeUnknown,
                       int bytes = 0,
                       int start_byte = 0);
+  void PrintPRegister(unsigned code,
+                      PrintRegisterFormat format = kPrintRegLaneSizeUnknown);
   void PrintSystemRegister(SystemRegister id);
   void PrintTakenBranch(const Instruction* target);
 
@@ -1692,6 +1699,9 @@ class Simulator : public DecoderVisitor {
   }
   void LogZRegister(unsigned code, PrintRegisterFormat format) {
     if (GetTraceParameters() & LOG_VREGS) PrintZRegister(code, format);
+  }
+  void LogPRegister(unsigned code, PrintRegisterFormat format) {
+    if (GetTraceParameters() & LOG_VREGS) PrintPRegister(code, format);
   }
   void LogSystemRegister(SystemRegister id) {
     if (GetTraceParameters() & LOG_SYSREGS) PrintSystemRegister(id);
@@ -1793,6 +1803,7 @@ class Simulator : public DecoderVisitor {
                                int data_size = 0,
                                int bytes = 0,
                                int start_byte = 0);
+  void PrintPRegisterRawHelper(unsigned code, int lsb);
 
   VIXL_NO_RETURN void DoUnreachable(const Instruction* instr);
   void DoTrace(const Instruction* instr);
@@ -1807,6 +1818,7 @@ class Simulator : public DecoderVisitor {
   static const char* DRegNameForCode(unsigned code);
   static const char* VRegNameForCode(unsigned code);
   static const char* ZRegNameForCode(unsigned code);
+  static const char* PRegNameForCode(unsigned code);
 
   bool IsColouredTrace() const { return coloured_trace_; }
   VIXL_DEPRECATED("IsColouredTrace", bool coloured_trace() const) {
@@ -2111,6 +2123,8 @@ class Simulator : public DecoderVisitor {
   const char* clr_reg_value;
   const char* clr_vreg_name;
   const char* clr_vreg_value;
+  const char* clr_preg_name;
+  const char* clr_preg_value;
   const char* clr_memory_address;
   const char* clr_warning;
   const char* clr_warning_message;
@@ -3705,6 +3719,7 @@ class Simulator : public DecoderVisitor {
   static const char* dreg_names[];
   static const char* vreg_names[];
   static const char* zreg_names[];
+  static const char* preg_names[];
 
  private:
   static const PACKey kPACKeyIA;
