@@ -25,6 +25,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cmath>
+#include <queue>
 
 #include "test-runner.h"
 #include "test-utils-aarch64.h"
@@ -383,10 +384,11 @@ bool EqualSVELane(uint64_t expected,
 
 bool EqualSVELane(uint64_t expected,
                   const RegisterDump* core,
-                  const PRegisterWithLaneSize& reg,
+                  const PRegister& reg,
                   int lane) {
-  // Each bit in a P register corresponds to one byte in the lane format.
-  unsigned p_bits_per_lane = reg.GetLaneSizeInBytes();
+  VIXL_ASSERT(reg.HasLaneSize());
+  VIXL_ASSERT((reg.GetLaneSizeInBits() % kZRegBitsPerPRegBit) == 0);
+  unsigned p_bits_per_lane = reg.GetLaneSizeInBits() / kZRegBitsPerPRegBit;
   VIXL_ASSERT(IsUintN(p_bits_per_lane, expected));
   expected &= GetUintMask(p_bits_per_lane);
 
@@ -406,6 +408,78 @@ bool EqualSVELane(uint64_t expected,
   return true;
 }
 
+struct EqualMemoryChunk {
+  typedef uint64_t RawChunk;
+
+  uintptr_t address;
+  RawChunk expected;
+  RawChunk result;
+
+  bool IsEqual() const { return expected == result; }
+};
+
+bool EqualMemory(const void* expected,
+                 const void* result,
+                 size_t size_in_bytes) {
+  if (memcmp(expected, result, size_in_bytes) == 0) return true;
+
+  // Read 64-bit chunks, and print them side-by-side if they don't match.
+
+  // Remember the least few chunks, even if they matched, so we can print
+  // some context. We don't want to print the whole buffer, because it could be
+  // huge.
+  static const size_t kContextLines = 1;
+  std::queue<EqualMemoryChunk> context;
+  static const size_t kChunkSize = sizeof(EqualMemoryChunk::RawChunk);
+
+  // This assumption keeps the logic simple, and is acceptable for our tests.
+  VIXL_ASSERT((size_in_bytes % kChunkSize) == 0);
+
+  const char* expected_it = reinterpret_cast<const char*>(expected);
+  const char* result_it = reinterpret_cast<const char*>(result);
+
+  // This is the first error, so print a header row.
+  printf("  Address (of result)                  Expected           Result\n");
+
+  // Always print some context at the start of the buffer.
+  uintptr_t print_context_to =
+      reinterpret_cast<uintptr_t>(result) + (kContextLines + 1) * kChunkSize;
+  for (size_t i = 0; i < size_in_bytes; i += kChunkSize) {
+    EqualMemoryChunk chunk;
+    chunk.address = reinterpret_cast<uintptr_t>(result_it);
+    memcpy(&chunk.expected, expected_it, kChunkSize);
+    memcpy(&chunk.result, result_it, kChunkSize);
+
+    while (context.size() > kContextLines) context.pop();
+    context.push(chunk);
+
+    // Print context after an error, and at the end of the buffer.
+    if (!chunk.IsEqual() || ((i + kChunkSize) >= size_in_bytes)) {
+      if (chunk.address > print_context_to) {
+        // We aren't currently printing context, so separate this context from
+        // the previous block.
+        printf("...\n");
+      }
+      print_context_to = chunk.address + (kContextLines + 1) * kChunkSize;
+    }
+
+    // Print context (including the current line).
+    while (!context.empty() && (context.front().address < print_context_to)) {
+      printf("0x%016" PRIxPTR " (result + %5" PRIuPTR "): 0x%016" PRIx64
+             " 0x%016" PRIx64 "\n",
+             context.front().address,
+             context.front().address - reinterpret_cast<uintptr_t>(result),
+             context.front().expected,
+             context.front().result);
+      context.pop();
+    }
+
+    expected_it += kChunkSize;
+    result_it += kChunkSize;
+  }
+
+  return false;
+}
 RegList PopulateRegisterArray(Register* w,
                               Register* x,
                               Register* r,

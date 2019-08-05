@@ -499,5 +499,32 @@ void MacroAssembler::Mul(const ZRegister& zd,
   }
 }
 
+void MacroAssembler::SVELoadStoreScalarImmHelper(const CPURegister& rt,
+                                                 const SVEMemOperand& addr,
+                                                 SVELoadStoreFn fn) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(rt.IsZRegister() || rt.IsPRegister());
+
+  if (addr.IsScalar() ||
+      (addr.IsScalarPlusImmediate() && IsInt9(addr.GetImmediateOffset()) &&
+       addr.IsMulVl())) {
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(rt, addr);
+    return;
+  }
+
+  if (addr.IsEquivalentToScalar()) {
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(rt, SVEMemOperand(addr.GetScalarBase()));
+    return;
+  }
+
+  UseScratchRegisterScope temps(this);
+  Register scratch = temps.AcquireX();
+  Adr(scratch, addr.ForAccessTo(rt));
+  SingleEmissionCheckScope guard(this);
+  (this->*fn)(rt, SVEMemOperand(scratch));
+}
+
 }  // namespace aarch64
 }  // namespace vixl

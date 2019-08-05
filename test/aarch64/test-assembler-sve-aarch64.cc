@@ -363,7 +363,7 @@ TEST_SVE(sve_v_write_clear) {
   __ Mov(x10, reinterpret_cast<uintptr_t>(data));
   __ Fmov(d30, 42.0);
 
-  // Use Index to label the lane indeces, so failures are easy to detect and
+  // Use Index to label the lane indices, so failures are easy to detect and
   // diagnose.
   __ Index(z0.VnB(), 0, 1);
   __ Index(z1.VnB(), 0, 1);
@@ -4617,6 +4617,193 @@ TEST_SVE(sve_permute_vector_unpredicated_table_lookup) {
       ASSERT_EQUAL_SVE_LANE(expected, z29.VnD(), lane);
     }
   }
+}
+
+TEST_SVE(ldr_str_z_bi) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int vl = config->sve_vl_in_bytes();
+
+  // The immediate can address [-256, 255] times the VL, so allocate enough
+  // space to exceed that in both directions.
+  int data_size = vl * 1024;
+
+  uint8_t* data = new uint8_t[data_size];
+  memset(data, 0, data_size);
+
+  // Set the base half-way through the buffer so we can use negative indices.
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
+
+  __ Index(z1.VnB(), 1, 3);
+  __ Index(z2.VnB(), 2, 5);
+  __ Index(z3.VnB(), 3, 7);
+  __ Index(z4.VnB(), 4, 11);
+  __ Index(z5.VnB(), 5, 13);
+  __ Index(z6.VnB(), 6, 2);
+  __ Index(z7.VnB(), 7, 3);
+  __ Index(z8.VnB(), 8, 5);
+  __ Index(z9.VnB(), 9, 7);
+
+  // Encodable cases.
+  __ Str(z1, SVEMemOperand(x0));
+  __ Str(z2, SVEMemOperand(x0, 2, SVE_MUL_VL));
+  __ Str(z3, SVEMemOperand(x0, -3, SVE_MUL_VL));
+  __ Str(z4, SVEMemOperand(x0, 255, SVE_MUL_VL));
+  __ Str(z5, SVEMemOperand(x0, -256, SVE_MUL_VL));
+
+  // Cases that fall back on `Adr`.
+  __ Str(z6, SVEMemOperand(x0, 6 * vl));
+  __ Str(z7, SVEMemOperand(x0, -7 * vl));
+  __ Str(z8, SVEMemOperand(x0, 314, SVE_MUL_VL));
+  __ Str(z9, SVEMemOperand(x0, -314, SVE_MUL_VL));
+
+  // Corresponding loads.
+  __ Ldr(z11, SVEMemOperand(x0, xzr));  // Test xzr operand.
+  __ Ldr(z12, SVEMemOperand(x0, 2, SVE_MUL_VL));
+  __ Ldr(z13, SVEMemOperand(x0, -3, SVE_MUL_VL));
+  __ Ldr(z14, SVEMemOperand(x0, 255, SVE_MUL_VL));
+  __ Ldr(z15, SVEMemOperand(x0, -256, SVE_MUL_VL));
+
+  __ Ldr(z16, SVEMemOperand(x0, 6 * vl));
+  __ Ldr(z17, SVEMemOperand(x0, -7 * vl));
+  __ Ldr(z18, SVEMemOperand(x0, 314, SVE_MUL_VL));
+  __ Ldr(z19, SVEMemOperand(x0, -314, SVE_MUL_VL));
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint8_t* expected = new uint8_t[data_size];
+    memset(expected, 0, data_size);
+    uint8_t* middle = &expected[data_size / 2];
+
+    for (int i = 0; i < vl; i++) {
+      middle[i] = (1 + (3 * i)) & 0xff;                 // z1
+      middle[(2 * vl) + i] = (2 + (5 * i)) & 0xff;      // z2
+      middle[(-3 * vl) + i] = (3 + (7 * i)) & 0xff;     // z3
+      middle[(255 * vl) + i] = (4 + (11 * i)) & 0xff;   // z4
+      middle[(-256 * vl) + i] = (5 + (13 * i)) & 0xff;  // z5
+      middle[(6 * vl) + i] = (6 + (2 * i)) & 0xff;      // z6
+      middle[(-7 * vl) + i] = (7 + (3 * i)) & 0xff;     // z7
+      middle[(314 * vl) + i] = (8 + (5 * i)) & 0xff;    // z8
+      middle[(-314 * vl) + i] = (9 + (7 * i)) & 0xff;   // z9
+    }
+
+    ASSERT_EQUAL_MEMORY(expected, data, data_size);
+
+    ASSERT_EQUAL_SVE(z1, z11);
+    ASSERT_EQUAL_SVE(z2, z12);
+    ASSERT_EQUAL_SVE(z3, z13);
+    ASSERT_EQUAL_SVE(z4, z14);
+    ASSERT_EQUAL_SVE(z5, z15);
+    ASSERT_EQUAL_SVE(z6, z16);
+    ASSERT_EQUAL_SVE(z7, z17);
+    ASSERT_EQUAL_SVE(z8, z18);
+    ASSERT_EQUAL_SVE(z9, z19);
+
+    delete[] expected;
+  }
+  delete[] data;
+}
+
+TEST_SVE(ldr_str_p_bi) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int vl = config->sve_vl_in_bytes();
+  VIXL_ASSERT((vl % kZRegBitsPerPRegBit) == 0);
+  int pl = vl / kZRegBitsPerPRegBit;
+
+  // The immediate can address [-256, 255] times the PL, so allocate enough
+  // space to exceed that in both directions.
+  int data_size = pl * 1024;
+
+  uint8_t* data = new uint8_t[data_size];
+  memset(data, 0, data_size);
+
+  // Set the base half-way through the buffer so we can use negative indices.
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
+
+  uint64_t pattern[4] = {0x1010101011101111,
+                         0x0010111011000101,
+                         0x1001101110010110,
+                         0x1010110101100011};
+  for (int i = 8; i <= 15; i++) {
+    // Initialise p8-p15 with a conveniently-recognisable, non-zero pattern.
+    Initialise(&masm,
+               PRegister(i),
+               pattern[3] * i,
+               pattern[2] * i,
+               pattern[1] * i,
+               pattern[0] * i);
+  }
+
+  // Encodable cases.
+  __ Str(p8, SVEMemOperand(x0));
+  __ Str(p9, SVEMemOperand(x0, 2, SVE_MUL_VL));
+  __ Str(p10, SVEMemOperand(x0, -3, SVE_MUL_VL));
+  __ Str(p11, SVEMemOperand(x0, 255, SVE_MUL_VL));
+
+  // Cases that fall back on `Adr`.
+  __ Str(p12, SVEMemOperand(x0, 6 * pl));
+  __ Str(p13, SVEMemOperand(x0, -7 * pl));
+  __ Str(p14, SVEMemOperand(x0, 314, SVE_MUL_VL));
+  __ Str(p15, SVEMemOperand(x0, -314, SVE_MUL_VL));
+
+  // Corresponding loads.
+  __ Ldr(p0, SVEMemOperand(x0));
+  __ Ldr(p1, SVEMemOperand(x0, 2, SVE_MUL_VL));
+  __ Ldr(p2, SVEMemOperand(x0, -3, SVE_MUL_VL));
+  __ Ldr(p3, SVEMemOperand(x0, 255, SVE_MUL_VL));
+
+  __ Ldr(p4, SVEMemOperand(x0, 6 * pl));
+  __ Ldr(p5, SVEMemOperand(x0, -7 * pl));
+  __ Ldr(p6, SVEMemOperand(x0, 314, SVE_MUL_VL));
+  __ Ldr(p7, SVEMemOperand(x0, -314, SVE_MUL_VL));
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint8_t* expected = new uint8_t[data_size];
+    memset(expected, 0, data_size);
+    uint8_t* middle = &expected[data_size / 2];
+
+    for (int i = 0; i < pl; i++) {
+      int bit_index = (i % sizeof(pattern[0])) * kBitsPerByte;
+      size_t index = i / sizeof(pattern[0]);
+      VIXL_ASSERT(index < ArrayLength(pattern));
+      uint64_t byte = (pattern[index] >> bit_index) & 0xff;
+      // Each byte of `pattern` can be multiplied by 15 without carry.
+      VIXL_ASSERT((byte * 15) <= 0xff);
+
+      middle[i] = byte * 8;                 // p8
+      middle[(2 * pl) + i] = byte * 9;      // p9
+      middle[(-3 * pl) + i] = byte * 10;    // p10
+      middle[(255 * pl) + i] = byte * 11;   // p11
+      middle[(6 * pl) + i] = byte * 12;     // p12
+      middle[(-7 * pl) + i] = byte * 13;    // p13
+      middle[(314 * pl) + i] = byte * 14;   // p14
+      middle[(-314 * pl) + i] = byte * 15;  // p15
+    }
+
+    ASSERT_EQUAL_MEMORY(expected, data, data_size);
+
+    ASSERT_EQUAL_SVE(p0, p8);
+    ASSERT_EQUAL_SVE(p1, p9);
+    ASSERT_EQUAL_SVE(p2, p10);
+    ASSERT_EQUAL_SVE(p3, p11);
+    ASSERT_EQUAL_SVE(p4, p12);
+    ASSERT_EQUAL_SVE(p5, p13);
+    ASSERT_EQUAL_SVE(p6, p14);
+    ASSERT_EQUAL_SVE(p7, p15);
+
+    delete[] expected;
+  }
+  delete[] data;
 }
 
 }  // namespace aarch64

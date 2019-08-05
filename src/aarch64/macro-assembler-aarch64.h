@@ -5498,23 +5498,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ldnt1w(zt, pg, xn, imm4);
   }
-  void Ldr(const PRegister& pt, const SVEMemOperand& addr) {
+  void Ldr(const CPURegister& rt, const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    if (addr.IsEquivalentToScalar()) {
-      SingleEmissionCheckScope guard(this);
-      ldr(pt, SVEMemOperand(addr.GetScalarBase()));
-    } else {
-      VIXL_UNIMPLEMENTED();
-    }
-  }
-  void Ldr(const ZRegister& zt, const SVEMemOperand& addr) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    if (addr.IsEquivalentToScalar()) {
-      SingleEmissionCheckScope guard(this);
-      ldr(zt, SVEMemOperand(addr.GetScalarBase()));
-    } else {
-      VIXL_UNIMPLEMENTED();
-    }
+    SVELoadStoreScalarImmHelper(rt, addr, &MacroAssembler::ldr);
   }
   void Lsl(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6568,23 +6554,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     stnt1w(zt, pg, xn, imm4);
   }
-  void Str(const PRegister& pt, const SVEMemOperand& addr) {
+  void Str(const CPURegister& rt, const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    if (addr.IsEquivalentToScalar()) {
-      SingleEmissionCheckScope guard(this);
-      str(pt, SVEMemOperand(addr.GetScalarBase()));
-    } else {
-      VIXL_UNIMPLEMENTED();
-    }
-  }
-  void Str(const ZRegister& zt, const SVEMemOperand& addr) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    if (addr.IsEquivalentToScalar()) {
-      SingleEmissionCheckScope guard(this);
-      str(zt, SVEMemOperand(addr.GetScalarBase()));
-    } else {
-      VIXL_UNIMPLEMENTED();
-    }
+    SVELoadStoreScalarImmHelper(rt, addr, &MacroAssembler::str);
   }
   void Sub(const ZRegister& zd,
            const PRegisterM& pg,
@@ -7317,6 +7289,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                      const PRegisterZ& pg,
                      const ZRegister& zn,
                      IntegerOperand imm);
+
+  typedef void (Assembler::*SVELoadStoreFn)(const CPURegister& rt,
+                                            const SVEMemOperand& addr);
+
+  void SVELoadStoreScalarImmHelper(const CPURegister& rt,
+                                   const SVEMemOperand& addr,
+                                   SVELoadStoreFn fn);
 
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number

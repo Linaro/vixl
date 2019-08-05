@@ -1738,6 +1738,8 @@ class Simulator : public DecoderVisitor {
                    unsigned data_size = 0,
                    int bytes = 0,
                    int start_byte = 0);
+  void PrintPRead(uintptr_t address, unsigned reg_code);
+  void PrintPWrite(uintptr_t address, unsigned reg_code);
 
   // Like Print* (above), but respect GetTraceParameters().
   void LogRead(uintptr_t address,
@@ -1768,7 +1770,7 @@ class Simulator : public DecoderVisitor {
   }
   void LogZRead(uintptr_t address,
                 unsigned reg_code,
-                PrintRegisterFormat format,
+                PrintRegisterFormat format = kPrintRegLaneSizeUnknown,
                 unsigned data_size = 0,
                 int bytes = 0,
                 int start_byte = 0) {
@@ -1778,12 +1780,22 @@ class Simulator : public DecoderVisitor {
   }
   void LogZWrite(uintptr_t address,
                  unsigned reg_code,
-                 PrintRegisterFormat format,
+                 PrintRegisterFormat format = kPrintRegLaneSizeUnknown,
                  unsigned data_size = 0,
                  int bytes = 0,
                  int start_byte = 0) {
     if (GetTraceParameters() & LOG_WRITE) {
       PrintZWrite(address, reg_code, format, data_size, bytes, start_byte);
+    }
+  }
+  void LogPRead(uintptr_t address, unsigned reg_code) {
+    if (GetTraceParameters() & LOG_VREGS) {
+      PrintPRead(address, reg_code);
+    }
+  }
+  void LogPWrite(uintptr_t address, unsigned reg_code) {
+    if (GetTraceParameters() & LOG_WRITE) {
+      PrintPWrite(address, reg_code);
     }
   }
 

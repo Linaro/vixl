@@ -1735,8 +1735,6 @@ TEST(sve_mem_32bit_gather_and_unsized_contiguous) {
   COMPARE_PREFIX(ldff1w(z0.VnS(), p2.Zeroing(), z25.VnS(), int imm5), "ldff1w { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]");
   COMPARE_PREFIX(ldff1w(z5.VnS(), p4.Zeroing(), x23, z31.VnS()), "ldff1w { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #2]");
   COMPARE_PREFIX(ldff1w(z12.VnS(), p3.Zeroing(), x25, z27.VnS()), "ldff1w { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
-  COMPARE_PREFIX(ldr(p4, x0), "ldr <Pt>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(ldr(z4, x28), "ldr <Zt>, [<Xn|SP>{, #<imm>, MUL VL}]");
   COMPARE_PREFIX(prfb(int prfop, p5, z30.VnS(), int imm5), "prfb <prfop>, <Pg>, [<Zn>.S{, #<imm>}]");
   COMPARE_PREFIX(prfb(int prfop, p5, x28, int imm6), "prfb <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
   COMPARE_PREFIX(prfb(int prfop, p6, x31, x31), "prfb <prfop>, <Pg>, [<Xn|SP>, <Xm>]");
@@ -1954,6 +1952,74 @@ TEST(sve_mem_contiguous_load) {
   CLEANUP();
 }
 
+TEST(sve_ldr_str_simple) {
+  SETUP();
+
+  COMPARE_PREFIX(str(p14, SVEMemOperand(x0)), "str p14, [x0]");
+  COMPARE_PREFIX(str(z14, SVEMemOperand(sp)), "str z14, [sp]");
+  COMPARE_PREFIX(ldr(p4, SVEMemOperand(x0)), "ldr p4, [x0]");
+  COMPARE_PREFIX(ldr(z4, SVEMemOperand(sp)), "ldr z4, [sp]");
+  COMPARE_PREFIX(str(p15, SVEMemOperand(sp, -256, SVE_MUL_VL)),
+                 "str p15, [sp, #-256, MUL VL]");
+  COMPARE_PREFIX(str(z16, SVEMemOperand(x13, 255, SVE_MUL_VL)),
+                 "str z16, [x13, #255, MUL VL]");
+  COMPARE_PREFIX(ldr(p5, SVEMemOperand(sp, -42, SVE_MUL_VL)),
+                 "ldr p5, [sp, #-42, MUL VL]");
+  COMPARE_PREFIX(ldr(z6, SVEMemOperand(x28, 42, SVE_MUL_VL)),
+                 "ldr z6, [x28, #42, MUL VL]");
+
+  COMPARE_MACRO(Str(p14, SVEMemOperand(x0)), "str p14, [x0]");
+  COMPARE_MACRO(Str(z14, SVEMemOperand(sp)), "str z14, [sp]");
+  COMPARE_MACRO(Ldr(p4, SVEMemOperand(x0)), "ldr p4, [x0]");
+  COMPARE_MACRO(Ldr(z4, SVEMemOperand(sp)), "ldr z4, [sp]");
+  COMPARE_MACRO(Str(p15, SVEMemOperand(sp, -256, SVE_MUL_VL)),
+                "str p15, [sp, #-256, MUL VL]");
+  COMPARE_MACRO(Str(z16, SVEMemOperand(x13, 255, SVE_MUL_VL)),
+                "str z16, [x13, #255, MUL VL]");
+  COMPARE_MACRO(Ldr(p5, SVEMemOperand(sp, -42, SVE_MUL_VL)),
+                "ldr p5, [sp, #-42, MUL VL]");
+  COMPARE_MACRO(Ldr(z6, SVEMemOperand(x28, 42, SVE_MUL_VL)),
+                "ldr z6, [x28, #42, MUL VL]");
+
+  COMPARE_MACRO(Ldr(z6, SVEMemOperand(x28, 42, SVE_MUL_VL)),
+                "ldr z6, [x28, #42, MUL VL]");
+
+  // IsEquivalentToScalar
+  COMPARE_MACRO(Str(p0, SVEMemOperand(x0, xzr)), "str p0, [x0]");
+  COMPARE_MACRO(Ldr(p1, SVEMemOperand(sp, xzr)), "ldr p1, [sp]");
+  COMPARE_MACRO(Str(z2, SVEMemOperand(x12, xzr)), "str z2, [x12]");
+  COMPARE_MACRO(Ldr(z3, SVEMemOperand(x7, xzr)), "ldr z3, [x7]");
+
+  // Other cases fall back on Adr. We test Adr separately, so here we just test
+  // sequences that stress scratch register allocation.
+  COMPARE_MACRO(Str(p4, SVEMemOperand(x5, 4242, SVE_MUL_VL)),
+                "mov x16, #0x1092\n"
+                "rdvl x17, #1\n"
+                "mul x16, x16, x17\n"
+                "add x16, x5, x16, asr #3\n"
+                "str p4, [x16]");
+  COMPARE_MACRO(Ldr(p6, SVEMemOperand(sp, 4242, SVE_MUL_VL)),
+                "mov x16, #0x1092\n"
+                "rdvl x17, #1\n"
+                "mul x16, x16, x17\n"
+                "asr x16, x16, #3\n"
+                "add x16, sp, x16\n"
+                "ldr p6, [x16]");
+  COMPARE_MACRO(Str(z7, SVEMemOperand(sp, 4242, SVE_MUL_VL)),
+                "mov x16, #0x1092\n"
+                "rdvl x17, #1\n"
+                "mul x16, x16, x17\n"
+                "add x16, sp, x16\n"
+                "str z7, [x16]");
+  COMPARE_MACRO(Ldr(z8, SVEMemOperand(x9, 4242, SVE_MUL_VL)),
+                "mov x16, #0x1092\n"
+                "rdvl x17, #1\n"
+                "madd x16, x16, x17, x9\n"
+                "ldr z8, [x16]");
+
+  CLEANUP();
+}
+
 TEST(sve_mem_store) {
   SETUP();
 
@@ -2024,8 +2090,6 @@ TEST(sve_mem_store) {
   COMPARE_PREFIX(stnt1h(z17.VnH(), p4, x17, x17), "stnt1h { <Zt>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]");
   COMPARE_PREFIX(stnt1w(z23.VnS(), p2, x10, int imm4), "stnt1w { <Zt>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
   COMPARE_PREFIX(stnt1w(z2.VnS(), p4, x1, x1), "stnt1w { <Zt>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]");
-  COMPARE_PREFIX(str(p14, x0), "str <Pt>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(str(z14, x13), "str <Zt>, [<Xn|SP>{, #<imm>, MUL VL}]");
 #endif
 
   CLEANUP();

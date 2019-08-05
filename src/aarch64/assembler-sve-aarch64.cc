@@ -4148,26 +4148,20 @@ void Assembler::ld1rw(const ZRegister& zt,
        ImmField<21, 16>(imm6));
 }
 
-void Assembler::ldr(const PRegister& pt, const SVEMemOperand& addr) {
-  // LDR <Pt>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1000 0101 10.. .... 000. .... ...0 ....
-  //  imm9h<21:16> | imm9l<12:10> | Rn<9:5> | Pt<3:0>
+void Assembler::ldr(const CPURegister& rt, const SVEMemOperand& addr) {
+  // LDR <Pt/Zt>, [<Xn|SP>{, #<imm>, MUL VL}]
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(addr.IsScalar());
+  VIXL_ASSERT(rt.IsPRegister() || rt.IsZRegister());
+  VIXL_ASSERT(addr.IsScalar() || (addr.IsScalarPlusImmediate() &&
+                                  (addr.GetOffsetModifier() == SVE_MUL_VL)));
+  int64_t imm9 = addr.GetImmediateOffset();
+  VIXL_ASSERT(IsInt9(imm9));
+  Instr imm9l = ExtractUnsignedBitfield32(2, 0, imm9) << 10;
+  Instr imm9h = ExtractUnsignedBitfield32(8, 3, imm9) << 16;
 
-  Emit(LDR_p_bi | Pd(pt) | RnSP(addr.GetScalarBase()));
-}
-
-void Assembler::ldr(const ZRegister& zt, const SVEMemOperand& addr) {
-  // LDR <Zt>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1000 0101 10.. .... 010. .... .... ....
-  //  imm9h<21:16> | imm9l<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(addr.IsScalar());
-
-  Emit(LDR_z_bi | Rt(zt) | RnSP(addr.GetScalarBase()));
+  Instr op = rt.IsPRegister() ? LDR_p_bi : LDR_z_bi;
+  Emit(op | Rt(rt) | RnSP(addr.GetScalarBase()) | imm9h | imm9l);
 }
 
 void Assembler::prfb(int prfop,
@@ -6884,26 +6878,20 @@ void Assembler::stnt1w(const ZRegister& zt,
        ImmField<19, 16>(imm4));
 }
 
-void Assembler::str(const PRegister& pt, const SVEMemOperand& addr) {
-  // STR <Pt>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1110 0101 10.. .... 000. .... ...0 ....
-  //  imm9h<21:16> | imm9l<12:10> | Rn<9:5> | Pt<3:0>
+void Assembler::str(const CPURegister& rt, const SVEMemOperand& addr) {
+  // STR <Pt/Zt>, [<Xn|SP>{, #<imm>, MUL VL}]
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(addr.IsScalar());
+  VIXL_ASSERT(rt.IsPRegister() || rt.IsZRegister());
+  VIXL_ASSERT(addr.IsScalar() || (addr.IsScalarPlusImmediate() &&
+                                  (addr.GetOffsetModifier() == SVE_MUL_VL)));
+  int64_t imm9 = addr.GetImmediateOffset();
+  VIXL_ASSERT(IsInt9(imm9));
+  Instr imm9l = ExtractUnsignedBitfield32(2, 0, imm9) << 10;
+  Instr imm9h = ExtractUnsignedBitfield32(8, 3, imm9) << 16;
 
-  Emit(STR_p_bi | Pd(pt) | RnSP(addr.GetScalarBase()));
-}
-
-void Assembler::str(const ZRegister& zt, const SVEMemOperand& addr) {
-  // STR <Zt>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1110 0101 10.. .... 010. .... .... ....
-  //  imm9h<21:16> | imm9l<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(addr.IsScalar());
-
-  Emit(STR_z_bi | Rt(zt) | RnSP(addr.GetScalarBase()));
+  Instr op = rt.IsPRegister() ? STR_p_bi : STR_z_bi;
+  Emit(op | Rt(rt) | RnSP(addr.GetScalarBase()) | imm9h | imm9l);
 }
 
 // SVEMulIndex.

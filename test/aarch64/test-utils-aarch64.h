@@ -215,6 +215,21 @@ class RegisterDump {
     return lane < GetSVELaneCount(reg.GetLaneSizeInBits());
   }
 
+  template <typename T>
+  inline uint64_t GetSVELane(T reg, int lane) const {
+    VIXL_ASSERT(HasSVELane(reg, lane));
+    if (reg.IsZRegister()) {
+      return zreg_lane(reg.GetCode(), reg.GetLaneSizeInBits(), lane);
+    } else if (reg.IsPRegister()) {
+      VIXL_ASSERT((reg.GetLaneSizeInBits() % kZRegBitsPerPRegBit) == 0);
+      return preg_lane(reg.GetCode(),
+                       reg.GetLaneSizeInBits() / kZRegBitsPerPRegBit,
+                       lane);
+    } else {
+      VIXL_ABORT();
+    }
+  }
+
   // Stack pointer accessors.
   inline int64_t spreg() const {
     VIXL_ASSERT(SPRegAliasesMatch());
@@ -381,7 +396,7 @@ bool EqualSVELane(uint64_t expected,
 
 bool EqualSVELane(uint64_t expected,
                   const RegisterDump* core,
-                  const PRegisterWithLaneSize& reg,
+                  const PRegister& reg,
                   int lane);
 
 // Check that each SVE lane matches the corresponding expected[] value. The
@@ -413,8 +428,8 @@ bool EqualSVE(const T (&expected)[N],
 }
 
 // Check that each SVE lanes matches the `expected` value.
-template <typename T, typename R>
-bool EqualSVE(const T expected,
+template <typename R>
+bool EqualSVE(uint64_t expected,
               const RegisterDump* core,
               const R& reg,
               bool* printed_warning) {
@@ -429,6 +444,35 @@ bool EqualSVE(const T expected,
   }
   return equal;
 }
+
+// Check that two Z or P registers are equal.
+template <typename R>
+bool EqualSVE(const R& expected,
+              const RegisterDump* core,
+              const R& result,
+              bool* printed_warning) {
+  VIXL_ASSERT(result.IsZRegister() || result.IsPRegister());
+  VIXL_ASSERT(AreSameFormat(expected, result));
+  USE(printed_warning);
+
+  // If the lane size is omitted, pick a default.
+  if (!result.HasLaneSize()) {
+    return EqualSVE(expected.VnB(), core, result.VnB(), printed_warning);
+  }
+
+  // Evaluate and report errors on every lane, rather than just the first.
+  bool equal = true;
+  int lane_size = result.GetLaneSizeInBits();
+  for (int lane = 0; lane < core->GetSVELaneCount(lane_size); ++lane) {
+    uint64_t expected_lane = core->GetSVELane(expected, lane);
+    equal = equal && EqualSVELane(expected_lane, core, result, lane);
+  }
+  return equal;
+}
+
+bool EqualMemory(const void* expected,
+                 const void* result,
+                 size_t size_in_bytes);
 
 // Populate the w, x and r arrays with registers from the 'allowed' mask. The
 // r array will be populated with <reg_size>-sized registers,

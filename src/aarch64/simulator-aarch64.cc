@@ -1253,6 +1253,7 @@ void Simulator::PrintZRead(uintptr_t address,
   // Zt<255:128>: 0x77776666555544443333222211110000 <- 0x00007fff00000000
   // Zt<383:256>: 0xffffeeeeddddccccbbbbaaaa99998888 <- 0x00007fff00000010
 
+  if (format == kPrintRegLaneSizeUnknown) format = kPrintRegLaneSizeQ;
   int lane_size = GetPrintRegLaneSizeInBytes(format);
   if (data_size == 0) {
     // Let the full lane of value are relevent.
@@ -1337,6 +1338,7 @@ void Simulator::PrintZWrite(uintptr_t address,
   // Zt<255:128>: 0x77776666555544443333222211110000 -> 0x00007fff00000000
   // Zt<383:256>: 0xffffeeeeddddccccbbbbaaaa99998888 -> 0x00007fff00000010
 
+  if (format == kPrintRegLaneSizeUnknown) format = kPrintRegLaneSizeQ;
   int lane_size = GetPrintRegLaneSizeInBytes(format);
   if (data_size == 0) {
     // If no data size was specified, print the whole of each lane.
@@ -1361,6 +1363,49 @@ void Simulator::PrintZWrite(uintptr_t address,
             clr_normal);
     start_byte += kQRegSizeInBytes;
     address += kQRegSizeInBytes;
+  }
+}
+
+void Simulator::PrintPRead(uintptr_t address, unsigned reg_code) {
+  pregisters_[reg_code].NotifyRegisterLogged();
+
+  // There are no predicated load-predicate instructions, so we can always
+  // print the full register.
+  //
+  // The template for P registers:
+  //   "# p{code}<m+15:m>:  0b 0 0 0 0 1 0 1 1 0 1 1 1 0 1 0 0 <- {address}",
+  // where m is multiple of 16.
+
+  int bytes_per_chunk = kQRegSizeInBytes / kZRegBitsPerPRegBit;
+  int bytes = pregisters_[reg_code].GetSizeInBytes();
+  for (int byte = bytes - bytes_per_chunk; byte >= 0; byte -= bytes_per_chunk) {
+    PrintPRegisterRawHelper(reg_code, byte * kBitsPerByte);
+    fprintf(stream_,
+            " <- %s0x%016" PRIxPTR "%s\n",
+            clr_memory_address,
+            address,
+            clr_normal);
+    address += bytes_per_chunk;
+  }
+}
+
+void Simulator::PrintPWrite(uintptr_t address, unsigned reg_code) {
+  // There are no predicated store-predicate instructions, so we can always
+  // print the full register.
+  //
+  // The template for P registers:
+  //   "# p{code}<m+15:m>:  0b 0 0 0 0 1 0 1 1 0 1 1 1 0 1 0 0 -> {address}",
+  // where m is multiple of 16.
+  int bytes_per_chunk = kQRegSizeInBytes / kZRegBitsPerPRegBit;
+  int bytes = pregisters_[reg_code].GetSizeInBytes();
+  for (int byte = bytes - bytes_per_chunk; byte >= 0; byte -= bytes_per_chunk) {
+    PrintPRegisterRawHelper(reg_code, byte * kBitsPerByte);
+    fprintf(stream_,
+            " -> %s0x%016" PRIxPTR "%s\n",
+            clr_memory_address,
+            address,
+            clr_normal);
+    address += bytes_per_chunk;
   }
 }
 
@@ -8583,14 +8628,24 @@ void Simulator::VisitSVEMem32BitGatherAndUnsizedContiguous(
   USE(instr);
   if (instr->Mask(SVEMemUnsizedContiguousLoadPMask) == LDR_p_bi) {
     SimPRegister& pt = ReadPRegister(instr->GetPt());
-    uint64_t address = ReadXRegister(instr->GetRn());
-    if (instr->Mask(0x003f1c00)) {
-      // TODO: Support the VL multiplier.
-      VIXL_UNIMPLEMENTED();
-    }
-    for (unsigned i = 0; i < GetPredicateLengthInBytes(); i++) {
+    int pl = GetPredicateLengthInBytes();
+    int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
+    uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
+    uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * pl;
+    for (int i = 0; i < pl; i++) {
       pt.Insert(i, Memory::Read<uint8_t>(address + i));
     }
+    LogPRead(address, instr->GetPt());
+  } else if (instr->Mask(SVEMemUnsizedContiguousLoadZMask) == LDR_z_bi) {
+    SimVRegister& zt = ReadVRegister(instr->GetRt());
+    int vl = GetVectorLengthInBytes();
+    int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
+    uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
+    uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * vl;
+    for (int i = 0; i < vl; i++) {
+      zt.Insert(i, Memory::Read<uint8_t>(address + i));
+    }
+    LogZRead(address, instr->GetRt());
   } else {
     // TODO: This switch doesn't work because the mask needs to vary on a finer
     // granularity. Early implementations have already been pulled out, but we
@@ -8638,7 +8693,6 @@ void Simulator::VisitSVEMem32BitGatherAndUnsizedContiguous(
       case LDFF1W_z_p_ai_s:
       case LDFF1W_z_p_bz_s_x32_scaled:
       case LDFF1W_z_p_bz_s_x32_unscaled:
-      case LDR_z_bi:
       case PRFB_i_p_ai_s:
       case PRFB_i_p_bi_s:
       case PRFB_i_p_br_s:
@@ -9219,24 +9273,24 @@ void Simulator::VisitSVEMemStore(const Instruction* instr) {
   USE(instr);
   if (instr->Mask(SVEMemStorePMask) == STR_p_bi) {
     SimPRegister& pt = ReadPRegister(instr->GetPt());
-    uint64_t address = ReadXRegister(instr->GetRn());
-    if (instr->Mask(0x003f1c00)) {
-      // TODO: Support the VL multiplier.
-      VIXL_UNIMPLEMENTED();
-    }
-    for (unsigned i = 0; i < GetPredicateLengthInBytes(); i++) {
+    int pl = GetPredicateLengthInBytes();
+    int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
+    uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
+    uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * pl;
+    for (int i = 0; i < pl; i++) {
       Memory::Write(address + i, pt.GetLane<uint8_t>(i));
     }
+    LogPWrite(address, instr->GetPt());
   } else if (instr->Mask(SVEMemStoreZMask) == STR_z_bi) {
     SimVRegister& zt = ReadVRegister(instr->GetRt());
-    uint64_t address = ReadXRegister(instr->GetRn());
-    if (instr->Mask(0x003f1c00)) {
-      // TODO: Support the VL multiplier.
-      VIXL_UNIMPLEMENTED();
-    }
-    for (unsigned i = 0; i < GetVectorLengthInBytes(); i++) {
+    int vl = GetVectorLengthInBytes();
+    int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
+    uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
+    uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * vl;
+    for (int i = 0; i < vl; i++) {
       Memory::Write(address + i, zt.GetLane<uint8_t>(i));
     }
+    LogZWrite(address, instr->GetRt());
   } else {
     // TODO: This switch doesn't work because the mask needs to vary on a finer
     // granularity. Early implementations have already been pulled out, but we

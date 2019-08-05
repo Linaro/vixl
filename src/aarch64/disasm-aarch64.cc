@@ -6814,299 +6814,305 @@ void Disassembler::VisitSVEMem32BitGatherAndUnsizedContiguous(
   // { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
   const char *form = "{ 'Zt.s }, p'u1210/z, ['Xns, 'Zm.s, <mod>]";
 
-  switch (instr->Mask(SVEMem32BitGatherAndUnsizedContiguousMask)) {
-    // LD1B { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
-    case LD1B_z_p_ai_s:
-      mnemonic = "ld1b";
-      form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
-      break;
-    // LD1B { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
-    case LD1B_z_p_bz_s_x32_unscaled:
-      mnemonic = "ld1b";
-      break;
-    // LD1H { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
-    case LD1H_z_p_ai_s:
-      mnemonic = "ld1h";
-      form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
-      break;
-    // LD1H { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]
-    case LD1H_z_p_bz_s_x32_scaled:
-      mnemonic = "ld1h";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns, 'Zm.s, <mod> #1]";
-      break;
-    // LD1H { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
-    case LD1H_z_p_bz_s_x32_unscaled:
-      mnemonic = "ld1h";
-      break;
-    // LD1RB { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RB_z_p_bi_u16:
-      mnemonic = "ld1rb";
-      form = "{ 'Zt.h }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RB { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RB_z_p_bi_u32:
-      mnemonic = "ld1rb";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RB { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RB_z_p_bi_u64:
-      mnemonic = "ld1rb";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RB { <Zt>.B }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RB_z_p_bi_u8:
-      mnemonic = "ld1rb";
-      form = "{ 'Zt.b }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RD { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RD_z_p_bi_u64:
-      mnemonic = "ld1rd";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RH { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RH_z_p_bi_u16:
-      mnemonic = "ld1rh";
-      form = "{ 'Zt.h }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RH { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RH_z_p_bi_u32:
-      mnemonic = "ld1rh";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RH { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RH_z_p_bi_u64:
-      mnemonic = "ld1rh";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RSB { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RSB_z_p_bi_s16:
-      mnemonic = "ld1rsb";
-      form = "{ 'Zt.h }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RSB { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RSB_z_p_bi_s32:
-      mnemonic = "ld1rsb";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RSB { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RSB_z_p_bi_s64:
-      mnemonic = "ld1rsb";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RSH { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RSH_z_p_bi_s32:
-      mnemonic = "ld1rsh";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RSH { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RSH_z_p_bi_s64:
-      mnemonic = "ld1rsh";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RSW { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RSW_z_p_bi_s64:
-      mnemonic = "ld1rsw";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RW { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RW_z_p_bi_u32:
-      mnemonic = "ld1rw";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1RW { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-    case LD1RW_z_p_bi_u64:
-      mnemonic = "ld1rw";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
-      break;
-    // LD1SB { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
-    case LD1SB_z_p_ai_s:
-      mnemonic = "ld1sb";
-      form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
-      break;
-    // LD1SB { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
-    case LD1SB_z_p_bz_s_x32_unscaled:
-      mnemonic = "ld1sb";
-      break;
-    // LD1SH { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
-    case LD1SH_z_p_ai_s:
-      mnemonic = "ld1sh";
-      form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
-      break;
-    // LD1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]
-    case LD1SH_z_p_bz_s_x32_scaled:
-      mnemonic = "ld1sh";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns, 'Zm.s, <mod> #1]";
-      break;
-    // LD1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
-    case LD1SH_z_p_bz_s_x32_unscaled:
-      mnemonic = "ld1sh";
-      break;
-    // LD1W { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
-    case LD1W_z_p_ai_s:
-      mnemonic = "ld1w";
-      form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
-      break;
-    // LD1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #2]
-    case LD1W_z_p_bz_s_x32_scaled:
-      mnemonic = "ld1w";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns, 'Zm.s, <mod> #2]";
-      break;
-    // LD1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
-    case LD1W_z_p_bz_s_x32_unscaled:
-      mnemonic = "ld1w";
-      break;
-    // LDFF1B { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
-    case LDFF1B_z_p_ai_s:
-      mnemonic = "ldff1b";
-      form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
-      break;
-    // LDFF1B { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
-    case LDFF1B_z_p_bz_s_x32_unscaled:
-      mnemonic = "ldff1b";
-      break;
-    // LDFF1H { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
-    case LDFF1H_z_p_ai_s:
-      mnemonic = "ldff1h";
-      form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
-      break;
-    // LDFF1H { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]
-    case LDFF1H_z_p_bz_s_x32_scaled:
-      mnemonic = "ldff1h";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns, 'Zm.s, <mod> #1]";
-      break;
-    // LDFF1H { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
-    case LDFF1H_z_p_bz_s_x32_unscaled:
-      mnemonic = "ldff1h";
-      break;
-    // LDFF1SB { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
-    case LDFF1SB_z_p_ai_s:
-      mnemonic = "ldff1sb";
-      form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
-      break;
-    // LDFF1SB { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
-    case LDFF1SB_z_p_bz_s_x32_unscaled:
-      mnemonic = "ldff1sb";
-      break;
-    // LDFF1SH { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
-    case LDFF1SH_z_p_ai_s:
-      mnemonic = "ldff1sh";
-      form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
-      break;
-    // LDFF1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]
-    case LDFF1SH_z_p_bz_s_x32_scaled:
-      mnemonic = "ldff1sh";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns, 'Zm.s, <mod> #1]";
-      break;
-    // LDFF1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
-    case LDFF1SH_z_p_bz_s_x32_unscaled:
-      mnemonic = "ldff1sh";
-      break;
-    // LDFF1W { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
-    case LDFF1W_z_p_ai_s:
-      mnemonic = "ldff1w";
-      form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
-      break;
-    // LDFF1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #2]
-    case LDFF1W_z_p_bz_s_x32_scaled:
-      mnemonic = "ldff1w";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns, 'Zm.s, <mod> #2]";
-      break;
-    // LDFF1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
-    case LDFF1W_z_p_bz_s_x32_unscaled:
-      mnemonic = "ldff1w";
-      break;
-    // LDR <Pt>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case LDR_p_bi:
-      mnemonic = "ldr";
-      form = "'Pd, ['Xns{, #<imm>, MUL VL}]";
-      break;
-    // LDR <Zt>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case LDR_z_bi:
-      mnemonic = "ldr";
-      form = "'Zt, ['Xns{, #<imm>, MUL VL}]";
-      break;
-    // PRFB <prfop>, <Pg>, [<Zn>.S{, #<imm>}]
-    case PRFB_i_p_ai_s:
-      mnemonic = "prfb";
-      form = "#'u0300, p'u1210, ['Zn.s{, #'u2016}]";
-      break;
-    // PRFB <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case PRFB_i_p_bi_s:
-      mnemonic = "prfb";
-      form = "#'u0300, p'u1210, ['Xns{, #'u2116, MUL VL}]";
-      break;
-    // PRFB <prfop>, <Pg>, [<Xn|SP>, <Xm>]
-    case PRFB_i_p_br_s:
-      mnemonic = "prfb";
-      form = "#'u0300, p'u1210, ['Xns, 'Rm]";
-      break;
-    // PRFB <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]
-    case PRFB_i_p_bz_s_x32_scaled:
-      mnemonic = "prfb";
-      form = "#'u0300, p'u1210, ['Xns, 'Zm.s, <mod>]";
-      break;
-    // PRFD <prfop>, <Pg>, [<Zn>.S{, #<imm>}]
-    case PRFD_i_p_ai_s:
-      mnemonic = "prfd";
-      form = "#'u0300, p'u1210, ['Zn.s{, #'u2016}]";
-      break;
-    // PRFD <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case PRFD_i_p_bi_s:
-      mnemonic = "prfd";
-      form = "#'u0300, p'u1210, ['Xns{, #'u2116, MUL VL}]";
-      break;
-    // PRFD <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
-    case PRFD_i_p_br_s:
-      mnemonic = "prfd";
-      form = "#'u0300, p'u1210, ['Xns, 'Rm, LSL #3]";
-      break;
-    // PRFD <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #3]
-    case PRFD_i_p_bz_s_x32_scaled:
-      mnemonic = "prfd";
-      form = "#'u0300, p'u1210, ['Xns, 'Zm.s, <mod> #3]";
-      break;
-    // PRFH <prfop>, <Pg>, [<Zn>.S{, #<imm>}]
-    case PRFH_i_p_ai_s:
-      mnemonic = "prfh";
-      form = "#'u0300, p'u1210, ['Zn.s{, #'u2016}]";
-      break;
-    // PRFH <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case PRFH_i_p_bi_s:
-      mnemonic = "prfh";
-      form = "#'u0300, p'u1210, ['Xns{, #'u2116, MUL VL}]";
-      break;
-    // PRFH <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
-    case PRFH_i_p_br_s:
-      mnemonic = "prfh";
-      form = "#'u0300, p'u1210, ['Xns, 'Rm, LSL #1]";
-      break;
-    // PRFH <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #1]
-    case PRFH_i_p_bz_s_x32_scaled:
-      mnemonic = "prfh";
-      form = "#'u0300, p'u1210, ['Xns, 'Zm.s, <mod> #1]";
-      break;
-    // PRFW <prfop>, <Pg>, [<Zn>.S{, #<imm>}]
-    case PRFW_i_p_ai_s:
-      mnemonic = "prfw";
-      form = "#'u0300, p'u1210, ['Zn.s{, #'u2016}]";
-      break;
-    // PRFW <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case PRFW_i_p_bi_s:
-      mnemonic = "prfw";
-      form = "#'u0300, p'u1210, ['Xns{, #'u2116, MUL VL}]";
-      break;
-    // PRFW <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
-    case PRFW_i_p_br_s:
-      mnemonic = "prfw";
-      form = "#'u0300, p'u1210, ['Xns, 'Rm, LSL #2]";
-      break;
-    // PRFW <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #2]
-    case PRFW_i_p_bz_s_x32_scaled:
-      mnemonic = "prfw";
-      form = "#'u0300, p'u1210, ['Xns, 'Zm.s, <mod> #2]";
-      break;
-    default:
-      break;
+  if (instr->Mask(SVEMemUnsizedContiguousLoadPMask) == LDR_p_bi) {
+    mnemonic = "ldr";
+    if (instr->Mask(0x003f1c00) == 0) {
+      form = "'Pd, ['Xns]";
+    } else {
+      form = "'Pd, ['Xns, #'s2116:1210, MUL VL]";
+    }
+  } else if (instr->Mask(SVEMemUnsizedContiguousLoadZMask) == LDR_z_bi) {
+    mnemonic = "ldr";
+    if (instr->Mask(0x003f1c00) == 0) {
+      form = "'Zd, ['Xns]";
+    } else {
+      form = "'Zt, ['Xns, #'s2116:1210, MUL VL]";
+    }
+  } else {
+    switch (instr->Mask(SVEMem32BitGatherAndUnsizedContiguousMask)) {
+      // LD1B { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
+      case LD1B_z_p_ai_s:
+        mnemonic = "ld1b";
+        form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
+        break;
+      // LD1B { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
+      case LD1B_z_p_bz_s_x32_unscaled:
+        mnemonic = "ld1b";
+        break;
+      // LD1H { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
+      case LD1H_z_p_ai_s:
+        mnemonic = "ld1h";
+        form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
+        break;
+      // LD1H { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]
+      case LD1H_z_p_bz_s_x32_scaled:
+        mnemonic = "ld1h";
+        form = "{ 'Zt.s }, p'u1210/z, ['Xns, 'Zm.s, <mod> #1]";
+        break;
+      // LD1H { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
+      case LD1H_z_p_bz_s_x32_unscaled:
+        mnemonic = "ld1h";
+        break;
+      // LD1RB { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RB_z_p_bi_u16:
+        mnemonic = "ld1rb";
+        form = "{ 'Zt.h }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RB { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RB_z_p_bi_u32:
+        mnemonic = "ld1rb";
+        form = "{ 'Zt.s }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RB { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RB_z_p_bi_u64:
+        mnemonic = "ld1rb";
+        form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RB { <Zt>.B }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RB_z_p_bi_u8:
+        mnemonic = "ld1rb";
+        form = "{ 'Zt.b }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RD { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RD_z_p_bi_u64:
+        mnemonic = "ld1rd";
+        form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RH { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RH_z_p_bi_u16:
+        mnemonic = "ld1rh";
+        form = "{ 'Zt.h }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RH { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RH_z_p_bi_u32:
+        mnemonic = "ld1rh";
+        form = "{ 'Zt.s }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RH { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RH_z_p_bi_u64:
+        mnemonic = "ld1rh";
+        form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RSB { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RSB_z_p_bi_s16:
+        mnemonic = "ld1rsb";
+        form = "{ 'Zt.h }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RSB { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RSB_z_p_bi_s32:
+        mnemonic = "ld1rsb";
+        form = "{ 'Zt.s }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RSB { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RSB_z_p_bi_s64:
+        mnemonic = "ld1rsb";
+        form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RSH { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RSH_z_p_bi_s32:
+        mnemonic = "ld1rsh";
+        form = "{ 'Zt.s }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RSH { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RSH_z_p_bi_s64:
+        mnemonic = "ld1rsh";
+        form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RSW { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RSW_z_p_bi_s64:
+        mnemonic = "ld1rsw";
+        form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RW { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RW_z_p_bi_u32:
+        mnemonic = "ld1rw";
+        form = "{ 'Zt.s }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1RW { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
+      case LD1RW_z_p_bi_u64:
+        mnemonic = "ld1rw";
+        form = "{ 'Zt.d }, p'u1210/z, ['Xns{, #'u2116}]";
+        break;
+      // LD1SB { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
+      case LD1SB_z_p_ai_s:
+        mnemonic = "ld1sb";
+        form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
+        break;
+      // LD1SB { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
+      case LD1SB_z_p_bz_s_x32_unscaled:
+        mnemonic = "ld1sb";
+        break;
+      // LD1SH { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
+      case LD1SH_z_p_ai_s:
+        mnemonic = "ld1sh";
+        form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
+        break;
+      // LD1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]
+      case LD1SH_z_p_bz_s_x32_scaled:
+        mnemonic = "ld1sh";
+        form = "{ 'Zt.s }, p'u1210/z, ['Xns, 'Zm.s, <mod> #1]";
+        break;
+      // LD1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
+      case LD1SH_z_p_bz_s_x32_unscaled:
+        mnemonic = "ld1sh";
+        break;
+      // LD1W { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
+      case LD1W_z_p_ai_s:
+        mnemonic = "ld1w";
+        form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
+        break;
+      // LD1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #2]
+      case LD1W_z_p_bz_s_x32_scaled:
+        mnemonic = "ld1w";
+        form = "{ 'Zt.s }, p'u1210/z, ['Xns, 'Zm.s, <mod> #2]";
+        break;
+      // LD1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
+      case LD1W_z_p_bz_s_x32_unscaled:
+        mnemonic = "ld1w";
+        break;
+      // LDFF1B { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
+      case LDFF1B_z_p_ai_s:
+        mnemonic = "ldff1b";
+        form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
+        break;
+      // LDFF1B { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
+      case LDFF1B_z_p_bz_s_x32_unscaled:
+        mnemonic = "ldff1b";
+        break;
+      // LDFF1H { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
+      case LDFF1H_z_p_ai_s:
+        mnemonic = "ldff1h";
+        form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
+        break;
+      // LDFF1H { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]
+      case LDFF1H_z_p_bz_s_x32_scaled:
+        mnemonic = "ldff1h";
+        form = "{ 'Zt.s }, p'u1210/z, ['Xns, 'Zm.s, <mod> #1]";
+        break;
+      // LDFF1H { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
+      case LDFF1H_z_p_bz_s_x32_unscaled:
+        mnemonic = "ldff1h";
+        break;
+      // LDFF1SB { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
+      case LDFF1SB_z_p_ai_s:
+        mnemonic = "ldff1sb";
+        form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
+        break;
+      // LDFF1SB { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
+      case LDFF1SB_z_p_bz_s_x32_unscaled:
+        mnemonic = "ldff1sb";
+        break;
+      // LDFF1SH { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
+      case LDFF1SH_z_p_ai_s:
+        mnemonic = "ldff1sh";
+        form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
+        break;
+      // LDFF1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]
+      case LDFF1SH_z_p_bz_s_x32_scaled:
+        mnemonic = "ldff1sh";
+        form = "{ 'Zt.s }, p'u1210/z, ['Xns, 'Zm.s, <mod> #1]";
+        break;
+      // LDFF1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
+      case LDFF1SH_z_p_bz_s_x32_unscaled:
+        mnemonic = "ldff1sh";
+        break;
+      // LDFF1W { <Zt>.S }, <Pg>/Z, [<Zn>.S{, #<imm>}]
+      case LDFF1W_z_p_ai_s:
+        mnemonic = "ldff1w";
+        form = "{ 'Zt.s }, p'u1210/z, ['Zn.s{, #'u2016}]";
+        break;
+      // LDFF1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #2]
+      case LDFF1W_z_p_bz_s_x32_scaled:
+        mnemonic = "ldff1w";
+        form = "{ 'Zt.s }, p'u1210/z, ['Xns, 'Zm.s, <mod> #2]";
+        break;
+      // LDFF1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]
+      case LDFF1W_z_p_bz_s_x32_unscaled:
+        mnemonic = "ldff1w";
+        break;
+      // PRFB <prfop>, <Pg>, [<Zn>.S{, #<imm>}]
+      case PRFB_i_p_ai_s:
+        mnemonic = "prfb";
+        form = "#'u0300, p'u1210, ['Zn.s{, #'u2016}]";
+        break;
+      // PRFB <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case PRFB_i_p_bi_s:
+        mnemonic = "prfb";
+        form = "#'u0300, p'u1210, ['Xns{, #'u2116, MUL VL}]";
+        break;
+      // PRFB <prfop>, <Pg>, [<Xn|SP>, <Xm>]
+      case PRFB_i_p_br_s:
+        mnemonic = "prfb";
+        form = "#'u0300, p'u1210, ['Xns, 'Rm]";
+        break;
+      // PRFB <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]
+      case PRFB_i_p_bz_s_x32_scaled:
+        mnemonic = "prfb";
+        form = "#'u0300, p'u1210, ['Xns, 'Zm.s, <mod>]";
+        break;
+      // PRFD <prfop>, <Pg>, [<Zn>.S{, #<imm>}]
+      case PRFD_i_p_ai_s:
+        mnemonic = "prfd";
+        form = "#'u0300, p'u1210, ['Zn.s{, #'u2016}]";
+        break;
+      // PRFD <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case PRFD_i_p_bi_s:
+        mnemonic = "prfd";
+        form = "#'u0300, p'u1210, ['Xns{, #'u2116, MUL VL}]";
+        break;
+      // PRFD <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
+      case PRFD_i_p_br_s:
+        mnemonic = "prfd";
+        form = "#'u0300, p'u1210, ['Xns, 'Rm, LSL #3]";
+        break;
+      // PRFD <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #3]
+      case PRFD_i_p_bz_s_x32_scaled:
+        mnemonic = "prfd";
+        form = "#'u0300, p'u1210, ['Xns, 'Zm.s, <mod> #3]";
+        break;
+      // PRFH <prfop>, <Pg>, [<Zn>.S{, #<imm>}]
+      case PRFH_i_p_ai_s:
+        mnemonic = "prfh";
+        form = "#'u0300, p'u1210, ['Zn.s{, #'u2016}]";
+        break;
+      // PRFH <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case PRFH_i_p_bi_s:
+        mnemonic = "prfh";
+        form = "#'u0300, p'u1210, ['Xns{, #'u2116, MUL VL}]";
+        break;
+      // PRFH <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
+      case PRFH_i_p_br_s:
+        mnemonic = "prfh";
+        form = "#'u0300, p'u1210, ['Xns, 'Rm, LSL #1]";
+        break;
+      // PRFH <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #1]
+      case PRFH_i_p_bz_s_x32_scaled:
+        mnemonic = "prfh";
+        form = "#'u0300, p'u1210, ['Xns, 'Zm.s, <mod> #1]";
+        break;
+      // PRFW <prfop>, <Pg>, [<Zn>.S{, #<imm>}]
+      case PRFW_i_p_ai_s:
+        mnemonic = "prfw";
+        form = "#'u0300, p'u1210, ['Zn.s{, #'u2016}]";
+        break;
+      // PRFW <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case PRFW_i_p_bi_s:
+        mnemonic = "prfw";
+        form = "#'u0300, p'u1210, ['Xns{, #'u2116, MUL VL}]";
+        break;
+      // PRFW <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
+      case PRFW_i_p_br_s:
+        mnemonic = "prfw";
+        form = "#'u0300, p'u1210, ['Xns, 'Rm, LSL #2]";
+        break;
+      // PRFW <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #2]
+      case PRFW_i_p_bz_s_x32_scaled:
+        mnemonic = "prfw";
+        form = "#'u0300, p'u1210, ['Xns, 'Zm.s, <mod> #2]";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -8019,361 +8025,370 @@ void Disassembler::VisitSVEMemStore(const Instruction *instr) {
   // { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
   const char *form = "{ 'Zt.d }, p'u1210, ['Zn.d{, #'u2016}]";
 
-  switch (instr->Mask(SVEMemStoreMask)) {
-    // ST1B { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
-    case ST1B_z_p_ai_d:
-      mnemonic = "st1b";
-      break;
-    // ST1B { <Zt>.S }, <Pg>, [<Zn>.S{, #<imm>}]
-    case ST1B_z_p_ai_s:
-      mnemonic = "st1b";
-      form = "{ 'Zt.s }, p'u1210, ['Zn.s{, #'u2016}]";
-      break;
-    // ST1B { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST1B_z_p_bi:
-      mnemonic = "st1b";
-      form = "{ 'Zt.<T> }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST1B { <Zt>.<T> }, <Pg>, [<Xn|SP>, <Xm>]
-    case ST1B_z_p_br:
-      mnemonic = "st1b";
-      form = "{ 'Zt.<T> }, p'u1210, ['Xns, 'Rm]";
-      break;
-    // ST1B { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
-    case ST1B_z_p_bz_d_64_unscaled:
-      mnemonic = "st1b";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d]";
-      break;
-    // ST1B { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
-    case ST1B_z_p_bz_d_x32_unscaled:
-      mnemonic = "st1b";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod>]";
-      break;
-    // ST1B { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]
-    case ST1B_z_p_bz_s_x32_unscaled:
-      mnemonic = "st1b";
-      form = "{ 'Zt.s }, p'u1210, ['Xns, 'Zm.s, <mod>]";
-      break;
-    // ST1D { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
-    case ST1D_z_p_ai_d:
-      mnemonic = "st1d";
-      break;
-    // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST1D_z_p_bi:
-      mnemonic = "st1d";
-      form = "{ 'Zt.d }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
-    // TODO: fix encoding alias issue with enum above.
-    //    case ST1D_z_p_br:
-    //      mnemonic = "st1d";
-    //      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Rm, LSL #3]";
-    //      break;
-    // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, LSL #3]
-    case ST1D_z_p_bz_d_64_scaled:
-      mnemonic = "st1d";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, LSL #3]";
-      break;
-    // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
-    case ST1D_z_p_bz_d_64_unscaled:
-      mnemonic = "st1d";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d]";
-      break;
-    // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #3]
-    case ST1D_z_p_bz_d_x32_scaled:
-      mnemonic = "st1d";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod> #3]";
-      break;
-    // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
-    case ST1D_z_p_bz_d_x32_unscaled:
-      mnemonic = "st1d";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod>]";
-      break;
-    // ST1H { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
-    case ST1H_z_p_ai_d:
-      mnemonic = "st1h";
-      break;
-    // ST1H { <Zt>.S }, <Pg>, [<Zn>.S{, #<imm>}]
-    case ST1H_z_p_ai_s:
-      mnemonic = "st1h";
-      form = "{ 'Zt.s }, p'u1210, ['Zn.s{, #'u2016}]";
-      break;
-    // ST1H { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST1H_z_p_bi:
-      mnemonic = "st1h";
-      form = "{ 'Zt.<T> }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST1H { <Zt>.<T> }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
-    case ST1H_z_p_br:
-      mnemonic = "st1h";
-      form = "{ 'Zt.<T> }, p'u1210, ['Xns, 'Rm, LSL #1]";
-      break;
-    // ST1H { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, LSL #1]
-    case ST1H_z_p_bz_d_64_scaled:
-      mnemonic = "st1h";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, LSL #1]";
-      break;
-    // ST1H { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
-    case ST1H_z_p_bz_d_64_unscaled:
-      mnemonic = "st1h";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d]";
-      break;
-    // ST1H { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #1]
-    case ST1H_z_p_bz_d_x32_scaled:
-      mnemonic = "st1h";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod> #1]";
-      break;
-    // ST1H { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
-    case ST1H_z_p_bz_d_x32_unscaled:
-      mnemonic = "st1h";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod>]";
-      break;
-    // ST1H { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #1]
-    case ST1H_z_p_bz_s_x32_scaled:
-      mnemonic = "st1h";
-      form = "{ 'Zt.s }, p'u1210, ['Xns, 'Zm.s, <mod> #1]";
-      break;
-    // ST1H { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]
-    case ST1H_z_p_bz_s_x32_unscaled:
-      mnemonic = "st1h";
-      form = "{ 'Zt.s }, p'u1210, ['Xns, 'Zm.s, <mod>]";
-      break;
-    // ST1W { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
-    case ST1W_z_p_ai_d:
-      mnemonic = "st1w";
-      break;
-    // ST1W { <Zt>.S }, <Pg>, [<Zn>.S{, #<imm>}]
-    case ST1W_z_p_ai_s:
-      mnemonic = "st1w";
-      form = "{ 'Zt.s }, p'u1210, ['Zn.s{, #'u2016}]";
-      break;
-    // ST1W { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST1W_z_p_bi:
-      mnemonic = "st1w";
-      form = "{ 'Zt.<T> }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST1W { <Zt>.<T> }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
-    case ST1W_z_p_br:
-      mnemonic = "st1w";
-      form = "{ 'Zt.<T> }, p'u1210, ['Xns, 'Rm, LSL #2]";
-      break;
-    // ST1W { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, LSL #2]
-    case ST1W_z_p_bz_d_64_scaled:
-      mnemonic = "st1w";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, LSL #2]";
-      break;
-    // ST1W { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
-    case ST1W_z_p_bz_d_64_unscaled:
-      mnemonic = "st1w";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d]";
-      break;
-    // ST1W { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #2]
-    case ST1W_z_p_bz_d_x32_scaled:
-      mnemonic = "st1w";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod> #2]";
-      break;
-    // ST1W { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
-    case ST1W_z_p_bz_d_x32_unscaled:
-      mnemonic = "st1w";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod>]";
-      break;
-    // ST1W { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #2]
-    case ST1W_z_p_bz_s_x32_scaled:
-      mnemonic = "st1w";
-      form = "{ 'Zt.s }, p'u1210, ['Xns, 'Zm.s, <mod> #2]";
-      break;
-    // ST1W { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]
-    case ST1W_z_p_bz_s_x32_unscaled:
-      mnemonic = "st1w";
-      form = "{ 'Zt.s }, p'u1210, ['Xns, 'Zm.s, <mod>]";
-      break;
-    // ST2B { <Zt1>.B, <Zt2>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST2B_z_p_bi_contiguous:
-      mnemonic = "st2b";
-      form = "{ 'Zt.b, 'Zt2.b }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST2B { <Zt1>.B, <Zt2>.B }, <Pg>, [<Xn|SP>, <Xm>]
-    case ST2B_z_p_br_contiguous:
-      mnemonic = "st2b";
-      form = "{ 'Zt.b, 'Zt2.b }, p'u1210, ['Xns, 'Rm]";
-      break;
-    // ST2D { <Zt1>.D, <Zt2>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST2D_z_p_bi_contiguous:
-      mnemonic = "st2d";
-      form = "{ 'Zt.d, 'Zt2.d }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST2D { <Zt1>.D, <Zt2>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
-    case ST2D_z_p_br_contiguous:
-      mnemonic = "st2d";
-      form = "{ 'Zt.d, 'Zt2.d }, p'u1210, ['Xns, 'Rm, LSL #3]";
-      break;
-    // ST2H { <Zt1>.H, <Zt2>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST2H_z_p_bi_contiguous:
-      mnemonic = "st2h";
-      form = "{ 'Zt.h, 'Zt2.h }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST2H { <Zt1>.H, <Zt2>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
-    case ST2H_z_p_br_contiguous:
-      mnemonic = "st2h";
-      form = "{ 'Zt.h, 'Zt2.h }, p'u1210, ['Xns, 'Rm, LSL #1]";
-      break;
-    // ST2W { <Zt1>.S, <Zt2>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST2W_z_p_bi_contiguous:
-      mnemonic = "st2w";
-      form = "{ 'Zt.s, 'Zt2.s }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST2W { <Zt1>.S, <Zt2>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
-    case ST2W_z_p_br_contiguous:
-      mnemonic = "st2w";
-      form = "{ 'Zt.s, 'Zt2.s }, p'u1210, ['Xns, 'Rm, LSL #2]";
-      break;
-    // ST3B { <Zt1>.B, <Zt2>.B, <Zt3>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST3B_z_p_bi_contiguous:
-      mnemonic = "st3b";
-      form = "{ 'Zt.b, 'Zt2.b, 'Zt3.b }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST3B { <Zt1>.B, <Zt2>.B, <Zt3>.B }, <Pg>, [<Xn|SP>, <Xm>]
-    case ST3B_z_p_br_contiguous:
-      mnemonic = "st3b";
-      form = "{ 'Zt.b, 'Zt2.b, 'Zt3.b }, p'u1210, ['Xns, 'Rm]";
-      break;
-    // ST3D { <Zt1>.D, <Zt2>.D, <Zt3>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST3D_z_p_bi_contiguous:
-      mnemonic = "st3d";
-      form = "{ 'Zt.d, 'Zt2.d, 'Zt3.d }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST3D { <Zt1>.D, <Zt2>.D, <Zt3>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
-    case ST3D_z_p_br_contiguous:
-      mnemonic = "st3d";
-      form = "{ 'Zt.d, 'Zt2.d, 'Zt3.d }, p'u1210, ['Xns, 'Rm, LSL #3]";
-      break;
-    // ST3H { <Zt1>.H, <Zt2>.H, <Zt3>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST3H_z_p_bi_contiguous:
-      mnemonic = "st3h";
-      form = "{ 'Zt.h, 'Zt2.h, 'Zt3.h }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST3H { <Zt1>.H, <Zt2>.H, <Zt3>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
-    case ST3H_z_p_br_contiguous:
-      mnemonic = "st3h";
-      form = "{ 'Zt.h, 'Zt2.h, 'Zt3.h }, p'u1210, ['Xns, 'Rm, LSL #1]";
-      break;
-    // ST3W { <Zt1>.S, <Zt2>.S, <Zt3>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST3W_z_p_bi_contiguous:
-      mnemonic = "st3w";
-      form = "{ 'Zt.s, 'Zt2.s, 'Zt3.s }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST3W { <Zt1>.S, <Zt2>.S, <Zt3>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
-    case ST3W_z_p_br_contiguous:
-      mnemonic = "st3w";
-      form = "{ 'Zt.s, 'Zt2.s, 'Zt3.s }, p'u1210, ['Xns, 'Rm, LSL #2]";
-      break;
-    // ST4B { <Zt1>.B, <Zt2>.B, <Zt3>.B, <Zt4>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL
-    // VL}]
-    case ST4B_z_p_bi_contiguous:
-      mnemonic = "st4b";
-      form =
-          "{ 'Zt.b, 'Zt2.b, 'Zt3.b, 'Zt4.b }, p'u1210, ['Xns{, #'u1916, MUL "
-          "VL}]";
-      break;
-    // ST4B { <Zt1>.B, <Zt2>.B, <Zt3>.B, <Zt4>.B }, <Pg>, [<Xn|SP>, <Xm>]
-    case ST4B_z_p_br_contiguous:
-      mnemonic = "st4b";
-      form = "{ 'Zt.b, 'Zt2.b, 'Zt3.b, 'Zt4.b }, p'u1210, ['Xns, 'Rm]";
-      break;
-    // ST4D { <Zt1>.D, <Zt2>.D, <Zt3>.D, <Zt4>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL
-    // VL}]
-    case ST4D_z_p_bi_contiguous:
-      mnemonic = "st4d";
-      form =
-          "{ 'Zt.d, 'Zt2.d, 'Zt3.d, 'Zt4.d }, p'u1210, ['Xns{, #'u1916, MUL "
-          "VL}]";
-      break;
-    // ST4D { <Zt1>.D, <Zt2>.D, <Zt3>.D, <Zt4>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL
-    // #3]
-    case ST4D_z_p_br_contiguous:
-      mnemonic = "st4d";
-      form = "{ 'Zt.d, 'Zt2.d, 'Zt3.d, 'Zt4.d }, p'u1210, ['Xns, 'Rm, LSL #3]";
-      break;
-    // ST4H { <Zt1>.H, <Zt2>.H, <Zt3>.H, <Zt4>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL
-    // VL}]
-    case ST4H_z_p_bi_contiguous:
-      mnemonic = "st4h";
-      form =
-          "{ 'Zt.h, 'Zt2.h, 'Zt3.h, 'Zt4.h }, p'u1210, ['Xns{, #'u1916, MUL "
-          "VL}]";
-      break;
-    // ST4H { <Zt1>.H, <Zt2>.H, <Zt3>.H, <Zt4>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL
-    // #1]
-    case ST4H_z_p_br_contiguous:
-      mnemonic = "st4h";
-      form = "{ 'Zt.h, 'Zt2.h, 'Zt3.h, 'Zt4.h }, p'u1210, ['Xns, 'Rm, LSL #1]";
-      break;
-    // ST4W { <Zt1>.S, <Zt2>.S, <Zt3>.S, <Zt4>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL
-    // VL}]
-    case ST4W_z_p_bi_contiguous:
-      mnemonic = "st4w";
-      form =
-          "{ 'Zt.s, 'Zt2.s, 'Zt3.s, 'Zt4.s }, p'u1210, ['Xns{, #'u1916, MUL "
-          "VL}]";
-      break;
-    // ST4W { <Zt1>.S, <Zt2>.S, <Zt3>.S, <Zt4>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL
-    // #2]
-    case ST4W_z_p_br_contiguous:
-      mnemonic = "st4w";
-      form = "{ 'Zt.s, 'Zt2.s, 'Zt3.s, 'Zt4.s }, p'u1210, ['Xns, 'Rm, LSL #2]";
-      break;
-    // STNT1B { <Zt>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case STNT1B_z_p_bi_contiguous:
-      mnemonic = "stnt1b";
-      form = "{ 'Zt.b }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // STNT1B { <Zt>.B }, <Pg>, [<Xn|SP>, <Xm>]
-    case STNT1B_z_p_br_contiguous:
-      mnemonic = "stnt1b";
-      form = "{ 'Zt.b }, p'u1210, ['Xns, 'Rm]";
-      break;
-    // STNT1D { <Zt>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case STNT1D_z_p_bi_contiguous:
-      mnemonic = "stnt1d";
-      form = "{ 'Zt.d }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // STNT1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
-    case STNT1D_z_p_br_contiguous:
-      mnemonic = "stnt1d";
-      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Rm, LSL #3]";
-      break;
-    // STNT1H { <Zt>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case STNT1H_z_p_bi_contiguous:
-      mnemonic = "stnt1h";
-      form = "{ 'Zt.h }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // STNT1H { <Zt>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
-    case STNT1H_z_p_br_contiguous:
-      mnemonic = "stnt1h";
-      form = "{ 'Zt.h }, p'u1210, ['Xns, 'Rm, LSL #1]";
-      break;
-    // STNT1W { <Zt>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case STNT1W_z_p_bi_contiguous:
-      mnemonic = "stnt1w";
-      form = "{ 'Zt.s }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // STNT1W { <Zt>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
-    case STNT1W_z_p_br_contiguous:
-      mnemonic = "stnt1w";
-      form = "{ 'Zt.s }, p'u1210, ['Xns, 'Rm, LSL #2]";
-      break;
-    // STR <Pt>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case STR_p_bi:
-      mnemonic = "str";
-      form = "'Pd, ['Xns{, #<imm>, MUL VL}]";
-      break;
-    // STR <Zt>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case STR_z_bi:
-      mnemonic = "str";
-      form = "'Zt, ['Xns{, #<imm>, MUL VL}]";
-      break;
-    default:
-      break;
+  if (instr->Mask(SVEMemStorePMask) == STR_p_bi) {
+    mnemonic = "str";
+    if (instr->Mask(0x003f1c00) == 0) {
+      form = "'Pd, ['Xns]";
+    } else {
+      form = "'Pd, ['Xns, #'s2116:1210, MUL VL]";
+    }
+  } else if (instr->Mask(SVEMemStoreZMask) == STR_z_bi) {
+    mnemonic = "str";
+    if (instr->Mask(0x003f1c00) == 0) {
+      form = "'Zd, ['Xns]";
+    } else {
+      form = "'Zt, ['Xns, #'s2116:1210, MUL VL]";
+    }
+  } else {
+    switch (instr->Mask(SVEMemStoreMask)) {
+      // ST1B { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
+      case ST1B_z_p_ai_d:
+        mnemonic = "st1b";
+        break;
+      // ST1B { <Zt>.S }, <Pg>, [<Zn>.S{, #<imm>}]
+      case ST1B_z_p_ai_s:
+        mnemonic = "st1b";
+        form = "{ 'Zt.s }, p'u1210, ['Zn.s{, #'u2016}]";
+        break;
+      // ST1B { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case ST1B_z_p_bi:
+        mnemonic = "st1b";
+        form = "{ 'Zt.<T> }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // ST1B { <Zt>.<T> }, <Pg>, [<Xn|SP>, <Xm>]
+      case ST1B_z_p_br:
+        mnemonic = "st1b";
+        form = "{ 'Zt.<T> }, p'u1210, ['Xns, 'Rm]";
+        break;
+      // ST1B { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
+      case ST1B_z_p_bz_d_64_unscaled:
+        mnemonic = "st1b";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d]";
+        break;
+      // ST1B { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
+      case ST1B_z_p_bz_d_x32_unscaled:
+        mnemonic = "st1b";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod>]";
+        break;
+      // ST1B { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]
+      case ST1B_z_p_bz_s_x32_unscaled:
+        mnemonic = "st1b";
+        form = "{ 'Zt.s }, p'u1210, ['Xns, 'Zm.s, <mod>]";
+        break;
+      // ST1D { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
+      case ST1D_z_p_ai_d:
+        mnemonic = "st1d";
+        break;
+      // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case ST1D_z_p_bi:
+        mnemonic = "st1d";
+        form = "{ 'Zt.d }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
+      // TODO: fix encoding alias issue with enum above.
+      //    case ST1D_z_p_br:
+      //      mnemonic = "st1d";
+      //      form = "{ 'Zt.d }, p'u1210, ['Xns, 'Rm, LSL #3]";
+      //      break;
+      // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, LSL #3]
+      case ST1D_z_p_bz_d_64_scaled:
+        mnemonic = "st1d";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, LSL #3]";
+        break;
+      // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
+      case ST1D_z_p_bz_d_64_unscaled:
+        mnemonic = "st1d";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d]";
+        break;
+      // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #3]
+      case ST1D_z_p_bz_d_x32_scaled:
+        mnemonic = "st1d";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod> #3]";
+        break;
+      // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
+      case ST1D_z_p_bz_d_x32_unscaled:
+        mnemonic = "st1d";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod>]";
+        break;
+      // ST1H { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
+      case ST1H_z_p_ai_d:
+        mnemonic = "st1h";
+        break;
+      // ST1H { <Zt>.S }, <Pg>, [<Zn>.S{, #<imm>}]
+      case ST1H_z_p_ai_s:
+        mnemonic = "st1h";
+        form = "{ 'Zt.s }, p'u1210, ['Zn.s{, #'u2016}]";
+        break;
+      // ST1H { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case ST1H_z_p_bi:
+        mnemonic = "st1h";
+        form = "{ 'Zt.<T> }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // ST1H { <Zt>.<T> }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
+      case ST1H_z_p_br:
+        mnemonic = "st1h";
+        form = "{ 'Zt.<T> }, p'u1210, ['Xns, 'Rm, LSL #1]";
+        break;
+      // ST1H { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, LSL #1]
+      case ST1H_z_p_bz_d_64_scaled:
+        mnemonic = "st1h";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, LSL #1]";
+        break;
+      // ST1H { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
+      case ST1H_z_p_bz_d_64_unscaled:
+        mnemonic = "st1h";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d]";
+        break;
+      // ST1H { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #1]
+      case ST1H_z_p_bz_d_x32_scaled:
+        mnemonic = "st1h";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod> #1]";
+        break;
+      // ST1H { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
+      case ST1H_z_p_bz_d_x32_unscaled:
+        mnemonic = "st1h";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod>]";
+        break;
+      // ST1H { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #1]
+      case ST1H_z_p_bz_s_x32_scaled:
+        mnemonic = "st1h";
+        form = "{ 'Zt.s }, p'u1210, ['Xns, 'Zm.s, <mod> #1]";
+        break;
+      // ST1H { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]
+      case ST1H_z_p_bz_s_x32_unscaled:
+        mnemonic = "st1h";
+        form = "{ 'Zt.s }, p'u1210, ['Xns, 'Zm.s, <mod>]";
+        break;
+      // ST1W { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
+      case ST1W_z_p_ai_d:
+        mnemonic = "st1w";
+        break;
+      // ST1W { <Zt>.S }, <Pg>, [<Zn>.S{, #<imm>}]
+      case ST1W_z_p_ai_s:
+        mnemonic = "st1w";
+        form = "{ 'Zt.s }, p'u1210, ['Zn.s{, #'u2016}]";
+        break;
+      // ST1W { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case ST1W_z_p_bi:
+        mnemonic = "st1w";
+        form = "{ 'Zt.<T> }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // ST1W { <Zt>.<T> }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
+      case ST1W_z_p_br:
+        mnemonic = "st1w";
+        form = "{ 'Zt.<T> }, p'u1210, ['Xns, 'Rm, LSL #2]";
+        break;
+      // ST1W { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, LSL #2]
+      case ST1W_z_p_bz_d_64_scaled:
+        mnemonic = "st1w";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, LSL #2]";
+        break;
+      // ST1W { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
+      case ST1W_z_p_bz_d_64_unscaled:
+        mnemonic = "st1w";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d]";
+        break;
+      // ST1W { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #2]
+      case ST1W_z_p_bz_d_x32_scaled:
+        mnemonic = "st1w";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod> #2]";
+        break;
+      // ST1W { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
+      case ST1W_z_p_bz_d_x32_unscaled:
+        mnemonic = "st1w";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Zm.d, <mod>]";
+        break;
+      // ST1W { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #2]
+      case ST1W_z_p_bz_s_x32_scaled:
+        mnemonic = "st1w";
+        form = "{ 'Zt.s }, p'u1210, ['Xns, 'Zm.s, <mod> #2]";
+        break;
+      // ST1W { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]
+      case ST1W_z_p_bz_s_x32_unscaled:
+        mnemonic = "st1w";
+        form = "{ 'Zt.s }, p'u1210, ['Xns, 'Zm.s, <mod>]";
+        break;
+      // ST2B { <Zt1>.B, <Zt2>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case ST2B_z_p_bi_contiguous:
+        mnemonic = "st2b";
+        form = "{ 'Zt.b, 'Zt2.b }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // ST2B { <Zt1>.B, <Zt2>.B }, <Pg>, [<Xn|SP>, <Xm>]
+      case ST2B_z_p_br_contiguous:
+        mnemonic = "st2b";
+        form = "{ 'Zt.b, 'Zt2.b }, p'u1210, ['Xns, 'Rm]";
+        break;
+      // ST2D { <Zt1>.D, <Zt2>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case ST2D_z_p_bi_contiguous:
+        mnemonic = "st2d";
+        form = "{ 'Zt.d, 'Zt2.d }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // ST2D { <Zt1>.D, <Zt2>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
+      case ST2D_z_p_br_contiguous:
+        mnemonic = "st2d";
+        form = "{ 'Zt.d, 'Zt2.d }, p'u1210, ['Xns, 'Rm, LSL #3]";
+        break;
+      // ST2H { <Zt1>.H, <Zt2>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case ST2H_z_p_bi_contiguous:
+        mnemonic = "st2h";
+        form = "{ 'Zt.h, 'Zt2.h }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // ST2H { <Zt1>.H, <Zt2>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
+      case ST2H_z_p_br_contiguous:
+        mnemonic = "st2h";
+        form = "{ 'Zt.h, 'Zt2.h }, p'u1210, ['Xns, 'Rm, LSL #1]";
+        break;
+      // ST2W { <Zt1>.S, <Zt2>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case ST2W_z_p_bi_contiguous:
+        mnemonic = "st2w";
+        form = "{ 'Zt.s, 'Zt2.s }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // ST2W { <Zt1>.S, <Zt2>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
+      case ST2W_z_p_br_contiguous:
+        mnemonic = "st2w";
+        form = "{ 'Zt.s, 'Zt2.s }, p'u1210, ['Xns, 'Rm, LSL #2]";
+        break;
+      // ST3B { <Zt1>.B, <Zt2>.B, <Zt3>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case ST3B_z_p_bi_contiguous:
+        mnemonic = "st3b";
+        form = "{ 'Zt.b, 'Zt2.b, 'Zt3.b }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // ST3B { <Zt1>.B, <Zt2>.B, <Zt3>.B }, <Pg>, [<Xn|SP>, <Xm>]
+      case ST3B_z_p_br_contiguous:
+        mnemonic = "st3b";
+        form = "{ 'Zt.b, 'Zt2.b, 'Zt3.b }, p'u1210, ['Xns, 'Rm]";
+        break;
+      // ST3D { <Zt1>.D, <Zt2>.D, <Zt3>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case ST3D_z_p_bi_contiguous:
+        mnemonic = "st3d";
+        form = "{ 'Zt.d, 'Zt2.d, 'Zt3.d }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // ST3D { <Zt1>.D, <Zt2>.D, <Zt3>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
+      case ST3D_z_p_br_contiguous:
+        mnemonic = "st3d";
+        form = "{ 'Zt.d, 'Zt2.d, 'Zt3.d }, p'u1210, ['Xns, 'Rm, LSL #3]";
+        break;
+      // ST3H { <Zt1>.H, <Zt2>.H, <Zt3>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case ST3H_z_p_bi_contiguous:
+        mnemonic = "st3h";
+        form = "{ 'Zt.h, 'Zt2.h, 'Zt3.h }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // ST3H { <Zt1>.H, <Zt2>.H, <Zt3>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
+      case ST3H_z_p_br_contiguous:
+        mnemonic = "st3h";
+        form = "{ 'Zt.h, 'Zt2.h, 'Zt3.h }, p'u1210, ['Xns, 'Rm, LSL #1]";
+        break;
+      // ST3W { <Zt1>.S, <Zt2>.S, <Zt3>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case ST3W_z_p_bi_contiguous:
+        mnemonic = "st3w";
+        form = "{ 'Zt.s, 'Zt2.s, 'Zt3.s }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // ST3W { <Zt1>.S, <Zt2>.S, <Zt3>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
+      case ST3W_z_p_br_contiguous:
+        mnemonic = "st3w";
+        form = "{ 'Zt.s, 'Zt2.s, 'Zt3.s }, p'u1210, ['Xns, 'Rm, LSL #2]";
+        break;
+      // ST4B { <Zt1>.B, <Zt2>.B, <Zt3>.B, <Zt4>.B }, <Pg>, [<Xn|SP>{, #<imm>,
+      // MUL VL}]
+      case ST4B_z_p_bi_contiguous:
+        mnemonic = "st4b";
+        form =
+            "{ 'Zt.b, 'Zt2.b, 'Zt3.b, 'Zt4.b }, p'u1210, ['Xns{, #'u1916, MUL "
+            "VL}]";
+        break;
+      // ST4B { <Zt1>.B, <Zt2>.B, <Zt3>.B, <Zt4>.B }, <Pg>, [<Xn|SP>, <Xm>]
+      case ST4B_z_p_br_contiguous:
+        mnemonic = "st4b";
+        form = "{ 'Zt.b, 'Zt2.b, 'Zt3.b, 'Zt4.b }, p'u1210, ['Xns, 'Rm]";
+        break;
+      // ST4D { <Zt1>.D, <Zt2>.D, <Zt3>.D, <Zt4>.D }, <Pg>, [<Xn|SP>{, #<imm>,
+      // MUL VL}]
+      case ST4D_z_p_bi_contiguous:
+        mnemonic = "st4d";
+        form =
+            "{ 'Zt.d, 'Zt2.d, 'Zt3.d, 'Zt4.d }, p'u1210, ['Xns{, #'u1916, MUL "
+            "VL}]";
+        break;
+      // ST4D { <Zt1>.D, <Zt2>.D, <Zt3>.D, <Zt4>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL
+      // #3]
+      case ST4D_z_p_br_contiguous:
+        mnemonic = "st4d";
+        form =
+            "{ 'Zt.d, 'Zt2.d, 'Zt3.d, 'Zt4.d }, p'u1210, ['Xns, 'Rm, LSL #3]";
+        break;
+      // ST4H { <Zt1>.H, <Zt2>.H, <Zt3>.H, <Zt4>.H }, <Pg>, [<Xn|SP>{, #<imm>,
+      // MUL VL}]
+      case ST4H_z_p_bi_contiguous:
+        mnemonic = "st4h";
+        form =
+            "{ 'Zt.h, 'Zt2.h, 'Zt3.h, 'Zt4.h }, p'u1210, ['Xns{, #'u1916, MUL "
+            "VL}]";
+        break;
+      // ST4H { <Zt1>.H, <Zt2>.H, <Zt3>.H, <Zt4>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL
+      // #1]
+      case ST4H_z_p_br_contiguous:
+        mnemonic = "st4h";
+        form =
+            "{ 'Zt.h, 'Zt2.h, 'Zt3.h, 'Zt4.h }, p'u1210, ['Xns, 'Rm, LSL #1]";
+        break;
+      // ST4W { <Zt1>.S, <Zt2>.S, <Zt3>.S, <Zt4>.S }, <Pg>, [<Xn|SP>{, #<imm>,
+      // MUL VL}]
+      case ST4W_z_p_bi_contiguous:
+        mnemonic = "st4w";
+        form =
+            "{ 'Zt.s, 'Zt2.s, 'Zt3.s, 'Zt4.s }, p'u1210, ['Xns{, #'u1916, MUL "
+            "VL}]";
+        break;
+      // ST4W { <Zt1>.S, <Zt2>.S, <Zt3>.S, <Zt4>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL
+      // #2]
+      case ST4W_z_p_br_contiguous:
+        mnemonic = "st4w";
+        form =
+            "{ 'Zt.s, 'Zt2.s, 'Zt3.s, 'Zt4.s }, p'u1210, ['Xns, 'Rm, LSL #2]";
+        break;
+      // STNT1B { <Zt>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case STNT1B_z_p_bi_contiguous:
+        mnemonic = "stnt1b";
+        form = "{ 'Zt.b }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // STNT1B { <Zt>.B }, <Pg>, [<Xn|SP>, <Xm>]
+      case STNT1B_z_p_br_contiguous:
+        mnemonic = "stnt1b";
+        form = "{ 'Zt.b }, p'u1210, ['Xns, 'Rm]";
+        break;
+      // STNT1D { <Zt>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case STNT1D_z_p_bi_contiguous:
+        mnemonic = "stnt1d";
+        form = "{ 'Zt.d }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // STNT1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
+      case STNT1D_z_p_br_contiguous:
+        mnemonic = "stnt1d";
+        form = "{ 'Zt.d }, p'u1210, ['Xns, 'Rm, LSL #3]";
+        break;
+      // STNT1H { <Zt>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case STNT1H_z_p_bi_contiguous:
+        mnemonic = "stnt1h";
+        form = "{ 'Zt.h }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // STNT1H { <Zt>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
+      case STNT1H_z_p_br_contiguous:
+        mnemonic = "stnt1h";
+        form = "{ 'Zt.h }, p'u1210, ['Xns, 'Rm, LSL #1]";
+        break;
+      // STNT1W { <Zt>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+      case STNT1W_z_p_bi_contiguous:
+        mnemonic = "stnt1w";
+        form = "{ 'Zt.s }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
+        break;
+      // STNT1W { <Zt>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
+      case STNT1W_z_p_br_contiguous:
+        mnemonic = "stnt1w";
+        form = "{ 'Zt.s }, p'u1210, ['Xns, 'Rm, LSL #2]";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -10183,25 +10198,39 @@ int Disassembler::SubstituteCrField(const Instruction *instr,
 int Disassembler::SubstituteIntField(const Instruction *instr,
                                      const char *format) {
   VIXL_ASSERT((format[0] == 'u') || (format[0] == 's'));
-  VIXL_ASSERT(strspn(&format[1], "0123456789") == 4);
 
   // A generic signed or unsigned int field uses a placeholder of the form
-  // 'sXXYY and 'uXXYY respectively where XX and YY are two digit bit positions
-  // between 00 and 31, and XX >= YY. The placeholder is substituted with the
+  // 'sAABB and 'uAABB respectively where AA and BB are two digit bit positions
+  // between 00 and 31, and AA >= BB. The placeholder is substituted with the
   // decimal integer represented by the bits in the instruction between
-  // positions XX and YY inclusive.
-  int bitpos = atoi(&format[1]);  // (hibit * 100) + lobit.
-  int hibit = bitpos / 100;
-  int lobit = bitpos % 100;
-  VIXL_ASSERT(hibit < static_cast<int>(kInstructionSize * kBitsPerByte));
-  VIXL_ASSERT(lobit <= hibit);
+  // positions AA and BB inclusive.
+  //
+  // In addition, split fields can be represented using 'sAABB:CCDD, where CCDD
+  // become the least-significant bits of the result, and bit AA is the sign bit
+  // (if 's is used).
+  uint32_t bits = 0;
+  int width = 0;
+  const char *c = format;
+  do {
+    c++;  // Skip the 'u', 's' or ':'.
+    VIXL_ASSERT(strspn(c, "0123456789") == 4);
+    int msb = ((c[0] - '0') * 10) + (c[1] - '0');
+    int lsb = ((c[2] - '0') * 10) + (c[3] - '0');
+    c += 4;  // Skip the characters we just read.
+    int chunk_width = msb - lsb + 1;
+    VIXL_ASSERT((chunk_width > 0) && (chunk_width < 32));
+    bits = (bits << chunk_width) | (instr->ExtractBits(msb, lsb));
+    width += chunk_width;
+  } while (*c == ':');
+  VIXL_ASSERT(IsUintN(width, bits));
+
   if (format[0] == 'u') {
-    AppendToOutput("%u", instr->ExtractBits(hibit, lobit));
+    AppendToOutput("%u", bits);
   } else {
-    AppendToOutput("%d", instr->ExtractSignedBits(hibit, lobit));
+    AppendToOutput("%d", ExtractSignedBitfield32(width - 1, 0, bits));
   }
 
-  return 5;
+  return static_cast<int>(c - format);
 }
 
 int Disassembler::SubstituteSVESize(const Instruction *instr,

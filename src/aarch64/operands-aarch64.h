@@ -623,9 +623,11 @@ class SVEMemOperand {
   bool IsMulVlForZReg() const { return mod_ == SVE_MUL_VL_FOR_ZREG; }
   bool IsMulVlForPReg() const { return mod_ == SVE_MUL_VL_FOR_PREG; }
 
-  // Specify the access type for SVE_MUL_VL.
+  // Specify the access type for SVE_MUL_VL. This has no effect for other
+  // modifiers.
   inline SVEMemOperand ForPRegAccess() const;
   inline SVEMemOperand ForZRegAccess() const;
+  inline SVEMemOperand ForAccessTo(const CPURegister& rt) const;
 
   bool IsMulVl() const {
     return (mod_ == SVE_MUL_VL) || (mod_ == SVE_MUL_VL_FOR_ZREG) ||
@@ -663,17 +665,22 @@ class SVEMemOperand {
 };
 
 inline SVEMemOperand SVEMemOperand::ForPRegAccess() const {
-  VIXL_ASSERT(mod_ == SVE_MUL_VL);
   SVEMemOperand result = *this;
-  result.mod_ = SVE_MUL_VL_FOR_PREG;
+  if (IsMulVl()) result.mod_ = SVE_MUL_VL_FOR_PREG;
   return result;
 }
 
 inline SVEMemOperand SVEMemOperand::ForZRegAccess() const {
-  VIXL_ASSERT(mod_ == SVE_MUL_VL);
   SVEMemOperand result = *this;
-  result.mod_ = SVE_MUL_VL_FOR_ZREG;
+  if (IsMulVl()) result.mod_ = SVE_MUL_VL_FOR_ZREG;
   return result;
+}
+
+inline SVEMemOperand SVEMemOperand::ForAccessTo(const CPURegister& rt) const {
+  if (rt.IsZRegister()) return ForZRegAccess();
+  if (rt.IsPRegister()) return ForPRegAccess();
+  VIXL_ABORT();
+  return *this;
 }
 
 // Represent a signed or unsigned integer operand.

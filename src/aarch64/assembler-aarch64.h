@@ -5158,11 +5158,8 @@ class Assembler : public vixl::internal::AssemblerBase {
               const Register& xn,
               int imm4);
 
-  // Load predicate register.
-  void ldr(const PRegister& pt, const SVEMemOperand& addr);
-
-  // Load vector register.
-  void ldr(const ZRegister& zt, const SVEMemOperand& addr);
+  // Load SVE predicate/vector register.
+  void ldr(const CPURegister& rt, const SVEMemOperand& addr);
 
   // Logical shift left by immediate (predicated).
   void lsl(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
@@ -6010,11 +6007,8 @@ class Assembler : public vixl::internal::AssemblerBase {
               const Register& xn,
               int imm4);
 
-  // Store predicate register.
-  void str(const PRegister& pt, const SVEMemOperand& addr);
-
-  // Store vector register.
-  void str(const ZRegister& zt, const SVEMemOperand& addr);
+  // Store SVE predicate/vector register.
+  void str(const CPURegister& rt, const SVEMemOperand& addr);
 
   // Subtract vectors (predicated).
   void sub(const ZRegister& zd,

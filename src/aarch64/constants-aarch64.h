@@ -3376,7 +3376,6 @@ enum SVEMem32BitGatherAndUnsizedContiguousOp {
   LD1RSH_z_p_bi_s32 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0140A000,
   LD1RW_z_p_bi_u32 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0140C000,
   LD1RW_z_p_bi_u64 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0140E000,
-  LDR_z_bi = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01804000,
   PRFD_i_p_br_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0180C000,
   PRFD_i_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0180E000,
   PRFB_i_p_bi_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C00000,
@@ -3392,7 +3391,10 @@ enum SVEMem32BitGatherAndUnsizedContiguousOp {
   // the fixed bits vary between instruction groups. We should re-organise the
   // enum groups to avoid this.
   SVEMemUnsizedContiguousLoadPMask = 0xFFC0E010,
-  LDR_p_bi = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01800000
+  LDR_p_bi = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01800000,
+
+  SVEMemUnsizedContiguousLoadZMask = 0xFFC0E000,
+  LDR_z_bi = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01804000
 };
 
 enum SVEMem64BitGatherOp {
