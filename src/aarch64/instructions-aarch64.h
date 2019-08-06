@@ -130,6 +130,7 @@ const unsigned kZRegMaxSizeInBytesLog2 = kZRegMaxSizeLog2 - 3;
 
 // The P register size depends on the Z register size.
 const unsigned kZRegBitsPerPRegBit = kBitsPerByte;
+const unsigned kZRegBitsPerPRegBitLog2 = 3;
 const unsigned kPRegMinSize = kZRegMinSize / kZRegBitsPerPRegBit;
 const unsigned kPRegMinSizeLog2 = kZRegMinSizeLog2 - 3;
 const unsigned kPRegMinSizeInBytes = kPRegMinSize / 8;

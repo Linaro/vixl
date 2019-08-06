@@ -7900,8 +7900,10 @@ void Assembler::addpl(const Register& xd, const Register& xn, int imm6) {
   //  op<22> = 1 | Rn<20:16> | imm6<10:5> | Rd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(xd.IsX());
+  VIXL_ASSERT(xn.IsX());
 
-  Emit(ADDPL_r_ri | RdSP(xd) | RnSP(xn) | ImmField<10, 5>(imm6));
+  Emit(ADDPL_r_ri | RdSP(xd) | RmSP(xn) | ImmField<10, 5>(imm6));
 }
 
 void Assembler::addvl(const Register& xd, const Register& xn, int imm6) {
@@ -7910,18 +7912,21 @@ void Assembler::addvl(const Register& xd, const Register& xn, int imm6) {
   //  op<22> = 0 | Rn<20:16> | imm6<10:5> | Rd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(xd.IsX());
+  VIXL_ASSERT(xn.IsX());
 
-  Emit(ADDVL_r_ri | RdSP(xd) | RnSP(xn) | ImmField<10, 5>(imm6));
+  Emit(ADDVL_r_ri | RdSP(xd) | RmSP(xn) | ImmField<10, 5>(imm6));
 }
 
-void Assembler::rdvl(const Register& rd, int imm6) {
+void Assembler::rdvl(const Register& xd, int imm6) {
   // RDVL <Xd>, #<imm>
   //  0000 0100 1011 1111 0101 0... .... ....
   //  op<22> = 0 | opc2<20:16> = 11111 | imm6<10:5> | Rd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(xd.IsX());
 
-  Emit(RDVL_r_i | Rd(rd) | ImmField<10, 5>(imm6));
+  Emit(RDVL_r_i | Rd(xd) | ImmField<10, 5>(imm6));
 }
 
 // SVEVectorSelect.

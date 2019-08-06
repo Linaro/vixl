@@ -3888,5 +3888,278 @@ TEST_SVE(sve_arithmetic_unpredicated_sub_sqsub_uqsub) {
   // clang-format on
 }
 
+TEST_SVE(sve_rdvl) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Encodable multipliers.
+  __ Rdvl(x0, 0);
+  __ Rdvl(x1, 1);
+  __ Rdvl(x2, 2);
+  __ Rdvl(x3, 31);
+  __ Rdvl(x4, -1);
+  __ Rdvl(x5, -2);
+  __ Rdvl(x6, -32);
+
+  // For unencodable multipliers, the MacroAssembler uses a sequence of
+  // instructions.
+  __ Rdvl(x10, 32);
+  __ Rdvl(x11, -33);
+  __ Rdvl(x12, 42);
+  __ Rdvl(x13, -42);
+
+  // The maximum value of VL is 256 (bytes), so the multiplier is limited to the
+  // range [INT64_MIN/256, INT64_MAX/256], to ensure that no signed overflow
+  // occurs in the macro.
+  __ Rdvl(x14, 0x007fffffffffffff);
+  __ Rdvl(x15, -0x0080000000000000);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint64_t vl = config->sve_vl_in_bytes();
+
+    ASSERT_EQUAL_64(vl * 0, x0);
+    ASSERT_EQUAL_64(vl * 1, x1);
+    ASSERT_EQUAL_64(vl * 2, x2);
+    ASSERT_EQUAL_64(vl * 31, x3);
+    ASSERT_EQUAL_64(vl * -1, x4);
+    ASSERT_EQUAL_64(vl * -2, x5);
+    ASSERT_EQUAL_64(vl * -32, x6);
+
+    ASSERT_EQUAL_64(vl * 32, x10);
+    ASSERT_EQUAL_64(vl * -33, x11);
+    ASSERT_EQUAL_64(vl * 42, x12);
+    ASSERT_EQUAL_64(vl * -42, x13);
+
+    ASSERT_EQUAL_64(vl * 0x007fffffffffffff, x14);
+    ASSERT_EQUAL_64(vl * 0xff80000000000000, x15);
+  }
+}
+
+TEST_SVE(sve_rdpl) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // There is no `rdpl` instruction, so the MacroAssembler maps `Rdpl` onto
+  // Addpl(xd, xzr, ...).
+
+  // Encodable multipliers (as `addvl`).
+  __ Rdpl(x0, 0);
+  __ Rdpl(x1, 8);
+  __ Rdpl(x2, 248);
+  __ Rdpl(x3, -8);
+  __ Rdpl(x4, -256);
+
+  // Encodable multipliers (as `movz` + `addpl`).
+  __ Rdpl(x7, 31);
+  __ Rdpl(x8, -32);
+
+  // For unencodable multipliers, the MacroAssembler uses a sequence of
+  // instructions.
+  __ Rdpl(x10, 42);
+  __ Rdpl(x11, -42);
+
+  // The maximum value of VL is 256 (bytes), so the multiplier is limited to the
+  // range [INT64_MIN/256, INT64_MAX/256], to ensure that no signed overflow
+  // occurs in the macro.
+  __ Rdpl(x12, 0x007fffffffffffff);
+  __ Rdpl(x13, -0x0080000000000000);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint64_t vl = config->sve_vl_in_bytes();
+    VIXL_ASSERT((vl % kZRegBitsPerPRegBit) == 0);
+    uint64_t pl = vl / kZRegBitsPerPRegBit;
+
+    ASSERT_EQUAL_64(pl * 0, x0);
+    ASSERT_EQUAL_64(pl * 8, x1);
+    ASSERT_EQUAL_64(pl * 248, x2);
+    ASSERT_EQUAL_64(pl * -8, x3);
+    ASSERT_EQUAL_64(pl * -256, x4);
+
+    ASSERT_EQUAL_64(pl * 31, x7);
+    ASSERT_EQUAL_64(pl * -32, x8);
+
+    ASSERT_EQUAL_64(pl * 42, x10);
+    ASSERT_EQUAL_64(pl * -42, x11);
+
+    ASSERT_EQUAL_64(pl * 0x007fffffffffffff, x12);
+    ASSERT_EQUAL_64(pl * 0xff80000000000000, x13);
+  }
+}
+
+TEST_SVE(sve_addvl) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t base = 0x1234567800000000;
+  __ Mov(x30, base);
+
+  // Encodable multipliers.
+  __ Addvl(x0, x30, 0);
+  __ Addvl(x1, x30, 1);
+  __ Addvl(x2, x30, 31);
+  __ Addvl(x3, x30, -1);
+  __ Addvl(x4, x30, -32);
+
+  // For unencodable multipliers, the MacroAssembler uses `Rdvl` and `Add`.
+  __ Addvl(x5, x30, 32);
+  __ Addvl(x6, x30, -33);
+
+  // Test the limits of the multiplier supported by the `Rdvl` macro.
+  __ Addvl(x7, x30, 0x007fffffffffffff);
+  __ Addvl(x8, x30, -0x0080000000000000);
+
+  // Check that xzr behaves correctly.
+  __ Addvl(x9, xzr, 8);
+  __ Addvl(x10, xzr, 42);
+
+  // Check that sp behaves correctly with encodable and unencodable multipliers.
+  __ Addvl(sp, sp, -5);
+  __ Addvl(sp, sp, -37);
+  __ Addvl(x11, sp, -2);
+  __ Addvl(sp, x11, 2);
+  __ Addvl(x12, sp, -42);
+
+  // Restore the value of sp.
+  __ Addvl(sp, x11, 39);
+  __ Addvl(sp, sp, 5);
+
+  // Adjust x11 and x12 to make the test sp-agnostic.
+  __ Sub(x11, sp, x11);
+  __ Sub(x12, sp, x12);
+
+  // Check cases where xd.Is(xn). This stresses scratch register allocation.
+  __ Mov(x20, x30);
+  __ Mov(x21, x30);
+  __ Mov(x22, x30);
+  __ Addvl(x20, x20, 4);
+  __ Addvl(x21, x21, 42);
+  __ Addvl(x22, x22, -0x0080000000000000);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint64_t vl = config->sve_vl_in_bytes();
+
+    ASSERT_EQUAL_64(base + (vl * 0), x0);
+    ASSERT_EQUAL_64(base + (vl * 1), x1);
+    ASSERT_EQUAL_64(base + (vl * 31), x2);
+    ASSERT_EQUAL_64(base + (vl * -1), x3);
+    ASSERT_EQUAL_64(base + (vl * -32), x4);
+
+    ASSERT_EQUAL_64(base + (vl * 32), x5);
+    ASSERT_EQUAL_64(base + (vl * -33), x6);
+
+    ASSERT_EQUAL_64(base + (vl * 0x007fffffffffffff), x7);
+    ASSERT_EQUAL_64(base + (vl * 0xff80000000000000), x8);
+
+    ASSERT_EQUAL_64(vl * 8, x9);
+    ASSERT_EQUAL_64(vl * 42, x10);
+
+    ASSERT_EQUAL_64(vl * 44, x11);
+    ASSERT_EQUAL_64(vl * 84, x12);
+
+    ASSERT_EQUAL_64(base + (vl * 4), x20);
+    ASSERT_EQUAL_64(base + (vl * 42), x21);
+    ASSERT_EQUAL_64(base + (vl * 0xff80000000000000), x22);
+
+    ASSERT_EQUAL_64(base, x30);
+  }
+}
+
+TEST_SVE(sve_addpl) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t base = 0x1234567800000000;
+  __ Mov(x30, base);
+
+  // Encodable multipliers.
+  __ Addpl(x0, x30, 0);
+  __ Addpl(x1, x30, 1);
+  __ Addpl(x2, x30, 31);
+  __ Addpl(x3, x30, -1);
+  __ Addpl(x4, x30, -32);
+
+  // For unencodable multipliers, the MacroAssembler uses `Addvl` if it can, or
+  // it falls back to `Rdvl` and `Add`.
+  __ Addpl(x5, x30, 32);
+  __ Addpl(x6, x30, -33);
+
+  // Test the limits of the multiplier supported by the `Rdvl` macro.
+  __ Addpl(x7, x30, 0x007fffffffffffff);
+  __ Addpl(x8, x30, -0x0080000000000000);
+
+  // Check that xzr behaves correctly.
+  __ Addpl(x9, xzr, 8);
+  __ Addpl(x10, xzr, 42);
+
+  // Check that sp behaves correctly with encodable and unencodable multipliers.
+  __ Addpl(sp, sp, -5);
+  __ Addpl(sp, sp, -37);
+  __ Addpl(x11, sp, -2);
+  __ Addpl(sp, x11, 2);
+  __ Addpl(x12, sp, -42);
+
+  // Restore the value of sp.
+  __ Addpl(sp, x11, 39);
+  __ Addpl(sp, sp, 5);
+
+  // Adjust x11 and x12 to make the test sp-agnostic.
+  __ Sub(x11, sp, x11);
+  __ Sub(x12, sp, x12);
+
+  // Check cases where xd.Is(xn). This stresses scratch register allocation.
+  __ Mov(x20, x30);
+  __ Mov(x21, x30);
+  __ Mov(x22, x30);
+  __ Addpl(x20, x20, 4);
+  __ Addpl(x21, x21, 42);
+  __ Addpl(x22, x22, -0x0080000000000000);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint64_t vl = config->sve_vl_in_bytes();
+    VIXL_ASSERT((vl % kZRegBitsPerPRegBit) == 0);
+    uint64_t pl = vl / kZRegBitsPerPRegBit;
+
+    ASSERT_EQUAL_64(base + (pl * 0), x0);
+    ASSERT_EQUAL_64(base + (pl * 1), x1);
+    ASSERT_EQUAL_64(base + (pl * 31), x2);
+    ASSERT_EQUAL_64(base + (pl * -1), x3);
+    ASSERT_EQUAL_64(base + (pl * -32), x4);
+
+    ASSERT_EQUAL_64(base + (pl * 32), x5);
+    ASSERT_EQUAL_64(base + (pl * -33), x6);
+
+    ASSERT_EQUAL_64(base + (pl * 0x007fffffffffffff), x7);
+    ASSERT_EQUAL_64(base + (pl * 0xff80000000000000), x8);
+
+    ASSERT_EQUAL_64(pl * 8, x9);
+    ASSERT_EQUAL_64(pl * 42, x10);
+
+    ASSERT_EQUAL_64(pl * 44, x11);
+    ASSERT_EQUAL_64(pl * 84, x12);
+
+    ASSERT_EQUAL_64(base + (pl * 4), x20);
+    ASSERT_EQUAL_64(base + (pl * 42), x21);
+    ASSERT_EQUAL_64(base + (pl * 0xff80000000000000), x22);
+
+    ASSERT_EQUAL_64(base, x30);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

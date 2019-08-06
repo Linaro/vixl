@@ -30,6 +30,109 @@ namespace vixl {
 namespace aarch64 {
 
 
+void MacroAssembler::Addpl(const Register& xd,
+                           const Register& xn,
+                           int64_t multiplier) {
+  VIXL_ASSERT(allow_macro_instructions_);
+
+  if (xd.IsZero()) return;
+  if (xn.IsZero() && xd.IsSP()) {
+    // TODO: This operation doesn't make much sense, but we could support it
+    // with a scratch register if necessary.
+    VIXL_UNIMPLEMENTED();
+  }
+
+  // Handling xzr requires an extra move, so defer it until later so we can try
+  // to use `rdvl` instead (via `Addvl`).
+  if (IsInt6(multiplier) && !xn.IsZero()) {
+    SingleEmissionCheckScope guard(this);
+    addpl(xd, xn, static_cast<int>(multiplier));
+    return;
+  }
+
+  // If `multiplier` is a multiple of 8, we can use `Addvl` instead.
+  if ((multiplier % kZRegBitsPerPRegBit) == 0) {
+    Addvl(xd, xn, multiplier / kZRegBitsPerPRegBit);
+    return;
+  }
+
+  if (IsInt6(multiplier)) {
+    VIXL_ASSERT(xn.IsZero());  // Other cases were handled with `addpl`.
+    // There is no simple `rdpl` instruction, and `addpl` cannot accept xzr, so
+    // materialise a zero.
+    MacroEmissionCheckScope guard(this);
+    movz(xd, 0);
+    addpl(xd, xd, static_cast<int>(multiplier));
+    return;
+  }
+
+  // For other cases, calculate xn + (PL * multiplier) using discrete
+  // instructions. This requires two scratch registers in the general case, so
+  // try to re-use the destination as a scratch register.
+  UseScratchRegisterScope temps(this);
+  temps.Include(xd);
+  temps.Exclude(xn);
+
+  Register scratch = temps.AcquireX();
+  // Because there is no `rdpl`, so we have to calculate PL from VL. We can't
+  // scale the multiplier because (we already know) it isn't a multiple of 8.
+  Rdvl(scratch, multiplier);
+
+  MacroEmissionCheckScope guard(this);
+  if (xd.IsSP() || xn.IsSP()) {
+    // TODO: MacroAssembler::Add should be able to handle this.
+    asr(scratch, scratch, kZRegBitsPerPRegBitLog2);
+    add(xd, xn, scratch);
+  } else {
+    add(xd, xn, Operand(scratch, ASR, kZRegBitsPerPRegBitLog2));
+  }
+}
+
+void MacroAssembler::Addvl(const Register& xd,
+                           const Register& xn,
+                           int64_t multiplier) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(xd.IsX());
+  VIXL_ASSERT(xn.IsX());
+
+  if (xd.IsZero()) return;
+  if (xn.IsZero() && xd.IsSP()) {
+    // TODO: This operation doesn't make much sense, but we could support it
+    // with a scratch register if necessary. `rdvl` cannot write into `sp`.
+    VIXL_UNIMPLEMENTED();
+  }
+
+  if (IsInt6(multiplier)) {
+    SingleEmissionCheckScope guard(this);
+    if (xn.IsZero()) {
+      rdvl(xd, static_cast<int>(multiplier));
+    } else {
+      addvl(xd, xn, static_cast<int>(multiplier));
+    }
+    return;
+  }
+
+  // For other cases, calculate xn + (VL * multiplier) using discrete
+  // instructions. This requires two scratch registers in the general case, so
+  // we try to re-use the destination as a scratch register.
+  UseScratchRegisterScope temps(this);
+  temps.Include(xd);
+  temps.Exclude(xn);
+
+  Register a = temps.AcquireX();
+  Mov(a, multiplier);
+
+  MacroEmissionCheckScope guard(this);
+  Register b = temps.AcquireX();
+  rdvl(b, 1);
+  if (xd.IsSP() || xn.IsSP()) {
+    mul(a, a, b);
+    add(xd, xn, a);
+  } else {
+    madd(xd, a, b, xn);
+  }
+}
+
 void MacroAssembler::Dup(const ZRegister& zd, IntegerOperand imm) {
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(imm.FitsInLane(zd));

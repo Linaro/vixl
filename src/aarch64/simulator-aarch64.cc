@@ -9721,33 +9721,31 @@ void Simulator::VisitSVEPropagateBreak(const Instruction* instr) {
 
 void Simulator::VisitSVEStackAllocation(const Instruction* instr) {
   USE(instr);
+
   int64_t scale = instr->GetImmSVEVLScale();
-  switch (instr->Mask(SVEStackAllocationMask)) {
-    case ADDPL_r_ri: {       // Rd = Rn + (PL * scale)
-      VIXL_UNIMPLEMENTED();  // Untested.
-      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
-      WriteXRegister(instr->GetRd(),
-                     base + GetPredicateLengthInBytes() * scale,
-                     LogRegWrites,
-                     Reg31IsStackPointer);
-      break;
-    }
-    case ADDVL_r_ri: {       // Rd = Rn + (VL * scale)
-      VIXL_UNIMPLEMENTED();  // Untested.
-      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
-      WriteXRegister(instr->GetRd(),
-                     base + GetVectorLengthInBytes() * scale,
-                     LogRegWrites,
-                     Reg31IsStackPointer);
-      break;
-    }
+  switch (instr->Mask(SVEStackAllocationSizeMask)) {
     case RDVL_r_i:  // Rd = VL * scale
       WriteXRegister(instr->GetRd(), GetVectorLengthInBytes() * scale);
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-      break;
+      return;
   }
+
+  uint64_t base = ReadXRegister(instr->GetRm(), Reg31IsStackPointer);
+  switch (instr->Mask(SVEStackAllocationMask)) {
+    case ADDPL_r_ri:  // Rd = Rn + (PL * scale)
+      WriteXRegister(instr->GetRd(),
+                     base + (GetPredicateLengthInBytes() * scale),
+                     LogRegWrites,
+                     Reg31IsStackPointer);
+      return;
+    case ADDVL_r_ri:  // Rd = Rn + (VL * scale)
+      WriteXRegister(instr->GetRd(),
+                     base + (GetVectorLengthInBytes() * scale),
+                     LogRegWrites,
+                     Reg31IsStackPointer);
+      return;
+  }
+
+  VIXL_UNIMPLEMENTED();
 }
 
 void Simulator::VisitSVEVectorSelect(const Instruction* instr) {

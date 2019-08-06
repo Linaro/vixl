@@ -8942,25 +8942,22 @@ void Disassembler::VisitSVEStackAllocation(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEStackAllocation)";
 
-  switch (instr->Mask(SVEStackAllocationMask)) {
-    // ADDPL <Xd|SP>, <Xn|SP>, #<imm>
-    case ADDPL_r_ri:
-      mnemonic = "addpl";
-      form = "'Xds, 'Xns, #'u1005";
-      break;
-    // ADDVL <Xd|SP>, <Xn|SP>, #<imm>
-    case ADDVL_r_ri:
-      mnemonic = "addvl";
-      form = "'Xds, 'Xns, #'u1005";
-      break;
-    // RDVL <Xd>, #<imm>
-    case RDVL_r_i:
-      mnemonic = "rdvl";
-      form = "'Rd, #'u1005";
-      break;
-    default:
-      break;
+  if (instr->Mask(SVEStackAllocationSizeMask) == RDVL_r_i) {
+    mnemonic = "rdvl";
+    form = "'Xd, #'s1005";
+  } else {
+    switch (instr->Mask(SVEStackAllocationMask)) {
+      case ADDPL_r_ri:
+        mnemonic = "addpl";
+        form = "'Xds, 'Xms, #'s1005";
+        break;
+      case ADDVL_r_ri:
+        mnemonic = "addvl";
+        form = "'Xds, 'Xms, #'s1005";
+        break;
+    }
   }
+
   Format(instr, mnemonic, form);
 }
 

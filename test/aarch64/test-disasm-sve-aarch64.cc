@@ -2484,11 +2484,79 @@ TEST(sve_propagate_break) {
 TEST(sve_stack_allocation) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(addpl(x31, x31, int imm6), "addpl <Xd|SP>, <Xn|SP>, #<imm>");
-  COMPARE_PREFIX(addvl(x16, x16, int imm6), "addvl <Xd|SP>, <Xn|SP>, #<imm>");
-  COMPARE_PREFIX(rdvl(x26, int imm6), "rdvl <Xd>, #<imm>");
-#endif
+  COMPARE_PREFIX(rdvl(x26, 0), "rdvl x26, #0");
+  COMPARE_PREFIX(rdvl(x27, 31), "rdvl x27, #31");
+  COMPARE_PREFIX(rdvl(x28, -32), "rdvl x28, #-32");
+  COMPARE_PREFIX(rdvl(xzr, 9), "rdvl xzr, #9");
+
+  COMPARE_PREFIX(addvl(x6, x20, 0), "addvl x6, x20, #0");
+  COMPARE_PREFIX(addvl(x7, x21, 31), "addvl x7, x21, #31");
+  COMPARE_PREFIX(addvl(x8, x22, -32), "addvl x8, x22, #-32");
+  COMPARE_PREFIX(addvl(sp, x1, 5), "addvl sp, x1, #5");
+  COMPARE_PREFIX(addvl(x9, sp, -16), "addvl x9, sp, #-16");
+
+  COMPARE_PREFIX(addpl(x20, x6, 0), "addpl x20, x6, #0");
+  COMPARE_PREFIX(addpl(x21, x7, 31), "addpl x21, x7, #31");
+  COMPARE_PREFIX(addpl(x22, x8, -32), "addpl x22, x8, #-32");
+  COMPARE_PREFIX(addpl(sp, x1, 5), "addpl sp, x1, #5");
+  COMPARE_PREFIX(addpl(x9, sp, -16), "addpl x9, sp, #-16");
+
+  CLEANUP();
+}
+
+TEST(sve_stack_allocation_macro) {
+  SETUP();
+
+  COMPARE_MACRO(Rdvl(x0, 3), "rdvl x0, #3");
+  COMPARE_MACRO(Rdvl(x1, 42),
+                "mov x1, #0x2a\n"
+                "rdvl x16, #1\n"
+                "mul x1, x1, x16");
+
+  COMPARE_MACRO(Rdpl(x0, 8), "rdvl x0, #1");
+  COMPARE_MACRO(Rdpl(x1, 7),
+                "mov x1, #0x0\n"
+                "addpl x1, x1, #7");
+  COMPARE_MACRO(Rdpl(x2, 42),
+                "mov x2, #0x2a\n"
+                "rdvl x16, #1\n"
+                "mul x2, x2, x16\n"
+                "add x2, xzr, x2, asr #3");
+
+  COMPARE_MACRO(Addvl(sp, sp, -3), "addvl sp, sp, #-3");
+  COMPARE_MACRO(Addvl(x7, xzr, 8), "rdvl x7, #8");
+  COMPARE_MACRO(Addvl(x7, x8, 42),
+                "mov x7, #0x2a\n"
+                "rdvl x16, #1\n"
+                "madd x7, x7, x16, x8");
+  COMPARE_MACRO(Addvl(x10, x10, 42),
+                "mov x16, #0x2a\n"
+                "rdvl x17, #1\n"
+                "madd x10, x16, x17, x10");
+  COMPARE_MACRO(Addvl(x10, sp, 42),
+                "mov x10, #0x2a\n"
+                "rdvl x16, #1\n"
+                "mul x10, x10, x16\n"
+                "add x10, sp, x10");
+  COMPARE_MACRO(Addvl(sp, x10, 42),
+                "mov x16, #0x2a\n"
+                "rdvl x17, #1\n"
+                "mul x16, x16, x17\n"
+                "add sp, x10, x16");
+
+  COMPARE_MACRO(Addpl(x22, x22, -3), "addpl x22, x22, #-3");
+  COMPARE_MACRO(Addpl(x7, x8, 32), "addvl x7, x8, #4");
+  COMPARE_MACRO(Addpl(x7, x8, 42),
+                "mov x7, #0x2a\n"
+                "rdvl x16, #1\n"
+                "mul x7, x7, x16\n"
+                "add x7, x8, x7, asr #3");
+  COMPARE_MACRO(Addpl(x7, sp, 42),
+                "mov x7, #0x2a\n"
+                "rdvl x16, #1\n"
+                "mul x7, x7, x16\n"
+                "asr x7, x7, #3\n"
+                "add x7, sp, x7");
 
   CLEANUP();
 }

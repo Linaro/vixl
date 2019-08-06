@@ -28,6 +28,7 @@
 #define TEST_TEST_H_
 
 #include "utils-vixl.h"
+#include "aarch64/instructions-aarch64.h"
 
 namespace vixl {
 
@@ -56,7 +57,17 @@ class Test {
   // The SVE vector length can be configured by each test, based on either
   // hardware feature detection (in the test itself) or Simulator configuration.
   int sve_vl_in_bits() const { return sve_vl_; }
-  void set_sve_vl_in_bits(int sve_vl) { sve_vl_ = sve_vl; }
+  void set_sve_vl_in_bits(unsigned sve_vl) {
+    // Note that we allow `set_sve_vl_in_bits(0)` here when SVE is not used.
+    VIXL_ASSERT(sve_vl <= aarch64::kZRegMaxSize);
+    VIXL_ASSERT((sve_vl % aarch64::kZRegMinSize) == 0);
+    sve_vl_ = sve_vl;
+  }
+
+  int sve_vl_in_bytes() const {
+    VIXL_ASSERT((sve_vl_ % kBitsPerByte) == 0);
+    return sve_vl_ / kBitsPerByte;
+  }
 
   static Test* first() { return first_; }
   static Test* last() { return last_; }

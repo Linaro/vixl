@@ -3852,9 +3852,13 @@ enum SVEPropagateBreakOp {
 enum SVEStackAllocationOp {
   SVEStackAllocationFixed = 0x04205000,
   SVEStackAllocationFMask = 0xFF20F000,
-  SVEStackAllocationMask = 0xFFFFF800,
+  SVEStackAllocationMask = 0xFFE0F800,
   ADDVL_r_ri = SVEStackAllocationFixed,
   ADDPL_r_ri = SVEStackAllocationFixed | 0x00400000,
+
+  // SVEStackAllocationMask doesn't work here because we need to examine the
+  // `opc2` field to identify RDVL.
+  SVEStackAllocationSizeMask = 0xFFFFF800,
   RDVL_r_i = SVEStackAllocationFixed | 0x009F0000
 };
 

@@ -5433,7 +5433,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void rdffrs(const PRegisterWithLaneSize& pd, const PRegisterZ& pg);
 
   // Read multiple of vector register size to scalar register.
-  void rdvl(const Register& rd, int imm6);
+  void rdvl(const Register& xd, int imm6);
 
   // Reverse all elements in a predicate.
   void rev(const PRegisterWithLaneSize& pd, const PRegisterWithLaneSize& pn);

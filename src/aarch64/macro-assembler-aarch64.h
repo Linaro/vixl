@@ -3449,16 +3449,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     add(zd, zn, imm8);
   }
-  void Addpl(const Register& xd, const Register& xn, int imm6) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    addpl(xd, xn, imm6);
-  }
-  void Addvl(const Register& xd, const Register& xn, int imm6) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    addvl(xd, xn, imm6);
-  }
+  void Addpl(const Register& xd, const Register& xn, int64_t multiplier);
+  void Addvl(const Register& xd, const Register& xn, int64_t multiplier);
   void Adr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -5848,14 +5840,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     rdffrs(pd, pg);
   }
-  void Rdvl(const Register& rd, int multiplier) {
+  // Note that there is no `rdpl` instruction, but this macro emulates it (for
+  // symmetry with `Rdvl`).
+  void Rdpl(const Register& xd, int64_t multiplier) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    if (IsInt6(multiplier)) {
-      rdvl(rd.X(), multiplier);
-    } else {
-      VIXL_UNIMPLEMENTED();
-    }
+    Addpl(xd, xzr, multiplier);
+  }
+  void Rdvl(const Register& xd, int64_t multiplier) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    Addvl(xd, xzr, multiplier);
   }
   void Rev(const PRegisterWithLaneSize& pd, const PRegisterWithLaneSize& pn) {
     VIXL_ASSERT(allow_macro_instructions_);
