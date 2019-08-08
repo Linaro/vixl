@@ -815,32 +815,50 @@ TEST(sve_index_generation) {
 TEST(sve_int_arithmetic_unpredicated) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(add(z23.VnB(), z30.VnB(), z31.VnB()), "add <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(add(z23.VnH(), z30.VnH(), z31.VnH()), "add <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(add(z23.VnS(), z30.VnS(), z31.VnS()), "add <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(add(z23.VnD(), z30.VnD(), z31.VnD()), "add <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sqadd(z26.VnB(), z21.VnB(), z1.VnB()), "sqadd <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sqadd(z26.VnH(), z21.VnH(), z1.VnH()), "sqadd <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sqadd(z26.VnS(), z21.VnS(), z1.VnS()), "sqadd <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sqadd(z26.VnD(), z21.VnD(), z1.VnD()), "sqadd <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sqsub(z1.VnB(), z10.VnB(), z0.VnB()), "sqsub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sqsub(z1.VnH(), z10.VnH(), z0.VnH()), "sqsub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sqsub(z1.VnS(), z10.VnS(), z0.VnS()), "sqsub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sqsub(z1.VnD(), z10.VnD(), z0.VnD()), "sqsub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sub(z9.VnB(), z7.VnB(), z25.VnB()), "sub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sub(z9.VnH(), z7.VnH(), z25.VnH()), "sub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sub(z9.VnS(), z7.VnS(), z25.VnS()), "sub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sub(z9.VnD(), z7.VnD(), z25.VnD()), "sub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(uqadd(z13.VnB(), z15.VnB(), z3.VnB()), "uqadd <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(uqadd(z13.VnH(), z15.VnH(), z3.VnH()), "uqadd <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(uqadd(z13.VnS(), z15.VnS(), z3.VnS()), "uqadd <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(uqadd(z13.VnD(), z15.VnD(), z3.VnD()), "uqadd <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(uqsub(z9.VnB(), z13.VnB(), z13.VnB()), "uqsub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(uqsub(z9.VnH(), z13.VnH(), z13.VnH()), "uqsub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(uqsub(z9.VnS(), z13.VnS(), z13.VnS()), "uqsub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(uqsub(z9.VnD(), z13.VnD(), z13.VnD()), "uqsub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-#endif
+  COMPARE_PREFIX(add(z23.VnB(), z30.VnB(), z31.VnB()),
+                 "add z23.b, z30.b, z31.b");
+  COMPARE_PREFIX(add(z24.VnH(), z29.VnH(), z30.VnH()),
+                 "add z24.h, z29.h, z30.h");
+  COMPARE_PREFIX(add(z25.VnS(), z28.VnS(), z29.VnS()),
+                 "add z25.s, z28.s, z29.s");
+  COMPARE_PREFIX(add(z26.VnD(), z27.VnD(), z28.VnD()),
+                 "add z26.d, z27.d, z28.d");
+  COMPARE_PREFIX(sqadd(z26.VnB(), z21.VnB(), z1.VnB()),
+                 "sqadd z26.b, z21.b, z1.b");
+  COMPARE_PREFIX(sqadd(z25.VnH(), z20.VnH(), z2.VnH()),
+                 "sqadd z25.h, z20.h, z2.h");
+  COMPARE_PREFIX(sqadd(z24.VnS(), z19.VnS(), z3.VnS()),
+                 "sqadd z24.s, z19.s, z3.s");
+  COMPARE_PREFIX(sqadd(z23.VnD(), z18.VnD(), z4.VnD()),
+                 "sqadd z23.d, z18.d, z4.d");
+  COMPARE_PREFIX(sqsub(z1.VnB(), z10.VnB(), z0.VnB()),
+                 "sqsub z1.b, z10.b, z0.b");
+  COMPARE_PREFIX(sqsub(z2.VnH(), z11.VnH(), z1.VnH()),
+                 "sqsub z2.h, z11.h, z1.h");
+  COMPARE_PREFIX(sqsub(z3.VnS(), z12.VnS(), z2.VnS()),
+                 "sqsub z3.s, z12.s, z2.s");
+  COMPARE_PREFIX(sqsub(z4.VnD(), z13.VnD(), z3.VnD()),
+                 "sqsub z4.d, z13.d, z3.d");
+  COMPARE_PREFIX(sub(z9.VnB(), z7.VnB(), z25.VnB()), "sub z9.b, z7.b, z25.b");
+  COMPARE_PREFIX(sub(z8.VnH(), z8.VnH(), z26.VnH()), "sub z8.h, z8.h, z26.h");
+  COMPARE_PREFIX(sub(z7.VnS(), z9.VnS(), z27.VnS()), "sub z7.s, z9.s, z27.s");
+  COMPARE_PREFIX(sub(z6.VnD(), z10.VnD(), z28.VnD()), "sub z6.d, z10.d, z28.d");
+  COMPARE_PREFIX(uqadd(z13.VnB(), z15.VnB(), z3.VnB()),
+                 "uqadd z13.b, z15.b, z3.b");
+  COMPARE_PREFIX(uqadd(z12.VnH(), z16.VnH(), z2.VnH()),
+                 "uqadd z12.h, z16.h, z2.h");
+  COMPARE_PREFIX(uqadd(z11.VnS(), z17.VnS(), z1.VnS()),
+                 "uqadd z11.s, z17.s, z1.s");
+  COMPARE_PREFIX(uqadd(z10.VnD(), z18.VnD(), z0.VnD()),
+                 "uqadd z10.d, z18.d, z0.d");
+  COMPARE_PREFIX(uqsub(z9.VnB(), z13.VnB(), z13.VnB()),
+                 "uqsub z9.b, z13.b, z13.b");
+  COMPARE_PREFIX(uqsub(z11.VnH(), z15.VnH(), z11.VnH()),
+                 "uqsub z11.h, z15.h, z11.h");
+  COMPARE_PREFIX(uqsub(z13.VnS(), z17.VnS(), z13.VnS()),
+                 "uqsub z13.s, z17.s, z13.s");
+  COMPARE_PREFIX(uqsub(z15.VnD(), z19.VnD(), z15.VnD()),
+                 "uqsub z15.d, z19.d, z15.d");
 
   CLEANUP();
 }

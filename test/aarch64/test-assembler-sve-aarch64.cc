@@ -3719,5 +3719,175 @@ TEST_SVE(sve_binary_arithmetic_predicated_udiv) {
   // clang-format on
 }
 
+typedef void (MacroAssembler::*IntArithFn)(const ZRegister& zd,
+                                           const ZRegister& zn,
+                                           const ZRegister& zm);
+
+template <typename T>
+static void IntArithHelper(Test* config,
+                           IntArithFn macro,
+                           unsigned lane_size_in_bits,
+                           const T& zn_inputs,
+                           const T& zm_inputs,
+                           const T& zd_expected) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  ZRegister zn = z31.WithLaneSize(lane_size_in_bits);
+  ZRegister zm = z27.WithLaneSize(lane_size_in_bits);
+  InsrHelper(&masm, zn, zn_inputs);
+  InsrHelper(&masm, zm, zm_inputs);
+
+  ZRegister zd = z0.WithLaneSize(lane_size_in_bits);
+  (masm.*macro)(zd, zn, zm);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(zd_expected, zd);
+  }
+}
+
+TEST_SVE(sve_arithmetic_unpredicated_add_sqadd_uqadd) {
+  // clang-format off
+  unsigned ins_b[] = {0x81, 0x7f, 0x10, 0xaa, 0x55, 0xff, 0xf0};
+  unsigned ins_h[] = {0x8181, 0x7f7f, 0x1010, 0xaaaa, 0x5555, 0xffff, 0xf0f0};
+  unsigned ins_s[] = {0x80018181, 0x7fff7f7f, 0x10001010, 0xaaaaaaaa, 0xf000f0f0};
+  uint64_t ins_d[] = {0x8000000180018181, 0x7fffffff7fff7f7f,
+                      0x1000000010001010, 0xf0000000f000f0f0};
+
+  IntArithFn fn = &MacroAssembler::Add;
+
+  unsigned add_exp_b[] = {0x02, 0xfe, 0x20, 0x54, 0xaa, 0xfe, 0xe0};
+  unsigned add_exp_h[] = {0x0302, 0xfefe, 0x2020, 0x5554, 0xaaaa, 0xfffe, 0xe1e0};
+  unsigned add_exp_s[] = {0x00030302, 0xfffefefe, 0x20002020, 0x55555554, 0xe001e1e0};
+  uint64_t add_exp_d[] = {0x0000000300030302, 0xfffffffefffefefe,
+                          0x2000000020002020, 0xe0000001e001e1e0};
+
+  IntArithHelper(config, fn, kBRegSize, ins_b, ins_b, add_exp_b);
+  IntArithHelper(config, fn, kHRegSize, ins_h, ins_h, add_exp_h);
+  IntArithHelper(config, fn, kSRegSize, ins_s, ins_s, add_exp_s);
+  IntArithHelper(config, fn, kDRegSize, ins_d, ins_d, add_exp_d);
+
+  fn = &MacroAssembler::Sqadd;
+
+  unsigned sqadd_exp_b[] = {0x80, 0x7f, 0x20, 0x80, 0x7f, 0xfe, 0xe0};
+  unsigned sqadd_exp_h[] = {0x8000, 0x7fff, 0x2020, 0x8000, 0x7fff, 0xfffe, 0xe1e0};
+  unsigned sqadd_exp_s[] = {0x80000000, 0x7fffffff, 0x20002020, 0x80000000, 0xe001e1e0};
+  uint64_t sqadd_exp_d[] = {0x8000000000000000, 0x7fffffffffffffff,
+                            0x2000000020002020, 0xe0000001e001e1e0};
+
+  IntArithHelper(config, fn, kBRegSize, ins_b, ins_b, sqadd_exp_b);
+  IntArithHelper(config, fn, kHRegSize, ins_h, ins_h, sqadd_exp_h);
+  IntArithHelper(config, fn, kSRegSize, ins_s, ins_s, sqadd_exp_s);
+  IntArithHelper(config, fn, kDRegSize, ins_d, ins_d, sqadd_exp_d);
+
+  fn = &MacroAssembler::Uqadd;
+
+  unsigned uqadd_exp_b[] = {0xff, 0xfe, 0x20, 0xff, 0xaa, 0xff, 0xff};
+  unsigned uqadd_exp_h[] = {0xffff, 0xfefe, 0x2020, 0xffff, 0xaaaa, 0xffff, 0xffff};
+  unsigned uqadd_exp_s[] = {0xffffffff, 0xfffefefe, 0x20002020, 0xffffffff, 0xffffffff};
+  uint64_t uqadd_exp_d[] = {0xffffffffffffffff, 0xfffffffefffefefe,
+                            0x2000000020002020, 0xffffffffffffffff};
+
+  IntArithHelper(config, fn, kBRegSize, ins_b, ins_b, uqadd_exp_b);
+  IntArithHelper(config, fn, kHRegSize, ins_h, ins_h, uqadd_exp_h);
+  IntArithHelper(config, fn, kSRegSize, ins_s, ins_s, uqadd_exp_s);
+  IntArithHelper(config, fn, kDRegSize, ins_d, ins_d, uqadd_exp_d);
+  // clang-format on
+}
+
+TEST_SVE(sve_arithmetic_unpredicated_sub_sqsub_uqsub) {
+  // clang-format off
+
+  unsigned ins1_b[] = {0x81, 0x7f, 0x7e, 0xaa};
+  unsigned ins2_b[] = {0x10, 0xf0, 0xf0, 0x55};
+
+  unsigned ins1_h[] = {0x8181, 0x7f7f, 0x7e7e, 0xaaaa};
+  unsigned ins2_h[] = {0x1010, 0xf0f0, 0xf0f0, 0x5555};
+
+  unsigned ins1_s[] = {0x80018181, 0x7fff7f7f, 0x7eee7e7e, 0xaaaaaaaa};
+  unsigned ins2_s[] = {0x10001010, 0xf000f0f0, 0xf000f0f0, 0x55555555};
+
+  uint64_t ins1_d[] = {0x8000000180018181, 0x7fffffff7fff7f7f,
+                       0x7eeeeeee7eee7e7e, 0xaaaaaaaaaaaaaaaa};
+  uint64_t ins2_d[] = {0x1000000010001010, 0xf0000000f000f0f0,
+                       0xf0000000f000f0f0, 0x5555555555555555};
+
+  IntArithFn fn = &MacroAssembler::Sub;
+
+  unsigned ins1_sub_ins2_exp_b[] = {0x71, 0x8f, 0x8e, 0x55};
+  unsigned ins1_sub_ins2_exp_h[] = {0x7171, 0x8e8f, 0x8d8e, 0x5555};
+  unsigned ins1_sub_ins2_exp_s[] = {0x70017171, 0x8ffe8e8f, 0x8eed8d8e, 0x55555555};
+  uint64_t ins1_sub_ins2_exp_d[] = {0x7000000170017171, 0x8ffffffe8ffe8e8f,
+                                    0x8eeeeeed8eed8d8e, 0x5555555555555555};
+
+  IntArithHelper(config, fn, kBRegSize, ins1_b, ins2_b, ins1_sub_ins2_exp_b);
+  IntArithHelper(config, fn, kHRegSize, ins1_h, ins2_h, ins1_sub_ins2_exp_h);
+  IntArithHelper(config, fn, kSRegSize, ins1_s, ins2_s, ins1_sub_ins2_exp_s);
+  IntArithHelper(config, fn, kDRegSize, ins1_d, ins2_d, ins1_sub_ins2_exp_d);
+
+  unsigned ins2_sub_ins1_exp_b[] = {0x8f, 0x71, 0x72, 0xab};
+  unsigned ins2_sub_ins1_exp_h[] = {0x8e8f, 0x7171, 0x7272, 0xaaab};
+  unsigned ins2_sub_ins1_exp_s[] = {0x8ffe8e8f, 0x70017171, 0x71127272, 0xaaaaaaab};
+  uint64_t ins2_sub_ins1_exp_d[] = {0x8ffffffe8ffe8e8f, 0x7000000170017171,
+                                    0x7111111271127272, 0xaaaaaaaaaaaaaaab};
+
+  IntArithHelper(config, fn, kBRegSize, ins2_b, ins1_b, ins2_sub_ins1_exp_b);
+  IntArithHelper(config, fn, kHRegSize, ins2_h, ins1_h, ins2_sub_ins1_exp_h);
+  IntArithHelper(config, fn, kSRegSize, ins2_s, ins1_s, ins2_sub_ins1_exp_s);
+  IntArithHelper(config, fn, kDRegSize, ins2_d, ins1_d, ins2_sub_ins1_exp_d);
+
+  fn = &MacroAssembler::Sqsub;
+
+  unsigned ins1_sqsub_ins2_exp_b[] = {0x80, 0x7f, 0x7f, 0x80};
+  unsigned ins1_sqsub_ins2_exp_h[] = {0x8000, 0x7fff, 0x7fff, 0x8000};
+  unsigned ins1_sqsub_ins2_exp_s[] = {0x80000000, 0x7fffffff, 0x7fffffff, 0x80000000};
+  uint64_t ins1_sqsub_ins2_exp_d[] = {0x8000000000000000, 0x7fffffffffffffff,
+                                      0x7fffffffffffffff, 0x8000000000000000};
+
+  IntArithHelper(config, fn, kBRegSize, ins1_b, ins2_b, ins1_sqsub_ins2_exp_b);
+  IntArithHelper(config, fn, kHRegSize, ins1_h, ins2_h, ins1_sqsub_ins2_exp_h);
+  IntArithHelper(config, fn, kSRegSize, ins1_s, ins2_s, ins1_sqsub_ins2_exp_s);
+  IntArithHelper(config, fn, kDRegSize, ins1_d, ins2_d, ins1_sqsub_ins2_exp_d);
+
+  unsigned ins2_sqsub_ins1_exp_b[] = {0x7f, 0x80, 0x80, 0x7f};
+  unsigned ins2_sqsub_ins1_exp_h[] = {0x7fff, 0x8000, 0x8000, 0x7fff};
+  unsigned ins2_sqsub_ins1_exp_s[] = {0x7fffffff, 0x80000000, 0x80000000, 0x7fffffff};
+  uint64_t ins2_sqsub_ins1_exp_d[] = {0x7fffffffffffffff, 0x8000000000000000,
+                                      0x8000000000000000, 0x7fffffffffffffff};
+
+  IntArithHelper(config, fn, kBRegSize, ins2_b, ins1_b, ins2_sqsub_ins1_exp_b);
+  IntArithHelper(config, fn, kHRegSize, ins2_h, ins1_h, ins2_sqsub_ins1_exp_h);
+  IntArithHelper(config, fn, kSRegSize, ins2_s, ins1_s, ins2_sqsub_ins1_exp_s);
+  IntArithHelper(config, fn, kDRegSize, ins2_d, ins1_d, ins2_sqsub_ins1_exp_d);
+
+  fn = &MacroAssembler::Uqsub;
+
+  unsigned ins1_uqsub_ins2_exp_b[] = {0x71, 0x00, 0x00, 0x55};
+  unsigned ins1_uqsub_ins2_exp_h[] = {0x7171, 0x0000, 0x0000, 0x5555};
+  unsigned ins1_uqsub_ins2_exp_s[] = {0x70017171, 0x00000000, 0x00000000, 0x55555555};
+  uint64_t ins1_uqsub_ins2_exp_d[] = {0x7000000170017171, 0x0000000000000000,
+                                      0x0000000000000000, 0x5555555555555555};
+
+  IntArithHelper(config, fn, kBRegSize, ins1_b, ins2_b, ins1_uqsub_ins2_exp_b);
+  IntArithHelper(config, fn, kHRegSize, ins1_h, ins2_h, ins1_uqsub_ins2_exp_h);
+  IntArithHelper(config, fn, kSRegSize, ins1_s, ins2_s, ins1_uqsub_ins2_exp_s);
+  IntArithHelper(config, fn, kDRegSize, ins1_d, ins2_d, ins1_uqsub_ins2_exp_d);
+
+  unsigned ins2_uqsub_ins1_exp_b[] = {0x00, 0x71, 0x72, 0x00};
+  unsigned ins2_uqsub_ins1_exp_h[] = {0x0000, 0x7171, 0x7272, 0x0000};
+  unsigned ins2_uqsub_ins1_exp_s[] = {0x00000000, 0x70017171, 0x71127272, 0x00000000};
+  uint64_t ins2_uqsub_ins1_exp_d[] = {0x0000000000000000, 0x7000000170017171,
+                                      0x7111111271127272, 0x0000000000000000};
+
+  IntArithHelper(config, fn, kBRegSize, ins2_b, ins1_b, ins2_uqsub_ins1_exp_b);
+  IntArithHelper(config, fn, kHRegSize, ins2_h, ins1_h, ins2_uqsub_ins1_exp_h);
+  IntArithHelper(config, fn, kSRegSize, ins2_s, ins1_s, ins2_uqsub_ins1_exp_s);
+  IntArithHelper(config, fn, kDRegSize, ins2_d, ins1_d, ins2_uqsub_ins1_exp_d);
+  // clang-format on
+}
+
 }  // namespace aarch64
 }  // namespace vixl

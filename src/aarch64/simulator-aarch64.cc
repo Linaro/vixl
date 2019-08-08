@@ -7983,24 +7983,28 @@ void Simulator::VisitSVEIndexGeneration(const Instruction* instr) {
 
 void Simulator::VisitSVEIntArithmeticUnpredicated(const Instruction* instr) {
   USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
   switch (instr->Mask(SVEIntArithmeticUnpredicatedMask)) {
     case ADD_z_zz:
-      VIXL_UNIMPLEMENTED();
+      add(vform, zd, zn, zm);
       break;
     case SQADD_z_zz:
-      VIXL_UNIMPLEMENTED();
+      add(vform, zd, zn, zm).SignedSaturate(vform);
       break;
     case SQSUB_z_zz:
-      VIXL_UNIMPLEMENTED();
+      sub(vform, zd, zn, zm).SignedSaturate(vform);
       break;
     case SUB_z_zz:
-      VIXL_UNIMPLEMENTED();
+      sub(vform, zd, zn, zm);
       break;
     case UQADD_z_zz:
-      VIXL_UNIMPLEMENTED();
+      add(vform, zd, zn, zm).UnsignedSaturate(vform);
       break;
     case UQSUB_z_zz:
-      VIXL_UNIMPLEMENTED();
+      sub(vform, zd, zn, zm).UnsignedSaturate(vform);
       break;
     default:
       VIXL_UNIMPLEMENTED();
