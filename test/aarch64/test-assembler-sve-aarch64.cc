@@ -4161,5 +4161,112 @@ TEST_SVE(sve_addpl) {
   }
 }
 
+TEST_SVE(sve_adr_x) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t base = 0x1234567800000000;
+  __ Mov(x28, base);
+  __ Mov(x29, 48);
+  __ Mov(x30, -48);
+
+  // Simple scalar (or equivalent) cases.
+
+  __ Adr(x0, SVEMemOperand(x28));
+  __ Adr(x1, SVEMemOperand(x28, 0));
+  __ Adr(x2, SVEMemOperand(x28, 0, SVE_MUL_VL).ForZRegAccess());
+  __ Adr(x3, SVEMemOperand(x28, 0, SVE_MUL_VL).ForPRegAccess());
+  __ Adr(x4, SVEMemOperand(x28, xzr));
+  __ Adr(x5, SVEMemOperand(x28, xzr, LSL, 42));
+
+  // scalar-plus-immediate
+
+  // Unscaled immediates, handled with `Add`.
+  __ Adr(x6, SVEMemOperand(x28, 42));
+  __ Adr(x7, SVEMemOperand(x28, -42));
+  // Scaled immediates, handled with `Addvl` or `Addpl`.
+  __ Adr(x8, SVEMemOperand(x28, 31, SVE_MUL_VL).ForZRegAccess());
+  __ Adr(x9, SVEMemOperand(x28, -32, SVE_MUL_VL).ForZRegAccess());
+  __ Adr(x10, SVEMemOperand(x28, 31, SVE_MUL_VL).ForPRegAccess());
+  __ Adr(x11, SVEMemOperand(x28, -32, SVE_MUL_VL).ForPRegAccess());
+  // Out of `addvl` or `addpl` range.
+  __ Adr(x12, SVEMemOperand(x28, 42, SVE_MUL_VL).ForZRegAccess());
+  __ Adr(x13, SVEMemOperand(x28, -42, SVE_MUL_VL).ForZRegAccess());
+  __ Adr(x14, SVEMemOperand(x28, 42, SVE_MUL_VL).ForPRegAccess());
+  __ Adr(x15, SVEMemOperand(x28, -42, SVE_MUL_VL).ForPRegAccess());
+
+  // scalar-plus-scalar
+
+  __ Adr(x18, SVEMemOperand(x28, x29));
+  __ Adr(x19, SVEMemOperand(x28, x30));
+  __ Adr(x20, SVEMemOperand(x28, x29, LSL, 8));
+  __ Adr(x21, SVEMemOperand(x28, x30, LSL, 8));
+
+  // In-place updates, to stress scratch register allocation.
+
+  __ Mov(x22, 0xabcd000000000000);
+  __ Mov(x23, 0xabcd101100000000);
+  __ Mov(x24, 0xabcd202200000000);
+  __ Mov(x25, 0xabcd303300000000);
+  __ Mov(x26, 0xabcd404400000000);
+  __ Mov(x27, 0xabcd505500000000);
+
+  __ Adr(x22, SVEMemOperand(x22));
+  __ Adr(x23, SVEMemOperand(x23, 0x42));
+  __ Adr(x24, SVEMemOperand(x24, 3, SVE_MUL_VL).ForZRegAccess());
+  __ Adr(x25, SVEMemOperand(x25, 0x42, SVE_MUL_VL).ForPRegAccess());
+  __ Adr(x26, SVEMemOperand(x26, x29));
+  __ Adr(x27, SVEMemOperand(x27, x30, LSL, 4));
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint64_t vl = config->sve_vl_in_bytes();
+    VIXL_ASSERT((vl % kZRegBitsPerPRegBit) == 0);
+    uint64_t pl = vl / kZRegBitsPerPRegBit;
+
+    // Simple scalar (or equivalent) cases.
+    ASSERT_EQUAL_64(base, x0);
+    ASSERT_EQUAL_64(base, x1);
+    ASSERT_EQUAL_64(base, x2);
+    ASSERT_EQUAL_64(base, x3);
+    ASSERT_EQUAL_64(base, x4);
+    ASSERT_EQUAL_64(base, x5);
+
+    // scalar-plus-immediate
+    ASSERT_EQUAL_64(base + 42, x6);
+    ASSERT_EQUAL_64(base - 42, x7);
+    ASSERT_EQUAL_64(base + (31 * vl), x8);
+    ASSERT_EQUAL_64(base - (32 * vl), x9);
+    ASSERT_EQUAL_64(base + (31 * pl), x10);
+    ASSERT_EQUAL_64(base - (32 * pl), x11);
+    ASSERT_EQUAL_64(base + (42 * vl), x12);
+    ASSERT_EQUAL_64(base - (42 * vl), x13);
+    ASSERT_EQUAL_64(base + (42 * pl), x14);
+    ASSERT_EQUAL_64(base - (42 * pl), x15);
+
+    // scalar-plus-scalar
+    ASSERT_EQUAL_64(base + 48, x18);
+    ASSERT_EQUAL_64(base - 48, x19);
+    ASSERT_EQUAL_64(base + (48 << 8), x20);
+    ASSERT_EQUAL_64(base - (48 << 8), x21);
+
+    // In-place updates.
+    ASSERT_EQUAL_64(0xabcd000000000000, x22);
+    ASSERT_EQUAL_64(0xabcd101100000000 + 0x42, x23);
+    ASSERT_EQUAL_64(0xabcd202200000000 + (3 * vl), x24);
+    ASSERT_EQUAL_64(0xabcd303300000000 + (0x42 * pl), x25);
+    ASSERT_EQUAL_64(0xabcd404400000000 + 48, x26);
+    ASSERT_EQUAL_64(0xabcd505500000000 - (48 << 4), x27);
+
+    // Check that the inputs were unmodified.
+    ASSERT_EQUAL_64(base, x28);
+    ASSERT_EQUAL_64(48, x29);
+    ASSERT_EQUAL_64(-48, x30);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

@@ -133,6 +133,67 @@ void MacroAssembler::Addvl(const Register& xd,
   }
 }
 
+void MacroAssembler::Adr(const Register& xd, const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(!addr.IsScatterGather());
+  VIXL_ASSERT(xd.IsX());
+
+  SVEOffsetModifier mod = addr.GetOffsetModifier();
+  Register base = addr.GetScalarBase();
+
+  if (addr.IsEquivalentToScalar()) {
+    // For example:
+    //   [x0]
+    //   [x0, #0]
+    //   [x0, xzr, LSL 2]
+    Mov(xd, base);
+  } else if (addr.IsScalarPlusImmediate()) {
+    // For example:
+    //   [x0, #42]
+    //   [x0, #42, MUL VL]
+    int64_t offset = addr.GetImmediateOffset();
+    VIXL_ASSERT(offset != 0);  // Handled by IsEquivalentToScalar.
+    if (addr.IsMulVlForZReg()) {
+      Addvl(xd, base, offset);
+    } else if (addr.IsMulVlForPReg()) {
+      Addpl(xd, base, offset);
+    } else if (addr.IsMulVl()) {
+      // `Adr` cannot determine how to scale the operand unless the destination
+      // type is known.
+      VIXL_ABORT();
+    } else {
+      // IsScalarPlusImmediate() ensures that no other modifiers can occur.
+      VIXL_ASSERT(mod == NO_SVE_OFFSET_MODIFIER);
+      Add(xd, base, offset);
+    }
+  } else if (addr.IsScalarPlusScalar()) {
+    // For example:
+    //   [x0, x1]
+    //   [x0, x1, LSL #4]
+    Register offset = addr.GetScalarOffset();
+    VIXL_ASSERT(!offset.IsZero());  // Handled by IsEquivalentToScalar.
+    if (mod == SVE_LSL) {
+      Add(xd, base, Operand(offset, LSL, addr.GetShiftAmount()));
+    } else {
+      // IsScalarPlusScalar() ensures that no other modifiers can occur.
+      VIXL_ASSERT(mod == NO_SVE_OFFSET_MODIFIER);
+      Add(xd, base, offset);
+    }
+  } else {
+    // All other forms are scatter-gather addresses, which cannot be evaluated
+    // into an X register.
+    VIXL_UNREACHABLE();
+  }
+}
+
+void MacroAssembler::Adr(const ZRegister& zd, const SVEMemOperand& addr) {
+  USE(zd);
+  USE(addr);
+  // TODO: Handle all scatter-gather addressing modes, including the
+  // vector-plus-vector mode used by `adr` itself.
+  VIXL_UNIMPLEMENTED();
+}
+
 void MacroAssembler::Dup(const ZRegister& zd, IntegerOperand imm) {
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(imm.FitsInLane(zd));

@@ -3451,6 +3451,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Addpl(const Register& xd, const Register& xn, int64_t multiplier);
   void Addvl(const Register& xd, const Register& xn, int64_t multiplier);
+  // Note that unlike the core ISA, SVE's `adr` is not PC-relative.
+  // Together, the `Adr` implementations support _any_ SVEMemOperand, not just
+  // those that `adr` accepts. This allows them to be used as a common fall-back
+  // for out-of-range load and store operands.
+  void Adr(const Register& xd, const SVEMemOperand& addr);
+  void Adr(const ZRegister& zd, const SVEMemOperand& addr);
   void Adr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
