@@ -32,7 +32,7 @@ namespace aarch64 {
 Counter::Counter(const char* name, CounterType type)
     : count_(0), enabled_(false), type_(type) {
   VIXL_ASSERT(name != NULL);
-  strncpy(name_, name, kCounterNameMaxLength);
+  strncpy(name_, name, kCounterNameMaxLength - 1);
   // Make sure `name_` is always NULL-terminated, even if the source's length is
   // higher.
   name_[kCounterNameMaxLength - 1] = '\0';
